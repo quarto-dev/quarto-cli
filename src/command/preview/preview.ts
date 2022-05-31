@@ -29,6 +29,7 @@ import { inputFilesDir } from "../../core/render.ts";
 import {
   kQuartoRenderCommand,
   previewUnableToRenderResponse,
+  previewURL,
   printBrowsePreviewMessage,
   printWatchingForChangesMessage,
   render,
@@ -178,13 +179,12 @@ export async function preview(
       relative(projectOutputDir(project), result.outputFile),
     )
     : "";
-  const url = `http://${options.host}:${options.port}/${initialPath}`;
   if (
     options.browser &&
     !isRStudioServer() && !isRStudioWorkbench() && !isJupyterHubServer() &&
     isBrowserPreviewable(result.outputFile)
   ) {
-    await openUrl(url);
+    await openUrl(previewURL(options.host!, options.port!, initialPath));
   }
 
   // print status

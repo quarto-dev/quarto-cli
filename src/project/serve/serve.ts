@@ -64,6 +64,7 @@ import {
 } from "../../command/preview/preview.ts";
 import {
   previewUnableToRenderResponse,
+  previewURL,
   printBrowsePreviewMessage,
   printWatchingForChangesMessage,
   render,
@@ -469,9 +470,6 @@ export async function serveProject(
     },
   };
 
-  // compute site url
-  const siteUrl = `http://${options.host}:${options.port}/`;
-
   // print status
   printWatchingForChangesMessage();
 
@@ -498,10 +496,11 @@ export async function serveProject(
     : renderResultUrlPath(renderResult);
 
   // print browse url and open browser if requested
+  const path = (targetPath && targetPath !== "index.html") ? targetPath : "";
   printBrowsePreviewMessage(
     options.host!,
     options.port!,
-    (targetPath && targetPath !== "index.html") ? targetPath : "",
+    path,
   );
 
   if (
@@ -510,10 +509,7 @@ export async function serveProject(
     !isRStudioWorkbench() &&
     !isJupyterHubServer()
   ) {
-    const browseUrl = targetPath
-      ? (targetPath === "index.html" ? siteUrl : siteUrl + targetPath)
-      : siteUrl;
-    await openUrl(browseUrl);
+    await openUrl(previewURL(options.host!, options.port!, path));
   }
 
   // if this is a pdf then we tweak the options to correctly handle pdfjs

@@ -37,10 +37,7 @@ import {
   kSiteUrl,
   kWebsite,
 } from "./website-constants.ts";
-import {
-  ensureTrailingSlash,
-  removeTrailingSlash,
-} from "../../../core/path.ts";
+import { ensureTrailingSlash } from "../../../core/path.ts";
 type WebsiteConfigKey =
   | "title"
   | "image"
