@@ -270,7 +270,7 @@
   description:
     short: Whether to use document class settings for indentation.
     long: |
-      Wheher to use document class settings for indentation. If the document 
+      Whether to use document class settings for indentation. If the document 
       class settings are not used, the default LaTeX template removes indentation 
       and adds space between paragraphs
 
