@@ -238,12 +238,20 @@ export function objectSchema(params: {
       }
     }
 
-    if (propertyNames !== undefined) {
-      if (result.propertyNames !== undefined) {
-        result.propertyNames = anyOfSchema(propertyNames, result.propertyNames);
-      } else {
-        result.propertyNames = propertyNames;
-      }
+    // propertyNames === undefined means that the behavior should be
+    // identical to `propertyNames: true`.
+    //
+    // The semantics of extending schema A through B should be that the resulting
+    // propertyNames behaves as anyOf(A.propertyNames, B.propertyNames)
+    //
+    // If either of those is undefined, then we get anyOf(true, .) or anyOf(., true),
+    // which is equivalent to true, which is equivalent to undefined.
+    //
+    // as a result, we only set propertyNames on the extended schema if both
+    // A.propertyNames and B.propertyNames are defined.
+
+    if (propertyNames !== undefined && result.propertyNames !== undefined) {
+      result.propertyNames = anyOfSchema(propertyNames, result.propertyNames);
     }
   } else {
     result = {

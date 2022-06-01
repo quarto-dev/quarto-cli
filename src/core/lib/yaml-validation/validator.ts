@@ -139,7 +139,7 @@ class ValidationContext {
         const isRequiredError = (e: ValidationError) =>
           e.schemaPath.indexOf("required") === e.schemaPath.length - 1;
         const isPropertyNamesError = (e: ValidationError) =>
-          e.schemaPath.indexOf("required") !== -1;
+          e.schemaPath.indexOf("propertyNames") !== -1;
         if (
           innerResults.some((el) => el.length && isRequiredError(el[0])) &&
           innerResults.some((el) => el.length && isPropertyNamesError(el[0]))
@@ -152,6 +152,10 @@ class ValidationContext {
         // As a last resort, we sort suggestions based on "quality"
         const errorTypeQuality = (e: ValidationError): number => {
           const t = e.schemaPath.slice().reverse();
+          if (e.schemaPath.indexOf("propertyNames") !== -1) {
+            // suggesting invalid property names is bad if there are other errors to report
+            return 10;
+          }
           if (t[0] === "type") {
             if (t[1] === "null") {
               return 10; // suggesting a null value is bad.
