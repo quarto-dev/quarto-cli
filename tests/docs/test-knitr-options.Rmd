@@ -1,0 +1,22 @@
+---
+title: "Plot Test"
+knit: quarto render
+---
+
+# collapse and empty comment {#comment-empty}
+
+```{r}
+#| collapse: true
+#| prompt: true
+#| comment: ""
+1 + 2
+```
+
+# collapse and specific comment {#comment-change}
+
+```{r}
+#| collapse: true
+#| prompt: true
+#| comment: $
+1 + 2
+```
