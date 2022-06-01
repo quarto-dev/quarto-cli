@@ -104,6 +104,7 @@ function preprocessTable(el, parentId)
     local last = el.caption.long[#el.caption.long]
     if last and #last.content > 0 then
        -- check for tbl label
+      local label = nil
       local caption, attr = parseTableCaption(last.content)
       if startsWith(attr.identifier, "tbl-") then
         -- set the label and remove it from the caption
