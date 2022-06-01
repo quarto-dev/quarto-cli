@@ -9,7 +9,7 @@ import { join } from "path/mod.ts";
 
 import * as ld from "../../core/lodash.ts";
 
-import { Document, Element } from "../../core/deno-dom.ts";
+import { Document, Element, NodeType } from "../../core/deno-dom.ts";
 
 import { pathWithForwardSlashes } from "../../core/path.ts";
 
@@ -65,6 +65,8 @@ export function readAndInjectDependencies(
   if (htmlDependencies.length > 0) {
     const injector = domDependencyInjector(doc);
     processHtmlDependencies(htmlDependencies, inputDir, libDir, injector);
+    // Finalize the injection
+    injector.finalizeInjection();
   }
 
   return Promise.resolve({
@@ -93,6 +95,8 @@ export function resolveDependencies(
       libDir,
       injector,
     );
+    // Finalize the injection
+    injector.finalizeInjection();
 
     delete extras.html?.[kDependencies];
 
@@ -144,6 +148,8 @@ interface HtmlInjector {
   injectHtml(html: string): void;
 
   injectMeta(meta: Record<string, string>): void;
+
+  finalizeInjection(): void;
 }
 
 function processHtmlDependencies(
@@ -225,9 +231,30 @@ function processHtmlDependencies(
   }
 }
 
+const kDependencyTarget = "htmldependencies:E3FAD763";
+
 function domDependencyInjector(
   doc: Document,
 ): HtmlInjector {
+  // Locates the placeholder target for inserting content
+  const findTargetComment = () => {
+    for (const node of doc.head.childNodes) {
+      if (node.nodeType === NodeType.COMMENT_NODE) {
+        if (
+          node.textContent &&
+          node.textContent.trim() === kDependencyTarget
+        ) {
+          return node;
+        }
+      }
+    }
+
+    // We couldn't find a placeholder comment, just insert
+    // the nodes at the front of the head
+    return doc.head.firstChild;
+  };
+  const targetComment = findTargetComment();
+
   const injectEl = (
     el: Element,
     attribs?: Record<string, string>,
@@ -239,11 +266,11 @@ function domDependencyInjector(
       }
     }
     if (!afterBody) {
-      doc.head.appendChild(el);
-      doc.head.appendChild(doc.createTextNode("\n"));
+      doc.head.insertBefore(doc.createTextNode("\n"), targetComment);
+      doc.head.insertBefore(el, targetComment);
     } else {
       doc.body.appendChild(el);
-      doc.head.appendChild(doc.createTextNode("\n"));
+      doc.body.appendChild(doc.createTextNode("\n"));
     }
   };
 
@@ -299,12 +326,18 @@ function domDependencyInjector(
     });
   };
 
+  const finalizeInjection = () => {
+    // Remove the target comment
+    targetComment.remove();
+  };
+
   return {
     injectScript,
     injectStyle,
     injectLink,
     injectMeta,
     injectHtml,
+    finalizeInjection,
   };
 }
 
@@ -393,11 +426,15 @@ function lineDependencyInjector(
     });
   };
 
+  const finalizeInjection = () => {
+  };
+
   return {
     injectScript,
     injectStyle,
     injectLink,
     injectMeta,
     injectHtml,
+    finalizeInjection,
   };
 }
