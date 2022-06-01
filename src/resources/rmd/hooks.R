@@ -380,7 +380,7 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     }
     lineNumbers <- options[["code-line-numbers"]]
     if (!is.null(lineNumbers)) {
-      attr <- paste(attr, paste0('code-line-numbers="', as.character(lineNumbers), '"'))
+      attr <- paste(attr, paste0('code-line-numbers="', tolower(as.character(lineNumbers)), '"'))
     }
 
     lang <- tolower(options$engine)
