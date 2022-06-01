@@ -92,7 +92,7 @@
             enum: [pdf, epub, docx]
             description: |
               Download buttons for other formats to include on navbar or sidebar
-              (one or more of `pdf`, `epub`, and `docx)
+              (one or more of `pdf`, `epub`, and `docx`)
         tools:
           arrayOf:
             schema:

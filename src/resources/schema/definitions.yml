@@ -481,7 +481,7 @@
       site-path:
         string:
           description: |
-            Path to site (defaults to '/'). Not required if you specify `site-url`.
+            Path to site (defaults to `/`). Not required if you specify `site-url`.
       repo-url:
         string:
           description: "Base URL for website source code repository"
