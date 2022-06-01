@@ -1,5 +1,5 @@
 - name: project
-  description: MISSING_DESCRIPTION
+  description: Project configuration.
   schema:
     object:
       properties:
@@ -35,12 +35,12 @@
             ref: project-preview
 
 - name: website
-  description: MISSING_DESCRIPTION
+  description: Website configuration.
   schema:
     ref: base-website
 
 - name: book
-  description: MISSING_DESCRIPTION
+  description: Book configuration.
   schema:
     object:
       super:

@@ -6,7 +6,7 @@
   description: "Enable the slide overview mode"
 
 - name: menu
-  description: MISSING_DESCRIPTION
+  description: Configuration for revealjs menu.
   tags:
     formats: [revealjs]
   schema:
@@ -34,7 +34,7 @@
                   For slides with no title, attempt to use the start of the text content as the title instead.
 
 - name: chalkboard
-  description: MISSING_DESCRIPTION
+  description: Configuration for revealjs chalkboard.
   tags:
     formats: [revealjs]
   schema:
@@ -77,7 +77,7 @@
                   so that the notes canvas is drawn after the transition is completed.
 
 - name: multiplex
-  description: MISSING_DESCRIPTION
+  description: Configuraiotn for reveal presentation multiplexing.
   tags:
     formats: [revealjs]
   schema:

@@ -11143,13 +11143,13 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: {
             ref: "comments"
           },
-          description: "MISSING_DESCRIPTION"
+          description: "Configuration for document commenting."
         }
       ],
       "schema/document-crossref.yml": [
         {
           name: "crossref",
-          description: "MISSING_DESCRIPTION",
+          description: "Configuration for crossref labels and prefixes.",
           schema: {
             object: {
               properties: {
@@ -15113,7 +15113,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           name: "menu",
-          description: "MISSING_DESCRIPTION",
+          description: "Configuration for revealjs menu.",
           tags: {
             formats: [
               "revealjs"
@@ -15166,7 +15166,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           name: "chalkboard",
-          description: "MISSING_DESCRIPTION",
+          description: "Configuration for revealjs chalkboard.",
           tags: {
             formats: [
               "revealjs"
@@ -15228,7 +15228,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           name: "multiplex",
-          description: "MISSING_DESCRIPTION",
+          description: "Configuraiotn for reveal presentation multiplexing.",
           tags: {
             formats: [
               "revealjs"
@@ -16145,7 +16145,7 @@ var require_yaml_intelligence_resources = __commonJS({
       "schema/project.yml": [
         {
           name: "project",
-          description: "MISSING_DESCRIPTION",
+          description: "Project configuration.",
           schema: {
             object: {
               properties: {
@@ -16205,14 +16205,14 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           name: "website",
-          description: "MISSING_DESCRIPTION",
+          description: "Website configuration.",
           schema: {
             ref: "base-website"
           }
         },
         {
           name: "book",
-          description: "MISSING_DESCRIPTION",
+          description: "Book configuration.",
           schema: {
             object: {
               super: {
@@ -17095,7 +17095,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The text describing the creator or contributor (for example, creator\nname).",
         {
           short: "The role of this creator or contributor.",
-          long: 'The role of this creator or contributor using <a href="https://loc.gov/marc/relators/relaterm.html">MARC relators</a>.\nHuman readable translations to commonly used relators (e.g.&nbsp;\uFFFD\uFFFD\uFFFDauthor\u2019,\n\u2018editor\u2019) will attempt to be automatically translated.'
+          long: 'The role of this creator or contributor using <a href="https://loc.gov/marc/relators/relaterm.html">MARC relators</a>.\nHuman readable translations to commonly used relators (e.g.&nbsp;\u2018author\u2019,\n\u2018editor\u2019) will attempt to be automatically translated.'
         },
         "An alternate version of the creator or contributor text used for\nalphabatizing.",
         "The text describing the creator or contributor (for example, creator\nname).",

@@ -3,4 +3,4 @@
     formats: [$html-files]
   schema:
     ref: comments
-  description: MISSING_DESCRIPTION
+  description: Configuration for document commenting.

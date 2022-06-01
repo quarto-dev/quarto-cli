@@ -1,5 +1,5 @@
 - name: crossref
-  description: MISSING_DESCRIPTION
+  description: Configuration for crossref labels and prefixes.
   schema:
     object:
       properties:
