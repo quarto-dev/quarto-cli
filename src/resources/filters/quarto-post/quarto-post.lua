@@ -19,6 +19,7 @@ import("responsive.lua")
 import("latexdiv.lua")
 import("foldcode.lua")
 import("book-cleanup.lua")
+import("fig-cleanup.lua")
 import("ipynb.lua")
 import("ojs.lua")
 import("reveal.lua")
@@ -48,7 +49,8 @@ return {
     ipynb(),
     reveal(),
     tikz(),
-    delink()
+    delink(),
+    figCleanup()
   }),
   ojs(),
   quartoPostMetaInject(),
