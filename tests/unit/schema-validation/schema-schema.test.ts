@@ -16,7 +16,6 @@ import {
 } from "../../../src/core/lib/yaml-schema/common.ts";
 import { readAndValidateYamlFromFile } from "../../../src/core/schema/validated-yaml.ts";
 import { expandGlobSync } from "fs/expand_glob.ts";
-import { resolveSchema } from "../../../src/core/lib/yaml-validation/resolve.ts";
 import { readAndValidateYamlFromMappedString } from "../../../src/core/lib/yaml-schema/validated-yaml.ts";
 import { asMappedString } from "../../../src/core/lib/mapped-text.ts";
 

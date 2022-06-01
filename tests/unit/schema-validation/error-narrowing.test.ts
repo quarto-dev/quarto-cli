@@ -51,7 +51,6 @@ baz: 3
       .forSchemaPathToEndWith("required"));
 });
 
-// deno-lint-ignore require-await
 yamlValidationUnitTest("schema-narrowing", async () => {
   const _s1 = schemaFromString(`
 id: navigation-item-test-1
