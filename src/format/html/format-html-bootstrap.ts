@@ -360,7 +360,14 @@ function bootstrapHtmlPostprocessor(
       format.metadata[kAppendixStyle] !== false &&
       format.metadata[kAppendixStyle] !== "none"
     ) {
-      await processDocumentAppendix(input, inputTraits, format, flags, doc, offset);
+      await processDocumentAppendix(
+        input,
+        inputTraits,
+        format,
+        flags,
+        doc,
+        offset,
+      );
     }
 
     // no resource refs
@@ -632,6 +639,28 @@ const processFigureMarginCaption = (
   }
 };
 
+const processTableMarginCaption = (
+  captionContainer: Element,
+  doc: Document,
+) => {
+  // Find a caption
+  const caption = captionContainer.querySelector("caption");
+  if (caption) {
+    const marginCapEl = doc.createElement("DIV");
+    marginCapEl.classList.add("quarto-table-caption");
+    marginCapEl.classList.add("margin-caption");
+    marginCapEl.innerHTML = caption.innerHTML;
+
+    captionContainer.parentElement?.insertBefore(
+      marginCapEl,
+      captionContainer.nextElementSibling,
+    );
+
+    caption.remove();
+    removeCaptionClass(captionContainer);
+  }
+};
+
 // Process any captions that appear in margins
 const processMarginCaptions = (doc: Document) => {
   // Forward caption class from parents to the child fig caps
@@ -648,6 +677,23 @@ const processMarginCaptions = (doc: Document) => {
         processLayoutPanelMarginCaption(captionContainer);
       } else {
         processFigureMarginCaption(captionContainer, doc);
+      }
+    } else {
+      // Deal with table margin captions
+      if (figureEl.classList.contains("tbl-parent")) {
+        // This is table panel, so only grab the main caption
+        const capDivEl = figureEl.querySelector("div.panel-caption");
+        if (capDivEl) {
+          capDivEl.classList.add("margin-caption");
+          capDivEl.remove();
+          figureEl.appendChild(capDivEl);
+        }
+      } else {
+        // This is just a table, grab that caption
+        const table = figureEl.querySelector("table");
+        if (table) {
+          processTableMarginCaption(table, doc);
+        }
       }
     }
     removeCaptionClass(figureEl);
