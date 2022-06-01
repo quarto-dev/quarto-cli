@@ -84,9 +84,18 @@ function resolveColumnClassesForCodeCell(el)
           -- no known children were discovered, apply the column classes to the cell output display itself
           if not forwarded then 
             
-            local colClasses = computeClassesForScopedColumns(el)
-            local capClasses = computeClassesForScopedCaption(el)
-            applyClasses(colClasses, capClasses, el, childEl, childEl)
+            -- figure out whether there are tables inside this element
+            -- if so, use tbl scope, otherwise treat as a fig
+            local tableCount = countTables(el)
+            local scope = 'fig'
+            if tableCount > 0 then
+              scope = 'tbl'
+            end
+
+            -- forward the classes from the proper scope onto the cell-output-display div
+            local colClasses = computeClassesForScopedColumns(el, scope)
+            local capClasses = computeClassesForScopedCaption(el, scope)
+            applyClasses(colClasses, capClasses, el, childEl, childEl, scope)
 
           end
         end

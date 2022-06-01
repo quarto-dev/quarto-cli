@@ -189,6 +189,14 @@ function renderHtmlFigure(el, render)
   figureDiv.attr.classes:insert("quarto-figure")
   figureDiv.attr.classes:insert("quarto-figure-" .. align)
 
+  -- also forward any column or caption classes
+  local currentClasses = el.attr.classes
+  for _,k in pairs(currentClasses) do
+    if isCaptionClass(k) or isColumnClass(k) then
+      figureDiv.attr.classes:insert(k)
+    end
+  end
+
   -- begin figure
   figureDiv.content:insert(pandoc.RawBlock("html", "<figure>"))
   
