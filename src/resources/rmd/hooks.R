@@ -96,7 +96,7 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
   opts_hooks[["collapse"]] <- function(options) {
     if (isTRUE(options[["collapse"]])) {
       comment <- options[["comment"]]
-      if (is.null(comment) || !nzchar(comment) || is.na(comment)) {
+      if (is.null(comment) || is.na(comment)) {
         options[["comment"]] <- "##"
       }
     }
