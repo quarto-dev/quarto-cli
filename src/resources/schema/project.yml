@@ -66,11 +66,15 @@
           string:
             description: "Description metadata for HTML version of book"
         chapters:
-          ref: chapter-list
+          schema:
+            ref: chapter-list
           description: "Book part and chapter files"
+          hidden: true
         appendices:
-          ref: chapter-list
+          schema:
+            ref: chapter-list
           description: "Book appendix files"
+          hidden: true
         references:
           path:
             description: "Book references file"

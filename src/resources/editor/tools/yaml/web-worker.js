@@ -8855,7 +8855,7 @@ try {
                 },
                 "site-path": {
                   string: {
-                    description: "Path to site (defaults to '/'). Not required if you specify `site-url`.\n"
+                    description: "Path to site (defaults to `/`). Not required if you specify `site-url`.\n"
                   }
                 },
                 "repo-url": {
@@ -16271,12 +16271,18 @@ try {
                     }
                   },
                   chapters: {
-                    ref: "chapter-list",
-                    description: "Book part and chapter files"
+                    schema: {
+                      ref: "chapter-list"
+                    },
+                    description: "Book part and chapter files",
+                    hidden: true
                   },
                   appendices: {
-                    ref: "chapter-list",
-                    description: "Book appendix files"
+                    schema: {
+                      ref: "chapter-list"
+                    },
+                    description: "Book appendix files",
+                    hidden: true
                   },
                   references: {
                     path: {
@@ -16310,7 +16316,7 @@ try {
                         "epub",
                         "docx"
                       ],
-                      description: "Download buttons for other formats to include on navbar or sidebar\n(one or more of `pdf`, `epub`, and `docx)\n"
+                      description: "Download buttons for other formats to include on navbar or sidebar\n(one or more of `pdf`, `epub`, and `docx`)\n"
                     }
                   },
                   tools: {
@@ -17797,8 +17803,8 @@ try {
             short: "Color for links to other content within the document.",
             long: 'Color for links to other content within the document.\nSee <a href="https://wiki.contextgarden.net/Color">ConTeXt Color</a>\nfor additional information.'
           },
-          "MISSING_DESCRIPTION",
-          "MISSING_DESCRIPTION",
+          "Configuration for document commenting.",
+          "Configuration for crossref labels and prefixes.",
           "Use top level sections (H1) in this document as chapters.",
           "The delimiter used between the prefix and the caption.",
           "The title prefix used for figure captions.",
@@ -18431,12 +18437,12 @@ try {
             long: "Offset used to reduce the height of content within exported PDF\npages. This exists to account for environment differences based on how\nyou print to PDF. CLI printing options, like phantomjs and wkpdf, can\nend on precisely the total height of the document whereas in-browser\nprinting has to end one pixel before."
           },
           "Enable the slide overview mode",
-          "MISSING_DESCRIPTION",
+          "Configuration for revealjs menu.",
           "Side of the presentation where the menu will be shown\n(<code>left</code> or <code>right</code>)",
           "Width of the menu",
           "Add slide numbers to menu items",
           "For slides with no title, attempt to use the start of the text\ncontent as the title instead.",
-          "MISSING_DESCRIPTION",
+          "Configuration for revealjs chalkboard.",
           "Visual theme for drawing surface (<code>chalkboard</code> or\n<code>whiteboard</code>)",
           "The drawing width of the boardmarker. Defaults to 3. Larger values\ndraw thicker lines.",
           "The drawing width of the chalk. Defaults to 7. Larger values draw\nthicker lines.",
@@ -18444,7 +18450,7 @@ try {
           "Configuration option to prevent changes to existing drawings",
           "Add chalkboard buttons at the bottom of the slide",
           "Gives the duration (in ms) of the transition for a slide change, so\nthat the notes canvas is drawn after the transition is completed.",
-          "MISSING_DESCRIPTION",
+          "Configuraiotn for reveal presentation multiplexing.",
           "Multiplex token server (defaults to Reveal-hosted server)",
           "Unique presentation id provided by multiplex token server",
           "Secret provided by multiplex token server",
@@ -18547,7 +18553,7 @@ try {
           "The height of the preview image for this document.",
           "The width of the preview image for this document.",
           "The alt text for preview image on this page.",
-          "MISSING_DESCRIPTION",
+          "Project configuration.",
           "Project type (<code>default</code>, <code>website</code>, or\n<code>book</code>)",
           "Files to render (defaults to all files)",
           {
@@ -18559,8 +18565,8 @@ try {
           "Additional file resources to be copied to output directory",
           "Additional file resources to be copied to output directory",
           "Options for <code>quarto preview</code>",
-          "MISSING_DESCRIPTION",
-          "MISSING_DESCRIPTION",
+          "Website configuration.",
+          "Book configuration.",
           "Book title",
           "Description metadata for HTML version of book",
           "The path to the favicon for this website",
@@ -18748,7 +18754,7 @@ try {
           "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
           "Custom tools for navbar or sidebar",
           "internal-schema-hack",
-          "MISSING_DESCRIPTION",
+          "Project configuration.",
           "Project type (<code>default</code>, <code>website</code>, or\n<code>book</code>)",
           "Files to render (defaults to all files)",
           {
@@ -18760,8 +18766,8 @@ try {
           "Additional file resources to be copied to output directory",
           "Additional file resources to be copied to output directory",
           "Options for <code>quarto preview</code>",
-          "MISSING_DESCRIPTION",
-          "MISSING_DESCRIPTION",
+          "Website configuration.",
+          "Book configuration.",
           "Book title",
           "Description metadata for HTML version of book",
           "The path to the favicon for this website",
@@ -27067,7 +27073,6 @@ ${sourceContext}`;
         return fun(yaml);
       }
     }
-    console.log(JSON.stringify(yaml), null, 2);
     throw new Error("Internal Error: Cannot convert object; this should have failed validation.");
   }
   function objectSchemaFromFieldsObject(fields, exclude) {
