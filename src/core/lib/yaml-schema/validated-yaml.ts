@@ -40,6 +40,7 @@ const isObject = (value: unknown) => {
 export async function readAndValidateYamlFromMappedString(
   mappedYaml: MappedString,
   schema: Schema,
+  pruneErrors = true,
 ): Promise<{
   yaml: { [key: string]: unknown };
   yamlValidationErrors: LocalizedError[];
@@ -57,7 +58,11 @@ export async function readAndValidateYamlFromMappedString(
 
     const yaml = annotation.result;
     if (validateYaml) {
-      const valResult = await validator.validateParse(mappedYaml, annotation);
+      const valResult = await validator.validateParse(
+        mappedYaml,
+        annotation,
+        pruneErrors,
+      );
       return {
         yaml: yaml as { [key: string]: unknown },
         yamlValidationErrors: valResult.errors,

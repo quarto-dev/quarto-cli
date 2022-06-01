@@ -62,8 +62,14 @@ export class YAMLSchema {
   async validateParse(
     src: MappedString,
     annotation: AnnotatedParse,
+    pruneErrors = true,
   ) {
-    const validationErrors = validate(annotation, this.schema, src);
+    const validationErrors = validate(
+      annotation,
+      this.schema,
+      src,
+      pruneErrors,
+    );
 
     if (validationErrors.length) {
       const localizedErrors = this.transformErrors(

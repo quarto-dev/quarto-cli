@@ -156,6 +156,9 @@ class ValidationContext {
             // suggesting invalid property names is bad if there are other errors to report
             return 10;
           }
+          if (t[0] === "required") {
+            return 0; // we slightly prefer reporting "required" fields.
+          }
           if (t[0] === "type") {
             if (t[1] === "null") {
               return 10; // suggesting a null value is bad.
@@ -634,8 +637,9 @@ export function validate(
   value: AnnotatedParse,
   schema: Schema,
   source: MappedString,
+  pruneErrors = true,
 ): LocalizedError[] {
   const context = new ValidationContext();
 
-  return context.validate(schema, source, value);
+  return context.validate(schema, source, value, pruneErrors);
 }
