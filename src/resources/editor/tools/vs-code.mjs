@@ -7393,7 +7393,11 @@ var require_yaml_intelligence_resources = __commonJS({
           name: "fig-subcap",
           schema: {
             anyOf: [
-              true,
+              {
+                enum: [
+                  true
+                ]
+              },
               {
                 maybeArrayOf: "string"
               }
@@ -7878,7 +7882,11 @@ var require_yaml_intelligence_resources = __commonJS({
           name: "tbl-subcap",
           schema: {
             anyOf: [
-              true,
+              {
+                enum: [
+                  true
+                ]
+              },
               {
                 maybeArrayOf: "string"
               }
@@ -8026,15 +8034,11 @@ var require_yaml_intelligence_resources = __commonJS({
             engine: "knitr"
           },
           schema: {
-            anyOf: [
-              {
-                enum: [
-                  "markup",
-                  "asis",
-                  "hold",
-                  "hide"
-                ]
-              },
+            enum: [
+              "markup",
+              "asis",
+              "hold",
+              "hide",
               false
             ]
           },
@@ -8347,20 +8351,20 @@ var require_yaml_intelligence_resources = __commonJS({
                               "body-light",
                               "gruvbox-dark"
                             ]
-                          },
-                          "issue-term": {
-                            string: {
-                              description: {
-                                short: "How posts should be mapped to Github issues",
-                                long: "How posts should be mapped to Github issues\n(`pathname`, `url`, `title` or `og:title`)\n"
-                              },
-                              completions: [
-                                "pathname",
-                                "url",
-                                "title",
-                                "og:title"
-                              ]
-                            }
+                          }
+                        },
+                        "issue-term": {
+                          string: {
+                            description: {
+                              short: "How posts should be mapped to Github issues",
+                              long: "How posts should be mapped to Github issues\n(`pathname`, `url`, `title` or `og:title`)\n"
+                            },
+                            completions: [
+                              "pathname",
+                              "url",
+                              "title",
+                              "og:title"
+                            ]
                           }
                         }
                       },
@@ -8555,9 +8559,9 @@ var require_yaml_intelligence_resources = __commonJS({
                                     "apiUrl",
                                     "authority",
                                     "grantToken"
-                                  ],
-                                  description: "Alternative annotation services which the client should \nconnect to instead of connecting to the public Hypothesis \nservice at hypothes.is.\n"
-                                }
+                                  ]
+                                },
+                                description: "Alternative annotation services which the client should \nconnect to instead of connecting to the public Hypothesis \nservice at hypothes.is.\n"
                               }
                             },
                             branding: {
@@ -8794,21 +8798,22 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "Sites published from project",
           schema: {
             object: {
+              closed: true,
               properties: {
                 netlify: {
                   arrayOf: {
                     ref: "publish-record"
                   }
-                },
-                description: "Sites published to Netlify"
+                }
               },
-              additionalProperties: false
+              description: "Sites published to Netlify"
             }
           }
         },
         {
           id: "publish-record",
           object: {
+            closed: true,
             properties: {
               id: {
                 string: {
@@ -8820,8 +8825,7 @@ var require_yaml_intelligence_resources = __commonJS({
                   description: "Published URL for site"
                 }
               }
-            },
-            additionalProperties: false
+            }
           }
         },
         {
@@ -9266,7 +9270,7 @@ var require_yaml_intelligence_resources = __commonJS({
                           },
                           border: {
                             boolean: {
-                              descrition: "Whether to show a border on the sidebar (defaults to true for 'docked' sidebars)"
+                              description: "Whether to show a border on the sidebar (defaults to true for 'docked' sidebars)"
                             }
                           },
                           alignment: {
@@ -9452,16 +9456,18 @@ var require_yaml_intelligence_resources = __commonJS({
             },
             {
               object: {
-                part: {
-                  string: {
-                    description: "Part title or path to input file"
-                  }
-                },
-                chapters: {
-                  arrayOf: {
-                    ref: "navigation-item"
+                properties: {
+                  part: {
+                    string: {
+                      description: "Part title or path to input file"
+                    }
                   },
-                  description: "Path to chapter input file"
+                  chapters: {
+                    arrayOf: {
+                      ref: "navigation-item"
+                    },
+                    description: "Path to chapter input file"
+                  }
                 },
                 required: [
                   "part"
@@ -10071,8 +10077,10 @@ var require_yaml_intelligence_resources = __commonJS({
                 }
               },
               "citation-number": {
-                ref: "csl-number",
-                description: "Index (starting at 1) of the cited reference in the bibliography (generated by the CSL processor).",
+                schema: {
+                  ref: "csl-number",
+                  description: "Index (starting at 1) of the cited reference in the bibliography (generated by the CSL processor)."
+                },
                 hidden: true
               },
               "collection-editor": {
@@ -10187,7 +10195,9 @@ var require_yaml_intelligence_resources = __commonJS({
                 description: "Executive producer of the item (e.g. of a television series)."
               },
               "first-reference-note-number": {
-                ref: "csl-number",
+                schema: {
+                  ref: "csl-number"
+                },
                 description: {
                   short: "Number of a preceding note containing the first reference to the item.",
                   long: "Number of a preceding note containing the first reference to the item\n\nAssigned by the CSL processor; Empty in non-note-based styles or when the item hasn't \nbeen cited in any preceding notes in a document\n"
@@ -10406,8 +10416,10 @@ var require_yaml_intelligence_resources = __commonJS({
               },
               references: {
                 string: {
-                  short: "Resources related to the procedural history of a legal case or legislation.",
-                  long: 'Resources related to the procedural history of a legal case or legislation;\n\nCan also be used to refer to the procedural history of other items (e.g. \n"Conference canceled" for a presentation accepted as a conference that was subsequently \ncanceled; details of a retraction or correction notice)\n'
+                  description: {
+                    short: "Resources related to the procedural history of a legal case or legislation.",
+                    long: 'Resources related to the procedural history of a legal case or legislation;\n\nCan also be used to refer to the procedural history of other items (e.g. \n"Conference canceled" for a presentation accepted as a conference that was subsequently \ncanceled; details of a retraction or correction notice)\n'
+                  }
                 }
               },
               "reviewed-author": {
@@ -13901,7 +13913,7 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           name: "aspectratio",
           schema: {
-            anyOf: [
+            enum: [
               43,
               169,
               1610,
@@ -14940,7 +14952,11 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: {
             anyOf: [
               "number",
-              false
+              {
+                enum: [
+                  false
+                ]
+              }
             ]
           },
           default: 0,
@@ -16257,16 +16273,14 @@ var require_yaml_intelligence_resources = __commonJS({
                   ref: "chapter-list",
                   description: "Book part and chapter files"
                 },
+                appendices: {
+                  ref: "chapter-list",
+                  description: "Book appendix files"
+                },
                 references: {
                   path: {
                     description: "Book references file"
                   }
-                },
-                appendices: {
-                  arrayOf: {
-                    ref: "chapter-item"
-                  },
-                  description: "Book appendix files"
                 },
                 "output-file": {
                   path: {
@@ -16328,7 +16342,12 @@ var require_yaml_intelligence_resources = __commonJS({
           anyOf: [
             "number",
             "boolean",
-            "string"
+            "string",
+            {
+              enum: [
+                null
+              ]
+            }
           ]
         },
         {
@@ -16337,6 +16356,7 @@ var require_yaml_intelligence_resources = __commonJS({
             "string",
             {
               object: {
+                closed: true,
                 properties: {
                   short: "string",
                   long: "string"
@@ -16358,15 +16378,32 @@ var require_yaml_intelligence_resources = __commonJS({
               id: "string",
               hidden: "boolean",
               tags: "object",
+              errorDescription: "string",
               description: {
                 ref: "schema/description"
               }
+            },
+            propertyNames: {
+              enum: [
+                "additionalCompletions",
+                "completions",
+                "id",
+                "hidden",
+                "tags",
+                "errorDescription",
+                "description",
+                "default"
+              ]
             }
           }
         },
         {
           id: "schema/enum",
           object: {
+            closed: true,
+            super: {
+              resolveRef: "schema/base"
+            },
             properties: {
               enum: {
                 anyOf: [
@@ -16377,6 +16414,7 @@ var require_yaml_intelligence_resources = __commonJS({
                   },
                   {
                     object: {
+                      closed: true,
                       super: {
                         resolveRef: "schema/base"
                       },
@@ -16397,6 +16435,10 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           id: "schema/null",
           object: {
+            closed: true,
+            super: {
+              resolveRef: "schema/base"
+            },
             properties: {
               null: {
                 ref: "schema/schema"
@@ -16407,6 +16449,7 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           id: "schema/explicit-schema",
           object: {
+            closed: true,
             super: {
               resolveRef: "schema/base"
             },
@@ -16422,6 +16465,7 @@ var require_yaml_intelligence_resources = __commonJS({
           anyOf: [
             {
               object: {
+                closed: true,
                 super: {
                   resolveRef: "schema/base"
                 },
@@ -16432,6 +16476,10 @@ var require_yaml_intelligence_resources = __commonJS({
             },
             {
               object: {
+                closed: true,
+                super: {
+                  resolveRef: "schema/base"
+                },
                 properties: {
                   string: {
                     ref: "schema/schema"
@@ -16450,6 +16498,10 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           id: "schema/number",
           object: {
+            closed: true,
+            super: {
+              resolveRef: "schema/base"
+            },
             properties: {
               number: {
                 ref: "schema/schema"
@@ -16460,6 +16512,10 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           id: "schema/boolean",
           object: {
+            closed: true,
+            super: {
+              resolveRef: "schema/base"
+            },
             properties: {
               boolean: {
                 ref: "schema/schema"
@@ -16468,19 +16524,30 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
+          id: "schema/resolve-ref",
+          object: {
+            closed: true,
+            properties: {
+              resolveRef: "string"
+            }
+          }
+        },
+        {
           id: "schema/ref",
           object: {
-            super: {
-              resolveRef: "schema/base"
-            },
+            closed: true,
             properties: {
-              ref: "string"
+              ref: "string",
+              description: {
+                ref: "schema/description"
+              }
             }
           }
         },
         {
           id: "schema/maybe-array-of",
           object: {
+            closed: true,
             super: {
               resolveRef: "schema/base"
             },
@@ -16494,12 +16561,31 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           id: "schema/array-of",
           object: {
+            closed: true,
             super: {
               resolveRef: "schema/base"
             },
             properties: {
               arrayOf: {
-                ref: "schema/schema"
+                anyOf: [
+                  {
+                    ref: "schema/schema"
+                  },
+                  {
+                    object: {
+                      closed: true,
+                      super: {
+                        resolveRef: "schema/base"
+                      },
+                      properties: {
+                        length: "number",
+                        schema: {
+                          ref: "schema/schema"
+                        }
+                      }
+                    }
+                  }
+                ]
               }
             }
           }
@@ -16507,6 +16593,10 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           id: "schema/all-of",
           object: {
+            closed: true,
+            super: {
+              resolveRef: "schema/base"
+            },
             properties: {
               allOf: {
                 anyOf: [
@@ -16537,6 +16627,10 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           id: "schema/any-of",
           object: {
+            closed: true,
+            super: {
+              resolveRef: "schema/base"
+            },
             properties: {
               anyOf: {
                 anyOf: [
@@ -16567,11 +16661,26 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           id: "schema/record",
           object: {
+            closed: true,
+            super: {
+              resolveRef: "schema/base"
+            },
             properties: {
               record: {
                 anyOf: [
                   {
                     object: {
+                      additionalProperties: {
+                        ref: "schema/schema"
+                      }
+                    }
+                  },
+                  {
+                    object: {
+                      closed: true,
+                      super: {
+                        resolveRef: "schema/base"
+                      },
                       properties: {
                         properties: {
                           object: {
@@ -16580,17 +16689,10 @@ var require_yaml_intelligence_resources = __commonJS({
                             }
                           }
                         }
-                      }
-                    },
-                    additionalProperties: {
-                      ref: "schema/schema"
-                    }
-                  },
-                  {
-                    object: {
-                      additionalProperties: {
-                        ref: "schema/schema"
-                      }
+                      },
+                      required: [
+                        "properties"
+                      ]
                     }
                   }
                 ]
@@ -16601,77 +16703,95 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           id: "schema/object",
           object: {
+            closed: true,
+            super: {
+              resolveRef: "schema/base"
+            },
             properties: {
-              namingConvention: {
-                anyOf: [
-                  {
-                    enum: [
-                      "ignore"
-                    ]
+              object: {
+                object: {
+                  super: {
+                    resolveRef: "schema/base"
                   },
-                  {
-                    arrayOf: {
-                      enum: [
-                        "camelCase",
-                        "camel-case",
-                        "camel_case",
-                        "capitalizationCase",
-                        "capitalization-case",
-                        "capitalization_case",
-                        "underscoreCase",
-                        "underscore-case",
-                        "underscore_case",
-                        "snakeCase",
-                        "snake-case",
-                        "snake_case",
-                        "dashCase",
-                        "dash-case",
-                        "dash_case",
-                        "kebabCase",
-                        "kebab-case",
-                        "kebab_case"
+                  closed: true,
+                  properties: {
+                    namingConvention: {
+                      anyOf: [
+                        {
+                          enum: [
+                            "ignore"
+                          ]
+                        },
+                        {
+                          arrayOf: {
+                            enum: [
+                              "camelCase",
+                              "camel-case",
+                              "camel_case",
+                              "capitalizationCase",
+                              "capitalization-case",
+                              "capitalization_case",
+                              "underscoreCase",
+                              "underscore-case",
+                              "underscore_case",
+                              "snakeCase",
+                              "snake-case",
+                              "snake_case",
+                              "dashCase",
+                              "dash-case",
+                              "dash_case",
+                              "kebabCase",
+                              "kebab-case",
+                              "kebab_case"
+                            ]
+                          }
+                        }
                       ]
+                    },
+                    properties: {
+                      object: {
+                        additionalProperties: {
+                          ref: "schema/schema"
+                        }
+                      }
+                    },
+                    patternProperties: {
+                      object: {
+                        additionalProperties: {
+                          ref: "schema/schema"
+                        }
+                      }
+                    },
+                    propertyNames: {
+                      ref: "schema/schema"
+                    },
+                    additionalProperties: {
+                      ref: "schema/schema"
+                    },
+                    super: {
+                      ref: "schema/schema"
+                    },
+                    required: {
+                      anyOf: [
+                        {
+                          enum: [
+                            "all"
+                          ]
+                        },
+                        {
+                          arrayOf: "string"
+                        }
+                      ]
+                    },
+                    closed: "boolean",
+                    description: {
+                      ref: "schema/description"
+                    },
+                    completions: {
+                      arrayOf: "string"
                     }
                   }
-                ]
-              },
-              properties: {
-                object: {
-                  additionalProperties: {
-                    ref: "schema/schema"
-                  }
                 }
-              },
-              patternProperties: {
-                object: {
-                  additionalProperties: {
-                    ref: "schema/schema"
-                  }
-                }
-              },
-              propertyNames: {
-                ref: "schema/schema"
-              },
-              additionalProperties: {
-                ref: "schema/schema"
-              },
-              super: {
-                ref: "schema/schema"
-              },
-              required: {
-                anyOf: [
-                  {
-                    enum: [
-                      "all"
-                    ]
-                  },
-                  {
-                    arrayOf: "string"
-                  }
-                ]
-              },
-              completions: {
-                arrayOf: "string"
               }
             }
           }
@@ -16701,7 +16821,16 @@ var require_yaml_intelligence_resources = __commonJS({
               ref: "schema/ref"
             },
             {
+              ref: "schema/resolve-ref"
+            },
+            {
               ref: "schema/any-of"
+            },
+            {
+              ref: "schema/array-of"
+            },
+            {
+              ref: "schema/maybe-array-of"
             },
             {
               ref: "schema/all-of"
@@ -16718,6 +16847,7 @@ var require_yaml_intelligence_resources = __commonJS({
                 "boolean",
                 "path",
                 "string",
+                null,
                 "null",
                 "object"
               ]
@@ -16744,13 +16874,28 @@ var require_yaml_intelligence_resources = __commonJS({
               description: {
                 ref: "schema/description"
               },
-              tags: "object"
+              tags: "object",
+              errorMessage: "string"
             },
             required: [
               "name",
               "schema",
               "description"
-            ]
+            ],
+            propertyNames: {
+              enum: [
+                "name",
+                "schema",
+                "hidden",
+                "alias",
+                "disabled",
+                "enabled",
+                "description",
+                "tags",
+                "errorMessage",
+                "default"
+              ]
+            }
           }
         }
       ],
@@ -16838,6 +16983,10 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           short: "The Github theme that should be used for Utterances.",
           long: "The Github theme that should be used for Utterances\n(<code>github-light</code>, <code>github-dark</code>,\n<code>github-dark-orange</code>, <code>icy-dark</code>,\n<code>dark-blue</code>, <code>photon-dark</code>,\n<code>body-light</code>, or <code>gruvbox-dark</code>)"
+        },
+        {
+          short: "How posts should be mapped to Github issues",
+          long: "How posts should be mapped to Github issues (<code>pathname</code>,\n<code>url</code>, <code>title</code> or <code>og:title</code>)"
         },
         {
           short: "The Github repo that will be used to store comments.",
@@ -17005,6 +17154,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The style of sidebar (<code>docked</code> or\n<code>floating</code>).",
         "The sidebar\u2019s background color (named or hex color).",
         "The sidebar\u2019s foreground color (named or hex color).",
+        "Whether to show a border on the sidebar (defaults to true for\n\u2018docked\u2019 sidebars)",
         "Alignment of the items within the sidebar (<code>left</code>,\n<code>right</code>, or <code>center</code>)",
         "The depth at which the sidebar contents should be collapsed by\ndefault.",
         "When collapsed, pin the collapsed sidebar to the top of the page.",
@@ -17020,6 +17170,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The style of sidebar (<code>docked</code> or\n<code>floating</code>).",
         "The sidebar\u2019s background color (named or hex color).",
         "The sidebar\u2019s foreground color (named or hex color).",
+        "Whether to show a border on the sidebar (defaults to true for\n\u2018docked\u2019 sidebars)",
         "Alignment of the items within the sidebar (<code>left</code>,\n<code>right</code>, or <code>center</code>)",
         "The depth at which the sidebar contents should be collapsed by\ndefault.",
         "When collapsed, pin the collapsed sidebar to the top of the page.",
@@ -17087,6 +17238,8 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "<code>@username</code> of the content creator (must be a quoted\nstring)",
         "<code>@username</code> of the website (must be a quoted string)",
+        "Part title or path to input file",
+        "Path to chapter input file",
         {
           short: "The role of this creator or contributor.",
           long: 'The role of this creator or contributor using <a href="https://loc.gov/marc/relators/relaterm.html">MARC relators</a>.\nHuman readable translations to commonly used relators (e.g.&nbsp;\u2018author\u2019,\n\u2018editor\u2019) will attempt to be automatically translated.'
@@ -17358,6 +17511,10 @@ var require_yaml_intelligence_resources = __commonJS({
         "The publisher of the item.",
         "The geographic location of the publisher.",
         "Recipient (e.g.&nbsp;of a letter).",
+        {
+          short: "Resources related to the procedural history of a legal case or\nlegislation.",
+          long: "Resources related to the procedural history of a legal case or\nlegislation;\nCan also be used to refer to the procedural history of other items\n(e.g.&nbsp; \u201CConference canceled\u201D for a presentation accepted as a conference\nthat was subsequently canceled; details of a retraction or correction\nnotice)"
+        },
         "Author of the item reviewed by the current item.",
         "Type of the item being reviewed by the current item (e.g.&nbsp;book,\nfilm).",
         "Title of the item reviewed by the current item.",
@@ -18490,6 +18647,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The style of sidebar (<code>docked</code> or\n<code>floating</code>).",
         "The sidebar\u2019s background color (named or hex color).",
         "The sidebar\u2019s foreground color (named or hex color).",
+        "Whether to show a border on the sidebar (defaults to true for\n\u2018docked\u2019 sidebars)",
         "Alignment of the items within the sidebar (<code>left</code>,\n<code>right</code>, or <code>center</code>)",
         "The depth at which the sidebar contents should be collapsed by\ndefault.",
         "When collapsed, pin the collapsed sidebar to the top of the page.",
@@ -18505,6 +18663,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The style of sidebar (<code>docked</code> or\n<code>floating</code>).",
         "The sidebar\u2019s background color (named or hex color).",
         "The sidebar\u2019s foreground color (named or hex color).",
+        "Whether to show a border on the sidebar (defaults to true for\n\u2018docked\u2019 sidebars)",
         "Alignment of the items within the sidebar (<code>left</code>,\n<code>right</code>, or <code>center</code>)",
         "The depth at which the sidebar contents should be collapsed by\ndefault.",
         "When collapsed, pin the collapsed sidebar to the top of the page.",
@@ -18578,8 +18737,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Book publication date",
         "Book abstract",
         "Book part and chapter files",
-        "Book references file",
         "Book appendix files",
+        "Book references file",
         "Base name for single-file output (e.g.&nbsp;PDF, ePub)",
         "Cover image (used in HTML and ePub formats)",
         "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
@@ -18689,6 +18848,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The style of sidebar (<code>docked</code> or\n<code>floating</code>).",
         "The sidebar\u2019s background color (named or hex color).",
         "The sidebar\u2019s foreground color (named or hex color).",
+        "Whether to show a border on the sidebar (defaults to true for\n\u2018docked\u2019 sidebars)",
         "Alignment of the items within the sidebar (<code>left</code>,\n<code>right</code>, or <code>center</code>)",
         "The depth at which the sidebar contents should be collapsed by\ndefault.",
         "When collapsed, pin the collapsed sidebar to the top of the page.",
@@ -18704,6 +18864,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The style of sidebar (<code>docked</code> or\n<code>floating</code>).",
         "The sidebar\u2019s background color (named or hex color).",
         "The sidebar\u2019s foreground color (named or hex color).",
+        "Whether to show a border on the sidebar (defaults to true for\n\u2018docked\u2019 sidebars)",
         "Alignment of the items within the sidebar (<code>left</code>,\n<code>right</code>, or <code>center</code>)",
         "The depth at which the sidebar contents should be collapsed by\ndefault.",
         "When collapsed, pin the collapsed sidebar to the top of the page.",
@@ -18777,8 +18938,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Book publication date",
         "Book abstract",
         "Book part and chapter files",
-        "Book references file",
         "Book appendix files",
+        "Book references file",
         "Base name for single-file output (e.g.&nbsp;PDF, ePub)",
         "Cover image (used in HTML and ePub formats)",
         "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
@@ -25640,7 +25801,7 @@ var ValidationContext = class {
       if (node.edge === "anyOf" && pruneErrors) {
         const innerResults = node.children.map(inner);
         const isRequiredError = (e) => e.schemaPath.indexOf("required") === e.schemaPath.length - 1;
-        const isPropertyNamesError = (e) => e.schemaPath.indexOf("required") !== -1;
+        const isPropertyNamesError = (e) => e.schemaPath.indexOf("propertyNames") !== -1;
         if (innerResults.some((el) => el.length && isRequiredError(el[0])) && innerResults.some((el) => el.length && isPropertyNamesError(el[0]))) {
           return innerResults.filter((r) => {
             return r.length && r[0].schemaPath.slice(-1)[0] === "required";
@@ -25648,6 +25809,9 @@ var ValidationContext = class {
         }
         const errorTypeQuality = (e) => {
           const t = e.schemaPath.slice().reverse();
+          if (e.schemaPath.indexOf("propertyNames") !== -1) {
+            return 10;
+          }
           if (t[0] === "type") {
             if (t[1] === "null") {
               return 10;
@@ -26210,12 +26374,8 @@ function objectSchema(params = {}) {
         result.additionalProperties = additionalProperties;
       }
     }
-    if (propertyNames !== void 0) {
-      if (result.propertyNames !== void 0) {
-        result.propertyNames = anyOfSchema(propertyNames, result.propertyNames);
-      } else {
-        result.propertyNames = propertyNames;
-      }
+    if (propertyNames !== void 0 && result.propertyNames !== void 0) {
+      result.propertyNames = anyOfSchema(propertyNames, result.propertyNames);
     }
   } else {
     result = {
@@ -26893,6 +27053,7 @@ function convertFromYaml(yaml) {
       return fun(yaml);
     }
   }
+  console.log(JSON.stringify(yaml), null, 2);
   throw new Error("Internal Error: Cannot convert object; this should have failed validation.");
 }
 function objectSchemaFromFieldsObject(fields, exclude) {

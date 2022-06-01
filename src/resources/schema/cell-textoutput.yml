@@ -80,9 +80,7 @@
   tags:
     engine: knitr
   schema:
-    anyOf:
-      - enum: [markup, asis, hold, hide]
-      - false
+    enum: [markup, asis, hold, hide, false]
   default: markup
   description:
     short: "How to display text results"

@@ -3,11 +3,13 @@
     - number
     - boolean
     - string
+    - enum: [null]
 
 - id: schema/description
   anyOf:
     - string
     - object:
+        closed: true
         properties:
           short: string
           long: string
@@ -22,17 +24,32 @@
       id: string
       hidden: boolean
       tags: object
+      errorDescription: string
       description:
         ref: schema/description
+    propertyNames:
+      enum:
+        - additionalCompletions
+        - completions
+        - id
+        - hidden
+        - tags
+        - errorDescription
+        - description
+        - default # don't validate but accept
 
 - id: schema/enum
   object:
+    closed: true
+    super:
+      resolveRef: schema/base
     properties:
       enum:
         anyOf:
           - arrayOf:
               ref: schema/scalar
           - object:
+              closed: true
               super:
                 resolveRef: schema/base
               properties:
@@ -42,12 +59,16 @@
 
 - id: schema/null
   object:
+    closed: true
+    super:
+      resolveRef: schema/base
     properties:
       null:
         ref: schema/schema
 
 - id: schema/explicit-schema
   object:
+    closed: true
     super:
       resolveRef: schema/base
     properties:
@@ -57,11 +78,15 @@
 - id: schema/string
   anyOf:
     - object:
+        closed: true
         super:
           resolveRef: schema/base
         properties:
           pattern: string
     - object:
+        closed: true
+        super:
+          resolveRef: schema/base
         properties:
           string:
             ref: schema/schema
@@ -72,25 +97,46 @@
 
 - id: schema/number
   object:
+    closed: true
+    super:
+      resolveRef: schema/base
     properties:
       number:
         ref: schema/schema
 
 - id: schema/boolean
   object:
+    closed: true
+    super:
+      resolveRef: schema/base
     properties:
       boolean:
         ref: schema/schema
 
+- id: schema/resolve-ref
+  object:
+    closed: true
+    properties:
+      resolveRef: string
+
 - id: schema/ref
   object:
-    super:
-      resolveRef: schema/base
+    closed: true
     properties:
       ref: string
+      description:
+        ref: schema/description
+  # NB: schema/ref is _not_ a schema/base.
+
+  #object:
+  #  super:
+  #    resolveRef: schema/base
+  #  properties:
+  #    ref: string
 
 - id: schema/maybe-array-of
   object:
+    closed: true
     super:
       resolveRef: schema/base
     properties:
@@ -99,14 +145,27 @@
 
 - id: schema/array-of
   object:
+    closed: true
     super:
       resolveRef: schema/base
     properties:
       arrayOf:
-        ref: schema/schema
+        anyOf:
+          - ref: schema/schema
+          - object:
+              closed: true
+              super:
+                resolveRef: schema/base
+              properties:
+                length: number
+                schema:
+                  ref: schema/schema
 
 - id: schema/all-of
   object:
+    closed: true
+    super:
+      resolveRef: schema/base
     properties:
       allOf:
         anyOf:
@@ -122,6 +181,9 @@
 
 - id: schema/any-of
   object:
+    closed: true
+    super:
+      resolveRef: schema/base
     properties:
       anyOf:
         anyOf:
@@ -137,69 +199,86 @@
 
 - id: schema/record
   object:
+    closed: true
+    super:
+      resolveRef: schema/base
     properties:
       record:
         anyOf:
           - object:
+              additionalProperties:
+                ref: schema/schema
+          - object:
+              closed: true
+              super:
+                resolveRef: schema/base
               properties:
                 properties:
                   object:
                     additionalProperties:
                       ref: schema/schema
-            additionalProperties:
-              ref: schema/schema
-          - object:
-              additionalProperties:
-                ref: schema/schema
+              required: [properties]
 
 - id: schema/object
   object:
+    closed: true
+    super:
+      resolveRef: schema/base
     properties:
-      namingConvention:
-        anyOf:
-          - enum: ["ignore"]
-          - arrayOf:
-              enum:
-                # because this particular setup is especially likely to lead to typos,
-                # we support all naming conventions in describing naming conventions
-                - "camelCase"
-                - "camel-case"
-                - "camel_case"
-                - "capitalizationCase"
-                - "capitalization-case"
-                - "capitalization_case"
-                - "underscoreCase"
-                - "underscore-case"
-                - "underscore_case"
-                - "snakeCase"
-                - "snake-case"
-                - "snake_case"
-                - "dashCase"
-                - "dash-case"
-                - "dash_case"
-                - "kebabCase"
-                - "kebab-case"
-                - "kebab_case"
-      properties:
+      object:
         object:
-          additionalProperties:
-            ref: schema/schema
-      patternProperties:
-        object:
-          additionalProperties:
-            ref: schema/schema
-      propertyNames:
-        ref: schema/schema
-      additionalProperties:
-        ref: schema/schema
-      super:
-        ref: schema/schema
-      required:
-        anyOf:
-          - enum: ["all"]
-          - arrayOf: string
-      completions:
-        arrayOf: string
+          super:
+            resolveRef: schema/base
+          closed: true
+          properties:
+            namingConvention:
+              anyOf:
+                - enum: ["ignore"]
+                - arrayOf:
+                    enum:
+                      # because this particular setup is especially likely to lead to typos,
+                      # we support all naming conventions in describing naming conventions
+                      - "camelCase"
+                      - "camel-case"
+                      - "camel_case"
+                      - "capitalizationCase"
+                      - "capitalization-case"
+                      - "capitalization_case"
+                      - "underscoreCase"
+                      - "underscore-case"
+                      - "underscore_case"
+                      - "snakeCase"
+                      - "snake-case"
+                      - "snake_case"
+                      - "dashCase"
+                      - "dash-case"
+                      - "dash_case"
+                      - "kebabCase"
+                      - "kebab-case"
+                      - "kebab_case"
+            properties:
+              object:
+                additionalProperties:
+                  ref: schema/schema
+            patternProperties:
+              object:
+                additionalProperties:
+                  ref: schema/schema
+            propertyNames:
+              ref: schema/schema
+            additionalProperties:
+              ref: schema/schema
+            super:
+              ref: schema/schema
+            required:
+              anyOf:
+                - enum: ["all"]
+                - arrayOf: string
+            closed: boolean
+            description:
+              ref: schema/description
+            completions:
+              arrayOf: string
 
 - id: schema/schema
   anyOf:
@@ -210,11 +289,14 @@
     - ref: schema/number
     - ref: schema/boolean
     - ref: schema/ref
+    - ref: schema/resolve-ref
     - ref: schema/any-of
+    - ref: schema/array-of
+    - ref: schema/maybe-array-of
     - ref: schema/all-of
     - ref: schema/record
     - ref: schema/object
-    - enum: ["number", "boolean", "path", "string", "null", "object"]
+    - enum: ["number", "boolean", "path", "string", null, "null", "object"]
   description: "be a yaml schema"
 
 - id: schema/schema-field
@@ -232,4 +314,17 @@
       description:
         ref: schema/description
       tags: object
+      errorMessage: string
     required: ["name", "schema", "description"]
+    propertyNames:
+      enum:
+        - name
+        - schema
+        - hidden
+        - alias
+        - disabled
+        - enabled
+        - description
+        - tags
+        - errorMessage
+        - default # no schema, but entry allowed

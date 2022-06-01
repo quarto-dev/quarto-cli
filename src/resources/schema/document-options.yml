@@ -183,7 +183,7 @@
 
 - name: aspectratio
   schema:
-    anyOf:
+    enum:
       - 43
       - 169
       - 1610

@@ -132,7 +132,7 @@
   schema:
     anyOf:
       - number
-      - false
+      - enum: [false]
   default: 0
   description: "Automatically progress all slides at the specified interval"
 

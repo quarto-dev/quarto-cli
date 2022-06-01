@@ -18,7 +18,7 @@
 - name: fig-subcap
   schema:
     anyOf:
-      - true
+      - enum: [true]
       - maybeArrayOf: string
   description: Figure subcaptions
 
