@@ -105,3 +105,40 @@ function createTableCaption(caption, attr)
   end
 end
 
+
+function countTables(div)
+  local tables = 0
+  pandoc.walk_block(div, {
+    Table = function(table)
+      tables = tables + 1
+    end,
+    RawBlock = function(raw)
+      if hasRawHtmlTable(raw) or hasRawLatexTable(raw) then
+        tables = tables + 1
+      end
+    end
+  })
+  return tables
+end
+
+
+function hasRawHtmlTable(raw)
+  if _quarto.format.isRawHtml(raw) and _quarto.format.isHtmlOutput() then
+    return raw.text:match(htmlTablePattern())
+  else
+    return false
+  end
+end
+
+function hasRawLatexTable(raw)
+  if _quarto.format.isRawLatex(raw) and _quarto.format.isLatexOutput() then
+    for i,pattern in ipairs(_quarto.patterns.latexTablePatterns) do
+      if raw.text:match(pattern) then
+        return true
+      end
+    end
+    return false
+  else
+    return false
+  end
+end

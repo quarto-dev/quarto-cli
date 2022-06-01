@@ -1463,11 +1463,40 @@ local function resolveDependencyLinkTags(linkTags)
    end
 end
 
+local latexTableWithOptionsPattern = "(\\begin{table}%[%w+%])(.*)(\\end{table})"
+local latexTablePattern = "(\\begin{table})(.*)(\\end{table})"
+local latexLongtablePatternwWithPosAndAlign = "(\\begin{longtable}%[[^%]]+%]{.*})(.*)(\\end{longtable})"
+local latexLongtablePatternWithPos = "(\\begin{longtable}%[[^%]]+%])(.*)(\\end{longtable})"
+local latexLongtablePatternWithAlign = "(\\begin{longtable}{.*})(.*)(\\end{longtable})"
+local latexLongtablePattern = "(\\begin{longtable})(.*)(\\end{longtable})"
+local latexTabularPatternWithPosAndAlign = "(\\begin{tabular}%[[^%]]+%]{.*})(.*)(\\end{tabular})"
+local latexTabularPatternWithPos = "(\\begin{tabular}%[[^%]]+%])(.*)(\\end{tabular})"
+local latexTabularPatternWithAlign = "(\\begin{tabular}{.*})(.*)(\\end{tabular})"
+local latexTabularPattern = "(\\begin{tabular})(.*)(\\end{tabular})"
+
+local latexTablePatterns = pandoc.List({
+  latexTableWithOptionsPattern,
+  latexTablePattern,
+  latexLongtablePatternwWithPosAndAlign,
+  latexLongtablePatternWithPos,
+  latexLongtablePatternWithAlign,
+  latexLongtablePattern,
+  latexTabularPatternWithPosAndAlign,
+  latexTabularPatternWithPos,
+  latexTabularPatternWithAlign,
+  latexTabularPattern,
+})
+
 -- Quarto internal module - makes functions available
 -- through the filters
 _quarto = {
    processDependencies = processDependencies,
-   format = format
+   format = format,
+   patterns = {
+      latexTabularPattern = latexTabularPattern,
+      latexTablePattern = latexTablePattern,
+      latexTablePatterns = latexTablePatterns
+   }
  } 
 
 -- The main exports of the quarto module

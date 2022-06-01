@@ -4,30 +4,6 @@
 kTblCap = "tbl-cap"
 kTblSubCap = "tbl-subcap"
 
-local latexTableWithOptionsPattern = "(\\begin{table}%[%w+%])(.*)(\\end{table})"
-local latexTablePattern = "(\\begin{table})(.*)(\\end{table})"
-local latexLongtablePatternwWithPosAndAlign = "(\\begin{longtable}%[[^%]]+%]{.*})(.*)(\\end{longtable})"
-local latexLongtablePatternWithPos = "(\\begin{longtable}%[[^%]]+%])(.*)(\\end{longtable})"
-local latexLongtablePatternWithAlign = "(\\begin{longtable}{.*})(.*)(\\end{longtable})"
-local latexLongtablePattern = "(\\begin{longtable})(.*)(\\end{longtable})"
-local latexTabularPatternWithPosAndAlign = "(\\begin{tabular}%[[^%]]+%]{.*})(.*)(\\end{tabular})"
-local latexTabularPatternWithPos = "(\\begin{tabular}%[[^%]]+%])(.*)(\\end{tabular})"
-local latexTabularPatternWithAlign = "(\\begin{tabular}{.*})(.*)(\\end{tabular})"
-local latexTabularPattern = "(\\begin{tabular})(.*)(\\end{tabular})"
-
-local latexTablePatterns = pandoc.List({
-  latexTableWithOptionsPattern,
-  latexTablePattern,
-  latexLongtablePatternwWithPosAndAlign,
-  latexLongtablePatternWithPos,
-  latexLongtablePatternWithAlign,
-  latexLongtablePattern,
-  latexTabularPatternWithPosAndAlign,
-  latexTabularPatternWithPos,
-  latexTabularPatternWithAlign,
-  latexTabularPattern,
-})
-
 local latexCaptionPattern =  "(\\caption{)(.-)(}[^\n]*\n)"
 
 function tableCaptions() 
@@ -52,8 +28,8 @@ function tableCaptions()
                 el = pandoc.walk_block(el, {
                   RawBlock = function(raw)
                     if _quarto.format.isRawLatex(raw) then
-                      if raw.text:match(latexTabularPattern) and not raw.text:match(latexTablePattern) then
-                        raw.text = raw.text:gsub(latexTabularPattern, 
+                      if raw.text:match(_quarto.patterns.latexTabularPattern) and not raw.text:match(_quarto.patterns.latexTablePattern) then
+                        raw.text = raw.text:gsub(_quarto.patterns.latexTabularPattern, 
                                                 "\\begin{table}\n\\centering\n%1%2%3\n\\end{table}\n",
                                                 1)
                         return raw                       
@@ -198,7 +174,7 @@ function applyTableCaptions(el, tblCaptions, tblLabels)
           end
           raw.text = raw.text:gsub(captionPattern, "%1" .. captionText:gsub("%%", "%%%%") .. "%3", 1)
         elseif hasRawLatexTable(raw) then
-          for i,pattern in ipairs(latexTablePatterns) do
+          for i,pattern in ipairs(_quarto.patterns.latexTablePatterns) do
             if raw.text:match(pattern) then
               raw.text = applyLatexTableCaption(raw.text, tblCaptions[idx], tblLabels[idx], pattern)
               break
@@ -249,41 +225,4 @@ function extractTblCapAttrib(el, name, subcap)
     return value
   end
   return nil
-end
-
-function countTables(div)
-  local tables = 0
-  pandoc.walk_block(div, {
-    Table = function(table)
-      tables = tables + 1
-    end,
-    RawBlock = function(raw)
-      if hasRawHtmlTable(raw) or hasRawLatexTable(raw) then
-        tables = tables + 1
-      end
-    end
-  })
-  return tables
-end
-
-
-function hasRawHtmlTable(raw)
-  if _quarto.format.isRawHtml(raw) and _quarto.format.isHtmlOutput() then
-    return raw.text:match(htmlTablePattern())
-  else
-    return false
-  end
-end
-
-function hasRawLatexTable(raw)
-  if _quarto.format.isRawLatex(raw) and _quarto.format.isLatexOutput() then
-    for i,pattern in ipairs(latexTablePatterns) do
-      if raw.text:match(pattern) then
-        return true
-      end
-    end
-    return false
-  else
-    return false
-  end
 end
