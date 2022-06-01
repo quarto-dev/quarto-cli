@@ -71,14 +71,7 @@ export async function breakQuartoMd(
       | "directive",
     index: number,
   ) => {
-    if (lineBuffer.length) {
-      // TODO understand why was this here. This makes our line
-      // count computations wrong
-      //
-      // if (lineBuffer[lineBuffer.length - 1].substring === "") {
-      //   lineBuffer.splice(lineBuffer.length - 1, 1);
-      // }
-
+    if (lineBuffer.length || cell_type === "code") {
       const mappedChunks: Range[] = [];
       for (const line of lineBuffer) {
         mappedChunks.push(line.range);

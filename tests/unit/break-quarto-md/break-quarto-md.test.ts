@@ -5,11 +5,24 @@
 *
 */
 
-import { breakQuartoMd } from "../../src/core/lib/break-quarto-md.ts";
-import { unitTest } from "../test.ts";
+import { breakQuartoMd } from "../../../src/core/lib/break-quarto-md.ts";
+import { unitTest } from "../../test.ts";
 import { assert } from "testing/asserts.ts";
+import { docs } from "../../utils.ts";
+import { initYamlIntelligenceResourcesFromFilesystem } from "../../../src/core/schema/utils.ts";
+
+unitTest("break-quarto-md - empty code cells", async () => {
+  await initYamlIntelligenceResourcesFromFilesystem();
+  const qmd = Deno.readTextFileSync(
+    docs("break-quarto-md/github-issue-1034.qmd"),
+  );
+
+  const result = await breakQuartoMd(qmd);
+  assert(result.cells.length === 9);
+});
 
 unitTest("break-quarto-md - indented code cells", async () => {
+  await initYamlIntelligenceResourcesFromFilesystem();
   const qmd = `---
 title: Blah
 ---
@@ -37,6 +50,7 @@ Blah blah
 });
 
 unitTest("break-quarto-md - math", async () => {
+  await initYamlIntelligenceResourcesFromFilesystem();
   const qmd = `---
 title: foo
 ---
@@ -56,6 +70,7 @@ Some more text;
 });
 
 unitTest("break-quarto-md - code", async () => {
+  await initYamlIntelligenceResourcesFromFilesystem();
   const qmd = `---
 title: mermaid test
 format: html
@@ -86,6 +101,7 @@ Do not touch this, please.
 });
 
 unitTest("break-quarto-md - nested code", async () => {
+  await initYamlIntelligenceResourcesFromFilesystem();
   const qmd = `---
 title: mermaid test
 format: html

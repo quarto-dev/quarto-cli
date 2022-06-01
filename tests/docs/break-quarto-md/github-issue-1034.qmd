@@ -1,0 +1,28 @@
+---
+execute:
+  echo: true
+---
+
+The original chunk:
+
+```{r}
+#| label: foo
+1 + 2
+```
+
+Using `ref.label` does not work with an empty body:
+
+```{r, ref.label = "foo"}
+```
+
+Using `ref.label` does work with a blank line body:
+
+```{r, ref.label = "foo"}
+
+```
+
+Using `<<...>>` noweb notation does work:
+
+```{r}
+<<foo>>
+```
