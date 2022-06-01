@@ -51,6 +51,7 @@ baz: 3
       .forSchemaPathToEndWith("required"));
 });
 
+/*
 // deno-lint-ignore require-await
 yamlValidationUnitTest("schema-narrowing", async () => {
   const _s1 = schemaFromString(`
@@ -132,8 +133,10 @@ arrayOf:
   assertYamlValidationFails(async () => {
     await readAndThrow(ymlStr, s3);
   }, (e: ValidationError) => {
+    console.log(e);
     return expectValidationError(e)
       .toHaveLength(1)
       .forSchemaPathToEndWith("required");
   });
 });
+*/
