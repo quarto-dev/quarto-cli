@@ -184,15 +184,10 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
       }
     }
 
-    # determine label and caption output
-    label <- paste0(labelId(label), " ")
-    if (is_figure_label(label)) {
-      if (!is.null(fig.cap) && !is.null(fig.subcap)) {
-        cell.cap <- paste0("\n", fig.cap, "\n")
-      } else {
-        label = NULL
-      }
-    } else {
+    # caption output
+    if (!is.null(fig.cap) && !is.null(fig.subcap)) {
+      cell.cap <- paste0("\n", fig.cap, "\n")
+    }  else {
       label <- NULL
     }
 
