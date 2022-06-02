@@ -98,30 +98,31 @@ export function includesForJupyterWidgetDependencies(
   }
 
   // write required dependencies into head
-  const afterBody: string[] = [];
+  const head: string[] = [];
   if (haveJavascriptWidgets || haveJupyterWidgets) {
-    afterBody.push(
+    head.push(
       '<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>',
     );
-    afterBody.push(
+    head.push(
       '<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>',
     );
-    afterBody.push(
+    head.push(
       "<script type=\"application/javascript\">define('jquery', [],function() {return window.jQuery;})</script>",
     );
   }
 
   // html libraries (e.g. plotly)
-  afterBody.push(...htmlLibraries);
+  head.push(...htmlLibraries);
 
   // jupyter widget runtime
   if (haveJupyterWidgets) {
-    afterBody.push(
+    head.push(
       '<script src="https://unpkg.com/@jupyter-widgets/html-manager@*/dist/embed-amd.js" crossorigin="anonymous"></script>',
     );
   }
 
   // write jupyter widget state after body if it exists
+  const afterBody: string[] = [];
   if (haveJupyterWidgets && widgetsState) {
     afterBody.push(`<script type=${kApplicationJupyterWidgetState}>`);
     afterBody.push(
@@ -143,6 +144,9 @@ export function includesForJupyterWidgetDependencies(
     inHeader: "",
     afterBody: "",
   };
+  if (head.length > 0) {
+    result.inHeader = widgetTempFile(head);
+  }
   if (afterBody.length > 0) {
     result.afterBody = widgetTempFile(afterBody);
   }
