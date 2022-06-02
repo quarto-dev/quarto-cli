@@ -139,7 +139,7 @@ function partitionCells(divEl)
     
     if isPreambleBlock(block) then
       if block.t == "CodeBlock" and #preamble > 0 and preamble[#preamble].t == "CodeBlock" then
-        preamble[#preamble].text = preamble[#preamble].text .. "\n\n" .. block.text
+        preamble[#preamble].text = preamble[#preamble].text .. "\n" .. block.text
       else
         preamble:insert(block)
       end
