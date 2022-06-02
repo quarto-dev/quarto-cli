@@ -31,7 +31,7 @@ import {
   kFigHeight,
   kFigResponsive,
   kFigWidth,
-  kMermaidDev,
+  kMermaidFormat,
 } from "../../config/constants.ts";
 import { Element } from "../deno-dom.ts";
 import { convertFromYaml } from "../lib/yaml-schema/from-yaml.ts";
@@ -44,7 +44,7 @@ const mermaidHandler: LanguageHandler = {
     return Promise.resolve(convertFromYaml(readYamlFromString(`
 object:
   properties:
-    mermaid-dev:
+    mermaid-format:
       enum: [png, svg]
 `)));
   },
@@ -179,16 +179,12 @@ object:
       );
     };
 
-    if (isJavascriptCompatible(handlerContext.options.format)) {
-      return await makeSvg();
-    } else if (
-      isMarkdownOutput(handlerContext.options.format.pandoc, ["gfm"])
-    ) {
-      if (options[kMermaidDev] === "svg") {
+    const makeDefault = async () => {
+      if (isJavascriptCompatible(handlerContext.options.format)) {
         return await makeSvg();
-      } else if (options[kMermaidDev] === "png") {
-        return await makePng();
-      } else {
+      } else if (
+        isMarkdownOutput(handlerContext.options.format.pandoc, ["gfm"])
+      ) {
         return this.build(
           handlerContext,
           cell,
@@ -197,9 +193,20 @@ object:
           undefined,
           new Set(["fig-width", "fig-height"]),
         );
+      } else {
+        return await makePng();
       }
-    } else {
+    };
+
+    const format = options[kMermaidFormat] ||
+      handlerContext.options.format.execute[kMermaidFormat];
+
+    if (format === "svg") {
+      return await makeSvg();
+    } else if (format === "png") {
       return await makePng();
+    } else {
+      return await makeDefault();
     }
   },
 };

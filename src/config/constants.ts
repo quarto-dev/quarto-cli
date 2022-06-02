@@ -18,6 +18,8 @@ export const kFigHeight = "fig-height";
 export const kFigFormat = "fig-format";
 export const kFigDpi = "fig-dpi";
 
+export const kMermaidFormat = "mermaid-format";
+
 export const kCache = "cache";
 export const kFreeze = "freeze";
 export const kEngine = "engine";
@@ -90,6 +92,7 @@ export const kExecuteDefaultsKeys = [
   kFigHeight,
   kFigFormat,
   kFigDpi,
+  kMermaidFormat,
   kError,
   kEval,
   kEngine,
@@ -577,5 +580,3 @@ export const kLayoutVAlign = "layout-valign";
 export const kLayoutNcol = "layout-ncol";
 export const kLayoutNrow = "layout-nrow";
 export const kLayout = "layout";
-
-export const kMermaidDev = "mermaid-dev";

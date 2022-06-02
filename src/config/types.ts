@@ -120,6 +120,7 @@ import {
   kMathjax,
   kMathml,
   kMergeIncludes,
+  kMermaidFormat,
   kNumberOffset,
   kNumberSections,
   kOutput,
@@ -343,6 +344,7 @@ export interface FormatExecute {
   [kFigHeight]?: number;
   [kFigFormat]?: "retina" | "png" | "jpeg" | "svg" | "pdf";
   [kFigDpi]?: number;
+  [kMermaidFormat]?: "png" | "svg";
   [kCache]?: true | false | "refresh" | null;
   [kFreeze]?: true | false | "auto";
   [kExecuteEnabled]?: true | false | null;
