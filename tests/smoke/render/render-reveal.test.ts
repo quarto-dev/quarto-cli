@@ -5,7 +5,7 @@
 *
 */
 
-import { docs, outputForInput } from "../../utils.ts";
+import { docs, fileLoader, outputForInput } from "../../utils.ts";
 import { ensureHtmlElements } from "../../verify.ts";
 import { testRender } from "./render.ts";
 
@@ -68,4 +68,12 @@ testRender(input, "revealjs", false, [
     "#custom-divs-knitr-caption img.r-stretch",
     "#aside img.r-stretch",
   ]),
+]);
+
+// fragments
+const fragmentsDiv = fileLoader("reveal")("fragments.qmd", "revealjs");
+testRender(fragmentsDiv.input, "revealjs", false, [
+  ensureHtmlElements(fragmentsDiv.output.outputPath, [
+    "#slide-2 > div.fragment > h3",
+  ], []),
 ]);
