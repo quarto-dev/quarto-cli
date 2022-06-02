@@ -477,6 +477,9 @@ def nb_cell_yaml_lines(lang, source):
             yaml_option = line[len(option_match.group()):]
             if (option_suffix):
                yaml_option = yaml_option.rstrip()[:-len(option_suffix)]
+            # strip trailing spaces after : to avoid poyo error
+            # (https://github.com/hackebrot/poyo/issues/30)
+            yaml_option = re.sub(":\\s+$", ":", yaml_option)
             yaml_lines.append(yaml_option)
             continue
       break
