@@ -61,9 +61,13 @@ function resolveRefs()
               ref:extend({pandoc.RawInline('latex', '\\ref{' .. label .. '}')})
             else
               if not resolve then
+                local refClasses = pandoc.List({"quarto-unresolved-ref"})
+                if #cite.prefix > 0 or cite.mode == pandoc.SuppressAuthor then
+                  refClasses:insert("ref-noprefix")
+                end
                 local refSpan = pandoc.Span(
                   stringToInlines(label), 
-                  pandoc.Attr("", {"quarto-unresolved-ref"})
+                  pandoc.Attr("", refClasses)
                 )
                 ref:insert(refSpan)
               else

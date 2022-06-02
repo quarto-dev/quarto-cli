@@ -89,6 +89,7 @@ function resolveCrossrefs(
   for (let i = 0; i < refs.length; i++) {
     const ref = refs[i] as Element;
     const id = ref.textContent;
+    const noPrefix = ref.classList.contains("ref-noprefix");
     const type = refType(id);
     if (!type) {
       continue;
@@ -113,6 +114,7 @@ function resolveCrossrefs(
         type,
         index.files[entry.file],
         entry,
+        noPrefix,
         format.language,
         entry.parent ? index.entries[entry.parent] : undefined,
       );
@@ -271,6 +273,7 @@ function formatCrossref(
   type: string,
   options: BookCrossrefOptions,
   entry: BookCrossrefEntry,
+  noPrefix: boolean,
   language: FormatLanguage,
   parent?: BookCrossrefEntry,
 ) {
@@ -285,7 +288,7 @@ function formatCrossref(
   } else {
     // if this is a section we need a prefix
     const refNumber = numberOption(entry.order, options, type);
-    if (type === "sec") {
+    if (type === "sec" && !noPrefix) {
       const prefix = (options[kCrossrefChapters] && isChapterRef(entry))
         ? language[kCrossrefChPrefix]
         : language[kCrossrefSecPrefix];
