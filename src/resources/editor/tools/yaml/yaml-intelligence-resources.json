@@ -854,7 +854,9 @@
   "schema/cell-table.yml": [
     {
       "name": "tbl-cap",
-      "schema": "string",
+      "schema": {
+        "maybeArrayOf": "string"
+      },
       "description": "Table caption"
     },
     {
@@ -10056,7 +10058,7 @@
     "Website description",
     "The path to the favicon for this website",
     "Base URL for published website",
-    "Path to site (defaults to ‘/’). Not required if you specify\n<code>site-url</code>.",
+    "Path to site (defaults to <code>/</code>). Not required if you\nspecify <code>site-url</code>.",
     "Base URL for website source code repository",
     "Subdirectory of repository containing website",
     "Branch of website source code (defaults to <code>main</code>)",
@@ -11549,7 +11551,7 @@
     "Description metadata for HTML version of book",
     "The path to the favicon for this website",
     "Base URL for published website",
-    "Path to site (defaults to ‘/’). Not required if you specify\n<code>site-url</code>.",
+    "Path to site (defaults to <code>/</code>). Not required if you\nspecify <code>site-url</code>.",
     "Base URL for website source code repository",
     "Subdirectory of repository containing website",
     "Branch of website source code (defaults to <code>main</code>)",
@@ -11728,8 +11730,8 @@
     "Cover image (used in HTML and ePub formats)",
     "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
     "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
-    "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
-    "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
+    "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
+    "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
     "Custom tools for navbar or sidebar",
     "internal-schema-hack",
     "Project configuration.",
@@ -11750,7 +11752,7 @@
     "Description metadata for HTML version of book",
     "The path to the favicon for this website",
     "Base URL for published website",
-    "Path to site (defaults to ‘/’). Not required if you specify\n<code>site-url</code>.",
+    "Path to site (defaults to <code>/</code>). Not required if you\nspecify <code>site-url</code>.",
     "Base URL for website source code repository",
     "Subdirectory of repository containing website",
     "Branch of website source code (defaults to <code>main</code>)",
@@ -11929,8 +11931,8 @@
     "Cover image (used in HTML and ePub formats)",
     "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
     "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
-    "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
-    "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
+    "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
+    "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
     "Custom tools for navbar or sidebar",
     "internal-schema-hack"
   ],

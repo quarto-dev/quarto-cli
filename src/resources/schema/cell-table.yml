@@ -1,5 +1,6 @@
 - name: tbl-cap
-  schema: string
+  schema:
+    maybeArrayOf: string
   description: Table caption
 
 - name: tbl-subcap

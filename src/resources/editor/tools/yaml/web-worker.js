@@ -7876,7 +7876,9 @@ try {
         "schema/cell-table.yml": [
           {
             name: "tbl-cap",
-            schema: "string",
+            schema: {
+              maybeArrayOf: "string"
+            },
             description: "Table caption"
           },
           {
@@ -17078,7 +17080,7 @@ try {
           "Website description",
           "The path to the favicon for this website",
           "Base URL for published website",
-          "Path to site (defaults to \u2018/\u2019). Not required if you specify\n<code>site-url</code>.",
+          "Path to site (defaults to <code>/</code>). Not required if you\nspecify <code>site-url</code>.",
           "Base URL for website source code repository",
           "Subdirectory of repository containing website",
           "Branch of website source code (defaults to <code>main</code>)",
@@ -18571,7 +18573,7 @@ try {
           "Description metadata for HTML version of book",
           "The path to the favicon for this website",
           "Base URL for published website",
-          "Path to site (defaults to \u2018/\u2019). Not required if you specify\n<code>site-url</code>.",
+          "Path to site (defaults to <code>/</code>). Not required if you\nspecify <code>site-url</code>.",
           "Base URL for website source code repository",
           "Subdirectory of repository containing website",
           "Branch of website source code (defaults to <code>main</code>)",
@@ -18750,8 +18752,8 @@ try {
           "Cover image (used in HTML and ePub formats)",
           "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
           "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
-          "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
-          "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
+          "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
+          "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
           "Custom tools for navbar or sidebar",
           "internal-schema-hack",
           "Project configuration.",
@@ -18772,7 +18774,7 @@ try {
           "Description metadata for HTML version of book",
           "The path to the favicon for this website",
           "Base URL for published website",
-          "Path to site (defaults to \u2018/\u2019). Not required if you specify\n<code>site-url</code>.",
+          "Path to site (defaults to <code>/</code>). Not required if you\nspecify <code>site-url</code>.",
           "Base URL for website source code repository",
           "Subdirectory of repository containing website",
           "Branch of website source code (defaults to <code>main</code>)",
@@ -18951,8 +18953,8 @@ try {
           "Cover image (used in HTML and ePub formats)",
           "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
           "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
-          "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
-          "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and `docx)",
+          "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
+          "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
           "Custom tools for navbar or sidebar",
           "internal-schema-hack"
         ],
@@ -25832,6 +25834,9 @@ ${sourceContext}`;
             if (e.schemaPath.indexOf("propertyNames") !== -1) {
               return 10;
             }
+            if (t[0] === "required") {
+              return 0;
+            }
             if (t[0] === "type") {
               if (t[1] === "null") {
                 return 10;
@@ -26142,9 +26147,9 @@ ${sourceContext}`;
     }
     return result;
   }
-  function validate(value, schema2, source) {
+  function validate(value, schema2, source, pruneErrors = true) {
     const context = new ValidationContext();
-    return context.validate(schema2, source, value);
+    return context.validate(schema2, source, value, pruneErrors);
   }
 
   // ../yaml-validation/yaml-schema.ts
@@ -26168,8 +26173,8 @@ ${sourceContext}`;
         return error;
       }).filter((error) => error !== null);
     }
-    async validateParse(src, annotation) {
-      const validationErrors = validate(annotation, this.schema, src);
+    async validateParse(src, annotation, pruneErrors = true) {
+      const validationErrors = validate(annotation, this.schema, src, pruneErrors);
       if (validationErrors.length) {
         const localizedErrors = this.transformErrors(annotation, validationErrors);
         return {
@@ -26764,7 +26769,7 @@ ${sourceContext}`;
     const type2 = typeof value;
     return value !== null && (type2 === "object" || type2 === "function");
   };
-  async function readAndValidateYamlFromMappedString(mappedYaml, schema2) {
+  async function readAndValidateYamlFromMappedString(mappedYaml, schema2, pruneErrors = true) {
     const result = await withValidator(schema2, async (validator) => {
       const annotation = await readAnnotatedYamlFromMappedString(mappedYaml);
       if (annotation === null) {
@@ -26773,7 +26778,7 @@ ${sourceContext}`;
       const validateYaml = !isObject2(annotation.result) || annotation.result["validate-yaml"] !== false;
       const yaml = annotation.result;
       if (validateYaml) {
-        const valResult = await validator.validateParse(mappedYaml, annotation);
+        const valResult = await validator.validateParse(mappedYaml, annotation, pruneErrors);
         return {
           yaml,
           yamlValidationErrors: valResult.errors
@@ -27506,7 +27511,7 @@ ${sourceContext}`;
     let codeEndRange;
     const lineBuffer = [];
     const flushLineBuffer = async (cell_type, index) => {
-      if (lineBuffer.length) {
+      if (lineBuffer.length || cell_type === "code") {
         const mappedChunks = [];
         for (const line of lineBuffer) {
           mappedChunks.push(line.range);
