@@ -89,7 +89,7 @@ wrap_asis_output <- function(options, x) {
   }
 
   # generate output div
-  caption <- figure_cap(options)
+  caption <- figure_cap(options)[[1]]
   if (nzchar(caption)) {
     x <- paste0(x, "\n\n", caption)
   }
