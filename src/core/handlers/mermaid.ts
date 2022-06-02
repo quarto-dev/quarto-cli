@@ -15,6 +15,7 @@ import { formatResourcePath } from "../resources.ts";
 import { join } from "path/mod.ts";
 import {
   isJavascriptCompatible,
+  isLatexOutput,
   isMarkdownOutput,
   isRevealjsOutput,
 } from "../../config/format.ts";
@@ -36,6 +37,7 @@ import {
 import { Element } from "../deno-dom.ts";
 import { convertFromYaml } from "../lib/yaml-schema/from-yaml.ts";
 import { readYamlFromString } from "../yaml.ts";
+import { LocalizedError } from "../lib/error.ts";
 
 const mermaidHandler: LanguageHandler = {
   ...baseHandler,
@@ -139,14 +141,22 @@ object:
         });
       }
 
-      return this.build(
-        handlerContext,
-        cell,
-        svg,
-        options,
-        undefined,
-        new Set(["fig-width", "fig-height"]),
-      );
+      if (isMarkdownOutput(handlerContext.options.format.pandoc, ["gfm"])) {
+        throw new LocalizedError(
+          "UnsupportedFormatError",
+          "`mermaid-format: svg` is not supported in GFM format",
+          cell.sourceVerbatim,
+        );
+      } else {
+        return this.build(
+          handlerContext,
+          cell,
+          svg,
+          options,
+          undefined,
+          new Set(["fig-width", "fig-height"]),
+        );
+      }
     };
 
     const makePng = async () => {
@@ -162,21 +172,36 @@ object:
         resources,
       });
 
-      const {
+      let {
         widthInInches,
         heightInInches,
       } = await resolveSize(svgText, options);
+      widthInInches = Math.round(widthInInches * 100) / 100;
+      heightInInches = Math.round(heightInInches * 100) / 100;
 
-      return this.build(
-        handlerContext,
-        cell,
-        mappedConcat([
-          `\n![](${sourceName}){width="${widthInInches}in" height="${heightInInches}in" fig-pos='H'}\n`,
-        ]),
-        options,
-        undefined,
-        new Set(["fig-width", "fig-height"]),
-      );
+      const posSpecifier = isLatexOutput(handlerContext.options.format.pandoc)
+        ? " fig-pos='H'"
+        : "";
+      const idSpecifier = cell.options?.label ? ` #${cell.options?.label}` : "";
+
+      const cellContent = mappedConcat([
+        `\n![${
+          cell.options?.["fig-cap"] || ""
+        }](${sourceName}){width="${widthInInches}in" height="${heightInInches}in"${posSpecifier}${idSpecifier}}\n`,
+      ]);
+
+      if (isMarkdownOutput(handlerContext.options.format.pandoc, ["gfm"])) {
+        return cellContent;
+      } else {
+        return this.build(
+          handlerContext,
+          cell,
+          cellContent,
+          options,
+          undefined,
+          new Set(["fig-width", "fig-height"]),
+        );
+      }
     };
 
     const makeDefault = async () => {
@@ -185,14 +210,15 @@ object:
       } else if (
         isMarkdownOutput(handlerContext.options.format.pandoc, ["gfm"])
       ) {
-        return this.build(
+        return mappedConcat(["\n``` mermaid\n", cellContent, "\n```\n"]);
+
+        /*return this.build(
           handlerContext,
           cell,
-          mappedConcat(["\n``` mermaid\n", cellContent, "\n```\n"]),
           options,
           undefined,
           new Set(["fig-width", "fig-height"]),
-        );
+        );*/
       } else {
         return await makePng();
       }
