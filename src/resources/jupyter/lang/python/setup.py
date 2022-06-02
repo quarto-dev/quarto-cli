@@ -25,7 +25,7 @@ except Exception:
 # plotly use connected mode
 try:
   import plotly.io as pio
-  pio.renderers.default = "notebook"
+  pio.renderers.default = "notebook_connected"
 except Exception:
   pass
 
