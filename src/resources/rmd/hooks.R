@@ -340,8 +340,11 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     }
   })
   knit_hooks$source <- function(x, options) {
+
+    # How knitr handles the prompt option for R chunks
+    x <- knitr:::hilight_source(x, "markdown", options)
     x <- knitr:::one_string(c('', x))
-    
+
     # leave verbatim alone
     if (options[["engine"]] %in% c("verbatim", "embed")) {
       return(paste0('\n\n````', options[["lang"]] %||% 'default', x, '\n````', '\n\n'))

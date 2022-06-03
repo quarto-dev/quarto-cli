@@ -96,6 +96,31 @@ object:
       ),
     ]];
 
+    const makeFigLink = (
+      sourceName: string,
+      width?: number,
+      height?: number,
+      includeCaption?: boolean,
+    ) => {
+      const posSpecifier = isLatexOutput(handlerContext.options.format.pandoc)
+        ? " fig-pos='H'"
+        : "";
+      const idSpecifier = (cell.options?.label && includeCaption)
+        ? ` #${cell.options?.label}`
+        : "";
+      const widthSpecifier = width
+        ? `width="${Math.round(width * 100) / 100}in"`
+        : "";
+      const heightSpecifier = height
+        ? ` height="${Math.round(height * 100) / 100}in"`
+        : "";
+      const captionSpecifier = includeCaption
+        ? (cell.options?.["fig-cap"] || "")
+        : "";
+
+      return `\n![${captionSpecifier}](${sourceName}){${widthSpecifier}${heightSpecifier}${posSpecifier}${idSpecifier}}\n`;
+    };
+
     const makeSvg = async () => {
       let svg = asMappedString(
         (await handlerContext.extractHtml({
@@ -142,10 +167,20 @@ object:
       }
 
       if (isMarkdownOutput(handlerContext.options.format.pandoc, ["gfm"])) {
-        throw new LocalizedError(
-          "UnsupportedFormatError",
-          "`mermaid-format: svg` is not supported in GFM format",
-          cell.sourceVerbatim,
+        const { sourceName, fullName } = handlerContext
+          .uniqueFigureName(
+            "mermaid-figure-",
+            ".svg",
+          );
+        Deno.writeTextFileSync(fullName, svg.value);
+
+        const {
+          widthInInches,
+          heightInInches,
+        } = await resolveSize(svg.value, options);
+
+        return asMappedString(
+          makeFigLink(sourceName, widthInInches, heightInInches, true),
         );
       } else {
         return this.build(
@@ -172,31 +207,27 @@ object:
         resources,
       });
 
-      let {
+      const {
         widthInInches,
         heightInInches,
       } = await resolveSize(svgText, options);
-      widthInInches = Math.round(widthInInches * 100) / 100;
-      heightInInches = Math.round(heightInInches * 100) / 100;
-
-      const posSpecifier = isLatexOutput(handlerContext.options.format.pandoc)
-        ? " fig-pos='H'"
-        : "";
-      const idSpecifier = cell.options?.label ? ` #${cell.options?.label}` : "";
-
-      const cellContent = mappedConcat([
-        `\n![${
-          cell.options?.["fig-cap"] || ""
-        }](${sourceName}){width="${widthInInches}in" height="${heightInInches}in"${posSpecifier}${idSpecifier}}\n`,
-      ]);
 
       if (isMarkdownOutput(handlerContext.options.format.pandoc, ["gfm"])) {
-        return cellContent;
+        return asMappedString(makeFigLink(
+          sourceName,
+          widthInInches,
+          heightInInches,
+          true,
+        ));
       } else {
         return this.build(
           handlerContext,
           cell,
-          cellContent,
+          asMappedString(makeFigLink(
+            sourceName,
+            widthInInches,
+            heightInInches,
+          )),
           options,
           undefined,
           new Set(["fig-width", "fig-height"]),
@@ -211,14 +242,6 @@ object:
         isMarkdownOutput(handlerContext.options.format.pandoc, ["gfm"])
       ) {
         return mappedConcat(["\n``` mermaid\n", cellContent, "\n```\n"]);
-
-        /*return this.build(
-          handlerContext,
-          cell,
-          options,
-          undefined,
-          new Set(["fig-width", "fig-height"]),
-        );*/
       } else {
         return await makePng();
       }

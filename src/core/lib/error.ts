@@ -1,3 +1,4 @@
+// deno-lint-ignore-file no-explicit-any
 /*
 * error.ts
 *
@@ -6,8 +7,6 @@
 */
 
 import { mappedIndexToLineCol, MappedString } from "./mapped-text.ts";
-
-// deno-lint-ignore-file no-explicit-any
 
 export class ErrorEx extends Error {
   constructor(
@@ -57,7 +56,8 @@ export function asErrorEx(e: unknown) {
     return e;
   } else if (e instanceof Error) {
     // ammend this error rather than creating a new ErrorEx
-    // so that the stack trace survivies
+    // so that the stack trace survives
+
     (e as any).printName = e.name !== "Error";
     (e as any).printStack = !!e.message;
     return e as ErrorEx;

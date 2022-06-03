@@ -423,12 +423,14 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
     join("bootstrap", "_bootstrap-variables.scss"),
   );
   const variables = [Deno.readTextFileSync(varFilePath)];
+  const colorDefaults: string[] = [];
 
   const navbar = (metadata[kWebsite] as Metadata)?.[kSiteNavbar];
   if (navbar && typeof (navbar) === "object") {
     // Forward navbar background color
     const navbarBackground = (navbar as Record<string, unknown>)[kBackground];
     if (navbarBackground !== undefined) {
+      resolveBootstrapColorDefault(navbarBackground, colorDefaults);
       variables.push(
         outputVariable(
           sassVariable(
@@ -445,6 +447,7 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
     // Forward navbar foreground color
     const navbarForeground = (navbar as Record<string, unknown>)[kForeground];
     if (navbarForeground !== undefined) {
+      resolveBootstrapColorDefault(navbarForeground, colorDefaults);
       variables.push(
         outputVariable(
           sassVariable(
@@ -470,6 +473,7 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
     // Forward background color
     const sidebarBackground = sidebar[kBackground];
     if (sidebarBackground !== undefined) {
+      resolveBootstrapColorDefault(sidebarBackground, colorDefaults);
       variables.push(
         outputVariable(
           sassVariable(
@@ -492,6 +496,7 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
     // Forward foreground color
     const sidebarForeground = sidebar[kForeground];
     if (sidebarForeground !== undefined) {
+      resolveBootstrapColorDefault(sidebarForeground, colorDefaults);
       variables.push(
         outputVariable(
           sassVariable(
@@ -529,6 +534,7 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
     // Forward footer color
     const footerBg = footer[kBackground];
     if (footerBg !== undefined) {
+      resolveBootstrapColorDefault(footerBg, colorDefaults);
       variables.push(
         outputVariable(
           sassVariable(
@@ -543,6 +549,7 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
     // Forward footer foreground
     const footerFg = footer[kForeground];
     if (footerFg !== undefined) {
+      resolveBootstrapColorDefault(footerFg, colorDefaults);
       variables.push(
         outputVariable(
           sassVariable(
@@ -570,6 +577,7 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
 
     // If the footer border is a color, set that
     if (footerBorder !== undefined && typeof (footerBorder) === "string") {
+      resolveBootstrapColorDefault(footerBorder, colorDefaults);
       variables.push(
         outputVariable(
           sassVariable(
@@ -584,6 +592,7 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
     // Forward any footer color
     const footerColor = footer[kColor];
     if (footerColor && typeof (footerColor) === "string") {
+      resolveBootstrapColorDefault(footerColor, colorDefaults);
       variables.push(
         outputVariable(
           sassVariable(
@@ -601,6 +610,7 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
   const codeblockBackground = metadata[kCodeBlockBackground];
 
   if (codeblockLeftBorder !== undefined) {
+    resolveBootstrapColorDefault(codeblockLeftBorder, colorDefaults);
     variables.push(
       outputVariable(
         sassVariable(
@@ -627,7 +637,43 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
     )));
   }
 
+  // Ensure any color variable defaults are present
+  colorDefaults.forEach((colorDefault) => {
+    variables.push(colorDefault);
+  });
+
   // Any of the variables that we added from metadata should go first
   // So they provide the defaults
   return variables.reverse().join("\n");
+};
+
+function resolveBootstrapColorDefault(value: unknown, variables: string[]) {
+  if (value) {
+    const variable = bootstrapColorDefault(value);
+    if (
+      variable &&
+      !variables.find((existingVar) => {
+        return existingVar === variable;
+      })
+    ) {
+      variables.unshift(variable);
+    }
+  }
+}
+
+function bootstrapColorDefault(value: unknown) {
+  if (typeof (value) === "string") {
+    return bootstrapColorVars[value];
+  }
+}
+
+const bootstrapColorVars: Record<string, string> = {
+  primary: "$primary: #0d6efd !default;",
+  secondary: "$secondary: #6c757d !default;",
+  success: "$success: #198754 !default;",
+  info: "$info: #0dcaf0 !default;",
+  warning: "$warning: #ffc107 !default;",
+  danger: "$danger: #dc3545 !default;",
+  light: "$light: #f8f9fa !default;",
+  dark: "$dark: #212529 !default;",
 };
