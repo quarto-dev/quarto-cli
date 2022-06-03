@@ -15,20 +15,21 @@ import { readYaml, readYamlFromString } from "../core/yaml.ts";
 import { ProjectContext } from "../project/types.ts";
 import { PublishDeployments, PublishRecord } from "./types.ts";
 
-export function documentPublishDeployments(
-  document: string,
+export function readPublishDeployments(
+  source: string,
 ): PublishDeployments {
-  const deplomentsFile = publishDeploymentsFile(dirname(document));
+  const [deployDir, deploySource] = resolveDeploymentSource(source);
+  const deplomentsFile = publishDeploymentsFile(deployDir);
   if (deplomentsFile) {
     const deployments = readYaml(deplomentsFile);
     if (deployments) {
       if (isDeploymentsArray(deployments)) {
-        const docDeployment = deployments.find((deployment) =>
-          deployment.document === basename(document)
+        const sourceDeployments = deployments.find((deployment) =>
+          deployment.source === basename(deploySource)
         );
-        if (docDeployment) {
-          delete (docDeployment as { document?: string }).document;
-          return docDeployment as PublishDeployments;
+        if (sourceDeployments) {
+          delete (sourceDeployments as { source?: string }).source;
+          return sourceDeployments as PublishDeployments;
         }
       } else {
         warning(
@@ -41,21 +42,22 @@ export function documentPublishDeployments(
   return {} as PublishDeployments;
 }
 
-export function recordDocumentPublishDeployment(
-  document: string,
+export function writePublishDeployment(
+  source: string,
   provider: string,
   publish: PublishRecord,
 ) {
   // read base config
   let indent = 2;
-  const deploymentsFile = publishDeploymentsFile(dirname(document));
+  const [deployDir, deploySource] = resolveDeploymentSource(source);
+  const deploymentsFile = publishDeploymentsFile(deployDir);
   if (deploymentsFile) {
     const deploymentsFileYaml = Deno.readTextFileSync(deploymentsFile);
     indent = detectIndentLevel(deploymentsFileYaml);
     const deployments = readYamlFromString(deploymentsFileYaml);
     if (isDeploymentsArray(deployments)) {
       const docDeploymentsIdx = deployments.findIndex((deployment) =>
-        deployment.document === basename(document)
+        deployment.source === basename(deploySource)
       );
       if (docDeploymentsIdx !== -1) {
         const docDeployments = deployments[docDeploymentsIdx];
@@ -75,7 +77,7 @@ export function recordDocumentPublishDeployment(
         }
       } else {
         const deployment = {
-          document: basename(document),
+          source: deploySource,
           [provider]: [publish],
         };
         deployments.push(deployment);
@@ -83,12 +85,7 @@ export function recordDocumentPublishDeployment(
 
       Deno.writeTextFileSync(
         deploymentsFile,
-        // deno-lint-ignore no-explicit-any
-        stringify(deployments as any, {
-          indent,
-          sortKeys: false,
-          skipInvalid: true,
-        }),
+        stringifyPublishConfig(deployments, indent),
       );
     } else {
       warning(
@@ -97,76 +94,48 @@ export function recordDocumentPublishDeployment(
     }
   } else {
     Deno.writeTextFileSync(
-      join(dirname(document), kDefaultPublishDeploymentsFile),
-      stringify([{
-        document: basename(document),
+      join(deployDir, kDefaultPublishDeploymentsFile),
+      stringifyPublishConfig([{
+        source: deploySource,
         [provider]: [publish],
-        // deno-lint-ignore no-explicit-any
-      }] as any, {
-        indent,
-        sortKeys: false,
-        skipInvalid: true,
-      }),
+      }], indent),
     );
   }
 }
 
-export function projectPublishDeployments(
-  project: ProjectContext,
-): PublishDeployments {
-  const deplomentsFile = publishDeploymentsFile(project.dir);
-  if (deplomentsFile) {
-    return readYaml(deplomentsFile) as PublishDeployments;
-  } else {
-    return {} as PublishDeployments;
-  }
+function resolveDeploymentSource(source: string) {
+  const deployDir = Deno.statSync(source).isDirectory
+    ? source
+    : dirname(source);
+  const deploySource = Deno.statSync(source).isDirectory
+    ? "project"
+    : basename(source);
+  return [deployDir, deploySource];
 }
 
-export function recordProjectPublishDeployment(
+export function readProjectPublishDeployments(
+  project: ProjectContext,
+): PublishDeployments {
+  return readPublishDeployments(project.dir);
+}
+
+export function writeProjectPublishDeployment(
   project: ProjectContext,
   provider: string,
   publish: PublishRecord,
 ) {
-  // read base config
-  let indent = 2;
-  let deployments: PublishDeployments = {};
-  const projectDir = project.dir;
-  const deploymentsFile = publishDeploymentsFile(project.dir);
-  if (deploymentsFile) {
-    const deploymentsFileYaml = Deno.readTextFileSync(deploymentsFile);
-    indent = detectIndentLevel(deploymentsFileYaml);
-    deployments = readYamlFromString(deploymentsFileYaml) as PublishDeployments;
-  }
-
-  // update as required
-  if (deployments[provider]) {
-    const deploymentIdx = deployments[provider].findIndex(
-      (published) => published.id === publish.id,
-    );
-    if (deploymentIdx !== -1) {
-      deployments[provider][deploymentIdx] = publish;
-    } else {
-      deployments[provider].push(publish);
-    }
-  } else {
-    deployments[provider] = [publish];
-  }
-
-  Deno.writeTextFileSync(
-    deploymentsFile || join(projectDir, kDefaultPublishDeploymentsFile),
-    stringifyPublishConfig(deployments, indent),
-  );
+  writePublishDeployment(project.dir, provider, publish);
 }
 
 function isDeploymentsArray(
   obj: unknown,
 ): obj is Array<Record<string, string | PublishRecord[]>> {
-  return Array.isArray(obj) && typeof (obj[0].document) === "string";
+  return Array.isArray(obj) && typeof (obj[0].source) === "string";
 }
 
-function stringifyPublishConfig(config: Metadata, indent: number) {
+function stringifyPublishConfig(config: unknown, indent: number) {
   return stringify(
-    config,
+    config as Metadata,
     {
       indent,
       sortKeys: false,

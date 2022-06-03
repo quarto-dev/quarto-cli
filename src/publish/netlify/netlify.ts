@@ -35,12 +35,13 @@ import { handlePublish, PublishHandler } from "../common/publish.ts";
 // TODO: documents
 
 export const kNetlify = "netlify";
+const kNetlifyDescription = "Netlify";
 
 export const kNetlifyAuthTokenVar = "NETLIFY_AUTH_TOKEN";
 
 export const netlifyProvider: PublishProvider = {
   name: kNetlify,
-  description: "Netlify",
+  description: kNetlifyDescription,
   accountTokens,
   authorizeToken,
   resolveTarget,
@@ -96,8 +97,8 @@ async function authorizeNetlifyAccessToken(): Promise<
   // create provider for authorization
   const client = new NetlifyClient({});
   const clientId = (await quartoConfig.dotenv())["NETLIFY_APP_CLIENT_ID"];
-  const provider: AuthorizationHandler<AccessToken, Ticket> = {
-    name: kNetlify,
+  const handler: AuthorizationHandler<AccessToken, Ticket> = {
+    name: kNetlifyDescription,
     createTicket: function (): Promise<Ticket> {
       return client.ticket.createTicket({
         clientId,
@@ -117,7 +118,7 @@ async function authorizeNetlifyAccessToken(): Promise<
     },
   };
 
-  return authorizeAccessToken(provider);
+  return authorizeAccessToken(handler);
 }
 
 async function resolveTarget(

@@ -12,10 +12,7 @@ import { dirname, isAbsolute, join, relative } from "path/mod.ts";
 import { AccountToken, PublishFiles, PublishProvider } from "./provider.ts";
 
 import { PublishOptions } from "./types.ts";
-import {
-  recordDocumentPublishDeployment,
-  recordProjectPublishDeployment,
-} from "./config.ts";
+
 import { render, renderServices } from "../command/render/render-shared.ts";
 import { projectOutputDir } from "../project/project-shared.ts";
 import { PublishRecord } from "../publish/types.ts";
@@ -24,6 +21,10 @@ import { renderProgress } from "../command/render/render-info.ts";
 import { inspectConfig, isDocumentConfig } from "../quarto-core/inspect.ts";
 import { kOutputFile } from "../config/constants.ts";
 import { inputFilesDir } from "../core/render.ts";
+import {
+  writeProjectPublishDeployment,
+  writePublishDeployment,
+} from "./config.ts";
 
 export async function publishSite(
   project: ProjectContext,
@@ -75,7 +76,7 @@ export async function publishSite(
     target,
   );
   if (publishRecord) {
-    recordProjectPublishDeployment(
+    writeProjectPublishDeployment(
       project,
       provider.name,
       publishRecord,
@@ -183,7 +184,7 @@ export async function publishDocument(
     target,
   );
   if (publishRecord) {
-    recordDocumentPublishDeployment(
+    writePublishDeployment(
       document,
       provider.name,
       publishRecord,
