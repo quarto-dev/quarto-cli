@@ -278,7 +278,7 @@ object:
 
     const makeDefault = async () => {
       if (isJavascriptCompatible(handlerContext.options.format)) {
-        return await makeSvg();
+        return await makeJs();
       } else if (
         isMarkdownOutput(handlerContext.options.format.pandoc, ["gfm"])
       ) {
