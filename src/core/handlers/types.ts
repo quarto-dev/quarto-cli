@@ -31,10 +31,18 @@ export interface LanguageCellHandlerOptions {
   markdown: MappedString;
 
   context: RenderContext;
+
+  // per-document state, so that different handlers can share state as needed.
+  state?: Record<string, Record<string, unknown>>;
 }
 
 export interface LanguageCellHandlerContext {
   options: LanguageCellHandlerOptions;
+
+  /**
+   * Returns the state object for that language
+   */
+  getState(): Record<string, unknown>;
 
   /**
    * Returns the contents of a cell, using the `file` option when possible to

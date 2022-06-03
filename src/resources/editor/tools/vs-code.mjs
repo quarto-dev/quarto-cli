@@ -19165,12 +19165,14 @@ var require_yaml_intelligence_resources = __commonJS({
             type: "enum",
             enum: [
               "png",
-              "svg"
+              "svg",
+              "js"
             ],
-            description: "be one of: `png`, `svg`",
+            description: "be one of: `png`, `svg`, `js`",
             completions: [
               "png",
-              "svg"
+              "svg",
+              "js"
             ],
             exhaustiveCompletions: true
           }

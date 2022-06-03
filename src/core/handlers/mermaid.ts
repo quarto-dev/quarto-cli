@@ -32,11 +32,13 @@ import {
   kFigHeight,
   kFigResponsive,
   kFigWidth,
+  kIncludeAfterBody,
   kMermaidFormat,
 } from "../../config/constants.ts";
 import { Element } from "../deno-dom.ts";
 import { convertFromYaml } from "../lib/yaml-schema/from-yaml.ts";
 import { readYamlFromString } from "../yaml.ts";
+import { pandocHtmlBlock, pandocRawStr } from "../pandoc/codegen.ts";
 
 const mermaidHandler: LanguageHandler = {
   ...baseHandler,
@@ -46,7 +48,7 @@ const mermaidHandler: LanguageHandler = {
 object:
   properties:
     mermaid-format:
-      enum: [png, svg]
+      enum: [png, svg, js]
 `)));
   },
 
@@ -94,6 +96,35 @@ object:
         formatResourcePath("html", join("mermaid", "mermaid.min.js")),
       ),
     ]];
+
+    const setupMermaidJsRuntime = () => {
+      if (handlerContext.getState().hasSetupMermaidJsRuntime) {
+        return;
+      }
+      handlerContext.getState().hasSetupMermaidJsRuntime = true;
+
+      handlerContext.addHtmlDependency(
+        "script",
+        {
+          name: "mermaid.min.js",
+          path: formatResourcePath("html", join("mermaid", "mermaid.min.js")),
+        },
+      );
+
+      handlerContext.addInclude(
+        `<script>
+        mermaid.initialize({ startOnLoad: false });
+        window.addEventListener(
+          'load',
+          function () {
+            mermaid.init("div.cell-output-display pre.mermaid");
+          },
+          false
+        );
+        </script>`,
+        kIncludeAfterBody,
+      );
+    };
 
     const makeFigLink = (
       sourceName: string,
@@ -234,6 +265,17 @@ object:
       }
     };
 
+    // deno-lint-ignore require-await
+    const makeJs = async () => {
+      setupMermaidJsRuntime();
+      const preEl = pandocHtmlBlock("pre")({
+        classes: ["mermaid"],
+      });
+      preEl.push(pandocRawStr(cell.source));
+
+      return this.build(handlerContext, cell, preEl.mappedString(), options);
+    };
+
     const makeDefault = async () => {
       if (isJavascriptCompatible(handlerContext.options.format)) {
         return await makeSvg();
@@ -253,6 +295,8 @@ object:
       return await makeSvg();
     } else if (format === "png") {
       return await makePng();
+    } else if (format === "js") {
+      return await makeJs();
     } else {
       return await makeDefault();
     }
