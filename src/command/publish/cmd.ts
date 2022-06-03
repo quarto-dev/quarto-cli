@@ -30,11 +30,7 @@ import {
 
 import { PublishCommandOptions } from "./options.ts";
 import { resolveDeployment } from "./deployment.ts";
-import {
-  AccountPrompt,
-  handleUnauthorized,
-  resolveAccount,
-} from "./account.ts";
+import { AccountPrompt, resolveAccount } from "./account.ts";
 
 import { PublishOptions, PublishRecord } from "../../publish/types.ts";
 import { isInteractiveTerminal } from "../../core/platform.ts";
@@ -42,6 +38,7 @@ import { runningInCI } from "../../core/ci-info.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { openUrl } from "../../core/shell.ts";
 import { publishDocument, publishSite } from "../../publish/publish.ts";
+import { handleUnauthorized } from "../../publish/account.ts";
 
 export const publishCommand = withProviders(
   // deno-lint-ignore no-explicit-any
@@ -122,7 +119,7 @@ async function publishAction(
       const result = await prompt([{
         indent: "",
         name: "provider",
-        message: "Select destination:",
+        message: "Provider:",
         options: kPublishProviders.map((provider) => ({
           name: provider.description,
           value: provider.name,

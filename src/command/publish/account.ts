@@ -5,16 +5,9 @@
 *
 */
 
-import { error } from "log/mod.ts";
-
 import { prompt, Select, SelectOption } from "cliffy/prompt/mod.ts";
-import { Confirm } from "cliffy/prompt/confirm.ts";
 
-import {
-  AccountToken,
-  AccountTokenType,
-  PublishProvider,
-} from "../../publish/provider.ts";
+import { AccountToken, PublishProvider } from "../../publish/provider.ts";
 
 export type AccountPrompt = "always" | "never" | "multiple";
 
@@ -41,9 +34,7 @@ export async function resolveAccount(
 
     // if we don't have a token yet we need to authorize
     if (!token) {
-      if (await authorizePrompt(provider)) {
-        token = await provider.authorizeToken();
-      }
+      token = await provider.authorizeToken();
     }
 
     return token;
@@ -51,11 +42,11 @@ export async function resolveAccount(
 }
 
 export async function accountPrompt(
-  provider: PublishProvider,
+  _provider: PublishProvider,
   accounts: AccountToken[],
 ): Promise<AccountToken | undefined> {
   const options: SelectOption[] = accounts.map((account) => ({
-    name: account.name,
+    name: account.name + (account.server ? ` (${account.server})` : ""),
     value: account.token,
   }));
   const kAuthorize = "authorize";
@@ -67,61 +58,11 @@ export async function accountPrompt(
   const result = await prompt([{
     indent: "",
     name: "token",
-    message: `${provider.description} account:`,
+    message: `Account:`,
     options,
     type: Select,
   }]);
   if (result.token !== kAuthorize) {
     return accounts.find((account) => account.token === result.token);
-  }
-}
-
-export async function authorizePrompt(provider: PublishProvider) {
-  const result = await prompt([{
-    indent: "",
-    name: "confirmed",
-    message: "Authorize account",
-    default: true,
-    hint:
-      `In order to publish to ${provider.description} you need to authorize your account.\n` +
-      `  Please be sure you are logged into the correct ${provider.description} account in your\n` +
-      "  default web browser, then press Enter or 'Y' to authorize.",
-    type: Confirm,
-  }]);
-  return !!result.confirmed;
-}
-
-export async function reauthorizePrompt(
-  provider: PublishProvider,
-  accountName: string,
-) {
-  const result = await prompt([{
-    indent: "",
-    name: "confirmed",
-    message: "Re-authorize account",
-    default: true,
-    hint:
-      `The authorization saved for account ${accountName} is no longer valid.\n` +
-      `  Please be sure you are logged into the correct ${provider.description} account in your\n` +
-      "  default web browser, then press Enter to re-authorize.",
-    type: Confirm,
-  }]);
-  return !!result.confirmed;
-}
-
-export async function handleUnauthorized(
-  provider: PublishProvider,
-  account: AccountToken,
-) {
-  if (account.type === AccountTokenType.Environment) {
-    error(
-      `Unable to authenticate with the provided ${account.name}. Please be sure this token is valid.`,
-    );
-    return false;
-  } else if (account.type === AccountTokenType.Authorized) {
-    return await reauthorizePrompt(
-      provider,
-      account.name,
-    );
   }
 }

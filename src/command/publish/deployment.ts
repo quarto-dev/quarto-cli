@@ -115,13 +115,13 @@ export async function chooseDeployment(
     };
   });
   options.push({
-    name: "Publish to another location...",
+    name: "Another destination...",
     value: "other",
   });
 
   const confirm = await Select.prompt({
     indent: "",
-    message: "Publish to destination:",
+    message: "Publish to:",
     options,
   });
 

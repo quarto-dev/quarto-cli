@@ -5,13 +5,16 @@
 *
 */
 
+import { Input } from "cliffy/prompt/input.ts";
+
 import { AccountToken, PublishFiles, PublishProvider } from "../provider.ts";
 import { PublishRecord } from "../types.ts";
 
 export const kRSConnect = "rsconnect";
 const kRSConnectDescription = "RS Connect";
 
-export const kRSConnectAuthTokenVar = "RSCONNECT_API_KEY";
+export const kRSConnectServerVar = "CONNECT_SERVER";
+export const kRSConnectAuthTokenVar = "CONNECT_API_KEY";
 
 export const rsconnectProvider: PublishProvider = {
   name: kRSConnect,
@@ -24,10 +27,47 @@ export const rsconnectProvider: PublishProvider = {
 };
 
 function accountTokens() {
+  // check for CONNECT_SERVER / CONNECT_API_KEY
+
+  // check for accounts
+
+  // TODO: quarto publish connect accounts
+
   return Promise.resolve([]);
 }
 
-function authorizeToken() {
+async function authorizeToken() {
+  const server = await Input.prompt({
+    message: "Server URL:",
+    minLength: 1,
+    hint: "e.g. https://connect.example.com",
+    validate: (value) => {
+      try {
+        const url = new URL(value);
+        if (!["http:", "https:"].includes(url.protocol)) {
+          return `${value} is not an HTTP URL`;
+        } else {
+          return true;
+        }
+      } catch {
+        return `${value} is not a valid URL`;
+      }
+    },
+  });
+
+  const apiKey = await Input.prompt({
+    message: "API Key:",
+    minLength: 1,
+    hint: "Learn more at https://docs.rstudio.com/connect/user/api-keys/",
+  });
+
+  // let's make a request
+  // enter rsconnect server
+
+  // enter rsconnect api key
+
+  // save the server
+
   return Promise.resolve(undefined);
 }
 

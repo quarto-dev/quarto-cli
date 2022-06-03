@@ -18,6 +18,7 @@ export enum AccountTokenType {
 export type AccountToken = {
   type: AccountTokenType;
   name: string;
+  server: string | null;
   token: string;
 };
 

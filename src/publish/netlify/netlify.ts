@@ -31,6 +31,7 @@ import {
 import { quartoConfig } from "../../core/quarto.ts";
 import { withRetry } from "../../core/retry.ts";
 import { handlePublish, PublishHandler } from "../common/publish.ts";
+import { authorizePrompt } from "../account.ts";
 
 export const kNetlify = "netlify";
 const kNetlifyDescription = "Netlify";
@@ -56,6 +57,7 @@ function accountTokens() {
     accounts.push({
       type: AccountTokenType.Environment,
       name: kNetlifyAuthTokenVar,
+      server: null,
       token: envTk,
     });
   }
@@ -63,6 +65,7 @@ function accountTokens() {
     accounts.push({
       type: AccountTokenType.Authorized,
       name: accessTk.email!,
+      server: null,
       token: accessTk?.access_token,
     });
   }
@@ -71,13 +74,18 @@ function accountTokens() {
 }
 
 async function authorizeToken() {
-  const token = await authorizeNetlifyAccessToken();
-  if (token) {
-    return {
-      type: AccountTokenType.Authorized,
-      name: token.email!,
-      token: token.access_token!,
-    };
+  if (await authorizePrompt(netlifyProvider)) {
+    const token = await authorizeNetlifyAccessToken();
+    if (token) {
+      return {
+        type: AccountTokenType.Authorized,
+        name: token.email!,
+        server: null,
+        token: token.access_token!,
+      };
+    }
+  } else {
+    return undefined;
   }
 }
 

@@ -22,6 +22,7 @@ import { handlePublish, PublishHandler } from "../common/publish.ts";
 import { PublishRecord } from "../types.ts";
 import { QuartoPubClient } from "./api/index.ts";
 import { quartoConfig } from "../../core/quarto.ts";
+import { authorizePrompt } from "../account.ts";
 
 export const kQuartoPub = "quarto-pub";
 export const kQuartoPubAuthTokenVar = "QUARTO_PUB_AUTH_TOKEN";
@@ -45,6 +46,7 @@ function accountTokens() {
     accounts.push({
       type: AccountTokenType.Environment,
       name: kQuartoPubAuthTokenVar,
+      server: null,
       token: envTk,
     });
   }
@@ -53,6 +55,7 @@ function accountTokens() {
     accounts.push({
       type: AccountTokenType.Authorized,
       name: accessTk.email!,
+      server: null,
       token: accessTk.applicationToken,
     });
   }
@@ -61,13 +64,18 @@ function accountTokens() {
 }
 
 async function authorizeToken() {
-  const token = await authorizeQuartoPubAccessToken();
-  if (token) {
-    return {
-      type: AccountTokenType.Authorized,
-      name: token.email!,
-      token: token.applicationToken,
-    };
+  if (await authorizePrompt(quartoPubProvider)) {
+    const token = await authorizeQuartoPubAccessToken();
+    if (token) {
+      return {
+        type: AccountTokenType.Authorized,
+        name: token.email!,
+        server: null,
+        token: token.applicationToken,
+      };
+    } else {
+      return undefined;
+    }
   }
 }
 
