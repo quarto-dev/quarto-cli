@@ -32,8 +32,6 @@ import { quartoConfig } from "../../core/quarto.ts";
 import { withRetry } from "../../core/retry.ts";
 import { handlePublish, PublishHandler } from "../common/publish.ts";
 
-// TODO: documents
-
 export const kNetlify = "netlify";
 const kNetlifyDescription = "Netlify";
 
