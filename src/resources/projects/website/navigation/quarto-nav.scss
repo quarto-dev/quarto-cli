@@ -510,10 +510,22 @@ nav.sidebar.sidebar-navigation:not(.rollup) {
   color: $text-muted;
 }
 
+.sidebar nav[role="doc-toc"] .toc-actions .bi:before {
+  padding-top: 3px;
+}
+
+#quarto-margin-sidebar .toc-actions .bi:before {
+  margin-top: 0.3rem;
+  font-size: 0.7rem;
+  color: $text-muted;
+  vertical-align: top;
+}
+
 .sidebar nav[role="doc-toc"] .toc-actions > div:first-of-type {
   margin-top: -3px;
 }
 
+#quarto-margin-sidebar .toc-actions p,
 .sidebar nav[role="doc-toc"] .toc-actions p {
   font-size: $toc-font-size;
 }
