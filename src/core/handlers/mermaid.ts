@@ -37,7 +37,6 @@ import {
 import { Element } from "../deno-dom.ts";
 import { convertFromYaml } from "../lib/yaml-schema/from-yaml.ts";
 import { readYamlFromString } from "../yaml.ts";
-import { LocalizedError } from "../lib/error.ts";
 
 const mermaidHandler: LanguageHandler = {
   ...baseHandler,
