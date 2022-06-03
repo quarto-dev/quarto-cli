@@ -20,3 +20,29 @@ knit: quarto render
 #| comment: $
 1 + 2
 ```
+
+# With option {#prompt}
+
+```{r}
+#| prompt: true
+1 + 2
+```
+
+```{r}
+#| collapse: true
+#| prompt: true
+1 + 2
+```
+
+# Without prompt {#no-prompt}
+
+```{r}
+#| prompt: false
+1 + 2
+```
+
+```{r}
+#| collapse: true
+#| prompt: false
+1 + 2
+```

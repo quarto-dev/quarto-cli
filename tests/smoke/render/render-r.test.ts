@@ -27,7 +27,7 @@ testRender(docs("test.Rmd"), "html", false, [
   },
 }, ["--execute-params", "docs/params.yml"]);
 
-const knitrOptions = fileLoader()("test-knitr-options.Rmd", "html");
+const knitrOptions = fileLoader()("test-knitr-options.qmd", "html");
 testRender(knitrOptions.input, "html", false, [
   ensureHtmlSelectorSatisfies(
     knitrOptions.output.outputPath,
@@ -41,6 +41,20 @@ testRender(knitrOptions.input, "html", false, [
     "#comment-change code",
     (nodeList) => {
       return /\n\$ \[1\] 3/.test(nodeList[0].textContent);
+    },
+  ),
+  ensureHtmlSelectorSatisfies(
+    knitrOptions.output.outputPath,
+    "#prompt code.sourceCode",
+    (nodeList) => {
+      return Array.from(nodeList).every((e) => /^>/.test(e.textContent));
+    },
+  ),
+  ensureHtmlSelectorSatisfies(
+    knitrOptions.output.outputPath,
+    "#no-prompt code.sourceCode",
+    (nodeList) => {
+      return Array.from(nodeList).every((e) => /^[^>]/.test(e.textContent));
     },
   ),
 ]);
