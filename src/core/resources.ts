@@ -8,7 +8,7 @@
 import { existsSync, walkSync } from "fs/mod.ts";
 import { dirname, join } from "path/mod.ts";
 import { warnOnce } from "./log.ts";
-import { which } from "./path.ts";
+import { safeExistsSync, which } from "./path.ts";
 import { quartoConfig } from "./quarto.ts";
 import {
   kHKeyCurrentUser,
@@ -63,7 +63,13 @@ export async function rBinaryPath(binary: string): Promise<string> {
   // if there is an R_HOME then respect that
   const rHome = Deno.env.get("R_HOME");
   if (rHome) {
-    return join(rHome, "bin", binary);
+    let rHomeBin = join(rHome, "bin", binary);
+    if (safeExistsSync(rHomeBin)) return rHomeBin;
+    if (Deno.build.os === "windows") {
+      // Some installation have binaries in the sub folder only
+      rHomeBin = join(rHome, "bin", "x64", binary);
+      if (safeExistsSync(rHomeBin)) return rHomeBin;
+    }
   }
 
   // then check the path

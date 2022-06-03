@@ -95,7 +95,10 @@ export async function which(cmd: string) {
     { cmd: args, stderr: "piped", stdout: "piped" },
   );
   if (result.code === 0) {
-    return result.stdout?.trim();
+    return Deno.build.os === "windows"
+      // WHERE return all files found, only first is kept
+      ? result.stdout?.split("\n")[0].trim()
+      : result.stdout?.trim();
   } else {
     return undefined;
   }
