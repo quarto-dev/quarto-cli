@@ -16,7 +16,7 @@ function resolveRefs()
         -- get the label and type, and note if the label is uppercase
         local label = cite.id
         local type = refType(label)
-        if type ~= nil then
+        if type ~= nil and isValidRefType(type) then
           local upper = not not string.match(cite.id, "^[A-Z]")
         
           -- lookup the label
@@ -143,6 +143,9 @@ function refLabelPattern(type)
   return "{#(" .. type .. "%-[^ }]+)}"
 end
 
+function isValidRefType(type) 
+  return tcontains(validRefTypes(), type)
+end
 
 function validRefTypes()
   local types = tkeys(theoremTypes)
