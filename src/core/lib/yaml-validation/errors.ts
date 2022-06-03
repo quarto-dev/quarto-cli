@@ -871,6 +871,8 @@ export function createLocalizedError(obj: {
     };
   }
 
+  const mapResult = source.map(violatingObject.start);
+  const fileName = mapResult ? mapResult.originalString.fileName : undefined;
   return {
     source: mappedString(source, [{
       start: violatingObject.start,
@@ -886,7 +888,7 @@ export function createLocalizedError(obj: {
       heading: message,
       error: [],
       info: {},
-      fileName: source.fileName,
+      fileName,
       location: location!,
       sourceContext: createSourceContext(violatingObject.source, {
         start: violatingObject.start,

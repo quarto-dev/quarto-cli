@@ -12140,7 +12140,7 @@
     "type": "object",
     "description": "be an object",
     "properties": {
-      "mermaid-dev": {
+      "mermaid-format": {
         "type": "enum",
         "enum": [
           "png",
@@ -12157,7 +12157,7 @@
     "patternProperties": {},
     "propertyNames": {
       "type": "string",
-      "pattern": "^(?!(mermaid_dev|mermaidDev))"
+      "pattern": "^(?!(mermaid_format|mermaidFormat))"
     },
     "tags": {
       "case-convention": [

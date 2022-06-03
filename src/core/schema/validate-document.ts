@@ -116,6 +116,10 @@ export async function validateDocumentFromSource(
       );
     } catch (e) {
       if (e instanceof ValidationError) {
+        error("Validation of YAML cell metadata failed.");
+        for (const err of e.validationErrors) {
+          console.log(tidyverseFormatError(err.niceError));
+        }
         result.push(...e.validationErrors);
       } else {
         throw e;

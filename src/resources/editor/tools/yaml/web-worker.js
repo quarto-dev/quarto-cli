@@ -19162,7 +19162,7 @@ try {
           type: "object",
           description: "be an object",
           properties: {
-            "mermaid-dev": {
+            "mermaid-format": {
               type: "enum",
               enum: [
                 "png",
@@ -19179,7 +19179,7 @@ try {
           patternProperties: {},
           propertyNames: {
             type: "string",
-            pattern: "^(?!(mermaid_dev|mermaidDev))"
+            pattern: "^(?!(mermaid_format|mermaidFormat))"
           },
           tags: {
             "case-convention": [
@@ -25229,6 +25229,8 @@ ${heading}`;
         end: { line: 0, column: 0 }
       };
     }
+    const mapResult = source.map(violatingObject.start);
+    const fileName = mapResult ? mapResult.originalString.fileName : void 0;
     return {
       source: mappedString(source, [{
         start: violatingObject.start,
@@ -25244,7 +25246,7 @@ ${heading}`;
         heading: message,
         error: [],
         info: {},
-        fileName: source.fileName,
+        fileName,
         location,
         sourceContext: createSourceContext(violatingObject.source, {
           start: violatingObject.start,
