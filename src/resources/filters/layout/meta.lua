@@ -17,25 +17,52 @@ function layoutMetaInject()
         end
       end)
 
+      -- This indicates whether the text highlighting theme has a 'light/dark' variant
+      -- if it doesn't adapt, we actually will allow the text highlighting theme to control
+      -- the appearance of the code block (e.g. so solarized will get a consistent yellow bg)
+      local adaptiveTextHighlighting = param('adaptive-text-highlighting', false)
+
       -- If the user specifies 'code-block-border-left: false'
       -- then we should't give the code blocks this treatment
-      local adaptiveTextHighlighting = param('adaptive-text-highlighting', false)
       local kCodeBlockBorderLeft = 'code-block-border-left'
-      if (adaptiveTextHighlighting and meta[kCodeBlockBorderLeft] == nil) or meta[kCodeBlockBorderLeft] then
+      local kCodeBlockBackground = 'code-block-bg'
+
+      -- Track whether to show a border or background
+      local useCodeBlockBorder = (adaptiveTextHighlighting and meta[kCodeBlockBorderLeft] == nil and meta[kCodeBlockBackground] == nil) or meta[kCodeBlockBorderLeft] ~= nil
+      local useCodeBlockBg = meta[kCodeBlockBackground] ~= nil
+
+      -- if we're going to display a border or background
+      -- we need to inject color handling as well as the 
+      -- box definition for code blocks
+      if (useCodeBlockBorder or useCodeBlockBg) then
         metaInjectLatex(meta, function(inject)
           inject(
             usePackageWithOption("tcolorbox", "many")
           )
         end)
 
+        -- figure out the shadecolor
+        local shadeColor = nil
+        if useCodeBlockBorder and meta[kCodeBlockBorderLeft] then
+          shadeColor = latexXColor(meta[kCodeBlockBorderLeft])
+        elseif useCodeBlockBg and meta[kCodeBlockBackground] then
+          shadeColor = latexXColor(meta[kCodeBlockBackground])
+        end
+
+        -- ensure shadecolor is defined
         metaInjectLatex(meta, function(inject)
-          inject(
-            "\\@ifundefined{shadecolor}{\\definecolor{shadecolor}{rgb}{.97, .97, .97}}"
-          )
+          if (shadeColor ~= nil) then
+            inject(
+              "\\@ifundefined{shadecolor}{\\definecolor{shadecolor}" .. shadeColor .. "}"
+            )  
+          else
+            inject(
+              "\\@ifundefined{shadecolor}{\\definecolor{shadecolor}{rgb}{.97, .97, .97}}"
+            )  
+          end
         end)
 
         -- set color options for code blocks ('Shaded')
-        -- shadecolor is defined by pandoc
         local options = {
           ['interior hidden'] = "",
           boxrule = '0pt',
@@ -45,6 +72,15 @@ function layoutMetaInject()
           enhanced = "",
           ['borderline west'] = '{3pt}{0pt}{shadecolor}'
         }
+        if useCodeBlockBg then 
+          options = {
+            colback = "{shadecolor}",
+            boxrule = '0pt',
+            ['frame hidden'] = "",
+            ['breakable'] = "",
+            enhanced = "",
+          }
+        end
         
         -- redefined the 'Shaded' environment that pandoc uses for fenced 
         -- code blocks
