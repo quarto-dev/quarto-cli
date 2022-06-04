@@ -237,7 +237,7 @@ function transformShortcodeInlines(inlines)
             end
           end
         else
-          tappend(accum, shortcodeInlines)
+          accum:insert(pandoc.RawInline("markdown", inlinesToString(shortcodeInlines)))
         end
 
         local suffix = el.text:sub(#kCloseShortcode + 1)
