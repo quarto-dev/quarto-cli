@@ -62,9 +62,9 @@ async function authorizeToken() {
   });
 
   // let's make a request
-  // enter rsconnect server
 
-  // enter rsconnect api key
+  //  "https://connect.example.com/__api__/v1/user"
+  // https://docs.rstudio.com/connect/api/#get-/v1/user
 
   // save the server
 
