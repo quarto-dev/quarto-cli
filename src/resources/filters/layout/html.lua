@@ -4,7 +4,7 @@
 function htmlPanel(divEl, layout, caption)
   
   -- outer panel to contain css and figure panel
-  local divId = divEl.attr.id
+  local divId = divEl.attr.identifier
   if divId == nil then
     divId = ''
   end
