@@ -338,7 +338,7 @@ export function setMainColumn(doc: Document, column: string) {
   const selectors = [
     "main.content",
     ".page-navigation",
-    ".quarto-banner-title-block .quarto-title",
+    ".quarto-title-banner .quarto-title",
     "div[class^='quarto-about-']",
     "div[class*=' quarto-about-']",
   ];
