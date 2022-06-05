@@ -491,6 +491,7 @@ function navigationHtmlPostprocessor(
 
     // handle repo links
     handleRepoLinks(
+      format,
       doc,
       pathWithForwardSlashes(sourceRelative),
       language,
@@ -529,6 +530,7 @@ function navigationHtmlPostprocessor(
 }
 
 function handleRepoLinks(
+  format: Format,
   doc: Document,
   source: string,
   language: FormatLanguage,
@@ -539,6 +541,7 @@ function handleRepoLinks(
     kWebsite,
     config,
   );
+  const forecRepoActions = format.metadata[kSiteRepoActions] === true;
 
   const elRepoSource = doc.querySelector(
     "[" + kDataQuartoSourceUrl + '="repo"]',
@@ -550,7 +553,7 @@ function handleRepoLinks(
       if (repoActions.length > 0) {
         // find the toc
         let repoTarget = doc.querySelector(`nav[role="doc-toc"]`);
-        if (repoTarget === null) {
+        if (repoTarget === null && forecRepoActions) {
           repoTarget = doc.querySelector("#quarto-margin-sidebar");
         }
 
