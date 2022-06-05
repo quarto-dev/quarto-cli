@@ -34,6 +34,7 @@ import {
   normalizeWebsiteFormat,
 } from "./types/website/website-config.ts";
 import { kDefaultProjectFileContents } from "./types/project-default.ts";
+import { formatOutputFile } from "../core/render.ts";
 
 export interface InputTargetIndex extends Metadata {
   title?: string;
@@ -167,7 +168,7 @@ export async function resolveInputTarget(
     const formats = formatsPreferHtml(index.formats) as Record<string, Format>;
     const format = Object.values(formats)[0];
     const [hrefDir, hrefStem] = dirAndStem(href);
-    const outputFile = format.pandoc[kOutputFile] || `${hrefStem}.html`;
+    const outputFile = formatOutputFile(format) || `${hrefStem}.html`;
     const outputHref = pathWithForwardSlashes(
       (absolute ? "/" : "") + join(hrefDir, outputFile),
     );

@@ -5,6 +5,8 @@
 *
 */
 
+import { kOutputExt, kOutputFile } from "../config/constants.ts";
+import { Format } from "../config/types.ts";
 import { dirAndStem } from "./path.ts";
 
 export function inputFilesDir(input: string) {
@@ -20,4 +22,14 @@ export function figuresDir(pandocTo?: string) {
   }
   pandocTo = (pandocTo || "html").replace(/[\+\-].*$/, "");
   return "figure-" + pandocTo;
+}
+
+export function formatOutputFile(format: Format) {
+  let outputFile = format.pandoc[kOutputFile];
+  if (outputFile) {
+    if (!outputFile.match(/\..+$/) && format.render[kOutputExt]) {
+      outputFile = `${outputFile}.${format.render[kOutputExt]}`;
+    }
+  }
+  return outputFile;
 }
