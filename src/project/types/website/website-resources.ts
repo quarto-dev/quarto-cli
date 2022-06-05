@@ -85,7 +85,7 @@ function resolveTag(
       } else if (!href.startsWith(forceRoot)) {
         tag.setAttribute(attrib, forceRoot + href.slice(1));
       }
-    } else if (href.startsWith("/")) {
+    } else if (href.startsWith("/") && !href.startsWith("//")) {
       href = offset + href;
       tag.setAttribute(attrib, href);
     }

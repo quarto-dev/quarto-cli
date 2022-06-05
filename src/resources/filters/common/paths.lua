@@ -4,7 +4,12 @@
 function resourceRef(ref, dir)
   -- if the ref starts with / then just strip if off
   if string.find(ref, "^/") then
-    return text.sub(ref, 2, #ref)
+    -- check for protocol relative url
+    if string.find(ref, "^//") == nil then
+      return text.sub(ref, 2, #ref)
+    else
+      return ref
+    end
   -- if it's a relative ref then prepend the resource dir
   elseif isRelativeRef(ref) then
     return dir .. "/" .. ref
@@ -35,6 +40,8 @@ function isRelativeRef(ref)
          ref:find("^data:") == nil and 
          ref:find("^#") == nil
 end
+
+
 
 function handlePaths(el, path, replacer)
   el.text = handleHtmlRefs(el.text, path, "img", "src", replacer)
