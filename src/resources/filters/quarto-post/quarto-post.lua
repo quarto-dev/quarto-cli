@@ -26,6 +26,7 @@ import("reveal.lua")
 import("tikz.lua")
 import("meta.lua")
 import("delink.lua")
+import("book.lua")
 import("../common/lunacolors.lua")
 import("../common/log.lua")
 import("../common/base64.lua")
@@ -36,6 +37,7 @@ import("../common/pandoc.lua")
 import("../common/figures.lua")
 import("../common/meta.lua")
 import("../common/debug.lua")
+import("../common/authors.lua")
 -- [/import]
 
 initParams()
@@ -47,6 +49,7 @@ return {
     foldCode(),
     responsive(),
     ipynb(),
+    quartoBook(),
     reveal(),
     tikz(),
     delink(),

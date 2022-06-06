@@ -140,99 +140,96 @@ local kAffiliationAliasedFields = {
 -- a simple incremental counter that can be used for things like note numbers
 local kNumber = "number"
 
--- Normalizes author metadata from the 'input' field into 
--- consistently structured metadata in the 'output' field
-function authorsMeta()
-  return {
-    Meta = function(meta)
-      if not _quarto.format.isHtmlOutput() and not _quarto.format.isLatexOutput() and not _quarto.format.isIpynbOutput() then
-        return
-      end
+function processAuthorMeta(meta, authorInput)
+  if not _quarto.format.isHtmlOutput() and not _quarto.format.isLatexOutput() and not _quarto.format.isIpynbOutput() then
+    return
+  end
 
-      local authorsRaw = meta[kAuthorInput]
+  if authorInput == nil then
+    authorInput = kAuthorInput
+  end
+  local authorsRaw = meta[authorInput]
+  
+  -- the normalized authors
+  local authors = {}
+
+  -- the normalized affilations
+  local affiliations = {}
+
+  if authorsRaw then
+    for i,v in ipairs(authorsRaw) do
+
+      local authorAndAffiliations = processAuthor(v)
       
-      -- the normalized authors
-      local authors = {}
+      -- initialize the author
+      local author = authorAndAffiliations.author
+      local authorAffils = authorAndAffiliations.affiliations
 
-      -- the normalized affilations
-      local affiliations = {}
+      -- assign an id to this author if one isn't defined
+      local authorNumber = #authors + 1
+      if author[kId] == nil then
+        author[kId] = authorNumber
+      end        
 
-      if authorsRaw then
-        for i,v in ipairs(authorsRaw) do
-
-          local authorAndAffiliations = processAuthor(v)
-          
-          -- initialize the author
-          local author = authorAndAffiliations.author
-          local authorAffils = authorAndAffiliations.affiliations
-
-          -- assign an id to this author if one isn't defined
-          local authorNumber = #authors + 1
-          if author[kId] == nil then
-            author[kId] = authorNumber
-          end        
-
-          -- go through the affilations and add any to the list
-          -- assigning an id if needed
-          if authorAffils ~= nil then
-            for i,v in ipairs(authorAffils) do
-              local affiliation = maybeAddAffiliation(v, affiliations)
-              setAffiliation(author, { ref=affiliation[kId] })
-            end
-          end
-
-          -- add this author to the list of authors
-          authors[authorNumber] = author
-        end      
-      end
-
-      -- Add any attributes that are explicitly specified
-      local affiliationsRaw = meta[kAffiliations]
-      if affiliationsRaw then        
-        local explicitAffils = processAffiliation(nil, affiliationsRaw)
-        if explicitAffils then
-          for i,affiliation in ipairs(explicitAffils) do          
-            maybeAddAffiliation(affiliation, affiliations)
-          end
+      -- go through the affilations and add any to the list
+      -- assigning an id if needed
+      if authorAffils ~= nil then
+        for i,v in ipairs(authorAffils) do
+          local affiliation = maybeAddAffiliation(v, affiliations)
+          setAffiliation(author, { ref=affiliation[kId] })
         end
       end
 
-      -- validate that every author affiliation has a corresponding 
-      -- affiliation defined in the affiliations key
-      validateRefs(authors, affiliations)
+      -- add this author to the list of authors
+      authors[authorNumber] = author
+    end      
+  end
 
-      -- number the authors and affiliations
-      for i,affil in ipairs(affiliations) do
-        affil[kNumber] = i
+  -- Add any attributes that are explicitly specified
+  local affiliationsRaw = meta[kAffiliations]
+  if affiliationsRaw then        
+    local explicitAffils = processAffiliation(nil, affiliationsRaw)
+    if explicitAffils then
+      for i,affiliation in ipairs(explicitAffils) do          
+        maybeAddAffiliation(affiliation, affiliations)
       end
-      for i,auth in ipairs(authors) do
-        auth[kNumber] = i
-      end
-
-      -- Write the normalized data back to metadata
-      if #authors ~= 0 then
-        meta[kAuthorOutput] = authors
-      end
-
-      if #affiliations ~= 0 then
-        meta[kAffiliations] = affiliations
-      end
-
-      -- Write the de-normalized versions back to metadata
-      if #authors ~= 0 then
-        meta[kByAuthor] = byAuthors(authors, affiliations)
-      end
-
-      if #affiliations ~= 0 then
-        meta[kByAffiliation] = byAffiliations(authors, affiliations)
-      end
-
-      -- Provide localized or user specified strings for title block elements
-      meta = computeLabels(authors, affiliations, meta)
-
-      return meta
     end
-  }
+  end
+
+  -- validate that every author affiliation has a corresponding 
+  -- affiliation defined in the affiliations key
+  validateRefs(authors, affiliations)
+
+  -- number the authors and affiliations
+  for i,affil in ipairs(affiliations) do
+    affil[kNumber] = i
+  end
+  for i,auth in ipairs(authors) do
+    auth[kNumber] = i
+  end
+
+  -- Write the normalized data back to metadata
+  if #authors ~= 0 then
+    meta[kAuthorOutput] = authors
+  end
+
+  if #affiliations ~= 0 then
+    meta[kAffiliations] = affiliations
+  end
+
+  -- Write the de-normalized versions back to metadata
+  if #authors ~= 0 then
+    meta[kByAuthor] = byAuthors(authors, affiliations)
+  end
+
+  if #affiliations ~= 0 then
+    meta[kByAffiliation] = byAffiliations(authors, affiliations)
+  end
+
+  -- Provide localized or user specified strings for title block elements
+  meta = computeLabels(authors, affiliations, meta)
+
+  return meta
 end
 
 -- Add an affiliation to the list of affiliations if needed

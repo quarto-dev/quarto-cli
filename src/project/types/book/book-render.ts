@@ -85,6 +85,7 @@ import {
 import { pathWithForwardSlashes } from "../../../core/path.ts";
 import { kDateFormat } from "../website/listing/website-listing-template.ts";
 import { removePandocTo } from "../../../command/render/flags.ts";
+import { resourcePath } from "../../../core/resources.ts";
 
 export function bookPandocRenderer(
   options: RenderOptions,
@@ -349,13 +350,21 @@ async function mergeExecutedFiles(
           const partitioned = partitionYamlFrontMatter(
             file.executeResult.markdown,
           );
-          const yaml = partitioned?.yaml
-            ? readYamlFromMarkdown(partitioned?.yaml)
-            : undefined;
-          const frontTitle = frontMatterTitle(yaml);
-          const titleMarkdown = frontTitle ? `# ${frontTitle}\n\n` : "";
 
-          itemMarkdown = bookItemMetadata(project, item, file) + titleMarkdown +
+          const titleBlockPath = resourcePath(
+            "projects/book/pandoc/title-block.md",
+          );
+          const titleAttr = `template='${titleBlockPath}'`;
+
+          const titleBlockMd = partitioned?.yaml
+            ? "```````{.quarto-title-block " + titleAttr + "}\n" +
+              partitioned?.yaml +
+              "\n```````"
+            : "";
+
+          console.log(titleBlockMd);
+
+          itemMarkdown = bookItemMetadata(project, item, file) + titleBlockMd +
             (partitioned?.markdown || file.executeResult.markdown);
         } else {
           throw new Error(
