@@ -9,6 +9,7 @@ import { info } from "log/mod.ts";
 import * as colors from "fmt/colors.ts";
 
 import { Input } from "cliffy/prompt/input.ts";
+import { Secret } from "cliffy/prompt/secret.ts";
 
 import {
   AccountToken,
@@ -130,7 +131,7 @@ async function authorizeToken(): Promise<AccountToken | undefined> {
 
   // get apiKey and username
   while (true) {
-    const apiKey = await Input.prompt({
+    const apiKey = await Secret.prompt({
       message: "API Key:",
       hint: "Learn more at https://docs.rstudio.com/connect/user/api-keys/",
     });
