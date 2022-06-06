@@ -32,7 +32,6 @@ import {
   kFigHeight,
   kFigResponsive,
   kFigWidth,
-  kIncludeAfterBody,
   kMermaidFormat,
 } from "../../config/constants.ts";
 import { Element } from "../deno-dom.ts";
@@ -41,6 +40,7 @@ import { readYamlFromString } from "../yaml.ts";
 import { pandocHtmlBlock, pandocRawStr } from "../pandoc/codegen.ts";
 import { LocalizedError } from "../lib/error.ts";
 import { warning } from "log/mod.ts";
+import { FormatDependency } from "../../config/types.ts";
 
 const mermaidHandler: LanguageHandler = {
   ...baseHandler,
@@ -82,15 +82,15 @@ object:
     const cellContent = handlerContext.cellContent(cell);
     // create puppeteer target page
     const content = `<html>
-    <head>
-    <script src="./mermaid.min.js"></script>
-    </head>
-    <body>
-    <pre class="mermaid">\n${cellContent.value}\n</pre>
-    <script>
-    mermaid.initialize();
-    </script>
-    </html>`;
+<head>
+<script src="./mermaid.min.js"></script>
+</head>
+<body>
+<pre class="mermaid">\n${cellContent.value}\n</pre>
+<script>
+mermaid.initialize();
+</script>
+</html>`;
     const selector = "pre.mermaid svg";
     const resources: [string, string][] = [[
       "mermaid.min.js",
@@ -105,27 +105,24 @@ object:
       }
       handlerContext.getState().hasSetupMermaidJsRuntime = true;
 
-      handlerContext.addHtmlDependency(
-        "script",
-        {
-          name: "mermaid.min.js",
-          path: formatResourcePath("html", join("mermaid", "mermaid.min.js")),
-        },
-      );
-
-      handlerContext.addInclude(
-        `<script>
-mermaid.initialize({ startOnLoad: false });
-window.addEventListener(
-  'load',
-  function () {
-    mermaid.init("div.cell-output-display pre.mermaid");
-  },
-  false
-);
-</script>`,
-        kIncludeAfterBody,
-      );
+      const dep: FormatDependency = {
+        name: "quarto-diagram",
+        scripts: [
+          {
+            name: "mermaid.min.js",
+            path: formatResourcePath("html", join("mermaid", "mermaid.min.js")),
+          },
+          {
+            name: "mermaid-init.js",
+            path: formatResourcePath(
+              "html",
+              join("mermaid", "mermaid-init.js"),
+            ),
+            afterBody: true,
+          },
+        ],
+      };
+      handlerContext.addHtmlDependency(dep);
     };
 
     const makeFigLink = (
@@ -221,7 +218,7 @@ window.addEventListener(
           svg,
           options,
           undefined,
-          new Set(["fig-width", "fig-height"]),
+          new Set(["fig-width", "fig-height", "mermaid-format"]),
         );
       }
     };
@@ -262,7 +259,7 @@ window.addEventListener(
           )),
           options,
           undefined,
-          new Set(["fig-width", "fig-height"]),
+          new Set(["fig-width", "fig-height", "mermaid-format"]),
         );
       }
     };
@@ -275,7 +272,14 @@ window.addEventListener(
       });
       preEl.push(pandocRawStr(cell.source));
 
-      return this.build(handlerContext, cell, preEl.mappedString(), options);
+      return this.build(
+        handlerContext,
+        cell,
+        preEl.mappedString(),
+        options,
+        undefined,
+        new Set(["mermaid-format"]),
+      );
     };
 
     const makeDefault = async () => {

@@ -17,7 +17,8 @@ export const kDefaultProjectFileContents = "{ project: { type: 'default' } }";
 export const defaultProjectType: ProjectType = {
   type: "default",
 
-  formatLibDirs: () => ["bootstrap", "quarto-html", "quarto-ojs"],
+  formatLibDirs:
+    () => ["bootstrap", "quarto-html", "quarto-ojs", "quarto-diagram"],
 
   create: (title: string): ProjectCreate => {
     const resourceDir = resourcePath(join("projects", "default"));
