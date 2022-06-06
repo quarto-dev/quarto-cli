@@ -27,6 +27,15 @@ const kRSConnectDescription = "RS Connect";
 export const kRSConnectServerVar = "CONNECT_SERVER";
 export const kRSConnectAuthTokenVar = "CONNECT_API_KEY";
 
+// TODO: account management utility
+// TODO: quarto publish netlify <path> doesn't work (eliminate subcommands and use optional positional commands?)
+// TODO: allow multiple accounts for netlify and quartopub
+
+// TODO: note link from aron on new sites api
+// The public API workflow for deploys is described in our cookbook with curl examples: https://docs.rstudio.com/connect/cookbook/deploying/#deploying-workflow,
+// and that links out to the content API docs: https://docs.rstudio.com/connect/api/#tag--Content. Both rsconnect and rsconnect-python use some of the internal
+// and some of the public APIs because they existed before some of the APIs were public.
+
 export const rsconnectProvider: PublishProvider = {
   name: kRSConnect,
   description: kRSConnectDescription,
