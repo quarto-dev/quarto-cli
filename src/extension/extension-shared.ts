@@ -46,13 +46,6 @@ export interface ExtensionId {
   organization?: string;
 }
 
-export interface ExtensionVersion {
-  major: number;
-  minor: number;
-  revision: number;
-  build: number;
-}
-
 export interface ExtensionMetadata {
   path: string;
   metadata: Metadata;
