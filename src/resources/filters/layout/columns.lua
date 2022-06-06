@@ -257,7 +257,7 @@ function resolveCaptionClasses(el)
 end
 
 function isCaptionClass(clz)
-  return clz == 'caption-margin'
+  return clz == 'caption-margin' or clz == 'margin-caption'
 end
 
 function isColumnClass(clz) 
