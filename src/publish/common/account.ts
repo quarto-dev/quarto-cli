@@ -62,35 +62,70 @@ export async function authorizeAccessToken<
   }
 }
 
-export function readAccessToken<T>(provider: string): T | undefined {
-  const tokenPath = accessTokenPath(provider);
-  if (existsSync(tokenPath)) {
-    const token = JSON.parse(Deno.readTextFileSync(tokenPath)) as T;
-    return token;
+export function readAccessToken<T>(
+  provider: string,
+): T | undefined {
+  const tokens = readAccessTokens<T>(provider);
+  if (tokens) {
+    return tokens[0];
   } else {
     return undefined;
   }
 }
 
-export function writeAccessToken<T>(provider: string, token: T) {
-  // write token
-  const tokenPath = accessTokenPath(provider);
-  Deno.writeTextFileSync(
-    tokenPath,
-    JSON.stringify(token, undefined, 2),
-  );
-  // set file permissions
-  if (!isWindows()) {
-    Deno.chmod(tokenPath, 0o600);
+export function readAccessTokens<T>(
+  provider: string,
+): Array<T> | undefined {
+  const tokenPath = accessTokensPath(provider);
+  if (existsSync(tokenPath)) {
+    const tokens = JSON.parse(Deno.readTextFileSync(tokenPath)) as Array<T>;
+    return tokens;
+  } else {
+    return undefined;
   }
 }
 
-function accessTokenPath(provider: string) {
-  const dir = join(accountsDataDir(), provider);
-  ensureDirSync(dir);
-  return join(dir, "account.json");
+export function writeAccessToken<T>(
+  provider: string,
+  token: T,
+  update?: (a: T, b: T) => boolean,
+) {
+  const tokensPath = accessTokensPath(provider);
+  let writeTokens: Array<T> | undefined;
+
+  if (update) {
+    // read existing tokens (if any)
+    writeTokens = readAccessTokens<T>(provider) || [] as Array<T>;
+
+    // update or add new
+    const updateIdx = writeTokens.findIndex((t) => update(t, token));
+    if (updateIdx !== -1) {
+      writeTokens[updateIdx] = token;
+    } else {
+      writeTokens.push(token);
+    }
+  } else {
+    writeTokens = [token];
+  }
+
+  // write tokens
+  Deno.writeTextFileSync(
+    tokensPath,
+    JSON.stringify([token], undefined, 2),
+  );
+
+  // set file permissions
+  if (!isWindows()) {
+    Deno.chmod(tokensPath, 0o600);
+  }
 }
 
-function accountsDataDir() {
+export function accessTokensPath(provider: string) {
+  const dir = join(accountsDataDir(), provider);
+  ensureDirSync(dir);
+  return join(dir, "accounts.json");
+}
+
+export function accountsDataDir() {
   return quartoDataDir("accounts");
 }
