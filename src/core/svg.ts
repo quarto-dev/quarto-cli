@@ -11,6 +11,9 @@ import { EitherString, MappedString } from "./lib/text-types.ts";
 import { asMappedString, mappedDiff } from "./mapped-text.ts";
 import { inInches } from "./units.ts";
 
+// NB: there's effectively a copy of this function
+// in our mermaid runtime in `formats/html/mermaid/mermaid-runtime.js`.
+// if you change something here, you must keep it consistent there as well.
 export async function resolveSize(
   svg: string,
   options: Record<string, unknown>,
@@ -85,6 +88,9 @@ export async function resolveSize(
   };
 }
 
+// NB: there's effectively a copy of this function
+// in our mermaid runtime in `formats/html/mermaid/mermaid-runtime.js`.
+// if you change something here, you must keep it consistent there as well.
 export const fixupAlignment = (svg: Element, align: string) => {
   let style = svg.getAttribute("style") ?? "";
 
@@ -102,6 +108,9 @@ export const fixupAlignment = (svg: Element, align: string) => {
   svg.setAttribute("style", style);
 };
 
+// NB: there's effectively a copy of this function
+// in our mermaid runtime in `formats/html/mermaid/mermaid-runtime.js`.
+// if you change something here, you must keep it consistent there as well.
 export async function setSvgSize(
   svgSrc: EitherString,
   options: Record<string, unknown>,

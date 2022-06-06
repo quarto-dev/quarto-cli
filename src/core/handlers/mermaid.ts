@@ -41,6 +41,7 @@ import { pandocHtmlBlock, pandocRawStr } from "../pandoc/codegen.ts";
 import { LocalizedError } from "../lib/error.ts";
 import { warning } from "log/mod.ts";
 import { FormatDependency } from "../../config/types.ts";
+import { mappedDiff } from "../mapped-text.ts";
 
 const mermaidHandler: LanguageHandler = {
   ...baseHandler,
@@ -105,12 +106,17 @@ mermaid.initialize();
       }
       handlerContext.getState().hasSetupMermaidJsRuntime = true;
 
+      const jsName =
+        handlerContext.options.context.format.metadata?.["mermaid-debug"]
+          ? "mermaid.js"
+          : "mermaid.min.js";
+
       const dep: FormatDependency = {
         name: "quarto-diagram",
         scripts: [
           {
-            name: "mermaid.min.js",
-            path: formatResourcePath("html", join("mermaid", "mermaid.min.js")),
+            name: jsName,
+            path: formatResourcePath("html", join("mermaid", jsName)),
           },
           {
             name: "mermaid-init.js",
@@ -119,6 +125,12 @@ mermaid.initialize();
               join("mermaid", "mermaid-init.js"),
             ),
             afterBody: true,
+          },
+        ],
+        stylesheets: [
+          {
+            name: "mermaid.css",
+            path: formatResourcePath("html", join("mermaid", "mermaid.css")),
           },
         ],
       };
@@ -149,6 +161,8 @@ mermaid.initialize();
 
       return `\n![${captionSpecifier}](${sourceName}){${widthSpecifier}${heightSpecifier}${posSpecifier}${idSpecifier}}\n`;
     };
+    const responsive = handlerContext.options.context.format.metadata
+      ?.[kFigResponsive];
 
     const makeSvg = async () => {
       let svg = asMappedString(
@@ -158,8 +172,6 @@ mermaid.initialize();
           resources,
         }))[0],
       );
-      const responsive = handlerContext.options.context.format.metadata
-        ?.[kFigResponsive];
 
       const fixupRevealAlignment = (svg: Element) => {
         if (isRevealjsOutput(handlerContext.options.context.format.pandoc)) {
@@ -168,17 +180,33 @@ mermaid.initialize();
         }
       };
 
+      let newId: string | undefined = undefined;
+      const idsToPatch: string[] = [];
+
       const fixupMermaidSvg = (svg: Element) => {
         // replace mermaid id with a consistent one.
-        const { baseName: newId } = handlerContext.uniqueFigureName(
+        const { baseName: newMermaidId } = handlerContext.uniqueFigureName(
           "mermaid-figure-",
           "",
         );
+        newId = newMermaidId;
         fixupRevealAlignment(svg);
         const oldId = svg.getAttribute("id") as string;
-        svg.setAttribute("id", newId);
+        svg.setAttribute("id", newMermaidId);
         const style = svg.querySelector("style")!;
-        style.innerHTML = style.innerHTML.replaceAll(oldId, newId);
+        style.innerHTML = style.innerHTML.replaceAll(oldId, newMermaidId);
+
+        for (const defNode of svg.querySelectorAll("defs")) {
+          const defEl = defNode as Element;
+          // because this is a defs node and deno-dom doesn't like non-html elements,
+          // we can't use the standard API
+          const m = defEl.innerHTML.match(/id="([^\"]+)"/);
+          if (m) {
+            const id = m[1];
+            console.log("Will try to patch", id);
+            idsToPatch.push(id);
+          }
+        }
       };
 
       if (
@@ -193,6 +221,26 @@ mermaid.initialize();
 
           fixupMermaidSvg(svg);
         });
+      }
+
+      // This is a preposterously ugly fix to a mermaid issue where
+      // duplicate definition ids are emitted, which causes diagrams to step
+      // on one another's toes.
+      if (idsToPatch.length) {
+        let oldSvgSrc = svg.value;
+        for (const idToPatch of idsToPatch) {
+          const to = `${newId}-${idToPatch}`;
+          // this string substitution is fraught, but I don't know how else to fix the problem.
+          oldSvgSrc = oldSvgSrc.replaceAll(
+            `"${idToPatch}"`,
+            `"${to}"`,
+          );
+          oldSvgSrc = oldSvgSrc.replaceAll(
+            `#${idToPatch}`,
+            `#${to}`,
+          );
+        }
+        svg = mappedDiff(svg, oldSvgSrc);
       }
 
       if (isMarkdownOutput(handlerContext.options.format.pandoc, ["gfm"])) {
@@ -267,17 +315,32 @@ mermaid.initialize();
     // deno-lint-ignore require-await
     const makeJs = async () => {
       setupMermaidJsRuntime();
+      const { baseName: tooltipName } = handlerContext
+        .uniqueFigureName(
+          "mermaid-tooltip-",
+          "",
+        );
       const preEl = pandocHtmlBlock("pre")({
         classes: ["mermaid"],
+        attrs: [`tooltip-selector="#${tooltipName}"`],
       });
       preEl.push(pandocRawStr(cell.source));
+
+      const attrs: Record<string, unknown> = {};
+      if (isRevealjsOutput(handlerContext.options.context.format.pandoc)) {
+        console.log("Setting reveal to true");
+        attrs.reveal = true;
+      }
 
       return this.build(
         handlerContext,
         cell,
-        preEl.mappedString(),
+        mappedConcat([
+          preEl.mappedString(),
+          `\n<div id="${tooltipName}" class="mermaidTooltip"></div>`,
+        ]),
         options,
-        undefined,
+        attrs,
         new Set(["mermaid-format"]),
       );
     };
@@ -315,6 +378,18 @@ mermaid.initialize();
         console.log("");
         return await makeDefault();
       } else {
+        if (isRevealjsOutput(handlerContext.options.context.format.pandoc)) {
+          const error = new LocalizedError(
+            "NotRecommended",
+            `\`mermaid-format: js\` not recommended in format ${
+              handlerContext.options.format.pandoc.to ?? ""
+            }`,
+            cell.sourceVerbatim,
+            0,
+          );
+          warning(error.message);
+          console.log("");
+        }
         return await makeJs();
       }
     } else {
