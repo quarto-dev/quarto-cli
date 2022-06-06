@@ -77,6 +77,7 @@ import { isJupyterNotebook } from "../../core/jupyter/jupyter.ts";
 import { MappedString } from "../../core/lib/text-types.ts";
 import { createNamedLifetime } from "../../core/lifetimes.ts";
 import { resolveDependencies } from "./pandoc-html-dependencies.ts";
+import { tidyverseFormatError } from "../../core/lib/errors.ts";
 
 export async function renderExecute(
   context: RenderContext,

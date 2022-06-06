@@ -29,4 +29,8 @@ When filing a _bug report_, please check the boxes below to confirm that you hav
 
 - [ ] documented the quarto version you're running, by providing the output produced by `quarto check` in a terminal in your issue?
 
-- [ ] upgraded to the latest version (including your versions of R, the RStudio IDE, and relevant R packages)?
+- [ ] documented the RStudio IDE version you're running (if applicable), by providing the value displayed in the "About RStudio" main menu dialog?
+
+- [ ] documented which operating system you're running? If on Linux, please provide the specific distribution as well.
+
+- [ ] upgraded to the latest version, including your versions of R, the RStudio IDE, and relevant R packages?

@@ -46,6 +46,7 @@ import("../common/meta.lua")
 import("../common/table.lua")
 import("../common/debug.lua")
 import("../common/lunacolors.lua")
+import("../common/colors.lua")
 import("../common/log.lua")
 -- [/import]
 

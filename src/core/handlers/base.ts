@@ -91,6 +91,11 @@ function makeHandlerContext(
   context: LanguageCellHandlerContext;
   results?: HandlerContextResults;
 } {
+  if (options.state === undefined) {
+    // we mutate the parameter here so this works with the sharing of options
+    // in nested handler context calls (which can arise when handling directives)
+    options.state = {};
+  }
   const results: HandlerContextResults = {
     resourceFiles: [],
     includes: {},
@@ -99,6 +104,13 @@ function makeHandlerContext(
   const tempContext = options.temp;
   const context: LanguageCellHandlerContext = {
     options,
+
+    getState(): Record<string, unknown> {
+      if (options.state![options.name] === undefined) {
+        options.state![options.name] = {};
+      }
+      return options.state![options.name];
+    },
 
     async extractHtml(opts: {
       html: string;

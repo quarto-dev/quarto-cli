@@ -19161,16 +19161,18 @@ var require_yaml_intelligence_resources = __commonJS({
         type: "object",
         description: "be an object",
         properties: {
-          "mermaid-dev": {
+          "mermaid-format": {
             type: "enum",
             enum: [
               "png",
-              "svg"
+              "svg",
+              "js"
             ],
-            description: "be one of: `png`, `svg`",
+            description: "be one of: `png`, `svg`, `js`",
             completions: [
               "png",
-              "svg"
+              "svg",
+              "js"
             ],
             exhaustiveCompletions: true
           }
@@ -19178,7 +19180,7 @@ var require_yaml_intelligence_resources = __commonJS({
         patternProperties: {},
         propertyNames: {
           type: "string",
-          pattern: "^(?!(mermaid_dev|mermaidDev))"
+          pattern: "^(?!(mermaid_format|mermaidFormat))"
         },
         tags: {
           "case-convention": [
@@ -25215,6 +25217,8 @@ function createLocalizedError(obj) {
       end: { line: 0, column: 0 }
     };
   }
+  const mapResult = source.map(violatingObject.start);
+  const fileName = mapResult ? mapResult.originalString.fileName : void 0;
   return {
     source: mappedString(source, [{
       start: violatingObject.start,
@@ -25230,7 +25234,7 @@ function createLocalizedError(obj) {
       heading: message,
       error: [],
       info: {},
-      fileName: source.fileName,
+      fileName,
       location,
       sourceContext: createSourceContext(violatingObject.source, {
         start: violatingObject.start,

@@ -21,12 +21,9 @@ async function waitForServer(port: number, timeout = 3000) {
     try {
       const response = await fetch(`http://localhost:${port}/json/list`);
       if (response.status !== 200) {
-        soFar += interval;
-        await new Promise((resolve) => setTimeout(resolve, interval));
-        continue;
-      } else {
-        return true;
+        throw new Error("");
       }
+      return true;
     } catch (_e) {
       soFar += interval;
       await new Promise((resolve) => setTimeout(resolve, interval));

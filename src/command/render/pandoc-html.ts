@@ -28,6 +28,7 @@ import {
   readHighlightingTheme,
   readTheme,
 } from "../../quarto-core/text-highlighting.ts";
+import { isHtmlOutput } from "../../config/format.ts";
 
 // The output target for a sass bundle
 // (controls the overall style tag that is emitted)
@@ -199,8 +200,10 @@ export async function resolveSassBundles(
     );
   }
 
-  // We'll take care of text highlighting for HTML
-  setTextHighlightStyle("none", extras);
+  if (isHtmlOutput(pandoc, true)) {
+    // We'll take care of text highlighting for HTML
+    setTextHighlightStyle("none", extras);
+  }
 
   return extras;
 }

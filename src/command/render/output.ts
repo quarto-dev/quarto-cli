@@ -30,6 +30,7 @@ import {
   contextPdfOutputRecipe,
   useContextPdfOutputRecipe,
 } from "./output-tex.ts";
+import { formatOutputFile } from "../../core/render.ts";
 
 // render commands imply the --output argument for pandoc and the final
 // output file to create for the user, but we need a 'recipe' to go from
@@ -50,11 +51,8 @@ export function outputRecipe(
   // could be within metadata)
   let output = options.flags?.output;
   if (!output) {
-    let outputFile = format.pandoc[kOutputFile];
+    const outputFile = formatOutputFile(format);
     if (outputFile) {
-      if (!outputFile.match(/\..+$/) && format.render[kOutputExt]) {
-        outputFile = `${outputFile}.${format.render[kOutputExt]}`;
-      }
       if (isAbsolute(outputFile)) {
         output = outputFile;
       } else {

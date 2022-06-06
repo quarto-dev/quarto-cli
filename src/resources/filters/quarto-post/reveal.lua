@@ -3,10 +3,15 @@
 
 function reveal()
   if _quarto.format.isRevealJsOutput() then
-    return {
-      Div = applyPosition,
-      Span = applyPosition,
-      Image = applyPosition
+    return combineFilters{
+      {
+        Div = applyPosition,
+        Span = applyPosition,
+        Image = applyPosition
+      },
+      {
+        Div = fencedDivFix
+      }
     }
   else
     return {}
@@ -40,4 +45,17 @@ function asCssSize(size)
   else
     return size
   end
+end
+
+function fencedDivFix(el)
+  -- to solve https://github.com/quarto-dev/quarto-cli/issues/976
+  -- until Pandoc may deal with it https://github.com/jgm/pandoc/issues/8098
+  if el.content[1] and el.content[1].t == "Header" and el.attr.classes:includes("fragment") then
+    level = PANDOC_WRITER_OPTIONS.slide_level
+    if level and el.content[1].level > level then
+      -- This will prevent Pandoc to create a <section>
+      el.content:insert(1, pandoc.RawBlock("html", "<!-- -->"))
+    end
+  end
+  return el
 end

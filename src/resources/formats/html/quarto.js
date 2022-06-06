@@ -22,6 +22,17 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     }
   };
 
+  // fire slideEnter for bootstrap tab activations (for htmlwidget resize behavior)
+  function fireSlideEnter(e) {
+    const event = window.document.createEvent("Event");
+    event.initEvent("slideenter", true, true);
+    window.document.dispatchEvent(event);
+  }
+  const tabs = window.document.querySelectorAll('a[data-bs-toggle="tab"]');
+  tabs.forEach((tab) => {
+    tab.addEventListener("shown.bs.tab", fireSlideEnter);
+  });
+
   // Track scrolling and mark TOC links as active
   // get table of contents and sidebar (bail if we don't have at least one)
   const tocLinks = tocEl
