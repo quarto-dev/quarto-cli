@@ -29,6 +29,14 @@ function bookNumbering()
               tappend(appendixPara.content, el.content)
               appendixPara.content:insert(pandoc.RawInline('latex', '}'))
               return appendixPara
+            elseif bookItemType == "chapter" then
+              preState.usingBookmark = true
+
+              local bookmarkReset = pandoc.Para({
+                pandoc.RawInline('latex', '\\bookmarksetup{startatroot}'),
+              })
+              tappend(bookmarkReset.content, el.content)
+              return bookmarkReset
             end
           end
 

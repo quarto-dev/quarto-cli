@@ -37,6 +37,16 @@ function quartoPreMetaInject()
           inject(usePackage("tikz"))
         end
       end)
+
+
+      metaInjectLatex(meta, function(inject)
+        if preState.usingBookmark then
+          inject(
+            usePackage("bookmark")
+          )    
+        end
+      end)
+
       return meta
     end
   }
