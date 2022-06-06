@@ -12253,7 +12253,12 @@ try {
           },
           {
             name: "linestretch",
-            schema: "string",
+            schema: {
+              anyOf: [
+                "string",
+                "number"
+              ]
+            },
             tags: {
               formats: [
                 "$html-files",

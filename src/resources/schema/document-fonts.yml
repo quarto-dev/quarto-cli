@@ -212,7 +212,10 @@
   description: The line height, for example, `12p`.
 
 - name: linestretch
-  schema: string
+  schema:
+    anyOf:
+      - string
+      - number
   tags:
     formats: [$html-files, context, $pdf-all]
   description:
