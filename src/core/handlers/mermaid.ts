@@ -39,6 +39,8 @@ import { Element } from "../deno-dom.ts";
 import { convertFromYaml } from "../lib/yaml-schema/from-yaml.ts";
 import { readYamlFromString } from "../yaml.ts";
 import { pandocHtmlBlock, pandocRawStr } from "../pandoc/codegen.ts";
+import { LocalizedError } from "../lib/error.ts";
+import { warning } from "log/mod.ts";
 
 const mermaidHandler: LanguageHandler = {
   ...baseHandler,
@@ -296,7 +298,21 @@ window.addEventListener(
     } else if (format === "png") {
       return await makePng();
     } else if (format === "js") {
-      return await makeJs();
+      if (!isJavascriptCompatible(handlerContext.options.format)) {
+        const error = new LocalizedError(
+          "IncompatibleOutput",
+          `\`mermaid-format: js\` not supported in format ${
+            handlerContext.options.format.pandoc.to ?? ""
+          }`,
+          cell.sourceVerbatim,
+          0,
+        );
+        warning(error.message);
+        console.log("");
+        return await makeDefault();
+      } else {
+        return await makeJs();
+      }
     } else {
       return await makeDefault();
     }
