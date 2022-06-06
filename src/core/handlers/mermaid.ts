@@ -113,15 +113,15 @@ object:
 
       handlerContext.addInclude(
         `<script>
-        mermaid.initialize({ startOnLoad: false });
-        window.addEventListener(
-          'load',
-          function () {
-            mermaid.init("div.cell-output-display pre.mermaid");
-          },
-          false
-        );
-        </script>`,
+mermaid.initialize({ startOnLoad: false });
+window.addEventListener(
+  'load',
+  function () {
+    mermaid.init("div.cell-output-display pre.mermaid");
+  },
+  false
+);
+</script>`,
         kIncludeAfterBody,
       );
     };
