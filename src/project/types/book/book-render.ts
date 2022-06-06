@@ -356,7 +356,7 @@ async function mergeExecutedFiles(
           const titleMarkdown = frontTitle ? `# ${frontTitle}\n\n` : "";
 
           itemMarkdown = bookItemMetadata(project, item, file) + titleMarkdown +
-            file.executeResult.markdown;
+            (partitioned?.markdown || file.executeResult.markdown);
         } else {
           throw new Error(
             "Executed file not found for book item: " + item.file,
