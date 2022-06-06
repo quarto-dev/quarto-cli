@@ -362,8 +362,6 @@ async function mergeExecutedFiles(
               "\n```````"
             : "";
 
-          console.log(titleBlockMd);
-
           itemMarkdown = bookItemMetadata(project, item, file) + titleBlockMd +
             (partitioned?.markdown || file.executeResult.markdown);
         } else {
