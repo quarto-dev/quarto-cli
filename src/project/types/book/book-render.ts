@@ -351,6 +351,12 @@ async function mergeExecutedFiles(
             file.executeResult.markdown,
           );
 
+          const yaml = partitioned?.yaml
+            ? readYamlFromMarkdown(partitioned?.yaml)
+            : undefined;
+          const frontTitle = frontMatterTitle(yaml);
+          const titleMarkdown = frontTitle ? `# ${frontTitle}\n\n` : "";
+
           const titleBlockPath = resourcePath(
             "projects/book/pandoc/title-block.md",
           );
@@ -362,7 +368,8 @@ async function mergeExecutedFiles(
               "\n```````"
             : "";
 
-          itemMarkdown = bookItemMetadata(project, item, file) + titleBlockMd +
+          itemMarkdown = bookItemMetadata(project, item, file) + titleMarkdown +
+            titleBlockMd +
             (partitioned?.markdown || file.executeResult.markdown);
         } else {
           throw new Error(
@@ -542,6 +549,7 @@ function bookItemMetadata(
     bookItemType: item.type,
     bookItemNumber: item.number ? item.number : null,
     bookItemFile: item.file,
+    bookItemDepth: item.depth,
   };
 
   const inlineMetadataEncoded = base64Encode(JSON.stringify(inlineMetadata));
