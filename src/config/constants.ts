@@ -19,6 +19,7 @@ export const kFigFormat = "fig-format";
 export const kFigDpi = "fig-dpi";
 
 export const kMermaidFormat = "mermaid-format";
+export const kDfPrint = "df-print";
 
 export const kCache = "cache";
 export const kFreeze = "freeze";
@@ -93,6 +94,7 @@ export const kExecuteDefaultsKeys = [
   kFigFormat,
   kFigDpi,
   kMermaidFormat,
+  kDfPrint,
   kError,
   kEval,
   kEngine,

@@ -46,6 +46,7 @@ import {
   kCrossrefTblTitle,
   kCrossrefThmTitle,
   kCss,
+  kDfPrint,
   kEcho,
   kEngine,
   kEnvironmentProofTitle,
@@ -344,7 +345,8 @@ export interface FormatExecute {
   [kFigHeight]?: number;
   [kFigFormat]?: "retina" | "png" | "jpeg" | "svg" | "pdf";
   [kFigDpi]?: number;
-  [kMermaidFormat]?: "png" | "svg";
+  [kMermaidFormat]?: "png" | "svg" | "js";
+  [kDfPrint]?: "default" | "kable" | "tibble" | "paged";
   [kCache]?: true | false | "refresh" | null;
   [kFreeze]?: true | false | "auto";
   [kExecuteEnabled]?: true | false | null;
