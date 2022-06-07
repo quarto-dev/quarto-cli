@@ -19,11 +19,7 @@ function quartoBook()
         local template = el.attr.attributes['template']
 
         -- process any author information
-        local input = 'author'
-        if renderedDoc.meta['authors'] then
-          input = 'authors'
-        end
-        local processedMeta = processAuthorMeta(renderedDoc.meta, input)
+        local processedMeta = processAuthorMeta(renderedDoc.meta)
 
         -- read the title block template
         local renderedBlocks = compileTemplate(template, processedMeta)

@@ -140,15 +140,25 @@ local kAffiliationAliasedFields = {
 -- a simple incremental counter that can be used for things like note numbers
 local kNumber = "number"
 
-function processAuthorMeta(meta, authorInput)
+function processAuthorMeta(meta)
   if not _quarto.format.isHtmlOutput() and not _quarto.format.isLatexOutput() and not _quarto.format.isIpynbOutput() and not _quarto.format.isDocxOutput() then
     return
   end
 
-  if authorInput == nil then
-    authorInput = kAuthorInput
+  -- prefer to render 'authors' if it is available
+  local authorsRaw = meta[kAuthor]
+  if meta[kAUthors] then 
+    authorsRaw = meta[kAuthors]
   end
-  local authorsRaw = meta[authorInput]
+
+  -- authors should be a table of tables (e.g. it should be an array of inlines or tables)
+  -- if it isn't, transform it into one
+  if type(authorsRaw) == "table" then
+    if (type(authorsRaw[1]) ~= "table") then
+      authorsRaw = {authorsRaw}
+    end
+  end
+ 
   
   -- the normalized authors
   local authors = {}
