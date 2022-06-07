@@ -147,7 +147,7 @@ function processAuthorMeta(meta)
 
   -- prefer to render 'authors' if it is available
   local authorsRaw = meta[kAuthor]
-  if meta[kAUthors] then 
+  if meta[kAuthors] then 
     authorsRaw = meta[kAuthors]
   end
 
