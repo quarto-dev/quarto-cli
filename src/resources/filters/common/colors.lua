@@ -24,40 +24,24 @@ kBackgroundColorWarning = "fcefdc"
 kBackgroundColorTip = "ccf1e3"
 kBackgroundColorCaution = "ffe5d0"
 
-local xcolors = {
-  'red',
-  'green',
-  'blue',
-  'cyan',
-  'magenta',
-  'yellow',
-  'black',
-  'gray',
-  'white',
-  'darkgray',
-  'lightgray',
-  'brown',
-  'lime',
-  'olive',
-  'orange',
-  'pink',
-  'purple',
-  'teal',
-  'violet'
-}
-
 function latexXColor(color) 
   -- remove any hash at the front
   color = pandoc.utils.stringify(color)
   color = color:gsub("#","")
 
-  -- is if this is a named color we know, use that
-  if tcontains(xcolors, color) then
-    return '{named}{' .. color .. '}'
+  local hexCount = 0
+  for match in color:gmatch "%x%x" do
+    hexCount = hexCount + 1
   end
 
-  -- otherwise treat it as an HTML color
-  return "{HTML}{" .. color .. "}"
+  if hexCount == 3 then
+    -- this is a hex color
+    return "{HTML}{" .. color .. "}"
+  else
+    -- otherwise treat it as a named color
+    -- and hope for the best
+    return '{named}{' .. color .. '}' 
+  end
 end
 
 -- converts a hex string to a RGB
@@ -72,3 +56,4 @@ function hextoRgb(hex)
     blue = tonumber("0x"..hex:sub(5,6))
   }
 end
+

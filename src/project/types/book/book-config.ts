@@ -273,6 +273,7 @@ export type BookRenderItemType = "index" | "chapter" | "appendix" | "part";
 
 export interface BookRenderItem {
   type: BookRenderItemType;
+  depth: number;
   text?: string;
   file?: string;
   number?: number;
@@ -293,6 +294,7 @@ export async function bookRenderItems(
   const findInputs = async (
     type: BookRenderItemType,
     items: SidebarItem[],
+    depth = 0,
   ) => {
     const throwInputNotFound = (input: string) => {
       throw new Error(`Book ${type} '${input}' not found`);
@@ -303,8 +305,9 @@ export async function bookRenderItems(
           type: kBookItemPart,
           file: item.href,
           text: item.text,
+          depth,
         });
-        await findInputs(type, item.contents);
+        await findInputs(type, item.contents, depth + 1);
       } else if (item.href) {
         const itemPath = join(projectDir, item.href);
         if (safeExistsSync(itemPath)) {
@@ -325,6 +328,7 @@ export async function bookRenderItems(
               type,
               file: item.href,
               number,
+              depth,
             });
           }
         } else {
@@ -369,6 +373,7 @@ export async function bookRenderItems(
   await findChapters(kBookAppendix, {
     type: kBookItemAppendix,
     text: language[kSectionTitleAppendices] + " {.unnumbered}",
+    depth: 0,
   });
 
   // validate that all of the chapters exist

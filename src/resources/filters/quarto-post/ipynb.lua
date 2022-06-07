@@ -8,30 +8,18 @@ function ipynb()
 
       Pandoc = function(doc)
 
-
         -- pandoc doesn'tx handle front matter title/author/date when creating ipynb
         -- so do that manually here. note that when we make authors more 
         -- sophisticated we'll need to update this code
 
-
         -- read the title block template
         local titleBlockTemplate = param('ipynb-title-block')
-        local f = io.open(pandoc.utils.stringify(titleBlockTemplate), "r")
-        local contents = f:read("*all")
-        f:close()
 
-        -- compile the title block template
-        local compiledTemplate = pandoc.template.compile(contents)
-        local template_opts = pandoc.WriterOptions {template = compiledTemplate}  
-
-        -- render the current document and read it to generate an AST for the
-        -- title block
-        local metaDoc = pandoc.Pandoc(pandoc.Blocks({}), doc.meta)
-        local rendered = pandoc.write(metaDoc, 'gfm', template_opts)
-        local titleDoc = pandoc.read(rendered, 'gfm')
+        -- render the title block template
+        local renderedBlocks = compileTemplate(titleBlockTemplate, doc.meta)
 
         -- prepend the blocks to the notebook
-        tprepend(doc.blocks, titleDoc.blocks )
+        tprepend(doc.blocks, renderedBlocks.blocks )
 
         return doc
         

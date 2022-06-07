@@ -12252,7 +12252,12 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           name: "linestretch",
-          schema: "string",
+          schema: {
+            anyOf: [
+              "string",
+              "number"
+            ]
+          },
           tags: {
             formats: [
               "$html-files",
@@ -18524,6 +18529,10 @@ var require_yaml_intelligence_resources = __commonJS({
         "Vertical centering of title slide",
         "Make speaker notes visible to all viewers",
         "Change the presentation direction to be RTL",
+        {
+          short: "Method used to print tables in Knitr engine documents\n(<code>default</code>, <code>kable</code>, <code>tibble</code>, or\n<code>paged</code>). Defaults to <code>kable</code>.",
+          long: "Method used to print tables in Knitr engine documents:"
+        },
         {
           short: "Determine how text is wrapped in the output (<code>auto</code>,\n<code>none</code>, or <code>preserve</code>).",
           long: "Determine how text is wrapped in the output (the source code, not the\nrendered version)."

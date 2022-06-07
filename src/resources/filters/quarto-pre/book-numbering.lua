@@ -7,6 +7,7 @@ function bookNumbering()
       local file = currentFileMetadataState().file
       if file ~= nil then
         local bookItemType = file.bookItemType
+        local bookItemDepth = file.bookItemDepth
         if bookItemType ~= nil then
           -- if we are in an unnumbered chapter then add unnumbered class
           if bookItemType == "chapter" and file.bookItemNumber == nil then
@@ -29,6 +30,13 @@ function bookNumbering()
               tappend(appendixPara.content, el.content)
               appendixPara.content:insert(pandoc.RawInline('latex', '}'))
               return appendixPara
+            elseif bookItemType == "chapter" and bookItemDepth == 0 then
+              preState.usingBookmark = true
+              local bookmarkReset = pandoc.Div({
+                pandoc.RawInline('latex', '\\bookmarksetup{startatroot}\n'),
+                el
+              })
+              return bookmarkReset
             end
           end
 

@@ -15,7 +15,7 @@ function import(script)
   local path = PANDOC_SCRIPT_FILE:match("(.*[/\\])")
   dofile(path .. script)
 end
-import("meta.lua")
+
 import("../common/pandoc.lua")
 import("../common/string.lua")
 import("../common/table.lua")
@@ -25,10 +25,16 @@ import("../common/base64.lua")
 import("../common/meta.lua")
 import("../common/debug.lua")
 import("../common/params.lua")
+import("../common/authors.lua")
 -- [/import]
 
 initParams()
 
 return {
-  authorsMeta()
+  {
+    Meta = function(meta)
+      return processAuthorMeta(meta)
+    end
+  }
 }
+

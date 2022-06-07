@@ -1246,6 +1246,7 @@ $code-block-border-left-color: $table-border-color !default;
   padding-right: 0.35em;
 }
 
+.callout > .callout-body > .callout-icon-container > .no-icon,
 .callout > .callout-header > .callout-icon-container > .no-icon {
   display: none;
 }

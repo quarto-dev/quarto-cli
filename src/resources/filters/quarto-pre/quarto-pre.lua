@@ -9,6 +9,7 @@ text = require 'text'
 
 -- global state
 preState = {
+  usingBookmark = false,
   usingTikz = false,
   results = {
     resourceFiles = pandoc.List({}),

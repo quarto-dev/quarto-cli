@@ -19,12 +19,15 @@ import {
   kTextPlain,
 } from "../mime.ts";
 import {
+  JupyterCell,
   JupyterOutput,
   JupyterOutputDisplayData,
   JupyterToMarkdownOptions,
 } from "./types.ts";
 
-export function isDisplayData(output: JupyterOutput) {
+export function isDisplayData(
+  output: JupyterOutput,
+): output is JupyterOutputDisplayData {
   return ["display_data", "execute_result"].includes(output.output_type);
 }
 
@@ -138,4 +141,22 @@ export function displayDataIsJson(mimeType: string) {
 
 export function displayDataIsJavascript(mimeType: string) {
   return [kApplicationJavascript].includes(mimeType);
+}
+
+export function cellHasOnlyMarkdownDisplayData(
+  cell: JupyterCell,
+  options: JupyterToMarkdownOptions,
+) {
+  if (cell.outputs) {
+    return cell.outputs.every((output) => {
+      if (isDisplayData(output)) {
+        const mimeType = displayDataMimeType(output, options);
+        return mimeType && displayDataIsMarkdown(mimeType);
+      } else {
+        return false;
+      }
+    });
+  } else {
+    return false;
+  }
 }

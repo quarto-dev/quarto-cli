@@ -17,12 +17,14 @@ function columns()
     Span = function(el)
       -- a span that should be placed in the margin
       if _quarto.format.isLatexOutput() and hasMarginColumn(el) then 
+        noteHasColumns()
         tprepend(el.content, {latexBeginSidenote(false)})
         tappend(el.content, {latexEndSidenote(el, false)})
         return el
       else 
         -- convert the aside class to a column-margin class
         if el.attr.classes and tcontains(el.attr.classes, 'aside') then
+          noteHasColumns()
           el.attr.classes = el.attr.classes:filter(function(attr) 
             return attr ~= aside
           end)
@@ -255,7 +257,7 @@ function resolveCaptionClasses(el)
 end
 
 function isCaptionClass(clz)
-  return clz == 'caption-margin'
+  return clz == 'caption-margin' or clz == 'margin-caption'
 end
 
 function isColumnClass(clz) 

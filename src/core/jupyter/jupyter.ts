@@ -51,6 +51,7 @@ import {
   shouldLabelOutputContainer,
 } from "./labels.ts";
 import {
+  cellHasOnlyMarkdownDisplayData,
   displayDataIsHtml,
   displayDataIsImage,
   displayDataIsJavascript,
@@ -926,7 +927,9 @@ async function mdFromCodeCell(
     cell.options[kOutput] === "asis" ||
     // specified globally with no output override for this cell
     (options.execute[kOutput] === "asis" &&
-      cell.options[kOutput] === undefined);
+      cell.options[kOutput] === undefined) ||
+    // cell has only markdown display data
+    cellHasOnlyMarkdownDisplayData(cell, options);
 
   // markdown to return
   const md: string[] = [];

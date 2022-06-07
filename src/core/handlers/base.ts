@@ -252,30 +252,8 @@ function makeHandlerContext(
       return result;
     },
     addHtmlDependency(
-      dependencyType: "script" | "stylesheet" | "resource",
-      dependency: DependencyFile,
-      dependencyName?: string,
-      dependencyVersion?: string,
+      dep: FormatDependency,
     ) {
-      if (!isHtmlCompatible(options.format)) {
-        throw new Error("addDepdendency only supported in html formats");
-      }
-      dependencyName = dependencyName || options.name;
-      const dep: FormatDependency = {
-        name: dependencyName,
-        version: dependencyVersion,
-      };
-      switch (dependencyType) {
-        case "script":
-          dep.scripts = [dependency];
-          break;
-        case "stylesheet":
-          dep.stylesheets = [dependency];
-          break;
-        case "resource":
-          dep.resources = [dependency];
-          break;
-      }
       if (results.extras.html === undefined) {
         results.extras.html = { [kDependencies]: [dep] };
       } else {
@@ -621,19 +599,13 @@ export const baseHandler: LanguageHandler = {
     });
     cellBlock.push(cellOutputDiv);
 
-    let figureLikeId: string;
+    let figureLikeOptions: Record<string, string> = {};
     if (typeof cell.options?.label === "string") {
-      figureLikeId = cell.options?.label;
-    } else {
-      const { baseName } = handlerContext.uniqueFigureName(
-        "cell-handler-fake-div-",
-        "",
-      );
-      figureLikeId = baseName;
+      figureLikeOptions = {
+        id: cell.options?.label,
+      };
     }
-    const figureLike = divBlock({
-      id: figureLikeId,
-    });
+    const figureLike = divBlock(figureLikeOptions);
     const cellOutput = paraBlock();
     figureLike.push(cellOutput);
     cellOutputDiv.push(figureLike);

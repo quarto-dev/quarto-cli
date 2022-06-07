@@ -4,7 +4,12 @@ import {
   kIncludeBeforeBody,
   kIncludeInHeader,
 } from "../../config/constants.ts";
-import { DependencyFile, Format, FormatExtras } from "../../config/types.ts";
+import {
+  DependencyFile,
+  Format,
+  FormatDependency,
+  FormatExtras,
+} from "../../config/types.ts";
 import { PandocIncludes } from "../../execute/types.ts";
 import { DirectiveCell, QuartoMdCell } from "../lib/break-quarto-md-types.ts";
 import { EitherString, MappedString } from "../lib/text-types.ts";
@@ -119,8 +124,7 @@ export interface LanguageCellHandlerContext {
   addResource: (name: string, contents: string) => void;
   addInclude: (content: string, where: PandocIncludeType) => void;
   addHtmlDependency: (
-    dependencyType: "script" | "stylesheet" | "resource",
-    dependency: DependencyFile,
+    dep: FormatDependency,
   ) => void;
 }
 export interface HandlerContextResults {

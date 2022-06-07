@@ -138,3 +138,25 @@ function isInlineEl(el)
   return not isBlockEl(el)
 end
 
+function compileTemplate(template, meta)
+
+  local f = io.open(pandoc.utils.stringify(template), "r")
+  local contents = f:read("*all")
+  f:close()
+
+  -- compile the title block template
+  local compiledTemplate = pandoc.template.compile(contents)
+  local template_opts = pandoc.WriterOptions {template = compiledTemplate}  
+
+  -- render the current document and read it to generate an AST for the
+  -- title block
+  local metaDoc = pandoc.Pandoc(pandoc.Blocks({}), meta)
+  local rendered = pandoc.write(metaDoc, 'gfm', template_opts)
+
+  -- read the rendered document 
+  local renderedDoc = pandoc.read(rendered, 'gfm')
+
+  return renderedDoc.blocks
+
+end
+
