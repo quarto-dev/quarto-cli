@@ -101,13 +101,20 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
     NULL
   }
 
+  # determine df_print
+  df_print <- format$execute$`df-print`
+  if (df_print == "paged" && !is_html_output(format) && !format$render$`prefer-html`) {
+    df_print <- "kable"
+  }
+
   # synthesize rmarkdown output format
   output_format <- rmarkdown::output_format(
     knitr = knitr,
     pandoc = pandoc_options(format),
     post_knit = post_knit,
     keep_md = FALSE,
-    clean_supporting = TRUE
+    clean_supporting = TRUE,
+    df_print = df_print
   )
 
   # FIXME this test isn't failing in shiny mode, but it doesn't look to be
@@ -136,6 +143,11 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
     rmarkdown:::abs_path(intermediates_dir)
   else
     character()
+
+  # ammend knit_meta with paged table if df_print == "paged"
+  if (df_print == "paged") {
+    knit_meta <- append(knit_meta, list(rmarkdown::html_dependency_pagedtable()))
+  }
 
   # see if we are going to resolve knit_meta now or later 
   if (dependencies) {
@@ -470,6 +482,9 @@ extract_preserve_chunks <- function(output_file, format) {
   }
 }
 
+is_html_output <- function(format) {
+  knitr::is_html_output(format$pandoc$to, c("markdown", "epub", "gfm", "commonmark", "commonmark_x", "markua"))
+}
 
 # apply patches to output as required
 apply_patches <- function(format, includes) {

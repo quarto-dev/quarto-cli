@@ -655,6 +655,16 @@ normalize_options <- function(options) {
                     "attr-message",
                     "attr-warning",
                     "attr-error",
+                    # Paged tables
+                    "max-print",
+                    "sql-max-print",
+                    "paged-print",
+                    "rows-print",
+                    "cols-print",
+                    "cols-min-print",
+                    "pages-print",
+                    "paged-print",
+                    "rownames-print",
                     # Code decoration
                     "tidy-opts",
                     "class-source",
