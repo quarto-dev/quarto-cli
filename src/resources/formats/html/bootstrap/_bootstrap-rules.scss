@@ -1621,6 +1621,12 @@ p.subtitle {
   margin-bottom: 0.5em;
 }
 
+// downlit links
+code a:any-link {
+  color: inherit;
+  text-decoration-color: $gray-600;
+}
+
 // This is a sentinel value that renderers can use to determine
 // whether the theme is dark or light
 @if (quarto-color.blackness($body-bg) > $code-block-theme-dark-threshhold) {
