@@ -37,7 +37,7 @@ if [ ! -z "$DENO_CANARY_COMMIT" ]; then
 	echo [Upgrading Deno to Canary]
 	./deno upgrade --canary --version $DENO_CANARY_COMMIT
 fi
-./deno cache --reload ../../../../src/quarto.ts --unstable --importmap=../../../../src/import_map.json
+# ./deno cache --reload ../../../../src/quarto.ts --unstable --importmap=../../../../src/import_map.json
 
 popd
 popd
