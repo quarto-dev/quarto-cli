@@ -19,6 +19,7 @@ import {
 import {
   kAbstract,
   kAuthor,
+  kAuthors,
   kDate,
   kDescription,
   kNumberSections,
@@ -78,14 +79,13 @@ import {
 } from "./book-shared.ts";
 import { bookCrossrefsPostRender } from "./book-crossrefs.ts";
 import { bookBibliographyPostRender } from "./book-bibliography.ts";
-import {
-  partitionYamlFrontMatter,
-  readYamlFromMarkdown,
-} from "../../../core/yaml.ts";
+import { partitionYamlFrontMatter } from "../../../core/yaml.ts";
 import { pathWithForwardSlashes } from "../../../core/path.ts";
 import { kDateFormat } from "../website/listing/website-listing-template.ts";
 import { removePandocTo } from "../../../command/render/flags.ts";
 import { resourcePath } from "../../../core/resources.ts";
+import { PandocAttr, PartitionedMarkdown } from "../../../core/pandoc/types.ts";
+import { stringify } from "encoding/yaml.ts";
 
 export function bookPandocRenderer(
   options: RenderOptions,
@@ -347,42 +347,80 @@ async function mergeExecutedFiles(
           file.context.target.source === itemInputPath
         );
         if (file) {
-          const partitioned = partitionYamlFrontMatter(
-            file.executeResult.markdown,
-          );
+          const partitioned = partitionMarkdown(file.executeResult.markdown);
 
-          const titleMdFromFrontMatter = (frontMatter?: string) => {
-            const yaml = frontMatter
-              ? readYamlFromMarkdown(frontMatter)
-              : undefined;
-
-            if (yaml) {
-              const frontTitle = frontMatterTitle(yaml);
-              if (frontTitle) {
-                const titleMarkdown = frontTitle ? `# ${frontTitle}\n\n` : "";
-
-                const titleBlockPath = resourcePath(
-                  "projects/book/pandoc/title-block.md",
-                );
-                const titleAttr = `template='${titleBlockPath}'`;
-
-                const titleBlockMd = "```````{.quarto-title-block " +
-                  titleAttr + "}\n" +
-                  partitioned?.yaml +
-                  "\n```````";
-
-                return titleMarkdown + titleBlockMd;
-              } else {
-                return "";
+          const resolveTitleMarkdown = (partitioned: PartitionedMarkdown) => {
+            const createMarkdownTitle = (text: string, attr?: PandocAttr) => {
+              let attrStr = "";
+              if (attr) {
+                const idStr = attr.id !== "" ? `#${attr.id} ` : "";
+                const clzStr = attr.classes.map((clz) => {
+                  return `.${clz} `;
+                });
+                // TODO: replace tempalte with local path to orcid image
+                // TODO: add nbsp when title block renders something
+                const keyValueStr = attr.keyvalue.map((kv) => {
+                  const escapedValue = kv[1].replaceAll(/"/gm, '\\"');
+                  return `${kv[0]}="${escapedValue}" `;
+                });
+                const attrContents = `${idStr}${clzStr}${keyValueStr}`.trim();
+                attrStr = `{${attrContents}}`;
               }
+
+              return `# ${text} ${attrStr}\n\n`;
+            };
+
+            let titleText;
+            let titleAttr;
+            if (partitioned.yaml) {
+              const frontTitle = frontMatterTitle(partitioned.yaml);
+              if (frontTitle) {
+                titleText = frontTitle;
+              } else {
+                titleText = partitioned.headingText;
+                titleAttr = partitioned.headingAttr;
+              }
+            } else {
+              titleText = partitioned.headingText;
+              titleAttr = partitioned.headingAttr;
+            }
+
+            if (titleText === undefined) {
+              titleText = "";
+            }
+            return createMarkdownTitle(titleText, titleAttr);
+          };
+
+          const resolveTitleBlockMarkdown = (yaml?: Metadata) => {
+            if (yaml) {
+              const titleBlockPath = resourcePath(
+                "projects/book/pandoc/title-block.md",
+              );
+
+              const titleAttr = `template='${titleBlockPath}'`;
+              const frontMatter = `---\n${
+                stringify(yaml, { indent: 2 })
+              }\n---\n`;
+
+              const titleBlockMd = "```````{.quarto-title-block " +
+                titleAttr + "}\n" +
+                frontMatter +
+                "\n```````\n\n";
+
+              return titleBlockMd;
             } else {
               return "";
             }
           };
 
+          const titleMarkdown = resolveTitleMarkdown(partitioned);
+          const titleBlockMarkdown = resolveTitleBlockMarkdown(
+            partitioned.yaml,
+          );
           itemMarkdown = bookItemMetadata(project, item, file) +
-            titleMdFromFrontMatter(partitioned?.yaml) +
-            (partitioned?.markdown || file.executeResult.markdown);
+            titleMarkdown +
+            titleBlockMarkdown +
+            partitioned.markdown;
         } else {
           throw new Error(
             "Executed file not found for book item: " + item.file,
