@@ -31,8 +31,10 @@ import("../common/authors.lua")
 initParams()
 
 return {
-  Meta = function(meta)
-    return processAuthorMeta(meta)
-  end
+  {
+    Meta = function(meta)
+      return processAuthorMeta(meta)
+    end
+  }
 }
 
