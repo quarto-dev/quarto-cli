@@ -5,7 +5,7 @@
 *
 */
 
-import { ensureTrailingSlash } from "../../../core/path.ts";
+import { ensureProtocolAndTrailingSlash } from "../../../core/url.ts";
 import { ApiError, User } from "./types.ts";
 
 export class RSConnectClient {
@@ -13,7 +13,7 @@ export class RSConnectClient {
     private readonly server_: string,
     private readonly key_?: string,
   ) {
-    this.server_ = ensureTrailingSlash(this.server_);
+    this.server_ = ensureProtocolAndTrailingSlash(this.server_);
   }
 
   public getUser(): Promise<User> {

@@ -5,6 +5,8 @@
 *
 */
 
+import { ensureTrailingSlash } from "./path.ts";
+
 export function joinUrl(baseUrl: string, path: string) {
   const baseHasSlash = baseUrl.endsWith("/");
   const pathHasSlash = path.startsWith("/");
@@ -16,4 +18,12 @@ export function joinUrl(baseUrl: string, path: string) {
   } else {
     return `${baseUrl}${path}`;
   }
+}
+
+export function ensureProtocolAndTrailingSlash(url: string) {
+  if (!url.startsWith("http")) {
+    url = `https://${url}`;
+  }
+  url = ensureTrailingSlash(url);
+  return url;
 }

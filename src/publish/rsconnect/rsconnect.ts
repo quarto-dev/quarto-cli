@@ -25,6 +25,7 @@ import {
   writeAccessToken,
   writeAccessTokens,
 } from "../common/account.ts";
+import { ensureProtocolAndTrailingSlash } from "../../core/url.ts";
 
 export const kRSConnect = "rsconnect";
 const kRSConnectDescription = "RS Connect";
@@ -109,7 +110,7 @@ async function authorizeToken(): Promise<AccountToken | undefined> {
           throw new Error();
         }
         try {
-          const url = new URL(value);
+          const url = new URL(ensureProtocolAndTrailingSlash(value));
           if (!["http:", "https:"].includes(url.protocol)) {
             return `${value} is not an HTTP URL`;
           } else {
@@ -119,6 +120,7 @@ async function authorizeToken(): Promise<AccountToken | undefined> {
           return `${value} is not a valid URL`;
         }
       },
+      transform: ensureProtocolAndTrailingSlash,
     });
 
     // validate that its a connect server
@@ -165,7 +167,7 @@ async function authorizeToken(): Promise<AccountToken | undefined> {
         writeAccessToken(
           kRSConnect,
           account,
-          (a, b) => a.server === b.server && a.username === b.username,
+          (a, b) => a.server === b.server,
         );
         // return access token
         return {
