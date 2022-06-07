@@ -44,9 +44,9 @@ initParams()
 
 return {
   bookCleanup(),
+  foldCode(),
   combineFilters({
     latexDiv(),
-    foldCode(),
     responsive(),
     ipynb(),
     quartoBook(),

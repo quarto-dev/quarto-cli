@@ -8,7 +8,7 @@ function quartoBook()
 
       -- If this is a title block cell, we should render it
       -- using the template
-      if (el.attr ~= nil and el.attr.classes ~= nil and tcontains(el.attr.classes, 'quarto-title-block')) then
+      if el.attr.classes:includes('quarto-title-block') then
 
         -- read the contents of the code cell
         -- this should just be some metadata 
