@@ -141,7 +141,7 @@ local kAffiliationAliasedFields = {
 local kNumber = "number"
 
 function processAuthorMeta(meta, authorInput)
-  if not _quarto.format.isHtmlOutput() and not _quarto.format.isLatexOutput() and not _quarto.format.isIpynbOutput() then
+  if not _quarto.format.isHtmlOutput() and not _quarto.format.isLatexOutput() and not _quarto.format.isIpynbOutput() and not _quarto.format.isDocxOutput() then
     return
   end
 
