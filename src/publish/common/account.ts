@@ -62,17 +62,6 @@ export async function authorizeAccessToken<
   }
 }
 
-export function readAccessToken<T>(
-  provider: string,
-): T | undefined {
-  const tokens = readAccessTokens<T>(provider);
-  if (tokens) {
-    return tokens[0];
-  } else {
-    return undefined;
-  }
-}
-
 export function readAccessTokens<T>(
   provider: string,
 ): Array<T> | undefined {
@@ -85,20 +74,36 @@ export function readAccessTokens<T>(
   }
 }
 
+export function writeAccessTokens<T>(
+  provider: string,
+  tokens: Array<T>,
+) {
+  // write tokens
+  const tokensPath = accessTokensPath(provider);
+  Deno.writeTextFileSync(
+    tokensPath,
+    JSON.stringify(tokens, undefined, 2),
+  );
+
+  // set file permissions
+  if (!isWindows()) {
+    Deno.chmod(tokensPath, 0o600);
+  }
+}
+
 export function writeAccessToken<T>(
   provider: string,
   token: T,
-  update?: (a: T, b: T) => boolean,
+  compareTokens?: (a: T, b: T) => boolean,
 ) {
-  const tokensPath = accessTokensPath(provider);
   let writeTokens: Array<T> | undefined;
 
-  if (update) {
-    // read existing tokens (if any)
-    writeTokens = readAccessTokens<T>(provider) || [] as Array<T>;
+  // read existing tokens (if any)
+  writeTokens = readAccessTokens<T>(provider) || [] as Array<T>;
 
-    // update or add new
-    const updateIdx = writeTokens.findIndex((t) => update(t, token));
+  // update or add new
+  if (compareTokens) {
+    const updateIdx = writeTokens.findIndex((t) => compareTokens(t, token));
     if (updateIdx !== -1) {
       writeTokens[updateIdx] = token;
     } else {
@@ -109,15 +114,7 @@ export function writeAccessToken<T>(
   }
 
   // write tokens
-  Deno.writeTextFileSync(
-    tokensPath,
-    JSON.stringify([token], undefined, 2),
-  );
-
-  // set file permissions
-  if (!isWindows()) {
-    Deno.chmod(tokensPath, 0o600);
-  }
+  writeAccessTokens(provider, writeTokens);
 }
 
 export function accessTokensPath(provider: string) {

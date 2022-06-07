@@ -26,7 +26,8 @@ import { PublishRecord } from "../types.ts";
 import {
   AuthorizationHandler,
   authorizeAccessToken,
-  readAccessToken,
+  readAccessTokens,
+  writeAccessTokens,
 } from "../common/account.ts";
 import { quartoConfig } from "../../core/quarto.ts";
 import { withRetry } from "../../core/retry.ts";
@@ -43,6 +44,7 @@ export const netlifyProvider: PublishProvider = {
   description: kNetlifyDescription,
   accountTokens,
   authorizeToken,
+  removeToken,
   resolveTarget,
   publish,
   isUnauthorized,
@@ -50,7 +52,7 @@ export const netlifyProvider: PublishProvider = {
 
 function accountTokens() {
   const envTk = environmentAuthToken();
-  const accessTk = accessToken();
+  const accessTkns = accessTokens();
 
   const accounts: AccountToken[] = [];
   if (envTk) {
@@ -61,13 +63,17 @@ function accountTokens() {
       token: envTk,
     });
   }
-  if (accessTk?.access_token) {
-    accounts.push({
-      type: AccountTokenType.Authorized,
-      name: accessTk.email!,
-      server: null,
-      token: accessTk?.access_token,
-    });
+  if (accessTkns) {
+    for (const accessTk of accessTkns) {
+      if (accessTk?.access_token) {
+        accounts.push({
+          type: AccountTokenType.Authorized,
+          name: accessTk.email!,
+          server: null,
+          token: accessTk?.access_token,
+        });
+      }
+    }
   }
 
   return Promise.resolve(accounts);
@@ -89,12 +95,23 @@ async function authorizeToken() {
   }
 }
 
+function removeToken(token: AccountToken) {
+  writeAccessTokens(
+    netlifyProvider.name,
+    readAccessTokens<AccessToken>(netlifyProvider.name)?.filter(
+      (accessToken) => {
+        return accessToken.email !== token.name;
+      },
+    ) || [],
+  );
+}
+
 function environmentAuthToken() {
   return Deno.env.get(kNetlifyAuthTokenVar);
 }
 
-function accessToken(): AccessToken | undefined {
-  return readAccessToken<AccessToken>(kNetlify);
+function accessTokens(): Array<AccessToken> | undefined {
+  return readAccessTokens<AccessToken>(kNetlify);
 }
 
 async function authorizeNetlifyAccessToken(): Promise<

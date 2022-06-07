@@ -15,7 +15,8 @@ import {
 import {
   AuthorizationHandler,
   authorizeAccessToken,
-  readAccessToken,
+  readAccessTokens,
+  writeAccessTokens,
 } from "../common/account.ts";
 import { handlePublish, PublishHandler } from "../common/publish.ts";
 
@@ -32,6 +33,7 @@ export const quartoPubProvider: PublishProvider = {
   description: "Quarto Pub",
   accountTokens,
   authorizeToken,
+  removeToken,
   resolveTarget,
   publish,
   isUnauthorized,
@@ -39,7 +41,7 @@ export const quartoPubProvider: PublishProvider = {
 
 function accountTokens() {
   const envTk = environmentAuthToken();
-  const accessTk = accessToken();
+  const accessTks = readAccessTokens<AccessToken>(quartoPubProvider.name);
 
   const accounts: AccountToken[] = [];
   if (envTk) {
@@ -51,13 +53,15 @@ function accountTokens() {
     });
   }
 
-  if (accessTk) {
-    accounts.push({
-      type: AccountTokenType.Authorized,
-      name: accessTk.email!,
-      server: null,
-      token: accessTk.applicationToken,
-    });
+  if (accessTks) {
+    for (const accessTk of accessTks) {
+      accounts.push({
+        type: AccountTokenType.Authorized,
+        name: accessTk.email!,
+        server: null,
+        token: accessTk.applicationToken,
+      });
+    }
   }
 
   return Promise.resolve(accounts);
@@ -79,16 +83,23 @@ async function authorizeToken() {
   }
 }
 
+function removeToken(token: AccountToken) {
+  writeAccessTokens(
+    quartoPubProvider.name,
+    readAccessTokens<AccessToken>(quartoPubProvider.name)?.filter(
+      (accessToken) => {
+        return accessToken.email !== token.name;
+      },
+    ) || [],
+  );
+}
+
 // Load the .env configuration and the environment.
 const dotenvConfig = await quartoConfig.dotenv();
 const quartoPubEnvironment = dotenvConfig["QUARTO_PUB_ENVIRONMENT"];
 
 function environmentAuthToken() {
   return Deno.env.get(kQuartoPubAuthTokenVar);
-}
-
-function accessToken(): AccessToken | undefined {
-  return readAccessToken<AccessToken>(kQuartoPub);
 }
 
 function authorizeQuartoPubAccessToken(): Promise<

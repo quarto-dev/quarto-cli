@@ -30,7 +30,7 @@ import {
 
 import { PublishCommandOptions } from "./options.ts";
 import { resolveDeployment } from "./deployment.ts";
-import { AccountPrompt, resolveAccount } from "./account.ts";
+import { AccountPrompt, manageAccounts, resolveAccount } from "./account.ts";
 
 import { PublishOptions, PublishRecord } from "../../publish/types.ts";
 import { isInteractiveTerminal } from "../../core/platform.ts";
@@ -40,15 +40,16 @@ import { openUrl } from "../../core/shell.ts";
 import { publishDocument, publishSite } from "../../publish/publish.ts";
 import { handleUnauthorized } from "../../publish/account.ts";
 
-export const publishCommand = withProviders(
+export const publishCommand =
   // deno-lint-ignore no-explicit-any
   new Command<any>()
     .name("publish")
     .hidden()
     .description(
-      "Publish a document or project to a variety of destinations.",
+      "Publish a document or project to a variety of destinations.\n\n" +
+        "Available publish providers include netlify, quartopub, and rsconnect.",
     )
-    .arguments("[path:string]")
+    .arguments("[provider: string] [path:string]")
     .option(
       "--no-render",
       "Do not render before publishing.",
@@ -69,15 +70,31 @@ export const publishCommand = withProviders(
       "Identifier of site to publish",
       { global: true },
     )
-    .action(async (options: PublishCommandOptions, path?: string) => {
-      await publishAction(options, path);
-    }),
-);
+    .action(
+      async (
+        options: PublishCommandOptions,
+        provider?: string,
+        path?: string,
+      ) => {
+        // if provider is a path and no path is specified then swap
+        if (provider && !path && existsSync(provider)) {
+          path = provider;
+          provider = undefined;
+        }
+
+        // if provider is 'accounts' then invoke account management ui
+        if (provider === "accounts") {
+          await manageAccounts();
+        } else {
+          await publishAction(options, findProvider(provider), path);
+        }
+      },
+    );
 
 async function publishAction(
   options: PublishCommandOptions,
-  path?: string,
   provider?: PublishProvider,
+  path?: string,
 ) {
   await initYamlIntelligence();
 
@@ -225,23 +242,6 @@ async function createPublishOptions(
     browser: !!options.browser && interactive,
     siteId: options.siteId,
   };
-}
-
-function withProviders(
-  command: Command<PublishCommandOptions>,
-): Command<PublishCommandOptions> {
-  for (const provider of kPublishProviders) {
-    command.command(
-      provider.name,
-      new Command<PublishCommandOptions>()
-        .name(provider.name)
-        .description(provider.description)
-        .action(async (options: PublishCommandOptions, path?: string) => {
-          await publishAction(options, path, provider);
-        }),
-    );
-  }
-  return command;
 }
 
 async function initYamlIntelligence() {

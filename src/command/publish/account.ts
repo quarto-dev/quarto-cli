@@ -5,9 +5,16 @@
 *
 */
 
-import { prompt, Select, SelectOption } from "cliffy/prompt/mod.ts";
+import { info } from "log/mod.ts";
+import { Checkbox, prompt, Select, SelectOption } from "cliffy/prompt/mod.ts";
 
-import { AccountToken, PublishProvider } from "../../publish/provider.ts";
+import {
+  AccountToken,
+  AccountTokenType,
+  findProvider,
+  kPublishProviders,
+  PublishProvider,
+} from "../../publish/provider.ts";
 
 export type AccountPrompt = "always" | "never" | "multiple";
 
@@ -64,5 +71,67 @@ export async function accountPrompt(
   }]);
   if (result.token !== kAuthorize) {
     return accounts.find((account) => account.token === result.token);
+  }
+}
+
+interface ProviderAccountToken extends AccountToken {
+  provider: string;
+}
+
+export async function manageAccounts() {
+  // build a list of all authorized accounts
+  const accounts: ProviderAccountToken[] = [];
+  for (const provider of kPublishProviders) {
+    for (const account of await provider.accountTokens()) {
+      if (account.type === AccountTokenType.Authorized) {
+        accounts.push({ provider: provider.name, ...account });
+      }
+    }
+  }
+
+  // if we don't have any then exit
+  if (accounts.length === 0) {
+    info("No publishing accounts currently authorized.");
+    throw new Error();
+  }
+
+  // create a checked list from which accounts can be removed
+  const keepAccounts = await Checkbox.prompt({
+    message: "Manage Publishing Accounts",
+    options: accounts.map((account) => ({
+      name: `${findProvider(account.provider)?.description}: ${account.name}${
+        account.server ? " (" + account.server + ")" : ""
+      }`,
+      value: JSON.stringify(account),
+      checked: true,
+    })),
+    hint:
+      "Use the arrow keys and spacebar to specify accounts you would like to remove.\n" +
+      "   Press Enter to confirm the list of accounts you wish to remain available.",
+  });
+
+  // figure out which accounts we should be removing
+  const removeAccounts: ProviderAccountToken[] = [];
+  for (const account of accounts) {
+    if (
+      !keepAccounts.find((keepAccountJson) => {
+        const keepAccount = JSON.parse(keepAccountJson) as ProviderAccountToken;
+        return account.provider == keepAccount.provider &&
+          account.name == keepAccount.name &&
+          account.server == keepAccount.server;
+      })
+    ) {
+      info(
+        `Removing ${findProvider(account.provider)
+          ?.description} account ${account.name}`,
+      );
+      removeAccounts.push(account);
+    }
+  }
+
+  // remove them
+  for (const account of removeAccounts) {
+    const provider = findProvider(account.provider);
+    provider?.removeToken(account);
   }
 }

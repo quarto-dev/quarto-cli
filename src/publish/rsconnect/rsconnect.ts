@@ -20,7 +20,11 @@ import {
 import { PublishRecord } from "../types.ts";
 import { RSConnectClient } from "./api/index.ts";
 import { ApiError } from "./api/types.ts";
-import { readAccessTokens, writeAccessToken } from "../common/account.ts";
+import {
+  readAccessTokens,
+  writeAccessToken,
+  writeAccessTokens,
+} from "../common/account.ts";
 
 export const kRSConnect = "rsconnect";
 const kRSConnectDescription = "RS Connect";
@@ -28,8 +32,6 @@ const kRSConnectDescription = "RS Connect";
 export const kRSConnectServerVar = "CONNECT_SERVER";
 export const kRSConnectAuthTokenVar = "CONNECT_API_KEY";
 
-// TODO: account management utility
-// TODO: quarto publish netlify <path> doesn't work (eliminate subcommands and use optional positional commands?)
 // TODO: allow multiple accounts for netlify and quartopub
 
 // TODO: note link from aron on new sites api
@@ -42,6 +44,7 @@ export const rsconnectProvider: PublishProvider = {
   description: kRSConnectDescription,
   accountTokens,
   authorizeToken,
+  removeToken,
   resolveTarget,
   publish,
   isUnauthorized,
@@ -80,6 +83,17 @@ function accountTokens() {
   }
 
   return Promise.resolve(accounts);
+}
+
+function removeToken(token: AccountToken) {
+  writeAccessTokens(
+    rsconnectProvider.name,
+    readAccessTokens<Account>(rsconnectProvider.name)?.filter(
+      (accessToken) => {
+        return accessToken.username !== token.name;
+      },
+    ) || [],
+  );
 }
 
 async function authorizeToken(): Promise<AccountToken | undefined> {

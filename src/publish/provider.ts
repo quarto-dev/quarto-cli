@@ -15,12 +15,12 @@ export enum AccountTokenType {
   Authorized,
 }
 
-export type AccountToken = {
+export interface AccountToken {
   type: AccountTokenType;
   name: string;
   server: string | null;
   token: string;
-};
+}
 
 export const kPublishProviders = [
   netlifyProvider,
@@ -28,7 +28,7 @@ export const kPublishProviders = [
   rsconnectProvider,
 ];
 
-export function findProvider(name: string) {
+export function findProvider(name?: string) {
   return kPublishProviders.find((provider) => provider.name === name);
 }
 
@@ -47,6 +47,7 @@ export interface PublishProvider {
   name: string;
   description: string;
   accountTokens: () => Promise<AccountToken[]>;
+  removeToken: (token: AccountToken) => void;
   authorizeToken: () => Promise<AccountToken | undefined>;
   resolveTarget: (
     account: AccountToken,
