@@ -351,25 +351,37 @@ async function mergeExecutedFiles(
             file.executeResult.markdown,
           );
 
-          const yaml = partitioned?.yaml
-            ? readYamlFromMarkdown(partitioned?.yaml)
-            : undefined;
-          const frontTitle = frontMatterTitle(yaml);
-          const titleMarkdown = frontTitle ? `# ${frontTitle}\n\n` : "";
+          const titleMdFromFrontMatter = (frontMatter?: string) => {
+            const yaml = frontMatter
+              ? readYamlFromMarkdown(frontMatter)
+              : undefined;
 
-          const titleBlockPath = resourcePath(
-            "projects/book/pandoc/title-block.md",
-          );
-          const titleAttr = `template='${titleBlockPath}'`;
+            if (yaml) {
+              const frontTitle = frontMatterTitle(yaml);
+              if (frontTitle) {
+                const titleMarkdown = frontTitle ? `# ${frontTitle}\n\n` : "";
 
-          const titleBlockMd = partitioned?.yaml
-            ? "```````{.quarto-title-block " + titleAttr + "}\n" +
-              partitioned?.yaml +
-              "\n```````"
-            : "";
+                const titleBlockPath = resourcePath(
+                  "projects/book/pandoc/title-block.md",
+                );
+                const titleAttr = `template='${titleBlockPath}'`;
 
-          itemMarkdown = bookItemMetadata(project, item, file) + titleMarkdown +
-            titleBlockMd +
+                const titleBlockMd = "```````{.quarto-title-block " +
+                  titleAttr + "}\n" +
+                  partitioned?.yaml +
+                  "\n```````";
+
+                return titleMarkdown + titleBlockMd;
+              } else {
+                return "";
+              }
+            } else {
+              return "";
+            }
+          };
+
+          itemMarkdown = bookItemMetadata(project, item, file) +
+            titleMdFromFrontMatter(partitioned?.yaml) +
             (partitioned?.markdown || file.executeResult.markdown);
         } else {
           throw new Error(
