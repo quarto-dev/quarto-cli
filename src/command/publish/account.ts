@@ -5,14 +5,14 @@
 *
 */
 
-import { error } from "log/mod.ts";
-
-import { prompt, Select, SelectOption } from "cliffy/prompt/mod.ts";
-import { Confirm } from "cliffy/prompt/confirm.ts";
+import { info } from "log/mod.ts";
+import { Checkbox, prompt, Select, SelectOption } from "cliffy/prompt/mod.ts";
 
 import {
   AccountToken,
   AccountTokenType,
+  findProvider,
+  kPublishProviders,
   PublishProvider,
 } from "../../publish/provider.ts";
 
@@ -41,9 +41,7 @@ export async function resolveAccount(
 
     // if we don't have a token yet we need to authorize
     if (!token) {
-      if (await authorizePrompt(provider)) {
-        token = await provider.authorizeToken();
-      }
+      token = await provider.authorizeToken();
     }
 
     return token;
@@ -51,11 +49,11 @@ export async function resolveAccount(
 }
 
 export async function accountPrompt(
-  provider: PublishProvider,
+  _provider: PublishProvider,
   accounts: AccountToken[],
 ): Promise<AccountToken | undefined> {
   const options: SelectOption[] = accounts.map((account) => ({
-    name: account.name,
+    name: account.name + (account.server ? ` (${account.server})` : ""),
     value: account.token,
   }));
   const kAuthorize = "authorize";
@@ -67,7 +65,7 @@ export async function accountPrompt(
   const result = await prompt([{
     indent: "",
     name: "token",
-    message: `${provider.description} account:`,
+    message: `Account:`,
     options,
     type: Select,
   }]);
@@ -76,52 +74,64 @@ export async function accountPrompt(
   }
 }
 
-export async function authorizePrompt(provider: PublishProvider) {
-  const result = await prompt([{
-    indent: "",
-    name: "confirmed",
-    message: "Authorize account",
-    default: true,
-    hint:
-      `In order to publish to ${provider.description} you need to authorize your account.\n` +
-      `  Please be sure you are logged into the correct ${provider.description} account in your\n` +
-      "  default web browser, then press Enter or 'Y' to authorize.",
-    type: Confirm,
-  }]);
-  return !!result.confirmed;
+interface ProviderAccountToken extends AccountToken {
+  provider: string;
 }
 
-export async function reauthorizePrompt(
-  provider: PublishProvider,
-  accountName: string,
-) {
-  const result = await prompt([{
-    indent: "",
-    name: "confirmed",
-    message: "Re-authorize account",
-    default: true,
-    hint:
-      `The authorization saved for account ${accountName} is no longer valid.\n` +
-      `  Please be sure you are logged into the correct ${provider.description} account in your\n` +
-      "  default web browser, then press Enter to re-authorize.",
-    type: Confirm,
-  }]);
-  return !!result.confirmed;
-}
+export async function manageAccounts() {
+  // build a list of all authorized accounts
+  const accounts: ProviderAccountToken[] = [];
+  for (const provider of kPublishProviders) {
+    for (const account of await provider.accountTokens()) {
+      if (account.type === AccountTokenType.Authorized) {
+        accounts.push({ provider: provider.name, ...account });
+      }
+    }
+  }
 
-export async function handleUnauthorized(
-  provider: PublishProvider,
-  account: AccountToken,
-) {
-  if (account.type === AccountTokenType.Environment) {
-    error(
-      `Unable to authenticate with the provided ${account.name}. Please be sure this token is valid.`,
-    );
-    return false;
-  } else if (account.type === AccountTokenType.Authorized) {
-    return await reauthorizePrompt(
-      provider,
-      account.name,
-    );
+  // if we don't have any then exit
+  if (accounts.length === 0) {
+    info("No publishing accounts currently authorized.");
+    throw new Error();
+  }
+
+  // create a checked list from which accounts can be removed
+  const keepAccounts = await Checkbox.prompt({
+    message: "Manage Publishing Accounts",
+    options: accounts.map((account) => ({
+      name: `${findProvider(account.provider)?.description}: ${account.name}${
+        account.server ? " (" + account.server + ")" : ""
+      }`,
+      value: JSON.stringify(account),
+      checked: true,
+    })),
+    hint:
+      "Use the arrow keys and spacebar to specify accounts you would like to remove.\n" +
+      "   Press Enter to confirm the list of accounts you wish to remain available.",
+  });
+
+  // figure out which accounts we should be removing
+  const removeAccounts: ProviderAccountToken[] = [];
+  for (const account of accounts) {
+    if (
+      !keepAccounts.find((keepAccountJson) => {
+        const keepAccount = JSON.parse(keepAccountJson) as ProviderAccountToken;
+        return account.provider == keepAccount.provider &&
+          account.name == keepAccount.name &&
+          account.server == keepAccount.server;
+      })
+    ) {
+      info(
+        `Removing ${findProvider(account.provider)
+          ?.description} account ${account.name}`,
+      );
+      removeAccounts.push(account);
+    }
+  }
+
+  // remove them
+  for (const account of removeAccounts) {
+    const provider = findProvider(account.provider);
+    provider?.removeToken(account);
   }
 }
