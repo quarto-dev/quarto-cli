@@ -28,6 +28,11 @@ function quartoBook()
         -- read the title block template
         local renderedBlocks = compileTemplate(template, processedMeta)
 
+        if #renderedBlocks ~= 0 then
+          local emptyLine = pandoc.LineBreak()
+          renderedBlocks:insert(emptyLine)
+        end 
+
         return renderedBlocks
       end
     end
