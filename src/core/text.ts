@@ -107,11 +107,9 @@ export function truncateText(
   };
 
   const trimAtSpace = (text: string) => {
-    console.log(text);
     const spaceResult = trimSpace(
       text.substring(0, text.length - 1),
     );
-    console.log(spaceResult.text);
     return trimEnd(spaceResult.text) + "…";
   };
 
