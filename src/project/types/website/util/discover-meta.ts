@@ -27,6 +27,19 @@ const kMdPreviewClassRegex = RegExp(kPreviewClassPattern);
 const kMdNamedImageRegex = RegExp(kMdNamedImagePattern);
 const kMarkdownImg = /!\[[^\]]*\]\((.*?)(?:\".*\")?\)(?:\{(?:[^\|]*)\})?/;
 
+export function findDescription(doc: Document): string | undefined {
+  const paras = doc.querySelectorAll(
+    "main.content > p,  main.content > section > p",
+  );
+  for (const para of paras) {
+    const paraEl = para as Element;
+    if (paraEl.innerText) {
+      return paraEl.innerText;
+    }
+  }
+  return undefined;
+}
+
 export function findPreviewImg(
   doc: Document,
 ): string | undefined {
