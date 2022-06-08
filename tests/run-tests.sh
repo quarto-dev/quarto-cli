@@ -15,7 +15,7 @@ DENO_DIR="`cd "$SCRIPT_PATH/../package/dist/bin/" > /dev/null 2>&1 && pwd`"
 QUARTO_SRC_DIR="`cd "$SCRIPT_PATH/../src" > /dev/null 2>&1 && pwd`"
 
 # Local import map
-QUARTO_IMPORT_ARGMAP=--importmap=$QUARTO_SRC_DIR/import_map.json
+QUARTO_IMPORT_ARGMAP=--importmap=$QUARTO_SRC_DIR/dev_import_map.json
 
 export QUARTO_BIN_PATH=$DENO_DIR
 export QUARTO_SHARE_PATH="`cd "$SCRIPT_PATH/../src/resources/";pwd`"
