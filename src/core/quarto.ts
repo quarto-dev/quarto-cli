@@ -43,6 +43,8 @@ export const quartoConfig = {
       };
       if (quartoConfig.isDebug()) {
         options.path = join(quartoConfig.sharePath(), "..", "..", ".env");
+      } else {
+        options.path = options.defaults;
       }
       dotenvConfig = await config(options);
     }
