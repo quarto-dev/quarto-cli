@@ -7,7 +7,7 @@
   description:
     short: |
       Method used to print tables in Knitr engine documents (`default`,
-      `kable`, `tibble`, or `paged`). Defaults to `kable`.
+      `kable`, `tibble`, or `paged`). Uses `default` if not specified.
     long: |
       Method used to print tables in Knitr engine documents:
 
