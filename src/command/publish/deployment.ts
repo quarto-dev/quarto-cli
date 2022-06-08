@@ -109,8 +109,12 @@ export async function chooseDeployment(
   depoyments: PublishDeployment[],
 ): Promise<PublishDeployment | undefined> {
   const options = depoyments.map((deployment) => {
+    const url = deployment.provider.formatTargetUrl
+      ? deployment.provider.formatTargetUrl(new URL(deployment.target.url))
+      : deployment.target.url;
+
     return {
-      name: `${deployment.target.url} (${deployment.provider.description})`,
+      name: `${url} (${deployment.provider.description})`,
       value: deployment.target.url,
     };
   });
