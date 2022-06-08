@@ -53,10 +53,6 @@ import { mergeConfigs } from "../../core/config.ts";
 import { projectType } from "../../project/types/project-types.ts";
 import { readCodePage } from "../../core/windows.ts";
 import { authorsFilter, authorsFilterActive } from "./authors.ts";
-import {
-  Extension,
-  extensionIdString,
-} from "../../extension/extension-shared.ts";
 
 const kQuartoParams = "quarto-params";
 
@@ -565,48 +561,23 @@ function citeMethod(options: PandocOptions): CiteMethod | null {
 
 function resolveFilterExtension(options: PandocOptions, filters: string[]) {
   // Resolve any filters that are provided by an extension
-  const extensions = filterExtensions(options);
-  return filters.flatMap((filter) => {
+  const results = filters.flatMap((filter) => {
     if (filter !== kQuartoFilterMarker && !existsSync(filter)) {
-      // Try to resolve this path to an extension
-      const exactMatch = extensions.find((ext) => {
-        const idStr = extensionIdString(ext.id);
-        if (filter === idStr) {
-          return true;
-        }
-      });
-      if (exactMatch) {
-        return exactMatch.contributes.filters || [];
+      const extension = options.extension?.find(
+        filter,
+        options.source,
+        "filters",
+        options.project,
+      );
+      const filters = extension?.contributes.filters;
+      if (filters) {
+        return filters;
       } else {
-        const nameMatch = extensions.find((ext) => {
-          if (filter === ext.id.name) {
-            return true;
-          }
-        });
-        if (nameMatch) {
-          return nameMatch.contributes.filters || [];
-        } else {
-          return filter;
-        }
+        return filter;
       }
     } else {
       return filter;
     }
   });
-}
-
-function filterExtensions(options: PandocOptions) {
-  const filterExts: Extension[] = [];
-  if (options.extension) {
-    const allExtensions = options.extension?.extensions(
-      options.source,
-      options.project,
-    );
-    Object.values(allExtensions).forEach((extension) => {
-      if (extension.contributes.filters) {
-        filterExts.push(extension);
-      }
-    });
-  }
-  return filterExts;
+  return results;
 }

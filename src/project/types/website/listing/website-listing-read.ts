@@ -541,13 +541,16 @@ async function readContents(
               );
             }
           } else {
-            const item = await listItemFromFile(file, project);
-            if (item) {
-              validateItem(listing, item, (field: string) => {
-                return `The file ${file} is missing the required field '${field}'.`;
-              });
-              listingItemSources.add(item.source);
-              listingItems.push(item.item);
+            const isFile = Deno.statSync(file).isFile;
+            if (isFile) {
+              const item = await listItemFromFile(file, project);
+              if (item) {
+                validateItem(listing, item, (field: string) => {
+                  return `The file ${file} is missing the required field '${field}'.`;
+                });
+                listingItemSources.add(item.source);
+                listingItems.push(item.item);
+              }
             }
           }
         }

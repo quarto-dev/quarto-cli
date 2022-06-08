@@ -8,7 +8,6 @@ import SemVer from "semver/mod.ts";
 import { Metadata } from "../config/types.ts";
 import { ProjectContext } from "../project/types.ts";
 
-export const kContributes = "contributes";
 export const kCommon = "common";
 export const kExtensionDir = "_extensions";
 
@@ -16,13 +15,14 @@ export const kTitle = "title";
 export const kAuthor = "author";
 export const kVersion = "version";
 
+// TODO: rename format => formats
 export interface Extension extends Record<string, unknown> {
   id: ExtensionId;
   title: string;
   author: string;
   version?: SemVer;
   path: string;
-  [kContributes]: {
+  contributes: {
     shortcodes?: string[];
     filters?: string[];
     format?: Record<string, unknown>;
@@ -37,6 +37,12 @@ export interface ExtensionContext {
   extension(
     name: string,
     input: string,
+    project?: ProjectContext,
+  ): Extension | undefined;
+  find(
+    name: string,
+    input: string,
+    contributes: "shortcodes" | "filters" | "format",
     project?: ProjectContext,
   ): Extension | undefined;
 }

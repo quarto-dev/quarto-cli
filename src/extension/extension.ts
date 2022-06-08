@@ -26,7 +26,6 @@ import {
   extensionIdString,
   kAuthor,
   kCommon,
-  kContributes,
   kExtensionDir,
   kTitle,
   kVersion,
@@ -61,9 +60,56 @@ export function createExtensionContext(): ExtensionContext {
     return resolveExtensionPaths(unresolved, input, project);
   };
 
+  const find = (
+    name: string,
+    input: string,
+    contributes: "shortcodes" | "filters" | "format",
+    project?: ProjectContext,
+  ): Extension | undefined => {
+    // Filter the extension based upon what they contribute
+    const exts = extensions(input, project).filter((ext) => {
+      if (contributes === "shortcodes" && ext.contributes.shortcodes) {
+        return true;
+      } else if (contributes === "filters" && ext.contributes.filters) {
+        return true;
+      } else if (contributes === "format" && ext.contributes.format) {
+        return true;
+      } else {
+        return false;
+      }
+    });
+
+    // Try to resolve using an exact match of the extension
+    const exactMatch = exts.find((ext) => {
+      const idStr = extensionIdString(ext.id);
+      if (name === idStr) {
+        return true;
+      } else {
+        return undefined;
+      }
+    });
+
+    // If there wasn't an exact match, try just using the name
+    if (exactMatch) {
+      return exactMatch;
+    } else {
+      const nameMatch = exts.find((ext) => {
+        if (name === ext.id.name) {
+          return true;
+        }
+      });
+      if (nameMatch) {
+        return nameMatch;
+      } else {
+        return undefined;
+      }
+    }
+  };
+
   return {
     extension,
     extensions,
+    find,
   };
 }
 
@@ -270,9 +316,9 @@ export function discoverExtensionPath(
 function validateExtension(extension: Extension) {
   let contribCount = 0;
   const contribs = [
-    extension[kContributes].filters,
-    extension[kContributes].shortcodes,
-    extension[kContributes].format,
+    extension.contributes.filters,
+    extension.contributes.shortcodes,
+    extension.contributes.format,
   ];
   contribs.forEach((contrib) => {
     if (contrib) {
@@ -299,7 +345,7 @@ function readExtension(
   extensionFile: string,
 ): Extension {
   const yaml = readYaml(extensionFile) as Metadata;
-  const contributes = yaml[kContributes] as Metadata | undefined;
+  const contributes = yaml.contributes as Metadata | undefined;
 
   const title = yaml[kTitle] as string;
   const author = yaml[kAuthor] as string;
@@ -335,7 +381,7 @@ function readExtension(
     version,
     id: extensionId,
     path: extensionDir,
-    [kContributes]: {
+    contributes: {
       shortcodes: shortcodes.map((code) => join(extensionDir, code)),
       filters,
       format,
