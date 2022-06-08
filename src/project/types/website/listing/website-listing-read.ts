@@ -94,7 +94,8 @@ import { mergeConfigs } from "../../../../core/config.ts";
 // Defaults (a card listing that contains everything
 // in the source document's directory)
 const kDefaultListingType = ListingType.Default;
-const kDefaultContentsGlob = ["*"];
+const kDefaultContentsGlobToken = "B3049D40";
+const kDefaultContentsGlob = [kDefaultContentsGlobToken];
 const kDefaultId = "listing";
 const kDefaultTableFields = [
   kFieldDate,
@@ -483,10 +484,15 @@ async function readContents(
   );
 
   const filterListingFiles = (globOrPath: string) => {
+    const isDefaultGlob = globOrPath === kDefaultContentsGlobToken;
+    if (isDefaultGlob) {
+      globOrPath = "*";
+    }
+
     // Convert a bare directory path into a consumer
     // of everything in the directory
     const expanded = expandGlob(source, project, globOrPath);
-    if (expanded.inputs) {
+    if (expanded.inputs || isDefaultGlob) {
       // If this is a glob, expand it
       return filterPaths(
         dirname(source),
