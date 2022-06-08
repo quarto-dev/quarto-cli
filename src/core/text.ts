@@ -47,3 +47,19 @@ export function formatLineRange(
     lines: result,
   };
 }
+
+export function truncateText(text: string, length: number) {
+  if (text.length < length) {
+    return text;
+  } else {
+    // Since we'll insert elips, trim an extra space
+    const clipLength = length - 1;
+    const clipped = text.substring(0, clipLength);
+    const lastSpace = clipped.lastIndexOf(" ");
+    if (lastSpace > 0) {
+      return clipped.substring(0, lastSpace) + "…";
+    } else {
+      return clipped + "…";
+    }
+  }
+}
