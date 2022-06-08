@@ -53,6 +53,7 @@ export interface PublishProvider {
     account: AccountToken,
     target: PublishRecord,
   ) => Promise<PublishRecord | undefined>;
+  formatTargetUrl?: (url: URL) => string;
   publish: (
     account: AccountToken,
     type: "document" | "site",

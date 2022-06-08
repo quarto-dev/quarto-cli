@@ -29,6 +29,8 @@ import { ensureProtocolAndTrailingSlash } from "../../core/url.ts";
 
 import { pandocAutoIdentifier } from "../../core/pandoc/pandoc-id.ts";
 import { contentName } from "../publish.ts";
+import { createTempContext } from "../../core/temp.ts";
+import { createBundle } from "./bundle.ts";
 
 export const kRSConnect = "rsconnect";
 const kRSConnectDescription = "RS Connect";
@@ -48,6 +50,7 @@ export const rsconnectProvider: PublishProvider = {
   authorizeToken,
   removeToken,
   resolveTarget,
+  formatTargetUrl,
   publish,
   isUnauthorized,
 };
@@ -203,27 +206,63 @@ function resolveTarget(
   return Promise.resolve(_target);
 }
 
+function formatTargetUrl(url: URL) {
+  return url.origin;
+}
+
 async function publish(
   account: AccountToken,
   type: "document" | "site",
   title: string,
-  _render: (siteDir: string) => Promise<PublishFiles>,
+  render: (siteUrl?: string) => Promise<PublishFiles>,
   target?: PublishRecord,
 ): Promise<[PublishRecord, URL]> {
-  // if there is no existing target then prompt for a name
+  // create client
+  const client = new RSConnectClient(account.server!, account.token);
+
+  // establish content (create new or get existing)
+  let content: Content | undefined;
   if (!target) {
-    const content = await createContent(account, type, title);
+    content = await createContent(client, type, title);
     if (content) {
       target = { id: content.guid, url: content.content_url, code: false };
-      console.log(content);
     } else {
       throw new Error();
     }
+  } else {
+    content = await client.getContent(target.id);
   }
 
-  // see rsconnect::writeManifest function
+  // render
+  const publishFiles = await render(target.id);
 
-  return Promise.resolve([target!, new URL("https://example.com")]);
+  const tempContext = createTempContext();
+  try {
+    // create and upload bundle
+    const bundleTargz = await createBundle(type, publishFiles, tempContext);
+    const bundleBytes = Deno.readFileSync(bundleTargz);
+    const bundleBlob = new Blob([bundleBytes.buffer]);
+    const bundle = await client.uploadBundle(target.id, bundleBlob);
+    // deploy bundle then poll for status
+    const task = await client.deployBundle(bundle);
+    console.log(task);
+    while (true) {
+      console.log("polling for task status");
+      const status = await client.getTaskStatus(task);
+      console.log(status);
+      if (status.finished) {
+        if (status.code === 0) {
+          return Promise.resolve([target!, new URL(content.dashboard_url)]);
+        } else {
+          throw new Error(
+            "Error attempting to publish content: " + status.error,
+          );
+        }
+      }
+    }
+  } finally {
+    tempContext.cleanup();
+  }
 }
 
 function isUnauthorized(err: Error) {
@@ -240,16 +279,13 @@ function isNotFound(err: Error) {
 }
 
 async function createContent(
-  account: AccountToken,
+  client: RSConnectClient,
   type: "document" | "site",
   title: string,
 ): Promise<Content | undefined> {
   // default name
   const defaultName = pandocAutoIdentifier(title, false);
   let chosenName = defaultName;
-
-  // create rpc client
-  const client = new RSConnectClient(account.server!, account.token);
 
   while (true) {
     // prompt for name

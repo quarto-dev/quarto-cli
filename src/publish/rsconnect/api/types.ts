@@ -35,3 +35,19 @@ export type Content = {
   content_url: string;
   dashboard_url: string;
 };
+
+export type Bundle = {
+  id: string;
+  content_guid: string;
+};
+
+export type Task = {
+  task_id: string;
+};
+
+export type TaskStatus = {
+  id: string;
+  finished: boolean;
+  code: number;
+  error: string;
+};
