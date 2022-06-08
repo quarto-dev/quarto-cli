@@ -15,18 +15,26 @@ import {
   kPublishProviders,
   PublishProvider,
 } from "../../publish/provider.ts";
+import { PublishRecord } from "../../publish/types.ts";
 
 export type AccountPrompt = "always" | "never" | "multiple";
 
 export async function resolveAccount(
   provider: PublishProvider,
   prompt: AccountPrompt,
+  target?: PublishRecord,
 ) {
   // see what tyep of token we are going to use
   let token: AccountToken | undefined;
 
   // build list of account options
-  const accounts = await provider.accountTokens();
+  const accounts = (await provider.accountTokens()).filter((account) => {
+    if (account.server && target?.url) {
+      return target.url.startsWith(account.server);
+    } else {
+      return true;
+    }
+  });
 
   // if we aren't prompting then we need to have one at the ready
   if (prompt === "never") {

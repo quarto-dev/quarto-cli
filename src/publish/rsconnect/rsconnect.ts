@@ -31,7 +31,6 @@ import { pandocAutoIdentifier } from "../../core/pandoc/pandoc-id.ts";
 import { contentName } from "../publish.ts";
 import { createTempContext } from "../../core/temp.ts";
 import { createBundle } from "./bundle.ts";
-import { sleep } from "../../core/wait.ts";
 
 export const kRSConnect = "rsconnect";
 const kRSConnectDescription = "RS Connect";
@@ -227,7 +226,6 @@ async function publish(
     content = await createContent(client, type, title);
     if (content) {
       target = { id: content.guid, url: content.content_url, code: false };
-      console.log(content);
     } else {
       throw new Error();
     }

@@ -110,6 +110,7 @@ async function publishAction(
     const account = await resolveAccount(
       publishProvider,
       publishOptions.prompt ? accountPrompt : "never",
+      publishTarget,
     );
     if (account) {
       await publish(
