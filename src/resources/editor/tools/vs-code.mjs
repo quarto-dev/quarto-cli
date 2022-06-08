@@ -15610,7 +15610,7 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           default: "kable",
           description: {
-            short: "Method used to print tables in Knitr engine documents (`default`,\n`kable`, `tibble`, or `paged`). Defaults to `kable`.\n",
+            short: "Method used to print tables in Knitr engine documents (`default`,\n`kable`, `tibble`, or `paged`). Uses `default` if not specified.\n",
             long: "Method used to print tables in Knitr engine documents:\n\n-  `default`: Use the default S3 method for the data frame.\n-  `kable`: Markdown table using the `knitr::kable()` function.\n-  `tibble`: Plain text table using the `tibble` package.\n-  `paged`: HTML table with paging for row and column overflow.\n\nThe default printing method is `kable`.\n"
           }
         }
@@ -18984,11 +18984,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
         "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
         "Custom tools for navbar or sidebar",
-        "internal-schema-hack",
-        {
-          short: "Method used to print tables in Knitr engine documents\n(<code>default</code>, <code>kable</code>, <code>tibble</code>, or\n<code>paged</code>). Defaults to <code>kable</code>.",
-          long: "Method used to print tables in Knitr engine documents:"
-        }
+        "internal-schema-hack"
       ],
       "schema/external-schemas.yml": [
         {

@@ -36,7 +36,7 @@ import {
   createMarkdownPipeline,
   MarkdownPipeline,
 } from "./website-pipeline-md.ts";
-import { findPreviewImg } from "./util/discover-meta.ts";
+import { findDescription, findPreviewImg } from "./util/discover-meta.ts";
 import { isAbsoluteRef } from "../../../core/http.ts";
 import {
   kHtmlEmptyPostProcessResult,
@@ -45,6 +45,7 @@ import { HtmlPostProcessResult } from "../../../command/render/types.ts";
 import { imageSize } from "../../../core/image.ts";
 import { writeMetaTag } from "../../../format/html/format-html-shared.ts";
 import { joinUrl } from "../../../core/url.ts";
+import { truncateText } from "../../../core/text.ts";
 
 const kCard = "card";
 
@@ -53,6 +54,7 @@ interface SocialMetadataProvider {
   prefix: string;
   metadata: Metadata;
   filter?: (key: string) => string;
+  resolveValue?: (key: string, value: string) => string;
   resolveDefaults?: (finalMetadata: Metadata) => void;
 }
 
@@ -101,6 +103,14 @@ export function metadataHtmlPostProcessor(
         }
         return key;
       },
+      resolveValue: (key: string, value: string) => {
+        // Limit to 300 chars for Open Graph
+        if ([kDescription].includes(key)) {
+          return truncateText(value, 200, "punctuation");
+        }
+
+        return value;
+      },
     };
 
     // The twitter card provider
@@ -121,6 +131,14 @@ export function metadataHtmlPostProcessor(
         }
 
         return key;
+      },
+      resolveValue: (key: string, value: string) => {
+        // Limit to 200 chars for Twitter
+        if ([kDescription].includes(key)) {
+          return truncateText(value, 200, "punctuation");
+        }
+
+        return value;
       },
       resolveDefaults: (finalMetadata: Metadata) => {
         if (finalMetadata[kCardStyle] === undefined) {
@@ -156,6 +174,11 @@ export function metadataHtmlPostProcessor(
         metadata[kImage] = findPreviewImg(doc);
       }
 
+      // cook up a description if one is not provided
+      if (metadata[kDescription] === undefined) {
+        metadata[kDescription] = findDescription(doc);
+      }
+
       // Convert image to absolute href and add height and width
       resolveImageMetadata(source, project, format, metadata);
 
@@ -167,11 +190,18 @@ export function metadataHtmlPostProcessor(
       // Append the metadata
       Object.keys(metadata).forEach((key) => {
         if (metadata[key] !== undefined) {
+          // Resolve the value
           const data = metadata[key] as string;
+          const value = provider.resolveValue
+            ? provider.resolveValue(key, data)
+            : data;
+
+          // Filter the key
           if (provider.filter) {
             key = provider.filter(key);
           }
-          writeMetaTag(`${provider.prefix}:${key}`, data, doc);
+
+          writeMetaTag(`${provider.prefix}:${key}`, value, doc);
         }
       });
     });

@@ -47,3 +47,96 @@ export function formatLineRange(
     lines: result,
   };
 }
+
+const kLastPunctuationRegex = /([\S\s]*)[\.\?\!]/;
+function trimSentence(text: string) {
+  const match = text.match(kLastPunctuationRegex);
+  if (match) {
+    return {
+      text: match[0],
+      trimmed: true,
+    };
+  } else {
+    return {
+      text,
+      trimmed: false,
+    };
+  }
+}
+
+function trimLength(text: string, length: number) {
+  if (text.length < length) {
+    return {
+      text,
+      trimmed: false,
+    };
+  } else {
+    return {
+      text: text.substring(0, length),
+      trimmed: true,
+    };
+  }
+}
+
+function trimSpace(text: string) {
+  const lastSpace = text.lastIndexOf(" ");
+  if (lastSpace > 0) {
+    return {
+      text: text.substring(0, lastSpace),
+      trimmed: true,
+    };
+  } else {
+    return {
+      text,
+      trimmed: false,
+    };
+  }
+}
+
+export function truncateText(
+  text: string,
+  length: number,
+  breakAt: "space" | "punctuation",
+) {
+  const trimEnd = (text: string) => {
+    if ([",", "/", ":"].includes(text.charAt(text.length - 1))) {
+      return text.substring(0, text.length - 1);
+    } else {
+      return text;
+    }
+  };
+
+  const trimAtSpace = (text: string) => {
+    const spaceResult = trimSpace(
+      text.substring(0, text.length - 1),
+    );
+    return trimEnd(spaceResult.text) + "…";
+  };
+
+  const trimPunc = (text: string) => {
+    const puncResult = trimSentence(text);
+    if (puncResult.trimmed) {
+      return puncResult.text;
+    } else {
+      return trimAtSpace(puncResult.text);
+    }
+  };
+
+  const lengthResult = trimLength(text, length);
+
+  if (lengthResult.trimmed) {
+    // This was shortened
+    if (breakAt === "punctuation") {
+      return trimPunc(lengthResult.text);
+    } else {
+      return trimAtSpace(lengthResult.text);
+    }
+  } else {
+    // This wasn't shortened
+    if (breakAt === "punctuation") {
+      return trimPunc(lengthResult.text);
+    } else {
+      return trimEnd(lengthResult.text);
+    }
+  }
+}

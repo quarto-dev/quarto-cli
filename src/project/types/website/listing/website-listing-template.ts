@@ -41,6 +41,7 @@ import {
 import { resourcePath } from "../../../../core/resources.ts";
 import { localizedString } from "../../../../config/localization.ts";
 import { formatDate, parsePandocDate } from "../../../../core/date.ts";
+import { truncateText } from "../../../../core/text.ts";
 
 export const kDateFormat = "date-format";
 
@@ -111,7 +112,11 @@ export function templateMarkdownHandler(
         const maxDescLength = listing[kMaxDescLength] as number ||
           -1;
         if (maxDescLength > 0) {
-          record.description = truncateText(item.description, maxDescLength);
+          record.description = truncateText(
+            item.description,
+            maxDescLength,
+            "space",
+          );
         }
       }
 
@@ -198,14 +203,14 @@ export function templateMarkdownHandler(
         if (content) {
           content.appendChild(listingEl);
         } else {
-          // Custom page layout doesn't have a main.content, so 
+          // Custom page layout doesn't have a main.content, so
           // just use the quarto-content div directly
           const customContent = doc.querySelector("#quarto-content");
           if (customContent) {
             customContent.appendChild(listingEl);
           } else {
             // Couldn't find anywhere to put the listing el, just
-            // stick at the bottom of the body 
+            // stick at the bottom of the body
             doc.body.appendChild(listingEl);
           }
         }
@@ -512,20 +517,4 @@ export function templateJsScript(
   });
   `;
   return jsScript;
-}
-
-function truncateText(text: string, length: number) {
-  if (text.length < length) {
-    return text;
-  } else {
-    // Since we'll insert elips, trim an extra space
-    const clipLength = length - 1;
-    const clipped = text.substring(0, clipLength);
-    const lastSpace = clipped.lastIndexOf(" ");
-    if (lastSpace > 0) {
-      return clipped.substring(0, lastSpace) + "…";
-    } else {
-      return clipped + "…";
-    }
-  }
 }
