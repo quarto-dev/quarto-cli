@@ -23,6 +23,8 @@ export interface DevConfig {
   dartsass: string;
   esbuild: string;
   script: string;
+  importMap: string; // import map for most imports, which we need on dev version
+  bundleImportMap: string; // import map for dynamic imports which we need on bundled versions
 }
 
 export function createDevConfig(
@@ -41,6 +43,16 @@ export function createDevConfig(
     dartsass,
     esbuild,
     script: md5Hash(Deno.readTextFileSync(scriptPath)),
+    importMap: md5Hash(
+      Deno.readTextFileSync(
+        join(scriptPath, "../../../../src/import_map.json"),
+      ),
+    ),
+    bundleImportMap: md5Hash(
+      Deno.readTextFileSync(
+        join(scriptPath, "../../../../src/resources/vendor/import_map.json"),
+      ),
+    ),
   };
 }
 
@@ -104,7 +116,9 @@ export function devConfigsEqual(a: DevConfig, b: DevConfig) {
     a.pandoc === b.pandoc &&
     a.dartsass == b.dartsass &&
     a.esbuild == b.esbuild &&
-    a.script == b.script;
+    a.script == b.script &&
+    a.importMap === b.importMap &&
+    a.bundleImportMap === b.bundleImportMap;
 }
 
 export async function reconfigureQuarto(
@@ -155,5 +169,10 @@ function reconfigureReason(
     return versionMessage("Esbuild", source.esbuild);
   } else if (installed.script !== source.script) {
     return "update Quarto wrapper script";
+  } else if (
+    installed.importMap !== source.importMap ||
+    installed.bundleImportMap !== source.importMap
+  ) {
+    return "update dev import map";
   }
 }
