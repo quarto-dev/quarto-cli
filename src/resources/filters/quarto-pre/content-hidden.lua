@@ -22,10 +22,10 @@ end
 function attributesMatch(el)
   local match = true
   if el.attributes["when-format"] ~= nil then
-    match = match and quarto.doc.formatMatches(el.attributes["when-format"])
+    match = match and _quarto.format.isFormat(el.attributes["when-format"])
   end
   if el.attributes["unless-format"] ~= nil then
-    match = match and not quarto.doc.formatMatches(el.attributes["unless-format"])
+    match = match and not _quarto.format.isFormat(el.attributes["unless-format"])
   end
   return match
 end
