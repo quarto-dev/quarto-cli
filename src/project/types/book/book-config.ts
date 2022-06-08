@@ -357,6 +357,7 @@ export async function bookRenderItems(
         kBookItemChapter,
         bookChaptersToSidebarItems(bookInputs)
           .map((item) => normalizeSidebarItem(projectDir, item, context)),
+        key === "chapters" ? 0 : 1, // next chapters under appendices, so start depth at level 1 (under appendix)
       );
     }
   };

@@ -15,13 +15,15 @@ import {
 import {
   AuthorizationHandler,
   authorizeAccessToken,
-  readAccessToken,
+  readAccessTokens,
+  writeAccessTokens,
 } from "../common/account.ts";
 import { handlePublish, PublishHandler } from "../common/publish.ts";
 
 import { PublishRecord } from "../types.ts";
 import { QuartoPubClient } from "./api/index.ts";
 import { quartoConfig } from "../../core/quarto.ts";
+import { authorizePrompt } from "../account.ts";
 
 export const kQuartoPub = "quarto-pub";
 export const kQuartoPubAuthTokenVar = "QUARTO_PUB_AUTH_TOKEN";
@@ -31,6 +33,7 @@ export const quartoPubProvider: PublishProvider = {
   description: "Quarto Pub",
   accountTokens,
   authorizeToken,
+  removeToken,
   resolveTarget,
   publish,
   isUnauthorized,
@@ -38,37 +41,57 @@ export const quartoPubProvider: PublishProvider = {
 
 function accountTokens() {
   const envTk = environmentAuthToken();
-  const accessTk = accessToken();
+  const accessTks = readAccessTokens<AccessToken>(quartoPubProvider.name);
 
   const accounts: AccountToken[] = [];
   if (envTk) {
     accounts.push({
       type: AccountTokenType.Environment,
       name: kQuartoPubAuthTokenVar,
+      server: null,
       token: envTk,
     });
   }
 
-  if (accessTk) {
-    accounts.push({
-      type: AccountTokenType.Authorized,
-      name: accessTk.email!,
-      token: accessTk.applicationToken,
-    });
+  if (accessTks) {
+    for (const accessTk of accessTks) {
+      accounts.push({
+        type: AccountTokenType.Authorized,
+        name: accessTk.email!,
+        server: null,
+        token: accessTk.applicationToken,
+      });
+    }
   }
 
   return Promise.resolve(accounts);
 }
 
 async function authorizeToken() {
-  const token = await authorizeQuartoPubAccessToken();
-  if (token) {
-    return {
-      type: AccountTokenType.Authorized,
-      name: token.email!,
-      token: token.applicationToken,
-    };
+  if (await authorizePrompt(quartoPubProvider)) {
+    const token = await authorizeQuartoPubAccessToken();
+    if (token) {
+      return {
+        type: AccountTokenType.Authorized,
+        name: token.email!,
+        server: null,
+        token: token.applicationToken,
+      };
+    } else {
+      return undefined;
+    }
   }
+}
+
+function removeToken(token: AccountToken) {
+  writeAccessTokens(
+    quartoPubProvider.name,
+    readAccessTokens<AccessToken>(quartoPubProvider.name)?.filter(
+      (accessToken) => {
+        return accessToken.email !== token.name;
+      },
+    ) || [],
+  );
 }
 
 // Load the .env configuration and the environment.
@@ -77,10 +100,6 @@ const quartoPubEnvironment = dotenvConfig["QUARTO_PUB_ENVIRONMENT"];
 
 function environmentAuthToken() {
   return Deno.env.get(kQuartoPubAuthTokenVar);
-}
-
-function accessToken(): AccessToken | undefined {
-  return readAccessToken<AccessToken>(kQuartoPub);
 }
 
 function authorizeQuartoPubAccessToken(): Promise<
@@ -117,6 +136,7 @@ export function resolveTarget(
 function publish(
   accountToken: AccountToken,
   type: "document" | "site",
+  _title: string,
   render: (siteUrl: string) => Promise<PublishFiles>,
   target?: PublishRecord,
 ): Promise<[PublishRecord, URL]> {

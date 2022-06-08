@@ -18984,7 +18984,11 @@ var require_yaml_intelligence_resources = __commonJS({
         "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
         "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
         "Custom tools for navbar or sidebar",
-        "internal-schema-hack"
+        "internal-schema-hack",
+        {
+          short: "Method used to print tables in Knitr engine documents\n(<code>default</code>, <code>kable</code>, <code>tibble</code>, or\n<code>paged</code>). Defaults to <code>kable</code>.",
+          long: "Method used to print tables in Knitr engine documents:"
+        }
       ],
       "schema/external-schemas.yml": [
         {

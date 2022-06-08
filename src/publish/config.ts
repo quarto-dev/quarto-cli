@@ -10,6 +10,8 @@ import { stringify } from "encoding/yaml.ts";
 import { basename, dirname, join } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
+import * as ld from "../core/lodash.ts";
+
 import { Metadata } from "../config/types.ts";
 import { readYaml, readYamlFromString } from "../core/yaml.ts";
 import { ProjectContext } from "../project/types.ts";
@@ -29,6 +31,15 @@ export function readPublishDeployments(
         );
         if (sourceDeployments) {
           delete (sourceDeployments as { source?: string }).source;
+          // provide 'code' field
+          Object.values(sourceDeployments).forEach((deployment) => {
+            if (Array.isArray(deployment)) {
+              deployment = deployment.map((d) => {
+                d.code = !!d.code;
+                return d;
+              });
+            }
+          });
           return sourceDeployments as PublishDeployments;
         }
       } else {
@@ -47,6 +58,12 @@ export function writePublishDeployment(
   provider: string,
   publish: PublishRecord,
 ) {
+  // don't write 'code' field if false
+  publish = ld.cloneDeep(publish) as PublishRecord;
+  if (publish.code === false) {
+    delete (publish as Record<string, unknown>).code;
+  }
+
   // read base config
   let indent = 2;
   const [deployDir, deploySource] = resolveDeploymentSource(source);

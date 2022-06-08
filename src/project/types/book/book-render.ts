@@ -19,6 +19,7 @@ import {
 import {
   kAbstract,
   kAuthor,
+  kAuthors,
   kDate,
   kDescription,
   kNumberSections,
@@ -78,14 +79,13 @@ import {
 } from "./book-shared.ts";
 import { bookCrossrefsPostRender } from "./book-crossrefs.ts";
 import { bookBibliographyPostRender } from "./book-bibliography.ts";
-import {
-  partitionYamlFrontMatter,
-  readYamlFromMarkdown,
-} from "../../../core/yaml.ts";
+import { partitionYamlFrontMatter } from "../../../core/yaml.ts";
 import { pathWithForwardSlashes } from "../../../core/path.ts";
 import { kDateFormat } from "../website/listing/website-listing-template.ts";
 import { removePandocTo } from "../../../command/render/flags.ts";
 import { resourcePath } from "../../../core/resources.ts";
+import { PandocAttr, PartitionedMarkdown } from "../../../core/pandoc/types.ts";
+import { stringify } from "encoding/yaml.ts";
 
 export function bookPandocRenderer(
   options: RenderOptions,
@@ -347,42 +347,89 @@ async function mergeExecutedFiles(
           file.context.target.source === itemInputPath
         );
         if (file) {
-          const partitioned = partitionYamlFrontMatter(
-            file.executeResult.markdown,
-          );
+          const partitioned = partitionMarkdown(file.executeResult.markdown);
 
-          const titleMdFromFrontMatter = (frontMatter?: string) => {
-            const yaml = frontMatter
-              ? readYamlFromMarkdown(frontMatter)
-              : undefined;
-
-            if (yaml) {
-              const frontTitle = frontMatterTitle(yaml);
-              if (frontTitle) {
-                const titleMarkdown = frontTitle ? `# ${frontTitle}\n\n` : "";
-
-                const titleBlockPath = resourcePath(
-                  "projects/book/pandoc/title-block.md",
-                );
-                const titleAttr = `template='${titleBlockPath}'`;
-
-                const titleBlockMd = "```````{.quarto-title-block " +
-                  titleAttr + "}\n" +
-                  partitioned?.yaml +
-                  "\n```````";
-
-                return titleMarkdown + titleBlockMd;
-              } else {
-                return "";
+          // Will always provide the title markdown whether the title was provided by
+          // front matter or by the first heading. Note that this will
+          // prefer to use the title that appears in the front matter, and if
+          // there is no front matter title it will promote the first heading to
+          // level 1 heading
+          const resolveTitleMarkdown = (partitioned: PartitionedMarkdown) => {
+            // Creates a markdown title, dealing with attributes, if present
+            const createMarkdownTitle = (text: string, attr?: PandocAttr) => {
+              let attrStr = "";
+              if (attr) {
+                const idStr = attr.id !== "" ? `#${attr.id} ` : "";
+                const clzStr = attr.classes.map((clz) => {
+                  return `.${clz} `;
+                });
+                const keyValueStr = attr.keyvalue.map((kv) => {
+                  const escapedValue = kv[1].replaceAll(/"/gm, '\\"');
+                  return `${kv[0]}="${escapedValue}" `;
+                });
+                const attrContents = `${idStr}${clzStr}${keyValueStr}`.trim();
+                attrStr = `{${attrContents}}`;
               }
+
+              return `# ${text} ${attrStr}\n\n`;
+            };
+
+            let titleText;
+            let titleAttr;
+            if (partitioned.yaml) {
+              const frontTitle = frontMatterTitle(partitioned.yaml);
+              if (frontTitle) {
+                titleText = frontTitle;
+              } else {
+                titleText = partitioned.headingText;
+                titleAttr = partitioned.headingAttr;
+              }
+            } else {
+              titleText = partitioned.headingText;
+              titleAttr = partitioned.headingAttr;
+            }
+
+            if (titleText === undefined) {
+              titleText = "";
+            }
+            return createMarkdownTitle(titleText, titleAttr);
+          };
+
+          // If there is front matter for this chapter, this will generate a code
+          // cell that will be rendered a LUA filter (the code cell will provide the
+          // path to the template that should be used as well as the front matter
+          // to use when rendering)
+          const resolveTitleBlockMarkdown = (yaml?: Metadata) => {
+            if (yaml) {
+              const titleBlockPath = resourcePath(
+                "projects/book/pandoc/title-block.md",
+              );
+
+              const titleAttr = `template='${titleBlockPath}'`;
+              const frontMatter = `---\n${
+                stringify(yaml, { indent: 2 })
+              }\n---\n`;
+
+              const titleBlockMd = "```````{.quarto-title-block " +
+                titleAttr + "}\n" +
+                frontMatter +
+                "\n```````\n\n";
+
+              return titleBlockMd;
             } else {
               return "";
             }
           };
 
+          // Compose the markdown for this chapter
+          const titleMarkdown = resolveTitleMarkdown(partitioned);
+          const titleBlockMarkdown = resolveTitleBlockMarkdown(
+            partitioned.yaml,
+          );
           itemMarkdown = bookItemMetadata(project, item, file) +
-            titleMdFromFrontMatter(partitioned?.yaml) +
-            (partitioned?.markdown || file.executeResult.markdown);
+            titleMarkdown +
+            titleBlockMarkdown +
+            partitioned.markdown;
         } else {
           throw new Error(
             "Executed file not found for book item: " + item.file,
