@@ -7,7 +7,7 @@
 
 import { existsSync, walkSync } from "fs/mod.ts";
 
-import { dirname, isAbsolute, join, relative } from "path/mod.ts";
+import { basename, dirname, isAbsolute, join, relative } from "path/mod.ts";
 
 import { AccountToken, PublishFiles, PublishProvider } from "./provider.ts";
 
@@ -19,12 +19,20 @@ import { PublishRecord } from "../publish/types.ts";
 import { ProjectContext } from "../project/types.ts";
 import { renderProgress } from "../command/render/render-info.ts";
 import { inspectConfig, isDocumentConfig } from "../quarto-core/inspect.ts";
-import { kOutputFile } from "../config/constants.ts";
+import { kOutputFile, kTitle } from "../config/constants.ts";
 import { inputFilesDir } from "../core/render.ts";
 import {
   writeProjectPublishDeployment,
   writePublishDeployment,
 } from "./config.ts";
+import { websiteTitle } from "../project/types/website/website-config.ts";
+
+export const kSiteContent = "site";
+export const kDocumentContent = "document";
+
+export function contentName(type: "site" | "document") {
+  return type === kDocumentContent ? "Document" : "Site";
+}
 
 export async function publishSite(
   project: ProjectContext,
@@ -71,7 +79,8 @@ export async function publishSite(
   // publish
   const [publishRecord, siteUrl] = await provider.publish(
     account,
-    "site",
+    kSiteContent,
+    websiteTitle(project.config) || basename(project.dir),
     renderForPublish,
     target,
   );
@@ -94,6 +103,14 @@ export async function publishDocument(
   options: PublishOptions,
   target?: PublishRecord,
 ) {
+  // establish title
+  let title = basename(document);
+  const fileConfig = await inspectConfig(document);
+  if (isDocumentConfig(fileConfig)) {
+    title = String(Object.values(fileConfig.formats)[0].metadata[kTitle]) ||
+      title;
+  }
+
   // create render function
   const renderForPublish = async (): Promise<PublishFiles> => {
     const files: string[] = [];
@@ -140,11 +157,11 @@ export async function publishDocument(
     } else {
       // not rendering so we inspect
       const baseDir = dirname(document);
-      const fileConfig = await inspectConfig(document);
       if (isDocumentConfig(fileConfig)) {
         // output files
         let rootFile: string | undefined;
         for (const format of Object.values(fileConfig.formats)) {
+          title = String(format.metadata[kTitle]) || title;
           const outputFile = format.pandoc[kOutputFile];
           if (outputFile && existsSync(join(baseDir, outputFile))) {
             files.push(outputFile);
@@ -179,7 +196,8 @@ export async function publishDocument(
   // publish
   const [publishRecord, siteUrl] = await provider.publish(
     account,
-    "document",
+    kDocumentContent,
+    title,
     renderForPublish,
     target,
   );

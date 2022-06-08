@@ -19,13 +19,16 @@ import {
 } from "../provider.ts";
 import { PublishRecord } from "../types.ts";
 import { RSConnectClient } from "./api/index.ts";
-import { ApiError } from "./api/types.ts";
+import { ApiError, Content } from "./api/types.ts";
 import {
   readAccessTokens,
   writeAccessToken,
   writeAccessTokens,
 } from "../common/account.ts";
 import { ensureProtocolAndTrailingSlash } from "../../core/url.ts";
+
+import { pandocAutoIdentifier } from "../../core/pandoc/pandoc-id.ts";
+import { contentName } from "../publish.ts";
 
 export const kRSConnect = "rsconnect";
 const kRSConnectDescription = "RS Connect";
@@ -177,17 +180,15 @@ async function authorizeToken(): Promise<AccountToken | undefined> {
           token: apiKey,
         };
       } else {
-        info(
-          colors.red(
-            "   API key is for an RStudio Connect viewer rather than a publisher.",
-          ),
+        promptError(
+          "API key is for an RStudio Connect viewer rather than a publisher.",
         );
       }
     } catch (err) {
       if (isUnauthorized(err)) {
-        info(colors.red(
-          "   API key is not authorized for this RStudio Connect server.",
-        ));
+        promptError(
+          "API key is not authorized for this RStudio Connect server.",
+        );
       } else {
         throw err;
       }
@@ -202,12 +203,23 @@ function resolveTarget(
   return Promise.resolve(_target);
 }
 
-function publish(
-  _account: AccountToken,
-  _type: "document" | "site",
+async function publish(
+  account: AccountToken,
+  type: "document" | "site",
+  title: string,
   _render: (siteDir: string) => Promise<PublishFiles>,
   target?: PublishRecord,
 ): Promise<[PublishRecord, URL]> {
+  // if there is no existing target then prompt for a name
+  if (!target) {
+    const content = await createContent(account, type, title);
+    if (content) {
+      console.log(content);
+    } else {
+      throw new Error();
+    }
+  }
+
   return Promise.resolve([target!, new URL("https://example.com")]);
 }
 
@@ -215,7 +227,65 @@ function isUnauthorized(err: Error) {
   return err instanceof ApiError && err.status === 401;
 }
 
+function isConflict(err: Error) {
+  return err instanceof ApiError && err.status === 409;
+}
+
 // deno-lint-ignore no-unused-vars
 function isNotFound(err: Error) {
   return err instanceof ApiError && err.status === 404;
+}
+
+async function createContent(
+  account: AccountToken,
+  type: "document" | "site",
+  title: string,
+): Promise<Content | undefined> {
+  // default name
+  const defaultName = pandocAutoIdentifier(title, false);
+  let chosenName = defaultName;
+
+  // create rpc client
+  const client = new RSConnectClient(account.server!, account.token);
+
+  while (true) {
+    // prompt for name
+    chosenName = await Input.prompt({
+      indent: "",
+      message: `${contentName(type)} name:`,
+      suggestions: [chosenName],
+      hint:
+        "Names can contain numbers, letters, _, and -, and must be unique\n" +
+        "  across content published in your account.",
+      validate: (value: string) => {
+        if (value.length < 3) {
+          return "Invalid content name (must be at least 3 characters)";
+        } else if (value !== pandocAutoIdentifier(value, false)) {
+          return "Invalid content name (use only numbers, letters, _, and -).";
+        } else {
+          return true;
+        }
+      },
+    });
+
+    // Enter exits publishing
+    if (chosenName.trim().length === 0) {
+      return undefined;
+    }
+
+    // try to create the content w/ the name
+    try {
+      return await client.createContent(chosenName, title);
+    } catch (err) {
+      if (isConflict(err)) {
+        promptError("The provided name is already in use within this account.");
+      } else {
+        throw err;
+      }
+    }
+  }
+}
+
+function promptError(msg: string) {
+  info(colors.red(`  ${msg}`));
 }

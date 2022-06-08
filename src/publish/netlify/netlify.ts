@@ -171,6 +171,7 @@ async function resolveTarget(
 function publish(
   account: AccountToken,
   type: "document" | "site",
+  _title: string,
   render: (siteDir: string) => Promise<PublishFiles>,
   target?: PublishRecord,
 ): Promise<[PublishRecord, URL]> {

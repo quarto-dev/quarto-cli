@@ -56,6 +56,7 @@ export interface PublishProvider {
   publish: (
     account: AccountToken,
     type: "document" | "site",
+    title: string,
     render: (siteUrl?: string) => Promise<PublishFiles>,
     target?: PublishRecord,
   ) => Promise<[PublishRecord, URL]>;

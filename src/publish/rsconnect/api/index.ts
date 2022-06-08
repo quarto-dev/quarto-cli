@@ -6,7 +6,7 @@
 */
 
 import { ensureProtocolAndTrailingSlash } from "../../../core/url.ts";
-import { ApiError, User } from "./types.ts";
+import { ApiError, Content, User } from "./types.ts";
 
 export class RSConnectClient {
   public constructor(
@@ -18,6 +18,10 @@ export class RSConnectClient {
 
   public getUser(): Promise<User> {
     return this.get<User>("user");
+  }
+
+  public createContent(name: string, title: string): Promise<Content> {
+    return this.post<Content>("content", JSON.stringify({ name, title }));
   }
 
   private get = <T>(path: string): Promise<T> => this.fetch<T>("GET", path);
@@ -50,7 +54,7 @@ const authorizationHeader = (
 function handleResponse<T>(response: Response) {
   if (response.ok) {
     return response.json() as unknown as T;
-  } else if ([400, 401, 404].includes(response.status)) {
+  } else if (response.status !== 200) {
     throw new ApiError(response.status, response.statusText);
   } else {
     throw new Error(`${response.status} - ${response.statusText}`);

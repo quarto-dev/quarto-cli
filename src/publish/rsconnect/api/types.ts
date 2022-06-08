@@ -27,3 +27,11 @@ export type User = {
   confirmed: boolean;
   locked: boolean;
 };
+
+export type Content = {
+  guid: string;
+  name: string;
+  title: string;
+  content_url: string;
+  dashboard_url: string;
+};
