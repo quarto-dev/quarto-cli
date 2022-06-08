@@ -106,7 +106,7 @@ export function metadataHtmlPostProcessor(
       resolveValue: (key: string, value: string) => {
         // Limit to 300 chars for Open Graph
         if ([kDescription].includes(key)) {
-          return truncateText(value, 300);
+          return truncateText(value, 200, "punctuation");
         }
 
         return value;
@@ -135,7 +135,7 @@ export function metadataHtmlPostProcessor(
       resolveValue: (key: string, value: string) => {
         // Limit to 200 chars for Twitter
         if ([kDescription].includes(key)) {
-          return truncateText(value, 200);
+          return truncateText(value, 200, "punctuation");
         }
 
         return value;
