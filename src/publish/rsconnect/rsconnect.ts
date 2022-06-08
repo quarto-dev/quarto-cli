@@ -214,11 +214,14 @@ async function publish(
   if (!target) {
     const content = await createContent(account, type, title);
     if (content) {
+      target = { id: content.guid, url: content.content_url, code: false };
       console.log(content);
     } else {
       throw new Error();
     }
   }
+
+  // see rsconnect::writeManifest function
 
   return Promise.resolve([target!, new URL("https://example.com")]);
 }

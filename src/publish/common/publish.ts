@@ -22,6 +22,7 @@ import { PublishFiles } from "../provider.ts";
 export interface PublishSite {
   id?: string;
   url?: string;
+  code?: boolean;
 }
 
 export interface PublishDeploy {
@@ -69,6 +70,7 @@ export async function handlePublish<
       target = {
         id: site.id!,
         url: site.url!,
+        code: !!site.code,
       };
     });
     info("");

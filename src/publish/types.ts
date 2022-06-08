@@ -12,6 +12,7 @@ export type PublishDeployments = Record<string, Array<PublishRecord>>;
 export type PublishRecord = {
   id: string;
   url: string;
+  code: boolean;
 };
 
 export type PublishOptions = {
