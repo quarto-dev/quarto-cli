@@ -60,7 +60,7 @@ pushd $QUARTO_PACKAGE_DIR/src/
 
 popd
 
-if [[ ( "./src/import_map.json" -nt "./src/dev_import_map.json" ) || ( "./src/vendor/import_map.json" -nt "./src/dev_import_map.json" ) ]]; then
+if [[ "$CI" != "true" && ( ( "./src/import_map.json" -nt "./src/dev_import_map.json" ) || ( "./src/vendor/import_map.json" -nt "./src/dev_import_map.json" ) ) ]]; then
 	echo [Revendoring quarto dependencies]
 
 	mv ./src/vendor ./src/vendor-`date +%Y-%m-%d`
