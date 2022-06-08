@@ -103,7 +103,7 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
 
   # determine df_print
   df_print <- format$execute$`df-print`
-  if (df_print == "paged" && !is_html_output(format) && !format$render$`prefer-html`) {
+  if (df_print == "paged" && !is_pandoc_html_format(format) && !format$render$`prefer-html`) {
     df_print <- "kable"
   }
 
@@ -482,7 +482,7 @@ extract_preserve_chunks <- function(output_file, format) {
   }
 }
 
-is_html_output <- function(format) {
+is_pandoc_html_format <- function(format) {
   knitr::is_html_output(format$pandoc$to, c("markdown", "epub", "gfm", "commonmark", "commonmark_x", "markua"))
 }
 
