@@ -176,7 +176,7 @@ function defaultFormat(): Format {
       [kFigFormat]: "png",
       [kFigDpi]: 96,
       [kMermaidFormat]: undefined,
-      [kDfPrint]: "kable",
+      [kDfPrint]: "default",
       [kError]: false,
       [kEval]: true,
       [kCache]: null,
