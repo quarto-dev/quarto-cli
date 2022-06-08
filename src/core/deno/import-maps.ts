@@ -43,6 +43,12 @@ function resolveImports(
       if (foundK && foundV) {
         result = `${foundV}${result.slice(foundK.length)}`;
       } else {
+        if (
+          result.startsWith("./") && !result.endsWith("/") &&
+          !result.endsWith(".js") && !result.endsWith(".ts")
+        ) {
+          result = result + ".js";
+        }
         resolvedImport[key] = result;
         good = true;
         break;

@@ -7,7 +7,6 @@
     "dotenv/": "https://deno.land/std@0.138.0/dotenv/",
     "encoding/": "https://deno.land/std@0.138.0/encoding/",
     "flags/": "https://deno.land/std@0.138.0/flags/",
-    "fmt": "https://deno.land/std@0.138.0/fmt",
     "fmt/": "https://deno.land/std@0.138.0/fmt/",
     "fs/": "https://deno.land/std@0.138.0/fs/",
     "hash/": "https://deno.land/std@0.138.0/hash/",

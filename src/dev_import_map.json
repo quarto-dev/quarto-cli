@@ -7,7 +7,6 @@
     "dotenv/": "./vendor/deno.land/std@0.138.0/dotenv/",
     "encoding/": "./vendor/deno.land/std@0.138.0/encoding/",
     "flags/": "./vendor/deno.land/std@0.138.0/flags/",
-    "fmt": "./vendor/deno.land/std@0.138.0/fmt",
     "fmt/": "./vendor/deno.land/std@0.138.0/fmt/",
     "fs/": "./vendor/deno.land/std@0.138.0/fs/",
     "hash/": "./vendor/deno.land/std@0.138.0/hash/",
