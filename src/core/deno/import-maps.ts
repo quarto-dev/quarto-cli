@@ -1,5 +1,5 @@
 /*
-* filters.ts
+* import-maps.ts
 *
 * Copyright (C) 2022 by RStudio, PBC
 *
@@ -81,6 +81,7 @@ function fixMapReKey(map: Record<string, string>, prefix: string) {
 }
 
 export function mergeImportMaps(
+  // deno-lint-ignore no-explicit-any
   ...entries: { importMap: any; prefix: string }[]
 ) {
   let imports: Record<string, string> = {};
@@ -92,6 +93,7 @@ export function mergeImportMaps(
       scopes,
       objectMapReKey(
         importMap.scopes || {},
+        // deno-lint-ignore no-explicit-any
         (key: string, v: any) => [fixPath(key, prefix), fixMapReKey(v, prefix)],
       ),
     );
