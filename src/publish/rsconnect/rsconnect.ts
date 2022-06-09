@@ -5,7 +5,7 @@
 *
 */
 
-import { info } from "log/mod.ts";
+import { info, warning } from "log/mod.ts";
 import * as colors from "fmt/colors.ts";
 
 import { Input } from "cliffy/prompt/input.ts";
@@ -41,12 +41,8 @@ export const kRSConnectAuthTokenVar = "CONNECT_API_KEY";
 
 // TODO: test error scenarios (incuding during task poll)
 
-// TODO: implmement resolveTarget
-// TODO: vanity url
-
 // TODO: test local account deletion
 // TODO: test publish to multiple servers
-// TODO: test content deletion
 
 // TODO: add --config argument to quarto publish
 // TODO: make quartopub conditional on env var
@@ -208,11 +204,26 @@ async function authorizeToken(): Promise<AccountToken | undefined> {
   }
 }
 
-function resolveTarget(
-  _account: AccountToken,
-  _target: PublishRecord,
+async function resolveTarget(
+  account: AccountToken,
+  target: PublishRecord,
 ) {
-  return Promise.resolve(_target);
+  try {
+    const client = new RSConnectClient(account.server!, account.token);
+    const content = await client.getContent(target.id);
+    return contentAsTarget(content);
+  } catch (err) {
+    if (isNotFound(err)) {
+      warning(
+        `Site ${target.url} not found (you may need to remove it from the publish configuration)`,
+      );
+      return undefined;
+    } else if (!isUnauthorized(err)) {
+      throw err;
+    }
+  }
+
+  return target;
 }
 
 function formatTargetUrl(url: URL) {
@@ -236,7 +247,7 @@ async function publish(
     if (!target) {
       content = await createContent(client, title);
       if (content) {
-        target = { id: content.guid, url: content.content_url, code: false };
+        target = contentAsTarget(content);
       } else {
         throw new Error();
       }
@@ -247,7 +258,7 @@ async function publish(
   info("");
 
   // render
-  const publishFiles = await render(target!.url);
+  const publishFiles = await render();
 
   // publish
   const tempContext = createTempContext();
@@ -295,9 +306,12 @@ function isConflict(err: Error) {
   return err instanceof ApiError && err.status === 409;
 }
 
-// deno-lint-ignore no-unused-vars
 function isNotFound(err: Error) {
   return err instanceof ApiError && err.status === 404;
+}
+
+function contentAsTarget(content: Content): PublishRecord {
+  return { id: content.guid, url: content.content_url, code: false };
 }
 
 async function createContent(
