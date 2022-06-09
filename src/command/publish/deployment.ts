@@ -108,9 +108,18 @@ export async function publishDeployments(
 export async function chooseDeployment(
   depoyments: PublishDeployment[],
 ): Promise<PublishDeployment | undefined> {
+  // collect unique origins
+  const originCounts = depoyments.reduce((origins, deployment) => {
+    const originUrl = new URL(deployment.target.url).origin;
+    const count = origins.get(originUrl) || 0;
+    origins.set(originUrl, count + 1);
+    return origins;
+  }, new Map<string, number>());
+
   const options = depoyments.map((deployment) => {
-    const url = deployment.provider.formatTargetUrl
-      ? deployment.provider.formatTargetUrl(new URL(deployment.target.url))
+    const targetOrigin = new URL(deployment.target.url).origin;
+    const url = originCounts.get(targetOrigin) === 1
+      ? targetOrigin
       : deployment.target.url;
 
     return {
@@ -125,7 +134,7 @@ export async function chooseDeployment(
 
   const confirm = await Select.prompt({
     indent: "",
-    message: "Publish to:",
+    message: "Publish update to:",
     options,
   });
 

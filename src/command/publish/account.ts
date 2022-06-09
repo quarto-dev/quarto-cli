@@ -12,8 +12,8 @@ import {
   AccountToken,
   AccountTokenType,
   findProvider,
-  kPublishProviders,
   PublishProvider,
+  publishProviders,
 } from "../../publish/provider.ts";
 import { PublishRecord } from "../../publish/types.ts";
 
@@ -49,7 +49,7 @@ export async function resolveAccount(
 
     // if we don't have a token yet we need to authorize
     if (!token) {
-      token = await provider.authorizeToken();
+      token = await provider.authorizeToken(target);
     }
 
     return token;
@@ -89,7 +89,7 @@ interface ProviderAccountToken extends AccountToken {
 export async function manageAccounts() {
   // build a list of all authorized accounts
   const accounts: ProviderAccountToken[] = [];
-  for (const provider of kPublishProviders) {
+  for (const provider of await publishProviders()) {
     for (const account of await provider.accountTokens()) {
       if (account.type === AccountTokenType.Authorized) {
         accounts.push({ provider: provider.name, ...account });
