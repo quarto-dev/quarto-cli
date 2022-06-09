@@ -39,10 +39,6 @@ const kRSConnectDescription = "RS Connect";
 export const kRSConnectServerVar = "CONNECT_SERVER";
 export const kRSConnectAuthTokenVar = "CONNECT_API_KEY";
 
-// TODO: default netlify app id
-// TODO: make quartopub conditional on env var
-// TODO: README docs
-
 export const rsconnectProvider: PublishProvider = {
   name: kRSConnect,
   description: kRSConnectDescription,
