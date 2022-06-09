@@ -35,7 +35,11 @@ import {
   kTocTitleDocument,
 } from "../../config/constants.ts";
 import { PandocOptions } from "./types.ts";
-import { FormatLanguage, FormatPandoc } from "../../config/types.ts";
+import {
+  FormatLanguage,
+  FormatPandoc,
+  QuartoFilter,
+} from "../../config/types.ts";
 import { Metadata } from "../../config/types.ts";
 import { kProjectType } from "../../project/types.ts";
 import { bibEngine } from "../../config/pdf.ts";
@@ -482,7 +486,10 @@ function initFilterParams(dependenciesFile: string) {
 
 const kQuartoFilterMarker = "quarto";
 
-export function resolveFilters(filters: string[], options: PandocOptions) {
+export function resolveFilters(
+  filters: QuartoFilter[],
+  options: PandocOptions,
+): QuartoFilter[] | undefined {
   // build list of quarto filters
   const quartoFilters: string[] = [];
   quartoFilters.push(quartoPreFilter());
@@ -559,10 +566,18 @@ function citeMethod(options: PandocOptions): CiteMethod | null {
   }
 }
 
-function resolveFilterExtension(options: PandocOptions, filters: string[]) {
+function resolveFilterExtension(
+  options: PandocOptions,
+  filters: QuartoFilter[],
+): QuartoFilter[] {
   // Resolve any filters that are provided by an extension
   const results = filters.flatMap((filter) => {
-    if (filter !== kQuartoFilterMarker && !existsSync(filter)) {
+    // Look for extension names in the filter list and result them
+    // into the filters provided by the extension
+    if (
+      filter !== kQuartoFilterMarker && typeof (filter) === "string" &&
+      !existsSync(filter)
+    ) {
       const extension = options.extension?.find(
         filter,
         options.source,

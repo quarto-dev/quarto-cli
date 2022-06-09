@@ -8,7 +8,7 @@
 import { extname } from "path/mod.ts";
 import { stringify } from "encoding/yaml.ts";
 
-import { FormatPandoc } from "../../config/types.ts";
+import { FormatPandoc, QuartoFilter } from "../../config/types.ts";
 import { isLatexOutput } from "../../config/format.ts";
 
 import {
@@ -121,6 +121,16 @@ export function pandocDefaultsMessage(
     }
   });
 
+  const filtersContains = (filters: QuartoFilter[], filter: QuartoFilter) => {
+    return filters.find((sysFilter) => {
+      const sysPath = typeof (sysFilter) === "string"
+        ? sysFilter
+        : sysFilter.path;
+      const filterPath = typeof (filter) === "string" ? filter : filter.path;
+      return sysPath === filterPath;
+    });
+  };
+
   // simplify crossref filter
   if (defaults.filters?.length) {
     defaults.filters = defaults.filters
@@ -137,7 +147,7 @@ export function pandocDefaultsMessage(
           filter !== layoutFilter() &&
           filter !== authorsFilter() &&
           filter !== quartoFinalizeFilter() &&
-          !sysFilters.includes(filter);
+          filtersContains(sysFilters, filter);
       });
     if (defaults.filters?.length === 0) {
       delete defaults.filters;

@@ -245,6 +245,13 @@ export interface SassBundle extends SassBundleLayers {
   attribs?: Record<string, string>;
 }
 
+export type PandocFilter = {
+  type: "json" | "lua";
+  path: string;
+};
+
+export type QuartoFilter = string | PandocFilter;
+
 export interface FormatExtras {
   args?: string[];
   pandoc?: FormatPandoc;
@@ -254,8 +261,8 @@ export interface FormatExtras {
   [kIncludeBeforeBody]?: string[];
   [kIncludeAfterBody]?: string[];
   [kFilters]?: {
-    pre?: string[];
-    post?: string[];
+    pre?: QuartoFilter[];
+    post?: QuartoFilter[];
   };
   [kFilterParams]?: Record<string, unknown>;
   postprocessors?: Array<(output: string) => Promise<void>>;
@@ -383,7 +390,7 @@ export interface FormatPandoc {
   [kReferenceLocation]?: string;
   [kCiteproc]?: boolean;
   [kCiteMethod]?: string;
-  [kFilters]?: string[];
+  [kFilters]?: QuartoFilter[];
   [kPdfEngine]?: string;
   [kPdfEngineOpts]?: string[];
   [kPdfEngineOpt]?: string;
