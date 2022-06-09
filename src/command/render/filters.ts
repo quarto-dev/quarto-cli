@@ -108,6 +108,10 @@ export function removeFilterParmas(metadata: Metadata) {
   delete metadata[kQuartoParams];
 }
 
+export function quartoInitFilter() {
+  return resourcePath("filters/quarto-init/quarto-init.lua");
+}
+
 export function quartoPreFilter() {
   return resourcePath("filters/quarto-pre/quarto-pre.lua");
 }
@@ -492,6 +496,7 @@ export function resolveFilters(
 ): QuartoFilter[] | undefined {
   // build list of quarto filters
   const quartoFilters: string[] = [];
+  quartoFilters.push(quartoInitFilter());
   quartoFilters.push(quartoPreFilter());
   if (crossrefFilterActive(options)) {
     quartoFilters.push(crossrefFilter());
