@@ -7,14 +7,14 @@ The `quarto publish` command enables you to easily publish websites and document
 To publish a website or book, just execute `quarto publish` from within the project directory:
 
 ``` bash
-$ quarto publish
+quarto publish
 ```
 
 As with `quarto render`, you can also publish a project or document by name:
 
 ``` bash
-$ quarto publish myblog
-$ quarto publish document.qmd
+quarto publish myblog
+quarto publish document.qmd
 ```
 
 If you haven't previously published the target, you'll be prompted for a publishing destination (including which service you want to publish to, account credentials, etc.). If you have published before you'll get a confirmation prompt for re-publishing (along with the choice to publish elsewhere).
@@ -37,7 +37,7 @@ Note that account information is not stored in this file, so it is suitable for 
 
 ## Publish Options
 
-By default `quarto publish` will prompt you to confirm actions, automatically re-render the site or document, and open a browser to the admin page for the published content after it completes. You can override this behavior using the following options:
+By default `quarto publish` will prompt you to confirm actions, automatically re-render prior to publishing, and open a browser to the admin page for the published content after it completes. You can override this behavior using the following options:
 
 | Option         | Behavior                                                                                                                                                    |
 |----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -54,16 +54,16 @@ As an alternative to providing account credentials interactively, you case use t
 | Netlify         | `NETLIFY_AUTH_TOKEN`                   |
 | RStudio Connect | `CONNECT_SERVER` and `CONNECT_API_KEY` |
 
-This environment variable combined with a `_publish.yml` file that points to the requisite publishing destination is enough to enable the following command to perform a headless publish on CI:
+Using an environment variable combined with a `_publish.yml` file that points to the requisite publishing destination is enough to enable the following command to perform a headless publish on CI:
 
 ``` bash
-$ quarto publish
+quarto publish
 ```
 
 If you have multiple targets defined in `_publish.yml` then you can disambiguate with the `--site-id` parameter:
 
 ``` bash
-$ quarto publish --site-id 5f3abafe-68f9-4c1d-835b-9d668b892001
+quarto publish --site-id 5f3abafe-68f9-4c1d-835b-9d668b892001
 ```
 
 ## Account Management
