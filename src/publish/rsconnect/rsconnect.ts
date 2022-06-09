@@ -27,7 +27,7 @@ import {
 } from "../common/account.ts";
 import { ensureProtocolAndTrailingSlash } from "../../core/url.ts";
 
-import { pandocAutoIdentifier } from "../../core/pandoc/pandoc-id.ts";
+import { gfmAutoIdentifier } from "../../core/pandoc/pandoc-id.ts";
 import { createTempContext } from "../../core/temp.ts";
 import { createBundle } from "./bundle.ts";
 import { completeMessage, withSpinner } from "../../core/console.ts";
@@ -307,7 +307,7 @@ async function createContent(
   client: RSConnectClient,
   title: string,
 ): Promise<Content | undefined> {
-  const baseName = pandocAutoIdentifier(title, false);
+  const baseName = gfmAutoIdentifier(title, false);
   while (true) {
     const name = baseName + "-" + randomHex(4);
     try {

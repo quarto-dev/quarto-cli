@@ -13,7 +13,7 @@ import { kProjectType, ProjectContext } from "../project/types.ts";
 import { isSubdir } from "fs/_util.ts";
 
 import { dirname, join, normalize } from "path/mod.ts";
-import { Metadata } from "../config/types.ts";
+import { Metadata, PandocFilter } from "../config/types.ts";
 import { resolvePathGlobs } from "../core/path.ts";
 import { toInputRelativePaths } from "../project/project-shared.ts";
 import { projectType } from "../project/types/project-types.ts";
@@ -355,7 +355,7 @@ function readExtension(
 
   // The items that can be contributed
   const shortcodes = contributes?.shortcodes as string[] || [];
-  const filters = contributes?.filters as string[] || [];
+  const filters = contributes?.filters as PandocFilter[] || [];
   const format = contributes?.format as Metadata || [];
 
   // Process the special 'common' key by merging it

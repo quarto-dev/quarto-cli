@@ -7,7 +7,14 @@
 
 import { existsSync, walkSync } from "fs/mod.ts";
 
-import { basename, dirname, isAbsolute, join, relative } from "path/mod.ts";
+import {
+  basename,
+  dirname,
+  extname,
+  isAbsolute,
+  join,
+  relative,
+} from "path/mod.ts";
 
 import { AccountToken, PublishFiles, PublishProvider } from "./provider.ts";
 
@@ -100,11 +107,11 @@ export async function publishDocument(
   target?: PublishRecord,
 ) {
   // establish title
-  let title = basename(document);
+  let title = basename(document, extname(document));
   const fileConfig = await inspectConfig(document);
   if (isDocumentConfig(fileConfig)) {
-    title = String(Object.values(fileConfig.formats)[0].metadata[kTitle]) ||
-      title;
+    title = (Object.values(fileConfig.formats)[0].metadata[kTitle] ||
+      title) as string;
   }
 
   // create render function
@@ -159,7 +166,7 @@ export async function publishDocument(
         // output files
         let rootFile: string | undefined;
         for (const format of Object.values(fileConfig.formats)) {
-          title = String(format.metadata[kTitle]) || title;
+          title = (format.metadata[kTitle] || title) as string;
           const outputFile = format.pandoc[kOutputFile];
           if (outputFile && existsSync(join(baseDir, outputFile))) {
             files.push(outputFile);
