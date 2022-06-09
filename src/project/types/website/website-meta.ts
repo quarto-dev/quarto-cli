@@ -149,6 +149,9 @@ export function metadataHtmlPostProcessor(
       },
     };
 
+    // Resources that we find during this post processing
+    const resources: string[] = [];
+
     // go through each metadata provider and emit metadata
     [
       openGraphMetadataProvider,
@@ -180,7 +183,10 @@ export function metadataHtmlPostProcessor(
       }
 
       // Convert image to absolute href and add height and width
-      resolveImageMetadata(source, project, format, metadata);
+      const imagePath = resolveImageMetadata(source, project, format, metadata);
+      if (imagePath) {
+        resources.push(imagePath);
+      }
 
       // Allow the provider to resolve any defaults
       if (provider.resolveDefaults) {
@@ -209,7 +215,10 @@ export function metadataHtmlPostProcessor(
     // Process any pipelined markdown
     pipeline.processRenderedMarkdown(doc);
 
-    return Promise.resolve(kHtmlEmptyPostProcessResult);
+    return Promise.resolve({
+      resources,
+      supporting: [],
+    });
   };
 }
 
@@ -296,6 +305,8 @@ function resolveImageMetadata(
     if (altText && !metadata[kImageAlt]) {
       metadata[kImageAlt] = altText;
     }
+
+    return imgMeta.path;
   }
 }
 
@@ -348,6 +359,7 @@ function imageMetadata(
 
     // read the image size
     return {
+      path: image,
       href: `${baseUrl}${image}`,
       height: size?.height,
       width: size?.width,
@@ -364,6 +376,7 @@ function imageMetadata(
 
     // resolve the image path into an absolute href
     return {
+      path: imageProjectRelative,
       href: joinUrl(baseUrl, imageProjectRelative),
       height: size?.height,
       width: size?.width,
