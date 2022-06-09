@@ -39,7 +39,7 @@ export const quartoConfig = {
   dotenv: async (): Promise<DotenvConfig> => {
     if (!dotenvConfig) {
       const options: ConfigOptions = {
-        defaults: join(quartoConfig.sharePath(), "env", ".env.defaults"),
+        defaults: join(quartoConfig.sharePath(), "env", "env.defaults"),
       };
       if (quartoConfig.isDebug()) {
         options.path = join(quartoConfig.sharePath(), "..", "..", ".env");
