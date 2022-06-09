@@ -128,7 +128,7 @@ export async function chooseDeployment(
     };
   });
   options.push({
-    name: "Another destination...",
+    name: "Add a new destination...",
     value: "other",
   });
 
