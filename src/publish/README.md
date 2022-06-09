@@ -39,11 +39,11 @@ Note that account information is not stored in this file, so it is suitable for 
 
 By default `quarto publish` will prompt you to confirm actions, automatically re-render prior to publishing, and open a browser to the admin page for the published content after it completes. You can override this behavior using the following options:
 
-| Option       | Behavior                                                                                                                                                    |
-|--------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| --no-prompt  | Do not prompt to confirm publish actions. Note that this is automatically enabled when not running in a terminal or other interactive context (e.g. on CI). |
-| --no-browser | Do not open a browser after publish (also disabled automatically on CI).                                                                                    |
-| --no-render  | Do not re-render prior to publish (use existing rendered content even if its stale visa-vi the source code).                                                |
+| Option       | Behavior                                  |
+|--------------|-------------------------------------------|
+| --no-prompt  | Do not prompt to confirm publish actions. |
+| --no-browser | Do not open a browser after publish.      |
+| --no-render  | Do not re-render prior to publish         |
 
 ## Headless / CI Usage
 
@@ -59,6 +59,8 @@ Using an environment variable combined with a `_publish.yml` file that points to
 ``` bash
 quarto publish
 ```
+
+Note that when running in CI `quarto publish` will automatically disable prompting and opening a browser.
 
 If you have multiple targets defined in `_publish.yml` then you can disambiguate with the `--site-id` parameter:
 
