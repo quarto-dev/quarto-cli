@@ -61,7 +61,6 @@ REM  Update to deno canary commit if it is set
 IF NOT "%DENO_CANARY_COMMIT%"=="" (
 	deno upgrade --canary --version %DENO_CANARY_COMMIT%
 )
-deno cache --reload ..\..\..\..\src\quarto.ts --unstable --importmap=..\..\..\..\src\import_map.json
 
 POPD
 

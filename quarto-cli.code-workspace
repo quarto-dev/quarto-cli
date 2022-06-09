@@ -9,7 +9,7 @@
     "debug.javascript.unmapMissingSources": true,
     "julia.format.indent": 2,
     "julia.format.indents": false,
-    "deno.importMap": "./src/import_map.json",
+    "deno.importMap": "./src/dev_import_map.json",
     "deno.lint": true,
     "deno.enable": true,
     "deno.unstable": true,

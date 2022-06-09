@@ -7,22 +7,22 @@
 *
 */
 
-import ld_cloneDeep from "lodash/cloneDeep";
-import ld_debounce from "lodash/debounce";
-import ld_difference from "lodash/difference";
-import ld_each from "lodash/each";
-import ld_forEach from "lodash/forEach";
-import ld_isArray from "lodash/isArray";
-import ld_mergeWith from "lodash/mergeWith";
-import ld_shuffle from "lodash/shuffle";
-import ld_template from "lodash/template";
-import ld_toString from "lodash/toString";
-import ld_uniq from "lodash/uniq";
-import ld_uniqBy from "lodash/uniqBy";
-import ld_isObject from "lodash/isObject";
-import ld_isEqual from "lodash/isEqual";
-import ld_orderBy from "lodash/orderBy";
-import ld_escape from "lodash/escape";
+import ld_cloneDeep from "lodash/cloneDeep.js";
+import ld_debounce from "lodash/debounce.js";
+import ld_difference from "lodash/difference.js";
+import ld_each from "lodash/each.js";
+import ld_forEach from "lodash/forEach.js";
+import ld_isArray from "lodash/isArray.js";
+import ld_mergeWith from "lodash/mergeWith.js";
+import ld_shuffle from "lodash/shuffle.js";
+import ld_template from "lodash/template.js";
+import ld_toString from "lodash/toString.js";
+import ld_uniq from "lodash/uniq.js";
+import ld_uniqBy from "lodash/uniqBy.js";
+import ld_isObject from "lodash/isObject.js";
+import ld_isEqual from "lodash/isEqual.js";
+import ld_orderBy from "lodash/orderBy.js";
+import ld_escape from "lodash/escape.js";
 
 export const cloneDeep = ld_cloneDeep;
 export const debounce = ld_debounce;
