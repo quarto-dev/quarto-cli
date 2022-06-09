@@ -14,8 +14,8 @@ import { prompt } from "cliffy/prompt/mod.ts";
 import {
   AccountToken,
   findProvider,
-  kPublishProviders,
   PublishProvider,
+  publishProviders,
 } from "../../publish/provider.ts";
 
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
@@ -138,7 +138,7 @@ async function publishAction(
         indent: "",
         name: "provider",
         message: "Provider:",
-        options: kPublishProviders.map((provider) => ({
+        options: (await publishProviders()).map((provider) => ({
           name: provider.description,
           value: provider.name,
         })),

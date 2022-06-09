@@ -5,6 +5,7 @@
 *
 */
 
+import { quartoConfig } from "../core/quarto.ts";
 import { netlifyProvider } from "./netlify/netlify.ts";
 import { quartoPubProvider } from "./quarto-pub/quarto-pub.ts";
 import { rsconnectProvider } from "./rsconnect/rsconnect.ts";
@@ -22,11 +23,23 @@ export interface AccountToken {
   token: string;
 }
 
-export const kPublishProviders = [
+const kPublishProviders = [
   netlifyProvider,
   quartoPubProvider,
   rsconnectProvider,
 ];
+
+export async function publishProviders() {
+  const providers: Array<PublishProvider> = [];
+  providers.push(netlifyProvider);
+  const dotenvConfig = await quartoConfig.dotenv();
+  const quartopubAppId = dotenvConfig["QUARTO_PUB_APP_CLIENT_ID"];
+  if (quartopubAppId && quartopubAppId !== "None") {
+    providers.push(quartoPubProvider);
+  }
+  providers.push(rsconnectProvider);
+  return providers;
+}
 
 export function findProvider(name?: string) {
   return kPublishProviders.find((provider) => provider.name === name);
