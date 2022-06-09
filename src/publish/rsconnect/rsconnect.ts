@@ -40,14 +40,18 @@ export const kRSConnectServerVar = "CONNECT_SERVER";
 export const kRSConnectAuthTokenVar = "CONNECT_API_KEY";
 
 // TODO: automagic name w/ unique suffix
-// TODO: try out documents
 // TODO: test error scenarios (incuding during task poll)
 
 // TODO: implmement resolveTarget
+// TODO: vanity url
 
 // TODO: test local account deletion
 // TODO: test publish to multiple servers
 // TODO: test content deletion
+
+// TODO: add --config argument to quarto publish
+// TODO: make quartopub conditional on env var
+// TODO: README docs
 
 export const rsconnectProvider: PublishProvider = {
   name: kRSConnect,
@@ -227,21 +231,19 @@ async function publish(
   const client = new RSConnectClient(account.server!, account.token);
 
   let content: Content | undefined;
-  await withSpinner({
-    message: `Preparing to publish ${type}`,
-  }, async () => {
-    // establish content (create new or get existing)
-    if (!target) {
-      content = await createContent(client, type, title);
-      if (content) {
-        target = { id: content.guid, url: content.content_url, code: false };
-      } else {
-        throw new Error();
-      }
+  // establish content (create new or get existing)
+  if (!target) {
+    content = await createContent(client, type, title);
+    if (content) {
+      target = { id: content.guid, url: content.content_url, code: false };
     } else {
-      content = await client.getContent(target.id);
+      throw new Error();
     }
-  });
+  } else {
+    await withPreparingProgress(type, async () => {
+      content = await client.getContent(target!.id);
+    });
+  }
   info("");
 
   // render
@@ -336,7 +338,11 @@ async function createContent(
 
     // try to create the content w/ the name
     try {
-      return await client.createContent(chosenName, title);
+      let content: Content | undefined;
+      await withPreparingProgress(type, async () => {
+        content = await client.createContent(chosenName, title);
+      });
+      return content!;
     } catch (err) {
       if (isConflict(err)) {
         promptError("The provided name is already in use within this account.");
@@ -345,6 +351,12 @@ async function createContent(
       }
     }
   }
+}
+
+async function withPreparingProgress(type: string, f: () => Promise<void>) {
+  await withSpinner({
+    message: `Preparing to publish ${type}`,
+  }, f);
 }
 
 function promptError(msg: string) {

@@ -25,13 +25,16 @@ export async function createBundle(
   // create file md5 checksums
   const manifestFiles: Record<string, { checksum: string }> = {};
   for (const file of files.files) {
-    const hash = createHash("md5");
-    const f = Deno.openSync(join(files.baseDir, file));
-    for (const chunk of Deno.iterSync(f)) {
-      hash.update(chunk);
+    const filePath = join(files.baseDir, file);
+    if (Deno.statSync(filePath).isFile) {
+      const hash = createHash("md5");
+      const f = Deno.openSync(filePath);
+      for (const chunk of Deno.iterSync(f)) {
+        hash.update(chunk);
+      }
+      Deno.close(f.rid);
+      manifestFiles[file] = { checksum: hash.toString("hex") };
     }
-    Deno.close(f.rid);
-    manifestFiles[file] = { checksum: hash.toString("hex") };
   }
 
   // create manifest
@@ -54,8 +57,12 @@ export async function createBundle(
   // stage files into temp dir
   const stageDir = tempContext.createDir();
   files.files.forEach((file) => {
-    ensureDirSync(join(stageDir, dirname(file)));
-    Deno.copyFileSync(join(files.baseDir, file), join(stageDir, file));
+    const filePath = join(files.baseDir, file);
+    if (Deno.statSync(filePath).isFile) {
+      const targetDir = join(stageDir, dirname(file));
+      ensureDirSync(targetDir);
+      Deno.copyFileSync(filePath, join(stageDir, file));
+    }
   });
   // write manifest
   Deno.writeTextFileSync(

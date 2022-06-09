@@ -149,7 +149,9 @@ export async function publishDocument(
         return {
           baseDir,
           rootFile: rootFile!,
-          files,
+          files: files.filter((file) =>
+            Deno.statSync(join(baseDir, file)).isFile
+          ),
         };
       } finally {
         services.cleanup();
