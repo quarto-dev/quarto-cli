@@ -32,9 +32,10 @@ import { createTempContext } from "../../core/temp.ts";
 import { createBundle } from "./bundle.ts";
 import { completeMessage, withSpinner } from "../../core/console.ts";
 import { randomHex } from "../../core/random.ts";
+import { ensureTrailingSlash } from "../../core/path.ts";
 
-export const kRSConnect = "rsconnect";
-const kRSConnectDescription = "RS Connect";
+export const kRSConnect = "connect";
+const kRSConnectDescription = "RStudio Connect";
 
 export const kRSConnectServerVar = "CONNECT_SERVER";
 export const kRSConnectAuthTokenVar = "CONNECT_API_KEY";
@@ -90,7 +91,8 @@ function removeToken(token: AccountToken) {
     rsconnectProvider.name,
     readAccessTokens<Account>(rsconnectProvider.name)?.filter(
       (accessToken) => {
-        return accessToken.username !== token.name;
+        return accessToken.server !== token.server &&
+          accessToken.username !== token.name;
       },
     ) || [],
   );
@@ -101,7 +103,9 @@ async function authorizeToken(
 ): Promise<AccountToken | undefined> {
   // ask for server (then validate that its actually a connect server
   // by sending a request without an auth token)
-  let server = target?.url ? new URL(target.url).origin : undefined;
+  let server = target?.url
+    ? ensureTrailingSlash(new URL(target.url).origin)
+    : undefined;
   while (server === undefined) {
     // prompt for server
     server = await Input.prompt({
