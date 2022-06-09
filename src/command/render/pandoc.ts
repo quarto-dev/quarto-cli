@@ -562,7 +562,16 @@ export async function runPandoc(
     ];
 
     // make the filter paths windows safe
-    allDefaults.filters = allDefaults.filters.map(pandocMetadataPath);
+    allDefaults.filters = allDefaults.filters.map((filter) => {
+      if (typeof (filter) === "string") {
+        return pandocMetadataPath(filter);
+      } else {
+        return {
+          type: filter.type,
+          path: pandocMetadataPath(filter.path),
+        };
+      }
+    });
 
     // Capture any format filter params
     const filterParams = extras[kFilterParams];

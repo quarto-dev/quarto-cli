@@ -1,0 +1,10 @@
+---
+title: Test Python Filter
+filters:
+  - type: json
+    path: behead.py
+---
+
+## This is a test
+
+## This should be em

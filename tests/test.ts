@@ -123,7 +123,13 @@ export function test(test: TestDescriptor) {
         quiet: true,
       });
 
-      let testOutput: ExecuteOutput[] = [];
+      const logOutput = (path: string) => {
+        if (existsSync(path)) {
+          return readExecuteOutput(path);
+        } else {
+          return undefined;
+        }
+      };
       try {
         await test.execute();
 
@@ -131,16 +137,16 @@ export function test(test: TestDescriptor) {
         await cleanupLogOnce();
 
         // Read the output
-        if (existsSync(log)) {
-          testOutput = readExecuteOutput(log);
-          Deno.removeSync(log);
+        const testOutput = logOutput(log);
+        if (testOutput) {
           for (const ver of test.verify) {
             await ver.verify(testOutput);
           }
         }
       } catch (ex) {
-        if (testOutput && testOutput.length > 0) {
-          const errorTxts = testOutput.map((msg) => msg.msg);
+        const logMessages = logOutput(log);
+        if (logMessages && logMessages.length > 0) {
+          const errorTxts = logMessages.map((msg) => msg.msg);
           fail(
             `\n---------------------------------------------\n${ex.message}\n${ex.stack}\n\nTEST OUTPUT:\n${errorTxts}----------------------------------------------`,
           );
@@ -148,6 +154,7 @@ export function test(test: TestDescriptor) {
           fail(`${ex.message}\n${ex.stack}`);
         }
       } finally {
+        Deno.removeSync(log);
         await cleanupLogOnce();
         if (test.context.teardown) {
           await test.context.teardown();

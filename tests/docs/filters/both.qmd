@@ -1,0 +1,12 @@
+---
+title: Both types of filters
+filters:
+  - type: json
+    path: behead.py
+  - type: lua
+    path: smallcaps.lua
+---
+
+## This should be em
+
+**This should be small caps**
