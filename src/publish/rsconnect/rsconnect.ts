@@ -39,12 +39,8 @@ const kRSConnectDescription = "RS Connect";
 export const kRSConnectServerVar = "CONNECT_SERVER";
 export const kRSConnectAuthTokenVar = "CONNECT_API_KEY";
 
-// TODO: test error scenarios (incuding during task poll)
-
-// TODO: test local account deletion
-// TODO: test publish to multiple servers
-
 // TODO: add --config argument to quarto publish
+// TODO: default netlify app id
 // TODO: make quartopub conditional on env var
 // TODO: README docs
 
@@ -55,7 +51,6 @@ export const rsconnectProvider: PublishProvider = {
   authorizeToken,
   removeToken,
   resolveTarget,
-  formatTargetUrl,
   publish,
   isUnauthorized,
 };
@@ -106,10 +101,12 @@ function removeToken(token: AccountToken) {
   );
 }
 
-async function authorizeToken(): Promise<AccountToken | undefined> {
+async function authorizeToken(
+  target?: PublishRecord,
+): Promise<AccountToken | undefined> {
   // ask for server (then validate that its actually a connect server
   // by sending a request without an auth token)
-  let server: string | undefined;
+  let server = target?.url ? new URL(target.url).origin : undefined;
   while (server === undefined) {
     // prompt for server
     server = await Input.prompt({
@@ -214,20 +211,13 @@ async function resolveTarget(
     return contentAsTarget(content);
   } catch (err) {
     if (isNotFound(err)) {
-      warning(
-        `Site ${target.url} not found (you may need to remove it from the publish configuration)`,
-      );
-      return undefined;
+      return target;
     } else if (!isUnauthorized(err)) {
       throw err;
     }
   }
 
   return target;
-}
-
-function formatTargetUrl(url: URL) {
-  return url.origin;
 }
 
 async function publish(

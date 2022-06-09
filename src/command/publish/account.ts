@@ -49,7 +49,7 @@ export async function resolveAccount(
 
     // if we don't have a token yet we need to authorize
     if (!token) {
-      token = await provider.authorizeToken();
+      token = await provider.authorizeToken(target);
     }
 
     return token;

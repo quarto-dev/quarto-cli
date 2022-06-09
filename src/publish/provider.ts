@@ -48,12 +48,11 @@ export interface PublishProvider {
   description: string;
   accountTokens: () => Promise<AccountToken[]>;
   removeToken: (token: AccountToken) => void;
-  authorizeToken: () => Promise<AccountToken | undefined>;
+  authorizeToken: (target?: PublishRecord) => Promise<AccountToken | undefined>;
   resolveTarget: (
     account: AccountToken,
     target: PublishRecord,
   ) => Promise<PublishRecord | undefined>;
-  formatTargetUrl?: (url: URL) => string;
   publish: (
     account: AccountToken,
     type: "document" | "site",

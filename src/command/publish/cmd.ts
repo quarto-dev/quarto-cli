@@ -189,7 +189,7 @@ async function publish(
     // attempt to recover from unauthorized
     if (provider.isUnauthorized(err) && options.prompt) {
       if (await handleUnauthorized(provider, account)) {
-        const authorizedAccount = await provider.authorizeToken();
+        const authorizedAccount = await provider.authorizeToken(target);
         if (authorizedAccount) {
           // recursve after re-authorization
           return await publish(provider, authorizedAccount, options, target);
