@@ -56,7 +56,6 @@ export class RSConnectClient {
     path: string,
     body?: BodyInit | null,
   ): Promise<T> => {
-    console.log(this.apiUrl(path));
     return this.handleResponse<T>(
       await fetch(this.apiUrl(path), {
         method,

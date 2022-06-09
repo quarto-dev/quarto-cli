@@ -19,7 +19,7 @@ import {
 } from "../provider.ts";
 import { PublishRecord } from "../types.ts";
 import { RSConnectClient } from "./api/index.ts";
-import { ApiError, Content } from "./api/types.ts";
+import { ApiError, Content, Task } from "./api/types.ts";
 import {
   readAccessTokens,
   writeAccessToken,
@@ -31,6 +31,7 @@ import { pandocAutoIdentifier } from "../../core/pandoc/pandoc-id.ts";
 import { contentName } from "../publish.ts";
 import { createTempContext } from "../../core/temp.ts";
 import { createBundle } from "./bundle.ts";
+import { completeMessage, withSpinner } from "../../core/console.ts";
 
 export const kRSConnect = "rsconnect";
 const kRSConnectDescription = "RS Connect";
@@ -38,10 +39,15 @@ const kRSConnectDescription = "RS Connect";
 export const kRSConnectServerVar = "CONNECT_SERVER";
 export const kRSConnectAuthTokenVar = "CONNECT_API_KEY";
 
-// TODO: note link from aron on new sites api
-// The public API workflow for deploys is described in our cookbook with curl examples: https://docs.rstudio.com/connect/cookbook/deploying/#deploying-workflow,
-// and that links out to the content API docs: https://docs.rstudio.com/connect/api/#tag--Content. Both rsconnect and rsconnect-python use some of the internal
-// and some of the public APIs because they existed before some of the APIs were public.
+// TODO: automagic name w/ unique suffix
+// TODO: try out documents
+// TODO: test error scenarios (incuding during task poll)
+
+// TODO: implmement resolveTarget
+
+// TODO: test local account deletion
+// TODO: test publish to multiple servers
+// TODO: test content deletion
 
 export const rsconnectProvider: PublishProvider = {
   name: kRSConnect,
@@ -220,46 +226,62 @@ async function publish(
   // create client
   const client = new RSConnectClient(account.server!, account.token);
 
-  // establish content (create new or get existing)
   let content: Content | undefined;
-  if (!target) {
-    content = await createContent(client, type, title);
-    if (content) {
-      target = { id: content.guid, url: content.content_url, code: false };
+  await withSpinner({
+    message: `Preparing to publish ${type}`,
+  }, async () => {
+    // establish content (create new or get existing)
+    if (!target) {
+      content = await createContent(client, type, title);
+      if (content) {
+        target = { id: content.guid, url: content.content_url, code: false };
+      } else {
+        throw new Error();
+      }
     } else {
-      throw new Error();
+      content = await client.getContent(target.id);
     }
-  } else {
-    content = await client.getContent(target.id);
-  }
+  });
+  info("");
 
   // render
-  const publishFiles = await render(target.id);
+  const publishFiles = await render(target!.url);
 
+  // publish
   const tempContext = createTempContext();
   try {
     // create and upload bundle
-    const bundleTargz = await createBundle(type, publishFiles, tempContext);
-    const bundleBytes = Deno.readFileSync(bundleTargz);
-    const bundleBlob = new Blob([bundleBytes.buffer]);
-    const bundle = await client.uploadBundle(target.id, bundleBlob);
-    // deploy bundle then poll for status
-    const task = await client.deployBundle(bundle);
-    console.log(task);
-    while (true) {
-      console.log("polling for task status");
-      const status = await client.getTaskStatus(task);
-      console.log(status);
-      if (status.finished) {
-        if (status.code === 0) {
-          return Promise.resolve([target!, new URL(content.dashboard_url)]);
-        } else {
-          throw new Error(
-            "Error attempting to publish content: " + status.error,
-          );
+    let task: Task | undefined;
+    await withSpinner({
+      message: () => `Uploading files`,
+      doneMessage: false,
+    }, async () => {
+      const bundleTargz = await createBundle(type, publishFiles, tempContext);
+      const bundleBytes = Deno.readFileSync(bundleTargz);
+      const bundleBlob = new Blob([bundleBytes.buffer]);
+      const bundle = await client.uploadBundle(target!.id, bundleBlob);
+      task = await client.deployBundle(bundle);
+    });
+    completeMessage("Uploading files (complete)");
+
+    await withSpinner({
+      message: `Publishing ${type}`,
+    }, async () => {
+      while (true) {
+        const status = await client.getTaskStatus(task!);
+        if (status.finished) {
+          if (status.code === 0) {
+            break;
+          } else {
+            throw new Error(
+              `Error attempting to publish content: ${status.code} - ${status.error}`,
+            );
+          }
         }
       }
-    }
+    });
+    completeMessage(`Published: ${target!.url}\n`);
+    return Promise.resolve([target!, new URL(content!.dashboard_url)]);
   } finally {
     tempContext.cleanup();
   }
