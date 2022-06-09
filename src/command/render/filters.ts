@@ -108,6 +108,10 @@ export function removeFilterParmas(metadata: Metadata) {
   delete metadata[kQuartoParams];
 }
 
+export function quartoInitFilter() {
+  return resourcePath("filters/quarto-init/quarto-init.lua");
+}
+
 export function quartoPreFilter() {
   return resourcePath("filters/quarto-pre/quarto-pre.lua");
 }
@@ -491,13 +495,20 @@ export function resolveFilters(
   options: PandocOptions,
 ): QuartoFilter[] | undefined {
   // build list of quarto filters
+
+  // The default order of filters will be
+  // quarto-init
+  // quarto-authors
+  // user filters
+  // extension filters
+  // quarto-filters <quarto>
+  // citeproc
+  // quarto-finalizer
+
   const quartoFilters: string[] = [];
   quartoFilters.push(quartoPreFilter());
   if (crossrefFilterActive(options)) {
     quartoFilters.push(crossrefFilter());
-  }
-  if (authorsFilterActive(options)) {
-    quartoFilters.push(authorsFilter());
   }
   quartoFilters.push(layoutFilter());
   quartoFilters.push(quartoPostFilter());
@@ -519,8 +530,19 @@ export function resolveFilters(
       ...filters.slice(quartoLoc + 1),
     ];
   } else {
-    filters.unshift(...quartoFilters);
+    filters.push(...quartoFilters);
   }
+
+  // The author filter, if enabled
+  if (authorsFilterActive(options)) {
+    filters.unshift(authorsFilter());
+  }
+
+  // The initializer for Quarto
+  filters.unshift(quartoInitFilter());
+
+  // The finalizer for Quarto
+  filters.push(quartoFinalizeFilter());
 
   // citeproc at the very end so all other filters can interact with citations
   filters = filters.filter((filter) => filter !== "citeproc");
@@ -528,9 +550,6 @@ export function resolveFilters(
   if (citeproc) {
     filters.push("citeproc");
   }
-
-  // The finalizer for Quarto
-  filters.push(quartoFinalizeFilter());
 
   // return filters
   if (filters.length > 0) {

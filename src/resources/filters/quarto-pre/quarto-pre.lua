@@ -50,7 +50,6 @@ import("../common/log.lua")
 import("../common/url.lua")
 import("../common/paths.lua")
 import("results.lua")
-import("includes.lua")
 import("options.lua")
 import("shortcodes.lua")
 import("shortcodes-handlers.lua")
@@ -60,7 +59,6 @@ import("table-rawhtml.lua")
 import("table-captions.lua")
 import("table-colwidth.lua")
 import("theorems.lua")
-import("resourcerefs.lua")
 import("resourcefiles.lua")
 import("book-numbering.lua")
 import("book-links.lua")
@@ -83,7 +81,6 @@ initParams()
 initShortcodeHandlers()
 
 return {
-  readIncludes(),
   initOptions(),
   shortCodesBlocks(),  
   shortCodesInlines(),  
@@ -101,7 +98,6 @@ return {
     indexBookFileTargets(),
     bookNumbering(),
     includePaths(),
-    resourceRefs(),
     resourceFiles(),
     figures(),
     theorems(),
