@@ -28,10 +28,10 @@ import {
 import { ensureProtocolAndTrailingSlash } from "../../core/url.ts";
 
 import { pandocAutoIdentifier } from "../../core/pandoc/pandoc-id.ts";
-import { contentName } from "../publish.ts";
 import { createTempContext } from "../../core/temp.ts";
 import { createBundle } from "./bundle.ts";
 import { completeMessage, withSpinner } from "../../core/console.ts";
+import { randomHex } from "../../core/random.ts";
 
 export const kRSConnect = "rsconnect";
 const kRSConnectDescription = "RS Connect";
@@ -39,7 +39,6 @@ const kRSConnectDescription = "RS Connect";
 export const kRSConnectServerVar = "CONNECT_SERVER";
 export const kRSConnectAuthTokenVar = "CONNECT_API_KEY";
 
-// TODO: automagic name w/ unique suffix
 // TODO: test error scenarios (incuding during task poll)
 
 // TODO: implmement resolveTarget
@@ -231,19 +230,20 @@ async function publish(
   const client = new RSConnectClient(account.server!, account.token);
 
   let content: Content | undefined;
-  // establish content (create new or get existing)
-  if (!target) {
-    content = await createContent(client, type, title);
-    if (content) {
-      target = { id: content.guid, url: content.content_url, code: false };
+  await withSpinner({
+    message: `Preparing to publish ${type}`,
+  }, async () => {
+    if (!target) {
+      content = await createContent(client, title);
+      if (content) {
+        target = { id: content.guid, url: content.content_url, code: false };
+      } else {
+        throw new Error();
+      }
     } else {
-      throw new Error();
-    }
-  } else {
-    await withPreparingProgress(type, async () => {
       content = await client.getContent(target!.id);
-    });
-  }
+    }
+  });
   info("");
 
   // render
@@ -256,7 +256,6 @@ async function publish(
     let task: Task | undefined;
     await withSpinner({
       message: () => `Uploading files`,
-      doneMessage: false,
     }, async () => {
       const bundleTargz = await createBundle(type, publishFiles, tempContext);
       const bundleBytes = Deno.readFileSync(bundleTargz);
@@ -264,7 +263,6 @@ async function publish(
       const bundle = await client.uploadBundle(target!.id, bundleBlob);
       task = await client.deployBundle(bundle);
     });
-    completeMessage("Uploading files (complete)");
 
     await withSpinner({
       message: `Publishing ${type}`,
@@ -304,59 +302,19 @@ function isNotFound(err: Error) {
 
 async function createContent(
   client: RSConnectClient,
-  type: "document" | "site",
   title: string,
 ): Promise<Content | undefined> {
-  // default name
-  const defaultName = pandocAutoIdentifier(title, false);
-  let chosenName = defaultName;
-
+  const baseName = pandocAutoIdentifier(title, false);
   while (true) {
-    // prompt for name
-    chosenName = await Input.prompt({
-      indent: "",
-      message: `${contentName(type)} name:`,
-      suggestions: [chosenName],
-      hint:
-        "Names can contain numbers, letters, _, and -, and must be unique\n" +
-        "  across content published in your account.",
-      validate: (value: string) => {
-        if (value.length < 3) {
-          return "Invalid content name (must be at least 3 characters)";
-        } else if (value !== pandocAutoIdentifier(value, false)) {
-          return "Invalid content name (use only numbers, letters, _, and -).";
-        } else {
-          return true;
-        }
-      },
-    });
-
-    // Enter exits publishing
-    if (chosenName.trim().length === 0) {
-      return undefined;
-    }
-
-    // try to create the content w/ the name
+    const name = baseName + "-" + randomHex(4);
     try {
-      let content: Content | undefined;
-      await withPreparingProgress(type, async () => {
-        content = await client.createContent(chosenName, title);
-      });
-      return content!;
+      return await client.createContent(name, title);
     } catch (err) {
-      if (isConflict(err)) {
-        promptError("The provided name is already in use within this account.");
-      } else {
+      if (!isConflict(err)) {
         throw err;
       }
     }
   }
-}
-
-async function withPreparingProgress(type: string, f: () => Promise<void>) {
-  await withSpinner({
-    message: `Preparing to publish ${type}`,
-  }, f);
 }
 
 function promptError(msg: string) {

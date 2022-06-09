@@ -11,3 +11,29 @@ export function randomInt(min: number, max: number) {
   max = Math.floor(max);
   return Math.floor(Math.random() * (max - min) + min);
 }
+
+export function randomHex(length: number) {
+  const result = [];
+  const hexRef = [
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "a",
+    "b",
+    "c",
+    "d",
+    "e",
+    "f",
+  ];
+  for (let n = 0; n < length; n++) {
+    result.push(hexRef[Math.floor(Math.random() * 16)]);
+  }
+  return result.join("");
+}

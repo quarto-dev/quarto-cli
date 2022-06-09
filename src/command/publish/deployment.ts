@@ -125,7 +125,7 @@ export async function chooseDeployment(
 
   const confirm = await Select.prompt({
     indent: "",
-    message: "Publish to:",
+    message: "Publish update to:",
     options,
   });
 

@@ -30,10 +30,6 @@ import { websiteTitle } from "../project/types/website/website-config.ts";
 export const kSiteContent = "site";
 export const kDocumentContent = "document";
 
-export function contentName(type: "site" | "document") {
-  return type === kDocumentContent ? "Document" : "Site";
-}
-
 export async function publishSite(
   project: ProjectContext,
   provider: PublishProvider,
