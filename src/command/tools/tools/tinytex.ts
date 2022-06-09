@@ -335,12 +335,14 @@ This will instruct TeX Live to create symlinks that it needs in <bin_dir_on_path
     const envPath = Deno.env.get("QUARTO_TEXLIVE_BINPATH");
     if (envPath) {
       paths.push(envPath);
-    } else {
+    } else if (Deno.build.os !== "windows") {
       paths.push(...suggestUserBinPaths());
     }
     const binPathMessage = envPath
       ? `Setting TeXLive Binpath: ${envPath}`
-      : `Updating Path (inspecting ${paths.length} possible paths)`;
+      : Deno.build.os !== "windows" ?
+      `Updating Path (inspecting ${paths.length} possible paths)` :
+      "Updating Path";
 
     // Ensure symlinks are all set
     await context.withSpinner(
@@ -359,7 +361,7 @@ This will instruct TeX Live to create symlinks that it needs in <bin_dir_on_path
             }
           }
         }
-        if (!result?.success) {
+        if (result && !result.success) {
           warning(message);
         }
       },
