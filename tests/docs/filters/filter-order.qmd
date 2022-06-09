@@ -1,0 +1,11 @@
+---
+title: Test Filter Order
+filters:
+  - fail-if-callout.lua
+  - quarto
+---
+
+:::{.callout-note}
+Note that there are five types of callouts.
+:::
+
