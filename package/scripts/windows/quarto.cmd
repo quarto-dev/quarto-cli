@@ -23,7 +23,7 @@ IF EXIST "%QUARTO_TS_PATH%" (
 	IF "%QUARTO_ACTION%"=="" (
 		SET QUARTO_ACTION=run
 	)
-	SET QUARTO_IMPORT_ARGMAP=--importmap="%SRC_PATH%import_map.json"
+	SET QUARTO_IMPORT_ARGMAP=--importmap="%SRC_PATH%dev_import_map.json"
 
 	IF "%QUARTO_TARGET%"=="" (
 		SET QUARTO_TARGET="%QUARTO_TS_PATH%"

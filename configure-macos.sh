@@ -37,7 +37,6 @@ if [ ! -z "$DENO_CANARY_COMMIT" ]; then
 	echo [Upgrading Deno to Canary]
 	./deno upgrade --canary --version $DENO_CANARY_COMMIT
 fi
-./deno cache --reload ../../../../src/quarto.ts --unstable --importmap=../../../../src/import_map.json
 
 popd
 popd
@@ -50,6 +49,16 @@ pushd $QUARTO_PACKAGE_DIR/src/
 ./quarto-bld configure --log-level info
 
 popd
+
+if [[ "$CI" != "true" && ( ( "./src/import_map.json" -nt "./src/dev_import_map.json" ) || ( "./src/vendor/import_map.json" -nt "./src/dev_import_map.json" ) ) ]]; then
+	echo [Revendoring quarto dependencies]
+
+	mv ./src/vendor ./src/vendor-`date +%Y-%m-%d`
+	pushd src
+	../package/dist/bin/tools/deno vendor quarto.ts ../tests/test-deps.ts --importmap=./import_map.json
+	popd
+	./package/dist/bin/tools/deno run --unstable --allow-all --importmap=./src/import_map.json package/src/common/create-dev-import-map.ts
+fi
 
 echo "Downloading Deno Stdlib"
 ./package/scripts/deno_std/download.sh
