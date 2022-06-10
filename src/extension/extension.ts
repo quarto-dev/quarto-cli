@@ -79,27 +79,31 @@ export function createExtensionContext(): ExtensionContext {
       }
     });
 
-    // Try to resolve using an exact match of the extension
-    const exactMatch = exts.find((ext) => {
-      const idStr = extensionIdString(ext.id);
-      return name === idStr;
+    // First try an exact match
+    const extId = toExtensionId(name);
+    if (extId.organization) {
+      const exact = exts.find((ext) => {
+        return ext.name === extId.name &&
+          ext.organziation === extId.organization;
+      });
+      if (exact) {
+        return exact;
+      }
+    }
+    // If there wasn't an exact match, try just using the name
+    const nameMatches = exts.filter((ext) => {
+      return extId.name === ext.id.name;
     });
 
-    // If there wasn't an exact match, try just using the name
-    if (exactMatch) {
-      return exactMatch;
-    } else {
-      const nameMatch = exts.find((ext) => {
-        if (name === ext.id.name) {
-          return true;
-        }
-      });
-
-      if (nameMatch) {
-        return nameMatch;
-      } else {
-        return undefined;
+    if (nameMatches && nameMatches.length > 0) {
+      if (nameMatches.length > 1) {
+        warning(
+          `More than one extension is available for the name ${name}. Consider adding an organization prefix to disambiguate.`,
+        );
       }
+      return nameMatches[0];
+    } else {
+      return undefined;
     }
   };
 
@@ -151,8 +155,6 @@ const loadExtension = (
 ): Extension => {
   const extensionId = toExtensionId(extension);
   const extensionPath = discoverExtensionPath(input, extensionId, project);
-
-  console.log(extensionId);
 
   if (extensionPath) {
     // Find the metadata file, if any
