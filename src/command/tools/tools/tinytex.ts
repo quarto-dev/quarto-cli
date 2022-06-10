@@ -340,7 +340,9 @@ This will instruct TeX Live to create symlinks that it needs in <bin_dir_on_path
     }
     const binPathMessage = envPath
       ? `Setting TeXLive Binpath: ${envPath}`
-      : `Updating Path (inspecting ${paths.length} possible paths)`;
+      : Deno.build.os !== "windows" ?
+      `Updating Path (inspecting ${paths.length} possible paths)` :
+      "Updating Path";
 
     // Ensure symlinks are all set
     await context.withSpinner(
