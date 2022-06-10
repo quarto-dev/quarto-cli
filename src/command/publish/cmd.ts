@@ -88,15 +88,9 @@ export const publishCommand =
         } else {
           const providerInterface = findProvider(provider);
           if (!providerInterface) {
-            throw new Error(
-              `Unknown provider name '${provider}'\nProvider name must be one of: ${
-                (await publishProviders()).map((provider) => provider.name)
-                  .join(" | ")
-              }`,
-            );
-          } else {
-            await publishAction(options, providerInterface, path);
+            throw new Error(`Publishing source '${provider}' not found`);
           }
+          await publishAction(options, providerInterface, path);
         }
       },
     );
