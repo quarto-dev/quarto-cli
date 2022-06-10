@@ -47,7 +47,7 @@ export const publishCommand =
     .hidden()
     .description(
       "Publish a document or project to a variety of destinations.\n\n" +
-        "Available publish providers include netlify, quartopub, and rsconnect.",
+        "Available publish providers include Netlify and RStudio Connect.",
     )
     .arguments("[provider: string] [path:string]")
     .option(
@@ -86,7 +86,17 @@ export const publishCommand =
         if (provider === "accounts") {
           await manageAccounts();
         } else {
-          await publishAction(options, findProvider(provider), path);
+          const providerInterface = findProvider(provider);
+          if (!providerInterface) {
+            throw new Error(
+              `Unknown provider name '${provider}'\nProvider name must be one of: ${
+                (await publishProviders()).map((provider) => provider.name)
+                  .join(" | ")
+              }`,
+            );
+          } else {
+            await publishAction(options, providerInterface, path);
+          }
         }
       },
     );
