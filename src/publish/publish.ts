@@ -5,6 +5,8 @@
 *
 */
 
+import * as ld from "../core/lodash.ts";
+
 import { existsSync, walkSync } from "fs/mod.ts";
 
 import {
@@ -72,11 +74,11 @@ export async function publishSite(
         files.push(relative(outputDir, walk.path));
       }
     }
-    return {
+    return normalizePublishFiles({
       baseDir: outputDir,
       rootFile: "index.html",
       files,
-    };
+    });
   };
 
   // publish
@@ -149,13 +151,11 @@ export async function publishDocument(
           }
           files.push(...resultFile.resourceFiles.map(asRelative));
         }
-        return {
+        return normalizePublishFiles({
           baseDir,
           rootFile: rootFile!,
-          files: files.filter((file) =>
-            Deno.statSync(join(baseDir, file)).isFile
-          ),
-        };
+          files,
+        });
       } finally {
         services.cleanup();
       }
@@ -185,11 +185,11 @@ export async function publishDocument(
         // resources
         files.push(...fileConfig.resources);
         // return
-        return {
+        return normalizePublishFiles({
           baseDir,
           rootFile: rootFile!,
           files,
-        };
+        });
       } else {
         throw new Error(
           `The specifed document (${document}) is not a valid quarto input file`,
@@ -216,4 +216,22 @@ export async function publishDocument(
 
   // return url
   return siteUrl;
+}
+
+function normalizePublishFiles(publishFiles: PublishFiles) {
+  publishFiles.files = publishFiles.files.reduce((files, file) => {
+    const filePath = join(publishFiles.baseDir, file);
+    if (Deno.statSync(filePath).isDirectory) {
+      for (const walk of walkSync(filePath)) {
+        if (walk.isFile) {
+          files.push(relative(publishFiles.baseDir, walk.path));
+        }
+      }
+    } else {
+      files.push(file);
+    }
+    return files;
+  }, new Array<string>());
+  publishFiles.files = ld.uniq(publishFiles.files) as string[];
+  return publishFiles;
 }

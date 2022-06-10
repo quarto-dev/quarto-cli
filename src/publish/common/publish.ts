@@ -80,21 +80,6 @@ export async function handlePublish<
   // render
   const publishFiles = await render(target.url);
 
-  // expand directories
-  publishFiles.files = publishFiles.files.reduce((files, file) => {
-    const filePath = join(publishFiles.baseDir, file);
-    if (Deno.statSync(filePath).isDirectory) {
-      for (const walk of walkSync(filePath)) {
-        if (walk.isFile) {
-          files.push(relative(publishFiles.baseDir, walk.path));
-        }
-      }
-    } else {
-      files.push(file);
-    }
-    return files;
-  }, new Array<string>());
-
   // add a _redirects file if necessary
   const kRedirects = "_redirects";
   let redirectsFile: string | undefined;
