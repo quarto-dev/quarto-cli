@@ -1,0 +1,14 @@
+title: ACM Journal Format
+author: Charles Teague
+version: 0.1
+contributes:
+  format:
+    common:
+      csl: acm-sig-proceedings.csl
+    pdf:
+      template-partials:
+        - partials/before-bib.tex
+        - partials/doc-class.tex
+        - partials/title.tex
+      include-in-header:
+        - include-in-header.tex

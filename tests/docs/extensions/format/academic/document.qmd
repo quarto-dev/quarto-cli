@@ -52,7 +52,7 @@ date: last-modified
 bibliography: mybibfile.bib
 
 format:
-  elsevier@quarto-journals-pdf:
+  quarto-journals-pdf/elsevier:
     keep-tex: false
     journal: "An awesome journal"
     # csl: https://www.zotero.org/styles/elsevier-harvard

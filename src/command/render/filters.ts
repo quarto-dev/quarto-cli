@@ -609,7 +609,7 @@ function resolveFilterExtension(
       if (filters) {
         return filters;
       } else {
-        throw new Error(`Unable to resolve the filter ${filter}.`);
+        return filter;
       }
     } else {
       return filter;
