@@ -32,7 +32,6 @@ import { createTempContext } from "../../core/temp.ts";
 import { createBundle } from "./bundle.ts";
 import { completeMessage, withSpinner } from "../../core/console.ts";
 import { randomHex } from "../../core/random.ts";
-import { ensureTrailingSlash } from "../../core/path.ts";
 
 export const kRSConnect = "connect";
 const kRSConnectDescription = "RStudio Connect";
