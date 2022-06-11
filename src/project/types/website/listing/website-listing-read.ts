@@ -637,11 +637,11 @@ async function listItemFromFile(input: string, project: ProjectContext) {
   );
 
   const docRawMetadata = target?.markdown.yaml;
-  const directoryMetadata = directoryMetadataForInputFile(
+  const directoryMetadata = await directoryMetadataForInputFile(
     project,
     dirname(input),
   );
-  const documentMeta = await mergeConfigs(
+  const documentMeta = mergeConfigs(
     directoryMetadata,
     docRawMetadata,
   ) as Metadata;

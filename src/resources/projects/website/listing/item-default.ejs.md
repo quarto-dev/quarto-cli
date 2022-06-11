@@ -8,7 +8,7 @@ const imageHeight = listing['image-height'];
 
 // Fields that don't have a known place to be displayed in this template
 const otherFields = fields.filter(field => {
-return !["title", "image", "date", "author", "subtitle", "description", "reading-time", "categories"].includes(field);
+return !["title", "image", "image-alt", "date", "author", "subtitle", "description", "reading-time", "categories"].includes(field);
 });
 
 // Capture the item number for utility functions that need it
