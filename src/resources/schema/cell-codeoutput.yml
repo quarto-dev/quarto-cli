@@ -4,7 +4,12 @@
     execute-only: true
   schema: boolean
   default: true
-  description: "Evaluate code cells (if `false` just echos the code into output)."
+  description: |
+    Evaluate code cells (if `false` just echos the code into output).
+
+    - `true` (default): evaluate code cell
+    - `false`: don't evaluate code cell
+    - `[...]`: A list of positive or negative line numbers to selectively include or exclude lines. Excluded lines are commented out with `## `
 
 - name: echo
   tags:
@@ -21,6 +26,7 @@
     - `true` (default): include source code in output
     - `false`: do not include source code in output
     - `fenced`: in addition to echoing, include the cell delimiter as part of the output.
+    - `[...]`: A list of positive or negative line numbers to selectively include or exclude lines.
 
 - name: code-fold
   tags:
