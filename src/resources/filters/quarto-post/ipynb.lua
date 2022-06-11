@@ -19,7 +19,7 @@ function ipynb()
         local renderedBlocks = compileTemplate(titleBlockTemplate, doc.meta)
 
         -- prepend the blocks to the notebook
-        tprepend(doc.blocks, renderedBlocks.blocks )
+        tprepend(doc.blocks, renderedBlocks)
 
         return doc
         
