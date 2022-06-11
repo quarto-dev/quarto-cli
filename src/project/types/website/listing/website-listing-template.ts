@@ -42,6 +42,7 @@ import { resourcePath } from "../../../../core/resources.ts";
 import { localizedString } from "../../../../config/localization.ts";
 import { formatDate, parsePandocDate } from "../../../../core/date.ts";
 import { truncateText } from "../../../../core/text.ts";
+import { encodeAttributeValue } from "../../../../core/html.ts";
 
 export const kDateFormat = "date-format";
 
@@ -394,7 +395,7 @@ export function reshapeListing(
     const styleAttr = listing[kImageHeight]
       ? `style="height: ${listing[kImageHeight]};"`
       : "";
-    const altAttr = alt ? `alt='${alt}'` : "";
+    const altAttr = alt ? `alt="${encodeAttributeValue(alt)}"` : "";
     const srcAttr = itemNumber > pageSize ? "data-src" : "src";
 
     return `<img ${srcAttr}="${src}" ${classAttr} ${styleAttr} ${altAttr}>`;

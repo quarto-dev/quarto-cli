@@ -21,7 +21,7 @@ const itemNumber = listing.utilities.itemNumber();
 
 // Fields that should be bucketized into the general listing at the bottom
 const otherFields = fields.filter(field => {
-return !["title", "image", "date", "author", "subtitle", "description", "filename", "file-modified", "reading-time", "categories"].includes(field);
+return !["title", "image", "image-alt", "date", "author", "subtitle", "description", "filename", "file-modified", "reading-time", "categories"].includes(field);
 });
 %>
 
