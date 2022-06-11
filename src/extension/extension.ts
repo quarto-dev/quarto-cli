@@ -79,30 +79,31 @@ export function createExtensionContext(): ExtensionContext {
       }
     });
 
-    // Try to resolve using an exact match of the extension
-    const exactMatch = exts.find((ext) => {
-      const idStr = extensionIdString(ext.id);
-      if (name === idStr) {
-        return true;
-      } else {
-        return undefined;
+    // First try an exact match
+    const extId = toExtensionId(name);
+    if (extId.organization) {
+      const exact = exts.find((ext) => {
+        return ext.name === extId.name &&
+          ext.organziation === extId.organization;
+      });
+      if (exact) {
+        return exact;
       }
+    }
+    // If there wasn't an exact match, try just using the name
+    const nameMatches = exts.filter((ext) => {
+      return extId.name === ext.id.name;
     });
 
-    // If there wasn't an exact match, try just using the name
-    if (exactMatch) {
-      return exactMatch;
-    } else {
-      const nameMatch = exts.find((ext) => {
-        if (name === ext.id.name) {
-          return true;
-        }
-      });
-      if (nameMatch) {
-        return nameMatch;
-      } else {
-        return undefined;
+    if (nameMatches && nameMatches.length > 0) {
+      if (nameMatches.length > 1) {
+        warning(
+          `More than one extension is available for the name ${name}. Consider adding an organization prefix to disambiguate.`,
+        );
       }
+      return nameMatches[0];
+    } else {
+      return undefined;
     }
   };
 
@@ -146,7 +147,7 @@ const loadExtensions = (
   return allExtensions;
 };
 
-// Loads a single extension using a name (e.g. elsevier or elsevier@quarto-journals)
+// Loads a single extension using a name (e.g. elsevier or quarto-journals/elsevier)
 const loadExtension = (
   extension: string,
   input: string,
@@ -195,6 +196,7 @@ function resolveExtensionPaths(
 // (e.g. read all the extensions from _extensions)
 export function readExtensions(
   extensionsDirectory: string,
+  organization?: string,
 ) {
   const extensions: Extension[] = [];
   const extensionDirs = Deno.readDirSync(extensionsDirectory);
@@ -204,12 +206,26 @@ export function readExtensions(
         join(extensionsDirectory, extensionDir.name),
       );
       if (extFile) {
-        const extensionId = toExtensionId(extensionDir.name);
+        // This is a directory that contains an extension
+        // This represents an 'anonymous' extension that doesn't
+        // have an owner
+        const extensionId = { name: extensionDir.name, organization };
         const extension = readExtension(
           extensionId,
           extFile,
         );
         extensions.push(extension);
+      } else if (!organization) {
+        // If we're at the root level and this folder is an extension folder
+        // treat it as an 'owner' and look inside this folder to see if
+        // there are extensions in subfolders. Only read 1 level.
+        const ownedExtensions = readExtensions(
+          join(extensionsDirectory, extensionDir.name),
+          extensionDir.name,
+        );
+        if (ownedExtensions) {
+          extensions.push(...ownedExtensions);
+        }
       }
     }
   }
@@ -262,12 +278,12 @@ export function discoverExtensionPath(
   if (extensionId.organization) {
     // If there is an organization, always match that exactly
     extensionDirGlobs.push(
-      `${extensionId.name}@${extensionId.organization}/`,
+      `${extensionId.name}/${extensionId.organization}/`,
     );
   } else {
-    // Otherwise, match either the exact string (e.g. acm or a wildcard org acm@*)
+    // Otherwise, match either the exact string (e.g. acm or a wildcard org */acm/)
     extensionDirGlobs.push(`${extensionId.name}/`);
-    extensionDirGlobs.push(`${extensionId.name}@*/`);
+    extensionDirGlobs.push(`*/${extensionId.name}/`);
   }
 
   const findExtensionDir = (dir: string, globs: string[]) => {
@@ -389,13 +405,22 @@ function readExtension(
   };
 }
 
+// Parses string into extension Id
+// <organization>/<name>
+// <name>
 function toExtensionId(extension: string) {
-  if (extension.indexOf("@") > -1) {
-    const extParts = extension.split("@");
-    return {
-      name: extParts[0],
-      organization: extParts.slice(1).join("@"),
-    };
+  if (extension.indexOf("/") > -1) {
+    const extParts = extension.split("/");
+    if (extParts.length > 2) {
+      throw new Error(
+        "Invalid extension name - this extension name includes the illegal character '/' in its name.",
+      );
+    } else {
+      return {
+        name: extParts[1],
+        organization: extParts[0],
+      };
+    }
   } else {
     return {
       name: extension,

@@ -489,6 +489,7 @@ function initFilterParams(dependenciesFile: string) {
 }
 
 const kQuartoFilterMarker = "quarto";
+const kQuartoCiteProcMarker = "citeproc";
 
 export function resolveFilters(
   filters: QuartoFilter[],
@@ -545,10 +546,10 @@ export function resolveFilters(
   filters.push(quartoFinalizeFilter());
 
   // citeproc at the very end so all other filters can interact with citations
-  filters = filters.filter((filter) => filter !== "citeproc");
-  const citeproc = citeMethod(options) === "citeproc";
+  filters = filters.filter((filter) => filter !== kQuartoCiteProcMarker);
+  const citeproc = citeMethod(options) === kQuartoCiteProcMarker;
   if (citeproc) {
-    filters.push("citeproc");
+    filters.push(kQuartoCiteProcMarker);
   }
 
   // return filters
@@ -594,7 +595,8 @@ function resolveFilterExtension(
     // Look for extension names in the filter list and result them
     // into the filters provided by the extension
     if (
-      filter !== kQuartoFilterMarker && typeof (filter) === "string" &&
+      filter !== kQuartoFilterMarker && filter !== kQuartoCiteProcMarker &&
+      typeof (filter) === "string" &&
       !existsSync(filter)
     ) {
       const extension = options.extension?.find(

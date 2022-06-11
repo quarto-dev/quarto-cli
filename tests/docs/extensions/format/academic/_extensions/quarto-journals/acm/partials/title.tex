@@ -1,0 +1,26 @@
+$if(title)$
+\title{$title$}
+$endif$
+$if(subtitle)$
+\subtitle{$subtitle$}
+$endif$
+
+
+\numberofauthors{2}
+\author{
+$for(by-author)$
+\alignauthor $by-author.name.literal$ \\
+        \affaddr{$for(by-author.affiliations/first)$$it.name$$endfor$}\\
+       \email{$it.email$}
+\and $endfor$
+}
+
+$if(date)$
+\date{$date$}
+$endif$
+
+%Remove copyright shit
+\permission{}
+\conferenceinfo{} {}
+\CopyrightYear{}
+\crdata{}

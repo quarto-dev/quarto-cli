@@ -59,7 +59,7 @@ export interface ExtensionMetadata {
 
 export function extensionIdString(extensionId: ExtensionId) {
   if (extensionId.organization) {
-    return `${extensionId.name}@${extensionId.organization}`;
+    return `${extensionId.organization}/${extensionId.name}`;
   } else {
     return extensionId.name;
   }
