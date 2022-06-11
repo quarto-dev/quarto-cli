@@ -7,8 +7,7 @@
 
 import { info } from "log/mod.ts";
 
-import { walkSync } from "fs/mod.ts";
-import { join, relative } from "path/mod.ts";
+import { join } from "path/mod.ts";
 import { crypto } from "crypto/mod.ts";
 import { encode as hexEncode } from "encoding/hex.ts";
 
@@ -57,9 +56,9 @@ export async function handlePublish<
 >(
   handler: PublishHandler<Site, Deploy>,
   type: "document" | "site",
-  render: (siteDir: string) => Promise<PublishFiles>,
+  render: (siteUrl?: string) => Promise<PublishFiles>,
   target?: PublishRecord,
-): Promise<[PublishRecord, URL]> {
+): Promise<[PublishRecord, URL | undefined]> {
   // determine target (create new site if necessary)
   info("");
   if (!target?.id) {
@@ -183,5 +182,8 @@ export async function handlePublish<
 
   completeMessage(`Published: ${targetUrl}\n`);
 
-  return [{ ...target, url: targetUrl }, new URL(adminUrl)];
+  return [
+    { ...target, url: targetUrl },
+    adminUrl ? new URL(adminUrl) : undefined,
+  ];
 }

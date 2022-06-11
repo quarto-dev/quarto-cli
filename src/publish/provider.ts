@@ -9,7 +9,7 @@ import { quartoConfig } from "../core/quarto.ts";
 import { netlifyProvider } from "./netlify/netlify.ts";
 import { quartoPubProvider } from "./quarto-pub/quarto-pub.ts";
 import { rsconnectProvider } from "./rsconnect/rsconnect.ts";
-import { PublishRecord } from "./types.ts";
+import { PublishOptions, PublishRecord } from "./types.ts";
 
 export enum AccountTokenType {
   Environment,
@@ -59,9 +59,13 @@ export type PublishFiles = {
 export interface PublishProvider {
   name: string;
   description: string;
+  requiresServer: boolean;
   accountTokens: () => Promise<AccountToken[]>;
   removeToken: (token: AccountToken) => void;
-  authorizeToken: (target?: PublishRecord) => Promise<AccountToken | undefined>;
+  authorizeToken: (
+    options: PublishOptions,
+    target?: PublishRecord,
+  ) => Promise<AccountToken | undefined>;
   resolveTarget: (
     account: AccountToken,
     target: PublishRecord,
@@ -72,6 +76,6 @@ export interface PublishProvider {
     title: string,
     render: (siteUrl?: string) => Promise<PublishFiles>,
     target?: PublishRecord,
-  ) => Promise<[PublishRecord, URL]>;
+  ) => Promise<[PublishRecord, URL | undefined]>;
   isUnauthorized: (error: Error) => boolean;
 }

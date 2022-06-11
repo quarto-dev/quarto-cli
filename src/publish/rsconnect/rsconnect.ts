@@ -17,7 +17,7 @@ import {
   PublishFiles,
   PublishProvider,
 } from "../provider.ts";
-import { PublishRecord } from "../types.ts";
+import { PublishOptions, PublishRecord } from "../types.ts";
 import { RSConnectClient } from "./api/index.ts";
 import { ApiError, Content, Task } from "./api/types.ts";
 import {
@@ -43,6 +43,7 @@ export const kRSConnectAuthTokenVar = "CONNECT_API_KEY";
 export const rsconnectProvider: PublishProvider = {
   name: kRSConnect,
   description: kRSConnectDescription,
+  requiresServer: true,
   accountTokens,
   authorizeToken,
   removeToken,
@@ -99,13 +100,17 @@ function removeToken(token: AccountToken) {
 }
 
 async function authorizeToken(
+  options: PublishOptions,
   target?: PublishRecord,
 ): Promise<AccountToken | undefined> {
   // ask for server (then validate that its actually a connect server
   // by sending a request without an auth token)
   let server = target?.url
-    ? ensureTrailingSlash(new URL(target.url).origin)
-    : undefined;
+    ? new URL(target.url).origin
+    : options.server || undefined;
+  if (server) {
+    server = ensureProtocolAndTrailingSlash(server);
+  }
   while (server === undefined) {
     // prompt for server
     server = await Input.prompt({
@@ -280,7 +285,7 @@ async function publish(
         }
       }
     });
-    completeMessage(`Published: ${target!.url}\n`);
+    completeMessage(`Published: ${content!.content_url}\n`);
     return Promise.resolve([target!, new URL(content!.dashboard_url)]);
   } finally {
     tempContext.cleanup();

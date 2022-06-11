@@ -51,24 +51,28 @@ export const publishCommand =
     )
     .arguments("[provider: string] [path:string]")
     .option(
+      "--token <token:string>",
+      "Access token for publising provider",
+    )
+    .option(
+      "--server <server:string>",
+      "Server to publish to",
+    )
+    .option(
+      "--id <id:string>",
+      "Identifier of content to publish",
+    )
+    .option(
       "--no-render",
       "Do not render before publishing.",
-      { global: true },
     )
     .option(
       "--no-prompt",
       "Do not prompt to confirm publishing destination",
-      { global: true },
     )
     .option(
       "--no-browser",
       "Do not open a browser to the site after publishing",
-      { global: true },
-    )
-    .option(
-      "--site-id <id:string>",
-      "Identifier of site to publish",
-      { global: true },
     )
     .action(
       async (
@@ -86,9 +90,12 @@ export const publishCommand =
         if (provider === "accounts") {
           await manageAccounts();
         } else {
-          const providerInterface = findProvider(provider);
-          if (!providerInterface) {
-            throw new Error(`Publishing source '${provider}' not found`);
+          let providerInterface: PublishProvider | undefined;
+          if (provider) {
+            providerInterface = findProvider(provider);
+            if (!providerInterface) {
+              throw new Error(`Publishing source '${provider}' not found`);
+            }
           }
           await publishAction(options, providerInterface, path);
         }
@@ -111,9 +118,11 @@ async function publishAction(
     accountPrompt: AccountPrompt,
     publishTarget?: PublishRecord,
   ) => {
+    // resolve account
     const account = await resolveAccount(
       publishProvider,
       publishOptions.prompt ? accountPrompt : "never",
+      publishOptions,
       publishTarget,
     );
     if (account) {
@@ -126,11 +135,18 @@ async function publishAction(
     }
   };
 
-  // see if we are redeploying
-  const deployment = await resolveDeployment(
-    publishOptions,
-    provider?.name,
-  );
+  // see if cli options give us a deployment
+  const deployment = (provider && publishOptions.id)
+    ? {
+      provider,
+      target: {
+        id: publishOptions.id,
+      },
+    }
+    : await resolveDeployment(
+      publishOptions,
+      provider?.name,
+    );
   if (deployment) {
     // existing deployment
     await doPublish(deployment.provider, "multiple", deployment.target);
@@ -186,14 +202,17 @@ async function publish(
       );
 
     // open browser if requested
-    if (options.browser) {
+    if (siteUrl && options.browser) {
       await openUrl(siteUrl.toString());
     }
   } catch (err) {
     // attempt to recover from unauthorized
     if (provider.isUnauthorized(err) && options.prompt) {
       if (await handleUnauthorized(provider, account)) {
-        const authorizedAccount = await provider.authorizeToken(target);
+        const authorizedAccount = await provider.authorizeToken(
+          options,
+          target,
+        );
         if (authorizedAccount) {
           // recursve after re-authorization
           return await publish(provider, authorizedAccount, options, target);
@@ -239,13 +258,15 @@ async function createPublishOptions(
     input = path;
   }
 
-  const interactive = isInteractiveTerminal() && !runningInCI();
+  const interactive = isInteractiveTerminal() && !runningInCI() && !options.id;
   return {
     input,
+    server: options.server || null,
+    token: options.token,
+    id: options.id,
     render: !!options.render,
     prompt: !!options.prompt && interactive,
     browser: !!options.browser && interactive,
-    siteId: options.siteId,
   };
 }
 

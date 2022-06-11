@@ -22,7 +22,7 @@ import {
   PublishProvider,
 } from "../provider.ts";
 import { ApiError } from "../../publish/netlify/api/index.ts";
-import { PublishRecord } from "../types.ts";
+import { PublishOptions, PublishRecord } from "../types.ts";
 import {
   AuthorizationHandler,
   authorizeAccessToken,
@@ -42,6 +42,7 @@ export const kNetlifyAuthTokenVar = "NETLIFY_AUTH_TOKEN";
 export const netlifyProvider: PublishProvider = {
   name: kNetlify,
   description: kNetlifyDescription,
+  requiresServer: false,
   accountTokens,
   authorizeToken,
   removeToken,
@@ -79,7 +80,7 @@ function accountTokens() {
   return Promise.resolve(accounts);
 }
 
-async function authorizeToken() {
+async function authorizeToken(_options: PublishOptions) {
   if (await authorizePrompt(netlifyProvider)) {
     const token = await authorizeNetlifyAccessToken();
     if (token) {
@@ -172,9 +173,9 @@ function publish(
   account: AccountToken,
   type: "document" | "site",
   _title: string,
-  render: (siteDir: string) => Promise<PublishFiles>,
+  render: (siteUrl?: string) => Promise<PublishFiles>,
   target?: PublishRecord,
-): Promise<[PublishRecord, URL]> {
+): Promise<[PublishRecord, URL | undefined]> {
   // create client
   const client = new NetlifyClient({
     TOKEN: account.token,

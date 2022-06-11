@@ -30,7 +30,7 @@ export async function resolveDeployment(
   );
   if (deployments && deployments.length > 0) {
     // if a site-id was passed then try to match it
-    const siteId = options.siteId;
+    const siteId = options.id;
     if (siteId) {
       const deployment = deployments.find((deployment) => {
         return deployment.target.id === siteId;
@@ -86,7 +86,7 @@ export async function publishDeployments(
     const provider = findProvider(providerName);
     if (provider) {
       // try to update urls if we have an account to bind to
-      const account = await resolveAccount(provider, "never");
+      const account = await resolveAccount(provider, "never", options);
       for (const record of config[providerName]) {
         if (account) {
           const target = await provider.resolveTarget(account, record);
@@ -108,25 +108,29 @@ export async function publishDeployments(
 export async function chooseDeployment(
   depoyments: PublishDeployment[],
 ): Promise<PublishDeployment | undefined> {
+  // filter out deployments w/o target url (provided from cli)
+  depoyments = depoyments.filter((deployment) => !!deployment.target.url);
+
   // collect unique origins
   const originCounts = depoyments.reduce((origins, deployment) => {
-    const originUrl = new URL(deployment.target.url).origin;
+    const originUrl = new URL(deployment.target.url!).origin;
     const count = origins.get(originUrl) || 0;
     origins.set(originUrl, count + 1);
     return origins;
   }, new Map<string, number>());
 
-  const options = depoyments.map((deployment) => {
-    const targetOrigin = new URL(deployment.target.url).origin;
-    const url = originCounts.get(targetOrigin) === 1
-      ? targetOrigin
-      : deployment.target.url;
+  const options = depoyments
+    .map((deployment) => {
+      const targetOrigin = new URL(deployment.target.url!).origin;
+      const url = originCounts.get(targetOrigin) === 1
+        ? targetOrigin
+        : deployment.target.url;
 
-    return {
-      name: `${url} (${deployment.provider.description})`,
-      value: deployment.target.url,
-    };
-  });
+      return {
+        name: `${url} (${deployment.provider.description})`,
+        value: deployment.target.url!,
+      };
+    });
   options.push({
     name: "Add a new destination...",
     value: "other",

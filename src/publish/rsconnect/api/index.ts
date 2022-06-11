@@ -71,8 +71,6 @@ export class RSConnectClient {
 
   private apiUrl = (path: string) => `${this.server_}__api__/v1/${path}`;
 
-  // https://deno.land/x/another_cookiejar@v4.1.4
-
   private handleResponse<T>(response: Response) {
     if (response.ok) {
       return response.json() as unknown as T;

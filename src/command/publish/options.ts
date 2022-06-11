@@ -6,8 +6,10 @@
 */
 
 export interface PublishCommandOptions {
+  token?: string;
+  server?: string | null;
+  id?: string;
   render?: boolean;
   prompt?: boolean;
   browser?: boolean;
-  siteId?: string;
 }

@@ -20,7 +20,7 @@ import {
 } from "../common/account.ts";
 import { handlePublish, PublishHandler } from "../common/publish.ts";
 
-import { PublishRecord } from "../types.ts";
+import { PublishOptions, PublishRecord } from "../types.ts";
 import { QuartoPubClient } from "./api/index.ts";
 import { quartoConfig } from "../../core/quarto.ts";
 import { authorizePrompt } from "../account.ts";
@@ -31,6 +31,7 @@ export const kQuartoPubAuthTokenVar = "QUARTO_PUB_AUTH_TOKEN";
 export const quartoPubProvider: PublishProvider = {
   name: kQuartoPub,
   description: "Quarto Pub",
+  requiresServer: false,
   accountTokens,
   authorizeToken,
   removeToken,
@@ -67,7 +68,7 @@ function accountTokens() {
   return Promise.resolve(accounts);
 }
 
-async function authorizeToken() {
+async function authorizeToken(_options: PublishOptions) {
   if (await authorizePrompt(quartoPubProvider)) {
     const token = await authorizeQuartoPubAccessToken();
     if (token) {
@@ -137,9 +138,9 @@ function publish(
   accountToken: AccountToken,
   type: "document" | "site",
   _title: string,
-  render: (siteUrl: string) => Promise<PublishFiles>,
+  render: (siteUrl?: string) => Promise<PublishFiles>,
   target?: PublishRecord,
-): Promise<[PublishRecord, URL]> {
+): Promise<[PublishRecord, URL | undefined]> {
   // Create an authorized QuartoPubClient.
   const client = new QuartoPubClient(quartoPubEnvironment, accountToken.token);
 

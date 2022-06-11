@@ -15,15 +15,33 @@ import {
   PublishProvider,
   publishProviders,
 } from "../../publish/provider.ts";
-import { PublishRecord } from "../../publish/types.ts";
+import { PublishOptions, PublishRecord } from "../../publish/types.ts";
 
 export type AccountPrompt = "always" | "never" | "multiple";
 
 export async function resolveAccount(
   provider: PublishProvider,
   prompt: AccountPrompt,
+  options: PublishOptions,
   target?: PublishRecord,
 ) {
+  // if the options provide a token then reflect that
+  if (options.token) {
+    // validate server
+    if (provider.requiresServer && !options.server) {
+      throw new Error(
+        `You must provide the --server argument along with --token for ${provider.description}`,
+      );
+    }
+
+    return {
+      type: AccountTokenType.Authorized,
+      name: provider.name,
+      server: options.server ? options.server : null,
+      token: options.token,
+    };
+  }
+
   // see what tyep of token we are going to use
   let token: AccountToken | undefined;
 
@@ -49,7 +67,7 @@ export async function resolveAccount(
 
     // if we don't have a token yet we need to authorize
     if (!token) {
-      token = await provider.authorizeToken(target);
+      token = await provider.authorizeToken(options, target);
     }
 
     return token;

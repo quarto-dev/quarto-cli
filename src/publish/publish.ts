@@ -90,11 +90,14 @@ export async function publishSite(
     target,
   );
   if (publishRecord) {
-    writeProjectPublishDeployment(
-      project,
-      provider.name,
-      publishRecord,
-    );
+    // write publish record if the id wasn't explicitly provided
+    if (options.id === undefined) {
+      writeProjectPublishDeployment(
+        project,
+        provider.name,
+        publishRecord,
+      );
+    }
   }
 
   // return url
@@ -207,11 +210,14 @@ export async function publishDocument(
     target,
   );
   if (publishRecord) {
-    writePublishDeployment(
-      document,
-      provider.name,
-      publishRecord,
-    );
+    // write publish record if the id wasn't explicitly provided
+    if (options.id === undefined) {
+      writePublishDeployment(
+        document,
+        provider.name,
+        publishRecord,
+      );
+    }
   }
 
   // return url

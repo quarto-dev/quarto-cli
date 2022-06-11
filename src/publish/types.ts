@@ -11,14 +11,16 @@ export type PublishDeployments = Record<string, Array<PublishRecord>>;
 
 export type PublishRecord = {
   id: string;
-  url: string;
-  code: boolean;
+  url?: string;
+  code?: boolean;
 };
 
 export type PublishOptions = {
   input: ProjectContext | string;
+  server?: string | null;
+  token?: string;
+  id?: string;
   render: boolean;
   prompt: boolean;
   browser: boolean;
-  siteId?: string;
 };
