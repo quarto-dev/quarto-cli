@@ -160,7 +160,7 @@ export const knitrEngine: ExecutionEngine = {
         return Promise.resolve();
       }, () => {
         warning(
-          `Unable to perform code-link (code-link requires R and the downlit package)`,
+          `Unable to perform code-link (code-link requires R packages rmarkdown, downlit, and xml2)`,
         );
         return Promise.resolve();
       });
