@@ -1549,6 +1549,9 @@ nav[role="doc-toc"].slow > * {
     padding: 1em;
     border: solid 1px $border-color;
     margin-bottom: 1em;
+    code.sourceCode {
+      white-space: pre-wrap;
+    }
   }
 
   .quarto-appendix-citeas {
