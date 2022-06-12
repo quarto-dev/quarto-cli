@@ -411,14 +411,15 @@ function readExtension(
 function toExtensionId(extension: string) {
   if (extension.indexOf("/") > -1) {
     const extParts = extension.split("/");
-    if (extParts.length > 2) {
-      throw new Error(
-        "Invalid extension name - this extension name includes the illegal character '/' in its name.",
-      );
-    } else {
+    // Names with organization have exactly 1 slash
+    if (extParts.length === 2) {
       return {
         name: extParts[1],
         organization: extParts[0],
+      };
+    } else {
+      return {
+        name: extension,
       };
     }
   } else {

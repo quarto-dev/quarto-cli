@@ -7171,7 +7171,10 @@ try {
             },
             schema: "boolean",
             default: true,
-            description: "Evaluate code cells (if `false` just echos the code into output)."
+            description: {
+              short: "Evaluate code cells (if `false` just echos the code into output).",
+              long: "Evaluate code cells (if `false` just echos the code into output).\n\n- `true` (default): evaluate code cell\n- `false`: don't evaluate code cell\n- `[...]`: A list of positive or negative line numbers to selectively include or exclude lines \n  (explicit inclusion/excusion of lines is available only when using the knitr engine)\n"
+            }
           },
           {
             name: "echo",
@@ -7192,7 +7195,10 @@ try {
               ],
               errorDescription: "be `true`, `false`, or `fenced`"
             },
-            description: "Include cell source code in rendered output.\n\n- `true` (default): include source code in output\n- `false`: do not include source code in output\n- `fenced`: in addition to echoing, include the cell delimiter as part of the output.\n"
+            description: {
+              short: "Include cell source code in rendered output.",
+              long: "Include cell source code in rendered output.\n\n- `true` (default): include source code in output\n- `false`: do not include source code in output\n- `fenced`: in addition to echoing, include the cell delimiter as part of the output.\n- `[...]`: A list of positive or negative line numbers to selectively include or exclude lines\n  (explicit inclusion/excusion of lines is available only when using the knitr engine)\n"
+            }
           },
           {
             name: "code-fold",
@@ -18531,7 +18537,7 @@ try {
           "Make speaker notes visible to all viewers",
           "Change the presentation direction to be RTL",
           {
-            short: "Method used to print tables in Knitr engine documents\n(<code>default</code>, <code>kable</code>, <code>tibble</code>, or\n<code>paged</code>). Defaults to <code>kable</code>.",
+            short: "Method used to print tables in Knitr engine documents\n(<code>default</code>, <code>kable</code>, <code>tibble</code>, or\n<code>paged</code>). Uses <code>default</code> if not specified.",
             long: "Method used to print tables in Knitr engine documents:"
           },
           {

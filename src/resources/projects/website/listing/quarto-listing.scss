@@ -88,6 +88,7 @@ $gray-600: #6c757d !default;
 $card-cap-bg: $gray-500 !default;
 
 $border-color: $gray-300 !default;
+$border-radius: 0.25rem !default;
 $border-radius-sm: 0.2em !default;
 
 $text-muted: $gray-600 !default;
@@ -110,11 +111,13 @@ $theme-name: null !default;
       border: solid 1px $border-color;
     }
 
-    border-radius: $border-radius-sm;
+    border-radius: $border-radius;
     text-transform: uppercase;
     font-size: 0.65em;
-    padding-left: 3px;
-    padding-right: 3px;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+    padding-top: 0.15em;
+    padding-bottom: 0.15em;
     cursor: pointer;
     margin-right: 4px;
     margin-bottom: 4px;

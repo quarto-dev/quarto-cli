@@ -140,6 +140,7 @@ h6:hover > .anchorjs-link,
 #title-block-header {
   margin-block-end: 1rem;
   position: relative;
+  margin-top: -1px; // Chrome draws 1px white line between navbar and title block
 }
 
 #title-block-header .abstract {

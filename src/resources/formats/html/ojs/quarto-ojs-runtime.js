@@ -17343,15 +17343,34 @@ class EmptyInspector {
 
 // here we need to convert from an ES6 module to an observable module
 // in, well, a best-effort kind of way.
-function es6ImportAsObservableModule(m) {
+function es6ImportAsObservableModule(modulePromise, specs) {
+  const promiseMap = {};
+  const resolveMap = {};
+  specs.forEach(spec => {
+    promiseMap[spec] = new Promise((resolve, reject) => { resolveMap[spec] = { resolve, reject }; });
+  });
+  modulePromise.then(m => {
+    specs.forEach(spec => {
+      resolveMap[spec].resolve(m[spec]);
+    });
+  }).catch(error => {
+    specs.forEach(spec => {
+      resolveMap[spec].reject(error);
+    });
+  });
   return function (runtime, observer) {
     const main = runtime.module();
 
+    specs.forEach(key => {
+      main.variable(observer(key)).define(key, [], () => promiseMap[key]);
+    });
+/* 
     Object.keys(m).forEach((key) => {
       const v = m[key];
-      main.variable(observer(key)).define(key, [], () => v);
-    });
 
+      main.variable(observer(key)).define(key, [], () => promiseMap[key]v);
+    });
+ */
     return main;
   };
 }
@@ -17512,7 +17531,7 @@ function importPathResolver(paths, localResolverMap) {
     return path;
   }
 
-  return async (path) => {
+  return async (path, specs) => {
     const isLocalModule = path.startsWith("/") || path.startsWith(".");
     const isImportFromObservableWebsite = path.match(
       /^https:\/\/(api\.|beta\.|)observablehq\.com\//i,
@@ -17562,8 +17581,8 @@ function importPathResolver(paths, localResolverMap) {
 
     if (moduleType === "ts" || moduleType === "tsx") {
       try {
-        const m = await import(importPath.replace(/\.ts$/, ".js").replace(/\.tsx$/, ".js"));
-        return es6ImportAsObservableModule(m);
+        const modulePromise = import(importPath.replace(/\.ts$/, ".js").replace(/\.tsx$/, ".js"));
+        return es6ImportAsObservableModule(modulePromise, specs);
       } catch (e) {
         // record the error on the browser console to make debugging
         // slightly more convenient.
@@ -17572,8 +17591,8 @@ function importPathResolver(paths, localResolverMap) {
       }
     } else if (moduleType === "js") {
       try {
-        const m = await import(importPath);
-        return es6ImportAsObservableModule(m);
+        const modulePromise = import(importPath);
+        return es6ImportAsObservableModule(modulePromise, specs);
       } catch (e) {
         // record the error on the browser console to make debugging
         // slightly more convenient.

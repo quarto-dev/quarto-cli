@@ -4,7 +4,15 @@
     execute-only: true
   schema: boolean
   default: true
-  description: "Evaluate code cells (if `false` just echos the code into output)."
+  description:
+    short: Evaluate code cells (if `false` just echos the code into output).
+    long: |
+      Evaluate code cells (if `false` just echos the code into output).
+
+      - `true` (default): evaluate code cell
+      - `false`: don't evaluate code cell
+      - `[...]`: A list of positive or negative line numbers to selectively include or exclude lines 
+        (explicit inclusion/excusion of lines is available only when using the knitr engine)
 
 - name: echo
   tags:
@@ -15,12 +23,16 @@
       - boolean
       - enum: [fenced]
     errorDescription: "be `true`, `false`, or `fenced`"
-  description: |
-    Include cell source code in rendered output.
+  description:
+    short: Include cell source code in rendered output.
+    long: |
+      Include cell source code in rendered output.
 
-    - `true` (default): include source code in output
-    - `false`: do not include source code in output
-    - `fenced`: in addition to echoing, include the cell delimiter as part of the output.
+      - `true` (default): include source code in output
+      - `false`: do not include source code in output
+      - `fenced`: in addition to echoing, include the cell delimiter as part of the output.
+      - `[...]`: A list of positive or negative line numbers to selectively include or exclude lines
+        (explicit inclusion/excusion of lines is available only when using the knitr engine)
 
 - name: code-fold
   tags:
