@@ -2,14 +2,14 @@
 
 SETLOCAL ENABLEDELAYEDEXPANSION
 
-SET SCRIPT_DIR=%~dp0
+SET "SCRIPT_DIR=%~dp0"
 SET DEV_PATH=..\..\..\src\
 
 SET SRC_PATH=%SCRIPT_DIR%%DEV_PATH%
-SET QUARTO_TS_PATH="%SRC_PATH%quarto.ts"
+SET "QUARTO_TS_PATH=%SRC_PATH%quarto.ts"
 
 IF EXIST "%QUARTO_TS_PATH%" (
-	
+
 	IF "%1"=="--version" (
 		ECHO 99.9.9
 		GOTO end
@@ -28,22 +28,23 @@ IF EXIST "%QUARTO_TS_PATH%" (
 	IF "%QUARTO_TARGET%"=="" (
 		SET QUARTO_TARGET="%QUARTO_TS_PATH%"
 	)
-	
+
 	SET "QUARTO_BIN_PATH=!SCRIPT_DIR!"
 	SET "QUARTO_SHARE_PATH=!SRC_PATH!resources\"
 	SET QUARTO_DEBUG=true
-	SET "QUARTO_DEV_DIR=!SCRIPT_DIR!..\..\.."
+	SET QUARTO_DEV_DIR=!SCRIPT_DIR!..\..\..
 	SET DENO_VERSION_FILE="!SCRIPT_DIR!..\config\deno-version"
-
-	FOR /F "tokens=*" %%A IN (!QUARTO_DEV_DIR!\configuration) DO CALL :convertExportToSet %%A 
+	SET "QUARTO_CONFIG_FILE=!QUARTO_DEV_DIR!\configuration"
+  FOR /F "usebackq tokens=*" %%A IN ("!QUARTO_CONFIG_FILE!") DO CALL :convertExportToSet %%A 
 
   if exist "!DENO_VERSION_FILE!" (
+
 		set /p DENO_INSTALLED_VERSION=<"!DENO_VERSION_FILE!"
-		if NOT "!DENO!"=="!DENO_INSTALLED_VERSION!" (
+	  if NOT "!DENO!"=="!DENO_INSTALLED_VERSION!" (
 			echo !DENO!>"!DENO_VERSION_FILE!"
 		
 			cd !QUARTO_DEV_DIR!
-			REM call configure-windows.cmd
+			call configure-windows.cmd
       echo 
 			echo Quarto required reconfiguration to install Deno !DENO!. Please try command again.
 			GOTO end
@@ -51,7 +52,6 @@ IF EXIST "%QUARTO_TS_PATH%" (
 	) else (
 		echo !DENO!>"!DENO_VERSION_FILE!"
 	)
-
 
 ) ELSE (
 
