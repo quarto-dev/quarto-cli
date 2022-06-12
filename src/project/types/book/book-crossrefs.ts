@@ -317,7 +317,7 @@ function refWithChapter(
 
 function refType(id: string) {
   const match = id.match(/^(\w+)-/);
-  return match ? match[1] : "fig";
+  return (match ? match[1] : "fig").toLowerCase();
 }
 
 function numberOption(

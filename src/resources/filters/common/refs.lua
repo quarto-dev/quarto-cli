@@ -1,4 +1,5 @@
 
+local text = require 'text'
 
 -- ref parent attribute (e.g. fig:parent or tbl:parent)
 kRefParent = "ref-parent"
@@ -39,7 +40,12 @@ function hasRefParent(el)
 end
 
 function refType(id)
-  return string.match(id, "^(%a+)%-")
+  local match = string.match(id, "^(%a+)%-")
+  if match then
+    return text.lower(match)
+  else
+    return nil
+  end
 end
 
 function refCaptionFromDiv(el)
