@@ -36,6 +36,7 @@ import {
 } from "../../config/types.ts";
 import {
   isBeamerOutput,
+  isDocxOutput,
   isEpubOutput,
   isHtmlDocOutput,
   isHtmlFileOutput,
@@ -69,7 +70,11 @@ import {
   pandocDefaultsMessage,
   writeDefaultsFile,
 } from "./defaults.ts";
-import { filterParamsJson, removeFilterParmas } from "./filters.ts";
+import {
+  filterParamsJson,
+  quartoInitFilter,
+  removeFilterParmas,
+} from "./filters.ts";
 import {
   kAbstract,
   kAbstractTitle,
@@ -864,6 +869,35 @@ export async function runPandoc(
       sysFilters,
       printMetadata,
     );
+  }
+
+  // for docx books we need to run a resolveRefs pass
+  // workaround until this issue is resolved: https://github.com/jgm/pandoc/issues/8099
+  if (isDocxOutput(options.format.pandoc) && projectIsBook(options.project)) {
+    const docxCmd = [
+      pandocBinaryPath(),
+      inputTemp,
+      "--to",
+      "markdown",
+      "--output",
+      inputTemp,
+      "--lua-filter",
+      quartoInitFilter(),
+      "--data-dir",
+      resourcePath("pandoc/datadir"),
+    ];
+    const docxResult = await execProcess(
+      {
+        cmd: docxCmd,
+        cwd,
+        env: {
+          "QUARTO_FILTER_PARAMS": base64Encode(paramsJson),
+        },
+      },
+    );
+    if (!docxResult.success) {
+      throw new Error();
+    }
   }
 
   // run pandoc
