@@ -262,6 +262,20 @@ export function codeToolsPostprocessor(format: Format) {
             embeddedCode.classList.delete(kEmbeddedSourceClass);
           }
         }
+
+        // if code is statically hidden, hide code-tools chrome as well.
+        // note that we're querying on pre.hidden and not div.hidden
+        // because the hidden class hasn't been hoisted to the parent by
+        // the html postprocessor yet.
+
+        for (
+          const el of Array.from(
+            doc.querySelectorAll("details div pre.hidden"),
+          )
+        ) {
+          const det = el.parentElement!.parentElement;
+          det!.classList.add("hidden");
+        }
       }
     }
 
@@ -285,12 +299,14 @@ function resolveCodeTools(format: Format, doc: Document): CodeTools {
       : codeTools?.source !== undefined
       ? codeTools?.source
       : true,
-    toggle: typeof (codeTools) === "boolean" ? codeTools
-    : codeTools?.toggle !== undefined
+    toggle: typeof (codeTools) === "boolean"
+      ? codeTools
+      : codeTools?.toggle !== undefined
       ? !!codeTools?.toggle
       : true,
-    caption: typeof (codeTools) === "boolean" ? kCodeCaption
-    : codeTools?.caption || kCodeCaption,
+    caption: typeof (codeTools) === "boolean"
+      ? kCodeCaption
+      : codeTools?.caption || kCodeCaption,
   };
 
   // if we have request source, make sure we are able to keep source
