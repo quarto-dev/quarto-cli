@@ -6,7 +6,7 @@ SET SCRIPT_DIR=%~dp0
 SET DEV_PATH=..\..\..\src\
 
 SET SRC_PATH=%SCRIPT_DIR%%DEV_PATH%
-SET QUARTO_TS_PATH=%SRC_PATH%quarto.ts
+SET QUARTO_TS_PATH="%SRC_PATH%quarto.ts"
 
 IF EXIST "%QUARTO_TS_PATH%" (
 	
@@ -43,7 +43,7 @@ IF EXIST "%QUARTO_TS_PATH%" (
 			echo !DENO!>"!DENO_VERSION_FILE!"
 		
 			cd !QUARTO_DEV_DIR!
-			call configure-windows.cmd
+			REM call configure-windows.cmd
       echo 
 			echo Quarto required reconfiguration to install Deno !DENO!. Please try command again.
 			GOTO end

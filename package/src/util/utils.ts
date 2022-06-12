@@ -35,9 +35,9 @@ export async function unzip(
     return await runCmd("PowerShell", [
       "Expand-Archive",
       "-Path",
-      zipFile,
+      `"${zipFile}"`,
       "-DestinationPath",
-      dest,
+      `"${dest}"`,
     ]);
   } else {
     return await runCmd("unzip", [zipFile, "-d", dest]);

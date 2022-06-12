@@ -80,7 +80,7 @@ ECHO Downloading Deno Stdlib
 CALL package\scripts\deno_std\download.bat
 
 SET QUARTO_DENO_EXTRA_OPTIONS="--reload"
-CALL %FINAL_BIN_PATH%\quarto --version
+CALL "%FINAL_BIN_PATH%\quarto" --version
 
 ECHO NOTE: To use quarto please use quarto-cmd (located in this folder) or add the following path to your PATH
 ECHO %FINAL_BIN_PATH%
