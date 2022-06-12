@@ -9,7 +9,9 @@ function import(script)
   local path = PANDOC_SCRIPT_FILE:match("(.*[/\\])")
   dofile(path .. script)
 end
+import("../common/pandoc.lua")
 import("../common/base64.lua")
+import("../common/paths.lua")
 import("../common/filemetadata.lua")
 import("../common/meta.lua")
 import("../common/params.lua")
@@ -22,7 +24,10 @@ initParams()
 
 return {
   readIncludes(),
-  resourceRefs(),
+  combineFilters({
+    fileMetadata(),
+    resourceRefs()
+  })
 }
 
 
