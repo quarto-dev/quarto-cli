@@ -18102,13 +18102,26 @@ class QuartoOJSConnector extends OJSConnector {
     if (!hasErrors) {
       preDiv.classList.remove("numberSource");
       if (preDiv._hidden === true) {
-        preDiv.parentElement.classList.add("hidden");
+        const parent = preDiv.parentElement;
+        parent.classList.add("hidden");
+        // when code-tools is active (that is, when pre is inside a details tag), we also need to hide the details tag.
+        if (parent.parentElement.tagName === "DETAILS") {
+          parent.parentElement.classList.add("hidden");
+        }
       }
     } else {
       preDiv.classList.add("numberSource");
-      if (preDiv.parentElement.classList.contains("hidden")) {
-        preDiv._hidden = true;
-        preDiv.parentElement.classList.remove("hidden");
+      const parent = preDiv.parentElement;
+      if (parent.classList.contains("hidden")) {
+        preDiv._hidden = true; // signal that we used to be hidden so that when errors go away, we're hidden again.
+        parent.classList.remove("hidden");
+
+        // when code-tools is active (that is, when pre is inside a details tag), we also need to unhide the details tag.
+        if (parent.parentElement.tagName === "DETAILS") {
+          parent.parentElement.classList.remove("hidden");
+          // open the code-tools by default when error happens.
+          parent.parentElement.setAttribute("open", "open");
+        }
       }
     }
   }
@@ -18165,7 +18178,12 @@ class QuartoOJSConnector extends OJSConnector {
     }
     // now find all ojsDivs that contain errors that need to be decorated
     // on preDiv
-    let div = preDiv.parentElement.nextElementSibling;
+    let parent = preDiv.parentElement;
+    if (parent.parentElement.tagName === "DETAILS") {
+      // we're in a code-tools setting, need to go one further up
+      parent = parent.parentElement;
+    }
+    let div = parent.nextElementSibling;
     let foundErrors = false;
     while (div !== null && div.classList.contains("cell-output-display")) {
       for (const errorSpan of div._errorSpans || []) {
@@ -18674,7 +18692,6 @@ function createRuntime() {
       // grab a new id accidentally.
       let targetElement;
       const getElement = () => {
-        // console.log("getElement called");
         targetElement = document.getElementById(targetElementId);
         let subFigId;
         if (!targetElement) {
@@ -18687,8 +18704,6 @@ function createRuntime() {
             throw new Error("Ran out of quarto subfigures.");
           }
         }
-        // console.log("getElement will return", targetElement);
-        // console.log("state: ", { targetElementId, subFigId });
         return targetElement;
       };
 
