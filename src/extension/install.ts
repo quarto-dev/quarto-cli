@@ -172,7 +172,10 @@ async function unzipAndStage(
     { message: "Unzipping" },
     async () => {
       // Unzip the archive
-      await unzip(zipFile);
+      const result = await unzip(zipFile);
+      if (!result.success) {
+        throw new Error("Failed to unzip extension.\n" + result.stderr);
+      }
 
       // Remove the tar ball itself
       await Deno.remove(zipFile);
