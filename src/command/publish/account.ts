@@ -59,6 +59,10 @@ export async function resolveAccount(
     return accounts[0];
   } else if (prompt === "multiple" && accounts.length === 1) {
     return accounts[0];
+  } else if (
+    accounts.length === 1 && accounts[0].type === AccountTokenType.Anonymous
+  ) {
+    return accounts[0];
   } else {
     // prompt for account to publish with
     if (accounts.length > 0) {
@@ -78,10 +82,13 @@ export async function accountPrompt(
   _provider: PublishProvider,
   accounts: AccountToken[],
 ): Promise<AccountToken | undefined> {
-  const options: SelectOption[] = accounts.map((account) => ({
-    name: account.name + (account.server ? ` (${account.server})` : ""),
-    value: account.token,
-  }));
+  const options: SelectOption[] = accounts
+    .filter((account) => account.type !== AccountTokenType.Anonymous).map((
+      account,
+    ) => ({
+      name: account.name + (account.server ? ` (${account.server})` : ""),
+      value: account.token,
+    }));
   const kAuthorize = "authorize";
   options.push({
     name: "Use another account...",

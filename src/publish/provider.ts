@@ -7,6 +7,7 @@
 
 import { quartoConfig } from "../core/quarto.ts";
 import { netlifyProvider } from "./netlify/netlify.ts";
+import { ghpagesProvider } from "./gh-pages/gh-pages.ts";
 import { quartoPubProvider } from "./quarto-pub/quarto-pub.ts";
 import { rsconnectProvider } from "./rsconnect/rsconnect.ts";
 import { PublishOptions, PublishRecord } from "./types.ts";
@@ -14,6 +15,7 @@ import { PublishOptions, PublishRecord } from "./types.ts";
 export enum AccountTokenType {
   Environment,
   Authorized,
+  Anonymous,
 }
 
 export interface AccountToken {
@@ -23,8 +25,18 @@ export interface AccountToken {
   token: string;
 }
 
+export function anonymousAccount(): AccountToken {
+  return {
+    type: AccountTokenType.Anonymous,
+    name: "anonymous",
+    server: null,
+    token: "anonymous",
+  };
+}
+
 const kPublishProviders = [
   netlifyProvider,
+  ghpagesProvider,
   quartoPubProvider,
   rsconnectProvider,
 ];
@@ -32,6 +44,7 @@ const kPublishProviders = [
 export async function publishProviders() {
   const providers: Array<PublishProvider> = [];
   providers.push(netlifyProvider);
+  providers.push(ghpagesProvider);
   const dotenvConfig = await quartoConfig.dotenv();
   const quartopubAppId = dotenvConfig["QUARTO_PUB_APP_CLIENT_ID"];
   if (quartopubAppId && quartopubAppId !== "None") {
@@ -76,6 +89,6 @@ export interface PublishProvider {
     title: string,
     render: (siteUrl?: string) => Promise<PublishFiles>,
     target?: PublishRecord,
-  ) => Promise<[PublishRecord, URL | undefined]>;
+  ) => Promise<[PublishRecord | undefined, URL | undefined]>;
   isUnauthorized: (error: Error) => boolean;
 }
