@@ -46,21 +46,24 @@ export const publishCommand =
     .name("publish")
     .hidden()
     .description(
-      "Publish a document or project to a variety of destinations.\n\n" +
-        "Available publish providers include Netlify and RStudio Connect.",
+      "Publish a document or project. Available providers include:\n\n" +
+        " - Netlify (netlify)\n" +
+        " - RStudio Connect (connect)\n\n" +
+        "Accounts are configured interactively during publishing.\n" +
+        "Manage/remove accounts with: quarto publish accounts",
     )
-    .arguments("[provider: string] [path:string]")
+    .arguments("[provider] [path]")
     .option(
-      "--token <token:string>",
-      "Access token for publising provider",
+      "--id <id:string>",
+      "Identifier of content to publish",
     )
     .option(
       "--server <server:string>",
       "Server to publish to",
     )
     .option(
-      "--id <id:string>",
-      "Identifier of content to publish",
+      "--token <token:string>",
+      "Access token for publising provider",
     )
     .option(
       "--no-render",
@@ -73,6 +76,46 @@ export const publishCommand =
     .option(
       "--no-browser",
       "Do not open a browser to the site after publishing",
+    )
+    .example(
+      "Publish project (prompt for provider)",
+      "quarto publish",
+    )
+    .example(
+      "Publish document (prompt for provider)",
+      "quarto publish document.qmd",
+    )
+    .example(
+      "Publish project to Netlify",
+      "quarto publish netlify",
+    )
+    .example(
+      "Publish with explicit target",
+      "quarto publish netlify --id DA36416-F950-4647-815C-01A24233E294",
+    )
+    .example(
+      "Publish project to RStudio Connect",
+      "quarto publish connect",
+    )
+    .example(
+      "Publish with explicit credentials",
+      "quarto publish connect --server example.com --token 01A24233E294",
+    )
+    .example(
+      "Publish without confirmation prompt",
+      "quarto publish --no-prompt",
+    )
+    .example(
+      "Publish without rendering",
+      "quarto publish --no-render",
+    )
+    .example(
+      "Publish without opening browser",
+      "quarto publish --no-browser",
+    )
+    .example(
+      "Manage/remove publishing accounts",
+      "quarto publish accounts",
     )
     .action(
       async (
