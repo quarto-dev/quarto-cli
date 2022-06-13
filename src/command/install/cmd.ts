@@ -13,6 +13,10 @@ export const installCommand = new Command()
   .hidden() // TODO: unhide when ready
   .name("install")
   .arguments("[target:string]")
+  .option(
+    "--no-prompt",
+    "Do not prompt to confirm installation extension",
+  )
   .description(
     "Installs a Quarto Extension into the current directory or Project directory.",
   )
@@ -28,12 +32,12 @@ export const installCommand = new Command()
     "Install extension from url",
     "quarto install https://github.com/quarto-dev/quarto-extensions/releases/download/latest/my-extension.tar.gz",
   )
-  .action(async (_options: unknown, target?: string) => {
+  .action(async (options: { prompt?: boolean }, target?: string) => {
     await initYamlIntelligenceResourcesFromFilesystem();
     const temp = createTempContext();
     try {
       if (target) {
-        await installExtension(target, temp, true);
+        await installExtension(target, temp, options.prompt !== false);
       }
     } finally {
       temp.cleanup();

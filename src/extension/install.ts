@@ -8,7 +8,6 @@
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { Confirm } from "cliffy/prompt/mod.ts";
 import { Table } from "cliffy/table/mod.ts";
-import { writeAllSync } from "streams/mod.ts";
 import { basename, dirname, join } from "path/mod.ts";
 
 import { projectContext } from "../project/project-context.ts";
@@ -19,6 +18,7 @@ import { Extension, kExtensionDir } from "./extension-shared.ts";
 import { withSpinner } from "../core/console.ts";
 import { downloadWithProgress } from "../core/download.ts";
 import { readExtensions } from "./extension.ts";
+import { info } from "log/mod.ts";
 
 export interface ExtensionSource {
   type: "remote" | "local";
@@ -73,10 +73,7 @@ export async function installExtension(
 
 // Cancels the installation, providing user feedback that the installation is canceled
 function cancelInstallation() {
-  writeAllSync(
-    Deno.stdout,
-    new TextEncoder().encode("Installation canceled\n"),
-  );
+  info("Installation canceled\n");
 }
 
 // Determines whether the user trusts the extension
@@ -88,7 +85,7 @@ async function isTrusted(
     // Write the preamble
     const preamble =
       `\nQuarto extensions may execute code when documents are rendered. If you do not \ntrust the authors of the extension, we recommend that you do not install or \nuse the extension.\n\n`;
-    writeAllSync(Deno.stdout, new TextEncoder().encode(preamble));
+    info(preamble);
 
     // Ask for trust
     const question = "Do you trust the authors of this extension";
@@ -210,11 +207,7 @@ async function unzipAndStage(
 // them to a destination directory
 function readAndCopyExtensions(extensionsDir: string, targetDir: string) {
   const extensions = readExtensions(extensionsDir);
-
-  writeAllSync(
-    Deno.stdout,
-    new TextEncoder().encode(`    Found ${extensions.length} extensions.`),
-  );
+  info(`    Found ${extensions.length} extensions.`);
 
   for (const extension of extensions) {
     copyTo(
@@ -395,33 +388,18 @@ async function confirmInstallation(
 
   if (extensionRows.length > 0) {
     const table = new Table(...extensionRows);
-    writeAllSync(
-      Deno.stdout,
-      new TextEncoder().encode(
-        `\nThe following changes will be made:\n${table.toString()}\n\n`,
-      ),
-    );
-
+    info(`\nThe following changes will be made:\n${table.toString()}\n\n`);
     const question = "Would you like to continue";
     return !allowPrompt || await Confirm.prompt(question);
   } else {
-    writeAllSync(
-      Deno.stdout,
-      new TextEncoder().encode(
-        `\nNo changes required - extensions already installed.\n\n`,
-      ),
-    );
+    info(`\nNo changes required - extensions already installed.\n\n`);
     return true;
   }
 }
 
 // Copy the extension files into place
 async function completeInstallation(downloadDir: string, installDir: string) {
-  writeAllSync(
-    Deno.stdout,
-    new TextEncoder().encode("\n"),
-  );
-
+  info("\n");
   await withSpinner({
     message: `Copying`,
     doneMessage: `Extension installation complete`,
