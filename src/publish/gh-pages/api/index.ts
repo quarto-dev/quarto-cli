@@ -58,6 +58,8 @@ export async function gitHubContext(dir: string) {
             "origin",
             "gh-pages",
           ],
+          stdout: "piped",
+          stderr: "piped",
         })).success;
 
         // determine siteUrl

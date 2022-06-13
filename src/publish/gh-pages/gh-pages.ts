@@ -38,13 +38,30 @@ function accountTokens() {
 }
 
 async function authorizeToken(options: PublishOptions) {
-  console.log(await gitHubContext((options.input as ProjectContext).dir));
+  const dir = (options.input as ProjectContext).dir;
+  const ghContext = await gitHubContext(dir);
 
-  // do we have an origin?
+  // validate we have git
+  const throwUnableToPublish = (reason: string) => {
+    throw new Error(
+      `Unable to publish to GitHub Pages (${reason})`,
+    );
+  };
+  if (!ghContext.git) {
+    throwUnableToPublish("git does not appear to be installed on this system");
+  }
 
-  // TODO: need to confirm that we are in a git repo
-  // and we have an origin remote
+  // validate we are in a git repo
+  if (!ghContext.repo) {
+    throwUnableToPublish("the target directory is not a git repository");
+  }
 
+  // validate that we have an origin
+  if (!ghContext.originUrl) {
+    throwUnableToPublish("the git repository does not have a remote origin");
+  }
+
+  // good to go!
   return Promise.resolve(anonymousAccount());
 }
 
