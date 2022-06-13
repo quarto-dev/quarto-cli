@@ -135,8 +135,11 @@ async function stageExtension(
     const archiveDir = join(workingDir, "achive");
     ensureDirSync(archiveDir);
 
+    // The filename
+    const filename = source.resolvedTarget.split("/").pop() || "extension.zip";
+
     // The tarball path
-    const toFile = join(archiveDir, "extension.tar.gz");
+    const toFile = join(archiveDir, filename);
 
     // Download the file
     await downloadWithProgress(source.resolvedTarget, `Downloading`, toFile);
@@ -154,8 +157,10 @@ async function stageExtension(
       }
       return workingDir;
     } else {
+      const filename = basename(source.resolvedTarget);
+
       // A local copy of a zip file
-      const toFile = join(workingDir, "extension.tar.gz");
+      const toFile = join(workingDir, filename);
       copyTo(source.resolvedTarget, toFile);
       return unzipAndStage(toFile, source);
     }
