@@ -41,7 +41,7 @@ inInstallDir(() => {
   // Verify installation using a remote github repo
   testQuartoCmd(
     "install",
-    ["dragonstyle/test-ext", "--no-prompt"],
+    ["extension", "dragonstyle/test-ext", "--no-prompt"],
     [noErrorsOrWarnings, verifySubDirCount("_extensions", 1)],
     {
       teardown: () => {
@@ -63,7 +63,7 @@ inInstallDir(() => {
     const zipPath = join(testDirAbs, "ext-repo", zipFile.path);
     testQuartoCmd(
       "install",
-      [zipPath, "--no-prompt"],
+      ["extension", zipPath, "--no-prompt"],
       [noErrorsOrWarnings, verifySubDirCount("_extensions", zipFile.count)],
       {
         teardown: () => {

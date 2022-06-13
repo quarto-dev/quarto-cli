@@ -116,7 +116,7 @@ export async function installTool(name: string) {
       `Could not install '${name}'- try again with one of the following:`,
     );
     installableTools().forEach((name) =>
-      info("quarto install " + name, { indent: 2 })
+      info("quarto install tool " + name, { indent: 2 })
     );
   }
 }
@@ -143,7 +143,7 @@ export async function uninstallTool(name: string) {
       }
     } else {
       info(
-        `${name} is not installed Use 'quarto install ${name} to install it.`,
+        `${name} is not installed Use 'quarto install tool ${name} to install it.`,
       );
     }
   }
