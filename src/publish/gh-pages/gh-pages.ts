@@ -5,6 +5,10 @@
 *
 */
 
+import { info } from "log/mod.ts";
+
+import { withSpinner } from "../../core/console.ts";
+import { execProcess } from "../../core/process.ts";
 import { ProjectContext } from "../../project/types.ts";
 import {
   AccountToken,
@@ -88,14 +92,64 @@ function resolveTarget(
 async function publish(
   _account: AccountToken,
   _type: "document" | "site",
+  input: string,
   _title: string,
   render: (siteUrl?: string) => Promise<PublishFiles>,
   _target?: PublishRecord,
 ): Promise<[PublishRecord | undefined, URL | undefined]> {
-  await render();
+  // get context
+  const ghContext = await gitHubContext(input);
+
+  // create gh pages branch if there is none yet
+  if (!ghContext.ghPages) {
+    const oldBranch = await gitCurrentBranch(input);
+    try {
+      await gitCreateGhPages(input);
+    } finally {
+      await git(input, [["checkout", oldBranch]]);
+    }
+  }
+
+  const renderResult = await render(ghContext.siteUrl);
+
   return Promise.resolve([undefined, undefined]);
 }
 
 function isUnauthorized(_err: Error) {
   return false;
+}
+
+async function gitCurrentBranch(dir: string) {
+  const result = await execProcess({
+    cmd: ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+    cwd: dir,
+    stdout: "piped",
+  });
+  if (result.success) {
+    return result.stdout!.trim();
+  } else {
+    throw new Error();
+  }
+}
+
+async function gitCreateGhPages(dir: string) {
+  await git(dir, [
+    ["checkout", "--orphan", "gh-pages"],
+    ["rm", "-rf", "--quiet", "."],
+    ["commit", "--allow-empty", "-m", `Initializing gh-pages branch`],
+    ["push", "origin", `HEAD:gh-pages`],
+  ]);
+}
+
+async function git(dir: string, cmds: Array<string[]>) {
+  for (const cmd of cmds) {
+    if (
+      !(await execProcess({
+        cmd: ["git", ...cmd],
+        cwd: dir,
+      })).success
+    ) {
+      throw new Error();
+    }
+  }
 }

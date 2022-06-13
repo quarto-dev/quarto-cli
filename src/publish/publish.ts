@@ -85,6 +85,7 @@ export async function publishSite(
   const [publishRecord, siteUrl] = await provider.publish(
     account,
     kSiteContent,
+    project.dir,
     websiteTitle(project.config) || basename(project.dir),
     renderForPublish,
     target,
@@ -205,6 +206,7 @@ export async function publishDocument(
   const [publishRecord, siteUrl] = await provider.publish(
     account,
     kDocumentContent,
+    document,
     title,
     renderForPublish,
     target,

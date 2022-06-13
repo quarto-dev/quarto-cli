@@ -139,6 +139,7 @@ export function resolveTarget(
 function publish(
   accountToken: AccountToken,
   type: "document" | "site",
+  _input: string,
   _title: string,
   render: (siteUrl?: string) => Promise<PublishFiles>,
   target?: PublishRecord,
