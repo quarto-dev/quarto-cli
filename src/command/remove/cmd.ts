@@ -151,12 +151,23 @@ async function confirmAction(message: string, fn: () => Promise<void>) {
 }
 
 async function selectTool(tools: InstallableTool[]) {
+  const toolInfos = [];
+  for (const tool of tools) {
+    const version = await tool.installedVersion();
+    toolInfos.push({
+      tool,
+      version,
+    });
+  }
+
   const toolTarget: string = await Select.prompt({
     message: "Select a tool to remove",
-    options: tools.map((tool) => {
+    options: toolInfos.map((toolInfo) => {
       return {
-        name: tool.name,
-        value: tool.name,
+        name: `${toolInfo.tool.name} ${
+          toolInfo.version ? " (" + toolInfo.version + ")" : ""
+        }`,
+        value: toolInfo.tool.name,
       };
     }),
   });
@@ -193,10 +204,10 @@ async function selectExtensions(extensions: Extension[]) {
 }
 
 async function installedTools() {
-  const toolsToInstall: InstallableTool[] = [];
+  const tools: InstallableTool[] = [];
   await withSpinner({ message: "Inspecting tools" }, async () => {
     const all = await allTools();
-    toolsToInstall.push(...all.installed);
+    tools.push(...all.installed);
   });
-  return toolsToInstall;
+  return tools;
 }
