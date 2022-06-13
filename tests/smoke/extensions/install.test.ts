@@ -65,7 +65,11 @@ inInstallDir(() => {
       [noErrorsOrWarnings, verifySubDirCount("_extensions", zipFile.count)],
       {
         teardown: () => {
-          Deno.removeSync("_extensions", { recursive: true });
+          try {
+            Deno.removeSync("_extensions", { recursive: true });
+          } catch {
+            // Weird flex but ok
+          }
           return Promise.resolve();
         },
       },
