@@ -1,6 +1,0 @@
-title: Coolster
-author: Charles Teague
-version: 0.1
-contributes:
-  shortcodes:
-    - cool.lua

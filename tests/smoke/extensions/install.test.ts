@@ -53,9 +53,7 @@ inInstallDir(() => {
 
   // Verify installation using a local zip file
   const zipFiles = [
-    { path: "multiple-root-ext.zip", count: 3 },
     { path: "owned-multiple.zip", count: 3 },
-    { path: "single-root-ext.zip", count: 1 },
     { path: "unowned-multiple.zip", count: 3 },
   ];
 
