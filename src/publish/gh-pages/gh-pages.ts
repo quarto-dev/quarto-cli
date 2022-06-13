@@ -5,6 +5,7 @@
 *
 */
 
+import { ProjectContext } from "../../project/types.ts";
 import {
   AccountToken,
   anonymousAccount,
@@ -12,6 +13,7 @@ import {
   PublishProvider,
 } from "../provider.ts";
 import { PublishOptions, PublishRecord } from "../types.ts";
+import { gitHubContext } from "./api/index.ts";
 
 export const kGhpages = "gh-pages";
 const kGhpagesDescription = "GitHub Pages";
@@ -20,6 +22,7 @@ export const ghpagesProvider: PublishProvider = {
   name: kGhpages,
   description: kGhpagesDescription,
   requiresServer: false,
+  canPublishDocuments: false,
   accountTokens,
   authorizeToken,
   removeToken,
@@ -31,10 +34,14 @@ export const ghpagesProvider: PublishProvider = {
 // TODO: need some way to provide deployments not from the config file
 
 function accountTokens() {
-  return Promise.resolve([anonymousAccount()]);
+  return Promise.resolve([]);
 }
 
-function authorizeToken(_options: PublishOptions) {
+async function authorizeToken(options: PublishOptions) {
+  console.log(await gitHubContext((options.input as ProjectContext).dir));
+
+  // do we have an origin?
+
   // TODO: need to confirm that we are in a git repo
   // and we have an origin remote
 

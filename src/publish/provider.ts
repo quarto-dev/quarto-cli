@@ -73,6 +73,7 @@ export interface PublishProvider {
   name: string;
   description: string;
   requiresServer: boolean;
+  canPublishDocuments: boolean;
   accountTokens: () => Promise<AccountToken[]>;
   removeToken: (token: AccountToken) => void;
   authorizeToken: (

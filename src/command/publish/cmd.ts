@@ -170,6 +170,14 @@ async function publishAction(
       publishTarget,
     );
     if (account) {
+      // validate that we can publish this
+      const isDocument = typeof (publishOptions.input) === "string";
+      if (isDocument && !publishProvider.canPublishDocuments) {
+        throw new Error(
+          `Publishing single documents is not supported for ${publishProvider.description}`,
+        );
+      }
+      // do the publish
       await publish(
         publishProvider,
         account,
