@@ -8,6 +8,12 @@ import momentGuess from "moment-guess";
 
 import { parse } from "datetime/mod.ts";
 import dayjs from "dayjs/dayjs.min.js";
+import advancedPlugin from "../resources/library/dayjs/plugins/advanced.js";
+import timezonePlugin from "../resources/library/dayjs/plugins/timezone.js";
+import utcPlugin from "../resources/library/dayjs/plugins/utc.js";
+import isoWeekPlugin from "../resources/library/dayjs/plugins/isoweek.js";
+import weekOfYearPlugin from "../resources/library/dayjs/plugins/weekofyear.js";
+import weekYearPlugin from "../resources/library/dayjs/plugins/weekyear.js";
 import { existsSync } from "fs/mod.ts";
 
 import { toFileUrl } from "path/mod.ts";
@@ -70,6 +76,15 @@ export function parseSpecialDate(
   } else {
     return val as string;
   }
+}
+
+export function initDayJsPlugins() {
+  dayjs.extend(utcPlugin);
+  dayjs.extend(timezonePlugin);
+  dayjs.extend(isoWeekPlugin);
+  dayjs.extend(weekYearPlugin);
+  dayjs.extend(weekOfYearPlugin);
+  dayjs.extend(advancedPlugin);
 }
 
 export async function setDateLocale(locale: string) {
@@ -154,7 +169,7 @@ export const parsePandocDate = (dateRaw: string): Date => {
           // ambiguous. If so, just take the first format
           const format = Array.isArray(formats) ? formats[0] : formats;
           const date = dayjs(dateStr, format);
-          return date.local();
+          return date.toDate();
         } catch {
           // Couldn't parse, keep going
         }

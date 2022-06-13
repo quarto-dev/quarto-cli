@@ -17,7 +17,7 @@ import {
 } from "../../config/constants.ts";
 import { isHtmlCompatible } from "../../config/format.ts";
 import { mergeConfigs } from "../../core/config.ts";
-import { setDateLocale } from "../../core/date.ts";
+import { initDayJsPlugins, setDateLocale } from "../../core/date.ts";
 import { initDenoDom } from "../../core/deno-dom.ts";
 import { HandlerContextResults } from "../../core/handlers/types.ts";
 import {
@@ -318,6 +318,7 @@ export async function renderFiles(
 
         // Set the date locale for this render
         // Used for date formatting
+        initDayJsPlugins();
         await setDateLocale(context.format.metadata[kLang] as string);
 
         const fileLifetime = createNamedLifetime("render-file");
