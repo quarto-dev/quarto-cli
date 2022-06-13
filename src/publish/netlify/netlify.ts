@@ -44,6 +44,7 @@ export const netlifyProvider: PublishProvider = {
   description: kNetlifyDescription,
   requiresServer: false,
   canPublishDocuments: true,
+  listOriginOnly: false,
   accountTokens,
   authorizeToken,
   removeToken,

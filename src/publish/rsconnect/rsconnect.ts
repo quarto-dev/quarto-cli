@@ -44,6 +44,7 @@ export const rsconnectProvider: PublishProvider = {
   description: kRSConnectDescription,
   requiresServer: true,
   canPublishDocuments: true,
+  listOriginOnly: true,
   accountTokens,
   authorizeToken,
   removeToken,

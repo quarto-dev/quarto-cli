@@ -74,6 +74,8 @@ export interface PublishProvider {
   description: string;
   requiresServer: boolean;
   canPublishDocuments: boolean;
+  listOriginOnly: boolean;
+  publishRecord?: (dir: string) => Promise<PublishRecord | undefined>;
   accountTokens: () => Promise<AccountToken[]>;
   removeToken: (token: AccountToken) => void;
   authorizeToken: (

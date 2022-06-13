@@ -10,7 +10,11 @@ import { warning } from "log/mod.ts";
 import { Select } from "cliffy/prompt/select.ts";
 import { Confirm } from "cliffy/prompt/confirm.ts";
 
-import { findProvider, PublishDeployment } from "../../publish/provider.ts";
+import {
+  findProvider,
+  PublishDeployment,
+  publishProviders,
+} from "../../publish/provider.ts";
 
 import { resolveAccount } from "./account.ts";
 import { PublishOptions } from "../../publish/types.ts";
@@ -18,6 +22,7 @@ import {
   readProjectPublishDeployments,
   readPublishDeployments,
 } from "../../publish/config.ts";
+import { ProjectContext } from "../../project/types.ts";
 
 export async function resolveDeployment(
   options: PublishOptions,
@@ -38,6 +43,7 @@ export async function resolveDeployment(
       if (deployment) {
         if (options.prompt) {
           const confirmed = await Confirm.prompt({
+            indent: "",
             message: `Update site at ${deployment.target.url}?`,
             default: true,
           });
@@ -52,7 +58,23 @@ export async function resolveDeployment(
         );
       }
     } else if (options.prompt) {
-      return await chooseDeployment(deployments);
+      if (
+        deployments.length === 1 && deployments[0].provider.publishRecord &&
+        providerFilter === deployments[0].provider.name
+      ) {
+        const confirmed = await Confirm.prompt({
+          indent: "",
+          message: `Update site at ${deployments[0].target.url}?`,
+          default: true,
+        });
+        if (confirmed) {
+          return deployments[0];
+        } else {
+          throw new Error();
+        }
+      } else {
+        return await chooseDeployment(deployments);
+      }
     } else if (deployments.length === 1) {
       return deployments[0];
     } else {
@@ -76,6 +98,29 @@ export async function publishDeployments(
   providerFilter?: string,
 ): Promise<PublishDeployment[]> {
   const deployments: PublishDeployment[] = [];
+
+  // see if provider has a static PublishRecord
+  const isProject = typeof (options.input) !== "string";
+  if (isProject) {
+    for (const provider of await publishProviders()) {
+      if (
+        (!providerFilter || providerFilter === provider.name) &&
+        provider.publishRecord
+      ) {
+        const record = await (provider.publishRecord(
+          (options.input as ProjectContext).dir,
+        ));
+        if (record) {
+          deployments.push({
+            provider,
+            target: record,
+          });
+        }
+      }
+    }
+  }
+
+  // read config
   const config = typeof (options.input) === "string"
     ? readPublishDeployments(options.input)
     : readProjectPublishDeployments(options.input);
@@ -122,7 +167,8 @@ export async function chooseDeployment(
   const options = depoyments
     .map((deployment) => {
       const targetOrigin = new URL(deployment.target.url!).origin;
-      const url = originCounts.get(targetOrigin) === 1
+      const url = (originCounts.get(targetOrigin) === 1 &&
+          deployment.provider.listOriginOnly)
         ? targetOrigin
         : deployment.target.url;
 

@@ -23,15 +23,15 @@ export const ghpagesProvider: PublishProvider = {
   description: kGhpagesDescription,
   requiresServer: false,
   canPublishDocuments: false,
+  listOriginOnly: false,
   accountTokens,
   authorizeToken,
   removeToken,
+  publishRecord,
   resolveTarget,
   publish,
   isUnauthorized,
 };
-
-// TODO: need some way to provide deployments not from the config file
 
 function accountTokens() {
   return Promise.resolve([]);
@@ -66,6 +66,16 @@ async function authorizeToken(options: PublishOptions) {
 }
 
 function removeToken(_token: AccountToken) {
+}
+
+async function publishRecord(dir: string): Promise<PublishRecord | undefined> {
+  const ghContext = await gitHubContext(dir);
+  if (ghContext.ghPages && ghContext.siteUrl) {
+    return {
+      id: "gh-pages",
+      url: ghContext.siteUrl,
+    };
+  }
 }
 
 function resolveTarget(
