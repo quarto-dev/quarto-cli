@@ -9,12 +9,12 @@ import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { Confirm } from "cliffy/prompt/mod.ts";
 import { Table } from "cliffy/table/mod.ts";
 import { writeAllSync } from "streams/mod.ts";
-import { basename, join } from "path/mod.ts";
+import { basename, dirname, join } from "path/mod.ts";
 
 import { projectContext } from "../project/project-context.ts";
 import { TempContext } from "../core/temp-types.ts";
 import { unzip } from "../core/zip.ts";
-import { copyMinimal, copyTo } from "../core/copy.ts";
+import { copyTo } from "../core/copy.ts";
 import { Extension, kExtensionDir } from "./extension-shared.ts";
 import { withSpinner } from "../core/console.ts";
 import { downloadWithProgress } from "../core/download.ts";
@@ -24,6 +24,7 @@ export interface ExtensionSource {
   type: "remote" | "local";
   owner?: string;
   resolvedTarget: string;
+  targetSubdir?: string;
 }
 const kUnversionedFrom = "  (?)";
 const kUnversionedTo = "(?)  ";
@@ -130,73 +131,83 @@ async function stageExtension(
     // Download the file
     await downloadWithProgress(source.resolvedTarget, `Downloading`, toFile);
 
-    // Unzip the file
-    await withSpinner(
-      { message: "Unzipping" },
-      async () => {
-        // Unzip the archive
-        await unzip(toFile);
-
-        // Remove the tar ball itself
-        await Deno.remove(toFile);
-
-        return Promise.resolve();
-      },
-    );
-
-    // Use any subdirectory inside, if appropriate
-    const extensionsDir = extensionSubdirectory(source.resolvedTarget);
-
-    const unownedExtensionDir = (): string => {
-      if (extensionsDir) {
-        // Remote path to something that expands to having an '_extensions' directory
-        return join(archiveDir, extensionsDir);
-      } else {
-        // Remote path to a folder -
-        return extensionDir(archiveDir) || archiveDir;
-      }
-    };
-
-    // Make the final directory we're staging into
-    const finalDir = join(archiveDir, "staged");
-    const finalExtensionsDir = join(finalDir, "_extensions");
-    const finalExtensionTargetDir = source.owner
-      ? join(finalExtensionsDir, source.owner)
-      : finalExtensionsDir;
-    ensureDirSync(finalExtensionTargetDir);
-
-    // Move extensions into the target directory (root or owner)
-    const extensions = readExtensions(unownedExtensionDir());
-    writeAllSync(
-      Deno.stdout,
-      new TextEncoder().encode(`    Found ${extensions.length} extensions.`),
-    );
-
-    for (const extension of extensions) {
-      copyTo(
-        extension.path,
-        join(finalExtensionTargetDir, extension.id.name),
-      );
-    }
-
-    return finalDir;
+    return unzipAndStage(toFile, source);
   } else {
     if (Deno.statSync(source.resolvedTarget).isDirectory) {
       // Copy the extension dir only
       const srcDir = extensionDir(source.resolvedTarget);
       if (srcDir) {
+        const destDir = join(workingDir, kExtensionDir);
         // If there is something to stage, go for it, otherwise
         // just leave the directory empty
-        const destDir = join(workingDir, kExtensionDir);
-        copyMinimal(srcDir, destDir);
+        readAndCopyExtensions(srcDir, destDir);
       }
+      return workingDir;
     } else {
       // A local copy of a zip file
-      copyTo(source.resolvedTarget, workingDir);
-      unzip(source.resolvedTarget);
-      Deno.removeSync(source.resolvedTarget);
+      const toFile = join(workingDir, "extension.tar.gz");
+      copyTo(source.resolvedTarget, toFile);
+      return unzipAndStage(toFile, source);
     }
-    return workingDir;
+  }
+}
+
+// Unpack and stage a zipped file
+async function unzipAndStage(
+  zipFile: string,
+  source: ExtensionSource,
+) {
+  // Unzip the file
+  await withSpinner(
+    { message: "Unzipping" },
+    async () => {
+      // Unzip the archive
+      await unzip(zipFile);
+
+      // Remove the tar ball itself
+      await Deno.remove(zipFile);
+
+      return Promise.resolve();
+    },
+  );
+
+  // Use any subdirectory inside, if appropriate
+  const archiveDir = dirname(zipFile);
+
+  // Use a subdirectory if the source provides one
+  const extensionsDir = source.targetSubdir
+    ? join(archiveDir, source.targetSubdir)
+    : extensionDir(archiveDir) || archiveDir;
+
+  // Make the final directory we're staging into
+  const finalDir = join(archiveDir, "staged");
+  const finalExtensionsDir = join(finalDir, "_extensions");
+  const finalExtensionTargetDir = source.owner
+    ? join(finalExtensionsDir, source.owner)
+    : finalExtensionsDir;
+  ensureDirSync(finalExtensionTargetDir);
+
+  // Move extensions into the target directory (root or owner)
+  readAndCopyExtensions(extensionsDir, finalExtensionTargetDir);
+
+  return finalDir;
+}
+
+// Reads the extensions from an extensions directory and copies
+// them to a destination directory
+function readAndCopyExtensions(extensionsDir: string, targetDir: string) {
+  const extensions = readExtensions(extensionsDir);
+
+  writeAllSync(
+    Deno.stdout,
+    new TextEncoder().encode(`    Found ${extensions.length} extensions.`),
+  );
+
+  for (const extension of extensions) {
+    copyTo(
+      extension.path,
+      join(targetDir, extension.id.name),
+    );
   }
 }
 
@@ -409,8 +420,10 @@ async function completeInstallation(downloadDir: string, installDir: string) {
 // Is this _extensions or does this contain _extensions?
 const extensionDir = (path: string) => {
   if (basename(path) === kExtensionDir) {
+    // If this is pointing to an _extensions dir, use that
     return path;
   } else {
+    // Otherwise, add _extensions to this and use that
     const extDir = join(path, kExtensionDir);
     if (existsSync(extDir) && Deno.statSync(extDir).isDirectory) {
       return extDir;
@@ -420,19 +433,6 @@ const extensionDir = (path: string) => {
   }
 };
 
-function extensionSubdirectory(url: string) {
-  const tagMatch = url.match(githubTagRegexp);
-  if (tagMatch) {
-    return tagMatch[2] + "-" + tagMatch[3];
-  } else {
-    const latestMatch = url.match(githubLatestRegexp);
-    if (latestMatch) {
-      return latestMatch[2] + "-" + latestMatch[3];
-    } else {
-      return undefined;
-    }
-  }
-}
 const githubTagRegexp =
   /^http(?:s?):\/\/(?:www\.)?github.com\/(.*?)\/(.*?)\/archive\/refs\/tags\/(?:v?)(.*)(\.tar\.gz|\.zip)$/;
 const githubLatestRegexp =
@@ -449,11 +449,27 @@ function extensionSource(target: string): ExtensionSource {
         break;
       }
     }
+
     return {
       type: "remote",
       resolvedTarget: resolved?.url || target,
       owner: resolved?.owner,
+      targetSubdir: resolved ? repoSubdirectory(resolved.url) : undefined,
     };
+  }
+}
+
+function repoSubdirectory(url: string) {
+  const tagMatch = url.match(githubTagRegexp);
+  if (tagMatch) {
+    return tagMatch[2] + "-" + tagMatch[3];
+  } else {
+    const latestMatch = url.match(githubLatestRegexp);
+    if (latestMatch) {
+      return latestMatch[2] + "-" + latestMatch[3];
+    } else {
+      return undefined;
+    }
   }
 }
 
