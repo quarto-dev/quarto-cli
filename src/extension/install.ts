@@ -30,19 +30,23 @@ const kUnversionedFrom = "  (?)";
 const kUnversionedTo = "(?)  ";
 
 // Core Installation
-export async function installExtension(target: string, temp: TempContext) {
+export async function installExtension(
+  target: string,
+  temp: TempContext,
+  allowPrompt: boolean,
+) {
   // Is this local or remote?
   const source = extensionSource(target);
 
   // Does the user trust the extension?
-  const trusted = await isTrusted(source);
+  const trusted = await isTrusted(source, allowPrompt);
   if (!trusted) {
     // Not trusted, cancel
     cancelInstallation();
   } else {
     // Compute the installation directory
     const currentDir = Deno.cwd();
-    const installDir = await determineInstallDir(currentDir);
+    const installDir = await determineInstallDir(currentDir, allowPrompt);
 
     // Stage the extension locally
     const extensionDir = await stageExtension(source, temp.createDir());
@@ -51,7 +55,11 @@ export async function installExtension(target: string, temp: TempContext) {
     const stagedExtensions = validateExtension(extensionDir);
 
     // Confirm that the user would like to take this action
-    const confirmed = await confirmInstallation(stagedExtensions, installDir);
+    const confirmed = await confirmInstallation(
+      stagedExtensions,
+      installDir,
+      allowPrompt,
+    );
 
     if (confirmed) {
       // Complete the installation
@@ -74,8 +82,9 @@ function cancelInstallation() {
 // Determines whether the user trusts the extension
 async function isTrusted(
   source: ExtensionSource,
+  allowPrompt: boolean,
 ): Promise<boolean> {
-  if (source.type === "remote") {
+  if (allowPrompt && source.type === "remote") {
     // Write the preamble
     const preamble =
       `\nQuarto extensions may execute code when documents are rendered. If you do not \ntrust the authors of the extension, we recommend that you do not install or \nuse the extension.\n\n`;
@@ -93,13 +102,17 @@ async function isTrusted(
 
 // If the installation is happening in a project
 // we should offer to install the extension into the project
-async function determineInstallDir(dir: string) {
+async function determineInstallDir(dir: string, allowPrompt: boolean) {
   const project = await projectContext(dir);
   if (project && project.dir !== dir) {
     const question = "Install extension into project?";
-    const useProject = await Confirm.prompt(question);
-    if (useProject) {
-      return project.dir;
+    if (allowPrompt) {
+      const useProject = await Confirm.prompt(question);
+      if (useProject) {
+        return project.dir;
+      } else {
+        return dir;
+      }
     } else {
       return dir;
     }
@@ -235,6 +248,7 @@ function validateExtension(path: string) {
 async function confirmInstallation(
   extensions: Extension[],
   installDir: string,
+  allowPrompt: boolean,
 ) {
   const readExisting = () => {
     try {
@@ -389,7 +403,7 @@ async function confirmInstallation(
     );
 
     const question = "Would you like to continue";
-    return await Confirm.prompt(question);
+    return !allowPrompt || await Confirm.prompt(question);
   } else {
     writeAllSync(
       Deno.stdout,

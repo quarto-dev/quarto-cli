@@ -33,7 +33,7 @@ export const installCommand = new Command()
     const temp = createTempContext();
     try {
       if (target) {
-        await installExtension(target, temp);
+        await installExtension(target, temp, true);
       }
     } finally {
       temp.cleanup();
