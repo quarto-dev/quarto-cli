@@ -11,7 +11,6 @@ import { createTempContext } from "../../core/temp.ts";
 import { installExtension } from "../../extension/install.ts";
 import {
   allTools,
-  installableTool,
   installableTools,
   installTool,
   toolSummary,
@@ -20,6 +19,7 @@ import {
 import { info } from "log/mod.ts";
 import { withSpinner } from "../../core/console.ts";
 import { InstallableTool } from "../tools/types.ts";
+import { loadTools, selectTool } from "../remove/tools-console.ts";
 
 export const installCommand = new Command()
   .hidden()
@@ -71,36 +71,13 @@ export const installCommand = new Command()
             // Use the tool name
             await installTool(target);
           } else {
-            // Present a list of tools
-            const toolsToInstall = await notInstalledTools();
-            if (toolsToInstall.length === 0) {
-              info("All tools already installed.");
-              const summaries = [];
-              for (const tool of installableTools()) {
-                const summary = await toolSummary(tool);
-                summaries.push(summary);
-              }
+            // Not provided, give the user a list to choose from
+            const allTools = await loadTools();
+            if (allTools.filter((tool) => !tool.installed).length === 0) {
+              info("All tools are already installed.");
             } else {
-              const toolsWithSummary = [];
-              for (const tool of toolsToInstall) {
-                const summary = await toolSummary(tool.name);
-                toolsWithSummary.push({ tool, summary });
-              }
-
-              const toolTarget: string = await Select.prompt({
-                message: "Select a tool to install",
-                options: toolsWithSummary.map((toolWithSummary) => {
-                  return {
-                    name: `${toolWithSummary.tool.name}${
-                      toolWithSummary.summary?.latestRelease.version
-                        ? " (" +
-                          toolWithSummary.summary?.latestRelease.version + ")"
-                        : ""
-                    }`,
-                    value: toolWithSummary.tool.name,
-                  };
-                }),
-              });
+              // Select which tool should be installed
+              const toolTarget = await selectTool(allTools, "install");
               if (toolTarget) {
                 await installTool(toolTarget);
               }
@@ -117,12 +94,3 @@ export const installCommand = new Command()
       }
     },
   );
-
-async function notInstalledTools() {
-  const toolsToInstall: InstallableTool[] = [];
-  await withSpinner({ message: "Inspecting tools" }, async () => {
-    const all = await allTools();
-    toolsToInstall.push(...all.notInstalled);
-  });
-  return toolsToInstall;
-}

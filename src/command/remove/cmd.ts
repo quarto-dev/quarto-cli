@@ -6,7 +6,6 @@
 */
 import { Command } from "cliffy/command/mod.ts";
 import { Checkbox, Confirm, Select } from "cliffy/prompt/mod.ts";
-import { Table } from "cliffy/table/mod.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 import { createTempContext } from "../../core/temp.ts";
 import { allTools, uninstallTool } from "../tools/tools.ts";
@@ -21,6 +20,7 @@ import {
   extensionIdString,
 } from "../../extension/extension-shared.ts";
 import { projectContext } from "../../project/project-context.ts";
+import { loadTools, selectTool } from "./tools-console.ts";
 
 export const removeCommand = new Command()
   .hidden()
@@ -91,20 +91,12 @@ export const removeCommand = new Command()
             );
           } else {
             // Not provided, give the user a list to choose from
-
-            let all: {
-              installed: InstallableTool[];
-              notInstalled: InstallableTool[];
-            } = { installed: [], notInstalled: [] };
-            await withSpinner({ message: "Inspecting tools" }, async () => {
-              all = await allTools();
-            });
-
-            if (all.installed.length === 0) {
+            const allTools = await loadTools();
+            if (allTools.filter((tool) => tool.installed).length === 0) {
               info("No tools are installed.");
             } else {
               // Select which tool should be installed
-              const toolTarget = await selectTool(all);
+              const toolTarget = await selectTool(allTools, "remove");
               if (toolTarget) {
                 await uninstallTool(toolTarget);
               }
@@ -156,48 +148,6 @@ async function confirmAction(message: string, fn: () => Promise<void>) {
   if (confirmed) {
     return fn();
   }
-}
-
-async function selectTool(
-  all: { installed: InstallableTool[]; notInstalled: InstallableTool[] },
-) {
-  const toolsWithInstall = [{
-    tools: all.installed,
-    installed: true,
-  }, {
-    tools: all.notInstalled,
-    installed: false,
-  }];
-
-  const toolInfos = [];
-  for (const toolWithInstall of toolsWithInstall) {
-    for (const tool of toolWithInstall.tools) {
-      const version = await tool.installedVersion();
-      toolInfos.push({
-        tool,
-        version,
-        installed: toolWithInstall.installed,
-      });
-    }
-  }
-
-  const sorted = toolInfos.sort((tool1, tool2) => {
-    return tool1.tool.name.localeCompare(tool2.tool.name);
-  });
-
-  const toolTarget: string = await Select.prompt({
-    message: "Select a tool to remove",
-    options: sorted.map((toolInfo) => {
-      return {
-        name: `${toolInfo.tool.name} ${
-          toolInfo.version ? " (" + toolInfo.version + ")" : ""
-        }`,
-        value: toolInfo.tool.name,
-        disabled: !toolInfo.installed,
-      };
-    }),
-  });
-  return toolTarget;
 }
 
 async function selectExtensions(extensions: Extension[]) {
