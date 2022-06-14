@@ -91,12 +91,20 @@ export const removeCommand = new Command()
             );
           } else {
             // Not provided, give the user a list to choose from
-            const tools = await installedTools();
-            if (tools.length === 0) {
+
+            let all: {
+              installed: InstallableTool[];
+              notInstalled: InstallableTool[];
+            } = { installed: [], notInstalled: [] };
+            await withSpinner({ message: "Inspecting tools" }, async () => {
+              all = await allTools();
+            });
+
+            if (all.installed.length === 0) {
               info("No tools are installed.");
             } else {
               // Select which tool should be installed
-              const toolTarget = await selectTool(tools);
+              const toolTarget = await selectTool(all);
               if (toolTarget) {
                 await uninstallTool(toolTarget);
               }
@@ -150,24 +158,42 @@ async function confirmAction(message: string, fn: () => Promise<void>) {
   }
 }
 
-async function selectTool(tools: InstallableTool[]) {
+async function selectTool(
+  all: { installed: InstallableTool[]; notInstalled: InstallableTool[] },
+) {
+  const toolsWithInstall = [{
+    tools: all.installed,
+    installed: true,
+  }, {
+    tools: all.notInstalled,
+    installed: false,
+  }];
+
   const toolInfos = [];
-  for (const tool of tools) {
-    const version = await tool.installedVersion();
-    toolInfos.push({
-      tool,
-      version,
-    });
+  for (const toolWithInstall of toolsWithInstall) {
+    for (const tool of toolWithInstall.tools) {
+      const version = await tool.installedVersion();
+      toolInfos.push({
+        tool,
+        version,
+        installed: toolWithInstall.installed,
+      });
+    }
   }
+
+  const sorted = toolInfos.sort((tool1, tool2) => {
+    return tool1.tool.name.localeCompare(tool2.tool.name);
+  });
 
   const toolTarget: string = await Select.prompt({
     message: "Select a tool to remove",
-    options: toolInfos.map((toolInfo) => {
+    options: sorted.map((toolInfo) => {
       return {
         name: `${toolInfo.tool.name} ${
           toolInfo.version ? " (" + toolInfo.version + ")" : ""
         }`,
         value: toolInfo.tool.name,
+        disabled: !toolInfo.installed,
       };
     }),
   });
@@ -201,13 +227,4 @@ async function selectExtensions(extensions: Extension[]) {
   return extensions.filter((extension) => {
     return extsToRemove.includes(extensionIdString(extension.id));
   });
-}
-
-async function installedTools() {
-  const tools: InstallableTool[] = [];
-  await withSpinner({ message: "Inspecting tools" }, async () => {
-    const all = await allTools();
-    tools.push(...all.installed);
-  });
-  return tools;
 }
