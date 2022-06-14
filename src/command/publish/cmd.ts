@@ -95,6 +95,10 @@ export const publishCommand =
       "quarto publish netlify --id DA36416-F950-4647-815C-01A24233E294",
     )
     .example(
+      "Publish project to GitHub Pages",
+      "quarto publish gh-pages",
+    )
+    .example(
       "Publish project to RStudio Connect",
       "quarto publish connect",
     )

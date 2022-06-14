@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `quarto publish` command enables you to easily publish websites and documents to a variety of services, including [Netlify](https://www.netlify.com/) and [RStudio Connect](https://www.rstudio.com/products/connect/) (more services will be added over time).
+The `quarto publish` command enables you to easily publish websites and documents to a variety of services, including [Netlify](https://www.netlify.com/), [GitHub Pages](https://pages.github.com/) and [RStudio Connect](https://www.rstudio.com/products/connect/) (more services will be added over time).
 
 To publish a website or book, just execute `quarto publish` from within the project directory:
 
@@ -33,9 +33,11 @@ A record of your previous publishes will be stored in a `_publish.yml` file with
       url: "https://rsc.radixu.com/content/3bb5f59f-524a-45a5-9508-77e29a1e8bf0/"
 ```
 
-Note that account information is not stored in this file, so it is suitable for checking in to version control and being shared by multiple publishers.
+Account information is not stored in this file, so it is suitable for checking in to version control and being shared by multiple publishers.
 
-Note also that if you provide the `--id` option (described below) then a publish record is not saved (as in that case you already have another means for tracking published content).
+Note that GitHub Pages publishes are not stored in the `_publish.yml` file (they are tracked by virtue of the creation of a `gh-pages` branch).
+
+If you provide the `--id` option (described below) then a publish record is not saved (as in that case you already have another means for tracking published content).
 
 ## Headless / CI Usage
 
@@ -51,6 +53,10 @@ Using an environment variable combined with a `_publish.yml` file that points to
 ```bash
 quarto publish
 ```
+
+GitHub Pages publishing requires no special environment variables (as it use the version of git available on your system or on the CI server).
+
+### Command Line
 
 As an alternative to using a `_publish.yml` file, you can also specify your publish destination explicilty on the command line using a provider name (e.g. `netlify` or `connect`) along with the `--id` option. For example:
 
