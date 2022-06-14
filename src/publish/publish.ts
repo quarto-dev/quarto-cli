@@ -88,6 +88,7 @@ export async function publishSite(
     project.dir,
     websiteTitle(project.config) || basename(project.dir),
     renderForPublish,
+    options,
     target,
   );
   if (publishRecord) {
@@ -209,6 +210,7 @@ export async function publishDocument(
     document,
     title,
     renderForPublish,
+    options,
     target,
   );
   if (publishRecord) {

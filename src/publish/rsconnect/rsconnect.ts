@@ -231,6 +231,7 @@ async function publish(
   _input: string,
   title: string,
   render: (siteUrl?: string) => Promise<PublishFiles>,
+  _options: PublishOptions,
   target?: PublishRecord,
 ): Promise<[PublishRecord, URL]> {
   // create client

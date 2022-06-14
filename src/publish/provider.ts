@@ -92,6 +92,7 @@ export interface PublishProvider {
     input: string,
     title: string,
     render: (siteUrl?: string) => Promise<PublishFiles>,
+    options: PublishOptions,
     target?: PublishRecord,
   ) => Promise<[PublishRecord | undefined, URL | undefined]>;
   isUnauthorized: (error: Error) => boolean;

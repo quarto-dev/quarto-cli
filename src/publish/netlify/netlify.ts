@@ -177,6 +177,7 @@ function publish(
   _input: string,
   _title: string,
   render: (siteUrl?: string) => Promise<PublishFiles>,
+  _options: PublishOptions,
   target?: PublishRecord,
 ): Promise<[PublishRecord, URL | undefined]> {
   // create client

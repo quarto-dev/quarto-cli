@@ -8,6 +8,7 @@
 import { info } from "log/mod.ts";
 import { join, relative } from "path/mod.ts";
 import { copy, existsSync } from "fs/mod.ts";
+import * as colors from "fmt/colors.ts";
 
 import { Confirm } from "cliffy/prompt/confirm.ts";
 
@@ -22,6 +23,10 @@ import {
   PublishProvider,
 } from "../provider.ts";
 import { PublishOptions, PublishRecord } from "../types.ts";
+import { shortUuid } from "../../core/uuid.ts";
+import { sleep } from "../../core/wait.ts";
+import { joinUrl } from "../../core/url.ts";
+import { completeMessage, withSpinner } from "../../core/console.ts";
 
 export const kGhpages = "gh-pages";
 const kGhpagesDescription = "GitHub Pages";
@@ -93,6 +98,7 @@ async function publish(
   input: string,
   _title: string,
   render: (siteUrl?: string) => Promise<PublishFiles>,
+  options: PublishOptions,
   _target?: PublishRecord,
 ): Promise<[PublishRecord | undefined, URL | undefined]> {
   // get context
@@ -143,10 +149,13 @@ async function publish(
   const tempDir = Deno.makeTempDirSync({ dir: input });
   removeIfExists(tempDir);
 
+  const deployId = shortUuid();
+
   await withWorktree(input, relative(input, tempDir), async () => {
-    // copy output to tempdir and add .nojekyll
+    // copy output to tempdir and add .nojekyll (include deployId
+    // in .nojekyll so we can poll for completed deployment)
     await copy(renderResult.baseDir, tempDir, { overwrite: true });
-    Deno.writeTextFileSync(join(tempDir, ".nojekyll"), "");
+    Deno.writeTextFileSync(join(tempDir, ".nojekyll"), deployId);
 
     // push
     await gitCmds(tempDir, [
@@ -156,14 +165,54 @@ async function publish(
       ["push", "--force", "origin", "HEAD:gh-pages"],
     ]);
   });
+  info("");
 
-  info(`\nPublished: ${ghContext.siteUrl}\n`);
-  info(
-    "NOTE: GitHub Pages deployments normally take a few minutes\n" +
-      "(your site updates will visible once the deploy completes)\n",
-  );
+  // warn that updates may require a browser refresh
+  if (ghContext.ghPages) {
+    info(colors.yellow(
+      "NOTE: GitHub Pages sites use caching so you might need to click the refresh\n" +
+        "button within your web browser to see changes after deployment.\n",
+    ));
+  }
 
-  return Promise.resolve([undefined, undefined]);
+  // wait for deployment if we are opening a browser
+  let verified = false;
+  if (options.browser && ghContext.siteUrl) {
+    await withSpinner({
+      message:
+        "Deploying gh-pages branch to website (this may take a few minutes)",
+    }, async () => {
+      const noJekyllUrl = joinUrl(ghContext.siteUrl!, ".nojekyll");
+      while (true) {
+        await sleep(2000);
+        const response = await fetch(noJekyllUrl);
+        if (response.status === 200) {
+          if ((await response.text()).trim() === deployId) {
+            verified = true;
+            await sleep(2000);
+            break;
+          }
+        } else if (response.status !== 404) {
+          break;
+        }
+      }
+    });
+  }
+
+  completeMessage(`Published: ${ghContext.siteUrl}`);
+  info("");
+
+  if (!verified) {
+    info(
+      "NOTE: GitHub Pages deployments normally take a few minutes\n" +
+        "(your site updates will visible once the deploy completes)\n",
+    );
+  }
+
+  return Promise.resolve([
+    undefined,
+    verified ? new URL(ghContext.siteUrl!) : undefined,
+  ]);
 }
 
 function isUnauthorized(_err: Error) {
