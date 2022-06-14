@@ -80,7 +80,9 @@ export const removeCommand = new Command()
             // Show a list
             if (extensions.length > 0) {
               const extensionsToRemove = await selectExtensions(extensions);
-              await removeExtensions(extensionsToRemove);
+              if (extensionsToRemove.length > 0) {
+                await removeExtensions(extensionsToRemove);
+              }
             } else {
               info("No extensions installed.");
             }
@@ -144,6 +146,7 @@ function removeExtensions(extensions: Extension[]) {
     );
   };
 
+  info("");
   if (extensions.length === 1) {
     return removeOneExtension(extensions[0]);
   } else {
@@ -170,19 +173,23 @@ async function selectExtensions(extensions: Extension[]) {
     }
   });
 
-  const extsToRemove: string[] = await Checkbox.prompt({
-    message: "Select extension(s) to remove",
+  const extsToKeep: string[] = await Checkbox.prompt({
+    message: "Select extension(s) to keep",
     options: sorted.map((ext) => {
       return {
         name: `${ext.title}${
           ext.id.organization ? " (" + ext.id.organization + ")" : ""
         }`,
         value: extensionIdString(ext.id),
+        checked: true,
       };
     }),
+    hint:
+      "Use the arrow keys and spacebar to specify extensions you'd like to remove.\n" +
+      "   Press Enter to confirm the list of accounts you wish to remain available.",
   });
 
   return extensions.filter((extension) => {
-    return extsToRemove.includes(extensionIdString(extension.id));
+    return !extsToKeep.includes(extensionIdString(extension.id));
   });
 }
