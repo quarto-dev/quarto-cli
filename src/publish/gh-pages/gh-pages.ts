@@ -6,10 +6,13 @@
 */
 
 import { info } from "log/mod.ts";
+import { join, relative } from "path/mod.ts";
+import { copy } from "fs/mod.ts";
+import { removeIfExists } from "../../core/path.ts";
 
-import { withSpinner } from "../../core/console.ts";
 import { execProcess } from "../../core/process.ts";
-import { ProjectContext } from "../../project/types.ts";
+import { projectContext } from "../../project/project-context.ts";
+import { kProjectOutputDir, ProjectContext } from "../../project/types.ts";
 import {
   AccountToken,
   anonymousAccount,
@@ -45,12 +48,6 @@ async function authorizeToken(options: PublishOptions) {
   const dir = (options.input as ProjectContext).dir;
   const ghContext = await gitHubContext(dir);
 
-  // validate we have git
-  const throwUnableToPublish = (reason: string) => {
-    throw new Error(
-      `Unable to publish to GitHub Pages (${reason})`,
-    );
-  };
   if (!ghContext.git) {
     throwUnableToPublish("git does not appear to be installed on this system");
   }
@@ -102,21 +99,97 @@ async function publish(
 
   // create gh pages branch if there is none yet
   if (!ghContext.ghPages) {
+    const stash = !(await gitDirIsClean(input));
+    if (stash) {
+      await gitStash(input);
+    }
     const oldBranch = await gitCurrentBranch(input);
     try {
       await gitCreateGhPages(input);
     } finally {
-      await git(input, [["checkout", oldBranch]]);
+      await gitCmds(input, [["checkout", oldBranch]]);
+      if (stash) {
+        await gitStashApply(input);
+      }
     }
   }
 
+  // sync from remote
+  await gitCmds(input, [
+    ["remote", "set-branches", "--add", "origin", "gh-pages"],
+    ["fetch", "origin", "gh-pages"],
+  ]);
+
+  // render
+  const project = (await projectContext(input))!;
+  const outputDir = project.config?.project[kProjectOutputDir];
+  if (outputDir === undefined) {
+    throwUnableToPublish("no output-dir defined for project");
+  }
   const renderResult = await render(ghContext.siteUrl);
+
+  // allocate worktree dir
+  const tempDir = Deno.makeTempDirSync({ dir: input });
+  removeIfExists(tempDir);
+
+  await withWorktree(input, relative(input, tempDir), async () => {
+    // copy output to tempdir and add .nojekyll
+    await copy(renderResult.baseDir, tempDir, { overwrite: true });
+    Deno.writeTextFileSync(join(tempDir, ".nojekyll"), "");
+
+    // push
+    await gitCmds(tempDir, [
+      ["add", "-Af", "."],
+      ["commit", "--allow-empty", "-m", "Built site for gh-pages"],
+      ["remote", "-v"],
+      ["push", "--force", "origin", "HEAD:gh-pages"],
+    ]);
+  });
+
+  info(`\nPublished: ${ghContext.siteUrl}\n`);
+  info(
+    "NOTE: GitHub Pages deployments normally take a few minutes\n" +
+      "(your site updates will visible once the deploy completes)\n",
+  );
 
   return Promise.resolve([undefined, undefined]);
 }
 
 function isUnauthorized(_err: Error) {
   return false;
+}
+
+async function gitStash(dir: string) {
+  const result = await execProcess({
+    cmd: ["git", "stash"],
+    cwd: dir,
+  });
+  if (!result.success) {
+    throw new Error();
+  }
+}
+
+async function gitStashApply(dir: string) {
+  const result = await execProcess({
+    cmd: ["git", "stash", "apply"],
+    cwd: dir,
+  });
+  if (!result.success) {
+    throw new Error();
+  }
+}
+
+async function gitDirIsClean(dir: string) {
+  const result = await execProcess({
+    cmd: ["git", "diff", "HEAD"],
+    cwd: dir,
+    stdout: "piped",
+  });
+  if (result.success) {
+    return result.stdout!.trim().length === 0;
+  } else {
+    throw new Error();
+  }
 }
 
 async function gitCurrentBranch(dir: string) {
@@ -132,8 +205,37 @@ async function gitCurrentBranch(dir: string) {
   }
 }
 
+async function withWorktree(
+  dir: string,
+  siteDir: string,
+  f: () => Promise<void>,
+) {
+  await execProcess({
+    cmd: [
+      "git",
+      "worktree",
+      "add",
+      "--track",
+      "-B",
+      "gh-pages",
+      siteDir,
+      "origin/gh-pages",
+    ],
+    cwd: dir,
+  });
+
+  try {
+    await f();
+  } finally {
+    await execProcess({
+      cmd: ["git", "worktree", "remove", siteDir],
+      cwd: dir,
+    });
+  }
+}
+
 async function gitCreateGhPages(dir: string) {
-  await git(dir, [
+  await gitCmds(dir, [
     ["checkout", "--orphan", "gh-pages"],
     ["rm", "-rf", "--quiet", "."],
     ["commit", "--allow-empty", "-m", `Initializing gh-pages branch`],
@@ -141,7 +243,7 @@ async function gitCreateGhPages(dir: string) {
   ]);
 }
 
-async function git(dir: string, cmds: Array<string[]>) {
+async function gitCmds(dir: string, cmds: Array<string[]>) {
   for (const cmd of cmds) {
     if (
       !(await execProcess({
@@ -153,3 +255,10 @@ async function git(dir: string, cmds: Array<string[]>) {
     }
   }
 }
+
+// validate we have git
+const throwUnableToPublish = (reason: string) => {
+  throw new Error(
+    `Unable to publish to GitHub Pages (${reason})`,
+  );
+};
