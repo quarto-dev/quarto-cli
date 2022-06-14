@@ -5,15 +5,13 @@
 *
 */
 import { Command } from "cliffy/command/mod.ts";
-import { Checkbox, Confirm, Select } from "cliffy/prompt/mod.ts";
+import { Checkbox, Confirm } from "cliffy/prompt/mod.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 import { createTempContext } from "../../core/temp.ts";
-import { allTools, uninstallTool } from "../tools/tools.ts";
+import { uninstallTool } from "../tools/tools.ts";
 
 import { info } from "log/mod.ts";
 import { removeExtension } from "../../extension/remove.ts";
-import { withSpinner } from "../../core/console.ts";
-import { InstallableTool } from "../tools/types.ts";
 import { createExtensionContext } from "../../extension/extension.ts";
 import {
   Extension,
@@ -29,7 +27,7 @@ export const removeCommand = new Command()
   .arguments("<type:string> [target:string]")
   .option(
     "--no-prompt",
-    "Do not prompt to confirm actions during installation",
+    "Do not prompt to confirm actions",
   )
   .description(
     "Removes an extension or global dependency.",
@@ -39,12 +37,20 @@ export const removeCommand = new Command()
     "quarto remove extension <extension-name>",
   )
   .example(
+    "Choose extensions to remove",
+    "quarto remove extension",
+  )
+  .example(
     "Remove TinyTeX",
     "quarto remove tool tinytex",
   )
   .example(
     "Remove Chromium",
     "quarto remove tool chromium",
+  )
+  .example(
+    "Choose tools to remove",
+    "quarto remove tool",
   )
   .action(
     async (_options: { prompt?: boolean }, type: string, target?: string) => {
@@ -119,8 +125,9 @@ function removeExtensions(extensions: Extension[]) {
     // Exactly one extension
     return await confirmAction(
       `Are you sure you'd like to remove ${extension.title}?`,
-      () => {
-        return removeExtension(extension);
+      async () => {
+        await removeExtension(extension);
+        info("Extension removed.");
       },
     );
   };
@@ -132,12 +139,13 @@ function removeExtensions(extensions: Extension[]) {
         for (const extensionToRemove of extensions) {
           await removeExtension(extensionToRemove);
         }
+        info(`${extensions.length} extensions removed.`);
       },
     );
   };
 
   if (extensions.length === 1) {
-    return removeOneExtension(extensions[1]);
+    return removeOneExtension(extensions[0]);
   } else {
     return removeMultipleExtensions(extensions);
   }

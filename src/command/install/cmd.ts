@@ -5,44 +5,35 @@
 *
 */
 import { Command } from "cliffy/command/mod.ts";
-import { Select } from "cliffy/prompt/select.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 import { createTempContext } from "../../core/temp.ts";
 import { installExtension } from "../../extension/install.ts";
-import {
-  allTools,
-  installableTools,
-  installTool,
-  toolSummary,
-} from "../tools/tools.ts";
+import { installTool } from "../tools/tools.ts";
 
 import { info } from "log/mod.ts";
-import { withSpinner } from "../../core/console.ts";
-import { InstallableTool } from "../tools/types.ts";
 import { loadTools, selectTool } from "../remove/tools-console.ts";
 
 export const installCommand = new Command()
   .hidden()
   .name("install")
-  .arguments("[target:string]")
   .arguments("<type:string> [target:string]")
   .option(
     "--no-prompt",
-    "Do not prompt to confirm actions during installation",
+    "Do not prompt to confirm actions",
   )
   .description(
     "Installs an extension or global dependency.",
   )
   .example(
-    "Install extension from Github",
-    "quarto install extension <gh-organization>/<gh-repo>",
+    "Install extension (Github)",
+    "quarto install extension <gh-org>/<gh-repo>",
   )
   .example(
-    "Install extension from file",
-    "quarto install extension tools/my-extension.tar.gz",
+    "Install extension (file)",
+    "quarto install extension <path-to-zip>",
   )
   .example(
-    "Install extension from url",
+    "Install extension (url)",
     "quarto install extension <url>",
   )
   .example(
@@ -52,6 +43,10 @@ export const installCommand = new Command()
   .example(
     "Install Chromium",
     "quarto install tool chromium",
+  )
+  .example(
+    "Choose tool to install",
+    "quarto install tool",
   )
   .action(
     async (options: { prompt?: boolean }, type: string, target?: string) => {

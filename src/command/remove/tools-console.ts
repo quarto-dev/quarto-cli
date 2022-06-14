@@ -4,22 +4,11 @@
 * Copyright (C) 2021 by RStudio, PBC
 *
 */
-import { Command } from "cliffy/command/mod.ts";
-import { Checkbox, Confirm, Select } from "cliffy/prompt/mod.ts";
-import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
-import { createTempContext } from "../../core/temp.ts";
-import { allTools, uninstallTool } from "../tools/tools.ts";
+import { Select } from "cliffy/prompt/mod.ts";
+import { allTools } from "../tools/tools.ts";
 
-import { info } from "log/mod.ts";
-import { removeExtension } from "../../extension/remove.ts";
 import { withSpinner } from "../../core/console.ts";
 import { InstallableTool, RemotePackageInfo } from "../tools/types.ts";
-import { createExtensionContext } from "../../extension/extension.ts";
-import {
-  Extension,
-  extensionIdString,
-} from "../../extension/extension-shared.ts";
-import { projectContext } from "../../project/project-context.ts";
 
 interface AllTools {
   installed: InstallableTool[];

@@ -84,7 +84,7 @@ async function isTrusted(
   if (allowPrompt && source.type === "remote") {
     // Write the preamble
     const preamble =
-      `\nQuarto extensions may execute code when documents are rendered. If you do not \ntrust the authors of the extension, we recommend that you do not install or \nuse the extension.\n\n`;
+      `\nQuarto extensions may execute code when documents are rendered. If you do not \ntrust the authors of the extension, we recommend that you do not install or \nuse the extension.`;
     info(preamble);
 
     // Ask for trust
