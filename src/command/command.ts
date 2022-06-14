@@ -22,6 +22,7 @@ import { buildJsCommand } from "./build-js/cmd.ts";
 import { installCommand } from "./install/cmd.ts";
 import { publishCommand } from "./publish/cmd.ts";
 import { removeCommand } from "./remove/cmd.ts";
+import { listCommand } from "./list/cmd.ts";
 
 // deno-lint-ignore no-explicit-any
 export function commands(): Command<any>[] {
@@ -35,6 +36,7 @@ export function commands(): Command<any>[] {
     runCommand,
     installCommand,
     removeCommand,
+    listCommand,
     publishCommand,
     capabilitiesCommand,
     inspectCommand,
