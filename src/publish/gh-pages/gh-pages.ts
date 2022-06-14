@@ -7,9 +7,10 @@
 
 import { info } from "log/mod.ts";
 import { join, relative } from "path/mod.ts";
-import { copy } from "fs/mod.ts";
+import { copy, existsSync } from "fs/mod.ts";
 import { removeIfExists } from "../../core/path.ts";
 
+import { which } from "../../core/path.ts";
 import { execProcess } from "../../core/process.ts";
 import { projectContext } from "../../project/project-context.ts";
 import { kProjectOutputDir, ProjectContext } from "../../project/types.ts";
@@ -20,7 +21,6 @@ import {
   PublishProvider,
 } from "../provider.ts";
 import { PublishOptions, PublishRecord } from "../types.ts";
-import { gitHubContext } from "./api/index.ts";
 
 export const kGhpages = "gh-pages";
 const kGhpagesDescription = "GitHub Pages";
@@ -262,3 +262,82 @@ const throwUnableToPublish = (reason: string) => {
     `Unable to publish to GitHub Pages (${reason})`,
   );
 };
+
+type GitHubContext = {
+  git: boolean;
+  repo: boolean;
+  originUrl?: string;
+  ghPages?: boolean;
+  siteUrl?: string;
+};
+
+async function gitHubContext(dir: string) {
+  const context: GitHubContext = {
+    git: false,
+    repo: false,
+  };
+
+  // check for git
+  context.git = !!(await which("git"));
+
+  // check for a repo in this directory
+  if (context.git) {
+    context.repo = (await execProcess({
+      cmd: ["git", "rev-parse"],
+      cwd: dir,
+      stdout: "piped",
+      stderr: "piped",
+    })).success;
+
+    // check for an origin remote
+    if (context.repo) {
+      const result = await execProcess({
+        cmd: ["git", "config", "--get", "remote.origin.url"],
+        cwd: dir,
+        stdout: "piped",
+        stderr: "piped",
+      });
+      if (result.success) {
+        context.originUrl = result.stdout?.trim();
+
+        // check for a gh-pages branch
+        context.ghPages = (await execProcess({
+          cmd: [
+            "git",
+            "ls-remote",
+            "--quiet",
+            "--exit-code",
+            "origin",
+            "gh-pages",
+          ],
+          stdout: "piped",
+          stderr: "piped",
+        })).success;
+
+        // determine siteUrl
+        context.siteUrl = siteUrl(dir, context.originUrl!);
+      }
+    }
+  }
+
+  return context;
+}
+
+function siteUrl(dir: string, originUrl: string) {
+  const cname = join(dir, "CNAME");
+  if (existsSync(cname)) {
+    return Deno.readTextFileSync(cname).trim();
+  } else {
+    // git and ssh protccols
+    const match = originUrl?.match(
+      /git@([^:]+):([^\/]+)\/([^.]+)\.git/,
+    ) || originUrl?.match(
+      /https:\/\/([^\/]+)\/([^\/]+)\/([^.]+)\.git/,
+    );
+
+    if (match) {
+      const server = match[1].replace("github.com", "github.io");
+      return `https://${match[2]}.${server}/${match[3]}/`;
+    }
+  }
+}
