@@ -8,9 +8,10 @@
 import { info } from "log/mod.ts";
 import { join, relative } from "path/mod.ts";
 import { copy, existsSync } from "fs/mod.ts";
-import { removeIfExists } from "../../core/path.ts";
 
-import { which } from "../../core/path.ts";
+import { Confirm } from "cliffy/prompt/confirm.ts";
+
+import { removeIfExists, which } from "../../core/path.ts";
 import { execProcess } from "../../core/process.ts";
 import { projectContext } from "../../project/project-context.ts";
 import { kProjectOutputDir, ProjectContext } from "../../project/types.ts";
@@ -99,6 +100,16 @@ async function publish(
 
   // create gh pages branch if there is none yet
   if (!ghContext.ghPages) {
+    // confirm
+    const confirmed = await Confirm.prompt({
+      indent: "",
+      message: `Publish site to ${ghContext.siteUrl} using gh-pages?`,
+      default: true,
+    });
+    if (!confirmed) {
+      throw new Error();
+    }
+
     const stash = !(await gitDirIsClean(input));
     if (stash) {
       await gitStash(input);
