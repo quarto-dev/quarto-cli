@@ -25,6 +25,29 @@ const kInstallableTools: { [key: string]: InstallableTool } = {
   chromium: chromiumInstallable,
 };
 
+export async function allTools(): Promise<{
+  installed: InstallableTool[];
+  notInstalled: InstallableTool[];
+}> {
+  const installed: InstallableTool[] = [];
+  const notInstalled: InstallableTool[] = [];
+  const tools = installableTools();
+  for (const name of tools) {
+    // Find the tool
+    const tool = installableTool(name);
+    const isInstalled = await tool.installed();
+    if (isInstalled) {
+      installed.push(tool);
+    } else {
+      notInstalled.push(tool);
+    }
+  }
+  return {
+    installed,
+    notInstalled,
+  };
+}
+
 export function installableTools(): string[] {
   const tools: string[] = [];
   Object.keys(kInstallableTools).forEach((key) => {
@@ -116,7 +139,7 @@ export async function installTool(name: string) {
       `Could not install '${name}'- try again with one of the following:`,
     );
     installableTools().forEach((name) =>
-      info("quarto install " + name, { indent: 2 })
+      info("quarto install tool " + name, { indent: 2 })
     );
   }
 }
@@ -143,7 +166,7 @@ export async function uninstallTool(name: string) {
       }
     } else {
       info(
-        `${name} is not installed Use 'quarto install ${name} to install it.`,
+        `${name} is not installed Use 'quarto install tool ${name} to install it.`,
       );
     }
   }

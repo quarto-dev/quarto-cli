@@ -132,7 +132,10 @@ function ojs()
   end
 
   function escape_quotes(str)
-    local sub, _ = string.gsub(str, '"', '\\"')
+    local sub, _ = string.gsub(str, '\\', '\\\\')
+    sub, _ = string.gsub(sub, '"', '\\"')
+    sub, _ = string.gsub(sub, "'", "\\'")
+    sub, _ = string.gsub(sub, '`', '\\\\`')
     return sub
   end
   

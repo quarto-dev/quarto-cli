@@ -58,6 +58,8 @@ import { projectType } from "../../project/types/project-types.ts";
 import { readCodePage } from "../../core/windows.ts";
 import { authorsFilter, authorsFilterActive } from "./authors.ts";
 
+import { warning } from "log/mod.ts";
+
 const kQuartoParams = "quarto-params";
 
 const kProjectOffset = "project-offset";
@@ -599,15 +601,20 @@ function resolveFilterExtension(
       typeof (filter) === "string" &&
       !existsSync(filter)
     ) {
-      const extension = options.extension?.find(
+      const extensions = options.extension?.find(
         filter,
         options.source,
         "filters",
         options.project,
       );
-      const filters = extension?.contributes.filters;
-      if (filters) {
-        return filters;
+
+      if (extensions && extensions.length > 0) {
+        const filters = extensions[0].contributes.filters;
+        if (filters) {
+          return filters;
+        } else {
+          return filter;
+        }
       } else {
         return filter;
       }

@@ -63,9 +63,9 @@ export function createExtensionContext(): ExtensionContext {
   const find = (
     name: string,
     input: string,
-    contributes: "shortcodes" | "filters" | "format",
+    contributes?: "shortcodes" | "filters" | "format",
     project?: ProjectContext,
-  ): Extension | undefined => {
+  ): Extension[] => {
     // Filter the extension based upon what they contribute
     const exts = extensions(input, project).filter((ext) => {
       if (contributes === "shortcodes" && ext.contributes.shortcodes) {
@@ -75,36 +75,33 @@ export function createExtensionContext(): ExtensionContext {
       } else if (contributes === "format" && ext.contributes.format) {
         return true;
       } else {
-        return false;
+        return contributes === undefined;
       }
     });
 
     // First try an exact match
     const extId = toExtensionId(name);
     if (extId.organization) {
-      const exact = exts.find((ext) => {
-        return ext.name === extId.name &&
-          ext.organziation === extId.organization;
+      const exact = exts.filter((ext) => {
+        return (ext.id.name === extId.name &&
+          ext.id.organization === extId.organization);
       });
-      if (exact) {
+      if (exact.length > 0) {
         return exact;
       }
     }
+
     // If there wasn't an exact match, try just using the name
     const nameMatches = exts.filter((ext) => {
       return extId.name === ext.id.name;
     });
 
-    if (nameMatches && nameMatches.length > 0) {
-      if (nameMatches.length > 1) {
-        warning(
-          `More than one extension is available for the name ${name}. Consider adding an organization prefix to disambiguate.`,
-        );
-      }
-      return nameMatches[0];
-    } else {
-      return undefined;
-    }
+    // Sort to make the unowned version first
+    const sortedMatches = nameMatches.sort((ext1, _ext2) => {
+      return ext1.id.organization === undefined ? -1 : 1;
+    });
+
+    return sortedMatches;
   };
 
   return {
@@ -248,9 +245,17 @@ function allExtensionDirs(input: string, project?: ProjectContext) {
     }
   };
 
+  const inputDirName = (inputOrDir: string) => {
+    if (Deno.statSync(inputOrDir).isDirectory) {
+      return inputOrDir;
+    } else {
+      return dirname(inputOrDir);
+    }
+  };
+
   const extensionDirectories: string[] = [];
   if (project) {
-    let currentDir = Deno.realPathSync(dirname(input));
+    let currentDir = Deno.realPathSync(inputDirName(input));
     do {
       const extensionPath = extensionsDirPath(currentDir);
       if (extensionPath) {
@@ -260,7 +265,7 @@ function allExtensionDirs(input: string, project?: ProjectContext) {
     } while (isSubdir(project.dir, currentDir) || project.dir === currentDir);
     return extensionDirectories;
   } else {
-    const dir = extensionsDirPath(dirname(input));
+    const dir = extensionsDirPath(inputDirName(input));
     if (dir) {
       extensionDirectories.push(dir);
     }

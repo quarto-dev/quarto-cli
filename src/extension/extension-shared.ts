@@ -42,9 +42,9 @@ export interface ExtensionContext {
   find(
     name: string,
     input: string,
-    contributes: "shortcodes" | "filters" | "format",
+    contributes?: "shortcodes" | "filters" | "format",
     project?: ProjectContext,
-  ): Extension | undefined;
+  ): Extension[];
 }
 
 export interface ExtensionId {
