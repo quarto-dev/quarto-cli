@@ -74,6 +74,7 @@ export const installCommand = new Command()
               // Select which tool should be installed
               const toolTarget = await selectTool(allTools, "install");
               if (toolTarget) {
+                info("");
                 await installTool(toolTarget);
               }
             }

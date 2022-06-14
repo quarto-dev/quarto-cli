@@ -106,6 +106,7 @@ export const removeCommand = new Command()
               // Select which tool should be installed
               const toolTarget = await selectTool(allTools, "remove");
               if (toolTarget) {
+                info("");
                 await uninstallTool(toolTarget);
               }
             }
