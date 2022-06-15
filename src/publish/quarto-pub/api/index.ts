@@ -51,7 +51,7 @@ export class QuartoPubClient {
     this.post(`tickets/${id}/exchange`);
 
   // Creates a site.
-  public createSite = (): Promise<Site> => this.post<Site>("sites");
+  public createSite = (name: string): Promise<Site> => this.post<Site>("sites");
 
   // Creates a site deploy.
   public createDeploy = (

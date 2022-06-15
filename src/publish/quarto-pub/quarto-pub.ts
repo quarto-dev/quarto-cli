@@ -24,6 +24,8 @@ import { PublishOptions, PublishRecord } from "../types.ts";
 import { QuartoPubClient } from "./api/index.ts";
 import { quartoConfig } from "../../core/quarto.ts";
 import { authorizePrompt } from "../account.ts";
+import { gfmAutoIdentifier } from "../../core/pandoc/pandoc-id.ts";
+import { randomHex } from "../../core/random.ts";
 
 export const kQuartoPub = "quarto-pub";
 export const kQuartoPubAuthTokenVar = "QUARTO_PUB_AUTH_TOKEN";
@@ -140,18 +142,22 @@ function publish(
   accountToken: AccountToken,
   type: "document" | "site",
   _input: string,
-  _title: string,
+  title: string,
   render: (siteUrl?: string) => Promise<PublishFiles>,
   _options: PublishOptions,
   target?: PublishRecord,
 ): Promise<[PublishRecord, URL | undefined]> {
   // Create an authorized QuartoPubClient.
+
+  const baseName = gfmAutoIdentifier(title, false);
+  const name = baseName + "-" + randomHex(4);
+
   const client = new QuartoPubClient(quartoPubEnvironment, accountToken.token);
 
   const handler: PublishHandler = {
     name: kQuartoPub,
 
-    createSite: () => client.createSite(),
+    createSite: () => client.createSite(name),
 
     createDeploy: (siteId: string, files: Record<string, string>) =>
       client.createDeploy(siteId, files),
