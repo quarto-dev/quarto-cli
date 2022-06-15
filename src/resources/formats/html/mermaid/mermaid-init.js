@@ -33,7 +33,7 @@ const _quartoMermaid = {
   // in `core/svg.ts`.
   // if you change something here, you must keep it consistent there as well.
   fixupAlignment(svg, align) {
-    let style = svg.getAttribute("style") ?? "";
+    let style = svg.getAttribute("style") || "";
 
     switch (align) {
       case "left":
