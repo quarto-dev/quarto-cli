@@ -196,11 +196,16 @@ export async function preview(
   // serve project
   for await (const conn of listener) {
     (async () => {
-      for await (const { request, respondWith } of Deno.serveHttp(conn)) {
-        try {
+      try {
+        for await (const { request, respondWith } of Deno.serveHttp(conn)) {
           await respondWith(handler(request));
-        } catch (err) {
-          warning(err.message);
+        }
+      } catch (err) {
+        warning(err.message);
+        try {
+          conn.close();
+        } catch {
+          //
         }
       }
     })();
