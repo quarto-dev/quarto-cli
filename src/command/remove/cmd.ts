@@ -4,6 +4,7 @@
 * Copyright (C) 2021 by RStudio, PBC
 *
 */
+
 import { Command } from "cliffy/command/mod.ts";
 import { Checkbox, Confirm } from "cliffy/prompt/mod.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
@@ -18,7 +19,7 @@ import {
   extensionIdString,
 } from "../../extension/extension-shared.ts";
 import { projectContext } from "../../project/project-context.ts";
-import { loadTools, selectTool } from "./tools-console.ts";
+import { afterConfirm, loadTools, selectTool } from "./tools-console.ts";
 
 export const removeCommand = new Command()
   .hidden()
@@ -88,15 +89,19 @@ export const removeCommand = new Command()
             }
           }
         } else if (type.toLowerCase() === "tool") {
+          const doRemove = (toolname: string) => {
+            return afterConfirm(
+              `Are you sure you'd like to remove ${toolname}?`,
+              () => {
+                return uninstallTool(toolname);
+              },
+            );
+          };
+
           // Process tool
           if (target) {
             // Explicitly provided
-            await confirmAction(
-              `Are you sure you'd like to remove ${target}?`,
-              () => {
-                return uninstallTool(target);
-              },
-            );
+            await doRemove(target);
           } else {
             // Not provided, give the user a list to choose from
             const allTools = await loadTools();
@@ -107,7 +112,7 @@ export const removeCommand = new Command()
               const toolTarget = await selectTool(allTools, "remove");
               if (toolTarget) {
                 info("");
-                await uninstallTool(toolTarget);
+                await doRemove(toolTarget);
               }
             }
           }
@@ -126,7 +131,7 @@ export const removeCommand = new Command()
 function removeExtensions(extensions: Extension[]) {
   const removeOneExtension = async (extension: Extension) => {
     // Exactly one extension
-    return await confirmAction(
+    return await afterConfirm(
       `Are you sure you'd like to remove ${extension.title}?`,
       async () => {
         await removeExtension(extension);
@@ -136,7 +141,7 @@ function removeExtensions(extensions: Extension[]) {
   };
 
   const removeMultipleExtensions = async (extensions: Extension[]) => {
-    return await confirmAction(
+    return await afterConfirm(
       `Are you sure you'd like to remove ${extensions.length} extensions?`,
       async () => {
         for (const extensionToRemove of extensions) {
@@ -152,13 +157,6 @@ function removeExtensions(extensions: Extension[]) {
     return removeOneExtension(extensions[0]);
   } else {
     return removeMultipleExtensions(extensions);
-  }
-}
-
-async function confirmAction(message: string, fn: () => Promise<void>) {
-  const confirmed: boolean = await Confirm.prompt(message);
-  if (confirmed) {
-    return fn();
   }
 }
 

@@ -121,7 +121,10 @@ export async function loadTools(): Promise<ToolInfo[]> {
   return sorted;
 }
 
-async function afterConfirm(message: string, action: () => Promise<void>) {
+export async function afterConfirm(
+  message: string,
+  action: () => Promise<void>,
+) {
   const confirmed: boolean = await Confirm.prompt(
     {
       message,
@@ -129,6 +132,7 @@ async function afterConfirm(message: string, action: () => Promise<void>) {
     },
   );
   if (confirmed) {
+    info("");
     return action();
   } else {
     return Promise.resolve();
