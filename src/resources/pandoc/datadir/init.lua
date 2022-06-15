@@ -1283,6 +1283,7 @@ local kInHeader = "in-header";
 -- this is in the global scope - anyone downstream of init may use this
 json = require 'json'
 format = require 'format'
+utils = require 'utils'
 
 -- does the table contain a value
 local function tcontains(t,value)
@@ -1308,7 +1309,7 @@ end
 -- resolves a path, providing either the original path
 -- or if relative, a path that is based upon the 
 -- script location
-local function resolvePath(path, scriptPath) 
+local function resolvePath(path)          
   if isRelativeRef(path) then
     local wd = pandoc.system.get_working_directory();
     return pandoc.path.join({wd, path})
@@ -1496,7 +1497,8 @@ _quarto = {
       latexTabularPattern = latexTabularPattern,
       latexTablePattern = latexTablePattern,
       latexTablePatterns = latexTablePatterns
-   }
+   },
+   utils = utils
  } 
 
 -- The main exports of the quarto module
@@ -1510,10 +1512,11 @@ quarto = {
          error("HTML dependencies must include a name")
       end
 
+
       if htmlDependency.meta == nil and 
          htmlDependency.links == nil and 
          htmlDependency.scripts == nil and 
-         htmlDependency.stylesheets ==- nil and 
+         htmlDependency.stylesheets == nil and 
          htmlDependency.resources == nil and
          htmlDependency.head == nil then
          error("HTML dependencies must include at least one of meta, links, scripts, stylesheets, or resources. All appear empty.")

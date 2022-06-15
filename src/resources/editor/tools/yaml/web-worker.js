@@ -17614,8 +17614,14 @@ try {
           "Prevent comment changes from invalidating the cache for a chunk",
           "Explicitly specify cache dependencies for this chunk (one or more\nchunk labels)",
           "Detect cache dependencies automatically via usage of global\nvariables",
-          "Evaluate code cells (if <code>false</code> just echos the code into\noutput).",
-          "Include cell source code in rendered output.",
+          {
+            short: "Evaluate code cells (if <code>false</code> just echos the code into\noutput).",
+            long: "Evaluate code cells (if <code>false</code> just echos the code into\noutput)."
+          },
+          {
+            short: "Include cell source code in rendered output.",
+            long: "Include cell source code in rendered output."
+          },
           {
             short: "Collapse code into an HTML <code>&lt;details&gt;</code> tag so the\nuser can display it on-demand.",
             long: "Collapse code into an HTML <code>&lt;details&gt;</code> tag so the\nuser can display it on-demand."
@@ -27755,7 +27761,7 @@ ${sourceContext}`;
         hidden
       } = hideFormat(format);
       return {
-        regex: `^${name}(\\+.+)?$`,
+        regex: `^(.+-)?${name}([-+].+)?$`,
         schema: getFormatSchema(name),
         name,
         hidden
