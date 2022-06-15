@@ -5,10 +5,11 @@
 *
 */
 import { Command } from "cliffy/command/mod.ts";
+import { Confirm } from "cliffy/prompt/mod.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 import { createTempContext } from "../../core/temp.ts";
 import { installExtension } from "../../extension/install.ts";
-import { installTool } from "../tools/tools.ts";
+import { installTool, toolSummary, updateTool } from "../tools/tools.ts";
 
 import { info } from "log/mod.ts";
 import { loadTools, selectTool } from "../remove/tools-console.ts";
@@ -64,7 +65,7 @@ export const installCommand = new Command()
           // Install a tool
           if (target) {
             // Use the tool name
-            await installTool(target);
+            await updateOrInstallTool(target);
           } else {
             // Not provided, give the user a list to choose from
             const allTools = await loadTools();
@@ -90,3 +91,27 @@ export const installCommand = new Command()
       }
     },
   );
+
+async function updateOrInstallTool(tool: string) {
+  const summary = await toolSummary(tool);
+  if (summary && summary.installed) {
+    if (summary.installedVersion === summary.latestRelease.version) {
+      info(`${tool} is already installed and up to date.`);
+    } else {
+      const confirmed: boolean = await Confirm.prompt(
+        {
+          message:
+            `${tool} is already installed. Do you want to update to ${summary.latestRelease.version}?`,
+          default: true,
+        },
+      );
+      if (confirmed) {
+        return updateTool(tool);
+      } else {
+        return Promise.resolve();
+      }
+    }
+  } else {
+    return installTool(tool);
+  }
+}
