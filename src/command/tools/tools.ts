@@ -166,7 +166,7 @@ export async function uninstallTool(name: string) {
       }
     } else {
       info(
-        `${name} is not installed Use 'quarto install tool ${name} to install it.`,
+        `${name} is not installed use 'quarto install tool ${name} to install it.`,
       );
     }
   }
@@ -214,7 +214,7 @@ export async function updateTool(name: string) {
     }
   } else {
     info(
-      `${name} is not installed Use 'quarto install ${name} to install it.`,
+      `${name} is not installed use 'quarto install ${name} to install it.`,
     );
   }
 }

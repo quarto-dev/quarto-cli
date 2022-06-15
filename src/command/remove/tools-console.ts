@@ -57,7 +57,7 @@ export async function outputTools() {
     const summary = await toolSummary(tool.tool.name);
     if (summary) {
       const toolDetails = [
-        tool.tool.name,
+        tool.tool.name.toLowerCase(),
         installStatus(summary),
         summary.installedVersion || "---",
         summary.latestRelease.version,
@@ -121,6 +121,20 @@ export async function loadTools(): Promise<ToolInfo[]> {
   return sorted;
 }
 
+async function afterConfirm(message: string, action: () => Promise<void>) {
+  const confirmed: boolean = await Confirm.prompt(
+    {
+      message,
+      default: true,
+    },
+  );
+  if (confirmed) {
+    return action();
+  } else {
+    return Promise.resolve();
+  }
+}
+
 export async function updateOrInstallTool(
   tool: string,
   action: "update" | "install",
@@ -129,22 +143,22 @@ export async function updateOrInstallTool(
 
   if (action === "update") {
     if (!summary?.installed) {
-      const confirmed: boolean = await Confirm.prompt(
-        {
-          message: `${tool} is not installed. Do you want to install it now?`,
-          default: true,
+      return afterConfirm(
+        `${tool} is not installed. Do you want to install it now?`,
+        () => {
+          return installTool(tool);
         },
       );
-      if (confirmed) {
-        return installTool(tool);
-      } else {
-        return Promise.resolve();
-      }
     } else {
       if (summary.installedVersion === summary.latestRelease.version) {
         info(`${tool} is already up to date.`);
       } else {
-        return updateTool(tool);
+        return afterConfirm(
+          `Do you want to update ${tool} from ${summary.installedVersion} to ${summary.latestRelease.version}?`,
+          () => {
+            return updateTool(tool);
+          },
+        );
       }
     }
   } else {
@@ -202,8 +216,8 @@ export async function selectTool(
     options: toolsInfo.map((toolInfo) => {
       return {
         name: name(toolInfo),
-        value: toolInfo.tool.name,
-        disabled: action === "install" || action === "update"
+        value: toolInfo.tool.name.toLowerCase(),
+        disabled: action === "install"
           ? toolInfo.installed
           : !toolInfo.installed,
       };

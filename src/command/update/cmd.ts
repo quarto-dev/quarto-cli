@@ -75,7 +75,7 @@ export const updateCommand = new Command()
               info("All tools are already installed.");
             } else {
               // Select which tool should be installed
-              const toolTarget = await selectTool(allTools, "install");
+              const toolTarget = await selectTool(allTools, "update");
               if (toolTarget) {
                 info("");
                 await updateOrInstallTool(toolTarget, "update");
