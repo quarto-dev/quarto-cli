@@ -52,7 +52,7 @@ date: last-modified
 bibliography: mybibfile.bib
 
 format:
-  quarto-journals-pdf/elsevier:
+  quarto-journals/elsevier-pdf:
     keep-tex: false
     journal: "An awesome journal"
     # csl: https://www.zotero.org/styles/elsevier-harvard
@@ -65,8 +65,6 @@ format:
     type: article
     title-formatted: A demonstration of the `achemso` \LaTeX\ class\footnote{A footnote for the title}
     title-short: An `achemso` demo
-
-validate-yaml: false
 ---
 
 Please make sure that your manuscript follows the guidelines in the 

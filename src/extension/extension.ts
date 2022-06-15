@@ -283,7 +283,7 @@ export function discoverExtensionPath(
   if (extensionId.organization) {
     // If there is an organization, always match that exactly
     extensionDirGlobs.push(
-      `${extensionId.name}/${extensionId.organization}/`,
+      `${extensionId.organization}/${extensionId.name}/`,
     );
   } else {
     // Otherwise, match either the exact string (e.g. acm or a wildcard org */acm/)
