@@ -687,7 +687,9 @@ export function getDivAttributes(
   if (options?.[kCellLstCap]) {
     attrs.push(`caption="${options?.[kCellLstCap]}"`);
   }
-  const classes = (options?.classes as (undefined | string[])) || [];
+  const classStr = (options?.classes as (string | undefined)) || "";
+
+  const classes = classStr === "" ? [] : classStr.trim().split(" ");
   if (typeof options?.panel === "string") {
     classes.push(`panel-${options?.panel}`);
   }
