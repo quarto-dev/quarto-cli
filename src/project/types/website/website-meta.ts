@@ -38,9 +38,6 @@ import {
 } from "./website-pipeline-md.ts";
 import { findDescription, findPreviewImg } from "./util/discover-meta.ts";
 import { isAbsoluteRef } from "../../../core/http.ts";
-import {
-  kHtmlEmptyPostProcessResult,
-} from "../../../command/render/constants.ts";
 import { HtmlPostProcessResult } from "../../../command/render/types.ts";
 import { imageSize } from "../../../core/image.ts";
 import { writeMetaTag } from "../../../format/html/format-html-shared.ts";

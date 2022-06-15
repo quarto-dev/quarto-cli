@@ -14,11 +14,7 @@ import {
 } from "./types.ts";
 import { breakQuartoMd, QuartoMdCell } from "../lib/break-quarto-md.ts";
 import { mergeConfigs } from "../config.ts";
-import {
-  DependencyFile,
-  FormatDependency,
-  kDependencies,
-} from "../../config/types.ts";
+import { FormatDependency, kDependencies } from "../../config/types.ts";
 import {
   asMappedString,
   join as mappedJoin,
@@ -65,7 +61,6 @@ import {
   kTblCapLoc,
 } from "../../config/constants.ts";
 import { DirectiveCell } from "../lib/break-quarto-md-types.ts";
-import { isHtmlCompatible } from "../../config/format.ts";
 import { basename, dirname, join, relative, resolve } from "path/mod.ts";
 import { figuresDir, inputFilesDir } from "../render.ts";
 import { ensureDirSync } from "fs/mod.ts";

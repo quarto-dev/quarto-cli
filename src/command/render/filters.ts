@@ -58,8 +58,6 @@ import { projectType } from "../../project/types/project-types.ts";
 import { readCodePage } from "../../core/windows.ts";
 import { authorsFilter, authorsFilterActive } from "./authors.ts";
 
-import { warning } from "log/mod.ts";
-
 const kQuartoParams = "quarto-params";
 
 const kProjectOffset = "project-offset";

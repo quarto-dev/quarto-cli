@@ -4,12 +4,7 @@ import {
   kIncludeBeforeBody,
   kIncludeInHeader,
 } from "../../config/constants.ts";
-import {
-  DependencyFile,
-  Format,
-  FormatDependency,
-  FormatExtras,
-} from "../../config/types.ts";
+import { Format, FormatDependency, FormatExtras } from "../../config/types.ts";
 import { PandocIncludes } from "../../execute/types.ts";
 import { DirectiveCell, QuartoMdCell } from "../lib/break-quarto-md-types.ts";
 import { EitherString, MappedString } from "../lib/text-types.ts";

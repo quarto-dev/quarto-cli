@@ -19,7 +19,6 @@ import {
 import {
   kAbstract,
   kAuthor,
-  kAuthors,
   kDate,
   kDescription,
   kNumberSections,
