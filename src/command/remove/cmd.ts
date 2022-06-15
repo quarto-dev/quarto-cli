@@ -21,6 +21,7 @@ import { projectContext } from "../../project/project-context.ts";
 import {
   afterConfirm,
   loadTools,
+  removeTool,
   selectTool,
 } from "../../tools/tools-console.ts";
 import { uninstallTool } from "../../tools/tools.ts";
@@ -93,19 +94,10 @@ export const removeCommand = new Command()
             }
           }
         } else if (type.toLowerCase() === "tool") {
-          const doRemove = (toolname: string) => {
-            return afterConfirm(
-              `Are you sure you'd like to remove ${toolname}?`,
-              () => {
-                return uninstallTool(toolname);
-              },
-            );
-          };
-
           // Process tool
           if (target) {
             // Explicitly provided
-            await doRemove(target);
+            await removeTool(target);
           } else {
             // Not provided, give the user a list to choose from
             const allTools = await loadTools();
@@ -116,7 +108,7 @@ export const removeCommand = new Command()
               const toolTarget = await selectTool(allTools, "remove");
               if (toolTarget) {
                 info("");
-                await doRemove(toolTarget);
+                await removeTool(toolTarget);
               }
             }
           }

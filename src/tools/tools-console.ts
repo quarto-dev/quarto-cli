@@ -13,6 +13,7 @@ import {
   allTools,
   installTool,
   toolSummary,
+  uninstallTool,
   updateTool,
 } from "../tools/tools.ts";
 
@@ -139,6 +140,15 @@ export async function afterConfirm(
   }
 }
 
+export const removeTool = (toolname: string) => {
+  return afterConfirm(
+    `Are you sure you'd like to remove ${toolname}?`,
+    () => {
+      return uninstallTool(toolname);
+    },
+  );
+};
+
 export async function updateOrInstallTool(
   tool: string,
   action: "update" | "install",
@@ -154,7 +164,11 @@ export async function updateOrInstallTool(
         },
       );
     } else {
-      if (summary.installedVersion === summary.latestRelease.version) {
+      if (summary.installedVersion === undefined) {
+        info(
+          `${tool} was not installed using Quarto. Please use the tool that you used to install ${tool} instead.`,
+        );
+      } else if (summary.installedVersion === summary.latestRelease.version) {
         info(`${tool} is already up to date.`);
       } else {
         return afterConfirm(

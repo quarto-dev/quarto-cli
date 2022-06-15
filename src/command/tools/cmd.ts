@@ -8,7 +8,11 @@
 import { Command } from "cliffy/command/mod.ts";
 import { Confirm } from "cliffy/prompt/mod.ts";
 import { info } from "log/mod.ts";
-import { outputTools } from "../../tools/tools-console.ts";
+import {
+  outputTools,
+  removeTool,
+  updateOrInstallTool,
+} from "../../tools/tools-console.ts";
 import {
   installableTools,
   installTool,
@@ -65,35 +69,22 @@ Use 'quarto tools' with no arguments to show the status of all tools.`,
         break;
       case "install":
         if (tool) {
-          await installTool(tool);
+          await updateOrInstallTool(
+            tool,
+            "install",
+          );
         }
         break;
       case "uninstall":
         if (tool) {
-          await confirmDestructiveAction(
-            tool,
-            `This will remove ${tool} and all of its files. Are you sure?`,
-            async () => {
-              await uninstallTool(tool);
-            },
-            false,
-            await toolSummary(tool),
-          );
+          await removeTool(tool);
         }
         break;
       case "update":
         if (tool) {
-          const summary = await toolSummary(tool);
-          await confirmDestructiveAction(
+          await updateOrInstallTool(
             tool,
-            `This will update ${tool} from ${summary?.installedVersion} to ${
-              summary?.latestRelease.version
-            }. Are you sure?`,
-            async () => {
-              await updateTool(tool);
-            },
-            true,
-            summary,
+            "update",
           );
         }
         break;
@@ -103,38 +94,3 @@ Use 'quarto tools' with no arguments to show the status of all tools.`,
         break;
     }
   });
-
-async function confirmDestructiveAction(
-  name: string,
-  prompt: string,
-  action: () => Promise<void>,
-  update: boolean,
-  summary?: ToolSummaryData,
-) {
-  if (summary) {
-    if (summary.installed) {
-      if (
-        summary.installedVersion === summary.latestRelease.version && update
-      ) {
-        info(`${name} is already up to date.`);
-      } else if (summary.installedVersion !== undefined) {
-        const confirmed: boolean = await Confirm.prompt(prompt);
-        if (confirmed) {
-          await action();
-        }
-      } else {
-        info(
-          `${name} was not installed using Quarto. Please use the tool that you used to install ${name} instead.`,
-        );
-      }
-    } else {
-      info(
-        `${name} isn't installed. Please use 'quarto tools install ${name}' to install it.`,
-      );
-    }
-  } else {
-    info(
-      `${name} isn't a supported tool. Use 'quarto tools help' for more information.`,
-    );
-  }
-}
