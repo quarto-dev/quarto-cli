@@ -14,11 +14,7 @@ import {
 } from "./types.ts";
 import { breakQuartoMd, QuartoMdCell } from "../lib/break-quarto-md.ts";
 import { mergeConfigs } from "../config.ts";
-import {
-  DependencyFile,
-  FormatDependency,
-  kDependencies,
-} from "../../config/types.ts";
+import { FormatDependency, kDependencies } from "../../config/types.ts";
 import {
   asMappedString,
   join as mappedJoin,
@@ -65,7 +61,6 @@ import {
   kTblCapLoc,
 } from "../../config/constants.ts";
 import { DirectiveCell } from "../lib/break-quarto-md-types.ts";
-import { isHtmlCompatible } from "../../config/format.ts";
 import { basename, dirname, join, relative, resolve } from "path/mod.ts";
 import { figuresDir, inputFilesDir } from "../render.ts";
 import { ensureDirSync } from "fs/mod.ts";
@@ -100,6 +95,7 @@ function makeHandlerContext(
     resourceFiles: [],
     includes: {},
     extras: {},
+    supporting: [],
   };
   const tempContext = options.temp;
   const context: LanguageCellHandlerContext = {
@@ -233,7 +229,10 @@ function makeHandlerContext(
 
       const pngName = `${prefix}${globalFigureCounter[prefix]}${extension}`;
       const tempName = join(context.figuresDir(), pngName);
-      const mdName = relative(dirname(options.context.target.source), tempName);
+      const baseDir = dirname(options.context.target.source);
+      const mdName = relative(baseDir, tempName);
+
+      this.addSupporting(relative(baseDir, context.figuresDir()));
 
       return {
         baseName: basename(mdName),
@@ -258,6 +257,12 @@ function makeHandlerContext(
         results.extras.html = { [kDependencies]: [dep] };
       } else {
         results.extras.html[kDependencies]!.push(dep);
+      }
+    },
+    addSupporting(dir: string) {
+      if (results.supporting.indexOf(dir) === -1) {
+        results.supporting.push(dir);
+        console.log(results.supporting);
       }
     },
     addResource(fileName: string) {
@@ -687,7 +692,9 @@ export function getDivAttributes(
   if (options?.[kCellLstCap]) {
     attrs.push(`caption="${options?.[kCellLstCap]}"`);
   }
-  const classes = (options?.classes as (undefined | string[])) || [];
+  const classStr = (options?.classes as (string | undefined)) || "";
+
+  const classes = classStr === "" ? [] : classStr.trim().split(" ");
   if (typeof options?.panel === "string") {
     classes.push(`panel-${options?.panel}`);
   }

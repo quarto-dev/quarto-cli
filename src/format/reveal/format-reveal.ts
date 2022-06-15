@@ -233,7 +233,7 @@ export function revealjsFormat() {
         );
 
         // add multiplex if we have it
-        const multiplexExtras = revealMultiplexExtras(format);
+        const multiplexExtras = revealMultiplexExtras(format, flags);
         if (multiplexExtras) {
           extras = mergeConfigs(extras, multiplexExtras);
         }

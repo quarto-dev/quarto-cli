@@ -383,7 +383,7 @@ async function runHtmlPostprocessors(
   return postProcessResult;
 }
 
-const pandocIngestSelfContainedContent = async (file: string) => {
+export const pandocIngestSelfContainedContent = async (file: string) => {
   const filename = basename(file);
   const workingDir = dirname(file);
 

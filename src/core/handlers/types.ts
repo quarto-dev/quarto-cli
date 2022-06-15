@@ -4,12 +4,7 @@ import {
   kIncludeBeforeBody,
   kIncludeInHeader,
 } from "../../config/constants.ts";
-import {
-  DependencyFile,
-  Format,
-  FormatDependency,
-  FormatExtras,
-} from "../../config/types.ts";
+import { Format, FormatDependency, FormatExtras } from "../../config/types.ts";
 import { PandocIncludes } from "../../execute/types.ts";
 import { DirectiveCell, QuartoMdCell } from "../lib/break-quarto-md-types.ts";
 import { EitherString, MappedString } from "../lib/text-types.ts";
@@ -126,11 +121,15 @@ export interface LanguageCellHandlerContext {
   addHtmlDependency: (
     dep: FormatDependency,
   ) => void;
+  addSupporting: (
+    dir: string,
+  ) => void;
 }
 export interface HandlerContextResults {
   includes: PandocIncludes;
   resourceFiles: string[];
   extras: FormatExtras;
+  supporting: string[]; // additional supporting directories that need to be potentially cleaned-up
 }
 
 export type LanguageComment = string | [string, string];

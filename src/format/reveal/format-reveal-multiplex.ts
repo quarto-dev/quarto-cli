@@ -7,8 +7,10 @@
 
 import { existsSync } from "fs/mod.ts";
 import { join } from "path/mod.ts";
+import { isSelfContainedOutput } from "../../command/render/render-info.ts";
+import { pandocIngestSelfContainedContent } from "../../command/render/render.ts";
 
-import { Format, FormatExtras } from "../../config/types.ts";
+import { Format, FormatExtras, PandocFlags } from "../../config/types.ts";
 import { dirAndStem, pathWithForwardSlashes } from "../../core/path.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { lines } from "../../core/text.ts";
@@ -38,6 +40,7 @@ export function revealMuliplexPreviewFile(file: string) {
 
 export function revealMultiplexExtras(
   format: Format,
+  flags: PandocFlags,
 ): FormatExtras | undefined {
   if (format.metadata[kRevealJsMultiplex]) {
     // create speaker version w/ master
@@ -68,6 +71,18 @@ export function revealMultiplexExtras(
         // write speaker version
         const speakerOutput = revealSpeakerOutput(output);
         await Deno.writeTextFile(speakerOutput, speakerContent);
+
+        // determine whether this is self-contained output
+        const selfContained = isSelfContainedOutput(
+          flags,
+          format,
+          speakerOutput,
+        );
+
+        // If this is self contained, we should ingest dependencies
+        if (selfContained) {
+          await pandocIngestSelfContainedContent(speakerOutput);
+        }
       }],
     };
   } else {
