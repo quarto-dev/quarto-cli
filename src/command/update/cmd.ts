@@ -17,40 +17,40 @@ import {
   updateOrInstallTool,
 } from "../remove/tools-console.ts";
 
-export const installCommand = new Command()
+export const updateCommand = new Command()
   .hidden()
-  .name("install")
+  .name("update")
   .arguments("<type:string> [target:string]")
   .option(
     "--no-prompt",
     "Do not prompt to confirm actions",
   )
   .description(
-    "Installs an extension or global dependency.",
+    "Updates an extension or global dependency.",
   )
   .example(
-    "Install extension (Github)",
-    "quarto install extension <gh-org>/<gh-repo>",
+    "Update extension (Github)",
+    "quarto update extension <gh-org>/<gh-repo>",
   )
   .example(
-    "Install extension (file)",
-    "quarto install extension <path-to-zip>",
+    "Update extension (file)",
+    "quarto update extension <path-to-zip>",
   )
   .example(
-    "Install extension (url)",
-    "quarto install extension <url>",
+    "Update extension (url)",
+    "quarto update extension <url>",
   )
   .example(
-    "Install TinyTeX",
-    "quarto install tool tinytex",
+    "Update TinyTeX",
+    "quarto update tool tinytex",
   )
   .example(
-    "Install Chromium",
-    "quarto install tool chromium",
+    "Update Chromium",
+    "quarto update tool chromium",
   )
   .example(
-    "Choose tool to install",
-    "quarto install tool",
+    "Choose tool to update",
+    "quarto update tool",
   )
   .action(
     async (options: { prompt?: boolean }, type: string, target?: string) => {
@@ -68,7 +68,7 @@ export const installCommand = new Command()
           // Install a tool
           if (target) {
             // Use the tool name
-            await updateOrInstallTool(target, "install");
+            await updateOrInstallTool(target, "update");
           } else {
             // Not provided, give the user a list to choose from
             const allTools = await loadTools();
@@ -79,7 +79,7 @@ export const installCommand = new Command()
               const toolTarget = await selectTool(allTools, "install");
               if (toolTarget) {
                 info("");
-                await installTool(toolTarget);
+                await updateOrInstallTool(toolTarget, "update");
               }
             }
           }

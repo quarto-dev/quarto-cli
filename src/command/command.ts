@@ -20,6 +20,7 @@ import { checkCommand } from "./check/cmd.ts";
 import { inspectCommand } from "./inspect/cmd.ts";
 import { buildJsCommand } from "./build-js/cmd.ts";
 import { installCommand } from "./install/cmd.ts";
+import { updateCommand } from "./update/cmd.ts";
 import { publishCommand } from "./publish/cmd.ts";
 import { removeCommand } from "./remove/cmd.ts";
 import { listCommand } from "./list/cmd.ts";
@@ -35,6 +36,7 @@ export function commands(): Command<any>[] {
     pandocCommand,
     runCommand,
     installCommand,
+    updateCommand,
     removeCommand,
     listCommand,
     publishCommand,

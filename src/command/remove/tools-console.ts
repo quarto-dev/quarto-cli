@@ -4,9 +4,14 @@
 * Copyright (C) 2021 by RStudio, PBC
 *
 */
-import { Select } from "cliffy/prompt/mod.ts";
+import { Confirm, Select } from "cliffy/prompt/mod.ts";
 import { Table } from "cliffy/table/mod.ts";
-import { allTools, toolSummary } from "../tools/tools.ts";
+import {
+  allTools,
+  installTool,
+  toolSummary,
+  updateTool,
+} from "../tools/tools.ts";
 
 import { withSpinner } from "../../core/console.ts";
 import {
@@ -116,12 +121,62 @@ export async function loadTools(): Promise<ToolInfo[]> {
   return sorted;
 }
 
+export async function updateOrInstallTool(
+  tool: string,
+  action: "update" | "install",
+) {
+  const summary = await toolSummary(tool);
+
+  if (action === "update") {
+    if (!summary?.installed) {
+      const confirmed: boolean = await Confirm.prompt(
+        {
+          message: `${tool} is not installed. Do you want to install it now?`,
+          default: true,
+        },
+      );
+      if (confirmed) {
+        return installTool(tool);
+      } else {
+        return Promise.resolve();
+      }
+    } else {
+      if (summary.installedVersion === summary.latestRelease.version) {
+        info(`${tool} is already up to date.`);
+      } else {
+        return updateTool(tool);
+      }
+    }
+  } else {
+    if (summary && summary.installed) {
+      if (summary.installedVersion === summary.latestRelease.version) {
+        info(`${tool} is already installed and up to date.`);
+      } else {
+        const confirmed: boolean = await Confirm.prompt(
+          {
+            message:
+              `${tool} is already installed. Do you want to update to ${summary.latestRelease.version}?`,
+            default: true,
+          },
+        );
+        if (confirmed) {
+          return updateTool(tool);
+        } else {
+          return Promise.resolve();
+        }
+      }
+    } else {
+      return installTool(tool);
+    }
+  }
+}
+
 export async function selectTool(
   toolsInfo: ToolInfo[],
-  action: "install" | "remove",
+  action: "install" | "update" | "remove",
 ) {
   const name = (toolInfo: ToolInfo) => {
-    if (action === "install") {
+    if (action === "install" || action == "update") {
       if (toolInfo.installed) {
         return `${toolInfo.tool.name}${
           toolInfo.version ? " (" + toolInfo.version + " installed)" : ""
@@ -148,7 +203,7 @@ export async function selectTool(
       return {
         name: name(toolInfo),
         value: toolInfo.tool.name,
-        disabled: action === "install"
+        disabled: action === "install" || action === "update"
           ? toolInfo.installed
           : !toolInfo.installed,
       };
