@@ -4,8 +4,11 @@
 * Copyright (C) 2021 by RStudio, PBC
 *
 */
+import * as colors from "fmt/colors.ts";
 import { Confirm, Select } from "cliffy/prompt/mod.ts";
 import { Table } from "cliffy/table/mod.ts";
+import { info, warning } from "log/mod.ts";
+
 import {
   allTools,
   installTool,
@@ -19,7 +22,6 @@ import {
   RemotePackageInfo,
   ToolSummaryData,
 } from "../tools/types.ts";
-import { info, warning } from "log/mod.ts";
 
 interface ToolInfo {
   tool: InstallableTool;
@@ -32,56 +34,54 @@ export async function outputTools() {
   const toolRows: string[][] = [];
   const statusMsgs: string[] = [];
 
-  await withSpinner({
-    message: "Reading Tool Data",
-  }, async () => {
-    // Reads the status
-    const installStatus = (summary: ToolSummaryData): string => {
-      if (summary.installed) {
-        if (summary.installedVersion) {
-          if (summary.installedVersion === summary.latestRelease.version) {
-            return "Up to date";
-          } else {
-            return "Update available";
-          }
+  // Reads the status
+  const installStatus = (summary: ToolSummaryData): string => {
+    if (summary.installed) {
+      if (summary.installedVersion) {
+        if (summary.installedVersion === summary.latestRelease.version) {
+          return "Up to date";
         } else {
-          return "External Installation";
+          return "Update available";
         }
       } else {
-        return "Not installed";
+        return "External Installation";
       }
-    };
+    } else {
+      return "Not installed";
+    }
+  };
 
-    // The column widths for output (in chars)
-    const tools = await loadTools();
-    for (const tool of tools) {
-      const summary = await toolSummary(tool.tool.name);
-      if (summary) {
-        const toolDetails = [
-          tool.tool.name,
-          installStatus(summary),
-          summary.installedVersion || "",
-          summary.latestRelease.version,
-        ];
-        toolRows.push(toolDetails);
+  // The column widths for output (in chars)
+  const tools = await loadTools();
+  for (const tool of tools) {
+    const summary = await toolSummary(tool.tool.name);
+    if (summary) {
+      const toolDetails = [
+        tool.tool.name,
+        installStatus(summary),
+        summary.installedVersion || "---",
+        summary.latestRelease.version,
+      ];
+      toolRows.push(toolDetails);
 
-        if (summary.configuration.status !== "ok") {
-          statusMsgs.push(
-            `${summary.configuration.message}`,
-          );
-        }
+      if (summary.configuration.status !== "ok") {
+        statusMsgs.push(
+          `${summary.configuration.message}`,
+        );
       }
     }
-  });
+  }
+
+  info("");
   // Write the output
   const table = new Table().header([
-    "Tool",
-    "Status",
-    "Installed",
-    "Latest",
+    colors.bold("Tool"),
+    colors.bold("Status"),
+    colors.bold("Installed"),
+    colors.bold("Latest"),
   ]).body(
     toolRows,
-  ).padding(4);
+  ).padding(5);
   info(table.toString());
   statusMsgs.forEach((msg) => {
     warning(msg);

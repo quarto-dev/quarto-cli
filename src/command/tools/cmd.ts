@@ -9,8 +9,6 @@ import { Command } from "cliffy/command/mod.ts";
 import { Confirm } from "cliffy/prompt/mod.ts";
 import { info } from "log/mod.ts";
 
-import { formatLine, withSpinner } from "../../core/console.ts";
-
 import { ToolSummaryData } from "./types.ts";
 
 import {
@@ -21,6 +19,7 @@ import {
   uninstallTool,
   updateTool,
 } from "./tools.ts";
+import { outputTools } from "../remove/tools-console.ts";
 
 // quarto tools install tinytex
 // quarto tools uninstall tinytex
@@ -139,66 +138,5 @@ async function confirmDestructiveAction(
     info(
       `${name} isn't a supported tool. Use 'quarto tools help' for more information.`,
     );
-  }
-}
-
-async function outputTools() {
-  const toolRows: string[] = [];
-  const cols = [20, 32, 14, 14];
-  await withSpinner({
-    message: "Reading Tool Data",
-  }, async () => {
-    // Reads the status
-    const installStatus = (summary: ToolSummaryData): string => {
-      if (summary.installed) {
-        if (summary.installedVersion) {
-          if (summary.installedVersion === summary.latestRelease.version) {
-            return "Up to date";
-          } else {
-            return "Update available";
-          }
-        } else {
-          return "Present - ext. managed";
-        }
-      } else {
-        return "Not installed";
-      }
-    };
-
-    // The column widths for output (in chars)
-    for (const tool of installableTools()) {
-      const summary = await toolSummary(tool);
-      if (summary) {
-        toolRows.push(
-          formatLine(
-            [
-              tool,
-              installStatus(summary),
-              summary.installedVersion || "----",
-              summary.latestRelease.version,
-            ],
-            cols,
-          ),
-        );
-
-        if (summary.configuration.status !== "ok") {
-          toolRows.push(
-            `[${summary.configuration.status}] ${
-              summary.configuration.message || "No Message"
-            }`,
-          );
-        }
-      }
-    }
-  });
-  // Write the output
-  info(
-    formatLine(["Tool", "Status", "Installed", "Latest"], cols),
-    { bold: true },
-  );
-  if (toolRows.length === 0) {
-    info("nothing installed", { indent: 2 });
-  } else {
-    toolRows.forEach((row) => info(row));
   }
 }

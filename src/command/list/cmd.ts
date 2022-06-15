@@ -63,43 +63,50 @@ async function outputExtensions(
   // Provide the with with a list
   const project = await projectContext(path);
   const extensions = extensionContext.extensions(path, project);
+  if (extensions.length === 0) {
+    info(
+      `No extensions are installed in this ${
+        project ? "project" : "directory"
+      }.`,
+    );
+  } else {
+    const extensionEntries: string[][] = [];
+    const provides = (extension: Extension) => {
+      const contribs: string[] = [];
+      if (
+        extension.contributes.filters &&
+        extension.contributes.filters?.length > 0
+      ) {
+        contribs.push("filter");
+      }
 
-  const extensionEntries: string[][] = [];
+      if (
+        extension.contributes.shortcodes &&
+        extension.contributes.shortcodes?.length > 0
+      ) {
+        contribs.push("shortcodes");
+      }
 
-  const provides = (extension: Extension) => {
-    const contribs: string[] = [];
-    if (
-      extension.contributes.filters && extension.contributes.filters?.length > 0
-    ) {
-      contribs.push("filter");
-    }
+      if (
+        extension.contributes.format
+      ) {
+        contribs.push("formats");
+      }
+      return contribs.join(", ");
+    };
 
-    if (
-      extension.contributes.shortcodes &&
-      extension.contributes.shortcodes?.length > 0
-    ) {
-      contribs.push("shortcodes");
-    }
+    extensions.forEach((ext) => {
+      const row = [
+        extensionIdString(ext.id),
+        ext.version?.toString() || "(none)",
+        `[${provides(ext)}]`,
+      ];
+      extensionEntries.push(row);
+    });
 
-    if (
-      extension.contributes.format
-    ) {
-      contribs.push("formats");
-    }
-    return contribs.join(", ");
-  };
-
-  extensions.forEach((ext) => {
-    const row = [
-      extensionIdString(ext.id),
-      ext.version?.toString() || "(none)",
-      `[${provides(ext)}]`,
-    ];
-    extensionEntries.push(row);
-  });
-
-  const table = new Table().header(["Id", "Version", "Type"]).body(
-    extensionEntries,
-  ).padding(4);
-  info(table.toString());
+    const table = new Table().header(["Id", "Version", "Type"]).body(
+      extensionEntries,
+    ).padding(4);
+    info(table.toString());
+  }
 }
