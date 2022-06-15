@@ -16,7 +16,7 @@ import {
   updateTool,
 } from "../tools/tools.ts";
 
-import { withSpinner } from "../../core/console.ts";
+import { withSpinner } from "../core/console.ts";
 import {
   InstallableTool,
   RemotePackageInfo,

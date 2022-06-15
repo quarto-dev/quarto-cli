@@ -10,16 +10,16 @@ import { warning } from "log/mod.ts";
 import { existsSync } from "fs/exists.ts";
 import { basename, join } from "path/mod.ts";
 
-import { suggestUserBinPaths } from "../../../core/env.ts";
-import { expandPath, which } from "../../../core/path.ts";
-import { unzip } from "../../../core/zip.ts";
-import { hasLatexDistribution } from "../../render/latexmk/latex.ts";
+import { suggestUserBinPaths } from "../../core/env.ts";
+import { expandPath, which } from "../../core/path.ts";
+import { unzip } from "../../core/zip.ts";
+import { hasLatexDistribution } from "../../command/render/latexmk/latex.ts";
 import {
   hasTexLive,
   removePath,
   texLiveInPath,
-} from "../../render/latexmk/texlive.ts";
-import { execProcess } from "../../../core/process.ts";
+} from "../../command/render/latexmk/texlive.ts";
+import { execProcess } from "../../core/process.ts";
 
 import {
   InstallableTool,
@@ -30,7 +30,7 @@ import {
 } from "../types.ts";
 import { getLatestRelease } from "../github.ts";
 import { tinyTexInstallDir } from "./tinytex-info.ts";
-import { copyTo } from "../../../core/copy.ts";
+import { copyTo } from "../../core/copy.ts";
 
 // This the https texlive repo that we use by default
 const kDefaultRepos = [

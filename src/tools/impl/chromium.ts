@@ -5,16 +5,16 @@
  *
  */
 
-import { getPuppeteer } from "../../../core/puppeteer.ts";
+import { getPuppeteer } from "../../core/puppeteer.ts";
 import {
   clearLine,
   progressBar,
   spinner,
   withSpinner,
-} from "../../../core/console.ts";
+} from "../../core/console.ts";
 
 import { InstallableTool, InstallContext, PackageInfo } from "../types.ts";
-import { quartoDataDir } from "../../../core/appdirs.ts";
+import { quartoDataDir } from "../../core/appdirs.ts";
 
 export function chromiumInstallDir(): string | undefined {
   return quartoDataDir("chromium");

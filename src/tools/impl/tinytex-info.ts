@@ -5,9 +5,9 @@
 *
 */
 
-import { expandPath } from "../../../core/path.ts";
+import { expandPath } from "../../core/path.ts";
 import { join } from "path/mod.ts";
-import { getenv } from "../../../core/env.ts";
+import { getenv } from "../../core/env.ts";
 
 export function tinyTexInstallDir(): string | undefined {
   switch (Deno.build.os) {

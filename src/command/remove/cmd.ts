@@ -6,10 +6,9 @@
 */
 
 import { Command } from "cliffy/command/mod.ts";
-import { Checkbox, Confirm } from "cliffy/prompt/mod.ts";
+import { Checkbox } from "cliffy/prompt/mod.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 import { createTempContext } from "../../core/temp.ts";
-import { uninstallTool } from "../tools/tools.ts";
 
 import { info } from "log/mod.ts";
 import { removeExtension } from "../../extension/remove.ts";
@@ -19,7 +18,12 @@ import {
   extensionIdString,
 } from "../../extension/extension-shared.ts";
 import { projectContext } from "../../project/project-context.ts";
-import { afterConfirm, loadTools, selectTool } from "./tools-console.ts";
+import {
+  afterConfirm,
+  loadTools,
+  selectTool,
+} from "../../tools/tools-console.ts";
+import { uninstallTool } from "../../tools/tools.ts";
 
 export const removeCommand = new Command()
   .hidden()

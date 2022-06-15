@@ -8,9 +8,7 @@
 import { Command } from "cliffy/command/mod.ts";
 import { Confirm } from "cliffy/prompt/mod.ts";
 import { info } from "log/mod.ts";
-
-import { ToolSummaryData } from "./types.ts";
-
+import { outputTools } from "../../tools/tools-console.ts";
 import {
   installableTools,
   installTool,
@@ -18,8 +16,8 @@ import {
   toolSummary,
   uninstallTool,
   updateTool,
-} from "./tools.ts";
-import { outputTools } from "../remove/tools-console.ts";
+} from "../../tools/tools.ts";
+import { ToolSummaryData } from "../../tools/types.ts";
 
 // quarto tools install tinytex
 // quarto tools uninstall tinytex

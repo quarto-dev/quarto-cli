@@ -10,7 +10,6 @@ import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/u
 import { createTempContext } from "../../core/temp.ts";
 
 import { info } from "log/mod.ts";
-import { outputTools } from "../remove/tools-console.ts";
 import { createExtensionContext } from "../../extension/extension.ts";
 import {
   Extension,
@@ -18,6 +17,7 @@ import {
   extensionIdString,
 } from "../../extension/extension-shared.ts";
 import { projectContext } from "../../project/project-context.ts";
+import { outputTools } from "../../tools/tools-console.ts";
 
 export const listCommand = new Command()
   .hidden()
