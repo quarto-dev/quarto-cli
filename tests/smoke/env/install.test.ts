@@ -12,6 +12,7 @@ testQuartoCmd(
   ["list"],
   [
     noErrorsOrWarnings,
-    printsMessage("INFO", /^tinytex\s+/),
+    printsMessage("INFO", /tinytex\s+/),
+    printsMessage("INFO", /chromium\s+/),
   ],
 );
