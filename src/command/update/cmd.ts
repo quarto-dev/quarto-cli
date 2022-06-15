@@ -14,7 +14,7 @@ import {
   loadTools,
   selectTool,
   updateOrInstallTool,
-} from "../remove/tools-console.ts";
+} from "../../tools/tools-console.ts";
 
 export const updateCommand = new Command()
   .hidden()

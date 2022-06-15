@@ -5,7 +5,7 @@
 *
 */
 
-import { SpinnerOptions } from "../../core/console.ts";
+import { SpinnerOptions } from "../core/console.ts";
 
 // Installable Tool interface
 export interface InstallableTool {

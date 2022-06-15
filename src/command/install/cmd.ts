@@ -8,14 +8,14 @@ import { Command } from "cliffy/command/mod.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 import { createTempContext } from "../../core/temp.ts";
 import { installExtension } from "../../extension/install.ts";
-import { installTool } from "../tools/tools.ts";
 
 import { info } from "log/mod.ts";
 import {
   loadTools,
   selectTool,
   updateOrInstallTool,
-} from "../remove/tools-console.ts";
+} from "../../tools/tools-console.ts";
+import { installTool } from "../../tools/tools.ts";
 
 export const installCommand = new Command()
   .hidden()

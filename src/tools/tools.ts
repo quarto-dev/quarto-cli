@@ -6,8 +6,8 @@
 */
 
 import { info } from "log/mod.ts";
-import { withSpinner } from "../../core/console.ts";
-import { logError } from "../../core/log.ts";
+import { withSpinner } from "../core/console.ts";
+import { logError } from "../core/log.ts";
 
 import {
   InstallableTool,
@@ -15,9 +15,9 @@ import {
   ToolConfigurationState,
   ToolSummaryData,
 } from "./types.ts";
-import { tinyTexInstallable } from "./tools/tinytex.ts";
-import { chromiumInstallable } from "./tools/chromium.ts";
-import { downloadWithProgress } from "../../core/download.ts";
+import { tinyTexInstallable } from "./impl/tinytex.ts";
+import { chromiumInstallable } from "./impl/chromium.ts";
+import { downloadWithProgress } from "../core/download.ts";
 
 // The tools that are available to install
 const kInstallableTools: { [key: string]: InstallableTool } = {
