@@ -95,6 +95,7 @@ function makeHandlerContext(
     resourceFiles: [],
     includes: {},
     extras: {},
+    supporting: [],
   };
   const tempContext = options.temp;
   const context: LanguageCellHandlerContext = {
@@ -228,7 +229,10 @@ function makeHandlerContext(
 
       const pngName = `${prefix}${globalFigureCounter[prefix]}${extension}`;
       const tempName = join(context.figuresDir(), pngName);
-      const mdName = relative(dirname(options.context.target.source), tempName);
+      const baseDir = dirname(options.context.target.source);
+      const mdName = relative(baseDir, tempName);
+
+      this.addSupporting(relative(baseDir, context.figuresDir()));
 
       return {
         baseName: basename(mdName),
@@ -253,6 +257,12 @@ function makeHandlerContext(
         results.extras.html = { [kDependencies]: [dep] };
       } else {
         results.extras.html[kDependencies]!.push(dep);
+      }
+    },
+    addSupporting(dir: string) {
+      if (results.supporting.indexOf(dir) === -1) {
+        results.supporting.push(dir);
+        console.log(results.supporting);
       }
     },
     addResource(fileName: string) {

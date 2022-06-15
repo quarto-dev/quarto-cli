@@ -121,11 +121,15 @@ export interface LanguageCellHandlerContext {
   addHtmlDependency: (
     dep: FormatDependency,
   ) => void;
+  addSupporting: (
+    dir: string,
+  ) => void;
 }
 export interface HandlerContextResults {
   includes: PandocIncludes;
   resourceFiles: string[];
   extras: FormatExtras;
+  supporting: string[]; // additional supporting directories that need to be potentially cleaned-up
 }
 
 export type LanguageComment = string | [string, string];

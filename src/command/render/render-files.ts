@@ -312,6 +312,7 @@ export async function renderFiles(
             ...(extras[kIncludeInHeader] || []),
           ];
         }
+        executeResult.supporting.push(...results.supporting);
       };
       for (const format of Object.keys(contexts)) {
         const context = ld.cloneDeep(contexts[format]) as RenderContext; // since we're going to mutate it...
