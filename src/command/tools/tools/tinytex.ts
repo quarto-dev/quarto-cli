@@ -119,7 +119,7 @@ async function verifyConfiguration(): Promise<ToolConfigurationState> {
   } else {
     return {
       status: "warning",
-      message: "TeX Live is not available on the path.",
+      message: "TeX Live not on path.",
     };
   }
 }
@@ -340,9 +340,9 @@ This will instruct TeX Live to create symlinks that it needs in <bin_dir_on_path
     }
     const binPathMessage = envPath
       ? `Setting TeXLive Binpath: ${envPath}`
-      : Deno.build.os !== "windows" ?
-      `Updating Path (inspecting ${paths.length} possible paths)` :
-      "Updating Path";
+      : Deno.build.os !== "windows"
+      ? `Updating Path (inspecting ${paths.length} possible paths)`
+      : "Updating Path";
 
     // Ensure symlinks are all set
     await context.withSpinner(

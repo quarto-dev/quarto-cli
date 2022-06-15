@@ -5,22 +5,20 @@
 *
 */
 import { Command } from "cliffy/command/mod.ts";
-import { Checkbox, Confirm, Select } from "cliffy/prompt/mod.ts";
-import { Table } from "cliffy/table/mod.ts";
+import { Checkbox, Confirm } from "cliffy/prompt/mod.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 import { createTempContext } from "../../core/temp.ts";
-import { allTools, uninstallTool } from "../tools/tools.ts";
+import { uninstallTool } from "../tools/tools.ts";
 
 import { info } from "log/mod.ts";
 import { removeExtension } from "../../extension/remove.ts";
-import { withSpinner } from "../../core/console.ts";
-import { InstallableTool } from "../tools/types.ts";
 import { createExtensionContext } from "../../extension/extension.ts";
 import {
   Extension,
   extensionIdString,
 } from "../../extension/extension-shared.ts";
 import { projectContext } from "../../project/project-context.ts";
+import { loadTools, selectTool } from "./tools-console.ts";
 
 export const removeCommand = new Command()
   .hidden()
@@ -29,7 +27,7 @@ export const removeCommand = new Command()
   .arguments("<type:string> [target:string]")
   .option(
     "--no-prompt",
-    "Do not prompt to confirm actions during installation",
+    "Do not prompt to confirm actions",
   )
   .description(
     "Removes an extension or global dependency.",
@@ -39,12 +37,20 @@ export const removeCommand = new Command()
     "quarto remove extension <extension-name>",
   )
   .example(
+    "Choose extensions to remove",
+    "quarto remove extension",
+  )
+  .example(
     "Remove TinyTeX",
     "quarto remove tool tinytex",
   )
   .example(
     "Remove Chromium",
     "quarto remove tool chromium",
+  )
+  .example(
+    "Choose tools to remove",
+    "quarto remove tool",
   )
   .action(
     async (_options: { prompt?: boolean }, type: string, target?: string) => {
@@ -74,7 +80,9 @@ export const removeCommand = new Command()
             // Show a list
             if (extensions.length > 0) {
               const extensionsToRemove = await selectExtensions(extensions);
-              await removeExtensions(extensionsToRemove);
+              if (extensionsToRemove.length > 0) {
+                await removeExtensions(extensionsToRemove);
+              }
             } else {
               info("No extensions installed.");
             }
@@ -91,13 +99,14 @@ export const removeCommand = new Command()
             );
           } else {
             // Not provided, give the user a list to choose from
-            const tools = await installedTools();
-            if (tools.length === 0) {
+            const allTools = await loadTools();
+            if (allTools.filter((tool) => tool.installed).length === 0) {
               info("No tools are installed.");
             } else {
               // Select which tool should be installed
-              const toolTarget = await selectTool(tools);
+              const toolTarget = await selectTool(allTools, "remove");
               if (toolTarget) {
+                info("");
                 await uninstallTool(toolTarget);
               }
             }
@@ -119,8 +128,9 @@ function removeExtensions(extensions: Extension[]) {
     // Exactly one extension
     return await confirmAction(
       `Are you sure you'd like to remove ${extension.title}?`,
-      () => {
-        return removeExtension(extension);
+      async () => {
+        await removeExtension(extension);
+        info("Extension removed.");
       },
     );
   };
@@ -132,12 +142,14 @@ function removeExtensions(extensions: Extension[]) {
         for (const extensionToRemove of extensions) {
           await removeExtension(extensionToRemove);
         }
+        info(`${extensions.length} extensions removed.`);
       },
     );
   };
 
+  info("");
   if (extensions.length === 1) {
-    return removeOneExtension(extensions[1]);
+    return removeOneExtension(extensions[0]);
   } else {
     return removeMultipleExtensions(extensions);
   }
@@ -148,30 +160,6 @@ async function confirmAction(message: string, fn: () => Promise<void>) {
   if (confirmed) {
     return fn();
   }
-}
-
-async function selectTool(tools: InstallableTool[]) {
-  const toolInfos = [];
-  for (const tool of tools) {
-    const version = await tool.installedVersion();
-    toolInfos.push({
-      tool,
-      version,
-    });
-  }
-
-  const toolTarget: string = await Select.prompt({
-    message: "Select a tool to remove",
-    options: toolInfos.map((toolInfo) => {
-      return {
-        name: `${toolInfo.tool.name} ${
-          toolInfo.version ? " (" + toolInfo.version + ")" : ""
-        }`,
-        value: toolInfo.tool.name,
-      };
-    }),
-  });
-  return toolTarget;
 }
 
 async function selectExtensions(extensions: Extension[]) {
@@ -186,28 +174,23 @@ async function selectExtensions(extensions: Extension[]) {
     }
   });
 
-  const extsToRemove: string[] = await Checkbox.prompt({
-    message: "Select extension(s) to remove",
+  const extsToKeep: string[] = await Checkbox.prompt({
+    message: "Select extension(s) to keep",
     options: sorted.map((ext) => {
       return {
         name: `${ext.title}${
           ext.id.organization ? " (" + ext.id.organization + ")" : ""
         }`,
         value: extensionIdString(ext.id),
+        checked: true,
       };
     }),
+    hint:
+      "Use the arrow keys and spacebar to specify extensions you'd like to remove.\n" +
+      "   Press Enter to confirm the list of accounts you wish to remain available.",
   });
 
   return extensions.filter((extension) => {
-    return extsToRemove.includes(extensionIdString(extension.id));
+    return !extsToKeep.includes(extensionIdString(extension.id));
   });
-}
-
-async function installedTools() {
-  const tools: InstallableTool[] = [];
-  await withSpinner({ message: "Inspecting tools" }, async () => {
-    const all = await allTools();
-    tools.push(...all.installed);
-  });
-  return tools;
 }
