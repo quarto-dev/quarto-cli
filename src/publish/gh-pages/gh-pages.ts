@@ -97,6 +97,7 @@ async function publish(
   _type: "document" | "site",
   input: string,
   _title: string,
+  _slug: string,
   render: (siteUrl?: string) => Promise<PublishFiles>,
   options: PublishOptions,
   _target?: PublishRecord,

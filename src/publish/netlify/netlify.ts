@@ -175,7 +175,8 @@ function publish(
   account: AccountToken,
   type: "document" | "site",
   _input: string,
-  _title: string,
+  title: string,
+  slug: string,
   render: (siteUrl?: string) => Promise<PublishFiles>,
   _options: PublishOptions,
   target?: PublishRecord,
@@ -187,7 +188,7 @@ function publish(
 
   const handler: PublishHandler<Site, Deploy> = {
     name: kNetlify,
-    createSite: async () => {
+    createSite: async (_title: string, _slug: string) => {
       return withSslUrl(
         await client.site.createSite({
           site: {
@@ -229,7 +230,14 @@ function publish(
     },
   };
 
-  return handlePublish<Site, Deploy>(handler, type, render, target);
+  return handlePublish<Site, Deploy>(
+    handler,
+    type,
+    title,
+    slug,
+    render,
+    target,
+  );
 }
 
 function withSslUrl(obj: { ssl_url?: string; url?: string }) {

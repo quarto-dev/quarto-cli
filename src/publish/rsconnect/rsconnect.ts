@@ -27,7 +27,6 @@ import {
 } from "../common/account.ts";
 import { ensureProtocolAndTrailingSlash } from "../../core/url.ts";
 
-import { gfmAutoIdentifier } from "../../core/pandoc/pandoc-id.ts";
 import { createTempContext } from "../../core/temp.ts";
 import { createBundle } from "./bundle.ts";
 import { completeMessage, withSpinner } from "../../core/console.ts";
@@ -230,6 +229,7 @@ async function publish(
   type: "document" | "site",
   _input: string,
   title: string,
+  slug: string,
   render: (siteUrl?: string) => Promise<PublishFiles>,
   _options: PublishOptions,
   target?: PublishRecord,
@@ -242,7 +242,7 @@ async function publish(
     message: `Preparing to publish ${type}`,
   }, async () => {
     if (!target) {
-      content = await createContent(client, title);
+      content = await createContent(client, title, slug);
       if (content) {
         target = contentAsTarget(content);
       } else {
@@ -314,10 +314,10 @@ function contentAsTarget(content: Content): PublishRecord {
 async function createContent(
   client: RSConnectClient,
   title: string,
+  slug: string,
 ): Promise<Content | undefined> {
-  const baseName = gfmAutoIdentifier(title, false);
   while (true) {
-    const name = baseName + "-" + randomHex(4);
+    const name = slug + "-" + randomHex(4);
     try {
       return await client.createContent(name, title);
     } catch (err) {

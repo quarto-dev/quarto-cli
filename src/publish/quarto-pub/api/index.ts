@@ -33,7 +33,7 @@ export class QuartoPubClient {
       default:
         // TODO: Eventually this will point to the live site, when we know the domain.
         // For now, it points to the DEV environment.
-        this.baseURL_ = "https://quartodev.pub/api/v1";
+        this.baseURL_ = "https://quartopub.org/api/v1";
         break;
     }
   }
@@ -50,8 +50,13 @@ export class QuartoPubClient {
   public exchangeTicket = (id: string): Promise<AccessToken> =>
     this.post(`tickets/${id}/exchange`);
 
+  // Check if a slug is available
+  public slugAvailable = (_slug: string): Promise<boolean> =>
+    Promise.resolve(true);
+
   // Creates a site.
-  public createSite = (): Promise<Site> => this.post<Site>("sites");
+  public createSite = (_title: string, _slug: string): Promise<Site> =>
+    this.post<Site>("sites");
 
   // Creates a site deploy.
   public createDeploy = (

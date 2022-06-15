@@ -35,6 +35,7 @@ import {
   writePublishDeployment,
 } from "./config.ts";
 import { websiteTitle } from "../project/types/website/website-config.ts";
+import { gfmAutoIdentifier } from "../core/pandoc/pandoc-id.ts";
 
 export const kSiteContent = "site";
 export const kDocumentContent = "document";
@@ -82,11 +83,14 @@ export async function publishSite(
   };
 
   // publish
+  const siteTitle = websiteTitle(project.config) || basename(project.dir);
+  const siteSlug = gfmAutoIdentifier(siteTitle, false);
   const [publishRecord, siteUrl] = await provider.publish(
     account,
     kSiteContent,
     project.dir,
-    websiteTitle(project.config) || basename(project.dir),
+    siteTitle,
+    siteSlug,
     renderForPublish,
     options,
     target,
@@ -209,6 +213,7 @@ export async function publishDocument(
     kDocumentContent,
     document,
     title,
+    gfmAutoIdentifier(title, false),
     renderForPublish,
     options,
     target,

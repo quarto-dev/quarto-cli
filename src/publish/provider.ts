@@ -91,6 +91,7 @@ export interface PublishProvider {
     type: "document" | "site",
     input: string,
     title: string,
+    slug: string,
     render: (siteUrl?: string) => Promise<PublishFiles>,
     options: PublishOptions,
     target?: PublishRecord,

@@ -140,7 +140,8 @@ function publish(
   accountToken: AccountToken,
   type: "document" | "site",
   _input: string,
-  _title: string,
+  title: string,
+  slug: string,
   render: (siteUrl?: string) => Promise<PublishFiles>,
   _options: PublishOptions,
   target?: PublishRecord,
@@ -151,7 +152,9 @@ function publish(
   const handler: PublishHandler = {
     name: kQuartoPub,
 
-    createSite: () => client.createSite(),
+    slugAvailable: (_slug: string) => Promise.resolve(true),
+
+    createSite: (title: string, slug: string) => client.createSite(title, slug),
 
     createDeploy: (siteId: string, files: Record<string, string>) =>
       client.createDeploy(siteId, files),
@@ -162,7 +165,7 @@ function publish(
       client.uploadDeployFile(deployId, path, fileBody),
   };
 
-  return handlePublish(handler, type, render, target);
+  return handlePublish(handler, type, title, slug, render, target);
 }
 
 function isUnauthorized(_err: Error) {

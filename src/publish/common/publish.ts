@@ -6,6 +6,10 @@
 */
 
 import { info } from "log/mod.ts";
+import * as colors from "fmt/colors.ts";
+
+import { Input } from "cliffy/prompt/input.ts";
+import { Select } from "cliffy/prompt/select.ts";
 
 import { join } from "path/mod.ts";
 import { crypto } from "crypto/mod.ts";
@@ -17,6 +21,8 @@ import { fileProgress } from "../../core/progress.ts";
 
 import { PublishRecord } from "../types.ts";
 import { PublishFiles } from "../provider.ts";
+import { capitalize } from "../../core/text.ts";
+import { gfmAutoIdentifier } from "../../core/pandoc/pandoc-id.ts";
 
 export interface PublishSite {
   id?: string;
@@ -37,7 +43,8 @@ export interface PublishHandler<
   Deploy extends PublishDeploy = PublishDeploy,
 > {
   name: string;
-  createSite: () => Promise<Site>;
+  slugAvailable?: (slug: string) => Promise<boolean>;
+  createSite: (title: string, slug: string) => Promise<Site>;
   createDeploy: (
     siteId: string,
     files: Record<string, string>,
@@ -56,16 +63,24 @@ export async function handlePublish<
 >(
   handler: PublishHandler<Site, Deploy>,
   type: "document" | "site",
+  title: string,
+  slug: string,
   render: (siteUrl?: string) => Promise<PublishFiles>,
   target?: PublishRecord,
 ): Promise<[PublishRecord, URL | undefined]> {
   // determine target (create new site if necessary)
-  info("");
   if (!target?.id) {
+    // prompt for a slug if possible
+    if (handler.slugAvailable) {
+      slug = await promptForSlug(type, handler.slugAvailable, slug);
+    }
+
+    // create site
+    info("");
     await withSpinner({
       message: `Creating ${handler.name} site`,
     }, async () => {
-      const site = await handler.createSite();
+      const site = await handler.createSite(title, slug);
       target = {
         id: site.id!,
         url: site.url!,
@@ -186,4 +201,77 @@ export async function handlePublish<
     { ...target, url: targetUrl },
     adminUrl ? new URL(adminUrl) : undefined,
   ];
+}
+
+async function promptForSlug(
+  type: string,
+  slugAvailable: (slug: string) => Promise<boolean>,
+  slug: string,
+) {
+  // if the generated slug is available then try to confirm it
+  if (await slugAvailable(slug)) {
+    const kConfirmed = "confirmed";
+    const input = await Select.prompt({
+      indent: "",
+      message: `${typeName(type)} name:`,
+      options: [
+        {
+          name: slug,
+          value: kConfirmed,
+        },
+        {
+          name: "Use another name...",
+          value: "another",
+        },
+      ],
+    });
+    if (input === kConfirmed) {
+      return slug;
+    }
+  }
+
+  // prompt until we get a name that isn't taken
+  let hint: string | undefined =
+    `The site name is included within your site's URL\n` +
+    `  (e.g. https://username.quarto.pub/${slug}/)`;
+
+  while (true) {
+    // prompt for server
+    const input = await Input.prompt({
+      indent: "",
+      message: `${typeName(type)} name:`,
+      hint,
+      transform: (slug: string) => gfmAutoIdentifier(slug, false),
+      validate: (slug: string) => {
+        if (slug.length === 0) {
+          return true; // implies cancel
+        } else if (slug.length < 2) {
+          return `${typeName(type)} name must be at least 2 characters.`;
+        } else {
+          return true;
+        }
+      },
+    });
+    hint = undefined;
+    if (input.length === 0) {
+      throw new Error();
+    }
+    if (await slugAvailable(input)) {
+      return input;
+    } else {
+      info(
+        colors.red(
+          `  The specified name is already in use by another ${type} in your account.`,
+        ),
+      );
+    }
+  }
+}
+
+function typeName(type: string) {
+  if (type === "document") {
+    return "Doc";
+  } else {
+    return capitalize(type);
+  }
 }
