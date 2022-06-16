@@ -188,7 +188,7 @@ function publish(
 
   const handler: PublishHandler<Site, Deploy> = {
     name: kNetlify,
-    createSite: async (_title: string, _slug: string) => {
+    createSite: async (_type: string, _title: string, _slug: string) => {
       return withSslUrl(
         await client.site.createSite({
           site: {

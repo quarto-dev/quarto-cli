@@ -18,7 +18,7 @@ import {
   readAccessTokens,
   writeAccessTokens,
 } from "../common/account.ts";
-import { PublishHandler, handlePublish } from "../common/publish.ts";
+import { handlePublish, PublishHandler } from "../common/publish.ts";
 import { PublishOptions, PublishRecord } from "../types.ts";
 
 import { QuartoPubClient } from "./api/index.ts";
@@ -154,7 +154,8 @@ function publish(
 
     slugAvailable: (slug: string) => client.slugAvailable(slug),
 
-    createSite: (title: string, slug: string) => client.createSite(title, slug),
+    createSite: (type: string, title: string, slug: string) =>
+      client.createSite(type, title, slug),
 
     createDeploy: (siteId: string, files: Record<string, string>) =>
       client.createDeploy(siteId, files),

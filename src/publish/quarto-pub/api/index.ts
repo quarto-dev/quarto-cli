@@ -65,8 +65,12 @@ export class QuartoPubClient {
   };
 
   // Creates a site.
-  public createSite = (title: string, slug: string): Promise<Site> =>
-    this.post<Site>("sites", new URLSearchParams({ title, slug }));
+  public createSite = (
+    type: string,
+    title: string,
+    slug: string,
+  ): Promise<Site> =>
+    this.post<Site>("sites", new URLSearchParams({ type, title, slug }));
 
   // Creates a site deploy.
   public createDeploy = (

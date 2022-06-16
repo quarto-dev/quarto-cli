@@ -23,6 +23,7 @@ import { PublishRecord } from "../types.ts";
 import { PublishFiles } from "../provider.ts";
 import { capitalize } from "../../core/text.ts";
 import { gfmAutoIdentifier } from "../../core/pandoc/pandoc-id.ts";
+import { randomHex } from "../../core/random.ts";
 
 export interface PublishSite {
   id?: string;
@@ -45,7 +46,11 @@ export interface PublishHandler<
 > {
   name: string;
   slugAvailable?: (slug: string) => Promise<boolean>;
-  createSite: (title: string, slug: string) => Promise<Site>;
+  createSite: (
+    type: "document" | "site",
+    title: string,
+    slug: string,
+  ) => Promise<Site>;
   createDeploy: (
     siteId: string,
     files: Record<string, string>,
@@ -79,9 +84,9 @@ export async function handlePublish<
     // create site
     info("");
     await withSpinner({
-      message: `Creating ${handler.name} site`,
+      message: `Creating ${handler.name} ${type}`,
     }, async () => {
-      const site = await handler.createSite(title, slug);
+      const site = await handler.createSite(type, title, slug);
       target = {
         id: site.id!,
         url: site.url!,
@@ -207,11 +212,17 @@ export async function handlePublish<
 }
 
 async function promptForSlug(
-  type: string,
+  type: "document" | "site",
   slugAvailable: (slug: string) => Promise<boolean>,
   slug: string,
 ) {
   // if the generated slug is available then try to confirm it
+  // (for documents append random noise as a fallback)
+  const available = await slugAvailable(slug);
+  if (!available && type === "document") {
+    slug = slug + "-" + randomHex(4);
+  }
+
   if (await slugAvailable(slug)) {
     const kConfirmed = "confirmed";
     const input = await Select.prompt({
@@ -235,7 +246,9 @@ async function promptForSlug(
 
   // prompt until we get a name that isn't taken
   let hint: string | undefined =
-    `The site name is included within your site's URL\n` +
+    `The ${
+      typeName(type).toLowerCase()
+    } name is included within your published URL\n` +
     `  (e.g. https://username.quarto.pub/${slug}/)`;
 
   while (true) {
@@ -264,7 +277,7 @@ async function promptForSlug(
     } else {
       info(
         colors.red(
-          `  The specified name is already in use by another ${type} in your account.`,
+          `  The specified name is already in use within your account.`,
         ),
       );
     }
@@ -272,9 +285,5 @@ async function promptForSlug(
 }
 
 function typeName(type: string) {
-  if (type === "document") {
-    return "Doc";
-  } else {
-    return capitalize(type);
-  }
+  return capitalize(type);
 }
