@@ -122,7 +122,7 @@ export async function installTool(name: string) {
         // post install
         const restartRequired = await installableTool.afterInstall(context);
 
-        context.info("Installation successful\n");
+        context.info("Installation successful");
         if (restartRequired) {
           context.info(
             "To complete this installation, please restart your system.",
@@ -158,7 +158,7 @@ export async function uninstallTool(name: string) {
       try {
         // The context for the installers
         await installableTool.uninstall(context);
-        info(`Uninstallation successful\n`);
+        info(`Uninstallation successful`);
       } catch (e) {
         logError(e);
       } finally {
@@ -201,7 +201,7 @@ export async function updateTool(name: string) {
       // post install
       const restartRequired = await installableTool.afterInstall(context);
 
-      context.info("Update successful\n");
+      context.info("Update successful");
       if (restartRequired) {
         context.info(
           "To complete this update, please restart your system.",

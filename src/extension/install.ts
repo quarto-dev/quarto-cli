@@ -398,7 +398,9 @@ async function confirmInstallation(
 
   if (extensionRows.length > 0) {
     const table = new Table(...extensionRows);
-    info(`\nThe following changes will be made:\n${table.toString()}`);
+    info(
+      `\nThe following changes will be made:\n${table.toString()}`,
+    );
     const question = "Would you like to continue";
     return !allowPrompt ||
       await Confirm.prompt({ message: question, default: true });
