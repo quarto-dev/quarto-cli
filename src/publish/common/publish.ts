@@ -36,6 +36,7 @@ export interface PublishDeploy {
   required?: string[];
   url?: string;
   admin_url?: string;
+  launch_url?: string;
 }
 
 export interface PublishHandler<
@@ -181,6 +182,7 @@ export async function handlePublish<
   // wait on ready
   let targetUrl = target.url;
   let adminUrl = target.url;
+  let launchUrl = target.url;
   await withSpinner({
     message: `Deploying published ${type}`,
   }, async () => {
@@ -188,7 +190,8 @@ export async function handlePublish<
       const deployReady = await handler.getDeploy(siteDeploy?.id!);
       if (deployReady.state === "ready") {
         targetUrl = deployReady.url || targetUrl;
-        adminUrl = deployReady.admin_url || adminUrl;
+        adminUrl = deployReady.admin_url || targetUrl;
+        launchUrl = deployReady.launch_url || adminUrl;
         break;
       }
       await sleep(500);
@@ -199,7 +202,7 @@ export async function handlePublish<
 
   return [
     { ...target, url: targetUrl },
-    adminUrl ? new URL(adminUrl) : undefined,
+    launchUrl ? new URL(launchUrl) : undefined,
   ];
 }
 
