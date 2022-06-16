@@ -30,6 +30,7 @@ import { ConcreteSchema } from "../lib/yaml-schema/types.ts";
 import {
   pandocBlock,
   pandocHtmlBlock,
+  pandocList,
   pandocRawStr,
 } from "../pandoc/codegen.ts";
 
@@ -57,6 +58,9 @@ import {
   kCodeSummary,
   kEcho,
   kFigCapLoc,
+  kLayout,
+  kLayoutNcol,
+  kLayoutNrow,
   kOutput,
   kTblCapLoc,
 } from "../../config/constants.ts";
@@ -529,13 +533,25 @@ export const baseHandler: LanguageHandler = {
       ...cell.options,
     }, skipOptions);
 
-    const q3 = pandocBlock(":::");
+    const hasAttribute = (attrKey: string) =>
+      attrs.some((attr) => attr === attrKey || attr.startsWith(`${attrKey}=`));
+
+    const hasLayoutAttributes = hasAttribute(kLayoutNrow) ||
+      hasAttribute(kLayoutNcol) || hasAttribute(kLayout);
+    const isPowerpointOutput = handlerContext.options.format.pandoc.to
+      ?.startsWith("pptx");
+
+    const unrolledOutput = isPowerpointOutput && !hasLayoutAttributes;
+
     const t3 = pandocBlock("```");
     const t4 = pandocBlock("````");
-    const cellBlock = q3({
-      classes: ["cell", ...classes],
-      attrs,
-    });
+
+    const cellBlock = unrolledOutput
+      ? pandocList({ skipFirstLineBreak: true })
+      : pandocBlock(":::")({
+        classes: ["cell", ...classes],
+        attrs,
+      });
 
     const languageClass: string = this.languageClass === undefined
       ? this.languageName
@@ -596,11 +612,14 @@ export const baseHandler: LanguageHandler = {
     const paraBlock = pandocHtmlBlock("p");
     const divBlock = pandocBlock(":::");
 
-    const cellOutputDiv = divBlock({
+    // PandocNodes ignore self-pushes (n.push(n))
+    // this makes it much easier to write the logic around "unrolled blocks"
+    const cellOutputDiv = unrolledOutput ? cellBlock : divBlock({
       // id: cell.options?.label as (string | undefined),
       attrs: cellOutputAttrs,
       classes: cellOutputClasses,
     });
+
     cellBlock.push(cellOutputDiv);
 
     let figureLikeOptions: Record<string, string> = {};
@@ -609,8 +628,9 @@ export const baseHandler: LanguageHandler = {
         id: cell.options?.label,
       };
     }
-    const figureLike = divBlock(figureLikeOptions);
-    const cellOutput = paraBlock();
+    const figureLike = unrolledOutput ? cellBlock : divBlock(figureLikeOptions);
+    const cellOutput = unrolledOutput ? cellBlock : paraBlock();
+
     figureLike.push(cellOutput);
     cellOutputDiv.push(figureLike);
 
