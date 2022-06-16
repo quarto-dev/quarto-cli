@@ -61,10 +61,14 @@ function sections()
           el.content:insert(1, pandoc.Space())
         end
 
-        el.content:insert(1, pandoc.Span(
-          stringToInlines(section),
-          pandoc.Attr("", { "header-section-number"})
-        ))
+        if _quarto.format.isHtmlOutput() then
+          el.content:insert(1, pandoc.Span(
+            stringToInlines(section),
+            pandoc.Attr("", { "header-section-number"})
+          ))
+        else
+          tprepend(el.content, stringToInlines(section))
+        end
 
         if appendix then
           el.content:insert(1, pandoc.Space())
@@ -93,7 +97,9 @@ function currentSectionLevel()
 end
 
 function numberSections()
-  return not _quarto.format.isLatexOutput() and numberSectionsOptionEnabled()
+  return not _quarto.format.isLatexOutput() and 
+         not _quarto.format.isMarkdownOutput() 
+         and numberSectionsOptionEnabled()
 end
 
 function numberSectionsOptionEnabled()

@@ -43,6 +43,7 @@ import {
   isHtmlOutput,
   isIpynbOutput,
   isLatexOutput,
+  isMarkdownOutput,
 } from "../../config/format.ts";
 import {
   isIncludeMetadata,
@@ -636,7 +637,10 @@ export async function runPandoc(
   // remove selected args and defaults if we are handling some things on behalf of pandoc
   // (e.g. handling section numbering). note that section numbering is handled by the
   // crossref filter so we only do this if the user hasn't disabled the crossref filter
-  if (!isLatexOutput(options.format.pandoc) && crossrefFilterActive(options)) {
+  if (
+    !isLatexOutput(options.format.pandoc) &&
+    !isMarkdownOutput(options.format.pandoc) && crossrefFilterActive(options)
+  ) {
     delete allDefaults[kNumberSections];
     delete allDefaults[kNumberOffset];
     const removeArgs = new Map<string, boolean>();
