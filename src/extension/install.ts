@@ -19,13 +19,8 @@ import { withSpinner } from "../core/console.ts";
 import { downloadWithProgress } from "../core/download.ts";
 import { readExtensions } from "./extension.ts";
 import { info } from "log/mod.ts";
+import { ExtensionSource, extensionSource } from "./extension-host.ts";
 
-export interface ExtensionSource {
-  type: "remote" | "local";
-  owner?: string;
-  resolvedTarget: string;
-  targetSubdir?: string;
-}
 const kUnversionedFrom = "  (?)";
 const kUnversionedTo = "(?)  ";
 
@@ -437,85 +432,3 @@ const extensionDir = (path: string) => {
     }
   }
 };
-
-const githubTagRegexp =
-  /^http(?:s?):\/\/(?:www\.)?github.com\/(.*?)\/(.*?)\/archive\/refs\/tags\/(?:v?)(.*)(\.tar\.gz|\.zip)$/;
-const githubLatestRegexp =
-  /^http(?:s?):\/\/(?:www\.)?github.com\/(.*?)\/(.*?)\/archive\/refs\/heads\/(?:v?)(.*)(\.tar\.gz|\.zip)$/;
-
-function extensionSource(target: string): ExtensionSource {
-  if (existsSync(target)) {
-    return { type: "local", resolvedTarget: target };
-  } else {
-    let resolved;
-    for (const resolver of resolvers) {
-      resolved = resolver(target);
-      if (resolved) {
-        break;
-      }
-    }
-
-    return {
-      type: "remote",
-      resolvedTarget: resolved?.url || target,
-      owner: resolved?.owner,
-      targetSubdir: resolved ? repoSubdirectory(resolved.url) : undefined,
-    };
-  }
-}
-
-function repoSubdirectory(url: string) {
-  const tagMatch = url.match(githubTagRegexp);
-  if (tagMatch) {
-    return tagMatch[2] + "-" + tagMatch[3];
-  } else {
-    const latestMatch = url.match(githubLatestRegexp);
-    if (latestMatch) {
-      return latestMatch[2] + "-" + latestMatch[3];
-    } else {
-      return undefined;
-    }
-  }
-}
-
-const githubNameRegex =
-  /^([a-zA-Z0-9-_\.]*?)\/([a-zA-Z0-9-_\.]*?)(?:@latest)?$/;
-const githubLatest = (name: string) => {
-  const match = name.match(githubNameRegex);
-  if (match) {
-    return {
-      url: `https://github.com/${match[1]}/${
-        match[2]
-      }/archive/refs/heads/main.tar.gz`,
-      owner: match[1],
-    };
-  } else {
-    return undefined;
-  }
-};
-
-const githubVersionRegex =
-  /^([a-zA-Z0-9-_\.]*?)\/([a-zA-Z0-9-_\.]*?)@v([a-zA-Z0-9-_\.]*)$/;
-const githubVersion = (name: string) => {
-  const match = name.match(githubVersionRegex);
-  if (match) {
-    return {
-      url: `https://github.com/${match[1]}/${match[2]}/archive/refs/tags/v${
-        match[3]
-      }.tar.gz`,
-      owner: match[1],
-    };
-  } else {
-    return undefined;
-  }
-};
-
-interface ResolvedExtensionInfo {
-  url: string;
-  owner?: string;
-}
-const resolvers: ExtensionNameResolver[] = [githubLatest, githubVersion];
-
-type ExtensionNameResolver = (
-  name: string,
-) => ResolvedExtensionInfo | undefined;
