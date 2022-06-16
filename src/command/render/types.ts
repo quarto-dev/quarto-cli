@@ -148,6 +148,9 @@ export interface PandocOptions {
   // output file that will be written
   output: string;
 
+  // mediabag directory
+  mediabagDir: string;
+
   // lib dir for converstion
   libDir: string;
 

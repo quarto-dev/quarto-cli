@@ -14,6 +14,10 @@ export function filesDirLibDir(input: string) {
   return join(inputFilesDir(input), "libs");
 }
 
+export function filesDirMediabagDir(input: string) {
+  return join(inputFilesDir(input), "mediabag");
+}
+
 export function pandocMetadataPath(path: string) {
   return pathWithForwardSlashes(path);
 }

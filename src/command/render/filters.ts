@@ -62,6 +62,8 @@ const kQuartoParams = "quarto-params";
 
 const kProjectOffset = "project-offset";
 
+const kMediabagDir = "mediabag-dir";
+
 const kResultsFile = "results-file";
 
 export function filterParamsJson(
@@ -414,6 +416,9 @@ function quartoFilterParams(
   const params: Metadata = {
     [kOutputDivs]: format.render[kOutputDivs],
   };
+
+  params[kMediabagDir] = options.mediabagDir;
+
   const figAlign = format.render[kFigAlign];
   if (figAlign) {
     params[kFigAlign] = figAlign;

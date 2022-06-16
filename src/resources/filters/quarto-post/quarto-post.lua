@@ -18,7 +18,6 @@ end
 import("responsive.lua")
 import("latexdiv.lua")
 import("foldcode.lua")
-import("book-cleanup.lua")
 import("fig-cleanup.lua")
 import("ipynb.lua")
 import("ojs.lua")
@@ -43,7 +42,6 @@ import("../common/authors.lua")
 initParams()
 
 return {
-  bookCleanup(),
   foldCode(),
   combineFilters({
     latexDiv(),
