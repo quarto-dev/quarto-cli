@@ -262,7 +262,6 @@ function makeHandlerContext(
     addSupporting(dir: string) {
       if (results.supporting.indexOf(dir) === -1) {
         results.supporting.push(dir);
-        console.log(results.supporting);
       }
     },
     addResource(fileName: string) {
