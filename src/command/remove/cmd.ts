@@ -24,7 +24,6 @@ import {
   removeTool,
   selectTool,
 } from "../../tools/tools-console.ts";
-import { uninstallTool } from "../../tools/tools.ts";
 
 export const removeCommand = new Command()
   .hidden()
@@ -59,7 +58,7 @@ export const removeCommand = new Command()
     "quarto remove tool",
   )
   .action(
-    async (_options: { prompt?: boolean }, type: string, target?: string) => {
+    async (options: { prompt?: boolean }, type: string, target?: string) => {
       await initYamlIntelligenceResourcesFromFilesystem();
       const temp = createTempContext();
       const extensionContext = createExtensionContext();
@@ -74,7 +73,7 @@ export const removeCommand = new Command()
             // explicitly provided
             const extensions = extensionContext.find(target, targetDir);
             if (extensions.length > 0) {
-              await removeExtensions(extensions.slice());
+              await removeExtensions(extensions.slice(), options.prompt);
             } else {
               info("No matching extension found.");
             }
@@ -97,7 +96,7 @@ export const removeCommand = new Command()
           // Process tool
           if (target) {
             // Explicitly provided
-            await removeTool(target);
+            await removeTool(target, options.prompt);
           } else {
             // Not provided, give the user a list to choose from
             const allTools = await loadTools();
@@ -124,7 +123,7 @@ export const removeCommand = new Command()
     },
   );
 
-function removeExtensions(extensions: Extension[]) {
+function removeExtensions(extensions: Extension[], prompt?: boolean) {
   const removeOneExtension = async (extension: Extension) => {
     // Exactly one extension
     return await afterConfirm(
@@ -133,6 +132,7 @@ function removeExtensions(extensions: Extension[]) {
         await removeExtension(extension);
         info("Extension removed.");
       },
+      prompt,
     );
   };
 
@@ -145,6 +145,7 @@ function removeExtensions(extensions: Extension[]) {
         }
         info(`${extensions.length} extensions removed.`);
       },
+      prompt,
     );
   };
 

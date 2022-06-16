@@ -68,7 +68,7 @@ export const installCommand = new Command()
           // Install a tool
           if (target) {
             // Use the tool name
-            await updateOrInstallTool(target, "install");
+            await updateOrInstallTool(target, "install", options.prompt);
           } else {
             // Not provided, give the user a list to choose from
             const allTools = await loadTools();

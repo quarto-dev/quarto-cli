@@ -125,33 +125,40 @@ export async function loadTools(): Promise<ToolInfo[]> {
 export async function afterConfirm(
   message: string,
   action: () => Promise<void>,
+  prompt?: boolean,
 ) {
-  const confirmed: boolean = await Confirm.prompt(
-    {
-      message,
-      default: true,
-    },
-  );
-  if (confirmed) {
-    info("");
-    return action();
+  if (prompt !== false) {
+    const confirmed: boolean = await Confirm.prompt(
+      {
+        message,
+        default: true,
+      },
+    );
+    if (confirmed) {
+      info("");
+      return action();
+    } else {
+      return Promise.resolve();
+    }
   } else {
-    return Promise.resolve();
+    return action();
   }
 }
 
-export const removeTool = (toolname: string) => {
+export const removeTool = (toolname: string, prompt?: boolean) => {
   return afterConfirm(
     `Are you sure you'd like to remove ${toolname}?`,
     () => {
       return uninstallTool(toolname);
     },
+    prompt,
   );
 };
 
 export async function updateOrInstallTool(
   tool: string,
   action: "update" | "install",
+  prompt?: boolean,
 ) {
   const summary = await toolSummary(tool);
 
@@ -162,6 +169,7 @@ export async function updateOrInstallTool(
         () => {
           return installTool(tool);
         },
+        prompt,
       );
     } else {
       if (summary.installedVersion === undefined) {
@@ -176,6 +184,7 @@ export async function updateOrInstallTool(
           () => {
             return updateTool(tool);
           },
+          prompt,
         );
       }
     }
@@ -184,18 +193,13 @@ export async function updateOrInstallTool(
       if (summary.installedVersion === summary.latestRelease.version) {
         info(`${tool} is already installed and up to date.`);
       } else {
-        const confirmed: boolean = await Confirm.prompt(
-          {
-            message:
-              `${tool} is already installed. Do you want to update to ${summary.latestRelease.version}?`,
-            default: true,
+        return afterConfirm(
+          `${tool} is already installed. Do you want to update to ${summary.latestRelease.version}?`,
+          () => {
+            return updateTool(tool);
           },
+          prompt,
         );
-        if (confirmed) {
-          return updateTool(tool);
-        } else {
-          return Promise.resolve();
-        }
       }
     } else {
       return installTool(tool);

@@ -44,8 +44,6 @@ export async function installExtension(
     // Not trusted, cancel
     cancelInstallation();
   } else {
-    info("");
-
     // Compute the installation directory
     const currentDir = Deno.cwd();
     const installDir = await determineInstallDir(currentDir, allowPrompt);
@@ -400,12 +398,12 @@ async function confirmInstallation(
 
   if (extensionRows.length > 0) {
     const table = new Table(...extensionRows);
-    info(`\nThe following changes will be made:\n${table.toString()}\n`);
+    info(`\nThe following changes will be made:\n${table.toString()}`);
     const question = "Would you like to continue";
     return !allowPrompt ||
       await Confirm.prompt({ message: question, default: true });
   } else {
-    info(`\nNo changes required - extensions already installed.\n`);
+    info(`\nNo changes required - extensions already installed.`);
     return true;
   }
 }
