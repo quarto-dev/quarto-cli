@@ -80,7 +80,9 @@ export function pandocHtmlBlock(elementName: string) {
     return {
       ...basePandocNode,
       push: function (s: PandocNode) {
-        contents!.push(s);
+        if (this !== s) {
+          contents!.push(s);
+        }
       },
       emit: function (ls: EitherString[]) {
         ls.push(`\n<${elementName} ${attrString()}>`);
@@ -96,6 +98,34 @@ export function pandocHtmlBlock(elementName: string) {
         ls.push(`</${elementName}>\n`);
       },
     };
+  };
+}
+
+export function pandocList(opts: {
+  contents?: PandocNode[];
+  skipFirstLineBreak?: boolean;
+}): PandocNode {
+  let { contents, skipFirstLineBreak } = opts || {};
+  contents = contents || [];
+
+  return {
+    ...basePandocNode,
+    push: function (s: PandocNode) {
+      if (this !== s) {
+        contents!.push(s);
+      }
+    },
+    emit: function (ls: EitherString[]) {
+      const lb = skipFirstLineBreak ? "" : "\n";
+      ls.push(`${lb}\n`);
+      for (const entry of contents!) {
+        entry.emit(ls);
+      }
+      if (!asMappedString(ls[ls.length - 1] || "\n").value.endsWith("\n")) {
+        ls.push(`\n`);
+      }
+      ls.push(`\n`);
+    },
   };
 }
 
@@ -144,7 +174,9 @@ export function pandocBlock(delimiter: string) {
     return {
       ...basePandocNode,
       push: function (s: PandocNode) {
-        contents!.push(s);
+        if (this !== s) {
+          contents!.push(s);
+        }
       },
       emit: function (ls: EitherString[]) {
         const lb = skipFirstLineBreak ? "" : "\n";

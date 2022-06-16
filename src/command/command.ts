@@ -24,6 +24,7 @@ import { updateCommand } from "./update/cmd.ts";
 import { publishCommand } from "./publish/cmd.ts";
 import { removeCommand } from "./remove/cmd.ts";
 import { listCommand } from "./list/cmd.ts";
+import { useCommand } from "./use/cmd.ts";
 
 // deno-lint-ignore no-explicit-any
 export function commands(): Command<any>[] {
@@ -39,6 +40,7 @@ export function commands(): Command<any>[] {
     updateCommand,
     removeCommand,
     listCommand,
+    useCommand,
     publishCommand,
     capabilitiesCommand,
     inspectCommand,
