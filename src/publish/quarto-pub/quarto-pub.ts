@@ -18,12 +18,12 @@ import {
   readAccessTokens,
   writeAccessTokens,
 } from "../common/account.ts";
-import { handlePublish, PublishHandler } from "../common/publish.ts";
-
+import { PublishHandler, handlePublish } from "../common/publish.ts";
 import { PublishOptions, PublishRecord } from "../types.ts";
+
 import { QuartoPubClient } from "./api/index.ts";
-import { quartoConfig } from "../../core/quarto.ts";
 import { authorizePrompt } from "../account.ts";
+import { quartoConfig } from "../../core/quarto.ts";
 
 export const kQuartoPub = "quarto-pub";
 export const kQuartoPubAuthTokenVar = "QUARTO_PUB_AUTH_TOKEN";
@@ -152,7 +152,7 @@ function publish(
   const handler: PublishHandler = {
     name: kQuartoPub,
 
-    slugAvailable: (_slug: string) => Promise.resolve(true),
+    slugAvailable: (slug: string) => client.slugAvailable(slug),
 
     createSite: (title: string, slug: string) => client.createSite(title, slug),
 

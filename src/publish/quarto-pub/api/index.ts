@@ -50,13 +50,23 @@ export class QuartoPubClient {
   public exchangeTicket = (id: string): Promise<AccessToken> =>
     this.post(`tickets/${id}/exchange`);
 
-  // Check if a slug is available
-  public slugAvailable = (_slug: string): Promise<boolean> =>
-    Promise.resolve(true);
+  // Checks if a slug is available.
+  public slugAvailable = async (slug: string): Promise<boolean> => {
+    try {
+      await this.head(`slugs/${slug}`);
+      return false;
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 404) {
+        return true;
+      }
+
+      throw error;
+    }
+  };
 
   // Creates a site.
-  public createSite = (_title: string, _slug: string): Promise<Site> =>
-    this.post<Site>("sites");
+  public createSite = (title: string, slug: string): Promise<Site> =>
+    this.post<Site>("sites", new URLSearchParams({ title, slug }));
 
   // Creates a site deploy.
   public createDeploy = (
@@ -75,6 +85,9 @@ export class QuartoPubClient {
     path: string,
     fileBody: Blob,
   ): Promise<void> => this.put(`deploys/${deployId}/files/${path}`, fileBody);
+
+  // Performs a HEAD.
+  private head = (path: string): Promise<void> => this.fetch("HEAD", path);
 
   // Performs a GET.
   private get = <T>(path: string): Promise<T> => this.fetch<T>("GET", path);
@@ -115,14 +128,10 @@ const authorizationHeader = (
 ): HeadersInit => (!token ? {} : { Authorization: `Bearer ${token}` });
 
 // Handles a response. TODO.
-function handleResponse<T>(response: Response) {
+const handleResponse = <T>(response: Response) => {
   if (!response.ok) {
-    const error = response.json() as unknown as {
-      code: number;
-      message: string;
-    };
-    throw new ApiError(error.code, error.message);
+    throw new ApiError(response.status, response.statusText);
   } else {
     return response.json() as unknown as T;
   }
-}
+};
