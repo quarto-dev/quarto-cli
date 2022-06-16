@@ -138,12 +138,18 @@ function removeExtensions(extensions: Extension[], prompt?: boolean) {
 
   const removeMultipleExtensions = async (extensions: Extension[]) => {
     return await afterConfirm(
-      `Are you sure you'd like to remove ${extensions.length} extensions?`,
+      `Are you sure you'd like to remove ${extensions.length} ${
+        extensions.length === 1 ? "extension" : "extensions"
+      }?`,
       async () => {
         for (const extensionToRemove of extensions) {
           await removeExtension(extensionToRemove);
         }
-        info(`${extensions.length} extensions removed.`);
+        info(
+          `${extensions.length} ${
+            extensions.length === 1 ? "extension" : "extensions"
+          } removed.`,
+        );
       },
       prompt,
     );

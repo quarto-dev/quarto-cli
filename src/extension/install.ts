@@ -129,7 +129,7 @@ async function stageExtension(
 ) {
   if (source.type === "remote") {
     // Stages a remote file by downloading and unzipping it
-    const archiveDir = join(workingDir, "achive");
+    const archiveDir = join(workingDir, "archive");
     ensureDirSync(archiveDir);
 
     // The filename
@@ -190,9 +190,9 @@ async function unzipAndStage(
   const archiveDir = dirname(zipFile);
 
   // Use a subdirectory if the source provides one
-  const extensionsDir = source.targetSubdir
-    ? join(archiveDir, source.targetSubdir)
-    : extensionDir(archiveDir) || archiveDir;
+  const extensionsDir = extensionDir(
+    source.targetSubdir ? join(archiveDir, source.targetSubdir) : archiveDir,
+  );
 
   // Make the final directory we're staging into
   const finalDir = join(archiveDir, "staged");
@@ -210,9 +210,16 @@ async function unzipAndStage(
 
 // Reads the extensions from an extensions directory and copies
 // them to a destination directory
-function readAndCopyExtensions(extensionsDir: string, targetDir: string) {
+function readAndCopyExtensions(
+  extensionsDir: string,
+  targetDir: string,
+) {
   const extensions = readExtensions(extensionsDir);
-  info(`    Found ${extensions.length} extensions.`);
+  info(
+    `    Found ${extensions.length} ${
+      extensions.length === 1 ? "extension" : "extensions"
+    }.`,
+  );
 
   for (const extension of extensions) {
     copyTo(
@@ -428,7 +435,7 @@ const extensionDir = (path: string) => {
     if (existsSync(extDir) && Deno.statSync(extDir).isDirectory) {
       return extDir;
     } else {
-      return undefined;
+      return path;
     }
   }
 };

@@ -6,7 +6,7 @@
 */
 import { Command } from "cliffy/command/mod.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
-import { createTempContext } from "../../core/temp.ts";
+import { createTempContext, TempContext } from "../../core/temp.ts";
 
 import { error } from "log/mod.ts";
 import { templateHandler } from "./handlers/template.ts";
@@ -35,7 +35,7 @@ export const useCommand = new Command()
           return typeHandler.type === type;
         });
         if (typeHandler) {
-          typeHandler.handler(options, target);
+          await typeHandler.handler(options, temp, target);
         } else {
           const types = typeHandlers.map((t) => {
             return `       - ${t.type}`;
@@ -58,7 +58,11 @@ export type Options = {
 
 export interface TypeHandler {
   type: string;
-  handler: (options: Options, target?: string) => void;
+  handler: (
+    options: Options,
+    tempContext: TempContext,
+    target?: string,
+  ) => Promise<void>;
 }
 
 const typeHandlers: TypeHandler[] = [templateHandler];
