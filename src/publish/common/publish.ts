@@ -100,27 +100,10 @@ export async function handlePublish<
   // render
   const publishFiles = await render(target.url);
 
-  // add a _redirects file if necessary
-  const kRedirects = "_redirects";
-  let redirectsFile: string | undefined;
-  if (
-    publishFiles.rootFile !== "index.html" &&
-    !publishFiles.files.includes(kRedirects)
-  ) {
-    redirectsFile = Deno.makeTempFileSync();
-    Deno.writeTextFileSync(
-      redirectsFile,
-      `/          /${publishFiles.rootFile}\n`,
-    );
-    publishFiles.files.push(kRedirects);
-  }
-
   // function to resolve the full path of a file
   // (given that redirects could be in play)
   const publishFilePath = (file: string) => {
-    return ((file === kRedirects) && redirectsFile)
-      ? redirectsFile
-      : join(publishFiles.baseDir, file);
+    return join(publishFiles.baseDir, file);
   };
 
   // build file list
