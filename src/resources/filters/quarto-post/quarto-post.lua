@@ -35,6 +35,7 @@ import("../common/pandoc.lua")
 import("../common/figures.lua")
 import("../common/meta.lua")
 import("../common/debug.lua")
+import("../common/authors.lua")
 -- [/import]
 
 return {
