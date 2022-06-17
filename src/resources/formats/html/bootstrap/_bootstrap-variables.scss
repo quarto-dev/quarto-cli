@@ -33,6 +33,14 @@ $callout-margin-bottom: 1.25rem !default;
 // Navbar
 $theme-name: if(variable-exists(theme), $theme, "");
 $navbar-default: if(variable-exists(primary), $primary, #517699);
+
+// If the user provides a navbar-bg, we ned to ignore the
+// theme overide and just recalculate a good value
+$navbar-hl-override: if(
+  variable-exists(navbar-bg) and variable-exists(link-color),
+  theme-contrast($link-color, $navbar-bg),
+  false
+);
 $navbar-bg: theme-override-value(
   $theme-name,
   "navbar-bg",
@@ -60,13 +68,17 @@ $navbar-fg: if(
   )
 ) !default;
 
-$navbar-hl: theme-override-value(
-  $theme-name,
-  "navbar-hl",
-  if(
-    variable-exists(link-color),
-    theme-contrast($link-color, $navbar-bg),
-    $navbar-fg
+$navbar-hl: if(
+  $navbar-hl-override != false,
+  $navbar-hl-override,
+  theme-override-value(
+    $theme-name,
+    "navbar-hl",
+    if(
+      variable-exists(link-color),
+      theme-contrast($link-color, $navbar-bg),
+      $navbar-fg
+    )
   )
 ) !default;
 $navbar-brand: theme-override-value(
