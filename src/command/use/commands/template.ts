@@ -23,6 +23,8 @@ import { Command } from "cliffy/command/mod.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../../core/schema/utils.ts";
 import { createTempContext } from "../../../core/temp.ts";
 
+const kRootTemplateName = "template.qmd";
+
 export const useTemplateCommand = new Command()
   .name("template")
   .arguments("<target:string>")
@@ -69,27 +71,35 @@ async function useTemplate(
     await withSpinner({ message: "Copying files..." }, async () => {
       for (const fileToCopy of filesToCopy) {
         const isDir = Deno.statSync(fileToCopy).isDirectory;
+        const rel = relative(stagedDir, fileToCopy);
         if (!isDir) {
-          const rel = relative(stagedDir, fileToCopy);
+          // Compute the paths
           const target = join(outputDirectory, rel);
           const targetDir = dirname(target);
+
+          // Ensure the directory exists
           await ensureDir(targetDir);
+
+          // Copy the file into place
           await Deno.copyFile(fileToCopy, target);
+
+          // Rename the root template to '<dirname>.qmd'
+          if (rel === kRootTemplateName) {
+            const renamedFile = `${basename(targetDir)}.qmd`;
+            Deno.renameSync(target, join(outputDirectory, renamedFile));
+          }
         }
       }
     });
 
+    const dirContents = Deno.readDirSync(outputDirectory);
+
     info(
       `\nFiles created:`,
     );
-    // TODO: include anything top level
-    filesToCopy.map((file) => {
-      return relative(stagedDir, file);
-    })
-      .filter((file) => !file.startsWith(kExtensionDir))
-      .forEach((file) => {
-        info(` - ${file}`);
-      });
+    for (const fileOrDir of dirContents) {
+      info(` - ${fileOrDir.name}`);
+    }
   } else {
     return Promise.resolve();
   }
