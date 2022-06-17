@@ -9,20 +9,34 @@ import { warning } from "log/mod.ts";
 import { join } from "path/mod.ts";
 import { ensureDirSync } from "fs/mod.ts";
 import { removeIfExists } from "./path.ts";
+import { TempContext } from "./temp-types.ts";
 
 export type { TempContext } from "./temp-types.ts";
 
 let tempDir: string | undefined;
+
+let tempContext: TempContext | undefined;
 
 export function initSessionTempDir() {
   tempDir = Deno.makeTempDirSync({ prefix: "quarto-session" });
 }
 
 export function cleanupSessionTempDir() {
+  if (tempContext) {
+    tempContext.cleanup();
+    tempContext = undefined;
+  }
   if (tempDir) {
     removeIfExists(tempDir);
     tempDir = undefined;
   }
+}
+
+export function globalTempContext() {
+  if (tempContext === undefined) {
+    tempContext = createTempContext();
+  }
+  return tempContext;
 }
 
 export function createTempContext(options?: Deno.MakeTempOptions) {

@@ -7,12 +7,12 @@
 
 import { info } from "log/mod.ts";
 import * as colors from "fmt/colors.ts";
+import { ensureDirSync } from "fs/mod.ts";
 
 import { Input } from "cliffy/prompt/input.ts";
 import { Select } from "cliffy/prompt/select.ts";
 
-import { existsSync } from "fs/mod.ts";
-import { join } from "path/mod.ts";
+import { dirname, join } from "path/mod.ts";
 import { crypto } from "crypto/mod.ts";
 import { encode as hexEncode } from "encoding/hex.ts";
 
@@ -27,6 +27,7 @@ import { gfmAutoIdentifier } from "../../core/pandoc/pandoc-id.ts";
 import { randomHex } from "../../core/random.ts";
 import { copyTo } from "../../core/copy.ts";
 import { isHtmlContent } from "../../core/mime.ts";
+import { globalTempContext } from "../../core/temp.ts";
 
 export interface PublishSite {
   id?: string;
@@ -106,145 +107,156 @@ export async function handlePublish<
   target = target!;
 
   // render
-  const publishFiles = await render(target.url);
+  let publishFiles = await render(target.url);
 
   // validate that the main document is html
   if (type === "document" && !isHtmlContent(publishFiles.rootFile)) {
     throw new Error(`Documents published to ${handler.name} must be HTML.`);
   }
 
-  // if this is an html document that isn't index.html then
-  // stage the files in a temp dir and rename the root file
-  // to index.html
-  const kIndex = "index.html";
-  let cleanupIndex = false;
-  if (type === "document" && !publishFiles.files.includes(kIndex)) {
-    copyTo(
-      join(publishFiles.baseDir, publishFiles.rootFile),
-      join(publishFiles.baseDir, kIndex),
-    );
-    publishFiles.files.push(kIndex);
-    publishFiles.rootFile = kIndex;
-    cleanupIndex = true;
+  // if this is a document then stage the files
+  if (type === "document") {
+    publishFiles = stageDocumentPublish(publishFiles);
   }
 
-  try {
-    // function to resolve the full path of a file
-    // (given that redirects could be in play)
-    const publishFilePath = (file: string) => {
-      return join(publishFiles.baseDir, file);
+  // function to resolve the full path of a file
+  // (given that redirects could be in play)
+  const publishFilePath = (file: string) => {
+    return join(publishFiles.baseDir, file);
+  };
+
+  // build file list
+  let siteDeploy: Deploy | undefined;
+  const files: Array<[string, string]> = [];
+  await withSpinner({
+    message: `Preparing to publish ${type}`,
+  }, async () => {
+    const textDecoder = new TextDecoder();
+    for (const file of publishFiles.files) {
+      const filePath = publishFilePath(file);
+      const sha1 = await crypto.subtle.digest(
+        "SHA-1",
+        Deno.readFileSync(filePath),
+      );
+      const encodedSha1 = hexEncode(new Uint8Array(sha1));
+      files.push([file, textDecoder.decode(encodedSha1)]);
+    }
+
+    // create deploy
+    const deploy = {
+      files: {} as Record<string, string>,
     };
+    for (const file of files) {
+      deploy.files[`/${file[0]}`] = file[1];
+    }
+    siteDeploy = await handler.createDeploy(target!.id, deploy.files);
 
-    // build file list
-    let siteDeploy: Deploy | undefined;
-    const files: Array<[string, string]> = [];
+    // wait for it to be ready
+    while (true) {
+      siteDeploy = await handler.getDeploy(siteDeploy.id!);
+      if (siteDeploy.state === "prepared" || siteDeploy.state === "ready") {
+        break;
+      }
+      await sleep(250);
+    }
+  });
+
+  // compute required files
+  const required = siteDeploy?.required!.map((sha1) => {
+    const file = files.find((file) => file[1] === sha1);
+    return file ? file[0] : null;
+  }).filter((file) => file) as string[];
+
+  // upload with progress
+  const progress = fileProgress(required);
+  await withSpinner({
+    message: () => `Uploading files ${progress.status()}`,
+    doneMessage: false,
+  }, async () => {
+    for (const requiredFile of required) {
+      const filePath = publishFilePath(requiredFile);
+      const fileArray = Deno.readFileSync(filePath);
+      await handler.uploadDeployFile(
+        siteDeploy?.id!,
+        requiredFile,
+        new Blob([fileArray.buffer]),
+      );
+      progress.next();
+    }
+  });
+  completeMessage(`Uploading files (complete)`);
+
+  // wait on ready
+  let targetUrl = target.url;
+  let adminUrl = target.url;
+  let launchUrl = target.url;
+  await withSpinner({
+    message: `Deploying published ${type}`,
+  }, async () => {
+    while (true) {
+      const deployReady = await handler.getDeploy(siteDeploy?.id!);
+      if (deployReady.state === "ready") {
+        targetUrl = deployReady.url || targetUrl;
+        adminUrl = deployReady.admin_url || targetUrl;
+        launchUrl = deployReady.launch_url || adminUrl;
+        break;
+      }
+      await sleep(500);
+    }
+  });
+
+  // Complete message.
+  completeMessage(`Published ${type}: ${targetUrl}`);
+
+  // If the handler provides an update user site function, call it.
+  if (handler.updateUserSite) {
+    let userSite: UserSite;
     await withSpinner({
-      message: `Preparing to publish ${type}`,
-    }, async () => {
-      const textDecoder = new TextDecoder();
-      for (const file of publishFiles.files) {
-        const filePath = publishFilePath(file);
-        const sha1 = await crypto.subtle.digest(
-          "SHA-1",
-          Deno.readFileSync(filePath),
-        );
-        const encodedSha1 = hexEncode(new Uint8Array(sha1));
-        files.push([file, textDecoder.decode(encodedSha1)]);
-      }
-
-      // create deploy
-      const deploy = {
-        files: {} as Record<string, string>,
-      };
-      for (const file of files) {
-        deploy.files[`/${file[0]}`] = file[1];
-      }
-      siteDeploy = await handler.createDeploy(target!.id, deploy.files);
-
-      // wait for it to be ready
-      while (true) {
-        siteDeploy = await handler.getDeploy(siteDeploy.id!);
-        if (siteDeploy.state === "prepared" || siteDeploy.state === "ready") {
-          break;
-        }
-        await sleep(250);
-      }
-    });
-
-    // compute required files
-    const required = siteDeploy?.required!.map((sha1) => {
-      const file = files.find((file) => file[1] === sha1);
-      return file ? file[0] : null;
-    }).filter((file) => file) as string[];
-
-    // upload with progress
-    const progress = fileProgress(required);
-    await withSpinner({
-      message: () => `Uploading files ${progress.status()}`,
+      message: `Updating user site`,
       doneMessage: false,
     }, async () => {
-      for (const requiredFile of required) {
-        const filePath = publishFilePath(requiredFile);
-        const fileArray = Deno.readFileSync(filePath);
-        await handler.uploadDeployFile(
-          siteDeploy?.id!,
-          requiredFile,
-          new Blob([fileArray.buffer]),
-        );
-        progress.next();
-      }
+      userSite = await handler.updateUserSite!();
     });
-    completeMessage(`Uploading files (complete)`);
-
-    // wait on ready
-    let targetUrl = target.url;
-    let adminUrl = target.url;
-    let launchUrl = target.url;
-    await withSpinner({
-      message: `Deploying published ${type}`,
-    }, async () => {
-      while (true) {
-        const deployReady = await handler.getDeploy(siteDeploy?.id!);
-        if (deployReady.state === "ready") {
-          targetUrl = deployReady.url || targetUrl;
-          adminUrl = deployReady.admin_url || targetUrl;
-          launchUrl = deployReady.launch_url || adminUrl;
-          break;
-        }
-        await sleep(500);
-      }
-    });
-
-    // Complete message.
-    completeMessage(`Published ${type}: ${targetUrl}`);
-
-    // If the handler provides an update user site function, call it.
-    if (handler.updateUserSite) {
-      let userSite: UserSite;
-      await withSpinner({
-        message: `Updating user site`,
-        doneMessage: false,
-      }, async () => {
-        userSite = await handler.updateUserSite!();
-      });
-      completeMessage(`User site updated: ${userSite!.url}`);
-    }
-
-    // Spacer.
-    console.log();
-
-    return [
-      { ...target, url: targetUrl },
-      launchUrl ? new URL(launchUrl) : undefined,
-    ];
-  } finally {
-    if (cleanupIndex) {
-      const indexFile = join(publishFiles.baseDir, kIndex);
-      if (existsSync(indexFile)) {
-        Deno.removeSync(indexFile);
-      }
-    }
+    completeMessage(`User site updated: ${userSite!.url}`);
   }
+
+  // Spacer.
+  console.log();
+
+  return [
+    { ...target, url: targetUrl },
+    launchUrl ? new URL(launchUrl) : undefined,
+  ];
+}
+
+function stageDocumentPublish(publishFiles: PublishFiles) {
+  // create temp dir
+  const publishDir = globalTempContext().createDir();
+
+  // copy all files to it
+  const stagedFiles = window.structuredClone(publishFiles) as PublishFiles;
+  stagedFiles.baseDir = publishDir;
+  for (const file of publishFiles.files) {
+    const src = join(publishFiles.baseDir, file);
+    const target = join(stagedFiles.baseDir, file);
+    ensureDirSync(dirname(target));
+    copyTo(src, target);
+  }
+
+  // if this is an html document that isn't index.html then
+  // create an index.html and add it to the staged dir
+  const kIndex = "index.html";
+  if (!stagedFiles.files.includes(kIndex)) {
+    copyTo(
+      join(stagedFiles.baseDir, stagedFiles.rootFile),
+      join(stagedFiles.baseDir, kIndex),
+    );
+    stagedFiles.files.push(kIndex);
+    stagedFiles.rootFile = kIndex;
+  }
+
+  // return staged directory
+  return stagedFiles;
 }
 
 async function promptForSlug(
