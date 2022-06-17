@@ -24,6 +24,7 @@ import { PublishOptions, PublishRecord } from "../types.ts";
 import { QuartoPubClient } from "./api/index.ts";
 import { authorizePrompt } from "../account.ts";
 import { quartoConfig } from "../../core/quarto.ts";
+import { sleep } from "../../core/wait.ts";
 
 export const kQuartoPub = "quarto-pub";
 export const kQuartoPubAuthTokenVar = "QUARTO_PUB_AUTH_TOKEN";
@@ -164,6 +165,8 @@ function publish(
 
     uploadDeployFile: (deployId: string, path: string, fileBody: Blob) =>
       client.uploadDeployFile(deployId, path, fileBody),
+
+    updateUserSite: () => client.updateUserSite(),
   };
 
   return handlePublish(handler, type, title, slug, render, target);

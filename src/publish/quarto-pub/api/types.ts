@@ -32,3 +32,7 @@ export type Ticket = {
   authorized: boolean;
   authorizationURL: string;
 };
+
+export type UserSite = {
+  url: string;
+};

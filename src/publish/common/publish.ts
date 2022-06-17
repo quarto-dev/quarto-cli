@@ -43,6 +43,10 @@ export interface PublishDeploy {
   launch_url?: string;
 }
 
+export interface UserSite {
+  url: string;
+}
+
 export interface PublishHandler<
   Site extends PublishSite = PublishSite,
   Deploy extends PublishDeploy = PublishDeploy,
@@ -64,6 +68,7 @@ export interface PublishHandler<
     path: string,
     fileBody: Blob,
   ) => Promise<void>;
+  updateUserSite?: () => Promise<UserSite>;
 }
 
 export async function handlePublish<
@@ -210,7 +215,19 @@ export async function handlePublish<
       }
     });
 
-    completeMessage(`Published: ${targetUrl}\n`);
+    // If the handler provides an update user site function, call it.
+    if (handler.updateUserSite) {
+      let userSite: UserSite;
+      await withSpinner({
+        message: `Updating user site`,
+        doneMessage: false,
+      }, async () => {
+        userSite = await handler.updateUserSite!();
+      });
+      completeMessage(`User site updated: ${userSite!.url}`);
+    }
+
+    completeMessage(`Published ${type}: ${targetUrl}\n`);
 
     return [
       { ...target, url: targetUrl },
