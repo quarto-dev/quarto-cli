@@ -11,6 +11,7 @@ export interface ResolvedExtensionInfo {
   url: string;
   subdirectory?: string;
   owner?: string;
+  learnMoreUrl?: string;
 }
 
 export type ExtensionNameResolver = (
@@ -22,6 +23,7 @@ export interface ExtensionSource {
   owner?: string;
   resolvedTarget: string;
   targetSubdir?: string;
+  learnMoreUrl?: string;
 }
 
 export function extensionSource(target: string): ExtensionSource {
@@ -40,6 +42,7 @@ export function extensionSource(target: string): ExtensionSource {
       resolvedTarget: resolved?.url || target,
       owner: resolved?.owner,
       targetSubdir: resolved?.subdirectory,
+      learnMoreUrl: resolved?.learnMoreUrl,
     };
   }
 }
@@ -52,10 +55,12 @@ const githubLatest = (name: string) => {
     const url = `https://github.com/${match[1]}/${
       match[2]
     }/archive/refs/heads/main.tar.gz`;
+    const learnMoreUrl = `https://github.com/${match[1]}/${match[2]}`;
     return {
       url,
       owner: match[1],
       subdirectory: subdirectory(url),
+      learnMoreUrl,
     };
   } else {
     return undefined;
@@ -70,10 +75,12 @@ const githubVersion = (name: string) => {
     const url = `https://github.com/${match[1]}/${
       match[2]
     }/archive/refs/tags/v${match[3]}.tar.gz`;
+    const learnMoreUrl = `https://github.com/${match[1]}/${match[2]}`;
     return {
       url,
       owner: match[1],
       subdirectory: subdirectory(url),
+      learnMoreUrl,
     };
   } else {
     return undefined;
