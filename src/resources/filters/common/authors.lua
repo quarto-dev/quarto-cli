@@ -529,8 +529,8 @@ function normalizeName(name)
     if name[kLiteralName] then 
       local parsedName = bibtexParseName(name)
       if type(parsedName) == 'table' then
-        name[kGivenName] = parsedName.given
-        name[kFamilyName] = parsedName.family
+        name[kGivenName] = pandoc.Str(parsedName.given)
+        name[kFamilyName] = pandoc.Str(parsedName.family)
         name[kDroppingParticle] = parsedName[kDroppingParticle]
         name[kNonDroppingParticle] = parsedName[kNonDroppingParticle]
       else
