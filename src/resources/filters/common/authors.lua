@@ -238,8 +238,6 @@ function processAuthorMeta(meta)
 
   -- Provide localized or user specified strings for title block elements
   meta = computeLabels(authors, affiliations, meta)
-
-  _quarto.utils.dump(meta[kAuthors])
   return meta
 end
 
