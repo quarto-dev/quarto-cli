@@ -119,7 +119,7 @@ local kDoiTitle = 'doi-title'
 -- The field types for an author (maps the field in an author table)
 -- to the way the field should be processed
 local kAuthorNameFields = { kName }
-local kSuthorSimpleFields = { kId, kUrl, kEmail, kFax, kPhone, kOrcid, kAcknowledgements }
+local kAuthorSimpleFields = { kId, kUrl, kEmail, kFax, kPhone, kOrcid, kAcknowledgements }
 local kAuthorAttributeFields = { kCorresponding, kEqualContributor }
 local kAuthorAffiliationFields = { kAffiliation, kAffiliations }
 
@@ -239,6 +239,7 @@ function processAuthorMeta(meta)
   -- Provide localized or user specified strings for title block elements
   meta = computeLabels(authors, affiliations, meta)
 
+  _quarto.utils.dump(meta[kAuthors])
   return meta
 end
 
@@ -290,7 +291,7 @@ end
 -- and normalized set of affilations
 function processAuthor(value) 
   -- initialize the author
-  local author = pandoc.List({})
+  local author = pandoc.MetaMap({})
 
   -- initialize their affilations
   local authorAffiliations = {}
@@ -306,7 +307,7 @@ function processAuthor(value)
       if tcontains(kAuthorNameFields, authorKey) then
         -- process any names
         author[authorKey] = toName(authorValue)
-      elseif tcontains(kSuthorSimpleFields, authorKey) then
+      elseif tcontains(kAuthorSimpleFields, authorKey) then
         -- process simple fields
         author[authorKey] = authorValue
       elseif tcontains(kAuthorAttributeFields, authorKey) then
@@ -529,8 +530,8 @@ function normalizeName(name)
     if name[kLiteralName] then 
       local parsedName = bibtexParseName(name)
       if type(parsedName) == 'table' then
-        name[kGivenName] = pandoc.Str(parsedName.given)
-        name[kFamilyName] = pandoc.Str(parsedName.family)
+        name[kGivenName] = {pandoc.Str(parsedName.given)}
+        name[kFamilyName] = {pandoc.Str(parsedName.family)}
         name[kDroppingParticle] = parsedName[kDroppingParticle]
         name[kNonDroppingParticle] = parsedName[kNonDroppingParticle]
       else
