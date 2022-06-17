@@ -57,7 +57,7 @@ async function useTemplate(
   const trusted = await isTrusted(source, options.prompt !== false);
   if (trusted) {
     // Resolve target directory
-    const outputDirectory = await determineDirectory();
+    const outputDirectory = await determineDirectory(options.prompt !== false);
 
     // Extract and move the template into place
     const stagedDir = await stageTemplate(source, tempContext);
@@ -167,17 +167,27 @@ async function isTrusted(
   }
 }
 
-async function determineDirectory() {
+async function determineDirectory(allowPrompt: boolean) {
   const currentDir = Deno.cwd();
   if (directoryEmpty(currentDir)) {
-    const useCurrentDir = await confirmCurrentDir();
-    if (useCurrentDir) {
+    if (!allowPrompt) {
       return currentDir;
     } else {
-      return promptForDirectory(currentDir);
+      const useCurrentDir = await confirmCurrentDir();
+      if (useCurrentDir) {
+        return currentDir;
+      } else {
+        return promptForDirectory(currentDir);
+      }
     }
   } else {
-    return promptForDirectory(currentDir);
+    if (allowPrompt) {
+      return promptForDirectory(currentDir);
+    } else {
+      throw new Error(
+        `Attempted to use a template with '--no-prompt' in the non empty directory ${currentDir}.`,
+      );
+    }
   }
 }
 
