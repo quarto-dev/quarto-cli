@@ -29,6 +29,7 @@ export function getDecodedAttribute(element: Element, attrib: string) {
 
 const kAttrReplacements: Record<string, string> = {
   '"': "&quot;",
+  "'": "&#039;",
   "<": "&lt;",
   ">": "&gt;",
   "&": "&amp;",

@@ -7,12 +7,12 @@
 
 import { info } from "log/mod.ts";
 import * as colors from "fmt/colors.ts";
-import { ensureDirSync } from "fs/mod.ts";
+import { ensureDirSync, walkSync } from "fs/mod.ts";
 
 import { Input } from "cliffy/prompt/input.ts";
 import { Select } from "cliffy/prompt/select.ts";
 
-import { dirname, join } from "path/mod.ts";
+import { dirname, join, relative } from "path/mod.ts";
 import { crypto } from "crypto/mod.ts";
 import { encode as hexEncode } from "encoding/hex.ts";
 
@@ -26,8 +26,10 @@ import { capitalize } from "../../core/text.ts";
 import { gfmAutoIdentifier } from "../../core/pandoc/pandoc-id.ts";
 import { randomHex } from "../../core/random.ts";
 import { copyTo } from "../../core/copy.ts";
-import { isHtmlContent } from "../../core/mime.ts";
+import { isHtmlContent, isPdfContent } from "../../core/mime.ts";
 import { globalTempContext } from "../../core/temp.ts";
+import { formatResourcePath } from "../../core/resources.ts";
+import { encodeAttributeValue } from "../../core/html.ts";
 
 export interface PublishSite {
   id?: string;
@@ -110,13 +112,19 @@ export async function handlePublish<
   let publishFiles = await render(target.url);
 
   // validate that the main document is html
-  if (type === "document" && !isHtmlContent(publishFiles.rootFile)) {
-    throw new Error(`Documents published to ${handler.name} must be HTML.`);
+  if (
+    type === "document" &&
+    !isHtmlContent(publishFiles.rootFile) &&
+    !isPdfContent(publishFiles.rootFile)
+  ) {
+    throw new Error(
+      `Documents published to ${handler.name} must be either HTML or PDF.`,
+    );
   }
 
   // if this is a document then stage the files
   if (type === "document") {
-    publishFiles = stageDocumentPublish(publishFiles);
+    publishFiles = stageDocumentPublish(title, publishFiles);
   }
 
   // function to resolve the full path of a file
@@ -229,7 +237,7 @@ export async function handlePublish<
   ];
 }
 
-function stageDocumentPublish(publishFiles: PublishFiles) {
+function stageDocumentPublish(title: string, publishFiles: PublishFiles) {
   // create temp dir
   const publishDir = globalTempContext().createDir();
 
@@ -246,14 +254,54 @@ function stageDocumentPublish(publishFiles: PublishFiles) {
   // if this is an html document that isn't index.html then
   // create an index.html and add it to the staged dir
   const kIndex = "index.html";
-  if (!stagedFiles.files.includes(kIndex)) {
-    copyTo(
-      join(stagedFiles.baseDir, stagedFiles.rootFile),
-      join(stagedFiles.baseDir, kIndex),
-    );
-    stagedFiles.files.push(kIndex);
-    stagedFiles.rootFile = kIndex;
+  if (isHtmlContent(publishFiles.rootFile)) {
+    if (stagedFiles.rootFile !== "index.html") {
+      copyTo(
+        join(stagedFiles.baseDir, stagedFiles.rootFile),
+        join(stagedFiles.baseDir, kIndex),
+      );
+    }
+  } else if (isPdfContent(publishFiles.rootFile)) {
+    // copy pdf.js into the publish dir and add to staged files
+    const src = formatResourcePath("pdf", "pdfjs");
+    const dest = join(stagedFiles.baseDir, "pdfjs");
+    for (const walk of walkSync(src)) {
+      if (walk.isFile) {
+        const destFile = join(dest, relative(src, walk.path));
+        ensureDirSync(dirname(destFile));
+        copyTo(walk.path, destFile);
+        stagedFiles.files.push(relative(stagedFiles.baseDir, destFile));
+      }
+    }
+    // write an index file that serves the pdf
+    const indexHtml = `<!DOCTYPE html>
+<html>
+<head>
+<title>${encodeAttributeValue(title)}</title>
+<style type="text/css">
+  body, html {
+    margin: 0; padding: 0; height: 100%; overflow: hidden;
   }
+</style>
+</head>
+<body>
+<iframe id="pdf-js-viewer" src="pdfjs/web/viewer.html?file=../../${
+      encodeAttributeValue(stagedFiles.rootFile)
+    }" title="${
+      encodeAttributeValue(title)
+    }" frameborder="0" width="100%" height="100%"></iframe>
+
+</body>
+</html>
+`;
+    Deno.writeTextFileSync(join(stagedFiles.baseDir, kIndex), indexHtml);
+  }
+
+  // make sure the root file is index.html
+  if (!stagedFiles.files.includes(kIndex)) {
+    stagedFiles.files.push(kIndex);
+  }
+  stagedFiles.rootFile = kIndex;
 
   // return staged directory
   return stagedFiles;
