@@ -9,9 +9,8 @@ import {
   ExtensionSource,
   extensionSource,
 } from "../../../extension/extension-host.ts";
-import { error, info } from "log/mod.ts";
+import { info } from "log/mod.ts";
 import { Confirm, Input, Select } from "cliffy/prompt/mod.ts";
-import { Options } from "../cmd.ts";
 import { basename, dirname, join, relative } from "path/mod.ts";
 import { ensureDir, ensureDirSync, existsSync } from "fs/mod.ts";
 import { TempContext } from "../../../core/temp-types.ts";
@@ -20,60 +19,80 @@ import { withSpinner } from "../../../core/console.ts";
 import { unzip } from "../../../core/zip.ts";
 import { templateFiles } from "../../../extension/template.ts";
 import { kExtensionDir } from "../../../extension/extension-shared.ts";
+import { Command } from "cliffy/command/mod.ts";
+import { initYamlIntelligenceResourcesFromFilesystem } from "../../../core/schema/utils.ts";
+import { createTempContext } from "../../../core/temp.ts";
 
-export const templateHandler = {
-  type: "template",
-  handler: async (
-    options: Options,
-    tempContext: TempContext,
-    target?: string,
-  ) => {
-    if (target) {
-      // Resolve extension host and trust
-      const source = extensionSource(target);
-      const trusted = await isTrusted(source, options.prompt !== false);
-      if (trusted) {
-        // Resolve target directory
-        const outputDirectory = await determineDirectory();
-
-        // Extract and move the template into place
-        const stagedDir = await stageTemplate(source, tempContext);
-
-        // Filter the list to template files
-        const filesToCopy = templateFiles(stagedDir);
-
-        // Copy the files
-        await withSpinner({ message: "Copying files..." }, async () => {
-          for (const fileToCopy of filesToCopy) {
-            const isDir = Deno.statSync(fileToCopy).isDirectory;
-            if (!isDir) {
-              const rel = relative(stagedDir, fileToCopy);
-              const target = join(outputDirectory, rel);
-              const targetDir = dirname(target);
-              await ensureDir(targetDir);
-              await Deno.copyFile(fileToCopy, target);
-            }
-          }
-        });
-
-        info(
-          `\n${target} configured for ${relative(Deno.cwd(), outputDirectory)}`,
-        );
-        filesToCopy.map((file) => {
-          return relative(stagedDir, file);
-        })
-          .filter((file) => !file.startsWith(kExtensionDir))
-          .forEach((file) => {
-            info(` - ${file}`);
-          });
-      } else {
-        return Promise.resolve();
-      }
-    } else {
-      error("Please provide a url, path, or GitHub repo to use as a template.");
+export const useTemplateCommand = new Command()
+  .name("template")
+  .arguments("<target:string>")
+  .description(
+    "Use a Quarto template for this directory or project.",
+  )
+  .option(
+    "--no-prompt",
+    "Do not prompt to confirm actions",
+  )
+  .example(
+    "Use a template from Github",
+    "quarto use template <gh-org>/<gh-repo>",
+  )
+  .action(async (options: { prompt?: boolean }, target: string) => {
+    await initYamlIntelligenceResourcesFromFilesystem();
+    const temp = createTempContext();
+    try {
+      await useTemplate(options, target, temp);
+    } finally {
+      temp.cleanup();
     }
-  },
-};
+  });
+
+async function useTemplate(
+  options: { prompt?: boolean },
+  target: string,
+  tempContext: TempContext,
+) {
+  // Resolve extension host and trust
+  const source = extensionSource(target);
+  const trusted = await isTrusted(source, options.prompt !== false);
+  if (trusted) {
+    // Resolve target directory
+    const outputDirectory = await determineDirectory();
+
+    // Extract and move the template into place
+    const stagedDir = await stageTemplate(source, tempContext);
+
+    // Filter the list to template files
+    const filesToCopy = templateFiles(stagedDir);
+
+    // Copy the files
+    await withSpinner({ message: "Copying files..." }, async () => {
+      for (const fileToCopy of filesToCopy) {
+        const isDir = Deno.statSync(fileToCopy).isDirectory;
+        if (!isDir) {
+          const rel = relative(stagedDir, fileToCopy);
+          const target = join(outputDirectory, rel);
+          const targetDir = dirname(target);
+          await ensureDir(targetDir);
+          await Deno.copyFile(fileToCopy, target);
+        }
+      }
+    });
+
+    info(
+      `\n${target} configured for ${relative(Deno.cwd(), outputDirectory)}`,
+    );
+    filesToCopy.map((file) => {
+      return relative(stagedDir, file);
+    })
+      .filter((file) => !file.startsWith(kExtensionDir))
+      .forEach((file) => {
+        info(` - ${file}`);
+      });
+  } else {
+    return Promise.resolve();
+  }
+}
 
 async function stageTemplate(
   source: ExtensionSource,
