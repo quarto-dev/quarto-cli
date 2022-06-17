@@ -40,20 +40,23 @@ export class QuartoPubClient {
 
   // Creates a ticket.
   public createTicket = (clientId: string): Promise<Ticket> =>
-    this.post(`tickets?${new URLSearchParams({ applicationId: clientId })}`);
+    this.fetchJSON(
+      "POST",
+      `tickets?${new URLSearchParams({ applicationId: clientId })}`,
+    );
 
   // Shows a ticket.
   public showTicket = (id: string): Promise<Ticket> =>
-    this.get(`tickets/${id}`);
+    this.fetchJSON("GET", `tickets/${id}`);
 
   // Exchanges a ticket for an access token.
   public exchangeTicket = (id: string): Promise<AccessToken> =>
-    this.post(`tickets/${id}/exchange`);
+    this.fetchJSON("POST", `tickets/${id}/exchange`);
 
   // Checks if a slug is available.
   public slugAvailable = async (slug: string): Promise<boolean> => {
     try {
-      await this.head(`slugs/${slug}`);
+      await this.fetch("HEAD", `slugs/${slug}`);
       return false;
     } catch (error) {
       if (error instanceof ApiError && error.status === 404) {
@@ -70,56 +73,71 @@ export class QuartoPubClient {
     title: string,
     slug: string,
   ): Promise<Site> =>
-    this.post<Site>("sites", new URLSearchParams({ type, title, slug }));
+    this.fetchJSON("POST", "sites", new URLSearchParams({ type, title, slug }));
 
   // Creates a site deploy.
   public createDeploy = (
     siteId: string,
     files: Record<string, string>,
   ): Promise<PublishDeploy> =>
-    this.post(`sites/${siteId}/deploys`, JSON.stringify(files));
+    this.fetchJSON("POST", `sites/${siteId}/deploys`, JSON.stringify(files));
 
   // Gets a deploy.
   public getDeploy = (deployId: string): Promise<PublishDeploy> =>
-    this.get(`deploys/${deployId}`);
+    this.fetchJSON("GET", `deploys/${deployId}`);
 
   // Uploads a deploy file.
   public uploadDeployFile = (
     deployId: string,
     path: string,
     fileBody: Blob,
-  ): Promise<void> => this.put(`deploys/${deployId}/files/${path}`, fileBody);
+  ): Promise<void> =>
+    this.fetch("PUT", `deploys/${deployId}/files/${path}`, fileBody);
 
-  // Performs a HEAD.
-  private head = (path: string): Promise<void> => this.fetch("HEAD", path);
-
-  // Performs a GET.
-  private get = <T>(path: string): Promise<T> => this.fetch<T>("GET", path);
-
-  // Performs a POST.
-  private post = <T>(path: string, body?: BodyInit | null): Promise<T> =>
-    this.fetch<T>("POST", path, body);
-
-  // Performs a PUT.
-  private put = <T>(path: string, body?: BodyInit | null): Promise<T> =>
-    this.fetch<T>("PUT", path, body);
-
-  // Performs a fetch.
-  private fetch = async <T>(
+  // Performs a fetch returning JSON.
+  private fetchJSON = async <T>(
     method: string,
     path: string,
     body?: BodyInit | null,
   ): Promise<T> => {
-    return handleResponse<T>(
-      await fetch(this.createURL(path), {
-        method,
-        headers: {
-          Accept: "application/json",
-          ...authorizationHeader(this.token_),
-        },
-        body,
-      }),
-    );
+    // Perform the fetch.
+    const response = await fetch(this.createURL(path), {
+      method,
+      headers: {
+        Accept: "application/json",
+        ...authorizationHeader(this.token_),
+      },
+      body,
+    });
+
+    // If the response was not OK, throw an ApiError.
+    if (!response.ok) {
+      throw new ApiError(response.status, response.statusText);
+    }
+
+    // Return the JSON as the specified type.
+    return <T> await response.json();
+  };
+
+  // Performs a fetch.
+  private fetch = async (
+    method: string,
+    path: string,
+    body?: BodyInit | null,
+  ): Promise<void> => {
+    // Perform the fetch.
+    const response = await fetch(this.createURL(path), {
+      method,
+      headers: {
+        ...authorizationHeader(this.token_),
+      },
+      body,
+    });
+
+    // If the response was not OK, throw an ApiError.
+    if (!response.ok) {
+      throw new ApiError(response.status, response.statusText);
+    }
   };
 
   // Creates a URL.
@@ -130,12 +148,3 @@ export class QuartoPubClient {
 const authorizationHeader = (
   token?: string,
 ): HeadersInit => (!token ? {} : { Authorization: `Bearer ${token}` });
-
-// Handles a response. TODO.
-const handleResponse = <T>(response: Response) => {
-  if (!response.ok) {
-    throw new ApiError(response.status, response.statusText);
-  } else {
-    return response.json() as unknown as T;
-  }
-};
