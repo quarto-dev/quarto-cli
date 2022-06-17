@@ -215,6 +215,9 @@ export async function handlePublish<
       }
     });
 
+    // Complete message.
+    completeMessage(`Published ${type}: ${targetUrl}`);
+
     // If the handler provides an update user site function, call it.
     if (handler.updateUserSite) {
       let userSite: UserSite;
@@ -227,7 +230,8 @@ export async function handlePublish<
       completeMessage(`User site updated: ${userSite!.url}`);
     }
 
-    completeMessage(`Published ${type}: ${targetUrl}\n`);
+    // Spacer.
+    console.log();
 
     return [
       { ...target, url: targetUrl },
