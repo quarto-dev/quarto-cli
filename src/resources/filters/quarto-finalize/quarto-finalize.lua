@@ -13,7 +13,6 @@ function import(script)
   dofile(path .. script)
 end
 import("../common/base64.lua")
-import("../common/params.lua")
 import("../common/pandoc.lua")
 import("../common/filemetadata.lua")
 import("../common/debug.lua")
@@ -21,8 +20,6 @@ import("book-cleanup.lua")
 import("dependencies.lua")
 import("mediabag.lua")
 -- [/import]
-
-initParams()
 
 return {
   combineFilters({

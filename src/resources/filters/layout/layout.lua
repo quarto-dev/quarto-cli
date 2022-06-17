@@ -41,7 +41,6 @@ import("../common/layout.lua")
 import("../common/figures.lua")
 import("../common/tables.lua")
 import("../common/options.lua")
-import("../common/params.lua")
 import("../common/meta.lua")
 import("../common/table.lua")
 import("../common/debug.lua")
@@ -310,8 +309,6 @@ function isPreambleBlock(el)
   return (el.t == "CodeBlock" and el.attr.classes:includes("cell-code")) or
          (el.t == "Div" and el.attr.classes:includes("cell-output-stderr"))
 end
-
-initParams()
 
 -- chain of filters
 return {

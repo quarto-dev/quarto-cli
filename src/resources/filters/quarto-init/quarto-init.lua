@@ -14,13 +14,9 @@ import("../common/base64.lua")
 import("../common/paths.lua")
 import("../common/filemetadata.lua")
 import("../common/meta.lua")
-import("../common/params.lua")
 import("includes.lua")
 import("resourcerefs.lua")
 -- [/import]
-
--- initialize params
-initParams()
 
 return {
   readIncludes(),
