@@ -58,7 +58,7 @@ export async function installExtension(
 
     if (confirmed) {
       // Complete the installation
-      await completeInstallation(extensionDir, installDir);
+      await completeInstallation(extensionDir, installDir, source);
     } else {
       // Not confirmed, cancel the installation
       cancelInstallation();
@@ -413,11 +413,25 @@ async function confirmInstallation(
 }
 
 // Copy the extension files into place
-async function completeInstallation(downloadDir: string, installDir: string) {
+async function completeInstallation(
+  downloadDir: string,
+  installDir: string,
+  source: ExtensionSource,
+) {
   info("");
+
+  const message = () => {
+    const baseMessage = `Extension installation complete.`;
+    if (source.learnMoreUrl) {
+      return `${baseMessage}\nLearn more about this extension at ${source.learnMoreUrl}`;
+    } else {
+      return baseMessage;
+    }
+  };
+
   await withSpinner({
     message: `Copying`,
-    doneMessage: `Extension installation complete`,
+    doneMessage: message(),
   }, () => {
     copyTo(downloadDir, installDir, { overwrite: true });
     return Promise.resolve();

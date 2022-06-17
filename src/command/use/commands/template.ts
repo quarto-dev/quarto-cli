@@ -80,8 +80,9 @@ async function useTemplate(
     });
 
     info(
-      `\n${target} configured for ${relative(Deno.cwd(), outputDirectory)}`,
+      `\nFiles created:`,
     );
+    // TODO: include anything top level
     filesToCopy.map((file) => {
       return relative(stagedDir, file);
     })
@@ -185,38 +186,41 @@ async function determineDirectory(allowPrompt: boolean) {
       return promptForDirectory(currentDir);
     } else {
       throw new Error(
-        `Attempted to use a template with '--no-prompt' in the non empty directory ${currentDir}.`,
+        `Attempted to use a template with '--no-prompt' in a non-empty directory ${currentDir}.`,
       );
     }
   }
 }
 
 async function promptForDirectory(root: string) {
-  while (true) {
-    const dirName = await Input.prompt({
-      message: "What directory should be created for the template?",
-    });
-    const dir = join(root, dirName);
-
-    if (!existsSync(dir)) {
-      ensureDirSync(dir);
-      return dir;
-    } else {
-      if (directoryEmpty(dir)) {
-        return dir;
-      } else {
-        info(
-          `The directory '${dirName}' is not empty. Please provide the name of a new or empty directory.`,
-        );
+  const dirName = await Input.prompt({
+    message: "Directory name:",
+    validate: (input) => {
+      if (input.length === 0) {
+        return true;
       }
-    }
+      const dir = join(root, input);
+      if (!existsSync(dir)) {
+        ensureDirSync(dir);
+      }
+
+      if (directoryEmpty(dir)) {
+        return true;
+      } else {
+        return `The directory '${input}' is not empty. Please provide the name of a new or empty directory.`;
+      }
+    },
+  });
+  if (dirName.length === 0) {
+    throw new Error();
   }
+  return join(root, dirName);
 }
 
 async function confirmCurrentDir() {
   const dirType: string = await Select.prompt({
     indent: "",
-    message: `What directory should template be expanded into?`,
+    message: `Use template in:`,
     options: [
       {
         name: "Current directory",
