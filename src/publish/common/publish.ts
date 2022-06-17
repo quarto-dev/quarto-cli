@@ -229,7 +229,7 @@ export async function handlePublish<
   }
 
   // Spacer.
-  console.log();
+  info("");
 
   return [
     { ...target, url: targetUrl },
