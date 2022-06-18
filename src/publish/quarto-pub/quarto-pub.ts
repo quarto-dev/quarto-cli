@@ -165,7 +165,7 @@ function publish(
     uploadDeployFile: (deployId: string, path: string, fileBody: Blob) =>
       client.uploadDeployFile(deployId, path, fileBody),
 
-    updateUserSite: () => client.updateUserSite(),
+    updateAccountSite: () => client.updateAccountSite(),
   };
 
   return handlePublish(handler, type, title, slug, render, target);

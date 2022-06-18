@@ -8,7 +8,7 @@
 export type AccessToken = {
   id: string;
   application_token: string;
-  user_identifier: string;
+  account_identifier: string;
   email?: string | null;
   created_timestamp: string;
 };
@@ -33,6 +33,6 @@ export type Ticket = {
   authorization_url: string;
 };
 
-export type UserSite = {
+export type AccountSite = {
   url: string;
 };

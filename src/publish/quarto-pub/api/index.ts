@@ -5,7 +5,13 @@
 *
 */
 
-import { AccessToken, PublishDeploy, Site, Ticket, UserSite } from "./types.ts";
+import {
+  AccessToken,
+  AccountSite,
+  PublishDeploy,
+  Site,
+  Ticket,
+} from "./types.ts";
 
 // TODO.
 export class ApiError extends Error {
@@ -94,8 +100,8 @@ export class QuartoPubClient {
   ): Promise<void> =>
     this.fetch("PUT", `deploys/${deployId}/files/${path}`, fileBody);
 
-  public updateUserSite = (): Promise<UserSite> =>
-    this.fetchJSON("PUT", "update-user-site");
+  public updateAccountSite = (): Promise<AccountSite> =>
+    this.fetchJSON("PUT", "update-account-site");
 
   // Performs a fetch returning JSON.
   private fetchJSON = async <T>(
