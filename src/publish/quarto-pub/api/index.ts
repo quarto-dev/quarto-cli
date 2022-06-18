@@ -39,10 +39,10 @@ export class QuartoPubClient {
   }
 
   // Creates a ticket.
-  public createTicket = (clientId: string): Promise<Ticket> =>
+  public createTicket = (client_id: string): Promise<Ticket> =>
     this.fetchJSON(
       "POST",
-      `tickets?${new URLSearchParams({ applicationId: clientId })}`,
+      `tickets?${new URLSearchParams({ application_id: client_id })}`,
     );
 
   // Shows a ticket.

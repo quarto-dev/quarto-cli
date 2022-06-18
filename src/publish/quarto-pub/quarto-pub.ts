@@ -24,7 +24,6 @@ import { PublishOptions, PublishRecord } from "../types.ts";
 import { QuartoPubClient } from "./api/index.ts";
 import { authorizePrompt } from "../account.ts";
 import { quartoConfig } from "../../core/quarto.ts";
-import { sleep } from "../../core/wait.ts";
 
 export const kQuartoPub = "quarto-pub";
 export const kQuartoPubAuthTokenVar = "QUARTO_PUB_AUTH_TOKEN";
@@ -63,7 +62,7 @@ function accountTokens() {
         type: AccountTokenType.Authorized,
         name: accessTk.email!,
         server: null,
-        token: accessTk.applicationToken,
+        token: accessTk.application_token,
       });
     }
   }
@@ -79,7 +78,7 @@ async function authorizeToken(_options: PublishOptions) {
         type: AccountTokenType.Authorized,
         name: token.email!,
         server: null,
-        token: token.applicationToken,
+        token: token.application_token,
       };
     } else {
       return undefined;
@@ -118,7 +117,7 @@ function authorizeQuartoPubAccessToken(): Promise<
     createTicket: (): Promise<Ticket> =>
       client.createTicket(dotenvConfig["QUARTO_PUB_APP_CLIENT_ID"]),
 
-    authorizationUrl: (ticket: Ticket): string => ticket.authorizationURL,
+    authorizationUrl: (ticket: Ticket): string => ticket.authorization_url,
 
     checkTicket: (ticket: Ticket): Promise<Ticket> =>
       client.showTicket(ticket.id),

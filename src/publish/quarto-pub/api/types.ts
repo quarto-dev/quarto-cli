@@ -7,10 +7,10 @@
 
 export type AccessToken = {
   id: string;
-  applicationToken: string;
-  userIdentifier: string;
+  application_token: string;
+  user_identifier: string;
   email?: string | null;
-  createdTimestamp: string;
+  created_timestamp: string;
 };
 
 export type PublishDeploy = {
@@ -28,9 +28,9 @@ export type Site = {
 
 export type Ticket = {
   id: string;
-  createdTimestamp: string;
+  created_timestamp: string;
   authorized: boolean;
-  authorizationURL: string;
+  authorization_url: string;
 };
 
 export type UserSite = {
