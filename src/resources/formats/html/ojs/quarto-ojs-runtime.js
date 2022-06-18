@@ -1,4 +1,4 @@
-// @quarto/quarto-ojs-runtime v0.0.5 Copyright 2022 undefined
+// @quarto/quarto-ojs-runtime v0.0.6 Copyright 2022 undefined
 var EOL = {},
     EOF = {},
     QUOTE = 34,
@@ -9289,6 +9289,16 @@ var dist = {exports: {}};
 	  })(node, state);
 	}
 
+	// A full walk triggers the callback on each node
+	function full(node, callback, baseVisitor, state, override) {
+	  if (!baseVisitor) { baseVisitor = base
+	  ; }(function c(node, st, override) {
+	    var type = override || node.type;
+	    baseVisitor[type](node, st, c);
+	    if (!override) { callback(node, st, type); }
+	  })(node, state, override);
+	}
+
 	// Fallback to an Object.create polyfill for older environments.
 	var create = Object.create || function(proto) {
 	  function Ctor() {}
@@ -10163,7 +10173,12 @@ var dist = {exports: {}};
 	    cell.secrets = new Map();
 	  }
 	  return cell;
-	}var index=/*#__PURE__*/Object.freeze({__proto__:null,parseCell: parseCell,peekId: peekId,CellParser: CellParser,parseModule: parseModule,ModuleParser: ModuleParser,walk: walk});const extractPath = path => {
+	}var index=/*#__PURE__*/Object.freeze({__proto__:null,parseCell: parseCell,peekId: peekId,CellParser: CellParser,parseModule: parseModule,ModuleParser: ModuleParser,walk: walk});/**
+	 *  FINISH REPLACING THE SIMPLE WALKER WITH A FULL WALKER THAT DOES SUBSTITUTION ALL AT ONCE.
+	 * 
+	 */
+
+	const extractPath = path => {
 	  let source = path;
 	  let m;
 
@@ -10241,59 +10256,44 @@ var dist = {exports: {}};
 	  if (cell.id && cell.id.name) name = cell.id.name;
 	  else if (cell.id && cell.id.id && cell.id.id.name) name = cell.id.id.name;
 	  let bodyText = cell.input.substring(cell.body.start, cell.body.end);
-	  const cellReferences = (cell.references || []).map(ref => {
+	  let $count = 0;
+	  let expressionMap = {};
+	  const cellReferences = Array.from(new Set((cell.references || []).map(ref => {
 	    if (ref.type === "ViewExpression") {
+	      if (expressionMap[ref.id.name] === undefined) {
+	        expressionMap[ref.id.name] = `$${$count++}`;
+	      }
 	      return "viewof " + ref.id.name;
 	    } else if (ref.type === "MutableExpression") {
+	      if (expressionMap[ref.id.name] === undefined) {
+	        expressionMap[ref.id.name] = `$${$count++}`;
+	      }
 	      return "mutable " + ref.id.name;
 	    } else return ref.name;
-	  });
-	  let $count = 0;
-	  let indexShift = 0;
-	  const references = (cell.references || []).map(ref => {
-	    if (ref.type === "ViewExpression") {
-	      const $string = "$" + $count;
-	      $count++;
-	      // replace "viewof X" in bodyText with "$($count)"
-	      simple(
-	        cell.body,
-	        {
-	          ViewExpression(node) {
-	            const start = node.start - cell.body.start;
-	            const end = node.end - cell.body.start;
-	            bodyText =
-	              bodyText.slice(0, start + indexShift) +
-	              $string +
-	              bodyText.slice(end + indexShift);
-	            indexShift += $string.length - (end - start);
-	          }
-	        },
-	        walk
-	      );
-	      return $string;
-	    } else if (ref.type === "MutableExpression") {
-	      const $string = "$" + $count;
-	      const $stringValue = $string + ".value";
-	      $count++;
-	      // replace "mutable Y" in bodyText with "$($count).value"
-	      simple(
-	        cell.body,
-	        {
-	          MutableExpression(node) {
-	            const start = node.start - cell.body.start;
-	            const end = node.end - cell.body.start;
-	            bodyText =
-	              bodyText.slice(0, start + indexShift) +
-	              $stringValue +
-	              bodyText.slice(end + indexShift);
-	            indexShift += $stringValue.length - (end - start);
-	          }
-	        },
-	        walk
-	      );
-	      return $string;
-	    } else return ref.name;
-	  });
+	  })));
+	  const plainReferences = cell.references.filter(ref =>
+	    ref.type !== "ViewExpression" && ref.type !== "MutableExpression"
+	    ).map(x => x.name);
+	  const references = [...plainReferences, ...Object.values(expressionMap)];
+	  const patches = [];
+	  let latestPatch = { newStr: "", span: [cell.body.start, cell.body.start] };
+	  full(cell.body, node => {
+	    if (node.type === "ViewExpression" || node.type === "MutableExpression") {
+	      // cover previous ground?
+	      if (node.start !== latestPatch.span[1]) {
+	        patches.push({ newStr: cell.input.substring(latestPatch.span[1], node.start)});
+	      }
+	      const patch = {
+	        newStr: expressionMap[node.id.name],
+	        span: [node.start, node.end]
+	      };
+	      latestPatch = patch;
+	      patches.push(patch);
+	    }
+	  }, walk);
+	  patches.push({newStr: cell.input.substring(latestPatch.span[1], cell.body.end), span: [latestPatch.span[1], cell.body.end]});
+	  bodyText = patches.map(x => x.newStr).join("");
+
 	  return {
 	    cellName: name,
 	    references: Array.from(new Set(references)),
@@ -18722,6 +18722,12 @@ function createRuntime() {
         }
 
         const ojsDiv = targetElement.querySelector(".observablehq");
+        if (!ojsDiv) {
+          // we failed to find an observablehq div inside the targetElement.
+          // This is an internal error and we have no way to report it
+          // except throwing the original exception.
+          throw e;
+        }
         // because this is in an exception handler, we might need
         // to clear some of the garbage that other pieces of code
         // won't have the chance to
