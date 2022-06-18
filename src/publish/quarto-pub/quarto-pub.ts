@@ -124,6 +124,9 @@ function authorizeQuartoPubAccessToken(): Promise<
 
     exchangeTicket: (ticket: Ticket): Promise<AccessToken> =>
       client.exchangeTicket(ticket.id),
+
+    compareTokens: (a: AccessToken, b: AccessToken) =>
+      a.userIdentifier === b.userIdentifier,
   };
 
   return authorizeAccessToken(provider);

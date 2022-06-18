@@ -18,6 +18,7 @@ export interface AuthorizationHandler<Token, Ticket> {
   authorizationUrl: (ticket: Ticket) => string;
   checkTicket: (ticket: Ticket) => Promise<Ticket>;
   exchangeTicket: (ticket: Ticket) => Promise<Token>;
+  compareTokens?: (a: Token, b: Token) => boolean;
 }
 
 export async function authorizeAccessToken<
@@ -53,7 +54,7 @@ export async function authorizeAccessToken<
     const accessToken = await handler.exchangeTicket(authorizedTicket);
 
     // save the token
-    writeAccessToken<Token>(handler.name, accessToken);
+    writeAccessToken<Token>(handler.name, accessToken, handler.compareTokens);
 
     // return it
     return accessToken;

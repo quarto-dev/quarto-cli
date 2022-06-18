@@ -142,6 +142,8 @@ async function authorizeNetlifyAccessToken(): Promise<
           ticketId: ticket.id!,
         }) as unknown as Promise<AccessToken>;
     },
+
+    compareTokens: (a: AccessToken, b: AccessToken) => a.email === b.email,
   };
 
   return authorizeAccessToken(handler);
