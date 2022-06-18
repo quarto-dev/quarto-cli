@@ -10,6 +10,7 @@ import { toolsPath } from "./resources.ts";
 import { execProcess } from "./process.ts";
 import { TempContext } from "./temp.ts";
 import { lines } from "./text.ts";
+import { info } from "log/mod.ts";
 
 export function dartSassInstallDir() {
   return toolsPath("dart-sass");
@@ -67,6 +68,9 @@ async function dartCommand(args: string[]) {
   );
 
   if (result.success) {
+    if (result.stderr) {
+      info(result.stderr);
+    }
     return result.stdout;
   } else {
     const errLines = lines(result.stderr || "");

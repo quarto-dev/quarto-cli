@@ -84,13 +84,13 @@ async function outputExtensions(
         extension.contributes.shortcodes &&
         extension.contributes.shortcodes?.length > 0
       ) {
-        contribs.push("shortcodes");
+        contribs.push("shortcode");
       }
 
       if (
         extension.contributes.format
       ) {
-        contribs.push("formats");
+        contribs.push("format");
       }
       return contribs.join(", ");
     };
@@ -99,7 +99,7 @@ async function outputExtensions(
       const row = [
         extensionIdString(ext.id),
         ext.version?.toString() || "(none)",
-        `[${provides(ext)}]`,
+        `${provides(ext)}`,
       ];
       extensionEntries.push(row);
     });

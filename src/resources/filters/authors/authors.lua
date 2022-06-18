@@ -24,11 +24,8 @@ import("../common/log.lua")
 import("../common/base64.lua")
 import("../common/meta.lua")
 import("../common/debug.lua")
-import("../common/params.lua")
 import("../common/authors.lua")
 -- [/import]
-
-initParams()
 
 return {
   {

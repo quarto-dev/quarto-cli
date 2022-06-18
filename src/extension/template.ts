@@ -23,6 +23,7 @@ export function templateFiles(dir: string) {
       excludes.push(line);
     });
   }
+  excludes.push(...kBuiltInExcludes);
 
   const resolved = resolvePathGlobs(
     dir,
@@ -31,3 +32,13 @@ export function templateFiles(dir: string) {
   );
   return resolved.include;
 }
+
+const kBuiltInExcludes = [
+  ".*",
+  "COPYING.md",
+  "COPYRIGHT",
+  "README.md",
+  "CHANGELOG.md",
+  "COPYRIGHT",
+  "LICENSE",
+];

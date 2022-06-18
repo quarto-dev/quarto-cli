@@ -27,7 +27,6 @@ function import(script)
   dofile(path .. script)
 end
 import("../common/colors.lua")
-import("../common/params.lua")
 import("../common/error.lua")
 import("../common/base64.lua")
 import("../common/latex.lua")
@@ -77,7 +76,6 @@ import("include-paths.lua")
 import("input-traits.lua")
 -- [/import]
 
-initParams()
 initShortcodeHandlers()
 
 return {

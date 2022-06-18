@@ -57,6 +57,8 @@ import { mergeConfigs } from "../../core/config.ts";
 import { projectType } from "../../project/types/project-types.ts";
 import { readCodePage } from "../../core/windows.ts";
 import { authorsFilter, authorsFilterActive } from "./authors.ts";
+import { extensionIdString } from "../../extension/extension-shared.ts";
+import { warning } from "log/mod.ts";
 
 const kQuartoParams = "quarto-params";
 
@@ -612,6 +614,21 @@ function resolveFilterExtension(
       );
 
       if (extensions && extensions.length > 0) {
+        const ownedExtensions = extensions.filter((ext) => {
+          return ext.id.organization !== undefined;
+        }).map((ext) => {
+          return extensionIdString(ext.id);
+        });
+        if (ownedExtensions.length > 1) {
+          // There are more than one extensions with owners, warn
+          // user that they should disambiguate
+          warning(
+            `The filter '${filter}' matched more than one filter. Please use a full name to disambiguate:\n  ${
+              ownedExtensions.join("\n  ")
+            }`,
+          );
+        }
+
         const filters = extensions[0].contributes.filters;
         if (filters) {
           return filters;

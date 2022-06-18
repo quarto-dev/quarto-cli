@@ -9,9 +9,8 @@ import {
   ExtensionSource,
   extensionSource,
 } from "../../../extension/extension-host.ts";
-import { error, info } from "log/mod.ts";
+import { info } from "log/mod.ts";
 import { Confirm, Input, Select } from "cliffy/prompt/mod.ts";
-import { Options } from "../cmd.ts";
 import { basename, dirname, join, relative } from "path/mod.ts";
 import { ensureDir, ensureDirSync, existsSync } from "fs/mod.ts";
 import { TempContext } from "../../../core/temp-types.ts";
@@ -20,60 +19,91 @@ import { withSpinner } from "../../../core/console.ts";
 import { unzip } from "../../../core/zip.ts";
 import { templateFiles } from "../../../extension/template.ts";
 import { kExtensionDir } from "../../../extension/extension-shared.ts";
+import { Command } from "cliffy/command/mod.ts";
+import { initYamlIntelligenceResourcesFromFilesystem } from "../../../core/schema/utils.ts";
+import { createTempContext } from "../../../core/temp.ts";
 
-export const templateHandler = {
-  type: "template",
-  handler: async (
-    options: Options,
-    tempContext: TempContext,
-    target?: string,
-  ) => {
-    if (target) {
-      // Resolve extension host and trust
-      const source = extensionSource(target);
-      const trusted = await isTrusted(source, options.prompt !== false);
-      if (trusted) {
-        // Resolve target directory
-        const outputDirectory = await determineDirectory();
+const kRootTemplateName = "template.qmd";
 
-        // Extract and move the template into place
-        const stagedDir = await stageTemplate(source, tempContext);
-
-        // Filter the list to template files
-        const filesToCopy = templateFiles(stagedDir);
-
-        // Copy the files
-        await withSpinner({ message: "Copying files..." }, async () => {
-          for (const fileToCopy of filesToCopy) {
-            const isDir = Deno.statSync(fileToCopy).isDirectory;
-            if (!isDir) {
-              const rel = relative(stagedDir, fileToCopy);
-              const target = join(outputDirectory, rel);
-              const targetDir = dirname(target);
-              await ensureDir(targetDir);
-              await Deno.copyFile(fileToCopy, target);
-            }
-          }
-        });
-
-        info(
-          `\n${target} configured for ${relative(Deno.cwd(), outputDirectory)}`,
-        );
-        filesToCopy.map((file) => {
-          return relative(stagedDir, file);
-        })
-          .filter((file) => !file.startsWith(kExtensionDir))
-          .forEach((file) => {
-            info(` - ${file}`);
-          });
-      } else {
-        return Promise.resolve();
-      }
-    } else {
-      error("Please provide a url, path, or GitHub repo to use as a template.");
+export const useTemplateCommand = new Command()
+  .name("template")
+  .arguments("<target:string>")
+  .description(
+    "Use a Quarto template for this directory or project.",
+  )
+  .option(
+    "--no-prompt",
+    "Do not prompt to confirm actions",
+  )
+  .example(
+    "Use a template from Github",
+    "quarto use template <gh-org>/<gh-repo>",
+  )
+  .action(async (options: { prompt?: boolean }, target: string) => {
+    await initYamlIntelligenceResourcesFromFilesystem();
+    const temp = createTempContext();
+    try {
+      await useTemplate(options, target, temp);
+    } finally {
+      temp.cleanup();
     }
-  },
-};
+  });
+
+async function useTemplate(
+  options: { prompt?: boolean },
+  target: string,
+  tempContext: TempContext,
+) {
+  // Resolve extension host and trust
+  const source = extensionSource(target);
+  const trusted = await isTrusted(source, options.prompt !== false);
+  if (trusted) {
+    // Resolve target directory
+    const outputDirectory = await determineDirectory(options.prompt !== false);
+
+    // Extract and move the template into place
+    const stagedDir = await stageTemplate(source, tempContext);
+
+    // Filter the list to template files
+    const filesToCopy = templateFiles(stagedDir);
+
+    // Copy the files
+    await withSpinner({ message: "Copying files..." }, async () => {
+      for (const fileToCopy of filesToCopy) {
+        const isDir = Deno.statSync(fileToCopy).isDirectory;
+        const rel = relative(stagedDir, fileToCopy);
+        if (!isDir) {
+          // Compute the paths
+          const target = join(outputDirectory, rel);
+          const targetDir = dirname(target);
+
+          // Ensure the directory exists
+          await ensureDir(targetDir);
+
+          // Copy the file into place
+          await Deno.copyFile(fileToCopy, target);
+
+          // Rename the root template to '<dirname>.qmd'
+          if (rel === kRootTemplateName) {
+            const renamedFile = `${basename(targetDir)}.qmd`;
+            Deno.renameSync(target, join(outputDirectory, renamedFile));
+          }
+        }
+      }
+    });
+
+    const dirContents = Deno.readDirSync(outputDirectory);
+
+    info(
+      `\nFiles created:`,
+    );
+    for (const fileOrDir of dirContents) {
+      info(` - ${fileOrDir.name}`);
+    }
+  } else {
+    return Promise.resolve();
+  }
+}
 
 async function stageTemplate(
   source: ExtensionSource,
@@ -148,46 +178,59 @@ async function isTrusted(
   }
 }
 
-async function determineDirectory() {
+async function determineDirectory(allowPrompt: boolean) {
   const currentDir = Deno.cwd();
   if (directoryEmpty(currentDir)) {
-    const useCurrentDir = await confirmCurrentDir();
-    if (useCurrentDir) {
+    if (!allowPrompt) {
       return currentDir;
     } else {
-      return promptForDirectory(currentDir);
+      const useCurrentDir = await confirmCurrentDir();
+      if (useCurrentDir) {
+        return currentDir;
+      } else {
+        return promptForDirectory(currentDir);
+      }
     }
   } else {
-    return promptForDirectory(currentDir);
+    if (allowPrompt) {
+      return promptForDirectory(currentDir);
+    } else {
+      throw new Error(
+        `Attempted to use a template with '--no-prompt' in a non-empty directory ${currentDir}.`,
+      );
+    }
   }
 }
 
 async function promptForDirectory(root: string) {
-  while (true) {
-    const dirName = await Input.prompt({
-      message: "What directory should be created for the template?",
-    });
-    const dir = join(root, dirName);
-
-    if (!existsSync(dir)) {
-      ensureDirSync(dir);
-      return dir;
-    } else {
-      if (directoryEmpty(dir)) {
-        return dir;
-      } else {
-        info(
-          `The directory '${dirName}' is not empty. Please provide the name of a new or empty directory.`,
-        );
+  const dirName = await Input.prompt({
+    message: "Directory name:",
+    validate: (input) => {
+      if (input.length === 0) {
+        return true;
       }
-    }
+      const dir = join(root, input);
+      if (!existsSync(dir)) {
+        ensureDirSync(dir);
+      }
+
+      if (directoryEmpty(dir)) {
+        return true;
+      } else {
+        return `The directory '${input}' is not empty. Please provide the name of a new or empty directory.`;
+      }
+    },
+  });
+  if (dirName.length === 0) {
+    throw new Error();
   }
+  return join(root, dirName);
 }
 
 async function confirmCurrentDir() {
   const dirType: string = await Select.prompt({
     indent: "",
-    message: `What directory should template be expanded into?`,
+    message: `Use template in:`,
     options: [
       {
         name: "Current directory",
