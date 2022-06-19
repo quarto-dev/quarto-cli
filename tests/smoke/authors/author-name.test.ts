@@ -13,10 +13,10 @@ const authorNames = [
   "Mine",
   "Charles Teague",
   "Charles von Teague",
-  "Michael Joseph Jackson",
-  "Jackson, Michael Joseph",
-  "Jackson, Michael J",
-  "Jackson, M J",
+  "Alice Jane Malloc",
+  "Memes, Cat Jane",
+  "Memes, Cat J",
+  "Memes, C J",
   "Ludwig von Beethoven",
 ];
 const templateContents = `
