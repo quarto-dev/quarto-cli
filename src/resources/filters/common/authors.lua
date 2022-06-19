@@ -528,10 +528,18 @@ function normalizeName(name)
     if name[kLiteralName] then 
       local parsedName = bibtexParseName(name)
       if type(parsedName) == 'table' then
-        name[kGivenName] = {pandoc.Str(parsedName.given)}
-        name[kFamilyName] = {pandoc.Str(parsedName.family)}
-        name[kDroppingParticle] = parsedName[kDroppingParticle]
-        name[kNonDroppingParticle] = parsedName[kNonDroppingParticle]
+        if parsedName.given ~= nil then
+          name[kGivenName] = {pandoc.Str(parsedName.given)}
+        end
+        if parsedName.family ~= nil then
+          name[kFamilyName] = {pandoc.Str(parsedName.family)}
+        end
+        if name[kDroppingParticle] ~= nil then
+          name[kDroppingParticle] = parsedName[kDroppingParticle]
+        end
+        if name[kNonDroppingParticle] ~= nil then
+          name[kNonDroppingParticle] = parsedName[kNonDroppingParticle]
+        end
       else
         if #name[kLiteralName] > 1 then
           -- bibtex parsing failed, just split on space
