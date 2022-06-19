@@ -5,7 +5,13 @@
 *
 */
 
-import { AccessToken, PublishDeploy, Site, Ticket, UserSite } from "./types.ts";
+import {
+  AccessToken,
+  AccountSite,
+  PublishDeploy,
+  Site,
+  Ticket,
+} from "./types.ts";
 
 // TODO.
 export class ApiError extends Error {
@@ -39,10 +45,10 @@ export class QuartoPubClient {
   }
 
   // Creates a ticket.
-  public createTicket = (clientId: string): Promise<Ticket> =>
+  public createTicket = (client_id: string): Promise<Ticket> =>
     this.fetchJSON(
       "POST",
-      `tickets?${new URLSearchParams({ applicationId: clientId })}`,
+      `tickets?${new URLSearchParams({ application_id: client_id })}`,
     );
 
   // Shows a ticket.
@@ -94,8 +100,8 @@ export class QuartoPubClient {
   ): Promise<void> =>
     this.fetch("PUT", `deploys/${deployId}/files/${path}`, fileBody);
 
-  public updateUserSite = (): Promise<UserSite> =>
-    this.fetchJSON("PUT", "update-user-site");
+  public updateAccountSite = (): Promise<AccountSite> =>
+    this.fetchJSON("PUT", "update-account-site");
 
   // Performs a fetch returning JSON.
   private fetchJSON = async <T>(

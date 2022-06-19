@@ -9,7 +9,7 @@ import { readRegistryKey } from "./windows.ts";
 import { which } from "./path.ts";
 import { error, info } from "log/mod.ts";
 import { fetcher } from "../tools/impl/chromium.ts";
-import { existsSync } from "https://deno.land/std@0.138.0/fs/mod.ts";
+import { existsSync } from "fs/mod.ts";
 
 // deno-lint-ignore no-explicit-any
 let puppeteerImport: any = undefined;

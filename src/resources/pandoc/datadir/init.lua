@@ -1284,6 +1284,7 @@ local kInHeader = "in-header";
 json = require 'json'
 format = require 'format'
 utils = require 'utils'
+base64 = require 'base64'
 
 -- does the table contain a value
 local function tcontains(t,value)
@@ -1316,6 +1317,11 @@ local function resolvePath(path)
   else
     return path    
   end
+end
+
+local function resolvePathExt(path) 
+   local scriptDir = pandoc.path.directory(PANDOC_SCRIPT_FILE)
+   return resolvePath(pandoc.path.join({scriptDir, path}))
 end
 
 -- converts the friendly Quartio location names 
@@ -1488,6 +1494,18 @@ local latexTablePatterns = pandoc.List({
   latexTabularPattern,
 })
 
+-- global quarto params
+local paramsJson = base64.decode(os.getenv("QUARTO_FILTER_PARAMS"))
+local quartoParams = json.decode(paramsJson)
+
+function param(name, default)
+  local value = quartoParams[name]
+  if value == nil then
+    value = default
+  end
+  return value
+end
+
 -- Quarto internal module - makes functions available
 -- through the filters
 _quarto = {
@@ -1498,13 +1516,16 @@ _quarto = {
       latexTablePattern = latexTablePattern,
       latexTablePatterns = latexTablePatterns
    },
-   utils = utils
+   utils = utils,
  } 
 
 -- The main exports of the quarto module
 quarto = {
   doc = {
-   
+    citeMethod = function() 
+      local citeMethod = param('cite-method', 'citeproc')
+      return citeMethod
+    end,
     addHtmlDependency = function(htmlDependency)
       
       -- validate the dependency
@@ -1548,6 +1569,9 @@ quarto = {
     end,
 
     isFormat = format.isFormat
+  },
+  path = {
+   resolve = resolvePathExt
   }  
 }
 
