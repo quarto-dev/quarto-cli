@@ -5,6 +5,10 @@ $content-padding-top: 14px !default;
 
 /*-- scss:rules --*/
 
+.quarto-container {
+  min-height: calc(100vh - 132px);
+}
+
 footer.footer .nav-footer,
 #quarto-header nav {
   padding-left: 1em;
