@@ -5,8 +5,6 @@
 *
 */
 
-import { warning } from "log/mod.ts";
-
 import {
   AccessToken,
   Deploy,
@@ -51,6 +49,7 @@ export const netlifyProvider: PublishProvider = {
   resolveTarget,
   publish,
   isUnauthorized,
+  isNotFound,
 };
 
 function accountTokens() {
@@ -152,24 +151,12 @@ async function authorizeNetlifyAccessToken(): Promise<
 async function resolveTarget(
   account: AccountToken,
   target: PublishRecord,
-) {
-  try {
-    const client = new NetlifyClient({
-      TOKEN: account.token,
-    });
-    const site = await client.site.getSite({ siteId: target.id });
-    target.url = site?.ssl_url || site?.url || target.url;
-  } catch (err) {
-    if (isNotFound(err)) {
-      warning(
-        `Site ${target.url} not found (you may need to remove it from the publish configuration)`,
-      );
-      return undefined;
-    } else if (!isUnauthorized(err)) {
-      throw err;
-    }
-  }
-
+): Promise<PublishRecord | undefined> {
+  const client = new NetlifyClient({
+    TOKEN: account.token,
+  });
+  const site = await client.site.getSite({ siteId: target.id });
+  target.url = site?.ssl_url || site?.url || target.url;
   return target;
 }
 

@@ -7,10 +7,10 @@
 
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { join } from "path/mod.ts";
-import { quartoDataDir } from "../../core/appdirs.ts";
 import { isWindows } from "../../core/platform.ts";
 import { openUrl } from "../../core/shell.ts";
 import { sleep } from "../../core/wait.ts";
+import { accountsDataDir } from "./data.ts";
 
 export interface AuthorizationHandler<Token, Ticket> {
   name: string;
@@ -122,8 +122,4 @@ export function accessTokensPath(provider: string) {
   const dir = join(accountsDataDir(), provider);
   ensureDirSync(dir);
   return join(dir, "accounts.json");
-}
-
-export function accountsDataDir() {
-  return quartoDataDir("accounts");
 }

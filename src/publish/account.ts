@@ -31,7 +31,6 @@ export async function authorizePrompt(provider: PublishProvider) {
 
 export async function reauthorizePrompt(
   provider: PublishProvider,
-  accountName: string,
 ) {
   const result = await prompt([{
     indent: "",
@@ -39,7 +38,7 @@ export async function reauthorizePrompt(
     message: "Re-authorize account",
     default: true,
     hint:
-      `The authorization saved for account ${accountName} is no longer valid.\n` +
+      `The authorization saved for ${provider.description} is no longer valid.\n` +
       `  Please be sure you are logged into the correct ${provider.description} account in your\n` +
       "  default web browser, then press Enter to re-authorize.",
     type: Confirm,
@@ -59,7 +58,6 @@ export async function handleUnauthorized(
   } else if (account.type === AccountTokenType.Authorized) {
     return await reauthorizePrompt(
       provider,
-      account.name,
     );
   }
 }

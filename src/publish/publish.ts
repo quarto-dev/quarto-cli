@@ -101,6 +101,7 @@ export async function publishSite(
       writeProjectPublishDeployment(
         project,
         provider.name,
+        account,
         publishRecord,
       );
     }
@@ -224,6 +225,7 @@ export async function publishDocument(
       writePublishDeployment(
         document,
         provider.name,
+        account,
         publishRecord,
       );
     }

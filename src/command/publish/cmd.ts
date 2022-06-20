@@ -165,12 +165,14 @@ async function publishAction(
     publishProvider: PublishProvider,
     accountPrompt: AccountPrompt,
     publishTarget?: PublishRecord,
+    account?: AccountToken,
   ) => {
     // resolve account
-    const account = await resolveAccount(
+    account = await resolveAccount(
       publishProvider,
       publishOptions.prompt ? accountPrompt : "never",
       publishOptions,
+      account,
       publishTarget,
     );
     if (account) {
@@ -203,9 +205,16 @@ async function publishAction(
       publishOptions,
       provider?.name,
     );
+  // update provider
+  provider = deployment?.provider || provider;
   if (deployment) {
     // existing deployment
-    await doPublish(deployment.provider, "multiple", deployment.target);
+    await doPublish(
+      deployment.provider,
+      deployment.account ? "multiple" : "always",
+      deployment.target,
+      deployment.account,
+    );
   } else if (publishOptions.prompt) {
     // new deployment, determine provider if needed
     if (!provider) {
