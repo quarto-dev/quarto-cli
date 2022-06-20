@@ -7,7 +7,11 @@
 
 import { ProjectContext } from "../project/types.ts";
 
-export type PublishDeployments = Record<string, Array<PublishRecord>>;
+export type PublishDeployments = {
+  dir: string;
+  source: string;
+  records: Record<string, Array<PublishRecord>>;
+};
 
 export type PublishRecord = {
   id: string;

@@ -23,6 +23,7 @@ export async function resolveAccount(
   provider: PublishProvider,
   prompt: AccountPrompt,
   options: PublishOptions,
+  hintAccount?: AccountToken,
   target?: PublishRecord,
 ) {
   // if the options provide a token then reflect that
@@ -46,7 +47,7 @@ export async function resolveAccount(
   let token: AccountToken | undefined;
 
   // build list of account options
-  const accounts = (await provider.accountTokens()).filter((account) => {
+  let accounts = (await provider.accountTokens()).filter((account) => {
     if (account.server && target?.url) {
       return target.url.startsWith(account.server);
     } else {
@@ -56,7 +57,7 @@ export async function resolveAccount(
 
   // if we aren't prompting then we need to have one at the ready
   if (prompt === "never") {
-    return accounts[0];
+    return accounts.length === 1 ? accounts[0] : undefined;
   } else if (prompt === "multiple" && accounts.length === 1) {
     return accounts[0];
   } else if (
@@ -66,6 +67,24 @@ export async function resolveAccount(
   } else {
     // prompt for account to publish with
     if (accounts.length > 0) {
+      // order the hint account first
+      if (hintAccount) {
+        const hintIdx = accounts.findIndex((account) =>
+          account.token === hintAccount.token
+        );
+        if (hintIdx !== -1) {
+          const newAccounts = [accounts[hintIdx]];
+          if (hintIdx > 0) {
+            newAccounts.push(...accounts.slice(0, hintIdx));
+          }
+          if (hintIdx < (accounts.length - 1)) {
+            newAccounts.push(...accounts.slice(hintIdx + 1));
+          }
+
+          accounts = newAccounts;
+        }
+      }
+
       token = await accountPrompt(provider, accounts);
     }
 
@@ -86,7 +105,8 @@ export async function accountPrompt(
     .filter((account) => account.type !== AccountTokenType.Anonymous).map((
       account,
     ) => ({
-      name: account.name + (account.server ? ` (${account.server})` : ""),
+      name: account.name +
+        (account.server ? ` (${account.server})` : ""),
       value: account.token,
     }));
   const kAuthorize = "authorize";

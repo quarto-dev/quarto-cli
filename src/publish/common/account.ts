@@ -7,10 +7,10 @@
 
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { join } from "path/mod.ts";
-import { quartoDataDir } from "../../core/appdirs.ts";
 import { isWindows } from "../../core/platform.ts";
 import { openUrl } from "../../core/shell.ts";
 import { sleep } from "../../core/wait.ts";
+import { accountsDataDir } from "./data.ts";
 
 export interface AuthorizationHandler<Token, Ticket> {
   name: string;
@@ -18,6 +18,7 @@ export interface AuthorizationHandler<Token, Ticket> {
   authorizationUrl: (ticket: Ticket) => string;
   checkTicket: (ticket: Ticket) => Promise<Ticket>;
   exchangeTicket: (ticket: Ticket) => Promise<Token>;
+  compareTokens?: (a: Token, b: Token) => boolean;
 }
 
 export async function authorizeAccessToken<
@@ -53,7 +54,7 @@ export async function authorizeAccessToken<
     const accessToken = await handler.exchangeTicket(authorizedTicket);
 
     // save the token
-    writeAccessToken<Token>(handler.name, accessToken);
+    writeAccessToken<Token>(handler.name, accessToken, handler.compareTokens);
 
     // return it
     return accessToken;
@@ -121,8 +122,4 @@ export function accessTokensPath(provider: string) {
   const dir = join(accountsDataDir(), provider);
   ensureDirSync(dir);
   return join(dir, "accounts.json");
-}
-
-export function accountsDataDir() {
-  return quartoDataDir("accounts");
 }

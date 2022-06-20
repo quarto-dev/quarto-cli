@@ -4,7 +4,6 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-
 import { info } from "log/mod.ts";
 import * as colors from "fmt/colors.ts";
 
@@ -50,6 +49,7 @@ export const rsconnectProvider: PublishProvider = {
   resolveTarget,
   publish,
   isUnauthorized,
+  isNotFound,
 };
 
 type Account = {
@@ -179,7 +179,7 @@ async function authorizeToken(
         writeAccessToken(
           kRSConnect,
           account,
-          (a, b) => a.server === b.server,
+          (a, b) => (a.server === b.server) && (a.username === b.username),
         );
         // return access token
         return {
@@ -208,20 +208,10 @@ async function authorizeToken(
 async function resolveTarget(
   account: AccountToken,
   target: PublishRecord,
-) {
-  try {
-    const client = new RSConnectClient(account.server!, account.token);
-    const content = await client.getContent(target.id);
-    return contentAsTarget(content);
-  } catch (err) {
-    if (isNotFound(err)) {
-      return target;
-    } else if (!isUnauthorized(err)) {
-      throw err;
-    }
-  }
-
-  return target;
+): Promise<PublishRecord | undefined> {
+  const client = new RSConnectClient(account.server!, account.token);
+  const content = await client.getContent(target.id);
+  return contentAsTarget(content);
 }
 
 async function publish(

@@ -40,6 +40,7 @@ export const quartoPubProvider: PublishProvider = {
   resolveTarget,
   publish,
   isUnauthorized,
+  isNotFound,
 };
 
 function accountTokens() {
@@ -124,6 +125,9 @@ function authorizeQuartoPubAccessToken(): Promise<
 
     exchangeTicket: (ticket: Ticket): Promise<AccessToken> =>
       client.exchangeTicket(ticket.id),
+
+    compareTokens: (a: AccessToken, b: AccessToken) =>
+      a.account_identifier === b.account_identifier,
   };
 
   return authorizeAccessToken(provider);
@@ -132,7 +136,7 @@ function authorizeQuartoPubAccessToken(): Promise<
 export function resolveTarget(
   _account: AccountToken,
   target: PublishRecord,
-): Promise<PublishRecord> {
+): Promise<PublishRecord | undefined> {
   return Promise.resolve(target);
 }
 
@@ -172,5 +176,9 @@ function publish(
 }
 
 function isUnauthorized(_err: Error) {
+  return false;
+}
+
+function isNotFound(_err: Error) {
   return false;
 }

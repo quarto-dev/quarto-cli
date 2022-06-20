@@ -44,6 +44,7 @@ export const ghpagesProvider: PublishProvider = {
   resolveTarget,
   publish,
   isUnauthorized,
+  isNotFound,
 };
 
 function accountTokens() {
@@ -88,7 +89,7 @@ async function publishRecord(dir: string): Promise<PublishRecord | undefined> {
 function resolveTarget(
   _account: AccountToken,
   target: PublishRecord,
-) {
+): Promise<PublishRecord | undefined> {
   return Promise.resolve(target);
 }
 
@@ -217,6 +218,10 @@ async function publish(
 }
 
 function isUnauthorized(_err: Error) {
+  return false;
+}
+
+function isNotFound(_err: Error) {
   return false;
 }
 

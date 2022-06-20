@@ -16,6 +16,8 @@ import { Metadata } from "../config/types.ts";
 import { readYaml, readYamlFromString } from "../core/yaml.ts";
 import { ProjectContext } from "../project/types.ts";
 import { PublishDeployments, PublishRecord } from "./types.ts";
+import { AccountToken } from "./provider.ts";
+import { writePublishRecord } from "./common/data.ts";
 
 export function readPublishDeployments(
   source: string,
@@ -40,7 +42,11 @@ export function readPublishDeployments(
               });
             }
           });
-          return sourceDeployments as PublishDeployments;
+          return {
+            dir: deployDir,
+            source: deploySource,
+            records: sourceDeployments as Record<string, Array<PublishRecord>>,
+          };
         }
       } else {
         warning(
@@ -50,12 +56,17 @@ export function readPublishDeployments(
     }
   }
 
-  return {} as PublishDeployments;
+  return {
+    dir: deployDir,
+    source: deploySource,
+    records: {},
+  } as PublishDeployments;
 }
 
 export function writePublishDeployment(
   source: string,
   provider: string,
+  account: AccountToken,
   publish: PublishRecord,
 ) {
   // don't write 'code' field if false
@@ -118,6 +129,10 @@ export function writePublishDeployment(
       }], indent),
     );
   }
+
+  // write a record of which account was was used to publish
+  // in a sidecar list so that we can pair it for republish
+  writePublishRecord(source, provider, account, publish);
 }
 
 function resolveDeploymentSource(source: string) {
@@ -139,9 +154,10 @@ export function readProjectPublishDeployments(
 export function writeProjectPublishDeployment(
   project: ProjectContext,
   provider: string,
+  account: AccountToken,
   publish: PublishRecord,
 ) {
-  writePublishDeployment(project.dir, provider, publish);
+  writePublishDeployment(project.dir, provider, account, publish);
 }
 
 function isDeploymentsArray(
