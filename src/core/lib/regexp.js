@@ -1,11 +1,11 @@
 /*
-* regexp.js (NB this is javascript and not typescript)
-*
-* Routines to manipulate regular expressions.
-*
-* Copyright (C) 2021 by RStudio, PBC
-*
-*/
+ * regexp.js (NB this is javascript and not typescript)
+ *
+ * Routines to manipulate regular expressions.
+ *
+ * Copyright (C) 2021 by RStudio, PBC
+ *
+ */
 
 import * as regexpp from "./external/regexpp.mjs";
 
@@ -43,10 +43,12 @@ function prefixesFromParse(parse) {
       return `(${parse.element.raw}*)` + prefixesFromParse(parse.element);
     } else {
       throw new Error(
-        `Internal Error, can't handle quantifiers min=${parse.min} max=${parse.max}`,
+        `Internal Error, can't handle quantifiers min=${parse.min} max=${parse.max}`
       );
     }
   } else if (parse.type === "CharacterSet") {
+    return `${parse.raw}?`;
+  } else if (parse.type === "CharacterClass") {
     return `${parse.raw}?`;
   }
   throw new Error(`Internal Error, don't know how to handle ${parse.type}`);
@@ -57,8 +59,8 @@ export function prefixes(regexp) {
   regexp = regexp.slice(1, -1);
 
   return new RegExp(
-    "^" + prefixesFromParse(
-      regexpp.parseRegExpLiteral(new RegExp(regexp)),
-    ) + "$",
+    "^" +
+      prefixesFromParse(regexpp.parseRegExpLiteral(new RegExp(regexp))) +
+      "$"
   );
 }

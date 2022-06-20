@@ -24435,6 +24435,8 @@ function prefixesFromParse(parse) {
     }
   } else if (parse.type === "CharacterSet") {
     return `${parse.raw}?`;
+  } else if (parse.type === "CharacterClass") {
+    return `${parse.raw}?`;
   }
   throw new Error(`Internal Error, don't know how to handle ${parse.type}`);
 }
