@@ -58,6 +58,6 @@ export QUARTO_OUT_DIR=out
 # Altering this will change upgrade behavior of the windows installer
 # so be sure you know what you're doing before you change it
 # We use a dynamic product ID for every build (forcing a major upgrade)
-# so this upgrade code is the only thing that connects different versions
+# so this upgrade code is the only thing that connects different versions 
 # of this installed product (and permits upgrades).
 export QUARTO_MSI_UPGRADE_CODE=98fb2e98-96b0-46e1-a6fd-94171233d11b
