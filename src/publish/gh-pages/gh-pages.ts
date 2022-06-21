@@ -184,19 +184,24 @@ async function publish(
       message:
         "Deploying gh-pages branch to website (this may take a few minutes)",
     }, async () => {
-      const noJekyllUrl = joinUrl(ghContext.siteUrl!, ".nojekyll");
-      while (true) {
-        await sleep(2000);
-        const response = await fetch(noJekyllUrl);
-        if (response.status === 200) {
-          if ((await response.text()).trim() === deployId) {
-            verified = true;
-            await sleep(2000);
+      try {
+        const noJekyllUrl = joinUrl(ghContext.siteUrl!, ".nojekyll");
+        while (true) {
+          await sleep(2000);
+          const response = await fetch(noJekyllUrl);
+          if (response.status === 200) {
+            if ((await response.text()).trim() === deployId) {
+              verified = true;
+              await sleep(2000);
+              break;
+            }
+          } else if (response.status !== 404) {
             break;
           }
-        } else if (response.status !== 404) {
-          break;
         }
+      } catch {
+        // ignore errors -- this might be an alternate url scheme or auth error
+        // (in this case verified will be 'false` and no browser will be shown)
       }
     });
   }
