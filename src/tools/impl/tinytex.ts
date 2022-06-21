@@ -337,7 +337,10 @@ This will instruct TeX Live to create symlinks that it needs in <bin_dir_on_path
       paths.push(envPath);
     } else if (Deno.build.os !== "windows") {
       paths.push(...suggestUserBinPaths());
+    } else {
+      paths.push(tlmgrPath);
     }
+
     const binPathMessage = envPath
       ? `Setting TeXLive Binpath: ${envPath}`
       : Deno.build.os !== "windows"
@@ -369,8 +372,9 @@ This will instruct TeX Live to create symlinks that it needs in <bin_dir_on_path
 
     // After installing on windows, the path may not be updated which means a restart is required
     if (Deno.build.os === "windows") {
-      const tlmgrIsInPath = await hasTexLive();
-      restartRequired = restartRequired || !tlmgrIsInPath;
+      const texLiveInstalled = await hasTexLive();
+      const texLivePath = await texLiveInPath();
+      restartRequired = restartRequired || !texLiveInstalled || !texLivePath;
     }
 
     return Promise.resolve(restartRequired);
