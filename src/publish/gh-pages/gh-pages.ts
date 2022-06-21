@@ -69,6 +69,13 @@ async function authorizeToken(options: PublishOptions) {
     throwUnableToPublish("the git repository does not have a remote origin");
   }
 
+  // validate that we can deduce the site url
+  if (!ghContext.siteUrl) {
+    throwUnableToPublish(
+      "the git repository is not hosted on github.com and does not have a CNAME file",
+    );
+  }
+
   // good to go!
   return Promise.resolve(anonymousAccount());
 }
@@ -184,24 +191,19 @@ async function publish(
       message:
         "Deploying gh-pages branch to website (this may take a few minutes)",
     }, async () => {
-      try {
-        const noJekyllUrl = joinUrl(ghContext.siteUrl!, ".nojekyll");
-        while (true) {
-          await sleep(2000);
-          const response = await fetch(noJekyllUrl);
-          if (response.status === 200) {
-            if ((await response.text()).trim() === deployId) {
-              verified = true;
-              await sleep(2000);
-              break;
-            }
-          } else if (response.status !== 404) {
+      const noJekyllUrl = joinUrl(ghContext.siteUrl!, ".nojekyll");
+      while (true) {
+        await sleep(2000);
+        const response = await fetch(noJekyllUrl);
+        if (response.status === 200) {
+          if ((await response.text()).trim() === deployId) {
+            verified = true;
+            await sleep(2000);
             break;
           }
+        } else if (response.status !== 404) {
+          break;
         }
-      } catch {
-        // ignore errors -- this might be an alternate url scheme or auth error
-        // (in this case verified will be 'false` and no browser will be shown)
       }
     });
   }
@@ -406,8 +408,10 @@ function siteUrl(dir: string, originUrl: string) {
       /https:\/\/([^\/]+)\/([^\/]+)\/([^.]+)\.git/,
     );
 
-    if (match) {
-      const server = match[1].replace("github.com", "github.io");
+    const kGithubCom = "github.com";
+    const kGithubIo = "github.io";
+    if (match && match[1].includes(kGithubCom)) {
+      const server = match[1].replace(kGithubCom, kGithubIo);
       return `https://${match[2]}.${server}/${match[3]}/`;
     }
   }
