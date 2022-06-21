@@ -39,6 +39,16 @@ Note that GitHub Pages publishes are not stored in the `_publish.yml` file (they
 
 If you provide the `--id` option (described below) then a publish record is not saved (as in that case you already have another means for tracking published content).
 
+## GitHub Pages
+
+Publising to GitHub Pages works a little differently than to other providers. Rather than interacting with a remote API, a special `gh-pages` branch is created and the contents of your `_site` or `_book` directory is pushed to this branch (GitHub will automatically publish a website when it sees a `gh-pages` branch created).
+
+It's possible to publish websites to services outside of github.com (e.g. GitHub Enterprise or GitLab) however two conditions need to be met in order for this to work properly:
+
+1. Automatic publisihng of `gh-pages` branches must be a feature of the server you are publishing to (alternatively you may need to manually configure this for your repository).
+
+2. `quarto publish` needs to know the URL that will be used to access the published site. This can be deduced automatically for github.com but for other servers you should include a `CNAME` file in root of your repository that includes the website URL.
+
 ## Headless / CI Usage
 
 As an alternative to providing account credentials interactively, you case use the following environment variables:
