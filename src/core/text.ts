@@ -127,7 +127,6 @@ export function truncateText(
   };
 
   const lengthResult = trimLength(text, length);
-
   if (lengthResult.trimmed) {
     // This was shortened
     if (breakAt === "punctuation") {
@@ -137,10 +136,6 @@ export function truncateText(
     }
   } else {
     // This wasn't shortened
-    if (breakAt === "punctuation") {
-      return trimPunc(lengthResult.text);
-    } else {
-      return trimEnd(lengthResult.text);
-    }
+    return lengthResult.text;
   }
 }
