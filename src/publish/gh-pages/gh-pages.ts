@@ -15,6 +15,8 @@ import { Confirm } from "cliffy/prompt/confirm.ts";
 import { removeIfExists, which } from "../../core/path.ts";
 import { execProcess } from "../../core/process.ts";
 import { projectContext } from "../../project/project-context.ts";
+import { websiteBaseurl } from "../../project/types/website/website-config.ts";
+
 import { kProjectOutputDir, ProjectContext } from "../../project/types.ts";
 import {
   AccountToken,
@@ -67,13 +69,6 @@ async function authorizeToken(options: PublishOptions) {
   // validate that we have an origin
   if (!ghContext.originUrl) {
     throwUnableToPublish("the git repository does not have a remote origin");
-  }
-
-  // validate that we can deduce the site url
-  if (!ghContext.siteUrl) {
-    throwUnableToPublish(
-      "the git repository is not hosted on github.com and does not have a CNAME file",
-    );
   }
 
   // good to go!
@@ -186,7 +181,7 @@ async function publish(
 
   // wait for deployment if we are opening a browser
   let verified = false;
-  if (options.browser && ghContext.siteUrl) {
+  if (options.browser && ghContext.siteUrl && ghContext.browse) {
     await withSpinner({
       message:
         "Deploying gh-pages branch to website (this may take a few minutes)",
@@ -342,6 +337,7 @@ type GitHubContext = {
   originUrl?: string;
   ghPages?: boolean;
   siteUrl?: string;
+  browse?: boolean;
 };
 
 async function gitHubContext(dir: string) {
@@ -388,7 +384,11 @@ async function gitHubContext(dir: string) {
         })).success;
 
         // determine siteUrl
-        context.siteUrl = siteUrl(dir, context.originUrl!);
+        const info = await siteInfo(dir, context.originUrl!);
+        if (info) {
+          context.siteUrl = info.url;
+          context.browse = info.browse;
+        }
       }
     }
   }
@@ -396,10 +396,13 @@ async function gitHubContext(dir: string) {
   return context;
 }
 
-function siteUrl(dir: string, originUrl: string) {
+async function siteInfo(dir: string, originUrl: string) {
   const cname = join(dir, "CNAME");
   if (existsSync(cname)) {
-    return Deno.readTextFileSync(cname).trim();
+    return {
+      url: Deno.readTextFileSync(cname).trim(),
+      browse: true,
+    };
   } else {
     // git and ssh protccols
     const match = originUrl?.match(
@@ -408,11 +411,26 @@ function siteUrl(dir: string, originUrl: string) {
       /https:\/\/([^\/]+)\/([^\/]+)\/([^.]+)\.git/,
     );
 
-    const kGithubCom = "github.com";
-    const kGithubIo = "github.io";
-    if (match && match[1].includes(kGithubCom)) {
+    if (match) {
+      const kGithubCom = "github.com";
+      const kGithubIo = "github.io";
       const server = match[1].replace(kGithubCom, kGithubIo);
-      return `https://${match[2]}.${server}/${match[3]}/`;
+      return {
+        url: `https://${match[2]}.${server}/${match[3]}/`,
+        browse: server.includes(kGithubIo),
+      };
+    }
+
+    // otherwise see if its in config
+    const project = await projectContext(dir);
+    if (project) {
+      const url = websiteBaseurl(project.config);
+      if (url) {
+        return {
+          url,
+          browse: true,
+        };
+      }
     }
   }
 }
