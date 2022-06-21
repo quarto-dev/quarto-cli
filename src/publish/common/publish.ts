@@ -111,7 +111,7 @@ export async function handlePublish<
   // render
   let publishFiles = await render(target.url);
 
-  // validate that the main document is html
+  // validate that the main document is html or pdf
   if (
     type === "document" &&
     !isHtmlContent(publishFiles.rootFile) &&
