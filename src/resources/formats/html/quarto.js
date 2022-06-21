@@ -427,7 +427,10 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       const margin = lastBottom - top;
       marginChild.style.marginTop = `${margin}px`;
     }
-    lastBottom = top + marginChild.getBoundingClientRect().height;
+    const styles = window.getComputedStyle(marginChild);
+    const marginTop = parseFloat(styles["marginTop"]);
+
+    lastBottom = top + marginChild.getBoundingClientRect().height + marginTop;
   }
 
   // Manage the visibility of the toc and the sidebar
