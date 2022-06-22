@@ -85,7 +85,7 @@ export async function resolveDeployment(
       return deployments[0];
     } else {
       throw new Error(
-        `Multiple previous site publishes exists (specify one with --site-id when using --no-prompt)`,
+        `Multiple previous site publishes exists (specify one with --id when using --no-prompt)`,
       );
     }
   } else if (!options.prompt) {
