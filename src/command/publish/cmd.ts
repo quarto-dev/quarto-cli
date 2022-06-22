@@ -160,22 +160,6 @@ async function publishAction(
   // coalesce options
   const publishOptions = await createPublishOptions(options, path);
 
-  // helper to validate
-  const validatePublish = (publishProvider: PublishProvider) => {
-    // validate that we can publish this
-    const isDocument = typeof (publishOptions.input) === "string";
-    if (isDocument && !publishProvider.canPublishDocuments) {
-      throw new Error(
-        `Publishing single documents is not supported for ${publishProvider.description}`,
-      );
-    }
-  };
-
-  // validate if we can
-  if (provider) {
-    validatePublish(provider);
-  }
-
   // helper to publish (w/ account confirmation)
   const doPublish = async (
     publishProvider: PublishProvider,
@@ -193,9 +177,6 @@ async function publishAction(
         account,
         publishTarget,
       );
-
-    // validate that we can publish this
-    validatePublish(publishProvider);
 
     if (account) {
       // do the publish

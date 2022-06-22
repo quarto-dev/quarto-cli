@@ -6,7 +6,7 @@
 */
 
 import { info } from "log/mod.ts";
-import { join, relative } from "path/mod.ts";
+import { dirname, join, relative } from "path/mod.ts";
 import { copy, existsSync } from "fs/mod.ts";
 import * as colors from "fmt/colors.ts";
 
@@ -14,9 +14,8 @@ import { Confirm } from "cliffy/prompt/confirm.ts";
 
 import { removeIfExists, which } from "../../core/path.ts";
 import { execProcess } from "../../core/process.ts";
-import { projectContext } from "../../project/project-context.ts";
 
-import { kProjectOutputDir, ProjectContext } from "../../project/types.ts";
+import { ProjectContext } from "../../project/types.ts";
 import {
   AccountToken,
   anonymousAccount,
@@ -28,6 +27,7 @@ import { shortUuid } from "../../core/uuid.ts";
 import { sleep } from "../../core/wait.ts";
 import { joinUrl } from "../../core/url.ts";
 import { completeMessage, withSpinner } from "../../core/console.ts";
+import { renderForPublish } from "../common/publish.ts";
 
 export const kGhpages = "gh-pages";
 const kGhpagesDescription = "GitHub Pages";
@@ -36,7 +36,6 @@ export const ghpagesProvider: PublishProvider = {
   name: kGhpages,
   description: kGhpagesDescription,
   requiresServer: false,
-  canPublishDocuments: false,
   listOriginOnly: false,
   accountTokens,
   authorizeToken,
@@ -96,14 +95,17 @@ function resolveTarget(
 
 async function publish(
   _account: AccountToken,
-  _type: "document" | "site",
+  type: "document" | "site",
   input: string,
-  _title: string,
+  title: string,
   _slug: string,
   render: (siteUrl?: string) => Promise<PublishFiles>,
   options: PublishOptions,
-  _target?: PublishRecord,
+  target?: PublishRecord,
 ): Promise<[PublishRecord | undefined, URL | undefined]> {
+  // convert input to dir if necessary
+  input = Deno.statSync(input).isDirectory ? input : dirname(input);
+
   // get context
   const ghContext = await gitHubContext(input);
 
@@ -143,12 +145,13 @@ async function publish(
   ]);
 
   // render
-  const project = (await projectContext(input))!;
-  const outputDir = project.config?.project[kProjectOutputDir];
-  if (outputDir === undefined) {
-    throwUnableToPublish("no output-dir defined for project");
-  }
-  const renderResult = await render(ghContext.siteUrl);
+  const renderResult = await renderForPublish(
+    render,
+    "gh-pages",
+    type,
+    title,
+    target?.url,
+  );
 
   // allocate worktree dir
   const tempDir = Deno.makeTempDirSync({ dir: input });

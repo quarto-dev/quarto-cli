@@ -32,7 +32,6 @@ export const quartoPubProvider: PublishProvider = {
   name: kQuartoPub,
   description: "Quarto Pub",
   requiresServer: false,
-  canPublishDocuments: true,
   listOriginOnly: false,
   accountTokens,
   authorizeToken,

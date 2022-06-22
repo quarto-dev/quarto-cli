@@ -6,6 +6,7 @@
 */
 
 import { warning } from "log/mod.ts";
+import { dirname } from "path/mod.ts";
 
 import { Select } from "cliffy/prompt/select.ts";
 import { Confirm } from "cliffy/prompt/confirm.ts";
@@ -105,23 +106,21 @@ export async function publishDeployments(
 ): Promise<PublishDeploymentWithAccount[]> {
   const deployments: PublishDeploymentWithAccount[] = [];
 
-  // see if provider has a static PublishRecord
-  const isProject = typeof (options.input) !== "string";
-  if (isProject) {
-    for (const provider of await publishProviders()) {
-      if (
-        (!providerFilter || providerFilter === provider.name) &&
-        provider.publishRecord
-      ) {
-        const record = await (provider.publishRecord(
-          (options.input as ProjectContext).dir,
-        ));
-        if (record) {
-          deployments.push({
-            provider,
-            target: record,
-          });
-        }
+  // see if there are any static publish records for this directory
+  const publishDir = typeof (options.input) === "string"
+    ? dirname(options.input)
+    : (options.input as ProjectContext).dir;
+  for (const provider of await publishProviders()) {
+    if (
+      (!providerFilter || providerFilter === provider.name) &&
+      provider.publishRecord
+    ) {
+      const record = await (provider.publishRecord(publishDir));
+      if (record) {
+        deployments.push({
+          provider,
+          target: record,
+        });
       }
     }
   }

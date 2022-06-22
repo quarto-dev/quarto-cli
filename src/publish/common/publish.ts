@@ -109,23 +109,13 @@ export async function handlePublish<
   target = target!;
 
   // render
-  let publishFiles = await render(target.url);
-
-  // validate that the main document is html or pdf
-  if (
-    type === "document" &&
-    !isHtmlContent(publishFiles.rootFile) &&
-    !isPdfContent(publishFiles.rootFile)
-  ) {
-    throw new Error(
-      `Documents published to ${handler.name} must be either HTML or PDF.`,
-    );
-  }
-
-  // if this is a document then stage the files
-  if (type === "document") {
-    publishFiles = stageDocumentPublish(title, publishFiles);
-  }
+  const publishFiles = await renderForPublish(
+    render,
+    handler.name,
+    type,
+    title,
+    target.url,
+  );
 
   // function to resolve the full path of a file
   // (given that redirects could be in play)
@@ -235,6 +225,35 @@ export async function handlePublish<
     { ...target, url: targetUrl },
     launchUrl ? new URL(launchUrl) : undefined,
   ];
+}
+
+export async function renderForPublish(
+  render: (siteUrl?: string) => Promise<PublishFiles>,
+  providerName: string,
+  type: "document" | "site",
+  title: string,
+  siteUrl?: string,
+) {
+  // render
+  let publishFiles = await render(siteUrl);
+
+  // validate that the main document is html or pdf
+  if (
+    type === "document" &&
+    !isHtmlContent(publishFiles.rootFile) &&
+    !isPdfContent(publishFiles.rootFile)
+  ) {
+    throw new Error(
+      `Documents published to ${providerName} must be either HTML or PDF.`,
+    );
+  }
+
+  // if this is a document then stage the files
+  if (type === "document") {
+    publishFiles = stageDocumentPublish(title, publishFiles);
+  }
+
+  return publishFiles;
 }
 
 function stageDocumentPublish(title: string, publishFiles: PublishFiles) {
