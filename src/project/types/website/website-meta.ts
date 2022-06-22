@@ -7,7 +7,12 @@
 
 import { Document, Element } from "../../../core/deno-dom.ts";
 import { dirname, join, relative } from "path/mod.ts";
-import { kAbstract, kDescription, kTitle } from "../../../config/constants.ts";
+import {
+  kAbstract,
+  kDescription,
+  kSubtitle,
+  kTitle,
+} from "../../../config/constants.ts";
 import {
   Format,
   FormatExtras,
@@ -103,7 +108,7 @@ export function metadataHtmlPostProcessor(
       resolveValue: (key: string, value: string) => {
         // Limit to 300 chars for Open Graph
         if ([kDescription].includes(key)) {
-          return truncateText(value, 200, "punctuation");
+          return truncateText(value.trim(), 200, "punctuation");
         }
 
         return value;
@@ -132,9 +137,8 @@ export function metadataHtmlPostProcessor(
       resolveValue: (key: string, value: string) => {
         // Limit to 200 chars for Twitter
         if ([kDescription].includes(key)) {
-          return truncateText(value, 200, "punctuation");
+          return truncateText(value.trim(), 200, "punctuation");
         }
-
         return value;
       },
       resolveDefaults: (finalMetadata: Metadata) => {
@@ -271,7 +275,8 @@ function pageMetadata(
 
   return {
     [kTitle]: pageTitle,
-    [kDescription]: pageDescription || format.metadata[kAbstract],
+    [kDescription]: pageDescription || format.metadata[kAbstract] ||
+      format.metadata[kSubtitle],
     [kImage]: pageImage,
   };
 }
