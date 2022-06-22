@@ -66,7 +66,7 @@ export function metadataHtmlDependencies(
   format: Format,
   extras: FormatExtras,
 ) {
-  const pipeline = metaMarkdownPipeline(format);
+  const pipeline = metaMarkdownPipeline(format, extras);
   return {
     [kHtmlPostprocessors]: metadataHtmlPostProcessor(
       source,
@@ -389,8 +389,9 @@ function imageMetadata(
 type metaVal = [string, string];
 
 const kMetaTitleId = "quarto-metatitle";
+const kMetaDescId = "quarto-metadesc";
 const kMetaSideNameId = "quarto-metasitename";
-function metaMarkdownPipeline(format: Format) {
+function metaMarkdownPipeline(format: Format, extras: FormatExtras) {
   const titleMetaHandler = {
     getUnrendered() {
       const resolvedTitle = computePageTitle(format);
@@ -442,8 +443,34 @@ function metaMarkdownPipeline(format: Format) {
     },
   };
 
+  const descriptionMetaHandler = {
+    getUnrendered() {
+      // read document level metadata
+      const pageMeta = pageMetadata(format, extras);
+      const description = pageMeta.description as string;
+      if (description !== undefined) {
+        return { inlines: { [kMetaDescId]: description } };
+      }
+    },
+    processRendered(rendered: Record<string, Element>, doc: Document) {
+      const renderedEl = rendered[kMetaDescId];
+      if (renderedEl) {
+        ['meta[property="og:description"]', 'meta[name="twitter:description"]']
+          .forEach(
+            (sel) => {
+              const metaEl = doc.querySelector(sel);
+              if (metaEl) {
+                metaEl.setAttribute("content", renderedEl.innerText);
+              }
+            },
+          );
+      }
+    },
+  };
+
   return createMarkdownPipeline("quarto-meta-markdown", [
     titleMetaHandler,
     siteTitleMetaHandler,
+    descriptionMetaHandler,
   ]);
 }
