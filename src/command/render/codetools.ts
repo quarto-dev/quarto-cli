@@ -103,14 +103,31 @@ export function codeToolsPostprocessor(format: Format) {
           const line = lines[i] as Element;
           if (line.innerText === kKeepSourceSentinel) {
             i += 2;
+            // FIXME CHANGE THIS TO PULL ALL TEXT FROM SPAN
             const codeBlockLine = lines[i] as Element;
+            const anchor = codeBlockLine.querySelector("a");
+            const text = codeBlockLine.innerText;
+
+            codeBlockLine.textContent = "";
+            codeBlockLine.appendChild(anchor!);
+            const newSpan = doc.createElement("span");
+            newSpan.classList.add("in");
+            newSpan.innerText = text.replace(
+              /```(\w+)/,
+              "```{$1}",
+            );
+            codeBlockLine.appendChild(newSpan);
+            // const firstSpanClass = codeBlockLine.querySelector("span")?.getAttribute("class");
+            // codeBlockLine.innerHTML = `${anchor}<span class="in">${text}</span>`;
+
+            /*newLines.push()
             const codeSpan = codeBlockLine.lastChild as Element;
             if (codeSpan.innerHTML) {
               codeSpan.innerHTML = codeSpan.innerHTML.replace(
                 /```(\w+)/,
                 "```{$1}",
               );
-            }
+            }*/
             newLines.push(codeBlockLine);
           } else {
             newLines.push(line);
