@@ -256,7 +256,7 @@ export function langCommentChars(lang: string): string[] {
   }
 }
 export function optionCommentPattern(comment: string) {
-  return new RegExp("^" + comment + "\\s*\\| ?");
+  return new RegExp("^" + escapeRegExp(comment) + "\\s*\\| ?");
 }
 
 // FIXME this is an awkward spot for this particular entry point
@@ -314,3 +314,7 @@ export const kLangCommentChars: Record<string, string | [string, string]> = {
   dot: "//",
   ojs: "//",
 };
+
+function escapeRegExp(str: string) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // $& means the whole matched string
+}
