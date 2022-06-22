@@ -49,7 +49,7 @@ export const ghpagesProvider: PublishProvider = {
 };
 
 function accountTokens() {
-  return Promise.resolve([]);
+  return Promise.resolve([anonymousAccount()]);
 }
 
 async function authorizeToken(options: PublishOptions) {
