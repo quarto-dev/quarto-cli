@@ -184,13 +184,16 @@ async function publishAction(
     account?: AccountToken,
   ) => {
     // resolve account
-    account = await resolveAccount(
-      publishProvider,
-      publishOptions.prompt ? accountPrompt : "never",
-      publishOptions,
-      account,
-      publishTarget,
-    );
+    account = (account && !publishOptions.prompt)
+      ? account
+      : await resolveAccount(
+        publishProvider,
+        publishOptions.prompt ? accountPrompt : "never",
+        publishOptions,
+        account,
+        publishTarget,
+      );
+
     // validate that we can publish this
     validatePublish(publishProvider);
 
