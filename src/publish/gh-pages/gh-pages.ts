@@ -15,7 +15,6 @@ import { Confirm } from "cliffy/prompt/confirm.ts";
 import { removeIfExists, which } from "../../core/path.ts";
 import { execProcess } from "../../core/process.ts";
 import { projectContext } from "../../project/project-context.ts";
-import { websiteBaseurl } from "../../project/types/website/website-config.ts";
 
 import { kProjectOutputDir, ProjectContext } from "../../project/types.ts";
 import {
@@ -80,10 +79,10 @@ function removeToken(_token: AccountToken) {
 
 async function publishRecord(dir: string): Promise<PublishRecord | undefined> {
   const ghContext = await gitHubContext(dir);
-  if (ghContext.ghPages && ghContext.siteUrl) {
+  if (ghContext.ghPages) {
     return {
       id: "gh-pages",
-      url: ghContext.siteUrl,
+      url: ghContext.siteUrl || ghContext.originUrl,
     };
   }
 }
@@ -113,7 +112,9 @@ async function publish(
     // confirm
     const confirmed = await Confirm.prompt({
       indent: "",
-      message: `Publish site to ${ghContext.siteUrl} using gh-pages?`,
+      message: `Publish site to ${
+        ghContext.siteUrl || ghContext.originUrl
+      } using gh-pages?`,
       default: true,
     });
     if (!confirmed) {
@@ -181,7 +182,7 @@ async function publish(
 
   // wait for deployment if we are opening a browser
   let verified = false;
-  if (options.browser && ghContext.siteUrl && ghContext.browse) {
+  if (options.browser && ghContext.siteUrl) {
     await withSpinner({
       message:
         "Deploying gh-pages branch to website (this may take a few minutes)",
@@ -203,14 +204,14 @@ async function publish(
     });
   }
 
-  completeMessage(`Published: ${ghContext.siteUrl}`);
+  completeMessage(`Published to ${ghContext.siteUrl || ghContext.originUrl}`);
   info("");
 
   if (!verified) {
-    info(
-      "NOTE: GitHub Pages deployments normally take a few minutes\n" +
-        "(your site updates will visible once the deploy completes)\n",
-    );
+    info(colors.yellow(
+      "NOTE: GitHub Pages deployments normally take a few minutes (your site updates\n" +
+        "will be visible once the deploy completes)\n",
+    ));
   }
 
   return Promise.resolve([
@@ -384,11 +385,7 @@ async function gitHubContext(dir: string) {
         })).success;
 
         // determine siteUrl
-        const info = await siteInfo(dir, context.originUrl!);
-        if (info) {
-          context.siteUrl = info.url;
-          context.browse = info.browse;
-        }
+        context.siteUrl = siteUrl(dir, context.originUrl!);
       }
     }
   }
@@ -396,41 +393,23 @@ async function gitHubContext(dir: string) {
   return context;
 }
 
-async function siteInfo(dir: string, originUrl: string) {
+function siteUrl(dir: string, originUrl: string) {
   const cname = join(dir, "CNAME");
   if (existsSync(cname)) {
-    return {
-      url: Deno.readTextFileSync(cname).trim(),
-      browse: true,
-    };
+    return Deno.readTextFileSync(cname).trim();
   } else {
-    // git and ssh protccols
+    // pick apart origin url for github.com
     const match = originUrl?.match(
       /git@([^:]+):([^\/]+)\/([^.]+)\.git/,
     ) || originUrl?.match(
       /https:\/\/([^\/]+)\/([^\/]+)\/([^.]+)\.git/,
     );
 
-    if (match) {
-      const kGithubCom = "github.com";
-      const kGithubIo = "github.io";
+    const kGithubCom = "github.com";
+    const kGithubIo = "github.io";
+    if (match && match.includes(kGithubCom)) {
       const server = match[1].replace(kGithubCom, kGithubIo);
-      return {
-        url: `https://${match[2]}.${server}/${match[3]}/`,
-        browse: server.includes(kGithubIo),
-      };
-    }
-
-    // otherwise see if its in config
-    const project = await projectContext(dir);
-    if (project) {
-      const url = websiteBaseurl(project.config);
-      if (url) {
-        return {
-          url,
-          browse: true,
-        };
-      }
+      return `https://${match[2]}.${server}/${match[3]}/`;
     }
   }
 }

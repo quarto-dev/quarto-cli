@@ -183,19 +183,30 @@ export async function chooseDeployment(
 
   // collect unique origins
   const originCounts = depoyments.reduce((origins, deployment) => {
-    const originUrl = new URL(deployment.target.url!).origin;
-    const count = origins.get(originUrl) || 0;
-    origins.set(originUrl, count + 1);
+    try {
+      const originUrl = new URL(deployment.target.url!).origin;
+      const count = origins.get(originUrl) || 0;
+      origins.set(originUrl, count + 1);
+    } catch {
+      // url may not be valid and that shouldn't cause an error
+    }
     return origins;
   }, new Map<string, number>());
 
   const options = depoyments
     .map((deployment) => {
-      const targetOrigin = new URL(deployment.target.url!).origin;
-      const url = (originCounts.get(targetOrigin) === 1 &&
-          deployment.provider.listOriginOnly)
-        ? targetOrigin
-        : deployment.target.url;
+      let url = deployment.target.url;
+      try {
+        const targetOrigin = new URL(deployment.target.url!).origin;
+        if (
+          originCounts.get(targetOrigin) === 1 &&
+          deployment.provider.listOriginOnly
+        ) {
+          url = targetOrigin;
+        }
+      } catch {
+        // url may not be valid and that shouldn't cause an error
+      }
 
       return {
         name: `${url} (${deployment.provider.description}${

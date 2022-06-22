@@ -35,19 +35,9 @@ A record of your previous publishes will be stored in a `_publish.yml` file with
 
 Account information is not stored in this file, so it is suitable for checking in to version control and being shared by multiple publishers.
 
+Note that GitHub Pages publishes are not stored in the `_publish.yml` file (they are tracked by virtue of the creation of a `gh-pages` branch).
+
 If you provide the `--id` option (described below) then a publish record is not saved (as in that case you already have another means for tracking published content).
-
-## GitHub Pages
-
-Publising to GitHub Pages works a little differently than to other providers. Rather than interacting with a remote API and writing publish records to `_publish.yml`, a special `gh-pages` branch is created and the contents of your `_site` or `_book` directory is pushed to this branch (GitHub will automatically publish a website when it sees a `gh-pages` branch created).
-
-Ideally, `quarto publish` should be aware of the URL that will be used to access the published site (so that it can correctly write social metadata, a sitemap, and RSS feeds, all of which require absolute URLs). This URL can be deduced automatically for github.com but for GitHub Enterprise you should include a `site-url` in your website or book configuration. For example:
-
-```yaml
-website:
-  title: "My Site"
-  site-url: https://ghserver.example.com/myuser/mysite
-```
 
 ## Headless / CI Usage
 
