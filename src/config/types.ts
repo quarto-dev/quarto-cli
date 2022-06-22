@@ -401,7 +401,7 @@ export interface FormatPandoc {
   [kListings]?: boolean;
   [kNumberSections]?: boolean;
   [kNumberOffset]?: number[];
-  [kHighlightStyle]?: string | Record<string, string>;
+  [kHighlightStyle]?: string | Record<string, string> | null;
   [kSectionDivs]?: boolean;
   [kHtmlMathMethod]?: string | { method: string; url: string };
   [kTopLevelDivision]?: string;
