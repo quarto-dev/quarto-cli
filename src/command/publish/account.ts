@@ -118,7 +118,7 @@ export async function accountPrompt(
   const result = await prompt([{
     indent: "",
     name: "token",
-    message: `Account:`,
+    message: `Publish with account:`,
     options,
     type: Select,
   }]);
