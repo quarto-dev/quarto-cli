@@ -63,5 +63,29 @@ catch e
   @warn "Run path init:" exception=(e, catch_backtrace())
 end
 
+# ojs_define support
+try
+  # if DataFrames and JSONTables are available, 
+  # use it to convert dataframes to json automatically
+  import JSON, DataFrames, JSONTables
+
+  function ojs_define(; kwargs...)
+    convert(x) = x
+    convert(x::DataFrames.AbstractDataFrame) = JSONTables.ArrayTable(Tables.rows(x))
+  
+    content = Dict("contents" => [Dict("name" => k, "value" => convert(v)) for (k, v) in kwargs])
+    tag = "<script type='ojs-define'>$(JSON.write(content))</script>"
+    IJulia.display(MIME("text/html"), tag)
+  end
+catch e
+  import JSON
+  
+  function ojs_define(; kwargs...)
+    content = Dict("contents" => [Dict("name" => k, "value" => v) for (k, v) in kwargs])
+    tag = "<script type='ojs-define'>$(JSON.json(content))</script>"
+    IJulia.display(MIME("text/html"), tag)
+  end
+end
+
 # don't return kernel dependencies (b/c Revise should take care of dependencies)
 nothing
