@@ -135,6 +135,7 @@ export async function runBibEngine(
   input: string,
   cwd: string,
   pkgMgr?: PackageManager,
+  texInputDirs?: string[],
   quiet?: boolean,
 ): Promise<LatexCommandReponse> {
   const [dir, stem] = dirAndStem(input);
@@ -151,6 +152,7 @@ export async function runBibEngine(
     {
       pkgMgr,
       cwd,
+      texInputDirs,
     },
     quiet,
   );
@@ -190,6 +192,7 @@ async function runLatexCommand(
     // note this  //
     runOptions.env = runOptions.env || {};
     runOptions.env["TEXINPUTS"] = `${context.texInputDirs.join(";")};`;
+    runOptions.env["BSTINPUTS"] = `${context.texInputDirs.join(";")};`;
   }
 
   // Run the command
