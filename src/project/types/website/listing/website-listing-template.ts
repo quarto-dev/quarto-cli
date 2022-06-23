@@ -70,7 +70,11 @@ export function templateMarkdownHandler(
       const record: Record<string, unknown | undefined> = { ...item };
 
       if (item.author) {
-        record.author = item.author.join(", ");
+        if (Array.isArray(item.author)) {
+          record.author = item.author.join(", ");
+        } else {
+          record.author = item.author;
+        }
       }
 
       // Format date values
