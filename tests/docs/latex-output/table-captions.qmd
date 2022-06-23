@@ -62,7 +62,6 @@ kable(head(cars))
 ```
 
 ```{r}
-
 kable(head(cars), format = "latex", longtable = TRUE, caption = "HELLO CARS")
 ```
 
