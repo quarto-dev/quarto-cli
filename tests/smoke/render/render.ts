@@ -66,9 +66,13 @@ export function cleanoutput(input: string, to: string) {
   }
 }
 
-export const renderVerifyLatexOutput = (input: string, regexes: RegExp[]) => {
+export const renderVerifyLatexOutput = (
+  input: string,
+  matches: RegExp[],
+  noMatches?: RegExp[],
+) => {
   const teXOutput = outputForInput(input, "latex");
   testRender(input, "latex", true, [
-    ensureFileRegexMatches(teXOutput.outputPath, regexes),
+    ensureFileRegexMatches(teXOutput.outputPath, matches, noMatches),
   ]);
 };

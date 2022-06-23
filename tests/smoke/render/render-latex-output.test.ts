@@ -16,3 +16,8 @@ renderVerifyLatexOutput(docs("latex-output/figure-div.qmd"), [
   /\\caption{\\label{fig-foo}This is the figure}/,
   /See Figure~\\ref{fig-foo} for more\./,
 ]);
+
+// All captions should be placed at the bottom
+renderVerifyLatexOutput(docs("latex-output/table-captions.qmd"), [], [
+  /\\begin{longtable}.*\s\\caption/,
+]);
