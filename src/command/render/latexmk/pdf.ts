@@ -81,6 +81,7 @@ export async function generatePdf(mkOptions: LatexmkOptions): Promise<string> {
     mkOptions.engine.bibEngine || "citeproc",
     pkgMgr,
     mkOptions.outputDir,
+    mkOptions.texInputDirs,
     mkOptions.quiet,
   );
 
@@ -291,6 +292,7 @@ async function makeBibliographyIntermediates(
   engine: string,
   pkgMgr: PackageManager,
   outputDir?: string,
+  texInputDirs?: string[],
   quiet?: boolean,
 ) {
   // Generate bibliography (including potentially installing missing packages)
@@ -349,6 +351,7 @@ async function makeBibliographyIntermediates(
           auxBibPath,
           cwd,
           pkgMgr,
+          texInputDirs,
           quiet,
         );
 

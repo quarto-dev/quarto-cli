@@ -290,6 +290,7 @@ end
 function processAuthor(value) 
   -- initialize the author
   local author = pandoc.MetaMap({})
+  author[kMetadata] = pandoc.MetaMap({})
 
   -- initialize their affilations
   local authorAffiliations = {}
@@ -464,9 +465,6 @@ end
 -- Sets a metadata value, initializing the table if
 -- it not yet defined
 function setMetadata(author, key, value) 
-  if not author[kMetadata] then
-    author[kMetadata] = {}
-  end
   author[kMetadata][key] = value
 end
 
@@ -474,7 +472,7 @@ end
 -- is not yet defined
 function setAttribute(author, attribute) 
   if not author[kAttributes] then
-    author[kAttributes] = {}
+    author[kAttributes] = pandoc.MetaMap({})
   end
   
   local attrStr = pandoc.utils.stringify(attribute)
