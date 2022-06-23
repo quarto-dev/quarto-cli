@@ -447,10 +447,13 @@ const longtableBottomCaptionProcessor = () => {
   let caption: string | undefined;
 
   return (line: string): string | undefined => {
-    if (scanning) {
+    const isEndOfDocument = !!line.match(/^\\end{document}/);
+    if (isEndOfDocument && caption) {
+      return `${caption}\n${line}`;
+    } else if (scanning) {
       // look for a caption line
       if (capturing) {
-        caption = caption + line;
+        caption = `${caption}\n${line}`;
         capturing = !line.match(/\\tabularnewline$/);
         return undefined;
       } else {

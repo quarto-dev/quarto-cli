@@ -18,6 +18,8 @@ renderVerifyLatexOutput(docs("latex-output/figure-div.qmd"), [
 ]);
 
 // All captions should be placed at the bottom
-renderVerifyLatexOutput(docs("latex-output/table-captions.qmd"), [], [
+renderVerifyLatexOutput(docs("latex-output/table-captions.qmd"), [
+  /\\end{document}/,
+], [
   /\\begin{longtable}.*\s\\caption/,
 ]);
