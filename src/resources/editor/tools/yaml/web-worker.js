@@ -9957,9 +9957,7 @@ try {
                 author: {
                   maybeArrayOf: "string"
                 },
-                date: {
-                  ref: "csl-date"
-                },
+                date: "string",
                 title: "string",
                 subtitle: "string"
               }

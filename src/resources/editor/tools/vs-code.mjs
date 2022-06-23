@@ -9956,9 +9956,7 @@ var require_yaml_intelligence_resources = __commonJS({
               author: {
                 maybeArrayOf: "string"
               },
-              date: {
-                ref: "csl-date"
-              },
+              date: "string",
               title: "string",
               subtitle: "string"
             }
