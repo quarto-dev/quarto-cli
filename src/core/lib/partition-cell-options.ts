@@ -162,18 +162,17 @@ export function partitionCellOptionsText(
   for (const line of rangedLines(source.value, true)) {
     const optionMatch = line.substring.match(optionPattern);
     if (optionMatch) {
-      if (!optionSuffix || line.substring.trimRight().endsWith(optionSuffix)) {
+      if (!optionSuffix || line.substring.trimEnd().endsWith(optionSuffix)) {
         let yamlOption = line.substring.substring(optionMatch[0].length);
         if (optionSuffix) {
-          yamlOption = yamlOption.trimRight();
+          yamlOption = yamlOption.trimEnd();
           yamlOption = yamlOption.substring(
             0,
             yamlOption.length - optionSuffix.length,
-          );
+          ).trimEnd();
         }
         endOfYaml = line.range.start + optionMatch[0].length +
-          yamlOption.length -
-          optionSuffix.length;
+          yamlOption.length;
         const rangedYamlOption = {
           substring: yamlOption,
           range: {
