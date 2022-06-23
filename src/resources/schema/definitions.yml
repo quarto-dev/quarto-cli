@@ -1084,7 +1084,7 @@
         maybeArrayOf:
           anyOf:
             - string
-            - object
+            - ref: website-listing-contents-object
         description: "The files or path globs of Quarto documents or YAML files that should be included in the listing."
       sort:
         maybeArrayOf: string
@@ -1300,6 +1300,16 @@
             Fields that items in this listing must have populated.
             If a listing is rendered and one more items in this listing 
             is missing a required field, an error will occur and the render will.
+
+- id: website-listing-contents-object
+  object:
+    properties:
+      author:
+        maybeArrayOf: string
+      date:
+        ref: csl-date
+      title: string
+      subtitle: string
 
 - id: csl-date
   anyOf:
