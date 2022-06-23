@@ -1125,6 +1125,15 @@ function resolveTextHighlightStyle(
   const highlightTheme = pandoc[kHighlightStyle] || kDefaultHighlightStyle;
   const textHighlightingMode = extras.html?.[kTextHighlightingMode];
 
+  if (highlightTheme === "none") {
+    // Clear the highlighting
+    pandoc[kHighlightStyle] = null;
+    if (extras.pandoc) {
+      delete extras.pandoc[kHighlightStyle];
+    }
+    return extras;
+  }
+
   // create the possible name matches based upon the dark vs. light
   // and find a matching theme file
   // Themes from

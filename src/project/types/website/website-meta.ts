@@ -7,7 +7,12 @@
 
 import { Document, Element } from "../../../core/deno-dom.ts";
 import { dirname, join, relative } from "path/mod.ts";
-import { kAbstract, kDescription, kTitle } from "../../../config/constants.ts";
+import {
+  kAbstract,
+  kDescription,
+  kSubtitle,
+  kTitle,
+} from "../../../config/constants.ts";
 import {
   Format,
   FormatExtras,
@@ -61,7 +66,7 @@ export function metadataHtmlDependencies(
   format: Format,
   extras: FormatExtras,
 ) {
-  const pipeline = metaMarkdownPipeline(format);
+  const pipeline = metaMarkdownPipeline(format, extras);
   return {
     [kHtmlPostprocessors]: metadataHtmlPostProcessor(
       source,
@@ -103,7 +108,7 @@ export function metadataHtmlPostProcessor(
       resolveValue: (key: string, value: string) => {
         // Limit to 300 chars for Open Graph
         if ([kDescription].includes(key)) {
-          return truncateText(value, 200, "punctuation");
+          return truncateText(value.trim(), 200, "punctuation");
         }
 
         return value;
@@ -132,9 +137,8 @@ export function metadataHtmlPostProcessor(
       resolveValue: (key: string, value: string) => {
         // Limit to 200 chars for Twitter
         if ([kDescription].includes(key)) {
-          return truncateText(value, 200, "punctuation");
+          return truncateText(value.trim(), 200, "punctuation");
         }
-
         return value;
       },
       resolveDefaults: (finalMetadata: Metadata) => {
@@ -271,7 +275,8 @@ function pageMetadata(
 
   return {
     [kTitle]: pageTitle,
-    [kDescription]: pageDescription || format.metadata[kAbstract],
+    [kDescription]: pageDescription || format.metadata[kAbstract] ||
+      format.metadata[kSubtitle],
     [kImage]: pageImage,
   };
 }
@@ -384,8 +389,9 @@ function imageMetadata(
 type metaVal = [string, string];
 
 const kMetaTitleId = "quarto-metatitle";
+const kMetaDescId = "quarto-metadesc";
 const kMetaSideNameId = "quarto-metasitename";
-function metaMarkdownPipeline(format: Format) {
+function metaMarkdownPipeline(format: Format, extras: FormatExtras) {
   const titleMetaHandler = {
     getUnrendered() {
       const resolvedTitle = computePageTitle(format);
@@ -437,8 +443,34 @@ function metaMarkdownPipeline(format: Format) {
     },
   };
 
+  const descriptionMetaHandler = {
+    getUnrendered() {
+      // read document level metadata
+      const pageMeta = pageMetadata(format, extras);
+      const description = pageMeta.description as string;
+      if (description !== undefined) {
+        return { inlines: { [kMetaDescId]: description } };
+      }
+    },
+    processRendered(rendered: Record<string, Element>, doc: Document) {
+      const renderedEl = rendered[kMetaDescId];
+      if (renderedEl) {
+        ['meta[property="og:description"]', 'meta[name="twitter:description"]']
+          .forEach(
+            (sel) => {
+              const metaEl = doc.querySelector(sel);
+              if (metaEl) {
+                metaEl.setAttribute("content", renderedEl.innerText);
+              }
+            },
+          );
+      }
+    },
+  };
+
   return createMarkdownPipeline("quarto-meta-markdown", [
     titleMetaHandler,
     siteTitleMetaHandler,
+    descriptionMetaHandler,
   ]);
 }

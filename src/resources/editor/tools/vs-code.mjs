@@ -27455,7 +27455,7 @@ function langCommentChars(lang) {
   }
 }
 function optionCommentPattern(comment) {
-  return new RegExp("^" + comment + "\\s*\\| ?");
+  return new RegExp("^" + escapeRegExp(comment) + "\\s*\\| ?");
 }
 var kLangCommentChars = {
   r: "#",
@@ -27500,6 +27500,9 @@ var kLangCommentChars = {
   dot: "//",
   ojs: "//"
 };
+function escapeRegExp(str2) {
+  return str2.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 
 // ../parse-shortcode.ts
 function isBlockShortcode(content) {
