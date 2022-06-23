@@ -67,11 +67,11 @@ end
 try
   # if DataFrames and JSONTables are available, 
   # use it to convert dataframes to json automatically
-  import JSON, DataFrames, JSONTables
+  import JSON, DataFrames
 
   global function ojs_define(; kwargs...)
     convert(x) = x
-    convert(x::DataFrames.AbstractDataFrame) = JSONTables.ArrayTable(Tables.rows(x))
+    convert(x::DataFrames.AbstractDataFrame) = Tables.rows(x)
   
     content = Dict("contents" => [Dict("name" => k, "value" => convert(v)) for (k, v) in kwargs])
     tag = "<script type='ojs-define'>$(JSON.json(content))</script>"
