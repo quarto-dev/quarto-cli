@@ -17544,6 +17544,11 @@ function importPathResolver(paths, localResolverMap) {
     let importPath, fetchPath;
     let moduleType;
     if (window._ojs.selfContained) {
+      if (path.endsWith(".ts")) {
+        path = path.replace(/\.ts$/, ".js");
+      } else if (path.endsWith(".tsx")) {
+        path = path.replace(/\.tsx$/, ".js");
+      }
       const resolved = localResolverMap.get(path);
       if (resolved === undefined) {
         throw new Error(`missing local file ${path} in self-contained mode`);
@@ -17581,7 +17586,9 @@ function importPathResolver(paths, localResolverMap) {
 
     if (moduleType === "ts" || moduleType === "tsx") {
       try {
-        const modulePromise = import(importPath.replace(/\.ts$/, ".js").replace(/\.tsx$/, ".js"));
+        const modulePromise = import(window._ojs.selfContained ? 
+          importPath : 
+          importPath.replace(/\.ts$/, ".js").replace(/\.tsx$/, ".js"));
         return es6ImportAsObservableModule(modulePromise, specs);
       } catch (e) {
         // record the error on the browser console to make debugging

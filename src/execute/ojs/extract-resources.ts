@@ -289,6 +289,7 @@ async function resolveImport(
   file: string,
   referent: string,
   projectRoot: string | undefined,
+  mdDir: string,
   visited?: Set<string>,
 ): Promise<
   {
@@ -472,6 +473,7 @@ quarto will only generate javascript files in ${
           resolve(dirname(file), tsImport),
           file,
           projectRoot,
+          mdDir,
           visited,
         );
       createdResources.push(...recursionCreatedResources);
@@ -485,7 +487,7 @@ quarto will only generate javascript files in ${
     resourceType: "import",
     referent,
     filename: resolve(dirname(referent!), localFile),
-    importPath: localFile,
+    importPath: `./${relative(resolve(mdDir), localFile)}`,
   });
 
   source = Deno.readTextFileSync(localFile);
@@ -541,6 +543,7 @@ export async function extractResourceDescriptionsFromOJSChunk(
       thisResolvedImportPath,
       importResource.referent!,
       projectRoot,
+      mdDir,
     ); // Deno.readTextFileSync(thisResolvedImportPath);
     if (resolvedImport === undefined) {
       console.error(

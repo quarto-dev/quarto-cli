@@ -215,7 +215,7 @@ function extractTblCapAttrib(el, name, subcap)
   local value = attribute(el, name, nil)
   if value then
     if startsWith(value, "[") then
-      value = pandoc.List(json.decode(value))
+      value = pandoc.List(quarto.json.decode(value))
     elseif subcap and (value == "true") then
       value = pandoc.List({ "" })
     else
