@@ -228,25 +228,9 @@ async function promptForDirectory(root: string) {
 }
 
 async function confirmCurrentDir() {
-  const dirType: string = await Select.prompt({
-    indent: "",
-    message: `Use template in:`,
-    options: [
-      {
-        name: "Current directory",
-        value: ".",
-      },
-      {
-        name: "New directory...",
-        value: "another",
-      },
-    ],
-  });
-  if (dirType === ".") {
-    return true;
-  } else {
-    return false;
-  }
+  const message = "Create a subdirectory for template?";
+  const useCurrentDir = await Confirm.prompt(message);
+  return !useCurrentDir;
 }
 
 // Unpack and stage a zipped file
