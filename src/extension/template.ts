@@ -20,7 +20,11 @@ export function templateFiles(dir: string) {
     const ignoreFileContents = Deno.readTextFileSync(ignoreFile);
     const ignoreLines = lines(ignoreFileContents.trim());
     ignoreLines.forEach((line) => {
-      excludes.push(line);
+      const splitOnComment = line.split("#");
+      const exclude = splitOnComment[0];
+      if (exclude) {
+        excludes.push(exclude);
+      }
     });
   }
   excludes.push(...kBuiltInExcludes);
