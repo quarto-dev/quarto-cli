@@ -443,20 +443,34 @@ const sideNoteLineProcessor = () => {
 
 const longtableBottomCaptionProcessor = () => {
   let scanning = false;
+  let capturing = false;
   let caption: string | undefined;
 
   return (line: string): string | undefined => {
-    if (scanning) {
+    const isEndOfDocument = !!line.match(/^\\end{document}/);
+    if (isEndOfDocument && caption) {
+      return `${caption}\n${line}`;
+    } else if (scanning) {
       // look for a caption line
-      if (line.match(/^\\caption.*?\\tabularnewline$/)) {
-        caption = line;
+      if (capturing) {
+        caption = `${caption}\n${line}`;
+        capturing = !line.match(/\\tabularnewline$/);
         return undefined;
-      } else if (line.match(/^\\end{longtable}$/)) {
-        scanning = false;
-        if (caption) {
-          line = caption + "\n" + line;
-          caption = undefined;
-          return line;
+      } else {
+        if (line.match(/^\\caption.*?\\tabularnewline$/)) {
+          caption = line;
+          return undefined;
+        } else if (line.match(/^\\caption.*?/)) {
+          caption = line;
+          capturing = true;
+          return undefined;
+        } else if (line.match(/^\\end{longtable}$/)) {
+          scanning = false;
+          if (caption) {
+            line = caption + "\n" + line;
+            caption = undefined;
+            return line;
+          }
         }
       }
     } else {

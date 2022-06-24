@@ -1,0 +1,67 @@
+---
+title: Document With a Variety of Table Captions
+subtitle: Designed to exercise any special logic or processing of table captions
+tbl-cap-location: bottom
+format: latex
+---
+
+
+## Markdown tables
+
+
+| Default | Left | Right | Center |
+|---------|:-----|------:|:------:|
+| 12      | 12   |    12 |   12   |
+| 123     | 123  |   123 |  123   |
+| 1       | 1    |     1 |   1    |
+
+: Demonstration of pipe table syntax
+
+
+| Default | Left | Right | Center |
+|---------|:-----|------:|:------:|
+| 12      | 12   |    12 |   12   |
+| 123     | 123  |   123 |  123   |
+| 1       | 1    |     1 |   1    |
+
+: Demonstration of pipe table syntax that is very long and will probably wrap in the LaTeX output.
+
+| Default | Left | Right | Center |
+|---------|:-----|------:|:------:|
+| 12      | 12   |    12 |   12   |
+| 123     | 123  |   123 |  123   |
+| 1       | 1    |     1 |   1    |
+
+: Demonstration of pipe table syntax that is very long and will probably wrap in the LaTeX output. As a result this could cause issues when we try to read the caption.
+
+
+| Col1 | Col2 | Col3 |
+|------|------|------|
+| A    | B    | C    |
+| E    | F    | G    |
+| A    | G    | G    |
+
+: Demonstration of pipe table syntax that is very long and will probably wrap in the LaTeX output. As a result this could cause issues when we try to read the caption. {#tbl-letters}
+
+See @tbl-letters.
+
+
+```{r}
+#| tbl-cap: "Demonstration of pipe table syntax that is very long and will probably wrap in the LaTeX output."
+#| tbl-colwidths: [60,40]
+library(knitr)
+kable(head(cars))
+```
+
+
+```{r}
+#| tbl-cap: "Demonstration of pipe table syntax that is very long and will probably wrap in the LaTeX output. As a result this could cause issues when we try to read the caption."
+#| tbl-colwidths: [60,40]
+
+kable(head(cars))
+```
+
+```{r}
+kable(head(cars), format = "latex", longtable = TRUE, caption = "HELLO CARS")
+```
+
