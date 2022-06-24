@@ -11,7 +11,7 @@ end
 function writeResults()
   return {
     Pandoc = function(doc)
-      local json = json.encode(preState.results)
+      local json = quarto.json.encode(preState.results)
       local file = io.open(resultsFile(), "w")
       file:write(json)
       file:close()

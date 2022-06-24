@@ -1281,10 +1281,11 @@ local kInHeader = "in-header";
 
 -- common requires
 -- this is in the global scope - anyone downstream of init may use this
-json = require 'json'
-format = require 'format'
-utils = require 'utils'
-base64 = require 'base64'
+local format = require '_format'
+local base64 = require '_base64'
+local json = require '_json'
+local utils = require '_utils'
+
 
 -- does the table contain a value
 local function tcontains(t,value)
@@ -1572,7 +1573,11 @@ quarto = {
   },
   path = {
    resolve = resolvePathExt
-  }  
+  },
+  utils = {
+   dump = utils.dump
+  },
+  json = json,
 }
 
 
