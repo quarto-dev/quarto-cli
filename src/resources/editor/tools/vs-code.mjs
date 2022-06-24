@@ -9687,7 +9687,9 @@ var require_yaml_intelligence_resources = __commonJS({
                 maybeArrayOf: {
                   anyOf: [
                     "string",
-                    "object"
+                    {
+                      ref: "website-listing-contents-object"
+                    }
                   ]
                 },
                 description: "The files or path globs of Quarto documents or YAML files that should be included in the listing."
@@ -9944,6 +9946,19 @@ var require_yaml_intelligence_resources = __commonJS({
                   long: "Fields that items in this listing must have populated.\nIf a listing is rendered and one more items in this listing \nis missing a required field, an error will occur and the render will.\n"
                 }
               }
+            }
+          }
+        },
+        {
+          id: "website-listing-contents-object",
+          object: {
+            properties: {
+              author: {
+                maybeArrayOf: "string"
+              },
+              date: "string",
+              title: "string",
+              subtitle: "string"
             }
           }
         },
@@ -27390,13 +27405,13 @@ function partitionCellOptionsText(language, source) {
   for (const line of rangedLines(source.value, true)) {
     const optionMatch = line.substring.match(optionPattern);
     if (optionMatch) {
-      if (!optionSuffix || line.substring.trimRight().endsWith(optionSuffix)) {
+      if (!optionSuffix || line.substring.trimEnd().endsWith(optionSuffix)) {
         let yamlOption = line.substring.substring(optionMatch[0].length);
         if (optionSuffix) {
-          yamlOption = yamlOption.trimRight();
-          yamlOption = yamlOption.substring(0, yamlOption.length - optionSuffix.length);
+          yamlOption = yamlOption.trimEnd();
+          yamlOption = yamlOption.substring(0, yamlOption.length - optionSuffix.length).trimEnd();
         }
-        endOfYaml = line.range.start + optionMatch[0].length + yamlOption.length - optionSuffix.length;
+        endOfYaml = line.range.start + optionMatch[0].length + yamlOption.length;
         const rangedYamlOption = {
           substring: yamlOption,
           range: {

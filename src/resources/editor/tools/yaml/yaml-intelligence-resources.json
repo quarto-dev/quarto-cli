@@ -2666,7 +2666,9 @@
             "maybeArrayOf": {
               "anyOf": [
                 "string",
-                "object"
+                {
+                  "ref": "website-listing-contents-object"
+                }
               ]
             },
             "description": "The files or path globs of Quarto documents or YAML files that should be included in the listing."
@@ -2923,6 +2925,19 @@
               "long": "Fields that items in this listing must have populated.\nIf a listing is rendered and one more items in this listing \nis missing a required field, an error will occur and the render will.\n"
             }
           }
+        }
+      }
+    },
+    {
+      "id": "website-listing-contents-object",
+      "object": {
+        "properties": {
+          "author": {
+            "maybeArrayOf": "string"
+          },
+          "date": "string",
+          "title": "string",
+          "subtitle": "string"
         }
       }
     },
