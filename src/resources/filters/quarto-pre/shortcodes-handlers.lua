@@ -54,12 +54,7 @@ local function shortcodeMetatable(scriptFile)
     -- quarto global environment
     json = json,
     -- quarto functions
-    quarto = {
-      utils = {
-        dump = dump
-      },
-      doc = quarto.doc
-    }
+    quarto = quarto
   }
 end
 
