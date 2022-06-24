@@ -110,7 +110,8 @@ async function publish(
   const ghContext = await gitHubContext(input);
 
   // create gh pages branch if there is none yet
-  if (!ghContext.ghPages) {
+  const createGhPagesBranch = !ghContext.ghPages;
+  if (createGhPagesBranch) {
     // confirm
     const confirmed = await Confirm.prompt({
       indent: "",
@@ -175,8 +176,33 @@ async function publish(
   });
   info("");
 
-  // warn that updates may require a browser refresh
-  if (ghContext.ghPages) {
+  // if this is the creation of gh-pages AND this is a user home/default site
+  // then tell the user they need to switch it to use gh-pages. also do this
+  // if the site is getting a 404 error
+  let notifyGhPagesBranch = false;
+  let defaultSiteMatch: RegExpMatchArray | null;
+  if (ghContext.siteUrl) {
+    defaultSiteMatch = ghContext.siteUrl.match(
+      /^https:\/\/(.+?)\.github\.io\/$/,
+    );
+    if (defaultSiteMatch) {
+      if (createGhPagesBranch) {
+        notifyGhPagesBranch = true;
+      } else {
+        try {
+          const response = await fetch(ghContext.siteUrl);
+          if (response.status === 404) {
+            notifyGhPagesBranch = true;
+          }
+        } catch {
+          //
+        }
+      }
+    }
+  }
+
+  // if this is an update then warn that updates may require a browser refresh
+  if (!createGhPagesBranch && !notifyGhPagesBranch) {
     info(colors.yellow(
       "NOTE: GitHub Pages sites use caching so you might need to click the refresh\n" +
         "button within your web browser to see changes after deployment.\n",
@@ -185,7 +211,7 @@ async function publish(
 
   // wait for deployment if we are opening a browser
   let verified = false;
-  if (options.browser && ghContext.siteUrl) {
+  if (options.browser && ghContext.siteUrl && !notifyGhPagesBranch) {
     await withSpinner({
       message:
         "Deploying gh-pages branch to website (this may take a few minutes)",
@@ -210,7 +236,20 @@ async function publish(
   completeMessage(`Published to ${ghContext.siteUrl || ghContext.originUrl}`);
   info("");
 
-  if (!verified) {
+  if (notifyGhPagesBranch) {
+    info(
+      colors.yellow(
+        "To complete publishing, change the source branch for this site to " +
+          colors.bold("gh-pages") + ".\n\n" +
+          `Set the source branch at: ` +
+          colors.underline(
+            `https://github.com/${defaultSiteMatch![1]}/${
+              defaultSiteMatch![1]
+            }.github.io/settings/pages`,
+          ) + "\n",
+      ),
+    );
+  } else if (!verified) {
     info(colors.yellow(
       "NOTE: GitHub Pages deployments normally take a few minutes (your site updates\n" +
         "will be visible once the deploy completes)\n",
@@ -403,16 +442,22 @@ function siteUrl(dir: string, originUrl: string) {
   } else {
     // pick apart origin url for github.com
     const match = originUrl?.match(
-      /git@([^:]+):([^\/]+)\/([^.]+)\.git/,
+      /^git@([^:]+):([^\/]+)\/(.+?)\.git$/,
     ) || originUrl?.match(
-      /https:\/\/([^\/]+)\/([^\/]+)\/([^.]+)\.git/,
+      /^https:\/\/([^\/]+)\/([^\/]+)\/(.+?)\.git$/,
     );
 
     const kGithubCom = "github.com";
     const kGithubIo = "github.io";
     if (match && match.includes(kGithubCom)) {
       const server = match[1].replace(kGithubCom, kGithubIo);
-      return `https://${match[2]}.${server}/${match[3]}/`;
+      const domain = `${match[2]}.${server}`;
+      // user's root site uses just the domain
+      if (domain === match[3]) {
+        return `https://${domain}/`;
+      } else {
+        return `https://${domain}/${match[3]}/`;
+      }
     }
   }
 }
