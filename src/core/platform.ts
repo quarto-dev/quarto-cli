@@ -74,3 +74,7 @@ export function isInteractiveSession() {
 export function isGithubAction() {
   return Deno.env.get("GITHUB_ACTIONS") === "true";
 }
+
+export function haveArrowKeys() {
+  return !isWindows();
+}

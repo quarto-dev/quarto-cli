@@ -23,6 +23,7 @@ import {
   RemotePackageInfo,
   ToolSummaryData,
 } from "../tools/types.ts";
+import { haveArrowKeys } from "../core/platform.ts";
 
 interface ToolInfo {
   tool: InstallableTool;
@@ -235,6 +236,9 @@ export async function selectTool(
 
   const toolTarget: string = await Select.prompt({
     message: `Select a tool to ${action}`,
+    hint: !haveArrowKeys()
+      ? "Press 'u' and 'd' to navigate between tools"
+      : undefined,
     options: toolsInfo.map((toolInfo) => {
       return {
         name: name(toolInfo),

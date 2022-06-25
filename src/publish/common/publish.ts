@@ -11,6 +11,7 @@ import { ensureDirSync, walkSync } from "fs/mod.ts";
 
 import { Input } from "cliffy/prompt/input.ts";
 import { Select } from "cliffy/prompt/select.ts";
+import { Confirm } from "cliffy/prompt/confirm.ts";
 
 import { dirname, join, relative } from "path/mod.ts";
 import { crypto } from "crypto/mod.ts";
@@ -30,6 +31,7 @@ import { isHtmlContent, isPdfContent } from "../../core/mime.ts";
 import { globalTempContext } from "../../core/temp.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { encodeAttributeValue } from "../../core/html.ts";
+import { haveArrowKeys } from "../../core/platform.ts";
 
 export interface PublishSite {
   id?: string;
@@ -339,23 +341,35 @@ async function promptForSlug(
   }
 
   if (await slugAvailable(slug)) {
-    const kConfirmed = "confirmed";
-    const input = await Select.prompt({
-      indent: "",
-      message: `${typeName(type)} name:`,
-      options: [
-        {
-          name: slug,
-          value: kConfirmed,
-        },
-        {
-          name: "Use another name...",
-          value: "another",
-        },
-      ],
-    });
-    if (input === kConfirmed) {
-      return slug;
+    if (haveArrowKeys()) {
+      const kConfirmed = "confirmed";
+      const input = await Select.prompt({
+        indent: "",
+        message: `${typeName(type)} name:`,
+        options: [
+          {
+            name: slug,
+            value: kConfirmed,
+          },
+          {
+            name: "Use another name...",
+            value: "another",
+          },
+        ],
+      });
+      if (input === kConfirmed) {
+        return slug;
+      }
+    } else {
+      const result = await Confirm.prompt({
+        indent: "",
+        message: `Publish with name '${slug}'?`,
+        default: true,
+        hint: "Type 'n' to use a differnet name",
+      });
+      if (result) {
+        return slug;
+      }
     }
   }
 
@@ -370,7 +384,7 @@ async function promptForSlug(
     // prompt for server
     const input = await Input.prompt({
       indent: "",
-      message: `${typeName(type)} name:`,
+      message: `Publish with name:`,
       hint,
       transform: (slug: string) => gfmAutoIdentifier(slug, false),
       validate: (slug: string) => {

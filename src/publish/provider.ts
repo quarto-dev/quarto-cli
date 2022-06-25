@@ -25,6 +25,11 @@ export interface AccountToken {
   token: string;
 }
 
+export function accountTokenText(token: AccountToken) {
+  return token.name +
+    (token.server ? ` (${token.server})` : "");
+}
+
 export function anonymousAccount(): AccountToken {
   return {
     type: AccountTokenType.Anonymous,

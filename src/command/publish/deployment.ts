@@ -29,6 +29,7 @@ import {
   publishRecordIdentifier,
   readAccountsPublishedTo,
 } from "../../publish/common/data.ts";
+import { haveArrowKeys } from "../../core/platform.ts";
 
 export async function resolveDeployment(
   options: PublishOptions,
@@ -65,28 +66,47 @@ export async function resolveDeployment(
         );
       }
     } else if (options.prompt) {
+      // confirm prompt
+      const confirmPrompt = async (hint?: string) => {
+        return await Confirm.prompt({
+          indent: "",
+          message: `Update site at ${deployments[0].target.url}?`,
+          default: true,
+          hint,
+        });
+      };
+
       if (
         deployments.length === 1 && deployments[0].provider.publishRecord &&
         providerFilter === deployments[0].provider.name
       ) {
-        const confirmed = await Confirm.prompt({
-          indent: "",
-          message: `Update site at ${deployments[0].target.url}?`,
-          default: true,
-        });
+        const confirmed = await confirmPrompt();
         if (confirmed) {
           return deployments[0];
         } else {
           throw new Error();
         }
-      } else {
+      } else if (haveArrowKeys()) {
         return await chooseDeployment(deployments);
+      } else if (deployments.length === 1) {
+        const confirmed = await confirmPrompt(
+          "Type 'n' to add a new destination",
+        );
+        if (confirmed) {
+          return deployments[0];
+        } else {
+          return undefined;
+        }
+      } else {
+        throw new Error(
+          `Multiple previous publishes exist (specify one to republish with --id)`,
+        );
       }
     } else if (deployments.length === 1) {
       return deployments[0];
     } else {
       throw new Error(
-        `Multiple previous site publishes exists (specify one with --id when using --no-prompt)`,
+        `Multiple previous publishes exist (specify one with --id when using --no-prompt)`,
       );
     }
   } else if (!options.prompt) {
@@ -192,6 +212,7 @@ export async function chooseDeployment(
     return origins;
   }, new Map<string, number>());
 
+  const kOther = "other";
   const options = depoyments
     .map((deployment) => {
       let url = deployment.target.url;
@@ -216,7 +237,7 @@ export async function chooseDeployment(
     });
   options.push({
     name: "Add a new destination...",
-    value: "other",
+    value: kOther,
   });
 
   const confirm = await Select.prompt({
@@ -225,7 +246,7 @@ export async function chooseDeployment(
     options,
   });
 
-  if (confirm !== "other") {
+  if (confirm !== kOther) {
     return depoyments.find((deployment) =>
       publishRecordIdentifier(deployment.target, deployment.account) === confirm
     );
