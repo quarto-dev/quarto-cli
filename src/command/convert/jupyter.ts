@@ -120,6 +120,7 @@ export async function jupyterNotebookToMarkdown(
   // return yaml + markdown
   const yamlText = stringify(yaml, {
     indent: 2,
+    lineWidth: -1,
     sortKeys: false,
     skipInvalid: true,
   });

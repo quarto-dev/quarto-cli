@@ -79,6 +79,7 @@ export async function writeDefaultsFile(
   const defaultsStr = "---\n" +
     stringify(defaults as Record<string, unknown>, {
       indent: 2,
+      lineWidth: -1,
       sortKeys: false,
       skipInvalid: true,
     });

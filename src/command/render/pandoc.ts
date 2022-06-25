@@ -856,6 +856,7 @@ export async function runPandoc(
     metadataTemp,
     stringify(pandocPassedMetadata, {
       indent: 2,
+      lineWidth: -1,
       sortKeys: false,
       skipInvalid: true,
     }),
@@ -1105,6 +1106,7 @@ function runPandocMessage(
       info(
         stringify(printMetadata, {
           indent: 2,
+          lineWidth: -1,
           sortKeys: false,
           skipInvalid: true,
         }),

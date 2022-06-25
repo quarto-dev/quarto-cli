@@ -171,6 +171,7 @@ function stringifyPublishConfig(config: unknown, indent: number) {
     config as Metadata,
     {
       indent,
+      lineWidth: -1,
       sortKeys: false,
       skipInvalid: true,
     },

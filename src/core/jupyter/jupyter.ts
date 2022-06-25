@@ -304,6 +304,7 @@ export async function quartoMdToJupyter(
           if (Object.keys(yaml).length > 0) {
             const yamlFrontMatter = mdTrimEmptyLines(lines(stringify(yaml, {
               indent: 2,
+              lineWidth: -1,
               sortKeys: false,
               skipInvalid: true,
             })));
@@ -665,6 +666,7 @@ export async function jupyterToMarkdown(
     };
     const yamlText = stringify(jupyterMetadata, {
       indent: 2,
+      lineWidth: -1,
       sortKeys: false,
       skipInvalid: true,
     });
@@ -727,6 +729,7 @@ export function jupyterCellOptionsAsComment(
   if (Object.keys(options).length > 0) {
     const cellYaml = stringify(options, {
       indent: 2,
+      lineWidth: -1,
       sortKeys: false,
       skipInvalid: true,
       ...stringifyOptions,
