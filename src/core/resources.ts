@@ -82,14 +82,14 @@ export async function rBinaryPath(binary: string): Promise<string> {
   if (Deno.build.os === "windows") {
     // determine current version
     const version = await registryReadString(
-      [kHKeyLocalMachine, kHKeyCurrentUser],
+      [kHKeyCurrentUser, kHKeyLocalMachine],
       "Software\\R-core\\R",
       "Current Version",
     );
     // determine path to version
     if (version) {
       const installPath = await registryReadString(
-        [kHKeyLocalMachine, kHKeyCurrentUser],
+        [kHKeyCurrentUser, kHKeyLocalMachine],
         `Software\\R-core\\R\\${version}`,
         "InstallPath",
       );
