@@ -96,6 +96,26 @@ export function discoverResourceRefs(
   return Promise.resolve({ resources: refs, supporting: [] });
 }
 
+// in order for tabsets etc to show the right mouse cursor,
+// we need hrefs in anchor elements to be "empty" instead of missing.
+// Existing href attributes trigger the any-link pseudo-selector that
+// browsers set to `cursor: pointer`.
+export function fixEmptyHrefs(
+  doc: Document,
+): Promise<HtmlPostProcessResult> {
+  const anchors = doc.querySelectorAll("a");
+  for (let i = 0; i < anchors.length; ++i) {
+    const anchor = anchors[i] as Element;
+    if (!anchor.getAttribute("href")) {
+      anchor.setAttribute("href", "");
+    }
+  }
+  return Promise.resolve({
+    resources: [],
+    supporting: [],
+  });
+}
+
 export function processFileResourceRefs(
   doc: Document,
   tag: string,

@@ -118,7 +118,7 @@ import {
   kVariables,
 } from "../../config/constants.ts";
 import { TempContext } from "../../core/temp.ts";
-import { discoverResourceRefs } from "../../core/html.ts";
+import { discoverResourceRefs, fixEmptyHrefs } from "../../core/html.ts";
 
 import { kDefaultHighlightStyle } from "./constants.ts";
 import {
@@ -334,9 +334,19 @@ export async function runPandoc(
         htmlPostprocessors.push(katexPostProcessor());
       }
 
-      // add a resource discovery postProcessor if we are not in a website project
       if (!projectIsWebsite(options.project)) {
+        // add a resource discovery postProcessor if we are not in a website project
         htmlPostprocessors.push(discoverResourceRefs);
+
+        // in order for tabsets etc to show the right mouse cursor,
+        // we need hrefs in anchor elements to be "empty" instead of missing.
+        // Existing href attributes trigger the any-link pseudo-selector that
+        // browsers set to `cursor: pointer`.
+        //
+        // In project websites, quarto-nav.js does the same thing so this step
+        // isn't necessary.
+
+        htmlPostprocessors.push(fixEmptyHrefs);
       }
     }
 
