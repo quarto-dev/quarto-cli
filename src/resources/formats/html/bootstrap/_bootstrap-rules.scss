@@ -989,6 +989,10 @@ nav li code:not(.sourceCode) {
   padding-left: 0.6rem;
 }
 
+.sidebar nav[role="doc-toc"] > ul a:empty {
+  display: none;
+}
+
 .sidebar nav[role="doc-toc"] ul {
   padding-left: 0;
   list-style: none;
