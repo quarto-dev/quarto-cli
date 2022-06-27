@@ -316,7 +316,7 @@ function resolveThemeLayer(
     theme = { light: [] };
   }
   const lightLayerContext = layerTheme(input, theme.light, quartoThemesDir);
-  lightLayerContext.layers.push(...sassLayers);
+  lightLayerContext.layers.unshift(...sassLayers);
   const highlightingLayer = resolveTextHighlightingLayer(
     input,
     format,
