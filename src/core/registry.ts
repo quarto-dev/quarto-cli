@@ -18,7 +18,7 @@ export async function registryReadString(
   // if an array is passed then call each one in turn
   if (Array.isArray(root)) {
     for (const r of root) {
-      const val = registryReadString(r, key, value);
+      const val = await registryReadString(r, key, value);
       if (val !== undefined) {
         return val;
       }
