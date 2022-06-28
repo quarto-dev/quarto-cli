@@ -58,6 +58,7 @@ local kAttributes = 'attributes'
 -- flag names)
 local kCorresponding = 'corresponding'
 local kEqualContributor = 'equal-contributor'
+local kDeceased = 'deceased'
 
 -- metadata holds options that appear in the author key
 -- that are not common to our author schema. we would like
@@ -120,7 +121,7 @@ local kDoiTitle = 'doi-title'
 -- to the way the field should be processed
 local kAuthorNameFields = { kName }
 local kAuthorSimpleFields = { kId, kUrl, kEmail, kFax, kPhone, kOrcid, kAcknowledgements }
-local kAuthorAttributeFields = { kCorresponding, kEqualContributor }
+local kAuthorAttributeFields = { kCorresponding, kEqualContributor, kDeceased }
 local kAuthorAffiliationFields = { kAffiliation, kAffiliations }
 
 -- Fields for affiliations (either inline in authors or 
