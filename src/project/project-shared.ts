@@ -63,9 +63,13 @@ export function toInputRelativePaths(
   baseDir: string,
   inputDir: string,
   collection: Array<unknown> | Record<string, unknown>,
+  ignoreResources?: string[],
   parentKey?: unknown,
 ) {
-  const resourceIgnoreFields = ignoreFieldsForProjectType(type);
+  const resourceIgnoreFields = [
+    ignoreFieldsForProjectType(type),
+    ...(ignoreResources || []),
+  ];
   ld.forEach(
     collection,
     (
@@ -87,7 +91,9 @@ export function toInputRelativePaths(
       ) {
         // don't fixup html-math-method
       } else if (Array.isArray(value)) {
-        assign(toInputRelativePaths(type, baseDir, inputDir, value));
+        assign(
+          toInputRelativePaths(type, baseDir, inputDir, value, ignoreResources),
+        );
       } else if (typeof (value) === "object") {
         assign(
           toInputRelativePaths(
@@ -95,6 +101,7 @@ export function toInputRelativePaths(
             baseDir,
             inputDir,
             value as Record<string, unknown>,
+            ignoreResources,
             index,
           ),
         );

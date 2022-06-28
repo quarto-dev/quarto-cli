@@ -186,8 +186,11 @@ function resolveExtensionPaths(
     extension.path,
     inputDir,
     extension,
+    [kExtensionIgnoreFields],
   ) as unknown as Extension;
 }
+
+const kExtensionIgnoreFields = "biblio-style";
 
 // Read the raw extension information out of a directory
 // (e.g. read all the extensions from _extensions)
