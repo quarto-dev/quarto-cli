@@ -92,6 +92,9 @@ export function filterParamsJson(
     defaults,
   );
 
+  // Provide a cite-method param
+  quartoColumnParams[kCiteMethod] = citeMethod(options);
+
   const params: Metadata = {
     ...includes,
     ...initFilterParams(dependenciesFile),
@@ -316,10 +319,6 @@ export function extractColumnParams(
     if (defaults) {
       delete defaults[kReferenceLocation];
     }
-  }
-  // Foreward the cite method as well
-  if (defaults?.[kCiteMethod]) {
-    quartoColumnParams[kCiteMethod] = defaults[kCiteMethod];
   }
   // Forward citation location
   if (metadata[kCitationLocation]) {
