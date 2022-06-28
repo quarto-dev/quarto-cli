@@ -8,6 +8,7 @@
 import { mergeConfigs } from "../core/config.ts";
 
 import {
+  kBiblioConfig,
   kCache,
   kCodeFold,
   kCodeLineNumbers,
@@ -228,6 +229,8 @@ function defaultFormat(): Format {
     },
     pandoc: {},
     language: {},
-    metadata: {},
+    metadata: {
+      [kBiblioConfig]: true,
+    },
   };
 }

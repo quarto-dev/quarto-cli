@@ -70,6 +70,12 @@
     formats: [$pdf-all]
   description: The bibliography title to use when using `natbib` or `biblatex`.
 
+- name: biblio-config
+  schema: boolean
+  tags:
+    formats: [$pdf-all]
+  description: Controls whether to output bibliography configuration for `natbib` or `biblatex` when cite method is not `citeproc`.
+
 - name: citation-abbreviations
   schema: path
   description:

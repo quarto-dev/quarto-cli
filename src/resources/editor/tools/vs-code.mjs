@@ -14286,6 +14286,16 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "The bibliography title to use when using `natbib` or `biblatex`."
         },
         {
+          name: "biblio-config",
+          schema: "boolean",
+          tags: {
+            formats: [
+              "$pdf-all"
+            ]
+          },
+          description: "Controls whether to output bibliography configuration for `natbib` or `biblatex` when cite method is not `citeproc`."
+        },
+        {
           name: "citation-abbreviations",
           schema: "path",
           description: {
@@ -19011,7 +19021,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
         "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
         "Custom tools for navbar or sidebar",
-        "internal-schema-hack"
+        "internal-schema-hack",
+        "Controls whether to output bibliography configuration for\n<code>natbib</code> or <code>biblatex</code> when cite method is not\n<code>citeproc</code>."
       ],
       "schema/external-schemas.yml": [
         {

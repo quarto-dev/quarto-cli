@@ -272,6 +272,7 @@ $if(dir)$
   \newenvironment{LTR}{\beginL}{\endL}
 \fi
 $endif$
+$if(biblio-config)$
 $if(natbib)$
 \usepackage[$natbiboptions$]{natbib}
 \bibliographystyle{$if(biblio-style)$$biblio-style$$else$plainnat$endif$}
@@ -281,6 +282,7 @@ $if(biblatex)$
 $for(bibliography)$
 \addbibresource{$bibliography$}
 $endfor$
+$endif$
 $endif$
 $if(nocite-ids)$
 \nocite{$for(nocite-ids)$$it$$sep$, $endfor$}
