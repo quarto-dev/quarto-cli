@@ -707,7 +707,9 @@ function applyStretch(doc: Document, autoStretch: boolean) {
           !hasStretchClass(imageEl) &&
           // if height is already set, we do nothing
           !imageEl.getAttribute("style")?.match("height:") &&
-          !imageEl.hasAttribute("height")
+          !imageEl.hasAttribute("height") &&
+          // do not add when .absolute is used
+          !imageEl.classList.contains("absolute")
         ) {
           imageEl.classList.add("r-stretch");
         }

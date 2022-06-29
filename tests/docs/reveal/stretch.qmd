@@ -243,3 +243,9 @@ plot(cars)
 ::: {.aside}
 Something here as an aside
 :::
+
+## No auto stretch if absolue is used {#absolute}
+
+See the feature https://quarto.org/docs/presentations/revealjs/advanced.html#absolute-position from
+
+![](https://quarto.org/quarto.png){.absolute width=500}
