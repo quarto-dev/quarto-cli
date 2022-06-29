@@ -1391,15 +1391,20 @@ local function processFileDependency(dependency, meta)
  -- process a text dependency, placing it in the specified location
 local function processTextDependency(dependency, meta)
    local rawText = dependency.content
-   meta[rawText.location]:insert(rawText.text)
+   local textLoc = rawText.location
+
+   if meta[textLoc] == nil then
+      meta[textLoc] = {}
+   end
+   meta[textLoc]:insert(rawText.text)
  end
 
  -- make the usePackage statement
 local function usePackage(package, option) 
    if option == nil then
-     text = "\\@ifpackageloaded{" .. package .. "}{}{\\usepackage{" .. package .. "}}"
+     text = "\\makeatletter\n\\@ifpackageloaded{" .. package .. "}{}{\\usepackage{" .. package .. "}}\n\\makeatother"
    else
-     text = "\\@ifpackageloaded{" .. package .. "}{}{\\usepackage[" .. option .. "]{" .. package .. "}}"
+     text = "\\makeatletter\n\\@ifpackageloaded{" .. package .. "}{}{\\usepackage[" .. option .. "]{" .. package .. "}}\n\\makeatother"
    end
    return pandoc.Blocks({ pandoc.RawBlock("latex", text) })
  end
@@ -1407,7 +1412,12 @@ local function usePackage(package, option)
  -- generate a latex usepackage statement
  local function processUsePackageDependency(dependency, meta)
    local rawPackage = dependency.content
-   meta[resolveLocation(kInHeader)] = usePackage(rawPackage.package, rawPackage.options)
+   
+   local headerLoc = resolveLocation(kInHeader)
+   if meta[headerLoc] == nil then
+      meta[headerLoc] = {}
+   end
+   table.insert(meta[headerLoc], usePackage(rawPackage.package, rawPackage.options))
  end
  
  
