@@ -1452,7 +1452,7 @@ end
 local function resolveDependencyFilePaths(dependencyFiles) 
    if dependencyFiles ~= nil then
       for i,v in ipairs(dependencyFiles) do
-         v.path = resolvePath(v.path)
+         v.path = resolvePathExt(v.path)
       end
       return dependencyFiles
    else 
