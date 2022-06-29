@@ -28,7 +28,7 @@ function layoutMetaInject()
       local kCodeBlockBackground = 'code-block-bg'
 
       -- Track whether to show a border or background
-      local useCodeBlockBorder = (adaptiveTextHighlighting and meta[kCodeBlockBorderLeft] == nil and meta[kCodeBlockBackground] == nil) or meta[kCodeBlockBorderLeft] ~= nil
+      local useCodeBlockBorder = (adaptiveTextHighlighting and meta[kCodeBlockBorderLeft] == nil and meta[kCodeBlockBackground] == nil) or not meta[kCodeBlockBorderLeft] == false
       local useCodeBlockBg = meta[kCodeBlockBackground] ~= nil
 
       -- if we're going to display a border or background
