@@ -28032,7 +28032,7 @@ ${sourceContext}`;
     const commentPrefix = context.commentPrefix || "";
     const parser = await getTreeSitter();
     let word = "";
-    if (line.slice(-1) !== ":" && line.trimLeft()[0] !== "-") {
+    if (line.slice(-1) !== ":") {
       word = line.split(" ").slice(-1)[0];
     }
     if (line.trim().length === 0) {
