@@ -1,0 +1,44 @@
+---
+title: "output-location"
+format: revealjs
+---
+
+## Slide before {#first-slide}
+
+Words
+
+## The slide with the code {#loc-slide}
+
+```{r}
+#| echo: true
+#| output-location: slide
+plot(mtcars)
+```
+
+## Next slides {#next-slide}
+
+Words
+
+## The slide with the code {#loc-column}
+
+```{r}
+#| echo: true
+#| output-location: column
+plot(mtcars)
+```
+
+## The slide with the code {#loc-fragment}
+
+```{r}
+#| echo: true
+#| output-location: fragment
+plot(mtcars)
+```
+
+## The slide with the code {#loc-col-fragment}
+
+```{r}
+#| echo: true
+#| output-location: column-fragment
+plot(mtcars)
+```
