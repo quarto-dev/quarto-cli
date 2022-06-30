@@ -343,7 +343,10 @@ function revealHtmlPostprocessor(
       const parentSlide = findParentSlide(slideOutputEl);
       if (parentSlide && parentSlide.parentElement) {
         const newSlide = doc.createElement("section");
-        newSlide.id = parentSlide?.id ? parentSlide.id + "-output" : "";
+        newSlide.setAttribute(
+          "id",
+          parentSlide?.id ? parentSlide.id + "-output" : "",
+        );
         for (const clz of parentSlide.classList) {
           newSlide.classList.add(clz);
         }
@@ -361,7 +364,9 @@ function revealHtmlPostprocessor(
           newSlide.appendChild(headingEl);
         }
         newSlide.appendChild(slideOutputEl);
-        parentSlide.parentElement.appendChild(newSlide);
+        // Place the new slide after the current one
+        const nextSlide = parentSlide.nextElementSibling;
+        parentSlide.parentElement.insertBefore(newSlide, nextSlide);
       }
     }
 
