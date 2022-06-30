@@ -8,7 +8,7 @@
 import { LanguageCellHandlerContext, LanguageHandler } from "./types.ts";
 import { baseHandler, install } from "./base.ts";
 import { resourcePath } from "../resources.ts";
-import { join } from "path/mod.ts";
+import { join, toFileUrl } from "path/mod.ts";
 import {
   isJavascriptCompatible,
   isRevealjsOutput,
@@ -56,7 +56,7 @@ const dotHandler: LanguageHandler = {
     const cellContent = handlerContext.cellContent(cell);
 
     const graphvizModule = await import(
-      resourcePath(join("js", "graphviz-wasm.js"))
+      toFileUrl(resourcePath(join("js", "graphviz-wasm.js"))).href
     );
     let svg;
     const oldConsoleLog = console.log;
