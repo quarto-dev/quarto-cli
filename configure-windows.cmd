@@ -76,6 +76,29 @@ CALL quarto-bld configure --log-level info
 
 POPD
 
+REM TODO: Convert this to .cmd
+REM if [[ "$CI" != "true" && ( ( "./src/import_map.json" -nt "./src/dev_import_map.json" ) || ( "./src/vendor/import_map.json" -nt "./src/dev_import_map.json" ) ) ]]; then
+REM 	echo [Revendoring quarto dependencies]
+REM 
+REM   today=`date +%Y-%m-%d`
+REM 	mv ./src/vendor ./src/vendor-${today}
+REM 	pushd src
+REM 	set +e
+REM 	../package/dist/bin/tools/deno vendor quarto.ts ../tests/test-deps.ts --importmap=./import_map.json
+REM 	return_code="$?"
+REM 	set -e
+REM 	if [[ ${return_code} -ne 0 ]]; then
+REM 	  echo deno vendor failed (likely because of a download error). Please run the configure script again.
+REM 		rm -rf vendor
+REM 		mv vendor-${today} vendor
+REM 		exit 1
+REM 	fi
+REM 	popd
+REM 	./package/dist/bin/tools/deno run --unstable --allow-all --importmap=./src/import_map.json package/src/common/create-dev-import-map.ts
+REM fi
+
+
+
 ECHO Downloading Deno Stdlib
 CALL package\scripts\deno_std\download.bat
 
