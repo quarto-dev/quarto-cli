@@ -53,7 +53,7 @@ popd
 if [[ "$CI" != "true" && ( ( "./src/import_map.json" -nt "./src/dev_import_map.json" ) || ( "./src/vendor/import_map.json" -nt "./src/dev_import_map.json" ) ) ]]; then
 	echo [Revendoring quarto dependencies]
 
-  today=`date +%Y-%m-%d`
+	today=`date +%Y-%m-%d`
 	mv ./src/vendor ./src/vendor-${today}
 	pushd src
 	set +e
@@ -61,7 +61,7 @@ if [[ "$CI" != "true" && ( ( "./src/import_map.json" -nt "./src/dev_import_map.j
 	return_code="$?"
 	set -e
 	if [[ ${return_code} -ne 0 ]]; then
-	  echo deno vendor failed (likely because of a download error). Please run the configure script again.
+		echo "deno vendor failed (likely because of a download error). Please run the configure script again."
 		rm -rf vendor
 		mv vendor-${today} vendor
 		exit 1
