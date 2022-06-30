@@ -18371,6 +18371,7 @@ try {
           "One or more options to provide for <code>natbib</code> when\ngenerating a bibliography.",
           "The bibliography style to use\n(e.g.&nbsp;<code>\\bibliographystyle{dinat}</code>) when using\n<code>natbib</code> or <code>biblatex</code>.",
           "The bibliography title to use when using <code>natbib</code> or\n<code>biblatex</code>.",
+          "Controls whether to output bibliography configuration for\n<code>natbib</code> or <code>biblatex</code> when cite method is not\n<code>citeproc</code>.",
           {
             short: "JSON file containing abbreviations of journals that should be used in\nformatted bibliographies.",
             long: 'JSON file containing abbreviations of journals that should be used in\nformatted bibliographies when <code>form="short"</code> is specified.\nThe format of the file can be illustrated with an example:'
@@ -19022,8 +19023,7 @@ try {
           "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
           "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
           "Custom tools for navbar or sidebar",
-          "internal-schema-hack",
-          "Controls whether to output bibliography configuration for\n<code>natbib</code> or <code>biblatex</code> when cite method is not\n<code>citeproc</code>."
+          "internal-schema-hack"
         ],
         "schema/external-schemas.yml": [
           {
@@ -24487,7 +24487,7 @@ ${heading}`;
   }
 
   // ../yaml-validation/schema-navigation.ts
-  function navigateSchemaByInstancePath(schema2, path) {
+  function navigateSchemaByInstancePath(schema2, path, allowPartialMatches) {
     const inner = (subSchema, index) => {
       subSchema = resolveSchema(subSchema);
       if (index === path.length) {
@@ -24496,10 +24496,13 @@ ${heading}`;
       const st = schemaType(subSchema);
       if (st === "object") {
         const key = path[index];
+        if (typeof key === "number") {
+          return [];
+        }
         if (subSchema.properties && subSchema.properties[key]) {
           return inner(subSchema.properties[key], index + 1);
         }
-        const patternPropMatch = matchPatternProperties(subSchema, key);
+        const patternPropMatch = matchPatternProperties(subSchema, key, allowPartialMatches !== void 0 && allowPartialMatches && index === path.length - 1);
         if (patternPropMatch) {
           return inner(patternPropMatch, index + 1);
         }
@@ -24571,10 +24574,15 @@ ${heading}`;
     };
     return inner(schema2, 0);
   }
-  function matchPatternProperties(schema2, key) {
+  function matchPatternProperties(schema2, key, matchThroughPrefixes) {
     for (const [regexpStr, subschema] of Object.entries(schema2.patternProperties || {})) {
-      const prefixPattern = prefixes(new RegExp(regexpStr));
-      if (key.match(prefixPattern)) {
+      let pattern;
+      if (matchThroughPrefixes) {
+        pattern = prefixes(new RegExp(regexpStr));
+      } else {
+        pattern = new RegExp(regexpStr);
+      }
+      if (key.match(pattern)) {
         return subschema;
       }
     }
@@ -24639,8 +24647,12 @@ ${heading}`;
     if (schema2.completions && schema2.completions.length) {
       return normalize(schema2.completions);
     }
-    if (schema2.tags && schema2.tags.completions && schema2.tags.completions.length) {
-      return normalize(schema2.tags.completions);
+    if (schema2.tags && schema2.tags.completions) {
+      if (Array.isArray(schema2.tags.completions) && schema2.tags.completions.length) {
+        return normalize(schema2.tags.completions);
+      } else {
+        return normalize(Object.values(schema2.tags.completions));
+      }
     }
     return schemaCall(schema2, {
       array: (s2) => {
@@ -27806,7 +27818,13 @@ ${sourceContext}`;
       }
       return completeSchema(schema2, name);
     });
-    const completionsObject = fromEntries(formatSchemaDescriptorList.filter(({ hidden }) => !hidden).map(({ name }) => [name, ""]));
+    const completionsObject = fromEntries(formatSchemaDescriptorList.filter(({ hidden }) => !hidden).map(({ name }) => [name, {
+      type: "key",
+      display: name,
+      value: `${name}: `,
+      description: `be '${name}'`,
+      suggest_on_accept: true
+    }]));
     return errorMessageSchema(anyOfSchema(describeSchema(anyOfSchema(...plusFormatStringSchemas), "the name of a pandoc-supported output format"), allOfSchema(objectSchema({
       patternProperties: fromEntries(formatSchemas),
       completions: completionsObject,
@@ -28026,9 +28044,9 @@ ${sourceContext}`;
         word,
         indent: indent2,
         commentPrefix,
-        context
+        context,
+        completionPosition: "key"
       });
-      rawCompletions.completions = rawCompletions.completions.filter((completion) => completion.type === "key");
       return rawCompletions;
     }
     const indent = line.trimEnd().length - line.trim().length;
@@ -28047,9 +28065,9 @@ ${sourceContext}`;
         word,
         indent,
         commentPrefix,
-        context
+        context,
+        completionPosition: "key"
       });
-      rawCompletions.completions = rawCompletions.completions.filter((completion) => completion.type === "key");
       return rawCompletions;
     };
     for (const parseResult of attemptParsesAtLine(context, parser)) {
@@ -28090,18 +28108,22 @@ ${sourceContext}`;
         if (path[path.length - 1] === word) {
           path.pop();
         }
+        const completionOnValuePosition = line.indexOf(":") !== -1;
+        const completionOnArraySequence = line.indexOf("-") === -1;
         const rawCompletions = completions({
           schema: schema2,
           path,
           word,
           indent,
           commentPrefix,
-          context
+          context,
+          completionPosition: completionOnValuePosition ? "value" : completionOnArraySequence ? "key" : void 0
         });
-        if (line.indexOf(":") !== -1) {
-          rawCompletions.completions = rawCompletions.completions.filter((completion) => completion.type === "value").map((completion) => ({ ...completion, suggest_on_accept: false }));
-        } else if (line.indexOf("-") === -1) {
-          rawCompletions.completions = rawCompletions.completions.filter((completion) => completion.type === "key");
+        if (completionOnValuePosition) {
+          rawCompletions.completions = rawCompletions.completions.map((c) => ({
+            ...c,
+            suggest_on_accept: false
+          }));
         }
         return rawCompletions;
       }
@@ -28152,7 +28174,8 @@ ${sourceContext}`;
       schema: schema2,
       indent,
       commentPrefix,
-      context
+      context,
+      completionPosition
     } = obj;
     let word = obj.word;
     let path = obj.path;
@@ -28163,9 +28186,9 @@ ${sourceContext}`;
         return schema3.$id;
       }
     };
-    let matchingSchemas = uniqBy(navigateSchemaByInstancePath(schema2, path), maybeSchemaId);
+    let matchingSchemas = uniqBy(navigateSchemaByInstancePath(schema2, path, word !== ""), maybeSchemaId);
     if (matchingSchemas.length === 0) {
-      const candidateSchemas = uniqBy(navigateSchemaByInstancePath(schema2, path.slice(0, -1)), maybeSchemaId);
+      const candidateSchemas = uniqBy(navigateSchemaByInstancePath(schema2, path.slice(0, -1), word !== ""), maybeSchemaId);
       if (candidateSchemas.length === 0) {
         return {
           token: word,
@@ -28190,7 +28213,8 @@ ${sourceContext}`;
     ].filter((x) => aliases["pandoc-all"].indexOf(x) !== -1);
     let completions2 = matchingSchemas.map((schema3) => {
       const result = schemaCompletions(schema3);
-      return result.filter((completion) => !dropCompletionsFromSchema(obj, completion)).map((completion) => {
+      const keptCompletions = result.filter((completion) => !dropCompletionsFromSchema(obj, completion));
+      return keptCompletions.map((completion) => {
         if (!completion.suggest_on_accept || completion.type === "value" || !schemaAccepts(completion.schema, "object")) {
           return completion;
         }
@@ -28254,7 +28278,9 @@ ${sourceContext}`;
           return completion;
         }
       });
-    }).flat().filter((c) => c.value.startsWith(word)).filter((c) => {
+    }).flat();
+    completions2 = completions2.filter((c) => c.value.startsWith(word));
+    completions2 = completions2.filter((c) => {
       if (c.type === "value") {
         return !(c.schema && getTagValue(c.schema, "hidden"));
       } else if (c.type === "key") {
@@ -28267,7 +28293,8 @@ ${sourceContext}`;
       } else {
         return true;
       }
-    }).filter((c) => {
+    });
+    completions2 = completions2.filter((c) => {
       if (formats.length === 0) {
         return true;
       }
@@ -28313,7 +28340,8 @@ ${sourceContext}`;
         }
       }
       return formats.some((f) => enabledSet.has(f));
-    }).map((c) => {
+    });
+    completions2 = completions2.map((c) => {
       if (c.documentation === "" || c.documentation === void 0) {
         return c;
       }
@@ -28325,6 +28353,9 @@ ${sourceContext}`;
         description: c.documentation
       };
     });
+    if (completionPosition) {
+      completions2 = completions2.filter((c) => c.type === completionPosition);
+    }
     completions2 = uniqBy(completions2, (completion) => completion.value);
     return {
       token: word,

@@ -29,6 +29,7 @@ export function navigateSchemaByInstancePath(
   // deno-lint-ignore no-explicit-any
   schema: any,
   path: (number | string)[],
+  allowPartialMatches?: boolean,
   // deno-lint-ignore no-explicit-any
 ): any[] {
   // deno-lint-ignore no-explicit-any
@@ -39,13 +40,24 @@ export function navigateSchemaByInstancePath(
     }
     const st = schemaType(subSchema);
     if (st === "object") {
-      const key = path[index] as string;
+      const key = path[index];
+      if (typeof key === "number") {
+        // in pathological cases, we may end up with a number key here.
+        // ignore it.
+        return [];
+      }
       // does it match a properties key exactly? use it
       if (subSchema.properties && subSchema.properties[key]) {
         return inner(subSchema.properties[key], index + 1);
       }
       // does the key match a regular expression in a patternProperties key? use it
-      const patternPropMatch = matchPatternProperties(subSchema, key);
+      const patternPropMatch = matchPatternProperties(
+        subSchema,
+        key,
+        allowPartialMatches !== undefined && 
+        allowPartialMatches &&
+          index === path.length - 1, // allow prefix matches only if it's the last entry
+      );
       if (patternPropMatch) {
         return inner(patternPropMatch, index + 1);
       }
@@ -155,15 +167,25 @@ export function navigateSchemaBySchemaPathSingle(
   return inner(schema, 0);
 }
 
-// deno-lint-ignore no-explicit-any
-function matchPatternProperties(schema: any, key: string): any | false {
+function matchPatternProperties(
+  // deno-lint-ignore no-explicit-any
+  schema: any,
+  key: string,
+  matchThroughPrefixes: boolean,
+  // deno-lint-ignore no-explicit-any
+): any | false {
   for (
     const [regexpStr, subschema] of Object.entries(
       schema.patternProperties || {},
     )
   ) {
-    const prefixPattern = prefixes(new RegExp(regexpStr)) as RegExp;
-    if (key.match(prefixPattern)) {
+    let pattern: RegExp;
+    if (matchThroughPrefixes) {
+      pattern = prefixes(new RegExp(regexpStr)) as RegExp;
+    } else {
+      pattern = new RegExp(regexpStr);
+    }
+    if (key.match(pattern)) {
       return subschema;
     }
   }

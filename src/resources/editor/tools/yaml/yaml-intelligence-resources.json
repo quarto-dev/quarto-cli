@@ -11349,6 +11349,7 @@
     "One or more options to provide for <code>natbib</code> when\ngenerating a bibliography.",
     "The bibliography style to use\n(e.g.&nbsp;<code>\\bibliographystyle{dinat}</code>) when using\n<code>natbib</code> or <code>biblatex</code>.",
     "The bibliography title to use when using <code>natbib</code> or\n<code>biblatex</code>.",
+    "Controls whether to output bibliography configuration for\n<code>natbib</code> or <code>biblatex</code> when cite method is not\n<code>citeproc</code>.",
     {
       "short": "JSON file containing abbreviations of journals that should be used in\nformatted bibliographies.",
       "long": "JSON file containing abbreviations of journals that should be used in\nformatted bibliographies when <code>form=\"short\"</code> is specified.\nThe format of the file can be illustrated with an example:"
@@ -12000,8 +12001,7 @@
     "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
     "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
     "Custom tools for navbar or sidebar",
-    "internal-schema-hack",
-    "Controls whether to output bibliography configuration for\n<code>natbib</code> or <code>biblatex</code> when cite method is not\n<code>citeproc</code>."
+    "internal-schema-hack"
   ],
   "schema/external-schemas.yml": [
     {

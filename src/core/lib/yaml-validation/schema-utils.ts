@@ -106,10 +106,18 @@ export function schemaCompletions(s: Schema): Completion[] {
   }
 
   if (
-    schema.tags && schema.tags.completions &&
-    (schema.tags.completions as string[]).length
+    schema.tags && schema.tags.completions
   ) {
-    return normalize(schema.tags.completions);
+    if (
+      Array.isArray(schema.tags.completions) &&
+      schema.tags.completions.length
+    ) {
+      return normalize(schema.tags.completions);
+    } else {
+      return normalize(
+        Object.values(schema.tags.completions as Record<string, unknown>),
+      );
+    }
   }
 
   return schemaCall(schema, {

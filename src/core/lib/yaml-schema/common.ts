@@ -122,7 +122,7 @@ export function objectSchema(params: {
   additionalProperties?: Schema;
   description?: string;
   baseSchema?: ObjectSchema;
-  completions?: { [k: string]: string };
+  completions?: { [k: string]: unknown }; // FIXME the value should be string | that completions object we can create.
   namingConvention?: CaseConvention[] | "ignore";
 } = {}): ObjectSchema {
   let {

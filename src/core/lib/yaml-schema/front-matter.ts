@@ -82,7 +82,13 @@ export async function makeFrontMatterFormatSchema(nonStrict = false) {
   const completionsObject = fromEntries(
     formatSchemaDescriptorList
       .filter(({ hidden }) => !hidden)
-      .map(({ name }) => [name, ""]),
+      .map(({ name }) => [name, {
+        type: "key",
+        display: name,
+        value: `${name}: `,
+        description: `be '${name}'`,
+        suggest_on_accept: true,
+      }]),
   );
 
   return errorMessageSchema(

@@ -82,6 +82,7 @@ interface CompletionContext {
   indent: number;
   commentPrefix: string;
   context: IDEContext;
+  completionPosition?: "key" | "value";
 }
 
 interface ValidationResult {
@@ -271,10 +272,8 @@ async function completionsFromGoodParseYAML(context: YamlIntelligenceContext) {
       indent,
       commentPrefix,
       context,
+      completionPosition: "key",
     });
-    rawCompletions.completions = rawCompletions.completions.filter(
-      (completion) => completion.type === "key",
-    );
     return rawCompletions;
   }
   const indent = line.trimEnd().length - line.trim().length;
@@ -301,10 +300,8 @@ async function completionsFromGoodParseYAML(context: YamlIntelligenceContext) {
       indent,
       commentPrefix,
       context,
+      completionPosition: "key",
     });
-    rawCompletions.completions = rawCompletions.completions.filter(
-      (completion) => completion.type === "key",
-    );
     return rawCompletions;
   };
 
@@ -372,6 +369,9 @@ async function completionsFromGoodParseYAML(context: YamlIntelligenceContext) {
         path.pop();
       }
 
+      const completionOnValuePosition = line.indexOf(":") !== -1;
+      const completionOnArraySequence = line.indexOf("-") === -1;
+
       const rawCompletions = completions({
         schema: schema!,
         path,
@@ -379,33 +379,32 @@ async function completionsFromGoodParseYAML(context: YamlIntelligenceContext) {
         indent,
         commentPrefix,
         context,
+        // filter raw completions depending on cursor context. We use "_" to denote
+        // the cursor position. We need to handle:
+        //
+        // 1. "     _": empty line
+        // 2. "     foo: _": completion on value position of object
+        // 3. "     - _": completion on array sequence
+        // 4. "     - foo: ": completion on value position of object inside array sequence
+        // 5. "     foo_": completion on key position in partially-completed word
+        //
+        // case 1 was handled upstream of this, so we don't need to handle it here
+        // cases 2 and 4 take only value completions
+        // case 3 takes all completions, so no work is needed
+        completionPosition: completionOnValuePosition // this picks up cases 2 and 4
+          ? "value"
+          : completionOnArraySequence // this picks up case 5 (and 1, but case one was already handled.)
+          ? "key"
+          : undefined,
       });
-
-      // filter raw completions depending on cursor context. We use "_" to denote
-      // the cursor position. We need to handle:
-      //
-      // 1. "     _": empty line, complete only on keys
-      // 2. "     foo: _": completion on value position of object
-      // 3. "     - _": completion on array sequence
-      // 4. "     - foo: ": completion on value position of object inside array sequence
-      // 5. "     foo_": completion on key position in partially-completed word
-      //
-      // case 1 was handled upstream of this, so we don't need to handle it here
-      // cases 2 and 4 take only value completions
-      // case 3 takes all completions, so no work is needed
-
-      if (line.indexOf(":") !== -1) {
-        // this picks up cases 2 and 4
-        rawCompletions.completions = rawCompletions.completions.filter(
-          (completion) => completion.type === "value",
-        ).map((completion) => // never followup a suggestion in value position
-        ({ ...completion, suggest_on_accept: false }));
-      } else if (line.indexOf("-") === -1) {
-        // this picks up case 5 (and 1, but case one was already handled.)
-        rawCompletions.completions = rawCompletions.completions.filter(
-          (completion) => completion.type === "key",
-        );
+      // never followup a suggestion in value position
+      if (completionOnValuePosition) {
+        rawCompletions.completions = rawCompletions.completions.map((c) => ({
+          ...c,
+          suggest_on_accept: false,
+        }));
       }
+
       return rawCompletions;
     }
   }
@@ -487,6 +486,7 @@ function completions(obj: CompletionContext): CompletionResult {
     indent,
     commentPrefix,
     context,
+    completionPosition,
   } = obj;
   let word = obj.word;
   let path = obj.path;
@@ -499,13 +499,13 @@ function completions(obj: CompletionContext): CompletionResult {
   };
 
   let matchingSchemas = uniqBy(
-    navigateSchema(schema, path),
+    navigateSchema(schema, path, word !== ""),
     maybeSchemaId,
   );
   if (matchingSchemas.length === 0) {
     // attempt to match against partial word
     const candidateSchemas = uniqBy(
-      navigateSchema(schema, path.slice(0, -1)),
+      navigateSchema(schema, path.slice(0, -1), word !== ""),
       maybeSchemaId,
     );
     if (candidateSchemas.length === 0) {
@@ -550,198 +550,203 @@ function completions(obj: CompletionContext): CompletionResult {
     // and some completion.schema will hold some-schema-with-tags
     // (and other will hold some-schema-without-tags). We need to
     // decide to drop on the inner, "specific" schemas.
-    return result
-      .filter((completion) => !dropCompletionsFromSchema(obj, completion))
-      .map((completion) => {
-        // we only change indentation on keys
-        if (
-          !completion.suggest_on_accept ||
-          completion.type === "value" ||
-          !schemaAccepts(completion.schema!, "object")
-        ) {
-          return completion;
+    const keptCompletions = result
+      .filter((completion) => !dropCompletionsFromSchema(obj, completion));
+
+    return keptCompletions.map((completion) => {
+      // we only change indentation on keys
+      if (
+        !completion.suggest_on_accept ||
+        completion.type === "value" ||
+        !schemaAccepts(completion.schema!, "object")
+      ) {
+        return completion;
+      }
+
+      const key = completion.value.split(":")[0];
+      const matchingSubSchemas = navigateSchema(completion.schema, [key]);
+
+      // the following rule is correct and necessary, but quite
+      // ugly.
+      //
+      // The idea is we never want to set `suggest_on_accept: true` on a
+      // completion that can ask for more than one type. This can
+      // occur in two types of situations.
+      //
+      // First, the matching subschema itself can have more than one type of completion
+      // (scalar, object, or array). Second, if the completion is in an array,
+      // then we need to check if the array item schema itself is valid
+
+      const canSuggestOnAccept = (ss: Schema): boolean => {
+        const matchingTypes: Set<string> = new Set();
+
+        walkSchema(ss, (s) => {
+          const t = schemaType(s);
+          switch (t) {
+            case "object":
+              matchingTypes.add("object");
+              return true;
+            case "array":
+              matchingTypes.add("array");
+              return true;
+            case "anyOf":
+            case "allOf":
+              return false;
+            default:
+              matchingTypes.add("scalar");
+          }
+        });
+        if (matchingTypes.size > 1) {
+          return false;
         }
 
-        const key = completion.value.split(":")[0];
-        const matchingSubSchemas = navigateSchema(completion.schema, [key]);
-
-        // the following rule is correct and necessary, but quite
-        // ugly.
-        //
-        // The idea is we never want to set `suggest_on_accept: true` on a
-        // completion that can ask for more than one type. This can
-        // occur in two types of situations.
-        //
-        // First, the matching subschema itself can have more than one type of completion
-        // (scalar, object, or array). Second, if the completion is in an array,
-        // then we need to check if the array item schema itself is valid
-
-        const canSuggestOnAccept = (ss: Schema): boolean => {
-          const matchingTypes: Set<string> = new Set();
-
-          walkSchema(ss, (s) => {
-            const t = schemaType(s);
-            switch (t) {
-              case "object":
-                matchingTypes.add("object");
-                return true;
-              case "array":
-                matchingTypes.add("array");
-                return true;
-              case "anyOf":
-              case "allOf":
-                return false;
-              default:
-                matchingTypes.add("scalar");
-            }
-          });
-          if (matchingTypes.size > 1) {
-            return false;
+        const arraySubSchemas: ArraySchema[] = [];
+        // now find all array subschema to recurse on
+        walkSchema(ss, {
+          "array": (s: ArraySchema) => {
+            arraySubSchemas.push(s);
+            return true;
+          },
+          "object": (_: ObjectSchema) => true,
+        });
+        return arraySubSchemas.every((s) => {
+          if (s.items === undefined) {
+            return true;
+          } else {
+            return canSuggestOnAccept(s.items);
           }
+        });
+      };
 
-          const arraySubSchemas: ArraySchema[] = [];
-          // now find all array subschema to recurse on
-          walkSchema(ss, {
-            "array": (s: ArraySchema) => {
-              arraySubSchemas.push(s);
-              return true;
-            },
-            "object": (_: ObjectSchema) => true,
-          });
-          return arraySubSchemas.every((s) => {
-            if (s.items === undefined) {
-              return true;
-            } else {
-              return canSuggestOnAccept(s.items);
-            }
-          });
+      if (!matchingSubSchemas.every((ss) => canSuggestOnAccept(ss))) {
+        return {
+          ...completion,
+          suggest_on_accept: false,
+          value: completion.value,
         };
+      }
 
-        if (!matchingSubSchemas.every((ss) => canSuggestOnAccept(ss))) {
-          return {
-            ...completion,
-            suggest_on_accept: false,
-            value: completion.value,
-          };
-        }
-
-        if (
-          matchingSubSchemas.some((subSchema: Schema) =>
-            schemaAccepts(subSchema, "object")
-          )
-        ) {
-          return {
-            ...completion,
-            value: completion.value + "\n" + commentPrefix +
-              " ".repeat(indent + 2),
-          };
-        } else if (
-          matchingSubSchemas.some((subSchema: Schema) =>
-            schemaAccepts(subSchema, "array")
-          )
-        ) {
-          return {
-            ...completion,
-            value: completion.value + "\n" + commentPrefix +
-              " ".repeat(indent + 2) + "- ",
-          };
-        } else {
-          return completion;
-        }
-      });
-  }).flat()
-    .filter((c) => c.value.startsWith(word))
-    .filter((c) => {
-      if (c.type === "value") {
-        return !(c.schema && getTagValue(c.schema, "hidden"));
-      } else if (c.type === "key") {
-        const key = c.value.split(":")[0];
-        const matchingSubSchemas = navigateSchema(c.schema, [key]);
-        if (matchingSubSchemas.length === 0) {
-          return true;
-        }
-        return !(matchingSubSchemas.every((s) => getTagValue(s, "hidden")));
+      if (
+        matchingSubSchemas.some((subSchema: Schema) =>
+          schemaAccepts(subSchema, "object")
+        )
+      ) {
+        return {
+          ...completion,
+          value: completion.value + "\n" + commentPrefix +
+            " ".repeat(indent + 2),
+        };
+      } else if (
+        matchingSubSchemas.some((subSchema: Schema) =>
+          schemaAccepts(subSchema, "array")
+        )
+      ) {
+        return {
+          ...completion,
+          value: completion.value + "\n" + commentPrefix +
+            " ".repeat(indent + 2) + "- ",
+        };
       } else {
-        // should never get here.
+        return completion;
+      }
+    });
+  }).flat();
+  completions = completions.filter((c) => c.value.startsWith(word));
+  completions = completions.filter((c) => {
+    if (c.type === "value") {
+      return !(c.schema && getTagValue(c.schema, "hidden"));
+    } else if (c.type === "key") {
+      const key = c.value.split(":")[0];
+      const matchingSubSchemas = navigateSchema(c.schema, [key]);
+      if (matchingSubSchemas.length === 0) {
         return true;
       }
-    })
-    .filter((c) => {
-      if (formats.length === 0) {
-        // don't filter on tags if there's no detected formats anywhere.
-        return true;
-      }
-      // handle format-enabling and -disabling tags
-      let formatTags: string[] = [];
-      if (c.type === "key") {
-        // c.schema is known to be an object here.
-        const objSchema = c.schema as ObjectSchema;
-        let value = objSchema.properties && objSchema.properties[c.display];
-        if (value === undefined) {
-          for (const key of Object.keys(objSchema.patternProperties || {})) {
-            const regexp = new RegExp(key);
-            if (c.display.match(regexp)) {
-              value = objSchema.patternProperties![key];
-              break;
-            }
+      return !(matchingSubSchemas.every((s) => getTagValue(s, "hidden")));
+    } else {
+      // should never get here.
+      return true;
+    }
+  });
+  completions = completions.filter((c) => {
+    if (formats.length === 0) {
+      // don't filter on tags if there's no detected formats anywhere.
+      return true;
+    }
+    // handle format-enabling and -disabling tags
+    let formatTags: string[] = [];
+    if (c.type === "key") {
+      // c.schema is known to be an object here.
+      const objSchema = c.schema as ObjectSchema;
+      let value = objSchema.properties && objSchema.properties[c.display];
+      if (value === undefined) {
+        for (const key of Object.keys(objSchema.patternProperties || {})) {
+          const regexp = new RegExp(key);
+          if (c.display.match(regexp)) {
+            value = objSchema.patternProperties![key];
+            break;
           }
         }
-        if (value === undefined) {
-          // can't follow the schema to check tags in key context;
-          // don't hide
-          return true;
-        }
-        formatTags = (getTagValue(value, "formats") as string[]) || [];
-      } else if (c.type === "value") {
-        formatTags =
-          (c.schema && getTagValue(c.schema, "formats") as string[]) || [];
-      } else {
-        // weird completion type?
-        return false;
       }
+      if (value === undefined) {
+        // can't follow the schema to check tags in key context;
+        // don't hide
+        return true;
+      }
+      formatTags = (getTagValue(value, "formats") as string[]) || [];
+    } else if (c.type === "value") {
+      formatTags = (c.schema && getTagValue(c.schema, "formats") as string[]) ||
+        [];
+    } else {
+      // weird completion type?
+      return false;
+    }
 
-      const enabled = formatTags.filter((tag) => !tag.startsWith("!"));
-      const enabledSet = new Set();
-      if (enabled.length === 0) {
-        for (const el of aliases["pandoc-all"]) {
+    const enabled = formatTags.filter((tag) => !tag.startsWith("!"));
+    const enabledSet = new Set();
+    if (enabled.length === 0) {
+      for (const el of aliases["pandoc-all"]) {
+        enabledSet.add(el);
+      }
+    } else {
+      for (const tag of enabled) {
+        for (const el of expandAliasesFrom([tag], aliases)) {
           enabledSet.add(el);
         }
-      } else {
-        for (const tag of enabled) {
-          for (const el of expandAliasesFrom([tag], aliases)) {
-            enabledSet.add(el);
-          }
-        }
       }
-      for (let tag of formatTags.filter((tag: string) => tag.startsWith("!"))) {
-        tag = tag.slice(1);
-        for (const el of expandAliasesFrom([tag], aliases)) {
-          enabledSet.delete(el);
-        }
+    }
+    for (let tag of formatTags.filter((tag: string) => tag.startsWith("!"))) {
+      tag = tag.slice(1);
+      for (const el of expandAliasesFrom([tag], aliases)) {
+        enabledSet.delete(el);
       }
-      return formats.some((f) => enabledSet.has(f));
-    })
-    .map((c) => {
-      if (
-        c.documentation === "" ||
-        c.documentation === undefined
-      ) {
-        // don't change description if there's no documentation
-        return c;
-      }
-      if (
-        c.description !== undefined &&
-        c.description !== ""
-      ) {
-        // don't change description if description exists
-        return c;
-      }
-      return {
-        ...c,
-        description: c.documentation,
-      };
-    });
+    }
+    return formats.some((f) => enabledSet.has(f));
+  });
+  completions = completions.map((c) => {
+    if (
+      c.documentation === "" ||
+      c.documentation === undefined
+    ) {
+      // don't change description if there's no documentation
+      return c;
+    }
+    if (
+      c.description !== undefined &&
+      c.description !== ""
+    ) {
+      // don't change description if description exists
+      return c;
+    }
+    return {
+      ...c,
+      description: c.documentation,
+    };
+  });
   // completions.sort((a, b) => a.value.localeCompare(b.value));
+
+  if (completionPosition) {
+    completions = completions.filter((c) => c.type === completionPosition);
+  }
 
   // uniqBy the final completions array on their completion values.
 
