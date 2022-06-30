@@ -6,7 +6,10 @@
 */
 
 import { docs, fileLoader, outputForInput } from "../../utils.ts";
-import { ensureHtmlElements } from "../../verify.ts";
+import {
+  ensureHtmlElements,
+  ensureHtmlSelectorSatisfies,
+} from "../../verify.ts";
 import { testRender } from "./render.ts";
 
 // demo file renders ok
@@ -77,4 +80,30 @@ testRender(fragmentsDiv.input, "revealjs", false, [
   ensureHtmlElements(fragmentsDiv.output.outputPath, [
     "#slide-2 > div.fragment > h3",
   ], []),
+]);
+
+// output-location
+const outputLocation = fileLoader("reveal")("output-location.qmd", "revealjs");
+testRender(outputLocation.input, "revealjs", false, [
+  ensureHtmlElements(outputLocation.output.outputPath, [
+    "section#loc-slide + section#loc-slide-output > div.output-location-slide",
+    "section#loc-fragment > div.fragment > div.cell-output-display",
+    "section#loc-col-fragment > div.columns > div.column:nth-child(2).fragment > div.cell-output-display",
+  ], [
+    "section#loc-slide > div.output-location-slide",
+  ]),
+  ensureHtmlSelectorSatisfies(
+    outputLocation.output.outputPath,
+    "section#loc-column > div.columns > div.column",
+    (nodeList) => {
+      return nodeList.length === 2;
+    },
+  ),
+  ensureHtmlSelectorSatisfies(
+    outputLocation.output.outputPath,
+    "section#loc-col-fragment > div.columns > div.column",
+    (nodeList) => {
+      return nodeList.length === 2;
+    },
+  ),
 ]);
