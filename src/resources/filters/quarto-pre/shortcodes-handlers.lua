@@ -71,11 +71,17 @@ function initShortcodeHandlers()
       local result = chunk()
       if result then
         for k,v in pairs(result) do
-          handlers[k] = v
+          handlers[k] = {
+            file = shortcodeFile,
+            handle = v
+          }
         end
       else
         for k,v in pairs(env) do
-          handlers[k] = v
+          handlers[k] = {
+            file = shortcodeFile,
+            handle = v
+          }
         end
       end
     else
@@ -86,11 +92,10 @@ function initShortcodeHandlers()
 
 
   -- built in handlers (these override any user handlers)
-  handlers['meta'] = handleMeta
-  handlers['var'] = handleVars
-  handlers['env'] = handleEnv
-  handlers['pagebreak'] = handlePagebreak
-
+  handlers['meta'] = { handle = handleMeta }
+  handlers['var'] = { handle = handleVars }
+  handlers['env'] = { handle = handleEnv }
+  handlers['pagebreak'] = { handle = handlePagebreak }
 end
 
 function handlerForShortcode(shortCode)

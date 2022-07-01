@@ -159,7 +159,17 @@ function callShortcodeHandler(handler, shortCode)
   local meta = setmetatable({}, { __index = function(t, i) 
     return readMetadata(i)
   end})
-  return handler(args, kwargs, meta)
+
+  -- set the script file path, if present
+  if handler.file ~= nil then
+    _quarto.scriptFile(handler.file)
+  end
+  local result = handler.handle(args, kwargs, meta)
+
+  -- clear the scsript file path
+  _quarto.scriptFile(nil)
+
+  return result;
 end
 
 -- scans through a list of inlines, finds shortcodes, and processes them

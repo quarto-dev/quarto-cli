@@ -1308,6 +1308,19 @@ local function isRelativeRef(ref)
          ref:find("^#") == nil
 end
 
+-- This is a function that returns the current script
+-- path. Shortcodes can use an internal function
+-- to set and clear the local value that will be used 
+-- instead of pandoc's filter path when a shortcode is executing
+local scriptFile = nil
+local function scriptDir() 
+   if scriptFile ~= nil then
+      return pandoc.path.directory(scriptFile)
+   else 
+      return pandoc.path.directory(PANDOC_SCRIPT_FILE)
+   end
+end
+
 -- resolves a path, providing either the original path
 -- or if relative, a path that is based upon the 
 -- script location
@@ -1321,8 +1334,7 @@ local function resolvePath(path)
 end
 
 local function resolvePathExt(path) 
-   local scriptDir = pandoc.path.directory(PANDOC_SCRIPT_FILE)
-   return resolvePath(pandoc.path.join({scriptDir, path}))
+   return resolvePath(pandoc.path.join({scriptDir(), path}))
 end
 
 -- converts the friendly Quartio location names 
@@ -1517,6 +1529,8 @@ function param(name, default)
   return value
 end
 
+
+
 -- Quarto internal module - makes functions available
 -- through the filters
 _quarto = {
@@ -1528,6 +1542,9 @@ _quarto = {
       latexTablePatterns = latexTablePatterns
    },
    utils = utils,
+   scriptFile = function(file)
+      scriptFile = file
+   end
  } 
 
 -- The main exports of the quarto module
@@ -1545,6 +1562,7 @@ quarto = {
   doc = {
     addHtmlDependency = function(htmlDependency)
       
+
       -- validate the dependency
       if htmlDependency.name == nil then 
          error("HTML dependencies must include a name")
@@ -1599,5 +1617,3 @@ quarto = {
   },
   json = json,
 }
-
-
