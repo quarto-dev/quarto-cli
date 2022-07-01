@@ -63,5 +63,37 @@ catch e
   @warn "Run path init:" exception=(e, catch_backtrace())
 end
 
+
+# emulate old Pkg.installed beahvior, see
+# https://discourse.julialang.org/t/how-to-use-pkg-dependencies-instead-of-pkg-installed/36416/9
+import Pkg
+function isinstalled(pkg::String)
+  any(x -> x.name == pkg && x.is_direct_dep, values(Pkg.dependencies()))
+end
+
+# ojs_define
+if isinstalled("JSON") && isinstalled("DataFrames")
+  import JSON, DataFrames
+  global function ojs_define(; kwargs...)
+    convert(x) = x
+    convert(x::DataFrames.AbstractDataFrame) = Tables.rows(x)
+    content = Dict("contents" => [Dict("name" => k, "value" => convert(v)) for (k, v) in kwargs])
+    tag = "<script type='ojs-define'>$(JSON.json(content))</script>"
+    IJulia.display(MIME("text/html"), tag)
+  end
+elseif isinstalled("JSON")
+  import JSON
+  global function ojs_define(; kwargs...)
+    content = Dict("contents" => [Dict("name" => k, "value" => v) for (k, v) in kwargs])
+    tag = "<script type='ojs-define'>$(JSON.json(content))</script>"
+    IJulia.display(MIME("text/html"), tag)
+  end
+else
+  global function ojs_define(; kwargs...)
+    @warn "JSON package not available. Please install the JSON.jl package to use ojs_define."
+  end
+end
+
+
 # don't return kernel dependencies (b/c Revise should take care of dependencies)
 nothing
