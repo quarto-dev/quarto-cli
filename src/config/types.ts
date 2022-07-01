@@ -69,6 +69,7 @@ import {
   kFigWidth,
   kFilterParams,
   kFilters,
+  kFormatResources,
   kFreeze,
   kGladtex,
   kHighlightStyle,
@@ -344,6 +345,7 @@ export interface FormatRender {
   [kLinkExternalNewwindow]?: boolean;
   [kLinkExternalFilter]?: string;
   [kSelfContainedMath]?: boolean;
+  [kFormatResources]?: string[];
 }
 
 export interface FormatExecute {

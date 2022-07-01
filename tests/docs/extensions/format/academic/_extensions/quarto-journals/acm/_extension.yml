@@ -10,3 +10,6 @@ contributes:
         - partials/title.tex
       include-in-header:
         - include-in-header.tex
+      format-resources:
+        - acm_proc_article-sp.cls
+        - sensys-abstract.cls

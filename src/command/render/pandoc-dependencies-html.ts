@@ -1,5 +1,5 @@
 /*
-* pandoc-html-dependencies.ts
+* pandoc-dependencies-html.ts
 *
 * Copyright (C) 2020 by RStudio, PBC
 *
@@ -25,7 +25,7 @@ import { copyFileIfNewer } from "../../core/copy.ts";
 import { lines } from "../../core/lib/text.ts";
 
 export function writeDependencies(
-  htmlDependenciesFile: string,
+  dependenciesFile: string,
   extras: FormatExtras,
 ) {
   if (extras.html?.[kDependencies]) {
@@ -38,7 +38,7 @@ export function writeDependencies(
 
     if (dependencyLines.length > 0) {
       Deno.writeTextFileSync(
-        htmlDependenciesFile,
+        dependenciesFile,
         `${dependencyLines.join("\n")}\n`,
       );
     }
@@ -46,12 +46,12 @@ export function writeDependencies(
 }
 
 export function readAndInjectDependencies(
-  htmlDependenciesFile: string,
+  dependenciesFile: string,
   inputDir: string,
   libDir: string,
   doc: Document,
 ) {
-  const dependencyJsonStream = Deno.readTextFileSync(htmlDependenciesFile);
+  const dependencyJsonStream = Deno.readTextFileSync(dependenciesFile);
   const htmlDependencies: FormatDependency[] = [];
   lines(dependencyJsonStream).forEach((json) => {
     if (json) {

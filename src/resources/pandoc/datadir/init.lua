@@ -1571,12 +1571,16 @@ quarto = {
       writeToDependencyFile(dependency("usepackage", {package = package, options = options }))
     end,
 
+    addFormatResource = function(path)
+      writeToDependencyFile(dependency("format-resources", { file = resolvePathExt(path)}))
+    end,
+
     includeText = function(location, text)
       writeToDependencyFile(dependency("text", { text = text, location = resolveLocation(location)}))
     end,
   
     includeFile = function(location, path)
-      writeToDependencyFile(dependency("file", { path = resolvePath(path), location = resolveLocation(location)}))
+      writeToDependencyFile(dependency("file", { path = resolvePathExt(path), location = resolveLocation(location)}))
     end,
 
     isFormat = format.isFormat
