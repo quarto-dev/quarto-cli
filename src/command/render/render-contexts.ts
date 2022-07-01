@@ -578,13 +578,6 @@ const readExtensionFormat = async (
       const extensionMetadata =
         (extensionFormat[formatDesc.baseFormat] || {}) as Metadata;
 
-      // Add the extension directory to any tex input paths
-      // Note the trailing // which will make LaTeX search recursively
-      const texInputPaths = `${dirname(extension.path)}//`;
-      extensionMetadata[kLatexInputPaths] = [
-        texInputPaths,
-      ];
-
       const formats = await resolveFormatsFromMetadata(
         extensionMetadata,
         extension.path,

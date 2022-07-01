@@ -26,7 +26,7 @@ import {
   isMarkdownOutput,
 } from "../../config/format.ts";
 
-import { resolveDependencies } from "../../command/render/pandoc-html-dependencies.ts";
+import { resolveDependencies } from "../../command/render/pandoc-dependencies-html.ts";
 import {
   extractResourceDescriptionsFromOJSChunk,
   makeSelfContainedResources,
