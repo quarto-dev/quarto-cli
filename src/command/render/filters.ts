@@ -29,6 +29,7 @@ import {
   kKeepHidden,
   kMergeIncludes,
   kOutputDivs,
+  kPdfEngine,
   kReferenceLocation,
   kShortcodes,
   kTblColwidths,
@@ -91,9 +92,6 @@ export function filterParamsJson(
     options.format.metadata,
     defaults,
   );
-
-  // Provide a cite-method param
-  quartoColumnParams[kCiteMethod] = citeMethod(options);
 
   const params: Metadata = {
     ...includes,
@@ -463,6 +461,11 @@ function quartoFilterParams(
   if (keepHidden) {
     params[kKeepHidden] = kKeepHidden;
   }
+
+  // Provide other params that may be useful to filters
+  params[kCiteMethod] = citeMethod(options);
+  params[kPdfEngine] = pdfEngine(options);
+
   return params;
 }
 
@@ -590,6 +593,13 @@ function citeMethod(options: PandocOptions): CiteMethod | null {
   } else {
     return null;
   }
+}
+
+function pdfEngine(options: PandocOptions): string {
+  const pdfEngine =
+    (options.flags?.pdfEngine || options.metadata?.[kPdfEngine] as string ||
+      "pdflatex");
+  return pdfEngine;
 }
 
 function resolveFilterExtension(

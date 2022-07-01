@@ -1532,11 +1532,17 @@ _quarto = {
 
 -- The main exports of the quarto module
 quarto = {
-  doc = {
-    citeMethod = function() 
+  render = {
+   citeMethod = function() 
       local citeMethod = param('cite-method', 'citeproc')
       return citeMethod
     end,
+    pdfEngine = function() 
+      local engine = param('pdf-engine', 'pdflatex')
+      return engine      
+    end
+  },
+  doc = {
     addHtmlDependency = function(htmlDependency)
       
       -- validate the dependency
