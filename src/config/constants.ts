@@ -32,6 +32,7 @@ export const kError = "error";
 export const kInclude = "include";
 
 export const kResources = "resources";
+export const kFormatResources = "format-resources";
 
 export const kKeepHidden = "keep-hidden";
 
@@ -150,6 +151,7 @@ export const kRenderDefaultsKeys = [
   kLinkExternalIcon,
   kLinkExternalNewwindow,
   kLinkExternalFilter,
+  kFormatResources,
 ];
 
 // language fields

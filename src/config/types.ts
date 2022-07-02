@@ -69,6 +69,7 @@ import {
   kFigWidth,
   kFilterParams,
   kFilters,
+  kFormatResources,
   kFreeze,
   kGladtex,
   kHighlightStyle,
@@ -196,6 +197,7 @@ export type Metadata = {
 export interface FormatDependency {
   name: string;
   version?: string;
+  external?: boolean;
   meta?: Record<string, string>;
   links?: { rel: string; href: string; type?: string }[];
   scripts?: DependencyFile[];
@@ -344,6 +346,7 @@ export interface FormatRender {
   [kLinkExternalNewwindow]?: boolean;
   [kLinkExternalFilter]?: string;
   [kSelfContainedMath]?: boolean;
+  [kFormatResources]?: string[];
 }
 
 export interface FormatExecute {

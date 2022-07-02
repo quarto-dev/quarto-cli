@@ -1308,6 +1308,19 @@ local function isRelativeRef(ref)
          ref:find("^#") == nil
 end
 
+-- This is a function that returns the current script
+-- path. Shortcodes can use an internal function
+-- to set and clear the local value that will be used 
+-- instead of pandoc's filter path when a shortcode is executing
+local scriptFile = nil
+local function scriptDir() 
+   if scriptFile ~= nil then
+      return pandoc.path.directory(scriptFile)
+   else 
+      return pandoc.path.directory(PANDOC_SCRIPT_FILE)
+   end
+end
+
 -- resolves a path, providing either the original path
 -- or if relative, a path that is based upon the 
 -- script location
@@ -1321,8 +1334,7 @@ local function resolvePath(path)
 end
 
 local function resolvePathExt(path) 
-   local scriptDir = pandoc.path.directory(PANDOC_SCRIPT_FILE)
-   return resolvePath(pandoc.path.join({scriptDir, path}))
+   return resolvePath(pandoc.path.join({scriptDir(), path}))
 end
 
 -- converts the friendly Quartio location names 
@@ -1517,6 +1529,8 @@ function param(name, default)
   return value
 end
 
+
+
 -- Quarto internal module - makes functions available
 -- through the filters
 _quarto = {
@@ -1528,17 +1542,27 @@ _quarto = {
       latexTablePatterns = latexTablePatterns
    },
    utils = utils,
+   scriptFile = function(file)
+      scriptFile = file
+   end
  } 
 
 -- The main exports of the quarto module
 quarto = {
-  doc = {
-    citeMethod = function() 
+  render = {
+   citeMethod = function() 
       local citeMethod = param('cite-method', 'citeproc')
       return citeMethod
     end,
+    pdfEngine = function() 
+      local engine = param('pdf-engine', 'pdflatex')
+      return engine      
+    end
+  },
+  doc = {
     addHtmlDependency = function(htmlDependency)
       
+
       -- validate the dependency
       if htmlDependency.name == nil then 
          error("HTML dependencies must include a name")
@@ -1558,6 +1582,7 @@ quarto = {
       writeToDependencyFile(dependency("html", {
          name = htmlDependency.name,
          version = htmlDependency.version,
+         external = true,
          meta = htmlDependency.meta,
          links = resolveDependencyLinkTags(htmlDependency.links),
          scripts = resolveDependencyFilePaths(htmlDependency.scripts),
@@ -1571,12 +1596,16 @@ quarto = {
       writeToDependencyFile(dependency("usepackage", {package = package, options = options }))
     end,
 
+    addFormatResource = function(path)
+      writeToDependencyFile(dependency("format-resources", { file = resolvePathExt(path)}))
+    end,
+
     includeText = function(location, text)
       writeToDependencyFile(dependency("text", { text = text, location = resolveLocation(location)}))
     end,
   
     includeFile = function(location, path)
-      writeToDependencyFile(dependency("file", { path = resolvePath(path), location = resolveLocation(location)}))
+      writeToDependencyFile(dependency("file", { path = resolvePathExt(path), location = resolveLocation(location)}))
     end,
 
     isFormat = format.isFormat
@@ -1589,5 +1618,3 @@ quarto = {
   },
   json = json,
 }
-
-

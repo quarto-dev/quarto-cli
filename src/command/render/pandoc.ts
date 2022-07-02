@@ -88,6 +88,7 @@ import {
   kDocumentClass,
   kFigResponsive,
   kFilterParams,
+  kFormatResources,
   kFrom,
   kHighlightStyle,
   kHtmlMathMethod,
@@ -162,7 +163,11 @@ import { katexPostProcessor } from "../../format/html/format-html-math.ts";
 import {
   readAndInjectDependencies,
   writeDependencies,
-} from "./pandoc-html-dependencies.ts";
+} from "./pandoc-dependencies-html.ts";
+import {
+  processFormatResources,
+  writeFormatResources,
+} from "./pandoc-dependencies-resources.ts";
 
 export async function runPandoc(
   options: PandocOptions,
@@ -267,7 +272,7 @@ export async function runPandoc(
   const htmlPostprocessors: Array<HtmlPostProcessor> = [];
   const htmlFinalizers: Array<(doc: Document) => Promise<void>> = [];
   const htmlRenderAfterBody: string[] = [];
-  const htmlDependenciesFile = options.temp.createFile();
+  const dependenciesFile = options.temp.createFile();
 
   if (
     sysFilters.length > 0 || options.format.formatExtras ||
@@ -302,7 +307,7 @@ export async function runPandoc(
       cwd,
       options.libDir,
       options.temp,
-      htmlDependenciesFile,
+      dependenciesFile,
       options.project,
     );
 
@@ -641,7 +646,7 @@ export async function runPandoc(
     allDefaults,
     formatFilterParams,
     filterResultsFile,
-    htmlDependenciesFile,
+    dependenciesFile,
   );
 
   // remove selected args and defaults if we are handling some things on behalf of pandoc
@@ -996,7 +1001,7 @@ async function resolveExtras(
   inputDir: string,
   libDir: string,
   temp: TempContext,
-  htmlDependenciesFile: string,
+  dependenciesFile: string,
   project?: ProjectContext,
 ) {
   // start with the merge
@@ -1007,6 +1012,13 @@ async function resolveExtras(
     extras.metadata = extras.metadata || {};
     extras.metadata[kDocumentClass] = projectExtras.metadata?.[kDocumentClass];
   }
+
+  // resolve format resources
+  writeFormatResources(
+    inputDir,
+    dependenciesFile,
+    format.render[kFormatResources],
+  );
 
   // perform html-specific merging
   if (isHtmlOutput(format.pandoc)) {
@@ -1022,14 +1034,14 @@ async function resolveExtras(
     );
 
     // resolve dependencies
-    writeDependencies(htmlDependenciesFile, extras);
+    writeDependencies(dependenciesFile, extras);
 
-    const dependenciesPostProcesor = (
+    const htmlDependenciesPostProcesor = (
       doc: Document,
       _inputMedata: Metadata,
     ): Promise<HtmlPostProcessResult> => {
       return readAndInjectDependencies(
-        htmlDependenciesFile,
+        dependenciesFile,
         inputDir,
         libDir,
         doc,
@@ -1040,7 +1052,7 @@ async function resolveExtras(
     extras.html = extras.html || {};
     extras.html[kHtmlPostprocessors] = extras.html?.[kHtmlPostprocessors] || [];
     if (isHtmlFileOutput(format.pandoc)) {
-      extras.html[kHtmlPostprocessors]!.unshift(dependenciesPostProcesor);
+      extras.html[kHtmlPostprocessors]!.unshift(htmlDependenciesPostProcesor);
     }
 
     // Remove the dependencies which will now process in the post
@@ -1049,6 +1061,13 @@ async function resolveExtras(
   } else {
     delete extras.html;
   }
+
+  // Process format resources
+  const resourceDependenciesPostProcessor = async (_output: string) => {
+    await processFormatResources(inputDir, dependenciesFile);
+  };
+  extras.postprocessors = extras.postprocessors || [];
+  extras.postprocessors.push(resourceDependenciesPostProcessor);
 
   // Resolve the highlighting theme (if any)
   extras = resolveTextHighlightStyle(
