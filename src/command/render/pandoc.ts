@@ -74,7 +74,7 @@ import {
 import {
   filterParamsJson,
   quartoInitFilter,
-  removeFilterParmas,
+  removeFilterParams,
 } from "./filters.ts";
 import {
   kAbstract,
@@ -1128,7 +1128,7 @@ function runPandocMessage(
     delete printMetadata.format;
 
     // remove filter params
-    removeFilterParmas(printMetadata);
+    removeFilterParams(printMetadata);
     // print message
     if (Object.keys(printMetadata).length > 0) {
       info("metadata", { bold: true });
