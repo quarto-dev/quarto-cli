@@ -397,6 +397,8 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
         if (!nzchar(yamlCode)) {
           x <- trimws(x, "left")
         }
+      } else {
+        x <- trimws(x, "left")
       }
       x <- paste0("\n```{{", options[["original.params.src"]], "}}\n", yamlCode, x, '\n```')
     } else {
