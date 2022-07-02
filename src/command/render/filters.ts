@@ -109,7 +109,7 @@ export function filterParamsJson(
   return JSON.stringify(params);
 }
 
-export function removeFilterParmas(metadata: Metadata) {
+export function removeFilterParams(metadata: Metadata) {
   delete metadata[kQuartoParams];
 }
 
