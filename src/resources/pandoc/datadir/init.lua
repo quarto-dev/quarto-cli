@@ -1582,6 +1582,7 @@ quarto = {
       writeToDependencyFile(dependency("html", {
          name = htmlDependency.name,
          version = htmlDependency.version,
+         external = true,
          meta = htmlDependency.meta,
          links = resolveDependencyLinkTags(htmlDependency.links),
          scripts = resolveDependencyFilePaths(htmlDependency.scripts),

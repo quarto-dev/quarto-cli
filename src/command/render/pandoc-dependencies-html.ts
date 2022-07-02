@@ -5,7 +5,7 @@
 *
 */
 
-import { join } from "path/mod.ts";
+import { dirname, join } from "path/mod.ts";
 
 import * as ld from "../../core/lodash.ts";
 
@@ -21,8 +21,9 @@ import {
 } from "../../config/types.ts";
 import { kIncludeAfterBody, kIncludeInHeader } from "../../config/constants.ts";
 import { TempContext } from "../../core/temp.ts";
-import { copyFileIfNewer } from "../../core/copy.ts";
 import { lines } from "../../core/lib/text.ts";
+import { copyResourceFile } from "../../project/project-resources.ts";
+import { copyFileIfNewer } from "../../core/copy.ts";
 
 export function writeDependencies(
   dependenciesFile: string,
@@ -180,7 +181,18 @@ function processHtmlDependencies(
       ) => void,
     ) => {
       const targetPath = join(targetDir, file.name);
-      copyFileIfNewer(file.path, targetPath);
+      // If this is a user resource, treat it as a resource (resource ref discovery)
+      // if this something that we're injecting, just copy it
+      if (dependency.external) {
+        copyResourceFile(
+          inputDir,
+          file.path,
+          targetPath,
+        );
+      } else {
+        copyFileIfNewer(file.path, targetPath);
+      }
+
       const href = join(libDir, dir, file.name);
       if (inject) {
         inject(href, file.attribs, file.afterBody);
@@ -228,6 +240,8 @@ function processHtmlDependencies(
     if (dependency.resources) {
       dependency.resources.forEach((resource) => copyFile(resource));
     }
+
+    copiedDependencies.push(dependency.name);
   }
 }
 

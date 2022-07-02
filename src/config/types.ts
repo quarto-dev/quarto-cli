@@ -197,6 +197,7 @@ export type Metadata = {
 export interface FormatDependency {
   name: string;
   version?: string;
+  external?: boolean;
   meta?: Record<string, string>;
   links?: { rel: string; href: string; type?: string }[];
   scripts?: DependencyFile[];
