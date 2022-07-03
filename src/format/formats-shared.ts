@@ -231,8 +231,6 @@ function defaultFormat(): Format {
     },
     pandoc: {},
     language: {},
-    metadata: {
-      [kBiblioConfig]: true,
-    },
+    metadata: {},
   };
 }

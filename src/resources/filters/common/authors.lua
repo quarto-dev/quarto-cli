@@ -117,6 +117,9 @@ local kDescriptionTitle = 'description-title'
 local kPublishedTitle = 'published-title'
 local kDoiTitle = 'doi-title'
 
+-- Deal with bibliography configuration as well
+local kBiblioConfig = 'biblio-config'
+
 -- The field types for an author (maps the field in an author table)
 -- to the way the field should be processed
 local kAuthorNameFields = { kName }
@@ -239,6 +242,11 @@ function processAuthorMeta(meta)
 
   -- Provide localized or user specified strings for title block elements
   meta = computeLabels(authors, affiliations, meta)
+
+  -- Provide biblio-config if it isn't specified
+  if meta[kBiblioConfig] == nil then
+    meta[kBiblioConfig] = true
+  end
   return meta
 end
 
