@@ -560,7 +560,16 @@ export async function extractResourceDescriptionsFromOJSChunk(
       getNamedLifetime("render-services")!.attach({
         cleanup() {
           for (const res of resolvedImport.createdResources) {
-            Deno.removeSync(res.filename);
+            // it's possible to include a createdResource more than once if it's used
+            // more than once, so we could end up with more than one request
+            // to delete it. Fail gracefully if so.
+            try {
+              Deno.removeSync(res.filename);
+            } catch (e) {
+              if (e.name !== "NotFound") {
+                throw e;
+              }
+            }
           }
           return;
         },
