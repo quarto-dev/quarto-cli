@@ -34,7 +34,9 @@ export const toolsCommand = new Command()
   .description(
     `Installation and update of ancillary tools.
     
-  tools:\n  ${installableTools().map((name: string) => "  " + name).join("\n")}
+  tools:\n  ${
+      installableTools().map((name: string) => "  " + name).join("\n  ")
+    }
 
   commands:
     install
