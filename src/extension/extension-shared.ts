@@ -5,7 +5,7 @@
 *
 */
 import SemVer from "semver/mod.ts";
-import { Metadata, PandocFilter } from "../config/types.ts";
+import { Metadata, QuartoFilter } from "../config/types.ts";
 import { ProjectContext } from "../project/types.ts";
 
 export const kCommon = "common";
@@ -24,7 +24,7 @@ export interface Extension extends Record<string, unknown> {
   path: string;
   contributes: {
     shortcodes?: string[];
-    filters?: PandocFilter[];
+    filters?: QuartoFilter[];
     format?: Record<string, unknown>;
   };
 }

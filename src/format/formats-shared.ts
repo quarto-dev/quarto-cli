@@ -8,7 +8,6 @@
 import { mergeConfigs } from "../core/config.ts";
 
 import {
-  kBiblioConfig,
   kCache,
   kCodeFold,
   kCodeLineNumbers,

@@ -12,8 +12,8 @@ import { coerce } from "semver/mod.ts";
 import { kProjectType, ProjectContext } from "../project/types.ts";
 import { isSubdir } from "fs/_util.ts";
 
-import { dirname, join, normalize } from "path/mod.ts";
-import { Metadata, PandocFilter } from "../config/types.ts";
+import { dirname, join, normalize, relative } from "path/mod.ts";
+import { Metadata, QuartoFilter } from "../config/types.ts";
 import { resolvePathGlobs } from "../core/path.ts";
 import { toInputRelativePaths } from "../project/project-shared.ts";
 import { projectType } from "../project/types/project-types.ts";
@@ -66,42 +66,8 @@ export function createExtensionContext(): ExtensionContext {
     contributes?: "shortcodes" | "filters" | "format",
     project?: ProjectContext,
   ): Extension[] => {
-    // Filter the extension based upon what they contribute
-    const exts = extensions(input, project).filter((ext) => {
-      if (contributes === "shortcodes" && ext.contributes.shortcodes) {
-        return true;
-      } else if (contributes === "filters" && ext.contributes.filters) {
-        return true;
-      } else if (contributes === "format" && ext.contributes.format) {
-        return true;
-      } else {
-        return contributes === undefined;
-      }
-    });
-
-    // First try an exact match
     const extId = toExtensionId(name);
-    if (extId.organization) {
-      const exact = exts.filter((ext) => {
-        return (ext.id.name === extId.name &&
-          ext.id.organization === extId.organization);
-      });
-      if (exact.length > 0) {
-        return exact;
-      }
-    }
-
-    // If there wasn't an exact match, try just using the name
-    const nameMatches = exts.filter((ext) => {
-      return extId.name === ext.id.name;
-    });
-
-    // Sort to make the unowned version first
-    const sortedMatches = nameMatches.sort((ext1, _ext2) => {
-      return ext1.id.organization === undefined ? -1 : 1;
-    });
-
-    return sortedMatches;
+    return findExtensions(extensions(input, project), extId, contributes);
   };
 
   return {
@@ -173,6 +139,48 @@ const loadExtension = (
     );
   }
 };
+
+function findExtensions(
+  extensions: Extension[],
+  extensionId: ExtensionId,
+  contributes?: "shortcodes" | "filters" | "format",
+) {
+  // Filter the extension based upon what they contribute
+  const exts = extensions.filter((ext) => {
+    if (contributes === "shortcodes" && ext.contributes.shortcodes) {
+      return true;
+    } else if (contributes === "filters" && ext.contributes.filters) {
+      return true;
+    } else if (contributes === "format" && ext.contributes.format) {
+      return true;
+    } else {
+      return contributes === undefined;
+    }
+  });
+
+  // First try an exact match
+  if (extensionId.organization) {
+    const exact = exts.filter((ext) => {
+      return (ext.id.name === extensionId.name &&
+        ext.id.organization === extensionId.organization);
+    });
+    if (exact.length > 0) {
+      return exact;
+    }
+  }
+
+  // If there wasn't an exact match, try just using the name
+  const nameMatches = exts.filter((ext) => {
+    return extensionId.name === ext.id.name;
+  });
+
+  // Sort to make the unowned version first
+  const sortedMatches = nameMatches.sort((ext1, _ext2) => {
+    return ext1.id.organization === undefined ? -1 : 1;
+  });
+
+  return sortedMatches;
+}
 
 // Fixes up paths for metatadata provided by an extension
 function resolveExtensionPaths(
@@ -377,9 +385,25 @@ function readExtension(
   const versionParsed = versionRaw ? coerce(versionRaw) : undefined;
   const version = versionParsed ? versionParsed : undefined;
 
+  // The directory containing this extension
+  // Paths used should be considered relative to this dir
+  const extensionDir = dirname(extensionFile);
+
+  // Read any embedded extension
+  const embeddedExtensions = existsSync(join(extensionDir, kExtensionDir))
+    ? readExtensions(join(extensionDir, kExtensionDir))
+    : [];
   // The items that can be contributed
-  const shortcodes = contributes?.shortcodes as string[] || [];
-  const filters = contributes?.filters as PandocFilter[] || [];
+  const shortcodes = (contributes?.shortcodes as string[] || []).flatMap((
+    shortcode,
+  ) => {
+    return resolveShortcode(embeddedExtensions, extensionDir, shortcode);
+  });
+  const filters = (contributes?.filters as QuartoFilter[] || []).flatMap(
+    (filter) => {
+      return resolveFilter(embeddedExtensions, extensionDir, filter);
+    },
+  );
   const format = contributes?.format as Metadata || [];
 
   // Process the special 'common' key by merging it
@@ -394,9 +418,12 @@ function readExtension(
   });
   delete format[kCommon];
 
-  // Resolve paths in the extension relative to the extension
-  // metadata file
-  const extensionDir = dirname(extensionFile);
+  // For each of the formats, see if the filters or shortcode
+  // have extensions that need to be resolved
+  // For both shortcodes and filters, I need to resolve all filters or remove them from the list (and warn)
+  // For filters, they _must_ resolve into a file, otherwise they will be removed
+
+  //read extensions and resolve shortcode / filter extensions
 
   // Create the extension data structure
   return {
@@ -411,6 +438,77 @@ function readExtension(
       format,
     },
   };
+}
+
+function resolveShortcode(
+  embeddedExtensions: Extension[],
+  dir: string,
+  shortcode: string,
+) {
+  // First attempt to load this shortcode from an embedded extension
+  const extensionId = toExtensionId(shortcode);
+  const extensions = findExtensions(
+    embeddedExtensions,
+    extensionId,
+    "shortcodes",
+  );
+
+  // If there are embedded extensions, return their shortcodes
+  if (extensions.length > 0) {
+    const shortcodes: string[] = [];
+    for (const shortcode of extensions[0].contributes.shortcodes || []) {
+      // Shortcodes are expected to be extension relative paths
+      shortcodes.push(relative(dir, shortcode));
+    }
+    return shortcodes;
+  } else {
+    // There are no embedded extensions for this, validate the path
+    validateExtensionPath("shortcode", dir, shortcode);
+    return shortcode;
+  }
+}
+
+function resolveFilter(
+  embeddedExtensions: Extension[],
+  dir: string,
+  filter: QuartoFilter,
+) {
+  if (typeof (filter) === "string") {
+    // First attempt to load this shortcode from an embedded extension
+    const extensionId = toExtensionId(filter);
+    const extensions = findExtensions(
+      embeddedExtensions,
+      extensionId,
+      "filters",
+    );
+    if (extensions.length > 0) {
+      const filters: QuartoFilter[] = [];
+      for (const filter of extensions[0].contributes.filters || []) {
+        filters.push(filter);
+      }
+      return filters;
+    } else {
+      validateExtensionPath("filter", dir, filter);
+      return filter;
+    }
+  } else {
+    validateExtensionPath("filter", dir, filter.path);
+    return filter.path;
+  }
+}
+
+function validateExtensionPath(
+  type: "filter" | "shortcode",
+  dir: string,
+  path: string,
+) {
+  const resolves = existsSync(join(dir, path));
+  if (!resolves) {
+    throw Error(
+      `Failed to resolve referenced ${type} ${path} - path does not exist.\nIf you attempting to use another extension within this extension, please ensure the referenced extension is embedded properly.`,
+    );
+  }
+  return resolves;
 }
 
 // Parses string into extension Id
