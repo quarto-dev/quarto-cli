@@ -25,6 +25,7 @@ import {
   selectTool,
 } from "../../tools/tools-console.ts";
 import { haveArrowKeys } from "../../core/platform.ts";
+import { join } from "path/mod.ts";
 
 export const removeCommand = new Command()
   .hidden()
@@ -34,6 +35,10 @@ export const removeCommand = new Command()
   .option(
     "--no-prompt",
     "Do not prompt to confirm actions",
+  )
+  .option(
+    "--embed <extensionId>",
+    "Remove this extension from within another extension (used when authoring extensions).",
   )
   .description(
     "Removes an extension or global dependency.",
@@ -59,7 +64,11 @@ export const removeCommand = new Command()
     "quarto remove tool",
   )
   .action(
-    async (options: { prompt?: boolean }, type: string, target?: string) => {
+    async (
+      options: { prompt?: boolean; embed?: string },
+      type: string,
+      target?: string,
+    ) => {
       await initYamlIntelligenceResourcesFromFilesystem();
       const temp = createTempContext();
       const extensionContext = createExtensionContext();
@@ -67,7 +76,28 @@ export const removeCommand = new Command()
       try {
         if (type.toLowerCase() === "extension") {
           // Not provided, give the user a list to select from
-          const targetDir = Deno.cwd();
+          const workingDir = Deno.cwd();
+
+          const resolveTargetDir = () => {
+            if (options.embed) {
+              // We're removing an embedded extension, lookup the extension
+              // and use its path
+              const context = createExtensionContext();
+              const extension = context.extension(
+                options.embed,
+                workingDir,
+              );
+              if (extension) {
+                return extension?.path;
+              } else {
+                throw new Error(`Unable to find extension '${options.embed}.`);
+              }
+            } else {
+              // Just use the current directory
+              return workingDir;
+            }
+          };
+          const targetDir = resolveTargetDir();
 
           // Process extension
           if (target) {

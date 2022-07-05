@@ -17,7 +17,7 @@ import { copyTo } from "../core/copy.ts";
 import { Extension, kExtensionDir } from "./extension-shared.ts";
 import { withSpinner } from "../core/console.ts";
 import { downloadWithProgress } from "../core/download.ts";
-import { readExtensions } from "./extension.ts";
+import { createExtensionContext, readExtensions } from "./extension.ts";
 import { info } from "log/mod.ts";
 import { ExtensionSource, extensionSource } from "./extension-host.ts";
 
@@ -29,6 +29,7 @@ export async function installExtension(
   target: string,
   temp: TempContext,
   allowPrompt: boolean,
+  embed?: string,
 ) {
   // Is this local or remote?
   const source = extensionSource(target);
@@ -41,7 +42,11 @@ export async function installExtension(
   } else {
     // Compute the installation directory
     const currentDir = Deno.cwd();
-    const installDir = await determineInstallDir(currentDir, allowPrompt);
+    const installDir = await determineInstallDir(
+      currentDir,
+      allowPrompt,
+      embed,
+    );
 
     // Stage the extension locally
     const extensionDir = await stageExtension(source, temp.createDir());
@@ -96,22 +101,51 @@ async function isTrusted(
 
 // If the installation is happening in a project
 // we should offer to install the extension into the project
-async function determineInstallDir(dir: string, allowPrompt: boolean) {
-  const project = await projectContext(dir);
-  if (project && project.dir !== dir) {
-    const question = "Install extension into project?";
-    if (allowPrompt) {
-      const useProject = await Confirm.prompt(question);
-      if (useProject) {
-        return project.dir;
+async function determineInstallDir(
+  dir: string,
+  allowPrompt: boolean,
+  embed?: string,
+) {
+  if (embed) {
+    // We're embeddeding this within an extension
+    const extensionName = embed;
+    const context = createExtensionContext();
+
+    // Load the extension to be sure it exists and then
+    // use its path as the target for installation
+    const extension = context.extension(extensionName, dir);
+    if (extension) {
+      if (Object.keys(extension?.contributes.format || {}).length > 0) {
+        return extension?.path;
+      } else {
+        throw new Error(
+          `The extension ${embed} does not contribute a format.\nYou can only embed extensions within an extension which itself contributes a format.`,
+        );
+      }
+    } else {
+      throw new Error(
+        `Unable to locate the extension '${embed}' that you'd like to embed this within.`,
+      );
+    }
+  } else {
+    // We're not embeddeding, check if we're in a project
+    // and offer to use that directory if we are
+    const project = await projectContext(dir);
+    if (project && project.dir !== dir) {
+      const question = "Install extension into project?";
+      if (allowPrompt) {
+        const useProject = await Confirm.prompt(question);
+        if (useProject) {
+          return project.dir;
+        } else {
+          return dir;
+        }
       } else {
         return dir;
       }
     } else {
       return dir;
     }
-  } else {
-    return dir;
   }
 }
 

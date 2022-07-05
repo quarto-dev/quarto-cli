@@ -25,6 +25,10 @@ export const installCommand = new Command()
     "--no-prompt",
     "Do not prompt to confirm actions",
   )
+  .option(
+    "--embed <extensionId>",
+    "Embed this extension within another extension (used when authoring extensions).",
+  )
   .description(
     "Installs an extension or global dependency.",
   )
@@ -53,14 +57,23 @@ export const installCommand = new Command()
     "quarto install tool",
   )
   .action(
-    async (options: { prompt?: boolean }, type: string, target?: string) => {
+    async (
+      options: { prompt?: boolean; embed?: string },
+      type: string,
+      target?: string,
+    ) => {
       await initYamlIntelligenceResourcesFromFilesystem();
       const temp = createTempContext();
       try {
         if (type.toLowerCase() === "extension") {
           // Install an extension
           if (target) {
-            await installExtension(target, temp, options.prompt !== false);
+            await installExtension(
+              target,
+              temp,
+              options.prompt !== false,
+              options.embed,
+            );
           } else {
             info("Please provide an extension name, url, or path.");
           }
