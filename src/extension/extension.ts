@@ -324,7 +324,7 @@ export function discoverExtensionPath(
   };
 
   // Start in the source directory
-  const sourceDir = dirname(input);
+  const sourceDir = Deno.statSync(input).isDirectory ? input : dirname(input);
   const sourceDirAbs = Deno.realPathSync(sourceDir);
 
   if (project && isSubdir(project.dir, sourceDirAbs)) {
@@ -393,7 +393,10 @@ function readExtension(
   const embeddedExtensions = existsSync(join(extensionDir, kExtensionDir))
     ? readExtensions(join(extensionDir, kExtensionDir))
     : [];
+
   // The items that can be contributed
+  // Resolve shortcodes and filters (these might come from embedded extension)
+  // Note that resolving will throw if the extension cannot be resolved
   const shortcodes = (contributes?.shortcodes as string[] || []).flatMap((
     shortcode,
   ) => {
@@ -417,13 +420,6 @@ function readExtension(
     );
   });
   delete format[kCommon];
-
-  // For each of the formats, see if the filters or shortcode
-  // have extensions that need to be resolved
-  // For both shortcodes and filters, I need to resolve all filters or remove them from the list (and warn)
-  // For filters, they _must_ resolve into a file, otherwise they will be removed
-
-  //read extensions and resolve shortcode / filter extensions
 
   // Create the extension data structure
   return {

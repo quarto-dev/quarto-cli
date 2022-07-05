@@ -109,7 +109,7 @@ async function determineInstallDir(
   if (embed) {
     // We're embeddeding this within an extension, perform some validation
     const context = createExtensionContext();
-    const extension = context.extension(embed, join(dir, "test.qmd"));
+    const extension = context.extension(embed, dir);
     if (extension) {
       if (Object.keys(extension?.contributes.format || {}).length > 0) {
         return extension?.path;

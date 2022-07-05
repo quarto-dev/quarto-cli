@@ -83,7 +83,7 @@ export const removeCommand = new Command()
               const context = createExtensionContext();
               const extension = context.extension(
                 options.embed,
-                join(workingDir, "test.qmd"),
+                workingDir,
               );
               if (extension) {
                 return extension?.path;
