@@ -17,11 +17,7 @@ import { copyTo } from "../core/copy.ts";
 import { Extension, kExtensionDir } from "./extension-shared.ts";
 import { withSpinner } from "../core/console.ts";
 import { downloadWithProgress } from "../core/download.ts";
-import {
-  createExtensionContext,
-  extensionFile,
-  readExtensions,
-} from "./extension.ts";
+import { createExtensionContext, readExtensions } from "./extension.ts";
 import { info } from "log/mod.ts";
 import { ExtensionSource, extensionSource } from "./extension-host.ts";
 
