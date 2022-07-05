@@ -80,6 +80,8 @@ export const removeCommand = new Command()
 
           const resolveTargetDir = () => {
             if (options.embed) {
+              // We're removing an embedded extension, lookup the extension
+              // and use its path
               const context = createExtensionContext();
               const extension = context.extension(
                 options.embed,
@@ -91,6 +93,7 @@ export const removeCommand = new Command()
                 throw new Error(`Unable to find extension '${options.embed}.`);
               }
             } else {
+              // Just use the current directory
               return workingDir;
             }
           };

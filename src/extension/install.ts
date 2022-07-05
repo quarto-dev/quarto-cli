@@ -107,9 +107,13 @@ async function determineInstallDir(
   embed?: string,
 ) {
   if (embed) {
-    // We're embeddeding this within an extension, perform some validation
+    // We're embeddeding this within an extension
+    const extensionName = embed;
     const context = createExtensionContext();
-    const extension = context.extension(embed, dir);
+
+    // Load the extension to be sure it exists and then
+    // use its path as the target for installation
+    const extension = context.extension(extensionName, dir);
     if (extension) {
       if (Object.keys(extension?.contributes.format || {}).length > 0) {
         return extension?.path;
@@ -124,6 +128,8 @@ async function determineInstallDir(
       );
     }
   } else {
+    // We're not embeddeding, check if we're in a project
+    // and offer to use that directory if we are
     const project = await projectContext(dir);
     if (project && project.dir !== dir) {
       const question = "Install extension into project?";

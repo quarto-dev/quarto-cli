@@ -140,6 +140,8 @@ const loadExtension = (
   }
 };
 
+// Searches extensions for an extension(s) with a specified
+// Id and which optionally contributes specific extension elements
 function findExtensions(
   extensions: Extension[],
   extensionId: ExtensionId,
@@ -436,6 +438,9 @@ function readExtension(
   };
 }
 
+// This will resolve a shortcode contributed by this extension
+// loading embedded extensions and replacing the extension name
+// with the contributed shortcode paths
 function resolveShortcode(
   embeddedExtensions: Extension[],
   dir: string,
@@ -464,6 +469,9 @@ function resolveShortcode(
   }
 }
 
+// This will replace the given QuartoFilter with one more resolved filters,
+// loading embedded extensions (if referenced) and replacing the extension
+// name with any filters that the embedded extension provides.
 function resolveFilter(
   embeddedExtensions: Extension[],
   dir: string,
@@ -493,6 +501,9 @@ function resolveFilter(
   }
 }
 
+// Validates that the path exists. For filters and short codes used in extensions,
+// either the item should resolve using an embedded extension, or the path
+// should exist. You cannot reference a non-existent file in an extension
 function validateExtensionPath(
   type: "filter" | "shortcode",
   dir: string,
