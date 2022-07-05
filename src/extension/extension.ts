@@ -129,13 +129,13 @@ const loadExtension = (
     } else {
       // This extension doesn't have an _extension file
       throw new Error(
-        `Extension ${extension} is missing the expected _extensions.yml file.`,
+        `The extension '${extension}' is missing the expected '_extensions.yml' file.`,
       );
     }
   } else {
     // There is no extension with this name!
     throw new Error(
-      `Unable to find extension ${extension}. Please ensure that the extension is installed.`,
+      `Unable to read the extension '${extension}'.\nPlease ensure that you provided the correct id and that the extension is installed.`,
     );
   }
 };
@@ -404,7 +404,7 @@ function readExtension(
       return resolveFilter(embeddedExtensions, extensionDir, filter);
     },
   );
-  const format = contributes?.format as Metadata || [];
+  const format = contributes?.format as Metadata || {};
 
   // Process the special 'common' key by merging it
   // into any key that isn't 'common' and then removing it
@@ -505,7 +505,7 @@ function validateExtensionPath(
   const resolves = existsSync(join(dir, path));
   if (!resolves) {
     throw Error(
-      `Failed to resolve referenced ${type} ${path} - path does not exist.\nIf you attempting to use another extension within this extension, please ensure the referenced extension is embedded properly.`,
+      `Failed to resolve referenced ${type} ${path} - path does not exist.\nIf you attempting to use another extension within this extension, please install the extension using the 'quarto install --embedded' command.`,
     );
   }
   return resolves;
@@ -535,7 +535,7 @@ function toExtensionId(extension: string) {
   }
 }
 
-const extensionFile = (dir: string) => {
+export const extensionFile = (dir: string) => {
   return ["_extension.yml", "_extension.yaml"]
     .map((file) => join(dir, file))
     .find(existsSync);
