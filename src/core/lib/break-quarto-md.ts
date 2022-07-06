@@ -171,6 +171,23 @@ export async function breakQuartoMd(
 
   const inPlainText = () => !inCodeCell && !inCode && !inMathBlock && !inYaml;
 
+  const isYamlDelimiter = (line: string, index: number) => {
+    if (!yamlRegEx.test(line)) {
+      return false;
+    }
+
+    // if a yaml delimiter is surrounded by whitespace-only lines,
+    // then it is actually an HR element; treat it as such.
+    if (
+      index > 0 && srcLines[index - 1].substring.trim() === "" &&
+      index < srcLines.length - 1 && srcLines[index + 1].substring.trim() === ""
+    ) {
+      return false;
+    }
+
+    return true;
+  };
+
   const srcLines = rangedLines(src.value, true);
 
   for (let i = 0; i < srcLines.length; ++i) {
@@ -178,8 +195,8 @@ export async function breakQuartoMd(
     const directiveMatch = isBlockShortcode(line.substring);
     // yaml front matter
     if (
-      yamlRegEx.test(line.substring) && !inCodeCell && !inCode &&
-      !inMathBlock
+      isYamlDelimiter(line.substring, i) &&
+      !inCodeCell && !inCode && !inMathBlock
     ) {
       if (inYaml) {
         lineBuffer.push(line);

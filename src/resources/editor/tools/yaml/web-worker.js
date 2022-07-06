@@ -27666,11 +27666,20 @@ ${sourceContext}`;
     const tickCount = (s) => Array.from(s.split(" ")[0] || "").filter((c) => c === "`").length;
     let inYaml = false, inMathBlock = false, inCodeCell = false, inCode = 0;
     const inPlainText = () => !inCodeCell && !inCode && !inMathBlock && !inYaml;
+    const isYamlDelimiter = (line, index) => {
+      if (!yamlRegEx.test(line)) {
+        return false;
+      }
+      if (index > 0 && srcLines[index - 1].substring.trim() === "" && index < srcLines.length - 1 && srcLines[index + 1].substring.trim() === "") {
+        return false;
+      }
+      return true;
+    };
     const srcLines = rangedLines(src.value, true);
     for (let i = 0; i < srcLines.length; ++i) {
       const line = srcLines[i];
       const directiveMatch = isBlockShortcode(line.substring);
-      if (yamlRegEx.test(line.substring) && !inCodeCell && !inCode && !inMathBlock) {
+      if (isYamlDelimiter(line.substring, i) && !inCodeCell && !inCode && !inMathBlock) {
         if (inYaml) {
           lineBuffer.push(line);
           await flushLineBuffer("raw", i);
