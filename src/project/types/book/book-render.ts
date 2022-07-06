@@ -365,7 +365,7 @@ async function mergeExecutedFiles(
                 const keyValueStr = attr.keyvalue.map((kv) => {
                   const escapedValue = kv[1].replaceAll(/"/gm, '\\"');
                   return `${kv[0]}="${escapedValue}" `;
-                });
+                }).join("");
                 const attrContents = `${idStr}${clzStr}${keyValueStr}`.trim();
                 attrStr = `{${attrContents}}`;
               }
