@@ -63,7 +63,7 @@ export function createExtensionContext(): ExtensionContext {
   const find = (
     name: string,
     input: string,
-    contributes?: "shortcodes" | "filters" | "format",
+    contributes?: "shortcodes" | "filters" | "formats",
     project?: ProjectContext,
   ): Extension[] => {
     const extId = toExtensionId(name);
@@ -145,7 +145,7 @@ const loadExtension = (
 function findExtensions(
   extensions: Extension[],
   extensionId: ExtensionId,
-  contributes?: "shortcodes" | "filters" | "format",
+  contributes?: "shortcodes" | "filters" | "formats",
 ) {
   // Filter the extension based upon what they contribute
   const exts = extensions.filter((ext) => {
@@ -153,7 +153,7 @@ function findExtensions(
       return true;
     } else if (contributes === "filters" && ext.contributes.filters) {
       return true;
-    } else if (contributes === "format" && ext.contributes.format) {
+    } else if (contributes === "formats" && ext.contributes.formats) {
       return true;
     } else {
       return contributes === undefined;
@@ -239,6 +239,7 @@ export function readExtensions(
       }
     }
   }
+
   return extensions;
 }
 
@@ -352,7 +353,7 @@ function validateExtension(extension: Extension) {
   const contribs = [
     extension.contributes.filters,
     extension.contributes.shortcodes,
-    extension.contributes.format,
+    extension.contributes.formats,
   ];
   contribs.forEach((contrib) => {
     if (contrib) {
@@ -391,37 +392,45 @@ function readExtension(
   // Paths used should be considered relative to this dir
   const extensionDir = dirname(extensionFile);
 
+  // The formats that are being contributed
+  const formats = contributes?.formats as Metadata ||
+    contributes?.format as Metadata || {};
+
   // Read any embedded extension
   const embeddedExtensions = existsSync(join(extensionDir, kExtensionDir))
     ? readExtensions(join(extensionDir, kExtensionDir))
     : [];
 
-  // The items that can be contributed
-  // Resolve shortcodes and filters (these might come from embedded extension)
-  // Note that resolving will throw if the extension cannot be resolved
-  const shortcodes = (contributes?.shortcodes as string[] || []).flatMap((
-    shortcode,
-  ) => {
-    return resolveShortcode(embeddedExtensions, extensionDir, shortcode);
-  });
-  const filters = (contributes?.filters as QuartoFilter[] || []).flatMap(
-    (filter) => {
-      return resolveFilter(embeddedExtensions, extensionDir, filter);
-    },
-  );
-  const format = contributes?.format as Metadata || {};
-
   // Process the special 'common' key by merging it
   // into any key that isn't 'common' and then removing it
-  Object.keys(format).filter((key) => {
+  Object.keys(formats).filter((key) => {
     return key !== kCommon;
   }).forEach((key) => {
-    format[key] = mergeConfigs(
-      format[kCommon] || {},
-      format[key],
+    formats[key] = mergeConfigs(
+      formats[kCommon] || {},
+      formats[key],
+    );
+
+    const formatMeta = formats[key] as Metadata;
+
+    // Resolve shortcodes and filters (these might come from embedded extension)
+    // Note that resolving will throw if the extension cannot be resolved
+    formatMeta.shortcodes = (formatMeta.shortcodes as string[] || []).flatMap((
+      shortcode,
+    ) => {
+      return resolveShortcode(embeddedExtensions, extensionDir, shortcode);
+    });
+    formatMeta.filters = (formatMeta.filters as QuartoFilter[] || []).flatMap(
+      (filter) => {
+        return resolveFilter(embeddedExtensions, extensionDir, filter);
+      },
     );
   });
-  delete format[kCommon];
+  delete formats[kCommon];
+
+  // Alias the contributions
+  const shortcodes = (contributes?.shortcodes || []) as string[];
+  const filters = (contributes?.filters || {}) as QuartoFilter[];
 
   // Create the extension data structure
   return {
@@ -433,7 +442,7 @@ function readExtension(
     contributes: {
       shortcodes: shortcodes.map((code) => join(extensionDir, code)),
       filters,
-      format,
+      formats,
     },
   };
 }

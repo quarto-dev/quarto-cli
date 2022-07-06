@@ -44,7 +44,6 @@ import {
   kIncludeBeforeBody,
   kIncludeInHeader,
   kIpynbFilters,
-  kLatexInputPaths,
   kMetadataFormat,
   kOutputExt,
   kOutputFile,
@@ -573,7 +572,7 @@ const readExtensionFormat = async (
     );
 
     // Read the yaml file and resolve / bucketize
-    const extensionFormat = extension?.contributes.format;
+    const extensionFormat = extension?.contributes.formats;
     if (extensionFormat) {
       const extensionMetadata =
         (extensionFormat[formatDesc.baseFormat] || {}) as Metadata;
