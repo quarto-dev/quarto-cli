@@ -19223,6 +19223,7 @@ try {
           haskell: "--",
           dot: "//",
           ojs: "//",
+          apl: "\u235D",
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
@@ -27550,7 +27551,8 @@ ${sourceContext}`;
     asy: "//",
     haskell: "--",
     dot: "//",
-    ojs: "//"
+    ojs: "//",
+    apl: "\u235D"
   };
   function escapeRegExp(str2) {
     return str2.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

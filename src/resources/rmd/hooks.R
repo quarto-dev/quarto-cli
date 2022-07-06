@@ -780,7 +780,8 @@ partition_yaml_options <- function(engine, code) {
     go = "//",
     asy = "//",
     haskell = "--",
-    dot = "//"
+    dot = "//",
+    apl = "⍝"
   )
   comment_chars <- knitr_engine_comment_chars[[engine]] %||% "#"
   comment_start <- paste0(comment_chars[[1]], "| ")
