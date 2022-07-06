@@ -26,12 +26,12 @@ body:
         ````
   - type: textarea
     attributes:
-      label: `quarto check` Output
+      label: "`quarto check` Output"
       description: Paste the output of `quarto check`.
 
 - type: textarea
     attributes:
-      label: `quarto tools check` Output
+      label: "`quarto tools check` Output"
       description: Paste the output of `quarto tools check`.
 
   - type: checkboxes
