@@ -32,7 +32,7 @@ body:
         When filing a _bug report_, please check the boxes below to confirm that you have provided us with the information we need. Have you:
       options:
         - label: "[formatted your issue](https://yihui.org/issue/#please-format-your-issue-correctly) so it is easier for us to read?"
-        - label: included a minimal, self-contained, and reproducible example?
+        - label: included a minimal, fully reproducible example in a single .qmd file? Please provide the whole file rather than the snippet you believe is causing the issue.
         - label: documented the quarto version you're running, by providing the output produced by `quarto check` in a terminal in your issue?
         - label: documented the RStudio IDE version you're running (if applicable), by providing the value displayed in the "About RStudio" main menu dialog?
         - label: documented which operating system you're running? If on Linux, please provide the specific distribution as well.
