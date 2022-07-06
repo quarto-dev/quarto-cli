@@ -33,7 +33,7 @@ source bin/activate
 python3 -m pip install -r requirements.txt -q
 
 # Ensure that tinytex is installed
-quarto tools install tinytex
+quarto install tool tinytex --no-prompt
 
 "${DENO_DIR}/tools/deno" test ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_ARGMAP}" $@
 
