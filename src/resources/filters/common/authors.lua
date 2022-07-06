@@ -662,7 +662,7 @@ function computeLabels(authors, affiliations, meta)
     meta[kLabels][kAffiliations] = {pandoc.Str(language["title-block-affiliation-plural"])}
   end
   if meta[kAffiliationTitle] then
-    meta[kLabels][kAffiliation] = meta[kAffiliationTitle]
+    meta[kLabels][kAffiliations] = meta[kAffiliationTitle]
   end
 
   meta[kLabels][kPublished] = {pandoc.Str(language["title-block-published"])}
