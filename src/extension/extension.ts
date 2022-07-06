@@ -63,7 +63,7 @@ export function createExtensionContext(): ExtensionContext {
   const find = (
     name: string,
     input: string,
-    contributes?: "shortcodes" | "filters" | "format",
+    contributes?: "shortcodes" | "filters" | "formats",
     project?: ProjectContext,
   ): Extension[] => {
     const extId = toExtensionId(name);
@@ -145,7 +145,7 @@ const loadExtension = (
 function findExtensions(
   extensions: Extension[],
   extensionId: ExtensionId,
-  contributes?: "shortcodes" | "filters" | "format",
+  contributes?: "shortcodes" | "filters" | "formats",
 ) {
   // Filter the extension based upon what they contribute
   const exts = extensions.filter((ext) => {
@@ -153,7 +153,7 @@ function findExtensions(
       return true;
     } else if (contributes === "filters" && ext.contributes.filters) {
       return true;
-    } else if (contributes === "format" && ext.contributes.format) {
+    } else if (contributes === "formats" && ext.contributes.formats) {
       return true;
     } else {
       return contributes === undefined;
@@ -352,7 +352,7 @@ function validateExtension(extension: Extension) {
   const contribs = [
     extension.contributes.filters,
     extension.contributes.shortcodes,
-    extension.contributes.format,
+    extension.contributes.formats,
   ];
   contribs.forEach((contrib) => {
     if (contrib) {
@@ -409,19 +409,20 @@ function readExtension(
       return resolveFilter(embeddedExtensions, extensionDir, filter);
     },
   );
-  const format = contributes?.format as Metadata || {};
+  const formats = contributes?.formats as Metadata ||
+    contributes?.format as Metadata || {};
 
   // Process the special 'common' key by merging it
   // into any key that isn't 'common' and then removing it
-  Object.keys(format).filter((key) => {
+  Object.keys(formats).filter((key) => {
     return key !== kCommon;
   }).forEach((key) => {
-    format[key] = mergeConfigs(
-      format[kCommon] || {},
-      format[key],
+    formats[key] = mergeConfigs(
+      formats[kCommon] || {},
+      formats[key],
     );
   });
-  delete format[kCommon];
+  delete formats[kCommon];
 
   // Create the extension data structure
   return {
@@ -433,7 +434,7 @@ function readExtension(
     contributes: {
       shortcodes: shortcodes.map((code) => join(extensionDir, code)),
       filters,
-      format,
+      formats,
     },
   };
 }

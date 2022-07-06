@@ -115,7 +115,7 @@ async function determineInstallDir(
     // use its path as the target for installation
     const extension = context.extension(extensionName, dir);
     if (extension) {
-      if (Object.keys(extension?.contributes.format || {}).length > 0) {
+      if (Object.keys(extension?.contributes.formats || {}).length > 0) {
         return extension?.path;
       } else {
         throw new Error(
@@ -324,10 +324,10 @@ async function confirmInstallation(
     const contributes = to.contributes;
     const extTypes: string[] = [];
     if (
-      contributes.format &&
-      Object.keys(contributes.format).length > 0
+      contributes.formats &&
+      Object.keys(contributes.formats).length > 0
     ) {
-      Object.keys(contributes.format).length === 1
+      Object.keys(contributes.formats).length === 1
         ? extTypes.push("format")
         : extTypes.push("formats");
     }

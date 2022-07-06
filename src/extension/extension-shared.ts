@@ -25,7 +25,7 @@ export interface Extension extends Record<string, unknown> {
   contributes: {
     shortcodes?: string[];
     filters?: QuartoFilter[];
-    format?: Record<string, unknown>;
+    formats?: Record<string, unknown>;
   };
 }
 
@@ -42,7 +42,7 @@ export interface ExtensionContext {
   find(
     name: string,
     input: string,
-    contributes?: "shortcodes" | "filters" | "format",
+    contributes?: "shortcodes" | "filters" | "formats",
     project?: ProjectContext,
   ): Extension[];
 }

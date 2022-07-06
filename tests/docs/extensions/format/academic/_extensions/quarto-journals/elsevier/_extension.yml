@@ -1,6 +1,6 @@
 name: Elsevier Journal Format
 contributes:
-  format:
+  formats:
     common:
       date-format: full
     pdf:

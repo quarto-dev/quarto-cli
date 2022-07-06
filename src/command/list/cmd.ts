@@ -77,20 +77,20 @@ async function outputExtensions(
         extension.contributes.filters &&
         extension.contributes.filters?.length > 0
       ) {
-        contribs.push("filter");
+        contribs.push("filters");
       }
 
       if (
         extension.contributes.shortcodes &&
         extension.contributes.shortcodes?.length > 0
       ) {
-        contribs.push("shortcode");
+        contribs.push("shortcodes");
       }
 
       if (
-        extension.contributes.format
+        extension.contributes.formats
       ) {
-        contribs.push("format");
+        contribs.push("formats");
       }
       return contribs.join(", ");
     };
