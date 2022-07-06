@@ -24,6 +24,15 @@ body:
         print("Hello Quarto!")
         ```
         ````
+  - type: textarea
+    attributes:
+      label: `quarto check` Output
+      description: Paste the output of `quarto check`.
+
+- type: textarea
+    attributes:
+      label: `quarto tools check` Output
+      description: Paste the output of `quarto tools check`.
 
   - type: checkboxes
     attributes:
@@ -33,7 +42,8 @@ body:
       options:
         - label: "[formatted your issue](https://yihui.org/issue/#please-format-your-issue-correctly) so it is easier for us to read?"
         - label: included a minimal, fully reproducible example in a single .qmd file? Please provide the whole file rather than the snippet you believe is causing the issue.
-        - label: documented the quarto version you're running, by providing the output produced by `quarto check` in a terminal in your issue?
+        - label: documented the quarto version you're running, by pasting the output from running `quarto check` in the "Quarto Check Output" text area?
+        - label: documented the version of the quarto tools you're running, by providing the output from running `quarto tools check` in the "Quarto Tools Check Output" text area?
         - label: documented the RStudio IDE version you're running (if applicable), by providing the value displayed in the "About RStudio" main menu dialog?
         - label: documented which operating system you're running? If on Linux, please provide the specific distribution as well.
         - label: upgraded to the latest version, including your versions of R, the RStudio IDE, and relevant R packages?
