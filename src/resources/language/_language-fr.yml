@@ -13,8 +13,8 @@ appendix-attribution-cite-as: "Veuillez citer ce travail comme suit :"
 
 title-block-author-single: "Auteur"
 title-block-author-plural: "Auteurs"
-title-block-affiliation-single: "Association"
-title-block-affiliation-plural: "Les associations"
+title-block-affiliation-single: "Affiliation"
+title-block-affiliation-plural: "Affiliations"
 title-block-published: "Date de publication"
 
 callout-tip-caption: "Astuce"
