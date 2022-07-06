@@ -361,11 +361,11 @@ async function mergeExecutedFiles(
                 const idStr = attr.id !== "" ? `#${attr.id} ` : "";
                 const clzStr = attr.classes.map((clz) => {
                   return `.${clz} `;
-                });
+                }).join("");
                 const keyValueStr = attr.keyvalue.map((kv) => {
                   const escapedValue = kv[1].replaceAll(/"/gm, '\\"');
                   return `${kv[0]}="${escapedValue}" `;
-                });
+                }).join("");
                 const attrContents = `${idStr}${clzStr}${keyValueStr}`.trim();
                 attrStr = `{${attrContents}}`;
               }
