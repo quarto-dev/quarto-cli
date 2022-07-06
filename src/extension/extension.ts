@@ -239,6 +239,7 @@ export function readExtensions(
       }
     }
   }
+
   return extensions;
 }
 
@@ -391,26 +392,14 @@ function readExtension(
   // Paths used should be considered relative to this dir
   const extensionDir = dirname(extensionFile);
 
+  // The formats that are being contributed
+  const formats = contributes?.formats as Metadata ||
+    contributes?.format as Metadata || {};
+
   // Read any embedded extension
   const embeddedExtensions = existsSync(join(extensionDir, kExtensionDir))
     ? readExtensions(join(extensionDir, kExtensionDir))
     : [];
-
-  // The items that can be contributed
-  // Resolve shortcodes and filters (these might come from embedded extension)
-  // Note that resolving will throw if the extension cannot be resolved
-  const shortcodes = (contributes?.shortcodes as string[] || []).flatMap((
-    shortcode,
-  ) => {
-    return resolveShortcode(embeddedExtensions, extensionDir, shortcode);
-  });
-  const filters = (contributes?.filters as QuartoFilter[] || []).flatMap(
-    (filter) => {
-      return resolveFilter(embeddedExtensions, extensionDir, filter);
-    },
-  );
-  const formats = contributes?.formats as Metadata ||
-    contributes?.format as Metadata || {};
 
   // Process the special 'common' key by merging it
   // into any key that isn't 'common' and then removing it
@@ -421,8 +410,27 @@ function readExtension(
       formats[kCommon] || {},
       formats[key],
     );
+
+    const formatMeta = formats[key] as Metadata;
+
+    // Resolve shortcodes and filters (these might come from embedded extension)
+    // Note that resolving will throw if the extension cannot be resolved
+    formatMeta.shortcodes = (formatMeta.shortcodes as string[] || []).flatMap((
+      shortcode,
+    ) => {
+      return resolveShortcode(embeddedExtensions, extensionDir, shortcode);
+    });
+    formatMeta.filters = (formatMeta.filters as QuartoFilter[] || []).flatMap(
+      (filter) => {
+        return resolveFilter(embeddedExtensions, extensionDir, filter);
+      },
+    );
   });
   delete formats[kCommon];
+
+  // Alias the contributions
+  const shortcodes = (contributes?.shortcodes || []) as string[];
+  const filters = (contributes?.filters || {}) as QuartoFilter[];
 
   // Create the extension data structure
   return {
