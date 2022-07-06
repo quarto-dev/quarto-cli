@@ -312,6 +312,7 @@ export const kLangCommentChars: Record<string, string | [string, string]> = {
   haskell: "--",
   dot: "//",
   ojs: "//",
+  apl: "⍝",
 };
 
 function escapeRegExp(str: string) {

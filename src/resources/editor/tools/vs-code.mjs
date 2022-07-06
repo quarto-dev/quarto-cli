@@ -19222,6 +19222,7 @@ var require_yaml_intelligence_resources = __commonJS({
         haskell: "--",
         dot: "//",
         ojs: "//",
+        apl: "\u235D",
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
@@ -27536,7 +27537,8 @@ var kLangCommentChars = {
   asy: "//",
   haskell: "--",
   dot: "//",
-  ojs: "//"
+  ojs: "//",
+  apl: "\u235D"
 };
 function escapeRegExp(str2) {
   return str2.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

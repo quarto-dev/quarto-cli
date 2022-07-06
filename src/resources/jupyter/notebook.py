@@ -528,7 +528,8 @@ def nb_language_comment_chars(lang):
       go = "//",
       asy = "//",
       haskell = "--",
-      dot = "//"
+      dot = "//",
+      apl = "⍝"
    )
    if lang in langs:
       chars = langs[lang]
