@@ -27666,11 +27666,11 @@ ${sourceContext}`;
     const tickCount = (s) => Array.from(s.split(" ")[0] || "").filter((c) => c === "`").length;
     let inYaml = false, inMathBlock = false, inCodeCell = false, inCode = 0;
     const inPlainText = () => !inCodeCell && !inCode && !inMathBlock && !inYaml;
-    const isYamlDelimiter = (line, index) => {
+    const isYamlDelimiter = (line, index, skipHRs) => {
       if (!yamlRegEx.test(line)) {
         return false;
       }
-      if (index > 0 && srcLines[index - 1].substring.trim() === "" && index < srcLines.length - 1 && srcLines[index + 1].substring.trim() === "") {
+      if (skipHRs && index > 0 && srcLines[index - 1].substring.trim() === "" && index < srcLines.length - 1 && srcLines[index + 1].substring.trim() === "") {
         return false;
       }
       return true;
@@ -27679,7 +27679,7 @@ ${sourceContext}`;
     for (let i = 0; i < srcLines.length; ++i) {
       const line = srcLines[i];
       const directiveMatch = isBlockShortcode(line.substring);
-      if (isYamlDelimiter(line.substring, i) && !inCodeCell && !inCode && !inMathBlock) {
+      if (isYamlDelimiter(line.substring, i, !inYaml) && !inCodeCell && !inCode && !inMathBlock) {
         if (inYaml) {
           lineBuffer.push(line);
           await flushLineBuffer("raw", i);
