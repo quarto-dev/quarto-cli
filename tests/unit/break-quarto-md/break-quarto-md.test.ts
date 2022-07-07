@@ -127,3 +127,28 @@ Then some text.
   const cells = (await breakQuartoMd(qmd, false)).cells;
   assert(cells.length === 2);
 });
+
+unitTest("break-quarto-md - hr cells", async () => {
+  await initYamlIntelligenceResourcesFromFilesystem();
+  const qmd = `---
+title: "Untitled"
+format: html
+editor: visual
+keep-md: true
+---
+
+
+Hello, an hr.
+
+---
+
+Hello, another thing.
+
+---
+
+And what about this?
+`;
+
+  const cells = (await breakQuartoMd(qmd, false)).cells;
+  assert(cells.length <= 2 || cells[2].cell_type === "markdown");
+});
