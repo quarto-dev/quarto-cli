@@ -88,7 +88,8 @@ async function outputExtensions(
       }
 
       if (
-        extension.contributes.formats
+        extension.contributes.formats &&
+        Object.keys(extension.contributes.formats).length > 0
       ) {
         contribs.push("formats");
       }
@@ -104,7 +105,7 @@ async function outputExtensions(
       extensionEntries.push(row);
     });
 
-    const table = new Table().header(["Id", "Version", "Type"]).body(
+    const table = new Table().header(["Id", "Version", "Contributes"]).body(
       extensionEntries,
     ).padding(4);
     info(table.toString());
