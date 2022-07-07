@@ -31,15 +31,9 @@ export class QuartoPubClient {
         this.baseURL_ = "http://localhost:3000/api/v1";
         break;
 
-      case "DEV":
-        this.baseURL_ = "https://quartodev.pub/api/v1";
-        break;
-
       case "PRODUCTION":
       default:
-        // TODO: Eventually this will point to the live site, when we know the domain.
-        // For now, it points to the DEV environment.
-        this.baseURL_ = "https://quartopub.org/api/v1";
+        this.baseURL_ = "https://quartopub.com/api/v1";
         break;
     }
   }
