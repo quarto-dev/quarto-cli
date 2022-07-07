@@ -40,22 +40,22 @@ export function anonymousAccount(): AccountToken {
 }
 
 const kPublishProviders = [
-  netlifyProvider,
-  ghpagesProvider,
   quartoPubProvider,
+  ghpagesProvider,
   rsconnectProvider,
+  netlifyProvider,
 ];
 
 export async function publishProviders() {
   const providers: Array<PublishProvider> = [];
-  providers.push(netlifyProvider);
-  providers.push(ghpagesProvider);
   const dotenvConfig = await quartoConfig.dotenv();
   const quartopubAppId = dotenvConfig["QUARTO_PUB_APP_CLIENT_ID"];
   if (quartopubAppId && quartopubAppId !== "None") {
     providers.push(quartoPubProvider);
   }
+  providers.push(ghpagesProvider);
   providers.push(rsconnectProvider);
+  providers.push(netlifyProvider);
   return providers;
 }
 

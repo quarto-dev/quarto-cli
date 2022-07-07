@@ -47,9 +47,10 @@ export const publishCommand =
     .hidden()
     .description(
       "Publish a document or project. Available providers include:\n\n" +
-        " - Netlify (netlify)\n" +
+        " - Quarto Pub (quarto-pub)\n" +
         " - GitHub Pages (gh-pages)\n" +
         " - RStudio Connect (connect)\n\n" +
+        " - Netlify (netlify)\n" +
         "Accounts are configured interactively during publishing.\n" +
         "Manage/remove accounts with: quarto publish accounts",
     )
