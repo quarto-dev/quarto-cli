@@ -257,6 +257,7 @@ section.has-dark-background {
 
 .reveal .column-output-location .column:first-of-type div.sourceCode {
   height: 100%;
+  background-color: $code-block-bg;
 }
 
 .reveal blockquote {
