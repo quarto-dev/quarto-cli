@@ -13,8 +13,8 @@ appendix-attribution-cite-as: "Veuillez citer ce travail comme suit :"
 
 title-block-author-single: "Auteur"
 title-block-author-plural: "Auteurs"
-title-block-affiliation-single: "Association"
-title-block-affiliation-plural: "Les associations"
+title-block-affiliation-single: "Affiliation"
+title-block-affiliation-plural: "Affiliations"
 title-block-published: "Date de publication"
 
 callout-tip-caption: "Astuce"
@@ -26,8 +26,8 @@ callout-caution-caption: "Mise en garde"
 code-summary: "Code"
 
 code-tools-menu-caption: "Code"
-code-tools-show-all-code: "Montrer tous les codes"
-code-tools-hide-all-code: "Cacher tous les codes"
+code-tools-show-all-code: "Montrer tout le code"
+code-tools-hide-all-code: "Cacher tout le code"
 code-tools-view-source: "Voir les sources"
 code-tools-source-code: "Code source"
 
