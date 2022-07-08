@@ -66,6 +66,7 @@ export interface PublishHandler<
   createDeploy: (
     siteId: string,
     files: Record<string, string>,
+    size: number,
   ) => Promise<Deploy>;
   getDeploy: (deployId: string) => Promise<Deploy>;
   uploadDeployFile: (
@@ -132,12 +133,12 @@ export async function handlePublish<
     message: `Preparing to publish ${type}`,
   }, async () => {
     const textDecoder = new TextDecoder();
+    let size = 0;
     for (const file of publishFiles.files) {
       const filePath = publishFilePath(file);
-      const sha1 = await crypto.subtle.digest(
-        "SHA-1",
-        Deno.readFileSync(filePath),
-      );
+      const fileBuffer = Deno.readFileSync(filePath);
+      size = size + fileBuffer.byteLength;
+      const sha1 = await crypto.subtle.digest("SHA-1", fileBuffer);
       const encodedSha1 = hexEncode(new Uint8Array(sha1));
       files.push([file, textDecoder.decode(encodedSha1)]);
     }
@@ -149,7 +150,11 @@ export async function handlePublish<
     for (const file of files) {
       deploy.files[`/${file[0]}`] = file[1];
     }
-    siteDeploy = await handler.createDeploy(target!.id, deploy.files);
+    siteDeploy = await handler.createDeploy(
+      target!.id,
+      deploy.files,
+      size,
+    );
 
     // wait for it to be ready
     while (true) {

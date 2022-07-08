@@ -79,8 +79,17 @@ export class QuartoPubClient {
   public createDeploy = (
     siteId: string,
     files: Record<string, string>,
-  ): Promise<PublishDeploy> =>
-    this.fetchJSON("POST", `sites/${siteId}/deploys`, JSON.stringify(files));
+    size: number,
+  ): Promise<PublishDeploy> => {
+    return this.fetchJSON(
+      "POST",
+      `sites/${siteId}/deploys`,
+      JSON.stringify({
+        size,
+        files,
+      }),
+    );
+  };
 
   // Gets a deploy.
   public getDeploy = (deployId: string): Promise<PublishDeploy> =>
