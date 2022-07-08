@@ -69,7 +69,7 @@ function transformShortcodeCode(el)
     else
       -- see if any of the shortcode handlers want it (and transform results to plain text)
       local inlines = markdownToInlines(kOpenShortcode .. code .. kCloseShortcode)
-      local transformed = transformShortcodeInlines(inlines, true)
+      local transformed = transformShortcodeInlines(inlines)
       if transformed ~= nil then
         return inlinesToString(transformed)
       else
@@ -173,7 +173,7 @@ function callShortcodeHandler(handler, shortCode)
 end
 
 -- scans through a list of inlines, finds shortcodes, and processes them
-function transformShortcodeInlines(inlines, noRawInlines) 
+function transformShortcodeInlines(inlines) 
   local transformed = false
   local outputInlines = pandoc.List()
   local shortcodeInlines = pandoc.List()
@@ -239,7 +239,7 @@ function transformShortcodeInlines(inlines, noRawInlines)
           if expanded ~= nil then
             -- process recursively
             expanded = shortcodeResultAsInlines(expanded, shortCode.name)
-            local expandedAgain = transformShortcodeInlines(expanded, noRawInlines)
+            local expandedAgain = transformShortcodeInlines(expanded)
             if (expandedAgain ~= nil) then
               tappend(accum, expandedAgain)
             else
@@ -247,11 +247,7 @@ function transformShortcodeInlines(inlines, noRawInlines)
             end
           end
         else
-          if noRawInlines then
-            tappend(accum, shortcodeInlines)
-          else
-            accum:insert(pandoc.RawInline("markdown", inlinesToString(shortcodeInlines)))
-          end
+          accum:insert(pandoc.RawInline("markdown", inlinesToString(shortcodeInlines)))
         end
 
         local suffix = el.text:sub(#kCloseShortcode + 1)
