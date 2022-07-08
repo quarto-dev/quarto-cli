@@ -28,11 +28,23 @@ body:
     attributes:
       label: "`quarto check` Output"
       description: Paste the output of `quarto check`.
+      placeholder: |
+        Place the result in code block syntax for better readability
 
-  - type: textarea
+        ```bash
+        <insert quarto check result here>
+        ```
+
+- type: textarea
     attributes:
       label: "`quarto tools check` Output"
       description: Paste the output of `quarto tools check`.
+      placeholder: |
+        Place the result in code block syntax for better readability
+
+        ```bash
+        <insert quarto tools check result here>
+        ```
 
   - type: checkboxes
     attributes:
