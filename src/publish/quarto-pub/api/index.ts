@@ -192,7 +192,8 @@ export class QuartoPubClient {
 
     // If the response was not OK, throw an ApiError.
     if (!response.ok) {
-      throw new ApiError(response.status, response.statusText);
+      const description = await descriptionFromErrorResponse(response);
+      throw new ApiError(response.status, description || response.statusText);
     }
 
     // Return the result.
@@ -265,4 +266,18 @@ export class QuartoPubClient {
 
   // Creates a URL.
   private createURL = (path: string) => `${this.baseURL_}/${path}`;
+}
+
+async function descriptionFromErrorResponse(response: Response) {
+  // if there is a body, see if its a quarto pub error w/ description
+  if (response.body) {
+    try {
+      const result = await response.json();
+      if (typeof (result.description) === "string") {
+        return result.description;
+      }
+    } catch {
+      //
+    }
+  }
 }
