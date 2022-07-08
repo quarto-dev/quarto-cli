@@ -255,8 +255,16 @@ export async function renderProject(
   );
 
   if (outputDirAbsolute) {
+    const handledDirs: string[] = [];
     // move or copy dir
     const relocateDir = (dir: string, copy = false) => {
+      // ignore directories if they're prefixes of
+      // previously-handled directories
+      if (handledDirs.some((prevDir) => dir.startsWith(prevDir))) {
+        console.log(`Skipping ${dir}.`);
+        return;
+      }
+      handledDirs.push(dir);
       const targetDir = join(outputDirAbsolute, dir);
       if (existsSync(targetDir)) {
         Deno.removeSync(targetDir, { recursive: true });
