@@ -10,7 +10,7 @@ import {
   extensionSource,
 } from "../../../extension/extension-host.ts";
 import { info } from "log/mod.ts";
-import { Confirm, Input, Select } from "cliffy/prompt/mod.ts";
+import { Confirm, Input } from "cliffy/prompt/mod.ts";
 import { basename, dirname, join, relative } from "path/mod.ts";
 import { ensureDir, ensureDirSync, existsSync } from "fs/mod.ts";
 import { TempContext } from "../../../core/temp-types.ts";
@@ -18,7 +18,6 @@ import { downloadWithProgress } from "../../../core/download.ts";
 import { withSpinner } from "../../../core/console.ts";
 import { unzip } from "../../../core/zip.ts";
 import { templateFiles } from "../../../extension/template.ts";
-import { kExtensionDir } from "../../../extension/extension-shared.ts";
 import { Command } from "cliffy/command/mod.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../../core/schema/utils.ts";
 import { createTempContext } from "../../../core/temp.ts";
