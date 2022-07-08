@@ -177,7 +177,7 @@ export async function runPandoc(
   const cwd = dirname(options.source);
 
   // build the pandoc command (we'll feed it the input on stdin)
-  const cmd = [pandocBinaryPath()];
+  const cmd = [pandocBinaryPath(), "+RTS", "-K512m", "-RTS"];
 
   // build command line args
   const args = [...options.args];
