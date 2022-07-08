@@ -34,9 +34,9 @@ testRender(input, "html", false, [{
 }, {
   name: "manual cleanup for book project",
   verify: (_outputs: ExecuteOutput[]): Promise<void> => {
-    /*Deno.removeSync(output, { recursive: true });
+    Deno.removeSync(output, { recursive: true });
     Deno.removeSync(join(input, ".quarto"), { recursive: true });
-    Deno.removeSync(join(input, ".gitignore"));*/
+    Deno.removeSync(join(input, ".gitignore"));
 
     return Promise.resolve();
   },
