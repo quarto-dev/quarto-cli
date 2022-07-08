@@ -71,7 +71,20 @@ function transformShortcodeCode(el)
       local inlines = markdownToInlines(kOpenShortcode .. code .. kCloseShortcode)
       local transformed = transformShortcodeInlines(inlines, true)
       if transformed ~= nil then
-        return inlinesToString(transformed)
+        -- need to undo fancy quotes
+        local str = ''
+        for _,inline in ipairs(transformed) do
+          if inline.t == "Quoted" then
+            local quote = '"'
+            if inline.quotetype == "SingleQuote" then
+              quote = "'"
+            end
+            str = str .. quote .. inlinesToString(inline.content) .. quote
+          else
+            str = str .. pandoc.utils.stringify(inline)
+          end
+        end
+        return str
       else
         return beginCode .. code .. endCode
       end
