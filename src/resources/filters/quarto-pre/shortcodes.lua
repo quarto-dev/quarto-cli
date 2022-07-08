@@ -198,16 +198,26 @@ function transformShortcodeInlines(inlines, noRawInlines)
     if el.t == "Str" then 
 
       -- find escaped shortcodes
-      local beginEscapeMatch = el.text:match("^%{%{%{+<")
-      local endEscapeMatch = el.text:match(">%}%}%}+$")
-     
-      -- handle shocrtcode escape -- e.g. {{{< >}}}
+      local beginEscapeMatch = el.text:match("%{%{%{+<$")
+      local endEscapeMatch = el.text:match("^>%}%}%}+")
+
+      -- handle {{{< shortcode escape
       if beginEscapeMatch then
         transformed = true
+        local prefixLen = #el.text - #beginEscapeMatch
+        if prefixLen > 0 then
+          accum:insert(pandoc.Str(el.text:sub(1, prefixLen)))
+        end
         accum:insert(pandoc.Str(beginEscapeMatch:sub(2)))
+        
+      -- handle >}}} shortcode escape
       elseif endEscapeMatch then
         transformed = true
-        accum:insert(endEscapeMatch:sub(1, #endEscapeMatch-1))
+        local suffixLen = #el.text - #endEscapeMatch
+        accum:insert(pandoc.Str(endEscapeMatch:sub(1, #endEscapeMatch-1)))
+        if suffixLen > 0 then
+          accum:insert(pandoc.Str(el.text:sub(#endEscapeMatch + 1)))
+        end
 
       -- handle shortcode escape -- e.g. {{</* shortcode_name */>}}
       elseif endsWith(el.text, kOpenShortcode .. kOpenShortcodeEscape) then
