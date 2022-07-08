@@ -35,7 +35,7 @@ body:
         <insert quarto check result here>
         ```
 
-- type: textarea
+  - type: textarea
     attributes:
       label: "`quarto tools check` Output"
       description: Paste the output of `quarto tools check`.
