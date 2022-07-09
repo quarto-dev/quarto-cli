@@ -419,13 +419,6 @@ export async function renderFiles(
             );
           resourceFiles.push(...ojsResourceFiles);
 
-          // now that all execution is done and supportign files have been
-          // contributed, normalize the supporting files so there is no overlap
-          executeResult.supporting = normalizeSupporting(
-            context.target.source,
-            executeResult.supporting,
-          );
-
           // keep md if requested
           const keepMd = executionEngineKeepMd(context.target.input);
           if (keepMd && context.format.execute[kKeepMd]) {
@@ -494,28 +487,4 @@ class RenderInvalidYAMLError extends YAMLValidationError {
   constructor() {
     super("Render failed due to invalid YAML.");
   }
-}
-
-function normalizeSupporting(source: string, supporting: string[]): string[] {
-  // first ensure all paths are absolute and normalized
-  const dir = dirname(source);
-  supporting = supporting.map((file) =>
-    isAbsolute(file) ? file : join(dir, file)
-  );
-
-  // filter on existence
-  supporting = supporting.filter(existsSync);
-
-  // any file that is within another dir in the list is removed
-  const parentDirs = supporting.filter((file) =>
-    Deno.statSync(file).isDirectory
-  );
-  supporting = supporting.filter((file) =>
-    !parentDirs.some((parentDir) =>
-      file.startsWith(parentDir) && file !== parentDir
-    )
-  );
-
-  // now de-dupe and make all paths relative
-  return ld.uniq(supporting.map((file) => relative(dir, file)));
 }

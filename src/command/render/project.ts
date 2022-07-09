@@ -294,6 +294,12 @@ export async function renderProject(
         renderedFile.supporting = renderedFile.supporting.filter((file) =>
           file !== libDir
         );
+        // ensure that we don't have overlapping paths in supporting
+        renderedFile.supporting = renderedFile.supporting.filter((file) => {
+          return !renderedFile.supporting!.some((dir) =>
+            file.startsWith(dir) && file !== dir
+          );
+        });
         if (keepFiles) {
           renderedFile.supporting.map((file) => copyDir(file));
         } else {
