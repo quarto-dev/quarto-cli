@@ -18,7 +18,6 @@ import {
 import { installTool } from "../../tools/tools.ts";
 
 export const installCommand = new Command()
-  .hidden()
   .name("install")
   .arguments("<type:string> [target:string]")
   .option(

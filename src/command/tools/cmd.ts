@@ -6,22 +6,12 @@
 */
 
 import { Command } from "cliffy/command/mod.ts";
-import { Confirm } from "cliffy/prompt/mod.ts";
-import { info } from "log/mod.ts";
 import {
   outputTools,
   removeTool,
   updateOrInstallTool,
 } from "../../tools/tools-console.ts";
-import {
-  installableTools,
-  installTool,
-  printToolInfo,
-  toolSummary,
-  uninstallTool,
-  updateTool,
-} from "../../tools/tools.ts";
-import { ToolSummaryData } from "../../tools/types.ts";
+import { installableTools, printToolInfo } from "../../tools/tools.ts";
 
 // quarto tools install tinytex
 // quarto tools uninstall tinytex
@@ -30,6 +20,7 @@ import { ToolSummaryData } from "../../tools/types.ts";
 // The quarto install command
 export const toolsCommand = new Command()
   .name("tools")
+  .hidden()
   .arguments("<command:string> [tool:string]")
   .description(
     `Installation and update of ancillary tools.

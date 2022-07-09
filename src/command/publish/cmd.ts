@@ -44,7 +44,6 @@ export const publishCommand =
   // deno-lint-ignore no-explicit-any
   new Command<any>()
     .name("publish")
-    .hidden()
     .description(
       "Publish a document or project. Available providers include:\n\n" +
         " - Netlify (netlify)\n" +
