@@ -203,7 +203,6 @@ mermaid.initialize();
           const m = defEl.innerHTML.match(/id="([^\"]+)"/);
           if (m) {
             const id = m[1];
-            console.log("Will try to patch", id);
             idsToPatch.push(id);
           }
         }
@@ -328,7 +327,6 @@ mermaid.initialize();
 
       const attrs: Record<string, unknown> = {};
       if (isRevealjsOutput(handlerContext.options.context.format.pandoc)) {
-        console.log("Setting reveal to true");
         attrs.reveal = true;
       }
 

@@ -1,0 +1,16 @@
+project:
+  type: book
+
+book:
+  title: "btest"
+  author: "Jane Doe"
+  date: "7/7/2022"
+  chapters:
+    - index.qmd
+
+format:
+  html:
+    theme: cosmo
+
+
+
