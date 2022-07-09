@@ -5,8 +5,6 @@
 *
 */
 
-import { existsSync } from "fs/exists.ts";
-
 // ensures cell handlers are installed
 import "../../core/handlers/handlers.ts";
 
@@ -58,7 +56,7 @@ import {
 } from "./types.ts";
 import { error, info } from "log/mod.ts";
 import * as ld from "../../core/lodash.ts";
-import { basename, dirname, isAbsolute, join, relative } from "path/mod.ts";
+import { basename, dirname, join, relative } from "path/mod.ts";
 import { Format } from "../../config/types.ts";
 import { figuresDir, inputFilesDir } from "../../core/render.ts";
 import { removeIfEmptyDir, removeIfExists } from "../../core/path.ts";
