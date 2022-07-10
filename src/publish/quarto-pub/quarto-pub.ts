@@ -160,8 +160,11 @@ function publish(
     createSite: (type: string, title: string, slug: string) =>
       client.createSite(type, title, slug),
 
-    createDeploy: (siteId: string, files: Record<string, string>) =>
-      client.createDeploy(siteId, files),
+    createDeploy: (
+      siteId: string,
+      files: Record<string, string>,
+      size: number,
+    ) => client.createDeploy(siteId, files, size),
 
     getDeploy: (deployId: string) => client.getDeploy(deployId),
 

@@ -69,9 +69,22 @@ function transformShortcodeCode(el)
     else
       -- see if any of the shortcode handlers want it (and transform results to plain text)
       local inlines = markdownToInlines(kOpenShortcode .. code .. kCloseShortcode)
-      local transformed = transformShortcodeInlines(inlines)
+      local transformed = transformShortcodeInlines(inlines, true)
       if transformed ~= nil then
-        return inlinesToString(transformed)
+        -- need to undo fancy quotes
+        local str = ''
+        for _,inline in ipairs(transformed) do
+          if inline.t == "Quoted" then
+            local quote = '"'
+            if inline.quotetype == "SingleQuote" then
+              quote = "'"
+            end
+            str = str .. quote .. inlinesToString(inline.content) .. quote
+          else
+            str = str .. pandoc.utils.stringify(inline)
+          end
+        end
+        return str
       else
         return beginCode .. code .. endCode
       end
@@ -173,7 +186,7 @@ function callShortcodeHandler(handler, shortCode)
 end
 
 -- scans through a list of inlines, finds shortcodes, and processes them
-function transformShortcodeInlines(inlines) 
+function transformShortcodeInlines(inlines, noRawInlines) 
   local transformed = false
   local outputInlines = pandoc.List()
   local shortcodeInlines = pandoc.List()
@@ -185,16 +198,26 @@ function transformShortcodeInlines(inlines)
     if el.t == "Str" then 
 
       -- find escaped shortcodes
-      local beginEscapeMatch = el.text:match("^%{%{%{+<")
-      local endEscapeMatch = el.text:match(">%}%}%}+$")
-     
-      -- handle shocrtcode escape -- e.g. {{{< >}}}
+      local beginEscapeMatch = el.text:match("%{%{%{+<$")
+      local endEscapeMatch = el.text:match("^>%}%}%}+")
+
+      -- handle {{{< shortcode escape
       if beginEscapeMatch then
         transformed = true
+        local prefixLen = #el.text - #beginEscapeMatch
+        if prefixLen > 0 then
+          accum:insert(pandoc.Str(el.text:sub(1, prefixLen)))
+        end
         accum:insert(pandoc.Str(beginEscapeMatch:sub(2)))
+        
+      -- handle >}}} shortcode escape
       elseif endEscapeMatch then
         transformed = true
-        accum:insert(endEscapeMatch:sub(1, #endEscapeMatch-1))
+        local suffixLen = #el.text - #endEscapeMatch
+        accum:insert(pandoc.Str(endEscapeMatch:sub(1, #endEscapeMatch-1)))
+        if suffixLen > 0 then
+          accum:insert(pandoc.Str(el.text:sub(#endEscapeMatch + 1)))
+        end
 
       -- handle shortcode escape -- e.g. {{</* shortcode_name */>}}
       elseif endsWith(el.text, kOpenShortcode .. kOpenShortcodeEscape) then
@@ -239,7 +262,7 @@ function transformShortcodeInlines(inlines)
           if expanded ~= nil then
             -- process recursively
             expanded = shortcodeResultAsInlines(expanded, shortCode.name)
-            local expandedAgain = transformShortcodeInlines(expanded)
+            local expandedAgain = transformShortcodeInlines(expanded, noRawInlines)
             if (expandedAgain ~= nil) then
               tappend(accum, expandedAgain)
             else
@@ -247,7 +270,11 @@ function transformShortcodeInlines(inlines)
             end
           end
         else
-          accum:insert(pandoc.RawInline("markdown", inlinesToString(shortcodeInlines)))
+          if noRawInlines then
+            tappend(accum, shortcodeInlines)
+          else
+            accum:insert(pandoc.RawInline("markdown", inlinesToString(shortcodeInlines)))
+          end
         end
 
         local suffix = el.text:sub(#kCloseShortcode + 1)

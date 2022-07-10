@@ -1,3 +1,4 @@
+
 ------------------------------------------------------------------------------------------------------------------------------
 -- Module: utf8_filenames
 ------------------------------------------------------------------------------------------------------------------------------
@@ -1287,19 +1288,6 @@ local json = require '_json'
 local utils = require '_utils'
 
 
--- does the table contain a value
-local function tcontains(t,value)
-   if t and type(t)=="table" and value then
-     for _, v in ipairs (t) do
-       if v == value then
-         return true
-       end
-     end
-     return false
-   end
-   return false
- end
- 
 -- determines whether a path is a relative path
 local function isRelativeRef(ref)
   return ref:find("^/") == nil and 
@@ -1408,7 +1396,7 @@ local function processTextDependency(dependency, meta)
    if meta[textLoc] == nil then
       meta[textLoc] = {}
    end
-   meta[textLoc]:insert(rawText.text)
+   meta[textLoc]:insert(pandoc.RawBlock(FORMAT, rawText.text))
  end
 
  -- make the usePackage statement
@@ -1452,17 +1440,17 @@ local function processDependencies(meta)
   for line in io.lines(dependenciesFile) do 
     local dependency = json.decode(line)
     if dependency.type == 'text' then
-      if not tcontains(injectedText, dependency.content) then
+      if not utils.table.contains(injectedText, dependency.content) then
          processTextDependency(dependency, meta)
          injectedText[#injectedText + 1] = dependency.content   
       end
     elseif dependency.type == "file" then
-      if not tcontains(injectedFile, dependency.content.path) then
+      if not utils.table.contains(injectedFile, dependency.content.path) then
          processFileDependency(dependency, meta)
          injectedFile[#injectedFile + 1] = dependency.content.path
       end
     elseif dependency.type == "usepackage" then
-      if not tcontains(injectedPackage, dependency.content.package) then
+      if not utils.table.contains(injectedPackage, dependency.content.package) then
          processUsePackageDependency(dependency, meta)
          injectedPackage[#injectedPackage + 1] = dependency.content.package
       end
@@ -1492,6 +1480,41 @@ local function resolveDependencyLinkTags(linkTags)
       return nil
    end
 end
+
+-- Convert depedency files which may be just a string (path) or
+-- incomplete objects into valid file dependencies
+local function resolveFileDependencies(name, dependencyFiles)
+   if dependencyFiles ~= nil then
+ 
+    -- make sure this is an array
+     if type(dependencyFiles) ~= "table" or not utils.table.isarray(dependencyFiles) then
+       error("Invalid HTML Dependency: " .. name .. " property must be an array")
+     end
+ 
+     local finalDependencies = {}
+     for i, v in ipairs(dependencyFiles) do
+       if type(v) == "table" then
+             -- fill in the name, if one is not provided
+             if v.name == nil then
+                v.name = pandoc.path.filename(v.path)
+             end
+             finalDependencies[i] = v
+       elseif type(v) == "string" then
+             -- turn a string into a name and path
+             finalDependencies[i] = {
+                name = pandoc.path.filename(v),
+                path = v
+             }
+       else
+             -- who knows what this is!
+             error("Invalid HTML Dependency: " .. name .. " property contains an unexpected type.")
+       end
+     end
+     return finalDependencies
+   else
+     return nil
+   end
+ end
 
 local latexTableWithOptionsPattern = "(\\begin{table}%[%w+%])(.*)(\\end{table})"
 local latexTablePattern = "(\\begin{table})(.*)(\\end{table})"
@@ -1561,13 +1584,11 @@ quarto = {
   },
   doc = {
     addHtmlDependency = function(htmlDependency)
-      
-
+   
       -- validate the dependency
       if htmlDependency.name == nil then 
          error("HTML dependencies must include a name")
       end
-
 
       if htmlDependency.meta == nil and 
          htmlDependency.links == nil and 
@@ -1577,6 +1598,33 @@ quarto = {
          htmlDependency.head == nil then
          error("HTML dependencies must include at least one of meta, links, scripts, stylesheets, or resources. All appear empty.")
       end
+
+      -- validate that the meta is as expected
+      if htmlDependency.meta ~= nil then
+         if type(htmlDependency.meta) ~= 'table' then
+               error("Invalid HTML Dependency: meta value must be a table")
+         elseif utils.table.isarray(htmlDependency.meta) then
+               error("Invalid HTML Dependency: meta value must must not be an array")
+         end
+      end
+
+      -- validate link tags
+      if htmlDependency.links ~= nil then
+         if type(htmlDependency.links) ~= 'table' or not utils.table.isarray(htmlDependency.links) then
+            error("Invalid HTML Dependency: links must be an array")
+         else 
+            for i, v in ipairs(htmlDependency.links) do
+               if type(v) ~= "table" or (v.href == nil or v.rel == nil) then
+                 error("Invalid HTML Dependency: each link must be a table containing both rel and href properties.")
+               end
+            end
+         end
+      end
+   
+      -- resolve names so they aren't required
+      htmlDependency.scripts = resolveFileDependencies("scripts", htmlDependency.scripts)
+      htmlDependency.stylesheets = resolveFileDependencies("stylesheets", htmlDependency.stylesheets)
+      htmlDependency.resources = resolveFileDependencies("resources", htmlDependency.resources)
 
       -- pass the dependency through to the file
       writeToDependencyFile(dependency("html", {

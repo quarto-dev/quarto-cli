@@ -239,9 +239,7 @@ function siteRepoUrl(site: Metadata) {
   const branch = site[kSiteRepoBranch] || "main";
   if (site[kSiteRepoSubdir]) {
     const subdir = ensureTrailingSlash(site[kSiteRepoSubdir] as string);
-    return pathWithForwardSlashes(
-      join(repoUrl, `tree/${branch}/${subdir}`),
-    );
+    return `${ensureTrailingSlash(repoUrl)}tree/${branch}/${subdir}`;
   } else {
     return repoUrl;
   }
