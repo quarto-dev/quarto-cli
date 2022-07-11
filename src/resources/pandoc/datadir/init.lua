@@ -1572,16 +1572,6 @@ _quarto = {
 
 -- The main exports of the quarto module
 quarto = {
-  render = {
-   citeMethod = function() 
-      local citeMethod = param('cite-method', 'citeproc')
-      return citeMethod
-    end,
-    pdfEngine = function() 
-      local engine = param('pdf-engine', 'pdflatex')
-      return engine      
-    end
-  },
   doc = {
     addHtmlDependency = function(htmlDependency)
    
@@ -1656,13 +1646,20 @@ quarto = {
       writeToDependencyFile(dependency("file", { path = resolvePathExt(path), location = resolveLocation(location)}))
     end,
 
-    isFormat = format.isFormat
-  },
-  path = {
-   resolve = resolvePathExt
+    isFormat = format.isFormat,
+
+    citeMethod = function() 
+      local citeMethod = param('cite-method', 'citeproc')
+      return citeMethod
+    end,
+    pdfEngine = function() 
+      local engine = param('pdf-engine', 'pdflatex')
+      return engine      
+    end
   },
   utils = {
-   dump = utils.dump
+   dump = utils.dump,
+   resolvePath = resolvePathExt
   },
   json = json,
 }
