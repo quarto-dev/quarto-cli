@@ -3,6 +3,25 @@
 
 window.document.addEventListener("DOMContentLoaded", function (event) {
 
+
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+
+  const toggleBodyColorPrimary = () => {
+    toggleBodyColorMode(window.document.querySelector("link#quarto-bootstrap"));
+  }
+
+  
+
   <% if (darkMode !== undefined) { %> 
 
   const disableStylesheet = (stylesheets) => {
@@ -37,8 +56,14 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     manageTransitions('#quarto-margin-sidebar .nav-link', false);
     if (alternate) {
       enableStylesheet(alternateStylesheets);
+      for (const sheetNode of alternateStylesheets) {
+        if (sheetNode.id === "quarto-bootstrap") {
+          toggleBodyColorMode(sheetNode);
+        }
+      }
     } else {
       disableStylesheet(alternateStylesheets);
+      toggleBodyColorPrimary();
     }
     manageTransitions('#quarto-margin-sidebar .nav-link', true);
 

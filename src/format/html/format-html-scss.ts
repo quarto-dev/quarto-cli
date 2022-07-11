@@ -114,6 +114,7 @@ function layerQuartoScss(
         default: darkDefault,
       }
       : undefined,
+    attribs: { id: "quarto-bootstrap" },
   };
 }
 
