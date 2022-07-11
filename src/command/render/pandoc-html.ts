@@ -125,7 +125,20 @@ export async function resolveSassBundles(
       let cssPath = await compileSass(target.bundles, temp);
 
       // look for a sentinel 'dark' value, extract variables
-      cssPath = processCssIntoExtras(cssPath, extras, temp);
+      const cssResult = processCssIntoExtras(cssPath, extras, temp);
+      cssPath = cssResult.path;
+
+      // Process attributes (forward on to the target)
+      for (const bundle of target.bundles) {
+        if (bundle.attribs) {
+          for (const key of Object.keys(bundle.attribs)) {
+            if (target.attribs[key] === undefined) {
+              target.attribs[key] = bundle.attribs[key];
+            }
+          }
+        }
+      }
+      target.attribs["data-mode"] = cssResult.dark ? "dark" : "light";
 
       // Find any imported stylesheets or url references
       // (These could come from user scss that is merged into our theme, for example)
@@ -387,17 +400,23 @@ function generateThemeCssClasses(
   return undefined;
 }
 
+interface CSSResult {
+  path: string;
+  dark: boolean;
+}
+
 // Processes CSS into format extras (scanning for variables and removing them)
 function processCssIntoExtras(
   cssPath: string,
   extras: FormatExtras,
   temp: TempContext,
-) {
+): CSSResult {
   extras.html = extras.html || {};
   const css = Deno.readTextFileSync(cssPath);
 
   // Extract dark sentinel value
-  if (!extras.html[kTextHighlightingMode] && cssHasDarkModeSentinel(css)) {
+  const hasDarkSentinel = cssHasDarkModeSentinel(css);
+  if (!extras.html[kTextHighlightingMode] && hasDarkSentinel) {
     setTextHighlightStyle("dark", extras);
   }
 
@@ -440,10 +459,16 @@ function processCssIntoExtras(
         Deno.writeTextFileSync(newCssPath, cleanedCss);
       }
 
-      return newCssPath;
+      return {
+        dark: hasDarkSentinel,
+        path: newCssPath,
+      };
     }
   }
-  return cssPath;
+  return {
+    dark: hasDarkSentinel,
+    path: cssPath,
+  };
 }
 const kVariablesRegex =
   /\/\*\! quarto-variables-start \*\/([\S\s]*)\/\*\! quarto-variables-end \*\//g;
