@@ -60,6 +60,7 @@ import { readCodePage } from "../../core/windows.ts";
 import { authorsFilter, authorsFilterActive } from "./authors.ts";
 import { extensionIdString } from "../../extension/extension-shared.ts";
 import { warning } from "log/mod.ts";
+import { formatHasBootstrap } from "../../format/html/format-html-info.ts";
 
 const kQuartoParams = "quarto-params";
 
@@ -68,6 +69,8 @@ const kProjectOffset = "project-offset";
 const kMediabagDir = "mediabag-dir";
 
 const kResultsFile = "results-file";
+
+const kHasBootstrap = "has-bootstrap";
 
 export function filterParamsJson(
   args: string[],
@@ -465,6 +468,7 @@ function quartoFilterParams(
   // Provide other params that may be useful to filters
   params[kCiteMethod] = citeMethod(options);
   params[kPdfEngine] = pdfEngine(options);
+  params[kHasBootstrap] = formatHasBootstrap(options.format);
 
   return params;
 }

@@ -1655,6 +1655,10 @@ quarto = {
     pdfEngine = function() 
       local engine = param('pdf-engine', 'pdflatex')
       return engine      
+    end,
+    hasBootstrap = function() 
+      local hasBootstrap = param('has-bootstrap', false)
+      return hasBootstrap
     end
   },
   utils = {
