@@ -213,6 +213,7 @@ export function revealjsFormat() {
                   format,
                   extraConfig,
                   revealPluginData.pluginInit,
+                  theme["text-highlighting-mode"],
                 ),
               ],
               [kMarkdownAfterBody]: [revealMarkdownAfterBody(format)],
@@ -324,8 +325,12 @@ function revealHtmlPostprocessor(
     register: string[];
     revealConfig: Record<string, unknown>;
   },
+  highlightingMode: "light" | "dark",
 ) {
   return (doc: Document): Promise<HtmlPostProcessResult> => {
+    // apply highlighting mode to body
+    doc.body.classList.add("quarto-" + highlightingMode);
+
     // determine if we are embedding footnotes on slides
     const slideFootnotes = format.pandoc[kReferenceLocation] !== "document";
 
