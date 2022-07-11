@@ -5,5 +5,6 @@ $text-muted: lighten($body-color, 30%) !default;
 
 // border colors
 $border-color: lighten($body-color, 30%) !default;
+$table-border-color: $border-color !default;
 $border-width: 1px !default;
 $border-radius: 4px !default;
