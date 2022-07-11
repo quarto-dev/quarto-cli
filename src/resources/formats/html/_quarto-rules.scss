@@ -486,3 +486,12 @@ div.ansi-escaped-output {
 .ansi-underline {
   text-decoration: underline;
 }
+
+:root {
+  --quarto-body-bg: #{$body-bg};
+  --quarto-body-color: #{$body-color};
+  --quarto-text-muted: #{$text-muted};
+  --quarto-border-color: #{$border-color};
+  --quarto-border-width: #{$border-width};
+  --quarto-border-radius: #{$border-radius};
+}

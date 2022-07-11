@@ -209,12 +209,19 @@ export const quartoBaseLayer = (
     uses: quartoUses(),
     defaults: [
       quartoDefaults(format),
+      quartoVariables(),
     ].join("\n"),
     functions: quartoFunctions(),
     mixins: "",
     rules: rules.join("\n"),
   };
 };
+
+export const quartoVariables = () =>
+  Deno.readTextFileSync(formatResourcePath(
+    "html",
+    "_quarto-variables.scss",
+  ));
 
 export const quartoUses = () =>
   Deno.readTextFileSync(formatResourcePath(
