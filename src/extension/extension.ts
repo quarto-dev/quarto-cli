@@ -30,6 +30,7 @@ import {
   kTitle,
   kVersion,
 } from "./extension-shared.ts";
+import { cloneDeep } from "../core/lodash.ts";
 
 // Create an extension context that can be used to load extensions
 // Provides caching such that directories will not be rescanned
@@ -78,6 +79,8 @@ export function createExtensionContext(): ExtensionContext {
 }
 
 // Loads all extensions for a given input
+// (note this needs to be sure to return copies from
+// the cache in the event that the objects are mutated)
 const loadExtensions = (
   input: string,
   cache: Record<string, Extension[]>,
@@ -89,24 +92,17 @@ const loadExtensions = (
   extensionPath.forEach((extensionDir) => {
     if (cache[extensionDir]) {
       cache[extensionDir].forEach((ext) => {
-        allExtensions[extensionIdString(ext.id)] = resolveExtensionPaths(
-          ext,
-          input,
-          project,
-        );
+        allExtensions[extensionIdString(ext.id)] = cloneDeep(ext);
       });
     } else {
       const extensions = readExtensions(extensionDir);
       extensions.forEach((extension) => {
-        allExtensions[extensionIdString(extension.id)] = resolveExtensionPaths(
-          extension,
-          input,
-          project,
-        );
+        allExtensions[extensionIdString(extension.id)] = cloneDeep(extension);
       });
       cache[extensionDir] = extensions;
     }
   });
+
   return allExtensions;
 };
 
