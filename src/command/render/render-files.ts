@@ -304,6 +304,7 @@ export async function renderFiles(
           dirname(context.target.source),
           context.libDir,
           tempContext,
+          project,
         );
         if (extras[kIncludeInHeader]) {
           executeResult.includes[kIncludeInHeader] = [

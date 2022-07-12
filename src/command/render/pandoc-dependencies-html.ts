@@ -5,7 +5,7 @@
 *
 */
 
-import { dirname, join } from "path/mod.ts";
+import { join } from "path/mod.ts";
 
 import * as ld from "../../core/lodash.ts";
 
@@ -24,6 +24,7 @@ import { TempContext } from "../../core/temp.ts";
 import { lines } from "../../core/lib/text.ts";
 import { copyResourceFile } from "../../project/project-resources.ts";
 import { copyFileIfNewer } from "../../core/copy.ts";
+import { ProjectContext } from "../../project/types.ts";
 
 export function writeDependencies(
   dependenciesFile: string,
@@ -51,6 +52,7 @@ export function readAndInjectDependencies(
   inputDir: string,
   libDir: string,
   doc: Document,
+  project?: ProjectContext,
 ) {
   const dependencyJsonStream = Deno.readTextFileSync(dependenciesFile);
   const htmlDependencies: FormatDependency[] = [];
@@ -65,7 +67,13 @@ export function readAndInjectDependencies(
 
   if (htmlDependencies.length > 0) {
     const injector = domDependencyInjector(doc);
-    processHtmlDependencies(htmlDependencies, inputDir, libDir, injector);
+    processHtmlDependencies(
+      htmlDependencies,
+      inputDir,
+      libDir,
+      injector,
+      project,
+    );
     // Finalize the injection
     injector.finalizeInjection();
   }
@@ -81,6 +89,7 @@ export function resolveDependencies(
   inputDir: string,
   libDir: string,
   temp: TempContext,
+  project: ProjectContext | undefined,
 ) {
   // deep copy to not mutate caller's object
   extras = ld.cloneDeep(extras);
@@ -95,6 +104,7 @@ export function resolveDependencies(
       inputDir,
       libDir,
       injector,
+      project,
     );
     // Finalize the injection
     injector.finalizeInjection();
@@ -158,6 +168,7 @@ function processHtmlDependencies(
   inputDir: string,
   libDir: string,
   injector: HtmlInjector,
+  project?: ProjectContext,
 ) {
   const copiedDependencies: string[] = [];
   for (const dependency of dependencies) {
@@ -176,6 +187,7 @@ function processHtmlDependencies(
       ? `${dependency.name}-${dependency.version}`
       : dependency.name;
     const targetDir = join(inputDir, targetLibDir, dir);
+    const rootDir = project?.dir || inputDir;
 
     const copyFile = (
       file: DependencyFile,
@@ -190,7 +202,7 @@ function processHtmlDependencies(
       // if this something that we're injecting, just copy it
       if (dependency.external) {
         copyResourceFile(
-          inputDir,
+          rootDir,
           file.path,
           targetPath,
         );
