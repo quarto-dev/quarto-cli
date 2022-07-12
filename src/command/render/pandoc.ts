@@ -1045,6 +1045,7 @@ async function resolveExtras(
         inputDir,
         libDir,
         doc,
+        project,
       );
     };
 
