@@ -166,11 +166,16 @@ function processHtmlDependencies(
       continue;
     }
 
+    // provide a format libs (i.e. freezer protected) scope for injected deps
+    const targetLibDir = dependency.external
+      ? join(libDir, "quarto-contrib")
+      : libDir;
+
     // Directory information for the dependency
     const dir = dependency.version
       ? `${dependency.name}-${dependency.version}`
       : dependency.name;
-    const targetDir = join(inputDir, libDir, dir);
+    const targetDir = join(inputDir, targetLibDir, dir);
 
     const copyFile = (
       file: DependencyFile,
@@ -193,7 +198,7 @@ function processHtmlDependencies(
         copyFileIfNewer(file.path, targetPath);
       }
 
-      const href = join(libDir, dir, file.name);
+      const href = join(targetLibDir, dir, file.name);
       if (inject) {
         inject(href, file.attribs, file.afterBody);
       }

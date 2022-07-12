@@ -18,7 +18,13 @@ export const defaultProjectType: ProjectType = {
   type: "default",
 
   formatLibDirs:
-    () => ["bootstrap", "quarto-html", "quarto-ojs", "quarto-diagram"],
+    () => [
+      "bootstrap",
+      "quarto-html",
+      "quarto-ojs",
+      "quarto-diagram",
+      "quarto-contrib",
+    ],
 
   create: (title: string): ProjectCreate => {
     const resourceDir = resourcePath(join("projects", "default"));
