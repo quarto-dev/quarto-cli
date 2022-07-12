@@ -141,6 +141,7 @@ import { resourcesFromMetadata } from "./resources.ts";
 import { resolveSassBundles } from "./pandoc-html.ts";
 import {
   cleanTemplatePartialMetadata,
+  kTemplatePartials,
   readPartials,
   stageTemplate,
 } from "./template.ts";
@@ -491,6 +492,9 @@ export async function runPandoc(
           partials,
         },
       );
+
+      // Clean out partials from metadata, they are not needed downstream
+      delete options.format.metadata[kTemplatePartials];
 
       allDefaults[kTemplate] = stagedTemplate;
     } else {
