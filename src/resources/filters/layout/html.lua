@@ -83,8 +83,7 @@ function htmlPanel(divEl, layout, caption)
     if hasFigureRef(divEl) then
       local captionPara = pandoc.Para({})
       -- apply alignment if we have it
-      local figcaption = "<figcaption aria-hidden=\"true\""
-      figcaption = figcaption .. ">"
+      local figcaption = "<figcaption>"
       captionPara.content:insert(pandoc.RawInline("html", figcaption))
       tappend(captionPara.content, caption.content)
       captionPara.content:insert(pandoc.RawInline("html", "</figcaption>"))
@@ -207,7 +206,7 @@ function renderHtmlFigure(el, render)
   if captionInlines and #captionInlines > 0 then
     local figureCaption = pandoc.Para({})
     figureCaption.content:insert(pandoc.RawInline(
-      "html", "<figcaption aria-hidden=\"true\">"
+      "html", "<figcaption>"
     ))
     tappend(figureCaption.content, captionInlines) 
     figureCaption.content:insert(pandoc.RawInline("html", "</figcaption>"))
