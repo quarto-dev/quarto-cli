@@ -1,0 +1,22 @@
+---
+title: "site"
+listing:
+  contents: posts
+  sort: "date desc"
+  type: default
+  categories: true
+  sort-ui: false
+  filter-ui: false
+page-layout: full
+title-block-banner: true
+---
+
+## Some font awesome
+
+{{< fa anchor >}} {{< fa bacteria >}} {{< fa jet-fighter >}}
+
+## A cool Image
+
+![This is the coolest thing I've ever seen.](profile.jpg){effect="none"}
+
+## Some listings

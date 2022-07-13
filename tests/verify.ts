@@ -17,6 +17,30 @@ import { outputForInput } from "./utils.ts";
 import { unzip } from "../src/core/zip.ts";
 import { dirAndStem } from "../src/core/path.ts";
 
+export const noErrors: Verify = {
+  name: "No Errors",
+  verify: (outputs: ExecuteOutput[]) => {
+    const isError = (output: ExecuteOutput) => {
+      return output.levelName.toLowerCase() === "error";
+    };
+
+    const errors = outputs.some(isError);
+
+    // Output an error or warning if it exists
+    if (errors) {
+      const messages = outputs.filter(isError).map((outputs) => outputs.msg)
+        .join("\n");
+
+      assert(
+        !errors,
+        `Errors During Execution\n|${messages}|`,
+      );
+    }
+
+    return Promise.resolve();
+  },
+};
+
 export const noErrorsOrWarnings: Verify = {
   name: "No Errors or Warnings",
   verify: (outputs: ExecuteOutput[]) => {

@@ -1,0 +1,37 @@
+title: Springer
+author: Charles Teague
+version: 0.1.0
+contributes:
+  format:
+    common:
+      # define below YAML configuration common to all formats
+      filters:
+        - filter.lua
+      shortcodes:
+        - shortcodes.lua
+      knitr:
+        opts_chunk:
+          echo: false
+      number-sections: true
+    pdf:
+      # define default configuration for the pdf version of your format
+      fig-width: 6.5
+      fig-height: 4.5
+      template-partials:
+        - partials/doc-class.tex
+        - partials/title.tex
+        - partials/before-body.tex
+        - partials/_print-author.tex
+        - partials/_print-affiliation.tex
+        - partials/_print-address.tex
+      shift-heading-level-by: -1
+      cite-method: natbib
+      biblio-config: false
+      format-resources:
+        - sn-jnl.cls
+      keep-tex: true
+
+    html:
+      # define default configuration for the html version of your format
+      toc: true
+      theme: custom.scss

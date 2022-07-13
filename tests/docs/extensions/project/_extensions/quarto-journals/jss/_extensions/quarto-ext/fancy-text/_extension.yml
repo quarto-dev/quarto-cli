@@ -1,0 +1,6 @@
+title: Fancy Text
+author: "RStudio, PBC"
+version: 0.0.1
+contributes:
+  shortcodes:
+    - fancy-text.lua

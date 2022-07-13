@@ -1,0 +1,3 @@
+\author$if(it.attributes.corresponding)$*$endif$[$for(it.affiliations/first)$$it.number$$endfor$$for(it.affiliations/rest)$,$it.number$$endfor$]{$if(it.name.given)$\fnm{$it.name.given$}$endif$$if(it.name.non-dropping-particle)$ \spfx{$it.name.non-dropping-particle$}$elseif(it.name.dropping-particle)$ \spfx{$it.name.dropping-particle$}$endif$$if(it.name.family)$ \sur{$it.name.family$}$endif$}$if(it.email)$\email{$it.email$}$endif$
+$if(it.attributes.equal-contributor)$\equalcont{These authors contributed equally to this work.}
+$endif$
