@@ -34,7 +34,7 @@ export const toolsCommand = new Command()
     uninstall
     update
     
-Use 'quarto tools' with no arguments to show the status of all tools.`,
+`,
   )
   .example(
     "Install TinyTex",
