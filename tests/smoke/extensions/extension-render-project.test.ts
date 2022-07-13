@@ -1,5 +1,5 @@
 /*
-* basics.test.ts
+* extension-render-project.test.ts
 *
 * Copyright (C) 2020 by RStudio, PBC
 *
