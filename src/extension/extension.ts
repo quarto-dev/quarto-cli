@@ -12,7 +12,7 @@ import { coerce } from "semver/mod.ts";
 import { kProjectType, ProjectContext } from "../project/types.ts";
 import { isSubdir } from "fs/_util.ts";
 
-import { dirname, join, normalize, relative } from "path/mod.ts";
+import { dirname, isAbsolute, join, normalize, relative } from "path/mod.ts";
 import { Metadata, QuartoFilter } from "../config/types.ts";
 import { resolvePathGlobs } from "../core/path.ts";
 import { toInputRelativePaths } from "../project/project-shared.ts";
@@ -316,7 +316,7 @@ export function discoverExtensionPath(
           }`,
         );
       }
-      return paths.include[0];
+      return relative(Deno.cwd(), paths.include[0]);
     } else {
       return undefined;
     }
@@ -386,7 +386,10 @@ function readExtension(
 
   // The directory containing this extension
   // Paths used should be considered relative to this dir
-  const extensionDir = dirname(extensionFile);
+  const extensionDirRaw = dirname(extensionFile);
+  const extensionDir = isAbsolute(extensionDirRaw)
+    ? extensionDirRaw
+    : join(Deno.cwd(), extensionDirRaw);
 
   // The formats that are being contributed
   const formats = contributes?.formats as Metadata ||
@@ -436,7 +439,7 @@ function readExtension(
     id: extensionId,
     path: extensionDir,
     contributes: {
-      shortcodes: shortcodes.map((code) => join(extensionDir, code)),
+      shortcodes,
       filters,
       formats,
     },
@@ -464,7 +467,7 @@ function resolveShortcode(
     const shortcodes: string[] = [];
     for (const shortcode of extensions[0].contributes.shortcodes || []) {
       // Shortcodes are expected to be extension relative paths
-      shortcodes.push(relative(dir, shortcode));
+      shortcodes.push(relative(dir, join(extensions[0].path, shortcode)));
     }
     return shortcodes;
   } else {
@@ -493,7 +496,15 @@ function resolveFilter(
     if (extensions.length > 0) {
       const filters: QuartoFilter[] = [];
       for (const filter of extensions[0].contributes.filters || []) {
-        filters.push(filter);
+        // Filters are expected to be extension relative paths
+        if (typeof (filter) === "string") {
+          filters.push(relative(dir, join(extensions[0].path, filter)));
+        } else {
+          filters.push({
+            type: filter.type,
+            path: relative(dir, join(extensions[0].path, filter.path)),
+          });
+        }
       }
       return filters;
     } else {
