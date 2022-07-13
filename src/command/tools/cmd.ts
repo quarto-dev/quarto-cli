@@ -31,6 +31,7 @@ export const toolsCommand = new Command()
 
   commands:
     install
+    info
     uninstall
     update
     
@@ -51,6 +52,10 @@ export const toolsCommand = new Command()
   .example(
     "Show tool status",
     "quarto tools list",
+  )
+  .example(
+    "Get information for a tool (JSON output)",
+    "quarto tools info tinytex",
   )
   // deno-lint-ignore no-explicit-any
   .action(async (_options: any, command: string, tool?: string) => {
