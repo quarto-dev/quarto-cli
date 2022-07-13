@@ -315,8 +315,9 @@ function resolveCodeTools(format: Format, doc: Document): CodeTools {
       : codeTools?.caption || kCodeCaption,
   };
 
-  // if we have request source, make sure we are able to keep source
-  if (codeToolsResolved.source) {
+  // if we have request source without an external url,
+  // make sure we are able to keep source
+  if (codeToolsResolved.source === true) {
     codeToolsResolved.source = !!format.render[kKeepSource];
   }
 

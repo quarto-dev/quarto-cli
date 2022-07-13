@@ -1,0 +1,11 @@
+---
+title: "with code tools"
+format: 
+  html:
+    code-tools: 
+      source: https://github.com/quarto-dev/quarto-web/blob/main/index.qmd
+---
+
+```{r}
+1 + 2
+```
