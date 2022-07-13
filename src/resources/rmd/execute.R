@@ -332,7 +332,7 @@ knitr_cache_dir <- function(input, format) {
 pandoc_includes <- function(input, format, output, files_dir, knit_meta, tempDir) {
 
   # get dependencies from render 
-  dependencies <- dependencies_from_render(input, files_dir, knit_meta)
+  dependencies <- dependencies_from_render(input, files_dir, knit_meta, format)
 
   # embed shiny_prerendered dependencies
   if (!is.null(dependencies$shiny)) {
@@ -351,7 +351,7 @@ pandoc_includes <- function(input, format, output, files_dir, knit_meta, tempDir
 }
 
 # get dependencies implied by the result of render (e.g. html dependencies)
-dependencies_from_render <- function(input, files_dir, knit_meta) {
+dependencies_from_render <- function(input, files_dir, knit_meta, format) {
 
   # check for runtime
   front_matter <- rmarkdown::yaml_front_matter(input)
@@ -381,12 +381,18 @@ dependencies_from_render <- function(input, files_dir, knit_meta) {
   }
 
   # get extras (e.g. html dependencies)
-  extras <- rmarkdown:::html_extras_for_document(
-    knit_meta,
-    runtime,
-    resolver,
-    list() # format deps
-  )
+  # only include these html extras if we're targeting a format that
+  # supports html (widgets) like this or that prefers html (e.g. Hugo)
+  if (is_pandoc_html_format(format) || format$render$`prefer-html`) {
+    extras <- rmarkdown:::html_extras_for_document(
+      knit_meta,
+      runtime,
+      resolver,
+      list() # format deps
+    )
+  } else {
+    extras = {}
+  }
 
   # filter out bootstrap
   extras$dependencies <- Filter(
