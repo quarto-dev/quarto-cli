@@ -383,7 +383,7 @@ dependencies_from_render <- function(input, files_dir, knit_meta, format) {
   # get extras (e.g. html dependencies)
   # only include these html extras if we're targeting a format that
   # supports html (widgets) like this or that prefers html (e.g. Hugo)
-  if (is_pandoc_html_format(format) | format$render$`prefer-html`) {
+  if (is_pandoc_html_format(format) || format$render$`prefer-html`) {
     extras <- rmarkdown:::html_extras_for_document(
       knit_meta,
       runtime,
