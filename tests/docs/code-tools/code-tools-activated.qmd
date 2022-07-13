@@ -1,0 +1,10 @@
+---
+title: "with code tools"
+format: 
+  html:
+    code-tools: true
+---
+
+```{r}
+1 + 2
+```
