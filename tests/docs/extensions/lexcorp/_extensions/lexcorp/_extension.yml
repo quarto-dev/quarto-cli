@@ -1,0 +1,14 @@
+title: Lexcorp Presentation
+author: Lexcorp
+version: 1.0.0
+contributes:
+  formats:
+    revealjs:
+      theme: [default, custom.scss]
+      logo: logo.png
+      footer: |
+        Copyright 2022 (c) Lexcorp, Inc.
+      title-slide-attributes:
+        data-background-image: title.png
+        data-background-size: cover
+      preview-links: auto

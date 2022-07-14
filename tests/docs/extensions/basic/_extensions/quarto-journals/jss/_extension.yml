@@ -1,0 +1,42 @@
+title: Journal of Statistical Software Format
+author: Charles Teague
+version: 0.9.2
+contributes:
+  format:
+    common:
+      filters:
+        - filter.lua
+      shortcodes:
+        - quarto-ext/fancy-text
+      knitr:
+        opts_chunk:
+          R.options:
+            prompt: "R> "
+            continue: "+"
+    pdf:
+      shift-heading-level-by: -1
+      tbl-cap-location: bottom
+      highlight-style: none
+      include-in-header:
+        text: |
+          \usepackage{orcidlink,thumbpdf,lmodern}
+
+          \newcommand{\class}[1]{`\code{#1}'}
+          \newcommand{\fct}[1]{\code{#1()}}
+      fig-width: 4.9 # 6.125" * 0.8, as in template
+      fig-height: 3.675 # 4.9 * 3:4
+      template-partials:
+        - "partials/doc-class.tex"
+        - "partials/title.tex"
+        - "partials/before-body.tex"
+        - "partials/_print-address.tex"
+        - "partials/_print-author.tex"
+      cite-method: natbib
+      biblio-config: false
+      format-resources:
+        - jss.bst
+        - jss.cls
+        - jsslogo.jpg
+    html:
+      number-sections: true
+      toc: true

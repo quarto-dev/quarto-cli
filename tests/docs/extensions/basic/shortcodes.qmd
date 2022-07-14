@@ -1,0 +1,10 @@
+---
+title: Extension Test
+filters:
+  - lightbox
+---
+
+## Hi
+
+{{< fa regular heart >}}
+{{< fa solid heart >}}

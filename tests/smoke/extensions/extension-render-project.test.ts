@@ -1,5 +1,5 @@
 /*
-* basics.test.ts
+* extension-render-project.test.ts
 *
 * Copyright (C) 2020 by RStudio, PBC
 *
@@ -50,7 +50,7 @@ const testRender = (
     [noErrors, verifySel],
     {
       teardown: async () => {
-        const siteDir = dirname(output.outputPath);
+        const siteDir = dirname(output.supportPath);
         if (await exists(siteDir)) {
           await Deno.remove(siteDir, { recursive: true });
         }

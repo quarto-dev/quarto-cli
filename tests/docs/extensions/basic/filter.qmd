@@ -1,0 +1,10 @@
+---
+title: Extension Test
+filters:
+  - lightbox
+lightbox: auto
+---
+
+## Hi
+
+![](time.jpg)

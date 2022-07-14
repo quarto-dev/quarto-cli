@@ -1,0 +1,45 @@
+%% -- Article metainformation (author, title, ...) -----------------------------
+
+%% Author information
+\author{$for(by-author)$$_print-author.tex()$$endfor$}
+\Plainauthor{$for(by-author)$$it.name.literal$$endfor$} %% comma-separated
+
+\title{$title$}
+$if(title-plain)$
+\Plaintitle{$title-plain$} %% without formatting
+$endif$
+$if(short-title)$
+\Shorttitle{$short-title$} %% a short title (if necessary)
+$endif$
+
+%% an abstract and keywords
+$if(abstract)$
+\Abstract{$abstract$}
+$endif$
+
+%% at least one keyword must be supplied
+$if(keywords-formatted)$
+\Keywords{$for(keywords-formatted/first)$$it$$endfor$$for(keywords-formatted/rest)$, $it$$endfor$}
+$endif$
+$if(keywords)$
+\Plainkeywords{$for(keywords/first)$$it$$endfor$$for(keywords/rest)$, $it$$endfor$}
+$endif$
+
+%% publication information
+%% NOTE: Typically, this can be left commented and will be filled out by the technical editor
+%% \Volume{50}
+%% \Issue{9}
+%% \Month{June}
+%% \Year{2012}
+%% \Submitdate{2012-06-04}
+%% \Acceptdate{2012-06-04}
+%% \setcounter{page}{1}
+%% \Pages{1--xx}
+
+%% The address of (at least) one author should be given
+%% in the following format:
+$if(by-author)$
+\Address{
+$for(by-author)$$_print-address.tex()$$endfor$
+}
+$endif$

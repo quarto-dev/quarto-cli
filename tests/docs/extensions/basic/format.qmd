@@ -1,0 +1,244 @@
+---
+title: "A Short Demo Article: Regression Models for Count Data in R"
+format:
+    jss-pdf:
+        keep-tex: true  
+    jss-html: default
+author:
+  - name: Achim Zeileis
+    affiliations:
+      - name: Universität Innsbruck
+        department: Department of Statistics
+        address: Universitätsstr. 15
+        city: Innsbruck
+        country: Austria
+        postal-code: 6020
+      - Journal of Statistical Software
+    orcid: 0000-0003-0918-3766
+    email: Achim.Zeileis@R-project.org
+    url: https://www.zeileis.org/
+  - name: Second  Author
+    affiliations:
+      - Plus Affiliation
+abstract: |
+  This short article illustrates how to write a manuscript for the
+  _Journal of Statistical Software_ (JSS) using its {{< latex >}} style files.
+  Generally, we ask to follow JSS's style guide and FAQs precisely. Also,
+  it is recommended to keep the {{< latex >}} code as simple as possible,
+  i.e., avoid inclusion of packages/commands that are not necessary.
+  For outlining the typical structure of a JSS article some brief text snippets are employed that have been inspired by @ZeileisKleiberJackman2008, discussing count data regression in [R]{.proglang}. Editorial comments and instructions are marked by vertical bars.
+
+keywords: [JSS, style guide, comma-separated, not capitalized, R]
+keywords-formatted: [JSS, style guide, comma-separated, not capitalized, "[R]{.proglang}"]
+
+bibliography: bibliography.bib  
+---
+
+## Introduction: Count data regression in R {#sec-intro}
+
+::: callout
+The introduction is in principle "as usual". However, it should usually embed both the implemented *methods* and the *software* into the respective relevant literature. For the latter both competing and complementary software should be discussed (within the same software environment and beyond), bringing out relative (dis)advantages. All software mentioned should be properly `@cited`'d. (See also [Using BibTeX] for more details on {{< bibtex >}}.)
+
+For writing about software JSS requires authors to use the markup `[]{.proglang}` (programming languages and large programmable systems), `[]{.pkg}` (software packages), back ticks like \`code\` for code (functions, commands, arguments, etc.).
+
+If there is such markup in (sub)section titles (as above), a plain text version has to be provided in the {{< latex >}} command as well. Below we also illustrate how abbrevations should be introduced and citation commands can be employed. See the {{< latex >}} code for more details.
+:::
+
+Modeling count variables is a common task in economics and the social sciences. The classical Poisson regression model for count data is often of limited use in these disciplines because empirical count data sets typically exhibit overdispersion and/or an excess number of zeros. The former issue can be addressed by extending the plain Poisson regression model in various directions: e.g., using sandwich covariances or estimating an additional dispersion parameter (in a so-called quasi-Poisson model). Another more formal way is to use a negative binomial (NB) regression. All of these models belong to the family of generalized linear models (GLMs). However, although these models typically can capture overdispersion rather well, they are in many applications not sufficient for modeling excess zeros. Since @Mullahy1986 there is increased interest in zero-augmented models that address this issue by a second model component capturing zero counts. An overview of count data models in econometrics, including hurdle and zero-inflated models, is provided in @CameronTrivedi2013.
+
+In [R]{.proglang} @R, GLMs are provided by the model fitting functions [glm]{.fct} in the [stats]{.pkg} package and [glm.nb]{.fct} in the [MASS]{.pkg} package [@VenablesRipley2002] along with associated methods for diagnostics and inference. The manuscript that this document is based on [@ZeileisKleiberJackman2008] then introduced hurdle and zero-inflated count models in the functions [hurdle]{.fct} and [zeroinfl]{.fct} in the [pcsl]{.pkg} package @Jackman2015. Of course, much more software could be discussed here, including (but not limited to) generalized additive models for count data as available in the [R]{.proglang} packages [mgcv]{.pkg} @Wood2006, [gamlss]{.pkg} @StasinopoulosRigby2007, or [VGAM]{.pkg} @Yee2009.
+
+## Models and software {#sec-models}
+
+The basic Poisson regression model for count data is a special case of the GLM framework @McCullaghNelder1989. It describes the dependence of a count response variable $y_i$ ($i = 1, \dots, n$) by assuming a Poisson distribution $y_i \sim \mathrm{Pois}(\mu_i)$. The dependence of the conditional mean $E[y_i \, | \, x_i] = \mu_i$ on the regressors $x_i$ is then specified via a log link and a linear predictor
+
+$$
+\log(\mu_i) \quad = \quad x_i^\top \beta,
+$$ {#eq-mean}
+
+where the regression coefficients $\beta$ are estimated by maximum likelihood (ML) using the iterative weighted least squares (IWLS) algorithm.
+
+::: callout
+TODO: Note that around the equation above there should be no spaces (avoided in the {{< latex >}} code by `%` lines) so that "normal" spacing is used and not a new paragraph started.
+:::
+
+[R]{.proglang} provides a very flexible implementation of the general GLM framework in the function [glm]{.fct} @ChambersHastie1992 in the [stats]{.pkg} package. Its most important arguments are
+
+```r
+glm(formula, data, subset, na.action, weights, offset,
+  family = gaussian, start = NULL, control = glm.control(…),
+  model = TRUE, y = TRUE, x = FALSE, …)
+```
+
+where `formula` plus `data` is the now standard way of specifying regression relationships in [R]{.proglang}/[S]{.proglang} introduced in @ChambersHastie1992. The remaining arguments in the first line (`subset`, `na.action`, `weights`, and `offset`) are also standard for setting up formula-based regression models in [R]{.proglang}/[S]{.proglang}. The arguments in the second line control aspects specific to GLMs while the arguments in the last line specify which components are returned in the fitted model object (of class [glm]{.class} which inherits from [lm]{.class}). For further arguments to [glm]{.fct} (including alternative specifications of starting values) see `?glm`. For estimating a Poisson model `family = poisson` has to be specified.
+
+::: callout
+As the synopsis above is a code listing that is not meant to be executed, one can use either the dedicated `{Code}` environment or a simple `{verbatim}` environment for this. Again, spaces before and after should be avoided.
+
+Finally, there might be a reference to a `{table}` such as @tbl-overview. Usually, these are placed at the top of the page (`[t!]`), centered (`\centering`), with a caption below the table, column headers and captions in sentence style, and if possible avoiding vertical lines.
+:::
+
+| Type           | Distribution | Method   | Description                                                                                                                                                                                  |
+|---------|---------|---------|-----------------------------------------------|
+| GLM            | Poisson      | ML       | Poisson regression: classical GLM, estimated by maximum likelihood (ML)                                                                                                                      |
+|                |              | Quasi    | "Quasi-Poisson regression'': same mean function, estimated by quasi-ML (QML) or equivalently generalized estimating equations (GEE), inference adjustment via estimated dispersion parameter |
+|                |              | Adjusted | "Adjusted Poisson regression'': same mean function, estimated by QML/GEE, inference adjustment via sandwich covariances                                                                      |
+|                | NB           | ML       | NB regression: extended GLM, estimated by ML including additional shape parameter                                                                                                            |
+| Zero-augmented | Poisson      | ML       | Zero-inflated Poisson (ZIP), hurdle Poisson                                                                                                                                                  |
+|                | NB           | ML       | Zero-inflated NB (ZINB), hurdle NB                                                                                                                                                           |
+: Overview of various count regression models. The table is usually placed at the top of the page (`[t!]`), centered (`centering`), has a caption below the table, column headers and captions are in sentence style, and if possible vertical lines should be avoided. {#tbl-overview}
+
+## Illustrations {#sec-illustrations}
+
+For a simple illustration of basic Poisson and NB count regression the
+`quine` data from the [MASS]{.pkg} package is used. This provides the number
+of `Days` that children were absent from school in Australia in a
+particular year, along with several covariates that can be employed as regressors. The data can be loaded by
+
+```{R}
+#| prompt: true
+data("quine", package = "MASS")
+```
+and a basic frequency distribution of the response variable is displayed in
+@fig-quine.
+
+:::{.callout}
+For code input and output, the style files provide dedicated environments.
+Either the "agnostic" `{CodeInput}` and `{CodeOutput}` can be used
+or, equivalently, the environments `{Sinput}` and `{Soutput}` as
+produced by [Sweave]{.fct} or [knitr]{.pkg} when using the `render_sweave()`
+hook. Please make sure that all code is properly spaced, e.g., using
+`y = a + b * x` and _not_ `y=a+b*x`. Moreover, code input should use "the usual" command prompt in the respective software system. For
+[R]{.proglang} code, the prompt `R> ` should be used with `+  ` as
+the continuation prompt. Generally, comments within the code chunks should be
+avoided -- and made in the regular {{< latex >}} text instead. Finally, empty lines before and after code input/output should be avoided (see above).
+:::
+
+::: {#fig-quine}
+
+![](article-visualization.pdf)
+
+Frequency distribution for number of days absent from school.
+:::
+
+As a first model for the `quine` data, we fit the basic Poisson regression
+model. (Note that JSS prefers when the second line of code is indented by two
+spaces.)
+
+```{R}
+#| prompt: true
+m_pois <- glm(Days ~ (Eth + Sex + Age + Lrn)^2, data = quine, family = poisson)
+```
+
+To account for potential overdispersion we also consider a negative binomial
+GLM.
+
+```{R}
+#| prompt: true
+library("MASS")
+m_nbin <- glm.nb(Days ~ (Eth + Sex + Age + Lrn)^2, data = quine)
+```
+
+In a comparison with the BIC the latter model is clearly preferred.
+
+```{R}
+#| prompt: true
+library("MASS")
+BIC(m_pois, m_nbin)
+```
+
+Hence, the full summary of that model is shown below.
+
+```{R}
+#| prompt: true
+summary(m_nbin)
+```
+
+## Summary and discussion {#sec-summary}
+
+:::{.callout}
+
+As usual…
+
+:::
+
+## Computational details {.unnumbered}
+
+:::{.callout}
+
+If necessary or useful, information about certain computational details
+such as version numbers, operating systems, or compilers could be included
+in an unnumbered section. Also, auxiliary packages (say, for visualizations,
+maps, tables, …) that are not cited in the main text can be credited here.
+
+:::
+
+The results in this paper were obtained using [R]{.proglang}~3.4.1 with the
+[MASS]{.pkg}~7.3.47 package. [R]{.proglang} itself and all packages used are available from the Comprehensive [R]{.proglang} Archive Network (CRAN) at
+[https://CRAN.R-project.org/].
+
+
+## Acknowledgments {.unnumbered}
+
+:::{.callout}
+
+All acknowledgments (note the AE spelling) should be collected in this
+unnumbered section before the references. It may contain the usual information
+about funding and feedback from colleagues/reviewers/etc. Furthermore,
+information such as relative contributions of the authors may be added here
+(if any).
+
+:::
+
+## References {.unnumbered}
+
+:::{#refs}
+
+:::
+
+{{< pagebreak >}}
+
+## More technical details {#sec-techdetails .unnumbered}
+
+:::{.callout}
+
+Appendices can be included after the bibliography (with a page break). Each
+section within the appendix should have a proper section title (rather than
+just _Appendix_).
+
+For more technical style details, please check out JSS's style FAQ at
+[https://www.jstatsoft.org/pages/view/style#frequently-asked-questions]
+which includes the following topics:
+
+- Title vs. sentence case.
+- Graphics formatting.
+- Naming conventions.
+- Turning JSS manuscripts into [R]{.proglang} package vignettes.
+- Trouble shooting.
+- Many other potentially helpful details…
+
+:::
+
+## Using BibTeX {#sec-bibtex .unnumbered}
+
+:::{.callout}
+
+References need to be provided in a {{< bibtex >}} file (`.bib`). All
+references should be made with `@cite` syntax. This commands yield different
+formats of author-year citations and allow to include additional details (e.g.,pages, chapters, \dots) in brackets. In case you are not familiar with these
+commands see the JSS style FAQ for details.
+
+Cleaning up {{< bibtex >}} files is a somewhat tedious task -- especially
+when acquiring the entries automatically from mixed online sources. However,
+it is important that informations are complete and presented in a consistent
+style to avoid confusions. JSS requires the following format.
+
+- item JSS-specific markup (`\proglang`, `\pkg`, `\code`) should be used in the references.
+- item Titles should be in title case.
+- item Journal titles should not be abbreviated and in title case.
+- item DOIs should be included where available.
+- item Software should be properly cited as well. For [R]{.proglang} packages `citation("pkgname")` typically provides a good starting point.
+
+:::
+
+
