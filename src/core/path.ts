@@ -189,16 +189,28 @@ export function resolveGlobs(
   const excludeGlobs: string[] = [];
 
   // deal with implicit ** syntax and ability to escape negation (!)
-  const asFullGlob = (glob: string) => {
-    const preventSmartGlobs = options?.mode === "strict" ||
-      (options?.mode === "auto" && !isGlob(glob));
+  const asFullGlob = (glob: string, preferSmart?: boolean) => {
+    const useSmartGlobs = () => {
+      if (options?.mode === "strict") {
+        return false;
+      } else if (options?.mode === "always") {
+        return true;
+      } else {
+        if (preferSmart) {
+          return true;
+        } else {
+          return isGlob(glob);
+        }
+      }
+    };
+    const smartGlob = useSmartGlobs();
 
     // handle negation
     if (glob.startsWith("\\!")) {
       glob = glob.slice(1);
     }
     // ending w/ a slash means everything in the dir
-    if (!preventSmartGlobs) {
+    if (smartGlob) {
       if (glob.endsWith("/")) {
         glob = glob + "**/*";
       } else {
@@ -215,7 +227,7 @@ export function resolveGlobs(
     }
 
     if (!glob.startsWith("/")) {
-      if (!preventSmartGlobs) {
+      if (smartGlob) {
         return "**/" + glob;
       } else {
         return glob;
@@ -228,7 +240,9 @@ export function resolveGlobs(
   // divide globs into include and exclude
   for (const glob of globs) {
     if (glob.startsWith("!")) {
-      excludeGlobs.push(asFullGlob(glob.slice(1)));
+      // We should always force smart globs in the event
+      // of excludes since these would normally qualify
+      excludeGlobs.push(asFullGlob(glob.slice(1), true));
     } else {
       includeGlobs.push(asFullGlob(glob));
     }
