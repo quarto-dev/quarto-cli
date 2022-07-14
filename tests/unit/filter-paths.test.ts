@@ -4,7 +4,7 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { assert, assertEquals } from "testing/asserts.ts";
+import { assert } from "testing/asserts.ts";
 import { filterPaths } from "../../src/core/path.ts";
 import { unitTest } from "../test.ts";
 
