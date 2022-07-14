@@ -21,6 +21,8 @@ import { templateFiles } from "../../../extension/template.ts";
 import { Command } from "cliffy/command/mod.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../../core/schema/utils.ts";
 import { createTempContext } from "../../../core/temp.ts";
+import { copyExtensions } from "../../../extension/install.ts";
+import { kExtensionDir } from "../../../extension/extension-shared.ts";
 
 const kRootTemplateName = "template.qmd";
 
@@ -68,6 +70,12 @@ async function useTemplate(
 
     // Copy the files
     await withSpinner({ message: "Copying files..." }, async () => {
+      // Copy extensions
+      const extDir = join(stagedDir, kExtensionDir);
+      if (existsSync(extDir)) {
+        copyExtensions(source, extDir, outputDirectory);
+      }
+
       for (const fileToCopy of filesToCopy) {
         const isDir = Deno.statSync(fileToCopy).isDirectory;
         const rel = relative(stagedDir, fileToCopy);
