@@ -3,6 +3,7 @@ import { docs } from "../../utils.ts";
 import { join } from "path/mod.ts";
 import { ExecuteOutput, testQuartoCmd, Verify } from "../../test.ts";
 import { assert } from "testing/asserts.ts";
+import { existsSync } from "fs/mod.ts";
 
 const testDir = docs("extensions");
 const testExtDestdir = join(testDir, "install");
@@ -27,6 +28,19 @@ const verifySubDirCount = (dir: string, count: number): Verify => {
   };
 };
 
+const verifySubDirName = (dir: string, name: string): Verify => {
+  return {
+    name: "Verify name of the directory",
+    verify: (_outputs: ExecuteOutput[]) => {
+      assert(
+        existsSync(join(dir, name)),
+        "Expected subdirectory doesn't exist",
+      );
+      return Promise.resolve();
+    },
+  };
+};
+
 const inInstallDir = (fn: () => void) => {
   const cwd = Deno.cwd();
   Deno.chdir(testExtDestdir);
@@ -41,8 +55,12 @@ inInstallDir(() => {
   // Verify installation using a remote github repo
   testQuartoCmd(
     "install",
-    ["extension", "dragonstyle/test-ext", "--no-prompt"],
-    [noErrorsOrWarnings, verifySubDirCount("_extensions", 1)],
+    ["extension", "quarto-ext/lightbox", "--no-prompt"],
+    [
+      noErrorsOrWarnings,
+      verifySubDirCount("_extensions", 1),
+      verifySubDirName("_extensions", "quarto-ext"),
+    ],
     {
       teardown: () => {
         Deno.removeSync("_extensions", { recursive: true });
@@ -53,16 +71,28 @@ inInstallDir(() => {
 
   // Verify installation using a local zip file
   const zipFiles = [
-    { path: "owned-multiple.zip", count: 3 },
-    { path: "unowned-multiple.zip", count: 3 },
+    { path: "owned-multiple.zip", count: 3, names: ["acm", "acs", "coolster"] },
+    {
+      path: "unowned-multiple.zip",
+      count: 3,
+      names: ["acm", "acs", "coolster"],
+    },
   ];
 
   for (const zipFile of zipFiles) {
+    const verification = [
+      noErrorsOrWarnings,
+      verifySubDirCount("_extensions", zipFile.count),
+    ];
+    for (const name of zipFile.names) {
+      verification.push(verifySubDirName("_extensions", name));
+    }
+
     const zipPath = join(testDirAbs, "ext-repo", zipFile.path);
     testQuartoCmd(
       "install",
       ["extension", zipPath, "--no-prompt"],
-      [noErrorsOrWarnings, verifySubDirCount("_extensions", zipFile.count)],
+      verification,
       {
         teardown: () => {
           try {
