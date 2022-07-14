@@ -45,4 +45,5 @@ const kBuiltInExcludes = [
   "CHANGELOG.md",
   "COPYRIGHT",
   "LICENSE",
+  "_extensions",
 ];

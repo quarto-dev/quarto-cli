@@ -230,16 +230,24 @@ async function unzipAndStage(
 
   // Make the final directory we're staging into
   const finalDir = join(archiveDir, "staged");
-  const finalExtensionsDir = join(finalDir, "_extensions");
+  copyExtensions(source, extensionsDir, finalDir);
+
+  return finalDir;
+}
+
+export function copyExtensions(
+  source: ExtensionSource,
+  srcDir: string,
+  targetDir: string,
+) {
+  const finalExtensionsDir = join(targetDir, kExtensionDir);
   const finalExtensionTargetDir = source.owner
     ? join(finalExtensionsDir, source.owner)
     : finalExtensionsDir;
   ensureDirSync(finalExtensionTargetDir);
 
   // Move extensions into the target directory (root or owner)
-  readAndCopyExtensions(extensionsDir, finalExtensionTargetDir);
-
-  return finalDir;
+  readAndCopyExtensions(srcDir, finalExtensionTargetDir);
 }
 
 // Reads the extensions from an extensions directory and copies
