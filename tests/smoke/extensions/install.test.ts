@@ -1,13 +1,9 @@
 import { noErrorsOrWarnings } from "../../verify.ts";
-import { docs } from "../../utils.ts";
 import { join } from "path/mod.ts";
 import { ExecuteOutput, testQuartoCmd, Verify } from "../../test.ts";
 import { assert } from "testing/asserts.ts";
-import { existsSync } from "fs/mod.ts";
-
-const testDir = docs("extensions");
-const testExtDestdir = join(testDir, "install");
-const testDirAbs = join(Deno.cwd(), testDir);
+import { ensureDirSync, existsSync } from "fs/mod.ts";
+import { docs } from "../../utils.ts";
 
 const verifySubDirCount = (dir: string, count: number): Verify => {
   return {
@@ -41,68 +37,89 @@ const verifySubDirName = (dir: string, name: string): Verify => {
   };
 };
 
-const inInstallDir = (fn: () => void) => {
-  const cwd = Deno.cwd();
-  Deno.chdir(testExtDestdir);
-  try {
-    fn();
-  } finally {
-    Deno.chdir(cwd);
-  }
-};
+const workingDir = Deno.makeTempDirSync();
 
-inInstallDir(() => {
-  // Verify installation using a remote github repo
+// Verify installation using a remote github repo
+testQuartoCmd(
+  "install",
+  ["extension", "quarto-ext/lightbox", "--no-prompt"],
+  [
+    noErrorsOrWarnings,
+    verifySubDirCount("_extensions", 1),
+    verifySubDirName("_extensions", "quarto-ext"),
+  ],
+  {
+    cwd: () => {
+      return workingDir;
+    },
+    teardown: () => {
+      Deno.removeSync("_extensions", { recursive: true });
+      return Promise.resolve();
+    },
+  },
+);
+
+// Verify use template using a remote github repo
+const templateDir = join(workingDir, "template");
+ensureDirSync(templateDir);
+testQuartoCmd(
+  "use",
+  ["template", "quarto-journals/jss", "--no-prompt"],
+  [
+    noErrorsOrWarnings,
+    verifySubDirCount("_extensions", 1),
+    verifySubDirName("_extensions", "quarto-journals"),
+  ],
+  {
+    cwd: () => {
+      return templateDir;
+    },
+    teardown: () => {
+      Deno.removeSync(templateDir, { recursive: true });
+      return Promise.resolve();
+    },
+  },
+);
+
+// Verify installation using a local zip file
+const testDir = docs("extensions");
+const testDirAbs = join(Deno.cwd(), testDir);
+
+const zipFiles = [
+  { path: "owned-multiple.zip", count: 3, names: ["acm", "acs", "coolster"] },
+  {
+    path: "unowned-multiple.zip",
+    count: 3,
+    names: ["acm", "acs", "coolster"],
+  },
+];
+
+for (const zipFile of zipFiles) {
+  const verification = [
+    noErrorsOrWarnings,
+    verifySubDirCount("_extensions", zipFile.count),
+  ];
+  for (const name of zipFile.names) {
+    verification.push(verifySubDirName("_extensions", name));
+  }
+
+  const zipPath = join(testDirAbs, "ext-repo", zipFile.path);
   testQuartoCmd(
     "install",
-    ["extension", "quarto-ext/lightbox", "--no-prompt"],
-    [
-      noErrorsOrWarnings,
-      verifySubDirCount("_extensions", 1),
-      verifySubDirName("_extensions", "quarto-ext"),
-    ],
+    ["extension", zipPath, "--no-prompt"],
+    verification,
     {
+      cwd: () => {
+        return workingDir;
+      },
       teardown: () => {
-        Deno.removeSync("_extensions", { recursive: true });
+        try {
+          Deno.removeSync("_extensions", { recursive: true });
+        } catch {
+          // Weird flex but ok
+        }
         return Promise.resolve();
       },
     },
   );
-
-  // Verify installation using a local zip file
-  const zipFiles = [
-    { path: "owned-multiple.zip", count: 3, names: ["acm", "acs", "coolster"] },
-    {
-      path: "unowned-multiple.zip",
-      count: 3,
-      names: ["acm", "acs", "coolster"],
-    },
-  ];
-
-  for (const zipFile of zipFiles) {
-    const verification = [
-      noErrorsOrWarnings,
-      verifySubDirCount("_extensions", zipFile.count),
-    ];
-    for (const name of zipFile.names) {
-      verification.push(verifySubDirName("_extensions", name));
-    }
-
-    const zipPath = join(testDirAbs, "ext-repo", zipFile.path);
-    testQuartoCmd(
-      "install",
-      ["extension", zipPath, "--no-prompt"],
-      verification,
-      {
-        teardown: () => {
-          try {
-            Deno.removeSync("_extensions", { recursive: true });
-          } catch {
-            // Weird flex but ok
-          }
-          return Promise.resolve();
-        },
-      },
-    );
-  }
-});
+}

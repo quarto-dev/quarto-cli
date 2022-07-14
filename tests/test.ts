@@ -11,6 +11,7 @@ import { initDenoDom } from "../src/core/deno-dom.ts";
 
 import { cleanupLogger, initializeLogger } from "../src/core/log.ts";
 import { quarto } from "../src/quarto.ts";
+import { join } from "path/mod.ts";
 
 export interface TestDescriptor {
   // The name of the test
@@ -40,6 +41,9 @@ export interface TestContext {
 
   // Sets up the test
   setup?: () => Promise<void>;
+
+  // Request that the test be run from another working directory
+  cwd?: () => string;
 }
 
 export function testQuartoCmd(
@@ -102,6 +106,11 @@ export function test(test: TestDescriptor) {
     await initDenoDom();
     const runTest = !test.context.prereq || await test.context.prereq();
     if (runTest) {
+      const wd = Deno.cwd();
+      if (test.context?.cwd) {
+        Deno.chdir(test.context.cwd());
+      }
+
       if (test.context.setup) {
         await test.context.setup();
       }
@@ -115,7 +124,7 @@ export function test(test: TestDescriptor) {
       };
 
       // Capture the output
-      const log = "test-out.json";
+      const log = join(wd, "test-out.json");
       await initializeLogger({
         log: log,
         level: "DEBUG",
@@ -158,6 +167,10 @@ export function test(test: TestDescriptor) {
         await cleanupLogOnce();
         if (test.context.teardown) {
           await test.context.teardown();
+        }
+
+        if (test.context?.cwd) {
+          Deno.chdir(wd);
         }
       }
     } else {
