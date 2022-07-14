@@ -14,22 +14,31 @@
   <% isCollapsed = collapse <= depth  && !item.expanded %>
 
   <li class="sidebar-item sidebar-item-section">
-    <div class="sidebar-item-container"> 
-      <% if (item.href) { %>
-        <a href="<%- item.href %>" class="sidebar-item-text sidebar-link<%- item.active ? " active" : "" %>"><%= item.text %></a>
-      <% } else { %> 
-        <a class="sidebar-item-text sidebar-link text-start<%- isCollapsed ? " collapsed" : "" %>" data-bs-toggle="collapse" data-bs-target="#<%- sectionId %>" aria-expanded="<%- isCollapsed ? "false" : "true" %>"><%= item.text %></a>
-      <% }  %>      
-      <a class="sidebar-item-toggle text-start<%- isCollapsed ?  " collapsed" : "" %>" data-bs-toggle="collapse" data-bs-target="#<%- sectionId %>" aria-expanded="<%- isCollapsed ? "false" : "true" %>">
-        <i class="bi bi-chevron-right ms-2"></i>
-      </a>
-    </div>
-    <ul id="<%- sectionId %>" class="collapse list-unstyled sidebar-section depth<%-depth%> <%- isCollapsed ? "" : "show" %>">  
-      <% item.contents.forEach(subItem => { %>
-        <% partial('sidebaritem.ejs', { item: subItem, depth: depth + 1, collapse: collapse, borderColor: borderColor }) %>
-       <% }) %>
-    </ul>
+    <% if (item.contents.length > 0) { %>
+      <div class="sidebar-item-container"> 
+          <% if (item.href) { %>
+            <a href="<%- item.href %>" class="sidebar-item-text sidebar-link<%- item.active ? " active" : "" %>"><%= item.text %></a>
+          <% } else { %> 
+            <a class="sidebar-item-text sidebar-link text-start<%- isCollapsed ? " collapsed" : "" %>" data-bs-toggle="collapse" data-bs-target="#<%- sectionId %>" aria-expanded="<%- isCollapsed ? "false" : "true" %>"><%= item.text %></a>
+          <% }  %>      
+          <a class="sidebar-item-toggle text-start<%- isCollapsed ?  " collapsed" : "" %>" data-bs-toggle="collapse" data-bs-target="#<%- sectionId %>" aria-expanded="<%- isCollapsed ? "false" : "true" %>">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="<%- sectionId %>" class="collapse list-unstyled sidebar-section depth<%-depth%> <%- isCollapsed ? "" : "show" %>">  
+        <% item.contents.forEach(subItem => { %>
+          <% partial('sidebaritem.ejs', { item: subItem, depth: depth + 1, collapse: collapse, borderColor: borderColor }) %>
+        <% }) %>
+      </ul>
+    <% } else { %>
+      <span class="sidebar-item-text sidebar-link text-start"><%= item.text %></span>
+    <% } %>
+
   </li>
 <% } else if (item.text && item.text.match(/^\-+$/)) { %>
 <li class="px-0"><hr class="sidebar-divider hi <%- borderColor %>"></li>
+<% } else if (item.text) { %>
+  <li class="sidebar-item">
+  <%= item.text %>
+  </li>
 <% } %>
