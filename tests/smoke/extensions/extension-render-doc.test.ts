@@ -32,3 +32,11 @@ testRender(filterInput, "html", false, [
 
 const formatInput = docs("extensions/basic/format.qmd");
 testRender(formatInput, "jss-html", false);
+
+const revealInput = docs("extensions/lexcorp/lexcorp.qmd");
+const revealOutput = outputForInput(revealInput, "html");
+testRender(revealInput, "lexcorp-revealjs", false, [
+  ensureHtmlElements(revealOutput.outputPath, [
+    "img[src='_extensions/lexcorp/logo.png']",
+  ]),
+]);
