@@ -5,7 +5,11 @@
 *
 */
 
-import { AutomationKind, YamlIntelligenceContext } from "./types.ts";
+import {
+  AutomationKind,
+  PositionKind,
+  YamlIntelligenceContext,
+} from "./types.ts";
 
 import { buildTreeSitterAnnotation, locateCursor } from "./annotated-yaml.ts";
 
@@ -83,6 +87,7 @@ interface CompletionContext {
   commentPrefix: string;
   context: IDEContext;
   completionPosition?: "key" | "value";
+  positionKind: PositionKind;
 }
 
 interface ValidationResult {
@@ -249,6 +254,8 @@ async function completionsFromGoodParseYAML(context: YamlIntelligenceContext) {
     schema, // schema of yaml object
   } = context;
 
+  const positionKind = context.positionKind || "metadata";
+
   // if this is a yaml inside a language chunk, it will have a
   // comment prefix which we need to know about in order to
   // autocomplete linebreaks correctly.
@@ -273,6 +280,7 @@ async function completionsFromGoodParseYAML(context: YamlIntelligenceContext) {
       commentPrefix,
       context,
       completionPosition: "key",
+      positionKind,
     });
     return rawCompletions;
   }
@@ -301,6 +309,7 @@ async function completionsFromGoodParseYAML(context: YamlIntelligenceContext) {
       commentPrefix,
       context,
       completionPosition: "key",
+      positionKind,
     });
     return rawCompletions;
   };
@@ -396,6 +405,7 @@ async function completionsFromGoodParseYAML(context: YamlIntelligenceContext) {
           : completionOnArraySequence // this picks up case 5 (and 1, but case one was already handled.)
           ? "key"
           : undefined,
+        positionKind,
       });
       // never followup a suggestion in value position
       if (completionOnValuePosition) {
@@ -444,7 +454,7 @@ function uniqBy<T>(lst: T[], keyFun: (item: T) => (string | undefined)): T[] {
 }
 
 // Currently, the only special case we have is for "execute-only" tags
-// in paths that don't start with execute.
+// in paths that don't start with execute in yaml metadata completions
 function dropCompletionsFromSchema(
   obj: CompletionContext,
   completion: Completion,
@@ -452,8 +462,12 @@ function dropCompletionsFromSchema(
   const matchingSchema = resolveSchema(completion.schema!);
   const {
     path,
+    positionKind,
   } = obj;
 
+  if (positionKind === "code-cell") {
+    return false;
+  }
   if (completion.type === "value") {
     return false;
   }
@@ -815,6 +829,7 @@ async function automationFromGoodParseMarkdown(
         schema,
         code: foundCell.source,
         schemaName: "front-matter",
+        positionKind: "metadata",
       };
       // user asked for autocomplete on "---": report none
       if (positionInTicks(context)) {
@@ -840,6 +855,7 @@ async function automationFromGoodParseMarkdown(
           column: position.column,
         },
         line,
+        positionKind: "code-cell",
       });
     } else {
       // do not complete what we do not understand
@@ -862,6 +878,7 @@ async function automationFromGoodParseMarkdown(
             schemaName: "front-matter",
             line,
             position, // we don't need to adjust position because front matter only shows up at start of file.
+            positionKind: "metadata",
           }),
         ) as ValidationResult[];
         lints.push(...innerLints);
@@ -882,6 +899,7 @@ async function automationFromGoodParseMarkdown(
             ...position,
             row: position.row - (linesSoFar + 1),
           },
+          positionKind: "code-cell",
         }) as ValidationResult[];
         lints.push(...innerLints);
       }
@@ -1002,9 +1020,15 @@ async function automationFileTypeDispatch(
     case "markdown":
       return automationFromGoodParseMarkdown(kind, context);
     case "yaml":
-      return automationFromGoodParseYAML(kind, context);
+      return automationFromGoodParseYAML(kind, {
+        ...context,
+        positionKind: "metadata",
+      });
     case "script":
-      return automationFromGoodParseScript(kind, context);
+      return automationFromGoodParseScript(kind, {
+        ...context,
+        positionKind: "code-cell",
+      });
     default:
       return null;
   }
