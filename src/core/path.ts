@@ -195,12 +195,14 @@ export function resolveGlobs(
         return false;
       } else if (options?.mode === "always") {
         return true;
-      } else {
+      } else if (options?.mode === "auto") {
         if (preferSmart) {
           return true;
         } else {
           return isGlob(glob);
         }
+      } else {
+        return true;
       }
     };
     const smartGlob = useSmartGlobs();
