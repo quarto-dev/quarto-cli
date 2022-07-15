@@ -59,6 +59,10 @@ export function normalizeSidebarItem(
       // case
       item.sectionId = `${kQuartoSidebarPrefix}${context.counter}`;
       delete item.section;
+
+      // If this is a section, we should insist that it have 'contents'
+      // even if they are empty.
+      item.contents = item.contents || [];
     }
 
     // handle subitems
