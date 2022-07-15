@@ -179,6 +179,8 @@ function processValue(val, name, t)
       return val
     elseif pandoc.utils.type(val) == "Blocks" then
       return pandoc.utils.blocks_to_inlines(val)
+    elseif pandoc.utils.type(val) == "List" and #val == 1 then
+      return processValue(val[1])
     else
       warn("Unsupported type '" .. pandoc.utils.type(val)  .. "' for key " .. name .. " in a " .. t .. " shortcode.")
       return { pandoc.Strong({pandoc.Str("?invalid " .. t .. " type:" .. name)}) }         
