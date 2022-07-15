@@ -28040,6 +28040,7 @@ ${sourceContext}`;
       position,
       schema: schema2
     } = context;
+    const positionKind = context.positionKind || "metadata";
     const commentPrefix = context.commentPrefix || "";
     const parser = await getTreeSitter();
     let word = "";
@@ -28056,7 +28057,8 @@ ${sourceContext}`;
         indent: indent2,
         commentPrefix,
         context,
-        completionPosition: "key"
+        completionPosition: "key",
+        positionKind
       });
       return rawCompletions;
     }
@@ -28077,7 +28079,8 @@ ${sourceContext}`;
         indent,
         commentPrefix,
         context,
-        completionPosition: "key"
+        completionPosition: "key",
+        positionKind
       });
       return rawCompletions;
     };
@@ -28128,7 +28131,8 @@ ${sourceContext}`;
           indent,
           commentPrefix,
           context,
-          completionPosition: completionOnValuePosition ? "value" : completionOnArraySequence ? "key" : void 0
+          completionPosition: completionOnValuePosition ? "value" : completionOnArraySequence ? "key" : void 0,
+          positionKind
         });
         if (completionOnValuePosition) {
           rawCompletions.completions = rawCompletions.completions.map((c) => ({
@@ -28163,8 +28167,12 @@ ${sourceContext}`;
   function dropCompletionsFromSchema(obj, completion) {
     const matchingSchema = resolveSchema(completion.schema);
     const {
-      path
+      path,
+      positionKind
     } = obj;
+    if (positionKind === "code-cell") {
+      return false;
+    }
     if (completion.type === "value") {
       return false;
     }
@@ -28410,7 +28418,8 @@ ${sourceContext}`;
           position,
           schema: schema2,
           code: foundCell.source,
-          schemaName: "front-matter"
+          schemaName: "front-matter",
+          positionKind: "metadata"
         };
         if (positionInTicks(context)) {
           return noCompletions;
@@ -28430,7 +28439,8 @@ ${sourceContext}`;
             row: position.row - foundCell.cellStartLine,
             column: position.column
           },
-          line
+          line,
+          positionKind: "code-cell"
         });
       } else {
         return noCompletions;
@@ -28447,7 +28457,8 @@ ${sourceContext}`;
             schema: await getFrontMatterSchema(),
             schemaName: "front-matter",
             line,
-            position
+            position,
+            positionKind: "metadata"
           }));
           lints.push(...innerLints);
         } else if (cell.cell_type === "markdown" || cell.cell_type === "math") {
@@ -28465,7 +28476,8 @@ ${sourceContext}`;
             position: {
               ...position,
               row: position.row - (linesSoFar + 1)
-            }
+            },
+            positionKind: "code-cell"
           });
           lints.push(...innerLints);
         }
@@ -28538,9 +28550,15 @@ ${sourceContext}`;
       case "markdown":
         return automationFromGoodParseMarkdown(kind, context);
       case "yaml":
-        return automationFromGoodParseYAML(kind, context);
+        return automationFromGoodParseYAML(kind, {
+          ...context,
+          positionKind: "metadata"
+        });
       case "script":
-        return automationFromGoodParseScript(kind, context);
+        return automationFromGoodParseScript(kind, {
+          ...context,
+          positionKind: "code-cell"
+        });
       default:
         return null;
     }

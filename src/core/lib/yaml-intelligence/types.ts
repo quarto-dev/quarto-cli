@@ -9,6 +9,7 @@ import { Schema } from "../yaml-schema/types.ts";
 import { MappedString } from "../text-types.ts";
 
 export type AutomationKind = "validation" | "completions";
+export type PositionKind = "code-cell" | "metadata";
 
 export interface YamlIntelligenceContext {
   code: string | MappedString;
@@ -30,6 +31,8 @@ export interface YamlIntelligenceContext {
   commentPrefix?: string;
   explicit?: boolean;
   client?: string;
+
+  positionKind?: PositionKind;
 }
 
 export interface LocateFromIndentationContext {
