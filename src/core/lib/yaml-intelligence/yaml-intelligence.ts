@@ -513,7 +513,7 @@ function completions(obj: CompletionContext): CompletionResult {
   };
 
   let matchingSchemas = uniqBy(
-    navigateSchema(schema, path, word !== ""),
+    navigateSchema(schema, path),
     maybeSchemaId,
   );
   if (matchingSchemas.length === 0) {

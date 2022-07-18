@@ -28205,7 +28205,7 @@ ${sourceContext}`;
         return schema3.$id;
       }
     };
-    let matchingSchemas = uniqBy(navigateSchemaByInstancePath(schema2, path, word !== ""), maybeSchemaId);
+    let matchingSchemas = uniqBy(navigateSchemaByInstancePath(schema2, path), maybeSchemaId);
     if (matchingSchemas.length === 0) {
       const candidateSchemas = uniqBy(navigateSchemaByInstancePath(schema2, path.slice(0, -1), word !== ""), maybeSchemaId);
       if (candidateSchemas.length === 0) {
