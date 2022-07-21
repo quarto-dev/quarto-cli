@@ -665,7 +665,7 @@ function applyStretch(doc: Document, autoStretch: boolean) {
             !!el.className.match(/panel-/);
         }) ||
         // Do not autostrech if an aside is used
-        slideEl.querySelectorAll("aside").length !== 0
+        slideEl.querySelectorAll("aside:not(.notes)").length !== 0
       ) {
         continue;
       }
