@@ -432,6 +432,9 @@ dependencies_from_render <- function(input, files_dir, knit_meta, format) {
 # return the html dependencies as an HTML string suitable for inclusion
 # in the head of a document
 html_dependencies_as_string <- function(dependencies, files_dir) {
+  if (!rmarkdown:::dir_exists(files_dir)) {
+    dir.create(files_dir, showWarnings = FALSE, recursive = TRUE)
+  }
   dependencies <- lapply(dependencies, htmltools::copyDependencyToDir, files_dir)
   dependencies <- lapply(dependencies, function(dependency) {
     dir <- dependency$src$file
