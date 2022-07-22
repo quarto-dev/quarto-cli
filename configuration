@@ -44,7 +44,7 @@ export ALGOLIA_SEARCH_INSIGHTS_JS=2.0.3
 # Quarto Info Version
 export QUARTO_VERSION=1.0
 export QUARTO_NAME=Quarto
-export QUARTO_BUILD_RUN_OFFSET=-1254
+export QUARTO_BUILD_RUN_OFFSET=-1257
 
 # Configuration Target Directories
 export QUARTO_PACKAGE_DIR=package
