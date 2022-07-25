@@ -567,8 +567,9 @@ function acquirePreviewLock(project: ProjectContext) {
         { newline: false },
       );
       try {
-        Deno.kill(pid, "SIGTERM");
-        Deno.sleepSync(3000);
+        setTimeout(() => {
+            Deno.kill(pid, "SIGTERM");
+        }, 3000);
       } catch {
         //
       } finally {
