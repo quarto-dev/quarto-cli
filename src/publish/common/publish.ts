@@ -18,6 +18,7 @@ import { crypto } from "crypto/mod.ts";
 import { encode as hexEncode } from "encoding/hex.ts";
 
 import { sleep } from "../../core/wait.ts";
+import { pathWithForwardSlashes } from "../../core/path.ts"
 import { completeMessage, withSpinner } from "../../core/console.ts";
 import { fileProgress } from "../../core/progress.ts";
 
@@ -147,8 +148,9 @@ export async function handlePublish<
     const deploy = {
       files: {} as Record<string, string>,
     };
+    // On windows, be sure sure we normalize the slashes
     for (const file of files) {
-      deploy.files[`/${file[0]}`] = file[1];
+      deploy.files[`/${pathWithForwardSlashes(file[0])}`] = file[1];
     }
     siteDeploy = await handler.createDeploy(
       target!.id,
