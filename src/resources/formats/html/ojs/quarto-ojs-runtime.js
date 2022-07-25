@@ -1,4 +1,4 @@
-// @quarto/quarto-ojs-runtime v0.0.7 Copyright 2022 undefined
+// @quarto/quarto-ojs-runtime v0.0.10 Copyright 2022 undefined
 var EOL = {},
     EOF = {},
     QUOTE = 34,
@@ -10256,25 +10256,36 @@ var dist = {exports: {}};
 	  if (cell.id && cell.id.name) name = cell.id.name;
 	  else if (cell.id && cell.id.id && cell.id.id.name) name = cell.id.id.name;
 	  let bodyText = cell.input.substring(cell.body.start, cell.body.end);
-	  let $count = 0;
 	  let expressionMap = {};
+	  let references = [];
 	  const cellReferences = Array.from(new Set((cell.references || []).map(ref => {
 	    if (ref.type === "ViewExpression") {
 	      if (expressionMap[ref.id.name] === undefined) {
-	        expressionMap[ref.id.name] = `$${$count++}`;
+	        expressionMap[ref.id.name] = ref.id.name;
+	        references.push(ref.id.name);
 	      }
 	      return "viewof " + ref.id.name;
 	    } else if (ref.type === "MutableExpression") {
 	      if (expressionMap[ref.id.name] === undefined) {
-	        expressionMap[ref.id.name] = `$${$count++}`;
+	        expressionMap[ref.id.name] = ref.id.name;
+	        references.push(ref.id.name);
 	      }
 	      return "mutable " + ref.id.name;
-	    } else return ref.name;
+	    } else {
+	      references.push(ref.name);
+	      return ref.name;
+	    }
 	  })));
-	  const plainReferences = cell.references.filter(ref =>
-	    ref.type !== "ViewExpression" && ref.type !== "MutableExpression"
-	    ).map(x => x.name);
-	  const references = [...plainReferences, ...Object.values(expressionMap)];
+	  const uniq = (lst) => {
+	    const result = [];
+	    const s = new Set();
+	    for (const v of lst) {
+	      if (s.has(v)) continue;
+	      s.add(v);
+	      result.push(v);
+	    }
+	    return result;
+	  };
 	  const patches = [];
 	  let latestPatch = { newStr: "", span: [cell.body.start, cell.body.start] };
 	  full(cell.body, node => {
@@ -10283,8 +10294,10 @@ var dist = {exports: {}};
 	      if (node.start !== latestPatch.span[1]) {
 	        patches.push({ newStr: cell.input.substring(latestPatch.span[1], node.start)});
 	      }
+	      const suffix = node.type === "MutableExpression" ? ".value" : "";
+	      const newStr = `${expressionMap[node.id.name]}${suffix}`;
 	      const patch = {
-	        newStr: expressionMap[node.id.name],
+	        newStr,
 	        span: [node.start, node.end]
 	      };
 	      latestPatch = patch;
@@ -10296,9 +10309,9 @@ var dist = {exports: {}};
 
 	  return {
 	    cellName: name,
-	    references: Array.from(new Set(references)),
+	    references: uniq(references),
 	    bodyText,
-	    cellReferences: Array.from(new Set(cellReferences))
+	    cellReferences: uniq(cellReferences)
 	  };
 	}function names(cell) {
 	  if (cell.body && cell.body.specifiers)
@@ -11111,10 +11124,10 @@ function getLineInfo(input, offset) {
 var defaultOptions = {
   // `ecmaVersion` indicates the ECMAScript version to parse. Must be
   // either 3, 5, 6 (or 2015), 7 (2016), 8 (2017), 9 (2018), 10
-  // (2019), 11 (2020), 12 (2021), 13 (2022), or `"latest"` (the
-  // latest version the library supports). This influences support
-  // for strict mode, the set of reserved words, and support for
-  // new syntax features.
+  // (2019), 11 (2020), 12 (2021), 13 (2022), 14 (2023), or `"latest"`
+  // (the latest version the library supports). This influences
+  // support for strict mode, the set of reserved words, and support
+  // for new syntax features.
   ecmaVersion: null,
   // `sourceType` indicates the mode the code should be parsed in.
   // Can be either `"script"` or `"module"`. This influences global
@@ -11148,8 +11161,9 @@ var defaultOptions = {
   // When enabled, super identifiers are not constrained to
   // appearing in methods and do not raise an error when they appear elsewhere.
   allowSuperOutsideMethod: null,
-  // When enabled, hashbang directive in the beginning of file
-  // is allowed and treated as a line comment.
+  // When enabled, hashbang directive in the beginning of file is
+  // allowed and treated as a line comment. Enabled by default when
+  // `ecmaVersion` >= 2023.
   allowHashBang: false,
   // When `locations` is on, `loc` properties holding objects with
   // `start` and `end` properties in `{line, column}` form (with
@@ -11223,6 +11237,9 @@ function getOptions(opts) {
 
   if (options.allowReserved == null)
     { options.allowReserved = options.ecmaVersion < 5; }
+
+  if (opts.allowHashBang == null)
+    { options.allowHashBang = options.ecmaVersion >= 14; }
 
   if (isArray(options.onToken)) {
     var tokens = options.onToken;
@@ -11554,7 +11571,7 @@ pp$9.checkPatternErrors = function(refDestructuringErrors, isAssign) {
   if (refDestructuringErrors.trailingComma > -1)
     { this.raiseRecoverable(refDestructuringErrors.trailingComma, "Comma is not permitted after the rest element"); }
   var parens = isAssign ? refDestructuringErrors.parenthesizedAssign : refDestructuringErrors.parenthesizedBind;
-  if (parens > -1) { this.raiseRecoverable(parens, "Parenthesized pattern"); }
+  if (parens > -1) { this.raiseRecoverable(parens, isAssign ? "Assigning to rvalue" : "Parenthesized pattern"); }
 };
 
 pp$9.checkExpressionErrors = function(refDestructuringErrors, andThrow) {
@@ -12650,6 +12667,7 @@ pp$8.adaptDirectivePrologue = function(statements) {
 };
 pp$8.isDirectiveCandidate = function(statement) {
   return (
+    this.options.ecmaVersion >= 5 &&
     statement.type === "ExpressionStatement" &&
     statement.expression.type === "Literal" &&
     typeof statement.expression.value === "string" &&
@@ -13060,7 +13078,8 @@ pp$6.updateContext = function(prevType) {
     { this.exprAllowed = type.beforeExpr; }
 };
 
-// Used to handle egde case when token context could not be inferred correctly in tokenize phase
+// Used to handle egde cases when token context could not be inferred correctly during tokenization phase
+
 pp$6.overrideContext = function(tokenCtx) {
   if (this.curContext() !== tokenCtx) {
     this.context[this.context.length - 1] = tokenCtx;
@@ -13875,15 +13894,6 @@ pp$5.parseProperty = function(isPattern, refDestructuringErrors) {
         this.raise(this.start, "Comma is not permitted after the rest element");
       }
       return this.finishNode(prop, "RestElement")
-    }
-    // To disallow parenthesized identifier via `this.toAssignable()`.
-    if (this.type === types$1.parenL && refDestructuringErrors) {
-      if (refDestructuringErrors.parenthesizedAssign < 0) {
-        refDestructuringErrors.parenthesizedAssign = this.start;
-      }
-      if (refDestructuringErrors.parenthesizedBind < 0) {
-        refDestructuringErrors.parenthesizedBind = this.start;
-      }
     }
     // Parse argument.
     prop.argument = this.parseMaybeAssign(false, refDestructuringErrors);
@@ -16314,7 +16324,7 @@ pp.readWord = function() {
 
 // Acorn is a tiny, fast JavaScript parser written in JavaScript.
 
-var version = "8.7.1";
+var version = "8.8.0";
 
 Parser.acorn = {
   Parser: Parser,
