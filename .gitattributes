@@ -26,6 +26,7 @@ src/resources/deno_std/** linguist-vendored
 src/resources/build/** linguist-vendored
 src/resources/editor/tools/** linguist-vendored
 src/vendor/** linguist-vendored
+src/resources/vendor/** linguist-vendored
 
 
 # use lf line-endings for source files
