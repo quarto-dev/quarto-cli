@@ -46,7 +46,7 @@ import {
 } from "./freeze.ts";
 import { resourceFilesFromRenderedFile } from "./resources.ts";
 import { inputFilesDir } from "../../core/render.ts";
-import { removeIfEmptyDir, removeIfExists } from "../../core/path.ts";
+import { removeIfEmptyDir, removeIfExists, safeRemoveIfExists } from "../../core/path.ts";
 import { handlerForScript } from "../../core/run/run.ts";
 import { execProcess } from "../../core/process.ts";
 import { parseShellRunCommand } from "../../core/run/shell.ts";
@@ -366,7 +366,7 @@ export async function renderProject(
               const targetDir = join(outputDirAbsolute, copyDir);
               copyMinimal(srcDir, targetDir);
               if (!keepLibsDir) {
-                removeIfExists(srcDir);
+                safeRemoveIfExists(srcDir);
               }
             }
           }

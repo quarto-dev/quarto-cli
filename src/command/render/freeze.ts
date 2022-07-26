@@ -20,7 +20,7 @@ import { cloneDeep } from "../../core/lodash.ts";
 import { inputFilesDir } from "../../core/render.ts";
 import { TempContext } from "../../core/temp.ts";
 import { md5Hash } from "../../core/hash.ts";
-import { removeIfEmptyDir, removeIfExists } from "../../core/path.ts";
+import { removeIfEmptyDir, removeIfExists, safeRemoveIfExists } from "../../core/path.ts";
 
 import {
   kIncludeAfterBody,
@@ -202,11 +202,7 @@ export function pruneProjectFreezerDir(
   // find a way to do force this
   files.map((file) => {
     const filePath = join(freezerDir, dir, file);
-    try {
-      removeIfExists(filePath);
-    } catch {
-      //
-    }
+    safeRemoveIfExists(filePath);
   });
   removeIfEmptyDir(join(freezerDir, dir));
 }
