@@ -371,7 +371,7 @@ export async function renderProject(
             }
           }
           if (!keepLibsDir) {
-            Deno.removeSync(libDirFull, { recursive: true });
+            safeRemoveIfExists(libDirFull);
           }
         } else {
           if (keepLibsDir) {
