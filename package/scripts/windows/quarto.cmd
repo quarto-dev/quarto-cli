@@ -85,10 +85,18 @@ SET NO_COLOR=TRUE
 )
 
 set "DENO_DOM_PLUGIN=%QUARTO_BIN_PATH%\tools\deno_dom\plugin.dll"
+IF NOT "%QUARTO_DENO_DOM%"=="" (
+    set "DENO_DOM_PLUGIN=%QUARTO_DENO_DOM%"
+) 
+
+%QUARTO_DENO%
+IF "%QUARTO_DENO%"=="" (
+    set QUARTO_DENO="%SCRIPT_DIR%\tools\deno"
+)
 
 SET QUARTO_DENO_OPTIONS=--unstable --no-config --cached-only --allow-read --allow-write --allow-run --allow-env --allow-net --allow-ffi %QUARTO_DENO_OPTIONS%
 
-"%SCRIPT_DIR%\tools\deno" %QUARTO_ACTION% %QUARTO_DENO_OPTIONS% %QUARTO_DENO_EXTRA_OPTIONS% %QUARTO_IMPORT_ARGMAP% %QUARTO_TARGET% %*
+%QUARTO_DENO% %QUARTO_ACTION% %QUARTO_DENO_OPTIONS% %QUARTO_DENO_EXTRA_OPTIONS% %QUARTO_IMPORT_ARGMAP% %QUARTO_TARGET% %*
 
 
 GOTO :end
