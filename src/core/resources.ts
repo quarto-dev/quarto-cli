@@ -30,23 +30,35 @@ export function formatResourcePath(format: string, resource: string) {
 }
 
 export function toolsPath(binary: string): string {
+  const displayWarning = () => {
+    warnOnce(
+      `Specified ${binaryEnvKey} does not exist, using built in ${binary}`,
+    );
+  };
+
+  const binaryEnvKey = `QUARTO_${binary.toUpperCase()}`;
+  const binaryPath = Deno.env.get(binaryEnvKey);
+  if (binaryPath) {
+    if (!existsSync(binaryPath)) {
+      displayWarning();
+    } else {
+      if (Deno.statSync(binaryPath).isFile) {
+        return binaryPath;
+      } else {
+        const fullPath = join(binaryPath, binary);
+        if (!existsSync(fullPath)) {
+          displayWarning();
+        } else {
+          return fullPath;
+        }
+      }
+    }
+  }
+
   return join(quartoConfig.toolsPath(), binary);
 }
 
 export function pandocBinaryPath(): string {
-  // allow override of built-in pandoc w/ QUARTO_PANDOC environment variable
-  const quartoPandoc = Deno.env.get("QUARTO_PANDOC");
-  if (quartoPandoc) {
-    if (!existsSync(quartoPandoc)) {
-      warnOnce("Specified QUARTO_PANDOC does not exist, using built in Pandoc");
-    }
-    if (Deno.statSync(quartoPandoc).isFile) {
-      return quartoPandoc;
-    } else {
-      return join(quartoPandoc, "pandoc");
-    }
-  }
-
   return toolsPath("pandoc");
 }
 
