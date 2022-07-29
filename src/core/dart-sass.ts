@@ -11,6 +11,8 @@ import { execProcess } from "./process.ts";
 import { TempContext } from "./temp.ts";
 import { lines } from "./text.ts";
 import { info } from "log/mod.ts";
+import { existsSync } from "fs/mod.ts";
+import { warnOnce } from "./log.ts";
 
 export function dartSassInstallDir() {
   return toolsPath("dart-sass");
@@ -51,8 +53,23 @@ export async function dartCompile(
 }
 
 async function dartCommand(args: string[]) {
-  const command = Deno.build.os === "windows" ? "sass.bat" : "sass";
-  const sass = toolsPath(join("dart-sass", command));
+  const resolvePath = () => {
+    const dartOverrideCmd = Deno.env.get("QUARTO_DART_SASS");
+    if (dartOverrideCmd) {
+      if (!existsSync(dartOverrideCmd)) {
+        warnOnce(
+          `Specified QUARTO_DART_SASS does not exist, using built in dart sass.`,
+        );
+      } else {
+        return dartOverrideCmd;
+      }
+    }
+
+    const command = Deno.build.os === "windows" ? "sass.bat" : "sass";
+    return toolsPath(join("dart-sass", command));
+  };
+  const sass = resolvePath();
+
   const cmd = [
     sass,
     ...args,
