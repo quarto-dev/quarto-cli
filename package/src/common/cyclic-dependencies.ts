@@ -140,8 +140,12 @@ function parseSwcBundlerLog(
 }
 async function loadModules(config: Configuration) {
   info("Reading modules");
+  const denoExecPath = Deno.env.get("QUARTO_DENO")
+  if (! denoExecPath) {
+    throw Error("QUARTO_DENO is not defined");
+  }
   const result = await runCmd(
-    join(config.directoryInfo.bin, "tools", "deno"),
+    denoExecPath,
     [
       "info",
       join(config.directoryInfo.src, "quarto.ts"),

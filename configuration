@@ -6,7 +6,6 @@
 # The configuration is used both as a local runtime version of Quarto for developers
 # but it also used when packaging (e.g. run configure.sh, then prepare-dist.sh, then package.sh)
 
-
 # Binary dependencies
 export DENO=v1.22.0
 export DENO_DOM=v0.1.17-alpha
@@ -46,7 +45,9 @@ export QUARTO_VERSION=1.1
 export QUARTO_NAME=Quarto
 export QUARTO_BUILD_RUN_OFFSET=-1289
 
-# Configuration Target Directories
+# Folder names. These are not the same as paths (those variable names end in _PATH).
+#     See set_package_paths .sh and .bat for these in context of full paths.
+#     See the configure .sh and .cmd scripts for overrides.
 export QUARTO_PACKAGE_DIR=package
 export QUARTO_DIST_DIR=dist
 export QUARTO_SHARE_DIR=share
@@ -58,6 +59,6 @@ export QUARTO_OUT_DIR=out
 # Altering this will change upgrade behavior of the windows installer
 # so be sure you know what you're doing before you change it
 # We use a dynamic product ID for every build (forcing a major upgrade)
-# so this upgrade code is the only thing that connects different versions 
+# so this upgrade code is the only thing that connects different versions
 # of this installed product (and permits upgrades).
 export QUARTO_MSI_UPGRADE_CODE=98fb2e98-96b0-46e1-a6fd-94171233d11b

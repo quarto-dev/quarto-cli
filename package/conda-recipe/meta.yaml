@@ -1,0 +1,58 @@
+{% set quarto_version = load_file_regex(load_file='configuration', regex_pattern='export QUARTO_VERSION=([\d.]+)').group(1) %}
+{% set deno_version = load_file_regex(load_file='./configuration', regex_pattern='export\sDENO=v(\S+)').group(1) %}
+{% set deno_dom_version = load_file_regex(load_file='configuration', regex_pattern='export DENO_DOM=v([^-]+)').group(1) %}
+{% set pandoc_version = load_file_regex(load_file='configuration', regex_pattern='export PANDOC=(\S+)').group(1) %}
+
+package:
+  name: quarto-cli
+  version: {{ quarto_version }}
+
+source:
+  path: ../..
+
+build:
+  number: 0
+
+requirements:
+  host:
+    - deno      {{ deno_version }}
+    - deno-dom  {{ deno_dom_version }}
+    - pandoc    {{ pandoc_version }}
+    - esbuild 
+  run:
+    # Deno, deno-dom and pandoc have proven to be fickle
+    #    regarding Quarto's source code. The pinning here
+    #    is not so much that there are binary compatibility
+    #    issues, but just that these dependencies are only
+    #    known to work in a pretty narrow range.
+    - {{ pin_compatible("deno", max_pin="x.x.x") }}
+    - {{ pin_compatible("pandoc", max_pin="x.x") }}
+    # we vendor deno-dom JS dependencies, so it is important
+    #  that the version at runtime matches the one at build time
+    - {{ pin_compatible("deno-dom", max_pin="x.x.x") }}
+    - esbuild
+    - dart-sass
+
+
+test:
+  commands:
+    - quarto render hello.qmd --to html
+    - quarto -h
+  files:
+    - hello.qmd
+  requires:
+    - matplotlib
+    - python >=3
+    - jupyter
+
+about:
+  home: https://quarto.org/
+  license: GPLv2
+  license_file:
+    - COPYRIGHT
+    - COPYING.md
+  summary: An open-source scientific and technical publishing system built on Pandoc
+
+extra:
+  recipe-maintainers:
+    - msarahan

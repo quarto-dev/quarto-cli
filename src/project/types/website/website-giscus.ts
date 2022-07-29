@@ -74,7 +74,7 @@ export async function resolveFormatForGiscus(
         }
         if (giscusOptions[kGiscusCategoryId] === undefined) {
           giscusOptions[kGiscusCategoryId] = getDiscussionCategoryId(
-            giscusOptions[kGiscusCategoryId] as string,
+            (giscusOptions[kGiscusCategoryId] || "") as string,
             giscusMeta,
           );
         }
