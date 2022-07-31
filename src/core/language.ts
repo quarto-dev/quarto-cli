@@ -132,7 +132,7 @@ export function haveTranslationsForLang(lang: string) {
   lang = lang.split("-")[0];
 
   // do we have translations for it
-  return ["en", "de", "es", "fr", "pt", "ru", "zh"].includes(lang);
+  return ["en", "de", "es", "fi", "fr", "pt", "ru", "zh"].includes(lang);
 }
 
 export function translationsForLang(language: FormatLanguage, lang: string) {

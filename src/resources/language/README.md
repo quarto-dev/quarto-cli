@@ -9,6 +9,7 @@ This directory includes a set of built-in translations, including:
 | `_language.yml`    | English (default) |
 | `_language-zh.yml` | Chinese           |
 | `_language-es.yml` | Spanish           |
+| `_language-fi.yml` | Finnish           |
 | `_language-fr.yml` | French            |
 | `_language-ja.yml` | Japanese          |
 | `_language-de.yml` | German            |
