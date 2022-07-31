@@ -8,7 +8,7 @@
 import { warning } from "log/mod.ts";
 import { join } from "path/mod.ts";
 import { ensureDirSync } from "fs/mod.ts";
-import { removeIfExists } from "./path.ts";
+import { removeIfExists, safeRemoveIfExists } from "./path.ts";
 import { TempContext } from "./temp-types.ts";
 
 export type { TempContext } from "./temp-types.ts";
@@ -53,11 +53,7 @@ export function createTempContext(options?: Deno.MakeTempOptions) {
     },
     cleanup: () => {
       if (dir) {
-        try {
-          removeIfExists(dir);
-        } catch (error) {
-          warning(`Error removing temp dir at ${dir}: ${error.message}`);
-        }
+        safeRemoveIfExists(dir);
         dir = undefined;
       }
     },

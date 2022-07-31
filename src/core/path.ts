@@ -14,6 +14,8 @@ import {
   join,
 } from "path/mod.ts";
 
+import { warning } from "log/mod.ts";
+
 import { existsSync } from "fs/exists.ts";
 import { expandGlobSync } from "fs/expand_glob.ts";
 
@@ -27,6 +29,14 @@ export const kSkipHidden = /[/\\][\.]/;
 export function removeIfExists(file: string) {
   if (existsSync(file)) {
     Deno.removeSync(file, { recursive: true });
+  }
+}
+
+export function safeRemoveIfExists(file: string) {
+  try {
+    removeIfExists(file);
+  } catch (error) {
+    warning(`Error removing file ${file}: ${error.message}`);
   }
 }
 
