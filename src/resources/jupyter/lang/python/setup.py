@@ -76,6 +76,8 @@ def ojs_define(**kwargs):
       import pandas as pd
     except ModuleNotFoundError: # don't do the magic when pandas is not available
       return v
+    if type(v) == pd.Series:
+      v = pd.DataFrame(v)
     if type(v) == pd.DataFrame:
       j = json.loads(v.T.to_json(orient='split'))
       return dict((k,v) for (k,v) in zip(j["index"], j["data"]))
