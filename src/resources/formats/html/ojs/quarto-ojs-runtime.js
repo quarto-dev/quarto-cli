@@ -200,11 +200,9 @@ const queue$1 = [];
 const map$2 = queue$1.map;
 const some = queue$1.some;
 const hasOwnProperty$2 = queue$1.hasOwnProperty;
-const origin = "https://cdn.jsdelivr.net/npm/";
 const identifierRe = /^((?:@[^/@]+\/)?[^/@]+)(?:@([^/]+))?(?:\/(.*))?$/;
 const versionRe = /^\d+\.\d+\.\d+(-[\w-.+]+)?$/;
-const extensionRe = /\.[^/]*$/;
-const mains = ["unpkg", "jsdelivr", "browser", "main"];
+const extensionRe = /(?:\.[^/]*|\/)$/;
 
 class RequireError extends Error {
   constructor(message) {
@@ -213,15 +211,6 @@ class RequireError extends Error {
 }
 
 RequireError.prototype.name = RequireError.name;
-
-function main(meta) {
-  for (const key of mains) {
-    const value = meta[key];
-    if (typeof value === "string") {
-      return extensionRe.test(value) ? value : `${value}.js`;
-    }
-  }
-}
 
 function parseIdentifier(identifier) {
   const match = identifierRe.exec(identifier);
@@ -232,35 +221,49 @@ function parseIdentifier(identifier) {
   };
 }
 
-function resolveMeta(target) {
-  const url = `${origin}${target.name}${target.version ? `@${target.version}` : ""}/package.json`;
-  let meta = metas.get(url);
-  if (!meta) metas.set(url, meta = fetch(url).then(response => {
-    if (!response.ok) throw new RequireError("unable to load package.json");
-    if (response.redirected && !metas.has(response.url)) metas.set(response.url, meta);
-    return response.json();
-  }));
-  return meta;
-}
+function resolveFrom(origin = "https://cdn.jsdelivr.net/npm/", mains = ["unpkg", "jsdelivr", "browser", "main"]) {
+  if (!/\/$/.test(origin)) throw new Error("origin lacks trailing slash");
 
-async function resolve$1(name, base) {
-  if (name.startsWith(origin)) name = name.substring(origin.length);
-  if (/^(\w+:)|\/\//i.test(name)) return name;
-  if (/^[.]{0,2}\//i.test(name)) return new URL(name, base == null ? location : base).href;
-  if (!name.length || /^[\s._]/.test(name) || /\s$/.test(name)) throw new RequireError("illegal name");
-  const target = parseIdentifier(name);
-  if (!target) return `${origin}${name}`;
-  if (!target.version && base != null && base.startsWith(origin)) {
-    const meta = await resolveMeta(parseIdentifier(base.substring(origin.length)));
-    target.version = meta.dependencies && meta.dependencies[target.name] || meta.peerDependencies && meta.peerDependencies[target.name];
+  function main(meta) {
+    for (const key of mains) {
+      let value = meta[key];
+      if (typeof value === "string") {
+        if (value.startsWith("./")) value = value.slice(2);
+        return extensionRe.test(value) ? value : `${value}.js`;
+      }
+    }
   }
-  if (target.path && !extensionRe.test(target.path)) target.path += ".js";
-  if (target.path && target.version && versionRe.test(target.version)) return `${origin}${target.name}@${target.version}/${target.path}`;
-  const meta = await resolveMeta(target);
-  return `${origin}${meta.name}@${meta.version}/${target.path || main(meta) || "index.js"}`;
+
+  function resolveMeta(target) {
+    const url = `${origin}${target.name}${target.version ? `@${target.version}` : ""}/package.json`;
+    let meta = metas.get(url);
+    if (!meta) metas.set(url, meta = fetch(url).then(response => {
+      if (!response.ok) throw new RequireError("unable to load package.json");
+      if (response.redirected && !metas.has(response.url)) metas.set(response.url, meta);
+      return response.json();
+    }));
+    return meta;
+  }
+
+  return async function resolve(name, base) {
+    if (name.startsWith(origin)) name = name.substring(origin.length);
+    if (/^(\w+:)|\/\//i.test(name)) return name;
+    if (/^[.]{0,2}\//i.test(name)) return new URL(name, base == null ? location : base).href;
+    if (!name.length || /^[\s._]/.test(name) || /\s$/.test(name)) throw new RequireError("illegal name");
+    const target = parseIdentifier(name);
+    if (!target) return `${origin}${name}`;
+    if (!target.version && base != null && base.startsWith(origin)) {
+      const meta = await resolveMeta(parseIdentifier(base.substring(origin.length)));
+      target.version = meta.dependencies && meta.dependencies[target.name] || meta.peerDependencies && meta.peerDependencies[target.name];
+    }
+    if (target.path && !extensionRe.test(target.path)) target.path += ".js";
+    if (target.path && target.version && versionRe.test(target.version)) return `${origin}${target.name}@${target.version}/${target.path}`;
+    const meta = await resolveMeta(target);
+    return `${origin}${meta.name}@${meta.version}/${target.path || main(meta) || "index.js"}`;
+  };
 }
 
-var require = requireFrom(resolve$1);
+var require = requireFrom(resolveFrom());
 let requestsInFlight = 0;
 let prevDefine = undefined;
 
@@ -374,224 +377,14 @@ function define(name, dependencies, factory) {
 
 define.amd = {};
 
-function dependency(name, version, main) {
-  return {
-    resolve(path = main) {
-      return `https://cdn.jsdelivr.net/npm/${name}@${version}/${path}`;
-    }
-  };
+let requireDefault = require;
+
+function setDefaultRequire(require) {
+  requireDefault = require;
 }
 
-const d3 = dependency("d3", "7.4.4", "dist/d3.min.js");
-const inputs = dependency("@observablehq/inputs", "0.10.4", "dist/inputs.min.js");
-const plot = dependency("@observablehq/plot", "0.4.3", "dist/plot.umd.min.js");
-const graphviz = dependency("@observablehq/graphviz", "0.2.1", "dist/graphviz.min.js");
-const highlight = dependency("@observablehq/highlight.js", "2.0.0", "highlight.min.js");
-const katex = dependency("@observablehq/katex", "0.11.1", "dist/katex.min.js");
-const lodash = dependency("lodash", "4.17.21", "lodash.min.js");
-const htl = dependency("htl", "0.3.1", "dist/htl.min.js");
-const jszip = dependency("jszip", "3.9.1", "dist/jszip.min.js");
-const marked = dependency("marked", "0.3.12", "marked.min.js");
-const sql = dependency("sql.js", "1.6.2", "dist/sql-wasm.js");
-const vega = dependency("vega", "5.22.1", "build/vega.min.js");
-const vegalite = dependency("vega-lite", "5.2.0", "build/vega-lite.min.js");
-const vegaliteApi = dependency("vega-lite-api", "5.0.0", "build/vega-lite-api.min.js");
-const arrow = dependency("apache-arrow", "4.0.1", "Arrow.es2015.min.js");
-const arquero = dependency("arquero", "4.8.8", "dist/arquero.min.js");
-const topojson = dependency("topojson-client", "3.1.0", "dist/topojson-client.min.js");
-const exceljs = dependency("exceljs", "4.3.0", "dist/exceljs.min.js");
-const mermaid$1 = dependency("mermaid", "9.0.0", "dist/mermaid.min.js");
-
-function fromEntries(obj) {
-  const result = {};
-  for (const [key, value] of obj) {
-    result[key] = value;
-  }
-  return result;
-}
-
-async function sqlite(require) {
-  const init = await require(sql.resolve());
-  return init({locateFile: file => sql.resolve(`dist/${file}`)});
-}
-
-class SQLiteDatabaseClient {
-  constructor(db) {
-    Object.defineProperties(this, {
-      _db: {value: db}
-    });
-  }
-  static async open(source) {
-    const [SQL, buffer] = await Promise.all([sqlite(require), Promise.resolve(source).then(load$1)]);
-    return new SQLiteDatabaseClient(new SQL.Database(buffer));
-  }
-  async query(query, params) {
-    return await exec(this._db, query, params);
-  }
-  async queryRow(query, params) {
-    return (await this.query(query, params))[0] || null;
-  }
-  async explain(query, params) {
-    const rows = await this.query(`EXPLAIN QUERY PLAN ${query}`, params);
-    return element$1("pre", {className: "observablehq--inspect"}, [
-      text$2(rows.map(row => row.detail).join("\n"))
-    ]);
-  }
-  async describe(object) {
-    const rows = await (object === undefined
-      ? this.query(`SELECT name FROM sqlite_master WHERE type = 'table'`)
-      : this.query(`SELECT * FROM pragma_table_info(?)`, [object]));
-    if (!rows.length) throw new Error("Not found");
-    const {columns} = rows;
-    return element$1("table", {value: rows}, [
-      element$1("thead", [element$1("tr", columns.map(c => element$1("th", [text$2(c)])))]),
-      element$1("tbody", rows.map(r => element$1("tr", columns.map(c => element$1("td", [text$2(r[c])])))))
-    ]);
-  }
-  async sql(strings, ...args) {
-    return this.query(strings.join("?"), args);
-  }
-}
-Object.defineProperty(SQLiteDatabaseClient.prototype, "dialect", {
-  value: "sqlite"
-});
-
-function load$1(source) {
-  return typeof source === "string" ? fetch(source).then(load$1)
-    : source instanceof Response || source instanceof Blob ? source.arrayBuffer().then(load$1)
-    : source instanceof ArrayBuffer ? new Uint8Array(source)
-    : source;
-}
-
-async function exec(db, query, params) {
-  const [result] = await db.exec(query, params);
-  if (!result) return [];
-  const {columns, values} = result;
-  const rows = values.map(row => fromEntries(row.map((value, i) => [columns[i], value])));
-  rows.columns = columns;
-  return rows;
-}
-
-function element$1(name, props, children) {
-  if (arguments.length === 2) children = props, props = undefined;
-  const element = document.createElement(name);
-  if (props !== undefined) for (const p in props) element[p] = props[p];
-  if (children !== undefined) for (const c of children) element.appendChild(c);
-  return element;
-}
-
-function text$2(value) {
-  return document.createTextNode(value);
-}
-
-class Workbook {
-  constructor(workbook) {
-    Object.defineProperties(this, {
-      _: {value: workbook},
-      sheetNames: {
-        value: workbook.worksheets.map((s) => s.name),
-        enumerable: true,
-      },
-    });
-  }
-  sheet(name, options) {
-    const sname =
-      typeof name === "number"
-        ? this.sheetNames[name]
-        : this.sheetNames.includes((name += ""))
-        ? name
-        : null;
-    if (sname == null) throw new Error(`Sheet not found: ${name}`);
-    const sheet = this._.getWorksheet(sname);
-    return extract(sheet, options);
-  }
-}
-
-function extract(sheet, {range, headers} = {}) {
-  let [[c0, r0], [c1, r1]] = parseRange(range, sheet);
-  const headerRow = headers ? sheet._rows[r0++] : null;
-  let names = new Set(["#"]);
-  for (let n = c0; n <= c1; n++) {
-    const value = headerRow ? valueOf(headerRow.findCell(n + 1)) : null;
-    let name = (value && value + "") || toColumn(n);
-    while (names.has(name)) name += "_";
-    names.add(name);
-  }
-  names = new Array(c0).concat(Array.from(names));
-
-  const output = new Array(r1 - r0 + 1);
-  for (let r = r0; r <= r1; r++) {
-    const row = (output[r - r0] = Object.create(null, {"#": {value: r + 1}}));
-    const _row = sheet.getRow(r + 1);
-    if (_row.hasValues)
-      for (let c = c0; c <= c1; c++) {
-        const value = valueOf(_row.findCell(c + 1));
-        if (value != null) row[names[c + 1]] = value;
-      }
-  }
-
-  output.columns = names.filter(() => true); // Filter sparse columns
-  return output;
-}
-
-function valueOf(cell) {
-  if (!cell) return;
-  const {value} = cell;
-  if (value && typeof value === "object" && !(value instanceof Date)) {
-    if (value.formula || value.sharedFormula) {
-      return value.result && value.result.error ? NaN : value.result;
-    }
-    if (value.richText) {
-      return richText(value);
-    }
-    if (value.text) {
-      let {text} = value;
-      if (text.richText) text = richText(text);
-      return value.hyperlink && value.hyperlink !== text
-        ? `${value.hyperlink} ${text}`
-        : text;
-    }
-    return value;
-  }
-  return value;
-}
-
-function richText(value) {
-  return value.richText.map((d) => d.text).join("");
-}
-
-function parseRange(specifier = ":", {columnCount, rowCount}) {
-  specifier += "";
-  if (!specifier.match(/^[A-Z]*\d*:[A-Z]*\d*$/))
-    throw new Error("Malformed range specifier");
-  const [[c0 = 0, r0 = 0], [c1 = columnCount - 1, r1 = rowCount - 1]] =
-    specifier.split(":").map(fromCellReference);
-  return [
-    [c0, r0],
-    [c1, r1],
-  ];
-}
-
-// Returns the default column name for a zero-based column index.
-// For example: 0 -> "A", 1 -> "B", 25 -> "Z", 26 -> "AA", 27 -> "AB".
-function toColumn(c) {
-  let sc = "";
-  c++;
-  do {
-    sc = String.fromCharCode(64 + (c % 26 || 26)) + sc;
-  } while ((c = Math.floor((c - 1) / 26)));
-  return sc;
-}
-
-// Returns the zero-based indexes from a cell reference.
-// For example: "A1" -> [0, 0], "B2" -> [1, 1], "AA10" -> [26, 9].
-function fromCellReference(s) {
-  const [, sc, sr] = s.match(/^([A-Z]*)(\d*)$/);
-  let c = 0;
-  if (sc)
-    for (let i = 0; i < sc.length; i++)
-      c += Math.pow(26, sc.length - i - 1) * (sc.charCodeAt(i) - 64);
-  return [c ? c - 1 : undefined, sr ? +sr - 1 : undefined];
+function requirer(resolve) {
+  return resolve == null ? requireDefault : requireFrom(resolve);
 }
 
 async function remote_fetch(file) {
@@ -647,14 +440,14 @@ class AbstractFile {
     });
   }
   async arrow() {
-    const [Arrow, response] = await Promise.all([require(arrow.resolve()), remote_fetch(this)]);
+    const [Arrow, response] = await Promise.all([requireDefault(arrow.resolve()), remote_fetch(this)]);
     return Arrow.Table.from(response);
   }
   async sqlite() {
     return SQLiteDatabaseClient.open(remote_fetch(this));
   }
   async zip() {
-    const [JSZip, buffer] = await Promise.all([require(jszip.resolve()), this.arrayBuffer()]);
+    const [JSZip, buffer] = await Promise.all([requireDefault(jszip.resolve()), this.arrayBuffer()]);
     return new ZipArchive(await JSZip.loadAsync(buffer));
   }
   async xml(mimeType = "application/xml") {
@@ -664,7 +457,7 @@ class AbstractFile {
     return this.xml("text/html");
   }
   async xlsx() {
-    const [ExcelJS, buffer] = await Promise.all([require(exceljs.resolve()), this.arrayBuffer()]);
+    const [ExcelJS, buffer] = await Promise.all([requireDefault(exceljs.resolve()), this.arrayBuffer()]);
     return new Workbook(await new ExcelJS.Workbook().xlsx.load(buffer));
   }
 }
@@ -792,7 +585,7 @@ var namespaces = {
   xmlns: "http://www.w3.org/2000/xmlns/"
 };
 
-function element(name, attributes) {
+function element$1(name, attributes) {
   var prefix = name += "", i = prefix.indexOf(":"), value;
   if (i >= 0 && (prefix = name.slice(0, i)) !== "xmlns") name = name.slice(i + 1);
   var element = namespaces.hasOwnProperty(prefix) // eslint-disable-line no-prototype-builtins
@@ -841,7 +634,7 @@ function svg$1(width, height) {
   return svg;
 }
 
-function text$1(value) {
+function text$2(value) {
   return document.createTextNode(value);
 }
 
@@ -864,12 +657,12 @@ var DOM = {
   canvas: canvas,
   context2d: context2d,
   download: download,
-  element: element,
+  element: element$1,
   input: input$1,
   range: range$1,
   select: select,
   svg: svg$1,
-  text: text$1,
+  text: text$2,
   uid: uid
 };
 
@@ -882,7 +675,7 @@ function buffer(file) {
   });
 }
 
-function text(file) {
+function text$1(file) {
   return new Promise(function(resolve, reject) {
     var reader = new FileReader;
     reader.onload = function() { resolve(reader.result); };
@@ -902,7 +695,7 @@ function url(file) {
 
 var Files = {
   buffer: buffer,
-  text: text,
+  text: text$1,
   url: url
 };
 
@@ -1149,6 +942,44 @@ var html$1 = template(function(string) {
   return document.createElement("span");
 });
 
+function dependency(name, version, main) {
+  return {
+    resolve(path = main) {
+      return `${name}@${version}/${path}`;
+    }
+  };
+}
+
+const d3 = dependency("d3", "7.6.1", "dist/d3.min.js");
+const inputs = dependency("@observablehq/inputs", "0.10.4", "dist/inputs.min.js");
+const plot = dependency("@observablehq/plot", "0.5.2", "dist/plot.umd.min.js");
+const graphviz = dependency("@observablehq/graphviz", "0.2.1", "dist/graphviz.min.js");
+const highlight = dependency("@observablehq/highlight.js", "2.0.0", "highlight.min.js");
+const katex = dependency("@observablehq/katex", "0.11.1", "dist/katex.min.js");
+const lodash = dependency("lodash", "4.17.21", "lodash.min.js");
+const htl = dependency("htl", "0.3.1", "dist/htl.min.js");
+const marked = dependency("marked", "0.3.12", "marked.min.js");
+const sql = dependency("sql.js", "1.7.0", "dist/sql-wasm.js");
+const vega = dependency("vega", "5.22.1", "build/vega.min.js");
+const vegalite = dependency("vega-lite", "5.2.0", "build/vega-lite.min.js");
+const vegaliteApi = dependency("vega-lite-api", "5.0.0", "build/vega-lite-api.min.js");
+const arrow$1 = dependency("apache-arrow", "4.0.1", "Arrow.es2015.min.js");
+const arquero = dependency("arquero", "4.8.8", "dist/arquero.min.js");
+const topojson = dependency("topojson-client", "3.1.0", "dist/topojson-client.min.js");
+const mermaid$1 = dependency("mermaid", "9.1.1", "dist/mermaid.min.js");
+const leaflet$1 = dependency("leaflet", "1.8.0", "dist/leaflet.js");
+
+async function leaflet(require) {
+  const L = await require(leaflet$1.resolve());
+  if (!L._style) {
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = await require.resolve(leaflet$1.resolve("dist/leaflet.css"));
+    L._style = document.head.appendChild(link);
+  }
+  return L;
+}
+
 function md(require) {
   return require(marked.resolve()).then(function(marked) {
     return template(
@@ -1259,8 +1090,127 @@ function resolve(name, base) {
   return "https://unpkg.com/" + name;
 }
 
-function requirer(resolve) {
-  return resolve == null ? require : requireFrom(resolve);
+async function sqlite(require) {
+  const [init, dist] = await Promise.all([require(sql.resolve()), require.resolve(sql.resolve("dist/"))]);
+  return init({locateFile: file => `${dist}${file}`});
+}
+
+class SQLiteDatabaseClient$1 {
+  constructor(db) {
+    Object.defineProperties(this, {
+      _db: {value: db}
+    });
+  }
+  static async open(source) {
+    const [SQL, buffer] = await Promise.all([sqlite(requireDefault), Promise.resolve(source).then(load$1)]);
+    return new SQLiteDatabaseClient$1(new SQL.Database(buffer));
+  }
+  async query(query, params) {
+    return await exec(this._db, query, params);
+  }
+  async queryRow(query, params) {
+    return (await this.query(query, params))[0] || null;
+  }
+  async explain(query, params) {
+    const rows = await this.query(`EXPLAIN QUERY PLAN ${query}`, params);
+    return element("pre", {className: "observablehq--inspect"}, [
+      text(rows.map(row => row.detail).join("\n"))
+    ]);
+  }
+  async describeTables({schema} = {}) {
+    return this.query(`SELECT NULLIF(schema, 'main') AS schema, name FROM pragma_table_list() WHERE type = 'table'${schema == null ? "" : ` AND schema = ?`} AND name NOT LIKE 'sqlite_%'`, schema == null ? [] : [schema]);
+  }
+  async describeColumns({schema, table} = {}) {
+    if (table == null) throw new Error(`missing table`);
+    const rows = await this.query(`SELECT name, type, "notnull" FROM pragma_table_info(?${schema == null ? "" : `, ?`}) ORDER BY cid`, schema == null ? [table] : [table, schema]);
+    if (!rows.length) throw new Error(`table not found: ${table}`);
+    return rows.map(({name, type, notnull}) => ({name, type: sqliteType(type), databaseType: type, nullable: !notnull}));
+  }
+  async describe(object) {
+    const rows = await (object === undefined
+      ? this.query(`SELECT name FROM sqlite_master WHERE type = 'table'`)
+      : this.query(`SELECT * FROM pragma_table_info(?)`, [object]));
+    if (!rows.length) throw new Error("Not found");
+    const {columns} = rows;
+    return element("table", {value: rows}, [
+      element("thead", [element("tr", columns.map(c => element("th", [text(c)])))]),
+      element("tbody", rows.map(r => element("tr", columns.map(c => element("td", [text(r[c])])))))
+    ]);
+  }
+  async sql() {
+    return this.query(...this.queryTag.apply(this, arguments));
+  }
+  queryTag(strings, ...params) {
+    return [strings.join("?"), params];
+  }
+}
+
+Object.defineProperty(SQLiteDatabaseClient$1.prototype, "dialect", {
+  value: "sqlite"
+});
+
+// https://www.sqlite.org/datatype3.html
+function sqliteType(type) {
+  switch (type) {
+    case "NULL":
+      return "null";
+    case "INT":
+    case "INTEGER":
+    case "TINYINT":
+    case "SMALLINT":
+    case "MEDIUMINT":
+    case "BIGINT":
+    case "UNSIGNED BIG INT":
+    case "INT2":
+    case "INT8":
+      return "integer";
+    case "TEXT":
+    case "CLOB":
+      return "string";
+    case "REAL":
+    case "DOUBLE":
+    case "DOUBLE PRECISION":
+    case "FLOAT":
+    case "NUMERIC":
+      return "number";
+    case "BLOB":
+      return "buffer";
+    case "DATE":
+    case "DATETIME":
+      return "string"; // TODO convert strings to Date instances in sql.js
+    default:
+      return /^(?:(?:(?:VARYING|NATIVE) )?CHARACTER|(?:N|VAR|NVAR)CHAR)\(/.test(type) ? "string"
+        : /^(?:DECIMAL|NUMERIC)\(/.test(type) ? "number"
+        : "other";
+  }
+}
+
+function load$1(source) {
+  return typeof source === "string" ? fetch(source).then(load$1)
+    : source instanceof Response || source instanceof Blob ? source.arrayBuffer().then(load$1)
+    : source instanceof ArrayBuffer ? new Uint8Array(source)
+    : source;
+}
+
+async function exec(db, query, params) {
+  const [result] = await db.exec(query, params);
+  if (!result) return [];
+  const {columns, values} = result;
+  const rows = values.map(row => fromEntries(row.map((value, i) => [columns[i], value])));
+  rows.columns = columns;
+  return rows;
+}
+
+function element(name, props, children) {
+  if (arguments.length === 2) children = props, props = undefined;
+  const element = document.createElement(name);
+  if (props !== undefined) for (const p in props) element[p] = props[p];
+  if (children !== undefined) for (const c of children) element.appendChild(c);
+  return element;
+}
+
+function text(value) {
+  return document.createTextNode(value);
 }
 
 var svg = template(function(string) {
@@ -1287,7 +1237,7 @@ function style(href) {
 function tex(require) {
   return Promise.all([
     require(katex.resolve()),
-    style(katex.resolve("dist/katex.min.css"))
+    require.resolve(katex.resolve("dist/katex.min.css")).then(style)
   ]).then(function(values) {
     var katex = values[0], tex = renderer();
 
@@ -1324,32 +1274,284 @@ function width() {
   });
 }
 
-var Library = Object.assign(function Library(resolver) {
+const __query = Object.assign(
+  // This function is used by table cells.
+  async (source, operations, invalidation) => {
+    const args = makeQueryTemplate(operations, await source);
+    if (!args) return null; // the empty state
+    return evaluateQuery(await source, args, invalidation);
+  },
+  {
+    // This function is used by SQL cells.
+    sql(source, invalidation) {
+      return async function () {
+        return evaluateQuery(source, arguments, invalidation);
+      };
+    }
+  }
+);
+
+async function evaluateQuery(source, args, invalidation) {
+  if (!source) return;
+
+  // If this DatabaseClient supports abort and streaming, use that.
+  if (typeof source.queryTag === "function") {
+    const abortController = new AbortController();
+    const options = {signal: abortController.signal};
+    invalidation.then(() => abortController.abort("invalidated"));
+    if (typeof source.queryStream === "function") {
+      return accumulateQuery(
+        source.queryStream(...source.queryTag.apply(source, args), options)
+      );
+    }
+    if (typeof source.query === "function") {
+      return source.query(...source.queryTag.apply(source, args), options);
+    }
+  }
+
+  // Otherwise, fallback to the basic sql tagged template literal.
+  if (typeof source.sql === "function") {
+    return source.sql.apply(source, args);
+  }
+
+  // TODO: test if source is a file attachment, and support CSV etc.
+  throw new Error("source does not implement query, queryStream, or sql");
+}
+
+// Generator function that yields accumulated query results client.queryStream
+async function* accumulateQuery(queryRequest) {
+  const queryResponse = await queryRequest;
+  const values = [];
+  values.done = false;
+  values.error = null;
+  values.schema = queryResponse.schema;
+  try {
+    const iterator = queryResponse.readRows();
+    do {
+      const result = await iterator.next();
+      if (result.done) {
+        values.done = true;
+      } else {
+        for (const value of result.value) {
+          values.push(value);
+        }
+      }
+      yield values;
+    } while (!values.done);
+  } catch (error) {
+    values.error = error;
+    yield values;
+  }
+}
+
+/**
+ * Returns a SQL query in the form [[parts], ...params] where parts is an array
+ * of sub-strings and params are the parameter values to be inserted between each
+ * sub-string.
+ */
+ function makeQueryTemplate(operations, source) {
+  const escaper =
+    source && typeof source.escape === "function" ? source.escape : (i) => i;
+  const {select, from, filter, sort, slice} = operations;
+  if (
+    from.table === null ||
+    select.columns === null ||
+    (select.columns && select.columns.length === 0)
+  )
+    return;
+  const columns = select.columns.map((c) => `t.${escaper(c)}`);
+  const args = [
+    [`SELECT ${columns} FROM ${formatTable(from.table, escaper)} t`]
+  ];
+  for (let i = 0; i < filter.length; ++i) {
+    appendSql(i ? `\nAND ` : `\nWHERE `, args);
+    appendWhereEntry(filter[i], args);
+  }
+  for (let i = 0; i < sort.length; ++i) {
+    appendSql(i ? `, ` : `\nORDER BY `, args);
+    appendOrderBy(sort[i], args);
+  }
+  if (slice.to !== null || slice.from !== null) {
+    appendSql(
+      `\nLIMIT ${slice.to !== null ? slice.to - (slice.from || 0) : 1e9}`,
+      args
+    );
+  }
+  if (slice.from !== null) {
+    appendSql(` OFFSET ${slice.from}`, args);
+  }
+  return args;
+}
+
+function formatTable(table, escaper) {
+  if (typeof table === "object") {
+    let from = "";
+    if (table.database != null) from += escaper(table.database) + ".";
+    if (table.schema != null) from += escaper(table.schema) + ".";
+    from += escaper(table.table);
+    return from;
+  }
+  return table;
+}
+
+function appendSql(sql, args) {
+  const strings = args[0];
+  strings[strings.length - 1] += sql;
+}
+
+function appendOrderBy({column, direction}, args) {
+  appendSql(`t.${column} ${direction.toUpperCase()}`, args);
+}
+
+function appendWhereEntry({type, operands}, args) {
+  if (operands.length < 1) throw new Error("Invalid operand length");
+
+  // Unary operations
+  if (operands.length === 1) {
+    appendOperand(operands[0], args);
+    switch (type) {
+      case "n":
+        appendSql(` IS NULL`, args);
+        return;
+      case "nn":
+        appendSql(` IS NOT NULL`, args);
+        return;
+      default:
+        throw new Error("Invalid filter operation");
+    }
+  }
+
+  // Binary operations
+  if (operands.length === 2) {
+    if (["in", "nin"].includes(type)) ; else if (["c", "nc"].includes(type)) {
+      // TODO: Case (in)sensitive?
+      appendOperand(operands[0], args);
+      switch (type) {
+        case "c":
+          appendSql(` LIKE `, args);
+          break;
+        case "nc":
+          appendSql(` NOT LIKE `, args);
+          break;
+      }
+      appendOperand(likeOperand(operands[1]), args);
+      return;
+    } else {
+      appendOperand(operands[0], args);
+      switch (type) {
+        case "eq":
+          appendSql(` = `, args);
+          break;
+        case "ne":
+          appendSql(` <> `, args);
+          break;
+        case "gt":
+          appendSql(` > `, args);
+          break;
+        case "lt":
+          appendSql(` < `, args);
+          break;
+        case "gte":
+          appendSql(` >= `, args);
+          break;
+        case "lte":
+          appendSql(` <= `, args);
+          break;
+        default:
+          throw new Error("Invalid filter operation");
+      }
+      appendOperand(operands[1], args);
+      return;
+    }
+  }
+
+  // List operations
+  appendOperand(operands[0], args);
+  switch (type) {
+    case "in":
+      appendSql(` IN (`, args);
+      break;
+    case "nin":
+      appendSql(` NOT IN (`, args);
+      break;
+    default:
+      throw new Error("Invalid filter operation");
+  }
+  appendListOperands(operands.slice(1), args);
+  appendSql(")", args);
+}
+
+function appendOperand(o, args) {
+  if (o.type === "column") {
+    appendSql(`t.${o.value}`, args);
+  } else {
+    args.push(o.value);
+    args[0].push("");
+  }
+}
+
+// TODO: Support column operands here?
+function appendListOperands(ops, args) {
+  let first = true;
+  for (const op of ops) {
+    if (first) first = false;
+    else appendSql(",", args);
+    args.push(op.value);
+    args[0].push("");
+  }
+}
+
+function likeOperand(operand) {
+  return {...operand, value: `%${operand.value}%`};
+}
+
+var Library = Object.assign(Object.defineProperties(function Library(resolver) {
   const require = requirer(resolver);
   Object.defineProperties(this, properties({
     FileAttachment: () => NoFileAttachments,
-    Arrow: () => require(arrow.resolve()),
-    Inputs: () => require(inputs.resolve()).then(Inputs => ({...Inputs, file: Inputs.fileOf(AbstractFile)})),
     Mutable: () => Mutable,
-    Plot: () => require(plot.resolve()),
-    SQLite: () => sqlite(require),
-    SQLiteDatabaseClient: () => SQLiteDatabaseClient,
-    _: () => require(lodash.resolve()),
-    aq: () => require.alias({"apache-arrow": arrow.resolve()})(arquero.resolve()),
-    d3: () => require(d3.resolve()),
+    now,
+    width,
+
+    // Tagged template literals
     dot: () => require(graphviz.resolve()),
     htl: () => require(htl.resolve()),
     html: () => html$1,
     md: () => md(require),
-    mermaid: () => mermaid(require),
-    now,
-    require: () => require,
-    resolve: () => resolve,
     svg: () => svg,
     tex: () => tex(require),
+
+    // Recommended libraries
+    // https://observablehq.com/@observablehq/recommended-libraries
+    _: () => require(lodash.resolve()),
+    aq: () => require.alias({"apache-arrow": arrow$1.resolve()})(arquero.resolve()),
+    Arrow: () => require(arrow$1.resolve()),
+    d3: () => require(d3.resolve()),
+    Inputs: () => require(inputs.resolve()).then(Inputs => ({...Inputs, file: Inputs.fileOf(AbstractFile)})),
+    L: () => leaflet(require),
+    mermaid: () => mermaid(require),
+    Plot: () => require(plot.resolve()),
+    __query: () => __query,
+    require: () => require,
+    resolve: () => resolve, // deprecated; use async require.resolve instead
+    SQLite: () => sqlite(require),
+    SQLiteDatabaseClient: () => SQLiteDatabaseClient$1,
     topojson: () => require(topojson.resolve()),
     vl: () => vl(require),
-    width,
+
+    // Sample datasets
+    // https://observablehq.com/@observablehq/datasets
+    aapl: () => new FileAttachment("https://static.observableusercontent.com/files/3ccff97fd2d93da734e76829b2b066eafdaac6a1fafdec0faf6ebc443271cfc109d29e80dd217468fcb2aff1e6bffdc73f356cc48feb657f35378e6abbbb63b9").csv({typed: true}),
+    alphabet: () => new FileAttachment("https://static.observableusercontent.com/files/75d52e6c3130b1cae83cda89305e17b50f33e7420ef205587a135e8562bcfd22e483cf4fa2fb5df6dff66f9c5d19740be1cfaf47406286e2eb6574b49ffc685d").csv({typed: true}),
+    cars: () => new FileAttachment("https://static.observableusercontent.com/files/048ec3dfd528110c0665dfa363dd28bc516ffb7247231f3ab25005036717f5c4c232a5efc7bb74bc03037155cb72b1abe85a33d86eb9f1a336196030443be4f6").csv({typed: true}),
+    citywages: () => new FileAttachment("https://static.observableusercontent.com/files/39837ec5121fcc163131dbc2fe8c1a2e0b3423a5d1e96b5ce371e2ac2e20a290d78b71a4fb08b9fa6a0107776e17fb78af313b8ea70f4cc6648fad68ddf06f7a").csv({typed: true}),
+    diamonds: () => new FileAttachment("https://static.observableusercontent.com/files/87942b1f5d061a21fa4bb8f2162db44e3ef0f7391301f867ab5ba718b225a63091af20675f0bfe7f922db097b217b377135203a7eab34651e21a8d09f4e37252").csv({typed: true}),
+    flare: () => new FileAttachment("https://static.observableusercontent.com/files/a6b0d94a7f5828fd133765a934f4c9746d2010e2f342d335923991f31b14120de96b5cb4f160d509d8dc627f0107d7f5b5070d2516f01e4c862b5b4867533000").csv({typed: true}),
+    industries: () => new FileAttachment("https://static.observableusercontent.com/files/76f13741128340cc88798c0a0b7fa5a2df8370f57554000774ab8ee9ae785ffa2903010cad670d4939af3e9c17e5e18e7e05ed2b38b848ac2fc1a0066aa0005f").csv({typed: true}),
+    miserables: () => new FileAttachment("https://static.observableusercontent.com/files/31d904f6e21d42d4963ece9c8cc4fbd75efcbdc404bf511bc79906f0a1be68b5a01e935f65123670ed04e35ca8cae3c2b943f82bf8db49c5a67c85cbb58db052").json(),
+    olympians: () => new FileAttachment("https://static.observableusercontent.com/files/31ca24545a0603dce099d10ee89ee5ae72d29fa55e8fc7c9ffb5ded87ac83060d80f1d9e21f4ae8eb04c1e8940b7287d179fe8060d887fb1f055f430e210007c").csv({typed: true}),
+    penguins: () => new FileAttachment("https://static.observableusercontent.com/files/715db1223e067f00500780077febc6cebbdd90c151d3d78317c802732252052ab0e367039872ab9c77d6ef99e5f55a0724b35ddc898a1c99cb14c31a379af80a").csv({typed: true}),
+    weather: () => new FileAttachment("https://static.observableusercontent.com/files/693a46b22b33db0f042728700e0c73e836fa13d55446df89120682d55339c6db7cc9e574d3d73f24ecc9bc7eb9ac9a1e7e104a1ee52c00aab1e77eb102913c1f").csv({typed: true}),
 
     // Note: these are namespace objects, and thus exposed directly rather than
     // being wrapped in a function. This allows library.Generators to resolve,
@@ -1359,11 +1561,25 @@ var Library = Object.assign(function Library(resolver) {
     Generators: Generators$1,
     Promises
   }));
-}, {resolve: require.resolve});
+}, {
+  resolve: {
+    get: () => requireDefault.resolve,
+    enumerable: true,
+    configurable: true
+  },
+  require: {
+    get: () => requireDefault,
+    set: setDefaultRequire,
+    enumerable: true,
+    configurable: true
+  }
+}), {
+  resolveFrom,
+  requireFrom
+});
 
 function properties(values) {
-  return fromEntries(Object.entries(values).map(property));
-  // return Object.fromEntries(Object.entries(values).map(property));
+  return Object.fromEntries(Object.entries(values).map(property));
 }
 
 function property([key, value]) {
@@ -2421,8 +2637,13 @@ function variable_undefined() {
   throw variable_undefined;
 }
 
+function variable_stale() {
+  throw variable_stale;
+}
+
 function variable_rejector(variable) {
   return function(error) {
+    if (error === variable_stale) throw error;
     if (error === variable_undefined) throw new RuntimeError(variable._name + " is not defined", variable._name);
     if (error instanceof Error && error.message) throw new RuntimeError(error.message, variable._name);
     throw new RuntimeError(variable._name + " could not be resolved", variable._name);
@@ -2533,6 +2754,11 @@ function variable_defineImpl(name, inputs, definition) {
     this._name = name;
   }
 
+  // If this redefined variable was previously evaluated, invalidate it. (If the
+  // variable was never evaluated, then the invalidated value could never have
+  // been exposed and we can avoid this extra work.)
+  if (this._version > 0) ++this._version;
+
   runtime._updates.add(this);
   runtime._compute();
   return this;
@@ -2609,11 +2835,26 @@ async function module_value(name) {
   var v = this._scope.get(name);
   if (!v) throw new RuntimeError(name + " is not defined");
   if (v._observer === no_observer) {
-    v._observer = true;
-    this._runtime._dirty.add(v);
+    v = this.variable(true).define([name], identity$1);
+    try {
+      return await module_revalue(this._runtime, v);
+    } finally {
+      v.delete();
+    }
+  } else {
+    return module_revalue(this._runtime, v);
   }
-  await this._runtime._compute();
-  return v._promise;
+}
+
+// If the variable is redefined before its value resolves, try again.
+async function module_revalue(runtime, variable) {
+  await runtime._compute();
+  try {
+    return await variable._promise;
+  } catch (error) {
+    if (error === variable_stale) return module_revalue(runtime, variable);
+    throw error;
+  }
 }
 
 function module_derive(injects, injectModule) {
@@ -2933,7 +3174,7 @@ function variable_compute(variable) {
 
   // Compute the initial value of the variable.
   function define(inputs) {
-    if (variable._version !== version) return;
+    if (variable._version !== version) throw variable_stale;
 
     // Replace any reference to invalidation with the promise, lazily.
     for (var i = 0, n = inputs.length; i < n; ++i) {
@@ -2958,8 +3199,8 @@ function variable_compute(variable) {
   // already have been invalidated here, in which case we need to terminate the
   // generator immediately!
   function generate(value) {
+    if (variable._version !== version) throw variable_stale;
     if (generatorish(value)) {
-      if (variable._version !== version) return void value.return();
       (invalidation || variable_invalidator(variable)).then(variable_return(value));
       return variable_generate(variable, version, value);
     }
@@ -2967,11 +3208,10 @@ function variable_compute(variable) {
   }
 
   promise.then((value) => {
-    if (variable._version !== version) return;
     variable._value = value;
     variable._fulfilled(value);
   }, (error) => {
-    if (variable._version !== version) return;
+    if (error === variable_stale) return;
     variable._value = undefined;
     variable._rejected(error);
   });
@@ -2996,14 +3236,15 @@ function variable_generate(variable, version, generator) {
   // successful, reject the variable, compute downstream variables, and return.
   function recompute() {
     const promise = compute((value) => {
-      if (variable._version !== version) return;
+      if (variable._version !== version) throw variable_stale;
       currentValue = value;
       postcompute(value, promise).then(() => runtime._precompute(recompute));
       variable._fulfilled(value);
       return value;
     });
     promise.catch((error) => {
-      if (variable._version !== version) return;
+      if (error === variable_stale) throw error;
+      if (variable._version !== version) throw variable_stale;
       postcompute(undefined, promise);
       variable._rejected(error);
     });
@@ -3021,7 +3262,7 @@ function variable_generate(variable, version, generator) {
   // When retrieving the first value from the generator, the promise graph is
   // already established, so we only need to queue the next pull.
   return compute((value) => {
-    if (variable._version !== version) return;
+    if (variable._version !== version) throw variable_stale;
     currentValue = value;
     runtime._precompute(recompute);
     return value;
