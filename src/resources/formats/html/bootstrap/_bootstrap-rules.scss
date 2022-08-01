@@ -1647,3 +1647,12 @@ code a:any-link {
 } @else {
   /*! light */
 }
+
+// observable UI element tweaks to support light-mode vs dark-mode
+div.observablehq table thead tr th {
+  background-color: var(--bs-body-bg);
+}
+
+input, button, select, optgroup, textarea {
+  background-color: var(--bs-body-bg);
+}
