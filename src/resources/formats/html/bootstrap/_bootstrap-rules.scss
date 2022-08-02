@@ -1591,7 +1591,7 @@ nav[role="doc-toc"].slow > * {
   }
 }
 
-.btn.btn-quarto, div.cell-output-display .btn-quarto {
+main.content button:not(.code-copy-button), .btn.btn-quarto, div.cell-output-display .btn-quarto {
   @include button-variant(
     $btn-bg,
     $btn-bg,
@@ -1646,4 +1646,13 @@ code a:any-link {
   /*! dark */
 } @else {
   /*! light */
+}
+
+// observable UI element tweaks to support light-mode vs dark-mode
+div.observablehq table thead tr th {
+  background-color: var(--bs-body-bg);
+}
+
+input, button, select, optgroup, textarea {
+  background-color: var(--bs-body-bg);
 }

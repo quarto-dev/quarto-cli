@@ -78,6 +78,7 @@ import {
   join as mappedJoin,
 } from "../../core/lib/mapped-text.ts";
 import { getDivAttributes } from "../../core/handlers/base.ts";
+import { pathWithForwardSlashes } from "../../core/path.ts";
 
 export interface OjsCompileOptions {
   source: string;
@@ -146,9 +147,11 @@ export async function ojsCompile(
   );
   const docDir = dirname(options.source);
   const rootDir = projDir ?? "./";
-  const runtimeToDoc = relative(ojsRuntimeDir, docDir);
-  const runtimeToRoot = relative(ojsRuntimeDir, rootDir);
-  const docToRoot = relative(docDir, rootDir);
+  const runtimeToDoc = pathWithForwardSlashes(relative(ojsRuntimeDir, docDir));
+  const runtimeToRoot = pathWithForwardSlashes(
+    relative(ojsRuntimeDir, rootDir),
+  );
+  const docToRoot = pathWithForwardSlashes(relative(docDir, rootDir));
   scriptContents.push(`window._ojs.paths.runtimeToDoc = "${runtimeToDoc}";`);
   scriptContents.push(`window._ojs.paths.runtimeToRoot = "${runtimeToRoot}";`);
   scriptContents.push(`window._ojs.paths.docToRoot = "${docToRoot}";`);
