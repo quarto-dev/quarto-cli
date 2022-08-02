@@ -127,14 +127,6 @@ export async function resolveLanguageMetadata(metadata: Metadata, dir: string) {
   }
 }
 
-export function haveTranslationsForLang(lang: string) {
-  // get the root tag
-  lang = lang.split("-")[0];
-
-  // do we have translations for it
-  return ["en", "de", "es", "fi", "fr", "pt", "ru", "zh"].includes(lang);
-}
-
 export function translationsForLang(language: FormatLanguage, lang: string) {
   // start with the defaults
   let translations = {} as FormatLanguage;
