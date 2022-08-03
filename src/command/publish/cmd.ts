@@ -33,7 +33,11 @@ import { resolveDeployment } from "./deployment.ts";
 import { AccountPrompt, manageAccounts, resolveAccount } from "./account.ts";
 
 import { PublishOptions, PublishRecord } from "../../publish/types.ts";
-import { haveArrowKeys, isInteractiveTerminal } from "../../core/platform.ts";
+import {
+  haveArrowKeys,
+  isInteractiveTerminal,
+  isServerSession,
+} from "../../core/platform.ts";
 import { runningInCI } from "../../core/ci-info.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { openUrl } from "../../core/shell.ts";
@@ -338,7 +342,7 @@ async function createPublishOptions(
     id: options.id,
     render: !!options.render,
     prompt: !!options.prompt && interactive,
-    browser: !!options.browser && interactive,
+    browser: !!options.browser && interactive && !isServerSession(),
   };
 }
 

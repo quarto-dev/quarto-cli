@@ -7,7 +7,9 @@
 
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { join } from "path/mod.ts";
-import { isWindows } from "../../core/platform.ts";
+import { info } from "log/mod.ts";
+import * as colors from "fmt/colors.ts";
+import { isServerSession, isWindows } from "../../core/platform.ts";
 import { openUrl } from "../../core/shell.ts";
 import { sleep } from "../../core/wait.ts";
 import { accountsDataDir } from "./data.ts";
@@ -29,7 +31,14 @@ export async function authorizeAccessToken<
 > {
   // create ticket for authorization
   const ticket = await handler.createTicket() as unknown as Ticket;
-  await openUrl(handler.authorizationUrl(ticket));
+  const ticketUrl = handler.authorizationUrl(ticket);
+  if (isServerSession()) {
+    info(
+      "Please authorize by opening this url: " + colors.underline(ticketUrl),
+    );
+  } else {
+    await openUrl(handler.authorizationUrl(ticket));
+  }
 
   // poll for ticket to be authoried
   let authorizedTicket: Ticket | undefined;
