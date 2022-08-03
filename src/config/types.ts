@@ -169,6 +169,7 @@ import {
   kTitleBlockPublished,
   kTitlePrefix,
   kToc,
+  kTocDepth,
   kTocTitleDocument,
   kTocTitleWebsite,
   kTopLevelDivision,
@@ -401,6 +402,7 @@ export interface FormatPandoc {
   [kCss]?: string | string[];
   [kToc]?: boolean;
   [kTableOfContents]?: boolean;
+  [kTocDepth]?: number;
   [kListings]?: boolean;
   [kNumberSections]?: boolean;
   [kNumberOffset]?: number[];

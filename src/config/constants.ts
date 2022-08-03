@@ -384,6 +384,7 @@ export const kSyntaxDefinition = "syntax-definition";
 export const kReferenceDoc = "reference-doc";
 export const kHtmlMathMethod = "html-math-method";
 export const kToc = "toc";
+export const kTocDepth = "toc-depth";
 export const kTableOfContents = "table-of-contents";
 export const kSectionDivs = "section-divs";
 export const kEPubCoverImage = "epub-cover-image";
@@ -499,7 +500,7 @@ export const kPandocDefaultsKeys = [
   "extract-media",
   kToc,
   kTableOfContents,
-  "toc-depth",
+  kTocDepth,
   kNumberSections,
   kNumberOffset,
   kShiftHeadingLevelBy,
