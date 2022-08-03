@@ -42,6 +42,7 @@ import { LocalizedError } from "../lib/error.ts";
 import { warning } from "log/mod.ts";
 import { FormatDependency } from "../../config/types.ts";
 import { mappedDiff } from "../mapped-text.ts";
+import { escape } from "../../core/lodash.ts";
 
 const mermaidHandler: LanguageHandler = {
   ...baseHandler,
@@ -81,13 +82,14 @@ object:
     options: Record<string, unknown>,
   ) {
     const cellContent = handlerContext.cellContent(cell);
+    // TODO escaping removes MappedString information.
     // create puppeteer target page
     const content = `<html>
 <head>
 <script src="./mermaid.min.js"></script>
 </head>
 <body>
-<pre class="mermaid">\n${cellContent.value}\n</pre>
+<pre class="mermaid">\n${escape(cellContent.value)}\n</pre> 
 <script>
 mermaid.initialize();
 </script>
@@ -323,7 +325,7 @@ mermaid.initialize();
         classes: ["mermaid"],
         attrs: [`tooltip-selector="#${tooltipName}"`],
       });
-      preEl.push(pandocRawStr(cell.source));
+      preEl.push(pandocRawStr(escape(cell.source.value))); // TODO escaping removes MappedString information.
 
       const attrs: Record<string, unknown> = {};
       if (isRevealjsOutput(handlerContext.options.context.format.pandoc)) {
@@ -349,7 +351,11 @@ mermaid.initialize();
       } else if (
         isMarkdownOutput(handlerContext.options.format.pandoc, ["gfm"])
       ) {
-        return mappedConcat(["\n``` mermaid\n", cellContent, "\n```\n"]);
+        return mappedConcat([
+          "\n``` mermaid\n",
+          escape(cellContent.value), // TODO escaping removes MappedString information.
+          "\n```\n",
+        ]);
       } else {
         return await makePng();
       }
