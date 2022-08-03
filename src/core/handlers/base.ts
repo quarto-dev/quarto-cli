@@ -21,6 +21,7 @@ import {
   mappedConcat,
   mappedLines,
   MappedString,
+  mappedTrim,
 } from "../lib/mapped-text.ts";
 import {
   addLanguageComment,
@@ -585,7 +586,7 @@ export const baseHandler: LanguageHandler = {
           classes: cellInputClasses,
           attrs: cellInputAttrs,
         });
-        cellInput.push(pandocRawStr(mappedConcat(inputLines)));
+        cellInput.push(pandocRawStr(mappedTrim(mappedConcat(inputLines))));
         cellBlock.push(cellInput);
         break;
       }
@@ -602,7 +603,7 @@ export const baseHandler: LanguageHandler = {
           ...frontMatterLines,
           ...inputLines,
         ]);
-        cellFence.push(pandocRawStr(fencedInput));
+        cellFence.push(pandocRawStr(mappedTrim(fencedInput)));
         cellInput.push(cellFence);
         cellBlock.push(cellInput);
         break;

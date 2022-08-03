@@ -392,3 +392,56 @@ export function breakOnDelimiter(
   }
   return substrings;
 }
+
+function findSpaceStart(string: MappedString): number {
+  const result = string.value.match(/^\s+/);
+  if (result === null || result.length === 0) {
+    return 0;
+  }
+  return result[0].length;
+}
+
+function findSpaceEnd(string: MappedString): number {
+  const result = string.value.match(/\s+$/);
+  if (result === null || result.length === 0) {
+    return 0;
+  }
+  return result[0].length;
+}
+
+/**
+ * mappedTrim(): MappedString version of String.trim()
+ */
+export function mappedTrim(string: MappedString): MappedString {
+  const start = findSpaceStart(string);
+  const end = findSpaceEnd(string);
+  if (start === 0 && end === 0) {
+    return string;
+  }
+  if (start > string.value.length - end) {
+    return mappedSubstring(string, 0, 0);
+  }
+  return mappedSubstring(string, start, string.value.length - end);
+}
+
+/**
+ * mappedTrimStart(): MappedString version of String.trimStart()
+ */
+export function mappedTrimStart(string: MappedString): MappedString {
+  const start = findSpaceStart(string);
+  if (start === 0) {
+    return string;
+  }
+  return mappedSubstring(string, start, string.value.length);
+}
+
+/**
+ * mappedTrimEnd(): MappedString version of String.trimEnd()
+ */
+export function mappedTrimEnd(string: MappedString): MappedString {
+  const end = findSpaceEnd(string);
+  if (end === 0) {
+    return string;
+  }
+  return mappedSubstring(string, 0, string.value.length - end);
+}
