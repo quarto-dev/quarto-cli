@@ -76,6 +76,7 @@ import {
 import {
   EitherString,
   join as mappedJoin,
+  mappedTrim,
 } from "../../core/lib/mapped-text.ts";
 import { getDivAttributes } from "../../core/handlers/base.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
@@ -276,7 +277,7 @@ export async function ojsCompile(
             `source-offset="${cell.sourceOffset}"`,
           ],
         });
-        preDiv.push(pandocRawStr(cell.sourceVerbatim.value));
+        preDiv.push(pandocRawStr(cell.sourceVerbatim.value.trim()));
         div.push(preDiv);
         const errMsgDiv = pandocDiv({
           classes: ["cell-output", "cell-output-error"],
@@ -499,7 +500,7 @@ export async function ojsCompile(
           classes: ourClasses,
           attrs: ourAttrs,
         });
-        srcDiv.push(pandocRawStr(cell.sourceVerbatim.value));
+        srcDiv.push(pandocRawStr(cell.sourceVerbatim.value.trim()));
         div.push(srcDiv);
       }
 
@@ -557,7 +558,7 @@ export async function ojsCompile(
               cellSrcStr.value.substring(
                 innerInfo[0].start,
                 innerInfo[innerInfo.length - 1].end,
-              ),
+              ).trim(),
             ));
             div.push(srcDiv);
           }
@@ -629,7 +630,7 @@ export async function ojsCompile(
               classes: srcConfig.classes,
             });
             srcDiv.push(
-              pandocRawStr(cellSrcStr),
+              pandocRawStr(mappedTrim(cellSrcStr)),
             );
             div.push(srcDiv);
           }

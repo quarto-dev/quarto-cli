@@ -5,13 +5,18 @@
 *
 */
 import { unitTest } from "../../test.ts";
-import { assert } from "testing/asserts.ts";
+import { assert, assertEquals } from "testing/asserts.ts";
 import {
   asMappedString,
   mappedDiff,
   mappedString,
 } from "../../../src/core/mapped-text.ts";
-import { mappedSubstring } from "../../../src/core/lib/mapped-text.ts";
+import {
+  mappedSubstring,
+  mappedTrim,
+  mappedTrimEnd,
+  mappedTrimStart,
+} from "../../../src/core/lib/mapped-text.ts";
 
 // deno-lint-ignore require-await
 unitTest("mapped-text - mappedString()", async () => {
@@ -187,4 +192,29 @@ viewof x = Inputs.range([0, 100], label = "hello!", value = 20)
 `;
 
   mappedDiff(asMappedString(text1), text2);
+});
+
+// deno-lint-ignore require-await
+unitTest("mapped-text - mappedTrim{,Start,End}()", async () => {
+  const whitespace = "\u000A\u000D\u2028\u2029\u0009\u000B\u000C\uFEFF \t";
+  const content = "a \n";
+  for (let i = 0; i < 1000; ++i) {
+    const startTrimLength = Math.random() * 10;
+    const endTrimLength = Math.random() * 10;
+    const contentLength = Math.random() * 10;
+    const strContent = [];
+    for (let j = 0; j < startTrimLength; ++j) {
+      strContent.push(whitespace[~~(Math.random() * whitespace.length)]);
+    }
+    for (let j = 0; j < contentLength; ++j) {
+      strContent.push(content[~~(Math.random() * content.length)]);
+    }
+    for (let j = 0; j < endTrimLength; ++j) {
+      strContent.push(whitespace[~~(Math.random() * whitespace.length)]);
+    }
+    const mappedStr = asMappedString(strContent.join(""));
+    assertEquals(mappedTrim(mappedStr).value, mappedStr.value.trim());
+    assertEquals(mappedTrimStart(mappedStr).value, mappedStr.value.trimStart());
+    assertEquals(mappedTrimEnd(mappedStr).value, mappedStr.value.trimEnd());
+  }
 });
