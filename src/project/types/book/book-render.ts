@@ -75,6 +75,7 @@ import {
   isMultiFileBookFormat,
   isNumberedChapter,
   kBookCoverImage,
+  kBookCoverImageAlt,
 } from "./book-shared.ts";
 import { bookCrossrefsPostRender } from "./book-crossrefs.ts";
 import { bookBibliographyPostRender } from "./book-bibliography.ts";
@@ -148,9 +149,15 @@ export function bookPandocRenderer(
               | undefined;
 
           if (coverImage) {
+            const coverImageAlt =
+              (file.recipe.format.metadata[kBookCoverImageAlt] ||
+                bookConfig(kBookCoverImageAlt, project.config)) as
+                  | string
+                  | undefined;
             const title = file.recipe.format.metadata[kTitle] || "";
+            const alt = coverImageAlt ? ` fig-alt="${coverImageAlt}"` : "";
             file.executeResult.markdown =
-              `![](${coverImage} "${title}"){.quarto-cover-image}\n\n` +
+              `![](${coverImage} "${title}"){.quarto-cover-image${alt}}\n\n` +
               file.executeResult.markdown;
           }
 

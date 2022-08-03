@@ -29,10 +29,12 @@ export type BookConfigKey =
   | "date"
   | "date-format"
   | "abstract"
-  | "cover-image";
+  | "cover-image"
+  | "cover-image-alt";
 
 export const kBook = "book";
 export const kBookCoverImage = "cover-image";
+export const kBookCoverImageAlt = "cover-image-alt";
 
 export interface BookExtension {
   // bool extensions are single file by default but can elect to be multi file
