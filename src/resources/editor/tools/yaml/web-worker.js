@@ -16357,6 +16357,11 @@ try {
                       description: "Cover image (used in HTML and ePub formats)"
                     }
                   },
+                  "cover-image-alt": {
+                    string: {
+                      description: "Alternative text for cover image (used in HTML format)"
+                    }
+                  },
                   sharing: {
                     maybeArrayOf: {
                       enum: [
