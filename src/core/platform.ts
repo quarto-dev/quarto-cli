@@ -40,7 +40,8 @@ export function isRStudioTerminal() {
 }
 
 export function isServerSession() {
-  return isRStudioServer() || isJupyterServer() || isJupyterHubServer();
+  return isRStudioServer() || isRStudioWorkbench() || isJupyterServer() ||
+    isJupyterHubServer();
 }
 
 export function isRStudioServer() {
