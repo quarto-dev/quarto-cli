@@ -18,6 +18,7 @@ import {
   kLinkCitations,
   kQuartoTemplateParams,
   kSectionDivs,
+  kTocDepth,
   kTocLocation,
 } from "../../config/constants.ts";
 import {
@@ -255,6 +256,9 @@ function bootstrapHtmlPostprocessor(
 
     const tocTarget = doc.getElementById("quarto-toc-target");
     if (toc && tocTarget) {
+      // activate selection behavior for this
+      toc.classList.add("toc-active");
+
       // add nav-link class to the TOC links
       const tocLinks = doc.querySelectorAll('nav[role="doc-toc"] > ul a');
       for (let i = 0; i < tocLinks.length; i++) {
@@ -275,11 +279,17 @@ function bootstrapHtmlPostprocessor(
       }
 
       // default collapse non-top level TOC nodes
-      const nestedUls = toc.querySelectorAll("ul ul");
-      for (let i = 0; i < nestedUls.length; i++) {
-        const ul = nestedUls[i] as Element;
-        ul.classList.add("collapse");
+      const tocDepth = format.pandoc[kTocDepth] || 3;
+      if (tocDepth > 1) {
+        const ulSelector = "ul ".repeat(tocDepth - 1).trim();
+
+        const nestedUls = toc.querySelectorAll(ulSelector);
+        for (let i = 0; i < nestedUls.length; i++) {
+          const ul = nestedUls[i] as Element;
+          ul.classList.add("collapse");
+        }
       }
+
       toc.remove();
       tocTarget.replaceWith(toc);
     } else {
