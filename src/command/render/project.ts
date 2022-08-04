@@ -46,7 +46,11 @@ import {
 } from "./freeze.ts";
 import { resourceFilesFromRenderedFile } from "./resources.ts";
 import { inputFilesDir } from "../../core/render.ts";
-import { removeIfEmptyDir, removeIfExists, safeRemoveIfExists } from "../../core/path.ts";
+import {
+  removeIfEmptyDir,
+  removeIfExists,
+  safeRemoveIfExists,
+} from "../../core/path.ts";
 import { handlerForScript } from "../../core/run/run.ts";
 import { execProcess } from "../../core/process.ts";
 import { parseShellRunCommand } from "../../core/run/shell.ts";
@@ -209,10 +213,11 @@ export async function renderProject(
   }
 
   // set executeDaemon to 0 for renders of the entire project
-  // or a list of more than one file (don't want to leave dozens of
-  // kernels in memory)
+  // or a list of more than 3 files (don't want to leave dozens of
+  // kernels in memory). we use 3 rather than 1 because w/ blogs
+  // and listings there may be addtional files added to the render list
   if (
-    filesToRender.length > 1 && options.flags &&
+    filesToRender.length > 3 && options.flags &&
     options.flags.executeDaemon === undefined
   ) {
     options.flags.executeDaemon = 0;
