@@ -9,7 +9,7 @@
 
 # Binary dependencies
 export DENO=v1.24.1
-export DENO_DOM=v0.1.23-alpha
+export DENO_DOM=v0.1.23-alpha-artifacts
 export PANDOC=2.18
 export DARTSASS=1.32.8
 export ESBUILD=0.14.39
