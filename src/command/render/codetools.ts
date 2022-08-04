@@ -26,6 +26,7 @@ import { ExecutionEngine, ExecutionTarget } from "../../execute/types.ts";
 import { isHtmlOutput } from "../../config/format.ts";
 import { executionEngineCanKeepSource } from "../../execute/engine-info.ts";
 import { formatHasBootstrap } from "../../format/html/format-html-info.ts";
+import { withTiming } from "../../core/timing.ts";
 
 const kHideAllCodeLinkId = "quarto-hide-all-code";
 const kShowAllCodeLinkId = "quarto-show-all-code";
@@ -91,201 +92,205 @@ export function keepSourceBlock(format: Format, source: string) {
 
 export function codeToolsPostprocessor(format: Format) {
   return (doc: Document): Promise<HtmlPostProcessResult> => {
-    if (format.render[kKeepSource]) {
-      // fixup the lines in embedded source
-      const lines = doc.querySelectorAll(
-        `.${kEmbeddedSourceClass} > div.sourceCode > pre > code > span`,
-      );
+    return withTiming("codeToolsPostprocessor", () => {
+      if (format.render[kKeepSource]) {
+        // fixup the lines in embedded source
+        const lines = doc.querySelectorAll(
+          `.${kEmbeddedSourceClass} > div.sourceCode > pre > code > span`,
+        );
+        if (lines.length > 0) {
+          const newLines: Element[] = [];
+          for (let i = 0; i < lines.length; i++) {
+            const line = lines[i] as Element;
+            if (line.innerText === kKeepSourceSentinel) {
+              i += 2;
+              const codeBlockLine = lines[i] as Element;
+              const anchor = codeBlockLine.querySelector("a");
+              const text = codeBlockLine.innerText;
 
-      if (lines.length > 0) {
-        const newLines: Element[] = [];
-        for (let i = 0; i < lines.length; i++) {
-          const line = lines[i] as Element;
-          if (line.innerText === kKeepSourceSentinel) {
-            i += 2;
-            const codeBlockLine = lines[i] as Element;
-            const anchor = codeBlockLine.querySelector("a");
-            const text = codeBlockLine.innerText;
+              codeBlockLine.textContent = "";
+              codeBlockLine.appendChild(anchor!);
+              const newSpan = doc.createElement("span");
+              newSpan.classList.add("in");
+              newSpan.innerText = text.replace(
+                /```(\w+)/,
+                "```{$1}",
+              );
+              codeBlockLine.appendChild(newSpan);
 
-            codeBlockLine.textContent = "";
-            codeBlockLine.appendChild(anchor!);
-            const newSpan = doc.createElement("span");
-            newSpan.classList.add("in");
-            newSpan.innerText = text.replace(
-              /```(\w+)/,
-              "```{$1}",
-            );
-            codeBlockLine.appendChild(newSpan);
-
-            newLines.push(codeBlockLine);
-          } else {
-            newLines.push(line);
+              newLines.push(codeBlockLine);
+            } else {
+              newLines.push(line);
+            }
           }
-        }
-        if (newLines.length !== lines.length) {
-          const parent = (lines[0] as Element).parentElement!;
-          parent.innerHTML = "";
-          newLines.forEach((line) => {
-            parent.appendChild(line);
-            parent.appendChild(doc.createTextNode("\n"));
-          });
+          if (newLines.length !== lines.length) {
+            const parent = (lines[0] as Element).parentElement!;
+            parent.innerHTML = "";
+            newLines.forEach((line) => {
+              parent.appendChild(line);
+              parent.appendChild(doc.createTextNode("\n"));
+            });
+          }
         }
       }
-    }
 
-    // provide code tools in header
-    if (formatHasCodeTools(format)) {
-      // resolve what sort of code tools we will present
-      const codeTools = resolveCodeTools(format, doc);
-      if (codeTools.source || codeTools.toggle) {
-        const title = doc.querySelector("#title-block-header h1");
-        if (title) {
-          const header = (title as Element).parentElement;
-          const titleDiv = doc.createElement("div");
-          titleDiv.classList.add("quarto-title-block");
-          const layoutDiv = doc.createElement("div");
-          titleDiv.appendChild(layoutDiv);
-          header?.replaceChild(titleDiv, title);
-          layoutDiv.appendChild(title);
-          const button = doc.createElement("button");
-          button.setAttribute("type", "button");
-          button.classList.add("btn").add("code-tools-button");
-          const icon = doc.createElement("i");
-          icon.classList.add("bi");
-          button.appendChild(icon);
-          if (codeTools.caption !== "none") {
-            button.appendChild(doc.createTextNode(" " + codeTools.caption));
-          }
-          layoutDiv.appendChild(button);
-          header!.appendChild(titleDiv);
-          if (codeTools.toggle) {
-            button.setAttribute("id", kCodeToolsMenuButtonId);
-            button.classList.add("dropdown-toggle");
-            button.setAttribute("data-bs-toggle", "dropdown");
-            button.setAttribute("aria-expanded", "false");
-            const ul = doc.createElement("ul");
-            ul.classList.add("dropdown-menu").add("dropdown-menu-end");
-            ul.setAttribute("aria-labelelledby", kCodeToolsMenuButtonId);
-            const addListItem = (id: string, text: string) => {
-              const a = doc.createElement("a");
-              a.setAttribute("id", id);
-              a.classList.add("dropdown-item");
-              a.setAttribute("href", "javascript:void(0)");
-              a.setAttribute("role", "button");
-              a.appendChild(doc.createTextNode(text));
-              const li = doc.createElement("li");
-              li.appendChild(a);
-              ul.appendChild(li);
-              return li;
-            };
-            const addDivider = () => {
-              const hr = doc.createElement("hr");
-              hr.classList.add("dropdown-divider");
-              const li = doc.createElement("li");
-              li.appendChild(hr);
-              ul.appendChild(li);
-            };
-            addListItem(
-              kShowAllCodeLinkId,
-              format.language[kCodeToolsShowAllCode]!,
-            );
-            addListItem(
-              kHideAllCodeLinkId,
-              format.language[kCodeToolsHideAllCode]!,
-            );
-            if (codeTools.source) {
-              addDivider();
-              const vsLi = addListItem(
-                kViewSourceLinkId,
-                format.language[kCodeToolsViewSource]!,
+      // provide code tools in header
+      if (formatHasCodeTools(format)) {
+        // resolve what sort of code tools we will present
+        const codeTools = resolveCodeTools(format, doc);
+        if (codeTools.source || codeTools.toggle) {
+          const title = doc.querySelector("#title-block-header h1");
+          if (title) {
+            const header = (title as Element).parentElement;
+            const titleDiv = doc.createElement("div");
+            titleDiv.classList.add("quarto-title-block");
+            const layoutDiv = doc.createElement("div");
+            titleDiv.appendChild(layoutDiv);
+            header?.replaceChild(titleDiv, title);
+            layoutDiv.appendChild(title);
+            const button = doc.createElement("button");
+            button.setAttribute("type", "button");
+            button.classList.add("btn").add("code-tools-button");
+            const icon = doc.createElement("i");
+            icon.classList.add("bi");
+            button.appendChild(icon);
+            if (codeTools.caption !== "none") {
+              button.appendChild(doc.createTextNode(" " + codeTools.caption));
+            }
+            layoutDiv.appendChild(button);
+            header!.appendChild(titleDiv);
+            if (codeTools.toggle) {
+              button.setAttribute("id", kCodeToolsMenuButtonId);
+              button.classList.add("dropdown-toggle");
+              button.setAttribute("data-bs-toggle", "dropdown");
+              button.setAttribute("aria-expanded", "false");
+              const ul = doc.createElement("ul");
+              ul.classList.add("dropdown-menu").add("dropdown-menu-end");
+              ul.setAttribute("aria-labelelledby", kCodeToolsMenuButtonId);
+              const addListItem = (id: string, text: string) => {
+                const a = doc.createElement("a");
+                a.setAttribute("id", id);
+                a.classList.add("dropdown-item");
+                a.setAttribute("href", "javascript:void(0)");
+                a.setAttribute("role", "button");
+                a.appendChild(doc.createTextNode(text));
+                const li = doc.createElement("li");
+                li.appendChild(a);
+                ul.appendChild(li);
+                return li;
+              };
+              const addDivider = () => {
+                const hr = doc.createElement("hr");
+                hr.classList.add("dropdown-divider");
+                const li = doc.createElement("li");
+                li.appendChild(hr);
+                ul.appendChild(li);
+              };
+              addListItem(
+                kShowAllCodeLinkId,
+                format.language[kCodeToolsShowAllCode]!,
               );
-              if (typeof (codeTools.source) === "string") {
-                (vsLi.firstChild as Element).setAttribute(
-                  kDataQuartoSourceUrl,
-                  codeTools.source,
+              addListItem(
+                kHideAllCodeLinkId,
+                format.language[kCodeToolsHideAllCode]!,
+              );
+              if (codeTools.source) {
+                addDivider();
+                const vsLi = addListItem(
+                  kViewSourceLinkId,
+                  format.language[kCodeToolsViewSource]!,
                 );
+                if (typeof (codeTools.source) === "string") {
+                  (vsLi.firstChild as Element).setAttribute(
+                    kDataQuartoSourceUrl,
+                    codeTools.source,
+                  );
+                }
+              }
+              layoutDiv.appendChild(ul);
+            } else {
+              // no toggle, so just a button to show source code
+              button.setAttribute("id", kCodeToolsSourceButtonId);
+              if (typeof (codeTools.source) === "string") {
+                button.setAttribute(kDataQuartoSourceUrl, codeTools.source);
               }
             }
-            layoutDiv.appendChild(ul);
-          } else {
-            // no toggle, so just a button to show source code
-            button.setAttribute("id", kCodeToolsSourceButtonId);
-            if (typeof (codeTools.source) === "string") {
-              button.setAttribute(kDataQuartoSourceUrl, codeTools.source);
+          }
+          if (codeTools.source) {
+            // grab the embedded source code element
+            const embeddedCode = doc.querySelector(`.${kEmbeddedSourceClass}`);
+            if (embeddedCode) {
+              // create a bootstrap model to wrap it
+              const modalDiv = doc.createElement("div");
+              modalDiv.classList.add("modal").add("fade");
+              modalDiv.setAttribute("id", kEmbeddedSourceModalId);
+              modalDiv.setAttribute("tabindex", "-1");
+              modalDiv.setAttribute(
+                "aria-labelledby",
+                kEmbeddedSourceModalLabelId,
+              );
+              modalDiv.setAttribute("aria-hidden", "true");
+              const modalDialogDiv = doc.createElement("div");
+              modalDialogDiv.classList.add("modal-dialog").add(
+                "modal-dialog-scrollable",
+              );
+              const modalContentDiv = doc.createElement("div");
+              modalContentDiv.classList.add("modal-content");
+              const modalDialogHeader = doc.createElement("div");
+              modalDialogHeader.classList.add("modal-header");
+              const h5 = doc.createElement("h5");
+              h5.classList.add("modal-title");
+              h5.setAttribute("id", kEmbeddedSourceModalLabelId);
+              h5.appendChild(
+                doc.createTextNode(format.language[kCodeToolsSourceCode]!),
+              );
+              modalDialogHeader.appendChild(h5);
+              const button = doc.createElement("button");
+              button.classList.add("btn-close");
+              button.setAttribute("data-bs-dismiss", "modal");
+              modalDialogHeader.appendChild(button);
+              modalContentDiv.appendChild(modalDialogHeader);
+              const modalBody = doc.createElement("div");
+              modalBody.classList.add("modal-body");
+              modalContentDiv.appendChild(modalBody);
+              modalDialogDiv.appendChild(modalContentDiv);
+              modalDiv.appendChild(modalDialogDiv);
+
+              // insert it next to the main content
+              const mainEl = doc.querySelector("main.content");
+              if (mainEl) {
+                const mainParentEl = mainEl.parentElement;
+                mainParentEl?.insertBefore(modalDiv, mainParentEl.lastChild);
+              } else {
+                embeddedCode.parentElement?.insertBefore(
+                  modalDiv,
+                  embeddedCode,
+                );
+              }
+
+              modalBody.appendChild(embeddedCode);
+              embeddedCode.classList.delete(kEmbeddedSourceClass);
             }
           }
-        }
-        if (codeTools.source) {
-          // grab the embedded source code element
-          const embeddedCode = doc.querySelector(`.${kEmbeddedSourceClass}`);
-          if (embeddedCode) {
-            // create a bootstrap model to wrap it
-            const modalDiv = doc.createElement("div");
-            modalDiv.classList.add("modal").add("fade");
-            modalDiv.setAttribute("id", kEmbeddedSourceModalId);
-            modalDiv.setAttribute("tabindex", "-1");
-            modalDiv.setAttribute(
-              "aria-labelledby",
-              kEmbeddedSourceModalLabelId,
-            );
-            modalDiv.setAttribute("aria-hidden", "true");
-            const modalDialogDiv = doc.createElement("div");
-            modalDialogDiv.classList.add("modal-dialog").add(
-              "modal-dialog-scrollable",
-            );
-            const modalContentDiv = doc.createElement("div");
-            modalContentDiv.classList.add("modal-content");
-            const modalDialogHeader = doc.createElement("div");
-            modalDialogHeader.classList.add("modal-header");
-            const h5 = doc.createElement("h5");
-            h5.classList.add("modal-title");
-            h5.setAttribute("id", kEmbeddedSourceModalLabelId);
-            h5.appendChild(
-              doc.createTextNode(format.language[kCodeToolsSourceCode]!),
-            );
-            modalDialogHeader.appendChild(h5);
-            const button = doc.createElement("button");
-            button.classList.add("btn-close");
-            button.setAttribute("data-bs-dismiss", "modal");
-            modalDialogHeader.appendChild(button);
-            modalContentDiv.appendChild(modalDialogHeader);
-            const modalBody = doc.createElement("div");
-            modalBody.classList.add("modal-body");
-            modalContentDiv.appendChild(modalBody);
-            modalDialogDiv.appendChild(modalContentDiv);
-            modalDiv.appendChild(modalDialogDiv);
 
-            // insert it next to the main content
-            const mainEl = doc.querySelector("main.content");
-            if (mainEl) {
-              const mainParentEl = mainEl.parentElement;
-              mainParentEl?.insertBefore(modalDiv, mainParentEl.lastChild);
-            } else {
-              embeddedCode.parentElement?.insertBefore(modalDiv, embeddedCode);
-            }
+          // if code is statically hidden, hide code-tools chrome as well.
+          // note that we're querying on pre.hidden and not div.hidden
+          // because the hidden class hasn't been hoisted to the parent by
+          // the html postprocessor yet.
 
-            modalBody.appendChild(embeddedCode);
-            embeddedCode.classList.delete(kEmbeddedSourceClass);
+          for (
+            const el of Array.from(
+              doc.querySelectorAll("details div pre.hidden"),
+            )
+          ) {
+            const det = el.parentElement!.parentElement;
+            det!.classList.add("hidden");
           }
-        }
-
-        // if code is statically hidden, hide code-tools chrome as well.
-        // note that we're querying on pre.hidden and not div.hidden
-        // because the hidden class hasn't been hoisted to the parent by
-        // the html postprocessor yet.
-
-        for (
-          const el of Array.from(
-            doc.querySelectorAll("details div pre.hidden"),
-          )
-        ) {
-          const det = el.parentElement!.parentElement;
-          det!.classList.add("hidden");
         }
       }
-    }
 
-    return Promise.resolve(kHtmlEmptyPostProcessResult);
+      return Promise.resolve(kHtmlEmptyPostProcessResult);
+    });
   };
 }
 

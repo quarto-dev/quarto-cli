@@ -169,6 +169,12 @@ import {
   processFormatResources,
   writeFormatResources,
 } from "./pandoc-dependencies-resources.ts";
+import {
+  ExplicitTimingEntry,
+  getLuaTiming,
+  insertExplicitTimingEntries,
+  withTiming,
+} from "../../core/timing.ts";
 
 export async function runPandoc(
   options: PandocOptions,
@@ -641,6 +647,9 @@ export async function runPandoc(
   // filter results json file
   const filterResultsFile = options.temp.createFile();
 
+  // timing results json file
+  const timingResultsFile = options.temp.createFile();
+
   // set parameters required for filters (possibily mutating all of it's arguments
   // to pull includes out into quarto parameters so they can be merged)
   let pandocArgs = args;
@@ -651,6 +660,7 @@ export async function runPandoc(
     formatFilterParams,
     filterResultsFile,
     dependenciesFile,
+    timingResultsFile,
   );
 
   // remove selected args and defaults if we are handling some things on behalf of pandoc
@@ -924,6 +934,9 @@ export async function runPandoc(
     }
   }
 
+  // workaround for our wonky Lua timing routines
+  const luaEpoch = await getLuaTiming();
+
   // run pandoc
   const result = await execProcess(
     {
@@ -953,6 +966,22 @@ export async function runPandoc(
       // Read any resource files
       const resourceFiles = filterResults.resourceFiles || [];
       resources.push(...resourceFiles);
+    }
+  }
+
+  if (existsSync(timingResultsFile)) {
+    const timingResultsJSON = Deno.readTextFileSync(timingResultsFile);
+    if (timingResultsJSON.length > 0 && Deno.env.get("QUARTO_PROFILE")) {
+      // workaround for our wonky Lua timing routines
+      const luaNow = await getLuaTiming();
+      const entries = JSON.parse(timingResultsJSON) as ExplicitTimingEntry[];
+
+      insertExplicitTimingEntries(
+        luaEpoch,
+        luaNow,
+        entries,
+        "pandoc",
+      );
     }
   }
 
@@ -1044,12 +1073,16 @@ async function resolveExtras(
       doc: Document,
       _inputMedata: Metadata,
     ): Promise<HtmlPostProcessResult> => {
-      return readAndInjectDependencies(
-        dependenciesFile,
-        inputDir,
-        libDir,
-        doc,
-        project,
+      return withTiming(
+        "pandocDependenciesPostProcessor",
+        async () =>
+          await readAndInjectDependencies(
+            dependenciesFile,
+            inputDir,
+            libDir,
+            doc,
+            project,
+          ),
       );
     };
 

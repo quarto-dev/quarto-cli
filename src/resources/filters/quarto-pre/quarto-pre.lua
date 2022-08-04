@@ -48,6 +48,7 @@ import("../common/lunacolors.lua")
 import("../common/log.lua")
 import("../common/url.lua")
 import("../common/paths.lua")
+import("../common/timing.lua")
 import("results.lua")
 import("options.lua")
 import("shortcodes.lua")
@@ -78,20 +79,20 @@ import("input-traits.lua")
 
 initShortcodeHandlers()
 
-return {
-  initOptions(),
-  shortCodesBlocks(),  
-  shortCodesInlines(),  
-  tableMergeRawHtml(),
-  tableRenderRawHtml(),
-  tableColwidthCell(),
-  tableColwidth(),
-  hidden(),
-  contentHidden(),
-  tableCaptions(),
-  outputs(),
-  outputLocation(),
-  combineFilters({
+local filterList = {
+  { name = "init", filter = initOptions() },
+  { name = "shortCodesBlocks", filter = shortCodesBlocks() } ,
+  { name = "shortCodesInlines", filter = shortCodesInlines() },
+  { name = "tableMergeRawHtml", filter = tableMergeRawHtml() },
+  { name = "tableRenderRawHtml", filter = tableRenderRawHtml() },
+  { name = "tableColwidthCell", filter = tableColwidthCell() },
+  { name = "tableColwidth", filter = tableColwidth() },
+  { name = "hidden", filter = hidden() },
+  { name = "contentHidden", filter = contentHidden() },
+  { name = "tableCaptions", filter = tableCaptions() },
+  { name = "outputs", filter = outputs() },
+  { name = "outputLocation", filter = outputLocation() },
+  { name = "combined-figures-theorems-etc", filter = combineFilters({
     fileMetadata(),
     indexBookFileTargets(),
     bookNumbering(),
@@ -107,14 +108,13 @@ return {
     panelLayout(),
     panelSidebar(),
     inputTraits()
-  }),
-  combineFilters({
+  }) },
+  { name = "combined-book-file-targets", filter = combineFilters({
     fileMetadata(),
     resolveBookFileTargets(),
-  }),
-  quartoPreMetaInject(),
-  writeResults()
+  }) },
+  { name = "quartoPreMetaInject", filter = quartoPreMetaInject() },
+  { name = "writeResults", filter = writeResults() },
 }
 
-
-
+return capture_timings(filterList)

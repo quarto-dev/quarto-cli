@@ -6,15 +6,26 @@ local function resultsFile()
   return pandoc.utils.stringify(param("results-file"))
 end
 
+local function timingsFile()
+  return pandoc.utils.stringify(param("timings-file"))
+end
+
 
 -- write results
 function writeResults()
   return {
     Pandoc = function(doc)
-      local json = quarto.json.encode(preState.results)
-      local file = io.open(resultsFile(), "w")
-      file:write(json)
-      file:close()
+      if os.getenv("QUARTO_PROFILE") ~= nil then
+        local jsonResults = quarto.json.encode(preState.results)
+        local rfile = io.open(resultsFile(), "w")
+        rfile:write(jsonResults)
+        rfile:close()
+
+        local jsonTimings = quarto.json.encode(timing_events)
+        local tfile = io.open(timingsFile(), "w")
+        tfile:write(jsonTimings)
+        tfile:close()
+      end
     end
   }
 end

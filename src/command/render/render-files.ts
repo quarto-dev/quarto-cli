@@ -77,6 +77,13 @@ import { isJupyterNotebook } from "../../core/jupyter/jupyter.ts";
 import { MappedString } from "../../core/lib/text-types.ts";
 import { createNamedLifetime } from "../../core/lifetimes.ts";
 import { resolveDependencies } from "./pandoc-dependencies-html.ts";
+import {
+  getData as getTimingData,
+  pop as popTiming,
+  push as pushTiming,
+  withTiming,
+  withTimingAsync,
+} from "../../core/timing.ts";
 
 export async function renderExecute(
   context: RenderContext,
@@ -153,6 +160,7 @@ export async function renderExecute(
   // calculate figsDir
   const figsDir = join(filesDir, figuresDir(context.format.pandoc.to));
 
+  pushTiming("render-execute");
   // execute computations
   const executeResult = await context.engine.execute({
     target: context.target,
@@ -167,6 +175,7 @@ export async function renderExecute(
     quiet: flags.quiet,
     handledLanguages: languages(),
   });
+  popTiming();
 
   // write the freeze file if we are in a project
   if (context.project && canFreeze) {
@@ -315,6 +324,7 @@ export async function renderFiles(
         executeResult.supporting.push(...results.supporting);
       };
       for (const format of Object.keys(contexts)) {
+        pushTiming("render-context");
         const context = ld.cloneDeep(contexts[format]) as RenderContext; // since we're going to mutate it...
 
         // Set the date locale for this render
@@ -370,14 +380,16 @@ export async function renderFiles(
           // for markdown processing pre-pandoc with mapped strings
           let mappedMarkdown: MappedString;
 
-          if (!isJupyterNotebook(context.target.source)) {
-            mappedMarkdown = mappedDiff(
-              context.target.markdown,
-              baseExecuteResult.markdown,
-            );
-          } else {
-            mappedMarkdown = asMappedString(baseExecuteResult.markdown);
-          }
+          withTiming("diff-execute-result", () => {
+            if (!isJupyterNotebook(context.target.source)) {
+              mappedMarkdown = mappedDiff(
+                context.target.markdown,
+                baseExecuteResult.markdown,
+              );
+            } else {
+              mappedMarkdown = asMappedString(baseExecuteResult.markdown);
+            }
+          });
 
           const resourceFiles: string[] = [];
           if (baseExecuteResult.resourceFiles) {
@@ -388,57 +400,63 @@ export async function renderFiles(
             name: "", // will be filled out by handleLanguageCells internally
             temp: tempContext,
             format: recipe.format,
-            markdown: mappedMarkdown,
+            markdown: mappedMarkdown!,
             context,
             stage: "post-engine",
           };
 
-          // handle language cells
-          const { markdown, results } = await handleLanguageCells(
-            languageCellHandlerOptions,
-          );
-          const mappedExecuteResult: MappedExecuteResult = {
-            ...baseExecuteResult,
-            markdown,
-          };
-
-          mergeHandlerResults(
-            context.target.preEngineExecuteResults,
-            mappedExecuteResult,
-            context,
-          );
-          mergeHandlerResults(results, mappedExecuteResult, context);
-
-          // process ojs
-          const { executeResult, resourceFiles: ojsResourceFiles } =
-            await ojsExecuteResult(
-              context,
-              mappedExecuteResult,
-              ojsBlockLineNumbers,
+          let unmappedExecuteResult: ExecuteResult;
+          await withTimingAsync("handle-language-cells", async () => {
+            // handle language cells
+            const { markdown, results } = await handleLanguageCells(
+              languageCellHandlerOptions,
             );
-          resourceFiles.push(...ojsResourceFiles);
+            const mappedExecuteResult: MappedExecuteResult = {
+              ...baseExecuteResult,
+              markdown,
+            };
 
-          // keep md if requested
-          const keepMd = executionEngineKeepMd(context.target.input);
-          if (keepMd && context.format.execute[kKeepMd]) {
-            Deno.writeTextFileSync(keepMd, executeResult.markdown.value);
-          }
+            mergeHandlerResults(
+              context.target.preEngineExecuteResults,
+              mappedExecuteResult,
+              context,
+            );
+            mergeHandlerResults(results, mappedExecuteResult, context);
 
-          // now get "unmapped" execute result back to send to pandoc
-          const unmappedExecuteResult: ExecuteResult = {
-            ...executeResult,
-            markdown: executeResult.markdown.value,
-          };
+            // process ojs
+            const { executeResult, resourceFiles: ojsResourceFiles } =
+              await ojsExecuteResult(
+                context,
+                mappedExecuteResult,
+                ojsBlockLineNumbers,
+              );
+            resourceFiles.push(...ojsResourceFiles);
+
+            // keep md if requested
+            const keepMd = executionEngineKeepMd(context.target.input);
+            if (keepMd && context.format.execute[kKeepMd]) {
+              Deno.writeTextFileSync(keepMd, executeResult.markdown.value);
+            }
+
+            // now get "unmapped" execute result back to send to pandoc
+            unmappedExecuteResult = {
+              ...executeResult,
+              markdown: executeResult.markdown.value,
+            };
+          });
 
           // callback
+          pushTiming("render-pandoc");
           await pandocRenderer.onRender(format, {
             context,
             recipe,
-            executeResult: unmappedExecuteResult,
+            executeResult: unmappedExecuteResult!,
             resourceFiles,
           }, pandocQuiet);
+          popTiming();
         } finally {
           fileLifetime.cleanup();
+          popTiming();
         }
       }
     }
@@ -455,6 +473,12 @@ export async function renderFiles(
     };
   } finally {
     tempContext.cleanup();
+    if (Deno.env.get("QUARTO_PROFILE")) {
+      Deno.writeTextFileSync(
+        Deno.env.get("QUARTO_PROFILE")!,
+        JSON.stringify(getTimingData()),
+      );
+    }
   }
 }
 

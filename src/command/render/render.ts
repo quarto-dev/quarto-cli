@@ -43,6 +43,12 @@ import { isHtmlFileOutput } from "../../config/format.ts";
 
 import { isSelfContainedOutput } from "./render-info.ts";
 import { execProcess } from "../../core/process.ts";
+import {
+  pop as popTiming,
+  push as pushTiming,
+  withTiming,
+  withTimingAsync,
+} from "../../core/timing.ts";
 import { filesDirMediabagDir } from "./render-paths.ts";
 
 export async function renderPandoc(
@@ -125,17 +131,20 @@ export async function renderPandoc(
     return Promise.reject();
   }
 
+  pushTiming("render-postprocessor");
   // run optional post-processor (e.g. to restore html-preserve regions)
   if (executeResult.postProcess) {
-    await context.engine.postprocess({
-      engine: context.engine,
-      target: context.target,
-      format,
-      output: recipe.output,
-      tempDir: context.options.services.temp.createDir(),
-      projectDir: context.project?.dir,
-      preserve: executeResult.preserve,
-      quiet: context.options.flags?.quiet,
+    await withTimingAsync("engine-postprocess", async () => {
+      return await context.engine.postprocess({
+        engine: context.engine,
+        target: context.target,
+        format,
+        output: recipe.output,
+        tempDir: context.options.services.temp.createDir(),
+        projectDir: context.project?.dir,
+        preserve: executeResult.preserve,
+        quiet: context.options.flags?.quiet,
+      });
     });
   }
 
@@ -176,24 +185,29 @@ export async function renderPandoc(
     }
   }
 
-  // ensure flags
-  const flags = context.options.flags || {};
+  let finalOutput: string;
+  let selfContained: boolean;
 
-  // call complete handler (might e.g. run latexmk to complete the render)
-  const finalOutput = await recipe.complete(pandocOptions) || recipe.output;
+  await withTimingAsync("postprocess-selfcontained", async () => {
+    // ensure flags
+    const flags = context.options.flags || {};
 
-  // determine whether this is self-contained output
-  const selfContained = isSelfContainedOutput(
-    flags,
-    format,
-    finalOutput,
-  );
+    // call complete handler (might e.g. run latexmk to complete the render)
+    finalOutput = await recipe.complete(pandocOptions) || recipe.output;
 
-  // If this is self-contained, run pandoc to 'suck in' the dependencies
-  // which may have been added in the post processor
-  if (selfContained && isHtmlFileOutput(format.pandoc)) {
-    await pandocIngestSelfContainedContent(outputFile);
-  }
+    // determine whether this is self-contained output
+    selfContained = isSelfContainedOutput(
+      flags,
+      format,
+      finalOutput,
+    );
+
+    // If this is self-contained, run pandoc to 'suck in' the dependencies
+    // which may have been added in the post processor
+    if (selfContained && isHtmlFileOutput(format.pandoc)) {
+      await pandocIngestSelfContainedContent(outputFile);
+    }
+  });
 
   // compute the relative path to the files dir
   let filesDir: string | undefined = inputFilesDir(context.target.source);
@@ -228,13 +242,14 @@ export async function renderPandoc(
     supporting.push(...htmlPostProcessResult.supporting);
   }
 
-  renderCleanup(
-    context.target.input,
-    finalOutput,
-    format,
-    selfContained ? supporting : undefined,
-    executionEngineKeepMd(context.target.input),
-  );
+  withTiming("render-cleanup", () =>
+    renderCleanup(
+      context.target.input,
+      finalOutput!,
+      format,
+      selfContained! ? supporting : undefined,
+      executionEngineKeepMd(context.target.input),
+    ));
 
   // if there is a project context then return paths relative to the project
   const projectPath = (path: string) => {
@@ -254,6 +269,7 @@ export async function renderPandoc(
       return path;
     }
   };
+  popTiming();
 
   return {
     input: projectPath(context.target.source),
@@ -264,12 +280,12 @@ export async function renderPandoc(
         context.project ? relative(context.project.dir, file) : file
       )
       : undefined,
-    file: projectPath(finalOutput),
+    file: projectPath(finalOutput!),
     resourceFiles: {
       globs: pandocResult.resources,
       files: resourceFiles.concat(htmlPostProcessResult.resources),
     },
-    selfContained: selfContained,
+    selfContained: selfContained!,
   };
 }
 
@@ -363,30 +379,32 @@ async function runHtmlPostprocessors(
     supporting: [],
   };
   if (htmlPostprocessors.length > 0 || htmlFinalizers.length > 0) {
-    const outputFile = isAbsolute(options.output)
-      ? options.output
-      : join(dirname(options.source), options.output);
-    const htmlInput = Deno.readTextFileSync(outputFile);
-    const doctypeMatch = htmlInput.match(/^<!DOCTYPE.*?>/);
-    const doc = await parseHtml(htmlInput);
-    for (let i = 0; i < htmlPostprocessors.length; i++) {
-      const postprocessor = htmlPostprocessors[i];
-      const result = await postprocessor(doc, inputMetadata, inputTraits);
+    await withTimingAsync("htmlPostprocessors", async () => {
+      const outputFile = isAbsolute(options.output)
+        ? options.output
+        : join(dirname(options.source), options.output);
+      const htmlInput = Deno.readTextFileSync(outputFile);
+      const doctypeMatch = htmlInput.match(/^<!DOCTYPE.*?>/);
+      const doc = await parseHtml(htmlInput);
+      for (let i = 0; i < htmlPostprocessors.length; i++) {
+        const postprocessor = htmlPostprocessors[i];
+        const result = await postprocessor(doc, inputMetadata, inputTraits);
 
-      postProcessResult.resources.push(...result.resources);
-      postProcessResult.supporting.push(...result.supporting);
-    }
+        postProcessResult.resources.push(...result.resources);
+        postProcessResult.supporting.push(...result.supporting);
+      }
 
-    // After the post processing is complete, allow any finalizers
-    // an opportunity at the document
-    for (let i = 0; i < htmlFinalizers.length; i++) {
-      const finalizer = htmlFinalizers[i];
-      await finalizer(doc);
-    }
+      // After the post processing is complete, allow any finalizers
+      // an opportunity at the document
+      for (let i = 0; i < htmlFinalizers.length; i++) {
+        const finalizer = htmlFinalizers[i];
+        await finalizer(doc);
+      }
 
-    const htmlOutput = (doctypeMatch ? doctypeMatch[0] + "\n" : "") +
-      doc.documentElement?.outerHTML!;
-    Deno.writeTextFileSync(outputFile, htmlOutput);
+      const htmlOutput = (doctypeMatch ? doctypeMatch[0] + "\n" : "") +
+        doc.documentElement?.outerHTML!;
+      Deno.writeTextFileSync(outputFile, htmlOutput);
+    });
   }
   return postProcessResult;
 }
