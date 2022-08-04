@@ -6,13 +6,13 @@
 */
 
 import { existsSync } from "fs/exists.ts";
+import { ensureDirSync } from "fs/mod.ts";
 import { dirname, isAbsolute, join } from "path/mod.ts";
 import { generate as generateUuid } from "uuid/v4.ts";
 
 import { parseShellRunCommand } from "../../core/run/shell.ts";
 import { quartoCacheDir } from "../appdirs.ts";
 import { which } from "../path.ts";
-import { ensureDirSync } from "../../vendor/deno.land/std@0.138.0/fs/ensure_dir.ts";
 
 // get cached copy of filtered notebook
 export async function filteredNotebookFromCache(
