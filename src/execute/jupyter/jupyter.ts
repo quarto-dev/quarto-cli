@@ -393,6 +393,8 @@ async function createNotebookforTarget(target: ExecutionTarget) {
   return nb;
 }
 
+// mitigate conflict between pexpect and our daamonization, see
+// https://github.com/quarto-dev/quarto-cli/discussions/728
 async function disableDaemonForNotebook(target: ExecutionTarget) {
   const kShellMagics = [
     "cd",
@@ -413,13 +415,14 @@ async function disableDaemonForNotebook(target: ExecutionTarget) {
     if (ld.isObject(cell.cell_type)) {
       const language = (cell.cell_type as { language: string }).language;
       if (language === "python") {
-        if (cell.source.value.includes("!")) {
+        if (cell.source.value.startsWith("!")) {
           return true;
         }
-        return (kShellMagics.some((cmd) => {
-          return cell.source.value.includes("%" + cmd) ||
-            cell.source.value.startsWith(cmd);
-        }));
+        return (kShellMagics.some((cmd) =>
+          cell.source.value.includes("%" + cmd + " ") ||
+          cell.source.value.includes("!" + cmd + " ") ||
+          cell.source.value.startsWith(cmd + " ")
+        ));
       }
     }
   }
