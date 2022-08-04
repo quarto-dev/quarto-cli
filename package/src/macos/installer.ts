@@ -217,7 +217,7 @@ export async function makeInstallerMac(config: Configuration) {
 
       // Add a delay to allow the Apple servers to propagate the
       // request Id that they've just provided
-      Deno.sleepSync(10000);
+      sleepSync(10000);
 
       // This will succeed or throw
       await waitForNotaryStatus(requestId, username, password);
@@ -230,6 +230,13 @@ export async function makeInstallerMac(config: Configuration) {
   } else {
     warning("Missing Installer Developer Id, not signing");
   }
+}
+
+// https://deno.com/blog/v1.23#remove-unstable-denosleepsync-api
+function sleepSync(timeout: number) {
+  const sab = new SharedArrayBuffer(1024);
+  const int32 = new Int32Array(sab);
+  Atomics.wait(int32, 0, 0, timeout);
 }
 
 async function signPackage(
