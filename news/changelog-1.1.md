@@ -2,6 +2,8 @@
 
 ## Jupyter
 
+- Daemonize jupyter notebooks referenced within listings (e.g. in a blog)
+- Refine over-detection of Jupyter shell magics (which prevented kernel daemonization) 
 - Use on-disk cache for filtered jupyter notebooks
 
 ## References
@@ -20,11 +22,9 @@
 
 - Correctly align dark/light toggle in navbar (thanks @FabioRosado)
 
-## Preview Server
+## Preview
 
-- Improved daemonization in preview server for small number of file changes
-- Improve automatic detection of jupyter shell magics used in daemonization
-- Don't attempt to open browser when in a server sessions
+- Don't attempt to open browser when in a server session
 
 ## Localization
 
