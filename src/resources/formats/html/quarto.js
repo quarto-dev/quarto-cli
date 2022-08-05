@@ -378,7 +378,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
         const convertToSidebar = () => {
           for (const child of el.children) {
             child.style.opacity = 1;
-            clone.style.display = null;
+            child.style.display = null;
           }
 
           const placeholderEl = window.document.getElementById(
