@@ -193,7 +193,7 @@ export function pandocBlock(delimiter: string) {
   };
 }
 
-export const pandocDiv = pandocHtmlBlock("div");
+export const pandocDiv = pandocBlock(":::");
 export const pandocCode = pandocBlock("```");
 export const pandocFigure = pandocHtmlBlock("figure");
 export const pandocFigCaption = pandocHtmlBlock("figcaption");
