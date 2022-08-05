@@ -38,6 +38,10 @@
 - Don't ignore auto stretch rules when speaker notes are present
 - Target references and footnotes slides for citation and footnote links
 
+## Mermaid diagrams
+
+- support `echo: true` and other per-document settings (#1485)
+
 ## Miscellaneous
 
 - Allow environment variables to override paths to binary dependencies
