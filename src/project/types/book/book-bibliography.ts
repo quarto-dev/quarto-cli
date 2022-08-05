@@ -18,7 +18,7 @@ import { pathWithForwardSlashes } from "../../../core/path.ts";
 import { execProcess } from "../../../core/process.ts";
 import { pandocBinaryPath } from "../../../core/resources.ts";
 
-import { kBibliography, kCsl } from "../../../config/constants.ts";
+import { kBibliography, kCsl, kNoCite } from "../../../config/constants.ts";
 import { Metadata } from "../../../config/types.ts";
 
 import { kProjectRender, ProjectContext } from "../../types.ts";
@@ -53,10 +53,13 @@ export async function bookBibliographyPostRender(
 
   // bail if there is no target refs file
   if (refsHtml && outputFiles.length > 0) {
-    // determine the bibliography and the csl based on the first file
+    // determine the bibliography, csl, and nocite based on the first file
     const file = outputFiles[0];
     const bibliography = file.format.metadata[kBibliography] as string[];
     const csl = file.format.metadata[kCsl];
+    const nocite = typeof (file.format.metadata[kNoCite]) === "string"
+      ? file.format.metadata[kNoCite] as string
+      : undefined;
     if (!bibliography) {
       return;
     }
@@ -136,6 +139,13 @@ export async function bookBibliographyPostRender(
         }
       }
 
+      // include citeids from nocite
+      if (nocite) {
+        citeIds.push(
+          ...nocite.split(",").map((x) => x.trim().replace(/^@/, "")),
+        );
+      }
+
       if (citeIds.length > 0) {
         // either append this to the end of the references file or replace an explicit
         // refs div in the references file
@@ -179,8 +189,8 @@ async function generateBibliographyHTML(
 
   // make the aggregated bibliography
   const yaml: Metadata = {
-    bibliography: biblioPaths,
-    nocite: ld.uniq(citeIds).map((id) => "@" + id).join(", "),
+    [kBibliography]: biblioPaths,
+    [kNoCite]: ld.uniq(citeIds).map((id) => "@" + id).join(", "),
   };
   if (csl) {
     yaml[kCsl] = csl;

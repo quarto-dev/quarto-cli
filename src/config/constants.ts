@@ -423,6 +423,7 @@ export const kServer = "server";
 export const kPageTitle = "pagetitle";
 export const kTitlePrefix = "title-prefix";
 export const kCsl = "csl";
+export const kNoCite = "nocite";
 export const kCss = "css";
 export const kBibliography = "bibliography";
 export const kHeaderIncludes = "header-includes";
