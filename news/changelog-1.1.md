@@ -1,22 +1,20 @@
-
-
 ## Jupyter
 
 - Daemonize jupyter notebooks referenced within listings (e.g. in a blog)
-- Refine over-detection of Jupyter shell magics (which prevented kernel daemonization) 
+- Refine over-detection of Jupyter shell magics (which prevented kernel daemonization)
 - Use on-disk cache for filtered jupyter notebooks
 
 ## References
 
-- Support for `nocite` within _project.yml for book projects (#1660)
+- Support for `nocite` within \_project.yml for book projects (#1660)
 
 ## OJS
 
 - Better handle OJS code blocks that begin with empty lines
 - Better OJS support for dark vs light mode
-- Improved button formatting
 - Support passing Pandas Series
 - Update to latest OJS runtime
+- Fix multi-column regression (#1698)
 
 ## Websites
 
