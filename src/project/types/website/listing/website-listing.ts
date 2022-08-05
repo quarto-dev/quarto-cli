@@ -243,7 +243,7 @@ export async function listingHtmlDependencies(
     if (options[kFeed]) {
       const listingOptions = {
         type: "full",
-        ...(options[kFeed] as unknown as Record<string, unknown>),
+        ...options[kFeed],
       } as ListingFeedOptions;
 
       const feedAbsPaths = await createFeed(

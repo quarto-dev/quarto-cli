@@ -72,7 +72,7 @@ export async function resolveFormatForGiscus(
         if (giscusOptions[kGiscusRepoId] === undefined) {
           giscusOptions[kGiscusRepoId] = giscusMeta.repositoryId;
         }
-        if (giscusOptions[kGiscusCategoryId] !== undefined) {
+        if (giscusOptions[kGiscusCategoryId] === undefined) {
           giscusOptions[kGiscusCategoryId] = getDiscussionCategoryId(
             giscusOptions[kGiscusCategoryId] as string,
             giscusMeta,
