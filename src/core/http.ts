@@ -234,9 +234,12 @@ export function isBrowserPreviewable(file: string) {
 
 export function maybeDisplaySocketError(e: unknown) {
   if (
+    !(e instanceof Deno.errors.NotFound) &&
     !(e instanceof Deno.errors.BrokenPipe) &&
+    !(e instanceof Deno.errors.NotConnected) &&
     !(e instanceof Deno.errors.ConnectionAborted) &&
     !(e instanceof Deno.errors.ConnectionReset) &&
+    !(e instanceof Deno.errors.ConnectionRefused) &&
     !(e instanceof DOMException)
   ) {
     logError(e as Error);
