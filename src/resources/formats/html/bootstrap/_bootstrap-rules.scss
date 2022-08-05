@@ -1591,7 +1591,7 @@ nav[role="doc-toc"].slow > * {
   }
 }
 
-main.content button:not(.code-copy-button), .btn.btn-quarto, div.cell-output-display .btn-quarto {
+.btn.btn-quarto, div.cell-output-display .btn-quarto {
   @include button-variant(
     $btn-bg,
     $btn-bg,
