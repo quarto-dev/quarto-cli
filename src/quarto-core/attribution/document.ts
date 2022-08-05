@@ -20,9 +20,13 @@ import { pathWithForwardSlashes } from "../../core/path.ts";
 import {
   CSL,
   cslDate,
+  CSLExtras,
   cslNames,
   CSLType,
   cslType,
+  kAbstractUrl,
+  kEIssn,
+  kPdfUrl,
   suggestId,
 } from "../../core/csl.ts";
 import {
@@ -35,6 +39,7 @@ const kCitation = "citation";
 const kURL = "URL";
 const kId = "id";
 const kCitationKey = "citation-key";
+const kEditor = "editor";
 
 const kType = "type";
 const kCategories = "categories";
@@ -81,7 +86,7 @@ export function documentCSL(
   format: Format,
   defaultType: CSLType,
   offset?: string,
-) {
+): { csl: CSL; extras: CSLExtras } {
   const citationMetadata = citationMeta(format);
 
   // The type
@@ -104,10 +109,18 @@ export function documentCSL(
 
   // Author
   const authors = parseAuthor(
-    format.metadata[kAuthor] || citationMetadata[kAuthor],
+    citationMetadata[kAuthor] || format.metadata[kAuthor],
   );
   csl.author = cslNames(
     authors?.filter((auth) => auth !== undefined).map((auth) => auth?.name),
+  );
+
+  // Editors
+  const editors = parseAuthor(citationMetadata[kEditor]);
+  csl.editor = cslNames(
+    editors?.filter((editor) => editor !== undefined).map((editor) =>
+      editor?.name
+    ),
   );
 
   // Categories
@@ -371,7 +384,29 @@ export function documentCSL(
     csl[kCustom] = custom;
   }
 
-  return csl;
+  // Process anything extra
+  const extras: CSLExtras = {};
+  if (format.metadata.keywords) {
+    const kw = format.metadata.keywords;
+    extras.keywords = Array.isArray(kw) ? kw : [kw];
+  }
+
+  // Process extra URLS
+  if (citationMetadata[kPdfUrl]) {
+    extras[kPdfUrl] = citationMetadata[kPdfUrl] as string;
+  }
+  if (citationMetadata[kAbstractUrl]) {
+    extras[kAbstractUrl] = citationMetadata[kAbstractUrl] as string;
+  }
+
+  if (citationMetadata[kEIssn]) {
+    extras[kEIssn] = citationMetadata[kEIssn] as string;
+  }
+
+  return {
+    csl,
+    extras,
+  };
 }
 
 interface PageRange {
@@ -400,10 +435,14 @@ function synthesizeCitationUrl(
   if (baseUrl && outputFile && offset) {
     const rootDir = Deno.realPathSync(join(dirname(input), offset));
     if (outputFile === "index.html") {
-      return `${baseUrl}/${pathWithForwardSlashes(relative(rootDir, dirname(input)))}`;
+      return `${baseUrl}/${
+        pathWithForwardSlashes(relative(rootDir, dirname(input)))
+      }`;
     } else {
-      return `${baseUrl}/${pathWithForwardSlashes(
-        relative(rootDir, join(dirname(input), outputFile)))
+      return `${baseUrl}/${
+        pathWithForwardSlashes(
+          relative(rootDir, join(dirname(input), outputFile)),
+        )
       }`;
     }
   } else {
