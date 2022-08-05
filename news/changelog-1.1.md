@@ -1,14 +1,12 @@
-
-
 ## Jupyter
 
 - Daemonize jupyter notebooks referenced within listings (e.g. in a blog)
-- Refine over-detection of Jupyter shell magics (which prevented kernel daemonization) 
+- Refine over-detection of Jupyter shell magics (which prevented kernel daemonization)
 - Use on-disk cache for filtered jupyter notebooks
 
 ## References
 
-- Support for `nocite` within _project.yml for book projects (#1660)
+- Support for `nocite` within \_project.yml for book projects (#1660)
 
 ## OJS
 
@@ -38,6 +36,10 @@
 ## RevealJS Format
 
 - Don't ignore auto stretch rules when speaker notes are present
+
+## Mermaid diagrams
+
+- support `echo: true` and other per-document settings (#1485)
 
 ## Miscellaneous
 
