@@ -499,13 +499,20 @@ async function resolveFormats(
     );
 
     // do the merge of the writer format into this format
-    if (extensionMetadata) {
-      mergedFormats[format] = mergeFormatMetadata(
+    mergedFormats[format] = mergeFormatMetadata(
+      defaultWriterFormat(formatDesc.formatWithVariants),
+      extensionMetadata[formatDesc.baseFormat],
+      userFormat,
+    );
+    //deno-lint-ignore no-explicit-any
+    mergedFormats[format].mergeAdditionalFormats = (...configs: any[]) => {
+      return mergeFormatMetadata(
         defaultWriterFormat(formatDesc.formatWithVariants),
         extensionMetadata[formatDesc.baseFormat],
+        ...configs,
         userFormat,
       );
-    }
+    };
   }
 
   // filter on formats supported by this project

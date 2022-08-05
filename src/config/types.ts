@@ -291,6 +291,18 @@ export interface Format {
   pandoc: FormatPandoc;
   language: FormatLanguage;
   metadata: Metadata;
+
+  /**
+   * mergeAdditionalFormats is populated by render-contexts, and
+   * are used to create a Format object with additional formats that
+   * have "less priority" than format information from user YAML.
+   *
+   * Use mergeAdditionalFormats to, e.g., set up custom defaults
+   * that are not driven by the output format.
+   */
+  //deno-lint-ignore no-explicit-any
+  mergeAdditionalFormats?: (...configs: any[]) => Format;
+
   resolveFormat?: (format: Format) => void;
   formatExtras?: (
     input: string,
