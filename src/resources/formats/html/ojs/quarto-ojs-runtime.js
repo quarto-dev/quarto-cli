@@ -1,4 +1,4 @@
-// @quarto/quarto-ojs-runtime v0.0.11 Copyright 2022 undefined
+// @quarto/quarto-ojs-runtime v0.0.12 Copyright 2022 undefined
 var EOL = {},
     EOF = {},
     QUOTE = 34,
@@ -18837,8 +18837,11 @@ function createRuntime() {
     const keys = Object.keys(df);
     return df[keys[0]]
       .map((v, i) =>
-        Object.fromEntries(keys.map((key) => [key, df[key][i] || undefined]))
-      )
+        Object.fromEntries(keys.map((key) => {
+          const v = df[key][i];
+          const result = v === null ? undefined : v;
+          return [key, result];
+        })))
       .filter((v) => !Object.values(v).every((e) => e === undefined));
   }
   lib.transpose = () => transpose;
