@@ -5,7 +5,20 @@
 *
 */
 
-import { parsePandocDate } from "./date.ts";
+import { formatDate, parsePandocDate } from "./date.ts";
+
+export const kPdfUrl = "pdf-url";
+export const kAbstractUrl = "abstract-url";
+export const kFullTextUrl = "fulltext-url";
+export const kPublicUrl = "public-url";
+
+export interface CSLExtras {
+  [kPdfUrl]?: string;
+  [kAbstractUrl]?: string;
+  [kFullTextUrl]?: string;
+  [kPublicUrl]?: string;
+  keywords?: string[];
+}
 
 export interface CSL extends Record<string, unknown> {
   // The id. This is technically required, but some providers (like crossref) don't provide
@@ -32,6 +45,8 @@ export interface CSL extends Record<string, unknown> {
   // Array of Contributors
   author?: CSLName[];
 
+  editor?: CSLName[];
+
   // Earliest of published-print and published-online
   issued?: CSLDate;
 
@@ -39,7 +54,7 @@ export interface CSL extends Record<string, unknown> {
   "container-title"?: string;
 
   // Short titles of the containing work (usually a book or journal)
-  "short-container-title"?: string;
+  "container-title-short"?: string;
 
   // Issue number of an article's journal
   issue?: string;
@@ -66,6 +81,7 @@ export interface CSL extends Record<string, unknown> {
   // primarily because they may need to be sanitized
   ISSN?: string;
   ISBN?: string;
+  PMID?: string;
   "original-title"?: string;
   "short-title"?: string;
   subtitle?: string;
@@ -247,7 +263,8 @@ export function cslDate(dateRaw: unknown): CSLDate | undefined {
           date.getMonth() + 1,
           date.getDate(),
         ]],
-        raw: dateRaw,
+        literal: formatDate(date, "YYYY-MM-DD"),
+        raw: formatDate(date, "YYYY-MM-DD"),
       };
     }
     return undefined;

@@ -10015,6 +10015,11 @@ try {
                     description: "Abstract of the item (e.g. the abstract of a journal article)"
                   }
                 },
+                "abstract-url": {
+                  string: {
+                    description: "A url to the abstract for this item."
+                  }
+                },
                 accessed: {
                   ref: "csl-date",
                   description: "Date the item has been accessed."
@@ -10228,6 +10233,11 @@ try {
                   },
                   hidden: true
                 },
+                "fulltext-url": {
+                  string: {
+                    description: "A url to the full text for this item."
+                  }
+                },
                 genre: {
                   string: {
                     description: {
@@ -10423,6 +10433,11 @@ try {
                 producer: {
                   ref: "csl-person",
                   description: "Producer (e.g. of a television or radio broadcast)."
+                },
+                "public-url": {
+                  string: {
+                    description: "A public url for this item."
+                  }
                 },
                 publisher: {
                   string: {

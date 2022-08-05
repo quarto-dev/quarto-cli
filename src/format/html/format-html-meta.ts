@@ -8,7 +8,15 @@
 import { kHtmlEmptyPostProcessResult } from "../../command/render/constants.ts";
 import { Format, Metadata } from "../../config/types.ts";
 import { bibliographyCslJson } from "../../core/bibliography.ts";
-import { CSL, cslDateToEDTFDate } from "../../core/csl.ts";
+import {
+  CSL,
+  cslDateToEDTFDate,
+  CSLExtras,
+  kAbstractUrl,
+  kFullTextUrl,
+  kPdfUrl,
+  kPublicUrl,
+} from "../../core/csl.ts";
 import { Document } from "../../core/deno-dom.ts";
 import { encodeAttributeValue } from "../../core/html.ts";
 import { kWebsite } from "../../project/types/website/website-constants.ts";
@@ -24,8 +32,8 @@ export function metadataPostProcessor(
 ) {
   return async (doc: Document) => {
     if (googleScholarEnabled(format)) {
-      const csl = documentCSL(input, format, "webpage", offset);
-      const documentMetadata = googleScholarMeta(csl);
+      const { csl, extras } = documentCSL(input, format, "webpage", offset);
+      const documentMetadata = googleScholarMeta(csl, extras);
       const referenceMetadata = await googleScholarReferences(input, format);
       [...documentMetadata, ...referenceMetadata].forEach((meta) => {
         writeMetaTag(meta.name, meta.content, doc);
@@ -56,6 +64,7 @@ interface MetaTagData {
 
 function googleScholarMeta(
   csl: CSL,
+  extras: CSLExtras,
 ): MetaTagData[] {
   // The scholar metadata that we'll generate into
   const scholarMeta: MetaTagData[] = [];
@@ -64,6 +73,30 @@ function googleScholarMeta(
   // Process title
   if (csl.title) {
     write("citation_title", csl.title);
+  }
+
+  if (csl.abstract) {
+    write("citation_abstract", csl.abstract);
+  }
+
+  if (extras.keywords) {
+    write("citation_keywords", extras.keywords);
+  }
+
+  if (extras[kPdfUrl]) {
+    write("citation_pdf_url", extras[kPdfUrl]);
+  }
+
+  if (extras[kPublicUrl]) {
+    write("citation_public_url", extras[kPublicUrl]);
+  }
+
+  if (extras[kAbstractUrl]) {
+    write("citation_abstract_url", extras[kAbstractUrl]);
+  }
+
+  if (extras[kFullTextUrl]) {
+    write("citation_fulltext_url", extras[kFullTextUrl]);
   }
 
   // Authors
@@ -95,6 +128,10 @@ function googleScholarMeta(
     write("citation_issue", csl.issue);
   }
 
+  if (csl.DOI) {
+    write("citation_doi", csl.DOI);
+  }
+
   if (csl.ISBN) {
     write("citation_isbn", csl.ISBN);
   }
@@ -103,8 +140,16 @@ function googleScholarMeta(
     write("citation_issn", csl.ISSN);
   }
 
+  if (csl.PMID) {
+    write("citation_pmid", csl.PMID);
+  }
+
   if (csl.volume) {
     write("citation_volume", csl.volume);
+  }
+
+  if (csl.language) {
+    write("citation_language", csl.language);
   }
 
   if (csl["page-first"]) {
@@ -117,9 +162,17 @@ function googleScholarMeta(
 
   const type = csl.type;
   if (type === "paper-conference") {
-    write("citation_conference_title", csl["container-title"]);
+    if (csl["container-title"]) {
+      write("citation_conference_title", csl["container-title"]);
+    }
+
+    if (csl.publisher) {
+      write("citation_conference", csl.publisher);
+    }
   } else if (type === "thesis") {
-    write("citation_dissertation_institution", csl.publisher);
+    if (csl.publisher) {
+      write("citation_dissertation_institution", csl.publisher);
+    }
   } else if (type === "report") {
     if (csl.publisher) {
       write(
@@ -133,8 +186,22 @@ function googleScholarMeta(
         csl.number,
       );
     }
+  } else if (type === "book") {
+    if (csl["container-title"]) {
+      write("citation_book_title", csl["container-title"]);
+    }
   } else {
-    write("citation_journal_title", csl["container-title"]);
+    if (csl["container-title"]) {
+      write("citation_journal_title", csl["container-title"]);
+    }
+
+    if (csl["container-title-short"]) {
+      write("citation_journal_abbrev", csl["container-title-short"]);
+    }
+
+    if (csl.publisher) {
+      write("citation_publisher", csl.publisher);
+    }
   }
 
   return scholarMeta;
@@ -149,7 +216,7 @@ async function googleScholarReferences(input: string, format: Format) {
 
   if (references) {
     references.forEach((reference) => {
-      const refMetas = googleScholarMeta(reference);
+      const refMetas = googleScholarMeta(reference, {});
       const metaStrs = refMetas.map((refMeta) => {
         return `${refMeta.name}=${refMeta.content};`;
       });
