@@ -10014,6 +10014,11 @@ var require_yaml_intelligence_resources = __commonJS({
                   description: "Abstract of the item (e.g. the abstract of a journal article)"
                 }
               },
+              "abstract-url": {
+                string: {
+                  description: "A url to the abstract for this item."
+                }
+              },
               accessed: {
                 ref: "csl-date",
                 description: "Date the item has been accessed."
@@ -10227,6 +10232,11 @@ var require_yaml_intelligence_resources = __commonJS({
                 },
                 hidden: true
               },
+              "fulltext-url": {
+                string: {
+                  description: "A url to the full text for this item."
+                }
+              },
               genre: {
                 string: {
                   description: {
@@ -10422,6 +10432,11 @@ var require_yaml_intelligence_resources = __commonJS({
               producer: {
                 ref: "csl-person",
                 description: "Producer (e.g. of a television or radio broadcast)."
+              },
+              "public-url": {
+                string: {
+                  description: "A public url for this item."
+                }
               },
               publisher: {
                 string: {

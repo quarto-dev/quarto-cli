@@ -8,7 +8,14 @@
 import { kHtmlEmptyPostProcessResult } from "../../command/render/constants.ts";
 import { Format, Metadata } from "../../config/types.ts";
 import { bibliographyCslJson } from "../../core/bibliography.ts";
-import { CSL, cslDateToEDTFDate } from "../../core/csl.ts";
+import {
+  CSL,
+  cslDateToEDTFDate,
+  CSLExtras,
+  kAbstractUrl,
+  kEIssn,
+  kPdfUrl,
+} from "../../core/csl.ts";
 import { Document } from "../../core/deno-dom.ts";
 import { encodeAttributeValue } from "../../core/html.ts";
 import { kWebsite } from "../../project/types/website/website-constants.ts";
@@ -24,8 +31,8 @@ export function metadataPostProcessor(
 ) {
   return async (doc: Document) => {
     if (googleScholarEnabled(format)) {
-      const csl = documentCSL(input, format, "webpage", offset);
-      const documentMetadata = googleScholarMeta(csl);
+      const { csl, extras } = documentCSL(input, format, "webpage", offset);
+      const documentMetadata = googleScholarMeta(csl, extras);
       const referenceMetadata = await googleScholarReferences(input, format);
       [...documentMetadata, ...referenceMetadata].forEach((meta) => {
         writeMetaTag(meta.name, meta.content, doc);
@@ -56,6 +63,7 @@ interface MetaTagData {
 
 function googleScholarMeta(
   csl: CSL,
+  extras: CSLExtras,
 ): MetaTagData[] {
   // The scholar metadata that we'll generate into
   const scholarMeta: MetaTagData[] = [];
@@ -66,6 +74,14 @@ function googleScholarMeta(
     write("citation_title", csl.title);
   }
 
+  if (csl.abstract) {
+    write("citation_abstract", csl.abstract);
+  }
+
+  if (extras.keywords) {
+    write("citation_keywords", extras.keywords);
+  }
+
   // Authors
   if (csl.author) {
     csl.author.forEach((author) => {
@@ -74,6 +90,26 @@ function googleScholarMeta(
         author.literal || `${author.given} ${author.family}`,
       );
     });
+  }
+
+  // Editors
+  if (csl.editor) {
+    csl.editor.forEach((editor) => {
+      write(
+        "citation_editor",
+        editor.literal || `${editor.given} ${editor.family}`,
+      );
+    });
+  }
+
+  if (csl.issued) {
+    const edtfIssued = cslDateToEDTFDate(csl.issued);
+    write("citation_publication_date", edtfIssued);
+    write("citation_cover_date", edtfIssued);
+    const parts = csl.issued["date-parts"];
+    if (parts) {
+      write("citation_year", parts[0][0]);
+    }
   }
 
   if (csl["available-date"]) {
@@ -87,12 +123,20 @@ function googleScholarMeta(
     );
   }
 
-  if (csl.issued) {
-    write("citation_publication_date", cslDateToEDTFDate(csl.issued));
+  if (extras[kPdfUrl]) {
+    write("citation_pdf_url", extras[kPdfUrl]);
+  }
+
+  if (extras[kAbstractUrl]) {
+    write("citation_abstract_html_url", extras[kAbstractUrl]);
   }
 
   if (csl.issue) {
     write("citation_issue", csl.issue);
+  }
+
+  if (csl.DOI) {
+    write("citation_doi", csl.DOI);
   }
 
   if (csl.ISBN) {
@@ -103,8 +147,20 @@ function googleScholarMeta(
     write("citation_issn", csl.ISSN);
   }
 
+  if (extras[kEIssn]) {
+    write("citation_eissn", extras[kEIssn]);
+  }
+
+  if (csl.PMID) {
+    write("citation_pmid", csl.PMID);
+  }
+
   if (csl.volume) {
     write("citation_volume", csl.volume);
+  }
+
+  if (csl.language) {
+    write("citation_language", csl.language);
   }
 
   if (csl["page-first"]) {
@@ -117,9 +173,17 @@ function googleScholarMeta(
 
   const type = csl.type;
   if (type === "paper-conference") {
-    write("citation_conference_title", csl["container-title"]);
+    if (csl["container-title"]) {
+      write("citation_conference_title", csl["container-title"]);
+    }
+
+    if (csl.publisher) {
+      write("citation_conference", csl.publisher);
+    }
   } else if (type === "thesis") {
-    write("citation_dissertation_institution", csl.publisher);
+    if (csl.publisher) {
+      write("citation_dissertation_institution", csl.publisher);
+    }
   } else if (type === "report") {
     if (csl.publisher) {
       write(
@@ -133,8 +197,28 @@ function googleScholarMeta(
         csl.number,
       );
     }
+  } else if (type === "book") {
+    if (csl["container-title"]) {
+      write("citation_book_title", csl["container-title"]);
+    }
+  } else if (type === "chapter") {
+    write("citation_inbook_title", csl["container-title"]);
   } else {
-    write("citation_journal_title", csl["container-title"]);
+    if (csl["container-title"]) {
+      write("citation_journal_title", csl["container-title"]);
+    }
+
+    if (csl["container-title-short"]) {
+      write("citation_journal_abbrev", csl["container-title-short"]);
+    }
+
+    if (csl.publisher) {
+      write("citation_publisher", csl.publisher);
+    }
+  }
+
+  if (csl["collection-title"]) {
+    write("citation_series_title", csl["collection-title"]);
   }
 
   return scholarMeta;
@@ -149,7 +233,7 @@ async function googleScholarReferences(input: string, format: Format) {
 
   if (references) {
     references.forEach((reference) => {
-      const refMetas = googleScholarMeta(reference);
+      const refMetas = googleScholarMeta(reference, {});
       const metaStrs = refMetas.map((refMeta) => {
         return `${refMeta.name}=${refMeta.content};`;
       });
