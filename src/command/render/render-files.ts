@@ -330,7 +330,12 @@ export async function renderFiles(
         // Set the date locale for this render
         // Used for date formatting
         initDayJsPlugins();
-        await setDateLocale(context.format.metadata[kLang] as string);
+        if (
+          context.format.metadata[kLang] &&
+          typeof (context.format.metadata[kLang]) === "string"
+        ) {
+          await setDateLocale(context.format.metadata[kLang] as string);
+        }
 
         const fileLifetime = createNamedLifetime("render-file");
         fileLifetime.attach({
