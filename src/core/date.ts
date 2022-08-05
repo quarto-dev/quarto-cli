@@ -88,8 +88,11 @@ export function initDayJsPlugins() {
 }
 
 export async function setDateLocale(locale: string) {
+  locale = locale.toLowerCase();
   if (locale !== dayjs.locale()) {
-    const localePath = resourcePath(`library/dayjs/locale/${locale}.js`);
+    const localePath = resourcePath(
+      `library/dayjs/locale/${locale}.js`,
+    );
     if (existsSync(localePath)) {
       const localeUrl = toFileUrl(localePath).href;
       const localeModule = await import(localeUrl);
