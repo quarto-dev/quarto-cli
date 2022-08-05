@@ -461,7 +461,6 @@ export const baseHandler: LanguageHandler = {
     handlerContext: LanguageCellHandlerContext,
     cells: QuartoMdCell[],
   ): Promise<MappedString[]> {
-    console.log(handlerContext);
     this.documentStart(handlerContext);
     const mermaidExecute =
       handlerContext.options.format.mergeAdditionalFormats!(

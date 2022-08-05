@@ -81,7 +81,6 @@ object:
     cell: QuartoMdCell,
     options: Record<string, unknown>,
   ) {
-    console.log(options);
     const cellContent = handlerContext.cellContent(cell);
     // TODO escaping removes MappedString information.
     // create puppeteer target page
