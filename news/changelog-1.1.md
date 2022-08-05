@@ -6,7 +6,7 @@
 
 ## References
 
-- Support for `nocite` within book projects (must be specified in `_quarto.yml`
+- Support for `nocite` within _project.yml for book projects (#1660)
 
 
 ## Miscellaneous
