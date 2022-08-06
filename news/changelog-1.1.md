@@ -36,6 +36,7 @@
 ## RevealJS Format
 
 - Don't ignore auto stretch rules when speaker notes are present
+- Target references and footnotes slides for citation and footnote links
 
 ## Miscellaneous
 

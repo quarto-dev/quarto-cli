@@ -601,36 +601,49 @@ function revealHtmlPostprocessor(
         footnoteSection.remove();
       }
     } else {
-      // we are keeping footnotes at the end so disable the links (we use popups)
-      // and tweak the footnotes slide (add a title add smaller/scrollable)
-      const notes = doc.querySelectorAll('a[role="doc-noteref"]');
-      for (const note of notes) {
-        const noteEl = note as Element;
-        noteEl.setAttribute("onclick", "return false;");
-      }
+      let footnotesId: string | undefined;
       const footnotes = doc.querySelectorAll('section[role="doc-endnotes"]');
       if (footnotes.length === 1) {
         const footnotesEl = footnotes[0] as Element;
+        footnotesId = footnotesEl?.getAttribute("id") || "footnotes";
+        footnotesEl.setAttribute("id", footnotesId);
         insertFootnotesTitle(doc, footnotesEl, format.language, slideLevel);
         footnotesEl.classList.add("smaller");
         footnotesEl.classList.add("scrollable");
         footnotesEl.classList.remove("center");
         removeFootnoteBacklinks(footnotesEl);
       }
-    }
 
-    // disable citation links (we use a popup for them)
-    const cites = doc.querySelectorAll('a[role="doc-biblioref"]');
-    for (const cite of cites) {
-      const citeEl = cite as Element;
-      citeEl.setAttribute("onclick", "return false;");
+      // we are keeping footnotes at the end so disable the links (we use popups)
+      // and tweak the footnotes slide (add a title add smaller/scrollable)
+      const notes = doc.querySelectorAll('a[role="doc-noteref"]');
+      for (const note of notes) {
+        const noteEl = note as Element;
+        noteEl.setAttribute("data-footnote-href", noteEl.getAttribute("href"));
+        noteEl.setAttribute("href", footnotesId ? `#/${footnotesId}` : "");
+        noteEl.setAttribute("onclick", footnotesId ? "" : "return false;");
+      }
     }
 
     // add scrollable to refs slide
+    let refsId: string | undefined;
     const refs = doc.querySelector("#refs");
     if (refs) {
+      const refsSlide = findParentSlide(refs);
+      if (refsSlide) {
+        refsId = refsSlide?.getAttribute("id") || "references";
+        refsSlide.setAttribute("id", refsId);
+      }
       applyClassesToParentSlide(refs, ["smaller", "scrollable"]);
       removeClassesFromParentSlide(refs, ["center"]);
+    }
+
+    // handle citation links
+    const cites = doc.querySelectorAll('a[role="doc-biblioref"]');
+    for (const cite of cites) {
+      const citeEl = cite as Element;
+      citeEl.setAttribute("href", refsId ? `#/${refsId}` : "");
+      citeEl.setAttribute("onclick", refsId ? "" : "return false;");
     }
 
     // apply stretch to images as required
