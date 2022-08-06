@@ -121,7 +121,13 @@ assignInNamespace("add_html_caption", add_html_caption, ns = "knitr")
 if (utils::packageVersion("knitr") >= "1.32.8") {
   knitr_sew <- knitr:::sew
   sew <- function(x, options = list(), ...) {
-    
+
+    # some sew s3 methods take the default chunk options
+    if (missing(options) && 
+        inherits(x, c("knit_image_paths", "html_screenshot", "knit_embed_url"))) {
+      options <- knitr::opts_chunk$get()
+    }
+
     if (inherits(x, "knit_image_paths")) {
       knitr:::sew.knit_image_paths(x, options, ...)
     } else if (inherits(x, "knit_asis")) {
