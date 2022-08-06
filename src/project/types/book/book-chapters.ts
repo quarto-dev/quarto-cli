@@ -8,6 +8,7 @@ import {
   kCrossrefAppendixTitle,
   kCrossrefChapterId,
   kCrossrefChaptersAlpha,
+  kCrossrefChaptersAppendix,
   kDescription,
   kDoi,
   kNumberOffset,
@@ -55,6 +56,7 @@ export function withChapterMetadata(
 
     // set crossref label type if this is an appendix
     if (chapterInfo.appendix) {
+      crossref[kCrossrefChaptersAppendix] = true;
       crossref[kCrossrefChaptersAlpha] = true;
     }
   } else {

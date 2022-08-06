@@ -48,7 +48,11 @@ function resolveRefs()
               local chapters = crossrefOption("chapters", false)
               if chapters then
                 if resolve and type == "sec" and isChapterRef(entry.order.section) then
-                  prefixType = "ch"
+                  if entry.appendix then
+                    prefixType = "apx"
+                  else
+                    prefixType = "ch"
+                  end
                 end
               end
               if resolve or type ~= "sec" then

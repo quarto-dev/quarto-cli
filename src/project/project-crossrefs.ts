@@ -10,6 +10,7 @@ import {
   kCrossref,
   kCrossrefChapterId,
   kCrossrefChaptersAlpha,
+  kCrossrefChaptersAppendix,
 } from "../config/constants.ts";
 import { Metadata } from "../config/types.ts";
 
@@ -41,6 +42,7 @@ export function crossrefIndexForOutputFile(
 export function deleteCrossrefMetadata(metadata: Metadata) {
   const crossref = metadata[kCrossref] as Metadata;
   if (crossref) {
+    delete crossref[kCrossrefChaptersAppendix];
     delete crossref[kCrossrefChaptersAlpha];
     delete crossref[kCrossrefChapterId];
     if (Object.keys(crossref).length === 0) {

@@ -40,7 +40,7 @@ function sections()
       -- if this has a section identifier then index it
       if refType(el.attr.identifier) == "sec" then
         local order = indexNextOrder("sec")
-        indexAddEntry(el.attr.identifier, nil, order, el.content)
+        indexAddEntry(el.attr.identifier, nil, order, el.content, currentFileMetadataState().appendix)
       end
 
       -- if the number sections option is enabled then emulate pandoc numbering

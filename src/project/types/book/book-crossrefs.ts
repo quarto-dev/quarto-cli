@@ -14,9 +14,11 @@ import { Element, HTMLDocument } from "../../../core/deno-dom.ts";
 import { pathWithForwardSlashes } from "../../../core/path.ts";
 
 import {
+  kCrossrefApxPrefix,
   kCrossrefChapterId,
   kCrossrefChapters,
   kCrossrefChaptersAlpha,
+  kCrossrefChaptersAppendix,
   kCrossrefChPrefix,
   kCrossrefLabels,
   kCrossrefSecPrefix,
@@ -168,6 +170,7 @@ interface BookCrossrefIndex {
 interface BookCrossrefOptions {
   [kCrossrefLabels]?: string;
   [kCrossrefChapters]?: boolean;
+  [kCrossrefChaptersAppendix]?: boolean;
   [kCrossrefChaptersAlpha]?: boolean;
   [key: string]: string | string[] | boolean | undefined;
 }
@@ -290,7 +293,9 @@ function formatCrossref(
     const refNumber = numberOption(entry.order, options, type);
     if (type === "sec" && !noPrefix) {
       const prefix = (options[kCrossrefChapters] && isChapterRef(entry))
-        ? language[kCrossrefChPrefix]
+        ? options[kCrossrefChaptersAppendix]
+          ? language[kCrossrefApxPrefix]
+          : language[kCrossrefChPrefix]
         : language[kCrossrefSecPrefix];
       return prefix + "&nbsp" + refNumber;
     } else {

@@ -60,7 +60,7 @@ function indexAddHeading(identifier)
 end
 
 -- add an entry to the index
-function indexAddEntry(label, parent, order, caption)
+function indexAddEntry(label, parent, order, caption, appendix)
   if caption ~= nil then
     caption = pandoc.List(caption)
   end
@@ -68,6 +68,7 @@ function indexAddEntry(label, parent, order, caption)
     parent = parent,
     order = order,
     caption = caption,
+    appendix = appendix
   }
 end
 

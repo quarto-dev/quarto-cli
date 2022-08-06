@@ -211,6 +211,7 @@ export const kCrossrefFigPrefix = "crossref-fig-prefix";
 export const kCrossrefTblPrefix = "crossref-tbl-prefix";
 export const kCrossrefLstPrefix = "crossref-lst-prefix";
 export const kCrossrefChPrefix = "crossref-ch-prefix";
+export const kCrossrefApxPrefix = "crossref-apx-prefix";
 export const kCrossrefSecPrefix = "crossref-sec-prefix";
 export const kCrossrefEqPrefix = "crossref-eq-prefix";
 export const kCrossrefThmPrefix = "crossref-thm-prefix";
@@ -300,6 +301,7 @@ export const kLanguageDefaultsKeys = [
   kCrossrefTblPrefix,
   kCrossrefLstPrefix,
   kCrossrefChPrefix,
+  kCrossrefApxPrefix,
   kCrossrefSecPrefix,
   kCrossrefEqPrefix,
   kCrossrefThmPrefix,
@@ -441,6 +443,7 @@ export const kCrossrefChapters = "chapters";
 export const kCrossrefLabels = "labels";
 export const kCrossrefAppendixTitle = "appendix-title";
 export const kCrossrefAppendixDelim = "appendix-delim";
+export const kCrossrefChaptersAppendix = "chapters-appendix";
 export const kCrossrefChaptersAlpha = "chapters-alpha";
 export const kCrossrefChapterId = "chapter-id";
 
