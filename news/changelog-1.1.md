@@ -4,9 +4,17 @@
 - Refine over-detection of Jupyter shell magics (which prevented kernel daemonization)
 - Use on-disk cache for filtered jupyter notebooks
 
+## Knitr
+
+- Correct handling of `knitr::include_graphics()` within inline expressions.
+
 ## References
 
 - Support for `nocite` within \_project.yml for book projects (#1660)
+
+## Crossrefs
+
+- Use 'Appendix' as prefix for references to chapters in appendix
 
 ## OJS
 
