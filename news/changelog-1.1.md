@@ -15,7 +15,7 @@
 
 ## References
 
-- Write additional citation metadata for compatibility with Highwire/Zotero (#1609) 
+- Write additional citation metadata for compatibility with Highwire/Zotero (#1609)
 - Support for `nocite` within \_project.yml for book projects (#1660)
 
 ## Crossrefs
@@ -63,3 +63,4 @@
 - Correctly support Giscus `category-id` property
 - Correctly support `output-file` names that contain `.` characters (like `file.name.html`)
 - Avoid file permission errors in additional cases (thanks @jmbuhr)
+- `QUARTO_PRINT_STACK` environment variable to print stack along with error messages
