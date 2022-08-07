@@ -1341,6 +1341,9 @@
       abstract:
         string:
           description: Abstract of the item (e.g. the abstract of a journal article)
+      abstract-url:
+        string:
+          description: A url to the abstract for this item.
       accessed:
         ref: csl-date
         description: Date the item has been accessed.
@@ -1511,6 +1514,9 @@
             Assigned by the CSL processor; Empty in non-note-based styles or when the item hasn't 
             been cited in any preceding notes in a document
         hidden: true
+      fulltext-url:
+        string:
+          description: A url to the full text for this item.
       genre:
         string:
           description:
@@ -1673,6 +1679,9 @@
       producer:
         ref: csl-person
         description: Producer (e.g. of a television or radio broadcast).
+      public-url:
+        string:
+          description: A public url for this item.
       publisher:
         string:
           description: The publisher of the item.

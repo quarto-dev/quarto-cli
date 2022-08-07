@@ -15,6 +15,7 @@
 
 ## References
 
+- Write additional citation metadata for compatibility with Highwire/Zotero (#1609) 
 - Support for `nocite` within \_project.yml for book projects (#1660)
 
 ## Crossrefs

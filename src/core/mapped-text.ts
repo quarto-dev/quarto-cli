@@ -40,8 +40,6 @@ export function mappedDiff(
   return withTiming("mapped-diff", () => {
     const sourceLineRanges = rangedLines(source.value).map((x) => x.range);
 
-    Deno.writeTextFileSync("/tmp/file1", source.value);
-    Deno.writeTextFileSync("/tmp/file2", target);
     let sourceCursor = 0;
 
     const resultChunks: (string | Range)[] = [];
