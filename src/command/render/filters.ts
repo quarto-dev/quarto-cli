@@ -610,6 +610,9 @@ function pdfEngine(options: PandocOptions): string {
   return pdfEngine;
 }
 
+const kQuartoExtOrganization = "quarto-ext";
+const kQuartoExtBuiltIn = ["code-filename"];
+
 function resolveFilterExtension(
   options: PandocOptions,
   filters: QuartoFilter[],
@@ -623,7 +626,7 @@ function resolveFilterExtension(
       typeof (filter) === "string" &&
       !existsSync(filter)
     ) {
-      const extensions = options.extension?.find(
+      let extensions = options.extension?.find(
         filter,
         options.source,
         "filters",
@@ -644,6 +647,17 @@ function resolveFilterExtension(
               ownedExtensions.join("\n  ")
             }`,
           );
+        }
+
+        // we periodically build in features that were formerly available from
+        // the quarto-ext org. filter them out here (that allows them to remain
+        // referenced in the yaml so we don't break code in the wild)
+        extensions = extensions?.filter((ext) => {
+          return ext.id.organization !== kQuartoExtOrganization &&
+            !kQuartoExtBuiltIn.includes(ext.id.name);
+        });
+        if (extensions.length === 0) {
+          return [];
         }
 
         const filters = extensions[0].contributes.filters;

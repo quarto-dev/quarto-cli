@@ -150,7 +150,7 @@ export async function revealTheme(
     key: "reveal-theme",
     user: mergeLayers(...userLayers),
     quarto: mergeLayers(
-      quartoBaseLayer(format, true, true, false),
+      quartoBaseLayer(format, true, true, false, true),
       quartoLayer(),
     ),
     framework: revealFrameworkLayer(revealSrcDir),

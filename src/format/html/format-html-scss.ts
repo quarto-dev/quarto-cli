@@ -41,6 +41,7 @@ import {
   quartoBootstrapFunctions,
   quartoBootstrapMixins,
   quartoBootstrapRules,
+  quartoCodeFilenameRules,
   quartoCopyCodeRules,
   quartoDefaults,
   quartoFunctions,
@@ -98,6 +99,7 @@ function layerQuartoScss(
         quartoBootstrapRules(),
         quartoGlobalCssVariableRules(),
         quartoLinkExternalRules(),
+        quartoCodeFilenameRules(),
       ].join("\n"),
     },
     framework: {

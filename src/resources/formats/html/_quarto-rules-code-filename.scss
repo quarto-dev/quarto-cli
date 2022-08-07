@@ -1,0 +1,36 @@
+.code-with-filename .code-with-filename-file {
+  margin-bottom: 0;
+  padding-bottom: 2px;
+  padding-top: 2px;
+  padding-left: 0.7em;
+  border: var(--quarto-border-width) solid var(--quarto-border-color);
+  border-radius: var(--quarto-border-radius);
+  border-bottom: 0;
+  border-bottom-left-radius: 0%;
+  border-bottom-right-radius: 0%;
+}
+
+.code-with-filename div.sourceCode,
+.reveal .code-with-filename div.sourceCode {
+  margin-top: 0;
+  border-top-left-radius: 0%;
+  border-top-right-radius: 0%;
+}
+
+.code-with-filename .code-with-filename-file pre {
+  margin-bottom: 0;
+}
+
+.code-with-filename .code-with-filename-file,
+.code-with-filename .code-with-filename-file pre {
+  background-color: rgba(219, 219, 219, 0.8);
+}
+
+.quarto-dark .code-with-filename .code-with-filename-file,
+.quarto-dark .code-with-filename .code-with-filename-file pre {
+  background-color: #555;
+}
+
+.code-with-filename .code-with-filename-file strong {
+  font-weight: 400;
+}
