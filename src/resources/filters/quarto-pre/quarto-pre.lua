@@ -51,6 +51,7 @@ import("../common/paths.lua")
 import("../common/timing.lua")
 import("results.lua")
 import("options.lua")
+import("code-filename.lua")
 import("shortcodes.lua")
 import("shortcodes-handlers.lua")
 import("outputs.lua")
@@ -101,6 +102,7 @@ local filterList = {
     figures(),
     theorems(),
     callout(),
+    codeFilename(),
     lineNumbers(),
     engineEscape(),
     panelInput(),

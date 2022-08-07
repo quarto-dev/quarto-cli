@@ -22,6 +22,10 @@
 
 - Use 'Appendix' as prefix for references to chapters in appendix
 
+## Code Blocks
+
+- Support `filename` attribute for attaching a file name header to code blocks
+
 ## OJS
 
 - Better handle OJS code blocks that begin with empty lines

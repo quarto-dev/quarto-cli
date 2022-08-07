@@ -134,6 +134,12 @@ export const quartoLinkExternalRules = () =>
     "_quarto-rules-link-external.scss",
   ));
 
+export const quartoCodeFilenameRules = () =>
+  Deno.readTextFileSync(formatResourcePath(
+    "html",
+    "_quarto-rules-code-filename.scss",
+  ));
+
 export const quartoTabbyRules = () =>
   Deno.readTextFileSync(formatResourcePath(
     "html",
@@ -190,6 +196,7 @@ export const quartoBaseLayer = (
   codeCopy = false,
   tabby = false,
   figResponsive = false,
+  codeFilename = false,
 ) => {
   const rules: string[] = [quartoRules()];
   if (codeCopy) {
@@ -200,6 +207,9 @@ export const quartoBaseLayer = (
   }
   if (figResponsive) {
     rules.push(quartoFigResponsiveRules());
+  }
+  if (codeFilename) {
+    rules.push(quartoCodeFilenameRules());
   }
   if (format.render[kLinkExternalIcon]) {
     rules.push(quartoLinkExternalRules());
