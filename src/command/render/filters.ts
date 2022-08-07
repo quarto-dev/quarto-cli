@@ -653,8 +653,8 @@ function resolveFilterExtension(
         // the quarto-ext org. filter them out here (that allows them to remain
         // referenced in the yaml so we don't break code in the wild)
         extensions = extensions?.filter((ext) => {
-          return ext.id.organization !== kQuartoExtOrganization &&
-            !kQuartoExtBuiltIn.includes(ext.id.name);
+          return !(ext.id.organization === kQuartoExtOrganization &&
+            kQuartoExtBuiltIn.includes(ext.id.name));
         });
         if (extensions.length === 0) {
           return [];
