@@ -14,6 +14,7 @@ import { parseModule } from "observablehq/parser";
 import { Format, kDependencies } from "../../config/types.ts";
 import { MappedExecuteResult, PandocIncludes } from "../../execute/types.ts";
 import {
+  kEmbedResources,
   kIncludeAfterBody,
   kIncludeInHeader,
   kSelfContained,
@@ -128,7 +129,8 @@ export async function ojsCompile(
   }
 
   const projDir = project?.dir;
-  const selfContained = options.format.pandoc?.[kSelfContained] ?? false;
+  const selfContained = options.format.pandoc?.[kSelfContained] ??
+    options.format.pandoc?.[kEmbedResources] ?? false;
   const isHtmlMarkdown = isMarkdownOutput(options.format.pandoc, [
     "gfm",
     "commonmark",

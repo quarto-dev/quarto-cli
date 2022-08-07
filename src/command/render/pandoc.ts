@@ -86,6 +86,7 @@ import {
   kDate,
   kDateFormat,
   kDocumentClass,
+  kEmbedResources,
   kFigResponsive,
   kFilterParams,
   kFormatResources,
@@ -736,11 +737,14 @@ export async function runPandoc(
   // during post processing, we need to implement self-contained ourselves
   // so don't allow pandoc to see this flag (but still print it)
   if (isHtmlFileOutput(options.format.pandoc)) {
-    // Hide self-contained argument
-    pandocArgs = pandocArgs.filter((arg) => arg !== "--self-contained");
+    // Hide self-contained arguments
+    pandocArgs = pandocArgs.filter((
+      arg,
+    ) => (arg !== "--self-contained" && arg !== "--embed-resources"));
 
     // Remove from defaults
     delete allDefaults[kSelfContained];
+    delete allDefaults[kEmbedResources];
   }
 
   // write the defaults file

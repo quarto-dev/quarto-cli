@@ -49,6 +49,7 @@ import {
   kCss,
   kDfPrint,
   kEcho,
+  kEmbedResources,
   kEngine,
   kEnvironmentProofTitle,
   kEnvironmentRemarkTitle,
@@ -159,6 +160,7 @@ import {
   kShiftHeadingLevelBy,
   kShortcodes,
   kSlideLevel,
+  kStandalone,
   kSyntaxDefinitions,
   kTableOfContents,
   kTblColwidths,
@@ -398,6 +400,7 @@ export interface FormatPandoc {
   [kOutputFile]?: string;
   standalone?: boolean;
   [kSelfContained]?: boolean;
+  [kEmbedResources]?: boolean;
   [kVariables]?: { [key: string]: unknown };
   [kAtxHeaders]?: boolean;
   [kMarkdownHeadings]?: boolean;
@@ -432,7 +435,9 @@ export interface FormatPandoc {
 export interface PandocFlags {
   to?: string;
   output?: string;
+  [kStandalone]?: boolean;
   [kSelfContained]?: boolean;
+  [kEmbedResources]?: boolean;
   pdfEngine?: string;
   pdfEngineOpts?: string[];
   makeIndexOpts?: string[];

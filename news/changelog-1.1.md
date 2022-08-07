@@ -8,6 +8,11 @@
 
 - Correct handling of `knitr::include_graphics()` within inline expressions.
 
+## Pandoc
+
+- Update to Pandoc 2.19
+- Support for `embed-resources` document option
+
 ## References
 
 - Support for `nocite` within \_project.yml for book projects (#1660)

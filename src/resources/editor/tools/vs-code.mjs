@@ -14356,6 +14356,20 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "Produce output with an appropriate header and footer (e.g. a standalone HTML, LaTeX, TEI, or RTF file, not a fragment)\n"
         },
         {
+          name: "embed-resources",
+          tags: {
+            formats: [
+              "$html-files"
+            ]
+          },
+          schema: "boolean",
+          default: false,
+          description: {
+            short: "Produce a standalone HTML file with no external dependencies",
+            long: 'Produce a standalone HTML file with no external dependencies, using\n`data:` URIs to incorporate the contents of linked scripts, stylesheets,\nimages, and videos. The resulting file should be "self-contained," in the\nsense that it needs no external files and no net access to be displayed\nproperly by a browser. This option works only with HTML output formats,\nincluding `html4`, `html5`, `html+lhs`, `html5+lhs`, `s5`, `slidy`,\n`slideous`, `dzslides`, and `revealjs`. Scripts, images, and stylesheets at\nabsolute URLs will be downloaded; those at relative URLs will be sought\nrelative to the working directory (if the first source\nfile is local) or relative to the base URL (if the first source\nfile is remote).  Elements with the attribute\n`data-external="1"` will be left alone; the documents they\nlink to will not be incorporated in the document.\nLimitation: resources that are loaded dynamically through\nJavaScript cannot be incorporated; as a result, some\nadvanced features (e.g.  zoom or speaker notes) may not work\nin an offline "self-contained" `reveal.js` slide show.\n'
+          }
+        },
+        {
           name: "self-contained",
           tags: {
             formats: [
@@ -14366,7 +14380,7 @@ var require_yaml_intelligence_resources = __commonJS({
           default: false,
           description: {
             short: "Produce a standalone HTML file with no external dependencies",
-            long: 'Produce a standalone HTML file with no external dependencies, using\n`data:` URIs to incorporate the contents of linked scripts, stylesheets,\nimages, and videos. The resulting file should be\n"self-contained," in the sense that it needs no external files and no net\naccess to be displayed properly by a browser. This option works only with\nHTML output formats, including `html4`, `html5`, `html+lhs`, `html5+lhs`,\n`s5`, `slidy`, `slideous`, `dzslides`, and `revealjs`. Scripts, images,\nand stylesheets at absolute URLs will be downloaded; those at relative\nURLs will be sought relative to the working directory (if the first source\nfile is local) or relative to the base URL (if the first source\nfile is remote).  Elements with the attribute\n`data-external="1"` will be left alone; the documents they\nlink to will not be incorporated in the document.\n'
+            long: "Produce a standalone HTML file with no external dependencies. Note that\nthis option has been decrecated in favor of `embed-resources`.\n"
           }
         },
         {
@@ -18396,7 +18410,11 @@ var require_yaml_intelligence_resources = __commonJS({
         "Produce output with an appropriate header and footer (e.g.&nbsp;a\nstandalone HTML, LaTeX, TEI, or RTF file, not a fragment)",
         {
           short: "Produce a standalone HTML file with no external dependencies",
-          long: 'Produce a standalone HTML file with no external dependencies, using\n<code>data:</code> URIs to incorporate the contents of linked scripts,\nstylesheets, images, and videos. The resulting file should be\n\u201Cself-contained,\u201D in the sense that it needs no external files and no\nnet access to be displayed properly by a browser. This option works only\nwith HTML output formats, including <code>html4</code>,\n<code>html5</code>, <code>html+lhs</code>, <code>html5+lhs</code>,\n<code>s5</code>, <code>slidy</code>, <code>slideous</code>,\n<code>dzslides</code>, and <code>revealjs</code>. Scripts, images, and\nstylesheets at absolute URLs will be downloaded; those at relative URLs\nwill be sought relative to the working directory (if the first source\nfile is local) or relative to the base URL (if the first source file is\nremote). Elements with the attribute <code>data-external="1"</code> will\nbe left alone; the documents they link to will not be incorporated in\nthe document.'
+          long: 'Produce a standalone HTML file with no external dependencies, using\n<code>data:</code> URIs to incorporate the contents of linked scripts,\nstylesheets, images, and videos. The resulting file should be\n\u201Cself-contained,\u201D in the sense that it needs no external files and no\nnet access to be displayed properly by a browser. This option works only\nwith HTML output formats, including <code>html4</code>,\n<code>html5</code>, <code>html+lhs</code>, <code>html5+lhs</code>,\n<code>s5</code>, <code>slidy</code>, <code>slideous</code>,\n<code>dzslides</code>, and <code>revealjs</code>. Scripts, images, and\nstylesheets at absolute URLs will be downloaded; those at relative URLs\nwill be sought relative to the working directory (if the first source\nfile is local) or relative to the base URL (if the first source file is\nremote). Elements with the attribute <code>data-external="1"</code> will\nbe left alone; the documents they link to will not be incorporated in\nthe document. Limitation: resources that are loaded dynamically through\nJavaScript cannot be incorporated; as a result, some advanced features\n(e.g.&nbsp;zoom or speaker notes) may not work in an offline \u201Cself-contained\u201D\n<code>reveal.js</code> slide show.'
+        },
+        {
+          short: "Produce a standalone HTML file with no external dependencies",
+          long: "Produce a standalone HTML file with no external dependencies. Note\nthat this option has been decrecated in favor of\n<code>embed-resources</code>."
         },
         {
           short: "Embed math libraries (e.g.&nbsp;MathJax) within\n<code>self-contained</code> output.",

@@ -6,6 +6,7 @@
 */
 import { basename, join } from "path/mod.ts";
 import {
+  kEmbedResources,
   kHtmlMathMethod,
   kSelfContained,
   kSelfContainedMath,
@@ -113,7 +114,8 @@ function applyTemplatePatches(
   // make math evade self-contained for HTML and Reveal
   if (isHtmlDocOutput(format.pandoc) || isRevealjsOutput(format.pandoc)) {
     if (
-      ((flags && flags[kSelfContained]) || format.pandoc[kSelfContained]) &&
+      ((flags && flags[kSelfContained]) || format.pandoc[kSelfContained] ||
+        (flags && flags[kEmbedResources]) || format.pandoc[kEmbedResources]) &&
       !format.render[kSelfContainedMath]
     ) {
       const math = mathConfig(format, flags);

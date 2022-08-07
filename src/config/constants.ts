@@ -353,9 +353,10 @@ export const kInputFiles = "input-files";
 export const kAtxHeaders = "atx-headers";
 export const kMarkdownHeadings = "markdown-headings";
 export const kTemplate = "template";
-export const kStandalone = "standalone";
 export const kWrap = "wrap";
+export const kStandalone = "standalone";
 export const kSelfContained = "self-contained";
+export const kEmbedResources = "embed-resources";
 export const kIncludeBeforeBody = "include-before-body";
 export const kIncludeAfterBody = "include-after-body";
 export const kIncludeInHeader = "include-in-header";
@@ -476,6 +477,7 @@ export const kPandocDefaultsKeys = [
   kTemplate,
   kStandalone,
   kSelfContained,
+  kEmbedResources,
   kVariables,
   "metadata",
   kMetadataFiles,

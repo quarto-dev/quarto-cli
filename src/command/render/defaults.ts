@@ -12,6 +12,7 @@ import { FormatPandoc, QuartoFilter } from "../../config/types.ts";
 import { isLatexOutput } from "../../config/format.ts";
 
 import {
+  kEmbedResources,
   kFilters,
   kFrom,
   kIncludeAfterBody,
@@ -106,6 +107,7 @@ export function pandocDefaultsMessage(
     kOutputFile,
     kTemplate,
     kStandalone,
+    kEmbedResources,
     kSelfContained,
   ];
   const defaults: FormatPandoc = {};

@@ -8,14 +8,19 @@ import { info } from "log/mod.ts";
 
 import * as colors from "fmt/colors.ts";
 
-import { kOutputExt, kSelfContained } from "../../config/constants.ts";
+import {
+  kEmbedResources,
+  kOutputExt,
+  kSelfContained,
+} from "../../config/constants.ts";
 import { Format } from "../../config/types.ts";
 import { RenderFlags } from "./types.ts";
 
 import { extname } from "path/mod.ts";
 
 export function isSelfContained(flags: RenderFlags, format: Format) {
-  return !!(flags[kSelfContained] || format.pandoc[kSelfContained]);
+  return !!(flags[kSelfContained] || format.pandoc[kSelfContained] ||
+    flags[kEmbedResources] || format.pandoc[kEmbedResources]);
 }
 
 // some extensions are 'known' to be standalone/self-contained

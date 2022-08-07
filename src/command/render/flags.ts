@@ -11,12 +11,14 @@ import { readYaml, readYamlFromString } from "../../core/yaml.ts";
 import { mergeConfigs } from "../../core/config.ts";
 
 import {
+  kEmbedResources,
   kListings,
   kNumberOffset,
   kNumberSections,
   kReferenceLocation,
   kSelfContained,
   kShiftHeadingLevelBy,
+  kStandalone,
   kTableOfContents,
   kToc,
   kTopLevelDivision,
@@ -63,8 +65,18 @@ export async function parseRenderFlags(args: string[]) {
         flags.siteUrl = arg;
         break;
 
+      case "--standalone":
+        flags[kStandalone] = true;
+        arg = argsStack.shift();
+        break;
+
       case "--self-contained":
         flags[kSelfContained] = true;
+        arg = argsStack.shift();
+        break;
+
+      case "--embed-resources":
+        flags[kEmbedResources] = true;
         arg = argsStack.shift();
         break;
 
