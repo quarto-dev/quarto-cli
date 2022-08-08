@@ -105,6 +105,7 @@ export const kAriaLabel = "aria-label";
 export const kCollapseLevel = "collapse-level";
 export const kCollapseBelow = "collapse-below";
 export const kLogoAlt = "logo-alt";
+export const kLogoHref = "logo-href";
 
 export const kSidebarMenus = "sidebar-menus";
 
@@ -112,6 +113,7 @@ export interface Navbar {
   title?: string | false;
   logo?: string;
   [kLogoAlt]?: string;
+  [kLogoHref]?: string;
   background:
     | "primary"
     | "secondary"

@@ -9111,6 +9111,11 @@ var require_yaml_intelligence_resources = __commonJS({
                             description: "Alternate text for the logo image."
                           }
                         },
+                        "logo-href": {
+                          string: {
+                            description: "Target href from navbar logo / title. By default, the logo and title link to the root page of the site (/index.html)."
+                          }
+                        },
                         background: {
                           anyOf: [
                             {
@@ -17277,6 +17282,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Top navigation options",
         "The navbar title. Uses the project title if none is specified.",
         "Path to a logo image that will be displayed to the left of the\ntitle.",
+        "Alternate text for the logo image.",
         "The navbar\u2019s background color (named or hex color).",
         "The navbar\u2019s foreground color (named or hex color).",
         "Include a search box in the navbar.",
@@ -18796,6 +18802,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Top navigation options",
         "The navbar title. Uses the project title if none is specified.",
         "Path to a logo image that will be displayed to the left of the\ntitle.",
+        "Alternate text for the logo image.",
         "The navbar\u2019s background color (named or hex color).",
         "The navbar\u2019s foreground color (named or hex color).",
         "Include a search box in the navbar.",
@@ -18998,6 +19005,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Top navigation options",
         "The navbar title. Uses the project title if none is specified.",
         "Path to a logo image that will be displayed to the left of the\ntitle.",
+        "Alternate text for the logo image.",
         "The navbar\u2019s background color (named or hex color).",
         "The navbar\u2019s foreground color (named or hex color).",
         "Include a search box in the navbar.",

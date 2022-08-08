@@ -659,6 +659,9 @@
                 logo-alt:
                   string:
                     description: "Alternate text for the logo image."
+                logo-href:
+                  string:
+                    description: "Target href from navbar logo / title. By default, the logo and title link to the root page of the site (/index.html)."
                 background:
                   anyOf:
                     - enum:
