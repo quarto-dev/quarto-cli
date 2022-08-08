@@ -8,6 +8,10 @@
 
 - Correct handling of `knitr::include_graphics()` within inline expressions.
 
+# RMarkdown
+
+- improve error message for HTML being emitted in non-HTMl formats (#1745)
+
 ## Pandoc
 
 - Update to Pandoc 2.19
