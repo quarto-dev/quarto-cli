@@ -61,6 +61,10 @@
 
 - support `echo: true` and other per-document settings (#1485)
 
+## Publishing
+
+- Detect authentication error for quarto.pub and re-establish credentials
+
 ## Miscellaneous
 
 - Allow environment variables to override paths to binary dependencies
