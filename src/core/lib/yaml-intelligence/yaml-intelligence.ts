@@ -65,7 +65,10 @@ import {
 import { getFormatAliases } from "../yaml-schema/format-aliases.ts";
 import { getFrontMatterSchema } from "../yaml-schema/front-matter.ts";
 import { getEngineOptionsSchema } from "../yaml-schema/chunk-metadata.ts";
-import { getProjectConfigSchema } from "../yaml-schema/project-config.ts";
+import {
+  getExtensionConfigSchema,
+  getProjectConfigSchema,
+} from "../yaml-schema/project-config.ts";
 import {
   getYamlIntelligenceResource,
   setYamlIntelligenceResources,
@@ -1041,25 +1044,58 @@ function exportSmokeTest(
   console.error(JSON.stringify({ kind, context }, null, 2));
 }
 
+const determineSchema = async (context: YamlIntelligenceContext): Promise<{
+  schema: ConcreteSchema | undefined;
+  schemaName: string | undefined;
+}> => {
+  const extension = context.path === null
+    ? ""
+    : (context.path.split(".").pop() || "");
+
+  if (context.filetype !== "yaml") {
+    return {
+      schema: undefined,
+      schemaName: undefined,
+    };
+  }
+
+  if (extension === "qmd") {
+    const frontMatterSchema = await getFrontMatterSchema();
+    return {
+      schema: frontMatterSchema,
+      schemaName: "front-matter",
+    };
+  }
+  const extensionConfigNames = [
+    "_extension.yml",
+    "_extension.yaml",
+  ];
+  if (
+    context.path &&
+    extensionConfigNames.some((name) => context.path!.endsWith(name))
+  ) {
+    const extensionConfigSchema = await getExtensionConfigSchema();
+    return {
+      schema: extensionConfigSchema,
+      schemaName: "extension-config",
+    };
+  } else {
+    const projectConfigSchema = await getProjectConfigSchema();
+    return {
+      schema: projectConfigSchema,
+      schemaName: "project-config",
+    };
+  }
+};
+
 export async function getAutomation(
   kind: AutomationKind,
   context: YamlIntelligenceContext,
 ) {
-  const extension = context.path === null
-    ? ""
-    : (context.path.split(".").pop() || "");
-  const frontMatterSchema = await getFrontMatterSchema();
-  const projectConfigSchema = await getProjectConfigSchema();
-  const schema = ({
-    "yaml": extension === "qmd" ? frontMatterSchema : projectConfigSchema,
-    "markdown": undefined, // can't be known ahead of time
-    "script": undefined,
-  })[context.filetype];
-  const schemaName = ({
-    "yaml": extension === "qmd" ? "front-matter" : "config",
-    "markdown": undefined, // can't be known ahead of time
-    "script": undefined,
-  })[context.filetype];
+  const {
+    schema,
+    schemaName,
+  } = await determineSchema(context);
 
   const result = await automationFileTypeDispatch(context.filetype, kind, {
     ...context,

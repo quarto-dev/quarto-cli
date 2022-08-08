@@ -62,7 +62,7 @@ async function outputExtensions(
 ) {
   // Provide the with with a list
   const project = await projectContext(path);
-  const extensions = extensionContext.extensions(path, project);
+  const extensions = await extensionContext.extensions(path, project);
   if (extensions.length === 0) {
     info(
       `No extensions are installed in this ${

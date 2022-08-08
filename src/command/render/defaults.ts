@@ -39,7 +39,7 @@ import {
 import { TempContext } from "../../core/temp.ts";
 import { authorsFilter } from "./authors.ts";
 
-export function generateDefaults(
+export async function generateDefaults(
   options: PandocOptions,
 ): Promise<FormatPandoc | undefined> {
   let allDefaults: FormatPandoc | undefined;
@@ -48,7 +48,7 @@ export function generateDefaults(
     allDefaults = options.format.pandoc || {};
 
     // resolve filters
-    const resolvedFilters = resolveFilters(
+    const resolvedFilters = await resolveFilters(
       [
         ...(allDefaults[kFilters] || []),
       ],
@@ -67,9 +67,9 @@ export function generateDefaults(
       }
     }
 
-    return Promise.resolve(allDefaults);
+    return allDefaults;
   } else {
-    return Promise.resolve(undefined);
+    return undefined;
   }
 }
 

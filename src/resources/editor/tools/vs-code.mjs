@@ -19346,7 +19346,42 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         $id: "handlers/mermaid"
-      }
+      },
+      "schema/extension.yml": [
+        {
+          name: "title",
+          description: "Extension title.",
+          schema: "string"
+        },
+        {
+          name: "author",
+          description: "Extension author.",
+          schema: "string"
+        },
+        {
+          name: "version",
+          description: "Extension version.",
+          schema: "string"
+        },
+        {
+          name: "contributes",
+          schema: {
+            object: {
+              properties: {
+                shortcodes: {
+                  arrayOf: "path"
+                },
+                filters: {
+                  arrayOf: "path"
+                },
+                formats: {
+                  schema: "object"
+                }
+              }
+            }
+          }
+        }
+      ]
     };
   }
 });
@@ -27951,6 +27986,12 @@ var getProjectConfigFieldsSchema = defineCached(async () => {
     errorHandlers: []
   };
 }, "project-config-fields");
+var getExtensionConfigFieldsSchema = defineCached(async () => {
+  return {
+    schema: objectSchemaFromFieldsObject(getYamlIntelligenceResource("schema/extension.yml")),
+    errorHandlers: []
+  };
+}, "extension-config-fields");
 function disallowTopLevelType(error, parse, _schema) {
   if (!(error.instancePath.length === 1 && error.instancePath[0] === "type")) {
     return error;
@@ -27981,6 +28022,13 @@ var getProjectConfigSchema = defineCached(async () => {
     errorHandlers: [disallowTopLevelType]
   };
 }, "project-config");
+var getExtensionConfigSchema = defineCached(async () => {
+  const extensionConfig = await getExtensionConfigFieldsSchema();
+  return {
+    schema: describeSchema(extensionConfig, "an extension configuration object"),
+    errorHandlers: []
+  };
+}, "extension-config");
 
 // descriptions.ts
 function patchMarkdownDescriptions() {
@@ -28795,16 +28843,36 @@ async function getAutomation(kind, context) {
   const extension = context.path === null ? "" : context.path.split(".").pop() || "";
   const frontMatterSchema = await getFrontMatterSchema();
   const projectConfigSchema = await getProjectConfigSchema();
-  const schema2 = {
-    "yaml": extension === "qmd" ? frontMatterSchema : projectConfigSchema,
-    "markdown": void 0,
-    "script": void 0
-  }[context.filetype];
-  const schemaName = {
-    "yaml": extension === "qmd" ? "front-matter" : "config",
-    "markdown": void 0,
-    "script": void 0
-  }[context.filetype];
+  const extensionConfigSchema = await getExtensionConfigSchema();
+  const determineSchema = () => {
+    if (context.filetype !== "yaml") {
+      return {
+        schema: void 0,
+        schemaName: void 0
+      };
+    }
+    if (extension === "qmd") {
+      return {
+        schema: frontMatterSchema,
+        schemaName: "front-matter"
+      };
+    }
+    if (context.path && context.path.endsWith("_extension.yml")) {
+      return {
+        schema: extensionConfigSchema,
+        schemaName: "extension-config"
+      };
+    } else {
+      return {
+        schema: projectConfigSchema,
+        schemaName: "project-config"
+      };
+    }
+  };
+  const {
+    schema: schema2,
+    schemaName
+  } = determineSchema();
   const result = await automationFileTypeDispatch(context.filetype, kind, {
     ...context,
     code: asMappedString(context.code),

@@ -572,7 +572,7 @@ const readExtensionFormat = async (
   // Read the format file and populate this
   if (formatDesc.extension) {
     // Find the yaml file
-    const extension = extensionContext.extension(
+    const extension = await extensionContext.extension(
       formatDesc.extension,
       file,
       project,

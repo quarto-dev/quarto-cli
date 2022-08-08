@@ -508,10 +508,10 @@ function initFilterParams(dependenciesFile: string) {
 const kQuartoFilterMarker = "quarto";
 const kQuartoCiteProcMarker = "citeproc";
 
-export function resolveFilters(
+export async function resolveFilters(
   filters: QuartoFilter[],
   options: PandocOptions,
-): QuartoFilter[] | undefined {
+): Promise<QuartoFilter[] | undefined> {
   // build list of quarto filters
 
   // The default order of filters will be
@@ -532,7 +532,7 @@ export function resolveFilters(
   quartoFilters.push(quartoPostFilter());
 
   // Resolve any filters that are provided by an extension
-  filters = resolveFilterExtension(options, filters);
+  filters = await resolveFilterExtension(options, filters);
 
   // if 'quarto' is in the filters, inject our filters at that spot,
   // otherwise inject them at the beginning so user filters can take
@@ -613,12 +613,12 @@ function pdfEngine(options: PandocOptions): string {
 const kQuartoExtOrganization = "quarto-ext";
 const kQuartoExtBuiltIn = ["code-filename", "grouped-tabsets"];
 
-function resolveFilterExtension(
+async function resolveFilterExtension(
   options: PandocOptions,
   filters: QuartoFilter[],
-): QuartoFilter[] {
+): Promise<QuartoFilter[]> {
   // Resolve any filters that are provided by an extension
-  const results = filters.flatMap((filter) => {
+  const results = (await Promise.all(filters.map(async (filter) => {
     // Look for extension names in the filter list and result them
     // into the filters provided by the extension
     if (
@@ -626,7 +626,7 @@ function resolveFilterExtension(
       typeof (filter) === "string" &&
       !existsSync(filter)
     ) {
-      let extensions = options.extension?.find(
+      let extensions = await options.extension?.find(
         filter,
         options.source,
         "filters",
@@ -672,6 +672,6 @@ function resolveFilterExtension(
     } else {
       return filter;
     }
-  });
+  }))).flat();
   return results;
 }

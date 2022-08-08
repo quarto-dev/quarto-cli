@@ -33,18 +33,18 @@ export interface ExtensionContext {
   extensions(
     input: string,
     project?: ProjectContext,
-  ): Extension[];
+  ): Promise<Extension[]>;
   extension(
     name: string,
     input: string,
     project?: ProjectContext,
-  ): Extension | undefined;
+  ): Promise<Extension | undefined>;
   find(
     name: string,
     input: string,
     contributes?: "shortcodes" | "filters" | "formats",
     project?: ProjectContext,
-  ): Extension[];
+  ): Promise<Extension[]>;
 }
 
 export interface ExtensionId {

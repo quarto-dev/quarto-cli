@@ -12325,5 +12325,40 @@
       ]
     },
     "$id": "handlers/mermaid"
-  }
+  },
+  "schema/extension.yml": [
+    {
+      "name": "title",
+      "description": "Extension title.",
+      "schema": "string"
+    },
+    {
+      "name": "author",
+      "description": "Extension author.",
+      "schema": "string"
+    },
+    {
+      "name": "version",
+      "description": "Extension version.",
+      "schema": "string"
+    },
+    {
+      "name": "contributes",
+      "schema": {
+        "object": {
+          "properties": {
+            "shortcodes": {
+              "arrayOf": "path"
+            },
+            "filters": {
+              "arrayOf": "path"
+            },
+            "formats": {
+              "schema": "object"
+            }
+          }
+        }
+      }
+    }
+  ]
 }
