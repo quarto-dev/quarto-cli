@@ -50,6 +50,7 @@
 ## HTML Format
 
 - Respect toc-depth in the HTML format (bootstrap) rather than always acting as if depth is 3.
+- Add `group` attribute to `panel-tabset` for syncing selected tab across many tabsets
 
 ## RevealJS Format
 

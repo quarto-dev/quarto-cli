@@ -611,7 +611,7 @@ function pdfEngine(options: PandocOptions): string {
 }
 
 const kQuartoExtOrganization = "quarto-ext";
-const kQuartoExtBuiltIn = ["code-filename"];
+const kQuartoExtBuiltIn = ["code-filename", "grouped-tabsets"];
 
 function resolveFilterExtension(
   options: PandocOptions,
