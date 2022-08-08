@@ -21,7 +21,7 @@ import {
 import { handlePublish, PublishHandler } from "../common/publish.ts";
 import { PublishOptions, PublishRecord } from "../types.ts";
 
-import { QuartoPubClient } from "./api/index.ts";
+import { ApiError, QuartoPubClient } from "./api/index.ts";
 import { authorizePrompt } from "../account.ts";
 import { quartoConfig } from "../../core/quarto.ts";
 
@@ -177,10 +177,10 @@ function publish(
   return handlePublish(handler, type, title, slug, render, target);
 }
 
-function isUnauthorized(_err: Error) {
-  return false;
+function isUnauthorized(err: Error) {
+  return err instanceof ApiError && err.status === 401;
 }
 
-function isNotFound(_err: Error) {
-  return false;
+function isNotFound(err: Error) {
+  return err instanceof ApiError && err.status === 404;
 }
