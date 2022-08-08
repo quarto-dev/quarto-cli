@@ -64,6 +64,7 @@
 ## Publishing
 
 - Detect authentication error for quarto.pub and re-establish credentials
+- More compact status display when running in CI environments
 
 ## Miscellaneous
 

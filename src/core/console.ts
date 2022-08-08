@@ -8,6 +8,7 @@
 import { ansi } from "cliffy/ansi/mod.ts";
 import { readAllSync, writeAllSync } from "io/mod.ts";
 import { info } from "log/mod.ts";
+import { runningInCI } from "./ci-info.ts";
 
 // The spinner and progress characters
 const kSpinnerChars = ["|", "/", "-", "\\"];
@@ -88,7 +89,9 @@ export function spinner(
       return status;
     }
     : () => {
-      clearLine();
+      if (!runningInCI()) {
+        clearLine();
+      }
       return status();
     };
 
@@ -97,9 +100,13 @@ export function spinner(
     // Display the message
     const char = kSpinnerChars[spin % kSpinnerChars.length];
     const msg = `${spinContainer(char)} ${statusFn()}`;
-    info(`\r${msg}`, {
-      newline: false,
-    });
+
+    // when running in CI only show the first tick
+    if (!runningInCI() || spin === 0) {
+      info(`\r${msg}`, {
+        newline: false,
+      });
+    }
 
     // Increment the spin counter
     spin = spin + 1;
