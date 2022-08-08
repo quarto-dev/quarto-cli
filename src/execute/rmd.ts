@@ -116,6 +116,8 @@ export const knitrEngine: ExecutionEngine = {
           );
         }
 
+        output = filterAlwaysAllowHtml(output);
+
         return output;
       },
     );
@@ -282,4 +284,17 @@ async function printCallRDiagnostics() {
     info(rInstallationMessage());
     info("");
   }
+}
+
+function filterAlwaysAllowHtml(s: string): string {
+  if (
+    s.indexOf(
+      "Functions that produce HTML output found in document targeting",
+    ) !== -1
+  ) {
+    s = s
+      .replace("your rmarkdown file", "your quarto file")
+      .replace("always_allow_html: true", "prefer-html: true");
+  }
+  return s;
 }
