@@ -25,17 +25,24 @@ export function progressBar(total: number, prefixMessage?: string): {
   update: (progress: number, status?: string) => void;
   complete: (finalMsg?: string | boolean) => void;
 } {
+  const isCi = runningInCI();
+  if (isCi && prefixMessage) {
+    info(prefixMessage);
+  }
+
   // Core function to display the progressBar bar
   const updateProgress = (progress: number, status?: string) => {
-    const progressBar = `${
-      asciiProgressBar((progress / total) * 100, kProgressBarWidth)
-    }`;
-    const progressText = `\r${
-      prefixMessage ? prefixMessage + " " : ""
-    }${progressBar}${status ? " " + status : ""}`;
+    if (!isCi) {
+      const progressBar = `${
+        asciiProgressBar((progress / total) * 100, kProgressBarWidth)
+      }`;
+      const progressText = `\r${
+        prefixMessage ? prefixMessage + " " : ""
+      }${progressBar}${status ? " " + status : ""}`;
 
-    clearLine();
-    info(progressText, { newline: false });
+      clearLine();
+      info(progressText, { newline: false });
+    }
   };
 
   // Return control functions for progressBar
@@ -43,9 +50,16 @@ export function progressBar(total: number, prefixMessage?: string): {
     update: updateProgress,
     complete: (finalMsg?: string | boolean) => {
       // Clear the line and display an optional final message
-      clearLine();
+      if (!isCi) {
+        clearLine();
+      }
+
       if (typeof (finalMsg) === "string") {
-        updateProgress(total, finalMsg);
+        if (isCi) {
+          info(finalMsg);
+        } else {
+          updateProgress(total, finalMsg);
+        }
       } else {
         if (finalMsg !== false && prefixMessage) {
           completeMessage(prefixMessage);
