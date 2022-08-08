@@ -389,15 +389,27 @@ function imageMetadata(
 type metaVal = [string, string];
 
 const kMetaTitleId = "quarto-metatitle";
+const kTwitterTitle = "quarto-twittercardtitle";
+const kOgTitle = "quarto-ogcardtitle";
 const kMetaDescId = "quarto-metadesc";
 const kMetaSideNameId = "quarto-metasitename";
 function metaMarkdownPipeline(format: Format, extras: FormatExtras) {
   const titleMetaHandler = {
     getUnrendered() {
+      const inlines: Record<string, string> = {};
       const resolvedTitle = computePageTitle(format);
       if (resolvedTitle !== undefined) {
-        return { inlines: { [kMetaTitleId]: resolvedTitle } };
+        inlines[kMetaTitleId] = resolvedTitle;
       }
+
+      const twitterMeta = twitterMetadata(format);
+      inlines[kTwitterTitle] = twitterMeta.title as string || resolvedTitle ||
+        "";
+
+      const ogMeta = opengraphMetadata(format);
+      inlines[kOgTitle] = ogMeta.title as string || resolvedTitle || "";
+
+      return { inlines };
     },
     processRendered(rendered: Record<string, Element>, doc: Document) {
       const renderedEl = rendered[kMetaTitleId];
@@ -409,16 +421,26 @@ function metaMarkdownPipeline(format: Format, extras: FormatExtras) {
         if (el) {
           el.innerHTML = renderedEl.innerText;
         }
-
-        ['meta[property="og:title"]', 'meta[name="twitter:title"]'].forEach(
-          (sel) => {
-            const metaEl = doc.querySelector(sel);
-            if (metaEl) {
-              metaEl.setAttribute("content", renderedEl.innerText);
-            }
-          },
-        );
       }
+
+      // Process social metadata titles
+      [{
+        key: kOgTitle,
+        sel: 'meta[property="og:title"]',
+      }, {
+        key: kTwitterTitle,
+        sel: 'meta[name="twitter:title"]',
+      }].forEach(
+        (obj) => {
+          const renderedObjEl = rendered[obj.key];
+          if (renderedObjEl) {
+            const metaEl = doc.querySelector(obj.sel);
+            if (metaEl) {
+              metaEl.setAttribute("content", renderedObjEl.innerText);
+            }
+          }
+        },
+      );
     },
   };
 
