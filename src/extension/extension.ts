@@ -439,7 +439,7 @@ async function readExtension(
   const filters = (contributes?.filters || {}) as QuartoFilter[];
 
   // Create the extension data structure
-  return {
+  const result = {
     title,
     author,
     version,
@@ -451,6 +451,7 @@ async function readExtension(
       formats,
     },
   };
+  return result;
 }
 
 // This will resolve a shortcode contributed by this extension
