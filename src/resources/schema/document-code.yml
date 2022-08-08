@@ -54,7 +54,30 @@
       Use `true` or `false` to enable or disable the standard code 
       tools menu. Specify sub-properties `source`, `toggle`, and
       `caption` to customize the behavior and appearnce of code tools.
-
+- name: code-block-border-left
+  tags:
+    formats: [$html-doc, $pdf-all]
+  schema:
+    anyOf:
+      - string
+      - boolean
+  description:
+    short: "Show a thick left border on code blocks."
+    long: |
+      Specifies to apply a left border on code blocks. Provide a hex color to specify that the border is
+      enabled as well as the color of the border.=
+- name: code-block-bg
+  tags:
+    formats: [$html-doc, $pdf-all]
+  schema:
+    anyOf:
+      - string
+      - boolean
+  description:
+    short: "Show a background color for code blocks."
+    long: |
+      Specifies to apply a background color on code blocks. Provide a hex color to specify that the background color is
+      enabled as well as the color of the background.
 - name: highlight-style
   tags:
     formats: [$html-all, docx, ms, $pdf-all]

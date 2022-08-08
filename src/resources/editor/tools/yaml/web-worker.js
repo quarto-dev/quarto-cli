@@ -10940,6 +10940,44 @@ try {
             }
           },
           {
+            name: "code-block-border-left",
+            tags: {
+              formats: [
+                "$html-doc",
+                "$pdf-all"
+              ]
+            },
+            schema: {
+              anyOf: [
+                "string",
+                "boolean"
+              ]
+            },
+            description: {
+              short: "Show a thick left border on code blocks.",
+              long: "Specifies to apply a left border on code blocks. Provide a hex color to specify that the border is\nenabled as well as the color of the border.=\n"
+            }
+          },
+          {
+            name: "code-block-bg",
+            tags: {
+              formats: [
+                "$html-doc",
+                "$pdf-all"
+              ]
+            },
+            schema: {
+              anyOf: [
+                "string",
+                "boolean"
+              ]
+            },
+            description: {
+              short: "Show a background color for code blocks.",
+              long: "Specifies to apply a background color on code blocks. Provide a hex color to specify that the background color is\nenabled as well as the color of the background.\n"
+            }
+          },
+          {
             name: "highlight-style",
             tags: {
               formats: [
@@ -17492,6 +17530,7 @@ try {
           "The family name.",
           "The given name.",
           "Abstract of the item (e.g.&nbsp;the abstract of a journal article)",
+          "A url to the abstract for this item.",
           "Date the item has been accessed.",
           {
             short: "Short markup, decoration, or annotation to the item (e.g., to\nindicate items included in a review).",
@@ -17551,6 +17590,7 @@ try {
             short: "Number of a preceding note containing the first reference to the\nitem.",
             long: "Number of a preceding note containing the first reference to the\nitem\nAssigned by the CSL processor; Empty in non-note-based styles or when\nthe item hasn\u2019t been cited in any preceding notes in a document"
           },
+          "A url to the full text for this item.",
           {
             short: "Type, class, or subtype of the item",
             long: "Type, class, or subtype of the item (e.g.&nbsp;\u201CDoctoral dissertation\u201D for\na PhD thesis; \u201CNIH Publication\u201D for an NIH technical report);\nDo not use for topical descriptions or categories (e.g.&nbsp;\u201Cadventure\u201D\nfor an adventure movie)"
@@ -17608,6 +17648,7 @@ try {
           "PubMed reference number.",
           "Printing number of the item or container holding the item.",
           "Producer (e.g.&nbsp;of a television or radio broadcast).",
+          "A public url for this item.",
           "The publisher of the item.",
           "The geographic location of the publisher.",
           "Recipient (e.g.&nbsp;of a letter).",
@@ -17862,6 +17903,14 @@ try {
           {
             short: "Include a code tools menu (for hiding and showing code).",
             long: "Include a code tools menu (for hiding and showing code). Use\n<code>true</code> or <code>false</code> to enable or disable the\nstandard code tools menu. Specify sub-properties <code>source</code>,\n<code>toggle</code>, and <code>caption</code> to customize the behavior\nand appearnce of code tools."
+          },
+          {
+            short: "Show a thick left border on code blocks.",
+            long: "Specifies to apply a left border on code blocks. Provide a hex color\nto specify that the border is enabled as well as the color of the\nborder.="
+          },
+          {
+            short: "Show a background color for code blocks.",
+            long: "Specifies to apply a background color on code blocks. Provide a hex\ncolor to specify that the background color is enabled as well as the\ncolor of the background."
           },
           {
             short: "Specifies the coloring style to be used in highlighted source\ncode.",

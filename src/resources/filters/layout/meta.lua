@@ -44,9 +44,9 @@ function layoutMetaInject()
 
         -- figure out the shadecolor
         local shadeColor = nil
-        if useCodeBlockBorder and meta[kCodeBlockBorderLeft] then
+        if useCodeBlockBorder and meta[kCodeBlockBorderLeft] and type(meta[kCodeBlockBorderLeft]) ~= "boolean" then
           shadeColor = latexXColor(meta[kCodeBlockBorderLeft])
-        elseif useCodeBlockBg and meta[kCodeBlockBackground] then
+        elseif useCodeBlockBg and meta[kCodeBlockBackground] and type(meta[kCodeBlockBackground]) ~= "boolean"  then
           shadeColor = latexXColor(meta[kCodeBlockBackground])
         end
 
