@@ -59,6 +59,7 @@
 
 - Respect toc-depth in the HTML format (bootstrap) rather than always acting as if depth is 3.
 - Add `group` attribute to `panel-tabset` for syncing selected tab across many tabsets
+- Properly uncollapse sidebars / toc when page width elements are displayed on a page
 
 ## RevealJS Format
 
@@ -83,3 +84,4 @@
 - Avoid file permission errors in additional cases (thanks @jmbuhr)
 - `QUARTO_PRINT_STACK` environment variable to print stack along with error messages
 - More compact download progress when installing Quarto tools in CI environments
+- Ignore case when loading date local files from `lang`
