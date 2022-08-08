@@ -1078,7 +1078,7 @@
 
               In no `id` is provided for a listing, Quarto will synthesize one when rendering the page.
       type:
-        enum: [default, table, grid]
+        enum: [default, table, grid, custom]
         description:
           short: "The type of listing to create."
           long: |
@@ -1087,6 +1087,7 @@
             - `default`: A blog style list of items
             - `table`: A table of items
             - `grid`: A grid of item cards
+            - `custom`: A custom template, provided by the `template` field
       contents:
         maybeArrayOf:
           anyOf:

@@ -9688,11 +9688,12 @@ try {
                   enum: [
                     "default",
                     "table",
-                    "grid"
+                    "grid",
+                    "custom"
                   ],
                   description: {
                     short: "The type of listing to create.",
-                    long: "The type of listing to create. Choose one of:\n\n- `default`: A blog style list of items\n- `table`: A table of items\n- `grid`: A grid of item cards\n"
+                    long: "The type of listing to create. Choose one of:\n\n- `default`: A blog style list of items\n- `table`: A table of items\n- `grid`: A grid of item cards\n- `custom`: A custom template, provided by the `template` key\n"
                   }
                 },
                 contents: {
@@ -17284,6 +17285,7 @@ try {
           "The navbar title. Uses the project title if none is specified.",
           "Path to a logo image that will be displayed to the left of the\ntitle.",
           "Alternate text for the logo image.",
+          "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
           "The navbar\u2019s background color (named or hex color).",
           "The navbar\u2019s foreground color (named or hex color).",
           "Include a search box in the navbar.",
@@ -18804,6 +18806,7 @@ try {
           "The navbar title. Uses the project title if none is specified.",
           "Path to a logo image that will be displayed to the left of the\ntitle.",
           "Alternate text for the logo image.",
+          "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
           "The navbar\u2019s background color (named or hex color).",
           "The navbar\u2019s foreground color (named or hex color).",
           "Include a search box in the navbar.",
@@ -19007,6 +19010,7 @@ try {
           "The navbar title. Uses the project title if none is specified.",
           "Path to a logo image that will be displayed to the left of the\ntitle.",
           "Alternate text for the logo image.",
+          "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
           "The navbar\u2019s background color (named or hex color).",
           "The navbar\u2019s foreground color (named or hex color).",
           "Include a search box in the navbar.",
