@@ -21,6 +21,7 @@ import {
   kAuthor,
   kDate,
   kDescription,
+  kDoi,
   kNumberSections,
   kOutputExt,
   kOutputFile,
@@ -646,6 +647,7 @@ function withBookTitleMetadata(format: Format, config?: ProjectConfig): Format {
     setMetadata(kDateFormat);
     setMetadata(kAbstract);
     setMetadata(kDescription);
+    setMetadata(kDoi);
   }
   return format;
 }

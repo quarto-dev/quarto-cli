@@ -23,6 +23,7 @@ export type BookConfigKey =
   | "downloads"
   | "tools"
   | "title"
+  | "doi"
   | "subtitle"
   | "author"
   | "description"
