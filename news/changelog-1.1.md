@@ -38,6 +38,7 @@
 ## Websites
 
 - Correctly align dark/light toggle in navbar (thanks @FabioRosado)
+- Support `navbar:logo-alt` to provide alternate text for navbar logos
 
 ## Books
 

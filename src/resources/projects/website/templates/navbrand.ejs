@@ -1,10 +1,10 @@
-<% if (title || logo) { %>
+<% if (navbar.title || navbar.logo) { %>
   <a class="navbar-brand" href="/index.html">
-  <% if (logo) { %>
-    <img src="<%- logo %>" alt="" />
+  <% if (navbar.logo) { %>
+    <img src="<%- navbar.logo %>" alt="<%- navbar['logo-alt'] || '' %>" />
   <% } %>
-  <% if (title) { %>
-    <span class="navbar-title"><%- title %></span>
+  <% if (navbar.title) { %>
+    <span class="navbar-title"><%- navbar.title %></span>
   <% } %>
   </a>
 <% } %>

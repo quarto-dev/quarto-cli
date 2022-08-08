@@ -47,7 +47,12 @@ import {
 
 import { kDataQuartoSourceUrl } from "../../../command/render/codetools.ts";
 
-import { kProjectType, ProjectConfig, ProjectContext } from "../../types.ts";
+import {
+  kLogoAlt,
+  kProjectType,
+  ProjectConfig,
+  ProjectContext,
+} from "../../types.ts";
 import { projectOffset, projectOutputDir } from "../../project-shared.ts";
 import { resolveInputTarget } from "../../project-index.ts";
 import {
@@ -947,6 +952,7 @@ async function navbarEjsData(
       : false,
     background: navbar.background || "primary",
     logo: resolveLogo(navbar.logo),
+    [kLogoAlt]: navbar[kLogoAlt],
     collapse,
     [kCollapseBelow]: !collapse
       ? ""

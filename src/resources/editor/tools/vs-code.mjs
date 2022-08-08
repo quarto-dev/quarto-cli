@@ -9106,6 +9106,11 @@ var require_yaml_intelligence_resources = __commonJS({
                             description: "Path to a logo image that will be displayed to the left of the title."
                           }
                         },
+                        "logo-alt": {
+                          string: {
+                            description: "Alternate text for the logo image."
+                          }
+                        },
                         background: {
                           anyOf: [
                             {

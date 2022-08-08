@@ -10,7 +10,9 @@
   <% if (nav.navbar) { %>  
     <nav class="navbar navbar-expand<%- nav.navbar["collapse-below"] %> navbar-dark <%- nav.navbar.background === "none" || nav.navbar.background === "body" ? "border-bottom" : "" %>">
       <div class="navbar-container container-fluid">
-      <% partial('navbrand.ejs', nav.navbar) %>
+      <% partial('navbrand.ejs', {
+        navbar: nav.navbar
+      }) %>
       <% if (nav.navbar.left || nav.navbar.right) { %>  
         <% if (nav.navbar.collapse) { %>
           <% partial('navtoggle.ejs') %>
