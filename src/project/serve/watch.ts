@@ -115,13 +115,15 @@ export function watchProject(
         if (options[kProjectWatchInputs]) {
           // get inputs (filter by whether the last time we rendered
           // this input had the exact same content hash)
-          const inputs = paths.filter(isInputFile).filter((input) => {
-            return !rendered.has(input) ||
-              rendered.get(input) !== md5Hash(Deno.readTextFileSync(input));
-          });
+          const inputs = paths.filter(isInputFile).filter(existsSync).filter(
+            (input) => {
+              return !rendered.has(input) ||
+                rendered.get(input) !== md5Hash(Deno.readTextFileSync(input));
+            },
+          );
           if (inputs.length) {
             // record rendered time
-            for (const input of inputs) {
+            for (const input of inputs.filter(existsSync)) {
               rendered.set(input, md5Hash(Deno.readTextFileSync(input)));
             }
             // render
