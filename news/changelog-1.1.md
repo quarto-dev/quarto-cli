@@ -38,6 +38,10 @@
 
 - Correctly align dark/light toggle in navbar (thanks @FabioRosado)
 
+## Books
+
+- Support specifying and displaying DOI for books
+
 ## Preview
 
 - Don't attempt to open browser when in a server session
@@ -46,6 +50,10 @@
 
 - Finnish localization (thanks @jkseppan)
 - Dutch localization (thanks @bwelman)
+
+## Citable Articles
+
+- Improve support for Google Scholar metadata with extension to support Zotero / Highwire metadata (see https://quarto.org/docs/authoring/create-citeable-articles.html#citation-fields)
 
 ## HTML Format
 
@@ -74,3 +82,4 @@
 - Correctly support `output-file` names that contain `.` characters (like `file.name.html`)
 - Avoid file permission errors in additional cases (thanks @jmbuhr)
 - `QUARTO_PRINT_STACK` environment variable to print stack along with error messages
+- More compact download progress when installing Quarto tools in CI environments
