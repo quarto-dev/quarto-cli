@@ -114,7 +114,7 @@ export async function resolveDeployment(
     // if --no-prompt is specified then this is an error state
     if (!options.prompt) {
       throw new Error(
-        `No previous publishes available to re-publish (previous publish required with --no-prompt)`,
+        `No _publish.yml file available (_publish.yml specifying a destination required for non-interactive publish)`,
       );
     }
   }
