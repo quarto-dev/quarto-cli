@@ -17,6 +17,7 @@ function quartoPostMetaInject()
       -- that a citation is never allowed in the creator field
       if meta.website ~= nil and meta.website['twitter-card'] ~= nil and type(meta.website['twitter-card']) == 'table' then
         meta.website['twitter-card'].creator = nil
+        meta.website['twitter-card'].site = nil
       end
 
       return meta
