@@ -4,7 +4,7 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { basename, join } from "path/mod.ts";
+import { basename, isAbsolute, join } from "path/mod.ts";
 import {
   kEmbedResources,
   kHtmlMathMethod,
@@ -22,15 +22,39 @@ import { copyTo } from "../../core/copy.ts";
 import { PandocOptions, RenderFlags } from "./types.ts";
 import * as ld from "../../core/lodash.ts";
 import { isHtmlDocOutput, isRevealjsOutput } from "../../config/format.ts";
+import { expandGlobSync } from "fs/mod.ts";
 
 export const kPatchedTemplateExt = ".patched";
 export const kTemplatePartials = "template-partials";
 
-export function readPartials(metadata: Metadata) {
+/**
+ * read and expand template partial globs
+ *
+ * @param metadata
+ * @param cwd current working directory for glob expansion
+ */
+export function readPartials(metadata: Metadata, inputDir?: string) {
   if (typeof (metadata?.[kTemplatePartials]) === "string") {
     metadata[kTemplatePartials] = [metadata[kTemplatePartials]];
   }
-  return (metadata?.[kTemplatePartials] || []) as string[];
+  const result = (metadata?.[kTemplatePartials] || []) as string[];
+
+  inputDir = inputDir ? Deno.realPathSync(inputDir) : undefined;
+  const resolvePath = (path: string) => {
+    if (!inputDir || isAbsolute(path)) {
+      return path;
+    } else {
+      return join(inputDir, path);
+    }
+  };
+
+  return result.flatMap((path) => {
+    const result = [];
+    for (const walk of expandGlobSync(resolvePath(path))) {
+      result.push(walk.path);
+    }
+    return result;
+  });
 }
 
 export async function stageTemplate(
