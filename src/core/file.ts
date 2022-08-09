@@ -37,6 +37,19 @@ export async function visitLines(
   }
 }
 
+export async function appendTextFile(
+  path: string,
+  text: string,
+) {
+  const file = await Deno.open(path, { append: true });
+  try {
+    const encoder = new TextEncoder();
+    file.writeSync(encoder.encode(text));
+  } finally {
+    file.close();
+  }
+}
+
 export async function touch(path: string) {
   if (Deno.build.os === "windows") {
     // Touch the file be rewriting it

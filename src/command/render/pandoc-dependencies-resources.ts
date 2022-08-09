@@ -10,6 +10,10 @@ import { copyTo } from "../../core/copy.ts";
 import { lines } from "../../core/text.ts";
 
 import { basename, join } from "path/mod.ts";
+import {
+  appendDependencies,
+  FormatResourceDependency,
+} from "./pandoc-dependencies.ts";
 
 export interface FormatResource {
   file: string;
@@ -27,20 +31,13 @@ export function writeFormatResources(
       ? formatResources
       : [formatResources];
 
-    const dependencyLines: string[] = [];
-    for (const file of files) {
-      const path = join(inputDir, file);
-      // Ensure this is input relative
-      dependencyLines.push(
-        JSON.stringify({ type: kFormatResources, content: { file: path } }),
-      );
-    }
-    if (dependencyLines.length > 0) {
-      Deno.writeTextFileSync(
-        dependenciesFile,
-        `${dependencyLines.join("\n")}\n`,
-      );
-    }
+    const dependencies: FormatResourceDependency[] = files.map((file) => {
+      return {
+        type: kFormatResources,
+        content: { file: join(inputDir, file) },
+      };
+    });
+    appendDependencies(dependenciesFile, dependencies);
   }
 }
 

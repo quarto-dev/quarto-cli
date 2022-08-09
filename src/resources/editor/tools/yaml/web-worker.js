@@ -9107,6 +9107,16 @@ try {
                               description: "Path to a logo image that will be displayed to the left of the title."
                             }
                           },
+                          "logo-alt": {
+                            string: {
+                              description: "Alternate text for the logo image."
+                            }
+                          },
+                          "logo-href": {
+                            string: {
+                              description: "Target href from navbar logo / title. By default, the logo and title link to the root page of the site (/index.html)."
+                            }
+                          },
                           background: {
                             anyOf: [
                               {
@@ -9678,11 +9688,12 @@ try {
                   enum: [
                     "default",
                     "table",
-                    "grid"
+                    "grid",
+                    "custom"
                   ],
                   description: {
                     short: "The type of listing to create.",
-                    long: "The type of listing to create. Choose one of:\n\n- `default`: A blog style list of items\n- `table`: A table of items\n- `grid`: A grid of item cards\n"
+                    long: "The type of listing to create. Choose one of:\n\n- `default`: A blog style list of items\n- `table`: A table of items\n- `grid`: A grid of item cards\n- `custom`: A custom template, provided by the `template` field\n"
                   }
                 },
                 contents: {
@@ -10403,6 +10414,11 @@ try {
                 "part-title": {
                   string: {
                     description: "Title of the specific part of an item being cited."
+                  }
+                },
+                "pdf-url": {
+                  string: {
+                    description: "A url to the pdf for this item."
                   }
                 },
                 performer: {
@@ -17273,6 +17289,8 @@ try {
           "Top navigation options",
           "The navbar title. Uses the project title if none is specified.",
           "Path to a logo image that will be displayed to the left of the\ntitle.",
+          "Alternate text for the logo image.",
+          "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
           "The navbar\u2019s background color (named or hex color).",
           "The navbar\u2019s foreground color (named or hex color).",
           "Include a search box in the navbar.",
@@ -18792,6 +18810,8 @@ try {
           "Top navigation options",
           "The navbar title. Uses the project title if none is specified.",
           "Path to a logo image that will be displayed to the left of the\ntitle.",
+          "Alternate text for the logo image.",
+          "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
           "The navbar\u2019s background color (named or hex color).",
           "The navbar\u2019s foreground color (named or hex color).",
           "Include a search box in the navbar.",
@@ -18994,6 +19014,8 @@ try {
           "Top navigation options",
           "The navbar title. Uses the project title if none is specified.",
           "Path to a logo image that will be displayed to the left of the\ntitle.",
+          "Alternate text for the logo image.",
+          "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
           "The navbar\u2019s background color (named or hex color).",
           "The navbar\u2019s foreground color (named or hex color).",
           "Include a search box in the navbar.",

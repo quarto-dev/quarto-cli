@@ -56,8 +56,8 @@ const kISSN = "issn";
 const kISBN = "isbn";
 const kPMCID = "pmcid";
 const kPMID = "pmid";
-const kFirstPage = "firstpage";
-const kLastPage = "lastpage";
+const kFirstPage = "page-first";
+const kLastPage = "page-last";
 const kPage = "page";
 const kNumber = "number";
 const kCustom = "custom";
@@ -386,7 +386,12 @@ export function documentCSL(
 
   // Process anything extra
   const extras: CSLExtras = {};
-  if (format.metadata.keywords) {
+
+  // Process keywords
+  const kwString = citationMetadata.keyword;
+  if (kwString && typeof (kwString) === "string") {
+    extras.keywords = kwString.split(",");
+  } else if (format.metadata.keywords) {
     const kw = format.metadata.keywords;
     extras.keywords = Array.isArray(kw) ? kw : [kw];
   }

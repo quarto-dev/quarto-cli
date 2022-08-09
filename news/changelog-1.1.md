@@ -38,6 +38,8 @@
 ## Websites
 
 - Correctly align dark/light toggle in navbar (thanks @FabioRosado)
+- Support `navbar:logo-alt` to provide alternate text for navbar logos
+- Support `navbar:logo-href` to provide custom link for navbar logo & title
 
 ## Books
 
@@ -70,6 +72,10 @@
 ## Mermaid diagrams
 
 - support `echo: true` and other per-document settings (#1485)
+
+## Extensions
+
+- Properly copy `format-resources` for HTML based formats
 
 ## Publishing
 
