@@ -3628,6 +3628,12 @@
           }
         }
       ]
+    },
+    {
+      "id": "semver",
+      "string": {
+        "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$"
+      }
     }
   ],
   "schema/document-about.yml": [
@@ -10639,6 +10645,7 @@
       "long": "Number of the specific part of the item being cited (e.g.&nbsp;part 2 of a\njournal article).\nUse <code>part-title</code> for the title of the part, if any."
     },
     "Title of the specific part of an item being cited.",
+    "A url to the pdf for this item.",
     "Performer of an item (e.g.&nbsp;an actor appearing in a film; a muscian\nperforming a piece of music).",
     "PubMed Central reference number.",
     "PubMed reference number.",
@@ -12347,5 +12354,42 @@
       ]
     },
     "$id": "handlers/mermaid"
-  }
+  },
+  "schema/extension.yml": [
+    {
+      "name": "title",
+      "description": "Extension title.",
+      "schema": "string"
+    },
+    {
+      "name": "author",
+      "description": "Extension author.",
+      "schema": "string"
+    },
+    {
+      "name": "version",
+      "description": "Extension version.",
+      "schema": {
+        "ref": "semver"
+      }
+    },
+    {
+      "name": "contributes",
+      "schema": {
+        "object": {
+          "properties": {
+            "shortcodes": {
+              "arrayOf": "path"
+            },
+            "filters": {
+              "arrayOf": "path"
+            },
+            "formats": {
+              "schema": "object"
+            }
+          }
+        }
+      }
+    }
+  ]
 }

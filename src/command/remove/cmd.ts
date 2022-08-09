@@ -25,7 +25,6 @@ import {
   selectTool,
 } from "../../tools/tools-console.ts";
 import { haveArrowKeys } from "../../core/platform.ts";
-import { join } from "path/mod.ts";
 
 export const removeCommand = new Command()
   .hidden()
@@ -78,12 +77,12 @@ export const removeCommand = new Command()
           // Not provided, give the user a list to select from
           const workingDir = Deno.cwd();
 
-          const resolveTargetDir = () => {
+          const resolveTargetDir = async () => {
             if (options.embed) {
               // We're removing an embedded extension, lookup the extension
               // and use its path
               const context = createExtensionContext();
-              const extension = context.extension(
+              const extension = await context.extension(
                 options.embed,
                 workingDir,
               );
@@ -97,12 +96,12 @@ export const removeCommand = new Command()
               return workingDir;
             }
           };
-          const targetDir = resolveTargetDir();
+          const targetDir = await resolveTargetDir();
 
           // Process extension
           if (target) {
             // explicitly provided
-            const extensions = extensionContext.find(target, targetDir);
+            const extensions = await extensionContext.find(target, targetDir);
             if (extensions.length > 0) {
               await removeExtensions(extensions.slice(), options.prompt);
             } else {
@@ -111,7 +110,10 @@ export const removeCommand = new Command()
           } else {
             // Provide the with with a list
             const project = await projectContext(targetDir);
-            const extensions = extensionContext.extensions(targetDir, project);
+            const extensions = await extensionContext.extensions(
+              targetDir,
+              project,
+            );
 
             // Show a list
             if (extensions.length > 0) {

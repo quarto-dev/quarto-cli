@@ -42,6 +42,19 @@ export const getProjectConfigFieldsSchema = defineCached(
   "project-config-fields",
 );
 
+export const getExtensionConfigFieldsSchema = defineCached(
+  // deno-lint-ignore require-await
+  async () => {
+    return {
+      schema: objectSchemaFromFieldsObject(
+        getYamlIntelligenceResource("schema/extension.yml") as SchemaField[],
+      ),
+      errorHandlers: [],
+    };
+  },
+  "extension-config-fields",
+);
+
 function disallowTopLevelType(
   error: LocalizedError,
   parse: AnnotatedParse,
@@ -100,4 +113,18 @@ export const getProjectConfigSchema = defineCached(
     };
   },
   "project-config",
+);
+
+export const getExtensionConfigSchema = defineCached(
+  async () => {
+    const extensionConfig = await getExtensionConfigFieldsSchema();
+    return {
+      schema: describeSchema(
+        extensionConfig,
+        "an extension configuration object",
+      ),
+      errorHandlers: [],
+    };
+  },
+  "extension-config",
 );

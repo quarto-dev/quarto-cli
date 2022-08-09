@@ -53,7 +53,6 @@ import {
 import { layoutFilter, layoutFilterParams } from "./layout.ts";
 import { pandocMetadataPath } from "./render-paths.ts";
 import { removePandocArgs } from "./flags.ts";
-import * as ld from "../../core/lodash.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { projectType } from "../../project/types/project-types.ts";
 import { readCodePage } from "../../core/windows.ts";
@@ -74,7 +73,7 @@ const kTimingFile = "timings-file";
 
 const kHasBootstrap = "has-bootstrap";
 
-export function filterParamsJson(
+export async function filterParamsJson(
   args: string[],
   options: PandocOptions,
   defaults: FormatPandoc | undefined,
@@ -105,7 +104,7 @@ export function filterParamsJson(
     ...ipynbFilterParams(options),
     ...projectFilterParams(options),
     ...quartoColumnParams,
-    ...quartoFilterParams(options, defaults),
+    ...await quartoFilterParams(options, defaults),
     ...crossrefFilterParams(options, defaults),
     ...layoutFilterParams(options.format),
     ...languageFilterParams(options.format.language),
@@ -262,7 +261,7 @@ function extractSmartIncludeInternal(
     if (value === undefined) {
       return [];
     }
-    if (ld.isArray(value)) {
+    if (Array.isArray(value)) {
       const contents = value.filter(isContent);
       const nonContents = value.filter((v) => !isContent(v));
       obj[name] = nonContents;
@@ -289,7 +288,7 @@ function extractIncludeVariables(obj: { [key: string]: unknown }) {
     delete obj[name];
     if (!value) {
       return [];
-    } else if (ld.isArray(value)) {
+    } else if (Array.isArray(value)) {
       return value as unknown[];
     } else {
       return [value];
@@ -414,7 +413,7 @@ function ipynbFilterParams(options: PandocOptions) {
   };
 }
 
-function quartoFilterParams(
+async function quartoFilterParams(
   options: PandocOptions,
   defaults?: FormatPandoc,
 ) {
@@ -449,7 +448,7 @@ function quartoFilterParams(
   if (shortcodes !== undefined) {
     params[kShortcodes] = shortcodes;
   }
-  const extShortcodes = extensionShortcodes(options);
+  const extShortcodes = await extensionShortcodes(options);
   if (extShortcodes) {
     params[kShortcodes] = params[kShortcodes] || [];
     (params[kShortcodes] as string[]).push(...extShortcodes);
@@ -477,10 +476,10 @@ function quartoFilterParams(
   return params;
 }
 
-function extensionShortcodes(options: PandocOptions) {
+async function extensionShortcodes(options: PandocOptions) {
   const extensionShortcodes: string[] = [];
   if (options.extension) {
-    const allExtensions = options.extension?.extensions(
+    const allExtensions = await options.extension?.extensions(
       options.source,
       options.project,
     );
@@ -508,10 +507,10 @@ function initFilterParams(dependenciesFile: string) {
 const kQuartoFilterMarker = "quarto";
 const kQuartoCiteProcMarker = "citeproc";
 
-export function resolveFilters(
+export async function resolveFilters(
   filters: QuartoFilter[],
   options: PandocOptions,
-): QuartoFilter[] | undefined {
+): Promise<QuartoFilter[] | undefined> {
   // build list of quarto filters
 
   // The default order of filters will be
@@ -532,7 +531,7 @@ export function resolveFilters(
   quartoFilters.push(quartoPostFilter());
 
   // Resolve any filters that are provided by an extension
-  filters = resolveFilterExtension(options, filters);
+  filters = await resolveFilterExtension(options, filters);
 
   // if 'quarto' is in the filters, inject our filters at that spot,
   // otherwise inject them at the beginning so user filters can take
@@ -613,12 +612,13 @@ function pdfEngine(options: PandocOptions): string {
 const kQuartoExtOrganization = "quarto-ext";
 const kQuartoExtBuiltIn = ["code-filename", "grouped-tabsets"];
 
-function resolveFilterExtension(
+async function resolveFilterExtension(
   options: PandocOptions,
   filters: QuartoFilter[],
-): QuartoFilter[] {
+): Promise<QuartoFilter[]> {
   // Resolve any filters that are provided by an extension
-  const results = filters.flatMap((filter) => {
+  const results: (QuartoFilter | QuartoFilter[])[] = [];
+  const getFilter = async (filter: QuartoFilter) => {
     // Look for extension names in the filter list and result them
     // into the filters provided by the extension
     if (
@@ -626,7 +626,7 @@ function resolveFilterExtension(
       typeof (filter) === "string" &&
       !existsSync(filter)
     ) {
-      let extensions = options.extension?.find(
+      let extensions = await options.extension?.find(
         filter,
         options.source,
         "filters",
@@ -672,6 +672,10 @@ function resolveFilterExtension(
     } else {
       return filter;
     }
-  });
-  return results;
+  };
+  for (const filter of filters) {
+    const r = await getFilter(filter);
+    results.push(r);
+  }
+  return results.flat();
 }

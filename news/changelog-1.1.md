@@ -76,6 +76,7 @@
 ## Extensions
 
 - Properly copy `format-resources` for HTML based formats
+- Extension YAML files `_extension.yml` are now validated at render time. (#1268)
 
 ## Publishing
 

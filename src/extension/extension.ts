@@ -17,7 +17,6 @@ import { Metadata, QuartoFilter } from "../config/types.ts";
 import { resolvePathGlobs } from "../core/path.ts";
 import { toInputRelativePaths } from "../project/project-shared.ts";
 import { projectType } from "../project/types/project-types.ts";
-import { readYaml } from "../core/yaml.ts";
 import { mergeConfigs } from "../core/config.ts";
 import {
   Extension,
@@ -31,6 +30,8 @@ import {
   kVersion,
 } from "./extension-shared.ts";
 import { cloneDeep } from "../core/lodash.ts";
+import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
+import { getExtensionConfigSchema } from "../core/lib/yaml-schema/project-config.ts";
 
 // Create an extension context that can be used to load extensions
 // Provides caching such that directories will not be rescanned
@@ -39,36 +40,36 @@ export function createExtensionContext(): ExtensionContext {
   const extensionCache: Record<string, Extension[]> = {};
 
   // Reads all extensions available to an input
-  const extensions = (
+  const extensions = async (
     input: string,
     project?: ProjectContext,
-  ): Extension[] => {
+  ): Promise<Extension[]> => {
     // Load the extensions and resolve extension paths
-    const extensions = loadExtensions(input, extensionCache, project);
+    const extensions = await loadExtensions(input, extensionCache, project);
     return Object.values(extensions).map((extension) =>
       resolveExtensionPaths(extension, input, project)
     );
   };
 
   // Reads a specific extension avialable to an input
-  const extension = (
+  const extension = async (
     name: string,
     input: string,
     project?: ProjectContext,
-  ): Extension | undefined => {
+  ): Promise<Extension | undefined> => {
     // Load the extension and resolve any paths
-    const unresolved = loadExtension(name, input, project);
+    const unresolved = await loadExtension(name, input, project);
     return resolveExtensionPaths(unresolved, input, project);
   };
 
-  const find = (
+  const find = async (
     name: string,
     input: string,
     contributes?: "shortcodes" | "filters" | "formats",
     project?: ProjectContext,
-  ): Extension[] => {
+  ): Promise<Extension[]> => {
     const extId = toExtensionId(name);
-    return findExtensions(extensions(input, project), extId, contributes);
+    return findExtensions(await extensions(input, project), extId, contributes);
   };
 
   return {
@@ -81,7 +82,7 @@ export function createExtensionContext(): ExtensionContext {
 // Loads all extensions for a given input
 // (note this needs to be sure to return copies from
 // the cache in the event that the objects are mutated)
-const loadExtensions = (
+const loadExtensions = async (
   input: string,
   cache: Record<string, Extension[]>,
   project?: ProjectContext,
@@ -89,29 +90,29 @@ const loadExtensions = (
   const extensionPath = allExtensionDirs(input, project);
   const allExtensions: Record<string, Extension> = {};
 
-  extensionPath.forEach((extensionDir) => {
+  for (const extensionDir of extensionPath) {
     if (cache[extensionDir]) {
       cache[extensionDir].forEach((ext) => {
         allExtensions[extensionIdString(ext.id)] = cloneDeep(ext);
       });
     } else {
-      const extensions = readExtensions(extensionDir);
+      const extensions = await readExtensions(extensionDir);
       extensions.forEach((extension) => {
         allExtensions[extensionIdString(extension.id)] = cloneDeep(extension);
       });
       cache[extensionDir] = extensions;
     }
-  });
+  }
 
   return allExtensions;
 };
 
 // Loads a single extension using a name (e.g. elsevier or quarto-journals/elsevier)
-const loadExtension = (
+const loadExtension = async (
   extension: string,
   input: string,
   project?: ProjectContext,
-): Extension => {
+): Promise<Extension> => {
   const extensionId = toExtensionId(extension);
   const extensionPath = discoverExtensionPath(input, extensionId, project);
 
@@ -119,7 +120,7 @@ const loadExtension = (
     // Find the metadata file, if any
     const file = extensionFile(extensionPath);
     if (file) {
-      const extension = readExtension(extensionId, file);
+      const extension = await readExtension(extensionId, file);
       validateExtension(extension);
       return extension;
     } else {
@@ -200,7 +201,7 @@ const kExtensionIgnoreFields = "biblio-style";
 
 // Read the raw extension information out of a directory
 // (e.g. read all the extensions from _extensions)
-export function readExtensions(
+export async function readExtensions(
   extensionsDirectory: string,
   organization?: string,
 ) {
@@ -216,7 +217,7 @@ export function readExtensions(
         // This represents an 'anonymous' extension that doesn't
         // have an owner
         const extensionId = { name: extensionDir.name, organization };
-        const extension = readExtension(
+        const extension = await readExtension(
           extensionId,
           extFile,
         );
@@ -225,7 +226,7 @@ export function readExtensions(
         // If we're at the root level and this folder is an extension folder
         // treat it as an 'owner' and look inside this folder to see if
         // there are extensions in subfolders. Only read 1 level.
-        const ownedExtensions = readExtensions(
+        const ownedExtensions = await readExtensions(
           join(extensionsDirectory, extensionDir.name),
           extensionDir.name,
         );
@@ -371,11 +372,17 @@ function validateExtension(extension: Extension) {
 }
 
 // Reads raw extension data
-function readExtension(
+async function readExtension(
   extensionId: ExtensionId,
   extensionFile: string,
-): Extension {
-  const yaml = readYaml(extensionFile) as Metadata;
+): Promise<Extension> {
+  const extensionSchema = await getExtensionConfigSchema();
+  const yaml = (await readAndValidateYamlFromFile(
+    extensionFile,
+    extensionSchema,
+    "YAML Validation Failed",
+  )) as Metadata;
+
   const contributes = yaml.contributes as Metadata | undefined;
 
   const title = yaml[kTitle] as string;
@@ -397,7 +404,7 @@ function readExtension(
 
   // Read any embedded extension
   const embeddedExtensions = existsSync(join(extensionDir, kExtensionDir))
-    ? readExtensions(join(extensionDir, kExtensionDir))
+    ? await readExtensions(join(extensionDir, kExtensionDir))
     : [];
 
   // Process the special 'common' key by merging it
@@ -432,7 +439,7 @@ function readExtension(
   const filters = (contributes?.filters || {}) as QuartoFilter[];
 
   // Create the extension data structure
-  return {
+  const result = {
     title,
     author,
     version,
@@ -444,6 +451,7 @@ function readExtension(
       formats,
     },
   };
+  return result;
 }
 
 // This will resolve a shortcode contributed by this extension

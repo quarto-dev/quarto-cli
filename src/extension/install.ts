@@ -52,7 +52,7 @@ export async function installExtension(
     const extensionDir = await stageExtension(source, temp.createDir());
 
     // Validate the extension in in the staging dir
-    const stagedExtensions = validateExtension(extensionDir);
+    const stagedExtensions = await validateExtension(extensionDir);
 
     // Confirm that the user would like to take this action
     const confirmed = await confirmInstallation(
@@ -113,7 +113,7 @@ async function determineInstallDir(
 
     // Load the extension to be sure it exists and then
     // use its path as the target for installation
-    const extension = context.extension(extensionName, dir);
+    const extension = await context.extension(extensionName, dir);
     if (extension) {
       if (Object.keys(extension?.contributes.formats || {}).length > 0) {
         return extension?.path;
@@ -184,7 +184,7 @@ async function stageExtension(
         const destDir = join(workingDir, kExtensionDir);
         // If there is something to stage, go for it, otherwise
         // just leave the directory empty
-        readAndCopyExtensions(srcDir, destDir);
+        await readAndCopyExtensions(srcDir, destDir);
       }
       return workingDir;
     } else {
@@ -230,12 +230,12 @@ async function unzipAndStage(
 
   // Make the final directory we're staging into
   const finalDir = join(archiveDir, "staged");
-  copyExtensions(source, extensionsDir, finalDir);
+  await copyExtensions(source, extensionsDir, finalDir);
 
   return finalDir;
 }
 
-export function copyExtensions(
+export async function copyExtensions(
   source: ExtensionSource,
   srcDir: string,
   targetDir: string,
@@ -247,16 +247,16 @@ export function copyExtensions(
   ensureDirSync(finalExtensionTargetDir);
 
   // Move extensions into the target directory (root or owner)
-  readAndCopyExtensions(srcDir, finalExtensionTargetDir);
+  await readAndCopyExtensions(srcDir, finalExtensionTargetDir);
 }
 
 // Reads the extensions from an extensions directory and copies
 // them to a destination directory
-function readAndCopyExtensions(
+async function readAndCopyExtensions(
   extensionsDir: string,
   targetDir: string,
 ) {
-  const extensions = readExtensions(extensionsDir);
+  const extensions = await readExtensions(extensionsDir);
   info(
     `    Found ${extensions.length} ${
       extensions.length === 1 ? "extension" : "extensions"
@@ -274,7 +274,7 @@ function readAndCopyExtensions(
 // Validates that a path on disk is a valid path to extensions
 // Currently just ensures there is an _extensions directory
 // and that the directory contains readable extensions
-function validateExtension(path: string) {
+async function validateExtension(path: string) {
   const extensionsFolder = extensionDir(path);
   if (!extensionsFolder) {
     throw new Error(
@@ -282,7 +282,7 @@ function validateExtension(path: string) {
     );
   }
 
-  const extensions = readExtensions(extensionsFolder);
+  const extensions = await readExtensions(extensionsFolder);
   if (extensions.length === 0) {
     throw new Error(
       `Invalid extension\nThe extension staged at ${path} does not provide any valid extensions.`,
@@ -297,11 +297,11 @@ async function confirmInstallation(
   installDir: string,
   allowPrompt: boolean,
 ) {
-  const readExisting = () => {
+  const readExisting = async () => {
     try {
       const existingExtensionsDir = join(installDir, kExtensionDir);
       if (Deno.statSync(existingExtensionsDir).isDirectory) {
-        const existingExtensions = readExtensions(
+        const existingExtensions = await readExtensions(
           join(installDir, kExtensionDir),
         );
         return existingExtensions;
@@ -320,7 +320,7 @@ async function confirmInstallation(
     return extension.title || idStr;
   };
 
-  const existingExtensions = readExisting();
+  const existingExtensions = await readExisting();
   const existing = (extension: Extension) => {
     return existingExtensions.find((existing) => {
       return existing.id.name === extension.id.name &&
