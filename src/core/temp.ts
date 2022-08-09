@@ -5,9 +5,9 @@
 *
 */
 
-import { warning } from "log/mod.ts";
+import { debug, warning } from "log/mod.ts";
 import { join } from "path/mod.ts";
-import { ensureDirSync } from "fs/mod.ts";
+import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { removeIfExists, safeRemoveIfExists } from "./path.ts";
 import { TempContext } from "./temp-types.ts";
 
@@ -18,6 +18,21 @@ let tempDir: string | undefined;
 let tempContext: TempContext | undefined;
 
 export function initSessionTempDir() {
+  // if TMPDIR exists and has been removed (sometimes occurs for stale TMPDIR values
+  // in resurrected RStudio terminal sessions) then try to re-create it
+  const tmpEnv = Deno.env.get("TMPDIR");
+  if (tmpEnv) {
+    try {
+      if (!existsSync(tmpEnv)) {
+        ensureDirSync(tmpEnv);
+      }
+    } catch (err) {
+      if (err.message) {
+        debug("Error attempting to create TMPDIR: " + err.message);
+      }
+    }
+  }
+
   tempDir = Deno.makeTempDirSync({ prefix: "quarto-session" });
 }
 
