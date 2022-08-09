@@ -25,25 +25,25 @@ import { lines } from "../../core/lib/text.ts";
 import { copyResourceFile } from "../../project/project-resources.ts";
 import { copyFileIfNewer } from "../../core/copy.ts";
 import { ProjectContext } from "../../project/types.ts";
+import {
+  appendDependencies,
+  HtmlFormatDependency,
+} from "./pandoc-dependencies.ts";
 
 export function writeDependencies(
   dependenciesFile: string,
   extras: FormatExtras,
 ) {
   if (extras.html?.[kDependencies]) {
-    const dependencyLines: string[] = [];
-    for (const dependency of extras.html?.[kDependencies]!) {
-      dependencyLines.push(
-        JSON.stringify({ type: "html", content: dependency }),
-      );
-    }
+    const dependencies: HtmlFormatDependency[] = extras.html[kDependencies]!
+      .map((dep) => {
+        return {
+          type: "html",
+          content: dep,
+        };
+      });
 
-    if (dependencyLines.length > 0) {
-      Deno.writeTextFileSync(
-        dependenciesFile,
-        `${dependencyLines.join("\n")}\n`,
-      );
-    }
+    appendDependencies(dependenciesFile, dependencies);
   }
 }
 

@@ -73,6 +73,10 @@
 
 - support `echo: true` and other per-document settings (#1485)
 
+## Extensions
+
+- Properly copy `format-resources` for HTML based formats
+
 ## Publishing
 
 - Detect authentication error for quarto.pub and re-establish credentials
