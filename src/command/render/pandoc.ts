@@ -429,7 +429,7 @@ export async function runPandoc(
       allDefaults[kTemplate];
 
     // The user partials (if any)
-    const userPartials = readPartials(options.format.metadata);
+    const userPartials = readPartials(options.format.metadata, cwd);
     const inputDir = Deno.realPathSync(cwd);
     const resolvePath = (path: string) => {
       if (isAbsolute(path)) {
@@ -484,11 +484,7 @@ export async function runPandoc(
 
       // Place any user partials at the end of the list of partials
       const partials: string[] = templateContext.partials || [];
-      partials.push(
-        ...userPartials.map((path) => {
-          return resolvePath(path);
-        }),
-      );
+      partials.push(...userPartials);
 
       // Stage the template and partials
       const stagedTemplate = await stageTemplate(

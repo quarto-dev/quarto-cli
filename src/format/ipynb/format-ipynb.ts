@@ -46,6 +46,7 @@ export function ipynbFormat(): Format {
           join("templates", "title-block.md"),
         );
 
+        // FIXME: how do we get the cwd from here?
         const partials = readPartials(format.metadata);
         if (partials.length > 0) {
           const userTitleTemplate = partials.find((part) => {
