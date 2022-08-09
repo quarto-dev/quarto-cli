@@ -5,7 +5,7 @@
 *
 */
 
-import { basename, join } from "path/mod.ts";
+import { basename, dirname, join } from "path/mod.ts";
 import { readPartials } from "../../command/render/template.ts";
 import {
   kCellFormat,
@@ -31,7 +31,7 @@ export function ipynbFormat(): Format {
       [kDefaultImageExtension]: "png",
     },
     formatExtras: (
-      _input: string,
+      input: string,
       _markdown: string,
       _flags: PandocFlags,
       format: Format,
@@ -46,8 +46,7 @@ export function ipynbFormat(): Format {
           join("templates", "title-block.md"),
         );
 
-        // FIXME: how do we get the cwd from here?
-        const partials = readPartials(format.metadata);
+        const partials = readPartials(format.metadata, dirname(input));
         if (partials.length > 0) {
           const userTitleTemplate = partials.find((part) => {
             return basename(part) === "title-block.md";
