@@ -1665,6 +1665,9 @@
       part-title:
         string:
           description: Title of the specific part of an item being cited.
+      pdf-url:
+        string:
+          description: A url to the pdf for this item.
       performer:
         ref: csl-person
         description: Performer of an item (e.g. an actor appearing in a film; a muscian performing a piece of music).

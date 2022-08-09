@@ -9693,7 +9693,7 @@ try {
                   ],
                   description: {
                     short: "The type of listing to create.",
-                    long: "The type of listing to create. Choose one of:\n\n- `default`: A blog style list of items\n- `table`: A table of items\n- `grid`: A grid of item cards\n- `custom`: A custom template, provided by the `template` key\n"
+                    long: "The type of listing to create. Choose one of:\n\n- `default`: A blog style list of items\n- `table`: A table of items\n- `grid`: A grid of item cards\n- `custom`: A custom template, provided by the `template` field\n"
                   }
                 },
                 contents: {
@@ -10414,6 +10414,11 @@ try {
                 "part-title": {
                   string: {
                     description: "Title of the specific part of an item being cited."
+                  }
+                },
+                "pdf-url": {
+                  string: {
+                    description: "A url to the pdf for this item."
                   }
                 },
                 performer: {
