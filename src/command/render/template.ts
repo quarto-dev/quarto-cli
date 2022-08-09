@@ -33,13 +33,13 @@ export const kTemplatePartials = "template-partials";
  * @param metadata
  * @param cwd current working directory for glob expansion
  */
-export function readPartials(metadata: Metadata, cwd?: string) {
+export function readPartials(metadata: Metadata, inputDir?: string) {
   if (typeof (metadata?.[kTemplatePartials]) === "string") {
     metadata[kTemplatePartials] = [metadata[kTemplatePartials]];
   }
   const result = (metadata?.[kTemplatePartials] || []) as string[];
 
-  const inputDir = cwd ? Deno.realPathSync(cwd) : undefined;
+  inputDir = inputDir ? Deno.realPathSync(inputDir) : undefined;
   const resolvePath = (path: string) => {
     if (!inputDir || isAbsolute(path)) {
       return path;
