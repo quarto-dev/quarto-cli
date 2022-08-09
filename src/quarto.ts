@@ -116,6 +116,7 @@ if (import.meta.main) {
     if (Deno.build.os !== "windows") {
       Deno.addSignalListener("SIGINT", abend);
       Deno.addSignalListener("SIGTERM", abend);
+      Deno.addSignalListener("SIGPIPE", () => {});
     }
 
     await initializeLogger(logOptions(parse(Deno.args)));
