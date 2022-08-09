@@ -10649,6 +10649,12 @@ var require_yaml_intelligence_resources = __commonJS({
               }
             }
           ]
+        },
+        {
+          id: "semver",
+          string: {
+            pattern: "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$"
+          }
         }
       ],
       "schema/document-about.yml": [
@@ -17660,6 +17666,7 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Number of the specific part of the item being cited (e.g.&nbsp;part 2 of a\njournal article).\nUse <code>part-title</code> for the title of the part, if any."
         },
         "Title of the specific part of an item being cited.",
+        "A url to the pdf for this item.",
         "Performer of an item (e.g.&nbsp;an actor appearing in a film; a muscian\nperforming a piece of music).",
         "PubMed Central reference number.",
         "PubMed reference number.",
@@ -19383,7 +19390,9 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           name: "version",
           description: "Extension version.",
-          schema: "string"
+          schema: {
+            ref: "semver"
+          }
         },
         {
           name: "contributes",
@@ -28861,40 +28870,44 @@ async function automationFileTypeDispatch(filetype, kind, context) {
 function exportSmokeTest(kind, context) {
   console.error(JSON.stringify({ kind, context }, null, 2));
 }
-async function getAutomation(kind, context) {
+var determineSchema = async (context) => {
   const extension = context.path === null ? "" : context.path.split(".").pop() || "";
-  const frontMatterSchema = await getFrontMatterSchema();
-  const projectConfigSchema = await getProjectConfigSchema();
-  const extensionConfigSchema = await getExtensionConfigSchema();
-  const determineSchema = () => {
-    if (context.filetype !== "yaml") {
-      return {
-        schema: void 0,
-        schemaName: void 0
-      };
-    }
-    if (extension === "qmd") {
-      return {
-        schema: frontMatterSchema,
-        schemaName: "front-matter"
-      };
-    }
-    if (context.path && context.path.endsWith("_extension.yml")) {
-      return {
-        schema: extensionConfigSchema,
-        schemaName: "extension-config"
-      };
-    } else {
-      return {
-        schema: projectConfigSchema,
-        schemaName: "project-config"
-      };
-    }
-  };
+  if (context.filetype !== "yaml") {
+    return {
+      schema: void 0,
+      schemaName: void 0
+    };
+  }
+  if (extension === "qmd") {
+    const frontMatterSchema = await getFrontMatterSchema();
+    return {
+      schema: frontMatterSchema,
+      schemaName: "front-matter"
+    };
+  }
+  const extensionConfigNames = [
+    "_extension.yml",
+    "_extension.yaml"
+  ];
+  if (context.path && extensionConfigNames.some((name) => context.path.endsWith(name))) {
+    const extensionConfigSchema = await getExtensionConfigSchema();
+    return {
+      schema: extensionConfigSchema,
+      schemaName: "extension-config"
+    };
+  } else {
+    const projectConfigSchema = await getProjectConfigSchema();
+    return {
+      schema: projectConfigSchema,
+      schemaName: "project-config"
+    };
+  }
+};
+async function getAutomation(kind, context) {
   const {
     schema: schema2,
     schemaName
-  } = determineSchema();
+  } = await determineSchema(context);
   const result = await automationFileTypeDispatch(context.filetype, kind, {
     ...context,
     code: asMappedString(context.code),
