@@ -224,7 +224,7 @@ export async function runPandoc(
   cleanMetadataForPrinting(printMetadata);
 
   // generate defaults and capture defaults to be printed
-  let allDefaults = await generateDefaults(options) || {};
+  let allDefaults = (await generateDefaults(options)) || {};
   let printAllDefaults = ld.cloneDeep(allDefaults) as FormatPandoc;
 
   // capture any filterParams in the FormatExtras

@@ -184,7 +184,7 @@ async function stageExtension(
         const destDir = join(workingDir, kExtensionDir);
         // If there is something to stage, go for it, otherwise
         // just leave the directory empty
-        readAndCopyExtensions(srcDir, destDir);
+        await readAndCopyExtensions(srcDir, destDir);
       }
       return workingDir;
     } else {
@@ -230,7 +230,7 @@ async function unzipAndStage(
 
   // Make the final directory we're staging into
   const finalDir = join(archiveDir, "staged");
-  copyExtensions(source, extensionsDir, finalDir);
+  await copyExtensions(source, extensionsDir, finalDir);
 
   return finalDir;
 }

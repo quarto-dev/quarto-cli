@@ -617,7 +617,8 @@ async function resolveFilterExtension(
   filters: QuartoFilter[],
 ): Promise<QuartoFilter[]> {
   // Resolve any filters that are provided by an extension
-  const results = (await Promise.all(filters.map(async (filter) => {
+  const results: (QuartoFilter | QuartoFilter[])[] = [];
+  const getFilter = async (filter: QuartoFilter) => {
     // Look for extension names in the filter list and result them
     // into the filters provided by the extension
     if (
@@ -671,6 +672,10 @@ async function resolveFilterExtension(
     } else {
       return filter;
     }
-  }))).flat();
-  return results;
+  };
+  for (const filter of filters) {
+    const r = await getFilter(filter);
+    results.push(r);
+  }
+  return results.flat();
 }

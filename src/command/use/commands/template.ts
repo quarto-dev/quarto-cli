@@ -73,7 +73,7 @@ async function useTemplate(
       // Copy extensions
       const extDir = join(stagedDir, kExtensionDir);
       if (existsSync(extDir)) {
-        copyExtensions(source, extDir, outputDirectory);
+        await copyExtensions(source, extDir, outputDirectory);
       }
 
       for (const fileToCopy of filesToCopy) {
