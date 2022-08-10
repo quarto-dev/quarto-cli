@@ -1,13 +1,13 @@
 - name: fontcolor
   schema: string
   tags:
-    formats: [$html-files]
+    formats: [$html-doc]
   description: Sets the CSS `color` property.
 
 - name: linkcolor
   schema: string
   tags:
-    formats: [$html-files, context, $pdf-all]
+    formats: [$html-doc, context, $pdf-all]
   description:
     short: Sets the color of hyperlinks in the document.
     long: |
@@ -23,13 +23,13 @@
 - name: monobackgroundcolor
   schema: string
   tags:
-    formats: [html, html4, html5, slidy, slideous, s5, revealjs, dzslides]
+    formats: [html, html4, html5, slidy, slideous, s5, dzslides]
   description: Sets the CSS `background-color` property on code elements and adds extra padding.
 
 - name: backgroundcolor
   schema: string
   tags:
-    formats: [$html-files]
+    formats: [$html-doc]
   description: |
     Sets the CSS `background-color` property on the html element.
 
