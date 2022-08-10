@@ -7,7 +7,7 @@
 
 import { existsSync } from "fs/mod.ts";
 import { warning } from "log/mod.ts";
-import { coerce } from "semver/mod.ts";
+import { coerce, Range, satisfies } from "semver/mod.ts";
 
 import { kProjectType, ProjectContext } from "../project/types.ts";
 import { isSubdir } from "fs/_util.ts";
@@ -18,6 +18,8 @@ import { resolvePathGlobs } from "../core/path.ts";
 import { toInputRelativePaths } from "../project/project-shared.ts";
 import { projectType } from "../project/types/project-types.ts";
 import { mergeConfigs } from "../core/config.ts";
+import { quartoConfig } from "../core/quarto.ts";
+
 import {
   Extension,
   ExtensionContext,
@@ -26,6 +28,7 @@ import {
   kAuthor,
   kCommon,
   kExtensionDir,
+  kQuartoVersion,
   kTitle,
   kVersion,
 } from "./extension-shared.ts";
@@ -126,7 +129,7 @@ const loadExtension = async (
     } else {
       // This extension doesn't have an _extension file
       throw new Error(
-        `The extension '${extension}' is missing the expected '_extensions.yml' file.`,
+        `The extension '${extension}' is missing the expected '_extension.yml' file.`,
       );
     }
   } else {
@@ -369,6 +372,19 @@ function validateExtension(extension: Extension) {
       } is not valid- it does not contribute anything.`,
     );
   }
+  if (
+    extension.quartoVersion &&
+    !satisfies(quartoConfig.version(), extension.quartoVersion)
+  ) {
+    throw new Error(
+      `The extension ${
+        extension.title || extension.id.name
+      } is incompatible with this quarto version.
+
+Extension requires: ${extension.quartoVersion.raw}
+Quarto version: ${quartoConfig.version()}`,
+    );
+  }
 }
 
 // Reads raw extension data
@@ -383,12 +399,20 @@ async function readExtension(
     "YAML Validation Failed",
   )) as Metadata;
 
+  const readVersionRange = (str: string): Range => {
+    return new Range(str);
+  };
+
   const contributes = yaml.contributes as Metadata | undefined;
 
   const title = yaml[kTitle] as string;
   const author = yaml[kAuthor] as string;
   const versionRaw = yaml[kVersion] as string | undefined;
+  const quartoVersionRaw = yaml[kQuartoVersion] as string | undefined;
   const versionParsed = versionRaw ? coerce(versionRaw) : undefined;
+  const quartoVersion = quartoVersionRaw
+    ? readVersionRange(quartoVersionRaw)
+    : undefined;
   const version = versionParsed ? versionParsed : undefined;
 
   // The directory containing this extension
@@ -443,6 +467,7 @@ async function readExtension(
     title,
     author,
     version,
+    quartoVersion,
     id: extensionId,
     path: extensionDir,
     contributes: {
@@ -451,6 +476,7 @@ async function readExtension(
       formats,
     },
   };
+  validateExtension(result);
   return result;
 }
 

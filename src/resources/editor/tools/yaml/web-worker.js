@@ -19397,6 +19397,11 @@ try {
             }
           },
           {
+            name: "quarto-version",
+            description: "Quarto version range. See https://docs.npmjs.com/cli/v6/using-npm/semver for syntax details.",
+            schema: "string"
+          },
+          {
             name: "contributes",
             schema: {
               object: {
