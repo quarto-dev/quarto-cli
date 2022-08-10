@@ -10655,7 +10655,8 @@ try {
             id: "semver",
             string: {
               pattern: "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$"
-            }
+            },
+            description: "Version number according to Semantic Versioning"
           }
         ],
         "schema/document-about.yml": [
@@ -12115,7 +12116,7 @@ try {
             schema: "string",
             tags: {
               formats: [
-                "$html-files",
+                "$html-doc",
                 "context",
                 "$pdf-all"
               ]
@@ -12130,7 +12131,7 @@ try {
             schema: "string",
             tags: {
               formats: [
-                "$html-files",
+                "$html-doc",
                 "context",
                 "$pdf-all"
               ]
@@ -12145,7 +12146,7 @@ try {
             schema: "string",
             tags: {
               formats: [
-                "$html-files",
+                "$html-doc",
                 "context",
                 "$pdf-all"
               ]
@@ -12358,7 +12359,7 @@ try {
             },
             tags: {
               formats: [
-                "$html-files",
+                "$html-doc",
                 "context",
                 "$pdf-all"
               ]

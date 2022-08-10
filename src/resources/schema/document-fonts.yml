@@ -1,7 +1,7 @@
 - name: mainfont
   schema: string
   tags:
-    formats: [$html-files, context, $pdf-all]
+    formats: [$html-doc, context, $pdf-all]
   description:
     short: Sets the main font for the document.
     long: |
@@ -18,7 +18,7 @@
 - name: monofont
   schema: string
   tags:
-    formats: [$html-files, context, $pdf-all]
+    formats: [$html-doc, context, $pdf-all]
   description:
     short: Sets the font used for when displaying code.
     long: |
@@ -37,7 +37,7 @@
 - name: fontsize
   schema: string
   tags:
-    formats: [$html-files, context, $pdf-all]
+    formats: [$html-doc, context, $pdf-all]
   description:
     short: Sets the main font size for the document.
     long: |
@@ -217,7 +217,7 @@
       - string
       - number
   tags:
-    formats: [$html-files, context, $pdf-all]
+    formats: [$html-doc, context, $pdf-all]
   description:
     short: Sets the line height or spacing for text in the document.
     long: |

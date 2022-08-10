@@ -10654,7 +10654,8 @@ var require_yaml_intelligence_resources = __commonJS({
           id: "semver",
           string: {
             pattern: "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$"
-          }
+          },
+          description: "Version number according to Semantic Versioning"
         }
       ],
       "schema/document-about.yml": [
@@ -12114,7 +12115,7 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "string",
           tags: {
             formats: [
-              "$html-files",
+              "$html-doc",
               "context",
               "$pdf-all"
             ]
@@ -12129,7 +12130,7 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "string",
           tags: {
             formats: [
-              "$html-files",
+              "$html-doc",
               "context",
               "$pdf-all"
             ]
@@ -12144,7 +12145,7 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "string",
           tags: {
             formats: [
-              "$html-files",
+              "$html-doc",
               "context",
               "$pdf-all"
             ]
@@ -12357,7 +12358,7 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           tags: {
             formats: [
-              "$html-files",
+              "$html-doc",
               "context",
               "$pdf-all"
             ]
