@@ -11121,7 +11121,7 @@ try {
             schema: "string",
             tags: {
               formats: [
-                "$html-files"
+                "$html-doc"
               ]
             },
             description: "Sets the CSS `color` property."
@@ -11131,7 +11131,7 @@ try {
             schema: "string",
             tags: {
               formats: [
-                "$html-files",
+                "$html-doc",
                 "context",
                 "$pdf-all"
               ]
@@ -11152,7 +11152,6 @@ try {
                 "slidy",
                 "slideous",
                 "s5",
-                "revealjs",
                 "dzslides"
               ]
             },
@@ -11163,7 +11162,7 @@ try {
             schema: "string",
             tags: {
               formats: [
-                "$html-files"
+                "$html-doc"
               ]
             },
             description: "Sets the CSS `background-color` property on the html element.\n"
@@ -17710,6 +17709,7 @@ try {
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Textual content to add to includes",
           "Name of file with content to add to includes",
+          "Version number according to Semantic Versioning",
           {
             short: "Unique label for code cell",
             long: "Unique label for code cell. Used when other code needs to refer to\nthe cell (e.g.&nbsp;for cross references <code>fig-samples</code> or\n<code>tbl-summary</code>)"
@@ -19395,6 +19395,11 @@ try {
             schema: {
               ref: "semver"
             }
+          },
+          {
+            name: "quarto-version",
+            description: "Quarto version range. See https://docs.npmjs.com/cli/v6/using-npm/semver for syntax details.",
+            schema: "string"
           },
           {
             name: "contributes",
