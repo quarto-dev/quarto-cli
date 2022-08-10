@@ -44,6 +44,7 @@
 ## Books
 
 - Support specifying and displaying DOI for books
+- Don't show chapter number in narrow HTML layouts (#1611)
 
 ## Preview
 
