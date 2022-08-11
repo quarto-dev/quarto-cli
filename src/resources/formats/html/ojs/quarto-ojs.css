@@ -14,8 +14,21 @@ div.cell + p {
   margin-top: 1rem;
 }
 
+div[nodetype="declaration"]:not([data-output="all"])
+  div.observablehq:not(observablehq--error) {
+  display: none;
+}
+
+/* mimic bootstrap behavior which is always correct in observablehq outputs */
+.observablehq a:not([href]):not([class]),
+.observablehq a:not([href]):not([class]):hover {
+  color: inherit;
+  text-decoration: none;
+}
+
 .observablehq .observablehq--inspect {
-  font-family: var(--bs-font-monospace);
+  --code-fallback: Consolas, monaco, monospace;
+  font-family: var(--bs-font-monospace, var(--code-fallback));
   font-size: 0.8em;
 }
 
