@@ -13,6 +13,9 @@ function htmlTablePattern()
   return tagPattern(htmlTableTagNamePattern())
 end
 
+function htmlPagedTablePattern()
+  return "<script data[-]pagedtable[-]source type=\"application/json\">"
+end
 
 function tagPattern(tag)
   local pattern = "(<" .. tag .. "[^>]*>)(.*)(</" .. tag .. ">)"
@@ -113,7 +116,7 @@ function countTables(div)
       tables = tables + 1
     end,
     RawBlock = function(raw)
-      if hasRawHtmlTable(raw) or hasRawLatexTable(raw) then
+      if hasRawHtmlTable(raw) or hasRawLatexTable(raw) or hasPagedHtmlTable(raw) then
         tables = tables + 1
       end
     end
@@ -121,6 +124,13 @@ function countTables(div)
   return tables
 end
 
+function hasPagedHtmlTable(raw)
+  if _quarto.format.isRawHtml(raw) and _quarto.format.isHtmlOutput() then
+    return raw.text:match(htmlPagedTablePattern())
+  else
+    return false
+  end
+end
 
 function hasRawHtmlTable(raw)
   if _quarto.format.isRawHtml(raw) and _quarto.format.isHtmlOutput() then
