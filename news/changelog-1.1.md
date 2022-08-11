@@ -97,3 +97,7 @@
 ## Format Templates
 
 - expand globs in template-partials (#1248)
+
+## Tables
+
+- support captions in HTML tables with `df-print: paged` (#1597)
