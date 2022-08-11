@@ -16,7 +16,9 @@ function tdump (tbl, indent)
   if tbl.t then
     print(string.rep("  ", indent) .. tbl.t)
   end
+  local empty = true
   for k, v in pairs(tbl) do
+    empty = false
     formatting = string.rep("  ", indent) .. k .. ": "
     if type(v) == "table" then
       print(formatting)
@@ -28,6 +30,9 @@ function tdump (tbl, indent)
     else 
       print(formatting .. 'nil')
     end
+  end
+  if empty then
+    print(string.rep("  ", indent) .. "<empty table>")
   end
 end
 
