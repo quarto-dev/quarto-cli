@@ -194,6 +194,14 @@ table,
   margin-bottom: 1.5rem;
 }
 
+div.tbl-cap-location-bottom table {
+  caption-side: bottom;
+}
+
+div.tbl-cap-location-top table {
+  caption-side: top;
+}
+
 caption,
 .table-caption {
   padding-top: 0.5rem;
