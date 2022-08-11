@@ -32,8 +32,9 @@
 - Better handle OJS code blocks that begin with empty lines
 - Better OJS support for dark vs light mode
 - Support passing Pandas Series
-- Update to latest OJS runtime
+- Update to latest OJS runtime (adding support for latest ObservableHQ runtime)
 - Fix multi-column regression (#1698)
+- hide declarations in hugo format (#1812)
 
 ## Websites
 
