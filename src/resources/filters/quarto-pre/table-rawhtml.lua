@@ -34,10 +34,18 @@ function tableMergeRawHtml()
   end
 end
 
+-- re-emits GT's CSS with lower specificity
+function respecifyGtCSS(text)
+  local s, e, v = text:find('<div id="([a-z]+)"')
+  return text:gsub("\n#" .. v, "\n:where(#" .. v .. ")")
+end
 
 function tableRenderRawHtml() 
   return {
     RawBlock = function(el)
+      if hasGtHtmlTable(el) then
+        el.text = respecifyGtCSS(el.text)
+      end
       if _quarto.format.isRawHtml(el) then
         -- if we have a raw html table in a format that doesn't handle raw_html
         -- then have pandoc parse the table into a proper AST table block
@@ -50,6 +58,7 @@ function tableRenderRawHtml()
           end
         end
       end
+      return el
     end
   }
 end
