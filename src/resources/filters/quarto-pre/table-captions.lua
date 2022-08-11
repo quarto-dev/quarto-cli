@@ -46,7 +46,7 @@ function tableCaptions()
                 tables,
                 tblCap,
                 tblSubCap
-              )
+              )              
               -- apply captions and label
               el.attr.identifier = mainLabel
               if mainCaption then
@@ -179,6 +179,17 @@ function applyTableCaptions(el, tblCaptions, tblLabels)
               raw.text = applyLatexTableCaption(raw.text, tblCaptions[idx], tblLabels[idx], pattern)
               break
             end
+          end
+        elseif hasPagedHtmlTable(raw) then
+          if #tblCaptions[idx] > 0 then
+            local captionText = pandoc.utils.stringify(tblCaptions[idx])
+            if #tblLabels[idx] > 0 then
+              captionText = captionText .. " {#" .. tblLabels[idx] .. "}"
+            end
+            local pattern = "(<div data[-]pagedtable=\"false\">)"
+            -- we don't have a table to insert a caption to, so we'll wrap the caption with a div and the right class instead
+            local replacement = "%1 <div class=\"table-caption\"><caption>" .. captionText:gsub("%%", "%%%%") .. "</caption></div>"
+            raw.text = raw.text:gsub(pattern, replacement)
           end
         end
        
