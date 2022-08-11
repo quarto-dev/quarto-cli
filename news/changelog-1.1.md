@@ -103,3 +103,4 @@
 ## Tables
 
 - support captions in HTML tables with `df-print: paged` (#1597)
+- GT tables in HTML format can be themed by quarto and follow quarto themes by default (#1834)
