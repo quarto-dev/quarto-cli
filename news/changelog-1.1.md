@@ -22,6 +22,7 @@
 ## Crossrefs
 
 - Use 'Appendix' as prefix for references to chapters in appendix
+- Index book crossrefs using shorter paths (fix path error seen in #1770)
 
 ## Code Blocks
 

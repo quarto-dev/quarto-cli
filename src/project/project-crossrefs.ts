@@ -5,6 +5,8 @@
 *
 */
 
+import { ensureDirSync, existsSync } from "fs/mod.ts";
+
 import { basename, isAbsolute, join, relative } from "path/mod.ts";
 import {
   kCrossref,
@@ -13,30 +15,54 @@ import {
   kCrossrefChaptersAppendix,
 } from "../config/constants.ts";
 import { Metadata } from "../config/types.ts";
+import { pathWithForwardSlashes } from "../core/path.ts";
+import { shortUuid } from "../core/uuid.ts";
 
 import { projectScratchPath } from "./project-scratch.ts";
 
 export const kCrossrefIndexFile = "crossref-index-file";
 export const kCrossrefResolveRefs = "crossref-resolve-refs";
 
-const kCrossrefDir = "crossref";
+const kCrossrefIndexDir = "xref";
 
-export function projectCrossrefDir(dir: string) {
-  return projectScratchPath(dir, kCrossrefDir);
-}
+type CrossrefIndex = Record<string, Record<string, string>>;
 
 export function crossrefIndexForOutputFile(
   projectDir: string,
   input: string,
   output: string,
 ) {
+  // ensure we are dealing with a project relative path to the input
+  // that uses forward slashes
   if (isAbsolute(input)) {
     input = relative(projectDir, input);
   }
-  return projectScratchPath(
-    projectDir,
-    join(kCrossrefDir, input, `${basename(output)}.json`),
-  );
+  input = pathWithForwardSlashes(input);
+
+  // read (or create) main index
+  const crossrefDir = projectScratchPath(projectDir, kCrossrefIndexDir);
+  ensureDirSync(crossrefDir);
+  const mainIndexFile = join(crossrefDir, "INDEX");
+  const mainIndex: CrossrefIndex = existsSync(mainIndexFile)
+    ? JSON.parse(Deno.readTextFileSync(mainIndexFile))
+    : {};
+
+  // ensure this input/output has an index entry
+  // (generate and rewrite index file if not)
+  const outputBaseFile = basename(output);
+  if (mainIndex[input]?.[outputBaseFile] === undefined) {
+    if (mainIndex[input] === undefined) {
+      mainIndex[input] = {};
+    }
+    mainIndex[input][outputBaseFile] = shortUuid();
+    Deno.writeTextFileSync(
+      mainIndexFile,
+      JSON.stringify(mainIndex, undefined, 2),
+    );
+  }
+
+  // return the file path
+  return join(crossrefDir, mainIndex[input]?.[outputBaseFile]);
 }
 
 export function deleteCrossrefMetadata(metadata: Metadata) {
