@@ -11,9 +11,7 @@ export function removeChapterNumber(item: Element) {
   const numberSpan = item.querySelector(".chapter-number");
   const titleSpan = item.querySelector(".chapter-title");
   if (numberSpan && titleSpan) {
-    if (numberSpan && titleSpan) {
-      item.innerHTML = "";
-      item.appendChild(titleSpan);
-    }
+    item.innerHTML = "";
+    item.appendChild(titleSpan);
   }
 }

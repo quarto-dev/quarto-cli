@@ -13,6 +13,13 @@ function htmlTablePattern()
   return tagPattern(htmlTableTagNamePattern())
 end
 
+function htmlPagedTablePattern()
+  return "<script data[-]pagedtable[-]source type=\"application/json\">"
+end
+
+function htmlGtTablePattern()
+  return "<table class=\"gt_table\">"
+end
 
 function tagPattern(tag)
   local pattern = "(<" .. tag .. "[^>]*>)(.*)(</" .. tag .. ">)"
@@ -113,7 +120,7 @@ function countTables(div)
       tables = tables + 1
     end,
     RawBlock = function(raw)
-      if hasRawHtmlTable(raw) or hasRawLatexTable(raw) then
+      if hasTable(raw) then
         tables = tables + 1
       end
     end
@@ -121,6 +128,21 @@ function countTables(div)
   return tables
 end
 
+function hasGtHtmlTable(raw)
+  if _quarto.format.isRawHtml(raw) and _quarto.format.isHtmlOutput() then
+    return raw.text:match(htmlGtTablePattern())
+  else
+    return false
+  end
+end
+
+function hasPagedHtmlTable(raw)
+  if _quarto.format.isRawHtml(raw) and _quarto.format.isHtmlOutput() then
+    return raw.text:match(htmlPagedTablePattern())
+  else
+    return false
+  end
+end
 
 function hasRawHtmlTable(raw)
   if _quarto.format.isRawHtml(raw) and _quarto.format.isHtmlOutput() then
@@ -141,4 +163,20 @@ function hasRawLatexTable(raw)
   else
     return false
   end
+end
+
+local tableCheckers = {
+  hasRawHtmlTable,
+  hasRawLatexTable,
+  hasPagedHtmlTable,
+}
+
+function hasTable(raw)
+  for i, checker in ipairs(tableCheckers) do
+    local val = checker(raw)
+    if val ~= nil then
+      return true
+    end
+  end
+  return false
 end

@@ -33,8 +33,9 @@
 - Better handle OJS code blocks that begin with empty lines
 - Better OJS support for dark vs light mode
 - Support passing Pandas Series
-- Update to latest OJS runtime
+- Update to latest OJS runtime (adding support for latest ObservableHQ runtime)
 - Fix multi-column regression (#1698)
+- hide declarations in hugo format (#1812)
 
 ## Websites
 
@@ -45,6 +46,7 @@
 ## Books
 
 - Support specifying and displaying DOI for books
+- Don't show chapter number in narrow HTML layouts (#1611)
 
 ## Preview
 
@@ -98,3 +100,8 @@
 ## Format Templates
 
 - expand globs in template-partials (#1248)
+
+## Tables
+
+- support captions in HTML tables with `df-print: paged` (#1597)
+- GT tables in HTML format can be themed by quarto and follow quarto themes by default (#1834)

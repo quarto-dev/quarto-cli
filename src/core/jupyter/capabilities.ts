@@ -73,7 +73,7 @@ function getQuartoJupyterCapabilities() {
       }
     }
     warning(
-      "Specified QUARTO_JUPYTER '" + quartoJupyter + "' does not exist.",
+      "Specified QUARTO_PYTHON '" + quartoJupyter + "' does not exist.",
     );
     return undefined;
   } else {
