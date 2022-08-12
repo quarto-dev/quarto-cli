@@ -44,7 +44,7 @@ export async function breakQuartoMd(
   );
   const startCodeRegEx = /^```/;
   const endCodeRegEx = /^\s*```+\s*$/;
-  const delimitMathBlockRegEx = /^\$\$/;
+  const delimitMathBlockRegEx = /(?:^\s*\$\$)|(?:\$\$\s*$)/;
   const singleLineMathBlockRegEx = /^\s*\$\$.+\$\$\s*$/;
 
   let language = ""; // current language block
