@@ -23,7 +23,7 @@ export interface QuartoMdCell {
   id?: string;
 
   // deno-lint-ignore camelcase
-  cell_type: CodeCellType | DirectiveCell | "markdown" | "raw" | "math";
+  cell_type: CodeCellType | DirectiveCell | "markdown" | "raw";
   options?: Record<string, unknown>;
 
   source: MappedString;

@@ -182,7 +182,6 @@ async function directDependencies(
       .filter((cell: QuartoMdCell) =>
         cell.cell_type !== "markdown" &&
         cell.cell_type !== "raw" &&
-        cell.cell_type !== "math" &&
         cell.cell_type?.language === "ojs"
       )
       .flatMap((v: QuartoMdCell) => v.source); // (concat)
@@ -219,7 +218,6 @@ export async function extractResolvedResourceFilenamesFromQmd(
     if (
       cell.cell_type !== "markdown" &&
       cell.cell_type !== "raw" &&
-      cell.cell_type !== "math" &&
       cell.cell_type?.language === "ojs"
     ) {
       pageResources.push(

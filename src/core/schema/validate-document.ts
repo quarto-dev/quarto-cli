@@ -94,8 +94,7 @@ export async function validateDocumentFromSource(
   for (const cell of nb.cells.slice(firstContentCellIndex)) {
     if (
       cell.cell_type === "markdown" ||
-      cell.cell_type === "raw" ||
-      cell.cell_type === "math"
+      cell.cell_type === "raw"
     ) {
       // not a language chunk
       continue;

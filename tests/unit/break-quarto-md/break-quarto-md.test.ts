@@ -50,26 +50,6 @@ Blah blah
   assert(cells.map((cell) => cell.sourceVerbatim.value).join("") === qmd);
 });
 
-unitTest("break-quarto-md - math", async () => {
-  await initYamlIntelligenceResourcesFromFilesystem();
-  const qmd = `---
-title: foo
----
-
-Some text;
-
-$$
-e = mc^2
-$$ {#eq-black-scholes}
-
-Some more text;
-`;
-
-  const cells = (await breakQuartoMd(qmd, false)).cells;
-  assert(cells.length === 4);
-  assert(!cells[3].source.value.startsWith("$$"));
-});
-
 unitTest("break-quarto-md - code", async () => {
   await initYamlIntelligenceResourcesFromFilesystem();
   const qmd = `---
@@ -152,32 +132,4 @@ And what about this?
 
   const cells = (await breakQuartoMd(qmd, false)).cells;
   assert(cells.length <= 2 || cells[2].cell_type === "markdown");
-});
-
-unitTest("break-quarto-md - math cells", async () => {
-  await initYamlIntelligenceResourcesFromFilesystem();
-
-  const qmd = `---
-title: test
----
-
-$$e = mc^2
-+ 1/2 mv^2 + 3/8 m \\frac{v^4}/\\frac{c^2} + O(v^6)$$
-
-$$e = mc^2
-+ 1/2 mv^2 + 3/8 m \\frac{v^4}/\\frac{c^2} + O(v^6)$$
-
-Another cell.
-`;
-
-  const cells = (await breakQuartoMd(qmd, false)).cells;
-  assert(
-    cells
-      .filter((cell) => cell.cell_type === "math")
-      .every((cell) =>
-        lines(cell.sourceVerbatim.value.trim()).every((line) =>
-          line.trim().length > 0
-        )
-      ),
-  );
 });

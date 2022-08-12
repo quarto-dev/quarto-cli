@@ -44,8 +44,6 @@ export async function breakQuartoMd(
   );
   const startCodeRegEx = /^```/;
   const endCodeRegEx = /^\s*```+\s*$/;
-  const delimitMathBlockRegEx = /(?:^\s*\$\$)|(?:\$\$\s*$)/;
-  const singleLineMathBlockRegEx = /^\s*\$\$.+\$\$\s*$/;
 
   let language = ""; // current language block
   let directiveParams: {
@@ -67,7 +65,6 @@ export async function breakQuartoMd(
       | "markdown"
       | "code"
       | "raw"
-      | "math"
       | "directive",
     index: number,
   ) => {
@@ -165,11 +162,10 @@ export async function breakQuartoMd(
 
   // loop through lines and create cells based on state transitions
   let inYaml = false,
-    inMathBlock = false,
     inCodeCell = false,
     inCode = 0; // inCode stores the tick count of the code block
 
-  const inPlainText = () => !inCodeCell && !inCode && !inMathBlock && !inYaml;
+  const inPlainText = () => !inCodeCell && !inCode && !inYaml;
 
   const isYamlDelimiter = (line: string, index: number, skipHRs?: boolean) => {
     if (!yamlRegEx.test(line)) {
@@ -197,7 +193,7 @@ export async function breakQuartoMd(
     // yaml front matter
     if (
       isYamlDelimiter(line.substring, i, !inYaml) &&
-      !inCodeCell && !inCode && !inMathBlock
+      !inCodeCell && !inCode
     ) {
       if (inYaml) {
         lineBuffer.push(line);
@@ -243,24 +239,6 @@ export async function breakQuartoMd(
     } else if (startCodeRegEx.test(line.substring) && inCode === 0) {
       inCode = tickCount(line.substring);
       lineBuffer.push(line);
-    } else if (singleLineMathBlockRegEx.test(line.substring)) {
-      await flushLineBuffer("markdown", i);
-      lineBuffer.push(line);
-      await flushLineBuffer("math", i);
-    } else if (delimitMathBlockRegEx.test(line.substring)) {
-      if (inMathBlock) {
-        lineBuffer.push(line);
-        await flushLineBuffer("math", i);
-      } else {
-        if (inYaml || inCode || inCodeCell) {
-          // TODO signal a parse error?
-          // for now, we just skip.
-        } else {
-          await flushLineBuffer("markdown", i);
-        }
-        lineBuffer.push(line);
-      }
-      inMathBlock = !inMathBlock;
     } else {
       lineBuffer.push(line);
     }
