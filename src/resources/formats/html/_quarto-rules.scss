@@ -505,3 +505,44 @@ div.ansi-escaped-output {
   --quarto-border-width: #{$border-width};
   --quarto-border-radius: #{$border-radius};
 }
+
+/* rules to support GT table styling */
+table.gt_table {
+  color: var(--quarto-body-color);
+  font-size: 1em;
+  width: 100%; // to match other table styling
+  background-color: transparent;
+  border-top-width: inherit;
+  border-bottom-width: inherit;
+  border-color: var(--quarto-border-color);
+}
+
+table.gt_table th.gt_col_heading {
+  color: var(--quarto-body-color);
+  font-weight: bold;
+  background-color: transparent;
+}
+
+table.gt_table thead.gt_col_headings {
+  border-bottom: 1px solid currentColor;
+  border-top-width: inherit;
+  border-top-color: var(--quarto-border-color);
+}
+
+table.gt_table thead.gt_col_headings:not(:first-child) {
+  border-top-width: 1px;
+  border-top-color: var(--quarto-border-color);
+}
+
+table.gt_table td.gt_row {
+  border-bottom-width: 1px;
+  border-bottom-color: var(--quarto-border-color);
+  border-top-width: 0px;
+}
+
+table.gt_table tbody.gt_table_body {
+  border-top-width: 1px;
+  border-bottom-width: 1px;
+  border-bottom-color: var(--quarto-border-color);
+  border-top-color: currentColor;
+}

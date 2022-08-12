@@ -18,10 +18,12 @@
 
 - Write additional citation metadata for compatibility with Highwire/Zotero (#1609)
 - Support for `nocite` within \_project.yml for book projects (#1660)
+- Improve support for Google Scholar metadata with extension to support Zotero / Highwire metadata (see https://quarto.org/docs/authoring/create-citeable-articles.html#citation-fields)
 
 ## Crossrefs
 
 - Use 'Appendix' as prefix for references to chapters in appendix
+- Index book crossrefs using shorter paths (fix path error seen in #1770)
 
 ## Code Blocks
 
@@ -55,10 +57,6 @@
 
 - Finnish localization (thanks @jkseppan)
 - Dutch localization (thanks @bwelman)
-
-## Citable Articles
-
-- Improve support for Google Scholar metadata with extension to support Zotero / Highwire metadata (see https://quarto.org/docs/authoring/create-citeable-articles.html#citation-fields)
 
 ## HTML Format
 
@@ -103,3 +101,4 @@
 ## Tables
 
 - support captions in HTML tables with `df-print: paged` (#1597)
+- GT tables in HTML format can be themed by quarto and follow quarto themes by default (#1834)
