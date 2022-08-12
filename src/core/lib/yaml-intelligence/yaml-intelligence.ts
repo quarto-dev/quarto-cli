@@ -841,9 +841,6 @@ async function automationFromGoodParseMarkdown(
       context = trimTicks(context);
 
       return automationFromGoodParseYAML(kind, context);
-    } else if (foundCell.cell_type === "math") {
-      // we're inside a math cell, no completions
-      return noCompletions;
     } else if (foundCell.cell_type === "markdown") {
       // we're inside a markdown, no completions
       return noCompletions;
@@ -885,8 +882,8 @@ async function automationFromGoodParseMarkdown(
           }),
         ) as ValidationResult[];
         lints.push(...innerLints);
-      } else if (cell.cell_type === "markdown" || cell.cell_type === "math") {
-        // nothing to lint in markdown or math cells
+      } else if (cell.cell_type === "markdown") {
+        // nothing to lint in markdown cells
         continue;
       } else if (cell.cell_type.language) {
         if (cell.cell_type.language === "_directive") {

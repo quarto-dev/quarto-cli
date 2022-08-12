@@ -656,8 +656,7 @@ export async function ojsCompile(
 
     if (
       cell.cell_type === "raw" ||
-      cell.cell_type === "markdown" ||
-      cell.cell_type === "math"
+      cell.cell_type === "markdown"
     ) {
       // The lua filter is in charge of this, we're a NOP.
       ls.push(cell.sourceVerbatim);

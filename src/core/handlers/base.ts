@@ -339,7 +339,6 @@ export async function handleLanguageCells(
       i === 0 ? cell.sourceVerbatim : mappedConcat(["\n", cell.sourceVerbatim]),
     );
     if (
-      cell.cell_type === "math" ||
       cell.cell_type === "raw" ||
       cell.cell_type === "markdown"
     ) {

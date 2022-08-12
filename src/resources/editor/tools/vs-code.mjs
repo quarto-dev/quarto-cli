@@ -11120,7 +11120,7 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "string",
           tags: {
             formats: [
-              "$html-files"
+              "$html-doc"
             ]
           },
           description: "Sets the CSS `color` property."
@@ -11130,7 +11130,7 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "string",
           tags: {
             formats: [
-              "$html-files",
+              "$html-doc",
               "context",
               "$pdf-all"
             ]
@@ -11151,7 +11151,6 @@ var require_yaml_intelligence_resources = __commonJS({
               "slidy",
               "slideous",
               "s5",
-              "revealjs",
               "dzslides"
             ]
           },
@@ -11162,7 +11161,7 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "string",
           tags: {
             formats: [
-              "$html-files"
+              "$html-doc"
             ]
           },
           description: "Sets the CSS `background-color` property on the html element.\n"
@@ -17709,6 +17708,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Textual content to add to includes",
         "Name of file with content to add to includes",
+        "Version number according to Semantic Versioning",
         {
           short: "Unique label for code cell",
           long: "Unique label for code cell. Used when other code needs to refer to\nthe cell (e.g.&nbsp;for cross references <code>fig-samples</code> or\n<code>tbl-summary</code>)"
@@ -27735,8 +27735,6 @@ async function breakQuartoMd(src, validate2 = false) {
   const startCodeCellRegEx = new RegExp("^\\s*```+\\s*\\{([=A-Za-z]+)( *[ ,].*)?\\}\\s*$");
   const startCodeRegEx = /^```/;
   const endCodeRegEx = /^\s*```+\s*$/;
-  const delimitMathBlockRegEx = /^\$\$/;
-  const singleLineMathBlockRegEx = /^\s*\$\$.+\$\$\s*$/;
   let language = "";
   let directiveParams = void 0;
   let cellStartLine = 0;
@@ -27807,8 +27805,8 @@ async function breakQuartoMd(src, validate2 = false) {
     }
   };
   const tickCount = (s) => Array.from(s.split(" ")[0] || "").filter((c) => c === "`").length;
-  let inYaml = false, inMathBlock = false, inCodeCell = false, inCode = 0;
-  const inPlainText = () => !inCodeCell && !inCode && !inMathBlock && !inYaml;
+  let inYaml = false, inCodeCell = false, inCode = 0;
+  const inPlainText = () => !inCodeCell && !inCode && !inYaml;
   const isYamlDelimiter = (line, index, skipHRs) => {
     if (!yamlRegEx.test(line)) {
       return false;
@@ -27822,7 +27820,7 @@ async function breakQuartoMd(src, validate2 = false) {
   for (let i = 0; i < srcLines.length; ++i) {
     const line = srcLines[i];
     const directiveMatch = isBlockShortcode(line.substring);
-    if (isYamlDelimiter(line.substring, i, !inYaml) && !inCodeCell && !inCode && !inMathBlock) {
+    if (isYamlDelimiter(line.substring, i, !inYaml) && !inCodeCell && !inCode) {
       if (inYaml) {
         lineBuffer.push(line);
         await flushLineBuffer("raw", i);
@@ -27856,22 +27854,6 @@ async function breakQuartoMd(src, validate2 = false) {
     } else if (startCodeRegEx.test(line.substring) && inCode === 0) {
       inCode = tickCount(line.substring);
       lineBuffer.push(line);
-    } else if (singleLineMathBlockRegEx.test(line.substring)) {
-      await flushLineBuffer("markdown", i);
-      lineBuffer.push(line);
-      await flushLineBuffer("math", i);
-    } else if (delimitMathBlockRegEx.test(line.substring)) {
-      if (inMathBlock) {
-        lineBuffer.push(line);
-        await flushLineBuffer("math", i);
-      } else {
-        if (inYaml || inCode || inCodeCell) {
-        } else {
-          await flushLineBuffer("markdown", i);
-        }
-        lineBuffer.push(line);
-      }
-      inMathBlock = !inMathBlock;
     } else {
       lineBuffer.push(line);
     }
@@ -28199,7 +28181,7 @@ async function createVirtualDocument(context, replacement = " ") {
           }
         }
         schema2 = await getFrontMatterSchema();
-      } else if (cell.cell_type === "markdown" || cell.cell_type === "math") {
+      } else if (cell.cell_type === "markdown") {
         chunks.push(cell.sourceVerbatim.value.replace(/[^\r\n]/g, replacement));
       } else {
         schema2 = (await getEngineOptionsSchema())[context.engine || "markdown"];
@@ -28731,8 +28713,6 @@ async function automationFromGoodParseMarkdown(kind, context) {
       }
       context = trimTicks(context);
       return automationFromGoodParseYAML(kind, context);
-    } else if (foundCell.cell_type === "math") {
-      return noCompletions;
     } else if (foundCell.cell_type === "markdown") {
       return noCompletions;
     } else if (foundCell.cell_type.language) {
@@ -28766,7 +28746,7 @@ async function automationFromGoodParseMarkdown(kind, context) {
           positionKind: "metadata"
         }));
         lints.push(...innerLints);
-      } else if (cell.cell_type === "markdown" || cell.cell_type === "math") {
+      } else if (cell.cell_type === "markdown") {
         continue;
       } else if (cell.cell_type.language) {
         if (cell.cell_type.language === "_directive") {

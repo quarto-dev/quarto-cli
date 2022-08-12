@@ -200,7 +200,7 @@ export async function createVirtualDocument(
           }
         }
         schema = await getFrontMatterSchema();
-      } else if (cell.cell_type === "markdown" || cell.cell_type === "math") {
+      } else if (cell.cell_type === "markdown") {
         // no yaml in a markdown block;
         chunks.push(cell.sourceVerbatim.value.replace(/[^\r\n]/g, replacement));
       } else {
