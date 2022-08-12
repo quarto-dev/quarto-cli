@@ -6,58 +6,106 @@ kTblSubCap = "tbl-subcap"
 
 local latexCaptionPattern =  "(\\caption{)(.-)(}[^\n]*\n)"
 
+function knitrNoTable(text)
+  if text:match(_quarto.patterns.latexTablePattern) then
+    return false
+  end
+  for i, pattern in ipairs(_quarto.patterns.latexTabularPatterns) do
+    if text:match(pattern) then
+      return pattern
+    end
+  end
+  for i, pattern in ipairs(_quarto.patterns.latexLongTablePatterns) do
+    if text:match(pattern) then
+      return pattern
+    end
+  end
+  return false
+end
+
+local formatTableCapLocation
+
+function getTableCapLocationFromAttrs(el)
+  if tcontains(el.attr.classes, "tbl-cap-location-bottom") then
+    return "bottom"
+  elseif tcontains(el.attr.classes, "tbl-cap-location-top") then
+    return "bottom"
+  elseif tcontains(el.attr.classes, "tbl-cap-location-margin") then
+    return "margin"
+  else
+    return nil
+  end  
+end
+
+function getTableCapLocation(el)
+  return getTableCapLocationFromAttrs(el) or formatTableCapLocation or "top"
+end 
+
 function tableCaptions() 
   
   return {
+    Meta = function(meta)
+      formatTableCapLocation = meta['tbl-cap-location']
+    end,
    
     Div = function(el)
       if tcontains(el.attr.classes, "cell") then
         -- extract table attributes
-        local tblCap = extractTblCapAttrib(el,kTblCap)
-        local tblSubCap = extractTblCapAttrib(el, kTblSubCap, true)
-        if hasTableRef(el) or tblCap then
-          local tables = countTables(el)
-          if tables > 0 then
-           
-            -- apply captions and labels if we have a tbl-cap or tbl-subcap
-            if tblCap or tblSubCap then
-  
-              -- special case: knitr::kable will generate a \begin{tablular} without
-              -- a \begin{table} wrapper -- put the wrapper in here if need be
-              if _quarto.format.isLatexOutput() then
-                el = pandoc.walk_block(el, {
-                  RawBlock = function(raw)
-                    if _quarto.format.isRawLatex(raw) then
-                      if raw.text:match(_quarto.patterns.latexTabularPattern) and not raw.text:match(_quarto.patterns.latexTablePattern) then
-                        raw.text = raw.text:gsub(_quarto.patterns.latexTabularPattern, 
-                                                "\\begin{table}\n\\centering\n%1%2%3\n\\end{table}\n",
-                                                1)
-                        return raw                       
-                      end
-                    end
+
+        local tables = countTables(el)
+
+        if tables > 0 then
+          local tblCap = extractTblCapAttrib(el,kTblCap)
+          local tblSubCap = extractTblCapAttrib(el, kTblSubCap, true)
+          
+          local someTableHadEmbeddedCaptions = false
+
+          -- tables might come with their own caption, so we need to check them all
+          -- special case: knitr::kable will generate a \begin{tabular} without
+          -- a \begin{table} wrapper -- put the wrapper in here if need be
+          if _quarto.format.isLatexOutput() then
+            el = pandoc.walk_block(el, {
+              RawBlock = function(raw)
+                if _quarto.format.isRawLatex(raw) then
+                  someTableHadEmbeddedCaptions = someTableHadEmbeddedCaptions or raw.text:match(latexCaptionPattern)
+                  local noTablePattern = knitrNoTable(raw.text)
+                  if noTablePattern then
+                    raw.text = raw.text:gsub(noTablePattern,
+                                            "\\begin{table}[h]\n\\centering\n%1%2%3\n\\end{table}\n",
+                                            1)
+                    return raw                       
                   end
-                })
+                end
               end
-  
-              -- compute all captions and labels
-              local label = el.attr.identifier
-              local mainCaption, tblCaptions, mainLabel, tblLabels = tableCaptionsAndLabels(
-                label,
-                tables,
-                tblCap,
-                tblSubCap
-              )              
-              -- apply captions and label
-              el.attr.identifier = mainLabel
-              if mainCaption then
-                el.content:insert(pandoc.Para(mainCaption))
-              end
-              if #tblCaptions > 0 then
-                el = applyTableCaptions(el, tblCaptions, tblLabels)
-              end
-              return el
-            end
+            })
           end
+          
+          if tblCap or tblSubcap or someTableHadEmbeddedCaptions then
+            -- compute all captions and labels
+            local label = el.attr.identifier
+            local mainCaption, tblCaptions, mainLabel, tblLabels = tableCaptionsAndLabels(
+              label,
+              tables,
+              tblCap,
+              tblSubCap,
+              someTableHadEmbeddedCaptions
+            )              
+            if someTableHadEmbeddedCaptions then
+              el = fixupEmbeddedCaptionTables(el)
+            end
+
+            -- apply captions and label
+            el.attr.identifier = mainLabel
+            if mainCaption then
+              el.content:insert(pandoc.Para(mainCaption))
+            end
+            if #tblCaptions > 0 then
+              el = applyTableCaptions(el, tblCaptions, tblLabels)
+            end
+            return el
+          end
+
+          
         end
       end
       
@@ -67,7 +115,63 @@ function tableCaptions()
 
 end
 
-function tableCaptionsAndLabels(label, tables, tblCap, tblSubCap)
+-- we can't really just search for the next matching brace here
+-- because many captions will have nested braces.
+function findCaption(text)
+  local b, e = text:find("\\caption{")
+  if b == nil then
+    return nil
+  end
+  local count = 1
+  for i=e+1,text:len(text) do
+    local c = text:sub(i, i)
+    if c == "{" then
+      count = count + 1
+    elseif c == "}" then
+      count = count - 1
+    end
+    if count == 0 then
+      -- we know that knitr inserts a \\ line break; let's take that with us
+      return b, i+2, text:sub(b, i+2)
+    end
+  end
+  return nil
+end
+
+function fixupEmbeddedCaptionTables(el)
+  local loc = getTableCapLocation(el)
+  return pandoc.walk_block(el, {
+    RawBlock = function(raw)
+      if _quarto.format.isRawLatex(raw) and raw.text:match(latexCaptionPattern) and loc == "bottom" then
+        local capStart, capEnd, cap = findCaption(raw.text)
+        -- if caption couldn't be found, don't fixup.
+        if capStart == nil then
+          return
+        end
+
+        local patterns = {
+          "(\\end{tabular})",
+          "(\\end{longtable})"
+        }
+        
+        for _, pattern in pairs(patterns) do
+          local b, e = raw.text:find(pattern)
+          if b ~= nil then
+            raw.text = (raw.text:sub(1, capStart - 1) .. 
+              raw.text:sub(capEnd + 1, b - 1) ..
+              cap:sub(1, cap:len() - 2) ..
+              raw.text:sub(b, raw.text:len()))
+            print("PATCH")
+            print(raw.text)
+            return raw
+          end
+        end
+      end
+    end
+  })
+end
+
+function tableCaptionsAndLabels(label, tables, tblCap, tblSubCap, someTableHadEmbeddedCaptions)
   
   local mainCaption = nil
   local tblCaptions = pandoc.List()
@@ -75,7 +179,7 @@ function tableCaptionsAndLabels(label, tables, tblCap, tblSubCap)
   local tblLabels = pandoc.List()
 
   -- case: no subcaps (no main caption or label, apply caption(s) to tables)
-  if not tblSubCap then
+  if not tblSubCap and not someTableHadEmbeddedCaptions then
     -- case: single table (no label interpolation)
     if tables == 1 then
       tblCaptions:insert(markdownToInlines(tblCap[1]))
@@ -99,7 +203,7 @@ function tableCaptionsAndLabels(label, tables, tblCap, tblSubCap)
     end
   
   -- case: subcaps
-  else
+  elseif tblSubCap then
     mainLabel = label
     if mainLabel == "" then
       mainLabel = anonymousTblId()
@@ -121,6 +225,9 @@ function tableCaptionsAndLabels(label, tables, tblCap, tblSubCap)
         tblLabels:insert("")
       end
     end
+  else
+    -- case: embedded captions. This came from knitr. Let's just put the caption in the right place.
+    
   end
 
   return mainCaption, tblCaptions, mainLabel, tblLabels
