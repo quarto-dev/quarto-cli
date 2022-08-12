@@ -37,6 +37,7 @@
 - Update to latest OJS runtime (adding support for latest ObservableHQ runtime)
 - Fix multi-column regression (#1698)
 - hide declarations in hugo format (#1812)
+- enable OJS runtime in the presence of `ojs_define` (#1846)
 
 ## Websites
 
