@@ -93,6 +93,7 @@
 - `QUARTO_PRINT_STACK` environment variable to print stack along with error messages
 - More compact download progress when installing Quarto tools in CI environments
 - Ignore case when loading date local files from `lang`
+- Don't break cells incorrectly with math expressions (#1781)
 
 ## Format Templates
 
