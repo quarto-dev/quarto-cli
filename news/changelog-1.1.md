@@ -18,6 +18,7 @@
 
 - Write additional citation metadata for compatibility with Highwire/Zotero (#1609)
 - Support for `nocite` within \_project.yml for book projects (#1660)
+- Improve support for Google Scholar metadata with extension to support Zotero / Highwire metadata (see https://quarto.org/docs/authoring/create-citeable-articles.html#citation-fields)
 
 ## Crossrefs
 
@@ -56,10 +57,6 @@
 
 - Finnish localization (thanks @jkseppan)
 - Dutch localization (thanks @bwelman)
-
-## Citable Articles
-
-- Improve support for Google Scholar metadata with extension to support Zotero / Highwire metadata (see https://quarto.org/docs/authoring/create-citeable-articles.html#citation-fields)
 
 ## HTML Format
 
