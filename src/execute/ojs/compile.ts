@@ -110,6 +110,14 @@ export async function ojsCompile(
 ): Promise<OjsCompileResult> {
   const { markdown, project, ojsBlockLineNumbers } = options;
 
+  const output = await breakQuartoMd(markdown, true);
+
+  // This is a pretty crude check, but
+  // we can't actually make good use breakQuartoMd's output here
+  // because the {r} and {python} cells have already been
+  // executed by the engine.
+  const hasOjsDefines = markdown.value.indexOf("ojs_define") !== -1;
+
   // if ojs-engine is explicitly `false` or it's an unsupported format,
   // do nothing
   if (
@@ -123,7 +131,9 @@ export async function ojsCompile(
   // if ojs-engine is not explicitly `true` and we couldn't detect an ojs cell,
   // do nothing
   if (
-    (options.format.metadata?.["ojs-engine"] !== true) && !languages.has("ojs")
+    (options.format.metadata?.["ojs-engine"] !== true) &&
+    !languages.has("ojs") &&
+    !hasOjsDefines
   ) {
     return { markdown: markdown };
   }
@@ -135,8 +145,6 @@ export async function ojsCompile(
     "gfm",
     "commonmark",
   ]);
-
-  const output = await breakQuartoMd(markdown, true);
 
   let ojsCellID = 0;
   let ojsBlockIndex = 0; // this is different from ojsCellID because of inline cells.
