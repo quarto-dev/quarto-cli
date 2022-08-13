@@ -51,7 +51,6 @@ import {
   shouldLabelOutputContainer,
 } from "./labels.ts";
 import {
-  cellHasOnlyMarkdownDisplayData,
   displayDataIsHtml,
   displayDataIsImage,
   displayDataIsJavascript,
