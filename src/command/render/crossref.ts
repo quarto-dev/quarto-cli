@@ -22,6 +22,8 @@ import {
   kCrossrefIndexFile,
 } from "../../project/project-crossrefs.ts";
 import { pandocMetadataPath } from "./render-paths.ts";
+import { isMultiFileBookFormat } from "../../project/types/book/book-shared.ts";
+import { projectIsBook } from "../../project/project-context.ts";
 
 export function crossrefFilter() {
   return resourcePath("filters/crossref/crossref.lua");
@@ -70,13 +72,20 @@ export function crossrefFilterParams(
 
   // always create crossref index for projects
   if (options.project) {
-    params[kCrossrefIndexFile] = pandocMetadataPath(
-      crossrefIndexForOutputFile(
-        options.project!.dir,
-        options.source,
-        options.output,
-      ),
-    );
+    // if its a book then only write for multi-file (as otherwise all of the
+    // crossref entries will end in a single index file)
+    if (
+      !projectIsBook(options.project) || isMultiFileBookFormat(options.format)
+    ) {
+      params[kCrossrefIndexFile] = pandocMetadataPath(
+        crossrefIndexForOutputFile(
+          options.project!.dir,
+          options.source,
+          options.output,
+        ),
+      );
+    }
+
     // caller may have requested that a crossref index be written
   } else {
     const crossrefIndex = Deno.env.get("QUARTO_CROSSREF_INDEX_PATH");
