@@ -8,6 +8,7 @@
 
 - Correct handling of `knitr::include_graphics()` within inline expressions.
 - Improve error message for HTML being emitted in non-HTMl formats (#1745)
+- Compatibility with rgl plots (#1800, thanks @dmurdoch)
 
 ## Pandoc
 
