@@ -3,12 +3,6 @@
 
 function resourceRefs() 
   
-  -- for docx single single file books we've already processed the refs
-  -- as part of a workaround for this issue https://github.com/jgm/pandoc/issues/8099
-  if param("single-file-book", false) and _quarto.format.isDocxOutput() then
-    return {}
-  end
-
   return {
     Image = function(el)
       local file = currentFileMetadataState().file

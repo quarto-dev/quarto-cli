@@ -13,6 +13,7 @@
 
 - Update to Pandoc 2.19
 - Support for `embed-resources` document option
+- Remove workaound for https://github.com/jgm/pandoc/issues/8099
 
 ## References
 

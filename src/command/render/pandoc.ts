@@ -905,35 +905,6 @@ export async function runPandoc(
     );
   }
 
-  // for docx books we need to run a resolveRefs pass
-  // workaround until this issue is resolved: https://github.com/jgm/pandoc/issues/8099
-  if (isDocxOutput(options.format.pandoc) && projectIsBook(options.project)) {
-    const docxCmd = [
-      pandocBinaryPath(),
-      inputTemp,
-      "--to",
-      "markdown",
-      "--output",
-      inputTemp,
-      "--lua-filter",
-      quartoInitFilter(),
-      "--data-dir",
-      resourcePath("pandoc/datadir"),
-    ];
-    const docxResult = await execProcess(
-      {
-        cmd: docxCmd,
-        cwd,
-        env: {
-          "QUARTO_FILTER_PARAMS": base64Encode(paramsJson),
-        },
-      },
-    );
-    if (!docxResult.success) {
-      throw new Error();
-    }
-  }
-
   // workaround for our wonky Lua timing routines
   const luaEpoch = await getLuaTiming();
 
