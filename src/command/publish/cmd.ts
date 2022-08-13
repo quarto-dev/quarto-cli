@@ -25,6 +25,7 @@ import {
 } from "../../core/lib/yaml-validation/state.ts";
 import {
   projectContext,
+  projectInputFiles,
   projectIsWebsite,
 } from "../../project/project-context.ts";
 
@@ -312,17 +313,28 @@ async function createPublishOptions(
     );
   }
   // determine publish input
-  let input: ProjectContext | string;
+  let input: ProjectContext | string | undefined;
 
-  // check for website project
+  // check for directory (either website or single-file project)
   const project = await projectContext(path);
   if (Deno.statSync(path).isDirectory) {
-    if (!project || !projectIsWebsite(project)) {
+    if (project) {
+      if (projectIsWebsite(project)) {
+        input = project;
+      } else if (project.files.input.length === 1) {
+        input = project.files.input[0];
+      }
+    } else {
+      const inputFiles = projectInputFiles(path);
+      if (inputFiles.files.length === 1) {
+        input = inputFiles.files[0];
+      }
+    }
+    if (!input) {
       throw new Error(
         `The specified path (${path}) is not a website or book project so cannot be published.`,
       );
     }
-    input = project;
   } // single file path
   else {
     // if there is a project associated with this file then it can't be a website or book

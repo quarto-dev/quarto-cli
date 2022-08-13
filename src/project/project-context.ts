@@ -509,7 +509,7 @@ function projectHiddenIgnoreGlob(dir: string) {
     .concat(["**/README.?([Rrq])md"]); // README
 }
 
-function projectInputFiles(
+export function projectInputFiles(
   dir: string,
   metadata?: ProjectConfig,
 ): { files: string[]; engines: string[] } {

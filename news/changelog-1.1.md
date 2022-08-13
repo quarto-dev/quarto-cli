@@ -54,6 +54,10 @@
 
 - Don't attempt to open browser when in a server session
 
+## Publish
+
+- Automatically detect single file publishing source within directory
+
 ## Localization
 
 - Finnish localization (thanks @jkseppan)
