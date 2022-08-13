@@ -163,6 +163,8 @@ if (utils::packageVersion("knitr") >= "1.32.8") {
       knitr:::sew.list(x, options, ...)
     } else if (inherits(x, "recordedplot")) {
       knitr:::sew.recordedplot(x, options, ...)
+    } else if (inherits(x, "rglRecordedplot") && requireNamespace("rgl")) {
+      rgl:::sew.rglRecordedplot(x, options, ...)
     } else {
       # this works generically for recent versions of R however
       # not for R < 3.5
