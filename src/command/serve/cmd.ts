@@ -35,11 +35,11 @@ export const serveCommand = new Command()
   )
   .example(
     "Serve an interactive Shiny document",
-    "quarto serve dashboard.Rmd",
+    "quarto serve dashboard.qmd",
   )
   .example(
     "Serve a document without rendering",
-    "quarto serve dashboard.Rmd --no-render",
+    "quarto serve dashboard.qmd --no-render",
   )
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, input?: string) => {
