@@ -18,7 +18,7 @@ import { crypto } from "crypto/mod.ts";
 import { encode as hexEncode } from "encoding/hex.ts";
 
 import { sleep } from "../../core/wait.ts";
-import { pathWithForwardSlashes } from "../../core/path.ts"
+import { pathWithForwardSlashes } from "../../core/path.ts";
 import { completeMessage, withSpinner } from "../../core/console.ts";
 import { fileProgress } from "../../core/progress.ts";
 
