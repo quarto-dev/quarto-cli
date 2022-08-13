@@ -154,9 +154,44 @@ async function resolveTarget(
   const client = new NetlifyClient({
     TOKEN: account.token,
   });
+  // get the site
   const site = await client.site.getSite({ siteId: target.id });
+
+  // if it doesn't have asset optimization disabled then do that
+  // (but leave image optimization enabled)
+  if (updateProcessingSettings(site)) {
+    await client.site.updateSite({
+      siteId: target.id,
+      site: {
+        processing_settings: {
+          css: {
+            bundle: false,
+            minify: false,
+          },
+          html: {
+            pretty_urls: false,
+          },
+          js: {
+            bundle: false,
+            minify: false,
+          },
+        },
+      },
+    });
+  }
+
+  // return the target url
   target.url = site?.ssl_url || site?.url || target.url;
   return target;
+}
+
+function updateProcessingSettings(site: Site) {
+  return site.processing_settings?.skip !== true &&
+    (site.processing_settings?.css?.bundle ||
+      site.processing_settings?.css?.minify ||
+      site.processing_settings?.html?.pretty_urls ||
+      site.processing_settings?.js?.bundle ||
+      site.processing_settings?.js?.minify);
 }
 
 function publish(
@@ -181,6 +216,9 @@ function publish(
         await client.site.createSite({
           site: {
             force_ssl: true,
+            processing_settings: {
+              skip: true,
+            },
           },
         }) as unknown as Site,
       );

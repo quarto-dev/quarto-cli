@@ -58,6 +58,7 @@
 ## Publish
 
 - Automatically detect single file publishing source within directory
+- Automatically disable Netlify css/html/js asset optimization
 
 ## Localization
 
