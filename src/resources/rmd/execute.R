@@ -477,7 +477,7 @@ create_pandoc_includes <- function(includes, tempDir) {
 
 # preserve chunks marked w/ e.g. html_preserve
 extract_preserve_chunks <- function(output_file, format) {
-  if (knitr::is_html_output(format$pandoc$to)) {
+  if (is_pandoc_html_format(format)) {
     extract <- htmltools::extractPreserveChunks
   } else if (format$pandoc$to == "rtf") {
     extract <- knitr::extract_raw_output

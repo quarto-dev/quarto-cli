@@ -79,6 +79,10 @@
 - Don't ignore auto stretch rules when speaker notes are present
 - Target references and footnotes slides for citation and footnote links
 
+## ePub Format
+
+- Don't do knitr post-processing for ePub format (corrupts epub output file)
+
 ## Mermaid diagrams
 
 - support `echo: true` and other per-document settings (#1485)
