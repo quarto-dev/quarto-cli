@@ -1,6 +1,25 @@
 -- theorems.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
+-- preprocess theorem to ensure that embedded headings are unnumered
+function preprocessTheorems()
+  local types = theoremTypes
+  return {
+    Div = function(el)
+      local type = refType(el.attr.identifier)
+      if types[type] ~= nil or proofType(el) ~= nil then
+        return pandoc.walk_block(el, {
+          Header = function(el)
+            el.classes:insert("unnumbered")
+            return el
+          end
+        })
+      end
+
+    end
+  }
+end
+
 function theorems()
 
   local types = theoremTypes
@@ -116,8 +135,13 @@ function theorems()
               span.content:insert(pandoc.Str(")"))
             end
             tappend(span.content, { pandoc.Str(". ")})
-            if #el.content > 0 and #el.content[1].content > 0 then
+            if #el.content > 0 and 
+               el.content[1].content ~= nil and #el.content[1].content > 0 then
               el.content[1].content:insert(1, span)
+            else
+              -- if the first block can't handle content insertion
+              -- then insert a new paragraph
+              el.content:insert(1, pandoc.Para{span})
             end
           end
 

@@ -53,6 +53,7 @@ initIndex()
 return {
   initCrossrefOptions(),
   preprocess(),
+  preprocessTheorems(),
   combineFilters({
     fileMetadata(),
     sections(),
