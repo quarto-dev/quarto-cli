@@ -130,7 +130,7 @@ import {
   RunPandocResult,
 } from "./types.ts";
 import { crossrefFilterActive } from "./crossref.ts";
-import { selectInputPostprocessor } from "./layout.ts";
+import { overflowXPostprocessor } from "./layout.ts";
 import {
   codeToolsPostprocessor,
   formatHasCodeTools,
@@ -337,7 +337,7 @@ export async function runPandoc(
 
     if (isHtmlFileOutput(options.format.pandoc)) {
       // add a post-processor for fixing overflow-x in cell output display
-      htmlPostprocessors.push(selectInputPostprocessor);
+      htmlPostprocessors.push(overflowXPostprocessor);
 
       // katex post-processor
       if (

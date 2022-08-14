@@ -36,16 +36,21 @@ export function layoutFilterParams(format: Format) {
   return params;
 }
 
-export function selectInputPostprocessor(
+export function overflowXPostprocessor(
   doc: Document,
 ): Promise<HtmlPostProcessResult> {
   // look for cell-output-display (these will have overflow-x set on them which we
-  // will want to disable if there are seledct inputs inside)
+  // will want to disable in some conditions)
   const outputs = doc.querySelectorAll(".cell-output-display");
   for (let i = 0; i < outputs.length; i++) {
     const output = outputs[i] as Element;
-    const hasSelect = !!output.querySelector("select");
-    if (hasSelect) {
+    const noOverflowX =
+      // select inputs end up having their drop down truncated
+      !!output.querySelector("select") ||
+      // the rgl htmlwidget barely overflows the container and gets scrollbars
+      // see https://github.com/quarto-dev/quarto-cli/issues/1800
+      !!output.querySelector(".rglWebGL");
+    if (noOverflowX) {
       output.classList.add("no-overflow-x");
     }
   }
