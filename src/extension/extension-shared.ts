@@ -4,7 +4,7 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import SemVer from "semver/mod.ts";
+import SemVer, { Range } from "semver/mod.ts";
 import { Metadata, QuartoFilter } from "../config/types.ts";
 import { ProjectContext } from "../project/types.ts";
 
@@ -14,6 +14,7 @@ export const kExtensionDir = "_extensions";
 export const kTitle = "title";
 export const kAuthor = "author";
 export const kVersion = "version";
+export const kQuartoVersion = "quarto-version";
 
 // TODO: rename format => formats
 export interface Extension extends Record<string, unknown> {
@@ -21,6 +22,7 @@ export interface Extension extends Record<string, unknown> {
   title: string;
   author: string;
   version?: SemVer;
+  quartoVersion?: Range;
   path: string;
   contributes: {
     shortcodes?: string[];
