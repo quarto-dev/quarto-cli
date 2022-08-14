@@ -78,6 +78,7 @@
 
 - Don't ignore auto stretch rules when speaker notes are present
 - Target references and footnotes slides for citation and footnote links
+- Automatically include chalkboard src json as a resource when publishing
 
 ## ePub Format
 

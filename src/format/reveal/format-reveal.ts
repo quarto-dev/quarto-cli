@@ -649,7 +649,21 @@ function revealHtmlPostprocessor(
     // apply stretch to images as required
     applyStretch(doc, format.metadata[kAutoStretch] as boolean);
 
-    return Promise.resolve(kHtmlEmptyPostProcessResult);
+    // include chalkboard src json if specified
+    const result: HtmlPostProcessResult = {
+      resources: [],
+      supporting: [],
+    };
+    const chalkboard = format.metadata["chalkboard"];
+    if (typeof (chalkboard) === "object") {
+      const chalkboardSrc = (chalkboard as Record<string, unknown>)["src"];
+      if (typeof (chalkboardSrc) === "string") {
+        result.resources.push(chalkboardSrc);
+      }
+    }
+
+    // return result
+    return Promise.resolve(result);
   };
 }
 
