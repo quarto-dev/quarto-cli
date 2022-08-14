@@ -13,3 +13,4 @@ package/dist/**
 .env
 # deno_std library
 src/resources/deno_std/cache
+src/vendor-*
