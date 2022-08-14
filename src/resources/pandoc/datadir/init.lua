@@ -1666,4 +1666,5 @@ quarto = {
    resolvePath = resolvePathExt
   },
   json = json,
+  base64 = base64,
 }
