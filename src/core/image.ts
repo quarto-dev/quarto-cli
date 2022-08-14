@@ -14,11 +14,15 @@ export function imageSize(path: string) {
     if (path.endsWith(".png")) {
       if (existsSync(path)) {
         const imageData = Deno.readFileSync(path);
-        const png = new PngImage(imageData);
-        return {
-          height: png.height,
-          width: png.width,
-        };
+        try {
+          const png = new PngImage(imageData);
+          return {
+            height: png.height,
+            width: png.width,
+          };
+        } catch (error) {
+          throw new Error(`Error reading file ${path}\n${error.message}`);
+        }
       }
     }
   }
