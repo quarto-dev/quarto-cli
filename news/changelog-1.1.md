@@ -3,6 +3,7 @@
 - Daemonize jupyter notebooks referenced within listings (e.g. in a blog)
 - Refine over-detection of Jupyter shell magics (which prevented kernel daemonization)
 - Use on-disk cache for filtered jupyter notebooks
+- Prevent error in `quarto check` when Jupyter is installed but has no Python kernel
 
 ## Knitr
 
@@ -40,8 +41,8 @@
 - Support passing Pandas Series
 - Update to latest OJS runtime (adding support for latest ObservableHQ runtime)
 - Fix multi-column regression (#1698)
-- hide declarations in hugo format (#1812)
-- enable OJS runtime in the presence of `ojs_define` (#1846)
+- Hide declarations in hugo format (#1812)
+- Enable OJS runtime in the presence of `ojs_define` (#1846)
 
 ## Websites
 
@@ -86,7 +87,7 @@
 
 ## Mermaid diagrams
 
-- support `echo: true` and other per-document settings (#1485)
+- Support `echo: true` and other per-document settings (#1485)
 
 ## Extensions
 
@@ -112,9 +113,9 @@
 
 ## Format Templates
 
-- expand globs in template-partials (#1248)
+- Expand globs in template-partials (#1248)
 
 ## Tables
 
-- support captions in HTML tables with `df-print: paged` (#1597)
+- Support captions in HTML tables with `df-print: paged` (#1597)
 - GT tables in HTML format can be themed by quarto and follow quarto themes by default (#1834)

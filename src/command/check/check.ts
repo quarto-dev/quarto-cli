@@ -27,6 +27,7 @@ import {
 import { quartoConfig } from "../../core/quarto.ts";
 import { readCodePage } from "../../core/windows.ts";
 import { RenderServices } from "../render/types.ts";
+import { jupyterKernelspecForLanguage } from "../../core/jupyter/kernels.ts";
 
 const kIndent = "      ";
 
@@ -103,13 +104,20 @@ async function checkJupyterInstallation(services: RenderServices) {
     info(await jupyterCapabilitiesMessage(caps, kIndent));
     info("");
     if (caps.jupyter_core) {
-      const kJupyterMessage = "Checking Jupyter engine render....";
-      await withSpinner({
-        message: kJupyterMessage,
-        doneMessage: kJupyterMessage + "OK\n",
-      }, async () => {
-        await checkJupyterRender(services);
-      });
+      if (await jupyterKernelspecForLanguage("python")) {
+        const kJupyterMessage = "Checking Jupyter engine render....";
+        await withSpinner({
+          message: kJupyterMessage,
+          doneMessage: kJupyterMessage + "OK\n",
+        }, async () => {
+          await checkJupyterRender(services);
+        });
+      } else {
+        info(
+          kIndent + "NOTE: No Jupyter kernel for Python found",
+        );
+        info("");
+      }
     } else {
       info(await jupyterInstallationMessage(caps, kIndent));
       info("");

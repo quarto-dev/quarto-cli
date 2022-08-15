@@ -25,6 +25,17 @@ export function isJupyterKernelspec(x: any): x is JupyterKernelspec {
   }
 }
 
+export async function jupyterKernelspecForLanguage(
+  language: string,
+): Promise<JupyterKernelspec | undefined> {
+  const kernelspecs = await jupyterKernelspecs();
+  for (const kernelspec of kernelspecs.values()) {
+    if (kernelspec.language === language) {
+      return kernelspec;
+    }
+  }
+}
+
 export async function jupyterKernelspec(
   name: string,
 ): Promise<JupyterKernelspec | undefined> {
