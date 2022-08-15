@@ -887,6 +887,43 @@ const kLangCommentChars: Record<string, string | string[]> = {
   apl: "⍝",
 };
 
+function cleanJupyterOutputDisplayData(
+  output: JupyterOutput,
+): JupyterOutputDisplayData {
+  const rawOutput = (output as unknown) as Record<string, unknown>;
+
+  const outputData: { [mimeType: string]: unknown } = {};
+
+  for (
+    const [key, value] of Object.entries(
+      rawOutput.data as { [mimeType: string]: unknown },
+    )
+  ) {
+    const strValue = (typeof value === "string")
+      ? [rawOutput.data]
+      : (Array.isArray(rawOutput.data) &&
+          rawOutput.data.every((x) => typeof x === "string"))
+      ? rawOutput.data as string[]
+      : undefined;
+    if (strValue === undefined) {
+      console.warn("Malformed Jupyter Output Display Data found:");
+      console.warn(JSON.stringify(rawOutput.data));
+      outputData[key] = [];
+    } else {
+      outputData[key] = strValue;
+    }
+  }
+
+  return {
+    ...output,
+    data: outputData,
+    metadata: rawOutput.metadata as {
+      [mimetype: string]: Record<string, unknown>;
+    },
+    noCaption: rawOutput.noCaption as (boolean | undefined),
+  };
+}
+
 async function mdFromCodeCell(
   cell: JupyterCellWithOptions,
   cellIndex: number,
@@ -1203,7 +1240,8 @@ async function mdFromCodeCell(
       } else if (output.output_type === "error") {
         md.push(mdOutputError(output as JupyterOutputError));
       } else if (isDisplayData(output)) {
-        if (Object.keys((output as JupyterOutputDisplayData).data).length > 0) {
+        const fixedOutput = cleanJupyterOutputDisplayData(output);
+        if (Object.keys(fixedOutput.data).length > 0) {
           const caption = isCaptionableData(output)
             ? (outputCaptions.shift() || null)
             : null;
@@ -1212,7 +1250,7 @@ async function mdFromCodeCell(
               outputLabel,
               caption,
               outputName + "-" + (index + 1),
-              output as JupyterOutputDisplayData,
+              fixedOutput,
               options,
               figureOptions,
             ),
