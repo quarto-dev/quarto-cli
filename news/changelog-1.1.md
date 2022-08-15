@@ -6,6 +6,7 @@
 - Prevent error in `quarto check` when Jupyter is installed but has no Python kernel
 - Don't run `ipynb-filters` for qmd source files (only run them for ipynb source files)
 - More gracefully handle cell outputs with no data (don't print warning, just ignore)
+- Handle non-textual data from jupyter's plain text output more robustly (#1874)
 
 ## Knitr
 
