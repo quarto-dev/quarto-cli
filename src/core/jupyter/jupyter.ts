@@ -1367,7 +1367,16 @@ async function mdOutputDisplayData(
     } else if (displayDataIsJavascript(mimeType)) {
       return mdScriptOutput(mimeType, output.data[mimeType] as string[]);
     } else if (displayDataIsTextPlain(mimeType)) {
-      const lines = output.data[mimeType] as string[];
+      // https://github.com/quarto-dev/quarto-cli/issues/1874
+      // this indicates output.data[mimeType] is not always string[]
+      //
+      // if output is invalid, warn and emit empty
+      const data = output.data[mimeType] as unknown;
+      if (!Array.isArray(data) || data.some((s) => typeof s !== "string")) {
+        return mdWarningOutput(`Unable to process text plain output data 
+which does not appear to be plain text: ${JSON.stringify(data)}`);
+      }
+      const lines = data as string[];
       // pandas inexplicably outputs html tables as text/plain with an enclosing single-quote
       if (
         lines.length === 1 &&
