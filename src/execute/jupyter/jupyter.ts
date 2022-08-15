@@ -271,10 +271,13 @@ export const jupyterEngine: ExecutionEngine = {
       }
     }
 
-    // convert to markdown and write to target
+    // convert to markdown and write to target (only run notebook filters
+    // if the source is an ipynb file)
     const nbContents = await jupyterNotebookFiltered(
       options.target.input,
-      options.format.execute[kIpynbFilters],
+      isJupyterNotebook(options.target.source)
+        ? options.format.execute[kIpynbFilters]
+        : [],
     );
     const nb = jupyterFromJSON(nbContents);
     const assets = jupyterAssets(
