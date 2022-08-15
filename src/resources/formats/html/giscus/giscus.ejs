@@ -10,5 +10,6 @@
         data-theme="<%- giscus.theme %>"
         data-lang="<%- giscus.language %>"
         crossorigin="anonymous"
+        <%- giscus.loading ? `data-loading=${giscus.loading}` : '' %>
         async>
 </script>
