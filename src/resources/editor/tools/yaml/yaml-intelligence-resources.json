@@ -7586,7 +7586,7 @@
       "default": false,
       "description": {
         "short": "Allow content that overflows slides vertically to scroll",
-        "long": "Allow content that overflows slides vertically to scroll. This can also\nbe set per-slide by including the `.scrollable` class on the slide title.\n"
+        "long": "`true` to allow content that overflows slides vertically to scroll. This can also\nbe set per-slide by including the `.scrollable` class on the slide title.\n"
       }
     },
     {
@@ -7600,7 +7600,7 @@
       "default": false,
       "description": {
         "short": "Use a smaller default font for slide content",
-        "long": "Use a smaller default font for slide content. This can also\nbe set per-slide by including the `.smaller` class on the slide title.\n"
+        "long": "`true` to use a smaller default font for slide content. This can also\nbe set per-slide by including the `.smaller` class on the slide title.\n"
       }
     }
   ],
