@@ -29,6 +29,10 @@ export function isVSCodeTerminal() {
   return Deno.env.get("TERM_PROGRAM") === "vscode";
 }
 
+export function isVSCodeServer() {
+  return !!vsCodeServerProxyUri();
+}
+
 export function isRStudioWorkbench() {
   // RS_SERVER_URL e.g. https://daily-rsw.soleng.rstudioservices.com/
   // RS_SESSION_URL e.g. /s/eae053c9ab5a71168ee19/
@@ -58,6 +62,10 @@ export function isJupyterServer() {
 
 export function isJupyterHubServer() {
   return jupyterHubUser() !== undefined;
+}
+
+export function vsCodeServerProxyUri() {
+  return Deno.env.get("VSCODE_PROXY_URI");
 }
 
 export function jupyterHubHttpReferrer() {

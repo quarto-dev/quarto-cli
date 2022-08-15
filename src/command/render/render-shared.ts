@@ -25,9 +25,11 @@ import {
   isJupyterServer,
   isRStudioServer,
   isRStudioWorkbench,
+  isVSCodeServer,
   isVSCodeTerminal,
   jupyterHubHttpReferrer,
   jupyterHubUser,
+  vsCodeServerProxyUri,
 } from "../../core/platform.ts";
 import { isProjectInputFile } from "../../project/project-shared.ts";
 
@@ -176,6 +178,10 @@ export async function printBrowsePreviewMessage(
     const url = await rswURL(port, path);
     info(`\nPreview server: ${previewURL(host, port, path = "")}`);
     info(`\nBrowse at ${url}`, { format: colors.green });
+  } else if (isVSCodeTerminal() && isVSCodeServer()) {
+    const browseUrl = vsCodeServerProxyUri()!.replace("{{port}}", `${port}`) +
+      "/" + path;
+    info(`\nBrowse at ${browseUrl}`, { format: colors.green });
   } else {
     const url = previewURL(host, port, path);
     if (!isRStudioServer()) {

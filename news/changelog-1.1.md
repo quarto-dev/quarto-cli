@@ -60,6 +60,7 @@
 ## Preview
 
 - Don't attempt to open browser when in a server session
+- Respect VSCODE_PROXY_URI set by code-server
 
 ## Publish
 
