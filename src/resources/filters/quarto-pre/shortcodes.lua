@@ -153,6 +153,8 @@ local function readMetadata(value)
       warn("Unsupported type '" .. pandoc.utils.type(metaValue)  .. "' for key " .. value)
       return pandoc.Inlines({})      
     end
+  elseif type(metaValue) == "boolean" then
+    return metaValue
   else 
     return pandoc.Inlines({ pandoc.Str( tostring(val) ) })
   end
