@@ -98,6 +98,7 @@
 - Properly copy `format-resources` for HTML based formats
 - Extension YAML files `_extension.yml` are now validated at render time. (#1268)
 - Support boolean values in Shortcode `meta` access
+- Make `quarto.base64` module available to extensions
 
 ## Publishing
 
