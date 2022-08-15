@@ -384,7 +384,11 @@ function navigationHtmlPostprocessor(
 
     // Mark the body with a sidebar, if present
     const sidebar = sidebarForHref(href, format);
-    if (sidebar) {
+    // Check whether the sidebar was explicitly hidden
+    const sidebarHidden = format.metadata[kSiteSidebar] === false;
+
+    // If there is a sidebar that isn't hidden
+    if (sidebar && !sidebarHidden) {
       doc.body.classList.add("nav-sidebar");
     }
 

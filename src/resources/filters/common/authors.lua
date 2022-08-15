@@ -199,13 +199,18 @@ function processAuthorMeta(meta)
     end      
   end
 
-  -- Add any attributes that are explicitly specified
+  -- Add any affiliations that are explicitly specified
   local affiliationsRaw = meta[kAffiliations]
   if affiliationsRaw then        
     local explicitAffils = processAffiliation(nil, affiliationsRaw)
     if explicitAffils then
       for i,affiliation in ipairs(explicitAffils) do          
-        maybeAddAffiliation(affiliation, affiliations)
+        local addedAffiliation = maybeAddAffiliation(affiliation, affiliations)
+
+        -- for any authors that are using this affiliation, fix up their reference
+        if affiliation[kId] ~= addedAffiliation[kId] then
+          remapAuthorAffiliations(affiliation[kId], addedAffiliation[kId], authors)
+        end
       end
     end
   end
@@ -432,6 +437,20 @@ function findMatchingAffililation(affiliation, affiliations)
     end
   end
   return nil
+end
+
+-- Replaces an affiliation reference with a different id
+-- (for example, if a reference to an affiliation is collapsed into a single
+-- entry with a single id)
+function remapAuthorAffiliations(fromId, toId, authors)
+  for i, author in ipairs(authors) do
+    for j, affiliation in ipairs(author[kAffiliations]) do
+      local existingRefId = affiliation[kRef]
+      if existingRefId == fromId then
+        affiliation[kRef] = toId
+      end
+     end    
+  end
 end
 
 -- Process attributes onto an author
