@@ -145,6 +145,7 @@ import { readYamlFromMarkdown } from "../yaml.ts";
 import { languagesInMarkdown } from "../../execute/engine-shared.ts";
 import { pathWithForwardSlashes } from "../path.ts";
 import { convertToHtmlSpans, hasAnsiEscapeCodes } from "../ansi-colors.ts";
+import { warning } from "log/mod.ts";
 
 export const kJupyterNotebookExtensions = [
   ".ipynb",
@@ -906,8 +907,8 @@ function cleanJupyterOutputDisplayData(
       ? value as string[]
       : undefined;
     if (strValue === undefined) {
-      console.warn("Malformed Jupyter Output Display Data found:");
-      console.warn(JSON.stringify(value));
+      warning("Malformed Jupyter Output Display Data found:");
+      warning(JSON.stringify(value));
       outputData[key] = [value];
     } else {
       outputData[key] = strValue;
