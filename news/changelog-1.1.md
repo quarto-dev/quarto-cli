@@ -5,6 +5,7 @@
 - Use on-disk cache for filtered jupyter notebooks
 - Prevent error in `quarto check` when Jupyter is installed but has no Python kernel
 - Don't run `ipynb-filters` for qmd source files (only run them for ipynb source files)
+- More gracefully handle cell outputs with no data (don't print warning, just ignore)
 
 ## Knitr
 

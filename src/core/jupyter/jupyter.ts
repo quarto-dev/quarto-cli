@@ -1203,22 +1203,24 @@ async function mdFromCodeCell(
       } else if (output.output_type === "error") {
         md.push(mdOutputError(output as JupyterOutputError));
       } else if (isDisplayData(output)) {
-        const caption = isCaptionableData(output)
-          ? (outputCaptions.shift() || null)
-          : null;
-        md.push(
-          await mdOutputDisplayData(
-            outputLabel,
-            caption,
-            outputName + "-" + (index + 1),
-            output as JupyterOutputDisplayData,
-            options,
-            figureOptions,
-          ),
-        );
-        // if this isn't an image and we have a caption, place it at the bottom of the div
-        if (caption && !isImage(output, options)) {
-          md.push(`\n${caption}\n`);
+        if (Object.keys((output as JupyterOutputDisplayData).data).length > 0) {
+          const caption = isCaptionableData(output)
+            ? (outputCaptions.shift() || null)
+            : null;
+          md.push(
+            await mdOutputDisplayData(
+              outputLabel,
+              caption,
+              outputName + "-" + (index + 1),
+              output as JupyterOutputDisplayData,
+              options,
+              figureOptions,
+            ),
+          );
+          // if this isn't an image and we have a caption, place it at the bottom of the div
+          if (caption && !isImage(output, options)) {
+            md.push(`\n${caption}\n`);
+          }
         }
       } else {
         throw new Error("Unexpected output type " + output.output_type);
