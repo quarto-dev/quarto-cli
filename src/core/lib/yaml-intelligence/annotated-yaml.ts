@@ -5,7 +5,7 @@
 *
 */
 
-import { lineColToIndex, lines, matchAll } from "../text.ts";
+import { lineColToIndex } from "../text.ts";
 import { AnnotatedParse, JSONValue } from "../yaml-schema/types.ts";
 
 import {
@@ -24,6 +24,20 @@ import { createSourceContext } from "../yaml-validation/errors.ts";
 type TreeSitterParse = any;
 // deno-lint-ignore no-explicit-any
 type TreeSitterNode = any;
+
+function jsYamlParseLenient(yml: string): unknown {
+  try {
+    return jsYamlParse(yml);
+  } catch (_e) {
+    // this should not happen because it indicates a parse error
+    // but we only call jsYamlParseLenient from inside buildAnnotated, which
+    // walks the TreeSitter parser AST. However, the TreeSitter AST
+    // sometimes is malformed because of bad (outer) yaml, so all
+    // bets are off. But in that case, we're in error recovery mode anyway,
+    // so returning the raw string is as good as anything else.
+    return yml;
+  }
+}
 
 export function readAnnotatedYamlFromString(yml: string) {
   return readAnnotatedYamlFromMappedString(asMappedString(yml))!;
@@ -285,48 +299,17 @@ export function buildTreeSitterAnnotation(
     "document": singletonBuild,
     "block_node": singletonBuild,
     "flow_node": singletonBuild,
+    "double_quote_scalar": (node) => {
+      return annotate(node, jsYamlParseLenient(node.text), []);
+    },
+    "single_quote_scalar": (node) => {
+      return annotate(node, jsYamlParseLenient(node.text), []);
+    },
+    "plain_scalar": (node) => {
+      return annotate(node, jsYamlParseLenient(node.text), []);
+    },
     "block_scalar": (node) => {
-      // block scalar style
-      if (!node.text.startsWith("|") && !node.text.startsWith(">")) {
-        return annotateError(
-          node.startIndex,
-          node.endIndex,
-          "Block scalar must start with either `|` or `>`",
-        );
-      }
-      const joinString = node.text.startsWith("|") ? "\n" : "";
-
-      const ls = lines(node.text);
-
-      // block chomping
-      let chompChar = "";
-      if (ls[0].endsWith("-")) {
-        // strip
-        while (ls[ls.length - 1] === "") {
-          ls.pop();
-        }
-      } else if (ls[1].endsWith("+")) {
-        // keep
-        chompChar = "\n";
-      } else {
-        // clip
-        while (ls[ls.length - 1] === "") {
-          ls.pop();
-        }
-        chompChar = "\n";
-      }
-
-      if (ls.length < 2) {
-        // throw new Error(
-        //   `Internal error: can only handle block_scalar of multiline strings`,
-        // );
-        return annotateEmpty(node.endIndex);
-      }
-      const indent = ls[1].length - ls[1].trimStart().length;
-      const result = ls.slice(1).map((l: string) => l.slice(indent)).join(
-        joinString,
-      ) + chompChar;
-      return annotate(node, result, []);
+      return annotate(node, jsYamlParseLenient(node.text), []);
     },
     "block_sequence": (node) => {
       const result = [], components = [];
@@ -347,39 +330,6 @@ export function buildTreeSitterAnnotation(
       } else {
         return buildNode(node.child(1), node.endIndex);
       }
-    },
-    "double_quote_scalar": (node) => {
-      return annotate(node, JSON.parse(node.text), []);
-    },
-    "single_quote_scalar": (node) => {
-      // apparently YAML single-quoted scalars quote single quotes by doubling the quote,
-      // but YAML double-quoted scalars quote double quotes with backslashes.
-      //
-      // consistency, hobgoblins, little minds, etc
-      const str = node.text.slice(1, -1);
-      const matches = [
-        -2,
-        ...Array.from(matchAll(str, /''/g)).map((x) => x.index),
-        str.length,
-      ];
-      const lst = [];
-      for (let i = 0; i < matches.length - 1; ++i) {
-        lst.push(str.substring(matches[i] + 2, matches[i + 1]));
-      }
-      const result = lst.join("'");
-      return annotate(node, result, []);
-    },
-    "plain_scalar": (node) => {
-      // TODO yuck, the yaml rules are ugly. We're using JSON.parse as a proxy but that's probably not exact.
-      function getV() {
-        try {
-          return JSON.parse(node.text); // this catches things like numbers, which YAML wants to convert to actual numbers
-        } catch (_e) {
-          return node.text; // if that fails, return the actual string value.
-        }
-      }
-      const v = getV();
-      return annotate(node, v, []);
     },
     "flow_sequence": (node) => {
       // deno-lint-ignore no-explicit-any
