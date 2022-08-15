@@ -900,15 +900,15 @@ function cleanJupyterOutputDisplayData(
     )
   ) {
     const strValue = (typeof value === "string")
-      ? [rawOutput.data]
-      : (Array.isArray(rawOutput.data) &&
-          rawOutput.data.every((x) => typeof x === "string"))
-      ? rawOutput.data as string[]
+      ? [value]
+      : (Array.isArray(value) &&
+          value.every((x) => typeof x === "string"))
+      ? value as string[]
       : undefined;
     if (strValue === undefined) {
       console.warn("Malformed Jupyter Output Display Data found:");
-      console.warn(JSON.stringify(rawOutput.data));
-      outputData[key] = [];
+      console.warn(JSON.stringify(value));
+      outputData[key] = [value];
     } else {
       outputData[key] = strValue;
     }
