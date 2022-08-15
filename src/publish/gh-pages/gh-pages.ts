@@ -28,6 +28,7 @@ import { sleep } from "../../core/wait.ts";
 import { joinUrl } from "../../core/url.ts";
 import { completeMessage, withSpinner } from "../../core/console.ts";
 import { renderForPublish } from "../common/publish.ts";
+import { websiteBaseurl } from "../../project/types/website/website-config.ts";
 
 export const kGhpages = "gh-pages";
 const kGhpagesDescription = "GitHub Pages";
@@ -52,8 +53,7 @@ function accountTokens() {
 }
 
 async function authorizeToken(options: PublishOptions) {
-  const dir = (options.input as ProjectContext).dir;
-  const ghContext = await gitHubContext(dir);
+  const ghContext = await gitHubContext(options.input);
 
   if (!ghContext.git) {
     throwUnableToPublish("git does not appear to be installed on this system");
@@ -76,8 +76,10 @@ async function authorizeToken(options: PublishOptions) {
 function removeToken(_token: AccountToken) {
 }
 
-async function publishRecord(dir: string): Promise<PublishRecord | undefined> {
-  const ghContext = await gitHubContext(dir);
+async function publishRecord(
+  input: string | ProjectContext,
+): Promise<PublishRecord | undefined> {
+  const ghContext = await gitHubContext(input);
   if (ghContext.ghPages) {
     return {
       id: "gh-pages",
@@ -107,7 +109,7 @@ async function publish(
   input = Deno.statSync(input).isDirectory ? input : dirname(input);
 
   // get context
-  const ghContext = await gitHubContext(input);
+  const ghContext = await gitHubContext(options.input);
 
   // create gh pages branch if there is none yet
   const createGhPagesBranch = !ghContext.ghPages;
@@ -383,7 +385,10 @@ type GitHubContext = {
   browse?: boolean;
 };
 
-async function gitHubContext(dir: string) {
+async function gitHubContext(input: ProjectContext | string) {
+  // establish dir
+  const dir = typeof (input) === "string" ? dirname(input) : input.dir;
+
   const context: GitHubContext = {
     git: false,
     repo: false,
@@ -427,7 +432,11 @@ async function gitHubContext(dir: string) {
         })).success;
 
         // determine siteUrl
-        context.siteUrl = siteUrl(dir, context.originUrl!);
+        context.siteUrl = siteUrl(
+          dir,
+          context.originUrl!,
+          typeof (input) !== "string" ? input : undefined,
+        );
       }
     }
   }
@@ -435,7 +444,17 @@ async function gitHubContext(dir: string) {
   return context;
 }
 
-function siteUrl(dir: string, originUrl: string) {
+function siteUrl(
+  dir: string,
+  originUrl: string,
+  project: ProjectContext | undefined,
+) {
+  // always prefer config
+  const configSiteUrl = websiteBaseurl(project?.config);
+  if (configSiteUrl) {
+    return configSiteUrl;
+  }
+  // check for CNAME file
   const cname = join(dir, "CNAME");
   if (existsSync(cname)) {
     return Deno.readTextFileSync(cname).trim();

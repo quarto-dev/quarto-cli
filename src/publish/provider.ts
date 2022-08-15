@@ -11,6 +11,7 @@ import { ghpagesProvider } from "./gh-pages/gh-pages.ts";
 import { quartoPubProvider } from "./quarto-pub/quarto-pub.ts";
 import { rsconnectProvider } from "./rsconnect/rsconnect.ts";
 import { PublishOptions, PublishRecord } from "./types.ts";
+import { ProjectContext } from "../project/types.ts";
 
 export enum AccountTokenType {
   Environment,
@@ -83,7 +84,9 @@ export interface PublishProvider {
   description: string;
   requiresServer: boolean;
   listOriginOnly: boolean;
-  publishRecord?: (dir: string) => Promise<PublishRecord | undefined>;
+  publishRecord?: (
+    input: string | ProjectContext,
+  ) => Promise<PublishRecord | undefined>;
   accountTokens: () => Promise<AccountToken[]>;
   removeToken: (token: AccountToken) => void;
   authorizeToken: (

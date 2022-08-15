@@ -10,11 +10,7 @@ import { basename, join } from "path/mod.ts";
 
 import * as ld from "../../../core/lodash.ts";
 
-import {
-  ensureTrailingSlash,
-  pathWithForwardSlashes,
-  safeExistsSync,
-} from "../../../core/path.ts";
+import { ensureTrailingSlash, safeExistsSync } from "../../../core/path.ts";
 import { FormatLanguage, Metadata } from "../../../config/types.ts";
 
 import {
