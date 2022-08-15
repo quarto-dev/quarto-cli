@@ -75,6 +75,8 @@ if [[ "$CI" != "true" && ( ( "./src/import_map.json" -nt "./src/dev_import_map.j
 		rm -rf vendor
 		mv vendor-${today} vendor
 		exit 1
+	else
+	  rm -rf vendor-${today}
 	fi
 	popd
 	./package/dist/bin/tools/deno run --unstable --allow-all --importmap=./src/import_map.json package/src/common/create-dev-import-map.ts

@@ -115,6 +115,7 @@
 - More compact download progress when installing Quarto tools in CI environments
 - Ignore case when loading date local files from `lang`
 - Don't break cells incorrectly with math expressions (#1781)
+- Development version cleans old vendor directory on success (https://github.com/quarto-dev/quarto-cli/pull/1863#issuecomment-1215452392)
 
 ## Format Templates
 
