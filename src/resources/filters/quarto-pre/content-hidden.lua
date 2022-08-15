@@ -10,7 +10,9 @@ function contentHidden()
 end
 
 function handleHiddenVisible(el)
-  if el.attr.classes:find("content-visible") then
+  if el.attr.classes:find("comment") then
+    return {}
+  elseif el.attr.classes:find("content-visible") then
     return handleVisible(el)
   elseif el.attr.classes:find("content-hidden") then
     return handleHidden(el)
