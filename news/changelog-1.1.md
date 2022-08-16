@@ -7,6 +7,7 @@
 - Don't run `ipynb-filters` for qmd source files (only run them for ipynb source files)
 - More gracefully handle cell outputs with no data (don't print warning, just ignore)
 - Handle non-textual data from jupyter's plain text output more robustly (#1874)
+- Use IJulia's built-in conda environment / jupyter install for julia notebooks/qmds
 
 ## Knitr
 
@@ -106,6 +107,7 @@
 - Extension YAML files `_extension.yml` are now validated at render time. (#1268)
 - Support boolean values in Shortcode `meta` access
 - Make `quarto.base64` module available to extensions
+- Support installing extensions from any GitHub tag or branch (#1836)
 
 ## Publishing
 
