@@ -162,7 +162,11 @@ export async function printBrowsePreviewMessage(
   port: number,
   path: string,
 ) {
-  if (isJupyterHubServer()) {
+  if (isVSCodeTerminal() && isVSCodeServer()) {
+    const browseUrl = vsCodeServerProxyUri()!.replace("{{port}}", `${port}`) +
+      "/" + path;
+    info(`\nBrowse at ${browseUrl}`, { format: colors.green });
+  } else if (isJupyterHubServer()) {
     const httpReferrer = `${
       jupyterHubHttpReferrer() || "<jupyterhub-server-url>/"
     }user/${jupyterHubUser()}/`;
@@ -178,10 +182,6 @@ export async function printBrowsePreviewMessage(
     const url = await rswURL(port, path);
     info(`\nPreview server: ${previewURL(host, port, path = "")}`);
     info(`\nBrowse at ${url}`, { format: colors.green });
-  } else if (isVSCodeTerminal() && isVSCodeServer()) {
-    const browseUrl = vsCodeServerProxyUri()!.replace("{{port}}", `${port}`) +
-      "/" + path;
-    info(`\nBrowse at ${browseUrl}`, { format: colors.green });
   } else {
     const url = previewURL(host, port, path);
     if (!isRStudioServer()) {
