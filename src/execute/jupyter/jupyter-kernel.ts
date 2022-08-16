@@ -53,7 +53,11 @@ export async function executeKernelOneshot(
 
   trace(options, "Executing notebook with oneshot kernel");
   const debug = !!options.format.execute[kExecuteDebug];
-  const result = await execJupyter("execute", { ...options, debug });
+  const result = await execJupyter(
+    "execute",
+    { ...options, debug },
+    options.kernelspec,
+  );
 
   if (!result.success) {
     return Promise.reject();
@@ -121,7 +125,7 @@ export async function executeKernelKeepalive(
             if (msg.type === "error") {
               trace(options, "Error response received");
               error(msg.data, { colorize: false });
-              printExecDiagnostics(msg.data);
+              printExecDiagnostics(options.kernelspec, msg.data);
               return Promise.reject();
             } else if (msg.type == "restart") {
               trace(options, "Restart request received");
@@ -180,12 +184,13 @@ async function abortKernel(options: JupyterExecuteOptions) {
 async function execJupyter(
   command: string,
   options: Record<string, unknown>,
+  kernelspec: JupyterKernelspec,
 ): Promise<ProcessResult> {
   try {
     const result = await execProcess(
       {
         cmd: [
-          ...(await pythonExec()),
+          ...(await pythonExec(kernelspec)),
           resourcePath("jupyter/jupyter.py"),
         ],
         env: {
@@ -204,7 +209,7 @@ async function execJupyter(
     );
     if (!result.success) {
       // forward error (print some diagnostics if python and/or jupyter couldn't be found)
-      await printExecDiagnostics(result.stderr);
+      await printExecDiagnostics(kernelspec, result.stderr);
     }
     return result;
   } catch (e) {
@@ -212,18 +217,21 @@ async function execJupyter(
       info("");
       error(e.message);
     }
-    await printExecDiagnostics();
+    await printExecDiagnostics(kernelspec);
     return Promise.reject();
   }
 }
 
-export async function printExecDiagnostics(stderr?: string) {
-  const caps = await jupyterCapabilities();
+export async function printExecDiagnostics(
+  kernelspec: JupyterKernelspec,
+  stderr?: string,
+) {
+  const caps = await jupyterCapabilities(kernelspec);
   if (caps && !caps.jupyter_core) {
     info("Python 3 installation:");
     info(await jupyterCapabilitiesMessage(caps, "  "));
     info("");
-    info(await jupyterInstallationMessage(caps));
+    info(jupyterInstallationMessage(caps));
     info("");
     maybePrintUnactivatedEnvMessage(caps);
   } else if (caps && !haveRequiredPython(caps)) {
@@ -396,7 +404,7 @@ async function connectToKernel(
     timeout,
     type,
     debug,
-  });
+  }, options.kernelspec);
   if (!result.success) {
     return Promise.reject();
   }

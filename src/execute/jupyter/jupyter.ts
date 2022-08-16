@@ -261,7 +261,7 @@ export const jupyterEngine: ExecutionEngine = {
       }
       const jupyterExecOptions: JupyterExecuteOptions = {
         kernelspec,
-        python_cmd: await pythonExec(),
+        python_cmd: await pythonExec(kernelspec),
         ...execOptions,
       };
       if (executeDaemon === false || executeDaemon === 0) {

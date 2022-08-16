@@ -119,7 +119,7 @@ async function checkJupyterInstallation(services: RenderServices) {
         info("");
       }
     } else {
-      info(await jupyterInstallationMessage(caps, kIndent));
+      info(jupyterInstallationMessage(caps, kIndent));
       info("");
       const envMessage = jupyterUnactivatedEnvMessage(caps, kIndent);
       if (envMessage) {

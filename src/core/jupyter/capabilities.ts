@@ -14,42 +14,82 @@ import { execProcess } from "../process.ts";
 import { resourcePath } from "../resources.ts";
 import { readYamlFromString } from "../yaml.ts";
 
-import { JupyterCapabilities } from "./types.ts";
+import { JupyterCapabilities, JupyterKernelspec } from "./types.ts";
 
-// cache capabiliites per-process
-let cachedJupyterCaps: JupyterCapabilities | undefined;
+// cache capabilities per language
+const kNoLanguage = "(none)";
+const jupyterCapsCache = new Map<string, JupyterCapabilities>();
 
-export async function jupyterCapabilities() {
-  if (!cachedJupyterCaps) {
+export async function jupyterCapabilities(kernelspec?: JupyterKernelspec) {
+  const language = kernelspec?.language || kNoLanguage;
+
+  if (!jupyterCapsCache.has(language)) {
     // if there is an explicit python requested then use it
-    cachedJupyterCaps = await getQuartoJupyterCapabilities();
-    if (cachedJupyterCaps) {
-      return cachedJupyterCaps;
+    const quartoCaps = await getQuartoJupyterCapabilities();
+    if (quartoCaps) {
+      jupyterCapsCache.set(language, quartoCaps);
+      return quartoCaps;
+    }
+
+    // if we are targeting julia then prefer the julia installed miniconda
+    const juliaCaps = await getVerifiedJuliaCondaJupyterCapabilities();
+    if (language === "julia" && juliaCaps) {
+      jupyterCapsCache.set(language, juliaCaps);
+      return juliaCaps;
     }
 
     // if we are on windows and have PY_PYTHON defined then use the launcher
     if (isWindows() && pyPython()) {
-      cachedJupyterCaps = await getPyLauncherJupyterCapabilities();
+      const pyLauncherCaps = await getPyLauncherJupyterCapabilities();
+      if (pyLauncherCaps) {
+        jupyterCapsCache.set(language, pyLauncherCaps);
+      }
     }
 
     // default handling (also a fallthrough if launcher didn't work out)
-    if (!cachedJupyterCaps) {
+    if (!jupyterCapsCache.has(language)) {
       // look for python from conda (conda doesn't provide python3 on windows or mac)
-      cachedJupyterCaps = await getJupyterCapabilities(["python"]);
-
-      // if it's not conda then probe explicitly for python 3
-      if (!cachedJupyterCaps?.conda) {
+      const condaCaps = await getJupyterCapabilities(["python"]);
+      if (condaCaps?.conda) {
+        jupyterCapsCache.set(language, condaCaps);
+      } else {
         const caps = isWindows()
           ? await getPyLauncherJupyterCapabilities()
           : await getJupyterCapabilities(["python3"]);
         if (caps) {
-          cachedJupyterCaps = caps;
+          jupyterCapsCache.set(language, caps);
         }
+      }
+
+      // if the version we discovered doesn't have jupyter and we have a julia provided
+      // jupyter then go ahead and use that
+      if (!jupyterCapsCache.get(language)?.jupyter_core && juliaCaps) {
+        jupyterCapsCache.set(language, juliaCaps);
       }
     }
   }
 
-  return cachedJupyterCaps;
+  return jupyterCapsCache.get(language);
+}
+
+async function getVerifiedJuliaCondaJupyterCapabilities() {
+  const home = Deno.env.get("HOME");
+  if (home) {
+    const juliaPython = join(
+      home,
+      ".julia",
+      "conda",
+      "3",
+      "bin",
+      "python3",
+    );
+    if (existsSync(juliaPython)) {
+      const caps = await getJupyterCapabilities([juliaPython]);
+      if (caps?.jupyter_core) {
+        return caps;
+      }
+    }
+  }
 }
 
 function getQuartoJupyterCapabilities() {

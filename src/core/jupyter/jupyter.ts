@@ -427,7 +427,7 @@ export async function quartoMdToJupyter(
 export async function jupyterKernelspecFromMarkdown(
   markdown: string,
 ): Promise<[JupyterKernelspec, Metadata]> {
-  const yaml = await readYamlFromMarkdown(markdown);
+  const yaml = readYamlFromMarkdown(markdown);
   const yamlJupyter = yaml.jupyter;
 
   // if there is no yaml.jupyter then detect the file's language(s) and

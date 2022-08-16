@@ -7,6 +7,7 @@
 - Don't run `ipynb-filters` for qmd source files (only run them for ipynb source files)
 - More gracefully handle cell outputs with no data (don't print warning, just ignore)
 - Handle non-textual data from jupyter's plain text output more robustly (#1874)
+- Use IJulia's built-in conda environment / jupyter install for julia notebooks/qmds
 
 ## Knitr
 
