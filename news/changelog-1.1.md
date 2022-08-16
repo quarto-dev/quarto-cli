@@ -79,6 +79,8 @@
 - Respect toc-depth in the HTML format (bootstrap) rather than always acting as if depth is 3.
 - Add `group` attribute to `panel-tabset` for syncing selected tab across many tabsets
 - Properly uncollapse sidebars / toc when page width elements are displayed on a page
+- Properly display section numbers in the table of contents when enabled.
+- Properly display banner style title blocks at mobile size.
 
 ## RevealJS Format
 
@@ -89,6 +91,10 @@
 ## ePub Format
 
 - Don't do knitr post-processing for ePub format (corrupts epub output file)
+
+## PDF Format
+
+- Don't include template path in the TeX search path when compiling PDFs. Use `format-resources` instead.
 
 ## Mermaid diagrams
 
@@ -119,6 +125,9 @@
 - Don't break cells incorrectly with math expressions (#1781)
 - Development version cleans old vendor directory on success (https://github.com/quarto-dev/quarto-cli/pull/1863#issuecomment-1215452392)
 - properly support YAML scalar syntax (#1838)
+- Add support for Giscus lazy loading (use `loading: lazy` #1357)
+- Properly handle duplicated affilations in author metadata (#1286)
+- Display image path when an error occurs reading PNG metadata
 
 ## Format Templates
 
