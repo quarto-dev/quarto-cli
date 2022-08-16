@@ -11,7 +11,7 @@ import * as colors from "fmt/colors.ts";
 
 import { pathWithForwardSlashes } from "../path.ts";
 
-import { pythonExec } from "./exec.ts";
+import { pythonExecForCaps } from "./exec.ts";
 import { jupyterKernelspecs } from "./kernels.ts";
 import { JupyterCapabilities, JupyterKernelspec } from "./types.ts";
 import { isEnvDir } from "./capabilities.ts";
@@ -35,7 +35,7 @@ export async function jupyterCapabilitiesMessage(
   return lines.map((line: string) => `${indent}${line}`).join("\n");
 }
 
-export async function jupyterInstallationMessage(
+export function jupyterInstallationMessage(
   caps: JupyterCapabilities,
   indent = "",
 ) {
@@ -44,7 +44,9 @@ export async function jupyterInstallationMessage(
     "Install with " +
     colors.bold(
       `${
-        caps.conda ? "conda" : (await pythonExec(true)).join(" ") + " -m pip"
+        caps.conda
+          ? "conda"
+          : (pythonExecForCaps(caps, true)).join(" ") + " -m pip"
       } install jupyter`,
     ),
   ];
@@ -81,9 +83,8 @@ export function jupyterUnactivatedEnvMessage(
     if (existsSync(join(Deno.cwd(), envFile))) {
       return indent + "There is a " + colors.bold(envFile) +
         " file in this directory. " +
-        "Is this for a " + (envFile === kRequirementsTxt
-          ? "venv"
-          : "conda env") +
+        "Is this for a " +
+        (envFile === kRequirementsTxt ? "venv" : "conda env") +
         " that you need to restore?";
     }
   }

@@ -7,9 +7,20 @@
 
 import { isWindows } from "../platform.ts";
 import { jupyterCapabilities } from "./capabilities.ts";
+import { JupyterCapabilities, JupyterKernelspec } from "./types.ts";
 
-export async function pythonExec(binaryOnly = false): Promise<string[]> {
-  const caps = await jupyterCapabilities();
+export async function pythonExec(
+  kernelspec?: JupyterKernelspec,
+  binaryOnly = false,
+): Promise<string[]> {
+  const caps = await jupyterCapabilities(kernelspec);
+  return pythonExecForCaps(caps, binaryOnly);
+}
+
+export function pythonExecForCaps(
+  caps?: JupyterCapabilities,
+  binaryOnly = false,
+) {
   if (caps?.pyLauncher) {
     return ["py"];
   } else if (isWindows()) {
@@ -19,9 +30,11 @@ export async function pythonExec(binaryOnly = false): Promise<string[]> {
   }
 }
 
-export async function jupyterExec(): Promise<string[]> {
+export async function jupyterExec(
+  kernelspec?: JupyterKernelspec,
+): Promise<string[]> {
   return [
-    ...(await pythonExec()),
+    ...(await pythonExec(kernelspec)),
     "-m",
     "jupyter",
   ];
