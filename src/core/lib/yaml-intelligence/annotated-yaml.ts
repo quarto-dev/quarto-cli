@@ -27,7 +27,7 @@ type TreeSitterNode = any;
 
 function jsYamlParseLenient(yml: string): unknown {
   try {
-    return jsYamlParse(yml);
+    return jsYamlParse(yml, { schema: QuartoJSONSchema });
   } catch (_e) {
     // this should not happen because it indicates a parse error
     // but we only call jsYamlParseLenient from inside buildAnnotated, which

@@ -18541,11 +18541,11 @@ try {
           },
           {
             short: "Allow content that overflows slides vertically to scroll",
-            long: "Allow content that overflows slides vertically to scroll. This can\nalso be set per-slide by including the <code>.scrollable</code> class on\nthe slide title."
+            long: "<code>true</code> to allow content that overflows slides vertically\nto scroll. This can also be set per-slide by including the\n<code>.scrollable</code> class on the slide title."
           },
           {
             short: "Use a smaller default font for slide content",
-            long: "Use a smaller default font for slide content. This can also be set\nper-slide by including the <code>.smaller</code> class on the slide\ntitle."
+            long: "<code>true</code> to use a smaller default font for slide content.\nThis can also be set per-slide by including the <code>.smaller</code>\nclass on the slide title."
           },
           "Flags if the presentation is running in an embedded mode",
           "The display mode that will be used to show slides",
@@ -25505,7 +25505,7 @@ ${heading}`;
   // annotated-yaml.ts
   function jsYamlParseLenient(yml) {
     try {
-      return load(yml);
+      return load(yml, { schema: QuartoJSONSchema });
     } catch (_e) {
       return yml;
     }
