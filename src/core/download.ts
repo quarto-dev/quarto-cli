@@ -19,7 +19,6 @@ export async function downloadWithProgress(
   toFile: string,
 ) {
   // Fetch the data
-  console.log(url);
   const response = await (typeof url === "string"
     ? fetch(
       url,
