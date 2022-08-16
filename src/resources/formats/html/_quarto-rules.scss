@@ -538,3 +538,25 @@ table.gt_table tbody.gt_table_body {
   border-bottom-color: var(--quarto-border-color);
   border-top-color: currentColor;
 }
+
+@media print {
+  :root {
+    font-size: 11pt;
+  }
+  #quarto-sidebar,
+  #TOC,
+  .nav-page {
+    display: none;
+  }
+  .page-columns .content {
+    grid-column-start: page-start;
+  }
+  .fixed-top {
+    position: relative;
+  }
+  .panel-caption,
+  .figure-caption,
+  figcaption {
+    color: #666;
+  }
+}

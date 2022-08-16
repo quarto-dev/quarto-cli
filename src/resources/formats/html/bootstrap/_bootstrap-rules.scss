@@ -1656,3 +1656,59 @@ div.observablehq table thead tr th {
 input, button, select, optgroup, textarea {
   background-color: var(--bs-body-bg);
 }
+
+// change .column-screen-* to behave like .column-page (which hugs the body margins)
+// cf https://github.com/quarto-dev/quarto-cli/issues/1824#issuecomment-1216018434
+@media print {
+  .page-columns .column-screen-inset {
+    grid-column: page-start-inset / page-end-inset;
+    z-index: $zindex-pagelayout;
+    transform: translate3d(0, 0, 0);
+    @include column-spanning-element();
+  }
+  
+  .page-columns .column-screen-inset-left {
+    grid-column: page-start-inset / body-content-end;
+    z-index: $zindex-pagelayout;
+    transform: translate3d(0, 0, 0);
+    @include column-spanning-element();
+  }
+  
+  .page-columns .column-screen-inset-right {
+    grid-column: body-content-start / page-end-inset;
+    z-index: $zindex-pagelayout;
+    transform: translate3d(0, 0, 0);
+    @include column-spanning-element();
+  }
+  
+  .page-columns .column-screen {
+    grid-column: page-start / page-end;
+    z-index: $zindex-pagelayout;
+    transform: translate3d(0, 0, 0);
+    @include column-spanning-element();
+  }
+  
+  .page-columns .column-screen-left {
+    grid-column: page-start / body-content-end;
+    z-index: $zindex-pagelayout;
+    transform: translate3d(0, 0, 0);
+    @include column-spanning-element();
+  }
+  
+  .page-columns .column-screen-right {
+    grid-column: body-content-start / page-end;
+    z-index: $zindex-pagelayout;
+    transform: translate3d(0, 0, 0);
+    @include column-spanning-element();
+  }
+  
+  .page-columns .column-screen-inset-shaded {
+    grid-column: page-start-inset / page-end-inset;
+    padding: 1em;
+    background: $light;
+    z-index: $zindex-pagelayout;
+    transform: translate3d(0, 0, 0);
+    margin-bottom: 1em;
+  }
+  
+}
