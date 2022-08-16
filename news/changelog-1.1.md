@@ -47,6 +47,7 @@
 - Fix multi-column regression (#1698)
 - Hide declarations in hugo format (#1812)
 - Enable OJS runtime in the presence of `ojs_define` (#1846)
+- Emit subcaptions correctly (#1711)
 
 ## Websites
 
