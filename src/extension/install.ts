@@ -32,7 +32,15 @@ export async function installExtension(
   embed?: string,
 ) {
   // Is this local or remote?
-  const source = extensionSource(target);
+  const source = await extensionSource(target);
+
+  // Is this source valid?
+  if (!source) {
+    info(
+      `Extension not found in local or remote sources`,
+    );
+    return;
+  }
 
   // Does the user trust the extension?
   const trusted = await isTrusted(source, allowPrompt);
@@ -167,7 +175,9 @@ async function stageExtension(
     ensureDirSync(archiveDir);
 
     // The filename
-    const filename = source.resolvedTarget.split("/").pop() || "extension.zip";
+    const filename = (typeof (source.resolvedTarget) === "string"
+      ? source.resolvedTarget
+      : source.resolvedTarget.url).split("/").pop() || "extension.zip";
 
     // The tarball path
     const toFile = join(archiveDir, filename);
@@ -177,6 +187,11 @@ async function stageExtension(
 
     return unzipAndStage(toFile, source);
   } else {
+    if (typeof source.resolvedTarget !== "string") {
+      throw new Error(
+        "Internal error: local resolved extension should always have a string target.",
+      );
+    }
     if (Deno.statSync(source.resolvedTarget).isDirectory) {
       // Copy the extension dir only
       const srcDir = extensionDir(source.resolvedTarget);

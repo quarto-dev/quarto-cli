@@ -14,17 +14,20 @@ export interface DownloadError extends Error {
 }
 
 export async function downloadWithProgress(
-  url: string,
+  url: string | Response,
   msg: string,
   toFile: string,
 ) {
   // Fetch the data
-  const response = await fetch(
-    url,
-    {
-      redirect: "follow",
-    },
-  );
+  console.log(url);
+  const response = await (typeof url === "string"
+    ? fetch(
+      url,
+      {
+        redirect: "follow",
+      },
+    )
+    : url);
 
   // Write the data to a file
   if (response.status === 200 && response.body) {

@@ -56,7 +56,14 @@ async function useTemplate(
   tempContext: TempContext,
 ) {
   // Resolve extension host and trust
-  const source = extensionSource(target);
+  const source = await extensionSource(target);
+  // Is this source valid?
+  if (!source) {
+    info(
+      `Extension not found in local or remote sources`,
+    );
+    return;
+  }
   const trusted = await isTrusted(source, options.prompt !== false);
   if (trusted) {
     // Resolve target directory
@@ -125,7 +132,9 @@ async function stageTemplate(
     ensureDirSync(archiveDir);
 
     // The filename
-    const filename = source.resolvedTarget.split("/").pop() || "extension.zip";
+    const filename = (typeof (source.resolvedTarget) === "string"
+      ? source.resolvedTarget
+      : source.resolvedTarget.url).split("/").pop() || "extension.zip";
 
     // The tarball path
     const toFile = join(archiveDir, filename);
@@ -142,6 +151,12 @@ async function stageTemplate(
       return archiveDir;
     }
   } else {
+    if (typeof source.resolvedTarget !== "string") {
+      throw new Error(
+        "Internal error: local resolved extension should always have a string target.",
+      );
+    }
+
     if (Deno.statSync(source.resolvedTarget).isDirectory) {
       // copy the contents of the directory, filtered by quartoignore
       return source.resolvedTarget;
