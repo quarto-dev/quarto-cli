@@ -63,9 +63,7 @@ export function quartoLatexmkOutputRecipe(
     pandocOptions: PandocOptions,
   ): Promise<string> => {
     // Resolve any tex input paths
-    const texInputDirs: string[] = format.pandoc.template
-      ? [`${dirname(format.pandoc.template)}//`]
-      : [];
+    const texInputDirs: string[] = [];
     if (format.render[kLatexInputPaths]) {
       texInputDirs.push(...format.render[kLatexInputPaths]!);
     }
