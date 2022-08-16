@@ -652,7 +652,7 @@ function htmlFormatPostprocessor(
       const secNumber = headerSections[i] as Element;
       const prevElement = secNumber.previousElementSibling;
       if (prevElement && prevElement.classList.contains("toc-section-number")) {
-        prevElement.remove();
+        secNumber.remove();
       }
     }
 
