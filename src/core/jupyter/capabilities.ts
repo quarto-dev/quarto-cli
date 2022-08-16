@@ -24,18 +24,19 @@ export async function jupyterCapabilities(kernelspec?: JupyterKernelspec) {
   const language = kernelspec?.language || kNoLanguage;
 
   if (!jupyterCapsCache.has(language)) {
-    // if there is an explicit python requested then use it
-    const quartoCaps = await getQuartoJupyterCapabilities();
-    if (quartoCaps) {
-      jupyterCapsCache.set(language, quartoCaps);
-      return quartoCaps;
-    }
 
     // if we are targeting julia then prefer the julia installed miniconda
     const juliaCaps = await getVerifiedJuliaCondaJupyterCapabilities();
     if (language === "julia" && juliaCaps) {
       jupyterCapsCache.set(language, juliaCaps);
       return juliaCaps;
+    }
+
+    // if there is an explicit python requested then use it
+    const quartoCaps = await getQuartoJupyterCapabilities();
+    if (quartoCaps) {
+      jupyterCapsCache.set(language, quartoCaps);
+      return quartoCaps;
     }
 
     // if we are on windows and have PY_PYTHON defined then use the launcher
@@ -73,15 +74,14 @@ export async function jupyterCapabilities(kernelspec?: JupyterKernelspec) {
 }
 
 async function getVerifiedJuliaCondaJupyterCapabilities() {
-  const home = Deno.env.get("HOME");
+  const home = isWindows() ? Deno.env.get("USERPROFILE") : Deno.env.get("HOME");
   if (home) {
     const juliaPython = join(
       home,
       ".julia",
       "conda",
       "3",
-      "bin",
-      "python3",
+      isWindows() ? "python.exe" : join("bin", "python3")
     );
     if (existsSync(juliaPython)) {
       const caps = await getJupyterCapabilities([juliaPython]);
