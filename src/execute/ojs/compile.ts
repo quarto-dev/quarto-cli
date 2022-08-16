@@ -614,9 +614,6 @@ export async function ojsCompile(
         );
         makeSubFigures(specs);
         if (cell.options?.[kCellFigCap]) {
-          //const cap = pandocFigCaption();
-          //div.push(cap);
-          //cap.push(pandocRawStr(cell.options[kCellFigCap] as string));
           div.push(pandocRawStr(cell.options[kCellFigCap] as string));
         }
       } else {
