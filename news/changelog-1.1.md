@@ -6,6 +6,7 @@
 - Prevent error in `quarto check` when Jupyter is installed but has no Python kernel
 - Don't run `ipynb-filters` for qmd source files (only run them for ipynb source files)
 - More gracefully handle cell outputs with no data (don't print warning, just ignore)
+- Handle non-textual data from jupyter's plain text output more robustly (#1874)
 
 ## Knitr
 
@@ -98,6 +99,7 @@
 - Properly copy `format-resources` for HTML based formats
 - Extension YAML files `_extension.yml` are now validated at render time. (#1268)
 - Support boolean values in Shortcode `meta` access
+- Make `quarto.base64` module available to extensions
 
 ## Publishing
 
@@ -116,6 +118,7 @@
 - Ignore case when loading date local files from `lang`
 - Don't break cells incorrectly with math expressions (#1781)
 - Development version cleans old vendor directory on success (https://github.com/quarto-dev/quarto-cli/pull/1863#issuecomment-1215452392)
+- properly support YAML scalar syntax (#1838)
 
 ## Format Templates
 

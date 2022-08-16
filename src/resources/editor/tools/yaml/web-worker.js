@@ -14608,7 +14608,7 @@ try {
             default: false,
             description: {
               short: "Allow content that overflows slides vertically to scroll",
-              long: "Allow content that overflows slides vertically to scroll. This can also\nbe set per-slide by including the `.scrollable` class on the slide title.\n"
+              long: "`true` to allow content that overflows slides vertically to scroll. This can also\nbe set per-slide by including the `.scrollable` class on the slide title.\n"
             }
           },
           {
@@ -14622,7 +14622,7 @@ try {
             default: false,
             description: {
               short: "Use a smaller default font for slide content",
-              long: "Use a smaller default font for slide content. This can also\nbe set per-slide by including the `.smaller` class on the slide title.\n"
+              long: "`true` to use a smaller default font for slide content. This can also\nbe set per-slide by including the `.smaller` class on the slide title.\n"
             }
           }
         ],
@@ -25503,6 +25503,13 @@ ${heading}`;
   }
 
   // annotated-yaml.ts
+  function jsYamlParseLenient(yml) {
+    try {
+      return load(yml);
+    } catch (_e) {
+      return yml;
+    }
+  }
   function readAnnotatedYamlFromMappedString(mappedSource2) {
     const parser = getTreeSitterSync();
     const tree = parser.parse(mappedSource2.value);
@@ -25690,31 +25697,17 @@ ${sourceContext}`;
       "document": singletonBuild,
       "block_node": singletonBuild,
       "flow_node": singletonBuild,
+      "double_quote_scalar": (node) => {
+        return annotate(node, jsYamlParseLenient(node.text), []);
+      },
+      "single_quote_scalar": (node) => {
+        return annotate(node, jsYamlParseLenient(node.text), []);
+      },
+      "plain_scalar": (node) => {
+        return annotate(node, jsYamlParseLenient(node.text), []);
+      },
       "block_scalar": (node) => {
-        if (!node.text.startsWith("|") && !node.text.startsWith(">")) {
-          return annotateError(node.startIndex, node.endIndex, "Block scalar must start with either `|` or `>`");
-        }
-        const joinString = node.text.startsWith("|") ? "\n" : "";
-        const ls = lines(node.text);
-        let chompChar = "";
-        if (ls[0].endsWith("-")) {
-          while (ls[ls.length - 1] === "") {
-            ls.pop();
-          }
-        } else if (ls[1].endsWith("+")) {
-          chompChar = "\n";
-        } else {
-          while (ls[ls.length - 1] === "") {
-            ls.pop();
-          }
-          chompChar = "\n";
-        }
-        if (ls.length < 2) {
-          return annotateEmpty(node.endIndex);
-        }
-        const indent = ls[1].length - ls[1].trimStart().length;
-        const result2 = ls.slice(1).map((l) => l.slice(indent)).join(joinString) + chompChar;
-        return annotate(node, result2, []);
+        return annotate(node, jsYamlParseLenient(node.text), []);
       },
       "block_sequence": (node) => {
         const result2 = [], components = [];
@@ -25735,34 +25728,6 @@ ${sourceContext}`;
         } else {
           return buildNode(node.child(1), node.endIndex);
         }
-      },
-      "double_quote_scalar": (node) => {
-        return annotate(node, JSON.parse(node.text), []);
-      },
-      "single_quote_scalar": (node) => {
-        const str2 = node.text.slice(1, -1);
-        const matches = [
-          -2,
-          ...Array.from(matchAll(str2, /''/g)).map((x) => x.index),
-          str2.length
-        ];
-        const lst = [];
-        for (let i = 0; i < matches.length - 1; ++i) {
-          lst.push(str2.substring(matches[i] + 2, matches[i + 1]));
-        }
-        const result2 = lst.join("'");
-        return annotate(node, result2, []);
-      },
-      "plain_scalar": (node) => {
-        function getV() {
-          try {
-            return JSON.parse(node.text);
-          } catch (_e) {
-            return node.text;
-          }
-        }
-        const v = getV();
-        return annotate(node, v, []);
       },
       "flow_sequence": (node) => {
         const result2 = [], components = [];

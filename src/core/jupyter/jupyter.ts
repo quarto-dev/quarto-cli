@@ -145,6 +145,7 @@ import { readYamlFromMarkdown } from "../yaml.ts";
 import { languagesInMarkdown } from "../../execute/engine-shared.ts";
 import { pathWithForwardSlashes } from "../path.ts";
 import { convertToHtmlSpans, hasAnsiEscapeCodes } from "../ansi-colors.ts";
+import { warning } from "log/mod.ts";
 
 export const kJupyterNotebookExtensions = [
   ".ipynb",
@@ -887,6 +888,43 @@ const kLangCommentChars: Record<string, string | string[]> = {
   apl: "⍝",
 };
 
+function cleanJupyterOutputDisplayData(
+  output: JupyterOutput,
+): JupyterOutputDisplayData {
+  const rawOutput = (output as unknown) as Record<string, unknown>;
+
+  const outputData: { [mimeType: string]: unknown } = {};
+
+  for (
+    const [key, value] of Object.entries(
+      rawOutput.data as { [mimeType: string]: unknown },
+    )
+  ) {
+    const strValue = (typeof value === "string")
+      ? [value]
+      : (Array.isArray(value) &&
+          value.every((x) => typeof x === "string"))
+      ? value as string[]
+      : undefined;
+    if (strValue === undefined) {
+      warning("Malformed Jupyter Output Display Data found:");
+      warning(JSON.stringify(value));
+      outputData[key] = [value];
+    } else {
+      outputData[key] = strValue;
+    }
+  }
+
+  return {
+    ...output,
+    data: outputData,
+    metadata: rawOutput.metadata as {
+      [mimetype: string]: Record<string, unknown>;
+    },
+    noCaption: rawOutput.noCaption as (boolean | undefined),
+  };
+}
+
 async function mdFromCodeCell(
   cell: JupyterCellWithOptions,
   cellIndex: number,
@@ -1203,7 +1241,8 @@ async function mdFromCodeCell(
       } else if (output.output_type === "error") {
         md.push(mdOutputError(output as JupyterOutputError));
       } else if (isDisplayData(output)) {
-        if (Object.keys((output as JupyterOutputDisplayData).data).length > 0) {
+        const fixedOutput = cleanJupyterOutputDisplayData(output);
+        if (Object.keys(fixedOutput.data).length > 0) {
           const caption = isCaptionableData(output)
             ? (outputCaptions.shift() || null)
             : null;
@@ -1212,7 +1251,7 @@ async function mdFromCodeCell(
               outputLabel,
               caption,
               outputName + "-" + (index + 1),
-              output as JupyterOutputDisplayData,
+              fixedOutput,
               options,
               figureOptions,
             ),
@@ -1367,7 +1406,16 @@ async function mdOutputDisplayData(
     } else if (displayDataIsJavascript(mimeType)) {
       return mdScriptOutput(mimeType, output.data[mimeType] as string[]);
     } else if (displayDataIsTextPlain(mimeType)) {
-      const lines = output.data[mimeType] as string[];
+      // https://github.com/quarto-dev/quarto-cli/issues/1874
+      // this indicates output.data[mimeType] is not always string[]
+      //
+      // if output is invalid, warn and emit empty
+      const data = output.data[mimeType] as unknown;
+      if (!Array.isArray(data) || data.some((s) => typeof s !== "string")) {
+        return mdWarningOutput(`Unable to process text plain output data 
+which does not appear to be plain text: ${JSON.stringify(data)}`);
+      }
+      const lines = data as string[];
       // pandas inexplicably outputs html tables as text/plain with an enclosing single-quote
       if (
         lines.length === 1 &&
