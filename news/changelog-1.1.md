@@ -54,6 +54,7 @@
 - Correctly align dark/light toggle in navbar (thanks @FabioRosado)
 - Support `navbar:logo-alt` to provide alternate text for navbar logos
 - Support `navbar:logo-href` to provide custom link for navbar logo & title
+- Improve appearance of blog categories in title block
 
 ## Books
 
