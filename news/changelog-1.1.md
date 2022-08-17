@@ -37,6 +37,7 @@
 ## Code Blocks
 
 - Support `filename` attribute for attaching a file name header to code blocks
+- Improve YAML parse error messages in `r` code blocks using `!expr` YAML (#1949)
 
 ## OJS
 
