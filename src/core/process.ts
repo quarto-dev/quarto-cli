@@ -104,6 +104,7 @@ export async function execProcess(
         stdoutText = await processOutput(
           iterateReader(process.stdout),
           options.stdout,
+          "stdout",
         );
         process.stdout.close();
       }
@@ -115,6 +116,7 @@ export async function execProcess(
         stderrText = await processOutput(
           iterator,
           options.stderr,
+          "stderr",
         );
         process.stderr.close();
       }
@@ -161,12 +163,19 @@ function filteredAsyncIterator(
 async function processOutput(
   iterator: AsyncIterable<Uint8Array>,
   output?: "piped" | "inherit" | "null" | number,
+  which?: "stdout" | "stderr",
 ): Promise<string> {
   const decoder = new TextDecoder();
   let outputText = "";
   for await (const chunk of iterator) {
     if (output === "inherit" || output === undefined) {
-      info(decoder.decode(chunk), { newline: false });
+      if (which === "stdout") {
+        Deno.stdout.writeSync(chunk);
+      } else if (which === "stderr") {
+        Deno.stderr.writeSync(chunk);
+      } else {
+        info(decoder.decode(chunk), { newline: false });
+      }
     }
     const text = decoder.decode(chunk);
     outputText += text;
