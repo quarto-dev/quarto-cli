@@ -11,6 +11,7 @@ import { AnnotatedParse, JSONValue } from "../yaml-schema/types.ts";
 import {
   asMappedString,
   mappedIndexToLineCol,
+  mappedLines,
   MappedString,
 } from "../mapped-text.ts";
 import { getTreeSitterSync } from "./parsing.ts";
@@ -19,6 +20,7 @@ import { load as jsYamlParse } from "../external/js-yaml.js";
 
 import { QuartoJSONSchema } from "./js-yaml-schema.ts";
 import { createSourceContext } from "../yaml-validation/errors.ts";
+import { tidyverseInfo } from "../errors.ts";
 
 // deno-lint-ignore no-explicit-any
 type TreeSitterParse = any;
@@ -64,10 +66,13 @@ export function readAnnotatedYamlFromMappedString(
   try {
     return buildJsYamlAnnotation(mappedSource);
   } catch (e) {
+    // FIXME we should convert this to a TidyverseError
+    // for now, we just use the util functions.
     const m = e.stack.split("\n")[0].match(/^.+ \((\d+):(\d+)\)$/);
     if (m) {
       const f = lineColToIndex(mappedSource.value);
-      const offset = f({ line: Number(m[1]) - 1, column: Number(m[2] - 1) });
+      const location = { line: Number(m[1]) - 1, column: Number(m[2] - 1) };
+      const offset = f(location);
       const { originalString } = mappedSource.map(offset, true)!;
       const filename = originalString.fileName!;
       const f2 = mappedIndexToLineCol(mappedSource);
@@ -80,6 +85,22 @@ export function readAnnotatedYamlFromMappedString(
         column + 1
       })\n${sourceContext}`;
       e.message = e.stack;
+      if (
+        mappedLines(mappedSource)[location.line].value.indexOf("!expr") !==
+          -1 &&
+        e.reason.match(/bad indentation of a mapping entry/)
+      ) {
+        e.message = `${e.message}\n${
+          tidyverseInfo(
+            "YAML tags like !expr must be followed by YAML strings.",
+          )
+        }\n${
+          tidyverseInfo(
+            "Is it possible you need to quote the value you passed to !expr ?",
+          )
+        }`;
+      }
+
       e.stack = "";
     }
     throw e;
