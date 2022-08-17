@@ -1,10 +1,16 @@
 <% if (navbar.title || navbar.logo) { %>
-  <a class="navbar-brand" href="<%- navbar['logo-href'] || '/index.html' %>">
+  <div class="navbar-brand-container">
   <% if (navbar.logo) { %>
-    <img src="<%- navbar.logo %>" alt="<%- navbar['logo-alt'] || '' %>" />
+    <a href="<%- navbar['logo-href'] || '/index.html' %>" class="navbar-brand navbar-brand-logo">
+    <img src="<%- navbar.logo %>" alt="<%- navbar['logo-alt'] || '' %>" class="navbar-logo" />
+    </a>
   <% } %>
+
+  
   <% if (navbar.title) { %>
+    <a class="navbar-brand" href="/index.html">
     <span class="navbar-title"><%- navbar.title %></span>
+    </a>
   <% } %>
-  </a>
+  </div>
 <% } %>

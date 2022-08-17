@@ -19893,6 +19893,10 @@ function mappedIndexToLineCol(eitherText) {
     return indexToLineCol(originalString.value)(index);
   };
 }
+function mappedLines(str2, keepNewLines = false) {
+  const lines2 = rangedLines(str2.value, keepNewLines);
+  return lines2.map((v) => mappedString(str2, [v.range]));
+}
 
 // parsing.ts
 var _parser;
@@ -25509,7 +25513,8 @@ function readAnnotatedYamlFromMappedString(mappedSource2) {
     const m = e.stack.split("\n")[0].match(/^.+ \((\d+):(\d+)\)$/);
     if (m) {
       const f = lineColToIndex(mappedSource2.value);
-      const offset = f({ line: Number(m[1]) - 1, column: Number(m[2] - 1) });
+      const location = { line: Number(m[1]) - 1, column: Number(m[2] - 1) };
+      const offset = f(location);
       const { originalString } = mappedSource2.map(offset, true);
       const filename = originalString.fileName;
       const f2 = mappedIndexToLineCol(mappedSource2);
@@ -25521,6 +25526,11 @@ function readAnnotatedYamlFromMappedString(mappedSource2) {
       e.stack = `${e.reason} (${filename}, ${line + 1}:${column + 1})
 ${sourceContext}`;
       e.message = e.stack;
+      if (mappedLines(mappedSource2)[location.line].value.indexOf("!expr") !== -1 && e.reason.match(/bad indentation of a mapping entry/)) {
+        e.message = `${e.message}
+${tidyverseInfo("YAML tags like !expr must be followed by YAML strings.")}
+${tidyverseInfo("Is it possible you need to quote the value you passed to !expr ?")}`;
+      }
       e.stack = "";
     }
     throw e;

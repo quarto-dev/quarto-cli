@@ -37,6 +37,7 @@
 ## Code Blocks
 
 - Support `filename` attribute for attaching a file name header to code blocks
+- Improve YAML parse error messages in `r` code blocks using `!expr` YAML (#1949)
 
 ## OJS
 
@@ -48,6 +49,7 @@
 - Hide declarations in hugo format (#1812)
 - Enable OJS runtime in the presence of `ojs_define` (#1846)
 - Emit subcaptions correctly (#1711)
+- Use forward slashes in paths so OJS compilation works on windows (#1605)
 
 ## Websites
 
