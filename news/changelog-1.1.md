@@ -48,6 +48,7 @@
 - Hide declarations in hugo format (#1812)
 - Enable OJS runtime in the presence of `ojs_define` (#1846)
 - Emit subcaptions correctly (#1711)
+- Use forward slashes in paths so OJS compilation works on windows (#1605)
 
 ## Websites
 
