@@ -297,7 +297,8 @@ function formatCrossref(
           ? language[kCrossrefApxPrefix]
           : language[kCrossrefChPrefix]
         : language[kCrossrefSecPrefix];
-      return prefix + "&nbsp" + refNumber;
+      const crossref = prefix + "&nbsp;" + refNumber;
+      return crossref;
     } else {
       return refNumber;
     }
