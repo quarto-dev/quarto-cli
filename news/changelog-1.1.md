@@ -134,7 +134,7 @@
 - Add support for Giscus lazy loading (use `loading: lazy` #1357)
 - Properly handle duplicated affilations in author metadata (#1286)
 - Display image path when an error occurs reading PNG metadata
-- `quarto run` preserves stdout and stderr (#1954)
+- `quarto run *.ts` preserves stdout and stderr (#1954)
 - Lua filters: quarto.utils.dump does not loop on circular structures
 
 ## Format Templates
