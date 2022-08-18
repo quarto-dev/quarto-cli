@@ -21,6 +21,7 @@ export async function execProcess(
   stdin?: string,
   mergeOutput?: "stderr>stdout" | "stdout>stderr",
   stderrFilter?: (output: string) => string,
+  respectStreams?: boolean,
 ): Promise<ProcessResult> {
   // define process
   try {
@@ -104,7 +105,7 @@ export async function execProcess(
         stdoutText = await processOutput(
           iterateReader(process.stdout),
           options.stdout,
-          "stdout",
+          respectStreams ? "stdout" : undefined,
         );
         process.stdout.close();
       }
@@ -116,7 +117,7 @@ export async function execProcess(
         stderrText = await processOutput(
           iterator,
           options.stderr,
-          "stderr",
+          respectStreams ? "stderr" : undefined,
         );
         process.stderr.close();
       }

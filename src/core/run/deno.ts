@@ -35,20 +35,26 @@ export const denoRunHandler: RunHandler = {
     };
     const importMap = resourcePath(join("deno_std", "import_map.json"));
 
-    return await execProcess({
-      cmd: [
-        toolsPath("deno"),
-        "run",
-        "--import-map",
-        importMap,
-        "--cached-only",
-        "--allow-all",
-        "--unstable",
-        script,
-        ...args,
-      ],
-      ...options,
-    }, stdin);
+    return await execProcess(
+      {
+        cmd: [
+          toolsPath("deno"),
+          "run",
+          "--import-map",
+          importMap,
+          "--cached-only",
+          "--allow-all",
+          "--unstable",
+          script,
+          ...args,
+        ],
+        ...options,
+      },
+      stdin,
+      undefined,
+      undefined,
+      true,
+    );
   },
 };
 
