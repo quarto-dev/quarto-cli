@@ -16,7 +16,7 @@ testRender(listingsQmd.input, "html", false, [
   ]),
   ensureFileRegexMatches(listingsQmd.output.outputPath, [
     /Listing&nbsp;1/,
-    /Listing 1: Customers Query/,
+    /Listing&nbsp;1: Customers Query/,
   ], [
     /\?@sec-/,
   ]),

@@ -16,7 +16,7 @@ testRender(chaptersQmd.input, "html", false, [
   ]),
   ensureFileRegexMatches(chaptersQmd.output.outputPath, [
     /Figure&nbsp;1.1/,
-    /Figure 1.1: Elephant/,
+    /Figure&nbsp;1.1: Elephant/,
   ], [
     /\?@fig-/,
   ]),

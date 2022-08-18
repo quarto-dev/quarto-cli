@@ -11,7 +11,7 @@ import { crossref } from "./utils.ts";
 const simplunresolvedQmd = crossref("unresolved.qmd", "html");
 testRender(simplunresolvedQmd.input, "html", false, [
   ensureFileRegexMatches(simplunresolvedQmd.output.outputPath, [
-    /Figure 1: Elephant/,
+    /Figure&nbsp;1: Elephant/,
     /\?@fig-/,
   ]),
 ]);

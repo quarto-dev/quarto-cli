@@ -6,7 +6,7 @@
 */
 
 import { ensureFileRegexMatches, ensureHtmlElements } from "../../verify.ts";
-import { testRender, renderVerifyLatexOutput } from "../render/render.ts";
+import { renderVerifyLatexOutput, testRender } from "../render/render.ts";
 import { crossref } from "./utils.ts";
 import { docs } from "../../utils.ts";
 
@@ -20,8 +20,8 @@ testRender(tablesQmd.input, "html", false, [
     "section#sub-tables div.quarto-layout-panel > div.quarto-layout-row > div#tbl-second > table > caption",
   ]),
   ensureFileRegexMatches(tablesQmd.output.outputPath, [
-    /Table 1: My Caption/,
-    /Table 2: Main Caption/,
+    /Table&nbsp;1: My Caption/,
+    /Table&nbsp;2: Main Caption/,
     /Table&nbsp;1/,
     /Table&nbsp;2/,
     /Table&nbsp;2 \(b\)/,
@@ -39,7 +39,7 @@ testRender(knitrTablesQmd.input, "html", false, [
     "div.quarto-layout-panel > div.quarto-layout-row > div#tbl-pressure > table > caption",
   ]),
   ensureFileRegexMatches(knitrTablesQmd.output.outputPath, [
-    /Table 1: Tables/,
+    /Table&nbsp;1: Tables/,
     /Table&nbsp;1 \(a\)/,
     /\(a\) Cars/,
     /\(b\) Pressure/,

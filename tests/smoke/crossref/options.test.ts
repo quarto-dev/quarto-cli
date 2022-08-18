@@ -18,8 +18,8 @@ testRender(optionsQmd.input, "html", false, [
   ensureFileRegexMatches(optionsQmd.output.outputPath, [
     /F\.&nbsp;1/,
     /T\.&nbsp;1/,
-    /Figure 1— Elephant/,
-    /Table 1— My Caption/,
+    /Figure&nbsp;1— Elephant/,
+    /Table&nbsp;1— My Caption/,
   ], [
     /\?@fig-/,
     /\?@tbl-/,
@@ -31,9 +31,9 @@ testRender(numberingQmd.input, "html", false, [
   ensureFileRegexMatches(numberingQmd.output.outputPath, [
     /Figure&nbsp;x/,
     /Table&nbsp;A/,
-    /Figure x: Elephant/,
-    /Table A: My Caption/,
-    /Figure y: Famous Elephants/,
+    /Figure&nbsp;x: Elephant/,
+    /Table&nbsp;A: My Caption/,
+    /Figure&nbsp;y: Famous Elephants/,
     /\(i\) Surus/,
     /\(ii\) Abbas/,
   ], [

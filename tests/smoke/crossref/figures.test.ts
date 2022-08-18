@@ -19,8 +19,8 @@ testRender(simpleQmd.input, "html", false, [
     "section#simple-sub-figure > div.quarto-layout-panel > figure > figcaption.figure-caption",
   ]),
   ensureFileRegexMatches(simpleQmd.output.outputPath, [
-    /Figure 1: Elephant/,
-    /Figure 2: Famous Elephants/,
+    /Figure&nbsp;1: Elephant/,
+    /Figure&nbsp;2: Famous Elephants/,
     /\(a\) Surus/,
     /\(b\) Abbas/,
     /Figure&nbsp;1/,
@@ -39,7 +39,7 @@ if (Deno.build.os !== "windows") {
       "section#python-crossref-figure div#fig-plot > figure > figcaption",
     ]),
     ensureFileRegexMatches(pythonQmd.output.outputPath, [
-      /Figure 1: Plot/,
+      /Figure&nbsp;1: Plot/,
       /Figure&nbsp;1/,
     ], [
       /\?@fig-/,
@@ -54,7 +54,7 @@ if (Deno.build.os !== "windows") {
       "section#python-crossref-figure  div.quarto-layout-panel > figure  img.figure-img",
     ]),
     ensureFileRegexMatches(pythonSubfigQmd.output.outputPath, [
-      /Figure 1: Plots/,
+      /Figure&nbsp;1: Plots/,
       /Figure&nbsp;1/,
       /Figure&nbsp;1 \(b\)/,
       /\(a\) Plot 1/,
@@ -72,7 +72,7 @@ testRender(knitrQmd.input, "html", false, [
     "section#knitr-crossref-figure div#fig-plot > figure > figcaption",
   ]),
   ensureFileRegexMatches(knitrQmd.output.outputPath, [
-    /Figure 1: Plot/,
+    /Figure&nbsp;1: Plot/,
     /Figure&nbsp;1/,
   ], [
     /\?@fig-/,
