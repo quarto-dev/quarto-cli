@@ -27,6 +27,8 @@ import {
 
 import { formatResourcePath } from "../../core/resources.ts";
 import { Document, Element } from "../../core/deno-dom.ts";
+import { HtmlPostProcessResult } from "../../command/render/types.ts";
+import { kHtmlEmptyPostProcessResult } from "../../command/render/constants.ts";
 
 // features that are enabled by default for 'html'. setting
 // all of these to false will yield the minimal html output
@@ -318,6 +320,25 @@ export function insertTitle(
   headingClasses: string[] = [],
 ) {
   prependHeading(doc, el, title, level, headingClasses);
+}
+
+export function columnsPostprocessor(
+  doc: Document,
+): Promise<HtmlPostProcessResult> {
+  const columns = doc.querySelectorAll("div.columns div.column");
+  for (const column of columns) {
+    const columnEl = column as Element;
+    const style = columnEl.getAttribute("style");
+    if (style) {
+      columnEl.setAttribute(
+        "style",
+        style.replace(/width:(\d+)%/, (_m: string, pct: string) => {
+          return `flex:0.${pct}`;
+        }),
+      );
+    }
+  }
+  return Promise.resolve(kHtmlEmptyPostProcessResult);
 }
 
 function prependHeading(
