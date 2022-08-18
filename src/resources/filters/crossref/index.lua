@@ -29,13 +29,17 @@ end
 
 
 -- advance a chapter
-function indexNextChapter()
+function indexNextChapter(index, appendix)
    -- reset nextOrder to 1 for all types if we are in chapters mode
   if crossrefOption("chapters", false) then
     -- reset all of the cross type counters
     for k,v in pairs(crossref.index.nextOrder) do
       crossref.index.nextOrder[k] = 1
     end
+  end
+  -- if this is an appendix the note the start index
+  if appendix == true and crossref.startAppendix == nil then
+    crossref.startAppendix = index
   end
 end
 

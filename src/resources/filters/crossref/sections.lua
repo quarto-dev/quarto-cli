@@ -34,7 +34,7 @@ function sections()
       -- if this is a chapter then notify the index (will be used to 
       -- reset type-counters if we are in "chapters" mode)
       if level == 1 then
-        indexNextChapter()
+        indexNextChapter(crossref.index.section[level], currentFileMetadataState().appendix)
       end
       
       -- if this has a section identifier then index it
