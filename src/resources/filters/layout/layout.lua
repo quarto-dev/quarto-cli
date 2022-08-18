@@ -179,8 +179,11 @@ function partitionCells(divEl)
         heading = nil
       end
 
-      -- if this is .cell-output-display then unroll multiple blocks
-      if cellDiv.attr.classes:find("cell-output-display") and #cellDiv.content > 1 then
+      -- if this is .cell-output-display that isn't a figure or table 
+      -- then unroll multiple blocks
+      if cellDiv.attr.classes:find("cell-output-display") and 
+         #cellDiv.content > 1 and 
+         not hasFigureOrTableRef(cellDiv) then
         for _,outputBlock in ipairs(cellDiv.content) do
           if outputBlock.t == "Div" then
             cells:insert(outputBlock)
