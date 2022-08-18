@@ -33,6 +33,7 @@
 - Use 'Appendix' as prefix for references to chapters in appendix
 - Index book crossrefs using shorter paths (fix path error seen in #1770)
 - Improve handling of solution/proof content (filter headings, support code blocks)
+- Insert non-breaking space between entity type (e.g. Figure/Table) and number.
 
 ## Code Blocks
 

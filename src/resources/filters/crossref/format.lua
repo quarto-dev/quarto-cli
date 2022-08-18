@@ -16,7 +16,7 @@ end
 
 function titlePrefix(type, default, order)
   local prefix = title(type, default)
-  table.insert(prefix, pandoc.Space())
+  table.insert(prefix, nbspString())
   tappend(prefix, numberOption(type, order))
   tappend(prefix, titleDelim())
   table.insert(prefix, pandoc.Space())
