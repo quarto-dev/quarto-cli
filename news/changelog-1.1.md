@@ -19,7 +19,7 @@
 
 - Update to Pandoc 2.19
 - Support for `embed-resources` document option
-- Remove workaound for https://github.com/jgm/pandoc/issues/8099
+- Remove workaround for https://github.com/jgm/pandoc/issues/8099
 
 ## References
 
@@ -87,12 +87,14 @@
 - Properly uncollapse sidebars / toc when page width elements are displayed on a page
 - Properly display section numbers in the table of contents when enabled.
 - Properly display banner style title blocks at mobile size.
+- Improve CSS for print media formats (#1824) (thanks @hadley)
 
 ## RevealJS Format
 
 - Don't ignore auto stretch rules when speaker notes are present
 - Target references and footnotes slides for citation and footnote links
 - Automatically include chalkboard src json as a resource when publishing
+- Respect styles of ordered lists (#1970)
 
 ## ePub Format
 
@@ -136,7 +138,7 @@
 - Properly handle duplicated affilations in author metadata (#1286)
 - Display image path when an error occurs reading PNG metadata
 - `quarto run *.ts` preserves stdout and stderr (#1954)
-- Lua filters: quarto.utils.dump does not loop on circular structures
+- Lua filters: quarto.utils.dump does not loop on circular structures (#1958)
 
 ## Format Templates
 
