@@ -523,3 +523,40 @@ $panel-sidebar-padding: 0.5em;
 } @else {
   /*! light */
 }
+
+/* override theme.scss style for the default styles
+ 
+  Note the need for both the case sensitive flag and the
+  case-oblivious selectors. This is a workaround for what's
+  apparently a Chrome and Safari bug:
+
+  https://github.com/quarto-dev/quarto-cli/issues/1902#issuecomment-1219783059
+ */
+
+.reveal ol[type="a"] {
+  list-style-type: lower-alpha;
+}
+
+.reveal ol[type="a" s] {
+  list-style-type: lower-alpha;
+}
+
+.reveal ol[type="A" s] {
+  list-style-type: upper-alpha;
+}
+
+.reveal ol[type="i"] {
+  list-style-type: lower-roman;
+}
+
+.reveal ol[type="i" s] {
+  list-style-type: lower-roman;
+}
+
+.reveal ol[type="I" s] {
+  list-style-type: upper-roman;
+}
+
+.reveal ol[type="1"] {
+  list-style-type: decimal;
+}
