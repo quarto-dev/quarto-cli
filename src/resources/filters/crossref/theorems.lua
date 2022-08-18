@@ -30,6 +30,7 @@ function theorems()
       local type = refType(el.attr.identifier)
       local theoremType = types[type]
       if theoremType then
+
         -- add class for type
         el.attr.classes:insert("theorem")
         if theoremType.env ~= "theorem" then
