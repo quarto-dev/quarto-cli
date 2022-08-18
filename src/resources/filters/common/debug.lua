@@ -11,8 +11,15 @@ function dump(o)
 end
 
 -- improved formatting for dumping tables
-function tdump (tbl, indent)
+function tdump (tbl, indent, refs)
+  if not refs then refs = {} end
   if not indent then indent = 0 end
+  local address = string.format("%p", tbl)
+  if refs[address] ~= nil then
+    print(string.rep("  ", indent) .. "(circular reference to " .. address .. ")")
+    return
+  end
+
   if tbl.t then
     print(string.rep("  ", indent) .. tbl.t)
   end
@@ -22,7 +29,8 @@ function tdump (tbl, indent)
     formatting = string.rep("  ", indent) .. k .. ": "
     if type(v) == "table" then
       print(formatting)
-      tdump(v, indent+1)
+      refs[address] = true
+      tdump(v, indent+1, refs)
     elseif type(v) == 'boolean' then
       print(formatting .. tostring(v))
     elseif (v ~= nil) then 
