@@ -84,6 +84,21 @@ function refHyperlink()
   return crossrefOption("ref-hyperlink", true)
 end
 
+function refNumberOption(type, entry)
+
+  -- for sections just return the section levels
+  if type == "sec" then
+    local num = tostring(entry.order.section[1])
+    if entry.appendix then
+      num = string.char(64 + entry.order.section[1] - crossref.startAppendix + 1)
+    end
+    return stringToInlines(sectionNumber(entry.order.section, nil, num))
+  end
+
+  -- handle other ref types
+  return formatNumberOption(type, entry.order)
+end
+
 function numberOption(type, order, default)
   
   -- for sections, just return the section levels (we don't currently
@@ -92,6 +107,12 @@ function numberOption(type, order, default)
   if type == "sec" then
     return stringToInlines(sectionNumber(order.section))
   end
+
+  -- format
+  return formatNumberOption(type, order, default)
+end
+
+function formatNumberOption(type, order, default)
 
   -- alias num and section (set section to nil if we aren't using chapters)
   local num = order.order
@@ -110,6 +131,8 @@ function numberOption(type, order, default)
       local sectionIndex = section[1]
       if crossrefOption("chapters-alpha", false) then
         sectionIndex = string.char(64 + sectionIndex)
+      elseif crossref.startAppendix ~= nil and sectionIndex >= crossref.startAppendix then
+        sectionIndex = string.char(64 + sectionIndex - crossref.startAppendix + 1)
       else
         sectionIndex = tostring(sectionIndex)
       end
@@ -167,13 +190,17 @@ function numberOption(type, order, default)
     end
     return option
   end
+
 end
 
-function sectionNumber(section, maxLevel)
 
-  local num = ""
-  if crossref.maxHeading == 1 then
-    num = formatChapterIndex(section[1])
+function sectionNumber(section, maxLevel, num)
+
+  if num == nil then
+    num = ""
+    if crossref.maxHeading == 1 then
+      num = formatChapterIndex(section[1])
+    end
   end
 
   local endIndex = #section

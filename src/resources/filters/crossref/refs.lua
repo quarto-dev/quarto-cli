@@ -83,12 +83,12 @@ function resolveRefs()
                 if entry.parent ~= nil then
                   local parentType = refType(entry.parent)
                   local parent = crossref.index.entries[entry.parent]
-                  ref:extend(numberOption(parentType,parent.order))
+                  ref:extend(refNumberOption(parentType,parent))
                   ref:extend({pandoc.Space(), pandoc.Str("(")})
                   ref:extend(subrefNumber(entry.order))
                   ref:extend({pandoc.Str(")")})
                 else
-                  ref:extend(numberOption(type, entry.order))
+                  ref:extend(refNumberOption(type, entry))
                 end
               end
   
