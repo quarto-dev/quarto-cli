@@ -1,0 +1,37 @@
+name: Pull request
+description: Request incorporation of code into quarto-cli
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Welcome to the quarto GitHub repo!
+        We are always happy to hear feedback from our users.
+
+        To file a _pull request_, please follow these instructions carefully: <https://yihui.org/issue/#bug-reports>
+
+        If you're a collaborator from outside `quarto-dev`, please make sure you have filed a [contributor agreement](../CONTRIBUTING.md).
+
+        Also, please complete and keep the checklist below.
+
+  - type: textarea
+    attributes:
+      label: PR description
+      description: Please describe the functionality you wish to add.
+      placeholder: |
+        You can include markdown code blocks which includes code blocks like this:
+
+        ````md
+        ```py
+        print("Hello Quarto!")
+        ```
+        ````
+  - type: checkboxes
+    attributes:
+      label: Checklist
+      description: |
+        When filing a _bug report_, please check the boxes below to confirm that you have provided us with the information we need. Have you:
+      options:
+        - label: filed a [contributor agreement](../CONTRIBUTING.md) (if applicable)?
+        - label: referenced the GitHub issue this PR closes?
+        - label: updated the appropriate changelog?
