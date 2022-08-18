@@ -20,7 +20,8 @@ print("Hello Quarto!")
 
 ## Checklist
 
-I have:
-* [ ] filed a [contributor agreement](../CONTRIBUTING.md) (if applicable).
-* [ ] referenced the GitHub issue this PR closes
-* [ ] updated the appropriate changelog
+I have (if applicable):
+
+- [ ] filed a [contributor agreement](../CONTRIBUTING.md).
+- [ ] referenced the GitHub issue this PR closes
+- [ ] updated the appropriate changelog
