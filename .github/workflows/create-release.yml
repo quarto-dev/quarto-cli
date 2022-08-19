@@ -122,7 +122,7 @@ jobs:
 
     - name: Configure
       run: |
-        .\configure-windows.cmd
+        .\configure.cmd
 
     - name: Prepare Distribution
       run: |
@@ -160,7 +160,7 @@ jobs:
 
     - name: Configure
       run: |
-        ./configure-macos.sh
+        ./configure.sh
         
     - uses: ./.github/workflows/actions/keychain
       with:

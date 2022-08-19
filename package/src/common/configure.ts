@@ -30,6 +30,11 @@ export async function configure(
   info(` - OS  : ${Deno.build.os}`);
   info(` - Arch: ${Deno.build.arch}`);
   info(` - Cwd : ${Deno.cwd()}`);
+  info(` - Directory configuration:`);
+  info(`   - Quarto package folder (build source): ${config.directoryInfo.pkg}`);
+  info(`   - Quarto dist folder (output folder): ${config.directoryInfo.dist}`);
+  info(`     - Quarto bin folder: ${config.directoryInfo.bin}`);
+  info(`     - Quarto share folder: ${config.directoryInfo.share}`);
   info("");
   info("******************************************");
   info("");
@@ -53,7 +58,7 @@ export async function configure(
     );
   }
 
-  // record dev config
+  // record dev config. These are versions as defined in the root configuration file.
   const devConfig = createDevConfig(
     Deno.env.get("DENO") || "",
     Deno.env.get("DENO_DOM") || "",
@@ -63,9 +68,9 @@ export async function configure(
     config.directoryInfo.bin,
   );
   writeDevConfig(devConfig, config.directoryInfo.bin);
-  info("");
+  info("Wrote dev config to bin directory");
 
-  if (Deno.build.os !== "windows") {
+  if (Deno.build.os !== "windows" && Deno.env.get("QUARTO_NO_SYMLINK") === undefined) {
     info("Creating Quarto Symlink");
 
     // Set up a symlink (if appropriate)

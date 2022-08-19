@@ -11,8 +11,6 @@ import { unTar } from "../../util/tar.ts";
 import { Dependency } from "./dependencies.ts";
 
 export function dartSass(version: string): Dependency {
-  // Maps the file name and pandoc executable file name to a repo and expand
-  // to create a pandocRelease
   const dartRelease = (
     filename: string,
   ) => {
@@ -21,15 +19,19 @@ export function dartSass(version: string): Dependency {
       url:
         `https://github.com/sass/dart-sass/releases/download/${version}/${filename}`,
       configure: async (path: string) => {
-        // Remove existing dart-sass dir
-        const dir = dirname(path);
-        const dartSubdir = join(dir, `dart-sass`);
-        if (existsSync(dartSubdir)) {
-          Deno.removeSync(dartSubdir, { recursive: true });
-        }
 
-        // Expand
-        await unTar(path);
+        const vendor = Deno.env.get("QUARTO_VENDOR_BINARIES");
+        if (vendor === undefined || vendor === "true") {
+          // Remove existing dart-sass dir
+          const dir = dirname(path);
+          const dartSubdir = join(dir, `dart-sass`);
+          if (existsSync(dartSubdir)) {
+            Deno.removeSync(dartSubdir, { recursive: true });
+          }
+
+          // Expand
+          await unTar(path);
+        }
       },
     };
   };

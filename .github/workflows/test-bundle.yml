@@ -1,5 +1,5 @@
-# Tests whether Quarto can successfully bundle and run the bundled javascript. 
-# If this test fails, the release version of Quarto will error when run since 
+# Tests whether Quarto can successfully bundle and run the bundled javascript.
+# If this test fails, the release version of Quarto will error when run since
 # bundling has failed.
 name: Bundle Test
 on:
@@ -26,17 +26,16 @@ jobs:
         shell: bash
         run: |
           echo "$HOME/bin" >> $GITHUB_PATH
-      
+
       - name: Configure Quarto
         shell: bash
         run: |
-          ./configure-linux.sh
+          ./configure.sh
 
       - name: Test Bundle
         shell: bash
         run: |
           pushd package/src
           ./quarto-bld prepare-dist
-          mv ../../src/quarto.ts ../../src/quarto1.ts 
+          mv ../../src/quarto.ts ../../src/quarto1.ts
           quarto
-

@@ -2,17 +2,39 @@
 
 # Determine the path to this script (we'll use this to figure out relative positions of other files)
 SOURCE="${BASH_SOURCE[0]}"
-while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+if [ -h "$SOURCE" ]; then
+  while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+    SOURCE="$(readlink "$SOURCE")"
+    SCRIPT_PATH="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+    [[ $SOURCE != /* ]] && SOURCE="$SCRIPT_PATH/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+  done
+else
   SCRIPT_PATH="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
-  SOURCE="$(readlink "$SOURCE")"
-  [[ $SOURCE != /* ]] && SOURCE="$SCRIPT_PATH/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
-done
-export SCRIPT_PATH="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+fi
 
 # Check if we are running 'Dev Mode' and if so, override values for devs
-QUARTO_SRC_DIR="`cd "$SCRIPT_PATH/../../../src" > /dev/null 2>&1 && pwd`"
-DEV_PATH=$QUARTO_SRC_DIR/quarto.ts
+SCRIPT_BASENAME=$(basename $SCRIPT_PATH)
+if [ "${SCRIPT_BASENAME}" == "bin" ]; then
+  # we can be running dev mode with a symlink to the package/dist/bin folder. In this case, our relative path is two levels up.
+  QUARTO_ROOT="`cd "$SCRIPT_PATH/../../../src" > /dev/null 2>&1 && pwd`"
+elif [ "${SCRIPT_BASENAME}" == "common" ]; then
+  # we can run this script directly in the source tree. In this case, our relative path is three levels up.
+  QUARTO_ROOT="`cd "$SCRIPT_PATH/../../../src" > /dev/null 2>&1 && pwd`"
+else
+  echo "ERROR: Cannot determine the Quarto source path. This script must be run from the bin or common folder."
+  exit 1
+fi
+QUARTO_SRC_PATH=$QUARTO_ROOT/src
+DEV_PATH=$QUARTO_SRC_PATH/quarto.ts
 if [ -f "$DEV_PATH" ]; then
+  if [ "$1" == "--version" ] || [ "$1" == "-v" ]; then
+    echo "99.9.9"
+    exit 0
+  fi
+
+  echo "Running in Dev Mode because $DEV_PATH exists."
+  echo "    Calling script was ${BASH_SOURCE[0]}"
+  echo "    (symlink resolved to $SCRIPT_PATH/quarto)"
 
   # Caller can point deno at another entry point (e.g. the typescript file)
   if [ -z ${QUARTO_ACTION+x} ]; then
@@ -20,65 +42,58 @@ if [ -f "$DEV_PATH" ]; then
   fi
 
   # Local import map
-  QUARTO_IMPORT_ARGMAP=--importmap=$QUARTO_SRC_DIR/dev_import_map.json
+  QUARTO_IMPORT_ARGMAP=--importmap=$QUARTO_SRC_PATH/dev_import_map.json
 
   # Allow calls to override the target
   if [ -z ${QUARTO_TARGET+x} ]; then
     QUARTO_TARGET=$DEV_PATH
   fi
   export QUARTO_BIN_PATH=$SCRIPT_PATH
-  export QUARTO_SHARE_PATH="`cd "$SCRIPT_PATH/../../../src/resources/";pwd`"
+  export QUARTO_SHARE_PATH="${QUARTO_SHARE_PATH=$QUARTO_SRC_PATH/resources/}"
   export QUARTO_DEBUG=true
 
   # Check for deno update
-  QUARTO_SRC_DIR=$QUARTO_BIN_PATH/../../..
   QUARTO_DIST_CONFIG=$QUARTO_BIN_PATH/../config
   mkdir -p $QUARTO_DIST_CONFIG
   DENO_VERSION_FILE=$QUARTO_DIST_CONFIG/deno-version
-  DENO_SOURCE_VERSION="`(cd "$QUARTO_SRC_DIR" && source ./configuration && echo $DENO)`"
+  DENO_SOURCE_VERSION="`(cd "$QUARTO_ROOT" && source ./configuration && echo $DENO)`"
   if [ -f "$DENO_VERSION_FILE" ]; then
-    DENO_INSTALLED_VERSION=`cat "$DENO_VERSION_FILE"`
-    if [ "$DENO_SOURCE_VERSION" != "$DENO_INSTALLED_VERSION" ]; then
+    # echo is to trim whitespace to avoid version comparison issues
+    DENO_INSTALLED_VERSION=$(echo `cat "$DENO_VERSION_FILE"`)
+    if [ "${DENO_SOURCE_VERSION}" != "${DENO_INSTALLED_VERSIONv}" ]; then
       # configure will call back into this script so we need to update the
       # version so that the check will pass next time through
-      echo $DENO_SOURCE_VERSION > "$DENO_VERSION_FILE"
-      if [ "$(uname)" = "Darwin" ]; then
-        (cd "$QUARTO_SRC_DIR" && ./configure-macos.sh)
-      else
-        (cd "$QUARTO_SRC_DIR" && ./configure-linux.sh)
-      fi
+      echo "$DENO_SOURCE_VERSION" > "$DENO_VERSION_FILE"
+      (cd "$QUARTO_ROOT" && ./configure.sh)
       echo ""
-      printf "\\033[0;31mQuarto required reconfiguration to install Deno ${DENO_SOURCE_VERSION}. Please try command again.\\033[0m\n\n"
+      printf "\\033[0;31mQuarto required reconfiguration to install Deno. Had ${DENO_INSTALLED_VERSION}, needed ${DENO_SOURCE_VERSION}. Please try command again.\\033[0m\n\n"
       exit 1
     fi
   else
-    echo $DENO_SOURCE_VERSION > "$DENO_VERSION_FILE"
+    echo "$DENO_SOURCE_VERSION" > "$DENO_VERSION_FILE"
   fi
 
-  if [ "$1" == "--version" ] || [ "$1" == "-v" ]; then
-    echo "99.9.9"
-    exit 0
-  fi
+else
 
-else 
-  
   QUARTO_ACTION=run
   QUARTO_TARGET=${SCRIPT_PATH}/quarto.js
   export QUARTO_BIN_PATH=$SCRIPT_PATH
-
+ 
   QUARTO_IMPORT_ARGMAP=--importmap=$SCRIPT_PATH/vendor/import_map.json
 
   # Turn of type checking for bundled version
   QUARTO_DENO_OPTIONS=--no-check
 
-  # If Quarto is bundled into an `.app` file, it will be looking for the 
+  # If Quarto is bundled into an `.app` file, it will be looking for the
   # share directory over in the resources folder.
-  if [[ $SCRIPT_PATH == *"/Contents/MacOS/quarto/bin" ]]; then
-    export QUARTO_SHARE_PATH="`cd "$SCRIPT_PATH/../../../Resources/quarto/share";pwd`"
-  elif [[ $SCRIPT_PATH == *"/usr/local/bin/quarto" ]]; then
-    export QUARTO_SHARE_PATH="`cd "$SCRIPT_PATH/../../share/quarto";pwd`"
-  else
-    export QUARTO_SHARE_PATH="`cd "$SCRIPT_PATH/../share";pwd`"
+  if [ -z "${QUARTO_SHARE_PATH+x}" ]; then
+    if [[ $SCRIPT_PATH == *"/Contents/MacOS/quarto/bin" ]]; then
+      export QUARTO_SHARE_PATH="`cd "$SCRIPT_PATH/../../../Resources/quarto/share";pwd`"
+    elif [[ $SCRIPT_PATH == *"/usr/local/bin/quarto" ]]; then
+      export QUARTO_SHARE_PATH="`cd "$SCRIPT_PATH/../../share/quarto";pwd`"
+    else
+      export QUARTO_SHARE_PATH="`cd "$SCRIPT_PATH/../share";pwd`"
+    fi
   fi
 
   if [ "$1" == "--version" ] || [ "$1" == "-v" ]; then
@@ -109,4 +124,4 @@ fi
 # Be sure to include any already defined QUARTO_DENO_OPTIONS
 QUARTO_DENO_OPTIONS="--unstable --no-config --cached-only --allow-read --allow-write --allow-run --allow-env --allow-net --allow-ffi ${QUARTO_DENO_OPTIONS}"
 
- "${QUARTO_DENO}" ${QUARTO_ACTION} ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_ARGMAP}" "${QUARTO_TARGET}" "$@"
+"${QUARTO_DENO}" ${QUARTO_ACTION} ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_ARGMAP}" "${QUARTO_TARGET}" "$@"
