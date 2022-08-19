@@ -30,7 +30,7 @@ function theorems()
       local type = refType(el.attr.identifier)
       local theoremType = types[type]
       if theoremType then
-        
+
         -- add class for type
         el.attr.classes:insert("theorem")
         if theoremType.env ~= "theorem" then
@@ -75,11 +75,6 @@ function theorems()
             tappend(prefix, name)
             table.insert(prefix, pandoc.Str(")"))
             table.insert(prefix, pandoc.Space())
-          end
-        
-          -- add caption paragraph if necessary
-          if #el.content < 2 then
-            tprepend(el.content,  { pandoc.Para({}) })
           end
           
           -- prepend the prefix
