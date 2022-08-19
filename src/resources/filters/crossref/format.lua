@@ -88,9 +88,11 @@ function refNumberOption(type, entry)
 
   -- for sections just return the section levels
   if type == "sec" then
-    local num = tostring(entry.order.section[1])
+    local num = nil
     if entry.appendix then
       num = string.char(64 + entry.order.section[1] - crossref.startAppendix + 1)
+    elseif crossrefOption("chapters", false) then
+      num = tostring(entry.order.section[1])
     end
     return stringToInlines(sectionNumber(entry.order.section, nil, num))
   end
@@ -98,6 +100,7 @@ function refNumberOption(type, entry)
   -- handle other ref types
   return formatNumberOption(type, entry.order)
 end
+
 
 function numberOption(type, order, default)
   
