@@ -34,6 +34,7 @@
 - Index book crossrefs using shorter paths (fix path error seen in #1770)
 - Improve handling of solution/proof content (filter headings, support code blocks)
 - Insert non-breaking space between entity type (e.g. Figure/Table) and number.
+- Fix crossref numbering for docx books
 
 ## Code Blocks
 
