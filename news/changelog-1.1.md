@@ -17,7 +17,7 @@
 
 ## Pandoc
 
-- Update to Pandoc 2.19
+- Update to Pandoc 2.19.1
 - Support for `embed-resources` document option
 - Remove workaround for https://github.com/jgm/pandoc/issues/8099
 
