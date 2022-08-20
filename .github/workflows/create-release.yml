@@ -61,7 +61,7 @@ jobs:
 
     - name: Configure
       run: |
-        ./configure-linux.sh
+        ./configure.sh
 
     - name: Prepare Distribution
       run: |
@@ -93,7 +93,7 @@ jobs:
 
     - name: Configure
       run: |
-        ./configure-linux.sh
+        ./configure.sh
 
     - name: Prepare Distribution
       run: |
