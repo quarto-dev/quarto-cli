@@ -67,31 +67,26 @@ export async function configureDependency(
   const archDep = dependency.architectureDependencies[Deno.build.arch];
   if (archDep) {
     const platformDep = archDep[Deno.build.os];
-    const vendor = Deno.env.get("QUARTO_VENDOR_BINARIES");
-    let targetFile = "";
-    if (vendor === undefined || vendor === "true") {
-      info(`Downloading ${dependency.name}`);
+    info(`Downloading ${dependency.name}`);
 
-      try {
-        targetFile = await downloadBinaryDependency(
-          dependency,
-          platformDep,
-          config,
-        );
-      } catch (error) {
-        const msg =
-          `Failed to Download ${dependency.name}\nAre you sure that version ${dependency.version} of ${dependency.bucket} has been archived using './quarto-bld archive-bin-deps'?\n${error.message}`;
-        throw new Error(msg);
-      }
+    let targetFile;
+    try {
+      targetFile = await downloadBinaryDependency(
+        dependency,
+        platformDep,
+        config,
+      );
+    } catch (error) {
+      const msg =
+        `Failed to Download ${dependency.name}\nAre you sure that version ${dependency.version} of ${dependency.bucket} has been archived using './quarto-bld archive-bin-deps'?\n${error.message}`;
+      throw new Error(msg);
     }
 
     info(`Configuring ${dependency.name}`);
     await platformDep.configure(targetFile);
 
-    if (targetFile) {
-      info(`Cleaning up`);
-      Deno.removeSync(targetFile);
-    }
+    info(`Cleaning up`);
+    Deno.removeSync(targetFile);
   } else {
     throw new Error(
       `The architecture ${Deno.build.arch} is missing the dependency ${dependency.name}`,

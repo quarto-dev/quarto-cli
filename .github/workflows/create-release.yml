@@ -61,7 +61,7 @@ jobs:
 
     - name: Configure
       run: |
-        ./configure.sh
+        ./configure-linux.sh
 
     - name: Prepare Distribution
       run: |
@@ -93,7 +93,7 @@ jobs:
 
     - name: Configure
       run: |
-        ./configure.sh
+        ./configure-linux.sh
 
     - name: Prepare Distribution
       run: |
@@ -122,7 +122,7 @@ jobs:
 
     - name: Configure
       run: |
-        .\configure.cmd
+        .\configure-windows.cmd
 
     - name: Prepare Distribution
       run: |
@@ -160,7 +160,7 @@ jobs:
 
     - name: Configure
       run: |
-        ./configure.sh
+        ./configure-macos.sh
         
     - uses: ./.github/workflows/actions/keychain
       with:

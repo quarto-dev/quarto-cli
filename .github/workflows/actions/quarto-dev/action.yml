@@ -3,21 +3,23 @@ description: 'Configures the image for Quarto Development'
 
 runs:
   using: "composite"
-  steps:
+  steps:          
       - name: Set Path
         shell: bash
         run: |
           echo "$HOME/bin" >> $GITHUB_PATH
-
+      
       - name: Configure Quarto
         shell: bash
         run: |
-          ./configure.sh
-          package/src/quarto-bld prepare-dist
-
+          ./configure-linux.sh
+          
       - name: Quarto Check
         shell: bash
         run: |
           pushd tests
           quarto check
           popd
+
+
+

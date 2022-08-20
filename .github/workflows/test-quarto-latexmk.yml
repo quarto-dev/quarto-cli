@@ -29,8 +29,7 @@ jobs:
       - name: Test ${{ runner.os }}
         if: runner.os == 'Windows'
         run: |
-          .\configure.cmd
-          pwd
+          .\configure-windows.cmd
           cd package/src
           .\quarto-bld.cmd compile-quarto-latexmk --target x86_64-pc-windows-msvc --name tinitex
           tree ..\dist\bin /f /a
@@ -40,8 +39,7 @@ jobs:
       - name: Test ${{ runner.os }}
         if: runner.os == 'macOS'
         run: |
-          ./configure.sh
-          pwd
+          ./configure-macos.sh
           cd package/src
           ./quarto-bld compile-quarto-latexmk --target x86_64-apple-darwin --name tinitex
           ls -R ../dist/bin
@@ -50,8 +48,7 @@ jobs:
       - name: Test ${{ runner.os }}
         if: runner.os == 'Linux'
         run: |
-          ./configure.sh
-          pwd
+          ./configure-linux.sh
           cd package/src
           ./quarto-bld compile-quarto-latexmk --target x86_64-unknown-linux-gnu --name tinitex
           ls -R ../dist/bin

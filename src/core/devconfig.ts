@@ -36,7 +36,6 @@ export function createDevConfig(
   scriptDir: string,
 ): DevConfig {
   const scriptPath = join(scriptDir, "quarto" + (isWindows() ? ".cmd" : ""));
-  const srcDir = Deno.env.get("QUARTO_SRC_PATH") || join(quartoConfig.sharePath(), "../../src");
   return {
     deno,
     deno_dom,
@@ -46,12 +45,12 @@ export function createDevConfig(
     script: md5Hash(Deno.readTextFileSync(scriptPath)),
     importMap: md5Hash(
       Deno.readTextFileSync(
-        join(srcDir, "import_map.json"),
+        join(scriptPath, "../../../../src/import_map.json"),
       ),
     ),
     bundleImportMap: md5Hash(
       Deno.readTextFileSync(
-        join(srcDir, "resources/vendor/import_map.json"),
+        join(scriptPath, "../../../../src/resources/vendor/import_map.json"),
       ),
     ),
   };
@@ -94,13 +93,20 @@ export function readSourceDevConfig(): DevConfig {
     }
   };
 
+  const srcScriptPath = join(
+    quartoConfig.binPath(),
+    "..",
+    "..",
+    "scripts",
+    isWindows() ? "windows" : "common",
+  );
   return createDevConfig(
     readConfig("DENO"),
     readConfig("DENO_DOM"),
     readConfig("PANDOC"),
     readConfig("DARTSASS"),
     readConfig("ESBUILD"),
-    quartoConfig.binPath(),
+    srcScriptPath,
   );
 }
 
@@ -120,11 +126,13 @@ export async function reconfigureQuarto(
   source: DevConfig,
 ) {
   const configureScript = isWindows()
-    ? ".\\configure.cmd"
-    : "./configure.sh";
+    ? ".\\configure-windows.cmd"
+    : isMac()
+    ? "./configure-macos.sh"
+    : "./configure-linux.sh";
 
   const quartoDir = Deno.realPathSync(
-    join(quartoConfig.sharePath(), "..", ".."),
+    join(quartoConfig.binPath(), "..", "..", ".."),
   );
 
   const process = Deno.run({
