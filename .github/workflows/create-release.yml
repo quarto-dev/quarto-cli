@@ -1,341 +1,347 @@
 name: Build Installers
 on:
   schedule:
-     - cron: "0 4 * * *"
+    - cron: "0 4 * * *"
   workflow_dispatch:
     inputs:
       publish-release:
-        description: 'Publish Release'
+        description: "Publish Release"
         required: false
-        default: 'true'
+        default: "true"
       pre-release:
-        description: 'Pre-release'
+        description: "Pre-release"
         required: false
-        default: 'true'
+        default: "true"
       draft:
-        description: 'Draft'
+        description: "Draft"
         required: false
-        default: 'false'
-        
+        default: "false"
 
 jobs:
   configure:
     runs-on: ubuntu-latest
     outputs:
       version: ${{steps.config.outputs.version}}.${{ steps.config.outputs.build_number}}
-      tag_name:  v${{steps.config.outputs.version}}.${{ steps.config.outputs.build_number }}
+      tag_name: v${{steps.config.outputs.version}}.${{ steps.config.outputs.build_number }}
       release: v${{steps.config.outputs.version}}.${{ steps.config.outputs.build_number }}
-      changes: ${{ steps.config.outputs.changes }}  
+      changes: ${{ steps.config.outputs.changes }}
     if: github.event_name != 'schedule' || (github.event_name == 'schedule' && github.repository == 'quarto-dev/quarto-cli')
     steps:
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0  
-     
-    - name: config
-      id: config
-      run: |
-        source ./configuration
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
-        CHANGES= 
-        # CHANGES=$(git log $(git describe --tags --abbrev=0)..HEAD --oneline)
-        # Escape \n, \r to preserve multiline variable
-        # See https://github.community/t/set-output-truncates-multiline-strings/16852/2
-        # CHANGES="${CHANGES//'%'/'%25'}"
-        # CHANGES="${CHANGES//$'\n'/'%0A'}"
-        # CHANGES="${CHANGES//$'\r'/'%0D'}"
-        # echo ::set-output name=changes::$CHANGES
+      - name: config
+        id: config
+        run: |
+          source ./configuration
 
-        QUARTO_BUILD_NUMBER=$(($QUARTO_BUILD_RUN_OFFSET + $GITHUB_RUN_NUMBER))
+          CHANGES=
+          # CHANGES=$(git log $(git describe --tags --abbrev=0)..HEAD --oneline)
+          # Escape \n, \r to preserve multiline variable
+          # See https://github.community/t/set-output-truncates-multiline-strings/16852/2
+          # CHANGES="${CHANGES//'%'/'%25'}"
+          # CHANGES="${CHANGES//$'\n'/'%0A'}"
+          # CHANGES="${CHANGES//$'\r'/'%0D'}"
+          # echo ::set-output name=changes::$CHANGES
 
-        echo ::set-output name=version::$QUARTO_VERSION
-        echo ::set-output name=changes::$CHANGES
-        echo ::set-output name=build_number::$QUARTO_BUILD_NUMBER
-  
+          QUARTO_BUILD_NUMBER=$(($QUARTO_BUILD_RUN_OFFSET + $GITHUB_RUN_NUMBER))
+
+          echo ::set-output name=version::$QUARTO_VERSION
+          echo ::set-output name=changes::$CHANGES
+          echo ::set-output name=build_number::$QUARTO_BUILD_NUMBER
+
   make-tarball:
     runs-on: ubuntu-latest
     needs: [configure]
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Configure
-      run: |
-        ./configure-linux.sh
+      - name: Configure
+        run: |
+          ./configure-linux.sh
 
-    - name: Prepare Distribution
-      run: |
-        pushd package/src/
-        ./quarto-bld prepare-dist --set-version ${{needs.configure.outputs.version}} --log-level info
-        popd
+      - name: Prepare Distribution
+        run: |
+          pushd package/src/
+          ./quarto-bld prepare-dist --set-version ${{needs.configure.outputs.version}} --log-level info
+          popd
 
-    - name: Make Tarball
-      run: |
-        pushd package/
-        mv dist quarto-${{needs.configure.outputs.version}}
-        tar -cvf  quarto-${{needs.configure.outputs.version}}-linux-amd64.tar quarto-${{needs.configure.outputs.version}}
-        gzip quarto-${{needs.configure.outputs.version}}-linux-amd64.tar
-        mv quarto-${{needs.configure.outputs.version}} dist
-        popd
+      - name: Make Tarball
+        run: |
+          pushd package/
+          mv dist quarto-${{needs.configure.outputs.version}}
+          tar -cvf  quarto-${{needs.configure.outputs.version}}-linux-amd64.tar quarto-${{needs.configure.outputs.version}}
+          gzip quarto-${{needs.configure.outputs.version}}-linux-amd64.tar
+          mv quarto-${{needs.configure.outputs.version}} dist
+          popd
 
-    - name: Upload Artifact 
-      uses: actions/upload-artifact@v2
-      with:
-        name: Deb Zip
-        path: ./package/quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: Deb Zip
+          path: ./package/quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz
 
   make-installer-deb:
     runs-on: ubuntu-latest
     needs: [configure]
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Configure
-      run: |
-        ./configure-linux.sh
+      - name: Configure
+        run: |
+          ./configure-linux.sh
 
-    - name: Prepare Distribution
-      run: |
-        pushd package/src/
-        ./quarto-bld prepare-dist --set-version ${{needs.configure.outputs.version}} --log-level info
-        popd
+      - name: Prepare Distribution
+        run: |
+          pushd package/src/
+          ./quarto-bld prepare-dist --set-version ${{needs.configure.outputs.version}} --log-level info
+          popd
 
-    - name: Make Installer
-      run: |
-        pushd package/src/
-        ./quarto-bld make-installer-deb --set-version ${{needs.configure.outputs.version}} --log-level info
-        popd
+      - name: Make Installer
+        run: |
+          pushd package/src/
+          ./quarto-bld make-installer-deb --set-version ${{needs.configure.outputs.version}} --log-level info
+          popd
 
-    - name: Upload Artifact 
-      uses: actions/upload-artifact@v2
-      with:
-        name: Deb Installer
-        path: ./package/out/quarto-${{needs.configure.outputs.version}}-linux-amd64.deb
-        
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: Deb Installer
+          path: ./package/out/quarto-${{needs.configure.outputs.version}}-linux-amd64.deb
+
   make-installer-win:
     runs-on: windows-latest
     needs: [configure]
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Configure
-      run: |
-        .\configure-windows.cmd
+      - name: Configure
+        run: |
+          .\configure-windows.cmd
 
-    - name: Prepare Distribution
-      run: |
-        pushd package\src\
-        .\quarto-bld.cmd prepare-dist --set-version ${{needs.configure.outputs.version}} --log-level info
-        popd
+      - name: Prepare Distribution
+        run: |
+          pushd package\src\
+          .\quarto-bld.cmd prepare-dist --set-version ${{needs.configure.outputs.version}} --log-level info
+          popd
 
-    - name: Make Installer
-      run: |
-        pushd package\src\
-        .\quarto-bld.cmd make-installer-win --set-version ${{needs.configure.outputs.version}} --log-level debug
-        popd     
-      env:
-        QUARTO_WIN_PFX: ${{ secrets.WIN_PFX }}
-        QUARTO_WIN_PFX_PW: ${{ secrets.WIN_PFX_PW }}   
-   
-    - name: Upload Artifact 
-      uses: actions/upload-artifact@v2
-      with:
-        name: Windows Installer
-        path: ./package/out/quarto-${{needs.configure.outputs.version}}-win.msi
-        
-    - name: Upload Zip 
-      uses: actions/upload-artifact@v2
-      with:
-        name: Windows Zip
-        path: ./package/out/quarto-${{needs.configure.outputs.version}}-win.zip        
+      - name: Make Installer
+        run: |
+          pushd package\src\
+          .\quarto-bld.cmd make-installer-win --set-version ${{needs.configure.outputs.version}} --log-level debug
+          popd
+        env:
+          QUARTO_WIN_PFX: ${{ secrets.WIN_PFX }}
+          QUARTO_WIN_PFX_PW: ${{ secrets.WIN_PFX_PW }}
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: Windows Installer
+          path: ./package/out/quarto-${{needs.configure.outputs.version}}-win.msi
+
+      - name: Upload Zip
+        uses: actions/upload-artifact@v2
+        with:
+          name: Windows Zip
+          path: ./package/out/quarto-${{needs.configure.outputs.version}}-win.zip
 
   make-installer-mac:
     runs-on: macos-latest
     needs: [configure]
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Configure
-      run: |
-        ./configure-macos.sh
-        
-    - uses: ./.github/workflows/actions/keychain
-      with:
-        certificate-value: ${{ secrets.APPLE_SIGN_P12 }}
-        certificate-password: ${{ secrets.APPLE_SIGN_PW }}
-        keychain: 'build.keychain'
-        keychain-pw: ${{ secrets.APPLE_KEYCHAIN_PW }}
-        certificate-file: certificate.p12
+      - name: Configure
+        run: |
+          ./configure-macos.sh
 
-    - uses: ./.github/workflows/actions/keychain
-      with:
-        certificate-value: ${{ secrets.APPLE_INSTALLER_P12 }}
-        certificate-password: ${{ secrets.APPLE_INSTALLER_PW }}
-        keychain: 'build.keychain'
-        keychain-pw: ${{ secrets.APPLE_KEYCHAIN_PW }}
-        certificate-file: installer.p12
+      - uses: ./.github/workflows/actions/keychain
+        with:
+          certificate-value: ${{ secrets.APPLE_SIGN_P12 }}
+          certificate-password: ${{ secrets.APPLE_SIGN_PW }}
+          keychain: "build.keychain"
+          keychain-pw: ${{ secrets.APPLE_KEYCHAIN_PW }}
+          certificate-file: certificate.p12
 
-    - name: Prepare Distribution
-      run: |
-        security find-identity
-        security find-certificate -a
-        pushd package/src/
-        ./quarto-bld prepare-dist --set-version ${{needs.configure.outputs.version}} --log-level info
-        popd
+      - uses: ./.github/workflows/actions/keychain
+        with:
+          certificate-value: ${{ secrets.APPLE_INSTALLER_P12 }}
+          certificate-password: ${{ secrets.APPLE_INSTALLER_PW }}
+          keychain: "build.keychain"
+          keychain-pw: ${{ secrets.APPLE_KEYCHAIN_PW }}
+          certificate-file: installer.p12
 
-    - name: Make Installer
-      run: |
-        pushd package/src/
-        ./quarto-bld make-installer-mac --set-version ${{needs.configure.outputs.version}} --log-level info
-        popd
-      env:
-        QUARTO_APPLE_APP_DEV_ID: ${{ secrets.APPLE_SIGN_ID }}
-        QUARTO_APPLE_INST_DEV_ID: ${{ secrets.APPLE_INSTALLER_ID }}
-        QUARTO_APPLE_CONNECT_UN: ${{ secrets.APPLE_CONNECT_UN }}
-        QUARTO_APPLE_CONNECT_PW: ${{ secrets.APPLE_CONNECT_PW }}
-        
-    - name: Upload Artifact 
-      uses: actions/upload-artifact@v2
-      with:
-        name: Mac Installer
-        path: ./package/out/quarto-${{needs.configure.outputs.version}}-macos.pkg
-        
-    - name: Upload Zip 
-      uses: actions/upload-artifact@v2
-      with:
-        name: Mac Zip
-        path: ./package/out/quarto-${{needs.configure.outputs.version}}-macos.tar.gz
+      - name: Prepare Distribution
+        run: |
+          security find-identity
+          security find-certificate -a
+          pushd package/src/
+          ./quarto-bld prepare-dist --set-version ${{needs.configure.outputs.version}} --log-level info
+          popd
 
-    - name: Cleanup Keychain
-      if: ${{ always() }}
-      run: |
-        security delete-keychain build.keychain
-        
+      - name: Make Installer
+        run: |
+          pushd package/src/
+          ./quarto-bld make-installer-mac --set-version ${{needs.configure.outputs.version}} --log-level info
+          popd
+        env:
+          QUARTO_APPLE_APP_DEV_ID: ${{ secrets.APPLE_SIGN_ID }}
+          QUARTO_APPLE_INST_DEV_ID: ${{ secrets.APPLE_INSTALLER_ID }}
+          QUARTO_APPLE_CONNECT_UN: ${{ secrets.APPLE_CONNECT_UN }}
+          QUARTO_APPLE_CONNECT_PW: ${{ secrets.APPLE_CONNECT_PW }}
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: Mac Installer
+          path: ./package/out/quarto-${{needs.configure.outputs.version}}-macos.pkg
+
+      - name: Upload Zip
+        uses: actions/upload-artifact@v2
+        with:
+          name: Mac Zip
+          path: ./package/out/quarto-${{needs.configure.outputs.version}}-macos.tar.gz
+
+      - name: Cleanup Keychain
+        if: ${{ always() }}
+        run: |
+          security delete-keychain build.keychain
+
   publish-release:
     if: ${{ github.event.inputs.publish-release == 'true' }}
-    runs-on: ubuntu-latest   
-    needs: [configure, make-installer-deb, make-installer-win, make-installer-mac, make-tarball]
+    runs-on: ubuntu-latest
+    needs:
+      [
+        configure,
+        make-installer-deb,
+        make-installer-win,
+        make-installer-mac,
+        make-tarball,
+      ]
 
     steps:
-    - name: Download Artifacts
-      uses: actions/download-artifact@v2      
+      - name: Download Artifacts
+        uses: actions/download-artifact@v2
 
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
-      with:
-        tag_name: ${{needs.configure.outputs.tag_name}}
-        release_name: ${{needs.configure.outputs.release}}
-        body: |
-          ${{ needs.configure.outputs.changes }}
-        draft: ${{ github.event.inputs.draft }}
-        prerelease: ${{ github.event.inputs.pre-release }}
-        
-    - name: Attach Release Tarball
-      id: attach-release-tarball
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }} 
-        asset_path: ./Deb Zip/quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz
-        asset_name: quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz
-        asset_content_type: application/gzip
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{needs.configure.outputs.tag_name}}
+          release_name: ${{needs.configure.outputs.release}}
+          body: |
+            ${{ needs.configure.outputs.changes }}
+          draft: ${{ github.event.inputs.draft }}
+          prerelease: ${{ github.event.inputs.pre-release }}
 
-    - name: Attach Debian Installer
-      id: attach-deb-installer
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }} 
-        asset_path: ./Deb Installer/quarto-${{needs.configure.outputs.version}}-linux-amd64.deb
-        asset_name: quarto-${{needs.configure.outputs.version}}-linux-amd64.deb
-        asset_content_type: application/deb
+      - name: Attach Release Tarball
+        id: attach-release-tarball
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./Deb Zip/quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz
+          asset_name: quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz
+          asset_content_type: application/gzip
 
-    - name: Attach Windows Installer
-      id: attach-win-installer
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }} 
-        asset_path: ./Windows Installer/quarto-${{needs.configure.outputs.version}}-win.msi
-        asset_name: quarto-${{needs.configure.outputs.version}}-win.msi
-        asset_content_type: application/msi
+      - name: Attach Debian Installer
+        id: attach-deb-installer
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./Deb Installer/quarto-${{needs.configure.outputs.version}}-linux-amd64.deb
+          asset_name: quarto-${{needs.configure.outputs.version}}-linux-amd64.deb
+          asset_content_type: application/deb
 
-    - name: Attach Windows Zip
-      id: attach-win-zip
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }} 
-        asset_path: ./Windows Zip/quarto-${{needs.configure.outputs.version}}-win.zip
-        asset_name: quarto-${{needs.configure.outputs.version}}-win.zip
-        asset_content_type: application/pkg
+      - name: Attach Windows Installer
+        id: attach-win-installer
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./Windows Installer/quarto-${{needs.configure.outputs.version}}-win.msi
+          asset_name: quarto-${{needs.configure.outputs.version}}-win.msi
+          asset_content_type: application/msi
 
-    - name: Attach Mac Installer
-      id: attach-mac-installer
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }} 
-        asset_path: ./Mac Installer/quarto-${{needs.configure.outputs.version}}-macos.pkg
-        asset_name: quarto-${{needs.configure.outputs.version}}-macos.pkg
-        asset_content_type: application/pkg
+      - name: Attach Windows Zip
+        id: attach-win-zip
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./Windows Zip/quarto-${{needs.configure.outputs.version}}-win.zip
+          asset_name: quarto-${{needs.configure.outputs.version}}-win.zip
+          asset_content_type: application/pkg
 
-    - name: Attach Mac Zip
-      id: attach-mac-zip
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }} 
-        asset_path: ./Mac Zip/quarto-${{needs.configure.outputs.version}}-macos.tar.gz
-        asset_name: quarto-${{needs.configure.outputs.version}}-macos.tar.gz
-        asset_content_type: application/pkg
-        
-    - name: Generate Checksums
-      id: generate_checksum
-      run: |
-        pushd Windows\ Installer
-        sha256sum quarto-${{needs.configure.outputs.version}}-win.msi >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
-        popd
-        
-        pushd Windows\ Zip
-        sha256sum quarto-${{needs.configure.outputs.version}}-win.zip >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
-        popd
-        
-        pushd Mac\ Zip
-        sha256sum quarto-${{needs.configure.outputs.version}}-macos.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
-        popd
+      - name: Attach Mac Installer
+        id: attach-mac-installer
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./Mac Installer/quarto-${{needs.configure.outputs.version}}-macos.pkg
+          asset_name: quarto-${{needs.configure.outputs.version}}-macos.pkg
+          asset_content_type: application/pkg
 
-        pushd Mac\ Installer
-        sha256sum quarto-${{needs.configure.outputs.version}}-macos.pkg >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
-        popd
-        
-        pushd Deb\ Zip
-        sha256sum quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
-        popd        
-        
-        pushd Deb\ Installer
-        sha256sum quarto-${{needs.configure.outputs.version}}-linux-amd64.deb >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
-        popd
-        
-    - name: Attach Checksum
-      id: attach-checksum
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }} 
-        asset_path: quarto-${{needs.configure.outputs.version}}-checksums.txt
-        asset_name: quarto-${{needs.configure.outputs.version}}-checksums.txt
-        asset_content_type: text/plain
+      - name: Attach Mac Zip
+        id: attach-mac-zip
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./Mac Zip/quarto-${{needs.configure.outputs.version}}-macos.tar.gz
+          asset_name: quarto-${{needs.configure.outputs.version}}-macos.tar.gz
+          asset_content_type: application/pkg
+
+      - name: Generate Checksums
+        id: generate_checksum
+        run: |
+          pushd Windows\ Installer
+          sha256sum quarto-${{needs.configure.outputs.version}}-win.msi >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
+          popd
+
+          pushd Windows\ Zip
+          sha256sum quarto-${{needs.configure.outputs.version}}-win.zip >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
+          popd
+
+          pushd Mac\ Zip
+          sha256sum quarto-${{needs.configure.outputs.version}}-macos.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
+          popd
+
+          pushd Mac\ Installer
+          sha256sum quarto-${{needs.configure.outputs.version}}-macos.pkg >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
+          popd
+
+          pushd Deb\ Zip
+          sha256sum quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
+          popd
+
+          pushd Deb\ Installer
+          sha256sum quarto-${{needs.configure.outputs.version}}-linux-amd64.deb >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
+          popd
+
+      - name: Attach Checksum
+        id: attach-checksum
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: quarto-${{needs.configure.outputs.version}}-checksums.txt
+          asset_name: quarto-${{needs.configure.outputs.version}}-checksums.txt
+          asset_content_type: text/plain

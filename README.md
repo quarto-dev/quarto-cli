@@ -22,7 +22,7 @@ Learn more about Quarto at <https://quarto.org>.
 
 To install the development version of the Quarto CLI, clone the quarto-cli repository then run the configure script for your platform (`configure-linux.sh`, `configure-macos.sh`, or `configure-windows.cmd`). For example:
 
-``` bash
+```bash
 git clone https://github.com/quarto-dev/quarto-cli
 cd quarto-cli
 ./configure-macos.sh
@@ -30,7 +30,7 @@ cd quarto-cli
 
 To update to the latest development version, just `git pull` from the local repo directory:
 
-``` bash
+```bash
 cd quarto-cli
 git pull
 ```
