@@ -532,7 +532,7 @@ function calloutDocxDefault(div, type, hasIcon)
 
   -- ensure there are no nested callouts
   if contents:find_if(function(el) 
-    return el.t == "Div" and el.attr.classes:find_if(_quarto.format.isDocxOutput) ~= nil 
+    return el.t == "Div" and el.attr.classes:find_if(isDocxCallout) ~= nil 
   end) ~= nil then
     fail("Found a nested callout in the document. Please fix this issue and try again.")
   end
@@ -617,7 +617,7 @@ function calloutDocxSimple(div, type, hasIcon)
   
   -- ensure there are no nested callouts
   if contents:find_if(function(el) 
-    return el.t == "Div" and el.attr.classes:find_if(_quarto.format.isDocxOutput) ~= nil 
+    return el.t == "Div" and el.attr.classes:find_if(isDocxCallout) ~= nil 
   end) ~= nil then
     fail("Found a nested callout in the document. Please fix this issue and try again.")
   end
