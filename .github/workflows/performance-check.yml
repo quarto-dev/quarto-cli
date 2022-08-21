@@ -29,7 +29,7 @@ jobs:
       - name: Configure Quarto
         shell: bash
         run: |
-          ./configure-linux.sh
+          ./configure.sh
 
       - name: Test Bundle
         id: create_bundle

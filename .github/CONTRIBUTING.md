@@ -17,9 +17,9 @@ You can contribute in many ways:
     # clone your fork
     $ git clone https://github.com/<username>/quarto-cli
 
-    # configure for your platform (./configure-macos.sh, ./configure-linux.sh, or ./configure-windows.cmd)
+    # configure for your platform (./configure.sh for linux/mac  or ./configure.cmd for Windows)
     $ cd quarto-cli
-    $ ./configure-macos.sh
+    $ ./configure.sh
 
     # checkout a new branch
     $ git checkout -b bugfix/myfix
