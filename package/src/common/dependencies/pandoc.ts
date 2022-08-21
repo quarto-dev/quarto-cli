@@ -10,6 +10,7 @@ import { dirname, join } from "path/mod.ts";
 import { unTar } from "../../util/tar.ts";
 import { unzip } from "../../util/utils.ts";
 import { Dependency } from "./dependencies.ts";
+import { which } from "../../../../src/core/path.ts";
 
 export function pandoc(version: string): Dependency {
   // Maps the file name and pandoc executable file name to a repo and expand
@@ -25,34 +26,43 @@ export function pandoc(version: string): Dependency {
       configure: async (path: string) => {
         const dir = dirname(path);
         const pandocSubdir = join(dir, `pandoc-${version}`);
+        const vendor = Deno.env.get("QUARTO_VENDOR_BINARIES");
+        if (vendor === undefined || vendor === "true") {
+         // Clean pandoc interim dir
+          if (existsSync(pandocSubdir)) {
+            Deno.removeSync(pandocSubdir, { recursive: true });
+          }
 
-        // Clean pandoc interim dir
-        if (existsSync(pandocSubdir)) {
-          Deno.removeSync(pandocSubdir, { recursive: true });
-        }
+          // Extract pandoc
+          if (Deno.build.os !== "windows") {
+            await unTar(path);
 
-        // Extract pandoc
-        if (Deno.build.os !== "windows") {
-          await unTar(path);
+            // move the binary
+            Deno.renameSync(
+              join(pandocSubdir, "bin", pandocBinary),
+              join(dir, pandocBinary),
+            );
+          } else {
+            await unzip(path, dir);
 
-          // move the binary
-          Deno.renameSync(
-            join(pandocSubdir, "bin", pandocBinary),
-            join(dir, pandocBinary),
-          );
+            // move the binary
+            Deno.renameSync(
+              join(pandocSubdir, pandocBinary),
+              join(dir, pandocBinary),
+            );
+          }
+
+          // cleanup
+          if (existsSync(pandocSubdir)) {
+            Deno.removeSync(pandocSubdir, { recursive: true });
+          }
         } else {
-          await unzip(path, dir);
-
-          // move the binary
-          Deno.renameSync(
-            join(pandocSubdir, pandocBinary),
-            join(dir, pandocBinary),
-          );
-        }
-
-        // cleanup
-        if (existsSync(pandocSubdir)) {
-          Deno.removeSync(pandocSubdir, { recursive: true });
+          // verify that the binary is on PATH, but otherwise don't do anything
+          if (which(pandocBinary) === undefined) {
+            throw new Error(
+              `${pandocBinary} is not on PATH. Please install it and add it to PATH.`,
+            );
+          }
         }
       },
     };

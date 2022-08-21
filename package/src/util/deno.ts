@@ -5,7 +5,6 @@
 *
 */
 import { info } from "log/mod.ts";
-import { join } from "path/mod.ts";
 import { Configuration } from "../common/config.ts";
 
 export async function bundle(
@@ -15,7 +14,11 @@ export async function bundle(
 ) {
   // Bundle source code
   const denoBundleCmd: string[] = [];
-  denoBundleCmd.push(join(configuration.directoryInfo.bin, "tools", "deno"));
+  const denoExecPath = Deno.env.get("QUARTO_DENO")
+  if (! denoExecPath) {
+    throw Error("QUARTO_DENO is not defined");
+  }
+  denoBundleCmd.push(denoExecPath);
   denoBundleCmd.push("bundle");
   denoBundleCmd.push("--unstable");
   denoBundleCmd.push(
@@ -28,7 +31,6 @@ export async function bundle(
 
   denoBundleCmd.push(input);
   denoBundleCmd.push(output);
-  info(denoBundleCmd);
 
   const p = Deno.run({
     cmd: denoBundleCmd,
@@ -46,7 +48,11 @@ export async function compile(
   configuration: Configuration,
 ) {
   const denoBundleCmd: string[] = [];
-  denoBundleCmd.push(join(configuration.directoryInfo.bin, "tools", "deno"));
+  const denoExecPath = Deno.env.get("QUARTO_DENO")
+  if (! denoExecPath) {
+    throw Error("QUARTO_DENO is not defined");
+  }
+  denoBundleCmd.push(denoExecPath);
   denoBundleCmd.push("compile");
   denoBundleCmd.push("--unstable");
   denoBundleCmd.push(
@@ -57,6 +63,7 @@ export async function compile(
   denoBundleCmd.push(...flags);
 
   denoBundleCmd.push(input);
+
   const p = Deno.run({
     cmd: denoBundleCmd,
   });
@@ -72,7 +79,11 @@ export async function install(
   configuration: Configuration,
 ) {
   const denoBundleCmd: string[] = [];
-  denoBundleCmd.push(join(configuration.directoryInfo.bin, "tools", "deno"));
+  const denoExecPath = Deno.env.get("QUARTO_DENO")
+  if (! denoExecPath) {
+    throw Error("QUARTO_DENO is not defined");
+  }
+  denoBundleCmd.push(denoExecPath);
   denoBundleCmd.push("install");
   denoBundleCmd.push("--unstable");
   denoBundleCmd.push(
@@ -113,14 +124,18 @@ export function updateDenoPath(installPath: string, config: Configuration) {
   if (installPath) {
     info("Updating install script deno path");
     const installTxt = Deno.readTextFileSync(installPath);
+    const denoExecPath = Deno.env.get("QUARTO_DENO")
+    if (! denoExecPath) {
+      throw Error("QUARTO_DENO is not defined");
+    }
     const finalTxt = Deno.build.os === "windows"
       ? installTxt.replace(
         /deno.exe /g,
-        join(config.directoryInfo.bin, "tools", "deno.exe") + " ",
+        denoExecPath + " ",
       )
       : installTxt.replace(
         /deno /g,
-        join(config.directoryInfo.bin, "tools", "deno") + " ",
+        denoExecPath + " ",
       );
     Deno.writeTextFileSync(
       installPath,

@@ -20,7 +20,7 @@ export async function esbuildCompile(
     `--format=${format}`,
     ...(args || []),
   ];
-
+  
   return await esbuildCommand(fullArgs, input, workingDir);
 }
 
@@ -30,7 +30,7 @@ export async function esbuildCommand(
   workingDir: string,
 ) {
   const cmd = [
-    toolsPath("esbuild"),
+    Deno.env.get("QUARTO_ESBUILD") || toolsPath("esbuild"),
     ...args,
   ];
 
