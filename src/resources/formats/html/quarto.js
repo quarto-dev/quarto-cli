@@ -275,7 +275,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
         const convertToMenu = () => {
           for (const child of el.children) {
             child.style.opacity = 0;
-            child.style.display = "none";
+            child.style.overflow = "hidden";
           }
 
           const toggleContainer = window.document.createElement("div");
@@ -378,7 +378,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
         const convertToSidebar = () => {
           for (const child of el.children) {
             child.style.opacity = 1;
-            child.style.display = null;
+            child.style.overflow = null;
           }
 
           const placeholderEl = window.document.getElementById(
