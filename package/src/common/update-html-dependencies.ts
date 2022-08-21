@@ -4,7 +4,7 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { ensureDir, ensureDirSync, existsSync, moveSync } from "fs/mod.ts";
+import { ensureDir, ensureDirSync, existsSync } from "fs/mod.ts";
 import { copySync } from "fs/copy.ts";
 import { info } from "log/mod.ts";
 import { dirname, extname, join } from "path/mod.ts";
@@ -487,7 +487,7 @@ async function updatePdfJs(
     "pdf",
     "pdfjs",
   );
-  moveSync(from, to, { overwrite: true });
+  copySync(from, to, { overwrite: true });
   info("Done\n");
 }
 
@@ -533,8 +533,8 @@ async function updateBootstrapFromBslib(
       info("Copying scss files");
       const from = join(repo.dir, "inst", "lib", "bs5", "scss");
       const to = join(distDir, "scss");
-      info(`Moving ${from} to ${to}`);
-      Deno.renameSync(from, to);
+      info(`Copying ${from} to ${to}`);
+      copySync(from, to);
 
       // Fix up the Boostrap rules files
       info(
@@ -559,8 +559,8 @@ async function updateBootstrapFromBslib(
       info("Copying scss files");
       const utilsFrom = join(repo.dir, "inst", "sass-utils");
       const utilsTo = join(distDir, "sass-utils");
-      info(`Moving ${utilsFrom} to ${utilsTo}`);
-      Deno.renameSync(utilsFrom, utilsTo);
+      info(`Copying ${utilsFrom} to ${utilsTo}`);
+      copySync(utilsFrom, utilsTo);
 
       // Grab the js file that we need
       info("Copying dist files");
@@ -664,7 +664,7 @@ async function updatePandocHighlighting(config: Configuration) {
     "pandoc",
     "highlight-styles",
   );
-  const pandoc = join(config.directoryInfo.bin, "tools", "pandoc");
+  const pandoc = Deno.env.get("QUARTO_PANDOC") || join(config.directoryInfo.bin, "tools", "pandoc");
 
   // List  the styles
   const result = await runCmd(pandoc, ["--list-highlight-styles"]);

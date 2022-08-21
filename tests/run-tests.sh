@@ -10,15 +10,16 @@ done
 export SCRIPT_PATH="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 
 
-DENO_DIR="`cd "$SCRIPT_PATH/../package/dist/bin/" > /dev/null 2>&1 && pwd`"
+export QUARTO_ROOT="`cd "$SCRIPT_PATH/.." > /dev/null 2>&1 && pwd`"
+QUARTO_SRC_DIR="$QUARTO_ROOT/src"
+DENO_DIR="$QUARTO_ROOT/package/dist/bin/"
 
-QUARTO_SRC_DIR="`cd "$SCRIPT_PATH/../src" > /dev/null 2>&1 && pwd`"
 
 # Local import map
 QUARTO_IMPORT_ARGMAP=--importmap=$QUARTO_SRC_DIR/dev_import_map.json
 
 export QUARTO_BIN_PATH=$DENO_DIR
-export QUARTO_SHARE_PATH="`cd "$SCRIPT_PATH/../src/resources/";pwd`"
+export QUARTO_SHARE_PATH="`cd "$QUARTO_ROOT/src/resources/";pwd`"
 export QUARTO_DEBUG=true
 
 QUARTO_DENO_OPTIONS="--unstable --allow-read --allow-write --allow-run --allow-env --allow-net"

@@ -17,9 +17,18 @@ export function deno_dom(version: string): Dependency {
       url:
         `https://github.com/b-fuze/deno-dom/releases/download/${version}/${filename}`,
       configure: async (path: string) => {
-        const targetPath = join(dirname(path), "deno_dom", basename(path));
-        await ensureDir(dirname(targetPath));
-        await Deno.copyFile(path, targetPath);
+        const vendor = Deno.env.get("QUARTO_VENDOR_BINARIES");
+        if (vendor === undefined || vendor === "true") {
+          const targetPath = join(dirname(path), "deno_dom", basename(path));
+          await ensureDir(dirname(targetPath));
+          await Deno.copyFile(path, targetPath);
+        } else {
+          if (Deno.env.get("DENO_DOM_PLUGIN") === undefined) {
+            throw new Error(
+              `DENO_DOM_PLUGIN is not set, and vendoring is turned off. Please install deno-dom and set DENO_DOM_PLUGIN.`,
+            );
+          }
+        }
       },
     };
   };

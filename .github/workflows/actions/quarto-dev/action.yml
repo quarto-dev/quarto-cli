@@ -1,25 +1,29 @@
-name: 'Configure Quarto Dev'
-description: 'Configures the image for Quarto Development'
+name: "Configure Quarto Dev"
+description: "Configures the image for Quarto Development"
 
 runs:
   using: "composite"
-  steps:          
-      - name: Set Path
-        shell: bash
-        run: |
-          echo "$HOME/bin" >> $GITHUB_PATH
-      
-      - name: Configure Quarto
-        shell: bash
-        run: |
-          ./configure-linux.sh
-          
-      - name: Quarto Check
-        shell: bash
-        run: |
-          pushd tests
-          quarto check
-          popd
+  steps:
+    - name: Set Path
+      shell: bash
+      run: |
+        echo "$HOME/bin" >> $GITHUB_PATH
 
+    - name: Configure Quarto
+      shell: bash
+      run: |
+        ./configure.sh
 
+    - name: Basic dev mode sanity check
+      shell: bash
+      run: |
+        [ "$(quarto --version)" == "99.9.9" ] || exit 1
+        [ "$(quarto --paths | grep package/dist/share)" == "" ] || exit 1
+        [ "$(git status --porcelain)" == "" ] || exit 1
 
+    - name: Quarto Check
+      shell: bash
+      run: |
+        pushd tests
+        quarto check
+        popd
