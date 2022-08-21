@@ -128,6 +128,11 @@
 - Finnish localization (thanks @jkseppan)
 - Dutch localization (thanks @bwelman)
 
+# Installation
+
+- Refactor configuration to make it easier to use external binaries
+- Added conda-recipe (thanks @msarahan)
+
 ## Miscellaneous
 
 - Allow environment variables to override paths to binary dependencies
