@@ -15,6 +15,18 @@
 - Improve error message for HTML being emitted in non-HTMl formats (#1745)
 - Compatibility with rgl plots (#1800, thanks @dmurdoch)
 
+## OJS
+
+- Better handle OJS code blocks that begin with empty lines
+- Better OJS support for dark vs light mode
+- Support passing Pandas Series
+- Update to latest OJS runtime (adding support for latest ObservableHQ runtime)
+- Fix multi-column regression (#1698)
+- Hide declarations in hugo format (#1812)
+- Enable OJS runtime in the presence of `ojs_define` (#1846)
+- Emit subcaptions correctly (#1711)
+- Use forward slashes in paths so OJS compilation works on windows (#1605)
+
 ## Pandoc
 
 - Update to Pandoc 2.19.1
@@ -41,45 +53,14 @@
 - Support `filename` attribute for attaching a file name header to code blocks
 - Improve YAML parse error messages in `r` code blocks using `!expr` YAML (#1949)
 
-## OJS
+## Tables
 
-- Better handle OJS code blocks that begin with empty lines
-- Better OJS support for dark vs light mode
-- Support passing Pandas Series
-- Update to latest OJS runtime (adding support for latest ObservableHQ runtime)
-- Fix multi-column regression (#1698)
-- Hide declarations in hugo format (#1812)
-- Enable OJS runtime in the presence of `ojs_define` (#1846)
-- Emit subcaptions correctly (#1711)
-- Use forward slashes in paths so OJS compilation works on windows (#1605)
+- Support captions in HTML tables with `df-print: paged` (#1597)
+- GT tables in HTML format can be themed by quarto and follow quarto themes by default (#1834)
 
-## Websites
+## Mermaid diagrams
 
-- Correctly align dark/light toggle in navbar (thanks @FabioRosado)
-- Support `navbar:logo-alt` to provide alternate text for navbar logos
-- Support `navbar:logo-href` to provide custom link for navbar logo & title
-- Improve appearance of blog categories in title block
-
-## Books
-
-- Support specifying and displaying DOI for books
-- Don't show chapter number in narrow HTML layouts (#1611)
-
-## Preview
-
-- Don't attempt to open browser when in a server session
-- Respect VSCODE_PROXY_URI set by code-server
-
-## Publish
-
-- Automatically detect single file publishing source within directory
-- Automatically disable Netlify css/html/js asset optimization
-- Respect `site-url` specified in config for GitHub Pages
-
-## Localization
-
-- Finnish localization (thanks @jkseppan)
-- Dutch localization (thanks @bwelman)
+- Support `echo: true` and other per-document settings (#1485)
 
 ## HTML Format
 
@@ -105,9 +86,26 @@
 
 - Don't include template path in the TeX search path when compiling PDFs. Use `format-resources` instead.
 
-## Mermaid diagrams
+## Format Templates
 
-- Support `echo: true` and other per-document settings (#1485)
+- Expand globs in template-partials (#1248)
+
+## Websites
+
+- Correctly align dark/light toggle in navbar (thanks @FabioRosado)
+- Support `navbar:logo-alt` to provide alternate text for navbar logos
+- Support `navbar:logo-href` to provide custom link for navbar logo & title
+- Improve appearance of blog categories in title block
+
+## Books
+
+- Support specifying and displaying DOI for books
+- Don't show chapter number in narrow HTML layouts (#1611)
+
+## Preview
+
+- Don't attempt to open browser when in a server session
+- Respect VSCODE_PROXY_URI set by code-server
 
 ## Extensions
 
@@ -121,6 +119,14 @@
 
 - Detect authentication error for quarto.pub and re-establish credentials
 - More compact status display when running in CI environments
+- Automatically detect single file publishing source within directory
+- Automatically disable Netlify css/html/js asset optimization
+- Respect `site-url` specified in config for GitHub Pages
+
+## Localization
+
+- Finnish localization (thanks @jkseppan)
+- Dutch localization (thanks @bwelman)
 
 ## Miscellaneous
 
@@ -141,11 +147,4 @@
 - `quarto run *.ts` preserves stdout and stderr (#1954)
 - Lua filters: quarto.utils.dump does not loop on circular structures (#1958)
 
-## Format Templates
 
-- Expand globs in template-partials (#1248)
-
-## Tables
-
-- Support captions in HTML tables with `df-print: paged` (#1597)
-- GT tables in HTML format can be themed by quarto and follow quarto themes by default (#1834)
