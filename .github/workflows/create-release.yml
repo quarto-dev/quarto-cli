@@ -397,6 +397,17 @@ jobs:
           asset_path: ./Mac Zip/quarto-${{needs.configure.outputs.version}}-macos.tar.gz
           asset_name: quarto-${{needs.configure.outputs.version}}-macos.tar.gz
           asset_content_type: application/pkg
+          
+      - name: Attach News
+        id: attach-news
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./News/changelog-1.1.md
+          asset_name: changelog.md
+          asset_content_type: text/markdown      
 
       - name: Generate Checksums
         id: generate_checksum
