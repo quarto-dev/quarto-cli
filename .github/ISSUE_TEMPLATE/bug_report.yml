@@ -8,6 +8,8 @@ body:
       value: |
         Welcome to the quarto GitHub repo!
         We are always happy to hear feedback from our users.
+        
+        Quarto is under very active development, so please confirm your issue persists on the [latest nightly release](https://github.com/quarto-dev/quarto-cli/releases).
 
         To file a _bug report_, please follow these instructions carefully: <https://yihui.org/issue/#bug-reports>
         Also, please complete and keep the checklist below in your issue. This helps you know what to check for opening a good issue report. It also helps know that you've have done the common steps that can solve your potential issue.
@@ -52,10 +54,10 @@ body:
       description: |
         When filing a _bug report_, please check the boxes below to confirm that you have provided us with the information we need. Have you:
       options:
+        - label: "upgraded to the [latest nightly quarto version](https://github.com/quarto-dev/quarto-cli/releases)?"
         - label: "[formatted your issue](https://yihui.org/issue/#please-format-your-issue-correctly) so it is easier for us to read?"
         - label: included a minimal, fully reproducible example in a single .qmd file? Please provide the whole file rather than the snippet you believe is causing the issue.
         - label: documented the quarto version you're running, by pasting the output from running `quarto check` in the "Quarto Check Output" text area?
         - label: documented the version of the quarto tools you're running, by providing the output from running `quarto tools check` in the "Quarto Tools Check Output" text area?
         - label: documented the RStudio IDE version you're running (if applicable), by providing the value displayed in the "About RStudio" main menu dialog?
         - label: documented which operating system you're running? If on Linux, please provide the specific distribution as well.
-        - label: upgraded to the latest version, including your versions of R, the RStudio IDE, and relevant R packages?
