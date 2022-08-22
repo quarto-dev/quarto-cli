@@ -5,7 +5,7 @@
 *
 */
 
-import { dirname, join, relative } from "path/mod.ts";
+import { dirname, extname, join, relative } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
 import * as ld from "../core/lodash.ts";
@@ -194,11 +194,12 @@ export async function inputFileForOutputFile(
     if (index) {
       const hasOutput = Object.keys(index.formats).some((key) => {
         const format = index.formats[key];
-        if (format.pandoc[kOutputFile]) {
+        const outputFile = formatOutputFile(format);
+        if (outputFile) {
           const formatOutputPath = join(
             outputDir!,
             dirname(inputRelative),
-            format.pandoc[kOutputFile]!,
+            outputFile,
           );
           return output === formatOutputPath;
         }
