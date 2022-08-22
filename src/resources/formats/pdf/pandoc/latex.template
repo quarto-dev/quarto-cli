@@ -154,7 +154,7 @@ $if(zero-width-non-joiner)$
 \def\zerowidthnonjoiner{%
   % Prevent ligatures and adjust kerning, but still support hyphenating.
   \texorpdfstring{%
-    \textormath{\nobreak\discretionary{-}{}{\kern.03em}%
+    \TextOrMath{\nobreak\discretionary{-}{}{\kern.03em}%
       \ifvmode\else\nobreak\hskip\z@skip\fi}{}%
   }{}%
 }
@@ -270,10 +270,6 @@ $if(graphics)$
 \def\fps@figure{htbp}
 \makeatother
 $endif$
-$if(links-as-notes)$
-% Make links footnotes instead of hotlinks:
-\DeclareRobustCommand{\href}[2]{#2\footnote{\url{#1}}}
-$endif$
 $if(strikeout)$
 $-- also used for underline
 \usepackage[normalem]{ulem}
@@ -378,6 +374,10 @@ $endif$
 \IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
 \IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
 \urlstyle{same} % disable monospaced font for URLs
+$if(links-as-notes)$
+% Make links footnotes instead of hotlinks:
+\DeclareRobustCommand{\href}[2]{#2\footnote{\url{#1}}}
+$endif$
 $if(verbatim-in-note)$
 \VerbatimFootnotes % allow verbatim text in footnotes
 $endif$
@@ -404,7 +404,10 @@ $if(colorlinks)$
   citecolor={$if(citecolor)$$citecolor$$else$Blue$endif$},
   urlcolor={$if(urlcolor)$$urlcolor$$else$Blue$endif$},
 $else$
+$if(boxlinks)$
+$else$
   hidelinks,
+$endif$
 $endif$
   pdfcreator={LaTeX via pandoc}}
 
