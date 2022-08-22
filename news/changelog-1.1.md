@@ -70,6 +70,7 @@
 - Properly display section numbers in the table of contents when enabled.
 - Properly display banner style title blocks at mobile size.
 - Improve CSS for print media formats (#1824) (thanks @hadley)
+- Fix 'flickering' TOC when margin content overlays a TOC
 
 ## RevealJS Format
 
@@ -85,6 +86,10 @@
 ## PDF Format
 
 - Don't include template path in the TeX search path when compiling PDFs. Use `format-resources` instead.
+
+## Docx Format
+
+- Don't error when code blocks appear in callouts (overly broad validation error)
 
 ## Format Templates
 
