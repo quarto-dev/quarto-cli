@@ -56,7 +56,6 @@ import { boostrapExtras } from "./format-html-bootstrap.ts";
 
 import {
   clipboardDependency,
-  columnsPostprocessor,
   createCodeCopyButton,
   kAnchorSections,
   kBootstrapDependencyName,
@@ -526,7 +525,6 @@ export async function htmlFormatExtras(
       [kHtmlPostprocessors]: [
         htmlFormatPostprocessor(format, featureDefaults),
         metadataPostProcessor(input, format, offset),
-        columnsPostprocessor,
       ],
     },
   };

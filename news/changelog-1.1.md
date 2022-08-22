@@ -29,7 +29,7 @@
 
 ## Pandoc
 
-- Update to Pandoc 2.19.1
+- Update to Pandoc 2.19
 - Support for `embed-resources` document option
 - Remove workaround for https://github.com/jgm/pandoc/issues/8099
 
@@ -151,5 +151,3 @@
 - Display image path when an error occurs reading PNG metadata
 - `quarto run *.ts` preserves stdout and stderr (#1954)
 - Lua filters: quarto.utils.dump does not loop on circular structures (#1958)
-
-

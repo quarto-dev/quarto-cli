@@ -322,25 +322,6 @@ export function insertTitle(
   prependHeading(doc, el, title, level, headingClasses);
 }
 
-export function columnsPostprocessor(
-  doc: Document,
-): Promise<HtmlPostProcessResult> {
-  const columns = doc.querySelectorAll("div.columns div.column");
-  for (const column of columns) {
-    const columnEl = column as Element;
-    const style = columnEl.getAttribute("style");
-    if (style) {
-      columnEl.setAttribute(
-        "style",
-        style.replace(/width:(\d+)%/, (_m: string, pct: string) => {
-          return `flex:0.${pct}`;
-        }),
-      );
-    }
-  }
-  return Promise.resolve(kHtmlEmptyPostProcessResult);
-}
-
 function prependHeading(
   doc: Document,
   el: Element,
