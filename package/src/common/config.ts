@@ -35,13 +35,13 @@ export function readConfiguration(
   const productName = getEnv("QUARTO_NAME");
   version = version || getEnv("QUARTO_VERSION");
 
-  const root = getEnv("QUARTO_ROOT");
-  const src = getEnv("QUARTO_SRC_PATH");
+  const root = getEnv("QUARTO_ROOT") || "";
+  const src = getEnv("QUARTO_SRC_PATH") || join(root, "src");
 
-  const pkg = getEnv("QUARTO_PACKAGE_PATH") || "package";
+  const pkg = getEnv("QUARTO_PACKAGE_PATH") || join(root, getEnv("QUARTO_PACKAGE_DIR") || "package");
   const out = join(pkg, getEnv("QUARTO_OUT_DIR") || "out");
 
-  const dist = getEnv("QUARTO_DIST_PATH") || "dist";
+  const dist = getEnv("QUARTO_DIST_PATH") || join(pkg, getEnv("QUARTO_DIST_DIR") || "dist");
   const share = getEnv("QUARTO_SHARE_PATH") || join(dist, getEnv("QUARTO_SHARE_DIR") || "share");
   const bin = getEnv("QUARTO_BIN_PATH") || join(dist, getEnv("QUARTO_BIN_DIR") || "bin");
   const directoryInfo = {

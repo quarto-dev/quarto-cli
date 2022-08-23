@@ -28,15 +28,16 @@ jobs:
 
       - name: Test ${{ runner.os }}
         if: runner.os == 'Windows'
+        shell: bash
         run: |
-          .\configure.cmd
-          package/dist/bin/quarto.cmd check
+          ./configure.sh
+          package/dist/bin/quarto check
           pwd
           cd package/src
-          .\quarto-bld.cmd compile-quarto-latexmk --target x86_64-pc-windows-msvc --name tinitex
-          tree ..\dist\bin /f /a
-          cd ..\dist\bin\tinitex\x86_64-pc-windows-msvc
-          .\tinitex.exe --help
+          ./quarto-bld compile-quarto-latexmk --target x86_64-pc-windows-msvc --name tinitex
+          cmd.exe /c "tree ..\dist\bin /f /a"
+          cd ../dist/bin/tinitex/x86_64-pc-windows-msvc
+          ./tinitex.exe --help
 
       - name: Test ${{ runner.os }}
         if: runner.os == 'macOS'

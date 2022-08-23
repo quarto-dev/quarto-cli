@@ -81,12 +81,33 @@ export function dirAndStem(file: string) {
   ];
 }
 
+export function normalizePath(path: string) {
+  const findForwardSlash = new RegExp("\/", 'g');
+  if (!path.startsWith("/")) {
+    path = path.replace(findForwardSlash, "\\");
+  }
+  // Trim trailing slashes, for sake of uniformity
+  return path.replace("[\\/]$", "");
+}
+
 export function expandPath(path: string) {
   if (path === "~") {
-    return getenv("HOME", "~");
+    path= getenv("HOME", "~");
   } else {
-    return path.replace(/^~\//, getenv("HOME", "~") + "/");
+    path = path.replace(/^~\//, getenv("HOME", "~") + "/");
   }
+  return normalizePath(path);
+}
+
+export function collapsePath(path: string) {
+  const normalizedHome = expandPath("~")
+  if (path.startsWith(normalizedHome)) {
+    path = "~" + path.substring(normalizedHome.length);
+  }
+  if (path.startsWith("~") || path.startsWith("/")) {
+    path = path.replace(/\\/g, "/");
+  }
+  return path;
 }
 
 export function safeExistsSync(path: string) {

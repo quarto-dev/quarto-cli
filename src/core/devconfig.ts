@@ -35,20 +35,29 @@ export function createDevConfig(
   esbuild: string,
   scriptDir: string,
 ): DevConfig {
-  const scriptPath = join(scriptDir, "quarto" + (isWindows() ? ".cmd" : ""));
+  const scriptPath = join(scriptDir, "quarto");
   const srcDir = Deno.env.get("QUARTO_SRC_PATH") || join(quartoConfig.sharePath(), "../../src");
+  let scriptMd5 = "";
+  let importMapMd5 = "";
+  try {
+    scriptMd5 = md5Hash(Deno.readTextFileSync(scriptPath))
+  } catch (e) {
+    throw new Error("Failed to read Quarto wrapper script at " + scriptPath);
+  }
+  try {
+    importMapMd5 = md5Hash(Deno.readTextFileSync(join(srcDir, "import_map.json")),
+    )
+  }  catch (e) {
+    throw new Error("Failed to read Quarto importmap at " + join(srcDir, "import_map.json"));
+  }
   return {
     deno,
     deno_dom,
     pandoc,
     dartsass,
     esbuild,
-    script: md5Hash(Deno.readTextFileSync(scriptPath)),
-    importMap: md5Hash(
-      Deno.readTextFileSync(
-        join(srcDir, "import_map.json"),
-      ),
-    ),
+    script: scriptMd5,
+    importMap: importMapMd5,
     bundleImportMap: md5Hash(
       Deno.readTextFileSync(
         join(srcDir, "resources/vendor/import_map.json"),
@@ -119,16 +128,12 @@ export async function reconfigureQuarto(
   installed: DevConfig | null,
   source: DevConfig,
 ) {
-  const configureScript = isWindows()
-    ? ".\\configure.cmd"
-    : "./configure.sh";
-
   const quartoDir = Deno.realPathSync(
     join(quartoConfig.sharePath(), "..", ".."),
   );
 
   const process = Deno.run({
-    cmd: [configureScript],
+    cmd: ["bash", "configure.sh"],
     cwd: quartoDir,
   });
 
