@@ -20,16 +20,18 @@ else
 fi
 
 # Check if we are running 'Dev Mode' and if so, override values for devs
-SCRIPT_BASENAME=$(basename $SCRIPT_PATH)
-if [ "${SCRIPT_BASENAME}" == "bin" ]; then
-  # we can be running dev mode with a symlink to the package/dist/bin folder. In this case, our relative path is two levels up.
-  export QUARTO_ROOT="`cd "$SCRIPT_PATH/../../.." > /dev/null 2>&1 && pwd`"
-elif [ "${SCRIPT_BASENAME}" == "common" ]; then
-  # we can run this script directly in the source tree. In this case, our relative path is three levels up.
-  export QUARTO_ROOT="`cd "$SCRIPT_PATH/../../.." > /dev/null 2>&1 && pwd`"
-else
-  echo "ERROR: Cannot determine the Quarto source path. This script must be run from the bin or common folder."
-  exit 1
+if [ -z "$QUARTO_ROOT" ]; then
+  SCRIPT_BASENAME=$(basename $SCRIPT_PATH)
+  if [ "${SCRIPT_BASENAME}" == "bin" ]; then
+    # we can be running dev mode with a symlink to the package/dist/bin folder. In this case, our relative path is two levels up.
+    export QUARTO_ROOT="`cd "$SCRIPT_PATH/../../.." > /dev/null 2>&1 && pwd`"
+  elif [ "${SCRIPT_BASENAME}" == "common" ]; then
+    # we can run this script directly in the source tree. In this case, our relative path is three levels up.
+    export QUARTO_ROOT="`cd "$SCRIPT_PATH/../../.." > /dev/null 2>&1 && pwd`"
+  else
+    echo "ERROR: Cannot determine the Quarto source path. This script must be run from the bin or common folder."
+    exit 1
+  fi
 fi
 QUARTO_SRC_PATH=$QUARTO_ROOT/src
 DEV_PATH=$QUARTO_SRC_PATH/quarto.ts
@@ -56,7 +58,7 @@ if [ -f "$DEV_PATH" ]; then
   export QUARTO_DEBUG=true
 
   # Check for deno update
-  QUARTO_DIST_CONFIG=$QUARTO_BIN_PATH/../config
+  export QUARTO_DIST_CONFIG=$QUARTO_ROOT/package/dist/config
   mkdir -p $QUARTO_DIST_CONFIG
   DENO_VERSION_FILE=$QUARTO_DIST_CONFIG/deno-version
   DENO_SOURCE_VERSION="`(cd "$QUARTO_ROOT" && source ./configuration && echo $DENO)`"
@@ -112,14 +114,21 @@ fi
 
 if [ "$QUARTO_DENO_DOM" != "" ]; then
   export DENO_DOM_PLUGIN=$QUARTO_DENO_DOM
-elif [ "$(uname)" = "Darwin" ]; then
+elif [[ $OSTYPE == 'darwin'* ]]; then
   export DENO_DOM_PLUGIN=$QUARTO_BIN_PATH/tools/deno_dom/libplugin.dylib
-else
+elif [[ $OSTYPE == 'linux'* ]]; then
   export DENO_DOM_PLUGIN=$QUARTO_BIN_PATH/tools/deno_dom/libplugin.so
+elif [[ "$OSTYPE" == "cygwin" || "$OSTYPE" == "msys" || "$OSTYPE" == "win32" || "$WSL_DISTRO_NAME" != "" ]]; then
+  export DENO_DOM_PLUGIN=$QUARTO_BIN_PATH/tools/deno_dom/plugin.dll
+  executable_extension=.exe
 fi
 
 if [ "$QUARTO_DENO" == "" ]; then
-  export QUARTO_DENO="${SCRIPT_PATH}/tools/deno"
+  if [ "$QUARTO_ROOT" == "" ]; then
+    export QUARTO_DENO="${SCRIPT_PATH}/tools/deno${executable_extension}"
+  else
+    export QUARTO_DENO="$QUARTO_ROOT/package/dist/bin/tools/deno${executable_extension}"
+  fi
 fi
 
 # Be sure to include any already defined QUARTO_DENO_OPTIONS

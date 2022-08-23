@@ -305,7 +305,7 @@ async function afterInstall(context: InstallContext) {
     );
 
     const message =
-      `Unable to determine a path to use when installing TeX Live. 
+      `Unable to determine a path to use when installing TeX Live.
 To complete the installation, please run the following:
 
 ${tlmgrPath} option sys_bin <bin_dir_on_path>
@@ -335,9 +335,8 @@ This will instruct TeX Live to create symlinks that it needs in <bin_dir_on_path
     const envPath = Deno.env.get("QUARTO_TEXLIVE_BINPATH");
     if (envPath) {
       paths.push(envPath);
-    } else if (Deno.build.os !== "windows") {
-      paths.push(...suggestUserBinPaths());
     } else {
+      paths.push(... await suggestUserBinPaths());
       paths.push(tlmgrPath);
     }
 

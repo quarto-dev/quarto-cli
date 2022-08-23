@@ -9,11 +9,8 @@ SET QUARTO_PACKAGE_PATH=%SRC_DIR%\package
 SET QUARTO_DIST_PATH=%LIBRARY_PREFIX%
 SET QUARTO_SHARE_PATH=%LIBRARY_PREFIX%\share\quarto
 
-call %SRC_DIR%\package\src\set_package_paths.bat
-
-call configure.cmd
-call package\src\quarto-bld.cmd update-html-dependencies
-call package\src\quarto-bld.cmd prepare-dist
+bash configure.sh
+bash package/src/quarto-bld.cmd prepare-dist
 
  MKDIR %PREFIX%\etc\conda\activate.d
 (

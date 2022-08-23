@@ -24,6 +24,7 @@ export interface QuartoConfig {
 let dotenvConfig: DotenvConfig;
 
 export const quartoConfig = {
+  rootPath: () => getenv("QUARTO_ROOT"),
   binPath: () => getenv("QUARTO_BIN_PATH"),
   toolsPath: () => join(getenv("QUARTO_BIN_PATH"), "tools"),
   sharePath: () => getenv("QUARTO_SHARE_PATH"),

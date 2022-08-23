@@ -1,5 +1,4 @@
 #!/bin/bash
-set -ex
 source configuration
 
 # Defaults are set in configuration file, but can be overridden here.
@@ -27,7 +26,12 @@ function download() {
 
 QUARTO_VENDOR_BINARIES=${QUARTO_VENDOR_BINARIES=true}
 
-DENO_BIN=${QUARTO_DENO=$QUARTO_BIN_PATH/tools/deno}
+if [[ "$OSTYPE" == "cygwin" || "$OSTYPE" == "msys" || "$OSTYPE" == "win32" || "$WSL_DISTRO_NAME" != "" ]]; then
+  export ON_WIN=true
+  executable_extension=.exe
+fi
+
+DENO_BIN=${QUARTO_DENO=$QUARTO_BIN_PATH/tools/deno${executable_extension}}
 
 if [[ "${QUARTO_VENDOR_BINARIES}" = "true" ]]; then
   DENO_VERSION_NO_V=$(echo $DENO | sed 's/v//')
@@ -45,8 +49,10 @@ if [[ "${QUARTO_VENDOR_BINARIES}" = "true" ]]; then
     DENOURL=https://github.com/denoland/deno/releases/download
     if [[ $OSTYPE == 'darwin'* ]]; then
       DENOFILE=deno-x86_64-apple-darwin.zip
-    else
+    elif [[ $OSTYPE == 'linux'* ]]; then
       DENOFILE=deno-x86_64-unknown-linux-gnu.zip
+    else
+      DENOFILE=deno-x86_64-pc-windows-msvc.zip
     fi
     download "$DENOURL/$DENO/$DENOFILE" "$DENOFILE"
     unzip -o $DENOFILE
@@ -58,7 +64,7 @@ if [[ "${QUARTO_VENDOR_BINARIES}" = "true" ]]; then
       ./deno upgrade --canary --version $DENO_CANARY_COMMIT
     fi
   fi
-  export DENO_BIN_PATH=$QUARTO_BIN_PATH/tools/deno
+  export DENO_BIN_PATH=$QUARTO_BIN_PATH/tools/deno${executable_extension}
 else
   if [ -z "$DENO_BIN_PATH" ]; then
     echo "DENO_BIN_PATH is not set. You either need to allow QUARTO_VENDOR_BINARIES or set DENO_BIN_PATH to the path of a deno binary."
@@ -74,8 +80,7 @@ pushd $QUARTO_PACKAGE_PATH/src/
 # Run the configure command to bootstrap installation
 ./quarto-bld configure --log-level info
 
-
-if [[ "$CI" != "true" && ( ( "$QUARTO_SRC_PATH/import_map.json" -nt "$QUARTO_SRC_PATH/dev_import_map.json" ) || ( "$QUARTO_SRC_PATH/vendor/import_map.json" -nt "$QUARTO_SRC_PATH/dev_import_map.json" ) ) ]]; then
+if [[ "$ON_WIN" == "" && "$CI" != "true" && ( ( "$QUARTO_SRC_PATH/import_map.json" -nt "$QUARTO_SRC_PATH/dev_import_map.json" ) || ( "$QUARTO_SRC_PATH/vendor/import_map.json" -nt "$QUARTO_SRC_PATH/dev_import_map.json" ) ) ]]; then
 	echo [Revendoring quarto dependencies]
 
 	pushd ${QUARTO_SRC_PATH}

@@ -17,7 +17,7 @@ You can contribute in many ways:
     # clone your fork
     $ git clone https://github.com/<username>/quarto-cli
 
-    # configure for your platform (./configure.sh for linux/mac  or ./configure.cmd for Windows)
+    # configure for your platform (must use bash shell for Windows)
     $ cd quarto-cli
     $ ./configure.sh
 
