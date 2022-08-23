@@ -18852,7 +18852,7 @@ function createRuntime() {
   // Right now we support quarto's standard HTML formats
 
   const mainEl = (document.querySelector("main") // html
-   || document.querySelector("div.slides")       // reveal
+   || document.querySelector("div.reveal")       // reveal
    || document.querySelector("body"));           // fall-through
 
   function width() {
