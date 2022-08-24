@@ -378,10 +378,17 @@ export const jupyterEngine: ExecutionEngine = {
   },
 
   keepFiles: (input: string) => {
+    const files: string[] = [];
+    const [fileDir, fileStem] = dirAndStem(input);
+
     if (!isJupyterNotebook(input) && !input.endsWith(`.${kJupyterEngine}.md`)) {
-      const [fileDir, fileStem] = dirAndStem(input);
-      return [join(fileDir, fileStem + ".ipynb")];
+      files.push(join(fileDir, fileStem + ".ipynb"));
+    } else if (
+      isJupyterNotebook(input) && existsSync(join(fileDir, fileStem + ".qmd"))
+    ) {
+      files.push(input);
     }
+    return files;
   },
 };
 
