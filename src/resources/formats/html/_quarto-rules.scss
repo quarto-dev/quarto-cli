@@ -539,6 +539,11 @@ table.gt_table tbody.gt_table_body {
   border-top-color: currentColor;
 }
 
+/* tweaks for pandoc columns */
+.columns .column {
+  padding-bottom: 2px;
+}
+
 @media print {
   :root {
     font-size: 11pt;
