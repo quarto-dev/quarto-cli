@@ -4,7 +4,7 @@
             "line-number-color": "#97947a",
                 "line-number-background-color": null,
                     "_comments": [
-                        "Last update: Mar 08, 2022 (revision 1)",
+                        "Last update: Aug 24, 2022 (revision 1.1)",
                         "This file has been adapted from: https://github.com/ericwbailey/a11y-syntax-highlighting#a11y-dark",
                         "Also see: https://github.com/ericwbailey/a11y-syntax-highlighting/blob/main/dist/highlight/a11y-dark.css"
                     ],
@@ -106,14 +106,14 @@
                             "underline": false
         },
         "BuiltIn": {
-            "text-color": null,
+            "text-color": "#f5ab35",
                 "background-color": null,
                     "bold": false,
                         "italic": false,
                             "underline": false
         },
         "Extension": {
-            "text-color": null,
+            "text-color": "#ffd700",
                 "background-color": null,
                     "bold": false,
                         "italic": false,
@@ -155,7 +155,7 @@
                             "underline": false
         },
         "Import": {
-            "text-color": null,
+            "text-color": "#f8f8f2",
                 "background-color": null,
                     "bold": false,
                         "italic": false,
