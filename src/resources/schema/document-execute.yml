@@ -33,6 +33,7 @@
     anyOf:
       - boolean
       - object:
+          closed: true
           properties:
             opts_knit:
               object:
@@ -40,7 +41,6 @@
             opts_chunk:
               object:
                 description: Knitr chunk options.
-          closed: true
   description: Set Knitr options.
 
 - name: cache

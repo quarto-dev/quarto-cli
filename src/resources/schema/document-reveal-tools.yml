@@ -13,6 +13,7 @@
     anyOf:
       - boolean
       - object:
+          closed: true
           properties:
             side:
               enum: [left, right]
@@ -84,6 +85,7 @@
     anyOf:
       - boolean
       - object:
+          closed: true
           properties:
             url:
               string:

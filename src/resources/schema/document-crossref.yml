@@ -2,6 +2,7 @@
   description: Configuration for crossref labels and prefixes.
   schema:
     object:
+      closed: true
       properties:
         chapters:
           boolean:

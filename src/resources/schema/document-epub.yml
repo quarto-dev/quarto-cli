@@ -6,6 +6,7 @@
     anyOf:
       - string
       - object:
+          closed: true
           properties:
             text:
               string:
@@ -41,6 +42,7 @@
     anyOf:
       - string
       - object:
+          closed: true
           properties:
             text:
               string:
@@ -119,6 +121,7 @@
     formats: [$epub-all]
   schema: 
     object:
+      closed: true
       properties:
         version:
           string:
