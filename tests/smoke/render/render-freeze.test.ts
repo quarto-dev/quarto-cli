@@ -97,7 +97,7 @@ function testFileContext(
       // Write a quarto project
       await Deno.writeTextFile(
         quartoProj,
-        "project:\n  title: 'Hello Project'\n",
+        "title: 'Hello Project'\nproject:\n  type: default\n",
       );
 
       // Write the test file
