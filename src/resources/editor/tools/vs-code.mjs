@@ -16328,6 +16328,10 @@ var require_yaml_intelligence_resources = __commonJS({
             object: {
               closed: true,
               properties: {
+                title: {
+                  hidden: true,
+                  schema: "string"
+                },
                 type: {
                   enum: [
                     "default",
