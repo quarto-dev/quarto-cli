@@ -16329,6 +16329,10 @@ try {
               object: {
                 closed: true,
                 properties: {
+                  title: {
+                    hidden: true,
+                    schema: "string"
+                  },
                   type: {
                     enum: [
                       "default",
