@@ -39,6 +39,7 @@
     anyOf:
       - boolean
       - object:
+          closed: true
           properties:
             source:
               anyOf:
@@ -84,10 +85,10 @@
   schema:
     anyOf:
       - object:
+          closed: true
           properties:
             light: path
             dark: path
-          closed: true
       - string:
           completions:
             - pygments

@@ -110,6 +110,7 @@
         arrayOf:
           schema:
             ref: navigation-item
+    closed: true
 
 - id: comments
   anyOf:
@@ -119,6 +120,7 @@
         properties:
           utterances:
             object:
+              closed: true
               properties:
                 repo:
                   string:
@@ -159,6 +161,7 @@
               required: [repo]
           giscus:
             object:
+              closed: true
               properties:
                 repo:
                   string:
@@ -239,6 +242,7 @@
             anyOf:
               - boolean
               - object:
+                  closed: true
                   properties:
                     openSidebar:
                       boolean:
@@ -358,6 +362,7 @@
 
 - id: social-metadata
   object:
+    closed: true
     properties:
       title:
         string:
@@ -465,6 +470,7 @@
 
 - id: base-website
   object:
+    closed: true
     properties:
       title:
         string:
@@ -928,6 +934,7 @@
     - string
     - maybeArrayOf:
         object:
+          closed: true
           properties:
             role:
               string:

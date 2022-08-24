@@ -14,6 +14,7 @@
       - string
       - arrayOf: string
       - object:
+          closed: true
           properties:
             light:
               maybeArrayOf:
