@@ -146,10 +146,36 @@ jobs:
       - run: |
           tar -zxf quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz
           echo "$GITHUB_WORKSPACE/quarto-${{needs.configure.outputs.version}}/bin" >> $GITHUB_PATH
-      - run: |
+      - name: Test directly running quarto script
+        run: |
           quarto check
           quarto --paths
           quarto --version
+      - name: set up bin dir for symlink tests
+        run: |
+          mkdir $GITHUB_WORKSPACE/bin
+          echo "$GITHUB_WORKSPACE/bin" >> $GITHUB_PATH
+      - name: Test relative symlinks to quarto script
+        run: |
+          cd $GITHUB_WORKSPACE/bin
+          ln -s ../quarto-${{needs.configure.outputs.version}}/bin/quarto quarto
+          cd ..
+          test "$(which quarto)" == "$GITHUB_WORKSPACE/bin/quarto"
+
+          quarto check
+          quarto --paths
+          quarto --version
+          rm $GITHUB_WORKSPACE/bin/quarto
+      - name: Test absolute symlinks to quarto script
+        run: |
+          ln -s $GITHUB_WORKSPACE/quarto-${{needs.configure.outputs.version}}/bin/quarto $GITHUB_WORKSPACE/bin/quarto
+
+          test "$(which quarto)" == "$GITHUB_WORKSPACE/bin/quarto"
+
+          quarto check
+          quarto --paths
+          quarto --version
+          rm $GITHUB_WORKSPACE/bin/quarto
 
   make-installer-win:
     runs-on: windows-latest
