@@ -124,10 +124,10 @@ elif [[ "$OSTYPE" == "cygwin" || "$OSTYPE" == "msys" || "$OSTYPE" == "win32" || 
 fi
 
 if [ "$QUARTO_DENO" == "" ]; then
-  if [ "$QUARTO_ROOT" == "" ]; then
-    export QUARTO_DENO="${SCRIPT_PATH}/tools/deno${executable_extension}"
-  else
+  if [ -f "$DEV_PATH" ]; then
     export QUARTO_DENO="$QUARTO_ROOT/package/dist/bin/tools/deno${executable_extension}"
+  else
+    export QUARTO_DENO="${SCRIPT_PATH}/tools/deno${executable_extension}"
   fi
 fi
 
