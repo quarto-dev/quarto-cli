@@ -14,6 +14,15 @@ import * as ld from "../core/lodash.ts";
 import { kProjectOutputDir, ProjectContext } from "./types.ts";
 import { ProjectType } from "./types/types.ts";
 
+export function projectExcludeDirs(context: ProjectContext): string[] {
+  const outputDir = projectOutputDir(context);
+  if (outputDir) {
+    return [outputDir];
+  } else {
+    return [];
+  }
+}
+
 export function projectOutputDir(context: ProjectContext): string {
   let outputDir = context.config?.project[kProjectOutputDir];
   if (outputDir) {
