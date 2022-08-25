@@ -2,7 +2,11 @@
   description: Project configuration.
   schema:
     object:
+      closed: true
       properties:
+        title:
+          hidden: true
+          schema: string
         type:
           enum: [default, website, book, site]
           completions: [default, website, book]
@@ -45,6 +49,7 @@
     object:
       super:
         resolveRef: base-website
+      closed: true
       properties:
         title:
           string:

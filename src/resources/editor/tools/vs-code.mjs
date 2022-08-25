@@ -8315,7 +8315,8 @@ var require_yaml_intelligence_resources = __commonJS({
                   }
                 }
               }
-            }
+            },
+            closed: true
           }
         },
         {
@@ -8332,6 +8333,7 @@ var require_yaml_intelligence_resources = __commonJS({
                 properties: {
                   utterances: {
                     object: {
+                      closed: true,
                       properties: {
                         repo: {
                           string: {
@@ -8383,6 +8385,7 @@ var require_yaml_intelligence_resources = __commonJS({
                   },
                   giscus: {
                     object: {
+                      closed: true,
                       properties: {
                         repo: {
                           string: {
@@ -8475,6 +8478,7 @@ var require_yaml_intelligence_resources = __commonJS({
                       "boolean",
                       {
                         object: {
+                          closed: true,
                           properties: {
                             openSidebar: {
                               boolean: {
@@ -8680,6 +8684,7 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           id: "social-metadata",
           object: {
+            closed: true,
             properties: {
               title: {
                 string: {
@@ -8839,6 +8844,7 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           id: "base-website",
           object: {
+            closed: true,
             properties: {
               title: {
                 string: {
@@ -9517,6 +9523,7 @@ var require_yaml_intelligence_resources = __commonJS({
             {
               maybeArrayOf: {
                 object: {
+                  closed: true,
                   properties: {
                     role: {
                       string: {
@@ -10941,6 +10948,7 @@ var require_yaml_intelligence_resources = __commonJS({
               "boolean",
               {
                 object: {
+                  closed: true,
                   properties: {
                     source: {
                       anyOf: [
@@ -11013,11 +11021,11 @@ var require_yaml_intelligence_resources = __commonJS({
             anyOf: [
               {
                 object: {
+                  closed: true,
                   properties: {
                     light: "path",
                     dark: "path"
-                  },
-                  closed: true
+                  }
                 }
               },
               {
@@ -11263,6 +11271,7 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "Configuration for crossref labels and prefixes.",
           schema: {
             object: {
+              closed: true,
               properties: {
                 chapters: {
                   boolean: {
@@ -11575,6 +11584,7 @@ var require_yaml_intelligence_resources = __commonJS({
               "string",
               {
                 object: {
+                  closed: true,
                   properties: {
                     text: {
                       string: {
@@ -11644,6 +11654,7 @@ var require_yaml_intelligence_resources = __commonJS({
               "string",
               {
                 object: {
+                  closed: true,
                   properties: {
                     text: {
                       string: {
@@ -11765,6 +11776,7 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           schema: {
             object: {
+              closed: true,
               properties: {
                 version: {
                   string: {
@@ -11917,6 +11929,7 @@ var require_yaml_intelligence_resources = __commonJS({
               "boolean",
               {
                 object: {
+                  closed: true,
                   properties: {
                     opts_knit: {
                       object: {
@@ -11928,8 +11941,7 @@ var require_yaml_intelligence_resources = __commonJS({
                         description: "Knitr chunk options."
                       }
                     }
-                  },
-                  closed: true
+                  }
                 }
               }
             ]
@@ -13775,6 +13787,7 @@ var require_yaml_intelligence_resources = __commonJS({
               },
               {
                 object: {
+                  closed: true,
                   properties: {
                     light: {
                       maybeArrayOf: {
@@ -15642,6 +15655,7 @@ var require_yaml_intelligence_resources = __commonJS({
           name: "title-slide-attributes",
           schema: {
             object: {
+              closed: true,
               properties: {
                 "data-background-image": {
                   string: {
@@ -16312,7 +16326,12 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "Project configuration.",
           schema: {
             object: {
+              closed: true,
               properties: {
+                title: {
+                  hidden: true,
+                  schema: "string"
+                },
                 type: {
                   enum: [
                     "default",
@@ -16382,6 +16401,7 @@ var require_yaml_intelligence_resources = __commonJS({
               super: {
                 resolveRef: "base-website"
               },
+              closed: true,
               properties: {
                 title: {
                   string: {

@@ -1294,7 +1294,8 @@
               }
             }
           }
-        }
+        },
+        "closed": true
       }
     },
     {
@@ -1311,6 +1312,7 @@
             "properties": {
               "utterances": {
                 "object": {
+                  "closed": true,
                   "properties": {
                     "repo": {
                       "string": {
@@ -1362,6 +1364,7 @@
               },
               "giscus": {
                 "object": {
+                  "closed": true,
                   "properties": {
                     "repo": {
                       "string": {
@@ -1454,6 +1457,7 @@
                   "boolean",
                   {
                     "object": {
+                      "closed": true,
                       "properties": {
                         "openSidebar": {
                           "boolean": {
@@ -1659,6 +1663,7 @@
     {
       "id": "social-metadata",
       "object": {
+        "closed": true,
         "properties": {
           "title": {
             "string": {
@@ -1818,6 +1823,7 @@
     {
       "id": "base-website",
       "object": {
+        "closed": true,
         "properties": {
           "title": {
             "string": {
@@ -2496,6 +2502,7 @@
         {
           "maybeArrayOf": {
             "object": {
+              "closed": true,
               "properties": {
                 "role": {
                   "string": {
@@ -3920,6 +3927,7 @@
           "boolean",
           {
             "object": {
+              "closed": true,
               "properties": {
                 "source": {
                   "anyOf": [
@@ -3992,11 +4000,11 @@
         "anyOf": [
           {
             "object": {
+              "closed": true,
               "properties": {
                 "light": "path",
                 "dark": "path"
-              },
-              "closed": true
+              }
             }
           },
           {
@@ -4242,6 +4250,7 @@
       "description": "Configuration for crossref labels and prefixes.",
       "schema": {
         "object": {
+          "closed": true,
           "properties": {
             "chapters": {
               "boolean": {
@@ -4554,6 +4563,7 @@
           "string",
           {
             "object": {
+              "closed": true,
               "properties": {
                 "text": {
                   "string": {
@@ -4623,6 +4633,7 @@
           "string",
           {
             "object": {
+              "closed": true,
               "properties": {
                 "text": {
                   "string": {
@@ -4744,6 +4755,7 @@
       },
       "schema": {
         "object": {
+          "closed": true,
           "properties": {
             "version": {
               "string": {
@@ -4896,6 +4908,7 @@
           "boolean",
           {
             "object": {
+              "closed": true,
               "properties": {
                 "opts_knit": {
                   "object": {
@@ -4907,8 +4920,7 @@
                     "description": "Knitr chunk options."
                   }
                 }
-              },
-              "closed": true
+              }
             }
           }
         ]
@@ -6754,6 +6766,7 @@
           },
           {
             "object": {
+              "closed": true,
               "properties": {
                 "light": {
                   "maybeArrayOf": {
@@ -8621,6 +8634,7 @@
       "name": "title-slide-attributes",
       "schema": {
         "object": {
+          "closed": true,
           "properties": {
             "data-background-image": {
               "string": {
@@ -9291,7 +9305,12 @@
       "description": "Project configuration.",
       "schema": {
         "object": {
+          "closed": true,
           "properties": {
+            "title": {
+              "hidden": true,
+              "schema": "string"
+            },
             "type": {
               "enum": [
                 "default",
@@ -9361,6 +9380,7 @@
           "super": {
             "resolveRef": "base-website"
           },
+          "closed": true,
           "properties": {
             "title": {
               "string": {

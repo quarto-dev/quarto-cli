@@ -8316,7 +8316,8 @@ try {
                     }
                   }
                 }
-              }
+              },
+              closed: true
             }
           },
           {
@@ -8333,6 +8334,7 @@ try {
                   properties: {
                     utterances: {
                       object: {
+                        closed: true,
                         properties: {
                           repo: {
                             string: {
@@ -8384,6 +8386,7 @@ try {
                     },
                     giscus: {
                       object: {
+                        closed: true,
                         properties: {
                           repo: {
                             string: {
@@ -8476,6 +8479,7 @@ try {
                         "boolean",
                         {
                           object: {
+                            closed: true,
                             properties: {
                               openSidebar: {
                                 boolean: {
@@ -8681,6 +8685,7 @@ try {
           {
             id: "social-metadata",
             object: {
+              closed: true,
               properties: {
                 title: {
                   string: {
@@ -8840,6 +8845,7 @@ try {
           {
             id: "base-website",
             object: {
+              closed: true,
               properties: {
                 title: {
                   string: {
@@ -9518,6 +9524,7 @@ try {
               {
                 maybeArrayOf: {
                   object: {
+                    closed: true,
                     properties: {
                       role: {
                         string: {
@@ -10942,6 +10949,7 @@ try {
                 "boolean",
                 {
                   object: {
+                    closed: true,
                     properties: {
                       source: {
                         anyOf: [
@@ -11014,11 +11022,11 @@ try {
               anyOf: [
                 {
                   object: {
+                    closed: true,
                     properties: {
                       light: "path",
                       dark: "path"
-                    },
-                    closed: true
+                    }
                   }
                 },
                 {
@@ -11264,6 +11272,7 @@ try {
             description: "Configuration for crossref labels and prefixes.",
             schema: {
               object: {
+                closed: true,
                 properties: {
                   chapters: {
                     boolean: {
@@ -11576,6 +11585,7 @@ try {
                 "string",
                 {
                   object: {
+                    closed: true,
                     properties: {
                       text: {
                         string: {
@@ -11645,6 +11655,7 @@ try {
                 "string",
                 {
                   object: {
+                    closed: true,
                     properties: {
                       text: {
                         string: {
@@ -11766,6 +11777,7 @@ try {
             },
             schema: {
               object: {
+                closed: true,
                 properties: {
                   version: {
                     string: {
@@ -11918,6 +11930,7 @@ try {
                 "boolean",
                 {
                   object: {
+                    closed: true,
                     properties: {
                       opts_knit: {
                         object: {
@@ -11929,8 +11942,7 @@ try {
                           description: "Knitr chunk options."
                         }
                       }
-                    },
-                    closed: true
+                    }
                   }
                 }
               ]
@@ -13776,6 +13788,7 @@ try {
                 },
                 {
                   object: {
+                    closed: true,
                     properties: {
                       light: {
                         maybeArrayOf: {
@@ -15643,6 +15656,7 @@ try {
             name: "title-slide-attributes",
             schema: {
               object: {
+                closed: true,
                 properties: {
                   "data-background-image": {
                     string: {
@@ -16313,7 +16327,12 @@ try {
             description: "Project configuration.",
             schema: {
               object: {
+                closed: true,
                 properties: {
+                  title: {
+                    hidden: true,
+                    schema: "string"
+                  },
                   type: {
                     enum: [
                       "default",
@@ -16383,6 +16402,7 @@ try {
                 super: {
                   resolveRef: "base-website"
                 },
+                closed: true,
                 properties: {
                   title: {
                     string: {
