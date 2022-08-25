@@ -539,9 +539,19 @@ table.gt_table tbody.gt_table_body {
   border-top-color: currentColor;
 }
 
-/* tweaks for pandoc columns */
-.columns .column {
-  padding-bottom: 2px;
+/* restore previous pandoc columns behavior 
+   (too many reports of slide layout breaking)
+   see https://github.com/jgm/pandoc/pull/8237
+*/
+div.columns {
+  display: initial;
+  gap: initial;
+}
+div.column {
+  display: inline-block;
+  overflow-x: initial;
+  vertical-align: top;
+  width: 50%;
 }
 
 @media print {
