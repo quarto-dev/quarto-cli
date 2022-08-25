@@ -12,7 +12,7 @@ body:
         Quarto is under active development! If possible, please confirm your issue persists on the [latest nightly release](https://github.com/quarto-dev/quarto-cli/releases).
 
         To file a _bug report_, please follow these instructions carefully: <https://yihui.org/issue/#bug-reports>
-        Also, please complete and keep the checklist below in your issue. This helps you know what to check for opening a good issue report. It also helps know that you've have done the common steps that can solve your potential issue.
+        
         At last, if you have posted the same issue elsewhere, please mention it here, with a link to the other issue.
   - type: textarea
     attributes:
@@ -31,7 +31,7 @@ body:
     attributes:
       label: Checklist
       description: |
-        When filing a _bug report_, please check the boxes below to confirm that you have provided us with the information we need. Have you:
+        When filing a bug report, if possible, please try to check the boxes below so we have as much information as possible. Have you:
       options:
         - label: "upgraded to the [latest nightly quarto version](https://github.com/quarto-dev/quarto-cli/releases)?"
         - label: "[formatted your issue](https://yihui.org/issue/#please-format-your-issue-correctly) so it is easier for us to read?"
