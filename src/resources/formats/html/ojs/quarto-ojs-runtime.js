@@ -1,4 +1,4 @@
-// @quarto/quarto-ojs-runtime v0.0.12 Copyright 2022 undefined
+// @quarto/quarto-ojs-runtime v0.0.13 Copyright 2022 undefined
 var EOL = {},
     EOF = {},
     QUOTE = 34,
@@ -18669,9 +18669,7 @@ class QuartoOJSConnector extends OJSConnector {
             cellOutputDisplay = cellDiv;
           }
         }
-        const forceShowDeclarations = !(
-          cellDiv && cellDiv.dataset.output !== "all"
-        );
+        const forceShowDeclarations = (!cellDiv) || (cellDiv.dataset.output === "all");
 
         const config = { childList: true };
         const callback = function (mutationsList) {
@@ -18846,8 +18844,23 @@ function createRuntime() {
   }
   lib.transpose = () => transpose;
 
-  const mainEl = document.querySelector("main");
+  // TODO this should be user-configurable, so that we can actually 
+  // make it work in arbitrary layouts.
+  // There's probably a slick reactive trick to make the element
+  // user settable. 
+  //
+  // Right now we support quarto's standard HTML formats
+
+  const mainEl = (document.querySelector("main") // html
+   || document.querySelector("div.reveal")       // reveal
+   || document.querySelector("body"));           // fall-through
+
   function width() {
+    if (mainEl === null) {
+      return lib.Generators.observe((change) => {
+        change(undefined);
+      });
+    }
     return lib.Generators.observe(function (change) {
       var width = change(mainEl.clientWidth);
       function resized() {
