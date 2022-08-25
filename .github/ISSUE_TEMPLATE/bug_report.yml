@@ -7,13 +7,12 @@ body:
     attributes:
       value: |
         Welcome to the quarto GitHub repo!
+        
         We are always happy to hear feedback from our users.
         
-        Quarto is under active development! If possible, please confirm your issue persists on the [latest nightly release](https://github.com/quarto-dev/quarto-cli/releases).
+        Quarto is under active development! If possible, we'd appreciate if you could check that the issue persists on the [latest nightly release](https://github.com/quarto-dev/quarto-cli/releases).
 
-        To file a _bug report_, please follow these instructions carefully: <https://yihui.org/issue/#bug-reports>
-        
-        At last, if you have posted the same issue elsewhere, please mention it here, with a link to the other issue.
+        To file a bug report, please follow these instructions carefully: <https://yihui.org/issue/#bug-reports>
   - type: textarea
     attributes:
       label: Bug description
@@ -31,10 +30,9 @@ body:
     attributes:
       label: Checklist
       description: |
-        When filing a bug report, if possible, please try to check the boxes below so we have as much information as possible. Have you:
+        When filing a bug report, if possible, please keep the following in mind so we have as much info as possible:
       options:
-        - label: "upgraded to the [latest nightly quarto version](https://github.com/quarto-dev/quarto-cli/releases)?"
-        - label: "[formatted your issue](https://yihui.org/issue/#please-format-your-issue-correctly) so it is easier for us to read?"
-        - label: included a minimal, fully reproducible example in a single .qmd file? Please provide the whole file rather than the snippet you believe is causing the issue.
-        - label: documented the RStudio IDE version you're running (if applicable), by providing the value displayed in the "About RStudio" main menu dialog?
-        - label: documented which operating system you're running? If on Linux, please provide the specific distribution as well.
+        - label: Please include a minimal, fully reproducible example in a single .qmd file? Please provide the whole file rather than the snippet you believe is causing the issue.
+        - label: "Please [format your issue](https://yihui.org/issue/#please-format-your-issue-correctly) so it is easier for us to read the bug report."
+        - label: Please document the RStudio IDE version you're running (if applicable), by providing the value displayed in the "About RStudio" main menu dialog?
+        - label: Please document the operating system you're running. If on Linux, please provide the specific distribution.
