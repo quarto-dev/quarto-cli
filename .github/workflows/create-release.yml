@@ -87,13 +87,13 @@ jobs:
 
       - name: Prepare Distribution
         run: |
-          pushd package/src/
+          pushd package/src
           ./quarto-bld prepare-dist --set-version ${{needs.configure.outputs.version}} --log-level info
           popd
 
       - name: Make Tarball
         run: |
-          pushd package/
+          pushd package
           mv dist quarto-${{needs.configure.outputs.version}}
           tar -cvf  quarto-${{needs.configure.outputs.version}}-linux-amd64.tar quarto-${{needs.configure.outputs.version}}
           gzip quarto-${{needs.configure.outputs.version}}-linux-amd64.tar
@@ -119,13 +119,13 @@ jobs:
 
       - name: Prepare Distribution
         run: |
-          pushd package/src/
+          pushd package/src
           ./quarto-bld prepare-dist --set-version ${{needs.configure.outputs.version}} --log-level info
           popd
 
       - name: Make Installer
         run: |
-          pushd package/src/
+          pushd package/src
           ./quarto-bld make-installer-deb --set-version ${{needs.configure.outputs.version}} --log-level info
           popd
 
@@ -147,8 +147,6 @@ jobs:
           tar -zxf quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz
           echo "$GITHUB_WORKSPACE/quarto-${{needs.configure.outputs.version}}/bin" >> $GITHUB_PATH
       - run: |
-          ls -R
-          echo $PATH
           quarto check
           quarto --paths
           quarto --version
@@ -168,14 +166,14 @@ jobs:
       - name: Prepare Distribution
         shell: bash
         run: |
-          pushd package/src\
+          pushd package/src
           ./quarto-bld prepare-dist --set-version ${{needs.configure.outputs.version}} --log-level info
           popd
 
       - name: Make Installer
         shell: bash
         run: |
-          pushd package/src/
+          pushd package/src
           ./quarto-bld make-installer-win --set-version ${{needs.configure.outputs.version}} --log-level debug
           popd
         env:
@@ -241,13 +239,13 @@ jobs:
         run: |
           security find-identity
           security find-certificate -a
-          pushd package/src/
+          pushd package/src
           ./quarto-bld prepare-dist --set-version ${{needs.configure.outputs.version}} --log-level info
           popd
 
       - name: Make Installer
         run: |
-          pushd package/src/
+          pushd package/src
           ./quarto-bld make-installer-mac --set-version ${{needs.configure.outputs.version}} --log-level info
           popd
         env:
@@ -284,8 +282,6 @@ jobs:
       - run: |
           tar -zxf quarto-${{needs.configure.outputs.version}}-macos.tar.gz
           echo "$GITHUB_WORKSPACE/bin" >> $GITHUB_PATH
-      - run: ls -R
-      - run: echo $PATH
       - run: |
           quarto check
           quarto --paths
@@ -400,7 +396,7 @@ jobs:
           asset_path: ./Mac Zip/quarto-${{needs.configure.outputs.version}}-macos.tar.gz
           asset_name: quarto-${{needs.configure.outputs.version}}-macos.tar.gz
           asset_content_type: application/pkg
-          
+
       - name: Attach News
         id: attach-news
         uses: actions/upload-release-asset@v1
@@ -410,7 +406,7 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./News/changelog-1.1.md
           asset_name: changelog.md
-          asset_content_type: text/markdown      
+          asset_content_type: text/markdown
 
       - name: Generate Checksums
         id: generate_checksum
