@@ -10,7 +10,7 @@ body:
         
         We are always happy to hear feedback from our users.
         
-        Quarto is under active development! If possible, we'd appreciate if you could check that the issue persists on the [latest nightly release](https://github.com/quarto-dev/quarto-cli/releases).
+        Quarto is under active development! If convenient, we'd appreciate if you could check that the issue persists on the [latest nightly release](https://github.com/quarto-dev/quarto-cli/releases).
 
         To file a bug report, please follow these instructions carefully: <https://yihui.org/issue/#bug-reports>
   - type: textarea
