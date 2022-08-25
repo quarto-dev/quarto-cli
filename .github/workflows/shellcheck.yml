@@ -1,0 +1,48 @@
+name: Shellcheck
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+  push:
+    # only trigger on branches, not on tags
+    branches: [main]
+
+jobs:
+  # end user scripts. These need to have the best compatibility possible,
+  #    and that means omitting some shell-specific features. POSIX sh is 
+  #    the lowest common denominator.
+  posix:
+    name: "Shellcheck shell scripts for POSIX compatibility"
+    runs-on: ubuntu-latest
+      
+    strategy:
+      matrix:
+        filepath:
+          - package/scripts/common/quarto configuration
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - run: shellcheck --shell sh ${{ matrix.filepath }}
+
+  # developer scripts. We need to sanity check these with shellcheck, but we
+  #    don't care about maximizing where they can run.
+  bash: 
+    name: "Shellcheck shell scripts for Bash compatibility"
+    runs-on: ubuntu-latest
+      
+    strategy:
+      matrix:
+        filepath:
+          - package/src/quarto-bld package/src/set_package_paths.sh configuration
+          - configure.sh
+          - package/scripts/deno_std/download.sh
+          - package/scripts/deno_std/lock.sh
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - run: shellcheck --shell bash ${{ matrix.filepath }}
