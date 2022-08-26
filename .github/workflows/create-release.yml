@@ -22,6 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{steps.config.outputs.version}}.${{ steps.config.outputs.build_number}}
+      version_base: ${{steps.config.outputs.version}}
       tag_name: v${{steps.config.outputs.version}}.${{ steps.config.outputs.build_number }}
       release: v${{steps.config.outputs.version}}.${{ steps.config.outputs.build_number }}
       changes: ${{ steps.config.outputs.changes }}
@@ -405,7 +406,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./news/changelog-${{steps.config.outputs.version}}.md
+          asset_path: ./News/changelog-${{needs.configure.outputs.version_base}}.md
           asset_name: changelog.md
           asset_content_type: text/markdown      
 
