@@ -65,6 +65,11 @@ IF EXIST "!QUARTO_TS_PATH!" (
 		GOTO end
 	)
 
+	IF "%1"=="--version" (
+		TYPE "!QUARTO_SHARE_PATH!\version"
+		GOTO end
+	)
+
 	SET QUARTO_DENO_OPTIONS=--no-check
 	SET QUARTO_ACTION=run
 	SET "QUARTO_TARGET=%SCRIPT_PATH%\quarto.js"
