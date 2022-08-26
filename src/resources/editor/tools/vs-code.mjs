@@ -16401,7 +16401,6 @@ var require_yaml_intelligence_resources = __commonJS({
               super: {
                 resolveRef: "base-website"
               },
-              closed: true,
               properties: {
                 title: {
                   string: {
