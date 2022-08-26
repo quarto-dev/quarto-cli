@@ -8,7 +8,7 @@
 
 # Binary dependencies
 export DENO=v1.25.0
-export DENO_DOM=v0.1.34-alpha
+export DENO_DOM=v0.1.23-alpha # make sure this points to the latest in https://github.com/b-fuze/deno-dom/releases
 export PANDOC=2.19.2
 export DARTSASS=1.32.8
 export ESBUILD=0.14.39
