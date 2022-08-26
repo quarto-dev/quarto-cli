@@ -15,6 +15,8 @@ const fixPath = (path: string, prefix: string) => {
   if (path.startsWith("./")) {
     //if (path.startsWith("./") && !path.endsWith("/")) {
     return "./" + join(prefix, path.slice(2));
+  } else if (path.startsWith("../")) {
+    return `./${prefix}/${path}`;
   }
   return path;
 };
@@ -63,14 +65,14 @@ function resolveImports(
 
 function objectMap<T, U>(
   obj: Record<string, T>,
-  f: ((v: T) => U),
+  f: (v: T) => U,
 ): Record<string, U> {
   return Object.fromEntries(Object.entries(obj).map(([key, v]) => [key, f(v)]));
 }
 
 function objectMapReKey<T, U>(
   obj: Record<string, T>,
-  f: ((key: string, v: T) => [string, U]),
+  f: (key: string, v: T) => [string, U],
 ): Record<string, U> {
   return Object.fromEntries(Object.entries(obj).map(([key, v]) => f(key, v)));
 }
