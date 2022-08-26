@@ -20,7 +20,8 @@ Learn more about Quarto at <https://quarto.org>.
 
 ## Development Version
 
-To install the development version of the Quarto CLI, clone the quarto-cli repository then run the configure script. On Windows, you must use a bash shell from either MSYS2 or Git bash to run this script. For example:
+To install the development version of the Quarto CLI, clone the quarto-cli repository then run the configure script. On Windows, you must use a bash shell from either MSYS2 or Git bash to run this script (Note: WSL bash is Linux installation). 
+For example:
 
 ```bash
 git clone https://github.com/quarto-dev/quarto-cli
