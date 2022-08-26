@@ -25,6 +25,12 @@ export async function parseHtml(src: string): Promise<HTMLDocument> {
   return result;
 }
 
+// We are combining a number of scripts from
+// https://github.com/b-fuze/deno-dom/blob/master/deno-dom-native.ts
+// into this. If deno-dom fails, it's likely that this needs to be brought up to date.
+
+// 2022-08-26: cscheid changed this to match commit a69551336f37cd4010032e039231d926e1a4774c
+
 let s_DenoDomInitialized = false;
 export async function initDenoDom() {
   if (!s_DenoDomInitialized) {
@@ -39,16 +45,16 @@ export async function initDenoDom() {
         const _symbols = {
           deno_dom_usize_len: { parameters: [], result: "usize" },
           deno_dom_parse_sync: {
-            parameters: ["pointer", "usize", "pointer"],
+            parameters: ["buffer", "usize", "buffer"],
             result: "void",
           },
           deno_dom_parse_frag_sync: {
-            parameters: ["pointer", "usize", "pointer"],
+            parameters: ["buffer", "usize", "buffer"],
             result: "void",
           },
           deno_dom_is_big_endian: { parameters: [], result: "u32" },
           deno_dom_copy_buf: {
-            parameters: ["pointer", "pointer"],
+            parameters: ["buffer", "buffer"],
             result: "void",
           },
         } as const;
