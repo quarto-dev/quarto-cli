@@ -406,7 +406,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./news/changelog-${{needs.configure.outputs.version_base}}.md
+          asset_path: ./News/changelog-${{needs.configure.outputs.version_base}}.md
           asset_name: changelog.md
           asset_content_type: text/markdown      
 
