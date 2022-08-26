@@ -55,7 +55,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: News
-          path: ./news/changelog-$QUARTO_VERSION.md
+          path: ./news/changelog-${{steps.config.outputs.version}}.md
 
   make-source-tarball:
     runs-on: ubuntu-latest
