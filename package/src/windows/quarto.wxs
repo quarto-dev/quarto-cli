@@ -36,12 +36,12 @@
         <Directory Id="APPLICATIONFOLDER" Name="Quarto">
           <Component Id="UpdateUserPath" Guid="FC7C02EF-7434-40D5-A7AA-B974B368A969" KeyPath="yes">
             <Condition>ALLUSERS = "" OR ALLUSERS = 2</Condition>
-            <Environment Id='SetUserPath' Name='PATH' Action='set' Permanent='no' System='no' Part='last' Value='[APPLICATIONFOLDER]bin' />
+            <Environment Id='SetUserPath' Name='PATH' Action='set' Permanent='no' System='no' Part='first' Value='[APPLICATIONFOLDER]bin' />
           </Component>
 
           <Component Id="UpdateSystemPath" Guid="375C272A-C227-4184-98C4-6EFBE6F72719" KeyPath="yes">
             <Condition>ALLUSERS = 1</Condition>
-            <Environment Id='SetSystemPath' Name='PATH' Action='set' Permanent='no' System='yes' Part='last' Value='[APPLICATIONFOLDER]bin' />
+            <Environment Id='SetSystemPath' Name='PATH' Action='set' Permanent='no' System='yes' Part='first' Value='[APPLICATIONFOLDER]bin' />
           </Component>
         </Directory>
       </Directory>
