@@ -16402,7 +16402,6 @@ try {
                 super: {
                   resolveRef: "base-website"
                 },
-                closed: true,
                 properties: {
                   title: {
                     string: {
