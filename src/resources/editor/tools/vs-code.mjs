@@ -8900,6 +8900,11 @@ var require_yaml_intelligence_resources = __commonJS({
                   }
                 }
               },
+              "reader-mode": {
+                boolean: {
+                  description: "Displays a 'reader-mode' tool which allows users to hide the sidebar and table of contents when viewing a page.\n"
+                }
+              },
               "google-analytics": {
                 anyOf: [
                   "string",
