@@ -8901,6 +8901,11 @@ try {
                     }
                   }
                 },
+                "reader-mode": {
+                  boolean: {
+                    description: "Displays a 'reader-mode' tool which allows users to hide the sidebar and table of contents when viewing a page.\n"
+                  }
+                },
                 "google-analytics": {
                   anyOf: [
                     "string",
@@ -16381,6 +16386,18 @@ try {
                     description: "Options for `quarto preview`",
                     schema: {
                       ref: "project-preview"
+                    }
+                  },
+                  "pre-render": {
+                    description: "Scripts to run as a pre-render step",
+                    schema: {
+                      maybeArrayOf: "string"
+                    }
+                  },
+                  "post-render": {
+                    description: "Scripts to run as a post-render step",
+                    schema: {
+                      maybeArrayOf: "string"
                     }
                   }
                 }
