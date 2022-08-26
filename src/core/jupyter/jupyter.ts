@@ -694,7 +694,7 @@ export function jupyterCellWithOptions(
   // read any options defined in cell metadata
   const metadataOptions: Record<string, unknown> = kJupyterCellOptionKeys
     .reduce((options, key) => {
-      if (cell.metadata[key]) {
+      if (cell.metadata[key] !== undefined) {
         options[key] = cell.metadata[key];
       }
       return options;
