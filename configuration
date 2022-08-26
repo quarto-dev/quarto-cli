@@ -5,10 +5,11 @@
 #
 # The configuration is used both as a local runtime version of Quarto for developers
 # but it also used when packaging (e.g. run configure.sh, then prepare-dist.sh, then package.sh)
+# deno_dom should match release at https://github.com/b-fuze/deno-dom/releases
 
 # Binary dependencies
 export DENO=v1.25.0
-export DENO_DOM=v0.1.23-alpha # make sure this points to the latest in https://github.com/b-fuze/deno-dom/releases
+export DENO_DOM=v0.1.23-alpha
 export PANDOC=2.19.2
 export DARTSASS=1.32.8
 export ESBUILD=0.14.39
