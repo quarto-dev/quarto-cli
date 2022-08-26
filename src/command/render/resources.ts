@@ -36,13 +36,17 @@ export function resourcesFromMetadata(resourcesMetadata?: unknown) {
 export async function resolveFileResources(
   rootDir: string,
   fileDir: string,
+  excludeDirs: string[],
   markdown: string,
   globs: string[],
   skipOjsDiscovery?: boolean,
 ): Promise<ResolvedPathGlobs> {
   const ignore = engineIgnoreGlobs()
     .concat(kQuartoScratch + "/")
-    .concat(["**/.*", "**/.*/**"]); // hidden (dot prefix))
+    .concat(["**/.*", "**/.*/**"]) // hidden (dot prefix))
+    .concat(
+      ...excludeDirs,
+    );
   const resources = resolvePathGlobs(fileDir, globs, ignore);
   if (markdown.length > 0 && !skipOjsDiscovery) {
     resources.include.push(
@@ -58,11 +62,13 @@ export async function resolveFileResources(
 
 export function resourceFilesFromRenderedFile(
   baseDir: string,
+  excludeDirs: string[],
   renderedFile: RenderedFile,
   partitioned?: PartitionedMarkdown,
 ) {
   return resourceFilesFromFile(
     baseDir,
+    excludeDirs,
     renderedFile.file,
     renderedFile.resourceFiles,
     renderedFile.selfContained,
@@ -74,6 +80,7 @@ export function resourceFilesFromRenderedFile(
 
 export async function resourceFilesFromFile(
   baseDir: string,
+  excludeDirs: string[],
   file: string,
   resources: RenderResourceFiles,
   selfContained: boolean,
@@ -87,6 +94,7 @@ export async function resourceFilesFromFile(
   const fileResourceFiles = await resolveFileResources(
     baseDir,
     resourceDir,
+    excludeDirs,
     markdown,
     globs,
     skipOjsDiscovery,

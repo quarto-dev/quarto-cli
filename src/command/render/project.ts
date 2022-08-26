@@ -55,6 +55,7 @@ import { handlerForScript } from "../../core/run/run.ts";
 import { execProcess } from "../../core/process.ts";
 import { parseShellRunCommand } from "../../core/run/shell.ts";
 import { clearProjectIndex } from "../../project/project-index.ts";
+import { projectExcludeDirs } from "../../project/project-shared.ts";
 
 export async function renderProject(
   context: ProjectContext,
@@ -240,8 +241,11 @@ export async function renderProject(
       projDir,
       file.input,
     );
+    const excludeDirs = context ? projectExcludeDirs(context) : [];
+
     const resourceFiles = resourceFilesFromRenderedFile(
       projDir,
+      excludeDirs,
       file,
       partitioned,
     );

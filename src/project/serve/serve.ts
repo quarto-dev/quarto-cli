@@ -27,6 +27,7 @@ import {
 } from "../../project/types.ts";
 import {
   isProjectInputFile,
+  projectExcludeDirs,
   projectOutputDir,
 } from "../../project/project-shared.ts";
 import {
@@ -667,6 +668,7 @@ async function serveFiles(
         resourceFiles.push(
           ...(await resourceFilesFromFile(
             project.dir,
+            projectExcludeDirs(project),
             projRelative,
             { files, globs },
             false, // selfContained,

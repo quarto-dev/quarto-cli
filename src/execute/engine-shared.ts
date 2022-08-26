@@ -5,14 +5,17 @@
 *
 */
 
-import { dirname, join } from "path/mod.ts";
+import { dirname, isAbsolute, join } from "path/mod.ts";
 
 import { restorePreservedHtml } from "../core/jupyter/preserve.ts";
 import { PostProcessOptions } from "./types.ts";
 
 export function postProcessRestorePreservedHtml(options: PostProcessOptions) {
   // read the output file
-  const outputPath = join(dirname(options.target.input), options.output);
+
+  const outputPath = isAbsolute(options.output)
+    ? options.output
+    : join(dirname(options.target.input), options.output);
   let output = Deno.readTextFileSync(outputPath);
 
   // substitute

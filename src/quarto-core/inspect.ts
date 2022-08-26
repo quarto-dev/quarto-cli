@@ -25,6 +25,7 @@ import { kLocalDevelopment, quartoConfig } from "../core/quarto.ts";
 
 import { ProjectConfig, ProjectFiles } from "../project/types.ts";
 import { cssFileResourceReferences } from "../core/css.ts";
+import { projectExcludeDirs } from "../project/project-shared.ts";
 
 export interface InspectedConfig {
   quarto: {
@@ -116,9 +117,13 @@ export async function inspectConfig(path: string): Promise<InspectedConfig> {
 
       const context = await projectContext(path);
       const fileDir = Deno.realPathSync(dirname(path));
+
+      const excludeDirs = context ? projectExcludeDirs(context) : [];
+
       const resources = await resolveResources(
         context ? context.dir : fileDir,
         fileDir,
+        excludeDirs,
         partitioned.markdown,
         resourceConfig,
       );
@@ -147,12 +152,14 @@ export async function inspectConfig(path: string): Promise<InspectedConfig> {
 async function resolveResources(
   rootDir: string,
   fileDir: string,
+  excludeDirs: string[],
   markdown: string,
   globs: string[],
 ): Promise<string[]> {
   const resolved = await resolveFileResources(
     rootDir,
     fileDir,
+    excludeDirs,
     markdown,
     globs,
   );
