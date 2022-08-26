@@ -318,7 +318,7 @@ jobs:
           release_name: ${{needs.configure.outputs.release}}
           body: |
             ${{ needs.configure.outputs.changes }}
-          draft: true
+          draft: ${{ github.event.inputs.draft }}
           prerelease: ${{ github.event.inputs.pre-release }}
 
       - name: Attach Source Tarball
