@@ -55,7 +55,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: News
-          path: ./news/changelog-1.1.md
+          path: ./news/changelog-${{steps.config.outputs.version}}.md
 
   make-source-tarball:
     runs-on: ubuntu-latest
@@ -405,7 +405,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./News/changelog-1.1.md
+          asset_path: ./news/changelog-${{steps.config.outputs.version}}.md
           asset_name: changelog.md
           asset_content_type: text/markdown      
 
