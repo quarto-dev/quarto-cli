@@ -16381,6 +16381,18 @@ var require_yaml_intelligence_resources = __commonJS({
                   schema: {
                     ref: "project-preview"
                   }
+                },
+                "pre-render": {
+                  description: "Scripts to run as a pre-render step",
+                  schema: {
+                    maybeArrayOf: "string"
+                  }
+                },
+                "post-render": {
+                  description: "Scripts to run as a post-render step",
+                  schema: {
+                    maybeArrayOf: "string"
+                  }
                 }
               }
             }
