@@ -7,8 +7,8 @@
 # but it also used when packaging (e.g. run configure.sh, then prepare-dist.sh, then package.sh)
 
 # Binary dependencies
-export DENO=v1.22.0
-export DENO_DOM=v0.1.17-alpha
+export DENO=v1.25.0
+export DENO_DOM=v0.1.34-alpha
 export PANDOC=2.19.2
 export DARTSASS=1.32.8
 export ESBUILD=0.14.39
