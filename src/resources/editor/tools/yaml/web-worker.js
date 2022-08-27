@@ -17221,6 +17221,7 @@ try {
             long: "The mapping between the page and the embedded discussion."
           },
           "Display reactions for the discussion\u2019s main post before the\ncomments.",
+          "Loading of the comments will be deferred until the user scrolls near\nthe comments container.",
           "Place the comment input box above or below the comments.",
           "The giscus theme to use when displaying comments.",
           "The language that should be used when displaying the commenting\ninterface.",
