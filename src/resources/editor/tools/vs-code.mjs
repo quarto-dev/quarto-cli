@@ -16520,6 +16520,16 @@ var require_yaml_intelligence_resources = __commonJS({
                     },
                     description: "Custom tools for navbar or sidebar"
                   }
+                },
+                doi: {
+                  string: {
+                    tags: {
+                      formats: [
+                        "$html-doc"
+                      ]
+                    },
+                    description: "The Digital Object Identifier for this book."
+                  }
                 }
               }
             }
@@ -18985,6 +18995,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
         "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
         "Custom tools for navbar or sidebar",
+        "The Digital Object Identifier for this book.",
         "internal-schema-hack",
         "Project configuration.",
         "Project type (<code>default</code>, <code>website</code>, or\n<code>book</code>)",
@@ -19192,6 +19203,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
         "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
         "Custom tools for navbar or sidebar",
+        "The Digital Object Identifier for this book.",
         "internal-schema-hack"
       ],
       "schema/external-schemas.yml": [

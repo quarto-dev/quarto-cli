@@ -116,6 +116,11 @@
             schema:
               ref: navigation-item
             description: "Custom tools for navbar or sidebar"
+        doi:
+          string:
+            tags:
+              formats: [$html-doc]
+            description: The Digital Object Identifier for this book.
 
 - name: type
   hidden: true
