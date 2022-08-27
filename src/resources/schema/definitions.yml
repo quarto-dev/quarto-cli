@@ -219,7 +219,7 @@
                     description: Display reactions for the discussion's main post before the comments.
                 loading:
                   enum: [lazy]
-                  description: Loading of the comments will be deferred until the user scrolls near the comments container.
+                  description: "Specify `loading: lazy` to defer loading comments until the user scrolls near the comments container."
                 input-position:
                   enum: [top, bottom]
                   description: Place the comment input box above or below the comments.
