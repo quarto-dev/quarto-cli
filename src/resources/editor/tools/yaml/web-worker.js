@@ -8442,6 +8442,12 @@ try {
                               description: "Display reactions for the discussion's main post before the comments."
                             }
                           },
+                          loading: {
+                            enum: [
+                              "lazy"
+                            ],
+                            description: "Loading of the comments will be deferred until the user scrolls near the comments container."
+                          },
                           "input-position": {
                             enum: [
                               "top",
@@ -17279,6 +17285,7 @@ try {
             short: "Links to source repository actions",
             long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
           },
+          "Displays a \u2018reader-mode\u2019 tool which allows users to hide the sidebar\nand table of contents when viewing a page.",
           "Enable Google Analytics for this website",
           "The Google tracking Id or measurement Id of this website.",
           {
@@ -18784,6 +18791,8 @@ try {
           "Additional file resources to be copied to output directory",
           "Additional file resources to be copied to output directory",
           "Options for <code>quarto preview</code>",
+          "Scripts to run as a pre-render step",
+          "Scripts to run as a post-render step",
           "Website configuration.",
           "Book configuration.",
           "Book title",
@@ -18802,6 +18811,7 @@ try {
             short: "Links to source repository actions",
             long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
           },
+          "Displays a \u2018reader-mode\u2019 tool which allows users to hide the sidebar\nand table of contents when viewing a page.",
           "Enable Google Analytics for this website",
           "The Google tracking Id or measurement Id of this website.",
           {
@@ -18988,6 +18998,8 @@ try {
           "Additional file resources to be copied to output directory",
           "Additional file resources to be copied to output directory",
           "Options for <code>quarto preview</code>",
+          "Scripts to run as a pre-render step",
+          "Scripts to run as a post-render step",
           "Website configuration.",
           "Book configuration.",
           "Book title",
@@ -19006,6 +19018,7 @@ try {
             short: "Links to source repository actions",
             long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
           },
+          "Displays a \u2018reader-mode\u2019 tool which allows users to hide the sidebar\nand table of contents when viewing a page.",
           "Enable Google Analytics for this website",
           "The Google tracking Id or measurement Id of this website.",
           {
