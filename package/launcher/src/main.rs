@@ -1,22 +1,87 @@
-use std::{env, path::Path, path::PathBuf};
+use std::process::Command;
+use std::{env, ffi::OsString, fs, path::Path, path::PathBuf};
 
 fn main() {
     // compute base paths
-    let exe_path: PathBuf =  env::current_exe().expect("failed to get executable path");
-    let bin_path = exe_path.parent().expect("failed to get executable parent");
-    let js_path = bin_path.join(Path::new("quarto.js"));
-    let importmap_path = bin_path.join("vendor").join("import_map.json");
+    let mut exe_file: PathBuf = env::current_exe().expect("failed to get executable path");
+    exe_file = fs::canonicalize(exe_file).expect("failed to cananoicalize executable path");
+    let bin_dir = exe_file.parent().expect("failed to get executable parent");
+    let js_file = bin_dir.join(Path::new("quarto.js"));
+    let importmap_file = bin_dir.join("vendor").join("import_map.json");
 
-   
+    // set QUARTO_BIN_PATH
+    std::env::set_var("QUARTO_BIN_PATH", bin_dir);
 
-    println!("exe: {}\nbin: {}\n js: {}\nimp: {}", 
-        exe_path.display(),
-        bin_path.display(),
-        js_path.display(),
-        importmap_path.display()
-    );
+    // compute share path (may be provided externally)
+    let mut share_dir = path_from_env("QUARTO_SHARE_PATH");
+    if share_dir.as_os_str().is_empty() {
+        //
+        // TODO: other known automatic calculations of share path (RStudio, /usr/local/, etc.)
+        //
+        share_dir = bin_dir
+            .parent()
+            .expect("failed to get bin path parent")
+            .join("share");
 
+        std::env::set_var("QUARTO_SHARE_PATH", share_dir.as_path());
+    }
+    
+    // get command line args (skip first which is the program)
+    let args: Vec<OsString> = env::args_os().skip(1).collect();
+    
+    // handle --version
+    if &args[0] == "--version" || &args[0] == "-v" {
+        let version_path = share_dir.join("version");
+        let version = fs::read_to_string(version_path).expect("failed to read version");
+        print!("{}", version);
+        std::process::exit(0);
+    }
 
+    // handle --paths
+    if &args[0] == "--paths" {
+        println!("{}\n{}", bin_dir.display(), share_dir.display());
+        std::process::exit(0);
+    }
 
-   
+    // compute deno and deno dom locations
+    let mut deno_file = path_from_env("QUARTO_DENO");
+    if deno_file.as_os_str().is_empty() {
+        deno_file = bin_dir.join("tools").join("deno");
+    }
+    let mut deno_dom_file: PathBuf = path_from_env("QUARTO_DENO_DOM");
+    if deno_dom_file.as_os_str().is_empty() {
+        let plugin = if env::consts::OS == "macos" {
+            "libplugin.dylib"
+        } else {
+            "libplugin.so"
+        };
+        deno_dom_file = bin_dir.join("tools").join("deno_dom").join(plugin);
+    }
+    std::env::set_var("DENO_DOM_PLUGIN", deno_dom_file.as_os_str());
+
+    let mut child = Command::new(deno_file)
+        .arg("run")
+        .arg("--unstable")
+        .arg("--no-config")
+        .arg("--cached-only")
+        .arg("--allow-read")
+        .arg("--allow-write")
+        .arg("--allow-run")
+        .arg("--allow-env")
+        .arg("--allow-net")
+        .arg("--allow-ffi")
+        .arg("--importmap")
+        .arg(importmap_file)
+        .arg(js_file)
+        .args(args)
+        .spawn()
+        .expect("failed to run deno");
+
+    let ecode = child.wait().expect("failed to wait on deno");
+    std::process::exit(ecode.code().expect("failed to get deno exit code"));
+}
+
+// return a PathBuf for an environment variable using os encoding
+fn path_from_env(key: &str) -> PathBuf {
+    PathBuf::from(env::var_os(key).unwrap_or(OsString::new()))
 }
