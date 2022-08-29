@@ -61,10 +61,12 @@ export type NavigationItemObject = {
 export type NavigationItem = (string | NavigationItemObject);
 
 export type ToolItem = {
+  file?: string;
   href?: string;
   icon?: string;
   menu?: (NavigationItem)[];
   text?: string;
+  url?: string;
 };
 
 export type Comments = (false | {
@@ -72,11 +74,26 @@ export type Comments = (false | {
     "repo-id"?: string;
     "category-id"?: string;
     "reactions-enabled"?: boolean;
-    "input-position"?: ("top" | "bottom");
+    "input-position"?: (
+      | "top"
+      | "bottom"
+    ) /* Place the comment input box above or below the comments. */;
     category?: string;
     loading?: "lazy";
     language?: string;
-    mapping?: (("pathname" | "url" | "title" | "og:title") | string);
+    mapping?: (
+      | ("pathname" | "url" | "title" | "og:title")
+      | string
+    ) /* The mapping between the page and the embedded discussion.
+
+- `pathname`: The discussion title contains the page path
+- `url`: The discussion title contains the page url
+- `title`: The discussion title contains the page title
+- `og:title`: The discussion title contains the `og:title` metadata value
+- any other string or number: Any other strings will be passed through verbatim and a discussion title
+containing that value will be used. Numbers will be treated
+as a discussion number and automatic discussion creation is not supported.
+ */;
     repo: string;
     theme?: (
       | "light"
@@ -88,7 +105,7 @@ export type Comments = (false | {
       | "dark_dimmed"
       | "transparent_dark"
       | "preferred_color_scheme"
-    );
+    ); /* The giscus theme to use when displaying comments. */
   };
   hypothesis?: (boolean | {
     assetRoot?: string;
@@ -103,21 +120,35 @@ export type Comments = (false | {
     externalContainerSelector?: string;
     focus?: {
       user: { displayName?: string; username?: string; userid?: string };
-    };
+    } /* Defines a focused filter set for the available annotations on a page. */;
     openSidebar?: boolean;
     requestConfigFromFrame?: { ancestorLevel?: number; origin?: string };
-    showHighlights?: (boolean | ("always" | "never"));
-    services?: ({
-      apiUrl: string;
-      authority: string;
-      allowLeavingGroups?: boolean;
-      enableShareLinks?: boolean;
-      grantToken: string;
-      groups?: ("$rpc:requestGroups" | (string)[]);
-      icon?: string;
-    })[];
+    showHighlights?: (
+      | boolean
+      | ("always" | "never")
+    ) /* Controls whether the in-document highlights are shown by default (`always` or `never`) */;
+    services?: (
+      {
+        apiUrl: string;
+        authority: string;
+        allowLeavingGroups?: boolean;
+        enableShareLinks?: boolean;
+        grantToken: string;
+        groups?: (
+          | "$rpc:requestGroups"
+          | (string)[]
+        ) /* An array of Group IDs or the literal string `$rpc:requestGroups` */;
+        icon?: string;
+      } /* Alternative annotation services which the client should
+connect to instead of connecting to the public Hypothesis
+service at hypothes.is.
+ */
+    )[];
     sidebarAppUrl?: string;
-    theme?: ("classic" | "clean");
+    theme?: (
+      | "classic"
+      | "clean"
+    ) /* Controls the overall look of the sidebar (`classic` or `clean`) */;
     usernameUrl?: string;
   });
   utterances?: {
@@ -163,44 +194,112 @@ export type BaseWebsite = {
   "repo-url"?: string;
   "repo-subdir"?: string;
   "repo-branch"?: string;
-  "repo-actions"?: MaybeArrayOf<("none" | "edit" | "source" | "issue")>;
+  "repo-actions"?: MaybeArrayOf<
+    (
+      | "none"
+      | "edit"
+      | "source"
+      | "issue"
+    ) /* Links to source repository actions (`none` or one or more of `edit`, `source`, `issue`) */
+  >;
   "reader-mode"?: boolean;
   "google-analytics"?: (string | {
     "tracking-id"?: string;
     "anonymize-ip"?: boolean;
-    storage?: ("cookies" | "none");
-    version?: (3 | 4);
-  });
+    storage?: (
+      | "cookies"
+      | "none"
+    ) /* Storage option for Google Analytics data using on of these two values:
+
+`cookies`: Use cookies to store unique user and session identification (default).
+
+`none`: Do not use cookies to store unique user and session identification.
+
+For more about choosing storage options see [Storage](https://quarto.org/docs/websites/website-tools.html#storage).
+ */;
+    version?: (3 | 4); /* The version number of Google Analytics to use.
+
+- `3`: Use analytics.js
+- `4`: use gtag.
+
+This is automatically detected based upon the `tracking-id`, but you may specify it.
+ */
+  }) /* Enable Google Analytics for this website */;
   "cookie-consent"?: (boolean | {
     "policy-url"?: string;
     "prefs-text"?: string;
-    palette?: ("light" | "dark");
-    style?: ("simple" | "headline" | "interstitial" | "standalone");
-    type?: ("implied" | "express");
-  });
+    palette?: (
+      | "light"
+      | "dark"
+    ) /* Whether to use a dark or light appearance for the consent banner (`light` or `dark`). */;
+    style?: (
+      | "simple"
+      | "headline"
+      | "interstitial"
+      | "standalone"
+    ) /* The style of the consent banner that is displayed:
+
+- `simple` (default): A simple dialog in the lower right corner of the website.
+
+- `headline`: A full width banner across the top of the website.
+
+- `interstitial`: An semi-transparent overlay of the entire website.
+
+- `standalone`: An opaque overlay of the entire website.
+ */;
+    type?: (
+      | "implied"
+      | "express"
+    ); /* The type of consent that should be requested, using one of these two values:
+
+- `implied` (default): This will notify the user that the site uses cookies and permit them to change preferences, but not block cookies unless the user changes their preferences.
+
+- `express`: This will block cookies until the user expressly agrees to allow them (or continue blocking them if the user doesn’t agree).
+ */
+  }) /* Quarto includes the ability to request cookie consent before enabling scripts that set cookies, using [Cookie Consent](https://www.cookieconsent.com/).
+
+The user’s cookie preferences will automatically control Google Analytics (if enabled) and can be used to control custom scripts you add as well. For more information see [Custom Scripts and Cookie Consent](https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent).
+ */;
   "body-header"?: string;
   "body-footer"?: string;
-  "margin-header"?: MaybeArrayOf<string>;
-  "margin-footer"?: MaybeArrayOf<string>;
+  "margin-header"?: MaybeArrayOf<
+    string
+  > /* Markdown to place above margin content (text or file path) */;
+  "margin-footer"?: MaybeArrayOf<
+    string
+  > /* Markdown to place below margin content (text or file path) */;
   "page-navigation"?: boolean;
   "page-footer"?: (string | {
-    border?: (boolean | string);
+    border?: (
+      | boolean
+      | string
+    ) /* Footer border (`true`, `false`, or a border color) */;
     background?: string;
     center?: PageFooterRegion;
     foreground?: string;
     left?: PageFooterRegion;
     right?: PageFooterRegion;
-  });
-  "open-graph"?:
-    (boolean | ({ "site-name"?: string; locale?: string } & SocialMetadata));
+  }) /* Shared page footer */;
+  "open-graph"?: (
+    | boolean
+    | ({ "site-name"?: string; locale?: string } & SocialMetadata)
+  ) /* Publish open graph metadata */;
   "twitter-card"?: (
     | boolean
     | ({
-      "card-style"?: ("summary" | "summary_large_image");
+      "card-style"?: (
+        | "summary"
+        | "summary_large_image"
+      ) /* Card style (`summary` or `summary_large_image`).
+
+If this is not provided, the best style will automatically
+selected based upon other metadata. You can learn more about Twitter Card
+styles [here](https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/abouts-cards).
+ */;
       creator?: string;
       site?: string;
     } & SocialMetadata)
-  );
+  ) /* Publish twitter card metadata */;
   comments?: Comments;
   description?: string;
   favicon?: string;
@@ -208,7 +307,13 @@ export type BaseWebsite = {
   navbar?: (boolean | {
     "logo-alt"?: string;
     "logo-href"?: string;
-    "collapse-below"?: ("sm" | "md" | "lg" | "xl" | "xxl");
+    "collapse-below"?: (
+      | "sm"
+      | "md"
+      | "lg"
+      | "xl"
+      | "xxl"
+    ) /* The responsive breakpoint below which the navbar will collapse into a menu (`sm`, `md`, `lg` (default), `xl`, `xxl`). */;
     background?: (
       | (
         | "primary"
@@ -221,7 +326,7 @@ export type BaseWebsite = {
         | "dark"
       )
       | string
-    );
+    ) /* The navbar's background color (named or hex color). */;
     collapse?: boolean;
     foreground?: (
       | (
@@ -235,14 +340,19 @@ export type BaseWebsite = {
         | "dark"
       )
       | string
-    );
+    ) /* The navbar's foreground color (named or hex color). */;
     logo?: string;
-    left?: (NavigationItem)[];
+    left?:
+      (NavigationItem)[] /* List of items for the left side of the navbar. */;
     pinned?: boolean;
-    right?: (NavigationItem)[];
+    right?:
+      (NavigationItem)[] /* List of items for the right side of the navbar. */;
     search?: boolean;
-    title?: (string | boolean);
-  });
+    title?: (
+      | string
+      | boolean
+    ); /* The navbar title. Uses the project title if none is specified. */
+  }) /* Top navigation options */;
   search?: (boolean | {
     "collapse-after"?: number;
     "copy-button"?: boolean;
@@ -259,17 +369,27 @@ export type BaseWebsite = {
         text?: string;
       };
       params?: SchemaObject;
-    };
-    location?: ("navbar" | "sidebar");
+    } /* Use external Algolia search index */;
+    location?: (
+      | "navbar"
+      | "sidebar"
+    ) /* Location for search widget (`navbar` or `sidebar`) */;
     limit?: number;
-    type?: ("overlay" | "textbox");
-  });
+    type?: (
+      | "overlay"
+      | "textbox"
+    ); /* Type of search UI (`overlay` or `textbox`) */
+  }) /* Provide full text search for website */;
   sidebar?: (
     | boolean
     | MaybeArrayOf<
       {
         "collapse-level"?: number;
-        alignment?: ("left" | "right" | "center");
+        alignment?: (
+          | "left"
+          | "right"
+          | "center"
+        ) /* Alignment of the items within the sidebar (`left`, `right`, or `center`) */;
         background?: (
           | (
             | "primary"
@@ -282,7 +402,7 @@ export type BaseWebsite = {
             | "dark"
           )
           | string
-        );
+        ) /* The sidebar's background color (named or hex color). */;
         border?: boolean;
         contents?: SidebarContents;
         foreground?: (
@@ -297,25 +417,35 @@ export type BaseWebsite = {
             | "dark"
           )
           | string
-        );
-        footer?: MaybeArrayOf<string>;
-        header?: MaybeArrayOf<string>;
+        ) /* The sidebar's foreground color (named or hex color). */;
+        footer?: MaybeArrayOf<
+          string
+        > /* Markdown to place below sidebar content (text or file path) */;
+        header?: MaybeArrayOf<
+          string
+        > /* Markdown to place above sidebar content (text or file path) */;
         id?: string;
         logo?: string;
         pinned?: boolean;
         subtitle?: string;
         search?: boolean;
-        style?: ("docked" | "floating");
-        title?: (string | boolean);
-        tools?: (ToolItem)[];
+        style?: (
+          | "docked"
+          | "floating"
+        ) /* The style of sidebar (`docked` or `floating`). */;
+        title?: (
+          | string
+          | boolean
+        ) /* The sidebar title. Uses the project title if none is specified. */;
+        tools?: (ToolItem)[]; /* List of sidebar tools */
       }
     >
-  );
+  ) /* Side navigation options */;
   title?: string;
 };
 
 export type ChapterItem = (NavigationItem | {
-  chapters?: (NavigationItem)[];
+  chapters?: (NavigationItem)[] /* Path to chapter input file */;
   part: string;
 });
 
@@ -392,47 +522,134 @@ export type FormatLanguage = {
 
 export type WebsiteAbout = {
   "image-width"?: string;
-  "image-shape"?: ("rectangle" | "round" | "rounded");
+  "image-shape"?: (
+    | "rectangle"
+    | "round"
+    | "rounded"
+  ) /* The shape of the image on the about page.
+
+- `rectangle`
+- `round`
+- `rounded`
+ */;
   id?: string;
   image?: string;
   links?: (NavigationItem)[];
-  template?: ("jolla" | "trestles" | "solana" | "marquee" | "broadside");
+  template?: (
+    | "jolla"
+    | "trestles"
+    | "solana"
+    | "marquee"
+    | "broadside"
+  ); /* The template to use to layout this about page. Choose from:
+
+- `jolla`
+- `trestles`
+- `solana`
+- `marquee`
+- `broadside`
+ */
 };
 
 export type WebsiteListing = {
   "max-items"?: number;
   "page-size"?: number;
-  "sort-ui"?: (boolean | (string)[]);
-  "filter-ui"?: (boolean | (string)[]);
+  "sort-ui"?: (
+    | boolean
+    | (string)[]
+  ) /* Shows or hides the sorting control for the listing. To control the
+fields that will be displayed in the sorting control, provide a list
+of field names.
+ */;
+  "filter-ui"?: (
+    | boolean
+    | (string)[]
+  ) /* Shows or hides the filtering control for the listing. To control the
+fields that will be used to filter the listing, provide a list
+of field names. By default all fields of the listing will be used
+when filtering.
+ */;
   "date-format"?: string;
   "max-description-length"?: number;
   "image-placeholder"?: string;
-  "image-align"?: ("left" | "right");
+  "image-align"?: (
+    | "left"
+    | "right"
+  ) /* In `default` type listings, whether to place the image on the right or left side of the post content (`left` or `right`). */;
   "image-height"?: string;
   "grid-columns"?: number;
   "grid-item-border"?: boolean;
-  "grid-item-align"?: ("left" | "right" | "center");
+  "grid-item-align"?: (
+    | "left"
+    | "right"
+    | "center"
+  ) /* In grid type listings, the alignment of the content within the card (`left` (default), `right`, or `center`).
+ */;
   "table-striped"?: boolean;
   "table-hover"?: boolean;
   "field-display-names"?: SchemaObject;
   "field-types"?: SchemaObject;
-  "field-links"?: (string)[];
-  "field-required"?: (string)[];
-  contents?: MaybeArrayOf<(string | WebsiteListingContentsObject)>;
-  categories?: (boolean | ("numbered" | "unnumbered" | "cloud"));
+  "field-links"?:
+    (string)[] /* The list of fields to display as hyperlinks to the source document
+when the listing type is a table. By default, only the `title` or
+`filename` is displayed as a link.
+ */;
+  "field-required"?:
+    (string)[] /* Fields that items in this listing must have populated.
+If a listing is rendered and one more items in this listing
+is missing a required field, an error will occur and the render will.
+ */;
+  contents?: MaybeArrayOf<
+    (string | WebsiteListingContentsObject)
+  > /* The files or path globs of Quarto documents or YAML files that should be included in the listing. */;
+  categories?: (
+    | boolean
+    | ("numbered" | "unnumbered" | "cloud")
+  ) /* Display item categories from this listing in the margin of the page.
+
+  - `numbered`: Category list with number of items
+  - `unnumbered`: Category list
+  - `cloud`: Word cloud style categories
+ */;
   feed?: (boolean | {
     categories?: MaybeArrayOf<string>;
     description?: string;
     items?: number;
     image?: string;
     language?: string;
-    type?: ("full" | "partial");
+    type?: (
+      | "full"
+      | "partial"
+    ) /* Whether to include full or partial content in the feed.
+
+- `full` (default): Include the complete content of the document in the feed.
+- `partial`: Include only the first paragraph of the document in the feed.
+ */;
     title?: string;
-  });
-  fields?: (string)[];
+  }) /* Enables an RSS feed for the listing. */;
+  fields?: (string)[] /* The list of fields to include in this listing.
+ */;
   id?: string;
-  sort?: MaybeArrayOf<string>;
-  type?: ("default" | "table" | "grid" | "custom");
+  sort?: MaybeArrayOf<
+    string
+  > /* Sort items in the listing by these fields. The sort key is made up of a
+field name followed by a direction `asc` or `desc`.
+
+For example:
+`date asc`
+ */;
+  type?: (
+    | "default"
+    | "table"
+    | "grid"
+    | "custom"
+  ) /* The type of listing to create. Choose one of:
+
+- `default`: A blog style list of items
+- `table`: A table of items
+- `grid`: A grid of item cards
+- `custom`: A custom template, provided by the `template` field
+ */;
   template?: string;
 };
 
@@ -606,7 +823,7 @@ export type CslItem = {
     | "thesis"
     | "treaty"
     | "webpage"
-  );
+  ) /* The [type](https://docs.citationstyles.org/en/stable/specification.html#appendix-iii-types) of the item. */;
   url?: string;
   URL?: string;
   version?: CslNumber;
@@ -615,36 +832,65 @@ export type CslItem = {
 
 export type SmartInclude = ({ text: string } | { file: string });
 
-export type Semver = string;
+export type Semver =
+  string; /* Version number according to Semantic Versioning */
 
 export type ProjectConfig = {
-  "execute-dir"?: ("file" | "project");
+  "execute-dir"?:
+    ("file" | "project") /* Control the working directory for computations.
+
+- `file`: Use the directory of the file that is currently executing.
+- `project`: Use the root directory of the project.
+ */;
   "output-dir"?: string;
   "lib-dir"?: string;
   "pre-render"?: MaybeArrayOf<string>;
   "post-render"?: MaybeArrayOf<string>;
   preview?: ProjectPreview;
-  render?: (string)[];
+  render?: (string)[] /* Files to render (defaults to all files) */;
   resources?: MaybeArrayOf<string>;
   title?: string;
-  type?: ("default" | "website" | "book" | "site");
+  type?: (
+    | "default"
+    | "website"
+    | "book"
+    | "site"
+  ); /* Project type (`default`, `website`, or `book`) */
 };
 
 export type BookProject = ({
   "output-file"?: string;
   "cover-image"?: string;
   "cover-image-alt"?: string;
-  author?: MaybeArrayOf<(string | SchemaObject)>;
+  author?: MaybeArrayOf<
+    (string | SchemaObject) /* Author or authors of the book */
+  >;
   abstract?: string;
   appendices?: ChapterList;
   chapters?: ChapterList;
   date?: string;
   description?: string;
-  downloads?: MaybeArrayOf<("pdf" | "epub" | "docx")>;
+  downloads?: MaybeArrayOf<
+    (
+      | "pdf"
+      | "epub"
+      | "docx"
+    ) /* Download buttons for other formats to include on navbar or sidebar
+(one or more of `pdf`, `epub`, and `docx`)
+ */
+  >;
   doi?: string;
   references?: string;
   subtitle?: string;
-  sharing?: MaybeArrayOf<("twitter" | "facebook" | "linkedin")>;
+  sharing?: MaybeArrayOf<
+    (
+      | "twitter"
+      | "facebook"
+      | "linkedin"
+    ) /* Sharing buttons to include on navbar or sidebar
+(one or more of `twitter`, `facebook`, `linkedin`)
+ */
+  >;
   title?: string;
   tools?: (NavigationItem)[];
 } & BaseWebsite);

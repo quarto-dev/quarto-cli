@@ -8238,57 +8238,65 @@ try {
             ]
           },
           {
+            id: "navigation-item-object",
+            object: {
+              properties: {
+                id: {
+                  schema: "string",
+                  hidden: true
+                },
+                href: {
+                  string: {
+                    description: "Link to file contained with the project or external URL\n"
+                  }
+                },
+                url: {
+                  hidden: true,
+                  string: {
+                    description: "Alias for href\n"
+                  }
+                },
+                file: {
+                  hidden: true,
+                  string: {
+                    description: "Alias for href\n"
+                  }
+                },
+                text: {
+                  string: {
+                    description: "Text to display for navigation item (defaults to the\ndocument title if not provided)\n"
+                  }
+                },
+                icon: {
+                  string: {
+                    description: {
+                      short: "Name of bootstrap icon (e.g. `github`, `twitter`, `share`)",
+                      long: "Name of bootstrap icon (e.g. `github`, `twitter`, `share`)\nSee <https://icons.getbootstrap.com/> for a list of available icons\n"
+                    }
+                  }
+                },
+                "aria-label": {
+                  string: {
+                    description: "Accessible label for the navigation item."
+                  }
+                },
+                menu: {
+                  arrayOf: {
+                    schema: {
+                      ref: "navigation-item"
+                    }
+                  }
+                }
+              },
+              closed: true
+            }
+          },
+          {
             id: "navigation-item",
             anyOf: [
               "path",
               {
-                object: {
-                  properties: {
-                    href: {
-                      string: {
-                        description: "Link to file contained with the project or external URL\n"
-                      }
-                    },
-                    url: {
-                      hidden: true,
-                      string: {
-                        description: "Alias for href\n"
-                      }
-                    },
-                    file: {
-                      hidden: true,
-                      string: {
-                        description: "Alias for href\n"
-                      }
-                    },
-                    text: {
-                      string: {
-                        description: "Text to display for navigation item (defaults to the\ndocument title if not provided)\n"
-                      }
-                    },
-                    icon: {
-                      string: {
-                        description: {
-                          short: "Name of bootstrap icon (e.g. `github`, `twitter`, `share`)",
-                          long: "Name of bootstrap icon (e.g. `github`, `twitter`, `share`)\nSee <https://icons.getbootstrap.com/> for a list of available icons\n"
-                        }
-                      }
-                    },
-                    "aria-label": {
-                      string: {
-                        description: "Accessible label for the navigation item."
-                      }
-                    },
-                    menu: {
-                      arrayOf: {
-                        schema: {
-                          ref: "navigation-item"
-                        }
-                      }
-                    }
-                  },
-                  closed: true
-                }
+                ref: "navigation-item-object"
               }
             ]
           },
@@ -8319,6 +8327,18 @@ try {
                     schema: {
                       ref: "navigation-item"
                     }
+                  }
+                },
+                url: {
+                  hidden: true,
+                  string: {
+                    description: "Alias for href\n"
+                  }
+                },
+                file: {
+                  hidden: true,
+                  string: {
+                    description: "Alias for href\n"
                   }
                 }
               },
@@ -17196,6 +17216,8 @@ try {
           },
           "Link to file contained with the project or external URL",
           "Text to display for tool item",
+          "Alias for href",
+          "Alias for href",
           "The Github repo that will be used to store comments.",
           "The label that will be assigned to issues created by Utterances.",
           {

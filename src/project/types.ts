@@ -17,11 +17,13 @@ import {
   NavigationItemObject,
   ProjectConfig as ProjectConfig_Project,
   ProjectPreview,
+  ToolItem as SidebarTool,
 } from "../resources/types/schema-types.ts";
 export {
   type NavigationItem as NavItem,
   type NavigationItemObject,
   type ProjectPreview,
+  type ToolItem as SidebarTool,
 } from "../resources/types/schema-types.ts";
 
 export const kProjectType = "type";
@@ -183,7 +185,7 @@ export type SidebarItem = NavigationItemObject & {
   active?: boolean;
 };
 
-export interface SidebarTool {
+/*export interface SidebarTool {
   // label/contents
   icon?: string;
   text?: string;
@@ -193,4 +195,4 @@ export interface SidebarTool {
   href?: string;
   file?: string;
   url?: string;
-}
+}*/

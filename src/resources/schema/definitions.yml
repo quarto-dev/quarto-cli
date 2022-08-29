@@ -122,6 +122,16 @@
         arrayOf:
           schema:
             ref: navigation-item
+      url:
+        hidden: true
+        string:
+          description: |
+            Alias for href
+      file:
+        hidden: true
+        string:
+          description: |
+            Alias for href
     closed: true
 
 - id: comments

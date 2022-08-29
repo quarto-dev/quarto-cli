@@ -105,32 +105,44 @@ export function schemaToType(schema: any): string {
     throw new Error(`Unimplemented: ${schema}`);
   }
 
+  const document = (schemaStr: string) => {
+    if (typeof schema.description === "string") {
+      return `${schemaStr} /* ${schema.description} */`;
+    } else if (typeof schema.description === "object") {
+      return `${schemaStr} /* ${schema.description.long} */`;
+    } else {
+      return schemaStr;
+    }
+  };
+
   if (typeof schema === "object") {
     if (schema.schema) return schemaToType(schema.schema);
     if (schema.string) {
-      return "string";
+      return document("string");
     }
     if (schema.number) {
-      return "number";
+      return document("number");
     }
     if (schema.boolean) {
-      return "boolean";
+      return document("boolean");
     }
     if (schema.path) {
-      return "string";
+      return document("string");
     }
     if (schema.arrayOf) {
-      return `(${schemaToType(schema.arrayOf)})[]`;
+      return document(`(${schemaToType(schema.arrayOf)})[]`);
     }
     if (schema.maybeArrayOf) {
       const t = schemaToType(schema.maybeArrayOf);
-      return `MaybeArrayOf<${t}>`;
+      return document(`MaybeArrayOf<${t}>`);
     }
     if (schema.record) {
-      return "{" +
-        Object.entries(schema.record).map(([key, value]) => {
-          return `${key}: ${schemaToType(value)}`;
-        }).join("; ") + "}";
+      return document(
+        "{" +
+          Object.entries(schema.record).map(([key, value]) => {
+            return `${key}: ${schemaToType(value)}`;
+          }).join("; ") + "}",
+      );
     }
     if (schema.enum) {
       // deno-lint-ignore no-explicit-any
@@ -138,8 +150,10 @@ export function schemaToType(schema: any): string {
         if (v.length === 1) {
           return JSON.stringify(v[0]);
         }
-        return "(" + v.map((x: unknown) => JSON.stringify(x)).join(" | ") +
-          ")";
+        return document(
+          "(" + v.map((x: unknown) => JSON.stringify(x)).join(" | ") +
+            ")",
+        );
       };
       if (Array.isArray(schema.enum.values)) {
         return doIt(schema.enum.values);
@@ -156,13 +170,13 @@ export function schemaToType(schema: any): string {
       if (!Array.isArray(schema.allOf)) {
         throw new Error(`Unimplemented: ${JSON.stringify(schema)}`);
       }
-      return "(" + schema.allOf.map(schemaToType).join(" & ") + ")";
+      return document("(" + schema.allOf.map(schemaToType).join(" & ") + ")");
     }
     if (schema.anyOf) {
       if (!Array.isArray(schema.anyOf)) {
         throw new Error(`Unimplemented: ${JSON.stringify(schema)}`);
       }
-      return "(" + schema.anyOf.map(schemaToType).join(" | ") + ")";
+      return document("(" + schema.anyOf.map(schemaToType).join(" | ") + ")");
     }
     if (schema.object) {
       const mainType = (schema.object.properties === undefined)
@@ -180,12 +194,14 @@ export function schemaToType(schema: any): string {
           }).sort(([k1, _v1], [k2, _v2]) => k1.localeCompare(k2)).join("; ") +
           "}");
       if (schema.object?.super?.resolveRef) {
-        return "(" + mainType + " & " +
-          capitalize(
-            toCapitalizationCase(schema.object?.super?.resolveRef) + ")",
-          );
+        return document(
+          "(" + mainType + " & " +
+            capitalize(
+              toCapitalizationCase(schema.object?.super?.resolveRef),
+            ) + ")",
+        );
       } else {
-        return mainType;
+        return document(mainType);
       }
     }
   }
