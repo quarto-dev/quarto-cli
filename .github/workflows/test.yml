@@ -24,4 +24,4 @@ jobs:
           toolchain: 1.63.0
           override: true
           components: rustfmt, clippy
-      - run: cargo build --release --all-features --manifest-path package/launcher/cargo.toml
+      - run: cargo build --release --all-features --manifest-path package/launcher/Cargo.toml
