@@ -12,3 +12,4 @@
 - Don't discover resources within a site or book output directory
 - Fix error when restoring preserved HTML in output files that use `output-file`
 - Don't call Deno.realPathSync on Windows (avoid problems w/ UNC paths)
+- Don't include Unicode literals on Windows directly (#2198), thanks @yihui
