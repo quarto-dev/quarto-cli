@@ -1,6 +1,13 @@
 use std::process::Command;
 use std::{env, ffi::OsString, fs, path::Path, path::PathBuf};
 
+// TODO: running quarto build-js (esbuild) doesn't work!
+// TODO: other known automatic calculations of share path (RStudio, /usr/local/, etc.)
+// TODO: improved error checking / handling
+// TODO: check quarto.cmd for special windows behavior
+// TODO: encoding of --paths on windows
+// TODO: deno.exe on windows?
+
 fn main() {
     // compute base paths
     let mut exe_file: PathBuf = env::current_exe().expect("failed to get executable path");

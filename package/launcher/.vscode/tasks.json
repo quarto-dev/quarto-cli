@@ -6,7 +6,7 @@
     {
       "label": "quarto run",
       "type": "shell",
-      "command": "cargo build && cp target/debug/quarto $HOME/Applications/quarto/bin/quarto && $HOME/Applications/quarto/bin/quarto --version",
+      "command": "cargo build && cp target/debug/quarto $HOME/Applications/quarto/bin/quarto && $HOME/Applications/quarto/bin/quarto --paths",
       "problemMatcher": [],
       "group": {
         "kind": "build",
