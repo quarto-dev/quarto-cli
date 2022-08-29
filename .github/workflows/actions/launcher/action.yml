@@ -14,7 +14,6 @@ runs:
         override: true
         components: rustfmt, clippy
     - uses: actions-rs/cargo@v1
-      working-directory: package/launcher
       with:
         command: build
         args: --release --all-features
