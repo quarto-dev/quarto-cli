@@ -12,6 +12,12 @@ import { isRStudio } from "../core/platform.ts";
 import { findOpenPort, kLocalhost, waitForPort } from "../core/port.ts";
 import { TempContext } from "../core/temp-types.ts";
 
+import {
+  ProjectConfig as ProjectConfig_Project,
+  ProjectPreview,
+} from "../resources/types/schema-types.ts";
+export { type ProjectPreview } from "../resources/types/schema-types.ts";
+
 export const kProjectType = "type";
 export const kProjectRender = "render";
 export const kProjectPreRender = "pre-render";
@@ -45,27 +51,8 @@ export interface ProjectFiles {
 }
 
 export interface ProjectConfig {
-  project: {
-    [kProjectType]?: string;
-    [kProjectRender]?: string[];
-    [kProjectPreRender]?: string[];
-    [kProjectPostRender]?: string[];
-    [kProjectExecuteDir]?: "file" | "project";
-    [kProjectOutputDir]?: string;
-    [kProjectLibDir]?: string;
-    [kProjectResources]?: string[];
-    preview?: ProjectPreview;
-  };
+  project: ProjectConfig_Project;
   [key: string]: unknown;
-}
-
-export interface ProjectPreview {
-  port?: number;
-  host?: string;
-  browser?: boolean;
-  [kProjectWatchInputs]?: boolean;
-  navigate?: boolean;
-  timeout?: number;
 }
 
 export async function resolvePreviewOptions(

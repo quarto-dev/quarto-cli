@@ -1,10 +1,12 @@
 /*
-* arraty.ts
+* array.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2022 by RStudio, PBC
 *
 */
 
-export function asArray<T>(x?: T | Array<T>): Array<T> {
+import { MaybeArrayOf } from "../resources/types/schema-types.ts";
+
+export function asArray<T>(x?: MaybeArrayOf<T>): Array<T> {
   return x ? Array.isArray(x) ? x : [x] : [];
 }
