@@ -123,20 +123,29 @@ export function findMissingHyphenationFiles(logText: string) {
 
 // Parse a log file to find latex errors
 const kErrorRegex = /^\!\s([\s\S]+)?Here is how much/m;
+const kEmptyRegex = /(No pages of output)\./;
+
 export function findLatexError(
   logText: string,
   stderr?: string,
 ): string | undefined {
-  const match = logText.match(kErrorRegex);
-  if (match) {
-    const hint = suggestHint(logText, stderr);
-    if (hint) {
-      return `${match[1]}\n${hint}`;
-    } else {
-      return match[1];
-    }
+  const emptyMatch = logText.match(kEmptyRegex);
+  if (emptyMatch) {
+    return `${
+      emptyMatch[1]
+    } - the document appears to have produced no output.`;
   } else {
-    return undefined;
+    const match = logText.match(kErrorRegex);
+    if (match) {
+      const hint = suggestHint(logText, stderr);
+      if (hint) {
+        return `${match[1]}\n${hint}`;
+      } else {
+        return match[1];
+      }
+    } else {
+      return undefined;
+    }
   }
 }
 
