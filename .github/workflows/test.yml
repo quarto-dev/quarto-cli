@@ -17,7 +17,8 @@ jobs:
           toolchain: 1.63.0
           override: true
           components: rustfmt, clippy    
-      - run: | 
+      - name: Cargo Build & Copy
+        run: | 
           cargo build --release --all-features --manifest-path package/launcher/Cargo.toml
           mkdir -p package/dist/bin
           cp package/launcher/target/release/quarto.exe package/dist/bin/quarto.exe
@@ -42,8 +43,9 @@ jobs:
           toolchain: 1.63.0
           override: true
           components: rustfmt, clippy    
-      - run: | 
+      - name: Cargo Build & Copy
+        run: | 
           cargo build --release --all-features --manifest-path package/launcher/Cargo.toml
           mkdir -p package/dist/bin
           cp package/launcher/target/release/quarto package/dist/bin/quarto
-          ls package/dist/bin/quarto
+          ls package/dist/bin
