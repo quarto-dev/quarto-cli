@@ -245,6 +245,28 @@ export type PublishRecord = {
   url?: string; /* Published URL for site */
 };
 
+export type TwitterCardConfig = ({
+  "card-style"?: (
+    | "summary"
+    | "summary_large_image"
+  ) /* Card style (`summary` or `summary_large_image`).
+
+If this is not provided, the best style will automatically
+selected based upon other metadata. You can learn more about Twitter Card
+styles [here](https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/abouts-cards). */;
+  creator?:
+    string /* `@username` of the content creator (must be a quoted string) */;
+  site?: string; /* `@username` of the website (must be a quoted string) */
+} & SocialMetadata);
+
+export type OpenGraphConfig = ({
+  "site-name"?:
+    string /* Name that should be displayed for the overall site. If not explicitly
+provided in the `open-graph` metadata, Quarto will use the website or
+book `title` by default. */;
+  locale?: string; /* Locale of open graph metadata */
+} & SocialMetadata);
+
 export type PageFooter = {
   border?:
     (boolean | string) /* Footer border (`true`, `false`, or a border color) */;
@@ -337,32 +359,9 @@ The user’s cookie preferences will automatically control Google Analytics (if 
   "page-navigation"?:
     boolean /* Provide next and previous article links in footer */;
   "page-footer"?: (string | PageFooter) /* Shared page footer */;
-  "open-graph"?: (
-    | boolean
-    | ({
-      "site-name"?:
-        string /* Name that should be displayed for the overall site. If not explicitly
-provided in the `open-graph` metadata, Quarto will use the website or
-book `title` by default. */;
-      locale?: string; /* Locale of open graph metadata */
-    } & SocialMetadata)
-  ) /* Publish open graph metadata */;
-  "twitter-card"?: (
-    | boolean
-    | ({
-      "card-style"?: (
-        | "summary"
-        | "summary_large_image"
-      ) /* Card style (`summary` or `summary_large_image`).
-
-If this is not provided, the best style will automatically
-selected based upon other metadata. You can learn more about Twitter Card
-styles [here](https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/abouts-cards). */;
-      creator?:
-        string /* `@username` of the content creator (must be a quoted string) */;
-      site?: string; /* `@username` of the website (must be a quoted string) */
-    } & SocialMetadata)
-  ) /* Publish twitter card metadata */;
+  "open-graph"?: (boolean | OpenGraphConfig) /* Publish open graph metadata */;
+  "twitter-card"?:
+    (boolean | TwitterCardConfig) /* Publish twitter card metadata */;
   comments?: Comments;
   description?: string /* Website description */;
   favicon?: string /* The path to the favicon for this website */;
