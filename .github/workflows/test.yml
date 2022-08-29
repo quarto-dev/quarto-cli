@@ -3,16 +3,9 @@ name: Test Placeholder
 on:
   workflow_dispatch:
 jobs:
-  build-launcher:
-    runs-on: ${{ matrix.config.os }}
-    name: Build ${{ matrix.config.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        config:
-          - { os: windows-latest }
-          - { os: macOS-latest }
-          - { os: ubuntu-latest }
+  build-launcher-win:
+    name: Build windows-latest
+    runs-on: windows-latest
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v2
@@ -23,21 +16,15 @@ jobs:
         with:
           toolchain: 1.63.0
           override: true
-          components: rustfmt, clippy
-      - run: cargo build --release --all-features --manifest-path package/launcher/Cargo.toml
-  copy-launcher-win:
-    needs: build-launcher
-    name: Copy windows-latest
-    runs-on: windows-latest
-    steps:
-       - run: |
-           mkdir -p package/dist/bin
-           cp package/launcher/target/release/quarto.exe package/dist/bin/quarto.exe
-           ls package/dist/bin/quarto
-  copy-launcher:
-    needs: build-launcher
+          components: rustfmt, clippy    
+      - run: | 
+          cargo build --release --all-features --manifest-path package/launcher/Cargo.toml
+          mkdir -p package/dist/bin
+          cp package/launcher/target/release/quarto.exe package/dist/bin/quarto.exe
+          ls package/dist/bin/quarto
+  build-launcher:
     runs-on: ${{ matrix.config.os }}
-    name: Copy ${{ matrix.config.os }}
+    name: Build ${{ matrix.config.os }}
     strategy:
       fail-fast: false
       matrix:
@@ -45,7 +32,18 @@ jobs:
           - { os: macOS-latest }
           - { os: ubuntu-latest }  
     steps:
-       - run: |
-           mkdir -p package/dist/bin
-           cp package/launcher/target/release/quarto package/dist/bin/quarto
-           ls package/dist/bin/quarto
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+        with:
+          # checkout full tree
+          fetch-depth: 0
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: 1.63.0
+          override: true
+          components: rustfmt, clippy    
+      - run: | 
+          cargo build --release --all-features --manifest-path package/launcher/Cargo.toml
+          mkdir -p package/dist/bin
+          cp package/launcher/target/release/quarto package/dist/bin/quarto
+          ls package/dist/bin/quarto
