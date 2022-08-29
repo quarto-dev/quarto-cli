@@ -26,6 +26,7 @@ jobs:
           components: rustfmt, clippy
       - run: cargo build --release --all-features --manifest-path package/launcher/Cargo.toml
   copy-launcher-win:
+    needs: build-launcher
     name: Copy windows-latest
     runs-on: windows-latest
     steps:
@@ -34,6 +35,7 @@ jobs:
            cp package/launcher/target/release/quarto.exe package/dist/bin/quarto.exe
            ls package/dist/bin/quarto
   copy-launcher:
+    needs: build-launcher
     runs-on: ${{ matrix.config.os }}
     name: Copy ${{ matrix.config.os }}
     strategy:
