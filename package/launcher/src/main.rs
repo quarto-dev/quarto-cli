@@ -1,11 +1,10 @@
+
 use std::process::Command;
 use std::{env, ffi::OsString, fs, path::Path, path::PathBuf};
 
-// TODO: running quarto build-js (esbuild) doesn't work!
 // TODO: other known automatic calculations of share path (RStudio, /usr/local/, etc.)
-// TODO: improved error checking / handling
-// TODO: check quarto.cmd for special windows behavior
-// TODO: encoding of --paths on windows
+
+// TODO: check encoding of --paths on windows
 // TODO: deno.exe on windows?
 
 fn main() {
@@ -50,22 +49,22 @@ fn main() {
         std::process::exit(0);
     }
 
-    // compute deno and deno dom locations
+    // compute deno and deno dom locations (allow them to be defined externally)
     let mut deno_file = path_from_env("QUARTO_DENO");
     if deno_file.as_os_str().is_empty() {
         deno_file = bin_dir.join("tools").join("deno");
     }
     let mut deno_dom_file: PathBuf = path_from_env("QUARTO_DENO_DOM");
     if deno_dom_file.as_os_str().is_empty() {
-        let plugin = if env::consts::OS == "macos" {
-            "libplugin.dylib"
-        } else {
-            "libplugin.so"
-        };
-        deno_dom_file = bin_dir.join("tools").join("deno_dom").join(plugin);
+        deno_dom_file = bin_dir.join("tools").join("deno_dom").join(DENO_DOM_LIB);
     }
     std::env::set_var("DENO_DOM_PLUGIN", deno_dom_file.as_os_str());
 
+    // windows-specific env vars
+    #[cfg(target_os = "windows")]
+    std::env::set_var("NO_COLOR", std::ffi::OsStr::new("TRUE"));
+
+    // run deno
     let mut child = Command::new(deno_file)
         .arg("run")
         .arg("--unstable")
@@ -84,11 +83,24 @@ fn main() {
         .spawn()
         .expect("failed to run deno");
 
+    // forward exit status
     let ecode = child.wait().expect("failed to wait on deno");
     std::process::exit(ecode.code().expect("failed to get deno exit code"));
 }
 
 // return a PathBuf for an environment variable using os encoding
+// (return empty string if the variable is not found)
 fn path_from_env(key: &str) -> PathBuf {
     PathBuf::from(env::var_os(key).unwrap_or(OsString::new()))
 }
+
+// platform-specific constants
+
+#[cfg(target_os = "windows")]
+const DENO_DOM_LIB: &str = "plugin.dll";
+
+#[cfg(target_os = "macos")]
+const DENO_DOM_LIB: &str = "libplugin.dylib";
+
+#[cfg(target_os = "linux")]
+const DENO_DOM_LIB: &str =  "libplugin.so";
