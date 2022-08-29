@@ -1,9 +1,6 @@
 use std::process::Command;
 use std::{env, ffi::OsString, fs, path::Path, path::PathBuf};
 
-// TODO: check encoding of --paths on windows
-// TODO: deno.exe on windows?
-
 fn main() {
     // compute executable path (resolving symlinks)
     let mut exe_file: PathBuf = env::current_exe().expect("failed to get exe path");
