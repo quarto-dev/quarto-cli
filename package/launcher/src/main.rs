@@ -5,19 +5,23 @@ use std::{env, ffi::OsString, fs, path::Path, path::PathBuf};
 // TODO: deno.exe on windows?
 
 fn main() {
-    // compute base paths
-    let mut exe_file: PathBuf = env::current_exe().expect("failed to get executable path");
-    exe_file = fs::canonicalize(exe_file).expect("failed to cananoicalize executable path");
-    let bin_dir = exe_file.parent().expect("failed to get executable parent");
-    let js_file = bin_dir.join(Path::new("quarto.js"));
-    let importmap_file = bin_dir.join("vendor").join("import_map.json");
-
-    // compute share path (may be provided externally or may be computed
-    // automatically based on some known bin_dir installation locations
+    // compute executable path (resolving symlinks)
+    let mut exe_file: PathBuf = env::current_exe().expect("failed to get exe path");
+    let exe_metadata = fs::symlink_metadata(exe_file.as_path()).expect("failed to get symlink metadata for exe path");
+    if exe_metadata.is_symlink() {
+        exe_file = fs::read_link(exe_file.as_path()).expect("failed to cananoicalize executable path");
+    }
+   
+    // compute bin_dir and share_dir (share_dir may be provided externally)
+    let bin_dir = exe_file.parent().expect("failed to get executable parent").to_path_buf();
     let mut share_dir = path_from_env("QUARTO_SHARE_PATH");
     if share_dir.as_os_str().is_empty() {
-        share_dir = share_dir_from_bin_dir(bin_dir);
+        share_dir = share_dir_from_bin_dir(&bin_dir);
     }
+
+    // some other file paths
+    let js_file = bin_dir.join(Path::new("quarto.js"));
+    let importmap_file = bin_dir.join("vendor").join("import_map.json");
 
     // get command line args (skip first which is the program)
     let args: Vec<OsString> = env::args_os().skip(1).collect();
@@ -85,7 +89,8 @@ fn path_from_env(key: &str) -> PathBuf {
     PathBuf::from(env::var_os(key).unwrap_or(OsString::new()))
 }
 
-fn share_dir_from_bin_dir(bin_dir: &Path) -> PathBuf {
+
+fn share_dir_from_bin_dir(bin_dir: &PathBuf) -> PathBuf {
     // if quarto is bundled into an `.app` file (e.g. RStudio) it will be
     // looking for the share directory over in the resources folder.
     if bin_dir.ends_with("/Contents/MacOS/quarto/bin") {
