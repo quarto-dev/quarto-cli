@@ -22,6 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{steps.config.outputs.version}}.${{ steps.config.outputs.build_number}}
+      version_base: ${{steps.config.outputs.version}}
       tag_name: v${{steps.config.outputs.version}}.${{ steps.config.outputs.build_number }}
       release: v${{steps.config.outputs.version}}.${{ steps.config.outputs.build_number }}
       changes: ${{ steps.config.outputs.changes }}
@@ -55,7 +56,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: News
-          path: ./news/changelog-1.1.md
+          path: ./news/changelog-${{steps.config.outputs.version}}.md
 
   make-source-tarball:
     runs-on: ubuntu-latest
@@ -318,7 +319,7 @@ jobs:
           release_name: ${{needs.configure.outputs.release}}
           body: |
             ${{ needs.configure.outputs.changes }}
-          draft: true
+          draft: ${{ github.event.inputs.draft }}
           prerelease: ${{ github.event.inputs.pre-release }}
 
       - name: Attach Source Tarball
@@ -405,7 +406,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./News/changelog-1.1.md
+          asset_path: ./News/changelog-${{needs.configure.outputs.version_base}}.md
           asset_name: changelog.md
           asset_content_type: text/markdown      
 

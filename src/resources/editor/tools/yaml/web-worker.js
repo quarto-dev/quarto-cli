@@ -8309,6 +8309,11 @@ try {
                     description: "Link to file contained with the project or external URL\n"
                   }
                 },
+                text: {
+                  string: {
+                    description: "Text to display for tool item\n"
+                  }
+                },
                 menu: {
                   arrayOf: {
                     schema: {
@@ -8441,6 +8446,12 @@ try {
                             boolean: {
                               description: "Display reactions for the discussion's main post before the comments."
                             }
+                          },
+                          loading: {
+                            enum: [
+                              "lazy"
+                            ],
+                            description: "Specify `loading: lazy` to defer loading comments until the user scrolls near the comments container."
                           },
                           "input-position": {
                             enum: [
@@ -8899,6 +8910,11 @@ try {
                       short: "Links to source repository actions",
                       long: "Links to source repository actions (`none` or one or more of `edit`, `source`, `issue`)"
                     }
+                  }
+                },
+                "reader-mode": {
+                  boolean: {
+                    description: "Displays a 'reader-mode' tool which allows users to hide the sidebar and table of contents when viewing a page.\n"
                   }
                 },
                 "google-analytics": {
@@ -16382,6 +16398,18 @@ try {
                     schema: {
                       ref: "project-preview"
                     }
+                  },
+                  "pre-render": {
+                    description: "Scripts to run as a pre-render step",
+                    schema: {
+                      maybeArrayOf: "string"
+                    }
+                  },
+                  "post-render": {
+                    description: "Scripts to run as a post-render step",
+                    schema: {
+                      maybeArrayOf: "string"
+                    }
                   }
                 }
               }
@@ -16402,7 +16430,6 @@ try {
                 super: {
                   resolveRef: "base-website"
                 },
-                closed: true,
                 properties: {
                   title: {
                     string: {
@@ -16498,6 +16525,16 @@ try {
                         ref: "navigation-item"
                       },
                       description: "Custom tools for navbar or sidebar"
+                    }
+                  },
+                  doi: {
+                    string: {
+                      tags: {
+                        formats: [
+                          "$html-doc"
+                        ]
+                      },
+                      description: "The Digital Object Identifier for this book."
                     }
                   }
                 }
@@ -17189,6 +17226,7 @@ try {
             long: "The mapping between the page and the embedded discussion."
           },
           "Display reactions for the discussion\u2019s main post before the\ncomments.",
+          "Loading of the comments will be deferred until the user scrolls near\nthe comments container.",
           "Place the comment input box above or below the comments.",
           "The giscus theme to use when displaying comments.",
           "The language that should be used when displaying the commenting\ninterface.",
@@ -17263,6 +17301,7 @@ try {
             short: "Links to source repository actions",
             long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
           },
+          "Displays a \u2018reader-mode\u2019 tool which allows users to hide the sidebar\nand table of contents when viewing a page.",
           "Enable Google Analytics for this website",
           "The Google tracking Id or measurement Id of this website.",
           {
@@ -18768,6 +18807,8 @@ try {
           "Additional file resources to be copied to output directory",
           "Additional file resources to be copied to output directory",
           "Options for <code>quarto preview</code>",
+          "Scripts to run as a pre-render step",
+          "Scripts to run as a post-render step",
           "Website configuration.",
           "Book configuration.",
           "Book title",
@@ -18786,6 +18827,7 @@ try {
             short: "Links to source repository actions",
             long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
           },
+          "Displays a \u2018reader-mode\u2019 tool which allows users to hide the sidebar\nand table of contents when viewing a page.",
           "Enable Google Analytics for this website",
           "The Google tracking Id or measurement Id of this website.",
           {
@@ -18959,6 +19001,7 @@ try {
           "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
           "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
           "Custom tools for navbar or sidebar",
+          "The Digital Object Identifier for this book.",
           "internal-schema-hack",
           "Project configuration.",
           "Project type (<code>default</code>, <code>website</code>, or\n<code>book</code>)",
@@ -18972,6 +19015,8 @@ try {
           "Additional file resources to be copied to output directory",
           "Additional file resources to be copied to output directory",
           "Options for <code>quarto preview</code>",
+          "Scripts to run as a pre-render step",
+          "Scripts to run as a post-render step",
           "Website configuration.",
           "Book configuration.",
           "Book title",
@@ -18990,6 +19035,7 @@ try {
             short: "Links to source repository actions",
             long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
           },
+          "Displays a \u2018reader-mode\u2019 tool which allows users to hide the sidebar\nand table of contents when viewing a page.",
           "Enable Google Analytics for this website",
           "The Google tracking Id or measurement Id of this website.",
           {
@@ -19163,6 +19209,7 @@ try {
           "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
           "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
           "Custom tools for navbar or sidebar",
+          "The Digital Object Identifier for this book.",
           "internal-schema-hack"
         ],
         "schema/external-schemas.yml": [

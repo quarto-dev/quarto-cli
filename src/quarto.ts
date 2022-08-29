@@ -5,6 +5,8 @@
 *
 */
 
+import "./core/deno/monkey-patch.ts";
+
 import {
   Command,
   CompletionsCommand,

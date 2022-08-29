@@ -65,6 +65,11 @@ IF EXIST "!QUARTO_TS_PATH!" (
 		GOTO end
 	)
 
+	IF "%1"=="--version" (
+		TYPE "!QUARTO_SHARE_PATH!\version"
+		GOTO end
+	)
+
 	SET QUARTO_DENO_OPTIONS=--no-check
 	SET QUARTO_ACTION=run
 	SET "QUARTO_TARGET=%SCRIPT_PATH%\quarto.js"
@@ -78,10 +83,7 @@ IF "%1"=="--paths" (
 	GOTO end
 )
 
-echo %PSModulePath% | findstr %USERPROFILE% >NUL
-IF %ERRORLEVEL% EQU 0 (
-	SET NO_COLOR=TRUE
-)
+SET NO_COLOR=TRUE
 
 set "DENO_DOM_PLUGIN=!QUARTO_BIN_PATH!\tools\deno_dom\plugin.dll"
 IF DEFINED QUARTO_DENO_DOM (
