@@ -11,7 +11,7 @@ if [ -z "$QUARTO_DENO" ]; then
   export QUARTO_DENO=$SCRIPT_PATH/../dist/bin/tools/deno
 fi
 
-export RUST_BACKTRACE=1
+export RUST_BACKTRACE=full
 
 # TODO: Consider generating a source map or something to get a good stack
 # Create the Deno bundle
