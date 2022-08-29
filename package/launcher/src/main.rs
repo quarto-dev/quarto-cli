@@ -99,7 +99,7 @@ fn path_from_env(key: &str) -> PathBuf {
 fn share_dir_from_bin_dir(bin_dir: &PathBuf) -> PathBuf {
     // if quarto is bundled into an `.app` file (e.g. RStudio) it will be
     // looking for the share directory over in the resources folder.
-    if bin_dir.ends_with("/Contents/MacOS/quarto/bin") {
+    if bin_dir.ends_with("Contents/MacOS/quarto/bin") {
         bin_dir
             .parent()
             .expect("failed to get bin_dir parent")
@@ -112,7 +112,7 @@ fn share_dir_from_bin_dir(bin_dir: &PathBuf) -> PathBuf {
             .join("share")
     // if using standard linux filesystem local bin folder then
     // look for 'share' in the right place
-    } else if bin_dir.ends_with("/usr/local/bin/quarto") {
+    } else if bin_dir.ends_with("usr/local/bin/quarto") {
         bin_dir
             .parent()
             .expect("failed to get bin_dir parent")
