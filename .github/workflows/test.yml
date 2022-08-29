@@ -4,6 +4,7 @@ on:
   workflow_dispatch:
 jobs:
   build-launcher:
+    runs-on: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v2
