@@ -51,6 +51,7 @@ import {
   kLogoAlt,
   kLogoHref,
   kProjectType,
+  NavigationItemObject,
   ProjectConfig,
   ProjectContext,
 } from "../../types.ts";
@@ -63,7 +64,6 @@ import {
   kSidebarMenus,
   LayoutBreak,
   Navbar,
-  NavbarItem,
   NavItem,
   Sidebar,
   SidebarItem,
@@ -790,7 +790,7 @@ async function resolveSidebarTools(
         const items = tools[i].menu || [];
         for (let i = 0; i < items.length; i++) {
           const toolItem = await navigationItem(project, items[i], 1);
-          if (toolItem.href) {
+          if (typeof toolItem === "object" && toolItem.href) {
             const tool = await resolveItem(
               project,
               toolItem.href,
@@ -980,7 +980,7 @@ async function navbarEjsData(
     if (!Array.isArray(navbar.left)) {
       throw new Error("navbar 'left' must be an array of nav items");
     }
-    data.left = new Array<NavbarItem>();
+    data.left = new Array<NavItem>();
     for (let i = 0; i < navbar.left.length; i++) {
       data.left.push(
         await navigationItem(project, navbar.left[i], 0, sidebarMenus),
@@ -991,7 +991,7 @@ async function navbarEjsData(
     if (!Array.isArray(navbar.right)) {
       throw new Error("navbar 'right' must be an array of nav items");
     }
-    data.right = new Array<NavbarItem>();
+    data.right = new Array<NavItem>();
     for (let i = 0; i < navbar.right.length; i++) {
       data.right.push(
         await navigationItem(project, navbar.right[i], 0, sidebarMenus),
@@ -1006,7 +1006,7 @@ async function navbarEjsData(
     );
 
     data.right?.push(...navbar.tools.map((tool) => {
-      const navItem = tool as NavbarItem;
+      const navItem = tool as NavigationItemObject;
       navItem[kAriaLabel] = navItem.text;
       delete navItem.text;
       resolveIcon(navItem);
@@ -1017,14 +1017,14 @@ async function navbarEjsData(
   return data;
 }
 
-function resolveIcon(navItem: NavbarItem) {
+function resolveIcon(navItem: NavigationItemObject) {
   // resolve icon
   navItem.icon = navItem.icon
     ? !navItem.icon.startsWith("bi-") ? `bi-${navItem.icon}` : navItem.icon
     : navItem.icon;
 }
 
-function resolveSidebarRef(navItem: NavbarItem) {
+function resolveSidebarRef(navItem: NavigationItemObject) {
   // see if this is a sidebar link
   const ref = navItem.href || navItem.text;
   if (ref) {
@@ -1035,7 +1035,7 @@ function resolveSidebarRef(navItem: NavbarItem) {
         // wipe out the href and replace with a menu
         navItem.href = undefined;
         navItem.text = sidebar.title || id;
-        navItem.menu = new Array<NavbarItem>();
+        navItem.menu = new Array<NavItem>();
         for (const item of sidebar.contents) {
           // not fully recursive, we only take the first level of the sidebar
           if (item.text && item.contents) {
@@ -1075,10 +1075,10 @@ function resolveSidebarRef(navItem: NavbarItem) {
 
 export async function navigationItem(
   project: ProjectContext,
-  navItem: NavbarItem | string,
+  navItem: NavItem,
   level = 0,
   sidebarMenus = false,
-): Promise<NavbarItem> {
+): Promise<NavItem> {
   // make a copy we can mutate
   navItem = ld.cloneDeep(navItem);
 
@@ -1135,7 +1135,7 @@ const menuIds = new Map<string, number>();
 function resetMenuIds() {
   menuIds.clear();
 }
-function uniqueMenuId(navItem: NavbarItem) {
+function uniqueMenuId(navItem: NavigationItemObject) {
   const id = asHtmlId(navItem.text || navItem.icon || "");
   const number = menuIds.get(id) || 0;
   menuIds.set(id, number + 1);

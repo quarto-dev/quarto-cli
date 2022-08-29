@@ -43,15 +43,18 @@ export type PageColumn = (
   | "margin"
 );
 
-export type NavigationItem = (string | {
+export type NavigationItemObject = {
   "aria-label"?: string;
   file?: string;
   href?: string;
+  id?: string;
   icon?: string;
   menu?: (NavigationItem)[];
   text?: string;
   url?: string;
-});
+};
+
+export type NavigationItem = (string | NavigationItemObject);
 
 export type ToolItem = {
   href?: string;
