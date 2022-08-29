@@ -5,7 +5,7 @@ on:
 jobs:
   build-launcher:
     runs-on: ${{ matrix.config.os }}
-    name: ${{ matrix.config.os }}
+    name: Build ${{ matrix.config.os }}
     strategy:
       fail-fast: false
       matrix:
@@ -25,8 +25,25 @@ jobs:
           override: true
           components: rustfmt, clippy
       - run: cargo build --release --all-features --manifest-path package/launcher/Cargo.toml
-      - shell: bash
-        run: |
-          mkdir -p package/dist/bin
-          cp package/launcher/target/release/quarto package/dist/bin/quarto
-          ls package/dist/bin/quarto
+  copy-launcher-win:
+    name: Copy windows-latest
+    runs-on: windows-latest
+    steps:
+       - run: |
+           mkdir -p package/dist/bin
+           cp package/launcher/target/release/quarto.exe package/dist/bin/quarto.exe
+           ls package/dist/bin/quarto
+  copy-launcher:
+    runs-on: ${{ matrix.config.os }}
+    name: Copy ${{ matrix.config.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - { os: macOS-latest }
+          - { os: ubuntu-latest }  
+    steps:
+       - run: |
+           mkdir -p package/dist/bin
+           cp package/launcher/target/release/quarto package/dist/bin/quarto
+           ls package/dist/bin/quarto
