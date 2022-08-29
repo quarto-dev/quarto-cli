@@ -7,9 +7,12 @@ jobs:
     runs-on: ${{ matrix.config.os }}
     name: ${{ matrix.config.os }}
     strategy:
+      fail-fast: false
       matrix:
-        version: [10, 12, 14]
-        os: [ubuntu-latest, windows-latest]
+        config:
+          - { os: windows-latest }
+          - { os: macOS-latest }
+          - { os: ubuntu-latest }
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v2
