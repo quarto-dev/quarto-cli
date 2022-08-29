@@ -1,8 +1,5 @@
-
 use std::process::Command;
 use std::{env, ffi::OsString, fs, path::Path, path::PathBuf};
-
-// TODO: other known automatic calculations of share path (RStudio, /usr/local/, etc.)
 
 // TODO: check encoding of --paths on windows
 // TODO: deno.exe on windows?
@@ -18,17 +15,34 @@ fn main() {
     // set QUARTO_BIN_PATH
     std::env::set_var("QUARTO_BIN_PATH", bin_dir);
 
-    // compute share path (may be provided externally)
+    // compute share path (may be provided externally or may be computed
+    // automatically based on some known bin_dir installation locations
     let mut share_dir = path_from_env("QUARTO_SHARE_PATH");
     if share_dir.as_os_str().is_empty() {
-        //
-        // TODO: other known automatic calculations of share path (RStudio, /usr/local/, etc.)
-        //
-        share_dir = bin_dir
-            .parent()
-            .expect("failed to get bin path parent")
-            .join("share");
-
+        // if quarto is bundled into an `.app` file (e.g. RStudio) it will be 
+        // looking for the share directory over in the resources folder.
+        if bin_dir.ends_with("/Contents/MacOS/quarto/bin") {
+            share_dir = bin_dir
+                .parent().expect("failed to get bin_dir parent")
+                .parent().expect("failed to get bin_dir parent")
+                .parent().expect("failed to get bin_dir parent")
+                .join("Resources")
+                .join("quarto")
+                .join("share");
+        // if using standard linux filesystem local bin folder then
+        // look for 'share' in the right place
+        } else if bin_dir.ends_with("/usr/local/bin/quarto") {
+            share_dir = bin_dir
+                .parent().expect("failed to get bin_dir parent")
+                .parent().expect("failed to get bin_dir parent")
+                .join("share")
+                .join("quarto");
+        } else {
+            share_dir = bin_dir
+                .parent()
+                .expect("failed to get bin path parent")
+                .join("share");
+        }
         std::env::set_var("QUARTO_SHARE_PATH", share_dir.as_path());
     }
     
