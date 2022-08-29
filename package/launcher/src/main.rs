@@ -7,13 +7,18 @@ use std::{env, ffi::OsString, fs, path::Path, path::PathBuf};
 fn main() {
     // compute executable path (resolving symlinks)
     let mut exe_file: PathBuf = env::current_exe().expect("failed to get exe path");
-    let exe_metadata = fs::symlink_metadata(exe_file.as_path()).expect("failed to get symlink metadata for exe path");
+    let exe_metadata = fs::symlink_metadata(exe_file.as_path())
+        .expect("failed to get symlink metadata for exe path");
     if exe_metadata.is_symlink() {
-        exe_file = fs::read_link(exe_file.as_path()).expect("failed to cananoicalize executable path");
+        exe_file =
+            fs::read_link(exe_file.as_path()).expect("failed to cananoicalize executable path");
     }
-   
+
     // compute bin_dir and share_dir (share_dir may be provided externally)
-    let bin_dir = exe_file.parent().expect("failed to get executable parent").to_path_buf();
+    let bin_dir = exe_file
+        .parent()
+        .expect("failed to get executable parent")
+        .to_path_buf();
     let mut share_dir = path_from_env("QUARTO_SHARE_PATH");
     if share_dir.as_os_str().is_empty() {
         share_dir = share_dir_from_bin_dir(&bin_dir);
@@ -89,7 +94,6 @@ fn path_from_env(key: &str) -> PathBuf {
     PathBuf::from(env::var_os(key).unwrap_or(OsString::new()))
 }
 
-
 fn share_dir_from_bin_dir(bin_dir: &PathBuf) -> PathBuf {
     // if quarto is bundled into an `.app` file (e.g. RStudio) it will be
     // looking for the share directory over in the resources folder.
@@ -121,7 +125,6 @@ fn share_dir_from_bin_dir(bin_dir: &PathBuf) -> PathBuf {
             .join("share")
     }
 }
-
 
 // platform-specific deno dom lib file
 
