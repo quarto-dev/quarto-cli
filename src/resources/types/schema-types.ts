@@ -48,39 +48,43 @@ export type PageColumn = (
 );
 
 export type NavigationItemObject = {
-  "aria-label"?: string;
-  file?: string;
-  href?: string;
+  "aria-label"?: string /* Accessible label for the item. */;
+  file?: string /* Alias for href */;
+  href?: string /* Link to file contained with the project or external URL */;
+  icon?: string /* Name of bootstrap icon (e.g. `github`, `twitter`, `share`)
+See <https://icons.getbootstrap.com/> for a list of available icons */;
   id?: string;
-  icon?: string;
   menu?: (NavigationItem)[];
-  text?: string;
-  url?: string;
+  text?: string /* Text to display for item (defaults to the
+document title if not provided) */;
+  url?: string; /* Alias for href */
 };
 
 export type NavigationItem = (string | NavigationItemObject);
 
-export type ToolItem = {
-  file?: string;
-  href?: string;
-  icon?: string;
-  menu?: (NavigationItem)[];
-  text?: string;
-  url?: string;
-};
-
 export type Comments = (false | {
   giscus?: {
-    "repo-id"?: string;
-    "category-id"?: string;
-    "reactions-enabled"?: boolean;
+    "repo-id"?: string /* The Github repository identifier.
+
+You can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).
+If this is not provided, Quarto will attempt to discover it at render time. */;
+    "category-id"?: string /* The Github category identifier.
+
+You can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).
+If this is not provided, Quarto will attempt to discover it at render time. */;
+    "reactions-enabled"?:
+      boolean /* Display reactions for the discussion's main post before the comments. */;
     "input-position"?: (
       | "top"
       | "bottom"
     ) /* Place the comment input box above or below the comments. */;
-    category?: string;
+    category?:
+      string /* The discussion category where new discussions will be created. It is recommended
+to use a category with the **Announcements** type so that new discussions
+can only be created by maintainers and giscus. */;
     loading?: "lazy";
-    language?: string;
+    language?:
+      string /* The language that should be used when displaying the commenting interface. */;
     mapping?: (
       | ("pathname" | "url" | "title" | "og:title")
       | string
@@ -92,9 +96,11 @@ export type Comments = (false | {
 - `og:title`: The discussion title contains the `og:title` metadata value
 - any other string or number: Any other strings will be passed through verbatim and a discussion title
 containing that value will be used. Numbers will be treated
-as a discussion number and automatic discussion creation is not supported.
- */;
-    repo: string;
+as a discussion number and automatic discussion creation is not supported. */;
+    repo: string /* The Github repo that will be used to store comments.
+
+In order to work correctly, the repo must be public, with the giscus app installed, and
+the discussions feature must be enabled. */;
     theme?: (
       | "light"
       | "light_high_contrast"
@@ -108,43 +114,67 @@ as a discussion number and automatic discussion creation is not supported.
     ); /* The giscus theme to use when displaying comments. */
   };
   hypothesis?: (boolean | {
-    assetRoot?: string;
+    assetRoot?: string /* The root URL from which assets are loaded. */;
     branding?: {
-      accentColor?: string;
-      appBackgroundColor?: string;
-      annotationFontFamily?: string;
-      ctaBackgroundColor?: string;
-      selectionFontFamily?: string;
-    };
-    enableExperimentalNewNoteButton?: boolean;
-    externalContainerSelector?: string;
+      accentColor?:
+        string /* Secondary color for elements of the commenting UI. */;
+      appBackgroundColor?:
+        string /* The main background color of the commenting UI. */;
+      annotationFontFamily?:
+        string /* The font family for the actual annotation value that the user writes about the page or selection. */;
+      ctaBackgroundColor?:
+        string /* The background color for call to action buttons. */;
+      selectionFontFamily?:
+        string; /* The font family for selection text in the annotation card. */
+    } /* Settings to adjust the commenting sidebar's look and feel. */;
+    enableExperimentalNewNoteButton?:
+      boolean /* Controls whether the experimental New Note button
+should be shown in the notes tab in the sidebar. */;
+    externalContainerSelector?:
+      string /* A CSS selector specifying the containing element into which the sidebar iframe will be placed. */;
     focus?: {
-      user: { displayName?: string; username?: string; userid?: string };
+      user: {
+        displayName?: string /* The display name of the user to focus on. */;
+        username?: string /* The username of the user to focus on. */;
+        userid?: string; /* The userid of the user to focus on. */
+      };
     } /* Defines a focused filter set for the available annotations on a page. */;
-    openSidebar?: boolean;
-    requestConfigFromFrame?: { ancestorLevel?: number; origin?: string };
+    openSidebar?:
+      boolean /* Controls whether the sidebar opens automatically on startup. */;
+    requestConfigFromFrame?: {
+      ancestorLevel?:
+        number /* Number of nested iframes deep the client is relative from the receiving iframe. */;
+      origin?: string; /* Host url and port number of receiving iframe */
+    };
     showHighlights?: (
       | boolean
       | ("always" | "never")
     ) /* Controls whether the in-document highlights are shown by default (`always` or `never`) */;
     services?: (
       {
-        apiUrl: string;
-        authority: string;
-        allowLeavingGroups?: boolean;
-        enableShareLinks?: boolean;
-        grantToken: string;
+        apiUrl: string /* The base URL of the service API. */;
+        authority:
+          string /* The domain name which the annotation service is associated with. */;
+        allowLeavingGroups?:
+          boolean /* A flag indicating whether users should be able to leave groups of which they are a member. */;
+        enableShareLinks?:
+          boolean /* A flag indicating whether annotation cards should show links that take the user to see an annotation in context. */;
+        grantToken:
+          string /* An OAuth 2 grant token which the client can send to the service in order to get an access token for making authenticated requests to the service. */;
         groups?: (
           | "$rpc:requestGroups"
           | (string)[]
         ) /* An array of Group IDs or the literal string `$rpc:requestGroups` */;
-        icon?: string;
+        icon?:
+          string; /* The URL to an image for the annotation service. This image will appear to the left of the name of the currently selected group. */
       } /* Alternative annotation services which the client should
 connect to instead of connecting to the public Hypothesis
-service at hypothes.is.
- */
-    )[];
-    sidebarAppUrl?: string;
+service at hypothes.is. */
+    )[] /* Alternative annotation services which the client should
+connect to instead of connecting to the public Hypothesis
+service at hypothes.is. */;
+    sidebarAppUrl?:
+      string /* The URL for the sidebar application which displays annotations. */;
     theme?: (
       | "classic"
       | "clean"
@@ -152,20 +182,37 @@ service at hypothes.is.
     usernameUrl?: string;
   });
   utterances?: {
-    "issue-term"?: string;
-    label?: string;
-    repo: string;
-    theme?: string;
+    "issue-term"?: string /* How posts should be mapped to Github issues
+(`pathname`, `url`, `title` or `og:title`) */;
+    label?:
+      string /* The label that will be assigned to issues created by Utterances. */;
+    repo: string /* The Github repo that will be used to store comments. */;
+    theme?: string; /* The Github theme that should be used for Utterances
+(`github-light`, `github-dark`, `github-dark-orange`,
+`icy-dark`, `dark-blue`, `photon-dark`, `body-light`,
+or `gruvbox-dark`) */
   };
 });
 
 export type SocialMetadata = {
-  "image-alt"?: string;
-  "image-width"?: number;
-  "image-height"?: number;
-  description?: string;
-  image?: string;
-  title?: string;
+  "image-alt"?:
+    string /* The alt text for the preview image. By default, Quarto will use
+the `image-alt` value from the format metadata. If you provide an
+image, you may also optionally provide an `image-width` and `image-height`. */;
+  "image-width"?: number /* Image width (pixels) */;
+  "image-height"?: number /* Image height (pixels) */;
+  description?:
+    string /* A short description of the content. Note that by default Quarto will
+automatically  use the description metadata from the page. Specify this
+field if you’d like to override the description for this provider. */;
+  image?:
+    string /* The path to a preview image for the content. By default, Quarto will use
+the `image` value from the format metadata. If you provide an
+image, you may also optionally provide an `image-width` and `image-height`. */;
+  title?:
+    string; /* The title of the page. Note that by default Quarto will automatically
+use the title metadata from the page. Specify this field if you’d like
+to override the title for this provider. */
 };
 
 export type PageFooterRegion = (string | (NavigationItem)[]);
@@ -176,17 +223,27 @@ export type SidebarContents = ((NavigationItem | string | {
 }))[];
 
 export type ProjectPreview = {
-  "watch-inputs"?: boolean;
-  browser?: boolean;
-  host?: string;
-  navigate?: boolean;
-  port?: number;
-  timeout?: number;
+  "watch-inputs"?:
+    boolean /* Re-render input files when they change (defaults to true) */;
+  browser?:
+    boolean /* Open a web browser to view the preview (defaults to true) */;
+  host?: string /* Hostname to bind to (defaults to 127.0.0.1) */;
+  navigate?:
+    boolean /* Navigate the browser automatically when outputs are updated (defaults to true) */;
+  port?:
+    number /* Port to listen on (defaults to random value between 3000 and 8000) */;
+  timeout?:
+    number; /* Time (in seconds) after which to exit if there are no active clients */
 };
 
-export type Publish = { netlify?: (PublishRecord)[] };
+export type Publish = {
+  netlify?: (PublishRecord)[];
+}; /* Sites published to Netlify */
 
-export type PublishRecord = { id?: string; url?: string };
+export type PublishRecord = {
+  id?: string /* Unique identifier for site */;
+  url?: string; /* Published URL for site */
+};
 
 export type PageFooter = {
   border?:
@@ -199,11 +256,13 @@ export type PageFooter = {
 };
 
 export type BaseWebsite = {
-  "site-url"?: string;
-  "site-path"?: string;
-  "repo-url"?: string;
-  "repo-subdir"?: string;
-  "repo-branch"?: string;
+  "site-url"?: string /* Base URL for published website */;
+  "site-path"?:
+    string /* Path to site (defaults to `/`). Not required if you specify `site-url`. */;
+  "repo-url"?: string /* Base URL for website source code repository */;
+  "repo-subdir"?: string /* Subdirectory of repository containing website */;
+  "repo-branch"?:
+    string /* Branch of website source code (defaults to `main`) */;
   "repo-actions"?: MaybeArrayOf<
     (
       | "none"
@@ -211,8 +270,9 @@ export type BaseWebsite = {
       | "source"
       | "issue"
     ) /* Links to source repository actions (`none` or one or more of `edit`, `source`, `issue`) */
-  >;
-  "reader-mode"?: boolean;
+  > /* Links to source repository actions (`none` or one or more of `edit`, `source`, `issue`) */;
+  "reader-mode"?:
+    boolean /* Displays a 'reader-mode' tool which allows users to hide the sidebar and table of contents when viewing a page. */;
   "google-analytics"?: (string | {
     "tracking-id"?: string;
     "anonymize-ip"?: boolean;
@@ -225,15 +285,13 @@ export type BaseWebsite = {
 
 `none`: Do not use cookies to store unique user and session identification.
 
-For more about choosing storage options see [Storage](https://quarto.org/docs/websites/website-tools.html#storage).
- */;
+For more about choosing storage options see [Storage](https://quarto.org/docs/websites/website-tools.html#storage). */;
     version?: (3 | 4); /* The version number of Google Analytics to use.
 
 - `3`: Use analytics.js
 - `4`: use gtag.
 
-This is automatically detected based upon the `tracking-id`, but you may specify it.
- */
+This is automatically detected based upon the `tracking-id`, but you may specify it. */
   }) /* Enable Google Analytics for this website */;
   "cookie-consent"?: (boolean | {
     "policy-url"?: string;
@@ -255,8 +313,7 @@ This is automatically detected based upon the `tracking-id`, but you may specify
 
 - `interstitial`: An semi-transparent overlay of the entire website.
 
-- `standalone`: An opaque overlay of the entire website.
- */;
+- `standalone`: An opaque overlay of the entire website. */;
     type?: (
       | "implied"
       | "express"
@@ -264,25 +321,31 @@ This is automatically detected based upon the `tracking-id`, but you may specify
 
 - `implied` (default): This will notify the user that the site uses cookies and permit them to change preferences, but not block cookies unless the user changes their preferences.
 
-- `express`: This will block cookies until the user expressly agrees to allow them (or continue blocking them if the user doesn’t agree).
- */
+- `express`: This will block cookies until the user expressly agrees to allow them (or continue blocking them if the user doesn’t agree). */
   }) /* Quarto includes the ability to request cookie consent before enabling scripts that set cookies, using [Cookie Consent](https://www.cookieconsent.com/).
 
-The user’s cookie preferences will automatically control Google Analytics (if enabled) and can be used to control custom scripts you add as well. For more information see [Custom Scripts and Cookie Consent](https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent).
- */;
-  "body-header"?: string;
-  "body-footer"?: string;
+The user’s cookie preferences will automatically control Google Analytics (if enabled) and can be used to control custom scripts you add as well. For more information see [Custom Scripts and Cookie Consent](https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent). */;
+  "body-header"?:
+    string /* Markdown to insert at the beginning of each page’s body (below the title and author block). */;
+  "body-footer"?: string /* Markdown to insert below each page’s body. */;
   "margin-header"?: MaybeArrayOf<
     string
   > /* Markdown to place above margin content (text or file path) */;
   "margin-footer"?: MaybeArrayOf<
     string
   > /* Markdown to place below margin content (text or file path) */;
-  "page-navigation"?: boolean;
+  "page-navigation"?:
+    boolean /* Provide next and previous article links in footer */;
   "page-footer"?: (string | PageFooter) /* Shared page footer */;
   "open-graph"?: (
     | boolean
-    | ({ "site-name"?: string; locale?: string } & SocialMetadata)
+    | ({
+      "site-name"?:
+        string /* Name that should be displayed for the overall site. If not explicitly
+provided in the `open-graph` metadata, Quarto will use the website or
+book `title` by default. */;
+      locale?: string; /* Locale of open graph metadata */
+    } & SocialMetadata)
   ) /* Publish open graph metadata */;
   "twitter-card"?: (
     | boolean
@@ -294,19 +357,20 @@ The user’s cookie preferences will automatically control Google Analytics (if 
 
 If this is not provided, the best style will automatically
 selected based upon other metadata. You can learn more about Twitter Card
-styles [here](https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/abouts-cards).
- */;
-      creator?: string;
-      site?: string;
+styles [here](https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/abouts-cards). */;
+      creator?:
+        string /* `@username` of the content creator (must be a quoted string) */;
+      site?: string; /* `@username` of the website (must be a quoted string) */
     } & SocialMetadata)
   ) /* Publish twitter card metadata */;
   comments?: Comments;
-  description?: string;
-  favicon?: string;
-  image?: string;
+  description?: string /* Website description */;
+  favicon?: string /* The path to the favicon for this website */;
+  image?: string /* Default site thumbnail image for `twitter` /`open-graph` */;
   navbar?: (boolean | {
-    "logo-alt"?: string;
-    "logo-href"?: string;
+    "logo-alt"?: string /* Alternate text for the logo image. */;
+    "logo-href"?:
+      string /* Target href from navbar logo / title. By default, the logo and title link to the root page of the site (/index.html). */;
     "collapse-below"?: (
       | "sm"
       | "md"
@@ -327,7 +391,8 @@ styles [here](https://developer.twitter.com/en/docs/twitter-for-websites/cards/o
       )
       | string
     ) /* The navbar's background color (named or hex color). */;
-    collapse?: boolean;
+    collapse?:
+      boolean /* Collapse the navbar into a menu when the display becomes narrow. */;
     foreground?: (
       | (
         | "primary"
@@ -341,13 +406,14 @@ styles [here](https://developer.twitter.com/en/docs/twitter-for-websites/cards/o
       )
       | string
     ) /* The navbar's foreground color (named or hex color). */;
-    logo?: string;
+    logo?:
+      string /* Path to a logo image that will be displayed to the left of the title. */;
     left?:
       (NavigationItem)[] /* List of items for the left side of the navbar. */;
-    pinned?: boolean;
+    pinned?: boolean /* Always show the navbar (keeping it pinned). */;
     right?:
       (NavigationItem)[] /* List of items for the right side of the navbar. */;
-    search?: boolean;
+    search?: boolean /* Include a search box in the navbar. */;
     title?: (
       | string
       | boolean
@@ -360,15 +426,18 @@ styles [here](https://developer.twitter.com/en/docs/twitter-for-websites/cards/o
       "index-name"?: string;
       "application-id"?: string;
       "search-only-api-key"?: string;
-      "analytics-events"?: boolean;
-      "show-logo"?: boolean;
+      "analytics-events"?:
+        boolean /* Enable tracking of Algolia analytics events */;
+      "show-logo"?:
+        boolean /* Enable the display of the Algolia logo in the search results footer. */;
       "index-fields"?: {
         href?: string;
         section?: string;
         title?: string;
         text?: string;
       };
-      params?: SchemaObject;
+      params?:
+        SchemaObject; /* Additional parameters to pass when executing a search */
     } /* Use external Algolia search index */;
     location?: (
       | "navbar"
@@ -384,7 +453,8 @@ styles [here](https://developer.twitter.com/en/docs/twitter-for-websites/cards/o
     | boolean
     | MaybeArrayOf<
       {
-        "collapse-level"?: number;
+        "collapse-level"?:
+          number /* The depth at which the sidebar contents should be collapsed by default. */;
         alignment?: (
           | "left"
           | "right"
@@ -403,7 +473,8 @@ styles [here](https://developer.twitter.com/en/docs/twitter-for-websites/cards/o
           )
           | string
         ) /* The sidebar's background color (named or hex color). */;
-        border?: boolean;
+        border?:
+          boolean /* Whether to show a border on the sidebar (defaults to true for 'docked' sidebars) */;
         contents?: SidebarContents;
         foreground?: (
           | (
@@ -424,11 +495,13 @@ styles [here](https://developer.twitter.com/en/docs/twitter-for-websites/cards/o
         header?: MaybeArrayOf<
           string
         > /* Markdown to place above sidebar content (text or file path) */;
-        id?: string;
-        logo?: string;
-        pinned?: boolean;
-        subtitle?: string;
-        search?: boolean;
+        id?: string /* The identifier for this sidebar. */;
+        logo?:
+          string /* Path to a logo image that will be displayed in the sidebar. */;
+        pinned?:
+          boolean /* When collapsed, pin the collapsed sidebar to the top of the page. */;
+        subtitle?: string /* The subtitle for this sidebar. */;
+        search?: boolean /* Include a search control in the sidebar. */;
         style?: (
           | "docked"
           | "floating"
@@ -437,16 +510,16 @@ styles [here](https://developer.twitter.com/en/docs/twitter-for-websites/cards/o
           | string
           | boolean
         ) /* The sidebar title. Uses the project title if none is specified. */;
-        tools?: (ToolItem)[]; /* List of sidebar tools */
+        tools?: (NavigationItemObject)[]; /* List of sidebar tools */
       }
     >
   ) /* Side navigation options */;
-  title?: string;
+  title?: string; /* Website title */
 };
 
 export type ChapterItem = (NavigationItem | {
   chapters?: (NavigationItem)[] /* Path to chapter input file */;
-  part: string;
+  part: string; /* Part title or path to input file */
 });
 
 export type ChapterList = (ChapterItem)[];
@@ -455,7 +528,18 @@ export type CrossrefLabelsSchema = string;
 
 export type EpubContributor = (
   | string
-  | MaybeArrayOf<{ "file-as"?: string; role?: string; text?: string }>
+  | MaybeArrayOf<
+    {
+      "file-as"?:
+        string /* An alternate version of the creator or contributor text used for alphabatizing. */;
+      role?: string /* The role of this creator or contributor using
+[MARC relators](https://loc.gov/marc/relators/relaterm.html). Human readable
+translations to commonly used relators (e.g. 'author', 'editor') will
+attempt to be automatically translated. */;
+      text?:
+        string; /* The text describing the creator or contributor (for example, creator name). */
+    }
+  >
 );
 
 export type FormatLanguage = {
@@ -521,7 +605,7 @@ export type FormatLanguage = {
 };
 
 export type WebsiteAbout = {
-  "image-width"?: string;
+  "image-width"?: string /* A valid CSS width for the about page image. */;
   "image-shape"?: (
     | "rectangle"
     | "round"
@@ -530,10 +614,17 @@ export type WebsiteAbout = {
 
 - `rectangle`
 - `round`
-- `rounded`
- */;
-  id?: string;
-  image?: string;
+- `rounded` */;
+  id?:
+    string /* The target id of this about page. When the about page is rendered, it will
+place read the contents of a `div` with this id into the about template that you
+have selected (and replace the contents with the rendered about content).
+
+If no such `div` is defined on the page, a `div` with this id will be created
+and appended to the end of the page. */;
+  image?:
+    string /* The path to the main image on the about page. If not specified,
+the `image` provided for the document itself will be used. */;
   links?: (NavigationItem)[];
   template?: (
     | "jolla"
@@ -547,58 +638,77 @@ export type WebsiteAbout = {
 - `trestles`
 - `solana`
 - `marquee`
-- `broadside`
- */
+- `broadside` */
 };
 
 export type WebsiteListing = {
-  "max-items"?: number;
-  "page-size"?: number;
+  "max-items"?:
+    number /* The maximum number of items to include in this listing. */;
+  "page-size"?: number /* The number of items to display on a page. */;
   "sort-ui"?: (
     | boolean
     | (string)[]
   ) /* Shows or hides the sorting control for the listing. To control the
 fields that will be displayed in the sorting control, provide a list
-of field names.
- */;
+of field names. */;
   "filter-ui"?: (
     | boolean
     | (string)[]
   ) /* Shows or hides the filtering control for the listing. To control the
 fields that will be used to filter the listing, provide a list
 of field names. By default all fields of the listing will be used
-when filtering.
- */;
-  "date-format"?: string;
-  "max-description-length"?: number;
-  "image-placeholder"?: string;
+when filtering. */;
+  "date-format"?:
+    string /* The date format to use when displaying dates (e.g. d-M-yyy).
+Learn more about supported date formatting values [here](https://deno.land/std@0.125.0/datetime). */;
+  "max-description-length"?:
+    number /* The maximum length (in characters) of the description displayed in the listing.
+Defaults to 175. */;
+  "image-placeholder"?:
+    string /* The default image to use if an item in the listing doesn't have an image. */;
   "image-align"?: (
     | "left"
     | "right"
   ) /* In `default` type listings, whether to place the image on the right or left side of the post content (`left` or `right`). */;
-  "image-height"?: string;
-  "grid-columns"?: number;
-  "grid-item-border"?: boolean;
+  "image-height"?:
+    string /* The height of the image being displayed (a CSS height string).
+
+The width is automatically determined and the image will fill the rectangle without scaling (cropped to fill). */;
+  "grid-columns"?:
+    number /* In grid type listings, the number of columns in the grid display.
+Defaults to 3. */;
+  "grid-item-border"?:
+    boolean /* In grid type listings, whether to display a border around the item card. Defaults to `true`. */;
   "grid-item-align"?: (
     | "left"
     | "right"
     | "center"
-  ) /* In grid type listings, the alignment of the content within the card (`left` (default), `right`, or `center`).
- */;
-  "table-striped"?: boolean;
-  "table-hover"?: boolean;
-  "field-display-names"?: SchemaObject;
-  "field-types"?: SchemaObject;
+  ) /* In grid type listings, the alignment of the content within the card (`left` (default), `right`, or `center`). */;
+  "table-striped"?:
+    boolean /* In table type listings, display the table rows with alternating background colors.
+Defaults to `false`. */;
+  "table-hover"?:
+    boolean /* In table type listings, highlight rows of the table when the user hovers the mouse over them.
+Defaults to false. */;
+  "field-display-names"?:
+    SchemaObject /* A mapping that provides display names for specific fields. For example, to display the title column as ‘Report’ in a table listing you would write:
+
+```yaml
+listing:
+  field-display-names:
+  title: "Report"
+``` */;
+  "field-types"?:
+    SchemaObject /* Provides the date type for the field of a listing item. Unknown fields are treated
+as strings unless a type is provided. Valid types are `date`, `number`. */;
   "field-links"?:
     (string)[] /* The list of fields to display as hyperlinks to the source document
 when the listing type is a table. By default, only the `title` or
-`filename` is displayed as a link.
- */;
+`filename` is displayed as a link. */;
   "field-required"?:
     (string)[] /* Fields that items in this listing must have populated.
 If a listing is rendered and one more items in this listing
-is missing a required field, an error will occur and the render will.
- */;
+is missing a required field, an error will occur and the render will. */;
   contents?: MaybeArrayOf<
     (string | WebsiteListingContentsObject)
   > /* The files or path globs of Quarto documents or YAML files that should be included in the listing. */;
@@ -609,35 +719,47 @@ is missing a required field, an error will occur and the render will.
 
   - `numbered`: Category list with number of items
   - `unnumbered`: Category list
-  - `cloud`: Word cloud style categories
- */;
+  - `cloud`: Word cloud style categories */;
   feed?: (boolean | {
-    categories?: MaybeArrayOf<string>;
-    description?: string;
-    items?: number;
-    image?: string;
-    language?: string;
+    categories?: MaybeArrayOf<
+      string /* A list of categories for which to create separate RSS feeds containing only posts with that category. */
+    >;
+    description?:
+      string /* The description of this feed. If not specified, the description for the page the
+listing appears on will be used, otherwise the description
+of the site will be used if specified in the Quarto project. */;
+    items?:
+      number /* The number of items to include in your feed. Defaults to 20. */;
+    image?:
+      string /* The path to an image for this feed. If not specified, the image for the page the listing
+appears on will be used, otherwise an image will be used if specified for the site
+in the Quarto project. */;
+    language?: string /* The language of the feed. Omitted if not specified.
+See [https://www.rssboard.org/rss-language-codes](https://www.rssboard.org/rss-language-codes)
+for a list of valid language codes. */;
     type?: (
       | "full"
       | "partial"
     ) /* Whether to include full or partial content in the feed.
 
 - `full` (default): Include the complete content of the document in the feed.
-- `partial`: Include only the first paragraph of the document in the feed.
- */;
-    title?: string;
+- `partial`: Include only the first paragraph of the document in the feed. */;
+    title?:
+      string; /* The title for this feed. Defaults to the site title provided the Quarto project. */
   }) /* Enables an RSS feed for the listing. */;
-  fields?: (string)[] /* The list of fields to include in this listing.
- */;
-  id?: string;
+  fields?: (string)[] /* The list of fields to include in this listing. */;
+  id?: string /* The id of this listing. When the listing is rendered, it will
+place the contents into a `div` with this id. If no such `div` is defined on the
+page, a `div` with this id will be created and appended to the end of the page.
+
+In no `id` is provided for a listing, Quarto will synthesize one when rendering the page. */;
   sort?: MaybeArrayOf<
     string
   > /* Sort items in the listing by these fields. The sort key is made up of a
 field name followed by a direction `asc` or `desc`.
 
 For example:
-`date asc`
- */;
+`date asc` */;
   type?: (
     | "default"
     | "table"
@@ -648,9 +770,8 @@ For example:
 - `default`: A blog style list of items
 - `table`: A table of items
 - `grid`: A grid of item cards
-- `custom`: A custom template, provided by the `template` field
- */;
-  template?: string;
+- `custom`: A custom template, provided by the `template` field */;
+  template?: string; /* The path to a custom listing template. */
 };
 
 export type WebsiteListingContentsObject = {
@@ -664,118 +785,178 @@ export type CslDate = (string | MaybeArrayOf<number>);
 
 export type CslPerson = (
   | MaybeArrayOf<string>
-  | MaybeArrayOf<{ "family-name"?: string; "given-name"?: string }>
+  | MaybeArrayOf<
+    {
+      "family-name"?: string /* The family name. */;
+      "given-name"?: string; /* The given name. */
+    }
+  >
 );
 
 export type CslNumber = (number | string);
 
 export type CslItem = {
-  "abstract-url"?: string;
-  "archive-collection"?: string;
-  "archive-location"?: string;
-  "archive-place"?: string;
+  "abstract-url"?: string /* A url to the abstract for this item. */;
+  "archive-collection"?:
+    string /* Collection the item is part of within an archive. */;
+  "archive-location"?:
+    string /* Storage location within an archive (e.g. a box and folder number). */;
+  "archive-place"?: string /* Geographic location of the archive. */;
   "available-date"?: CslDate;
-  "call-number"?: string;
+  "call-number"?: string /* Call number (to locate the item in a library). */;
   "chapter-number"?: CslNumber;
-  "citation-key"?: string;
-  "citation-label"?: string;
+  "citation-key"?:
+    string /* Identifier of the item in the input data file (analogous to BiTeX entrykey);
+
+Use this variable to facilitate conversion between word-processor and plain-text writing systems;
+For an identifer intended as formatted output label for a citation
+(e.g. “Ferr78”), use `citation-label` instead */;
+  "citation-label"?:
+    string /* Label identifying the item in in-text citations of label styles (e.g. "Ferr78");
+
+May be assigned by the CSL processor based on item metadata; For the identifier of the item
+in the input data file, use `citation-key` instead */;
   "citation-number"?: CslNumber;
   "collection-editor"?: CslPerson;
   "collection-number"?: CslNumber;
-  "collection-title"?: string;
+  "collection-title"?:
+    string /* Title of the collection holding the item (e.g. the series title for a book; the lecture series title for a presentation). */;
   "container-author"?: CslPerson;
-  "container-title"?: string;
-  "container-title-short"?: string;
+  "container-title"?:
+    string /* Title of the container holding the item (e.g. the book title for a book chapter,
+the journal title for a journal article; the album title for a recording;
+the session title for multi-part presentation at a conference) */;
+  "container-title-short"?:
+    string /* Short/abbreviated form of container-title; */;
   "editorial-director"?: CslPerson;
   "editor-translator"?: CslPerson;
   "event-date"?: CslDate;
-  "event-title"?: string;
-  "event-place"?: string;
+  "event-title"?:
+    string /* Name of the event related to the item (e.g. the conference name when citing a conference paper; the meeting where presentation was made). */;
+  "event-place"?:
+    string /* Geographic location of the event related to the item (e.g. "Amsterdam, The Netherlands"). */;
   "executive-producer"?: CslPerson;
   "first-reference-note-number"?: CslNumber;
-  "fulltext-url"?: string;
+  "fulltext-url"?: string /* A url to the full text for this item. */;
   "number-of-pages"?: CslNumber;
   "number-of-volumes"?: CslNumber;
   "original-author"?: CslPerson;
   "original-date"?: CslDate;
-  "original-publisher"?: string;
-  "original-publisher-place"?: string;
-  "original-title"?: string;
+  "original-publisher"?:
+    string /* Original publisher, for items that have been republished by a different publisher. */;
+  "original-publisher-place"?:
+    string /* Geographic location of the original publisher (e.g. "London, UK"). */;
+  "original-title"?:
+    string /* Title of the original version (e.g. "Война и мир", the untranslated Russian title of "War and Peace"). */;
   "page-first"?: CslNumber;
   "page-last"?: CslNumber;
   "part-number"?: CslNumber;
-  "part-title"?: string;
-  "pdf-url"?: string;
+  "part-title"?:
+    string /* Title of the specific part of an item being cited. */;
+  "pdf-url"?: string /* A url to the pdf for this item. */;
   "printing-number"?: CslNumber;
-  "public-url"?: string;
-  "publisher-place"?: string;
+  "public-url"?: string /* A public url for this item. */;
+  "publisher-place"?: string /* The geographic location of the publisher. */;
   "reviewed-author"?: CslPerson;
-  "reviewed-genre"?: string;
-  "reviewed-title"?: string;
+  "reviewed-genre"?:
+    string /* Type of the item being reviewed by the current item (e.g. book, film). */;
+  "reviewed-title"?:
+    string /* Title of the item reviewed by the current item. */;
   "script-writer"?: CslPerson;
   "series-creator"?: CslPerson;
   "supplement-number"?: CslNumber;
-  "title-short"?: string;
-  "volume-title"?: string;
-  "year-suffix"?: string;
-  abstract?: string;
+  "title-short"?: string /* Short/abbreviated form of`title`. */;
+  "volume-title"?:
+    string /* Title of the volume of the item or container holding the item.
+
+Also use for titles of periodical special issues, special sections, and the like. */;
+  "year-suffix"?:
+    string /* Disambiguating year suffix in author-date styles (e.g. "a" in "Doe, 1999a"). */;
+  abstract?:
+    string /* Abstract of the item (e.g. the abstract of a journal article) */;
   accessed?: CslDate;
-  annote?: string;
-  archive?: string;
+  annote?:
+    string /* Short markup, decoration, or annotation to the item (e.g., to indicate items included in a review);
+
+For descriptive text (e.g., in an annotated bibliography), use `note` instead */;
+  archive?: string /* Archive storing the item */;
   archive_collection?: string;
   archive_location?: string;
   author?: CslPerson;
-  authority?: string;
+  authority?:
+    string /* Issuing or judicial authority (e.g. "USPTO" for a patent, "Fairfax Circuit Court" for a legal case). */;
   chair?: CslPerson;
   compiler?: CslPerson;
   composer?: CslPerson;
   contributor?: CslPerson;
   curator?: CslPerson;
-  dimensions?: string;
+  dimensions?:
+    string /* Physical (e.g. size) or temporal (e.g. running time) dimensions of the item. */;
   director?: CslPerson;
-  division?: string;
-  doi?: string;
+  division?:
+    string /* Minor subdivision of a court with a `jurisdiction` for a legal item */;
+  doi?: string /* Digital Object Identifier (e.g. "10.1128/AEM.02591-07") */;
   DOI?: string;
   edition?: CslNumber;
   editor?: CslPerson;
   event?: string;
-  genre?: string;
+  genre?:
+    string /* Type, class, or subtype of the item (e.g. "Doctoral dissertation" for a PhD thesis; "NIH Publication" for an NIH technical report);
+
+Do not use for topical descriptions or categories (e.g. "adventure" for an adventure movie) */;
   guest?: CslPerson;
   host?: CslPerson;
   illustrator?: CslPerson;
   interviewer?: CslPerson;
-  isbn?: string;
-  issn?: string;
+  isbn?:
+    string /* International Standard Book Number (e.g. "978-3-8474-1017-1"). */;
+  issn?: string /* International Standard Serial Number. */;
   issue?: CslNumber;
   issued?: CslDate;
   ISBN?: string;
   ISSN?: string;
-  jurisdiction?: string;
-  keyword?: string;
-  language?: string;
-  license?: string;
+  jurisdiction?:
+    string /* Geographic scope of relevance (e.g. "US" for a US patent; the court hearing a legal case). */;
+  keyword?: string /* Keyword(s) or tag(s) attached to the item. */;
+  language?: string /* The language of the item;
+
+Should be entered as an ISO 639-1 two-letter language code (e.g. "en", "zh"),
+optionally with a two-letter locale code (e.g. "de-DE", "de-AT") */;
+  license?:
+    string /* The license information applicable to an item (e.g. the license an article
+or software is released under; the copyright information for an item;
+the classification status of a document) */;
   locator?: CslNumber;
-  medium?: string;
+  medium?:
+    string /* Description of the item’s format or medium (e.g. "CD", "DVD", "Album", etc.) */;
   narrator?: CslPerson;
-  note?: string;
+  note?:
+    string /* Descriptive text or notes about an item (e.g. in an annotated bibliography). */;
   number?: CslNumber;
   organizer?: CslPerson;
   page?: CslNumber;
   performer?: CslPerson;
-  pmcid?: string;
-  pmid?: string;
+  pmcid?: string /* PubMed Central reference number. */;
+  pmid?: string /* PubMed reference number. */;
   producer?: CslPerson;
-  publisher?: string;
+  publisher?: string /* The publisher of the item. */;
   PMCID?: string;
   PMID?: string;
   recipient?: CslPerson;
-  references?: string;
-  scale?: string;
+  references?:
+    string /* Resources related to the procedural history of a legal case or legislation;
+
+Can also be used to refer to the procedural history of other items (e.g.
+"Conference canceled" for a presentation accepted as a conference that was subsequently
+canceled; details of a retraction or correction notice) */;
+  scale?: string /* Scale of e.g. a map or model. */;
   section?: CslNumber;
-  source?: string;
-  status?: string;
+  source?:
+    string /* Source from whence the item originates (e.g. a library catalog or database). */;
+  status?:
+    string /* Publication status of the item (e.g. "forthcoming"; "in press"; "advance online publication"; "retracted") */;
   submitted?: CslDate;
-  title?: string;
+  title?: string /* The primary title of the item. */;
   translator?: CslPerson;
   type?: (
     | "article"
@@ -824,13 +1005,16 @@ export type CslItem = {
     | "treaty"
     | "webpage"
   ) /* The [type](https://docs.citationstyles.org/en/stable/specification.html#appendix-iii-types) of the item. */;
-  url?: string;
+  url?:
+    string /* Uniform Resource Locator (e.g. "https://aem.asm.org/cgi/content/full/74/9/2766") */;
   URL?: string;
   version?: CslNumber;
   volume?: CslNumber;
 };
 
-export type SmartInclude = ({ text: string } | { file: string });
+export type SmartInclude = ({
+  text: string; /* Textual content to add to includes */
+} | { file: string /* Name of file with content to add to includes */ });
 
 export type Semver =
   string; /* Version number according to Semantic Versioning */
@@ -840,15 +1024,16 @@ export type ProjectConfig = {
     ("file" | "project") /* Control the working directory for computations.
 
 - `file`: Use the directory of the file that is currently executing.
-- `project`: Use the root directory of the project.
- */;
-  "output-dir"?: string;
-  "lib-dir"?: string;
+- `project`: Use the root directory of the project. */;
+  "output-dir"?: string /* Output directory */;
+  "lib-dir"?: string /* HTML library (JS/CSS/etc.) directory */;
   "pre-render"?: MaybeArrayOf<string>;
   "post-render"?: MaybeArrayOf<string>;
   preview?: ProjectPreview;
   render?: (string)[] /* Files to render (defaults to all files) */;
-  resources?: MaybeArrayOf<string>;
+  resources?: MaybeArrayOf<
+    string
+  > /* Additional file resources to be copied to output directory */;
   title?: string;
   type?: (
     | "default"
@@ -859,38 +1044,40 @@ export type ProjectConfig = {
 };
 
 export type BookProject = ({
-  "output-file"?: string;
-  "cover-image"?: string;
-  "cover-image-alt"?: string;
+  "output-file"?:
+    string /* Base name for single-file output (e.g. PDF, ePub) */;
+  "cover-image"?: string /* Cover image (used in HTML and ePub formats) */;
+  "cover-image-alt"?:
+    string /* Alternative text for cover image (used in HTML format) */;
   author?: MaybeArrayOf<
     (string | SchemaObject) /* Author or authors of the book */
-  >;
-  abstract?: string;
+  > /* Author or authors of the book */;
+  abstract?: string /* Book abstract */;
   appendices?: ChapterList;
   chapters?: ChapterList;
-  date?: string;
-  description?: string;
+  date?: string /* Book publication date */;
+  description?: string /* Description metadata for HTML version of book */;
   downloads?: MaybeArrayOf<
     (
       | "pdf"
       | "epub"
       | "docx"
     ) /* Download buttons for other formats to include on navbar or sidebar
-(one or more of `pdf`, `epub`, and `docx`)
- */
-  >;
-  doi?: string;
-  references?: string;
-  subtitle?: string;
+(one or more of `pdf`, `epub`, and `docx`) */
+  > /* Download buttons for other formats to include on navbar or sidebar
+(one or more of `pdf`, `epub`, and `docx`) */;
+  doi?: string /* The Digital Object Identifier for this book. */;
+  references?: string /* Book references file */;
+  subtitle?: string /* Book subtitle */;
   sharing?: MaybeArrayOf<
     (
       | "twitter"
       | "facebook"
       | "linkedin"
     ) /* Sharing buttons to include on navbar or sidebar
-(one or more of `twitter`, `facebook`, `linkedin`)
- */
-  >;
-  title?: string;
-  tools?: (NavigationItem)[];
+(one or more of `twitter`, `facebook`, `linkedin`) */
+  > /* Sharing buttons to include on navbar or sidebar
+(one or more of `twitter`, `facebook`, `linkedin`) */;
+  title?: string /* Book title */;
+  tools?: (NavigationItem)[]; /* Custom tools for navbar or sidebar */
 } & BaseWebsite);

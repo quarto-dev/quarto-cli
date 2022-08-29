@@ -106,12 +106,16 @@ export function schemaToType(schema: any): string {
     }
     throw new Error(`Unimplemented: ${schema}`);
   }
-
-  const document = (schemaStr: string) => {
-    if (typeof schema.description === "string") {
-      return `${schemaStr} /* ${schema.description} */`;
+  // deno-lint-ignore no-explicit-any
+  const document = (schemaStr: string, entry: any) => {
+    if (typeof entry.description === "string") {
+      return `${schemaStr} /* ${entry.description.trim()} */`;
+    } else if (typeof schema.description === "string") {
+      return `${schemaStr} /* ${schema.description.trim()} */`;
+    } else if (typeof entry.description === "object") {
+      return `${schemaStr} /* ${entry.description.long.trim()} */`;
     } else if (typeof schema.description === "object") {
-      return `${schemaStr} /* ${schema.description.long} */`;
+      return `${schemaStr} /* ${schema.description.long.trim()} */`;
     } else {
       return schemaStr;
     }
@@ -120,23 +124,23 @@ export function schemaToType(schema: any): string {
   if (typeof schema === "object") {
     if (schema.schema) return schemaToType(schema.schema);
     if (schema.string) {
-      return document("string");
+      return document("string", schema.string);
     }
     if (schema.number) {
-      return document("number");
+      return document("number", schema.number);
     }
     if (schema.boolean) {
-      return document("boolean");
+      return document("boolean", schema.boolean);
     }
     if (schema.path) {
-      return document("string");
+      return document("string", schema.path);
     }
     if (schema.arrayOf) {
-      return document(`(${schemaToType(schema.arrayOf)})[]`);
+      return document(`(${schemaToType(schema.arrayOf)})[]`, schema.arrayOf);
     }
     if (schema.maybeArrayOf) {
       const t = schemaToType(schema.maybeArrayOf);
-      return document(`MaybeArrayOf<${t}>`);
+      return document(`MaybeArrayOf<${t}>`, schema.maybeArrayOf);
     }
     if (schema.record) {
       return document(
@@ -144,6 +148,7 @@ export function schemaToType(schema: any): string {
           Object.entries(schema.record).map(([key, value]) => {
             return `${key}: ${schemaToType(value)}`;
           }).join("; ") + "}",
+        {},
       );
     }
     if (schema.enum) {
@@ -155,6 +160,7 @@ export function schemaToType(schema: any): string {
         return document(
           "(" + v.map((x: unknown) => JSON.stringify(x)).join(" | ") +
             ")",
+          schema.enum,
         );
       };
       if (Array.isArray(schema.enum.values)) {
@@ -172,13 +178,19 @@ export function schemaToType(schema: any): string {
       if (!Array.isArray(schema.allOf)) {
         throw new Error(`Unimplemented: ${JSON.stringify(schema)}`);
       }
-      return document("(" + schema.allOf.map(schemaToType).join(" & ") + ")");
+      return document(
+        "(" + schema.allOf.map(schemaToType).join(" & ") + ")",
+        schema.allOf,
+      );
     }
     if (schema.anyOf) {
       if (!Array.isArray(schema.anyOf)) {
         throw new Error(`Unimplemented: ${JSON.stringify(schema)}`);
       }
-      return document("(" + schema.anyOf.map(schemaToType).join(" | ") + ")");
+      return document(
+        "(" + schema.anyOf.map(schemaToType).join(" | ") + ")",
+        schema.anyOf,
+      );
     }
     if (schema.object) {
       const mainType = (schema.object.properties === undefined)
@@ -201,9 +213,10 @@ export function schemaToType(schema: any): string {
             capitalize(
               toCapitalizationCase(schema.object?.super?.resolveRef),
             ) + ")",
+          schema.object,
         );
       } else {
-        return document(mainType);
+        return document(mainType, schema.object);
       }
     }
   }

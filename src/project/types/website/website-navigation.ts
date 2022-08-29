@@ -769,7 +769,7 @@ async function resolveSidebarItem(project: ProjectContext, item: SidebarItem) {
       item.href,
       item,
       true,
-    ) as SidebarItem;
+    );
   }
 
   if (item.contents) {
@@ -795,7 +795,7 @@ async function resolveSidebarTools(
               project,
               toolItem.href,
               toolItem,
-            ) as SidebarTool;
+            );
             validateTool(tool);
             items[i] = tool;
           }
@@ -808,7 +808,7 @@ async function resolveSidebarTools(
             project,
             toolItem.href,
             toolItem,
-          ) as SidebarTool;
+          );
           validateTool(tools[i]);
         }
       }
@@ -1007,7 +1007,7 @@ async function navbarEjsData(
 
     data.right?.push(...navbar.tools.map((tool) => {
       const navItem = tool as NavigationItemObject;
-      navItem[kAriaLabel] = navItem.text;
+      navItem[kAriaLabel] = navItem.text; // FIXME @dragonstyle shouldn't this check for the existence of kAriaLabel first?
       delete navItem.text;
       resolveIcon(navItem);
       return navItem;
@@ -1142,12 +1142,12 @@ function uniqueMenuId(navItem: NavigationItemObject) {
   return `nav-menu-${id}${number ? ("-" + number) : ""}`;
 }
 
-async function resolveItem(
+async function resolveItem<T extends { href?: string; text?: string }>(
   project: ProjectContext,
   href: string,
-  item: { href?: string; text?: string },
+  item: T,
   number = false,
-): Promise<{ href?: string; text?: string }> {
+): Promise<T> {
   if (!isExternalPath(href)) {
     const resolved = await resolveInputTarget(project, href);
     if (resolved) {

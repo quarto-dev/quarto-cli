@@ -15,17 +15,16 @@ import { TempContext } from "../core/temp-types.ts";
 import {
   NavigationItem as NavItem,
   NavigationItemObject,
-  PageFooter as NavigationFooter,
+  NavigationItemObject as SidebarTool,
   ProjectConfig as ProjectConfig_Project,
   ProjectPreview,
-  ToolItem as SidebarTool,
 } from "../resources/types/schema-types.ts";
 export {
   type NavigationItem as NavItem,
   type NavigationItemObject,
+  type NavigationItemObject as SidebarTool,
   type PageFooter as NavigationFooter,
   type ProjectPreview,
-  type ToolItem as SidebarTool,
 } from "../resources/types/schema-types.ts";
 
 export const kProjectType = "type";
