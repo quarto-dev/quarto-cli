@@ -106,6 +106,10 @@
         string:
           description: |
             Link to file contained with the project or external URL
+      text:
+        string:
+          description: |
+            Text to display for tool item
       menu:
         arrayOf:
           schema:

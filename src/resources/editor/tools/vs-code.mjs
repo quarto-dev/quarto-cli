@@ -8308,6 +8308,11 @@ var require_yaml_intelligence_resources = __commonJS({
                   description: "Link to file contained with the project or external URL\n"
                 }
               },
+              text: {
+                string: {
+                  description: "Text to display for tool item\n"
+                }
+              },
               menu: {
                 arrayOf: {
                   schema: {
@@ -8445,7 +8450,7 @@ var require_yaml_intelligence_resources = __commonJS({
                           enum: [
                             "lazy"
                           ],
-                          description: "Loading of the comments will be deferred until the user scrolls near the comments container."
+                          description: "Specify `loading: lazy` to defer loading comments until the user scrolls near the comments container."
                         },
                         "input-position": {
                           enum: [
