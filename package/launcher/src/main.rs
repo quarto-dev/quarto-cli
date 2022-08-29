@@ -12,43 +12,16 @@ fn main() {
     let js_file = bin_dir.join(Path::new("quarto.js"));
     let importmap_file = bin_dir.join("vendor").join("import_map.json");
 
-    // set QUARTO_BIN_PATH
-    std::env::set_var("QUARTO_BIN_PATH", bin_dir);
-
     // compute share path (may be provided externally or may be computed
     // automatically based on some known bin_dir installation locations
     let mut share_dir = path_from_env("QUARTO_SHARE_PATH");
     if share_dir.as_os_str().is_empty() {
-        // if quarto is bundled into an `.app` file (e.g. RStudio) it will be 
-        // looking for the share directory over in the resources folder.
-        if bin_dir.ends_with("/Contents/MacOS/quarto/bin") {
-            share_dir = bin_dir
-                .parent().expect("failed to get bin_dir parent")
-                .parent().expect("failed to get bin_dir parent")
-                .parent().expect("failed to get bin_dir parent")
-                .join("Resources")
-                .join("quarto")
-                .join("share");
-        // if using standard linux filesystem local bin folder then
-        // look for 'share' in the right place
-        } else if bin_dir.ends_with("/usr/local/bin/quarto") {
-            share_dir = bin_dir
-                .parent().expect("failed to get bin_dir parent")
-                .parent().expect("failed to get bin_dir parent")
-                .join("share")
-                .join("quarto");
-        } else {
-            share_dir = bin_dir
-                .parent()
-                .expect("failed to get bin path parent")
-                .join("share");
-        }
-        std::env::set_var("QUARTO_SHARE_PATH", share_dir.as_path());
+        share_dir = share_dir_from_bin_dir(bin_dir);
     }
-    
+
     // get command line args (skip first which is the program)
     let args: Vec<OsString> = env::args_os().skip(1).collect();
-    
+
     // handle --version
     if &args[0] == "--version" || &args[0] == "-v" {
         let version_path = share_dir.join("version");
@@ -72,6 +45,10 @@ fn main() {
     if deno_dom_file.as_os_str().is_empty() {
         deno_dom_file = bin_dir.join("tools").join("deno_dom").join(DENO_DOM_LIB);
     }
+
+    // set environment variables requried by quarto.js
+    std::env::set_var("QUARTO_BIN_PATH", bin_dir);
+    std::env::set_var("QUARTO_SHARE_PATH", share_dir.as_path());
     std::env::set_var("DENO_DOM_PLUGIN", deno_dom_file.as_os_str());
 
     // windows-specific env vars
@@ -108,7 +85,40 @@ fn path_from_env(key: &str) -> PathBuf {
     PathBuf::from(env::var_os(key).unwrap_or(OsString::new()))
 }
 
-// platform-specific constants
+fn share_dir_from_bin_dir(bin_dir: &Path) -> PathBuf {
+    // if quarto is bundled into an `.app` file (e.g. RStudio) it will be
+    // looking for the share directory over in the resources folder.
+    if bin_dir.ends_with("/Contents/MacOS/quarto/bin") {
+        bin_dir
+            .parent()
+            .expect("failed to get bin_dir parent")
+            .parent()
+            .expect("failed to get bin_dir parent")
+            .parent()
+            .expect("failed to get bin_dir parent")
+            .join("Resources")
+            .join("quarto")
+            .join("share")
+    // if using standard linux filesystem local bin folder then
+    // look for 'share' in the right place
+    } else if bin_dir.ends_with("/usr/local/bin/quarto") {
+        bin_dir
+            .parent()
+            .expect("failed to get bin_dir parent")
+            .parent()
+            .expect("failed to get bin_dir parent")
+            .join("share")
+            .join("quarto")
+    } else {
+        bin_dir
+            .parent()
+            .expect("failed to get bin path parent")
+            .join("share")
+    }
+}
+
+
+// platform-specific deno dom lib file
 
 #[cfg(target_os = "windows")]
 const DENO_DOM_LIB: &str = "plugin.dll";
@@ -117,4 +127,4 @@ const DENO_DOM_LIB: &str = "plugin.dll";
 const DENO_DOM_LIB: &str = "libplugin.dylib";
 
 #[cfg(target_os = "linux")]
-const DENO_DOM_LIB: &str =  "libplugin.so";
+const DENO_DOM_LIB: &str = "libplugin.so";
