@@ -37,7 +37,7 @@ fn main() {
     if &args[0] == "--version" || &args[0] == "-v" {
         let version_path = share_dir.join("version");
         let version = fs::read_to_string(version_path).expect("failed to read version");
-        print!("{}", version);
+        println!("{}", version);
         std::process::exit(0);
     }
 
@@ -59,8 +59,8 @@ fn main() {
 
     // set environment variables requried by quarto.js
     std::env::set_var("QUARTO_BIN_PATH", bin_dir);
-    std::env::set_var("QUARTO_SHARE_PATH", share_dir.as_path());
-    std::env::set_var("DENO_DOM_PLUGIN", deno_dom_file.as_os_str());
+    std::env::set_var("QUARTO_SHARE_PATH", share_dir);
+    std::env::set_var("DENO_DOM_PLUGIN", deno_dom_file);
 
     // windows-specific env vars
     #[cfg(target_os = "windows")]
