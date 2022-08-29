@@ -15,6 +15,7 @@ import { TempContext } from "../core/temp-types.ts";
 import {
   NavigationItem as NavItem,
   NavigationItemObject,
+  PageFooter as NavigationFooter,
   ProjectConfig as ProjectConfig_Project,
   ProjectPreview,
   ToolItem as SidebarTool,
@@ -22,6 +23,7 @@ import {
 export {
   type NavigationItem as NavItem,
   type NavigationItemObject,
+  type PageFooter as NavigationFooter,
   type ProjectPreview,
   type ToolItem as SidebarTool,
 } from "../resources/types/schema-types.ts";

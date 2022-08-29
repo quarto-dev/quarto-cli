@@ -1,6 +1,8 @@
 /*
 * types-from-schema.ts
 *
+* generates a typescript file with type definitions from our yaml schema definitions.
+*
 * Copyright (C) 2022 by RStudio, PBC
 *
 */

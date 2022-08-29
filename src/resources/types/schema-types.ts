@@ -188,6 +188,16 @@ export type Publish = { netlify?: (PublishRecord)[] };
 
 export type PublishRecord = { id?: string; url?: string };
 
+export type PageFooter = {
+  border?:
+    (boolean | string) /* Footer border (`true`, `false`, or a border color) */;
+  background?: string;
+  center?: PageFooterRegion;
+  foreground?: string;
+  left?: PageFooterRegion;
+  right?: PageFooterRegion;
+};
+
 export type BaseWebsite = {
   "site-url"?: string;
   "site-path"?: string;
@@ -269,17 +279,7 @@ The user’s cookie preferences will automatically control Google Analytics (if 
     string
   > /* Markdown to place below margin content (text or file path) */;
   "page-navigation"?: boolean;
-  "page-footer"?: (string | {
-    border?: (
-      | boolean
-      | string
-    ) /* Footer border (`true`, `false`, or a border color) */;
-    background?: string;
-    center?: PageFooterRegion;
-    foreground?: string;
-    left?: PageFooterRegion;
-    right?: PageFooterRegion;
-  }) /* Shared page footer */;
+  "page-footer"?: (string | PageFooter) /* Shared page footer */;
   "open-graph"?: (
     | boolean
     | ({ "site-name"?: string; locale?: string } & SocialMetadata)

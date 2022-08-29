@@ -493,6 +493,31 @@
         string:
           description: "Published URL for site"
 
+- id: page-footer
+  object:
+    properties:
+      left:
+        ref: page-footer-region
+        description: "Footer left content"
+      right:
+        ref: page-footer-region
+        description: "Footer right content"
+      center:
+        ref: page-footer-region
+        description: "Footer center content"
+      border:
+        anyOf:
+          - boolean
+          - string
+        description: "Footer border (`true`, `false`, or a border color)"
+      background:
+        schema: string
+        description: "Footer background color"
+      foreground:
+        schema: string
+        description: "Footer foreground color"
+    closed: true
+
 - id: base-website
   object:
     closed: true
@@ -854,29 +879,7 @@
       page-footer:
         anyOf:
           - string
-          - object:
-              properties:
-                left:
-                  ref: page-footer-region
-                  description: "Footer left content"
-                right:
-                  ref: page-footer-region
-                  description: "Footer right content"
-                center:
-                  ref: page-footer-region
-                  description: "Footer center content"
-                border:
-                  anyOf:
-                    - boolean
-                    - string
-                  description: "Footer border (`true`, `false`, or a border color)"
-                background:
-                  schema: string
-                  description: "Footer background color"
-                foreground:
-                  schema: string
-                  description: "Footer foreground color"
-              closed: true
+          - ref: page-footer
         description: "Shared page footer"
       image:
         path:
