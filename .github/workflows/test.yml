@@ -4,7 +4,12 @@ on:
   workflow_dispatch:
 jobs:
   build-launcher:
-    runs-on: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.config.os }}
+    name: ${{ matrix.config.os }}
+    strategy:
+      matrix:
+        version: [10, 12, 14]
+        os: [ubuntu-latest, windows-latest]
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v2
