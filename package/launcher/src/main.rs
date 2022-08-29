@@ -28,6 +28,11 @@ fn main() {
     // get command line args (skip first which is the program)
     let args: Vec<OsString> = env::args_os().skip(1).collect();
 
+    // handle no args at all
+    if args.is_empty() {
+        std::process::exit(0);
+    }
+
     // handle --version
     if &args[0] == "--version" || &args[0] == "-v" {
         let version_path = share_dir.join("version");
