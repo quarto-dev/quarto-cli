@@ -6,13 +6,15 @@ body:
   - type: markdown
     attributes:
       value: |
-        Welcome to the quarto GitHub repo!
+        Welcome to the quarto GitHub repo.
         
         We are always happy to hear feedback from our users.
         
         Quarto is under active development! If convenient, we'd appreciate if you could check that the issue persists on the [latest nightly release](https://github.com/quarto-dev/quarto-cli/releases).
 
-        To file a bug report, please follow these instructions carefully: <https://yihui.org/issue/#bug-reports>
+        Finally, so that we can get the most out of your bug report, consider reading [this webpage](https://quarto.org/bug-reports.html) on improving bug reports.
+        
+        Thank you for using Quarto!
   - type: textarea
     attributes:
       label: Bug description

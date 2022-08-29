@@ -73,6 +73,7 @@ export async function makeInstallerWindows(configuration: Configuration) {
     info("Signing application files");
 
     const filesToSign = [
+      { file: join(workingBinPath, "quarto.exe") },
       { file: join(workingToolsPath, "deno.exe") },
       { file: join(workingToolsPath, "esbuild.exe") },
       { file: join(workingToolsPath, "pandoc.exe") },

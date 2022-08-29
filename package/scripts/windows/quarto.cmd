@@ -83,10 +83,7 @@ IF "%1"=="--paths" (
 	GOTO end
 )
 
-echo %PSModulePath% | findstr %USERPROFILE% >NUL
-IF %ERRORLEVEL% EQU 0 (
-	SET NO_COLOR=TRUE
-)
+SET NO_COLOR=TRUE
 
 set "DENO_DOM_PLUGIN=!QUARTO_BIN_PATH!\tools\deno_dom\plugin.dll"
 IF DEFINED QUARTO_DENO_DOM (
