@@ -63,6 +63,7 @@ jobs:
     name: Build windows-latest
     runs-on: windows-latest
     steps:
+      - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: 1.63.0
@@ -85,6 +86,7 @@ jobs:
           - { os: macOS-latest }
           - { os: ubuntu-latest }  
     steps:
+      - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: 1.63.0
