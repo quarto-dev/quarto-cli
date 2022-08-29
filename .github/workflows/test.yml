@@ -19,6 +19,9 @@ jobs:
         with:
           # checkout full tree
           fetch-depth: 0
-
-      - name: Build Launcher
-        uses: ./.github/workflows/actions/launcher
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: 1.63.0
+          override: true
+          components: rustfmt, clippy
+      - run: cargo build --release --all-features --manifest-path package/launcher/cargo.toml
