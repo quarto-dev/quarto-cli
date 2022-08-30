@@ -21,3 +21,7 @@
 ## Authors and Affiliations
 
 - Improve handling of empty authors
+
+## Websites
+
+- Properly allow `twitter-card` and `open-graph` to override the page description.
