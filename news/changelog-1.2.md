@@ -6,6 +6,7 @@
 
 - Always ignore .ipynb inputs when they have a corresponding .qmd
 - Correctly interpret cell metadata with `false` values
+- Render text/latex outputs consisting entirely of $ math as markdown math
 
 ## General
 
