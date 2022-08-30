@@ -390,7 +390,9 @@ type metaVal = [string, string];
 
 const kMetaTitleId = "quarto-metatitle";
 const kTwitterTitle = "quarto-twittercardtitle";
+const kTwitterDesc = "quarto-twittercarddesc";
 const kOgTitle = "quarto-ogcardtitle";
+const kOgDesc = "quarto-ogcardddesc";
 const kMetaDescId = "quarto-metadesc";
 const kMetaSideNameId = "quarto-metasitename";
 function metaMarkdownPipeline(format: Format, extras: FormatExtras) {
@@ -467,26 +469,41 @@ function metaMarkdownPipeline(format: Format, extras: FormatExtras) {
 
   const descriptionMetaHandler = {
     getUnrendered() {
+      const inlines: Record<string, string> = {};
+
       // read document level metadata
       const pageMeta = pageMetadata(format, extras);
       const description = pageMeta.description as string;
+
+      // Twitter
+      const twitterMeta = twitterMetadata(format);
+      inlines[kTwitterDesc] = twitterMeta.title as string || description ||
+        "";
+
+      // Oopengraph
+      const ogMeta = opengraphMetadata(format);
+      inlines[kOgDesc] = ogMeta.title as string || description || "";
+
       if (description !== undefined) {
-        return { inlines: { [kMetaDescId]: description } };
+        return inlines;
       }
     },
     processRendered(rendered: Record<string, Element>, doc: Document) {
-      const renderedEl = rendered[kMetaDescId];
-      if (renderedEl) {
-        ['meta[property="og:description"]', 'meta[name="twitter:description"]']
-          .forEach(
-            (sel) => {
-              const metaEl = doc.querySelector(sel);
-              if (metaEl) {
-                metaEl.setAttribute("content", renderedEl.innerText);
-              }
-            },
-          );
-      }
+      // Meta values
+      const metaVals = [{
+        sel: 'meta[property="og:description"]',
+        key: kTwitterDesc,
+      }, { sel: 'meta[name="twitter:description"]', key: kOgDesc }];
+
+      metaVals.forEach((metaVal) => {
+        const renderedEl = rendered[metaVal.key];
+        if (renderedEl) {
+          const metaEl = doc.querySelector(metaVal.sel);
+          if (metaEl) {
+            metaEl.setAttribute("content", renderedEl.innerText);
+          }
+        }
+      });
     },
   };
 
