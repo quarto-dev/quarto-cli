@@ -27,6 +27,12 @@ export function outputForInput(input: string, to: string) {
   if (baseFormat === "commonmark") {
     outputExt = "md";
   }
+  if (baseFormat === "csljson") {
+    outputExt = "csl";
+  }
+  if (baseFormat === "bibtex" || baseFormat === "biblatex") {
+    outputExt = "bib";
+  }
 
   const outputPath = join(dir, `${stem}.${outputExt}`);
   const supportPath = join(dir, `${stem}_files`);

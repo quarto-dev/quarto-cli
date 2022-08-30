@@ -25,3 +25,7 @@
 ## Websites
 
 - Properly allow `twitter-card` and `open-graph` to override the page description.
+
+## Bibliography output
+
+- Now support formats `bibtex`, `biblatex`, and `csljson`. When rendered to one of these formats any citations within the document will be rendered as the specified bibliography format.

@@ -161,6 +161,15 @@ export function defaultWriterFormat(to: string): Format {
       writerFormat = ipynbFormat();
       break;
 
+    case "biblatex":
+    case "bibtex":
+      writerFormat = bibliographyFormat("bib");
+      break;
+
+    case "csljson":
+      writerFormat = bibliographyFormat("csl");
+      break;
+
     // syntesized formats (TODO: move these to quarto.land)
 
     case "hugo":
@@ -299,4 +308,8 @@ function plaintextFormat(ext: string): Format {
       [kDefaultImageExtension]: "png",
     },
   });
+}
+
+function bibliographyFormat(ext: string): Format {
+  return createFormat(ext);
 }
