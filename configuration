@@ -11,7 +11,7 @@ export DENO=v1.22.0
 export DENO_DOM=v0.1.17-alpha
 export PANDOC=2.19.2
 export DARTSASS=1.32.8
-export ESBUILD=0.14.39
+export ESBUILD=0.15.6
 
 # Bootstrap dependencies from bslib
 # (use commit hash from bslib repo)
