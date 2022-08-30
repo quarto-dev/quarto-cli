@@ -80,11 +80,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: 1.63.0
-          override: true
-          components: rustfmt, clippy    
           
       - name: Configure
         run: |
@@ -96,11 +91,6 @@ jobs:
           ./quarto-bld prepare-dist --set-version ${{needs.configure.outputs.version}} --log-level info
           popd
 
-      - name: Build Launcher
-        run: | 
-          cargo build --release --all-features --manifest-path package/launcher/Cargo.toml
-          cp package/launcher/target/release/quarto package/dist/bin/quarto
-          
       - name: Make Tarball
         run: |
           pushd package/
@@ -122,11 +112,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: 1.63.0
-          override: true
-          components: rustfmt, clippy          
 
       - name: Configure
         run: |
@@ -138,11 +123,6 @@ jobs:
           ./quarto-bld prepare-dist --set-version ${{needs.configure.outputs.version}} --log-level info
           popd
           
-      - name: Build Launcher
-        run: | 
-          cargo build --release --all-features --manifest-path package/launcher/Cargo.toml
-          cp package/launcher/target/release/quarto package/dist/bin/quarto          
-
       - name: Make Installer
         run: |
           pushd package/src/
@@ -244,11 +224,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: 1.63.0
-          override: true
-          components: rustfmt, clippy                
 
       - name: Configure
         run: |
@@ -277,12 +252,6 @@ jobs:
           pushd package/src/
           ./quarto-bld prepare-dist --set-version ${{needs.configure.outputs.version}} --log-level info
           popd
-
-      - name: Build Launcher
-        run: | 
-          cargo build --release --all-features --manifest-path package/launcher/Cargo.toml
-          mkdir -p package/dist/bin
-          cp package/launcher/target/release/quarto package/dist/bin/quarto
 
       - name: Make Installer
         run: |
