@@ -16051,6 +16051,48 @@ try {
             description: "The alt text for preview image on this page."
           }
         ],
+        "schema/extension.yml": [
+          {
+            name: "title",
+            description: "Extension title.",
+            schema: "string"
+          },
+          {
+            name: "author",
+            description: "Extension author.",
+            schema: "string"
+          },
+          {
+            name: "version",
+            description: "Extension version.",
+            schema: {
+              ref: "semver"
+            }
+          },
+          {
+            name: "quarto-version",
+            description: "Quarto version range. See https://docs.npmjs.com/cli/v6/using-npm/semver for syntax details.",
+            schema: "string"
+          },
+          {
+            name: "contributes",
+            schema: {
+              object: {
+                properties: {
+                  shortcodes: {
+                    arrayOf: "path"
+                  },
+                  filters: {
+                    arrayOf: "path"
+                  },
+                  formats: {
+                    schema: "object"
+                  }
+                }
+              }
+            }
+          }
+        ],
         "schema/format-aliases.yml": {
           aliases: {
             "epub-all": [
@@ -17195,6 +17237,7 @@ try {
             long: 'Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>) See <a href="https://icons.getbootstrap.com/" class="uri">https://icons.getbootstrap.com/</a> for a list of available\nicons'
           },
           "Link to file contained with the project or external URL",
+          "Text to display for tool item",
           "The Github repo that will be used to store comments.",
           "The label that will be assigned to issues created by Utterances.",
           {
@@ -17226,7 +17269,7 @@ try {
             long: "The mapping between the page and the embedded discussion."
           },
           "Display reactions for the discussion\u2019s main post before the\ncomments.",
-          "Loading of the comments will be deferred until the user scrolls near\nthe comments container.",
+          "Specify <code>loading: lazy</code> to defer loading comments until\nthe user scrolls near the comments container.",
           "Place the comment input box above or below the comments.",
           "The giscus theme to use when displaying comments.",
           "The language that should be used when displaying the commenting\ninterface.",
@@ -19444,49 +19487,7 @@ try {
             ]
           },
           $id: "handlers/mermaid"
-        },
-        "schema/extension.yml": [
-          {
-            name: "title",
-            description: "Extension title.",
-            schema: "string"
-          },
-          {
-            name: "author",
-            description: "Extension author.",
-            schema: "string"
-          },
-          {
-            name: "version",
-            description: "Extension version.",
-            schema: {
-              ref: "semver"
-            }
-          },
-          {
-            name: "quarto-version",
-            description: "Quarto version range. See https://docs.npmjs.com/cli/v6/using-npm/semver for syntax details.",
-            schema: "string"
-          },
-          {
-            name: "contributes",
-            schema: {
-              object: {
-                properties: {
-                  shortcodes: {
-                    arrayOf: "path"
-                  },
-                  filters: {
-                    arrayOf: "path"
-                  },
-                  formats: {
-                    schema: "object"
-                  }
-                }
-              }
-            }
-          }
-        ]
+        }
       };
     }
   });
