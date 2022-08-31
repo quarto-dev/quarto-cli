@@ -17,6 +17,10 @@
 - Improve YAML validation error messages on values of type object (#2191)
 - Upgrade esbuild to 0.15.6
 
+## Extensions
+
+- HTML dependencies may be provided by paths to files outside the extension directory
+
 ## PDF Output
 
 - Provide a better error message for PDF output that produces an empty document
