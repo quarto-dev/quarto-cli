@@ -1,0 +1,6 @@
+---
+title: "Summarizing Output for Reproducible Documents"
+bibliography: biblio.bib
+---
+
+@Blei09 Is pretty sweet.

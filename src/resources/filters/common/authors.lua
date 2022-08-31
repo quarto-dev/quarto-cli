@@ -532,7 +532,11 @@ function toName(nameParts)
 
     return normalizeName(name)
   else
-    return normalizeName({[kLiteralName] = nameParts})
+    if #nameParts == 0 then
+      return {}
+    else
+      return normalizeName({[kLiteralName] = nameParts})
+    end
   end
 end
 
@@ -591,16 +595,31 @@ local kBibtexNameTemplate = [[
 --- so we leverage that.
 function bibtexParseName(nameRaw)
   local bibtex = kBibtexNameTemplate:format(pandoc.utils.stringify(nameRaw))
-  local name = pandoc.read(bibtex, 'bibtex').meta.references[1].author[1]
-  if type(name) ~= 'table' then
-    return nameRaw
-  else
-    -- most dropping particles are really non-dropping
-    if name['dropping-particle'] and not name['non-dropping-particle'] then
-      name['non-dropping-particle'] = name['dropping-particle']
-      name['dropping-particle'] = nil
+  local references = pandoc.read(bibtex, 'bibtex').meta.references
+  if references then
+    local reference = references[1]
+    if reference then
+      local authors = reference.author
+      if authors then
+        local name = authors[1]
+        if type(name) ~= 'table' then
+          return nameRaw
+        else
+          -- most dropping particles are really non-dropping
+          if name['dropping-particle'] and not name['non-dropping-particle'] then
+            name['non-dropping-particle'] = name['dropping-particle']
+            name['dropping-particle'] = nil
+          end
+          return name
+        end    
+      else
+        return nameRaw
+      end
+    else
+      return nameRaw
     end
-    return name
+  else 
+    return nameRaw
   end
 end
 

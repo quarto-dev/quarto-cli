@@ -61,6 +61,7 @@ import("table-captions.lua")
 import("table-colwidth.lua")
 import("theorems.lua")
 import("resourcefiles.lua")
+import("bibliography-formats.lua")
 import("book-numbering.lua")
 import("book-links.lua")
 import("meta.lua")
@@ -82,6 +83,7 @@ initShortcodeHandlers()
 
 local filterList = {
   { name = "init", filter = initOptions() },
+  { name = "bibliographyFormats", filter = bibliographyFormats() },
   { name = "shortCodesBlocks", filter = shortCodesBlocks() } ,
   { name = "shortCodesInlines", filter = shortCodesInlines() },
   { name = "tableMergeRawHtml", filter = tableMergeRawHtml() },
