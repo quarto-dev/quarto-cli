@@ -218,7 +218,6 @@ export function reindent(
       s.add(r[0].length);
     }
   }
-  console.log(s);
   if (s.size === 0) {
     return str;
   } else if (s.size === 1) {

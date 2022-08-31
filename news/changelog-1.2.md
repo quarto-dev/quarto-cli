@@ -15,6 +15,7 @@
 - Don't call Deno.realPathSync on Windows (avoid problems w/ UNC paths)
 - Don't include Unicode literals on Windows directly (#2184), thanks @yihui
 - Improve YAML validation error messages on values of type object (#2191)
+- Upgrade esbuild to 0.15.6
 
 ## PDF Output
 
