@@ -17194,6 +17194,7 @@ var require_yaml_intelligence_resources = __commonJS({
           long: 'Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>) See <a href="https://icons.getbootstrap.com/" class="uri">https://icons.getbootstrap.com/</a> for a list of available\nicons'
         },
         "Link to file contained with the project or external URL",
+        "Text to display for tool item",
         "The Github repo that will be used to store comments.",
         "The label that will be assigned to issues created by Utterances.",
         {
@@ -17225,7 +17226,7 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "The mapping between the page and the embedded discussion."
         },
         "Display reactions for the discussion\u2019s main post before the\ncomments.",
-        "Loading of the comments will be deferred until the user scrolls near\nthe comments container.",
+        "Specify <code>loading: lazy</code> to defer loading comments until\nthe user scrolls near the comments container.",
         "Place the comment input box above or below the comments.",
         "The giscus theme to use when displaying comments.",
         "The language that should be used when displaying the commenting\ninterface.",
@@ -25118,7 +25119,33 @@ function getLastFragment(instancePath) {
   return instancePath[instancePath.length - 1];
 }
 function reindent(str2) {
-  return str2;
+  const s = /* @__PURE__ */ new Set();
+  const ls = lines(str2);
+  for (const l of ls) {
+    const r = l.match("^[ ]+");
+    if (r) {
+      s.add(r[0].length);
+    }
+  }
+  console.log(s);
+  if (s.size === 0) {
+    return str2;
+  } else if (s.size === 1) {
+    const v = Array.from(s)[0];
+    const oldIndent = " ".repeat(v);
+    if (v <= 2) {
+      return str2;
+    }
+    return ls.map((l) => l.startsWith(oldIndent) ? l.slice(v - 2) : l).join("\n");
+  } else {
+    const [first, second] = Array.from(s);
+    const oldIndent = " ".repeat(first);
+    const newIndent = second - first;
+    if (newIndent >= first) {
+      return str2;
+    }
+    return ls.map((l) => l.startsWith(oldIndent) ? l.slice(first - newIndent) : l).join("\n");
+  }
 }
 function ignoreExprViolations(error, _parse, _schema) {
   const { result } = error.violatingObject;
@@ -25159,11 +25186,19 @@ function formatHeadingForValueError(error, _parse, _schema) {
         return `Array entry ${lastFragment + 1} with value ${verbatimInput} failed to ${schemaDescription(error.schema)}.`;
       }
     case "string": {
-      const formatLastFragment = blue(lastFragment);
+      const formatLastFragment = '"' + blue(lastFragment) + '"';
       if (empty) {
-        return `Key ${formatLastFragment} has empty value but it must instead ${schemaDescription(error.schema)}`;
+        return `Field ${formatLastFragment} has empty value but it must instead ${schemaDescription(error.schema)}`;
       } else {
-        return `Key ${formatLastFragment} has value ${verbatimInput}, which must ${schemaDescription(error.schema)}`;
+        if (verbatimInput.indexOf("\n") !== -1) {
+          return `Field ${formatLastFragment} has value
+
+${verbatimInput}
+
+The value must instead ${schemaDescription(error.schema)}.`;
+        } else {
+          return `Field ${formatLastFragment} has value ${verbatimInput}, which must instead ${schemaDescription(error.schema)}`;
+        }
       }
     }
   }
@@ -25237,11 +25272,17 @@ function checkForTypeMismatch(error, parse, schema2) {
     return typeof obj;
   };
   if (errorKeyword(error) === "type" && rawVerbatimInput.length > 0) {
+    const reindented = reindent(verbatimInput);
+    const subject = reindented.indexOf("\n") === -1 ? `The value ${reindented} ` : `The value
+
+${reindented}
+
+`;
     const newError = {
       ...error.niceError,
       heading: formatHeadingForValueError(error, parse, schema2),
       error: [
-        `The value ${verbatimInput} is ${goodType(error.violatingObject.result)}.`
+        `${subject}is of type ${goodType(error.violatingObject.result)}.`
       ],
       info: {},
       location: error.niceError.location
