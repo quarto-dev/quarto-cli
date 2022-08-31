@@ -6,6 +6,7 @@
 
 - Always ignore .ipynb inputs when they have a corresponding .qmd
 - Correctly interpret cell metadata with `false` values
+- Render text/latex outputs consisting entirely of $ math as markdown math
 
 ## General
 
@@ -26,3 +27,11 @@
 ## Websites
 
 - Properly allow `twitter-card` and `open-graph` to override the page description.
+
+## Publishing
+
+- Handle CNAME file for `gh-pages` either without or without protocol prefix (e.g. https://)
+
+## Bibliography output
+
+- Now support formats `bibtex`, `biblatex`, and `csljson`. When rendered to one of these formats any citations within the document will be rendered as the specified bibliography format.

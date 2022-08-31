@@ -59,6 +59,7 @@ import {
   displayDataIsMarkdown,
   displayDataIsTextPlain,
   displayDataMimeType,
+  displayDataWithMarkdownMath,
   isCaptionableData,
   isDisplayData,
 } from "./display-data.ts";
@@ -935,7 +936,7 @@ async function mdFromCodeCell(
     return [];
   }
 
-  // filter outputs as needed
+  // filter and transform outputs as needed
   const outputs = (cell.outputs || []).filter((output) => {
     // filter warnings if requested
     if (
@@ -955,6 +956,13 @@ async function mdFromCodeCell(
       }
     }
     return true;
+  }).map((output) => {
+    // convert text/latex math to markdown as appropriate
+    if (!options.toLatex && isDisplayData(output) && output.data[kTextLatex]) {
+      return displayDataWithMarkdownMath(output);
+    } else {
+      return output;
+    }
   });
 
   // redact if the cell has no source and no output

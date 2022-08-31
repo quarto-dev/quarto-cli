@@ -79,6 +79,16 @@ local function isEpubOutput()
   return tcontains(formats, FORMAT)
 end
 
+-- check for bibliography formats
+local function isBibliographyOutput()
+  local formats = {
+    "bibtex",
+    "biblatex",
+    "csljson"
+  }
+  return tcontains(formats, FORMAT)
+end
+
 -- check for markdown output
 local function isMarkdownOutput()
   local formats = {
@@ -177,5 +187,6 @@ return {
   isMarkdownWithHtmlOutput = isMarkdownWithHtmlOutput,
   isIpynbOutput = isIpynbOutput, 
   isHtmlOutput = isHtmlOutput, 
-  isHtmlSlideOutput = isHtmlSlideOutput
+  isHtmlSlideOutput = isHtmlSlideOutput,
+  isBibliographyOutput = isBibliographyOutput
 }

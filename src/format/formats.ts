@@ -161,6 +161,35 @@ export function defaultWriterFormat(to: string): Format {
       writerFormat = ipynbFormat();
       break;
 
+    case "biblatex":
+    case "bibtex":
+      writerFormat = bibliographyFormat("bib");
+      break;
+
+    case "csljson":
+      writerFormat = bibliographyFormat("csl");
+      break;
+
+    case "texttile":
+    case "texinfo":
+    case "tei":
+    case "rst":
+    case "org":
+    case "opml":
+    case "muse":
+    case "ms":
+    case "native":
+    case "man":
+    case "dokuwiki":
+    case "haddock":
+    case "json":
+    case "icml":
+    case "jira":
+    case "mediawiki":
+    case "xwiki":
+      writerFormat = plaintextFormat(to);
+      break;
+
     // syntesized formats (TODO: move these to quarto.land)
 
     case "hugo":
@@ -168,24 +197,7 @@ export function defaultWriterFormat(to: string): Format {
       break;
 
     default:
-      // textile
-      // texinfo
-      // tei
-      // rst
-      // org
-      // opml
-      // muse
-      // ms
-      // native
-      // man
-      // dokuwiki
-      // haddock
-      // json
-      // icml
-      // jira
-      // mediawiki
-      // xwiki
-      writerFormat = plaintextFormat(to);
+      writerFormat = unknownFormat("txt");
   }
 
   // set the writer
@@ -299,4 +311,12 @@ function plaintextFormat(ext: string): Format {
       [kDefaultImageExtension]: "png",
     },
   });
+}
+
+function unknownFormat(ext: string): Format {
+  return createFormat(ext);
+}
+
+function bibliographyFormat(ext: string): Format {
+  return createFormat(ext);
 }
