@@ -25,3 +25,7 @@
 ## Websites
 
 - Properly allow `twitter-card` and `open-graph` to override the page description.
+
+## Dependencies
+
+- Upgrade esbuild to 0.15.6
