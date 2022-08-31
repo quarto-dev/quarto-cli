@@ -75,7 +75,7 @@ async function dartCommand(args: string[]) {
     ...args,
   ];
 
-  // Run the sas compiler
+  // Run the sass compiler
   const result = await execProcess(
     {
       cmd,

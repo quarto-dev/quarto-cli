@@ -168,7 +168,13 @@ export async function printBrowsePreviewMessage(
   port: number,
   path: string,
 ) {
-  if (isVSCodeTerminal() && isVSCodeServer()) {
+  if (
+    (isJupyterServer() || isVSCodeTerminal()) && isRStudioWorkbench()
+  ) {
+    const url = await rswURL(port, path);
+    info(`\nPreview server: ${previewURL(host, port, path = "")}`);
+    info(`\nBrowse at ${url}`, { format: colors.green });
+  } else if (isVSCodeTerminal() && isVSCodeServer()) {
     const browseUrl = vsCodeServerProxyUri()!.replace("{{port}}", `${port}`) +
       "/" + path;
     info(`\nBrowse at ${browseUrl}`, { format: colors.green });
@@ -182,12 +188,6 @@ export async function printBrowsePreviewMessage(
         format: colors.green,
       },
     );
-  } else if (
-    (isJupyterServer() || isVSCodeTerminal()) && isRStudioWorkbench()
-  ) {
-    const url = await rswURL(port, path);
-    info(`\nPreview server: ${previewURL(host, port, path = "")}`);
-    info(`\nBrowse at ${url}`, { format: colors.green });
   } else {
     const url = previewURL(host, port, path);
     if (!isRStudioServer()) {
