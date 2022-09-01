@@ -42,11 +42,8 @@ function asLua(o)
   if type(o) ~= 'userdata' then
     return o
   end
-  local p = string.format("%p", o)
-
-  -- we check equality against the addresses to work around
-  -- https://github.com/jgm/pandoc/issues/8267
-  if p == string.format("%p", PANDOC_READER_OPTIONS) then
+  
+  if rawequal(o, PANDOC_READER_OPTIONS) then
     return {
       abbreviations = o.abbreviations,
       columns = o.columns,
@@ -58,7 +55,7 @@ function asLua(o)
       tab_stop = o.tab_stop,
       track_changes = o.track_changes,
     }
-  elseif p == string.format("%p", PANDOC_WRITER_OPTIONS) then
+  elseif rawequal(o, PANDOC_WRITER_OPTIONS) then
     return {
       cite_method = o.cite_method,
       columns = o.columns,
