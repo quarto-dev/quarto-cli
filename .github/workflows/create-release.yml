@@ -410,7 +410,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Deb Zip/quarto-${{needs.configure.outputs.version}}-x86_64-fedora.tar.gz
+          asset_path: ./Fedora Zip/quarto-${{needs.configure.outputs.version}}-x86_64-fedora.tar.gz
           asset_name: quarto-${{needs.configure.outputs.version}}-x86_64-fedora.tar.gz
           asset_content_type: application/gzip      
 
@@ -490,6 +490,10 @@ jobs:
 
           pushd Deb\ Zip
           sha256sum quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
+          popd
+          
+          pushd Fedora\ Zip
+          sha256sum quarto-${{needs.configure.outputs.version}}-x86_64-fedora.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
           popd
 
           pushd Deb\ Installer
