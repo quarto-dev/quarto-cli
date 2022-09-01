@@ -67,7 +67,11 @@ if r'{4}':
 
 def ojs_define(**kwargs):
   import json
-  from IPython.core.display import display, HTML
+  try:
+    # IPython 7.14 preferred import
+    from IPython.display import display, HTML
+  except:
+    from IPython.core.display import display, HTML
 
   # do some minor magic for convenience when handling pandas
   # dataframes

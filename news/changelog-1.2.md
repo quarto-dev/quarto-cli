@@ -7,6 +7,7 @@
 - Always ignore .ipynb inputs when they have a corresponding .qmd
 - Correctly interpret cell metadata with `false` values
 - Render text/latex outputs consisting entirely of $ math as markdown math
+- Use IPython 7.14 import syntax in `ojs_define`
 
 ## General
 
