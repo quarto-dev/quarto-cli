@@ -41,3 +41,7 @@
 ## Bibliography output
 
 - Now support formats `bibtex`, `biblatex`, and `csljson`. When rendered to one of these formats any citations within the document will be rendered as the specified bibliography format.
+
+## Lua Filters
+
+- harden `quarto.utils.dump` so it works with pandoc's builtin global variables (#2254)
