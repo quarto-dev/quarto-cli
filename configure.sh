@@ -54,10 +54,8 @@ if [[ "${QUARTO_VENDOR_BINARIES}" = "true" ]]; then
       rm $DENOFILE
     done
 
+    # we create a symlink here so that we need only one quarto-cli.code-workspace file
     ln -s $DENO_DIR/deno deno
-    # download "$DENOURL/$DENO/$DENOFILE" "$DENOFILE"
-    # unzip -o $DENOFILE
-    # rm $DENOFILE
 
     # If a canary commit is provided, upgrade to that
     if [ ! -z "$DENO_CANARY_COMMIT" ]; then
