@@ -5,8 +5,26 @@
   // Ensure that external links open in a new window by default.
   var links = document.getElementsByTagName("a");
   for (var i = 0; i < links.length; i++) {
-    if (!links[i].href.startsWith(document.location.origin)) {
-      links[i].target = "_blank";
+    var link = links[i];
+    if (!link.href.startsWith(document.location.origin)) {
+      // vscode
+      if (window.location.search.includes("quartoPreviewReqId=")) {
+        var url = link.href;
+        link.onclick = function(ev) {
+          if (window.parent.postMessage) {
+            window.parent.postMessage({
+              type: "openExternal",
+              url: url
+            }, "*");
+          }
+          ev.preventDefault();
+          ev.stopPropagation();
+          return false;
+        };
+      // rstudio
+      } else if (window.location.search.includes("capabilities=")) {
+        link.target = "_blank";
+      }
     }
   }
 
