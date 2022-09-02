@@ -36,7 +36,6 @@ import {
 } from "../../config/types.ts";
 import {
   isBeamerOutput,
-  isDocxOutput,
   isEpubOutput,
   isHtmlDocOutput,
   isHtmlFileOutput,
@@ -71,11 +70,7 @@ import {
   pandocDefaultsMessage,
   writeDefaultsFile,
 } from "./defaults.ts";
-import {
-  filterParamsJson,
-  quartoInitFilter,
-  removeFilterParams,
-} from "./filters.ts";
+import { filterParamsJson, removeFilterParams } from "./filters.ts";
 import {
   kAbstract,
   kAbstractTitle,
@@ -1052,7 +1047,6 @@ async function resolveExtras(
             inputDir,
             libDir,
             doc,
-            project,
           ),
       );
     };
