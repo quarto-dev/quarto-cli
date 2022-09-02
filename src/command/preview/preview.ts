@@ -592,11 +592,11 @@ function htmlFileRequestHandlerOptions(
           file = format.formatPreviewFile(file, format);
         }
         const fileContents = await Deno.readFile(file);
-        return reloader.injectClient(fileContents, inputFile);
+        return reloader.injectClient(req, fileContents, inputFile);
       } else if (isTextContent(file)) {
         const html = await textPreviewHtml(file, req);
         const fileContents = new TextEncoder().encode(html);
-        return reloader.injectClient(fileContents, inputFile);
+        return reloader.injectClient(req, fileContents, inputFile);
       }
     },
   };

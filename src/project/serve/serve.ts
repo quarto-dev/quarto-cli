@@ -339,7 +339,7 @@ export async function serveProject(
     },
 
     // handle html file requests w/ re-renders
-    onFile: async (file: string) => {
+    onFile: async (file: string, req: Request) => {
       // if this is an html file or a pdf then re-render (using the freezer)
       if (isHtmlContent(file) || isPdfContent(file)) {
         // find the input file associated with this output and render it
@@ -425,6 +425,7 @@ export async function serveProject(
             relative(watcher.project().dir, inputFile),
           );
           return watcher.injectClient(
+            req,
             fileContents,
             projInputFile,
           );
@@ -466,7 +467,7 @@ export async function serveProject(
       }
       return {
         print,
-        response: watcher.injectClient(body),
+        response: watcher.injectClient(req, body),
       };
     },
   };
@@ -521,11 +522,11 @@ export async function serveProject(
     // install custom handler for pdfjs
     handlerOptions.onFile = pdfJsFileHandler(
       pdfOutputFile!,
-      async (file: string) => {
+      async (file: string, req: Request) => {
         // inject watcher client for html
         if (isHtmlContent(file)) {
           const fileContents = await Deno.readFile(file);
-          return watcher.injectClient(fileContents);
+          return watcher.injectClient(req, fileContents);
         } else {
           return undefined;
         }

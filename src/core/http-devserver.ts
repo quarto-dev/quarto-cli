@@ -21,6 +21,7 @@ export interface HttpDevServer {
   handle: (req: Request) => boolean;
   connect: (req: Request) => Promise<Response | undefined>;
   injectClient: (
+    req: Request,
     file: Uint8Array,
     inputFile?: string,
   ) => FileResponse;
@@ -93,9 +94,13 @@ export function httpDevServer(
         return Promise.resolve(undefined);
       }
     },
-    injectClient: (file: Uint8Array, inputFile?: string): FileResponse => {
+    injectClient: (
+      req: Request,
+      file: Uint8Array,
+      inputFile?: string,
+    ): FileResponse => {
       const scriptContents = new TextEncoder().encode(
-        "\n" + devServerClientScript(port, inputFile, isPresentation),
+        "\n" + devServerClientScript(req, port, inputFile, isPresentation),
       );
       const fileWithScript = new Uint8Array(
         file.length + scriptContents.length,
@@ -134,29 +139,51 @@ export function httpDevServer(
 }
 
 function devServerClientScript(
+  req: Request,
   port: number,
   inputFile?: string,
   isPresentation?: boolean,
 ): string {
   // core devserver
   const devserver = [
-    renderEjs(resourcePath("editor/devserver/devserver-core.html"), {
+    renderEjs(devserverHtmlResourcePath("core"), {
       localhost: kLocalhost,
       port,
     }),
   ];
   if (isPresentation) {
     devserver.push(
-      renderEjs(resourcePath("editor/devserver/devserver-revealjs.html"), {}),
+      renderEjs(devserverHtmlResourcePath("revealjs"), {}),
     );
   } else {
     // viewer devserver
     devserver.push(
-      renderEjs(resourcePath("editor/devserver/devserver-viewer.html"), {
+      renderEjs(devserverHtmlResourcePath("viewer"), {
         inputFile: inputFile || "",
       }),
     );
   }
 
+  if (isViewerIFrameRequest(req.url)) {
+    devserver.push(
+      Deno.readTextFileSync(
+        devserverHtmlResourcePath("iframe"),
+      ),
+    );
+  }
+
   return devserver.join("\n");
+}
+
+function devserverHtmlResourcePath(resource: string) {
+  return resourcePath(`editor/devserver/devserver-${resource}.html`);
+}
+
+export function isViewerIFrameRequest(url?: string | null) {
+  const isViewer = url && (
+    url.includes("capabilities=") || // rstudio viewer
+    url.includes("vscodeBrowserReqId=") || // vscode simple browser
+    url.includes("quartoPreviewReqId=") // generic embedded browser
+  );
+  return isViewer;
 }
