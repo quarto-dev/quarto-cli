@@ -19,8 +19,6 @@ else
   SCRIPT_PATH="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 fi
 
-source ${SCRIPT_PATH}/../../scripts/common/utils.sh
-
 # Check if we are running 'Dev Mode' and if so, override values for devs
 SCRIPT_BASENAME=$(basename $SCRIPT_PATH)
 if [ "${SCRIPT_BASENAME}" == "bin" ]; then
@@ -121,7 +119,6 @@ else
 fi
 
 if [ "$QUARTO_DENO" == "" ]; then
-
   if [[ $OSTYPE == 'darwin'* ]]; then
     FULLARCH=$(uname -sm)
     
