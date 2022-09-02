@@ -76,6 +76,11 @@ export function httpDevServer(
     }
   });
 
+  let injectClientInitialized = false;
+  let isFrame: boolean;
+  let origin: string;
+  let search: string;
+
   return {
     handle: (req: Request) => {
       return req.headers.get("upgrade") === "websocket";
@@ -99,9 +104,24 @@ export function httpDevServer(
       file: Uint8Array,
       inputFile?: string,
     ): FileResponse => {
-      const scriptContents = new TextEncoder().encode(
-        "\n" + devServerClientScript(req, port, inputFile, isPresentation),
+      if (!injectClientInitialized) {
+        const url = new URL(req.url);
+        isFrame = isViewerIFrameRequest(req);
+        origin = url.origin;
+        search = url.search;
+        injectClientInitialized = true;
+      }
+
+      const script = devServerClientScript(
+        origin,
+        search,
+        port,
+        inputFile,
+        isPresentation,
+        isFrame,
       );
+
+      const scriptContents = new TextEncoder().encode("\n" + script);
       const fileWithScript = new Uint8Array(
         file.length + scriptContents.length,
       );
@@ -139,10 +159,12 @@ export function httpDevServer(
 }
 
 function devServerClientScript(
-  req: Request,
+  origin: string,
+  search: string,
   port: number,
   inputFile?: string,
   isPresentation?: boolean,
+  isFrame?: boolean,
 ): string {
   // core devserver
   const devserver = [
@@ -164,11 +186,12 @@ function devServerClientScript(
     );
   }
 
-  if (isViewerIFrameRequest(req.url)) {
+  if (isFrame) {
     devserver.push(
-      Deno.readTextFileSync(
-        devserverHtmlResourcePath("iframe"),
-      ),
+      renderEjs(devserverHtmlResourcePath("iframe"), {
+        origin: origin,
+        search: search,
+      }),
     );
   }
 
@@ -180,9 +203,7 @@ function devserverHtmlResourcePath(resource: string) {
 }
 
 export function isViewerIFrameRequest(req: Request) {
-
   for (const url of [req.url, req.referrer]) {
-
     const isViewer = url && (
       url.includes("capabilities=") || // rstudio viewer
       url.includes("vscodeBrowserReqId=") || // vscode simple browser
@@ -192,7 +213,6 @@ export function isViewerIFrameRequest(req: Request) {
     if (isViewer) {
       return true;
     }
-
   }
 
   return false;

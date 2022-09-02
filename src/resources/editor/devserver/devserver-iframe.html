@@ -2,10 +2,8 @@
 <script type="text/javascript">
 (function() {
 
-  // save document origin (this might change as a page is navigated)
-  // e.g. in Quarto books so we need to know the original value
-  var origin = document.location.origin;
-  var search = window.location.search;
+  var origin = "<%- origin %>";
+  var search = "<%- search %>";
 
   function isLocalHref(href) {
     return href.startsWith(origin);
@@ -30,7 +28,6 @@
 
     var isRStudio = search.includes("capabilities=");
     if (isRStudio) {
-      console.log("Hello from quarto-cli");
       linkEl.target = "_blank";
     }
 
