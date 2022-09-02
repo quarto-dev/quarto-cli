@@ -1,7 +1,3 @@
-## OJS
-
-- support `revealjs` and `html` formats in `width` builtin, fallback gracefully otherwise (#2058)
-
 ## Jupyter
 
 - Always ignore .ipynb inputs when they have a corresponding .qmd
@@ -9,20 +5,19 @@
 - Render text/latex outputs consisting entirely of $ math as markdown math
 - Use IPython 7.14 import syntax in `ojs_define`
 
-## General
+## OJS
 
-- Don't discover resources within a site or book output directory
-- Fix error when restoring preserved HTML in output files that use `output-file`
-- Don't call Deno.realPathSync on Windows (avoid problems w/ UNC paths)
-- Don't include Unicode literals on Windows directly (#2184), thanks @yihui
-- Improve YAML validation error messages on values of type object (#2191)
-- Upgrade esbuild to 0.15.6
+- support `revealjs` and `html` formats in `width` builtin, fallback gracefully otherwise (#2058)
 
 ## Extensions
 
 - HTML dependencies may be provided by paths to files outside the extension directory
 
-## PDF Output
+## HTML Format
+
+- Fix error when restoring preserved HTML in output files that use `output-file`
+
+## PDF Format
 
 - Provide a better error message for PDF output that produces an empty document
 
@@ -33,15 +28,24 @@
 ## Websites
 
 - Properly allow `twitter-card` and `open-graph` to override the page description.
+- Don't discover resources within a site or book output directory
 
 ## Publishing
 
 - Handle CNAME file for `gh-pages` either without or without protocol prefix (e.g. https://)
 
-## Bibliography output
+## Bibliographies
 
-- Now support formats `bibtex`, `biblatex`, and `csljson`. When rendered to one of these formats any citations within the document will be rendered as the specified bibliography format.
+- Support formats `bibtex`, `biblatex`, and `csljson`. When rendered to one of these formats any citations within the document will be rendered as the specified bibliography format.
 
 ## Lua Filters
 
-- harden `quarto.utils.dump` so it works with pandoc's builtin global variables (#2254)
+- Harden `quarto.utils.dump` so it works with pandoc's builtin global variables (#2254)
+
+## Miscellaneous
+
+- Don't call Deno.realPathSync on Windows (avoid problems w/ UNC paths)
+- Don't include Unicode literals on Windows directly (#2184), thanks @yihui
+- Improve YAML validation error messages on values of type object (#2191)
+- Upgrade esbuild to 0.15.6
+- Implement --help option for quarto preview and quarto run
