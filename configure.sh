@@ -53,6 +53,8 @@ if [[ "${QUARTO_VENDOR_BINARIES}" = "true" ]]; then
       mv deno $DENO_ARCH_DIR
       rm $DENOFILE
     done
+
+    ln -s $DENO_DIR/deno deno
     # download "$DENOURL/$DENO/$DENOFILE" "$DENOFILE"
     # unzip -o $DENOFILE
     # rm $DENOFILE
