@@ -88,11 +88,14 @@ export async function quarto(
 
   const quartoCommand = new Command()
     .name("quarto")
+    .help({ colors: false })
     .version(quartoConfig.version() + "\n")
     .description("Quarto CLI")
     .throwErrors();
 
   commands().forEach((command) => {
+    // turn off colors
+    command.help({ colors: false });
     quartoCommand.command(
       command.getName(),
       cmdHandler !== undefined ? cmdHandler(command) : command,
