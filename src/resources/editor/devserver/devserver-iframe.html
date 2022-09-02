@@ -2,31 +2,50 @@
 <script type="text/javascript">
 (function() {
 
-  // Ensure that external links open in a new window by default.
-  var links = document.getElementsByTagName("a");
-  for (var i = 0; i < links.length; i++) {
-    var link = links[i];
-    if (!link.href.startsWith(document.location.origin)) {
-      // vscode
-      if (window.location.search.includes("quartoPreviewReqId=")) {
-        var url = link.href;
-        link.onclick = function(ev) {
-          if (window.parent.postMessage) {
-            window.parent.postMessage({
-              type: "openExternal",
-              url: url
-            }, "*");
-          }
-          ev.preventDefault();
-          ev.stopPropagation();
-          return false;
-        };
-      // rstudio
-      } else if (window.location.search.includes("capabilities=")) {
-        link.target = "_blank";
+  // save document origin (this might change as a page is navigated)
+  // e.g. in Quarto books so we need to know the original value
+  var origin = document.location.origin;
+  var search = window.location.search;
+
+  function isLocalHref(href) {
+    return href.startsWith(origin);
+  }
+
+  function ensureLinkOpensInNewWindow(linkEl) {
+
+    var useOpenExternalMessage =
+      search.includes("quartoPreviewReqId=") &&
+      window.parent.postMessage;
+
+    if (useOpenExternalMessage) {
+      linkEl.addEventListener("click", function(event) {
+        window.parent.postMessage({
+          type: "openExternal",
+          url: linkEl.href,
+        }, "*");
+        event.preventDefault();
+        return false;
+      });
+    }
+
+    var isRStudio = search.includes("capabilities=");
+    if (isRStudio) {
+      console.log("Hello from quarto-cli");
+      linkEl.target = "_blank";
+    }
+
+  }
+
+  function initialize() {
+    var linkEls = document.getElementsByTagName("a");
+    for (var linkEl of linkEls) {
+      if (!isLocalHref(linkEl.href)) {
+        ensureLinkOpensInNewWindow(linkEl);
       }
     }
   }
+
+  initialize();
 
 })();
 
