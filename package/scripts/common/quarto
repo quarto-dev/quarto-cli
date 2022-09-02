@@ -119,7 +119,21 @@ else
 fi
 
 if [ "$QUARTO_DENO" == "" ]; then
-  export QUARTO_DENO="${SCRIPT_PATH}/tools/deno"
+  if [[ $OSTYPE == 'darwin'* ]]; then
+    FULLARCH=$(uname -sm)
+    
+    if [[ $FULLARCH == "Darwin x86_64" ]]; then
+      DENO_DIR=deno-x86_64-apple-darwin
+    elif [[ $FULLARCH == "Darwin arm64" ]]; then
+      DENO_DIR=deno-aarch64-apple-darwin
+    else
+      echo "quarto script failed: unrecognized architecture " ${FULLARCH}
+      exit 1
+    fi
+  else
+    DENO_DIR=deno-x86_64-unknown-linux-gnu
+  fi
+  export QUARTO_DENO="${SCRIPT_PATH}/tools/${DENO_DIR}/deno"
 fi
 
 # Be sure to include any already defined QUARTO_DENO_OPTIONS
