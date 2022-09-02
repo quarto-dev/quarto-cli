@@ -7,6 +7,7 @@
 - Always ignore .ipynb inputs when they have a corresponding .qmd
 - Correctly interpret cell metadata with `false` values
 - Render text/latex outputs consisting entirely of $ math as markdown math
+- Use IPython 7.14 import syntax in `ojs_define`
 
 ## General
 
@@ -40,3 +41,7 @@
 ## Bibliography output
 
 - Now support formats `bibtex`, `biblatex`, and `csljson`. When rendered to one of these formats any citations within the document will be rendered as the specified bibliography format.
+
+## Lua Filters
+
+- harden `quarto.utils.dump` so it works with pandoc's builtin global variables (#2254)
