@@ -75,15 +75,21 @@ export async function makeInstallerMac(config: Configuration) {
       "entitlements.plist",
     );
 
-    const denoExecPath = Deno.env.get("QUARTO_DENO")
-    if (! denoExecPath) {
-      throw Error("QUARTO_DENO is not defined");
-    }
-
     // Sign these executable / binary files
     // and include our entitlements declaration
-    const signWithEntitlements:string[] = [
-      denoExecPath,
+    const signWithEntitlements: string[] = [
+      join(
+        config.directoryInfo.bin,
+        "tools",
+        "deno-x86_64-apple-darwin",
+        "deno",
+      ),
+      join(
+        config.directoryInfo.bin,
+        "tools",
+        "deno-aarch64-apple-darwin",
+        "deno",
+      ),
       join(
         config.directoryInfo.bin,
         "tools",
@@ -97,7 +103,7 @@ export async function makeInstallerMac(config: Configuration) {
 
     // Sign these non-binary files and don't include
     // the entitlements declaration
-    const signWithoutEntitlements:string[] = [
+    const signWithoutEntitlements: string[] = [
       join(config.directoryInfo.bin, "tools", "dart-sass", "sass"),
       join(config.directoryInfo.bin, "quarto.js"),
       join(config.directoryInfo.bin, "quarto"),
@@ -243,7 +249,6 @@ function sleepSync(timeout: number) {
   const int32 = new Int32Array(sab);
   Atomics.wait(int32, 0, 0, timeout);
 }
-
 
 async function signPackage(
   developerId: string,
