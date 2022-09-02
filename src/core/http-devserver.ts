@@ -179,11 +179,21 @@ function devserverHtmlResourcePath(resource: string) {
   return resourcePath(`editor/devserver/devserver-${resource}.html`);
 }
 
-export function isViewerIFrameRequest(url?: string | null) {
-  const isViewer = url && (
-    url.includes("capabilities=") || // rstudio viewer
-    url.includes("vscodeBrowserReqId=") || // vscode simple browser
-    url.includes("quartoPreviewReqId=") // generic embedded browser
-  );
-  return isViewer;
+export function isViewerIFrameRequest(req: Request) {
+
+  for (const url of [req.url, req.referrer]) {
+
+    const isViewer = url && (
+      url.includes("capabilities=") || // rstudio viewer
+      url.includes("vscodeBrowserReqId=") || // vscode simple browser
+      url.includes("quartoPreviewReqId=") // generic embedded browser
+    );
+
+    if (isViewer) {
+      return true;
+    }
+
+  }
+
+  return false;
 }
