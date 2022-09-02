@@ -52,3 +52,4 @@
 - Increase contrast for a11y-light theme to work with default code-block background (#2067)
 - Upgrade to deno 1.25.1, which should lead to a 2-3x speedup in quarto startup time
 - Use deno arm64 native binaries on macOS
+- Set working dir to `QUARTO_WORKING_DIR` variable if provided.

@@ -7,6 +7,8 @@
 
 import "./core/deno/monkey-patch.ts";
 
+import { normalize } from "path/mod.ts";
+
 import {
   Command,
   CompletionsCommand,
@@ -57,6 +59,13 @@ export async function quarto(
       await reconfigureQuarto(installed, source);
       Deno.exit(1);
     }
+  }
+
+  // if there is a QUARTO_WORKING_DIR defined then change our
+  // working directory to the input dir
+  const workingDir = Deno.env.get("QUARTO_WORKING_DIR");
+  if (workingDir && normalize(workingDir) !== normalize(Deno.cwd())) {
+    Deno.chdir(workingDir);
   }
 
   // passthrough to pandoc
