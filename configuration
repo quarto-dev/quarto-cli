@@ -8,8 +8,7 @@
 # deno_dom should match release at https://github.com/b-fuze/deno-dom/releases
 
 # Binary dependencies
-export DENO_CANARY_COMMIT=b8933b1b5693bc0d59febfae4b9db5f4558be071
-export DENO=v1.25.0
+export DENO=v1.25.1
 export DENO_DOM=v0.1.23-alpha-artifacts
 export PANDOC=2.19.2
 export DARTSASS=1.32.8

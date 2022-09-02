@@ -31,7 +31,9 @@ export async function configure(
   info(` - Arch: ${Deno.build.arch}`);
   info(` - Cwd : ${Deno.cwd()}`);
   info(` - Directory configuration:`);
-  info(`   - Quarto package folder (build source): ${config.directoryInfo.pkg}`);
+  info(
+    `   - Quarto package folder (build source): ${config.directoryInfo.pkg}`,
+  );
   info(`   - Quarto dist folder (output folder): ${config.directoryInfo.dist}`);
   info(`     - Quarto bin folder: ${config.directoryInfo.bin}`);
   info(`     - Quarto share folder: ${config.directoryInfo.share}`);
@@ -41,7 +43,19 @@ export async function configure(
 
   // Download dependencies
   for (const dependency of kDependencies) {
-    await configureDependency(dependency, config);
+    try {
+      await configureDependency(dependency, config);
+    } catch (e) {
+      if (
+        e.message ===
+          "The architecture aarch64 is missing the dependency deno_dom"
+      ) {
+        info("\nIgnoring deno_dom dependency on Apple Silicon");
+        continue;
+      } else {
+        throw e;
+      }
+    }
   }
 
   // Move the quarto script into place
@@ -70,7 +84,10 @@ export async function configure(
   writeDevConfig(devConfig, config.directoryInfo.bin);
   info("Wrote dev config to bin directory");
 
-  if (Deno.build.os !== "windows" && Deno.env.get("QUARTO_NO_SYMLINK") === undefined) {
+  if (
+    Deno.build.os !== "windows" &&
+    Deno.env.get("QUARTO_NO_SYMLINK") === undefined
+  ) {
     info("Creating Quarto Symlink");
 
     // Set up a symlink (if appropriate)

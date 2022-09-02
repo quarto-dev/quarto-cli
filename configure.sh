@@ -44,7 +44,15 @@ if [[ "${QUARTO_VENDOR_BINARIES}" = "true" ]]; then
     # Download Deno
     DENOURL=https://github.com/denoland/deno/releases/download
     if [[ $OSTYPE == 'darwin'* ]]; then
-      DENOFILE=deno-x86_64-apple-darwin.zip
+      FULLARCH=$(uname -sm)
+      if [[ $FULLARCH == "Darwin x86_64" ]]; then
+        DENOFILE=deno-x86_64-apple-darwin.zip
+      elif [[ $FULLARCH == "Darwin arm64" ]]; then
+        DENOFILE=deno-aarch64-apple-darwin.zip
+      else
+        echo "configure script failed: unrecognized architecture " ${FULLARCH}
+        exit 1
+      fi
     else
       DENOFILE=deno-x86_64-unknown-linux-gnu.zip
     fi
