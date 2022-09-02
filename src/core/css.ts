@@ -29,6 +29,35 @@ export function cssFileResourceReferences(files: string[]) {
   }, []);
 }
 
+export function isCssFile(path: string) {
+  return extname(path).toLowerCase() === ".css";
+}
+
+export function fixupCssReferences(
+  css: string,
+  resolveRef: (ref: string) => string,
+) {
+  // fixup / copy refs from url()
+  let destCss = css.replaceAll(
+    kCssUrlRegex,
+    (_match, p1: string, p2: string) => {
+      const path = resolveRef(p2);
+      return `url(${p1 || ""}${path}${p1 || ""})`;
+    },
+  );
+
+  // fixup / copy refs from @import
+  destCss = destCss.replaceAll(
+    kCssImportRegex,
+    (_match, p1: string, p2: string) => {
+      const path = resolveRef(p2);
+      return `@import ${p1 || ""}${path}${p1 || ""}`;
+    },
+  );
+
+  return destCss;
+}
+
 export function cssFileRefs(css: string) {
   return cssImports(css).concat(cssResources(css)).filter(isFileRef);
 }

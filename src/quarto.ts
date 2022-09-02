@@ -68,7 +68,7 @@ export async function quarto(
   }
 
   // passthrough to run handlers
-  if (args[0] === "run" && args[1] !== "help") {
+  if (args[0] === "run" && args[1] !== "help" && args[1] !== "--help") {
     const result = await runScript(args.slice(1));
     Deno.exit(result.code);
   }
@@ -88,11 +88,14 @@ export async function quarto(
 
   const quartoCommand = new Command()
     .name("quarto")
+    .help({ colors: false })
     .version(quartoConfig.version() + "\n")
     .description("Quarto CLI")
     .throwErrors();
 
   commands().forEach((command) => {
+    // turn off colors
+    command.help({ colors: false });
     quartoCommand.command(
       command.getName(),
       cmdHandler !== undefined ? cmdHandler(command) : command,

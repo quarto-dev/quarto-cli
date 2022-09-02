@@ -130,6 +130,12 @@ export const previewCommand = new Command()
     // provide default args
     args = args || [];
 
+    // show help if requested
+    if (args.length > 0 && args[0] === "--help") {
+      previewCommand.showHelp();
+      return;
+    }
+
     // pull out our command line args
     const portPos = args.indexOf("--port");
     if (portPos !== -1) {

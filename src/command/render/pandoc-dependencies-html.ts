@@ -5,13 +5,13 @@
 *
 */
 
-import { join } from "path/mod.ts";
+import { basename, dirname, join } from "path/mod.ts";
 
 import * as ld from "../../core/lodash.ts";
 
 import { Document, Element, NodeType } from "../../core/deno-dom.ts";
 
-import { pathWithForwardSlashes } from "../../core/path.ts";
+import { pathWithForwardSlashes, safeExistsSync } from "../../core/path.ts";
 
 import {
   DependencyFile,
@@ -22,13 +22,15 @@ import {
 import { kIncludeAfterBody, kIncludeInHeader } from "../../config/constants.ts";
 import { TempContext } from "../../core/temp.ts";
 import { lines } from "../../core/lib/text.ts";
-import { copyResourceFile } from "../../project/project-resources.ts";
 import { copyFileIfNewer } from "../../core/copy.ts";
 import { ProjectContext } from "../../project/types.ts";
 import {
   appendDependencies,
   HtmlFormatDependency,
 } from "./pandoc-dependencies.ts";
+import { fixupCssReferences, isCssFile } from "../../core/css.ts";
+
+import { ensureDirSync } from "fs/mod.ts";
 
 export function writeDependencies(
   dependenciesFile: string,
@@ -187,7 +189,6 @@ function processHtmlDependencies(
       ? `${dependency.name}-${dependency.version}`
       : dependency.name;
     const targetDir = join(inputDir, targetLibDir, dir);
-    const rootDir = project?.dir || inputDir;
 
     const copyFile = (
       file: DependencyFile,
@@ -201,11 +202,12 @@ function processHtmlDependencies(
       // If this is a user resource, treat it as a resource (resource ref discovery)
       // if this something that we're injecting, just copy it
       if (dependency.external) {
-        copyResourceFile(
-          rootDir,
-          file.path,
-          targetPath,
-        );
+        ensureDirSync(dirname(targetPath));
+        copyFileIfNewer(file.path, targetPath);
+        console.log("Copying " + file.path + " to " + targetPath);
+        if (isCssFile(file.path)) {
+          processCssFile(dirname(file.path), targetPath);
+        }
       } else {
         copyFileIfNewer(file.path, targetPath);
       }
@@ -259,6 +261,29 @@ function processHtmlDependencies(
     }
 
     copiedDependencies.push(dependency.name);
+  }
+}
+
+// fixup root ('/') css references and also copy references to other
+// stylesheet or resources (e.g. images) to alongside the destFile
+function processCssFile(
+  srcDir: string,
+  file: string,
+) {
+  // read the css
+  const css = Deno.readTextFileSync(file);
+  const destCss = fixupCssReferences(css, (ref: string) => {
+    const refPath = join(srcDir, ref);
+    if (safeExistsSync(refPath)) {
+      const refDestPath = join(dirname(file), ref);
+      copyFileIfNewer(refPath, refDestPath);
+    }
+    return basename(ref);
+  });
+
+  // write the css if necessary
+  if (destCss !== css) {
+    Deno.writeTextFileSync(file, destCss);
   }
 }
 

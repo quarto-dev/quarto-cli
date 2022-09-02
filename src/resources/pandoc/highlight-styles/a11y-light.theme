@@ -4,7 +4,7 @@
             "line-number-color": "#767676",
                 "line-number-background-color": null,
                     "_comments": [
-                        "Last update: Mar 12, 2022 (revision 1)",
+                        "Last update: Aug 23, 2022 (revision 1.1)",
                         "This file has been adapted from: https://github.com/ericwbailey/a11y-syntax-highlighting#a11y-light",
                         "Also see: https://github.com/ericwbailey/a11y-syntax-highlighting/blob/main/dist/highlight/a11y-light.css"
                     ],
@@ -29,7 +29,7 @@
                             "underline": false
         },
         "Attribute": {
-            "text-color": "#aa5d00",
+            "text-color": "#a55a00",
                 "background-color": null,
                     "bold": false,
                         "italic": false,
@@ -99,7 +99,7 @@
                             "underline": false
         },
         "Variable": {
-            "text-color": "#aa5d00",
+            "text-color": "#a55a00",
                 "background-color": null,
                     "bold": false,
                         "italic": false,
@@ -176,7 +176,7 @@
                             "underline": false
         },
         "Float": {
-            "text-color": "#aa5d00",
+            "text-color": "#a55a00",
                 "background-color": null,
                     "bold": false,
                         "italic": false,
