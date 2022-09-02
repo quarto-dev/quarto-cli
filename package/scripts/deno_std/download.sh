@@ -1,10 +1,11 @@
 #!/bin/bash
 SCRIPT_PATH=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+source $SCRIPT_PATH/../common/utils.sh
 source $SCRIPT_PATH/../../../configuration
 source $SCRIPT_PATH/../../src/set_package_paths.sh
 
 if [ -z "$QUARTO_DENO" ]; then
-  export QUARTO_DENO=$QUARTO_DIST_PATH/bin/tools/deno
+  export QUARTO_DENO=$QUARTO_DIST_PATH/bin/tools/$DENO_DIR/deno
 fi
 
 

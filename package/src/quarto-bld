@@ -4,11 +4,12 @@ set -e
 export SCRIPT_PATH=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 # Prepares Quarto source files for packaging
+source ${SCRIPT_PATH}/../scripts/common/utils.sh
 source ${SCRIPT_PATH}/../../configuration
 source ${SCRIPT_PATH}/set_package_paths.sh
 
 if [ -z "$QUARTO_DENO" ]; then
-  export QUARTO_DENO=$SCRIPT_PATH/../dist/bin/tools/deno
+  export QUARTO_DENO=$SCRIPT_PATH/../dist/bin/tools/$DENO_DIR/deno
 fi
 
 export RUST_BACKTRACE=full

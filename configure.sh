@@ -11,6 +11,7 @@ export PANDOC=${PANDOC_VERSION=$PANDOC}
 export DARTSASS=${DART_SASS_VERSION=$DARTSASS}
 export ESBUILD=${ESBUILD_VERSION=$ESBUILD}
 
+source package/scripts/common/utils.sh
 source package/src/set_package_paths.sh
 
 # Selects curl or wget based on availability and https support.
@@ -27,7 +28,7 @@ function download() {
 
 QUARTO_VENDOR_BINARIES=${QUARTO_VENDOR_BINARIES=true}
 
-DENO_BIN=${QUARTO_DENO=$QUARTO_BIN_PATH/tools/deno}
+DENO_BIN=${QUARTO_DENO=$QUARTO_BIN_PATH/tools/$DENO_DIR/deno}
 
 if [[ "${QUARTO_VENDOR_BINARIES}" = "true" ]]; then
   DENO_VERSION_NO_V=$(echo $DENO | sed 's/v//')
@@ -43,22 +44,18 @@ if [[ "${QUARTO_VENDOR_BINARIES}" = "true" ]]; then
 
     # Download Deno
     DENOURL=https://github.com/denoland/deno/releases/download
-    if [[ $OSTYPE == 'darwin'* ]]; then
-      FULLARCH=$(uname -sm)
-      if [[ $FULLARCH == "Darwin x86_64" ]]; then
-        DENOFILE=deno-x86_64-apple-darwin.zip
-      elif [[ $FULLARCH == "Darwin arm64" ]]; then
-        DENOFILE=deno-aarch64-apple-darwin.zip
-      else
-        echo "configure script failed: unrecognized architecture " ${FULLARCH}
-        exit 1
-      fi
-    else
-      DENOFILE=deno-x86_64-unknown-linux-gnu.zip
-    fi
-    download "$DENOURL/$DENO/$DENOFILE" "$DENOFILE"
-    unzip -o $DENOFILE
-    rm $DENOFILE
+
+    for DENOFILE in $DENOFILES; do
+      download "$DENOURL/$DENO/$DENOFILE" "$DENOFILE"
+      unzip -o $DENOFILE
+      DENO_ARCH_DIR=$(basename $DENOFILE .zip)
+      mkdir $DENO_ARCH_DIR
+      mv deno $DENO_ARCH_DIR
+      rm $DENOFILE
+    done
+    # download "$DENOURL/$DENO/$DENOFILE" "$DENOFILE"
+    # unzip -o $DENOFILE
+    # rm $DENOFILE
 
     # If a canary commit is provided, upgrade to that
     if [ ! -z "$DENO_CANARY_COMMIT" ]; then
@@ -66,7 +63,7 @@ if [[ "${QUARTO_VENDOR_BINARIES}" = "true" ]]; then
       ./deno upgrade --canary --version $DENO_CANARY_COMMIT
     fi
   fi
-  export DENO_BIN_PATH=$QUARTO_BIN_PATH/tools/deno
+  export DENO_BIN_PATH=$QUARTO_BIN_PATH/tools/$DENO_DIR/deno
 else
   if [ -z "$DENO_BIN_PATH" ]; then
     echo "DENO_BIN_PATH is not set. You either need to allow QUARTO_VENDOR_BINARIES or set DENO_BIN_PATH to the path of a deno binary."
