@@ -68,7 +68,7 @@ export async function quarto(
   }
 
   // passthrough to run handlers
-  if (args[0] === "run" && args[1] !== "help") {
+  if (args[0] === "run" && args[1] !== "help" && args[1] !== "--help") {
     const result = await runScript(args.slice(1));
     Deno.exit(result.code);
   }
