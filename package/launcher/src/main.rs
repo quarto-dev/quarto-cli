@@ -68,17 +68,17 @@ fn main() {
     }
 
     // set environment variables requried by quarto.js
-    std::env::set_var("QUARTO_DENO", deno_file);
-    std::env::set_var("QUARTO_BIN_PATH", bin_dir);
-    std::env::set_var("QUARTO_SHARE_PATH", share_dir);
-    std::env::set_var("DENO_DOM_PLUGIN", deno_dom_file);
+    std::env::set_var("QUARTO_DENO", &deno_file);
+    std::env::set_var("QUARTO_BIN_PATH", &bin_dir);
+    std::env::set_var("QUARTO_SHARE_PATH", &share_dir);
+    std::env::set_var("DENO_DOM_PLUGIN", &deno_dom_file);
 
     // windows-specific env vars
     #[cfg(target_os = "windows")]
     std::env::set_var("NO_COLOR", std::ffi::OsStr::new("TRUE"));
 
     // run deno
-    let mut child = Command::new(deno_file)
+    let mut child = Command::new(&deno_file)
         .arg("run")
         .arg("--unstable")
         .arg("--no-config")
