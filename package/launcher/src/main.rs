@@ -1,4 +1,5 @@
 use std::process::Command;
+use std::str::FromStr;
 use std::{env, ffi::OsString, fs, path::Path, path::PathBuf};
 
 fn main() {
@@ -37,7 +38,6 @@ fn main() {
     if &args[0] == "--version" || &args[0] == "-v" {
         let version_path = share_dir.join("version");
         let version = fs::read_to_string(version_path).expect("failed to read version");
-        println!("{}", version);
         std::process::exit(0);
     }
 
@@ -50,7 +50,16 @@ fn main() {
     // compute deno and deno dom locations (allow them to be defined externally)
     let mut deno_file = path_from_env("QUARTO_DENO");
     if deno_file.as_os_str().is_empty() {
-        deno_file = bin_dir.join("tools").join("deno");
+        if env::consts::OS == "windows" {
+            deno_file = bin_dir
+                .join("tools")
+                .join("deno");
+        } else {
+            deno_file = bin_dir
+                .join("tools")
+                .join(deno_dir())
+                .join("deno");
+        }
     }
     let mut deno_dom_file: PathBuf = path_from_env("QUARTO_DENO_DOM");
     if deno_dom_file.as_os_str().is_empty() {
@@ -126,6 +135,25 @@ fn share_dir_from_bin_dir(bin_dir: &PathBuf) -> PathBuf {
             .expect("failed to get bin path parent")
             .join("share")
     }
+}
+
+fn deno_dir() -> String {
+    let arch = arch_string();
+    if arch.starts_with("Darwin arm64") {
+        return String::from_str("deno-aarch64-apple-darwin").unwrap();
+    } else if arch.starts_with("Darwin x86_64") {
+        return String::from_str("deno-x86_64-apple-darwin").unwrap();
+    } else {
+        return String::from_str("deno-x86_64-unknown-linux-gnu").unwrap();
+    }
+}
+
+// returns a string describing the architecture. only works on Unix
+fn arch_string() -> String {
+    let out = Command::new("uname")
+        .args(["-sm"])
+        .output().expect("Failed to run uname").stdout;
+    String::from_utf8(out).expect("Couldn't convert to string")
 }
 
 // platform-specific deno dom lib file
