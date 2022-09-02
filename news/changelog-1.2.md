@@ -49,3 +49,4 @@
 - Improve YAML validation error messages on values of type object (#2191)
 - Upgrade esbuild to 0.15.6
 - Implement --help option for quarto preview and quarto run
+- Increase contrast for a11y-light theme to work with default code-block background (#2067)
