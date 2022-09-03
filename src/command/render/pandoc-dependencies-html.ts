@@ -217,6 +217,8 @@ function processHtmlDependencies(
 
     const copyFile = (
       file: DependencyFile,
+      attribs?: Record<string, string>,
+      afterBody?: boolean,
       inject?: (
         href: string,
         attribs?: Record<string, string>,
@@ -230,7 +232,7 @@ function processHtmlDependencies(
       );
       if (inject) {
         const href = join(directoryInfo.relative, file.name);
-        inject(href, file.attribs, file.afterBody);
+        inject(href, attribs, afterBody);
       }
     };
 
@@ -239,6 +241,8 @@ function processHtmlDependencies(
       dependency.scripts.forEach((script) =>
         copyFile(
           script,
+          script.attribs,
+          script.afterBody,
           injector.injectScript,
         )
       );
@@ -249,6 +253,8 @@ function processHtmlDependencies(
       dependency.stylesheets.forEach((stylesheet) => {
         copyFile(
           stylesheet,
+          stylesheet.attribs,
+          stylesheet.afterBody,
           injector.injectStyle,
         );
       });

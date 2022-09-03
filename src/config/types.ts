@@ -204,8 +204,8 @@ export interface FormatDependency {
   external?: boolean;
   meta?: Record<string, string>;
   links?: { rel: string; href: string; type?: string }[];
-  scripts?: DependencyFile[];
-  stylesheets?: DependencyFile[];
+  scripts?: DependencyHtmlFile[];
+  stylesheets?: DependencyHtmlFile[];
   head?: string;
   resources?: DependencyFile[];
 }
@@ -213,6 +213,9 @@ export interface FormatDependency {
 export interface DependencyFile {
   name: string;
   path: string;
+}
+
+export interface DependencyHtmlFile extends DependencyFile {
   attribs?: Record<string, string>;
   afterBody?: boolean;
 }
