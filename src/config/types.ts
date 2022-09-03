@@ -206,6 +206,7 @@ export interface FormatDependency {
   links?: { rel: string; href: string; type?: string }[];
   scripts?: DependencyHtmlFile[];
   stylesheets?: DependencyHtmlFile[];
+  serviceworkers?: DependencyServiceWorker[];
   head?: string;
   resources?: DependencyFile[];
 }
@@ -213,6 +214,11 @@ export interface FormatDependency {
 export interface DependencyFile {
   name: string;
   path: string;
+}
+
+export interface DependencyServiceWorker {
+  source: string;
+  destination?: string;
 }
 
 export interface DependencyHtmlFile extends DependencyFile {

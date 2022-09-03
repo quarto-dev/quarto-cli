@@ -12,6 +12,7 @@
 ## Extensions
 
 - HTML dependencies may be provided by paths to files outside the extension directory
+- HTML dependencies may now include `serviceworkers`. `serviceworkers` will be copied into the output directory.
 
 ## HTML Format
 

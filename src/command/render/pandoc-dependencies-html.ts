@@ -15,6 +15,7 @@ import { pathWithForwardSlashes, safeExistsSync } from "../../core/path.ts";
 
 import {
   DependencyFile,
+  DependencyServiceWorker,
   FormatDependency,
   FormatExtras,
   kDependencies,
@@ -31,6 +32,8 @@ import {
 import { fixupCssReferences, isCssFile } from "../../core/css.ts";
 
 import { ensureDirSync } from "fs/mod.ts";
+import { ProjectContext } from "../../project/types.ts";
+import { projectOutputDir } from "../../project/project-shared.ts";
 
 export function writeDependencies(
   dependenciesFile: string,
@@ -54,6 +57,7 @@ export function readAndInjectDependencies(
   inputDir: string,
   libDir: string,
   doc: Document,
+  project?: ProjectContext,
 ) {
   const dependencyJsonStream = Deno.readTextFileSync(dependenciesFile);
   const htmlDependencies: FormatDependency[] = [];
@@ -77,6 +81,7 @@ export function readAndInjectDependencies(
       inputDir,
       libDir,
       injector,
+      project,
     );
     injectedDependencies.push(...injected);
     // Finalize the injection
@@ -119,6 +124,7 @@ export function resolveDependencies(
   inputDir: string,
   libDir: string,
   temp: TempContext,
+  project?: ProjectContext,
 ) {
   // deep copy to not mutate caller's object
   extras = ld.cloneDeep(extras);
@@ -133,6 +139,7 @@ export function resolveDependencies(
       inputDir,
       libDir,
       injector,
+      project,
     );
     // Finalize the injection
     injector.finalizeInjection();
@@ -196,6 +203,7 @@ function processHtmlDependencies(
   inputDir: string,
   libDir: string,
   injector: HtmlInjector,
+  project?: ProjectContext,
 ) {
   const copiedDependencies: FormatDependency[] = [];
   for (const dependency of dependencies) {
@@ -256,6 +264,60 @@ function processHtmlDependencies(
           stylesheet.attribs,
           stylesheet.afterBody,
           injector.injectStyle,
+        );
+      });
+    }
+
+    // Process Service Workers
+    if (dependency.serviceworkers) {
+      dependency.serviceworkers.forEach((serviceWorker) => {
+        const resolveDestination = (
+          worker: DependencyServiceWorker,
+          inputDir: string,
+          project?: ProjectContext,
+        ) => {
+          // First make sure there is a destination. If omitted, provide
+          // a default based upon the context
+          if (!worker.destination) {
+            if (project) {
+              worker.destination = `/${basename(worker.source)}`;
+            } else {
+              worker.destination = `${basename(worker.source)}`;
+            }
+          }
+
+          // Now return either a project path or an input
+          // relative path
+          if (worker.destination.startsWith("/")) {
+            if (project) {
+              // This is a project relative path
+              const projectDir = projectOutputDir(project);
+              return join(projectDir, worker.destination.slice(1));
+            } else {
+              throw new Error(
+                "A service worker is being provided with a project relative destination path but no valid Quarto project was found.",
+              );
+            }
+          } else {
+            // this is an input relative path
+            return join(inputDir, worker.destination);
+          }
+        };
+
+        // Compute the path to the destination
+        const destinationFile = resolveDestination(
+          serviceWorker,
+          inputDir,
+          project,
+        );
+        const destinationDir = dirname(destinationFile);
+
+        // Ensure the directory exists and copy the source file
+        // to the destination
+        ensureDirSync(destinationDir);
+        copyFileIfNewer(
+          serviceWorker.source,
+          destinationFile,
         );
       });
     }
