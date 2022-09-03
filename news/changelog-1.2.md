@@ -12,7 +12,9 @@
 ## Extensions
 
 - HTML dependencies may be provided by paths to files outside the extension directory
-- HTML dependencies may now include `serviceworkers`. `serviceworkers` will be copied into the output directory.
+- HTML dependencies may now include `serviceworkers`, which are copied into the output directory.
+- New `quarto.doc.attachToDependency` function to attach files to html dependencies (copies files into the lib dir for a named HTML dependency).
+- Ensure that `quarto.utils.dump` works with pandoc's builtin global variables (#2254)
 
 ## HTML Format
 
@@ -39,11 +41,6 @@
 ## Bibliographies
 
 - Support formats `bibtex`, `biblatex`, and `csljson`. When rendered to one of these formats any citations within the document will be rendered as the specified bibliography format.
-
-## Lua Filters
-
-- Harden `quarto.utils.dump` so it works with pandoc's builtin global variables (#2254)
-- Add new LUA function `attachToDependency` to attach files to html dependencies. This function will copy a file into the lib dir for a named HTML dependency.
 
 ## Miscellaneous
 
