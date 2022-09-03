@@ -31,7 +31,7 @@ import { readYamlFromString } from "../core/yaml.ts";
 import { formatKeys } from "../config/metadata.ts";
 import {
   formatsPreferHtml,
-  normalizeWebsiteFormat,
+  websiteFormatPreferHtml,
 } from "./types/website/website-config.ts";
 import { kDefaultProjectFileContents } from "./types/project-default.ts";
 import { formatOutputFile } from "../core/render.ts";
@@ -113,7 +113,9 @@ export function readInputTargetIndex(
   if (index) {
     // normalize html to first if its included in the formats
     if (Object.keys(index.formats).includes("html")) {
-      index.formats = normalizeWebsiteFormat(index.formats, true) as Record<
+      // note that the cast it okay here b/c we know that index.formats
+      // includes only full format objects
+      index.formats = websiteFormatPreferHtml(index.formats) as Record<
         string,
         Format
       >;

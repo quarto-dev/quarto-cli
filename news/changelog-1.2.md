@@ -29,6 +29,7 @@
 
 - Properly allow `twitter-card` and `open-graph` to override the page description.
 - Don't discover resources within a site or book output directory
+- Enable use of custom HTML formats for websites
 
 ## Publishing
 

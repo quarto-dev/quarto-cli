@@ -26,7 +26,6 @@ export interface ProjectType {
   config?: (
     projectDir: string,
     config: ProjectConfig,
-    forceHtml: boolean,
     flags?: RenderFlags,
   ) => Promise<ProjectConfig>;
   libDir?: string;

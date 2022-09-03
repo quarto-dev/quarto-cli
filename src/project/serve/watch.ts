@@ -54,7 +54,7 @@ export function watchProject(
 ): Promise<ProjectWatcher> {
   // helper to refresh project config
   const refreshProjectConfig = async () => {
-    project = (await projectContext(project.dir, flags, false, true))!;
+    project = (await projectContext(project.dir, flags, false))!;
   };
 
   // proj dir

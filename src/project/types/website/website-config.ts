@@ -246,41 +246,35 @@ export function websiteConfigActions(
   }
 }
 
-export function normalizeWebsiteFormat(
+// normalize html to first if its included in the formats
+export function websiteFormatPreferHtml(
   format: string | Record<string, unknown> | undefined,
-  forceHtml: boolean,
-): string | Record<string, unknown> {
+): Record<string, unknown> {
   if (format !== undefined) {
     if (typeof (format) === "string") {
-      if (!isHtmlOutput(format, true) && forceHtml) {
-        return {
-          html: "default",
-          [format]: "default",
-        };
-      } else {
-        return format;
-      }
+      return {
+        [format]: "default",
+      };
     } else {
       const formats = Object.keys(format);
-      const orderedFormats = {} as Record<string, unknown>;
-      if (forceHtml) {
-        const htmlFormatPos = formats.findIndex((format) =>
-          isHtmlOutput(format, true)
-        );
-        if (htmlFormatPos !== -1) {
-          const htmlFormatName = formats.splice(htmlFormatPos, 1)[0];
-          orderedFormats[htmlFormatName] = format[htmlFormatName];
-        } else {
-          orderedFormats["html"] = "default";
-        }
+      const orderedFormats = {} as Record<string, Format>;
+
+      const htmlFormatPos = formats.findIndex((format) =>
+        isHtmlOutput(format, true)
+      );
+      if (htmlFormatPos !== -1) {
+        const htmlFormatName = formats.splice(htmlFormatPos, 1)[0];
+        orderedFormats[htmlFormatName] = format[htmlFormatName] as Format;
       }
       for (const formatName of formats) {
-        orderedFormats[formatName] = format[formatName];
+        orderedFormats[formatName] = format[formatName] as Format;
       }
       return orderedFormats;
     }
   } else {
-    return "html";
+    return {
+      html: "default",
+    };
   }
 }
 
@@ -305,7 +299,6 @@ export function formatsPreferHtml(formats: Record<string, unknown>) {
 export function websiteProjectConfig(
   _projectDir: string,
   config: ProjectConfig,
-  forceHtml: boolean,
   flags?: RenderFlags,
 ): Promise<ProjectConfig> {
   config = ld.cloneDeep(config);
@@ -313,7 +306,8 @@ export function websiteProjectConfig(
     | string
     | Record<string, unknown>
     | undefined;
-  config[kMetadataFormat] = normalizeWebsiteFormat(format, forceHtml);
+
+  config[kMetadataFormat] = websiteFormatPreferHtml(format);
 
   // Resolve elements to be sure they're arrays, they will be resolve later
   const ensureArray = (val: unknown) => {
