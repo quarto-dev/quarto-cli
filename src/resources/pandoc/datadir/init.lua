@@ -1322,7 +1322,11 @@ local function resolvePath(path)
 end
 
 local function resolvePathExt(path) 
-   return resolvePath(pandoc.path.join({scriptDir(), path}))
+  if isRelativeRef(path) then
+    return resolvePath(pandoc.path.join({scriptDir(), path}))
+  else
+    return path
+  end
 end
 
 -- converts the friendly Quartio location names 
@@ -1627,6 +1631,47 @@ quarto = {
          stylesheets = resolveDependencyFilePaths(htmlDependency.stylesheets),
          resources = resolveDependencyFilePaths(htmlDependency.resources),
          head = htmlDependency.head,
+      }))
+    end,
+
+    attachToDependency = function(name, pathOrFileObj)
+
+      if name == nil then
+         error("The target dependency name for an attachment cannot be nil. Please provide a valid dependency name.")
+         os.exit(1)
+      end
+
+      -- path can be a string or an obj { name, path }
+      local resolvedFile = {}
+      if type(pathOrFileObj) == "table" then
+
+         -- validate that there is at least a path
+         if pathOrFileObj.path == nil then
+            error("Error attaching to dependency '" .. name .. "'.\nYou must provide a 'path' when adding an attachment to a dependency.")
+            os.exit(1)
+         end
+
+         -- resolve a name, if one isn't provided
+         local name = pathOrFileObj.name      
+         if name == nil then
+            name = pandoc.path.filename(pathOrfileObj.path)
+         end
+
+         -- the full resolved file
+         resolvedFile = {
+            name = name,
+            path = resolvePathExt(pathOrFileObj.path)
+         }
+      else
+         resolvedFile = {
+            name = pandoc.path.filename(pathOrFileObj),
+            path = resolvePathExt(pathOrFileObj)
+         }
+      end
+
+      writeToDependencyFile(dependency("html-attachment", {
+         name = name,
+         file = resolvedFile
       }))
     end,
   

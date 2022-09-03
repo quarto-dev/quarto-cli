@@ -41,6 +41,7 @@
 ## Lua Filters
 
 - Harden `quarto.utils.dump` so it works with pandoc's builtin global variables (#2254)
+- Add new LUA function `attachToDependency` to attach files to html dependencies. This function will copy a file into the lib dir for a named HTML dependency.
 
 ## Miscellaneous
 

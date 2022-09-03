@@ -5,7 +5,7 @@
 *
 */
 
-import { dirname, extname, join, relative } from "path/mod.ts";
+import { dirname, join, relative } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
 import * as ld from "../core/lodash.ts";
@@ -20,7 +20,7 @@ import {
   pathWithForwardSlashes,
   removeIfExists,
 } from "../core/path.ts";
-import { kOutputFile, kTitle } from "../config/constants.ts";
+import { kTitle } from "../config/constants.ts";
 import { renderFormats } from "../command/render/render-contexts.ts";
 import { fileExecutionEngine } from "../execute/engine.ts";
 
