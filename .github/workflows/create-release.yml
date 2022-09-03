@@ -103,7 +103,8 @@ jobs:
       # https://stackoverflow.com/questions/58526782/how-can-i-create-a-static-executable-with-rustc-using-glibc-instead-of-musl
       - name: Build Launcher 
         run: | 
-          RUSTFLAGS="-C target-feature=+crt-static" cargo build --target x86_64-unknown-linux-gnu --all-features --manifest-path package/launcher/Cargo.toml
+          RUSTFLAGS="-C target-feature=+crt-static" cargo build --target x86_64-unknown-linux-gnu --release --manifest-path package/launcher/Cargo.toml
+          ls -R package/launcher/target
           cp package/launcher/target/x86_64-unknown-linux-gnu/release/quarto package/dist/bin/quarto          
           
       - name: Make Tarball
@@ -146,7 +147,8 @@ jobs:
       # https://stackoverflow.com/questions/58526782/how-can-i-create-a-static-executable-with-rustc-using-glibc-instead-of-musl
       - name: Build Launcher 
         run: | 
-          RUSTFLAGS="-C target-feature=+crt-static" cargo build --target x86_64-unknown-linux-gnu --all-features --manifest-path package/launcher/Cargo.toml
+          RUSTFLAGS="-C target-feature=+crt-static" cargo build --target x86_64-unknown-linux-gnu --release --manifest-path package/launcher/Cargo.toml
+          ls -R package/launcher/target
           cp package/launcher/target/x86_64-unknown-linux-gnu/release/quarto package/dist/bin/quarto          
 
       - name: Make Installer
