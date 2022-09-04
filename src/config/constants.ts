@@ -414,6 +414,7 @@ export const kDoi = "doi";
 export const kAbstract = "abstract";
 export const kAbstractTitle = "abstract-title";
 export const kDescription = "description";
+export const kHideDescription = "hide-description";
 export const kTocTitle = "toc-title";
 export const kTocLocation = "toc-location";
 export const kLang = "lang";

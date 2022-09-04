@@ -22,6 +22,7 @@ import {
   kDate,
   kDescription,
   kDoi,
+  kHideDescription,
   kNumberSections,
   kOutputExt,
   kOutputFile,
@@ -87,6 +88,7 @@ import { removePandocTo } from "../../../command/render/flags.ts";
 import { resourcePath } from "../../../core/resources.ts";
 import { PandocAttr, PartitionedMarkdown } from "../../../core/pandoc/types.ts";
 import { stringify } from "encoding/yaml.ts";
+import { fromFileUrl } from "https://deno.land/std@0.153.0/path/win32.ts";
 
 export function bookPandocRenderer(
   options: RenderOptions,
@@ -168,6 +170,9 @@ export function bookPandocRenderer(
           const chapterInfo = isHtmlOutput(file.recipe.format.pandoc)
             ? chapterInfoForInput(project, fileRelative)
             : undefined;
+
+          // Since this is a book page, we need to suppress rendering of the description
+          file.recipe.format.metadata[kHideDescription] = true;
 
           // see if there is a 'title' in the yaml, if there isn't one, then we
           // try to extract via partitioned.headingText

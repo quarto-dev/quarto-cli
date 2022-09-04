@@ -37,6 +37,7 @@
 ## Books
 
 - Fix issue that caused incomplete search indexes for books
+- Don't display the book description in each chapter's title block
 
 ## Publishing
 
