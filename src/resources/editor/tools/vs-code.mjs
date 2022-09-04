@@ -15709,8 +15709,12 @@ var require_yaml_intelligence_resources = __commonJS({
           name: "title-slide-attributes",
           schema: {
             object: {
-              closed: true,
               properties: {
+                "data-background-color": {
+                  string: {
+                    description: "CSS color for title slide background"
+                  }
+                },
                 "data-background-image": {
                   string: {
                     description: "URL or path to the background image."
@@ -18057,6 +18061,7 @@ var require_yaml_intelligence_resources = __commonJS({
         'List of keywords. Items are used as contents of the <a href="https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/kwd.html"><code>&lt;kwd&gt;</code></a>\nelement; the elements are grouped in a <a href="https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/kwd-group.html"><code>&lt;kwd-group&gt;</code></a>\nwith the <a href="https://jats.nlm.nih.gov/publishing/tag-library/1.2/attribute/kwd-group-type.html"><code>kwd-group-type</code></a>\nvalue <code>author</code>.',
         "Displays the document Digital Object Identifier in the header.",
         "The contents of an acknowledgments footnote after the document\ntitle.",
+        "Order for document when included in a website automatic sidebar\nmenu.",
         {
           short: "Citation information for the document itself.",
           long: 'Citation information for the document itself specified as <a href="https://docs.citationstyles.org/en/stable/specification.html">CSL</a>\nYAML in the document front matter.\nFor more on supported options, see <a href="https://quarto.org/docs/reference/metadata/citation.html">Citation\nMetadata</a>.'
@@ -19294,8 +19299,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
         "Custom tools for navbar or sidebar",
         "The Digital Object Identifier for this book.",
-        "internal-schema-hack",
-        "Order for document when included in a website automatic sidebar\nmenu."
+        "internal-schema-hack"
       ],
       "schema/external-schemas.yml": [
         {
