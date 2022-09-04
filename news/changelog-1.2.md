@@ -30,6 +30,7 @@
 - Properly allow `twitter-card` and `open-graph` to override the page description.
 - Don't discover resources within a site or book output directory
 - Enable use of custom HTML formats for websites
+- Automatically populate sidebar menu using `auto` option for contents
 
 ## Publishing
 

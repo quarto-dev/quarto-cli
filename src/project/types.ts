@@ -189,6 +189,9 @@ export interface SidebarItem extends NavItem {
   // more
   expanded?: boolean;
   active?: boolean;
+
+  // transient properties used for expanding 'auto'
+  auto?: boolean | string | string[];
 }
 
 export interface SidebarTool {

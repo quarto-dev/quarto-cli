@@ -417,6 +417,7 @@ export const kDescription = "description";
 export const kTocTitle = "toc-title";
 export const kTocLocation = "toc-location";
 export const kLang = "lang";
+export const kOrder = "order";
 
 // The authors user input
 export const kAuthors = "authors";

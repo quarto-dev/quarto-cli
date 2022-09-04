@@ -123,6 +123,7 @@ export function filterPaths(
   root: string,
   paths: string[],
   globs: string[],
+  options?: GlobOptions,
 ): ResolvedPathGlobs {
   // filter the list of globs
   // using the paths
@@ -137,7 +138,7 @@ export function filterPaths(
     }
     return ld.uniq(expanded);
   };
-  return resolveGlobs(root, globs, expandGlobs);
+  return resolveGlobs(root, globs, expandGlobs, options);
 }
 
 export interface GlobOptions {

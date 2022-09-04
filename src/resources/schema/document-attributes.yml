@@ -132,3 +132,7 @@
   tags:
     formats: [$pdf-all]
   description: The contents of an acknowledgments footnote after the document title.
+
+- name: order
+  schema: number
+  description: Order for document when included in a website automatic sidebar menu.

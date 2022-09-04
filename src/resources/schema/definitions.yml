@@ -52,6 +52,24 @@
       margin,
     ]
 
+- id: contents-auto
+  object:
+    properties:
+      auto:
+        anyOf:
+          - boolean
+          - maybeArrayOf: string
+        description:
+          short: Automatically generate sidebar contents.
+          long: |
+            Automatically generate sidebar contents. Pass `true` to include all documents
+            in the site, a directory name to include only documents in that directory, 
+            or a glob (or list of globs) to include documents based on a pattern. 
+
+            Subdirectories will create sections (use an `index.qmd` in the directory to
+            provide its title). Order will be alphabetical unless a numeric `order` field
+            is provided in document metadata.
+
 - id: navigation-item
   anyOf:
     - path
@@ -417,18 +435,22 @@
         ref: navigation-item
 
 - id: sidebar-contents
-  arrayOf:
-    anyOf:
-      - ref: navigation-item
-      - path
-      - object:
-          properties:
-            section:
-              anyOf:
-                - string
-                - null
-            contents:
-              ref: sidebar-contents
+  anyOf:
+    - ref: contents-auto
+    - arrayOf:
+        anyOf:
+          - ref: navigation-item
+          - path
+          - object:
+              closed: true
+              properties:
+                section:
+                  anyOf:
+                    - string
+                    - null
+                contents:
+                  ref: sidebar-contents
+          - ref: contents-auto
 
 - id: project-preview
   object:

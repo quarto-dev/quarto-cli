@@ -8241,6 +8241,25 @@ try {
             ]
           },
           {
+            id: "contents-auto",
+            object: {
+              properties: {
+                auto: {
+                  anyOf: [
+                    "boolean",
+                    {
+                      maybeArrayOf: "string"
+                    }
+                  ],
+                  description: {
+                    short: "Automatically generate sidebar contents.",
+                    long: "Automatically generate sidebar contents. Pass `true` to include all documents\nin the site, a directory name to include only documents in that directory, \nor a glob (or list of globs) to include documents based on a pattern. \n\nSubdirectories will create sections (use an `index.qmd` in the directory to\nprovide its title). Order will be alphabetical unless a numeric `order` field\nis provided in document metadata.\n"
+                  }
+                }
+              }
+            }
+          },
+          {
             id: "navigation-item",
             anyOf: [
               "path",
@@ -8759,29 +8778,40 @@ try {
           },
           {
             id: "sidebar-contents",
-            arrayOf: {
-              anyOf: [
-                {
-                  ref: "navigation-item"
-                },
-                "path",
-                {
-                  object: {
-                    properties: {
-                      section: {
-                        anyOf: [
-                          "string",
-                          null
-                        ]
-                      },
-                      contents: {
-                        ref: "sidebar-contents"
+            anyOf: [
+              {
+                ref: "contents-auto"
+              },
+              {
+                arrayOf: {
+                  anyOf: [
+                    {
+                      ref: "navigation-item"
+                    },
+                    "path",
+                    {
+                      object: {
+                        closed: true,
+                        properties: {
+                          section: {
+                            anyOf: [
+                              "string",
+                              null
+                            ]
+                          },
+                          contents: {
+                            ref: "sidebar-contents"
+                          }
+                        }
                       }
+                    },
+                    {
+                      ref: "contents-auto"
                     }
-                  }
+                  ]
                 }
-              ]
-            }
+              }
+            ]
           },
           {
             id: "project-preview",
@@ -10898,6 +10928,11 @@ try {
               ]
             },
             description: "The contents of an acknowledgments footnote after the document title."
+          },
+          {
+            name: "order",
+            schema: "number",
+            description: "Order for document when included in a website automatic sidebar menu."
           }
         ],
         "schema/document-citation.yml": [
@@ -17226,6 +17261,10 @@ try {
           "zimwiki"
         ],
         "schema/html-descriptions.yml": [
+          {
+            short: "Automatically generate sidebar contents.",
+            long: "Automatically generate sidebar contents. Pass <code>true</code> to\ninclude all documents in the site, a directory name to include only\ndocuments in that directory, or a glob (or list of globs) to include\ndocuments based on a pattern.\nSubdirectories will create sections (use an <code>index.qmd</code> in\nthe directory to provide its title). Order will be alphabetical unless a\nnumeric <code>order</code> field is provided in document metadata."
+          },
           "Link to file contained with the project or external URL",
           "Alias for href",
           "Alias for href",
@@ -19256,7 +19295,8 @@ try {
           "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
           "Custom tools for navbar or sidebar",
           "The Digital Object Identifier for this book.",
-          "internal-schema-hack"
+          "internal-schema-hack",
+          "Order for document when included in a website automatic sidebar\nmenu."
         ],
         "schema/external-schemas.yml": [
           {

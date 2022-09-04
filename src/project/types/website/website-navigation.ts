@@ -128,6 +128,7 @@ import { TempContext } from "../../../core/temp.ts";
 import { HtmlPostProcessResult } from "../../../command/render/types.ts";
 import { isJupyterNotebook } from "../../../core/jupyter/jupyter.ts";
 import { kHtmlEmptyPostProcessResult } from "../../../command/render/constants.ts";
+import { expandAutoSidebarItems } from "./website-sidebar-auto.ts";
 
 // static navigation (initialized during project preRender)
 const navigation: Navigation = {
@@ -722,7 +723,7 @@ async function sidebarEjsData(project: ProjectContext, sidebar: Sidebar) {
 
   sidebar.pinned = sidebar.pinned !== undefined ? !!sidebar.pinned : false;
 
-  await resolveSidebarItems(project, sidebar.contents);
+  await resolveSidebarItems(project, sidebar);
   await resolveSidebarTools(project, sidebar.tools);
 
   return sidebar;
@@ -730,9 +731,17 @@ async function sidebarEjsData(project: ProjectContext, sidebar: Sidebar) {
 
 async function resolveSidebarItems(
   project: ProjectContext,
-  items: SidebarItem[],
+  sidebar: SidebarItem,
 ) {
   const context = sidebarContext();
+
+  // see if any 'auto' items need to be expanded
+  sidebar.contents = await expandAutoSidebarItems(
+    project,
+    sidebar.contents || [],
+  );
+  const items = sidebar.contents;
+
   for (let i = 0; i < items.length; i++) {
     let item = normalizeSidebarItem(project.dir, items[i], context);
 
@@ -773,7 +782,7 @@ async function resolveSidebarItem(project: ProjectContext, item: SidebarItem) {
   }
 
   if (item.contents) {
-    await resolveSidebarItems(project, item.contents);
+    await resolveSidebarItems(project, item);
     return item;
   } else {
     return item;

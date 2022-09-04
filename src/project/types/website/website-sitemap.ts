@@ -6,7 +6,7 @@
 */
 
 import { existsSync } from "fs/mod.ts";
-import { join, relative } from "path/mod.ts";
+import { basename, join, relative } from "path/mod.ts";
 
 import { ElementInfo, SAXParser } from "xmlp/mod.ts";
 
@@ -21,6 +21,7 @@ import { ProjectOutputFile } from "../types.ts";
 import { websiteBaseurl } from "./website-config.ts";
 import { kDraft } from "../../../format/html/format-html-shared.ts";
 import { copyTo } from "../../../core/copy.ts";
+import { inputTargetIndexForOutputFile } from "../../project-index.ts";
 
 export async function updateSitemap(
   context: ProjectContext,
@@ -29,6 +30,22 @@ export async function updateSitemap(
 ) {
   // get output dir
   const outputDir = projectOutputDir(context);
+
+  // filter out empty index files
+  const filteredOutputFiles: ProjectOutputFile[] = [];
+  for (const outputFile of outputFiles) {
+    if (basename(outputFile.file) === "index.html") {
+      const index = await inputTargetIndexForOutputFile(
+        context,
+        relative(outputDir, outputFile.file),
+      );
+      if (index && index.markdown.markdown.trim().length === 0) {
+        continue;
+      }
+    }
+    filteredOutputFiles.push(outputFile);
+  }
+  outputFiles = filteredOutputFiles;
 
   // see if we have a robots.txt to copy
   const robotsTxtPath = join(context.dir, "robots.txt");
