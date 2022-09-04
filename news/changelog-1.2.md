@@ -34,6 +34,10 @@
 - Don't discover resources within a site or book output directory
 - Enable use of custom HTML formats for websites
 
+## Books
+
+- Fix issue that caused incomplete search indexes for books
+
 ## Publishing
 
 - Handle CNAME file for `gh-pages` either without or without protocol prefix (e.g. https://)
