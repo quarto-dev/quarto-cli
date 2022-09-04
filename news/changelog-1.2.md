@@ -19,6 +19,7 @@
 ## HTML Format
 
 - Fix error when restoring preserved HTML in output files that use `output-file`
+- Properly maintain dark/light state when navigating between pages
 
 ## PDF Format
 
