@@ -797,6 +797,7 @@ export async function ojsCompile(
     dirname(options.source),
     options.libDir,
     options.temp,
+    project,
   );
 
   const ojsBundleTempFiles = [];

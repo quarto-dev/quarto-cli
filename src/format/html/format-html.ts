@@ -31,6 +31,7 @@ import {
 
 import {
   DependencyFile,
+  DependencyHtmlFile,
   Format,
   FormatDependency,
   FormatExtras,
@@ -187,8 +188,8 @@ export async function htmlFormatExtras(
   }
 
   // lists of scripts and ejs data for the orchestration script
-  const scripts: DependencyFile[] = [];
-  const stylesheets: DependencyFile[] = [];
+  const scripts: DependencyHtmlFile[] = [];
+  const stylesheets: DependencyHtmlFile[] = [];
   const sassBundles: SassBundle[] = [];
   const dependencies: FormatDependency[] = [];
 

@@ -53,7 +53,7 @@ export interface PlatformDependency {
 function version(env: string) {
   const version = Deno.env.get(env);
   if (!version) {
-    throw Error(`${env} isn't defined with depedency version`);
+    throw Error(`${env} isn't defined with dependency version`);
   } else {
     return version;
   }
