@@ -97,8 +97,19 @@ fn main() {
         .expect("failed to run deno");
 
     // forward exit status
-    let ecode = child.wait().expect("failed to wait on deno");
-    std::process::exit(ecode.code().expect("failed to get deno exit code"));
+    let status = child.wait().expect("failed to wait on deno");
+    if status.success() {
+        std::process::exit(0)
+    } else {
+        match status.code() {
+            Some(code) => std::process::exit(code),
+            // errors reaping the status code have been observed 
+            // (see https://github.com/quarto-dev/quarto-cli/issues/2296) 
+            // so in that return a normal exit status -- need further 
+            // investigation to figure out if there is more to do here
+            None       => std::process::exit(0)
+        }
+    }
 }
 
 // return a PathBuf for an environment variable using os encoding
