@@ -20,8 +20,47 @@ export {
   normalizeNewlines,
 } from "./lib/text.ts";
 
-export function capitalize(str: string) {
+export function capitalizeWord(str: string) {
   return str.slice(0, 1).toUpperCase() + str.slice(1);
+}
+
+export function capitalizeTitle(str: string) {
+  return str.split(/\s+/).map((str, index, arr) => {
+    if (
+      index === 0 || index === (arr.length - 1) || !isNotCapitalized(str)
+    ) {
+      return capitalizeWord(str);
+    } else {
+      return str;
+    }
+  }).join(" ");
+}
+
+function isNotCapitalized(str: string) {
+  return [
+    // articles
+    "a",
+    "an",
+    "the",
+    // coordinating conjunctions
+    "for",
+    "and",
+    "nor",
+    "but",
+    "or",
+    "yet",
+    "so",
+    // prepositions
+    "with",
+    "at",
+    "by",
+    "to",
+    "in",
+    "for",
+    "from",
+    "of",
+    "on",
+  ].includes(str);
 }
 
 export function formatLineRange(

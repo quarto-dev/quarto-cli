@@ -16,6 +16,7 @@ import {
   pathWithForwardSlashes,
   safeExistsSync,
 } from "../../../core/path.ts";
+import { capitalizeTitle } from "../../../core/text.ts";
 import { engineValidExtensions } from "../../../execute/engine.ts";
 import { inputTargetIndex, resolveInputTarget } from "../../project-index.ts";
 
@@ -151,7 +152,7 @@ async function nodesToEntries(
           });
         } else {
           entries.push({
-            title: basename(href),
+            title: titleFromPath(href),
             children: await nodesToEntries(
               project,
               `${root}${node}/`,
@@ -182,17 +183,26 @@ async function nodesToEntries(
     }
   });
 }
-
 async function entryFromHref(project: ProjectContext, href: string) {
   const index = await inputTargetIndex(project, href);
   return {
     title: index?.title ||
       (await resolveInputTarget(project, href))?.title ||
-      dirAndStem(href)[1],
+      titleFromPath(dirAndStem(href)[1]),
     href: href,
     order: asNumber(index?.markdown.yaml?.[kOrder]),
     empty: index?.markdown.markdown.trim().length == 0,
   };
+}
+
+function titleFromPath(path: string) {
+  const name = basename(path);
+  // if there are no spaces then try to split on dashes/underscoes and autocapitalize
+  if (!name.includes(" ")) {
+    return capitalizeTitle(name.replaceAll(/[_\-]+/g, " "));
+  } else {
+    return name;
+  }
 }
 
 function sidebarItemsFromEntries(entries: Entry[]): SidebarItem[] {
