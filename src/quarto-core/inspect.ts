@@ -6,7 +6,7 @@
 */
 
 import { existsSync } from "fs/mod.ts";
-import { dirname, relative } from "path/mod.ts";
+import { dirname, join, relative } from "path/mod.ts";
 
 import * as ld from "../core/lodash.ts";
 
@@ -26,6 +26,9 @@ import { kLocalDevelopment, quartoConfig } from "../core/quarto.ts";
 import { ProjectConfig, ProjectFiles } from "../project/types.ts";
 import { cssFileResourceReferences } from "../core/css.ts";
 import { projectExcludeDirs } from "../project/project-shared.ts";
+import { safeExistsSync } from "../core/path.ts";
+import { kExtensionDir } from "../extension/extension-shared.ts";
+import { extensionFilesFromDirs } from "../extension/extension.ts";
 
 export interface InspectedConfig {
   quarto: {
@@ -127,6 +130,16 @@ export async function inspectConfig(path: string): Promise<InspectedConfig> {
         partitioned.markdown,
         resourceConfig,
       );
+
+      // if there is an _extensions dir then add it
+      const extensions = join(fileDir, kExtensionDir);
+      if (safeExistsSync(extensions)) {
+        resources.push(
+          ...extensionFilesFromDirs([extensions]).map((file) =>
+            relative(fileDir, file)
+          ),
+        );
+      }
 
       // data to write
       const config: InspectedDocumentConfig = {

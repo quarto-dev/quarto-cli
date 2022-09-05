@@ -100,6 +100,7 @@ import { ServeRenderManager } from "./render.ts";
 import { projectScratchPath } from "../project-scratch.ts";
 import { monitorQuartoSrcChanges } from "../../core/quarto.ts";
 import { exitWithCleanup, onCleanup } from "../../core/cleanup.ts";
+import { projectExtensionDirs } from "../../extension/extension.ts";
 
 export const kRenderNone = "none";
 export const kRenderDefault = "default";
@@ -221,10 +222,18 @@ export async function serveProject(
     renderResult.files.flatMap((file) => file.resourceFiles),
   ) as string[]);
 
+  // scan for extension dirs
+  const extensionDirs = projectExtensionDirs(project);
+
   // render manager for tracking need to re-render outputs
   // (record any files we just rendered)
   const renderManager = new ServeRenderManager();
-  renderManager.onRenderResult(renderResult, resourceFiles, project);
+  renderManager.onRenderResult(
+    renderResult,
+    extensionDirs,
+    resourceFiles,
+    project,
+  );
 
   // function that can return the current target pdf output file
   const pdfOutputFile = (finalOutput && pdfOutput)
@@ -244,6 +253,7 @@ export async function serveProject(
   // create project watcher. later we'll figure out if it should provide renderOutput
   const watcher = await watchProject(
     project,
+    extensionDirs,
     resourceFiles,
     flags,
     pandocArgs,
@@ -310,6 +320,7 @@ export async function serveProject(
 
                 renderManager.onRenderResult(
                   result,
+                  extensionDirs,
                   resourceFiles,
                   watcher.project(),
                 );
@@ -366,6 +377,7 @@ export async function serveProject(
             renderManager.fileRequiresReRender(
               file,
               inputFile,
+              extensionDirs,
               resourceFiles,
               watcher.project(),
             )
@@ -402,7 +414,12 @@ export async function serveProject(
                 logError(result.error);
                 renderError = result.error;
               } else {
-                renderManager.onRenderResult(result, resourceFiles, project!);
+                renderManager.onRenderResult(
+                  result,
+                  extensionDirs,
+                  resourceFiles,
+                  project!,
+                );
               }
             } catch (e) {
               logError(e);

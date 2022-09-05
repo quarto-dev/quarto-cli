@@ -5,7 +5,7 @@
 *
 */
 
-import { existsSync } from "fs/mod.ts";
+import { existsSync, expandGlobSync, walkSync } from "fs/mod.ts";
 import { warning } from "log/mod.ts";
 import { coerce, Range, satisfies } from "semver/mod.ts";
 
@@ -14,7 +14,7 @@ import { isSubdir } from "fs/_util.ts";
 
 import { dirname, isAbsolute, join, normalize, relative } from "path/mod.ts";
 import { Metadata, QuartoFilter } from "../config/types.ts";
-import { resolvePathGlobs } from "../core/path.ts";
+import { kSkipHidden, resolvePathGlobs } from "../core/path.ts";
 import { toInputRelativePaths } from "../project/project-shared.ts";
 import { projectType } from "../project/types/project-types.ts";
 import { mergeConfigs } from "../core/config.ts";
@@ -35,6 +35,7 @@ import {
 import { cloneDeep } from "../core/lodash.ts";
 import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
 import { getExtensionConfigSchema } from "../core/lib/yaml-schema/project-config.ts";
+import { projectIgnoreGlobs } from "../project/project-context.ts";
 
 // Create an extension context that can be used to load extensions
 // Provides caching such that directories will not be rescanned
@@ -90,7 +91,7 @@ const loadExtensions = async (
   cache: Record<string, Extension[]>,
   project?: ProjectContext,
 ) => {
-  const extensionPath = allExtensionDirs(input, project);
+  const extensionPath = inputExtensionDirs(input, project);
   const allExtensions: Record<string, Extension> = {};
 
   for (const extensionDir of extensionPath) {
@@ -243,9 +244,40 @@ export async function readExtensions(
   return extensions;
 }
 
+export function projectExtensionDirs(project: ProjectContext) {
+  const extensionDirs: string[] = [];
+  for (
+    const walk of expandGlobSync(join(project.dir, "**/_extensions"), {
+      exclude: [...projectIgnoreGlobs(project.dir), "**/.*", "**/.*/**"],
+    })
+  ) {
+    extensionDirs.push(walk.path);
+  }
+  return extensionDirs;
+}
+
+export function extensionFilesFromDirs(dirs: string[]) {
+  const files: string[] = [];
+  for (const dir of dirs) {
+    for (
+      const walk of walkSync(
+        dir,
+        {
+          includeDirs: false,
+          followSymlinks: false,
+          skip: [kSkipHidden],
+        },
+      )
+    ) {
+      files.push(walk.path);
+    }
+  }
+  return files;
+}
+
 // Find all the extension directories available for a given input and project
 // This will recursively search valid extension directories
-function allExtensionDirs(input: string, project?: ProjectContext) {
+export function inputExtensionDirs(input: string, project?: ProjectContext) {
   const extensionsDirPath = (path: string) => {
     const extPath = join(path, kExtensionDir);
     try {

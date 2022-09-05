@@ -75,6 +75,10 @@ import {
 import { execProcess } from "../../core/process.ts";
 import { monitorQuartoSrcChanges } from "../../core/quarto.ts";
 import { exitWithCleanup } from "../../core/cleanup.ts";
+import {
+  extensionFilesFromDirs,
+  inputExtensionDirs,
+} from "../../extension/extension.ts";
 
 interface PreviewOptions {
   port?: number;
@@ -96,22 +100,22 @@ export async function preview(
   const format = await previewFormat(file, flags.to);
   setPreviewFormat(format, flags, pandocArgs);
 
+  // see if this is project file
+  const project = await projectContext(file);
+
   // render for preview (create function we can pass to watcher then call it)
   let isRendering = false;
   const render = async () => {
     const services = renderServices();
     try {
       isRendering = true;
-      return await renderForPreview(file, services, flags, pandocArgs);
+      return await renderForPreview(file, services, flags, pandocArgs, project);
     } finally {
       isRendering = false;
       services.cleanup();
     }
   };
   const result = await render();
-
-  // see if this is project file
-  const project = await projectContext(file);
 
   // resolve options (don't look at the project context b/c we
   // don't want overlapping ports within the same project)
@@ -315,6 +319,7 @@ interface RenderForPreviewResult {
   file: string;
   format: Format;
   outputFile: string;
+  extensionFiles: string[];
   resourceFiles: string[];
 }
 
@@ -323,6 +328,7 @@ async function renderForPreview(
   services: RenderServices,
   flags: RenderFlags,
   pandocArgs: string[],
+  project?: ProjectContext,
 ): Promise<RenderForPreviewResult> {
   // render
   const renderResult = await render(file, {
@@ -356,10 +362,16 @@ async function renderForPreview(
     },
     [],
   );
+  // computte extension files
+  const extensionFiles = extensionFilesFromDirs(
+    inputExtensionDirs(file, project),
+  );
+
   return {
     file,
     format: renderResult.files[0].format,
     outputFile: join(dirname(file), finalOutput),
+    extensionFiles,
     resourceFiles,
   };
 }
@@ -417,6 +429,13 @@ function createChangeHandler(
           handler: renderHandler,
         });
       }
+
+      // re-render on extension change (as a mere reload won't reflect
+      // the changes as they do w/ e.g. css files)
+      watches.push({
+        files: result.extensionFiles,
+        handler: renderHandler,
+      });
 
       // reload on output or resource changed (but wait for
       // the render queue to finish, as sometimes pdfs are
@@ -662,6 +681,7 @@ function resultRequiresSync(
   }
   return result.file !== lastResult.file ||
     result.outputFile !== lastResult.outputFile ||
+    !ld.isEqual(result.extensionFiles, lastResult.extensionFiles) ||
     !ld.isEqual(result.resourceFiles, lastResult.resourceFiles);
 }
 

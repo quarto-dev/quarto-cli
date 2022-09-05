@@ -11,6 +11,7 @@
 
 ## Extensions
 
+- Preview live reload for changes to extension source files
 - HTML dependencies may be provided by paths to files outside the extension directory
 - HTML dependencies may now include `serviceworkers`, which are copied into the output directory.
 - New `quarto.doc.attachToDependency` function to attach files to html dependencies (copies files into the lib dir for a named HTML dependency).
