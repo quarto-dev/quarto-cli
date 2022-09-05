@@ -95,13 +95,13 @@ export async function preview(
   pandocArgs: string[],
   options: PreviewOptions,
 ) {
-  // determine the target format if there isn't one in the command line args
-  // (current we force the use of an html or pdf based format)
-  const format = await previewFormat(file, flags.to);
-  setPreviewFormat(format, flags, pandocArgs);
-
   // see if this is project file
   const project = await projectContext(file);
+
+  // determine the target format if there isn't one in the command line args
+  // (current we force the use of an html or pdf based format)
+  const format = await previewFormat(file, flags.to, project);
+  setPreviewFormat(format, flags, pandocArgs);
 
   // render for preview (create function we can pass to watcher then call it)
   let isRendering = false;
