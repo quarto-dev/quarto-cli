@@ -22,7 +22,7 @@ import {
   FormatDependency,
   FormatLanguage,
 } from "../../../config/types.ts";
-import { kProjectLibDir, kProjectType, ProjectContext } from "../../types.ts";
+import { kProjectLibDir, ProjectContext } from "../../types.ts";
 import { ProjectOutputFile } from "../types.ts";
 
 import {
@@ -50,7 +50,6 @@ import {
 import { kLanguageDefaults } from "../../../config/constants.ts";
 import { pathWithForwardSlashes } from "../../../core/path.ts";
 import { isHtmlFileOutput } from "../../../config/format.ts";
-import { projectType } from "../project-types.ts";
 import { projectIsBook } from "../../project-context.ts";
 
 // The main search key
