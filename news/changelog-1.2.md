@@ -16,6 +16,7 @@
 - HTML dependencies may now include `serviceworkers`, which are copied into the output directory.
 - New `quarto.doc.attachToDependency` function to attach files to html dependencies (copies files into the lib dir for a named HTML dependency).
 - Ensure that `quarto.utils.dump` works with pandoc's builtin global variables (#2254)
+- Provide a better error message for non-existent format resources (#2291)
 
 ## HTML Format
 

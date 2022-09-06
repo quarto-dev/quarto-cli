@@ -14,6 +14,7 @@ import {
   appendDependencies,
   FormatResourceDependency,
 } from "./pandoc-dependencies.ts";
+import { existsSync } from "https://deno.land/std@0.153.0/fs/exists.ts";
 
 export interface FormatResource {
   file: string;
@@ -32,9 +33,15 @@ export function writeFormatResources(
       : [formatResources];
 
     const dependencies: FormatResourceDependency[] = files.map((file) => {
+      const absPath = join(inputDir, file);
+      if (!existsSync(absPath)) {
+        throw new Error(
+          `The referenced format resource '${file}' does not exist.`,
+        );
+      }
       return {
         type: kFormatResources,
-        content: { file: join(inputDir, file) },
+        content: { file: absPath },
       };
     });
     appendDependencies(dependenciesFile, dependencies);
