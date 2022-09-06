@@ -63,3 +63,4 @@
 - Upgrade to deno 1.25.1, which should lead to a 2-3x speedup in quarto startup time
 - Use deno arm64 native binaries on macOS
 - Set working dir to `QUARTO_WORKING_DIR` variable if provided.
+- Resolve absolute paths in include shortcodes (#2320)
