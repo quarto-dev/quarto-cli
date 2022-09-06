@@ -481,7 +481,8 @@ async function extensionShortcodes(options: PandocOptions) {
   if (options.extension) {
     const allExtensions = await options.extension?.extensions(
       options.source,
-      options.project,
+      options.project?.config,
+      options.project?.dir,
     );
     Object.values(allExtensions).forEach((extension) => {
       if (extension.contributes.shortcodes) {
@@ -646,7 +647,8 @@ async function resolveFilterExtension(
         filter,
         options.source,
         "filters",
-        options.project,
+        options.project?.config,
+        options.project?.dir,
       );
 
       if (extensions && extensions.length > 0) {
