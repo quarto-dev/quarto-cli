@@ -8,7 +8,7 @@
 import * as ld from "../../../core/lodash.ts";
 
 import { kDescription, kMetadataFormat } from "../../../config/constants.ts";
-import { isHtmlOutput } from "../../../config/format.ts";
+import { isHtmlDocOutput, isHtmlOutput } from "../../../config/format.ts";
 import {
   formatFromMetadata,
   formatKeys,
@@ -17,7 +17,7 @@ import {
 import { Format, Metadata } from "../../../config/types.ts";
 import { mergeConfigs } from "../../../core/config.ts";
 import { kComments } from "../../../format/html/format-html-shared.ts";
-import { Sidebar } from "../../types.ts";
+import { kProjectTitle, Sidebar } from "../../types.ts";
 import { RenderFlags } from "../../../command/render/types.ts";
 import { ProjectConfig, ProjectContext } from "../../types.ts";
 import {
@@ -38,6 +38,8 @@ import {
   kWebsite,
 } from "./website-constants.ts";
 import { ensureTrailingSlash } from "../../../core/path.ts";
+import { parseFormatString } from "../../../core/pandoc/pandoc-formats.ts";
+import { createExtensionContext } from "../../../extension/extension.ts";
 type WebsiteConfigKey =
   | "title"
   | "image"
@@ -296,8 +298,8 @@ export function formatsPreferHtml(formats: Record<string, unknown>) {
 
 // provide a project context that elevates html to the default
 // format for documents (unless they explicitly declare another format)
-export function websiteProjectConfig(
-  _projectDir: string,
+export async function websiteProjectConfig(
+  projectDir: string,
   config: ProjectConfig,
   flags?: RenderFlags,
 ): Promise<ProjectConfig> {
@@ -309,6 +311,38 @@ export function websiteProjectConfig(
 
   config[kMetadataFormat] = websiteFormatPreferHtml(format);
 
+  // if the main format is an html format then allow it to provide website defaults
+  const formats = Object.keys(
+    config[kMetadataFormat] as Record<string, unknown>,
+  );
+  const formatDesc = parseFormatString(formats[0]);
+  if (isHtmlDocOutput(formatDesc.baseFormat) && formatDesc.extension) {
+    const context = createExtensionContext();
+    const extension = await context.find(
+      formatDesc.extension,
+      projectDir,
+      "formats",
+      config,
+      projectDir,
+    );
+    if (extension && extension.length > 0) {
+      const format = extension[0].contributes
+        .formats?.[formatDesc.baseFormat];
+      if (typeof (format) === "object") {
+        const kWebsiteDefaults = "website-defaults";
+        const websiteDefaults =
+          (format as Record<string, Metadata>)[kWebsiteDefaults];
+        if (websiteDefaults) {
+          console.log(websiteDefaults);
+          config[kWebsite] = mergeConfigs(
+            websiteDefaults,
+            config[kWebsite] || {},
+          );
+        }
+      }
+    }
+  }
+
   // Resolve elements to be sure they're arrays, they will be resolve later
   const ensureArray = (val: unknown) => {
     if (Array.isArray(val)) {
@@ -319,6 +353,9 @@ export function websiteProjectConfig(
   };
 
   const siteMeta = (config[kWebsite] || {}) as Metadata;
+
+  // get default title from project if requred
+  siteMeta[kSiteTitle] = siteMeta[kSiteTitle] || config.project[kProjectTitle];
 
   if (flags?.siteUrl) {
     siteMeta[kSiteUrl] = flags.siteUrl;

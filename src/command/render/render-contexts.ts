@@ -575,7 +575,8 @@ const readExtensionFormat = async (
     const extension = await extensionContext.extension(
       formatDesc.extension,
       file,
-      project,
+      project?.config,
+      project?.dir,
     );
 
     // Read the yaml file and resolve / bucketize

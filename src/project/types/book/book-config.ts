@@ -226,7 +226,7 @@ export async function bookProjectConfig(
   }
 
   // return config (inherit website config behavior)
-  return websiteProjectConfig(projectDir, config);
+  return await websiteProjectConfig(projectDir, config);
 }
 
 function siteRepoUrl(site: Metadata) {

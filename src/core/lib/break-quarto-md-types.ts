@@ -7,6 +7,7 @@
 *
 */
 
+import { Shortcode } from "./parse-shortcode.ts";
 import { MappedString } from "./text-types.ts";
 
 export interface CodeCellType {
@@ -16,7 +17,7 @@ export interface CodeCellType {
 export interface DirectiveCell {
   language: "_directive";
   name: string;
-  params: { name?: string; value: string }[];
+  shortcode: Shortcode;
 }
 
 export interface QuartoMdCell {
