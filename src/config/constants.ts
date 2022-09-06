@@ -90,6 +90,8 @@ export const kLinkExternalFilter = "link-external-filter";
 
 export const kQuartoVersion = "quarto-version";
 
+export const kQuartoRequiredVersion = "quarto-required-version";
+
 export const kExecuteDefaultsKeys = [
   kFigWidth,
   kFigHeight,
