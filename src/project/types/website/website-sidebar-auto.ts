@@ -171,6 +171,11 @@ async function nodesToEntries(
     const titleOrder = a.title.toLocaleUpperCase().localeCompare(
       b.title.toLocaleUpperCase(),
     );
+    if (a.children && !b.children) {
+      return 1;
+    } else if (b.children && !a.children) {
+      return -1;
+    }
     if (a.order !== undefined && b.order !== undefined) {
       const order = a.order - b.order;
       return order !== 0 ? order : titleOrder;
