@@ -14268,6 +14268,14 @@ var require_yaml_intelligence_resources = __commonJS({
             short: "Determines which ipynb cell output formats are rendered (`none`, `all`, or `best`).",
             long: "Determines which ipynb cell output formats are rendered.\n\n- `all`: Preserve all of the data formats included in the original.\n- `none`: Omit the contents of data cells.\n- `best` (default): Instruct pandoc to try to pick the\n  richest data block in each output cell that is compatible\n  with the output format.\n"
           }
+        },
+        {
+          name: "quarto-required",
+          schema: "string",
+          description: {
+            short: "semver version range for required quarto version",
+            long: "A semver version range describing the supported quarto versions for this document\nor project.\n\nExamples:\n\n- `>= 1.1.0`: Require at least quarto version 1.1\n- `1.*`: Require any quarto versions whose major version number is 1\n"
+          }
         }
       ],
       "schema/document-pdfa.yml": [
@@ -16111,7 +16119,7 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
-          name: "quarto-version",
+          name: "quarto-required",
           description: "Quarto version range. See https://docs.npmjs.com/cli/v6/using-npm/semver for syntax details.",
           schema: "string"
         },
@@ -16429,7 +16437,6 @@ var require_yaml_intelligence_resources = __commonJS({
               closed: true,
               properties: {
                 title: {
-                  hidden: true,
                   schema: "string"
                 },
                 type: {
@@ -18605,6 +18612,10 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Determines which ipynb cell output formats are rendered."
         },
         {
+          short: "semver version range for required quarto version",
+          long: "A semver version range describing the supported quarto versions for\nthis document or project.\nExamples:"
+        },
+        {
           short: "Adds the necessary setup to the document preamble to generate PDF/A\nof the type specified.",
           long: 'Adds the necessary setup to the document preamble to generate PDF/A\nof the type specified.\nIf the value is set to <code>true</code>, <code>1b:2005</code> will\nbe used as default.\nTo successfully generate PDF/A the required ICC color profiles have\nto be available and the content and all included files (such as images)\nhave to be standard conforming. The ICC profiles and output intent may\nbe specified using the variables <code>pdfaiccprofile</code> and\n<code>pdfaintent</code>. See also <a href="https://wiki.contextgarden.net/PDF/A">ConTeXt PDFA</a> for more\ndetails.'
         },
@@ -18822,6 +18833,7 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "Additional attributes for the title slide of a reveal.js\npresentation.",
           long: "Additional attributes for the title slide of a reveal.js presentation\nas a map of attribute names and values. For example"
         },
+        "CSS color for title slide background",
         "URL or path to the background image.",
         "CSS background size (defaults to <code>cover</code>)",
         "CSS background position (defaults to <code>center</code>)",
@@ -19299,7 +19311,11 @@ var require_yaml_intelligence_resources = __commonJS({
         "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
         "Custom tools for navbar or sidebar",
         "The Digital Object Identifier for this book.",
-        "internal-schema-hack"
+        "internal-schema-hack",
+        {
+          short: "semver version range for required quarto version",
+          long: "A semver version range describing the supported quarto versions for\nthis document or project.\nExamples:"
+        }
       ],
       "schema/external-schemas.yml": [
         {
@@ -28375,16 +28391,27 @@ function isBlockShortcode(content) {
 }
 function parseShortcode(shortCodeCapture) {
   const [name, ...args] = shortCodeCapture.trim().split(" ");
+  const namedParams = {};
+  const params = [];
+  const rawParams = args.map((v) => {
+    const p = v.indexOf("=");
+    let name2 = void 0;
+    let value;
+    if (p === -1) {
+      value = v;
+      params.push(value);
+    } else {
+      name2 = v.slice(0, p);
+      value = v.slice(p + 1);
+      namedParams[name2] = value;
+    }
+    return { name: name2, value };
+  });
   return {
     name,
-    params: args.map((v) => {
-      const p = v.indexOf("=");
-      if (p === -1) {
-        return { value: v };
-      } else {
-        return { name: v.slice(0, p), value: v.slice(p + 1) };
-      }
-    })
+    rawParams,
+    namedParams,
+    params
   };
 }
 
@@ -28422,7 +28449,7 @@ async function breakQuartoMd(src, validate2 = false) {
           return {
             language: "_directive",
             name: directiveParams.name,
-            params: directiveParams.params
+            shortcode: directiveParams
           };
         } else {
           return cell_type;

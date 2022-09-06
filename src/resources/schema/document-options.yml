@@ -300,3 +300,16 @@
       - `best` (default): Instruct pandoc to try to pick the
         richest data block in each output cell that is compatible
         with the output format.
+
+- name: quarto-required
+  schema: string
+  description:
+    short: "semver version range for required quarto version"
+    long: |
+      A semver version range describing the supported quarto versions for this document
+      or project.
+
+      Examples:
+
+      - `>= 1.1.0`: Require at least quarto version 1.1
+      - `1.*`: Require any quarto versions whose major version number is 1

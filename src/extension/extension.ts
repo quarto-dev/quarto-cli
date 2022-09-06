@@ -32,7 +32,7 @@ import {
   kAuthor,
   kCommon,
   kExtensionDir,
-  kQuartoVersion,
+  kQuartoRequired,
   kTitle,
   kVersion,
 } from "./extension-shared.ts";
@@ -455,7 +455,7 @@ async function readExtension(
   const title = yaml[kTitle] as string;
   const author = yaml[kAuthor] as string;
   const versionRaw = yaml[kVersion] as string | undefined;
-  const quartoVersionRaw = yaml[kQuartoVersion] as string | undefined;
+  const quartoVersionRaw = yaml[kQuartoRequired] as string | undefined;
   const versionParsed = versionRaw ? coerce(versionRaw) : undefined;
   const quartoVersion = quartoVersionRaw
     ? readVersionRange(quartoVersionRaw)

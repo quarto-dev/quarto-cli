@@ -202,6 +202,7 @@ export interface RenderFlags extends PandocFlags {
   clean?: boolean;
   debug?: boolean;
   quiet?: boolean;
+  version?: string;
 }
 
 export interface OutputRecipe {
