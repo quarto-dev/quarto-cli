@@ -1,5 +1,5 @@
 name: Bug report
-description: Report an error or unexpected behavior you saw while using this package
+description: Report an error or unexpected behavior
 labels: [bug]
 
 body:
@@ -7,14 +7,15 @@ body:
     attributes:
       value: |
         Welcome to the quarto GitHub repo.
-        
+
         We are always happy to hear feedback from our users.
-        
+
         Quarto is under active development! If convenient, we'd appreciate if you could check that the issue persists on the [latest nightly release](https://github.com/quarto-dev/quarto-cli/releases).
 
-        Finally, so that we can get the most out of your bug report, consider reading [this webpage](https://quarto.org/bug-reports.html) on improving bug reports.
-        
+        Finally, so that we can get the most out of your bug report, consider reading [this webpage](https://quarto.org/bug-reports.html) on improving bug reports.
+
         Thank you for using Quarto!
+
   - type: textarea
     attributes:
       label: Bug description
@@ -27,7 +28,7 @@ body:
         print("Hello Quarto!")
         ```
         ````
-        
+
   - type: checkboxes
     attributes:
       label: Checklist
@@ -35,6 +36,6 @@ body:
         When filing a bug report, if possible, please keep the following in mind so we have as much info as possible:
       options:
         - label: Please include a minimal, fully reproducible example in a single .qmd file? Please provide the whole file rather than the snippet you believe is causing the issue.
-        - label: "Please [format your issue](https://yihui.org/issue/#please-format-your-issue-correctly) so it is easier for us to read the bug report."
+        - label: "Please [format your issue](https://quarto.org/bug-reports.html#formatting-make-githubs-markdown-work-for-us) so it is easier for us to read the bug report."
         - label: Please document the RStudio IDE version you're running (if applicable), by providing the value displayed in the "About RStudio" main menu dialog?
         - label: Please document the operating system you're running. If on Linux, please provide the specific distribution.
