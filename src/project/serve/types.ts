@@ -12,6 +12,7 @@ export interface ProjectWatcher {
   handle: (req: Request) => boolean;
   connect: (req: Request) => Promise<Response | undefined>;
   injectClient: (
+    req: Request,
     file: Uint8Array,
     inputFile?: string,
   ) => FileResponse;

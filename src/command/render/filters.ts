@@ -520,8 +520,8 @@ export async function resolveFilters(
   // user filters
   // extension filters
   // quarto-filters <quarto>
-  // citeproc
   // quarto-finalizer
+  // citeproc
 
   const quartoFilters: string[] = [];
   quartoFilters.push(quartoPreFilter());

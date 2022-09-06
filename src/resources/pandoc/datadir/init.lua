@@ -1557,7 +1557,7 @@ local function resolveServiceWorkers(serviceworkers)
  end
 
 
-local latexTableWithOptionsPattern = "(\\begin{table}%[%w+%])(.*)(\\end{table})"
+local latexTableWithOptionsPattern = "(\\begin{table}%[[^%]]+%])(.*)(\\end{table})"
 local latexTablePattern = "(\\begin{table})(.*)(\\end{table})"
 local latexLongtablePatternwWithPosAndAlign = "(\\begin{longtable}%[[^%]]+%]{.-})(.*)(\\end{longtable})"
 local latexLongtablePatternWithPos = "(\\begin{longtable}%[[^%]]+%])(.*)(\\end{longtable})"

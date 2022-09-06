@@ -26,6 +26,7 @@
 ## PDF Format
 
 - Provide a better error message for PDF output that produces an empty document
+- Improved detection of LaTeX caption regions (#2295)
 
 ## Authors and Affiliations
 
@@ -66,3 +67,4 @@
 - Resolve absolute paths in include shortcodes (#2320)
 - New metadata field `quarto-required` to specify required versions of quarto in a document
   - Filter extensions now use `quarto-required` rather than `quarto-version` for their own version requirements
+- Provide project configuration for calls to `quarto inspect` for files
