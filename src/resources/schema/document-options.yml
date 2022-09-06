@@ -301,7 +301,7 @@
         richest data block in each output cell that is compatible
         with the output format.
 
-- name: quarto-required-version
+- name: quarto-version
   schema: string
   description:
     short: "semver version range for required quarto version"

@@ -64,4 +64,4 @@
 - Use deno arm64 native binaries on macOS
 - Set working dir to `QUARTO_WORKING_DIR` variable if provided.
 - Resolve absolute paths in include shortcodes (#2320)
-- New metadata field `quarto-required-version` to specify required versions of quarto in a document
+- New metadata field `quarto-version` to specify required versions of quarto in a document

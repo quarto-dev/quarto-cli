@@ -14270,7 +14270,7 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
-          name: "quarto-required-version",
+          name: "quarto-version",
           schema: "string",
           description: {
             short: "semver version range for required quarto version",
@@ -16437,7 +16437,6 @@ var require_yaml_intelligence_resources = __commonJS({
               closed: true,
               properties: {
                 title: {
-                  hidden: true,
                   schema: "string"
                 },
                 type: {
@@ -28392,16 +28391,27 @@ function isBlockShortcode(content) {
 }
 function parseShortcode(shortCodeCapture) {
   const [name, ...args] = shortCodeCapture.trim().split(" ");
+  const namedParams = {};
+  const params = [];
+  const rawParams = args.map((v) => {
+    const p = v.indexOf("=");
+    let name2 = void 0;
+    let value;
+    if (p === -1) {
+      value = v;
+      params.push(value);
+    } else {
+      name2 = v.slice(0, p);
+      value = v.slice(p + 1);
+      namedParams[name2] = value;
+    }
+    return { name: name2, value };
+  });
   return {
     name,
-    params: args.map((v) => {
-      const p = v.indexOf("=");
-      if (p === -1) {
-        return { value: v };
-      } else {
-        return { name: v.slice(0, p), value: v.slice(p + 1) };
-      }
-    })
+    rawParams,
+    namedParams,
+    params
   };
 }
 
@@ -28439,7 +28449,7 @@ async function breakQuartoMd(src, validate2 = false) {
           return {
             language: "_directive",
             name: directiveParams.name,
-            params: directiveParams.params
+            shortcode: directiveParams
           };
         } else {
           return cell_type;

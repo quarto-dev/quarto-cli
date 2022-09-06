@@ -7246,7 +7246,7 @@
       }
     },
     {
-      "name": "quarto-required-version",
+      "name": "quarto-version",
       "schema": "string",
       "description": {
         "short": "semver version range for required quarto version",
@@ -9413,7 +9413,6 @@
           "closed": true,
           "properties": {
             "title": {
-              "hidden": true,
               "schema": "string"
             },
             "type": {
