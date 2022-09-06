@@ -17,6 +17,7 @@
 - New `quarto.doc.attachToDependency` function to attach files to html dependencies (copies files into the lib dir for a named HTML dependency).
 - Ensure that `quarto.utils.dump` works with pandoc's builtin global variables (#2254)
 - Provide a better error message for non-existent format resources (#2291)
+- Ability to specify a minimum quarto version via the `quarto-required` option.
 
 ## HTML Format
 
@@ -66,5 +67,4 @@
 - Set working dir to `QUARTO_WORKING_DIR` variable if provided.
 - Resolve absolute paths in include shortcodes (#2320)
 - New metadata field `quarto-required` to specify required versions of quarto in a document
-  - Filter extensions now use `quarto-required` rather than `quarto-version` for their own version requirements
 - Provide project configuration for calls to `quarto inspect` for files
