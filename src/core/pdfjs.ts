@@ -7,6 +7,7 @@
 
 import { basename, join } from "path/mod.ts";
 import { md5Hash } from "./hash.ts";
+import { isViewerIFrameRequest } from "./http-devserver.ts";
 import { FileResponse } from "./http.ts";
 import { contentType } from "./mime.ts";
 import { pathWithForwardSlashes } from "./path.ts";
@@ -63,12 +64,8 @@ export function pdfJsFileHandler(
           basename(pdfFile()),
         );
       // always hide the sidebar in the viewer pane
-      const referrer = req.headers.get("Referer");
-      const isViewer = referrer && (
-        referrer.includes("capabilities=") || // rstudio viewer
-        referrer.includes("vscodeBrowserReqId=") || // vscode simple browser
-        referrer.includes("quartoPreviewReqId=") // generic embedded browser
-      );
+      const isViewer = isViewerIFrameRequest(req);
+
       if (isViewer) {
         viewerJs = viewerJs.replace(
           "sidebarView: sidebarView",

@@ -88,7 +88,6 @@ import { removePandocTo } from "../../../command/render/flags.ts";
 import { resourcePath } from "../../../core/resources.ts";
 import { PandocAttr, PartitionedMarkdown } from "../../../core/pandoc/types.ts";
 import { stringify } from "encoding/yaml.ts";
-import { fromFileUrl } from "https://deno.land/std@0.153.0/path/win32.ts";
 
 export function bookPandocRenderer(
   options: RenderOptions,
