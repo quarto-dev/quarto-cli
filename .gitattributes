@@ -43,5 +43,10 @@ src/** text eol=lf
 *.wasm binary
 *.bcmap binary
 
+# Don't merge auto-generated files
+src/resources/editor/tools/vs-code.mjs merge=ours
+src/resources/editor/tools/yaml/web-worker.js merge=ours
+src/resources/editor/tools/yaml/yaml-intelligence-resources.json merge=ours
+
 
 
