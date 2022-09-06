@@ -112,7 +112,8 @@ export const removeCommand = new Command()
             const project = await projectContext(targetDir);
             const extensions = await extensionContext.extensions(
               targetDir,
-              project,
+              project?.config,
+              project?.dir,
             );
 
             // Show a list
