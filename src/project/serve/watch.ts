@@ -346,8 +346,8 @@ export function watchProject(
       return devServer.handle(req);
     },
     connect: devServer.connect,
-    injectClient: (file: Uint8Array, inputFile?: string) => {
-      return devServer.injectClient(file, inputFile);
+    injectClient: (req: Request, file: Uint8Array, inputFile?: string) => {
+      return devServer.injectClient(req, file, inputFile);
     },
     hasClients: () => devServer.hasClients(),
     reloadClients: async (output: boolean, reloadTarget?: string) => {

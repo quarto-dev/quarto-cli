@@ -21,6 +21,7 @@ export interface HttpDevServer {
   handle: (req: Request) => boolean;
   connect: (req: Request) => Promise<Response | undefined>;
   injectClient: (
+    req: Request,
     file: Uint8Array,
     inputFile?: string,
   ) => FileResponse;
@@ -75,6 +76,11 @@ export function httpDevServer(
     }
   });
 
+  let injectClientInitialized = false;
+  let isFrame: boolean;
+  let origin: string;
+  let search: string;
+
   return {
     handle: (req: Request) => {
       return req.headers.get("upgrade") === "websocket";
@@ -93,10 +99,29 @@ export function httpDevServer(
         return Promise.resolve(undefined);
       }
     },
-    injectClient: (file: Uint8Array, inputFile?: string): FileResponse => {
-      const scriptContents = new TextEncoder().encode(
-        "\n" + devServerClientScript(port, inputFile, isPresentation),
+    injectClient: (
+      req: Request,
+      file: Uint8Array,
+      inputFile?: string,
+    ): FileResponse => {
+      if (!injectClientInitialized) {
+        const url = new URL(req.url);
+        isFrame = isViewerIFrameRequest(req);
+        origin = url.origin;
+        search = url.search;
+        injectClientInitialized = true;
+      }
+
+      const script = devServerClientScript(
+        origin,
+        search,
+        port,
+        inputFile,
+        isPresentation,
+        isFrame,
       );
+
+      const scriptContents = new TextEncoder().encode("\n" + script);
       const fileWithScript = new Uint8Array(
         file.length + scriptContents.length,
       );
@@ -134,29 +159,61 @@ export function httpDevServer(
 }
 
 function devServerClientScript(
+  origin: string,
+  search: string,
   port: number,
   inputFile?: string,
   isPresentation?: boolean,
+  isFrame?: boolean,
 ): string {
   // core devserver
   const devserver = [
-    renderEjs(resourcePath("editor/devserver/devserver-core.html"), {
+    renderEjs(devserverHtmlResourcePath("core"), {
       localhost: kLocalhost,
       port,
     }),
   ];
   if (isPresentation) {
     devserver.push(
-      renderEjs(resourcePath("editor/devserver/devserver-revealjs.html"), {}),
+      renderEjs(devserverHtmlResourcePath("revealjs"), {}),
     );
   } else {
     // viewer devserver
     devserver.push(
-      renderEjs(resourcePath("editor/devserver/devserver-viewer.html"), {
+      renderEjs(devserverHtmlResourcePath("viewer"), {
         inputFile: inputFile || "",
       }),
     );
   }
 
+  if (isFrame) {
+    devserver.push(
+      renderEjs(devserverHtmlResourcePath("iframe"), {
+        origin: origin,
+        search: search,
+      }),
+    );
+  }
+
   return devserver.join("\n");
+}
+
+function devserverHtmlResourcePath(resource: string) {
+  return resourcePath(`editor/devserver/devserver-${resource}.html`);
+}
+
+export function isViewerIFrameRequest(req: Request) {
+  for (const url of [req.url, req.referrer]) {
+    const isViewer = url && (
+      url.includes("capabilities=") || // rstudio viewer
+      url.includes("vscodeBrowserReqId=") || // vscode simple browser
+      url.includes("quartoPreviewReqId=") // generic embedded browser
+    );
+
+    if (isViewer) {
+      return true;
+    }
+  }
+
+  return false;
 }
