@@ -89,6 +89,7 @@ export const kLinkExternalNewwindow = "link-external-newwindow";
 export const kLinkExternalFilter = "link-external-filter";
 
 export const kQuartoVersion = "quarto-version";
+export const kQuartoRequired = "quarto-required";
 
 export const kExecuteDefaultsKeys = [
   kFigWidth,

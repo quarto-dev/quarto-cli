@@ -14,7 +14,7 @@ export const kExtensionDir = "_extensions";
 export const kTitle = "title";
 export const kAuthor = "author";
 export const kVersion = "version";
-export const kQuartoVersion = "quarto-version";
+export const kQuartoRequired = "quarto-required";
 
 // TODO: rename format => formats
 export interface Extension extends Record<string, unknown> {

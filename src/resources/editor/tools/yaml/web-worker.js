@@ -14271,7 +14271,7 @@ try {
             }
           },
           {
-            name: "quarto-version",
+            name: "quarto-required",
             schema: "string",
             description: {
               short: "semver version range for required quarto version",
@@ -16120,7 +16120,7 @@ try {
             }
           },
           {
-            name: "quarto-version",
+            name: "quarto-required",
             description: "Quarto version range. See https://docs.npmjs.com/cli/v6/using-npm/semver for syntax details.",
             schema: "string"
           },

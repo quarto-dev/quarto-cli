@@ -14270,7 +14270,7 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
-          name: "quarto-version",
+          name: "quarto-required",
           schema: "string",
           description: {
             short: "semver version range for required quarto version",
@@ -16119,7 +16119,7 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
-          name: "quarto-version",
+          name: "quarto-required",
           description: "Quarto version range. See https://docs.npmjs.com/cli/v6/using-npm/semver for syntax details.",
           schema: "string"
         },
