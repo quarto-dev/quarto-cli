@@ -9,7 +9,11 @@ import { existsSync, expandGlobSync, walkSync } from "fs/mod.ts";
 import { warning } from "log/mod.ts";
 import { coerce, Range, satisfies } from "semver/mod.ts";
 
-import { kProjectType, ProjectContext } from "../project/types.ts";
+import {
+  kProjectType,
+  ProjectConfig,
+  ProjectContext,
+} from "../project/types.ts";
 import { isSubdir } from "fs/_util.ts";
 
 import { dirname, isAbsolute, join, normalize, relative } from "path/mod.ts";
@@ -46,12 +50,17 @@ export function createExtensionContext(): ExtensionContext {
   // Reads all extensions available to an input
   const extensions = async (
     input: string,
-    project?: ProjectContext,
+    config?: ProjectConfig,
+    projectDir?: string,
   ): Promise<Extension[]> => {
     // Load the extensions and resolve extension paths
-    const extensions = await loadExtensions(input, extensionCache, project);
+    const extensions = await loadExtensions(
+      input,
+      extensionCache,
+      projectDir,
+    );
     return Object.values(extensions).map((extension) =>
-      resolveExtensionPaths(extension, input, project)
+      resolveExtensionPaths(extension, input, config)
     );
   };
 
@@ -59,21 +68,27 @@ export function createExtensionContext(): ExtensionContext {
   const extension = async (
     name: string,
     input: string,
-    project?: ProjectContext,
+    config?: ProjectConfig,
+    projectDir?: string,
   ): Promise<Extension | undefined> => {
     // Load the extension and resolve any paths
-    const unresolved = await loadExtension(name, input, project);
-    return resolveExtensionPaths(unresolved, input, project);
+    const unresolved = await loadExtension(name, input, projectDir);
+    return resolveExtensionPaths(unresolved, input, config);
   };
 
   const find = async (
     name: string,
     input: string,
     contributes?: "shortcodes" | "filters" | "formats",
-    project?: ProjectContext,
+    config?: ProjectConfig,
+    projectDir?: string,
   ): Promise<Extension[]> => {
     const extId = toExtensionId(name);
-    return findExtensions(await extensions(input, project), extId, contributes);
+    return findExtensions(
+      await extensions(input, config, projectDir),
+      extId,
+      contributes,
+    );
   };
 
   return {
@@ -89,9 +104,9 @@ export function createExtensionContext(): ExtensionContext {
 const loadExtensions = async (
   input: string,
   cache: Record<string, Extension[]>,
-  project?: ProjectContext,
+  projectDir?: string,
 ) => {
-  const extensionPath = inputExtensionDirs(input, project);
+  const extensionPath = inputExtensionDirs(input, projectDir);
   const allExtensions: Record<string, Extension> = {};
 
   for (const extensionDir of extensionPath) {
@@ -115,10 +130,10 @@ const loadExtensions = async (
 const loadExtension = async (
   extension: string,
   input: string,
-  project?: ProjectContext,
+  projectDir?: string,
 ): Promise<Extension> => {
   const extensionId = toExtensionId(extension);
-  const extensionPath = discoverExtensionPath(input, extensionId, project);
+  const extensionPath = discoverExtensionPath(input, extensionId, projectDir);
 
   if (extensionPath) {
     // Find the metadata file, if any
@@ -189,11 +204,11 @@ function findExtensions(
 function resolveExtensionPaths(
   extension: Extension,
   input: string,
-  project?: ProjectContext,
+  config?: ProjectConfig,
 ) {
-  const inputDir = dirname(input);
+  const inputDir = Deno.statSync(input).isDirectory ? input : dirname(input);
   return toInputRelativePaths(
-    projectType(project?.config?.project?.[kProjectType]),
+    projectType(config?.project?.[kProjectType]),
     extension.path,
     inputDir,
     extension,
@@ -277,7 +292,7 @@ export function extensionFilesFromDirs(dirs: string[]) {
 
 // Find all the extension directories available for a given input and project
 // This will recursively search valid extension directories
-export function inputExtensionDirs(input: string, project?: ProjectContext) {
+export function inputExtensionDirs(input: string, projectDir?: string) {
   const extensionsDirPath = (path: string) => {
     const extPath = join(path, kExtensionDir);
     try {
@@ -300,7 +315,7 @@ export function inputExtensionDirs(input: string, project?: ProjectContext) {
   };
 
   const extensionDirectories: string[] = [];
-  if (project) {
+  if (projectDir) {
     let currentDir = Deno.realPathSync(inputDirName(input));
     do {
       const extensionPath = extensionsDirPath(currentDir);
@@ -308,7 +323,7 @@ export function inputExtensionDirs(input: string, project?: ProjectContext) {
         extensionDirectories.push(extensionPath);
       }
       currentDir = dirname(currentDir);
-    } while (isSubdir(project.dir, currentDir) || project.dir === currentDir);
+    } while (isSubdir(projectDir, currentDir) || projectDir === currentDir);
     return extensionDirectories;
   } else {
     const dir = extensionsDirPath(inputDirName(input));
@@ -323,7 +338,7 @@ export function inputExtensionDirs(input: string, project?: ProjectContext) {
 export function discoverExtensionPath(
   input: string,
   extensionId: ExtensionId,
-  project?: ProjectContext,
+  projectDir?: string,
 ) {
   const extensionDirGlobs = [];
   if (extensionId.organization) {
@@ -362,13 +377,13 @@ export function discoverExtensionPath(
   const sourceDir = Deno.statSync(input).isDirectory ? input : dirname(input);
   const sourceDirAbs = Deno.realPathSync(sourceDir);
 
-  if (project && isSubdir(project.dir, sourceDirAbs)) {
+  if (projectDir && isSubdir(projectDir, sourceDirAbs)) {
     let extensionDir;
     let currentDir = normalize(sourceDirAbs);
-    const projectDir = normalize(project.dir);
+    const projDir = normalize(projectDir);
     while (!extensionDir) {
       extensionDir = findExtensionDir(currentDir, extensionDirGlobs);
-      if (currentDir == projectDir) {
+      if (currentDir == projDir) {
         break;
       }
       currentDir = dirname(currentDir);

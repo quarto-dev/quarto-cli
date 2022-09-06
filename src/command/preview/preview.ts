@@ -364,7 +364,7 @@ async function renderForPreview(
   );
   // computte extension files
   const extensionFiles = extensionFilesFromDirs(
-    inputExtensionDirs(file, project),
+    inputExtensionDirs(file, project?.dir),
   );
 
   return {

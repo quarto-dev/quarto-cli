@@ -13,6 +13,7 @@ import { findOpenPort, kLocalhost, waitForPort } from "../core/port.ts";
 import { TempContext } from "../core/temp-types.ts";
 
 export const kProjectType = "type";
+export const kProjectTitle = "title";
 export const kProjectRender = "render";
 export const kProjectPreRender = "pre-render";
 export const kProjectPostRender = "post-render";
@@ -47,6 +48,7 @@ export interface ProjectFiles {
 export interface ProjectConfig {
   project: {
     [kProjectType]?: string;
+    [kProjectTitle]?: string;
     [kProjectRender]?: string[];
     [kProjectPreRender]?: string[];
     [kProjectPostRender]?: string[];
