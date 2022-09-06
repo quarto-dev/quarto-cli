@@ -15,12 +15,9 @@ import {
   mappedString,
 } from "../lib/mapped-text.ts";
 
-import { dirname, join, normalize, relative } from "path/mod.ts";
+import { relative } from "path/mod.ts";
 import { rangedLines } from "../lib/ranged-text.ts";
-import {
-  getShortcodeUnnamedParams,
-  isBlockShortcode,
-} from "../lib/parse-shortcode.ts";
+import { isBlockShortcode } from "../lib/parse-shortcode.ts";
 import { DirectiveCell } from "../lib/break-quarto-md-types.ts";
 
 const includeHandler: LanguageHandler = {
@@ -36,18 +33,14 @@ const includeHandler: LanguageHandler = {
     directive: DirectiveCell,
   ): Promise<MappedString> {
     const source = handlerContext.options.context.target.source;
-    const sourceDir = dirname(source);
     const retrievedFiles: string[] = [source];
-    const retrievedDirectories: string[] = [sourceDir];
 
     const textFragments: EitherString[] = [];
 
     const retrieveInclude = (filename: string) => {
-      const norm = relative(
-        join(...retrievedDirectories),
-        normalize(filename),
-      );
-      if (retrievedFiles.indexOf(filename) !== -1) {
+      const path = handlerContext.resolvePath(filename);
+
+      if (retrievedFiles.indexOf(path) !== -1) {
         throw new Error(
           `Include directive found circular include of file ${filename}.`,
         );
@@ -56,18 +49,21 @@ const includeHandler: LanguageHandler = {
       let includeSrc;
       try {
         includeSrc = asMappedString(
-          Deno.readTextFileSync(filename),
-          filename,
+          Deno.readTextFileSync(path),
+          path,
         );
       } catch (_e) {
         const errMsg: string[] = [`Include directive failed.`];
         errMsg.push(...retrievedFiles.map((s) => `  in file ${s}, `));
-        errMsg.push(`  could not find file ${norm}.`);
+        errMsg.push(
+          `  could not find file ${path
+            //            relative(handlerContext.options.context.target.source, path)
+          }.`,
+        );
         throw new Error(errMsg.join("\n"));
       }
 
       retrievedFiles.push(filename);
-      retrievedDirectories.push(dirname(norm));
 
       let rangeStart = 0;
       for (const { substring, range } of rangedLines(includeSrc.value)) {
@@ -77,15 +73,12 @@ const includeHandler: LanguageHandler = {
             mappedString(includeSrc, [{ start: rangeStart, end: range.start }]),
           );
           rangeStart = range.end;
-          const params = getShortcodeUnnamedParams(m);
+          const params = m.params;
           if (params.length === 0) {
             throw new Error("Include directive needs file parameter");
           }
-          const file = params[0];
 
-          retrieveInclude(
-            join(...[...retrievedDirectories, file]),
-          );
+          retrieveInclude(params[0]);
         }
       }
       if (rangeStart !== includeSrc.value.length) {
@@ -99,16 +92,14 @@ const includeHandler: LanguageHandler = {
       textFragments.push(includeSrc.value.endsWith("\n") ? "\n" : "\n\n");
 
       retrievedFiles.pop();
-      retrievedDirectories.pop();
     };
 
-    const params = getShortcodeUnnamedParams(directive);
-    if (params.length === 0) {
+    const param = directive.shortcode.params[0];
+    if (!param) {
       throw new Error("Include directive needs filename as a parameter");
     }
-    const includeName = join(sourceDir, params[0]);
 
-    retrieveInclude(includeName);
+    retrieveInclude(param);
 
     return Promise.resolve(mappedConcat(textFragments));
   },

@@ -16,6 +16,7 @@
 - HTML dependencies may now include `serviceworkers`, which are copied into the output directory.
 - New `quarto.doc.attachToDependency` function to attach files to html dependencies (copies files into the lib dir for a named HTML dependency).
 - Ensure that `quarto.utils.dump` works with pandoc's builtin global variables (#2254)
+- Provide a better error message for non-existent format resources (#2291)
 
 ## HTML Format
 
@@ -46,9 +47,10 @@
 
 - Handle CNAME file for `gh-pages` either without or without protocol prefix (e.g. https://)
 
-## Bibliographies
+## Bibliographies and Citations
 
 - Support formats `bibtex`, `biblatex`, and `csljson`. When rendered to one of these formats any citations within the document will be rendered as the specified bibliography format.
+- Always add citeproc filter if `citeproc: true` is specified, even if there isn't a bibliography or references in the document (#2294)
 
 ## Miscellaneous
 
@@ -61,3 +63,4 @@
 - Upgrade to deno 1.25.1, which should lead to a 2-3x speedup in quarto startup time
 - Use deno arm64 native binaries on macOS
 - Set working dir to `QUARTO_WORKING_DIR` variable if provided.
+- Resolve absolute paths in include shortcodes (#2320)
