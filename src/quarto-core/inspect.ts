@@ -45,7 +45,7 @@ export interface InspectedProjectConfig extends InspectedConfig {
 export interface InspectedDocumentConfig extends InspectedConfig {
   formats: Record<string, Format>;
   resources: string[];
-  project?: ProjectConfig;
+  project?: InspectedProjectConfig;
 }
 
 export function isProjectConfig(
@@ -162,7 +162,7 @@ export async function inspectConfig(path: string): Promise<InspectedConfig> {
 
       // if there is a project then add it
       if (context?.config) {
-        config.project = inspectedProjectConfig()?.config;
+        config.project = inspectedProjectConfig();
       }
       return config;
     } else {
