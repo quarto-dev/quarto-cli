@@ -47,9 +47,10 @@
 
 - Handle CNAME file for `gh-pages` either without or without protocol prefix (e.g. https://)
 
-## Bibliographies
+## Bibliographies and Citations
 
 - Support formats `bibtex`, `biblatex`, and `csljson`. When rendered to one of these formats any citations within the document will be rendered as the specified bibliography format.
+- Always add citeproc filter if `citeproc: true` is specified, even if there isn't a bibliography or references in the document (#2294)
 
 ## Miscellaneous
 
