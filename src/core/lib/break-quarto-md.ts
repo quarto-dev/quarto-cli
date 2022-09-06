@@ -20,7 +20,7 @@ import {
 import { partitionCellOptionsMapped } from "./partition-cell-options.ts";
 
 import { QuartoMdCell, QuartoMdChunks } from "./break-quarto-md-types.ts";
-import { isBlockShortcode } from "./parse-shortcode.ts";
+import { isBlockShortcode, Shortcode } from "./parse-shortcode.ts";
 
 export type { QuartoMdCell, QuartoMdChunks } from "./break-quarto-md-types.ts";
 
@@ -46,13 +46,7 @@ export async function breakQuartoMd(
   const endCodeRegEx = /^\s*```+\s*$/;
 
   let language = ""; // current language block
-  let directiveParams: {
-    name: string;
-    params: {
-      name?: string;
-      value: string;
-    }[];
-  } | undefined = undefined;
+  let directiveParams: Shortcode | undefined = undefined;
   let cellStartLine = 0;
 
   // line buffer
@@ -85,7 +79,7 @@ export async function breakQuartoMd(
           return {
             language: "_directive",
             name: directiveParams!.name,
-            params: directiveParams!.params,
+            shortcode: directiveParams,
           };
         } else {
           return cell_type;
