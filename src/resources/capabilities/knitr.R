@@ -8,7 +8,7 @@ for (lib in .libPaths())
   cat(paste0('  - ', shQuote(lib)), "\n")
 cat("rmarkdown: ")
 if (requireNamespace("rmarkdown", quietly = TRUE)) {
-  cat(paste0('\"', as.character(packageVersion("rmarkdown")), '\"'))
+  cat(paste0('\"', as.character(utils::packageVersion("rmarkdown")), '\"'))
 } else {
   cat("null")
 }

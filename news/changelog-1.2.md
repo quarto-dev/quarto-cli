@@ -26,6 +26,7 @@
 ## PDF Format
 
 - Provide a better error message for PDF output that produces an empty document
+- Improved detection of LaTeX caption regions (#2295)
 
 ## Authors and Affiliations
 
