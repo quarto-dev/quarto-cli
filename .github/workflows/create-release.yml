@@ -284,12 +284,6 @@ jobs:
           ./quarto-bld prepare-dist --set-version ${{needs.configure.outputs.version}} --log-level info
           popd
 
-      - name: Build Launcher
-        run: | 
-          cargo build --release --all-features --manifest-path package/launcher/Cargo.toml
-          mkdir -p package/dist/bin
-          cp package/launcher/target/release/quarto package/dist/bin/quarto
-
       - name: Make Installer
         run: |
           pushd package/src/
