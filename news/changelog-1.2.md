@@ -64,3 +64,4 @@
 - Use deno arm64 native binaries on macOS
 - Set working dir to `QUARTO_WORKING_DIR` variable if provided.
 - Resolve absolute paths in include shortcodes (#2320)
+- Provide project configuration for calls to `quarto inspect` for files
