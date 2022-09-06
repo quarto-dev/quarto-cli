@@ -39,6 +39,7 @@ import {
 import { isHtmlOutput } from "../../config/format.ts";
 import { renderProject } from "../render/project.ts";
 import { renderServices } from "../render/render-shared.ts";
+import { parseFormatString } from "../../core/pandoc/pandoc-formats.ts";
 export const previewCommand = new Command()
   .name("preview")
   .stopEarly()
@@ -236,7 +237,7 @@ export const previewCommand = new Command()
       const project = await projectContext(file);
       if (project && projectIsWebsite(project)) {
         const format = await previewFormat(file, flags.to, project);
-        if (isHtmlOutput(format, true)) {
+        if (isHtmlOutput(parseFormatString(format).baseFormat, true)) {
           setPreviewFormat(format, flags, args);
           const services = renderServices();
           try {
