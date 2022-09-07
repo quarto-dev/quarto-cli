@@ -1,4 +1,3 @@
-
 attach(list(
   ojs_define = function(...) {
     # validate that we aren't in a cached chunk
