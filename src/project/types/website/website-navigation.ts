@@ -129,6 +129,7 @@ import { HtmlPostProcessResult } from "../../../command/render/types.ts";
 import { isJupyterNotebook } from "../../../core/jupyter/jupyter.ts";
 import { kHtmlEmptyPostProcessResult } from "../../../command/render/constants.ts";
 import { expandAutoSidebarItems } from "./website-sidebar-auto.ts";
+import { NavigationItem } from "../../../resources/types/schema-types.ts";
 
 // static navigation (initialized during project preRender)
 const navigation: Navigation = {
@@ -1097,7 +1098,7 @@ export async function navigationItem(
   navItem = ld.cloneDeep(navItem);
 
   // allow short form syntax
-  if (typeof (navItem) === "string") {
+  if (typeof navItem === "string") {
     const navItemPath = join(project.dir, navItem);
     if (safeExistsSync(navItemPath) && Deno.statSync(navItemPath).isFile) {
       navItem = { href: navItem };
@@ -1137,7 +1138,7 @@ export async function navigationItem(
     // provide id and ensure we have some text
     return {
       ...navItem,
-      id: uniqueMenuId(navItem),
+      id: uniqueMenuId(navItem as NavigationItemObject),
       text: navItem.text || "",
     };
   } else {

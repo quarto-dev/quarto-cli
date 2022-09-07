@@ -59,17 +59,7 @@ provide its title). Order will be alphabetical unless a numeric `order` field
 is provided in document metadata. */
 };
 
-export type NavigationItem = string | {
-  "aria-label"?: string /* Accessible label for the navigation item. */;
-  file?: string /* Alias for href */;
-  href?: string /* Link to file contained with the project or external URL */;
-  icon?: string /* Name of bootstrap icon (e.g. `github`, `twitter`, `share`)
-See <https://icons.getbootstrap.com/> for a list of available icons */;
-  menu?: (NavigationItem)[];
-  text?: string /* Text to display for navigation item (defaults to the
-document title if not provided) */;
-  url?: string; /* Alias for href */
-};
+export type NavigationItem = string | NavigationItemObject;
 
 export type NavigationItemObject = {
   "aria-label"?: string /* Accessible label for the item. */;
@@ -83,8 +73,6 @@ See <https://icons.getbootstrap.com/> for a list of available icons */;
 document title if not provided) */;
   url?: string; /* Alias for href */
 };
-
-export type NavigationItem = string | NavigationItemObject;
 
 export type Comments = false | {
   giscus?: {
