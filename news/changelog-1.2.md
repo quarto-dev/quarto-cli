@@ -29,6 +29,10 @@
 - Provide a better error message for PDF output that produces an empty document
 - Improved detection of LaTeX caption regions (#2295)
 
+## Crossrefs
+
+- Fix problem with crossref indexing for listing code blocks
+
 ## Authors and Affiliations
 
 - Improve handling of empty authors
