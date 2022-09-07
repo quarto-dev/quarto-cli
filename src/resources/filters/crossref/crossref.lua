@@ -57,13 +57,13 @@ return {
   preprocessTheorems(),
   combineFilters({
     fileMetadata(),
+    qmd(),
     sections(),
     figures(),
     tables(),
     equations(),
     listings(),
     theorems(),
-    qmd()
   }),
   resolveRefs(),
   crossrefMetaInject(),
