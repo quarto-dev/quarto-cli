@@ -100,6 +100,7 @@ import { ServeRenderManager } from "./render.ts";
 import { projectScratchPath } from "../project-scratch.ts";
 import { monitorQuartoSrcChanges } from "../../core/quarto.ts";
 import { exitWithCleanup, onCleanup } from "../../core/cleanup.ts";
+import { projectExtensionDirs } from "../../extension/extension.ts";
 
 export const kRenderNone = "none";
 export const kRenderDefault = "default";
@@ -116,7 +117,7 @@ export async function serveProject(
     if (target === ".") {
       target = Deno.cwd();
     }
-    project = await projectContext(target, flags, false, true);
+    project = await projectContext(target, flags, false);
     if (!project || !project?.config) {
       throw new Error(`${target} is not a website or book project`);
     }
@@ -221,10 +222,18 @@ export async function serveProject(
     renderResult.files.flatMap((file) => file.resourceFiles),
   ) as string[]);
 
+  // scan for extension dirs
+  const extensionDirs = projectExtensionDirs(project);
+
   // render manager for tracking need to re-render outputs
   // (record any files we just rendered)
   const renderManager = new ServeRenderManager();
-  renderManager.onRenderResult(renderResult, resourceFiles, project);
+  renderManager.onRenderResult(
+    renderResult,
+    extensionDirs,
+    resourceFiles,
+    project,
+  );
 
   // function that can return the current target pdf output file
   const pdfOutputFile = (finalOutput && pdfOutput)
@@ -244,6 +253,7 @@ export async function serveProject(
   // create project watcher. later we'll figure out if it should provide renderOutput
   const watcher = await watchProject(
     project,
+    extensionDirs,
     resourceFiles,
     flags,
     pandocArgs,
@@ -310,6 +320,7 @@ export async function serveProject(
 
                 renderManager.onRenderResult(
                   result,
+                  extensionDirs,
                   resourceFiles,
                   watcher.project(),
                 );
@@ -339,7 +350,7 @@ export async function serveProject(
     },
 
     // handle html file requests w/ re-renders
-    onFile: async (file: string) => {
+    onFile: async (file: string, req: Request) => {
       // if this is an html file or a pdf then re-render (using the freezer)
       if (isHtmlContent(file) || isPdfContent(file)) {
         // find the input file associated with this output and render it
@@ -366,6 +377,7 @@ export async function serveProject(
             renderManager.fileRequiresReRender(
               file,
               inputFile,
+              extensionDirs,
               resourceFiles,
               watcher.project(),
             )
@@ -402,7 +414,12 @@ export async function serveProject(
                 logError(result.error);
                 renderError = result.error;
               } else {
-                renderManager.onRenderResult(result, resourceFiles, project!);
+                renderManager.onRenderResult(
+                  result,
+                  extensionDirs,
+                  resourceFiles,
+                  project!,
+                );
               }
             } catch (e) {
               logError(e);
@@ -425,6 +442,7 @@ export async function serveProject(
             relative(watcher.project().dir, inputFile),
           );
           return watcher.injectClient(
+            req,
             fileContents,
             projInputFile,
           );
@@ -466,7 +484,7 @@ export async function serveProject(
       }
       return {
         print,
-        response: watcher.injectClient(body),
+        response: watcher.injectClient(req, body),
       };
     },
   };
@@ -521,11 +539,11 @@ export async function serveProject(
     // install custom handler for pdfjs
     handlerOptions.onFile = pdfJsFileHandler(
       pdfOutputFile!,
-      async (file: string) => {
+      async (file: string, req: Request) => {
         // inject watcher client for html
         if (isHtmlContent(file)) {
           const fileContents = await Deno.readFile(file);
-          return watcher.injectClient(fileContents);
+          return watcher.injectClient(req, fileContents);
         } else {
           return undefined;
         }

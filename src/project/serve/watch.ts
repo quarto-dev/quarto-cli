@@ -44,6 +44,7 @@ interface WatchChanges {
 
 export function watchProject(
   project: ProjectContext,
+  extensionDirs: string[],
   resourceFiles: string[],
   flags: RenderFlags,
   pandocArgs: string[],
@@ -54,7 +55,7 @@ export function watchProject(
 ): Promise<ProjectWatcher> {
   // helper to refresh project config
   const refreshProjectConfig = async () => {
-    project = (await projectContext(project.dir, flags, false, true))!;
+    project = (await projectContext(project.dir, flags, false))!;
   };
 
   // proj dir
@@ -81,6 +82,11 @@ export function watchProject(
       return project.files.resources?.includes(path) ||
         resourceFiles.includes(path);
     }
+  };
+
+  // is this an extension file
+  const isExtensionFile = (path: string) => {
+    return extensionDirs.some((extensionDir) => path.startsWith(extensionDir));
   };
 
   // is this an input file?
@@ -156,7 +162,12 @@ export function watchProject(
                 }
                 return undefined;
               } else {
-                renderManager.onRenderResult(result, resourceFiles, project!);
+                renderManager.onRenderResult(
+                  result,
+                  extensionDirs,
+                  resourceFiles,
+                  project!,
+                );
                 return {
                   config: false,
                   output: true,
@@ -182,8 +193,10 @@ export function watchProject(
           (project.files.configResources || []).includes(path)
         );
         const resourceFile = paths.some(isResourceFile);
+        const extensionFile = paths.some(isExtensionFile);
 
-        const reload = configFile || configResourceFile || resourceFile ||
+        const reload = configFile || configResourceFile ||
+          resourceFile || extensionFile ||
           inputFileRemoved;
 
         if (reload) {
@@ -237,6 +250,7 @@ export function watchProject(
         } else {
           renderManager.onRenderResult(
             result,
+            extensionDirs,
             resourceFiles,
             project,
           );
@@ -332,8 +346,8 @@ export function watchProject(
       return devServer.handle(req);
     },
     connect: devServer.connect,
-    injectClient: (file: Uint8Array, inputFile?: string) => {
-      return devServer.injectClient(file, inputFile);
+    injectClient: (req: Request, file: Uint8Array, inputFile?: string) => {
+      return devServer.injectClient(req, file, inputFile);
     },
     hasClients: () => devServer.hasClients(),
     reloadClients: async (output: boolean, reloadTarget?: string) => {

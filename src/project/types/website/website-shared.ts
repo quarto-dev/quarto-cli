@@ -129,6 +129,21 @@ export function websiteNavigationConfig(project: ProjectContext) {
     if (sidebars[0].tools === undefined) {
       sidebars[0].tools = [];
     }
+
+    // convert contents: auto into items
+    for (const sb of sidebars) {
+      if (sb.contents && !Array.isArray(sb.contents)) {
+        if (typeof (sb.contents) === "string") {
+          if (sb.contents === "auto") {
+            sb.contents = [{ auto: true }];
+          } else {
+            sb.contents = [{ auto: sb.contents }];
+          }
+        } else {
+          sb.contents = [sb.contents as SidebarItem];
+        }
+      }
+    }
   }
 
   // if there is more than one sidebar then propagate options from the

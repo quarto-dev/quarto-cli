@@ -5,6 +5,8 @@
 *
 */
 
+import * as ld from "../../core/lodash.ts";
+
 import {
   kApplicationJavascript,
   kApplicationJupyterWidgetState,
@@ -101,6 +103,21 @@ export function displayDataMimeType(
     }
   }
   return null;
+}
+
+export function displayDataWithMarkdownMath(output: JupyterOutputDisplayData) {
+  if (Array.isArray(output.data[kTextLatex]) && !output.data[kTextMarkdown]) {
+    const latex = output.data[kTextLatex] as string[];
+    if (
+      latex.length > 0 && latex[0].startsWith("$") &&
+      latex[latex.length - 1].endsWith("$")
+    ) {
+      output = ld.cloneDeep(output);
+      output.data[kTextMarkdown] = output.data[kTextLatex];
+      return output;
+    }
+  }
+  return output;
 }
 
 export function displayDataHasHtmlTable(output: JupyterOutputDisplayData) {

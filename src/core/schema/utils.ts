@@ -17,6 +17,11 @@ export function schemaPath(path: string) {
 
 // initializes yaml intelligence using precompiled schemas from the filesystem
 export async function initYamlIntelligenceResourcesFromFilesystem() {
+  // 2022-08-26: There seems to be a bug on `deno vendor` for 1.25.0 where it fails to take json imports correctly.
+  // we need to work around it during the vendoring process by removing the bogus imports like so:
+  //
+  // const resourceModule = {} as Record<string, unknown>;
+
   const resourceModule = (await import(
     toFileUrl(
       resourcePath("editor/tools/yaml/yaml-intelligence-resources.json"),
@@ -25,6 +30,7 @@ export async function initYamlIntelligenceResourcesFromFilesystem() {
       assert: { type: "json" },
     }
   )).default as Record<string, unknown>;
+
   await initYamlIntelligence({
     resourceModule,
   });

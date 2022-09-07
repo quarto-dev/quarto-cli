@@ -104,7 +104,6 @@ export const kBookItemPart = "part";
 export async function bookProjectConfig(
   projectDir: string,
   config: ProjectConfig,
-  forceHtml: boolean,
   flags?: RenderFlags,
 ) {
   // ensure we have a site
@@ -227,7 +226,7 @@ export async function bookProjectConfig(
   }
 
   // return config (inherit website config behavior)
-  return websiteProjectConfig(projectDir, config, forceHtml);
+  return await websiteProjectConfig(projectDir, config);
 }
 
 function siteRepoUrl(site: Metadata) {

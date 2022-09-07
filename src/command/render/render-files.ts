@@ -14,6 +14,7 @@ import {
   kIncludeInHeader,
   kKeepMd,
   kLang,
+  kQuartoVersion,
 } from "../../config/constants.ts";
 import { isHtmlCompatible } from "../../config/format.ts";
 import { mergeConfigs } from "../../core/config.ts";
@@ -84,12 +85,34 @@ import {
   withTiming,
   withTimingAsync,
 } from "../../core/timing.ts";
+import { satisfies } from "semver/mod.ts";
+import { quartoConfig } from "../../core/quarto.ts";
 
 export async function renderExecute(
   context: RenderContext,
   output: string,
   options: RenderExecuteOptions,
 ): Promise<ExecuteResult> {
+  // are we running a compatible quarto version for this file?
+  const versionConstraint = context
+    .format.metadata[kQuartoVersion] as (string | undefined);
+  if (versionConstraint) {
+    const ourVersion = quartoConfig.version();
+    let result: boolean;
+    try {
+      result = satisfies(ourVersion, versionConstraint);
+    } catch (_e) {
+      throw new Error(
+        `In file ${context.target.source}:\nVersion constraint is invalid: ${versionConstraint}.`,
+      );
+    }
+    if (!result) {
+      throw new Error(
+        `in file ${context.target.source}:\nQuarto version ${ourVersion} does not satisfy version constraint ${versionConstraint}.`,
+      );
+    }
+  }
+
   // alias options
   const { resolveDependencies = true, alwaysExecute = false } = options;
 

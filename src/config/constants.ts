@@ -89,6 +89,7 @@ export const kLinkExternalNewwindow = "link-external-newwindow";
 export const kLinkExternalFilter = "link-external-filter";
 
 export const kQuartoVersion = "quarto-version";
+export const kQuartoRequired = "quarto-required";
 
 export const kExecuteDefaultsKeys = [
   kFigWidth,
@@ -414,9 +415,11 @@ export const kDoi = "doi";
 export const kAbstract = "abstract";
 export const kAbstractTitle = "abstract-title";
 export const kDescription = "description";
+export const kHideDescription = "hide-description";
 export const kTocTitle = "toc-title";
 export const kTocLocation = "toc-location";
 export const kLang = "lang";
+export const kOrder = "order";
 
 // The authors user input
 export const kAuthors = "authors";

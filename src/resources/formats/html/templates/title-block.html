@@ -15,7 +15,8 @@ $if(categories)$
 $endif$
 </div>
 
-$if(description)$
+$if(hide-description)$
+$elseif(description)$
 <div>
   <div class="description">
     $description$

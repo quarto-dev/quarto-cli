@@ -15,7 +15,11 @@ import { readInputTargetIndex } from "./project-index.ts";
 import { fileExecutionEngine } from "../execute/engine.ts";
 import { SidebarItem } from "./types.ts";
 
-export const sidebarContext = () => {
+export type SidebarContext = {
+  counter: number;
+};
+
+export const sidebarContext = (): SidebarContext => {
   return { counter: 0 };
 };
 

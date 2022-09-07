@@ -1,4 +1,5 @@
 use std::process::Command;
+use std::str::FromStr;
 use std::{env, ffi::OsString, fs, path::Path, path::PathBuf};
 
 fn main() {
@@ -37,7 +38,7 @@ fn main() {
     if &args[0] == "--version" || &args[0] == "-v" {
         let version_path = share_dir.join("version");
         let version = fs::read_to_string(version_path).expect("failed to read version");
-        print!("{}", version);
+        println!("{}", version);
         std::process::exit(0);
     }
 
@@ -50,7 +51,16 @@ fn main() {
     // compute deno and deno dom locations (allow them to be defined externally)
     let mut deno_file = path_from_env("QUARTO_DENO");
     if deno_file.as_os_str().is_empty() {
-        deno_file = bin_dir.join("tools").join("deno");
+        if env::consts::OS == "windows" {
+            deno_file = bin_dir
+                .join("tools")
+                .join("deno");
+        } else {
+            deno_file = bin_dir
+                .join("tools")
+                .join(deno_dir())
+                .join("deno");
+        }
     }
     let mut deno_dom_file: PathBuf = path_from_env("QUARTO_DENO_DOM");
     if deno_dom_file.as_os_str().is_empty() {
@@ -58,16 +68,17 @@ fn main() {
     }
 
     // set environment variables requried by quarto.js
-    std::env::set_var("QUARTO_BIN_PATH", bin_dir);
-    std::env::set_var("QUARTO_SHARE_PATH", share_dir.as_path());
-    std::env::set_var("DENO_DOM_PLUGIN", deno_dom_file.as_os_str());
+    std::env::set_var("QUARTO_DENO", &deno_file);
+    std::env::set_var("QUARTO_BIN_PATH", &bin_dir);
+    std::env::set_var("QUARTO_SHARE_PATH", &share_dir);
+    std::env::set_var("DENO_DOM_PLUGIN", &deno_dom_file);
 
     // windows-specific env vars
     #[cfg(target_os = "windows")]
     std::env::set_var("NO_COLOR", std::ffi::OsStr::new("TRUE"));
 
     // run deno
-    let mut child = Command::new(deno_file)
+    let mut child = Command::new(&deno_file)
         .arg("run")
         .arg("--unstable")
         .arg("--no-config")
@@ -86,8 +97,19 @@ fn main() {
         .expect("failed to run deno");
 
     // forward exit status
-    let ecode = child.wait().expect("failed to wait on deno");
-    std::process::exit(ecode.code().expect("failed to get deno exit code"));
+    let status = child.wait().expect("failed to wait on deno");
+    if status.success() {
+        std::process::exit(0)
+    } else {
+        match status.code() {
+            Some(code) => std::process::exit(code),
+            // errors reaping the status code have been observed 
+            // (see https://github.com/quarto-dev/quarto-cli/issues/2296) 
+            // so in that return a normal exit status -- need further 
+            // investigation to figure out if there is more to do here
+            None       => std::process::exit(0)
+        }
+    }
 }
 
 // return a PathBuf for an environment variable using os encoding
@@ -99,7 +121,7 @@ fn path_from_env(key: &str) -> PathBuf {
 fn share_dir_from_bin_dir(bin_dir: &PathBuf) -> PathBuf {
     // if quarto is bundled into an `.app` file (e.g. RStudio) it will be
     // looking for the share directory over in the resources folder.
-    if bin_dir.ends_with("/Contents/MacOS/quarto/bin") {
+    if bin_dir.ends_with("Contents/MacOS/quarto/bin") {
         bin_dir
             .parent()
             .expect("failed to get bin_dir parent")
@@ -112,7 +134,7 @@ fn share_dir_from_bin_dir(bin_dir: &PathBuf) -> PathBuf {
             .join("share")
     // if using standard linux filesystem local bin folder then
     // look for 'share' in the right place
-    } else if bin_dir.ends_with("/usr/local/bin/quarto") {
+    } else if bin_dir.ends_with("usr/local/bin/quarto") {
         bin_dir
             .parent()
             .expect("failed to get bin_dir parent")
@@ -126,6 +148,25 @@ fn share_dir_from_bin_dir(bin_dir: &PathBuf) -> PathBuf {
             .expect("failed to get bin path parent")
             .join("share")
     }
+}
+
+fn deno_dir() -> String {
+    let arch = arch_string();
+    if arch.starts_with("Darwin arm64") {
+        return String::from_str("deno-aarch64-apple-darwin").unwrap();
+    } else if arch.starts_with("Darwin x86_64") {
+        return String::from_str("deno-x86_64-apple-darwin").unwrap();
+    } else {
+        return String::from_str("deno-x86_64-unknown-linux-gnu").unwrap();
+    }
+}
+
+// returns a string describing the architecture. only works on Unix
+fn arch_string() -> String {
+    let out = Command::new("uname")
+        .args(["-sm"])
+        .output().expect("Failed to run uname").stdout;
+    String::from_utf8(out).expect("Couldn't convert to string")
 }
 
 // platform-specific deno dom lib file

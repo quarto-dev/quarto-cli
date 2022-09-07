@@ -53,7 +53,7 @@ export interface PlatformDependency {
 function version(env: string) {
   const version = Deno.env.get(env);
   if (!version) {
-    throw Error(`${env} isn't defined with depedency version`);
+    throw Error(`${env} isn't defined with dependency version`);
   } else {
     return version;
   }
@@ -64,7 +64,12 @@ export async function configureDependency(
   config: Configuration,
 ) {
   info(`Preparing ${dependency.name}`);
-  const archDep = dependency.architectureDependencies[Deno.build.arch];
+  let archDep = dependency.architectureDependencies[Deno.build.arch];
+
+  // If we're missing some arm64, try the intel versions and rely on rosetta.
+  if (!archDep && Deno.build.arch === "aarch64") {
+    archDep = dependency.architectureDependencies["x86_64"];
+  }
   if (archDep) {
     const platformDep = archDep[Deno.build.os];
     const vendor = Deno.env.get("QUARTO_VENDOR_BINARIES");

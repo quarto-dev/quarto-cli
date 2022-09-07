@@ -481,7 +481,8 @@ async function extensionShortcodes(options: PandocOptions) {
   if (options.extension) {
     const allExtensions = await options.extension?.extensions(
       options.source,
-      options.project,
+      options.project?.config,
+      options.project?.dir,
     );
     Object.values(allExtensions).forEach((extension) => {
       if (extension.contributes.shortcodes) {
@@ -519,8 +520,8 @@ export async function resolveFilters(
   // user filters
   // extension filters
   // quarto-filters <quarto>
-  // citeproc
   // quarto-finalizer
+  // citeproc
 
   const quartoFilters: string[] = [];
   quartoFilters.push(quartoPreFilter());
@@ -582,12 +583,28 @@ function citeMethod(options: PandocOptions): CiteMethod | null {
   // no handler if no references
   const pandoc = options.format.pandoc;
   const metadata = options.format.metadata;
+
+  // determine the engine, if provided
+  const engine = bibEngine(options.format.pandoc, options.flags);
+
+  // If the user is explicitly enabling citeproc: true, use this as the citemethod
+  // even when there may be no bibliography (see
+  // https://github.com/quarto-dev/quarto-cli/issues/2294 for an example of why)
+  if (pandoc.citeproc) {
+    // If both citeproc and a bib engine are specified, throw an error
+    if (engine) {
+      throw new Error(
+        `The bibliography engine '${engine}' was set when 'citeproc' was also explicitly requested.`,
+      );
+    }
+
+    return "citeproc";
+  }
+
+  // No bibliography or refences, and no explicit request, so no engine specified
   if (!metadata[kBibliography] && !metadata.references) {
     return null;
   }
-
-  // collect config
-  const engine = bibEngine(options.format.pandoc, options.flags);
 
   // if it's pdf-based output check for natbib or biblatex
   if (engine) {
@@ -630,7 +647,8 @@ async function resolveFilterExtension(
         filter,
         options.source,
         "filters",
-        options.project,
+        options.project?.config,
+        options.project?.dir,
       );
 
       if (extensions && extensions.length > 0) {

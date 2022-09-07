@@ -18,6 +18,9 @@ const authorNames = [
   "Memes, Cat J",
   "Memes, C J",
   "Ludwig von Beethoven",
+  "\n  name: Prince",
+  "\n  name:\n    literal: Pedro Martinez",
+  "\n  name:\n    family: Teague\n    given: Charles",
 ];
 const templateContents = `
 <html>

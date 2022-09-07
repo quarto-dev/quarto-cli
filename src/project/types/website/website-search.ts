@@ -50,6 +50,7 @@ import {
 import { kLanguageDefaults } from "../../../config/constants.ts";
 import { pathWithForwardSlashes } from "../../../core/path.ts";
 import { isHtmlFileOutput } from "../../../config/format.ts";
+import { projectIsBook } from "../../project-context.ts";
 
 // The main search key
 export const kSearch = "search";
@@ -219,45 +220,54 @@ export async function updateSearchIndex(
       // That search UI will know how to handle entries for pages with no hash and merge them
       // into the 'page' result when it makes sense to do so.
       // Grab the first child of main, and create a page entry using that.
-      const mainEl = doc.querySelector("main.content");
-      const firstEl = mainEl?.firstElementChild;
-      const pageText: string[] = [];
-      if (firstEl) {
-        // Remove any headings
-        const headings = firstEl.querySelectorAll("h1, h2, h3, h4, h5, h6");
-        headings.forEach((heading) => heading.remove());
-
-        // Add the text contents as the text for this page
-        const trimmed = firstEl.textContent.trim();
-        if (trimmed) {
-          pageText.push(trimmed);
-        }
-        firstEl.remove();
-      }
-
-      // If there are any paragraphs residing outside a section, just
-      // include that in the document entry
-      const pararaphNodes = doc.querySelectorAll("main.content > p");
-      for (const paragraphNode of pararaphNodes) {
-        const text = paragraphNode.textContent.trim();
-        if (text) {
-          pageText.push(text);
-        }
-      }
-
-      if (pageText.length > 0) {
-        updateDoc({
-          objectID: href,
-          href: href,
-          title,
-          section: "",
-          text: pageText.join("\n"),
-        });
-      }
 
       // if there are additional level 2 sections then create sub-docs for them
       const sections = doc.querySelectorAll("section.level2");
       if (sections.length > 0) {
+        const mainSelector = projectIsBook(context)
+          ? "section.level1"
+          : "main.content";
+
+        const mainEl = doc.querySelector(mainSelector);
+        const firstEl = mainEl?.firstElementChild;
+        const pageText: string[] = [];
+        if (firstEl) {
+          // Remove any headings
+          const headings = firstEl.querySelectorAll("h1, h2, h3, h4, h5, h6");
+          headings.forEach((heading) => heading.remove());
+
+          // Add the text contents as the text for this page
+          const trimmed = firstEl.textContent.trim();
+          if (trimmed) {
+            pageText.push(trimmed);
+          }
+          firstEl.remove();
+        }
+
+        // If there are any paragraphs residing outside a section, just
+        // include that in the document entry
+        const pararaphNodes = doc.querySelectorAll(`${mainSelector} > p`);
+        for (const paragraphNode of pararaphNodes) {
+          const text = paragraphNode.textContent.trim();
+          if (text) {
+            pageText.push(text);
+          }
+
+          // Since these are already indexed with the main entry, remove them
+          // so they are not indexed again
+          paragraphNode.remove();
+        }
+
+        if (pageText.length > 0) {
+          updateDoc({
+            objectID: href,
+            href: href,
+            title,
+            section: "",
+            text: pageText.join("\n"),
+          });
+        }
+
         for (let i = 0; i < sections.length; i++) {
           const section = sections[i] as Element;
           const h2 = section.querySelector("h2");

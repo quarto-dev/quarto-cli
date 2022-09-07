@@ -47,6 +47,9 @@ if [ -f "$DEV_PATH" ]; then
   # Local import map
   QUARTO_IMPORT_ARGMAP=--importmap=$QUARTO_SRC_PATH/dev_import_map.json
 
+  # Turn on type checking for dev version
+  QUARTO_DENO_OPTIONS=--check
+
   # Allow calls to override the target
   if [ -z ${QUARTO_TARGET+x} ]; then
     QUARTO_TARGET=$DEV_PATH
@@ -119,7 +122,21 @@ else
 fi
 
 if [ "$QUARTO_DENO" == "" ]; then
-  export QUARTO_DENO="${SCRIPT_PATH}/tools/deno"
+  if [[ $OSTYPE == 'darwin'* ]]; then
+    FULLARCH=$(uname -sm)
+    
+    if [[ $FULLARCH == "Darwin x86_64" ]]; then
+      DENO_DIR=deno-x86_64-apple-darwin
+    elif [[ $FULLARCH == "Darwin arm64" ]]; then
+      DENO_DIR=deno-aarch64-apple-darwin
+    else
+      echo "quarto script failed: unrecognized architecture " ${FULLARCH}
+      exit 1
+    fi
+  else
+    DENO_DIR=deno-x86_64-unknown-linux-gnu
+  fi
+  export QUARTO_DENO="${SCRIPT_PATH}/tools/${DENO_DIR}/deno"
 fi
 
 # Be sure to include any already defined QUARTO_DENO_OPTIONS

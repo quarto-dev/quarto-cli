@@ -5,12 +5,20 @@
 *
 */
 
-import { FormatDependency } from "../../config/types.ts";
+import { DependencyFile, FormatDependency } from "../../config/types.ts";
 import { appendTextFile } from "../../core/file.ts";
 
 export interface HtmlFormatDependency {
   type: "html";
   content: FormatDependency;
+}
+
+export interface HtmlAttachmentDependency {
+  type: "html-attachment";
+  content: {
+    name: string;
+    file: DependencyFile;
+  };
 }
 
 export interface FormatResourceDependency {
@@ -47,6 +55,7 @@ export function appendDependencies(
   dependenciesFile: string,
   dependencies: Array<
     | HtmlFormatDependency
+    | HtmlAttachmentDependency
     | FormatResourceDependency
     | TextDependency
     | FileDependency

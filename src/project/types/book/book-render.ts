@@ -22,6 +22,7 @@ import {
   kDate,
   kDescription,
   kDoi,
+  kHideDescription,
   kNumberSections,
   kOutputExt,
   kOutputFile,
@@ -168,6 +169,9 @@ export function bookPandocRenderer(
           const chapterInfo = isHtmlOutput(file.recipe.format.pandoc)
             ? chapterInfoForInput(project, fileRelative)
             : undefined;
+
+          // Since this is a book page, we need to suppress rendering of the description
+          file.recipe.format.metadata[kHideDescription] = true;
 
           // see if there is a 'title' in the yaml, if there isn't one, then we
           // try to extract via partitioned.headingText

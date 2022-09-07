@@ -5,16 +5,17 @@
 *
 */
 
-import { join } from "path/mod.ts";
+import { basename, dirname, join } from "path/mod.ts";
 
 import * as ld from "../../core/lodash.ts";
 
 import { Document, Element, NodeType } from "../../core/deno-dom.ts";
 
-import { pathWithForwardSlashes } from "../../core/path.ts";
+import { pathWithForwardSlashes, safeExistsSync } from "../../core/path.ts";
 
 import {
   DependencyFile,
+  DependencyServiceWorker,
   FormatDependency,
   FormatExtras,
   kDependencies,
@@ -22,13 +23,17 @@ import {
 import { kIncludeAfterBody, kIncludeInHeader } from "../../config/constants.ts";
 import { TempContext } from "../../core/temp.ts";
 import { lines } from "../../core/lib/text.ts";
-import { copyResourceFile } from "../../project/project-resources.ts";
 import { copyFileIfNewer } from "../../core/copy.ts";
-import { ProjectContext } from "../../project/types.ts";
 import {
   appendDependencies,
+  HtmlAttachmentDependency,
   HtmlFormatDependency,
 } from "./pandoc-dependencies.ts";
+import { fixupCssReferences, isCssFile } from "../../core/css.ts";
+
+import { ensureDirSync } from "fs/mod.ts";
+import { ProjectContext } from "../../project/types.ts";
+import { projectOutputDir } from "../../project/project-shared.ts";
 
 export function writeDependencies(
   dependenciesFile: string,
@@ -56,26 +61,56 @@ export function readAndInjectDependencies(
 ) {
   const dependencyJsonStream = Deno.readTextFileSync(dependenciesFile);
   const htmlDependencies: FormatDependency[] = [];
+  const htmlAttachments: HtmlAttachmentDependency[] = [];
   lines(dependencyJsonStream).forEach((json) => {
     if (json) {
       const dependency = JSON.parse(json);
       if (dependency.type === "html") {
         htmlDependencies.push(dependency.content);
+      } else if (dependency.type === "html-attachment") {
+        htmlAttachments.push(dependency);
       }
     }
   });
 
+  const injectedDependencies = [];
   if (htmlDependencies.length > 0) {
     const injector = domDependencyInjector(doc);
-    processHtmlDependencies(
+    const injected = processHtmlDependencies(
       htmlDependencies,
       inputDir,
       libDir,
       injector,
       project,
     );
+    injectedDependencies.push(...injected);
     // Finalize the injection
     injector.finalizeInjection();
+  }
+
+  if (htmlAttachments.length > 0) {
+    for (const attachment of htmlAttachments) {
+      // Find the 'parent' dependencies for this attachment
+      const parentDependency = injectedDependencies.find((dep) => {
+        return dep.name === attachment.content.name;
+      });
+
+      if (parentDependency) {
+        // Compute the target directory
+        const directoryInfo = targetDirectoryInfo(
+          inputDir,
+          libDir,
+          parentDependency,
+        );
+
+        // copy the file
+        copyDependencyFile(
+          attachment.content.file,
+          directoryInfo.absolute,
+          !!parentDependency.external,
+        );
+      }
+    }
   }
 
   return Promise.resolve({
@@ -89,7 +124,7 @@ export function resolveDependencies(
   inputDir: string,
   libDir: string,
   temp: TempContext,
-  project: ProjectContext | undefined,
+  project?: ProjectContext,
 ) {
   // deep copy to not mutate caller's object
   extras = ld.cloneDeep(extras);
@@ -170,49 +205,42 @@ function processHtmlDependencies(
   injector: HtmlInjector,
   project?: ProjectContext,
 ) {
-  const copiedDependencies: string[] = [];
+  const copiedDependencies: FormatDependency[] = [];
   for (const dependency of dependencies) {
     // Ensure that we copy (and render HTML for) each named dependency only once
-    if (copiedDependencies.includes(dependency.name)) {
+    if (
+      copiedDependencies.find((copiedDep) => {
+        return copiedDep.name === dependency.name;
+      })
+    ) {
       continue;
     }
 
     // provide a format libs (i.e. freezer protected) scope for injected deps
-    const targetLibDir = dependency.external
-      ? join(libDir, "quarto-contrib")
-      : libDir;
-
-    // Directory information for the dependency
-    const dir = dependency.version
-      ? `${dependency.name}-${dependency.version}`
-      : dependency.name;
-    const targetDir = join(inputDir, targetLibDir, dir);
-    const rootDir = project?.dir || inputDir;
+    const directoryInfo = targetDirectoryInfo(
+      inputDir,
+      libDir,
+      dependency,
+    );
 
     const copyFile = (
       file: DependencyFile,
+      attribs?: Record<string, string>,
+      afterBody?: boolean,
       inject?: (
         href: string,
         attribs?: Record<string, string>,
         afterBody?: boolean,
       ) => void,
     ) => {
-      const targetPath = join(targetDir, file.name);
-      // If this is a user resource, treat it as a resource (resource ref discovery)
-      // if this something that we're injecting, just copy it
-      if (dependency.external) {
-        copyResourceFile(
-          rootDir,
-          file.path,
-          targetPath,
-        );
-      } else {
-        copyFileIfNewer(file.path, targetPath);
-      }
-
-      const href = join(targetLibDir, dir, file.name);
+      copyDependencyFile(
+        file,
+        directoryInfo.absolute,
+        dependency.external || false,
+      );
       if (inject) {
-        inject(href, file.attribs, file.afterBody);
+        const href = join(directoryInfo.relative, file.name);
+        inject(href, attribs, afterBody);
       }
     };
 
@@ -221,6 +249,8 @@ function processHtmlDependencies(
       dependency.scripts.forEach((script) =>
         copyFile(
           script,
+          script.attribs,
+          script.afterBody,
           injector.injectScript,
         )
       );
@@ -231,7 +261,63 @@ function processHtmlDependencies(
       dependency.stylesheets.forEach((stylesheet) => {
         copyFile(
           stylesheet,
+          stylesheet.attribs,
+          stylesheet.afterBody,
           injector.injectStyle,
+        );
+      });
+    }
+
+    // Process Service Workers
+    if (dependency.serviceworkers) {
+      dependency.serviceworkers.forEach((serviceWorker) => {
+        const resolveDestination = (
+          worker: DependencyServiceWorker,
+          inputDir: string,
+          project?: ProjectContext,
+        ) => {
+          // First make sure there is a destination. If omitted, provide
+          // a default based upon the context
+          if (!worker.destination) {
+            if (project) {
+              worker.destination = `/${basename(worker.source)}`;
+            } else {
+              worker.destination = `${basename(worker.source)}`;
+            }
+          }
+
+          // Now return either a project path or an input
+          // relative path
+          if (worker.destination.startsWith("/")) {
+            if (project) {
+              // This is a project relative path
+              const projectDir = projectOutputDir(project);
+              return join(projectDir, worker.destination.slice(1));
+            } else {
+              throw new Error(
+                "A service worker is being provided with a project relative destination path but no valid Quarto project was found.",
+              );
+            }
+          } else {
+            // this is an input relative path
+            return join(inputDir, worker.destination);
+          }
+        };
+
+        // Compute the path to the destination
+        const destinationFile = resolveDestination(
+          serviceWorker,
+          inputDir,
+          project,
+        );
+        const destinationDir = dirname(destinationFile);
+
+        // Ensure the directory exists and copy the source file
+        // to the destination
+        ensureDirSync(destinationDir);
+        copyFileIfNewer(
+          serviceWorker.source,
+          destinationFile,
         );
       });
     }
@@ -258,7 +344,70 @@ function processHtmlDependencies(
       dependency.resources.forEach((resource) => copyFile(resource));
     }
 
-    copiedDependencies.push(dependency.name);
+    copiedDependencies.push(dependency);
+  }
+  return copiedDependencies;
+}
+
+function copyDependencyFile(
+  file: DependencyFile,
+  targetDir: string,
+  external: boolean,
+) {
+  const targetPath = join(targetDir, file.name);
+  // If this is a user resource, treat it as a resource (resource ref discovery)
+  // if this something that we're injecting, just copy it
+  ensureDirSync(dirname(targetPath));
+  copyFileIfNewer(file.path, targetPath);
+
+  if (external && isCssFile(file.path)) {
+    processCssFile(dirname(file.path), targetPath);
+  }
+}
+
+function targetDirectoryInfo(
+  inputDir: string,
+  libDir: string,
+  dependency: FormatDependency,
+) {
+  // provide a format libs (i.e. freezer protected) scope for injected deps
+  const targetLibDir = dependency.external
+    ? join(libDir, "quarto-contrib")
+    : libDir;
+
+  // Directory information for the dependency
+  const dir = dependency.version
+    ? `${dependency.name}-${dependency.version}`
+    : dependency.name;
+
+  const relativeTargetDir = join(targetLibDir, dir);
+  const absoluteTargetDir = join(inputDir, relativeTargetDir);
+  return {
+    absolute: absoluteTargetDir,
+    relative: relativeTargetDir,
+  };
+}
+
+// fixup root ('/') css references and also copy references to other
+// stylesheet or resources (e.g. images) to alongside the destFile
+function processCssFile(
+  srcDir: string,
+  file: string,
+) {
+  // read the css
+  const css = Deno.readTextFileSync(file);
+  const destCss = fixupCssReferences(css, (ref: string) => {
+    const refPath = join(srcDir, ref);
+    if (safeExistsSync(refPath)) {
+      const refDestPath = join(dirname(file), ref);
+      copyFileIfNewer(refPath, refDestPath);
+    }
+    return basename(ref);
+  });
+
+  // write the css if necessary
+  if (destCss !== css) {
+    Deno.writeTextFileSync(file, destCss);
   }
 }
 

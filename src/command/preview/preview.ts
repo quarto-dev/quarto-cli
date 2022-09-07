@@ -75,6 +75,10 @@ import {
 import { execProcess } from "../../core/process.ts";
 import { monitorQuartoSrcChanges } from "../../core/quarto.ts";
 import { exitWithCleanup } from "../../core/cleanup.ts";
+import {
+  extensionFilesFromDirs,
+  inputExtensionDirs,
+} from "../../extension/extension.ts";
 
 interface PreviewOptions {
   port?: number;
@@ -91,9 +95,12 @@ export async function preview(
   pandocArgs: string[],
   options: PreviewOptions,
 ) {
+  // see if this is project file
+  const project = await projectContext(file);
+
   // determine the target format if there isn't one in the command line args
   // (current we force the use of an html or pdf based format)
-  const format = await previewFormat(file, flags.to);
+  const format = await previewFormat(file, flags.to, project);
   setPreviewFormat(format, flags, pandocArgs);
 
   // render for preview (create function we can pass to watcher then call it)
@@ -102,16 +109,13 @@ export async function preview(
     const services = renderServices();
     try {
       isRendering = true;
-      return await renderForPreview(file, services, flags, pandocArgs);
+      return await renderForPreview(file, services, flags, pandocArgs, project);
     } finally {
       isRendering = false;
       services.cleanup();
     }
   };
   const result = await render();
-
-  // see if this is project file
-  const project = await projectContext(file);
 
   // resolve options (don't look at the project context b/c we
   // don't want overlapping ports within the same project)
@@ -315,6 +319,7 @@ interface RenderForPreviewResult {
   file: string;
   format: Format;
   outputFile: string;
+  extensionFiles: string[];
   resourceFiles: string[];
 }
 
@@ -323,6 +328,7 @@ async function renderForPreview(
   services: RenderServices,
   flags: RenderFlags,
   pandocArgs: string[],
+  project?: ProjectContext,
 ): Promise<RenderForPreviewResult> {
   // render
   const renderResult = await render(file, {
@@ -356,10 +362,16 @@ async function renderForPreview(
     },
     [],
   );
+  // computte extension files
+  const extensionFiles = extensionFilesFromDirs(
+    inputExtensionDirs(file, project?.dir),
+  );
+
   return {
     file,
     format: renderResult.files[0].format,
     outputFile: join(dirname(file), finalOutput),
+    extensionFiles,
     resourceFiles,
   };
 }
@@ -417,6 +429,13 @@ function createChangeHandler(
           handler: renderHandler,
         });
       }
+
+      // re-render on extension change (as a mere reload won't reflect
+      // the changes as they do w/ e.g. css files)
+      watches.push({
+        files: result.extensionFiles,
+        handler: renderHandler,
+      });
 
       // reload on output or resource changed (but wait for
       // the render queue to finish, as sometimes pdfs are
@@ -592,11 +611,11 @@ function htmlFileRequestHandlerOptions(
           file = format.formatPreviewFile(file, format);
         }
         const fileContents = await Deno.readFile(file);
-        return reloader.injectClient(fileContents, inputFile);
+        return reloader.injectClient(req, fileContents, inputFile);
       } else if (isTextContent(file)) {
         const html = await textPreviewHtml(file, req);
         const fileContents = new TextEncoder().encode(html);
-        return reloader.injectClient(fileContents, inputFile);
+        return reloader.injectClient(req, fileContents, inputFile);
       }
     },
   };
@@ -662,6 +681,7 @@ function resultRequiresSync(
   }
   return result.file !== lastResult.file ||
     result.outputFile !== lastResult.outputFile ||
+    !ld.isEqual(result.extensionFiles, lastResult.extensionFiles) ||
     !ld.isEqual(result.resourceFiles, lastResult.resourceFiles);
 }
 

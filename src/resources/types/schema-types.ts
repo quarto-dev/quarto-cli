@@ -5,28 +5,27 @@
 // $ cd $QUARTO_ROOT
 // $ ./package/dist/bin/tools/deno run --importmap=./src/dev_import_map.json --allow-all ./package/src/common/create-schema-types.ts ./src/resources
 
-export type MaybeArrayOf<T> = (T | T[]);
+export type MaybeArrayOf<T> = T | T[];
 export type SchemaObject = { [key: string]: string };
 
-export type MathMethods = (
+export type MathMethods =
   | "plain"
   | "webtex"
   | "gladtex"
   | "mathml"
   | "mathjax"
-  | "katex"
-);
+  | "katex";
 
 export type PandocFormatRequestHeaders = ((string)[])[];
 
-export type PandocFormatOutputFile = (string | null);
+export type PandocFormatOutputFile = string | null;
 
 export type PandocFormatFilters =
   ((string | { type: string; path: string } | { type: "citeproc" }))[];
 
 export type PandocShortcodes = (string)[];
 
-export type PageColumn = (
+export type PageColumn =
   | "body"
   | "body-outset"
   | "body-outset-left"
@@ -44,8 +43,33 @@ export type PageColumn = (
   | "screen-inset-shaded"
   | "screen-inset-left"
   | "screen-inset-right"
-  | "margin"
-);
+  | "margin";
+
+export type ContentsAuto = {
+  auto?:
+    | boolean
+    | MaybeArrayOf<
+      string
+    >; /* Automatically generate sidebar contents. Pass `true` to include all documents
+in the site, a directory name to include only documents in that directory,
+or a glob (or list of globs) to include documents based on a pattern.
+
+Subdirectories will create sections (use an `index.qmd` in the directory to
+provide its title). Order will be alphabetical unless a numeric `order` field
+is provided in document metadata. */
+};
+
+export type NavigationItem = string | {
+  "aria-label"?: string /* Accessible label for the navigation item. */;
+  file?: string /* Alias for href */;
+  href?: string /* Link to file contained with the project or external URL */;
+  icon?: string /* Name of bootstrap icon (e.g. `github`, `twitter`, `share`)
+See <https://icons.getbootstrap.com/> for a list of available icons */;
+  menu?: (NavigationItem)[];
+  text?: string /* Text to display for navigation item (defaults to the
+document title if not provided) */;
+  url?: string; /* Alias for href */
+};
 
 export type NavigationItemObject = {
   "aria-label"?: string /* Accessible label for the item. */;
@@ -60,9 +84,9 @@ document title if not provided) */;
   url?: string; /* Alias for href */
 };
 
-export type NavigationItem = (string | NavigationItemObject);
+export type NavigationItem = string | NavigationItemObject;
 
-export type Comments = (false | {
+export type Comments = false | {
   giscus?: {
     "repo-id"?: string /* The Github repository identifier.
 
@@ -74,10 +98,9 @@ You can quickly find this by using the configuration tool at [https://giscus.app
 If this is not provided, Quarto will attempt to discover it at render time. */;
     "reactions-enabled"?:
       boolean /* Display reactions for the discussion's main post before the comments. */;
-    "input-position"?: (
+    "input-position"?:
       | "top"
-      | "bottom"
-    ) /* Place the comment input box above or below the comments. */;
+      | "bottom" /* Place the comment input box above or below the comments. */;
     category?:
       string /* The discussion category where new discussions will be created. It is recommended
 to use a category with the **Announcements** type so that new discussions
@@ -85,10 +108,9 @@ can only be created by maintainers and giscus. */;
     loading?: "lazy";
     language?:
       string /* The language that should be used when displaying the commenting interface. */;
-    mapping?: (
+    mapping?:
       | ("pathname" | "url" | "title" | "og:title")
-      | string
-    ) /* The mapping between the page and the embedded discussion.
+      | string /* The mapping between the page and the embedded discussion.
 
 - `pathname`: The discussion title contains the page path
 - `url`: The discussion title contains the page url
@@ -101,7 +123,7 @@ as a discussion number and automatic discussion creation is not supported. */;
 
 In order to work correctly, the repo must be public, with the giscus app installed, and
 the discussions feature must be enabled. */;
-    theme?: (
+    theme?:
       | "light"
       | "light_high_contrast"
       | "light_protanopia"
@@ -110,10 +132,9 @@ the discussions feature must be enabled. */;
       | "dark_protanopia"
       | "dark_dimmed"
       | "transparent_dark"
-      | "preferred_color_scheme"
-    ); /* The giscus theme to use when displaying comments. */
+      | "preferred_color_scheme"; /* The giscus theme to use when displaying comments. */
   };
-  hypothesis?: (boolean | {
+  hypothesis?: boolean | {
     assetRoot?: string /* The root URL from which assets are loaded. */;
     branding?: {
       accentColor?:
@@ -146,10 +167,12 @@ should be shown in the notes tab in the sidebar. */;
         number /* Number of nested iframes deep the client is relative from the receiving iframe. */;
       origin?: string; /* Host url and port number of receiving iframe */
     };
-    showHighlights?: (
+    showHighlights?:
       | boolean
-      | ("always" | "never")
-    ) /* Controls whether the in-document highlights are shown by default (`always` or `never`) */;
+      | (
+        | "always"
+        | "never"
+      ) /* Controls whether the in-document highlights are shown by default (`always` or `never`) */;
     services?: (
       {
         apiUrl: string /* The base URL of the service API. */;
@@ -161,10 +184,9 @@ should be shown in the notes tab in the sidebar. */;
           boolean /* A flag indicating whether annotation cards should show links that take the user to see an annotation in context. */;
         grantToken:
           string /* An OAuth 2 grant token which the client can send to the service in order to get an access token for making authenticated requests to the service. */;
-        groups?: (
+        groups?:
           | "$rpc:requestGroups"
-          | (string)[]
-        ) /* An array of Group IDs or the literal string `$rpc:requestGroups` */;
+          | (string)[] /* An array of Group IDs or the literal string `$rpc:requestGroups` */;
         icon?:
           string; /* The URL to an image for the annotation service. This image will appear to the left of the name of the currently selected group. */
       } /* Alternative annotation services which the client should
@@ -175,12 +197,11 @@ connect to instead of connecting to the public Hypothesis
 service at hypothes.is. */;
     sidebarAppUrl?:
       string /* The URL for the sidebar application which displays annotations. */;
-    theme?: (
+    theme?:
       | "classic"
-      | "clean"
-    ) /* Controls the overall look of the sidebar (`classic` or `clean`) */;
+      | "clean" /* Controls the overall look of the sidebar (`classic` or `clean`) */;
     usernameUrl?: string;
-  });
+  };
   utterances?: {
     "issue-term"?: string /* How posts should be mapped to Github issues
 (`pathname`, `url`, `title` or `og:title`) */;
@@ -192,7 +213,7 @@ service at hypothes.is. */;
 `icy-dark`, `dark-blue`, `photon-dark`, `body-light`,
 or `gruvbox-dark`) */
   };
-});
+};
 
 export type SocialMetadata = {
   "image-alt"?:
@@ -215,12 +236,15 @@ use the title metadata from the page. Specify this field if you’d like
 to override the title for this provider. */
 };
 
-export type PageFooterRegion = (string | (NavigationItem)[]);
+export type PageFooterRegion = string | (NavigationItem)[];
 
-export type SidebarContents = ((NavigationItem | string | {
-  contents?: SidebarContents;
-  section?: (string | null);
-}))[];
+export type SidebarContents =
+  | "auto"
+  | ContentsAuto
+  | ((NavigationItem | string | {
+    contents?: SidebarContents;
+    section?: string | null;
+  } | ContentsAuto))[];
 
 export type ProjectPreview = {
   "watch-inputs"?:
@@ -245,11 +269,10 @@ export type PublishRecord = {
   url?: string; /* Published URL for site */
 };
 
-export type TwitterCardConfig = ({
-  "card-style"?: (
+export type TwitterCardConfig = {
+  "card-style"?:
     | "summary"
-    | "summary_large_image"
-  ) /* Card style (`summary` or `summary_large_image`).
+    | "summary_large_image" /* Card style (`summary` or `summary_large_image`).
 
 If this is not provided, the best style will automatically
 selected based upon other metadata. You can learn more about Twitter Card
@@ -257,19 +280,20 @@ styles [here](https://developer.twitter.com/en/docs/twitter-for-websites/cards/o
   creator?:
     string /* `@username` of the content creator (must be a quoted string) */;
   site?: string; /* `@username` of the website (must be a quoted string) */
-} & SocialMetadata);
+} & SocialMetadata;
 
-export type OpenGraphConfig = ({
+export type OpenGraphConfig = {
   "site-name"?:
     string /* Name that should be displayed for the overall site. If not explicitly
 provided in the `open-graph` metadata, Quarto will use the website or
 book `title` by default. */;
   locale?: string; /* Locale of open graph metadata */
-} & SocialMetadata);
+} & SocialMetadata;
 
 export type PageFooter = {
   border?:
-    (boolean | string) /* Footer border (`true`, `false`, or a border color) */;
+    | boolean
+    | string /* Footer border (`true`, `false`, or a border color) */;
   background?: string;
   center?: PageFooterRegion;
   foreground?: string;
@@ -295,39 +319,36 @@ export type BaseWebsite = {
   > /* Links to source repository actions (`none` or one or more of `edit`, `source`, `issue`) */;
   "reader-mode"?:
     boolean /* Displays a 'reader-mode' tool which allows users to hide the sidebar and table of contents when viewing a page. */;
-  "google-analytics"?: (string | {
+  "google-analytics"?: string | {
     "tracking-id"?: string;
     "anonymize-ip"?: boolean;
-    storage?: (
+    storage?:
       | "cookies"
-      | "none"
-    ) /* Storage option for Google Analytics data using on of these two values:
+      | "none" /* Storage option for Google Analytics data using on of these two values:
 
 `cookies`: Use cookies to store unique user and session identification (default).
 
 `none`: Do not use cookies to store unique user and session identification.
 
 For more about choosing storage options see [Storage](https://quarto.org/docs/websites/website-tools.html#storage). */;
-    version?: (3 | 4); /* The version number of Google Analytics to use.
+    version?: 3 | 4; /* The version number of Google Analytics to use.
 
 - `3`: Use analytics.js
 - `4`: use gtag.
 
 This is automatically detected based upon the `tracking-id`, but you may specify it. */
-  }) /* Enable Google Analytics for this website */;
-  "cookie-consent"?: (boolean | {
+  } /* Enable Google Analytics for this website */;
+  "cookie-consent"?: boolean | {
     "policy-url"?: string;
     "prefs-text"?: string;
-    palette?: (
+    palette?:
       | "light"
-      | "dark"
-    ) /* Whether to use a dark or light appearance for the consent banner (`light` or `dark`). */;
-    style?: (
+      | "dark" /* Whether to use a dark or light appearance for the consent banner (`light` or `dark`). */;
+    style?:
       | "simple"
       | "headline"
       | "interstitial"
-      | "standalone"
-    ) /* The style of the consent banner that is displayed:
+      | "standalone" /* The style of the consent banner that is displayed:
 
 - `simple` (default): A simple dialog in the lower right corner of the website.
 
@@ -336,15 +357,14 @@ This is automatically detected based upon the `tracking-id`, but you may specify
 - `interstitial`: An semi-transparent overlay of the entire website.
 
 - `standalone`: An opaque overlay of the entire website. */;
-    type?: (
+    type?:
       | "implied"
-      | "express"
-    ); /* The type of consent that should be requested, using one of these two values:
+      | "express"; /* The type of consent that should be requested, using one of these two values:
 
 - `implied` (default): This will notify the user that the site uses cookies and permit them to change preferences, but not block cookies unless the user changes their preferences.
 
 - `express`: This will block cookies until the user expressly agrees to allow them (or continue blocking them if the user doesn’t agree). */
-  }) /* Quarto includes the ability to request cookie consent before enabling scripts that set cookies, using [Cookie Consent](https://www.cookieconsent.com/).
+  } /* Quarto includes the ability to request cookie consent before enabling scripts that set cookies, using [Cookie Consent](https://www.cookieconsent.com/).
 
 The user’s cookie preferences will automatically control Google Analytics (if enabled) and can be used to control custom scripts you add as well. For more information see [Custom Scripts and Cookie Consent](https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent). */;
   "body-header"?:
@@ -358,26 +378,26 @@ The user’s cookie preferences will automatically control Google Analytics (if 
   > /* Markdown to place below margin content (text or file path) */;
   "page-navigation"?:
     boolean /* Provide next and previous article links in footer */;
-  "page-footer"?: (string | PageFooter) /* Shared page footer */;
-  "open-graph"?: (boolean | OpenGraphConfig) /* Publish open graph metadata */;
+  "page-footer"?: string | PageFooter /* Shared page footer */;
+  "open-graph"?: boolean | OpenGraphConfig /* Publish open graph metadata */;
   "twitter-card"?:
-    (boolean | TwitterCardConfig) /* Publish twitter card metadata */;
+    | boolean
+    | TwitterCardConfig /* Publish twitter card metadata */;
   comments?: Comments;
   description?: string /* Website description */;
   favicon?: string /* The path to the favicon for this website */;
   image?: string /* Default site thumbnail image for `twitter` /`open-graph` */;
-  navbar?: (boolean | {
+  navbar?: boolean | {
     "logo-alt"?: string /* Alternate text for the logo image. */;
     "logo-href"?:
       string /* Target href from navbar logo / title. By default, the logo and title link to the root page of the site (/index.html). */;
-    "collapse-below"?: (
+    "collapse-below"?:
       | "sm"
       | "md"
       | "lg"
       | "xl"
-      | "xxl"
-    ) /* The responsive breakpoint below which the navbar will collapse into a menu (`sm`, `md`, `lg` (default), `xl`, `xxl`). */;
-    background?: (
+      | "xxl" /* The responsive breakpoint below which the navbar will collapse into a menu (`sm`, `md`, `lg` (default), `xl`, `xxl`). */;
+    background?:
       | (
         | "primary"
         | "secondary"
@@ -388,11 +408,10 @@ The user’s cookie preferences will automatically control Google Analytics (if 
         | "light"
         | "dark"
       )
-      | string
-    ) /* The navbar's background color (named or hex color). */;
+      | string /* The navbar's background color (named or hex color). */;
     collapse?:
       boolean /* Collapse the navbar into a menu when the display becomes narrow. */;
-    foreground?: (
+    foreground?:
       | (
         | "primary"
         | "secondary"
@@ -403,8 +422,7 @@ The user’s cookie preferences will automatically control Google Analytics (if 
         | "light"
         | "dark"
       )
-      | string
-    ) /* The navbar's foreground color (named or hex color). */;
+      | string /* The navbar's foreground color (named or hex color). */;
     logo?:
       string /* Path to a logo image that will be displayed to the left of the title. */;
     left?:
@@ -413,12 +431,11 @@ The user’s cookie preferences will automatically control Google Analytics (if 
     right?:
       (NavigationItem)[] /* List of items for the right side of the navbar. */;
     search?: boolean /* Include a search box in the navbar. */;
-    title?: (
+    title?:
       | string
-      | boolean
-    ); /* The navbar title. Uses the project title if none is specified. */
-  }) /* Top navigation options */;
-  search?: (boolean | {
+      | boolean; /* The navbar title. Uses the project title if none is specified. */
+  } /* Top navigation options */;
+  search?: boolean | {
     "collapse-after"?: number;
     "copy-button"?: boolean;
     algolia?: {
@@ -438,28 +455,25 @@ The user’s cookie preferences will automatically control Google Analytics (if 
       params?:
         SchemaObject; /* Additional parameters to pass when executing a search */
     } /* Use external Algolia search index */;
-    location?: (
+    location?:
       | "navbar"
-      | "sidebar"
-    ) /* Location for search widget (`navbar` or `sidebar`) */;
+      | "sidebar" /* Location for search widget (`navbar` or `sidebar`) */;
     limit?: number;
-    type?: (
+    type?:
       | "overlay"
-      | "textbox"
-    ); /* Type of search UI (`overlay` or `textbox`) */
-  }) /* Provide full text search for website */;
-  sidebar?: (
+      | "textbox"; /* Type of search UI (`overlay` or `textbox`) */
+  } /* Provide full text search for website */;
+  sidebar?:
     | boolean
     | MaybeArrayOf<
       {
         "collapse-level"?:
           number /* The depth at which the sidebar contents should be collapsed by default. */;
-        alignment?: (
+        alignment?:
           | "left"
           | "right"
-          | "center"
-        ) /* Alignment of the items within the sidebar (`left`, `right`, or `center`) */;
-        background?: (
+          | "center" /* Alignment of the items within the sidebar (`left`, `right`, or `center`) */;
+        background?:
           | (
             | "primary"
             | "secondary"
@@ -470,12 +484,11 @@ The user’s cookie preferences will automatically control Google Analytics (if 
             | "light"
             | "dark"
           )
-          | string
-        ) /* The sidebar's background color (named or hex color). */;
+          | string /* The sidebar's background color (named or hex color). */;
         border?:
           boolean /* Whether to show a border on the sidebar (defaults to true for 'docked' sidebars) */;
         contents?: SidebarContents;
-        foreground?: (
+        foreground?:
           | (
             | "primary"
             | "secondary"
@@ -486,8 +499,7 @@ The user’s cookie preferences will automatically control Google Analytics (if 
             | "light"
             | "dark"
           )
-          | string
-        ) /* The sidebar's foreground color (named or hex color). */;
+          | string /* The sidebar's foreground color (named or hex color). */;
         footer?: MaybeArrayOf<
           string
         > /* Markdown to place below sidebar content (text or file path) */;
@@ -501,31 +513,28 @@ The user’s cookie preferences will automatically control Google Analytics (if 
           boolean /* When collapsed, pin the collapsed sidebar to the top of the page. */;
         subtitle?: string /* The subtitle for this sidebar. */;
         search?: boolean /* Include a search control in the sidebar. */;
-        style?: (
+        style?:
           | "docked"
-          | "floating"
-        ) /* The style of sidebar (`docked` or `floating`). */;
-        title?: (
+          | "floating" /* The style of sidebar (`docked` or `floating`). */;
+        title?:
           | string
-          | boolean
-        ) /* The sidebar title. Uses the project title if none is specified. */;
+          | boolean /* The sidebar title. Uses the project title if none is specified. */;
         tools?: (NavigationItemObject)[]; /* List of sidebar tools */
       }
-    >
-  ) /* Side navigation options */;
+    > /* Side navigation options */;
   title?: string; /* Website title */
 };
 
-export type ChapterItem = (NavigationItem | {
+export type ChapterItem = NavigationItem | {
   chapters?: (NavigationItem)[] /* Path to chapter input file */;
   part: string; /* Part title or path to input file */
-});
+};
 
 export type ChapterList = (ChapterItem)[];
 
 export type CrossrefLabelsSchema = string;
 
-export type EpubContributor = (
+export type EpubContributor =
   | string
   | MaybeArrayOf<
     {
@@ -538,8 +547,7 @@ attempt to be automatically translated. */;
       text?:
         string; /* The text describing the creator or contributor (for example, creator name). */
     }
-  >
-);
+  >;
 
 export type FormatLanguage = {
   "toc-title-document"?: string;
@@ -605,11 +613,10 @@ export type FormatLanguage = {
 
 export type WebsiteAbout = {
   "image-width"?: string /* A valid CSS width for the about page image. */;
-  "image-shape"?: (
+  "image-shape"?:
     | "rectangle"
     | "round"
-    | "rounded"
-  ) /* The shape of the image on the about page.
+    | "rounded" /* The shape of the image on the about page.
 
 - `rectangle`
 - `round`
@@ -625,13 +632,12 @@ and appended to the end of the page. */;
     string /* The path to the main image on the about page. If not specified,
 the `image` provided for the document itself will be used. */;
   links?: (NavigationItem)[];
-  template?: (
+  template?:
     | "jolla"
     | "trestles"
     | "solana"
     | "marquee"
-    | "broadside"
-  ); /* The template to use to layout this about page. Choose from:
+    | "broadside"; /* The template to use to layout this about page. Choose from:
 
 - `jolla`
 - `trestles`
@@ -644,16 +650,14 @@ export type WebsiteListing = {
   "max-items"?:
     number /* The maximum number of items to include in this listing. */;
   "page-size"?: number /* The number of items to display on a page. */;
-  "sort-ui"?: (
+  "sort-ui"?:
     | boolean
-    | (string)[]
-  ) /* Shows or hides the sorting control for the listing. To control the
+    | (string)[] /* Shows or hides the sorting control for the listing. To control the
 fields that will be displayed in the sorting control, provide a list
 of field names. */;
-  "filter-ui"?: (
+  "filter-ui"?:
     | boolean
-    | (string)[]
-  ) /* Shows or hides the filtering control for the listing. To control the
+    | (string)[] /* Shows or hides the filtering control for the listing. To control the
 fields that will be used to filter the listing, provide a list
 of field names. By default all fields of the listing will be used
 when filtering. */;
@@ -665,10 +669,9 @@ Learn more about supported date formatting values [here](https://deno.land/std@0
 Defaults to 175. */;
   "image-placeholder"?:
     string /* The default image to use if an item in the listing doesn't have an image. */;
-  "image-align"?: (
+  "image-align"?:
     | "left"
-    | "right"
-  ) /* In `default` type listings, whether to place the image on the right or left side of the post content (`left` or `right`). */;
+    | "right" /* In `default` type listings, whether to place the image on the right or left side of the post content (`left` or `right`). */;
   "image-height"?:
     string /* The height of the image being displayed (a CSS height string).
 
@@ -678,11 +681,10 @@ The width is automatically determined and the image will fill the rectangle with
 Defaults to 3. */;
   "grid-item-border"?:
     boolean /* In grid type listings, whether to display a border around the item card. Defaults to `true`. */;
-  "grid-item-align"?: (
+  "grid-item-align"?:
     | "left"
     | "right"
-    | "center"
-  ) /* In grid type listings, the alignment of the content within the card (`left` (default), `right`, or `center`). */;
+    | "center" /* In grid type listings, the alignment of the content within the card (`left` (default), `right`, or `center`). */;
   "table-striped"?:
     boolean /* In table type listings, display the table rows with alternating background colors.
 Defaults to `false`. */;
@@ -711,15 +713,18 @@ is missing a required field, an error will occur and the render will. */;
   contents?: MaybeArrayOf<
     (string | WebsiteListingContentsObject)
   > /* The files or path globs of Quarto documents or YAML files that should be included in the listing. */;
-  categories?: (
+  categories?:
     | boolean
-    | ("numbered" | "unnumbered" | "cloud")
-  ) /* Display item categories from this listing in the margin of the page.
+    | (
+      | "numbered"
+      | "unnumbered"
+      | "cloud"
+    ) /* Display item categories from this listing in the margin of the page.
 
   - `numbered`: Category list with number of items
   - `unnumbered`: Category list
   - `cloud`: Word cloud style categories */;
-  feed?: (boolean | {
+  feed?: boolean | {
     categories?: MaybeArrayOf<
       string /* A list of categories for which to create separate RSS feeds containing only posts with that category. */
     >;
@@ -736,16 +741,15 @@ in the Quarto project. */;
     language?: string /* The language of the feed. Omitted if not specified.
 See [https://www.rssboard.org/rss-language-codes](https://www.rssboard.org/rss-language-codes)
 for a list of valid language codes. */;
-    type?: (
+    type?:
       | "full"
-      | "partial"
-    ) /* Whether to include full or partial content in the feed.
+      | "partial" /* Whether to include full or partial content in the feed.
 
 - `full` (default): Include the complete content of the document in the feed.
 - `partial`: Include only the first paragraph of the document in the feed. */;
     title?:
       string; /* The title for this feed. Defaults to the site title provided the Quarto project. */
-  }) /* Enables an RSS feed for the listing. */;
+  } /* Enables an RSS feed for the listing. */;
   fields?: (string)[] /* The list of fields to include in this listing. */;
   id?: string /* The id of this listing. When the listing is rendered, it will
 place the contents into a `div` with this id. If no such `div` is defined on the
@@ -759,12 +763,11 @@ field name followed by a direction `asc` or `desc`.
 
 For example:
 `date asc` */;
-  type?: (
+  type?:
     | "default"
     | "table"
     | "grid"
-    | "custom"
-  ) /* The type of listing to create. Choose one of:
+    | "custom" /* The type of listing to create. Choose one of:
 
 - `default`: A blog style list of items
 - `table`: A table of items
@@ -780,19 +783,18 @@ export type WebsiteListingContentsObject = {
   title?: string;
 };
 
-export type CslDate = (string | MaybeArrayOf<number>);
+export type CslDate = string | MaybeArrayOf<number>;
 
-export type CslPerson = (
+export type CslPerson =
   | MaybeArrayOf<string>
   | MaybeArrayOf<
     {
       "family-name"?: string /* The family name. */;
       "given-name"?: string; /* The given name. */
     }
-  >
-);
+  >;
 
-export type CslNumber = (number | string);
+export type CslNumber = number | string;
 
 export type CslItem = {
   "abstract-url"?: string /* A url to the abstract for this item. */;
@@ -957,7 +959,7 @@ canceled; details of a retraction or correction notice) */;
   submitted?: CslDate;
   title?: string /* The primary title of the item. */;
   translator?: CslPerson;
-  type?: (
+  type?:
     | "article"
     | "article-journal"
     | "article-magazine"
@@ -1002,8 +1004,7 @@ canceled; details of a retraction or correction notice) */;
     | "standard"
     | "thesis"
     | "treaty"
-    | "webpage"
-  ) /* The [type](https://docs.citationstyles.org/en/stable/specification.html#appendix-iii-types) of the item. */;
+    | "webpage" /* The [type](https://docs.citationstyles.org/en/stable/specification.html#appendix-iii-types) of the item. */;
   url?:
     string /* Uniform Resource Locator (e.g. "https://aem.asm.org/cgi/content/full/74/9/2766") */;
   URL?: string;
@@ -1011,16 +1012,17 @@ canceled; details of a retraction or correction notice) */;
   volume?: CslNumber;
 };
 
-export type SmartInclude = ({
+export type SmartInclude = {
   text: string; /* Textual content to add to includes */
-} | { file: string /* Name of file with content to add to includes */ });
+} | { file: string /* Name of file with content to add to includes */ };
 
 export type Semver =
   string; /* Version number according to Semantic Versioning */
 
 export type ProjectConfig = {
   "execute-dir"?:
-    ("file" | "project") /* Control the working directory for computations.
+    | "file"
+    | "project" /* Control the working directory for computations.
 
 - `file`: Use the directory of the file that is currently executing.
 - `project`: Use the root directory of the project. */;
@@ -1034,15 +1036,14 @@ export type ProjectConfig = {
     string
   > /* Additional file resources to be copied to output directory */;
   title?: string;
-  type?: (
+  type?:
     | "default"
     | "website"
     | "book"
-    | "site"
-  ); /* Project type (`default`, `website`, or `book`) */
+    | "site"; /* Project type (`default`, `website`, or `book`) */
 };
 
-export type BookProject = ({
+export type BookProject = {
   "output-file"?:
     string /* Base name for single-file output (e.g. PDF, ePub) */;
   "cover-image"?: string /* Cover image (used in HTML and ePub formats) */;
@@ -1079,4 +1080,4 @@ export type BookProject = ({
 (one or more of `twitter`, `facebook`, `linkedin`) */;
   title?: string /* Book title */;
   tools?: (NavigationItem)[]; /* Custom tools for navbar or sidebar */
-} & BaseWebsite);
+} & BaseWebsite;

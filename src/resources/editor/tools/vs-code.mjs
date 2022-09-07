@@ -7007,7 +7007,10 @@ var __copyProps = (to, from, except, desc) => {
   }
   return to;
 };
-var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target, mod));
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+  mod
+));
 
 // ../../../resources/editor/tools/yaml/tree-sitter-yaml.json
 var require_tree_sitter_yaml = __commonJS({
@@ -8237,22 +8240,87 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
-          id: "navigation-item-object",
+          id: "contents-auto",
           object: {
             properties: {
-              id: {
-                schema: "string",
-                hidden: true
-              },
-              href: {
-                string: {
-                  description: "Link to file contained with the project or external URL\n"
+              auto: {
+                anyOf: [
+                  "boolean",
+                  {
+                    maybeArrayOf: "string"
+                  }
+                ],
+                description: {
+                  short: "Automatically generate sidebar contents.",
+                  long: "Automatically generate sidebar contents. Pass `true` to include all documents\nin the site, a directory name to include only documents in that directory, \nor a glob (or list of globs) to include documents based on a pattern. \n\nSubdirectories will create sections (use an `index.qmd` in the directory to\nprovide its title). Order will be alphabetical unless a numeric `order` field\nis provided in document metadata.\n"
                 }
-              },
-              url: {
-                hidden: true,
+              }
+            }
+          }
+        },
+        {
+          id: "navigation-item",
+          anyOf: [
+            "path",
+            {
+              object: {
+                properties: {
+                  href: {
+                    string: {
+                      description: "Link to file contained with the project or external URL\n"
+                    }
+                  },
+                  url: {
+                    hidden: true,
+                    string: {
+                      description: "Alias for href\n"
+                    }
+                  },
+                  file: {
+                    hidden: true,
+                    string: {
+                      description: "Alias for href\n"
+                    }
+                  },
+                  text: {
+                    string: {
+                      description: "Text to display for navigation item (defaults to the\ndocument title if not provided)\n"
+                    }
+                  },
+                  icon: {
+                    string: {
+                      description: {
+                        short: "Name of bootstrap icon (e.g. `github`, `twitter`, `share`)",
+                        long: "Name of bootstrap icon (e.g. `github`, `twitter`, `share`)\nSee <https://icons.getbootstrap.com/> for a list of available icons\n"
+                      }
+                    }
+                  },
+                  "aria-label": {
+                    string: {
+                      description: "Accessible label for the navigation item."
+                    }
+                  },
+                  menu: {
+                    arrayOf: {
+                      schema: {
+                        ref: "navigation-item"
+                      }
+                    }
+                  }
+                },
+                closed: true
+              }
+            }
+          ]
+        },
+        {
+          id: "navigation-item-object",
+          object: {
+            closed: true,
+            properties: {
+              "aria-label": {
                 string: {
-                  description: "Alias for href\n"
+                  description: "Accessible label for the item."
                 }
               },
               file: {
@@ -8261,9 +8329,9 @@ var require_yaml_intelligence_resources = __commonJS({
                   description: "Alias for href\n"
                 }
               },
-              text: {
+              href: {
                 string: {
-                  description: "Text to display for navigation item (defaults to the\ndocument title if not provided)\n"
+                  description: "Link to file contained with the project or external URL\n"
                 }
               },
               icon: {
@@ -8274,10 +8342,9 @@ var require_yaml_intelligence_resources = __commonJS({
                   }
                 }
               },
-              "aria-label": {
-                string: {
-                  description: "Accessible label for the navigation item."
-                }
+              id: {
+                schema: "string",
+                hidden: true
               },
               menu: {
                 arrayOf: {
@@ -8285,9 +8352,19 @@ var require_yaml_intelligence_resources = __commonJS({
                     ref: "navigation-item"
                   }
                 }
+              },
+              text: {
+                string: {
+                  description: "Text to display for item (defaults to the\ndocument title if not provided)\n"
+                }
+              },
+              url: {
+                hidden: true,
+                string: {
+                  description: "Alias for href\n"
+                }
               }
-            },
-            closed: true
+            }
           }
         },
         {
@@ -8298,51 +8375,6 @@ var require_yaml_intelligence_resources = __commonJS({
               ref: "navigation-item-object"
             }
           ]
-        },
-        {
-          id: "tool-item",
-          object: {
-            properties: {
-              icon: {
-                string: {
-                  description: {
-                    short: "Name of bootstrap icon (e.g. `github`, `twitter`, `share`)",
-                    long: "Name of bootstrap icon (e.g. `github`, `twitter`, `share`)\nSee <https://icons.getbootstrap.com/> for a list of available icons\n"
-                  }
-                }
-              },
-              href: {
-                string: {
-                  description: "Link to file contained with the project or external URL\n"
-                }
-              },
-              text: {
-                string: {
-                  description: "Text to display for tool item\n"
-                }
-              },
-              menu: {
-                arrayOf: {
-                  schema: {
-                    ref: "navigation-item"
-                  }
-                }
-              },
-              url: {
-                hidden: true,
-                string: {
-                  description: "Alias for href\n"
-                }
-              },
-              file: {
-                hidden: true,
-                string: {
-                  description: "Alias for href\n"
-                }
-              }
-            },
-            closed: true
-          }
         },
         {
           id: "comments",
@@ -8775,29 +8807,45 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           id: "sidebar-contents",
-          arrayOf: {
-            anyOf: [
-              {
-                ref: "navigation-item"
-              },
-              "path",
-              {
-                object: {
-                  properties: {
-                    section: {
-                      anyOf: [
-                        "string",
-                        null
-                      ]
-                    },
-                    contents: {
-                      ref: "sidebar-contents"
+          anyOf: [
+            {
+              enum: [
+                "auto"
+              ]
+            },
+            {
+              ref: "contents-auto"
+            },
+            {
+              arrayOf: {
+                anyOf: [
+                  {
+                    ref: "navigation-item"
+                  },
+                  "path",
+                  {
+                    object: {
+                      closed: true,
+                      properties: {
+                        section: {
+                          anyOf: [
+                            "string",
+                            null
+                          ]
+                        },
+                        contents: {
+                          ref: "sidebar-contents"
+                        }
+                      }
                     }
+                  },
+                  {
+                    ref: "contents-auto"
                   }
-                }
+                ]
               }
-            ]
-          }
+            }
+          ]
         },
         {
           id: "project-preview",
@@ -8870,6 +8918,96 @@ var require_yaml_intelligence_resources = __commonJS({
                 }
               }
             }
+          }
+        },
+        {
+          id: "twitter-card-config",
+          object: {
+            super: {
+              resolveRef: "social-metadata"
+            },
+            closed: true,
+            properties: {
+              "card-style": {
+                enum: [
+                  "summary",
+                  "summary_large_image"
+                ],
+                description: {
+                  short: "Card style",
+                  long: "Card style (`summary` or `summary_large_image`).\n\nIf this is not provided, the best style will automatically\nselected based upon other metadata. You can learn more about Twitter Card\nstyles [here](https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/abouts-cards).\n"
+                }
+              },
+              creator: {
+                string: {
+                  description: "`@username` of the content creator (must be a quoted string)"
+                }
+              },
+              site: {
+                string: {
+                  description: "`@username` of the website (must be a quoted string)"
+                }
+              }
+            }
+          }
+        },
+        {
+          id: "open-graph-config",
+          object: {
+            super: {
+              resolveRef: "social-metadata"
+            },
+            closed: true,
+            properties: {
+              locale: {
+                string: {
+                  description: "Locale of open graph metadata"
+                }
+              },
+              "site-name": {
+                string: {
+                  description: {
+                    short: "Name that should be displayed for the overall site",
+                    long: "Name that should be displayed for the overall site. If not explicitly \nprovided in the `open-graph` metadata, Quarto will use the website or\nbook `title` by default.\n"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          id: "page-footer",
+          object: {
+            properties: {
+              left: {
+                ref: "page-footer-region",
+                description: "Footer left content"
+              },
+              right: {
+                ref: "page-footer-region",
+                description: "Footer right content"
+              },
+              center: {
+                ref: "page-footer-region",
+                description: "Footer center content"
+              },
+              border: {
+                anyOf: [
+                  "boolean",
+                  "string"
+                ],
+                description: "Footer border (`true`, `false`, or a border color)"
+              },
+              background: {
+                schema: "string",
+                description: "Footer background color"
+              },
+              foreground: {
+                schema: "string",
+                description: "Footer foreground color"
+              }
+            },
+            closed: true
           }
         },
         {
@@ -9276,7 +9414,7 @@ var require_yaml_intelligence_resources = __commonJS({
                           },
                           tools: {
                             arrayOf: {
-                              ref: "tool-item"
+                              ref: "navigation-item-object"
                             },
                             description: "List of sidebar tools"
                           },
@@ -9394,38 +9532,7 @@ var require_yaml_intelligence_resources = __commonJS({
                 anyOf: [
                   "string",
                   {
-                    object: {
-                      properties: {
-                        left: {
-                          ref: "page-footer-region",
-                          description: "Footer left content"
-                        },
-                        right: {
-                          ref: "page-footer-region",
-                          description: "Footer right content"
-                        },
-                        center: {
-                          ref: "page-footer-region",
-                          description: "Footer center content"
-                        },
-                        border: {
-                          anyOf: [
-                            "boolean",
-                            "string"
-                          ],
-                          description: "Footer border (`true`, `false`, or a border color)"
-                        },
-                        background: {
-                          schema: "string",
-                          description: "Footer background color"
-                        },
-                        foreground: {
-                          schema: "string",
-                          description: "Footer foreground color"
-                        }
-                      },
-                      closed: true
-                    }
+                    ref: "page-footer"
                   }
                 ],
                 description: "Shared page footer"
@@ -9444,27 +9551,7 @@ var require_yaml_intelligence_resources = __commonJS({
                 anyOf: [
                   "boolean",
                   {
-                    object: {
-                      super: {
-                        resolveRef: "social-metadata"
-                      },
-                      properties: {
-                        locale: {
-                          string: {
-                            description: "Locale of open graph metadata"
-                          }
-                        },
-                        "site-name": {
-                          string: {
-                            description: {
-                              short: "Name that should be displayed for the overall site",
-                              long: "Name that should be displayed for the overall site. If not explicitly \nprovided in the `open-graph` metadata, Quarto will use the website or\nbook `title` by default.\n"
-                            }
-                          }
-                        }
-                      },
-                      closed: true
-                    }
+                    ref: "open-graph-config"
                   }
                 ],
                 description: "Publish open graph metadata"
@@ -9473,34 +9560,7 @@ var require_yaml_intelligence_resources = __commonJS({
                 anyOf: [
                   "boolean",
                   {
-                    object: {
-                      super: {
-                        resolveRef: "social-metadata"
-                      },
-                      properties: {
-                        "card-style": {
-                          enum: [
-                            "summary",
-                            "summary_large_image"
-                          ],
-                          description: {
-                            short: "Card style",
-                            long: "Card style (`summary` or `summary_large_image`).\n\nIf this is not provided, the best style will automatically\nselected based upon other metadata. You can learn more about Twitter Card\nstyles [here](https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/abouts-cards).\n"
-                          }
-                        },
-                        creator: {
-                          string: {
-                            description: "`@username` of the content creator (must be a quoted string)"
-                          }
-                        },
-                        site: {
-                          string: {
-                            description: "`@username` of the website (must be a quoted string)"
-                          }
-                        }
-                      },
-                      closed: true
-                    }
+                    ref: "twitter-card-config"
                   }
                 ],
                 description: "Publish twitter card metadata"
@@ -9758,16 +9818,12 @@ var require_yaml_intelligence_resources = __commonJS({
               },
               "max-items": {
                 number: {
-                  description: {
-                    short: "The maximum number of items to include in this listing."
-                  }
+                  description: "The maximum number of items to include in this listing."
                 }
               },
               "page-size": {
                 number: {
-                  description: {
-                    short: "The number of items to display on a page."
-                  }
+                  description: "The number of items to display on a page."
                 }
               },
               "sort-ui": {
@@ -10914,6 +10970,11 @@ var require_yaml_intelligence_resources = __commonJS({
             ]
           },
           description: "The contents of an acknowledgments footnote after the document title."
+        },
+        {
+          name: "order",
+          schema: "number",
+          description: "Order for document when included in a website automatic sidebar menu."
         }
       ],
       "schema/document-citation.yml": [
@@ -14250,6 +14311,14 @@ var require_yaml_intelligence_resources = __commonJS({
             short: "Determines which ipynb cell output formats are rendered (`none`, `all`, or `best`).",
             long: "Determines which ipynb cell output formats are rendered.\n\n- `all`: Preserve all of the data formats included in the original.\n- `none`: Omit the contents of data cells.\n- `best` (default): Instruct pandoc to try to pick the\n  richest data block in each output cell that is compatible\n  with the output format.\n"
           }
+        },
+        {
+          name: "quarto-required",
+          schema: "string",
+          description: {
+            short: "semver version range for required quarto version",
+            long: "A semver version range describing the supported quarto versions for this document\nor project.\n\nExamples:\n\n- `>= 1.1.0`: Require at least quarto version 1.1\n- `1.*`: Require any quarto versions whose major version number is 1\n"
+          }
         }
       ],
       "schema/document-pdfa.yml": [
@@ -15691,8 +15760,12 @@ var require_yaml_intelligence_resources = __commonJS({
           name: "title-slide-attributes",
           schema: {
             object: {
-              closed: true,
               properties: {
+                "data-background-color": {
+                  string: {
+                    description: "CSS color for title slide background"
+                  }
+                },
                 "data-background-image": {
                   string: {
                     description: "URL or path to the background image."
@@ -16365,7 +16438,6 @@ var require_yaml_intelligence_resources = __commonJS({
               closed: true,
               properties: {
                 title: {
-                  hidden: true,
                   schema: "string"
                 },
                 type: {
@@ -19232,7 +19304,69 @@ var require_yaml_intelligence_resources = __commonJS({
         "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
         "Custom tools for navbar or sidebar",
         "The Digital Object Identifier for this book.",
-        "internal-schema-hack"
+        "internal-schema-hack",
+        {
+          short: "Automatically generate sidebar contents.",
+          long: "Automatically generate sidebar contents. Pass <code>true</code> to\ninclude all documents in the site, a directory name to include only\ndocuments in that directory, or a glob (or list of globs) to include\ndocuments based on a pattern.\nSubdirectories will create sections (use an <code>index.qmd</code> in\nthe directory to provide its title). Order will be alphabetical unless a\nnumeric <code>order</code> field is provided in document metadata."
+        },
+        {
+          short: "The title of the page",
+          long: "The title of the page. Note that by default Quarto will automatically\nuse the title metadata from the page. Specify this field if you\u2019d like\nto override the title for this provider."
+        },
+        {
+          short: "A short description of the content.",
+          long: "A short description of the content. Note that by default Quarto will\nautomatically use the description metadata from the page. Specify this\nfield if you\u2019d like to override the description for this provider."
+        },
+        {
+          short: "The path to a preview image for the content.",
+          long: "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the format metadata. If you\nprovide an image, you may also optionally provide an\n<code>image-width</code> and <code>image-height</code>."
+        },
+        {
+          short: "The alt text for the preview image.",
+          long: "The alt text for the preview image. By default, Quarto will use the\n<code>image-alt</code> value from the format metadata. If you provide an\nimage, you may also optionally provide an <code>image-width</code> and\n<code>image-height</code>."
+        },
+        "Image width (pixels)",
+        "Image height (pixels)",
+        {
+          short: "Card style",
+          long: 'Card style (<code>summary</code> or\n<code>summary_large_image</code>).\nIf this is not provided, the best style will automatically selected\nbased upon other metadata. You can learn more about Twitter Card styles\n<a href="https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/abouts-cards">here</a>.'
+        },
+        "<code>@username</code> of the content creator (must be a quoted\nstring)",
+        "<code>@username</code> of the website (must be a quoted string)",
+        {
+          short: "The title of the page",
+          long: "The title of the page. Note that by default Quarto will automatically\nuse the title metadata from the page. Specify this field if you\u2019d like\nto override the title for this provider."
+        },
+        {
+          short: "A short description of the content.",
+          long: "A short description of the content. Note that by default Quarto will\nautomatically use the description metadata from the page. Specify this\nfield if you\u2019d like to override the description for this provider."
+        },
+        {
+          short: "The path to a preview image for the content.",
+          long: "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the format metadata. If you\nprovide an image, you may also optionally provide an\n<code>image-width</code> and <code>image-height</code>."
+        },
+        {
+          short: "The alt text for the preview image.",
+          long: "The alt text for the preview image. By default, Quarto will use the\n<code>image-alt</code> value from the format metadata. If you provide an\nimage, you may also optionally provide an <code>image-width</code> and\n<code>image-height</code>."
+        },
+        "Image width (pixels)",
+        "Image height (pixels)",
+        "Locale of open graph metadata",
+        {
+          short: "Name that should be displayed for the overall site",
+          long: "Name that should be displayed for the overall site. If not explicitly\nprovided in the <code>open-graph</code> metadata, Quarto will use the\nwebsite or book <code>title</code> by default."
+        },
+        "Footer left content",
+        "Footer right content",
+        "Footer center content",
+        "Footer border (<code>true</code>, <code>false</code>, or a border\ncolor)",
+        "Footer background color",
+        "Footer foreground color",
+        "Order for document when included in a website automatic sidebar\nmenu.",
+        {
+          short: "semver version range for required quarto version",
+          long: "A semver version range describing the supported quarto versions for\nthis document or project.\nExamples:"
+        }
       ],
       "schema/external-schemas.yml": [
         {
@@ -19486,7 +19620,7 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
-          name: "quarto-version",
+          name: "quarto-required",
           description: "Quarto version range. See https://docs.npmjs.com/cli/v6/using-npm/semver for syntax details.",
           schema: "string"
         },
@@ -19574,10 +19708,13 @@ function red(str2) {
 function blue(str2) {
   return run(str2, code([34], 39));
 }
-var ANSI_PATTERN = new RegExp([
-  "[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)",
-  "(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-ntqry=><~]))"
-].join("|"), "g");
+var ANSI_PATTERN = new RegExp(
+  [
+    "[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)",
+    "(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-ntqry=><~]))"
+  ].join("|"),
+  "g"
+);
 
 // ../errors.ts
 function platformHasNonAsciiCharacters() {
@@ -19688,7 +19825,10 @@ function lineColToIndex(text) {
   };
 }
 function formatLineRange(text, firstLine, lastLine) {
-  const lineWidth = Math.max(String(firstLine + 1).length, String(lastLine + 1).length);
+  const lineWidth = Math.max(
+    String(firstLine + 1).length,
+    String(lastLine + 1).length
+  );
   const pad = " ".repeat(lineWidth);
   const ls = lines(text);
   const result = [];
@@ -19742,7 +19882,11 @@ function editDistance(w1, w2) {
       } else if (j === 0) {
         v[i * s2 + j] = v[(i - 1) * s2 + j] + cost(w1[i - 1]);
       } else {
-        v[i * s2 + j] = Math.min(v[(i - 1) * s2 + (j - 1)] + cost2(w1[i - 1], w2[j - 1]), v[i * s2 + (j - 1)] + cost(w2[j - 1]), v[(i - 1) * s2 + j] + cost(w1[i - 1]));
+        v[i * s2 + j] = Math.min(
+          v[(i - 1) * s2 + (j - 1)] + cost2(w1[i - 1], w2[j - 1]),
+          v[i * s2 + (j - 1)] + cost(w2[j - 1]),
+          v[(i - 1) * s2 + j] + cost(w1[i - 1])
+        );
       }
     }
   }
@@ -19763,7 +19907,9 @@ function detectCaseConvention(key) {
 function resolveCaseConventionRegex(keys, conventions) {
   if (conventions !== void 0) {
     if (conventions.length === 0) {
-      throw new Error("Internal Error: resolveCaseConventionRegex requires nonempty `conventions`");
+      throw new Error(
+        "Internal Error: resolveCaseConventionRegex requires nonempty `conventions`"
+      );
     }
     return {
       pattern: conventions.map((c) => `(${c})`).join("|"),
@@ -19782,10 +19928,16 @@ function resolveCaseConventionRegex(keys, conventions) {
         disallowedNearMisses.push(toUnderscoreCase(key), toDashCase(key));
         break;
       case "dash-case":
-        disallowedNearMisses.push(toUnderscoreCase(key), toCapitalizationCase(key));
+        disallowedNearMisses.push(
+          toUnderscoreCase(key),
+          toCapitalizationCase(key)
+        );
         break;
       case "underscore_case":
-        disallowedNearMisses.push(toDashCase(key), toCapitalizationCase(key));
+        disallowedNearMisses.push(
+          toDashCase(key),
+          toCapitalizationCase(key)
+        );
         break;
     }
   }
@@ -19804,10 +19956,16 @@ function toDashCase(str2) {
   return toUnderscoreCase(str2).replace(/_/g, "-");
 }
 function toUnderscoreCase(str2) {
-  return str2.replace(/([A-Z]+)/g, (_match, p1) => `-${p1}`).replace(/-/g, "_").split("_").filter((x) => x.length).join("_").toLocaleLowerCase();
+  return str2.replace(
+    /([A-Z]+)/g,
+    (_match, p1) => `-${p1}`
+  ).replace(/-/g, "_").split("_").filter((x) => x.length).join("_").toLocaleLowerCase();
 }
 function toCapitalizationCase(str2) {
-  return toUnderscoreCase(str2).replace(/_(.)/g, (_match, p1) => p1.toLocaleUpperCase());
+  return toUnderscoreCase(str2).replace(
+    /_(.)/g,
+    (_match, p1) => p1.toLocaleUpperCase()
+  );
 }
 
 // ../ranged-text.ts
@@ -19926,7 +20084,9 @@ function asMappedString(str2, fileName) {
       }
     };
   } else if (fileName !== void 0) {
-    throw new Error("Internal error: can't change the fileName of an existing MappedString");
+    throw new Error(
+      "Internal error: can't change the fileName of an existing MappedString"
+    );
   } else {
     return str2;
   }
@@ -20009,7 +20169,9 @@ async function getTreeSitter() {
   await Parser.init();
   _parser = new Parser();
   const treeSitterYamlJson = await Promise.resolve().then(() => __toESM(require_tree_sitter_yaml()));
-  const YAML = await Parser.Language.load(new Uint8Array(treeSitterYamlJson.data));
+  const YAML = await Parser.Language.load(
+    new Uint8Array(treeSitterYamlJson.data)
+  );
   _parser.setLanguage(YAML);
   return _parser;
 }
@@ -20297,21 +20459,42 @@ function makeSnippet(mark, options) {
   if (foundLineNo < 0)
     foundLineNo = lineStarts.length - 1;
   var result = "", i, line;
-  var lineNoLength = Math.min(mark.line + options.linesAfter, lineEnds.length).toString().length;
+  var lineNoLength = Math.min(
+    mark.line + options.linesAfter,
+    lineEnds.length
+  ).toString().length;
   var maxLineLength = options.maxLength - (options.indent + lineNoLength + 3);
   for (i = 1; i <= options.linesBefore; i++) {
     if (foundLineNo - i < 0)
       break;
-    line = getLine(mark.buffer, lineStarts[foundLineNo - i], lineEnds[foundLineNo - i], mark.position - (lineStarts[foundLineNo] - lineStarts[foundLineNo - i]), maxLineLength);
+    line = getLine(
+      mark.buffer,
+      lineStarts[foundLineNo - i],
+      lineEnds[foundLineNo - i],
+      mark.position - (lineStarts[foundLineNo] - lineStarts[foundLineNo - i]),
+      maxLineLength
+    );
     result = common.repeat(" ", options.indent) + padStart((mark.line - i + 1).toString(), lineNoLength) + " | " + line.str + "\n" + result;
   }
-  line = getLine(mark.buffer, lineStarts[foundLineNo], lineEnds[foundLineNo], mark.position, maxLineLength);
+  line = getLine(
+    mark.buffer,
+    lineStarts[foundLineNo],
+    lineEnds[foundLineNo],
+    mark.position,
+    maxLineLength
+  );
   result += common.repeat(" ", options.indent) + padStart((mark.line + 1).toString(), lineNoLength) + " | " + line.str + "\n";
   result += common.repeat("-", options.indent + lineNoLength + 3 + line.pos) + "^\n";
   for (i = 1; i <= options.linesAfter; i++) {
     if (foundLineNo + i >= lineEnds.length)
       break;
-    line = getLine(mark.buffer, lineStarts[foundLineNo + i], lineEnds[foundLineNo + i], mark.position - (lineStarts[foundLineNo] - lineStarts[foundLineNo + i]), maxLineLength);
+    line = getLine(
+      mark.buffer,
+      lineStarts[foundLineNo + i],
+      lineEnds[foundLineNo + i],
+      mark.position - (lineStarts[foundLineNo] - lineStarts[foundLineNo + i]),
+      maxLineLength
+    );
     result += common.repeat(" ", options.indent) + padStart((mark.line + i + 1).toString(), lineNoLength) + " | " + line.str + "\n";
   }
   return result.replace(/\n$/, "");
@@ -20345,7 +20528,9 @@ function Type$1(tag, options) {
   options = options || {};
   Object.keys(options).forEach(function(name) {
     if (TYPE_CONSTRUCTOR_OPTIONS.indexOf(name) === -1) {
-      throw new exception('Unknown option "' + name + '" is met in definition of "' + tag + '" YAML type.');
+      throw new exception(
+        'Unknown option "' + name + '" is met in definition of "' + tag + '" YAML type.'
+      );
     }
   });
   this.options = options;
@@ -20365,7 +20550,9 @@ function Type$1(tag, options) {
   this.multi = options["multi"] || false;
   this.styleAliases = compileStyleAliases(options["styleAliases"] || null);
   if (YAML_NODE_KINDS.indexOf(this.kind) === -1) {
-    throw new exception('Unknown kind "' + this.kind + '" is specified for "' + tag + '" YAML type.');
+    throw new exception(
+      'Unknown kind "' + this.kind + '" is specified for "' + tag + '" YAML type.'
+    );
   }
 }
 var type = Type$1;
@@ -20424,22 +20611,32 @@ Schema$1.prototype.extend = function extend2(definition) {
     if (definition.explicit)
       explicit = explicit.concat(definition.explicit);
   } else {
-    throw new exception("Schema.extend argument should be a Type, [ Type ], or a schema definition ({ implicit: [...], explicit: [...] })");
+    throw new exception(
+      "Schema.extend argument should be a Type, [ Type ], or a schema definition ({ implicit: [...], explicit: [...] })"
+    );
   }
   implicit.forEach(function(type$1) {
     if (!(type$1 instanceof type)) {
-      throw new exception("Specified list of YAML types (or a single Type object) contains a non-Type object.");
+      throw new exception(
+        "Specified list of YAML types (or a single Type object) contains a non-Type object."
+      );
     }
     if (type$1.loadKind && type$1.loadKind !== "scalar") {
-      throw new exception("There is a non-scalar type in the implicit list of a schema. Implicit resolving of such types is not supported.");
+      throw new exception(
+        "There is a non-scalar type in the implicit list of a schema. Implicit resolving of such types is not supported."
+      );
     }
     if (type$1.multi) {
-      throw new exception("There is a multi type in the implicit list of a schema. Multi tags can only be listed as explicit.");
+      throw new exception(
+        "There is a multi type in the implicit list of a schema. Multi tags can only be listed as explicit."
+      );
     }
   });
   explicit.forEach(function(type$1) {
     if (!(type$1 instanceof type)) {
-      throw new exception("Specified list of YAML types (or a single Type object) contains a non-Type object.");
+      throw new exception(
+        "Specified list of YAML types (or a single Type object) contains a non-Type object."
+      );
     }
   });
   var result = Object.create(Schema$1.prototype);
@@ -20447,7 +20644,10 @@ Schema$1.prototype.extend = function extend2(definition) {
   result.explicit = (this.explicit || []).concat(explicit);
   result.compiledImplicit = compileList(result, "implicit");
   result.compiledExplicit = compileList(result, "explicit");
-  result.compiledTypeMap = compileMap(result.compiledImplicit, result.compiledExplicit);
+  result.compiledTypeMap = compileMap(
+    result.compiledImplicit,
+    result.compiledExplicit
+  );
   return result;
 };
 var schema = Schema$1;
@@ -20667,7 +20867,9 @@ var int = new type("tag:yaml.org,2002:int", {
     hexadecimal: [16, "hex"]
   }
 });
-var YAML_FLOAT_PATTERN = new RegExp("^(?:[-+]?(?:[0-9][0-9_]*)(?:\\.[0-9_]*)?(?:[eE][-+]?[0-9]+)?|\\.[0-9_]+(?:[eE][-+]?[0-9]+)?|[-+]?\\.(?:inf|Inf|INF)|\\.(?:nan|NaN|NAN))$");
+var YAML_FLOAT_PATTERN = new RegExp(
+  "^(?:[-+]?(?:[0-9][0-9_]*)(?:\\.[0-9_]*)?(?:[eE][-+]?[0-9]+)?|\\.[0-9_]+(?:[eE][-+]?[0-9]+)?|[-+]?\\.(?:inf|Inf|INF)|\\.(?:nan|NaN|NAN))$"
+);
 function resolveYamlFloat(data) {
   if (data === null)
     return false;
@@ -20741,8 +20943,12 @@ var json = failsafe.extend({
   implicit: [_null, bool, int, float]
 });
 var core = json;
-var YAML_DATE_REGEXP = new RegExp("^([0-9][0-9][0-9][0-9])-([0-9][0-9])-([0-9][0-9])$");
-var YAML_TIMESTAMP_REGEXP = new RegExp("^([0-9][0-9][0-9][0-9])-([0-9][0-9]?)-([0-9][0-9]?)(?:[Tt]|[ \\t]+)([0-9][0-9]?):([0-9][0-9]):([0-9][0-9])(?:\\.([0-9]*))?(?:[ \\t]*(Z|([-+])([0-9][0-9]?)(?::([0-9][0-9]))?))?$");
+var YAML_DATE_REGEXP = new RegExp(
+  "^([0-9][0-9][0-9][0-9])-([0-9][0-9])-([0-9][0-9])$"
+);
+var YAML_TIMESTAMP_REGEXP = new RegExp(
+  "^([0-9][0-9][0-9][0-9])-([0-9][0-9]?)-([0-9][0-9]?)(?:[Tt]|[ \\t]+)([0-9][0-9]?):([0-9][0-9]):([0-9][0-9])(?:\\.([0-9]*))?(?:[ \\t]*(Z|([-+])([0-9][0-9]?)(?::([0-9][0-9]))?))?$"
+);
 function resolveYamlTimestamp(data) {
   if (data === null)
     return false;
@@ -21041,7 +21247,10 @@ function charFromCodepoint(c) {
   if (c <= 65535) {
     return String.fromCharCode(c);
   }
-  return String.fromCharCode((c - 65536 >> 10) + 55296, (c - 65536 & 1023) + 56320);
+  return String.fromCharCode(
+    (c - 65536 >> 10) + 55296,
+    (c - 65536 & 1023) + 56320
+  );
 }
 var simpleEscapeCheck = new Array(256);
 var simpleEscapeMap = new Array(256);
@@ -21119,13 +21328,22 @@ var directiveHandlers = {
     handle = args[0];
     prefix = args[1];
     if (!PATTERN_TAG_HANDLE.test(handle)) {
-      throwError(state, "ill-formed tag handle (first argument) of the TAG directive");
+      throwError(
+        state,
+        "ill-formed tag handle (first argument) of the TAG directive"
+      );
     }
     if (_hasOwnProperty$1.call(state.tagMap, handle)) {
-      throwError(state, 'there is a previously declared suffix for "' + handle + '" tag handle');
+      throwError(
+        state,
+        'there is a previously declared suffix for "' + handle + '" tag handle'
+      );
     }
     if (!PATTERN_TAG_URI.test(prefix)) {
-      throwError(state, "ill-formed tag prefix (second argument) of the TAG directive");
+      throwError(
+        state,
+        "ill-formed tag prefix (second argument) of the TAG directive"
+      );
     }
     try {
       prefix = decodeURIComponent(prefix);
@@ -21155,7 +21373,10 @@ function captureSegment(state, start, end, checkJson) {
 function mergeMappings(state, destination, source, overridableKeys) {
   var sourceKeys, key, index, quantity;
   if (!common.isObject(source)) {
-    throwError(state, "cannot merge mappings; the provided source object is unacceptable");
+    throwError(
+      state,
+      "cannot merge mappings; the provided source object is unacceptable"
+    );
   }
   sourceKeys = Object.keys(source);
   for (index = 0, quantity = sourceKeys.length; index < quantity; index += 1) {
@@ -21374,13 +21595,19 @@ function readSingleQuotedScalar(state, nodeIndent) {
       writeFoldedLines(state, skipSeparationSpace(state, false, nodeIndent));
       captureStart = captureEnd = state.position;
     } else if (state.position === state.lineStart && testDocumentSeparator(state)) {
-      throwError(state, "unexpected end of the document within a single quoted scalar");
+      throwError(
+        state,
+        "unexpected end of the document within a single quoted scalar"
+      );
     } else {
       state.position++;
       captureEnd = state.position;
     }
   }
-  throwError(state, "unexpected end of the stream within a single quoted scalar");
+  throwError(
+    state,
+    "unexpected end of the stream within a single quoted scalar"
+  );
 }
 function readDoubleQuotedScalar(state, nodeIndent) {
   var captureStart, captureEnd, hexLength, hexResult, tmp, ch;
@@ -21427,13 +21654,19 @@ function readDoubleQuotedScalar(state, nodeIndent) {
       writeFoldedLines(state, skipSeparationSpace(state, false, nodeIndent));
       captureStart = captureEnd = state.position;
     } else if (state.position === state.lineStart && testDocumentSeparator(state)) {
-      throwError(state, "unexpected end of the document within a double quoted scalar");
+      throwError(
+        state,
+        "unexpected end of the document within a double quoted scalar"
+      );
     } else {
       state.position++;
       captureEnd = state.position;
     }
   }
-  throwError(state, "unexpected end of the stream within a double quoted scalar");
+  throwError(
+    state,
+    "unexpected end of the stream within a double quoted scalar"
+  );
 }
 function readFlowCollection(state, nodeIndent) {
   var readNext = true, _line, _lineStart, _pos, _tag = state.tag, _result, _anchor = state.anchor, following, terminator, isPair, isExplicitPair, isMapping, overridableKeys = /* @__PURE__ */ Object.create(null), keyNode, keyTag, valueNode, ch;
@@ -21494,9 +21727,31 @@ function readFlowCollection(state, nodeIndent) {
       valueNode = state.result;
     }
     if (isMapping) {
-      storeMappingPair(state, _result, overridableKeys, keyTag, keyNode, valueNode, _line, _lineStart, _pos);
+      storeMappingPair(
+        state,
+        _result,
+        overridableKeys,
+        keyTag,
+        keyNode,
+        valueNode,
+        _line,
+        _lineStart,
+        _pos
+      );
     } else if (isPair) {
-      _result.push(storeMappingPair(state, null, overridableKeys, keyTag, keyNode, valueNode, _line, _lineStart, _pos));
+      _result.push(
+        storeMappingPair(
+          state,
+          null,
+          overridableKeys,
+          keyTag,
+          keyNode,
+          valueNode,
+          _line,
+          _lineStart,
+          _pos
+        )
+      );
     } else {
       _result.push(keyNode);
     }
@@ -21533,7 +21788,10 @@ function readBlockScalar(state, nodeIndent) {
       }
     } else if ((tmp = fromDecimalCode(ch)) >= 0) {
       if (tmp === 0) {
-        throwError(state, "bad explicit indentation width of a block scalar; it cannot be less than one");
+        throwError(
+          state,
+          "bad explicit indentation width of a block scalar; it cannot be less than one"
+        );
       } else if (!detectedIndent) {
         textIndent = nodeIndent + tmp - 1;
         detectedIndent = true;
@@ -21571,7 +21829,10 @@ function readBlockScalar(state, nodeIndent) {
     }
     if (state.lineIndent < textIndent) {
       if (chomping === CHOMPING_KEEP) {
-        state.result += common.repeat("\n", didReadContent ? 1 + emptyLines : emptyLines);
+        state.result += common.repeat(
+          "\n",
+          didReadContent ? 1 + emptyLines : emptyLines
+        );
       } else if (chomping === CHOMPING_CLIP) {
         if (didReadContent) {
           state.result += "\n";
@@ -21582,7 +21843,10 @@ function readBlockScalar(state, nodeIndent) {
     if (folding) {
       if (is_WHITE_SPACE(ch)) {
         atMoreIndented = true;
-        state.result += common.repeat("\n", didReadContent ? 1 + emptyLines : emptyLines);
+        state.result += common.repeat(
+          "\n",
+          didReadContent ? 1 + emptyLines : emptyLines
+        );
       } else if (atMoreIndented) {
         atMoreIndented = false;
         state.result += common.repeat("\n", emptyLines + 1);
@@ -21594,7 +21858,10 @@ function readBlockScalar(state, nodeIndent) {
         state.result += common.repeat("\n", emptyLines);
       }
     } else {
-      state.result += common.repeat("\n", didReadContent ? 1 + emptyLines : emptyLines);
+      state.result += common.repeat(
+        "\n",
+        didReadContent ? 1 + emptyLines : emptyLines
+      );
     }
     didReadContent = true;
     detectedIndent = true;
@@ -21674,7 +21941,17 @@ function readBlockMapping(state, nodeIndent, flowIndent) {
     if ((ch === 63 || ch === 58) && is_WS_OR_EOL(following)) {
       if (ch === 63) {
         if (atExplicitKey) {
-          storeMappingPair(state, _result, overridableKeys, keyTag, keyNode, null, _keyLine, _keyLineStart, _keyPos);
+          storeMappingPair(
+            state,
+            _result,
+            overridableKeys,
+            keyTag,
+            keyNode,
+            null,
+            _keyLine,
+            _keyLineStart,
+            _keyPos
+          );
           keyTag = keyNode = valueNode = null;
         }
         detected = true;
@@ -21684,7 +21961,10 @@ function readBlockMapping(state, nodeIndent, flowIndent) {
         atExplicitKey = false;
         allowCompact = true;
       } else {
-        throwError(state, "incomplete explicit mapping pair; a key node is missed; or followed by a non-tabulated empty line");
+        throwError(
+          state,
+          "incomplete explicit mapping pair; a key node is missed; or followed by a non-tabulated empty line"
+        );
       }
       state.position += 1;
       ch = following;
@@ -21703,10 +21983,23 @@ function readBlockMapping(state, nodeIndent, flowIndent) {
         if (ch === 58) {
           ch = state.input.charCodeAt(++state.position);
           if (!is_WS_OR_EOL(ch)) {
-            throwError(state, "a whitespace character is expected after the key-value separator within a block mapping");
+            throwError(
+              state,
+              "a whitespace character is expected after the key-value separator within a block mapping"
+            );
           }
           if (atExplicitKey) {
-            storeMappingPair(state, _result, overridableKeys, keyTag, keyNode, null, _keyLine, _keyLineStart, _keyPos);
+            storeMappingPair(
+              state,
+              _result,
+              overridableKeys,
+              keyTag,
+              keyNode,
+              null,
+              _keyLine,
+              _keyLineStart,
+              _keyPos
+            );
             keyTag = keyNode = valueNode = null;
           }
           detected = true;
@@ -21715,14 +22008,20 @@ function readBlockMapping(state, nodeIndent, flowIndent) {
           keyTag = state.tag;
           keyNode = state.result;
         } else if (detected) {
-          throwError(state, "can not read an implicit mapping pair; a colon is missed");
+          throwError(
+            state,
+            "can not read an implicit mapping pair; a colon is missed"
+          );
         } else {
           state.tag = _tag;
           state.anchor = _anchor;
           return true;
         }
       } else if (detected) {
-        throwError(state, "can not read a block mapping entry; a multiline key may not be an implicit key");
+        throwError(
+          state,
+          "can not read a block mapping entry; a multiline key may not be an implicit key"
+        );
       } else {
         state.tag = _tag;
         state.anchor = _anchor;
@@ -21743,7 +22042,17 @@ function readBlockMapping(state, nodeIndent, flowIndent) {
         }
       }
       if (!atExplicitKey) {
-        storeMappingPair(state, _result, overridableKeys, keyTag, keyNode, valueNode, _keyLine, _keyLineStart, _keyPos);
+        storeMappingPair(
+          state,
+          _result,
+          overridableKeys,
+          keyTag,
+          keyNode,
+          valueNode,
+          _keyLine,
+          _keyLineStart,
+          _keyPos
+        );
         keyTag = keyNode = valueNode = null;
       }
       skipSeparationSpace(state, true, -1);
@@ -21756,7 +22065,17 @@ function readBlockMapping(state, nodeIndent, flowIndent) {
     }
   }
   if (atExplicitKey) {
-    storeMappingPair(state, _result, overridableKeys, keyTag, keyNode, null, _keyLine, _keyLineStart, _keyPos);
+    storeMappingPair(
+      state,
+      _result,
+      overridableKeys,
+      keyTag,
+      keyNode,
+      null,
+      _keyLine,
+      _keyLineStart,
+      _keyPos
+    );
   }
   if (detected) {
     state.tag = _tag;
@@ -21802,7 +22121,10 @@ function readTagProperty(state) {
         if (!isNamed) {
           tagHandle = state.input.slice(_position - 1, state.position + 1);
           if (!PATTERN_TAG_HANDLE.test(tagHandle)) {
-            throwError(state, "named tag handle cannot contain such characters");
+            throwError(
+              state,
+              "named tag handle cannot contain such characters"
+            );
           }
           isNamed = true;
           _position = state.position + 1;
@@ -21852,7 +22174,10 @@ function readAnchorProperty(state) {
     ch = state.input.charCodeAt(++state.position);
   }
   if (state.position === _position) {
-    throwError(state, "name of an anchor node must contain at least one character");
+    throwError(
+      state,
+      "name of an anchor node must contain at least one character"
+    );
   }
   state.anchor = state.input.slice(_position, state.position);
   return true;
@@ -21868,7 +22193,10 @@ function readAlias(state) {
     ch = state.input.charCodeAt(++state.position);
   }
   if (state.position === _position) {
-    throwError(state, "name of an alias node must contain at least one character");
+    throwError(
+      state,
+      "name of an alias node must contain at least one character"
+    );
   }
   alias = state.input.slice(_position, state.position);
   if (!_hasOwnProperty$1.call(state.anchorMap, alias)) {
@@ -21958,7 +22286,10 @@ function composeNode(state, parentIndent, nodeContext, allowToSeek, allowCompact
     }
   } else if (state.tag === "?") {
     if (state.result !== null && state.kind !== "scalar") {
-      throwError(state, 'unacceptable node kind for !<?> tag; it should be "scalar", not "' + state.kind + '"');
+      throwError(
+        state,
+        'unacceptable node kind for !<?> tag; it should be "scalar", not "' + state.kind + '"'
+      );
     }
     for (typeIndex = 0, typeQuantity = state.implicitTypes.length; typeIndex < typeQuantity; typeIndex += 1) {
       type2 = state.implicitTypes[typeIndex];
@@ -21988,10 +22319,16 @@ function composeNode(state, parentIndent, nodeContext, allowToSeek, allowCompact
       throwError(state, "unknown tag !<" + state.tag + ">");
     }
     if (state.result !== null && type2.kind !== state.kind) {
-      throwError(state, "unacceptable node kind for !<" + state.tag + '> tag; it should be "' + type2.kind + '", not "' + state.kind + '"');
+      throwError(
+        state,
+        "unacceptable node kind for !<" + state.tag + '> tag; it should be "' + type2.kind + '", not "' + state.kind + '"'
+      );
     }
     if (!type2.resolve(state.result, state.tag)) {
-      throwError(state, "cannot resolve a node with !<" + state.tag + "> explicit tag");
+      throwError(
+        state,
+        "cannot resolve a node with !<" + state.tag + "> explicit tag"
+      );
     } else {
       state.result = type2.construct(state.result, state.tag);
       if (state.anchor !== null) {
@@ -22025,7 +22362,10 @@ function readDocument(state) {
     directiveName = state.input.slice(_position, state.position);
     directiveArgs = [];
     if (directiveName.length < 1) {
-      throwError(state, "directive name must not be less than one character in length");
+      throwError(
+        state,
+        "directive name must not be less than one character in length"
+      );
     }
     while (ch !== 0) {
       while (is_WHITE_SPACE(ch)) {
@@ -22062,7 +22402,9 @@ function readDocument(state) {
   }
   composeNode(state, state.lineIndent - 1, CONTEXT_BLOCK_OUT, false, true);
   skipSeparationSpace(state, true, -1);
-  if (state.checkLineBreaks && PATTERN_NON_ASCII_LINE_BREAKS.test(state.input.slice(documentStart, state.position))) {
+  if (state.checkLineBreaks && PATTERN_NON_ASCII_LINE_BREAKS.test(
+    state.input.slice(documentStart, state.position)
+  )) {
     throwWarning(state, "non-ASCII line breaks are interpreted as content");
   }
   state.documents.push(state.result);
@@ -22126,7 +22468,9 @@ function load$1(input, options) {
   } else if (documents.length === 1) {
     return documents[0];
   }
-  throw new exception("expected a single document in the stream, but found more");
+  throw new exception(
+    "expected a single document in the stream, but found more"
+  );
 }
 var loadAll_1 = loadAll$1;
 var load_1 = load$1;
@@ -22229,7 +22573,9 @@ function encodeHex(character) {
     handle = "U";
     length = 8;
   } else {
-    throw new exception("code point within a string may not be greater than 0xFFFFFFFF");
+    throw new exception(
+      "code point within a string may not be greater than 0xFFFFFFFF"
+    );
   }
   return "\\" + handle + common.repeat("0", length - string.length) + string;
 }
@@ -22391,7 +22737,16 @@ function writeScalar(state, string, level, iskey, inblock) {
     function testAmbiguity(string2) {
       return testImplicitResolving(state, string2);
     }
-    switch (chooseScalarStyle(string, singleLineOnly, state.indent, lineWidth, testAmbiguity, state.quotingType, state.forceQuotes && !iskey, inblock)) {
+    switch (chooseScalarStyle(
+      string,
+      singleLineOnly,
+      state.indent,
+      lineWidth,
+      testAmbiguity,
+      state.quotingType,
+      state.forceQuotes && !iskey,
+      inblock
+    )) {
       case STYLE_PLAIN:
         return string;
       case STYLE_SINGLE:
@@ -22613,7 +22968,9 @@ function detectType(state, object, explicit) {
         } else if (_hasOwnProperty.call(type2.represent, style)) {
           _result = type2.represent[style](object, style);
         } else {
-          throw new exception("!<" + type2.tag + '> tag resolver accepts not "' + style + '" style');
+          throw new exception(
+            "!<" + type2.tag + '> tag resolver accepts not "' + style + '" style'
+          );
         }
         state.dump = _result;
       }
@@ -22688,7 +23045,9 @@ function writeNode(state, level, object, block, compact, iskey, isblockseq) {
       throw new exception("unacceptable kind of an object to dump " + type2);
     }
     if (state.tag !== null && state.tag !== "?") {
-      tagStr = encodeURI(state.tag[0] === "!" ? state.tag.slice(1) : state.tag).replace(/!/g, "%21");
+      tagStr = encodeURI(
+        state.tag[0] === "!" ? state.tag.slice(1) : state.tag
+      ).replace(/!/g, "%21");
       if (state.tag[0] === "!") {
         tagStr = "!" + tagStr;
       } else if (tagStr.slice(0, 18) === "tag:yaml.org,2002:") {
@@ -22751,7 +23110,9 @@ var dumper = {
 };
 function renamed(from, to) {
   return function() {
-    throw new Error("Function yaml." + from + " is removed in js-yaml 4. Use yaml." + to + " instead, which is now safe by default.");
+    throw new Error(
+      "Function yaml." + from + " is removed in js-yaml 4. Use yaml." + to + " instead, which is now safe by default."
+    );
   };
 }
 var Type = type;
@@ -22834,9 +23195,13 @@ function schemaAccepts(schema2, testType) {
   }
   switch (t) {
     case "anyOf":
-      return schema2.anyOf.some((s) => schemaAccepts(s, testType));
+      return schema2.anyOf.some(
+        (s) => schemaAccepts(s, testType)
+      );
     case "allOf":
-      return schema2.allOf.every((s) => schemaAccepts(s, testType));
+      return schema2.allOf.every(
+        (s) => schemaAccepts(s, testType)
+      );
   }
   return false;
 }
@@ -22852,7 +23217,9 @@ function getSchemaDefinition(key) {
 }
 function setSchemaDefinition(schema2) {
   if (schema2.$id === void 0) {
-    throw new Error("Internal Error, setSchemaDefinition needs $id");
+    throw new Error(
+      "Internal Error, setSchemaDefinition needs $id"
+    );
   }
   if (definitionsObject[schema2.$id] === void 0) {
     definitionsObject[schema2.$id] = schema2;
@@ -22870,7 +23237,9 @@ function expandAliasesFrom(lst, defs) {
     if (el.startsWith("$")) {
       const v = aliases[el.slice(1)];
       if (v === void 0) {
-        throw new Error(`Internal Error: ${el} doesn't have an entry in the aliases map`);
+        throw new Error(
+          `Internal Error: ${el} doesn't have an entry in the aliases map`
+        );
       }
       lst.push(...v);
     } else {
@@ -22905,7 +23274,9 @@ function resolveSchema(schema2, visit, hasRef, next) {
         ref: (s) => getSchemaDefinition(s.$ref)
       });
       if (result === void 0) {
-        throw new Error("Internal Error, couldn't resolve schema ${JSON.stringify(cursor)}");
+        throw new Error(
+          "Internal Error, couldn't resolve schema ${JSON.stringify(cursor)}"
+        );
       }
       return result;
     };
@@ -24714,7 +25085,9 @@ function prefixesFromParse(parse) {
     if (parse.min === 0 && parse.max === Infinity) {
       return `(${parse.element.raw}*)` + prefixesFromParse(parse.element);
     } else {
-      throw new Error(`Internal Error, can't handle quantifiers min=${parse.min} max=${parse.max}`);
+      throw new Error(
+        `Internal Error, can't handle quantifiers min=${parse.min} max=${parse.max}`
+      );
     }
   } else if (parse.type === "CharacterSet") {
     return `${parse.raw}?`;
@@ -24726,7 +25099,9 @@ function prefixesFromParse(parse) {
 function prefixes(regexp) {
   regexp = regexp.source;
   regexp = regexp.slice(1, -1);
-  return new RegExp("^" + prefixesFromParse(parseRegExpLiteral(new RegExp(regexp))) + "$");
+  return new RegExp(
+    "^" + prefixesFromParse(parseRegExpLiteral(new RegExp(regexp))) + "$"
+  );
 }
 
 // ../yaml-validation/schema-navigation.ts
@@ -24745,14 +25120,20 @@ function navigateSchemaByInstancePath(schema2, path, allowPartialMatches) {
       if (subSchema.properties && subSchema.properties[key]) {
         return inner(subSchema.properties[key], index + 1);
       }
-      const patternPropMatch = matchPatternProperties(subSchema, key, allowPartialMatches !== void 0 && allowPartialMatches && index === path.length - 1);
+      const patternPropMatch = matchPatternProperties(
+        subSchema,
+        key,
+        allowPartialMatches !== void 0 && allowPartialMatches && index === path.length - 1
+      );
       if (patternPropMatch) {
         return inner(patternPropMatch, index + 1);
       }
       if (index !== path.length - 1) {
         return [];
       }
-      const completions2 = Object.getOwnPropertyNames(subSchema.properties || {}).filter((name) => name.startsWith(key));
+      const completions2 = Object.getOwnPropertyNames(subSchema.properties || {}).filter(
+        (name) => name.startsWith(key)
+      );
       if (completions2.length === 0) {
         return [];
       }
@@ -24778,13 +25159,17 @@ function navigateSchemaByInstancePath(schema2, path, allowPartialMatches) {
 function navigateSchemaBySchemaPathSingle(schema2, path) {
   const ensurePathFragment = (fragment, expected) => {
     if (fragment !== expected) {
-      throw new Error(`Internal Error in navigateSchemaBySchemaPathSingle: ${fragment} !== ${expected}`);
+      throw new Error(
+        `Internal Error in navigateSchemaBySchemaPathSingle: ${fragment} !== ${expected}`
+      );
     }
   };
   const inner = (subschema, index) => {
     subschema = resolveSchema(subschema);
     if (subschema === void 0) {
-      throw new Error(`Internal Error in navigateSchemaBySchemaPathSingle: invalid path navigation`);
+      throw new Error(
+        `Internal Error in navigateSchemaBySchemaPathSingle: invalid path navigation`
+      );
     }
     if (index === path.length) {
       return subschema;
@@ -24809,16 +25194,22 @@ function navigateSchemaBySchemaPathSingle(schema2, path) {
         } else if (path[index + 1] === "additionalProperties") {
           return inner(subschema.additionalProperties, index + 2);
         } else {
-          throw new Error(`Internal Error in navigateSchemaBySchemaPathSingle: bad path fragment ${path[index]} in object navigation`);
+          throw new Error(
+            `Internal Error in navigateSchemaBySchemaPathSingle: bad path fragment ${path[index]} in object navigation`
+          );
         }
       default:
-        throw new Error(`Internal Error in navigateSchemaBySchemaPathSingle: can't navigate schema type ${st}`);
+        throw new Error(
+          `Internal Error in navigateSchemaBySchemaPathSingle: can't navigate schema type ${st}`
+        );
     }
   };
   return inner(schema2, 0);
 }
 function matchPatternProperties(schema2, key, matchThroughPrefixes) {
-  for (const [regexpStr, subschema] of Object.entries(schema2.patternProperties || {})) {
+  for (const [regexpStr, subschema] of Object.entries(
+    schema2.patternProperties || {}
+  )) {
     let pattern;
     if (matchThroughPrefixes) {
       pattern = prefixes(new RegExp(regexpStr));
@@ -24858,12 +25249,20 @@ function schemaCompletions(s) {
     return [];
   }
   let schema2 = resolveSchema(s);
-  schema2 = resolveSchema(schema2, (_schema) => {
-  }, (schema3) => {
-    return schema3.tags !== void 0 && schema3.tags["complete-from"] !== void 0;
-  }, (schema3) => {
-    return navigateSchemaBySchemaPathSingle(schema3, schema3.tags["complete-from"]);
-  });
+  schema2 = resolveSchema(
+    schema2,
+    (_schema) => {
+    },
+    (schema3) => {
+      return schema3.tags !== void 0 && schema3.tags["complete-from"] !== void 0;
+    },
+    (schema3) => {
+      return navigateSchemaBySchemaPathSingle(
+        schema3,
+        schema3.tags["complete-from"]
+      );
+    }
+  );
   if (schema2 === true || schema2 === false) {
     return [];
   }
@@ -24894,7 +25293,9 @@ function schemaCompletions(s) {
     if (Array.isArray(schema2.tags.completions) && schema2.tags.completions.length) {
       return normalize(schema2.tags.completions);
     } else {
-      return normalize(Object.values(schema2.tags.completions));
+      return normalize(
+        Object.values(schema2.tags.completions)
+      );
     }
   }
   return schemaCall(schema2, {
@@ -24995,7 +25396,9 @@ function getObjectCompletions(s) {
   })));
 }
 function possibleSchemaKeys(schema2) {
-  const precomputedCompletions = schemaCompletions(schema2).filter((c) => c.type === "key").map((c) => c.value.split(":")[0]);
+  const precomputedCompletions = schemaCompletions(schema2).filter(
+    (c) => c.type === "key"
+  ).map((c) => c.value.split(":")[0]);
   if (precomputedCompletions.length) {
     return precomputedCompletions;
   }
@@ -25091,7 +25494,9 @@ function getBadKey(error) {
   }
   const result = error.violatingObject.result;
   if (typeof result !== "string") {
-    throw new Error("Internal Error: propertyNames error has a violating non-string.");
+    throw new Error(
+      "Internal Error: propertyNames error has a violating non-string."
+    );
   }
   return result;
 }
@@ -25125,7 +25530,12 @@ function navigate(path, annotation, returnKey = false, pathIndex = 0) {
     if (isNaN(searchKey) || searchKey < 0 || searchKey >= annotation.components.length) {
       return annotation;
     }
-    return navigate(path, annotation.components[searchKey], returnKey, pathIndex + 1);
+    return navigate(
+      path,
+      annotation.components[searchKey],
+      returnKey,
+      pathIndex + 1
+    );
   } else {
     return annotation;
   }
@@ -25141,7 +25551,36 @@ function getLastFragment(instancePath) {
   return instancePath[instancePath.length - 1];
 }
 function reindent(str2) {
-  return str2;
+  const s = /* @__PURE__ */ new Set();
+  const ls = lines(str2);
+  for (const l of ls) {
+    const r = l.match("^[ ]+");
+    if (r) {
+      s.add(r[0].length);
+    }
+  }
+  if (s.size === 0) {
+    return str2;
+  } else if (s.size === 1) {
+    const v = Array.from(s)[0];
+    const oldIndent = " ".repeat(v);
+    if (v <= 2) {
+      return str2;
+    }
+    return ls.map((l) => l.startsWith(oldIndent) ? l.slice(v - 2) : l).join(
+      "\n"
+    );
+  } else {
+    const [first, second] = Array.from(s);
+    const oldIndent = " ".repeat(first);
+    const newIndent = second - first;
+    if (newIndent >= first) {
+      return str2;
+    }
+    return ls.map(
+      (l) => l.startsWith(oldIndent) ? l.slice(first - newIndent) : l
+    ).join("\n");
+  }
 }
 function ignoreExprViolations(error, _parse, _schema) {
   const { result } = error.violatingObject;
@@ -25162,7 +25601,9 @@ function formatHeadingForValueError(error, _parse, _schema) {
   const rawLines = lines(rawVerbatimInput);
   let verbatimInput;
   if (rawLines.length > 4) {
-    verbatimInput = quotedStringColor([...rawLines.slice(0, 2), "...", ...rawLines.slice(-2)].join("\n"));
+    verbatimInput = quotedStringColor(
+      [...rawLines.slice(0, 2), "...", ...rawLines.slice(-2)].join("\n")
+    );
   } else {
     verbatimInput = quotedStringColor(rawVerbatimInput);
   }
@@ -25182,11 +25623,19 @@ function formatHeadingForValueError(error, _parse, _schema) {
         return `Array entry ${lastFragment + 1} with value ${verbatimInput} failed to ${schemaDescription(error.schema)}.`;
       }
     case "string": {
-      const formatLastFragment = blue(lastFragment);
+      const formatLastFragment = '"' + blue(lastFragment) + '"';
       if (empty) {
-        return `Key ${formatLastFragment} has empty value but it must instead ${schemaDescription(error.schema)}`;
+        return `Field ${formatLastFragment} has empty value but it must instead ${schemaDescription(error.schema)}`;
       } else {
-        return `Key ${formatLastFragment} has value ${verbatimInput}, which must ${schemaDescription(error.schema)}`;
+        if (verbatimInput.indexOf("\n") !== -1) {
+          return `Field ${formatLastFragment} has value
+
+${verbatimInput}
+
+The value must instead ${schemaDescription(error.schema)}.`;
+        } else {
+          return `Field ${formatLastFragment} has value ${verbatimInput}, which must instead ${schemaDescription(error.schema)}`;
+        }
       }
     }
   }
@@ -25198,11 +25647,22 @@ function identifyKeyErrors(error, parse, schema2) {
   const badKey = getBadKey(error);
   if (badKey) {
     if (error.instancePath.length && error.instancePath[error.instancePath.length - 1] !== badKey) {
-      addInstancePathInfo(error.niceError, [...error.instancePath, badKey]);
+      addInstancePathInfo(
+        error.niceError,
+        [...error.instancePath, badKey]
+      );
     } else {
-      addInstancePathInfo(error.niceError, error.instancePath);
+      addInstancePathInfo(
+        error.niceError,
+        error.instancePath
+      );
     }
-    error.niceError.heading = formatHeadingForKeyError(error, parse, schema2, badKey);
+    error.niceError.heading = formatHeadingForKeyError(
+      error,
+      parse,
+      schema2,
+      badKey
+    );
   }
   return error;
 }
@@ -25222,7 +25682,11 @@ function expandEmptySpan(error, parse, _schema) {
   if (error.location.start.line !== error.location.end.line || error.location.start.column !== error.location.end.column || !isEmptyValue(error) || typeof getLastFragment(error.instancePath) === "undefined") {
     return error;
   }
-  const lastKey = navigate(error.instancePath, parse, true);
+  const lastKey = navigate(
+    error.instancePath,
+    parse,
+    true
+  );
   const locF = mappedIndexToLineCol(parse.source);
   try {
     const location = {
@@ -25246,7 +25710,9 @@ function checkForTypeMismatch(error, parse, schema2) {
   const rawLines = lines(rawVerbatimInput);
   let verbatimInput;
   if (rawLines.length > 4) {
-    verbatimInput = quotedStringColor([...rawLines.slice(0, 2), "...", ...rawLines.slice(-2)].join("\n"));
+    verbatimInput = quotedStringColor(
+      [...rawLines.slice(0, 2), "...", ...rawLines.slice(-2)].join("\n")
+    );
   } else {
     verbatimInput = quotedStringColor(rawVerbatimInput);
   }
@@ -25260,11 +25726,23 @@ function checkForTypeMismatch(error, parse, schema2) {
     return typeof obj;
   };
   if (errorKeyword(error) === "type" && rawVerbatimInput.length > 0) {
+    const reindented = reindent(verbatimInput);
+    const subject = reindented.indexOf("\n") === -1 ? `The value ${reindented} ` : `The value
+
+${reindented}
+
+`;
     const newError = {
       ...error.niceError,
-      heading: formatHeadingForValueError(error, parse, schema2),
+      heading: formatHeadingForValueError(
+        error,
+        parse,
+        schema2
+      ),
       error: [
-        `The value ${verbatimInput} is ${goodType(error.violatingObject.result)}.`
+        `${subject}is of type ${goodType(
+          error.violatingObject.result
+        )}.`
       ],
       info: {},
       location: error.niceError.location
@@ -25330,7 +25808,9 @@ function checkForBadColon(error, parse, schema2) {
   const verbatimInput = quotedStringColor(getVerbatimInput(error));
   const errorMessage = `The value ${verbatimInput} is a string.`;
   const suggestion1 = `In YAML, key-value pairs in objects must be separated by a space.`;
-  const suggestion2 = `Did you mean ${quotedStringColor(quotedStringColor(getVerbatimInput(error)).replace(/:/g, ": "))} instead?`;
+  const suggestion2 = `Did you mean ${quotedStringColor(
+    quotedStringColor(getVerbatimInput(error)).replace(/:/g, ": ")
+  )} instead?`;
   const newError = {
     heading: formatHeadingForValueError(error, parse, schema2),
     error: [errorMessage],
@@ -25391,7 +25871,9 @@ function checkForNearbyRequired(error, _parse, _schema) {
   schemaCall(schema2, {
     object(s) {
       if (s.required === void 0) {
-        throw new Error("Internal Error: required schema error without a required field");
+        throw new Error(
+          "Internal Error: required schema error without a required field"
+        );
       }
       for (const r of s.required) {
         if (keys.indexOf(r) === -1) {
@@ -25495,10 +25977,14 @@ function createSourceContext(src, location) {
     };
   }
   if (startMapResult === void 0 || endMapResult === void 0) {
-    throw new Error("Internal Error: createSourceContext called with bad location.");
+    throw new Error(
+      "Internal Error: createSourceContext called with bad location."
+    );
   }
   if (startMapResult.originalString !== endMapResult.originalString) {
-    throw new Error("Internal Error: don't know how to create source context across different source files");
+    throw new Error(
+      "Internal Error: don't know how to create source context across different source files"
+    );
   }
   const originalString = startMapResult.originalString;
   const nLines = lines(originalString.value).length;
@@ -25509,7 +25995,11 @@ function createSourceContext(src, location) {
   const {
     prefixWidth,
     lines: formattedLines
-  } = formatLineRange(originalString.value, Math.max(0, start.line - 1), Math.min(end.line + 1, nLines - 1));
+  } = formatLineRange(
+    originalString.value,
+    Math.max(0, start.line - 1),
+    Math.min(end.line + 1, nLines - 1)
+  );
   const contextLines = [];
   let mustPrintEllipsis = true;
   for (const { lineNumber, content, rawLine } of formattedLines) {
@@ -25527,7 +26017,9 @@ function createSourceContext(src, location) {
         const startColumn = lineNumber > start.line ? 0 : start.column;
         const endColumn = lineNumber < end.line ? rawLine.length : end.column;
         contextLines.push(content);
-        contextLines.push(" ".repeat(prefixWidth + startColumn) + "~".repeat(endColumn - startColumn));
+        contextLines.push(
+          " ".repeat(prefixWidth + startColumn) + "~".repeat(endColumn - startColumn)
+        );
       }
     }
   }
@@ -25618,8 +26110,12 @@ ${sourceContext}`;
       e.message = e.stack;
       if (mappedLines(mappedSource2)[location.line].value.indexOf("!expr") !== -1 && e.reason.match(/bad indentation of a mapping entry/)) {
         e.message = `${e.message}
-${tidyverseInfo("YAML tags like !expr must be followed by YAML strings.")}
-${tidyverseInfo("Is it possible you need to quote the value you passed to !expr ?")}`;
+${tidyverseInfo(
+          "YAML tags like !expr must be followed by YAML strings."
+        )}
+${tidyverseInfo(
+          "Is it possible you need to quote the value you passed to !expr ?"
+        )}`;
       }
       e.stack = "";
     }
@@ -25687,7 +26183,9 @@ function buildJsYamlAnnotation(mappedYaml) {
     };
   }
   if (results.length !== 1) {
-    throw new Error(`Internal Error - expected a single result, got ${results.length} instead`);
+    throw new Error(
+      `Internal Error - expected a single result, got ${results.length} instead`
+    );
   }
   JSON.stringify(results[0]);
   return results[0];
@@ -25965,7 +26463,10 @@ function locateAnnotation(annotation, position, kind) {
     } else {
       let found = false;
       for (let j = 0; j < annotation.components.length; j += 2) {
-        if (originalSource.value.substring(annotation.components[j].start, annotation.components[j].end).trim() === value) {
+        if (originalSource.value.substring(
+          annotation.components[j].start,
+          annotation.components[j].end
+        ).trim() === value) {
           if (i === position.length - 1) {
             if (kind === "key") {
               annotation = annotation.components[j];
@@ -26059,7 +26560,9 @@ function guessChunkOptionsFormat(options) {
   if (chunkLines.filter((l) => l.match(noIndentOrColon)).length === 0) {
     return "yaml";
   }
-  if (chunkLines.some((l) => l.trim() !== "" && !l.trimRight().endsWith(",") && l.indexOf("=") === -1)) {
+  if (chunkLines.some(
+    (l) => l.trim() !== "" && !l.trimRight().endsWith(",") && l.indexOf("=") === -1
+  )) {
     return "yaml";
   }
   return "knitr";
@@ -26180,14 +26683,16 @@ var ValidationContext = class {
       }
     };
     const errors = inner(this.root);
-    const result = errors.map((validationError) => createLocalizedError({
-      violatingObject: validationError.value,
-      instancePath: validationError.instancePath,
-      schemaPath: validationError.schemaPath,
-      schema: validationError.schema,
-      message: validationError.message,
-      source
-    }));
+    const result = errors.map(
+      (validationError) => createLocalizedError({
+        violatingObject: validationError.value,
+        instancePath: validationError.instancePath,
+        schemaPath: validationError.schemaPath,
+        schema: validationError.schema,
+        message: validationError.message,
+        source
+      })
+    );
     return result;
   }
 };
@@ -26214,10 +26719,13 @@ function validateGeneric(value, s, context) {
 }
 function typeIsValid(value, schema2, context, valid) {
   if (!valid) {
-    return context.withSchemaPath("type", () => {
-      context.error(value, schema2, "type mismatch");
-      return false;
-    });
+    return context.withSchemaPath(
+      "type",
+      () => {
+        context.error(value, schema2, "type mismatch");
+        return false;
+      }
+    );
   }
   return valid;
 }
@@ -26230,44 +26738,72 @@ function validateNumber(value, schema2, context) {
   }
   let result = true;
   if (schema2.minimum !== void 0) {
-    result = context.withSchemaPath("minimum", () => {
-      const v = value.result;
-      if (!(v >= schema2.minimum)) {
-        context.error(value, schema2, `value ${value.result} is less than required minimum ${schema2.minimum}`);
-        return false;
+    result = context.withSchemaPath(
+      "minimum",
+      () => {
+        const v = value.result;
+        if (!(v >= schema2.minimum)) {
+          context.error(
+            value,
+            schema2,
+            `value ${value.result} is less than required minimum ${schema2.minimum}`
+          );
+          return false;
+        }
+        return true;
       }
-      return true;
-    });
+    );
   }
   if (schema2.maximum !== void 0) {
-    result = context.withSchemaPath("maximum", () => {
-      const v = value.result;
-      if (!(v <= schema2.maximum)) {
-        context.error(value, schema2, `value ${value.result} is greater than required maximum ${schema2.maximum}`);
-        return false;
+    result = context.withSchemaPath(
+      "maximum",
+      () => {
+        const v = value.result;
+        if (!(v <= schema2.maximum)) {
+          context.error(
+            value,
+            schema2,
+            `value ${value.result} is greater than required maximum ${schema2.maximum}`
+          );
+          return false;
+        }
+        return true;
       }
-      return true;
-    });
+    );
   }
   if (schema2.exclusiveMinimum !== void 0) {
-    result = context.withSchemaPath("exclusiveMinimum", () => {
-      const v = value.result;
-      if (!(v > schema2.exclusiveMinimum)) {
-        context.error(value, schema2, `value ${value.result} is less than or equal to required (exclusive) minimum ${schema2.exclusiveMinimum}`);
-        return false;
+    result = context.withSchemaPath(
+      "exclusiveMinimum",
+      () => {
+        const v = value.result;
+        if (!(v > schema2.exclusiveMinimum)) {
+          context.error(
+            value,
+            schema2,
+            `value ${value.result} is less than or equal to required (exclusive) minimum ${schema2.exclusiveMinimum}`
+          );
+          return false;
+        }
+        return true;
       }
-      return true;
-    });
+    );
   }
   if (schema2.exclusiveMaximum !== void 0) {
-    result = context.withSchemaPath("exclusiveMaximum", () => {
-      const v = value.result;
-      if (!(v < schema2.exclusiveMaximum)) {
-        context.error(value, schema2, `value ${value.result} is greater than or equal to required (exclusive) maximum ${schema2.exclusiveMaximum}`);
-        return false;
+    result = context.withSchemaPath(
+      "exclusiveMaximum",
+      () => {
+        const v = value.result;
+        if (!(v < schema2.exclusiveMaximum)) {
+          context.error(
+            value,
+            schema2,
+            `value ${value.result} is greater than or equal to required (exclusive) maximum ${schema2.exclusiveMaximum}`
+          );
+          return false;
+        }
+        return true;
       }
-      return true;
-    });
+    );
   }
   return result;
 }
@@ -26280,10 +26816,13 @@ function validateString(value, schema2, context) {
       schema2.compiledPattern = new RegExp(schema2.pattern);
     }
     if (!value.result.match(schema2.compiledPattern)) {
-      return context.withSchemaPath("pattern", () => {
-        context.error(value, schema2, `value doesn't match pattern`);
-        return false;
-      });
+      return context.withSchemaPath(
+        "pattern",
+        () => {
+          context.error(value, schema2, `value doesn't match pattern`);
+          return false;
+        }
+      );
     }
   }
   return true;
@@ -26338,17 +26877,31 @@ function validateArray(value, schema2, context) {
   }
   const length = value.result.length;
   if (schema2.minItems !== void 0 && length < schema2.minItems) {
-    context.withSchemaPath("minItems", () => {
-      context.error(value, schema2, `array should have at least ${schema2.minItems} items but has ${length} items instead`);
-      return false;
-    });
+    context.withSchemaPath(
+      "minItems",
+      () => {
+        context.error(
+          value,
+          schema2,
+          `array should have at least ${schema2.minItems} items but has ${length} items instead`
+        );
+        return false;
+      }
+    );
     result = false;
   }
   if (schema2.maxItems !== void 0 && length > schema2.maxItems) {
-    context.withSchemaPath("maxItems", () => {
-      context.error(value, schema2, `array should have at most ${schema2.maxItems} items but has ${length} items instead`);
-      return false;
-    });
+    context.withSchemaPath(
+      "maxItems",
+      () => {
+        context.error(
+          value,
+          schema2,
+          `array should have at most ${schema2.maxItems} items but has ${length} items instead`
+        );
+        return false;
+      }
+    );
     result = false;
   }
   if (schema2.items !== void 0) {
@@ -26370,7 +26923,9 @@ function validateObject(value, schema2, context) {
     return false;
   }
   let result = true;
-  const ownProperties = new Set(Object.getOwnPropertyNames(value.result));
+  const ownProperties = new Set(
+    Object.getOwnPropertyNames(value.result)
+  );
   const objResult = value.result;
   const locate = (key, keyOrValue = "value") => {
     for (let i = 0; i < value.components.length; i += 2) {
@@ -26392,7 +26947,10 @@ function validateObject(value, schema2, context) {
         if (ownProperties.has(key)) {
           inspectedProps.add(key);
           context.pushInstance(key);
-          result2 = context.withSchemaPath(key, () => validateGeneric(locate(key), subSchema, context)) && result2;
+          result2 = context.withSchemaPath(
+            key,
+            () => validateGeneric(locate(key), subSchema, context)
+          ) && result2;
           context.popInstance();
         }
       }
@@ -26414,7 +26972,10 @@ function validateObject(value, schema2, context) {
           if (objectKey.match(regexp)) {
             inspectedProps.add(objectKey);
             context.pushInstance(objectKey);
-            result2 = context.withSchemaPath(key, () => validateGeneric(locate(objectKey), subSchema, context)) && result2;
+            result2 = context.withSchemaPath(
+              key,
+              () => validateGeneric(locate(objectKey), subSchema, context)
+            ) && result2;
             context.popInstance();
           }
         }
@@ -26424,12 +26985,20 @@ function validateObject(value, schema2, context) {
   }
   if (schema2.additionalProperties !== void 0) {
     result = context.withSchemaPath("additionalProperties", () => {
-      return Object.keys(objResult).filter((objectKey) => !inspectedProps.has(objectKey)).every((objectKey) => validateGeneric(locate(objectKey), schema2.additionalProperties, context));
+      return Object.keys(objResult).filter((objectKey) => !inspectedProps.has(objectKey)).every(
+        (objectKey) => validateGeneric(
+          locate(objectKey),
+          schema2.additionalProperties,
+          context
+        )
+      );
     }) && result;
   }
   if (schema2.propertyNames !== void 0) {
     result = context.withSchemaPath("propertyNames", () => {
-      return Array.from(ownProperties).every((key) => validateGeneric(locate(key, "key"), schema2.propertyNames, context));
+      return Array.from(ownProperties).every(
+        (key) => validateGeneric(locate(key, "key"), schema2.propertyNames, context)
+      );
     }) && result;
   }
   if (schema2.required !== void 0) {
@@ -26437,7 +27006,11 @@ function validateObject(value, schema2, context) {
       let result2 = true;
       for (const reqKey of schema2.required) {
         if (!ownProperties.has(reqKey)) {
-          context.error(value, schema2, `object is missing required property ${reqKey}`);
+          context.error(
+            value,
+            schema2,
+            `object is missing required property ${reqKey}`
+          );
           result2 = false;
         }
       }
@@ -26473,9 +27046,17 @@ var YAMLSchema = class {
     }).filter((error) => error !== null);
   }
   async validateParse(src, annotation, pruneErrors = true) {
-    const validationErrors = validate(annotation, this.schema, src, pruneErrors);
+    const validationErrors = validate(
+      annotation,
+      this.schema,
+      src,
+      pruneErrors
+    );
     if (validationErrors.length) {
-      const localizedErrors = this.transformErrors(annotation, validationErrors);
+      const localizedErrors = this.transformErrors(
+        annotation,
+        validationErrors
+      );
       return {
         result: annotation.result,
         errors: localizedErrors
@@ -26644,7 +27225,10 @@ function objectSchema(params = {}) {
   let propertyNames = propertyNamesSchema;
   const objectKeys = Object.getOwnPropertyNames(completionsParam || properties);
   if (namingConvention !== "ignore") {
-    const { pattern, list } = resolveCaseConventionRegex(objectKeys, namingConvention);
+    const { pattern, list } = resolveCaseConventionRegex(
+      objectKeys,
+      namingConvention
+    );
     if (pattern !== void 0) {
       if (propertyNames === void 0) {
         propertyNames = {
@@ -26652,10 +27236,13 @@ function objectSchema(params = {}) {
           pattern
         };
       } else {
-        propertyNames = allOfSchema(propertyNames, {
-          "type": "string",
-          pattern
-        });
+        propertyNames = allOfSchema(
+          propertyNames,
+          {
+            "type": "string",
+            pattern
+          }
+        );
       }
       tags["case-convention"] = list;
       tagsAreSet = true;
@@ -26683,17 +27270,26 @@ function objectSchema(params = {}) {
       result.description = description;
     }
     result.properties = Object.assign({}, result.properties, properties);
-    result.patternProperties = Object.assign({}, result.patternProperties, patternProperties);
+    result.patternProperties = Object.assign(
+      {},
+      result.patternProperties,
+      patternProperties
+    );
     if (required) {
       result.required = (result.required || []).slice();
       result.required.push(...required);
     }
     if (additionalProperties !== void 0) {
       if (result.additionalProperties === false) {
-        throw new Error("Internal Error: don't know how to subclass object schema with additionalProperties === false");
+        throw new Error(
+          "Internal Error: don't know how to subclass object schema with additionalProperties === false"
+        );
       }
       if (result.additionalProperties) {
-        result.additionalProperties = allOfSchema(result.additionalProperties, additionalProperties);
+        result.additionalProperties = allOfSchema(
+          result.additionalProperties,
+          additionalProperties
+        );
       } else {
         result.additionalProperties = additionalProperties;
       }
@@ -27040,12 +27636,16 @@ function setYamlIntelligenceResources(resources) {
 }
 function getYamlIntelligenceResource(filename) {
   if (_resources[filename] === void 0) {
-    throw new Error(`Internal Error: getYamlIntelligenceResource called with missing resource ${filename}`);
+    throw new Error(
+      `Internal Error: getYamlIntelligenceResource called with missing resource ${filename}`
+    );
   }
   return _resources[filename];
 }
 function expandResourceGlob(glob) {
-  return Object.keys(_resources).filter((key) => key.match(globToRegExp(glob))).map((key) => [key, getYamlIntelligenceResource(key)]);
+  return Object.keys(_resources).filter(
+    (key) => key.match(globToRegExp(glob))
+  ).map((key) => [key, getYamlIntelligenceResource(key)]);
 }
 
 // ../polyfills.ts
@@ -27059,7 +27659,11 @@ function fromEntries(iterable) {
 // ../yaml-schema/validated-yaml.ts
 var ValidationError2 = class extends Error {
   constructor(msg, validationErrors) {
-    super([msg, ...validationErrors.map((e) => tidyverseFormatError(e.niceError))].join("\n\n"));
+    super(
+      [msg, ...validationErrors.map((e) => tidyverseFormatError(e.niceError))].join(
+        "\n\n"
+      )
+    );
     Object.setPrototypeOf(this, ValidationError2.prototype);
     this.validationErrors = validationErrors;
   }
@@ -27077,7 +27681,11 @@ async function readAndValidateYamlFromMappedString(mappedYaml, schema2, pruneErr
     const validateYaml = !isObject2(annotation.result) || annotation.result["validate-yaml"] !== false;
     const yaml = annotation.result;
     if (validateYaml) {
-      const valResult = await validator.validateParse(mappedYaml, annotation, pruneErrors);
+      const valResult = await validator.validateParse(
+        mappedYaml,
+        annotation,
+        pruneErrors
+      );
       return {
         yaml,
         yamlValidationErrors: valResult.errors
@@ -27138,16 +27746,31 @@ function convertFromSchema(yaml) {
 }
 function convertFromString(yaml) {
   if (yaml["string"].pattern) {
-    return setBaseSchemaProperties(yaml, setBaseSchemaProperties(yaml["string"], regexSchema(yaml["string"].pattern)));
+    return setBaseSchemaProperties(
+      yaml,
+      setBaseSchemaProperties(
+        yaml["string"],
+        regexSchema(yaml["string"].pattern)
+      )
+    );
   } else {
-    return setBaseSchemaProperties(yaml, setBaseSchemaProperties(yaml["string"], stringSchema));
+    return setBaseSchemaProperties(
+      yaml,
+      setBaseSchemaProperties(
+        yaml["string"],
+        stringSchema
+      )
+    );
   }
 }
 function convertFromPattern(yaml) {
   if (typeof yaml.pattern === "string") {
     return setBaseSchemaProperties(yaml, regexSchema(yaml.pattern));
   } else {
-    return setBaseSchemaProperties(yaml, setBaseSchemaProperties(yaml.pattern, regexSchema(yaml.pattern.regex)));
+    return setBaseSchemaProperties(
+      yaml,
+      setBaseSchemaProperties(yaml.pattern, regexSchema(yaml.pattern.regex))
+    );
   }
 }
 function convertFromPath(yaml) {
@@ -27164,24 +27787,36 @@ function convertFromRef(yaml) {
 }
 function convertFromMaybeArrayOf(yaml) {
   const inner = convertFromYaml(yaml.maybeArrayOf);
-  const schema2 = tagSchema(anyOfSchema(inner, arraySchema(inner)), {
-    "complete-from": ["anyOf", 0]
-  });
+  const schema2 = tagSchema(
+    anyOfSchema(inner, arraySchema(inner)),
+    {
+      "complete-from": ["anyOf", 0]
+    }
+  );
   return setBaseSchemaProperties(yaml, schema2);
 }
 function convertFromArrayOf(yaml) {
   if (yaml.arrayOf.schema) {
     const result = arraySchema(convertFromYaml(yaml.arrayOf.schema));
-    return setBaseSchemaProperties(yaml, setBaseSchemaProperties(yaml.arrayOf, result));
+    return setBaseSchemaProperties(
+      yaml,
+      setBaseSchemaProperties(yaml.arrayOf, result)
+    );
   } else {
-    return setBaseSchemaProperties(yaml, arraySchema(convertFromYaml(yaml.arrayOf)));
+    return setBaseSchemaProperties(
+      yaml,
+      arraySchema(convertFromYaml(yaml.arrayOf))
+    );
   }
 }
 function convertFromAllOf(yaml) {
   if (yaml.allOf.schemas) {
     const inner = yaml.allOf.schemas.map((x) => convertFromYaml(x));
     const schema2 = allOfSchema(...inner);
-    return setBaseSchemaProperties(yaml, setBaseSchemaProperties(yaml.allOf, schema2));
+    return setBaseSchemaProperties(
+      yaml,
+      setBaseSchemaProperties(yaml.allOf, schema2)
+    );
   } else {
     const inner = yaml.allOf.map((x) => convertFromYaml(x));
     const schema2 = allOfSchema(...inner);
@@ -27192,7 +27827,10 @@ function convertFromAnyOf(yaml) {
   if (yaml.anyOf.schemas) {
     const inner = yaml.anyOf.schemas.map((x) => convertFromYaml(x));
     const schema2 = anyOfSchema(...inner);
-    return setBaseSchemaProperties(yaml, setBaseSchemaProperties(yaml.anyOf, schema2));
+    return setBaseSchemaProperties(
+      yaml,
+      setBaseSchemaProperties(yaml.anyOf, schema2)
+    );
   } else {
     const inner = yaml.anyOf.map((x) => convertFromYaml(x));
     const schema2 = anyOfSchema(...inner);
@@ -27202,7 +27840,10 @@ function convertFromAnyOf(yaml) {
 function convertFromEnum(yaml) {
   const schema2 = yaml["enum"];
   if (schema2.hasOwnProperty("values")) {
-    return setBaseSchemaProperties(yaml, setBaseSchemaProperties(yaml["enum"], enumSchema(...schema2.values)));
+    return setBaseSchemaProperties(
+      yaml,
+      setBaseSchemaProperties(yaml["enum"], enumSchema(...schema2.values))
+    );
   } else {
     return setBaseSchemaProperties(yaml, enumSchema(...schema2));
   }
@@ -27216,7 +27857,10 @@ function convertFromRecord(yaml) {
         "required": "all"
       }
     });
-    return setBaseSchemaProperties(yaml, setBaseSchemaProperties(yaml.record, schema2));
+    return setBaseSchemaProperties(
+      yaml,
+      setBaseSchemaProperties(yaml.record, schema2)
+    );
   } else {
     const schema2 = convertFromObject({
       "object": {
@@ -27293,10 +27937,14 @@ function convertFromObject(yaml) {
     params.namingConvention = schema2.namingConvention;
   }
   if (schema2.properties) {
-    params.properties = fromEntries(Object.entries(schema2.properties).map(([key, value]) => [key, convertFromYaml(value)]));
+    params.properties = fromEntries(
+      Object.entries(schema2.properties).map(([key, value]) => [key, convertFromYaml(value)])
+    );
   }
   if (schema2.patternProperties) {
-    params.patternProperties = fromEntries(Object.entries(schema2.properties).map(([key, value]) => [key, convertFromYaml(value)]));
+    params.patternProperties = fromEntries(
+      Object.entries(schema2.properties).map(([key, value]) => [key, convertFromYaml(value)])
+    );
   }
   if (schema2.propertyNames !== void 0) {
     params.propertyNames = convertFromYaml(schema2.propertyNames);
@@ -27306,7 +27954,9 @@ function convertFromObject(yaml) {
       throw new Error("object schema `closed` requires field `properties`.");
     }
     if (params.namingConvention !== void 0 && params.namingConvention !== "ignore") {
-      throw new Error("object schema `closed` is only supported with namingConvention: `ignore`");
+      throw new Error(
+        "object schema `closed` is only supported with namingConvention: `ignore`"
+      );
     }
     params.namingConvention = "ignore";
     params.propertyNames = enumSchema(...objectKeys);
@@ -27315,7 +27965,9 @@ function convertFromObject(yaml) {
     if (schema2.additionalProperties === false) {
       params.additionalProperties = false;
     } else {
-      params.additionalProperties = convertFromYaml(schema2.additionalProperties);
+      params.additionalProperties = convertFromYaml(
+        schema2.additionalProperties
+      );
     }
   }
   if (schema2["super"]) {
@@ -27329,7 +27981,10 @@ function convertFromObject(yaml) {
   if (schema2["completions"]) {
     params.completions = schema2["completions"];
   }
-  return setBaseSchemaProperties(yaml, setBaseSchemaProperties(schema2, objectSchema(params)));
+  return setBaseSchemaProperties(
+    yaml,
+    setBaseSchemaProperties(schema2, objectSchema(params))
+  );
 }
 function lookup(yaml) {
   if (!hasSchemaDefinition(yaml.resolveRef)) {
@@ -27377,7 +28032,9 @@ function convertFromYaml(yaml) {
       return fun(yaml);
     }
   }
-  throw new Error("Internal Error: Cannot convert object; this should have failed validation.");
+  throw new Error(
+    "Internal Error: Cannot convert object; this should have failed validation."
+  );
 }
 function objectSchemaFromFieldsObject(fields, exclude) {
   exclude = exclude || ((_key) => false);
@@ -27466,17 +28123,20 @@ var schemaRefContexts = memoize(() => {
 }, () => "const");
 function objectRefSchemaFromContextGlob(contextGlob, testFun) {
   const regexp = globToRegExp(contextGlob);
-  return objectRefSchemaFromGlob("schema/{document,cell}-*.yml", (field, path) => {
-    if (testFun !== void 0 && !testFun(field, path)) {
-      return false;
+  return objectRefSchemaFromGlob(
+    "schema/{document,cell}-*.yml",
+    (field, path) => {
+      if (testFun !== void 0 && !testFun(field, path)) {
+        return false;
+      }
+      const pathContext = path.split("/").slice(-1)[0].slice(0, -4);
+      const schemaContexts = field !== void 0 && field.tags !== void 0 && field.tags.contexts || [];
+      if (pathContext.match(regexp)) {
+        return true;
+      }
+      return schemaContexts.some((c) => c.match(regexp));
     }
-    const pathContext = path.split("/").slice(-1)[0].slice(0, -4);
-    const schemaContexts = field !== void 0 && field.tags !== void 0 && field.tags.contexts || [];
-    if (pathContext.match(regexp)) {
-      return true;
-    }
-    return schemaContexts.some((c) => c.match(regexp));
-  });
+  );
 }
 function objectRefSchemaFromGlob(glob, testFun) {
   const properties = {};
@@ -27510,7 +28170,10 @@ function defineCached(thunk, schemaId) {
   return async () => {
     if (hasSchemaDefinition(schemaId)) {
       schema2 = getSchemaDefinition(schemaId);
-      return refSchema(schema2.$id, schema2.description || `be a {schema['$id'] as string}`);
+      return refSchema(
+        schema2.$id,
+        schema2.description || `be a {schema['$id'] as string}`
+      );
     }
     const result = await thunk();
     const { errorHandlers } = result;
@@ -27522,7 +28185,10 @@ function defineCached(thunk, schemaId) {
     for (const fun of errorHandlers) {
       addValidatorErrorHandler(schema2, fun);
     }
-    return refSchema(schema2.$id, schema2.description || `be a {schema['$id']}`);
+    return refSchema(
+      schema2.$id,
+      schema2.description || `be a {schema['$id']}`
+    );
   };
 }
 function define(schema2) {
@@ -27531,7 +28197,9 @@ function define(schema2) {
   }
 }
 async function loadDefaultSchemaDefinitions() {
-  await loadSchemaDefinitions(getYamlIntelligenceResource("schema/definitions.yml"));
+  await loadSchemaDefinitions(
+    getYamlIntelligenceResource("schema/definitions.yml")
+  );
   await buildResourceSchemas();
 }
 async function loadSchemaDefinitions(yaml) {
@@ -27549,7 +28217,10 @@ function checkForEqualsInChunk(error, _parse, _schema) {
   if (typeof error.violatingObject.result !== "string") {
     return error;
   }
-  const badObject = error.source.value.substring(error.violatingObject.start, error.violatingObject.end);
+  const badObject = error.source.value.substring(
+    error.violatingObject.start,
+    error.violatingObject.end
+  );
   if (errorKeyword(error) !== "type") {
     return error;
   }
@@ -27577,35 +28248,50 @@ function checkForEqualsInChunk(error, _parse, _schema) {
     message: tidyverseFormatError(newError)
   };
 }
-var makeEngineSchema = (engine) => idSchema(objectRefSchemaFromContextGlob("cell-*", (field, _path) => {
-  const engineTag = field && field.tags && field.tags.engine;
-  switch (typeof engineTag) {
-    case "undefined":
-      return true;
-    case "string":
-      return engineTag === engine;
-    case "object":
-      return engineTag.indexOf(engine) !== -1;
-    default:
-      throw new Error(`Internal Error: bad engine tag ${engineTag}`);
-  }
-}), `engine-${engine}`);
-var markdownEngineSchema = defineCached(async () => {
-  return {
-    schema: makeEngineSchema("markdown"),
-    errorHandlers: []
-  };
-}, "engine-markdown");
-var knitrEngineSchema = defineCached(async () => {
-  const result = await makeEngineSchema("knitr");
-  return { schema: result, errorHandlers: [checkForEqualsInChunk] };
-}, "engine-knitr");
-var jupyterEngineSchema = defineCached(async () => {
-  return {
-    schema: makeEngineSchema("jupyter"),
-    errorHandlers: []
-  };
-}, "engine-jupyter");
+var makeEngineSchema = (engine) => idSchema(
+  objectRefSchemaFromContextGlob(
+    "cell-*",
+    (field, _path) => {
+      const engineTag = field && field.tags && field.tags.engine;
+      switch (typeof engineTag) {
+        case "undefined":
+          return true;
+        case "string":
+          return engineTag === engine;
+        case "object":
+          return engineTag.indexOf(engine) !== -1;
+        default:
+          throw new Error(`Internal Error: bad engine tag ${engineTag}`);
+      }
+    }
+  ),
+  `engine-${engine}`
+);
+var markdownEngineSchema = defineCached(
+  async () => {
+    return {
+      schema: makeEngineSchema("markdown"),
+      errorHandlers: []
+    };
+  },
+  "engine-markdown"
+);
+var knitrEngineSchema = defineCached(
+  async () => {
+    const result = await makeEngineSchema("knitr");
+    return { schema: result, errorHandlers: [checkForEqualsInChunk] };
+  },
+  "engine-knitr"
+);
+var jupyterEngineSchema = defineCached(
+  async () => {
+    return {
+      schema: makeEngineSchema("jupyter"),
+      errorHandlers: []
+    };
+  },
+  "engine-jupyter"
+);
 async function getEngineOptionsSchema() {
   const obj = {
     markdown: await markdownEngineSchema(),
@@ -27629,10 +28315,14 @@ async function parseAndValidateCellOptions(mappedYaml, language, validate2 = fal
   }
   const engineOptionsSchema = await getEngineOptionsSchema();
   let schema2 = engineOptionsSchema[engine];
-  const languages = getYamlIntelligenceResource("handlers/languages.yml");
+  const languages = getYamlIntelligenceResource(
+    "handlers/languages.yml"
+  );
   if (languages.indexOf(language) !== -1) {
     try {
-      schema2 = getYamlIntelligenceResource(`handlers/${language}/schema.yml`);
+      schema2 = getYamlIntelligenceResource(
+        `handlers/${language}/schema.yml`
+      );
     } catch (_e) {
       schema2 = void 0;
     }
@@ -27640,9 +28330,15 @@ async function parseAndValidateCellOptions(mappedYaml, language, validate2 = fal
   if (schema2 === void 0 || !validate2) {
     return readAnnotatedYamlFromMappedString(mappedYaml).result;
   }
-  const { yaml, yamlValidationErrors } = await readAndValidateYamlFromMappedString(mappedYaml, schema2);
+  const { yaml, yamlValidationErrors } = await readAndValidateYamlFromMappedString(
+    mappedYaml,
+    schema2
+  );
   if (yamlValidationErrors.length > 0) {
-    throw new ValidationError2(`Validation of YAML metadata for cell with engine ${engine} failed`, yamlValidationErrors);
+    throw new ValidationError2(
+      `Validation of YAML metadata for cell with engine ${engine} failed`,
+      yamlValidationErrors
+    );
   }
   return yaml;
 }
@@ -27660,7 +28356,10 @@ function partitionCellOptionsText(language, source) {
         let yamlOption = line.substring.substring(optionMatch[0].length);
         if (optionSuffix) {
           yamlOption = yamlOption.trimEnd();
-          yamlOption = yamlOption.substring(0, yamlOption.length - optionSuffix.length).trimEnd();
+          yamlOption = yamlOption.substring(
+            0,
+            yamlOption.length - optionSuffix.length
+          ).trimEnd();
         }
         endOfYaml = line.range.start + optionMatch[0].length + yamlOption.length;
         const rangedYamlOption = {
@@ -27696,7 +28395,12 @@ async function partitionCellOptionsMapped(language, outerSource, validate2 = fal
     sourceStartLine
   } = partitionCellOptionsText(language, outerSource);
   if (guessChunkOptionsFormat((mappedYaml || asMappedString("")).value) === "yaml") {
-    const yaml = await parseAndValidateCellOptions(mappedYaml || asMappedString(""), language, validate2, engine);
+    const yaml = await parseAndValidateCellOptions(
+      mappedYaml || asMappedString(""),
+      language,
+      validate2,
+      engine
+    );
     return {
       yaml,
       optionsSource,
@@ -27780,16 +28484,27 @@ function isBlockShortcode(content) {
 }
 function parseShortcode(shortCodeCapture) {
   const [name, ...args] = shortCodeCapture.trim().split(" ");
+  const namedParams = {};
+  const params = [];
+  const rawParams = args.map((v) => {
+    const p = v.indexOf("=");
+    let name2 = void 0;
+    let value;
+    if (p === -1) {
+      value = v;
+      params.push(value);
+    } else {
+      name2 = v.slice(0, p);
+      value = v.slice(p + 1);
+      namedParams[name2] = value;
+    }
+    return { name: name2, value };
+  });
   return {
     name,
-    params: args.map((v) => {
-      const p = v.indexOf("=");
-      if (p === -1) {
-        return { value: v };
-      } else {
-        return { name: v.slice(0, p), value: v.slice(p + 1) };
-      }
-    })
+    rawParams,
+    namedParams,
+    params
   };
 }
 
@@ -27802,7 +28517,9 @@ async function breakQuartoMd(src, validate2 = false) {
     cells: []
   };
   const yamlRegEx = /^---\s*$/;
-  const startCodeCellRegEx = new RegExp("^\\s*```+\\s*\\{([=A-Za-z]+)( *[ ,].*)?\\}\\s*$");
+  const startCodeCellRegEx = new RegExp(
+    "^\\s*```+\\s*\\{([=A-Za-z]+)( *[ ,].*)?\\}\\s*$"
+  );
   const startCodeRegEx = /^```/;
   const endCodeRegEx = /^\s*```+\s*$/;
   let language = "";
@@ -27825,7 +28542,7 @@ async function breakQuartoMd(src, validate2 = false) {
           return {
             language: "_directive",
             name: directiveParams.name,
-            params: directiveParams.params
+            shortcode: directiveParams
           };
         } else {
           return cell_type;
@@ -27841,7 +28558,11 @@ async function breakQuartoMd(src, validate2 = false) {
       };
       cellStartLine = index + 1;
       if (cell_type === "code") {
-        const { yaml, sourceStartLine } = await partitionCellOptionsMapped(language, cell.source, validate2);
+        const { yaml, sourceStartLine } = await partitionCellOptionsMapped(
+          language,
+          cell.source,
+          validate2
+        );
         const breaks = Array.from(lineOffsets(cell.source.value));
         let strUpToLastBreak = "";
         if (sourceStartLine > 0) {
@@ -27965,7 +28686,10 @@ function expandFormatAliases(lst) {
 
 // ../yaml-schema/execute.ts
 function getFormatExecuteOptionsSchema() {
-  const schema2 = idSchema(objectRefSchemaFromContextGlob("document-execute"), "front-matter-execute");
+  const schema2 = idSchema(
+    objectRefSchemaFromContextGlob("document-execute"),
+    "front-matter-execute"
+  );
   define(schema2);
   return refSchema("front-matter-execute", "be a front-matter-execute object");
 }
@@ -27976,7 +28700,9 @@ function useSchema(schema2, format) {
   if (formats === void 0) {
     return true;
   }
-  const disabled = formats.filter((f) => f.startsWith("!")).map((f) => f.slice(1));
+  const disabled = formats.filter((f) => f.startsWith("!")).map(
+    (f) => f.slice(1)
+  );
   const enabled2 = formats.filter((f) => !f.startsWith("!"));
   if (disabled.length > 0 && expandFormatAliases(disabled).indexOf(format) !== -1) {
     return false;
@@ -27987,10 +28713,13 @@ function useSchema(schema2, format) {
   return true;
 }
 function getFormatSchema(format) {
-  const schema2 = objectRefSchemaFromContextGlob("document-*", (field) => {
-    const schema3 = schemaFromField(field);
-    return useSchema(schema3, format);
-  });
+  const schema2 = objectRefSchemaFromContextGlob(
+    "document-*",
+    (field) => {
+      const schema3 = schemaFromField(field);
+      return useSchema(schema3, format);
+    }
+  );
   return anyOfSchema(schema2, enumSchema("default"));
 }
 
@@ -28001,81 +28730,133 @@ function pandocFormatsResource() {
 async function makeFrontMatterFormatSchema(nonStrict = false) {
   const hideFormat = (format) => {
     const hideList = ["html", "epub", "docbook"];
-    const hidden = hideList.some((h) => format.startsWith(h) && format.length > h.length);
+    const hidden = hideList.some(
+      (h) => format.startsWith(h) && format.length > h.length
+    );
     return { name: format, hidden };
   };
-  const formatSchemaDescriptorList = (await pandocFormatsResource()).concat("hugo").map((format) => {
-    const {
-      name,
-      hidden
-    } = hideFormat(format);
-    return {
-      regex: `^(.+-)?${name}([-+].+)?$`,
-      schema: getFormatSchema(name),
-      name,
-      hidden
-    };
-  });
-  const formatSchemas = formatSchemaDescriptorList.map(({ regex, schema: schema2 }) => [regex, schema2]);
-  const plusFormatStringSchemas = formatSchemaDescriptorList.map(({ regex, name, hidden }) => {
-    const schema2 = regexSchema(regex, `be '${name}'`);
-    if (hidden) {
-      return schema2;
+  const formatSchemaDescriptorList = (await pandocFormatsResource()).concat(
+    "hugo"
+  ).map(
+    (format) => {
+      const {
+        name,
+        hidden
+      } = hideFormat(format);
+      return {
+        regex: `^(.+-)?${name}([-+].+)?$`,
+        schema: getFormatSchema(name),
+        name,
+        hidden
+      };
     }
-    return completeSchema(schema2, name);
-  });
-  const completionsObject = fromEntries(formatSchemaDescriptorList.filter(({ hidden }) => !hidden).map(({ name }) => [name, {
-    type: "key",
-    display: name,
-    value: `${name}: `,
-    description: `be '${name}'`,
-    suggest_on_accept: true
-  }]));
-  return errorMessageSchema(anyOfSchema(describeSchema(anyOfSchema(...plusFormatStringSchemas), "the name of a pandoc-supported output format"), allOfSchema(objectSchema({
-    patternProperties: fromEntries(formatSchemas),
-    completions: completionsObject,
-    additionalProperties: nonStrict
-  }))), "${value} is not a valid output format.");
+  );
+  const formatSchemas = formatSchemaDescriptorList.map(
+    ({ regex, schema: schema2 }) => [regex, schema2]
+  );
+  const plusFormatStringSchemas = formatSchemaDescriptorList.map(
+    ({ regex, name, hidden }) => {
+      const schema2 = regexSchema(regex, `be '${name}'`);
+      if (hidden) {
+        return schema2;
+      }
+      return completeSchema(schema2, name);
+    }
+  );
+  const completionsObject = fromEntries(
+    formatSchemaDescriptorList.filter(({ hidden }) => !hidden).map(({ name }) => [name, {
+      type: "key",
+      display: name,
+      value: `${name}: `,
+      description: `be '${name}'`,
+      suggest_on_accept: true
+    }])
+  );
+  return errorMessageSchema(
+    anyOfSchema(
+      describeSchema(
+        anyOfSchema(...plusFormatStringSchemas),
+        "the name of a pandoc-supported output format"
+      ),
+      allOfSchema(
+        objectSchema({
+          patternProperties: fromEntries(formatSchemas),
+          completions: completionsObject,
+          additionalProperties: nonStrict
+        })
+      )
+    ),
+    "${value} is not a valid output format."
+  );
 }
-var getFrontMatterFormatSchema = defineCached(async () => {
-  return {
-    schema: await makeFrontMatterFormatSchema(),
-    errorHandlers: []
-  };
-}, "front-matter-format");
-var getNonStrictFrontMatterFormatSchema = defineCached(async () => {
-  return {
-    schema: await makeFrontMatterFormatSchema(true),
-    errorHandlers: []
-  };
-}, "front-matter-format-nonstrict");
-var getFrontMatterSchema = defineCached(async () => {
-  const executeObjSchema = await getFormatExecuteOptionsSchema();
-  return {
-    schema: anyOfSchema(nullSchema, allOfSchema(objectSchema({
-      properties: {
-        execute: executeObjSchema,
-        format: await getFrontMatterFormatSchema()
-      },
-      description: "be a Quarto YAML front matter object"
-    }), objectRefSchemaFromContextGlob("document-*", (field) => field.name !== "format"), executeObjSchema)),
-    errorHandlers: []
-  };
-}, "front-matter");
+var getFrontMatterFormatSchema = defineCached(
+  async () => {
+    return {
+      schema: await makeFrontMatterFormatSchema(),
+      errorHandlers: []
+    };
+  },
+  "front-matter-format"
+);
+var getNonStrictFrontMatterFormatSchema = defineCached(
+  async () => {
+    return {
+      schema: await makeFrontMatterFormatSchema(true),
+      errorHandlers: []
+    };
+  },
+  "front-matter-format-nonstrict"
+);
+var getFrontMatterSchema = defineCached(
+  async () => {
+    const executeObjSchema = await getFormatExecuteOptionsSchema();
+    return {
+      schema: anyOfSchema(
+        nullSchema,
+        allOfSchema(
+          objectSchema({
+            properties: {
+              execute: executeObjSchema,
+              format: await getFrontMatterFormatSchema()
+            },
+            description: "be a Quarto YAML front matter object"
+          }),
+          objectRefSchemaFromContextGlob(
+            "document-*",
+            (field) => field.name !== "format"
+          ),
+          executeObjSchema
+        )
+      ),
+      errorHandlers: []
+    };
+  },
+  "front-matter"
+);
 
 // ../yaml-schema/project-config.ts
-var getProjectConfigFieldsSchema = defineCached(async () => {
-  return {
-    schema: objectSchemaFromFieldsObject(getYamlIntelligenceResource("schema/project.yml")),
-    errorHandlers: []
-  };
-}, "project-config-fields");
-var getExtensionConfigFieldsSchema = defineCached(async () => {
-  return {
-    schema: objectSchemaFromFieldsObject(getYamlIntelligenceResource("schema/extension.yml")),
-    errorHandlers: []
-  };
-}, "extension-config-fields");
+var getProjectConfigFieldsSchema = defineCached(
+  async () => {
+    return {
+      schema: objectSchemaFromFieldsObject(
+        getYamlIntelligenceResource("schema/project.yml")
+      ),
+      errorHandlers: []
+    };
+  },
+  "project-config-fields"
+);
+var getExtensionConfigFieldsSchema = defineCached(
+  async () => {
+    return {
+      schema: objectSchemaFromFieldsObject(
+        getYamlIntelligenceResource("schema/extension.yml")
+      ),
+      errorHandlers: []
+    };
+  },
+  "extension-config-fields"
+);
 function disallowTopLevelType(error, parse, _schema) {
   if (!(error.instancePath.length === 1 && error.instancePath[0] === "type")) {
     return error;
@@ -28085,38 +28866,58 @@ function disallowTopLevelType(error, parse, _schema) {
     ...error,
     message: "top-level key 'type' is not allowed in project configuration.",
     violatingObject,
-    source: mappedSubstring(parse.source, violatingObject.start, violatingObject.end + 1)
+    source: mappedSubstring(
+      parse.source,
+      violatingObject.start,
+      violatingObject.end + 1
+    )
   });
   localizedError.niceError.info["top-level-type-not-allowed"] = "Did you mean to use 'project: type: ...' instead?";
   return localizedError;
 }
-var getProjectConfigSchema = defineCached(async () => {
-  const projectConfigFields = await getProjectConfigFieldsSchema();
-  const execute = await getFormatExecuteOptionsSchema();
-  const format = await getFrontMatterFormatSchema();
-  const result = allOfSchema(objectSchema({
-    properties: {
+var getProjectConfigSchema = defineCached(
+  async () => {
+    const projectConfigFields = await getProjectConfigFieldsSchema();
+    const execute = await getFormatExecuteOptionsSchema();
+    const format = await getFrontMatterFormatSchema();
+    const result = allOfSchema(
+      objectSchema({
+        properties: {
+          execute,
+          format
+        },
+        description: "be a Quarto YAML front matter object"
+      }),
       execute,
-      format
-    },
-    description: "be a Quarto YAML front matter object"
-  }), execute, await getFrontMatterSchema(), projectConfigFields);
-  return {
-    schema: describeSchema(result, "a project configuration object"),
-    errorHandlers: [disallowTopLevelType]
-  };
-}, "project-config");
-var getExtensionConfigSchema = defineCached(async () => {
-  const extensionConfig = await getExtensionConfigFieldsSchema();
-  return {
-    schema: describeSchema(extensionConfig, "an extension configuration object"),
-    errorHandlers: []
-  };
-}, "extension-config");
+      await getFrontMatterSchema(),
+      projectConfigFields
+    );
+    return {
+      schema: describeSchema(result, "a project configuration object"),
+      errorHandlers: [disallowTopLevelType]
+    };
+  },
+  "project-config"
+);
+var getExtensionConfigSchema = defineCached(
+  async () => {
+    const extensionConfig = await getExtensionConfigFieldsSchema();
+    return {
+      schema: describeSchema(
+        extensionConfig,
+        "an extension configuration object"
+      ),
+      errorHandlers: []
+    };
+  },
+  "extension-config"
+);
 
 // descriptions.ts
 function patchMarkdownDescriptions() {
-  const descriptionList = getYamlIntelligenceResource("schema/html-descriptions.yml");
+  const descriptionList = getYamlIntelligenceResource(
+    "schema/html-descriptions.yml"
+  );
   const schemaList = Object.values(getSchemaDefinitionsObject());
   let cursor = 0;
   for (const schema2 of schemaList) {
@@ -28187,7 +28988,9 @@ async function hover(context) {
     return null;
   }
   const mappedVd = asMappedString(vd);
-  const annotation = readAnnotatedYamlFromMappedString(mappedVd);
+  const annotation = readAnnotatedYamlFromMappedString(
+    mappedVd
+  );
   if (annotation === null) {
     return null;
   }
@@ -28197,7 +29000,10 @@ async function hover(context) {
   }
   const { path: navigationPath } = mapping[context.position.row];
   const result = [];
-  for (const matchingSchema of navigateSchemaByInstancePath(schema2, navigationPath)) {
+  for (const matchingSchema of navigateSchemaByInstancePath(
+    schema2,
+    navigationPath
+  )) {
     if (matchingSchema === false || matchingSchema === true) {
       continue;
     }
@@ -28258,7 +29064,12 @@ async function createVirtualDocument(context, replacement = " ") {
         const commentPrefix = kLangCommentChars[cell.cell_type.language] + "| ";
         for (const { substring } of cellLines) {
           if (substring.startsWith(commentPrefix)) {
-            chunks.push(substring.replace(commentPrefix, replacement.repeat(commentPrefix.length)));
+            chunks.push(
+              substring.replace(
+                commentPrefix,
+                replacement.repeat(commentPrefix.length)
+              )
+            );
           } else {
             chunks.push(substring.replace(nonSpace, replacement));
           }
@@ -28381,12 +29192,17 @@ async function validationFromGoodParseYAML(context) {
     }
   }).filter((x) => x !== void 0);
   const toOriginSourceLines = (targetSourceLine) => ls[targetSourceLine];
-  const predecessors = getYamlPredecessors(code2.value, context.position.row - 1).map(toOriginSourceLines);
+  const predecessors = getYamlPredecessors(
+    code2.value,
+    context.position.row - 1
+  ).map(toOriginSourceLines);
   if (context.explicit === void 0) {
     return result;
   }
   if (!context.explicit) {
-    return result.filter((lint) => predecessors.indexOf(lint["start.row"]) === -1);
+    return result.filter(
+      (lint) => predecessors.indexOf(lint["start.row"]) === -1
+    );
   } else {
     return result;
   }
@@ -28449,7 +29265,10 @@ async function completionsFromGoodParseYAML(context) {
     } = parseResult;
     const lineAfterDeletions = line.substring(0, line.length - deletions);
     if (lineAfterDeletions.trim().length === 0) {
-      const result = completeEmptyLineOnIndentation(deletions, mappedCode);
+      const result = completeEmptyLineOnIndentation(
+        deletions,
+        mappedCode
+      );
       return result;
     } else {
       const doc = buildTreeSitterAnnotation(tree, mappedCode);
@@ -28460,10 +29279,16 @@ async function completionsFromGoodParseYAML(context) {
         line: position.row,
         column: position.column - deletions
       });
-      let { withError: locateFailed, value: maybePath } = locateCursor(doc, index);
+      let { withError: locateFailed, value: maybePath } = locateCursor(
+        doc,
+        index
+      );
       if (locateFailed) {
         if (lineAfterDeletions.trim().length === 0) {
-          const result = await completeEmptyLineOnIndentation(deletions, mappedCode);
+          const result = await completeEmptyLineOnIndentation(
+            deletions,
+            mappedCode
+          );
           return result;
         }
         maybePath = locateFromIndentation({
@@ -28538,7 +29363,9 @@ function dropCompletionsFromSchema(obj, completion) {
   if (matchingSubSchemas.length === 0) {
     return false;
   }
-  const executeOnly = matchingSubSchemas.every((s) => s !== false && s !== true && s.tags && s.tags["execute-only"]);
+  const executeOnly = matchingSubSchemas.every(
+    (s) => s !== false && s !== true && s.tags && s.tags["execute-only"]
+  );
   if (path.length > 0 && path[0] === "execute") {
     return !executeOnly;
   } else {
@@ -28562,9 +29389,15 @@ function completions(obj) {
       return schema3.$id;
     }
   };
-  let matchingSchemas = uniqBy(navigateSchemaByInstancePath(schema2, path), maybeSchemaId);
+  let matchingSchemas = uniqBy(
+    navigateSchemaByInstancePath(schema2, path),
+    maybeSchemaId
+  );
   if (matchingSchemas.length === 0) {
-    const candidateSchemas = uniqBy(navigateSchemaByInstancePath(schema2, path.slice(0, -1), word !== ""), maybeSchemaId);
+    const candidateSchemas = uniqBy(
+      navigateSchemaByInstancePath(schema2, path.slice(0, -1), word !== ""),
+      maybeSchemaId
+    );
     if (candidateSchemas.length === 0) {
       return {
         token: word,
@@ -28640,12 +29473,16 @@ function completions(obj) {
           value: completion.value
         };
       }
-      if (matchingSubSchemas.some((subSchema) => schemaAccepts(subSchema, "object"))) {
+      if (matchingSubSchemas.some(
+        (subSchema) => schemaAccepts(subSchema, "object")
+      )) {
         return {
           ...completion,
           value: completion.value + "\n" + commentPrefix + " ".repeat(indent + 2)
         };
-      } else if (matchingSubSchemas.some((subSchema) => schemaAccepts(subSchema, "array"))) {
+      } else if (matchingSubSchemas.some(
+        (subSchema) => schemaAccepts(subSchema, "array")
+      )) {
         return {
           ...completion,
           value: completion.value + "\n" + commentPrefix + " ".repeat(indent + 2) + "- "
@@ -28805,16 +29642,19 @@ async function automationFromGoodParseMarkdown(kind, context) {
     const lints = [];
     for (const cell of result.cells) {
       if (cell.cell_type === "raw") {
-        const innerLints = await automationFromGoodParseYAML(kind, trimTicks({
-          ...context,
-          filetype: "yaml",
-          code: cell.source,
-          schema: await getFrontMatterSchema(),
-          schemaName: "front-matter",
-          line,
-          position,
-          positionKind: "metadata"
-        }));
+        const innerLints = await automationFromGoodParseYAML(
+          kind,
+          trimTicks({
+            ...context,
+            filetype: "yaml",
+            code: cell.source,
+            schema: await getFrontMatterSchema(),
+            schemaName: "front-matter",
+            line,
+            position,
+            positionKind: "metadata"
+          })
+        );
         lints.push(...innerLints);
       } else if (cell.cell_type === "markdown") {
         continue;
@@ -28873,10 +29713,13 @@ async function automationFromGoodParseScript(kind, context) {
     codeStartLine = 0;
     language = context.language;
   }
-  const mappedCode = mappedString(context.code, [{
-    start: codeLines[codeStartLine].range.start,
-    end: codeLines[codeLines.length - 1].range.end
-  }]);
+  const mappedCode = mappedString(
+    context.code,
+    [{
+      start: codeLines[codeStartLine].range.start,
+      end: codeLines[codeLines.length - 1].range.end
+    }]
+  );
   const {
     yaml
   } = partitionCellOptionsText(language, mappedCode);
@@ -28978,11 +29821,15 @@ async function initYamlIntelligence(obj) {
   await getFrontMatterSchema();
   await getProjectConfigSchema();
   await getEngineOptionsSchema();
-  for (const schema2 of getYamlIntelligenceResource("schema/external-schemas.yml")) {
+  for (const schema2 of getYamlIntelligenceResource(
+    "schema/external-schemas.yml"
+  )) {
     setSchemaDefinition(schema2);
   }
   try {
-    const extendedLangCommentChars = getYamlIntelligenceResource("handlers/lang-comment-chars.yml");
+    const extendedLangCommentChars = getYamlIntelligenceResource(
+      "handlers/lang-comment-chars.yml"
+    );
     for (const [lang, comment] of Object.entries(extendedLangCommentChars)) {
       kLangCommentChars[lang] = comment;
     }

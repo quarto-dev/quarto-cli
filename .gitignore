@@ -14,3 +14,6 @@ package/dist/**
 # deno_std library
 src/resources/deno_std/cache
 src/vendor-*
+
+# windows configuration file
+win_configuration.bat

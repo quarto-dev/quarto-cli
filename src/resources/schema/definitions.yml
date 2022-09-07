@@ -52,6 +52,64 @@
       margin,
     ]
 
+- id: contents-auto
+  object:
+    properties:
+      auto:
+        anyOf:
+          - boolean
+          - maybeArrayOf: string
+        description:
+          short: Automatically generate sidebar contents.
+          long: |
+            Automatically generate sidebar contents. Pass `true` to include all documents
+            in the site, a directory name to include only documents in that directory, 
+            or a glob (or list of globs) to include documents based on a pattern. 
+
+            Subdirectories will create sections (use an `index.qmd` in the directory to
+            provide its title). Order will be alphabetical unless a numeric `order` field
+            is provided in document metadata.
+
+- id: navigation-item
+  anyOf:
+    - path
+    - object:
+        properties:
+          href:
+            string:
+              description: |
+                Link to file contained with the project or external URL
+          url:
+            hidden: true
+            string:
+              description: |
+                Alias for href
+          file:
+            hidden: true
+            string:
+              description: |
+                Alias for href
+          text:
+            string:
+              description: |
+                Text to display for navigation item (defaults to the
+                document title if not provided)
+          icon:
+            string:
+              description:
+                short: Name of bootstrap icon (e.g. `github`, `twitter`, `share`)
+                long: |
+                  Name of bootstrap icon (e.g. `github`, `twitter`, `share`)
+                  See <https://icons.getbootstrap.com/> for a list of available icons
+          aria-label:
+            string:
+              description: "Accessible label for the navigation item."
+          menu:
+            arrayOf:
+              schema:
+                ref: navigation-item
+        closed: true
+
 - id: navigation-item-object
   object:
     closed: true
@@ -401,18 +459,23 @@
         ref: navigation-item
 
 - id: sidebar-contents
-  arrayOf:
-    anyOf:
-      - ref: navigation-item
-      - path
-      - object:
-          properties:
-            section:
-              anyOf:
-                - string
-                - null
-            contents:
-              ref: sidebar-contents
+  anyOf:
+    - enum: [auto]
+    - ref: contents-auto
+    - arrayOf:
+        anyOf:
+          - ref: navigation-item
+          - path
+          - object:
+              closed: true
+              properties:
+                section:
+                  anyOf:
+                    - string
+                    - null
+                contents:
+                  ref: sidebar-contents
+          - ref: contents-auto
 
 - id: project-preview
   object:

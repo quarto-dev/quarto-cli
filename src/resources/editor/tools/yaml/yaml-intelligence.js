@@ -5,7 +5,9 @@ function setMainPath(path) {
 }
 function getLocalPath(filename) {
   const result = new URL(mainPath);
-  result.pathname = [...result.pathname.split("/").slice(0, -1), filename].join("/");
+  result.pathname = [...result.pathname.split("/").slice(0, -1), filename].join(
+    "/"
+  );
   return result.toString();
 }
 

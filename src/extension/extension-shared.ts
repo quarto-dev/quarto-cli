@@ -6,7 +6,7 @@
 */
 import SemVer, { Range } from "semver/mod.ts";
 import { Metadata, QuartoFilter } from "../config/types.ts";
-import { ProjectContext } from "../project/types.ts";
+import { ProjectConfig } from "../project/types.ts";
 
 export const kCommon = "common";
 export const kExtensionDir = "_extensions";
@@ -14,7 +14,7 @@ export const kExtensionDir = "_extensions";
 export const kTitle = "title";
 export const kAuthor = "author";
 export const kVersion = "version";
-export const kQuartoVersion = "quarto-version";
+export const kQuartoRequired = "quarto-required";
 
 // TODO: rename format => formats
 export interface Extension extends Record<string, unknown> {
@@ -34,18 +34,21 @@ export interface Extension extends Record<string, unknown> {
 export interface ExtensionContext {
   extensions(
     input: string,
-    project?: ProjectContext,
+    config?: ProjectConfig,
+    projectDir?: string,
   ): Promise<Extension[]>;
   extension(
     name: string,
     input: string,
-    project?: ProjectContext,
+    config?: ProjectConfig,
+    projectDir?: string,
   ): Promise<Extension | undefined>;
   find(
     name: string,
     input: string,
     contributes?: "shortcodes" | "filters" | "formats",
-    project?: ProjectContext,
+    config?: ProjectConfig,
+    projectDir?: string,
   ): Promise<Extension[]>;
 }
 

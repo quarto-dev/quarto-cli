@@ -5,7 +5,7 @@
 *
 */
 
-import { dirname, extname, join, relative } from "path/mod.ts";
+import { dirname, join, relative } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
 import * as ld from "../core/lodash.ts";
@@ -20,7 +20,7 @@ import {
   pathWithForwardSlashes,
   removeIfExists,
 } from "../core/path.ts";
-import { kOutputFile, kTitle } from "../config/constants.ts";
+import { kTitle } from "../config/constants.ts";
 import { renderFormats } from "../command/render/render-contexts.ts";
 import { fileExecutionEngine } from "../execute/engine.ts";
 
@@ -31,7 +31,7 @@ import { readYamlFromString } from "../core/yaml.ts";
 import { formatKeys } from "../config/metadata.ts";
 import {
   formatsPreferHtml,
-  normalizeWebsiteFormat,
+  websiteFormatPreferHtml,
 } from "./types/website/website-config.ts";
 import { kDefaultProjectFileContents } from "./types/project-default.ts";
 import { formatOutputFile } from "../core/render.ts";
@@ -113,7 +113,9 @@ export function readInputTargetIndex(
   if (index) {
     // normalize html to first if its included in the formats
     if (Object.keys(index.formats).includes("html")) {
-      index.formats = normalizeWebsiteFormat(index.formats, true) as Record<
+      // note that the cast it okay here b/c we know that index.formats
+      // includes only full format objects
+      index.formats = websiteFormatPreferHtml(index.formats) as Record<
         string,
         Format
       >;
@@ -137,6 +139,14 @@ export function readInputTargetIndex(
     }
   } else {
     return undefined;
+  }
+}
+
+export function inputTargetIsEmpty(index: InputTargetIndex) {
+  if (index.markdown.yaml !== undefined) {
+    return !Object.keys(index.markdown.yaml).find((key) => key !== kTitle);
+  } else {
+    return index.markdown.markdown.trim().length === 0;
   }
 }
 

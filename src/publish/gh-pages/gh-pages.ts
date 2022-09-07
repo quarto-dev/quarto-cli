@@ -457,7 +457,12 @@ function siteUrl(
   // check for CNAME file
   const cname = join(dir, "CNAME");
   if (existsSync(cname)) {
-    return Deno.readTextFileSync(cname).trim();
+    const url = Deno.readTextFileSync(cname).trim();
+    if (/^https?:/i.test(url)) {
+      return url;
+    } else {
+      return `https://${url}`;
+    }
   } else {
     // pick apart origin url for github.com
     const match = originUrl?.match(

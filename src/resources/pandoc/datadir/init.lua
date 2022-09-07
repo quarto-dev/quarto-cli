@@ -1322,7 +1322,11 @@ local function resolvePath(path)
 end
 
 local function resolvePathExt(path) 
-   return resolvePath(pandoc.path.join({scriptDir(), path}))
+  if isRelativeRef(path) then
+    return resolvePath(pandoc.path.join({scriptDir(), path}))
+  else
+    return path
+  end
 end
 
 -- converts the friendly Quartio location names 
@@ -1481,7 +1485,7 @@ local function resolveDependencyLinkTags(linkTags)
    end
 end
 
--- Convert depedency files which may be just a string (path) or
+-- Convert dependency files which may be just a string (path) or
 -- incomplete objects into valid file dependencies
 local function resolveFileDependencies(name, dependencyFiles)
    if dependencyFiles ~= nil then
@@ -1514,9 +1518,46 @@ local function resolveFileDependencies(name, dependencyFiles)
    else
      return nil
    end
+end
+
+-- Convert dependency files which may be just a string (path) or
+-- incomplete objects into valid file dependencies
+local function resolveServiceWorkers(serviceworkers)
+   if serviceworkers ~= nil then 
+    -- make sure this is an array
+     if type(serviceworkers) ~= "table" or not utils.table.isarray(serviceworkers) then
+       error("Invalid HTML Dependency: serviceworkers property must be an array")
+     end
+ 
+     local finalServiceWorkers = {}
+     for i, v in ipairs(serviceworkers) do
+       if type(v) == "table" then
+         -- fill in the destination as the root, if one is not provided
+         if v.source == nil then
+           error("Invalid HTML Dependency: a serviceworker must have a source.")
+         else
+           v.source = resolvePathExt(v.source)
+         end
+         finalServiceWorkers[i] = v
+
+       elseif type(v) == "string" then
+         -- turn a string into a name and path
+         finalServiceWorkers[i] = {
+            source = resolvePathExt(v)
+         }
+       else
+         -- who knows what this is!
+         error("Invalid HTML Dependency: serviceworkers property contains an unexpected type.")
+       end
+     end
+     return finalServiceWorkers
+   else
+     return nil
+   end
  end
 
-local latexTableWithOptionsPattern = "(\\begin{table}%[%w+%])(.*)(\\end{table})"
+
+local latexTableWithOptionsPattern = "(\\begin{table}%[[^%]]+%])(.*)(\\end{table})"
 local latexTablePattern = "(\\begin{table})(.*)(\\end{table})"
 local latexLongtablePatternwWithPosAndAlign = "(\\begin{longtable}%[[^%]]+%]{.-})(.*)(\\end{longtable})"
 local latexLongtablePatternWithPos = "(\\begin{longtable}%[[^%]]+%])(.*)(\\end{longtable})"
@@ -1585,8 +1626,9 @@ quarto = {
          htmlDependency.scripts == nil and 
          htmlDependency.stylesheets == nil and 
          htmlDependency.resources == nil and
+         htmlDependency.seviceworkers == nil and
          htmlDependency.head == nil then
-         error("HTML dependencies must include at least one of meta, links, scripts, stylesheets, or resources. All appear empty.")
+         error("HTML dependencies must include at least one of meta, links, scripts, stylesheets, seviceworkers, or resources. All appear empty.")
       end
 
       -- validate that the meta is as expected
@@ -1626,7 +1668,49 @@ quarto = {
          scripts = resolveDependencyFilePaths(htmlDependency.scripts),
          stylesheets = resolveDependencyFilePaths(htmlDependency.stylesheets),
          resources = resolveDependencyFilePaths(htmlDependency.resources),
+         serviceworkers = resolveServiceWorkers(htmlDependency.serviceworkers),
          head = htmlDependency.head,
+      }))
+    end,
+
+    attachToDependency = function(name, pathOrFileObj)
+
+      if name == nil then
+         error("The target dependency name for an attachment cannot be nil. Please provide a valid dependency name.")
+         os.exit(1)
+      end
+
+      -- path can be a string or an obj { name, path }
+      local resolvedFile = {}
+      if type(pathOrFileObj) == "table" then
+
+         -- validate that there is at least a path
+         if pathOrFileObj.path == nil then
+            error("Error attaching to dependency '" .. name .. "'.\nYou must provide a 'path' when adding an attachment to a dependency.")
+            os.exit(1)
+         end
+
+         -- resolve a name, if one isn't provided
+         local name = pathOrFileObj.name      
+         if name == nil then
+            name = pandoc.path.filename(pathOrfileObj.path)
+         end
+
+         -- the full resolved file
+         resolvedFile = {
+            name = name,
+            path = resolvePathExt(pathOrFileObj.path)
+         }
+      else
+         resolvedFile = {
+            name = pandoc.path.filename(pathOrFileObj),
+            path = resolvePathExt(pathOrFileObj)
+         }
+      end
+
+      writeToDependencyFile(dependency("html-attachment", {
+         name = name,
+         file = resolvedFile
       }))
     end,
   

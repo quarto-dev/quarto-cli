@@ -24,7 +24,6 @@ import { fileProgress } from "../../core/progress.ts";
 
 import { PublishRecord } from "../types.ts";
 import { PublishFiles } from "../provider.ts";
-import { capitalize } from "../../core/text.ts";
 import { gfmAutoIdentifier } from "../../core/pandoc/pandoc-id.ts";
 import { randomHex } from "../../core/random.ts";
 import { copyTo } from "../../core/copy.ts";
@@ -33,6 +32,7 @@ import { globalTempContext } from "../../core/temp.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { encodeAttributeValue } from "../../core/html.ts";
 import { haveArrowKeys } from "../../core/platform.ts";
+import { capitalizeWord } from "../../core/text.ts";
 
 export interface PublishSite {
   id?: string;
@@ -421,5 +421,5 @@ async function promptForSlug(
 }
 
 function typeName(type: string) {
-  return capitalize(type);
+  return capitalizeWord(type);
 }

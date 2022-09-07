@@ -28,6 +28,7 @@ export {
 } from "../resources/types/schema-types.ts";
 
 export const kProjectType = "type";
+export const kProjectTitle = "title";
 export const kProjectRender = "render";
 export const kProjectPreRender = "pre-render";
 export const kProjectPostRender = "post-render";
@@ -184,6 +185,9 @@ export type SidebarItem = NavigationItemObject & {
   // more
   expanded?: boolean;
   active?: boolean;
+
+  // transient properties used for expanding 'auto'
+  auto?: boolean | string | string[];
 };
 
 /*export interface SidebarTool {

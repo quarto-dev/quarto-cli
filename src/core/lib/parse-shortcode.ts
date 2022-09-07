@@ -22,40 +22,47 @@ export function isBlockShortcode(content: string) {
 
 export interface Shortcode {
   name: string;
-  params: {
+  rawParams: {
     name?: string;
     value: string;
   }[];
+  namedParams: Record<string, string>;
+  params: string[];
 }
 
 export function parseShortcode(shortCodeCapture: string): Shortcode {
   const [name, ...args] = shortCodeCapture.trim().split(" ");
+  const namedParams: Record<string, string> = {};
+  const params: string[] = [];
+  const rawParams = args.map((v) => {
+    const p = v.indexOf("=");
+    let name: string | undefined = undefined;
+    let value: string;
+    if (p === -1) {
+      value = v;
+      params.push(value);
+    } else {
+      name = v.slice(0, p);
+      value = v.slice(p + 1);
+      namedParams[name] = value;
+    }
+    return { name, value };
+  });
 
   return {
     name,
-    params: args.map((v) => {
-      const p = v.indexOf("=");
-      if (p === -1) {
-        return { value: v };
-      } else {
-        return { name: v.slice(0, p), value: v.slice(p + 1) };
-      }
-    }),
+    rawParams,
+    namedParams,
+    params,
   };
 }
 
 export function getShortcodeUnnamedParams(shortcode: Shortcode): string[] {
-  return shortcode.params.filter((p) => p.name === undefined).map((p) =>
-    p.value
-  );
+  return shortcode.params;
 }
 
 export function getShortcodeNamedParams(
   shortcode: Shortcode,
 ): Record<string, string> {
-  return Object.fromEntries(
-    shortcode.params.filter((p) => p.name !== undefined).map(
-      (p) => [p.name, p.value],
-    ),
-  );
+  return shortcode.namedParams;
 }

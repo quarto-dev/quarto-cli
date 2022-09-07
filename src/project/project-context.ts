@@ -105,7 +105,6 @@ export async function projectContext(
   path: string,
   flags?: RenderFlags,
   force = false,
-  forceHtml = false,
 ): Promise<ProjectContext | undefined> {
   let dir = Deno.realPathSync(
     Deno.statSync(path).isDirectory ? path : dirname(path),
@@ -225,7 +224,6 @@ export async function projectContext(
           projectConfig = await type.config(
             dir,
             projectConfig,
-            forceHtml,
             flags,
           );
         }

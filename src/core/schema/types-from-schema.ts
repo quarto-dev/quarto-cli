@@ -20,7 +20,7 @@ itself run.
 
 import { parse } from "encoding/yaml.ts";
 import { toCapitalizationCase } from "../lib/text.ts";
-import { capitalize } from "../text.ts";
+import { capitalizeWord as capitalize } from "../text.ts";
 import { join } from "path/mod.ts";
 
 export async function generateTypesFromSchemas(resourcePath: string) {

@@ -39,6 +39,7 @@ import {
 import { isHtmlOutput } from "../../config/format.ts";
 import { renderProject } from "../render/project.ts";
 import { renderServices } from "../render/render-shared.ts";
+import { parseFormatString } from "../../core/pandoc/pandoc-formats.ts";
 export const previewCommand = new Command()
   .name("preview")
   .stopEarly()
@@ -129,6 +130,12 @@ export const previewCommand = new Command()
     }
     // provide default args
     args = args || [];
+
+    // show help if requested
+    if (args.length > 0 && args[0] === "--help") {
+      previewCommand.showHelp();
+      return;
+    }
 
     // pull out our command line args
     const portPos = args.indexOf("--port");
@@ -229,8 +236,8 @@ export const previewCommand = new Command()
     if (Deno.statSync(file).isFile) {
       const project = await projectContext(file);
       if (project && projectIsWebsite(project)) {
-        const format = await previewFormat(file, flags.to);
-        if (isHtmlOutput(format, true)) {
+        const format = await previewFormat(file, flags.to, project);
+        if (isHtmlOutput(parseFormatString(format).baseFormat, true)) {
           setPreviewFormat(format, flags, args);
           const services = renderServices();
           try {

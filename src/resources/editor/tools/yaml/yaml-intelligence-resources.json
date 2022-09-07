@@ -1216,22 +1216,87 @@
       ]
     },
     {
-      "id": "navigation-item-object",
+      "id": "contents-auto",
       "object": {
         "properties": {
-          "id": {
-            "schema": "string",
-            "hidden": true
-          },
-          "href": {
-            "string": {
-              "description": "Link to file contained with the project or external URL\n"
+          "auto": {
+            "anyOf": [
+              "boolean",
+              {
+                "maybeArrayOf": "string"
+              }
+            ],
+            "description": {
+              "short": "Automatically generate sidebar contents.",
+              "long": "Automatically generate sidebar contents. Pass `true` to include all documents\nin the site, a directory name to include only documents in that directory, \nor a glob (or list of globs) to include documents based on a pattern. \n\nSubdirectories will create sections (use an `index.qmd` in the directory to\nprovide its title). Order will be alphabetical unless a numeric `order` field\nis provided in document metadata.\n"
             }
-          },
-          "url": {
-            "hidden": true,
+          }
+        }
+      }
+    },
+    {
+      "id": "navigation-item",
+      "anyOf": [
+        "path",
+        {
+          "object": {
+            "properties": {
+              "href": {
+                "string": {
+                  "description": "Link to file contained with the project or external URL\n"
+                }
+              },
+              "url": {
+                "hidden": true,
+                "string": {
+                  "description": "Alias for href\n"
+                }
+              },
+              "file": {
+                "hidden": true,
+                "string": {
+                  "description": "Alias for href\n"
+                }
+              },
+              "text": {
+                "string": {
+                  "description": "Text to display for navigation item (defaults to the\ndocument title if not provided)\n"
+                }
+              },
+              "icon": {
+                "string": {
+                  "description": {
+                    "short": "Name of bootstrap icon (e.g. `github`, `twitter`, `share`)",
+                    "long": "Name of bootstrap icon (e.g. `github`, `twitter`, `share`)\nSee <https://icons.getbootstrap.com/> for a list of available icons\n"
+                  }
+                }
+              },
+              "aria-label": {
+                "string": {
+                  "description": "Accessible label for the navigation item."
+                }
+              },
+              "menu": {
+                "arrayOf": {
+                  "schema": {
+                    "ref": "navigation-item"
+                  }
+                }
+              }
+            },
+            "closed": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "navigation-item-object",
+      "object": {
+        "closed": true,
+        "properties": {
+          "aria-label": {
             "string": {
-              "description": "Alias for href\n"
+              "description": "Accessible label for the item."
             }
           },
           "file": {
@@ -1240,9 +1305,9 @@
               "description": "Alias for href\n"
             }
           },
-          "text": {
+          "href": {
             "string": {
-              "description": "Text to display for navigation item (defaults to the\ndocument title if not provided)\n"
+              "description": "Link to file contained with the project or external URL\n"
             }
           },
           "icon": {
@@ -1253,10 +1318,9 @@
               }
             }
           },
-          "aria-label": {
-            "string": {
-              "description": "Accessible label for the navigation item."
-            }
+          "id": {
+            "schema": "string",
+            "hidden": true
           },
           "menu": {
             "arrayOf": {
@@ -1264,9 +1328,19 @@
                 "ref": "navigation-item"
               }
             }
+          },
+          "text": {
+            "string": {
+              "description": "Text to display for item (defaults to the\ndocument title if not provided)\n"
+            }
+          },
+          "url": {
+            "hidden": true,
+            "string": {
+              "description": "Alias for href\n"
+            }
           }
-        },
-        "closed": true
+        }
       }
     },
     {
@@ -1277,51 +1351,6 @@
           "ref": "navigation-item-object"
         }
       ]
-    },
-    {
-      "id": "tool-item",
-      "object": {
-        "properties": {
-          "icon": {
-            "string": {
-              "description": {
-                "short": "Name of bootstrap icon (e.g. `github`, `twitter`, `share`)",
-                "long": "Name of bootstrap icon (e.g. `github`, `twitter`, `share`)\nSee <https://icons.getbootstrap.com/> for a list of available icons\n"
-              }
-            }
-          },
-          "href": {
-            "string": {
-              "description": "Link to file contained with the project or external URL\n"
-            }
-          },
-          "text": {
-            "string": {
-              "description": "Text to display for tool item\n"
-            }
-          },
-          "menu": {
-            "arrayOf": {
-              "schema": {
-                "ref": "navigation-item"
-              }
-            }
-          },
-          "url": {
-            "hidden": true,
-            "string": {
-              "description": "Alias for href\n"
-            }
-          },
-          "file": {
-            "hidden": true,
-            "string": {
-              "description": "Alias for href\n"
-            }
-          }
-        },
-        "closed": true
-      }
     },
     {
       "id": "comments",
@@ -1754,29 +1783,45 @@
     },
     {
       "id": "sidebar-contents",
-      "arrayOf": {
-        "anyOf": [
-          {
-            "ref": "navigation-item"
-          },
-          "path",
-          {
-            "object": {
-              "properties": {
-                "section": {
-                  "anyOf": [
-                    "string",
-                    null
-                  ]
-                },
-                "contents": {
-                  "ref": "sidebar-contents"
+      "anyOf": [
+        {
+          "enum": [
+            "auto"
+          ]
+        },
+        {
+          "ref": "contents-auto"
+        },
+        {
+          "arrayOf": {
+            "anyOf": [
+              {
+                "ref": "navigation-item"
+              },
+              "path",
+              {
+                "object": {
+                  "closed": true,
+                  "properties": {
+                    "section": {
+                      "anyOf": [
+                        "string",
+                        null
+                      ]
+                    },
+                    "contents": {
+                      "ref": "sidebar-contents"
+                    }
+                  }
                 }
+              },
+              {
+                "ref": "contents-auto"
               }
-            }
+            ]
           }
-        ]
-      }
+        }
+      ]
     },
     {
       "id": "project-preview",
@@ -1849,6 +1894,96 @@
             }
           }
         }
+      }
+    },
+    {
+      "id": "twitter-card-config",
+      "object": {
+        "super": {
+          "resolveRef": "social-metadata"
+        },
+        "closed": true,
+        "properties": {
+          "card-style": {
+            "enum": [
+              "summary",
+              "summary_large_image"
+            ],
+            "description": {
+              "short": "Card style",
+              "long": "Card style (`summary` or `summary_large_image`).\n\nIf this is not provided, the best style will automatically\nselected based upon other metadata. You can learn more about Twitter Card\nstyles [here](https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/abouts-cards).\n"
+            }
+          },
+          "creator": {
+            "string": {
+              "description": "`@username` of the content creator (must be a quoted string)"
+            }
+          },
+          "site": {
+            "string": {
+              "description": "`@username` of the website (must be a quoted string)"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "open-graph-config",
+      "object": {
+        "super": {
+          "resolveRef": "social-metadata"
+        },
+        "closed": true,
+        "properties": {
+          "locale": {
+            "string": {
+              "description": "Locale of open graph metadata"
+            }
+          },
+          "site-name": {
+            "string": {
+              "description": {
+                "short": "Name that should be displayed for the overall site",
+                "long": "Name that should be displayed for the overall site. If not explicitly \nprovided in the `open-graph` metadata, Quarto will use the website or\nbook `title` by default.\n"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "page-footer",
+      "object": {
+        "properties": {
+          "left": {
+            "ref": "page-footer-region",
+            "description": "Footer left content"
+          },
+          "right": {
+            "ref": "page-footer-region",
+            "description": "Footer right content"
+          },
+          "center": {
+            "ref": "page-footer-region",
+            "description": "Footer center content"
+          },
+          "border": {
+            "anyOf": [
+              "boolean",
+              "string"
+            ],
+            "description": "Footer border (`true`, `false`, or a border color)"
+          },
+          "background": {
+            "schema": "string",
+            "description": "Footer background color"
+          },
+          "foreground": {
+            "schema": "string",
+            "description": "Footer foreground color"
+          }
+        },
+        "closed": true
       }
     },
     {
@@ -2255,7 +2390,7 @@
                       },
                       "tools": {
                         "arrayOf": {
-                          "ref": "tool-item"
+                          "ref": "navigation-item-object"
                         },
                         "description": "List of sidebar tools"
                       },
@@ -2373,38 +2508,7 @@
             "anyOf": [
               "string",
               {
-                "object": {
-                  "properties": {
-                    "left": {
-                      "ref": "page-footer-region",
-                      "description": "Footer left content"
-                    },
-                    "right": {
-                      "ref": "page-footer-region",
-                      "description": "Footer right content"
-                    },
-                    "center": {
-                      "ref": "page-footer-region",
-                      "description": "Footer center content"
-                    },
-                    "border": {
-                      "anyOf": [
-                        "boolean",
-                        "string"
-                      ],
-                      "description": "Footer border (`true`, `false`, or a border color)"
-                    },
-                    "background": {
-                      "schema": "string",
-                      "description": "Footer background color"
-                    },
-                    "foreground": {
-                      "schema": "string",
-                      "description": "Footer foreground color"
-                    }
-                  },
-                  "closed": true
-                }
+                "ref": "page-footer"
               }
             ],
             "description": "Shared page footer"
@@ -2423,27 +2527,7 @@
             "anyOf": [
               "boolean",
               {
-                "object": {
-                  "super": {
-                    "resolveRef": "social-metadata"
-                  },
-                  "properties": {
-                    "locale": {
-                      "string": {
-                        "description": "Locale of open graph metadata"
-                      }
-                    },
-                    "site-name": {
-                      "string": {
-                        "description": {
-                          "short": "Name that should be displayed for the overall site",
-                          "long": "Name that should be displayed for the overall site. If not explicitly \nprovided in the `open-graph` metadata, Quarto will use the website or\nbook `title` by default.\n"
-                        }
-                      }
-                    }
-                  },
-                  "closed": true
-                }
+                "ref": "open-graph-config"
               }
             ],
             "description": "Publish open graph metadata"
@@ -2452,34 +2536,7 @@
             "anyOf": [
               "boolean",
               {
-                "object": {
-                  "super": {
-                    "resolveRef": "social-metadata"
-                  },
-                  "properties": {
-                    "card-style": {
-                      "enum": [
-                        "summary",
-                        "summary_large_image"
-                      ],
-                      "description": {
-                        "short": "Card style",
-                        "long": "Card style (`summary` or `summary_large_image`).\n\nIf this is not provided, the best style will automatically\nselected based upon other metadata. You can learn more about Twitter Card\nstyles [here](https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/abouts-cards).\n"
-                      }
-                    },
-                    "creator": {
-                      "string": {
-                        "description": "`@username` of the content creator (must be a quoted string)"
-                      }
-                    },
-                    "site": {
-                      "string": {
-                        "description": "`@username` of the website (must be a quoted string)"
-                      }
-                    }
-                  },
-                  "closed": true
-                }
+                "ref": "twitter-card-config"
               }
             ],
             "description": "Publish twitter card metadata"
@@ -2737,16 +2794,12 @@
           },
           "max-items": {
             "number": {
-              "description": {
-                "short": "The maximum number of items to include in this listing."
-              }
+              "description": "The maximum number of items to include in this listing."
             }
           },
           "page-size": {
             "number": {
-              "description": {
-                "short": "The number of items to display on a page."
-              }
+              "description": "The number of items to display on a page."
             }
           },
           "sort-ui": {
@@ -3893,6 +3946,11 @@
         ]
       },
       "description": "The contents of an acknowledgments footnote after the document title."
+    },
+    {
+      "name": "order",
+      "schema": "number",
+      "description": "Order for document when included in a website automatic sidebar menu."
     }
   ],
   "schema/document-citation.yml": [
@@ -7229,6 +7287,14 @@
         "short": "Determines which ipynb cell output formats are rendered (`none`, `all`, or `best`).",
         "long": "Determines which ipynb cell output formats are rendered.\n\n- `all`: Preserve all of the data formats included in the original.\n- `none`: Omit the contents of data cells.\n- `best` (default): Instruct pandoc to try to pick the\n  richest data block in each output cell that is compatible\n  with the output format.\n"
       }
+    },
+    {
+      "name": "quarto-required",
+      "schema": "string",
+      "description": {
+        "short": "semver version range for required quarto version",
+        "long": "A semver version range describing the supported quarto versions for this document\nor project.\n\nExamples:\n\n- `>= 1.1.0`: Require at least quarto version 1.1\n- `1.*`: Require any quarto versions whose major version number is 1\n"
+      }
     }
   ],
   "schema/document-pdfa.yml": [
@@ -8670,8 +8736,12 @@
       "name": "title-slide-attributes",
       "schema": {
         "object": {
-          "closed": true,
           "properties": {
+            "data-background-color": {
+              "string": {
+                "description": "CSS color for title slide background"
+              }
+            },
             "data-background-image": {
               "string": {
                 "description": "URL or path to the background image."
@@ -9344,7 +9414,6 @@
           "closed": true,
           "properties": {
             "title": {
-              "hidden": true,
               "schema": "string"
             },
             "type": {
@@ -12211,7 +12280,69 @@
     "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
     "Custom tools for navbar or sidebar",
     "The Digital Object Identifier for this book.",
-    "internal-schema-hack"
+    "internal-schema-hack",
+    {
+      "short": "Automatically generate sidebar contents.",
+      "long": "Automatically generate sidebar contents. Pass <code>true</code> to\ninclude all documents in the site, a directory name to include only\ndocuments in that directory, or a glob (or list of globs) to include\ndocuments based on a pattern.\nSubdirectories will create sections (use an <code>index.qmd</code> in\nthe directory to provide its title). Order will be alphabetical unless a\nnumeric <code>order</code> field is provided in document metadata."
+    },
+    {
+      "short": "The title of the page",
+      "long": "The title of the page. Note that by default Quarto will automatically\nuse the title metadata from the page. Specify this field if you’d like\nto override the title for this provider."
+    },
+    {
+      "short": "A short description of the content.",
+      "long": "A short description of the content. Note that by default Quarto will\nautomatically use the description metadata from the page. Specify this\nfield if you’d like to override the description for this provider."
+    },
+    {
+      "short": "The path to a preview image for the content.",
+      "long": "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the format metadata. If you\nprovide an image, you may also optionally provide an\n<code>image-width</code> and <code>image-height</code>."
+    },
+    {
+      "short": "The alt text for the preview image.",
+      "long": "The alt text for the preview image. By default, Quarto will use the\n<code>image-alt</code> value from the format metadata. If you provide an\nimage, you may also optionally provide an <code>image-width</code> and\n<code>image-height</code>."
+    },
+    "Image width (pixels)",
+    "Image height (pixels)",
+    {
+      "short": "Card style",
+      "long": "Card style (<code>summary</code> or\n<code>summary_large_image</code>).\nIf this is not provided, the best style will automatically selected\nbased upon other metadata. You can learn more about Twitter Card styles\n<a href=\"https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/abouts-cards\">here</a>."
+    },
+    "<code>@username</code> of the content creator (must be a quoted\nstring)",
+    "<code>@username</code> of the website (must be a quoted string)",
+    {
+      "short": "The title of the page",
+      "long": "The title of the page. Note that by default Quarto will automatically\nuse the title metadata from the page. Specify this field if you’d like\nto override the title for this provider."
+    },
+    {
+      "short": "A short description of the content.",
+      "long": "A short description of the content. Note that by default Quarto will\nautomatically use the description metadata from the page. Specify this\nfield if you’d like to override the description for this provider."
+    },
+    {
+      "short": "The path to a preview image for the content.",
+      "long": "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the format metadata. If you\nprovide an image, you may also optionally provide an\n<code>image-width</code> and <code>image-height</code>."
+    },
+    {
+      "short": "The alt text for the preview image.",
+      "long": "The alt text for the preview image. By default, Quarto will use the\n<code>image-alt</code> value from the format metadata. If you provide an\nimage, you may also optionally provide an <code>image-width</code> and\n<code>image-height</code>."
+    },
+    "Image width (pixels)",
+    "Image height (pixels)",
+    "Locale of open graph metadata",
+    {
+      "short": "Name that should be displayed for the overall site",
+      "long": "Name that should be displayed for the overall site. If not explicitly\nprovided in the <code>open-graph</code> metadata, Quarto will use the\nwebsite or book <code>title</code> by default."
+    },
+    "Footer left content",
+    "Footer right content",
+    "Footer center content",
+    "Footer border (<code>true</code>, <code>false</code>, or a border\ncolor)",
+    "Footer background color",
+    "Footer foreground color",
+    "Order for document when included in a website automatic sidebar\nmenu.",
+    {
+      "short": "semver version range for required quarto version",
+      "long": "A semver version range describing the supported quarto versions for\nthis document or project.\nExamples:"
+    }
   ],
   "schema/external-schemas.yml": [
     {
@@ -12465,7 +12596,7 @@
       }
     },
     {
-      "name": "quarto-version",
+      "name": "quarto-required",
       "description": "Quarto version range. See https://docs.npmjs.com/cli/v6/using-npm/semver for syntax details.",
       "schema": "string"
     },

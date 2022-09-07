@@ -41,6 +41,7 @@ import {
   kFieldImage,
   kFieldImageAlt,
   kFieldLinks,
+  kFieldOrder,
   kFieldReadingTime,
   kFieldRequired,
   kFieldSort,
@@ -236,7 +237,17 @@ export async function readListings(
           items,
           listing.sort.map((l) => {
             return (item: ListingItem) => {
-              return item[l.field];
+              // handle undefined for 'order' (it's used by our default)
+              const value = item[l.field];
+              if (value === undefined && l.field === kFieldOrder) {
+                if (l.direction === "asc") {
+                  return Number.MAX_SAFE_INTEGER;
+                } else {
+                  return 0;
+                }
+              } else {
+                return value;
+              }
             };
           }),
           listing.sort.map((l) => l.direction),
@@ -413,7 +424,10 @@ function hydrateListing(
 
   // Apply a default sort if the title field is present and the sources contain documents
   const sort: ListingSort[] | undefined = hydratedFields.includes(kFieldTitle)
-    ? [{ field: "title", direction: "asc" }]
+    ? [
+      { field: kFieldOrder, direction: "asc" },
+      { field: kFieldTitle, direction: "asc" },
+    ]
     : undefined;
   if (
     sort && !listingHydrated.sort && sources.has(ListingItemSource.document)

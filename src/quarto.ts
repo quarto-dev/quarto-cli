@@ -7,6 +7,8 @@
 
 import "./core/deno/monkey-patch.ts";
 
+import { normalize } from "path/mod.ts";
+
 import {
   Command,
   CompletionsCommand,
@@ -59,6 +61,13 @@ export async function quarto(
     }
   }
 
+  // if there is a QUARTO_WORKING_DIR defined then change our
+  // working directory to the input dir
+  const workingDir = Deno.env.get("QUARTO_WORKING_DIR");
+  if (workingDir && normalize(workingDir) !== normalize(Deno.cwd())) {
+    Deno.chdir(workingDir);
+  }
+
   // passthrough to pandoc
   if (args[0] === "pandoc" && args[1] !== "help") {
     const result = await execProcess({
@@ -68,7 +77,7 @@ export async function quarto(
   }
 
   // passthrough to run handlers
-  if (args[0] === "run" && args[1] !== "help") {
+  if (args[0] === "run" && args[1] !== "help" && args[1] !== "--help") {
     const result = await runScript(args.slice(1));
     Deno.exit(result.code);
   }
@@ -88,11 +97,14 @@ export async function quarto(
 
   const quartoCommand = new Command()
     .name("quarto")
+    .help({ colors: false })
     .version(quartoConfig.version() + "\n")
     .description("Quarto CLI")
     .throwErrors();
 
   commands().forEach((command) => {
+    // turn off colors
+    command.help({ colors: false });
     quartoCommand.command(
       command.getName(),
       cmdHandler !== undefined ? cmdHandler(command) : command,
