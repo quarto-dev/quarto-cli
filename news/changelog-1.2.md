@@ -8,6 +8,7 @@
 ## OJS
 
 - support `revealjs` and `html` formats in `width` builtin, fallback gracefully otherwise (#2058)
+- Don't emit `ojs_define` HTML in non-html formats (#2338)
 
 ## Extensions
 
