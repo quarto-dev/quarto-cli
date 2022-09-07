@@ -8264,60 +8264,31 @@ try {
             anyOf: [
               "path",
               {
-                object: {
-                  properties: {
-                    href: {
-                      string: {
-                        description: "Link to file contained with the project or external URL\n"
-                      }
-                    },
-                    url: {
-                      hidden: true,
-                      string: {
-                        description: "Alias for href\n"
-                      }
-                    },
-                    file: {
-                      hidden: true,
-                      string: {
-                        description: "Alias for href\n"
-                      }
-                    },
-                    text: {
-                      string: {
-                        description: "Text to display for navigation item (defaults to the\ndocument title if not provided)\n"
-                      }
-                    },
-                    icon: {
-                      string: {
-                        description: {
-                          short: "Name of bootstrap icon (e.g. `github`, `twitter`, `share`)",
-                          long: "Name of bootstrap icon (e.g. `github`, `twitter`, `share`)\nSee <https://icons.getbootstrap.com/> for a list of available icons\n"
-                        }
-                      }
-                    },
-                    "aria-label": {
-                      string: {
-                        description: "Accessible label for the navigation item."
-                      }
-                    },
-                    menu: {
-                      arrayOf: {
-                        schema: {
-                          ref: "navigation-item"
-                        }
-                      }
-                    }
-                  },
-                  closed: true
-                }
+                ref: "navigation-item-object"
               }
             ]
           },
           {
-            id: "tool-item",
+            id: "navigation-item-object",
             object: {
+              closed: true,
               properties: {
+                "aria-label": {
+                  string: {
+                    description: "Accessible label for the item."
+                  }
+                },
+                file: {
+                  hidden: true,
+                  string: {
+                    description: "Alias for href\n"
+                  }
+                },
+                href: {
+                  string: {
+                    description: "Link to file contained with the project or external URL\n"
+                  }
+                },
                 icon: {
                   string: {
                     description: {
@@ -8326,15 +8297,9 @@ try {
                     }
                   }
                 },
-                href: {
-                  string: {
-                    description: "Link to file contained with the project or external URL\n"
-                  }
-                },
-                text: {
-                  string: {
-                    description: "Text to display for tool item\n"
-                  }
+                id: {
+                  schema: "string",
+                  hidden: true
                 },
                 menu: {
                   arrayOf: {
@@ -8342,9 +8307,19 @@ try {
                       ref: "navigation-item"
                     }
                   }
+                },
+                text: {
+                  string: {
+                    description: "Text to display for item (defaults to the\ndocument title if not provided)\n"
+                  }
+                },
+                url: {
+                  hidden: true,
+                  string: {
+                    description: "Alias for href\n"
+                  }
                 }
-              },
-              closed: true
+              }
             }
           },
           {
@@ -8888,6 +8863,96 @@ try {
             }
           },
           {
+            id: "twitter-card-config",
+            object: {
+              super: {
+                resolveRef: "social-metadata"
+              },
+              closed: true,
+              properties: {
+                "card-style": {
+                  enum: [
+                    "summary",
+                    "summary_large_image"
+                  ],
+                  description: {
+                    short: "Card style",
+                    long: "Card style (`summary` or `summary_large_image`).\n\nIf this is not provided, the best style will automatically\nselected based upon other metadata. You can learn more about Twitter Card\nstyles [here](https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/abouts-cards).\n"
+                  }
+                },
+                creator: {
+                  string: {
+                    description: "`@username` of the content creator (must be a quoted string)"
+                  }
+                },
+                site: {
+                  string: {
+                    description: "`@username` of the website (must be a quoted string)"
+                  }
+                }
+              }
+            }
+          },
+          {
+            id: "open-graph-config",
+            object: {
+              super: {
+                resolveRef: "social-metadata"
+              },
+              closed: true,
+              properties: {
+                locale: {
+                  string: {
+                    description: "Locale of open graph metadata"
+                  }
+                },
+                "site-name": {
+                  string: {
+                    description: {
+                      short: "Name that should be displayed for the overall site",
+                      long: "Name that should be displayed for the overall site. If not explicitly \nprovided in the `open-graph` metadata, Quarto will use the website or\nbook `title` by default.\n"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            id: "page-footer",
+            object: {
+              properties: {
+                left: {
+                  ref: "page-footer-region",
+                  description: "Footer left content"
+                },
+                right: {
+                  ref: "page-footer-region",
+                  description: "Footer right content"
+                },
+                center: {
+                  ref: "page-footer-region",
+                  description: "Footer center content"
+                },
+                border: {
+                  anyOf: [
+                    "boolean",
+                    "string"
+                  ],
+                  description: "Footer border (`true`, `false`, or a border color)"
+                },
+                background: {
+                  schema: "string",
+                  description: "Footer background color"
+                },
+                foreground: {
+                  schema: "string",
+                  description: "Footer foreground color"
+                }
+              },
+              closed: true
+            }
+          },
+          {
             id: "base-website",
             object: {
               closed: true,
@@ -9291,7 +9356,7 @@ try {
                             },
                             tools: {
                               arrayOf: {
-                                ref: "tool-item"
+                                ref: "navigation-item-object"
                               },
                               description: "List of sidebar tools"
                             },
@@ -9409,38 +9474,7 @@ try {
                   anyOf: [
                     "string",
                     {
-                      object: {
-                        properties: {
-                          left: {
-                            ref: "page-footer-region",
-                            description: "Footer left content"
-                          },
-                          right: {
-                            ref: "page-footer-region",
-                            description: "Footer right content"
-                          },
-                          center: {
-                            ref: "page-footer-region",
-                            description: "Footer center content"
-                          },
-                          border: {
-                            anyOf: [
-                              "boolean",
-                              "string"
-                            ],
-                            description: "Footer border (`true`, `false`, or a border color)"
-                          },
-                          background: {
-                            schema: "string",
-                            description: "Footer background color"
-                          },
-                          foreground: {
-                            schema: "string",
-                            description: "Footer foreground color"
-                          }
-                        },
-                        closed: true
-                      }
+                      ref: "page-footer"
                     }
                   ],
                   description: "Shared page footer"
@@ -9459,27 +9493,7 @@ try {
                   anyOf: [
                     "boolean",
                     {
-                      object: {
-                        super: {
-                          resolveRef: "social-metadata"
-                        },
-                        properties: {
-                          locale: {
-                            string: {
-                              description: "Locale of open graph metadata"
-                            }
-                          },
-                          "site-name": {
-                            string: {
-                              description: {
-                                short: "Name that should be displayed for the overall site",
-                                long: "Name that should be displayed for the overall site. If not explicitly \nprovided in the `open-graph` metadata, Quarto will use the website or\nbook `title` by default.\n"
-                              }
-                            }
-                          }
-                        },
-                        closed: true
-                      }
+                      ref: "open-graph-config"
                     }
                   ],
                   description: "Publish open graph metadata"
@@ -9488,34 +9502,7 @@ try {
                   anyOf: [
                     "boolean",
                     {
-                      object: {
-                        super: {
-                          resolveRef: "social-metadata"
-                        },
-                        properties: {
-                          "card-style": {
-                            enum: [
-                              "summary",
-                              "summary_large_image"
-                            ],
-                            description: {
-                              short: "Card style",
-                              long: "Card style (`summary` or `summary_large_image`).\n\nIf this is not provided, the best style will automatically\nselected based upon other metadata. You can learn more about Twitter Card\nstyles [here](https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/abouts-cards).\n"
-                            }
-                          },
-                          creator: {
-                            string: {
-                              description: "`@username` of the content creator (must be a quoted string)"
-                            }
-                          },
-                          site: {
-                            string: {
-                              description: "`@username` of the website (must be a quoted string)"
-                            }
-                          }
-                        },
-                        closed: true
-                      }
+                      ref: "twitter-card-config"
                     }
                   ],
                   description: "Publish twitter card metadata"
@@ -9773,16 +9760,12 @@ try {
                 },
                 "max-items": {
                   number: {
-                    description: {
-                      short: "The maximum number of items to include in this listing."
-                    }
+                    description: "The maximum number of items to include in this listing."
                   }
                 },
                 "page-size": {
                   number: {
-                    description: {
-                      short: "The number of items to display on a page."
-                    }
+                    description: "The number of items to display on a page."
                   }
                 },
                 "sort-ui": {
@@ -16102,48 +16085,6 @@ try {
             description: "The alt text for preview image on this page."
           }
         ],
-        "schema/extension.yml": [
-          {
-            name: "title",
-            description: "Extension title.",
-            schema: "string"
-          },
-          {
-            name: "author",
-            description: "Extension author.",
-            schema: "string"
-          },
-          {
-            name: "version",
-            description: "Extension version.",
-            schema: {
-              ref: "semver"
-            }
-          },
-          {
-            name: "quarto-required",
-            description: "Quarto version range. See https://docs.npmjs.com/cli/v6/using-npm/semver for syntax details.",
-            schema: "string"
-          },
-          {
-            name: "contributes",
-            schema: {
-              object: {
-                properties: {
-                  shortcodes: {
-                    arrayOf: "path"
-                  },
-                  filters: {
-                    arrayOf: "path"
-                  },
-                  formats: {
-                    schema: "object"
-                  }
-                }
-              }
-            }
-          }
-        ],
         "schema/format-aliases.yml": {
           aliases: {
             "epub-all": [
@@ -17286,12 +17227,15 @@ try {
             long: 'Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>) See <a href="https://icons.getbootstrap.com/" class="uri">https://icons.getbootstrap.com/</a> for a list of available\nicons'
           },
           "Accessible label for the navigation item.",
+          "Accessible label for the item.",
+          "Alias for href",
+          "Link to file contained with the project or external URL",
           {
             short: "Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>)",
             long: 'Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>) See <a href="https://icons.getbootstrap.com/" class="uri">https://icons.getbootstrap.com/</a> for a list of available\nicons'
           },
-          "Link to file contained with the project or external URL",
-          "Text to display for tool item",
+          "Text to display for item (defaults to the document title if not\nprovided)",
+          "Alias for href",
           "The Github repo that will be used to store comments.",
           "The label that will be assigned to issues created by Utterances.",
           {
@@ -17382,6 +17326,59 @@ try {
           "Sites published from project",
           "Unique identifier for site",
           "Published URL for site",
+          {
+            short: "The title of the page",
+            long: "The title of the page. Note that by default Quarto will automatically\nuse the title metadata from the page. Specify this field if you\u2019d like\nto override the title for this provider."
+          },
+          {
+            short: "A short description of the content.",
+            long: "A short description of the content. Note that by default Quarto will\nautomatically use the description metadata from the page. Specify this\nfield if you\u2019d like to override the description for this provider."
+          },
+          {
+            short: "The path to a preview image for the content.",
+            long: "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the format metadata. If you\nprovide an image, you may also optionally provide an\n<code>image-width</code> and <code>image-height</code>."
+          },
+          {
+            short: "The alt text for the preview image.",
+            long: "The alt text for the preview image. By default, Quarto will use the\n<code>image-alt</code> value from the format metadata. If you provide an\nimage, you may also optionally provide an <code>image-width</code> and\n<code>image-height</code>."
+          },
+          "Image width (pixels)",
+          "Image height (pixels)",
+          {
+            short: "Card style",
+            long: 'Card style (<code>summary</code> or\n<code>summary_large_image</code>).\nIf this is not provided, the best style will automatically selected\nbased upon other metadata. You can learn more about Twitter Card styles\n<a href="https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/abouts-cards">here</a>.'
+          },
+          "<code>@username</code> of the content creator (must be a quoted\nstring)",
+          "<code>@username</code> of the website (must be a quoted string)",
+          {
+            short: "The title of the page",
+            long: "The title of the page. Note that by default Quarto will automatically\nuse the title metadata from the page. Specify this field if you\u2019d like\nto override the title for this provider."
+          },
+          {
+            short: "A short description of the content.",
+            long: "A short description of the content. Note that by default Quarto will\nautomatically use the description metadata from the page. Specify this\nfield if you\u2019d like to override the description for this provider."
+          },
+          {
+            short: "The path to a preview image for the content.",
+            long: "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the format metadata. If you\nprovide an image, you may also optionally provide an\n<code>image-width</code> and <code>image-height</code>."
+          },
+          {
+            short: "The alt text for the preview image.",
+            long: "The alt text for the preview image. By default, Quarto will use the\n<code>image-alt</code> value from the format metadata. If you provide an\nimage, you may also optionally provide an <code>image-width</code> and\n<code>image-height</code>."
+          },
+          "Image width (pixels)",
+          "Image height (pixels)",
+          "Locale of open graph metadata",
+          {
+            short: "Name that should be displayed for the overall site",
+            long: "Name that should be displayed for the overall site. If not explicitly\nprovided in the <code>open-graph</code> metadata, Quarto will use the\nwebsite or book <code>title</code> by default."
+          },
+          "Footer left content",
+          "Footer right content",
+          "Footer center content",
+          "Footer border (<code>true</code>, <code>false</code>, or a border\ncolor)",
+          "Footer background color",
+          "Footer foreground color",
           "Website title",
           "Website description",
           "The path to the favicon for this website",
@@ -17500,62 +17497,9 @@ try {
           "Markdown to place below margin content (text or file path)",
           "Provide next and previous article links in footer",
           "Shared page footer",
-          "Footer left content",
-          "Footer right content",
-          "Footer center content",
-          "Footer border (<code>true</code>, <code>false</code>, or a border\ncolor)",
-          "Footer background color",
-          "Footer foreground color",
           "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
           "Publish open graph metadata",
-          {
-            short: "The title of the page",
-            long: "The title of the page. Note that by default Quarto will automatically\nuse the title metadata from the page. Specify this field if you\u2019d like\nto override the title for this provider."
-          },
-          {
-            short: "A short description of the content.",
-            long: "A short description of the content. Note that by default Quarto will\nautomatically use the description metadata from the page. Specify this\nfield if you\u2019d like to override the description for this provider."
-          },
-          {
-            short: "The path to a preview image for the content.",
-            long: "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the format metadata. If you\nprovide an image, you may also optionally provide an\n<code>image-width</code> and <code>image-height</code>."
-          },
-          {
-            short: "The alt text for the preview image.",
-            long: "The alt text for the preview image. By default, Quarto will use the\n<code>image-alt</code> value from the format metadata. If you provide an\nimage, you may also optionally provide an <code>image-width</code> and\n<code>image-height</code>."
-          },
-          "Image width (pixels)",
-          "Image height (pixels)",
-          "Locale of open graph metadata",
-          {
-            short: "Name that should be displayed for the overall site",
-            long: "Name that should be displayed for the overall site. If not explicitly\nprovided in the <code>open-graph</code> metadata, Quarto will use the\nwebsite or book <code>title</code> by default."
-          },
           "Publish twitter card metadata",
-          {
-            short: "The title of the page",
-            long: "The title of the page. Note that by default Quarto will automatically\nuse the title metadata from the page. Specify this field if you\u2019d like\nto override the title for this provider."
-          },
-          {
-            short: "A short description of the content.",
-            long: "A short description of the content. Note that by default Quarto will\nautomatically use the description metadata from the page. Specify this\nfield if you\u2019d like to override the description for this provider."
-          },
-          {
-            short: "The path to a preview image for the content.",
-            long: "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the format metadata. If you\nprovide an image, you may also optionally provide an\n<code>image-width</code> and <code>image-height</code>."
-          },
-          {
-            short: "The alt text for the preview image.",
-            long: "The alt text for the preview image. By default, Quarto will use the\n<code>image-alt</code> value from the format metadata. If you provide an\nimage, you may also optionally provide an <code>image-width</code> and\n<code>image-height</code>."
-          },
-          "Image width (pixels)",
-          "Image height (pixels)",
-          {
-            short: "Card style",
-            long: 'Card style (<code>summary</code> or\n<code>summary_large_image</code>).\nIf this is not provided, the best style will automatically selected\nbased upon other metadata. You can learn more about Twitter Card styles\n<a href="https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/abouts-cards">here</a>.'
-          },
-          "<code>@username</code> of the content creator (must be a quoted\nstring)",
-          "<code>@username</code> of the website (must be a quoted string)",
           "Part title or path to input file",
           "Path to chapter input file",
           {
@@ -17603,14 +17547,8 @@ try {
             short: "Sort items in the listing by these fields.",
             long: "Sort items in the listing by these fields. The sort key is made up of\na field name followed by a direction <code>asc</code> or\n<code>desc</code>.\nFor example: <code>date asc</code>"
           },
-          {
-            short: "The maximum number of items to include in this listing.",
-            long: ""
-          },
-          {
-            short: "The number of items to display on a page.",
-            long: ""
-          },
+          "The maximum number of items to include in this listing.",
+          "The number of items to display on a page.",
           {
             short: "Shows or hides the sorting control for the listing.",
             long: "Shows or hides the sorting control for the listing. To control the\nfields that will be displayed in the sorting control, provide a list of\nfield names."
@@ -19032,62 +18970,9 @@ try {
           "Markdown to place below margin content (text or file path)",
           "Provide next and previous article links in footer",
           "Shared page footer",
-          "Footer left content",
-          "Footer right content",
-          "Footer center content",
-          "Footer border (<code>true</code>, <code>false</code>, or a border\ncolor)",
-          "Footer background color",
-          "Footer foreground color",
           "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
           "Publish open graph metadata",
-          {
-            short: "The title of the page",
-            long: "The title of the page. Note that by default Quarto will automatically\nuse the title metadata from the page. Specify this field if you\u2019d like\nto override the title for this provider."
-          },
-          {
-            short: "A short description of the content.",
-            long: "A short description of the content. Note that by default Quarto will\nautomatically use the description metadata from the page. Specify this\nfield if you\u2019d like to override the description for this provider."
-          },
-          {
-            short: "The path to a preview image for the content.",
-            long: "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the format metadata. If you\nprovide an image, you may also optionally provide an\n<code>image-width</code> and <code>image-height</code>."
-          },
-          {
-            short: "The alt text for the preview image.",
-            long: "The alt text for the preview image. By default, Quarto will use the\n<code>image-alt</code> value from the format metadata. If you provide an\nimage, you may also optionally provide an <code>image-width</code> and\n<code>image-height</code>."
-          },
-          "Image width (pixels)",
-          "Image height (pixels)",
-          "Locale of open graph metadata",
-          {
-            short: "Name that should be displayed for the overall site",
-            long: "Name that should be displayed for the overall site. If not explicitly\nprovided in the <code>open-graph</code> metadata, Quarto will use the\nwebsite or book <code>title</code> by default."
-          },
           "Publish twitter card metadata",
-          {
-            short: "The title of the page",
-            long: "The title of the page. Note that by default Quarto will automatically\nuse the title metadata from the page. Specify this field if you\u2019d like\nto override the title for this provider."
-          },
-          {
-            short: "A short description of the content.",
-            long: "A short description of the content. Note that by default Quarto will\nautomatically use the description metadata from the page. Specify this\nfield if you\u2019d like to override the description for this provider."
-          },
-          {
-            short: "The path to a preview image for the content.",
-            long: "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the format metadata. If you\nprovide an image, you may also optionally provide an\n<code>image-width</code> and <code>image-height</code>."
-          },
-          {
-            short: "The alt text for the preview image.",
-            long: "The alt text for the preview image. By default, Quarto will use the\n<code>image-alt</code> value from the format metadata. If you provide an\nimage, you may also optionally provide an <code>image-width</code> and\n<code>image-height</code>."
-          },
-          "Image width (pixels)",
-          "Image height (pixels)",
-          {
-            short: "Card style",
-            long: 'Card style (<code>summary</code> or\n<code>summary_large_image</code>).\nIf this is not provided, the best style will automatically selected\nbased upon other metadata. You can learn more about Twitter Card styles\n<a href="https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/abouts-cards">here</a>.'
-          },
-          "<code>@username</code> of the content creator (must be a quoted\nstring)",
-          "<code>@username</code> of the website (must be a quoted string)",
           "Book subtitle",
           "Author or authors of the book",
           "Author or authors of the book",
@@ -19240,62 +19125,9 @@ try {
           "Markdown to place below margin content (text or file path)",
           "Provide next and previous article links in footer",
           "Shared page footer",
-          "Footer left content",
-          "Footer right content",
-          "Footer center content",
-          "Footer border (<code>true</code>, <code>false</code>, or a border\ncolor)",
-          "Footer background color",
-          "Footer foreground color",
           "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
           "Publish open graph metadata",
-          {
-            short: "The title of the page",
-            long: "The title of the page. Note that by default Quarto will automatically\nuse the title metadata from the page. Specify this field if you\u2019d like\nto override the title for this provider."
-          },
-          {
-            short: "A short description of the content.",
-            long: "A short description of the content. Note that by default Quarto will\nautomatically use the description metadata from the page. Specify this\nfield if you\u2019d like to override the description for this provider."
-          },
-          {
-            short: "The path to a preview image for the content.",
-            long: "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the format metadata. If you\nprovide an image, you may also optionally provide an\n<code>image-width</code> and <code>image-height</code>."
-          },
-          {
-            short: "The alt text for the preview image.",
-            long: "The alt text for the preview image. By default, Quarto will use the\n<code>image-alt</code> value from the format metadata. If you provide an\nimage, you may also optionally provide an <code>image-width</code> and\n<code>image-height</code>."
-          },
-          "Image width (pixels)",
-          "Image height (pixels)",
-          "Locale of open graph metadata",
-          {
-            short: "Name that should be displayed for the overall site",
-            long: "Name that should be displayed for the overall site. If not explicitly\nprovided in the <code>open-graph</code> metadata, Quarto will use the\nwebsite or book <code>title</code> by default."
-          },
           "Publish twitter card metadata",
-          {
-            short: "The title of the page",
-            long: "The title of the page. Note that by default Quarto will automatically\nuse the title metadata from the page. Specify this field if you\u2019d like\nto override the title for this provider."
-          },
-          {
-            short: "A short description of the content.",
-            long: "A short description of the content. Note that by default Quarto will\nautomatically use the description metadata from the page. Specify this\nfield if you\u2019d like to override the description for this provider."
-          },
-          {
-            short: "The path to a preview image for the content.",
-            long: "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the format metadata. If you\nprovide an image, you may also optionally provide an\n<code>image-width</code> and <code>image-height</code>."
-          },
-          {
-            short: "The alt text for the preview image.",
-            long: "The alt text for the preview image. By default, Quarto will use the\n<code>image-alt</code> value from the format metadata. If you provide an\nimage, you may also optionally provide an <code>image-width</code> and\n<code>image-height</code>."
-          },
-          "Image width (pixels)",
-          "Image height (pixels)",
-          {
-            short: "Card style",
-            long: 'Card style (<code>summary</code> or\n<code>summary_large_image</code>).\nIf this is not provided, the best style will automatically selected\nbased upon other metadata. You can learn more about Twitter Card styles\n<a href="https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/abouts-cards">here</a>.'
-          },
-          "<code>@username</code> of the content creator (must be a quoted\nstring)",
-          "<code>@username</code> of the website (must be a quoted string)",
           "Book subtitle",
           "Author or authors of the book",
           "Author or authors of the book",
@@ -19547,7 +19379,49 @@ try {
             ]
           },
           $id: "handlers/mermaid"
-        }
+        },
+        "schema/extension.yml": [
+          {
+            name: "title",
+            description: "Extension title.",
+            schema: "string"
+          },
+          {
+            name: "author",
+            description: "Extension author.",
+            schema: "string"
+          },
+          {
+            name: "version",
+            description: "Extension version.",
+            schema: {
+              ref: "semver"
+            }
+          },
+          {
+            name: "quarto-required",
+            description: "Quarto version range. See https://docs.npmjs.com/cli/v6/using-npm/semver for syntax details.",
+            schema: "string"
+          },
+          {
+            name: "contributes",
+            schema: {
+              object: {
+                properties: {
+                  shortcodes: {
+                    arrayOf: "path"
+                  },
+                  filters: {
+                    arrayOf: "path"
+                  },
+                  formats: {
+                    schema: "object"
+                  }
+                }
+              }
+            }
+          }
+        ]
       };
     }
   });

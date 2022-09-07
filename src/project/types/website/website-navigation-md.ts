@@ -8,7 +8,7 @@ import { dirname, extname, isAbsolute, join } from "path/mod.ts";
 import { Document, Element } from "../../../core/deno-dom.ts";
 
 import { Format, Metadata } from "../../../config/types.ts";
-import { NavbarItem, NavItem, Sidebar } from "../../types.ts";
+import { NavItem, Sidebar } from "../../types.ts";
 
 import {
   kBodyFooter,
@@ -256,7 +256,11 @@ const navbarContentsHandler = (context: NavigationPipelineContext) => {
           ...context.navigation.navbar.right || [],
         ];
 
-        const addEntry = (entry: NavbarItem) => {
+        const addEntry = (entry: NavItem) => {
+          if (typeof entry === "string") {
+            markdown[`${kNavbarIdPrefix}${entry.trim()}`] = entry;
+            return;
+          }
           if (entry.text) {
             markdown[`${kNavbarIdPrefix}${entry.text.trim()}`] = entry.text;
           }

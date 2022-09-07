@@ -35,6 +35,7 @@ import { getEngineOptionsSchema } from "../lib/yaml-schema/chunk-metadata.ts";
 import { languages, languageSchema } from "../handlers/base.ts";
 import { idSchema } from "../lib/yaml-schema/common.ts";
 import { kLangCommentChars } from "../lib/partition-cell-options.ts";
+import { generateTypesFromSchemas } from "./types-from-schema.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -83,6 +84,8 @@ export async function buildIntelligenceResources() {
     "/editor/tools/yaml/yaml-intelligence-resources.json",
   );
   Deno.writeTextFileSync(yamlResourcesPath, yamlResources);
+
+  await generateTypesFromSchemas(resourcePath());
 }
 
 function getMarkdownDescriptions() {

@@ -5,15 +5,13 @@
 *
 */
 
-import { kTitle } from "../../../config/constants.ts";
-import { kDescription } from "./listing/website-listing-shared.ts";
 import {
-  kCardStyle,
-  kCreator,
-  kImage,
-  kImageAlt,
-  kImageHeight,
-  kImageWidth,
+  OpenGraphConfig,
+  SocialMetadata,
+  TwitterCardConfig,
+} from "../../../resources/types/schema-types.ts";
+
+import {
   kLocale,
   kOpenGraph,
   kPageFooter,
@@ -28,7 +26,6 @@ import {
   kSiteTitle,
   kSiteUrl,
   kTwitterCard,
-  kTwitterSite,
 } from "./website-constants.ts";
 
 export interface WebsiteConfig {
@@ -44,26 +41,4 @@ export interface WebsiteConfig {
   [kPageFooter]?: string;
   [kOpenGraph]?: boolean | OpenGraphConfig;
   [kTwitterCard]?: boolean | TwitterCardConfig;
-}
-
-export interface TwitterCardConfig {
-  [kTitle]?: string;
-  [kDescription]?: string;
-  [kCardStyle]?: "summary" | "summary_card_large";
-  [kImage]?: string;
-  [kImageWidth]?: number;
-  [kImageHeight]?: number;
-  [kTwitterSite]?: string;
-  [kCreator]?: string;
-}
-
-export interface OpenGraphConfig {
-  [kTitle]?: string;
-  [kDescription]?: string;
-  [kImage]?: string;
-  [kImageWidth]?: number;
-  [kImageHeight]?: number;
-  [kImageAlt]?: string;
-  [kLocale]?: string;
-  [kSiteName]?: string;
 }

@@ -51,6 +51,7 @@ import {
   kLogoAlt,
   kLogoHref,
   kProjectType,
+  NavigationItemObject,
   ProjectConfig,
   ProjectContext,
 } from "../../types.ts";
@@ -63,7 +64,6 @@ import {
   kSidebarMenus,
   LayoutBreak,
   Navbar,
-  NavbarItem,
   NavItem,
   Sidebar,
   SidebarItem,
@@ -129,6 +129,7 @@ import { HtmlPostProcessResult } from "../../../command/render/types.ts";
 import { isJupyterNotebook } from "../../../core/jupyter/jupyter.ts";
 import { kHtmlEmptyPostProcessResult } from "../../../command/render/constants.ts";
 import { expandAutoSidebarItems } from "./website-sidebar-auto.ts";
+import { NavigationItem } from "../../../resources/types/schema-types.ts";
 
 // static navigation (initialized during project preRender)
 const navigation: Navigation = {
@@ -783,7 +784,7 @@ async function resolveSidebarItem(project: ProjectContext, item: SidebarItem) {
       item.href,
       item,
       true,
-    ) as SidebarItem;
+    );
   }
 
   if (item.contents !== undefined) {
@@ -804,12 +805,12 @@ async function resolveSidebarTools(
         const items = tools[i].menu || [];
         for (let i = 0; i < items.length; i++) {
           const toolItem = await navigationItem(project, items[i], 1);
-          if (toolItem.href) {
+          if (typeof toolItem === "object" && toolItem.href) {
             const tool = await resolveItem(
               project,
               toolItem.href,
               toolItem,
-            ) as SidebarTool;
+            );
             validateTool(tool);
             items[i] = tool;
           }
@@ -822,7 +823,7 @@ async function resolveSidebarTools(
             project,
             toolItem.href,
             toolItem,
-          ) as SidebarTool;
+          );
           validateTool(tools[i]);
         }
       }
@@ -994,7 +995,7 @@ async function navbarEjsData(
     if (!Array.isArray(navbar.left)) {
       throw new Error("navbar 'left' must be an array of nav items");
     }
-    data.left = new Array<NavbarItem>();
+    data.left = new Array<NavItem>();
     for (let i = 0; i < navbar.left.length; i++) {
       data.left.push(
         await navigationItem(project, navbar.left[i], 0, sidebarMenus),
@@ -1005,7 +1006,7 @@ async function navbarEjsData(
     if (!Array.isArray(navbar.right)) {
       throw new Error("navbar 'right' must be an array of nav items");
     }
-    data.right = new Array<NavbarItem>();
+    data.right = new Array<NavItem>();
     for (let i = 0; i < navbar.right.length; i++) {
       data.right.push(
         await navigationItem(project, navbar.right[i], 0, sidebarMenus),
@@ -1020,8 +1021,8 @@ async function navbarEjsData(
     );
 
     data.right?.push(...navbar.tools.map((tool) => {
-      const navItem = tool as NavbarItem;
-      navItem[kAriaLabel] = navItem.text;
+      const navItem = tool as NavigationItemObject;
+      navItem[kAriaLabel] = navItem.text; // FIXME @dragonstyle shouldn't this check for the existence of kAriaLabel first?
       delete navItem.text;
       resolveIcon(navItem);
       return navItem;
@@ -1031,14 +1032,14 @@ async function navbarEjsData(
   return data;
 }
 
-function resolveIcon(navItem: NavbarItem) {
+function resolveIcon(navItem: NavigationItemObject) {
   // resolve icon
   navItem.icon = navItem.icon
     ? !navItem.icon.startsWith("bi-") ? `bi-${navItem.icon}` : navItem.icon
     : navItem.icon;
 }
 
-function resolveSidebarRef(navItem: NavbarItem) {
+function resolveSidebarRef(navItem: NavigationItemObject) {
   // see if this is a sidebar link
   const ref = navItem.href || navItem.text;
   if (ref) {
@@ -1049,7 +1050,7 @@ function resolveSidebarRef(navItem: NavbarItem) {
         // wipe out the href and replace with a menu
         navItem.href = undefined;
         navItem.text = sidebar.title || id;
-        navItem.menu = new Array<NavbarItem>();
+        navItem.menu = new Array<NavItem>();
         for (const item of sidebar.contents) {
           // not fully recursive, we only take the first level of the sidebar
           if (item.text && item.contents) {
@@ -1089,15 +1090,15 @@ function resolveSidebarRef(navItem: NavbarItem) {
 
 export async function navigationItem(
   project: ProjectContext,
-  navItem: NavbarItem | string,
+  navItem: NavItem,
   level = 0,
   sidebarMenus = false,
-): Promise<NavbarItem> {
+): Promise<NavItem> {
   // make a copy we can mutate
   navItem = ld.cloneDeep(navItem);
 
   // allow short form syntax
-  if (typeof (navItem) === "string") {
+  if (typeof navItem === "string") {
     const navItemPath = join(project.dir, navItem);
     if (safeExistsSync(navItemPath) && Deno.statSync(navItemPath).isFile) {
       navItem = { href: navItem };
@@ -1137,7 +1138,7 @@ export async function navigationItem(
     // provide id and ensure we have some text
     return {
       ...navItem,
-      id: uniqueMenuId(navItem),
+      id: uniqueMenuId(navItem as NavigationItemObject),
       text: navItem.text || "",
     };
   } else {
@@ -1149,19 +1150,19 @@ const menuIds = new Map<string, number>();
 function resetMenuIds() {
   menuIds.clear();
 }
-function uniqueMenuId(navItem: NavbarItem) {
+function uniqueMenuId(navItem: NavigationItemObject) {
   const id = asHtmlId(navItem.text || navItem.icon || "");
   const number = menuIds.get(id) || 0;
   menuIds.set(id, number + 1);
   return `nav-menu-${id}${number ? ("-" + number) : ""}`;
 }
 
-async function resolveItem(
+async function resolveItem<T extends { href?: string; text?: string }>(
   project: ProjectContext,
   href: string,
-  item: { href?: string; text?: string },
+  item: T,
   number = false,
-): Promise<{ href?: string; text?: string }> {
+): Promise<T> {
   if (!isExternalPath(href)) {
     const resolved = await resolveInputTarget(project, href);
     if (resolved) {

@@ -56,6 +56,7 @@ import { execProcess } from "../../core/process.ts";
 import { parseShellRunCommand } from "../../core/run/shell.ts";
 import { clearProjectIndex } from "../../project/project-index.ts";
 import { projectExcludeDirs } from "../../project/project-shared.ts";
+import { asArray } from "../../core/array.ts";
 
 export async function renderProject(
   context: ProjectContext,
@@ -183,7 +184,7 @@ export async function renderProject(
   ) {
     await runPreRender(
       projDir,
-      context.config?.project?.[kProjectPreRender]!,
+      asArray(context.config?.project?.[kProjectPreRender]!),
       progress,
       !!options.flags?.quiet,
       {
@@ -463,7 +464,7 @@ export async function renderProject(
     ) {
       await runPostRender(
         projDir,
-        context.config?.project?.[kProjectPostRender]!,
+        asArray(context.config?.project?.[kProjectPostRender]!),
         progress,
         !!options.flags?.quiet,
         {

@@ -322,7 +322,10 @@ const aboutLinksMarkdownHandler = (aboutPage: AboutPage) => {
     getUnrendered: (): PipelineMarkdown | undefined => {
       const pipelineMarkdown: PipelineMarkdown = {};
       aboutPage.links?.forEach((link) => {
-        if (link.text) {
+        if (typeof link === "string") {
+          pipelineMarkdown.inlines = pipelineMarkdown.inlines || {};
+          pipelineMarkdown.inlines[link] = link;
+        } else if (link.text) {
           pipelineMarkdown.inlines = pipelineMarkdown.inlines || {};
           pipelineMarkdown.inlines[link.text] = link.text;
         }
