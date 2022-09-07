@@ -21,7 +21,10 @@ import { ProjectOutputFile } from "../types.ts";
 import { websiteBaseurl } from "./website-config.ts";
 import { kDraft } from "../../../format/html/format-html-shared.ts";
 import { copyTo } from "../../../core/copy.ts";
-import { inputTargetIndexForOutputFile } from "../../project-index.ts";
+import {
+  inputTargetIndexForOutputFile,
+  inputTargetIsEmpty,
+} from "../../project-index.ts";
 
 export async function updateSitemap(
   context: ProjectContext,
@@ -39,7 +42,7 @@ export async function updateSitemap(
         context,
         relative(outputDir, outputFile.file),
       );
-      if (index && index.markdown.markdown.trim().length === 0) {
+      if (index && inputTargetIsEmpty(index)) {
         continue;
       }
     }

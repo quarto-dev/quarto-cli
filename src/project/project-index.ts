@@ -142,6 +142,14 @@ export function readInputTargetIndex(
   }
 }
 
+export function inputTargetIsEmpty(index: InputTargetIndex) {
+  if (index.markdown.yaml !== undefined) {
+    return !Object.keys(index.markdown.yaml).find((key) => key !== kTitle);
+  } else {
+    return index.markdown.markdown.trim().length === 0;
+  }
+}
+
 function readInputTargetIndexIfStillCurrent(projectDir: string, input: string) {
   const inputFile = join(projectDir, input);
   const indexFile = inputTargetIndexFile(projectDir, input);

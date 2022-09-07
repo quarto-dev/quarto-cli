@@ -18,7 +18,11 @@ import {
 } from "../../../core/path.ts";
 import { capitalizeTitle } from "../../../core/text.ts";
 import { engineValidExtensions } from "../../../execute/engine.ts";
-import { inputTargetIndex, resolveInputTarget } from "../../project-index.ts";
+import {
+  inputTargetIndex,
+  inputTargetIsEmpty,
+  resolveInputTarget,
+} from "../../project-index.ts";
 
 import { ProjectContext, SidebarItem } from "../../types.ts";
 
@@ -196,7 +200,7 @@ async function entryFromHref(project: ProjectContext, href: string) {
       titleFromPath(dirAndStem(href)[1]),
     href: href,
     order: asNumber(index?.markdown.yaml?.[kOrder]),
-    empty: index?.markdown.markdown.trim().length == 0,
+    empty: index ? inputTargetIsEmpty(index) : false,
   };
 }
 
