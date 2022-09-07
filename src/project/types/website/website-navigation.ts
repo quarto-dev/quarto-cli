@@ -129,7 +129,6 @@ import { HtmlPostProcessResult } from "../../../command/render/types.ts";
 import { isJupyterNotebook } from "../../../core/jupyter/jupyter.ts";
 import { kHtmlEmptyPostProcessResult } from "../../../command/render/constants.ts";
 import { expandAutoSidebarItems } from "./website-sidebar-auto.ts";
-import { NavigationItem } from "../../../resources/types/schema-types.ts";
 
 // static navigation (initialized during project preRender)
 const navigation: Navigation = {

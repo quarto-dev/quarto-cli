@@ -8,7 +8,7 @@
 import * as ld from "../../../core/lodash.ts";
 
 import { kDescription, kMetadataFormat } from "../../../config/constants.ts";
-import { isHtmlDocOutput, isHtmlOutput } from "../../../config/format.ts";
+import { isHtmlOutput } from "../../../config/format.ts";
 import {
   formatFromMetadata,
   formatKeys,
@@ -38,8 +38,7 @@ import {
   kWebsite,
 } from "./website-constants.ts";
 import { ensureTrailingSlash } from "../../../core/path.ts";
-import { parseFormatString } from "../../../core/pandoc/pandoc-formats.ts";
-import { createExtensionContext } from "../../../extension/extension.ts";
+
 type WebsiteConfigKey =
   | "title"
   | "image"

@@ -77,10 +77,7 @@ import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
 import { getProjectConfigSchema } from "../core/lib/yaml-schema/project-config.ts";
 import { getFrontMatterSchema } from "../core/lib/yaml-schema/front-matter.ts";
 import { kDefaultProjectFileContents } from "./types/project-default.ts";
-import {
-  createExtensionContext,
-  extensionProjectType,
-} from "../extension/extension.ts";
+import { createExtensionContext } from "../extension/extension.ts";
 import { warning } from "log/mod.ts";
 
 export function deleteProjectMetadata(metadata: Metadata) {
