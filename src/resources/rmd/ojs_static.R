@@ -1,4 +1,3 @@
-
 attach(list(
   ojs_define = function(...) {
     # validate that we aren't in a cached chunk
@@ -33,7 +32,10 @@ attach(list(
         contents,
         "</script>");
 
-    invisible(knitr:::knit_meta_add(list(structure(class="ojs-define", script_string))))
+    # don't emit HTML output in PDF formats. (#2334)
+    if (knitr:::is_html_output(quarto_format$pandoc$to)) {
+      invisible(knitr:::knit_meta_add(list(structure(class="ojs-define", script_string))))
+    }
   }
 ), name = "tools:quarto")
 
