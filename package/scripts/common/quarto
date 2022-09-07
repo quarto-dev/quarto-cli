@@ -47,6 +47,9 @@ if [ -f "$DEV_PATH" ]; then
   # Local import map
   QUARTO_IMPORT_ARGMAP=--importmap=$QUARTO_SRC_PATH/dev_import_map.json
 
+  # Turn on type checking for dev version
+  QUARTO_DENO_OPTIONS=--check
+
   # Allow calls to override the target
   if [ -z ${QUARTO_TARGET+x} ]; then
     QUARTO_TARGET=$DEV_PATH
