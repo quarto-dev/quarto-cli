@@ -1024,11 +1024,7 @@ export type ProjectConfig = {
     string
   > /* Additional file resources to be copied to output directory */;
   title?: string;
-  type?:
-    | "default"
-    | "website"
-    | "book"
-    | "site"; /* Project type (`default`, `website`, or `book`) */
+  type?: string; /* Project type (`default`, `website`, or `book`) */
 };
 
 export type BookProject = {

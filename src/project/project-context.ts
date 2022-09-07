@@ -44,7 +44,7 @@ import {
   kQuartoVarsKey,
 } from "../config/constants.ts";
 
-import { projectType } from "./types/project-types.ts";
+import { projectType, projectTypes } from "./types/project-types.ts";
 
 import { resolvePathGlobs } from "../core/path.ts";
 import {
@@ -77,6 +77,11 @@ import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
 import { getProjectConfigSchema } from "../core/lib/yaml-schema/project-config.ts";
 import { getFrontMatterSchema } from "../core/lib/yaml-schema/front-matter.ts";
 import { kDefaultProjectFileContents } from "./types/project-default.ts";
+import {
+  createExtensionContext,
+  extensionProjectType,
+} from "../extension/extension.ts";
+import { warning } from "log/mod.ts";
 
 export function deleteProjectMetadata(metadata: Metadata) {
   // see if the active project type wants to filter the config printed
@@ -139,6 +144,16 @@ export async function projectContext(
 
       // migrate any legacy config
       projectConfig = migrateProjectConfig(projectConfig);
+
+      // Look for project extension and load it
+      const projType = projectConfig.project[kProjectType];
+      if (projType && !(projectTypes().includes(projType))) {
+        projectConfig = await resolveProjectExtension(
+          projType,
+          projectConfig,
+          dir,
+        );
+      }
 
       // read vars and merge into the project
       const varsFile = projectVarsFile(dir);
@@ -294,6 +309,50 @@ export async function projectContext(
       }
     }
   }
+}
+
+async function resolveProjectExtension(
+  projectType: string,
+  projectConfig: ProjectConfig,
+  dir: string,
+) {
+  const context = createExtensionContext();
+  const extensions = await context.find(
+    projectType,
+    dir,
+    "project",
+    projectConfig,
+    dir,
+  );
+
+  if (extensions.length > 1) {
+    // There are more than one extensions matching this project
+    warning(
+      `The project type '${projectType}' matched more than one extension. Please use a full name to disambiguate between the types:\n  ${
+        extensions.map((ext) => {
+          return ext.id;
+        }).join("\n  ")
+      }`,
+    );
+  }
+
+  if (extensions.length > 0) {
+    const extension = extensions[0];
+    const projectExt = extension.contributes.project;
+
+    if (projectExt) {
+      // The project type
+      const extProjType = projectExt.type as string || "default";
+      projectConfig.project[kProjectType] = extProjType;
+
+      // Merge config
+      projectConfig = mergeConfigs(
+        projectExt as ProjectConfig,
+        projectConfig,
+      );
+    }
+  }
+  return projectConfig;
 }
 
 function migrateProjectConfig(projectConfig: ProjectConfig) {

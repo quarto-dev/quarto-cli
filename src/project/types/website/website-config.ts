@@ -298,8 +298,8 @@ export function formatsPreferHtml(formats: Record<string, unknown>) {
 
 // provide a project context that elevates html to the default
 // format for documents (unless they explicitly declare another format)
-export async function websiteProjectConfig(
-  projectDir: string,
+export function websiteProjectConfig(
+  _projectDir: string,
   config: ProjectConfig,
   flags?: RenderFlags,
 ): Promise<ProjectConfig> {
@@ -310,38 +310,6 @@ export async function websiteProjectConfig(
     | undefined;
 
   config[kMetadataFormat] = websiteFormatPreferHtml(format);
-
-  // if the main format is an html format then allow it to provide website defaults
-  const formats = Object.keys(
-    config[kMetadataFormat] as Record<string, unknown>,
-  );
-  const formatDesc = parseFormatString(formats[0]);
-  if (isHtmlDocOutput(formatDesc.baseFormat) && formatDesc.extension) {
-    const context = createExtensionContext();
-    const extension = await context.find(
-      formatDesc.extension,
-      projectDir,
-      "formats",
-      config,
-      projectDir,
-    );
-    if (extension && extension.length > 0) {
-      const format = extension[0].contributes
-        .formats?.[formatDesc.baseFormat];
-      if (typeof (format) === "object") {
-        const kWebsiteDefaults = "website-defaults";
-        const websiteDefaults =
-          (format as Record<string, Metadata>)[kWebsiteDefaults];
-        if (websiteDefaults) {
-          console.log(websiteDefaults);
-          config[kWebsite] = mergeConfigs(
-            websiteDefaults,
-            config[kWebsite] || {},
-          );
-        }
-      }
-    }
-  }
 
   // Resolve elements to be sure they're arrays, they will be resolve later
   const ensureArray = (val: unknown) => {

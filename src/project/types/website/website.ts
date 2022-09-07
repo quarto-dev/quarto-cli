@@ -13,7 +13,11 @@ import { resourcePath } from "../../../core/resources.ts";
 import { dirAndStem } from "../../../core/path.ts";
 import { contentType } from "../../../core/mime.ts";
 
-import { kProject404File, ProjectContext } from "../../types.ts";
+import {
+  kProject404File,
+  kProjectLibDir,
+  ProjectContext,
+} from "../../types.ts";
 import { ProjectCreate, ProjectOutputFile, ProjectType } from "../types.ts";
 import {
   Format,
@@ -71,6 +75,7 @@ import { aboutHtmlDependencies } from "./about/website-about.ts";
 import { resolveFormatForGiscus } from "./website-giscus.ts";
 import { RenderFile } from "../../../command/render/types.ts";
 import { formatDate } from "../../../core/date.ts";
+import { projectExtensionPathResolver } from "../../../extension/extension.ts";
 
 export const kSiteTemplateDefault = "default";
 export const kSiteTemplateBlog = "blog";
@@ -174,7 +179,13 @@ export const websiteProjectType: ProjectType = {
       extras.html[kHtmlFinalizers] = extras.html[kHtmlFinalizers] || [];
       extras.html[kMarkdownAfterBody] = extras.html[kMarkdownAfterBody] || [];
       extras.html[kHtmlPostprocessors]?.push(...[
-        htmlResourceResolverPostprocessor(source, project),
+        htmlResourceResolverPostprocessor(
+          source,
+          project,
+          projectExtensionPathResolver(
+            project.config?.project[kProjectLibDir] || "",
+          ),
+        ),
       ]);
 
       // listings extras

@@ -16383,18 +16383,14 @@ try {
                     schema: "string"
                   },
                   type: {
-                    enum: [
-                      "default",
-                      "website",
-                      "book",
-                      "site"
-                    ],
-                    completions: [
-                      "default",
-                      "website",
-                      "book"
-                    ],
-                    description: "Project type (`default`, `website`, or `book`)"
+                    string: {
+                      completions: [
+                        "default",
+                        "website",
+                        "book"
+                      ],
+                      description: "Project type (`default`, `website`, or `book`)"
+                    }
                   },
                   render: {
                     arrayOf: "path",

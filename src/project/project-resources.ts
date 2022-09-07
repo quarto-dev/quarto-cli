@@ -78,15 +78,14 @@ export function copyResourceFile(
 export function fixupCssReferences(
   css: string,
   offset: string,
-  onRef: (ref: string) => void,
+  onRef: (ref: string) => string,
 ) {
   // fixup / copy refs from url()
   let destCss = css.replaceAll(
     kCssUrlRegex,
     (_match, p1: string, p2: string) => {
       const ref = p2.startsWith("/") ? `${offset}${p2.slice(1)}` : p2;
-      onRef(ref);
-      return `url(${p1 || ""}${ref}${p1 || ""})`;
+      return `url(${p1 || ""}${onRef(ref)}${p1 || ""})`;
     },
   );
 
@@ -95,8 +94,7 @@ export function fixupCssReferences(
     kCssImportRegex,
     (_match, p1: string, p2: string) => {
       const ref = p2.startsWith("/") ? `${offset}${p2.slice(1)}` : p2;
-      onRef(ref);
-      return `@import ${p1 || ""}${ref}${p1 || ""}`;
+      return `@import ${p1 || ""}${onRef(ref)}${p1 || ""}`;
     },
   );
 
@@ -123,6 +121,7 @@ function handleCssReferences(
       const refDestPath = join(dirname(destFile), ref);
       copyResourceFile(rootDir, refPath, refDestPath);
     }
+    return ref;
   };
 
   const destCss = fixupCssReferences(css, offset, copyRef);

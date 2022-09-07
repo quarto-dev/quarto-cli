@@ -25,6 +25,7 @@ export interface Extension extends Record<string, unknown> {
   quartoVersion?: Range;
   path: string;
   contributes: {
+    project?: Record<string, unknown>;
     shortcodes?: string[];
     filters?: QuartoFilter[];
     formats?: Record<string, unknown>;
@@ -46,7 +47,7 @@ export interface ExtensionContext {
   find(
     name: string,
     input: string,
-    contributes?: "shortcodes" | "filters" | "formats",
+    contributes?: "shortcodes" | "filters" | "formats" | "project",
     config?: ProjectConfig,
     projectDir?: string,
   ): Promise<Extension[]>;

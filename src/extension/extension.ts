@@ -5,7 +5,7 @@
 *
 */
 
-import { existsSync, expandGlobSync, walkSync } from "fs/mod.ts";
+import { ensureDirSync, existsSync, expandGlobSync, walkSync } from "fs/mod.ts";
 import { warning } from "log/mod.ts";
 import { coerce, Range, satisfies } from "semver/mod.ts";
 
@@ -18,7 +18,11 @@ import { isSubdir } from "fs/_util.ts";
 
 import { dirname, isAbsolute, join, normalize, relative } from "path/mod.ts";
 import { Metadata, QuartoFilter } from "../config/types.ts";
-import { kSkipHidden, resolvePathGlobs } from "../core/path.ts";
+import {
+  kSkipHidden,
+  pathWithForwardSlashes,
+  resolvePathGlobs,
+} from "../core/path.ts";
 import { toInputRelativePaths } from "../project/project-shared.ts";
 import { projectType } from "../project/types/project-types.ts";
 import { mergeConfigs } from "../core/config.ts";
@@ -40,6 +44,8 @@ import { cloneDeep } from "../core/lodash.ts";
 import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
 import { getExtensionConfigSchema } from "../core/lib/yaml-schema/project-config.ts";
 import { projectIgnoreGlobs } from "../project/project-context.ts";
+import { ProjectType } from "../project/types/types.ts";
+import { copyFileIfNewer } from "../core/copy.ts";
 
 // Create an extension context that can be used to load extensions
 // Provides caching such that directories will not be rescanned
@@ -95,6 +101,29 @@ export function createExtensionContext(): ExtensionContext {
     extension,
     extensions,
     find,
+  };
+}
+
+// Resolves resources that are provided by a project into the
+// site_lib directory (for example, a logo that is referenced from)
+// _extensions/confluence/logo.png
+// will be copied and resolved to:
+// site_lib/quarto-contrib/quarto-project/confluence/logo.png
+export function projectExtensionPathResolver(libDir: string) {
+  return (href: string, projectOffset: string) => {
+    if (href.match(/.*\/_extensions\/.*/)) {
+      const targetHref = href.replace(
+        /\/_extensions\//,
+        `${libDir}/quarto-contrib/quarto-project/`,
+      );
+      ensureDirSync(dirname(targetHref));
+      copyFileIfNewer(
+        join(".", href),
+        targetHref,
+      );
+      return pathWithForwardSlashes(join(projectOffset, targetHref));
+    }
+    return href;
   };
 }
 
@@ -161,7 +190,7 @@ const loadExtension = async (
 function findExtensions(
   extensions: Extension[],
   extensionId: ExtensionId,
-  contributes?: "shortcodes" | "filters" | "formats",
+  contributes?: "shortcodes" | "filters" | "formats" | "project",
 ) {
   // Filter the extension based upon what they contribute
   const exts = extensions.filter((ext) => {
@@ -170,6 +199,8 @@ function findExtensions(
     } else if (contributes === "filters" && ext.contributes.filters) {
       return true;
     } else if (contributes === "formats" && ext.contributes.formats) {
+      return true;
+    } else if (contributes === "project" && ext.contributes.project) {
       return true;
     } else {
       return contributes === undefined;
@@ -200,6 +231,18 @@ function findExtensions(
   return sortedMatches;
 }
 
+export function extensionProjectType(
+  extension: Extension,
+  config?: ProjectConfig,
+): ProjectType {
+  if (extension.contributes.project) {
+    const projType = extension.contributes.project?.type as string || "default";
+    return projectType(projType);
+  } else {
+    return projectType(config?.project?.[kProjectType]);
+  }
+}
+
 // Fixes up paths for metatadata provided by an extension
 function resolveExtensionPaths(
   extension: Extension,
@@ -207,8 +250,9 @@ function resolveExtensionPaths(
   config?: ProjectConfig,
 ) {
   const inputDir = Deno.statSync(input).isDirectory ? input : dirname(input);
+
   return toInputRelativePaths(
-    projectType(config?.project?.[kProjectType]),
+    extensionProjectType(extension, config),
     extension.path,
     inputDir,
     extension,
@@ -401,6 +445,7 @@ function validateExtension(extension: Extension) {
     extension.contributes.filters,
     extension.contributes.shortcodes,
     extension.contributes.formats,
+    extension.contributes.project,
   ];
   contribs.forEach((contrib) => {
     if (contrib) {
@@ -478,6 +523,13 @@ async function readExtension(
     ? await readExtensions(join(extensionDir, kExtensionDir))
     : [];
 
+  // Resolve 'default' specially
+  Object.keys(formats).forEach((key) => {
+    if (formats[key] === "default") {
+      formats[key] = {};
+    }
+  });
+
   // Process the special 'common' key by merging it
   // into any key that isn't 'common' and then removing it
   Object.keys(formats).filter((key) => {
@@ -508,6 +560,7 @@ async function readExtension(
   // Alias the contributions
   const shortcodes = (contributes?.shortcodes || []) as string[];
   const filters = (contributes?.filters || {}) as QuartoFilter[];
+  const project = (contributes?.project || {}) as Record<string, unknown>;
 
   // Create the extension data structure
   const result = {
@@ -521,6 +574,7 @@ async function readExtension(
       shortcodes,
       filters,
       formats,
+      project,
     },
   };
   validateExtension(result);
