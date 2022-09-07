@@ -120,6 +120,7 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
   # FIXME this test isn't failing in shiny mode, but it doesn't look to be
   # breaking quarto-shiny-ojs. We should make sure this is right.
   if (!is_shiny_prerendered(knitr::opts_knit$get("rmarkdown.runtime"))) {
+    quarto_format <<- format
     source(file.path(resourceDir, "rmd", "ojs_static.R"))
   }
   render_output <- rmarkdown::render(
