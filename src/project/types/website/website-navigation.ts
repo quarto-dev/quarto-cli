@@ -731,16 +731,21 @@ async function sidebarEjsData(project: ProjectContext, sidebar: Sidebar) {
 
 async function resolveSidebarItems(
   project: ProjectContext,
-  sidebar: SidebarItem,
+  container: { contents?: SidebarItem[] },
 ) {
+  // no op if no contents
+  if (!container.contents) {
+    return;
+  }
+
   const context = sidebarContext();
 
   // see if any 'auto' items need to be expanded
-  sidebar.contents = await expandAutoSidebarItems(
+  container.contents = await expandAutoSidebarItems(
     project,
-    sidebar.contents || [],
+    container.contents || [],
   );
-  const items = sidebar.contents;
+  const items = container.contents;
 
   for (let i = 0; i < items.length; i++) {
     let item = normalizeSidebarItem(project.dir, items[i], context);
@@ -781,7 +786,7 @@ async function resolveSidebarItem(project: ProjectContext, item: SidebarItem) {
     ) as SidebarItem;
   }
 
-  if (item.contents) {
+  if (item.contents !== undefined) {
     await resolveSidebarItems(project, item);
     return item;
   } else {

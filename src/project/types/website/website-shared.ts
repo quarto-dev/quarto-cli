@@ -134,7 +134,11 @@ export function websiteNavigationConfig(project: ProjectContext) {
     // convert contents: auto into items
     for (const sb of sidebars) {
       if (sb.contents && !Array.isArray(sb.contents)) {
-        sb.contents = [sb.contents as SidebarItem];
+        if (sb.contents === "auto") {
+          sb.contents = [{ auto: true }];
+        } else {
+          sb.contents = [sb.contents as SidebarItem];
+        }
       }
     }
   }

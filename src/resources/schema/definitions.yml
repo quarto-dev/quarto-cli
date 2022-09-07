@@ -436,6 +436,7 @@
 
 - id: sidebar-contents
   anyOf:
+    - enum: [auto]
     - ref: contents-auto
     - arrayOf:
         anyOf:

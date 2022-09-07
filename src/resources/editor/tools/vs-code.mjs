@@ -8779,6 +8779,11 @@ var require_yaml_intelligence_resources = __commonJS({
           id: "sidebar-contents",
           anyOf: [
             {
+              enum: [
+                "auto"
+              ]
+            },
+            {
               ref: "contents-auto"
             },
             {
@@ -19311,11 +19316,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
         "Custom tools for navbar or sidebar",
         "The Digital Object Identifier for this book.",
-        "internal-schema-hack",
-        {
-          short: "semver version range for required quarto version",
-          long: "A semver version range describing the supported quarto versions for\nthis document or project.\nExamples:"
-        }
+        "internal-schema-hack"
       ],
       "schema/external-schemas.yml": [
         {
