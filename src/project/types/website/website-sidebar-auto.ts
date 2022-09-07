@@ -30,7 +30,7 @@ export async function expandAutoSidebarItems(
   project: ProjectContext,
   items: SidebarItem[],
 ) {
-  items = ld.cloneDeep(items);
+  items = normalizeSidebarItems(ld.cloneDeep(items));
   const expanded: SidebarItem[] = [];
   for (const item of items) {
     if (item.auto) {
@@ -46,6 +46,24 @@ export async function expandAutoSidebarItems(
   return expanded;
 }
 
+// sidebar items (e.g. contents: ) are an array in the type system, however
+// contents: auto and contents: auto: true are both valid, which are not
+// arrays -- here we fix it all up
+function normalizeSidebarItems(items: SidebarItem[]) {
+  if (!Array.isArray(items)) {
+    if (typeof (items) === "string") {
+      if (items === "auto") {
+        items = [{ auto: true }];
+      } else {
+        items = [{ auto: items }];
+      }
+    } else {
+      items = [items as SidebarItem];
+    }
+  }
+  return items;
+}
+
 async function sidebarItemsFromAuto(
   project: ProjectContext,
   auto: boolean | string | string[],
@@ -54,14 +72,19 @@ async function sidebarItemsFromAuto(
   const globs: string[] = globsFromAuto(project, auto);
 
   // scan for inputs and organize them into heirarchical nodes
-  const nodes = autoSidebarNodes(project, globs);
-
-  // convert the nodes into entries that have titles resolved,
-  // sort order manifested, etc.
-  const entries = await nodesToEntries(project, "", nodes);
+  const entries: Entry[] = [];
+  for (const nodeSet of autoSidebarNodes(project, globs)) {
+    entries.push(
+      ...await nodesToEntries(
+        project,
+        `${nodeSet.root ? nodeSet.root + "/" : ""}`,
+        nodeSet.nodes,
+      ),
+    );
+  }
 
   // convert the entries into proper sidebar items
-  return sidebarItemsFromEntries(entries);
+  return sidebarItemsFromEntries(entries.sort(sortEntries));
 }
 
 function globsFromAuto(
@@ -95,30 +118,48 @@ type SidebarNodes = Record<string, any>;
 function autoSidebarNodes(
   project: ProjectContext,
   globs: string[],
-): Record<string, SidebarNodes> {
-  // get inputs (filter out index files, they are used as section targets)
-  const inputs = (ld.uniq(
-    filterPaths(
-      project.dir,
-      project.files.input,
-      globs,
-      { mode: "always" },
-    ).include,
-  ) as string[])
-    .map((input) => pathWithForwardSlashes(relative(project.dir, input)))
-    .filter((input) => !/\/?index\.\w+$/.test(input));
+): { root: string; nodes: Record<string, SidebarNodes> }[] {
+  return globs.map((glob) => {
+    const inputs = (ld.uniq(
+      filterPaths(
+        project.dir,
+        project.files.input,
+        [glob],
+        { mode: "always" },
+      ).include,
+    ) as string[])
+      .map((input) => pathWithForwardSlashes(relative(project.dir, input)))
+      .filter((input) => !/\/?index\.\w+$/.test(input));
 
-  // split into directory heirarchy
-  const result: Record<string, SidebarNodes> = {};
-  inputs.forEach((p) =>
-    p.split("/").reduce(
-      (o, k) => o[k] = o[k] || {},
-      result,
-    )
-  );
+    // is this a directory glob?
+    let directory = "";
+    const match = glob.match(/(.*?)\/\*.*$/);
+    if (match && safeExistsSync(join(project.dir, match[1]))) {
+      directory = match[1];
+    }
 
-  // return result
-  return result;
+    // split into directory heirarchy
+    let result: Record<string, SidebarNodes> = {};
+    inputs.forEach((p) =>
+      p.split("/").reduce(
+        (o, k) => o[k] = o[k] || {},
+        result,
+      )
+    );
+
+    // index into the nodes based on the directory
+    if (directory) {
+      directory.split("/").forEach((p) => {
+        result = result[p];
+      });
+    }
+
+    // return the root and result
+    return {
+      root: directory,
+      nodes: result,
+    };
+  });
 }
 
 type Entry = {
@@ -171,27 +212,30 @@ async function nodesToEntries(
   }
 
   // order the entries using 'order' and 'title'
-  return entries.sort((a, b) => {
-    const titleOrder = a.title.toLocaleUpperCase().localeCompare(
-      b.title.toLocaleUpperCase(),
-    );
-    if (a.children && !b.children) {
-      return 1;
-    } else if (b.children && !a.children) {
-      return -1;
-    }
-    if (a.order !== undefined && b.order !== undefined) {
-      const order = a.order - b.order;
-      return order !== 0 ? order : titleOrder;
-    } else if (a.order !== undefined) {
-      return -1;
-    } else if (b.order !== undefined) {
-      return 1;
-    } else {
-      return titleOrder;
-    }
-  });
+  return entries.sort(sortEntries);
 }
+
+function sortEntries(a: Entry, b: Entry) {
+  const titleOrder = a.title.toLocaleUpperCase().localeCompare(
+    b.title.toLocaleUpperCase(),
+  );
+  if (a.children && !b.children) {
+    return 1;
+  } else if (b.children && !a.children) {
+    return -1;
+  }
+  if (a.order !== undefined && b.order !== undefined) {
+    const order = a.order - b.order;
+    return order !== 0 ? order : titleOrder;
+  } else if (a.order !== undefined) {
+    return -1;
+  } else if (b.order !== undefined) {
+    return 1;
+  } else {
+    return titleOrder;
+  }
+}
+
 async function entryFromHref(project: ProjectContext, href: string) {
   const index = await inputTargetIndex(project, href);
   return {

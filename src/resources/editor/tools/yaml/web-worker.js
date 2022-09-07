@@ -8779,11 +8779,7 @@ try {
           {
             id: "sidebar-contents",
             anyOf: [
-              {
-                enum: [
-                  "auto"
-                ]
-              },
+              "string",
               {
                 ref: "contents-auto"
               },

@@ -8778,11 +8778,7 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           id: "sidebar-contents",
           anyOf: [
-            {
-              enum: [
-                "auto"
-              ]
-            },
+            "string",
             {
               ref: "contents-auto"
             },
