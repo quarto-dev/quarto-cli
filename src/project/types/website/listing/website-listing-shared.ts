@@ -86,6 +86,7 @@ export const kFieldImageAlt = "image-alt";
 export const kFieldDescription = "description";
 export const kFieldReadingTime = "reading-time";
 export const kFieldCategories = "categories";
+export const kFieldOrder = "order";
 
 // Shared options
 export const kCategoryStyle = "category-style";
