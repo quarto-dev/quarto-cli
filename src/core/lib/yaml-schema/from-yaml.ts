@@ -25,6 +25,7 @@ import {
 import {
   allOfSchema as allOfS,
   anyOfSchema as anyOfS,
+  anySchema as anyS,
   arraySchema as arrayOfS,
   completeSchema,
   completeSchemaOverwrite,
@@ -449,6 +450,7 @@ export function convertFromYaml(yaml: any): ConcreteSchema {
     { val: "string", schema: stringS },
     { val: "number", schema: numberS },
     { val: "boolean", schema: booleanS },
+    { val: "any", schema: anyS() },
     { val: null, schema: nullS },
   ];
   for (const { val, schema } of literalValues) {

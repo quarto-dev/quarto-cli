@@ -16613,6 +16613,7 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           id: "schema/base",
           object: {
+            closed: true,
             properties: {
               additionalCompletions: {
                 arrayOf: "string"
@@ -16626,19 +16627,8 @@ var require_yaml_intelligence_resources = __commonJS({
               errorDescription: "string",
               description: {
                 ref: "schema/description"
-              }
-            },
-            propertyNames: {
-              enum: [
-                "additionalCompletions",
-                "completions",
-                "id",
-                "hidden",
-                "tags",
-                "errorDescription",
-                "description",
-                "default"
-              ]
+              },
+              default: "any"
             }
           }
         },
@@ -17094,7 +17084,8 @@ var require_yaml_intelligence_resources = __commonJS({
                 "string",
                 null,
                 "null",
-                "object"
+                "object",
+                "any"
               ]
             }
           ],
@@ -19344,12 +19335,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 79242,
+        _internalId: 128896,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 79241,
+            _internalId: 128895,
             type: "enum",
             enum: [
               "png",
@@ -26481,6 +26472,7 @@ function validateGeneric(value, s, context) {
       return false;
     },
     "true": (_) => true,
+    "any": (schema2) => validateAny(value, schema2, context),
     "boolean": (schema2) => validateBoolean(value, schema2, context),
     "number": (schema2) => validateNumber(value, schema2, context),
     "string": (schema2) => validateString(value, schema2, context),
@@ -26504,6 +26496,9 @@ function typeIsValid(value, schema2, context, valid) {
     );
   }
   return valid;
+}
+function validateAny(_value, _schema, _context) {
+  return true;
 }
 function validateBoolean(value, schema2, context) {
   return typeIsValid(value, schema2, context, typeof value.result === "boolean");
@@ -26965,6 +26960,13 @@ function tagSchema(schema2, tags) {
       ...schema2.tags || {},
       ...tags
     }
+  };
+}
+function anySchema(description) {
+  return {
+    ...internalId(),
+    description,
+    "type": "any"
   };
 }
 function enumSchema(...args) {
@@ -27814,6 +27816,7 @@ function convertFromYaml(yaml) {
     { val: "string", schema: stringSchema },
     { val: "number", schema: numberSchema },
     { val: "boolean", schema: booleanSchema },
+    { val: "any", schema: anySchema() },
     { val: null, schema: nullSchema }
   ];
   for (const { val, schema: schema2 } of literalValues) {

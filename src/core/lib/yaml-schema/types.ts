@@ -27,6 +27,7 @@ export type Schema =
   | StringSchema
   | NullSchema
   | EnumSchema
+  | AnySchema
   | AnyOfSchema
   | AllOfSchema
   | ArraySchema
@@ -34,6 +35,7 @@ export type Schema =
   | RefSchema;
 
 export type ConcreteSchema =
+  | AnySchema
   | BooleanSchema
   | NumberSchema
   | StringSchema
@@ -46,6 +48,7 @@ export type ConcreteSchema =
   | RefSchema;
 
 export type SchemaType =
+  | "any"
   | "false"
   | "true"
   | "boolean"
@@ -157,6 +160,11 @@ export interface BooleanSchema extends SchemaAnnotations {
   "type": "boolean";
 }
 
+// this is not JSON schema, but makes our life easier.
+export interface AnySchema extends SchemaAnnotations {
+  "type": "any";
+}
+
 export interface NumberSchema extends SchemaAnnotations {
   "type": "number" | "integer";
   minimum?: number;
@@ -231,6 +239,7 @@ export function schemaType(schema: Schema): SchemaType {
 }
 
 interface SchemaDispatch {
+  "any"?: (x: AnySchema) => unknown;
   "false"?: (x: FalseSchema) => unknown;
   "true"?: (x: TrueSchema) => unknown;
   "boolean"?: (x: BooleanSchema) => unknown;
@@ -247,6 +256,7 @@ interface SchemaDispatch {
 }
 
 export interface SchemaCall<T> {
+  "any"?: (x: AnySchema) => T;
   "false"?: (x: FalseSchema) => T;
   "true"?: (x: TrueSchema) => T;
   "boolean"?: (x: BooleanSchema) => T;

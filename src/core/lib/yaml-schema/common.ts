@@ -17,6 +17,7 @@ import { CaseConvention, resolveCaseConventionRegex } from "../text.ts";
 import {
   AllOfSchema,
   AnyOfSchema,
+  AnySchema,
   ArraySchema,
   ConcreteSchema,
   EnumSchema,
@@ -69,9 +70,13 @@ export function numericSchema(obj: {
   }, obj);
 }
 
-// export const anySchema = {
-//   "description": "be anything",
-// };
+export function anySchema(description?: string): AnySchema {
+  return {
+    ...internalId(),
+    description,
+    "type": "any",
+  };
+}
 
 export function enumSchema(...args: JSONValue[]): EnumSchema {
   if (args.length === 0) {

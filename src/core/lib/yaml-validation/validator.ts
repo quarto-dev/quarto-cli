@@ -11,6 +11,7 @@ import {
   AllOfSchema,
   AnnotatedParse,
   AnyOfSchema,
+  AnySchema,
   ArraySchema,
   BooleanSchema,
   EnumSchema,
@@ -240,6 +241,7 @@ function validateGeneric(
         return false;
       },
       "true": (_: true) => true,
+      "any": (schema: AnySchema) => validateAny(value, schema, context),
       "boolean": (schema: BooleanSchema) =>
         validateBoolean(value, schema, context),
       "number": (schema: NumberSchema) =>
@@ -274,6 +276,14 @@ function typeIsValid(
     );
   }
   return valid;
+}
+
+function validateAny(
+  _value: AnnotatedParse,
+  _schema: AnySchema,
+  _context: ValidationContext,
+): boolean {
+  return true;
 }
 
 function validateBoolean(
