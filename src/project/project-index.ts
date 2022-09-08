@@ -143,11 +143,21 @@ export function readInputTargetIndex(
 }
 
 export function inputTargetIsEmpty(index: InputTargetIndex) {
-  if (index.markdown.yaml !== undefined) {
-    return !Object.keys(index.markdown.yaml).find((key) => key !== kTitle);
-  } else {
-    return index.markdown.markdown.trim().length === 0;
+  // if we have markdown we are not empty
+  if (index.markdown.markdown.trim().length > 0) {
+    return false;
   }
+
+  // if we have a key other than title we are not empty
+  if (
+    index.markdown.yaml &&
+    Object.keys(index.markdown.yaml).find((key) => key !== kTitle)
+  ) {
+    return false;
+  }
+
+  // otherwise we are empty
+  return true;
 }
 
 function readInputTargetIndexIfStillCurrent(projectDir: string, input: string) {
