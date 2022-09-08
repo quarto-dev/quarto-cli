@@ -16,6 +16,7 @@
 
 - id: schema/base
   object:
+    closed: true
     properties:
       additionalCompletions:
         arrayOf: string
@@ -27,16 +28,7 @@
       errorDescription: string
       description:
         ref: schema/description
-    propertyNames:
-      enum:
-        - additionalCompletions
-        - completions
-        - id
-        - hidden
-        - tags
-        - errorDescription
-        - description
-        - default # don't validate but accept
+      default: any
 
 - id: schema/enum
   object:
@@ -296,7 +288,8 @@
     - ref: schema/all-of
     - ref: schema/record
     - ref: schema/object
-    - enum: ["number", "boolean", "path", "string", null, "null", "object"]
+    - enum:
+        ["number", "boolean", "path", "string", null, "null", "object", "any"]
   description: "be a yaml schema"
 
 - id: schema/schema-field

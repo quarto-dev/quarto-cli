@@ -11,6 +11,7 @@ import {
   AllOfSchema,
   AnnotatedParse,
   AnyOfSchema,
+  AnySchema,
   ArraySchema,
   BooleanSchema,
   EnumSchema,
@@ -133,7 +134,7 @@ class ValidationContext {
 
         // more generally, it seems that we want to weigh our decisions
         // towards schema that have validated large parts of the overall object.
-        // we don't have a wait to record that right now, though.
+        // we don't have a way to record that right now, though.
         const innerResults: ValidationError[][] = node.children.map(inner);
 
         const isRequiredError = (e: ValidationError) =>
@@ -240,6 +241,7 @@ function validateGeneric(
         return false;
       },
       "true": (_: true) => true,
+      "any": (schema: AnySchema) => validateAny(value, schema, context),
       "boolean": (schema: BooleanSchema) =>
         validateBoolean(value, schema, context),
       "number": (schema: NumberSchema) =>
@@ -274,6 +276,14 @@ function typeIsValid(
     );
   }
   return valid;
+}
+
+function validateAny(
+  _value: AnnotatedParse,
+  _schema: AnySchema,
+  _context: ValidationContext,
+): boolean {
+  return true;
 }
 
 function validateBoolean(
@@ -546,6 +556,25 @@ function validateObject(
     throw new Error(`Internal Error, couldn't locate key ${key}`);
   };
   const inspectedProps: Set<string> = new Set();
+  if (schema.closed) {
+    result = context.withSchemaPath("closed", () => {
+      if (schema.properties === undefined) {
+        throw new Error("Internal Error: closed schemas need properties");
+      }
+      let innerResult = true;
+      for (const key of ownProperties) {
+        if (!schema.properties[key]) {
+          context.error(
+            locate(key, "key"),
+            schema,
+            `object has invalid field ${key}`,
+          );
+          innerResult = false;
+        }
+      }
+      return innerResult;
+    }) && result;
+  }
   if (schema.properties !== undefined) {
     result = context.withSchemaPath("properties", () => {
       let result = true;

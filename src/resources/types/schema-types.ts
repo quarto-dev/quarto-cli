@@ -227,7 +227,7 @@ to override the title for this provider. */
 export type PageFooterRegion = string | (NavigationItem)[];
 
 export type SidebarContents =
-  | "auto"
+  | string
   | ContentsAuto
   | ((NavigationItem | string | {
     contents?: SidebarContents;
