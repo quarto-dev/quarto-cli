@@ -38,12 +38,57 @@ export async function expandAutoSidebarItems(
       expanded.push(...autoItems);
     } else {
       if (item.contents) {
+        if (typeof (item.contents) === "string") {
+          // if this is a section, check to see if we should be linking to an
+          // index file inside the section
+          if (item.section) {
+            // don't add link if there already is one
+            const hasProjectHref = project.files.input.includes(
+              join(project.dir, item.section),
+            ) || (item.href && project.files.input.includes(
+              join(project.dir, item.href),
+            ));
+            if (!hasProjectHref) {
+              // is this a globbed directory?
+              const globbedDir = globbedDirectory(project, item.contents);
+              if (globbedDir) {
+                const indexFileHref = indexFileHrefForDir(project, globbedDir);
+                if (indexFileHref) {
+                  item.text = item.section;
+                  item.section = indexFileHref;
+                }
+              }
+            }
+          }
+        }
+        // expand contents
         item.contents = await expandAutoSidebarItems(project, item.contents);
       }
       expanded.push(item);
     }
   }
   return expanded;
+}
+
+function globbedDirectory(project: ProjectContext, contentsGlob: string) {
+  const isValidDirectory = (dir: string) => {
+    return safeExistsSync(dir) && Deno.statSync(dir).isDirectory;
+  };
+
+  // literal target dir
+  const literalTargetDir = join(project.dir, contentsGlob);
+  if (isValidDirectory(literalTargetDir)) {
+    return literalTargetDir;
+  }
+
+  // glob pattern (e.g. foo/* or foo/** )
+  const match = contentsGlob.match(/(.*?)\/\*.*$/);
+  if (match) {
+    const globTargetDir = join(project.dir, match[1]);
+    if (isValidDirectory(globTargetDir)) {
+      return globTargetDir;
+    }
+  }
 }
 
 // sidebar items (e.g. contents: ) are an array in the type system, however
@@ -170,6 +215,15 @@ type Entry = {
   children?: Entry[];
 };
 
+function indexFileHrefForDir(project: ProjectContext, dir: string) {
+  const indexFileExt = engineValidExtensions().find((ext) => {
+    return safeExistsSync(join(dir, `index${ext}`));
+  });
+  if (indexFileExt) {
+    return relative(project.dir, join(dir, `index${indexFileExt}`));
+  }
+}
+
 async function nodesToEntries(
   project: ProjectContext,
   root: string,
@@ -183,12 +237,10 @@ async function nodesToEntries(
     if (safeExistsSync(path)) {
       if (Deno.statSync(path).isDirectory) {
         // use index file if available
-        const indexFileExt = engineValidExtensions().find((ext) => {
-          return safeExistsSync(join(path, `index${ext}`));
-        });
-        if (indexFileExt) {
+        const indexFileHref = indexFileHrefForDir(project, path);
+        if (indexFileHref) {
           entries.push({
-            ...await entryFromHref(project, join(href, `index${indexFileExt}`)),
+            ...await entryFromHref(project, indexFileHref),
             children: await nodesToEntries(
               project,
               `${root}${node}/`,
