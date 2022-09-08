@@ -1,0 +1,19 @@
+---
+title: Crossrefs in Callouts
+format: latex
+---
+
+![It's an ele bro](img/painter.jpg){#fig-elephant}
+
+:::{.callout-note icon="false"}
+## response
+
+some text
+
+![Another ele](img/abbas.jpg){#fig-elephant-callout}
+
+:::
+
+
+
+

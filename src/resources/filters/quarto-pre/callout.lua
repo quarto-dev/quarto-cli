@@ -273,8 +273,8 @@ function calloutLatex(div)
   tappend(calloutContents, div.content)
   
   if calloutContents[1] ~= nil and calloutContents[1].t == "Para" and calloutContents[#calloutContents].t == "Para" then
-    tprepend(calloutContents[1].content, beginEnvironment)
-    tappend(calloutContents[#calloutContents].content, endEnvironment)
+    tprepend(calloutContents, { pandoc.Plain(beginEnvironment) })
+    tappend(calloutContents, { pandoc.Plain(endEnvironment) })
   else
     tprepend(calloutContents, { pandoc.Para(beginEnvironment) })
     tappend(calloutContents, { pandoc.Para(endEnvironment) })
