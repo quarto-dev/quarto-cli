@@ -130,7 +130,7 @@ export function insertExplicitTimingEntries(
 }
 
 export async function getLuaTiming(): Promise<[number, number]> {
-  if (Deno.env.get("QUARTO_PROFILE")) {
+  if (Deno.env.get("QUARTO_PROFILER_OUTPUT")) {
     return [
       Number(
         (await execProcess({

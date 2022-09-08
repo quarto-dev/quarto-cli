@@ -15,7 +15,7 @@ end
 function writeResults()
   return {
     Pandoc = function(doc)
-      if os.getenv("QUARTO_PROFILE") ~= nil then
+      if os.getenv("QUARTO_PROFILER_OUTPUT") ~= nil then
         local jsonResults = quarto.json.encode(preState.results)
         local rfile = io.open(resultsFile(), "w")
         rfile:write(jsonResults)

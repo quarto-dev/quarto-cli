@@ -32,7 +32,11 @@ import {
 
 import { isYamlPath, readYaml } from "../core/yaml.ts";
 import { mergeConfigs } from "../core/config.ts";
-import { kSkipHidden, pathWithForwardSlashes } from "../core/path.ts";
+import {
+  kSkipHidden,
+  pathWithForwardSlashes,
+  safeExistsSync,
+} from "../core/path.ts";
 
 import { includedMetadata, mergeProjectMetadata } from "../config/metadata.ts";
 import {
@@ -78,7 +82,9 @@ import { getProjectConfigSchema } from "../core/lib/yaml-schema/project-config.t
 import { getFrontMatterSchema } from "../core/lib/yaml-schema/front-matter.ts";
 import { kDefaultProjectFileContents } from "./types/project-default.ts";
 import { createExtensionContext } from "../extension/extension.ts";
-import { warning } from "log/mod.ts";
+import { error, warning } from "log/mod.ts";
+import { activeProfiles } from "../core/profile.ts";
+import { Schema } from "../core/lib/yaml-schema/types.ts";
 
 export function deleteProjectMetadata(metadata: Metadata) {
   // see if the active project type wants to filter the config printed
@@ -151,6 +157,15 @@ export async function projectContext(
           dir,
         );
       }
+
+      //  merge configuration profiles
+      const profileResult = await mergeConfigurationProfiles(
+        dir,
+        projectConfig,
+        configSchema,
+      );
+      projectConfig = profileResult.config;
+      configFiles.push(...profileResult.files);
 
       // read vars and merge into the project
       const varsFile = projectVarsFile(dir);
@@ -306,6 +321,55 @@ export async function projectContext(
       }
     }
   }
+}
+
+async function mergeConfigurationProfiles(
+  dir: string,
+  config: ProjectConfig,
+  schema: Schema,
+) {
+  // config files to return
+  const files: string[] = [];
+
+  // get declared profiles
+  const kProfiles = "profiles";
+  const profiles = config[kProfiles] as
+    | Record<string, string | ProjectConfig>
+    | undefined;
+
+  // merge all active profiles
+  if (profiles) {
+    for (const profileName of activeProfiles()) {
+      const profile = profiles[profileName];
+      if (typeof (profile) === "string") { // string means file
+        const profilePath = join(dir, profile);
+        if (!safeExistsSync(profilePath)) {
+          throw new Error(
+            `Project configuration profile file ${profile} not found.`,
+          );
+        }
+        try {
+          const yaml = await readAndValidateYamlFromFile(
+            profilePath,
+            schema,
+            `Validation of configuration profile file ${profile} failed.`,
+          );
+          config = mergeProjectMetadata(config, yaml);
+          files.push(profilePath);
+        } catch (e) {
+          error(
+            "\nError reading configuration profile file from " + profile +
+              "\n",
+          );
+          throw e;
+        }
+      } else if (profile !== undefined) { // otherwise is object
+        config = mergeProjectMetadata(config, profile);
+      }
+    }
+  }
+
+  return { config, files };
 }
 
 async function resolveProjectExtension(

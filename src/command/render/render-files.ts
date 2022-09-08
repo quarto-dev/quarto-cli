@@ -501,9 +501,9 @@ export async function renderFiles(
     };
   } finally {
     tempContext.cleanup();
-    if (Deno.env.get("QUARTO_PROFILE")) {
+    if (Deno.env.get("QUARTO_PROFILER_OUTPUT")) {
       Deno.writeTextFileSync(
-        Deno.env.get("QUARTO_PROFILE")!,
+        Deno.env.get("QUARTO_PROFILER_OUTPUT")!,
         JSON.stringify(getTimingData()),
       );
     }

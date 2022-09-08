@@ -10,7 +10,7 @@ function get_current_time()
   return result
 end
 
-if os.getenv("QUARTO_PROFILE") ~= nil then
+if os.getenv("QUARTO_PROFILER_OUTPUT") ~= nil then
   timing_events = { { name = "_start", time = get_current_time() } }
 else
   timing_events = {}
@@ -27,7 +27,7 @@ end
 function capture_timings(filterList)
   local finalResult = {}
 
-  if os.getenv("QUARTO_PROFILE") ~= nil then
+  if os.getenv("QUARTO_PROFILER_OUTPUT") ~= nil then
     for i, v in ipairs(filterList) do
       local newFilter = {}
       local oldPandoc = v["filter"]["Pandoc"]

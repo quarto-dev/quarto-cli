@@ -46,6 +46,7 @@ import "./core/handlers/handlers.ts";
 
 // ensures project types are registered
 import "./project/types/register.ts";
+import { appendProfileOptions, initializeProfile } from "./core/profile.ts";
 
 export async function quarto(
   args: string[],
@@ -132,10 +133,20 @@ if (import.meta.main) {
       Deno.addSignalListener("SIGTERM", abend);
     }
 
-    await initializeLogger(logOptions(parse(Deno.args)));
+    // parse args
+    const args = parse(Deno.args);
+
+    // initialize logger
+    await initializeLogger(logOptions(args));
+
+    // initialize profile
+    initializeProfile(args);
 
     // run quarto
-    await quarto(Deno.args, appendLogOptions);
+    await quarto(Deno.args, (cmd) => {
+      cmd = appendLogOptions(cmd);
+      return appendProfileOptions(cmd);
+    });
 
     await cleanupLogger();
 

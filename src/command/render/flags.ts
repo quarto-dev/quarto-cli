@@ -423,6 +423,7 @@ export function fixupPandocArgs(pandocArgs: string[], flags: RenderFlags) {
   removeArgs.set("--lf", true);
   removeArgs.set("--quiet", false);
   removeArgs.set("--q", false);
+  removeArgs.set("--profile", true);
 
   // Remove un-needed pandoc args (including -M/--metadata as appropriate)
   pandocArgs = removePandocArgs(pandocArgs, removeArgs);
