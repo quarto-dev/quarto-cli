@@ -5,7 +5,7 @@
 *
 */
 
-import { ensureDirSync, existsSync, expandGlobSync, walkSync } from "fs/mod.ts";
+import { existsSync, expandGlobSync, walkSync } from "fs/mod.ts";
 import { warning } from "log/mod.ts";
 import { coerce, Range, satisfies } from "semver/mod.ts";
 
@@ -16,20 +16,9 @@ import {
 } from "../project/types.ts";
 import { isSubdir } from "fs/_util.ts";
 
-import {
-  dirname,
-  extname,
-  isAbsolute,
-  join,
-  normalize,
-  relative,
-} from "path/mod.ts";
+import { dirname, isAbsolute, join, normalize, relative } from "path/mod.ts";
 import { Metadata, QuartoFilter } from "../config/types.ts";
-import {
-  kSkipHidden,
-  pathWithForwardSlashes,
-  resolvePathGlobs,
-} from "../core/path.ts";
+import { kSkipHidden, resolvePathGlobs } from "../core/path.ts";
 import { toInputRelativePaths } from "../project/project-shared.ts";
 import { projectType } from "../project/types/project-types.ts";
 import { mergeConfigs } from "../core/config.ts";
@@ -52,7 +41,6 @@ import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
 import { getExtensionConfigSchema } from "../core/lib/yaml-schema/project-config.ts";
 import { projectIgnoreGlobs } from "../project/project-context.ts";
 import { ProjectType } from "../project/types/types.ts";
-import { copyFileIfNewer } from "../core/copy.ts";
 import { copyResourceFile } from "../project/project-resources.ts";
 
 // Create an extension context that can be used to load extensions
