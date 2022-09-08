@@ -9,8 +9,11 @@
 
 import {
   allOfSchema as allOfS,
+  anyOfSchema,
   describeSchema,
   objectSchema as objectS,
+  refSchema,
+  regexSchema,
 } from "./common.ts";
 
 import { objectSchemaFromFieldsObject, SchemaField } from "./from-yaml.ts";
@@ -95,11 +98,19 @@ export const getProjectConfigSchema = defineCached(
     const projectConfigFields = await getProjectConfigFieldsSchema();
     const execute = await getFormatExecuteOptionsSchema();
     const format = await getFrontMatterFormatSchema();
+
+    const profile = objectS({
+      additionalProperties: anyOfSchema(
+        regexSchema(".+"),
+        refSchema("project-config", "a project configuration schema"),
+      ),
+    });
     const result = allOfS(
       objectS({
         properties: {
           execute,
           format,
+          // profile,
         },
         description: "be a Quarto YAML front matter object",
       }),

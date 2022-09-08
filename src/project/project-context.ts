@@ -332,8 +332,8 @@ async function mergeConfigurationProfiles(
   const files: string[] = [];
 
   // get declared profiles
-  const kProfiles = "profiles";
-  const profiles = config[kProfiles] as
+  const kProfile = "profile";
+  const profiles = config[kProfile] as
     | Record<string, string | ProjectConfig>
     | undefined;
 
