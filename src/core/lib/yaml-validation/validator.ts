@@ -209,11 +209,6 @@ class ValidationContext {
         return result;
       }
     };
-    const oldPruneErrors = pruneErrors;
-    pruneErrors = false;
-    const allErrors = inner(this.root);
-    pruneErrors = oldPruneErrors;
-    console.log({ allErrors });
     const errors = inner(this.root);
 
     const result = errors.map((validationError) =>
@@ -553,9 +548,12 @@ function validateObject(
   const inspectedProps: Set<string> = new Set();
   if (schema.closed) {
     result = context.withSchemaPath("closed", () => {
+      if (schema.properties === undefined) {
+        throw new Error("Internal Error: closed schemas need properties");
+      }
       let innerResult = true;
       for (const key of ownProperties) {
-        if (!(schema.properties && ?.[key]) {
+        if (!schema.properties[key]) {
           context.error(
             locate(key, "key"),
             schema,
