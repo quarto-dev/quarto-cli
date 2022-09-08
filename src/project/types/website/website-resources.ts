@@ -112,9 +112,11 @@ function resolveTag(
         tag.setAttribute(attrib, forceRoot + href.slice(1));
       }
     } else if (href.startsWith("/") && !href.startsWith("//")) {
-      href = resolvePath(href, projectOffset);
+      // This is a project path, offset it
+      href = resolvePath(projectOffset + href, projectOffset);
       tag.setAttribute(attrib, href);
     } else {
+      // This is not a project path, just pass it through
       href = resolvePath(href, projectOffset);
       tag.setAttribute(attrib, href);
     }

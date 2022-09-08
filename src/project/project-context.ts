@@ -338,9 +338,22 @@ async function resolveProjectExtension(
     const projectExt = extension.contributes.project;
 
     if (projectExt) {
-      // The project type
-      const extProjType = projectExt.type as string || "default";
-      projectConfig.project[kProjectType] = extProjType;
+      // Ensure that we replace the project type with a
+      // system supported project type (rather than the extension name)
+      const extProjType = () => {
+        const projectMeta = projectExt.project;
+        if (projectMeta && typeof (projectMeta) === "object") {
+          const extType = (projectMeta as Record<string, unknown>).type;
+          if (typeof (extType) === "string") {
+            return extType;
+          } else {
+            return "default";
+          }
+        } else {
+          return "default";
+        }
+      };
+      projectConfig.project[kProjectType] = extProjType();
 
       // Merge config
       projectConfig = mergeConfigs(

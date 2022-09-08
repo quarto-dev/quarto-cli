@@ -16,7 +16,14 @@ import {
 } from "../project/types.ts";
 import { isSubdir } from "fs/_util.ts";
 
-import { dirname, isAbsolute, join, normalize, relative } from "path/mod.ts";
+import {
+  dirname,
+  extname,
+  isAbsolute,
+  join,
+  normalize,
+  relative,
+} from "path/mod.ts";
 import { Metadata, QuartoFilter } from "../config/types.ts";
 import {
   kSkipHidden,
@@ -46,6 +53,7 @@ import { getExtensionConfigSchema } from "../core/lib/yaml-schema/project-config
 import { projectIgnoreGlobs } from "../project/project-context.ts";
 import { ProjectType } from "../project/types/types.ts";
 import { copyFileIfNewer } from "../core/copy.ts";
+import { copyResourceFile } from "../project/project-resources.ts";
 
 // Create an extension context that can be used to load extensions
 // Provides caching such that directories will not be rescanned
@@ -111,18 +119,18 @@ export function createExtensionContext(): ExtensionContext {
 // site_lib/quarto-contrib/quarto-project/confluence/logo.png
 export function projectExtensionPathResolver(libDir: string) {
   return (href: string, projectOffset: string) => {
-    if (href.match(/.*\/_extensions\/.*/)) {
-      const targetHref = href.replace(
-        /\/_extensions\//,
+    const projectRelativeHref = relative(projectOffset, href);
+
+    if (projectRelativeHref.startsWith("_extensions/")) {
+      const projectTargetHref = projectRelativeHref.replace(
+        /^_extensions\//,
         `${libDir}/quarto-contrib/quarto-project/`,
       );
-      ensureDirSync(dirname(targetHref));
-      copyFileIfNewer(
-        join(".", href),
-        targetHref,
-      );
-      return pathWithForwardSlashes(join(projectOffset, targetHref));
+
+      copyResourceFile(".", projectRelativeHref, projectTargetHref);
+      return join(projectOffset, projectTargetHref);
     }
+
     return href;
   };
 }
