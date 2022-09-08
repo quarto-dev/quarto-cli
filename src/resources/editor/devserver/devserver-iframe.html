@@ -36,7 +36,7 @@
   function initialize() {
     var linkEls = document.getElementsByTagName("a");
     for (var linkEl of linkEls) {
-      if (!isLocalHref(linkEl.href)) {
+      if (linkEl.href && !isLocalHref(linkEl.href)) {
         ensureLinkOpensInNewWindow(linkEl);
       }
     }
