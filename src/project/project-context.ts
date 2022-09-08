@@ -34,7 +34,7 @@ import { isYamlPath, readYaml } from "../core/yaml.ts";
 import { mergeConfigs } from "../core/config.ts";
 import { kSkipHidden, pathWithForwardSlashes } from "../core/path.ts";
 
-import { includedMetadata } from "../config/metadata.ts";
+import { includedMetadata, mergeProjectMetadata } from "../config/metadata.ts";
 import {
   kHtmlMathMethod,
   kLanguageDefaults,
@@ -135,7 +135,7 @@ export async function projectContext(
       );
       const metadata = includedMeta.metadata;
       configFiles.push(...includedMeta.files);
-      projectConfig = mergeConfigs(projectConfig, metadata);
+      projectConfig = mergeProjectMetadata(projectConfig, metadata);
       delete projectConfig[kMetadataFile];
       delete projectConfig[kMetadataFiles];
 
@@ -356,7 +356,7 @@ async function resolveProjectExtension(
       projectConfig.project[kProjectType] = extProjType();
 
       // Merge config
-      projectConfig = mergeConfigs(
+      projectConfig = mergeProjectMetadata(
         projectExt as ProjectConfig,
         projectConfig,
       );

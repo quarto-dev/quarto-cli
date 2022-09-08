@@ -235,11 +235,56 @@ export function metadataGetDeep(metadata: Metadata, property: string) {
   return values;
 }
 
-// certain keys are unmergeable (e.g. because they are an array type
-// that should not be combined with other types)
-const kUnmergeableKeys = [kTblColwidths];
-
 export function mergeFormatMetadata<T>(
+  config: T,
+  ...configs: Array<T>
+) {
+  // certain keys are unmergeable (e.g. because they are an array type
+  // that should not be combined with other types)
+  const kUnmergeableKeys = [kTblColwidths];
+
+  return mergeConfigsCustomized<T>(
+    (_objValue: unknown, srcValue: unknown, key: string) => {
+      if (kUnmergeableKeys.includes(key)) {
+        return srcValue;
+      } else {
+        return undefined;
+      }
+    },
+    config,
+    ...configs,
+  );
+}
+
+export function mergeProjectMetadata<T>(
+  config: T,
+  ...configs: Array<T>
+) {
+  // certain keys that expand into arrays should be overriden if they
+  // are just a string
+  const kExandableStringKeys = ["contents"];
+
+  return mergeConfigsCustomized<T>(
+    (objValue: unknown, srcValue: unknown, key: string) => {
+      if (
+        kExandableStringKeys.includes(key) && typeof (objValue) === "string"
+      ) {
+        return srcValue;
+      } else {
+        return undefined;
+      }
+    },
+    config,
+    ...configs,
+  );
+}
+
+export function mergeConfigsCustomized<T>(
+  customizer: (
+    objValue: unknown,
+    srcValue: unknown,
+    key: string,
+  ) => unknown | undefined,
   config: T,
   ...configs: Array<T>
 ) {
@@ -251,8 +296,9 @@ export function mergeFormatMetadata<T>(
     config,
     ...configs,
     (objValue: unknown, srcValue: unknown, key: string) => {
-      if (kUnmergeableKeys.includes(key)) {
-        return srcValue;
+      const custom = customizer(objValue, srcValue, key);
+      if (custom !== undefined) {
+        return custom;
       } else {
         return mergeArrayCustomizer(objValue, srcValue);
       }
