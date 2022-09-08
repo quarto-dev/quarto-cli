@@ -143,6 +143,9 @@ export interface SchemaAnnotations {
 
   // arbitrary tags used for a variety of reasons
   tags?: Record<string, unknown>;
+
+  // used internally for debugging
+  _internalId?: number;
 }
 
 export type SchemaDocumentation = string | {
@@ -202,6 +205,8 @@ export interface ObjectSchema extends SchemaAnnotations {
   required?: string[];
   additionalProperties?: Schema;
   propertyNames?: Schema;
+
+  closed?: boolean; // this is not part of JSON schema, but makes error reporting that much easier.
 }
 
 export interface RefSchema extends SchemaAnnotations {
@@ -272,7 +277,7 @@ export function schemaDispatch(s: Schema, d: SchemaDispatch): void {
 export function schemaCall<T>(
   s: Schema,
   d: SchemaCall<T>,
-  other?: ((s: Schema) => T),
+  other?: (s: Schema) => T,
 ): T {
   const st: SchemaType = schemaType(s);
   // TypeScript can't realize that this

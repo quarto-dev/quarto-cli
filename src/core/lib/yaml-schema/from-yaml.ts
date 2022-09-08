@@ -382,7 +382,8 @@ function convertFromObject(yaml: any): ConcreteSchema {
     }
     params.namingConvention = "ignore";
 
-    params.propertyNames = enumS(...objectKeys);
+    // params.propertyNames = enumS(...objectKeys);
+    params.closed = true;
   }
   if (schema.additionalProperties !== undefined) {
     // we special-case `false` here because as a schema, `false` means

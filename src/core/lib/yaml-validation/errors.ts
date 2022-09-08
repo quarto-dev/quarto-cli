@@ -70,7 +70,10 @@ export function errorKeyword(
 }
 
 export function getBadKey(error: LocalizedError): string | undefined {
-  if (error.schemaPath.indexOf("propertyNames") === -1) {
+  if (
+    error.schemaPath.indexOf("propertyNames") === -1 &&
+    error.schemaPath.indexOf("closed") === -1
+  ) {
     return undefined;
   }
   const result = error.violatingObject.result;
@@ -343,7 +346,10 @@ function identifyKeyErrors(
   parse: AnnotatedParse,
   schema: Schema,
 ): LocalizedError {
-  if (error.schemaPath.indexOf("propertyNames") === -1) {
+  if (
+    error.schemaPath.indexOf("propertyNames") === -1 &&
+    error.schemaPath.indexOf("closed") === -1
+  ) {
     return error;
   }
 
@@ -389,6 +395,7 @@ function improveErrorHeadingForValueErrors(
 
   if (
     error.schemaPath.indexOf("propertyNames") !== -1 ||
+    error.schemaPath.indexOf("closed") !== -1 ||
     errorKeyword(error) === "required"
   ) {
     return error;

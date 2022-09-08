@@ -10189,15 +10189,6 @@
       "short": "Automatically generate sidebar contents.",
       "long": "Automatically generate sidebar contents. Pass <code>true</code> to\ninclude all documents in the site, a directory name to include only\ndocuments in that directory, or a glob (or list of globs) to include\ndocuments based on a pattern.\nSubdirectories will create sections (use an <code>index.qmd</code> in\nthe directory to provide its title). Order will be alphabetical unless a\nnumeric <code>order</code> field is provided in document metadata."
     },
-    "Link to file contained with the project or external URL",
-    "Alias for href",
-    "Alias for href",
-    "Text to display for navigation item (defaults to the document title\nif not provided)",
-    {
-      "short": "Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>)",
-      "long": "Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>) See <a href=\"https://icons.getbootstrap.com/\" class=\"uri\">https://icons.getbootstrap.com/</a> for a list of available\nicons"
-    },
-    "Accessible label for the navigation item.",
     "Accessible label for the item.",
     "Alias for href",
     "Link to file contained with the project or external URL",
@@ -12120,6 +12111,7 @@
   ],
   "schema/external-schemas.yml": [
     {
+      "_internalId": 7,
       "type": "object",
       "description": "be an object",
       "properties": {
@@ -12141,9 +12133,11 @@
           "exhaustiveCompletions": true
         },
         "script": {
+          "_internalId": 4,
           "type": "anyOf",
           "anyOf": [
             {
+              "_internalId": 2,
               "type": "anyOf",
               "anyOf": [
                 {
@@ -12151,6 +12145,7 @@
                   "description": "be a string"
                 },
                 {
+                  "_internalId": 1,
                   "type": "object",
                   "description": "be an object",
                   "properties": {
@@ -12177,9 +12172,11 @@
               "description": "be at least one of: a string, an object"
             },
             {
+              "_internalId": 3,
               "type": "array",
               "description": "be an array of values, where each element must be at least one of: a string, an object",
               "items": {
+                "_internalId": 2,
                 "type": "anyOf",
                 "anyOf": [
                   {
@@ -12187,6 +12184,7 @@
                     "description": "be a string"
                   },
                   {
+                    "_internalId": 1,
                     "type": "object",
                     "description": "be an object",
                     "properties": {
@@ -12217,6 +12215,7 @@
           "description": "be at least one of: at least one of: a string, an object, an array of values, where each element must be at least one of: a string, an object"
         },
         "stylesheet": {
+          "_internalId": 6,
           "type": "anyOf",
           "anyOf": [
             {
@@ -12224,6 +12223,7 @@
               "description": "be a string"
             },
             {
+              "_internalId": 5,
               "type": "array",
               "description": "be an array of values, where each element must be a string",
               "items": {
@@ -12320,10 +12320,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
+    "_internalId": 79242,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
+        "_internalId": 79241,
         "type": "enum",
         "enum": [
           "png",

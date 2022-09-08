@@ -133,7 +133,7 @@ class ValidationContext {
 
         // more generally, it seems that we want to weigh our decisions
         // towards schema that have validated large parts of the overall object.
-        // we don't have a wait to record that right now, though.
+        // we don't have a way to record that right now, though.
         const innerResults: ValidationError[][] = node.children.map(inner);
 
         const isRequiredError = (e: ValidationError) =>
@@ -209,6 +209,11 @@ class ValidationContext {
         return result;
       }
     };
+    const oldPruneErrors = pruneErrors;
+    pruneErrors = false;
+    const allErrors = inner(this.root);
+    pruneErrors = oldPruneErrors;
+    console.log({ allErrors });
     const errors = inner(this.root);
 
     const result = errors.map((validationError) =>
@@ -546,6 +551,22 @@ function validateObject(
     throw new Error(`Internal Error, couldn't locate key ${key}`);
   };
   const inspectedProps: Set<string> = new Set();
+  if (schema.closed) {
+    result = context.withSchemaPath("closed", () => {
+      let innerResult = true;
+      for (const key of ownProperties) {
+        if (!(schema.properties && ?.[key]) {
+          context.error(
+            locate(key, "key"),
+            schema,
+            `object has invalid field ${key}`,
+          );
+          innerResult = false;
+        }
+      }
+      return innerResult;
+    }) && result;
+  }
   if (schema.properties !== undefined) {
     result = context.withSchemaPath("properties", () => {
       let result = true;
