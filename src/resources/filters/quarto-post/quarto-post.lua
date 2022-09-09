@@ -26,6 +26,7 @@ import("tikz.lua")
 import("meta.lua")
 import("delink.lua")
 import("book.lua")
+import("bibliography.lua")
 import("../common/lunacolors.lua")
 import("../common/log.lua")
 import("../common/base64.lua")
@@ -40,6 +41,7 @@ import("../common/authors.lua")
 
 return {
   foldCode(),
+  bibliographyConfigure(),
   combineFilters({
     latexDiv(),
     responsive(),
@@ -48,7 +50,8 @@ return {
     reveal(),
     tikz(),
     delink(),
-    figCleanup()
+    figCleanup(),
+    bibliography()
   }),
   ojs(),
   quartoPostMetaInject(),
