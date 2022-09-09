@@ -273,6 +273,7 @@ function pdfLatexPostProcessor(
   return async (output: string) => {
     const lineProcessors: LineProcessor[] = [
       sidecaptionLineProcessor(),
+      calloutFigureHoldLineProcessor(),
     ];
 
     const marginCites = format.metadata[kCitationLocation];
@@ -388,6 +389,31 @@ const sidecaptionLineProcessor = () => {
         if (line.match(kEndScanRegex)) {
           state = "scanning";
           return kEndLongTableSideCap;
+        } else {
+          return line;
+        }
+    }
+  };
+};
+
+const calloutFigureHoldLineProcessor = () => {
+  let state: "scanning" | "replacing" = "scanning";
+  return (line: string): string | undefined => {
+    switch (state) {
+      case "scanning":
+        if (line.match(/^\\begin{tcolorbox}/)) {
+          state = "replacing";
+          return line;
+        } else {
+          return line;
+        }
+
+      case "replacing":
+        if (line.match(/^\\end{tcolorbox}/)) {
+          state = "scanning";
+          return line;
+        } else if (line.match(/^\\begin{figure}$/)) {
+          return "\\begin{figure}[H]";
         } else {
           return line;
         }

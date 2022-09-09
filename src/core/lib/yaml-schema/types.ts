@@ -27,6 +27,7 @@ export type Schema =
   | StringSchema
   | NullSchema
   | EnumSchema
+  | AnySchema
   | AnyOfSchema
   | AllOfSchema
   | ArraySchema
@@ -34,6 +35,7 @@ export type Schema =
   | RefSchema;
 
 export type ConcreteSchema =
+  | AnySchema
   | BooleanSchema
   | NumberSchema
   | StringSchema
@@ -46,6 +48,7 @@ export type ConcreteSchema =
   | RefSchema;
 
 export type SchemaType =
+  | "any"
   | "false"
   | "true"
   | "boolean"
@@ -143,6 +146,9 @@ export interface SchemaAnnotations {
 
   // arbitrary tags used for a variety of reasons
   tags?: Record<string, unknown>;
+
+  // used internally for debugging
+  _internalId?: number;
 }
 
 export type SchemaDocumentation = string | {
@@ -152,6 +158,11 @@ export type SchemaDocumentation = string | {
 
 export interface BooleanSchema extends SchemaAnnotations {
   "type": "boolean";
+}
+
+// this is not JSON schema, but makes our life easier.
+export interface AnySchema extends SchemaAnnotations {
+  "type": "any";
 }
 
 export interface NumberSchema extends SchemaAnnotations {
@@ -202,6 +213,8 @@ export interface ObjectSchema extends SchemaAnnotations {
   required?: string[];
   additionalProperties?: Schema;
   propertyNames?: Schema;
+
+  closed?: boolean; // this is not part of JSON schema, but makes error reporting that much easier.
 }
 
 export interface RefSchema extends SchemaAnnotations {
@@ -226,6 +239,7 @@ export function schemaType(schema: Schema): SchemaType {
 }
 
 interface SchemaDispatch {
+  "any"?: (x: AnySchema) => unknown;
   "false"?: (x: FalseSchema) => unknown;
   "true"?: (x: TrueSchema) => unknown;
   "boolean"?: (x: BooleanSchema) => unknown;
@@ -242,6 +256,7 @@ interface SchemaDispatch {
 }
 
 export interface SchemaCall<T> {
+  "any"?: (x: AnySchema) => T;
   "false"?: (x: FalseSchema) => T;
   "true"?: (x: TrueSchema) => T;
   "boolean"?: (x: BooleanSchema) => T;
@@ -272,7 +287,7 @@ export function schemaDispatch(s: Schema, d: SchemaDispatch): void {
 export function schemaCall<T>(
   s: Schema,
   d: SchemaCall<T>,
-  other?: ((s: Schema) => T),
+  other?: (s: Schema) => T,
 ): T {
   const st: SchemaType = schemaType(s);
   // TypeScript can't realize that this

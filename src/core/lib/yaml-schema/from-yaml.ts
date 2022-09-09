@@ -25,6 +25,7 @@ import {
 import {
   allOfSchema as allOfS,
   anyOfSchema as anyOfS,
+  anySchema as anyS,
   arraySchema as arrayOfS,
   completeSchema,
   completeSchemaOverwrite,
@@ -382,7 +383,8 @@ function convertFromObject(yaml: any): ConcreteSchema {
     }
     params.namingConvention = "ignore";
 
-    params.propertyNames = enumS(...objectKeys);
+    // params.propertyNames = enumS(...objectKeys);
+    params.closed = true;
   }
   if (schema.additionalProperties !== undefined) {
     // we special-case `false` here because as a schema, `false` means
@@ -448,6 +450,7 @@ export function convertFromYaml(yaml: any): ConcreteSchema {
     { val: "string", schema: stringS },
     { val: "number", schema: numberS },
     { val: "boolean", schema: booleanS },
+    { val: "any", schema: anyS() },
     { val: null, schema: nullS },
   ];
   for (const { val, schema } of literalValues) {

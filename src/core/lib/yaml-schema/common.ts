@@ -17,6 +17,7 @@ import { CaseConvention, resolveCaseConventionRegex } from "../text.ts";
 import {
   AllOfSchema,
   AnyOfSchema,
+  AnySchema,
   ArraySchema,
   ConcreteSchema,
   EnumSchema,
@@ -30,6 +31,15 @@ import {
 } from "./types.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
+
+let globalInternalIdCounter = 0;
+function internalId(): {
+  _internalId: number;
+} {
+  return {
+    _internalId: ++globalInternalIdCounter,
+  };
+}
 
 export function tagSchema<T extends ConcreteSchema>(
   schema: T,
@@ -55,19 +65,25 @@ export function numericSchema(obj: {
   "description"?: string;
 }): NumberSchema {
   return Object.assign({
+    ...internalId(),
     description: "be a number",
   }, obj);
 }
 
-// export const anySchema = {
-//   "description": "be anything",
-// };
+export function anySchema(description?: string): AnySchema {
+  return {
+    ...internalId(),
+    description,
+    "type": "any",
+  };
+}
 
 export function enumSchema(...args: JSONValue[]): EnumSchema {
   if (args.length === 0) {
     throw new Error("Internal Error: Empty enum schema not supported.");
   }
   return {
+    ...internalId(),
     "type": "enum",
     "enum": args,
     "description": args.length > 1
@@ -80,6 +96,7 @@ export function enumSchema(...args: JSONValue[]): EnumSchema {
 
 export function regexSchema(arg: string, description?: string): StringSchema {
   const result: Schema = {
+    ...internalId(),
     "type": "string",
     "pattern": arg,
   };
@@ -93,6 +110,7 @@ export function regexSchema(arg: string, description?: string): StringSchema {
 
 export function anyOfSchema(...args: Schema[]): AnyOfSchema {
   return {
+    ...internalId(),
     "type": "anyOf",
     "anyOf": args,
     "description": `be at least one of: ${
@@ -103,6 +121,7 @@ export function anyOfSchema(...args: Schema[]): AnyOfSchema {
 
 export function allOfSchema(...args: Schema[]): AllOfSchema {
   return {
+    ...internalId(),
     "type": "allOf",
     "allOf": args,
     "description": `be all of: ${
@@ -124,6 +143,7 @@ export function objectSchema(params: {
   baseSchema?: ObjectSchema;
   completions?: { [k: string]: unknown }; // FIXME the value should be string | that completions object we can create.
   namingConvention?: CaseConvention[] | "ignore";
+  closed?: boolean;
 } = {}): ObjectSchema {
   let {
     properties,
@@ -136,6 +156,7 @@ export function objectSchema(params: {
     completions: completionsParam,
     namingConvention,
     propertyNames: propertyNamesSchema,
+    closed,
   } = params;
 
   required = required || [];
@@ -185,7 +206,9 @@ export function objectSchema(params: {
     if (baseSchema.type !== "object") {
       throw new Error("Internal Error: can only extend other object Schema");
     }
-    result = Object.assign({}, baseSchema);
+    result = Object.assign({
+      ...internalId(),
+    }, baseSchema);
     // remove $id from base schema to avoid names from getting multiplied
     if (result.$id) {
       delete result.$id;
@@ -210,15 +233,6 @@ export function objectSchema(params: {
       result.required = (result.required || []).slice();
       result.required.push(...required);
     }
-
-    // if (
-    //   (result.completions && result.completions.length) ||
-    //   completions.length
-    // ) {
-    //   result.completions = (result.completions || []).slice();
-    //   result.completions.push(...completions);
-    //   result.completions = uniqueValues(result.completions);
-    // }
 
     if (additionalProperties !== undefined) {
       // TODO Review. This is likely to be confusing, but I think
@@ -253,8 +267,12 @@ export function objectSchema(params: {
     if (propertyNames !== undefined && result.propertyNames !== undefined) {
       result.propertyNames = anyOfSchema(propertyNames, result.propertyNames);
     }
+
+    // if either of schema or base schema is closed, the derived schema is also closed.
+    result.closed = closed || baseSchema.closed;
   } else {
     result = {
+      ...internalId(),
       "type": "object",
       description,
     };
@@ -275,9 +293,7 @@ export function objectSchema(params: {
       result.required = required;
     }
 
-    // if (completions.length) {
-    //   result.completions = completions;
-    // }
+    result.closed = closed;
 
     // this is useful to characterize Record<string, foo> types: use
     // objectSchema({}, [], foo)
@@ -302,6 +318,7 @@ export function objectSchema(params: {
 export function arraySchema(items?: Schema): ArraySchema {
   if (items) {
     return {
+      ...internalId(),
       "type": "array",
       "description": `be an array of values, where each element must ${
         schemaDescription(items)
@@ -310,6 +327,7 @@ export function arraySchema(items?: Schema): ArraySchema {
     };
   } else {
     return {
+      ...internalId(),
       "type": "array",
       "description": `be an array of values`,
     };
@@ -375,6 +393,7 @@ export function errorMessageSchema<T extends ConcreteSchema>(
 // but we use it here to allow our automatic description creation
 export function refSchema($ref: string, description: string): RefSchema {
   return {
+    ...internalId(),
     "type": "ref",
     $ref,
     description,
@@ -386,6 +405,7 @@ export function valueSchema(
   description?: string,
 ): EnumSchema {
   return {
+    ...internalId(),
     "type": "enum",
     "enum": [val], // enum takes non-strings too (!)
     "description": description || `be ${JSON.stringify(val)}`,

@@ -16613,6 +16613,7 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           id: "schema/base",
           object: {
+            closed: true,
             properties: {
               additionalCompletions: {
                 arrayOf: "string"
@@ -16626,19 +16627,8 @@ var require_yaml_intelligence_resources = __commonJS({
               errorDescription: "string",
               description: {
                 ref: "schema/description"
-              }
-            },
-            propertyNames: {
-              enum: [
-                "additionalCompletions",
-                "completions",
-                "id",
-                "hidden",
-                "tags",
-                "errorDescription",
-                "description",
-                "default"
-              ]
+              },
+              default: "any"
             }
           }
         },
@@ -17094,7 +17084,8 @@ var require_yaml_intelligence_resources = __commonJS({
                 "string",
                 null,
                 "null",
-                "object"
+                "object",
+                "any"
               ]
             }
           ],
@@ -17213,15 +17204,6 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "Automatically generate sidebar contents.",
           long: "Automatically generate sidebar contents. Pass <code>true</code> to\ninclude all documents in the site, a directory name to include only\ndocuments in that directory, or a glob (or list of globs) to include\ndocuments based on a pattern.\nSubdirectories will create sections (use an <code>index.qmd</code> in\nthe directory to provide its title). Order will be alphabetical unless a\nnumeric <code>order</code> field is provided in document metadata."
         },
-        "Link to file contained with the project or external URL",
-        "Alias for href",
-        "Alias for href",
-        "Text to display for navigation item (defaults to the document title\nif not provided)",
-        {
-          short: "Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>)",
-          long: 'Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>) See <a href="https://icons.getbootstrap.com/" class="uri">https://icons.getbootstrap.com/</a> for a list of available\nicons'
-        },
-        "Accessible label for the navigation item.",
         "Accessible label for the item.",
         "Alias for href",
         "Link to file contained with the project or external URL",
@@ -19144,6 +19126,7 @@ var require_yaml_intelligence_resources = __commonJS({
       ],
       "schema/external-schemas.yml": [
         {
+          _internalId: 7,
           type: "object",
           description: "be an object",
           properties: {
@@ -19165,9 +19148,11 @@ var require_yaml_intelligence_resources = __commonJS({
               exhaustiveCompletions: true
             },
             script: {
+              _internalId: 4,
               type: "anyOf",
               anyOf: [
                 {
+                  _internalId: 2,
                   type: "anyOf",
                   anyOf: [
                     {
@@ -19175,6 +19160,7 @@ var require_yaml_intelligence_resources = __commonJS({
                       description: "be a string"
                     },
                     {
+                      _internalId: 1,
                       type: "object",
                       description: "be an object",
                       properties: {
@@ -19201,9 +19187,11 @@ var require_yaml_intelligence_resources = __commonJS({
                   description: "be at least one of: a string, an object"
                 },
                 {
+                  _internalId: 3,
                   type: "array",
                   description: "be an array of values, where each element must be at least one of: a string, an object",
                   items: {
+                    _internalId: 2,
                     type: "anyOf",
                     anyOf: [
                       {
@@ -19211,6 +19199,7 @@ var require_yaml_intelligence_resources = __commonJS({
                         description: "be a string"
                       },
                       {
+                        _internalId: 1,
                         type: "object",
                         description: "be an object",
                         properties: {
@@ -19241,6 +19230,7 @@ var require_yaml_intelligence_resources = __commonJS({
               description: "be at least one of: at least one of: a string, an object, an array of values, where each element must be at least one of: a string, an object"
             },
             stylesheet: {
+              _internalId: 6,
               type: "anyOf",
               anyOf: [
                 {
@@ -19248,6 +19238,7 @@ var require_yaml_intelligence_resources = __commonJS({
                   description: "be a string"
                 },
                 {
+                  _internalId: 5,
                   type: "array",
                   description: "be an array of values, where each element must be a string",
                   items: {
@@ -19344,10 +19335,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
+        _internalId: 128896,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
+            _internalId: 128895,
             type: "enum",
             enum: [
               "png",
@@ -25263,7 +25256,7 @@ function errorKeyword(error) {
   return String(error.schemaPath[error.schemaPath.length - 1]);
 }
 function getBadKey(error) {
-  if (error.schemaPath.indexOf("propertyNames") === -1) {
+  if (error.schemaPath.indexOf("propertyNames") === -1 && error.schemaPath.indexOf("closed") === -1) {
     return void 0;
   }
   const result = error.violatingObject.result;
@@ -25415,7 +25408,7 @@ The value must instead ${schemaDescription(error.schema)}.`;
   }
 }
 function identifyKeyErrors(error, parse, schema2) {
-  if (error.schemaPath.indexOf("propertyNames") === -1) {
+  if (error.schemaPath.indexOf("propertyNames") === -1 && error.schemaPath.indexOf("closed") === -1) {
     return error;
   }
   const badKey = getBadKey(error);
@@ -25441,7 +25434,7 @@ function identifyKeyErrors(error, parse, schema2) {
   return error;
 }
 function improveErrorHeadingForValueErrors(error, parse, schema2) {
-  if (error.schemaPath.indexOf("propertyNames") !== -1 || errorKeyword(error) === "required") {
+  if (error.schemaPath.indexOf("propertyNames") !== -1 || error.schemaPath.indexOf("closed") !== -1 || errorKeyword(error) === "required") {
     return error;
   }
   return {
@@ -26479,6 +26472,7 @@ function validateGeneric(value, s, context) {
       return false;
     },
     "true": (_) => true,
+    "any": (schema2) => validateAny(value, schema2, context),
     "boolean": (schema2) => validateBoolean(value, schema2, context),
     "number": (schema2) => validateNumber(value, schema2, context),
     "string": (schema2) => validateString(value, schema2, context),
@@ -26502,6 +26496,9 @@ function typeIsValid(value, schema2, context, valid) {
     );
   }
   return valid;
+}
+function validateAny(_value, _schema, _context) {
+  return true;
 }
 function validateBoolean(value, schema2, context) {
   return typeIsValid(value, schema2, context, typeof value.result === "boolean");
@@ -26714,6 +26711,25 @@ function validateObject(value, schema2, context) {
     throw new Error(`Internal Error, couldn't locate key ${key}`);
   };
   const inspectedProps = /* @__PURE__ */ new Set();
+  if (schema2.closed) {
+    result = context.withSchemaPath("closed", () => {
+      if (schema2.properties === void 0) {
+        throw new Error("Internal Error: closed schemas need properties");
+      }
+      let innerResult = true;
+      for (const key of ownProperties) {
+        if (!schema2.properties[key]) {
+          context.error(
+            locate(key, "key"),
+            schema2,
+            `object has invalid field ${key}`
+          );
+          innerResult = false;
+        }
+      }
+      return innerResult;
+    }) && result;
+  }
   if (schema2.properties !== void 0) {
     result = context.withSchemaPath("properties", () => {
       let result2 = true;
@@ -26931,6 +26947,12 @@ var nullSchema = {
 };
 
 // ../yaml-schema/common.ts
+var globalInternalIdCounter = 0;
+function internalId() {
+  return {
+    _internalId: ++globalInternalIdCounter
+  };
+}
 function tagSchema(schema2, tags) {
   return {
     ...schema2,
@@ -26940,11 +26962,19 @@ function tagSchema(schema2, tags) {
     }
   };
 }
+function anySchema(description) {
+  return {
+    ...internalId(),
+    description,
+    "type": "any"
+  };
+}
 function enumSchema(...args) {
   if (args.length === 0) {
     throw new Error("Internal Error: Empty enum schema not supported.");
   }
   return {
+    ...internalId(),
     "type": "enum",
     "enum": args,
     "description": args.length > 1 ? `be one of: ${args.map((x) => "`" + x + "`").join(", ")}` : `be '${args[0]}'`,
@@ -26954,6 +26984,7 @@ function enumSchema(...args) {
 }
 function regexSchema(arg, description) {
   const result = {
+    ...internalId(),
     "type": "string",
     "pattern": arg
   };
@@ -26966,6 +26997,7 @@ function regexSchema(arg, description) {
 }
 function anyOfSchema(...args) {
   return {
+    ...internalId(),
     "type": "anyOf",
     "anyOf": args,
     "description": `be at least one of: ${args.map((x) => schemaDescription(x).slice(3)).join(", ")}`
@@ -26973,6 +27005,7 @@ function anyOfSchema(...args) {
 }
 function allOfSchema(...args) {
   return {
+    ...internalId(),
     "type": "allOf",
     "allOf": args,
     "description": `be all of: ${args.map((x) => schemaDescription(x).slice(3)).join(", ")}`
@@ -26989,7 +27022,8 @@ function objectSchema(params = {}) {
     exhaustive,
     completions: completionsParam,
     namingConvention,
-    propertyNames: propertyNamesSchema
+    propertyNames: propertyNamesSchema,
+    closed
   } = params;
   required = required || [];
   properties = properties || {};
@@ -27033,7 +27067,9 @@ function objectSchema(params = {}) {
     if (baseSchema.type !== "object") {
       throw new Error("Internal Error: can only extend other object Schema");
     }
-    result = Object.assign({}, baseSchema);
+    result = Object.assign({
+      ...internalId()
+    }, baseSchema);
     if (result.$id) {
       delete result.$id;
     }
@@ -27071,8 +27107,10 @@ function objectSchema(params = {}) {
     if (propertyNames !== void 0 && result.propertyNames !== void 0) {
       result.propertyNames = anyOfSchema(propertyNames, result.propertyNames);
     }
+    result.closed = closed || baseSchema.closed;
   } else {
     result = {
+      ...internalId(),
       "type": "object",
       description
     };
@@ -27088,6 +27126,7 @@ function objectSchema(params = {}) {
     if (required && required.length > 0) {
       result.required = required;
     }
+    result.closed = closed;
     if (additionalProperties !== void 0) {
       result.additionalProperties = additionalProperties;
     }
@@ -27103,12 +27142,14 @@ function objectSchema(params = {}) {
 function arraySchema(items) {
   if (items) {
     return {
+      ...internalId(),
       "type": "array",
       "description": `be an array of values, where each element must ${schemaDescription(items)}`,
       items
     };
   } else {
     return {
+      ...internalId(),
       "type": "array",
       "description": `be an array of values`
     };
@@ -27149,6 +27190,7 @@ function errorMessageSchema(schema2, errorMessage) {
 }
 function refSchema($ref, description) {
   return {
+    ...internalId(),
     "type": "ref",
     $ref,
     description
@@ -27156,6 +27198,7 @@ function refSchema($ref, description) {
 }
 function valueSchema(val, description) {
   return {
+    ...internalId(),
     "type": "enum",
     "enum": [val],
     "description": description || `be ${JSON.stringify(val)}`
@@ -27733,7 +27776,7 @@ function convertFromObject(yaml) {
       );
     }
     params.namingConvention = "ignore";
-    params.propertyNames = enumSchema(...objectKeys);
+    params.closed = true;
   }
   if (schema2.additionalProperties !== void 0) {
     if (schema2.additionalProperties === false) {
@@ -27773,6 +27816,7 @@ function convertFromYaml(yaml) {
     { val: "string", schema: stringSchema },
     { val: "number", schema: numberSchema },
     { val: "boolean", schema: booleanSchema },
+    { val: "any", schema: anySchema() },
     { val: null, schema: nullSchema }
   ];
   for (const { val, schema: schema2 } of literalValues) {

@@ -28,7 +28,7 @@ testRender(input, "html", false, [
     "div.callout.no-icon",
     // formatting is kept in caption
     "div.callout-tip > div.callout-header > div.callout-caption-container > strong",
-    "div.callout-tip > div.callout-header > div.callout-caption-container > code"
+    "div.callout-tip > div.callout-header > div.callout-caption-container > code",
   ]),
 ]);
 
@@ -58,6 +58,15 @@ testRender(input, "docx", true, [
     /<pic:cNvPr.*tip\.png".*?\/>/,
     /<pic:cNvPr.*caution\.png".*?\/>/,
     // formatting is kept in caption,
-    /Caption with.*<w:bCs.*formatted.*text, like.*<w:rStyle w:val="VerbatimChar".*function_name\(\)/
+    /Caption with.*<w:bCs.*formatted.*text, like.*<w:rStyle w:val="VerbatimChar".*function_name\(\)/,
+  ]),
+]);
+
+const crossRefInput = docs("crossrefs/callouts.qmd");
+const crossRefOutput = outputForInput(crossRefInput, "latex");
+testRender(crossRefInput, "latex", true, [
+  ensureFileRegexMatches(crossRefOutput.outputPath, [
+    // callout environments are created
+    /\\begin\{figure\}\[H\]/,
   ]),
 ]);

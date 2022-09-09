@@ -30,6 +30,7 @@
 
 - Provide a better error message for PDF output that produces an empty document
 - Improved detection of LaTeX caption regions (#2295)
+- Handle LaTeX error messages with no file output more gracefully (#2183)
 
 ## Crossrefs
 
@@ -74,3 +75,4 @@
 - Resolve absolute paths in include shortcodes (#2320)
 - New metadata field `quarto-required` to specify required versions of quarto in a document
 - Provide project configuration for calls to `quarto inspect` for files
+- Improve YAML validation error messages on closed schemas (#2349)
