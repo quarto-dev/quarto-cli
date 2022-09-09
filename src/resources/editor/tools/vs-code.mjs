@@ -13417,8 +13417,8 @@ var require_yaml_intelligence_resources = __commonJS({
             ]
           },
           description: {
-            short: "Options for the hyperref package.",
-            long: "Options for the [hyperref](https://ctan.org/pkg/hyperref) package. For example:\n\n```yaml\nhyperrefoptions:\n  - linktoc=all\n  - pdfwindowui\n  - pdfpagemode=FullScreen      \n```\n"
+            short: "Additional non-color options for the hyperref package.",
+            long: "Options for the [hyperref](https://ctan.org/pkg/hyperref) package. For example:\n\n```yaml\nhyperrefoptions:\n  - linktoc=all\n  - pdfwindowui\n  - pdfpagemode=FullScreen      \n```\n\nTo customize link colors, please see the [Quarto PDF reference](https://quarto.org/docs/reference/formats/pdf.html#colors).\n"
           }
         },
         {
@@ -19335,12 +19335,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 128896,
+        _internalId: 128900,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 128895,
+            _internalId: 128899,
             type: "enum",
             enum: [
               "png",
@@ -28698,6 +28698,12 @@ var getProjectConfigSchema = defineCached(
     const projectConfigFields = await getProjectConfigFieldsSchema();
     const execute = await getFormatExecuteOptionsSchema();
     const format = await getFrontMatterFormatSchema();
+    const profile = objectSchema({
+      additionalProperties: anyOfSchema(
+        regexSchema(".+"),
+        refSchema("project-config", "a project configuration schema")
+      )
+    });
     const result = allOfSchema(
       objectSchema({
         properties: {

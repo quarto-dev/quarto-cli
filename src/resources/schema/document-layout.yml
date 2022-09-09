@@ -248,7 +248,7 @@
   tags:
     formats: [$pdf-all]
   description:
-    short: Options for the hyperref package.
+    short: Additional non-color options for the hyperref package.
     long: |
       Options for the [hyperref](https://ctan.org/pkg/hyperref) package. For example:
 
@@ -258,6 +258,8 @@
         - pdfwindowui
         - pdfpagemode=FullScreen      
       ```
+
+      To customize link colors, please see the [Quarto PDF reference](https://quarto.org/docs/reference/formats/pdf.html#colors).
 
 - name: indent
   schema:
