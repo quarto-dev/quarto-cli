@@ -9,16 +9,20 @@
 
 import { dirname, join } from "path/mod.ts";
 import { kBibliography } from "../config/constants.ts";
-import { Format } from "../config/types.ts";
+import { Metadata } from "../config/types.ts";
+import { asArray } from "./array.ts";
 import { CSL } from "./csl.ts";
 
 import { execProcess } from "./process.ts";
 import { pandocBinaryPath } from "./resources.ts";
 
-export async function bibliographyCslJson(input: string, format: Format) {
-  const bibliography = format.metadata[kBibliography] as string[];
+export async function bibliographyCslJson(input: string, metadata: Metadata) {
+  const bibliography = metadata[kBibliography] as string | string[];
   if (bibliography) {
-    const references = await renderToCSLJSON(dirname(input), bibliography);
+    const references = await renderToCSLJSON(
+      dirname(input),
+      asArray<string>(bibliography),
+    );
     return references;
   }
 }
@@ -78,7 +82,7 @@ export async function renderToCSLJSON(
   const bibloEntries = [];
   for (const biblio of biblios) {
     const cmd = [pandocBinaryPath()];
-    cmd.push(join(dir, biblio));
+    cmd.push(join(Deno.cwd(), join(dir, biblio)));
     cmd.push("-t");
     cmd.push("csljson");
     cmd.push("--citeproc");
