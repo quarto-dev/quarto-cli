@@ -78,8 +78,8 @@ object:
 
   async cell(
     handlerContext: LanguageCellHandlerContext,
-    cell: QuartoMdCell,
-    options: Record<string, unknown>,
+    cell: QuartoMdCell, // this has unmerged cell options
+    options: Record<string, unknown>, // this merges default and cell options, we have to be careful.
   ) {
     const cellContent = handlerContext.cellContent(cell);
     // TODO escaping removes MappedString information.
@@ -255,7 +255,7 @@ mermaid.initialize();
         const {
           widthInInches,
           heightInInches,
-        } = await resolveSize(svg.value, options);
+        } = await resolveSize(svg.value, cell.options ?? {});
 
         return asMappedString(
           makeFigLink(sourceName, widthInInches, heightInInches, true),
@@ -288,7 +288,14 @@ mermaid.initialize();
       const {
         widthInInches,
         heightInInches,
-      } = await resolveSize(svgText, options);
+      } = await resolveSize(svgText, cell.options ?? {});
+
+      console.log({
+        widthInInches,
+        heightInInches,
+        svgText,
+        options,
+      });
 
       if (isMarkdownOutput(handlerContext.options.format.pandoc, ["gfm"])) {
         return asMappedString(makeFigLink(
