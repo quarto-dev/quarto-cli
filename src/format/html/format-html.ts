@@ -30,7 +30,6 @@ import {
 } from "../../config/constants.ts";
 
 import {
-  DependencyFile,
   DependencyHtmlFile,
   Format,
   FormatDependency,

@@ -11,7 +11,6 @@ import {
   kAuthor,
   kCsl,
   kLang,
-  kOutputFile,
   kTitle,
 } from "../../config/constants.ts";
 import { Format, Metadata } from "../../config/types.ts";
