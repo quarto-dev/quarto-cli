@@ -110,15 +110,21 @@ async function download(
 ) {
   info("Downloading " + dependency.url);
   const response = await fetch(dependency.url);
-  const blob = await response.blob();
+  if (response.status === 200) {
+    const blob = await response.blob();
 
-  const bytes = await blob.arrayBuffer();
-  const data = new Uint8Array(bytes);
+    const bytes = await blob.arrayBuffer();
+    const data = new Uint8Array(bytes);
 
-  const targetPath = join(workingDir, dependency.filename);
-  Deno.writeFileSync(
-    targetPath,
-    data,
-  );
-  return targetPath;
+    const targetPath = join(workingDir, dependency.filename);
+    Deno.writeFileSync(
+      targetPath,
+      data,
+    );
+    return targetPath;
+  } else {
+    throw new Error(
+      `Failed to fetch dependency ${dependency.filename}.\nThe url ${dependency.url} returned a non 200 status code:\n${response.status} - ${response.statusText}`,
+    );
+  }
 }
