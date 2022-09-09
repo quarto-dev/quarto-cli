@@ -16,3 +16,12 @@ testRender(input, "html", false, [
     "meta[name=citation_publication_date]",
   ]),
 ]);
+
+const inputGen = docs("scholar/generated-bib.qmd");
+const outputGen = outputForInput(inputGen, "html");
+testRender(inputGen, "html", false, [
+  ensureHtmlElements(outputGen.outputPath, [
+    "meta[name=citation_keywords]",
+    "meta[name=citation_publication_date]",
+  ]),
+]);
