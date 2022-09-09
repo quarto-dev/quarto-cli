@@ -318,10 +318,17 @@ export function completeStagedFeeds(
               join(feedDir, `${feedStem}.${kFinalExt}`),
               feedContents,
             );
-          } catch {
-            warnOnce(`Unable to generate feed '${feedStem}.xml'`);
+          } catch (error) {
+            const errorMessage = error.message;
+            warnOnce(
+              `Unable to generate feed '${feedStem}.xml'\n${errorMessage}`,
+            );
           } finally {
-            Deno.removeSync(feedFile);
+            try {
+              Deno.removeSync(feedFile);
+            } catch {
+              // Just ignore this and move on
+            }
           }
         }
       }
