@@ -29,6 +29,7 @@
 
 - Fix error when restoring preserved HTML in output files that use `output-file`
 - Properly maintain dark/light state when navigating between pages
+- Fix `code-copy` button issue when `page-layout` is full with no visible `toc` (#2388)
 
 ## PDF Format
 
