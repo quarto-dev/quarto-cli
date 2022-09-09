@@ -5,7 +5,7 @@
 *
 */
 
-import { debug, warning } from "log/mod.ts";
+import { debug } from "log/mod.ts";
 import { join } from "path/mod.ts";
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { removeIfExists, safeRemoveIfExists } from "./path.ts";
