@@ -11,7 +11,6 @@ import {
   kAuthor,
   kCsl,
   kLang,
-  kOutputFile,
   kTitle,
 } from "../../config/constants.ts";
 import { Format, Metadata } from "../../config/types.ts";
@@ -33,6 +32,7 @@ import {
   kSiteUrl,
   kWebsite,
 } from "../../project/types/website/website-constants.ts";
+import { basename } from "https://deno.land/std@0.153.0/path/win32.ts";
 
 const kDOI = "DOI";
 const kCitation = "citation";
@@ -83,11 +83,12 @@ export const getCSLPath = (input: string, format: Format) => {
 // and blog posts.
 export function documentCSL(
   input: string,
-  format: Format,
+  inputMetadata: Metadata,
   defaultType: CSLType,
+  outputFile?: string,
   offset?: string,
 ): { csl: CSL; extras: CSLExtras } {
-  const citationMetadata = citationMeta(format);
+  const citationMetadata = citationMeta(inputMetadata);
 
   // The type
   const type = citationMetadata[kType]
@@ -95,7 +96,7 @@ export function documentCSL(
     : defaultType;
 
   // The title
-  const title = (citationMetadata[kTitle] || format.metadata[kTitle]) as string;
+  const title = (citationMetadata[kTitle] || inputMetadata[kTitle]) as string;
   const csl: CSL = {
     title,
     type,
@@ -109,7 +110,7 @@ export function documentCSL(
 
   // Author
   const authors = parseAuthor(
-    citationMetadata[kAuthor] || format.metadata[kAuthor],
+    citationMetadata[kAuthor] || inputMetadata[kAuthor],
   );
   csl.author = cslNames(
     authors?.filter((auth) => auth !== undefined).map((auth) => auth?.name),
@@ -125,13 +126,13 @@ export function documentCSL(
 
   // Categories
   const categories =
-    (citationMetadata[kCategories] || format.metadata[kCategories]);
+    (citationMetadata[kCategories] || inputMetadata[kCategories]);
   if (categories) {
     csl.categories = Array.isArray(categories) ? categories : [categories];
   }
 
   // Language
-  const language = (citationMetadata[kLanguage] || format.metadata[kLang]) as
+  const language = (citationMetadata[kLanguage] || inputMetadata[kLang]) as
     | string
     | undefined;
   if (language) {
@@ -140,19 +141,19 @@ export function documentCSL(
 
   // Date
   const availableDate = citationMetadata[kAvailableDate] ||
-    format.metadata[kDate];
+    inputMetadata[kDate];
   if (availableDate) {
     csl[kAvailableDate] = cslDate(availableDate);
   }
 
   // Issued date
-  const issued = citationMetadata[kIssued] || format.metadata[kDate];
+  const issued = citationMetadata[kIssued] || inputMetadata[kDate];
   if (issued) {
     csl.issued = cslDate(issued);
   }
 
   // The abstract
-  const abstract = citationMetadata[kAbstract] || format.metadata[kAbstract];
+  const abstract = citationMetadata[kAbstract] || inputMetadata[kAbstract];
   if (abstract) {
     csl.abstract = abstract as string;
   }
@@ -205,11 +206,11 @@ export function documentCSL(
   if (url) {
     csl.URL = url;
   } else {
-    csl.URL = synthesizeCitationUrl(input, format, offset);
+    csl.URL = synthesizeCitationUrl(input, inputMetadata, outputFile, offset);
   }
 
   // The DOI
-  const doi = findValue(kDOI, [citationMetadata, format.metadata], lowercase);
+  const doi = findValue(kDOI, [citationMetadata, inputMetadata], lowercase);
   if (doi) {
     csl.DOI = doi;
   }
@@ -391,8 +392,8 @@ export function documentCSL(
   const kwString = citationMetadata.keyword;
   if (kwString && typeof (kwString) === "string") {
     extras.keywords = kwString.split(",");
-  } else if (format.metadata.keywords) {
-    const kw = format.metadata.keywords;
+  } else if (inputMetadata.keywords) {
+    const kw = inputMetadata.keywords;
     extras.keywords = Array.isArray(kw) ? kw : [kw];
   }
 
@@ -420,9 +421,9 @@ interface PageRange {
   page?: string;
 }
 
-export function citationMeta(format: Format): Record<string, unknown> {
-  if (typeof (format.metadata[kCitation]) === "object") {
-    return format.metadata[kCitation] as Record<string, unknown>;
+export function citationMeta(metadata: Metadata): Metadata {
+  if (typeof (metadata[kCitation]) === "object") {
+    return metadata[kCitation] as Record<string, unknown>;
   } else {
     return {} as Record<string, unknown>;
   }
@@ -430,12 +431,12 @@ export function citationMeta(format: Format): Record<string, unknown> {
 
 function synthesizeCitationUrl(
   input: string,
-  format: Format,
+  metadata: Metadata,
+  outputFile?: string,
   offset?: string,
 ) {
-  const siteMeta = format.metadata[kWebsite] as Metadata | undefined;
+  const siteMeta = metadata[kWebsite] as Metadata | undefined;
   const baseUrl = siteMeta?.[kSiteUrl] as string;
-  const outputFile = format.pandoc[kOutputFile] as string;
 
   if (baseUrl && outputFile && offset) {
     const rootDir = Deno.realPathSync(join(dirname(input), offset));
@@ -444,11 +445,12 @@ function synthesizeCitationUrl(
         pathWithForwardSlashes(relative(rootDir, dirname(input)))
       }`;
     } else {
-      return `${baseUrl}/${
-        pathWithForwardSlashes(
-          relative(rootDir, join(dirname(input), outputFile)),
-        )
-      }`;
+      const relativePath = relative(
+        rootDir,
+        join(dirname(outputFile), basename(outputFile)),
+      );
+      const part = pathWithForwardSlashes(relativePath);
+      return `${baseUrl}/${part}`;
     }
   } else {
     // The url is unknown

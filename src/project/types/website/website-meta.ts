@@ -393,7 +393,6 @@ const kTwitterTitle = "quarto-twittercardtitle";
 const kTwitterDesc = "quarto-twittercarddesc";
 const kOgTitle = "quarto-ogcardtitle";
 const kOgDesc = "quarto-ogcardddesc";
-const kMetaDescId = "quarto-metadesc";
 const kMetaSideNameId = "quarto-metasitename";
 function metaMarkdownPipeline(format: Format, extras: FormatExtras) {
   const titleMetaHandler = {

@@ -7,16 +7,13 @@
 
 import {
   OpenGraphConfig,
-  SocialMetadata,
   TwitterCardConfig,
 } from "../../../resources/types/schema-types.ts";
 
 import {
-  kLocale,
   kOpenGraph,
   kPageFooter,
   kSiteFavicon,
-  kSiteName,
   kSiteNavbar,
   kSitePageNavigation,
   kSiteRepoActions,

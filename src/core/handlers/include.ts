@@ -15,7 +15,6 @@ import {
   mappedString,
 } from "../lib/mapped-text.ts";
 
-import { relative } from "path/mod.ts";
 import { rangedLines } from "../lib/ranged-text.ts";
 import { isBlockShortcode } from "../lib/parse-shortcode.ts";
 import { DirectiveCell } from "../lib/break-quarto-md-types.ts";

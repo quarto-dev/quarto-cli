@@ -23,7 +23,6 @@ import { OutputRecipe } from "../types.ts";
 import { generatePdf } from "./pdf.ts";
 import { LatexmkOptions } from "./types.ts";
 import { texToPdfOutputRecipe } from "../output-tex.ts";
-import { dirname } from "path/mod.ts";
 
 export function useQuartoLatexmk(
   format: Format,

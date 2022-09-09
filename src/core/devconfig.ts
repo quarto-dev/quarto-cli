@@ -11,7 +11,7 @@ import { ensureDirSync, existsSync } from "fs/mod.ts";
 
 import { md5Hash } from "./hash.ts";
 
-import { isMac, isWindows } from "./platform.ts";
+import { isWindows } from "./platform.ts";
 import { quartoConfig } from "./quarto.ts";
 
 const kDevConfig = "dev-config";

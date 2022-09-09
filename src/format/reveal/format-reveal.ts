@@ -66,7 +66,6 @@ import {
   kSmaller,
 } from "./constants.ts";
 import { revealMetadataFilter } from "./metadata.ts";
-import { kHtmlEmptyPostProcessResult } from "../../command/render/constants.ts";
 
 export function revealResolveFormat(format: Format) {
   format.metadata = revealMetadataFilter(format.metadata);

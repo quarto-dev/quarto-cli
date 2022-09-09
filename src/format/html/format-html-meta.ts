@@ -29,11 +29,20 @@ export function metadataPostProcessor(
   format: Format,
   offset?: string,
 ) {
-  return async (doc: Document) => {
+  return async (doc: Document, inputMetadata: Metadata) => {
     if (googleScholarEnabled(format)) {
-      const { csl, extras } = documentCSL(input, format, "webpage", offset);
+      const { csl, extras } = documentCSL(
+        input,
+        inputMetadata,
+        "webpage",
+        format.pandoc["output-file"],
+        offset,
+      );
       const documentMetadata = googleScholarMeta(csl, extras);
-      const referenceMetadata = await googleScholarReferences(input, format);
+      const referenceMetadata = await googleScholarReferences(
+        input,
+        inputMetadata,
+      );
       [...documentMetadata, ...referenceMetadata].forEach((meta) => {
         writeMetaTag(meta.name, meta.content, doc);
       });
@@ -224,12 +233,12 @@ function googleScholarMeta(
   return scholarMeta;
 }
 
-async function googleScholarReferences(input: string, format: Format) {
+async function googleScholarReferences(input: string, metadata: Metadata) {
   const scholarMeta: MetaTagData[] = [];
   const write = metadataWriter(scholarMeta);
 
   // Generate the references by reading the bibliography and parsing the html
-  const references = await bibliographyCslJson(input, format);
+  const references = await bibliographyCslJson(input, metadata);
 
   if (references) {
     references.forEach((reference) => {

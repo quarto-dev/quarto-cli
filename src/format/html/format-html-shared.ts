@@ -27,8 +27,6 @@ import {
 
 import { formatResourcePath } from "../../core/resources.ts";
 import { Document, Element } from "../../core/deno-dom.ts";
-import { HtmlPostProcessResult } from "../../command/render/types.ts";
-import { kHtmlEmptyPostProcessResult } from "../../command/render/constants.ts";
 
 // features that are enabled by default for 'html'. setting
 // all of these to false will yield the minimal html output

@@ -326,7 +326,13 @@ function creativeCommonsUrl(license: string, lang?: string) {
 }
 
 async function generateCite(input: string, format: Format, offset?: string) {
-  const { csl } = documentCSL(input, format, "webpage", offset);
+  const { csl } = documentCSL(
+    input,
+    format.metadata,
+    "webpage",
+    format.pandoc["output-file"],
+    offset,
+  );
   if (csl) {
     // Render the HTML and BibTeX form of this document
     const cslPath = getCSLPath(input, format);

@@ -7,8 +7,7 @@
 
 import { which } from "./path.ts";
 import { requireQuoting, safeWindowsExec } from "./windows.ts";
-import { execProcess, ProcessResult } from "./process.ts";
-
+import { execProcess } from "./process.ts";
 
 export async function openUrl(url: string) {
   const shellOpen = {
@@ -16,16 +15,16 @@ export async function openUrl(url: string) {
     darwin: "open",
     linux: "xdg-open",
   };
-  
+
   const cmd = shellOpen[Deno.build.os];
-   
+
   // Because URLs may contain characters like '&' that need to be escaped
   // on Windoww, we need to check whether the url is one of those
   // and use our special windows indirection in that case
   if (Deno.build.os === "windows") {
     const safeArgs = requireQuoting([url]);
     if (safeArgs.status) {
-      const result = await safeWindowsExec(
+      await safeWindowsExec(
         cmd,
         safeArgs.args,
         (cmd: string[]) => {
@@ -43,12 +42,10 @@ export async function openUrl(url: string) {
       }
     }
   } else {
- // The traditional and simple way to run, which always 
- // works outside of windows
- if (await which(cmd)) {
-  Deno.run({ cmd: [cmd, url] });
-}
+    // The traditional and simple way to run, which always
+    // works outside of windows
+    if (await which(cmd)) {
+      Deno.run({ cmd: [cmd, url] });
+    }
   }
-  
-  
 }
