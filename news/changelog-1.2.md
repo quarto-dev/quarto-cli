@@ -35,6 +35,12 @@
 - Provide a better error message for PDF output that produces an empty document
 - Improved detection of LaTeX caption regions (#2295)
 - Handle LaTeX error messages with no file output more gracefully (#2183)
+- Allow placement of bibliography using a `refs` div when using `natbib` or `biblatex`
+- Support cross referenceable figures with callouts
+
+## Google Scholar
+
+- Properly read Google Scholar reference data from dynamically generated bibliography YML
 
 ## Crossrefs
 
