@@ -83,7 +83,7 @@ import { getFrontMatterSchema } from "../core/lib/yaml-schema/front-matter.ts";
 import { kDefaultProjectFileContents } from "./types/project-default.ts";
 import { createExtensionContext } from "../extension/extension.ts";
 import { error, warning } from "log/mod.ts";
-import { activeProfiles } from "../core/profile.ts";
+import { activeProfiles, initActiveProfiles } from "../core/profile.ts";
 import { Schema } from "../core/lib/yaml-schema/types.ts";
 
 export function deleteProjectMetadata(metadata: Metadata) {
@@ -158,7 +158,8 @@ export async function projectContext(
         );
       }
 
-      //  merge configuration profiles
+      // init then merge configuration profiles
+      initActiveProfiles(projectConfig);
       const profileResult = await mergeConfigurationProfiles(
         dir,
         projectConfig,
