@@ -9,15 +9,13 @@ import { Args } from "flags/mod.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 
-const kQuartoProfile = "QUARTO_PROFILE";
+export const kQuartoProfile = "QUARTO_PROFILE";
 const kQuartoDefaultProfile = "default";
 
 export function initializeProfile(args: Args) {
   // set profile if specified
   if (args.profile) {
     Deno.env.set(kQuartoProfile, args.profile);
-  } else {
-    Deno.env.set(kQuartoProfile, kQuartoDefaultProfile);
   }
 }
 

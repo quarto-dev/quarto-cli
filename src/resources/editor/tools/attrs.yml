@@ -58,6 +58,10 @@
       doc: "Show or hide content when format matches"
     - value: 'unless-format="$0"'
       doc: "Show or hide content unless format matches"
+    - value: 'when-profile="$0"'
+      doc: "Show or hide content when profile matches"
+    - value: 'unless-profile="$0"'
+      doc: "Show or hide content unless profile matches"
 
 ## columns
 

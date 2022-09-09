@@ -367,6 +367,7 @@ async function mergeConfigurationProfiles(
         config = mergeProjectMetadata(config, profile);
       }
     }
+    delete config[kProfile];
   }
 
   return { config, files };
