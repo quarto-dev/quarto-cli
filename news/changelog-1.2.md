@@ -21,6 +21,10 @@
 - Ability to specify a minimum quarto version via the `quarto-required` option.
 - Extension may now contribute project types (project metadata which will be merged with a project when project of that type are rendered)
 
+## Projects
+
+- Project configuration `profile` for varying configuration and output based on global `QUARTO_PROFILE` or `--profile` command-line option.
+
 ## HTML Format
 
 - Fix error when restoring preserved HTML in output files that use `output-file`
