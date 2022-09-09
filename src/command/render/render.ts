@@ -433,7 +433,7 @@ export const pandocIngestSelfContainedContent = async (file: string) => {
   cmd.push("--template", template);
   cmd.push("--output", filename);
   cmd.push("--metadata", "title=placeholder");
-  cmd.push("--self-contained");
+  cmd.push("--embed-resources");
   const result = await execProcess({
     cmd,
     stdout: "piped",
