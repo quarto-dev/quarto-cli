@@ -16,7 +16,7 @@ import * as ld from "./lodash.ts";
 
 export const kQuartoProfile = "QUARTO_PROFILE";
 export const kQuartoProfileConfig = "profile";
-export const kQuartoProfileConfigurations = "configurations";
+export const kQuartoProjectProfileConfig = "config";
 export const kQuartoProfileGroupsConfig = "profile-group";
 export const kQuartoProfileDefaultConfig = "profile-default";
 
@@ -67,12 +67,12 @@ export function initActiveProfiles(config: ProjectConfig) {
       }
     });
 
-    // promote 'configurations'
-    const configurations = profileConfig[kQuartoProfileConfigurations] as
+    // promote 'config'
+    const configurations = profileConfig[kQuartoProjectProfileConfig] as
       | Record<string, unknown>
       | undefined;
     if (configurations) {
-      delete profileConfig[kQuartoProfileConfigurations];
+      delete profileConfig[kQuartoProjectProfileConfig];
       config[kQuartoProfileConfig] = configurations;
     }
   }
