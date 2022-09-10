@@ -24,7 +24,6 @@
 ## Projects
 
 - Project configuration `profile` for varying configuration and output based on global `QUARTO_PROFILE` or `--profile` command-line option.
-- Project-level `_quarto.env` file to define environment variables active for rendering.
 
 ## HTML Format
 

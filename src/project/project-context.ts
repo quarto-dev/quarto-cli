@@ -66,7 +66,6 @@ import { kMarkdownEngine } from "../execute/types.ts";
 
 import { projectResourceFiles } from "./project-resources.ts";
 import { gitignoreEntries } from "./project-gitignore.ts";
-import { initializeDotenv } from "./project-dotenv.ts";
 
 import {
   ignoreFieldsForProjectType,
@@ -130,10 +129,6 @@ export async function projectContext(
       const configSchema = await getProjectConfigSchema();
       // config files are the main file + any subfiles read
       const configFiles = [configFile];
-
-      // intialize environment (adding any files to the config file list)
-      const envFiles = await initializeDotenv(dir);
-      configFiles.push(...envFiles);
 
       const errMsg = "Project _quarto.yml validation failed.";
       let projectConfig = (await readAndValidateYamlFromFile(
