@@ -12,6 +12,7 @@ import { Args } from "flags/mod.ts";
 import { Command } from "cliffy/command/mod.ts";
 import { ProjectConfig } from "../project/types.ts";
 import { logProgress } from "./log.ts";
+import * as ld from "./lodash.ts";
 
 export const kQuartoProfile = "QUARTO_PROFILE";
 export const kQuartoProfileConfig = "profile";
@@ -45,6 +46,24 @@ export function initActiveProfiles(config: ProjectConfig) {
     baseQuartoProfile = Deno.env.get(kQuartoProfile) || "";
   }
 
+  // resolve any specified default or groups. this allows us to support
+  // both embedded 'default' and 'group' values (as "reserved words")
+  // and externalized ones (e.g. 'profile-default') for the time being
+  const kEmbeddedFields = ["default", "group"];
+  if (ld.isObject(config[kQuartoProfileConfig])) {
+    const profileConfig = config[kQuartoProfileConfig] as Record<
+      string,
+      unknown
+    >;
+    kEmbeddedFields.forEach((field) => {
+      const value = profileConfig[field];
+      if (value) {
+        config[`profile-${field}`] = value;
+        delete profileConfig[field];
+      }
+    });
+  }
+
   // if there is no profile defined see if the user has provided a default
   let quartoProfile = baseQuartoProfile;
   if (!quartoProfile) {
@@ -55,6 +74,7 @@ export function initActiveProfiles(config: ProjectConfig) {
       quartoProfile = defaultConfig;
     }
   }
+  delete config[kQuartoProfileDefaultConfig];
 
   // read any profile defined in the base environment
   const active = readProfile(quartoProfile);
@@ -72,8 +92,6 @@ export function initActiveProfiles(config: ProjectConfig) {
       active.push(group[0]);
     }
   }
-
-  // remove
   delete config[kQuartoProfileGroupsConfig];
 
   // set the environment variable for those that want to read it directly

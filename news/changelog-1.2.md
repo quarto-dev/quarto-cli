@@ -37,7 +37,7 @@
 - Improved detection of LaTeX caption regions (#2295)
 - Handle LaTeX error messages with no file output more gracefully (#2183)
 - Allow placement of bibliography using a `refs` div when using `natbib` or `biblatex`
-- Support cross referenceable figures with callouts
+- Support cross reference-able figures with callouts
 
 ## Google Scholar
 

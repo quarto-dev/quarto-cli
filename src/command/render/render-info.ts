@@ -4,9 +4,6 @@
 * Copyright (C) 2022 by RStudio, PBC
 *
 */
-import { info } from "log/mod.ts";
-
-import * as colors from "fmt/colors.ts";
 
 import {
   kEmbedResources,
