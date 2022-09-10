@@ -5,13 +5,16 @@
 *
 */
 
+import * as colors from "fmt/colors.ts";
+
 import { Args } from "flags/mod.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 import { ProjectConfig } from "../project/types.ts";
 
 export const kQuartoProfile = "QUARTO_PROFILE";
-const kQuartoProfileGroups = "profile-group";
+export const kQuartoProfileConfig = "profile";
+export const kQuartoProfileGroupsConfig = "profile-group";
 
 export function initializeProfile(args: Args) {
   // set profile if specified
@@ -58,7 +61,7 @@ export function initActiveProfiles(config: ProjectConfig) {
   }
 
   // remove
-  delete config[kQuartoProfileGroups];
+  delete config[kQuartoProfileGroupsConfig];
 
   // set the environment variable for those that want to read it directly
   Deno.env.set(kQuartoProfile, active.join(","));
@@ -79,8 +82,9 @@ function readProfile(profile?: string) {
 }
 
 function readProfileGroups(config: ProjectConfig): Array<string[]> {
+  // read all the groups
   const groups: Array<string[]> = [];
-  const configGroups = config[kQuartoProfileGroups];
+  const configGroups = config[kQuartoProfileGroupsConfig];
   if (Array.isArray(configGroups)) {
     // array of strings is a single group
     if (configGroups.every((value) => typeof (value) === "string")) {
@@ -89,5 +93,24 @@ function readProfileGroups(config: ProjectConfig): Array<string[]> {
       groups.push(...configGroups);
     }
   }
+
+  // validate that each group is also defined above
+  // first read all available profile names
+  const profileNames = Object.keys(
+    config[kQuartoProfileConfig] as Record<string, unknown> || {},
+  );
+  groups.forEach((group) =>
+    group.forEach((name) => {
+      if (!profileNames.includes(name)) {
+        throw new Error(
+          `The profile name ${colors.bold(name)} is referenced in ${
+            colors.bold(kQuartoProfileGroupsConfig)
+          } but isn't defined in ${colors.bold(kQuartoProfileConfig)}`,
+        );
+      }
+    })
+  );
+
+  // return groups
   return groups;
 }
