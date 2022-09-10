@@ -16,6 +16,7 @@ import * as ld from "./lodash.ts";
 
 export const kQuartoProfile = "QUARTO_PROFILE";
 export const kQuartoProfileConfig = "profile";
+export const kQuartoProfileConfigurations = "configurations";
 export const kQuartoProfileGroupsConfig = "profile-group";
 export const kQuartoProfileDefaultConfig = "profile-default";
 
@@ -51,10 +52,13 @@ export function initActiveProfiles(config: ProjectConfig) {
   // and externalized ones (e.g. 'profile-default') for the time being
   const kEmbeddedFields = ["default", "group"];
   if (ld.isObject(config[kQuartoProfileConfig])) {
+    // get key as object
     const profileConfig = config[kQuartoProfileConfig] as Record<
       string,
       unknown
     >;
+
+    // hoist up embedded fields
     kEmbeddedFields.forEach((field) => {
       const value = profileConfig[field];
       if (value) {
@@ -62,6 +66,15 @@ export function initActiveProfiles(config: ProjectConfig) {
         delete profileConfig[field];
       }
     });
+
+    // promote 'configurations'
+    const configurations = profileConfig[kQuartoProfileConfigurations] as
+      | Record<string, unknown>
+      | undefined;
+    if (configurations) {
+      delete profileConfig[kQuartoProfileConfigurations];
+      config[kQuartoProfileConfig] = configurations;
+    }
   }
 
   // if there is no profile defined see if the user has provided a default
