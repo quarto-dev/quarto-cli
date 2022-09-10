@@ -11,10 +11,12 @@ import { Args } from "flags/mod.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 import { ProjectConfig } from "../project/types.ts";
+import { logProgress } from "./log.ts";
 
 export const kQuartoProfile = "QUARTO_PROFILE";
 export const kQuartoProfileConfig = "profile";
 export const kQuartoProfileGroupsConfig = "profile-group";
+export const kQuartoProfileDefaultConfig = "profile-default";
 
 export function initializeProfile(args: Args) {
   // set profile if specified
@@ -43,8 +45,19 @@ export function initActiveProfiles(config: ProjectConfig) {
     baseQuartoProfile = Deno.env.get(kQuartoProfile) || "";
   }
 
+  // if there is no profile defined see if the user has provided a default
+  let quartoProfile = baseQuartoProfile;
+  if (!quartoProfile) {
+    const defaultConfig = config[kQuartoProfileDefaultConfig];
+    if (Array.isArray(defaultConfig)) {
+      quartoProfile = defaultConfig.map((value) => String(value)).join(",");
+    } else if (typeof (defaultConfig) === "string") {
+      quartoProfile = defaultConfig;
+    }
+  }
+
   // read any profile defined in the base environment
-  const active = readProfile(baseQuartoProfile);
+  const active = readProfile(quartoProfile);
   if (active.length === 0) {
     //  do some smart detection of connect
     if (Deno.env.get("RSTUDIO_PRODUCT") === "CONNECT") {
@@ -65,6 +78,11 @@ export function initActiveProfiles(config: ProjectConfig) {
 
   // set the environment variable for those that want to read it directly
   Deno.env.set(kQuartoProfile, active.join(","));
+
+  // print profile if not quiet
+  if (active.length > 0) {
+    logProgress(`Profile: ${active.join(",")}\n`);
+  }
 
   return active;
 }

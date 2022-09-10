@@ -273,6 +273,10 @@ export async function cleanupLogger() {
   logger.handlers = [];
 }
 
+export function logProgress(message: string) {
+  log.info(colors.bold(colors.blue(message)));
+}
+
 export function logError(e: unknown) {
   // normalize
   const err = asErrorEx(e);

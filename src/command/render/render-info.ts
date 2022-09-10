@@ -17,6 +17,7 @@ import { Format } from "../../config/types.ts";
 import { RenderFlags } from "./types.ts";
 
 import { extname } from "path/mod.ts";
+import { logProgress } from "../../core/log.ts";
 
 export function isSelfContained(flags: RenderFlags, format: Format) {
   return !!(flags[kSelfContained] || format.pandoc[kSelfContained] ||
@@ -54,5 +55,5 @@ export function isStandaloneFormat(format: Format) {
 }
 
 export function renderProgress(message: string) {
-  info(colors.bold(colors.blue(message)));
+  logProgress(message);
 }
