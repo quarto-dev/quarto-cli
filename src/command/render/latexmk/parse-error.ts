@@ -141,11 +141,13 @@ export function findLatexError(
     }
   }
 
-  const emptyMatch = logText.match(kEmptyRegex);
-  if (emptyMatch) {
-    errors.push(
-      `${emptyMatch[1]} - the document appears to have produced no output.`,
-    );
+  if (errors.length === 0) {
+    const emptyMatch = logText.match(kEmptyRegex);
+    if (emptyMatch) {
+      errors.push(
+        `${emptyMatch[1]} - the document appears to have produced no output.`,
+      );
+    }
   }
 
   return errors.join("\n");
