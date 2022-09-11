@@ -142,24 +142,5 @@ function readProfileGroups(config: ProjectConfig): Array<string[]> {
       groups.push(...configGroups);
     }
   }
-
-  // validate that each group is also defined above
-  // first read all available profile names
-  const profileNames = Object.keys(
-    config[kQuartoProfileConfig] as Record<string, unknown> || {},
-  );
-  groups.forEach((group) =>
-    group.forEach((name) => {
-      if (!profileNames.includes(name)) {
-        throw new Error(
-          `The profile name ${colors.bold(name)} is referenced in ${
-            colors.bold(kQuartoProfileGroupsConfig)
-          } but isn't defined in ${colors.bold(kQuartoProfileConfig)}`,
-        );
-      }
-    })
-  );
-
-  // return groups
   return groups;
 }

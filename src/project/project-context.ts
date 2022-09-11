@@ -336,6 +336,28 @@ async function mergeConfigurationProfiles(
   // config files to return
   const files: string[] = [];
 
+  // helper function to read a metadata file
+  const mergeProfileMetadata = async (
+    profileName: string,
+    profilePath: string,
+  ) => {
+    try {
+      const yaml = await readAndValidateYamlFromFile(
+        profilePath,
+        schema,
+        `Validation of configuration profile file ${profileName} failed.`,
+      );
+      config = mergeProjectMetadata(config, yaml);
+      files.push(profilePath);
+    } catch (e) {
+      error(
+        "\nError reading configuration profile file from " + profileName +
+          "\n",
+      );
+      throw e;
+    }
+  };
+
   // get declared profiles
   const profiles = config[kQuartoProfileConfig] as
     | Record<string, string | ProjectConfig>
@@ -352,23 +374,17 @@ async function mergeConfigurationProfiles(
             `Project configuration profile file ${profile} not found.`,
           );
         }
-        try {
-          const yaml = await readAndValidateYamlFromFile(
-            profilePath,
-            schema,
-            `Validation of configuration profile file ${profile} failed.`,
-          );
-          config = mergeProjectMetadata(config, yaml);
-          files.push(profilePath);
-        } catch (e) {
-          error(
-            "\nError reading configuration profile file from " + profile +
-              "\n",
-          );
-          throw e;
-        }
+        await mergeProfileMetadata(profileName, profilePath);
       } else if (profile !== undefined) { // otherwise is object
         config = mergeProjectMetadata(config, profile);
+      } else {
+        // could be defined in an external file
+        const profileYaml = [".yml", ".yaml"].map((ext) =>
+          join(dir, `_quarto.${profileName}${ext}`)
+        ).find(safeExistsSync);
+        if (profileYaml) {
+          await mergeProfileMetadata(profileName, profileYaml);
+        }
       }
     }
     delete config[kQuartoProfileConfig];
