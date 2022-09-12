@@ -86,3 +86,4 @@
 - New metadata field `quarto-required` to specify required versions of quarto in a document
 - Provide project configuration for calls to `quarto inspect` for files
 - Improve YAML validation error messages on closed schemas (#2349)
+- Don't use default width/height on mermaid diagrams when better information is available (#2383)
