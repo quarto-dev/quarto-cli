@@ -261,7 +261,8 @@
             additionalProperties:
               ref: schema/schema
             super:
-              ref: schema/schema
+              maybeArrayOf:
+                ref: schema/schema
             required:
               anyOf:
                 - enum: ["all"]

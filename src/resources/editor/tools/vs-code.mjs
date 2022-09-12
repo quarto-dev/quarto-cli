@@ -9510,6 +9510,129 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
+          id: "book-schema",
+          schema: {
+            object: {
+              super: {
+                resolveRef: "base-website"
+              },
+              properties: {
+                title: {
+                  string: {
+                    description: "Book title"
+                  }
+                },
+                subtitle: {
+                  string: {
+                    description: "Book subtitle"
+                  }
+                },
+                author: {
+                  maybeArrayOf: {
+                    anyOf: [
+                      "string",
+                      "object"
+                    ],
+                    description: "Author or authors of the book"
+                  }
+                },
+                date: {
+                  string: {
+                    description: "Book publication date"
+                  }
+                },
+                "date-format": {
+                  string: {
+                    description: "Format string for dates in the book"
+                  }
+                },
+                abstract: {
+                  string: {
+                    description: "Book abstract"
+                  }
+                },
+                description: {
+                  string: {
+                    description: "Description metadata for HTML version of book"
+                  }
+                },
+                chapters: {
+                  schema: {
+                    ref: "chapter-list"
+                  },
+                  description: "Book part and chapter files",
+                  hidden: true
+                },
+                appendices: {
+                  schema: {
+                    ref: "chapter-list"
+                  },
+                  description: "Book appendix files",
+                  hidden: true
+                },
+                references: {
+                  path: {
+                    description: "Book references file"
+                  }
+                },
+                "output-file": {
+                  path: {
+                    description: "Base name for single-file output (e.g. PDF, ePub)"
+                  }
+                },
+                "cover-image": {
+                  path: {
+                    description: "Cover image (used in HTML and ePub formats)"
+                  }
+                },
+                "cover-image-alt": {
+                  string: {
+                    description: "Alternative text for cover image (used in HTML format)"
+                  }
+                },
+                sharing: {
+                  maybeArrayOf: {
+                    enum: [
+                      "twitter",
+                      "facebook",
+                      "linkedin"
+                    ],
+                    description: "Sharing buttons to include on navbar or sidebar\n(one or more of `twitter`, `facebook`, `linkedin`)\n"
+                  }
+                },
+                downloads: {
+                  maybeArrayOf: {
+                    enum: [
+                      "pdf",
+                      "epub",
+                      "docx"
+                    ],
+                    description: "Download buttons for other formats to include on navbar or sidebar\n(one or more of `pdf`, `epub`, and `docx`)\n"
+                  }
+                },
+                tools: {
+                  arrayOf: {
+                    schema: {
+                      ref: "navigation-item"
+                    },
+                    description: "Custom tools for navbar or sidebar"
+                  }
+                },
+                doi: {
+                  string: {
+                    tags: {
+                      formats: [
+                        "$html-doc"
+                      ]
+                    },
+                    description: "The Digital Object Identifier for this book."
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
           id: "chapter-item",
           anyOf: [
             {
@@ -10696,6 +10819,26 @@ var require_yaml_intelligence_resources = __commonJS({
             pattern: "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$"
           },
           description: "Version number according to Semantic Versioning"
+        },
+        {
+          id: "quarto-date",
+          anyOf: [
+            "string",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  format: "string",
+                  value: {
+                    ref: "string"
+                  }
+                },
+                required: [
+                  "value"
+                ]
+              }
+            }
+          ]
         }
       ],
       "schema/document-about.yml": [
@@ -16455,117 +16598,14 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "Book configuration.",
           schema: {
             object: {
-              super: {
-                resolveRef: "base-website"
-              },
-              properties: {
-                title: {
-                  string: {
-                    description: "Book title"
-                  }
+              super: [
+                {
+                  resolveRef: "book-schema"
                 },
-                subtitle: {
-                  string: {
-                    description: "Book subtitle"
-                  }
-                },
-                author: {
-                  maybeArrayOf: {
-                    anyOf: [
-                      "string",
-                      "object"
-                    ],
-                    description: "Author or authors of the book"
-                  }
-                },
-                date: {
-                  string: {
-                    description: "Book publication date"
-                  }
-                },
-                abstract: {
-                  string: {
-                    description: "Book abstract"
-                  }
-                },
-                description: {
-                  string: {
-                    description: "Description metadata for HTML version of book"
-                  }
-                },
-                chapters: {
-                  schema: {
-                    ref: "chapter-list"
-                  },
-                  description: "Book part and chapter files",
-                  hidden: true
-                },
-                appendices: {
-                  schema: {
-                    ref: "chapter-list"
-                  },
-                  description: "Book appendix files",
-                  hidden: true
-                },
-                references: {
-                  path: {
-                    description: "Book references file"
-                  }
-                },
-                "output-file": {
-                  path: {
-                    description: "Base name for single-file output (e.g. PDF, ePub)"
-                  }
-                },
-                "cover-image": {
-                  path: {
-                    description: "Cover image (used in HTML and ePub formats)"
-                  }
-                },
-                "cover-image-alt": {
-                  string: {
-                    description: "Alternative text for cover image (used in HTML format)"
-                  }
-                },
-                sharing: {
-                  maybeArrayOf: {
-                    enum: [
-                      "twitter",
-                      "facebook",
-                      "linkedin"
-                    ],
-                    description: "Sharing buttons to include on navbar or sidebar\n(one or more of `twitter`, `facebook`, `linkedin`)\n"
-                  }
-                },
-                downloads: {
-                  maybeArrayOf: {
-                    enum: [
-                      "pdf",
-                      "epub",
-                      "docx"
-                    ],
-                    description: "Download buttons for other formats to include on navbar or sidebar\n(one or more of `pdf`, `epub`, and `docx`)\n"
-                  }
-                },
-                tools: {
-                  arrayOf: {
-                    schema: {
-                      ref: "navigation-item"
-                    },
-                    description: "Custom tools for navbar or sidebar"
-                  }
-                },
-                doi: {
-                  string: {
-                    tags: {
-                      formats: [
-                        "$html-doc"
-                      ]
-                    },
-                    description: "The Digital Object Identifier for this book."
-                  }
+                {
+                  resolveRef: "csl-item"
                 }
-              }
+              ]
             }
           }
         },
@@ -17004,7 +17044,9 @@ var require_yaml_intelligence_resources = __commonJS({
                       ref: "schema/schema"
                     },
                     super: {
-                      ref: "schema/schema"
+                      maybeArrayOf: {
+                        ref: "schema/schema"
+                      }
                     },
                     required: {
                       anyOf: [
@@ -17477,6 +17519,145 @@ var require_yaml_intelligence_resources = __commonJS({
         "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
         "Publish open graph metadata",
         "Publish twitter card metadata",
+        "Book title",
+        "Description metadata for HTML version of book",
+        "The path to the favicon for this website",
+        "Base URL for published website",
+        "Path to site (defaults to <code>/</code>). Not required if you\nspecify <code>site-url</code>.",
+        "Base URL for website source code repository",
+        "Subdirectory of repository containing website",
+        "Branch of website source code (defaults to <code>main</code>)",
+        {
+          short: "Links to source repository actions",
+          long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
+        },
+        {
+          short: "Links to source repository actions",
+          long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
+        },
+        "Displays a \u2018reader-mode\u2019 tool which allows users to hide the sidebar\nand table of contents when viewing a page.",
+        "Enable Google Analytics for this website",
+        "The Google tracking Id or measurement Id of this website.",
+        {
+          short: "Storage options for Google Analytics data",
+          long: 'Storage option for Google Analytics data using on of these two\nvalues:\n<code>cookies</code>: Use cookies to store unique user and session\nidentification (default).\n<code>none</code>: Do not use cookies to store unique user and\nsession identification.\nFor more about choosing storage options see <a href="https://quarto.org/docs/websites/website-tools.html#storage">Storage</a>.'
+        },
+        {
+          short: "Anonymize the user ip address.",
+          long: 'Anonymize the user ip address. For more about this feature, see <a href="https://support.google.com/analytics/answer/2763052?hl=en">IP\nAnonymization (or IP masking) in Google Analytics</a>.'
+        },
+        {
+          short: "The version number of Google Analytics to use.",
+          long: "The version number of Google Analytics to use."
+        },
+        {
+          short: "Request cookie consent before enabling scripts that set cookies",
+          long: 'Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href="https://www.cookieconsent.com/">Cookie Consent</a>.\nThe user\u2019s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href="https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent">Custom\nScripts and Cookie Consent</a>.'
+        },
+        {
+          short: "The type of consent that should be requested",
+          long: "The type of consent that should be requested, using one of these two\nvalues:"
+        },
+        {
+          short: "The style of the consent banner that is displayed",
+          long: "The style of the consent banner that is displayed:"
+        },
+        "Whether to use a dark or light appearance for the consent banner\n(<code>light</code> or <code>dark</code>).",
+        "The url to the website\u2019s cookie or privacy policy.",
+        {
+          short: "The text to display for the cookie preferences link in the website\nfooter.",
+          long: ""
+        },
+        "Provide full text search for website",
+        "Location for search widget (<code>navbar</code> or\n<code>sidebar</code>)",
+        "Type of search UI (<code>overlay</code> or <code>textbox</code>)",
+        "Number of matches to display (defaults to 20)",
+        "Matches after which to collapse additional results",
+        "Provide button for copying search link",
+        "Use external Algolia search index",
+        "The name of the index to use when performing a search",
+        "The unique ID used by Algolia to identify your application",
+        "The Search-Only API key to use to connect to Algolia",
+        "Enable tracking of Algolia analytics events",
+        "Enable the display of the Algolia logo in the search results\nfooter.",
+        "Field that contains the URL of index entries",
+        "Field that contains the title of index entries",
+        "Field that contains the text of index entries",
+        "Field that contains the section of index entries",
+        "Additional parameters to pass when executing a search",
+        "Top navigation options",
+        "The navbar title. Uses the project title if none is specified.",
+        "Path to a logo image that will be displayed to the left of the\ntitle.",
+        "Alternate text for the logo image.",
+        "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
+        "The navbar\u2019s background color (named or hex color).",
+        "The navbar\u2019s foreground color (named or hex color).",
+        "Include a search box in the navbar.",
+        "Always show the navbar (keeping it pinned).",
+        "Collapse the navbar into a menu when the display becomes narrow.",
+        "The responsive breakpoint below which the navbar will collapse into a\nmenu (<code>sm</code>, <code>md</code>, <code>lg</code> (default),\n<code>xl</code>, <code>xxl</code>).",
+        "List of items for the left side of the navbar.",
+        "List of items for the right side of the navbar.",
+        "Side navigation options",
+        "The identifier for this sidebar.",
+        "The sidebar title. Uses the project title if none is specified.",
+        "The subtitle for this sidebar.",
+        "Path to a logo image that will be displayed in the sidebar.",
+        "Include a search control in the sidebar.",
+        "List of sidebar tools",
+        "List of items for the sidebar",
+        "The style of sidebar (<code>docked</code> or\n<code>floating</code>).",
+        "The sidebar\u2019s background color (named or hex color).",
+        "The sidebar\u2019s foreground color (named or hex color).",
+        "Whether to show a border on the sidebar (defaults to true for\n\u2018docked\u2019 sidebars)",
+        "Alignment of the items within the sidebar (<code>left</code>,\n<code>right</code>, or <code>center</code>)",
+        "The depth at which the sidebar contents should be collapsed by\ndefault.",
+        "When collapsed, pin the collapsed sidebar to the top of the page.",
+        "Markdown to place above sidebar content (text or file path)",
+        "Markdown to place below sidebar content (text or file path)",
+        "The identifier for this sidebar.",
+        "The sidebar title. Uses the project title if none is specified.",
+        "The subtitle for this sidebar.",
+        "Path to a logo image that will be displayed in the sidebar.",
+        "Include a search control in the sidebar.",
+        "List of sidebar tools",
+        "List of items for the sidebar",
+        "The style of sidebar (<code>docked</code> or\n<code>floating</code>).",
+        "The sidebar\u2019s background color (named or hex color).",
+        "The sidebar\u2019s foreground color (named or hex color).",
+        "Whether to show a border on the sidebar (defaults to true for\n\u2018docked\u2019 sidebars)",
+        "Alignment of the items within the sidebar (<code>left</code>,\n<code>right</code>, or <code>center</code>)",
+        "The depth at which the sidebar contents should be collapsed by\ndefault.",
+        "When collapsed, pin the collapsed sidebar to the top of the page.",
+        "Markdown to place above sidebar content (text or file path)",
+        "Markdown to place below sidebar content (text or file path)",
+        "Markdown to insert at the beginning of each page\u2019s body (below the\ntitle and author block).",
+        "Markdown to insert below each page\u2019s body.",
+        "Markdown to place above margin content (text or file path)",
+        "Markdown to place below margin content (text or file path)",
+        "Provide next and previous article links in footer",
+        "Shared page footer",
+        "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
+        "Publish open graph metadata",
+        "Publish twitter card metadata",
+        "Book subtitle",
+        "Author or authors of the book",
+        "Author or authors of the book",
+        "Book publication date",
+        "Format string for dates in the book",
+        "Book abstract",
+        "Book part and chapter files",
+        "Book appendix files",
+        "Book references file",
+        "Base name for single-file output (e.g.&nbsp;PDF, ePub)",
+        "Cover image (used in HTML and ePub formats)",
+        "Alternative text for cover image (used in HTML format)",
+        "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
+        "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
+        "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
+        "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
+        "Custom tools for navbar or sidebar",
+        "The Digital Object Identifier for this book.",
         "Part title or path to input file",
         "Path to chapter input file",
         {
@@ -18413,7 +18594,7 @@ var require_yaml_intelligence_resources = __commonJS({
           long: 'Options for the <a href="https://ctan.org/pkg/geometry">geometry</a>\npackage. For example:'
         },
         {
-          short: "Options for the hyperref package.",
+          short: "Additional non-color options for the hyperref package.",
           long: 'Options for the <a href="https://ctan.org/pkg/hyperref">hyperref</a>\npackage. For example:'
         },
         {
@@ -18829,7 +19010,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Scripts to run as a post-render step",
         "Website configuration.",
         "Book configuration.",
-        "Book title",
+        "The primary title of the item.",
         "Description metadata for HTML version of book",
         "The path to the favicon for this website",
         "Base URL for published website",
@@ -18951,13 +19132,16 @@ var require_yaml_intelligence_resources = __commonJS({
         "Publish open graph metadata",
         "Publish twitter card metadata",
         "Book subtitle",
-        "Author or authors of the book",
-        "Author or authors of the book",
+        "The author(s) of the item.",
         "Book publication date",
-        "Book abstract",
+        "Format string for dates in the book",
+        "Abstract of the item (e.g.&nbsp;the abstract of a journal article)",
         "Book part and chapter files",
         "Book appendix files",
-        "Book references file",
+        {
+          short: "Resources related to the procedural history of a legal case or\nlegislation.",
+          long: "Resources related to the procedural history of a legal case or\nlegislation;\nCan also be used to refer to the procedural history of other items\n(e.g.&nbsp; \u201CConference canceled\u201D for a presentation accepted as a conference\nthat was subsequently canceled; details of a retraction or correction\nnotice)"
+        },
         "Base name for single-file output (e.g.&nbsp;PDF, ePub)",
         "Cover image (used in HTML and ePub formats)",
         "Alternative text for cover image (used in HTML format)",
@@ -18966,7 +19150,153 @@ var require_yaml_intelligence_resources = __commonJS({
         "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
         "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
         "Custom tools for navbar or sidebar",
-        "The Digital Object Identifier for this book.",
+        "Digital Object Identifier (e.g.&nbsp;\u201C10.1128/AEM.02591-07\u201D)",
+        "A url to the abstract for this item.",
+        "Date the item has been accessed.",
+        {
+          short: "Short markup, decoration, or annotation to the item (e.g., to\nindicate items included in a review).",
+          long: "Short markup, decoration, or annotation to the item (e.g., to\nindicate items included in a review);\nFor descriptive text (e.g., in an annotated bibliography), use\n<code>note</code> instead"
+        },
+        "Archive storing the item",
+        "Collection the item is part of within an archive.",
+        "Storage location within an archive (e.g.&nbsp;a box and folder\nnumber).",
+        "Geographic location of the archive.",
+        "Issuing or judicial authority (e.g.&nbsp;\u201CUSPTO\u201D for a patent, \u201CFairfax\nCircuit Court\u201D for a legal case).",
+        {
+          short: "Date the item was initially available",
+          long: "Date the item was initially available (e.g.&nbsp;the online publication\ndate of a journal article before its formal publication date; the date a\ntreaty was made available for signing)."
+        },
+        "Call number (to locate the item in a library).",
+        "The person leading the session containing a presentation (e.g.&nbsp;the\norganizer of the <code>container-title</code> of a\n<code>speech</code>).",
+        "Chapter number (e.g.&nbsp;chapter number in a book; track number on an\nalbum).",
+        {
+          short: "Identifier of the item in the input data file (analogous to BiTeX\nentrykey).",
+          long: "Identifier of the item in the input data file (analogous to BiTeX\nentrykey);\nUse this variable to facilitate conversion between word-processor and\nplain-text writing systems; For an identifer intended as formatted\noutput label for a citation (e.g.&nbsp;\u201CFerr78\u201D), use\n<code>citation-label</code> instead"
+        },
+        {
+          short: "Label identifying the item in in-text citations of label styles\n(e.g.&nbsp;\u201CFerr78\u201D).",
+          long: "Label identifying the item in in-text citations of label styles\n(e.g.&nbsp;\u201CFerr78\u201D);\nMay be assigned by the CSL processor based on item metadata; For the\nidentifier of the item in the input data file, use\n<code>citation-key</code> instead"
+        },
+        "Index (starting at 1) of the cited reference in the bibliography\n(generated by the CSL processor).",
+        "Editor of the collection holding the item (e.g.&nbsp;the series editor for\na book).",
+        "Number identifying the collection holding the item (e.g.&nbsp;the series\nnumber for a book)",
+        "Title of the collection holding the item (e.g.&nbsp;the series title for a\nbook; the lecture series title for a presentation).",
+        "Person compiling or selecting material for an item from the works of\nvarious persons or bodies (e.g.&nbsp;for an anthology).",
+        "Composer (e.g.&nbsp;of a musical score).",
+        "Author of the container holding the item (e.g.&nbsp;the book author for a\nbook chapter).",
+        {
+          short: "Title of the container holding the item.",
+          long: "Title of the container holding the item (e.g.&nbsp;the book title for a\nbook chapter, the journal title for a journal article; the album title\nfor a recording; the session title for multi-part presentation at a\nconference)"
+        },
+        "Short/abbreviated form of container-title;",
+        "A minor contributor to the item; typically cited using \u201Cwith\u201D before\nthe name when listed in a bibliography.",
+        "Curator of an exhibit or collection (e.g.&nbsp;in a museum).",
+        "Physical (e.g.&nbsp;size) or temporal (e.g.&nbsp;running time) dimensions of\nthe item.",
+        "Director (e.g.&nbsp;of a film).",
+        "Minor subdivision of a court with a <code>jurisdiction</code> for a\nlegal item",
+        "(Container) edition holding the item (e.g.&nbsp;\u201C3\u201D when citing a chapter\nin the third edition of a book).",
+        "The editor of the item.",
+        "Managing editor (\u201CDirecteur de la Publication\u201D in French).",
+        {
+          short: "Combined editor and translator of a work.",
+          long: "Combined editor and translator of a work.\nThe citation processory must be automatically generate if editor and\ntranslator variables are identical; May also be provided directly in\nitem data."
+        },
+        "Date the event related to an item took place.",
+        "Name of the event related to the item (e.g.&nbsp;the conference name when\nciting a conference paper; the meeting where presentation was made).",
+        "Geographic location of the event related to the item\n(e.g.&nbsp;\u201CAmsterdam, The Netherlands\u201D).",
+        "Executive producer of the item (e.g.&nbsp;of a television series).",
+        {
+          short: "Number of a preceding note containing the first reference to the\nitem.",
+          long: "Number of a preceding note containing the first reference to the\nitem\nAssigned by the CSL processor; Empty in non-note-based styles or when\nthe item hasn\u2019t been cited in any preceding notes in a document"
+        },
+        "A url to the full text for this item.",
+        {
+          short: "Type, class, or subtype of the item",
+          long: "Type, class, or subtype of the item (e.g.&nbsp;\u201CDoctoral dissertation\u201D for\na PhD thesis; \u201CNIH Publication\u201D for an NIH technical report);\nDo not use for topical descriptions or categories (e.g.&nbsp;\u201Cadventure\u201D\nfor an adventure movie)"
+        },
+        "Guest (e.g.&nbsp;on a TV show or podcast).",
+        "Host of the item (e.g.&nbsp;of a TV show or podcast).",
+        "Illustrator (e.g.&nbsp;of a children\u2019s book or graphic novel).",
+        "Interviewer (e.g.&nbsp;of an interview).",
+        "International Standard Book Number (e.g.&nbsp;\u201C978-3-8474-1017-1\u201D).",
+        "International Standard Serial Number.",
+        {
+          short: "Issue number of the item or container holding the item",
+          long: "Issue number of the item or container holding the item (e.g.&nbsp;\u201C5\u201D when\nciting a journal article from journal volume 2, issue 5);\nUse <code>volume-title</code> for the title of the issue, if any."
+        },
+        "Date the item was issued/published.",
+        "Geographic scope of relevance (e.g.&nbsp;\u201CUS\u201D for a US patent; the court\nhearing a legal case).",
+        "Keyword(s) or tag(s) attached to the item.",
+        {
+          short: "The language of the item.",
+          long: "The language of the item;\nShould be entered as an ISO 639-1 two-letter language code\n(e.g.&nbsp;\u201Cen\u201D, \u201Czh\u201D), optionally with a two-letter locale code\n(e.g.&nbsp;\u201Cde-DE\u201D, \u201Cde-AT\u201D)"
+        },
+        {
+          short: "The license information applicable to an item.",
+          long: "The license information applicable to an item (e.g.&nbsp;the license an\narticle or software is released under; the copyright information for an\nitem; the classification status of a document)"
+        },
+        {
+          short: "A cite-specific pinpointer within the item.",
+          long: "A cite-specific pinpointer within the item (e.g.&nbsp;a page number within\na book, or a volume in a multi-volume work).\nMust be accompanied in the input data by a label indicating the\nlocator type (see the Locators term list)."
+        },
+        "Description of the item\u2019s format or medium (e.g.&nbsp;\u201CCD\u201D, \u201CDVD\u201D,\n\u201CAlbum\u201D, etc.)",
+        "Narrator (e.g.&nbsp;of an audio book).",
+        "Descriptive text or notes about an item (e.g.&nbsp;in an annotated\nbibliography).",
+        "Number identifying the item (e.g.&nbsp;a report number).",
+        "Total number of pages of the cited item.",
+        "Total number of volumes, used when citing multi-volume books and\nsuch.",
+        "Organizer of an event (e.g.&nbsp;organizer of a workshop or\nconference).",
+        {
+          short: "The original creator of a work.",
+          long: "The original creator of a work (e.g.&nbsp;the form of the author name\nlisted on the original version of a book; the historical author of a\nwork; the original songwriter or performer for a musical piece; the\noriginal developer or programmer for a piece of software; the original\nauthor of an adapted work such as a book adapted into a screenplay)"
+        },
+        "Issue date of the original version.",
+        "Original publisher, for items that have been republished by a\ndifferent publisher.",
+        "Geographic location of the original publisher (e.g.&nbsp;\u201CLondon,\nUK\u201D).",
+        "Title of the original version (e.g.&nbsp;\u201C\u0412\u043E\u0439\u043D\u0430 \u0438 \u043C\u0438\u0440\u201D, the untranslated\nRussian title of \u201CWar and Peace\u201D).",
+        "Range of pages the item (e.g.&nbsp;a journal article) covers in a\ncontainer (e.g.&nbsp;a journal issue).",
+        "First page of the range of pages the item (e.g.&nbsp;a journal article)\ncovers in a container (e.g.&nbsp;a journal issue).",
+        "Last page of the range of pages the item (e.g.&nbsp;a journal article)\ncovers in a container (e.g.&nbsp;a journal issue).",
+        {
+          short: "Number of the specific part of the item being cited (e.g.&nbsp;part 2 of a\njournal article).",
+          long: "Number of the specific part of the item being cited (e.g.&nbsp;part 2 of a\njournal article).\nUse <code>part-title</code> for the title of the part, if any."
+        },
+        "Title of the specific part of an item being cited.",
+        "A url to the pdf for this item.",
+        "Performer of an item (e.g.&nbsp;an actor appearing in a film; a muscian\nperforming a piece of music).",
+        "PubMed Central reference number.",
+        "PubMed reference number.",
+        "Printing number of the item or container holding the item.",
+        "Producer (e.g.&nbsp;of a television or radio broadcast).",
+        "A public url for this item.",
+        "The publisher of the item.",
+        "The geographic location of the publisher.",
+        "Recipient (e.g.&nbsp;of a letter).",
+        "Author of the item reviewed by the current item.",
+        "Type of the item being reviewed by the current item (e.g.&nbsp;book,\nfilm).",
+        "Title of the item reviewed by the current item.",
+        "Scale of e.g.&nbsp;a map or model.",
+        "Writer of a script or screenplay (e.g.&nbsp;of a film).",
+        "Section of the item or container holding the item (e.g.&nbsp;\u201C\xA72.0.1\u201D for\na law; \u201Cpolitics\u201D for a newspaper article).",
+        "Creator of a series (e.g.&nbsp;of a television series).",
+        "Source from whence the item originates (e.g.&nbsp;a library catalog or\ndatabase).",
+        "Publication status of the item (e.g.&nbsp;\u201Cforthcoming\u201D; \u201Cin press\u201D;\n\u201Cadvance online publication\u201D; \u201Cretracted\u201D)",
+        "Date the item (e.g.&nbsp;a manuscript) was submitted for publication.",
+        "Supplement number of the item or container holding the item (e.g.&nbsp;for\nsecondary legal items that are regularly updated between editions).",
+        "Short/abbreviated form of<code>title</code>.",
+        "Translator",
+        'The <a href="https://docs.citationstyles.org/en/stable/specification.html#appendix-iii-types">type</a>\nof the item.',
+        "Uniform Resource Locator\n(e.g.&nbsp;\u201Chttps://aem.asm.org/cgi/content/full/74/9/2766\u201D)",
+        "Version of the item (e.g.&nbsp;\u201C2.0.9\u201D for a software program).",
+        {
+          short: "Volume number of the item (e.g.&nbsp;\u201C2\u201D when citing volume 2 of a book)\nor the container holding the item.",
+          long: "Volume number of the item (e.g.&nbsp;\u201C2\u201D when citing volume 2 of a book)\nor the container holding the item (e.g.&nbsp;\u201C2\u201D when citing a chapter from\nvolume 2 of a book).\nUse <code>volume-title</code> for the title of the volume, if\nany."
+        },
+        {
+          short: "Title of the volume of the item or container holding the item.",
+          long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
+        },
+        "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "internal-schema-hack",
         "Project configuration.",
         "Project type (<code>default</code>, <code>website</code>, or\n<code>book</code>)",
@@ -18984,7 +19314,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Scripts to run as a post-render step",
         "Website configuration.",
         "Book configuration.",
-        "Book title",
+        "The primary title of the item.",
         "Description metadata for HTML version of book",
         "The path to the favicon for this website",
         "Base URL for published website",
@@ -19106,13 +19436,16 @@ var require_yaml_intelligence_resources = __commonJS({
         "Publish open graph metadata",
         "Publish twitter card metadata",
         "Book subtitle",
-        "Author or authors of the book",
-        "Author or authors of the book",
+        "The author(s) of the item.",
         "Book publication date",
-        "Book abstract",
+        "Format string for dates in the book",
+        "Abstract of the item (e.g.&nbsp;the abstract of a journal article)",
         "Book part and chapter files",
         "Book appendix files",
-        "Book references file",
+        {
+          short: "Resources related to the procedural history of a legal case or\nlegislation.",
+          long: "Resources related to the procedural history of a legal case or\nlegislation;\nCan also be used to refer to the procedural history of other items\n(e.g.&nbsp; \u201CConference canceled\u201D for a presentation accepted as a conference\nthat was subsequently canceled; details of a retraction or correction\nnotice)"
+        },
         "Base name for single-file output (e.g.&nbsp;PDF, ePub)",
         "Cover image (used in HTML and ePub formats)",
         "Alternative text for cover image (used in HTML format)",
@@ -19121,7 +19454,153 @@ var require_yaml_intelligence_resources = __commonJS({
         "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
         "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
         "Custom tools for navbar or sidebar",
-        "The Digital Object Identifier for this book.",
+        "Digital Object Identifier (e.g.&nbsp;\u201C10.1128/AEM.02591-07\u201D)",
+        "A url to the abstract for this item.",
+        "Date the item has been accessed.",
+        {
+          short: "Short markup, decoration, or annotation to the item (e.g., to\nindicate items included in a review).",
+          long: "Short markup, decoration, or annotation to the item (e.g., to\nindicate items included in a review);\nFor descriptive text (e.g., in an annotated bibliography), use\n<code>note</code> instead"
+        },
+        "Archive storing the item",
+        "Collection the item is part of within an archive.",
+        "Storage location within an archive (e.g.&nbsp;a box and folder\nnumber).",
+        "Geographic location of the archive.",
+        "Issuing or judicial authority (e.g.&nbsp;\u201CUSPTO\u201D for a patent, \u201CFairfax\nCircuit Court\u201D for a legal case).",
+        {
+          short: "Date the item was initially available",
+          long: "Date the item was initially available (e.g.&nbsp;the online publication\ndate of a journal article before its formal publication date; the date a\ntreaty was made available for signing)."
+        },
+        "Call number (to locate the item in a library).",
+        "The person leading the session containing a presentation (e.g.&nbsp;the\norganizer of the <code>container-title</code> of a\n<code>speech</code>).",
+        "Chapter number (e.g.&nbsp;chapter number in a book; track number on an\nalbum).",
+        {
+          short: "Identifier of the item in the input data file (analogous to BiTeX\nentrykey).",
+          long: "Identifier of the item in the input data file (analogous to BiTeX\nentrykey);\nUse this variable to facilitate conversion between word-processor and\nplain-text writing systems; For an identifer intended as formatted\noutput label for a citation (e.g.&nbsp;\u201CFerr78\u201D), use\n<code>citation-label</code> instead"
+        },
+        {
+          short: "Label identifying the item in in-text citations of label styles\n(e.g.&nbsp;\u201CFerr78\u201D).",
+          long: "Label identifying the item in in-text citations of label styles\n(e.g.&nbsp;\u201CFerr78\u201D);\nMay be assigned by the CSL processor based on item metadata; For the\nidentifier of the item in the input data file, use\n<code>citation-key</code> instead"
+        },
+        "Index (starting at 1) of the cited reference in the bibliography\n(generated by the CSL processor).",
+        "Editor of the collection holding the item (e.g.&nbsp;the series editor for\na book).",
+        "Number identifying the collection holding the item (e.g.&nbsp;the series\nnumber for a book)",
+        "Title of the collection holding the item (e.g.&nbsp;the series title for a\nbook; the lecture series title for a presentation).",
+        "Person compiling or selecting material for an item from the works of\nvarious persons or bodies (e.g.&nbsp;for an anthology).",
+        "Composer (e.g.&nbsp;of a musical score).",
+        "Author of the container holding the item (e.g.&nbsp;the book author for a\nbook chapter).",
+        {
+          short: "Title of the container holding the item.",
+          long: "Title of the container holding the item (e.g.&nbsp;the book title for a\nbook chapter, the journal title for a journal article; the album title\nfor a recording; the session title for multi-part presentation at a\nconference)"
+        },
+        "Short/abbreviated form of container-title;",
+        "A minor contributor to the item; typically cited using \u201Cwith\u201D before\nthe name when listed in a bibliography.",
+        "Curator of an exhibit or collection (e.g.&nbsp;in a museum).",
+        "Physical (e.g.&nbsp;size) or temporal (e.g.&nbsp;running time) dimensions of\nthe item.",
+        "Director (e.g.&nbsp;of a film).",
+        "Minor subdivision of a court with a <code>jurisdiction</code> for a\nlegal item",
+        "(Container) edition holding the item (e.g.&nbsp;\u201C3\u201D when citing a chapter\nin the third edition of a book).",
+        "The editor of the item.",
+        "Managing editor (\u201CDirecteur de la Publication\u201D in French).",
+        {
+          short: "Combined editor and translator of a work.",
+          long: "Combined editor and translator of a work.\nThe citation processory must be automatically generate if editor and\ntranslator variables are identical; May also be provided directly in\nitem data."
+        },
+        "Date the event related to an item took place.",
+        "Name of the event related to the item (e.g.&nbsp;the conference name when\nciting a conference paper; the meeting where presentation was made).",
+        "Geographic location of the event related to the item\n(e.g.&nbsp;\u201CAmsterdam, The Netherlands\u201D).",
+        "Executive producer of the item (e.g.&nbsp;of a television series).",
+        {
+          short: "Number of a preceding note containing the first reference to the\nitem.",
+          long: "Number of a preceding note containing the first reference to the\nitem\nAssigned by the CSL processor; Empty in non-note-based styles or when\nthe item hasn\u2019t been cited in any preceding notes in a document"
+        },
+        "A url to the full text for this item.",
+        {
+          short: "Type, class, or subtype of the item",
+          long: "Type, class, or subtype of the item (e.g.&nbsp;\u201CDoctoral dissertation\u201D for\na PhD thesis; \u201CNIH Publication\u201D for an NIH technical report);\nDo not use for topical descriptions or categories (e.g.&nbsp;\u201Cadventure\u201D\nfor an adventure movie)"
+        },
+        "Guest (e.g.&nbsp;on a TV show or podcast).",
+        "Host of the item (e.g.&nbsp;of a TV show or podcast).",
+        "Illustrator (e.g.&nbsp;of a children\u2019s book or graphic novel).",
+        "Interviewer (e.g.&nbsp;of an interview).",
+        "International Standard Book Number (e.g.&nbsp;\u201C978-3-8474-1017-1\u201D).",
+        "International Standard Serial Number.",
+        {
+          short: "Issue number of the item or container holding the item",
+          long: "Issue number of the item or container holding the item (e.g.&nbsp;\u201C5\u201D when\nciting a journal article from journal volume 2, issue 5);\nUse <code>volume-title</code> for the title of the issue, if any."
+        },
+        "Date the item was issued/published.",
+        "Geographic scope of relevance (e.g.&nbsp;\u201CUS\u201D for a US patent; the court\nhearing a legal case).",
+        "Keyword(s) or tag(s) attached to the item.",
+        {
+          short: "The language of the item.",
+          long: "The language of the item;\nShould be entered as an ISO 639-1 two-letter language code\n(e.g.&nbsp;\u201Cen\u201D, \u201Czh\u201D), optionally with a two-letter locale code\n(e.g.&nbsp;\u201Cde-DE\u201D, \u201Cde-AT\u201D)"
+        },
+        {
+          short: "The license information applicable to an item.",
+          long: "The license information applicable to an item (e.g.&nbsp;the license an\narticle or software is released under; the copyright information for an\nitem; the classification status of a document)"
+        },
+        {
+          short: "A cite-specific pinpointer within the item.",
+          long: "A cite-specific pinpointer within the item (e.g.&nbsp;a page number within\na book, or a volume in a multi-volume work).\nMust be accompanied in the input data by a label indicating the\nlocator type (see the Locators term list)."
+        },
+        "Description of the item\u2019s format or medium (e.g.&nbsp;\u201CCD\u201D, \u201CDVD\u201D,\n\u201CAlbum\u201D, etc.)",
+        "Narrator (e.g.&nbsp;of an audio book).",
+        "Descriptive text or notes about an item (e.g.&nbsp;in an annotated\nbibliography).",
+        "Number identifying the item (e.g.&nbsp;a report number).",
+        "Total number of pages of the cited item.",
+        "Total number of volumes, used when citing multi-volume books and\nsuch.",
+        "Organizer of an event (e.g.&nbsp;organizer of a workshop or\nconference).",
+        {
+          short: "The original creator of a work.",
+          long: "The original creator of a work (e.g.&nbsp;the form of the author name\nlisted on the original version of a book; the historical author of a\nwork; the original songwriter or performer for a musical piece; the\noriginal developer or programmer for a piece of software; the original\nauthor of an adapted work such as a book adapted into a screenplay)"
+        },
+        "Issue date of the original version.",
+        "Original publisher, for items that have been republished by a\ndifferent publisher.",
+        "Geographic location of the original publisher (e.g.&nbsp;\u201CLondon,\nUK\u201D).",
+        "Title of the original version (e.g.&nbsp;\u201C\u0412\u043E\u0439\u043D\u0430 \u0438 \u043C\u0438\u0440\u201D, the untranslated\nRussian title of \u201CWar and Peace\u201D).",
+        "Range of pages the item (e.g.&nbsp;a journal article) covers in a\ncontainer (e.g.&nbsp;a journal issue).",
+        "First page of the range of pages the item (e.g.&nbsp;a journal article)\ncovers in a container (e.g.&nbsp;a journal issue).",
+        "Last page of the range of pages the item (e.g.&nbsp;a journal article)\ncovers in a container (e.g.&nbsp;a journal issue).",
+        {
+          short: "Number of the specific part of the item being cited (e.g.&nbsp;part 2 of a\njournal article).",
+          long: "Number of the specific part of the item being cited (e.g.&nbsp;part 2 of a\njournal article).\nUse <code>part-title</code> for the title of the part, if any."
+        },
+        "Title of the specific part of an item being cited.",
+        "A url to the pdf for this item.",
+        "Performer of an item (e.g.&nbsp;an actor appearing in a film; a muscian\nperforming a piece of music).",
+        "PubMed Central reference number.",
+        "PubMed reference number.",
+        "Printing number of the item or container holding the item.",
+        "Producer (e.g.&nbsp;of a television or radio broadcast).",
+        "A public url for this item.",
+        "The publisher of the item.",
+        "The geographic location of the publisher.",
+        "Recipient (e.g.&nbsp;of a letter).",
+        "Author of the item reviewed by the current item.",
+        "Type of the item being reviewed by the current item (e.g.&nbsp;book,\nfilm).",
+        "Title of the item reviewed by the current item.",
+        "Scale of e.g.&nbsp;a map or model.",
+        "Writer of a script or screenplay (e.g.&nbsp;of a film).",
+        "Section of the item or container holding the item (e.g.&nbsp;\u201C\xA72.0.1\u201D for\na law; \u201Cpolitics\u201D for a newspaper article).",
+        "Creator of a series (e.g.&nbsp;of a television series).",
+        "Source from whence the item originates (e.g.&nbsp;a library catalog or\ndatabase).",
+        "Publication status of the item (e.g.&nbsp;\u201Cforthcoming\u201D; \u201Cin press\u201D;\n\u201Cadvance online publication\u201D; \u201Cretracted\u201D)",
+        "Date the item (e.g.&nbsp;a manuscript) was submitted for publication.",
+        "Supplement number of the item or container holding the item (e.g.&nbsp;for\nsecondary legal items that are regularly updated between editions).",
+        "Short/abbreviated form of<code>title</code>.",
+        "Translator",
+        'The <a href="https://docs.citationstyles.org/en/stable/specification.html#appendix-iii-types">type</a>\nof the item.',
+        "Uniform Resource Locator\n(e.g.&nbsp;\u201Chttps://aem.asm.org/cgi/content/full/74/9/2766\u201D)",
+        "Version of the item (e.g.&nbsp;\u201C2.0.9\u201D for a software program).",
+        {
+          short: "Volume number of the item (e.g.&nbsp;\u201C2\u201D when citing volume 2 of a book)\nor the container holding the item.",
+          long: "Volume number of the item (e.g.&nbsp;\u201C2\u201D when citing volume 2 of a book)\nor the container holding the item (e.g.&nbsp;\u201C2\u201D when citing a chapter from\nvolume 2 of a book).\nUse <code>volume-title</code> for the title of the volume, if\nany."
+        },
+        {
+          short: "Title of the volume of the item or container holding the item.",
+          long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
+        },
+        "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "internal-schema-hack"
       ],
       "schema/external-schemas.yml": [
@@ -19335,12 +19814,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 128900,
+        _internalId: 128889,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 128899,
+            _internalId: 128888,
             type: "enum",
             enum: [
               "png",
@@ -27064,50 +27543,68 @@ function objectSchema(params = {}) {
   description = description || "be an object";
   let result = void 0;
   if (baseSchema) {
-    if (baseSchema.type !== "object") {
+    if (!Array.isArray(baseSchema)) {
+      baseSchema = [baseSchema];
+    }
+    if (baseSchema.some((s) => s.type !== "object")) {
       throw new Error("Internal Error: can only extend other object Schema");
     }
-    result = Object.assign({
+    if (baseSchema.length <= 0) {
+      throw new Error("Internal Error: base schema must be non-empty");
+    }
+    let temp = {
       ...internalId()
-    }, baseSchema);
+    };
+    for (const base of baseSchema) {
+      temp = Object.assign(temp, base);
+    }
+    result = temp;
+    if (result === void 0) {
+      throw new Error("Internal Error: result should not be undefined");
+    }
     if (result.$id) {
       delete result.$id;
     }
-    if (exhaustive && baseSchema.exhaustiveCompletions) {
-      result.exhaustiveCompletions = true;
+    for (const base of baseSchema) {
+      if (base.exhaustiveCompletions) {
+        result.exhaustiveCompletions = true;
+      }
     }
     if (hasDescription) {
       result.description = description;
     }
-    result.properties = Object.assign({}, result.properties, properties);
+    result.properties = Object.assign(
+      {},
+      ...baseSchema.map((s) => s.properties),
+      properties
+    );
     result.patternProperties = Object.assign(
       {},
-      result.patternProperties,
+      ...baseSchema.map((s) => s.patternProperties),
       patternProperties
     );
-    if (required) {
-      result.required = (result.required || []).slice();
-      result.required.push(...required);
+    result.required = [
+      ...baseSchema.map((s) => s.required || []),
+      required || []
+    ].flat();
+    if (result.required && result.required.length === 0) {
+      result.required = void 0;
     }
-    if (additionalProperties !== void 0) {
-      if (result.additionalProperties === false) {
-        throw new Error(
-          "Internal Error: don't know how to subclass object schema with additionalProperties === false"
-        );
-      }
-      if (result.additionalProperties) {
-        result.additionalProperties = allOfSchema(
-          result.additionalProperties,
-          additionalProperties
-        );
-      } else {
-        result.additionalProperties = additionalProperties;
-      }
+    const additionalPropArray = baseSchema.map((s) => s.additionalProperties).filter((s) => s !== void 0);
+    if (additionalProperties) {
+      additionalPropArray.push(additionalProperties);
     }
-    if (propertyNames !== void 0 && result.propertyNames !== void 0) {
-      result.propertyNames = anyOfSchema(propertyNames, result.propertyNames);
+    if (additionalPropArray.length) {
+      result.additionalProperties = allOfSchema(...additionalPropArray);
     }
-    result.closed = closed || baseSchema.closed;
+    const propNamesArray = baseSchema.map((s) => s.propertyNames).filter((s) => s !== void 0);
+    if (propertyNames) {
+      propNamesArray.push(propertyNames);
+    }
+    if (propNamesArray.length === baseSchema.length + 1) {
+      result.propertyNames = anyOfSchema(...propNamesArray);
+    }
+    result.closed = closed || baseSchema.some((s) => s.closed);
   } else {
     result = {
       ...internalId(),
@@ -27788,7 +28285,11 @@ function convertFromObject(yaml) {
     }
   }
   if (schema2["super"]) {
-    params.baseSchema = convertFromYaml(schema2["super"]);
+    if (Array.isArray(schema2["super"])) {
+      params.baseSchema = schema2["super"].map((s) => convertFromYaml(s));
+    } else {
+      params.baseSchema = convertFromYaml(schema2["super"]);
+    }
   }
   if (schema2["required"] === "all") {
     params.required = Object.keys(schema2.properties || {});

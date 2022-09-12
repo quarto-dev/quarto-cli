@@ -398,7 +398,11 @@ function convertFromObject(yaml: any): ConcreteSchema {
     }
   }
   if (schema["super"]) {
-    params.baseSchema = convertFromYaml(schema["super"]);
+    if (Array.isArray(schema["super"])) {
+      params.baseSchema = schema["super"].map((s) => convertFromYaml(s));
+    } else {
+      params.baseSchema = convertFromYaml(schema["super"]);
+    }
   }
   if (schema["required"] === "all") {
     params.required = Object.keys(schema.properties || {});
@@ -497,7 +501,6 @@ export function convertFromYaml(yaml: any): ConcreteSchema {
       return fun(yaml);
     }
   }
-
   throw new Error(
     "Internal Error: Cannot convert object; this should have failed validation.",
   );
