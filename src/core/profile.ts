@@ -5,22 +5,30 @@
 *
 */
 
-import * as colors from "fmt/colors.ts";
-
 import { Args } from "flags/mod.ts";
+import { error } from "log/mod.ts";
+import { join } from "path/mod.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 import { ProjectConfig } from "../project/types.ts";
 import { logProgress } from "./log.ts";
 import * as ld from "./lodash.ts";
+import { readAndValidateYamlFromFile } from "./schema/validated-yaml.ts";
+import { mergeProjectMetadata } from "../config/metadata.ts";
+import { safeExistsSync } from "./path.ts";
+import { Schema } from "./lib/yaml-schema/types.ts";
 
 export const kQuartoProfile = "QUARTO_PROFILE";
 export const kQuartoProfileConfig = "profile";
-export const kQuartoProjectProfileConfig = "config";
-export const kQuartoProfileGroupsConfig = "profile-group";
-export const kQuartoProfileDefaultConfig = "profile-default";
+export const kQuartoProfileConfigGroup = "group";
+export const kQuartoProfileConfigDefault = "default";
 
-export function initializeProfile(args: Args) {
+type QuartoProfileConfig = {
+  default?: string | string[] | undefined;
+  group?: string[] | Array<string[]> | undefined;
+};
+
+export function readProfileArg(args: Args) {
   // set profile if specified
   if (args.profile) {
     Deno.env.set(kQuartoProfile, args.profile);
@@ -28,7 +36,7 @@ export function initializeProfile(args: Args) {
 }
 
 // deno-lint-ignore no-explicit-any
-export function appendProfileOptions(cmd: Command<any>): Command<any> {
+export function appendProfileArg(cmd: Command<any>): Command<any> {
   return cmd.option(
     "--profile",
     "Project configuration profile",
@@ -38,74 +46,56 @@ export function appendProfileOptions(cmd: Command<any>): Command<any> {
   );
 }
 
+export function activeProfiles(): string[] {
+  return readProfile(Deno.env.get(kQuartoProfile));
+}
+
 // cache original QUARTO_PROFILE env var
 let baseQuartoProfile: string | undefined;
 
-export function initActiveProfiles(config: ProjectConfig) {
+export async function initializeProfileConfig(
+  dir: string,
+  config: ProjectConfig,
+  schema: Schema,
+) {
   // read the original env var once
   if (baseQuartoProfile === undefined) {
     baseQuartoProfile = Deno.env.get(kQuartoProfile) || "";
   }
 
-  // resolve any specified default or groups. this allows us to support
-  // both embedded 'default' and 'group' values (as "reserved words")
-  // and externalized ones (e.g. 'profile-default') for the time being
-  const kEmbeddedFields = ["default", "group"];
-  if (ld.isObject(config[kQuartoProfileConfig])) {
-    // get key as object
-    const profileConfig = config[kQuartoProfileConfig] as Record<
-      string,
-      unknown
-    >;
-
-    // hoist up embedded fields
-    kEmbeddedFields.forEach((field) => {
-      const value = profileConfig[field];
-      if (value) {
-        config[`profile-${field}`] = value;
-        delete profileConfig[field];
-      }
-    });
-
-    // promote 'config'
-    const configurations = profileConfig[kQuartoProjectProfileConfig] as
-      | Record<string, unknown>
-      | undefined;
-    if (configurations) {
-      delete profileConfig[kQuartoProjectProfileConfig];
-      config[kQuartoProfileConfig] = configurations;
-    }
-  }
+  // read the config then delete it
+  const profileConfig = ld.isObject(config[kQuartoProfileConfig])
+    ? config[kQuartoProfileConfig] as QuartoProfileConfig
+    : undefined;
+  delete config[kQuartoProfileConfig];
 
   // if there is no profile defined see if the user has provided a default
   let quartoProfile = baseQuartoProfile;
   if (!quartoProfile) {
-    const defaultConfig = config[kQuartoProfileDefaultConfig];
-    if (Array.isArray(defaultConfig)) {
-      quartoProfile = defaultConfig.map((value) => String(value)).join(",");
-    } else if (typeof (defaultConfig) === "string") {
-      quartoProfile = defaultConfig;
+    if (Array.isArray(profileConfig?.default)) {
+      quartoProfile = profileConfig!.default
+        .map((value) => String(value)).join(",");
+    } else if (typeof (profileConfig?.default) === "string") {
+      quartoProfile = profileConfig.default;
     }
   }
-  delete config[kQuartoProfileDefaultConfig];
 
-  // read any profile defined in the base environment
+  // read any profile defined (could be from base env or from the default)
   const active = readProfile(quartoProfile);
   if (active.length === 0) {
-    //  do some smart detection of connect
+    //  do some smart detection of connect if there are no profiles defined
     if (Deno.env.get("RSTUDIO_PRODUCT") === "CONNECT") {
       active.push("connect");
     }
   }
 
   // read profile groups -- ensure that at least one member of each group is in the profile
-  const groups = readProfileGroups(config);
+  const groups = readProfileGroups(profileConfig);
   for (const group of groups) {
     if (!group.some((name) => active!.includes(name))) {
       active.push(group[0]);
     }
   }
-  delete config[kQuartoProfileGroupsConfig];
 
   // set the environment variable for those that want to read it directly
   Deno.env.set(kQuartoProfile, active.join(","));
@@ -115,11 +105,46 @@ export function initActiveProfiles(config: ProjectConfig) {
     logProgress(`Profile: ${active.join(",")}\n`);
   }
 
-  return active;
+  return await mergeProfiles(
+    dir,
+    config,
+    schema,
+  );
 }
 
-export function activeProfiles(): string[] {
-  return readProfile(Deno.env.get(kQuartoProfile));
+async function mergeProfiles(
+  dir: string,
+  config: ProjectConfig,
+  schema: Schema,
+) {
+  // config files to return
+  const files: string[] = [];
+
+  // merge all active profiles
+  for (const profileName of activeProfiles()) {
+    const profilePath = [".yml", ".yaml"].map((ext) =>
+      join(dir, `_quarto.${profileName}${ext}`)
+    ).find(safeExistsSync);
+    if (profilePath) {
+      try {
+        const yaml = await readAndValidateYamlFromFile(
+          profilePath,
+          schema,
+          `Validation of configuration profile file ${profileName} failed.`,
+        );
+        config = mergeProjectMetadata(config, yaml);
+        files.push(profilePath);
+      } catch (e) {
+        error(
+          "\nError reading configuration profile file from " + profileName +
+            "\n",
+        );
+        throw e;
+      }
+    }
+  }
+
+  return { config, files };
 }
 
 function readProfile(profile?: string) {
@@ -130,16 +155,18 @@ function readProfile(profile?: string) {
   }
 }
 
-function readProfileGroups(config: ProjectConfig): Array<string[]> {
+function readProfileGroups(
+  profileConfig?: QuartoProfileConfig,
+): Array<string[]> {
   // read all the groups
   const groups: Array<string[]> = [];
-  const configGroups = config[kQuartoProfileGroupsConfig];
-  if (Array.isArray(configGroups)) {
+  const configGroup = profileConfig?.group as unknown;
+  if (Array.isArray(configGroup)) {
     // array of strings is a single group
-    if (configGroups.every((value) => typeof (value) === "string")) {
-      groups.push(configGroups);
-    } else if (configGroups.every(Array.isArray)) {
-      groups.push(...configGroups);
+    if (configGroup.every((value) => typeof (value) === "string")) {
+      groups.push(configGroup);
+    } else if (configGroup.every(Array.isArray)) {
+      groups.push(...configGroup);
     }
   }
   return groups;

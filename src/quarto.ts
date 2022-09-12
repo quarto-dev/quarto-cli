@@ -25,6 +25,8 @@ import { cleanupSessionTempDir, initSessionTempDir } from "./core/temp.ts";
 import { quartoConfig } from "./core/quarto.ts";
 import { execProcess } from "./core/process.ts";
 import { pandocBinaryPath } from "./core/resources.ts";
+import { appendProfileArg, readProfileArg } from "./core/profile.ts";
+
 import {
   devConfigsEqual,
   readInstalledDevConfig,
@@ -44,7 +46,6 @@ import "./core/handlers/handlers.ts";
 
 // ensures project types are registered
 import "./project/types/register.ts";
-import { appendProfileOptions, initializeProfile } from "./core/profile.ts";
 
 export async function quarto(
   args: string[],
@@ -131,12 +132,12 @@ if (import.meta.main) {
     await initializeLogger(logOptions(args));
 
     // initialize profile
-    initializeProfile(args);
+    readProfileArg(args);
 
     // run quarto
     await quarto(Deno.args, (cmd) => {
       cmd = appendLogOptions(cmd);
-      return appendProfileOptions(cmd);
+      return appendProfileArg(cmd);
     });
 
     await cleanupLogger();
