@@ -1,3 +1,38 @@
+/*-- scss:functions --*/
+// Our website navbar implementation will shift the body down
+// to accomodate the navbar, but the height is variable. As a result
+// we compute the height using JS, so it is perfect. This can lead to
+// a content jump when the js executes, so place a padding there at render
+// time to minimize this.
+@function navbar-default-offset($theme) {
+  $offsets: (
+    darkly: 82px,
+    flatly: 82px,
+    litera: 67px,
+    lumen: 68px,
+    lux: 105px,
+    materia: 96px,
+    pulse: 89px,
+    quartz: 82px,
+    sandstone: 63px,
+    simplex: 80px,
+    sketchy: 68px,
+    slate: 66px,
+    zephyr: 76px,
+  );
+
+  $val: null;
+  @if ($theme != null) {
+    $val: quarto-map.get($offsets, $theme);
+  }
+
+  @if ($val != null) {
+    @return $val;
+  } @else {
+    @return 64px;
+  }
+}
+
 /*-- scss:defaults --*/
 $content-padding-top: 14px !default;
 
@@ -563,7 +598,7 @@ nav.sidebar.sidebar-navigation:not(.rollup) {
 // Immediate set the top offset if a fixed top header is present
 // This prevents a 'flash / jerk' when the page loads
 body.nav-fixed {
-  padding-top: 66px;
+  padding-top: navbar-default-offset($theme-name);
 }
 
 body:not(.floating) .nav-footer {
