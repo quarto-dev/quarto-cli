@@ -733,7 +733,7 @@ const processMarginElsInCallouts = (doc: Document) => {
     }
 
     const marginNodes = calloutEl.querySelectorAll(
-      ".callout-body > .column-margin, .callout-body > aside",
+      ".callout-body-container .column-margin, .callout-body-container aside, .callout-body-container .aside",
     );
 
     if (marginNodes.length > 0) {
@@ -1015,6 +1015,7 @@ const hasContents = (id: string, doc: Document) => {
 // if there are none or some, take up the extra space!
 function suggestColumn(doc: Document) {
   const leftSidebar = hasContents(kSidebarId, doc);
+  const leftToc = hasContents(kTocLeftSidebarId, doc);
   const rightSidebar = hasContents(kMarginSidebarId, doc);
 
   const columnClasses = getColumnClasses(doc);
@@ -1025,7 +1026,7 @@ function suggestColumn(doc: Document) {
     return columnClasses.has(clz);
   });
 
-  const leftUsed = leftSidebar || leftContent;
+  const leftUsed = leftSidebar || leftContent || leftToc;
   const rightUsed = rightSidebar || rightContent;
 
   if (leftUsed && rightUsed) {
@@ -1040,6 +1041,7 @@ function suggestColumn(doc: Document) {
 }
 const kSidebarId = "quarto-sidebar";
 const kMarginSidebarId = "quarto-margin-sidebar";
+const kTocLeftSidebarId = "quarto-sidebar-toc-left";
 
 const fullOccludeClz = [
   "column-page",
