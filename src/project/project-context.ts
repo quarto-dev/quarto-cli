@@ -79,7 +79,7 @@ import { getProjectConfigSchema } from "../core/lib/yaml-schema/project-config.t
 import { getFrontMatterSchema } from "../core/lib/yaml-schema/front-matter.ts";
 import { kDefaultProjectFileContents } from "./types/project-default.ts";
 import { createExtensionContext } from "../extension/extension.ts";
-import { initializeProfileConfig } from "../core/profile.ts";
+import { initializeProfileConfig } from "./project-profile.ts";
 
 export function deleteProjectMetadata(metadata: Metadata) {
   // see if the active project type wants to filter the config printed

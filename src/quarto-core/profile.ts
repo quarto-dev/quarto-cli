@@ -1,0 +1,41 @@
+/*
+* profile.ts
+*
+* Copyright (C) 2020 by RStudio, PBC
+*
+*/
+
+import { Args } from "flags/mod.ts";
+import { Command } from "cliffy/command/mod.ts";
+
+export const kQuartoProfile = "QUARTO_PROFILE";
+
+export function activeProfiles(): string[] {
+  return readProfile(Deno.env.get(kQuartoProfile));
+}
+
+export function readProfile(profile?: string) {
+  if (profile) {
+    return profile.split(/[ ,]+/);
+  } else {
+    return [];
+  }
+}
+
+export function setProfileFromArg(args: Args) {
+  // set profile if specified
+  if (args.profile) {
+    Deno.env.set(kQuartoProfile, args.profile);
+  }
+}
+
+// deno-lint-ignore no-explicit-any
+export function appendProfileArg(cmd: Command<any>): Command<any> {
+  return cmd.option(
+    "--profile",
+    "Active project profile(s)",
+    {
+      global: true,
+    },
+  );
+}

@@ -5,50 +5,28 @@
 *
 */
 
-import { Args } from "flags/mod.ts";
 import { error } from "log/mod.ts";
 import { join } from "path/mod.ts";
 
-import { Command } from "cliffy/command/mod.ts";
 import { ProjectConfig } from "../project/types.ts";
-import { logProgress } from "./log.ts";
-import * as ld from "./lodash.ts";
-import { readAndValidateYamlFromFile } from "./schema/validated-yaml.ts";
+import { logProgress } from "../core/log.ts";
+import * as ld from "../core/lodash.ts";
+import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
 import { mergeProjectMetadata } from "../config/metadata.ts";
-import { safeExistsSync } from "./path.ts";
-import { Schema } from "./lib/yaml-schema/types.ts";
+import { safeExistsSync } from "../core/path.ts";
+import { Schema } from "../core/lib/yaml-schema/types.ts";
+import {
+  activeProfiles,
+  kQuartoProfile,
+  readProfile,
+} from "../quarto-core/profile.ts";
 
-export const kQuartoProfile = "QUARTO_PROFILE";
-export const kQuartoProfileConfig = "profile";
-export const kQuartoProfileConfigGroup = "group";
-export const kQuartoProfileConfigDefault = "default";
+const kQuartoProfileConfig = "profile";
 
 type QuartoProfileConfig = {
   default?: string | string[] | undefined;
   group?: string[] | Array<string[]> | undefined;
 };
-
-export function readProfileArg(args: Args) {
-  // set profile if specified
-  if (args.profile) {
-    Deno.env.set(kQuartoProfile, args.profile);
-  }
-}
-
-// deno-lint-ignore no-explicit-any
-export function appendProfileArg(cmd: Command<any>): Command<any> {
-  return cmd.option(
-    "--profile",
-    "Project configuration profile",
-    {
-      global: true,
-    },
-  );
-}
-
-export function activeProfiles(): string[] {
-  return readProfile(Deno.env.get(kQuartoProfile));
-}
 
 // cache original QUARTO_PROFILE env var
 let baseQuartoProfile: string | undefined;
@@ -145,14 +123,6 @@ async function mergeProfiles(
   }
 
   return { config, files };
-}
-
-function readProfile(profile?: string) {
-  if (profile) {
-    return profile.split(/[ ,]+/);
-  } else {
-    return [];
-  }
 }
 
 function readProfileGroups(

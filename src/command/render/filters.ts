@@ -60,7 +60,7 @@ import { authorsFilter, authorsFilterActive } from "./authors.ts";
 import { extensionIdString } from "../../extension/extension-shared.ts";
 import { warning } from "log/mod.ts";
 import { formatHasBootstrap } from "../../format/html/format-html-info.ts";
-import { activeProfiles, kQuartoProfile } from "../../core/profile.ts";
+import { activeProfiles, kQuartoProfile } from "../../quarto-core/profile.ts";
 
 const kQuartoParams = "quarto-params";
 

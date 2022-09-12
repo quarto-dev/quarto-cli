@@ -25,7 +25,7 @@ import { cleanupSessionTempDir, initSessionTempDir } from "./core/temp.ts";
 import { quartoConfig } from "./core/quarto.ts";
 import { execProcess } from "./core/process.ts";
 import { pandocBinaryPath } from "./core/resources.ts";
-import { appendProfileArg, readProfileArg } from "./core/profile.ts";
+import { appendProfileArg, setProfileFromArg } from "./quarto-core/profile.ts";
 
 import {
   devConfigsEqual,
@@ -132,7 +132,7 @@ if (import.meta.main) {
     await initializeLogger(logOptions(args));
 
     // initialize profile
-    readProfileArg(args);
+    setProfileFromArg(args);
 
     // run quarto
     await quarto(Deno.args, (cmd) => {
