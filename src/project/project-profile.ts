@@ -20,6 +20,9 @@ import {
   kQuartoProfile,
   readProfile,
 } from "../quarto-core/profile.ts";
+import { dotenvQuartoProfile } from "../quarto-core/dotenv.ts";
+import { basename } from "../vendor/deno.land/std@0.153.0/path/win32.ts";
+import { Metadata } from "../config/types.ts";
 
 const kQuartoProfileConfig = "profile";
 
@@ -48,7 +51,10 @@ export async function initializeProfileConfig(
   delete config[kQuartoProfileConfig];
 
   // if there is no profile defined see if the user has provided a default
-  let quartoProfile = baseQuartoProfile;
+  // either with an external environment variable, a dotenv file or within
+  // a _quarto.yml.local (external definition takes precedence)
+  let quartoProfile = baseQuartoProfile || await dotenvQuartoProfile(dir) ||
+    await localConfigQuartoProfile(dir, schema) || "";
   if (!quartoProfile) {
     if (Array.isArray(profileConfig?.default)) {
       quartoProfile = profileConfig!.default
@@ -90,6 +96,31 @@ export async function initializeProfileConfig(
   );
 }
 
+async function localConfigQuartoProfile(dir: string, schema: Schema) {
+  const localConfigPath = localProjectConfigFile(dir);
+  if (localConfigPath) {
+    const yaml = await readAndValidateYamlFromFile(
+      localConfigPath,
+      schema,
+      `Validation of configuration profile file ${
+        basename(localConfigPath)
+      } failed.`,
+    ) as Metadata;
+    const profile = yaml[kQuartoProfileConfig] as
+      | QuartoProfileConfig
+      | undefined;
+    if (Array.isArray(profile?.default)) {
+      return profile?.default.join(",");
+    } else if (typeof (profile?.default) === "string") {
+      return profile?.default;
+    } else {
+      return undefined;
+    }
+  } else {
+    return undefined;
+  }
+}
+
 async function mergeProfiles(
   dir: string,
   config: ProjectConfig,
@@ -98,31 +129,49 @@ async function mergeProfiles(
   // config files to return
   const files: string[] = [];
 
-  // merge all active profiles
-  for (const profileName of activeProfiles()) {
-    const profilePath = [".yml", ".yaml"].map((ext) =>
-      join(dir, `_quarto.${profileName}${ext}`)
-    ).find(safeExistsSync);
-    if (profilePath) {
-      try {
-        const yaml = await readAndValidateYamlFromFile(
-          profilePath,
-          schema,
-          `Validation of configuration profile file ${profileName} failed.`,
-        );
-        config = mergeProjectMetadata(config, yaml);
-        files.push(profilePath);
-      } catch (e) {
-        error(
-          "\nError reading configuration profile file from " + profileName +
-            "\n",
-        );
-        throw e;
-      }
+  // function to merge a profile
+  const mergeProfile = async (profilePath: string) => {
+    try {
+      const yaml = await readAndValidateYamlFromFile(
+        profilePath,
+        schema,
+        `Validation of configuration profile file ${
+          basename(profilePath)
+        } failed.`,
+      );
+      config = mergeProjectMetadata(config, yaml);
+      files.push(profilePath);
+    } catch (e) {
+      error(
+        "\nError reading configuration profile file from " +
+          basename(profilePath) +
+          "\n",
+      );
+      throw e;
     }
+  };
+
+  // merge all active profiles (reverse order so first gets priority)
+  for (const profileName of activeProfiles().reverse()) {
+    const profilePath = [".yml", ".yaml"].map((
+      ext,
+    ) => join(dir, `_quarto-${profileName}${ext}`)).find(safeExistsSync);
+    if (profilePath) {
+      await mergeProfile(profilePath);
+    }
+  }
+  // merge local config
+  const localConfigPath = localProjectConfigFile(dir);
+  if (localConfigPath) {
+    await mergeProfile(localConfigPath);
   }
 
   return { config, files };
+}
+
+function localProjectConfigFile(dir: string) {
+  return [".yml", ".yaml"].map((ext) => join(dir, `_quarto${ext}.local`))
+    .find(safeExistsSync);
 }
 
 function readProfileGroups(

@@ -80,6 +80,7 @@ import { getFrontMatterSchema } from "../core/lib/yaml-schema/front-matter.ts";
 import { kDefaultProjectFileContents } from "./types/project-default.ts";
 import { createExtensionContext } from "../extension/extension.ts";
 import { initializeProfileConfig } from "./project-profile.ts";
+import { dotenvSetVariables } from "../quarto-core/dotenv.ts";
 
 export function deleteProjectMetadata(metadata: Metadata) {
   // see if the active project type wants to filter the config printed
@@ -161,6 +162,10 @@ export async function projectContext(
       );
       projectConfig = result.config;
       configFiles.push(...result.files);
+
+      // process dotenv files
+      const dotenvFiles = await dotenvSetVariables(dir);
+      configFiles.push(...dotenvFiles);
 
       // read vars and merge into the project
       const varsFile = projectVarsFile(dir);
