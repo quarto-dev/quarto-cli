@@ -32,18 +32,15 @@ export async function dotenvQuartoProfile(projectDir: string) {
 // process dotenv files -- note that we track the processing we have done
 // previously and we back it out when we are called to re-process (as might
 // occur on a re-render in quarto)
-let dotenvVariablesSet: string[] | undefined;
+const dotenvVariablesSet: string[] = [];
+
+// track previous variables defined (used to trigger event indicating a change)
+let prevDotenvVariablesDefined: DotenvConfig | undefined;
 
 export async function dotenvSetVariables(projectDir: string) {
-  // record a snapshot of the previous environment
-  const previousEnv = Deno.env.toObject();
-
   // back out any previous variables set (and note firstRun)
-  const firstRun = dotenvVariablesSet === undefined;
-  if (dotenvVariablesSet) {
-    dotenvVariablesSet.forEach(Deno.env.delete);
-  }
-  dotenvVariablesSet = [];
+  dotenvVariablesSet.forEach(Deno.env.delete);
+  dotenvVariablesSet.splice(0, dotenvVariablesSet.length);
 
   // form a list of dotenv files we might read, filter by existence, then
   // reverse it (so we read and apply them in priority order)
@@ -66,7 +63,7 @@ export async function dotenvSetVariables(projectDir: string) {
         dotenvVariablesSet.push(key);
       }
       // track all defined variables (for validation against example)
-      if (!dotenvVariablesDefined[key] === undefined) {
+      if (dotenvVariablesDefined[key] === undefined) {
         dotenvVariablesDefined[key] = conf[key];
       }
     }
@@ -91,10 +88,15 @@ export async function dotenvSetVariables(projectDir: string) {
   }
 
   // check to see if the environment changed and emit an event if it did
-  const currentEnv = Deno.env.toObject();
-  if (!firstRun && !isEqual(currentEnv, previousEnv)) {
+  if (
+    prevDotenvVariablesDefined &&
+    !isEqual(dotenvVariablesDefined, prevDotenvVariablesDefined)
+  ) {
     fireDotenvChanged();
   }
+
+  // set last defined
+  prevDotenvVariablesDefined = dotenvVariablesDefined;
 
   // return the files we processed
   return dotenvFiles;
