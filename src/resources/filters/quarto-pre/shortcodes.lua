@@ -141,23 +141,16 @@ end
 
 -- helper function to read metadata options
 local function readMetadata(value)
-  local metaValue = option(value, pandoc.Inlines({}))
-  if type(metaValue) == "table" then
-    if #metaValue == 0 then
-      return pandoc.Inlines({})
-    elseif pandoc.utils.type(metaValue) == "Inlines" then
-      return metaValue
-    elseif pandoc.utils.type(metaValue) == "Blocks" then
-      return pandoc.utils.blocks_to_inlines(metaValue)
-    else
-      warn("Unsupported type '" .. pandoc.utils.type(metaValue)  .. "' for key " .. value)
-      return pandoc.Inlines({})      
-    end
-  elseif type(metaValue) == "boolean" then
-    return metaValue
-  else 
-    return pandoc.Inlines({ pandoc.Str( tostring(val) ) })
-  end
+  -- We were previously coercing everything to lists of inlines when possible
+  -- which made for some simpler treatment of values in meta, but it also
+  -- meant that reading meta here was different than reading meta in filters
+  -- 
+  -- This is now just returning the raw meta value and not coercing it, so 
+  -- users will have to be more thoughtful (or just use pandoc.utils.stringify)
+  --
+  -- Additionally, this used to return an empty list of inlines but now
+  -- it returns nil for an unset value
+  return option(value, nil)
 end
 
 -- call a handler w/ args & kwargs
