@@ -290,13 +290,6 @@ mermaid.initialize();
         heightInInches,
       } = await resolveSize(svgText, cell.options ?? {});
 
-      console.log({
-        widthInInches,
-        heightInInches,
-        svgText,
-        options,
-      });
-
       if (isMarkdownOutput(handlerContext.options.format.pandoc, ["gfm"])) {
         return asMappedString(makeFigLink(
           sourceName,
