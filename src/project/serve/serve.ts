@@ -98,7 +98,7 @@ import {
 } from "../../core/platform.ts";
 import { ServeRenderManager } from "./render.ts";
 import { projectScratchPath } from "../project-scratch.ts";
-import { monitorQuartoSrcChanges } from "../../core/quarto.ts";
+import { monitorPreviewTerminationConditions } from "../../core/quarto.ts";
 import { exitWithCleanup, onCleanup } from "../../core/cleanup.ts";
 import { projectExtensionDirs } from "../../extension/extension.ts";
 
@@ -139,7 +139,7 @@ export async function serveProject(
   acquirePreviewLock(project);
 
   // monitor the src dir
-  monitorQuartoSrcChanges();
+  monitorPreviewTerminationConditions();
 
   // clear the project index
   clearProjectIndex(project.dir);

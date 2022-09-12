@@ -40,7 +40,8 @@ export async function initializeProfileConfig(
   schema: Schema,
 ) {
   // read the original env var once
-  if (baseQuartoProfile === undefined) {
+  const firstRun = baseQuartoProfile === undefined;
+  if (firstRun) {
     baseQuartoProfile = Deno.env.get(kQuartoProfile) || "";
   }
 
@@ -51,10 +52,12 @@ export async function initializeProfileConfig(
   delete config[kQuartoProfileConfig];
 
   // if there is no profile defined see if the user has provided a default
-  // either with an external environment variable, a dotenv file or within
+  // either with an external environment variable, a dotenv file, or within
   // a _quarto.yml.local (external definition takes precedence)
   let quartoProfile = baseQuartoProfile || await dotenvQuartoProfile(dir) ||
     await localConfigQuartoProfile(dir, schema) || "";
+
+  // none-specified so read from the current profile file
   if (!quartoProfile) {
     if (Array.isArray(profileConfig?.default)) {
       quartoProfile = profileConfig!.default
@@ -81,11 +84,20 @@ export async function initializeProfileConfig(
     }
   }
 
+  // if this isn't the first run and the active profile has changed then
+  // notify any listeners of this
+  const updatedQuartoProfile = active.join(",");
+  if (!firstRun) {
+    if (Deno.env.get(kQuartoProfile) !== updatedQuartoProfile) {
+      fireActiveProfileChanged(updatedQuartoProfile);
+    }
+  }
+
   // set the environment variable for those that want to read it directly
   Deno.env.set(kQuartoProfile, active.join(","));
 
   // print profile if not quiet
-  if (active.length > 0) {
+  if (firstRun && active.length > 0) {
     logProgress(`Profile: ${active.join(",")}\n`);
   }
 
@@ -94,6 +106,17 @@ export async function initializeProfileConfig(
     config,
     schema,
   );
+}
+
+// broadcast changes
+const listeners = new Array<(profile: string) => void>();
+function fireActiveProfileChanged(profile: string) {
+  listeners.forEach((listener) => listener(profile));
+}
+export function onActiveProfileChanged(
+  listener: (profile: string) => void,
+) {
+  listeners.push(listener);
 }
 
 async function localConfigQuartoProfile(dir: string, schema: Schema) {

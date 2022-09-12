@@ -12,6 +12,8 @@ import { config, ConfigOptions, DotenvConfig } from "dotenv/mod.ts";
 
 import { getenv } from "./env.ts";
 import { exitWithCleanup } from "./cleanup.ts";
+import { onActiveProfileChanged } from "../project/project-profile.ts";
+import { onDotenvChanged } from "../quarto-core/dotenv.ts";
 
 export const kLocalDevelopment = "99.9.9";
 
@@ -52,7 +54,17 @@ export const quartoConfig = {
   },
 };
 
-export function monitorQuartoSrcChanges(cleanup?: VoidFunction) {
+export function monitorPreviewTerminationConditions(cleanup?: VoidFunction) {
+  // active profile changed
+  onActiveProfileChanged(() => {
+    terminatePreview("active profile changed", cleanup);
+  });
+  // dotenv changed
+  onDotenvChanged(() => {
+    terminatePreview("environment variables changed", cleanup);
+  });
+
+  // src code change
   if (quartoConfig.isDebug()) {
     const srcDir = Deno.realPathSync(
       join(quartoConfig.binPath(), "../../../src"),
@@ -61,19 +73,22 @@ export function monitorQuartoSrcChanges(cleanup?: VoidFunction) {
     const watchForChanges = async () => {
       for await (const event of watcher) {
         if (event.paths.some((path) => extname(path).toLowerCase() === ".ts")) {
-          info(
-            colors.bold(
-              colors.blue("\nquarto src code changed: preview terminating\n"),
-            ),
-          );
-
-          if (cleanup) {
-            cleanup();
-          }
-          exitWithCleanup(1);
+          terminatePreview("quarto src code changed", cleanup);
         }
       }
     };
     watchForChanges();
   }
+}
+
+function terminatePreview(reason: string, cleanup?: VoidFunction) {
+  info(
+    colors.bold(
+      colors.blue(`\n${reason}: preview terminating\n`),
+    ),
+  );
+  if (cleanup) {
+    cleanup();
+  }
+  exitWithCleanup(1);
 }

@@ -73,7 +73,7 @@ import {
   textHighlightThemePath,
 } from "../../core/resources.ts";
 import { execProcess } from "../../core/process.ts";
-import { monitorQuartoSrcChanges } from "../../core/quarto.ts";
+import { monitorPreviewTerminationConditions } from "../../core/quarto.ts";
 import { exitWithCleanup } from "../../core/cleanup.ts";
 import {
   extensionFilesFromDirs,
@@ -195,7 +195,7 @@ export async function preview(
   await printBrowsePreviewMessage(options.host!, options.port!, initialPath);
 
   // watch for src changes in dev mode
-  monitorQuartoSrcChanges(stopServer);
+  monitorPreviewTerminationConditions(stopServer);
 
   // serve project
   for await (const conn of listener) {
