@@ -733,7 +733,7 @@ const processMarginElsInCallouts = (doc: Document) => {
     }
 
     const marginNodes = calloutEl.querySelectorAll(
-      ".callout-body > .column-margin, .callout-body > aside",
+      ".callout-body-container .column-margin, .callout-body-container aside, .callout-body-container .aside",
     );
 
     if (marginNodes.length > 0) {
