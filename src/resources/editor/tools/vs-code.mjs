@@ -10696,6 +10696,27 @@ var require_yaml_intelligence_resources = __commonJS({
             pattern: "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$"
           },
           description: "Version number according to Semantic Versioning"
+        },
+        {
+          id: "project-profile",
+          schema: {
+            object: {
+              closed: true,
+              properties: {
+                default: {
+                  maybeArrayOf: "string",
+                  description: "Default profile to apply if QUARTO_PROFILE is not defined.\n"
+                },
+                group: {
+                  maybeArrayOf: {
+                    arrayOf: "string"
+                  },
+                  description: "Define a profile group for which at least one profile is always active.\n"
+                }
+              }
+            }
+          },
+          description: "Specify a default profile and profile groups"
         }
       ],
       "schema/document-about.yml": [
@@ -17781,6 +17802,9 @@ var require_yaml_intelligence_resources = __commonJS({
         "Textual content to add to includes",
         "Name of file with content to add to includes",
         "Version number according to Semantic Versioning",
+        "Specify a default profile and profile groups",
+        "Default profile to apply if QUARTO_PROFILE is not defined.",
+        "Define a profile group for which at least one profile is always\nactive.",
         {
           short: "Unique label for code cell",
           long: "Unique label for code cell. Used when other code needs to refer to\nthe cell (e.g.&nbsp;for cross references <code>fig-samples</code> or\n<code>tbl-summary</code>)"
@@ -18413,7 +18437,7 @@ var require_yaml_intelligence_resources = __commonJS({
           long: 'Options for the <a href="https://ctan.org/pkg/geometry">geometry</a>\npackage. For example:'
         },
         {
-          short: "Options for the hyperref package.",
+          short: "Additional non-color options for the hyperref package.",
           long: 'Options for the <a href="https://ctan.org/pkg/hyperref">hyperref</a>\npackage. For example:'
         },
         {
@@ -19335,12 +19359,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 128900,
+        _internalId: 128940,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 128899,
+            _internalId: 128939,
             type: "enum",
             enum: [
               "png",
@@ -28698,17 +28722,16 @@ var getProjectConfigSchema = defineCached(
     const projectConfigFields = await getProjectConfigFieldsSchema();
     const execute = await getFormatExecuteOptionsSchema();
     const format = await getFrontMatterFormatSchema();
-    const profile = objectSchema({
-      additionalProperties: anyOfSchema(
-        regexSchema(".+"),
-        refSchema("project-config", "a project configuration schema")
-      )
-    });
+    const profile = refSchema(
+      "project-profile",
+      "Specify a default profile and profile groups"
+    );
     const result = allOfSchema(
       objectSchema({
         properties: {
           execute,
-          format
+          format,
+          profile
         },
         description: "be a Quarto YAML front matter object"
       }),

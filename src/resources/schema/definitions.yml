@@ -1882,3 +1882,19 @@
     # from https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
     pattern: "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$"
   description: Version number according to Semantic Versioning
+
+- id: project-profile
+  schema:
+    object:
+      closed: true
+      properties:
+        default:
+          maybeArrayOf: string
+          description: |
+            Default profile to apply if QUARTO_PROFILE is not defined.
+        group:
+          maybeArrayOf:
+            arrayOf: string
+          description: |
+            Define a profile group for which at least one profile is always active.
+  description: Specify a default profile and profile groups
