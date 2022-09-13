@@ -106,16 +106,8 @@ async function installDir() {
   }
 }
 
-async function verifyConfiguration(): Promise<ToolConfigurationState> {
-  const textLiveConfigured = await texLiveInPath();
-  if (textLiveConfigured) {
-    return { status: "ok" };
-  } else {
-    return {
-      status: "warning",
-      message: "TeX Live not on path.",
-    };
-  }
+function verifyConfiguration(): Promise<ToolConfigurationState> {
+  return Promise.resolve({ status: "ok" });
 }
 
 async function binDir() {
