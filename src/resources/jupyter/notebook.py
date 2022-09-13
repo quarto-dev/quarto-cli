@@ -46,6 +46,15 @@ def notebook_execute(options, status):
             raise RestartKernel  
       else:
          notebook_execute.python_cmd = python_cmd
+
+   # if there is a supervisor_id then abort if it has changed
+   supervisor_pid = options.get("supervisor_pid", None)
+   if supervisor_pid:
+      if hasattr(notebook_execute, "supervisor_pid"):
+         if notebook_execute.supervisor_pid != supervisor_pid:
+            raise RestartKernel  
+      else:
+         notebook_execute.supervisor_pid = supervisor_pid
    
 
    # unpack options

@@ -247,6 +247,7 @@ export const previewCommand = new Command()
               useFreezer: false,
               flags,
               pandocArgs: args,
+              previewServer: true,
             }, [file]);
             if (renderResult.error) {
               throw renderResult.error;

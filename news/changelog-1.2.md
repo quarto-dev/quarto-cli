@@ -62,6 +62,10 @@
 - Fix issue that caused incomplete search indexes for books
 - Don't display the book description in each chapter's title block
 
+## Preview
+
+- Restart Jupyter kernel daemon if preview server is restarted.
+
 ## Publishing
 
 - Handle CNAME file for `gh-pages` either without or without protocol prefix (e.g. https://)

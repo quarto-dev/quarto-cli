@@ -30,6 +30,7 @@ export interface RenderOptions {
   progress?: boolean;
   useFreezer?: boolean;
   devServerReload?: boolean;
+  previewServer?: boolean;
   setProjectDir?: boolean;
 }
 

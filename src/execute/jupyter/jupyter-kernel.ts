@@ -38,6 +38,7 @@ import { ExecuteOptions } from "../types.ts";
 export interface JupyterExecuteOptions extends ExecuteOptions {
   kernelspec: JupyterKernelspec;
   python_cmd: string[];
+  supervisor_pid?: number;
 }
 
 export async function executeKernelOneshot(

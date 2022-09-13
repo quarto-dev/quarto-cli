@@ -335,6 +335,7 @@ async function renderForPreview(
     services,
     flags,
     pandocArgs: pandocArgs,
+    previewServer: true,
   });
   if (renderResult.error) {
     throw renderResult.error;
