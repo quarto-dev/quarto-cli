@@ -146,11 +146,15 @@ export async function afterConfirm(
   }
 }
 
-export const removeTool = (toolname: string, prompt?: boolean) => {
+export const removeTool = (
+  toolname: string,
+  prompt?: boolean,
+  updatePath?: boolean,
+) => {
   return afterConfirm(
     `Are you sure you'd like to remove ${toolname}?`,
     () => {
-      return uninstallTool(toolname);
+      return uninstallTool(toolname, updatePath);
     },
     prompt,
   );
@@ -160,6 +164,7 @@ export async function updateOrInstallTool(
   tool: string,
   action: "update" | "install",
   prompt?: boolean,
+  updatePath?: boolean,
 ) {
   const summary = await toolSummary(tool);
 
@@ -168,7 +173,7 @@ export async function updateOrInstallTool(
       return afterConfirm(
         `${tool} is not installed. Do you want to install it now?`,
         () => {
-          return installTool(tool);
+          return installTool(tool, updatePath);
         },
         prompt,
       );
@@ -203,7 +208,7 @@ export async function updateOrInstallTool(
         );
       }
     } else {
-      return installTool(tool);
+      return installTool(tool, updatePath);
     }
   }
 }

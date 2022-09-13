@@ -22,6 +22,7 @@ import { execProcess } from "../../core/process.ts";
 import {
   InstallableTool,
   InstallContext,
+  kUpdatePath,
   PackageInfo,
   RemotePackageInfo,
   ToolConfigurationState,
@@ -292,7 +293,7 @@ async function afterInstall(context: InstallContext) {
 
     // If the environment has requested, add this tex installation to
     // the system path
-    if (addTexLiveToPath()) {
+    if (context.flags[kUpdatePath]) {
       const message =
         `Unable to determine a path to use when installing TeX Live. 
 To complete the installation, please run the following:
@@ -380,7 +381,7 @@ async function uninstall(context: InstallContext) {
     return Promise.reject();
   }
 
-  if (addTexLiveToPath()) {
+  if (context.flags[kUpdatePath]) {
     // remove symlinks
     if (await texLiveInPath()) {
       await context.withSpinner(

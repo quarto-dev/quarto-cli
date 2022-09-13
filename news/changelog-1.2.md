@@ -82,6 +82,7 @@
 - `quarto install tool tinytex` will no longer add TinyTex to the system path by default.
 - When rendering PDFs, Quarto will prefer an existing installation of TinyTex over a system Tex installation
 - To prevent Quarto from using an installation of TinyTex (if you'd prefer the system installation be used), set `latex-tinytex: false` in your project or document front matter.
+- To install TinyTex system wide, using the `--update-path` flag when installing (this will add TinyTex to the system path)
 
 ## Miscellaneous
 

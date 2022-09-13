@@ -7,6 +7,8 @@
 
 import { SpinnerOptions } from "../core/console.ts";
 
+export const kUpdatePath = "update-path";
+
 // Installable Tool interface
 export interface InstallableTool {
   name: string;
@@ -69,6 +71,9 @@ export interface InstallContext {
   confirm: (msg: string, def?: boolean) => Promise<boolean>;
   download: (name: string, url: string, target: string) => Promise<void>;
   props: { [key: string]: unknown };
+  flags: {
+    [kUpdatePath]?: boolean;
+  };
 }
 
 export interface ToolSummaryData {

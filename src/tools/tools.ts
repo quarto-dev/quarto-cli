@@ -12,6 +12,7 @@ import { logError } from "../core/log.ts";
 import {
   InstallableTool,
   InstallContext,
+  kUpdatePath,
   ToolConfigurationState,
   ToolSummaryData,
 } from "./types.ts";
@@ -81,7 +82,7 @@ export async function printToolInfo(name: string) {
   }
 }
 
-export async function installTool(name: string) {
+export async function installTool(name: string, updatePath?: boolean) {
   name = name || "";
   // Run the install
   const installableTool = kInstallableTools[name.toLowerCase()];
@@ -90,7 +91,8 @@ export async function installTool(name: string) {
     const workingDir = Deno.makeTempDirSync();
     try {
       // The context for the installers
-      const context = installContext(workingDir);
+      const context = installContext(workingDir, updatePath);
+
       context.info(`Installing ${name}`);
 
       // See if it is already installed
@@ -145,13 +147,13 @@ export async function installTool(name: string) {
   }
 }
 
-export async function uninstallTool(name: string) {
+export async function uninstallTool(name: string, updatePath?: boolean) {
   const installableTool = kInstallableTools[name.toLowerCase()];
   if (installableTool) {
     const installed = await installableTool.installed();
     if (installed) {
       const workingDir = Deno.makeTempDirSync();
-      const context = installContext(workingDir);
+      const context = installContext(workingDir, updatePath);
 
       // Emit initial message
       context.info(`Uninstalling ${name}`);
@@ -244,7 +246,10 @@ export function installableTool(name: string) {
   return kInstallableTools[name.toLowerCase()];
 }
 
-const installContext = (workingDir: string): InstallContext => {
+const installContext = (
+  workingDir: string,
+  updatePath?: boolean,
+): InstallContext => {
   const installMessaging = {
     info: (msg: string) => {
       info(msg);
@@ -280,5 +285,8 @@ const installContext = (workingDir: string): InstallContext => {
     workingDir,
     ...installMessaging,
     props: {},
+    flags: {
+      [kUpdatePath]: updatePath,
+    },
   };
 };
