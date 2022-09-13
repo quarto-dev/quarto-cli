@@ -123,12 +123,19 @@ export async function resolveFormatsFromMetadata(
 
   // determine render formats
   const renderFormats: string[] = [];
-  if (flags?.to === undefined || flags?.to === "all") {
+  if (flags?.to === undefined) {
     renderFormats.push(...formats);
   } else if (flags?.to === "default") {
     renderFormats.push(formats[0]);
   } else {
-    renderFormats.push(...flags.to.split(","));
+    const toFormats = flags.to.split(",").flatMap((to) => {
+      if (to === "all") {
+        return formats;
+      } else {
+        return [to];
+      }
+    });
+    renderFormats.push(...toFormats);
   }
 
   const resolved: Record<string, Format> = {};

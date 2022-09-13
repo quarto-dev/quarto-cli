@@ -77,6 +77,7 @@
 
 ## Miscellaneous
 
+- Render: ability to compose `--to all` with other formats (e.g. `--to all,json`)
 - Don't call Deno.realPathSync on Windows (avoid problems w/ UNC paths)
 - Don't include Unicode literals on Windows directly (#2184), thanks @yihui
 - Improve YAML validation error messages on values of type object (#2191)
