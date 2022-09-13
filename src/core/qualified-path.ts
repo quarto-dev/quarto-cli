@@ -66,6 +66,16 @@ export function makePath(
   return result;
 }
 
+export function readTextFile(t: QualifiedPath, options?: Deno.ReadFileOptions) {
+  return Deno.readTextFile(t.asAbsolute().value, options);
+}
+
+export function readTextFileSync(
+  t: QualifiedPath,
+) {
+  return Deno.readTextFileSync(t.asAbsolute().value);
+}
+
 // validates an absolute path
 function validate(value: string, quartoPaths: PathInfo): string {
   if (!value.startsWith(quartoPaths.projectRoot)) {
