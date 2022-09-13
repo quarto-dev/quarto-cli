@@ -15,7 +15,7 @@ import { kQuartoScratch } from "./project-scratch.ts";
 import { lines } from "../core/text.ts";
 import { isEnvDir } from "../core/jupyter/capabilities.ts";
 
-export const kQuartoIgnore = [`/${kQuartoScratch}/`];
+export const kQuartoIgnore = [`/${kQuartoScratch}/`, `/_*.local`];
 
 export async function ensureGitignore(
   dir: string,
