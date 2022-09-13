@@ -122,6 +122,7 @@ async function localConfigQuartoProfile(dir: string, schema: Schema) {
       `Validation of configuration profile file ${
         basename(localConfigPath)
       } failed.`,
+      "{}",
     ) as Metadata;
     const profile = yaml[kQuartoProfileConfig] as
       | QuartoProfileConfig
@@ -155,6 +156,7 @@ async function mergeProfiles(
         `Validation of configuration profile file ${
           basename(profilePath)
         } failed.`,
+        "{}",
       );
       config = mergeProjectMetadata(config, yaml);
       files.push(profilePath);
