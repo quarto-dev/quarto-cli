@@ -4,6 +4,7 @@
 - Correctly interpret cell metadata with `false` values
 - Render text/latex outputs consisting entirely of $ math as markdown math
 - Use IPython 7.14 import syntax in `ojs_define`
+- Correct handling of multiple attachments in Jupyter Notebook classic
 
 ## OJS
 
@@ -62,6 +63,10 @@
 - Fix issue that caused incomplete search indexes for books
 - Don't display the book description in each chapter's title block
 
+## Preview
+
+- Restart Jupyter kernel daemon if preview server is restarted.
+
 ## Publishing
 
 - Handle CNAME file for `gh-pages` either without or without protocol prefix (e.g. https://)
@@ -73,6 +78,7 @@
 
 ## Miscellaneous
 
+- Render: ability to compose `--to all` with other formats (e.g. `--to all,json`)
 - Don't call Deno.realPathSync on Windows (avoid problems w/ UNC paths)
 - Don't include Unicode literals on Windows directly (#2184), thanks @yihui
 - Improve YAML validation error messages on values of type object (#2191)
@@ -86,3 +92,4 @@
 - New metadata field `quarto-required` to specify required versions of quarto in a document
 - Provide project configuration for calls to `quarto inspect` for files
 - Improve YAML validation error messages on closed schemas (#2349)
+- Don't use default width/height on mermaid diagrams when better information is available (#2383)

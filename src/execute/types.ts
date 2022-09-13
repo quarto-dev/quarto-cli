@@ -78,6 +78,7 @@ export interface ExecuteOptions {
   cwd?: string;
   params?: { [key: string]: unknown };
   quiet?: boolean;
+  previewServer?: boolean;
   handledLanguages: string[]; // list of languages handled by cell language handlers, after the execution engine
 }
 

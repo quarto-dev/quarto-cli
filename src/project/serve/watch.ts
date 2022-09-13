@@ -144,6 +144,7 @@ export function watchProject(
                       progress: true,
                       flags,
                       pandocArgs,
+                      previewServer: true,
                     },
                     inputs,
                   );
@@ -152,6 +153,7 @@ export function watchProject(
                     services,
                     flags,
                     pandocArgs: pandocArgs,
+                    previewServer: true,
                   });
                 }
               });
@@ -242,6 +244,7 @@ export function watchProject(
               devServerReload: true,
               flags,
               pandocArgs,
+              previewServer: true,
             },
           )
         );

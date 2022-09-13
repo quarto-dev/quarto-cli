@@ -1007,6 +1007,15 @@ export type SmartInclude = {
 export type Semver =
   string; /* Version number according to Semantic Versioning */
 
+export type ProjectProfile = {
+  default?: MaybeArrayOf<
+    string
+  > /* Default profile to apply if QUARTO_PROFILE is not defined. */;
+  group?: MaybeArrayOf<
+    (string)[]
+  >; /* Define a profile group for which at least one profile is always active. */
+};
+
 export type ProjectConfig = {
   "execute-dir"?:
     | "file"

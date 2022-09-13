@@ -98,19 +98,17 @@ export const getProjectConfigSchema = defineCached(
     const projectConfigFields = await getProjectConfigFieldsSchema();
     const execute = await getFormatExecuteOptionsSchema();
     const format = await getFrontMatterFormatSchema();
+    const profile = refSchema(
+      "project-profile",
+      "Specify a default profile and profile groups",
+    );
 
-    const profile = objectS({
-      additionalProperties: anyOfSchema(
-        regexSchema(".+"),
-        refSchema("project-config", "a project configuration schema"),
-      ),
-    });
     const result = allOfS(
       objectS({
         properties: {
           execute,
           format,
-          // profile,
+          profile,
         },
         description: "be a Quarto YAML front matter object",
       }),
