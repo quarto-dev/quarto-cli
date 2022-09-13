@@ -1,0 +1,35 @@
+---
+title: "Untitled"
+format: html
+---
+
+```{r}
+library(DBI)
+library(RSQLite)
+```
+
+```{r}
+con <- DBI::dbConnect(RSQLite::SQLite(), dbname = ":memory:")
+dbWriteTable(con, "mpg", ggplot2::mpg)
+```
+
+## As knitr header
+
+Would be written like this is old document
+
+```{sql, connection = con}
+SELECT manufacturer, displ, cty
+FROM mpg
+ORDER BY manufacturer, displ DESC
+```
+
+## As chunk header
+
+New way to write this option
+
+```{sql}
+#| connection: con
+SELECT manufacturer, displ, cty
+FROM mpg
+ORDER BY manufacturer, displ DESC
+```
