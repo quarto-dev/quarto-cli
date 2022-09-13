@@ -13,6 +13,7 @@ import {
   kLatexMaxRuns,
   kLatexMinRuns,
   kLatexOutputDir,
+  kLatexTinyTex,
   kOutputExt,
 } from "../../../config/constants.ts";
 import { Format } from "../../../config/types.ts";
@@ -75,6 +76,7 @@ export function quartoLatexmkOutputRecipe(
       autoMk: format.render[kLatexAutoMk],
       minRuns: format.render[kLatexMinRuns],
       maxRuns: format.render[kLatexMaxRuns],
+      tinyTex: format.render[kLatexTinyTex],
       texInputDirs,
       outputDir: outputDir === null ? undefined : outputDir,
       clean: !options.flags?.debug && format.render[kLatexClean] !== false,

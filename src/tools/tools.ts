@@ -12,12 +12,14 @@ import { logError } from "../core/log.ts";
 import {
   InstallableTool,
   InstallContext,
+  kUpdatePath,
   ToolConfigurationState,
   ToolSummaryData,
 } from "./types.ts";
 import { tinyTexInstallable } from "./impl/tinytex.ts";
 import { chromiumInstallable } from "./impl/chromium.ts";
 import { downloadWithProgress } from "../core/download.ts";
+import { Confirm } from "cliffy/prompt/mod.ts";
 
 // The tools that are available to install
 const kInstallableTools: { [key: string]: InstallableTool } = {
@@ -80,7 +82,7 @@ export async function printToolInfo(name: string) {
   }
 }
 
-export async function installTool(name: string) {
+export async function installTool(name: string, updatePath?: boolean) {
   name = name || "";
   // Run the install
   const installableTool = kInstallableTools[name.toLowerCase()];
@@ -89,7 +91,8 @@ export async function installTool(name: string) {
     const workingDir = Deno.makeTempDirSync();
     try {
       // The context for the installers
-      const context = installContext(workingDir);
+      const context = installContext(workingDir, updatePath);
+
       context.info(`Installing ${name}`);
 
       // See if it is already installed
@@ -106,7 +109,7 @@ export async function installTool(name: string) {
 
         // Check to see whether any prerequisites are satisfied
         for (const prereq of platformPrereqs) {
-          const met = await prereq.check();
+          const met = await prereq.check(context);
           if (!met) {
             context.error(prereq.message);
             return Promise.reject();
@@ -144,13 +147,13 @@ export async function installTool(name: string) {
   }
 }
 
-export async function uninstallTool(name: string) {
+export async function uninstallTool(name: string, updatePath?: boolean) {
   const installableTool = kInstallableTools[name.toLowerCase()];
   if (installableTool) {
     const installed = await installableTool.installed();
     if (installed) {
       const workingDir = Deno.makeTempDirSync();
-      const context = installContext(workingDir);
+      const context = installContext(workingDir, updatePath);
 
       // Emit initial message
       context.info(`Uninstalling ${name}`);
@@ -243,13 +246,23 @@ export function installableTool(name: string) {
   return kInstallableTools[name.toLowerCase()];
 }
 
-const installContext = (workingDir: string): InstallContext => {
+const installContext = (
+  workingDir: string,
+  updatePath?: boolean,
+): InstallContext => {
   const installMessaging = {
     info: (msg: string) => {
       info(msg);
     },
     error: (msg: string) => {
       info(msg);
+    },
+    confirm: (msg: string, def?: boolean) => {
+      if (def !== undefined) {
+        return Confirm.prompt({ message: msg, default: def });
+      } else {
+        return Confirm.prompt(msg);
+      }
     },
     withSpinner,
   };
@@ -272,5 +285,8 @@ const installContext = (workingDir: string): InstallContext => {
     workingDir,
     ...installMessaging,
     props: {},
+    flags: {
+      [kUpdatePath]: updatePath,
+    },
   };
 };

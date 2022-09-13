@@ -14,7 +14,7 @@ import { kLatexHeaderMessageOptions, LatexmkOptions } from "./types.ts";
 import { dirAndStem } from "../../../core/path.ts";
 import { ProcessResult } from "../../../core/process.ts";
 
-import { hasTexLive } from "./texlive.ts";
+import { hasTexLive, TexLiveContext, texLiveContext } from "./texlive.ts";
 import { runBibEngine, runIndexEngine, runPdfEngine } from "./latex.ts";
 import { PackageManager, packageManager } from "./pkgmgr.ts";
 import {
@@ -51,14 +51,18 @@ export async function generatePdf(mkOptions: LatexmkOptions): Promise<string> {
   const allowUpdate = await hasTexLive();
   mkOptions.autoInstall = mkOptions.autoInstall && allowUpdate;
 
+  // Create the TexLive context for this compilation
+  const texLive = await texLiveContext(mkOptions.tinyTex !== false);
+
   // The package manager used to find and install packages
-  const pkgMgr = packageManager(mkOptions);
+  const pkgMgr = packageManager(mkOptions, texLive);
 
   // Render the PDF, detecting whether any packages need to be installed
   const response = await initialCompileLatex(
     mkOptions.input,
     mkOptions.engine,
     pkgMgr,
+    texLive,
     mkOptions.outputDir,
     mkOptions.texInputDirs,
     mkOptions.quiet,
@@ -70,6 +74,7 @@ export async function generatePdf(mkOptions: LatexmkOptions): Promise<string> {
     workingDir,
     stem,
     pkgMgr,
+    texLive,
     mkOptions.engine.indexEngine,
     mkOptions.engine.indexEngineOpts,
     mkOptions.quiet,
@@ -80,6 +85,7 @@ export async function generatePdf(mkOptions: LatexmkOptions): Promise<string> {
     mkOptions.input,
     mkOptions.engine.bibEngine || "citeproc",
     pkgMgr,
+    texLive,
     mkOptions.outputDir,
     mkOptions.texInputDirs,
     mkOptions.quiet,
@@ -99,6 +105,7 @@ export async function generatePdf(mkOptions: LatexmkOptions): Promise<string> {
       pkgMgr,
       mkOptions.minRuns || 1,
       maxRuns,
+      texLive,
       mkOptions.outputDir,
       mkOptions.texInputDirs,
       mkOptions.quiet,
@@ -125,6 +132,7 @@ async function initialCompileLatex(
   input: string,
   engine: PdfEngine,
   pkgMgr: PackageManager,
+  texLive: TexLiveContext,
   outputDir?: string,
   texInputDirs?: string[],
   quiet?: boolean,
@@ -135,6 +143,7 @@ async function initialCompileLatex(
     const response = await runPdfEngine(
       input,
       engine,
+      texLive,
       outputDir,
       texInputDirs,
       pkgMgr,
@@ -232,6 +241,7 @@ async function makeIndexIntermediates(
   dir: string,
   stem: string,
   pkgMgr: PackageManager,
+  texLive: TexLiveContext,
   engine?: string,
   args?: string[],
   quiet?: boolean,
@@ -247,6 +257,7 @@ async function makeIndexIntermediates(
     try {
       const response = await runIndexEngine(
         indexFile,
+        texLive,
         engine,
         args,
         pkgMgr,
@@ -291,6 +302,7 @@ async function makeBibliographyIntermediates(
   input: string,
   engine: string,
   pkgMgr: PackageManager,
+  texLive: TexLiveContext,
   outputDir?: string,
   texInputDirs?: string[],
   quiet?: boolean,
@@ -350,6 +362,7 @@ async function makeBibliographyIntermediates(
           bibCommand,
           auxBibPath,
           cwd,
+          texLive,
           pkgMgr,
           texInputDirs,
           quiet,
@@ -457,6 +470,7 @@ async function recompileLatexUntilComplete(
   pkgMgr: PackageManager,
   minRuns: number,
   maxRuns: number,
+  texLive: TexLiveContext,
   outputDir?: string,
   texInputDirs?: string[],
   quiet?: boolean,
@@ -488,6 +502,7 @@ async function recompileLatexUntilComplete(
     const result = await runPdfEngine(
       input,
       engine,
+      texLive,
       outputDir,
       texInputDirs,
       pkgMgr,

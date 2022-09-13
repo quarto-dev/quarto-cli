@@ -80,6 +80,7 @@ export const kLatexClean = "latex-clean";
 export const kLatexInputPaths = "latex-input-paths";
 export const kLatexMakeIndex = "latex-makeindex";
 export const kLatexMakeIndexOpts = "latex-makeindex-opts";
+export const kLatexTinyTex = "latex-tinytex";
 
 export const kLatexTlmgrOpts = "latex-tlmgr-opts";
 export const kLatexOutputDir = "latex-output-dir";
@@ -149,6 +150,7 @@ export const kRenderDefaultsKeys = [
   kLatexMakeIndexOpts,
   kLatexTlmgrOpts,
   kLatexOutputDir,
+  kLatexTinyTex,
   kLinkExternalIcon,
   kLinkExternalNewwindow,
   kLinkExternalFilter,

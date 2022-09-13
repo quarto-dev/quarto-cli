@@ -28,6 +28,10 @@ export const installCommand = new Command()
     "--embed <extensionId>",
     "Embed this extension within another extension (used when authoring extensions).",
   )
+  .option(
+    "--update-path",
+    "Update system path when a tool is installed",
+  )
   .description(
     "Installs an extension or global dependency.",
   )
@@ -57,7 +61,7 @@ export const installCommand = new Command()
   )
   .action(
     async (
-      options: { prompt?: boolean; embed?: string },
+      options: { prompt?: boolean; embed?: string; updatePath?: boolean },
       type: string,
       target?: string,
     ) => {
@@ -80,7 +84,12 @@ export const installCommand = new Command()
           // Install a tool
           if (target) {
             // Use the tool name
-            await updateOrInstallTool(target, "install", options.prompt);
+            await updateOrInstallTool(
+              target,
+              "install",
+              options.prompt,
+              options.updatePath,
+            );
           } else {
             // Not provided, give the user a list to choose from
             const allTools = await loadTools();
@@ -91,7 +100,7 @@ export const installCommand = new Command()
               const toolTarget = await selectTool(allTools, "install");
               if (toolTarget) {
                 info("");
-                await installTool(toolTarget);
+                await installTool(toolTarget, options.updatePath);
               }
             }
           }

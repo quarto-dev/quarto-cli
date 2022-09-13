@@ -4,19 +4,17 @@
  * Copyright (C) 2020 by RStudio, PBC
  *
  */
-import { ensureDirSync } from "fs/mod.ts";
 import { warning } from "log/mod.ts";
 
 import { existsSync } from "fs/exists.ts";
 import { basename, join } from "path/mod.ts";
 
-import { suggestUserBinPaths } from "../../core/env.ts";
 import { expandPath, which } from "../../core/path.ts";
 import { unzip } from "../../core/zip.ts";
-import { hasLatexDistribution } from "../../command/render/latexmk/latex.ts";
 import {
   hasTexLive,
   removePath,
+  texLiveContext,
   texLiveInPath,
 } from "../../command/render/latexmk/texlive.ts";
 import { execProcess } from "../../core/process.ts";
@@ -24,13 +22,17 @@ import { execProcess } from "../../core/process.ts";
 import {
   InstallableTool,
   InstallContext,
+  kUpdatePath,
   PackageInfo,
   RemotePackageInfo,
   ToolConfigurationState,
 } from "../types.ts";
 import { getLatestRelease } from "../github.ts";
-import { tinyTexInstallDir } from "./tinytex-info.ts";
+import { hasTinyTex, tinyTexInstallDir } from "./tinytex-info.ts";
 import { copyTo } from "../../core/copy.ts";
+import { getenv, suggestUserBinPaths } from "../../core/env.ts";
+
+import { ensureDirSync } from "fs/mod.ts";
 
 // This the https texlive repo that we use by default
 const kDefaultRepos = [
@@ -44,9 +46,14 @@ const kTinyTexRepo = "rstudio/tinytex-releases";
 // const kPackageMinimal = "TinyTeX-0"; // smallest
 // const kPackageDefault = "TinyTeX-1"; // Compiles most RMarkdown
 const kPackageMaximal = "TinyTeX"; // Compiles 80% of documents
+// const kPackageComplete = "TinyTex-2"; // Includes complete texlive library. Huge, 4GB download.
 
 // The name of the file that we use to store the installed version
 const kVersionFileName = "version";
+
+const addTexLiveToPath = () => {
+  return getenv("QUARTO_TINYTEX_ADD_BIN", "false").toLowerCase() === "true";
+};
 
 export const tinyTexInstallable: InstallableTool = {
   name: "TinyTeX",
@@ -57,22 +64,6 @@ export const tinyTexInstallable: InstallableTool = {
     },
     os: ["darwin"],
     message: "The directory /usr/local/bin is not writable.",
-  }, {
-    check: async () => {
-      // Can't already have TeXLive
-      const hasTl = await hasTexLive();
-      return !hasTl;
-    },
-    os: ["darwin", "linux", "windows"],
-    message: "An existing TexLive installation has been detected.",
-  }, {
-    check: async () => {
-      // Can't already have TeX
-      const hasTl = await hasLatexDistribution();
-      return !hasTl;
-    },
-    os: ["darwin", "linux", "windows"],
-    message: "An existing LaTeX installation has been detected.",
   }, {
     check: () => {
       // Can't be a linux non-x86 platform
@@ -96,11 +87,15 @@ export const tinyTexInstallable: InstallableTool = {
 };
 
 async function installed() {
-  const hasTl = await hasTexLive();
-  if (hasTl) {
-    return await isTinyTex();
+  const hasTiny = hasTinyTex();
+  if (hasTiny) {
+    return true;
   } else {
-    return Promise.resolve(false);
+    if (await hasTexLive()) {
+      return await isTinyTex();
+    } else {
+      return false;
+    }
   }
 }
 
@@ -112,16 +107,8 @@ async function installDir() {
   }
 }
 
-async function verifyConfiguration(): Promise<ToolConfigurationState> {
-  const textLiveConfigured = await texLiveInPath();
-  if (textLiveConfigured) {
-    return { status: "ok" };
-  } else {
-    return {
-      status: "warning",
-      message: "TeX Live not on path.",
-    };
-  }
+function verifyConfiguration(): Promise<ToolConfigurationState> {
+  return Promise.resolve({ status: "ok" });
 }
 
 async function binDir() {
@@ -304,8 +291,11 @@ async function afterInstall(context: InstallContext) {
       },
     );
 
-    const message =
-      `Unable to determine a path to use when installing TeX Live. 
+    // If the environment has requested, add this tex installation to
+    // the system path
+    if (context.flags[kUpdatePath]) {
+      const message =
+        `Unable to determine a path to use when installing TeX Live. 
 To complete the installation, please run the following:
 
 ${tlmgrPath} option sys_bin <bin_dir_on_path>
@@ -313,68 +303,69 @@ ${tlmgrPath} path add
 
 This will instruct TeX Live to create symlinks that it needs in <bin_dir_on_path>.`;
 
-    const configureBinPath = async (path: string) => {
-      if (Deno.build.os !== "windows") {
-        // Find bin paths on this machine
-        // Ensure the directory exists
-        const expandedPath = expandPath(path);
-        ensureDirSync(expandedPath);
+      const configureBinPath = async (path: string) => {
+        if (Deno.build.os !== "windows") {
+          // Find bin paths on this machine
+          // Ensure the directory exists
+          const expandedPath = expandPath(path);
+          ensureDirSync(expandedPath);
 
-        // Set the sys_bin for texlive
-        await exec(
-          tlmgrPath,
-          ["option", "sys_bin", expandedPath],
-        );
-        return true;
+          // Set the sys_bin for texlive
+          await exec(
+            tlmgrPath,
+            ["option", "sys_bin", expandedPath],
+          );
+          return true;
+        } else {
+          return true;
+        }
+      };
+
+      const paths: string[] = [];
+      const envPath = Deno.env.get("QUARTO_TEXLIVE_BINPATH");
+      if (envPath) {
+        paths.push(envPath);
+      } else if (Deno.build.os !== "windows") {
+        paths.push(...suggestUserBinPaths());
       } else {
-        return true;
+        paths.push(tlmgrPath);
       }
-    };
 
-    const paths: string[] = [];
-    const envPath = Deno.env.get("QUARTO_TEXLIVE_BINPATH");
-    if (envPath) {
-      paths.push(envPath);
-    } else if (Deno.build.os !== "windows") {
-      paths.push(...suggestUserBinPaths());
-    } else {
-      paths.push(tlmgrPath);
-    }
+      const binPathMessage = envPath
+        ? `Setting TeXLive Binpath: ${envPath}`
+        : Deno.build.os !== "windows"
+        ? `Updating Path (inspecting ${paths.length} possible paths)`
+        : "Updating Path";
 
-    const binPathMessage = envPath
-      ? `Setting TeXLive Binpath: ${envPath}`
-      : Deno.build.os !== "windows"
-      ? `Updating Path (inspecting ${paths.length} possible paths)`
-      : "Updating Path";
-
-    // Ensure symlinks are all set
-    await context.withSpinner(
-      { message: binPathMessage },
-      async () => {
-        let result;
-        for (const path of paths) {
-          const pathConfigured = await configureBinPath(path);
-          if (pathConfigured) {
-            result = await exec(
-              tlmgrPath,
-              ["path", "add"],
-            );
-            if (result.success) {
-              break;
+      // Ensure symlinks are all set
+      await context.withSpinner(
+        { message: binPathMessage },
+        async () => {
+          let result;
+          for (const path of paths) {
+            const pathConfigured = await configureBinPath(path);
+            if (pathConfigured) {
+              result = await exec(
+                tlmgrPath,
+                ["path", "add"],
+              );
+              if (result.success) {
+                break;
+              }
             }
           }
-        }
-        if (result && !result.success) {
-          warning(message);
-        }
-      },
-    );
+          if (result && !result.success) {
+            warning(message);
+          }
+        },
+      );
 
-    // After installing on windows, the path may not be updated which means a restart is required
-    if (Deno.build.os === "windows") {
-      const texLiveInstalled = await hasTexLive();
-      const texLivePath = await texLiveInPath();
-      restartRequired = restartRequired || !texLiveInstalled || !texLivePath;
+      // After installing on windows, the path may not be updated which means a restart is required
+      if (Deno.build.os === "windows") {
+        const texLiveInstalled = await hasTexLive();
+        const texLivePath = await texLiveInPath();
+        restartRequired = restartRequired || !texLiveInstalled || !texLivePath;
+      }
     }
 
     return Promise.resolve(restartRequired);
@@ -390,18 +381,21 @@ async function uninstall(context: InstallContext) {
     return Promise.reject();
   }
 
-  // remove symlinks
-  if (await texLiveInPath()) {
-    await context.withSpinner(
-      { message: "Removing commands" },
-      async () => {
-        const result = await removePath();
-        if (!result.success) {
-          context.error("Failed to uninstall");
-          return Promise.reject();
-        }
-      },
-    );
+  if (context.flags[kUpdatePath]) {
+    // remove symlinks
+    if (await texLiveInPath()) {
+      await context.withSpinner(
+        { message: "Removing commands" },
+        async () => {
+          const texLive = await texLiveContext(true);
+          const result = await removePath(texLive);
+          if (!result.success) {
+            context.error("Failed to uninstall");
+            return Promise.reject();
+          }
+        },
+      );
+    }
   }
 
   await context.withSpinner(
