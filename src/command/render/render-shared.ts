@@ -18,7 +18,7 @@ import {
 import { renderProject } from "./project.ts";
 import { renderFiles } from "./render-files.ts";
 import { resourceFilesFromRenderedFile } from "./resources.ts";
-import { RenderOptions, RenderResult } from "./types.ts";
+import { RenderFlags, RenderOptions, RenderResult } from "./types.ts";
 import { fileExecutionEngine } from "../../execute/engine.ts";
 import {
   isJupyterHubServer,
@@ -92,6 +92,9 @@ export async function render(
       return renderProject(context, options, [path]);
     }
   }
+
+  // validate that we didn't get any project-only options
+  validateDocumentRenderFlags(options.flags);
 
   // otherwise it's just a file render
   const result = await renderFiles([{ path }], options);
@@ -245,4 +248,20 @@ export function renderToken(): string | null {
     Deno.env.delete(kQuartoRenderToken);
   }
   return quartoRenderToken;
+}
+
+function validateDocumentRenderFlags(flags?: RenderFlags) {
+  if (flags) {
+    const projectOnly: { [key: string]: string | undefined } = {
+      ["--output-dir"]: flags.outputDir,
+      ["--site-url"]: flags.siteUrl,
+    };
+    for (const arg of Object.keys(projectOnly)) {
+      if (projectOnly[arg]) {
+        throw new Error(
+          `The ${arg} flag can only be used when rendering projects.`,
+        );
+      }
+    }
+  }
 }

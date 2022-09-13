@@ -21,7 +21,7 @@ export const renderCommand = new Command()
   .stopEarly()
   .arguments("[input:string] [...args]")
   .description(
-    "Render input file(s) to various document types.",
+    "Render files or projects to various document types.",
   )
   .option(
     "-t, --to",
@@ -41,7 +41,7 @@ export const renderCommand = new Command()
   )
   .option(
     "--site-url",
-    "Override site-url for website or book ouptut",
+    "Override site-url for website or book output",
   )
   .option(
     "--execute",
@@ -106,6 +106,11 @@ export const renderCommand = new Command()
     "quarto render notebook.ipynb\n" +
       "quarto render notebook.ipynb --to docx\n" +
       "quarto render notebook.ipynb --to pdf --toc",
+  )
+  .example(
+    "Render Project",
+    "quarto render\n" +
+      "quarto render projdir",
   )
   .example(
     "Render w/ Metadata",
