@@ -7,11 +7,17 @@
 
 import { existsSync } from "fs/mod.ts";
 
-import { removePackage } from "../../../src/command/render/latexmk/texlive.ts";
+import {
+  removePackage,
+  TexLiveContext,
+  texLiveContext,
+} from "../../../src/command/render/latexmk/texlive.ts";
 import { which } from "../../../src/core/path.ts";
 import { docs } from "../../utils.ts";
 
 import { testRender } from "./render.ts";
+
+const texLive = await texLiveContext(true);
 
 // Simple rendering tests
 testRender(docs("test.qmd"), "pdf", true);
@@ -24,17 +30,17 @@ testRender(docs("latexmk/make-index-custom.Rmd"), "pdf", true);
 // Package installation tests
 testRender(docs("latexmk/all.Rmd"), "pdf", true, [], {
   setup: async () => {
-    await ensurePackageRemoved("fontawesome5");
-    await ensurePackageRemoved("makeindex");
-    await ensurePackageRemoved("sansmath");
-    await ensurePackageRemoved("xindy");
+    await ensurePackageRemoved("fontawesome5", texLive);
+    await ensurePackageRemoved("makeindex", texLive);
+    await ensurePackageRemoved("sansmath", texLive);
+    await ensurePackageRemoved("xindy", texLive);
   },
 });
 
 testRender(docs("latexmk/babel.Rmd"), "pdf", true, [], {
   setup: async () => {
-    await ensurePackageRemoved("hyphen-portuguese");
-    await ensurePackageRemoved("babel-portuges");
+    await ensurePackageRemoved("hyphen-portuguese", texLive);
+    await ensurePackageRemoved("babel-portuges", texLive);
   },
 });
 
@@ -44,7 +50,7 @@ testRender(docs("latexmk/estopdf.Rmd"), "pdf", true, [], {
     return hasGhostscript;
   },
   setup: async () => {
-    await ensurePackageRemoved("epstopdf");
+    await ensurePackageRemoved("epstopdf", texLive);
   },
   teardown: () => {
     // clean intermediary that is produced:
@@ -58,7 +64,7 @@ testRender(docs("latexmk/estopdf.Rmd"), "pdf", true, [], {
 
 testRender(docs("latexmk/make-index-custom.Rmd"), "pdf", true, [], {
   setup: async () => {
-    await ensurePackageRemoved("fontawesome5");
+    await ensurePackageRemoved("fontawesome5", texLive);
     Deno.copyFileSync(
       docs("latexmk/missfont.txt"),
       docs("latexmk/missfont.log"),
@@ -66,9 +72,9 @@ testRender(docs("latexmk/make-index-custom.Rmd"), "pdf", true, [], {
   },
 });
 
-async function ensurePackageRemoved(pkg: string) {
+async function ensurePackageRemoved(pkg: string, texLive: TexLiveContext) {
   try {
-    await removePackage(pkg);
+    await removePackage(pkg, texLive);
   } catch {
     // do nothing
   }

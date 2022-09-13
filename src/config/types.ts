@@ -97,6 +97,7 @@ import {
   kLatexMaxRuns,
   kLatexMinRuns,
   kLatexOutputDir,
+  kLatexTinyTex,
   kLatexTlmgrOpts,
   kLinkExternalFilter,
   kLinkExternalIcon,
@@ -367,6 +368,7 @@ export interface FormatRender {
   [kLatexMakeIndexOpts]?: string[];
   [kLatexTlmgrOpts]?: string[];
   [kLatexOutputDir]?: string | null;
+  [kLatexTinyTex]?: boolean;
   [kLinkExternalIcon]?: string | boolean;
   [kLinkExternalNewwindow]?: boolean;
   [kLinkExternalFilter]?: string;

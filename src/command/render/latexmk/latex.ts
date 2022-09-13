@@ -19,7 +19,7 @@ import {
   kLatexBodyMessageOptions,
   kLatexHeaderMessageOptions,
 } from "./types.ts";
-import { texLiveCmd } from "./texlive.ts";
+import { texLiveCmd, TexLiveContext } from "./texlive.ts";
 
 export interface LatexCommandReponse {
   log: string;
@@ -44,6 +44,7 @@ export async function hasLatexDistribution() {
 export async function runPdfEngine(
   input: string,
   engine: PdfEngine,
+  texLive: TexLiveContext,
   outputDir?: string,
   texInputDirs?: string[],
   pkgMgr?: PackageManager,
@@ -86,6 +87,7 @@ export async function runPdfEngine(
       pkgMgr,
       cwd,
       texInputDirs,
+      texLive,
     },
     quiet,
   );
@@ -101,6 +103,7 @@ export async function runPdfEngine(
 // Run the index generation engine (currently hard coded to makeindex)
 export async function runIndexEngine(
   input: string,
+  texLive: TexLiveContext,
   engine?: string,
   args?: string[],
   pkgMgr?: PackageManager,
@@ -120,6 +123,7 @@ export async function runIndexEngine(
     {
       cwd,
       pkgMgr,
+      texLive,
     },
     quiet,
   );
@@ -135,6 +139,7 @@ export async function runBibEngine(
   engine: string,
   input: string,
   cwd: string,
+  texLive: TexLiveContext,
   pkgMgr?: PackageManager,
   texInputDirs?: string[],
   quiet?: boolean,
@@ -154,6 +159,7 @@ export async function runBibEngine(
       pkgMgr,
       cwd,
       texInputDirs,
+      texLive,
     },
     quiet,
   );
@@ -167,6 +173,7 @@ export interface LatexCommandContext {
   pkgMgr?: PackageManager;
   cwd?: string;
   texInputDirs?: string[];
+  texLive: TexLiveContext;
 }
 
 async function runLatexCommand(
@@ -175,10 +182,10 @@ async function runLatexCommand(
   context: LatexCommandContext,
   quiet?: boolean,
 ): Promise<ProcessResult> {
-  const fullLatexCmd = texLiveCmd(latexCmd);
+  const fullLatexCmd = texLiveCmd(latexCmd, context.texLive);
 
   const runOptions: Deno.RunOptions = {
-    cmd: [fullLatexCmd, ...args],
+    cmd: [fullLatexCmd.fullPath, ...args],
     stdout: "piped",
     stderr: "piped",
   };

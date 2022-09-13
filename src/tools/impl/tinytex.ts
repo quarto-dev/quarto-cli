@@ -14,6 +14,7 @@ import { unzip } from "../../core/zip.ts";
 import {
   hasTexLive,
   removePath,
+  texLiveContext,
   texLiveInPath,
 } from "../../command/render/latexmk/texlive.ts";
 import { execProcess } from "../../core/process.ts";
@@ -26,7 +27,7 @@ import {
   ToolConfigurationState,
 } from "../types.ts";
 import { getLatestRelease } from "../github.ts";
-import { tinyTexInstallDir } from "./tinytex-info.ts";
+import { hasTinyTex, tinyTexInstallDir } from "./tinytex-info.ts";
 import { copyTo } from "../../core/copy.ts";
 import { getenv, suggestUserBinPaths } from "../../core/env.ts";
 
@@ -85,11 +86,15 @@ export const tinyTexInstallable: InstallableTool = {
 };
 
 async function installed() {
-  const hasTl = await hasTexLive();
-  if (hasTl) {
-    return await isTinyTex();
+  const hasTiny = hasTinyTex();
+  if (hasTiny) {
+    return true;
   } else {
-    return Promise.resolve(false);
+    if (await hasTexLive()) {
+      return await isTinyTex();
+    } else {
+      return false;
+    }
   }
 }
 
@@ -383,18 +388,21 @@ async function uninstall(context: InstallContext) {
     return Promise.reject();
   }
 
-  // remove symlinks
-  if (await texLiveInPath()) {
-    await context.withSpinner(
-      { message: "Removing commands" },
-      async () => {
-        const result = await removePath();
-        if (!result.success) {
-          context.error("Failed to uninstall");
-          return Promise.reject();
-        }
-      },
-    );
+  if (addTexLiveToPath()) {
+    // remove symlinks
+    if (await texLiveInPath()) {
+      await context.withSpinner(
+        { message: "Removing commands" },
+        async () => {
+          const texLive = await texLiveContext(true);
+          const result = await removePath(texLive);
+          if (!result.success) {
+            context.error("Failed to uninstall");
+            return Promise.reject();
+          }
+        },
+      );
+    }
   }
 
   await context.withSpinner(
