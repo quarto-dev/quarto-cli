@@ -27,7 +27,7 @@ export interface InstallableTool {
 // and if any return false, the message will be displaed and installation will be
 // halted
 export interface InstallPreReq {
-  check: () => Promise<boolean>;
+  check: (context: InstallContext) => Promise<boolean>;
   os: string[];
   message: string;
 }
@@ -66,6 +66,7 @@ export interface InstallContext {
     op: () => Promise<void>,
   ) => Promise<void>;
   error: (msg: string) => void;
+  confirm: (msg: string, def?: boolean) => Promise<boolean>;
   download: (name: string, url: string, target: string) => Promise<void>;
   props: { [key: string]: unknown };
 }

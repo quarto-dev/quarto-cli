@@ -19,6 +19,7 @@ import {
   kLatexBodyMessageOptions,
   kLatexHeaderMessageOptions,
 } from "./types.ts";
+import { texLiveCmd } from "./texlive.ts";
 
 export interface LatexCommandReponse {
   log: string;
@@ -174,8 +175,10 @@ async function runLatexCommand(
   context: LatexCommandContext,
   quiet?: boolean,
 ): Promise<ProcessResult> {
+  const fullLatexCmd = texLiveCmd(latexCmd);
+
   const runOptions: Deno.RunOptions = {
-    cmd: [latexCmd, ...args],
+    cmd: [fullLatexCmd, ...args],
     stdout: "piped",
     stderr: "piped",
   };

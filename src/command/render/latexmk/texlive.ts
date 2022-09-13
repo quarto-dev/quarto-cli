@@ -5,23 +5,21 @@
  *
  */
 import { info } from "log/mod.ts";
-import { existsSync } from "fs/mod.ts";
-
 import * as ld from "../../../core/lodash.ts";
 
 import { execProcess } from "../../../core/process.ts";
 import { kLatexHeaderMessageOptions } from "./types.ts";
 import { lines } from "../../../core/text.ts";
 import { requireQuoting, safeWindowsExec } from "../../../core/windows.ts";
-import { tinyTexInstallDir } from "../../../tools/impl/tinytex-info.ts";
+import { hasTinyTex, tinyTexBinDir } from "../../../tools/impl/tinytex-info.ts";
+import { join } from "path/mod.ts";
 
 // Determines whether TexLive is installed and callable on this system
 export async function hasTexLive(): Promise<boolean> {
-  if (await texLiveInPath()) {
+  if (hasTinyTex()) {
     return true;
   } else {
-    const installDir = tinyTexInstallDir();
-    if (installDir && existsSync(installDir)) {
+    if (await texLiveInPath()) {
       return true;
     } else {
       return false;
@@ -275,6 +273,19 @@ export async function tlVersion() {
   }
 }
 
+export function texLiveCmd(cmd: string) {
+  if (hasTinyTex()) {
+    const binPath = tinyTexBinDir();
+    if (binPath) {
+      return join(binPath, cmd);
+    } else {
+      return cmd;
+    }
+  } else {
+    return cmd;
+  }
+}
+
 function tlMgrError(msg?: string) {
   if (msg && msg.indexOf("is older than remote repository") > -1) {
     const message =
@@ -320,17 +331,19 @@ function tlmgrCommand(
     );
   };
 
-  // Do not call directly tlmgr on Windows
-  const tlmgr = Deno.build.os === "windows"
-    ? ["cmd", "/c", "tlmgr"]
-    : ["tlmgr"];
+  // If TinyTex is here, prefer that
+  const texLiveCommand = texLiveCmd("tlmgr");
 
   // Is safe execution needed because of quoting issue ?
   const safeExecNeeded = requireQuoting(args);
   try {
     return safeExecNeeded.status
-      ? safeWindowsExec("tlmgr", [tlmgrCmd, ...safeExecNeeded.args], execTlmgr)
-      : execTlmgr([...tlmgr, tlmgrCmd, ...args]);
+      ? safeWindowsExec(
+        texLiveCommand,
+        [tlmgrCmd, ...safeExecNeeded.args],
+        execTlmgr,
+      )
+      : execTlmgr([texLiveCommand, tlmgrCmd, ...args]);
   } catch {
     return Promise.reject();
   }

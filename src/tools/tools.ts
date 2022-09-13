@@ -18,6 +18,7 @@ import {
 import { tinyTexInstallable } from "./impl/tinytex.ts";
 import { chromiumInstallable } from "./impl/chromium.ts";
 import { downloadWithProgress } from "../core/download.ts";
+import { Confirm } from "cliffy/prompt/mod.ts";
 
 // The tools that are available to install
 const kInstallableTools: { [key: string]: InstallableTool } = {
@@ -106,7 +107,7 @@ export async function installTool(name: string) {
 
         // Check to see whether any prerequisites are satisfied
         for (const prereq of platformPrereqs) {
-          const met = await prereq.check();
+          const met = await prereq.check(context);
           if (!met) {
             context.error(prereq.message);
             return Promise.reject();
@@ -250,6 +251,13 @@ const installContext = (workingDir: string): InstallContext => {
     },
     error: (msg: string) => {
       info(msg);
+    },
+    confirm: (msg: string, def?: boolean) => {
+      if (def !== undefined) {
+        return Confirm.prompt({ message: msg, default: def });
+      } else {
+        return Confirm.prompt(msg);
+      }
     },
     withSpinner,
   };
