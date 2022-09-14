@@ -58,3 +58,6 @@ testRender(knitrOptions.input, "html", false, [
     },
   ),
 ]);
+
+const sqlEngine = fileLoader()("test-knitr-sql.qmd", "html");
+testRender(sqlEngine.input, "html", false);
