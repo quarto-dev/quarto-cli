@@ -4,7 +4,7 @@
 function foldCode()
   return {
     CodeBlock = function(block)
-      if _quarto.format.isHtmlOutput() then
+      if _quarto.format.isHtmlOutput() or _quarto.format.isMarkdownWithHtmlOutput() then
         if block.attr.classes:includes("cell-code") then
           local fold = foldAttribute(block)
           local summary = summaryAttribute(block)
@@ -13,7 +13,7 @@ function foldCode()
             block.attr.attributes["code-summary"] = nil
             if fold ~= "none" then 
               local blocks = pandoc.List()
-              postState.codeFoldingCss = true
+              postState.codeFoldingCss =  _quarto.format.isHtmlOutput()
               local open = ""
               if fold == "show" then
                 open = " open"

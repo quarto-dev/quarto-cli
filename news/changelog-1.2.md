@@ -44,6 +44,10 @@
 
 - Update to Reveal v4.3.1 (+ commit e281b32) to fix presentation scaling/zoom issues.
 
+## GFM Format
+
+- Support code folding for markdown output when `raw_html` is supported.
+
 ## Google Scholar
 
 - Properly read Google Scholar reference data from dynamically generated bibliography YML
