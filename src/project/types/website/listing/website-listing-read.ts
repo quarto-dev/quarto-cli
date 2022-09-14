@@ -272,7 +272,9 @@ export function completeListingDescriptions(
   outputFiles: ProjectOutputFile[],
   _incremental: boolean,
 ) {
-  const contentReader = renderedContentReader(context, false);
+  const contentReader = renderedContentReader(context, {
+    remove: { links: true, images: true },
+  });
 
   // Go through any output files and fix up any feeds associated with them
   outputFiles.forEach((outputFile) => {

@@ -28,11 +28,14 @@ import {
   kFieldAuthor,
   kFieldCategories,
   kFieldImage,
+  kInlineCodeStyle,
   kItems,
   kListing,
+  kUrlsToAbsolute,
   ListingDescriptor,
   ListingFeedOptions,
   ListingItem,
+  RenderedContentOptions,
   renderedContentReader,
   RenderedContents,
 } from "./website-listing-shared.ts";
@@ -232,6 +235,17 @@ export async function createFeed(
   return feedFiles;
 }
 
+const kFeedOptions: RenderedContentOptions = {
+  remove: {
+    anchors: true,
+  },
+  transform: {
+    [kUrlsToAbsolute]: true,
+    [kInlineCodeStyle]: true,
+    math: true,
+  },
+};
+
 export function completeStagedFeeds(
   context: ProjectContext,
   outputFiles: ProjectOutputFile[],
@@ -251,7 +265,11 @@ export function completeStagedFeeds(
         // Any feed files for this output file
         const files = resolvePathGlobs(dir, [`${stem}${kStagedFileGlob}`], []);
 
-        const contentReader = renderedContentReader(context, true, siteUrl);
+        const contentReader = renderedContentReader(
+          context,
+          kFeedOptions,
+          siteUrl,
+        );
 
         for (const feedFile of files.include) {
           // Info about this feed file
