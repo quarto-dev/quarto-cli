@@ -29,6 +29,7 @@ import { projectExcludeDirs } from "../project/project-shared.ts";
 import { safeExistsSync } from "../core/path.ts";
 import { kExtensionDir } from "../extension/extension-shared.ts";
 import { extensionFilesFromDirs } from "../extension/extension.ts";
+import { makeAbsolutePath } from "../core/qualified-path.ts";
 
 export interface InspectedConfig {
   quarto: {
