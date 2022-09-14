@@ -128,10 +128,6 @@ export function watchProject(
             },
           );
           if (inputs.length) {
-            // record rendered time
-            for (const input of inputs.filter(existsSync)) {
-              rendered.set(input, md5Hash(Deno.readTextFileSync(input)));
-            }
             // render
             const services = renderServices();
             try {
@@ -164,6 +160,10 @@ export function watchProject(
                 }
                 return undefined;
               } else {
+                // record rendered hash
+                for (const input of inputs.filter(existsSync)) {
+                  rendered.set(input, md5Hash(Deno.readTextFileSync(input)));
+                }
                 renderManager.onRenderResult(
                   result,
                   extensionDirs,
