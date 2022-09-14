@@ -44,6 +44,7 @@ import {
 } from "../yaml-schema/types.ts";
 
 import { formatLineRange, lines } from "../text.ts";
+import { str } from "../../../vendor/deno.land/std@0.153.0/encoding/_yaml/type/str.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -54,6 +55,7 @@ export function setDefaultErrorHandlers(validator: YAMLSchemaT) {
   validator.addHandler(checkForTypeMismatch);
   validator.addHandler(checkForBadBoolean);
   validator.addHandler(checkForBadColon);
+  validator.addHandler(checkForBadEquals);
   validator.addHandler(identifyKeyErrors);
   validator.addHandler(checkForNearbyCorrection);
   validator.addHandler(checkForNearbyRequired);
@@ -67,6 +69,17 @@ export function errorKeyword(
     return "";
   }
   return String(error.schemaPath[error.schemaPath.length - 1]);
+}
+
+export function schemaPathMatches(
+  error: LocalizedError,
+  strs: string[],
+): boolean {
+  const schemaPath = error.schemaPath.slice(-strs.length);
+  if (schemaPath.length !== strs.length) {
+    return false;
+  }
+  return strs.every((str, i) => str === schemaPath[i]);
 }
 
 export function getBadKey(error: LocalizedError): string | undefined {
@@ -564,6 +577,8 @@ function checkForBadBoolean(
   };
 }
 
+// provides better error message when
+// "echo:false"
 function checkForBadColon(
   error: LocalizedError,
   parse: AnnotatedParse,
@@ -572,13 +587,11 @@ function checkForBadColon(
   if (typeof error.violatingObject.result !== "string") {
     return error;
   }
-  const e = error.schemaPath.slice(-2);
-  if (e.length !== 2) {
+
+  if (!schemaPathMatches(error, ["object", "type"])) {
     return error;
   }
-  if (e[0] !== "object" || e[1] !== "type") {
-    return error;
-  }
+
   if (
     !((error.violatingObject.result as string).match(/^.+:[^ ].*$/))
   ) {
@@ -592,6 +605,54 @@ function checkForBadColon(
   const suggestion2 = `Did you mean ${
     quotedStringColor(
       quotedStringColor(getVerbatimInput(error)).replace(/:/g, ": "),
+    )
+  } instead?`;
+  const newError: TidyverseError = {
+    heading: formatHeadingForValueError(error, parse, schema),
+    error: [errorMessage],
+    info: {},
+    location: error.niceError.location,
+  };
+  addInstancePathInfo(newError, error.instancePath);
+  addFileInfo(newError, error.source);
+  newError.info["yaml-key-value-pairs"] = suggestion1;
+  newError.info["suggestion-fix"] = suggestion2;
+
+  return {
+    ...error,
+    niceError: newError,
+  };
+}
+
+function checkForBadEquals(
+  error: LocalizedError,
+  parse: AnnotatedParse,
+  schema: Schema,
+) {
+  if (typeof error.violatingObject.result !== "string") {
+    return error;
+  }
+
+  if (
+    !schemaPathMatches(error, ["object", "type"]) &&
+    !schemaPathMatches(error, ["object", "propertyNames", "string", "pattern"])
+  ) {
+    return error;
+  }
+
+  if (
+    !((error.violatingObject.result as string).match(/^.+ *= *.+$/))
+  ) {
+    return error;
+  }
+
+  const verbatimInput = quotedStringColor(getVerbatimInput(error));
+  const errorMessage = `The value ${verbatimInput} is a string.`;
+  const suggestion1 =
+    `In YAML, key-value pairs in objects must be separated by a colon and a space.`;
+  const suggestion2 = `Did you mean ${
+    quotedStringColor(
+      quotedStringColor(getVerbatimInput(error)).replace(/ *= */g, ": "),
     )
   } instead?`;
   const newError: TidyverseError = {

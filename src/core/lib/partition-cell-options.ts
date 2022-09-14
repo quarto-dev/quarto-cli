@@ -221,6 +221,7 @@ export async function partitionCellOptionsMapped(
   } = partitionCellOptionsText(language, outerSource);
 
   if (
+    language !== "r" || // only skip validation when language === 'r' and guessChunkOptionsFormat == "knitr"
     guessChunkOptionsFormat((mappedYaml || asMappedString("")).value) === "yaml"
   ) {
     const yaml = await parseAndValidateCellOptions(

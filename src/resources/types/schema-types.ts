@@ -1058,6 +1058,8 @@ export type ProjectProfile = {
   >; /* Define a profile group for which at least one profile is always active. */
 };
 
+export type BadParseSchema = SchemaObject;
+
 export type ProjectConfig = {
   "execute-dir"?:
     | "file"

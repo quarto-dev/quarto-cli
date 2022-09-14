@@ -10,10 +10,14 @@
 import { MappedString } from "../text-types.ts";
 import { readAnnotatedYamlFromMappedString } from "../yaml-intelligence/annotated-yaml.ts";
 import { Schema } from "./types.ts";
-import { withValidator } from "../yaml-validation/validator-queue.ts";
+import {
+  withValidator,
+  WithValidatorFun,
+} from "../yaml-validation/validator-queue.ts";
 import { tidyverseFormatError } from "../errors.ts";
 
 import { JSONValue, LocalizedError } from "./types.ts";
+import { getSchemaDefinition } from "../yaml-validation/schema.ts";
 
 export class ValidationError extends Error {
   validationErrors: LocalizedError[];
@@ -45,35 +49,49 @@ export async function readAndValidateYamlFromMappedString(
   yaml: { [key: string]: unknown };
   yamlValidationErrors: LocalizedError[];
 }> {
-  const result = await withValidator(schema, async (validator) => {
-    const annotation = await readAnnotatedYamlFromMappedString(mappedYaml);
-    // FIXME how do we handle _parse_ errors?
-    if (annotation === null) {
-      throw new Error("Parse error in readAnnotatedYamlFromMappedString");
-    }
+  const annotation = await readAnnotatedYamlFromMappedString(mappedYaml);
+  // FIXME how do we handle _parse_ errors?
+  if (annotation === null) {
+    throw new Error("Parse error in readAnnotatedYamlFromMappedString");
+  }
 
-    const validateYaml = !isObject(annotation.result) ||
-      (annotation.result as { [key: string]: JSONValue })["validate-yaml"] !==
-        false;
+  const validateYaml = !isObject(annotation.result) ||
+    (annotation.result as { [key: string]: JSONValue })["validate-yaml"] !==
+      false;
 
-    const yaml = annotation.result;
-    if (validateYaml) {
-      const valResult = await validator.validateParse(
-        mappedYaml,
-        annotation,
-        pruneErrors,
-      );
-      return {
-        yaml: yaml as { [key: string]: unknown },
-        yamlValidationErrors: valResult.errors,
-      };
-    } else {
-      return {
-        yaml: yaml as { [key: string]: unknown },
-        yamlValidationErrors: [],
-      };
-    }
-  });
+  if (!validateYaml) {
+    return {
+      yaml: annotation.result as { [key: string]: unknown },
+      yamlValidationErrors: [],
+    };
+  }
 
+  type Res = {
+    yaml: { [key: string]: unknown };
+    yamlValidationErrors: LocalizedError[];
+  };
+  const validate: WithValidatorFun<Res> = async (validator) => {
+    const valResult = await validator.validateParse(
+      mappedYaml,
+      annotation,
+      pruneErrors,
+    );
+    return {
+      yaml: annotation.result as { [key: string]: unknown },
+      yamlValidationErrors: valResult.errors,
+    };
+  };
+
+  // run against the precheck schema that catches partial bad parses
+  // for better error messages
+  const preCheckResult = await withValidator(
+    getSchemaDefinition("bad-parse-schema"),
+    validate,
+  );
+  if (preCheckResult.yamlValidationErrors.length !== 0) {
+    return preCheckResult;
+  }
+
+  const result = await withValidator(schema, validate);
   return result;
 }
