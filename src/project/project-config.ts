@@ -14,7 +14,6 @@ import { safeExistsSync } from "../core/path.ts";
 import { readInputTargetIndex } from "./project-index.ts";
 import { fileExecutionEngine } from "../execute/engine.ts";
 import { SidebarItem } from "./types.ts";
-import { makeAbsolutePath } from "../core/qualified-path.ts";
 
 export type SidebarContext = {
   counter: number;
