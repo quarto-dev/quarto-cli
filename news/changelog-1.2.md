@@ -5,6 +5,7 @@
 - Render text/latex outputs consisting entirely of $ math as markdown math
 - Use IPython 7.14 import syntax in `ojs_define`
 - Correct handling of multiple attachments in Jupyter Notebook classic
+- Prevent overwrite of source .ipynb when output format is ipynb
 
 ## OJS
 
