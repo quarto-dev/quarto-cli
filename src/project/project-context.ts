@@ -308,8 +308,7 @@ export async function projectContext(
           } else {
             const input = Deno.realPathSync(path);
             context.engines = [
-              fileExecutionEngine(input)?.name ||
-              kMarkdownEngine,
+              fileExecutionEngine(input)?.name || kMarkdownEngine,
             ];
             context.files.input = [input];
           }

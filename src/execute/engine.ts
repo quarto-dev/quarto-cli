@@ -25,7 +25,6 @@ import { ExecutionEngine } from "./types.ts";
 import { languagesInMarkdown } from "./engine-shared.ts";
 import { languages as handlerLanguages } from "../core/handlers/base.ts";
 import { MappedString } from "../core/lib/text-types.ts";
-import { AbsolutePath } from "../core/qualified-path-types.ts";
 
 const kEngines: ExecutionEngine[] = [
   knitrEngine,

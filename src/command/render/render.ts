@@ -219,18 +219,12 @@ export async function renderPandoc(
   // add any injected libs to supporting
   let supporting = filesDir ? executeResult.supporting : undefined;
   if (filesDir && isHtmlFileOutput(format.pandoc)) {
-    const filesDirAbsolute = join(
-      dirname(context.target.source),
-      filesDir,
-    );
+    const filesDirAbsolute = join(dirname(context.target.source), filesDir);
     if (
       existsSync(filesDirAbsolute) &&
       (!supporting || !supporting.includes(filesDirAbsolute))
     ) {
-      const filesLibs = join(
-        dirname(context.target.source),
-        context.libDir,
-      );
+      const filesLibs = join(dirname(context.target.source), context.libDir);
       if (
         existsSync(filesLibs) &&
         (!supporting || !supporting.includes(filesLibs))
@@ -260,7 +254,6 @@ export async function renderPandoc(
   // if there is a project context then return paths relative to the project
   const projectPath = (path: string) => {
     if (context.project) {
-      // return path.asProjectRelative();
       if (isAbsolute(path)) {
         return relative(
           Deno.realPathSync(context.project.dir),
@@ -278,12 +271,6 @@ export async function renderPandoc(
   };
   popTiming();
 
-  const finalOutputPath = finalOutput!;
-  // makePath(
-  //   finalOutput!,
-  //   isAbsolute(finalOutput!) ? "absolute" : "document-relative",
-  // );
-
   return {
     input: projectPath(context.target.source),
     markdown: executeResult.markdown,
@@ -293,7 +280,7 @@ export async function renderPandoc(
         context.project ? relative(context.project.dir, file) : file
       )
       : undefined,
-    file: projectPath(finalOutputPath),
+    file: projectPath(finalOutput!),
     resourceFiles: {
       globs: pandocResult.resources,
       files: resourceFiles.concat(htmlPostProcessResult.resources),

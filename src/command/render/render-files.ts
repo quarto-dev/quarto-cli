@@ -87,7 +87,6 @@ import {
 } from "../../core/timing.ts";
 import { satisfies } from "semver/mod.ts";
 import { quartoConfig } from "../../core/quarto.ts";
-import { makeAbsolutePath } from "../../core/qualified-path.ts";
 
 export async function renderExecute(
   context: RenderContext,
@@ -351,6 +350,7 @@ export async function renderFiles(
       for (const format of Object.keys(contexts)) {
         pushTiming("render-context");
         const context = ld.cloneDeep(contexts[format]) as RenderContext; // since we're going to mutate it...
+
         // Set the date locale for this render
         // Used for date formatting
         initDayJsPlugins();
@@ -381,7 +381,7 @@ export async function renderFiles(
             {
               alwaysExecute: alwaysExecuteFiles?.includes(file.path),
             },
-            pandocRenderer!.onBeforeExecute(recipe.format),
+            pandocRenderer.onBeforeExecute(recipe.format),
           );
 
           const validate = context.format.metadata?.["validate-yaml"];

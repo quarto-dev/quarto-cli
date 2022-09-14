@@ -20,8 +20,8 @@ import {
   PostProcessOptions,
 } from "./types.ts";
 import { languagesInMarkdown } from "./engine-shared.ts";
-import { MappedString } from "../core/lib/text-types.ts";
 import { mappedStringFromFile } from "../core/mapped-text.ts";
+import { MappedString } from "../core/lib/text-types.ts";
 
 export const kMdExtensions = [".md", ".markdown"];
 
