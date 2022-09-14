@@ -7,6 +7,10 @@
 - Correct handling of multiple attachments in Jupyter Notebook classic
 - Prevent overwrite of source .ipynb when output format is ipynb
 
+## Knitr
+
+- Support specification of `connection` option in cell yaml options.
+
 ## OJS
 
 - support `revealjs` and `html` formats in `width` builtin, fallback gracefully otherwise (#2058)
