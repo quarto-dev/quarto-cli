@@ -50,9 +50,10 @@ function getValidator(schema: Schema): YAMLSchema {
   return validator;
 }
 
+export type WithValidatorFun<T> = (validator: YAMLSchema) => Promise<T>;
 export async function withValidator<T>(
   schema: Schema,
-  fun: (validator: YAMLSchema) => Promise<T>,
+  fun: WithValidatorFun<T>,
 ): Promise<T> {
   let result: T | undefined;
   let error;
