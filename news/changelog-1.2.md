@@ -39,6 +39,10 @@
 - Handle LaTeX error messages with no file output more gracefully (#2183)
 - Support cross reference-able figures with callouts
 
+## Revealjs Format
+
+- Update to Reveal v4.3.1 (+ commit e281b32) to fix presentation scaling/zoom issues.
+
 ## Google Scholar
 
 - Properly read Google Scholar reference data from dynamically generated bibliography YML
