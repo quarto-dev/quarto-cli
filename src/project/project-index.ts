@@ -35,6 +35,7 @@ import {
 } from "./types/website/website-config.ts";
 import { kDefaultProjectFileContents } from "./types/project-default.ts";
 import { formatOutputFile } from "../core/render.ts";
+import { makeAbsolutePath } from "../core/qualified-path.ts";
 
 export interface InputTargetIndex extends Metadata {
   title?: string;

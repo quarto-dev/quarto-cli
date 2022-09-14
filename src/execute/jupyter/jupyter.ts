@@ -232,7 +232,10 @@ export const jupyterEngine: ExecutionEngine = {
   execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {
     // create the target input if we need to (could have been removed
     // by the cleanup step of another render in this invocation)
-    if (isQmdFile(options.target.source) && !existsSync(options.target.input)) {
+    if (
+      isQmdFile(options.target.source) &&
+      !existsSync(options.target.input)
+    ) {
       await createNotebookforTarget(options.target);
     }
 
