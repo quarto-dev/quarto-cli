@@ -13132,6 +13132,17 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           schema: "string",
           description: "Output directory for intermediates and PDF."
+        },
+        {
+          name: "latex-tinytex",
+          tags: {
+            formats: [
+              "pdf",
+              "beamer"
+            ]
+          },
+          schema: "boolean",
+          description: "Set to `false` to prevent an installation of TinyTex from being used to compile PDF documents."
         }
       ],
       "schema/document-layout.yml": [
@@ -19146,7 +19157,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
         "Custom tools for navbar or sidebar",
         "The Digital Object Identifier for this book.",
-        "internal-schema-hack"
+        "internal-schema-hack",
+        "Set to <code>false</code> to prevent an installation of TinyTex from\nbeing used to compile PDF documents."
       ],
       "schema/external-schemas.yml": [
         {
@@ -19359,12 +19371,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 128940,
+        _internalId: 128939,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 128939,
+            _internalId: 128938,
             type: "enum",
             enum: [
               "png",

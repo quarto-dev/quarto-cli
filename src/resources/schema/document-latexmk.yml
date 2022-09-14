@@ -63,3 +63,9 @@
     formats: [pdf, beamer]
   schema: string
   description: "Output directory for intermediates and PDF."
+
+- name: latex-tinytex
+  tags:
+    formats: [pdf, beamer]
+  schema: boolean
+  description: "Set to `false` to prevent an installation of TinyTex from being used to compile PDF documents."

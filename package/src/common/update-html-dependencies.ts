@@ -273,7 +273,7 @@ export async function updateHtmlDepedencies(config: Configuration) {
         join(revealJs, "plugin"),
       );
     },
-    false,
+    true,
     false,
   );
 
@@ -664,7 +664,8 @@ async function updatePandocHighlighting(config: Configuration) {
     "pandoc",
     "highlight-styles",
   );
-  const pandoc = Deno.env.get("QUARTO_PANDOC") || join(config.directoryInfo.bin, "tools", "pandoc");
+  const pandoc = Deno.env.get("QUARTO_PANDOC") ||
+    join(config.directoryInfo.bin, "tools", "pandoc");
 
   // List  the styles
   const result = await runCmd(pandoc, ["--list-highlight-styles"]);

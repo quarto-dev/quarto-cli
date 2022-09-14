@@ -39,6 +39,10 @@
 - Handle LaTeX error messages with no file output more gracefully (#2183)
 - Support cross reference-able figures with callouts
 
+## Revealjs Format
+
+- Update to Reveal v4.3.1 (+ commit e281b32) to fix presentation scaling/zoom issues.
+
 ## Google Scholar
 
 - Properly read Google Scholar reference data from dynamically generated bibliography YML
@@ -75,6 +79,14 @@
 
 - Support formats `bibtex`, `biblatex`, and `csljson`. When rendered to one of these formats any citations within the document will be rendered as the specified bibliography format.
 - Always add citeproc filter if `citeproc: true` is specified, even if there isn't a bibliography or references in the document (#2294)
+
+## TinyTex
+
+- `quarto install tool tinytex` will now install TinyTex even if a system installation of TeX is detected.
+- `quarto install tool tinytex` will no longer add TinyTex to the system path by default.
+- When rendering PDFs, Quarto will prefer an existing installation of TinyTex over a system Tex installation
+- To prevent Quarto from using an installation of TinyTex (if you'd prefer the system installation be used), set `latex-tinytex: false` in your project or document front matter.
+- To install TinyTex system wide, using the `--update-path` flag when installing (this will add TinyTex to the system path)
 
 ## Miscellaneous
 
