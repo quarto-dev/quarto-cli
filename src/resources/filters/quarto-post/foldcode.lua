@@ -21,7 +21,10 @@ function foldCode()
               local beginPara = pandoc.Plain({
                 pandoc.RawInline("html", "<details" .. open .. ">\n<summary>"),
               })
-              tappend(beginPara.content, markdownToInlines(summary))
+              
+              if not isEmpty(summary) then
+                tappend(beginPara.content, markdownToInlines(summary))
+              end
               beginPara.content:insert(pandoc.RawInline("html", "</summary>"))
               blocks:insert(beginPara)
               blocks:insert(block)
@@ -35,6 +38,10 @@ function foldCode()
       end
     end
   }
+end
+
+function isEmpty(str) 
+  return str == nil or string.len(trim(str)) == 0
 end
 
 function foldAttribute(el)
