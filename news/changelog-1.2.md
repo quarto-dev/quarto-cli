@@ -68,6 +68,7 @@
 - Fix issue that caused incomplete search indexes for books
 - Don't display the book description in each chapter's title block
 - book YAML now accepts fields from csl-item schema (#2148, #2398)
+- book YAML now accepts date-format explicitly (#2148, #2398)
 
 ## Preview
 
