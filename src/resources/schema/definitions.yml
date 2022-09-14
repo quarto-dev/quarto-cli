@@ -1982,3 +1982,10 @@
           description: |
             Define a profile group for which at least one profile is always active.
   description: Specify a default profile and profile groups
+
+- id: bad-parse-schema
+  schema:
+    object:
+      propertyNames:
+        string:
+          pattern: "^[^\\s]+$"
