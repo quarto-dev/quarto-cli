@@ -9510,6 +9510,129 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
+          id: "book-schema",
+          schema: {
+            object: {
+              super: {
+                resolveRef: "base-website"
+              },
+              properties: {
+                title: {
+                  string: {
+                    description: "Book title"
+                  }
+                },
+                subtitle: {
+                  string: {
+                    description: "Book subtitle"
+                  }
+                },
+                author: {
+                  maybeArrayOf: {
+                    anyOf: [
+                      "string",
+                      "object"
+                    ],
+                    description: "Author or authors of the book"
+                  }
+                },
+                date: {
+                  string: {
+                    description: "Book publication date"
+                  }
+                },
+                "date-format": {
+                  string: {
+                    description: "Format string for dates in the book"
+                  }
+                },
+                abstract: {
+                  string: {
+                    description: "Book abstract"
+                  }
+                },
+                description: {
+                  string: {
+                    description: "Description metadata for HTML version of book"
+                  }
+                },
+                chapters: {
+                  schema: {
+                    ref: "chapter-list"
+                  },
+                  description: "Book part and chapter files",
+                  hidden: true
+                },
+                appendices: {
+                  schema: {
+                    ref: "chapter-list"
+                  },
+                  description: "Book appendix files",
+                  hidden: true
+                },
+                references: {
+                  path: {
+                    description: "Book references file"
+                  }
+                },
+                "output-file": {
+                  path: {
+                    description: "Base name for single-file output (e.g. PDF, ePub)"
+                  }
+                },
+                "cover-image": {
+                  path: {
+                    description: "Cover image (used in HTML and ePub formats)"
+                  }
+                },
+                "cover-image-alt": {
+                  string: {
+                    description: "Alternative text for cover image (used in HTML format)"
+                  }
+                },
+                sharing: {
+                  maybeArrayOf: {
+                    enum: [
+                      "twitter",
+                      "facebook",
+                      "linkedin"
+                    ],
+                    description: "Sharing buttons to include on navbar or sidebar\n(one or more of `twitter`, `facebook`, `linkedin`)\n"
+                  }
+                },
+                downloads: {
+                  maybeArrayOf: {
+                    enum: [
+                      "pdf",
+                      "epub",
+                      "docx"
+                    ],
+                    description: "Download buttons for other formats to include on navbar or sidebar\n(one or more of `pdf`, `epub`, and `docx`)\n"
+                  }
+                },
+                tools: {
+                  arrayOf: {
+                    schema: {
+                      ref: "navigation-item"
+                    },
+                    description: "Custom tools for navbar or sidebar"
+                  }
+                },
+                doi: {
+                  string: {
+                    tags: {
+                      formats: [
+                        "$html-doc"
+                      ]
+                    },
+                    description: "The Digital Object Identifier for this book."
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
           id: "chapter-item",
           anyOf: [
             {
@@ -10696,6 +10819,26 @@ var require_yaml_intelligence_resources = __commonJS({
             pattern: "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$"
           },
           description: "Version number according to Semantic Versioning"
+        },
+        {
+          id: "quarto-date",
+          anyOf: [
+            "string",
+            {
+              object: {
+                closed: true,
+                properties: {
+                  format: "string",
+                  value: {
+                    ref: "string"
+                  }
+                },
+                required: [
+                  "value"
+                ]
+              }
+            }
+          ]
         },
         {
           id: "project-profile",
@@ -16487,117 +16630,14 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "Book configuration.",
           schema: {
             object: {
-              super: {
-                resolveRef: "base-website"
-              },
-              properties: {
-                title: {
-                  string: {
-                    description: "Book title"
-                  }
+              super: [
+                {
+                  resolveRef: "book-schema"
                 },
-                subtitle: {
-                  string: {
-                    description: "Book subtitle"
-                  }
-                },
-                author: {
-                  maybeArrayOf: {
-                    anyOf: [
-                      "string",
-                      "object"
-                    ],
-                    description: "Author or authors of the book"
-                  }
-                },
-                date: {
-                  string: {
-                    description: "Book publication date"
-                  }
-                },
-                abstract: {
-                  string: {
-                    description: "Book abstract"
-                  }
-                },
-                description: {
-                  string: {
-                    description: "Description metadata for HTML version of book"
-                  }
-                },
-                chapters: {
-                  schema: {
-                    ref: "chapter-list"
-                  },
-                  description: "Book part and chapter files",
-                  hidden: true
-                },
-                appendices: {
-                  schema: {
-                    ref: "chapter-list"
-                  },
-                  description: "Book appendix files",
-                  hidden: true
-                },
-                references: {
-                  path: {
-                    description: "Book references file"
-                  }
-                },
-                "output-file": {
-                  path: {
-                    description: "Base name for single-file output (e.g. PDF, ePub)"
-                  }
-                },
-                "cover-image": {
-                  path: {
-                    description: "Cover image (used in HTML and ePub formats)"
-                  }
-                },
-                "cover-image-alt": {
-                  string: {
-                    description: "Alternative text for cover image (used in HTML format)"
-                  }
-                },
-                sharing: {
-                  maybeArrayOf: {
-                    enum: [
-                      "twitter",
-                      "facebook",
-                      "linkedin"
-                    ],
-                    description: "Sharing buttons to include on navbar or sidebar\n(one or more of `twitter`, `facebook`, `linkedin`)\n"
-                  }
-                },
-                downloads: {
-                  maybeArrayOf: {
-                    enum: [
-                      "pdf",
-                      "epub",
-                      "docx"
-                    ],
-                    description: "Download buttons for other formats to include on navbar or sidebar\n(one or more of `pdf`, `epub`, and `docx`)\n"
-                  }
-                },
-                tools: {
-                  arrayOf: {
-                    schema: {
-                      ref: "navigation-item"
-                    },
-                    description: "Custom tools for navbar or sidebar"
-                  }
-                },
-                doi: {
-                  string: {
-                    tags: {
-                      formats: [
-                        "$html-doc"
-                      ]
-                    },
-                    description: "The Digital Object Identifier for this book."
-                  }
+                {
+                  resolveRef: "csl-item"
                 }
-              }
+              ]
             }
           }
         },
@@ -17036,7 +17076,9 @@ var require_yaml_intelligence_resources = __commonJS({
                       ref: "schema/schema"
                     },
                     super: {
-                      ref: "schema/schema"
+                      maybeArrayOf: {
+                        ref: "schema/schema"
+                      }
                     },
                     required: {
                       anyOf: [
@@ -18390,6 +18432,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Array of command line options for <code>makeindex</code>.",
         "Array of command line options for <code>tlmgr</code>.",
         "Output directory for intermediates and PDF.",
+        "Set to <code>false</code> to prevent an installation of TinyTex from\nbeing used to compile PDF documents.",
         "The document class.",
         {
           short: "Options for the document class,",
@@ -19158,7 +19201,145 @@ var require_yaml_intelligence_resources = __commonJS({
         "Custom tools for navbar or sidebar",
         "The Digital Object Identifier for this book.",
         "internal-schema-hack",
-        "Set to <code>false</code> to prevent an installation of TinyTex from\nbeing used to compile PDF documents."
+        "Book title",
+        "Description metadata for HTML version of book",
+        "The path to the favicon for this website",
+        "Base URL for published website",
+        "Path to site (defaults to <code>/</code>). Not required if you\nspecify <code>site-url</code>.",
+        "Base URL for website source code repository",
+        "Subdirectory of repository containing website",
+        "Branch of website source code (defaults to <code>main</code>)",
+        {
+          short: "Links to source repository actions",
+          long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
+        },
+        {
+          short: "Links to source repository actions",
+          long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
+        },
+        "Displays a \u2018reader-mode\u2019 tool which allows users to hide the sidebar\nand table of contents when viewing a page.",
+        "Enable Google Analytics for this website",
+        "The Google tracking Id or measurement Id of this website.",
+        {
+          short: "Storage options for Google Analytics data",
+          long: 'Storage option for Google Analytics data using on of these two\nvalues:\n<code>cookies</code>: Use cookies to store unique user and session\nidentification (default).\n<code>none</code>: Do not use cookies to store unique user and\nsession identification.\nFor more about choosing storage options see <a href="https://quarto.org/docs/websites/website-tools.html#storage">Storage</a>.'
+        },
+        {
+          short: "Anonymize the user ip address.",
+          long: 'Anonymize the user ip address. For more about this feature, see <a href="https://support.google.com/analytics/answer/2763052?hl=en">IP\nAnonymization (or IP masking) in Google Analytics</a>.'
+        },
+        {
+          short: "The version number of Google Analytics to use.",
+          long: "The version number of Google Analytics to use."
+        },
+        {
+          short: "Request cookie consent before enabling scripts that set cookies",
+          long: 'Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href="https://www.cookieconsent.com/">Cookie Consent</a>.\nThe user\u2019s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href="https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent">Custom\nScripts and Cookie Consent</a>.'
+        },
+        {
+          short: "The type of consent that should be requested",
+          long: "The type of consent that should be requested, using one of these two\nvalues:"
+        },
+        {
+          short: "The style of the consent banner that is displayed",
+          long: "The style of the consent banner that is displayed:"
+        },
+        "Whether to use a dark or light appearance for the consent banner\n(<code>light</code> or <code>dark</code>).",
+        "The url to the website\u2019s cookie or privacy policy.",
+        {
+          short: "The text to display for the cookie preferences link in the website\nfooter.",
+          long: ""
+        },
+        "Provide full text search for website",
+        "Location for search widget (<code>navbar</code> or\n<code>sidebar</code>)",
+        "Type of search UI (<code>overlay</code> or <code>textbox</code>)",
+        "Number of matches to display (defaults to 20)",
+        "Matches after which to collapse additional results",
+        "Provide button for copying search link",
+        "Use external Algolia search index",
+        "The name of the index to use when performing a search",
+        "The unique ID used by Algolia to identify your application",
+        "The Search-Only API key to use to connect to Algolia",
+        "Enable tracking of Algolia analytics events",
+        "Enable the display of the Algolia logo in the search results\nfooter.",
+        "Field that contains the URL of index entries",
+        "Field that contains the title of index entries",
+        "Field that contains the text of index entries",
+        "Field that contains the section of index entries",
+        "Additional parameters to pass when executing a search",
+        "Top navigation options",
+        "The navbar title. Uses the project title if none is specified.",
+        "Path to a logo image that will be displayed to the left of the\ntitle.",
+        "Alternate text for the logo image.",
+        "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
+        "The navbar\u2019s background color (named or hex color).",
+        "The navbar\u2019s foreground color (named or hex color).",
+        "Include a search box in the navbar.",
+        "Always show the navbar (keeping it pinned).",
+        "Collapse the navbar into a menu when the display becomes narrow.",
+        "The responsive breakpoint below which the navbar will collapse into a\nmenu (<code>sm</code>, <code>md</code>, <code>lg</code> (default),\n<code>xl</code>, <code>xxl</code>).",
+        "List of items for the left side of the navbar.",
+        "List of items for the right side of the navbar.",
+        "Side navigation options",
+        "The identifier for this sidebar.",
+        "The sidebar title. Uses the project title if none is specified.",
+        "The subtitle for this sidebar.",
+        "Path to a logo image that will be displayed in the sidebar.",
+        "Include a search control in the sidebar.",
+        "List of sidebar tools",
+        "List of items for the sidebar",
+        "The style of sidebar (<code>docked</code> or\n<code>floating</code>).",
+        "The sidebar\u2019s background color (named or hex color).",
+        "The sidebar\u2019s foreground color (named or hex color).",
+        "Whether to show a border on the sidebar (defaults to true for\n\u2018docked\u2019 sidebars)",
+        "Alignment of the items within the sidebar (<code>left</code>,\n<code>right</code>, or <code>center</code>)",
+        "The depth at which the sidebar contents should be collapsed by\ndefault.",
+        "When collapsed, pin the collapsed sidebar to the top of the page.",
+        "Markdown to place above sidebar content (text or file path)",
+        "Markdown to place below sidebar content (text or file path)",
+        "The identifier for this sidebar.",
+        "The sidebar title. Uses the project title if none is specified.",
+        "The subtitle for this sidebar.",
+        "Path to a logo image that will be displayed in the sidebar.",
+        "Include a search control in the sidebar.",
+        "List of sidebar tools",
+        "List of items for the sidebar",
+        "The style of sidebar (<code>docked</code> or\n<code>floating</code>).",
+        "The sidebar\u2019s background color (named or hex color).",
+        "The sidebar\u2019s foreground color (named or hex color).",
+        "Whether to show a border on the sidebar (defaults to true for\n\u2018docked\u2019 sidebars)",
+        "Alignment of the items within the sidebar (<code>left</code>,\n<code>right</code>, or <code>center</code>)",
+        "The depth at which the sidebar contents should be collapsed by\ndefault.",
+        "When collapsed, pin the collapsed sidebar to the top of the page.",
+        "Markdown to place above sidebar content (text or file path)",
+        "Markdown to place below sidebar content (text or file path)",
+        "Markdown to insert at the beginning of each page\u2019s body (below the\ntitle and author block).",
+        "Markdown to insert below each page\u2019s body.",
+        "Markdown to place above margin content (text or file path)",
+        "Markdown to place below margin content (text or file path)",
+        "Provide next and previous article links in footer",
+        "Shared page footer",
+        "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
+        "Publish open graph metadata",
+        "Publish twitter card metadata",
+        "Book subtitle",
+        "Author or authors of the book",
+        "Author or authors of the book",
+        "Book publication date",
+        "Format string for dates in the book",
+        "Book abstract",
+        "Book part and chapter files",
+        "Book appendix files",
+        "Book references file",
+        "Base name for single-file output (e.g.&nbsp;PDF, ePub)",
+        "Cover image (used in HTML and ePub formats)",
+        "Alternative text for cover image (used in HTML format)",
+        "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
+        "Sharing buttons to include on navbar or sidebar (one or more of\n<code>twitter</code>, <code>facebook</code>, <code>linkedin</code>)",
+        "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
+        "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
+        "Custom tools for navbar or sidebar",
+        "The Digital Object Identifier for this book."
       ],
       "schema/external-schemas.yml": [
         {
@@ -19371,12 +19552,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 128939,
+        _internalId: 129094,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 128938,
+            _internalId: 129093,
             type: "enum",
             enum: [
               "png",
@@ -27100,50 +27281,68 @@ function objectSchema(params = {}) {
   description = description || "be an object";
   let result = void 0;
   if (baseSchema) {
-    if (baseSchema.type !== "object") {
+    if (!Array.isArray(baseSchema)) {
+      baseSchema = [baseSchema];
+    }
+    if (baseSchema.some((s) => s.type !== "object")) {
       throw new Error("Internal Error: can only extend other object Schema");
     }
-    result = Object.assign({
+    if (baseSchema.length <= 0) {
+      throw new Error("Internal Error: base schema must be non-empty");
+    }
+    let temp = {
       ...internalId()
-    }, baseSchema);
+    };
+    for (const base of baseSchema) {
+      temp = Object.assign(temp, base);
+    }
+    result = temp;
+    if (result === void 0) {
+      throw new Error("Internal Error: result should not be undefined");
+    }
     if (result.$id) {
       delete result.$id;
     }
-    if (exhaustive && baseSchema.exhaustiveCompletions) {
-      result.exhaustiveCompletions = true;
+    for (const base of baseSchema) {
+      if (base.exhaustiveCompletions) {
+        result.exhaustiveCompletions = true;
+      }
     }
     if (hasDescription) {
       result.description = description;
     }
-    result.properties = Object.assign({}, result.properties, properties);
+    result.properties = Object.assign(
+      {},
+      ...baseSchema.map((s) => s.properties),
+      properties
+    );
     result.patternProperties = Object.assign(
       {},
-      result.patternProperties,
+      ...baseSchema.map((s) => s.patternProperties),
       patternProperties
     );
-    if (required) {
-      result.required = (result.required || []).slice();
-      result.required.push(...required);
+    result.required = [
+      ...baseSchema.map((s) => s.required || []),
+      required || []
+    ].flat();
+    if (result.required && result.required.length === 0) {
+      result.required = void 0;
     }
-    if (additionalProperties !== void 0) {
-      if (result.additionalProperties === false) {
-        throw new Error(
-          "Internal Error: don't know how to subclass object schema with additionalProperties === false"
-        );
-      }
-      if (result.additionalProperties) {
-        result.additionalProperties = allOfSchema(
-          result.additionalProperties,
-          additionalProperties
-        );
-      } else {
-        result.additionalProperties = additionalProperties;
-      }
+    const additionalPropArray = baseSchema.map((s) => s.additionalProperties).filter((s) => s !== void 0);
+    if (additionalProperties) {
+      additionalPropArray.push(additionalProperties);
     }
-    if (propertyNames !== void 0 && result.propertyNames !== void 0) {
-      result.propertyNames = anyOfSchema(propertyNames, result.propertyNames);
+    if (additionalPropArray.length) {
+      result.additionalProperties = allOfSchema(...additionalPropArray);
     }
-    result.closed = closed || baseSchema.closed;
+    const propNamesArray = baseSchema.map((s) => s.propertyNames).filter((s) => s !== void 0);
+    if (propertyNames) {
+      propNamesArray.push(propertyNames);
+    }
+    if (propNamesArray.length === baseSchema.length + 1) {
+      result.propertyNames = anyOfSchema(...propNamesArray);
+    }
+    result.closed = closed || baseSchema.some((s) => s.closed);
   } else {
     result = {
       ...internalId(),
@@ -27824,7 +28023,11 @@ function convertFromObject(yaml) {
     }
   }
   if (schema2["super"]) {
-    params.baseSchema = convertFromYaml(schema2["super"]);
+    if (Array.isArray(schema2["super"])) {
+      params.baseSchema = schema2["super"].map((s) => convertFromYaml(s));
+    } else {
+      params.baseSchema = convertFromYaml(schema2["super"]);
+    }
   }
   if (schema2["required"] === "all") {
     params.required = Object.keys(schema2.properties || {});

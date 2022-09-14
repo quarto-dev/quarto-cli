@@ -513,6 +513,46 @@ The user’s cookie preferences will automatically control Google Analytics (if 
   title?: string; /* Website title */
 };
 
+export type BookSchema = {
+  "date-format"?: string /* Format string for dates in the book */;
+  "output-file"?:
+    string /* Base name for single-file output (e.g. PDF, ePub) */;
+  "cover-image"?: string /* Cover image (used in HTML and ePub formats) */;
+  "cover-image-alt"?:
+    string /* Alternative text for cover image (used in HTML format) */;
+  author?: MaybeArrayOf<
+    (string | SchemaObject) /* Author or authors of the book */
+  > /* Author or authors of the book */;
+  abstract?: string /* Book abstract */;
+  appendices?: ChapterList;
+  chapters?: ChapterList;
+  date?: string /* Book publication date */;
+  description?: string /* Description metadata for HTML version of book */;
+  downloads?: MaybeArrayOf<
+    (
+      | "pdf"
+      | "epub"
+      | "docx"
+    ) /* Download buttons for other formats to include on navbar or sidebar
+(one or more of `pdf`, `epub`, and `docx`) */
+  > /* Download buttons for other formats to include on navbar or sidebar
+(one or more of `pdf`, `epub`, and `docx`) */;
+  doi?: string /* The Digital Object Identifier for this book. */;
+  references?: string /* Book references file */;
+  subtitle?: string /* Book subtitle */;
+  sharing?: MaybeArrayOf<
+    (
+      | "twitter"
+      | "facebook"
+      | "linkedin"
+    ) /* Sharing buttons to include on navbar or sidebar
+(one or more of `twitter`, `facebook`, `linkedin`) */
+  > /* Sharing buttons to include on navbar or sidebar
+(one or more of `twitter`, `facebook`, `linkedin`) */;
+  title?: string /* Book title */;
+  tools?: (NavigationItem)[]; /* Custom tools for navbar or sidebar */
+} & BaseWebsite;
+
 export type ChapterItem = NavigationItem | {
   chapters?: (NavigationItem)[] /* Path to chapter input file */;
   part: string; /* Part title or path to input file */
@@ -1007,6 +1047,8 @@ export type SmartInclude = {
 export type Semver =
   string; /* Version number according to Semantic Versioning */
 
+export type QuartoDate = string | { format?: string; value: String };
+
 export type ProjectProfile = {
   default?: MaybeArrayOf<
     string
@@ -1036,41 +1078,4 @@ export type ProjectConfig = {
   type?: string; /* Project type (`default`, `website`, or `book`) */
 };
 
-export type BookProject = {
-  "output-file"?:
-    string /* Base name for single-file output (e.g. PDF, ePub) */;
-  "cover-image"?: string /* Cover image (used in HTML and ePub formats) */;
-  "cover-image-alt"?:
-    string /* Alternative text for cover image (used in HTML format) */;
-  author?: MaybeArrayOf<
-    (string | SchemaObject) /* Author or authors of the book */
-  > /* Author or authors of the book */;
-  abstract?: string /* Book abstract */;
-  appendices?: ChapterList;
-  chapters?: ChapterList;
-  date?: string /* Book publication date */;
-  description?: string /* Description metadata for HTML version of book */;
-  downloads?: MaybeArrayOf<
-    (
-      | "pdf"
-      | "epub"
-      | "docx"
-    ) /* Download buttons for other formats to include on navbar or sidebar
-(one or more of `pdf`, `epub`, and `docx`) */
-  > /* Download buttons for other formats to include on navbar or sidebar
-(one or more of `pdf`, `epub`, and `docx`) */;
-  doi?: string /* The Digital Object Identifier for this book. */;
-  references?: string /* Book references file */;
-  subtitle?: string /* Book subtitle */;
-  sharing?: MaybeArrayOf<
-    (
-      | "twitter"
-      | "facebook"
-      | "linkedin"
-    ) /* Sharing buttons to include on navbar or sidebar
-(one or more of `twitter`, `facebook`, `linkedin`) */
-  > /* Sharing buttons to include on navbar or sidebar
-(one or more of `twitter`, `facebook`, `linkedin`) */;
-  title?: string /* Book title */;
-  tools?: (NavigationItem)[]; /* Custom tools for navbar or sidebar */
-} & BaseWebsite;
+export type BookProject = SchemaObject;
