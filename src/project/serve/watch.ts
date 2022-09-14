@@ -128,10 +128,6 @@ export function watchProject(
             },
           );
           if (inputs.length) {
-            // record rendered time
-            for (const input of inputs.filter(existsSync)) {
-              rendered.set(input, md5Hash(Deno.readTextFileSync(input)));
-            }
             // render
             const services = renderServices();
             try {
@@ -144,6 +140,7 @@ export function watchProject(
                       progress: true,
                       flags,
                       pandocArgs,
+                      previewServer: true,
                     },
                     inputs,
                   );
@@ -152,6 +149,7 @@ export function watchProject(
                     services,
                     flags,
                     pandocArgs: pandocArgs,
+                    previewServer: true,
                   });
                 }
               });
@@ -162,6 +160,10 @@ export function watchProject(
                 }
                 return undefined;
               } else {
+                // record rendered hash
+                for (const input of inputs.filter(existsSync)) {
+                  rendered.set(input, md5Hash(Deno.readTextFileSync(input)));
+                }
                 renderManager.onRenderResult(
                   result,
                   extensionDirs,
@@ -242,6 +244,7 @@ export function watchProject(
               devServerReload: true,
               flags,
               pandocArgs,
+              previewServer: true,
             },
           )
         );

@@ -262,6 +262,7 @@ export const jupyterEngine: ExecutionEngine = {
       const jupyterExecOptions: JupyterExecuteOptions = {
         kernelspec,
         python_cmd: await pythonExec(kernelspec),
+        supervisor_pid: options.previewServer ? Deno.pid : undefined,
         ...execOptions,
       };
       if (executeDaemon === false || executeDaemon === 0) {

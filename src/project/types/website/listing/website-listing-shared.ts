@@ -201,9 +201,25 @@ export interface RenderedContents {
   fullContents: string | undefined;
 }
 
+export const kInlineCodeStyle = "inline-code-style";
+export const kUrlsToAbsolute = "urls-to-absolute";
+
+export interface RenderedContentOptions {
+  remove?: {
+    anchors?: boolean;
+    links?: boolean;
+    images?: boolean;
+  };
+  transform?: {
+    [kInlineCodeStyle]?: boolean;
+    math?: boolean;
+    [kUrlsToAbsolute]?: boolean;
+  };
+}
+
 export const renderedContentReader = (
   project: ProjectContext,
-  forFeed: boolean,
+  options: RenderedContentOptions,
   siteUrl?: string,
 ) => {
   const renderedContent: Record<string, RenderedContents> = {};
@@ -212,7 +228,7 @@ export const renderedContentReader = (
       renderedContent[filePath] = readRenderedContents(
         filePath,
         project,
-        forFeed,
+        options,
         siteUrl,
       );
     }
@@ -238,7 +254,7 @@ export const absoluteUrl = (siteUrl: string, url: string) => {
 export function readRenderedContents(
   filePath: string,
   project: ProjectContext,
-  forFeed: boolean,
+  options: RenderedContentOptions,
   siteUrl?: string,
 ): RenderedContents {
   const htmlInput = Deno.readTextFileSync(filePath);
@@ -265,7 +281,7 @@ export function readRenderedContents(
   }
 
   // Convert any images to have absolute paths
-  if (forFeed && siteUrl) {
+  if (options.transform?.[kUrlsToAbsolute] && siteUrl) {
     const imgNodes = doc.querySelectorAll("img");
     if (imgNodes) {
       for (const imgNode of imgNodes) {
@@ -305,8 +321,21 @@ export function readRenderedContents(
     });
   });
 
-  if (forFeed) {
-    // String unacceptable links
+  // Strip unacceptable tags
+  const stripTags = [];
+  if (options.remove?.images) {
+    stripTags.push("img");
+  }
+  stripTags.forEach((tag) => {
+    const nodes = doc.querySelectorAll(`${tag}`);
+    nodes?.forEach((node) => {
+      const el = node as Element;
+      el.remove();
+    });
+  });
+
+  if (options.remove?.anchors) {
+    // Strip unacceptable links
     const relativeLinkSel = 'a[href^="#"]';
     const linkNodes = doc.querySelectorAll(relativeLinkSel);
     linkNodes.forEach((linkNode) => {
@@ -314,7 +343,9 @@ export function readRenderedContents(
       linkNode.after(...nodesToMove);
       linkNode.remove();
     });
+  }
 
+  if (options.transform?.[kInlineCodeStyle]) {
     // Process code to apply styles for syntax highlighting
     const highlightingMap = defaultSyntaxHighlightingClassMap();
     const spanNodes = doc.querySelectorAll("code span");
@@ -337,7 +368,9 @@ export function readRenderedContents(
       const codeBlockEl = codeBlockNode as Element;
       codeBlockEl.setAttribute("style", codeStyle);
     }
+  }
 
+  if (options.transform?.math) {
     // Process math using webtex
     const trimMath = (str: string) => {
       // Text of math is prefixed by the below
@@ -359,7 +392,9 @@ export function readRenderedContents(
       );
       mathNode.parentElement?.replaceChild(imgEl, mathNode);
     }
-  } else {
+  }
+
+  if (options.remove?.links) {
     // String all links
     const relativeLinkSel = "a";
     const linkNodes = doc.querySelectorAll(relativeLinkSel);
@@ -383,10 +418,26 @@ export function readRenderedContents(
     }
   };
 
+  // Try to find a paragraph that doesn't resolve as completely empty
+  // This could happen, for example, if images are removed from the document
+  // and  the first paragraph is an image.
+  const getFirstPara = () => {
+    const paraNodes = mainEl?.querySelectorAll("p");
+    if (paraNodes) {
+      for (const paraNode of paraNodes) {
+        const paraContents = cleanMath((paraNode as Element).innerHTML);
+        if (paraContents) {
+          return paraContents;
+        }
+      }
+    }
+    return undefined;
+  };
+
   return {
     title: titleText,
     fullContents: cleanMath(mainEl?.innerHTML),
-    firstPara: cleanMath(mainEl?.querySelector("p")?.innerHTML),
+    firstPara: getFirstPara(),
   };
 }
 

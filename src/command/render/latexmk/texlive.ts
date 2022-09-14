@@ -5,23 +5,50 @@
  *
  */
 import { info } from "log/mod.ts";
-import { existsSync } from "fs/mod.ts";
-
 import * as ld from "../../../core/lodash.ts";
 
 import { execProcess } from "../../../core/process.ts";
 import { kLatexHeaderMessageOptions } from "./types.ts";
 import { lines } from "../../../core/text.ts";
 import { requireQuoting, safeWindowsExec } from "../../../core/windows.ts";
-import { tinyTexInstallDir } from "../../../tools/impl/tinytex-info.ts";
+import { hasTinyTex, tinyTexBinDir } from "../../../tools/impl/tinytex-info.ts";
+import { join } from "path/mod.ts";
+
+export interface TexLiveContext {
+  preferTinyTex: boolean;
+  hasTinyTex: boolean;
+  hasTexLive: boolean;
+  binDir?: string;
+}
+
+export async function texLiveContext(
+  preferTinyTex: boolean,
+): Promise<TexLiveContext> {
+  const hasTiny = hasTinyTex();
+  const hasTex = await hasTexLive();
+  const binDir = tinyTexBinDir();
+  return {
+    preferTinyTex,
+    hasTinyTex: hasTiny,
+    hasTexLive: hasTex,
+    binDir,
+  };
+}
+
+function systemTexLiveContext(): TexLiveContext {
+  return {
+    preferTinyTex: false,
+    hasTinyTex: false,
+    hasTexLive: false,
+  };
+}
 
 // Determines whether TexLive is installed and callable on this system
 export async function hasTexLive(): Promise<boolean> {
-  if (await texLiveInPath()) {
+  if (hasTinyTex()) {
     return true;
   } else {
-    const installDir = tinyTexInstallDir();
-    if (installDir && existsSync(installDir)) {
+    if (await texLiveInPath()) {
       return true;
     } else {
       return false;
@@ -31,7 +58,8 @@ export async function hasTexLive(): Promise<boolean> {
 
 export async function texLiveInPath(): Promise<boolean> {
   try {
-    const result = await tlmgrCommand("--version", []);
+    const systemContext = systemTexLiveContext();
+    const result = await tlmgrCommand("--version", [], systemContext);
     return result.code === 0;
   } catch {
     return false;
@@ -42,6 +70,7 @@ export async function texLiveInPath(): Promise<boolean> {
 // searchTerms are interpreted as a (Perl) regular expression
 export async function findPackages(
   searchTerms: string[],
+  context: TexLiveContext,
   opts?: string[],
   quiet?: boolean,
 ): Promise<string[]> {
@@ -63,6 +92,7 @@ export async function findPackages(
       const result = await tlmgrCommand(
         "search",
         [...args, ...(opts || []), searchTerm],
+        context,
         true,
       );
 
@@ -118,6 +148,7 @@ export async function findPackages(
 export function updatePackages(
   all: boolean,
   self: boolean,
+  context: TexLiveContext,
   opts?: string[],
   quiet?: boolean,
 ) {
@@ -135,12 +166,13 @@ export function updatePackages(
     args.push("--self");
   }
 
-  return tlmgrCommand("update", args || [], quiet);
+  return tlmgrCommand("update", args || [], context, quiet);
 }
 
 // Install packages using TexLive
 export async function installPackages(
   pkgs: string[],
+  context: TexLiveContext,
   opts?: string[],
   quiet?: boolean,
 ) {
@@ -161,32 +193,42 @@ export async function installPackages(
       );
     }
 
-    await installPackage(pkg, opts, quiet);
+    await installPackage(pkg, context, opts, quiet);
     count = count + 1;
   }
-  await addPath();
+  await addPath(context);
 }
 
 // Add Symlinks for TexLive executables
-function addPath(opts?: string[]) {
+function addPath(context: TexLiveContext, opts?: string[]) {
   // Add symlinks for executables, man pages,
   // and info pages in the system directories
   //
   // This is only required for binary files installed with tlmgr
   // but will not hurt each time a package is installed
-  return tlmgrCommand("path", ["add", ...(opts || [])], true);
+  return tlmgrCommand("path", ["add", ...(opts || [])], context, true);
 }
 
 // Remove Symlinks for TexLive executables and commands
-export function removePath(opts?: string[], quiet?: boolean) {
-  return tlmgrCommand("path", ["remove", ...(opts || [])], quiet);
+export function removePath(
+  context: TexLiveContext,
+  opts?: string[],
+  quiet?: boolean,
+) {
+  return tlmgrCommand("path", ["remove", ...(opts || [])], context, quiet);
 }
 
-async function installPackage(pkg: string, opts?: string[], quiet?: boolean) {
+async function installPackage(
+  pkg: string,
+  context: TexLiveContext,
+  opts?: string[],
+  quiet?: boolean,
+) {
   // Run the install command
   let installResult = await tlmgrCommand(
     "install",
     [...(opts || []), pkg],
+    context,
     quiet,
   );
 
@@ -198,10 +240,16 @@ async function installPackage(pkg: string, opts?: string[], quiet?: boolean) {
   }
 
   // Check whether we should update and retry the install
-  const isInstalled = await verifyPackageInstalled(pkg);
+  const isInstalled = await verifyPackageInstalled(pkg, context);
   if (!isInstalled) {
     // update tlmgr itself
-    const updateResult = await updatePackages(false, true, opts, quiet);
+    const updateResult = await updatePackages(
+      false,
+      true,
+      context,
+      opts,
+      quiet,
+    );
     if (updateResult.code !== 0) {
       return Promise.reject();
     }
@@ -210,6 +258,7 @@ async function installPackage(pkg: string, opts?: string[], quiet?: boolean) {
     installResult = await tlmgrCommand(
       "install",
       [...(opts || []), pkg],
+      context,
       quiet,
     );
   }
@@ -219,6 +268,7 @@ async function installPackage(pkg: string, opts?: string[], quiet?: boolean) {
 
 export async function removePackage(
   pkg: string,
+  context: TexLiveContext,
   opts?: string[],
   quiet?: boolean,
 ) {
@@ -226,6 +276,7 @@ export async function removePackage(
   const result = await tlmgrCommand(
     "remove",
     [...(opts || []), pkg],
+    context,
     quiet,
   );
 
@@ -237,11 +288,16 @@ export async function removePackage(
 }
 
 // Removes texlive itself
-export async function removeAll(opts?: string[], quiet?: boolean) {
+export async function removeAll(
+  context: TexLiveContext,
+  opts?: string[],
+  quiet?: boolean,
+) {
   // remove symlinks
   const result = await tlmgrCommand(
     "remove",
     [...(opts || []), "--all", "--force"],
+    context,
     quiet,
   );
   // Failed to even run tlmgr
@@ -251,11 +307,12 @@ export async function removeAll(opts?: string[], quiet?: boolean) {
   return result;
 }
 
-export async function tlVersion() {
+export async function tlVersion(context: TexLiveContext) {
   try {
     const result = await tlmgrCommand(
       "--version",
       ["--machine-readable"],
+      context,
       true,
     );
 
@@ -275,6 +332,26 @@ export async function tlVersion() {
   }
 }
 
+export type TexLiveCmd = {
+  cmd: string;
+  fullPath: string;
+};
+
+export function texLiveCmd(cmd: string, context: TexLiveContext): TexLiveCmd {
+  if (context.preferTinyTex && context.hasTinyTex) {
+    if (context.binDir) {
+      return {
+        cmd,
+        fullPath: join(context.binDir, cmd),
+      };
+    } else {
+      return { cmd, fullPath: cmd };
+    }
+  } else {
+    return { cmd, fullPath: cmd };
+  }
+}
+
 function tlMgrError(msg?: string) {
   if (msg && msg.indexOf("is older than remote repository") > -1) {
     const message =
@@ -288,6 +365,7 @@ function tlMgrError(msg?: string) {
 // Verifies whether the package has been installed
 async function verifyPackageInstalled(
   pkg: string,
+  context: TexLiveContext,
   opts?: string[],
 ): Promise<boolean> {
   const result = await tlmgrCommand(
@@ -300,6 +378,7 @@ async function verifyPackageInstalled(
       ...(opts || []),
       pkg,
     ],
+    context,
   );
   return result.stdout?.trim() === pkg;
 }
@@ -308,6 +387,7 @@ async function verifyPackageInstalled(
 function tlmgrCommand(
   tlmgrCmd: string,
   args: string[],
+  context: TexLiveContext,
   _quiet?: boolean,
 ) {
   const execTlmgr = (tlmgrCmd: string[]) => {
@@ -320,17 +400,19 @@ function tlmgrCommand(
     );
   };
 
-  // Do not call directly tlmgr on Windows
-  const tlmgr = Deno.build.os === "windows"
-    ? ["cmd", "/c", "tlmgr"]
-    : ["tlmgr"];
+  // If TinyTex is here, prefer that
+  const texLiveCommand = texLiveCmd("tlmgr", context);
 
   // Is safe execution needed because of quoting issue ?
   const safeExecNeeded = requireQuoting(args);
   try {
     return safeExecNeeded.status
-      ? safeWindowsExec("tlmgr", [tlmgrCmd, ...safeExecNeeded.args], execTlmgr)
-      : execTlmgr([...tlmgr, tlmgrCmd, ...args]);
+      ? safeWindowsExec(
+        texLiveCommand.fullPath,
+        [tlmgrCmd, ...safeExecNeeded.args],
+        execTlmgr,
+      )
+      : execTlmgr([texLiveCommand.fullPath, tlmgrCmd, ...args]);
   } catch {
     return Promise.reject();
   }

@@ -39,6 +39,10 @@ export const removeCommand = new Command()
     "--embed <extensionId>",
     "Remove this extension from within another extension (used when authoring extensions).",
   )
+  .option(
+    "--update-path",
+    "Update system path when a tool is installed",
+  )
   .description(
     "Removes an extension or global dependency.",
   )
@@ -64,7 +68,7 @@ export const removeCommand = new Command()
   )
   .action(
     async (
-      options: { prompt?: boolean; embed?: string },
+      options: { prompt?: boolean; embed?: string; updatePath?: boolean },
       type: string,
       target?: string,
     ) => {
@@ -130,7 +134,7 @@ export const removeCommand = new Command()
           // Process tool
           if (target) {
             // Explicitly provided
-            await removeTool(target, options.prompt);
+            await removeTool(target, options.prompt, options.updatePath);
           } else {
             // Not provided, give the user a list to choose from
             const allTools = await loadTools();

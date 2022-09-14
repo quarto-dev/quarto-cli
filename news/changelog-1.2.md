@@ -4,6 +4,8 @@
 - Correctly interpret cell metadata with `false` values
 - Render text/latex outputs consisting entirely of $ math as markdown math
 - Use IPython 7.14 import syntax in `ojs_define`
+- Correct handling of multiple attachments in Jupyter Notebook classic
+- Prevent overwrite of source .ipynb when output format is ipynb
 
 ## OJS
 
@@ -38,6 +40,10 @@
 - Handle LaTeX error messages with no file output more gracefully (#2183)
 - Support cross reference-able figures with callouts
 
+## Revealjs Format
+
+- Update to Reveal v4.3.1 (+ commit e281b32) to fix presentation scaling/zoom issues.
+
 ## Google Scholar
 
 - Properly read Google Scholar reference data from dynamically generated bibliography YML
@@ -62,6 +68,10 @@
 - Fix issue that caused incomplete search indexes for books
 - Don't display the book description in each chapter's title block
 
+## Preview
+
+- Restart Jupyter kernel daemon if preview server is restarted.
+
 ## Publishing
 
 - Handle CNAME file for `gh-pages` either without or without protocol prefix (e.g. https://)
@@ -71,8 +81,17 @@
 - Support formats `bibtex`, `biblatex`, and `csljson`. When rendered to one of these formats any citations within the document will be rendered as the specified bibliography format.
 - Always add citeproc filter if `citeproc: true` is specified, even if there isn't a bibliography or references in the document (#2294)
 
+## TinyTex
+
+- `quarto install tool tinytex` will now install TinyTex even if a system installation of TeX is detected.
+- `quarto install tool tinytex` will no longer add TinyTex to the system path by default.
+- When rendering PDFs, Quarto will prefer an existing installation of TinyTex over a system Tex installation
+- To prevent Quarto from using an installation of TinyTex (if you'd prefer the system installation be used), set `latex-tinytex: false` in your project or document front matter.
+- To install TinyTex system wide, using the `--update-path` flag when installing (this will add TinyTex to the system path)
+
 ## Miscellaneous
 
+- Render: ability to compose `--to all` with other formats (e.g. `--to all,json`)
 - Don't call Deno.realPathSync on Windows (avoid problems w/ UNC paths)
 - Don't include Unicode literals on Windows directly (#2184), thanks @yihui
 - Improve YAML validation error messages on values of type object (#2191)
@@ -86,3 +105,4 @@
 - New metadata field `quarto-required` to specify required versions of quarto in a document
 - Provide project configuration for calls to `quarto inspect` for files
 - Improve YAML validation error messages on closed schemas (#2349)
+- Don't use default width/height on mermaid diagrams when better information is available (#2383)

@@ -9,7 +9,12 @@ import * as ld from "../../../core/lodash.ts";
 
 import { ProcessResult } from "../../../core/process.ts";
 
-import { findPackages, installPackages, updatePackages } from "./texlive.ts";
+import {
+  findPackages,
+  installPackages,
+  TexLiveContext,
+  updatePackages,
+} from "./texlive.ts";
 import { LatexmkOptions } from "./types.ts";
 
 export interface PackageManager {
@@ -19,7 +24,10 @@ export interface PackageManager {
   updatePackages(all: boolean, self: boolean): Promise<ProcessResult>;
 }
 
-export function packageManager(mkOptions: LatexmkOptions): PackageManager {
+export function packageManager(
+  mkOptions: LatexmkOptions,
+  texLive: TexLiveContext,
+): PackageManager {
   let lastPkgs: string[] = [];
   return {
     autoInstall: mkOptions.autoInstall === undefined
@@ -34,6 +42,7 @@ export function packageManager(mkOptions: LatexmkOptions): PackageManager {
         // Attempt to install the packages
         await installPackages(
           pkgs,
+          texLive,
           mkOptions.engine.tlmgrOpts,
           mkOptions.quiet,
         );
@@ -52,6 +61,7 @@ export function packageManager(mkOptions: LatexmkOptions): PackageManager {
       return updatePackages(
         all,
         self,
+        texLive,
         mkOptions.engine.tlmgrOpts,
         mkOptions.quiet,
       );
@@ -59,6 +69,7 @@ export function packageManager(mkOptions: LatexmkOptions): PackageManager {
     searchPackages: (searchTerms: string[]) => {
       return findPackages(
         searchTerms,
+        texLive,
         mkOptions.engine.tlmgrOpts,
         mkOptions.quiet,
       );

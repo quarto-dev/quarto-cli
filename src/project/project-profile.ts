@@ -9,7 +9,6 @@ import { error } from "log/mod.ts";
 import { join } from "path/mod.ts";
 
 import { ProjectConfig } from "../project/types.ts";
-import { logProgress } from "../core/log.ts";
 import * as ld from "../core/lodash.ts";
 import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
 import { mergeProjectMetadata } from "../config/metadata.ts";
@@ -96,11 +95,6 @@ export async function initializeProfileConfig(
   // set the environment variable for those that want to read it directly
   Deno.env.set(kQuartoProfile, active.join(","));
 
-  // print profile if not quiet
-  if (firstRun && active.length > 0) {
-    logProgress(`Profile: ${active.join(",")}\n`);
-  }
-
   return await mergeProfiles(
     dir,
     config,
@@ -128,6 +122,7 @@ async function localConfigQuartoProfile(dir: string, schema: Schema) {
       `Validation of configuration profile file ${
         basename(localConfigPath)
       } failed.`,
+      "{}",
     ) as Metadata;
     const profile = yaml[kQuartoProfileConfig] as
       | QuartoProfileConfig
@@ -161,6 +156,7 @@ async function mergeProfiles(
         `Validation of configuration profile file ${
           basename(profilePath)
         } failed.`,
+        "{}",
       );
       config = mergeProjectMetadata(config, yaml);
       files.push(profilePath);

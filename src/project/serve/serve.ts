@@ -206,6 +206,7 @@ export async function serveProject(
       useFreezer: !renderBefore,
       flags,
       pandocArgs,
+      previewServer: true,
     },
     files,
   );
@@ -300,6 +301,7 @@ export async function serveProject(
               services,
               flags: { ...flags, to },
               pandocArgs,
+              previewServer: true,
             }).then((result) => {
               if (result.error) {
                 if (result.error?.message) {

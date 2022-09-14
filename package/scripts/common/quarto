@@ -121,13 +121,16 @@ else
   export DENO_DOM_PLUGIN=$QUARTO_BIN_PATH/tools/deno_dom/libplugin.so
 fi
 
+
 if [ "$QUARTO_DENO" == "" ]; then
   if [[ $OSTYPE == 'darwin'* ]]; then
-    FULLARCH=$(uname -sm)
+    # We cannot use uname to determine the _machine_ architecture:
+    # https://github.com/quarto-dev/quarto-cli/issues/2420#issuecomment-1245768732
+    FULLARCH="$(sysctl machdep.cpu.brand_string)"
     
-    if [[ $FULLARCH == "Darwin x86_64" ]]; then
+    if [[ $FULLARCH == *"Intel"* ]]; then
       DENO_DIR=deno-x86_64-apple-darwin
-    elif [[ $FULLARCH == "Darwin arm64" ]]; then
+    elif [[ $FULLARCH == *"Apple"* ]]; then
       DENO_DIR=deno-aarch64-apple-darwin
     else
       echo "quarto script failed: unrecognized architecture " ${FULLARCH}

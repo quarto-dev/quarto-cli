@@ -1049,6 +1049,15 @@ export type Semver =
 
 export type QuartoDate = string | { format?: string; value: String };
 
+export type ProjectProfile = {
+  default?: MaybeArrayOf<
+    string
+  > /* Default profile to apply if QUARTO_PROFILE is not defined. */;
+  group?: MaybeArrayOf<
+    (string)[]
+  >; /* Define a profile group for which at least one profile is always active. */
+};
+
 export type ProjectConfig = {
   "execute-dir"?:
     | "file"

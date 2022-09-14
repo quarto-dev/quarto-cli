@@ -1966,3 +1966,19 @@
           value:
             ref: string
         required: [value]
+
+- id: project-profile
+  schema:
+    object:
+      closed: true
+      properties:
+        default:
+          maybeArrayOf: string
+          description: |
+            Default profile to apply if QUARTO_PROFILE is not defined.
+        group:
+          maybeArrayOf:
+            arrayOf: string
+          description: |
+            Define a profile group for which at least one profile is always active.
+  description: Specify a default profile and profile groups

@@ -76,7 +76,12 @@ function theorems()
             table.insert(prefix, pandoc.Str(")"))
             table.insert(prefix, pandoc.Space())
           end
-          
+
+          -- If this theorem has no content, then create a placeholder
+          if #el.content == 0 then
+            el.content[1] = pandoc.Para({})
+          end
+
           -- prepend the prefix
           local caption = el.content[1]
           tprepend(caption.content, { 

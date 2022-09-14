@@ -196,6 +196,7 @@ export async function renderExecute(
     cwd: flags.executeDir,
     params: resolveParams(flags.params, flags.paramsFile),
     quiet: flags.quiet,
+    previewServer: context.options.previewServer,
     handledLanguages: languages(),
   });
   popTiming();

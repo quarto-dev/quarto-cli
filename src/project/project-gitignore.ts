@@ -6,7 +6,7 @@
 */
 
 import { join } from "path/mod.ts";
-import { exists } from "fs/mod.ts";
+import { exists, walkSync } from "fs/mod.ts";
 
 import { which } from "../core/path.ts";
 import { execProcess } from "../core/process.ts";
@@ -32,6 +32,17 @@ export async function ensureGitignore(
         requiredEntries.push(requiredEntry);
       }
     }
+    // see if we need to gitignore any .local files
+    const kLocalEntry = `/_*.local`;
+    if (!gitignore.includes(kLocalEntry)) {
+      for (const walk of walkSync(dir, { maxDepth: 1 })) {
+        if (walk.name.match(/^_.*?\.local$/)) {
+          requiredEntries.push(kLocalEntry);
+          break;
+        }
+      }
+    }
+
     if (requiredEntries.length > 0) {
       writeGitignore(dir, gitignore.concat(requiredEntries));
       return true;

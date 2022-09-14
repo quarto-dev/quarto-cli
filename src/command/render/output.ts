@@ -5,7 +5,14 @@
 *
 */
 
-import { dirname, extname, isAbsolute, join, relative } from "path/mod.ts";
+import {
+  basename,
+  dirname,
+  extname,
+  isAbsolute,
+  join,
+  relative,
+} from "path/mod.ts";
 
 import { writeFileToStdout } from "../../core/console.ts";
 import { dirAndStem, expandPath } from "../../core/path.ts";
@@ -140,7 +147,18 @@ export function outputRecipe(
       if (extname(input) === ".md" && ext === "md") {
         outputExt = `${format.pandoc.to}.md`;
       }
-      updateOutput(inputStem + "." + outputExt);
+
+      // derive new output file
+      let output = inputStem + "." + outputExt;
+
+      // special case if the source will overwrite the destination (note: this
+      // behavior can be customized with a custom output-ext)
+      if (output === basename(context.target.source)) {
+        output = inputStem + ".out." + outputExt;
+      }
+
+      // assign output
+      updateOutput(output);
     } else if (recipe.output === kStdOut) {
       // output to stdout: direct pandoc to write to a temp file then we'll
       // forward to stdout (necessary b/c a postprocesor may need to act on

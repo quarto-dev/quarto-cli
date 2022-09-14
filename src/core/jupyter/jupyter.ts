@@ -755,13 +755,15 @@ export function mdFromContentCell(
   if (options && cell.attachments && cell.source) {
     // close source so we can modify it
     const source = ld.cloneDeep(cell.source) as string[];
-    // process each file attachment
-    Object.keys(cell.attachments).forEach((file) => {
+    // process each file attachment (ensure we have a cell id for uniqueness)
+    const cellId = cell.id || shortUuid();
+    Object.keys(cell.attachments).forEach((file, index) => {
       const attachment = cell.attachments![file];
       for (const mimeType of Object.keys(attachment)) {
         if (extensionForMimeImageType(mimeType, undefined)) {
           // save attachment in the figures dir
-          const imageFile = options.assets.figures_dir + "/" + file;
+          const imageFile = options.assets.figures_dir +
+            `/${cellId}-${index + 1}-${file}`;
           const outputFile = join(options.assets.base_dir, imageFile);
           ensureDirSync(dirname(outputFile));
           const data = attachment[mimeType];
