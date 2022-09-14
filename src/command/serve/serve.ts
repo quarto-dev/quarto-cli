@@ -6,7 +6,6 @@
 */
 
 import { ProcessResult, processSuccessResult } from "../../core/process.ts";
-import { makeAbsolutePath } from "../../core/qualified-path.ts";
 
 import { fileExecutionEngine } from "../../execute/engine.ts";
 import { RunOptions } from "../../execute/types.ts";
@@ -14,11 +13,10 @@ import { RunOptions } from "../../execute/types.ts";
 import { render, renderServices } from "../render/render-shared.ts";
 
 export async function serve(options: RunOptions): Promise<ProcessResult> {
-  const path = options.input;
-  const engine = await fileExecutionEngine(path);
+  const engine = await fileExecutionEngine(options.input);
   if (engine?.run) {
     const target = await engine.target(
-      path,
+      options.input,
       options.quiet,
     );
     if (target) {
