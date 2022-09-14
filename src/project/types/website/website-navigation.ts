@@ -454,7 +454,15 @@ function navigationHtmlPostprocessor(
       if (title) {
         secondaryNavTitleEl.innerHTML = title.innerHTML;
       } else {
-        secondaryNavTitleEl.innerHTML = "(Untitled)";
+        const sidebarTitle = doc.querySelector(".sidebar-title a");
+        if (sidebarTitle) {
+          secondaryNavTitleEl.innerHTML = sidebarTitle.innerHTML;
+        } else {
+          const sidebarTitleBare = doc.querySelector(".sidebar-title");
+          if (sidebarTitleBare) {
+            secondaryNavTitleEl.innerHTML = sidebarTitleBare.innerHTML;
+          }
+        }
       }
       // hide the entire title block (encompassing code button) if we have it
       const titleBlock = doc.querySelector("header > .quarto-title-block");
