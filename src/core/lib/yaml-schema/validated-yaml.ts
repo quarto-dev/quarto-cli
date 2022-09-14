@@ -82,14 +82,19 @@ export async function readAndValidateYamlFromMappedString(
     };
   };
 
-  // run against the precheck schema that catches partial bad parses
-  // for better error messages
-  const preCheckResult = await withValidator(
-    getSchemaDefinition("bad-parse-schema"),
-    validate,
-  );
-  if (preCheckResult.yamlValidationErrors.length !== 0) {
-    return preCheckResult;
+  // run the precheck schema on object values,
+  // so that partial bad parses get better error messages
+
+  if (
+    typeof annotation.result === "object" && !Array.isArray(annotation.result)
+  ) {
+    const preCheckResult = await withValidator(
+      getSchemaDefinition("bad-parse-schema"),
+      validate,
+    );
+    if (preCheckResult.yamlValidationErrors.length !== 0) {
+      return preCheckResult;
+    }
   }
 
   const result = await withValidator(schema, validate);
