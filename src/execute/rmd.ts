@@ -36,9 +36,10 @@ import {
   RunOptions,
 } from "./types.ts";
 import { postProcessRestorePreservedHtml } from "./engine-shared.ts";
-import { mappedStringFromFile } from "../core/mapped-text.ts";
 import { mappedIndexToLineCol, MappedString } from "../core/lib/mapped-text.ts";
 import { lineColToIndex } from "../core/lib/text.ts";
+import { AbsolutePath } from "../core/qualified-path-types.ts";
+import { mappedStringFromFile } from "../core/mapped-text.ts";
 
 const kRmdExtensions = [".rmd", ".rmarkdown"];
 

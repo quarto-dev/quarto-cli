@@ -31,8 +31,9 @@ const includeHandler: LanguageHandler = {
     handlerContext: LanguageCellHandlerContext,
     directive: DirectiveCell,
   ): Promise<MappedString> {
-    const source = handlerContext.options.context.target.source;
-    const retrievedFiles: string[] = [source];
+    const retrievedFiles: string[] = [
+      handlerContext.options.context.target.source,
+    ];
 
     const textFragments: EitherString[] = [];
 

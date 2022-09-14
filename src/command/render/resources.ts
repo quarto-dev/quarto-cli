@@ -15,6 +15,7 @@ import { extractResolvedResourceFilenamesFromQmd } from "../../execute/ojs/extra
 import { asMappedString } from "../../core/mapped-text.ts";
 import { RenderedFile, RenderResourceFiles } from "./types.ts";
 import { PartitionedMarkdown } from "../../core/pandoc/types.ts";
+import { makeCwdRelativePath } from "../../core/qualified-path.ts";
 
 export function resourcesFromMetadata(resourcesMetadata?: unknown) {
   // interrogate / typecast raw yaml resources into array of strings
@@ -52,7 +53,7 @@ export async function resolveFileResources(
     resources.include.push(
       ...(await extractResolvedResourceFilenamesFromQmd(
         asMappedString(markdown),
-        fileDir,
+        makeCwdRelativePath(fileDir).asAbsolute(),
         rootDir,
       )),
     );
