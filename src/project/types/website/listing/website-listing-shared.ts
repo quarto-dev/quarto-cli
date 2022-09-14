@@ -418,10 +418,26 @@ export function readRenderedContents(
     }
   };
 
+  // Try to find a paragraph that doesn't resolve as completely empty
+  // This could happen, for example, if images are removed from the document
+  // and  the first paragraph is an image.
+  const getFirstPara = () => {
+    const paraNodes = mainEl?.querySelectorAll("p");
+    if (paraNodes) {
+      for (const paraNode of paraNodes) {
+        const paraContents = cleanMath((paraNode as Element).innerHTML);
+        if (paraContents) {
+          return paraContents;
+        }
+      }
+    }
+    return undefined;
+  };
+
   return {
     title: titleText,
     fullContents: cleanMath(mainEl?.innerHTML),
-    firstPara: cleanMath(mainEl?.querySelector("p")?.innerHTML),
+    firstPara: getFirstPara(),
   };
 }
 
