@@ -239,7 +239,15 @@ function opengraphMetadata(
 
   // Read open graph data in
   if (openGraph && typeof (openGraph) === "object") {
-    [kTitle, kDescription, kImage, kLocale, kSiteName].forEach((key) => {
+    [
+      kTitle,
+      kDescription,
+      kImage,
+      kImageHeight,
+      kImageWidth,
+      kLocale,
+      kSiteName,
+    ].forEach((key) => {
       if (openGraph[key] !== undefined) {
         metadata[key] = openGraph[key];
       }

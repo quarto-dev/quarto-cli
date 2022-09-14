@@ -26,7 +26,7 @@ testRender(input, "html", false, [{
         output,
         "index_files",
         "figure-html",
-        "unnamed-chunk-4-1.png",
+        "plot1-1.png",
       ),
     );
     return Promise.resolve();

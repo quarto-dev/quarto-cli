@@ -140,7 +140,7 @@ export function objectSchema(params: {
   exhaustive?: boolean;
   additionalProperties?: Schema;
   description?: string;
-  baseSchema?: ObjectSchema;
+  baseSchema?: ObjectSchema | ObjectSchema[];
   completions?: { [k: string]: unknown }; // FIXME the value should be string | that completions object we can create.
   namingConvention?: CaseConvention[] | "ignore";
   closed?: boolean;
@@ -200,56 +200,71 @@ export function objectSchema(params: {
 
   const hasDescription = description !== undefined;
   description = description || "be an object";
-  let result: Schema | undefined = undefined;
+  let result: ObjectSchema | undefined = undefined;
 
   if (baseSchema) {
-    if (baseSchema.type !== "object") {
+    if (!Array.isArray(baseSchema)) {
+      baseSchema = [baseSchema];
+    }
+    if (baseSchema.some((s) => s.type !== "object")) {
       throw new Error("Internal Error: can only extend other object Schema");
     }
-    result = Object.assign({
+    if (baseSchema.length <= 0) {
+      throw new Error("Internal Error: base schema must be non-empty");
+    }
+    // deno-lint-ignore no-explicit-any
+    let temp: any = {
       ...internalId(),
-    }, baseSchema);
+    };
+    for (const base of baseSchema) {
+      temp = Object.assign(temp, base);
+    }
+    result = temp;
+    if (result === undefined) {
+      throw new Error("Internal Error: result should not be undefined");
+    }
     // remove $id from base schema to avoid names from getting multiplied
     if (result.$id) {
       delete result.$id;
     }
-
-    if (exhaustive && baseSchema.exhaustiveCompletions) {
-      result.exhaustiveCompletions = true;
+    for (const base of baseSchema) {
+      if (base.exhaustiveCompletions) {
+        result.exhaustiveCompletions = true;
+      }
     }
 
     if (hasDescription) {
       result.description = description;
     }
 
-    result.properties = Object.assign({}, result.properties, properties);
+    result.properties = Object.assign(
+      {},
+      ...(baseSchema.map((s) => s.properties)),
+      properties,
+    );
     result.patternProperties = Object.assign(
       {},
-      result.patternProperties,
+      ...(baseSchema.map((s) => s.patternProperties)),
       patternProperties,
     );
 
-    if (required) {
-      result.required = (result.required || []).slice();
-      result.required.push(...required);
+    result.required = [
+      ...baseSchema.map((s) => s.required || []),
+      required || [],
+    ].flat();
+    if (result.required && result.required.length === 0) {
+      result.required = undefined;
     }
 
-    if (additionalProperties !== undefined) {
-      // TODO Review. This is likely to be confusing, but I think
-      // it's the correct semantics for subclassing
-      if (result.additionalProperties === false) {
-        throw new Error(
-          "Internal Error: don't know how to subclass object schema with additionalProperties === false",
-        );
-      }
-      if (result.additionalProperties) {
-        result.additionalProperties = allOfSchema(
-          result.additionalProperties,
-          additionalProperties,
-        );
-      } else {
-        result.additionalProperties = additionalProperties;
-      }
+    // TODO Review. This is likely to be confusing, but I think
+    // it's the correct semantics for subclassing
+    const additionalPropArray = baseSchema.map((s) => s.additionalProperties)
+      .filter((s) => s !== undefined) as Schema[];
+    if (additionalProperties) {
+      additionalPropArray.push(additionalProperties);
+    }
+    if (additionalPropArray.length) {
+      result.additionalProperties = allOfSchema(...additionalPropArray);
     }
 
     // propertyNames === undefined means that the behavior should be
@@ -258,18 +273,23 @@ export function objectSchema(params: {
     // The semantics of extending schema A through B should be that the resulting
     // propertyNames behaves as anyOf(A.propertyNames, B.propertyNames)
     //
-    // If either of those is undefined, then we get anyOf(true, .) or anyOf(., true),
-    // which is equivalent to true, which is equivalent to undefined.
+    // If any of those is undefined, then we get anyOf(true, .) or anyOf(., true),
+    // which is equivalent to true, which is equivalent to undefined (and so
+    // we don't need to set the property)
     //
     // as a result, we only set propertyNames on the extended schema if both
-    // A.propertyNames and B.propertyNames are defined.
-
-    if (propertyNames !== undefined && result.propertyNames !== undefined) {
-      result.propertyNames = anyOfSchema(propertyNames, result.propertyNames);
+    // all propertyNames fields are defined.
+    const propNamesArray = baseSchema.map((s) => s.propertyNames)
+      .filter((s) => s !== undefined) as Schema[];
+    if (propertyNames) {
+      propNamesArray.push(propertyNames);
+    }
+    if (propNamesArray.length === baseSchema.length + 1) {
+      result.propertyNames = anyOfSchema(...propNamesArray);
     }
 
     // if either of schema or base schema is closed, the derived schema is also closed.
-    result.closed = closed || baseSchema.closed;
+    result.closed = closed || baseSchema.some((s) => s.closed);
   } else {
     result = {
       ...internalId(),
