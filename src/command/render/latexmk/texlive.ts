@@ -404,7 +404,7 @@ function tlmgrCommand(
   const texLiveCommand = texLiveCmd("tlmgr", context);
 
   // Is safe execution needed because of quoting issue ?
-  const safeExecNeeded = requireQuoting(args);
+  const safeExecNeeded = requireQuoting(texLiveCommand.fullPath, args);
   try {
     return safeExecNeeded.status
       ? safeWindowsExec(
