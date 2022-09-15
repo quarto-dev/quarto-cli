@@ -117,7 +117,6 @@ export function readCodePage() {
 // On Windows, determine and apply double quoting on args that needs it
 // Do nothing on other OS.
 export function requireQuoting(
-  cmd: string,
   args: string[],
 ) {
   let requireQuoting = false;
@@ -133,10 +132,6 @@ export function requireQuoting(
         return a;
       }
     });
-
-    if (shellCharReg.test(cmd)) {
-      requireQuoting = true;
-    }
   }
   return {
     status: requireQuoting,
