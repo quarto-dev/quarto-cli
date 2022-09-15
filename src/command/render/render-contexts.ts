@@ -85,7 +85,6 @@ import {
 import { ExtensionContext } from "../../extension/extension-shared.ts";
 import { renderServices } from "./render-shared.ts";
 import { DocumentInfo, ProjectInfo } from "../../core/qualified-path-types.ts";
-import { makeAbsolutePath } from "../../core/qualified-path.ts";
 
 export async function resolveFormatsFromMetadata(
   metadata: Metadata,
