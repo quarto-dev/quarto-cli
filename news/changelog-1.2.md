@@ -29,6 +29,8 @@
 - Ability to specify a minimum quarto version via the `quarto-required` option.
 - Extension may now contribute project types (project metadata which will be merged with a project when project of that type are rendered)
 - Include Pandoc `logging` Lua module from @wlupton
+- Improve path resolution of extensions
+- Add support for extensions that contribute revealjs-plugins
 
 ## Projects
 
