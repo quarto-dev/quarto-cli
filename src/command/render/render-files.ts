@@ -193,7 +193,7 @@ export async function renderExecute(
     libDir: context.libDir,
     format: context.format,
     projectDir: context.project?.dir,
-    cwd: flags.executeDir,
+    cwd: flags.executeDir || dirname(Deno.realPathSync(context.target.input)),
     params: resolveParams(flags.params, flags.paramsFile),
     quiet: flags.quiet,
     previewServer: context.options.previewServer,
