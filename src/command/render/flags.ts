@@ -29,6 +29,7 @@ import { isQuartoMetadata } from "../../config/metadata.ts";
 import { RenderFlags, RenderOptions } from "./types.ts";
 
 import * as ld from "../../core/lodash.ts";
+import { makeAbsolutePath } from "../../core/qualified-path.ts";
 
 import { isAbsolute, SEP_PATTERN } from "path/mod.ts";
 
@@ -216,12 +217,11 @@ export async function parseRenderFlags(args: string[]) {
         arg = argsStack.shift();
         if (arg) {
           if (isAbsolute(arg)) {
-            flags.executeDir = arg;
+            flags.executeDir = makeAbsolutePath(arg);
           } else {
-            flags.executeDir = Deno.realPathSync(arg);
+            flags.executeDir = makeAbsolutePath(Deno.realPathSync(arg));
           }
         }
-
         break;
 
       case "--execute-daemon":
