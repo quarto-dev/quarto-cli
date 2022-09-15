@@ -22,6 +22,7 @@ import {
   isJupyterNotebook,
   jupyterAssets,
   jupyterFromJSON,
+  jupyterKernelspecFromMarkdown,
   jupyterToMarkdown,
   kJupyterNotebookExtensions,
   quartoMdToJupyter,
@@ -233,11 +234,17 @@ export const jupyterEngine: ExecutionEngine = {
     }
 
     // determine the kernel (it's in the custom execute options data)
-    const kernelspec = (options.target.data as JupyterTargetData).kernelspec;
+    let kernelspec = (options.target.data as JupyterTargetData).kernelspec;
 
     // determine execution behavior
     const execute = options.format.execute[kExecuteEnabled] !== false;
     if (execute) {
+      // if yaml front matter has a different kernel then use it
+      if (isJupyterNotebook(options.target.source)) {
+        kernelspec = await ensureYamlKernelspec(options.target, kernelspec) ||
+          kernelspec;
+      }
+
       // jupyter back end requires full path to input (to ensure that
       // keepalive kernels are never re-used across multiple inputs
       // that happen to share a hash)
@@ -396,6 +403,23 @@ export const jupyterEngine: ExecutionEngine = {
 function isQmdFile(file: string) {
   const ext = extname(file);
   return kQmdExtensions.includes(ext);
+}
+
+async function ensureYamlKernelspec(
+  target: ExecutionTarget,
+  kernelspec: JupyterKernelspec,
+) {
+  const markdown = target.markdown.value;
+  const yamlJupyter = readYamlFromMarkdown(markdown)?.jupyter;
+  if (yamlJupyter && typeof (yamlJupyter) !== "boolean") {
+    const [yamlKernelspec, _] = await jupyterKernelspecFromMarkdown(markdown);
+    if (yamlKernelspec.name !== kernelspec.name) {
+      const nb = jupyterFromJSON(Deno.readTextFileSync(target.source));
+      nb.metadata.kernelspec = yamlKernelspec;
+      Deno.writeTextFileSync(target.source, JSON.stringify(nb, null, 2));
+      return yamlKernelspec;
+    }
+  }
 }
 
 async function createNotebookforTarget(target: ExecutionTarget) {
