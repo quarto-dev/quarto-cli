@@ -7,6 +7,7 @@
 - Correct handling of multiple attachments in Jupyter Notebook classic
 - Prevent overwrite of source .ipynb when output format is ipynb
 - Prefer kernel declared in YAML front matter when executing notebooks
+- Fix v1.1 regression in handling of cell display_data w/ Juptyer widgets
 
 ## Knitr
 
