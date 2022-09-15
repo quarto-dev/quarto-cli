@@ -268,6 +268,10 @@ export type PandocFilter = {
 
 export type QuartoFilter = string | PandocFilter;
 
+export function isPandocFilter(filter: QuartoFilter): filter is PandocFilter {
+  return (<PandocFilter> filter).path !== undefined;
+}
+
 export interface FormatExtras {
   args?: string[];
   pandoc?: FormatPandoc;
