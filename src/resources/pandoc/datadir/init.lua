@@ -1570,6 +1570,9 @@ _quarto = {
    end
  } 
 
+-- Additional Lua libraries we make available
+logging = require 'logging'
+
 -- The main exports of the quarto module
 quarto = {
   doc = {
