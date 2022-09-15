@@ -28,6 +28,8 @@ import { RenderFlags, RenderOptions } from "./types.ts";
 
 import * as ld from "../../core/lodash.ts";
 
+import { SEP_PATTERN } from "path/mod.ts";
+
 export const kStdOut = "-";
 
 export async function parseRenderFlags(args: string[]) {
@@ -51,6 +53,12 @@ export async function parseRenderFlags(args: string[]) {
         if (!arg || arg.startsWith("-")) {
           flags.output = kStdOut;
         } else {
+          // https://github.com/quarto-dev/quarto-cli/issues/2440
+          if (arg.match(SEP_PATTERN)) {
+            throw new Error(
+              "--output option cannot specify a relative or absolute path",
+            );
+          }
           flags.output = arg;
         }
         break;
