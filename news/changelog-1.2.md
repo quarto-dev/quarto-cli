@@ -28,6 +28,7 @@
 - Provide a better error message for non-existent format resources (#2291)
 - Ability to specify a minimum quarto version via the `quarto-required` option.
 - Extension may now contribute project types (project metadata which will be merged with a project when project of that type are rendered)
+- Include Pandoc `logging` Lua module from @wlupton
 
 ## Projects
 
