@@ -35,6 +35,7 @@ import {
   kTextHighlightingMode,
 } from "../../config/types.ts";
 import {
+  isAstOutput,
   isBeamerOutput,
   isEpubOutput,
   isHtmlDocOutput,
@@ -243,7 +244,9 @@ export async function runPandoc(
   formatFilterParams["language"] = options.format.language;
 
   // if there is no toc title then provide the appropirate default
-  if (!options.format.metadata[kTocTitle]) {
+  if (
+    !options.format.metadata[kTocTitle] && !isAstOutput(options.format.pandoc)
+  ) {
     options.format.metadata[kTocTitle] = options.format.language[
       (projectIsWebsite(options.project) && !projectIsBook(options.project) &&
           isHtmlOutput(options.format.pandoc, true))

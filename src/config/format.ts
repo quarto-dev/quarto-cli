@@ -116,8 +116,24 @@ export function isRevealjsOutput(format?: string | FormatPandoc) {
   return format.startsWith("revealjs");
 }
 
+export function isNativeOutput(format: FormatPandoc) {
+  return isFormatTo(format, "native");
+}
+
+export function isJsonOutput(format: FormatPandoc) {
+  return isFormatTo(format, "json");
+}
+
+export function isAstOutput(format: FormatPandoc) {
+  return isNativeOutput(format) || isJsonOutput(format);
+}
+
 export function isIpynbOutput(format: FormatPandoc) {
-  return !!format.to && format.to.startsWith("ipynb");
+  return isFormatTo(format, "ipynb");
+}
+
+function isFormatTo(format: FormatPandoc, to: string) {
+  return !!format.to && format.to.startsWith(to);
 }
 
 export function isMarkdownOutput(

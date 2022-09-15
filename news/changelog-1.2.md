@@ -54,6 +54,10 @@
 
 - Support code folding for markdown output when `raw_html` is supported.
 
+## AST Formats
+
+- Remove intermediate metadata for AST formats (`native` and `json`)
+
 ## Google Scholar
 
 - Properly read Google Scholar reference data from dynamically generated bibliography YML

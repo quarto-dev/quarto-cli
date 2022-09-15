@@ -14,8 +14,10 @@ function import(script)
 end
 import("../common/base64.lua")
 import("../common/pandoc.lua")
+import("../common/meta.lua")
 import("../common/filemetadata.lua")
 import("../common/debug.lua")
+import("meta-cleanup.lua")
 import("book-cleanup.lua")
 import("dependencies.lua")
 import("mediabag.lua")
@@ -27,5 +29,6 @@ return {
     mediabag()
   }),
   bookCleanup(),
+  metaCleanup(),
   dependencies()
 }

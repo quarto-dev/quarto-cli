@@ -168,6 +168,18 @@ local function isFormat(to)
   end
 end
 
+local function isNativeOutput()
+  return FORMAT == "native"
+end
+
+local function isJsonOutput()
+  return FORMAT == "json"
+end
+
+local function isAstOutput()
+  return isNativeOutput() or isJsonOutput()
+end
+
 
 return {
   isRawHtml = isRawHtml,
@@ -188,5 +200,8 @@ return {
   isIpynbOutput = isIpynbOutput, 
   isHtmlOutput = isHtmlOutput, 
   isHtmlSlideOutput = isHtmlSlideOutput,
-  isBibliographyOutput = isBibliographyOutput
+  isBibliographyOutput = isBibliographyOutput,
+  isNativeOutput = isNativeOutput,
+  isJsonOutput = isJsonOutput,
+  isAstOutput = isAstOutput
 }
