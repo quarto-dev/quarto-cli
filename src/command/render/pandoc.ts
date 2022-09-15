@@ -149,6 +149,8 @@ import {
   splitPandocFormatString,
 } from "../../core/pandoc/pandoc-formats.ts";
 import { parseAuthor } from "../../core/author.ts";
+import { logLevel } from "../../core/log.ts";
+
 import { cacheCodePage, clearCodePageCache } from "../../core/windows.ts";
 import { textHighlightThemePath } from "../../quarto-core/text-highlighting.ts";
 import {
@@ -186,8 +188,14 @@ export async function runPandoc(
   // build command line args
   const args = [...options.args];
 
+  // propagate debug
+  if (logLevel() === "DEBUG") {
+    args.push("--verbose");
+    args.push("--trace");
+  }
+
   // propagate quiet
-  if (options.flags?.quiet) {
+  if (options.flags?.quiet || logLevel() === "ERROR") {
     args.push("--quiet");
   }
 
