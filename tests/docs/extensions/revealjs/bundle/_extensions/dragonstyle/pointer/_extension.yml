@@ -1,0 +1,12 @@
+title: Pointer
+author: Charles Teague
+version: 0.9.1
+contributes:
+  revealjs-plugins:
+    - plugin: pointer-plugin
+      config:
+        pointer:
+          key: "q"
+          color: "red"
+          pointerSize: 16
+          alwaysVisible: false

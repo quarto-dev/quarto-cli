@@ -602,7 +602,8 @@ async function readExtension(
       },
     );
     formatMeta[kRevealJSPlugins] =
-      (formatMeta?.[kRevealJSPlugins] as Array<string | RevealPluginBundle>)
+      (formatMeta?.[kRevealJSPlugins] as Array<string | RevealPluginBundle> ||
+        [])
         .flatMap(
           (plugin) => {
             return resolveRevealJSPlugin(
@@ -612,18 +613,26 @@ async function readExtension(
             );
           },
         );
-
-    // TODO: Resolve embedded Reveal JS plugins
   });
   delete formats[kCommon];
 
   // Alias the contributions
-  const shortcodes = (contributes?.shortcodes || []) as string[];
-  const filters = (contributes?.filters || {}) as QuartoFilter[];
+  const shortcodes = ((contributes?.shortcodes || []) as string[]).map(
+    (shortcode) => {
+      return resolveShortcodePath(extensionDir, shortcode);
+    },
+  );
+  const filters = ((contributes?.filters || []) as QuartoFilter[]).map(
+    (filter) => {
+      return resolveFilterPath(extensionDir, filter);
+    },
+  );
   const project = (contributes?.project || {}) as Record<string, unknown>;
-  const revealJSPlugins = (contributes?.[kRevealJSPlugins] || []) as Array<
+  const revealJSPlugins = ((contributes?.[kRevealJSPlugins] || []) as Array<
     string | RevealPluginBundle
-  >;
+  >).map((plugin) => {
+    return resolveRevealPluginPath(extensionDir, plugin);
+  });
 
   // Create the extension data structure
   const result = {
@@ -651,32 +660,40 @@ function resolveRevealJSPlugin(
   plugin: string | RevealPluginBundle,
 ) {
   if (typeof (plugin) === "string") {
-    // First attempt to load this shortcode from an embedded extension
+    // First attempt to load this plugin from an embedded extension
     const extensionId = toExtensionId(plugin);
     const extensions = findExtensions(
       embeddedExtensions,
       extensionId,
-      "shortcodes",
+      "revealjs-plugins",
     );
 
-    // If there are embedded extensions, return their shortcodes
+    // If there are embedded extensions, return their plugins
     if (extensions.length > 0) {
       const plugins: Array<string | RevealPluginBundle> = [];
       for (const plugin of extensions[0].contributes[kRevealJSPlugins] || []) {
-        // plugins may be extension relative paths
-        if (typeof (plugin) === "string") {
-          plugins.push(relative(dir, join(extensions[0].path, plugin)));
-        } else {
-          plugins.push(plugin);
-        }
+        plugins.push(plugin);
       }
       return plugins;
     } else {
       // There are no embedded extensions for this, validate the path
-      validateExtensionPath("shortcode", dir, plugin);
-      return plugin;
+      validateExtensionPath("revealjs-plugin", dir, plugin);
+      return resolveRevealPluginPath(dir, plugin);
     }
   } else {
+    return plugin;
+  }
+}
+
+function resolveRevealPluginPath(
+  extensionDir: string,
+  plugin: string | RevealPluginBundle,
+): string | RevealPluginBundle {
+  // Filters are expected to be absolute
+  if (typeof (plugin) === "string") {
+    return join(extensionDir, plugin);
+  } else {
+    plugin.plugin = join(extensionDir, plugin.plugin);
     return plugin;
   }
 }
@@ -701,14 +718,25 @@ function resolveShortcode(
   if (extensions.length > 0) {
     const shortcodes: string[] = [];
     for (const shortcode of extensions[0].contributes.shortcodes || []) {
-      // Shortcodes are expected to be extension relative paths
-      shortcodes.push(relative(dir, join(extensions[0].path, shortcode)));
+      // Shortcodes are expected to be absolute
+      shortcodes.push(resolveShortcodePath(extensions[0].path, shortcode));
     }
     return shortcodes;
   } else {
     // There are no embedded extensions for this, validate the path
     validateExtensionPath("shortcode", dir, shortcode);
+    return resolveShortcodePath(dir, shortcode);
+  }
+}
+
+function resolveShortcodePath(
+  extensionDir: string,
+  shortcode: string,
+): string {
+  if (isAbsolute(shortcode)) {
     return shortcode;
+  } else {
+    return join(extensionDir, shortcode);
   }
 }
 
@@ -731,24 +759,31 @@ function resolveFilter(
     if (extensions.length > 0) {
       const filters: QuartoFilter[] = [];
       for (const filter of extensions[0].contributes.filters || []) {
-        // Filters are expected to be extension relative paths
-        if (typeof (filter) === "string") {
-          filters.push(relative(dir, join(extensions[0].path, filter)));
-        } else {
-          filters.push({
-            type: filter.type,
-            path: relative(dir, join(extensions[0].path, filter.path)),
-          });
-        }
+        filters.push(resolveFilterPath(extensions[0].path, filter));
       }
       return filters;
     } else {
       validateExtensionPath("filter", dir, filter);
-      return filter;
+      return resolveFilterPath(dir, filter);
     }
   } else {
     validateExtensionPath("filter", dir, filter.path);
-    return filter.path;
+    return resolveFilterPath(dir, filter);
+  }
+}
+
+function resolveFilterPath(
+  extensionDir: string,
+  filter: QuartoFilter,
+): QuartoFilter {
+  // Filters are expected to be absolute
+  if (typeof (filter) === "string") {
+    return join(extensionDir, filter);
+  } else {
+    return {
+      type: filter.type,
+      path: join(extensionDir, filter.path),
+    };
   }
 }
 
@@ -756,14 +791,14 @@ function resolveFilter(
 // either the item should resolve using an embedded extension, or the path
 // should exist. You cannot reference a non-existent file in an extension
 function validateExtensionPath(
-  type: "filter" | "shortcode",
+  type: "filter" | "shortcode" | "revealjs-plugin",
   dir: string,
   path: string,
 ) {
   const resolves = existsSync(join(dir, path));
   if (!resolves) {
     throw Error(
-      `Failed to resolve referenced ${type} ${path} - path does not exist.\nIf you attempting to use another extension within this extension, please install the extension using the 'quarto install --embedded' command.`,
+      `Failed to resolve referenced ${type} ${path} - path does not exist.\nIf you are attempting to use another extension within this extension, please install the extension using the 'quarto install --embedded' command.`,
     );
   }
   return resolves;

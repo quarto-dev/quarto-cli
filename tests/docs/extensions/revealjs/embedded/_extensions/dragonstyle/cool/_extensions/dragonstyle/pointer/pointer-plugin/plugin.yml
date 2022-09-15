@@ -1,0 +1,11 @@
+name: RevealPointer
+script:
+  - pointer.js
+stylesheet:
+  - pointer.css
+config:
+  pointer:
+    key: "q"
+    color: "red"
+    pointerSize: 16
+    alwaysVisible: false
