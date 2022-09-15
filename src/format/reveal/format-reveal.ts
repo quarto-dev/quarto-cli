@@ -66,6 +66,8 @@ import {
   kSmaller,
 } from "./constants.ts";
 import { revealMetadataFilter } from "./metadata.ts";
+import { ExtensionContext } from "../../extension/extension-shared.ts";
+import { ProjectContext } from "../../project/types.ts";
 
 export function revealResolveFormat(format: Format) {
   format.metadata = revealMetadataFilter(format.metadata);
@@ -104,6 +106,8 @@ export function revealjsFormat() {
         libDir: string,
         temp: TempContext,
         offset: string,
+        extensionContext: ExtensionContext,
+        project: ProjectContext,
       ) => {
         // render styles template based on options
         const stylesFile = temp.createFile({ suffix: ".html" });
@@ -145,11 +149,14 @@ export function revealjsFormat() {
         const theme = await revealTheme(format, input, libDir, temp);
 
         const revealPluginData = await revealPluginExtras(
+          input,
           format,
           flags,
           temp,
           theme.revealUrl,
           theme.revealDestDir,
+          extensionContext,
+          project
         ); // Add plugin scripts to metadata for template to use
 
         // start with html format extras and our standard  & plugin extras

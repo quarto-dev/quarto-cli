@@ -311,6 +311,8 @@ export async function runPandoc(
         options.libDir,
         options.temp,
         options.offset,
+        options.extension,
+        options.project,
       ))
       : {};
 

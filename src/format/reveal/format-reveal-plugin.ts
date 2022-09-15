@@ -102,11 +102,14 @@ export interface RevealPluginScript {
 }
 
 export async function revealPluginExtras(
+  input: string,
   format: Format,
   flags: PandocFlags,
   temp: TempContext,
   revealUrl: string,
   revealDestDir: string,
+  extensionContext?: ExtensionContext,
+  project?: ProjectContext,
 ) {
   // directory to copy plugins into
 

@@ -185,6 +185,8 @@ import {
 
 import { TempContext } from "../core/temp-types.ts";
 import { HtmlPostProcessor } from "../command/render/types.ts";
+import { ExtensionContext } from "../extension/extension-shared.ts";
+import { ProjectContext } from "../project/types.ts";
 
 export const kDependencies = "dependencies";
 export const kSassBundles = "sass-bundles";
@@ -329,6 +331,8 @@ export interface Format {
     libDir: string,
     temp: TempContext,
     offset?: string,
+    extensionContext?: ExtensionContext,
+    project?: ProjectContext,
   ) => Promise<FormatExtras>;
   formatPreviewFile?: (
     file: string,
