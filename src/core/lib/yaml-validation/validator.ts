@@ -33,7 +33,6 @@ import { resolveSchema } from "./resolve.ts";
 
 import { MappedString } from "../text-types.ts";
 import { createLocalizedError } from "./errors.ts";
-import { _TextDecoder } from "../../../vendor/deno.land/std@0.153.0/node/_utils.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
 

@@ -10,7 +10,7 @@ import { join } from "path/mod.ts";
 import { safeExistsSync } from "../core/path.ts";
 import { isEqual } from "../core/lodash.ts";
 import { globalTempContext } from "../core/temp.ts";
-import { existsSync } from "../vendor/deno.land/std@0.153.0/fs/exists.ts";
+import { existsSync } from "fs/exists.ts";
 import { activeProfiles, kQuartoProfile } from "./profile.ts";
 
 const kQuartoEnv = "_environment";

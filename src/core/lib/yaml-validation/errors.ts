@@ -44,7 +44,6 @@ import {
 } from "../yaml-schema/types.ts";
 
 import { formatLineRange, lines } from "../text.ts";
-import { str } from "../../../vendor/deno.land/std@0.153.0/encoding/_yaml/type/str.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
 
