@@ -56,7 +56,11 @@ export async function executeKernelOneshot(
   const debug = !!options.format.execute[kExecuteDebug];
   const result = await execJupyter(
     "execute",
-    { ...options, debug },
+    {
+      ...options,
+      cwd: options.cwd?.value, // strip qualified path
+      debug,
+    },
     options.kernelspec,
   );
 
@@ -92,7 +96,10 @@ export async function executeKernelKeepalive(
       conn,
       "execute",
       transport.secret,
-      { ...options },
+      {
+        ...options,
+        cwd: options.cwd?.value, // strip qualified path
+      },
     );
     trace(options, "Execute command sent, reading response");
     let leftover = "";
