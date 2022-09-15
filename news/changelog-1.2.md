@@ -123,3 +123,4 @@
 - Improve YAML validation error messages on closed schemas (#2349)
 - Don't use default width/height on mermaid diagrams when better information is available (#2383)
 - Improve YAML validation error messages on invalid YAML objects that include `x = y` (#2434)
+- Forward `--log-level` to Pandoc via `--trace`, `--verbose`, and `--quiet`

@@ -19,6 +19,8 @@ import { lines } from "./text.ts";
 import { error, getLogger, setup, warning } from "log/mod.ts";
 import { asErrorEx } from "./lib/error.ts";
 
+export type LogLevel = "DEBUG" | "INFO" | "WARNING" | "ERROR";
+
 export interface LogOptions {
   log?: string;
   level?: string;
@@ -80,6 +82,11 @@ export function logOptions(args: Args) {
     args.lf || args["log-format"] || Deno.env.get("QUARTO_LOG_FORMAT"),
   );
   return logOptions;
+}
+
+let currentLogLevel: LogLevel = "INFO";
+export function logLevel() {
+  return currentLogLevel;
 }
 
 export class StdErrOutputHandler extends BaseHandler {
@@ -219,17 +226,17 @@ export async function initializeLogger(logOptions: LogOptions) {
   const handlers: Record<string, BaseHandler> = {};
   const defaultHandlers = [];
   const file = logOptions.log;
-  const logLevel = logOptions.level ? parseLevel(logOptions.level) : "INFO";
+  currentLogLevel = logOptions.level ? parseLevel(logOptions.level) : "INFO";
 
   // Provide a stream of log events
-  handlers["events"] = new LogEventsHandler(logLevel);
+  handlers["events"] = new LogEventsHandler(logLevel());
   defaultHandlers.push("events");
 
   // Don't add the StdErroutputHandler if we're quiet
   if (!logOptions.quiet) {
     // Default logger just redirects to the console
     handlers["console"] = new StdErrOutputHandler(
-      logLevel,
+      logLevel(),
       {
         formatter: "{msg}",
       },
@@ -240,7 +247,7 @@ export async function initializeLogger(logOptions: LogOptions) {
   // If a file is specified, add a file based logger
   if (file) {
     handlers["file"] = new LogFileHandler(
-      logLevel,
+      logLevel(),
       {
         filename: file,
         mode: "w",
@@ -352,7 +359,7 @@ function parseFormat(format?: string) {
 
 function parseLevel(
   level: string,
-): "DEBUG" | "INFO" | "WARNING" | "ERROR" | "CRITICAL" {
+): LogLevel {
   const lvl = levelMap[level.toLowerCase()];
   if (lvl) {
     return lvl;
@@ -362,11 +369,10 @@ function parseLevel(
 }
 const levelMap: Record<
   string,
-  "DEBUG" | "INFO" | "WARNING" | "ERROR" | "CRITICAL"
+  LogLevel
 > = {
   debug: "DEBUG",
   info: "INFO",
   warning: "WARNING",
   error: "ERROR",
-  critical: "CRITICAL",
 };
