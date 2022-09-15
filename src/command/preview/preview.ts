@@ -86,7 +86,6 @@ import {
   extensionFilesFromDirs,
   inputExtensionDirs,
 } from "../../extension/extension.ts";
-import { extension } from "media_types/mod.ts";
 
 interface PreviewOptions {
   port?: number;
