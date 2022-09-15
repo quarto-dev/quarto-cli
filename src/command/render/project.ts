@@ -57,6 +57,7 @@ import { parseShellRunCommand } from "../../core/run/shell.ts";
 import { clearProjectIndex } from "../../project/project-index.ts";
 import { projectExcludeDirs } from "../../project/project-shared.ts";
 import { asArray } from "../../core/array.ts";
+import { makeAbsolutePath } from "../../core/qualified-path.ts";
 
 export async function renderProject(
   context: ProjectContext,
@@ -205,11 +206,14 @@ export async function renderProject(
   // set execute dir if requested
   const executeDir = context.config?.project?.[kProjectExecuteDir];
   if (options.flags?.executeDir === undefined && executeDir === "project") {
+    const realProjDir = isAbsolute(projDir)
+      ? projDir
+      : Deno.realPathSync(projDir);
     options = {
       ...options,
       flags: {
         ...options.flags,
-        executeDir: projDir,
+        executeDir: makeAbsolutePath(realProjDir),
       },
     };
   }

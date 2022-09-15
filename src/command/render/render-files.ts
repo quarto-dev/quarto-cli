@@ -87,6 +87,7 @@ import {
 } from "../../core/timing.ts";
 import { satisfies } from "semver/mod.ts";
 import { quartoConfig } from "../../core/quarto.ts";
+import { makeAbsolutePath } from "../../core/qualified-path.ts";
 
 export async function renderExecute(
   context: RenderContext,
@@ -193,7 +194,8 @@ export async function renderExecute(
     libDir: context.libDir,
     format: context.format,
     projectDir: context.project?.dir,
-    cwd: flags.executeDir || dirname(Deno.realPathSync(context.target.input)),
+    cwd: flags.executeDir ??
+      makeAbsolutePath(dirname(Deno.realPathSync(context.target.input))),
     params: resolveParams(flags.params, flags.paramsFile),
     quiet: flags.quiet,
     previewServer: context.options.previewServer,

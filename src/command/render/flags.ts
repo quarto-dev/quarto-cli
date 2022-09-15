@@ -27,6 +27,8 @@ import { isQuartoMetadata } from "../../config/metadata.ts";
 import { RenderFlags, RenderOptions } from "./types.ts";
 
 import * as ld from "../../core/lodash.ts";
+import { isAbsolute } from "../../vendor/deno.land/std@0.153.0/path/win32.ts";
+import { makeAbsolutePath } from "../../core/qualified-path.ts";
 
 export const kStdOut = "-";
 
@@ -204,7 +206,13 @@ export async function parseRenderFlags(args: string[]) {
 
       case "--execute-dir":
         arg = argsStack.shift();
-        flags.executeDir = arg;
+        if (arg) {
+          if (isAbsolute(arg)) {
+            flags.executeDir = makeAbsolutePath(arg);
+          } else {
+            flags.executeDir = makeAbsolutePath(Deno.realPathSync(arg));
+          }
+        }
         break;
 
       case "--execute-daemon":
