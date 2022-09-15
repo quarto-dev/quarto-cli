@@ -658,13 +658,18 @@ async function resolveFilterExtension(
         "filters",
         options.project?.config,
         options.project?.dir,
-      );
+      ) || [];
 
       // Filter this list of extensions
       extensions = filterExtensions(extensions || [], filter, "filter");
-      const filters = extensions[0].contributes.filters;
-      if (filters) {
-        return filters;
+      // Return any contributed plugins
+      if (extensions.length > 0) {
+        const filters = extensions[0].contributes.filters;
+        if (filters) {
+          return filters;
+        } else {
+          return filter;
+        }
       } else {
         return filter;
       }
