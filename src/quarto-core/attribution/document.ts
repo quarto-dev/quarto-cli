@@ -32,7 +32,7 @@ import {
   kSiteUrl,
   kWebsite,
 } from "../../project/types/website/website-constants.ts";
-import { basename } from "https://deno.land/std@0.153.0/path/win32.ts";
+import { basename } from "path/mod.ts";
 
 const kDOI = "DOI";
 const kCitation = "citation";

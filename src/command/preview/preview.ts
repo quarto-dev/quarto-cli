@@ -86,7 +86,7 @@ import {
   extensionFilesFromDirs,
   inputExtensionDirs,
 } from "../../extension/extension.ts";
-import { extension } from "../../vendor/deno.land/x/media_types@v2.10.1/mod.ts";
+import { extension } from "media_types/mod.ts";
 
 interface PreviewOptions {
   port?: number;

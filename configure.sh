@@ -79,27 +79,6 @@ pushd $QUARTO_PACKAGE_PATH/src/
 # Run the configure command to bootstrap installation
 ./quarto-bld configure --log-level info
 
-if [[ "$QUARTO_REVENDOR_DEPENDENCIES" == "true" ]]; then
-	echo [Revendoring quarto dependencies]
-
-	pushd ${QUARTO_SRC_PATH}
-	today=`date +%Y-%m-%d`
-	mv vendor vendor-${today}
-	set +e
-	$DENO_BIN_PATH vendor quarto.ts $QUARTO_ROOT/tests/test-deps.ts --importmap=$QUARTO_SRC_PATH/import_map.json
-	return_code="$?"
-	set -e
-	if [[ ${return_code} -ne 0 ]]; then
-	  echo "deno vendor failed (likely because of a download error). Please run the configure script again."
-		rm -rf vendor
-		mv vendor-${today} vendor
-		exit 1
-	else
-	  rm -rf vendor-${today}
-	fi
-	$DENO_BIN_PATH run --unstable --allow-all --importmap=$QUARTO_SRC_PATH/import_map.json $QUARTO_PACKAGE_PATH/src/common/create-dev-import-map.ts
-fi
-
 # Run the quarto command with 'reload', which will force the import_map dependencies
 # to be reloaded
 if ! quarto_loc="$(type -p quarto)" || [[ -z $quarto_loc ]]; then
