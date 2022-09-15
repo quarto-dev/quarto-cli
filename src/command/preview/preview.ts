@@ -397,7 +397,6 @@ async function renderForPreview(
     },
     [],
   ));
-  console.log(JSON.stringify(extensionFiles, undefined, 2));
 
   return {
     file,
