@@ -43,6 +43,12 @@ import { projectIgnoreGlobs } from "../project/project-context.ts";
 import { ProjectType } from "../project/types/types.ts";
 import { copyResourceFile } from "../project/project-resources.ts";
 
+// This is where we maintain a list of extensions that have been promoted
+// to 'built-in' status. If we see these extensions, we will filter them
+// in favor of the built in functionality
+const kQuartoExtOrganization = "quarto-ext";
+const kQuartoExtBuiltIn = ["code-filename", "grouped-tabsets"];
+
 // Create an extension context that can be used to load extensions
 // Provides caching such that directories will not be rescanned
 // pmore than once for an extension context.
@@ -121,6 +127,43 @@ export function projectExtensionPathResolver(libDir: string) {
 
     return href;
   };
+}
+
+export function filterExtensions(
+  extensions: Extension[],
+  extensionId: string,
+  type: string,
+) {
+  if (extensions && extensions.length > 0) {
+    // First see whether there are more than one 'owned' extensions
+    // which match. This means that the there are two different extension, from two
+    // different orgs that match this simple id - user needs to disambiguate
+    const ownedExtensions = extensions.filter((ext) => {
+      return ext.id.organization !== undefined;
+    }).map((ext) => {
+      return extensionIdString(ext.id);
+    });
+    if (ownedExtensions.length > 1) {
+      // There are more than one extensions with owners, warn
+      // user that they should disambiguate
+      warning(
+        `The ${type} '${extensionId}' matched more than one extension. Please use a full name to disambiguate:\n  ${
+          ownedExtensions.join("\n  ")
+        }`,
+      );
+    }
+
+    // we periodically build in features that were formerly available from
+    // the quarto-ext org. filter them out here (that allows them to remain
+    // referenced in the yaml so we don't break code in the wild)
+    extensions = extensions?.filter((ext) => {
+      return !(ext.id.organization === kQuartoExtOrganization &&
+        kQuartoExtBuiltIn.includes(ext.id.name));
+    });
+    return extensions;
+  } else {
+    return extensions;
+  }
 }
 
 // Loads all extensions for a given input

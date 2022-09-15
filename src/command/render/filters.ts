@@ -61,6 +61,7 @@ import { extensionIdString } from "../../extension/extension-shared.ts";
 import { warning } from "log/mod.ts";
 import { formatHasBootstrap } from "../../format/html/format-html-info.ts";
 import { activeProfiles, kQuartoProfile } from "../../quarto-core/profile.ts";
+import { filterExtensions } from "../../extension/extension.ts";
 
 const kQuartoParams = "quarto-params";
 
@@ -637,9 +638,6 @@ function pdfEngine(options: PandocOptions): string {
   return pdfEngine;
 }
 
-const kQuartoExtOrganization = "quarto-ext";
-const kQuartoExtBuiltIn = ["code-filename", "grouped-tabsets"];
-
 async function resolveFilterExtension(
   options: PandocOptions,
   filters: QuartoFilter[],
@@ -662,39 +660,11 @@ async function resolveFilterExtension(
         options.project?.dir,
       );
 
-      if (extensions && extensions.length > 0) {
-        const ownedExtensions = extensions.filter((ext) => {
-          return ext.id.organization !== undefined;
-        }).map((ext) => {
-          return extensionIdString(ext.id);
-        });
-        if (ownedExtensions.length > 1) {
-          // There are more than one extensions with owners, warn
-          // user that they should disambiguate
-          warning(
-            `The filter '${filter}' matched more than one filter. Please use a full name to disambiguate:\n  ${
-              ownedExtensions.join("\n  ")
-            }`,
-          );
-        }
-
-        // we periodically build in features that were formerly available from
-        // the quarto-ext org. filter them out here (that allows them to remain
-        // referenced in the yaml so we don't break code in the wild)
-        extensions = extensions?.filter((ext) => {
-          return !(ext.id.organization === kQuartoExtOrganization &&
-            kQuartoExtBuiltIn.includes(ext.id.name));
-        });
-        if (extensions.length === 0) {
-          return [];
-        }
-
-        const filters = extensions[0].contributes.filters;
-        if (filters) {
-          return filters;
-        } else {
-          return filter;
-        }
+      // Filter this list of extensions
+      extensions = filterExtensions(extensions || [], filter, "filter");
+      const filters = extensions[0].contributes.filters;
+      if (filters) {
+        return filters;
       } else {
         return filter;
       }
