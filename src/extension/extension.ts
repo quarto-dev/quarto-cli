@@ -25,6 +25,7 @@ import { mergeConfigs } from "../core/config.ts";
 import { quartoConfig } from "../core/quarto.ts";
 
 import {
+  Contributes,
   Extension,
   ExtensionContext,
   ExtensionId,
@@ -33,6 +34,7 @@ import {
   kCommon,
   kExtensionDir,
   kQuartoRequired,
+  kRevealJSPlugins,
   kTitle,
   kVersion,
 } from "./extension-shared.ts";
@@ -42,6 +44,7 @@ import { getExtensionConfigSchema } from "../core/lib/yaml-schema/project-config
 import { projectIgnoreGlobs } from "../project/project-context.ts";
 import { ProjectType } from "../project/types/types.ts";
 import { copyResourceFile } from "../project/project-resources.ts";
+import { RevealPluginBundle } from "../format/reveal/format-reveal-plugin.ts";
 
 // This is where we maintain a list of extensions that have been promoted
 // to 'built-in' status. If we see these extensions, we will filter them
@@ -87,7 +90,7 @@ export function createExtensionContext(): ExtensionContext {
   const find = async (
     name: string,
     input: string,
-    contributes?: "shortcodes" | "filters" | "formats",
+    contributes?: Contributes,
     config?: ProjectConfig,
     projectDir?: string,
   ): Promise<Extension[]> => {
@@ -229,7 +232,7 @@ const loadExtension = async (
 function findExtensions(
   extensions: Extension[],
   extensionId: ExtensionId,
-  contributes?: "shortcodes" | "filters" | "formats" | "project",
+  contributes?: Contributes,
 ) {
   // Filter the extension based upon what they contribute
   const exts = extensions.filter((ext) => {
@@ -240,6 +243,10 @@ function findExtensions(
     } else if (contributes === "formats" && ext.contributes.formats) {
       return true;
     } else if (contributes === "project" && ext.contributes.project) {
+      return true;
+    } else if (
+      contributes === kRevealJSPlugins && ext.contributes[kRevealJSPlugins]
+    ) {
       return true;
     } else {
       return contributes === undefined;
@@ -485,6 +492,7 @@ function validateExtension(extension: Extension) {
     extension.contributes.shortcodes,
     extension.contributes.formats,
     extension.contributes.project,
+    extension.contributes[kRevealJSPlugins],
   ];
   contribs.forEach((contrib) => {
     if (contrib) {
@@ -593,6 +601,19 @@ async function readExtension(
         return resolveFilter(embeddedExtensions, extensionDir, filter);
       },
     );
+    formatMeta[kRevealJSPlugins] =
+      (formatMeta?.[kRevealJSPlugins] as Array<string | RevealPluginBundle>)
+        .flatMap(
+          (plugin) => {
+            return resolveRevealJSPlugin(
+              embeddedExtensions,
+              extensionDir,
+              plugin,
+            );
+          },
+        );
+
+    // TODO: Resolve embedded Reveal JS plugins
   });
   delete formats[kCommon];
 
@@ -600,6 +621,9 @@ async function readExtension(
   const shortcodes = (contributes?.shortcodes || []) as string[];
   const filters = (contributes?.filters || {}) as QuartoFilter[];
   const project = (contributes?.project || {}) as Record<string, unknown>;
+  const revealJSPlugins = (contributes?.[kRevealJSPlugins] || []) as Array<
+    string | RevealPluginBundle
+  >;
 
   // Create the extension data structure
   const result = {
@@ -614,10 +638,47 @@ async function readExtension(
       filters,
       formats,
       project,
+      [kRevealJSPlugins]: revealJSPlugins,
     },
   };
   validateExtension(result);
   return result;
+}
+
+function resolveRevealJSPlugin(
+  embeddedExtensions: Extension[],
+  dir: string,
+  plugin: string | RevealPluginBundle,
+) {
+  if (typeof (plugin) === "string") {
+    // First attempt to load this shortcode from an embedded extension
+    const extensionId = toExtensionId(plugin);
+    const extensions = findExtensions(
+      embeddedExtensions,
+      extensionId,
+      "shortcodes",
+    );
+
+    // If there are embedded extensions, return their shortcodes
+    if (extensions.length > 0) {
+      const plugins: Array<string | RevealPluginBundle> = [];
+      for (const plugin of extensions[0].contributes[kRevealJSPlugins] || []) {
+        // plugins may be extension relative paths
+        if (typeof (plugin) === "string") {
+          plugins.push(relative(dir, join(extensions[0].path, plugin)));
+        } else {
+          plugins.push(plugin);
+        }
+      }
+      return plugins;
+    } else {
+      // There are no embedded extensions for this, validate the path
+      validateExtensionPath("shortcode", dir, plugin);
+      return plugin;
+    }
+  } else {
+    return plugin;
+  }
 }
 
 // This will resolve a shortcode contributed by this extension
