@@ -90,6 +90,7 @@ export const knitrEngine: ExecutionEngine = {
       "execute",
       {
         ...options,
+        cwd: options.cwd?.value, // strip qualified path
         target: undefined,
         input: options.target.input,
         markdown: options.target.markdown.value,

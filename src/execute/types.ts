@@ -16,6 +16,7 @@ import { RenderOptions } from "../command/render/types.ts";
 import { MappedString } from "../core/lib/text-types.ts";
 import { HandlerContextResults } from "../core/handlers/types.ts";
 import { ProjectContext } from "../project/types.ts";
+import { AbsolutePath } from "../core/qualified-path-types.ts";
 
 export const kQmdExtensions = [".qmd"];
 
@@ -77,11 +78,12 @@ export interface ExecuteOptions {
   dependencies: boolean;
   projectDir?: string;
   libDir?: string;
-  cwd?: string;
   params?: { [key: string]: unknown };
   quiet?: boolean;
   previewServer?: boolean;
   handledLanguages: string[]; // list of languages handled by cell language handlers, after the execution engine
+
+  cwd?: AbsolutePath;
 }
 
 // result of execution
