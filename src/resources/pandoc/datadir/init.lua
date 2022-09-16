@@ -1286,6 +1286,7 @@ local format = require '_format'
 local base64 = require '_base64'
 local json = require '_json'
 local utils = require '_utils'
+local logging = require 'logging'
 
 
 -- determines whether a path is a relative path
@@ -1611,8 +1612,6 @@ _quarto = {
    end
  } 
 
--- Additional Lua libraries we make available
-logging = require 'logging'
 
 -- The main exports of the quarto module
 quarto = {
@@ -1754,4 +1753,5 @@ quarto = {
   },
   json = json,
   base64 = base64,
+  log = logging
 }
