@@ -7,6 +7,10 @@
 -- format
 local kAuthorInput =  'authors'
 
+-- we ensure that if 'institute' is specified, we normalize it into
+-- and array in this value, which this can safely read and process
+local kInstituteInput = 'institutes'
+
 -- By default, simply replace the input structure with the 
 -- normalized versions of the output
 local kAuthorOutput = kAuthorInput
@@ -209,6 +213,29 @@ function processAuthorMeta(meta)
         if affiliation[kId] ~= addedAffiliation[kId] then
           remapAuthorAffiliations(affiliation[kId], addedAffiliation[kId], authors)
         end
+      end
+    end
+  end
+
+  -- process 'institute', which is used by revealjs and beamer
+  -- because they bear no direct relation to the authors
+  -- we will just use their position to attach them
+  local instituteRaw = meta[kInstituteInput]
+  if instituteRaw then
+    for i,institute in ipairs(instituteRaw) do
+      -- add the affiliation
+      local affiliation = processAffilationObj({ name=institute })
+      local addedAffiliation = maybeAddAffiliation(affiliation, affiliations)
+
+      -- note the reference on the author
+      -- if there aren't enough authors, attach the affiliations to the
+      -- last author
+      local author = authors[#authors]
+      if i <= #authors then
+        author = authors[i]
+      end
+      if author then
+        setAffiliation(author, { ref=addedAffiliation[kId] })
       end
     end
   end
