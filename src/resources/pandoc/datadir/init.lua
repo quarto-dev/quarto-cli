@@ -1695,7 +1695,7 @@ quarto = {
          -- resolve a name, if one isn't provided
          local name = pathOrFileObj.name      
          if name == nil then
-            name = pandoc.path.filename(pathOrfileObj.path)
+            name = pandoc.path.filename(pathOrFileObj.path)
          end
 
          -- the full resolved file
