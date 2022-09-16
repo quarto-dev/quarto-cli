@@ -56,7 +56,7 @@ function resolveColumnClassesForCodeCell(el)
     else
       -- Forward the column classes inside code blocks
       for i, childEl in ipairs(el.content) do 
-        if childEl.attr ~= undefined and childEl.attr.classes:includes('cell-output-display') then
+        if childEl.attr ~= nil and childEl.attr.classes:includes('cell-output-display') then
 
           -- look through the children for any figures or tables
           local forwarded = false
@@ -66,7 +66,7 @@ function resolveColumnClassesForCodeCell(el)
               -- forward to figures
               applyClasses(figClasses, figCaptionClasses, el, childEl, figure, 'fig')
               forwarded = true
-            elseif figOrTableEl.attr ~= undefined and hasFigureRef(figOrTableEl) then
+            elseif figOrTableEl.attr ~= nil and hasFigureRef(figOrTableEl) then
               -- forward to figure divs
               applyClasses(figClasses, figCaptionClasses, el, childEl, figOrTableEl, 'fig')
               forwarded = true

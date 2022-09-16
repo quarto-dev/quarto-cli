@@ -104,7 +104,7 @@ function layoutMetaInject()
           )
         end)
         
-        if marginCitations() and meta.bibliography ~= undefined then 
+        if marginCitations() and meta.bibliography ~= nil then 
           local citeMethod = param('cite-method', 'citeproc')
           if citeMethod == 'natbib' then
             metaInjectLatex(meta, function(inject)

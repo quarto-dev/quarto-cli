@@ -261,7 +261,7 @@ function isCaptionClass(clz)
 end
 
 function isColumnClass(clz) 
-  if clz == undefined then
+  if clz == nil then
     return false
   elseif clz == 'aside' then
     return true
