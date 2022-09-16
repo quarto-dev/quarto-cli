@@ -26,7 +26,7 @@ function columns()
         if el.attr.classes and tcontains(el.attr.classes, 'aside') then
           noteHasColumns()
           el.attr.classes = el.attr.classes:filter(function(attr) 
-            return attr ~= aside
+            return attr ~= "aside"
           end)
           tappend(el.attr.classes, {'column-margin'})
           return el
@@ -205,7 +205,7 @@ function noteHasColumns()
 end
 
 function notColumnClass(clz) 
-  return not isColumnClass(cls)
+  return not isColumnClass(clz)
 end
 
 function resolveColumnClasses(el) 

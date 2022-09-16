@@ -57,7 +57,7 @@ function tabsetDiv(div, renderer)
       if class == "panel-tabset" then
         return "tab-content" 
       else
-        return name
+        return class
       end
     end)
    
