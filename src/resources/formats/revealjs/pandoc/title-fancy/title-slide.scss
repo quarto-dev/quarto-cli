@@ -1,0 +1,49 @@
+/*-- scss:rules --*/
+
+.reveal {
+  .quarto-title-block {
+    .quarto-title-authors {
+      display: flex;
+      justify-content: center;
+
+      .quarto-title-author {
+        padding-left: 0.5em;
+        padding-right: 0.5em;
+
+        a,
+        a:hover,
+        a:visited,
+        a:active {
+          color: inherit;
+          text-decoration: none;
+        }
+
+        .quarto-title-author-name {
+          margin-bottom: 0.1rem;
+        }
+
+        .quarto-title-author-email {
+          margin-top: 0px;
+          margin-bottom: 0.4em;
+          font-size: 0.6em;
+        }
+
+        .quarto-title-author-orcid {
+          img {
+            margin-bottom: 4px;
+          }
+        }
+
+        .quarto-title-affiliation {
+          font-size: 0.7em;
+          margin-top: 0px;
+          margin-bottom: 8px;
+        }
+
+        .quarto-title-affiliation:first {
+          margin-top: 12px;
+        }
+      }
+    }
+  }
+}

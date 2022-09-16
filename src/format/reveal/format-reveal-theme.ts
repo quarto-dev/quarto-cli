@@ -32,6 +32,7 @@ import { quartoBaseLayer } from "../html/format-html-shared.ts";
 import { TempContext } from "../../core/temp.ts";
 import { hasAdaptiveTheme } from "../../quarto-core/text-highlighting.ts";
 import { copyMinimal, copyTo } from "../../core/copy.ts";
+import { titleSlideScss } from "./format-reveal-title.ts";
 
 export const kRevealLightThemes = [
   "white",
@@ -145,13 +146,22 @@ export async function revealTheme(
     join(cssThemeDir, "template"),
   ];
 
+  // Quarto layers
+  const quartoLayers = [
+    quartoBaseLayer(format, true, true, false, true),
+    quartoLayer(),
+  ];
+  const titleSlideLayer = titleSlideScss(format);
+  if (titleSlideLayer) {
+    userLayers.unshift(titleSlideLayer);
+  }
+
   // create sass bundle layers
   const bundleLayers: SassBundleLayers = {
     key: "reveal-theme",
     user: mergeLayers(...userLayers),
     quarto: mergeLayers(
-      quartoBaseLayer(format, true, true, false, true),
-      quartoLayer(),
+      ...quartoLayers,
     ),
     framework: revealFrameworkLayer(revealSrcDir),
     loadPaths,
