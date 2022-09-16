@@ -460,10 +460,8 @@ function bootstrapHtmlFinalizer(format: Format, flags: PandocFlags) {
     // If there is no margin content and no toc in the right margin
     // then lower the z-order so everything else can get on top
     // of the sidebar
-    const noMarginToc = format.metadata[kTocLocation] === "left" ||
-      format.pandoc.toc === false;
     const isFullLayout = format.metadata[kPageLayout] === "full";
-    if (!hasMarginContent && noMarginToc && isFullLayout) {
+    if (!hasMarginContent && isFullLayout) {
       const marginSidebarEl = doc.getElementById("quarto-margin-sidebar");
       marginSidebarEl?.classList.add("zindex-bottom");
     }
