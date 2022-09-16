@@ -332,8 +332,10 @@ export async function compileWithCache(
       } catch (error) {
         // Compilation failed, so clear out the output file
         // which will be invalid CSS
-        if (existsSync(outputFilePath)) {
+        try {
           Deno.removeSync(outputFilePath);
+        } finally {
+          //doesn't matter
         }
         throw error;
       }
