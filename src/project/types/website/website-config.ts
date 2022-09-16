@@ -38,6 +38,8 @@ import {
   kWebsite,
 } from "./website-constants.ts";
 import { ensureTrailingSlash } from "../../../core/path.ts";
+import { existsSync } from "fs/mod.ts";
+import { join } from "path/mod.ts";
 
 type WebsiteConfigKey =
   | "title"
@@ -298,7 +300,7 @@ export function formatsPreferHtml(formats: Record<string, unknown>) {
 // provide a project context that elevates html to the default
 // format for documents (unless they explicitly declare another format)
 export function websiteProjectConfig(
-  _projectDir: string,
+  projectDir: string,
   config: ProjectConfig,
   flags?: RenderFlags,
 ): Promise<ProjectConfig> {
@@ -334,11 +336,22 @@ export function websiteProjectConfig(
     siteMeta[kBodyFooter] = ensureArray(siteMeta[kBodyFooter]);
   }
 
+  const resolveProjectPaths = (maybePath: string) => {
+    if (existsSync(maybePath)) {
+      return join(projectDir, maybePath);
+    } else {
+      return maybePath;
+    }
+  };
   if (siteMeta[kMarginHeader]) {
-    siteMeta[kMarginHeader] = ensureArray(siteMeta[kMarginHeader]);
+    siteMeta[kMarginHeader] = ensureArray(siteMeta[kMarginHeader])?.map(
+      resolveProjectPaths,
+    );
   }
   if (siteMeta[kMarginFooter]) {
-    siteMeta[kMarginFooter] = ensureArray(siteMeta[kMarginFooter]);
+    siteMeta[kMarginFooter] = ensureArray(siteMeta[kMarginFooter])?.map(
+      resolveProjectPaths,
+    );
   }
   config[kWebsite] = siteMeta;
 

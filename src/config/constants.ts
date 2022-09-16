@@ -427,6 +427,10 @@ export const kOrder = "order";
 export const kAuthors = "authors";
 export const kDateFormatted = "date-formatted";
 
+// Institute processing
+export const kInstitute = "institute";
+export const kInstitutes = "institutes";
+
 export const kServer = "server";
 
 export const kPageTitle = "pagetitle";

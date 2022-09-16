@@ -7,6 +7,10 @@
 -- format
 local kAuthorInput =  'authors'
 
+-- we ensure that if 'institute' is specified, we normalize it into
+-- and array in this value, which this can safely read and process
+local kInstituteInput = 'institutes'
+
 -- By default, simply replace the input structure with the 
 -- normalized versions of the output
 local kAuthorOutput = kAuthorInput
@@ -84,7 +88,7 @@ local kNonDroppingParticle = 'non-dropping-particle'
 local kNameFields = { kGivenName, kFamilyName, kLiteralName}
 
 -- an affiliation which will be structured into a standalone
-local kName = 'name'
+local kAffilName = 'name'
 local kDepartment = 'department'
 local kAddress = 'address'
 local kCity = 'city'
@@ -96,12 +100,12 @@ local kPostalCode = 'postal-code'
 -- labels contains the suggested labels for the various elements which 
 -- are localized and should correctly deal with plurals, etc...
 local kLabels = 'labels'
-local kAuthor = 'author'
-local kAffiliation = 'affiliation'
-local kPublished = 'published'
-local kDoi = 'doi'
-local kDescription = 'description'
-local kAbstract = 'abstract'
+local kAuthorLbl = 'author'
+local kAffiliationLbl = 'affiliation'
+local kPublishedLbl = 'published'
+local kDoiLbl = 'doi'
+local kDescriptionLbl = 'description'
+local kAbstractLbl = 'abstract'
 
 -- affiliation fields that might be parsed into other fields
 -- (e.g. if we see affiliation-url with author, we make that affiliation/url)
@@ -129,12 +133,10 @@ local kAuthorAffiliationFields = { kAffiliation, kAffiliations }
 
 -- Fields for affiliations (either inline in authors or 
 -- separately in a affiliations key)
-local kAffiliationFields = { kId, kName, kDepartment, kAddress, kCity, kRegion, kCountry, kPostalCode, kUrl }
+local kAffiliationFields = { kId, kAffilName, kDepartment, kAddress, kCity, kRegion, kCountry, kPostalCode, kUrl }
 
 -- These affiliation fields will be mapped into 'region' 
 -- (so users may also write 'state')
-local kAffiliationRegionFields = { kRegion, kState }
-
 local kAffiliationAliasedFields = {
   [kState]=kRegion,
   [kAffiliationUrl]=kUrl
@@ -150,8 +152,8 @@ function processAuthorMeta(meta)
   end
 
   -- prefer to render 'authors' if it is available
-  local authorsRaw = meta[kAuthor]
-  if meta[kAuthors] then 
+  local authorsRaw = meta[kAuthorInput]
+  if meta[kAuthors] then
     authorsRaw = meta[kAuthors]
   end
 
@@ -162,8 +164,8 @@ function processAuthorMeta(meta)
       authorsRaw = {authorsRaw}
     end
   end
- 
-  
+
+
   -- the normalized authors
   local authors = {}
 
@@ -174,7 +176,7 @@ function processAuthorMeta(meta)
     for i,v in ipairs(authorsRaw) do
 
       local authorAndAffiliations = processAuthor(v)
-      
+
       -- initialize the author
       local author = authorAndAffiliations.author
       local authorAffils = authorAndAffiliations.affiliations
@@ -183,7 +185,7 @@ function processAuthorMeta(meta)
       local authorNumber = #authors + 1
       if author[kId] == nil then
         author[kId] = authorNumber
-      end        
+      end
 
       -- go through the affilations and add any to the list
       -- assigning an id if needed
@@ -196,21 +198,44 @@ function processAuthorMeta(meta)
 
       -- add this author to the list of authors
       authors[authorNumber] = author
-    end      
+    end
   end
 
   -- Add any affiliations that are explicitly specified
   local affiliationsRaw = meta[kAffiliations]
-  if affiliationsRaw then        
+  if affiliationsRaw then
     local explicitAffils = processAffiliation(nil, affiliationsRaw)
     if explicitAffils then
-      for i,affiliation in ipairs(explicitAffils) do          
+      for i,affiliation in ipairs(explicitAffils) do
         local addedAffiliation = maybeAddAffiliation(affiliation, affiliations)
 
         -- for any authors that are using this affiliation, fix up their reference
         if affiliation[kId] ~= addedAffiliation[kId] then
           remapAuthorAffiliations(affiliation[kId], addedAffiliation[kId], authors)
         end
+      end
+    end
+  end
+
+  -- process 'institute', which is used by revealjs and beamer
+  -- because they bear no direct relation to the authors
+  -- we will just use their position to attach them
+  local instituteRaw = meta[kInstituteInput]
+  if instituteRaw then
+    for i,institute in ipairs(instituteRaw) do
+      -- add the affiliation
+      local affiliation = processAffilationObj({ name=institute })
+      local addedAffiliation = maybeAddAffiliation(affiliation, affiliations)
+
+      -- note the reference on the author
+      -- if there aren't enough authors, attach the affiliations to the
+      -- last author
+      local author = authors[#authors]
+      if i <= #authors then
+        author = authors[i]
+      end
+      if author then
+        setAffiliation(author, { ref=addedAffiliation[kId] })
       end
     end
   end
@@ -233,7 +258,7 @@ function processAuthorMeta(meta)
   end
 
   if #affiliations ~= 0 then
-    meta[kAffiliations] = affiliations
+    meta[kAffiliationOutput] = affiliations
   end
 
   -- Write the de-normalized versions back to metadata
@@ -258,7 +283,7 @@ end
 -- Add an affiliation to the list of affiliations if needed
 -- and return either the exist affiliation, or the newly
 -- added affiliation with a proper id
-function maybeAddAffiliation(affiliation, affiliations) 
+function maybeAddAffiliation(affiliation, affiliations)
   local existingAff = findMatchingAffililation(affiliation, affiliations)
   if existingAff == nil then
     local affiliationNumber = #affiliations + 1
@@ -268,12 +293,12 @@ function maybeAddAffiliation(affiliation, affiliations)
     end
     affiliations[affiliationNumber] = affiliation
     return affiliation
-  else 
+  else
     return existingAff
   end
 end
 
-function validateRefs(authors, affiliations) 
+function validateRefs(authors, affiliations)
   -- iterate through affiliations and ensure that anything
   -- referenced by an author has a peer affiliation
 
@@ -282,7 +307,7 @@ function validateRefs(authors, affiliations)
   if affiliations then
     for i,affiliation in ipairs(affiliations) do
       affilIds[#affilIds + 1] = affiliation[kId]
-    end  
+    end
   end
 
   -- go through each author and their affiliations and 
@@ -301,7 +326,7 @@ end
 
 -- Processes an individual author into a normalized author
 -- and normalized set of affilations
-function processAuthor(value) 
+function processAuthor(value)
   -- initialize the author
   local author = pandoc.MetaMap({})
   author[kMetadata] = pandoc.MetaMap({})
@@ -339,13 +364,13 @@ function processAuthor(value)
         authorAffiliations = processAffiliation(author, authorValue)
       elseif authorKey == kAffiliationUrl then
         affiliationUrl = authorValue
-      else 
+      else
         -- since we don't recognize this value, place it under
         -- metadata to make it accessible to consumers of this 
         -- data structure
         setMetadata(author, authorKey, authorValue)
       end
-    end            
+    end
   end
 
   -- If there is an affiliation url, forward that along
@@ -392,8 +417,8 @@ function processAffiliation(author, affiliation)
     affiliations[#affiliations + 1] = processAffilationObj(affiliation)
   end
 
-  
-  
+
+
   return affiliations
 end
 
@@ -402,7 +427,7 @@ end
 function processAffilationObj(affiliation)
   local affiliationNormalized = {}
   affiliationNormalized[kMetadata] = {}
-  
+
 
   for affilKey, affilVal in pairs(affiliation) do
     if (tcontains(tkeys(kAffiliationAliasedFields), affilKey)) then
@@ -419,7 +444,7 @@ end
 
 -- Finds a matching affiliation by looking through a list
 -- of affiliations (ignoring the id)
-function findMatchingAffililation(affiliation, affiliations) 
+function findMatchingAffililation(affiliation, affiliations)
   for i, existingAffiliation in ipairs(affiliations) do
 
     -- an affiliation matches if the fields other than id
@@ -432,7 +457,7 @@ function findMatchingAffililation(affiliation, affiliations)
     end
 
     -- This affiliation matches, return it
-    if matches then 
+    if matches then
       return existingAffiliation
     end
   end
@@ -449,21 +474,21 @@ function remapAuthorAffiliations(fromId, toId, authors)
       if existingRefId == fromId then
         affiliation[kRef] = toId
       end
-     end    
+     end
   end
 end
 
 -- Process attributes onto an author
 -- attributes may be a simple string, a list of strings
 -- or a dictionary
-function processAttributes(author, attributes) 
+function processAttributes(author, attributes)
   if tisarray(attributes) then
     -- process attributes as an array of values
     for i,v in ipairs(attributes) do
       if v then
         if v.t == "Str" then
           setAttribute(author, v)
-        else 
+        else
           for j, attr in ipairs(v) do
             setAttribute(author, attr)
           end
@@ -482,9 +507,9 @@ end
 
 -- Process an author note (including numbering it)
 local noteNumber = 1
-function processAuthorNote(author, note) 
+function processAuthorNote(author, note)
   author[kNote] = {
-    number=noteNumber, 
+    number=noteNumber,
     text=note
   }
   noteNumber = noteNumber + 1
@@ -492,17 +517,17 @@ end
 
 -- Sets a metadata value, initializing the table if
 -- it not yet defined
-function setMetadata(author, key, value) 
+function setMetadata(author, key, value)
   author[kMetadata][key] = value
 end
 
 -- Sets an attribute, initializeing the table if
 -- is not yet defined
-function setAttribute(author, attribute) 
+function setAttribute(author, attribute)
   if not author[kAttributes] then
     author[kAttributes] = pandoc.MetaMap({})
   end
-  
+
   local attrStr = pandoc.utils.stringify(attribute)
   -- Don't duplicate attributes
   if not author[kAttributes][attrStr] then
@@ -510,7 +535,7 @@ function setAttribute(author, attribute)
   end
 end
 
-function setAffiliation(author, affiliation) 
+function setAffiliation(author, affiliation)
   if not author[kAffiliations] then
     author[kAffiliations] = {}
   end
@@ -519,8 +544,8 @@ end
 
 
 -- Converts name elements into a structured name
-function toName(nameParts) 
-  if not tisarray(nameParts) then 
+function toName(nameParts)
+  if not tisarray(nameParts) then
     -- If the name is a table (e.g. already a complex object)
     -- just pick out the allowed fields and forward
     local name = {}
@@ -542,7 +567,7 @@ end
 
 -- normalizes a name value by parsing it into
 -- family and given names
-function normalizeName(name) 
+function normalizeName(name)
   -- no literal name, create one
   if name[kLiteralName] == nil then
     if name[kFamilyName] and name[kGivenName] then
@@ -555,7 +580,7 @@ function normalizeName(name)
 
   -- no family or given name, parse the literal and create one
   if name[kFamilyName] == nil or name[kGivenName] == nil then
-    if name[kLiteralName] then 
+    if name[kLiteralName] then
       local parsedName = bibtexParseName(name)
       if type(parsedName) == 'table' then
         if parsedName.given ~= nil then
@@ -578,7 +603,7 @@ function normalizeName(name)
         elseif name[kLiteralName] then
           -- what is this thing, just make it family name
           name[kFamilyName] = name[kLiteralName]
-        end    
+        end
       end
     end
   end
@@ -611,19 +636,19 @@ function bibtexParseName(nameRaw)
             name['dropping-particle'] = nil
           end
           return name
-        end    
+        end
       else
         return nameRaw
       end
     else
       return nameRaw
     end
-  else 
+  else
     return nameRaw
   end
 end
 
-function byAuthors(authors, affiliations) 
+function byAuthors(authors, affiliations)
   local denormalizedAuthors = deepCopy(authors)
 
   if denormalizedAuthors then
@@ -631,12 +656,12 @@ function byAuthors(authors, affiliations)
       denormalizedAuthors[kNumber] = i
       local authorAffiliations = author[kAffiliations]
       if authorAffiliations then
-        for j, affilRef in ipairs(authorAffiliations) do 
+        for j, affilRef in ipairs(authorAffiliations) do
           local id = affilRef[kRef]
           author[kAffiliations][j] = findAffiliation(id, affiliations)
         end
       end
-    end  
+    end
   end
   return denormalizedAuthors
 end
@@ -653,7 +678,7 @@ function byAffiliations(authors, affiliations)
 end
 
 -- Finds a matching affiliation by id
-function findAffiliation(id, affiliations) 
+function findAffiliation(id, affiliations)
   for i, affiliation in ipairs(affiliations) do
     if affiliation[kId][1].text == id[1].text then
       return affiliation
@@ -663,7 +688,7 @@ function findAffiliation(id, affiliations)
 end
 
 -- Finds a matching author by id
-function findAuthors(id, authors) 
+function findAuthors(id, authors)
   local matchingAuthors = {}
   for i, author in ipairs(authors) do
     local authorAffils = author[kAffiliations]
@@ -679,55 +704,55 @@ function findAuthors(id, authors)
 end
 
 -- Resolve labels for elements into metadata
-function computeLabels(authors, affiliations, meta) 
+function computeLabels(authors, affiliations, meta)
   local language = param("language", nil);
   meta[kLabels] = {
     authors = {pandoc.Str("Authors")},
     affilations = {pandoc.Str("Affiliations")}
   }
   if #authors == 1 then
-    meta[kLabels][kAuthors] = {pandoc.Str(language["title-block-author-single"])}
-  else 
-    meta[kLabels][kAuthors] = {pandoc.Str(language["title-block-author-plural"])}
+    meta[kLabels][kAuthorLbl] = {pandoc.Str(language["title-block-author-single"])}
+  else
+    meta[kLabels][kAuthorLbl] = {pandoc.Str(language["title-block-author-plural"])}
   end
   if meta[kAuthorTitle] then
     meta[kLabels][kAuthors] = meta[kAuthorTitle]
   end
 
   if #affiliations == 1 then
-    meta[kLabels][kAffiliations] = {pandoc.Str(language["title-block-affiliation-single"])}
+    meta[kLabels][kAffiliationLbl] = {pandoc.Str(language["title-block-affiliation-single"])}
   else
-    meta[kLabels][kAffiliations] = {pandoc.Str(language["title-block-affiliation-plural"])}
+    meta[kLabels][kAffiliationLbl] = {pandoc.Str(language["title-block-affiliation-plural"])}
   end
   if meta[kAffiliationTitle] then
-    meta[kLabels][kAffiliations] = meta[kAffiliationTitle]
+    meta[kLabels][kAffiliationLbl] = meta[kAffiliationTitle]
   end
 
-  meta[kLabels][kPublished] = {pandoc.Str(language["title-block-published"])}
+  meta[kLabels][kPublishedLbl] = {pandoc.Str(language["title-block-published"])}
   if meta[kPublishedTitle] then
-    meta[kLabels][kPublished] = meta[kPublishedTitle]
+    meta[kLabels][kPublishedLbl] = meta[kPublishedTitle]
   end
 
-  meta[kLabels][kDoi] = {pandoc.Str("Doi")}
+  meta[kLabels][kDoiLbl] = {pandoc.Str("Doi")}
   if meta[kDoiTitle] then
-    meta[kLabels][kDoi] = meta[kDoiTitle]
+    meta[kLabels][kDoiLbl] = meta[kDoiTitle]
   end
 
-  meta[kLabels][kAbstract] = {pandoc.Str(language["section-title-abstract"])}
+  meta[kLabels][kAbstractLbl] = {pandoc.Str(language["section-title-abstract"])}
   if meta[kAbstractTitle] then
-    meta[kLabels][kAbstract] = meta[kAbstractTitle]
+    meta[kLabels][kAbstractLbl] = meta[kAbstractTitle]
   end
 
-  meta[kLabels][kDescription] = {pandoc.Str(language["listing-page-field-description"])}
+  meta[kLabels][kDescriptionLbl] = {pandoc.Str(language["listing-page-field-description"])}
   if meta[kDescriptionTitle] then
-    meta[kLabels][kDescription] = meta[kDescriptionTitle]
+    meta[kLabels][kDescriptionLbl] = meta[kDescriptionTitle]
   end
 
   return meta
 end
 
 -- Remove Spaces from the ends of tables
-function trimspace(tbl) 
+function trimspace(tbl)
   if #tbl > 0 then
     if tbl[1].t == 'Space' then
       tbl = tslice(tbl, 2)

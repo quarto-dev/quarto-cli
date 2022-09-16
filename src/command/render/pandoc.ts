@@ -92,6 +92,8 @@ import {
   kIncludeAfterBody,
   kIncludeBeforeBody,
   kIncludeInHeader,
+  kInstitute,
+  kInstitutes,
   kKeepSource,
   kLinkColor,
   kMetadataFormat,
@@ -824,6 +826,15 @@ export async function runPandoc(
         ? authorsRaw
         : [authorsRaw];
     }
+  }
+
+  // Ensure that there are institutes around for use when resolving authors
+  // and affilations
+  const instituteRaw = pandocMetadata[kInstitute];
+  if (instituteRaw) {
+    pandocMetadata[kInstitutes] = Array.isArray(instituteRaw)
+      ? instituteRaw
+      : [instituteRaw];
   }
 
   // If there are no specified options for link coloring in PDF, set them
