@@ -12,6 +12,7 @@ import {
   isAbsolute,
   join,
   relative,
+  SEP_PATTERN,
 } from "path/mod.ts";
 
 import { writeFileToStdout } from "../../core/console.ts";
@@ -60,11 +61,13 @@ export function outputRecipe(
   if (!output) {
     const outputFile = formatOutputFile(format);
     if (outputFile) {
-      if (isAbsolute(outputFile)) {
-        output = outputFile;
-      } else {
-        output = join(dirname(input), outputFile);
+      // https://github.com/quarto-dev/quarto-cli/issues/2440
+      if (outputFile.match(SEP_PATTERN)) {
+        throw new Error(
+          `\nIn file ${context.target.source}\n  Invalid value for \`output-file\`: paths are not allowed`,
+        );
       }
+      output = join(dirname(input), outputFile);
     } else {
       output = "";
     }

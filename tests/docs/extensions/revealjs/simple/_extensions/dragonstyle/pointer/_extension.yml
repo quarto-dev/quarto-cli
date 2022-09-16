@@ -1,0 +1,6 @@
+title: Pointer
+author: Charles Teague
+version: 0.9.1
+contributes:
+  revealjs-plugins:
+    - pointer-plugin

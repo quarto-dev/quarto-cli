@@ -400,20 +400,20 @@ function tlmgrCommand(
     );
   };
 
+  
   // If TinyTex is here, prefer that
-  const texLiveCommand = texLiveCmd("tlmgr", context);
-
-  // Is safe execution needed because of quoting issue ?
-  const safeExecNeeded = requireQuoting(args);
-  try {
-    return safeExecNeeded.status
-      ? safeWindowsExec(
-        texLiveCommand.fullPath,
-        [tlmgrCmd, ...safeExecNeeded.args],
-        execTlmgr,
-      )
-      : execTlmgr([texLiveCommand.fullPath, tlmgrCmd, ...args]);
-  } catch {
-    return Promise.reject();
+  const tlmgr = texLiveCmd("tlmgr", context);
+  
+  // On windows, we always want to call tlmgr through the 'safe'
+  // cmd /c approach since it is a bat file
+  if (Deno.build.os === "windows") {
+    const quoted = requireQuoting(args);
+    return safeWindowsExec(
+      tlmgr.fullPath,
+      [tlmgrCmd, ...quoted.args],
+      execTlmgr
+    )
+  } else {
+    return execTlmgr([tlmgr.fullPath, tlmgrCmd, ...args]);
   }
 }

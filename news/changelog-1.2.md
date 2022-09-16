@@ -29,6 +29,8 @@
 - Ability to specify a minimum quarto version via the `quarto-required` option.
 - Extension may now contribute project types (project metadata which will be merged with a project when project of that type are rendered)
 - Include Pandoc `logging` Lua module from @wlupton
+- Improve path resolution of extensions
+- Add support for extensions that contribute revealjs-plugins
 
 ## Projects
 
@@ -125,3 +127,4 @@
 - Don't use default width/height on mermaid diagrams when better information is available (#2383)
 - Improve YAML validation error messages on invalid YAML objects that include `x = y` (#2434)
 - Forward `--log-level` to Pandoc via `--trace`, `--verbose`, and `--quiet`
+- Disallow names with paths in command line option `--output` and YAML option `output-file` (#2440)

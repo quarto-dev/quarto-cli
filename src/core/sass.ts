@@ -332,7 +332,9 @@ export async function compileWithCache(
       } catch (error) {
         // Compilation failed, so clear out the output file
         // which will be invalid CSS
-        Deno.removeSync(outputFilePath);
+        if (existsSync(outputFilePath)) {
+          Deno.removeSync(outputFilePath);
+        }
         throw error;
       }
       cacheIndex[identifierHash] = { key: cacheIdentifier, hash: inputHash };

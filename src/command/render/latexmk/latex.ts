@@ -19,7 +19,7 @@ import {
   kLatexBodyMessageOptions,
   kLatexHeaderMessageOptions,
 } from "./types.ts";
-import { texLiveCmd, TexLiveContext } from "./texlive.ts";
+import { hasTexLive, texLiveCmd, TexLiveContext } from "./texlive.ts";
 
 export interface LatexCommandReponse {
   log: string;
@@ -219,7 +219,7 @@ async function runLatexCommand(
     return await runCmd();
   } catch (_e) {
     // First confirm that there is a TeX installation available
-    const tex = await hasLatexDistribution();
+    const tex = await hasTexLive() || await hasLatexDistribution();
     if (!tex) {
       info(
         "\nNo TeX installation was detected.\n\nPlease run 'quarto install tool tinytex' to install TinyTex.\nIf you prefer, you may install TexLive or another TeX distribution.\n",
