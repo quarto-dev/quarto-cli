@@ -401,7 +401,7 @@ function pandocVariablesToThemeDefaults(
   return explicitVars;
 }
 
-export function pandocVariablesToThemeScss(
+function pandocVariablesToThemeScss(
   metadata: Metadata,
   asDefaults = false,
 ) {
