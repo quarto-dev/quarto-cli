@@ -57,8 +57,6 @@ import { mergeConfigs } from "../../core/config.ts";
 import { projectType } from "../../project/types/project-types.ts";
 import { readCodePage } from "../../core/windows.ts";
 import { authorsFilter, authorsFilterActive } from "./authors.ts";
-import { extensionIdString } from "../../extension/extension-shared.ts";
-import { warning } from "log/mod.ts";
 import { formatHasBootstrap } from "../../format/html/format-html-info.ts";
 import { activeProfiles, kQuartoProfile } from "../../quarto-core/profile.ts";
 import { filterExtensions } from "../../extension/extension.ts";

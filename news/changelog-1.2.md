@@ -52,6 +52,8 @@
 ## Revealjs Format
 
 - Update to Reveal v4.3.1 (+ commit e281b32) to fix presentation scaling/zoom issues.
+- Improved title slide that uses normalized author and affiliation schema
+- Introduce template partials for RevealJS. You may provide partials for `title-slide.html` or `toc-slide.html`.
 
 ## GFM Format
 
@@ -72,6 +74,7 @@
 ## Authors and Affiliations
 
 - Improve handling of empty authors
+- Parse `author` and `institute` (often used for RevealJs and Beamer) into normalized author schema
 
 ## Websites
 

@@ -16,6 +16,7 @@ import {
   kReferenceLocation,
   kRevealJsScripts,
   kSlideLevel,
+  kTheme,
 } from "../../config/constants.ts";
 
 import {
@@ -68,6 +69,7 @@ import {
 import { revealMetadataFilter } from "./metadata.ts";
 import { ExtensionContext } from "../../extension/extension-shared.ts";
 import { ProjectContext } from "../../project/types.ts";
+import { titleSlidePartial } from "./format-reveal-title.ts";
 
 export function revealResolveFormat(format: Format) {
   format.metadata = revealMetadataFilter(format.metadata);
@@ -156,8 +158,19 @@ export function revealjsFormat() {
           theme.revealUrl,
           theme.revealDestDir,
           extensionContext,
-          project
+          project,
         ); // Add plugin scripts to metadata for template to use
+
+        // Provide a template context
+        const templateDir = formatResourcePath("revealjs", "pandoc");
+        const partials = [
+          "toc-slide.html",
+          titleSlidePartial(format),
+        ];
+        const templateContext = {
+          template: join(templateDir, "template.html"),
+          partials: partials.map((partial) => join(templateDir, partial)),
+        };
 
         // start with html format extras and our standard  & plugin extras
         let extras = mergeConfigs(
@@ -201,14 +214,7 @@ export function revealjsFormat() {
               ),
             } as Metadata,
             metadataOverride,
-            templateContext: {
-              template: join(
-                formatResourcePath("revealjs", "pandoc"),
-                "template.revealjs",
-              ),
-              partials: [],
-            },
-
+            templateContext,
             [kIncludeInHeader]: [
               formatResourcePath("html", "styles-callout.html"),
               stylesFile,

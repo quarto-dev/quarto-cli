@@ -8909,6 +8909,22 @@
       }
     },
     {
+      "name": "title-slide-style",
+      "tags": {
+        "formats": [
+          "revealjs"
+        ]
+      },
+      "schema": {
+        "enum": [
+          "pandoc",
+          "default"
+        ]
+      },
+      "default": "default",
+      "description": "The title slide style. Use `pandoc` to select the Pandoc default title slide style."
+    },
+    {
       "name": "center-title-slide",
       "tags": {
         "formats": [
@@ -12625,7 +12641,8 @@
       "long": "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
     },
     "Disambiguating year suffix in author-date styles (e.g.&nbsp;“a” in “Doe,\n1999a”).",
-    "internal-schema-hack"
+    "internal-schema-hack",
+    "The title slide style. Use <code>pandoc</code> to select the Pandoc\ndefault title slide style."
   ],
   "schema/external-schemas.yml": [
     {
@@ -12838,12 +12855,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 129075,
+    "_internalId": 129078,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 129074,
+        "_internalId": 129077,
         "type": "enum",
         "enum": [
           "png",
