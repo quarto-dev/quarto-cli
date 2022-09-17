@@ -1,0 +1,6 @@
+{
+  "Lua.diagnostics.disable": ["lowercase-global"],
+  "Lua.runtime.version": "Lua 5.3",
+  "Lua.workspace.checkThirdParty": false,
+  "Lua.workspace.library": ["src/resources/lua-types"]
+}
