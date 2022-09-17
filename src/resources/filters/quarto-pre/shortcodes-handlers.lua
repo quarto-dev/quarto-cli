@@ -37,6 +37,7 @@ local function shortcodeMetatable(scriptFile)
     table = table,
     math = math,
     io = io,
+---@diagnostic disable-next-line: undefined-global
     file = file,
     os = os,
     debug = debug,
@@ -49,7 +50,9 @@ local function shortcodeMetatable(scriptFile)
     PANDOC_SCRIPT_FILE = scriptFile,
     PANDOC_STATE = PANDOC_STATE,
     pandoc = pandoc,
+---@diagnostic disable-next-line: undefined-global
     lpeg = lpeg,
+---@diagnostic disable-next-line: undefined-global
     re = re,
     -- quarto functions
     quarto = quarto
