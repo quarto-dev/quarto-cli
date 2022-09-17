@@ -266,7 +266,7 @@ function calloutLatex(div)
   local beginEnvironment = callout.beginInlines
   local endEnvironment = callout.endInlines
   local calloutContents = callout.contents
-  if classoutContents == nil then
+  if calloutContents == nil then
     calloutContents = pandoc.List({})
   end
 
@@ -704,6 +704,7 @@ function resolveCalloutContents(div, requireCaption)
   -- Add the captions and contents
   -- classname 
   if caption == nil and requireCaption then 
+---@diagnostic disable-next-line: need-check-nil
     caption = stringToInlines(type:sub(1,1):upper()..type:sub(2))
   end
   

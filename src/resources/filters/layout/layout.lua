@@ -75,7 +75,7 @@ function layoutPanels()
         elseif _quarto.format.isWordProcessorOutput() then
           panel = tableWpPanel(el, layout, caption)
         elseif _quarto.format.isPowerPointOutput() then
-          panel = pptxPanel(el, layout, caption)
+          panel = pptxPanel(el, layout)
         else
           panel = tablePanel(el, layout, caption)
         end

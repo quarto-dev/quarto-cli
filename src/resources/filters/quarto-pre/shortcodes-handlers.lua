@@ -51,8 +51,6 @@ local function shortcodeMetatable(scriptFile)
     pandoc = pandoc,
     lpeg = lpeg,
     re = re,
-    -- quarto global environment
-    json = json,
     -- quarto functions
     quarto = quarto
   }

@@ -64,6 +64,18 @@ local function isRevealJsOutput()
   return FORMAT == "revealjs"
 end
 
+local function isHtmlSlideOutput()
+  local formats = {
+    "s5",
+    "dzslides",
+    "slidy",
+    "slideous",
+    "revealjs",
+  }
+  return tcontains(formats, FORMAT)
+end
+
+
 -- check for slide output
 local function isSlideOutput()
   return isHtmlSlideOutput() or isBeamerOutput() or isPowerPointOutput()
@@ -113,17 +125,6 @@ end
 -- check for ipynb output
 local function isIpynbOutput()
   return FORMAT == "ipynb"
-end
-
-local function isHtmlSlideOutput()
-  local formats = {
-    "s5",
-    "dzslides",
-    "slidy",
-    "slideous",
-    "revealjs",
-  }
-  return tcontains(formats, FORMAT)
 end
 
 -- check for html output
