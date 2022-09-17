@@ -1,5 +1,6 @@
 ---@meta
 
+
 ---@class pandoc.List
 pandoc.List = {}
 
@@ -61,4 +62,9 @@ Returns a new list containing all items satisfying a given condition.
 ---@return pandoc.List
 function pandoc.List:filter(pred) end
 
-
+--[[
+Returns a copy of the current list by applying the given function to all elements.
+]]
+---@param fn fun(x: any): any # Function which is applied to all list items.
+---@return pandoc.List
+function pandoc.List:map(fn) end
