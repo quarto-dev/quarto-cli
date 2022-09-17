@@ -37,7 +37,7 @@ Returns the value and index of the first occurrence of the given item.
 ]]
 ---@param needle any Item to search for
 ---@param init? integer (Optional) Index at which the search is started
----@return any # First item equal to the needle, or `nil` if no such item exists.
+---@return any, integer  # First item equal to the needle, or `nil` if no such item exists.
 function pandoc.List:find(needle, init) end
 
 
