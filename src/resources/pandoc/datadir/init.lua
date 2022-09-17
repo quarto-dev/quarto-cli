@@ -127,6 +127,7 @@ local function modify_lua_functions(all_compressed_mappings)
          local tree, qty_for_leaf_info = {total_freq, max_exp_cnt, 0.0}, 3 * max_exp_cnt
 
          local function build_subtree(left, right, idx)
+---@diagnostic disable-next-line: unbalanced-assignments
             local middle, subtree = left + 1
             middle = decompress_selection(right - middle) + middle
             tree[idx], idx = middle, idx + 3
