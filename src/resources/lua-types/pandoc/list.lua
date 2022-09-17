@@ -38,3 +38,27 @@ Returns the value and index of the first occurrence of the given item.
 ---@param init? integer (Optional) Index at which the search is started
 ---@return any # First item equal to the needle, or `nil` if no such item exists.
 function pandoc.List:find(needle, init) end
+
+
+--[[
+Inserts element at end of list
+]]
+---@param value any Value to insert into the list
+function pandoc.List:insert(value) end
+
+
+--[[
+Inserts element value at position `pos` in list, shifting elements to the next-greater index if necessary.
+]]
+---@param pos integer Index of the new value
+---@param value any Value to insert into the list
+function pandoc.List:insert(pos, value) end
+
+--[[
+Returns a new list containing all items satisfying a given condition.
+]]
+---@param pred fun(x: any): boolean # Condition itemms must satisfy
+---@return pandoc.List
+function pandoc.List:filter(pred) end
+
+
