@@ -288,7 +288,11 @@ export function completeStagedFeeds(
                 tag: "title",
                 regex: kTitleRegex,
                 replaceValue: (rendered: RenderedContents) => {
-                  return escape(rendered.title);
+                  if (rendered.title) {
+                    return escape(rendered.title);
+                  } else {
+                    return "";
+                  }
                 },
               },
               {
@@ -317,18 +321,19 @@ export function completeStagedFeeds(
                   : join(feedDir, relativePath);
                 const contents = contentReader(absolutePath);
                 if (contents) {
-                  const replaceStr = placholderForReplace(tag, relativePath);
-                  if (contents.title) {
-                    feedContents = feedContents.replace(
-                      replaceStr,
-                      `<${tag}>${
+                  const targetStr = placholderForReplace(tag, relativePath);
+                  feedContents = feedContents.replace(
+                    targetStr,
+                    () => {
+                      return `<${tag}>${
                         tagWithReplacement.replaceValue(contents)
-                      }</${tag}>`,
-                    );
-                  }
+                      }</${tag}>`;
+                    },
+                  );
                 }
                 match = regex.exec(feedContents);
               }
+
               regex.lastIndex = 0;
             });
 
