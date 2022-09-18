@@ -7,7 +7,9 @@ function figures()
     Div = function(el)
       if isFigureDiv(el) and isReferenceableFig(el) then
         local caption = refCaptionFromDiv(el)
-        processFigure(el, caption.content)
+        if caption then
+          processFigure(el, caption.content)
+        end
       end
       return el
     end,
