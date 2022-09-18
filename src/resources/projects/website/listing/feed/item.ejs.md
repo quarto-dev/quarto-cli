@@ -1,15 +1,15 @@
 <item>
-  <title><%= escapeXml(item.title) %></title>
+  <title><%= escape(item.title) %></title>
   <% if (item.authors) { %>
   <% for (const author of item.authors) { %>
-  <dc:creator><%= escapeXml(author) %></dc:creator>
+  <dc:creator><%= escape(author) %></dc:creator>
   <% } %>
   <% } %>
   <link><%= item.link %></link>
-  <description><%= escapeXml(item.description) %></description>
+  <description><%= escape(item.description) %></description>
   <% if (item.categories && Array.isArray(item.categories)) { %>
   <% for (const category of item.categories) { %>
-  <category><%= escapeXml(category) %></category>
+  <category><%= escape(category) %></category>
   <% } %>
   <% } %>
   <guid><%= item.guid %></guid>
