@@ -246,6 +246,19 @@ const kFeedOptions: RenderedContentOptions = {
   },
 };
 
+function escapeXml(text?: string): string | undefined {
+  if (text) {
+    return text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&apos;");
+  } else {
+    return text;
+  }
+}
+
 export function completeStagedFeeds(
   context: ProjectContext,
   outputFiles: ProjectOutputFile[],
@@ -287,7 +300,7 @@ export function completeStagedFeeds(
                 tag: "title",
                 regex: kTitleRegex,
                 replaceValue: (rendered: RenderedContents) => {
-                  return rendered.title;
+                  return escapeXml(rendered.title);
                 },
               },
               {
@@ -295,9 +308,9 @@ export function completeStagedFeeds(
                 regex: kDescRegex,
                 replaceValue: (rendered: RenderedContents) => {
                   if (fullContents) {
-                    return `<![CDATA[ ${rendered.fullContents} ]]>`;
+                    return escapeXml(rendered.fullContents);
                   } else {
-                    return `<![CDATA[ ${rendered.firstPara} ]]>`;
+                    return escapeXml(rendered.firstPara);
                   }
                 },
               },
@@ -481,6 +494,7 @@ async function generateFeed(
       resourcePath("projects/website/listing/feed/preamble.ejs.md"),
       {
         feed,
+        escapeXml,
       },
     );
     await Deno.write(feedFile.rid, textEncoder.encode(preamble));
@@ -490,6 +504,7 @@ async function generateFeed(
         resourcePath("projects/website/listing/feed/item.ejs.md"),
         {
           item: feedItem,
+          escapeXml,
         },
       );
       await Deno.write(feedFile.rid, textEncoder.encode(item));
@@ -500,6 +515,7 @@ async function generateFeed(
       resourcePath("projects/website/listing/feed/postamble.ejs.md"),
       {
         feed,
+        escapeXml,
       },
     );
     await Deno.write(feedFile.rid, textEncoder.encode(postamble));
