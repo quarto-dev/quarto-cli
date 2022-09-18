@@ -26,7 +26,7 @@ Usage:
     }
 ]]
 ---@param lua_filter table<string,function> Map of filter functions
----@return pandoc.Block Filtered block
+---@return pandoc.Block # Filtered block
 function pandoc.Block:walk(lua_filter) end
 
 

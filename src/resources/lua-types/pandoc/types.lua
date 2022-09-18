@@ -1,7 +1,6 @@
 ---@meta
 
 ---@module 'pandoc.types'
-pandoc.types = {}
 
 --[[
 Opaque type holding a compiled template.

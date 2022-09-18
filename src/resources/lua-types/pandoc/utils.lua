@@ -1,7 +1,6 @@
 ---@meta
 
 ---@module 'pandoc.utils'
-pandoc.utils = {}
 
 --[[
 Squash a list of blocks into a list of inlines.
@@ -37,7 +36,7 @@ Usage:
     end
 ]]
 ---@param doc pandoc.Pandoc Document to process
----@return pandoc.Pandoc Processed document
+---@return pandoc.Pandoc # Processed document
 function pandoc.utils.citeproc(doc) end
 
 --[[
@@ -50,7 +49,7 @@ operator instead.
 ]]
 ---@param element1 any Object to be compared
 ---@param element2 any Object to be compared
----@return boolean Whether the two objects represent the same element
+---@return boolean # Whether the two objects represent the same element
 function pandoc.utils.equals(element1, element2) end
 
 --[[
@@ -115,7 +114,7 @@ Usage:
     end
 ]]
 ---@param doc pandoc.Pandoc Document
----@return table List of references
+---@return table # List of references
 function pandoc.utils.references(doc) end
 
 
@@ -145,7 +144,7 @@ than or equal to 1583, but MS Word only accepts dates starting
 1601).
 ]]
 ---@param date_string string Date to be normalized
----@return string|nil A data string, nor `nil` when the converstion failed 
+---@return string|nil # A data string, nor `nil` when the converstion failed 
 function pandoc.utils.normalize_data(date_string) end
 
 
@@ -157,7 +156,7 @@ Usage:
     local fp = pandoc.utils.sha1("foobar")
 ]]
 ---@param contents string Contents to be hashed
----@return string SHA1 hash of the contents
+---@return string # SHA1 hash of the contents
 function pandoc.utils.sha1(contents) end
 
 --[[
@@ -171,14 +170,14 @@ Usage:
     print(pandoc.utils.stringify(inline))
 ]]
 ---@param element any
----@return string A plain string representation of the given element
+---@return string # A plain string representation of the given element
 function pandoc.utils.stringify(element) end
 
 --[[
 Converts an integer < 4000 to uppercase roman numeral.
 ]]
 ---@param value integer Value to convert
----@return string A roman numeral string
+---@return string # A roman numeral string
 function pandoc.utils.to_roman_numeral(value) end
 
 --[[
@@ -218,5 +217,5 @@ Usage:
     end
 ]]
 ---@param value any Any Lua value
----@return string Type of the given value
+---@return string # Type of the given value
 function pandoc.utils.type(value) end

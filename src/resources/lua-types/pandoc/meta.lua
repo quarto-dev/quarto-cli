@@ -15,7 +15,7 @@ Meta values are equal in Lua if and only if they are equal in Haskell.
 ---@alias pandoc.Meta table<string,pandoc.MetaValue>
 
 ---@param meta_table table<string,pandoc.MetaValue> Table containing document meta information
----@return pandoc.Meta Meta object
+---@return pandoc.Meta # Meta object
 function pandoc.Meta(meta_table) end
 
 --[[

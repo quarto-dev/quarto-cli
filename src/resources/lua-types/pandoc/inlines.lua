@@ -26,7 +26,7 @@ Usage:
     }
 ]]
 ---@param lua_filter table<string,function> Map of filter functions
----@return pandoc.Inline Filtered inline element
+---@return pandoc.Inline # Filtered inline element
 function pandoc.Inline:walk(lua_filter) end
 
 --[[

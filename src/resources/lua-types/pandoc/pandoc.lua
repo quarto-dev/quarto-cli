@@ -6,7 +6,7 @@ pandoc.Element = {}
 --[[
 Make a clone of an element
 ]]
----@return pandoc.Element Clone of the elment
+---@return pandoc.Element # Clone of the elment
 function pandoc.Element:clone() end
 
 ---@type table<string,boolean>
@@ -49,7 +49,7 @@ Usage:
     }
 ]]
 ---@param lua_filter table<string,function> Map of filter functions
----@return pandoc.Pandoc Filtered document
+---@return pandoc.Pandoc # Filtered document
 function pandoc.Pandoc.walk(lua_filter) end
 
 --[[
@@ -58,7 +58,7 @@ Runs command with arguments, passing it some input, and returns the output.
 ---@param command string Program to run; the executable will be resolved using default system methods 
 ---@param args string[] List of arguments to pass to the program 
 ---@param input string Data which is piped into the program via stdin 
----@return string Output of command, i.e. data printed to stdout
+---@return string # Output of command, i.e. data printed to stdout
 function pandoc.pipe(command, args, input) end
 
 --[[
@@ -104,7 +104,7 @@ Usage:
 ---@param markup string The markup to be parsed
 ---@param format? string Format specification, defaults to `"markdown"
 ---@param reader_options? pandoc.ReaderOptions|table Options passed to the reader; may be a ReaderOptions object or a table with a subset of the keys and values of a ReaderOptions object; defaults to the default values documented in the manual.  
----@return pandoc.Pandoc Pandoc document
+---@return pandoc.Pandoc # Pandoc document
 function pandoc.read(markup, format, reader_options) end
 
 --[[
@@ -121,7 +121,7 @@ Usage:
 ---@param doc pandoc.Pandoc Document to convert
 ---@param format? string Format specification, defaults to `html`
 ---@param writer_options? pandoc.WriterOptions|table<string,any> Options passed to the writer; may be a WriterOptions object or a table with a subset of the keys and values of a WriterOptions object.
----@return string Converted document
+---@return string # Converted document
 function pandoc.write(doc, format, writer_options) end
 
 

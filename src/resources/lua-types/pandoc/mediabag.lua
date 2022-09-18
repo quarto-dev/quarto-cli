@@ -1,7 +1,6 @@
 ---@meta
 
 ---@module 'pandoc.mediabag'
-pandoc.mediabag = {}
 
 --[[
 Removes a single entry from the media bag.
@@ -23,7 +22,7 @@ Images for which the mediabag already contains an item will
 not be processed again.
 ]]
 ---@param doc pandoc.Pandoc Document from which to fill the mediabag
----@return pandoc.Pandoc modified document
+---@return pandoc.Pandoc # Modified document
 function pandoc.mediabag.fill(doc) end
 
 
