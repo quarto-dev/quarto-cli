@@ -100,7 +100,7 @@ local kPostalCode = 'postal-code'
 -- labels contains the suggested labels for the various elements which 
 -- are localized and should correctly deal with plurals, etc...
 local kLabels = 'labels'
-local kAuthorLbl = 'author'
+local kAuthorLbl = 'authors'
 local kAffiliationLbl = 'affiliation'
 local kPublishedLbl = 'published'
 local kDoiLbl = 'doi'
