@@ -45,7 +45,7 @@ function pandoc.path.is_relative(filepath) end
 --[[
 Join path elements back together by the directory separator.
 ]]
----@param filepaths string[] Path components
+---@param filepaths table Path components
 ---@return string The joined path
 function pandoc.path.join(filepaths) end
 
@@ -81,7 +81,7 @@ function pandoc.path.normalize(filepath) end
 Splits a path by the directory separator.
 ]]
 ---@param filepath string Path to file
----@return string[] # List of all path components
+---@return table # List of all path components
 function pandoc.path.split(filepath) end
 
 --[[
@@ -104,5 +104,5 @@ Blank items are ignored on Windows, and converted to `.` on Posix. On
 Windows path elements are stripped of quotes.
 ]]
 ---@param search_path string Platform-specific search path
----@return string[] # List of directories in search path
+---@return table # List of directories in search path
 function pandoc.path.split_search_path(search_path) end

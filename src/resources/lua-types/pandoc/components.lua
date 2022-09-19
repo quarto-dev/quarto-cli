@@ -20,7 +20,7 @@ Haskell.
 ]]
 ---@class pandoc.Attr 
 ---@field identifier string Element identifier
----@field classes string[] Element classes
+---@field classes table Element classes
 ---@field attributes table<string,string> Collection of key/value pairs
 pandoc.Attr = {}
 
@@ -28,7 +28,7 @@ pandoc.Attr = {}
 Create a new set of attributes (`Attr`).
 ]]
 ---@param identifier? string Element identifier
----@param classes? string[] Element classes
+---@param classes? table Element classes
 ---@param attributes? table<string,string> Table containing string keys and values
 ---@return pandoc.Attr
 function pandoc.Attr(identifier, classes, attributes) end
@@ -61,7 +61,7 @@ A table cell.
 ---@class pandoc.Cell
 ---@field attr pandoc.Attr Cell attributes
 ---@field identifier string Alias for `attr.identifier`
----@field classes string[] Alias for `attr.classes`
+---@field classes table Alias for `attr.classes`
 ---@field attributes table<string,string> Alias for `attr.attributes`
 ---@field alignment table_alignment Individual cell alignment
 ---@field contents pandoc.List Cell contents (list of blocks)
@@ -211,7 +211,7 @@ The foot of a table
 ---@class pandoc.TableFoot
 ---@field attr pandoc.Attr Element attributes
 ---@field identifier string Alias for `attr.identifier`
----@field classes string[] Alias for `attr.classes`
+---@field classes table Alias for `attr.classes`
 ---@field attributes table<string,string> Alias for `attr.attributes`
 ---@field rows pandoc.List List of `Row`
 pandoc.TableFoot = {}
@@ -238,7 +238,7 @@ The head of a table
 ---@class pandoc.TableHead
 ---@field attr pandoc.Attr Element attributes
 ---@field identifier string Alias for `attr.identifier`
----@field classes string[] Alias for `attr.classes`
+---@field classes table Alias for `attr.classes`
 ---@field attributes table<string,string> Alias for `attr.attributes`
 ---@field rows pandoc.List List of `Row`
 pandoc.TableHead = {}

@@ -38,7 +38,7 @@ function pandoc.system.get_working_directory() end
 List the contents of a directory. 
 ]]
 ---@param directory? string Path of the directory whose contents should be listed. Defaults to `.`
----@return string[] A table of all entries in `directory` without the special entries `.` and `..`.
+---@return table A table of all entries in `directory` without the special entries `.` and `..`.
 function pandoc.system.list_directory(directory) end
 
 --[[

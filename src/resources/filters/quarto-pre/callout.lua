@@ -710,7 +710,7 @@ function resolveCalloutContents(div, requireCaption)
   
   -- raw paragraph with styles (left border, colored)
   if caption ~= nil then
-    contents:insert(pandoc.Para(pandoc.Strong(caption),  pandoc.Attr("", {'callout-caption'})))
+    contents:insert(pandoc.Para(pandoc.Strong(caption)))
   end
   tappend(contents, div.content)
 

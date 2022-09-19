@@ -4,10 +4,10 @@
 Pandoc reader options
 ]]
 ---@class pandoc.ReaderOptions
----@field abbreviations string[] Set of known abbreviations
+---@field abbreviations table Set of known abbreviations
 ---@field columns integer Number of columns in terminal 
 ---@field default_image_extension string 
----@field extensions string[] String representation of the syntax extensions bit field 
+---@field extensions table String representation of the syntax extensions bit field 
 ---@field indented_code_classes pandoc.List Default classes for indented code blocks
 ---@field standalone boolean Whether the input was a standalone document with header
 ---@field strip_comments boolean HTML comments are stripped instead of parsed as raw HTML 
@@ -40,10 +40,10 @@ Table of the options that will be passed to the writer. While the object can be 
 ---@field dpi integer DPI for pixel to/from inch/cm conversions
 ---@field email_obfuscation 'none'|'references'|'javascript' How to obfuscate emails -- one of 'none', 'references', or 'javascript' 
 ---@field epub_chapter_level integer Header level for chapters, i.e., how the document is split into separate files 
----@field epub_fonts string[] Paths to fonts to embed 
+---@field epub_fonts table Paths to fonts to embed 
 ---@field epub_metadata string? Metadata to include in EPUB 
 ---@field epub_subdirectory string  Subdir for epub in OCF 
----@field extensions string[] Markdown extensions that can be used 
+---@field extensions table Markdown extensions that can be used 
 ---@field highlight_style table|nil Style to use for highlighting; see the output of `pandoc --print-highlight-style=...` for an example structure. The value `nil` means that no highlighting is used. 
 ---@field html_math_method html_math_methods|{ method: html_math_methods, url: string } How to print math in HTML; one 'plain', 'gladtex', 'webtex', 'mathml', 'mathjax', or a table with keys `method` and `url`.
 ---@field html_q_tags boolean Use `<q>` tags for quotes in HTML 
