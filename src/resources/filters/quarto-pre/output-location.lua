@@ -55,10 +55,9 @@ end
 function outputLocation()
   if _quarto.format.isRevealJsOutput() then
     return {
-      Pandoc = function(doc)
-        local blocks = doc.blocks
+      Blocks = function(blocks)
         local newBlocks = pandoc.List()
-        for _,block in pairs(doc.blocks) do
+        for _,block in pairs(blocks) do
           local outputLoc = collectCellOutputLocation(block)
           if outputLoc then
             if outputLocationCellHasCode(block) then
@@ -81,8 +80,7 @@ function outputLocation()
             newBlocks:insert(block)
           end
         end
-        doc.blocks = newBlocks
-        return doc
+        return newBlocks
       end
     }
   else
