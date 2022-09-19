@@ -760,7 +760,15 @@ function nameForCalloutStyle(calloutType)
   end
 end
 
+local kDefaultDpi = 96
 function docxCalloutImage(type)
+
+  -- If the DPI has been changed, we need to scale the callout icon
+  local dpi = pandoc.WriterOptions(PANDOC_WRITER_OPTIONS)['dpi']
+  local scaleFactor = 1
+  if dpi ~= nil then
+    scaleFactor = dpi / kDefaultDpi
+  end
 
   -- try to form the svg name
   local svg = nil
@@ -771,8 +779,8 @@ function docxCalloutImage(type)
   -- lookup the image
   if svg ~= nil then
     local img = pandoc.Image({}, svg)
-    img.attr.attributes["width"] = "16"
-    img.attr.attributes["height"] = "16"
+    img.attr.attributes["width"] = tostring(16 * scaleFactor)
+    img.attr.attributes["height"] = tostring(16 * scaleFactor)
     return img
   else
     return nil
