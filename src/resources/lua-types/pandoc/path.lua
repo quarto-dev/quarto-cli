@@ -1,6 +1,5 @@
 ---@meta
 
-
 ---@module 'pandoc.path'
 
 --[[
