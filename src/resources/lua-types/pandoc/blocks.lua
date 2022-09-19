@@ -108,7 +108,7 @@ Block of code
 ---@field text string Code string
 ---@field attr pandoc.Attr Cell attributes
 ---@field identifier string Alias for `attr.identifier`
----@field classes table Alias for `attr.classes`
+---@field classes pandoc.List Alias for `attr.classes`
 ---@field attributes table<string,string> Alias for `attr.attributes`
 ---@field t "CodeBlock"
 ---@field tag "CodeBlock"
@@ -175,7 +175,7 @@ Generic block container with attributes.
 ---@field content pandoc.List Block content (list of blocks)
 ---@field attr pandoc.Attr Block attributes
 ---@field identifier string Alias for `attr.identifier`
----@field classes table Alias for `attr.classes`
+---@field classes pandoc.List Alias for `attr.classes`
 ---@field attributes table<string,string> Alias for `attr.attributes`
 ---@field t "Div"
 ---@field tag "Div"
@@ -213,7 +213,7 @@ Header element
 ---@field content pandoc.List Header content (list of inlines)
 ---@field attr pandoc.Attr Header attributes
 ---@field identifier string Alias for `attr.identifier`
----@field classes table Alias for `attr.classes`
+---@field classes pandoc.List Alias for `attr.classes`
 ---@field attributes table<string,string> Alias for `attr.attributes`
 ---@field t "Header"
 ---@field tag "Header"
@@ -484,7 +484,7 @@ leads cell content to be left-aligned, right-aligned, and centered, respectively
 ---@class pandoc.Table : pandoc.Block
 ---@field attr pandoc.Attr Table attributes
 ---@field identifier string Alias for `attr.identifier`
----@field classes table Alias for `attr.classes`
+---@field classes pandoc.List Alias for `attr.classes`
 ---@field attributes table<string,string> Alias for `attr.attributes`
 ---@field caption pandoc.Caption Table caption
 ---@field colspecs pandoc.List Column specifications, i.e., alignments and widths (list of `ColSpec`)

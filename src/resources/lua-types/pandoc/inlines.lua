@@ -66,7 +66,7 @@ Inline code
 ---@field text string Code string
 ---@field attr pandoc.Attr Code attributes
 ---@field identifier string Alias for `attr.identifier`
----@field classes table Alias for `attr.classes`
+---@field classes pandoc.List Alias for `attr.classes`
 ---@field attributes table<string,string> Alias for `attr.attributes`
 ---@field t "Code"
 ---@field tag "Code"
@@ -121,7 +121,7 @@ Image: alt text (list of inlines), target
 ---@field title string Brief image description
 ---@field attr pandoc.Attr Attributes
 ---@field identifier string Alias for `attr.identifier`
----@field classes table Alias for `attr.classes`
+---@field classes pandoc.List Alias for `attr.classes`
 ---@field attributes table<string,string> Alias for `attr.attributes`
 ---@field t "Image"
 ---@field tag "Image"
@@ -174,7 +174,7 @@ Hyperlink: alt text (list of inlines), target
 ---@class pandoc.Link : pandoc.Inline
 ---@field attr pandoc.Attr Attributes
 ---@field identifier string Alias for `attr.identifier`
----@field classes table Alias for `attr.classes`
+---@field classes pandoc.List Alias for `attr.classes`
 ---@field attributes table<string,string> Alias for `attr.attributes`
 ---@field content pandoc.List Text for this link (list of inlines)
 ---@field target string The link target
@@ -385,7 +385,7 @@ Generic inline container with attributes
 ---@field content pandoc.List Inline content (list of inlines)
 ---@field attr pandoc.Attr Inline attributes
 ---@field identifier string Alias for `attr.identifier`
----@field classes table Alias for `attr.classes`
+---@field classes pandoc.List Alias for `attr.classes`
 ---@field attributes table<string,string> Alias for `attr.attributes`
 ---@field t "Span"
 ---@field tag "Span"
