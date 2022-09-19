@@ -5,7 +5,6 @@
 *
 */
 
-import path from "../vendor/deno.land/std@0.153.0/node/path.ts";
 import { expandPath } from "./path.ts";
 
 export function getenv(name: string, defaultValue?: string) {
