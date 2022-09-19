@@ -72,7 +72,7 @@ function parseLayoutWidths(figLayout, figureCount)
 end
 
 function isSpacerWidth(width)
-  return text.sub(width, 1, 1) == "-"
+  return pandoc.text.sub(width, 1, 1) == "-"
 end
 
 

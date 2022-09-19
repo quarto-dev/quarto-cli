@@ -64,7 +64,7 @@ function refPrefix(type, upper)
     el = pandoc.walk_block(el, {
       Str = function(str)
         if firstStr then
-          local strText = text.upper(text.sub(str.text, 1, 1)) .. text.sub(str.text, 2, -1)
+          local strText = pandoc.text.upper(pandoc.text.sub(str.text, 1, 1)) .. pandoc.text.sub(str.text, 2, -1)
           str = pandoc.Str(strText)
           firstStr = false
         end

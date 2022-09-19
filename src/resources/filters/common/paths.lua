@@ -6,7 +6,7 @@ function resourceRef(ref, dir)
   if string.find(ref, "^/") then
     -- check for protocol relative url
     if string.find(ref, "^//") == nil then
-      return text.sub(ref, 2, #ref)
+      return pandoc.text.sub(ref, 2, #ref)
     else
       return ref
     end

@@ -1417,7 +1417,8 @@ local function processTextDependency(dependency, meta)
  end
 
  -- make the usePackage statement
-local function usePackage(package, option) 
+local function usePackage(package, option)
+   local text = ''
    if option == nil then
      text = "\\makeatletter\n\\@ifpackageloaded{" .. package .. "}{}{\\usepackage{" .. package .. "}}\n\\makeatother"
    else

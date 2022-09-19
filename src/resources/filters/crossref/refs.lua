@@ -1,7 +1,6 @@
 -- refs.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
-local text = require 'text'
 
 -- resolve references
 function resolveRefs()
@@ -22,7 +21,7 @@ function resolveRefs()
           local upper = not not string.match(cite.id, "^[A-Z]")
 
           -- convert the first character of the label to lowercase for lookups
-          label = text.lower(label:sub(1, 1)) .. label:sub(2)
+          label = pandoc.text.lower(label:sub(1, 1)) .. label:sub(2)
         
           -- lookup the label
           local resolve = param("crossref-resolve-refs", true)
