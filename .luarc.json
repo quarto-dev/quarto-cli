@@ -4,10 +4,6 @@
     "lowercase-global",
     "trailing-space"
   ],
-  "Lua.runtime.version": "Lua 5.3",
-  "Lua.workspace.checkThirdParty": false,
-  "": "",
-  "Lua.workspace.library": ["src/resources/lua-types"],
   "Lua.diagnostics.neededFileStatus": {
     "assign-type-mismatch": "Any",
     "cast-local-type": "Any",
@@ -17,5 +13,8 @@
     "redundant-return": "Any",
     "return-type-mismatch": "Any",
     "undefined-field": "Any"
-  }
+  },
+  "Lua.runtime.version": "Lua 5.3",
+  "Lua.workspace.checkThirdParty": false,
+  "Lua.workspace.library": ["src/resources/lua-types"]
 }
