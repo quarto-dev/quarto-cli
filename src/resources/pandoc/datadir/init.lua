@@ -1615,7 +1615,7 @@ function param(name, default)
   return value
 end
 
-function projectDirectory() 
+local function projectDirectory() 
    -- the offset to the project
    local projectOffset = _quarto.projectOffset()
    if projectOffset then
@@ -1642,7 +1642,7 @@ end
 
 -- Provides the project relative path to the current input
 -- if this render is in the context of a project
-function projectRelativeOutputFile()
+local function projectRelativeOutputFile()
    -- the project directory
    local projDir = projectDirectory()
 
