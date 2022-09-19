@@ -16,7 +16,7 @@ Instances of this type can also be created directly with the
 ]]
 ---@class pandoc.SimpleTable 
 ---@field caption pandoc.List List of inlines
----@field aligns table_alignment[] Column alignments
+---@field aligns pandoc.List List of table alignments
 ---@field widths number[] Column widths
 ---@field headers pandoc.List Table header row (a list of blocks, one for each cell)
 ---@field rows pandoc.List List of rows, where row is a list of blocks (one for each cell)
@@ -25,8 +25,8 @@ pandoc.SimpleTable = {}
 --[[
 Creates a simple table resembling the old (pre pandoc 2.10) table type.
 ]]
----@param caption pandoc.List List of inlines
----@param aligns table<table_alignment> Column alignments
+---@param caption table|pandoc.List List of inlines
+---@param aligns pandoc.List List of column alignments
 ---@param widths number[] Column widths
 ---@param headers pandoc.List Table header row (a list of blocks, one for each cell)
 ---@param rows pandoc.List List of rows, where row is a list of blocks (one for each cell)

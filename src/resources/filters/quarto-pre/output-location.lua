@@ -45,11 +45,11 @@ local function columnOutputLocation(el, fragment)
   if fragment then
     outputDiv.attr.classes:insert("fragment")
   end
-  columns = pandoc.Div( {codeDiv, outputDiv}, el.attr )
-  tappend(columns.attr.classes, {
+  local columnsDiv = pandoc.Div( {codeDiv, outputDiv}, el.attr )
+  tappend(columnsDiv.attr.classes, {
     "columns", "column-output-location"
   })
-  return { columns }
+  return { columnsDiv }
 end
 
 function outputLocation()

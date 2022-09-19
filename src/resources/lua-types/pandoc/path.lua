@@ -32,21 +32,21 @@ function pandoc.path.filename(filepath) end
 Checks whether a path is absolute, i.e. not fixed to a root.
 ]]
 ---@param filepath string 
----@return boolean `true` if `filepath` is an absolute path, `false` otherwise.
+---@return boolean # `true` if `filepath` is an absolute path, `false` otherwise.
 function pandoc.path.is_absolute(filepath) end
 
 --[[
 Checks whether a path is relative or fixed to a root.
 ]]
 ---@param filepath string 
----@return boolean `true` if `filepath` is a relative path, `false` otherwise.
+---@return boolean # `true` if `filepath` is a relative path, `false` otherwise.
 function pandoc.path.is_relative(filepath) end
 
 --[[
 Join path elements back together by the directory separator.
 ]]
 ---@param filepaths table Path components
----@return string The joined path
+---@return string # The joined path
 function pandoc.path.join(filepaths) end
 
 

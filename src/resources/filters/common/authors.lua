@@ -622,7 +622,7 @@ function bibtexParseName(nameRaw)
   local bibtex = kBibtexNameTemplate:format(pandoc.utils.stringify(nameRaw))
   local references = pandoc.read(bibtex, 'bibtex').meta.references
   if references then
-    local reference = references[1]
+    local reference = references[1] --[[@as table<string,any>]]
     if reference then
       local authors = reference.author
       if authors then

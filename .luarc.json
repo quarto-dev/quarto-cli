@@ -1,6 +1,21 @@
 {
-  "Lua.diagnostics.disable": ["lowercase-global", "undefined-global"],
+  "Lua.diagnostics.disable": [
+    "undefined-global",
+    "lowercase-global",
+    "trailing-space"
+  ],
   "Lua.runtime.version": "Lua 5.3",
   "Lua.workspace.checkThirdParty": false,
-  "Lua.workspace.library": ["src/resources/lua-types"]
+  "": "",
+  "Lua.workspace.library": ["src/resources/lua-types"],
+  "Lua.diagnostics.neededFileStatus": {
+    "assign-type-mismatch": "Any",
+    "cast-local-type": "Any",
+    "need-check-nil": "Any",
+    "param-type-mismatch": "Any",
+    "redefined-local": "Any",
+    "redundant-return": "Any",
+    "return-type-mismatch": "Any",
+    "undefined-field": "Any"
+  }
 }

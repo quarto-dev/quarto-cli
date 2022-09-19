@@ -14,8 +14,12 @@ function mediabag()
           local mediabagDir = param("mediabag-dir", nil)
           local mediaFile = pandoc.path.join{mediabagDir, el.src}
           local file = io.open(mediaFile, "wb")
-          file:write(contents)
-          file:close()
+          if file then
+            file:write(contents)
+            file:close()
+          else
+            warn('failed to write mediabag entry: ' .. mediaFile)
+          end
           el.src = mediaFile
           return el
         end

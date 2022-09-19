@@ -127,9 +127,14 @@ function writeKeysIndex(indexFile)
   -- write the index
   local json = quarto.json.encode(index)
   local file = io.open(indexFile, "w")
-  file:write(json)
-  file:close()
+  if file then
+    file:write(json)
+    file:close()
+  else
+    warn('Error attempting to write crossref index')
+  end
 end
+
 
 function writeFullIndex(indexFile)
   -- create an index data structure to serialize for this file 
@@ -203,6 +208,10 @@ function writeFullIndex(indexFile)
   -- write the index
   local json = quarto.json.encode(index)
   local file = io.open(indexFile, "w")
-  file:write(json)
-  file:close()
+  if file then
+    file:write(json)
+    file:close()
+  else
+    warn('Error attempting to write crossref index')
+  end
 end
