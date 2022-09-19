@@ -771,8 +771,8 @@ function docxCalloutImage(type)
   -- lookup the image
   if svg ~= nil then
     local img = pandoc.Image({}, svg)
-    img.attr.attributes["width"] = 16
-    img.attr.attributes["height"] = 16
+    img.attr.attributes["width"] = "16"
+    img.attr.attributes["height"] = "16"
     return img
   else
     return nil
