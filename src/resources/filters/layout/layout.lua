@@ -4,9 +4,6 @@
 -- required version
 PANDOC_VERSION:must_be_at_least '2.13'
 
--- required modules
-text = require 'text'
-
 -- global layout state
 layoutState = {
   hasColumns = false,
@@ -75,7 +72,7 @@ function layoutPanels()
         elseif _quarto.format.isWordProcessorOutput() then
           panel = tableWpPanel(el, layout, caption)
         elseif _quarto.format.isPowerPointOutput() then
-          panel = pptxPanel(el, layout, caption)
+          panel = pptxPanel(el, layout)
         else
           panel = tablePanel(el, layout, caption)
         end
@@ -252,7 +249,7 @@ function layoutCells(divEl, cells)
         }, pandoc.Attr(
           "", 
           { "quarto-figure-spacer" }, 
-          { width = text.sub(width, 2, #width) }
+          { width = pandoc.text.sub(width, 2, #width) }
         ))
         rows[#rows]:insert(cell)
       -- normal figure layout

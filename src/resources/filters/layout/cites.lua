@@ -45,7 +45,7 @@ function citesPreprocess()
         if hasTableRef(div) then 
           -- inspect the table caption for refs and just mark them as resolved
           local table = discoverTable(div)
-          if table ~= nil and table.caption ~= undefined and table.caption.long ~= undefined then
+          if table ~= nil and table.caption ~= nil and table.caption.long ~= nil then
             local cites = false
             -- go through any captions and resolve citations into latex
             for i, caption in ipairs(table.caption.long) do

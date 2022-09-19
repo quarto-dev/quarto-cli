@@ -12,6 +12,7 @@ import { Document } from "deno_dom/deno-dom-wasm-noinit.ts";
 import { uniqBy } from "../../../../core/lodash.ts";
 import { Format } from "../../../../config/types.ts";
 import { renderEjs } from "../../../../core/ejs.ts";
+import { escape } from "../../../../core/lodash.ts";
 import { quartoConfig } from "../../../../core/quarto.ts";
 import { resourcePath } from "../../../../core/resources.ts";
 import { ProjectContext } from "../../../types.ts";
@@ -287,7 +288,11 @@ export function completeStagedFeeds(
                 tag: "title",
                 regex: kTitleRegex,
                 replaceValue: (rendered: RenderedContents) => {
-                  return rendered.title;
+                  if (rendered.title) {
+                    return escape(rendered.title);
+                  } else {
+                    return "";
+                  }
                 },
               },
               {
@@ -316,18 +321,19 @@ export function completeStagedFeeds(
                   : join(feedDir, relativePath);
                 const contents = contentReader(absolutePath);
                 if (contents) {
-                  const replaceStr = placholderForReplace(tag, relativePath);
-                  if (contents.title) {
-                    feedContents = feedContents.replace(
-                      replaceStr,
-                      `<${tag}>${
+                  const targetStr = placholderForReplace(tag, relativePath);
+                  feedContents = feedContents.replace(
+                    targetStr,
+                    () => {
+                      return `<${tag}>${
                         tagWithReplacement.replaceValue(contents)
-                      }</${tag}>`,
-                    );
-                  }
+                      }</${tag}>`;
+                    },
+                  );
                 }
                 match = regex.exec(feedContents);
               }
+
               regex.lastIndex = 0;
             });
 
@@ -481,6 +487,7 @@ async function generateFeed(
       resourcePath("projects/website/listing/feed/preamble.ejs.md"),
       {
         feed,
+        escape,
       },
     );
     await Deno.write(feedFile.rid, textEncoder.encode(preamble));
@@ -490,6 +497,7 @@ async function generateFeed(
         resourcePath("projects/website/listing/feed/item.ejs.md"),
         {
           item: feedItem,
+          escape,
         },
       );
       await Deno.write(feedFile.rid, textEncoder.encode(item));
@@ -500,6 +508,7 @@ async function generateFeed(
       resourcePath("projects/website/listing/feed/postamble.ejs.md"),
       {
         feed,
+        escape,
       },
     );
     await Deno.write(feedFile.rid, textEncoder.encode(postamble));

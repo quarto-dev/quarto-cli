@@ -64,6 +64,18 @@ local function isRevealJsOutput()
   return FORMAT == "revealjs"
 end
 
+local function isHtmlSlideOutput()
+  local formats = {
+    "s5",
+    "dzslides",
+    "slidy",
+    "slideous",
+    "revealjs",
+  }
+  return tcontains(formats, FORMAT)
+end
+
+
 -- check for slide output
 local function isSlideOutput()
   return isHtmlSlideOutput() or isBeamerOutput() or isPowerPointOutput()
@@ -115,17 +127,6 @@ local function isIpynbOutput()
   return FORMAT == "ipynb"
 end
 
-local function isHtmlSlideOutput()
-  local formats = {
-    "s5",
-    "dzslides",
-    "slidy",
-    "slideous",
-    "revealjs",
-  }
-  return tcontains(formats, FORMAT)
-end
-
 -- check for html output
 local function isHtmlOutput()
   local formats = {
@@ -168,6 +169,18 @@ local function isFormat(to)
   end
 end
 
+local function isNativeOutput()
+  return FORMAT == "native"
+end
+
+local function isJsonOutput()
+  return FORMAT == "json"
+end
+
+local function isAstOutput()
+  return isNativeOutput() or isJsonOutput()
+end
+
 
 return {
   isRawHtml = isRawHtml,
@@ -188,5 +201,8 @@ return {
   isIpynbOutput = isIpynbOutput, 
   isHtmlOutput = isHtmlOutput, 
   isHtmlSlideOutput = isHtmlSlideOutput,
-  isBibliographyOutput = isBibliographyOutput
+  isBibliographyOutput = isBibliographyOutput,
+  isNativeOutput = isNativeOutput,
+  isJsonOutput = isJsonOutput,
+  isAstOutput = isAstOutput
 }

@@ -18,6 +18,7 @@ export interface TexLiveContext {
   preferTinyTex: boolean;
   hasTinyTex: boolean;
   hasTexLive: boolean;
+  usingGlobal: boolean;
   binDir?: string;
 }
 
@@ -27,10 +28,12 @@ export async function texLiveContext(
   const hasTiny = hasTinyTex();
   const hasTex = await hasTexLive();
   const binDir = tinyTexBinDir();
+  const usingGlobal = await texLiveInPath() && !hasTiny;
   return {
     preferTinyTex,
     hasTinyTex: hasTiny,
     hasTexLive: hasTex,
+    usingGlobal,
     binDir,
   };
 }
@@ -40,6 +43,7 @@ function systemTexLiveContext(): TexLiveContext {
     preferTinyTex: false,
     hasTinyTex: false,
     hasTexLive: false,
+    usingGlobal: true,
   };
 }
 
@@ -196,7 +200,9 @@ export async function installPackages(
     await installPackage(pkg, context, opts, quiet);
     count = count + 1;
   }
-  await addPath(context);
+  if (context.usingGlobal) {
+    await addPath(context);
+  }
 }
 
 // Add Symlinks for TexLive executables
@@ -401,19 +407,18 @@ function tlmgrCommand(
   };
 
   // If TinyTex is here, prefer that
-  const texLiveCommand = texLiveCmd("tlmgr", context);
+  const tlmgr = texLiveCmd("tlmgr", context);
 
-  // Is safe execution needed because of quoting issue ?
-  const safeExecNeeded = requireQuoting(args);
-  try {
-    return safeExecNeeded.status
-      ? safeWindowsExec(
-        texLiveCommand.fullPath,
-        [tlmgrCmd, ...safeExecNeeded.args],
-        execTlmgr,
-      )
-      : execTlmgr([texLiveCommand.fullPath, tlmgrCmd, ...args]);
-  } catch {
-    return Promise.reject();
+  // On windows, we always want to call tlmgr through the 'safe'
+  // cmd /c approach since it is a bat file
+  if (Deno.build.os === "windows") {
+    const quoted = requireQuoting(args);
+    return safeWindowsExec(
+      tlmgr.fullPath,
+      [tlmgrCmd, ...quoted.args],
+      execTlmgr,
+    );
+  } else {
+    return execTlmgr([tlmgr.fullPath, tlmgrCmd, ...args]);
   }
 }

@@ -25,6 +25,7 @@ import { mergeConfigs } from "../core/config.ts";
 import { quartoConfig } from "../core/quarto.ts";
 
 import {
+  Contributes,
   Extension,
   ExtensionContext,
   ExtensionId,
@@ -33,6 +34,7 @@ import {
   kCommon,
   kExtensionDir,
   kQuartoRequired,
+  kRevealJSPlugins,
   kTitle,
   kVersion,
 } from "./extension-shared.ts";
@@ -42,6 +44,13 @@ import { getExtensionConfigSchema } from "../core/lib/yaml-schema/project-config
 import { projectIgnoreGlobs } from "../project/project-context.ts";
 import { ProjectType } from "../project/types/types.ts";
 import { copyResourceFile } from "../project/project-resources.ts";
+import { RevealPluginBundle } from "../format/reveal/format-reveal-plugin.ts";
+
+// This is where we maintain a list of extensions that have been promoted
+// to 'built-in' status. If we see these extensions, we will filter them
+// in favor of the built in functionality
+const kQuartoExtOrganization = "quarto-ext";
+const kQuartoExtBuiltIn = ["code-filename", "grouped-tabsets"];
 
 // Create an extension context that can be used to load extensions
 // Provides caching such that directories will not be rescanned
@@ -81,7 +90,7 @@ export function createExtensionContext(): ExtensionContext {
   const find = async (
     name: string,
     input: string,
-    contributes?: "shortcodes" | "filters" | "formats",
+    contributes?: Contributes,
     config?: ProjectConfig,
     projectDir?: string,
   ): Promise<Extension[]> => {
@@ -121,6 +130,43 @@ export function projectExtensionPathResolver(libDir: string) {
 
     return href;
   };
+}
+
+export function filterExtensions(
+  extensions: Extension[],
+  extensionId: string,
+  type: string,
+) {
+  if (extensions && extensions.length > 0) {
+    // First see whether there are more than one 'owned' extensions
+    // which match. This means that the there are two different extension, from two
+    // different orgs that match this simple id - user needs to disambiguate
+    const ownedExtensions = extensions.filter((ext) => {
+      return ext.id.organization !== undefined;
+    }).map((ext) => {
+      return extensionIdString(ext.id);
+    });
+    if (ownedExtensions.length > 1) {
+      // There are more than one extensions with owners, warn
+      // user that they should disambiguate
+      warning(
+        `The ${type} '${extensionId}' matched more than one extension. Please use a full name to disambiguate:\n  ${
+          ownedExtensions.join("\n  ")
+        }`,
+      );
+    }
+
+    // we periodically build in features that were formerly available from
+    // the quarto-ext org. filter them out here (that allows them to remain
+    // referenced in the yaml so we don't break code in the wild)
+    extensions = extensions?.filter((ext) => {
+      return !(ext.id.organization === kQuartoExtOrganization &&
+        kQuartoExtBuiltIn.includes(ext.id.name));
+    });
+    return extensions;
+  } else {
+    return extensions;
+  }
 }
 
 // Loads all extensions for a given input
@@ -186,7 +232,7 @@ const loadExtension = async (
 function findExtensions(
   extensions: Extension[],
   extensionId: ExtensionId,
-  contributes?: "shortcodes" | "filters" | "formats" | "project",
+  contributes?: Contributes,
 ) {
   // Filter the extension based upon what they contribute
   const exts = extensions.filter((ext) => {
@@ -197,6 +243,10 @@ function findExtensions(
     } else if (contributes === "formats" && ext.contributes.formats) {
       return true;
     } else if (contributes === "project" && ext.contributes.project) {
+      return true;
+    } else if (
+      contributes === kRevealJSPlugins && ext.contributes[kRevealJSPlugins]
+    ) {
       return true;
     } else {
       return contributes === undefined;
@@ -442,6 +492,7 @@ function validateExtension(extension: Extension) {
     extension.contributes.shortcodes,
     extension.contributes.formats,
     extension.contributes.project,
+    extension.contributes[kRevealJSPlugins],
   ];
   contribs.forEach((contrib) => {
     if (contrib) {
@@ -550,13 +601,38 @@ async function readExtension(
         return resolveFilter(embeddedExtensions, extensionDir, filter);
       },
     );
+    formatMeta[kRevealJSPlugins] =
+      (formatMeta?.[kRevealJSPlugins] as Array<string | RevealPluginBundle> ||
+        [])
+        .flatMap(
+          (plugin) => {
+            return resolveRevealJSPlugin(
+              embeddedExtensions,
+              extensionDir,
+              plugin,
+            );
+          },
+        );
   });
   delete formats[kCommon];
 
   // Alias the contributions
-  const shortcodes = (contributes?.shortcodes || []) as string[];
-  const filters = (contributes?.filters || {}) as QuartoFilter[];
+  const shortcodes = ((contributes?.shortcodes || []) as string[]).map(
+    (shortcode) => {
+      return resolveShortcodePath(extensionDir, shortcode);
+    },
+  );
+  const filters = ((contributes?.filters || []) as QuartoFilter[]).map(
+    (filter) => {
+      return resolveFilterPath(extensionDir, filter);
+    },
+  );
   const project = (contributes?.project || {}) as Record<string, unknown>;
+  const revealJSPlugins = ((contributes?.[kRevealJSPlugins] || []) as Array<
+    string | RevealPluginBundle
+  >).map((plugin) => {
+    return resolveRevealPluginPath(extensionDir, plugin);
+  });
 
   // Create the extension data structure
   const result = {
@@ -571,10 +647,55 @@ async function readExtension(
       filters,
       formats,
       project,
+      [kRevealJSPlugins]: revealJSPlugins,
     },
   };
   validateExtension(result);
   return result;
+}
+
+function resolveRevealJSPlugin(
+  embeddedExtensions: Extension[],
+  dir: string,
+  plugin: string | RevealPluginBundle,
+) {
+  if (typeof (plugin) === "string") {
+    // First attempt to load this plugin from an embedded extension
+    const extensionId = toExtensionId(plugin);
+    const extensions = findExtensions(
+      embeddedExtensions,
+      extensionId,
+      "revealjs-plugins",
+    );
+
+    // If there are embedded extensions, return their plugins
+    if (extensions.length > 0) {
+      const plugins: Array<string | RevealPluginBundle> = [];
+      for (const plugin of extensions[0].contributes[kRevealJSPlugins] || []) {
+        plugins.push(plugin);
+      }
+      return plugins;
+    } else {
+      // There are no embedded extensions for this, validate the path
+      validateExtensionPath("revealjs-plugin", dir, plugin);
+      return resolveRevealPluginPath(dir, plugin);
+    }
+  } else {
+    return plugin;
+  }
+}
+
+function resolveRevealPluginPath(
+  extensionDir: string,
+  plugin: string | RevealPluginBundle,
+): string | RevealPluginBundle {
+  // Filters are expected to be absolute
+  if (typeof (plugin) === "string") {
+    return join(extensionDir, plugin);
+  } else {
+    plugin.plugin = join(extensionDir, plugin.plugin);
+    return plugin;
+  }
 }
 
 // This will resolve a shortcode contributed by this extension
@@ -597,14 +718,25 @@ function resolveShortcode(
   if (extensions.length > 0) {
     const shortcodes: string[] = [];
     for (const shortcode of extensions[0].contributes.shortcodes || []) {
-      // Shortcodes are expected to be extension relative paths
-      shortcodes.push(relative(dir, join(extensions[0].path, shortcode)));
+      // Shortcodes are expected to be absolute
+      shortcodes.push(resolveShortcodePath(extensions[0].path, shortcode));
     }
     return shortcodes;
   } else {
     // There are no embedded extensions for this, validate the path
     validateExtensionPath("shortcode", dir, shortcode);
+    return resolveShortcodePath(dir, shortcode);
+  }
+}
+
+function resolveShortcodePath(
+  extensionDir: string,
+  shortcode: string,
+): string {
+  if (isAbsolute(shortcode)) {
     return shortcode;
+  } else {
+    return join(extensionDir, shortcode);
   }
 }
 
@@ -627,24 +759,31 @@ function resolveFilter(
     if (extensions.length > 0) {
       const filters: QuartoFilter[] = [];
       for (const filter of extensions[0].contributes.filters || []) {
-        // Filters are expected to be extension relative paths
-        if (typeof (filter) === "string") {
-          filters.push(relative(dir, join(extensions[0].path, filter)));
-        } else {
-          filters.push({
-            type: filter.type,
-            path: relative(dir, join(extensions[0].path, filter.path)),
-          });
-        }
+        filters.push(resolveFilterPath(extensions[0].path, filter));
       }
       return filters;
     } else {
       validateExtensionPath("filter", dir, filter);
-      return filter;
+      return resolveFilterPath(dir, filter);
     }
   } else {
     validateExtensionPath("filter", dir, filter.path);
-    return filter.path;
+    return resolveFilterPath(dir, filter);
+  }
+}
+
+function resolveFilterPath(
+  extensionDir: string,
+  filter: QuartoFilter,
+): QuartoFilter {
+  // Filters are expected to be absolute
+  if (typeof (filter) === "string") {
+    return join(extensionDir, filter);
+  } else {
+    return {
+      type: filter.type,
+      path: join(extensionDir, filter.path),
+    };
   }
 }
 
@@ -652,14 +791,14 @@ function resolveFilter(
 // either the item should resolve using an embedded extension, or the path
 // should exist. You cannot reference a non-existent file in an extension
 function validateExtensionPath(
-  type: "filter" | "shortcode",
+  type: "filter" | "shortcode" | "revealjs-plugin",
   dir: string,
   path: string,
 ) {
   const resolves = existsSync(join(dir, path));
   if (!resolves) {
     throw Error(
-      `Failed to resolve referenced ${type} ${path} - path does not exist.\nIf you attempting to use another extension within this extension, please install the extension using the 'quarto install --embedded' command.`,
+      `Failed to resolve referenced ${type} ${path} - path does not exist.\nIf you are attempting to use another extension within this extension, please install the extension using the 'quarto install --embedded' command.`,
     );
   }
   return resolves;

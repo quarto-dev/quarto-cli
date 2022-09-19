@@ -20,6 +20,32 @@ export function getenv(name: string, defaultValue?: string) {
   }
 }
 
+export function withPath(
+  paths: { append?: string[]; prepend?: string[] },
+): string {
+  const delimiter = Deno.build.os === "windows" ? ";" : ":";
+
+  const currentPath = Deno.env.get("PATH") || "";
+  if (paths.append !== undefined && paths.prepend !== undefined) {
+    // Nothing to append or prepend
+    return currentPath;
+  } else if (paths.append?.length === 0 && paths.prepend?.length === 0) {
+    // Nothing to append or prepend
+    return currentPath;
+  } else {
+    // Make a new path
+    const modifiedPaths = [currentPath];
+    if (paths.append) {
+      modifiedPaths.unshift(...paths.append);
+    }
+
+    if (paths.prepend) {
+      modifiedPaths.push(...paths.prepend);
+    }
+    return modifiedPaths.join(delimiter);
+  }
+}
+
 export function suggestUserBinPaths() {
   if (Deno.build.os !== "windows") {
     // List of paths that we consider bin paths

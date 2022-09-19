@@ -441,7 +441,7 @@ const noCompletions = {
 // the entirety of lodash.
 //
 // if keyFun returns undefined, elements are considered unique
-function uniqBy<T>(lst: T[], keyFun: (item: T) => (string | undefined)): T[] {
+function uniqBy<T>(lst: T[], keyFun: (item: T) => string | undefined): T[] {
   const itemSet = new Set<string>();
   return lst.filter((item) => {
     const key = keyFun(item);
@@ -1169,6 +1169,7 @@ async function init(
     // 2022-08-26: There seems to be a bug on `deno vendor` for 1.25.0 where it fails to take json imports correctly.
     // we need to work around it during the vendoring process by removing the bogus imports like so:
     //
+    // Uncomment this line:
     // const resourceModule = {} as Record<string, unknown>;
     const resourceModule = (await import(
       "../../../resources/editor/tools/yaml/yaml-intelligence-resources.json",

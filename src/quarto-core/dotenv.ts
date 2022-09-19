@@ -10,12 +10,12 @@ import { join } from "path/mod.ts";
 import { safeExistsSync } from "../core/path.ts";
 import { isEqual } from "../core/lodash.ts";
 import { globalTempContext } from "../core/temp.ts";
-import { existsSync } from "../vendor/deno.land/std@0.153.0/fs/exists.ts";
+import { existsSync } from "fs/exists.ts";
 import { activeProfiles, kQuartoProfile } from "./profile.ts";
 
 const kQuartoEnv = "_environment";
 const kQuartoEnvLocal = `${kQuartoEnv}.local`;
-const kQuartoEnvExample = `${kQuartoEnv}.example`;
+const kQuartoEnvRequired = `${kQuartoEnv}.required`;
 
 // read the QUARTO_PROFILE from dotenv if it's there
 export async function dotenvQuartoProfile(projectDir: string) {
@@ -70,8 +70,8 @@ export async function dotenvSetVariables(projectDir: string) {
   }
 
   // validate against example if it exists
-  const dotenvExample = join(projectDir, kQuartoEnvExample);
-  if (existsSync(dotenvExample)) {
+  const dotenvRequired = join(projectDir, kQuartoEnvRequired);
+  if (existsSync(dotenvRequired)) {
     const definedEnvTempPath = globalTempContext().createFile({
       suffix: ".yml",
     });
@@ -81,7 +81,7 @@ export async function dotenvSetVariables(projectDir: string) {
     );
     await config({
       path: definedEnvTempPath,
-      example: dotenvExample,
+      example: dotenvRequired,
       safe: true,
       allowEmptyValues: true,
     });

@@ -6,6 +6,8 @@
 - Use IPython 7.14 import syntax in `ojs_define`
 - Correct handling of multiple attachments in Jupyter Notebook classic
 - Prevent overwrite of source .ipynb when output format is ipynb
+- Prefer kernel declared in YAML front matter when executing notebooks
+- Fix v1.1 regression in handling of cell display_data w/ Juptyer widgets
 
 ## Knitr
 
@@ -26,6 +28,9 @@
 - Provide a better error message for non-existent format resources (#2291)
 - Ability to specify a minimum quarto version via the `quarto-required` option.
 - Extension may now contribute project types (project metadata which will be merged with a project when project of that type are rendered)
+- Include Pandoc `logging` Lua module from @wlupton
+- Improve path resolution of extensions
+- Add support for extensions that contribute revealjs-plugins
 
 ## Projects
 
@@ -47,10 +52,16 @@
 ## Revealjs Format
 
 - Update to Reveal v4.3.1 (+ commit e281b32) to fix presentation scaling/zoom issues.
+- Improved title slide that uses normalized author and affiliation schema
+- Introduce template partials for RevealJS. You may provide partials for `title-slide.html` or `toc-slide.html`.
 
 ## GFM Format
 
 - Support code folding for markdown output when `raw_html` is supported.
+
+## AST Formats
+
+- Remove intermediate metadata for AST formats (`native` and `json`)
 
 ## Google Scholar
 
@@ -63,6 +74,7 @@
 ## Authors and Affiliations
 
 - Improve handling of empty authors
+- Parse `author` and `institute` (often used for RevealJs and Beamer) into normalized author schema
 
 ## Websites
 
@@ -117,3 +129,6 @@
 - Improve YAML validation error messages on closed schemas (#2349)
 - Don't use default width/height on mermaid diagrams when better information is available (#2383)
 - Improve YAML validation error messages on invalid YAML objects that include `x = y` (#2434)
+- Forward `--log-level` to Pandoc via `--trace`, `--verbose`, and `--quiet`
+- Disallow names with paths in command line option `--output` and YAML option `output-file` (#2440)
+- Add possible chrome process running error to the error message thrown when quarto fails to connect to chrome headless (#2499)

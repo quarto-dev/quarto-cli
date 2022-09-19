@@ -99,6 +99,14 @@
 
       (Note that the data- prefix is required here, as it isn’t added automatically.)
 
+- name: title-slide-style
+  tags:
+    formats: [revealjs]
+  schema:
+    enum: [pandoc, default]
+  default: default
+  description: "The title slide style. Use `pandoc` to select the Pandoc default title slide style."
+
 - name: center-title-slide
   tags:
     formats: [revealjs]

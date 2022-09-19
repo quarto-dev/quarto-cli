@@ -6,7 +6,14 @@
 */
 
 import { info, warning } from "log/mod.ts";
-import { basename, dirname, extname, join, relative } from "path/mod.ts";
+import {
+  basename,
+  dirname,
+  extname,
+  isAbsolute,
+  join,
+  relative,
+} from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
 import * as ld from "../../core/lodash.ts";
@@ -47,7 +54,7 @@ import { renderFormats } from "../render/render-contexts.ts";
 import { renderResultFinalOutput } from "../render/render.ts";
 import { replacePandocArg } from "../render/flags.ts";
 
-import { Format } from "../../config/types.ts";
+import { Format, isPandocFilter } from "../../config/types.ts";
 import {
   kPdfJsInitialPath,
   pdfJsBaseDir,
@@ -363,10 +370,32 @@ async function renderForPreview(
     },
     [],
   );
-  // computte extension files
+
+  // extension files
   const extensionFiles = extensionFilesFromDirs(
     inputExtensionDirs(file, project?.dir),
   );
+  // shortcodes and filters (treat as extension files)
+  extensionFiles.push(...renderResult.files.reduce(
+    (extensionFiles: string[], file: RenderResultFile) => {
+      const shortcodes = file.format.render.shortcodes || [];
+      const filters = (file.format.pandoc.filters || []).map((filter) =>
+        isPandocFilter(filter) ? filter.path : filter
+      );
+      const ipynbFilters = file.format.execute["ipynb-filters"] || [];
+      [...shortcodes, ...filters.map((filter) => filter), ...ipynbFilters]
+        .forEach((extensionFile) => {
+          if (!isAbsolute(extensionFile)) {
+            const extensionFullPath = join(dirname(file.input), extensionFile);
+            if (existsSync(extensionFullPath)) {
+              extensionFiles.push(Deno.realPathSync(extensionFullPath));
+            }
+          }
+        });
+      return extensionFiles;
+    },
+    [],
+  ));
 
   return {
     file,

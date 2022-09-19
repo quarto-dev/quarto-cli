@@ -15,6 +15,20 @@ function ensureIncludes(meta, includes)
   end
 end
 
+function removeEmptyIncludes(meta, includes)
+  if meta[includes] and 
+     pandoc.utils.type(meta[includes]) == "List" and
+     #meta[includes] == 0 then
+    meta[includes] = nil
+  end
+end
+
+function removeAllEmptyIncludes(meta)
+  removeEmptyIncludes(meta, kHeaderIncludes)
+  removeEmptyIncludes(meta, kIncludeBefore)
+  removeEmptyIncludes(meta, kIncludeAfter)
+end
+
 -- add a header include as a raw block
 function addInclude(meta, format, includes, include)
   if _quarto.format.isHtmlOutput() then

@@ -88,7 +88,15 @@ export async function criClient(appPath?: string, port?: number) {
   const browser = Deno.run({ cmd, stdout: "piped", stderr: "piped" });
 
   if (!(await waitForServer(port as number))) {
-    throw new Error("Couldn't find open server");
+    let msg = "Couldn't find open server.";
+    // Printing more error information if chrome process errored
+    if (!(await browser.status()).success) {
+      const rawError = await browser.stderrOutput();
+      const errorString = new TextDecoder().decode(rawError);
+      msg = msg + "\n" + `Chrome process error: ${errorString}`;
+    }
+
+    throw new Error(msg);
   }
 
   // deno-lint-ignore no-explicit-any

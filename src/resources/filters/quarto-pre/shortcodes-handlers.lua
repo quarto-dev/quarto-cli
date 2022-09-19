@@ -37,6 +37,7 @@ local function shortcodeMetatable(scriptFile)
     table = table,
     math = math,
     io = io,
+---@diagnostic disable-next-line: undefined-global
     file = file,
     os = os,
     debug = debug,
@@ -51,8 +52,6 @@ local function shortcodeMetatable(scriptFile)
     pandoc = pandoc,
     lpeg = lpeg,
     re = re,
-    -- quarto global environment
-    json = json,
     -- quarto functions
     quarto = quarto
   }
@@ -67,7 +66,7 @@ function initShortcodeHandlers()
   for _,shortcodeFile in ipairs(shortcodeFiles) do
     local env = setmetatable({}, {__index = shortcodeMetatable(shortcodeFile)})
     local chunk, err = loadfile(shortcodeFile, "bt", env)
-    if not err then
+    if chunk ~= nil and not err then
       local result = chunk()
       if result then
         for k,v in pairs(result) do

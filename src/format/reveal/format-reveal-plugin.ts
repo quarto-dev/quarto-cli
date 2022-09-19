@@ -31,6 +31,12 @@ import { readAndValidateYamlFromFile } from "../../core/schema/validated-yaml.ts
 
 import { revealPluginSchema } from "./schemas.ts";
 import { copyMinimal } from "../../core/copy.ts";
+import {
+  ExtensionContext,
+  kRevealJSPlugins,
+} from "../../extension/extension-shared.ts";
+import { ProjectContext } from "../../project/types.ts";
+import { filterExtensions } from "../../extension/extension.ts";
 
 const kRevealjsPlugins = "revealjs-plugins";
 
@@ -80,7 +86,7 @@ const kRevealPluginOptions = [
 
 const kRevealPluginKebabOptions = optionsToKebab(kRevealPluginOptions);
 
-interface RevealPluginBundle {
+export interface RevealPluginBundle {
   plugin: string;
   config?: Metadata;
 }
@@ -102,11 +108,14 @@ export interface RevealPluginScript {
 }
 
 export async function revealPluginExtras(
+  input: string,
   format: Format,
   flags: PandocFlags,
   temp: TempContext,
   revealUrl: string,
   revealDestDir: string,
+  extensionContext?: ExtensionContext,
+  project?: ProjectContext,
 ) {
   // directory to copy plugins into
 
@@ -153,12 +162,70 @@ export async function revealPluginExtras(
     pluginBundles.push(multiplexPlugin);
   }
 
-  if (Array.isArray(format.metadata[kRevealjsPlugins])) {
-    pluginBundles.push(
-      ...(format.metadata[kRevealjsPlugins] as Array<
-        RevealPluginBundle | string
-      >),
+  const resolvePluginPath = async (plugin: string) => {
+    // Look for an extension
+    let extensions = await extensionContext?.find(
+      plugin,
+      input,
+      kRevealJSPlugins,
+      project?.config,
+      project?.dir,
+    ) || [];
+
+    // Filter the extensions
+    extensions = filterExtensions(
+      extensions || [],
+      plugin,
+      "revealjs-plugins",
     );
+
+    // Return any contributed plugins
+    if (extensions.length > 0) {
+      return extensions[0].contributes[kRevealJSPlugins] || [];
+    } else {
+      return [plugin];
+    }
+  };
+
+  const resolvePlugin = async (plugin: string | RevealPluginBundle) => {
+    if (typeof (plugin) === "string") {
+      // This is just a simple path
+      // If the path can be resolved to a file on disk then
+      // don't treat it as an extension
+      if (existsSync(plugin)) {
+        return [plugin];
+      } else {
+        return await resolvePluginPath(plugin);
+      }
+    } else {
+      // This is a plugin bundle, so try to resolve that
+      const path = plugin.plugin;
+      const resolvedPlugins = await resolvePluginPath(path);
+
+      const pluginBundles = resolvedPlugins.map(
+        (resolvedPlug): RevealPluginBundle => {
+          if (typeof (resolvedPlug) === "string") {
+            return {
+              plugin: resolvedPlug,
+              config: plugin.config,
+            };
+          } else {
+            return {
+              plugin: resolvedPlug.plugin,
+              config: mergeConfigs(plugin.config, resolvedPlug.config),
+            };
+          }
+        },
+      );
+      return pluginBundles;
+    }
+  };
+
+  if (Array.isArray(format.metadata[kRevealjsPlugins])) {
+    for (const plugin of format.metadata[kRevealJSPlugins]) {
+      const resolvedPlugins = await resolvePlugin(plugin);
+      pluginBundles.push(...resolvedPlugins);
+    }
   }
 
   // add general support plugin (after others so it can rely on their init)

@@ -1,0 +1,1 @@
+.cursor-dot,.cursor-dot-outline{pointer-events:none;position:absolute;top:0;left:0;border-radius:50%;opacity:0;transform:translate(-50%,-50%);transition:opacity 0.3s ease-in-out,transform 0.3s ease-in-out;}.cursor-dot{width:12px;height:12px;background-color:red;}.no-cursor{cursor:none;}.no-cursor a,.no-cursor div,.no-cursor span{cursor:none;}

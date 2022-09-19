@@ -19,7 +19,8 @@ import {
   kLatexBodyMessageOptions,
   kLatexHeaderMessageOptions,
 } from "./types.ts";
-import { texLiveCmd, TexLiveContext } from "./texlive.ts";
+import { hasTexLive, texLiveCmd, TexLiveContext } from "./texlive.ts";
+import { withPath } from "../../../core/env.ts";
 
 export interface LatexCommandReponse {
   log: string;
@@ -190,6 +191,12 @@ async function runLatexCommand(
     stderr: "piped",
   };
 
+  //Ensure that the bin directory is available as a part of PDF compilation
+  if (context.texLive.binDir) {
+    runOptions.env = runOptions.env || {};
+    runOptions.env["PATH"] = withPath({ prepend: [context.texLive.binDir] });
+  }
+
   // Set the working directory
   if (context.cwd) {
     runOptions.cwd = context.cwd;
@@ -219,7 +226,7 @@ async function runLatexCommand(
     return await runCmd();
   } catch (_e) {
     // First confirm that there is a TeX installation available
-    const tex = await hasLatexDistribution();
+    const tex = await hasTexLive() || await hasLatexDistribution();
     if (!tex) {
       info(
         "\nNo TeX installation was detected.\n\nPlease run 'quarto install tool tinytex' to install TinyTex.\nIf you prefer, you may install TexLive or another TeX distribution.\n",

@@ -20,18 +20,24 @@ import {
 import { isFileRef } from "../../core/http.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
 import { formatResourcePath } from "../../core/resources.ts";
-import { compileSass, mergeLayers, sassLayerFile } from "../../core/sass.ts";
+import {
+  compileSass,
+  mergeLayers,
+  outputVariable,
+  sassLayerFile,
+  SassVariable,
+  sassVariable,
+} from "../../core/sass.ts";
 
 import { kRevealJsUrl } from "./constants.ts";
 import { cssHasDarkModeSentinel } from "../../command/render/pandoc-html.ts";
-import {
-  pandocVariablesToThemeScss,
-  resolveTextHighlightingLayer,
-} from "../html/format-html-scss.ts";
+import { resolveTextHighlightingLayer } from "../html/format-html-scss.ts";
 import { quartoBaseLayer } from "../html/format-html-shared.ts";
 import { TempContext } from "../../core/temp.ts";
 import { hasAdaptiveTheme } from "../../quarto-core/text-highlighting.ts";
 import { copyMinimal, copyTo } from "../../core/copy.ts";
+import { titleSlideScss } from "./format-reveal-title.ts";
+import { asCssFont, asCssNumber } from "../../core/css.ts";
 
 export const kRevealLightThemes = [
   "white",
@@ -145,13 +151,22 @@ export async function revealTheme(
     join(cssThemeDir, "template"),
   ];
 
+  // Quarto layers
+  const quartoLayers = [
+    quartoBaseLayer(format, true, true, false, true),
+    quartoLayer(),
+  ];
+  const titleSlideLayer = titleSlideScss(format);
+  if (titleSlideLayer) {
+    userLayers.unshift(titleSlideLayer);
+  }
+
   // create sass bundle layers
   const bundleLayers: SassBundleLayers = {
     key: "reveal-theme",
     user: mergeLayers(...userLayers),
     quarto: mergeLayers(
-      quartoBaseLayer(format, true, true, false, true),
-      quartoLayer(),
+      ...quartoLayers,
     ),
     framework: revealFrameworkLayer(revealSrcDir),
     loadPaths,
@@ -190,6 +205,49 @@ function revealFrameworkLayer(revealDir: string): SassLayer {
     mixins: readTemplate("mixins.scss"),
     rules: readTemplate("theme.scss"),
   };
+}
+
+export function pandocVariablesToThemeScss(
+  metadata: Metadata,
+  asDefaults = false,
+) {
+  return pandocVariablesToRevealDefaults(metadata).map(
+    (variable) => {
+      return outputVariable(variable, asDefaults);
+    },
+  ).join("\n");
+}
+
+function pandocVariablesToRevealDefaults(
+  metadata: Metadata,
+): SassVariable[] {
+  const explicitVars: SassVariable[] = [];
+
+  // Helper for adding explicitly set variables
+  const add = (
+    defaults: SassVariable[],
+    name: string,
+    value?: unknown,
+    formatter?: (val: unknown) => unknown,
+  ) => {
+    if (value) {
+      const sassVar = sassVariable(name, value, formatter);
+      defaults.push(sassVar);
+    }
+  };
+
+  // Pass through to some theme variables variables
+  add(explicitVars, "font-family-sans-serif", metadata["mainfont"], asCssFont);
+  add(explicitVars, "font-family-monospace", metadata["monofont"], asCssFont);
+  add(explicitVars, "presentation-font-size-root", metadata["fontsize"]);
+  add(
+    explicitVars,
+    "presentation-line-height",
+    metadata["linestretch"],
+    asCssNumber,
+  );
+  add(explicitVars, "code-block-bg", metadata["monobackgroundcolor"]);
+  return explicitVars;
 }
 
 function quartoLayer(): SassLayer {

@@ -910,9 +910,9 @@ function cleanJupyterOutputDisplayData(
       ? value as string[]
       : undefined;
     if (strValue === undefined) {
-      warning("Malformed Jupyter Output Display Data found:");
-      warning(JSON.stringify(value));
-      outputData[key] = [value];
+      // if it's not a string type then allow it to pass through
+      // (see https://github.com/quarto-dev/quarto-cli/issues/2445)
+      outputData[key] = value;
     } else {
       outputData[key] = strValue;
     }

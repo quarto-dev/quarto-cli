@@ -65,6 +65,7 @@ crossref-eq-prefix: "Yhtälö"
 crossref-lof-title: "Kuvien luettelo"
 crossref-lot-title: "Taulukoiden luettelo"
 crossref-lol-title: "Listausten luettelo"
+crossref-apx-prefix: "Liite"
 
 environment-proof-title: "Todistus"
 environment-remark-title: "Huomautus"

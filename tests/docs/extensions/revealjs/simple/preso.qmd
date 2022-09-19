@@ -1,0 +1,22 @@
+---
+title: A Cool Presentation
+format: revealjs
+revealjs-plugins:
+  - pointer
+pointer:
+  pointerSize: 20
+---
+
+## Wu-Tang Clan Forever
+
+- I bomb atomically Socrates' philosophies
+- And hypothesis can't define how I be dropping these
+- Mockeries lyrically perform armed robbery
+
+## Slide 3
+
+I'm not tripping
+
+## Slide 4
+
+I am slightly triping

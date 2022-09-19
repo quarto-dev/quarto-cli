@@ -1,8 +1,6 @@
 -- book-links.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
-local path = require 'pandoc.path'
-
 function indexBookFileTargets() 
     if not param("single-file-book", false) then
       return {} 
@@ -35,12 +33,12 @@ function resolveBookFileTargets()
           local file = currentFileMetadataState().file
   
           -- normalize the linkTarget (collapsing any '..')
-          if linkTarget ~= nil then
+          if #linkTarget > 0 then
             local fullPath = linkTarget
             if file ~= nil and file.resourceDir ~= nil then
-              fullPath = path.join({file.resourceDir, linkTarget})
+              fullPath = pandoc.path.join({file.resourceDir, linkTarget})
             end
-            linkTarget = path.normalize(flatten(fullPath));
+            linkTarget = pandoc.path.normalize(flatten(fullPath));
           end
           
           -- resolve the path

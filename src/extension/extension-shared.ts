@@ -6,6 +6,7 @@
 */
 import SemVer, { Range } from "semver/mod.ts";
 import { Metadata, QuartoFilter } from "../config/types.ts";
+import { RevealPluginBundle } from "../format/reveal/format-reveal-plugin.ts";
 import { ProjectConfig } from "../project/types.ts";
 
 export const kCommon = "common";
@@ -16,7 +17,16 @@ export const kAuthor = "author";
 export const kVersion = "version";
 export const kQuartoRequired = "quarto-required";
 
-// TODO: rename format => formats
+export const kRevealJSPlugins = "revealjs-plugins";
+
+export type Contributes =
+  | "shortcodes"
+  | "filters"
+  | "formats"
+  | "project"
+  | "revealjs-plugins";
+
+// TODO: Allow revealjs-plugins to be a list of plugin ymls basically
 export interface Extension extends Record<string, unknown> {
   id: ExtensionId;
   title: string;
@@ -29,6 +39,7 @@ export interface Extension extends Record<string, unknown> {
     shortcodes?: string[];
     filters?: QuartoFilter[];
     formats?: Record<string, unknown>;
+    [kRevealJSPlugins]?: Array<string | RevealPluginBundle>;
   };
 }
 
@@ -47,7 +58,12 @@ export interface ExtensionContext {
   find(
     name: string,
     input: string,
-    contributes?: "shortcodes" | "filters" | "formats" | "project",
+    contributes?:
+      | "shortcodes"
+      | "filters"
+      | "formats"
+      | "project"
+      | "revealjs-plugins",
     config?: ProjectConfig,
     projectDir?: string,
   ): Promise<Extension[]>;

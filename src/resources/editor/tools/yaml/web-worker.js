@@ -15934,6 +15934,22 @@ try {
             }
           },
           {
+            name: "title-slide-style",
+            tags: {
+              formats: [
+                "revealjs"
+              ]
+            },
+            schema: {
+              enum: [
+                "pandoc",
+                "default"
+              ]
+            },
+            default: "default",
+            description: "The title slide style. Use `pandoc` to select the Pandoc default title slide style."
+          },
+          {
             name: "center-title-slide",
             tags: {
               formats: [
@@ -19650,7 +19666,8 @@ try {
             long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
-          "internal-schema-hack"
+          "internal-schema-hack",
+          "The title slide style. Use <code>pandoc</code> to select the Pandoc\ndefault title slide style."
         ],
         "schema/external-schemas.yml": [
           {
@@ -19863,12 +19880,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 129075,
+          _internalId: 129078,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 129074,
+              _internalId: 129077,
               type: "enum",
               enum: [
                 "png",
@@ -25785,6 +25802,7 @@ ${heading}`;
     validator.addHandler(checkForTypeMismatch);
     validator.addHandler(checkForBadBoolean);
     validator.addHandler(checkForBadColon);
+    validator.addHandler(checkForBadEquals);
     validator.addHandler(identifyKeyErrors);
     validator.addHandler(checkForNearbyCorrection);
     validator.addHandler(checkForNearbyRequired);
@@ -25795,6 +25813,13 @@ ${heading}`;
       return "";
     }
     return String(error.schemaPath[error.schemaPath.length - 1]);
+  }
+  function schemaPathMatches(error, strs) {
+    const schemaPath = error.schemaPath.slice(-strs.length);
+    if (schemaPath.length !== strs.length) {
+      return false;
+    }
+    return strs.every((str2, i) => str2 === schemaPath[i]);
   }
   function getBadKey(error) {
     if (error.schemaPath.indexOf("propertyNames") === -1 && error.schemaPath.indexOf("closed") === -1) {
@@ -26103,11 +26128,7 @@ ${reindented}
     if (typeof error.violatingObject.result !== "string") {
       return error;
     }
-    const e = error.schemaPath.slice(-2);
-    if (e.length !== 2) {
-      return error;
-    }
-    if (e[0] !== "object" || e[1] !== "type") {
+    if (!schemaPathMatches(error, ["object", "type"])) {
       return error;
     }
     if (!error.violatingObject.result.match(/^.+:[^ ].*$/)) {
@@ -26118,6 +26139,37 @@ ${reindented}
     const suggestion1 = `In YAML, key-value pairs in objects must be separated by a space.`;
     const suggestion2 = `Did you mean ${quotedStringColor(
       quotedStringColor(getVerbatimInput(error)).replace(/:/g, ": ")
+    )} instead?`;
+    const newError = {
+      heading: formatHeadingForValueError(error, parse, schema2),
+      error: [errorMessage],
+      info: {},
+      location: error.niceError.location
+    };
+    addInstancePathInfo(newError, error.instancePath);
+    addFileInfo(newError, error.source);
+    newError.info["yaml-key-value-pairs"] = suggestion1;
+    newError.info["suggestion-fix"] = suggestion2;
+    return {
+      ...error,
+      niceError: newError
+    };
+  }
+  function checkForBadEquals(error, parse, schema2) {
+    if (typeof error.violatingObject.result !== "string") {
+      return error;
+    }
+    if (!schemaPathMatches(error, ["object", "type"]) && !schemaPathMatches(error, ["object", "propertyNames", "string", "pattern"])) {
+      return error;
+    }
+    if (!error.violatingObject.result.match(/^.+ *= *.+$/)) {
+      return error;
+    }
+    const verbatimInput = quotedStringColor(getVerbatimInput(error));
+    const errorMessage = `The value ${verbatimInput} is a string.`;
+    const suggestion1 = `In YAML, key-value pairs in objects must be separated by a colon and a space.`;
+    const suggestion2 = `Did you mean ${quotedStringColor(
+      quotedStringColor(getVerbatimInput(error)).replace(/ *= */g, ": ")
     )} instead?`;
     const newError = {
       heading: formatHeadingForValueError(error, parse, schema2),
@@ -27123,7 +27175,6 @@ ${tidyverseInfo(
     if (!typeIsValid(value, schema2, context, typeof value.result === "string")) {
       return false;
     }
-    console.log({ schema: schema2 });
     if (schema2.pattern !== void 0) {
       if (schema2.compiledPattern === void 0) {
         schema2.compiledPattern = new RegExp(schema2.pattern);
@@ -28072,13 +28123,14 @@ ${tidyverseInfo(
         yamlValidationErrors: valResult.errors
       };
     };
-    const preCheckResult = await withValidator(
-      getSchemaDefinition("bad-parse-schema"),
-      validate2
-    );
-    console.log({ preCheckResult });
-    if (preCheckResult.yamlValidationErrors.length !== 0) {
-      return preCheckResult;
+    if (typeof annotation.result === "object" && !Array.isArray(annotation.result)) {
+      const preCheckResult = await withValidator(
+        getSchemaDefinition("bad-parse-schema"),
+        validate2
+      );
+      if (preCheckResult.yamlValidationErrors.length !== 0) {
+        return preCheckResult;
+      }
     }
     const result = await withValidator(schema2, validate2);
     return result;
@@ -28783,7 +28835,7 @@ ${tidyverseInfo(
       source,
       sourceStartLine
     } = partitionCellOptionsText(language, outerSource);
-    if (guessChunkOptionsFormat((mappedYaml || asMappedString("")).value) === "yaml") {
+    if (language !== "r" || guessChunkOptionsFormat((mappedYaml || asMappedString("")).value) === "yaml") {
       const yaml = await parseAndValidateCellOptions(
         mappedYaml || asMappedString(""),
         language,

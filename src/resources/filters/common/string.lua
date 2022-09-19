@@ -22,7 +22,7 @@ function split(str, sep)
   
   local sep = sep or " "
   local pattern = string.format("([^%s]+)", sep)
-  string.gsub(str, pattern, function(c) fields[#fields + 1] = c end)
+  local _ignored = string.gsub(str, pattern, function(c) fields[#fields + 1] = c end)
   
   return fields
 end

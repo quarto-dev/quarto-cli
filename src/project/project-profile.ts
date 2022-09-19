@@ -6,7 +6,7 @@
 */
 
 import { error } from "log/mod.ts";
-import { join } from "path/mod.ts";
+import { basename, join } from "path/mod.ts";
 
 import { ProjectConfig } from "../project/types.ts";
 import * as ld from "../core/lodash.ts";
@@ -20,7 +20,6 @@ import {
   readProfile,
 } from "../quarto-core/profile.ts";
 import { dotenvQuartoProfile } from "../quarto-core/dotenv.ts";
-import { basename } from "../vendor/deno.land/std@0.153.0/path/win32.ts";
 import { Metadata } from "../config/types.ts";
 
 const kQuartoProfileConfig = "profile";

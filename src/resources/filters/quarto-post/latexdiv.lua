@@ -23,7 +23,7 @@ function latexDiv()
       end
       
       -- if it's "1" or "true" then just set it to empty string
-      if options == "1" or text.lower(options) == "true" then
+      if options == "1" or pandoc.text.lower(options) == "true" then
         options = ""
       end
     

@@ -31,7 +31,7 @@ function parseLayoutWidths(figLayout, figureCount)
       if type(width) == "number" then
         numericTotal = numericTotal + math.abs(width)
       else
-        numericTotal = nil
+        numericTotal = 0
         break
       end
     end
@@ -40,7 +40,7 @@ function parseLayoutWidths(figLayout, figureCount)
     return cols:map(function(width)
       figureLayoutCount = figureLayoutCount + 1
       if type(width) == "number" then
-        if numericTotal ~= nil then
+        if numericTotal ~= 0 then
           width = round((width / numericTotal) * 100, 2)
         elseif width <= 1 then
           width = round(width * 100, 2)
@@ -72,7 +72,7 @@ function parseLayoutWidths(figLayout, figureCount)
 end
 
 function isSpacerWidth(width)
-  return text.sub(width, 1, 1) == "-"
+  return pandoc.text.sub(width, 1, 1) == "-"
 end
 
 
