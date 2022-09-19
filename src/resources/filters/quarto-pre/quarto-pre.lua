@@ -75,6 +75,7 @@ import("line-numbers.lua")
 import("output-location.lua")
 import("include-paths.lua")
 import("input-traits.lua")
+import("project-paths.lua")
 -- [/import]
 
 initShortcodeHandlers()
@@ -118,6 +119,7 @@ local filterList = {
   }) },
   { name = "quartoPreMetaInject", filter = quartoPreMetaInject() },
   { name = "writeResults", filter = writeResults() },
+  { name = "projectPaths", filter = projectPaths()}
 }
 
 return capture_timings(filterList)
