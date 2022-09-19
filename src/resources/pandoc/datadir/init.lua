@@ -1312,6 +1312,14 @@ local function scriptDir()
    end
 end
 
+local function scriptFileName()
+   if scriptFile ~= nil then
+      return pandoc.path.filename(scriptFile)
+   else 
+      return pandoc.path.filename(PANDOC_SCRIPT_FILE)
+   end
+end
+
 -- resolves a path, providing either the original path
 -- or if relative, a path that is based upon the 
 -- script location
@@ -1607,6 +1615,39 @@ function param(name, default)
   return value
 end
 
+-- Provides the project relative path to the current input
+-- if this render is in the context of a project
+function projectRelativeOutputFile()
+   -- the offset to the project
+   local projectOffset = _quarto.projectOffset()
+   if projectOffset then
+      -- get the current working directory - we always change
+      -- the working directory to the input file when we render
+      local wd = pandoc.system.get_working_directory()
+      
+      -- process the offset, adjusting the working directory
+      local projectDir = wd
+      for i, v in ipairs(pandoc.path.split(projectOffset)) do
+         if v == '.' then
+            -- no op
+         elseif v == '..' then
+            projectDir = pandoc.path.directory(projectDir)
+         else
+            projectDir = pandoc.path.join({projectDir, v})
+         end
+      end
+
+      -- relative from final directory to working directory
+      local projRelFolder = pandoc.path.make_relative(wd, projectDir, false)
+      
+      -- add the file output name and normalize
+      local projRelPath = pandoc.path.join({projRelFolder, PANDOC_STATE['output_file']})
+      return pandoc.path.normalize(projRelPath);
+   else
+      return nil
+   end
+end
+
 
 
 -- Quarto internal module - makes functions available
@@ -1622,7 +1663,11 @@ _quarto = {
    utils = utils,
    scriptFile = function(file)
       scriptFile = file
+   end,
+   projectOffset = function()
+      return param('project-offset', nil)
    end
+
  } 
 
 
@@ -1758,7 +1803,8 @@ quarto = {
     hasBootstrap = function() 
       local hasBootstrap = param('has-bootstrap', false)
       return hasBootstrap
-    end
+    end,
+    projectOutputFile = projectRelativeOutputFile
   },
   utils = {
    dump = utils.dump,

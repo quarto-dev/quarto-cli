@@ -5,7 +5,7 @@
 kProjectResolverIgnore = 'project-resolve-ignore'
 
 local function resolveProjectPath(path)
-  local offset = param("project-offset", nil)
+  local offset = _quarto.projectOffset()
   if offset and path and startsWith(path, '/') then
     return pandoc.path.join({offset, pandoc.text.sub(path, 2, #path)})
   else
