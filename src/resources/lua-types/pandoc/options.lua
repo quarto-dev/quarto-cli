@@ -61,7 +61,7 @@ Table of the options that will be passed to the writer. While the object can be 
 ---@field slide_level integer|nil Force header level of slides 
 ---@field tab_stop integer Tabstop for conversion btw spaces and tabs
 ---@field table_of_contents boolean Include table of contents 
----@field template pandoc.types.Template|nil Template to use 
+---@field template pandoc.Template|nil Template to use 
 ---@field toc_depth integer Number of levels to include in TOC
 ---@field top_level_division 'top-level-part'|'top-level-chapter'|'top-level-section'|'top-level-default' Type of top-level divisions; one of 'top-level-part', 'top-level-chapter', 'top-level-section', or 'top-level-default'.
 ---@field variables table<string,any> Variables to set in template; string-indexed table

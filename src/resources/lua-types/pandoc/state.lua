@@ -14,3 +14,9 @@ The state shared by all readers and writers. It is used by pandoc to collect and
 ---@field trace boolean Whether tracing messages are issued 
 ---@field verbosity 'INFO'|'WARNING'|'ERROR' Verbosity level; one of `INFO`, `WARNING`, `ERROR` 
 
+--[[
+A pandoc log message. Objects have no fields, but can be converted to a string via `tostring`.
+]]
+---@class pandoc.LogMessage
+pandoc.LogMessage = {}
+

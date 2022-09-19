@@ -1,5 +1,14 @@
 ---@meta
 
+---@module 'pandoc'
+pandoc = {}
+
+---@type table<string,boolean>
+pandoc.readers = {}
+
+---@type table<string,boolean>
+pandoc.writers = {}
+
 ---@class pandoc.Element : table
 pandoc.Element = {}
 
@@ -8,12 +17,6 @@ Make a clone of an element
 ]]
 ---@return pandoc.Element # Clone of the elment
 function pandoc.Element:clone() end
-
----@type table<string,boolean>
-pandoc.readers = {}
-
----@type table<string,boolean>
-pandoc.writers = {}
 
 --[[
 Pandoc document

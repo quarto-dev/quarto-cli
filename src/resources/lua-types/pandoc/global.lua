@@ -1,13 +1,12 @@
----@module 'pandoc'
-pandoc = {}
+---@meta
 
 ---@type string Format of the pandoc writer being used (html5, latex, etc.),
 FORMAT = "html"
 
----@type pandoc.types.Version
+---@type pandoc.Version
 PANDOC_VERSION = pandoc.types.Version('2.9.2')
 
----@type pandoc.types.Version
+---@type pandoc.Version
 PANDOC_API_VERSION = pandoc.types.Version('1.22.1')
 
 ---@type string The name used to involve the filter. This value can be used to find files relative to the script file. 
