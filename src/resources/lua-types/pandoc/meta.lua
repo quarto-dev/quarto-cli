@@ -3,8 +3,8 @@
 ---@alias pandoc.MetaValue pandoc.MetaBool|pandoc.MetaString|pandoc.MetaInlines|pandoc.MetaBlocks|pandoc.MetaList|pandoc.MetaMap
 ---@alias pandoc.MetaBool boolean
 ---@alias pandoc.MetaString string|number
----@alias pandoc.MetaInlines pandoc.Inlines
----@alias pandoc.MetaBlocks pandoc.Blocks
+---@alias pandoc.MetaInlines pandoc.List
+---@alias pandoc.MetaBlocks pandoc.List
 ---@alias pandoc.MetaList table<number,pandoc.MetaValue>
 ---@alias pandoc.MetaMap table<string,pandoc.MetaValue>
 
@@ -23,7 +23,7 @@ Creates a value to be used as a MetaBlocks value in meta
 data; creates a copy of the input list via `pandoc.Blocks`,
 discarding all non-list keys.
 ]]
----@param blocks pandoc.Blocks
+---@param blocks pandoc.List
 ---@return pandoc.MetaBlocks
 function pandoc.MetaBlocks(blocks) end
 
@@ -32,7 +32,7 @@ Creates a value to be used as a MetaInlines value in meta
 data; creates a copy of the input list via `pandoc.Inlines`,
 discarding all non-list keys.
 ]]
----@param inlines pandoc.Inlines
+---@param inlines pandoc.List
 ---@return pandoc.MetaInlines
 function pandoc.MetaInlines(inlines) end
 

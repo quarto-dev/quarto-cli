@@ -3,7 +3,8 @@
 ---@alias table_alignment 'AlignDefault'|'AlignLeft'|'AlignCenter'|'AlightRight'
 
 
----@class pandoc.Table : table
+---@class pandoc.Table
+pandoc.Table = {}
 
 --[[
 A simple table is a table structure which resembles the old (pre
@@ -13,12 +14,13 @@ and `pandoc.utils.from_simple_table` functions, respectively.
 Instances of this type can also be created directly with the 
 `pandoc.SimpleTable`constructor.
 ]]
----@class pandoc.SimpleTable
+---@class pandoc.SimpleTable 
 ---@field caption pandoc.List List of inlines
 ---@field aligns table_alignment[] Column alignments
 ---@field widths number[] Column widths
 ---@field headers pandoc.List Table header row (a list of blocks, one for each cell)
 ---@field rows pandoc.List List of rows, where row is a list of blocks (one for each cell)
+pandoc.SimpleTable = {}
 
 --[[
 Creates a simple table resembling the old (pre pandoc 2.10) table type.
@@ -31,3 +33,8 @@ Creates a simple table resembling the old (pre pandoc 2.10) table type.
 ---@return pandoc.SimpleTable 
 function pandoc.SimpleTable(caption, aligns, widths, headers, rows) end
 
+--[[
+Make a clone
+]]
+---@return pandoc.SimpleTable
+function pandoc.SimpleTable:clone() end

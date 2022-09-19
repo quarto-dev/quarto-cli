@@ -9,15 +9,6 @@ pandoc.readers = {}
 ---@type table<string,boolean>
 pandoc.writers = {}
 
----@class pandoc.Element : table
-pandoc.Element = {}
-
---[[
-Make a clone of an element
-]]
----@return pandoc.Element # Clone of the elment
-function pandoc.Element:clone() end
-
 --[[
 Pandoc document
 
@@ -27,6 +18,7 @@ equal in Lua if and only if they are equal in Haskell.
 ---@class pandoc.Pandoc
 ---@field blocks pandoc.List Document content 
 ---@field meta pandoc.Meta Meta information
+pandoc.Pandoc = {}
 
 --[[
 Create a complete pandoc document
@@ -35,6 +27,13 @@ Create a complete pandoc document
 ---@param meta? pandoc.Meta Meta information
 ---@return pandoc.Pandoc
 function pandoc.Pandoc(blocks, meta) end
+
+--[[
+Make a clone
+]]
+---@return pandoc.Pandoc
+function pandoc.Pandoc:clone() end
+
 
 --[[
 Applies a Lua filter to the Pandoc element. Just as for
@@ -69,19 +68,21 @@ Apply a filter inside a block element, walking its contents.
 Returns a (deep) copy on which the filter has been applied:
 the original element is left untouched.
 ]]
----@param element pandoc.Element The block element
+---@generic T
+---@param element `T` The block element
 ---@param filter table A Lua filter (table of functions) to be applied within the block element
----@returm pandoc.Element The transformed block element
+---@return T The transformed block element
 function pandoc.walk_block(element, filter) end
 
 --[[
 -- Apply a filter inside an inline element, walking its contents.
--- Returns a (deep) copy on which the filter has been applied:
+-- Returns a (deep) copy on which the fislter has been applied:
 -- the original element is left untouched.
 ]]
----@param element pandoc.Element The inline element
+---@generic T
+---@param element `T` The inline element
 ---@param filter table A Lua filter (table of functions) to be applied within the inline element
----@returm pandoc.Element The transformed inline element
+---@return T The transformed inline element
 function pandoc.walk_inline(element, filter) end
 
 --[[
