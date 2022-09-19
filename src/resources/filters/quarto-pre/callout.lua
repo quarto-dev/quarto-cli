@@ -778,7 +778,7 @@ function docxCalloutImage(type)
 
   -- lookup the image
   if svg ~= nil then
-    local img = pandoc.Image({}, svg)
+    local img = pandoc.Image({}, svg, '', {[kProjectResolverIgnore]="true"})
     img.attr.attributes["width"] = tostring(16 * scaleFactor)
     img.attr.attributes["height"] = tostring(16 * scaleFactor)
     return img

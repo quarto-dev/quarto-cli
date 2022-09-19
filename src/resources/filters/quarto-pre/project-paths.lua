@@ -1,6 +1,9 @@
 -- project_paths.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
+
+kProjectResolverIgnore = 'project-resolve-ignore'
+
 local function resolveProjectPath(path)
   local offset = param("project-offset", nil)
   if offset and path and startsWith(path, '/') then
@@ -17,6 +20,11 @@ end
 function projectPaths()
   return {
     Image = function(el)
+      if el.attr.attributes[kProjectResolverIgnore] then
+        el.attr.attributes[kProjectResolverIgnore] = ''
+        return el
+      end
+
       local resolved = false
 
       -- Resolve the image source
@@ -43,6 +51,11 @@ function projectPaths()
     end,
 
     Link = function(el)
+      if el.attr.attributes[kProjectResolverIgnore] then
+        el.attr.attributes[kProjectResolverIgnore] = ''
+        return el
+      end
+
       if el.href then
         local resolvedHref = resolveProjectPath(el.href)
         if resolvedHref then
