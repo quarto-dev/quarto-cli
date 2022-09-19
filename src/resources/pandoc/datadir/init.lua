@@ -1615,9 +1615,7 @@ function param(name, default)
   return value
 end
 
--- Provides the project relative path to the current input
--- if this render is in the context of a project
-function projectRelativeOutputFile()
+function projectDirectory() 
    -- the offset to the project
    local projectOffset = _quarto.projectOffset()
    if projectOffset then
@@ -1636,9 +1634,23 @@ function projectRelativeOutputFile()
             projectDir = pandoc.path.join({projectDir, v})
          end
       end
+      return projectDir
+   else
+      return nil
+   end 
+end
 
-      -- relative from final directory to working directory
-      local projRelFolder = pandoc.path.make_relative(wd, projectDir, false)
+-- Provides the project relative path to the current input
+-- if this render is in the context of a project
+function projectRelativeOutputFile()
+   -- the project directory
+   local projDir = projectDirectory()
+
+   -- the offset to the project
+   if projDir then
+      -- relative from project directory to working directory
+      local workingDir = pandoc.system.get_working_directory()
+      local projRelFolder = pandoc.path.make_relative(workingDir, projDir, false)
       
       -- add the file output name and normalize
       local projRelPath = pandoc.path.join({projRelFolder, PANDOC_STATE['output_file']})
@@ -1647,8 +1659,6 @@ function projectRelativeOutputFile()
       return nil
    end
 end
-
-
 
 -- Quarto internal module - makes functions available
 -- through the filters
@@ -1804,7 +1814,10 @@ quarto = {
       local hasBootstrap = param('has-bootstrap', false)
       return hasBootstrap
     end,
-    projectOutputFile = projectRelativeOutputFile
+    project_output_file = projectRelativeOutputFile
+  },
+  project = {
+   directory = projectDirectory
   },
   utils = {
    dump = utils.dump,
