@@ -301,7 +301,7 @@ end
 function transformString(str)
   if string.find(str, kOpenShortcode) then
     local inlines = markdownToInlines(str)
-    if inlines ~= nil then 
+    if inlines ~= nil and #inlines > 0 then 
       local mutatedTarget = transformShortcodeInlines(inlines)
       if mutatedTarget ~= nil then
         return inlinesToString(mutatedTarget)

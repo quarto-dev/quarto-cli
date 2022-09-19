@@ -23,7 +23,7 @@ pandoc.Pandoc = {}
 --[[
 Create a complete pandoc document
 ]]
----@param blocks table|pandoc.List Document content 
+---@param blocks pandoc.Block|pandoc.List Document content 
 ---@param meta? pandoc.Meta Meta information
 ---@return pandoc.Pandoc
 function pandoc.Pandoc(blocks, meta) end

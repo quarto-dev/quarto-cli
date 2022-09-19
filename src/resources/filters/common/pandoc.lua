@@ -71,7 +71,7 @@ function stringToInlines(str)
   if str then
     return pandoc.List({pandoc.Str(str)})
   else
-    return nil
+    return pandoc.List({})
   end
 end
 
@@ -81,7 +81,7 @@ function markdownToInlines(str)
     local doc = pandoc.read(str)
     return doc.blocks[1].content
   else
-    return nil
+    return pandoc.List()
   end
 end
 

@@ -154,6 +154,9 @@ function latexDivFigure(divEl)
     
     -- return the figure and caption
     local caption = refCaptionFromDiv(divEl)
+    if not caption then
+      caption = pandoc.Inlines()
+    end
     return figureContent, caption.content
    
   end)
