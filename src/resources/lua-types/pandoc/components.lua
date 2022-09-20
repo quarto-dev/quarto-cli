@@ -44,7 +44,7 @@ function pandoc.Attr:clone() end
 The caption of a table, with an optional short caption.
 ]]
 ---@class pandoc.Caption
----@field long pandoc.List[] Long caption (List of list of blocks) 
+---@field long pandoc.List Long caption (List of blocks) 
 ---@field short pandoc.List Short caption (List of inlines)
 pandoc.Caption = {}
 

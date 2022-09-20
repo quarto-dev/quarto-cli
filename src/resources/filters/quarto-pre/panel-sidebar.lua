@@ -50,7 +50,7 @@ function panelSidebar()
         -- locate and arrange sidebars until there are none left
         local sidebar, sidebarIdx = blocks:find_if(isSidebar)
        
-        while sidebar ~= nil do
+        while sidebar ~= nil and sidebarIdx ~= nil do
 
           -- always transfer sidebar attributes to sidebar
           transferAttr(sidebarAttr, sidebar.attr)
@@ -74,7 +74,7 @@ function panelSidebar()
           else
             -- look forward for a header
             local header, headerIdx = blocks:find_if(isHeader, sidebarIdx)
-            if header and (headerIdx ~= (sidebarIdx + 1)) then
+            if header and headerIdx and (headerIdx ~= (sidebarIdx + 1)) then
               local panelBlocks = pandoc.List()
               for i = sidebarIdx + 1, headerIdx - 1, 1 do
                 panelBlocks:insert(blocks:remove(sidebarIdx + 1))
@@ -87,6 +87,7 @@ function panelSidebar()
               )
             else
               -- look backwards for a header 
+              
               headerIdx = nil
               for i = sidebarIdx - 1, 1, -1 do
                 if isHeader(blocks[i]) then

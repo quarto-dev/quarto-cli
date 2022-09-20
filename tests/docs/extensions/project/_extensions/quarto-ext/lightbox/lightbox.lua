@@ -36,6 +36,7 @@ return {
       local lbMeta = meta.lightbox
       if lbMeta ~= nil and type(lbMeta) == 'table' then
         if lbMeta[1] ~= nil then
+          lbMeta = lbMeta --[[@as any]]
           if lbMeta[1].text == "auto" then
             auto = true
           end

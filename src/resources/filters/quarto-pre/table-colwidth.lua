@@ -106,9 +106,9 @@ function tableColwidth()
       -- see if we have a tbl-colwidths attribute
       local tblColwidths = nil
       if tbl.caption.long ~= nil and #tbl.caption.long > 0 then
-        local caption = tbl.caption.long[#tbl.caption.long]
-       
-        local tblCaption, attr = parseTableCaption(caption.content)
+        local caption =  tbl.caption.long[#tbl.caption.long]
+        
+        local tblCaption, attr = parseTableCaption(pandoc.utils.blocks_to_inlines({caption}))
         tblColwidths = attr.attributes[kTblColwidths]
         if tblColwidths ~= nil then
           attr.attributes[kTblColwidths] = nil
@@ -125,9 +125,9 @@ function tableColwidth()
       -- realize values and apply them
       local colwidthValues = tblColwidthValues(tbl, tblColwidths)
       if colwidthValues ~= nil then
-        tbl = pandoc.utils.to_simple_table(tbl)
-        tbl.widths = colwidthValues
-        return pandoc.utils.from_simple_table(tbl)
+        local simpleTbl = pandoc.utils.to_simple_table(tbl)
+        simpleTbl.widths = colwidthValues
+        return pandoc.utils.from_simple_table(simpleTbl)
       end
     end
   }

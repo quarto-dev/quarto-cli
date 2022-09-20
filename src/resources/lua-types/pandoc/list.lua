@@ -44,7 +44,7 @@ Returns the value and index of the first element for which the predicate holds t
 ]]
 ---@param pred fun(x: any): boolean # Condition items must satisfy
 ---@param init? integer (Optional) Index at which the search is started
----@return any|nil # First item for which `pred` succeeds, or `nil` if no such item exists.
+---@return any|nil,integer|nil # First item for which `pred` succeeds, or `nil` if no such item exists.
 function pandoc.List:find_if(pred, init) end
 
 
