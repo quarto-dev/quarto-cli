@@ -16,5 +16,6 @@
   },
   "Lua.runtime.version": "Lua 5.3",
   "Lua.workspace.checkThirdParty": false,
-  "Lua.workspace.library": ["src/resources/lua-types"]
+  "Lua.workspace.library": ["src/resources/lua-types"],
+  "Lua.runtime.plugin": "src/resources/lua-types/plugin.lua"
 }
