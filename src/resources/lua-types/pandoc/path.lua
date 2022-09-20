@@ -1,6 +1,7 @@
 ---@meta
 
 ---@module 'pandoc.path'
+pandoc.path = {}
 
 --[[
 The character that separates directories.
@@ -106,3 +107,6 @@ Windows path elements are stripped of quotes.
 ---@param search_path string Platform-specific search path
 ---@return table # List of directories in search path
 function pandoc.path.split_search_path(search_path) end
+
+
+return pandoc.path

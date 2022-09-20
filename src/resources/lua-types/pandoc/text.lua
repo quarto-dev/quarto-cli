@@ -15,6 +15,7 @@ end
 ```
 ]]
 ---@module 'pandoc.text'
+pandoc.text = {}
 
 --[[
 Returns a copy of a UTF-8 string, converted to lowercase.
@@ -56,3 +57,4 @@ function pandoc.text.sub(s, first, last) end
 
 
 
+return pandoc.text

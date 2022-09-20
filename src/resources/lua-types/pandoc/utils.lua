@@ -1,6 +1,7 @@
 ---@meta
 
 ---@module 'pandoc.utils'
+pandoc.utils = {}
 
 --[[
 Squash a list of blocks into a list of inlines.
@@ -219,3 +220,6 @@ Usage:
 ---@param value any Any Lua value
 ---@return string # Type of the given value
 function pandoc.utils.type(value) end
+
+
+return pandoc.utils
