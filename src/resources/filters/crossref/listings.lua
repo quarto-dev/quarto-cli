@@ -8,6 +8,7 @@ kLstCap = "lst-cap"
 function listings()
   
   return {
+    ---@param el pandoc.CodeBlock
     CodeBlock = function(el)
       local label = string.match(el.attr.identifier, "^lst%-[^ ]+$")
       local caption = el.attr.attributes[kLstCap]

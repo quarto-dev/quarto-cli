@@ -4,6 +4,7 @@
 function responsive() 
   return {
     -- make images responsive (unless they have an explicit height attribute)
+    ---@param image pandoc.Image
     Image = function(image)
       if _quarto.format.isHtmlOutput() and param('fig-responsive', false) then
         if not image.attr.attributes["height"] and not image.attr.attributes["data-no-responsive"] then

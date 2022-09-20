@@ -92,6 +92,7 @@ end
 -- filter to write the index
 function writeIndex()
   return {
+    ---@param doc pandoc.Pandoc
     Pandoc = function(doc)
       local indexFile = param("crossref-index-file")
       if indexFile ~= nil then

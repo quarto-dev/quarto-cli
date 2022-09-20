@@ -7,6 +7,7 @@ function callout()
   return {
   
     -- Insert paragraphs between consecutive callouts or tables for docx
+    ---@param blocks pandoc.Blocks
     Blocks = function(blocks)
       if _quarto.format.isDocxOutput() then
         local lastWasCallout = false
@@ -54,7 +55,9 @@ function callout()
     end,
 
     -- Convert callout Divs into the appropriate element for this format
+    ---@param div pandoc.Div
     Div = function(div)
+      div = div --[[@as pandoc.Div]]
       if div.attr.classes:find_if(isCallout) then
         preState.hasCallouts = true
         if _quarto.format.isHtmlOutput() and hasBootstrap() then
@@ -94,9 +97,11 @@ end
 function isCodeCellTable(el) 
   local isTable = false
   pandoc.walk_block(el, {
+    ---@param div pandoc.Div
     Div = function(div) 
       if div.attr.classes:find_if(isCodeCellDisplay) then
         pandoc.walk_block(div, {
+          ---@param tbl pandoc.Table
           Table = function(tbl)
             isTable = true
           end

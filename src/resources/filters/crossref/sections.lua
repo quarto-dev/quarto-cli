@@ -4,6 +4,7 @@
 function sections()
   
   return {
+    ---@param el pandoc.Header
     Header = function(el)
       
       -- index the heading

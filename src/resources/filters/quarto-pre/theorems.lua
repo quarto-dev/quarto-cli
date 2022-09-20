@@ -5,6 +5,7 @@
 function theorems() 
   
   return {
+    ---@param el pandoc.Div
     Div = function(el)
       if hasTheoremRef(el) then
         local capEl = el.content[1]

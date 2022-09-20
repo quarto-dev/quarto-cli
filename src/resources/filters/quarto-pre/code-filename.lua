@@ -22,8 +22,9 @@ end
 
 function codeFilename() 
   return {
+    ---@param blocks pandoc.Blocks
     Blocks = function(blocks)
-  
+    
       -- transform ast for 'filename'
       local foundFilename = false
       local newBlocks = pandoc.List()

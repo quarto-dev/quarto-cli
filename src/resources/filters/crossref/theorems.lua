@@ -5,10 +5,12 @@
 function preprocessTheorems()
   local types = theoremTypes
   return {
+    ---@param el pandoc.Div
     Div = function(el)
       local type = refType(el.attr.identifier)
       if types[type] ~= nil or proofType(el) ~= nil then
         return pandoc.walk_block(el, {
+          ---@param el pandoc.Header
           Header = function(el)
             el.classes:insert("unnumbered")
             return el
@@ -25,6 +27,7 @@ function theorems()
   local types = theoremTypes
 
   return {
+    ---@param el pandoc.Div
     Div = function(el)
 
       local type = refType(el.attr.identifier)

@@ -6,6 +6,7 @@ local tabsetidx = 1
 function panelTabset() 
   return {
     -- tabsets and callouts
+    ---@param div pandoc.Div
     Div = function(div)
       if div.attr.classes:find("panel-tabset") then
         if hasBootstrap() then

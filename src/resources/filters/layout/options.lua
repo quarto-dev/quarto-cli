@@ -6,6 +6,7 @@ local allOptions = {}
 -- initialize options from 'crossref' metadata value
 function initOptions()
   return {
+    ---@param meta pandoc.Meta
     Meta = function(meta)
       if meta ~= nil then
         allOptions = readMetaOptions(meta)

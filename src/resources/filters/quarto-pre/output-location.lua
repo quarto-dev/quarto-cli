@@ -55,6 +55,7 @@ end
 function outputLocation()
   if _quarto.format.isRevealJsOutput() then
     return {
+      ---@param blocks pandoc.Blocks
       Blocks = function(blocks)
         local newBlocks = pandoc.List()
         for _,block in pairs(blocks) do

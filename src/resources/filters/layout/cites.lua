@@ -15,6 +15,7 @@ function citesPreprocess()
       end
     end,
 
+    ---@param para pandoc.Para
     Para = function(para)
       local figure = discoverFigure(para, true)
       if figure and _quarto.format.isLatexOutput() and hasFigureRef(figure) then
@@ -40,6 +41,7 @@ function citesPreprocess()
       end
     end,
 
+    ---@param div pandoc.Div
     Div = function(div)
       if _quarto.format.isLatexOutput() and hasMarginColumn(div) or marginCitations() then
         if hasTableRef(div) then 

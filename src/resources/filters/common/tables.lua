@@ -116,9 +116,11 @@ end
 function countTables(div)
   local tables = 0
   pandoc.walk_block(div, {
+    ---@param table pandoc.Table
     Table = function(table)
       tables = tables + 1
     end,
+    ---@param raw pandoc.RawBlock
     RawBlock = function(raw)
       if hasTable(raw) then
         tables = tables + 1

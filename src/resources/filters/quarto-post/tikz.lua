@@ -4,6 +4,7 @@
 function tikz()
   if _quarto.format.isLatexOutput() then
     return {
+      ---@param image pandoc.Image
       Image = function(image)
         if latexIsTikzImage(image) then
           return latexFigureInline(image, postState)

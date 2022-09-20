@@ -4,6 +4,7 @@
 function panelInput() 
 
   return {
+    ---@param el pandoc.Div
     Div = function(el)
       if hasBootstrap() and el.attr.classes:find("panel-input") then
         tappend(el.attr.classes, {

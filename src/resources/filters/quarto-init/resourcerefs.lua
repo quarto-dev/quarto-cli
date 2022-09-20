@@ -4,6 +4,7 @@
 function resourceRefs() 
   
   return {
+    ---@param el pandoc.Image
     Image = function(el)
       local file = currentFileMetadataState().file
       if file ~= nil and file.resourceDir ~= nil then

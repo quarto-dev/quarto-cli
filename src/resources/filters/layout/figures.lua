@@ -5,6 +5,7 @@
 function extendedFigures() 
   return {
     
+    ---@param el pandoc.Para
     Para = function(el)
       local image = discoverFigure(el, false)
       if image and shouldHandleExtendedImage(image) then
@@ -18,6 +19,7 @@ function extendedFigures()
       end
     end,
     
+    ---@param el pandoc.Div
     Div = function(el)
       if isFigureDiv(el) and shouldHandleExtended(el) then
         if _quarto.format.isLatexOutput() then

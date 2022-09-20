@@ -4,6 +4,7 @@
 -- process all figures
 function figures()
   return {
+    ---@param el pandoc.Div
     Div = function(el)
       if isFigureDiv(el) and isReferenceableFig(el) then
         local caption = refCaptionFromDiv(el)
@@ -14,6 +15,7 @@ function figures()
       return el
     end,
 
+    ---@param el pandoc.Para
     Para = function(el)
       local image = discoverFigure(el)
       if image and isFigureImage(image) then

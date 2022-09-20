@@ -6,6 +6,7 @@ function indexBookFileTargets()
       return {} 
     else 
       return {
+        ---@param el pandoc.Header
         Header = function(el)
         if el.level == 1 then 
           local file = currentFileMetadataState().file
@@ -27,6 +28,7 @@ function resolveBookFileTargets()
   else
     return {
       Link = function(el)
+        el = el --[[@as pandoc.Link]]
         local linkTarget = el.target
         -- if this is a local path
         if isRelativeRef(linkTarget) then

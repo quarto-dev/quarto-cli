@@ -6,6 +6,7 @@ function ipynb()
   if FORMAT == "ipynb" then
     return {
 
+      ---@param doc pandoc.Pandoc
       Pandoc = function(doc)
 
         -- pandoc doesn'tx handle front matter title/author/date when creating ipynb
@@ -25,6 +26,7 @@ function ipynb()
         
       end,
 
+      ---@param el pandoc.Div
       Div = function(el)
         if el.attr.classes:includes('cell') then
           el.attr.classes:insert('code')
@@ -48,6 +50,7 @@ function ipynb()
         return el
       end,
     
+      ---@param el pandoc.CodeBlock
       CodeBlock = function(el)
         if (el.attr.classes:includes('cell-code')) then
           el.attr.classes = removeClass(el.attr.classes, 'cell-code')
@@ -57,6 +60,7 @@ function ipynb()
       -- note that this also catches raw blocks inside display_data 
       -- but pandoc seems to ignore the .cell .raw envelope in this
       -- case and correctly produce text/html cell output
+      ---@param el pandoc.RawBlock
       RawBlock = function(el)
         local rawDiv = pandoc.Div(
           { el }, 

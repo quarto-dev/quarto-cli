@@ -4,6 +4,7 @@
 -- initialize options from 'crossref' metadata value
 function initCrossrefOptions()
   return {
+    ---@param meta pandoc.Meta
     Meta = function(meta)
       crossref.options = readFilterOptions(meta, "crossref")
 

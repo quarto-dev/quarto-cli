@@ -177,10 +177,12 @@ function ojs()
 
   if (param("ojs", false)) then
     return {
+      ---@param inlines pandoc.Inlines
       Inlines = function (inlines)
         return inlines_rec(inlines)
       end,
       
+      ---@param doc pandoc.Pandoc
       Pandoc = function(doc)
         if uid > 0 then
           doc.blocks:insert(pandoc.RawBlock("html", "<script type='ojs-module-contents'>"))

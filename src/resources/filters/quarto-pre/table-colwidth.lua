@@ -79,12 +79,14 @@ end
 -- propagate cell level tbl-colwidths to tables
 function tableColwidthCell() 
   return {
+    ---@param el pandoc.Div
     Div = function(el)
       if tcontains(el.attr.classes, "cell") then
         local tblColwidths = el.attr.attributes[kTblColwidths]
         el.attr.attributes[kTblColwidths] = nil
         if tblColwidths ~= nil then
           return pandoc.walk_block(el, {
+            ---@param tbl pandoc.Table
             Table = function(tbl)
               tbl.attr.attributes[kTblColwidths] = tblColwidths
               return tbl
@@ -106,7 +108,7 @@ function tableColwidth()
       -- see if we have a tbl-colwidths attribute
       local tblColwidths = nil
       if tbl.caption.long ~= nil and #tbl.caption.long > 0 then
-        local caption = tbl.caption.long[#tbl.caption.long]
+        local caption = tbl.caption.long[#tbl.caption.long] 
        
         local tblCaption, attr = parseTableCaption(caption.content)
         tblColwidths = attr.attributes[kTblColwidths]

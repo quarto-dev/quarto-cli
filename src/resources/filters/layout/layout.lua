@@ -50,6 +50,7 @@ import("../common/log.lua")
 function layoutPanels()
 
   return {
+    ---@param el pandoc.Div
     Div = function(el)
       if requiresPanelLayout(el) then
         

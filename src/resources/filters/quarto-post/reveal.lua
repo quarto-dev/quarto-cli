@@ -18,6 +18,7 @@ function reveal()
   end
 end
 
+---@param el pandoc.Div|pandoc.Span|pandoc.Image
 function applyPosition(el)
   if el.attr.classes:includes("absolute") then
     -- translate position attributes into style

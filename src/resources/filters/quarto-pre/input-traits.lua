@@ -9,6 +9,7 @@ end
 local kPositionedRefs = 'positioned-refs'
 function inputTraits() 
   return {
+    ---@param el pandoc.Div
     Div = function(el) 
       local hasPositionedRefs = el.attr.identifier == 'refs'
       if (hasPositionedRefs) then

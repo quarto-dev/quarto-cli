@@ -50,7 +50,7 @@ Usage:
       Str = function (_) return 'Bye' end,
     }
 ]]
----@param lua_filter table<string,function> Map of filter functions
+---@param lua_filter pandoc.LuaFilter Map of filter functions
 ---@return pandoc.Pandoc # Filtered document
 function pandoc.Pandoc.walk(lua_filter) end
 

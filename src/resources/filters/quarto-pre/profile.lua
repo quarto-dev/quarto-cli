@@ -31,6 +31,7 @@ function configProfile()
 
   return {
 
+    ---@param el pandoc.Div
     Div = function(el)
       if hasProfileAttributes(el) then
         local matches = matchesProfile(el)
@@ -45,6 +46,7 @@ function configProfile()
       end
     end,
 
+    ---@param el pandoc.Span
     Span = function(el)
       if hasProfileAttributes(el) then
         local matches = matchesProfile(el)

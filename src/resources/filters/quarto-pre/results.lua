@@ -14,6 +14,7 @@ end
 -- write results
 function writeResults()
   return {
+    ---@param doc pandoc.Pandoc
     Pandoc = function(doc)
       if os.getenv("QUARTO_PROFILER_OUTPUT") ~= nil then
         local jsonResults = quarto.json.encode(preState.results)

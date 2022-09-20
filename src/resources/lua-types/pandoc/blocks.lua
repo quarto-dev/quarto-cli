@@ -14,7 +14,7 @@ function pandoc.Block:clone() end
 --[[
 Apply a Lua filter
 ]]
----@param lua_filter table<string,function> Map of filter functions
+---@param lua_filter pandoc.LuaFilter Map of filter functions
 ---@return pandoc.Block 
 function pandoc.Block:walk(lua_filter) end
 
@@ -64,7 +64,7 @@ function pandoc.BlockQuote:clone() end
 --[[
 Apply a Lua filter
 ]]
----@param lua_filter table<string,function> Map of filter functions
+---@param lua_filter pandoc.LuaFilter Map of filter functions
 ---@return pandoc.BlockQuote 
 function pandoc.BlockQuote:walk(lua_filter) end
 
@@ -95,7 +95,7 @@ function pandoc.BulletList:clone() end
 --[[
 Apply a Lua filter
 ]]
----@param lua_filter table<string,function> Map of filter functions
+---@param lua_filter pandoc.LuaFilter Map of filter functions
 ---@return pandoc.BulletList 
 function pandoc.BulletList:walk(lua_filter) end
 
@@ -131,7 +131,7 @@ function pandoc.CodeBlock:clone() end
 --[[
 Apply a Lua filter
 ]]
----@param lua_filter table<string,function> Map of filter functions
+---@param lua_filter pandoc.LuaFilter Map of filter functions
 ---@return pandoc.CodeBlock 
 function pandoc.CodeBlock:walk(lua_filter) end
 
@@ -162,7 +162,7 @@ function pandoc.DefinitionList:clone() end
 --[[
 Apply a Lua filter
 ]]
----@param lua_filter table<string,function> Map of filter functions
+---@param lua_filter pandoc.LuaFilter Map of filter functions
 ---@return pandoc.DefinitionList 
 function pandoc.DefinitionList:walk(lua_filter) end
 
@@ -198,7 +198,7 @@ function pandoc.Div:clone() end
 --[[
 Apply a Lua filter
 ]]
----@param lua_filter table<string,function> Map of filter functions
+---@param lua_filter pandoc.LuaFilter Map of filter functions
 ---@return pandoc.Div 
 function pandoc.Div:walk(lua_filter) end
 
@@ -237,7 +237,7 @@ function pandoc.Header:clone() end
 --[[
 Apply a Lua filter
 ]]
----@param lua_filter table<string,function> Map of filter functions
+---@param lua_filter pandoc.LuaFilter Map of filter functions
 ---@return pandoc.Header 
 function pandoc.Header:walk(lua_filter) end
 
@@ -267,7 +267,7 @@ function pandoc.HorizontalRule:clone() end
 --[[
 Apply a Lua filter
 ]]
----@param lua_filter table<string,function> Map of filter functions
+---@param lua_filter pandoc.LuaFilter Map of filter functions
 ---@return pandoc.HorizontalRule 
 function pandoc.HorizontalRule:walk(lua_filter) end
 
@@ -299,7 +299,7 @@ function pandoc.LineBlock:clone() end
 --[[
 Apply a Lua filter
 ]]
----@param lua_filter table<string,function> Map of filter functions
+---@param lua_filter pandoc.LuaFilter Map of filter functions
 ---@return pandoc.LineBlock 
 function pandoc.LineBlock:walk(lua_filter) end
 
@@ -330,7 +330,7 @@ function pandoc.Null:clone() end
 --[[
 Apply a Lua filter
 ]]
----@param lua_filter table<string,function> Map of filter functions
+---@param lua_filter pandoc.LuaFilter Map of filter functions
 ---@return pandoc.Null 
 function pandoc.Null:walk(lua_filter) end
 
@@ -367,7 +367,7 @@ function pandoc.OrderedList:clone() end
 --[[
 Apply a Lua filter
 ]]
----@param lua_filter table<string,function> Map of filter functions
+---@param lua_filter pandoc.LuaFilter Map of filter functions
 ---@return pandoc.OrderedList 
 function pandoc.OrderedList:walk(lua_filter) end
 
@@ -400,7 +400,7 @@ function pandoc.Para:clone() end
 --[[
 Apply a Lua filter
 ]]
----@param lua_filter table<string,function> Map of filter functions
+---@param lua_filter pandoc.LuaFilter Map of filter functions
 ---@return pandoc.Para 
 function pandoc.Para:walk(lua_filter) end
 
@@ -431,7 +431,7 @@ function pandoc.Plain:clone() end
 --[[
 Apply a Lua filter
 ]]
----@param lua_filter table<string,function> Map of filter functions
+---@param lua_filter pandoc.LuaFilter Map of filter functions
 ---@return pandoc.Plain 
 function pandoc.Plain:walk(lua_filter) end
 
@@ -465,7 +465,7 @@ function pandoc.RawBlock:clone() end
 --[[
 Apply a Lua filter
 ]]
----@param lua_filter table<string,function> Map of filter functions
+---@param lua_filter pandoc.LuaFilter Map of filter functions
 ---@return pandoc.RawBlock 
 function pandoc.RawBlock:walk(lua_filter) end
 
@@ -513,6 +513,6 @@ function pandoc.Table:clone() end
 --[[
 Apply a Lua filter
 ]]
----@param lua_filter table<string,function> Map of filter functions
+---@param lua_filter pandoc.LuaFilter Map of filter functions
 ---@return pandoc.Table 
 function pandoc.Table:walk(lua_filter) end

@@ -9,6 +9,7 @@ function contentHidden()
   }
 end
 
+---@param el pandoc.Div
 function handleHiddenVisible(el)
   if el.attr.classes:find("content-visible") then
     return handleVisible(el)

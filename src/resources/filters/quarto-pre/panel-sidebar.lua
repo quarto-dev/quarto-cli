@@ -3,6 +3,7 @@
 
 function panelSidebar() 
   return {
+    ---@param blocks pandoc.List
     Blocks = function(blocks)
       if hasBootstrap() or _quarto.format.isRevealJsOutput() then
 
@@ -50,7 +51,7 @@ function panelSidebar()
         -- locate and arrange sidebars until there are none left
         local sidebar, sidebarIdx = blocks:find_if(isSidebar)
        
-        while sidebar ~= nil do
+        while sidebar ~= nil and sidebarIdx ~= nil do
 
           -- always transfer sidebar attributes to sidebar
           transferAttr(sidebarAttr, sidebar.attr)

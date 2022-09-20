@@ -4,6 +4,7 @@
 -- inject metadata
 function quartoPreMetaInject()
   return {
+    ---@param meta pandoc.Meta
     Meta = function(meta)
 
       -- injection awesomebox for captions, if needed

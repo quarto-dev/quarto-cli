@@ -3,6 +3,7 @@
 
 function foldCode()
   return {
+    ---@param block pandoc.CodeBlock
     CodeBlock = function(block)
       if _quarto.format.isHtmlOutput() or _quarto.format.isMarkdownWithHtmlOutput() then
         if block.attr.classes:includes("cell-code") then

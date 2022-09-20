@@ -14,6 +14,7 @@ function includePaths()
       return el
     end,
 
+    ---@param el pandoc.Image
     Image = function(el)
       local file = currentFileMetadataState().file
       if file ~= nil and file.include_directory ~= nil then 

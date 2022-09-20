@@ -4,6 +4,7 @@
 function panelLayout() 
 
   return {
+    ---@param el pandoc.Div
     Div = function(el)
       if (hasBootstrap() and el.t == "Div") then
         local fill = el.attr.classes:find("panel-fill")
