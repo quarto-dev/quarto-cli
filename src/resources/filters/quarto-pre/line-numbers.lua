@@ -4,7 +4,6 @@
 
 function lineNumbers()
   return {
-    ---@param el pandoc.CodeBlock
     CodeBlock = function(el)
       if #el.attr.classes > 0 then
         local lineNumbers = lineNumbersAttribute(el)

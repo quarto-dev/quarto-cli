@@ -9,7 +9,6 @@ function qmd()
   if isQmdInput() then
     return {
       -- for qmd, look for label: and fig-cap: inside code block text
-      ---@param el pandoc.CodeBlock
       CodeBlock = function(el)
         local label = el.text:match("|%slabel:%s(%a+%-[^\n]+)\n")
         if label ~= nil and (isFigureRef(label) or isTableRef(label)) then

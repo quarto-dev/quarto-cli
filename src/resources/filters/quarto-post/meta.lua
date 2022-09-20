@@ -4,7 +4,6 @@
 -- inject metadata
 function quartoPostMetaInject()
   return {
-    ---@param meta pandoc.Meta
     Meta = function(meta)
       metaInjectLatex(meta, function(inject)
         if postState.usingTikz then

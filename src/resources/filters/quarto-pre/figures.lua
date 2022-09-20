@@ -6,7 +6,6 @@ function figures()
   
   return {
    
-    ---@param el pandoc.Div
     Div = function(el)
       
       -- propagate fig-cap on figure div to figure caption 
@@ -23,7 +22,6 @@ function figures()
     end,
     
     -- create figure divs from linked figures
-    ---@param el pandoc.Para
     Para = function(el)
       
       -- create figure div if there is a tikz image
@@ -40,7 +38,6 @@ function figures()
 
     end,
 
-    ---@param image pandoc.Image
     Image = function(image)
       -- propagate fig-alt
       if _quarto.format.isHtmlOutput() then

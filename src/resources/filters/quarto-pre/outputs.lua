@@ -3,7 +3,6 @@
 function outputs()
   return {
     -- unroll output divs for formats (like pptx) that don't support them
-    ---@param div pandoc.Div
     Div = function(div)
 
       -- if we don't support output divs then we need to unroll them

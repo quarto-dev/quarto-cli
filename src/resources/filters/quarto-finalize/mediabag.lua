@@ -6,7 +6,6 @@ function mediabag()
     -- mediabag entries need to be re-routed to the filesystem
     -- if this isn't an office doc (as those formats automatically
     -- scoop up mediabag files)
-    ---@param el pandoc.Image
     Image = function(el)
       if not _quarto.format.isWordProcessorOutput() and
          not _quarto.format.isPowerPointOutput() then

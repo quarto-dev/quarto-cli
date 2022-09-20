@@ -10,7 +10,6 @@ function tableCaptions()
   
   return {
    
-    ---@param el pandoc.Div
     Div = function(el)
       if tcontains(el.attr.classes, "cell") then
         -- extract table attributes
@@ -27,7 +26,6 @@ function tableCaptions()
               -- a \begin{table} wrapper -- put the wrapper in here if need be
               if _quarto.format.isLatexOutput() then
                 el = pandoc.walk_block(el, {
-                  ---@param raw pandoc.RawBlock
                   RawBlock = function(raw)
                     if _quarto.format.isRawLatex(raw) then
                       if raw.text:match(_quarto.patterns.latexTabularPattern) and not raw.text:match(_quarto.patterns.latexTablePattern) then
@@ -132,10 +130,9 @@ end
 function applyTableCaptions(el, tblCaptions, tblLabels)
   local idx = 1
   return pandoc.walk_block(el, {
-    ---@param tbl pandoc.Table
-    Table = function(tbl)
+    Table = function(table)
       if idx <= #tblLabels then
-        local table = pandoc.utils.to_simple_table(tbl)
+        table = pandoc.utils.to_simple_table(table)
         if #tblCaptions[idx] > 0 then
           table.caption = pandoc.List()
           tappend(table.caption, tblCaptions[idx])
@@ -153,7 +150,6 @@ function applyTableCaptions(el, tblCaptions, tblLabels)
         return pandoc.utils.from_simple_table(table)
       end
     end,
-    ---@param raw pandoc.RawBlock
     RawBlock = function(raw)
       if idx <= #tblLabels then
         -- (1) if there is no caption at all then populate it from tblCaptions[idx]

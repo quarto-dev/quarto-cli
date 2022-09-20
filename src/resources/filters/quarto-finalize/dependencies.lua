@@ -5,7 +5,6 @@
 
 function dependencies()
   return {
-    ---@param meta pandoc.Meta
     Meta = function(meta) 
       -- Process the final dependencies into metadata
       -- and the file responses

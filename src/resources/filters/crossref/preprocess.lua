@@ -7,12 +7,10 @@ function preprocess()
   
   return {
 
-    ---@param el pandoc.Header
     Header = function(el)
       crossref.maxHeading = math.min(crossref.maxHeading, el.level)
     end,
 
-    ---@param doc pandoc.Pandoc
     Pandoc = function(doc)
       
       -- initialize autolabels table
@@ -21,7 +19,6 @@ function preprocess()
       local walkRefs
       walkRefs = function(parentId)
         return {
-          ---@param el pandoc.Div
           Div = function(el)
             if hasFigureOrTableRef(el) then
               
@@ -46,17 +43,14 @@ function preprocess()
             return el
           end,
 
-          ---@param el pandoc.Table
           Table = function(el)
             return preprocessTable(el, parentId)
           end,
           
-          ---@param el pandoc.RawBlock
           RawBlock = function(el)
             return preprocessRawTableBlock(el, parentId)
           end,
 
-          ---@param el pandoc.Para
           Para = function(el)
             
             -- provide error caption if there is none

@@ -3,7 +3,6 @@
 
 function metaCleanup()
   return {
-    ---@param meta pandoc.Meta
     Meta = function(meta)
       if _quarto.format.isAstOutput() then
         removeAllEmptyIncludes(meta)

@@ -5,8 +5,8 @@ local kEngineEscapePattern = "{({+([^}]+)}+)}"
 
 function engineEscape()
   return {
-    ---@param el pandoc.CodeBlock
     CodeBlock = function(el)
+
       -- handle code block with 'escaped' language engine
       if #el.attr.classes == 1 then
         local engine, lang = el.attr.classes[1]:match(kEngineEscapePattern)

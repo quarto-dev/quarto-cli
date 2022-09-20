@@ -6,7 +6,6 @@
 -- we can create a hyperef target for latex)
 function tables()
   return {
-    ---@param el pandoc.Div
     Div = function(el)
       if isTableDiv(el) and isReferenceableTbl(el) then
         

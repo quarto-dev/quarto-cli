@@ -19,7 +19,6 @@ end
 -- but for non-HTML output, we fix these here.
 function projectPaths()
   return {
-    ---@param el pandoc.Image
     Image = function(el)
       if el.attr.attributes[kProjectResolverIgnore] then
         el.attr.attributes[kProjectResolverIgnore] = ''

@@ -8,14 +8,12 @@ function columns()
   
   return {
 
-    ---@param el pandoc.Div
     Div = function(el)  
       -- for any top level divs, render then
       renderDivColumn(el)
       return el      
     end,
 
-    ---@param el pandoc.Span
     Span = function(el)
       -- a span that should be placed in the margin
       if _quarto.format.isLatexOutput() and hasMarginColumn(el) then 
@@ -36,7 +34,6 @@ function columns()
       end
     end,
 
-    ---@param el pandoc.RawBlock
     RawBlock = function(el) 
       -- Implements support for raw <aside> tags and replaces them with
       -- our raw latex representation

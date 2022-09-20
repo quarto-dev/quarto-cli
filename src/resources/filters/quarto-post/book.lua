@@ -4,7 +4,6 @@
 -- inject metadata
 function quartoBook()
   return {
-    ---@param el pandoc.CodeBlock
     CodeBlock = function(el)
 
       -- If this is a title block cell, we should render it

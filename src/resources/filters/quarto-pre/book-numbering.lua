@@ -3,9 +3,7 @@
 
 function bookNumbering() 
   return {
-    ---@param el pandoc.Header
     Header = function(el)
-      el = el --[[@as pandoc.Header]]
       local file = currentFileMetadataState().file
       if file ~= nil then
         local bookItemType = file.bookItemType

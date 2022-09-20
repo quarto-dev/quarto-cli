@@ -4,7 +4,6 @@
 -- inject metadata
 function layoutMetaInject()
   return {
-    ---@param meta pandoc.Meta
     Meta = function(meta)
       
       -- inject caption, subfig, tikz

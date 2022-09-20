@@ -7,7 +7,6 @@
 function tableMergeRawHtml()
   if _quarto.format.isHtmlOutput() then
     return {
-      ---@param blocks pandoc.Blocks
       Blocks = function(blocks)
         local pendingRaw = ''
         local merged = pandoc.List()
@@ -43,7 +42,6 @@ end
 
 function tableRenderRawHtml() 
   return {
-    ---@param el pandoc.RawBlock
     RawBlock = function(el)
       if hasGtHtmlTable(el) then
         el.text = respecifyGtCSS(el.text)

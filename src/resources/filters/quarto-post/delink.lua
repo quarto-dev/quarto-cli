@@ -6,7 +6,6 @@ local kDelinkClass = 'delink'
 function delink() 
   return {
     -- Removes links from any divs marked with 'delink' class
-    ---@param div pandoc.Div
     Div = function(div)
       if _quarto.format.isHtmlOutput() and div.attr.classes:includes(kDelinkClass) then
 

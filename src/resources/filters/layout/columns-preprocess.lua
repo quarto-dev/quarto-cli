@@ -3,7 +3,6 @@
 
 function columnsPreprocess() 
   return {
-    ---@param el pandoc.Div
     Div = function(el)  
       
       if el.attr.classes:includes('cell') then      
@@ -16,7 +15,6 @@ function columnsPreprocess()
       return el      
     end,
 
-    ---@param el pandoc.Para
     Para = function(el)
       local figure = discoverFigure(el, false)
       if figure then

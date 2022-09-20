@@ -566,12 +566,11 @@ end
 
 function latexRemoveTableDelims(el)
   return pandoc.walk_block(el, {
-    ---@param rawEl pandoc.RawBlock
-    RawBlock = function(rawEl)
-      if _quarto.format.isRawLatex(rawEl) then
-        rawEl.text = rawEl.text:gsub("\\begin{table}[^\n]*\n", "")
-        rawEl.text = rawEl.text:gsub("\\end{table}[^\n]*\n?", "")
-        return rawEl
+    RawBlock = function(el)
+      if _quarto.format.isRawLatex(el) then
+        el.text = el.text:gsub("\\begin{table}[^\n]*\n", "")
+        el.text = el.text:gsub("\\end{table}[^\n]*\n?", "")
+        return el
       end
     end
   })

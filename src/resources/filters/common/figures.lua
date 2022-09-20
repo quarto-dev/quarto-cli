@@ -116,7 +116,6 @@ function createFigureDiv(paraEl, fig)
   -- if the image is a .tex file we need to tex \input 
   if latexIsTikzImage(fig) then
     paraEl = pandoc.walk_block(paraEl, {
-      ---@param image pandoc.Image
       Image = function(image)
         return latexFigureInline(image, preState)
       end

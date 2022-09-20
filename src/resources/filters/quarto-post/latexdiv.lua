@@ -8,7 +8,6 @@
 
 function latexDiv()
   return {
-    ---@param divEl pandoc.Div
     Div = function (divEl)
       -- look for 'latex' or 'data-latex' and at least 1 class
       local options = attribute(divEl, 'latex', attribute(divEl, 'data-latex'))

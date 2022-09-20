@@ -7,7 +7,6 @@ kIncludeInHeader = "include-in-header"
 
 function readIncludes()
   return {
-    ---@param meta pandoc.Meta
     Meta = function(meta)
       -- ensure all includes are meta lists
       ensureIncludes(meta, kHeaderIncludes)

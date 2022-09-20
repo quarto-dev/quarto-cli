@@ -26,7 +26,6 @@ import("../common/authors.lua")
 
 return {
   {
-    ---@param meta pandoc.Meta
     Meta = function(meta)
       return processAuthorMeta(meta)
     end
