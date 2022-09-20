@@ -32,7 +32,6 @@ end
 
 return {
   {
-    ---@param meta pandoc.Meta
     Meta = function(meta) 
       if quarto.doc.isFormat("pdf") then
 

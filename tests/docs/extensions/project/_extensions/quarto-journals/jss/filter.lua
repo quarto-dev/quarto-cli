@@ -11,7 +11,6 @@
 
 return {
   {
-    ---@param el pandoc.Span
     Span = function(el) 
       -- read the span contents and emit correct output
       local contentStr = pandoc.utils.stringify(el.content)
@@ -26,7 +25,6 @@ return {
         end
       end
     end,
-    ---@param meta pandoc.Meta
     Meta = function(meta) 
       -- Authors output in the template uses a special separator
       -- to join authors (including wrapping to a new line)

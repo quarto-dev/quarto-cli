@@ -51,7 +51,6 @@ return {
     -- the most is auto
     Link = function(linkEl)
       pandoc.walk_inline(linkEl, {
-        ---@param imageEl pandoc.Image
         Image = function(imageEl) 
           imagesWithinLinks[#imagesWithinLinks + 1] = imageEl
         end
@@ -59,7 +58,6 @@ return {
     end
   },
   {
-    ---@param imgEl pandoc.Image
   Image = function(imgEl)
     if quarto.doc.isFormat("html:js") then
       local isAlreadyLinked = imagesWithinLinks:includes(imgEl)
@@ -111,7 +109,6 @@ return {
       end
     end 
   end,
-  ---@param meta pandoc.Meta
   Meta = function(meta)
     -- If we discovered lightbox-able images
     -- we need to include the dependencies
