@@ -146,7 +146,7 @@ than or equal to 1583, but MS Word only accepts dates starting
 ]]
 ---@param date_string string Date to be normalized
 ---@return string|nil # A data string, nor `nil` when the converstion failed 
-function pandoc.utils.normalize_data(date_string) end
+function pandoc.utils.normalize_date(date_string) end
 
 
 --[[
