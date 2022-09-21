@@ -4,6 +4,8 @@
     "lowercase-global",
     "trailing-space"
   ],
+  "Lua.completion.showWord": "Disable",
+  "Lua.completion.keywordSnippet": "Both",
   "Lua.diagnostics.neededFileStatus": {
     "assign-type-mismatch": "Any",
     "cast-local-type": "Any",
