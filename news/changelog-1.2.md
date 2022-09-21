@@ -31,6 +31,7 @@
 - Include Pandoc `logging` Lua module from @wlupton
 - Improve path resolution of extensions
 - Add support for extensions that contribute revealjs-plugins
+- Fix issue loading extensions when the organization name is the same as the extension identifier
 
 ## Projects
 
