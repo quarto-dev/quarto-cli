@@ -59,6 +59,10 @@
 
 - Support code folding for markdown output when `raw_html` is supported.
 
+## Ipynb Format
+
+- Strip attributes from images when converting to `ipynb` (leaving the attributes caused problems w/ attachments in VS Code)
+
 ## AST Formats
 
 - Remove intermediate metadata for AST formats (`native` and `json`)
