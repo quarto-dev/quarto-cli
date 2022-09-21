@@ -127,7 +127,7 @@ export function test(test: TestDescriptor) {
       const log = join(wd, "test-out.json");
       await initializeLogger({
         log: log,
-        level: "DEBUG",
+        level: "INFO",
         format: "json-stream",
         quiet: true,
       });
