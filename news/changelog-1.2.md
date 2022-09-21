@@ -48,12 +48,18 @@
 - Improved detection of LaTeX caption regions (#2295)
 - Handle LaTeX error messages with no file output more gracefully (#2183)
 - Support cross reference-able figures with callouts
+- Allow cross references inside of a callout
+
+## Docx Format
+
+- Properly scale callout icons using DPI
 
 ## Revealjs Format
 
 - Update to Reveal v4.3.1 (+ commit e281b32) to fix presentation scaling/zoom issues.
 - Improved title slide that uses normalized author and affiliation schema
 - Introduce template partials for RevealJS. You may provide partials for `title-slide.html` or `toc-slide.html`.
+- Ensure that `output-location` works properly in fenced divs
 
 ## GFM Format
 
@@ -86,6 +92,10 @@
 - Don't discover resources within a site or book output directory
 - Enable use of custom HTML formats for websites
 - Automatically populate sidebar menu using `auto` option for contents
+- Properly handle `margin-header` and `margin-footer` files
+- Ensure that the `code-copy` button is functional even when margin content is present.
+- Add support for open graph image sizes
+- Prevent website content from shifting when page first loads
 
 ## Books
 
@@ -93,6 +103,7 @@
 - Don't display the book description in each chapter's title block
 - book YAML now accepts fields from csl-item schema (#2148, #2398)
 - book YAML now accepts date-format explicitly (#2148, #2398)
+- Books no longer require an `index.qmd` file in the chapter list. If not present, the first chapter will serve as the website home page.
 
 ## Preview
 
@@ -102,10 +113,20 @@
 
 - Handle CNAME file for `gh-pages` either without or without protocol prefix (e.g. https://)
 
+## Languages
+
+- Italian translation for Quarto UI text
+
+## Listing and Feeds
+
+- Fix escaping issue in RSS feed fields
+-
+
 ## Bibliographies and Citations
 
 - Support formats `bibtex`, `biblatex`, and `csljson`. When rendered to one of these formats any citations within the document will be rendered as the specified bibliography format.
 - Always add citeproc filter if `citeproc: true` is specified, even if there isn't a bibliography or references in the document (#2294)
+- Don't process citations twice when `citeproc` is specified (#2393)
 
 ## TinyTex
 
