@@ -71,7 +71,7 @@
                             "underline": false
         },
         "Operator": {
-            "text-color": "#007faa",
+            "text-color": "#00769e",
                 "background-color": null,
                     "bold": false,
                         "italic": false,
@@ -204,7 +204,7 @@
                             "underline": false
         },
         "SpecialChar": {
-            "text-color": "#007faa",
+            "text-color": "#00769e",
                 "background-color": null,
                     "bold": false,
                         "italic": false,
