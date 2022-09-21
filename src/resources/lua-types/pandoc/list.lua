@@ -131,3 +131,6 @@ Usage:
 ---@param lua_filter table<string,function> Map of filter functions
 ---@return pandoc.List # Filtered list
 function pandoc.List:walk(lua_filter) end
+
+
+return pandoc.List
