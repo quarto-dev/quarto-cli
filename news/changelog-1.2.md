@@ -157,3 +157,4 @@
 - Forward `--log-level` to Pandoc via `--trace`, `--verbose`, and `--quiet`
 - Disallow names with paths in command line option `--output` and YAML option `output-file` (#2440)
 - Add possible chrome process running error to the error message thrown when quarto fails to connect to chrome headless (#2499)
+- Only pass `pagetitle` metadata for HTML file output

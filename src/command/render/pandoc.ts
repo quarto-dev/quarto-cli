@@ -628,7 +628,7 @@ export async function runPandoc(
   const titlePrefix = allDefaults?.[kTitlePrefix];
 
   // provide default page title if necessary
-  if (!title && !pageTitle) {
+  if (!title && !pageTitle && isHtmlFileOutput(options.format.pandoc)) {
     const [_dir, stem] = dirAndStem(options.source);
     args.push(
       "--metadata",
