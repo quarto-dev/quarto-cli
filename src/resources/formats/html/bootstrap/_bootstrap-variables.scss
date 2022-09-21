@@ -1,6 +1,3 @@
-// Font size for navigational elements
-$toc-font-size: 0.875rem !default;
-
 /* Code Block Formatting */
 // Code Block Border Treatment
 $code-block-border-left: false !default;
@@ -21,6 +18,17 @@ $code-block-theme-dark-threshhold: 40% !default;
 /* Inline Code Formatting */
 // $code-bg, $code-color, $code-padding
 $code-color: #9954bb !default;
+
+$blue: #0d6efd !default;
+$primary: $blue !default;
+$link-color: $primary !default;
+$gray-200: #e9ecef !default;
+
+// toc variables
+$toc-color: $link-color !default;
+$toc-font-size: 0.875rem !default;
+$toc-active-border: $toc-color !default;
+$toc-inactive-border: $gray-200 !default;
 
 /* Callout customization */
 // Formatting
