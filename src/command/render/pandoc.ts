@@ -193,7 +193,6 @@ export async function runPandoc(
   // propagate debug
   if (logLevel() === "DEBUG") {
     args.push("--verbose");
-    args.push("--trace");
   }
 
   // propagate quiet
