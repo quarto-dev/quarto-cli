@@ -446,18 +446,21 @@ export function discoverExtensionPath(
     // The `_extensions` directory
     const extDir = join(dir, kExtensionDir);
 
-    // Find the matching extension for this name
-    const paths = resolvePathGlobs(extDir, globs, [], { mode: "strict" });
+    // Find the matching extension for this name (ensuring that an _extension.yml file is present)
+    const paths = resolvePathGlobs(extDir, globs, [], { mode: "strict" })
+      .include.filter((path) => {
+        return extensionFile(path);
+      });
 
-    if (paths.include.length > 0) {
-      if (paths.include.length > 1) {
+    if (paths.length > 0) {
+      if (paths.length > 1) {
         warning(
           `More than one extension is available for ${extensionId.name} in the directory ${extDir}.\nExtensions that match:\n${
-            paths.include.join("\n")
+            paths.join("\n")
           }`,
         );
       }
-      return relative(Deno.cwd(), paths.include[0]);
+      return relative(Deno.cwd(), paths[0]);
     } else {
       return undefined;
     }
