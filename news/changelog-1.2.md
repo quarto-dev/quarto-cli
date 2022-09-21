@@ -109,6 +109,10 @@
 
 - Handle CNAME file for `gh-pages` either without or without protocol prefix (e.g. https://)
 
+## Languages
+
+- Italian translation for Quarto UI text
+
 ## Listing and Feeds
 
 - Fix escaping issue in RSS feed fields
