@@ -44,7 +44,7 @@ Returns the value and index of the first element for which the predicate holds t
 ]]
 ---@param pred fun(x: any): boolean # Condition items must satisfy
 ---@param init? integer (Optional) Index at which the search is started
----@return any|nil First item for which `pred` succeeds, or `nil` if no such item exists.
+---@return any|nil,integer|nil # First item for which `pred` succeeds, or `nil` if no such item exists.
 function pandoc.List:find_if(pred, init) end
 
 
@@ -94,7 +94,7 @@ function pandoc.List:map(fn) end
 Removes the element at position `pos`, returning the value of the removed element.
 ]]
 ---@param pos? integer Position of the list value that will be removed; defaults to the index of the last element
----@return any The removed element
+---@return any # The removed element
 function pandoc.List:remove(pos) end
 
 --[[
@@ -112,3 +112,22 @@ positions changed by the sort.
 ---@param comp? fun(a, b): boolean 
 function pandoc.List:sort(comp) end
 
+--[[
+Applies a Lua filter to a list of `Blocks` or `Inlines`. Just as for
+full-document filters, the order in which elements are traversed
+can be controlled by setting the `traverse` field of the filter;
+Returns a (deep) copy on which the filter has been applied: the original
+list is left untouched.
+
+Note that this method is only available for lists of blocks and inilines.
+
+Usage:
+
+    -- returns `pandoc.Blocks{pandoc.Para('Salve!')}`
+    return pandoc.Blocks{pandoc.Plain('Salve!)}:walk {
+      Plain = function (p) return pandoc.Para(p.content) end,
+    }
+]]
+---@param lua_filter table<string,function> Map of filter functions
+---@return pandoc.List # Filtered list
+function pandoc.List:walk(lua_filter) end

@@ -100,7 +100,7 @@ local kPostalCode = 'postal-code'
 -- labels contains the suggested labels for the various elements which 
 -- are localized and should correctly deal with plurals, etc...
 local kLabels = 'labels'
-local kAuthorLbl = 'author'
+local kAuthorLbl = 'authors'
 local kAffiliationLbl = 'affiliation'
 local kPublishedLbl = 'published'
 local kDoiLbl = 'doi'
@@ -622,7 +622,7 @@ function bibtexParseName(nameRaw)
   local bibtex = kBibtexNameTemplate:format(pandoc.utils.stringify(nameRaw))
   local references = pandoc.read(bibtex, 'bibtex').meta.references
   if references then
-    local reference = references[1]
+    local reference = references[1] --[[@as table<string,any>]]
     if reference then
       local authors = reference.author
       if authors then

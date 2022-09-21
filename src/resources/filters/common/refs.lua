@@ -1,5 +1,4 @@
 
-local text = require 'text'
 
 -- ref parent attribute (e.g. fig:parent or tbl:parent)
 kRefParent = "ref-parent"
@@ -42,7 +41,7 @@ end
 function refType(id)
   local match = string.match(id, "^(%a+)%-")
   if match then
-    return text.lower(match)
+    return pandoc.text.lower(match)
   else
     return nil
   end

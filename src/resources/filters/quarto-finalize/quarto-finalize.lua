@@ -4,9 +4,6 @@
 -- required version
 PANDOC_VERSION:must_be_at_least '2.13'
 
--- required modules
-text = require 'text'
-
 -- [import]
 function import(script)
   local path = PANDOC_SCRIPT_FILE:match("(.*[/\\])")

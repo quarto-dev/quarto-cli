@@ -20,6 +20,7 @@ import {
   kLatexHeaderMessageOptions,
 } from "./types.ts";
 import { hasTexLive, texLiveCmd, TexLiveContext } from "./texlive.ts";
+import { withPath } from "../../../core/env.ts";
 
 export interface LatexCommandReponse {
   log: string;
@@ -189,6 +190,12 @@ async function runLatexCommand(
     stdout: "piped",
     stderr: "piped",
   };
+
+  //Ensure that the bin directory is available as a part of PDF compilation
+  if (context.texLive.binDir) {
+    runOptions.env = runOptions.env || {};
+    runOptions.env["PATH"] = withPath({ prepend: [context.texLive.binDir] });
+  }
 
   // Set the working directory
   if (context.cwd) {

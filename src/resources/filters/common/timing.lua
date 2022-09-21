@@ -5,9 +5,13 @@
 function get_current_time()
   -- FIXME this will not necessarily work on windows..
   local handle = io.popen("python -c 'import time; print(time.time() * 1000)'")
-  local result = tonumber(handle:read("*a"))
-  handle:close()
-  return result
+  if handle then
+    local result = tonumber(handle:read("*a"))
+    handle:close()
+    return result
+  else
+    fail('Error reading current time')
+  end
 end
 
 if os.getenv("QUARTO_PROFILER_OUTPUT") ~= nil then

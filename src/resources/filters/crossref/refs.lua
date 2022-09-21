@@ -1,7 +1,6 @@
 -- refs.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
-local text = require 'text'
 
 -- resolve references
 function resolveRefs()
@@ -22,7 +21,7 @@ function resolveRefs()
           local upper = not not string.match(cite.id, "^[A-Z]")
 
           -- convert the first character of the label to lowercase for lookups
-          label = text.lower(label:sub(1, 1)) .. label:sub(2)
+          label = pandoc.text.lower(label:sub(1, 1)) .. label:sub(2)
         
           -- lookup the label
           local resolve = param("crossref-resolve-refs", true)
@@ -46,7 +45,7 @@ function resolveRefs()
               -- an alternate prefix lookup
               local prefixType = type
               local chapters = crossrefOption("chapters", false)
-              if chapters then
+              if chapters and entry then
                 if resolve and type == "sec" and isChapterRef(entry.order.section) then
                   if entry.appendix then
                     prefixType = "apx"
@@ -79,7 +78,7 @@ function resolveRefs()
                   pandoc.Attr("", refClasses)
                 )
                 ref:insert(refSpan)
-              else
+              elseif entry ~= nil then
                 if entry.parent ~= nil then
                   local parentType = refType(entry.parent)
                   local parent = crossref.index.entries[entry.parent]

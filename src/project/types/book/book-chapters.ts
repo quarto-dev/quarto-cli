@@ -63,7 +63,9 @@ export function withChapterMetadata(
     format.pandoc[kNumberSections] = false;
   }
 
-  format.pandoc[kToc] = isListedChapter(headingAttr);
+  format.pandoc[kToc] = format.pandoc[kToc] !== undefined
+    ? format.pandoc[kToc]
+    : isListedChapter(headingAttr);
 
   // never show doi in chapters
   delete format.metadata[kDoi];

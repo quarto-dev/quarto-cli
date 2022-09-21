@@ -1,15 +1,15 @@
 <item>
-  <title><%= item.title %></title>
+  <title><%= escape(item.title) %></title>
   <% if (item.authors) { %>
   <% for (const author of item.authors) { %>
-  <dc:creator><%= author %></dc:creator>
+  <dc:creator><%= escape(author) %></dc:creator>
   <% } %>
   <% } %>
   <link><%= item.link %></link>
-  <description><%= item.description %></description>
+  <description><%= escape(item.description) %></description>
   <% if (item.categories && Array.isArray(item.categories)) { %>
   <% for (const category of item.categories) { %>
-  <category><%= category %></category>
+  <category><%= escape(category) %></category>
   <% } %>
   <% } %>
   <guid><%= item.guid %></guid>

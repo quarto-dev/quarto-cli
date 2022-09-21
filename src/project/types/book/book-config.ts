@@ -383,12 +383,11 @@ export async function bookRenderItems(
   // find the index and place it at the front (error if no index)
   const indexPos = inputs.findIndex((input) => isBookIndexPage(input.file));
   if (indexPos === -1) {
-    throw new Error(
-      "Book contents must include a home page (e.g. index.md)",
-    );
+    return inputs;
+  } else {
+    const index = inputs.splice(indexPos, 1);
+    return index.concat(inputs);
   }
-  const index = inputs.splice(indexPos, 1);
-  return index.concat(inputs);
 }
 
 const kDownloadableItems: Record<string, { name: string; icon: string }> = {

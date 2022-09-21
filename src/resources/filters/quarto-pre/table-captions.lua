@@ -130,9 +130,9 @@ end
 function applyTableCaptions(el, tblCaptions, tblLabels)
   local idx = 1
   return pandoc.walk_block(el, {
-    Table = function(table)
+    Table = function(el)
       if idx <= #tblLabels then
-        table = pandoc.utils.to_simple_table(table)
+        local table = pandoc.utils.to_simple_table(el)
         if #tblCaptions[idx] > 0 then
           table.caption = pandoc.List()
           tappend(table.caption, tblCaptions[idx])
