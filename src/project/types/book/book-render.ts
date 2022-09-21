@@ -88,6 +88,7 @@ import { removePandocTo } from "../../../command/render/flags.ts";
 import { resourcePath } from "../../../core/resources.ts";
 import { PandocAttr, PartitionedMarkdown } from "../../../core/pandoc/types.ts";
 import { stringify } from "encoding/yaml.ts";
+import { contentType } from "../../../core/mime.ts";
 
 export function bookPandocRenderer(
   options: RenderOptions,
@@ -324,6 +325,11 @@ async function mergeExecutedFiles(
 ): Promise<ExecutedFile> {
   // base context on the first file (which has to be index.md in the root)
   const context = ld.cloneDeep(files[0].context) as RenderContext;
+
+  // For single file books, always insist that the input is a target file
+  // in the root directory (otherwise we would potentially inherit an output
+  // directory that we're not interested in)
+  context.target.input = join(project.dir, "index.qmd");
 
   // use global render options
   context.options = removePandocTo(options);
