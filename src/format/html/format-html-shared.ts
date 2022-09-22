@@ -27,6 +27,7 @@ import {
 
 import { formatResourcePath } from "../../core/resources.ts";
 import { Document, Element } from "../../core/deno-dom.ts";
+import { ConsoleHandler } from "../../vendor/deno.land/std@0.153.0/log/handlers.ts";
 
 // features that are enabled by default for 'html'. setting
 // all of these to false will yield the minimal html output
@@ -122,6 +123,12 @@ export const quartoRules = () =>
     "_quarto-rules.scss",
   ));
 
+export const quartoCopyCodeDefaults = () =>
+  Deno.readTextFileSync(formatResourcePath(
+    "html",
+    "_quarto-variables-copy-code.scss",
+  ));
+
 export const quartoCopyCodeRules = () =>
   Deno.readTextFileSync(formatResourcePath(
     "html",
@@ -199,8 +206,10 @@ export const quartoBaseLayer = (
   codeFilename = false,
 ) => {
   const rules: string[] = [quartoRules()];
+  const defaults: string[] = [quartoDefaults(format), quartoVariables()];
   if (codeCopy) {
     rules.push(quartoCopyCodeRules());
+    defaults.push(quartoCopyCodeDefaults());
   }
   if (tabby) {
     rules.push(quartoTabbyRules());
@@ -217,10 +226,7 @@ export const quartoBaseLayer = (
 
   return {
     uses: quartoUses(),
-    defaults: [
-      quartoDefaults(format),
-      quartoVariables(),
-    ].join("\n"),
+    defaults: defaults.join("\n"),
     functions: quartoFunctions(),
     mixins: "",
     rules: rules.join("\n"),

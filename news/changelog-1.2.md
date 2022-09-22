@@ -43,6 +43,9 @@
 - Properly maintain dark/light state when navigating between pages
 - Fix `code-copy` button issue when `page-layout` is full with no visible `toc` (#2388)
 - Add support for scss variables to better control the table of contents appearance (`$toc-color`,`$toc-font-size`,`$toc-active-border`,`$toc-inactive-border`)
+- Provide more explicit code-copy feedback using a tooltip
+- Improve coloring of code copy button when using various `highlight-styles`.
+- Support scss variables to customize the code copy button using `$btn-code-copy-color`, `$btn-code-copy-color-active`
 
 ## PDF Format
 
