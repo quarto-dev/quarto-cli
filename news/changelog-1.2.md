@@ -83,6 +83,10 @@
 
 - Fix problem with crossref indexing for listing code blocks
 
+## Tables
+
+- Don't require array brackets for `tbl-colwidths` specification
+
 ## Authors and Affiliations
 
 - Improve handling of empty authors
