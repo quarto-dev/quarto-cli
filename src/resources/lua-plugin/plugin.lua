@@ -1,6 +1,5 @@
 -- Lua LSP Plugin to automatically recognize types for Pandoc Lua filter callbacks
 
-
 local kBlockElements = {
   ['BlockQuote'] = true,
   ['BulletList'] = true,
@@ -49,7 +48,13 @@ local kTopLevelElements = {
   ['Pandoc'] = true
 }
 
-local functionDiff = function(start, leading, elType, elVar)
+---@param newline boolean
+---@param start integer
+---@param leading string
+---@param elType string
+---@param elVar string
+---@return { start: integer, finish: integer, prefix: string } | nil
+local functionDiff = function(newline, start, leading, elType, elVar)
     
   -- determine return type and tweak elType
   local returnType = nil
@@ -66,10 +71,21 @@ local functionDiff = function(start, leading, elType, elVar)
        
   -- if this is one of ours then return it
   if returnType ~= nil then
+    -- handle variation between beginning of file and beginning of line
+    local prefix = ''
+    local finish = nil
+    if newline then
+      start = start - 1
+      finish = start
+      prefix = '\n'
+    else
+      finish = start - 1
+    end
+    -- provide the diff w/ requisite start and finish
     return {
-      start = start-1,
-      finish = start-1,
-      text = ('\n%s---@param %s pandoc.%s\n%s---@return %s\n'):format(
+      start = start,
+      finish = finish,
+      text = (prefix .. '%s---@param %s pandoc.%s\n%s---@return %s\n'):format(
         leading,elVar,elType,leading,returnType
       )
     }
@@ -79,23 +95,35 @@ local functionDiff = function(start, leading, elType, elVar)
   
 end
 
+---@param uri string
+---@param text string
 function OnSetText(uri, text)
 
+  -- manage list of diffs
   local diffs = {}
-
-  -- functions of the form Div = function(el)
-  for start, leading, elType, elVar in text:gmatch '\n()([\t ]*)(%w+)%s*=%s*function%((%w+)%)' do
-    local diff = functionDiff(start, leading, elType, elVar)
+  local addDiff = function(diff)
     if diff then
       diffs[#diffs+1] = diff
     end
   end
-  -- functions of the form function Div(el)
-  for start, leading, elType, elVar in text:gmatch '\n()([\t ]*)function%s+(%w+)%((%w+)%)' do
-    local diff = functionDiff(start, leading, elType, elVar)
-    if diff then
-      diffs[#diffs+1] = diff
+
+  local patterns = {
+    -- Div = function(el)
+    '()([\t ]*)(%w+)%s*=%s*function%((%w+)%)',
+    -- function Div(el)
+    '()([\t ]*)function%s+(%w+)%((%w+)%)'  
+  }
+
+  for _, pattern in pairs(patterns) do
+    -- patterns in file (after first line)
+    for start, leading, elType, elVar in text:gmatch('\n' .. pattern) do
+      addDiff(functionDiff(true, start --[[@as integer]], leading, elType, elVar))
     end
+     -- pattern on first line
+     local start, leading, elType, elVar = text:match('^' .. pattern)
+     if start ~= nil then
+       addDiff(functionDiff(false, start, leading, elType, elVar))
+     end
   end
 
   return diffs     
