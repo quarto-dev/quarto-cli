@@ -12,6 +12,10 @@
   outline: none;
 }
 
+.code-copy-button-tooltip {
+  font-size: 0.6em;
+}
+
 #{$code-copy-selector} .code-copy-button > .bi::before {
   display: inline-block;
   height: 1rem;
