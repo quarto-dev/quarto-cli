@@ -42,6 +42,7 @@ import {
   quartoBootstrapMixins,
   quartoBootstrapRules,
   quartoCodeFilenameRules,
+  quartoCopyCodeDefaults,
   quartoCopyCodeRules,
   quartoDefaults,
   quartoFunctions,
@@ -81,16 +82,19 @@ function layerQuartoScss(
     pandocVariablesToThemeScss(format.metadata),
   ].join("\n");
 
+  const defaults = [
+    quartoDefaults(format),
+    quartoBootstrapDefaults(format.metadata),
+    quartoCopyCodeDefaults(),
+  ].join("\n");
+
   return {
     dependency,
     key,
     user: sassLayer,
     quarto: {
       uses: quartoUses(),
-      defaults: [
-        quartoDefaults(format),
-        quartoBootstrapDefaults(format.metadata),
-      ].join("\n"),
+      defaults,
       functions: [quartoFunctions(), quartoBootstrapFunctions()].join("\n"),
       mixins: quartoBootstrapMixins(),
       rules: [
@@ -223,13 +227,14 @@ export function resolveTextHighlightingLayer(
     rules: "",
   };
 
+  const themeDescriptor = readHighlightingTheme(
+    dirname(input),
+    format.pandoc,
+    style,
+  );
+
   if (format.metadata[kCodeBlockBackground] === undefined) {
     // Inject a background color, if present
-    const themeDescriptor = readHighlightingTheme(
-      dirname(input),
-      format.pandoc,
-      style,
-    );
     if (themeDescriptor && !themeDescriptor.isAdaptive) {
       const backgroundColor = () => {
         if (themeDescriptor.json["background-color"]) {
@@ -267,6 +272,47 @@ export function resolveTextHighlightingLayer(
           true,
         );
       }
+    }
+  }
+
+  if (themeDescriptor) {
+    const readTextColor = (name: string) => {
+      const textStyles = themeDescriptor.json["text-styles"];
+      console.log(textStyles);
+      if (textStyles && typeof (textStyles) === "object") {
+        const commentColor = (textStyles as Record<string, unknown>)[name];
+        if (commentColor && typeof (commentColor) === "object") {
+          const textColor =
+            (commentColor as Record<string, unknown>)["text-color"];
+          return textColor;
+        } else {
+          return undefined;
+        }
+      } else {
+        return undefined;
+      }
+    };
+
+    const commentColor = readTextColor("Comment");
+    if (commentColor) {
+      layer.defaults = layer.defaults + "\n" + outputVariable(
+        sassVariable(
+          "btn-code-copy-color",
+          asCssColor(commentColor),
+        ),
+        true,
+      );
+    }
+
+    const functionColor = readTextColor("Function");
+    if (commentColor) {
+      layer.defaults = layer.defaults + "\n" + outputVariable(
+        sassVariable(
+          "btn-code-copy-color-active",
+          asCssColor(functionColor),
+        ),
+        true,
+      );
     }
   }
 
