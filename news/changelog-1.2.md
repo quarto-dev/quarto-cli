@@ -31,6 +31,7 @@
 - Include Pandoc `logging` Lua module from @wlupton
 - Improve path resolution of extensions
 - Add support for extensions that contribute revealjs-plugins
+- Fix issue loading extensions when the organization name is the same as the extension identifier
 
 ## Projects
 
@@ -41,6 +42,7 @@
 - Fix error when restoring preserved HTML in output files that use `output-file`
 - Properly maintain dark/light state when navigating between pages
 - Fix `code-copy` button issue when `page-layout` is full with no visible `toc` (#2388)
+- Add support for scss variables to better control the table of contents appearance (`$toc-color`,`$toc-font-size`,`$toc-active-border`,`$toc-inactive-border`)
 
 ## PDF Format
 
@@ -96,6 +98,7 @@
 - Ensure that the `code-copy` button is functional even when margin content is present.
 - Add support for open graph image sizes
 - Prevent website content from shifting when page first loads
+- Improve animation smoothness when expanding navbar in mobile mode (#1873)
 
 ## Books
 
