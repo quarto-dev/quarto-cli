@@ -278,7 +278,6 @@ export function resolveTextHighlightingLayer(
   if (themeDescriptor) {
     const readTextColor = (name: string) => {
       const textStyles = themeDescriptor.json["text-styles"];
-      console.log(textStyles);
       if (textStyles && typeof (textStyles) === "object") {
         const commentColor = (textStyles as Record<string, unknown>)[name];
         if (commentColor && typeof (commentColor) === "object") {
