@@ -170,6 +170,7 @@ import {
   kTitleBlockAffiliationSingle,
   kTitleBlockAuthorPlural,
   kTitleBlockAuthorSingle,
+  kTitleBlockModified,
   kTitleBlockPublished,
   kTitlePrefix,
   kToc,
@@ -507,6 +508,7 @@ export interface FormatLanguage {
   [kTitleBlockAuthorSingle]?: string;
   [kTitleBlockAuthorPlural]?: string;
   [kTitleBlockPublished]?: string;
+  [kTitleBlockModified]?: string;
   [kSectionTitleFootnotes]?: string;
   [kSectionTitleReferences]?: string;
   [kSectionTitleAppendices]?: string;

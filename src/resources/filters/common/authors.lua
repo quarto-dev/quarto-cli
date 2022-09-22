@@ -103,6 +103,7 @@ local kLabels = 'labels'
 local kAuthorLbl = 'authors'
 local kAffiliationLbl = 'affiliation'
 local kPublishedLbl = 'published'
+local kModifiedLbl = 'modified'
 local kDoiLbl = 'doi'
 local kDescriptionLbl = 'description'
 local kAbstractLbl = 'abstract'
@@ -119,6 +120,7 @@ local kAffiliationTitle = 'affiliation-title'
 local kAbstractTitle = 'abstract-title'
 local kDescriptionTitle = 'description-title'
 local kPublishedTitle = 'published-title'
+local kModifiedTitle = 'modified-title'
 local kDoiTitle = 'doi-title'
 
 -- Deal with bibliography configuration as well
@@ -731,6 +733,11 @@ function computeLabels(authors, affiliations, meta)
   meta[kLabels][kPublishedLbl] = {pandoc.Str(language["title-block-published"])}
   if meta[kPublishedTitle] then
     meta[kLabels][kPublishedLbl] = meta[kPublishedTitle]
+  end
+
+  meta[kLabels][kModifiedLbl] = {pandoc.Str(language["title-block-modified"])}
+  if meta[kModifiedTitle] then
+    meta[kLabels][kModifiedLbl] = meta[kModifiedTitle]
   end
 
   meta[kLabels][kDoiLbl] = {pandoc.Str("Doi")}

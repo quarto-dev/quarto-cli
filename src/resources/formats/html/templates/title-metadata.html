@@ -48,6 +48,15 @@ $endif$
     </div>
   </div>
   $endif$
+
+  $if(date-modified)$
+  <div>
+    <div class="quarto-title-meta-heading">$labels.modified$</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date-modified">$date-modified$</p>
+    </div>
+  </div>
+  $endif$
   
   $if(doi)$
   <div>
