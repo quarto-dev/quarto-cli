@@ -42,6 +42,11 @@ local function tblColwidthValues(tbl, tblColwidths)
     return noWidths(#tbl.colspecs)
   else
     if type(tblColwidths) == "string" then
+      -- provide array brackets if necessary
+      if tblColwidths:find("[", 1, true) ~= 1 then
+        tblColwidths = '[' .. tblColwidths .. ']'
+      end
+      -- decode array
       tblColwidths = quarto.json.decode(tblColwidths)
     end
     if type(tblColwidths) == "table" then
