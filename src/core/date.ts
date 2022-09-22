@@ -19,6 +19,8 @@ import { existsSync } from "fs/mod.ts";
 import { toFileUrl } from "path/mod.ts";
 import { resourcePath } from "./resources.ts";
 
+import { Date as SchemaDate } from "../resources/types/schema-types.ts";
+
 // Special date constants
 export const kLastModified = "last-modified";
 export const kToday = "today";
@@ -35,6 +37,54 @@ export function today(): Date {
   today.setSeconds(0);
   today.setMilliseconds(0);
   return today;
+}
+
+export function resolveAndFormatDate(
+  input: string | string[],
+  date?: unknown,
+  format?: string,
+) {
+  const resolveDate = (date?: unknown) => {
+    if (date) {
+      if (typeof (date) === "string") {
+        return {
+          value: date,
+          format: format || "short",
+        };
+      } else if (typeof (date) === "object") {
+        const schemaDate = date as { value: string; format?: string };
+        return {
+          value: schemaDate.value,
+          format: schemaDate.format || format || "short",
+        };
+      }
+    } else {
+      return undefined;
+    }
+  };
+
+  // Resolve the date type
+  const resolvedDate = resolveDate(date);
+  if (resolvedDate) {
+    // Process any special dates
+    if (isSpecialDate(resolvedDate.value)) {
+      // Replace the date with its resolved form
+      resolvedDate.value = parseSpecialDate(
+        input,
+        resolvedDate.value,
+      );
+    }
+
+    // Read and format the date
+    const parsed = parsePandocDate(resolvedDate.value);
+
+    // Since there is no date format specified, we
+    // should default format this so it isn't a timestamp
+    return formatDate(
+      parsed,
+      resolvedDate.format,
+    );
+  }
 }
 
 export function resolveDate(input: string | string[], val: unknown) {

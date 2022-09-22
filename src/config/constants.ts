@@ -413,6 +413,7 @@ export const kSubtitle = "subtitle";
 export const kAuthor = "author";
 export const kDate = "date";
 export const kDateFormat = "date-format";
+export const kDateModified = "date-modified";
 export const kDoi = "doi";
 export const kAbstract = "abstract";
 export const kAbstractTitle = "abstract-title";
