@@ -72,7 +72,7 @@
     short: "Produce a standalone HTML file with no external dependencies"
     long: |
       Produce a standalone HTML file with no external dependencies. Note that
-      this option has been decrecated in favor of `embed-resources`.
+      this option has been deprecated in favor of `embed-resources`.
 
 - name: self-contained-math
   tags:
