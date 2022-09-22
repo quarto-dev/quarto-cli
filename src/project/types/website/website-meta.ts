@@ -34,6 +34,7 @@ import {
   kSiteName,
   kSiteUrl,
   kTwitterCard,
+  kTwitterSite,
   kWebsite,
 } from "./website-constants.ts";
 import { computePageTitle } from "./website-shared.ts";
@@ -262,7 +263,7 @@ function twitterMetadata(format: Format) {
   // populate defaults
   const twitterData = mergedSiteAndDocumentData(kTwitterCard, format);
   if (twitterData && typeof (twitterData) === "object") {
-    [kTitle, kDescription, kImage, kCreator, kWebsite, kCardStyle].forEach(
+    [kTitle, kDescription, kImage, kCreator, kTwitterSite, kCardStyle].forEach(
       (key) => {
         if (twitterData[key] !== undefined) {
           metadata[key] = twitterData[key];
