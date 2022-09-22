@@ -140,6 +140,7 @@
 - Support formats `bibtex`, `biblatex`, and `csljson`. When rendered to one of these formats any citations within the document will be rendered as the specified bibliography format.
 - Always add citeproc filter if `citeproc: true` is specified, even if there isn't a bibliography or references in the document (#2294)
 - Don't process citations twice when `citeproc` is specified (#2393)
+- Fix `citation-hover` for footnote style reference formats
 
 ## TinyTex
 
