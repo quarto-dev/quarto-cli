@@ -14702,7 +14702,7 @@ try {
             default: false,
             description: {
               short: "Produce a standalone HTML file with no external dependencies",
-              long: "Produce a standalone HTML file with no external dependencies. Note that\nthis option has been decrecated in favor of `embed-resources`.\n"
+              long: "Produce a standalone HTML file with no external dependencies. Note that\nthis option has been deprecated in favor of `embed-resources`.\n"
             }
           },
           {
@@ -19002,6 +19002,7 @@ try {
           "CSS background position (defaults to <code>center</code>)",
           "CSS background repeat (defaults to <code>no-repeat</code>)",
           "Opacity of the background image on a 0-1 scale. 0 is transparent and\n1 is fully opaque.",
+          "The title slide style. Use <code>pandoc</code> to select the Pandoc\ndefault title slide style.",
           "Vertical centering of title slide",
           "Make speaker notes visible to all viewers",
           "Change the presentation direction to be RTL",
@@ -19666,8 +19667,7 @@ try {
             long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
-          "internal-schema-hack",
-          "The title slide style. Use <code>pandoc</code> to select the Pandoc\ndefault title slide style."
+          "internal-schema-hack"
         ],
         "schema/external-schemas.yml": [
           {
@@ -19880,12 +19880,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 129078,
+          _internalId: 129272,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 129077,
+              _internalId: 129271,
               type: "enum",
               enum: [
                 "png",
