@@ -101,8 +101,10 @@
 - Properly handle `margin-header` and `margin-footer` files
 - Ensure that the `code-copy` button is functional even when margin content is present.
 - Add support for open graph image sizes
+- Fix issue preventing `twitter-card` `site` metadata from being emitted.
 - Prevent website content from shifting when page first loads
 - Improve animation smoothness when expanding navbar in mobile mode (#1873)
+- Permit icons in top level navbar, if specified
 
 ## Books
 
