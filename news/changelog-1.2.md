@@ -60,6 +60,7 @@
 ## Docx Format
 
 - Properly scale callout icons using DPI
+- Properly space a consecutive table and figure (#2493)
 
 ## Revealjs Format
 
