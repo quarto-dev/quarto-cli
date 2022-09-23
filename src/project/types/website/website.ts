@@ -91,6 +91,7 @@ export const websiteProjectType: ProjectType = {
 
   libDir: "site_libs",
   outputDir: "_site",
+  cleanOutputDir: true,
 
   formatLibDirs: () =>
     defaultProjectType.formatLibDirs!().concat(["quarto-nav", "quarto-search"]),

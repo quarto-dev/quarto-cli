@@ -112,6 +112,7 @@ export const bookProjectType: ProjectType = {
 
   libDir: "site_libs",
   outputDir: "_book",
+  cleanOutputDir: true,
 
   config: bookProjectConfig,
 

@@ -161,7 +161,7 @@ export async function renderProject(
   const projOutputDir = context.config?.project?.[kProjectOutputDir];
   if (
     renderAll && (typeof (projOutputDir) === "string") &&
-    (options.flags?.clean == true) && projectIsWebsite(context)
+    (options.flags?.clean == true) && (projType.cleanOutputDir === true)
   ) {
     const realProjectDir = Deno.realPathSync(context.dir);
     // ouptut dir
