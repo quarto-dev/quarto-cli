@@ -8154,6 +8154,23 @@ var require_yaml_intelligence_resources = __commonJS({
       ],
       "schema/definitions.yml": [
         {
+          id: "date",
+          anyOf: [
+            "string",
+            {
+              object: {
+                properties: {
+                  value: "string",
+                  format: "string"
+                },
+                required: [
+                  "value"
+                ]
+              }
+            }
+          ]
+        },
+        {
           id: "math-methods",
           enum: {
             values: [
@@ -10926,7 +10943,9 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           name: "date",
-          schema: "string",
+          schema: {
+            ref: "date"
+          },
           description: "Document date"
         },
         {
@@ -18826,7 +18845,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           short: "Produce a standalone HTML file with no external dependencies",
-          long: "Produce a standalone HTML file with no external dependencies. Note\nthat this option has been decrecated in favor of\n<code>embed-resources</code>."
+          long: "Produce a standalone HTML file with no external dependencies. Note\nthat this option has been deprecated in favor of\n<code>embed-resources</code>."
         },
         {
           short: "Embed math libraries (e.g.&nbsp;MathJax) within\n<code>self-contained</code> output.",
@@ -19879,12 +19898,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 129272,
+        _internalId: 129364,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 129271,
+            _internalId: 129363,
             type: "enum",
             enum: [
               "png",

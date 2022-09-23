@@ -81,6 +81,7 @@ import {
   kColorLinks,
   kDate,
   kDateFormat,
+  kDateModified,
   kDocumentClass,
   kEmbedResources,
   kFigResponsive,
@@ -160,6 +161,7 @@ import {
   isSpecialDate,
   parsePandocDate,
   parseSpecialDate,
+  resolveAndFormatDate,
 } from "../../core/date.ts";
 import { katexPostProcessor } from "../../format/html/format-html-math.ts";
 import {
@@ -787,34 +789,17 @@ export async function runPandoc(
     }
   }
 
-  // Resolve the date if there are any special
-  // date specifiers
-  if (isSpecialDate(pandocMetadata[kDate])) {
-    // Replace the date with its resolved form
-    pandocMetadata[kDate] = parseSpecialDate(
+  // Resolve any date fields
+  const dateFields = [kDate, kDateModified];
+  dateFields.forEach((dateField) => {
+    const date = pandocMetadata[dateField];
+    const format = pandocMetadata[kDateFormat];
+    pandocMetadata[dateField] = resolveAndFormatDate(
       options.source,
-      pandocMetadata[kDate] as string,
+      date,
+      format,
     );
-
-    // Since there is no date format specified, we
-    // should default format this so it isn't a timestamp
-    if (!pandocMetadata[kDateFormat]) {
-      const parsed = parsePandocDate(pandocMetadata[kDate]);
-      pandocMetadata[kDate] = formatDate(
-        parsed,
-        "short",
-      );
-    }
-  }
-
-  // Format the date
-  if (pandocMetadata[kDate] && pandocMetadata[kDateFormat]) {
-    const parsed = parsePandocDate(pandocMetadata[kDate]);
-    pandocMetadata[kDate] = formatDate(
-      parsed,
-      pandocMetadata[kDateFormat] as string,
-    );
-  }
+  });
 
   // Resolve the author metadata into a form that Pandoc will recognize
   const authorsRaw = pandocMetadata[kAuthors] || pandocMetadata[kAuthor];

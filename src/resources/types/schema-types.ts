@@ -8,6 +8,8 @@
 export type MaybeArrayOf<T> = T | T[];
 export type SchemaObject = { [key: string]: string };
 
+export type Date = string | { format?: string; value: string };
+
 export type MathMethods =
   | "plain"
   | "webtex"

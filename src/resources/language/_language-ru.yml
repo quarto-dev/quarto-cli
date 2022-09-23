@@ -16,6 +16,7 @@ title-block-author-plural: "Авторы"
 title-block-affiliation-single: "принадлежность"
 title-block-affiliation-plural: "Принадлежности"
 title-block-published: "Дата публикации"
+title-block-modified: "Файл изменен"
 
 callout-tip-caption: "Совет"
 callout-note-caption: "Уведомление"

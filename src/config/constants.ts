@@ -178,6 +178,7 @@ export const kTitleBlockAuthorPlural = "title-block-author-plural";
 export const kTitleBlockAffiliationSingle = "title-block-affiliation-single";
 export const kTitleBlockAffiliationPlural = "title-block-affiliation-plural";
 export const kTitleBlockPublished = "title-block-published";
+export const kTitleBlockModified = "title-block-modified";
 export const kCodeSummary = "code-summary";
 export const kCodeToolsMenuCaption = "code-tools-menu-caption";
 export const kCodeToolsShowAllCode = "code-tools-show-all-code";
@@ -269,6 +270,7 @@ export const kLanguageDefaultsKeys = [
   kAppendixAttributionCiteAs,
   kTitleBlockAuthorSingle,
   kTitleBlockPublished,
+  kTitleBlockModified,
   kCodeSummary,
   kCodeToolsMenuCaption,
   kCodeToolsShowAllCode,
@@ -344,6 +346,7 @@ export const kLanguageDefaultsKeys = [
   kTitleBlockAffiliationSingle,
   kTitleBlockAffiliationPlural,
   kTitleBlockPublished,
+  kTitleBlockModified,
 ];
 
 // 'defaults' fields
@@ -413,6 +416,7 @@ export const kSubtitle = "subtitle";
 export const kAuthor = "author";
 export const kDate = "date";
 export const kDateFormat = "date-format";
+export const kDateModified = "date-modified";
 export const kDoi = "doi";
 export const kAbstract = "abstract";
 export const kAbstractTitle = "abstract-title";

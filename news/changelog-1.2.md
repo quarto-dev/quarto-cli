@@ -46,6 +46,7 @@
 - Provide more explicit code-copy feedback using a tooltip
 - Improve coloring of code copy button when using various `highlight-styles`.
 - Support scss variables to customize the code copy button using `$btn-code-copy-color`, `$btn-code-copy-color-active`
+- Add support for `date-modified` in document metadata
 
 ## PDF Format
 
