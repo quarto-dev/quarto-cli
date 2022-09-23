@@ -30,10 +30,7 @@ import {
   projectExcludeDirs,
   projectOutputDir,
 } from "../../project/project-shared.ts";
-import {
-  projectContext,
-  projectIsWebsite,
-} from "../../project/project-context.ts";
+import { projectContext } from "../../project/project-context.ts";
 import { partitionedMarkdownForInput } from "../../project/project-config.ts";
 
 import {
@@ -117,22 +114,12 @@ export async function serveProject(
     if (target === ".") {
       target = Deno.cwd();
     }
-    project = await projectContext(target, flags, false);
+    project = await projectContext(target, flags, true);
     if (!project || !project?.config) {
       throw new Error(`${target} is not a website or book project`);
     }
   } else {
     project = target;
-  }
-
-  // confirm that it's a project type that can be served
-  if (!projectIsWebsite(project)) {
-    throw new Error(
-      `Cannot serve project of type '${
-        project?.config?.project[kProjectType] ||
-        "default"
-      }' (try using project type 'website').`,
-    );
   }
 
   // acquire the preview lock
@@ -247,9 +234,8 @@ export async function serveProject(
     }
     : undefined;
 
-  // create listener and callback to close it
-  const listener = Deno.listen({ port: options.port!, hostname: options.host });
-  const stopServer = () => listener.close();
+  // stop server function (will be reset if there is a serve action)
+  let stopServer = () => {};
 
   // create project watcher. later we'll figure out if it should provide renderOutput
   const watcher = await watchProject(
@@ -263,6 +249,13 @@ export async function serveProject(
     renderManager,
     stopServer,
   );
+
+  // print status
+  printWatchingForChangesMessage();
+
+  // create listener and callback to close it
+  const listener = Deno.listen({ port: options.port!, hostname: options.host });
+  stopServer = () => listener.close();
 
   // serve output dir
   const outputDir = projectOutputDir(project);
@@ -490,9 +483,6 @@ export async function serveProject(
       };
     },
   };
-
-  // print status
-  printWatchingForChangesMessage();
 
   // if we are passed a browser path, resolve the output file if its an input
   let browserPath = options.browserPath
