@@ -55,6 +55,7 @@
 - Handle LaTeX error messages with no file output more gracefully (#2183)
 - Support cross reference-able figures with callouts
 - Allow cross references inside of a callout
+- Improve margin layout support for `twoside`, `oneside`, and `twoside=semi` options of `scrbook`
 
 ## Docx Format
 
