@@ -167,7 +167,7 @@ function applyTableCaptions(el, tblCaptions, tblLabels)
           -- apply table caption and label
           local beginCaption, captionText, endCaption = raw.text:match(captionPattern)
           if #tblCaptions[idx] > 0 then
-            captionText = pandoc.utils.stringify(tblCaptions[idx])
+            captionText = stringEscape(tblCaptions[idx], "html")
           end
           if #tblLabels[idx] > 0 then
             captionText = captionText .. " {#" .. tblLabels[idx] .. "}"
