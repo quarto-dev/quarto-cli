@@ -173,8 +173,8 @@ function autoSidebarNodes(
         { mode: "always" },
       ).include,
     ) as string[])
-      .map((input) => pathWithForwardSlashes(relative(project.dir, input)))
-      .filter((input) => !/\/?index\.\w+$/.test(input));
+      .filter((input) => !/^index\.\w+$/.test(input))
+      .map((input) => pathWithForwardSlashes(relative(project.dir, input)));
 
     // is this a directory glob?
     let directory = "";
@@ -229,6 +229,19 @@ async function nodesToEntries(
   root: string,
   nodes: SidebarNodes,
 ) {
+  // clone the nodes (as we may mutate them)
+  nodes = ld.cloneDeep(nodes) as SidebarNodes;
+
+  // if there is an index file in the root then remove it
+  // (as the higher level section handler will find it)
+  const findIndexFile = ((nds: SidebarNodes) => {
+    return Object.keys(nds).find((input) => /^index\.\w+$/.test(input));
+  });
+  const indexFile = findIndexFile(nodes);
+  if (indexFile) {
+    delete nodes[indexFile];
+  }
+
   const entries: Entry[] = [];
 
   for (const node of Object.keys(nodes)) {
@@ -236,16 +249,28 @@ async function nodesToEntries(
     const path = join(project.dir, href);
     if (safeExistsSync(path)) {
       if (Deno.statSync(path).isDirectory) {
-        // use index file if available
-        const indexFileHref = indexFileHrefForDir(project, path);
-        if (indexFileHref) {
+        // get child nodes (we may mutate so make a copy)
+        const childNodes = ld.cloneDeep(nodes[node]) as SidebarNodes;
+
+        // remove any index file and use it as the link for the parent
+        const indexFile = findIndexFile(childNodes);
+        if (indexFile) {
+          delete childNodes[indexFile];
+        }
+
+        if (indexFile) {
           entries.push({
-            ...await entryFromHref(project, indexFileHref),
-            children: await nodesToEntries(
+            ...await entryFromHref(
               project,
-              `${root}${node}/`,
-              nodes[node],
+              relative(project.dir, join(path, indexFile)),
             ),
+            children: (childNodes && Object.keys(childNodes).length > 0)
+              ? await nodesToEntries(
+                project,
+                `${root}${node}/`,
+                childNodes,
+              )
+              : undefined,
           });
         } else {
           entries.push({
@@ -253,7 +278,7 @@ async function nodesToEntries(
             children: await nodesToEntries(
               project,
               `${root}${node}/`,
-              nodes[node],
+              childNodes,
             ),
           });
         }
