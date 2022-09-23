@@ -1326,7 +1326,7 @@ end
 local function resolvePath(path)          
   if isRelativeRef(path) then
     local wd = pandoc.system.get_working_directory();
-    return pandoc.path.join({wd, path})
+    return pandoc.path.join({wd, pandoc.path.normalize(path)})
   else
     return path    
   end
@@ -1334,7 +1334,7 @@ end
 
 local function resolvePathExt(path) 
   if isRelativeRef(path) then
-    return resolvePath(pandoc.path.join({scriptDir(), path}))
+    return resolvePath(pandoc.path.join({scriptDir(), pandoc.path.normalize(path)}))
   else
     return path
   end

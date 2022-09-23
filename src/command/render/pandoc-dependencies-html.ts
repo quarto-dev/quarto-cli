@@ -414,7 +414,7 @@ function processCssFile(
       // Copy the file and provide the updated href target
       const refDestPath = join(dirname(file), targetRef);
       copyFileIfNewer(refPath, refDestPath);
-      return targetRef;
+      return pathWithForwardSlashes(targetRef);
     } else {
       // Since this doesn't appear to point to a real file, just
       // leave it alone
