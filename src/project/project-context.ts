@@ -33,7 +33,11 @@ import {
 
 import { isYamlPath, readYaml } from "../core/yaml.ts";
 import { mergeConfigs } from "../core/config.ts";
-import { kSkipHidden, pathWithForwardSlashes } from "../core/path.ts";
+import {
+  ensureTrailingSlash,
+  kSkipHidden,
+  pathWithForwardSlashes,
+} from "../core/path.ts";
 
 import { includedMetadata, mergeProjectMetadata } from "../config/metadata.ts";
 import {
@@ -610,7 +614,19 @@ export function projectInputFiles(
   );
 
   const addFile = (file: string) => {
-    if (!outputDir || !file.startsWith(join(dir, outputDir))) {
+    if (
+      // no output dir to worry about
+      !outputDir ||
+      // crawled file is not inside the output directory
+      !ensureTrailingSlash(dirname(file)).startsWith(
+        ensureTrailingSlash(join(dir, outputDir)),
+      ) ||
+      // output directory is not in the project directory
+      // so we don't need to worry about crawling outputs
+      !ensureTrailingSlash(join(dir, outputDir)).startsWith(
+        ensureTrailingSlash(dir),
+      )
+    ) {
       const engine = fileExecutionEngine(file);
       if (engine) {
         if (!engines.includes(engine.name)) {
