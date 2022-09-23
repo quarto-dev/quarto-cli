@@ -182,7 +182,7 @@ function applyTableCaptions(el, tblCaptions, tblLabels)
           end
         elseif hasPagedHtmlTable(raw) then
           if #tblCaptions[idx] > 0 then
-            local captionText = pandoc.utils.stringify(tblCaptions[idx])
+            local captionText = stringEscape(tblCaptions[idx], "html")
             if #tblLabels[idx] > 0 then
               captionText = captionText .. " {#" .. tblLabels[idx] .. "}"
             end
