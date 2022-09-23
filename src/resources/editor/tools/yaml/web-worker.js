@@ -8821,6 +8821,17 @@ try {
                     description: "Hostname to bind to (defaults to 127.0.0.1)"
                   }
                 },
+                serve: {
+                  description: "Use an exernal application to preview the project.",
+                  anyOf: [
+                    "boolean",
+                    {
+                      schema: {
+                        ref: "project-preview-serve"
+                      }
+                    }
+                  ]
+                },
                 browser: {
                   boolean: {
                     description: "Open a web browser to view the preview (defaults to true)"
@@ -8842,6 +8853,31 @@ try {
                   }
                 }
               }
+            }
+          },
+          {
+            id: "project-preview-serve",
+            object: {
+              closed: true,
+              properties: {
+                cmd: {
+                  string: {
+                    description: "Serve project preview using the specified command.\nInterpolate the `--port` into the command using `{port}`.\n"
+                  }
+                },
+                args: {
+                  string: {
+                    description: "Additional command line arguments for preview command."
+                  }
+                },
+                ready: {
+                  string: "Regular expression for detecting when the server is ready."
+                }
+              },
+              required: [
+                "cmd",
+                "ready"
+              ]
             }
           },
           {
@@ -17418,10 +17454,13 @@ try {
           "Image height (pixels)",
           "Port to listen on (defaults to random value between 3000 and\n8000)",
           "Hostname to bind to (defaults to 127.0.0.1)",
+          "Use an exernal application to preview the project.",
           "Open a web browser to view the preview (defaults to true)",
           "Re-render input files when they change (defaults to true)",
           "Navigate the browser automatically when outputs are updated (defaults\nto true)",
           "Time (in seconds) after which to exit if there are no active\nclients",
+          "Serve project preview using the specified command. Interpolate the\n<code>--port</code> into the command using <code>{port}</code>.",
+          "Additional command line arguments for preview command.",
           "Sites published from project",
           "Unique identifier for site",
           "Published URL for site",
@@ -18130,7 +18169,7 @@ try {
           "The aspect ratio of the plot, i.e., the ratio of height/width. When\n<code>fig-asp</code> is specified, the height of a plot (the option\n<code>fig-height</code>) is calculated from\n<code>fig-width * fig-asp</code>.",
           {
             short: "Width of plot in the output document",
-            long: "Width of the plot in the output document, which can be different from\nits physical <code>fig-width</code>, i.e., plots can be scaled in the\noutput document. Depending on the output format, this option can take\nspecial values. For example, for LaTeX output, it can be\n<code>.8\\\\linewidth</code>, <code>3in</code>, or <code>8cm</code>; for\nHTML, it can be <code>300px</code> or <code>50%</code>."
+            long: "Width of the plot in the output document, which can be different from\nits physical <code>fig-width</code>, i.e., plots can be scaled in the\noutput document. When used without a unit, the unit is assumed to be\npixels. However, any of the following unit identifiers can be used: px,\ncm, mm, in, inch and %, for example, <code>3in</code>, <code>8cm</code>,\n<code>300px</code> or <code>50%</code>."
           },
           {
             short: "Height of plot in the output document",
@@ -19899,12 +19938,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 129361,
+          _internalId: 129399,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 129360,
+              _internalId: 129398,
               type: "enum",
               enum: [
                 "png",

@@ -57,6 +57,7 @@ import { parseShellRunCommand } from "../../core/run/shell.ts";
 import { clearProjectIndex } from "../../project/project-index.ts";
 import { projectExcludeDirs } from "../../project/project-shared.ts";
 import { asArray } from "../../core/array.ts";
+import { projectIsWebsite } from "../../project/project-context.ts";
 
 export async function renderProject(
   context: ProjectContext,
@@ -160,7 +161,7 @@ export async function renderProject(
   const projOutputDir = context.config?.project?.[kProjectOutputDir];
   if (
     renderAll && (typeof (projOutputDir) === "string") &&
-    (options.flags?.clean == true)
+    (options.flags?.clean == true) && projectIsWebsite(context)
   ) {
     const realProjectDir = Deno.realPathSync(context.dir);
     // ouptut dir

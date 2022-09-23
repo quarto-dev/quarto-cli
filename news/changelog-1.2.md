@@ -123,6 +123,8 @@
 ## Preview
 
 - Restart Jupyter kernel daemon if preview server is restarted.
+- Enable use of custom serve command for serving project output
+- Add `--no-serve` command line parameter to prevent serving altogether
 
 ## Publishing
 

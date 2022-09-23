@@ -60,6 +60,10 @@ export const previewCommand = new Command()
     },
   )
   .option(
+    "--no-serve",
+    "Don't run a local preview web server (just monitor and re-render input files)",
+  )
+  .option(
     "--no-navigate",
     "Don't navigate the browser automatically when outputs are updated.",
   )
@@ -164,6 +168,11 @@ export const previewCommand = new Command()
     if (browserPathPos !== -1) {
       options.browserPath = String(args[browserPathPos + 1]);
       args.splice(browserPathPos, 2);
+    }
+    const noServePos = args.indexOf("--no-serve");
+    if (noServePos !== -1) {
+      options.serve = false;
+      args.splice(noServePos, 1);
     }
     const noBrowsePos = args.indexOf("--no-browse");
     if (noBrowsePos !== -1) {
@@ -275,6 +284,7 @@ export const previewCommand = new Command()
           browser: (options.browser === false || options.browse === false)
             ? false
             : undefined,
+          serve: options.serve,
           [kProjectWatchInputs]: options.watchInputs,
           timeout: options.timeout,
           render: options.render,
