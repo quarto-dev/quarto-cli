@@ -9,6 +9,8 @@ import { info, warning } from "log/mod.ts";
 import { existsSync } from "fs/mod.ts";
 import { basename, dirname, join, relative } from "path/mod.ts";
 import * as colors from "fmt/colors.ts";
+import { MuxAsyncIterator } from "async/mod.ts";
+import { iterateReader } from "streams/mod.ts";
 
 import * as ld from "../../core/lodash.ts";
 
@@ -52,7 +54,7 @@ import {
   httpFileRequestHandler,
   HttpFileRequestOptions,
 } from "../../core/http.ts";
-import { ServeOptions } from "./types.ts";
+import { ProjectWatcher, ServeOptions } from "./types.ts";
 import { watchProject } from "./watch.ts";
 import {
   isPreviewRenderRequest,
@@ -98,6 +100,8 @@ import { projectScratchPath } from "../project-scratch.ts";
 import { monitorPreviewTerminationConditions } from "../../core/quarto.ts";
 import { exitWithCleanup, onCleanup } from "../../core/cleanup.ts";
 import { projectExtensionDirs } from "../../extension/extension.ts";
+import { kLocalhost } from "../../core/port.ts";
+import { ProjectPreviewServe } from "../../resources/types/schema-types.ts";
 
 export const kRenderNone = "none";
 export const kRenderDefault = "default";
@@ -139,9 +143,6 @@ export async function serveProject(
     ...options,
     ...(await resolvePreviewOptions(options, project)),
   };
-
-  // get type
-  const projType = projectType(project?.config?.project?.[kProjectType]);
 
   // are we rendering?
   const renderBefore = options.render !== kRenderNone;
@@ -203,8 +204,6 @@ export async function serveProject(
     throw renderResult.error;
   }
 
-  const finalOutput = renderResultFinalOutput(renderResult);
-
   // append resource files from render results
   resourceFiles.push(...ld.uniq(
     renderResult.files.flatMap((file) => file.resourceFiles),
@@ -222,17 +221,6 @@ export async function serveProject(
     resourceFiles,
     project,
   );
-
-  // function that can return the current target pdf output file
-  const pdfOutputFile = (finalOutput && pdfOutput)
-    ? (): string => {
-      const project = watcher.project();
-      return join(
-        dirname(finalOutput),
-        bookOutputStem(project.dir, project.config) + ".pdf",
-      );
-    }
-    : undefined;
 
   // stop server function (will be reset if there is a serve action)
   let stopServer = () => {};
@@ -253,12 +241,165 @@ export async function serveProject(
   // print status
   printWatchingForChangesMessage();
 
-  // create listener and callback to close it
-  const listener = Deno.listen({ port: options.port!, hostname: options.host });
-  stopServer = () => listener.close();
+  // are we serving? are we using a custom serve command?
+  const serve = project.config?.project?.preview?.serve;
+  const previewServer = serve === false
+    ? await noPreviewServer()
+    : serve === undefined || serve === true
+    ? await internalPreviewServer(
+      project,
+      renderResult,
+      renderManager,
+      pdfOutput,
+      watcher,
+      extensionDirs,
+      resourceFiles,
+      flags,
+      pandocArgs,
+      options,
+    )
+    : await externalPreviewServer(project, serve, options);
 
-  // serve output dir
+  // set stopServer hook
+  stopServer = previewServer.stop;
+
+  // start server (launch browser if a path is returned)
+  const path = await previewServer.start();
+
+  // delay opening the browser
+
+  if (path !== undefined) {
+    printBrowsePreviewMessage(
+      options.host!,
+      options.port!,
+      path,
+    );
+
+    if (
+      options.browser &&
+      !isRStudioServer() &&
+      !isRStudioWorkbench() &&
+      !isJupyterHubServer()
+    ) {
+      await openUrl(previewURL(options.host!, options.port!, path));
+    }
+  }
+
+  // run the server
+  await previewServer.serve();
+}
+
+interface PreviewServer {
+  // returns path to browse to
+  start: () => Promise<string | undefined>;
+  serve: () => Promise<void>;
+  stop: () => Promise<void>;
+}
+
+function noPreviewServer(): Promise<PreviewServer> {
+  return Promise.resolve({
+    start: () => Promise.resolve(undefined),
+    serve: () => {
+      return new Promise(() => {
+      });
+    },
+    stop: () => {
+      return Promise.resolve();
+    },
+  });
+}
+
+function externalPreviewServer(
+  project: ProjectContext,
+  serve: ProjectPreviewServe,
+  options: ServeOptions,
+): Promise<PreviewServer> {
+  // parse command line args and interpolate host and port
+  const cmd = serve.cmd.split(/[\t ]/).map((arg) => {
+    if (arg === "{host}") {
+      return options.host || kLocalhost;
+    } else if (arg === "{port}") {
+      return String(options.port);
+    } else {
+      return arg;
+    }
+  });
+  // add custom args
+  if (serve.args) {
+    cmd.push(...serve.args);
+  }
+
+  // start the process
+  const process = Deno.run({
+    cmd,
+    cwd: projectOutputDir(project),
+    stdout: "piped",
+    stderr: "piped",
+  });
+
+  // merge and stream stdout and stderr
+  const readyPattern = new RegExp(serve.ready);
+  const multiplexIterator = new MuxAsyncIterator<
+    Uint8Array
+  >();
+  multiplexIterator.add(iterateReader(process.stdout));
+  multiplexIterator.add(iterateReader(process.stderr));
+
+  // wait for ready and then return from 'start'
+  const decoder = new TextDecoder();
+  return Promise.resolve({
+    start: async () => {
+      for await (const chunk of multiplexIterator) {
+        const text = decoder.decode(chunk);
+        if (readyPattern.test(text)) {
+          break;
+        }
+        Deno.stderr.writeSync(chunk);
+      }
+      return "";
+    },
+    serve: async () => {
+      for await (const chunk of multiplexIterator) {
+        Deno.stderr.writeSync(chunk);
+      }
+      await process.status();
+    },
+    stop: () => {
+      process.kill("SIGTERM");
+      process.close();
+      return Promise.resolve();
+    },
+  });
+}
+
+async function internalPreviewServer(
+  project: ProjectContext,
+  renderResult: RenderResult,
+  renderManager: ServeRenderManager,
+  pdfOutput: boolean,
+  watcher: ProjectWatcher,
+  extensionDirs: string[],
+  resourceFiles: string[],
+  flags: RenderFlags,
+  pandocArgs: string[],
+  options: ServeOptions,
+): Promise<PreviewServer> {
+  const projType = projectType(project?.config?.project?.[kProjectType]);
+
   const outputDir = projectOutputDir(project);
+
+  const finalOutput = renderResultFinalOutput(renderResult);
+
+  // function that can return the current target pdf output file
+  const pdfOutputFile = (finalOutput && pdfOutput)
+    ? (): string => {
+      const project = watcher.project();
+      return join(
+        dirname(finalOutput),
+        bookOutputStem(project.dir, project.config) + ".pdf",
+      );
+    }
+    : undefined;
 
   const handlerOptions: HttpFileRequestOptions = {
     //  base dir
@@ -484,6 +625,29 @@ export async function serveProject(
     },
   };
 
+  // if this is a pdf then we tweak the options to correctly handle pdfjs
+  if (finalOutput && pdfOutput) {
+    // change the baseDir to the pdfjs directory
+    handlerOptions.baseDir = pdfJsBaseDir();
+
+    // install custom handler for pdfjs
+    handlerOptions.onFile = pdfJsFileHandler(
+      pdfOutputFile!,
+      async (file: string, req: Request) => {
+        // inject watcher client for html
+        if (isHtmlContent(file)) {
+          const fileContents = await Deno.readFile(file);
+          return watcher.injectClient(req, fileContents);
+        } else {
+          return undefined;
+        }
+      },
+    );
+  }
+
+  // create the handler
+  const handler = httpFileRequestHandler(handlerOptions);
+
   // if we are passed a browser path, resolve the output file if its an input
   let browserPath = options.browserPath
     ? options.browserPath.replace(/^\//, "")
@@ -508,61 +672,36 @@ export async function serveProject(
 
   // print browse url and open browser if requested
   const path = (targetPath && targetPath !== "index.html") ? targetPath : "";
-  printBrowsePreviewMessage(
-    options.host!,
-    options.port!,
-    path,
-  );
 
-  if (
-    options.browser &&
-    !isRStudioServer() &&
-    !isRStudioWorkbench() &&
-    !isJupyterHubServer()
-  ) {
-    await openUrl(previewURL(options.host!, options.port!, path));
-  }
+  // start listening
+  const listener = Deno.listen({ port: options.port!, hostname: options.host });
 
-  // if this is a pdf then we tweak the options to correctly handle pdfjs
-  if (finalOutput && pdfOutput) {
-    // change the baseDir to the pdfjs directory
-    handlerOptions.baseDir = pdfJsBaseDir();
-
-    // install custom handler for pdfjs
-    handlerOptions.onFile = pdfJsFileHandler(
-      pdfOutputFile!,
-      async (file: string, req: Request) => {
-        // inject watcher client for html
-        if (isHtmlContent(file)) {
-          const fileContents = await Deno.readFile(file);
-          return watcher.injectClient(req, fileContents);
-        } else {
-          return undefined;
-        }
-      },
-    );
-  }
-
-  // serve project
-  const handler = httpFileRequestHandler(handlerOptions);
-
-  // serve project
-  for await (const conn of listener) {
-    (async () => {
-      try {
-        for await (const { request, respondWith } of Deno.serveHttp(conn)) {
-          await respondWith(handler(request));
-        }
-      } catch (err) {
-        warning(err.message);
-        try {
-          conn.close();
-        } catch {
-          //
-        }
+  return {
+    start: () => Promise.resolve(path),
+    serve: async () => {
+      // serve project
+      for await (const conn of listener) {
+        (async () => {
+          try {
+            for await (const { request, respondWith } of Deno.serveHttp(conn)) {
+              await respondWith(handler(request));
+            }
+          } catch (err) {
+            warning(err.message);
+            try {
+              conn.close();
+            } catch {
+              //
+            }
+          }
+        })();
       }
-    })();
-  }
+    },
+    stop: () => {
+      listener.close();
+      return Promise.resolve();
+    },
+  };
 }
 
 // https://deno.com/blog/v1.23#remove-unstable-denosleepsync-api

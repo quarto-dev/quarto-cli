@@ -244,8 +244,18 @@ export type ProjectPreview = {
     boolean /* Navigate the browser automatically when outputs are updated (defaults to true) */;
   port?:
     number /* Port to listen on (defaults to random value between 3000 and 8000) */;
+  serve?:
+    | boolean
+    | ProjectPreviewServe /* Use an exernal application to preview the project. */;
   timeout?:
     number; /* Time (in seconds) after which to exit if there are no active clients */
+};
+
+export type ProjectPreviewServe = {
+  args?: string /* Additional command line arguments for preview command. */;
+  cmd: string /* Serve project preview using the specified command.
+Interpolate the `--port` into the command using `{port}`. */;
+  ready: string;
 };
 
 export type Publish = {

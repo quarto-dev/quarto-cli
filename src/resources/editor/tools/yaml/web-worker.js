@@ -8804,6 +8804,17 @@ try {
                     description: "Hostname to bind to (defaults to 127.0.0.1)"
                   }
                 },
+                serve: {
+                  description: "Use an exernal application to preview the project.",
+                  anyOf: [
+                    "boolean",
+                    {
+                      schema: {
+                        ref: "project-preview-serve"
+                      }
+                    }
+                  ]
+                },
                 browser: {
                   boolean: {
                     description: "Open a web browser to view the preview (defaults to true)"
@@ -8825,6 +8836,31 @@ try {
                   }
                 }
               }
+            }
+          },
+          {
+            id: "project-preview-serve",
+            object: {
+              closed: true,
+              properties: {
+                cmd: {
+                  string: {
+                    description: "Serve project preview using the specified command.\nInterpolate the `--port` into the command using `{port}`.\n"
+                  }
+                },
+                args: {
+                  string: {
+                    description: "Additional command line arguments for preview command."
+                  }
+                },
+                ready: {
+                  string: "Regular expression for detecting when the server is ready."
+                }
+              },
+              required: [
+                "cmd",
+                "ready"
+              ]
             }
           },
           {
@@ -17399,10 +17435,14 @@ try {
           "Image height (pixels)",
           "Port to listen on (defaults to random value between 3000 and\n8000)",
           "Hostname to bind to (defaults to 127.0.0.1)",
+          "Use an exernal application to preview the project.",
           "Open a web browser to view the preview (defaults to true)",
           "Re-render input files when they change (defaults to true)",
           "Navigate the browser automatically when outputs are updated (defaults\nto true)",
           "Time (in seconds) after which to exit if there are no active\nclients",
+          "Serve project preview using the specified command. Interpolate the\n<code>--port</code> into the command using <code>{port}</code>.",
+          "Additional command line arguments for preview command.",
+          "Regular expression for detecting when the server is ready.",
           "Sites published from project",
           "Unique identifier for site",
           "Published URL for site",
@@ -19002,6 +19042,7 @@ try {
           "CSS background position (defaults to <code>center</code>)",
           "CSS background repeat (defaults to <code>no-repeat</code>)",
           "Opacity of the background image on a 0-1 scale. 0 is transparent and\n1 is fully opaque.",
+          "The title slide style. Use <code>pandoc</code> to select the Pandoc\ndefault title slide style.",
           "Vertical centering of title slide",
           "Make speaker notes visible to all viewers",
           "Change the presentation direction to be RTL",
@@ -19666,8 +19707,7 @@ try {
             long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
-          "internal-schema-hack",
-          "The title slide style. Use <code>pandoc</code> to select the Pandoc\ndefault title slide style."
+          "internal-schema-hack"
         ],
         "schema/external-schemas.yml": [
           {
@@ -19880,12 +19920,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 129078,
+          _internalId: 129314,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 129077,
+              _internalId: 129313,
               type: "enum",
               enum: [
                 "png",
