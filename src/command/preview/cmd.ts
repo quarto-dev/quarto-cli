@@ -171,7 +171,7 @@ export const previewCommand = new Command()
     }
     const noServePos = args.indexOf("--no-serve");
     if (noServePos !== -1) {
-      options.serve = false;
+      options.noServe = true;
       args.splice(noServePos, 1);
     }
     const noBrowsePos = args.indexOf("--no-browse");
@@ -284,13 +284,12 @@ export const previewCommand = new Command()
           browser: (options.browser === false || options.browse === false)
             ? false
             : undefined,
-          serve: options.serve,
           [kProjectWatchInputs]: options.watchInputs,
           timeout: options.timeout,
           render: options.render,
           browserPath: options.browserPath,
           navigate: options.navigate,
-        });
+        }, options.noServe === true);
       } finally {
         services.cleanup();
       }

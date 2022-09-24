@@ -7,7 +7,6 @@
 
 import { FileResponse } from "../../core/http.ts";
 import { kProjectWatchInputs, ProjectContext } from "../../project/types.ts";
-import { ProjectPreviewServe } from "../../resources/types/schema-types.ts";
 
 export interface ProjectWatcher {
   handle: (req: Request) => boolean;
@@ -25,9 +24,6 @@ export interface ProjectWatcher {
 
 export type ServeOptions = {
   render: string;
-  serve?:
-    | boolean
-    | ProjectPreviewServe;
   port?: number;
   host?: string;
   browser?: boolean;

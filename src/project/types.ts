@@ -69,11 +69,6 @@ export async function resolvePreviewOptions(
   options: ProjectPreview,
   project?: ProjectContext,
 ): Promise<ProjectPreview> {
-  // serve: true is same as undefined (allows project to merge over it)
-  if (options.serve === true) {
-    options.serve = undefined;
-  }
-
   // start with project options if we have them
   if (project?.config?.project.preview) {
     options = mergeConfigs(project.config.project.preview, options);
@@ -82,7 +77,6 @@ export async function resolvePreviewOptions(
   const resolved = mergeConfigs({
     host: kLocalhost,
     browser: true,
-    serve: undefined,
     [kProjectWatchInputs]: !isRStudio(),
     timeout: 0,
     navigate: true,

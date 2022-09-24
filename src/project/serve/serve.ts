@@ -112,6 +112,7 @@ export async function serveProject(
   flags: RenderFlags,
   pandocArgs: string[],
   options: ServeOptions,
+  noServe: boolean,
 ) {
   let project: ProjectContext | undefined;
   if (typeof (target) === "string") {
@@ -242,9 +243,12 @@ export async function serveProject(
   printWatchingForChangesMessage();
 
   // are we serving? are we using a custom serve command?
-  const previewServer = options.serve === false
+  const serve = noServe
+    ? false
+    : project.config?.project?.preview?.serve || true;
+  const previewServer = serve === false
     ? await noPreviewServer()
-    : options.serve === undefined || options.serve === true
+    : serve === true
     ? await internalPreviewServer(
       project,
       renderResult,
@@ -257,7 +261,7 @@ export async function serveProject(
       pandocArgs,
       options,
     )
-    : await externalPreviewServer(project, options.serve, options);
+    : await externalPreviewServer(project, serve, options);
 
   // set stopServer hook
   stopServer = previewServer.stop;
