@@ -29,7 +29,8 @@ import { useCommand } from "./use/cmd.ts";
 // deno-lint-ignore no-explicit-any
 export function commands(): Command<any>[] {
   return [
-    renderCommand,
+    // deno-lint-ignore no-explicit-any
+    renderCommand as any,
     previewCommand,
     serveCommand,
     createProjectCommand,

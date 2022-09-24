@@ -26,4 +26,4 @@ export const useCommand = new Command()
       );
     }
   })
-  .command(useTemplateCommand.getName(), useTemplateCommand.reset());
+  .command(useTemplateCommand.getName(), useTemplateCommand);
