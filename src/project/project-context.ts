@@ -400,7 +400,7 @@ async function builtinProjectExtensionsConfigResolver(
   return (dir: string): Promise<ResolvedProjectConfig | undefined> => {
     // look for the detector files
     for (const detector of projectTypeDetectors) {
-      if (detector.detect.some((file) => safeExistsSync(join(dir, file)))) {
+      if (detector.detect.every((file) => safeExistsSync(join(dir, file)))) {
         return Promise.resolve({
           config: {
             project: {
