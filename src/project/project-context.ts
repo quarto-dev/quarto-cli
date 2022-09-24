@@ -438,6 +438,14 @@ export function projectIsWebsite(context?: ProjectContext): boolean {
   }
 }
 
+export function projectPreviewServe(context?: ProjectContext) {
+  return context?.config?.project?.preview?.serve;
+}
+
+export function projectIsServeable(context?: ProjectContext): boolean {
+  return projectIsWebsite(context) || !!projectPreviewServe(context);
+}
+
 export function projectTypeIsWebsite(projType: ProjectType): boolean {
   return projType.type === kWebsite || projType.inheritsType === kWebsite;
 }

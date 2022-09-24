@@ -32,7 +32,10 @@ import {
   projectExcludeDirs,
   projectOutputDir,
 } from "../../project/project-shared.ts";
-import { projectContext } from "../../project/project-context.ts";
+import {
+  projectContext,
+  projectPreviewServe,
+} from "../../project/project-context.ts";
 import { partitionedMarkdownForInput } from "../../project/project-config.ts";
 
 import {
@@ -243,9 +246,7 @@ export async function serveProject(
   printWatchingForChangesMessage();
 
   // are we serving? are we using a custom serve command?
-  const serve = noServe
-    ? false
-    : project.config?.project?.preview?.serve || true;
+  const serve = noServe ? false : projectPreviewServe(project) || true;
   const previewServer = serve === false
     ? await noPreviewServer()
     : serve === true

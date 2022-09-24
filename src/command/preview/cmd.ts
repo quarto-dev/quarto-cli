@@ -34,7 +34,8 @@ import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/u
 import { kProjectWatchInputs, ProjectContext } from "../../project/types.ts";
 import {
   projectContext,
-  projectIsWebsite,
+  projectIsServeable,
+  projectPreviewServe,
 } from "../../project/project-context.ts";
 import { isHtmlOutput } from "../../config/format.ts";
 import { renderProject } from "../render/project.ts";
@@ -238,15 +239,19 @@ export const previewCommand = new Command()
     const flags = await parseRenderFlags(args);
     args = fixupPandocArgs(args, flags);
 
-    // if this is a single-file html preview within a project
+    // if this is a single-file preview within a 'serveable' project
     // without a specific render directive then render the file
     // and convert the render to a project one
     let projectTarget: string | ProjectContext = file;
     if (Deno.statSync(file).isFile) {
       const project = await projectContext(file);
-      if (project && projectIsWebsite(project)) {
+      if (project && projectIsServeable(project)) {
         const format = await previewFormat(file, flags.to, project);
-        if (isHtmlOutput(parseFormatString(format).baseFormat, true)) {
+
+        if (
+          isHtmlOutput(parseFormatString(format).baseFormat, true) ||
+          projectPreviewServe(project)
+        ) {
           setPreviewFormat(format, flags, args);
           const services = renderServices();
           try {
@@ -266,7 +271,11 @@ export const previewCommand = new Command()
             services.cleanup();
           }
           // re-write various targets to redirect to project preview
-          options.browserPath = relative(project.dir, file);
+          if (projectPreviewServe(project)) {
+            options.browserPath = "";
+          } else {
+            options.browserPath = relative(project.dir, file);
+          }
           file = project.dir;
           projectTarget = project;
         }
