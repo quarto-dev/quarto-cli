@@ -458,10 +458,8 @@
           description: Hostname to bind to (defaults to 127.0.0.1)
       serve:
         description: Use an exernal application to preview the project.
-        anyOf:
-          - boolean
-          - schema:
-              ref: project-preview-serve
+        schema:
+          ref: project-preview-serve
       browser:
         boolean:
           description: Open a web browser to view the preview (defaults to true)

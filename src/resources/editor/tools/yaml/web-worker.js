@@ -8823,14 +8823,9 @@ try {
                 },
                 serve: {
                   description: "Use an exernal application to preview the project.",
-                  anyOf: [
-                    "boolean",
-                    {
-                      schema: {
-                        ref: "project-preview-serve"
-                      }
-                    }
-                  ]
+                  schema: {
+                    ref: "project-preview-serve"
+                  }
                 },
                 browser: {
                   boolean: {
@@ -19938,12 +19933,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 129399,
+          _internalId: 129394,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 129398,
+              _internalId: 129393,
               type: "enum",
               enum: [
                 "png",
