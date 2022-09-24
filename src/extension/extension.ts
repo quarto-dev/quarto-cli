@@ -45,6 +45,7 @@ import { projectIgnoreGlobs } from "../project/project-context.ts";
 import { ProjectType } from "../project/types/types.ts";
 import { copyResourceFile } from "../project/project-resources.ts";
 import { RevealPluginBundle } from "../format/reveal/format-reveal-plugin.ts";
+import { resourcePath } from "../core/resources.ts";
 
 // This is where we maintain a list of extensions that have been promoted
 // to 'built-in' status. If we see these extensions, we will filter them
@@ -404,7 +405,8 @@ export function inputExtensionDirs(input: string, projectDir?: string) {
     }
   };
 
-  const extensionDirectories: string[] = [];
+  // read extensions (start with built-in)
+  const extensionDirectories: string[] = [builtinExtensions()];
   if (projectDir) {
     let currentDir = Deno.realPathSync(inputDirName(input));
     do {
@@ -442,10 +444,7 @@ export function discoverExtensionPath(
     extensionDirGlobs.push(`*/${extensionId.name}/`);
   }
 
-  const findExtensionDir = (dir: string, globs: string[]) => {
-    // The `_extensions` directory
-    const extDir = join(dir, kExtensionDir);
-
+  const findExtensionDir = (extDir: string, globs: string[]) => {
     // Find the matching extension for this name (ensuring that an _extension.yml file is present)
     const paths = resolvePathGlobs(extDir, globs, [], { mode: "strict" })
       .include.filter((path) => {
@@ -466,6 +465,15 @@ export function discoverExtensionPath(
     }
   };
 
+  // check for built-in
+  const builtinExtensionDir = findExtensionDir(
+    builtinExtensions(),
+    extensionDirGlobs,
+  );
+  if (builtinExtensionDir) {
+    return builtinExtensionDir;
+  }
+
   // Start in the source directory
   const sourceDir = Deno.statSync(input).isDirectory ? input : dirname(input);
   const sourceDirAbs = Deno.realPathSync(sourceDir);
@@ -475,7 +483,10 @@ export function discoverExtensionPath(
     let currentDir = normalize(sourceDirAbs);
     const projDir = normalize(projectDir);
     while (!extensionDir) {
-      extensionDir = findExtensionDir(currentDir, extensionDirGlobs);
+      extensionDir = findExtensionDir(
+        join(currentDir, kExtensionDir),
+        extensionDirGlobs,
+      );
       if (currentDir == projDir) {
         break;
       }
@@ -483,8 +494,16 @@ export function discoverExtensionPath(
     }
     return extensionDir;
   } else {
-    return findExtensionDir(sourceDirAbs, extensionDirGlobs);
+    return findExtensionDir(
+      join(sourceDirAbs, kExtensionDir),
+      extensionDirGlobs,
+    );
   }
+}
+
+// Path for built-in extensions
+function builtinExtensions() {
+  return resourcePath("extensions");
 }
 
 // Validate the extension
