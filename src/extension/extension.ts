@@ -61,19 +61,23 @@ export function createExtensionContext(): ExtensionContext {
 
   // Reads all extensions available to an input
   const extensions = async (
-    input: string,
+    input?: string,
     config?: ProjectConfig,
     projectDir?: string,
   ): Promise<Extension[]> => {
     // Load the extensions and resolve extension paths
     const extensions = await loadExtensions(
-      input,
       extensionCache,
+      input,
       projectDir,
     );
-    return Object.values(extensions).map((extension) =>
-      resolveExtensionPaths(extension, input, config)
-    );
+    return Object.values(extensions).map((extension) => {
+      if (input) {
+        return resolveExtensionPaths(extension, input, config);
+      } else {
+        return extension;
+      }
+    });
   };
 
   // Reads a specific extension avialable to an input
@@ -174,8 +178,8 @@ export function filterExtensions(
 // (note this needs to be sure to return copies from
 // the cache in the event that the objects are mutated)
 const loadExtensions = async (
-  input: string,
   cache: Record<string, Extension[]>,
+  input?: string,
   projectDir?: string,
 ) => {
   const extensionPath = inputExtensionDirs(input, projectDir);
@@ -383,7 +387,7 @@ export function extensionFilesFromDirs(dirs: string[]) {
 
 // Find all the extension directories available for a given input and project
 // This will recursively search valid extension directories
-export function inputExtensionDirs(input: string, projectDir?: string) {
+export function inputExtensionDirs(input?: string, projectDir?: string) {
   const extensionsDirPath = (path: string) => {
     const extPath = join(path, kExtensionDir);
     try {
@@ -407,7 +411,7 @@ export function inputExtensionDirs(input: string, projectDir?: string) {
 
   // read extensions (start with built-in)
   const extensionDirectories: string[] = [builtinExtensions()];
-  if (projectDir) {
+  if (projectDir && input) {
     let currentDir = Deno.realPathSync(inputDirName(input));
     do {
       const extensionPath = extensionsDirPath(currentDir);
@@ -417,7 +421,7 @@ export function inputExtensionDirs(input: string, projectDir?: string) {
       currentDir = dirname(currentDir);
     } while (isSubdir(projectDir, currentDir) || projectDir === currentDir);
     return extensionDirectories;
-  } else {
+  } else if (input) {
     const dir = extensionsDirPath(inputDirName(input));
     if (dir) {
       extensionDirectories.push(dir);

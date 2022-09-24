@@ -156,13 +156,7 @@ import { logLevel } from "../../core/log.ts";
 
 import { cacheCodePage, clearCodePageCache } from "../../core/windows.ts";
 import { textHighlightThemePath } from "../../quarto-core/text-highlighting.ts";
-import {
-  formatDate,
-  isSpecialDate,
-  parsePandocDate,
-  parseSpecialDate,
-  resolveAndFormatDate,
-} from "../../core/date.ts";
+import { resolveAndFormatDate } from "../../core/date.ts";
 import { katexPostProcessor } from "../../format/html/format-html-math.ts";
 import {
   readAndInjectDependencies,

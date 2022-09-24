@@ -57,7 +57,6 @@ import { parseShellRunCommand } from "../../core/run/shell.ts";
 import { clearProjectIndex } from "../../project/project-index.ts";
 import { projectExcludeDirs } from "../../project/project-shared.ts";
 import { asArray } from "../../core/array.ts";
-import { projectIsWebsite } from "../../project/project-context.ts";
 
 export async function renderProject(
   context: ProjectContext,

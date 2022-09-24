@@ -45,7 +45,7 @@ export interface Extension extends Record<string, unknown> {
 
 export interface ExtensionContext {
   extensions(
-    input: string,
+    input?: string,
     config?: ProjectConfig,
     projectDir?: string,
   ): Promise<Extension[]>;

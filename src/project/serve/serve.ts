@@ -104,7 +104,7 @@ import { monitorPreviewTerminationConditions } from "../../core/quarto.ts";
 import { exitWithCleanup, onCleanup } from "../../core/cleanup.ts";
 import { projectExtensionDirs } from "../../extension/extension.ts";
 import { kLocalhost } from "../../core/port.ts";
-import { ProjectPreviewServe } from "../../resources/types/schema-types.ts";
+import { ProjectServe } from "../../resources/types/schema-types.ts";
 
 export const kRenderNone = "none";
 export const kRenderDefault = "default";
@@ -315,7 +315,7 @@ function noPreviewServer(): Promise<PreviewServer> {
 
 function externalPreviewServer(
   project: ProjectContext,
-  serve: ProjectPreviewServe,
+  serve: ProjectServe,
   options: ServeOptions,
 ): Promise<PreviewServer> {
   // parse command line args and interpolate host and port

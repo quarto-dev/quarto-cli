@@ -8824,7 +8824,7 @@ try {
                 serve: {
                   description: "Use an exernal application to preview the project.",
                   schema: {
-                    ref: "project-preview-serve"
+                    ref: "project-serve"
                   }
                 },
                 browser: {
@@ -8851,30 +8851,28 @@ try {
             }
           },
           {
-            id: "project-preview-serve",
-            schema: {
-              object: {
-                closed: true,
-                properties: {
-                  cmd: {
-                    string: {
-                      description: "Serve project preview using the specified command.\nInterpolate the `--port` into the command using `{port}`.\n"
-                    }
-                  },
-                  args: {
-                    string: {
-                      description: "Additional command line arguments for preview command."
-                    }
-                  },
-                  ready: {
-                    string: "Regular expression for detecting when the server is ready."
+            id: "project-serve",
+            object: {
+              closed: true,
+              properties: {
+                cmd: {
+                  string: {
+                    description: "Serve project preview using the specified command.\nInterpolate the `--port` into the command using `{port}`.\n"
                   }
                 },
-                required: [
-                  "cmd",
-                  "ready"
-                ]
-              }
+                args: {
+                  string: {
+                    description: "Additional command line arguments for preview command."
+                  }
+                },
+                ready: {
+                  string: "Regular expression for detecting when the server is ready."
+                }
+              },
+              required: [
+                "cmd",
+                "ready"
+              ]
             }
           },
           {
@@ -16694,6 +16692,13 @@ try {
                     schema: {
                       maybeArrayOf: "string"
                     }
+                  },
+                  detect: {
+                    description: "Array of paths used to detect the project type within a directory",
+                    schema: {
+                      maybeArrayOf: "string"
+                    },
+                    hidden: true
                   }
                 }
               }
@@ -19129,6 +19134,7 @@ try {
           "Options for <code>quarto preview</code>",
           "Scripts to run as a pre-render step",
           "Scripts to run as a post-render step",
+          "Array of globs used to detect the project type within a directory",
           "Website configuration.",
           "Book configuration.",
           "The primary title of the item.",
@@ -19433,6 +19439,7 @@ try {
           "Options for <code>quarto preview</code>",
           "Scripts to run as a pre-render step",
           "Scripts to run as a post-render step",
+          "Array of globs used to detect the project type within a directory",
           "Website configuration.",
           "Book configuration.",
           "The primary title of the item.",
@@ -19722,7 +19729,9 @@ try {
             long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
-          "internal-schema-hack"
+          "internal-schema-hack",
+          "Serve project preview using the specified command. Interpolate the\n<code>--port</code> into the command using <code>{port}</code>.",
+          "Additional command line arguments for preview command."
         ],
         "schema/external-schemas.yml": [
           {
@@ -19935,12 +19944,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 129391,
+          _internalId: 129415,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 129390,
+              _internalId: 129414,
               type: "enum",
               enum: [
                 "png",

@@ -1,12 +1,11 @@
 title: Docusaurus
 author: RStudio, PBC
 organization: quarto
-version: 1.0.0
-quarto-version: ">=1.2.152"
 contributes:
   project:
     project:
       type: default
+      detect: "docusaurus.config.js"
       render:
         - "**/*.qmd"
         - "**/*.ipynb"
