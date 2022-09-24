@@ -474,20 +474,21 @@
           description: Time (in seconds) after which to exit if there are no active clients
 
 - id: project-preview-serve
-  object:
-    closed: true
-    properties:
-      cmd:
-        string:
-          description: |
-            Serve project preview using the specified command.
-            Interpolate the `--port` into the command using `{port}`.
-      args:
-        string:
-          description: Additional command line arguments for preview command.
-      ready:
-        string: "Regular expression for detecting when the server is ready."
-    required: [cmd, ready]
+  schema:
+    object:
+      closed: true
+      properties:
+        cmd:
+          string:
+            description: |
+              Serve project preview using the specified command.
+              Interpolate the `--port` into the command using `{port}`.
+        args:
+          string:
+            description: Additional command line arguments for preview command.
+        ready:
+          string: "Regular expression for detecting when the server is ready."
+      required: [cmd, ready]
 
 - id: publish
   description: Sites published from project

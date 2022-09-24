@@ -8851,27 +8851,29 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           id: "project-preview-serve",
-          object: {
-            closed: true,
-            properties: {
-              cmd: {
-                string: {
-                  description: "Serve project preview using the specified command.\nInterpolate the `--port` into the command using `{port}`.\n"
+          schema: {
+            object: {
+              closed: true,
+              properties: {
+                cmd: {
+                  string: {
+                    description: "Serve project preview using the specified command.\nInterpolate the `--port` into the command using `{port}`.\n"
+                  }
+                },
+                args: {
+                  string: {
+                    description: "Additional command line arguments for preview command."
+                  }
+                },
+                ready: {
+                  string: "Regular expression for detecting when the server is ready."
                 }
               },
-              args: {
-                string: {
-                  description: "Additional command line arguments for preview command."
-                }
-              },
-              ready: {
-                string: "Regular expression for detecting when the server is ready."
-              }
-            },
-            required: [
-              "cmd",
-              "ready"
-            ]
+              required: [
+                "cmd",
+                "ready"
+              ]
+            }
           }
         },
         {
@@ -19932,12 +19934,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 129394,
+        _internalId: 129391,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 129393,
+            _internalId: 129390,
             type: "enum",
             enum: [
               "png",
