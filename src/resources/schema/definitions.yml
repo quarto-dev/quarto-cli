@@ -486,7 +486,8 @@
         string:
           description: Additional command line arguments for preview command.
       ready:
-        string: "Regular expression for detecting when the server is ready."
+        string:
+          description: Regular expression for detecting when the server is ready.
     required: [cmd, ready]
 
 - id: publish

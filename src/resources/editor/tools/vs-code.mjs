@@ -8865,7 +8865,9 @@ var require_yaml_intelligence_resources = __commonJS({
                 }
               },
               ready: {
-                string: "Regular expression for detecting when the server is ready."
+                string: {
+                  description: "Regular expression for detecting when the server is ready."
+                }
               }
             },
             required: [
@@ -19133,7 +19135,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Options for <code>quarto preview</code>",
         "Scripts to run as a pre-render step",
         "Scripts to run as a post-render step",
-        "Array of globs used to detect the project type within a directory",
+        "Array of paths used to detect the project type within a directory",
         "Website configuration.",
         "Book configuration.",
         "The primary title of the item.",
@@ -19438,7 +19440,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Options for <code>quarto preview</code>",
         "Scripts to run as a pre-render step",
         "Scripts to run as a post-render step",
-        "Array of globs used to detect the project type within a directory",
+        "Array of paths used to detect the project type within a directory",
         "Website configuration.",
         "Book configuration.",
         "The primary title of the item.",
@@ -19728,9 +19730,7 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
-        "internal-schema-hack",
-        "Serve project preview using the specified command. Interpolate the\n<code>--port</code> into the command using <code>{port}</code>.",
-        "Additional command line arguments for preview command."
+        "internal-schema-hack"
       ],
       "schema/external-schemas.yml": [
         {
@@ -19943,12 +19943,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 129415,
+        _internalId: 129413,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 129414,
+            _internalId: 129412,
             type: "enum",
             enum: [
               "png",

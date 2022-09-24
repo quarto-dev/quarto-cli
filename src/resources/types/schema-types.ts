@@ -255,7 +255,8 @@ export type ProjectServe = {
   args?: string /* Additional command line arguments for preview command. */;
   cmd: string /* Serve project preview using the specified command.
 Interpolate the `--port` into the command using `{port}`. */;
-  ready: string;
+  ready:
+    string; /* Regular expression for detecting when the server is ready. */
 };
 
 export type Publish = {
