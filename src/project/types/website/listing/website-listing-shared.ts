@@ -69,6 +69,7 @@ export const kGridColumns = "grid-columns";
 
 // The maximum length of the description
 export const kMaxDescLength = "max-description-length";
+export const kDefaultMaxDescLength = 175;
 
 // Table options
 export const kTableStriped = "table-striped";
