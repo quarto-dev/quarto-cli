@@ -103,8 +103,9 @@ import { projectScratchPath } from "../project-scratch.ts";
 import { monitorPreviewTerminationConditions } from "../../core/quarto.ts";
 import { exitWithCleanup, onCleanup } from "../../core/cleanup.ts";
 import { projectExtensionDirs } from "../../extension/extension.ts";
-import { kLocalhost } from "../../core/port.ts";
+import { findOpenPort, kLocalhost } from "../../core/port.ts";
 import { ProjectServe } from "../../resources/types/schema-types.ts";
+import { handleHttpRequests } from "../../core/http-server.ts";
 
 export const kRenderNone = "none";
 export const kRenderDefault = "default";
@@ -262,15 +263,23 @@ export async function serveProject(
       pandocArgs,
       options,
     )
-    : await externalPreviewServer(project, serve, options);
+    : await externalPreviewServer(
+      project,
+      serve,
+      options,
+      renderManager,
+      watcher,
+      extensionDirs,
+      resourceFiles,
+      flags,
+      pandocArgs,
+    );
 
   // set stopServer hook
   stopServer = previewServer.stop;
 
   // start server (launch browser if a path is returned)
   const path = await previewServer.start();
-
-  // delay opening the browser
 
   if (path !== undefined) {
     printBrowsePreviewMessage(
@@ -288,6 +297,9 @@ export async function serveProject(
       await openUrl(previewURL(options.host!, options.port!, path));
     }
   }
+
+  // register the stopServer function as a cleanup handler
+  onCleanup(stopServer);
 
   // run the server
   await previewServer.serve();
@@ -317,7 +329,41 @@ function externalPreviewServer(
   project: ProjectContext,
   serve: ProjectServe,
   options: ServeOptions,
+  renderManager: ServeRenderManager,
+  watcher: ProjectWatcher,
+  extensionDirs: string[],
+  resourceFiles: string[],
+  flags: RenderFlags,
+  pandocArgs: string[],
 ): Promise<PreviewServer> {
+  // run a control channel server for handling render requests
+  const outputDir = projectOutputDir(project);
+  const handlerOptions: HttpFileRequestOptions = {
+    //  base dir
+    baseDir: outputDir,
+
+    // handle websocket upgrade and render requests
+    onRequest: previewControlChannelRequestHandler(
+      project,
+      renderManager,
+      watcher,
+      extensionDirs,
+      resourceFiles,
+      flags,
+      pandocArgs,
+      false,
+    ),
+  };
+  const handler = httpFileRequestHandler(handlerOptions);
+  const port = findOpenPort();
+  const listener = Deno.listen({ port, hostname: kLocalhost });
+  handleHttpRequests(listener, handler).then(() => {
+    // terminanted
+  }).catch((_error) => {
+    // ignore errors
+  });
+  info(`Preview service running (${port})`);
+
   // parse command line args and interpolate host and port
   const cmd = serve.cmd.split(/[\t ]/).map((arg) => {
     if (arg === "{host}") {
@@ -371,6 +417,7 @@ function externalPreviewServer(
     stop: () => {
       process.kill("SIGTERM");
       process.close();
+      listener.close();
       return Promise.resolve();
     },
   });
@@ -413,81 +460,16 @@ async function internalPreviewServer(
     printUrls: "all",
 
     // handle websocket upgrade and render requests
-    onRequest: async (req: Request) => {
-      if (watcher.handle(req)) {
-        return await watcher.connect(req);
-      } else if (isPreviewTerminateRequest(req)) {
-        exitWithCleanup(0);
-      } else if (isPreviewRenderRequest(req)) {
-        const prevReq = previewRenderRequest(
-          req,
-          watcher.hasClients(),
-          project!.dir,
-        );
-        if (
-          prevReq &&
-          (await previewRenderRequestIsCompatible(prevReq, flags, project))
-        ) {
-          if (isProjectInputFile(prevReq.path, project!)) {
-            const services = renderServices();
-            // if there is no specific format requested then 'all' needs
-            // to become 'html' so we don't render all formats
-            const to = flags.to === "all"
-              ? (prevReq.format || "html")
-              : flags.to;
-            render(prevReq.path, {
-              services,
-              flags: { ...flags, to },
-              pandocArgs,
-              previewServer: true,
-            }).then((result) => {
-              if (result.error) {
-                if (result.error?.message) {
-                  logError(result.error);
-                }
-              } else {
-                // print output created
-                const finalOutput = renderResultFinalOutput(
-                  result,
-                  project!.dir,
-                );
-                if (!finalOutput) {
-                  throw new Error(
-                    "No output created by quarto render " +
-                      basename(prevReq.path),
-                  );
-                }
-
-                renderManager.onRenderResult(
-                  result,
-                  extensionDirs,
-                  resourceFiles,
-                  watcher.project(),
-                );
-
-                info("Output created: " + finalOutput + "\n");
-
-                watcher.reloadClients(
-                  true,
-                  !isPdfContent(finalOutput)
-                    ? join(project!.dir, finalOutput)
-                    : undefined,
-                );
-              }
-            }).finally(() => {
-              services.cleanup();
-            });
-            return httpContentResponse("rendered");
-          } else {
-            return previewUnableToRenderResponse();
-          }
-        } else {
-          return previewUnableToRenderResponse();
-        }
-      } else {
-        return undefined;
-      }
-    },
+    onRequest: previewControlChannelRequestHandler(
+      project,
+      renderManager,
+      watcher,
+      extensionDirs,
+      resourceFiles,
+      flags,
+      pandocArgs,
+      true,
+    ),
 
     // handle html file requests w/ re-renders
     onFile: async (file: string, req: Request) => {
@@ -683,28 +665,97 @@ async function internalPreviewServer(
   return {
     start: () => Promise.resolve(path),
     serve: async () => {
-      // serve project
-      for await (const conn of listener) {
-        (async () => {
-          try {
-            for await (const { request, respondWith } of Deno.serveHttp(conn)) {
-              await respondWith(handler(request));
-            }
-          } catch (err) {
-            warning(err.message);
-            try {
-              conn.close();
-            } catch {
-              //
-            }
-          }
-        })();
-      }
+      await handleHttpRequests(listener, handler);
     },
     stop: () => {
       listener.close();
       return Promise.resolve();
     },
+  };
+}
+
+function previewControlChannelRequestHandler(
+  project: ProjectContext,
+  renderManager: ServeRenderManager,
+  watcher: ProjectWatcher,
+  extensionDirs: string[],
+  resourceFiles: string[],
+  flags: RenderFlags,
+  pandocArgs: string[],
+  requireActiveClient: boolean,
+): (req: Request) => Promise<Response | undefined> {
+  return async (req: Request) => {
+    if (watcher.handle(req)) {
+      return await watcher.connect(req);
+    } else if (isPreviewTerminateRequest(req)) {
+      exitWithCleanup(0);
+    } else if (isPreviewRenderRequest(req)) {
+      const prevReq = previewRenderRequest(
+        req,
+        requireActiveClient ? watcher.hasClients() : true,
+        project!.dir,
+      );
+      if (
+        prevReq &&
+        (await previewRenderRequestIsCompatible(prevReq, flags, project))
+      ) {
+        if (isProjectInputFile(prevReq.path, project!)) {
+          const services = renderServices();
+          // if there is no specific format requested then 'all' needs
+          // to become 'html' so we don't render all formats
+          const to = flags.to === "all" ? (prevReq.format || "html") : flags.to;
+          render(prevReq.path, {
+            services,
+            flags: { ...flags, to },
+            pandocArgs,
+            previewServer: true,
+          }).then((result) => {
+            if (result.error) {
+              if (result.error?.message) {
+                logError(result.error);
+              }
+            } else {
+              // print output created
+              const finalOutput = renderResultFinalOutput(
+                result,
+                project!.dir,
+              );
+              if (!finalOutput) {
+                throw new Error(
+                  "No output created by quarto render " +
+                    basename(prevReq.path),
+                );
+              }
+
+              renderManager.onRenderResult(
+                result,
+                extensionDirs,
+                resourceFiles,
+                watcher.project(),
+              );
+
+              info("Output created: " + finalOutput + "\n");
+
+              watcher.reloadClients(
+                true,
+                !isPdfContent(finalOutput)
+                  ? join(project!.dir, finalOutput)
+                  : undefined,
+              );
+            }
+          }).finally(() => {
+            services.cleanup();
+          });
+          return httpContentResponse("rendered");
+        } else {
+          return previewUnableToRenderResponse();
+        }
+      } else {
+        return previewUnableToRenderResponse();
+      }
+    } else {
+      return undefined;
+    }
   };
 }
 
