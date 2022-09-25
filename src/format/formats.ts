@@ -227,19 +227,6 @@ function hugoFormat(): Format {
       to: "gfm",
       [kWrap]: "preserve",
     },
-    formatExtras: () => {
-      return {
-        postprocessors: [(output: string) => {
-          // unescape shortcodes
-          Deno.writeTextFileSync(
-            output,
-            Deno.readTextFileSync(output)
-              .replaceAll("{{\\<", "{{<")
-              .replaceAll("\\>}}", ">}}"),
-          );
-        }],
-      };
-    },
   });
 }
 

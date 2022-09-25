@@ -172,6 +172,10 @@ import {
   insertExplicitTimingEntries,
   withTiming,
 } from "../../core/timing.ts";
+import {
+  requiresShortcodeUnescapePostprocessor,
+  shortcodeUnescapePostprocessor,
+} from "../../format/markdown/format-markdown.ts";
 
 export async function runPandoc(
   options: PandocOptions,
@@ -614,6 +618,14 @@ export async function runPandoc(
         formatFilterParams[key] = filterParams[key];
       });
     }
+  }
+
+  // add a shortcode escaping post-processor if we need one
+  if (
+    isMarkdownOutput(options.format.pandoc) &&
+    requiresShortcodeUnescapePostprocessor(options.markdown)
+  ) {
+    postprocessors.push(shortcodeUnescapePostprocessor);
   }
 
   // resolve some title variables
