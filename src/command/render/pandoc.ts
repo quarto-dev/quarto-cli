@@ -172,10 +172,13 @@ import {
   insertExplicitTimingEntries,
   withTiming,
 } from "../../core/timing.ts";
+
 import {
   requiresShortcodeUnescapePostprocessor,
   shortcodeUnescapePostprocessor,
 } from "../../format/markdown/format-markdown.ts";
+
+import { kRevealJSPlugins } from "../../extension/extension-shared.ts";
 
 export async function runPandoc(
   options: PandocOptions,
@@ -226,6 +229,14 @@ export async function runPandoc(
     delete metadata[kRevealJsScripts];
     deleteProjectMetadata(metadata);
     deleteCrossrefMetadata(metadata);
+
+    // Don't print empty reveal-js plugins
+    if (
+      metadata[kRevealJSPlugins] &&
+      (metadata[kRevealJSPlugins] as Array<unknown>).length === 0
+    ) {
+      delete metadata[kRevealJSPlugins];
+    }
   };
   cleanMetadataForPrinting(printMetadata);
 
