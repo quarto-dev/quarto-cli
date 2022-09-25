@@ -29,6 +29,7 @@ import {
 import {
   ColumnType,
   kCategoryStyle,
+  kDefaultMaxDescLength,
   kFeed,
   kFieldAuthor,
   kFieldCategories,
@@ -91,6 +92,7 @@ import { ProjectOutputFile } from "../../types.ts";
 import { projectOutputDir } from "../../../project-shared.ts";
 import { directoryMetadataForInputFile } from "../../../project-context.ts";
 import { mergeConfigs } from "../../../../core/config.ts";
+import { truncateText } from "../../../../core/text.ts";
 
 // Defaults (a card listing that contains everything
 // in the source document's directory)
@@ -290,14 +292,22 @@ export function completeListingDescriptions(
       while (match) {
         // For each placeholder, get its target href, then read the contents of that
         // file and inject the contents.
-        const relativePath = match[1];
+        const maxDescLength = parseInt(match[1]);
+        const relativePath = match[2];
         const absolutePath = join(projectOutputDir(context), relativePath);
-        const placeholder = descriptionPlaceholder(relativePath);
+        const placeholder = descriptionPlaceholder(relativePath, maxDescLength);
         if (existsSync(absolutePath)) {
           const contents = contentReader(absolutePath);
+
+          // Truncate the description if need be
+          const desc = maxDescLength === -1
+            ? contents.firstPara
+            : maxDescLength > 0
+            ? truncateText(contents.firstPara || "", maxDescLength, "space")
+            : "";
           fileContents = fileContents.replace(
             placeholder,
-            contents.firstPara || "",
+            desc || "",
           );
         } else {
           fileContents = fileContents.replace(
@@ -319,11 +329,16 @@ export function completeListingDescriptions(
   });
 }
 
-function descriptionPlaceholder(file?: string): string {
-  return file ? `<!-- desc(5A0113B34292):${file} -->` : "";
+function descriptionPlaceholder(file?: string, maxLength?: number): string {
+  return file ? `<!-- desc(5A0113B34292)[max=${maxLength}]:${file} -->` : "";
 }
 
-const descriptionPlaceholderRegex = /<!-- desc\(5A0113B34292\):(.*) -->/;
+export function isPlaceHolder(text: string) {
+  return text.match(descriptionPlaceholderRegex);
+}
+
+const descriptionPlaceholderRegex =
+  /<!-- desc\(5A0113B34292\)\[max\=(.*)\]:(.*) -->/;
 
 function hydrateListing(
   format: Format,
@@ -455,7 +470,8 @@ function hydrateListing(
   if (listing.type === ListingType.Grid) {
     listingHydrated[kGridColumns] = listingHydrated[kGridColumns] || 3;
     listingHydrated[kImageHeight] = listingHydrated[kImageHeight] || "150px";
-    listingHydrated[kMaxDescLength] = listingHydrated[kMaxDescLength] || 175;
+    listingHydrated[kMaxDescLength] = listingHydrated[kMaxDescLength] ||
+      kDefaultMaxDescLength;
   } else if (listing.type === ListingType.Default) {
     listingHydrated[kImageAlign] = listingHydrated[kImageAlign] || "right";
   } else if (listing.type === ListingType.Table) {
@@ -565,7 +581,7 @@ async function readContents(
           } else {
             const isFile = Deno.statSync(file).isFile;
             if (isFile) {
-              const item = await listItemFromFile(file, project);
+              const item = await listItemFromFile(file, project, listing);
               if (item) {
                 validateItem(listing, item, (field: string) => {
                   return `The file ${file} is missing the required field '${field}'.`;
@@ -640,7 +656,11 @@ function listItemFromMeta(meta: Metadata) {
   return listingItem;
 }
 
-async function listItemFromFile(input: string, project: ProjectContext) {
+async function listItemFromFile(
+  input: string,
+  project: ProjectContext,
+  listing: ListingDehydrated,
+) {
   const projectRelativePath = relative(project.dir, input);
   const target = await inputTargetIndex(
     project,
@@ -666,12 +686,16 @@ async function listItemFromFile(input: string, project: ProjectContext) {
     // This is a draft, don't include it in the listing
     return undefined;
   } else {
+    // See if we have a max desc length
+    const maxDescLength = listing[kMaxDescLength] as number ||
+      kDefaultMaxDescLength;
+
     // Create the item
     const filename = basename(projectRelativePath);
     const filemodified = fileModifiedDate(input);
     const description = documentMeta?.description as string ||
       documentMeta?.abstract as string ||
-      descriptionPlaceholder(inputTarget?.outputHref);
+      descriptionPlaceholder(inputTarget?.outputHref, maxDescLength);
 
     const imageRaw = documentMeta?.image as string ||
       findPreviewImgMd(target?.markdown.markdown);
