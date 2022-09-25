@@ -123,9 +123,9 @@ export async function serveProject(
     if (target === ".") {
       target = Deno.cwd();
     }
-    project = await projectContext(target, flags, true);
+    project = await projectContext(target, flags);
     if (!project || !project?.config) {
-      throw new Error(`${target} is not a website or book project`);
+      throw new Error(`${target} is not a project`);
     }
   } else {
     project = target;
