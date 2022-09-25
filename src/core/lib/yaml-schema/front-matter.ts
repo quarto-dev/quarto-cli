@@ -46,6 +46,7 @@ export async function makeFrontMatterFormatSchema(nonStrict = false) {
   };
   const formatSchemaDescriptorList = (await pandocFormatsResource()).concat(
     "hugo",
+    "md",
   )
     .map(
       (format) => {

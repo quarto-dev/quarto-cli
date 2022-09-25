@@ -16358,6 +16358,7 @@ try {
               "commonmark",
               "commonmark_x",
               "markua",
+              "md",
               "hugo"
             ],
             "office-all": [
@@ -16471,6 +16472,7 @@ try {
               "textile",
               "xwiki",
               "zimwiki",
+              "md",
               "hugo"
             ]
           }
@@ -17465,6 +17467,7 @@ try {
           "Time (in seconds) after which to exit if there are no active\nclients",
           "Serve project preview using the specified command. Interpolate the\n<code>--port</code> into the command using <code>{port}</code>.",
           "Additional command line arguments for preview command.",
+          "Regular expression for detecting when the server is ready.",
           "Sites published from project",
           "Unique identifier for site",
           "Published URL for site",
@@ -19944,12 +19947,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 129413,
+          _internalId: 131332,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 129412,
+              _internalId: 131331,
               type: "enum",
               enum: [
                 "png",
@@ -29241,7 +29244,8 @@ ${tidyverseInfo(
       return { name: format, hidden };
     };
     const formatSchemaDescriptorList = (await pandocFormatsResource()).concat(
-      "hugo"
+      "hugo",
+      "md"
     ).map(
       (format) => {
         const {

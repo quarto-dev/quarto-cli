@@ -87,6 +87,7 @@ export function defaultWriterFormat(to: string): Format {
       pandocTo = to;
       break;
 
+    case "md":
     case "commonmark":
     case "commonmark_x":
       writerFormat = commonmarkFormat(to);
@@ -254,6 +255,10 @@ function gfmFormat(): Format {
 }
 
 function commonmarkFormat(to: string) {
+  // implement 'md' alias for commonmark
+  if (to === "md") {
+    to = "commonmark";
+  }
   return createFormat("md", markdownFormat(), {
     pandoc: {
       to,

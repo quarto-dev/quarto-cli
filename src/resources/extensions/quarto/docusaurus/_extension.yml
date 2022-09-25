@@ -13,9 +13,9 @@ contributes:
         serve:
           cmd: "npm run docusaurus start -- --no-open --port {port} --host {host}"
           ready: "compiled successfully"
-    format: docusaurus-commonmark
+    format: docusaurus-md
   formats:
-    commonmark:
+    md:
       variant: +tex_math_dollars
       keep-yaml: true
       wrap: none

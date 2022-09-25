@@ -75,6 +75,12 @@ export const parseFormatString = (formatStr: string): FormatDescriptor => {
   // acm
   // acm-gfm-raw_html <-- not allowed
 
+  // we want to allow 'hugo-md' to resolve to 'hugo' so its consistent
+  // with other static site generators that are created using extensions
+  if (formatStr === "hugo-md") {
+    formatStr = "hugo";
+  }
+
   // Try breaking the format string as a format without an extension
   const formatDesc = breakFormatString(formatStr);
   if (formatDesc) {
