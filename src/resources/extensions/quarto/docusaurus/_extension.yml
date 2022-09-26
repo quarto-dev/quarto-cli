@@ -19,5 +19,8 @@ contributes:
     md:
       variant: +yaml_metadata_block+tex_math_dollars
       wrap: none
+      fig-format: retina
+      fig-width: 8
+      fig-height: 5
       filters:
         - docusaurus.lua
