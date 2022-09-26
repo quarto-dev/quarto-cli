@@ -10,7 +10,6 @@ contributes:
         - ["config/_default/config.toml", "content"]
       render:
         - "**/*.qmd"
-        - "**/*.{R,r}md"
         - "**/*.ipynb"
       preview:
         serve:
