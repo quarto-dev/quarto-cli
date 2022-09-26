@@ -39,6 +39,7 @@ import {
   kTblColwidths,
 } from "./constants.ts";
 import { Format, Metadata } from "./types.ts";
+import { kGfmCommonmarkVariant } from "../format/markdown/format-markdown.ts";
 
 export async function includedMetadata(
   dir: string,
@@ -205,6 +206,14 @@ export function metadataAsFormat(metadata: Metadata): Format {
       [];
     typedFormat.execute[kIpynbFilters]?.push(filter);
     delete (typedFormat.execute as Record<string, unknown>)[kIpynbFilter];
+  }
+
+  // expand gfm alias in variant
+  if (typeof (typedFormat.render.variant) === "string") {
+    typedFormat.render.variant = typedFormat.render.variant.replace(
+      /^gfm/,
+      kGfmCommonmarkVariant,
+    );
   }
 
   return typedFormat;

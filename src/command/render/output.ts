@@ -112,11 +112,7 @@ export function outputRecipe(
     // tweak pandoc writer if we have extensions declared
     if (format.render[kVariant]) {
       const to = format.pandoc.to;
-      // expand gfm in variant
-      const variant = format.render[kVariant].replace(
-        /^gfm/,
-        kGfmCommonmarkVariant,
-      );
+      const variant = format.render[kVariant];
 
       recipe.format = {
         ...recipe.format,
