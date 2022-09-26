@@ -11,7 +11,7 @@ import { createFormat, plaintextFormat } from "../formats-shared.ts";
 
 export const kGfmCommonmarkVariant =
   "+autolink_bare_uris+emoji+footnotes+gfm_auto_identifiers" +
-  "+pipe_tables+raw_html+strikeout+task_lists+tex_math_dollars-yaml_metadata_block";
+  "+pipe_tables+raw_html+strikeout+task_lists+tex_math_dollars";
 
 export const kGfmCommonmarkFormat = `commonmark${kGfmCommonmarkVariant}`;
 
@@ -49,9 +49,6 @@ export function commonmarkFormat(to: string) {
   return createFormat("md", markdownFormat(), {
     pandoc: {
       to,
-    },
-    render: {
-      [kVariant]: "-yaml_metadata_block",
     },
   });
 }

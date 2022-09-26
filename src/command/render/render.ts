@@ -108,6 +108,7 @@ export async function renderPandoc(
     markdown: executeResult.markdown,
     source: context.target.source,
     output: recipe.output,
+    keepYaml: recipe.keepYaml,
     mediabagDir,
     libDir: context.libDir,
     format,

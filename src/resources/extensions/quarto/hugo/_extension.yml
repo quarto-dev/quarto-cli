@@ -18,8 +18,7 @@ contributes:
     format: hugo-md
   formats:
     md:
-      variant: gfm+definition_lists
-      keep-yaml: true
+      variant: gfm+yaml_metadata_block+definition_lists
       prefer-html: true
       fig-format: retina
       fig-width: 8

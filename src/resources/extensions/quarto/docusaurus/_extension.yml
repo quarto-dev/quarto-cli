@@ -17,8 +17,7 @@ contributes:
     format: docusaurus-md
   formats:
     md:
-      variant: +tex_math_dollars
-      keep-yaml: true
+      variant: +yaml_metadata_block+tex_math_dollars
       wrap: none
       filters:
         - docusaurus.lua

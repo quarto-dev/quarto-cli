@@ -87,7 +87,6 @@ import {
   kKeepMd,
   kKeepSource,
   kKeepTex,
-  kKeepYaml,
   kLatexAutoInstall,
   kLatexAutoMk,
   kLatexClean,
@@ -344,7 +343,6 @@ export interface Format {
 
 export interface FormatRender {
   [kKeepTex]?: boolean;
-  [kKeepYaml]?: boolean;
   [kKeepSource]?: boolean;
   [kKeepHidden]?: boolean;
   [kPreferHtml]?: boolean;

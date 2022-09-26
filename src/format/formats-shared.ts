@@ -42,7 +42,6 @@ import {
   kKeepMd,
   kKeepSource,
   kKeepTex,
-  kKeepYaml,
   kLang,
   kLatexAutoInstall,
   kLatexAutoMk,
@@ -206,7 +205,6 @@ function defaultFormat(): Format {
     },
     render: {
       [kKeepTex]: false,
-      [kKeepYaml]: false,
       [kKeepSource]: false,
       [kKeepHidden]: false,
       [kPreferHtml]: false,

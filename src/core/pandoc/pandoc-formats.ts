@@ -23,6 +23,27 @@ export async function pandocListFormats() {
   }
 }
 
+// yield a new format w/ extensions enabled and disabled
+export function pandocFormat(
+  format: string,
+  extensions: string[],
+  disabled: string[],
+) {
+  let newFormat = pandocFormatWith(
+    format,
+    "",
+    extensions.map((ext) => `+${ext}`).join("") +
+      disabled.map((ext) => `-${ext}`).join(""),
+  );
+
+  // any extension specified needs to not have a - anywhere in the format
+  extensions.forEach((ext) => {
+    newFormat = newFormat.replace("-" + ext, "");
+  });
+
+  return newFormat;
+}
+
 export function pandocFormatWith(
   format: string,
   prepend: string,
