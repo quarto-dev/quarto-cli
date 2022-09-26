@@ -47,7 +47,8 @@
         detect:
           description: "Array of paths used to detect the project type within a directory"
           schema:
-            maybeArrayOf: string
+            arrayOf:
+              arrayOf: string
           hidden: true
 
 - name: website

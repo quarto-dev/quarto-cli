@@ -5,7 +5,8 @@ contributes:
   project:
     project:
       type: default
-      detect: ["docusaurus.config.js", "package.json"]
+      detect:
+        - ["docusaurus.config.js", "package.json"]
       render:
         - "**/*.qmd"
         - "**/*.{R,r}md"

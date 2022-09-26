@@ -12986,7 +12986,7 @@ var require_yaml_intelligence_resources = __commonJS({
           hidden: true,
           description: {
             short: "Generate HTML output (if necessary) even when targeting markdown.",
-            long: "Generate HTML output (if necessary) even when targeting markdown. Enables the \nembedding of more sophisticated output (e.g. Jupyter widgets) in markdown.\nNote that this option is set to `true` for the `hugo` format.\n"
+            long: "Generate HTML output (if necessary) even when targeting markdown. Enables the \nembedding of more sophisticated output (e.g. Jupyter widgets) in markdown.\n"
           }
         },
         {
@@ -14150,8 +14150,7 @@ var require_yaml_intelligence_resources = __commonJS({
             formats: [
               "$html-doc",
               "$epub-all",
-              "gfm",
-              "hugo"
+              "gfm"
             ]
           },
           schema: {
@@ -16357,8 +16356,7 @@ var require_yaml_intelligence_resources = __commonJS({
             "commonmark",
             "commonmark_x",
             "markua",
-            "md",
-            "hugo"
+            "md"
           ],
           "office-all": [
             "docx",
@@ -16471,8 +16469,7 @@ var require_yaml_intelligence_resources = __commonJS({
             "textile",
             "xwiki",
             "zimwiki",
-            "md",
-            "hugo"
+            "md"
           ]
         }
       },
@@ -16699,7 +16696,9 @@ var require_yaml_intelligence_resources = __commonJS({
                 detect: {
                   description: "Array of paths used to detect the project type within a directory",
                   schema: {
-                    maybeArrayOf: "string"
+                    arrayOf: {
+                      arrayOf: "string"
+                    }
                   },
                   hidden: true
                 }
@@ -17994,7 +17993,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "A url to the full text for this item.",
         {
           short: "Type, class, or subtype of the item",
-          long: "Type, class, or subtype of the item (e.g.&nbsp;\u201CDoctoral dissertation\u201D for\na PhD thesis; \u201CNIH Publication\u201D for an NIH technical report);\nDo not use for topical descriptions or categories (e.g.&nbsp;\u201Cadventure\u201D\nfor an adventure movie)"
+          long: "Type, class, or subtype of the item (e.g.&nbsp;\u201CDoctoral dissertation\u201D for\na PhD thesis; \u201CNIH Publication\u201D for an NIH technical report);\nDo not use for topical descriptions or categories (e.g.&nbsp;\uFFFD\uFFFDadventure\u201D\nfor an adventure movie)"
         },
         "Guest (e.g.&nbsp;on a TV show or podcast).",
         "Host of the item (e.g.&nbsp;of a TV show or podcast).",
@@ -19946,12 +19945,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 131332,
+        _internalId: 131342,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 131331,
+            _internalId: 131341,
             type: "enum",
             enum: [
               "png",
@@ -29230,8 +29229,8 @@ async function makeFrontMatterFormatSchema(nonStrict = false) {
     return { name: format, hidden };
   };
   const formatSchemaDescriptorList = (await pandocFormatsResource()).concat(
-    "hugo",
-    "md"
+    "md",
+    "hugo"
   ).map(
     (format) => {
       const {

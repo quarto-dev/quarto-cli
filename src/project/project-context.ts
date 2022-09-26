@@ -371,7 +371,7 @@ function quartoYamlProjectConfigResolver(
 
 type ProjectTypeDetector = {
   type: string;
-  detect: string[];
+  detect: string[][];
 };
 
 async function builtinProjectExtensionsConfigResolver(
@@ -386,7 +386,7 @@ async function builtinProjectExtensionsConfigResolver(
             | ProjectConfig
             | undefined;
           if (project?.project?.detect) {
-            const detect = asArray<string>(project?.project.detect);
+            const detect = asArray<string[]>(project?.project.detect);
             projectTypeDetectors.push({
               type: extension.id.name,
               detect,
@@ -403,7 +403,11 @@ async function builtinProjectExtensionsConfigResolver(
   return (dir: string): Promise<ResolvedProjectConfig | undefined> => {
     // look for the detector files
     for (const detector of projectTypeDetectors) {
-      if (detector.detect.every((file) => safeExistsSync(join(dir, file)))) {
+      if (
+        detector.detect.some((files) =>
+          files.every((file) => safeExistsSync(join(dir, file)))
+        )
+      ) {
         return Promise.resolve({
           config: {
             project: {

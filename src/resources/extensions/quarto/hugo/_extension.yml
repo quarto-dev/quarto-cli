@@ -5,7 +5,9 @@ contributes:
   project:
     project:
       type: default
-      detect: ["config.toml"]
+      detect:
+        - ["config.toml", "content"]
+        - ["config/_default/config.toml", "content"]
       render:
         - "**/*.qmd"
         - "**/*.{R,r}md"
