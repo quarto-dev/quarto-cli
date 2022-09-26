@@ -22,5 +22,6 @@ contributes:
       fig-format: retina
       fig-width: 8
       fig-height: 5
+      html-math-method: webtex
       filters:
         - docusaurus.lua
