@@ -50,6 +50,7 @@ export async function extensionSource(
       };
     }
   }
+
   return undefined;
 }
 
@@ -72,7 +73,7 @@ function subdirectory(url: string) {
 
 function makeResolver(
   nameRegexp: RegExp,
-  urlBuilder: ((match: RegExpMatchArray) => string),
+  urlBuilder: (match: RegExpMatchArray) => string,
 ): ExtensionNameResolver {
   return (name) => {
     const match = name.match(nameRegexp);
@@ -117,8 +118,21 @@ const githubBranch = makeResolver(
     }.tar.gz`,
 );
 
+// This just resolves unknown URLs that are not resolved
+// by any other resolver (allowing for installation of extensions
+// from arbitrary urls)
+const unknownUrlResolver = (
+  name: string,
+): ResolvedExtensionInfo | undefined => {
+  return {
+    url: name,
+    response: fetch(name),
+  };
+};
+
 const extensionHostResolvers: ExtensionNameResolver[] = [
   githubLatest,
   githubTag,
   githubBranch,
+  unknownUrlResolver,
 ];
