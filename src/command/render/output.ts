@@ -34,7 +34,6 @@ import {
   useContextPdfOutputRecipe,
 } from "./output-tex.ts";
 import { formatOutputFile } from "../../core/render.ts";
-import { kGfmCommonmarkVariant } from "../../format/markdown/format-markdown.ts";
 import { kYamlMetadataBlock } from "../../core/pandoc/pandoc-formats.ts";
 
 // render commands imply the --output argument for pandoc and the final
