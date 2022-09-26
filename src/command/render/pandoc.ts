@@ -147,6 +147,7 @@ import {
 } from "./template.ts";
 import { formatLanguage } from "../../core/language.ts";
 import {
+  kYamlMetadataBlock,
   pandocFormatWith,
   parseFormatString,
   splitPandocFormatString,
@@ -661,6 +662,11 @@ export async function runPandoc(
     (pageTitle === undefined && title === titlePrefix)
   ) {
     delete allDefaults[kTitlePrefix];
+  }
+
+  // if we are doing keepYaml then remove it from pandoc 'to'
+  if (options.keepYaml && allDefaults.to) {
+    allDefaults.to = allDefaults.to.replaceAll(`+${kYamlMetadataBlock}`, "");
   }
 
   // Attempt to cache the code page, if this windows.

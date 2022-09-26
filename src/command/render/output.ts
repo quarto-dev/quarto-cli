@@ -35,6 +35,7 @@ import {
 } from "./output-tex.ts";
 import { formatOutputFile } from "../../core/render.ts";
 import { kGfmCommonmarkVariant } from "../../format/markdown/format-markdown.ts";
+import { kYamlMetadataBlock } from "../../core/pandoc/pandoc-formats.ts";
 
 // render commands imply the --output argument for pandoc and the final
 // output file to create for the user, but we need a 'recipe' to go from
@@ -127,12 +128,7 @@ export function outputRecipe(
 
       // we implement +yaml_metadata_block internally to prevent
       // gunk from the quarto rendering pipeline from showing up
-      const kYamlMetadataBlock = "yaml_metadata_block";
       if (recipe.format.pandoc.to?.includes(`+${kYamlMetadataBlock}`)) {
-        recipe.format.pandoc.to = recipe.format.pandoc.to.replaceAll(
-          `+${kYamlMetadataBlock}`,
-          "",
-        );
         recipe.keepYaml = true;
       }
     }

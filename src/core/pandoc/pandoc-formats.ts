@@ -10,6 +10,8 @@ import { pandocBinaryPath, resourcePath } from "../resources.ts";
 import { lines } from "../text.ts";
 import { readYaml } from "../yaml.ts";
 
+export const kYamlMetadataBlock = "yaml_metadata_block";
+
 export async function pandocListFormats() {
   const result = await execProcess({
     cmd: [pandocBinaryPath(), "--list-output-formats"],
