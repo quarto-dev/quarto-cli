@@ -69,9 +69,11 @@
 - Introduce template partials for RevealJS. You may provide partials for `title-slide.html` or `toc-slide.html`.
 - Ensure that `output-location` works properly in fenced divs
 
-## GFM Format
+## Markdown Formats
 
 - Support code folding for markdown output when `raw_html` is supported.
+- `docusaurus-md` format for Docusaurus compatible markdown
+- `docusaurus` and `hugo` project types for render/preview within external static site generators
 
 ## Ipynb Format
 
@@ -123,7 +125,7 @@
 ## Preview
 
 - Restart Jupyter kernel daemon if preview server is restarted.
-- Enable use of custom serve command for serving project output
+- Enable use of external preview servers for serving project output
 - Add `--no-serve` command line parameter to prevent serving altogether
 
 ## Publishing
