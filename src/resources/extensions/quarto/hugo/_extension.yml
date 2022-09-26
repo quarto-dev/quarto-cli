@@ -2,6 +2,19 @@ title: Hugo
 author: RStudio, PBC
 organization: quarto
 contributes:
+  project:
+    project:
+      type: default
+      detect: ["config.toml"]
+      render:
+        - "**/*.qmd"
+        - "**/*.{R,r}md"
+        - "**/*.ipynb"
+      preview:
+        serve:
+          cmd: "hugo serve --port {port} --bind {host} --navigateToChanged"
+          ready: "Web Server is available at"
+    format: hugo-md
   formats:
     md:
       variant: gfm+definition_lists

@@ -8,6 +8,7 @@ contributes:
       detect: ["docusaurus.config.js", "package.json"]
       render:
         - "**/*.qmd"
+        - "**/*.{R,r}md"
         - "**/*.ipynb"
       preview:
         serve:
