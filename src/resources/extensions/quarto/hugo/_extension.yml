@@ -1,0 +1,13 @@
+title: Hugo
+author: RStudio, PBC
+organization: quarto
+contributes:
+  formats:
+    md:
+      variant: gfm+definition_lists
+      keep-yaml: true
+      prefer-html: true
+      fig-format: retina
+      fig-width: 8
+      fig-height: 5
+      wrap: preserve

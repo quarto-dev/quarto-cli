@@ -64,7 +64,7 @@
 
 - name: html-math-method
   tags:
-    formats: [$html-doc, $epub-all, gfm, hugo]
+    formats: [$html-doc, $epub-all, gfm]
   schema:
     anyOf:
       - ref: math-methods

@@ -381,16 +381,19 @@ async function builtinProjectExtensionsConfigResolver(
   const projectTypeDetectors: ProjectTypeDetector[] =
     (await context.extensions()).reduce(
       (projectTypeDetectors, extension) => {
-        const project = extension.contributes.project as
-          | ProjectConfig
-          | undefined;
-        if (project?.project.detect) {
-          const detect = asArray<string>(project?.project.detect);
-          projectTypeDetectors.push({
-            type: extension.id.name,
-            detect,
-          });
+        if (extension.contributes.project) {
+          const project = extension.contributes.project as
+            | ProjectConfig
+            | undefined;
+          if (project?.project?.detect) {
+            const detect = asArray<string>(project?.project.detect);
+            projectTypeDetectors.push({
+              type: extension.id.name,
+              detect,
+            });
+          }
         }
+
         return projectTypeDetectors;
       },
       [] as ProjectTypeDetector[],

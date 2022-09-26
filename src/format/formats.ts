@@ -8,16 +8,11 @@
 import {
   kDefaultImageExtension,
   kEcho,
-  kFigFormat,
   kFigHeight,
   kFigWidth,
-  kKeepYaml,
   kOutputDivs,
   kPageWidth,
-  kPreferHtml,
-  kVariant,
   kWarning,
-  kWrap,
 } from "../config/constants.ts";
 
 import { Format } from "../config/types.ts";
@@ -31,10 +26,17 @@ import {
   createFormat,
   createHtmlPresentationFormat,
   createWordprocessorFormat,
+  plaintextFormat,
 } from "./formats-shared.ts";
 import { revealjsFormat } from "./reveal/format-reveal.ts";
 import { ipynbFormat } from "./ipynb/format-ipynb.ts";
 import { parseFormatString } from "../core/pandoc/pandoc-formats.ts";
+import {
+  commonmarkFormat,
+  gfmFormat,
+  markdownFormat,
+  pandocMarkdownFormat,
+} from "./markdown/format-markdown.ts";
 
 export function defaultWriterFormat(to: string): Format {
   // to can sometimes have a variant, don't include that in the lookup here
@@ -191,12 +193,6 @@ export function defaultWriterFormat(to: string): Format {
       writerFormat = plaintextFormat(to);
       break;
 
-    // syntesized formats (TODO: move these to quarto.land)
-
-    case "hugo":
-      writerFormat = hugoFormat();
-      break;
-
     default:
       writerFormat = unknownFormat("txt");
   }
@@ -209,65 +205,6 @@ export function defaultWriterFormat(to: string): Format {
 
   // return the createFormat
   return writerFormat;
-}
-
-function hugoFormat(): Format {
-  return createFormat("md", markdownFormat(), {
-    render: {
-      [kKeepYaml]: true,
-      [kPreferHtml]: true,
-      [kVariant]: "+definition_lists+footnotes+smart+tex_math_dollars",
-    },
-    execute: {
-      [kFigFormat]: "retina",
-      [kFigWidth]: 8,
-      [kFigHeight]: 5,
-    },
-    pandoc: {
-      to: "gfm",
-      [kWrap]: "preserve",
-    },
-  });
-}
-
-function gfmFormat(): Format {
-  return createFormat("md", markdownFormat(), {
-    pandoc: {
-      to: "gfm",
-    },
-    render: {
-      [kVariant]: "+footnotes+tex_math_dollars-yaml_metadata_block",
-    },
-  });
-}
-
-function commonmarkFormat(to: string) {
-  // implement 'md' alias for commonmark
-  if (to === "md") {
-    to = "commonmark";
-  }
-  return createFormat("md", markdownFormat(), {
-    pandoc: {
-      to,
-    },
-    render: {
-      [kVariant]: "-yaml_metadata_block",
-    },
-  });
-}
-
-function pandocMarkdownFormat(): Format {
-  return createFormat("md", plaintextFormat("md"), {});
-}
-
-function markdownFormat(): Format {
-  return createFormat("md", plaintextFormat("md"), {
-    // markdown shouldn't include cell divs (even if it
-    // technically supports raw html)
-    render: {
-      [kOutputDivs]: false,
-    },
-  });
 }
 
 function powerpointFormat(): Format {
@@ -292,15 +229,6 @@ function rtfFormat(): Format {
   return createFormat("rtf", createWordprocessorFormat("rtf"), {
     pandoc: {
       standalone: true,
-    },
-  });
-}
-
-function plaintextFormat(ext: string): Format {
-  return createFormat(ext, {
-    pandoc: {
-      standalone: true,
-      [kDefaultImageExtension]: "png",
     },
   });
 }

@@ -39,6 +39,7 @@ import {
   useContextPdfOutputRecipe,
 } from "./output-tex.ts";
 import { formatOutputFile } from "../../core/render.ts";
+import { kGfmCommonmarkVariant } from "../../format/markdown/format-markdown.ts";
 
 // render commands imply the --output argument for pandoc and the final
 // output file to create for the user, but we need a 'recipe' to go from
@@ -113,11 +114,18 @@ export function outputRecipe(
 
     // tweak pandoc writer if we have extensions declared
     if (format.render[kVariant]) {
+      const to = format.pandoc.to;
+      // expand gfm in variant
+      const variant = format.render[kVariant].replace(
+        /^gfm/,
+        kGfmCommonmarkVariant,
+      );
+
       recipe.format = {
         ...recipe.format,
         pandoc: {
           ...recipe.format.pandoc,
-          to: `${format.pandoc.to}${format.render[kVariant]}`,
+          to: `${to}${variant}`,
         },
       };
     }

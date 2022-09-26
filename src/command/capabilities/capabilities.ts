@@ -52,7 +52,6 @@ async function formats() {
     "beamer",
     "revealjs",
     "gfm",
-    "hugo",
     "epub",
   ];
 

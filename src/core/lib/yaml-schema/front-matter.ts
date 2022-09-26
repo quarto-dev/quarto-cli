@@ -45,8 +45,8 @@ export async function makeFrontMatterFormatSchema(nonStrict = false) {
     return { name: format, hidden };
   };
   const formatSchemaDescriptorList = (await pandocFormatsResource()).concat(
-    "hugo",
-    "md",
+    "md", // alias for 'commonmark'
+    "hugo", // tolerage for compatibility: initially built-in, now referrred to as 'hugo-md'
   )
     .map(
       (format) => {

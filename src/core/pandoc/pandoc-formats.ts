@@ -75,17 +75,15 @@ export const parseFormatString = (formatStr: string): FormatDescriptor => {
   // acm
   // acm-gfm-raw_html <-- not allowed
 
-  // we want to allow 'hugo-md' to resolve to 'hugo' so its consistent
-  // with other static site generators that are created using extensions
-  if (formatStr === "hugo-md") {
-    formatStr = "hugo";
-  }
-
   // Try breaking the format string as a format without an extension
   const formatDesc = breakFormatString(formatStr);
   if (formatDesc) {
     return formatDesc;
   } else {
+    // legacy migration -- interpret 'hugo' as 'hugo-md'
+    if (formatStr === "hugo") {
+      formatStr = "hugo-md";
+    }
     // Split off th string after the last '-' and try to use that
     const splitFormat = formatStr.split(/-/);
     const lastEl = splitFormat.pop();

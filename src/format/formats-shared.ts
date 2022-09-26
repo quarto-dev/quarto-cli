@@ -169,6 +169,15 @@ export function createWordprocessorFormat(ext: string): Format {
   });
 }
 
+export function plaintextFormat(ext: string): Format {
+  return createFormat(ext, {
+    pandoc: {
+      standalone: true,
+      [kDefaultImageExtension]: "png",
+    },
+  });
+}
+
 function defaultFormat(): Format {
   return {
     execute: {
