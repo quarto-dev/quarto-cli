@@ -8,10 +8,20 @@
 import { existsSync } from "fs/mod.ts";
 
 export interface ResolvedExtensionInfo {
+  // The url to the resolved extension
   url: string;
+
+  // The Fetch Response from fetching that URL
   response: Promise<Response>;
+
+  // The directory that should be used when attempting to extract
+  // the extension from the resolved archive
   subdirectory?: string;
+
+  // The owner information for this extension
   owner?: string;
+
+  // The learn more url for this extension
   learnMoreUrl?: string;
 }
 
@@ -50,29 +60,14 @@ export async function extensionSource(
       };
     }
   }
-  return undefined;
-}
 
-const githubUrlTagRegexp =
-  /^http(?:s?):\/\/(?:www\.)?github.com\/(.*?)\/(.*?)\/archive\/refs\/tags\/(.*)(\.tar\.gz|\.zip)$/;
-const githubUrlLatestOrBranchRegexp =
-  /^http(?:s?):\/\/(?:www\.)?github.com\/(.*?)\/(.*?)\/archive\/refs\/heads\/(.*)(\.tar\.gz|\.zip)$/;
-function subdirectory(url: string) {
-  const tagMatch = url.match(githubUrlTagRegexp);
-  if (tagMatch) {
-    return tagMatch[2] + "-" + tagMatch[3];
-  } else {
-    const latestMatch = url.match(githubUrlLatestOrBranchRegexp);
-    if (!latestMatch) {
-      return undefined;
-    }
-    return latestMatch[2] + "-" + latestMatch[3];
-  }
+  return undefined;
 }
 
 function makeResolver(
   nameRegexp: RegExp,
-  urlBuilder: ((match: RegExpMatchArray) => string),
+  urlBuilder: (match: RegExpMatchArray) => string,
+  subDirBuilder?: (match: RegExpMatchArray) => string | undefined,
 ): ExtensionNameResolver {
   return (name) => {
     const match = name.match(nameRegexp);
@@ -81,11 +76,12 @@ function makeResolver(
     }
     const url = urlBuilder(match);
     const learnMoreUrl = `https://github.com/${match[1]}/${match[2]}`;
+    const subdirectory = subDirBuilder ? subDirBuilder(match) : subDirBuilder;
     return {
       url,
       response: fetch(url),
       owner: match[1],
-      subdirectory: subdirectory(url),
+      subdirectory,
       learnMoreUrl,
     };
   };
@@ -97,6 +93,9 @@ const githubLatest = makeResolver(
   githubNameRegex,
   (match) =>
     `https://github.com/${match[1]}/${match[2]}/archive/refs/heads/main.tar.gz`,
+  (match) => {
+    return `${match[2]}-main`;
+  },
 );
 
 const githubPathTagRegex =
@@ -107,6 +106,9 @@ const githubTag = makeResolver(
     `https://github.com/${match[1]}/${match[2]}/archive/refs/tags/${
       match[3]
     }.tar.gz`,
+  (match) => {
+    return `${match[2]}-${tagSubDirectory(match[3])}`;
+  },
 );
 
 const githubBranch = makeResolver(
@@ -115,10 +117,61 @@ const githubBranch = makeResolver(
     `https://github.com/${match[1]}/${match[2]}/archive/refs/heads/${
       match[3]
     }.tar.gz`,
+  (match) => {
+    return `${match[2]}-${match[3]}`;
+  },
 );
 
-const extensionHostResolvers: ExtensionNameResolver[] = [
+const githubArchiveUrlRegex =
+  /https?\:\/\/github.com\/([a-zA-Z0-9-_\.]+?)\/([a-zA-Z0-9-_\.]+?)\/archive\/refs\/heads\/(.+)(?:\.tar\.gz|\.zip)$/;
+const githubArchiveUrl = makeResolver(
+  githubArchiveUrlRegex,
+  (match) => {
+    return match[0];
+  },
+  (match) => {
+    return `${match[2]}-${match[3]}`;
+  },
+);
+
+const githubTagUrlRegex =
+  /https?\:\/\/github.com\/([a-zA-Z0-9-_\.]+?)\/([a-zA-Z0-9-_\.]+?)\/archive\/refs\/tags\/(.+)(?:\.tar\.gz|\.zip)$/;
+const githubArchiveTagUrl = makeResolver(
+  githubTagUrlRegex,
+  (match) => {
+    return match[0];
+  },
+  (match) => {
+    return `${match[2]}-${tagSubDirectory(match[3])}`;
+  },
+);
+
+function tagSubDirectory(tag: string) {
+  // Strip the leading 'v' from tag names
+  return tag.startsWith("v") ? tag.slice(1) : tag;
+}
+
+const kGithubResolvers = [
   githubLatest,
   githubTag,
   githubBranch,
+  githubArchiveUrl,
+  githubArchiveTagUrl,
+];
+
+// This just resolves unknown URLs that are not resolved
+// by any other resolver (allowing for installation of extensions
+// from arbitrary urls)
+const unknownUrlResolver = (
+  name: string,
+): ResolvedExtensionInfo | undefined => {
+  return {
+    url: name,
+    response: fetch(name),
+  };
+};
+
+const extensionHostResolvers: ExtensionNameResolver[] = [
+  ...kGithubResolvers,
+  unknownUrlResolver,
 ];
