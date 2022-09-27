@@ -169,7 +169,7 @@ local quartoPre = {
   -- quarto-pre
   { name = "parseExtendedNodes", filter = parseExtendedNodes() },
   { name = "quartoBeforeExtendedUserFilters", filters = makeExtendedUserFilters("beforeQuartoFilters") },
-  { name = "bibliographyFormats", filter = trace_filter("bibliography-formats.native", bibliographyFormats()) }, 
+  { name = "bibliographyFormats", filter = bibliographyFormats() }, 
   { name = "shortCodesBlocks", filter = shortCodesBlocks() } ,
   { name = "shortCodesInlines", filter = shortCodesInlines() },
   { name = "tableMergeRawHtml", filter = tableMergeRawHtml() },
@@ -283,5 +283,5 @@ return run_as_extended_ast({
   pre = {
     initOptions()
   },
-  filters = capture_timings(filterList),
+  filters = capture_timings(filterList, true),
 })

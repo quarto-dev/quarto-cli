@@ -213,7 +213,7 @@ function walk_custom_splicing(filter, node)
     Blocks = function(blocks)
       local result = pandoc.Blocks()
       for k, custom in pairs(blocks) do
-        local filterFn = is_custom[custom.t] and (filter[custom.t] or filter.Custom)
+        local filterFn = custom.is_custom and (filter[custom.t] or filter.Custom)
         local filterResult = filterFn and filterFn(custom)
         if filterResult == nil then
           result:insert(custom)
@@ -228,7 +228,7 @@ function walk_custom_splicing(filter, node)
     Inlines = function(inlines)
       local result = pandoc.Inlines()
       for k, custom in pairs(inlines) do
-        local filterFn = is_custom[custom.t] and (filter[custom.t] or filter.Custom)
+        local filterFn = custom.is_custom and (filter[custom.t] or filter.Custom)
         local filterResult = filterFn and filterFn(custom)
         if filterResult == nil then
           result:insert(custom)
@@ -306,7 +306,7 @@ end
 
 function apply_pandoc_function(doc, filter)
   if filter.Pandoc and doc.t == "Pandoc" then
-    return filter.Pandoc(doc)
+    doc = filter.Pandoc(doc) or doc
   end
   return doc
 end
