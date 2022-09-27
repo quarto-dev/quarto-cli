@@ -2,7 +2,7 @@
 -- Copyright (C) 2020 by RStudio, PBC
 
 -- process all figures
-function figures()
+function crossrefFigures()
   return {
     Div = function(el)
       if isFigureDiv(el) and isReferenceableFig(el) then

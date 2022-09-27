@@ -2,7 +2,7 @@
 -- Copyright (C) 2020 by RStudio, PBC
 
 -- preprocess theorem to ensure that embedded headings are unnumered
-function preprocessTheorems()
+function crossrefPreprocessTheorems()
   local types = theoremTypes
   return {
     Div = function(el)
@@ -20,7 +20,7 @@ function preprocessTheorems()
   }
 end
 
-function theorems()
+function crossrefTheorems()
 
   local types = theoremTypes
 

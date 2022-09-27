@@ -2,7 +2,7 @@
 -- Copyright (C) 2020 by RStudio, PBC
 
 
-function figures() 
+function quartoPreFigures() 
   
   return {
    

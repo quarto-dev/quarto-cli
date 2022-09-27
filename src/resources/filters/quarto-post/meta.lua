@@ -20,6 +20,9 @@ function quartoPostMetaInject()
         meta.website['twitter-card'].site = nil
       end
 
+      -- don't emit unnecessary metadata
+      meta["quarto-filters"] = nil
+
       return meta
     end
   }

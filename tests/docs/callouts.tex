@@ -1,0 +1,177 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\PassOptionsToPackage{dvipsnames,svgnames,x11names}{xcolor}
+%
+\documentclass[
+  letterpaper,
+  DIV=11,
+  numbers=noendperiod]{scrartcl}
+
+\usepackage{amsmath,amssymb}
+\usepackage{lmodern}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+% Make \paragraph and \subparagraph free-standing
+\ifx\paragraph\undefined\else
+  \let\oldparagraph\paragraph
+  \renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+  \let\oldsubparagraph\subparagraph
+  \renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same} % disable monospaced font for URLs
+\hypersetup{
+  pdftitle={Hello Callout!},
+  colorlinks=true,
+  linkcolor={blue},
+  filecolor={Maroon},
+  citecolor={Blue},
+  urlcolor={Blue},
+  pdfcreator={LaTeX via pandoc}}
+
+\title{Hello Callout!}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+
+\hypertarget{overview-of-callouts}{%
+\subsection{Overview of callouts}\label{overview-of-callouts}}
+
+\begin{tcolorbox}[enhanced jigsaw, leftrule=.75mm, title=\textcolor{quarto-callout-warning-color}{\faExclamationTriangle}\hspace{0.5em}{Warning}, coltitle=black, left=2mm, colback=white, bottomtitle=1mm, opacitybacktitle=0.6, opacityback=0, colframe=quarto-callout-warning-color-frame, colbacktitle=quarto-callout-warning-color!10!white, breakable, toptitle=1mm, bottomrule=.15mm, titlerule=0mm, arc=.35mm, rightrule=.15mm, toprule=.15mm]
+
+Callouts provide a simple way to attract attention, for example, to this warning.
+
+\end{tcolorbox}
+
+\begin{tcolorbox}[enhanced jigsaw, leftrule=.75mm, title=\textcolor{quarto-callout-important-color}{\faExclamation}\hspace{0.5em}{}, coltitle=black, left=2mm, colback=white, bottomtitle=1mm, opacitybacktitle=0.6, opacityback=0, colframe=quarto-callout-important-color-frame, colbacktitle=quarto-callout-important-color!10!white, breakable, toptitle=1mm, bottomrule=.15mm, titlerule=0mm, arc=.35mm, rightrule=.15mm, toprule=.15mm]
+
+Danger, callouts will really improve your writing.
+
+\end{tcolorbox}
+
+\begin{tcolorbox}[enhanced jigsaw, leftrule=.75mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Note}, coltitle=black, left=2mm, colback=white, bottomtitle=1mm, opacitybacktitle=0.6, opacityback=0, colframe=quarto-callout-note-color-frame, colbacktitle=quarto-callout-note-color!10!white, breakable, toptitle=1mm, bottomrule=.15mm, titlerule=0mm, arc=.35mm, rightrule=.15mm, toprule=.15mm]
+
+Note that there are five types of callouts, including: \texttt{note}, \texttt{tip}, \texttt{warning}, \texttt{caution}, and \texttt{important}.
+
+\end{tcolorbox}
+
+\begin{tcolorbox}[enhanced jigsaw, leftrule=.75mm, title=\textcolor{quarto-callout-tip-color}{\faLightbulb}\hspace{0.5em}{}, coltitle=black, left=2mm, colback=white, bottomtitle=1mm, opacitybacktitle=0.6, opacityback=0, colframe=quarto-callout-tip-color-frame, colbacktitle=quarto-callout-tip-color!10!white, breakable, toptitle=1mm, bottomrule=.15mm, titlerule=0mm, arc=.35mm, rightrule=.15mm, toprule=.15mm]
+
+This is an example of a callout with a caption.
+
+\end{tcolorbox}
+
+\begin{tcolorbox}[enhanced jigsaw, leftrule=.75mm, title=\textcolor{quarto-callout-tip-color}{\faLightbulb}\hspace{0.5em}{}, coltitle=black, left=2mm, colback=white, bottomtitle=1mm, opacitybacktitle=0.6, opacityback=0, colframe=quarto-callout-tip-color-frame, colbacktitle=quarto-callout-tip-color!10!white, breakable, toptitle=1mm, bottomrule=.15mm, titlerule=0mm, arc=.35mm, rightrule=.15mm, toprule=.15mm]
+
+This is an example of a callout with a caption containing special formatting and characters.
+
+\end{tcolorbox}
+
+\begin{tcolorbox}[enhanced jigsaw, leftrule=.75mm, title=\textcolor{quarto-callout-caution-color}{\faFire}\hspace{0.5em}{}, coltitle=black, left=2mm, colback=white, bottomtitle=1mm, opacitybacktitle=0.6, opacityback=0, colframe=quarto-callout-caution-color-frame, colbacktitle=quarto-callout-caution-color!10!white, breakable, toptitle=1mm, bottomrule=.15mm, titlerule=0mm, arc=.35mm, rightrule=.15mm, toprule=.15mm]
+
+This is an example of a `collapsed' caution callout that can be expanded by the user. You can use \texttt{collapse="true"} to collapse it by default or \texttt{collapse="false"} to make a collapsible callout that is expanded by default.
+
+\end{tcolorbox}
+
+\begin{tcolorbox}[enhanced jigsaw, leftrule=.75mm, colframe=quarto-callout-color-frame, left=2mm, breakable, colback=white, toprule=.15mm, arc=.35mm, opacityback=0, rightrule=.15mm, bottomrule=.15mm]
+
+\textbf{Exercise}\vspace{2mm}
+
+You can also use a plain \texttt{callout} class to get a simple callout treatment.
+
+\end{tcolorbox}
+
+
+
+\end{document}
