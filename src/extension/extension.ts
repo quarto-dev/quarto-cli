@@ -577,8 +577,6 @@ async function readExtension(
     return new Range(str);
   };
 
-  console.log(yaml);
-
   const contributes = yaml.contributes as Metadata | undefined;
 
   const title = yaml[kTitle] as string;
