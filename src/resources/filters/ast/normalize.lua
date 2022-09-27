@@ -289,6 +289,7 @@ function denormalize(node)
     Pandoc = function(tbl)
       tbl = copy(tbl)
       tbl.blocks = doArray(tbl.blocks)
+      tbl.meta = denormalize_meta(tbl.meta)
       local result = baseHandler(tbl)
       return result
     end,
@@ -386,20 +387,45 @@ function denormalize(node)
   local dispatch = typeTable[t]
   if dispatch == nil then
     -- print("We're getting special-cased :(")
-    -- user code apparently can insert arrays into inlines, and those resolve correctly?
     if tisarray(node) then
       return tmap(node, denormalize)
     else
+      crash_with_stack_trace()
       return node
     end
-    -- quarto.utils.dump(node, true)
-    return node -- Meta is a special case...
-    -- quarto.utils.dump(t)
-    -- quarto.utils.dump(node)
-    -- print("denormalize: don't know how to dispatch to type " .. tostring(t))
-    -- crash_with_stack_trace()
-    -- return nil
+  else
+    return dispatch(node)
   end
+end
 
-  return dispatch(node)
+function denormalize_meta(node)
+  if type(node) == "string" then
+    return pandoc.MetaString(node)
+  elseif type(node) == "boolean" then
+    return pandoc.MetaBool(node)
+  elseif type(node) == "number" then
+    return pandoc.MetaString(node)
+  elseif node.t == "Inlines" then
+    print("INLINES YAY!!")
+    crash_with_stack_trace()
+  elseif node.t == "Blocks" then
+    return pandoc.MetaBlocks(denormalize(node))
+  elseif node.is_emulated then
+    return denormalize(node) -- just denormalize the values themselves
+  elseif type(node) == "table" then
+    local result = {}
+    for k, v in pairs(node) do
+      result[k] = denormalize_meta(v)
+    end
+    return pandoc.MetaMap(result) -- we don't need _true_pandoc here because we haven't overriden metamap
+  elseif node.t == "Str" then
+    return node
+  elseif node.t == "Space" then
+    return node
+  else
+    print("DON'T KNOW WHAT HAPPENED")  
+    quarto.utils.dump(node, true)
+    print(node.t)
+    crash_with_stack_trace()
+  end
 end
