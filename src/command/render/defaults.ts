@@ -20,6 +20,7 @@ import {
   kIncludeInHeader,
   kNumberDepth,
   kOutputFile,
+  kQuartoFilters,
   kSelfContained,
   kStandalone,
   kTemplate,
@@ -55,7 +56,9 @@ export async function generateDefaults(
       options,
     );
     if (resolvedFilters) {
-      allDefaults[kFilters] = resolvedFilters;
+      allDefaults[kFilters] = resolvedFilters.quartoFilters;
+      // forward the filter spec with everything to pandoc via metadata
+      options.format.metadata[kQuartoFilters] = resolvedFilters;
     }
 
     // If we're rendering Latex, forward the number-depth to pandoc (it handles numbering)

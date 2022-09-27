@@ -12,23 +12,28 @@ function tdump (tbl, indent, refs)
   end
 
   if type(tbl) == "userdata" then
-    print(string.rep("  ", indent) .. tbl.t)
+    print(string.rep("  ", indent) .. string.format("[pandoc:%s]", tbl.t))
+  elseif type(tbl) == "table" and tbl["-quarto-internal-type-"] then
+    print(string.rep("  ", indent) .. string.format("[quarto-pandoc:%s]", tbl["-quarto-internal-type-"]))
   end
+
   local empty = true
   for k, v in pairs(tbl) do
-    empty = false
-    formatting = string.rep("  ", indent) .. k .. ": "
-    v = asLua(v)
-    if type(v) == "table" then
-      print(formatting .. "table: " .. address)
-      refs[address] = true
-      tdump(v, indent+1, refs)
-    elseif type(v) == 'boolean' then
-      print(formatting .. tostring(v))
-    elseif (v ~= nil) then 
-      print(formatting .. tostring(v))
-    else 
-      print(formatting .. 'nil')
+    if k ~= "--quarto-internal-type-" then
+      empty = false
+      formatting = string.rep("  ", indent) .. k .. ": "
+      v = asLua(v)
+      if type(v) == "table" then
+        print(formatting .. "table: " .. address)
+        refs[address] = true
+        tdump(v, indent+1, refs)
+      elseif type(v) == 'boolean' then
+        print(formatting .. tostring(v))
+      elseif (v ~= nil) then 
+        print(formatting .. tostring(v))
+      else 
+        print(formatting .. 'nil')
+      end
     end
   end
   if empty then
@@ -110,10 +115,10 @@ function asLua(o)
 end
 
 -- dump an object to stdout
-local function dump(o)
+local function dump(o, raw)
   o = asLua(o)
   if type(o) == 'table' then
-    tdump(o)
+    tdump(o, raw)
   else
     print(tostring(o) .. "\n")
   end
@@ -122,6 +127,9 @@ end
 -- is the table a simple array?
 -- see: https://web.archive.org/web/20140227143701/http://ericjmritz.name/2014/02/26/lua-is_array/
 function tisarray(t)
+  if type(t) ~= "table" then 
+    return false 
+  end
   local i = 0
   for _ in pairs(t) do
     i = i + 1
@@ -150,6 +158,6 @@ return {
   table = {
     isarray = tisarray,
     contains = tcontains
-  }
+  },
 }
 
