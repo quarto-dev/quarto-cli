@@ -15,14 +15,8 @@ function tdump (tbl, raw)
     if string.sub(k, 1, 1) == "-" then
       return false
     end
-    if k == "-quarto-internal-type-" then
-      return false
-    end
     if innerTbl["-is-extended-ast-"] then
       return k ~= "t" and k ~= "tag" and k ~= "class" and k ~= "attr"
-    end
-    if innerTbl["-quarto-internal-type-"] then
-      return k ~= "t" and k ~= "tag"
     end
     return true
   end
@@ -83,8 +77,8 @@ function tdump (tbl, raw)
 
       if tbl["-is-extended-ast-"] then
         printInner(typeIndent .. string.format("{ [quarto-extended-ast:%s:%s]%s", tbl["-quarto-internal-type-"], address, endOfOpen))
-      elseif tbl["-quarto-internal-type-"] then
-        printInner(typeIndent .. string.format("{ [quarto-pandoc:%s:%s]%s", tbl["-quarto-internal-type-"], address, endOfOpen))
+      -- elseif tbl["-quarto-internal-type-"] then
+      --   printInner(typeIndent .. string.format("{ [quarto-pandoc:%s:%s]%s", tbl["-quarto-internal-type-"], address, endOfOpen))
       elseif tisarray(tbl) then
         printInner(typeIndent .. string.format("{ [array:%s]%s", address, endOfOpen))
       else

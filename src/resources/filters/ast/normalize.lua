@@ -1,5 +1,4 @@
 local fancy_keys = {
-  ["-quarto-internal-type-"] = true,
   ["-is-extended-ast-"] = true,
   ["t"] = true,
   ["tag"] = true
@@ -91,13 +90,6 @@ function normalize(node)
       else
         return baseHandler(div)
       end
-      -- local extendedAstNodeShallow = quarto.ast.unbuild(div)
-      -- for k, v in pairs(extendedAstNodeShallow) do
-      --   result[k] = normalize(v)
-      -- end
-      -- result["-quarto-internal-type-"] = name
-      -- result["-is-extended-ast-"] = true
-      -- return result
     end,
 
     Header = inlinesContentHandler,
@@ -170,9 +162,9 @@ function normalize(node)
     return node
   else
     local result = dispatch(node)
-    if type(result) == "table" and result["-quarto-internal-type-"] == nil then
-      result["-quarto-internal-type-"] = t
-    end
+    -- if type(result) == "table" and result["-quarto-internal-type-"] == nil then
+    --   result["-quarto-internal-type-"] = t
+    -- end
     return result
   end
 end
@@ -236,7 +228,7 @@ function denormalize(node)
   }
 
   local baseHandler = function(tbl)
-    local t = tbl["-quarto-internal-type-"]
+    local t = tbl.t -- ["-quarto-internal-type-"]
     local v = argsTable[t]
     local args
     if type(v) == "function" then
@@ -343,11 +335,11 @@ function denormalize(node)
     end,
 
     Inlines = function(inlines)
-      return tmap(inlines, denormalize)
+      return quarto.ast._true_pandoc.Inlines(tmap(inlines, denormalize))
     end,
 
     Blocks = function(blocks)
-      return tmap(blocks, denormalize)
+      return quarto.ast._true_pandoc.Blocks(tmap(blocks, denormalize))
     end,
 
     Str = function(str)
@@ -374,16 +366,16 @@ function denormalize(node)
   if node.is_custom then
     local denormalizedTable = {}
     for k, v in pairs(node) do
-      if not (k == "t" or k == "tag" or k == "class" or k == "attr" or k == "-is-extended-ast-" or k == "-quarto-internal-type-") then
+      if not (k == "t" or k == "tag" or k == "class" or k == "attr" or k == "-is-extended-ast-") then
         denormalizedTable[k] = denormalize(v)
-      elseif not (k == "-is-extended-ast-" or k == "-quarto-internal-type-") then
+      elseif not (k == "-is-extended-ast-") then
         denormalizedTable[k] = v
       end
     end
     return quarto.ast.build(node.t, denormalizedTable)
   end
 
-  local t = node["-quarto-internal-type-"]
+  local t = node.t -- ["-quarto-internal-type-"]
   local dispatch = typeTable[t]
   if dispatch == nil then
     -- print("We're getting special-cased :(")
@@ -400,24 +392,36 @@ end
 
 function denormalize_meta(node)
   if type(node) == "string" then
-    return pandoc.MetaString(node)
+    return node
+    -- return pandoc.MetaString(node)
   elseif type(node) == "boolean" then
-    return pandoc.MetaBool(node)
+    return node
+    -- return pandoc.MetaBool(node)
   elseif type(node) == "number" then
-    return pandoc.MetaString(node)
-  elseif node.t == "Inlines" then
-    print("INLINES YAY!!")
-    crash_with_stack_trace()
-  elseif node.t == "Blocks" then
-    return pandoc.MetaBlocks(denormalize(node))
+    return node
+    -- return pandoc.MetaString(node)
+  -- elseif node.t == "Inlines" then
+  --   print("INLINES YAY!!")
+  --   crash_with_stack_trace()
+  -- elseif node.t == "Blocks" then
+  --   local result = denormalize(node)
+  --   return result
   elseif node.is_emulated then
     return denormalize(node) -- just denormalize the values themselves
   elseif type(node) == "table" then
-    local result = {}
-    for k, v in pairs(node) do
-      result[k] = denormalize_meta(v)
+    if tisarray(node) then
+      local mlresult = pandoc.MetaList({})
+      for k, v in pairs(node) do
+        mlresult:insert(denormalize_meta(v))
+      end
+      return mlresult
+    else
+      local mlresult = pandoc.MetaMap({})
+      for k, v in pairs(node) do
+        mlresult[k] = denormalize_meta(v)
+      end
+      return mlresult
     end
-    return pandoc.MetaMap(result) -- we don't need _true_pandoc here because we haven't overriden metamap
   elseif node.t == "Str" then
     return node
   elseif node.t == "Space" then

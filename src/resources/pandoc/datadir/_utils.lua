@@ -2,43 +2,130 @@
 -- Copyright (C) 2020 by RStudio, PBC
 
 -- improved formatting for dumping tables
-function tdump (tbl, indent, refs)
-  if not refs then refs = {} end
-  if not indent then indent = 0 end
-  local address = string.format("%p", tbl)
-  if refs[address] ~= nil then
-    print(string.rep("  ", indent) .. "(circular reference to " .. address .. ")")
-    return
+function tdump (tbl, raw)
+
+  local shouldPrint = function(k, _, innerTbl)
+    -- when raw, print everything
+    if raw then
+      return true
+    end
+    if type(k) == "number" then
+      return true
+    end
+    if string.sub(k, 1, 1) == "-" then
+      return false
+    end
+    if innerTbl["-is-extended-ast-"] then
+      return k ~= "t" and k ~= "tag" and k ~= "class" and k ~= "attr"
+    end
+    return true
   end
 
-  if type(tbl) == "userdata" then
-    print(string.rep("  ", indent) .. string.format("[pandoc:%s]", tbl.t))
-  elseif type(tbl) == "table" and tbl["-quarto-internal-type-"] then
-    print(string.rep("  ", indent) .. string.format("[quarto-pandoc:%s]", tbl["-quarto-internal-type-"]))
-  end
+  local refs = {}
+  local resultTable = {}
 
-  local empty = true
-  for k, v in pairs(tbl) do
-    if k ~= "--quarto-internal-type-" then
-      empty = false
-      formatting = string.rep("  ", indent) .. k .. ": "
-      v = asLua(v)
-      if type(v) == "table" then
-        print(formatting .. "table: " .. address)
-        refs[address] = true
-        tdump(v, indent+1, refs)
-      elseif type(v) == 'boolean' then
-        print(formatting .. tostring(v))
-      elseif (v ~= nil) then 
-        print(formatting .. tostring(v))
-      else 
-        print(formatting .. 'nil')
+  -- https://www.lua.org/pil/19.3.html
+  local pairsByKeys = function (t, f)
+    local a = {}
+    for n in pairs(t) do table.insert(a, n) end
+    table.sort(a, f)
+    local i = 0      -- iterator variable
+    local iter = function ()   -- iterator function
+      i = i + 1
+      if a[i] == nil then return nil
+      else return a[i], t[a[i]]
       end
     end
+    return iter
   end
-  if empty then
-    print(string.rep("  ", indent) .. "<empty table>")
+  
+  local printInner = function(str)
+    table.insert(resultTable, str)
   end
+
+  local empty = function(tbl)
+    for k, v in pairs(tbl) do
+      return false
+    end
+    return true
+  end
+
+  -- sigh.
+  -- https://stackoverflow.com/questions/48209461/global-and-local-recursive-functions-in-lua
+  local inner
+  inner = function(tbl, indent, doNotIndentType)
+    local address = string.format("%p", tbl)
+    local indentStr = string.rep(" ", indent)
+    local closeBracket = indentStr .. "}\n"
+    if refs[address] ~= nil then
+      printInner(indentStr .. "(circular reference to " .. address .. ")\n")
+      return
+    end
+  
+    local isArray = tisarray(tbl)
+    local isEmpty = empty(tbl)
+    
+    if type(tbl) == "table" then
+      local typeIndent = indentStr
+      if doNotIndentType then
+        typeIndent = ""
+      end
+      local endOfOpen = "\n"
+      if isEmpty then
+        endOfOpen = " <empty> }\n"
+      end
+
+      if tbl["-is-extended-ast-"] then
+        printInner(typeIndent .. string.format("{ [quarto-extended-ast:%s:%s]%s", tbl["-quarto-internal-type-"], address, endOfOpen))
+      -- elseif tbl["-quarto-internal-type-"] then
+      --   printInner(typeIndent .. string.format("{ [quarto-pandoc:%s:%s]%s", tbl["-quarto-internal-type-"], address, endOfOpen))
+      elseif tisarray(tbl) then
+        printInner(typeIndent .. string.format("{ [array:%s]%s", address, endOfOpen))
+      else
+        printInner(typeIndent .. string.format("{ [table:%s]%s", address, endOfOpen))
+      end
+      if raw then 
+        printInner(indentStr .. " [metatable: " .. tostring(getmetatable(tbl)) .. "]\n")
+      end
+      if tbl.attr then
+        printInner(indentStr .. "  attr: " .. tostring(tbl.attr) .. "\n")
+      end
+    end
+    local empty = true
+    local typesThenValues = function(a, b)
+      local ta = type(a)
+      local tb = type(b)
+      if ta < tb then return true end
+      if ta > tb then return false end
+      return a < b
+    end
+    for k, v in pairsByKeys(tbl, typesThenValues) do
+      if shouldPrint(k, v, tbl) then
+        empty = false
+        formatting = indentStr .. "  " .. k .. ": "
+        v = asLua(v)
+        if type(v) == "table" then
+          printInner(formatting)
+          refs[address] = true
+          local indentBump = 2
+          if string.len(k) < 3 then -- this does work when k is number
+            indentBump = string.len(k) + 1
+          end
+          inner(v, indent+indentBump, true)
+        elseif type(v) == 'boolean' then
+          printInner(formatting .. tostring(v) .. "\n")
+        elseif (v ~= nil) then 
+          printInner(formatting .. tostring(v) .. "\n")
+        else 
+          printInner(formatting .. 'nil\n')
+        end
+      end
+    end
+    printInner(closeBracket) 
+  end
+
+  inner(tbl, 0)
+  print(table.concat(resultTable, ""))
 end
 
 -- "asLua" knows about pandoc opaque objects and converts them to Lua
