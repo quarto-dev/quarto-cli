@@ -1690,11 +1690,10 @@ _quarto = {
 
  } 
 
-
 -- The main exports of the quarto module
 quarto = {
   doc = {
-    addHtmlDependency = function(htmlDependency)
+    add_html_dependency = function(htmlDependency)
    
       -- validate the dependency
       if htmlDependency.name == nil then 
@@ -1753,7 +1752,7 @@ quarto = {
       }))
     end,
 
-    attachToDependency = function(name, pathOrFileObj)
+    attach_to_dependency = function(name, pathOrFileObj)
 
       if name == nil then
          error("The target dependency name for an attachment cannot be nil. Please provide a valid dependency name.")
@@ -1794,33 +1793,33 @@ quarto = {
       }))
     end,
   
-    useLatexPackage = function(package, options)
+    use_latex_package = function(package, options)
       writeToDependencyFile(dependency("usepackage", {package = package, options = options }))
     end,
 
-    addFormatResource = function(path)
+    add_format_resource = function(path)
       writeToDependencyFile(dependency("format-resources", { file = resolvePathExt(path)}))
     end,
 
-    includeText = function(location, text)
+    include_text = function(location, text)
       writeToDependencyFile(dependency("text", { text = text, location = resolveLocation(location)}))
     end,
   
-    includeFile = function(location, path)
+    include_file = function(location, path)
       writeToDependencyFile(dependency("file", { path = resolvePathExt(path), location = resolveLocation(location)}))
     end,
 
-    isFormat = format.isFormat,
+    is_format = format.isFormat,
 
-    citeMethod = function() 
+    cite_method = function() 
       local citeMethod = param('cite-method', 'citeproc')
       return citeMethod
     end,
-    pdfEngine = function() 
+    pdf_engine = function() 
       local engine = param('pdf-engine', 'pdflatex')
       return engine      
     end,
-    hasBootstrap = function() 
+    has_bootstrap = function() 
       local hasBootstrap = param('has-bootstrap', false)
       return hasBootstrap
     end,
@@ -1831,9 +1830,23 @@ quarto = {
   },
   utils = {
    dump = utils.dump,
-   resolvePath = resolvePathExt
+   resolve_path = resolvePathExt
   },
   json = json,
   base64 = base64,
   log = logging
 }
+
+-- alias old names for backwards compatibility
+quarto.doc.addHtmlDependency = quarto.doc.add_html_dependency
+quarto.doc.attachToDependency = quarto.doc.attach_to_dependency
+quarto.doc.useLatexPackage = quarto.doc.use_latex_package
+quarto.doc.addFormatResource = quarto.doc.add_format_resource
+quarto.doc.includeText = quarto.doc.include_text
+quarto.doc.includeFile = quarto.doc.include_file
+quarto.doc.isFormat = quarto.doc.is_format
+quarto.doc.citeMethod = quarto.doc.cite_method
+quarto.doc.pdfEngine = quarto.doc.pdf_engine
+quarto.doc.hasBootstrap = quarto.doc.has_bootstrap
+quarto.utils.resolvePath = quarto.utils.resolve_path
+
