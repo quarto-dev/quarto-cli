@@ -11,7 +11,7 @@ import { createFormat, plaintextFormat } from "../formats-shared.ts";
 
 export const kGfmCommonmarkVariant =
   "+autolink_bare_uris+emoji+footnotes+gfm_auto_identifiers" +
-  "+pipe_tables+raw_html+strikeout+task_lists+tex_math_dollars";
+  "+pipe_tables+strikeout+task_lists+tex_math_dollars";
 
 export const kGfmCommonmarkFormat = `commonmark${kGfmCommonmarkVariant}`;
 
@@ -41,11 +41,26 @@ export function gfmFormat(): Format {
   });
 }
 
+// for 'md' alias
+export function markdownWithCommonmarkExtensionsFormat() {
+  return createFormat("md", markdownFormat(), {
+    pandoc: {
+      to: [
+        "markdown_strict",
+        "+raw_html",
+        "+all_symbols_escapable",
+        "+backtick_code_blocks",
+        "+fenced_code_blocks",
+        "+space_in_atx_header",
+        "+intraword_underscores",
+        "+lists_without_preceding_blankline",
+        "+shortcut_reference_links",
+      ].join(""),
+    },
+  });
+}
+
 export function commonmarkFormat(to: string) {
-  // implement 'md' alias for commonmark
-  if (to === "md") {
-    to = "commonmark";
-  }
   return createFormat("md", markdownFormat(), {
     pandoc: {
       to,

@@ -35,6 +35,7 @@ import {
   commonmarkFormat,
   gfmFormat,
   markdownFormat,
+  markdownWithCommonmarkExtensionsFormat,
   pandocMarkdownFormat,
 } from "./markdown/format-markdown.ts";
 
@@ -90,6 +91,10 @@ export function defaultWriterFormat(to: string): Format {
       break;
 
     case "md":
+      writerFormat = markdownWithCommonmarkExtensionsFormat();
+      pandocTo = "markdown_strict";
+      break;
+
     case "commonmark":
     case "commonmark_x":
       writerFormat = commonmarkFormat(to);

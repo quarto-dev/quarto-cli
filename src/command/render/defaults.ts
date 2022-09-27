@@ -163,13 +163,5 @@ export function pandocDefaultsMessage(
     delete defaults.template;
   }
 
-  // fixup 'to' w/ 'gfm' if appropriate
-  if (typeof (defaults.to) === "string") {
-    defaults.to = defaults.to.replace(
-      kGfmCommonmarkFormat,
-      "gfm",
-    );
-  }
-
   return stringify(defaults as Record<string, unknown>);
 }
