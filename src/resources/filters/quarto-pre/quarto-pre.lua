@@ -284,5 +284,5 @@ return run_as_extended_ast({
   pre = {
     initOptions()
   },
-  filters = capture_timings(filterList, true),
+  filters = capture_timings(filterList),
 })

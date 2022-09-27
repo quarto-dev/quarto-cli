@@ -378,7 +378,6 @@ function denormalize(node)
   local t = node.t -- ["-quarto-internal-type-"]
   local dispatch = typeTable[t]
   if dispatch == nil then
-    -- print("We're getting special-cased :(")
     if tisarray(node) then
       return tmap(node, denormalize)
     else
@@ -392,44 +391,51 @@ end
 
 function denormalize_meta(node)
   if type(node) == "string" then
-    return node
-    -- return pandoc.MetaString(node)
+    return pandoc.MetaInlines({node})
   elseif type(node) == "boolean" then
     return node
-    -- return pandoc.MetaBool(node)
   elseif type(node) == "number" then
     return node
-    -- return pandoc.MetaString(node)
-  -- elseif node.t == "Inlines" then
-  --   print("INLINES YAY!!")
-  --   crash_with_stack_trace()
-  -- elseif node.t == "Blocks" then
-  --   local result = denormalize(node)
-  --   return result
+  elseif node.t == "Inlines" then
+    local result = denormalize(node)
+    local mlresult = pandoc.MetaInlines({})
+    for k, v in pairs(result) do
+      mlresult:insert(v)
+    end
+    return mlresult
+  elseif node.t == "Blocks" then
+    local result = denormalize(node)
+    local mlresult = pandoc.MetaBlocks({})
+    for k, v in pairs(result) do
+      mlresult:insert(v)
+    end
+    return mlresult
   elseif node.is_emulated then
     return denormalize(node) -- just denormalize the values themselves
+  elseif node.t ~= nil then
+    return node -- don't denormalize true pandoc nodes in meta
   elseif type(node) == "table" then
-    if tisarray(node) then
-      local mlresult = pandoc.MetaList({})
-      for k, v in pairs(node) do
-        mlresult:insert(denormalize_meta(v))
-      end
-      return mlresult
-    else
-      local mlresult = pandoc.MetaMap({})
-      for k, v in pairs(node) do
-        mlresult[k] = denormalize_meta(v)
-      end
-      return mlresult
+    local result = {}
+    local anything_set = false
+    for k, v in pairs(node) do
+      anything_set = true
+      result[k] = denormalize_meta(v)
     end
-  elseif node.t == "Str" then
-    return node
-  elseif node.t == "Space" then
-    return node
+    -- FIXME it seems that sometimes making the empty MetaList->MetaMap mistake
+    -- has rendering consequences, but making the empty MetaMap->MetaList mistake
+    -- does not.
+    --
+    -- It also seems impossible to know exactly if we have an empty list or empty
+    -- map in general...
+    if not anything_set then
+      return pandoc.MetaList({})
+    else
+      return result
+    end
+    -- end
   else
-    print("DON'T KNOW WHAT HAPPENED")  
-    quarto.utils.dump(node, true)
-    print(node.t)
+    print("Internal Error: can't denormalize_meta this object.")  
+    print(type(node), tostring(node))
     crash_with_stack_trace()
   end
 end
