@@ -221,30 +221,39 @@ function crash_with_stack_trace()
 end
 
 function trace_filter(filename, filter)
-  return {
-    traverse = filter.traverse,
-    Pandoc = function(doc)
-      if filter.Pandoc then
-        local newDoc = filter.Pandoc(doc)
-        quarto.utils.dump(newDoc or doc, true)
-        local output = pandoc.write(newDoc or doc, string.match(filename, ".+[.](.+)$"))
-        local f = io.open(filename, 'w')
-        if f == nil then
-          return newDoc
-        end
-        f:write(output)
-        f:close()
-        return newDoc
-      else
-        local output = pandoc.write(doc, string.match(filename, ".+[.](.+)$"))
-        local f = io.open(filename, 'w')
-        if f == nil then
-          return doc
-        end
-        f:write(output)
-        f:close()
-        return doc
-      end
-    end
+  local result = {
+    _filter_name = filename,
   }
+
+  for k, v in pairs(filter) do
+    result[k] = v
+  end
+
+  result.Pandoc = function(doc)
+    local result
+    if filter.Pandoc then
+      local newDoc = filter.Pandoc(doc)
+      if newDoc then
+        result = newDoc
+      end
+      local output = pandoc.write(newDoc or doc, string.match(filename, ".+[.](.+)$"))
+      local f = io.open(filename, 'w')
+      if f ~= nil then
+        f:write(output)
+        f:close()
+      end
+      return result
+    else
+      local output = pandoc.write(doc, string.match(filename, ".+[.](.+)$"))
+      local f = io.open(filename, 'w')
+      if f ~= nil then
+        f:write(output)
+        f:close()
+      end
+      return nil
+    end
+  end
+
+  return result
+
 end
