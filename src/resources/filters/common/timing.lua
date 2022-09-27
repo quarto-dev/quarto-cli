@@ -53,25 +53,25 @@ function capture_timings(filterList, trace)
       end
       newFilter["Pandoc"] = makeNewFilter(oldPandoc) -- iife for capturing in scope
       if trace then
-        table.insert(finalResult, trace_filter(string.format("%s.json", v.name), newFilter))
+        table.insert(finalResult, trace_filter(string.format("%02d_%s.json", i, v.name), newFilter))
       else
         table.insert(finalResult, newFilter)
       end
     end
   else
-    for _, v in ipairs(filterList) do
+    for i, v in ipairs(filterList) do
       if v.filter ~= nil then
         v.filter._filter_name = v.name
         if trace then
-          table.insert(finalResult, trace_filter(string.format("%s.json", v.name), v.filter))
+          table.insert(finalResult, trace_filter(string.format("%02d_%s.json", i, v.name), v.filter))
         else
           table.insert(finalResult, v.filter)
         end
       elseif v.filters ~= nil then
-        for i, innerV in pairs(v.filters) do
+        for j, innerV in pairs(v.filters) do
           innerV._filter_name = string.format("%s-%s", v.name, i)
           if trace then
-            table.insert(finalResult, trace_filter(string.format("%s.json", innerV._filter_name), innerV))
+            table.insert(finalResult, trace_filter(string.format("%02d_%02d_%s.json", i, j, innerV._filter_name), innerV))
           else
             table.insert(finalResult, innerV)
           end
