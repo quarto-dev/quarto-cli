@@ -44,6 +44,9 @@ function emulate_pandoc_filter(filters, unextended)
   local our_utils = {
     blocks_to_inlines = function(lst)
       return normalize(utils.blocks_to_inlines(denormalize(lst)))
+    end,
+    stringify = function(v)
+      return utils.stringify(denormalize(v))
     end
   }
   setmetatable(our_utils, {
