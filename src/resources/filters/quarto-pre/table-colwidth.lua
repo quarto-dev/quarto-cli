@@ -112,7 +112,7 @@ function tableColwidth()
       local tblColwidths = nil
       if tbl.caption.long ~= nil and #tbl.caption.long > 0 then
         local caption =  tbl.caption.long[#tbl.caption.long]
-        
+
         local tblCaption, attr = parseTableCaption(pandoc.utils.blocks_to_inlines({caption}))
         tblColwidths = attr.attributes[kTblColwidths]
         if tblColwidths ~= nil then

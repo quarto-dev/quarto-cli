@@ -39,6 +39,16 @@ function emulate_pandoc_filter(filters, unextended)
   local Blocks = pandoc.Blocks
   local pandoc_inlines_mtbl = getmetatable(pandoc.Inlines({}))
   local pandoc_blocks_mtbl = getmetatable(pandoc.Blocks({}))
+  local utils = pandoc.utils
+
+  local our_utils = {
+    blocks_to_inlines = function(lst)
+      return normalize(utils.blocks_to_inlines(denormalize(lst)))
+    end
+  }
+  setmetatable(our_utils, {
+    __index = utils
+  })
 
   local inlines_mtbl = {
     __index = function(tbl, key)
@@ -70,6 +80,16 @@ function emulate_pandoc_filter(filters, unextended)
   quarto.ast._true_pandoc.Inlines = Inlines
 
   function install_pandoc_overrides()
+    pandoc.TableBody = function(body, head, row_head_columns, attr)
+      return {
+        body = body,
+        head = head,
+        row_head_columns = row_head_columns or 1,
+        attr = attr or pandoc.Attr(),
+        t = "TableBody"
+      }
+    end
+    pandoc.utils = our_utils
     pandoc.walk_block = function(el, filter)
       if el.is_emulated then
         return el:walk(filter)
@@ -120,6 +140,7 @@ function emulate_pandoc_filter(filters, unextended)
   end
 
   function restore_pandoc_overrides()
+    pandoc.utils = utils
     pandoc.walk_block = walk_block
     pandoc.walk_inline = walk_inline
     pandoc.write = write
