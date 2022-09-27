@@ -92,7 +92,6 @@ import { ProjectOutputFile } from "../../types.ts";
 import { projectOutputDir } from "../../../project-shared.ts";
 import { directoryMetadataForInputFile } from "../../../project-context.ts";
 import { mergeConfigs } from "../../../../core/config.ts";
-import { truncateText } from "../../../../core/text.ts";
 
 // Defaults (a card listing that contains everything
 // in the source document's directory)

@@ -19,8 +19,6 @@ import { existsSync } from "fs/mod.ts";
 import { toFileUrl } from "path/mod.ts";
 import { resourcePath } from "./resources.ts";
 
-import { Date as SchemaDate } from "../resources/types/schema-types.ts";
-
 // Special date constants
 export const kLastModified = "last-modified";
 export const kToday = "today";

@@ -15,7 +15,6 @@ import {
   SEP_PATTERN,
 } from "path/mod.ts";
 import { existsSync, walkSync } from "fs/mod.ts";
-import { warning } from "log/mod.ts";
 import * as ld from "../core/lodash.ts";
 
 import { ProjectType } from "./types/types.ts";
