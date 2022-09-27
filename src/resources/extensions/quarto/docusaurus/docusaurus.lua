@@ -14,8 +14,7 @@ local kQuartoRawHtml = "quartoRawHtml"
 local rawHtmlVars = pandoc.List()
 function RawBlock(el)
   if el.format == 'mdx' then
-    el.format = 'html'
-    return el
+    return pandoc.CodeBlock(el.text, pandoc.Attr("", {"mdx-code-block"}))
   elseif el.format == 'html' then
     -- track the raw html vars (we'll insert them at the top later on as
     -- mdx requires all exports be declared together)
@@ -37,13 +36,14 @@ function Pandoc(doc)
         ","
       )
     )
-    doc.blocks:insert(1, pandoc.RawBlock("commonmark", exports))
+    doc.blocks:insert(1, pandoc.RawBlock("markdown", exports))
     return doc
   end
 
 end
 
--- transform pandoc "title" to docusaures title
+-- transform pandoc "title" to docusaures title. for code blocks
+-- with no class, give them one so that they aren't plain 4 space indented
 function CodeBlock(el)
   local lang = el.attr.classes[1]
   local title = el.attr.attributes["filename"] or el.attr.attributes["title"]  
@@ -55,6 +55,9 @@ function CodeBlock(el)
       "```" .. lang .. " title=\"" .. title .. "\"\n" ..
       el.text .. "\n```\n"
     )
+  elseif #el.attr.classes == 0 then
+    el.attr.classes:insert('text')
+    return el
   end
 end
 
