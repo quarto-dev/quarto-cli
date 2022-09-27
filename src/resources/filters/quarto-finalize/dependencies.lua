@@ -10,6 +10,6 @@ function dependencies()
       -- and the file responses
       _quarto.processDependencies(meta)
       return meta
-    end,
+    end
   }
 end
