@@ -1320,6 +1320,17 @@ local function scriptFileName()
    end
 end
 
+-- patch require to look in current scriptDir
+local orig_require = require
+function require(modname)
+   local dir = pandoc.path.join({scriptDir(), '?.lua'})
+   package.path = package.path .. ';' ..dir
+   local mod = orig_require(modname)
+   package.path = package.path:sub(1, #package.path - (#dir + 1))
+   return mod
+end
+
+
 -- resolves a path, providing either the original path
 -- or if relative, a path that is based upon the 
 -- script location
@@ -1339,7 +1350,6 @@ local function resolvePathExt(path)
     return path
   end
 end
-
 -- converts the friendly Quartio location names 
 -- in the pandoc location
 local function resolveLocation(location) 

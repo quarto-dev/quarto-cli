@@ -33,6 +33,7 @@
 - Add support for extensions that contribute revealjs-plugins
 - Fix issue loading extensions when the organization name is the same as the extension identifier
 - Fix issue preventing installation of archived extensions from an arbitrary url (#2419)
+- Lua `require` can now find modules adjacent to the current script
 
 ## Projects
 
