@@ -12,12 +12,7 @@ function dependencies()
       return meta
     end,
     Pandoc = function(doc)
-      local out = pandoc.write(doc, "json")
-      local f = io.open("dependencies-main.json", "w")
-      if f ~= nil then
-        f:write(out)
-        f:close()
-      end
-    end,
+      pandoc.write(doc, "json")
+    end
   }
 end
