@@ -4,19 +4,19 @@ function do_it(doc, filters)
     -- quarto.utils.dump(doc)
 
     for i, v in pairs(filters) do
-      print("Will run filter " .. tostring(v._filter_name or i) .. ": ")
-      print("This is the filter:")
-      quarto.utils.dump(v, true)
-      print("This is the doc:")
-      quarto.utils.dump(doc, true)
+      -- print("Will run filter " .. tostring(v._filter_name or i) .. ": ")
+      -- print("This is the filter:")
+      -- quarto.utils.dump(v, true)
+      -- print("This is the doc:")
+      -- quarto.utils.dump(doc, true)
       local newDoc = doc:walk(v)
-      print("Result", newDoc)
+      -- print("Result", newDoc)
       if newDoc ~= nil then
         doc = newDoc
       end
-      print("This is the new doc:")
-      quarto.utils.dump(doc)
-      print("----")
+      -- print("This is the new doc:")
+      -- quarto.utils.dump(doc)
+      -- print("----")
     end
   elseif type(filters) == "table" then
     local newDoc = doc:walk(filters)
@@ -66,6 +66,8 @@ function emulate_pandoc_filter(filters, unextended)
 
   local ast_constructors = {}
   quarto.ast._true_pandoc = ast_constructors
+  quarto.ast._true_pandoc.Blocks = Blocks
+  quarto.ast._true_pandoc.Inlines = Inlines
 
   function install_pandoc_overrides()
     pandoc.walk_block = function(el, filter)
