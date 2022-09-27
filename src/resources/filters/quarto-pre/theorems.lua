@@ -2,7 +2,7 @@
 -- Copyright (C) 2021 by RStudio, PBC
 
 
-function theorems() 
+function quartoPreTheorems() 
   
   return {
     Div = function(el)
