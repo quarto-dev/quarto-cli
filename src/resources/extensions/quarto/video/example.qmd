@@ -1,0 +1,198 @@
+---
+title: 'Video Extension for Quarto'
+format: html
+toc: true
+crossref:
+    fig-title: Example
+---
+
+## VideoJS
+### Local Video File
+Load a local `mp4` in the [VideoJS player](https://videojs.com/).
+
+::: {#fig-videojs-local}
+{{< video src="./intro-cern.mp4" >}}
+
+```{shortcodes=false}
+{{< video src="./intro-cern.mp4" >}}
+```
+VideoJS with mp4
+:::
+
+### Remote Video File
+Load a remote `mp4` with fixed _width_ and _height_.
+
+::: {#fig-videojs-local}
+{{< video src="https://indico.cern.ch/event/661560/attachments/1512449/2415851/Upload_a_video_on_CDS_Videos.mp4" width="320" height="180">}}
+```{shortcodes=false}
+{{< video 
+    src="https://indico.cern.ch...mp4" >}}
+```
+VideoJS with remote mp4
+:::
+
+## YouTube
+### Simple YouTube URL
+With no other parameters just use the YouTube embed code url.  This will automatically be responsive.
+
+::: {#fig-youtube-simple-embed}
+{{< video https://www.youtube.com/embed/wo9vZccmqwc >}}
+```{shortcodes=false}
+{{ < video https://www.youtube.com/embed/wo9vZccmqwc > }}
+```
+YouTube with simple embed code
+:::
+
+### YouTube embed with _title_ and _start_.
+
+By adding the named parameters `title` and `start` the snippet can now specify a specific title and a start time to begin playback.
+
+::: {#fig-youtube-title-start}
+
+{{< video src=https://www.youtube.com/embed/wo9vZccmqwc title='What is the CERN?' start="116">}}
+
+```{shortcodes=false}
+{{< video 
+    src=https://www.youtube.com/embed/wo9vZccmqwc
+    title="What is the CERN?"
+    start="15"
+>}}
+```
+YouTube with parameters title and start time
+:::
+
+### YouTube embed with _height_ and _width_.
+
+Non-responsive fixed height and width can be set.
+
+::: {#fig-youtube-title-start}
+
+{{< video src=https://www.youtube.com/embed/wo9vZccmqwc width="160" height="90">}}
+
+```{shortcodes=false}
+{{< video 
+    src=https://www.youtube.com/embed/wo9vZccmqwc 
+    width="160" height="90">}}
+```
+YouTube with _height_ and _width_
+:::
+
+### Other YouTube URLs.
+
+Other YouTube URLs can be used here, including the Share URLs and the URL that is seen in the browser when viewing videos.
+
+
+::: {#fig-youtube-multi-url layout="[[40,-10,40]]"}
+
+::: {#fig-youtube-multi-url-share}
+{{< video https://youtu.be/wo9vZccmqwc >}}
+
+```{shortcodes=false}
+{{< video https://youtu.be/wo9vZccmqwc>}}
+```
+Share URL
+:::
+
+::: {#fig-youtube-multi-url-browser}
+{{< video https://www.youtube.com/watch?v=wo9vZccmqwc&ab_channel=CERN >}}
+```{shortcodes=false}
+{{< video 
+    https://www.youtube.com/watch?
+    v=wo9vZccmqwc&ab_channel=CERN >}}
+```
+Browser URL
+:::
+
+YouTube with share and browser URLs
+:::
+
+## Brightcove
+### Brightcove iFrame Embed Code
+Use the Brightcove full URL, and it will be rendered using [the iFrame embed code](https://studio.support.brightcove.com/publish/choosing-correct-embed-code.html).
+
+::: {#fig-brightcove}
+{{< video src="https://players.brightcove.net/1460825906/default_default/index.html?videoId=5988531335001" >}}
+```{shortcodes=false}
+{{< video 
+    src="https://players.brightcove.net
+    /1460825906/
+    default_default/
+    index.html?videoId=5988531335001" >}}
+```
+Brightcove
+:::
+
+### Brightcove Full Example
+
+::: {#fig-brightcove-all}
+{{< video 
+    src="https://players.brightcove.net/1460825906/default_default/index.html?videoId=5988531335001"
+    width="160" height="90">}}
+```{shortcodes=false}
+{{< video 
+    src="https://players.brightcove.net
+    /1460825906/
+    default_default/
+    index.html?videoId=5988531335001" 
+    width="160" height="90">}}
+```
+Brightcove with all attributes
+:::
+
+## Vimeo
+### Vimeo iFrame Embed Code
+Use the Vimeo video URL, and it will be rendered using iFrame share embed code.
+
+::: {#fig-vimeo}
+{{< video src="https://vimeo.com/548291297" >}}
+```{shortcodes=false}
+{{< video src="https://vimeo.com/548291297" >}}
+```
+Vimeo
+:::
+
+### Vimeo Full Example
+
+::: {#fig-vimeo}
+{{< video src="https://vimeo.com/548291297" width="160" height="90">}}
+```{shortcodes=false}
+{{< video src="https://vimeo.com/548291297" width="160" height="90">}}
+```
+Vimeo with all attributes
+:::
+
+
+## Aspect Ratios
+For the embed codes, responsive resizing defaults to a 16x9 Aspect Ratio.  Using the `aspect-ratio` attribute, this can be modified to: `1x1`, `4x3`, `16x9` (the default if none specified), and `21x9`.
+
+::: {#fig-aspect-ratio-1x1}
+{{< video src="https://www.youtube.com/watch?v=S99d9BQmGB0" aspect-ratio="1x1">}}
+```{shortcodes=false}
+{{< video src="https://www.youtube.com/watch?v=S99d9BQmGB0" aspect-ratio="1x1">}}
+```
+1x1
+:::
+
+::: {#fig-aspect-ratio-4x3}
+{{< video src="https://www.youtube.com/watch?v=S99d9BQmGB0" aspect-ratio="4x3">}}
+```{shortcodes=false}
+{{< video src="https://www.youtube.com/watch?v=S99d9BQmGB0" aspect-ratio="4x3">}}
+```
+4x3
+:::
+
+::: {#fig-aspect-ratio-16x9}
+{{< video src="https://www.youtube.com/watch?v=S99d9BQmGB0" aspect-ratio="16x9">}}
+```{shortcodes=false}
+{{< video src="https://www.youtube.com/watch?v=S99d9BQmGB0" aspect-ratio="16x9">}}
+```
+16x9
+:::
+
+::: {#fig-aspect-ratio-21x9}
+{{< video src="https://www.youtube.com/watch?v=S99d9BQmGB0" aspectRatio="21x9">}}
+```{shortcodes=false}
+{{< video src="https://www.youtube.com/watch?v=S99d9BQmGB0" aspectRatio="21x9">}}
+```
+21x9
+:::

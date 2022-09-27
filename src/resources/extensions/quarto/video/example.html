@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-99.9.9">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Video Extension for Quarto</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="example_files/libs/clipboard/clipboard.min.js"></script>
+<script src="example_files/libs/quarto-html/quarto.js"></script>
+<script src="example_files/libs/quarto-html/popper.min.js"></script>
+<script src="example_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="example_files/libs/quarto-html/anchor.min.js"></script>
+<link href="example_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="example_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="example_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="example_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="example_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script src="example_files/libs/quarto-contrib/videojs/video.min.js"></script>
+<link href="example_files/libs/quarto-contrib/videojs/video-js.css" rel="stylesheet">
+
+
+</head>
+
+<body>
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#videojs" id="toc-videojs" class="nav-link active" data-scroll-target="#videojs">VideoJS</a>
+  <ul class="collapse">
+  <li><a href="#local-video-file" id="toc-local-video-file" class="nav-link" data-scroll-target="#local-video-file">Local Video File</a></li>
+  <li><a href="#remote-video-file" id="toc-remote-video-file" class="nav-link" data-scroll-target="#remote-video-file">Remote Video File</a></li>
+  </ul></li>
+  <li><a href="#youtube" id="toc-youtube" class="nav-link" data-scroll-target="#youtube">YouTube</a>
+  <ul class="collapse">
+  <li><a href="#simple-youtube-url" id="toc-simple-youtube-url" class="nav-link" data-scroll-target="#simple-youtube-url">Simple YouTube URL</a></li>
+  <li><a href="#youtube-embed-with-title-and-start." id="toc-youtube-embed-with-title-and-start." class="nav-link" data-scroll-target="#youtube-embed-with-title-and-start.">YouTube embed with <em>title</em> and <em>start</em>.</a></li>
+  <li><a href="#youtube-embed-with-height-and-width." id="toc-youtube-embed-with-height-and-width." class="nav-link" data-scroll-target="#youtube-embed-with-height-and-width.">YouTube embed with <em>height</em> and <em>width</em>.</a></li>
+  <li><a href="#other-youtube-urls." id="toc-other-youtube-urls." class="nav-link" data-scroll-target="#other-youtube-urls.">Other YouTube URLs.</a></li>
+  </ul></li>
+  <li><a href="#brightcove" id="toc-brightcove" class="nav-link" data-scroll-target="#brightcove">Brightcove</a>
+  <ul class="collapse">
+  <li><a href="#brightcove-iframe-embed-code" id="toc-brightcove-iframe-embed-code" class="nav-link" data-scroll-target="#brightcove-iframe-embed-code">Brightcove iFrame Embed Code</a></li>
+  <li><a href="#brightcove-full-example" id="toc-brightcove-full-example" class="nav-link" data-scroll-target="#brightcove-full-example">Brightcove Full Example</a></li>
+  </ul></li>
+  <li><a href="#vimeo" id="toc-vimeo" class="nav-link" data-scroll-target="#vimeo">Vimeo</a>
+  <ul class="collapse">
+  <li><a href="#vimeo-iframe-embed-code" id="toc-vimeo-iframe-embed-code" class="nav-link" data-scroll-target="#vimeo-iframe-embed-code">Vimeo iFrame Embed Code</a></li>
+  <li><a href="#vimeo-full-example" id="toc-vimeo-full-example" class="nav-link" data-scroll-target="#vimeo-full-example">Vimeo Full Example</a></li>
+  </ul></li>
+  <li><a href="#aspect-ratios" id="toc-aspect-ratios" class="nav-link" data-scroll-target="#aspect-ratios">Aspect Ratios</a></li>
+  </ul>
+</nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Video Extension for Quarto</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<section id="videojs" class="level2">
+<h2 class="anchored" data-anchor-id="videojs">VideoJS</h2>
+<section id="local-video-file" class="level3">
+<h3 class="anchored" data-anchor-id="local-video-file">Local Video File</h3>
+<p>Load a local <code>mp4</code> in the <a href="https://videojs.com/">VideoJS player</a>.</p>
+<div id="fig-videojs-local" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<video id="video_shortcode_videojs_video1" class="video-js vjs-default-skin vjs-fluid" controls="" preload="auto" data-setup="{}" title=""><source src="./intro-cern.mp4"></video>
+<pre data-shortcodes="false"><code>{{&lt; video src="./intro-cern.mp4" &gt;}}</code></pre>
+<p></p><figcaption class="figure-caption">Example&nbsp;1: VideoJS with mp4</figcaption><p></p>
+</figure>
+</div>
+</section>
+<section id="remote-video-file" class="level3">
+<h3 class="anchored" data-anchor-id="remote-video-file">Remote Video File</h3>
+<p>Load a remote <code>mp4</code> with fixed <em>width</em> and <em>height</em>.</p>
+<div id="fig-videojs-local" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<video id="video_shortcode_videojs_video2" width="320" height="180" class="video-js vjs-default-skin " controls="" preload="auto" data-setup="{}" title=""><source src="https://indico.cern.ch/event/661560/attachments/1512449/2415851/Upload_a_video_on_CDS_Videos.mp4"></video>
+<pre data-shortcodes="false"><code>{{&lt; video 
+    src="https://indico.cern.ch...mp4" &gt;}}</code></pre>
+<p></p><figcaption class="figure-caption">Example&nbsp;2: VideoJS with remote mp4</figcaption><p></p>
+</figure>
+</div>
+</section>
+</section>
+<section id="youtube" class="level2">
+<h2 class="anchored" data-anchor-id="youtube">YouTube</h2>
+<section id="simple-youtube-url" class="level3">
+<h3 class="anchored" data-anchor-id="simple-youtube-url">Simple YouTube URL</h3>
+<p>With no other parameters just use the YouTube embed code url. This will automatically be responsive.</p>
+<div id="fig-youtube-simple-embed" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<div class="ratio ratio-16x9"><iframe src="https://www.youtube.com/embed/wo9vZccmqwc" title="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe></div>
+<pre data-shortcodes="false"><code>{{ &lt; video https://www.youtube.com/embed/wo9vZccmqwc &gt; }}</code></pre>
+<p></p><figcaption class="figure-caption">Example&nbsp;3: YouTube with simple embed code</figcaption><p></p>
+</figure>
+</div>
+</section>
+<section id="youtube-embed-with-title-and-start." class="level3">
+<h3 class="anchored" data-anchor-id="youtube-embed-with-title-and-start.">YouTube embed with <em>title</em> and <em>start</em>.</h3>
+<p>By adding the named parameters <code>title</code> and <code>start</code> the snippet can now specify a specific title and a start time to begin playback.</p>
+<div id="fig-youtube-title-start" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<div class="ratio ratio-16x9"><iframe src="https://www.youtube.com/embed/wo9vZccmqwc?start=116" title="What is the CERN?" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe></div>
+<pre data-shortcodes="false"><code>{{&lt; video 
+    src=https://www.youtube.com/embed/wo9vZccmqwc
+    title="What is the CERN?"
+    start="15"
+&gt;}}</code></pre>
+<p></p><figcaption class="figure-caption">Example&nbsp;4: YouTube with parameters title and start time</figcaption><p></p>
+</figure>
+</div>
+</section>
+<section id="youtube-embed-with-height-and-width." class="level3">
+<h3 class="anchored" data-anchor-id="youtube-embed-with-height-and-width.">YouTube embed with <em>height</em> and <em>width</em>.</h3>
+<p>Non-responsive fixed height and width can be set.</p>
+<div id="fig-youtube-title-start" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<iframe src="https://www.youtube.com/embed/wo9vZccmqwc" width="160" height="90" title="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe>
+<pre data-shortcodes="false"><code>{{&lt; video 
+    src=https://www.youtube.com/embed/wo9vZccmqwc 
+    width="160" height="90"&gt;}}</code></pre>
+<p></p><figcaption class="figure-caption">Example&nbsp;5: YouTube with <em>height</em> and <em>width</em></figcaption><p></p>
+</figure>
+</div>
+</section>
+<section id="other-youtube-urls." class="level3">
+<h3 class="anchored" data-anchor-id="other-youtube-urls.">Other YouTube URLs.</h3>
+<p>Other YouTube URLs can be used here, including the Share URLs and the URL that is seen in the browser when viewing videos.</p>
+<div id="fig-youtube-multi-url" class="quarto-layout-panel">
+<figure class="figure">
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div id="fig-youtube-multi-url-share" class="quarto-figure quarto-figure-center anchored" style="flex-basis: 44.4%;justify-content: center;">
+<figure class="figure">
+<div class="ratio ratio-16x9"><iframe src="https://www.youtube.com/embed/wo9vZccmqwc" title="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe></div>
+<pre data-shortcodes="false"><code>{{&lt; video https://youtu.be/wo9vZccmqwc&gt;}}</code></pre>
+<p></p><figcaption class="figure-caption">(a) Share URL</figcaption><p></p>
+</figure>
+</div>
+<div class="quarto-figure-spacer quarto-layout-cell" style="flex-basis: 11.1%;justify-content: center;">
+<p>&nbsp;</p>
+</div>
+<div id="fig-youtube-multi-url-browser" class="quarto-figure quarto-figure-center anchored" style="flex-basis: 44.4%;justify-content: center;">
+<figure class="figure">
+<div class="ratio ratio-16x9"><iframe src="https://www.youtube.com/embed/wo9vZccmqwc" title="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe></div>
+<pre data-shortcodes="false"><code>{{&lt; video 
+    https://www.youtube.com/watch?
+    v=wo9vZccmqwc&amp;ab_channel=CERN &gt;}}</code></pre>
+<p></p><figcaption class="figure-caption">(b) Browser URL</figcaption><p></p>
+</figure>
+</div>
+</div>
+<p></p><figcaption class="figure-caption">Example&nbsp;6: YouTube with share and browser URLs</figcaption><p></p>
+</figure>
+</div>
+</section>
+</section>
+<section id="brightcove" class="level2">
+<h2 class="anchored" data-anchor-id="brightcove">Brightcove</h2>
+<section id="brightcove-iframe-embed-code" class="level3">
+<h3 class="anchored" data-anchor-id="brightcove-iframe-embed-code">Brightcove iFrame Embed Code</h3>
+<p>Use the Brightcove full URL, and it will be rendered using <a href="https://studio.support.brightcove.com/publish/choosing-correct-embed-code.html">the iFrame embed code</a>.</p>
+<div id="fig-brightcove" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<div class="ratio ratio-16x9"><iframe src="https://players.brightcove.net/1460825906/default_default/index.html?videoId=5988531335001" allowfullscreen="" title="" allow="encrypted-media"></iframe></div>
+<pre data-shortcodes="false"><code>{{&lt; video 
+    src="https://players.brightcove.net
+    /1460825906/
+    default_default/
+    index.html?videoId=5988531335001" &gt;}}</code></pre>
+<p></p><figcaption class="figure-caption">Example&nbsp;7: Brightcove</figcaption><p></p>
+</figure>
+</div>
+</section>
+<section id="brightcove-full-example" class="level3">
+<h3 class="anchored" data-anchor-id="brightcove-full-example">Brightcove Full Example</h3>
+<div id="fig-brightcove-all" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<iframe src="https://players.brightcove.net/1460825906/default_default/index.html?videoId=5988531335001" width="160" height="90" allowfullscreen="" title="" allow="encrypted-media"></iframe>
+<pre data-shortcodes="false"><code>{{&lt; video 
+    src="https://players.brightcove.net
+    /1460825906/
+    default_default/
+    index.html?videoId=5988531335001" 
+    width="160" height="90"&gt;}}</code></pre>
+<p></p><figcaption class="figure-caption">Example&nbsp;8: Brightcove with all attributes</figcaption><p></p>
+</figure>
+</div>
+</section>
+</section>
+<section id="vimeo" class="level2">
+<h2 class="anchored" data-anchor-id="vimeo">Vimeo</h2>
+<section id="vimeo-iframe-embed-code" class="level3">
+<h3 class="anchored" data-anchor-id="vimeo-iframe-embed-code">Vimeo iFrame Embed Code</h3>
+<p>Use the Vimeo video URL, and it will be rendered using iFrame share embed code.</p>
+<div id="fig-vimeo" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<div class="ratio ratio-16x9"><iframe src="https://player.vimeo.com/video/548291297" frameborder="0" allow="autoplay; title=" "="" fullscreen;="" picture-in-picture"="" allowfullscreen=""></iframe></div>
+<pre data-shortcodes="false"><code>{{&lt; video src="https://vimeo.com/548291297" &gt;}}</code></pre>
+<p></p><figcaption class="figure-caption">Example&nbsp;9: Vimeo</figcaption><p></p>
+</figure>
+</div>
+</section>
+<section id="vimeo-full-example" class="level3">
+<h3 class="anchored" data-anchor-id="vimeo-full-example">Vimeo Full Example</h3>
+<div id="fig-vimeo" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<iframe src="https://player.vimeo.com/video/548291297" width="160" height="90" frameborder="0" allow="autoplay; title=" "="" fullscreen;="" picture-in-picture"="" allowfullscreen=""></iframe>
+<pre data-shortcodes="false"><code>{{&lt; video src="https://vimeo.com/548291297" width="160" height="90"&gt;}}</code></pre>
+<p></p><figcaption class="figure-caption">Example&nbsp;10: Vimeo with all attributes</figcaption><p></p>
+</figure>
+</div>
+</section>
+</section>
+<section id="aspect-ratios" class="level2">
+<h2 class="anchored" data-anchor-id="aspect-ratios">Aspect Ratios</h2>
+<p>For the embed codes, responsive resizing defaults to a 16x9 Aspect Ratio. Using the <code>aspect-ratio</code> attribute, this can be modified to: <code>1x1</code>, <code>4x3</code>, <code>16x9</code> (the default if none specified), and <code>21x9</code>.</p>
+<div id="fig-aspect-ratio-1x1" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<div class="ratio ratio-1x1"><iframe src="https://www.youtube.com/embed/S99d9BQmGB0" title="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe></div>
+<pre data-shortcodes="false"><code>{{&lt; video src="https://www.youtube.com/watch?v=S99d9BQmGB0" aspect-ratio="1x1"&gt;}}</code></pre>
+<p></p><figcaption class="figure-caption">Example&nbsp;11: 1x1</figcaption><p></p>
+</figure>
+</div>
+<div id="fig-aspect-ratio-4x3" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<div class="ratio ratio-4x3"><iframe src="https://www.youtube.com/embed/S99d9BQmGB0" title="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe></div>
+<pre data-shortcodes="false"><code>{{&lt; video src="https://www.youtube.com/watch?v=S99d9BQmGB0" aspect-ratio="4x3"&gt;}}</code></pre>
+<p></p><figcaption class="figure-caption">Example&nbsp;12: 4x3</figcaption><p></p>
+</figure>
+</div>
+<div id="fig-aspect-ratio-16x9" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<div class="ratio ratio-16x9"><iframe src="https://www.youtube.com/embed/S99d9BQmGB0" title="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe></div>
+<pre data-shortcodes="false"><code>{{&lt; video src="https://www.youtube.com/watch?v=S99d9BQmGB0" aspect-ratio="16x9"&gt;}}</code></pre>
+<p></p><figcaption class="figure-caption">Example&nbsp;13: 16x9</figcaption><p></p>
+</figure>
+</div>
+<div id="fig-aspect-ratio-21x9" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<div class="ratio ratio-21x9"><iframe src="https://www.youtube.com/embed/S99d9BQmGB0" title="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe></div>
+<pre data-shortcodes="false"><code>{{&lt; video src="https://www.youtube.com/watch?v=S99d9BQmGB0" aspectRatio="21x9"&gt;}}</code></pre>
+<p></p><figcaption class="figure-caption">Example&nbsp;14: 21x9</figcaption><p></p>
+</figure>
+</div>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+<script>videojs(video_shortcode_videojs_video1);</script>
+<script>videojs(video_shortcode_videojs_video2);</script>
+
+
+
+</body></html>
