@@ -51,7 +51,6 @@ function layoutPanels()
 
   return {
     Div = function(el)
-      print("ASKJLDH" .. tostring(requiresPanelLayout(el)))
       if requiresPanelLayout(el) then
         
         -- partition
