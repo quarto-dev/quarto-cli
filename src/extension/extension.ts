@@ -30,7 +30,9 @@ import {
   ExtensionContext,
   ExtensionId,
   extensionIdString,
+  ExtensionOptions,
   kAuthor,
+  kBuiltInExtOrg,
   kCommon,
   kExtensionDir,
   kQuartoRequired,
@@ -64,6 +66,7 @@ export function createExtensionContext(): ExtensionContext {
     input?: string,
     config?: ProjectConfig,
     projectDir?: string,
+    options?: ExtensionOptions,
   ): Promise<Extension[]> => {
     // Load the extensions and resolve extension paths
     const extensions = await loadExtensions(
@@ -71,7 +74,12 @@ export function createExtensionContext(): ExtensionContext {
       input,
       projectDir,
     );
-    return Object.values(extensions).map((extension) => {
+
+    const results = Object.values(extensions).filter((ext) =>
+      options?.builtIn !== false || ext.id.organization !== kBuiltInExtOrg
+    );
+
+    return results.map((extension) => {
       if (input) {
         return resolveExtensionPaths(extension, input, config);
       } else {
@@ -98,10 +106,11 @@ export function createExtensionContext(): ExtensionContext {
     contributes?: Contributes,
     config?: ProjectConfig,
     projectDir?: string,
+    options?: ExtensionOptions,
   ): Promise<Extension[]> => {
     const extId = toExtensionId(name);
     return findExtensions(
-      await extensions(input, config, projectDir),
+      await extensions(input, config, projectDir, options),
       extId,
       contributes,
     );
@@ -567,6 +576,8 @@ async function readExtension(
   const readVersionRange = (str: string): Range => {
     return new Range(str);
   };
+
+  console.log(yaml);
 
   const contributes = yaml.contributes as Metadata | undefined;
 
