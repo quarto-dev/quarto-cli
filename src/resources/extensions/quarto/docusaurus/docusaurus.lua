@@ -8,6 +8,12 @@ function Image(el)
   return el
 end
 
+-- header attributes only support id
+function Header(el)
+  el.attr = pandoc.Attr(el.identifier)
+  return el
+end
+
 -- transform 'mdx' into passthrough content, transform 'html'
 -- into raw commamark to pass through via dangerouslySetInnerHTML
 local kQuartoRawHtml = "quartoRawHtml"
