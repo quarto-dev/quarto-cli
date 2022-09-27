@@ -4,15 +4,19 @@ function do_it(doc, filters)
     -- quarto.utils.dump(doc)
 
     for i, v in pairs(filters) do
-      -- print("Will run filter " .. tostring(v._filter_name or i) .. ": ")
-      -- quarto.utils.dump(doc, true)
+      print("Will run filter " .. tostring(v._filter_name or i) .. ": ")
+      print("This is the filter:")
+      quarto.utils.dump(v, true)
+      print("This is the doc:")
+      quarto.utils.dump(doc, true)
       local newDoc = doc:walk(v)
+      print("Result", newDoc)
       if newDoc ~= nil then
         doc = newDoc
       end
-      -- print("This is the new doc:")
-      -- quarto.utils.dump(doc)
-      -- print("----")
+      print("This is the new doc:")
+      quarto.utils.dump(doc)
+      print("----")
     end
   elseif type(filters) == "table" then
     local newDoc = doc:walk(filters)
@@ -33,9 +37,33 @@ function emulate_pandoc_filter(filters, unextended)
   local write = pandoc.write
   local Inlines = pandoc.Inlines
   local Blocks = pandoc.Blocks
-  local inlines_mtbl = getmetatable(pandoc.Inlines({}))
-  local blocks_mtbl = getmetatable(pandoc.Blocks({}))
-  
+  local pandoc_inlines_mtbl = getmetatable(pandoc.Inlines({}))
+  local pandoc_blocks_mtbl = getmetatable(pandoc.Blocks({}))
+
+  local inlines_mtbl = {
+    __index = function(tbl, key)
+      if key == "t" then return "Inlines" end
+      return pandoc_inlines_mtbl.__index[key] -- pandoc_inlines_mtbl.__index is a _table_ (!)
+    end,    
+  }
+  setmetatable(inlines_mtbl, {
+    __index = function(tbl, key)
+      return pandoc_inlines_mtbl[key]
+    end
+  })
+
+  local blocks_mtbl = {
+    __index = function(tbl, key)
+      if key == "t" then return "Blocks" end
+      return pandoc_blocks_mtbl.__index[key] -- pandoc_blocks_mtbl.__index is a _table_ (!)
+    end,    
+  }
+  setmetatable(blocks_mtbl, {
+    __index = function(tbl, key)
+      return pandoc_blocks_mtbl[key]
+    end
+  })
+
   local ast_constructors = {}
   quarto.ast._true_pandoc = ast_constructors
 
