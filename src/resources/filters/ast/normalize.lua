@@ -59,6 +59,15 @@ function normalize(node)
     return result
   end
 
+  local normalize_table_body = function(body)
+    return {
+      attr = body.attr,
+      body = tmap(body.body, normalize),
+      head = tmap(body.head, normalize),
+      row_head_columns = body.row_head_columns
+    }
+  end
+
   local typeTable = {
     Pandoc = function(doc)
       local result = baseHandler(doc)
@@ -128,12 +137,48 @@ function normalize(node)
     Superscript = inlinesContentHandler,
     Underline = inlinesContentHandler,
 
-    -- we don't fully normalize Table because it is
-    -- almost certainly the case that handling
-    -- it correctly requires access to the full object
-    -- in a custom handler,
+    Table = function(tbl)
+      local result = baseHandler(tbl)
+      result.caption = {
+        long = result.caption.long and doBlocksArray(result.caption.long),
+        short = result.caption.short and doInlinesArray(result.caption.short)
+      }
+      result.head = normalize(result.head)
+      result.bodies = tmap(result.bodies, normalize_table_body)
+      result.foot = normalize(result.foot)
+      return result
+    end,
 
-    Table = baseHandler,
+    ["pandoc TableBody"] = function(body)
+      local result = baseHandler(body)
+      result.body = tmap(result.body, normalize)
+      result.head = tmap(result.head, normalize)
+      return result
+    end,
+
+    ["pandoc Row"] = function(row)
+      local result = baseHandler(row)
+      result.cells = tmap(result.cells, normalize)
+      return result
+    end,
+
+    ["pandoc Cell"] = function(cell)
+      local result = baseHandler(cell)
+      result.contents = tmap(result.contents, normalize)
+      return result
+    end,
+
+    ["pandoc TableFoot"] = function(foot)
+      local result = baseHandler(foot)
+      result.rows = tmap(result.rows, normalize)      
+      return result
+    end,
+
+    ["pandoc TableHead"] = function(head)
+      local result = baseHandler(head)
+      result.rows = tmap(result.rows, normalize)      
+      return result
+    end,
 
     -- default simple behavior for strings and spaces?
     Str = function(s)
@@ -159,6 +204,9 @@ function normalize(node)
   local t = node.t or pandoc.utils.type(node)
   local dispatch = typeTable[t]
   if dispatch == nil then
+    print("Internal Error in normalize(): found nil dispatch for node")
+    quarto.utils.dump(node, true)
+    crash_with_stack_trace()
     return node
   else
     local result = dispatch(node)
@@ -178,66 +226,41 @@ function denormalize(node)
     return tmap(lst, doArray)
   end
 
-  local argsTable = {
+  -- Row = { "cells", "attr" },
+  -- TableFoot = { "rows", "attr" },
+  -- TableHead = { "rows", "attr" },
+  -- TableBody = { "body", "head", "row_head_columns", "attr" },
+  -- Cell = { "contents", "align", "row_span", "col_span", "attr" }
+
+  local constructor_table = {
     Blocks = doArray,
     Inlines = doArray,
-
-    Pandoc = { "blocks", "meta" },
-    BlockQuote = { "content" },
-    BulletList = { "content" },
-    CodeBlock = { "text", "attr" },
-
-    -- we're not normalizing this, so :shrug:
-    -- DefinitionList = { "content" },
-
-    Div = { "content", "attr" },
-    Header = { "level", "content", "attr" },
-    HorizontalRule = {},
-    LineBlock = { "content" },
-    Null = {},
-    OrderedList = { "items", "listAttributes" },
-    Para = { "content" },
-    Plain = { "content" },
-    RawBlock = { "format", "text" },
-    Table = { "caption", "colspecs", "head", "bodies", "foot", "attr" },
-    Cite = { "content", "citations" },
-    Code = { "text", "attr" },
-    Emph = { "content" },
-    Image = { "caption", "src", "title", "attr" },
-    LineBreak = {},
-    Link = { "content", "target", "title", "attr" },
-    DisplayMath = { "text" },
-    InlineMath = { "text" },
-    Note = { "content" },
-    Quoted = { "quotetype", "content" },
-    SingleQuoted = { "content" },
-    DoubleQuoted = { "content" },
-    RawInline = { "format", "text" },
-    SmallCaps = { "content" },
-    SoftBreak = {},
-    Space = {},
-    Span = { "content", "attr" },
-    Strikeout = { "content" },
-    Strong = { "content" },
-    Subscript = { "content" },
-    Superscript = { "content" },
-    Underline = { "content" },
-
-    -- others
-    Citation = { "id", "mode", "prefix", "suffix", "note_num", "hash" },
+    ["pandoc Row"] = function(tbl)
+      return quarto.ast._true_pandoc.Row(tbl.cells, tbl.attr)
+    end,
+    ["pandoc TableHead"] = function(tbl)
+      return quarto.ast._true_pandoc.TableHead(tbl.rows, tbl.attr)
+    end,
+    ["pandoc TableBody"] = function(tbl)
+      return quarto.ast._true_pandoc.TableBody(tbl.body, tbl.head, tbl.row_head_columns, tbl.attr)
+    end,
+    ["pandoc TableFoot"] = function (tbl)
+      return quarto.ast._true_pandoc.TableFoot(tbl.rows, tbl.attr)
+    end,
+    ["pandoc Cell"] = function(tbl)
+      return quarto.ast._true_pandoc.Cell(tbl.contents, tbl.align, tbl.row_span, tbl.col_span, tbl.attr)
+    end
   }
 
   local baseHandler = function(tbl)
     local t = tbl.t -- ["-quarto-internal-type-"]
-    local v = argsTable[t]
-    local args
-    if type(v) == "function" then
-      return v(tbl)
-    else
-      args = tmap(v, function(key) 
-        return tbl[key] 
-      end)
+    local v = pandoc_constructors_args[t]
+    if v == nil then
+      return constructor_table[t](tbl)
     end
+    local args = tmap(v, function(key) 
+      return tbl[key] 
+    end)
     if args == nil then
       print("Internal error, argsTable had no entry for " .. t)
       crash_with_stack_trace()
@@ -274,6 +297,15 @@ function denormalize(node)
     el = copy(el)
     el.content = doArrayArray(el.content)
     local result = baseHandler(el)
+    return result
+  end
+
+  local function denormalize_table_body(body)
+    local result = {}
+    result.attr = body.attr
+    result.body = tmap(body.body, denormalize)
+    result.head = tmap(body.head, denormalize)
+    result.row_head_columns = body.row_head_columns
     return result
   end
 
@@ -326,8 +358,6 @@ function denormalize(node)
     Superscript = contentHandler,
     Underline = contentHandler,
 
-    Table = baseHandler,
-
     Image = function(image)
       image = copy(image)
       image.caption = doArray(image.caption)
@@ -351,6 +381,53 @@ function denormalize(node)
     end,
     
     Citation = baseHandler,
+
+    Table = function(tbl)
+      tbl = copy(tbl)
+      tbl.caption = {
+        long = tbl.caption.long and denormalize(tbl.caption.long),
+        short = tbl.caption.short and denormalize(tbl.caption.short)
+      }
+      tbl.head = denormalize(tbl.head)
+      tbl.bodies = tmap(tbl.bodies, denormalize_table_body)
+      tbl.foot = denormalize(tbl.foot)
+      local result = baseHandler(tbl)
+      return result
+    end,
+
+    ["pandoc TableFoot"] = function(foot)
+      foot = copy(foot)
+      foot.rows = tmap(foot.rows, denormalize)
+      return baseHandler(foot)
+    end,
+
+    -- ["pandoc TableBody"] = function(body)
+    --   body = copy(body)
+    --   body.body = tmap(body.head, denormalize)
+    --   body.head = tmap(body.head, denormalize)
+    --   local result = baseHandler(body)
+    --   quarto.utils.dump(result)
+    --   crash_with_stack_trace()
+    --   return result
+    -- end,
+
+    ["pandoc TableHead"] = function(head)
+      head = copy(head)
+      head.rows = tmap(head.rows, denormalize)
+      return baseHandler(head)
+    end,
+
+    ["pandoc Row"] = function(row)
+      row = copy(row)
+      row.cells = tmap(row.cells, denormalize)
+      return baseHandler(row)
+    end,
+
+    ["pandoc Cell"] = function(cell)
+      cell = copy(cell)
+      cell.contents = tmap(cell.contents, denormalize)
+      return baseHandler(cell)
+    end,
   }
 
   if node == " " then
@@ -381,6 +458,8 @@ function denormalize(node)
     if tisarray(node) then
       return tmap(node, denormalize)
     else
+      print("Internal error in denormalize(): found no dispatch for node which isn't an array")
+      quarto.utils.dump(node, true)
       crash_with_stack_trace()
       return node
     end

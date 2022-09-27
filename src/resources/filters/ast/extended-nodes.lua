@@ -159,8 +159,6 @@ setmetatable(_quarto_pandoc, {
 
 pandoc_constructors_args = {
   Pandoc = { "blocks", "meta" },
-  -- FIXME do all of meta
-  -- Meta
   
   -- blocks
   BlockQuote = { "content" },
@@ -206,7 +204,13 @@ pandoc_constructors_args = {
   Underline = { "content" },
 
   -- others
-  Citation = { "id", "mode", "prefix", "suffix", "note_num", "hash" }
+  Citation = { "id", "mode", "prefix", "suffix", "note_num", "hash" },
+  ListAttributes = { "start", "style", "delimiter" },
+  Row = { "cells", "attr" },
+  TableFoot = { "rows", "attr" },
+  TableHead = { "rows", "attr" },
+  TableBody = { "body", "head", "row_head_columns", "attr" },
+  Cell = { "contents", "align", "row_span", "col_span", "attr" },
 }
 
 local pandoc_ast_methods = {
