@@ -8,6 +8,41 @@ function Image(el)
   return el
 end
 
+-- transform 'mdx' into passthrough content, transform 'html'
+-- into raw commamark to pass through via dangerouslySetInnerHTML
+local kQuartoRawHtml = "quartoRawHtml"
+local rawHtmlVars = pandoc.List()
+function RawBlock(el)
+  if el.format == 'mdx' then
+    el.format = 'html'
+    return el
+  elseif el.format == 'html' then
+    -- track the raw html vars (we'll insert them at the top later on as
+    -- mdx requires all exports be declared together)
+    rawHtmlVars:insert(el.text)
+
+    -- generate a div container for the raw html and return it as the block
+    local html = ("<div dangerouslySetInnerHTML={{ __html: %s[%d] }} />")
+      :format(kQuartoRawHtml, #rawHtmlVars-1)
+    return pandoc.RawBlock("html", html)
+  end
+end
+
+function Pandoc(doc)
+  -- insert exports at the top if we have t hem
+  if #rawHtmlVars > 0 then
+    local exports = ("export const %s =\n[%s];"):format(kQuartoRawHtml, 
+      table.concat(
+        rawHtmlVars:map(function(var) return '`\n'.. var .. '\n`' end), 
+        ","
+      )
+    )
+    doc.blocks:insert(1, pandoc.RawBlock("commonmark", exports))
+    return doc
+  end
+
+end
+
 -- transform pandoc "title" to docusaures title
 function CodeBlock(el)
   local lang = el.attr.classes[1]
