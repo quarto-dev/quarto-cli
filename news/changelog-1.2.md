@@ -38,6 +38,7 @@
 ## Projects
 
 - Project configuration `profile` for varying configuration and output based on global `QUARTO_PROFILE` or `--profile` command-line option.
+- Ensure that `execute-dir` is always resolved to an absolute path
 
 ## HTML Format
 
