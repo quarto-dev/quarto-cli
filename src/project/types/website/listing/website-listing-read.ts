@@ -274,9 +274,11 @@ export function completeListingDescriptions(
   outputFiles: ProjectOutputFile[],
   _incremental: boolean,
 ) {
-  const contentReader = renderedContentReader(context, {
+  const options = {
     remove: { links: true, images: true },
-  });
+  };
+
+  const contentReader = renderedContentReader(context, options);
 
   // Go through any output files and fix up any feeds associated with them
   outputFiles.forEach((outputFile) => {
@@ -297,17 +299,15 @@ export function completeListingDescriptions(
         const absolutePath = join(projectOutputDir(context), relativePath);
         const placeholder = descriptionPlaceholder(relativePath, maxDescLength);
         if (existsSync(absolutePath)) {
-          const contents = contentReader(absolutePath);
-
           // Truncate the description if need be
-          const desc = maxDescLength === -1
-            ? contents.firstPara
-            : maxDescLength > 0
-            ? truncateText(contents.firstPara || "", maxDescLength, "space")
-            : "";
+          const options = maxDescLength > 0
+            ? { "max-length": maxDescLength }
+            : {};
+          const contents = contentReader(absolutePath, options);
+
           fileContents = fileContents.replace(
             placeholder,
-            desc || "",
+            contents.firstPara || "",
           );
         } else {
           fileContents = fileContents.replace(
