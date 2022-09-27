@@ -180,14 +180,8 @@ function normalize(node)
       return result
     end,
 
-    -- default simple behavior for strings and spaces?
-    Str = function(s)
-      return s.text
-    end,
-
-    Space = function(s)
-      return " "
-    end,
+    Str = baseHandler,
+    Space = baseHandler,
 
     Blocks = function(blocks)
       return doBlocksArray(blocks)
@@ -206,6 +200,8 @@ function normalize(node)
   if dispatch == nil then
     print("Internal Error in normalize(): found nil dispatch for node")
     quarto.utils.dump(node, true)
+    print(node)
+    print(type(node))
     crash_with_stack_trace()
     return node
   else
