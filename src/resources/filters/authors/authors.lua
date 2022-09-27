@@ -24,11 +24,10 @@ import("../common/debug.lua")
 import("../common/authors.lua")
 -- [/import]
 
-return {
-  {
+function authorsFilter()
+  return {
     Meta = function(meta)
       return processAuthorMeta(meta)
     end
   }
-}
-
+end

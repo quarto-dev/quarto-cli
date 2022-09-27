@@ -2,7 +2,7 @@
 -- Copyright (C) 2020 by RStudio, PBC
 
 -- initialize the index
-function initIndex()
+function initCrossrefIndex()
      
   -- compute section offsets
   local sectionOffsets = pandoc.List({0,0,0,0,0,0,0})
@@ -26,7 +26,6 @@ function initIndex()
   }
   
 end
-
 
 -- advance a chapter
 function indexNextChapter(index, appendix)

@@ -694,6 +694,11 @@ export async function runPandoc(
   // timing results json file
   const timingResultsFile = options.temp.createFile();
 
+  if (allDefaults.to?.match(/[.]lua$/)) {
+    formatFilterParams["custom-writer"] = allDefaults.to;
+    allDefaults.to = resourcePath("filters/ast/wrapped-writer.lua");
+  }
+
   // set parameters required for filters (possibily mutating all of it's arguments
   // to pull includes out into quarto parameters so they can be merged)
   let pandocArgs = args;

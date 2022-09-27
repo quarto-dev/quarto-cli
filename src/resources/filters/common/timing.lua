@@ -34,6 +34,8 @@ function capture_timings(filterList)
   if os.getenv("QUARTO_PROFILER_OUTPUT") ~= nil then
     for i, v in ipairs(filterList) do
       local newFilter = {}
+      newFilter._filter_name = v["name"]
+
       local oldPandoc = v["filter"]["Pandoc"]
       for key,func in pairs(v) do
         newFilter[key] = func
@@ -53,8 +55,18 @@ function capture_timings(filterList)
       table.insert(finalResult, newFilter)
     end
   else
-    for i, v in ipairs(filterList) do
-      table.insert(finalResult, v["filter"])
+    for _, v in ipairs(filterList) do
+      if v.filter ~= nil then
+        v.filter._filter_name = v.name
+        table.insert(finalResult, v.filter)
+      elseif v.filters ~= nil then
+        for i, innerV in pairs(v.filters) do
+          innerV._filter_name = string.format("%s-%s", v.name, i)
+          table.insert(finalResult, innerV)
+        end
+      else
+        print("Warning: filter " .. v.name .. " didn't declare filter or filters.")
+      end
     end
   end
 

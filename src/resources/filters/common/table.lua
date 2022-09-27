@@ -27,6 +27,9 @@ end
 -- is the table a simple array?
 -- see: https://web.archive.org/web/20140227143701/http://ericjmritz.name/2014/02/26/lua-is_array/
 function tisarray(t)
+  if type(t) ~= "table" then 
+    return false 
+  end
   local i = 0
   for _ in pairs(t) do
       i = i + 1

@@ -1865,7 +1865,8 @@ quarto = {
   },
   utils = {
    dump = utils.dump,
-   resolve_path = resolvePathExt
+   table = utils.table,
+   resolve_path = resolvePathExt,
   },
   json = json,
   base64 = base64,
