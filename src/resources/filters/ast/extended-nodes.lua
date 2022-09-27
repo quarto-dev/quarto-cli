@@ -288,7 +288,6 @@ function _build_extended_node(t, is_custom)
   local special_resolution = function(tbl, key)
     if metaFields[key] then return true, metaFields[key] end
     if key == "-is-extended-ast-" then return true, true end
-    if key == "-quarto-internal-type-" then return true, t end
     if key == "identifier" and tbl.attr then return true, tbl.attr.identifier end
     if key == "attributes" and tbl.attr then return true, tbl.attr.attributes end
     if key == "classes" and tbl.attr then return true, tbl.attr.classes end
@@ -392,7 +391,7 @@ quarto.ast = {
     end
 
     local ExtendedAstNode = _build_extended_node(
-      el.t or el["-quarto-internal-type-"] or pandoc.utils.type(el),
+      el.t or pandoc.utils.type(el),
       el.is_custom or false
     )
 

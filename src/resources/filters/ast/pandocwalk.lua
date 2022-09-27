@@ -44,12 +44,12 @@ function is_ast_node_array(tbl)
   if tisarray(tbl) then
     return true
   end
-  local t = tbl.t or tbl["-quarto-internal-type-"]
+  local t = tbl.t --  or tbl["-quarto-internal-type-"]
   return t == "Inlines" or t == "Blocks"
 end
 
 function apply_filter_topdown_blocks_or_inlines(filter, blocks_or_inlines)
-  local t = blocks_or_inlines.t or blocks_or_inlines["-quarto-internal-type-"]
+  local t = blocks_or_inlines.t -- or blocks_or_inlines["-quarto-internal-type-"]
   local filterFn = filter[t]
   if filterFn ~= nil then
     local filterResult, cut = filterFn(blocks_or_inlines)
@@ -100,7 +100,7 @@ function apply_filter_topdown(filter, node)
   if is_atom[nodeType] then
     return node
   end
-  local t = node.t or node["-quarto-internal-type-"]
+  local t = node.t -- or node["-quarto-internal-type-"]
 
   if t == "Blocks" or t == "Inlines" then
     local result = apply_filter_topdown_blocks_or_inlines(filter, node)
@@ -149,7 +149,7 @@ function apply_filter_topdown(filter, node)
       if is_atom[type(node)] then
         return node
       end
-      t = node and (node.t or node["-quarto-internal-type-"])
+      t = node and node.t --  or node["-quarto-internal-type-"])
     end
   end
 
