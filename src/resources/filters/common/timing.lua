@@ -28,7 +28,7 @@ function register_time(event_name)
   })
 end
 
-function capture_timings(filterList)
+function capture_timings(filterList, trace)
   local finalResult = {}
 
   if os.getenv("QUARTO_PROFILER_OUTPUT") ~= nil then
@@ -52,17 +52,29 @@ function capture_timings(filterList)
         end 
       end
       newFilter["Pandoc"] = makeNewFilter(oldPandoc) -- iife for capturing in scope
-      table.insert(finalResult, newFilter)
+      if trace then
+        table.insert(finalResult, trace_filter(string.format("%s.json", v.name), newFilter))
+      else
+        table.insert(finalResult, newFilter)
+      end
     end
   else
     for _, v in ipairs(filterList) do
       if v.filter ~= nil then
         v.filter._filter_name = v.name
-        table.insert(finalResult, v.filter)
+        if trace then
+          table.insert(finalResult, trace_filter(string.format("%s.json", v.name), v.filter))
+        else
+          table.insert(finalResult, v.filter)
+        end
       elseif v.filters ~= nil then
         for i, innerV in pairs(v.filters) do
           innerV._filter_name = string.format("%s-%s", v.name, i)
-          table.insert(finalResult, innerV)
+          if trace then
+            table.insert(finalResult, trace_filter(string.format("%s.json", innerV._filter_name), innerV))
+          else
+            table.insert(finalResult, innerV)
+          end
         end
       else
         print("Warning: filter " .. v.name .. " didn't declare filter or filters.")
