@@ -98,7 +98,12 @@ const githubLatestUrlProvider = {
     }
   },
   archiveSubdir: (host: ExtensionHost) => {
-    return `${host.repo}-main`;
+    const baseDir = `${host.repo}-main`;
+    if (host.subdirectory) {
+      return baseDir + "/" + host.subdirectory;
+    } else {
+      return baseDir;
+    }
   },
   learnMoreUrl: (host: ExtensionHost) => {
     return `https://www.github.com/${host.organization}/${host.repo}`;
@@ -112,8 +117,11 @@ const githubTagUrlProvider = {
     }
   },
   archiveSubdir: (host: ExtensionHost) => {
-    if (host.modifier) {
-      return `${host.repo}-${tagSubDirectory(host.modifier)}`;
+    const baseDir = `${host.repo}-${tagSubDirectory(host.modifier)}`;
+    if (host.subdirectory) {
+      return baseDir + "/" + host.subdirectory;
+    } else {
+      return baseDir;
     }
   },
   learnMoreUrl: (host: ExtensionHost) => {
@@ -128,8 +136,11 @@ const githubBranchUrlProvider = {
     }
   },
   archiveSubdir: (host: ExtensionHost) => {
-    if (host.modifier) {
-      return `${host.repo}-${host.modifier}`;
+    const baseDir = `${host.repo}-${host.modifier}`;
+    if (host.subdirectory) {
+      return baseDir + "/" + host.subdirectory;
+    } else {
+      return baseDir;
     }
   },
   learnMoreUrl: (host: ExtensionHost) => {
@@ -160,7 +171,7 @@ const kGithubExtensionSource: ExtensionHostSource = {
   ],
 };
 const kGithubExtensionNameRegex =
-  /^([a-zA-Z0-9-_\.]*?)\/([a-zA-Z0-9-_\.]*?)(?:\/(.*?)\/)?(?:@([a-zA-Z0-9-_\.]*))?$/;
+  /^([a-zA-Z0-9-_\.]*?)\/([a-zA-Z0-9-_\.]*?)(?:\/(.*?)\/?)?(?:@([a-zA-Z0-9-_\.]*))?$/;
 
 const kGithubArchiveUrlSource: ExtensionHostSource = {
   parse: (name: string) => {
