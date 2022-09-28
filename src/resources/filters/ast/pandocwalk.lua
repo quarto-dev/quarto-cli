@@ -134,15 +134,18 @@ function apply_filter_bottomup(filter, node)
 
   local t = node.t -- or node["-quarto-internal-type-"]
   local pandocT = pandoc.utils.type(node)
-  if pandocT == "Blocks" or pandocT == "Inlines" then
-    return apply_filter_bottomup_blocks_or_inlines(filter, node)
-  end
-  if pandocT == "List" then
-    local result = pandoc.List()
-    result:extend(tmap(node, function(n) 
-      return apply_filter_bottomup(filter, n) end
-    ))
-    return result
+  -- process non-emulated lists
+  if not node.is_emulated then
+    if pandocT == "Blocks" or pandocT == "Inlines" then
+      return apply_filter_bottomup_blocks_or_inlines(filter, node)
+    end
+    if pandocT == "List" then
+      local result = pandoc.List()
+      result:extend(tmap(node, function(n) 
+        return apply_filter_bottomup(filter, n) end
+      ))
+      return result
+    end
   end
 
   if t == nil then
