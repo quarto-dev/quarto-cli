@@ -25,10 +25,6 @@ export interface ResolvedExtensionInfo {
   learnMoreUrl?: string;
 }
 
-export type ExtensionNameResolver = (
-  name: string,
-) => ResolvedExtensionInfo | undefined;
-
 export interface ExtensionSource {
   type: "remote" | "local";
   owner?: string;
@@ -64,99 +60,175 @@ export async function extensionSource(
   return undefined;
 }
 
-function makeResolver(
-  nameRegexp: RegExp,
-  urlBuilder: (match: RegExpMatchArray) => string,
-  subDirBuilder?: (match: RegExpMatchArray) => string | undefined,
-): ExtensionNameResolver {
-  return (name) => {
-    const match = name.match(nameRegexp);
-    if (!match) {
-      return undefined;
-    }
-    const url = urlBuilder(match);
-    const learnMoreUrl = `https://github.com/${match[1]}/${match[2]}`;
-    const subdirectory = subDirBuilder ? subDirBuilder(match) : subDirBuilder;
-    return {
-      url,
-      response: fetch(url),
-      owner: match[1],
-      subdirectory,
-      learnMoreUrl,
-    };
-  };
+type ExtensionNameResolver = (
+  name: string,
+) => ResolvedExtensionInfo | undefined;
+
+// A single source for extensions (the name can be parsed)
+// and turned into a url (for example, GitHub is a source)
+interface ExtensionHostSource {
+  parse(name: string): ExtensionHost | undefined;
+  urlProviders: ExtensionUrlProvider[];
 }
 
-const githubNameRegex =
-  /^([a-zA-Z0-9-_\.]*?)\/([a-zA-Z0-9-_\.]*?)(?:@latest)?$/;
-const githubLatest = makeResolver(
-  githubNameRegex,
-  (match) =>
-    `https://github.com/${match[1]}/${match[2]}/archive/refs/heads/main.tar.gz`,
-  (match) => {
-    return `${match[2]}-main`;
-  },
-);
+// The definition of an extension host which can be used to
+// form a url
+interface ExtensionHost {
+  name: string;
+  organization: string;
+  repo: string;
+  modifier?: string;
+  subdirectory?: string;
+}
 
-const githubPathTagRegex =
-  /^([a-zA-Z0-9-_\.]*?)\/([a-zA-Z0-9-_\.]*?)@([a-zA-Z0-9-_\.]*)$/;
-const githubTag = makeResolver(
-  githubPathTagRegex,
-  (match) =>
-    `https://github.com/${match[1]}/${match[2]}/archive/refs/tags/${
-      match[3]
-    }.tar.gz`,
-  (match) => {
-    return `${match[2]}-${tagSubDirectory(match[3])}`;
-  },
-);
+// Converts a parsed extension host into a url
+interface ExtensionUrlProvider {
+  // The url from which to download the extension archive
+  extensionUrl: (host: ExtensionHost) => string | undefined;
+  // The subdirectory to use within the downloaded archive
+  archiveSubdir: (host: ExtensionHost) => string | undefined;
+  // The url the user may use to learn more
+  learnMoreUrl: (host: ExtensionHost) => string | undefined;
+}
 
-const githubBranch = makeResolver(
-  githubPathTagRegex, // this is also the same syntax for branches
-  (match) =>
-    `https://github.com/${match[1]}/${match[2]}/archive/refs/heads/${
-      match[3]
-    }.tar.gz`,
-  (match) => {
-    return `${match[2]}-${match[3]}`;
+const githubLatestUrlProvider = {
+  extensionUrl: (host: ExtensionHost) => {
+    if (host.modifier === undefined || host.modifier === "latest") {
+      return `https://github.com/${host.organization}/${host.repo}/archive/refs/heads/main.tar.gz`;
+    }
   },
-);
+  archiveSubdir: (host: ExtensionHost) => {
+    return `${host.repo}-main`;
+  },
+  learnMoreUrl: (host: ExtensionHost) => {
+    return `https://www.github.com/${host.organization}/${host.repo}`;
+  },
+};
 
-const githubArchiveUrlRegex =
-  /https?\:\/\/github.com\/([a-zA-Z0-9-_\.]+?)\/([a-zA-Z0-9-_\.]+?)\/archive\/refs\/heads\/(.+)(?:\.tar\.gz|\.zip)$/;
-const githubArchiveUrl = makeResolver(
-  githubArchiveUrlRegex,
-  (match) => {
-    return match[0];
+const githubTagUrlProvider = {
+  extensionUrl: (host: ExtensionHost) => {
+    if (host.modifier) {
+      return `https://github.com/${host.organization}/${host.repo}/archive/refs/tags/${host.modifier}.tar.gz`;
+    }
   },
-  (match) => {
-    return `${match[2]}-${match[3]}`;
+  archiveSubdir: (host: ExtensionHost) => {
+    if (host.modifier) {
+      return `${host.repo}-${tagSubDirectory(host.modifier)}`;
+    }
   },
-);
+  learnMoreUrl: (host: ExtensionHost) => {
+    return `https://github.com/${host.organization}/${host.repo}/tree/${host.modifier}`;
+  },
+};
 
-const githubTagUrlRegex =
-  /https?\:\/\/github.com\/([a-zA-Z0-9-_\.]+?)\/([a-zA-Z0-9-_\.]+?)\/archive\/refs\/tags\/(.+)(?:\.tar\.gz|\.zip)$/;
-const githubArchiveTagUrl = makeResolver(
-  githubTagUrlRegex,
-  (match) => {
-    return match[0];
+const githubBranchUrlProvider = {
+  extensionUrl: (host: ExtensionHost) => {
+    if (host.modifier) {
+      return `https://github.com/${host.organization}/${host.repo}/archive/refs/heads/${host.modifier}.tar.gz`;
+    }
   },
-  (match) => {
-    return `${match[2]}-${tagSubDirectory(match[3])}`;
+  archiveSubdir: (host: ExtensionHost) => {
+    if (host.modifier) {
+      return `${host.repo}-${host.modifier}`;
+    }
   },
-);
+  learnMoreUrl: (host: ExtensionHost) => {
+    return `https://github.com/${host.organization}/${host.repo}/tree/${host.modifier}`;
+  },
+};
 
-function tagSubDirectory(tag: string) {
+// The github extension source
+const kGithubExtensionSource: ExtensionHostSource = {
+  parse: (name: string) => {
+    const match = name.match(kGithubExtensionNameRegex);
+    if (match) {
+      return {
+        name,
+        organization: match[1],
+        repo: match[2],
+        subdirectory: match[3],
+        modifier: match[4],
+      };
+    } else {
+      return undefined;
+    }
+  },
+  urlProviders: [
+    githubLatestUrlProvider,
+    githubTagUrlProvider,
+    githubBranchUrlProvider,
+  ],
+};
+const kGithubExtensionNameRegex =
+  /^([a-zA-Z0-9-_\.]*?)\/([a-zA-Z0-9-_\.]*?)(?:\/(.*?)\/)?(?:@([a-zA-Z0-9-_\.]*))?$/;
+
+const kGithubArchiveUrlSource: ExtensionHostSource = {
+  parse: (name: string) => {
+    const match = name.match(kGithubArchiveUrlRegex);
+    if (match) {
+      return {
+        name,
+        organization: match[1],
+        repo: match[2],
+        subdirectory: undefined, // Subdirectories aren't support for archive urls
+        modifier: match[3],
+      };
+    } else {
+      return undefined;
+    }
+  },
+  urlProviders: [
+    {
+      extensionUrl: (host: ExtensionHost) => host.name,
+      archiveSubdir: (host: ExtensionHost) => {
+        return `${host.repo}-${tagSubDirectory(host.modifier)}`;
+      },
+      learnMoreUrl: (host: ExtensionHost) =>
+        `https://www.github.com/${host.organization}/${host.repo}`,
+    },
+  ],
+};
+
+const kGithubArchiveUrlRegex =
+  /https?\:\/\/github.com\/([a-zA-Z0-9-_\.]+?)\/([a-zA-Z0-9-_\.]+?)\/archive\/refs\/(?:tags|heads)\/(.+)(?:\.tar\.gz|\.zip)$/;
+
+function tagSubDirectory(tag?: string) {
   // Strip the leading 'v' from tag names
-  return tag.startsWith("v") ? tag.slice(1) : tag;
+  if (tag) {
+    return tag.startsWith("v") ? tag.slice(1) : tag;
+  } else {
+    return tag;
+  }
+}
+
+function makeResolvers(
+  source: ExtensionHostSource,
+): ExtensionNameResolver[] {
+  return source.urlProviders.map((urlProvider) => {
+    return (name) => {
+      const host = source.parse(name);
+      if (!host) {
+        return undefined;
+      }
+      const url = urlProvider.extensionUrl(host);
+      if (url) {
+        return {
+          url,
+          response: fetch(url),
+          owner: host.organization,
+          subdirectory: urlProvider.archiveSubdir(host),
+          learnMoreUrl: urlProvider.learnMoreUrl(host),
+        };
+      } else {
+        return undefined;
+      }
+    };
+  });
 }
 
 const kGithubResolvers = [
-  githubLatest,
-  githubTag,
-  githubBranch,
-  githubArchiveUrl,
-  githubArchiveTagUrl,
+  ...makeResolvers(kGithubExtensionSource),
+  ...makeResolvers(kGithubArchiveUrlSource),
 ];
 
 // This just resolves unknown URLs that are not resolved
@@ -165,6 +237,13 @@ const kGithubResolvers = [
 const unknownUrlResolver = (
   name: string,
 ): ResolvedExtensionInfo | undefined => {
+  try {
+    new URL(name);
+  } catch {
+    // That isn't a url, sadly
+    return undefined;
+  }
+
   return {
     url: name,
     response: fetch(name),
