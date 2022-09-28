@@ -80,6 +80,16 @@ function emulate_pandoc_filter(filters, unextended)
     stringify = function(v)
       return utils.stringify(denormalize(v))
     end,
+    type = function(v)
+      if v.is_emulated then
+        if v.t == "Inlines" then return v.t end
+        if v.t == "Blocks" then return v.t end
+        if is_block[v.t] then return "Block" end
+        if is_inline[v.t] then return "Inline" end
+      else
+        return utils.type(v)
+      end
+    end
   }
   setmetatable(our_utils, {
     __index = utils
