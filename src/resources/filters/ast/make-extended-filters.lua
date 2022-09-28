@@ -5,6 +5,7 @@
 local function plainLoader(handlers)
   function wrapFilter(handler)
     local wrappedFilter = {}
+    wrappedFilter.scriptFile = handler.scriptFile
     for k,v in pairs(handler) do
       wrappedFilter[k] = v.handle
     end

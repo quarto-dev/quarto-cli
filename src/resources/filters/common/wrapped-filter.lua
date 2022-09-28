@@ -58,47 +58,53 @@ local function shortcodeMetatable(scriptFile)
 end
 
 function makeWrappedFilter(scriptFile, filterHandler)
-  local env = setmetatable({}, {__index = shortcodeMetatable(scriptFile)})
-  local chunk, err = loadfile(scriptFile, "bt", env)
-  local handlers = {}
-
-  function makeSingleHandler(handlerTable)
-    local result = {}
-    for k,v in pairs(handlerTable) do
-      result[k] = {
-        file = scriptFile,
-        handle = v
-      }
-    end
-    return result
-  end
-
-  if not err and chunk then
-    local result = chunk()
-    if result then
-      if quarto.utils.table.isarray(result) then
-        for i, handlerTable in pairs(result) do
-          table.insert(handlers, makeSingleHandler(handlerTable))
-        end
-      else
-        handlers = makeSingleHandler(result)
-      end
-    else
-      handlers = makeSingleHandler(env)
-    end
-
-    if filterHandler ~= nil then
-      return filterHandler(handlers)
-    else
-      result = {}
-      for k,v in pairs(handlers) do
-        result[k] = v.handle
+  local working_directory = pandoc.path.directory(scriptFile)
+  return _quarto.withScriptFile(scriptFile, function()
+    local env = setmetatable({}, {__index = shortcodeMetatable(scriptFile)})
+    local chunk, err = loadfile(scriptFile, "bt", env)
+    local handlers = {}
+  
+    function makeSingleHandler(handlerTable)
+      local result = {}
+      setmetatable(result, {
+        __index = { scriptFile = scriptFile }
+      })
+      for k,v in pairs(handlerTable) do
+        result[k] = {
+          file = scriptFile,
+          handle = v,
+        }
       end
       return result
+    end
+  
+    if not err and chunk then
+      local result = chunk()
+      if result then
+        if quarto.utils.table.isarray(result) then
+          for i, handlerTable in ipairs(result) do
+            table.insert(handlers, makeSingleHandler(handlerTable))
+          end
+        else
+          handlers = makeSingleHandler(result)
+        end
+      else
+        handlers = makeSingleHandler(env)
+      end
+  
+      if filterHandler ~= nil then
+        return filterHandler(handlers)
+      else
+        result = {}
+        for k,v in pairs(handlers) do
+          result[k] = v.handle
+        end
+        quarto.utils.dump(result)
+        return result
+      end    
+    else
+      error(err)
+      os.exit(1)
     end    
-  else
-    error(err)
-    os.exit(1)
-  end
-
+  end)
 end
