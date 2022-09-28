@@ -6,7 +6,7 @@ function import(script)
 end
 
 -- [import]
-import("../common/map-or-call.lua")
+import("../common/maporcall.lua")
 import("../common/wrapped-filter.lua")
 import("extended-nodes.lua")
 import("make-extended-filters.lua")
