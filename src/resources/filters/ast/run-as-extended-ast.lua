@@ -4,19 +4,23 @@ function do_it(doc, filters)
     -- quarto.utils.dump(doc)
 
     for i, v in pairs(filters) do
-      print("Will run filter " .. tostring(v._filter_name or i) .. ": ")
+      -- print("Will run filter " .. tostring(v._filter_name or i) .. ": ")
       -- print("This is the filter:")
       -- quarto.utils.dump(v, true)
       -- print("This is the doc:")
       -- quarto.utils.dump(doc, true)
-      local newDoc = doc:walk(v)
-      -- print("Result", newDoc)
-      if newDoc ~= nil then
-        doc = newDoc
+      local function callback()
+        local newDoc = doc:walk(v)
+        -- print("Result", newDoc)
+        if newDoc ~= nil then
+          doc = newDoc
+        end
       end
-      -- print("This is the new doc:")
-      -- quarto.utils.dump(doc)
-      -- print("----")
+      if v.scriptFile then
+        _quarto.withScriptFile(v.scriptFile, callback)
+      else
+        callback()
+      end
     end
   elseif type(filters) == "table" then
     local newDoc = doc:walk(filters)
