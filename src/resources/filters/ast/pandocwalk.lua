@@ -183,7 +183,7 @@ function walk_inline_splicing(filter, node)
           result:insert(filterResult)
         end
       end
-      return result
+      return result, false
     end,
   }, node)
 end
@@ -203,7 +203,7 @@ function walk_block_splicing(filter, node)
           result:insert(filterResult)
         end
       end
-      return result
+      return result, false
     end,
   }, node)
 end
@@ -223,7 +223,7 @@ function walk_custom_splicing(filter, node)
           result:insert(filterResult)
         end
       end
-      return result
+      return result, false
     end,
     Inlines = function(inlines)
       local result = pandoc.Inlines()
@@ -238,7 +238,7 @@ function walk_custom_splicing(filter, node)
           result:insert(filterResult)
         end
       end
-      return result
+      return result, false
     end,
   }, node)
 end
@@ -251,7 +251,9 @@ function walk_inlines_straight(filter, node)
   return apply_filter_topdown({
     Inlines = function(inlines)
       return apply_filter_topdown_blocks_or_inlines({
-        Inlines = filter.Inlines
+        Inlines = function(inlines)
+          return filter.Inlines(inlines), false
+        end
       }, inlines)
     end
   }, node)
@@ -265,7 +267,9 @@ function walk_blocks_straight(filter, node)
   return apply_filter_topdown({
     Blocks = function(blocks)
       return apply_filter_topdown_blocks_or_inlines({
-        Blocks = filter.Blocks
+        Blocks = function(blocks)
+          return filter.Blocks(blocks), false
+        end
       }, blocks)
     end
   }, node)
