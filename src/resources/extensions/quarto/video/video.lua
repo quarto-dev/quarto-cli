@@ -38,15 +38,15 @@ local ASPECT_RATIOS = {
 
 local DEFAULT_ASPECT_RATIO = ASPECT_RATIOS["16x9"]
 
-local wrapForResponsive = function(toWrap, aspectRatio)
+local wrapWithDiv = function(toWrap, aspectRatio, shouldAddResponsiveClasses)
   local ratioClass = aspectRatio and ASPECT_RATIOS[aspectRatio] or DEFAULT_ASPECT_RATIO
-
-  wrapper = [[<div class="ratio {ratioClass}">{toWrap}</div>]]
+  local responsiveClasses = shouldAddResponsiveClasses and ' ratio ' .. ratioClass
+  wrapper = [[<div class="quarto-video{responsiveClasses}">{toWrap}</div>]]
 
   return interpolate {
     wrapper,
     toWrap = toWrap,
-    ratioClass = ratioClass }
+    responsiveClasses = responsiveClasses or '' }
 end
 
 local replaceCommonAttributes = function(snippet, params)
@@ -173,7 +173,7 @@ local helpers = {
   ["brightcoveBuilder"] = brightcoveBuilder,
   ["vimeoBuilder"] = vimeoBuilder,
   ["videoJSBuilder"] = videoJSBuilder,
-  ["wrapForResponsive"] = wrapForResponsive,
+  ["wrapWithDiv"] = wrapWithDiv,
   ["VIDEO_TYPES"] = VIDEO_TYPES,
   ["VIDEO_SHORTCODE_NUM_VIDEOJS"] = VIDEO_SHORTCODE_NUM_VIDEOJS,
   ["getSnippetFromBuilders"] = getSnippetFromBuilders
@@ -207,6 +207,7 @@ function htmlVideo(src, height, width, title, start, aspectRatio)
     return quarto.doc.isFormat('revealjs')
   end
 
+  local shouldAddResponsiveClasses = false
   if isResponsive(width, height)
           and not isRevealJS()
           and not isVideoJS() then
@@ -216,10 +217,14 @@ function htmlVideo(src, height, width, title, start, aspectRatio)
         stylesheets = { 'resources/bootstrap/bootstrap-responsive-ratio.css' }
       })
     end
+    shouldAddResponsiveClasses = true
+  end
 
-    videoSnippet = wrapForResponsive(
+  if not isRevealJS() then
+    videoSnippet = wrapWithDiv(
             videoSnippet,
-            aspectRatio
+            aspectRatio,
+            shouldAddResponsiveClasses
     )
   end
 

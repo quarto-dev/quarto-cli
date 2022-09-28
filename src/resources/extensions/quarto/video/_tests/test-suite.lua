@@ -305,27 +305,33 @@ function TestVideoJSBuilder:testHeightWidth()
 end
 
 TestVideoResponsive = {}
+function TestVideoResponsive:testNoResponsive()
+  result = helpers.wrapWithDiv('fake-to-wrap')
+  expected = '<div class="quarto-video">fake-to-wrap</div>'
+  lu.assertEquals(result, expected)
+end
+
 function TestVideoResponsive:testValid()
-  result = helpers.wrapForResponsive('fake-to-wrap')
-  expected = '<div class="ratio ratio-16x9">fake-to-wrap</div>'
+  result = helpers.wrapWithDiv('fake-to-wrap', nil, true)
+  expected = '<div class="quarto-video ratio ratio-16x9">fake-to-wrap</div>'
   lu.assertEquals(result, expected)
 end
 
 function TestVideoResponsive:testValid_43()
-  result = helpers.wrapForResponsive('fake-to-wrap', '4x3')
-  expected = '<div class="ratio ratio-4x3">fake-to-wrap</div>'
+  result = helpers.wrapWithDiv('fake-to-wrap', '4x3', true)
+  expected = '<div class="quarto-video ratio ratio-4x3">fake-to-wrap</div>'
   lu.assertEquals(result, expected)
 end
 
 function TestVideoResponsive:testValid_11()
-  result = helpers.wrapForResponsive('fake-to-wrap', '1x1')
-  expected = '<div class="ratio ratio-1x1">fake-to-wrap</div>'
+  result = helpers.wrapWithDiv('fake-to-wrap', '1x1', true)
+  expected = '<div class="quarto-video ratio ratio-1x1">fake-to-wrap</div>'
   lu.assertEquals(result, expected)
 end
 
 function TestVideoResponsive:testValid_219()
-  result = helpers.wrapForResponsive('fake-to-wrap', '21x9')
-  expected = '<div class="ratio ratio-21x9">fake-to-wrap</div>'
+  result = helpers.wrapWithDiv('fake-to-wrap', '21x9', true)
+  expected = '<div class="quarto-video ratio ratio-21x9">fake-to-wrap</div>'
   lu.assertEquals(result, expected)
 end
 
