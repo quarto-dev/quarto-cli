@@ -240,6 +240,12 @@ code.sourceCode {
   position: relative;
 }
 
+// Inline code should wrap
+// See https://github.com/quarto-dev/quarto-cli/issues/2649
+p code:not(.sourceCode) {
+  white-space: pre-wrap;
+}
+
 // default to scrolling <code> output rather than wrapping, since
 // multi-column tabular output (very common for R & Python) is
 // unreadable when wrapped.
