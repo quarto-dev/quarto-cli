@@ -7,7 +7,7 @@
 
 import { info, warning } from "log/mod.ts";
 import { existsSync } from "fs/mod.ts";
-import { basename, dirname, join, relative } from "path/mod.ts";
+import { basename, dirname, extname, join, relative } from "path/mod.ts";
 import * as colors from "fmt/colors.ts";
 import { MuxAsyncIterator } from "async/mod.ts";
 import { iterateReader } from "streams/mod.ts";
@@ -106,6 +106,7 @@ import { projectExtensionDirs } from "../../extension/extension.ts";
 import { findOpenPort, kLocalhost } from "../../core/port.ts";
 import { ProjectServe } from "../../resources/types/schema-types.ts";
 import { handleHttpRequests } from "../../core/http-server.ts";
+import { touch } from "../../core/file.ts";
 
 export const kRenderNone = "none";
 export const kRenderDefault = "default";
@@ -300,6 +301,11 @@ export async function serveProject(
 
   // register the stopServer function as a cleanup handler
   onCleanup(stopServer);
+
+  // if there is a touchPath then touch
+  if (options.touchPath) {
+    await touch(options.touchPath);
+  }
 
   // run the server
   await previewServer.serve();
@@ -746,6 +752,13 @@ function previewControlChannelRequestHandler(
           }).finally(() => {
             services.cleanup();
           });
+          return httpContentResponse("rendered");
+          // if this is a plain markdown file w/ an external preview server
+          // then just return success (it's already been saved as a
+          // precursor to the render)
+        } else if (
+          extname(prevReq.path) === ".md" && projectPreviewServe(project)
+        ) {
           return httpContentResponse("rendered");
         } else {
           return previewUnableToRenderResponse();

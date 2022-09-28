@@ -30,5 +30,6 @@ export type ServeOptions = {
   [kProjectWatchInputs]?: boolean;
   timeout?: number;
   browserPath?: string;
+  touchPath?: string;
   navigate?: boolean;
 };

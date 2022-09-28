@@ -6,7 +6,7 @@
 */
 
 import { existsSync } from "fs/mod.ts";
-import { relative } from "path/mod.ts";
+import { dirname, extname, join, relative } from "path/mod.ts";
 
 import * as colors from "fmt/colors.ts";
 
@@ -242,42 +242,62 @@ export const previewCommand = new Command()
     // if this is a single-file preview within a 'serveable' project
     // without a specific render directive then render the file
     // and convert the render to a project one
+    let touchPath: string | undefined;
     let projectTarget: string | ProjectContext = file;
     if (Deno.statSync(file).isFile) {
-      const project = await projectContext(file);
+      const project = await projectContext(dirname(file));
       if (project && projectIsServeable(project)) {
+        // special case: plain markdown file w/ an external previewer that is NOT
+        // in the project input list -- in this case allow things to proceed
+        // without a render
         const format = await previewFormat(file, flags.to, project);
-
-        if (
-          isHtmlOutput(parseFormatString(format).baseFormat, true) ||
-          projectPreviewServe(project)
-        ) {
-          setPreviewFormat(format, flags, args);
-          const services = renderServices();
-          try {
-            const renderResult = await renderProject(project, {
-              services,
-              progress: false,
-              useFreezer: false,
-              flags,
-              pandocArgs: args,
-              previewServer: true,
-            }, [file]);
-            if (renderResult.error) {
-              throw renderResult.error;
-            }
-            handleRenderResult(file, renderResult);
-          } finally {
-            services.cleanup();
-          }
-          // re-write various targets to redirect to project preview
-          if (projectPreviewServe(project)) {
+        const filePath = Deno.realPathSync(file);
+        if (!project.files.input.includes(filePath)) {
+          if (extname(file) === ".md" && projectPreviewServe(project)) {
+            setPreviewFormat(format, flags, args);
+            touchPath = filePath;
             options.browserPath = "";
-          } else {
-            options.browserPath = relative(project.dir, file);
+            file = project.dir;
+            projectTarget = project;
           }
-          file = project.dir;
-          projectTarget = project;
+        } else {
+          if (
+            isHtmlOutput(parseFormatString(format).baseFormat, true) ||
+            projectPreviewServe(project)
+          ) {
+            setPreviewFormat(format, flags, args);
+            const services = renderServices();
+            try {
+              const renderResult = await renderProject(project, {
+                services,
+                progress: false,
+                useFreezer: false,
+                flags,
+                pandocArgs: args,
+                previewServer: true,
+              }, [file]);
+              if (renderResult.error) {
+                throw renderResult.error;
+              }
+              handleRenderResult(file, renderResult);
+              if (projectPreviewServe(project) && renderResult.baseDir) {
+                touchPath = join(
+                  renderResult.baseDir,
+                  renderResult.files[0].file,
+                );
+              }
+            } finally {
+              services.cleanup();
+            }
+            // re-write various targets to redirect to project preview
+            if (projectPreviewServe(project)) {
+              options.browserPath = "";
+            } else {
+              options.browserPath = relative(project.dir, file);
+            }
+            file = project.dir;
+            projectTarget = project;
+          }
         }
       }
     }
@@ -296,6 +316,7 @@ export const previewCommand = new Command()
           [kProjectWatchInputs]: options.watchInputs,
           timeout: options.timeout,
           render: options.render,
+          touchPath,
           browserPath: options.browserPath,
           navigate: options.navigate,
         }, options.noServe === true);
