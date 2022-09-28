@@ -4,7 +4,7 @@ function do_it(doc, filters)
     -- quarto.utils.dump(doc)
 
     for i, v in pairs(filters) do
-      -- print("Will run filter " .. tostring(v._filter_name or i) .. ": ")
+      print("Will run filter " .. tostring(v._filter_name or i) .. ": ")
       -- print("This is the filter:")
       -- quarto.utils.dump(v, true)
       -- print("This is the doc:")
@@ -47,6 +47,12 @@ function emulate_pandoc_filter(filters, unextended)
     end,
     stringify = function(v)
       return utils.stringify(denormalize(v))
+    end,
+    from_simple_table = function(v)
+      return normalize(utils.from_simple_table(denormalize(v)))
+    end,
+    to_simple_table = function(v)
+      return normalize(utils.to_simple_table(denormalize(v)))
     end
   }
   setmetatable(our_utils, {
