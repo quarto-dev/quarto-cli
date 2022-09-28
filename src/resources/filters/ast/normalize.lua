@@ -103,7 +103,12 @@ function normalize(node)
 
     Header = inlinesContentHandler,
     LineBlock = inlinesContentArrayHandler,
-    OrderedList = blocksContentArrayHandler,
+    OrderedList = function(el)
+      local result = baseHandler(el)
+      result.content = doBlocksArrayArray(el.content)
+      result.listAttributes = baseHandler(el.listAttributes)
+      return result
+    end,
     Para = inlinesContentHandler,
     Plain = inlinesContentHandler,
     RawBlock = baseHandler,
@@ -205,6 +210,7 @@ function normalize(node)
 
     -- others
     Citation = baseHandler,
+    ListAttributes = baseHandler,
   }
 
   local t = node.t or pandoc.utils.type(node)
@@ -294,13 +300,6 @@ function denormalize(node)
     return result
   end
 
-  local itemsHandler = function(el)
-    el = copy(el)
-    el.items = doArray(el.items)
-    local result = baseHandler(el)
-    return result
-  end
-
   local contentArrayHandler = function(el)
     el = copy(el)
     el.content = doArrayArray(el.content)
@@ -339,7 +338,15 @@ function denormalize(node)
 
     Header = contentHandler,
     LineBlock = contentHandler,
-    OrderedList = itemsHandler,
+
+    OrderedList = function(el)
+      el = copy(el)
+      el.content = doArrayArray(el.content)
+      el.listAttributes = baseHandler(el.listAttributes)
+      local result = baseHandler(el)
+      return result
+    end,
+
     Para = contentHandler,
     Plain = contentHandler,
     RawBlock = baseHandler,
