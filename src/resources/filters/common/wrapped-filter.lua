@@ -57,7 +57,30 @@ local function shortcodeMetatable(scriptFile)
   }
 end
 
-function makeWrappedFilter(scriptFile, filterHandler)
+function makeWrappedJsonFilter(scriptFile, filterHandler)
+  local handlers = {
+    Pandoc = {
+      file = scriptFile,
+      handle = function(doc)
+        local json = pandoc.write(doc, "json")
+        path = quarto.utils.resolve_path_relative_to_document(scriptFile)
+        return pandoc.utils.run_json_filter(doc, path)
+      end
+    }
+  }
+
+  if filterHandler ~= nil then
+    return filterHandler(handlers)
+  else
+    local result = {}
+    for k,v in pairs(handlers) do
+      result[k] = v.handle
+    end
+    return result
+  end    
+end
+
+function makeWrappedLuaFilter(scriptFile, filterHandler)
   local working_directory = pandoc.path.directory(scriptFile)
   return _quarto.withScriptFile(scriptFile, function()
     local env = setmetatable({}, {__index = shortcodeMetatable(scriptFile)})
@@ -99,12 +122,30 @@ function makeWrappedFilter(scriptFile, filterHandler)
         for k,v in pairs(handlers) do
           result[k] = v.handle
         end
-        quarto.utils.dump(result)
         return result
       end    
     else
       error(err)
       os.exit(1)
-    end    
+    end
   end)
+end
+
+function makeWrappedFilter(scriptFile, filterHandler)
+  if type(scriptFile) == "userdata" then
+    scriptFile = pandoc.utils.stringify(scriptFile)
+  end
+
+  if type(scriptFile) == "string" then
+    return makeWrappedLuaFilter(scriptFile, filterHandler)
+  elseif type(scriptFile) == "table" then
+    local path = scriptFile.path
+    local type = scriptFile.type
+
+    if type == "json" then
+      return makeWrappedJsonFilter(path, filterHandler)  
+    else
+      return makeWrappedLuaFilter(path, filterHandler)
+    end
+  end
 end
