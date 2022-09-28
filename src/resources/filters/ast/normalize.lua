@@ -373,13 +373,7 @@ function denormalize(node)
     end,
 
     Inlines = function(inlines)
-      quarto.utils.dump(inlines)
-      local result = quarto.ast._true_pandoc.Inlines(tmap(inlines, denormalize))
-      print(result)
-      print(type(result))
-      print(pandoc.utils.type(result))
-      print(result.is_emulated)
-      return result
+      return quarto.ast._true_pandoc.Inlines(tmap(inlines, denormalize))
     end,
 
     Blocks = function(blocks)
