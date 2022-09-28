@@ -102,7 +102,8 @@ function emulate_pandoc_filter(filters, unextended)
       if key == "is_emulated" then return true end
       return pandoc_inlines_mtbl.__index[key] -- pandoc_inlines_mtbl.__index is a _table_ (!)
     end,
-    __concat = concat_denormalize_first
+    __concat = concat_denormalize_first,
+    __eq = pandoc_emulate_eq,
   }
 
   setmetatable(inlines_mtbl, {
@@ -118,7 +119,8 @@ function emulate_pandoc_filter(filters, unextended)
       if key == "is_emulated" then return true end
       return pandoc_blocks_mtbl.__index[key] -- pandoc_blocks_mtbl.__index is a _table_ (!)
     end,    
-    __concat = concat_denormalize_first
+    __concat = concat_denormalize_first,
+    __eq = pandoc_emulate_eq,
   }
 
   setmetatable(blocks_mtbl, {

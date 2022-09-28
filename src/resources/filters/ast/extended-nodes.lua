@@ -226,6 +226,31 @@ pandoc_has_attr = {
   Span = true,
 }
 
+function pandoc_emulate_eq(a, b)
+  if type(a) == "userdata" or type(b) == "userdata" then
+    if type(a) == "userdata" then
+      a = denormalize(a)
+    end
+    if type(b) == "userdata" then
+      b = denormalize(b)
+    end
+    return a == b
+  end
+
+  if not a.is_emulated or not b.is_emulated then
+    return false
+  end
+
+  if a.t ~= b.t then
+    return false
+  end
+
+  for k, v in pairs(a) do
+    if v ~= b[k] then return false end
+  end
+  return true
+end
+
 pandoc_fixed_field_types = {
   Pandoc = { blocks = "Blocks" },
   BlockQuote = { content = "Blocks" },
@@ -298,6 +323,7 @@ function _build_extended_node(t, is_custom)
       if resolved then return value end
       return method_resolution(key)
     end,
+    __eq = pandoc_emulate_eq,
     __pairs = function(tbl)
       local inMeta = pandoc_fixed_field_types[t]
       local index
@@ -329,7 +355,7 @@ function _build_extended_node(t, is_custom)
         end
       end      
     end,
-    __concat = stringify_first,
+    __concat = concat_denormalize_first,
     __newindex = function(tbl, key, value)
       -- print("__newindex", key)
       -- crash_with_stack_trace()
