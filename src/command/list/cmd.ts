@@ -66,6 +66,7 @@ async function outputExtensions(
     path,
     project?.config,
     project?.dir,
+    { builtIn: false },
   );
   if (extensions.length === 0) {
     info(
