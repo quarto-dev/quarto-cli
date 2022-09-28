@@ -428,12 +428,13 @@ quarto.ast = {
     end
 
     for k, v in pairs(el) do
-      if k == "content" then
-        for _, innerV in pairs(v) do
-          -- can't set the table directly because we lose method information
-          ExtendedAstNode.content:insert(innerV)
-        end
-      elseif is_content_field(k) then
+      -- if k == "content" then
+      --   for _, innerV in pairs(v) do
+      --     -- can't set the table directly because we lose method information
+      --     ExtendedAstNode.content:insert(innerV)
+      --   end
+      -- else
+      if is_content_field(k) then
         ExtendedAstNode[k] = v
       end
     end
