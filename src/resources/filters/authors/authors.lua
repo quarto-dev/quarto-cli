@@ -28,6 +28,14 @@ function authorsFilter()
   return {
     Meta = function(meta)
       return processAuthorMeta(meta)
+    end,
+    Pandoc = function(doc)
+      local json = pandoc.write(doc, "json")
+      local f = io.open("authors-main.json", "w")
+      if f ~= nil then
+        f:write(json)
+        f:close()
+      end
     end
   }
 end
