@@ -10,6 +10,13 @@ function dependencies()
       -- and the file responses
       _quarto.processDependencies(meta)
       return meta
+    end,
+    Pandoc = function(doc)
+      local f = io.open("dependencies-main.json", "w")
+      if f ~= nil then
+        f:write(pandoc.write(doc, "json"))
+        f:close()
+      end
     end
   }
 end
