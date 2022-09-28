@@ -137,6 +137,14 @@ function normalize(node)
     Superscript = inlinesContentHandler,
     Underline = inlinesContentHandler,
 
+    SimpleTable = function(tbl)
+      local result = baseHandler(tbl)
+      result.caption = doInlinesArray(result.caption)
+      result.headers = doBlocksArray(result.headers)
+      result.rows = doBlocksArrayArray(result.rows)
+      return result
+    end,
+
     Table = function(tbl)
       local result = baseHandler(tbl)
       result.caption = {
@@ -391,6 +399,15 @@ function denormalize(node)
       return result
     end,
 
+    SimpleTable = function(tbl)
+      tbl = copy(tbl)
+      tbl.caption = denormalize(tbl.caption)
+      tbl.headers = doArray(tbl.headers)
+      tbl.rows = doArrayArray(tbl.rows)
+      local result = baseHandler(tbl)
+      return result
+    end,
+
     ["pandoc TableFoot"] = function(foot)
       foot = copy(foot)
       foot.rows = tmap(foot.rows, denormalize)
@@ -454,10 +471,11 @@ function denormalize(node)
     if tisarray(node) then
       return tmap(node, denormalize)
     else
-      print("Internal error in denormalize(): found no dispatch for node which isn't an array")
-      quarto.utils.dump(node, true)
-      crash_with_stack_trace()
-      return node
+      local result = {}
+      for k, v in pairs(node) do
+        result[k] = denormalize(v)
+      end
+      return result
     end
   else
     return dispatch(node)
