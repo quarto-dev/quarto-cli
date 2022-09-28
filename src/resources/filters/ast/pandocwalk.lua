@@ -361,11 +361,11 @@ function walk_inlines_straight(filter, node)
   if filter.Inlines == nil then
     return node
   end
-  return apply_filter_topdown({
+  return apply_filter_bottomup({
     Inlines = function(inlines)
-      return apply_filter_topdown_blocks_or_inlines({
+      return apply_filter_bottomup_blocks_or_inlines({
         Inlines = function(inlines)
-          return filter.Inlines(inlines), false
+          return filter.Inlines(inlines)
         end
       }, inlines)
     end
@@ -377,11 +377,11 @@ function walk_blocks_straight(filter, node)
   if filter.Blocks == nil then
     return node
   end
-  return apply_filter_topdown({
+  return apply_filter_bottomup({
     Blocks = function(blocks)
-      return apply_filter_topdown_blocks_or_inlines({
+      return apply_filter_bottomup_blocks_or_inlines({
         Blocks = function(blocks)
-          return filter.Blocks(blocks), false
+          return filter.Blocks(blocks)
         end
       }, blocks)
     end

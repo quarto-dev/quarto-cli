@@ -191,6 +191,9 @@ function normalize(node)
     Str = baseHandler,
     Space = baseHandler,
     SoftBreak = baseHandler,
+    HorizontalRule = baseHandler,
+    LineBreak = baseHandler,
+    Null = baseHandler,
 
     Blocks = function(blocks)
       return doBlocksArray(blocks)
@@ -370,7 +373,13 @@ function denormalize(node)
     end,
 
     Inlines = function(inlines)
-      return quarto.ast._true_pandoc.Inlines(tmap(inlines, denormalize))
+      quarto.utils.dump(inlines)
+      local result = quarto.ast._true_pandoc.Inlines(tmap(inlines, denormalize))
+      print(result)
+      print(type(result))
+      print(pandoc.utils.type(result))
+      print(result.is_emulated)
+      return result
     end,
 
     Blocks = function(blocks)
@@ -387,6 +396,18 @@ function denormalize(node)
 
     SoftBreak = function()
       return quarto.ast._true_pandoc.SoftBreak()
+    end,
+
+    HorizontalRule = function()
+      return quarto.ast._true_pandoc.HorizontalRule()
+    end,
+
+    LineBreak = function()
+      return quarto.ast._true_pandoc.LineBreak()
+    end,
+
+    Null = function()
+      return quarto.ast._true_pandoc.Null()
     end,
     
     Citation = baseHandler,

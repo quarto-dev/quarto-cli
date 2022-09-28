@@ -279,6 +279,9 @@ function _build_extended_node(t, is_custom)
     if key == "identifier" and tbl.attr then return true, tbl.attr.identifier end
     if key == "attributes" and tbl.attr then return true, tbl.attr.attributes end
     if key == "classes" and tbl.attr then return true, tbl.attr.classes end
+    if key == "c" then
+      if tbl.content then return true, tbl.content end
+    end
     return false
   end
   local method_chain = { pandoc_ast_methods }
@@ -384,7 +387,9 @@ quarto.ast = {
     )
 
     if pandoc_has_attr[el.t] then
-      ExtendedAstNode.attr = el.attr:clone()
+      local attr1 = pandoc.Attr({ id = "foo1" })
+      local attr2 = pandoc.Attr(attr1)
+      ExtendedAstNode.attr = pandoc.Attr(el.attr)
     end
 
     function is_content_field(k)
