@@ -175,6 +175,7 @@ pandoc_constructors_args = {
   Plain = { "content" },
   RawBlock = { "format", "text" },
   Table = { "caption", "colspecs", "head", "bodies", "foot", "attr" },
+  SimpleTable = { "caption", "aligns", "widths", "headers", "rows" },
 
   -- inlines
   Cite = { "content", "citations" },

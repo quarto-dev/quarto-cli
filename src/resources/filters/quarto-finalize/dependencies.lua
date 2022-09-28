@@ -10,9 +10,6 @@ function dependencies()
       -- and the file responses
       _quarto.processDependencies(meta)
       return meta
-    end,
-    Pandoc = function(doc)
-      pandoc.write(doc, "json")
     end
   }
 end

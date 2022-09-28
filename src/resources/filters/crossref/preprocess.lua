@@ -79,7 +79,6 @@ function crossrefPreprocess()
 
       -- walk all blocks in the document
       for i,el in pairs(doc.blocks) do
-      
         -- always wrap referenced tables in a div
         if el.t == "Table" then
           doc.blocks[i] = preprocessTable(el, nil)
