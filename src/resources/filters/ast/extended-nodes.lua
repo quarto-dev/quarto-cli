@@ -229,13 +229,13 @@ pandoc_has_attr = {
 pandoc_fixed_field_types = {
   Pandoc = { blocks = "Blocks" },
   BlockQuote = { content = "Blocks" },
-  -- BulletList = { content = "BlocksList" }, -- FIXME
+  BulletList = { content = "List" }, -- BlocksList, but we can't represent that
   -- DefinitionList
 
   Div = { content = "Blocks" },
   Header = { content = "Inlines" },
-  -- LineBlock = { content = "InlinesList" }, -- FIXME
-  -- OrderedList = { content = "BlocksList" },
+  LineBlock = { content = "List" }, -- InlinesList, but we can't represent that
+  OrderedList = { content = "List" }, -- BlocksList, but we can't represent that
   Para = { content = "Inlines" },
   Plain = { content = "Inlines" },
   Cite = { content = "Inlines" },
@@ -254,7 +254,7 @@ pandoc_fixed_field_types = {
 }
 
 function _build_extended_node(t, is_custom)
-  if t == "Inlines" or t == "Blocks" then
+  if t == "Inlines" or t == "Blocks" or t == "List" then
     return pandoc[t]({})
   end
   local ExtendedAstNode = {}

@@ -69,7 +69,7 @@ function capture_timings(filterList, trace)
         end
       elseif v.filters ~= nil then
         for j, innerV in pairs(v.filters) do
-          innerV._filter_name = string.format("%s-%s", v.name, i)
+          innerV._filter_name = string.format("%s-%s", v.name, j)
           if trace then
             table.insert(finalResult, trace_filter(string.format("%02d_%02d_%s.json", i, j, innerV._filter_name), innerV))
           else

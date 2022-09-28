@@ -190,6 +190,7 @@ function normalize(node)
 
     Str = baseHandler,
     Space = baseHandler,
+    SoftBreak = baseHandler,
 
     Blocks = function(blocks)
       return doBlocksArray(blocks)
@@ -317,7 +318,7 @@ function denormalize(node)
     Pandoc = function(tbl)
       tbl = copy(tbl)
       tbl.blocks = doArray(tbl.blocks)
-      tbl.meta = denormalize_meta(tbl.meta)
+      tbl.meta = tbl.meta and denormalize_meta(tbl.meta)
       local result = baseHandler(tbl)
       return result
     end,
@@ -382,6 +383,10 @@ function denormalize(node)
 
     Space = function(space)
       return quarto.ast._true_pandoc.Space()
+    end,
+
+    SoftBreak = function()
+      return quarto.ast._true_pandoc.SoftBreak()
     end,
     
     Citation = baseHandler,
