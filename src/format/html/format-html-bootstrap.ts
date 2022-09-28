@@ -581,7 +581,10 @@ const processMarginNodes = (
 };
 
 const findQuartoFigure = (el: Element): Element | undefined => {
-  if (el.classList.contains("quarto-figure")) {
+  if (
+    el.classList.contains("quarto-figure") ||
+    el.classList.contains("quarto-layout-panel")
+  ) {
     return el;
   } else if (el.parentElement) {
     return findQuartoFigure(el.parentElement);

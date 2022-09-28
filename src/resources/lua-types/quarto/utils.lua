@@ -19,5 +19,5 @@ not be visible to the user.
 ]]
 ---@param path string Path of file relative to the Lua script
 ---@return string
-function quarto.utils.resolvePath(path) end
+function quarto.utils.resolve_path(path) end
 

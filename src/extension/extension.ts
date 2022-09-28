@@ -30,7 +30,9 @@ import {
   ExtensionContext,
   ExtensionId,
   extensionIdString,
+  ExtensionOptions,
   kAuthor,
+  kBuiltInExtOrg,
   kCommon,
   kExtensionDir,
   kQuartoRequired,
@@ -46,6 +48,7 @@ import { ProjectType } from "../project/types/types.ts";
 import { copyResourceFile } from "../project/project-resources.ts";
 import { RevealPluginBundle } from "../format/reveal/format-reveal-plugin.ts";
 import { resourcePath } from "../core/resources.ts";
+import { warnOnce } from "../core/log.ts";
 
 // This is where we maintain a list of extensions that have been promoted
 // to 'built-in' status. If we see these extensions, we will filter them
@@ -64,6 +67,7 @@ export function createExtensionContext(): ExtensionContext {
     input?: string,
     config?: ProjectConfig,
     projectDir?: string,
+    options?: ExtensionOptions,
   ): Promise<Extension[]> => {
     // Load the extensions and resolve extension paths
     const extensions = await loadExtensions(
@@ -71,7 +75,12 @@ export function createExtensionContext(): ExtensionContext {
       input,
       projectDir,
     );
-    return Object.values(extensions).map((extension) => {
+
+    const results = Object.values(extensions).filter((ext) =>
+      options?.builtIn !== false || ext.id.organization !== kBuiltInExtOrg
+    );
+
+    return results.map((extension) => {
       if (input) {
         return resolveExtensionPaths(extension, input, config);
       } else {
@@ -98,10 +107,11 @@ export function createExtensionContext(): ExtensionContext {
     contributes?: Contributes,
     config?: ProjectConfig,
     projectDir?: string,
+    options?: ExtensionOptions,
   ): Promise<Extension[]> => {
     const extId = toExtensionId(name);
     return findExtensions(
-      await extensions(input, config, projectDir),
+      await extensions(input, config, projectDir, options),
       extId,
       contributes,
     );
@@ -137,12 +147,66 @@ export function projectExtensionPathResolver(libDir: string) {
   };
 }
 
+export function filterBuiltInExtensions(
+  extensions: Extension[],
+) {
+  // First see if there are now built it (quarto organization)
+  // filters that we previously provided by quarto-ext and
+  // filter those out
+  const quartoExts = extensions.filter((ext) => {
+    return ext.id.organization === kBuiltInExtOrg;
+  });
+
+  // quarto-ext extensions that are now built in
+  const nowBuiltInExtensions = extensions?.filter((ext) => {
+    return ext.id.organization === "quarto-ext" &&
+      quartoExts.map((ext) => ext.id.name).includes(ext.id.name);
+  });
+
+  if (nowBuiltInExtensions.length > 0) {
+    // filter out the extensions that have become built in
+    extensions = filterExtensionAndWarn(extensions, nowBuiltInExtensions);
+  }
+
+  return extensions;
+}
+
+function filterExtensionAndWarn(
+  extensions: Extension[],
+  filterOutExtensions: Extension[],
+) {
+  warnToRemoveExtensions(filterOutExtensions);
+  // filter out the extensions that have become built in
+  return extensions.filter((ext) => {
+    return filterOutExtensions.map((ext) => ext.id.name).includes(
+      ext.id.name,
+    );
+  });
+}
+
+function warnToRemoveExtensions(extensions: Extension[]) {
+  // Warn the user
+  const removeCommands = extensions.map((ext) => {
+    return `quarto remove extension ${extensionIdString(ext.id)}`;
+  });
+  warnOnce(
+    `One or more extensions have been built in to Quarto. Please use the following command to remove the unneeded extension:\n  ${
+      removeCommands.join("\n  ")
+    }`,
+  );
+}
+
 export function filterExtensions(
   extensions: Extension[],
   extensionId: string,
   type: string,
 ) {
   if (extensions && extensions.length > 0) {
+    // First see if there are now built it (quarto organization)
+    // filters that we previously provided by quarto-ext and
+    // filter those out
+    extensions = filterBuiltInExtensions(extensions);
+
     // First see whether there are more than one 'owned' extensions
     // which match. This means that the there are two different extension, from two
     // different orgs that match this simple id - user needs to disambiguate
@@ -154,7 +218,7 @@ export function filterExtensions(
     if (ownedExtensions.length > 1) {
       // There are more than one extensions with owners, warn
       // user that they should disambiguate
-      warning(
+      warnOnce(
         `The ${type} '${extensionId}' matched more than one extension. Please use a full name to disambiguate:\n  ${
           ownedExtensions.join("\n  ")
         }`,
@@ -164,10 +228,14 @@ export function filterExtensions(
     // we periodically build in features that were formerly available from
     // the quarto-ext org. filter them out here (that allows them to remain
     // referenced in the yaml so we don't break code in the wild)
-    extensions = extensions?.filter((ext) => {
-      return !(ext.id.organization === kQuartoExtOrganization &&
+    const oldBuiltInExt = extensions?.filter((ext) => {
+      return (ext.id.organization === kQuartoExtOrganization &&
         kQuartoExtBuiltIn.includes(ext.id.name));
     });
+    if (oldBuiltInExt.length > 0) {
+      filterExtensionAndWarn(extensions, oldBuiltInExt);
+    }
+
     return extensions;
   } else {
     return extensions;

@@ -28,7 +28,7 @@ import { RenderFlags, RenderOptions } from "./types.ts";
 
 import * as ld from "../../core/lodash.ts";
 
-import { SEP_PATTERN } from "path/mod.ts";
+import { isAbsolute, SEP_PATTERN } from "path/mod.ts";
 
 export const kStdOut = "-";
 
@@ -212,7 +212,14 @@ export async function parseRenderFlags(args: string[]) {
 
       case "--execute-dir":
         arg = argsStack.shift();
-        flags.executeDir = arg;
+        if (arg) {
+          if (isAbsolute(arg)) {
+            flags.executeDir = arg;
+          } else {
+            flags.executeDir = Deno.realPathSync(arg);
+          }
+        }
+
         break;
 
       case "--execute-daemon":

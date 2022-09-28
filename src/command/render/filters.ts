@@ -60,7 +60,10 @@ import { readCodePage } from "../../core/windows.ts";
 import { authorsFilter, authorsFilterActive } from "./authors.ts";
 import { formatHasBootstrap } from "../../format/html/format-html-info.ts";
 import { activeProfiles, kQuartoProfile } from "../../quarto-core/profile.ts";
-import { filterExtensions } from "../../extension/extension.ts";
+import {
+  filterBuiltInExtensions,
+  filterExtensions,
+} from "../../extension/extension.ts";
 
 const kQuartoParams = "quarto-params";
 
@@ -503,10 +506,16 @@ async function extensionShortcodes(options: PandocOptions) {
       options.project?.config,
       options.project?.dir,
     );
-    Object.values(allExtensions).forEach((extension) => {
-      if (extension.contributes.shortcodes) {
-        extensionShortcodes.push(...extension.contributes.shortcodes);
-      }
+
+    const shortCodeExtensions = filterBuiltInExtensions(
+      allExtensions.filter((ext) => {
+        return !!ext.contributes.shortcodes;
+      }),
+    );
+
+    shortCodeExtensions.forEach((extension) => {
+      const shortcodes = extension.contributes.shortcodes || [];
+      extensionShortcodes.push(...shortcodes);
     });
   }
   return extensionShortcodes;
