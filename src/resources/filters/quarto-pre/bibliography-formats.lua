@@ -3,7 +3,7 @@
 
 
 function bibliographyFormats()
-  return {
+  return  {
     Pandoc = function(doc)
       if _quarto.format.isBibliographyOutput() then
         doc.meta.references = pandoc.utils.references(doc)
