@@ -502,53 +502,88 @@ function denormalize(node)
   end
 end
 
+
 function denormalize_meta(node)
-  if type(node) == "string" then
-    return pandoc.MetaInlines({node})
-  elseif type(node) == "boolean" then
-    return node
-  elseif type(node) == "number" then
-    return node
-  elseif node.t == "Inlines" then
-    local result = denormalize(node)
-    local mlresult = pandoc.MetaInlines({})
-    for k, v in pairs(result) do
-      mlresult:insert(v)
+
+  local function unmeta(meta)
+    local t = type(meta)
+    if t == "number" or t == "boolean" or t == "string" then
+      return meta
     end
-    return mlresult
-  elseif node.t == "Blocks" then
-    local result = denormalize(node)
-    local mlresult = pandoc.MetaBlocks({})
-    for k, v in pairs(result) do
-      mlresult:insert(v)
+  
+    t = pandoc.utils.type(meta)
+    if t == "Meta" then
+      local result = {}
+      for k, v in pairs(meta) do
+        result[k] = unmeta(v)
+      end
+      return result
+    elseif tisarray(meta) and not meta.is_emulated then
+      return tmap(meta, unmeta)
     end
-    return mlresult
-  elseif node.is_emulated then
-    return denormalize(node) -- just denormalize the values themselves
-  elseif node.t ~= nil then
-    return node -- don't denormalize true pandoc nodes in meta
-  elseif type(node) == "table" then
-    local result = {}
-    local anything_set = false
-    for k, v in pairs(node) do
-      anything_set = true
-      result[k] = denormalize_meta(v)
-    end
-    -- FIXME it seems that sometimes making the empty MetaList->MetaMap mistake
-    -- has rendering consequences, but making the empty MetaMap->MetaList mistake
-    -- does not.
-    --
-    -- It also seems impossible to know exactly if we have an empty list or empty
-    -- map in general...
-    if not anything_set then
-      return pandoc.MetaList({})
-    else
+  
+    if meta.is_emulated then return denormalize(meta) end
+    if t == "Inline" or t == "Block" then return meta end
+  
+    if type(meta) == "table" then
+      local result = {}
+      for k, v in pairs(meta) do
+        result[k] = unmeta(v)
+      end
       return result
     end
-    -- end
-  else
-    print("Internal Error: can't denormalize_meta this object.")  
-    print(type(node), tostring(node))
+    print(t)
     crash_with_stack_trace()
   end
+
+  return unmeta(node)
 end
+--   if type(node) == "string" then
+--     return pandoc.MetaInlines({node})
+--   elseif type(node) == "boolean" then
+--     return node
+--   elseif type(node) == "number" then
+--     return node
+--   elseif node.t == "Inlines" then
+--     local result = denormalize(node)
+--     local mlresult = pandoc.MetaInlines({})
+--     for k, v in pairs(result) do
+--       mlresult:insert(v)
+--     end
+--     return mlresult
+--   elseif node.t == "Blocks" then
+--     local result = denormalize(node)
+--     local mlresult = pandoc.MetaBlocks({})
+--     for k, v in pairs(result) do
+--       mlresult:insert(v)
+--     end
+--     return mlresult
+--   elseif node.is_emulated then
+--     return denormalize(node) -- just denormalize the values themselves
+--   elseif node.t ~= nil then
+--     return node -- don't denormalize true pandoc nodes in meta
+--   elseif type(node) == "table" then
+--     local result = {}
+--     local anything_set = false
+--     for k, v in pairs(node) do
+--       anything_set = true
+--       result[k] = denormalize_meta(v)
+--     end
+--     -- FIXME it seems that sometimes making the empty MetaList->MetaMap mistake
+--     -- has rendering consequences, but making the empty MetaMap->MetaList mistake
+--     -- does not.
+--     --
+--     -- It also seems impossible to know exactly if we have an empty list or empty
+--     -- map in general...
+--     if not anything_set then
+--       return pandoc.MetaList({})
+--     else
+--       return result
+--     end
+--     -- end
+--   else
+--     print("Internal Error: can't denormalize_meta this object.")  
+--     print(type(node), tostring(node))
+--     crash_with_stack_trace()
+--   end
+-- end
