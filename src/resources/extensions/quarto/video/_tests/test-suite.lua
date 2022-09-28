@@ -1,4 +1,4 @@
-package.path = package.path .. ';../_extensions/video/?.lua'
+package.path = package.path .. ';../?.lua'
 lu = require('luaunit')
 
 video = require('video')
