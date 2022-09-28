@@ -125,8 +125,8 @@ pandoc_emulated_node_factory = function(t)
         result[i] = v
       end
     else
-      for i, v in ipairs(args) do
-        result[argsTable[i]] = v
+      for i, _ in ipairs(argsTable) do
+        result[argsTable[i]] = args[i]
       end
     end
     return result
@@ -211,21 +211,6 @@ local pandoc_ast_methods = {
   is_custom = false
 }
 
-pandoc_has_attr = {
-  CodeBlock = true,
-  Div = true,
-  Header = true,
-  Table = true,
-  Row = true,
-  TableFoot = true,
-  TableHead = true,
-  Cell = true,
-  Code = true,
-  Image = true,
-  Link = true,
-  Span = true,
-}
-
 function pandoc_emulate_eq(a, b)
   if type(a) == "userdata" or type(b) == "userdata" then
     if type(a) == "userdata" then
@@ -251,30 +236,51 @@ function pandoc_emulate_eq(a, b)
   return true
 end
 
+pandoc_has_attr = {
+  Cell = true,
+  Code = true,
+  CodeBlock = true,
+  Div = true,
+  Header = true,
+  Image = true,
+  Link = true,
+  Row = true,
+  Span = true,
+  Table = true,
+  TableFoot = true,
+  TableHead = true,
+}
+
 pandoc_fixed_field_types = {
-  Pandoc = { blocks = "Blocks" },
+  -- DefinitionList
   BlockQuote = { content = "Blocks" },
   BulletList = { content = "List" }, -- BlocksList, but we can't represent that
-  -- DefinitionList
-
-  Div = { content = "Blocks" },
-  Header = { content = "Inlines" },
+  Cell = { attr = "Attr" },
+  Cite = { content = "Inlines" },
+  Code = { attr = "Attr" },
+  CodeBlock = { attr = "Attr" },
+  Div = { content = "Blocks", attr = "Attr" },
+  Emph = { content = "Inlines" },
+  Header = { content = "Inlines", attr = "Attr" },
+  Image = { caption = "Inlines", attr = "Attr" },
   LineBlock = { content = "List" }, -- InlinesList, but we can't represent that
+  Link = { content = "Inlines", attr = "Attr" },
+  Note = { content = "Blocks" },
   OrderedList = { content = "List" }, -- BlocksList, but we can't represent that
+  Pandoc = { blocks = "Blocks", },
   Para = { content = "Inlines" },
   Plain = { content = "Inlines" },
-  Cite = { content = "Inlines" },
-  Emph = { content = "Inlines" },
-  Image = { caption = "Inlines" },
-  Link = { content = "Inlines" },
-  Note = { content = "Blocks" },
   Quoted = { content = "Inlines" },
+  Row = { attr = "Attr" },
   SmallCaps = { content = "Inlines" },
-  Span = { content = "Inlines" },
+  Span = { content = "Inlines", attr = "Attr" },
   Strikeout = { content = "Inlines" },
   Strong = { content = "Inlines" },
   Subscript = { content = "Inlines" },
   Superscript = { content = "Inlines" },
+  Table = { attr = "Attr" },
+  TableFoot = { attr = "Attr" },
+  TableHead = { attr = "Attr" },
   Underline = { content = "Inlines" },
 }
 
@@ -284,9 +290,9 @@ function _build_extended_node(t, is_custom)
   end
   local ExtendedAstNode = {}
   is_custom = is_custom or false
-  if pandoc_has_attr[t] then
-    ExtendedAstNode.attr = pandoc.Attr() -- let's not try to reinvent this one because 'attributes' is tricky
-  end
+  -- if pandoc_has_attr[t] then
+  --   ExtendedAstNode.attr = pandoc.Attr() -- let's not try to reinvent this one because 'attributes' is tricky
+  -- end
 
   local metaFields = {
     t = t,
