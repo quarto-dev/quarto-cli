@@ -55,6 +55,7 @@ window.document.addEventListener("DOMContentLoaded", function () {
     const bodyEl = window.document.body;
     bodyEl.setAttribute("data-bs-offset", topOffset);
     bodyEl.style.paddingTop = topOffset + "px";
+    bodyEl.style.scrollPaddingTop = topOffset + "px";
 
     // deal with sidebar offsets
     const sidebars = window.document.querySelectorAll(
