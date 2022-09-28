@@ -387,8 +387,6 @@ quarto.ast = {
     )
 
     if pandoc_has_attr[el.t] then
-      local attr1 = pandoc.Attr({ id = "foo1" })
-      local attr2 = pandoc.Attr(attr1)
       ExtendedAstNode.attr = pandoc.Attr(el.attr)
     end
 
