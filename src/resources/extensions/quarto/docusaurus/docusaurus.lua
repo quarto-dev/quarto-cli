@@ -23,13 +23,13 @@ function Pandoc(doc)
         ","
       )
     )
-    doc.blocks:insert(1, pandoc.RawBlock("markdown", exports))
+    doc.blocks:insert(1, pandoc.RawBlock("markdown", exports .. "\n"))
   end
 
   -- insert react preamble if we have it
   if #reactPreamble > 0 then
-    local preamble = table.concat(reactPreamble, "\n") .. "\n"
-    doc.blocks:insert(1, pandoc.RawBlock("markdown", preamble))
+    local preamble = table.concat(reactPreamble, "\n")
+    doc.blocks:insert(1, pandoc.RawBlock("markdown", preamble .. "\n"))
   end
 
   return doc
@@ -63,7 +63,7 @@ function RawBlock(el)
 
     -- generate a div container for the raw html and return it as the block
     local html = ("<div dangerouslySetInnerHTML={{ __html: %s[%d] }} />")
-      :format(kQuartoRawHtml, #rawHtmlVars-1)
+      :format(kQuartoRawHtml, #rawHtmlVars-1) .. "\n"
     return pandoc.RawBlock("html", html)
   end
 end

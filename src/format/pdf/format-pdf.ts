@@ -238,6 +238,17 @@ function createPdfFormat(autoShiftHeadings = true, koma = true): Format {
           };
         }
 
+        // pdfs with document class scrbook get number sections turned on
+        // https://github.com/quarto-dev/quarto-cli/issues/2369
+        extras.pandoc = extras.pandoc || {};
+        if (
+          documentclass === "scrbook" &&
+          format.pandoc[kNumberSections] !== false &&
+          flags[kNumberSections] !== false
+        ) {
+          extras.pandoc[kNumberSections] = true;
+        }
+
         return extras;
       },
     },

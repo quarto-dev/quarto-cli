@@ -15,7 +15,6 @@ import {
   SEP_PATTERN,
 } from "path/mod.ts";
 import { existsSync, walkSync } from "fs/mod.ts";
-import { warning } from "log/mod.ts";
 import * as ld from "../core/lodash.ts";
 
 import { ProjectType } from "./types/types.ts";
@@ -83,7 +82,10 @@ import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
 import { getProjectConfigSchema } from "../core/lib/yaml-schema/project-config.ts";
 import { getFrontMatterSchema } from "../core/lib/yaml-schema/front-matter.ts";
 import { kDefaultProjectFileContents } from "./types/project-default.ts";
-import { createExtensionContext } from "../extension/extension.ts";
+import {
+  createExtensionContext,
+  filterExtensions,
+} from "../extension/extension.ts";
 import { initializeProfileConfig } from "./project-profile.ts";
 import { dotenvSetVariables } from "../quarto-core/dotenv.ts";
 import { ConcreteSchema } from "../core/lib/yaml-schema/types.ts";
@@ -428,6 +430,7 @@ async function resolveProjectExtension(
   projectConfig: ProjectConfig,
   dir: string,
 ) {
+  // Find extensions
   const extensions = await context.find(
     projectType,
     dir,
@@ -436,19 +439,11 @@ async function resolveProjectExtension(
     dir,
   );
 
-  if (extensions.length > 1) {
-    // There are more than one extensions matching this project
-    warning(
-      `The project type '${projectType}' matched more than one extension. Please use a full name to disambiguate between the types:\n  ${
-        extensions.map((ext) => {
-          return ext.id;
-        }).join("\n  ")
-      }`,
-    );
-  }
+  // filter the extensions to resolve duplication
+  const filtered = filterExtensions(extensions, projectType, "project");
 
-  if (extensions.length > 0) {
-    const extension = extensions[0];
+  if (filtered.length > 0) {
+    const extension = filtered[0];
     const projectExt = extension.contributes.project;
 
     if (projectExt) {

@@ -146,7 +146,6 @@ import { readYamlFromMarkdown } from "../yaml.ts";
 import { languagesInMarkdown } from "../../execute/engine-shared.ts";
 import { pathWithForwardSlashes } from "../path.ts";
 import { convertToHtmlSpans, hasAnsiEscapeCodes } from "../ansi-colors.ts";
-import { warning } from "log/mod.ts";
 
 export const kJupyterNotebookExtensions = [
   ".ipynb",
