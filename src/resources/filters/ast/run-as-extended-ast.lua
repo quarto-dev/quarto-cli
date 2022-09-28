@@ -4,7 +4,7 @@ function do_it(doc, filters)
     -- quarto.utils.dump(doc)
 
     for i, v in pairs(filters) do
-      print("Will run filter " .. tostring(v._filter_name or i) .. ": ")
+      -- print("Will run filter " .. tostring(v._filter_name or i) .. ": ")
       -- print("This is the filter:")
       -- quarto.utils.dump(v, true)
       -- print("This is the doc:")
@@ -119,6 +119,7 @@ function emulate_pandoc_filter(filters, unextended)
     __index = function(tbl, key)
       if key == "t" then return "Blocks" end
       if key == "walk" then return emulate_pandoc_walk end
+      if key == "is_emulated" then return true end
       return pandoc_blocks_mtbl.__index[key] -- pandoc_blocks_mtbl.__index is a _table_ (!)
     end,    
   }
@@ -174,28 +175,39 @@ function emulate_pandoc_filter(filters, unextended)
       pandoc[k] = pandoc_emulated_node_factory(k)
     end
     pandoc.Inlines = function(value)
-      if tisarray(value) and not value.is_emulated then
-        local result = tmap(value, function(v) 
-          return v 
-        end)
-        setmetatable(result, inlines_mtbl)
+      local result = {}
+      setmetatable(result, inlines_mtbl)
+
+      if value == nil then
         return result
+      elseif value.t == "Inlines" or value.t == "List" or (tisarray(value) and not value.is_emulated) then
+        result:extend(value)
+        return result
+      elseif value.t == "Blocks" then
+        print("Type error: can't initialize Inlines with Blocks")
+        crash_with_stack_trace()
       else
-        local result = { value }
-        setmetatable(result, inlines_mtbl)
+        result:insert(value)
         return result
       end
     end
-    pandoc.Blocks = function(value)      
-      if tisarray(value) and not value.is_emulated then
-        local result = tmap(value, function(v) return v end)
-        setmetatable(result, blocks_mtbl)
+    pandoc.Blocks = function(value)
+      local result = {}
+      setmetatable(result, blocks_mtbl)
+
+      if value == nil then
         return result
+      elseif value.t == "Blocks" or value.t == "List" or (tisarray(value) and not value.is_emulated) then
+        result:extend(value)
+        return result
+      elseif value.t == "Inlines" then
+        print("Type error: can't initialize Blocks with Inlines")
+        crash_with_stack_trace()
       else
-        local result = { value }
-        setmetatable(result, blocks_mtbl)
+        result:insert(value)
         return result
       end
+
     end
   end
 
