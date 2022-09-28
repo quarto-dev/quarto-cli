@@ -71,23 +71,6 @@ function ast_node_property_pairs(node)
   end
 end
 
-function ast_array_pairs(node, init)
-  local next = pairs(node)
-  local index
-
-  return function()
-    local k, v
-    repeat
-      k, v = next(node, index)
-      if k == nil then
-        return nil
-      end
-      index = k
-    until type(k) == "number" and (not init or k >= init)
-    return k, v
-  end
-end
-
 function ast_node_array_map(node_array, fn)
   if tisarray(node_array) then
     return tmap(node_array, fn)
