@@ -34,6 +34,15 @@ function do_it(doc, filters)
   return doc
 end
 
+function concat_denormalize_first(a, b)
+  if a.is_emulated or a.t == "Inlines" or a.t == "Blocks" or a.t == "List" then -- these are the emulated arrays
+    a = denormalize(a)
+  end
+  if b.is_emulated or b.t == "Inlines" or b.t == "Blocks" or b.t == "List" then -- these are the emulated arrays
+    b = denormalize(b)
+  end
+  return a .. b
+end
 
 function emulate_pandoc_filter(filters, unextended)
   local walk_block = pandoc.walk_block
@@ -82,16 +91,6 @@ function emulate_pandoc_filter(filters, unextended)
     end
   }
 
-  local stringify_first = function(a, b)
-    -- if a.is_emulated or a.t == "Inlines" or a.t == "Blocks" or a.t == "List" then -- these are the emulated arrays
-    --   a = denormalize(a)
-    -- end
-    -- if b.is_emulated or b.t == "Inlines" or b.t == "Blocks" or b.t == "List" then -- these are the emulated arrays
-    --   b = denormalize(b)
-    -- end
-    return a .. b
-  end
-
   setmetatable(our_mediabag, {
     __index = mediabag,
   })
@@ -103,16 +102,13 @@ function emulate_pandoc_filter(filters, unextended)
       if key == "is_emulated" then return true end
       return pandoc_inlines_mtbl.__index[key] -- pandoc_inlines_mtbl.__index is a _table_ (!)
     end,
+    __concat = concat_denormalize_first
   }
 
   setmetatable(inlines_mtbl, {
     __index = function(_, key)
       return pandoc_inlines_mtbl[key]
     end,
-    -- __tostring = function(lst)
-    --   return utils.stringify(denormalize(lst))
-    -- end,
-    -- __concat = stringify_first
   })
 
   local blocks_mtbl = {
@@ -122,16 +118,13 @@ function emulate_pandoc_filter(filters, unextended)
       if key == "is_emulated" then return true end
       return pandoc_blocks_mtbl.__index[key] -- pandoc_blocks_mtbl.__index is a _table_ (!)
     end,    
+    __concat = concat_denormalize_first
   }
 
   setmetatable(blocks_mtbl, {
     __index = function(_, key)
       return pandoc_blocks_mtbl[key]
     end,
-    -- __tostring = function(lst)
-    --   return utils.stringify(denormalize(lst))
-    -- end,
-    -- __concat = stringify_first
   })
 
   local ast_constructors = {}

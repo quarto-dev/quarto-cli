@@ -329,6 +329,7 @@ function _build_extended_node(t, is_custom)
         end
       end      
     end,
+    __concat = stringify_first,
     __newindex = function(tbl, key, value)
       -- print("__newindex", key)
       -- crash_with_stack_trace()

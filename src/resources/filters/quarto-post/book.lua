@@ -22,10 +22,7 @@ function quartoBook()
           -- Works around https://github.com/jgm/pandoc/issues/1632
           -- See https://github.com/quarto-dev/quarto-cli/issues/2412
           if el.level <= 2 and el.classes:includes 'unnumbered' then
-            quarto.utils.dump(el)
             local title = clean(el.content)
-            quarto.utils.dump(title)
-            crash_with_stack_trace()
             local secmark = el.level == 1
               and l'\\markboth{' .. title .. l'}{' .. title .. l'}'
               or l'\\markright{' .. title .. l'}' -- subsection, keep left mark unchanged
