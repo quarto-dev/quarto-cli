@@ -83,6 +83,38 @@ function apply_filter_topdown_blocks_or_inlines(filter, blocks_or_inlines)
   return result  
 end
 
+function apply_filter_bottomup_blocks_or_inlines(filter, blocks_or_inlines)
+  local t = blocks_or_inlines.t or pandoc.utils.type(blocks_or_inlines) -- or blocks_or_inlines["-quarto-internal-type-"]
+  local filterFn = filter[t]
+  if filterFn ~= nil then
+    local filterResult = filterFn(blocks_or_inlines)
+    if filterResult ~= nil then
+      blocks_or_inlines = ast_node_array_map(filterResult, as_normalize)
+    end
+  end
+
+  local result = quarto.ast.pandoc[t]()
+  for k, v in pairsByKeys(blocks_or_inlines, typesThenValues) do
+    if is_content_field(k) then
+      local filterResult = apply_filter_bottomup(filter, v)
+      if filterResult == nil then
+        -- nil means unchanged object
+        result:insert(v)
+      elseif is_ast_node_array(filterResult) then
+        -- array of results: splice those in.
+        -- this includes empty array, which means "remove me"
+        for _, innerV in ast_node_property_pairs(filterResult) do
+          result:insert(as_normalize(innerV))
+        end
+      else
+        -- changed object, use that instead
+        result:insert(as_normalize(filterResult))
+      end          
+    end
+  end
+  return result  
+end
+
 -- from https://www.lua.org/pil/2.html
 is_atom = {
   ["number"] = true,
@@ -93,6 +125,87 @@ is_atom = {
   -- userdata
   -- thread?!?!
 }
+
+function apply_filter_bottomup(filter, node)
+  local nodeType = type(node)
+  if is_atom[nodeType] then
+    return node
+  end
+
+  local t = node.t -- or node["-quarto-internal-type-"]
+  local pandocT = pandoc.utils.type(node)
+  if pandocT == "Blocks" or pandocT == "Inlines" then
+    return apply_filter_bottomup_blocks_or_inlines(filter, node)
+  end
+  if pandocT == "List" then
+    local result = pandoc.List()
+    result:extend(tmap(node, function(n) 
+      return apply_filter_bottomup(filter, n) end
+    ))
+    return result
+  end
+
+  if t == nil then
+    if tisarray(node) then
+      return tmap(node, function(n) 
+        return apply_filter_bottomup(filter, n) end
+      )
+    else
+      -- TableBody, smh
+      local result = {}
+      for k, v in pairs(node) do
+        result[k] = apply_filter_bottomup(filter, v)
+      end
+      return result
+    end
+  end
+  if t == "Attr" then
+    return node
+  end
+
+  -- walk children
+  if type(node) == "userdata" then
+    -- we can only emulate walks on emulated nodes
+    node = normalize(node)
+  end
+
+  local newResult = {}
+  local result
+  local changed = false
+  for k, v in ast_node_property_pairs(node) do
+    local newV = apply_filter_bottomup(filter, v)
+    if newV ~= nil then
+      changed = true
+      newResult[k] = newV
+    end
+  end
+  if changed then
+    result = node:clone()
+    for k, v in pairs(newResult) do
+      result[k] = v
+    end
+  else
+    result = node
+  end
+
+  local fn = (filter[t] 
+    or filter[node.is_custom and "Custom"] -- explicit check needed for Meta :facepalm:
+    or filter[(is_block[t] and "Block") or "Inline"])
+
+  if fn == nil then
+    return result
+  end
+
+  local filterResult = fn(result)
+
+  if filterResult == nil then
+    return result
+  elseif is_ast_node_array(filterResult) then
+    return ast_node_array_map(filterResult, as_normalize)
+  else
+    return as_normalize(filterResult)
+  end
+end
 
 function apply_filter_topdown(filter, node)
 
@@ -169,7 +282,7 @@ function apply_filter_topdown(filter, node)
 end
 
 function walk_inline_splicing(filter, node)
-  return apply_filter_topdown({
+  return apply_filter_bottomup({
     Inlines = function(inlines)
       local result = pandoc.Inlines()
       for k, inline in pairs(inlines) do
@@ -183,16 +296,16 @@ function walk_inline_splicing(filter, node)
           result:insert(filterResult)
         end
       end
-      return result, false
+      return result
     end,
   }, node)
 end
 
 function walk_block_splicing(filter, node)
-  return apply_filter_topdown({
+  return apply_filter_bottomup({
     Blocks = function(blocks)
       local result = pandoc.Blocks()
-      for k, block in pairs(blocks) do
+      for k, block in ipairs(blocks) do
         local filterFn = is_block[block.t] and (filter[block.t] or filter.Block)
         local filterResult = filterFn and filterFn(block)
         if filterResult == nil then
@@ -203,13 +316,13 @@ function walk_block_splicing(filter, node)
           result:insert(filterResult)
         end
       end
-      return result, false
+      return result
     end,
   }, node)
 end
 
 function walk_custom_splicing(filter, node)
-  return apply_filter_topdown({
+  return apply_filter_bottomup({
     Blocks = function(blocks)
       local result = pandoc.Blocks()
       for k, custom in pairs(blocks) do
@@ -223,7 +336,7 @@ function walk_custom_splicing(filter, node)
           result:insert(filterResult)
         end
       end
-      return result, false
+      return result
     end,
     Inlines = function(inlines)
       local result = pandoc.Inlines()
@@ -238,7 +351,7 @@ function walk_custom_splicing(filter, node)
           result:insert(filterResult)
         end
       end
-      return result, false
+      return result
     end,
   }, node)
 end
