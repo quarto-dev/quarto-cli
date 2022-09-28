@@ -1344,7 +1344,7 @@ end
 -- resolves a path, providing either the original path
 -- or if relative, a path that is based upon the 
 -- script location
-local function resolvePath(path)          
+local function resolvePath(path)
   if isRelativeRef(path) then
     local wd = pandoc.system.get_working_directory()
     return pandoc.path.join({wd, pandoc.path.normalize(path)})

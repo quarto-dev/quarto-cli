@@ -4,7 +4,7 @@ function do_it(doc, filters)
     -- quarto.utils.dump(doc)
 
     for i, v in pairs(filters) do
-      -- print("Will run filter " .. tostring(v._filter_name or i) .. ": ")
+      print("Will run filter " .. tostring(v._filter_name or i) .. ": ")
       -- print("This is the filter:")
       -- quarto.utils.dump(v, true)
       -- print("This is the doc:")
@@ -44,47 +44,93 @@ function emulate_pandoc_filter(filters, unextended)
   local pandoc_inlines_mtbl = getmetatable(pandoc.Inlines({}))
   local pandoc_blocks_mtbl = getmetatable(pandoc.Blocks({}))
   local utils = pandoc.utils
+  local mediabag = pandoc.mediabag
 
   local our_utils = {
     blocks_to_inlines = function(lst)
       return normalize(utils.blocks_to_inlines(denormalize(lst)))
     end,
-    stringify = function(v)
-      return utils.stringify(denormalize(v))
+    citeproc = function(lst)
+      return normalize(utils.citeproc(denormalize(doc)))
+    end,
+    make_sections = function(number_sections, base_level, blocks)
+      return normalize(utils.make_sections(number_sections, base_level, denormalize(blocks)))
     end,
     from_simple_table = function(v)
       return normalize(utils.from_simple_table(denormalize(v)))
     end,
     to_simple_table = function(v)
       return normalize(utils.to_simple_table(denormalize(v)))
-    end
+    end,
+    references = function(doc)
+      return utils.references(denormalize(doc))
+    end,
+    run_json_filter = function(doc, command, arguments)
+      return normalize(utils.run_json_filter(denormalize(doc), command, arguments))
+    end,
+    stringify = function(v)
+      return utils.stringify(denormalize(v))
+    end,
   }
   setmetatable(our_utils, {
     __index = utils
   })
 
+  local our_mediabag = {
+    fill = function(doc)
+      return normalize(mediabag.fill(denormalize(doc)))
+    end
+  }
+
+  local stringify_first = function(a, b)
+    -- if a.is_emulated or a.t == "Inlines" or a.t == "Blocks" or a.t == "List" then -- these are the emulated arrays
+    --   a = denormalize(a)
+    -- end
+    -- if b.is_emulated or b.t == "Inlines" or b.t == "Blocks" or b.t == "List" then -- these are the emulated arrays
+    --   b = denormalize(b)
+    -- end
+    return a .. b
+  end
+
+  setmetatable(our_mediabag, {
+    __index = mediabag,
+  })
+  
   local inlines_mtbl = {
     __index = function(tbl, key)
       if key == "t" then return "Inlines" end
+      if key == "walk" then return emulate_pandoc_walk end
+      if key == "is_emulated" then return true end
       return pandoc_inlines_mtbl.__index[key] -- pandoc_inlines_mtbl.__index is a _table_ (!)
-    end,    
+    end,
   }
+
   setmetatable(inlines_mtbl, {
-    __index = function(tbl, key)
+    __index = function(_, key)
       return pandoc_inlines_mtbl[key]
-    end
+    end,
+    -- __tostring = function(lst)
+    --   return utils.stringify(denormalize(lst))
+    -- end,
+    -- __concat = stringify_first
   })
 
   local blocks_mtbl = {
     __index = function(tbl, key)
       if key == "t" then return "Blocks" end
+      if key == "walk" then return emulate_pandoc_walk end
       return pandoc_blocks_mtbl.__index[key] -- pandoc_blocks_mtbl.__index is a _table_ (!)
     end,    
   }
+
   setmetatable(blocks_mtbl, {
-    __index = function(tbl, key)
+    __index = function(_, key)
       return pandoc_blocks_mtbl[key]
-    end
+    end,
+    -- __tostring = function(lst)
+    --   return utils.stringify(denormalize(lst))
+    -- end,
+    -- __concat = stringify_first
   })
 
   local ast_constructors = {}
@@ -93,6 +139,8 @@ function emulate_pandoc_filter(filters, unextended)
   quarto.ast._true_pandoc.Inlines = Inlines
 
   function install_pandoc_overrides()
+    pandoc.utils = our_utils
+    pandoc.mediabag = our_mediabag
     pandoc.TableBody = function(body, head, row_head_columns, attr)
       return {
         body = body,
@@ -102,7 +150,6 @@ function emulate_pandoc_filter(filters, unextended)
         t = "TableBody"
       }
     end
-    pandoc.utils = our_utils
     pandoc.walk_block = function(el, filter)
       if el.is_emulated then
         return el:walk(filter)
@@ -154,6 +201,7 @@ function emulate_pandoc_filter(filters, unextended)
 
   function restore_pandoc_overrides()
     pandoc.utils = utils
+    pandoc.mediabag = mediabag
     pandoc.walk_block = walk_block
     pandoc.walk_inline = walk_inline
     pandoc.write = write

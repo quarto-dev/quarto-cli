@@ -17,7 +17,6 @@ end
 makeExtendedUserFilters = function(filterListName)
   local filters = {}
   for i, v in ipairs(param("quarto-filters")[filterListName]) do
-    v = pandoc.utils.stringify(v)
     local wrapped = makeWrappedFilter(v, plainLoader)
     if tisarray(wrapped) then
       for i, innerWrapped in pairs(wrapped) do
