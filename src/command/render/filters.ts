@@ -46,18 +46,14 @@ import { Metadata } from "../../config/types.ts";
 import { kProjectType } from "../../project/types.ts";
 import { bibEngine } from "../../config/pdf.ts";
 import { resourcePath } from "../../core/resources.ts";
-import {
-  crossrefFilter,
-  crossrefFilterActive,
-  crossrefFilterParams,
-} from "./crossref.ts";
-import { layoutFilter, layoutFilterParams } from "./layout.ts";
+import { crossrefFilterActive, crossrefFilterParams } from "./crossref.ts";
+import { layoutFilterParams } from "./layout.ts";
 import { pandocMetadataPath } from "./render-paths.ts";
 import { removePandocArgs } from "./flags.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { projectType } from "../../project/types/project-types.ts";
 import { readCodePage } from "../../core/windows.ts";
-import { authorsFilter, authorsFilterActive } from "./authors.ts";
+import { authorsFilterActive } from "./authors.ts";
 import { formatHasBootstrap } from "../../format/html/format-html-info.ts";
 import { activeProfiles, kQuartoProfile } from "../../quarto-core/profile.ts";
 import {
@@ -129,20 +125,8 @@ export function removeFilterParams(metadata: Metadata) {
   delete metadata[kQuartoParams];
 }
 
-export function quartoInitFilter() {
-  return resourcePath("filters/quarto-init/quarto-init.lua");
-}
-
-export function quartoPreFilter() {
-  return resourcePath("filters/quarto-pre/quarto-pre.lua");
-}
-
-export function quartoPostFilter() {
-  return resourcePath("filters/quarto-post/quarto-post.lua");
-}
-
-export function quartoFinalizeFilter() {
-  return resourcePath("filters/quarto-finalize/quarto-finalize.lua");
+export function quartoMainFilter() {
+  return resourcePath("filters/main.lua");
 }
 
 function extractFilterSpecParams(
@@ -550,25 +534,11 @@ export async function resolveFilters(
 ): Promise<QuartoFilterSpec | undefined> {
   // build list of quarto filters
 
-  // The default order of filters will be
-  // quarto-init
-  // quarto-authors
-  // user filters
-  // extension filters
-  // quarto-filters <quarto>
-  // quarto-finalizer
-  // citeproc
-
   const beforeQuartoFilters: QuartoFilter[] = [];
   const afterQuartoFilters: QuartoFilter[] = [];
 
   const quartoFilters: string[] = [];
-  quartoFilters.push(quartoPreFilter());
-  if (crossrefFilterActive(options)) {
-    quartoFilters.push(crossrefFilter());
-  }
-  quartoFilters.push(layoutFilter());
-  quartoFilters.push(quartoPostFilter());
+  quartoFilters.push(quartoMainFilter());
 
   // Resolve any filters that are provided by an extension
   filters = await resolveFilterExtension(options, filters);
@@ -587,17 +557,6 @@ export async function resolveFilters(
     beforeQuartoFilters.push(...filters);
     // afterQuartoFilters remains empty.
   }
-
-  // The author filter, if enabled
-  if (authorsFilterActive(options)) {
-    quartoFilters.unshift(authorsFilter());
-  }
-
-  // The initializer for Quarto
-  quartoFilters.unshift(quartoInitFilter());
-
-  // The finalizer for Quarto
-  quartoFilters.push(quartoFinalizeFilter());
 
   // citeproc at the very end so all other filters can interact with citations
   filters = filters.filter((filter) => filter !== kQuartoCiteProcMarker);

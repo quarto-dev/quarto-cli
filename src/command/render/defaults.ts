@@ -29,17 +29,8 @@ import {
 
 import { kPatchedTemplateExt } from "./template.ts";
 import { PandocOptions } from "./types.ts";
-import { crossrefFilter } from "./crossref.ts";
-import { layoutFilter } from "./layout.ts";
-import {
-  quartoFinalizeFilter,
-  quartoPostFilter,
-  quartoPreFilter,
-  resolveFilters,
-} from "./filters.ts";
+import { quartoMainFilter, resolveFilters } from "./filters.ts";
 import { TempContext } from "../../core/temp.ts";
-import { authorsFilter } from "./authors.ts";
-import { kGfmCommonmarkFormat } from "../../format/markdown/format-markdown.ts";
 
 export async function generateDefaults(
   options: PandocOptions,
@@ -141,19 +132,8 @@ export function pandocDefaultsMessage(
   // simplify crossref filter
   if (defaults.filters?.length) {
     defaults.filters = defaults.filters
-      .map((filter) => {
-        if (filter === crossrefFilter()) {
-          return "crossref";
-        } else {
-          return filter;
-        }
-      })
       .filter((filter) => {
-        return filter !== quartoPreFilter() &&
-          filter !== quartoPostFilter() &&
-          filter !== layoutFilter() &&
-          filter !== authorsFilter() &&
-          filter !== quartoFinalizeFilter() &&
+        return filter !== quartoMainFilter() &&
           filtersContains(sysFilters, filter);
       });
     if (defaults.filters?.length === 0) {
