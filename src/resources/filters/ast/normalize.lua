@@ -534,13 +534,29 @@ function denormalize_meta(node)
   
     if type(meta) == "table" then
       local result = {}
+      local anything_set = false
       for k, v in pairs(meta) do
+        anything_set = true
         result[k] = unmeta(v)
       end
-      return result
+      -- TODO it seems that sometimes making the empty MetaList->MetaMap mistake
+      -- has rendering consequences (we get a stray "true" rendered into the output), 
+      -- but making the empty MetaMap->MetaList mistake
+      -- does not. So if we have an empty object, we always call it a MetaList({})
+      --
+      -- It also seems impossible to know exactly if we have an empty list or empty
+      -- map in general...
+      if not anything_set then
+        return pandoc.MetaList({})
+      else
+        return result
+      end
+    else
+      print("Don't know how to unmeta this value:")
+      print(type(meta))
+      print(t)
+      crash_with_stack_trace()
     end
-    print(t)
-    crash_with_stack_trace()
   end
 
   return unmeta(node)
