@@ -200,7 +200,7 @@ apply_filter_bottomup = function(filter, node)
 
   local fn = (filter[t] 
     or filter[node.is_custom and "Custom"] -- explicit check needed for Meta :facepalm:
-    or filter[(is_block[t] and "Block") or "Inline"])
+    or filter[(pandoc_is_block[t] and "Block") or "Inline"])
 
   if fn == nil then
     return result
@@ -233,7 +233,7 @@ apply_filter_topdown = function(filter, node)
   -- are there user filter functions or fallback functions?
   local fn = (filter[t] 
     or filter[node.is_custom and "Custom"] -- explicit check needed for Meta :facepalm:
-    or filter[(is_block[t] and "Block") or "Inline"])
+    or filter[(pandoc_is_block[t] and "Block") or "Inline"])
   
   if fn ~= nil then
     local filterResult, cut = fn(node)
@@ -242,7 +242,7 @@ apply_filter_topdown = function(filter, node)
     -- short the traverse
     if cut == false then
       -- if filter function returned an actual pandoc object in their filters,
-      -- we allow that and reto_emulated it before continuing.
+      -- we allow that and reemulate it before continuing.
       if filterResult == nil then
         return node
       elseif is_ast_node_array(filterResult) then
@@ -256,7 +256,7 @@ apply_filter_topdown = function(filter, node)
     -- and return the array
     if is_ast_node_array(filterResult) then
       -- if filter function returned an actual pandoc object in their filters,
-      -- we allow that and reto_emulated it before continuing.
+      -- we allow that and reemulate it before continuing.
       return ast_node_array_map(filterResult, function(innerNode)
         return apply_filter_topdown(filter, as_emulated(innerNode)) 
       end)
@@ -291,8 +291,8 @@ local function walk_inline_splicing(filter, node)
   return apply_filter_bottomup({
     Inlines = function(inlines)
       local result = pandoc.Inlines()
-      for k, inline in pairs(inlines) do
-        local filterFn = is_inline[inline.t] and (filter[inline.t] or filter.Inline)
+      for _, inline in ipairs(inlines) do
+        local filterFn = pandoc_is_inline[inline.t] and (filter[inline.t] or filter.Inline)
         local filterResult = filterFn and filterFn(inline)
         if filterResult == nil then
           result:insert(inline)
@@ -311,8 +311,8 @@ local function walk_block_splicing(filter, node)
   return apply_filter_bottomup({
     Blocks = function(blocks)
       local result = pandoc.Blocks()
-      for k, block in ipairs(blocks) do
-        local filterFn = is_block[block.t] and (filter[block.t] or filter.Block)
+      for _, block in ipairs(blocks) do
+        local filterFn = pandoc_is_block[block.t] and (filter[block.t] or filter.Block)
         local filterResult = filterFn and filterFn(block)
         if filterResult == nil then
           result:insert(block)
@@ -331,7 +331,7 @@ local function walk_custom_splicing(filter, node)
   return apply_filter_bottomup({
     Blocks = function(blocks)
       local result = pandoc.Blocks()
-      for k, custom in pairs(blocks) do
+      for _, custom in ipairs(blocks) do
         local filterFn = custom.is_custom and (filter[custom.t] or filter.Custom)
         local filterResult = filterFn and filterFn(custom)
         if filterResult == nil then
@@ -346,7 +346,7 @@ local function walk_custom_splicing(filter, node)
     end,
     Inlines = function(inlines)
       local result = pandoc.Inlines()
-      for k, custom in pairs(inlines) do
+      for _, custom in ipairs(inlines) do
         local filterFn = custom.is_custom and (filter[custom.t] or filter.Custom)
         local filterResult = filterFn and filterFn(custom)
         if filterResult == nil then

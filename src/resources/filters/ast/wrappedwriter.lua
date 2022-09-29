@@ -26,7 +26,7 @@ local ourWrappedWriter = makeWrappedFilter(param("custom-writer"), function(hand
     Pandoc = function(doc)
       local result = {}
       if doc.blocks then
-        for i, block in pairs(doc.blocks) do
+        for _, block in ipairs(doc.blocks) do
           table.insert(result, block)
         end
       end
@@ -51,10 +51,10 @@ local ourWrappedWriter = makeWrappedFilter(param("custom-writer"), function(hand
 
     Cite = function(element)
       local result = {}
-      for i, block in pairs(element.content) do
+      for _, block in ipairs(element.content) do
         table.insert(result, block)
       end
-      for i, block in pairs(element.citations) do
+      for _, block in ipairs(element.citations) do
         table.insert(result, block)
       end
       return result
@@ -169,7 +169,7 @@ local ourWrappedWriter = makeWrappedFilter(param("custom-writer"), function(hand
 
       if nodeHandler == nil then
         -- no handler, just walk the internals in some default order
-        for i,v in pairs(bottomUpWalkers[t](node)) do
+        for _, v in ipairs(bottomUpWalkers[t](node)) do
           local inner = bottomUp(v)
           if inner then
             mapOrCall(handleBottomUpResult, inner)

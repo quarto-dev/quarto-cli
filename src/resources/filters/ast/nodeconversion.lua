@@ -1,3 +1,8 @@
+-- nodeconversion.lua
+-- converts to and from quarto's emulated pandoc nodes
+--
+-- Copyright (C) 2022 by RStudio, PBC
+
 function to_emulated(node)
   local doArray = function(lst)
     return tmap(lst, to_emulated)
@@ -8,8 +13,8 @@ function to_emulated(node)
   end
 
   local doInlinesArray = function(lst)
-    local normalized_contents = tmap(lst, to_emulated)
-    local result = pandoc.Inlines(normalized_contents)
+    local emulated = tmap(lst, to_emulated)
+    local result = pandoc.Inlines(emulated)
     return result
   end
 
@@ -447,15 +452,15 @@ function from_emulated(node)
   end
 
   if node.is_custom then
-    local denormalizedTable = {}
+    local nativeTable = {}
     for k, v in pairs(node) do
       if not (k == "t" or k == "tag" or k == "class" or k == "attr") then
-        denormalizedTable[k] = from_emulated(v)
+        nativeTable[k] = from_emulated(v)
       else
-        denormalizedTable[k] = v
+        nativeTable[k] = v
       end
     end
-    return quarto.ast.build(node.t, denormalizedTable)
+    return quarto.ast.build(node.t, nativeTable)
   end
 
   local t = node.t
