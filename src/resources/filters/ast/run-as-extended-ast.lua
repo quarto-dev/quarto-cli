@@ -1,17 +1,8 @@
 function do_it(doc, filters)
   if tisarray(filters) then
-    -- print("This is the old doc")
-    -- quarto.utils.dump(doc)
-
     for i, v in pairs(filters) do
-      -- print("Will run filter " .. tostring(v._filter_name or i) .. ": ")
-      -- print("This is the filter:")
-      -- quarto.utils.dump(v, true)
-      -- print("This is the doc:")
-      -- quarto.utils.dump(doc, true)
       local function callback()
         local newDoc = doc:walk(v)
-        -- print("Result", newDoc)
         if newDoc ~= nil then
           doc = newDoc
         end

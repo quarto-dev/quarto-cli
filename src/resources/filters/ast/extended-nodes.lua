@@ -1,3 +1,8 @@
+-- customnodes.lua
+-- support for custom nodes in quarto's emulated ast
+-- 
+-- Copyright (C) 2022 by RStudio, PBC
+
 local handlers = {
   {
     -- use either string or array of strings
@@ -39,23 +44,6 @@ local handlers = {
 
 kExtendedAstTag = "quarto-extended-ast-tag"
 
-function ast_node_property_pairs(node)
-  local next = pairs(node)
-  local index
-
-  return function()
-    local k, v
-    repeat
-      k, v = next(node, index)
-      if k == nil then
-        return nil
-      end
-      index = k
-    until k ~= "attr" and type(v) ~= "function"
-    return k, v
-  end
-end
-
 function ast_node_array_map(node_array, fn)
   if tisarray(node_array) then
     return tmap(node_array, fn)
@@ -66,129 +54,6 @@ function ast_node_array_map(node_array, fn)
     end
     return result
   end
-end
-
-local pandoc_ast_methods = {
-  show = function(_)
-    return "UNIMPLEMENTED_SHOW_RESULT"
-  end,
-  clone = function(self)
-    -- FIXME this should be a deep copy
-    return quarto.ast.copy_as_emulated_node(self)
-  end,
-  walk = emulate_pandoc_walk,
-
-  -- custom nodes override this in their metatable
-  is_custom = false
-}
-
-function create_emulated_node(t, is_custom)
-  if t == "Inlines" or t == "Blocks" or t == "List" then
-    return pandoc[t]({})
-  end
-  local ExtendedAstNode = {}
-  is_custom = is_custom or false
-  -- if pandoc_has_attr[t] then
-  --   ExtendedAstNode.attr = pandoc.Attr() -- let's not try to reinvent this one because 'attributes' is tricky
-  -- end
-
-  local metaFields = {
-    t = t,
-    is_emulated = true,
-    is_custom = is_custom
-  }
-
-  for k, v in pairs(pandoc_fixed_field_types[t] or {}) do
-    metaFields[k] = create_emulated_node(v)
-  end
-
-  local special_resolution = function(tbl, key)
-    if metaFields[key] then return true, metaFields[key] end
-    if key == "-is-extended-ast-" then return true, true end
-    if key == "identifier" and tbl.attr then return true, tbl.attr.identifier end
-    if key == "attributes" and tbl.attr then return true, tbl.attr.attributes end
-    if key == "classes" and tbl.attr then return true, tbl.attr.classes end
-    if key == "c" then
-      if tbl.content then return true, tbl.content end
-    end
-    return false
-  end
-  local method_chain = { pandoc_ast_methods }
-  local method_resolution = function(key)
-    for _, tbl in pairs(method_chain) do
-      local method = tbl[key]
-      if method then return method end
-    end    
-  end
-
-  setmetatable(ExtendedAstNode, {
-    __index = function(tbl, key)
-      local resolved, value = special_resolution(tbl, key)
-      if resolved then return value end
-      return method_resolution(key)
-    end,
-    __eq = pandoc_emulate_eq,
-    __pairs = function(tbl)
-      local inMeta = pandoc_fixed_field_types[t]
-      local index
-
-      return function()
-        local k, v
-        if inMeta then
-          k, v = next(pandoc_fixed_field_types[t], index)
-          if k == nil then
-            inMeta = false
-            index = nil
-          else
-            index = k
-            return k, metaFields[k]
-          end
-        end
-
-        -- two if statements because we want to fall
-        -- through the end of the first into the second
-        if not inMeta then
-          repeat
-            k, v = next(ExtendedAstNode, index)
-            if k == nil then
-              return nil
-            end
-            index = k
-          until k ~= "attr" and type(v) ~= "function"
-          return k, v
-        end
-      end      
-    end,
-    __concat = concat_denormalize_first,
-    __newindex = function(tbl, key, value)
-      -- print("__newindex", key)
-      -- crash_with_stack_trace()
-      -- return
-      local fixedFieldType = (pandoc_fixed_field_types[t] or {})[key]
-      if fixedFieldType then
-        metaFields[key] = pandoc[fixedFieldType](value)
-        --   if value.is_emulated and tbl[key].t ~= value.t then
-        --     -- they tried to set content to a bad type, disallow
-        --     print("Internal Error: Content needs to be of type " .. tbl[key].t .. " (was given " .. value.t .. ")")
-        --     crash_with_stack_trace()            
-        --   elseif value.is_emulated then
-        --     -- they gave us a good value type, use it
-        --     metaFields.content = value
-        --   else
-        --     print("They gave us a plain array", ExtendedAstNode.t, metaFields.content.t)
-        --     -- they gave us a plain array, take it as
-        --     -- reason to turn their array into an emulated one of the right type
-        --     setmetatable(value, getmetatable(metaFields.content))
-        --     metaFields.content = value
-        --   end
-        -- end
-      else
-        rawset(tbl, key, value)
-      end
-    end
-  })
-
-  return ExtendedAstNode
 end
 
 quarto.ast = {
@@ -210,13 +75,13 @@ quarto.ast = {
       return create_emulated_node("Div") -- a lie to appease to type system
     end
 
-    local ExtendedAstNode = create_emulated_node(
+    local emulatedNode = create_emulated_node(
       el.t or pandoc.utils.type(el),
       el.is_custom or false
     )
 
     if pandoc_has_attr[el.t] then
-      ExtendedAstNode.attr = pandoc.Attr(el.attr)
+      emulatedNode.attr = pandoc.Attr(el.attr)
     end
 
     function is_content_field(k)
@@ -225,10 +90,10 @@ quarto.ast = {
 
     for k, v in pairs(el) do
       if is_content_field(k) then
-        ExtendedAstNode[k] = v
+        emulatedNode[k] = v
       end
     end
-    return ExtendedAstNode
+    return emulatedNode
   end,
 
   normalize = normalize,
@@ -265,16 +130,16 @@ quarto.ast = {
   end,
 
 
-  unbuild = function(extendedAstNode)
-    local name = extendedAstNode.attr.attributes["quarto-extended-ast-tag"]
+  unbuild = function(emulatedNode)
+    local name = emulatedNode.attr.attributes["quarto-extended-ast-tag"]
     local handler = quarto.ast.resolve_handler(name)
     if handler == nil then
       print("ERROR: couldn't find a handler for " .. name)
       crash_with_stack_trace()
     end
-    local divTable = { attr = extendedAstNode.attr }
+    local divTable = { attr = emulatedNode.attr }
     local key
-    for i, v in pairs(extendedAstNode.content) do
+    for i, v in pairs(emulatedNode.content) do
       if i % 2 == 1 then
         key = pandoc.utils.stringify(v)
       else
