@@ -58,6 +58,8 @@ local function emulate_pandoc_filter(filters, unextended)
   local write = pandoc.write
   local Inlines = pandoc.Inlines
   local Blocks = pandoc.Blocks
+  local MetaBlocks = pandoc.MetaBlocks
+  local MetaInlines = pandoc.MetaInlines
   local pandoc_inlines_mtbl = getmetatable(pandoc.Inlines({}))
   local pandoc_blocks_mtbl = getmetatable(pandoc.Blocks({}))
   local utils = pandoc.utils
@@ -220,7 +222,26 @@ local function emulate_pandoc_filter(filters, unextended)
         result:insert(value)
         return result
       end
-
+    end
+    pandoc.MetaBlocks = function(value)
+      local is_emulated = value.is_emulated
+      if is_emulated then
+        return MetaBlocks(quarto.ast.from_emulated(value))
+      elseif tisarray(value) then
+        return MetaBlocks(tmap(value, quarto.ast.from_emulated))
+      else
+        return MetaBlocks(value)
+      end
+    end
+    pandoc.MetaInlines = function(value)
+      local is_emulated = value.is_emulated
+      if is_emulated then
+        return MetaInlines(quarto.ast.from_emulated(value))
+      elseif tisarray(value) then
+        return MetaInlines(tmap(value, quarto.ast.from_emulated))
+      else
+        return MetaInlines(value)
+      end
     end
   end
 
@@ -235,6 +256,8 @@ local function emulate_pandoc_filter(filters, unextended)
     end
     pandoc.Inlines = Inlines
     pandoc.Blocks = Blocks
+    pandoc.MetaInlines = MetaInlines
+    pandoc.MetaBlocks = MetaBlocks
   end
 
   return {
