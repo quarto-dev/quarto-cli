@@ -1,5 +1,6 @@
 -- pandocwalk.lua
 -- emulate the walk method for our extended ast
+--
 -- Copyright (C) 2022 by RStudio, PBC
 
 -- We base this emulation on the original Haskell source:
