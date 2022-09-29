@@ -683,6 +683,15 @@ async function readExtension(
 
     const formatMeta = formats[key] as Metadata;
 
+    // If this is a custom writer, set the writer for the format
+    // using the full path to the lua file
+    if (key.endsWith(".lua")) {
+      const fullPath = join(extensionDir, key);
+      if (existsSync(fullPath)) {
+        formatMeta.writer = fullPath;
+      }
+    }
+
     // Resolve shortcodes and filters (these might come from embedded extension)
     // Note that resolving will throw if the extension cannot be resolved
     formatMeta.shortcodes = (formatMeta.shortcodes as string[] || []).flatMap((
