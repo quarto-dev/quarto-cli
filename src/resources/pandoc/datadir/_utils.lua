@@ -77,8 +77,6 @@ function tdump (tbl, raw)
 
       if tbl["-is-extended-ast-"] then
         printInner(typeIndent .. string.format("{ [quarto-extended-ast:%s:%s]%s", tbl.t, address, endOfOpen))
-      -- elseif tbl["-quarto-internal-type-"] then
-      --   printInner(typeIndent .. string.format("{ [quarto-pandoc:%s:%s]%s", tbl["-quarto-internal-type-"], address, endOfOpen))
       elseif tisarray(tbl) then
         printInner(typeIndent .. string.format("{ [array:%s]%s", address, endOfOpen))
       else
