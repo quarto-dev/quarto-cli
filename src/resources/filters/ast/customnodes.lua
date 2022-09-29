@@ -42,19 +42,7 @@ local handlers = {
   },
 }
 
-kExtendedAstTag = "quarto-extended-ast-tag"
-
-function ast_node_array_map(node_array, fn)
-  if tisarray(node_array) then
-    return tmap(node_array, fn)
-  else
-    local result = create_emulated_node(node_array.t)
-    for k, v in pairs(node_array) do
-      result[k] = fn(v)
-    end
-    return result
-  end
-end
+local kExtendedAstTag = "quarto-extended-ast-tag"
 
 quarto.ast = {
   custom = function(name, tbl)
