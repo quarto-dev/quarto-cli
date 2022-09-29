@@ -66,6 +66,7 @@ unitTest("smoke-all", async () => {
 
     for (const format of formats) {
       await quarto(["render", input, "--to", format]);
+      console.log(`Rendered ${input} to ${format}`);
       cleanoutput(input, format);
     }
   }

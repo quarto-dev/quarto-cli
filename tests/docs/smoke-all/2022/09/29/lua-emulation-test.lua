@@ -9,6 +9,6 @@ return {
     emu_test(pandoc.Str("Test"))
     emu_test(quarto.ast.to_emulated(quarto.ast.from_emulated(pandoc.Str("another"))))
     emu_test(pandoc.Inlines({"a", "b", "c"}))
-    emu_test(pandoc.Blocks({pandoc.Plain(pandoc.Str("foo"))}));
+    emu_test(pandoc.Blocks({pandoc.Plain(pandoc.Str("foo"))}))    
   end
 }
