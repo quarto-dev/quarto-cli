@@ -24,6 +24,16 @@ pandoc_emulated_node_factory = function(t)
   end
 end
 
+function concat_denormalize_first(a, b)
+  if a.is_emulated or a.t == "Inlines" or a.t == "Blocks" or a.t == "List" then -- these are the emulated arrays
+    a = denormalize(a)
+  end
+  if b.is_emulated or b.t == "Inlines" or b.t == "Blocks" or b.t == "List" then -- these are the emulated arrays
+    b = denormalize(b)
+  end
+  return a .. b
+end
+
 pandoc_constructors_args = {
   Pandoc = { "blocks", "meta" },
   
