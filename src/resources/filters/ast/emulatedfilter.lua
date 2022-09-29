@@ -1,8 +1,8 @@
--- make-extended-filters.lua
--- creates lua filter loaders to support extended AST
+-- emulatedfilter.lua
+-- creates lua filter loaders to support emulated AST
 -- Copyright (C) 2022 by RStudio, PBC
 
-local function plainLoader(handlers)
+local function plain_loader(handlers)
   function wrapFilter(handler)
     local wrappedFilter = {}
     wrappedFilter.scriptFile = handler.scriptFile
@@ -14,10 +14,10 @@ local function plainLoader(handlers)
   return mapOrCall(wrapFilter, handlers)
 end
 
-makeExtendedUserFilters = function(filterListName)
+make_emulated_user_filters = function(filterListName)
   local filters = {}
   for i, v in ipairs(param("quarto-filters")[filterListName]) do
-    local wrapped = makeWrappedFilter(v, plainLoader)
+    local wrapped = makeWrappedFilter(v, plain_loader)
     if tisarray(wrapped) then
       for i, innerWrapped in pairs(wrapped) do
         table.insert(filters, innerWrapped)
