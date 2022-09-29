@@ -10,6 +10,7 @@ import { netlifyProvider } from "./netlify/netlify.ts";
 import { ghpagesProvider } from "./gh-pages/gh-pages.ts";
 import { quartoPubProvider } from "./quarto-pub/quarto-pub.ts";
 import { rsconnectProvider } from "./rsconnect/rsconnect.ts";
+import { confluenceProvider } from "./confluence/confluence.ts";
 import { PublishOptions, PublishRecord } from "./types.ts";
 import { ProjectContext } from "../project/types.ts";
 
@@ -45,6 +46,7 @@ const kPublishProviders = [
   ghpagesProvider,
   rsconnectProvider,
   netlifyProvider,
+  confluenceProvider,
 ];
 
 export async function publishProviders() {
@@ -57,6 +59,10 @@ export async function publishProviders() {
   providers.push(ghpagesProvider);
   providers.push(rsconnectProvider);
   providers.push(netlifyProvider);
+  if (dotenvConfig["CONFLUENCE_PUBLISH_ENABLED"] === "true") {
+    providers.push(confluenceProvider);
+  }
+
   return providers;
 }
 
