@@ -1,4 +1,6 @@
 import { Input, Secret } from "cliffy/prompt/mod.ts";
+import { ensureTrailingSlash } from "../../core/path.ts";
+import { isHttpUrl } from "../../core/url.ts";
 
 import {
   readAccessTokens,
@@ -69,6 +71,32 @@ function confluenceEnvironmentVarAccount() {
 }
 
 async function authorizeToken(_options: PublishOptions) {
+  // TODO: validate that:
+  //   - the server exists
+  //   - the username exists
+  //   - the token works
+  // This can be done in while(true) looops that call the prompt functions
+  // and validate as appropriate
+
+  const server = await Input.prompt({
+    indent: "",
+    message: "Confluence Domain:",
+    hint: "e.g. https://mydomain.atlassian.net.com",
+    validate: (value) => {
+      // 'Enter' with no value ends publish
+      if (value.length === 0) {
+        throw new Error();
+      }
+      try {
+        new URL(transformAtlassianDomain(value));
+        return true;
+      } catch {
+        return `${value} is not a valid URL`;
+      }
+    },
+    transform: transformAtlassianDomain,
+  });
+
   const name = await Input.prompt({
     indent: "",
     message: `Confluence Account Email:`,
@@ -87,13 +115,10 @@ async function authorizeToken(_options: PublishOptions) {
     throw new Error();
   }
 
-  // TODO: server/space URL
-  // TODO: validate that this token actually works
-
   const accountToken: AccountToken = {
     type: AccountTokenType.Authorized,
     name,
-    server: null,
+    server,
     token,
   };
 
@@ -101,10 +126,16 @@ async function authorizeToken(_options: PublishOptions) {
   writeAccessToken<AccountToken>(
     kConfluence,
     accountToken,
-    (a, b) => a.name === b.name,
+    (a, b) => a.server === a.server && a.name === b.name,
   );
 
   return Promise.resolve(accountToken);
+}
+
+function transformAtlassianDomain(domain: string) {
+  return ensureTrailingSlash(
+    isHttpUrl(domain) ? domain : `https://${domain}.atlassian.net`,
+  );
 }
 
 function removeToken(token: AccountToken) {
@@ -112,7 +143,8 @@ function removeToken(token: AccountToken) {
     confluenceProvider.name,
     readAccessTokens<AccountToken>(confluenceProvider.name)?.filter(
       (accessToken) => {
-        return accessToken.name !== token.name;
+        return accessToken.server !== token.server &&
+          accessToken.name !== token.name;
       },
     ) || [],
   );
