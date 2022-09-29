@@ -156,6 +156,8 @@ constructExtendedAstHandlerState()
 
 initShortcodeHandlers()
 
+local pandoc_overrides_state = install_pandoc_overrides()
+
 local quartoInit = {
   { name = "init-readIncludes", filter = readIncludes() },
   { name = "init-metadataResourceRefs", filter = combineFilters({
@@ -283,12 +285,14 @@ tappend(filterList, quartoLayout)
 tappend(filterList, quartoPost)
 tappend(filterList, quartoFinalize)
 
-return run_as_extended_ast({
+local result = run_as_extended_ast({
   pre = {
     initOptions()
   },
   filters = capture_timings(filterList),
-})
+}, pandoc_overrides_state)
+
+return result
 
 -- The default order of filters will be
 -- quarto-init
