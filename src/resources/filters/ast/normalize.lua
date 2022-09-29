@@ -517,22 +517,8 @@ function denormalize_meta(node)
     if t == "number" or t == "boolean" or t == "string" then
       return meta
     end
-  
-    t = pandoc.utils.type(meta)
-    if t == "Meta" then
-      local result = {}
-      for k, v in pairs(meta) do
-        result[k] = unmeta(v)
-      end
-      return result
-    elseif tisarray(meta) and not meta.is_emulated then
-      return tmap(meta, unmeta)
-    end
-  
-    if meta.is_emulated then return denormalize(meta) end
-    if t == "Inline" or t == "Block" then return meta end
-  
-    if type(meta) == "table" then
+
+    local function unmeta_object(obj)
       local result = {}
       local anything_set = false
       for k, v in pairs(meta) do
@@ -551,6 +537,24 @@ function denormalize_meta(node)
       else
         return result
       end
+    end
+  
+    t = pandoc.utils.type(meta)
+    if t == "Meta" then
+      return unmeta_object(meta)
+    elseif tisarray(meta) and not meta.is_emulated then
+      if #meta == 0 then
+        return pandoc.MetaList({})
+      else
+        return tmap(meta, unmeta)
+      end
+    end
+  
+    if meta.is_emulated then return denormalize(meta) end
+    if t == "Inline" or t == "Block" then return meta end
+  
+    if type(meta) == "table" then
+      return unmeta_object(meta)
     else
       print("Don't know how to unmeta this value:")
       print(type(meta))
