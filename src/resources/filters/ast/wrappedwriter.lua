@@ -1,3 +1,8 @@
+-- wrappedwriter.lua
+-- support for creating better custom writers
+--
+-- Copyright (C) 2022 by RStudio, PBC
+
 postState = {}
 
 function import(script)
