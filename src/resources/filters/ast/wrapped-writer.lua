@@ -13,7 +13,6 @@ import("make-extended-filters.lua")
 
 local resultingStrs = {}
 
--- wrapped writers do not support filter lists
 ourWrappedWriter = makeWrappedFilter(param("custom-writer"), function(handler)
 
   local contentHandler = function(el)
