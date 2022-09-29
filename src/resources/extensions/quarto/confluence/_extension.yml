@@ -13,6 +13,9 @@ contributes:
         contents: auto
     format: confluence-html
   formats:
+    xml:
+      writer: publish.lua
+      output-ext: xml
     html:
       theme: [default, theme.scss]
       code-line-numbers: true
@@ -20,6 +23,3 @@ contributes:
         - title-block.html
       filters:
         - preview.lua
-    plain:
-      to: publish.lua
-      output-ext: "xml"
