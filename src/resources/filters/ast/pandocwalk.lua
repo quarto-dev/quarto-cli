@@ -39,7 +39,7 @@ function apply_filter_topdown_blocks_or_inlines(filter, blocks_or_inlines)
     end
   end
 
-  local result = quarto.ast.pandoc[t]()
+  local result = create_emulated_node(t)
   for k, v in pairs(blocks_or_inlines) do
     if is_content_field(k) then
       local filterResult = apply_filter_topdown(filter, v)
@@ -71,7 +71,7 @@ function apply_filter_bottomup_blocks_or_inlines(filter, blocks_or_inlines)
     end
   end
 
-  local result = quarto.ast.pandoc[t]()
+  local result = create_emulated_node(t)
   for k, v in pairs(blocks_or_inlines) do
     if is_content_field(k) then
       local filterResult = apply_filter_bottomup(filter, v)

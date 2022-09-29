@@ -27,6 +27,8 @@ function import(script)
   dofile(path .. script)
 end
 
+import("../ast/pandocemulation.lua") -- must come before extended-nodes.lua
+
 import("../ast/nodeinfo.lua") -- must come before extended-nodes.lua
 import("../ast/normalize.lua") -- must come before extended-nodes.lua
 import("../ast/pandocwalk.lua") -- must come before extended-nodes.lua

@@ -5,7 +5,7 @@ function renderExtendedNodes()
 
   return {
     Custom = function(customNode)
-      local handler = quarto.ast.resolveHandler(customNode.t)
+      local handler = quarto.ast.resolve_handler(customNode.t)
       if handler == nil then
         error("Internal Error: handler not found for custom node " .. customNode.t)
         crash_with_stack_trace()

@@ -9,12 +9,7 @@ pandoc_emulated_node_factory = function(t)
     -- because it's used in the __index metatable of quarto.ast.pandoc
     -- which can cause infinite recursion
 
-    if _quarto_pandoc_special_constructors[t] then
-      -- special cases handled directly by quarto.ast.pandoc
-      return _quarto_pandoc_special_constructors[t](table.unpack(args))
-    end
-
-    local result = _build_extended_node(t)
+    local result = create_emulated_node(t)
     local argsTable = pandoc_constructors_args[t]
     if argsTable == nil then
       for i, v in pairs(args) do
@@ -85,6 +80,7 @@ pandoc_constructors_args = {
   TableBody = { "body", "head", "row_head_columns", "attr" },
   Cell = { "contents", "align", "row_span", "col_span", "attr" },
 }
+
 
 pandoc_has_attr = {
   Cell = true,
