@@ -1,6 +1,6 @@
-function do_it(doc, filters)
+local function do_it(doc, filters)
   if tisarray(filters) then
-    for i, v in pairs(filters) do
+    for _, v in ipairs(filters) do
       local function callback()
         local newDoc = doc:walk(v)
         if newDoc ~= nil then
@@ -25,17 +25,7 @@ function do_it(doc, filters)
   return doc
 end
 
-function concat_denormalize_first(a, b)
-  if a.is_emulated or a.t == "Inlines" or a.t == "Blocks" or a.t == "List" then -- these are the emulated arrays
-    a = denormalize(a)
-  end
-  if b.is_emulated or b.t == "Inlines" or b.t == "Blocks" or b.t == "List" then -- these are the emulated arrays
-    b = denormalize(b)
-  end
-  return a .. b
-end
-
-function emulate_pandoc_filter(filters, unextended)
+local function emulate_pandoc_filter(filters, unextended)
   local walk_block = pandoc.walk_block
   local walk_inline = pandoc.walk_inline
   local write = pandoc.write
@@ -252,14 +242,14 @@ end
 function run_as_extended_ast(specTable, unextended)
   local pandocFilterList = {}
   if specTable.pre then
-    for _, v in pairs(specTable.pre) do
+    for _, v in ipairs(specTable.pre) do
       table.insert(pandocFilterList, v)
     end
   end
 
   table.insert(pandocFilterList, emulate_pandoc_filter(specTable.filters, unextended))
   if specTable.post then
-    for _, v in pairs(specTable.post) do
+    for _, v in ipairs(specTable.post) do
       table.insert(pandocFilterList, v)
     end
   end
