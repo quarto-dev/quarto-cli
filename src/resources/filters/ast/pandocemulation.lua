@@ -205,7 +205,7 @@ function create_emulated_node(t, is_custom)
     end,
     __eq = pandoc_emulate_eq,
     __pairs = function(tbl)
-      local inMeta = pandoc_fixed_field_types[t]
+      local inMeta = pandoc_fixed_field_types[t] ~= nil
       local index
 
       return function()
