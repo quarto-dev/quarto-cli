@@ -68,7 +68,7 @@ quarto.ast = {
       el.is_custom or false
     )
 
-    if pandoc_has_attr[el.t] then
+    if pandoc_fixed_field_types[el.t] and pandoc_fixed_field_types[el.t].attr then
       emulatedNode.attr = pandoc.Attr(el.attr)
     end
 
@@ -96,7 +96,7 @@ quarto.ast = {
     elseif type(handler.className) == "string" then
       state.namedHandlers[handler.className] = handler
     elseif type(handler.className) == "table" then
-      for _, name in pairs(handler.className) do
+      for _, name in ipairs(handler.className) do
         state.namedHandlers[name] = handler
       end
     else
@@ -127,7 +127,7 @@ quarto.ast = {
     end
     local divTable = { attr = emulatedNode.attr }
     local key
-    for i, v in pairs(emulatedNode.content) do
+    for i, v in ipairs(emulatedNode.content) do
       if i % 2 == 1 then
         key = pandoc.utils.stringify(v)
       else
@@ -167,7 +167,7 @@ quarto.ast = {
   end,
 }
 
-function constructExtendedAstHandlerState()
+local function constructExtendedAstHandlerState()
   local state = {
     namedHandlers = {},
   }
@@ -179,7 +179,7 @@ function constructExtendedAstHandlerState()
     postState.extendedAstHandlers = state
   end
 
-  for i, handler in pairs(handlers) do
+  for _, handler in ipairs(handlers) do
     quarto.ast.add_handler(handler)
   end
 end
