@@ -297,7 +297,7 @@ local function walk_inline_splicing(filter, node)
         local filterResult = filterFn and filterFn(inline)
         if filterResult == nil then
           result:insert(inline)
-        elseif is_ast_node_array(filterResult) then
+        elseif is_ast_node_array(filterResult) or filterResult.t == "Inlines" then
           result:extend(filterResult)
         else
           result:insert(filterResult)
@@ -317,7 +317,7 @@ local function walk_block_splicing(filter, node)
         local filterResult = filterFn and filterFn(block)
         if filterResult == nil then
           result:insert(block)
-        elseif is_ast_node_array(filterResult) then
+        elseif is_ast_node_array(filterResult) or filterResult.t == "Blocks" then
           result:extend(filterResult)
         else
           result:insert(filterResult)
@@ -337,7 +337,7 @@ local function walk_custom_splicing(filter, node)
         local filterResult = filterFn and filterFn(custom)
         if filterResult == nil then
           result:insert(custom)
-        elseif is_ast_node_array(filterResult) then
+        elseif is_ast_node_array(filterResult) or filterResult.t == "Blocks" then
           result:extend(filterResult)
         else
           result:insert(filterResult)
@@ -352,7 +352,7 @@ local function walk_custom_splicing(filter, node)
         local filterResult = filterFn and filterFn(custom)
         if filterResult == nil then
           result:insert(custom)
-        elseif is_ast_node_array(filterResult) then
+        elseif is_ast_node_array(filterResult) or filterResult.t == "Inlines" then
           result:extend(filterResult)
         else
           result:insert(filterResult)
