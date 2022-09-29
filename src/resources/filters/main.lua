@@ -116,7 +116,6 @@ import("./crossref/meta.lua")
 import("./crossref/format.lua")
 import("./crossref/options.lua")
 import("./crossref/crossref.lua")
-initCrossrefIndex()
 
 import("./quarto-pre/bibliography-formats.lua")
 import("./quarto-pre/book-links.lua")
@@ -150,6 +149,8 @@ import("./quarto-pre/table-rawhtml.lua")
 import("./quarto-pre/theorems.lua")
 
 -- [/import]
+
+initCrossrefIndex()
 
 constructExtendedAstHandlerState()
 
