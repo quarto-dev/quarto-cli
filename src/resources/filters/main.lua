@@ -151,6 +151,8 @@ import("./quarto-pre/theorems.lua")
 
 -- [/import]
 
+constructExtendedAstHandlerState()
+
 initShortcodeHandlers()
 
 local quartoInit = {
