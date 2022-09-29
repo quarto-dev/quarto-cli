@@ -1,7 +1,7 @@
 -- map-or-call.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
-function mapOrCall(fun, arrayOrValue)
+function map_or_call(fun, arrayOrValue)
   if tisarray(arrayOrValue) then
     -- array
     local result = {}

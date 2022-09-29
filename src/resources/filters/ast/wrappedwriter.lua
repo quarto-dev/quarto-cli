@@ -172,7 +172,7 @@ local ourWrappedWriter = makeWrappedFilter(param("custom-writer"), function(hand
         for _, v in ipairs(bottomUpWalkers[t](node)) do
           local inner = bottomUp(v)
           if inner then
-            mapOrCall(handleBottomUpResult, inner)
+            map_or_call(handleBottomUpResult, inner)
           end
         end
 
@@ -194,7 +194,7 @@ local ourWrappedWriter = makeWrappedFilter(param("custom-writer"), function(hand
     if nodeHandler.value then
       node = nodeHandler.value(node, bottomUp)
       if node then
-        mapOrCall(handleBottomUpResult, node)
+        map_or_call(handleBottomUpResult, node)
       end
     end
     if nodeHandler.post then

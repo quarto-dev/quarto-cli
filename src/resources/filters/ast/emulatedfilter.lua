@@ -12,7 +12,7 @@ local function plain_loader(handlers)
     end
     return wrappedFilter
   end
-  return mapOrCall(wrapFilter, handlers)
+  return map_or_call(wrapFilter, handlers)
 end
 
 make_emulated_user_filters = function(filterListName)
