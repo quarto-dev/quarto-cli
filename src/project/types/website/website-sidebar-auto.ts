@@ -178,7 +178,7 @@ function autoSidebarNodes(
 
     // is this a directory glob?
     let directory = "";
-    const match = glob.match(/(.*?)\/\*.*$/);
+    const match = glob.match(/(.*?)[\/\\]\*.*$/);
     if (match && safeExistsSync(join(project.dir, match[1]))) {
       directory = match[1];
     }

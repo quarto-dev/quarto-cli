@@ -164,8 +164,8 @@ window.document.addEventListener("DOMContentLoaded", function () {
       "resize",
       throttle(updateDocumentOffsetWithoutAnimation, 50)
     );
-    setTimeout(updateDocumentOffsetWithoutAnimation, 500);
   }
+  setTimeout(updateDocumentOffsetWithoutAnimation, 250);
 
   // fixup index.html links if we aren't on the filesystem
   if (window.location.protocol !== "file:") {

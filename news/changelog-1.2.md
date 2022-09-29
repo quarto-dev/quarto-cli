@@ -33,6 +33,8 @@
 - Add support for extensions that contribute revealjs-plugins
 - Fix issue loading extensions when the organization name is the same as the extension identifier
 - Fix issue preventing installation of archived extensions from an arbitrary url (#2419)
+- Support installation of extensions using Github archive urls
+- Support installation of extensions from with subdirectories of a github repo
 - Lua `require` can now find modules adjacent to the current script
 - Use snake case for Quarto Lua API functions (match Pandoc API)
 
@@ -51,6 +53,7 @@
 - Improve coloring of code copy button when using various `highlight-styles`.
 - Support scss variables to customize the code copy button using `$btn-code-copy-color`, `$btn-code-copy-color-active`
 - Add support for `date-modified` in document metadata
+- Wrap inline code elements if necessary
 
 ## PDF Format
 
@@ -60,6 +63,7 @@
 - Support cross reference-able figures with callouts
 - Allow cross references inside of a callout
 - Improve margin layout support for `twoside`, `oneside`, and `twoside=semi` options of `scrbook`
+- Properly default `number-sections` on when the documentclass is `scrbook`
 
 ## Docx Format
 
@@ -144,7 +148,7 @@
 ## Listing and Feeds
 
 - Fix escaping issue in RSS feed fields
--
+- Properly support `max-desc-length` to trim descriptions within listings
 
 ## Bibliographies and Citations
 
