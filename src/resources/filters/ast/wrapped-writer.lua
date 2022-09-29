@@ -49,11 +49,6 @@ ourWrappedWriter = makeWrappedFilter(param("custom-writer"), function(handler)
     Para = contentHandler,
     Plain = contentHandler,
 
-    -- we don't break Table up because it is
-    -- almost certainly the case that handling
-    -- it correctly requires access to the full object
-    -- in a custom handler,
-
     Cite = function(element)
       local result = {}
       for i, block in pairs(element.content) do

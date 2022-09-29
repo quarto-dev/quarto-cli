@@ -5,28 +5,6 @@
 -- We base this emulation on the original Haskell source:
 --   https://github.com/pandoc/pandoc-lua-marshal
 
-pairsByKeys = function (t, f)
-  local a = {}
-  for n in pairs(t) do table.insert(a, n) end
-  table.sort(a, f)
-  local i = 0      -- iterator variable
-  local iter = function ()   -- iterator function
-    i = i + 1
-    if a[i] == nil then return nil
-    else return a[i], t[a[i]]
-    end
-  end
-  return iter
-end
-
-local typesThenValues = function(a, b)
-  local ta = type(a)
-  local tb = type(b)
-  if ta < tb then return true end
-  if ta > tb then return false end
-  return a < b
-end
-
 function as_normalize(n)
   if type(n) == "userdata" then
     return normalize(n)
@@ -44,12 +22,12 @@ function is_ast_node_array(tbl)
   if tisarray(tbl) then
     return true
   end
-  local t = tbl.t --  or tbl["-quarto-internal-type-"]
+  local t = tbl.t
   return t == "Inlines" or t == "Blocks"
 end
 
 function apply_filter_topdown_blocks_or_inlines(filter, blocks_or_inlines)
-  local t = blocks_or_inlines.t -- or blocks_or_inlines["-quarto-internal-type-"]
+  local t = blocks_or_inlines.t
   local filterFn = filter[t]
   if filterFn ~= nil then
     local filterResult, cut = filterFn(blocks_or_inlines)
@@ -62,7 +40,7 @@ function apply_filter_topdown_blocks_or_inlines(filter, blocks_or_inlines)
   end
 
   local result = quarto.ast.pandoc[t]()
-  for k, v in pairsByKeys(blocks_or_inlines, typesThenValues) do
+  for k, v in pairs(blocks_or_inlines) do
     if is_content_field(k) then
       local filterResult = apply_filter_topdown(filter, v)
       if filterResult == nil then
@@ -84,7 +62,7 @@ function apply_filter_topdown_blocks_or_inlines(filter, blocks_or_inlines)
 end
 
 function apply_filter_bottomup_blocks_or_inlines(filter, blocks_or_inlines)
-  local t = blocks_or_inlines.t or pandoc.utils.type(blocks_or_inlines) -- or blocks_or_inlines["-quarto-internal-type-"]
+  local t = blocks_or_inlines.t or pandoc.utils.type(blocks_or_inlines)
   local filterFn = filter[t]
   if filterFn ~= nil then
     local filterResult = filterFn(blocks_or_inlines)
@@ -94,7 +72,7 @@ function apply_filter_bottomup_blocks_or_inlines(filter, blocks_or_inlines)
   end
 
   local result = quarto.ast.pandoc[t]()
-  for k, v in pairsByKeys(blocks_or_inlines, typesThenValues) do
+  for k, v in pairs(blocks_or_inlines) do
     if is_content_field(k) then
       local filterResult = apply_filter_bottomup(filter, v)
       if filterResult == nil then
@@ -132,7 +110,7 @@ function apply_filter_bottomup(filter, node)
     return node
   end
 
-  local t = node.t -- or node["-quarto-internal-type-"]
+  local t = node.t
   local pandocT = pandoc.utils.type(node)
   -- process non-emulated lists
   if not node.is_emulated then
@@ -216,7 +194,7 @@ function apply_filter_topdown(filter, node)
   if is_atom[nodeType] then
     return node
   end
-  local t = node.t -- or node["-quarto-internal-type-"]
+  local t = node.t
 
   if t == "Blocks" or t == "Inlines" then
     local result = apply_filter_topdown_blocks_or_inlines(filter, node)
@@ -227,10 +205,6 @@ function apply_filter_topdown(filter, node)
   local fn = (filter[t] 
     or filter[node.is_custom and "Custom"] -- explicit check needed for Meta :facepalm:
     or filter[(is_block[t] and "Block") or "Inline"])
-  
-  -- if node.t == "FancyCallout" then
-  --   quarto.utils.dump(filter)
-  -- end
   
   if fn ~= nil then
     local filterResult, cut = fn(node)
@@ -265,7 +239,7 @@ function apply_filter_topdown(filter, node)
       if is_atom[type(node)] then
         return node
       end
-      t = node and node.t --  or node["-quarto-internal-type-"])
+      t = node and node.t
     end
   end
 
