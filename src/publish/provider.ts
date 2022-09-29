@@ -13,6 +13,7 @@ import { rsconnectProvider } from "./rsconnect/rsconnect.ts";
 import { confluenceProvider } from "./confluence/confluence.ts";
 import { PublishOptions, PublishRecord } from "./types.ts";
 import { ProjectContext } from "../project/types.ts";
+import { RenderFlags } from "../command/render/types.ts";
 
 export enum AccountTokenType {
   Environment,
@@ -90,6 +91,7 @@ export interface PublishProvider {
   description: string;
   requiresServer: boolean;
   listOriginOnly: boolean;
+  requiresRender?: boolean;
   publishRecord?: (
     input: string | ProjectContext,
   ) => Promise<PublishRecord | undefined>;
@@ -109,7 +111,7 @@ export interface PublishProvider {
     input: string,
     title: string,
     slug: string,
-    render: (siteUrl?: string) => Promise<PublishFiles>,
+    render: (flags?: RenderFlags) => Promise<PublishFiles>,
     options: PublishOptions,
     target?: PublishRecord,
   ) => Promise<[PublishRecord | undefined, URL | undefined]>;

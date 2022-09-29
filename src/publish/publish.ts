@@ -36,6 +36,7 @@ import {
 } from "./config.ts";
 import { websiteTitle } from "../project/types/website/website-config.ts";
 import { gfmAutoIdentifier } from "../core/pandoc/pandoc-id.ts";
+import { RenderFlags } from "../command/render/types.ts";
 
 export const kSiteContent = "site";
 export const kDocumentContent = "document";
@@ -48,16 +49,16 @@ export async function publishSite(
   target?: PublishRecord,
 ) {
   // create render function
-  const renderForPublish = async (siteUrl?: string): Promise<PublishFiles> => {
+  const renderForPublish = async (
+    flags?: RenderFlags,
+  ): Promise<PublishFiles> => {
     if (options.render) {
       renderProgress("Rendering for publish:\n");
       const services = renderServices();
       try {
         const result = await render(project.dir, {
           services,
-          flags: {
-            siteUrl,
-          },
+          flags,
           setProjectDir: true,
         });
         if (result.error) {
@@ -127,7 +128,9 @@ export async function publishDocument(
   }
 
   // create render function
-  const renderForPublish = async (): Promise<PublishFiles> => {
+  const renderForPublish = async (
+    flags?: RenderFlags,
+  ): Promise<PublishFiles> => {
     const files: string[] = [];
     if (options.render) {
       renderProgress("Rendering for publish:\n");
@@ -135,6 +138,7 @@ export async function publishDocument(
       try {
         const result = await render(document, {
           services,
+          flags,
         });
         if (result.error) {
           throw result.error;

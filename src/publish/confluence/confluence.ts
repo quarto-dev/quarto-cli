@@ -1,5 +1,8 @@
+import { join } from "path/mod.ts";
 import { Input, Secret } from "cliffy/prompt/mod.ts";
-import { ensureTrailingSlash } from "../../core/path.ts";
+import { RenderFlags } from "../../command/render/types.ts";
+import { dirAndStem, ensureTrailingSlash } from "../../core/path.ts";
+import { resourcePath } from "../../core/resources.ts";
 import { isHttpUrl } from "../../core/url.ts";
 
 import {
@@ -15,6 +18,7 @@ import {
 } from "../provider.ts";
 import { ApiError, PublishOptions, PublishRecord } from "../types.ts";
 import { ConfluenceClient } from "./api/index.ts";
+import { kOutputDivs, kOutputExt } from "../../config/constants.ts";
 
 export const kConfluence = "confluence";
 
@@ -29,6 +33,7 @@ export const confluenceProvider: PublishProvider = {
   description: kConfluenceDescription,
   requiresServer: true,
   listOriginOnly: false,
+  requiresRender: true,
   accountTokens,
   authorizeToken,
   removeToken,
@@ -173,19 +178,37 @@ function resolveTarget(
 
 async function publish(
   account: AccountToken,
-  _type: "document" | "site",
+  type: "document" | "site",
   _input: string,
   _title: string,
   _slug: string,
-  _render: (siteUrl?: string) => Promise<PublishFiles>,
+  render: (flags?: RenderFlags) => Promise<PublishFiles>,
   _options: PublishOptions,
-  _target?: PublishRecord,
+  target?: PublishRecord,
 ): Promise<[PublishRecord, URL | undefined]> {
+  // REST api
   const client = new ConfluenceClient(account);
 
-  console.log(await client.getUser());
+  if (target) {
+    // update
+  } else {
+    // new content
+  }
 
-  throw new Error("not implemented");
+  if (type === "document") {
+    const flags: RenderFlags = {
+      to: resourcePath("extensions/confluence/publish.lua"),
+      metadata: {
+        [kOutputExt]: "xml",
+      },
+    };
+    const result = await render(flags);
+    console.log(result);
+
+    throw new Error("Confluence document publishing not implemented");
+  } else {
+    throw new Error("Confluence site publishing not implemented");
+  }
 }
 
 function isUnauthorized(err: Error) {

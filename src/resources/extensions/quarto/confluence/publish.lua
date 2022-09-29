@@ -3,7 +3,7 @@
 -- https://pandoc.org/MANUAL.html#custom-readers-and-writers
 
 local stringify = (require "pandoc.utils").stringify
-local confluence = require('confluence-overrides')
+local confluence = require('overrides')
 
 -- From https://stackoverflow.com/questions/9168058/how-to-dump-a-table-to-console
 function dumpObject(o)

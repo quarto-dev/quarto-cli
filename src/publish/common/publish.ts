@@ -33,6 +33,7 @@ import { formatResourcePath } from "../../core/resources.ts";
 import { encodeAttributeValue } from "../../core/html.ts";
 import { haveArrowKeys } from "../../core/platform.ts";
 import { capitalizeWord } from "../../core/text.ts";
+import { RenderFlags } from "../../command/render/types.ts";
 
 export interface PublishSite {
   id?: string;
@@ -86,7 +87,7 @@ export async function handlePublish<
   type: "document" | "site",
   title: string,
   slug: string,
-  render: (siteUrl?: string) => Promise<PublishFiles>,
+  render: (flags?: RenderFlags) => Promise<PublishFiles>,
   target?: PublishRecord,
 ): Promise<[PublishRecord, URL | undefined]> {
   // determine target (create new site if necessary)
@@ -237,14 +238,14 @@ export async function handlePublish<
 }
 
 export async function renderForPublish(
-  render: (siteUrl?: string) => Promise<PublishFiles>,
+  render: (flags?: RenderFlags) => Promise<PublishFiles>,
   providerName: string,
   type: "document" | "site",
   title: string,
   siteUrl?: string,
 ) {
   // render
-  let publishFiles = await render(siteUrl);
+  let publishFiles = await render({ siteUrl });
 
   // validate that the main document is html or pdf
   if (

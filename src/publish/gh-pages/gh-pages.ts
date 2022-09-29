@@ -29,6 +29,7 @@ import { isHttpUrl, joinUrl } from "../../core/url.ts";
 import { completeMessage, withSpinner } from "../../core/console.ts";
 import { renderForPublish } from "../common/publish.ts";
 import { websiteBaseurl } from "../../project/types/website/website-config.ts";
+import { RenderFlags } from "../../command/render/types.ts";
 
 export const kGhpages = "gh-pages";
 const kGhpagesDescription = "GitHub Pages";
@@ -101,7 +102,7 @@ async function publish(
   input: string,
   title: string,
   _slug: string,
-  render: (siteUrl?: string) => Promise<PublishFiles>,
+  render: (flags?: RenderFlags) => Promise<PublishFiles>,
   options: PublishOptions,
   target?: PublishRecord,
 ): Promise<[PublishRecord | undefined, URL | undefined]> {

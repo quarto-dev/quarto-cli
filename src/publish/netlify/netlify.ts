@@ -31,6 +31,7 @@ import { quartoConfig } from "../../core/quarto.ts";
 import { withRetry } from "../../core/retry.ts";
 import { handlePublish, PublishHandler } from "../common/publish.ts";
 import { authorizePrompt } from "../account.ts";
+import { RenderFlags } from "../../command/render/types.ts";
 
 export const kNetlify = "netlify";
 const kNetlifyDescription = "Netlify";
@@ -200,7 +201,7 @@ function publish(
   _input: string,
   title: string,
   slug: string,
-  render: (siteUrl?: string) => Promise<PublishFiles>,
+  render: (flags?: RenderFlags) => Promise<PublishFiles>,
   _options: PublishOptions,
   target?: PublishRecord,
 ): Promise<[PublishRecord, URL | undefined]> {
