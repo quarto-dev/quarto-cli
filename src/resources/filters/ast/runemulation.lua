@@ -25,6 +25,28 @@ local function do_it(doc, filters)
   return doc
 end
 
+local function pandoc_emulated_node_factory(t)
+  return function(...)
+    local args = { ... }
+    -- NB: we can't index into quarto.ast.pandoc in this function
+    -- because it's used in the __index metatable of quarto.ast.pandoc
+    -- which can cause infinite recursion
+
+    local result = create_emulated_node(t)
+    local argsTable = pandoc_constructors_args[t]
+    if argsTable == nil then
+      for i, v in pairs(args) do
+        result[i] = v
+      end
+    else
+      for i, _ in ipairs(argsTable) do
+        result[argsTable[i]] = args[i]
+      end
+    end
+    return result
+  end
+end
+
 local function emulate_pandoc_filter(filters, unextended)
   local walk_block = pandoc.walk_block
   local walk_inline = pandoc.walk_inline
@@ -65,8 +87,8 @@ local function emulate_pandoc_filter(filters, unextended)
       if v.is_emulated then
         if v.t == "Inlines" then return v.t end
         if v.t == "Blocks" then return v.t end
-        if is_block[v.t] then return "Block" end
-        if is_inline[v.t] then return "Inline" end
+        if pandoc_is_block[v.t] then return "Block" end
+        if pandoc_is_inline[v.t] then return "Inline" end
       else
         return utils.type(v)
       end

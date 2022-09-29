@@ -29,7 +29,6 @@ end
 
 import("../ast/pandocemulation.lua") -- must come before customnodes.lua
 
-import("../ast/nodeinfo.lua") -- must come before customnodes.lua
 import("../ast/nodeconversion.lua") -- must come before customnodes.lua
 import("../ast/pandocwalk.lua") -- must come before customnodes.lua
 import("../ast/customnodes.lua")

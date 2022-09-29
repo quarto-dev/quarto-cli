@@ -2,28 +2,6 @@
 -- sets up pandoc overrides to emulate its behavior in Lua
 -- Copyright (C) 2022 by RStudio, PBC
 
-pandoc_emulated_node_factory = function(t)
-  return function(...)
-    local args = { ... }
-    -- NB: we can't index into quarto.ast.pandoc in this function
-    -- because it's used in the __index metatable of quarto.ast.pandoc
-    -- which can cause infinite recursion
-
-    local result = create_emulated_node(t)
-    local argsTable = pandoc_constructors_args[t]
-    if argsTable == nil then
-      for i, v in pairs(args) do
-        result[i] = v
-      end
-    else
-      for i, _ in ipairs(argsTable) do
-        result[argsTable[i]] = args[i]
-      end
-    end
-    return result
-  end
-end
-
 function emulated_node_concat(a, b)
   if a.is_emulated or a.t == "Inlines" or a.t == "Blocks" or a.t == "List" then -- these are the emulated arrays
     a = from_emulated(a)
@@ -33,6 +11,45 @@ function emulated_node_concat(a, b)
   end
   return a .. b
 end
+
+pandoc_is_block = {
+  BlockQuote = true,
+  BulletList = true,
+  CodeBlock = true,
+  DefinitionList = true,
+  Div = true,
+  Header = true,
+  HorizontalRule = true,
+  LineBlock = true,
+  OrderedList = true,
+  Para = true,
+  Plain = true,
+  RawBlock = true,
+  Table = true
+}
+
+pandoc_is_inline = {
+  Cite = true,
+  Code = true,
+  Emph = true,
+  Image = true,
+  LineBreak = true,
+  Link = true,
+  Math = true,
+  Note = true,
+  Quoted = true,
+  RawInline = true,
+  SmallCaps = true,
+  SoftBreak = true,
+  Space = true,
+  Span = true,
+  Str = true,
+  Strikeout = true,
+  Strong = true,
+  Subscript = true,
+  Superscript = true,
+  Underline = true
+}
 
 pandoc_constructors_args = {
   Pandoc = { "blocks", "meta" },
@@ -89,22 +106,6 @@ pandoc_constructors_args = {
   TableHead = { "rows", "attr" },
   TableBody = { "body", "head", "row_head_columns", "attr" },
   Cell = { "contents", "align", "row_span", "col_span", "attr" },
-}
-
-
-pandoc_has_attr = {
-  Cell = true,
-  Code = true,
-  CodeBlock = true,
-  Div = true,
-  Header = true,
-  Image = true,
-  Link = true,
-  Row = true,
-  Span = true,
-  Table = true,
-  TableFoot = true,
-  TableHead = true,
 }
 
 pandoc_fixed_field_types = {
@@ -165,7 +166,7 @@ function emulated_node_eq(a, b)
   return true
 end
 
-pandoc_ast_methods = {
+local pandoc_ast_methods = {
   clone = function(self)
     -- TODO deep copy?
     return quarto.ast.copy_as_emulated_node(self)
