@@ -28,27 +28,12 @@ local handlers = {
       })
     end,
 
-    -- either a function that unconditionally renders the extendedNode into
-    -- output, or a table of functions, whose keys are the output formats
+    -- a function that renders the extendedNode into output
     render = function(extendedNode)
       return quarto.ast.pandoc.Div(quarto.ast.pandoc.Blocks({
         extendedNode.title, extendedNode.content
       }))
     end,
-    -- render = {
-    --   html = function(extendedNode)
-    --     -- render to html
-    --   end,
-    --   pdf = function(extendedNode)
-    --     -- render to pdf
-    --   end,
-    --   docx = function(extendedNode)
-    --     -- render to docx
-    --   end,
-    --   default = function(extendedNode)
-    --     -- fallback format
-    --   end,
-    -- }
   },
 }
 
@@ -66,7 +51,7 @@ function ast_node_property_pairs(node)
         return nil
       end
       index = k
-    until is_plain_key(k) and k ~= "attr" and type(v) ~= "function"
+    until k ~= "attr" and type(v) ~= "function"
     return k, v
   end
 end
@@ -77,9 +62,7 @@ function ast_node_array_map(node_array, fn)
   else
     local result = _build_extended_node(node_array.t)
     for k, v in pairs(node_array) do
-      if is_plain_key(k) then
-        result[k] = fn(v)
-      end
+      result[k] = fn(v)
     end
     return result
   end
@@ -89,18 +72,14 @@ local _quarto_pandoc_special_constructors = {
   Inlines = function(args)
     local result = _build_extended_node("Inlines")
     for k, v in pairs(args or {}) do
-      if is_plain_key(k) then
-        result[k] = v
-      end
+      result[k] = v
     end
     return result
   end,
   Blocks = function(args)
     local result = _build_extended_node("Blocks")
     for k, v in pairs(args or {}) do
-      if is_plain_key(k) then
-        result[k] = v
-      end
+      result[k] = v
     end
     return result
   end,
@@ -356,7 +335,7 @@ function _build_extended_node(t, is_custom)
               return nil
             end
             index = k
-          until is_plain_key(k) and k ~= "attr" and type(v) ~= "function"
+          until k ~= "attr" and type(v) ~= "function"
           return k, v
         end
       end      
@@ -424,16 +403,10 @@ quarto.ast = {
     end
 
     function is_content_field(k)
-      return k ~= "walk" and k ~= "clone" and k ~= "show" and is_plain_key(k)
+      return k ~= "walk" and k ~= "clone" and k ~= "show"
     end
 
     for k, v in pairs(el) do
-      -- if k == "content" then
-      --   for _, innerV in pairs(v) do
-      --     -- can't set the table directly because we lose method information
-      --     ExtendedAstNode.content:insert(innerV)
-      --   end
-      -- else
       if is_content_field(k) then
         ExtendedAstNode[k] = v
       end
