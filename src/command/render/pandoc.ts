@@ -696,7 +696,7 @@ export async function runPandoc(
 
   if (allDefaults.to?.match(/[.]lua$/)) {
     formatFilterParams["custom-writer"] = allDefaults.to;
-    allDefaults.to = resourcePath("filters/ast/wrapped-writer.lua");
+    allDefaults.to = resourcePath("filters/ast/wrappedwriter.lua");
   }
 
   // set parameters required for filters (possibily mutating all of it's arguments

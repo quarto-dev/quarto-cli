@@ -33,10 +33,10 @@ import("../ast/nodeinfo.lua") -- must come before customnodes.lua
 import("../ast/normalize.lua") -- must come before customnodes.lua
 import("../ast/pandocwalk.lua") -- must come before customnodes.lua
 import("../ast/customnodes.lua")
-import("../ast/make-extended-filters.lua")
+import("../ast/emulatedfilter.lua")
 import("../ast/parse.lua")
 import("../ast/render.lua")
-import("../ast/run-as-extended-ast.lua")
+import("../ast/runemulation.lua")
 
 import("../common/authors.lua")
 import("../common/base64.lua")
@@ -170,7 +170,7 @@ local quartoAuthors = {
 local quartoPre = {
   -- quarto-pre
   { name = "parseExtendedNodes", filter = parseExtendedNodes() },
-  { name = "quartoBeforeExtendedUserFilters", filters = makeExtendedUserFilters("beforeQuartoFilters") },
+  { name = "quartoBeforeExtendedUserFilters", filters = make_emulated_user_filters("beforeQuartoFilters") },
   { name = "bibliographyFormats", filter = bibliographyFormats() }, 
   { name = "shortCodesBlocks", filter = shortCodesBlocks() } ,
   { name = "shortCodesInlines", filter = shortCodesInlines() },
@@ -226,7 +226,7 @@ local quartoPost = {
   { name = "ojs", filter = ojs() },
   { name = "postMetaInject", filter = quartoPostMetaInject() },
   { name = "renderExtendedNodes", filter = renderExtendedNodes() },
-  { name = "userAfterQuartoFilters", filter = makeExtendedUserFilters("afterQuartoFilters") },
+  { name = "userAfterQuartoFilters", filter = make_emulated_user_filters("afterQuartoFilters") },
 }
 
 local quartoFinalize = {

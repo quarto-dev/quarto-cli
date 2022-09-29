@@ -9,7 +9,7 @@ end
 import("../common/maporcall.lua")
 import("../common/wrapped-filter.lua")
 import("customnodes.lua")
-import("make-extended-filters.lua")
+import("emulatedfilter.lua")
 
 local resultingStrs = {}
 
