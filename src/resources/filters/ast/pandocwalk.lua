@@ -27,7 +27,7 @@ local function ast_node_property_pairs(node)
 end
 
 local function as_emulated(n)
-  if type(n) == "userdata" then
+  if type(n) == "userdata" and not n.is_emulated then
     return to_emulated(n)
   end
   return n
@@ -177,7 +177,7 @@ apply_filter_bottomup = function(filter, node)
   -- walk children
   if type(node) == "userdata" then
     -- we can only emulate walks on emulated nodes
-    node = to_emulated(node)
+    node = as_emulated(node)
   end
 
   local newResult = {}

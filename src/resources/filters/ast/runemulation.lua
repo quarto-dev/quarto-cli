@@ -55,6 +55,7 @@ end
 function install_pandoc_overrides()
   local state = {}
 
+  state.lua_type = type
   state.walk_block = pandoc.walk_block
   state.walk_inline = pandoc.walk_inline
   state.write = pandoc.write
@@ -67,6 +68,7 @@ function install_pandoc_overrides()
   state.utils = pandoc.utils
   state.mediabag = pandoc.mediabag
 
+  local lua_type = type
   local walk_block = state.walk_block
   local walk_inline = state.walk_inline
   local write = state.write
@@ -78,6 +80,16 @@ function install_pandoc_overrides()
   local pandoc_blocks_mtbl = state.pandoc_blocks_mtbl
   local utils = state.utils
   local mediabag = state.mediabag
+
+  type = function(v)
+    local lt = lua_type(v)
+    -- return lt
+    if lt ~= "table" then return lt end
+    if v.is_emulated and v.t ~= "Inlines" and v.t ~= "List" and v.t ~= "Blocks" then
+      return "userdata"
+    end
+    return lt
+  end
 
   local our_utils = {
     blocks_to_inlines = function(lst)
@@ -277,6 +289,7 @@ function restore_pandoc_overrides(state)
   pandoc.MetaInlines = state.MetaInlines
   pandoc.MetaBlocks = state.MetaBlocks
   pandoc.TableBody = state.TableBody -- pretty sure it'll always be nil, but..
+  type = state.lua_type
 end
 
 local function emulate_pandoc_filter(filters, overrides_state)

@@ -142,20 +142,33 @@ pandoc_fixed_field_types = {
   Underline = { content = "Inlines" },
 }
 
+local function is_unemulated_pandoc_obj(a)
+  return type(a) == "userdata" and not a.is_emulated
+end
+
 function emulated_node_eq(a, b)
-  if type(a) == "userdata" or type(b) == "userdata" then
-    if type(a) == "userdata" then
+  local a_is_unemulated_pandoc_obj = is_unemulated_pandoc_obj(a)
+  local b_is_unemulated_pandoc_obj = is_unemulated_pandoc_obj(b)
+  
+  if a_is_unemulated_pandoc_obj or b_is_unemulated_pandoc_obj then
+    if a_is_unemulated_pandoc_obj then
       a = to_emulated(a)
     end
-    if type(b) == "userdata" then
+    if b_is_unemulated_pandoc_obj then
       b = to_emulated(b)
     end
     return a == b
   end
 
-  if not a.is_emulated or not b.is_emulated then
+  if type(a) ~= type(b) then
     return false
   end
+
+  -- now they have the same types, and one of them has to be an
+  -- emualted node because otherwise this function wouldn't be
+  -- called, so both have type == "userdata". but then,
+  -- if either was not emulated, we would have picked it up above.
+  -- so we know that both nodes here are emulated.
 
   if a.t ~= b.t then
     return false
