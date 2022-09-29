@@ -296,13 +296,37 @@ function from_emulated(node)
     return result
   end
 
-  local function from_emulated_table_body(body)
+  local function from_emulated_tablebody(body)
     local result = {}
     result.attr = body.attr
     result.body = tmap(body.body, from_emulated)
     result.head = tmap(body.head, from_emulated)
     result.row_head_columns = body.row_head_columns
     return result
+  end
+
+  local function from_emulated_tablefoot(foot)
+    foot = copy(foot)
+    foot.rows = tmap(foot.rows, from_emulated)
+    return baseHandler(foot)
+  end
+
+  local function from_emulated_tablehead(head)
+    head = copy(head)
+    head.rows = tmap(head.rows, from_emulated)
+    return baseHandler(head)
+  end
+
+  local function from_emulated_tablerow(row)
+    row = copy(row)
+    row.cells = tmap(row.cells, from_emulated)
+    return baseHandler(row)
+  end
+
+  local function from_emulated_tablecell(cell)
+    cell = copy(cell)
+    cell.contents = tmap(cell.contents, from_emulated)
+    return baseHandler(cell)
   end
 
   local typeTable = {
@@ -418,7 +442,7 @@ function from_emulated(node)
         short = tbl.caption.short and from_emulated(tbl.caption.short)
       }
       tbl.head = from_emulated(tbl.head)
-      tbl.bodies = tmap(tbl.bodies, from_emulated_table_body)
+      tbl.bodies = tmap(tbl.bodies, from_emulated_tablebody)
       tbl.foot = from_emulated(tbl.foot)
       local result = baseHandler(tbl)
       return result
@@ -433,29 +457,17 @@ function from_emulated(node)
       return result
     end,
 
-    TableFoot = function(foot)
-      foot = copy(foot)
-      foot.rows = tmap(foot.rows, from_emulated)
-      return baseHandler(foot)
-    end,
+    ["pandoc TableFoot"] = from_emulated_tablefoot,
+    TableFoot = from_emulated_tablefoot,
 
-    TableHead = function(head)
-      head = copy(head)
-      head.rows = tmap(head.rows, from_emulated)
-      return baseHandler(head)
-    end,
+    ["pandoc TableHead"] = from_emulated_tablehead,
+    TableHead = from_emulated_tablehead,
 
-    Row = function(row)
-      row = copy(row)
-      row.cells = tmap(row.cells, from_emulated)
-      return baseHandler(row)
-    end,
+    ["pandoc Row"] = from_emulated_tablerow,
+    Row = from_emulated_tablerow,
 
-    Cell = function(cell)
-      cell = copy(cell)
-      cell.contents = tmap(cell.contents, from_emulated)
-      return baseHandler(cell)
-    end,
+    ["pandoc Cell"] = from_emulated_tablecell,
+    Cell = from_emulated_tablecell,
   }
 
   if node == " " then
