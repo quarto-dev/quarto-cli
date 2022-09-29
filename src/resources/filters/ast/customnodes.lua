@@ -167,7 +167,7 @@ quarto.ast = {
   end,
 }
 
-local function constructExtendedAstHandlerState()
+function constructExtendedAstHandlerState()
   local state = {
     namedHandlers = {},
   }
@@ -183,6 +183,3 @@ local function constructExtendedAstHandlerState()
     quarto.ast.add_handler(handler)
   end
 end
-
-constructExtendedAstHandlerState()
-
