@@ -99,7 +99,7 @@ quarto.ast = {
   normalize = normalize,
   denormalize = denormalize,
   
-  addHandler = function(handler)
+  add_handler = function(handler)
     local state = (preState or postState).extendedAstHandlers
     if type(handler.className) == "nil" then
       print("ERROR: handler must define className")
@@ -192,7 +192,7 @@ function constructExtendedAstHandlerState()
   end
 
   for i, handler in pairs(handlers) do
-    quarto.ast.addHandler(handler)
+    quarto.ast.add_handler(handler)
   end
 end
 
