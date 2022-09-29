@@ -1,25 +1,13 @@
-local fancy_keys = {
-  ["-is-extended-ast-"] = true,
-  ["t"] = true,
-  ["tag"] = true
-}
-
-function is_plain_key(k)
-  return not fancy_keys[k]
-end
-
 function normalize(node)
   local doArray = function(lst)
     return tmap(lst, normalize)
   end
 
   local doBlocksArray = function(lst)
-    -- these are emulated
     return pandoc.Blocks(tmap(lst, normalize))
   end
 
   local doInlinesArray = function(lst)
-    -- these are emulated
     local normalized_contents = tmap(lst, normalize)
     local result = pandoc.Inlines(normalized_contents)
     return result
@@ -87,9 +75,6 @@ function normalize(node)
     CodeBlock = baseHandler,
 
     Div = function(div)
-      -- FIXME this is also not right, should not be constructing
-      -- these from scratch
-
       local name = div.attr.attributes["quarto-extended-ast-tag"]
       local handler = quarto.ast.resolveHandler(name)
       if handler == nil then
@@ -224,9 +209,6 @@ function normalize(node)
     return node
   else
     local result = dispatch(node)
-    -- if type(result) == "table" and result["-quarto-internal-type-"] == nil then
-    --   result["-quarto-internal-type-"] = t
-    -- end
     return result
   end
 end
@@ -239,12 +221,6 @@ function denormalize(node)
   local doArrayArray = function(lst)
     return tmap(lst, doArray)
   end
-
-  -- Row = { "cells", "attr" },
-  -- TableFoot = { "rows", "attr" },
-  -- TableHead = { "rows", "attr" },
-  -- TableBody = { "body", "head", "row_head_columns", "attr" },
-  -- Cell = { "contents", "align", "row_span", "col_span", "attr" }
 
   local constructor_table = {
     Blocks = doArray,
@@ -267,7 +243,7 @@ function denormalize(node)
   }
 
   local baseHandler = function(tbl)
-    local t = tbl.t -- ["-quarto-internal-type-"]
+    local t = tbl.t
     local v = pandoc_constructors_args[t]
     if v == nil then
       return constructor_table[t](tbl)
@@ -441,16 +417,6 @@ function denormalize(node)
       return baseHandler(foot)
     end,
 
-    -- ["pandoc TableBody"] = function(body)
-    --   body = copy(body)
-    --   body.body = tmap(body.head, denormalize)
-    --   body.head = tmap(body.head, denormalize)
-    --   local result = baseHandler(body)
-    --   quarto.utils.dump(result)
-    --   crash_with_stack_trace()
-    --   return result
-    -- end,
-
     ["pandoc TableHead"] = function(head)
       head = copy(head)
       head.rows = tmap(head.rows, denormalize)
@@ -492,7 +458,7 @@ function denormalize(node)
     return quarto.ast.build(node.t, denormalizedTable)
   end
 
-  local t = node.t -- ["-quarto-internal-type-"]
+  local t = node.t
   local dispatch = typeTable[t]
   if dispatch == nil then
     if tisarray(node) then
@@ -565,52 +531,3 @@ function denormalize_meta(node)
 
   return unmeta(node)
 end
---   if type(node) == "string" then
---     return pandoc.MetaInlines({node})
---   elseif type(node) == "boolean" then
---     return node
---   elseif type(node) == "number" then
---     return node
---   elseif node.t == "Inlines" then
---     local result = denormalize(node)
---     local mlresult = pandoc.MetaInlines({})
---     for k, v in pairs(result) do
---       mlresult:insert(v)
---     end
---     return mlresult
---   elseif node.t == "Blocks" then
---     local result = denormalize(node)
---     local mlresult = pandoc.MetaBlocks({})
---     for k, v in pairs(result) do
---       mlresult:insert(v)
---     end
---     return mlresult
---   elseif node.is_emulated then
---     return denormalize(node) -- just denormalize the values themselves
---   elseif node.t ~= nil then
---     return node -- don't denormalize true pandoc nodes in meta
---   elseif type(node) == "table" then
---     local result = {}
---     local anything_set = false
---     for k, v in pairs(node) do
---       anything_set = true
---       result[k] = denormalize_meta(v)
---     end
---     -- FIXME it seems that sometimes making the empty MetaList->MetaMap mistake
---     -- has rendering consequences, but making the empty MetaMap->MetaList mistake
---     -- does not.
---     --
---     -- It also seems impossible to know exactly if we have an empty list or empty
---     -- map in general...
---     if not anything_set then
---       return pandoc.MetaList({})
---     else
---       return result
---     end
---     -- end
---   else
---     print("Internal Error: can't denormalize_meta this object.")  
---     print(type(node), tostring(node))
---     crash_with_stack_trace()
---   end
--- end
