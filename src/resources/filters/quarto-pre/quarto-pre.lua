@@ -15,7 +15,7 @@ preState = {
   file = nil,
   appendix = false,
   fileSectionIds = {},
-  extendedAstNodeHandlers = {}
+  emulatedNodeHandlers = {}
 }
 
 postState = {
