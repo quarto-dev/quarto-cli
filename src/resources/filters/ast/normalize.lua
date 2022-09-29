@@ -449,9 +449,9 @@ function denormalize(node)
   if node.is_custom then
     local denormalizedTable = {}
     for k, v in pairs(node) do
-      if not (k == "t" or k == "tag" or k == "class" or k == "attr" or k == "-is-extended-ast-") then
+      if not (k == "t" or k == "tag" or k == "class" or k == "attr") then
         denormalizedTable[k] = denormalize(v)
-      elseif not (k == "-is-extended-ast-") then
+      else
         denormalizedTable[k] = v
       end
     end

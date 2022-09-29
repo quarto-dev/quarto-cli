@@ -1,7 +1,7 @@
 -- _utils.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
--- improved formatting for dumping tables
+-- improved formatting for dumping tables and quarto's emulated pandoc nodes
 function tdump (tbl, raw)
 
   local shouldPrint = function(k, _, innerTbl)
@@ -14,9 +14,6 @@ function tdump (tbl, raw)
     end
     if string.sub(k, 1, 1) == "-" then
       return false
-    end
-    if innerTbl["-is-extended-ast-"] then
-      return k ~= "t" and k ~= "tag" and k ~= "class" and k ~= "attr"
     end
     return true
   end
@@ -75,8 +72,8 @@ function tdump (tbl, raw)
         endOfOpen = " <empty> }\n"
       end
 
-      if tbl["-is-extended-ast-"] then
-        printInner(typeIndent .. string.format("{ [quarto-extended-ast:%s:%s]%s", tbl.t, address, endOfOpen))
+      if tbl.is_emulated then
+        printInner(typeIndent .. string.format("{ [quarto-emulated-ast:%s:%s]%s", tbl.t, address, endOfOpen))
       elseif tisarray(tbl) then
         printInner(typeIndent .. string.format("{ [array:%s]%s", address, endOfOpen))
       else

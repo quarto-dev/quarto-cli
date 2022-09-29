@@ -154,3 +154,97 @@ function pandoc_emulate_eq(a, b)
   end
   return true
 end
+
+pandoc_ast_methods = {
+  clone = function(self)
+    -- TODO deep copy?
+    return quarto.ast.copy_as_emulated_node(self)
+  end,
+  walk = function(node, filter)
+    return emulate_pandoc_walk(node, filter)
+  end,
+
+  -- custom nodes override this in their metatable
+  is_custom = false
+}
+
+function create_emulated_node(t, is_custom)
+  if t == "Inlines" or t == "Blocks" or t == "List" then
+    return pandoc[t]({})
+  end
+  local emulatedNode = {}
+  is_custom = is_custom or false
+
+  local metaFields = {
+    t = t,
+    is_emulated = true,
+    is_custom = is_custom
+  }
+
+  for k, v in pairs(pandoc_fixed_field_types[t] or {}) do
+    metaFields[k] = create_emulated_node(v)
+  end
+
+  local special_resolution = function(tbl, key)
+    if metaFields[key] then return true, metaFields[key] end
+    if key == "identifier" and tbl.attr then return true, tbl.attr.identifier end
+    if key == "attributes" and tbl.attr then return true, tbl.attr.attributes end
+    if key == "classes" and tbl.attr then return true, tbl.attr.classes end
+    if key == "c" then
+      if tbl.content then return true, tbl.content end
+    end
+    return false
+  end
+
+  setmetatable(emulatedNode, {
+    __index = function(tbl, key)
+      local resolved, value = special_resolution(tbl, key)
+      if resolved then return value end
+      local method = pandoc_ast_methods[key]
+      if method then return method end
+    end,
+    __eq = pandoc_emulate_eq,
+    __pairs = function(tbl)
+      local inMeta = pandoc_fixed_field_types[t]
+      local index
+
+      return function()
+        local k, v
+        if inMeta then
+          k, v = next(pandoc_fixed_field_types[t], index)
+          if k == nil then
+            inMeta = false
+            index = nil
+          else
+            index = k
+            return k, metaFields[k]
+          end
+        end
+
+        -- two if statements because we want to fall
+        -- through the end of the first into the second
+        if not inMeta then
+          repeat
+            k, v = next(emulatedNode, index)
+            if k == nil then
+              return nil
+            end
+            index = k
+          until k ~= "attr" and type(v) ~= "function"
+          return k, v
+        end
+      end      
+    end,
+    __concat = concat_denormalize_first,
+    __newindex = function(tbl, key, value)
+      local fixedFieldType = (pandoc_fixed_field_types[t] or {})[key]
+      if fixedFieldType then
+        metaFields[key] = pandoc[fixedFieldType](value)
+      else
+        rawset(tbl, key, value)
+      end
+    end
+  })
+
+  return emulatedNode
+end

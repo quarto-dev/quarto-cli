@@ -5,7 +5,24 @@
 -- We base this emulation on the original Haskell source:
 --   https://github.com/pandoc/pandoc-lua-marshal
 
-function as_normalize(n)
+local function ast_node_property_pairs(node)
+  local next = pairs(node)
+  local index
+
+  return function()
+    local k, v
+    repeat
+      k, v = next(node, index)
+      if k == nil then
+        return nil
+      end
+      index = k
+    until k ~= "attr" and type(v) ~= "function"
+    return k, v
+  end
+end
+
+local function as_normalize(n)
   if type(n) == "userdata" then
     return normalize(n)
   end
@@ -19,11 +36,7 @@ function is_ast_node_array(tbl)
   if tbl.t ~= nil then
     return false
   end
-  if tisarray(tbl) then
-    return true
-  end
-  local t = tbl.t
-  return t == "Inlines" or t == "Blocks"
+  return tisarray(tbl)
 end
 
 function apply_filter_topdown_blocks_or_inlines(filter, blocks_or_inlines)
