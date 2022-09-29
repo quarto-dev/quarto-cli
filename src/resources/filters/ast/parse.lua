@@ -8,13 +8,6 @@ function parseExtendedNodes()
       end
       local divTable = handler.parse(div)
 
-      -- now that we're running in pandoc emulation, we don't need to build
-      -- return quarto.ast.build(tag, divTable)
-      -- instead, we make this into an extended ast node
-
-      -- divTable["-is-extended-ast-"] = true
-      -- divTable["-quarto-internal-type-"] = divTable.class
-
       return quarto.ast.copyAsExtendedNode(divTable)
     end
   }

@@ -26,20 +26,5 @@ makeExtendedUserFilters = function(filterListName)
       table.insert(filters, wrapped)
     end
   end
-
-  -- local filter = {
-  --   traverse = "topdown",
-  --   Pandoc = function(doc)
-  --     for i, v in pairs(filters) do
-  --       quarto.utils.dump(v)
-  --       doc = doc:walk(v)
-  --     end
-  --     return doc, false
-  --   end  
-  -- }
-  -- print("extended user filter:")
-  -- quarto.utils.dump(filter)
-  -- print("inner filters:")
-  -- quarto.utils.dump(filters)
   return filters
 end
