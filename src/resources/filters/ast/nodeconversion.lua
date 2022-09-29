@@ -433,25 +433,25 @@ function from_emulated(node)
       return result
     end,
 
-    ["pandoc TableFoot"] = function(foot)
+    TableFoot = function(foot)
       foot = copy(foot)
       foot.rows = tmap(foot.rows, from_emulated)
       return baseHandler(foot)
     end,
 
-    ["pandoc TableHead"] = function(head)
+    TableHead = function(head)
       head = copy(head)
       head.rows = tmap(head.rows, from_emulated)
       return baseHandler(head)
     end,
 
-    ["pandoc Row"] = function(row)
+    Row = function(row)
       row = copy(row)
       row.cells = tmap(row.cells, from_emulated)
       return baseHandler(row)
     end,
 
-    ["pandoc Cell"] = function(cell)
+    Cell = function(cell)
       cell = copy(cell)
       cell.contents = tmap(cell.contents, from_emulated)
       return baseHandler(cell)
