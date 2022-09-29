@@ -5,6 +5,9 @@
 -- We base this emulation on the original Haskell source:
 --   https://github.com/pandoc/pandoc-lua-marshal
 
+local apply_filter_bottomup
+local apply_filter_topdown
+
 local function ast_node_property_pairs(node)
   local next = pairs(node)
   local index
@@ -29,7 +32,19 @@ local function as_normalize(n)
   return n
 end
 
-function is_ast_node_array(tbl)
+local function ast_node_array_map(node_array, fn)
+  if tisarray(node_array) then
+    return tmap(node_array, fn)
+  else
+    local result = create_emulated_node(node_array.t)
+    for k, v in pairs(node_array) do
+      result[k] = fn(v)
+    end
+    return result
+  end
+end
+
+local function is_ast_node_array(tbl)
   if type(tbl) ~= "table" then
     return false
   end
@@ -39,7 +54,7 @@ function is_ast_node_array(tbl)
   return tisarray(tbl)
 end
 
-function apply_filter_topdown_blocks_or_inlines(filter, blocks_or_inlines)
+local function apply_filter_topdown_blocks_or_inlines(filter, blocks_or_inlines)
   local t = blocks_or_inlines.t
   local filterFn = filter[t]
   if filterFn ~= nil then
@@ -74,7 +89,7 @@ function apply_filter_topdown_blocks_or_inlines(filter, blocks_or_inlines)
   return result  
 end
 
-function apply_filter_bottomup_blocks_or_inlines(filter, blocks_or_inlines)
+local function apply_filter_bottomup_blocks_or_inlines(filter, blocks_or_inlines)
   local t = blocks_or_inlines.t or pandoc.utils.type(blocks_or_inlines)
   local filterFn = filter[t]
   if filterFn ~= nil then
@@ -107,7 +122,7 @@ function apply_filter_bottomup_blocks_or_inlines(filter, blocks_or_inlines)
 end
 
 -- from https://www.lua.org/pil/2.html
-is_atom = {
+local is_atom = {
   ["number"] = true,
   ["nil"] = true,
   ["function"] = true,
@@ -117,7 +132,7 @@ is_atom = {
   -- thread?!?!
 }
 
-function apply_filter_bottomup(filter, node)
+apply_filter_bottomup = function(filter, node)
   local nodeType = type(node)
   if is_atom[nodeType] then
     return node
@@ -201,7 +216,7 @@ function apply_filter_bottomup(filter, node)
   end
 end
 
-function apply_filter_topdown(filter, node)
+apply_filter_topdown = function(filter, node)
 
   local nodeType = type(node)
   if is_atom[nodeType] then
@@ -271,7 +286,7 @@ function apply_filter_topdown(filter, node)
   return result
 end
 
-function walk_inline_splicing(filter, node)
+local function walk_inline_splicing(filter, node)
   return apply_filter_bottomup({
     Inlines = function(inlines)
       local result = pandoc.Inlines()
@@ -291,7 +306,7 @@ function walk_inline_splicing(filter, node)
   }, node)
 end
 
-function walk_block_splicing(filter, node)
+local function walk_block_splicing(filter, node)
   return apply_filter_bottomup({
     Blocks = function(blocks)
       local result = pandoc.Blocks()
@@ -311,7 +326,7 @@ function walk_block_splicing(filter, node)
   }, node)
 end
 
-function walk_custom_splicing(filter, node)
+local function walk_custom_splicing(filter, node)
   return apply_filter_bottomup({
     Blocks = function(blocks)
       local result = pandoc.Blocks()
@@ -346,7 +361,7 @@ function walk_custom_splicing(filter, node)
   }, node)
 end
 
-function walk_inlines_straight(filter, node)
+local function walk_inlines_straight(filter, node)
   -- it's a nop, special-case it
   if filter.Inlines == nil then
     return node
@@ -362,7 +377,7 @@ function walk_inlines_straight(filter, node)
   }, node)
 end
 
-function walk_blocks_straight(filter, node)
+local function walk_blocks_straight(filter, node)
   -- it's a nop, special-case it
   if filter.Blocks == nil then
     return node
@@ -379,7 +394,7 @@ function walk_blocks_straight(filter, node)
 end
 
 -- pandoc-lua-marshal/src/Text/Pandoc/Lua/Marshal/Shared.hs:walkBlocksAndInlines
-function walk_blocks_and_inlines(node, filter)
+local function walk_blocks_and_inlines(node, filter)
   -- walkBlocksAndInlines filter' =
   -- case filterWalkingOrder filter' of
   --   WalkTopdown     -> walkM (applyFilterTopdown filter')
@@ -400,7 +415,7 @@ function walk_blocks_and_inlines(node, filter)
   end
 end
 
-function apply_meta_function(doc, filter)
+local function apply_meta_function(doc, filter)
   if filter.Meta and doc.t == "Pandoc" then
     local filterResult = filter.Meta(doc.meta)
     if filterResult ~= nil then
@@ -411,15 +426,14 @@ function apply_meta_function(doc, filter)
   return doc
 end
 
-function apply_pandoc_function(doc, filter)
+local function apply_pandoc_function(doc, filter)
   if filter.Pandoc and doc.t == "Pandoc" then
     doc = filter.Pandoc(doc) or doc
   end
   return doc
 end
 
-
-function apply_fully(filter, doc)
+local function apply_fully(filter, doc)
   -- pandoc-lua-marshal/src/Text/Pandoc/Lua/Marshal/Pandoc.hs:applyFully
   if filter.traverse == "topdown" then
     doc = apply_pandoc_function(doc, filter)
