@@ -1,4 +1,9 @@
-function renderExtendedNodes() 
+-- render.lua
+-- convert custom nodes to their final representation
+--
+-- Copyright (C) 2022 by RStudio, PBC
+
+function renderExtendedNodes()
   if string.find(FORMAT, ".lua$") then
     return {}
   end

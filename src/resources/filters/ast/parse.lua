@@ -1,3 +1,8 @@
+-- parse.lua
+-- convert custom div inputs to custom nodes
+--
+-- Copyright (C) 2022 by RStudio, PBC
+
 function parseExtendedNodes() 
   return {
     Div = function(div)
