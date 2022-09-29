@@ -1,3 +1,8 @@
+-- runemulation.lua
+-- run filters in pandoc emulation mode
+--
+-- Copyright (C) 2022 by RStudio, PBC
+
 local function do_it(doc, filters)
   if tisarray(filters) then
     for _, v in ipairs(filters) do
