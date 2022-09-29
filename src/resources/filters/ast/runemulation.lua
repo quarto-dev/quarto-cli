@@ -38,28 +38,28 @@ local function emulate_pandoc_filter(filters, unextended)
 
   local our_utils = {
     blocks_to_inlines = function(lst)
-      return normalize(utils.blocks_to_inlines(denormalize(lst)))
+      return to_emulated(utils.blocks_to_inlines(from_emulated(lst)))
     end,
     citeproc = function(lst)
-      return normalize(utils.citeproc(denormalize(doc)))
+      return to_emulated(utils.citeproc(from_emulated(doc)))
     end,
     make_sections = function(number_sections, base_level, blocks)
-      return normalize(utils.make_sections(number_sections, base_level, denormalize(blocks)))
+      return to_emulated(utils.make_sections(number_sections, base_level, from_emulated(blocks)))
     end,
     from_simple_table = function(v)
-      return normalize(utils.from_simple_table(denormalize(v)))
+      return to_emulated(utils.from_simple_table(from_emulated(v)))
     end,
     to_simple_table = function(v)
-      return normalize(utils.to_simple_table(denormalize(v)))
+      return to_emulated(utils.to_simple_table(from_emulated(v)))
     end,
     references = function(doc)
-      return utils.references(denormalize(doc))
+      return utils.references(from_emulated(doc))
     end,
     run_json_filter = function(doc, command, arguments)
-      return normalize(utils.run_json_filter(denormalize(doc), command, arguments))
+      return to_emulated(utils.run_json_filter(from_emulated(doc), command, arguments))
     end,
     stringify = function(v)
-      return utils.stringify(denormalize(v))
+      return utils.stringify(from_emulated(v))
     end,
     type = function(v)
       if v.is_emulated then
@@ -78,7 +78,7 @@ local function emulate_pandoc_filter(filters, unextended)
 
   local our_mediabag = {
     fill = function(doc)
-      return normalize(mediabag.fill(denormalize(doc)))
+      return to_emulated(mediabag.fill(from_emulated(doc)))
     end
   }
 
@@ -93,8 +93,8 @@ local function emulate_pandoc_filter(filters, unextended)
       if key == "is_emulated" then return true end
       return pandoc_inlines_mtbl.__index[key] -- pandoc_inlines_mtbl.__index is a _table_ (!)
     end,
-    __concat = concat_denormalize_first,
-    __eq = pandoc_emulate_eq,
+    __concat = emulated_node_concat,
+    __eq = emulated_node_eq,
   }
 
   setmetatable(inlines_mtbl, {
@@ -110,8 +110,8 @@ local function emulate_pandoc_filter(filters, unextended)
       if key == "is_emulated" then return true end
       return pandoc_blocks_mtbl.__index[key] -- pandoc_blocks_mtbl.__index is a _table_ (!)
     end,    
-    __concat = concat_denormalize_first,
-    __eq = pandoc_emulate_eq,
+    __concat = emulated_node_concat,
+    __eq = emulated_node_eq,
   }
 
   setmetatable(blocks_mtbl, {
@@ -151,8 +151,8 @@ local function emulate_pandoc_filter(filters, unextended)
     end
     pandoc.write = function(el, format)
       if el.is_emulated then
-        local denormalized = denormalize(el)
-        return write(denormalized, format)
+        local native = from_emulated(el)
+        return write(native, format)
       end
       return write(el, format)
     end
@@ -217,16 +217,16 @@ local function emulate_pandoc_filter(filters, unextended)
       install_pandoc_overrides()
 
       if not unextended then
-        doc = normalize(doc)
+        doc = to_emulated(doc)
       end
       doc = do_it(doc, filters)
 
       if not unextended then
         -- quarto.utils.dump(doc)
-        doc = denormalize(doc)
+        doc = from_emulated(doc)
         -- print(doc)
         if doc == nil then
-          error("Internal Error: emulate_pandoc_filter received nil from denormalize")
+          error("Internal Error: emulate_pandoc_filter received nil from from_emulated")
           crash_with_stack_trace()
           return pandoc.Pandoc({}, {}) -- a lie to appease the type system
         end

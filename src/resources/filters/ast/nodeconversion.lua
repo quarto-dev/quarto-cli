@@ -1,14 +1,14 @@
-function normalize(node)
+function to_emulated(node)
   local doArray = function(lst)
-    return tmap(lst, normalize)
+    return tmap(lst, to_emulated)
   end
 
   local doBlocksArray = function(lst)
-    return pandoc.Blocks(tmap(lst, normalize))
+    return pandoc.Blocks(tmap(lst, to_emulated))
   end
 
   local doInlinesArray = function(lst)
-    local normalized_contents = tmap(lst, normalize)
+    local normalized_contents = tmap(lst, to_emulated)
     local result = pandoc.Inlines(normalized_contents)
     return result
   end
@@ -47,11 +47,11 @@ function normalize(node)
     return result
   end
 
-  local normalize_table_body = function(body)
+  local to_emulated_table_body = function(body)
     return {
       attr = body.attr,
-      body = tmap(body.body, normalize),
-      head = tmap(body.head, normalize),
+      body = tmap(body.body, to_emulated),
+      head = tmap(body.head, to_emulated),
       row_head_columns = body.row_head_columns
     }
   end
@@ -141,40 +141,40 @@ function normalize(node)
         long = result.caption.long and doBlocksArray(result.caption.long),
         short = result.caption.short and doInlinesArray(result.caption.short)
       }
-      result.head = normalize(result.head)
-      result.bodies = tmap(result.bodies, normalize_table_body)
-      result.foot = normalize(result.foot)
+      result.head = to_emulated(result.head)
+      result.bodies = tmap(result.bodies, to_emulated_table_body)
+      result.foot = to_emulated(result.foot)
       return result
     end,
 
     ["pandoc TableBody"] = function(body)
       local result = baseHandler(body)
-      result.body = tmap(result.body, normalize)
-      result.head = tmap(result.head, normalize)
+      result.body = tmap(result.body, to_emulated)
+      result.head = tmap(result.head, to_emulated)
       return result
     end,
 
     ["pandoc Row"] = function(row)
       local result = baseHandler(row)
-      result.cells = tmap(result.cells, normalize)
+      result.cells = tmap(result.cells, to_emulated)
       return result
     end,
 
     ["pandoc Cell"] = function(cell)
       local result = baseHandler(cell)
-      result.contents = tmap(result.contents, normalize)
+      result.contents = tmap(result.contents, to_emulated)
       return result
     end,
 
     ["pandoc TableFoot"] = function(foot)
       local result = baseHandler(foot)
-      result.rows = tmap(result.rows, normalize)      
+      result.rows = tmap(result.rows, to_emulated)      
       return result
     end,
 
     ["pandoc TableHead"] = function(head)
       local result = baseHandler(head)
-      result.rows = tmap(result.rows, normalize)      
+      result.rows = tmap(result.rows, to_emulated)      
       return result
     end,
 
@@ -201,7 +201,7 @@ function normalize(node)
   local t = node.t or pandoc.utils.type(node)
   local dispatch = typeTable[t]
   if dispatch == nil then
-    print("Internal Error in normalize(): found nil dispatch for node")
+    print("Internal Error in to_emulated(): found nil dispatch for node")
     quarto.utils.dump(node, true)
     print(node)
     print(type(node))
@@ -213,9 +213,9 @@ function normalize(node)
   end
 end
 
-function denormalize(node)
+function from_emulated(node)
   local doArray = function(lst)
-    return tmap(lst, denormalize)
+    return tmap(lst, from_emulated)
   end
 
   local doArrayArray = function(lst)
@@ -283,11 +283,11 @@ function denormalize(node)
     return result
   end
 
-  local function denormalize_table_body(body)
+  local function from_emulated_table_body(body)
     local result = {}
     result.attr = body.attr
-    result.body = tmap(body.body, denormalize)
-    result.head = tmap(body.head, denormalize)
+    result.body = tmap(body.body, from_emulated)
+    result.head = tmap(body.head, from_emulated)
     result.row_head_columns = body.row_head_columns
     return result
   end
@@ -296,7 +296,7 @@ function denormalize(node)
     Pandoc = function(tbl)
       tbl = copy(tbl)
       tbl.blocks = doArray(tbl.blocks)
-      tbl.meta = tbl.meta and denormalize_meta(tbl.meta)
+      tbl.meta = tbl.meta and from_emulated_meta(tbl.meta)
       local result = baseHandler(tbl)
       return result
     end,
@@ -356,11 +356,11 @@ function denormalize(node)
     end,
 
     Inlines = function(inlines)
-      return quarto.ast._true_pandoc.Inlines(tmap(inlines, denormalize))
+      return quarto.ast._true_pandoc.Inlines(tmap(inlines, from_emulated))
     end,
 
     Blocks = function(blocks)
-      return quarto.ast._true_pandoc.Blocks(tmap(blocks, denormalize))
+      return quarto.ast._true_pandoc.Blocks(tmap(blocks, from_emulated))
     end,
 
     Str = function(str)
@@ -392,19 +392,19 @@ function denormalize(node)
     Table = function(tbl)
       tbl = copy(tbl)
       tbl.caption = {
-        long = tbl.caption.long and denormalize(tbl.caption.long),
-        short = tbl.caption.short and denormalize(tbl.caption.short)
+        long = tbl.caption.long and from_emulated(tbl.caption.long),
+        short = tbl.caption.short and from_emulated(tbl.caption.short)
       }
-      tbl.head = denormalize(tbl.head)
-      tbl.bodies = tmap(tbl.bodies, denormalize_table_body)
-      tbl.foot = denormalize(tbl.foot)
+      tbl.head = from_emulated(tbl.head)
+      tbl.bodies = tmap(tbl.bodies, from_emulated_table_body)
+      tbl.foot = from_emulated(tbl.foot)
       local result = baseHandler(tbl)
       return result
     end,
 
     SimpleTable = function(tbl)
       tbl = copy(tbl)
-      tbl.caption = denormalize(tbl.caption)
+      tbl.caption = from_emulated(tbl.caption)
       tbl.headers = doArray(tbl.headers)
       tbl.rows = doArrayArray(tbl.rows)
       local result = baseHandler(tbl)
@@ -413,25 +413,25 @@ function denormalize(node)
 
     ["pandoc TableFoot"] = function(foot)
       foot = copy(foot)
-      foot.rows = tmap(foot.rows, denormalize)
+      foot.rows = tmap(foot.rows, from_emulated)
       return baseHandler(foot)
     end,
 
     ["pandoc TableHead"] = function(head)
       head = copy(head)
-      head.rows = tmap(head.rows, denormalize)
+      head.rows = tmap(head.rows, from_emulated)
       return baseHandler(head)
     end,
 
     ["pandoc Row"] = function(row)
       row = copy(row)
-      row.cells = tmap(row.cells, denormalize)
+      row.cells = tmap(row.cells, from_emulated)
       return baseHandler(row)
     end,
 
     ["pandoc Cell"] = function(cell)
       cell = copy(cell)
-      cell.contents = tmap(cell.contents, denormalize)
+      cell.contents = tmap(cell.contents, from_emulated)
       return baseHandler(cell)
     end,
   }
@@ -450,7 +450,7 @@ function denormalize(node)
     local denormalizedTable = {}
     for k, v in pairs(node) do
       if not (k == "t" or k == "tag" or k == "class" or k == "attr") then
-        denormalizedTable[k] = denormalize(v)
+        denormalizedTable[k] = from_emulated(v)
       else
         denormalizedTable[k] = v
       end
@@ -462,11 +462,11 @@ function denormalize(node)
   local dispatch = typeTable[t]
   if dispatch == nil then
     if tisarray(node) then
-      return tmap(node, denormalize)
+      return tmap(node, from_emulated)
     else
       local result = {}
       for k, v in pairs(node) do
-        result[k] = denormalize(v)
+        result[k] = from_emulated(v)
       end
       return result
     end
@@ -476,7 +476,7 @@ function denormalize(node)
 end
 
 
-function denormalize_meta(node)
+function from_emulated_meta(node)
 
   local function unmeta(meta)
     local t = type(meta)
@@ -516,7 +516,7 @@ function denormalize_meta(node)
       end
     end
   
-    if meta.is_emulated then return denormalize(meta) end
+    if meta.is_emulated then return from_emulated(meta) end
     if t == "Inline" or t == "Block" then return meta end
   
     if type(meta) == "table" then
