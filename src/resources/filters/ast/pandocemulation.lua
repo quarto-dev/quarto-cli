@@ -110,13 +110,13 @@ pandoc_constructors_args = {
 }
 
 pandoc_fixed_field_types = {
-  -- DefinitionList
   BlockQuote = { content = "Blocks" },
   BulletList = { content = "List" }, -- BlocksList, but we can't represent that
   Cell = { attr = "Attr" },
   Cite = { content = "Inlines" },
   Code = { attr = "Attr" },
   CodeBlock = { attr = "Attr" },
+  DefinitionList = { content = "List" }, -- list of (Inlines, BlocksList), but we can't represent that
   Div = { content = "Blocks", attr = "Attr" },
   Emph = { content = "Inlines" },
   Header = { content = "Inlines", attr = "Attr" },

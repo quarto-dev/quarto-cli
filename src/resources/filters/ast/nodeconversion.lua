@@ -72,10 +72,18 @@ function to_emulated(node)
     BlockQuote = blocksContentHandler,
     BulletList = blocksContentArrayHandler,
 
-    -- FIXME unclear what to do here from https://pandoc.org/lua-filters.html#type-definitionlist
     -- we're going to have to do it from the source: pandoc-types/src/Text/Pandoc/Definition.hs
-    -- DefinitionList = function(element)
-    -- end,
+    DefinitionList = function(el)
+      -- | DefinitionList [([Inline],[[Block]])]
+      local result = baseHandler(el)
+      result.content = tmap(result.content, function(innerEl)
+        local inner = pandoc.List()
+        inner:insert(doInlinesArray(innerEl[1]))
+        inner:insert(doBlocksArrayArray(innerEl[2]))
+        return inner
+      end)
+      return result
+    end,
 
     CodeBlock = baseHandler,
 
@@ -309,8 +317,17 @@ function from_emulated(node)
     BulletList = contentArrayHandler,
 
     -- unclear what to do here from https://pandoc.org/lua-filters.html#type-definitionlist
-    -- DefinitionList = function(element)
-    -- end,
+    DefinitionList = function(tbl)
+      tbl = copy(tbl)
+      tbl.content = tmap(tbl.content, function(innerTbl)
+        return {
+          doArray(innerTbl[1]),
+          doArrayArray(innerTbl[2])
+        }
+      end)
+      local result = baseHandler(tbl)
+      return result
+    end,
 
     CodeBlock = baseHandler,
     Code = baseHandler,

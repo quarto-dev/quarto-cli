@@ -52,18 +52,32 @@ local function pandoc_emulated_node_factory(t)
   end
 end
 
-local function emulate_pandoc_filter(filters, unextended)
-  local walk_block = pandoc.walk_block
-  local walk_inline = pandoc.walk_inline
-  local write = pandoc.write
-  local Inlines = pandoc.Inlines
-  local Blocks = pandoc.Blocks
-  local MetaBlocks = pandoc.MetaBlocks
-  local MetaInlines = pandoc.MetaInlines
-  local pandoc_inlines_mtbl = getmetatable(pandoc.Inlines({}))
-  local pandoc_blocks_mtbl = getmetatable(pandoc.Blocks({}))
-  local utils = pandoc.utils
-  local mediabag = pandoc.mediabag
+function install_pandoc_overrides()
+  local state = {}
+
+  state.walk_block = pandoc.walk_block
+  state.walk_inline = pandoc.walk_inline
+  state.write = pandoc.write
+  state.Inlines = pandoc.Inlines
+  state.Blocks = pandoc.Blocks
+  state.MetaBlocks = pandoc.MetaBlocks
+  state.MetaInlines = pandoc.MetaInlines
+  state.pandoc_inlines_mtbl = getmetatable(pandoc.Inlines({}))
+  state.pandoc_blocks_mtbl = getmetatable(pandoc.Blocks({}))
+  state.utils = pandoc.utils
+  state.mediabag = pandoc.mediabag
+
+  local walk_block = state.walk_block
+  local walk_inline = state.walk_inline
+  local write = state.write
+  local Inlines = state.Inlines
+  local Blocks = state.Blocks
+  local MetaBlocks = state.MetaBlocks
+  local MetaInlines = state.MetaInlines
+  local pandoc_inlines_mtbl = state.pandoc_inlines_mtbl
+  local pandoc_blocks_mtbl = state.pandoc_blocks_mtbl
+  local utils = state.utils
+  local mediabag = state.mediabag
 
   local our_utils = {
     blocks_to_inlines = function(lst)
@@ -150,140 +164,135 @@ local function emulate_pandoc_filter(filters, unextended)
   })
 
   local ast_constructors = {}
-  quarto.ast._true_pandoc = ast_constructors
-  quarto.ast._true_pandoc.Blocks = Blocks
-  quarto.ast._true_pandoc.Inlines = Inlines
+  state.ast_constructors = ast_constructors
 
-  function install_pandoc_overrides()
-    pandoc.utils = our_utils
-    pandoc.mediabag = our_mediabag
-    pandoc.TableBody = function(body, head, row_head_columns, attr)
-      return {
-        body = body,
-        head = head,
-        row_head_columns = row_head_columns or 1,
-        attr = attr or pandoc.Attr(),
-        t = "TableBody"
-      }
-    end
-    pandoc.walk_block = function(el, filter)
-      if el.is_emulated then
-        return el:walk(filter)
-      end
-      return walk_block(el, filter)
-    end
-    pandoc.walk_inline = function(el, filter)
-      if el.is_emulated then
-        return el:walk(filter)
-      end
-      return walk_inline(el, filter)
-    end
-    pandoc.write = function(el, format)
-      if el.is_emulated then
-        local native = from_emulated(el)
-        return write(native, format)
-      end
-      return write(el, format)
-    end
-    for k, _ in pairs(pandoc_constructors_args) do
-      ast_constructors[k] = pandoc[k]
-      pandoc[k] = pandoc_emulated_node_factory(k)
-    end
-    pandoc.Inlines = function(value)
-      local result = {}
-      setmetatable(result, inlines_mtbl)
+  ast_constructors.Blocks = Blocks
+  ast_constructors.Inlines = Inlines
+  ast_constructors.MetaBlocks = MetaBlocks
+  ast_constructors.MetaInlines = MetaInlines
 
-      if value == nil then
-        return result
-      elseif value.t == "Inlines" or value.t == "List" or (tisarray(value) and not value.is_emulated) then
-        result:extend(value)
-        return result
-      elseif value.t == "Blocks" then
-        print("Type error: can't initialize Inlines with Blocks")
-        crash_with_stack_trace()
-      else
-        result:insert(value)
-        return result
-      end
+  pandoc.utils = our_utils
+  pandoc.mediabag = our_mediabag
+  pandoc.TableBody = function(body, head, row_head_columns, attr)
+    return {
+      body = body,
+      head = head,
+      row_head_columns = row_head_columns or 1,
+      attr = attr or pandoc.Attr(),
+      t = "TableBody"
+    }
+  end
+  pandoc.walk_block = function(el, filter)
+    if el.is_emulated then
+      return el:walk(filter)
     end
-    pandoc.Blocks = function(value)
-      local result = {}
-      setmetatable(result, blocks_mtbl)
+    return walk_block(el, filter)
+  end
+  pandoc.walk_inline = function(el, filter)
+    if el.is_emulated then
+      return el:walk(filter)
+    end
+    return walk_inline(el, filter)
+  end
+  pandoc.write = function(el, format)
+    if el.is_emulated then
+      local native = from_emulated(el)
+      return write(native, format)
+    end
+    return write(el, format)
+  end
+  for k, _ in pairs(pandoc_constructors_args) do
+    ast_constructors[k] = pandoc[k]
+    pandoc[k] = pandoc_emulated_node_factory(k)
+  end
+  pandoc.Inlines = function(value)
+    local result = {}
+    setmetatable(result, inlines_mtbl)
 
-      if value == nil then
-        return result
-      elseif value.t == "Blocks" or value.t == "List" or (tisarray(value) and not value.is_emulated) then
-        result:extend(value)
-        return result
-      elseif value.t == "Inlines" then
-        print("Type error: can't initialize Blocks with Inlines")
-        crash_with_stack_trace()
-      else
-        result:insert(value)
-        return result
-      end
-    end
-    pandoc.MetaBlocks = function(value)
-      local is_emulated = value.is_emulated
-      if is_emulated then
-        return MetaBlocks(quarto.ast.from_emulated(value))
-      elseif tisarray(value) then
-        return MetaBlocks(tmap(value, quarto.ast.from_emulated))
-      else
-        return MetaBlocks(value)
-      end
-    end
-    pandoc.MetaInlines = function(value)
-      local is_emulated = value.is_emulated
-      if is_emulated then
-        return MetaInlines(quarto.ast.from_emulated(value))
-      elseif tisarray(value) then
-        return MetaInlines(tmap(value, quarto.ast.from_emulated))
-      else
-        return MetaInlines(value)
-      end
+    if value == nil then
+      return result
+    elseif value.t == "Inlines" or value.t == "List" or (tisarray(value) and not value.is_emulated) then
+      result:extend(value)
+      return result
+    elseif value.t == "Blocks" then
+      print("Type error: can't initialize Inlines with Blocks")
+      crash_with_stack_trace()
+    else
+      result:insert(value)
+      return result
     end
   end
+  pandoc.Blocks = function(value)
+    local result = {}
+    setmetatable(result, blocks_mtbl)
 
-  function restore_pandoc_overrides()
-    pandoc.utils = utils
-    pandoc.mediabag = mediabag
-    pandoc.walk_block = walk_block
-    pandoc.walk_inline = walk_inline
-    pandoc.write = write
-    for k, _ in pairs(pandoc_constructors_args) do
-      pandoc[k] = ast_constructors[k]
+    if value == nil then
+      return result
+    elseif value.t == "Blocks" or value.t == "List" or (tisarray(value) and not value.is_emulated) then
+      result:extend(value)
+      return result
+    elseif value.t == "Inlines" then
+      print("Type error: can't initialize Blocks with Inlines")
+      crash_with_stack_trace()
+    else
+      result:insert(value)
+      return result
     end
-    pandoc.Inlines = Inlines
-    pandoc.Blocks = Blocks
-    pandoc.MetaInlines = MetaInlines
-    pandoc.MetaBlocks = MetaBlocks
   end
+  pandoc.MetaBlocks = function(value)
+    local is_emulated = value.is_emulated
+    if is_emulated then
+      return MetaBlocks(quarto.ast.from_emulated(value))
+    elseif tisarray(value) then
+      return MetaBlocks(tmap(value, quarto.ast.from_emulated))
+    else
+      return MetaBlocks(value)
+    end
+  end
+  pandoc.MetaInlines = function(value)
+    local is_emulated = value.is_emulated
+    if is_emulated then
+      return MetaInlines(quarto.ast.from_emulated(value))
+    elseif tisarray(value) then
+      return MetaInlines(tmap(value, quarto.ast.from_emulated))
+    else
+      return MetaInlines(value)
+    end
+  end
+  quarto.ast._true_pandoc = state.ast_constructors
+  return state
+end
+
+function restore_pandoc_overrides(state)
+  pandoc.utils = state.utils
+  pandoc.mediabag = state.mediabag
+  pandoc.walk_block = state.walk_block
+  pandoc.walk_inline = state.walk_inline
+  pandoc.write = state.write
+  for k, _ in pairs(pandoc_constructors_args) do
+    pandoc[k] = state.ast_constructors[k]
+  end
+  pandoc.Inlines = state.Inlines
+  pandoc.Blocks = state.Blocks
+  pandoc.MetaInlines = state.MetaInlines
+  pandoc.MetaBlocks = state.MetaBlocks
+  pandoc.TableBody = state.TableBody -- pretty sure it'll always be nil, but..
+end
+
+local function emulate_pandoc_filter(filters, overrides_state)
 
   return {
     traverse = 'topdown',
     Pandoc = function(doc)
 
-      install_pandoc_overrides()
-
-      if not unextended then
-        doc = to_emulated(doc)
-      end
+      doc = to_emulated(doc)
       doc = do_it(doc, filters)
+      doc = from_emulated(doc)
 
-      if not unextended then
-        -- quarto.utils.dump(doc)
-        doc = from_emulated(doc)
-        -- print(doc)
-        if doc == nil then
-          error("Internal Error: emulate_pandoc_filter received nil from from_emulated")
-          crash_with_stack_trace()
-          return pandoc.Pandoc({}, {}) -- a lie to appease the type system
-        end
-      end
+      -- the installation happens in main.lua ahead of loaders
+      restore_pandoc_overrides(overrides_state)
 
-      restore_pandoc_overrides()
-
+      -- this call is now a real pandoc.Pandoc call
       return pandoc.Pandoc(doc.blocks, doc.meta), false
     end
   }
