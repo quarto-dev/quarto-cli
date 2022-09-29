@@ -118,7 +118,7 @@ ourWrappedWriter = makeWrappedFilter(param("custom-writer"), function(handler)
     -- the second check is needed because pandoc's Meta is a table as well
     if type(node) == "table" and pandoc.utils.type(node) == "table" then
       local astTag = node.attr and node.attr.attributes["quarto-extended-ast-tag"]
-      local astHandler = quarto.ast.resolveHandler(astTag)
+      local astHandler = quarto.ast.resolve_handler(astTag)
       nodeHandler = astHandler and handler[astHandler.astName] and handler[astHandler.astName].handle
       -- if we had a table as a result but we don't know how to write it,
       -- we then build it back to a div as a last-ditch resort
@@ -132,7 +132,7 @@ ourWrappedWriter = makeWrappedFilter(param("custom-writer"), function(handler)
       t = node.t or pandoc.utils.type(node)
       -- try to find quarto extended AST tag
       local astTag = t == "Div" and node.attr and node.attr.attributes["quarto-extended-ast-tag"]
-      local astHandler = quarto.ast.resolveHandler(astTag)
+      local astHandler = quarto.ast.resolve_handler(astTag)
       nodeHandler = astHandler and handler[astHandler.astName] and handler[astHandler.astName].handle
       -- we have a handler and we know to write it:
       -- convert to table for the handler
