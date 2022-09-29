@@ -5,6 +5,7 @@
  *
  */
 import { extname } from "path/mod.ts";
+import { FormatPandoc } from "../../config/types.ts";
 import { execProcess } from "../process.ts";
 import { pandocBinaryPath, resourcePath } from "../resources.ts";
 import { lines } from "../text.ts";
@@ -86,6 +87,24 @@ export interface FormatDescriptor {
   formatWithVariants: string;
 }
 
+export const isValidFormat = (
+  formatDesc: FormatDescriptor,
+  pandoc: FormatPandoc,
+) => {
+  if (isBuiltInFormat(formatDesc.baseFormat)) {
+    // This is a built in format, all is good.
+    return true;
+  } else if (pandoc.writer) {
+    // This format isn't recognized by pandoc
+    // but there is a writer for it
+    return true;
+  } else {
+    // there is no 'to' or it isn't built in and there is no
+    // custom writer for it
+    return false;
+  }
+};
+
 // Format strings are of the form:
 // baseName+<variants | modifiers>-<variants>[<extension>]
 // Where modifiers and variants can be in any order
@@ -111,7 +130,7 @@ export const parseFormatString = (formatStr: string): FormatDescriptor => {
     const splitFormat = formatStr.split(/-/);
     const lastEl = splitFormat.pop();
     if (lastEl) {
-      const lastElFormatDesc = breakFormatString(lastEl);
+      const lastElFormatDesc = breakFormatString(lastEl, false);
       if (lastElFormatDesc) {
         // The last element was a valid format string, so
         // use the prefix parts as the extension name
@@ -149,7 +168,10 @@ function isBuiltInFormat(format: string) {
     extname(format) === ".lua";
 }
 
-function breakFormatString(formatStr: string): FormatDescriptor | undefined {
+function breakFormatString(
+  formatStr: string,
+  strict = true,
+): FormatDescriptor | undefined {
   const firstEl = formatStr.split(/[+-]/)[0];
   if (isBuiltInFormat(firstEl)) {
     // Grab anything that could be a variant
@@ -180,7 +202,16 @@ function breakFormatString(formatStr: string): FormatDescriptor | undefined {
       formatWithVariants: `${firstEl}${variants.join("")}`,
     };
   } else {
-    return undefined;
+    if (strict) {
+      return undefined;
+    } else {
+      return {
+        baseFormat: formatStr,
+        variants: [],
+        modifiers: [],
+        formatWithVariants: formatStr,
+      };
+    }
   }
 }
 
