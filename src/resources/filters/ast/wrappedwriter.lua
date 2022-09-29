@@ -13,7 +13,7 @@ import("emulatedfilter.lua")
 
 local resultingStrs = {}
 
-ourWrappedWriter = makeWrappedFilter(param("custom-writer"), function(handler)
+local ourWrappedWriter = makeWrappedFilter(param("custom-writer"), function(handler)
 
   local contentHandler = function(el)
     return el.content

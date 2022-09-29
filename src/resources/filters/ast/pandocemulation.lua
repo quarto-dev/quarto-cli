@@ -24,12 +24,12 @@ pandoc_emulated_node_factory = function(t)
   end
 end
 
-function concat_denormalize_first(a, b)
+function emulated_node_concat(a, b)
   if a.is_emulated or a.t == "Inlines" or a.t == "Blocks" or a.t == "List" then -- these are the emulated arrays
-    a = denormalize(a)
+    a = from_emulated(a)
   end
   if b.is_emulated or b.t == "Inlines" or b.t == "Blocks" or b.t == "List" then -- these are the emulated arrays
-    b = denormalize(b)
+    b = from_emulated(b)
   end
   return a .. b
 end
@@ -140,13 +140,13 @@ pandoc_fixed_field_types = {
   Underline = { content = "Inlines" },
 }
 
-function pandoc_emulate_eq(a, b)
+function emulated_node_eq(a, b)
   if type(a) == "userdata" or type(b) == "userdata" then
     if type(a) == "userdata" then
-      a = denormalize(a)
+      a = to_emulated(a)
     end
     if type(b) == "userdata" then
-      b = denormalize(b)
+      b = to_emulated(b)
     end
     return a == b
   end
@@ -213,7 +213,7 @@ function create_emulated_node(t, is_custom)
       local method = pandoc_ast_methods[key]
       if method then return method end
     end,
-    __eq = pandoc_emulate_eq,
+    __eq = emulated_node_eq,
     __pairs = function(tbl)
       local inMeta = pandoc_fixed_field_types[t] ~= nil
       local index
@@ -245,7 +245,7 @@ function create_emulated_node(t, is_custom)
         end
       end      
     end,
-    __concat = concat_denormalize_first,
+    __concat = emulated_node_concat,
     __newindex = function(tbl, key, value)
       local fixedFieldType = (pandoc_fixed_field_types[t] or {})[key]
       if fixedFieldType then
