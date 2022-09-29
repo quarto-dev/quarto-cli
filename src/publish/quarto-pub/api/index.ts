@@ -5,6 +5,7 @@
 *
 */
 
+import { ApiError } from "../../types.ts";
 import {
   AccessToken,
   AccountSite,
@@ -27,16 +28,6 @@ const contentTypeApplicationJsonHeader = {
 const authorizationHeader = (
   token?: string,
 ): HeadersInit => (!token ? {} : { Authorization: `Bearer ${token}` });
-
-// TODO.
-export class ApiError extends Error {
-  public constructor(
-    public readonly status: number,
-    public readonly statusText: string,
-  ) {
-    super(`API Error: ${status} (${statusText})`);
-  }
-}
 
 export class QuartoPubClient {
   private readonly baseURL_: string;

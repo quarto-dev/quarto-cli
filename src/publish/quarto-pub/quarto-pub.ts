@@ -19,9 +19,9 @@ import {
   writeAccessTokens,
 } from "../common/account.ts";
 import { handlePublish, PublishHandler } from "../common/publish.ts";
-import { PublishOptions, PublishRecord } from "../types.ts";
+import { ApiError, PublishOptions, PublishRecord } from "../types.ts";
 
-import { ApiError, QuartoPubClient } from "./api/index.ts";
+import { QuartoPubClient } from "./api/index.ts";
 import { authorizePrompt } from "../account.ts";
 import { quartoConfig } from "../../core/quarto.ts";
 

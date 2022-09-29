@@ -16,9 +16,9 @@ import {
   PublishFiles,
   PublishProvider,
 } from "../provider.ts";
-import { PublishOptions, PublishRecord } from "../types.ts";
+import { ApiError, PublishOptions, PublishRecord } from "../types.ts";
 import { RSConnectClient } from "./api/index.ts";
-import { ApiError, Content, Task } from "./api/types.ts";
+import { Content, Task } from "./api/types.ts";
 import {
   readAccessTokens,
   writeAccessToken,

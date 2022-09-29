@@ -13,24 +13,21 @@ import {
   PublishFiles,
   PublishProvider,
 } from "../provider.ts";
-import { PublishOptions, PublishRecord } from "../types.ts";
+import { ApiError, PublishOptions, PublishRecord } from "../types.ts";
+import { ConfluenceClient } from "./api/index.ts";
 
 export const kConfluence = "confluence";
 
 const kConfluenceDescription = "Confluence";
 
+const kConfluenceDomain = "CONFLUENCE_DOMAIN";
 const kConfluenceUserEmail = "CONFLUENCE_USER_EMAIL";
 const kConfluenceAuthToken = "CONFLUENCE_AUTH_TOKEN";
-
-type Account = {
-  email: string;
-  token: string;
-};
 
 export const confluenceProvider: PublishProvider = {
   name: kConfluence,
   description: kConfluenceDescription,
-  requiresServer: false,
+  requiresServer: true,
   listOriginOnly: false,
   accountTokens,
   authorizeToken,
@@ -58,13 +55,14 @@ function accountTokens() {
 }
 
 function confluenceEnvironmentVarAccount() {
+  const server = Deno.env.get(kConfluenceDomain);
   const name = Deno.env.get(kConfluenceUserEmail);
   const token = Deno.env.get(kConfluenceAuthToken);
-  if (name && token) {
+  if (server && name && token) {
     return {
       type: AccountTokenType.Environment,
       name,
-      server: null,
+      server: transformAtlassianDomain(server),
       token,
     };
   }
@@ -75,13 +73,14 @@ async function authorizeToken(_options: PublishOptions) {
   //   - the server exists
   //   - the username exists
   //   - the token works
-  // This can be done in while(true) looops that call the prompt functions
-  // and validate as appropriate
+  // This can be done in while(true) loops that call the prompt functions
+  // and validate as appropriate. It could also be done in a single
+  // call to getUser at the end
 
   const server = await Input.prompt({
     indent: "",
     message: "Confluence Domain:",
-    hint: "e.g. https://mydomain.atlassian.net.com",
+    hint: "e.g. https://mydomain.atlassian.net/",
     validate: (value) => {
       // 'Enter' with no value ends publish
       if (value.length === 0) {
@@ -115,12 +114,24 @@ async function authorizeToken(_options: PublishOptions) {
     throw new Error();
   }
 
+  // create the token
   const accountToken: AccountToken = {
     type: AccountTokenType.Authorized,
     name,
     server,
     token,
   };
+
+  // verify that the token works
+  try {
+    const client = new ConfluenceClient(accountToken);
+    await client.getUser();
+  } catch (err) {
+    const msg = err instanceof ApiError
+      ? `${err.status} - ${err.statusText}`
+      : err.message || "Unknown error";
+    throw new Error(`Unable to sign into Confluence account: ${msg}`);
+  }
 
   // save it
   writeAccessToken<AccountToken>(
@@ -154,11 +165,14 @@ function resolveTarget(
   _account: AccountToken,
   target: PublishRecord,
 ): Promise<PublishRecord | undefined> {
+  // TODO: confirm that the specified target exists and return a modified
+  // version w/ any update to the URL which has occurred (this may not be
+  //  a thing in confluence so just validating may be enough)
   return Promise.resolve(target);
 }
 
-function publish(
-  _account: AccountToken,
+async function publish(
+  account: AccountToken,
   _type: "document" | "site",
   _input: string,
   _title: string,
@@ -167,13 +181,18 @@ function publish(
   _options: PublishOptions,
   _target?: PublishRecord,
 ): Promise<[PublishRecord, URL | undefined]> {
+  const client = new ConfluenceClient(account);
+
+  console.log(await client.getUser());
+
   throw new Error("not implemented");
 }
 
-function isUnauthorized(_err: Error) {
-  return false;
+function isUnauthorized(err: Error) {
+  console.error(err);
+  return err instanceof ApiError && (err.status === 401 || err.status === 403);
 }
 
-function isNotFound(_err: Error) {
-  return false;
+function isNotFound(err: Error) {
+  return err instanceof ApiError && (err.status === 404);
 }

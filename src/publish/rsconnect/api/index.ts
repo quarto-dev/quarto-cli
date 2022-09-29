@@ -9,7 +9,8 @@ import { wrapFetch } from "another_cookiejar/mod.ts";
 const fetch = wrapFetch();
 
 import { ensureProtocolAndTrailingSlash } from "../../../core/url.ts";
-import { ApiError, Bundle, Content, Task, TaskStatus, User } from "./types.ts";
+import { ApiError } from "../../types.ts";
+import { Bundle, Content, Task, TaskStatus, User } from "./types.ts";
 
 export class RSConnectClient {
   public constructor(
