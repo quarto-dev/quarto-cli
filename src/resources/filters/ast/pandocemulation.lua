@@ -137,8 +137,8 @@ pandoc_fixed_field_types = {
   Subscript = { content = "Inlines" },
   Superscript = { content = "Inlines" },
   Table = { attr = "Attr" },
-  TableFoot = { attr = "Attr" },
-  TableHead = { attr = "Attr" },
+  TableFoot = { attr = "Attr", rows = "List" },
+  TableHead = { attr = "Attr", rows = "List" },
   Underline = { content = "Inlines" },
 }
 
