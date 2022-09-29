@@ -9,9 +9,18 @@ import { kOutputDivs, kVariant } from "../../config/constants.ts";
 import { Format } from "../../config/types.ts";
 import { createFormat, plaintextFormat } from "../formats-shared.ts";
 
-export const kGfmCommonmarkVariant =
-  "+autolink_bare_uris+emoji+footnotes+gfm_auto_identifiers" +
-  "+pipe_tables+strikeout+task_lists+tex_math_dollars";
+export const kGfmCommonmarkExtensions = [
+  "+autolink_bare_uris",
+  "+emoji",
+  "+footnotes",
+  "+gfm_auto_identifiers",
+  "+pipe_tables",
+  "+strikeout",
+  "+task_lists",
+  "+tex_math_dollars",
+];
+
+export const kGfmCommonmarkVariant = kGfmCommonmarkExtensions.join("");
 
 export const kGfmCommonmarkFormat = `commonmark${kGfmCommonmarkVariant}`;
 
@@ -36,7 +45,7 @@ export function gfmFormat(): Format {
       to: "commonmark",
     },
     render: {
-      [kVariant]: "gfm",
+      [kVariant]: kGfmCommonmarkVariant,
     },
   });
 }

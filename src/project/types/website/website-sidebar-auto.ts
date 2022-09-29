@@ -113,12 +113,27 @@ async function sidebarItemsFromAuto(
   project: ProjectContext,
   auto: boolean | string | string[],
 ): Promise<SidebarItem[]> {
+  // is this a single directory that exists
+  const isAutoDir = typeof (auto) === "string" &&
+    !!auto.match(/^[^\*]+$/) &&
+    safeExistsSync(join(project.dir, auto));
+
   // list of globs from auto
   const globs: string[] = globsFromAuto(project, auto);
 
   // scan for inputs and organize them into heirarchical nodes
   const entries: Entry[] = [];
   for (const nodeSet of autoSidebarNodes(project, globs)) {
+    // if this is an auto-dir that has an index page inside it
+    // then re-shuffle things a bit
+    if (isAutoDir) {
+      const root = nodeSet.root.split("/");
+      nodeSet.root = root.slice(0, -1).join("/");
+      nodeSet.nodes = {
+        [root.slice(-1)[0]]: nodeSet.nodes,
+      };
+    }
+
     entries.push(
       ...await nodesToEntries(
         project,
@@ -234,9 +249,6 @@ async function nodesToEntries(
 
   // if there is an index file in the root then remove it
   // (as the higher level section handler will find it)
-  const findIndexFile = ((nds: SidebarNodes) => {
-    return Object.keys(nds).find((input) => /^index\.\w+$/.test(input));
-  });
   const indexFile = findIndexFile(nodes);
   if (indexFile) {
     delete nodes[indexFile];
@@ -290,6 +302,10 @@ async function nodesToEntries(
 
   // order the entries using 'order' and 'title'
   return entries.sort(sortEntries);
+}
+
+function findIndexFile(nodes: SidebarNodes) {
+  return Object.keys(nodes).find((input) => /^index\.\w+$/.test(input));
 }
 
 function sortEntries(a: Entry, b: Entry) {
