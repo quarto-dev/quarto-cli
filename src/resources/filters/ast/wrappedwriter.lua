@@ -43,9 +43,7 @@ local ourWrappedWriter = makeWrappedFilter(param("custom-writer"), function(hand
     BlockQuote = contentHandler,
     BulletList = itemsHandler,
 
-    -- unclear what to do here from https://pandoc.org/lua-filters.html#type-definitionlist
-    -- DefinitionList = function(element)
-    -- end,
+    DefinitionList = contentHandler,
 
     Div = contentHandler,
     Header = contentHandler,

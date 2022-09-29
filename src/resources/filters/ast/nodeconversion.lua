@@ -476,8 +476,12 @@ function from_emulated(node)
   if type(node) == "string" then
     return quarto.ast._true_pandoc.Str(node)
   end
+  -- we want to skip all nodes that aren't emulated or plain tables
+  -- while not checking .is_emulated for atomic nodes
   if type(node) ~= "table" then
-    return node
+    if type(node) ~= "userdata" or not node.is_emulated then
+      return node
+    end
   end
 
   if node.is_custom then
