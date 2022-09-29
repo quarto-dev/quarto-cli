@@ -30,7 +30,7 @@ local handlers = {
 
     -- a function that renders the extendedNode into output
     render = function(extendedNode)
-      return quarto.ast.pandoc.Div(quarto.ast.pandoc.Blocks({
+      return pandoc.Div(pandoc.Blocks({
         extendedNode.title, extendedNode.content
       }))
     end,
@@ -60,7 +60,7 @@ function ast_node_array_map(node_array, fn)
   if tisarray(node_array) then
     return tmap(node_array, fn)
   else
-    local result = _build_extended_node(node_array.t)
+    local result = create_emulated_node(node_array.t)
     for k, v in pairs(node_array) do
       result[k] = fn(v)
     end
@@ -68,37 +68,13 @@ function ast_node_array_map(node_array, fn)
   end
 end
 
-local _quarto_pandoc_special_constructors = {
-  Inlines = function(args)
-    local result = _build_extended_node("Inlines")
-    for k, v in pairs(args or {}) do
-      result[k] = v
-    end
-    return result
-  end,
-  Blocks = function(args)
-    local result = _build_extended_node("Blocks")
-    for k, v in pairs(args or {}) do
-      result[k] = v
-    end
-    return result
-  end,
-}
-
-local _quarto_pandoc = {}
-setmetatable(_quarto_pandoc, {
-  __index = function(_, key)
-    return _quarto_pandoc_special_constructors[key] or pandoc_emulated_node_factory(key)
-  end
-})
-
 local pandoc_ast_methods = {
   show = function(_)
     return "UNIMPLEMENTED_SHOW_RESULT"
   end,
   clone = function(self)
     -- FIXME this should be a deep copy
-    return quarto.ast.copyAsExtendedNode(self)
+    return quarto.ast.copy_as_emulated_node(self)
   end,
   walk = emulate_pandoc_walk,
 
@@ -106,7 +82,7 @@ local pandoc_ast_methods = {
   is_custom = false
 }
 
-function _build_extended_node(t, is_custom)
+function create_emulated_node(t, is_custom)
   if t == "Inlines" or t == "Blocks" or t == "List" then
     return pandoc[t]({})
   end
@@ -123,7 +99,7 @@ function _build_extended_node(t, is_custom)
   }
 
   for k, v in pairs(pandoc_fixed_field_types[t] or {}) do
-    metaFields[k] = _build_extended_node(v)
+    metaFields[k] = create_emulated_node(v)
   end
 
   local special_resolution = function(tbl, key)
@@ -216,27 +192,25 @@ function _build_extended_node(t, is_custom)
 end
 
 quarto.ast = {
-  pandoc = _quarto_pandoc,
-
   custom = function(name, tbl)
-    local result = _build_extended_node(name, true)
+    local result = create_emulated_node(name, true)
     for k, v in pairs(tbl) do
       result[k] = v
     end
     return result
   end,
 
-  copyAsExtendedNode = function(el)
+  copy_as_emulated_node = function(el)
     -- this will probably crash other places, but they shouldn't be calling us like this anyway
     if el == nil then return nil end
 
     if type(el) ~= "table" and type(el) ~= "userdata" then
-      error("Internal Error: copyAsExtendedNode can't handle type " .. type(el))
+      error("Internal Error: copy_as_emulated_node can't handle type " .. type(el))
       crash_with_stack_trace()
-      return _build_extended_node("Div") -- a lie to appease to type system
+      return create_emulated_node("Div") -- a lie to appease to type system
     end
 
-    local ExtendedAstNode = _build_extended_node(
+    local ExtendedAstNode = create_emulated_node(
       el.t or pandoc.utils.type(el),
       el.is_custom or false
     )
@@ -282,7 +256,7 @@ quarto.ast = {
     state.namedHandlers[handler.astName] = handler
   end,
 
-  resolveHandler = function(name)
+  resolve_handler = function(name)
     local state = (preState or postState).extendedAstHandlers
     if state.namedHandlers ~= nil then
       return state.namedHandlers[name]
@@ -293,7 +267,7 @@ quarto.ast = {
 
   unbuild = function(extendedAstNode)
     local name = extendedAstNode.attr.attributes["quarto-extended-ast-tag"]
-    local handler = quarto.ast.resolveHandler(name)
+    local handler = quarto.ast.resolve_handler(name)
     if handler == nil then
       print("ERROR: couldn't find a handler for " .. name)
       crash_with_stack_trace()
@@ -312,7 +286,7 @@ quarto.ast = {
   end,
 
   build = function(name, nodeTable)
-    local handler = quarto.ast.resolveHandler(name)
+    local handler = quarto.ast.resolve_handler(name)
     if handler == nil then
       print("Internal Error: couldn't find a handler for " .. tostring(name))
       crash_with_stack_trace()
