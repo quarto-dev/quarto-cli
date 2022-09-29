@@ -84,8 +84,8 @@ quarto.ast = {
     return emulatedNode
   end,
 
-  normalize = normalize,
-  denormalize = denormalize,
+  to_emulated = to_emulated,
+  from_emulated = from_emulated,
   
   add_handler = function(handler)
     local state = (preState or postState).extendedAstHandlers
