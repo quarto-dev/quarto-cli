@@ -21,7 +21,7 @@ function normalize(node)
     return tmap(lst, doInlinesArray) 
   end
 
-  local baseHandler = quarto.ast.copyAsExtendedNode
+  local baseHandler = quarto.ast.copy_as_emulated_node
 
   local blocksContentHandler = function(el)
     local result = baseHandler(el)
@@ -76,7 +76,7 @@ function normalize(node)
 
     Div = function(div)
       local name = div.attr.attributes["quarto-extended-ast-tag"]
-      local handler = quarto.ast.resolveHandler(name)
+      local handler = quarto.ast.resolve_handler(name)
       if handler == nil then
         -- we don't use the handler, but just check for its
         -- absence and build a standard div block in that case.
@@ -261,7 +261,7 @@ function denormalize(node)
   end
 
   local copy = function(tbl)
-    local result = quarto.ast.copyAsExtendedNode(tbl)
+    local result = quarto.ast.copy_as_emulated_node(tbl)
     if result == nil then
       crash_with_stack_trace()
       return tbl -- a lie to appease the type system
