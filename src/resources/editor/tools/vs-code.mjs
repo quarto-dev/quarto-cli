@@ -16338,6 +16338,48 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "The alt text for preview image on this page."
         }
       ],
+      "schema/extension.yml": [
+        {
+          name: "title",
+          description: "Extension title.",
+          schema: "string"
+        },
+        {
+          name: "author",
+          description: "Extension author.",
+          schema: "string"
+        },
+        {
+          name: "version",
+          description: "Extension version.",
+          schema: {
+            ref: "semver"
+          }
+        },
+        {
+          name: "quarto-required",
+          description: "Quarto version range. See https://docs.npmjs.com/cli/v6/using-npm/semver for syntax details.",
+          schema: "string"
+        },
+        {
+          name: "contributes",
+          schema: {
+            object: {
+              properties: {
+                shortcodes: {
+                  arrayOf: "path"
+                },
+                filters: {
+                  arrayOf: "path"
+                },
+                formats: {
+                  schema: "object"
+                }
+              }
+            }
+          }
+        }
+      ],
       "schema/format-aliases.yml": {
         aliases: {
           "epub-all": [
@@ -17993,7 +18035,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "A url to the full text for this item.",
         {
           short: "Type, class, or subtype of the item",
-          long: "Type, class, or subtype of the item (e.g.&nbsp;\u201CDoctoral dissertation\u201D for\na PhD thesis; \u201CNIH Publication\u201D for an NIH technical report);\nDo not use for topical descriptions or categories (e.g.&nbsp;\uFFFD\uFFFDadventure\u201D\nfor an adventure movie)"
+          long: "Type, class, or subtype of the item (e.g.&nbsp;\u201CDoctoral dissertation\u201D for\na PhD thesis; \u201CNIH Publication\u201D for an NIH technical report);\nDo not use for topical descriptions or categories (e.g.&nbsp;\u201Cadventure\u201D\nfor an adventure movie)"
         },
         "Guest (e.g.&nbsp;on a TV show or podcast).",
         "Host of the item (e.g.&nbsp;of a TV show or podcast).",
@@ -18612,7 +18654,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Keep hidden source code and output (marked with class\n<code>.hidden</code>)",
         {
           short: "Generate HTML output (if necessary) even when targeting markdown.",
-          long: "Generate HTML output (if necessary) even when targeting markdown.\nEnables the embedding of more sophisticated output (e.g.&nbsp;Jupyter\nwidgets) in markdown. Note that this option is set to <code>true</code>\nfor the <code>hugo</code> format."
+          long: "Generate HTML output (if necessary) even when targeting markdown.\nEnables the embedding of more sophisticated output (e.g.&nbsp;Jupyter\nwidgets) in markdown."
         },
         "Indicates that computational output should not be written within\ndivs. This is necessary for some formats (e.g.&nbsp;<code>pptx</code>) to\nproperly layout figures.",
         "Disable merging of string based and file based includes (some\nformats, specifically ePub, do not correctly handle this merging)",
@@ -19945,12 +19987,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 131342,
+        _internalId: 131337,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 131341,
+            _internalId: 131336,
             type: "enum",
             enum: [
               "png",
@@ -19977,49 +20019,7 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         $id: "handlers/mermaid"
-      },
-      "schema/extension.yml": [
-        {
-          name: "title",
-          description: "Extension title.",
-          schema: "string"
-        },
-        {
-          name: "author",
-          description: "Extension author.",
-          schema: "string"
-        },
-        {
-          name: "version",
-          description: "Extension version.",
-          schema: {
-            ref: "semver"
-          }
-        },
-        {
-          name: "quarto-required",
-          description: "Quarto version range. See https://docs.npmjs.com/cli/v6/using-npm/semver for syntax details.",
-          schema: "string"
-        },
-        {
-          name: "contributes",
-          schema: {
-            object: {
-              properties: {
-                shortcodes: {
-                  arrayOf: "path"
-                },
-                filters: {
-                  arrayOf: "path"
-                },
-                formats: {
-                  schema: "object"
-                }
-              }
-            }
-          }
-        }
-      ]
+      }
     };
   }
 });
