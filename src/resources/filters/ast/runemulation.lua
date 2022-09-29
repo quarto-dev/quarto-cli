@@ -90,31 +90,32 @@ function install_pandoc_overrides()
     end
     return lt
   end
+  state.old_utils = {}
 
   local our_utils = {
     blocks_to_inlines = function(lst)
-      return to_emulated(utils.blocks_to_inlines(from_emulated(lst)))
+      return to_emulated(state.old_utils.blocks_to_inlines(from_emulated(lst)))
     end,
     citeproc = function(lst)
-      return to_emulated(utils.citeproc(from_emulated(doc)))
+      return to_emulated(state.old_utils.citeproc(from_emulated(doc)))
     end,
     make_sections = function(number_sections, base_level, blocks)
-      return to_emulated(utils.make_sections(number_sections, base_level, from_emulated(blocks)))
+      return to_emulated(state.old_utils.make_sections(number_sections, base_level, from_emulated(blocks)))
     end,
     from_simple_table = function(v)
-      return to_emulated(utils.from_simple_table(from_emulated(v)))
+      return to_emulated(state.old_utils.from_simple_table(from_emulated(v)))
     end,
     to_simple_table = function(v)
-      return to_emulated(utils.to_simple_table(from_emulated(v)))
+      return to_emulated(state.old_utils.to_simple_table(from_emulated(v)))
     end,
     references = function(doc)
-      return utils.references(from_emulated(doc))
+      return state.old_utils.references(from_emulated(doc))
     end,
     run_json_filter = function(doc, command, arguments)
-      return to_emulated(utils.run_json_filter(from_emulated(doc), command, arguments))
+      return to_emulated(state.old_utils.run_json_filter(from_emulated(doc), command, arguments))
     end,
     stringify = function(v)
-      return utils.stringify(from_emulated(v))
+      return state.old_utils.stringify(from_emulated(v))
     end,
     type = function(v)
       if v.is_emulated then
@@ -123,10 +124,19 @@ function install_pandoc_overrides()
         if pandoc_is_block[v.t] then return "Block" end
         if pandoc_is_inline[v.t] then return "Inline" end
       else
-        return utils.type(v)
+        return state.old_utils.type(v)
       end
     end
   }
+
+  -- import with this notation before anyone else to avoid
+  -- them seeing the naked utils call.
+  local pandoc_utils = require 'pandoc.utils'
+  for k, v in pairs(our_utils) do
+    state.old_utils[k] = pandoc_utils[k]
+    pandoc_utils[k] = v
+  end
+
   setmetatable(our_utils, {
     __index = utils
   })
@@ -184,6 +194,7 @@ function install_pandoc_overrides()
   ast_constructors.MetaInlines = MetaInlines
 
   pandoc.utils = our_utils
+
   pandoc.mediabag = our_mediabag
   pandoc.TableBody = function(body, head, row_head_columns, attr)
     return {
@@ -277,6 +288,10 @@ end
 
 function restore_pandoc_overrides(state)
   pandoc.utils = state.utils
+  for k, v in pairs(state.old_utils) do
+    pandoc.utils[k] = state.old_utils[k]
+  end
+
   pandoc.mediabag = state.mediabag
   pandoc.walk_block = state.walk_block
   pandoc.walk_inline = state.walk_inline
