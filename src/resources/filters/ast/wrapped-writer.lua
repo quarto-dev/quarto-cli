@@ -8,7 +8,7 @@ end
 -- [import]
 import("../common/maporcall.lua")
 import("../common/wrapped-filter.lua")
-import("extended-nodes.lua")
+import("customnodes.lua")
 import("make-extended-filters.lua")
 
 local resultingStrs = {}
