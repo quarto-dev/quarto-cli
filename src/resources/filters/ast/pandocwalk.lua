@@ -25,9 +25,9 @@ local function ast_node_property_pairs(node)
   end
 end
 
-local function as_normalize(n)
+local function as_emulated(n)
   if type(n) == "userdata" then
-    return normalize(n)
+    return to_emulated(n)
   end
   return n
 end
@@ -60,7 +60,7 @@ local function apply_filter_topdown_blocks_or_inlines(filter, blocks_or_inlines)
   if filterFn ~= nil then
     local filterResult, cut = filterFn(blocks_or_inlines)
     if filterResult ~= nil then
-      blocks_or_inlines = ast_node_array_map(filterResult, as_normalize)
+      blocks_or_inlines = ast_node_array_map(filterResult, as_emulated)
     end
     if cut == false then
       return blocks_or_inlines
@@ -78,11 +78,11 @@ local function apply_filter_topdown_blocks_or_inlines(filter, blocks_or_inlines)
         -- array of results: splice those in.
         -- this includes empty array, which means "remove me"
         for _, innerV in ast_node_property_pairs(filterResult) do
-          table.insert(result, as_normalize(innerV))
+          table.insert(result, as_emulated(innerV))
         end
       else
         -- changed object, use that instead
-        table.insert(result, as_normalize(filterResult))
+        table.insert(result, as_emulated(filterResult))
       end          
     end
   end
@@ -95,7 +95,7 @@ local function apply_filter_bottomup_blocks_or_inlines(filter, blocks_or_inlines
   if filterFn ~= nil then
     local filterResult = filterFn(blocks_or_inlines)
     if filterResult ~= nil then
-      blocks_or_inlines = ast_node_array_map(filterResult, as_normalize)
+      blocks_or_inlines = ast_node_array_map(filterResult, as_emulated)
     end
   end
 
@@ -110,11 +110,11 @@ local function apply_filter_bottomup_blocks_or_inlines(filter, blocks_or_inlines
         -- array of results: splice those in.
         -- this includes empty array, which means "remove me"
         for _, innerV in ast_node_property_pairs(filterResult) do
-          result:insert(as_normalize(innerV))
+          result:insert(as_emulated(innerV))
         end
       else
         -- changed object, use that instead
-        result:insert(as_normalize(filterResult))
+        result:insert(as_emulated(filterResult))
       end          
     end
   end
@@ -132,6 +132,7 @@ local is_atom = {
   -- thread?!?!
 }
 
+-- declared as local on top
 apply_filter_bottomup = function(filter, node)
   local nodeType = type(node)
   if is_atom[nodeType] then
@@ -175,7 +176,7 @@ apply_filter_bottomup = function(filter, node)
   -- walk children
   if type(node) == "userdata" then
     -- we can only emulate walks on emulated nodes
-    node = normalize(node)
+    node = to_emulated(node)
   end
 
   local newResult = {}
@@ -210,14 +211,14 @@ apply_filter_bottomup = function(filter, node)
   if filterResult == nil then
     return result
   elseif is_ast_node_array(filterResult) then
-    return ast_node_array_map(filterResult, as_normalize)
+    return ast_node_array_map(filterResult, as_emulated)
   else
-    return as_normalize(filterResult)
+    return as_emulated(filterResult)
   end
 end
 
+-- declared as local on top
 apply_filter_topdown = function(filter, node)
-
   local nodeType = type(node)
   if is_atom[nodeType] then
     return node
@@ -241,13 +242,13 @@ apply_filter_topdown = function(filter, node)
     -- short the traverse
     if cut == false then
       -- if filter function returned an actual pandoc object in their filters,
-      -- we allow that and renormalize it before continuing.
+      -- we allow that and reto_emulated it before continuing.
       if filterResult == nil then
         return node
       elseif is_ast_node_array(filterResult) then
-        return ast_node_array_map(filterResult, as_normalize)
+        return ast_node_array_map(filterResult, as_emulated)
       else
-        return as_normalize(filterResult)
+        return as_emulated(filterResult)
       end
     end
 
@@ -255,15 +256,15 @@ apply_filter_topdown = function(filter, node)
     -- and return the array
     if is_ast_node_array(filterResult) then
       -- if filter function returned an actual pandoc object in their filters,
-      -- we allow that and renormalize it before continuing.
+      -- we allow that and reto_emulated it before continuing.
       return ast_node_array_map(filterResult, function(innerNode)
-        return apply_filter_topdown(filter, as_normalize(innerNode)) 
+        return apply_filter_topdown(filter, as_emulated(innerNode)) 
       end)
     end
 
     -- if filter function returned a value, replace original node
     if filterResult ~= nil then
-      node = as_normalize(filterResult)
+      node = as_emulated(filterResult)
       if is_atom[type(node)] then
         return node
       end
