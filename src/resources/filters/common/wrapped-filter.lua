@@ -149,3 +149,33 @@ function makeWrappedFilter(scriptFile, filterHandler)
     end
   end
 end
+
+function filterIf(condition, filter)
+  return {
+    Pandoc = function(doc)
+      if condition() then
+        return doc:walk(filter)
+      end
+    end
+  }
+end
+
+function filterSeq(filters)
+  return {
+    Pandoc = function(doc)
+      local result
+      -- TODO handle timing and tracing uniformly through our new filter infra
+      for _, filter in ipairs(filters) do
+        if filter.filter ~= nil then
+          filter = filter.filter
+        end
+        local r = doc:walk(filter)
+        if r ~= nil then
+          doc = r
+          result = r
+        end
+      end
+      return result
+    end
+  }
+end

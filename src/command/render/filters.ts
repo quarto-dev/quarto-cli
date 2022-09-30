@@ -79,6 +79,7 @@ const kHasBootstrap = "has-bootstrap";
 
 const kQuartoVersion = "quarto-version";
 const kQuartoSource = "quarto-source";
+const kActiveFilters = "active-filters";
 
 export async function filterParamsJson(
   args: string[],
@@ -124,6 +125,10 @@ export async function filterParamsJson(
     [kResultsFile]: pandocMetadataPath(resultsFile),
     [kTimingFile]: pandocMetadataPath(timingFile),
     [kQuartoFilters]: filterSpec,
+    [kActiveFilters]: {
+      authors: authorsFilterActive(options),
+      crossref: crossrefFilterActive(options),
+    },
   };
   return JSON.stringify(params);
 }
