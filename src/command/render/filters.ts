@@ -73,6 +73,8 @@ const kTimingFile = "timings-file";
 
 const kHasBootstrap = "has-bootstrap";
 
+const kActiveFilters = "active-filters";
+
 export async function filterParamsJson(
   args: string[],
   options: PandocOptions,
@@ -117,6 +119,10 @@ export async function filterParamsJson(
     [kResultsFile]: pandocMetadataPath(resultsFile),
     [kTimingFile]: pandocMetadataPath(timingFile),
     [kQuartoFilters]: filterSpec,
+    [kActiveFilters]: {
+      authors: authorsFilterActive(options),
+      crossref: crossrefFilterActive(options),
+    },
   };
   return JSON.stringify(params);
 }
