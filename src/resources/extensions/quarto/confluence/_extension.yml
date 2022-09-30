@@ -13,7 +13,7 @@ contributes:
         contents: auto
     format: confluence-html
   formats:
-    xml:
+    publish:
       writer: publish.lua
       output-ext: xml
     html:

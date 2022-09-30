@@ -1,8 +1,6 @@
 import { join } from "path/mod.ts";
 import { Input, Secret } from "cliffy/prompt/mod.ts";
 import { RenderFlags } from "../../command/render/types.ts";
-import { dirAndStem, ensureTrailingSlash } from "../../core/path.ts";
-import { resourcePath } from "../../core/resources.ts";
 import { isHttpUrl } from "../../core/url.ts";
 
 import {
@@ -18,7 +16,9 @@ import {
 } from "../provider.ts";
 import { ApiError, PublishOptions, PublishRecord } from "../types.ts";
 import { ConfluenceClient } from "./api/index.ts";
-import { kOutputDivs, kOutputExt } from "../../config/constants.ts";
+import { Content, ContentBody, kPageType } from "./api/types.ts";
+import { ensureTrailingSlash } from "../../core/path.ts";
+import { withSpinner } from "../../core/console.ts";
 
 export const kConfluence = "confluence";
 
@@ -180,7 +180,7 @@ async function publish(
   account: AccountToken,
   type: "document" | "site",
   _input: string,
-  _title: string,
+  title: string,
   _slug: string,
   render: (flags?: RenderFlags) => Promise<PublishFiles>,
   _options: PublishOptions,
@@ -189,33 +189,126 @@ async function publish(
   // REST api
   const client = new ConfluenceClient(account);
 
-  if (target) {
-    // update
-  } else {
-    // new content
+  // determine the parent to publish into
+  let parentUrl = target?.url;
+  if (!target) {
+    // user needs to tell us where to publish!
+    parentUrl = await Input.prompt({
+      indent: "",
+      message: `Space or Parent Page URL:`,
+      hint: "Browse in Confluence to the space or parent, then copy the URL",
+    });
+    if (parentUrl.length === 0) {
+      throw new Error();
+    }
+  }
+  // TODO: the only way this could happen is if there is no `url` in the _publish.yml
+  // file. We will _always_ write one, but the user could remove it by hand. We could
+  // recover from this by finding the parentUrl via the REST API just given an ID,
+  // but perhaps not worth it? Users should just not remove the URL.
+  if (parentUrl === undefined) {
+    throw new Error("No Confuence parent URL to publish to");
+  }
+
+  // parse the parent
+  const parent = confluenceParent(parentUrl);
+  if (!parent) {
+    throw new Error("Invalid Confluence parent URL: " + parentUrl);
   }
 
   if (type === "document") {
+    // render the document
     const flags: RenderFlags = {
-      to: resourcePath("extensions/confluence/publish.lua"),
-      metadata: {
-        [kOutputExt]: "xml",
-      },
+      to: "confluence-publish",
     };
     const result = await render(flags);
-    console.log(result);
 
-    throw new Error("Confluence document publishing not implemented");
+    // body to publish
+    const body: ContentBody = {
+      storage: {
+        value: Deno.readTextFileSync(join(result.baseDir, result.rootFile)),
+        representation: "storage",
+      },
+    };
+
+    let content: Content | undefined;
+    if (target) {
+      await withSpinner({
+        message: `Updating content at ${target.url}...`,
+      }, async () => {
+        // for updates we need to get the existing version and increment by 1
+        const prevContent = await client.getContent(target.id);
+
+        // update the content
+        content = await client.updateContent(target.id, {
+          version: { number: (prevContent?.version?.number || 0) + 1 },
+          title,
+          type: kPageType,
+          status: "current",
+          ancestors: null,
+          body,
+        });
+      });
+    } else {
+      await withSpinner({
+        message: `Creating content in space ${parent.space}...`,
+      }, async () => {
+        // for creates we need to get the space info
+        const space = await client.getSpace(parent.space);
+
+        // create the content
+        content = await client.createContent({
+          id: null,
+          title,
+          type: kPageType,
+          space,
+          status: "current",
+          ancestors: parent.parent ? [{ id: parent.parent }] : null,
+          body,
+        });
+      });
+    }
+
+    // if we got this far we have the content
+    content = content!;
+
+    // create publish record
+    const publishRecord: PublishRecord = {
+      id: content.id!,
+      url: `${ensureTrailingSlash(account.server!)}wiki/spaces/${
+        content.space!.key
+      }/pages/${content.id}`,
+    };
+    // return record and browse url
+    return [publishRecord, new URL(publishRecord.url!)];
   } else {
     throw new Error("Confluence site publishing not implemented");
   }
 }
 
 function isUnauthorized(err: Error) {
-  console.error(err);
   return err instanceof ApiError && (err.status === 401 || err.status === 403);
 }
 
 function isNotFound(err: Error) {
   return err instanceof ApiError && (err.status === 404);
+}
+
+type ConfluenceParent = {
+  space: string;
+  parent?: string;
+};
+
+function confluenceParent(url: string): ConfluenceParent | undefined {
+  // https://rstudiopbc.atlassian.net/wiki/spaces/OPESOUGRO/overview
+  // https://rstudiopbc.atlassian.net/wiki/spaces/OPESOUGRO/pages/100565233/Quarto
+  const match = url.match(
+    /^https.*?wiki\/spaces\/(?:(\w+)|(\w+)\/overview|(\w+)\/pages\/(\d+).*)$/,
+  );
+  if (match) {
+    return {
+      space: match[1] || match[2] || match[3],
+      parent: match[4],
+    };
+  }
 }
