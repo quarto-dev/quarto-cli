@@ -33,13 +33,18 @@ async function guessFormat(fileName: string): Promise<string[]> {
       const src = cell.source.value.replaceAll(/^---$/mg, "");
       const yaml = parse(src);
       if (yaml && typeof yaml === "object") {
-        for (
-          const [k, _] of Object.entries(
-            // deno-lint-ignore no-explicit-any
-            (yaml as Record<string, any>).format || {},
-          )
-        ) {
-          formats.add(k);
+        const format = (yaml as Record<string, any>).format;
+        if (typeof format === "object") {
+          for (
+            const [k, _] of Object.entries(
+              // deno-lint-ignore no-explicit-any
+              (yaml as Record<string, any>).format || {},
+            )
+          ) {
+            formats.add(k);
+          }
+        } else if (typeof format === "string") {
+          formats.add(format);
         }
       }
     }
