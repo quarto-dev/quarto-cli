@@ -398,18 +398,18 @@ jobs:
           asset_name: quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz
           asset_content_type: application/gzip
 
-     - name: Attach RHEL Tarball
-       id: attach-rhel-tarball
-       uses: actions/upload-release-asset@v1
-       env:
-         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-       with:
-         upload_url: ${{ steps.create_release.outputs.upload_url }}
-         asset_path: ./RHEL Zip/quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar.gz
-         asset_name: quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar.gz
-         asset_content_type: application/gzip      
+      - name: Attach RHEL Tarball
+        id: attach-rhel-tarball
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./RHEL Zip/quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar.gz
+          asset_name: quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar.gz
+          asset_content_type: application/gzip      
 
-    - name: Attach Debian Installer
+      - name: Attach Debian Installer
         id: attach-deb-installer
         uses: actions/upload-release-asset@v1
         env:
