@@ -1836,10 +1836,14 @@ quarto = {
       local hasBootstrap = param('has-bootstrap', false)
       return hasBootstrap
     end,
-    project_output_file = projectRelativeOutputFile
+    project_output_file = projectRelativeOutputFile,
+
+    is_filter_active = function(filter)
+      return preState.active_filters[filter]
+    end
   },
   project = {
-   directory = projectDirectory
+    directory = projectDirectory
   },
   utils = {
    dump = utils.dump,
