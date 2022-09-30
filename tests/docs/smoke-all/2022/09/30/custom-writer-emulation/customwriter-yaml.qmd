@@ -1,0 +1,13 @@
+---
+filters:
+  - createcustomnode.lua
+format:
+  customformat.lua: default
+validate-yaml: false
+---
+
+::: my-custom-node
+
+A custom node.
+
+:::
