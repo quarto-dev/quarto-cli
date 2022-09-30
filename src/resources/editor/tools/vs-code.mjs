@@ -11537,7 +11537,11 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "Configuration for crossref labels and prefixes.",
           schema: {
             anyOf: [
-              false,
+              {
+                enum: [
+                  false
+                ]
+              },
               {
                 object: {
                   closed: true,
@@ -19950,12 +19954,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 131343,
+        _internalId: 131733,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 131342,
+            _internalId: 131732,
             type: "enum",
             enum: [
               "png",

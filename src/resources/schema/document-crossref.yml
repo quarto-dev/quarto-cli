@@ -2,7 +2,7 @@
   description: Configuration for crossref labels and prefixes.
   schema:
     anyOf:
-      - false
+      - enum: [false]
       - object:
           closed: true
           properties:
