@@ -64,6 +64,7 @@ import("./common/url.lua")
 import("./common/validate.lua")
 import("./common/wrapped-filter.lua")
 
+import("./quarto-init/configurefilters.lua")
 import("./quarto-init/includes.lua")
 import("./quarto-init/resourcerefs.lua")
 
@@ -159,6 +160,7 @@ initShortcodeHandlers()
 local pandoc_overrides_state = install_pandoc_overrides()
 
 local quartoInit = {
+  { name = "init-configure-filters", filter = configureFilters() },
   { name = "init-readIncludes", filter = readIncludes() },
   { name = "init-metadataResourceRefs", filter = combineFilters({
     fileMetadata(),
@@ -167,7 +169,9 @@ local quartoInit = {
 }
 
 local quartoAuthors = {
-  { name = "authors", filter = authorsFilter() }
+  { name = "authors", filter = filterIf(function()
+    return preState.active_filters.authors
+  end, authorsFilter()) }
 }
 
 local quartoPre = {
@@ -257,30 +261,32 @@ local quartoLayout = {
 }
 
 local quartoCrossref = {
-  { name = "crossref-initCrossrefOptions", filter = initCrossrefOptions() },
-  { name = "crossref-preprocess", filter = crossrefPreprocess() },
-  { name = "crossref-preprocessTheorems", filter = crossrefPreprocessTheorems() },
-  { name = "crossref-combineFilters", filter = combineFilters({
-    fileMetadata(),
-    qmd(),
-    sections(),
-    crossrefFigures(),
-    crossrefTables(),
-    equations(),
-    listings(),
-    crossrefTheorems(),
-  })},
-  { name = "crossref-resolveRefs", filter = resolveRefs() },
-  { name = "crossref-crossrefMetaInject", filter = crossrefMetaInject() },
-  { name = "crossref-writeIndex", filter = writeIndex() },
+  { name = "crossref-main", filter = filterSeq({
+    { name = "crossref-initCrossrefOptions", filter = initCrossrefOptions() },
+    { name = "crossref-preprocess", filter = crossrefPreprocess() },
+    { name = "crossref-preprocessTheorems", filter = crossrefPreprocessTheorems() },
+    { name = "crossref-combineFilters", filter = combineFilters({
+      fileMetadata(),
+      qmd(),
+      sections(),
+      crossrefFigures(),
+      crossrefTables(),
+      equations(),
+      listings(),
+      crossrefTheorems(),
+    })},
+    { name = "crossref-resolveRefs", filter = resolveRefs() },
+    { name = "crossref-crossrefMetaInject", filter = crossrefMetaInject() },
+    { name = "crossref-writeIndex", filter = writeIndex() },
+  })}
 }
 
 local filterList = {}
 
 tappend(filterList, quartoInit)
-tappend(filterList, quartoAuthors) -- FIXME only run when enabled.
+tappend(filterList, quartoAuthors)
 tappend(filterList, quartoPre)
-tappend(filterList, quartoCrossref) -- FIXME only run when enabled.
+tappend(filterList, quartoCrossref)
 tappend(filterList, quartoLayout)
 tappend(filterList, quartoPost)
 tappend(filterList, quartoFinalize)
