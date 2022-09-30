@@ -35,6 +35,7 @@ import("./ast/emulatedfilter.lua")
 import("./ast/parse.lua")
 import("./ast/render.lua")
 import("./ast/runemulation.lua")
+import("./ast/wrappedwriter.lua")
 
 import("./common/authors.lua")
 import("./common/base64.lua")
@@ -248,6 +249,7 @@ local quartoFinalize = {
   { name = "finalize-bookCleanup", filter = bookCleanup() },
   { name = "finalize-metaCleanup", filter = metaCleanup() },
   { name = "finalize-dependencies", filter = dependencies() },
+  { name = "finalize-wrapped-writer", filter = wrapped_writer() }
 }
 
 local quartoLayout = {
@@ -300,18 +302,7 @@ local result = run_as_extended_ast({
 
 return result
 
--- The default order of filters will be
--- quarto-init
--- quarto-authors
--- user filters
--- extension filters
--- quarto-filters <quarto>
--- quarto-finalizer
--- citeproc
-
 -- TODO!!
--- authors filter toggle using info from authors.ts:authorsFilterActive
--- crossref filter toggle using info from crossref.ts:crossrefFilterActive
 -- citeproc detection/toggle
 
 --[[ from filters.ts:
