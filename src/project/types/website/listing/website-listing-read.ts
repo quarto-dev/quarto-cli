@@ -672,77 +672,81 @@ async function listItemFromFile(
   );
 
   const docRawMetadata = target?.markdown.yaml;
-  const directoryMetadata = await directoryMetadataForInputFile(
-    project,
-    dirname(input),
-  );
-  const documentMeta = mergeConfigs(
-    directoryMetadata,
-    docRawMetadata,
-  ) as Metadata;
+  if (docRawMetadata) {
+    const directoryMetadata = await directoryMetadataForInputFile(
+      project,
+      dirname(input),
+    );
+    const documentMeta = mergeConfigs(
+      directoryMetadata,
+      docRawMetadata,
+    ) as Metadata;
 
-  if (documentMeta?.draft) {
-    // This is a draft, don't include it in the listing
-    return undefined;
+    if (documentMeta?.draft) {
+      // This is a draft, don't include it in the listing
+      return undefined;
+    } else {
+      // See if we have a max desc length
+      const maxDescLength = listing[kMaxDescLength] as number ||
+        kDefaultMaxDescLength;
+
+      // Create the item
+      const filename = basename(projectRelativePath);
+      const filemodified = fileModifiedDate(input);
+      const description = documentMeta?.description as string ||
+        documentMeta?.abstract as string ||
+        descriptionPlaceholder(inputTarget?.outputHref, maxDescLength);
+
+      const imageRaw = documentMeta?.image as string ||
+        findPreviewImgMd(target?.markdown.markdown);
+      const image = imageRaw !== undefined
+        ? pathWithForwardSlashes(
+          listingItemHref(imageRaw, dirname(projectRelativePath)),
+        )
+        : undefined;
+
+      const imageAlt = documentMeta?.[kImageAlt] as string | undefined;
+
+      const date = documentMeta?.date
+        ? parsePandocDate(resolveDate(input, documentMeta?.date) as string)
+        : undefined;
+
+      const authors = parseAuthor(documentMeta?.author);
+      const author = authors ? authors.map((auth) => auth.name) : [];
+
+      const readingtime = target?.markdown
+        ? estimateReadingTimeMinutes(target.markdown.markdown)
+        : undefined;
+
+      const categories = documentMeta?.categories
+        ? Array.isArray(documentMeta?.categories)
+          ? documentMeta?.categories
+          : [documentMeta?.categories]
+        : undefined;
+
+      const item: ListingItem = {
+        ...documentMeta,
+        path: `/${projectRelativePath}`,
+        [kFieldTitle]: target?.title,
+        [kFieldDate]: date,
+        [kFieldAuthor]: author,
+        [kFieldCategories]: categories,
+        [kFieldImage]: image,
+        [kFieldImageAlt]: imageAlt,
+        [kFieldDescription]: description,
+        [kFieldFileName]: filename,
+        [kFieldFileModified]: filemodified,
+        [kFieldReadingTime]: readingtime,
+      };
+      return {
+        item,
+        source: target !== undefined
+          ? ListingItemSource.document
+          : ListingItemSource.rawfile,
+      };
+    }
   } else {
-    // See if we have a max desc length
-    const maxDescLength = listing[kMaxDescLength] as number ||
-      kDefaultMaxDescLength;
-
-    // Create the item
-    const filename = basename(projectRelativePath);
-    const filemodified = fileModifiedDate(input);
-    const description = documentMeta?.description as string ||
-      documentMeta?.abstract as string ||
-      descriptionPlaceholder(inputTarget?.outputHref, maxDescLength);
-
-    const imageRaw = documentMeta?.image as string ||
-      findPreviewImgMd(target?.markdown.markdown);
-    const image = imageRaw !== undefined
-      ? pathWithForwardSlashes(
-        listingItemHref(imageRaw, dirname(projectRelativePath)),
-      )
-      : undefined;
-
-    const imageAlt = documentMeta?.[kImageAlt] as string | undefined;
-
-    const date = documentMeta?.date
-      ? parsePandocDate(resolveDate(input, documentMeta?.date) as string)
-      : undefined;
-
-    const authors = parseAuthor(documentMeta?.author);
-    const author = authors ? authors.map((auth) => auth.name) : [];
-
-    const readingtime = target?.markdown
-      ? estimateReadingTimeMinutes(target.markdown.markdown)
-      : undefined;
-
-    const categories = documentMeta?.categories
-      ? Array.isArray(documentMeta?.categories)
-        ? documentMeta?.categories
-        : [documentMeta?.categories]
-      : undefined;
-
-    const item: ListingItem = {
-      ...documentMeta,
-      path: `/${projectRelativePath}`,
-      [kFieldTitle]: target?.title,
-      [kFieldDate]: date,
-      [kFieldAuthor]: author,
-      [kFieldCategories]: categories,
-      [kFieldImage]: image,
-      [kFieldImageAlt]: imageAlt,
-      [kFieldDescription]: description,
-      [kFieldFileName]: filename,
-      [kFieldFileModified]: filemodified,
-      [kFieldReadingTime]: readingtime,
-    };
-    return {
-      item,
-      source: target !== undefined
-        ? ListingItemSource.document
-        : ListingItemSource.rawfile,
-    };
+    return undefined;
   }
 }
 
