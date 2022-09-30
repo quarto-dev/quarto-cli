@@ -1,0 +1,7 @@
+---
+format:
+  html:
+    crossref: false
+---
+
+# A test
