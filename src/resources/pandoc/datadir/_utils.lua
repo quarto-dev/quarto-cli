@@ -62,7 +62,7 @@ function tdump (tbl, raw)
     local isArray = tisarray(tbl)
     local isEmpty = empty(tbl)
     
-    if type(tbl) == "table" then
+    if type(tbl) == "table" or type(tbl) == "userdata" and tbl.is_emulated then
       local typeIndent = indentStr
       if doNotIndentType then
         typeIndent = ""
@@ -123,8 +123,6 @@ function tdump (tbl, raw)
   print(table.concat(resultTable, ""))
 end
 
--- "asLua" knows about pandoc opaque objects and converts them to Lua
--- objects ahead of debug printing
 function asLua(o)
   if type(o) ~= 'userdata' then
     return o
@@ -197,14 +195,15 @@ function asLua(o)
 end
 
 -- dump an object to stdout
-local function dump(o, raw)
+function dump(o, raw)
   o = asLua(o)
-  if type(o) == 'table' then
+  if type(o) == 'table' or type(o) == 'userdata' and o.is_emulated then
     tdump(o, raw)
   else
     print(tostring(o) .. "\n")
   end
 end
+
 
 -- is the table a simple array?
 -- see: https://web.archive.org/web/20140227143701/http://ericjmritz.name/2014/02/26/lua-is_array/
