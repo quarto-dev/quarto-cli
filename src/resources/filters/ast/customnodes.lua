@@ -10,9 +10,6 @@ local handlers = {
     -- className = {"fancy-callout-warning", "fancy-callout-info", ... }
 
     -- optional: makePandocExtendedDiv
-    -- supply makePandocExtendedDiv if you need to construct
-    -- your want to create and extended pandoc Div
-    -- 
     -- This is here as an escape hatch, we expect most developers
     -- to not need it.
     -- makePandocExtendedDiv = function(table)
