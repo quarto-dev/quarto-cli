@@ -38,7 +38,6 @@ import {
 } from "./filters.ts";
 import { TempContext } from "../../core/temp.ts";
 import { authorsFilter } from "./authors.ts";
-import { kGfmCommonmarkFormat } from "../../format/markdown/format-markdown.ts";
 
 export async function generateDefaults(
   options: PandocOptions,
@@ -161,6 +160,16 @@ export function pandocDefaultsMessage(
   // remove template if it's patched
   if (defaults.template && extname(defaults.template) === kPatchedTemplateExt) {
     delete defaults.template;
+  }
+
+  // TODO / HACK: suppress writer if it is coming from an extension
+  if (defaults.writer) {
+    if (
+      defaults.writer.match(/(?:^|[\\/])_extensions[\\/]/) ||
+      defaults.writer.match(/(?:^|[\\/])extensions[\\/]quarto[\\/]/)
+    ) {
+      delete defaults.writer;
+    }
   }
 
   return stringify(defaults as Record<string, unknown>);

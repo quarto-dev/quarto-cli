@@ -80,6 +80,7 @@ import { LanguageCellHandlerOptions } from "../../core/handlers/types.ts";
 import { handleLanguageCells } from "../../core/handlers/base.ts";
 import {
   FormatDescriptor,
+  isValidFormat,
   parseFormatString,
 } from "../../core/pandoc/pandoc-formats.ts";
 import { ExtensionContext } from "../../extension/extension-shared.ts";
@@ -520,6 +521,15 @@ async function resolveFormats(
         userFormat,
       );
     };
+
+    // ensure that we have a valid forma
+    const formatIsValid = isValidFormat(
+      formatDesc,
+      mergedFormats[format].pandoc,
+    );
+    if (!formatIsValid) {
+      throw new Error(`Unknown format ${format}`);
+    }
   }
 
   // filter on formats supported by this project
