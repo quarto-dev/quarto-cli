@@ -1,31 +1,16 @@
--- quarto-pre.lua
+-- main.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
 -- required version
 PANDOC_VERSION:must_be_at_least '2.13'
-
--- global state
-preState = {
-  usingBookmark = false,
-  usingTikz = false,
-  results = {
-    resourceFiles = pandoc.List({}),
-    inputTraits = {}
-  },
-  file = nil,
-  appendix = false,
-  fileSectionIds = {},
-  emulatedNodeHandlers = {}
-}
-
-postState = {
-}
 
 -- [import]
 function import(script)
   local path = PANDOC_SCRIPT_FILE:match("(.*[/\\])")
   dofile(path .. script)
 end
+
+import("./mainstateinit.lua")
 
 import("./ast/pandocemulation.lua")
 import("./ast/nodeconversion.lua")
@@ -36,12 +21,6 @@ import("./ast/parse.lua")
 import("./ast/render.lua")
 import("./ast/runemulation.lua")
 import("./ast/wrappedwriter.lua")
--- [/import]
-
-constructExtendedAstHandlerState()
-
--- [import]
-
 import("./common/authors.lua")
 import("./common/base64.lua")
 import("./common/colors.lua")
