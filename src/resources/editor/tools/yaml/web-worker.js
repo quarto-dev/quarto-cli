@@ -19997,12 +19997,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 131343,
+          _internalId: 128294,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 131342,
+              _internalId: 128293,
               type: "enum",
               enum: [
                 "png",
