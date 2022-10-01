@@ -179,3 +179,5 @@ function constructExtendedAstHandlerState()
     quarto.ast.add_handler(handler)
   end
 end
+
+constructExtendedAstHandlerState()

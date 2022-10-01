@@ -145,6 +145,7 @@ function inlineFilters(config: Configuration) {
   const filtersToInline: Filter[] = [
     { name: "main", dir: "." },
     { name: "pagebreak", dir: "rmarkdown" },
+    { name: "customwriter", dir: "customwriter" },
   ];
 
   filtersToInline.forEach((filter) => {
