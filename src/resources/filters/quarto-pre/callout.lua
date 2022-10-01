@@ -1,22 +1,7 @@
 -- callout.lua
 -- Copyright (C) 2021 by RStudio, PBC
 
-
--- if type == 'note' then
---   return "quarto-callout-note-color"
--- elseif type == "warning" then
---   return "quarto-callout-warning-color"
--- elseif type == "important" then
---   return "quarto-callout-important-color"
--- elseif type == "caution" then
---   return "quarto-callout-caution-color"
--- elseif type == "tip" then 
---   return "quarto-callout-tip-color"
--- else
---   return "quarto-callout-color"
--- end
-
-local function calloutType(div)
+function calloutType(div)
   for _, class in ipairs(div.attr.classes) do
     if isCallout(class) then 
       local type = class:match("^callout%-(.*)")
@@ -32,14 +17,12 @@ end
 quarto.ast.add_handler({
     -- use either string or array of strings
     className = {"callout", "callout-note", "callout-warning", "callout-important", "callout-caution", "callout-tip" },
-    -- className = {"fancy-callout-warning", "fancy-callout-info", ... }
 
     -- the name of the ast node, used as a key in extended ast filter tables
     astName = "Callout",
 
-    -- a function that takes the extended ast node as supplied in user markdown
-    -- and returns a new Pandoc node (use quarto.ast.pandoc instead of pandoc if
-    -- you need access to extended ast nodes)
+    -- a function that takes the div node as supplied in user markdown
+    -- and returns the custom node
     parse = function(div)
       preState.hasCallouts = true
       

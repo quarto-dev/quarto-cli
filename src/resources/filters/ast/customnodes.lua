@@ -20,9 +20,8 @@ local handlers = {
     -- the name of the ast node, used as a key in extended ast filter tables
     astName = "FancyCallout",
 
-    -- a function that takes the extended ast node as supplied in user markdown
-    -- and returns a new Pandoc node (use quarto.ast.pandoc instead of pandoc if
-    -- you need access to extended ast nodes)
+    -- a function that takes the div node as supplied in user markdown
+    -- and returns the custom node
     parse = function(div)
       return quarto.ast.custom("FancyCallout", {
         title = div.content[1],
