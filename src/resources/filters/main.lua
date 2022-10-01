@@ -36,6 +36,11 @@ import("./ast/parse.lua")
 import("./ast/render.lua")
 import("./ast/runemulation.lua")
 import("./ast/wrappedwriter.lua")
+-- [/import]
+
+constructExtendedAstHandlerState()
+
+-- [import]
 
 import("./common/authors.lua")
 import("./common/base64.lua")
@@ -153,8 +158,6 @@ import("./quarto-pre/theorems.lua")
 -- [/import]
 
 initCrossrefIndex()
-
-constructExtendedAstHandlerState()
 
 initShortcodeHandlers()
 
