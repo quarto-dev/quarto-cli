@@ -43,7 +43,14 @@ export function pdfJsFileHandler(
     req: Request,
   ) => Promise<FileResponse | undefined>,
 ) {
+  let isViewer: boolean | undefined;
+
   return async (file: string, req: Request) => {
+    // initialize isViewer w/ the first request
+    if (isViewer === undefined) {
+      isViewer = isViewerIFrameRequest(req);
+    }
+
     // base behavior (injects the reloader into html files)
     if (htmlHandler) {
       const contents = await htmlHandler(file, req);
@@ -63,8 +70,6 @@ export function pdfJsFileHandler(
           kPdfJsDefaultFile,
           basename(pdfFile()),
         );
-      // always hide the sidebar in the viewer pane
-      const isViewer = isViewerIFrameRequest(req);
 
       if (isViewer) {
         viewerJs = viewerJs.replace(

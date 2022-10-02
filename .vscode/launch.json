@@ -12,6 +12,7 @@
       "args": ["serve"],
       "cwd": "${workspaceFolder}/../quarto-demo",
       "runtimeExecutable": "deno",
+      "runtimeExecutable": "${workspaceFolder}/package/dist/bin/tools/deno",
       "runtimeArgs": [
         "run",
         "--unstable",
