@@ -27,10 +27,9 @@ import { isQuartoMetadata } from "../../config/metadata.ts";
 import { RenderFlags, RenderOptions } from "./types.ts";
 
 import * as ld from "../../core/lodash.ts";
-import { isAbsolute } from "../../vendor/deno.land/std@0.153.0/path/win32.ts";
 import { makeAbsolutePath } from "../../core/qualified-path.ts";
 
-import { SEP_PATTERN } from "path/mod.ts";
+import { isAbsolute, SEP_PATTERN } from "path/mod.ts";
 
 export const kStdOut = "-";
 

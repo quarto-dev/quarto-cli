@@ -16,6 +16,7 @@ title-block-author-plural: "Autores/as"
 title-block-affiliation-single: "Afiliación"
 title-block-affiliation-plural: "Afiliaciones"
 title-block-published: "Fecha de Publicación"
+title-block-modified: "Fecha de modificación"
 
 callout-tip-caption: "Tip"
 callout-note-caption: "Nota"

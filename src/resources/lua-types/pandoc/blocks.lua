@@ -1,5 +1,24 @@
 ---@meta
 
+--[[
+Block element
+]]
+---@class pandoc.Block : table
+
+--[[
+Make a clone
+]]
+---@return pandoc.Block
+function pandoc.Block:clone() end
+
+--[[
+Apply a Lua filter
+]]
+---@param lua_filter table<string,function> Map of filter functions
+---@return pandoc.Block 
+function pandoc.Block:walk(lua_filter) end
+
+
 
 --[[
 List of `Block` elements, with the same methods as a generic
@@ -11,7 +30,7 @@ pandoc.Blocks = {}
 --[[
 Create a blocks list 
 ]]
----@param blocks table|pandoc.List Block or list of blocks
+---@param blocks pandoc.Block|pandoc.List Block or list of blocks
 ---@return pandoc.List 
 function pandoc.Blocks(blocks) end
 
@@ -23,7 +42,7 @@ function pandoc.Blocks(blocks) end
 --[[
 A block quote element
 ]]
----@class pandoc.BlockQuote 
+---@class pandoc.BlockQuote : pandoc.Block
 ---@field content pandoc.List
 ---@field t "BlockQuote"
 ---@field tag "BlockQuote"
@@ -32,7 +51,7 @@ pandoc.BlockQuote = {}
 --[[
 Creates a block quote element
 ]]
----@param content table|pandoc.List
+---@param content pandoc.Block|pandoc.List Block or list of blocks
 ---@return pandoc.BlockQuote
 function pandoc.BlockQuote(content) end
 
@@ -54,7 +73,7 @@ function pandoc.BlockQuote:walk(lua_filter) end
 --[[
 A bullet list 
 ]]
----@class pandoc.BulletList 
+---@class pandoc.BulletList : pandoc.Block 
 ---@field content pandoc.List Bullet list items
 ---@field t "BulletList"
 ---@field tag "BulletList"
@@ -63,7 +82,7 @@ pandoc.BulletList = {}
 --[[
 Creates a bullet list element
 ]]
----@param content table|pandoc.List Bullet list items
+---@param content pandoc.Block|pandoc.List Bullet list items (block or list of blocks)
 ---@return pandoc.BulletList
 function pandoc.BulletList(content) end
 
@@ -85,11 +104,11 @@ function pandoc.BulletList:walk(lua_filter) end
 --[[
 Block of code
 ]]
----@class pandoc.CodeBlock
+---@class pandoc.CodeBlock : pandoc.Block
 ---@field text string Code string
 ---@field attr pandoc.Attr Cell attributes
 ---@field identifier string Alias for `attr.identifier`
----@field classes table Alias for `attr.classes`
+---@field classes pandoc.List Alias for `attr.classes`
 ---@field attributes table<string,string> Alias for `attr.attributes`
 ---@field t "CodeBlock"
 ---@field tag "CodeBlock"
@@ -121,7 +140,7 @@ function pandoc.CodeBlock:walk(lua_filter) end
 --[[
 Definition list, containing terms and their explanation.
 ]]
----@class pandoc.DefinitionList 
+---@class pandoc.DefinitionList : pandoc.Block 
 ---@field content pandoc.List List of items
 ---@field t "DefinitionList"
 ---@field tag "DefinitionList"
@@ -130,7 +149,7 @@ pandoc.DefinitionList = {}
 --[[
 Creates a definition list, containing terms and their explanation.
 ]]
----@param content table|pandoc.List
+---@param content pandoc.Block|pandoc.List Block or list of blocks
 ---@return pandoc.DefinitionList
 function pandoc.DefinitionList(content) end
 
@@ -152,11 +171,11 @@ function pandoc.DefinitionList:walk(lua_filter) end
 --[[
 Generic block container with attributes.
 ]]
----@class pandoc.Div
+---@class pandoc.Div : pandoc.Block
 ---@field content pandoc.List Block content (list of blocks)
 ---@field attr pandoc.Attr Block attributes
 ---@field identifier string Alias for `attr.identifier`
----@field classes table Alias for `attr.classes`
+---@field classes pandoc.List Alias for `attr.classes`
 ---@field attributes table<string,string> Alias for `attr.attributes`
 ---@field t "Div"
 ---@field tag "Div"
@@ -165,7 +184,7 @@ pandoc.Div = {}
 --[[
 Creates a div dlement
 ]]
----@param content table|pandoc.List Div content (list of blocks)
+---@param content pandoc.Block|pandoc.List Block or list of blocks
 ---@param attr? pandoc.Attr Div attributes
 ---@return pandoc.Div
 function pandoc.Div(content, attr) end
@@ -189,12 +208,12 @@ function pandoc.Div:walk(lua_filter) end
 --[[
 Header element
 ]]
----@class pandoc.Header
+---@class pandoc.Header : pandoc.Block
 ---@field level integer Header level
 ---@field content pandoc.List Header content (list of inlines)
 ---@field attr pandoc.Attr Header attributes
 ---@field identifier string Alias for `attr.identifier`
----@field classes table Alias for `attr.classes`
+---@field classes pandoc.List Alias for `attr.classes`
 ---@field attributes table<string,string> Alias for `attr.attributes`
 ---@field t "Header"
 ---@field tag "Header"
@@ -204,7 +223,7 @@ pandoc.Header = {}
 Creates a header element
 ]]
 ---@param level integer Header level
----@param content table|pandoc.List Header content (list of inlines)
+---@param content pandoc.Inline|pandoc.List Header content (list of inlines)
 ---@param attr? pandoc.Attr Header attributes
 ---@return pandoc.Header
 function pandoc.Header(level, content, attr) end
@@ -228,7 +247,7 @@ function pandoc.Header:walk(lua_filter) end
 --[[
 A horizontal rule
 ]]
----@class pandoc.HorizontalRule 
+---@class pandoc.HorizontalRule : pandoc.Block 
 ---@field t "HorizontalRule"
 ---@field tag "HorizontalRule"
 pandoc.HorizontalRule = {}
@@ -258,7 +277,7 @@ function pandoc.HorizontalRule:walk(lua_filter) end
 --[[
 A line block, i.e. a list of lines, each separated from the next by a newline.
 ]]
----@class pandoc.LineBlock 
+---@class pandoc.LineBlock : pandoc.Block 
 ---@field content pandoc.List List of lines, each of which is a list of inlines
 ---@field t "LineBlock"
 ---@field tag "LineBlock"
@@ -267,7 +286,7 @@ pandoc.LineBlock = {}
 --[[
 Creates a line block element
 ]]
----@param content table|pandoc.List List of lines, each of which is a list of inlines
+---@param content pandoc.List List of lines, each of which is a list of inlines
 ---@return pandoc.LineBlock
 function pandoc.LineBlock(content) end
 
@@ -291,7 +310,7 @@ function pandoc.LineBlock:walk(lua_filter) end
 --[[
 A null element; this element never produces any output in the target format.
 ]]
----@class pandoc.Null 
+---@class pandoc.Null : pandoc.Block 
 ---@field t "Null"
 ---@field tag "Null"
 pandoc.Null = {}
@@ -321,7 +340,7 @@ function pandoc.Null:walk(lua_filter) end
 --[[
 An ordered list.
 ]]
----@class pandoc.OrderedList
+---@class pandoc.OrderedList : pandoc.Block
 ---@field content pandoc.List List of items (blocks)
 ---@field listAttributes pandoc.ListAttributes List parameters
 ---@field start integer Alias for `listAttributes.start`
@@ -334,7 +353,7 @@ pandoc.OrderedList = {}
 --[[
 Create an ordered list
 ]]
----@param items table|pandoc.List List of items (blocks)
+---@param items pandoc.Block|pandoc.List Block or list of blocks
 ---@param listAttributes? pandoc.ListAttributes List parameters
 ---@return pandoc.OrderedList
 function pandoc.OrderedList(items, listAttributes) end
@@ -359,7 +378,7 @@ function pandoc.OrderedList:walk(lua_filter) end
 --[[
 A paragraph
 ]]
----@class pandoc.Para
+---@class pandoc.Para : pandoc.Block
 ---@field content pandoc.List Inline content (list of inlines)
 ---@field t "Para"
 ---@field tag "Para"
@@ -368,7 +387,7 @@ pandoc.Para = {}
 --[[
 Creates a paragraph element
 ]]
----@param content table|pandoc.List Inline content (list of inlines)
+---@param content pandoc.Inline|pandoc.List Inline content (list of inlines)
 ---@return pandoc.Para
 function pandoc.Para(content) end
 
@@ -390,7 +409,7 @@ function pandoc.Para:walk(lua_filter) end
 --[[
 Plain text, not a paragarph
 ]]
----@class pandoc.Plain
+---@class pandoc.Plain : pandoc.Block
 ---@field content pandoc.List Inline content (list of inlines)
 ---@field t "Plain"
 ---@field tag "Plain"
@@ -399,7 +418,7 @@ pandoc.Plain = {}
 --[[
 Creates a plain element
 ]]
----@param content table|pandoc.List Inline content (list of inlines)
+---@param content pandoc.Inline|pandoc.List Inline content (list of inlines)
 ---@return pandoc.Plain
 function pandoc.Plain(content) end
 
@@ -422,7 +441,7 @@ function pandoc.Plain:walk(lua_filter) end
 --[[
 Raw content of a specified format
 ]]
----@class pandoc.RawBlock
+---@class pandoc.RawBlock : pandoc.Block
 ---@field format string Format of content
 ---@field text string Raw content
 ---@field t "RawBlock"
@@ -462,10 +481,10 @@ Alignment is a string value indicating the horizontal alignment of a table colum
 leads cell content to be left-aligned, right-aligned, and centered, respectively. The default alignment is AlignDefault 
 (often equivalent to centered).
 ]]
----@class pandoc.Table
+---@class pandoc.Table : pandoc.Block
 ---@field attr pandoc.Attr Table attributes
 ---@field identifier string Alias for `attr.identifier`
----@field classes table Alias for `attr.classes`
+---@field classes pandoc.List Alias for `attr.classes`
 ---@field attributes table<string,string> Alias for `attr.attributes`
 ---@field caption pandoc.Caption Table caption
 ---@field colspecs pandoc.List Column specifications, i.e., alignments and widths (list of `ColSpec`)

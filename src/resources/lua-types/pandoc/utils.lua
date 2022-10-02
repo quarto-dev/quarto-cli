@@ -1,6 +1,7 @@
 ---@meta
 
 ---@module 'pandoc.utils'
+pandoc.utils = {}
 
 --[[
 Squash a list of blocks into a list of inlines.
@@ -145,7 +146,7 @@ than or equal to 1583, but MS Word only accepts dates starting
 ]]
 ---@param date_string string Date to be normalized
 ---@return string|nil # A data string, nor `nil` when the converstion failed 
-function pandoc.utils.normalize_data(date_string) end
+function pandoc.utils.normalize_date(date_string) end
 
 
 --[[
@@ -219,3 +220,6 @@ Usage:
 ---@param value any Any Lua value
 ---@return string # Type of the given value
 function pandoc.utils.type(value) end
+
+
+return pandoc.utils

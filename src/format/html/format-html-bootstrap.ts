@@ -461,7 +461,7 @@ function bootstrapHtmlFinalizer(format: Format, flags: PandocFlags) {
     // then lower the z-order so everything else can get on top
     // of the sidebar
     const isFullLayout = format.metadata[kPageLayout] === "full";
-    if (!hasMarginContent && isFullLayout) {
+    if (!hasMarginContent && isFullLayout && !hasRightContent) {
       const marginSidebarEl = doc.getElementById("quarto-margin-sidebar");
       marginSidebarEl?.classList.add("zindex-bottom");
     }
@@ -581,7 +581,10 @@ const processMarginNodes = (
 };
 
 const findQuartoFigure = (el: Element): Element | undefined => {
-  if (el.classList.contains("quarto-figure")) {
+  if (
+    el.classList.contains("quarto-figure") ||
+    el.classList.contains("quarto-layout-panel")
+  ) {
     return el;
   } else if (el.parentElement) {
     return findQuartoFigure(el.parentElement);

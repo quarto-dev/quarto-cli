@@ -25,7 +25,7 @@ pandoc.SimpleTable = {}
 --[[
 Creates a simple table resembling the old (pre pandoc 2.10) table type.
 ]]
----@param caption table|pandoc.List List of inlines
+---@param caption pandoc.Inline|pandoc.List Inline or list of inlines
 ---@param aligns pandoc.List List of column alignments
 ---@param widths number[] Column widths
 ---@param headers pandoc.List Table header row (a list of blocks, one for each cell)

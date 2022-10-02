@@ -81,6 +81,7 @@ import {
   kColorLinks,
   kDate,
   kDateFormat,
+  kDateModified,
   kDocumentClass,
   kEmbedResources,
   kFigResponsive,
@@ -146,6 +147,7 @@ import {
 } from "./template.ts";
 import { formatLanguage } from "../../core/language.ts";
 import {
+  kYamlMetadataBlock,
   pandocFormatWith,
   parseFormatString,
   splitPandocFormatString,
@@ -155,12 +157,7 @@ import { logLevel } from "../../core/log.ts";
 
 import { cacheCodePage, clearCodePageCache } from "../../core/windows.ts";
 import { textHighlightThemePath } from "../../quarto-core/text-highlighting.ts";
-import {
-  formatDate,
-  isSpecialDate,
-  parsePandocDate,
-  parseSpecialDate,
-} from "../../core/date.ts";
+import { resolveAndFormatDate } from "../../core/date.ts";
 import { katexPostProcessor } from "../../format/html/format-html-math.ts";
 import {
   readAndInjectDependencies,
@@ -176,6 +173,13 @@ import {
   insertExplicitTimingEntries,
   withTiming,
 } from "../../core/timing.ts";
+
+import {
+  requiresShortcodeUnescapePostprocessor,
+  shortcodeUnescapePostprocessor,
+} from "../../format/markdown/format-markdown.ts";
+
+import { kRevealJSPlugins } from "../../extension/extension-shared.ts";
 
 export async function runPandoc(
   options: PandocOptions,
@@ -226,6 +230,14 @@ export async function runPandoc(
     delete metadata[kRevealJsScripts];
     deleteProjectMetadata(metadata);
     deleteCrossrefMetadata(metadata);
+
+    // Don't print empty reveal-js plugins
+    if (
+      metadata[kRevealJSPlugins] &&
+      (metadata[kRevealJSPlugins] as Array<unknown>).length === 0
+    ) {
+      delete metadata[kRevealJSPlugins];
+    }
   };
   cleanMetadataForPrinting(printMetadata);
 
@@ -620,6 +632,14 @@ export async function runPandoc(
     }
   }
 
+  // add a shortcode escaping post-processor if we need one
+  if (
+    isMarkdownOutput(options.format.pandoc) &&
+    requiresShortcodeUnescapePostprocessor(options.markdown)
+  ) {
+    postprocessors.push(shortcodeUnescapePostprocessor);
+  }
+
   // resolve some title variables
   const title = allDefaults?.[kVariables]?.[kTitle] ||
     options.format.metadata[kTitle];
@@ -628,7 +648,7 @@ export async function runPandoc(
   const titlePrefix = allDefaults?.[kTitlePrefix];
 
   // provide default page title if necessary
-  if (!title && !pageTitle) {
+  if (!title && !pageTitle && isHtmlFileOutput(options.format.pandoc)) {
     const [_dir, stem] = dirAndStem(options.source);
     args.push(
       "--metadata",
@@ -642,6 +662,11 @@ export async function runPandoc(
     (pageTitle === undefined && title === titlePrefix)
   ) {
     delete allDefaults[kTitlePrefix];
+  }
+
+  // if we are doing keepYaml then remove it from pandoc 'to'
+  if (options.keepYaml && allDefaults.to) {
+    allDefaults.to = allDefaults.to.replaceAll(`+${kYamlMetadataBlock}`, "");
   }
 
   // Attempt to cache the code page, if this windows.
@@ -715,7 +740,7 @@ export async function runPandoc(
   // provide alternate markdown template that actually prints the title block
   if (
     !allDefaults[kTemplate] && !havePandocArg(args, "--template") &&
-    !options.format.render["keep-yaml"] &&
+    !options.keepYaml &&
     allDefaults.to
   ) {
     const formatDesc = parseFormatString(allDefaults.to);
@@ -787,34 +812,17 @@ export async function runPandoc(
     }
   }
 
-  // Resolve the date if there are any special
-  // date specifiers
-  if (isSpecialDate(pandocMetadata[kDate])) {
-    // Replace the date with its resolved form
-    pandocMetadata[kDate] = parseSpecialDate(
+  // Resolve any date fields
+  const dateFields = [kDate, kDateModified];
+  dateFields.forEach((dateField) => {
+    const date = pandocMetadata[dateField];
+    const format = pandocMetadata[kDateFormat];
+    pandocMetadata[dateField] = resolveAndFormatDate(
       options.source,
-      pandocMetadata[kDate] as string,
+      date,
+      format,
     );
-
-    // Since there is no date format specified, we
-    // should default format this so it isn't a timestamp
-    if (!pandocMetadata[kDateFormat]) {
-      const parsed = parsePandocDate(pandocMetadata[kDate]);
-      pandocMetadata[kDate] = formatDate(
-        parsed,
-        "short",
-      );
-    }
-  }
-
-  // Format the date
-  if (pandocMetadata[kDate] && pandocMetadata[kDateFormat]) {
-    const parsed = parsePandocDate(pandocMetadata[kDate]);
-    pandocMetadata[kDate] = formatDate(
-      parsed,
-      pandocMetadata[kDateFormat] as string,
-    );
-  }
+  });
 
   // Resolve the author metadata into a form that Pandoc will recognize
   const authorsRaw = pandocMetadata[kAuthors] || pandocMetadata[kAuthor];

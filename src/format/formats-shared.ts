@@ -42,7 +42,6 @@ import {
   kKeepMd,
   kKeepSource,
   kKeepTex,
-  kKeepYaml,
   kLang,
   kLatexAutoInstall,
   kLatexAutoMk,
@@ -169,6 +168,15 @@ export function createWordprocessorFormat(ext: string): Format {
   });
 }
 
+export function plaintextFormat(ext: string): Format {
+  return createFormat(ext, {
+    pandoc: {
+      standalone: true,
+      [kDefaultImageExtension]: "png",
+    },
+  });
+}
+
 function defaultFormat(): Format {
   return {
     execute: {
@@ -197,7 +205,6 @@ function defaultFormat(): Format {
     },
     render: {
       [kKeepTex]: false,
-      [kKeepYaml]: false,
       [kKeepSource]: false,
       [kKeepHidden]: false,
       [kPreferHtml]: false,

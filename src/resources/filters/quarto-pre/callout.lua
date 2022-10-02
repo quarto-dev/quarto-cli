@@ -10,28 +10,32 @@ function callout()
     Blocks = function(blocks)
       if _quarto.format.isDocxOutput() then
         local lastWasCallout = false
-        local lastWasTable = false
+        local lastWasTableOrFigure = false
         local newBlocks = pandoc.List()
         for i,el in ipairs(blocks) do 
           -- determine what this block is
           local isCallout = el.t == "Div" and el.attr.classes:find_if(isDocxCallout)
-          local isTable = el.t == "Table" or isFigureDiv(el) or (discoverFigure(el, true) ~= nil)
+          local isTableOrFigure = el.t == "Table" or isFigureDiv(el) or (discoverFigure(el, true) ~= nil)
           local isCodeBlock = el.t == "CodeBlock"
 
           -- Determine whether this is a code cell that outputs a table
           local isCodeCell = el.t == "Div" and el.attr.classes:find_if(isCodeCell)
-          if isCodeCell and isCodeCellTable(el) then 
-            isTable = true;
+          if isCodeCell and (isCodeCellTable(el) or isCodeCellFigure(el)) then 
+            isTableOrFigure = true;
           end
           
           -- insert spacer if appropriate
           local insertSpacer = false
-          if isCallout and (lastWasCallout or lastWasTable) then
+          if isCallout and (lastWasCallout or lastWasTableOrFigure) then
             insertSpacer = true
           end
           if isCodeBlock and lastWasCallout then
             insertSpacer = true
           end
+          if isTableOrFigure and lastWasTableOrFigure then
+            insertSpacer = true
+          end
+
           if insertSpacer then
             newBlocks:insert(pandoc.Para(stringToInlines(" ")))
           end
@@ -41,7 +45,7 @@ function callout()
 
           -- record last state
           lastWasCallout = isCallout
-          lastWasTable = isTable
+          lastWasTableOrFigure = isTableOrFigure
 
         end
 
@@ -105,6 +109,23 @@ function isCodeCellTable(el)
     end
   })
   return isTable
+end
+
+function isCodeCellFigure(el)
+  local isFigure = false
+  pandoc.walk_block(el, {
+    Div = function(div) 
+      quarto.log.output(div)
+      if div.attr.classes:find_if(isCodeCellDisplay) then
+        if (isFigureDiv(div)) then
+          isFigure = true
+        elseif div.content and #div.content > 0 then 
+          isFigure = discoverFigure(div.content[1], true) ~= nil
+        end
+      end
+    end
+  })
+  return isFigure
 end
 
 function calloutType(div)

@@ -105,7 +105,14 @@ export const removeCommand = new Command()
           // Process extension
           if (target) {
             // explicitly provided
-            const extensions = await extensionContext.find(target, targetDir);
+            const extensions = await extensionContext.find(
+              target,
+              targetDir,
+              undefined,
+              undefined,
+              undefined,
+              { builtIn: false },
+            );
             if (extensions.length > 0) {
               await removeExtensions(extensions.slice(), options.prompt);
             } else {
@@ -118,6 +125,7 @@ export const removeCommand = new Command()
               targetDir,
               project?.config,
               project?.dir,
+              { builtIn: false },
             );
 
             // Show a list

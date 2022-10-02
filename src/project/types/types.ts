@@ -30,6 +30,7 @@ export interface ProjectType {
   ) => Promise<ProjectConfig>;
   libDir?: string;
   outputDir?: string;
+  cleanOutputDir?: boolean;
   formatLibDirs?: () => string[];
   formatExtras?: (
     context: ProjectContext,

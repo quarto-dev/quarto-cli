@@ -19,12 +19,7 @@ import { writeFileToStdout } from "../../core/console.ts";
 import { dirAndStem, expandPath } from "../../core/path.ts";
 import { partitionYamlFrontMatter } from "../../core/yaml.ts";
 
-import {
-  kKeepYaml,
-  kOutputExt,
-  kOutputFile,
-  kVariant,
-} from "../../config/constants.ts";
+import { kOutputExt, kOutputFile, kVariant } from "../../config/constants.ts";
 
 import {
   quartoLatexmkOutputRecipe,
@@ -39,6 +34,7 @@ import {
   useContextPdfOutputRecipe,
 } from "./output-tex.ts";
 import { formatOutputFile } from "../../core/render.ts";
+import { kYamlMetadataBlock } from "../../core/pandoc/pandoc-formats.ts";
 
 // render commands imply the --output argument for pandoc and the final
 // output file to create for the user, but we need a 'recipe' to go from
@@ -83,6 +79,7 @@ export function outputRecipe(
 
     const recipe = {
       output,
+      keepYaml: false,
       args: options.pandocArgs || [],
       format: { ...format },
       complete: (): Promise<string | void> => {
@@ -113,22 +110,33 @@ export function outputRecipe(
 
     // tweak pandoc writer if we have extensions declared
     if (format.render[kVariant]) {
+      const to = format.pandoc.to;
+      const variant = format.render[kVariant];
+
       recipe.format = {
         ...recipe.format,
         pandoc: {
           ...recipe.format.pandoc,
-          to: `${format.pandoc.to}${format.render[kVariant]}`,
+          to: `${to}${variant}`,
         },
       };
+
+      // we implement +yaml_metadata_block internally to prevent
+      // gunk from the quarto rendering pipeline from showing up
+      if (recipe.format.pandoc.to?.includes(`+${kYamlMetadataBlock}`)) {
+        recipe.keepYaml = true;
+      }
     }
 
     // complete hook for keep-yaml
-    if (format.render[kKeepYaml]) {
+    if (recipe.keepYaml) {
       completeActions.push(() => {
         // read yaml and output markdown
         const inputMd = partitionYamlFrontMatter(context.target.markdown.value);
         if (inputMd) {
-          const outputFile = join(dirname(context.target.input), recipe.output);
+          const outputFile = isAbsolute(recipe.output)
+            ? recipe.output
+            : join(dirname(context.target.input), recipe.output);
           const output = Deno.readTextFileSync(outputFile);
           const outputMd = partitionYamlFrontMatter(
             Deno.readTextFileSync(outputFile),

@@ -29,6 +29,7 @@ import {
 import {
   ColumnType,
   kCategoryStyle,
+  kDefaultMaxDescLength,
   kFeed,
   kFieldAuthor,
   kFieldCategories,
@@ -272,9 +273,11 @@ export function completeListingDescriptions(
   outputFiles: ProjectOutputFile[],
   _incremental: boolean,
 ) {
-  const contentReader = renderedContentReader(context, {
+  const options = {
     remove: { links: true, images: true },
-  });
+  };
+
+  const contentReader = renderedContentReader(context, options);
 
   // Go through any output files and fix up any feeds associated with them
   outputFiles.forEach((outputFile) => {
@@ -290,11 +293,17 @@ export function completeListingDescriptions(
       while (match) {
         // For each placeholder, get its target href, then read the contents of that
         // file and inject the contents.
-        const relativePath = match[1];
+        const maxDescLength = parseInt(match[1]);
+        const relativePath = match[2];
         const absolutePath = join(projectOutputDir(context), relativePath);
-        const placeholder = descriptionPlaceholder(relativePath);
+        const placeholder = descriptionPlaceholder(relativePath, maxDescLength);
         if (existsSync(absolutePath)) {
-          const contents = contentReader(absolutePath);
+          // Truncate the description if need be
+          const options = maxDescLength > 0
+            ? { "max-length": maxDescLength }
+            : {};
+          const contents = contentReader(absolutePath, options);
+
           fileContents = fileContents.replace(
             placeholder,
             contents.firstPara || "",
@@ -319,11 +328,16 @@ export function completeListingDescriptions(
   });
 }
 
-function descriptionPlaceholder(file?: string): string {
-  return file ? `<!-- desc(5A0113B34292):${file} -->` : "";
+function descriptionPlaceholder(file?: string, maxLength?: number): string {
+  return file ? `<!-- desc(5A0113B34292)[max=${maxLength}]:${file} -->` : "";
 }
 
-const descriptionPlaceholderRegex = /<!-- desc\(5A0113B34292\):(.*) -->/;
+export function isPlaceHolder(text: string) {
+  return text.match(descriptionPlaceholderRegex);
+}
+
+const descriptionPlaceholderRegex =
+  /<!-- desc\(5A0113B34292\)\[max\=(.*)\]:(.*) -->/;
 
 function hydrateListing(
   format: Format,
@@ -455,7 +469,8 @@ function hydrateListing(
   if (listing.type === ListingType.Grid) {
     listingHydrated[kGridColumns] = listingHydrated[kGridColumns] || 3;
     listingHydrated[kImageHeight] = listingHydrated[kImageHeight] || "150px";
-    listingHydrated[kMaxDescLength] = listingHydrated[kMaxDescLength] || 175;
+    listingHydrated[kMaxDescLength] = listingHydrated[kMaxDescLength] ||
+      kDefaultMaxDescLength;
   } else if (listing.type === ListingType.Default) {
     listingHydrated[kImageAlign] = listingHydrated[kImageAlign] || "right";
   } else if (listing.type === ListingType.Table) {
@@ -565,7 +580,7 @@ async function readContents(
           } else {
             const isFile = Deno.statSync(file).isFile;
             if (isFile) {
-              const item = await listItemFromFile(file, project);
+              const item = await listItemFromFile(file, project, listing);
               if (item) {
                 validateItem(listing, item, (field: string) => {
                   return `The file ${file} is missing the required field '${field}'.`;
@@ -640,7 +655,11 @@ function listItemFromMeta(meta: Metadata) {
   return listingItem;
 }
 
-async function listItemFromFile(input: string, project: ProjectContext) {
+async function listItemFromFile(
+  input: string,
+  project: ProjectContext,
+  listing: ListingDehydrated,
+) {
   const projectRelativePath = relative(project.dir, input);
   const target = await inputTargetIndex(
     project,
@@ -653,73 +672,81 @@ async function listItemFromFile(input: string, project: ProjectContext) {
   );
 
   const docRawMetadata = target?.markdown.yaml;
-  const directoryMetadata = await directoryMetadataForInputFile(
-    project,
-    dirname(input),
-  );
-  const documentMeta = mergeConfigs(
-    directoryMetadata,
-    docRawMetadata,
-  ) as Metadata;
+  if (docRawMetadata) {
+    const directoryMetadata = await directoryMetadataForInputFile(
+      project,
+      dirname(input),
+    );
+    const documentMeta = mergeConfigs(
+      directoryMetadata,
+      docRawMetadata,
+    ) as Metadata;
 
-  if (documentMeta?.draft) {
-    // This is a draft, don't include it in the listing
-    return undefined;
+    if (documentMeta?.draft) {
+      // This is a draft, don't include it in the listing
+      return undefined;
+    } else {
+      // See if we have a max desc length
+      const maxDescLength = listing[kMaxDescLength] as number ||
+        kDefaultMaxDescLength;
+
+      // Create the item
+      const filename = basename(projectRelativePath);
+      const filemodified = fileModifiedDate(input);
+      const description = documentMeta?.description as string ||
+        documentMeta?.abstract as string ||
+        descriptionPlaceholder(inputTarget?.outputHref, maxDescLength);
+
+      const imageRaw = documentMeta?.image as string ||
+        findPreviewImgMd(target?.markdown.markdown);
+      const image = imageRaw !== undefined
+        ? pathWithForwardSlashes(
+          listingItemHref(imageRaw, dirname(projectRelativePath)),
+        )
+        : undefined;
+
+      const imageAlt = documentMeta?.[kImageAlt] as string | undefined;
+
+      const date = documentMeta?.date
+        ? parsePandocDate(resolveDate(input, documentMeta?.date) as string)
+        : undefined;
+
+      const authors = parseAuthor(documentMeta?.author);
+      const author = authors ? authors.map((auth) => auth.name) : [];
+
+      const readingtime = target?.markdown
+        ? estimateReadingTimeMinutes(target.markdown.markdown)
+        : undefined;
+
+      const categories = documentMeta?.categories
+        ? Array.isArray(documentMeta?.categories)
+          ? documentMeta?.categories
+          : [documentMeta?.categories]
+        : undefined;
+
+      const item: ListingItem = {
+        ...documentMeta,
+        path: `/${projectRelativePath}`,
+        [kFieldTitle]: target?.title,
+        [kFieldDate]: date,
+        [kFieldAuthor]: author,
+        [kFieldCategories]: categories,
+        [kFieldImage]: image,
+        [kFieldImageAlt]: imageAlt,
+        [kFieldDescription]: description,
+        [kFieldFileName]: filename,
+        [kFieldFileModified]: filemodified,
+        [kFieldReadingTime]: readingtime,
+      };
+      return {
+        item,
+        source: target !== undefined
+          ? ListingItemSource.document
+          : ListingItemSource.rawfile,
+      };
+    }
   } else {
-    // Create the item
-    const filename = basename(projectRelativePath);
-    const filemodified = fileModifiedDate(input);
-    const description = documentMeta?.description as string ||
-      documentMeta?.abstract as string ||
-      descriptionPlaceholder(inputTarget?.outputHref);
-
-    const imageRaw = documentMeta?.image as string ||
-      findPreviewImgMd(target?.markdown.markdown);
-    const image = imageRaw !== undefined
-      ? pathWithForwardSlashes(
-        listingItemHref(imageRaw, dirname(projectRelativePath)),
-      )
-      : undefined;
-
-    const imageAlt = documentMeta?.[kImageAlt] as string | undefined;
-
-    const date = documentMeta?.date
-      ? parsePandocDate(resolveDate(input, documentMeta?.date) as string)
-      : undefined;
-
-    const authors = parseAuthor(documentMeta?.author);
-    const author = authors ? authors.map((auth) => auth.name) : [];
-
-    const readingtime = target?.markdown
-      ? estimateReadingTimeMinutes(target.markdown.markdown)
-      : undefined;
-
-    const categories = documentMeta?.categories
-      ? Array.isArray(documentMeta?.categories)
-        ? documentMeta?.categories
-        : [documentMeta?.categories]
-      : undefined;
-
-    const item: ListingItem = {
-      ...documentMeta,
-      path: `/${projectRelativePath}`,
-      [kFieldTitle]: target?.title,
-      [kFieldDate]: date,
-      [kFieldAuthor]: author,
-      [kFieldCategories]: categories,
-      [kFieldImage]: image,
-      [kFieldImageAlt]: imageAlt,
-      [kFieldDescription]: description,
-      [kFieldFileName]: filename,
-      [kFieldFileModified]: filemodified,
-      [kFieldReadingTime]: readingtime,
-    };
-    return {
-      item,
-      source: target !== undefined
-        ? ListingItemSource.document
-        : ListingItemSource.rawfile,
-    };
+    return undefined;
   }
 }
 

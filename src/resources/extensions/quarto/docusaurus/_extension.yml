@@ -1,0 +1,27 @@
+title: Docusaurus
+author: RStudio, PBC
+organization: quarto
+contributes:
+  project:
+    project:
+      type: default
+      detect:
+        - ["docusaurus.config.js", "package.json"]
+      render:
+        - "**/*.qmd"
+        - "**/*.ipynb"
+      preview:
+        serve:
+          cmd: "npm run docusaurus start -- --no-open --port {port} --host {host}"
+          ready: "compiled successfully"
+    format: docusaurus-md
+  formats:
+    md:
+      variant: +yaml_metadata_block+pipe_tables+tex_math_dollars+header_attributes-all_symbols_escapable
+      wrap: none
+      fig-format: retina
+      fig-width: 8
+      fig-height: 5
+      html-math-method: webtex
+      filters:
+        - docusaurus.lua

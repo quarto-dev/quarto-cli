@@ -155,6 +155,9 @@ export interface PandocOptions {
   // output file that will be written
   output: string;
 
+  // is the keepYaml flag set
+  keepYaml: boolean;
+
   // mediabag directory
   mediabagDir: string;
 
@@ -215,6 +218,8 @@ export interface RenderFlags extends PandocFlags {
 export interface OutputRecipe {
   // --output file that pandoc will produce
   output: string;
+  // are we implementing keepYaml
+  keepYaml: boolean;
   // transformed pandoc args reflecting 'output'
   args: string[];
   // modifications to format spec

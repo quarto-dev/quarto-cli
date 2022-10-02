@@ -6,7 +6,12 @@
 *
 */
 import { dirname, join, relative } from "path/mod.ts";
-import { DOMParser, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
+import {
+  DOMParser,
+  Element,
+  Node,
+  NodeType,
+} from "deno_dom/deno-dom-wasm-noinit.ts";
 
 import {
   defaultSyntaxHighlightingClassMap,
@@ -17,6 +22,8 @@ import { Metadata } from "../../../../config/types.ts";
 import { ProjectContext } from "../../../types.ts";
 import { kImage } from "../website-constants.ts";
 import { projectOutputDir } from "../../../project-shared.ts";
+import { truncateText } from "../../../../core/text.ts";
+import { insecureHash } from "../../../../core/hash.ts";
 
 // The root listing key
 export const kListing = "listing";
@@ -69,6 +76,7 @@ export const kGridColumns = "grid-columns";
 
 // The maximum length of the description
 export const kMaxDescLength = "max-description-length";
+export const kDefaultMaxDescLength = 175;
 
 // Table options
 export const kTableStriped = "table-striped";
@@ -215,6 +223,7 @@ export interface RenderedContentOptions {
     math?: boolean;
     [kUrlsToAbsolute]?: boolean;
   };
+  "max-length"?: number;
 }
 
 export const renderedContentReader = (
@@ -223,16 +232,28 @@ export const renderedContentReader = (
   siteUrl?: string,
 ) => {
   const renderedContent: Record<string, RenderedContents> = {};
-  return (filePath: string): RenderedContents => {
-    if (!renderedContent[filePath]) {
-      renderedContent[filePath] = readRenderedContents(
+  return (
+    filePath: string,
+    renderedOptions?: RenderedContentOptions,
+  ): RenderedContents => {
+    const cacheStr = renderedOptions
+      ? JSON.stringify(renderedOptions) + filePath
+      : filePath;
+    const cacheHash = insecureHash(cacheStr);
+    const mergedOptions = {
+      ...options,
+      ...renderedOptions,
+    };
+
+    if (!renderedContent[cacheHash]) {
+      renderedContent[cacheHash] = readRenderedContents(
         filePath,
         project,
-        options,
+        mergedOptions,
         siteUrl,
       );
     }
-    return renderedContent[filePath];
+    return renderedContent[cacheHash];
   };
 };
 
@@ -418,6 +439,47 @@ export function readRenderedContents(
     }
   };
 
+  const truncateNode = (node: Node, maxLen?: number) => {
+    if (maxLen === undefined || maxLen < 0) {
+      return node;
+    }
+
+    let currentLength = 0;
+    const shortenNode = (node: Node) => {
+      const cloned = node.cloneNode(true);
+      for (const childNode of cloned.childNodes) {
+        if (childNode.nodeType === NodeType.TEXT_NODE) {
+          const textNodeLen = childNode.nodeValue?.length || 0;
+          if (currentLength > maxLen) {
+            cloned.replaceChild(doc.createTextNode(""), childNode);
+          } else if (currentLength + textNodeLen > maxLen) {
+            const nodeMaxLen = Math.min(
+              maxLen,
+              currentLength + textNodeLen - maxLen,
+            );
+            cloned.replaceChild(
+              doc.createTextNode(
+                truncateText(
+                  childNode.nodeValue || "",
+                  nodeMaxLen,
+                  "space",
+                ),
+              ),
+              childNode,
+            );
+          }
+          currentLength = textNodeLen + currentLength;
+        } else {
+          const newNode = shortenNode(childNode);
+          cloned.replaceChild(newNode, childNode);
+        }
+      }
+
+      return cloned;
+    };
+    return shortenNode(node);
+  };
+
   // Try to find a paragraph that doesn't resolve as completely empty
   // This could happen, for example, if images are removed from the document
   // and  the first paragraph is an image.
@@ -425,7 +487,8 @@ export function readRenderedContents(
     const paraNodes = mainEl?.querySelectorAll("p");
     if (paraNodes) {
       for (const paraNode of paraNodes) {
-        const paraContents = cleanMath((paraNode as Element).innerHTML);
+        const truncatedNode = truncateNode(paraNode, options["max-length"]);
+        const paraContents = cleanMath((truncatedNode as Element).innerHTML);
         if (paraContents) {
           return paraContents;
         }
@@ -434,10 +497,14 @@ export function readRenderedContents(
     return undefined;
   };
 
+  // Clean and fetch data
+  const firstPara = getFirstPara();
+  const fullContents = cleanMath(mainEl?.innerHTML);
+
   return {
     title: titleText,
-    fullContents: cleanMath(mainEl?.innerHTML),
-    firstPara: getFirstPara(),
+    fullContents,
+    firstPara,
   };
 }
 

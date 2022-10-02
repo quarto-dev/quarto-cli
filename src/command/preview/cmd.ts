@@ -6,7 +6,7 @@
 */
 
 import { existsSync } from "fs/mod.ts";
-import { relative } from "path/mod.ts";
+import { dirname, extname, join, relative } from "path/mod.ts";
 
 import * as colors from "fmt/colors.ts";
 
@@ -34,7 +34,8 @@ import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/u
 import { kProjectWatchInputs, ProjectContext } from "../../project/types.ts";
 import {
   projectContext,
-  projectIsWebsite,
+  projectIsServeable,
+  projectPreviewServe,
 } from "../../project/project-context.ts";
 import { isHtmlOutput } from "../../config/format.ts";
 import { renderProject } from "../render/project.ts";
@@ -58,6 +59,10 @@ export const previewCommand = new Command()
     {
       default: kRenderNone,
     },
+  )
+  .option(
+    "--no-serve",
+    "Don't run a local preview web server (just monitor and re-render input files)",
   )
   .option(
     "--no-navigate",
@@ -165,6 +170,11 @@ export const previewCommand = new Command()
       options.browserPath = String(args[browserPathPos + 1]);
       args.splice(browserPathPos, 2);
     }
+    const noServePos = args.indexOf("--no-serve");
+    if (noServePos !== -1) {
+      options.noServe = true;
+      args.splice(noServePos, 1);
+    }
     const noBrowsePos = args.indexOf("--no-browse");
     if (noBrowsePos !== -1) {
       options.browse = false;
@@ -229,37 +239,65 @@ export const previewCommand = new Command()
     const flags = await parseRenderFlags(args);
     args = fixupPandocArgs(args, flags);
 
-    // if this is a single-file html preview within a project
+    // if this is a single-file preview within a 'serveable' project
     // without a specific render directive then render the file
     // and convert the render to a project one
+    let touchPath: string | undefined;
     let projectTarget: string | ProjectContext = file;
     if (Deno.statSync(file).isFile) {
-      const project = await projectContext(file);
-      if (project && projectIsWebsite(project)) {
+      const project = await projectContext(dirname(file));
+      if (project && projectIsServeable(project)) {
+        // special case: plain markdown file w/ an external previewer that is NOT
+        // in the project input list -- in this case allow things to proceed
+        // without a render
         const format = await previewFormat(file, flags.to, project);
-        if (isHtmlOutput(parseFormatString(format).baseFormat, true)) {
-          setPreviewFormat(format, flags, args);
-          const services = renderServices();
-          try {
-            const renderResult = await renderProject(project, {
-              services,
-              progress: false,
-              useFreezer: false,
-              flags,
-              pandocArgs: args,
-              previewServer: true,
-            }, [file]);
-            if (renderResult.error) {
-              throw renderResult.error;
-            }
-            handleRenderResult(file, renderResult);
-          } finally {
-            services.cleanup();
+        const filePath = Deno.realPathSync(file);
+        if (!project.files.input.includes(filePath)) {
+          if (extname(file) === ".md" && projectPreviewServe(project)) {
+            setPreviewFormat(format, flags, args);
+            touchPath = filePath;
+            options.browserPath = "";
+            file = project.dir;
+            projectTarget = project;
           }
-          // re-write various targets to redirect to project preview
-          options.browserPath = relative(project.dir, file);
-          file = project.dir;
-          projectTarget = project;
+        } else {
+          if (
+            isHtmlOutput(parseFormatString(format).baseFormat, true) ||
+            projectPreviewServe(project)
+          ) {
+            setPreviewFormat(format, flags, args);
+            const services = renderServices();
+            try {
+              const renderResult = await renderProject(project, {
+                services,
+                progress: false,
+                useFreezer: false,
+                flags,
+                pandocArgs: args,
+                previewServer: true,
+              }, [file]);
+              if (renderResult.error) {
+                throw renderResult.error;
+              }
+              handleRenderResult(file, renderResult);
+              if (projectPreviewServe(project) && renderResult.baseDir) {
+                touchPath = join(
+                  renderResult.baseDir,
+                  renderResult.files[0].file,
+                );
+              }
+            } finally {
+              services.cleanup();
+            }
+            // re-write various targets to redirect to project preview
+            if (projectPreviewServe(project)) {
+              options.browserPath = "";
+            } else {
+              options.browserPath = relative(project.dir, file);
+            }
+            file = project.dir;
+            projectTarget = project;
+          }
         }
       }
     }
@@ -278,9 +316,10 @@ export const previewCommand = new Command()
           [kProjectWatchInputs]: options.watchInputs,
           timeout: options.timeout,
           render: options.render,
+          touchPath,
           browserPath: options.browserPath,
           navigate: options.navigate,
-        });
+        }, options.noServe === true);
       } finally {
         services.cleanup();
       }

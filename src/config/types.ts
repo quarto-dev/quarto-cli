@@ -87,7 +87,6 @@ import {
   kKeepMd,
   kKeepSource,
   kKeepTex,
-  kKeepYaml,
   kLatexAutoInstall,
   kLatexAutoMk,
   kLatexClean,
@@ -170,6 +169,7 @@ import {
   kTitleBlockAffiliationSingle,
   kTitleBlockAuthorPlural,
   kTitleBlockAuthorSingle,
+  kTitleBlockModified,
   kTitleBlockPublished,
   kTitlePrefix,
   kToc,
@@ -343,7 +343,6 @@ export interface Format {
 
 export interface FormatRender {
   [kKeepTex]?: boolean;
-  [kKeepYaml]?: boolean;
   [kKeepSource]?: boolean;
   [kKeepHidden]?: boolean;
   [kPreferHtml]?: boolean;
@@ -507,6 +506,7 @@ export interface FormatLanguage {
   [kTitleBlockAuthorSingle]?: string;
   [kTitleBlockAuthorPlural]?: string;
   [kTitleBlockPublished]?: string;
+  [kTitleBlockModified]?: string;
   [kSectionTitleFootnotes]?: string;
   [kSectionTitleReferences]?: string;
   [kSectionTitleAppendices]?: string;

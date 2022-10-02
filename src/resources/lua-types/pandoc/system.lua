@@ -2,6 +2,7 @@
 ---@meta
 
 ---@module 'pandoc.system'
+pandoc.system = {}
 
 --[[
 The machine architecture on which the program is running.
@@ -106,3 +107,5 @@ error occurs while running the callback action.
 ---@param callback fun() : unknown Action to execute in the given directory.
 ---@return unknown # The result(s) of the call to `callback`
 function pandoc.system.with_working_directory(directory, callback) end
+
+return pandoc.system

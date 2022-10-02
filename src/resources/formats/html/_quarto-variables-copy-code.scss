@@ -1,0 +1,7 @@
+// code block colors
+$btn-code-copy-color: $text-muted !default;
+$btn-code-copy-color-active: if(
+  variable-exists(link-color),
+  $link-color,
+  #0d6efd
+) !default;

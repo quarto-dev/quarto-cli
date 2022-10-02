@@ -117,6 +117,7 @@ export function texToPdfOutputRecipe(
   // return recipe
   return {
     output,
+    keepYaml: false,
     args,
     format: {
       ...format,

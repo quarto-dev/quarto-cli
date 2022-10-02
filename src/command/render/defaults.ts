@@ -162,5 +162,15 @@ export function pandocDefaultsMessage(
     delete defaults.template;
   }
 
+  // TODO / HACK: suppress writer if it is coming from an extension
+  if (defaults.writer) {
+    if (
+      defaults.writer.match(/(?:^|[\\/])_extensions[\\/]/) ||
+      defaults.writer.match(/(?:^|[\\/])extensions[\\/]quarto[\\/]/)
+    ) {
+      delete defaults.writer;
+    }
+  }
+
   return stringify(defaults as Record<string, unknown>);
 }

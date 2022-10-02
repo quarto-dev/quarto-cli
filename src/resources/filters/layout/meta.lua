@@ -143,13 +143,38 @@ function layoutMetaInject()
              documentclass == 'scrreprt' or documentclass == 'scrreport' then
             oneSidedColumnLayout(meta)
           elseif documentclass == 'scrbook' then
-            twoSidedColumnLayout(meta)
+            -- better compute sidedness and deal with it
+            -- choices are one, two, or semi
+            local side = booksidedness(meta)
+            if side == 'one' then
+              oneSidedColumnLayout(meta)
+            else
+              twoSidedColumnLayout(meta, side == 'semi')
+            end
           end  
         end
       end
       return meta
     end
   }
+end
+
+function booksidedness(meta)
+  local side = 'two'
+  local classoption = readOption(meta, 'classoption')
+  if classoption then
+    for i, v in ipairs(classoption) do
+      local option = pandoc.utils.stringify(v)
+      if option == 'twoside=semi' then
+        side = 'semi'
+      elseif option == 'twoside' or option == 'twoside=on' or option == 'twoside=true' or option == 'twoside=yes' then
+        side = 'two'
+      elseif option == 'twoside=false' or option == 'twoside=no' or option == 'twoside=off' then
+        side = 'one'
+      end
+    end
+  end
+  return side
 end
 
 function marginReferences() 
@@ -160,8 +185,8 @@ function marginCitations()
   return param('citation-location', 'document') == 'margin'
 end
 
-function twoSidedColumnLayout(meta)
-  columnGeometry(meta)
+function twoSidedColumnLayout(meta, oneside)
+  baseGeometry(meta, oneside)
 end
 
 function oneSidedColumnLayout(meta)
@@ -173,18 +198,19 @@ function oneSidedColumnLayout(meta)
   -- set one sided if not sidedness not already set
   local sideoptions = classoption:filter(function(opt) 
     local text = pandoc.utils.stringify(opt)
-    return text == 'oneside' or text == 'twoside'
+    return text:find('oneside') == 1 or text:find('twoside') == 1
   end)
+  
   if #sideoptions == 0 then
     classoption:insert('oneside')
     meta.classoption = classoption
   end
   
-  columnGeometry(meta)
-
+  baseGeometry(meta)
 end
 
-function columnGeometry(meta)
+function baseGeometry(meta, oneside)
+
   -- customize the geometry
   if not meta.geometry then
     meta.geometry = pandoc.List({})
@@ -200,15 +226,21 @@ function columnGeometry(meta)
       end
     end
   end 
-  
+
   if not userDefinedGeometry then
+    -- if one side geometry is explicitly requested, the
+    -- set that (used for twoside=semi)
+    if oneside then
+      quarto.log.output("ONESIDE")
+      tappend(meta.geometry, {"twoside=false"})
+    end
+      
     tappend(meta.geometry, geometryForPaper(meta.papersize))
   end
 end
 
 -- We will automatically compute a geometry for a papersize that we know about
 function geometryForPaper(paperSize)
-  local width = nil
   if paperSize ~= nil then
     local paperSizeStr = paperSize[1].text
     local width = kPaperWidthsIn[paperSizeStr]

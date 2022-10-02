@@ -9,6 +9,8 @@ import { Metadata, QuartoFilter } from "../config/types.ts";
 import { RevealPluginBundle } from "../format/reveal/format-reveal-plugin.ts";
 import { ProjectConfig } from "../project/types.ts";
 
+export const kBuiltInExtOrg = "quarto";
+
 export const kCommon = "common";
 export const kExtensionDir = "_extensions";
 
@@ -43,11 +45,16 @@ export interface Extension extends Record<string, unknown> {
   };
 }
 
+export interface ExtensionOptions {
+  builtIn: boolean;
+}
+
 export interface ExtensionContext {
   extensions(
-    input: string,
+    input?: string,
     config?: ProjectConfig,
     projectDir?: string,
+    options?: ExtensionOptions,
   ): Promise<Extension[]>;
   extension(
     name: string,
@@ -66,6 +73,7 @@ export interface ExtensionContext {
       | "revealjs-plugins",
     config?: ProjectConfig,
     projectDir?: string,
+    options?: ExtensionOptions,
   ): Promise<Extension[]>;
 }
 

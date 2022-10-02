@@ -1,0 +1,4 @@
+---@meta
+
+---@module 'quarto'
+quarto = {}

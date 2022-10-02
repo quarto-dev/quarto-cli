@@ -37,6 +37,54 @@ export function today(): Date {
   return today;
 }
 
+export function resolveAndFormatDate(
+  input: string | string[],
+  date?: unknown,
+  format?: string,
+) {
+  const resolveDate = (date?: unknown) => {
+    if (date) {
+      if (typeof (date) === "string") {
+        return {
+          value: date,
+          format: format || "short",
+        };
+      } else if (typeof (date) === "object") {
+        const schemaDate = date as { value: string; format?: string };
+        return {
+          value: schemaDate.value,
+          format: schemaDate.format || format || "short",
+        };
+      }
+    } else {
+      return undefined;
+    }
+  };
+
+  // Resolve the date type
+  const resolvedDate = resolveDate(date);
+  if (resolvedDate) {
+    // Process any special dates
+    if (isSpecialDate(resolvedDate.value)) {
+      // Replace the date with its resolved form
+      resolvedDate.value = parseSpecialDate(
+        input,
+        resolvedDate.value,
+      );
+    }
+
+    // Read and format the date
+    const parsed = parsePandocDate(resolvedDate.value);
+
+    // Since there is no date format specified, we
+    // should default format this so it isn't a timestamp
+    return formatDate(
+      parsed,
+      resolvedDate.format,
+    );
+  }
+}
+
 export function resolveDate(input: string | string[], val: unknown) {
   if (isSpecialDate(val)) {
     return parseSpecialDate(input, val);

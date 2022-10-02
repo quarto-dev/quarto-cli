@@ -372,7 +372,7 @@ async function promptForSlug(
         indent: "",
         message: `Publish with name '${slug}'?`,
         default: true,
-        hint: "Type 'n' to use a differnet name",
+        hint: "Type 'n' to use a different name",
       });
       if (result) {
         return slug;

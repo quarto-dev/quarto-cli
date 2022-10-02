@@ -6,9 +6,20 @@
 */
 import { basename, dirname } from "path/mod.ts";
 import { removeIfEmptyDir } from "../core/path.ts";
-import { Extension, kExtensionDir } from "./extension-shared.ts";
+import {
+  Extension,
+  kBuiltInExtOrg,
+  kExtensionDir,
+} from "./extension-shared.ts";
 
 export async function removeExtension(extension: Extension) {
+  // You can't remove quarto extensions
+  if (extension.id.organization === kBuiltInExtOrg) {
+    throw new Error(
+      `The extension ${extension.title} can't be removed since it is a built in extension.`,
+    );
+  }
+
   // Delete the extension
   await Deno.remove(extension.path, { recursive: true });
 

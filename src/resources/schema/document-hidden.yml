@@ -165,7 +165,6 @@
     long: |
       Generate HTML output (if necessary) even when targeting markdown. Enables the 
       embedding of more sophisticated output (e.g. Jupyter widgets) in markdown.
-      Note that this option is set to `true` for the `hugo` format.
 
 - name: output-divs
   schema: boolean

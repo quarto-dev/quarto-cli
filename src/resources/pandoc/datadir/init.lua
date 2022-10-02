@@ -1312,13 +1312,32 @@ local function scriptDir()
    end
 end
 
+local function scriptFileName()
+   if scriptFile ~= nil then
+      return pandoc.path.filename(scriptFile)
+   else 
+      return pandoc.path.filename(PANDOC_SCRIPT_FILE)
+   end
+end
+
+-- patch require to look in current scriptDir
+local orig_require = require
+function require(modname)
+   local dir = pandoc.path.join({scriptDir(), '?.lua'})
+   package.path = package.path .. ';' ..dir
+   local mod = orig_require(modname)
+   package.path = package.path:sub(1, #package.path - (#dir + 1))
+   return mod
+end
+
+
 -- resolves a path, providing either the original path
 -- or if relative, a path that is based upon the 
 -- script location
 local function resolvePath(path)          
   if isRelativeRef(path) then
     local wd = pandoc.system.get_working_directory();
-    return pandoc.path.join({wd, path})
+    return pandoc.path.join({wd, pandoc.path.normalize(path)})
   else
     return path    
   end
@@ -1326,12 +1345,11 @@ end
 
 local function resolvePathExt(path) 
   if isRelativeRef(path) then
-    return resolvePath(pandoc.path.join({scriptDir(), path}))
+    return resolvePath(pandoc.path.join({scriptDir(), pandoc.path.normalize(path)}))
   else
     return path
   end
 end
-
 -- converts the friendly Quartio location names 
 -- in the pandoc location
 local function resolveLocation(location) 
@@ -1607,7 +1625,50 @@ function param(name, default)
   return value
 end
 
+local function projectDirectory() 
+   -- the offset to the project
+   local projectOffset = _quarto.projectOffset()
+   if projectOffset then
+      -- get the current working directory - we always change
+      -- the working directory to the input file when we render
+      local wd = pandoc.system.get_working_directory()
+      
+      -- process the offset, adjusting the working directory
+      local projectDir = wd
+      for i, v in ipairs(pandoc.path.split(projectOffset)) do
+         if v == '.' then
+            -- no op
+         elseif v == '..' then
+            projectDir = pandoc.path.directory(projectDir)
+         else
+            projectDir = pandoc.path.join({projectDir, v})
+         end
+      end
+      return projectDir
+   else
+      return nil
+   end 
+end
 
+-- Provides the project relative path to the current input
+-- if this render is in the context of a project
+local function projectRelativeOutputFile()
+   -- the project directory
+   local projDir = projectDirectory()
+
+   -- the offset to the project
+   if projDir then
+      -- relative from project directory to working directory
+      local workingDir = pandoc.system.get_working_directory()
+      local projRelFolder = pandoc.path.make_relative(workingDir, projDir, false)
+      
+      -- add the file output name and normalize
+      local projRelPath = pandoc.path.join({projRelFolder, PANDOC_STATE['output_file']})
+      return pandoc.path.normalize(projRelPath);
+   else
+      return nil
+   end
+end
 
 -- Quarto internal module - makes functions available
 -- through the filters
@@ -1622,14 +1683,17 @@ _quarto = {
    utils = utils,
    scriptFile = function(file)
       scriptFile = file
+   end,
+   projectOffset = function()
+      return param('project-offset', nil)
    end
- } 
 
+ } 
 
 -- The main exports of the quarto module
 quarto = {
   doc = {
-    addHtmlDependency = function(htmlDependency)
+    add_html_dependency = function(htmlDependency)
    
       -- validate the dependency
       if htmlDependency.name == nil then 
@@ -1688,7 +1752,7 @@ quarto = {
       }))
     end,
 
-    attachToDependency = function(name, pathOrFileObj)
+    attach_to_dependency = function(name, pathOrFileObj)
 
       if name == nil then
          error("The target dependency name for an attachment cannot be nil. Please provide a valid dependency name.")
@@ -1729,42 +1793,60 @@ quarto = {
       }))
     end,
   
-    useLatexPackage = function(package, options)
+    use_latex_package = function(package, options)
       writeToDependencyFile(dependency("usepackage", {package = package, options = options }))
     end,
 
-    addFormatResource = function(path)
+    add_format_resource = function(path)
       writeToDependencyFile(dependency("format-resources", { file = resolvePathExt(path)}))
     end,
 
-    includeText = function(location, text)
+    include_text = function(location, text)
       writeToDependencyFile(dependency("text", { text = text, location = resolveLocation(location)}))
     end,
   
-    includeFile = function(location, path)
+    include_file = function(location, path)
       writeToDependencyFile(dependency("file", { path = resolvePathExt(path), location = resolveLocation(location)}))
     end,
 
-    isFormat = format.isFormat,
+    is_format = format.isFormat,
 
-    citeMethod = function() 
+    cite_method = function() 
       local citeMethod = param('cite-method', 'citeproc')
       return citeMethod
     end,
-    pdfEngine = function() 
+    pdf_engine = function() 
       local engine = param('pdf-engine', 'pdflatex')
       return engine      
     end,
-    hasBootstrap = function() 
+    has_bootstrap = function() 
       local hasBootstrap = param('has-bootstrap', false)
       return hasBootstrap
-    end
+    end,
+    project_output_file = projectRelativeOutputFile
+  },
+  project = {
+   directory = projectDirectory
   },
   utils = {
    dump = utils.dump,
-   resolvePath = resolvePathExt
+   resolve_path = resolvePathExt
   },
   json = json,
   base64 = base64,
   log = logging
 }
+
+-- alias old names for backwards compatibility
+quarto.doc.addHtmlDependency = quarto.doc.add_html_dependency
+quarto.doc.attachToDependency = quarto.doc.attach_to_dependency
+quarto.doc.useLatexPackage = quarto.doc.use_latex_package
+quarto.doc.addFormatResource = quarto.doc.add_format_resource
+quarto.doc.includeText = quarto.doc.include_text
+quarto.doc.includeFile = quarto.doc.include_file
+quarto.doc.isFormat = quarto.doc.is_format
+quarto.doc.citeMethod = quarto.doc.cite_method
+quarto.doc.pdfEngine = quarto.doc.pdf_engine
+quarto.doc.hasBootstrap = quarto.doc.has_bootstrap
+quarto.utils.resolvePath = quarto.utils.resolve_path
+

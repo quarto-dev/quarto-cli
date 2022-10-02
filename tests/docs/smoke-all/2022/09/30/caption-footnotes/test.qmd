@@ -1,0 +1,106 @@
+---
+csl: oxford-university-press-note.csl
+format: pdf
+references:
+  - DOI: "10.1007/3-540-09237-4"
+    URL: "http://dx.doi.org/10.1007/3-540-09237-4"
+    author:
+      - family: Harel
+        given: David
+    collection-title: Lecture notes in computer science
+    id: Harel79
+    issued:
+      date-parts:
+        - [1979]
+    publisher: Springer-Verlag
+    publisher-place: 'New York, NY'
+    title: First-order dynamic logic
+    type: book
+    volume: 68
+  - author:
+      - family: Clarkson
+        given: Kenneth L.
+    genre: PhD thesis
+    id: Clarkson85
+    issued:
+      date-parts:
+        - - 1985
+    note: 'UMI Order Number: AAT 8506171'
+    publisher: Stanford University
+    publisher-place: 'Palo Alto, CA'
+    title: Algorithms for closest-point problems (computational geometry)
+    type: thesis
+  - URL: 'http://video.google.com/videoplay?docid=6528042696351994555'
+    author:
+      - family: Obama
+        given: Barack
+    id: Obama08
+    issued:
+      date-parts:
+        - - 2008 - 3 - 5
+    note: ''
+    publisher: Video
+    title: A more perfect union
+    type: ''
+  - DOI: 99.9999/woot07-S422
+    URL: 'http://video.google.com/videoplay?docid=6528042696351994555'
+    author:
+      - family: Novak
+        given: Dave
+    collection-number: ''
+    collection-title: ''
+    container-title: >-
+      ACM SIGGRAPH 2003 video review on animation theater program: Part i - vol.
+      145 (july 27–27, 2003)
+    id: Novak03
+    issued:
+      date-parts:
+        - - 2003
+    note: ''
+    page: '4'
+    publisher: Video; ACM Press
+    publisher-place: 'New York, NY'
+    title: Solder man
+    type: paper-conference
+    volume: ''
+---
+
+## Heading
+
+Maecenas vestibulum mattis lacinia. Nunc id lacus non orci vehicula semper. Praesent feugiat erat non pretium ultricies. Phasellus interdum, arcu ac fringilla tincidunt, arcu ipsum tincidunt massa, sed sollicitudin odio tellus lobortis erat. Nunc accumsan odio in ligula volutpat, at aliquam enim consectetur. 
+
+:::: {#fig-one}
+
+:::{.callout-note}
+## Figure 2
+This is placeholder for this figure
+:::
+
+A schematic diagram of known types [@Harel79] of viroid-like agents [@Novak03]. This figure was published in a cool document. ^[This is a cool footnote]
+::::
+
+Integer ac dignissim magna. Nullam eu purus ac turpis imperdiet vestibulum. Curabitur dignissim tincidunt orci at pharetra. 
+
+:::: {#fig-two}
+
+:::{.callout-note}
+## Figure 2
+This is placeholder for this figure
+:::
+
+Cool Stuff[@Obama08]
+::::
+
+Praesent fringilla nibh sagittis, euismod velit rhoncus, tristique risus. Cras faucibus consequat purus eget sollicitudin. Cras urna neque, facilisis nec dolor nec, accumsan faucibus dolor. In in condimentum mauris, et luctus nulla. Ut suscipit cursus mattis. Mauris maximus mi vitae fringilla semper. Sed ac quam commodo, venenatis enim ut, malesuada nisi.
+
+
+
+## Heading 2
+
+Maecenas vestibulum mattis lacinia. Nunc id lacus non orci vehicula semper. Praesent feugiat erat non pretium ultricies. 
+
+![A different diagram of known types [@Clarkson85] of stuff. This figure was published in](dog.png){width="50%"}
+
+Integer ac dignissim magna. Nullam eu purus ac turpis imperdiet vestibulum. Curabitur dignissim tincidunt orci at pharetra. Praesent fringilla nibh sagittis, euismod velit rhoncus, tristique risus. Cras faucibus consequat purus eget sollicitudin. Cras urna neque, facilisis nec dolor nec, accumsan faucibus dolor. In in condimentum mauris, et luctus nulla. Ut suscipit cursus mattis. Mauris maximus mi vitae fringilla semper. Sed ac quam commodo, venenatis enim ut, malesuada nisi.
+
+## References

@@ -16,6 +16,7 @@ title-block-author-plural: "作者"
 title-block-affiliation-single: "所属"
 title-block-affiliation-plural: "所属"
 title-block-published: "公開"
+title-block-modified: "更新日"
 
 callout-tip-caption: "ヒント"
 callout-note-caption: "ノート"
@@ -32,7 +33,7 @@ code-tools-view-source: "ソースコードを表示"
 code-tools-source-code: "ソースコード"
 
 copy-button-tooltip: "コピー"
-copy-button-tooltip-success: "完了"
+copy-button-tooltip-success: "コピーしました"
 
 repo-action-links-edit: "編集"
 repo-action-links-source: "ソースコード"

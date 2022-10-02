@@ -37,8 +37,10 @@ import {
   kRenderDefaults,
   kRenderDefaultsKeys,
   kTblColwidths,
+  kVariant,
 } from "./constants.ts";
 import { Format, Metadata } from "./types.ts";
+import { kGfmCommonmarkVariant } from "../format/markdown/format-markdown.ts";
 
 export async function includedMetadata(
   dir: string,
@@ -207,6 +209,14 @@ export function metadataAsFormat(metadata: Metadata): Format {
     delete (typedFormat.execute as Record<string, unknown>)[kIpynbFilter];
   }
 
+  // expand gfm alias in variant
+  if (typeof (typedFormat.render.variant) === "string") {
+    typedFormat.render.variant = typedFormat.render.variant.replace(
+      /^gfm/,
+      kGfmCommonmarkVariant,
+    );
+  }
+
   return typedFormat;
 }
 
@@ -244,9 +254,11 @@ export function mergeFormatMetadata<T>(
   const kUnmergeableKeys = [kTblColwidths];
 
   return mergeConfigsCustomized<T>(
-    (_objValue: unknown, srcValue: unknown, key: string) => {
+    (objValue: unknown, srcValue: unknown, key: string) => {
       if (kUnmergeableKeys.includes(key)) {
         return srcValue;
+      } else if (key === kVariant) {
+        return mergePandocVariant(objValue, srcValue);
       } else {
         return undefined;
       }
@@ -304,4 +316,39 @@ export function mergeConfigsCustomized<T>(
       }
     },
   );
+}
+
+function mergePandocVariant(objValue: unknown, srcValue: unknown) {
+  if (
+    typeof (objValue) === "string" && typeof (srcValue) === "string" &&
+    (objValue !== srcValue)
+  ) {
+    // merge srcValue into objValue
+    const extensions: { [key: string]: boolean } = {};
+    [...parsePandocVariant(objValue), ...parsePandocVariant(srcValue)]
+      .forEach((extension) => {
+        extensions[extension.name] = extension.enabled;
+      });
+    return Object.keys(extensions).map((name) =>
+      `${extensions[name] ? "+" : "-"}${name}`
+    ).join("");
+  } else {
+    return undefined;
+  }
+}
+
+function parsePandocVariant(variant: string) {
+  // remove any linebreaks
+  variant = variant.split("\n").join();
+
+  // parse into separate entries
+  const extensions: Array<{ name: string; enabled: boolean }> = [];
+  const re = /([+-])([a-z_]+)/g;
+  let match = re.exec(variant);
+  while (match) {
+    extensions.push({ name: match[2], enabled: match[1] === "+" });
+    match = re.exec(variant);
+  }
+
+  return extensions;
 }

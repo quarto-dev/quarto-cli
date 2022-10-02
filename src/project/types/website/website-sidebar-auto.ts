@@ -113,12 +113,27 @@ async function sidebarItemsFromAuto(
   project: ProjectContext,
   auto: boolean | string | string[],
 ): Promise<SidebarItem[]> {
+  // is this a single directory that exists
+  const isAutoDir = typeof (auto) === "string" &&
+    !!auto.match(/^[^\*]+$/) &&
+    safeExistsSync(join(project.dir, auto));
+
   // list of globs from auto
   const globs: string[] = globsFromAuto(project, auto);
 
   // scan for inputs and organize them into heirarchical nodes
   const entries: Entry[] = [];
   for (const nodeSet of autoSidebarNodes(project, globs)) {
+    // if this is an auto-dir that has an index page inside it
+    // then re-shuffle things a bit
+    if (isAutoDir) {
+      const root = nodeSet.root.split("/");
+      nodeSet.root = root.slice(0, -1).join("/");
+      nodeSet.nodes = {
+        [root.slice(-1)[0]]: nodeSet.nodes,
+      };
+    }
+
     entries.push(
       ...await nodesToEntries(
         project,
@@ -173,12 +188,12 @@ function autoSidebarNodes(
         { mode: "always" },
       ).include,
     ) as string[])
-      .map((input) => pathWithForwardSlashes(relative(project.dir, input)))
-      .filter((input) => !/\/?index\.\w+$/.test(input));
+      .filter((input) => !/^index\.\w+$/.test(input))
+      .map((input) => pathWithForwardSlashes(relative(project.dir, input)));
 
     // is this a directory glob?
     let directory = "";
-    const match = glob.match(/(.*?)\/\*.*$/);
+    const match = glob.match(/(.*?)[\/\\]\*.*$/);
     if (match && safeExistsSync(join(project.dir, match[1]))) {
       directory = match[1];
     }
@@ -229,6 +244,16 @@ async function nodesToEntries(
   root: string,
   nodes: SidebarNodes,
 ) {
+  // clone the nodes (as we may mutate them)
+  nodes = ld.cloneDeep(nodes) as SidebarNodes;
+
+  // if there is an index file in the root then remove it
+  // (as the higher level section handler will find it)
+  const indexFile = findIndexFile(nodes);
+  if (indexFile) {
+    delete nodes[indexFile];
+  }
+
   const entries: Entry[] = [];
 
   for (const node of Object.keys(nodes)) {
@@ -236,16 +261,28 @@ async function nodesToEntries(
     const path = join(project.dir, href);
     if (safeExistsSync(path)) {
       if (Deno.statSync(path).isDirectory) {
-        // use index file if available
-        const indexFileHref = indexFileHrefForDir(project, path);
-        if (indexFileHref) {
+        // get child nodes (we may mutate so make a copy)
+        const childNodes = ld.cloneDeep(nodes[node]) as SidebarNodes;
+
+        // remove any index file and use it as the link for the parent
+        const indexFile = findIndexFile(childNodes);
+        if (indexFile) {
+          delete childNodes[indexFile];
+        }
+
+        if (indexFile) {
           entries.push({
-            ...await entryFromHref(project, indexFileHref),
-            children: await nodesToEntries(
+            ...await entryFromHref(
               project,
-              `${root}${node}/`,
-              nodes[node],
+              relative(project.dir, join(path, indexFile)),
             ),
+            children: (childNodes && Object.keys(childNodes).length > 0)
+              ? await nodesToEntries(
+                project,
+                `${root}${node}/`,
+                childNodes,
+              )
+              : undefined,
           });
         } else {
           entries.push({
@@ -253,7 +290,7 @@ async function nodesToEntries(
             children: await nodesToEntries(
               project,
               `${root}${node}/`,
-              nodes[node],
+              childNodes,
             ),
           });
         }
@@ -265,6 +302,10 @@ async function nodesToEntries(
 
   // order the entries using 'order' and 'title'
   return entries.sort(sortEntries);
+}
+
+function findIndexFile(nodes: SidebarNodes) {
+  return Object.keys(nodes).find((input) => /^index\.\w+$/.test(input));
 }
 
 function sortEntries(a: Entry, b: Entry) {

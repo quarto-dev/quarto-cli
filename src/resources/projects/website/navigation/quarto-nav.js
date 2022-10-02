@@ -152,7 +152,7 @@ window.document.addEventListener("DOMContentLoaded", function () {
   const headerEl = window.document.querySelector("header.fixed-top");
   if (headerEl && window.ResizeObserver) {
     const observer = new window.ResizeObserver(
-      throttle(updateDocumentOffsetWithoutAnimation, 50)
+      updateDocumentOffsetWithoutAnimation
     );
     observer.observe(headerEl, {
       attributes: true,
@@ -164,8 +164,8 @@ window.document.addEventListener("DOMContentLoaded", function () {
       "resize",
       throttle(updateDocumentOffsetWithoutAnimation, 50)
     );
-    setTimeout(updateDocumentOffsetWithoutAnimation, 500);
   }
+  setTimeout(updateDocumentOffsetWithoutAnimation, 250);
 
   // fixup index.html links if we aren't on the filesystem
   if (window.location.protocol !== "file:") {

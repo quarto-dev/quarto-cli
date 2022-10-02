@@ -2,12 +2,12 @@
 
 <% if (item.href) { %>
   <li class="nav-item<%- item.text === undefined ? ' compact' : '' %>">
-    <a class="nav-link" href="<%- item.href %>"><% partial('navicon.ejs', { item }) %> <%- item.text %></a>
+    <a class="nav-link" href="<%- item.href %>"><% partial('navicon.ejs', { item }) %> <span class="menu-text"><%- item.text %></span></a>
   </li>  
 <% } else if (item.menu) { %>
   <li class="nav-item dropdown <%- item.text === undefined ? ' compact' : '' %>">
     <a class="nav-link dropdown-toggle" href="#" id="<%- item.id %>" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-      <% partial('navicon.ejs', { item }) %> <%- item.text %>
+      <% partial('navicon.ejs', { item }) %> <span class="menu-text"><%- item.text %></span>
     </a>
     <ul class="dropdown-menu<%- align === 'end' ? ' dropdown-menu-end' : ''%>" aria-labelledby="<%- item.id %>">    
       <% for(const menuItem of item.menu) { %>
@@ -19,7 +19,7 @@
   <% if (item.text.match(/^\-+$/)) { %>
     <li><hr class="dropdown-divider"></li>
   <% } else { %>
-    <li class="dropdown-header"><% partial('navicon.ejs', { item }) %> <%- item.text %></li>
+    <li class="dropdown-header"><% partial('navicon.ejs', { item }) %> <span class="menu-text"><%- item.text %></span></li>
   <% } %>
 <% } %>
 

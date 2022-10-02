@@ -45,7 +45,7 @@ function resolveRefs()
               -- an alternate prefix lookup
               local prefixType = type
               local chapters = crossrefOption("chapters", false)
-              if chapters then
+              if chapters and entry then
                 if resolve and type == "sec" and isChapterRef(entry.order.section) then
                   if entry.appendix then
                     prefixType = "apx"
@@ -78,7 +78,7 @@ function resolveRefs()
                   pandoc.Attr("", refClasses)
                 )
                 ref:insert(refSpan)
-              else
+              elseif entry ~= nil then
                 if entry.parent ~= nil then
                   local parentType = refType(entry.parent)
                   local parent = crossref.index.entries[entry.parent]

@@ -51,6 +51,7 @@ import { isLatexPdfEngine, pdfEngine } from "../../config/pdf.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { kTemplatePartials } from "../../command/render/template.ts";
 import { copyTo } from "../../core/copy.ts";
+import { LineStream } from "../../vendor/deno.land/std@0.153.0/streams/delimiter.ts";
 
 export function pdfFormat(): Format {
   return mergeConfigs(
@@ -238,6 +239,17 @@ function createPdfFormat(autoShiftHeadings = true, koma = true): Format {
           };
         }
 
+        // pdfs with document class scrbook get number sections turned on
+        // https://github.com/quarto-dev/quarto-cli/issues/2369
+        extras.pandoc = extras.pandoc || {};
+        if (
+          documentclass === "scrbook" &&
+          format.pandoc[kNumberSections] !== false &&
+          flags[kNumberSections] !== false
+        ) {
+          extras.pandoc[kNumberSections] = true;
+        }
+
         return extras;
       },
     },
@@ -311,6 +323,8 @@ function pdfLatexPostProcessor(
       // Replace notes with side notes
       lineProcessors.push(sideNoteLineProcessor());
     }
+
+    lineProcessors.push(captionFootnoteLineProcessor());
 
     await processLines(output, lineProcessors, temp);
     if (Object.keys(renderedCites).length > 0) {
@@ -391,6 +405,163 @@ const sidecaptionLineProcessor = () => {
           return kEndLongTableSideCap;
         } else {
           return line;
+        }
+    }
+  };
+};
+
+// Reads the first command encountered as a balanced command
+// (e.g. \caption{...} or \footnote{...}) and returns
+// the complete command
+//
+// This expects the latex string to start with the command
+const readBalancedCommand = (latex: string) => {
+  let braceCount = 0;
+  let entered = false;
+  const chars: string[] = [];
+  for (let i = 0; i < latex.length; i++) {
+    const char = latex.charAt(i);
+    if (char === "{") {
+      braceCount++;
+      entered = true;
+    } else if (char === "}") {
+      braceCount--;
+    }
+
+    chars.push(char);
+    if (entered && braceCount === 0) {
+      break;
+    }
+  }
+  return chars.join("");
+};
+
+// Process element caption footnotes on a latex string
+// This expects a latex elements with a `\caption{}`
+//
+// It will extract footnotes from the caption and replace
+// them with a footnote mark and position the footnote
+// below the latex element (e.g. it will remove the footnote
+// from the element and then return the footnote below
+// the element)
+const processElementCaptionFootnotes = (latexFigure: string) => {
+  const footnoteMark = "\\footnote{";
+  const captionMark = "\\caption{";
+
+  // Contents holds the final contents that will be returned
+  // after being joined. This function will append to contents
+  // to build up the final output
+  const contents: string[] = [];
+
+  // Read up to the caption itself
+  const captionIndex = latexFigure.indexOf(captionMark);
+  if (captionIndex > -1) {
+    // Slice off the figure up to the caption
+    contents.push(latexFigure.substring(0, captionIndex));
+    const captionStartStr = latexFigure.slice(captionIndex);
+
+    // Read the caption
+    const captionLatex = readBalancedCommand(captionStartStr);
+    const figureSuffix = captionStartStr.slice(captionLatex.length);
+
+    // Slice off the command prefix and suffix
+    let captionContents = captionLatex.slice(
+      captionMark.length,
+      captionLatex.length - 1,
+    );
+
+    // Deal with footnotes in the caption
+    let footNoteIndex = captionContents.indexOf(footnoteMark);
+    if (footNoteIndex > -1) {
+      // Caption text will not have any footnotes in it
+      const captionText: string[] = [];
+      // Caption with note will have footnotemarks in it
+      const captionWithNote: string[] = [];
+      // The footnotes that we found along the way
+      const footNotes: string[] = [];
+      while (footNoteIndex > -1) {
+        // capture any prefix
+        const prefix = captionContents.substring(0, footNoteIndex);
+        captionContents = captionContents.slice(footNoteIndex);
+
+        // push the prefix onto the captions
+        captionText.push(prefix);
+        captionWithNote.push(prefix);
+
+        // process the footnote
+        const footnoteLatex = readBalancedCommand(captionContents);
+        captionContents = captionContents.slice(footnoteLatex.length);
+        footNoteIndex = captionContents.indexOf(footnoteMark);
+
+        // Capture the footnote and place a footnote mark in the caption
+        captionWithNote.push("\\footnotemark{}");
+        footNotes.push(
+          footnoteLatex.slice(footnoteMark.length, footnoteLatex.length - 1),
+        );
+      }
+      // Push any leftovers onto the caption contents
+      captionText.push(captionContents);
+      captionWithNote.push(captionContents);
+
+      // push the caption onto the contents
+      contents.push(
+        `\\caption[${captionText.join("")}]{${captionWithNote.join("")}}`,
+      );
+
+      // push the suffix onto the contents
+      contents.push(figureSuffix);
+
+      // push the footnotes on the contents
+      contents.push("\n");
+
+      // Add a proper footnote counter offset, if necessary
+      if (footNotes.length > 1) {
+        contents.push(`\\addtocounter{footnote}{-${footNotes.length - 1}}`);
+      }
+
+      for (let i = 0; i < footNotes.length; i++) {
+        contents.push(`\\footnotetext{${footNotes[i]}}`);
+        if (footNotes.length > 1 && i < footNotes.length - 1) {
+          contents.push(`\\addtocounter{footnote}{1}`);
+        }
+      }
+      return contents.join("");
+    } else {
+      // No footnotes in the caption, just leave it alone
+      return latexFigure;
+    }
+  } else {
+    // No caption means just let it go
+    return latexFigure;
+  }
+};
+
+const captionFootnoteLineProcessor = () => {
+  let state: "scanning" | "capturing" = "scanning";
+  let capturedLines: string[] = [];
+  return (line: string): string | undefined => {
+    switch (state) {
+      case "scanning":
+        if (line.match(/^\\begin{figure}$/)) {
+          state = "capturing";
+          capturedLines = [line];
+          return undefined;
+        } else {
+          return line;
+        }
+      case "capturing":
+        capturedLines.push(line);
+        if (line.match(/^\\end{figure}$/)) {
+          state = "scanning";
+
+          // read the whole figure and clear any capture state
+          const lines = capturedLines.join("\n");
+          capturedLines = [];
+
+          // Process the captions and relocate footnotes
+          return processElementCaptionFootnotes(lines);
+        } else {
+          return undefined;
         }
     }
   };

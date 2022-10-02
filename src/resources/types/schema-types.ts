@@ -8,6 +8,8 @@
 export type MaybeArrayOf<T> = T | T[];
 export type SchemaObject = { [key: string]: string };
 
+export type Date = string | { format?: string; value: string };
+
 export type MathMethods =
   | "plain"
   | "webtex"
@@ -244,8 +246,17 @@ export type ProjectPreview = {
     boolean /* Navigate the browser automatically when outputs are updated (defaults to true) */;
   port?:
     number /* Port to listen on (defaults to random value between 3000 and 8000) */;
+  serve?: ProjectServe;
   timeout?:
     number; /* Time (in seconds) after which to exit if there are no active clients */
+};
+
+export type ProjectServe = {
+  args?: string /* Additional command line arguments for preview command. */;
+  cmd: string /* Serve project preview using the specified command.
+Interpolate the `--port` into the command using `{port}`. */;
+  ready:
+    string; /* Regular expression for detecting when the server is ready. */
 };
 
 export type Publish = {
@@ -1071,6 +1082,7 @@ export type ProjectConfig = {
   "lib-dir"?: string /* HTML library (JS/CSS/etc.) directory */;
   "pre-render"?: MaybeArrayOf<string>;
   "post-render"?: MaybeArrayOf<string>;
+  detect?: ((string)[])[];
   preview?: ProjectPreview;
   render?: (string)[] /* Files to render (defaults to all files) */;
   resources?: MaybeArrayOf<

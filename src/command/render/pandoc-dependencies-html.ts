@@ -34,6 +34,7 @@ import { fixupCssReferences, isCssFile } from "../../core/css.ts";
 import { ensureDirSync } from "fs/mod.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
+import { insecureHash } from "../../core/hash.ts";
 
 export function writeDependencies(
   dependenciesFile: string,
@@ -397,12 +398,28 @@ function processCssFile(
   // read the css
   const css = Deno.readTextFileSync(file);
   const destCss = fixupCssReferences(css, (ref: string) => {
+    // If the reference points to a real file that exists, go ahead and
+    // process it
     const refPath = join(srcDir, ref);
     if (safeExistsSync(refPath)) {
-      const refDestPath = join(dirname(file), ref);
+      // Just use the current ref path, unless the path includes '..'
+      // which would allow the path to 'escape' this dependency's directory.
+      // In that case, generate a unique hash of the path and use that
+      // as the target folder for the resources
+      const refDir = dirname(ref);
+      const targetRef = refDir && refDir !== "." && refDir.includes("..")
+        ? join(insecureHash(dirname(ref)), basename(ref))
+        : ref;
+
+      // Copy the file and provide the updated href target
+      const refDestPath = join(dirname(file), targetRef);
       copyFileIfNewer(refPath, refDestPath);
+      return pathWithForwardSlashes(targetRef);
+    } else {
+      // Since this doesn't appear to point to a real file, just
+      // leave it alone
+      return ref;
     }
-    return basename(ref);
   });
 
   // write the css if necessary

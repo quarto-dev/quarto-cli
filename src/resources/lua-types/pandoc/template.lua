@@ -1,6 +1,7 @@
 ---@meta
 
 ---@module 'pandoc.template'
+pandoc.template = {}
 
 --[[
 Opaque type holding a compiled template.
@@ -30,3 +31,5 @@ error if no such template can be found.
 ---@param writer? string Name of the writer for which the template should be retrieved; defaults to the global `FORMAT`.
 ---@return string # Raw template
 function pandoc.template.default(writer) end
+
+return pandoc.template

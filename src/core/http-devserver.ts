@@ -107,7 +107,9 @@ export function httpDevServer(
       if (!injectClientInitialized) {
         const url = new URL(req.url);
         isFrame = isViewerIFrameRequest(req);
-        origin = url.origin;
+        origin = url.searchParams.get("host") ||
+          req.referrer ||
+          url.origin;
         search = url.search;
         injectClientInitialized = true;
       }

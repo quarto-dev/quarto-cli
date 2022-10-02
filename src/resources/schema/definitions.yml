@@ -1,3 +1,12 @@
+- id: date
+  anyOf:
+    - string
+    - object:
+        properties:
+          value: string
+          format: string
+        required: [value]
+
 - id: math-methods
   enum:
     values: [plain, webtex, gladtex, mathml, mathjax, katex]
@@ -447,6 +456,10 @@
       host:
         string:
           description: Hostname to bind to (defaults to 127.0.0.1)
+      serve:
+        description: Use an exernal application to preview the project.
+        schema:
+          ref: project-serve
       browser:
         boolean:
           description: Open a web browser to view the preview (defaults to true)
@@ -459,6 +472,23 @@
       timeout:
         number:
           description: Time (in seconds) after which to exit if there are no active clients
+
+- id: project-serve
+  object:
+    closed: true
+    properties:
+      cmd:
+        string:
+          description: |
+            Serve project preview using the specified command.
+            Interpolate the `--port` into the command using `{port}`.
+      args:
+        string:
+          description: Additional command line arguments for preview command.
+      ready:
+        string:
+          description: Regular expression for detecting when the server is ready.
+    required: [cmd, ready]
 
 - id: publish
   description: Sites published from project

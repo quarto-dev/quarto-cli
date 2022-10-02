@@ -54,6 +54,13 @@ function ipynb()
         end
       end,
 
+      -- remove image classes/attributes (as this causes Pandoc to write raw html, which in turn
+      -- prevents correct handling of attachments in some environments including VS Code)
+      Image = function(el)
+        el.attr = pandoc.Attr()
+        return el
+      end,
+
       -- note that this also catches raw blocks inside display_data 
       -- but pandoc seems to ignore the .cell .raw envelope in this
       -- case and correctly produce text/html cell output

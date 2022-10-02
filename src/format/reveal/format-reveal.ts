@@ -16,7 +16,6 @@ import {
   kReferenceLocation,
   kRevealJsScripts,
   kSlideLevel,
-  kTheme,
 } from "../../config/constants.ts";
 
 import {

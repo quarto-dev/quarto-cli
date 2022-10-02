@@ -157,7 +157,11 @@ export async function publishDocument(
           }
           files.push(file);
           if (resultFile.supporting) {
-            files.push(...resultFile.supporting.map(asRelative));
+            files.push(
+              ...resultFile.supporting.map((sf) => Deno.realPathSync(sf)).map(
+                asRelative,
+              ),
+            );
           }
           files.push(...resultFile.resourceFiles.map(asRelative));
         }

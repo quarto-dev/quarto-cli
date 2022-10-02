@@ -106,8 +106,10 @@ export function watchProject(
         event.paths
           // filter out paths in hidden folders (e.g. .quarto, .git, .Rproj.user)
           .filter((path) => !path.startsWith(projDirHidden))
-          // filter out the output dir
-          .filter((path) => !path.startsWith(outputDir)),
+          // filter out the output dir if its distinct from the project dir
+          .filter((path) =>
+            outputDir === project.dir || !path.startsWith(outputDir)
+          ),
       );
 
       // return if there are no paths

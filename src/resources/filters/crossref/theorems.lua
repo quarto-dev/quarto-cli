@@ -39,7 +39,7 @@ function theorems()
         
         -- capture then remove name
         local name = markdownToInlines(el.attr.attributes["name"])
-        if not name then
+        if not name or #name == 0 then
           name = resolveHeadingCaption(el)
         end
         el.attr.attributes["name"] = nil 
@@ -106,7 +106,7 @@ function theorems()
 
           -- capture then remove name
           local name = markdownToInlines(el.attr.attributes["name"])
-          if not name then
+          if not name or #name == 0 then
             name = resolveHeadingCaption(el)
           end
           el.attr.attributes["name"] = nil 

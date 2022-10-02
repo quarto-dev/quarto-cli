@@ -279,7 +279,7 @@ const navbarContentsHandler = (context: NavigationPipelineContext) => {
     },
     processRendered(rendered: Record<string, Element>, doc: Document) {
       const selectors = [
-        ".navbar-nav .nav-item a.nav-link",
+        ".navbar-nav .nav-item a.nav-link .menu-text",
         ".navbar-nav .dropdown-menu .dropdown-item .dropdown-text",
         ".navbar-nav .dropdown-menu .dropdown-header",
       ];
