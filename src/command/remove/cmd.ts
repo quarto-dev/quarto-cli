@@ -171,6 +171,11 @@ export const resolveCompatibleArgs = (
       return {
         action: "extension",
       };
+    } else if (extname === "tinytex" || extname === "chromium") {
+      return {
+        action: "tool",
+        name: args[0],
+      };
     } else {
       return {
         action: defaultAction,
