@@ -16,10 +16,11 @@ import {
   updateOrInstallTool,
 } from "../../tools/tools-console.ts";
 import { installTool } from "../../tools/tools.ts";
+import { resolveCompatibleArgs } from "../remove/cmd.ts";
 
 export const installCommand = new Command()
   .name("install")
-  .arguments("<type:string> [target:string]")
+  .arguments("[target...]")
   .option(
     "--no-prompt",
     "Do not prompt to confirm actions",
@@ -27,6 +28,9 @@ export const installCommand = new Command()
   .option(
     "--embed <extensionId>",
     "Embed this extension within another extension (used when authoring extensions).",
+    {
+      hidden: true,
+    },
   )
   .option(
     "--update-path",
@@ -34,18 +38,6 @@ export const installCommand = new Command()
   )
   .description(
     "Installs an extension or global dependency.",
-  )
-  .example(
-    "Install extension (Github)",
-    "quarto install extension <gh-org>/<gh-repo>",
-  )
-  .example(
-    "Install extension (file)",
-    "quarto install extension <path-to-zip>",
-  )
-  .example(
-    "Install extension (url)",
-    "quarto install extension <url>",
   )
   .example(
     "Install TinyTeX",
@@ -62,17 +54,19 @@ export const installCommand = new Command()
   .action(
     async (
       options: { prompt?: boolean; embed?: string; updatePath?: boolean },
-      type: string,
-      target?: string,
+      target?: string[],
     ) => {
       await initYamlIntelligenceResourcesFromFilesystem();
       const temp = createTempContext();
+
+      const resolved = resolveCompatibleArgs(target || [], "tool");
+
       try {
-        if (type.toLowerCase() === "extension") {
+        if (resolved.action === "extension") {
           // Install an extension
-          if (target) {
+          if (resolved.name) {
             await installExtension(
-              target,
+              resolved.name,
               temp,
               options.prompt !== false,
               options.embed,
@@ -80,12 +74,12 @@ export const installCommand = new Command()
           } else {
             info("Please provide an extension name, url, or path.");
           }
-        } else if (type.toLowerCase() === "tool") {
+        } else if (resolved.action === "tool") {
           // Install a tool
-          if (target) {
+          if (resolved.name) {
             // Use the tool name
             await updateOrInstallTool(
-              target,
+              resolved.name,
               "install",
               options.prompt,
               options.updatePath,
@@ -107,7 +101,7 @@ export const installCommand = new Command()
         } else {
           // This is an unrecognized type option
           info(
-            `Unrecognized option '${type}' - please choose 'tool' or 'extension'.`,
+            `Unrecognized option '${resolved.action}' - please choose 'tool' or 'extension'.`,
           );
         }
       } finally {

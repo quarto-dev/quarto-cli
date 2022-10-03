@@ -61,62 +61,9 @@ export const removeCommand = new Command()
       const temp = createTempContext();
       const extensionContext = createExtensionContext();
 
-      // note that we're using variadic arguments here to preserve backware compatibility.
-      const resolveArgs = (): {
-        action: string;
-        name?: string;
-      } => {
-        if (!target) {
-          return {
-            action: "extension",
-          };
-        } else if (target.length === 1) {
-          // tool
-          // extension
-          // quarto-ext/lightbox
-          const extname = target[0];
-          if (extname === "tool") {
-            return {
-              action: "tool",
-            };
-          } else if (extname === "extension") {
-            return {
-              action: "extension",
-            };
-          } else {
-            return {
-              action: "extension",
-              name: target[0],
-            };
-          }
-        } else if (target.length > 1) {
-          // tool chromium
-          // tool tinytex
-          // extension quarto-ext/lightbox
-          const action = target[0];
-          const name = target[1];
-
-          if (action === "tool") {
-            return {
-              action,
-              name,
-            };
-          } else {
-            return {
-              action: "extension",
-              name,
-            };
-          }
-        } else {
-          return {
-            action: "extension",
-          };
-        }
-      };
-
       // -- update path
       try {
-        const resolved = resolveArgs();
+        const resolved = resolveCompatibleArgs(target || [], "extension");
         if (resolved.action === "tool") {
           if (resolved.name) {
             // Explicitly provided
@@ -202,6 +149,63 @@ export const removeCommand = new Command()
       }
     },
   );
+
+// note that we're using variadic arguments here to preserve backware compatibility.
+export const resolveCompatibleArgs = (
+  args: string[],
+  defaultAction: "extension" | "tool",
+): {
+  action: string;
+  name?: string;
+} => {
+  if (args.length === 1) {
+    // tool
+    // extension
+    // quarto-ext/lightbox
+    const extname = args[0];
+    if (extname === "tool") {
+      return {
+        action: "tool",
+      };
+    } else if (extname === "extension") {
+      return {
+        action: "extension",
+      };
+    } else {
+      return {
+        action: defaultAction,
+        name: args[0],
+      };
+    }
+  } else if (args.length > 1) {
+    // tool chromium
+    // tool tinytex
+    // extension quarto-ext/lightbox
+    const action = args[0];
+    const name = args[1];
+
+    if (action === "tool") {
+      return {
+        action,
+        name,
+      };
+    } else if (action === "extension") {
+      return {
+        action: "extension",
+        name,
+      };
+    } else {
+      return {
+        action: defaultAction,
+        name,
+      };
+    }
+  } else {
+    return {
+      action: defaultAction,
+    };
+  }
+};
 
 function removeExtensions(extensions: Extension[], prompt?: boolean) {
   const removeOneExtension = async (extension: Extension) => {
