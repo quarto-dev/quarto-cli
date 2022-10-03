@@ -8864,6 +8864,11 @@ var require_yaml_intelligence_resources = __commonJS({
                   description: "Additional command line arguments for preview command."
                 }
               },
+              env: {
+                object: {
+                  description: "Environment variables to set for preview command."
+                }
+              },
               ready: {
                 string: {
                   description: "Regular expression for detecting when the server is ready."
@@ -19954,12 +19959,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 131733,
+        _internalId: 131736,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 131732,
+            _internalId: 131735,
             type: "enum",
             enum: [
               "png",

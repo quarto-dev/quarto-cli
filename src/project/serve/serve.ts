@@ -389,6 +389,7 @@ function externalPreviewServer(
   // start the process
   const process = Deno.run({
     cmd,
+    env: serve.env,
     cwd: projectOutputDir(project),
     stdout: "piped",
     stderr: "piped",

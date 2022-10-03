@@ -485,6 +485,9 @@
       args:
         string:
           description: Additional command line arguments for preview command.
+      env: 
+        object:
+          description: Environment variables to set for preview command.
       ready:
         string:
           description: Regular expression for detecting when the server is ready.
