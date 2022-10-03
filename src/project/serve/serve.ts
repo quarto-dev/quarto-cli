@@ -725,7 +725,7 @@ function previewControlChannelRequestHandler(
               // print output created
               const finalOutput = renderResultFinalOutput(
                 result,
-                project!.dir,
+                dirname(prevReq.path),
               );
               if (!finalOutput) {
                 throw new Error(
@@ -746,7 +746,7 @@ function previewControlChannelRequestHandler(
               watcher.reloadClients(
                 true,
                 !isPdfContent(finalOutput)
-                  ? join(project!.dir, finalOutput)
+                  ? join(dirname(prevReq.path), finalOutput)
                   : undefined,
               );
             }
