@@ -224,7 +224,7 @@ export function normalizeURL(url: string): string {
     : normalizedUrl;
 }
 
-export function isBrowserPreviewable(file: string) {
+export function isBrowserPreviewable(file?: string) {
   return (
     isHtmlContent(file) ||
     isPdfContent(file) ||

@@ -86,6 +86,7 @@ import {
   extensionFilesFromDirs,
   inputExtensionDirs,
 } from "../../extension/extension.ts";
+import { kOutputFile } from "../../config/constants.ts";
 
 interface PreviewOptions {
   port?: number;
@@ -616,7 +617,11 @@ function htmlFileRequestHandlerOptions(
         renderHandler();
         return Promise.resolve(httpContentResponse("rendered"));
       } else if (isPreviewRenderRequest(req)) {
-        const prevReq = previewRenderRequest(req, reloader.hasClients());
+        const outputFile = format.pandoc[kOutputFile];
+        const prevReq = previewRenderRequest(
+          req,
+          !isBrowserPreviewable(outputFile) || reloader.hasClients(),
+        );
         if (
           prevReq &&
           existsSync(prevReq.path) &&

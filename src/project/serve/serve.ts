@@ -56,6 +56,7 @@ import {
   httpContentResponse,
   httpFileRequestHandler,
   HttpFileRequestOptions,
+  isBrowserPreviewable,
 } from "../../core/http.ts";
 import { ProjectWatcher, ServeOptions } from "./types.ts";
 import { watchProject } from "./watch.ts";
@@ -474,7 +475,7 @@ async function internalPreviewServer(
       resourceFiles,
       flags,
       pandocArgs,
-      true,
+      isBrowserPreviewable(finalOutput),
     ),
 
     // handle html file requests w/ re-renders
