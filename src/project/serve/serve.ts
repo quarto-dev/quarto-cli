@@ -744,6 +744,9 @@ function previewControlChannelRequestHandler(
 
               info("Output created: " + finalOutput + "\n");
 
+              // notify user we are watching for reload
+              printWatchingForChangesMessage();
+
               watcher.reloadClients(
                 true,
                 !isPdfContent(finalOutput)
