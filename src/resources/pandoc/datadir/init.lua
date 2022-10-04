@@ -1626,28 +1626,7 @@ function param(name, default)
 end
 
 local function projectDirectory() 
-   -- the offset to the project
-   local projectOffset = _quarto.projectOffset()
-   if projectOffset then
-      -- get the current working directory - we always change
-      -- the working directory to the input file when we render
-      local wd = pandoc.system.get_working_directory()
-      
-      -- process the offset, adjusting the working directory
-      local projectDir = wd
-      for i, v in ipairs(pandoc.path.split(projectOffset)) do
-         if v == '.' then
-            -- no op
-         elseif v == '..' then
-            projectDir = pandoc.path.directory(projectDir)
-         else
-            projectDir = pandoc.path.join({projectDir, v})
-         end
-      end
-      return projectDir
-   else
-      return nil
-   end 
+   return os.getenv("QUARTO_PROJECT_DIR")
 end
 
 local function projectOutputDirectory()
