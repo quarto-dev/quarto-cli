@@ -13365,6 +13365,19 @@ try {
             },
             schema: "boolean",
             description: "Set to `false` to prevent an installation of TinyTex from being used to compile PDF documents."
+          },
+          {
+            name: "latex-input-paths",
+            tags: {
+              formats: [
+                "pdf",
+                "beamer"
+              ]
+            },
+            schema: {
+              arrayOf: "string"
+            },
+            description: "Array of paths LaTeX should search for inputs."
           }
         ],
         "schema/document-layout.yml": [
@@ -17480,6 +17493,7 @@ try {
           "Time (in seconds) after which to exit if there are no active\nclients",
           "Serve project preview using the specified command. Interpolate the\n<code>--port</code> into the command using <code>{port}</code>.",
           "Additional command line arguments for preview command.",
+          "Environment variables to set for preview command.",
           "Regular expression for detecting when the server is ready.",
           "Sites published from project",
           "Unique identifier for site",
@@ -19747,7 +19761,8 @@ try {
             long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
-          "internal-schema-hack"
+          "internal-schema-hack",
+          "Array of paths LaTeX should search for inputs."
         ],
         "schema/external-schemas.yml": [
           {
@@ -19960,12 +19975,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 131736,
+          _internalId: 131744,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 131735,
+              _internalId: 131743,
               type: "enum",
               enum: [
                 "png",
