@@ -15,9 +15,15 @@ export interface CreateOptions {
   commandOpts: Record<string, unknown>;
 }
 
+// JSON stdin?
+// If JSON provided, make completely non-interactive (must provide all required)
+
+// Pass variadic args to artifacts to populate options
+
 // TODO: this any is a nightmare
 interface Artifact {
   name: string;
+  // parseArgs: (args: string[]) => Record<string, unknown>;
   nextPrompt: (options: CreateOptions) => any | undefined;
   create: (options: CreateOptions) => Promise<void>;
 }
