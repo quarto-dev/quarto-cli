@@ -29,6 +29,8 @@
 - New `quarto.project.directory` which provides the current project directory (if a project is active)
 - New `quarto.project.output_directory` which provides the current project output directory (if a project is active)
 - New `quarto.project.offset` which provides an offset from the current input document to the project directory.
+- New `quarto.doc.input_file` which provides the path to the input document
+- New `quarto.doc.output_file` which provides the path to the output file
 - Ensure that `quarto.utils.dump` works with pandoc's builtin global variables (#2254)
 - Provide a better error message for non-existent format resources (#2291)
 - Ability to specify a minimum quarto version via the `quarto-required` option.
