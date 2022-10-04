@@ -14,7 +14,7 @@ import { FileResponse, maybeDisplaySocketError } from "./http.ts";
 import { LogEventsHandler } from "./log.ts";
 import { kLocalhost } from "./port.ts";
 import { resourcePath } from "./resources.ts";
-import { isRStudioPreview } from "./platform.ts";
+import { isRStudioPreview, isRStudioServer } from "./platform.ts";
 import { kTextHtml } from "./mime.ts";
 
 export interface HttpDevServer {
@@ -180,13 +180,21 @@ function devServerClientScript(
   if (iframeURL) {
     devserver.push(
       renderEjs(devserverHtmlResourcePath("iframe"), {
-        origin: iframeURL.searchParams.get("host") || iframeURL.origin,
+        origin: devserverOrigin(iframeURL),
         search: iframeURL.search,
       }),
     );
   }
 
   return devserver.join("\n");
+}
+
+function devserverOrigin(iframeURL: URL) {
+  if (isRStudioServer()) {
+    return iframeURL.searchParams.get("host") || iframeURL.origin;
+  } else {
+    return iframeURL.origin;
+  }
 }
 
 function devserverHtmlResourcePath(resource: string) {
