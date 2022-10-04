@@ -180,7 +180,7 @@ function devServerClientScript(
   if (iframeURL) {
     devserver.push(
       renderEjs(devserverHtmlResourcePath("iframe"), {
-        origin: iframeURL.origin,
+        origin: iframeURL.searchParams.get("host") || iframeURL.origin,
         search: iframeURL.search,
       }),
     );
