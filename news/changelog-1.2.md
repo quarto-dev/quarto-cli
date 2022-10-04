@@ -166,8 +166,9 @@
 - To install TinyTex system wide, using the `--update-path` flag when installing (this will add TinyTex to the system path)
 
 ## Video Shortcode
+
 - The video shortcode extension is now native to the Quarto CLI
-- Reveal-JS Video Snippet backgrounds are now better supported.  For common video snippets, like YouTube, you can specify them as `video` backgrounds and quarto will ensure the correct embed URL and swap to be an `iframe` background if needed.
+- Reveal-JS Video Snippet backgrounds are now better supported. For common video snippets, like YouTube, you can specify them as `video` backgrounds and quarto will ensure the correct embed URL and swap to be an `iframe` background if needed.
 
 ## Miscellaneous
 
@@ -191,3 +192,4 @@
 - Disallow names with paths in command line option `--output` and YAML option `output-file` (#2440)
 - Add possible chrome process running error to the error message thrown when quarto fails to connect to chrome headless (#2499)
 - Only pass `pagetitle` metadata for HTML file output
+- Provide non-HTML treatment for code block `filename`
