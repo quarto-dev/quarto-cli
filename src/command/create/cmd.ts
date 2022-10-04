@@ -4,10 +4,10 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { create, prompts } from "./artifacts/project.ts";
+import { create, nextPrompt } from "./artifacts/project.ts";
 
 import { Command } from "cliffy/command/mod.ts";
-import { Confirm, ConfirmOptions, prompt, Select } from "cliffy/prompt/mod.ts";
+import { prompt, Select } from "cliffy/prompt/mod.ts";
 import { info } from "log/mod.ts";
 
 export interface CreateOptions {
@@ -15,9 +15,10 @@ export interface CreateOptions {
   commandOpts: Record<string, unknown>;
 }
 
+// TODO: this any is a nightmare
 interface Artifact {
   name: string;
-  prompts: (options: CreateOptions) => Array<ConfirmOptions>;
+  nextPrompt: (options: CreateOptions) => any | undefined;
   create: (options: CreateOptions) => Promise<void>;
 }
 
@@ -25,7 +26,7 @@ const kArtifacts: Record<string, Artifact> = {
   "project": {
     name: "Project",
     create: create,
-    prompts: prompts,
+    nextPrompt: nextPrompt,
   },
 };
 
@@ -35,9 +36,13 @@ export const createCommand = new Command()
   .option("-d, --dir [dir:string]", "Directory in which to create artifact", {
     default: ".",
   })
+  .option("--no-prompt", "Do not prompt to confirm actions")
   .arguments("[artifact]")
   .action(
-    async (options: { dir?: string | true }, artifact?: string) => {
+    async (
+      options: { dir?: string | true; prompt: boolean },
+      artifact?: string,
+    ) => {
       // TODO: why can dir be 'true'?
       if (
         options.dir === undefined || options.dir === "." || options.dir === true
@@ -46,12 +51,14 @@ export const createCommand = new Command()
       }
       const createOptions = {
         dir: options.dir,
+        prompt: options.prompt,
         commandOpts: options as Record<string, unknown>,
       };
       delete createOptions.commandOpts.dir;
+      delete createOptions.commandOpts.prompt;
 
       // If no artifact has been provided, resolve that
-      if (!artifact) {
+      if (!artifact && options.prompt) {
         artifact = await selectArtifact();
       }
 
@@ -59,15 +66,16 @@ export const createCommand = new Command()
       if (resolvedArtifact) {
         // Now that we've resolved the artifact, resolve the prompts
         // for the artifact
-        const confirmOptions = resolvedArtifact.prompts(createOptions);
-        if (confirmOptions.length > 0) {
-          // TODO: The type system here is driving me f'ing insane
-          const result = await prompt(confirmOptions as any);
-          createOptions.commandOpts = {
-            ...createOptions.commandOpts,
-            ...result,
-          };
-          console.log(createOptions);
+        let nextPrompt = resolvedArtifact.nextPrompt(createOptions);
+        while (nextPrompt !== undefined) {
+          if (nextPrompt) {
+            const result = await prompt([nextPrompt]);
+            createOptions.commandOpts = {
+              ...createOptions.commandOpts,
+              ...result,
+            };
+          }
+          nextPrompt = resolvedArtifact.nextPrompt(createOptions);
         }
 
         await resolvedArtifact.create(createOptions);

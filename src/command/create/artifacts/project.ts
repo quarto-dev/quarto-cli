@@ -17,9 +17,9 @@ import {
 import { kMarkdownEngine } from "../../../execute/types.ts";
 
 import { CreateOptions } from "../cmd.ts";
-import { basename } from "path/mod.ts";
+import { basename, join } from "path/mod.ts";
 
-import { Confirm, ConfirmOptions, Select } from "cliffy/prompt/mod.ts";
+import { Confirm, Input, Select } from "cliffy/prompt/mod.ts";
 
 // ensures project types are registered
 import "../../../project/types/register.ts";
@@ -31,19 +31,20 @@ const kProjectTypesAndAliases = [...kProjectTypes, ...kProjectTypeAliases];
 const kExecutionEngines = executionEngines().reverse();
 const kEditorTypes = ["source", "visual"];
 
-// list of options to gather
+const kTemplate = "template";
+const kType = "type";
+const kTitle = "title";
+const kScaffold = "scaffold";
+const kSubdirectory = "subdirectory";
 
-// the create command with options
-
-//shared options
-// -directory
-
-export function prompts(createOptions: CreateOptions): Array<ConfirmOptions> {
-  const prompts = [];
-  if (!createOptions.commandOpts["type"]) {
-    prompts.push({
-      name: "type",
-      message: "Select the type of project you'd like to create",
+export function nextPrompt(
+  createOptions: CreateOptions,
+): any | undefined {
+  // First ensure that there is a type
+  if (!createOptions.commandOpts[kType]) {
+    return {
+      name: kType,
+      message: "Project type",
       type: Select,
       options: kProjectTypes.map((t) => {
         return {
@@ -51,9 +52,55 @@ export function prompts(createOptions: CreateOptions): Array<ConfirmOptions> {
           value: t,
         };
       }),
-    });
+    };
   }
-  return prompts;
+
+  // Next, if this type supports various templates, ask about those
+  const template = createOptions.commandOpts[kTemplate];
+  const type = createOptions.commandOpts[kType] as string;
+  const projType = projectType(type);
+  if (
+    template === undefined && projType.templates &&
+    projType.templates.length > 0
+  ) {
+    return {
+      name: kTemplate,
+      message: `Select the type of ${type}`,
+      type: Select,
+      options: projType.templates.map((template) => {
+        return {
+          name: template,
+          value: template,
+        };
+      }),
+    };
+  }
+
+  // Collect whether to populate a scaffold
+  if (!createOptions.commandOpts[kScaffold]) {
+    return {
+      name: kScaffold,
+      message: "Create initial project file(s)",
+      type: Confirm,
+    };
+  }
+
+  // Collect a title
+  if (!createOptions.commandOpts[kTitle]) {
+    return {
+      name: kTitle,
+      message: "Project title",
+      type: Input,
+    };
+  }
+
+  if (!createOptions.commandOpts["subdirectory"]) {
+    return {
+      name: kSubdirectory,
+      message: "Name of project directory",
+      type: Input,
+    };
+  }
 }
 
 export async function create(createOptions: CreateOptions) {
@@ -109,8 +156,12 @@ export async function create(createOptions: CreateOptions) {
     }
   }
 
+  const subdirectory = createOptions.commandOpts["subdirectory"] as string;
+
   await projectCreate({
-    dir: createOptions.dir,
+    dir: subdirectory
+      ? join(createOptions.dir, subdirectory)
+      : createOptions.dir,
     type: type,
     title: createTitle || basename(createOptions.dir),
     scaffold: !!options.scaffold,
