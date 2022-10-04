@@ -23,7 +23,7 @@
 - Preview live reload for changes to extension source files
 - HTML dependencies may be provided by paths to files outside the extension directory
 - HTML dependencies may now include `serviceworkers`, which are copied into the output directory.
-- New `quarto.doc.attachToDependency` function to attach files to html dependencies (copies files into the lib dir for a named HTML dependency).
+- New `quarto.doc.attach_to_dependency` function to attach files to html dependencies (copies files into the lib dir for a named HTML dependency).
 - Ensure that `quarto.utils.dump` works with pandoc's builtin global variables (#2254)
 - Provide a better error message for non-existent format resources (#2291)
 - Ability to specify a minimum quarto version via the `quarto-required` option.
@@ -41,6 +41,7 @@
 ## Projects
 
 - Project configuration `profile` for varying configuration and output based on global `QUARTO_PROFILE` or `--profile` command-line option.
+- Project level environment variables (including local overrides)
 - Ensure that `execute-dir` is always resolved to an absolute path
 
 ## HTML Format
@@ -126,8 +127,8 @@
 
 - Fix issue that caused incomplete search indexes for books
 - Don't display the book description in each chapter's title block
-- book YAML now accepts fields from csl-item schema (#2148, #2398)
-- book YAML now accepts date-format explicitly (#2148, #2398)
+- Book YAML now accepts fields from csl-item schema (#2148, #2398)
+- Book YAML now accepts date-format explicitly (#2148, #2398)
 - Books no longer require an `index.qmd` file in the chapter list. If not present, the first chapter will serve as the website home page.
 
 ## Preview
@@ -168,7 +169,7 @@
 ## Video Shortcode
 
 - The video shortcode extension is now native to the Quarto CLI
-- Reveal-JS Video Snippet backgrounds are now better supported. For common video snippets, like YouTube, you can specify them as `video` backgrounds and quarto will ensure the correct embed URL and swap to be an `iframe` background if needed.
+- Reveal-JS Video Snippet backgrounds are now better supported. For common video snippets, like YouTube, you can specify them as `background-video` and quarto will ensure the correct embed URL is used and swap to `background-iframe` background if needed.
 
 ## Miscellaneous
 
@@ -181,7 +182,6 @@
 - Increase contrast for a11y-light theme to work with default code-block background (#2067, #2528)
 - Upgrade to deno 1.25.1, which should lead to a 2-3x speedup in quarto startup time
 - Use deno arm64 native binaries on macOS
-- Set working dir to `QUARTO_WORKING_DIR` variable if provided.
 - Resolve absolute paths in include shortcodes (#2320)
 - New metadata field `quarto-required` to specify required versions of quarto in a document
 - Provide project configuration for calls to `quarto inspect` for files
