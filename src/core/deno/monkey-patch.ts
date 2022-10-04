@@ -19,6 +19,9 @@ if (isWindows()) {
     if (!isAbsolute(file)) {
       file = join(Deno.cwd(), file);
     }
-    return normalize(file);
+    file = normalize(file);
+    // some runtimes (e.g. nodejs) create paths w/ lowercase drive
+    // letters, make those uppercase
+    return file.replace(/^\w:\\/, (m) => m[0].toUpperCase() + ":\\");
   };
 }

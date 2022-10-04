@@ -625,7 +625,7 @@ function htmlFileRequestHandlerOptions(
         if (
           prevReq &&
           existsSync(prevReq.path) &&
-          Deno.realPathSync(prevReq.path) === inputFile &&
+          Deno.realPathSync(prevReq.path) === Deno.realPathSync(inputFile) &&
           await previewRenderRequestIsCompatible(prevReq, flags)
         ) {
           // don't wait for the promise so the
