@@ -26,6 +26,9 @@
 - New `quarto.doc.attach_to_dependency` function to attach files to html dependencies (copies files into the lib dir for a named HTML dependency).
 - New `quarto.version`, which provides the Quarto version
 - New `quarto.project.profile` which provides the list of currently active profiles (or an empty table if none are active)
+- New `quarto.project.directory` which provides the current project directory (if a project is active)
+- New `quarto.project.output_directory` which provides the current project output directory (if a project is active)
+- New `quarto.project.offset` which provides an offset from the current input document to the project directory.
 - Ensure that `quarto.utils.dump` works with pandoc's builtin global variables (#2254)
 - Provide a better error message for non-existent format resources (#2291)
 - Ability to specify a minimum quarto version via the `quarto-required` option.

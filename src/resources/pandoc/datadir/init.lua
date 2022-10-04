@@ -1650,6 +1650,16 @@ local function projectDirectory()
    end 
 end
 
+local function projectOutputDirectory()
+   local outputDir = param("project-output-dir", "")
+   local projectDir = projectDirectory()
+   if projectDir then
+      return pandoc.path.join({projectDir, outputDir})
+   else
+      return nil
+   end
+end
+
 -- Provides the project relative path to the current input
 -- if this render is in the context of a project
 local function projectRelativeOutputFile()
@@ -1678,6 +1688,10 @@ local function projectProfiles()
    return param('quarto_profile', {})
 end
 
+local function projectOffset() 
+   return param('project-offset', nil)
+end
+
 -- Quarto internal module - makes functions available
 -- through the filters
 _quarto = {
@@ -1692,9 +1706,7 @@ _quarto = {
    scriptFile = function(file)
       scriptFile = file
    end,
-   projectOffset = function()
-      return param('project-offset', nil)
-   end
+   projectOffset = projectOffset
 
  } 
 
@@ -1834,8 +1846,10 @@ quarto = {
     project_output_file = projectRelativeOutputFile
   },
   project = {
-   directory = projectDirectory,
-   profile = projectProfiles()
+   directory = projectDirectory(),
+   offset = projectOffset(),
+   profile = projectProfiles(),
+   output_directory = projectOutputDirectory()
   },
   utils = {
    dump = utils.dump,
