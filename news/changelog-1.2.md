@@ -23,7 +23,7 @@
 - Preview live reload for changes to extension source files
 - HTML dependencies may be provided by paths to files outside the extension directory
 - HTML dependencies may now include `serviceworkers`, which are copied into the output directory.
-- New `quarto.doc.attachToDependency` function to attach files to html dependencies (copies files into the lib dir for a named HTML dependency).
+- New `quarto.doc.attach_to_dependency` function to attach files to html dependencies (copies files into the lib dir for a named HTML dependency).
 - Ensure that `quarto.utils.dump` works with pandoc's builtin global variables (#2254)
 - Provide a better error message for non-existent format resources (#2291)
 - Ability to specify a minimum quarto version via the `quarto-required` option.
