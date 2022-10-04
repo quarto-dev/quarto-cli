@@ -81,6 +81,7 @@ const kTimingFile = "timings-file";
 const kHasBootstrap = "has-bootstrap";
 
 const kQuartoVersion = "quarto-version";
+const kQuartoSource = "quarto-source";
 
 export async function filterParamsJson(
   args: string[],
@@ -487,6 +488,9 @@ async function quartoFilterParams(
   params[kCiteMethod] = citeMethod(options);
   params[kPdfEngine] = pdfEngine(options);
   params[kHasBootstrap] = formatHasBootstrap(options.format);
+
+  // The source document
+  params[kQuartoSource] = options.source;
 
   // profile as an array
   params[kQuartoProfile.toLowerCase()] = activeProfiles();
