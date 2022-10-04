@@ -952,7 +952,7 @@ function dependency(name, version, main) {
 
 const d3 = dependency("d3", "7.6.1", "dist/d3.min.js");
 const inputs = dependency("@observablehq/inputs", "0.10.4", "dist/inputs.min.js");
-const plot = dependency("@observablehq/plot", "0.5.2", "dist/plot.umd.min.js");
+const plot = dependency("@observablehq/plot", "0.6.0", "dist/plot.umd.min.js");
 const graphviz = dependency("@observablehq/graphviz", "0.2.1", "dist/graphviz.min.js");
 const highlight = dependency("@observablehq/highlight.js", "2.0.0", "highlight.min.js");
 const katex = dependency("@observablehq/katex", "0.11.1", "dist/katex.min.js");
@@ -961,12 +961,12 @@ const htl = dependency("htl", "0.3.1", "dist/htl.min.js");
 const marked = dependency("marked", "0.3.12", "marked.min.js");
 const sql = dependency("sql.js", "1.7.0", "dist/sql-wasm.js");
 const vega = dependency("vega", "5.22.1", "build/vega.min.js");
-const vegalite = dependency("vega-lite", "5.2.0", "build/vega-lite.min.js");
+const vegalite = dependency("vega-lite", "5.5.0", "build/vega-lite.min.js");
 const vegaliteApi = dependency("vega-lite-api", "5.0.0", "build/vega-lite-api.min.js");
 const arrow$1 = dependency("apache-arrow", "4.0.1", "Arrow.es2015.min.js");
 const arquero = dependency("arquero", "4.8.8", "dist/arquero.min.js");
 const topojson = dependency("topojson-client", "3.1.0", "dist/topojson-client.min.js");
-const mermaid$1 = dependency("mermaid", "9.1.1", "dist/mermaid.min.js");
+const mermaid$1 = dependency("mermaid", "9.1.6", "dist/mermaid.min.js");
 const leaflet$1 = dependency("leaflet", "1.8.0", "dist/leaflet.js");
 
 async function leaflet(require) {
