@@ -1670,6 +1670,14 @@ local function projectRelativeOutputFile()
    end
 end
 
+local function version() 
+   return param('quarto-version', 'unknown')
+end
+
+local function projectProfiles()
+   return param('quarto_profile', {})
+end
+
 -- Quarto internal module - makes functions available
 -- through the filters
 _quarto = {
@@ -1826,7 +1834,8 @@ quarto = {
     project_output_file = projectRelativeOutputFile
   },
   project = {
-   directory = projectDirectory
+   directory = projectDirectory,
+   profile = projectProfiles()
   },
   utils = {
    dump = utils.dump,
@@ -1834,7 +1843,8 @@ quarto = {
   },
   json = json,
   base64 = base64,
-  log = logging
+  log = logging,
+  version = version()
 }
 
 -- alias old names for backwards compatibility

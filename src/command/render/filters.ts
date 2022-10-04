@@ -63,6 +63,8 @@ import {
   filterBuiltInExtensions,
   filterExtensions,
 } from "../../extension/extension.ts";
+import { kVersion } from "../../extension/extension-shared.ts";
+import { quartoConfig } from "../../core/quarto.ts";
 
 const kQuartoParams = "quarto-params";
 
@@ -75,6 +77,8 @@ const kResultsFile = "results-file";
 const kTimingFile = "timings-file";
 
 const kHasBootstrap = "has-bootstrap";
+
+const kQuartoVersion = "quarto-version";
 
 export async function filterParamsJson(
   args: string[],
@@ -478,6 +482,9 @@ async function quartoFilterParams(
 
   // profile as an array
   params[kQuartoProfile.toLowerCase()] = activeProfiles();
+
+  // version
+  params[kQuartoVersion] = quartoConfig.version();
 
   return params;
 }
