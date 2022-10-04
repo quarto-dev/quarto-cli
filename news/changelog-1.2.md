@@ -129,7 +129,6 @@
 - Don't display the book description in each chapter's title block
 - Book YAML now accepts fields from csl-item schema (#2148, #2398)
 - Book YAML now accepts date-format explicitly (#2148, #2398)
-- Books no longer require an `index.qmd` file in the chapter list. If not present, the first chapter will serve as the website home page.
 
 ## Preview
 
@@ -160,8 +159,8 @@
 
 ## TinyTex
 
-- `quarto install tool tinytex` will now install TinyTex even if a system installation of TeX is detected.
-- `quarto install tool tinytex` will no longer add TinyTex to the system path by default.
+- `quarto install tinytex` will now install TinyTex even if a system installation of TeX is detected.
+- `quarto install tinytex` will no longer add TinyTex to the system path by default.
 - When rendering PDFs, Quarto will prefer an existing installation of TinyTex over a system Tex installation
 - To prevent Quarto from using an installation of TinyTex (if you'd prefer the system installation be used), set `latex-tinytex: false` in your project or document front matter.
 - To install TinyTex system wide, using the `--update-path` flag when installing (this will add TinyTex to the system path)
