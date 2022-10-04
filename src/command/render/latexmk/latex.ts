@@ -205,7 +205,7 @@ async function runLatexCommand(
   // Add a tex search path
   // The // means that TeX programs will search recursively in that folder;
   // the trailing colon means "append the standard value of TEXINPUTS" (which you don't need to provide).
-  if (context.texInputDirs) {
+  if (context.texInputDirs && context.texInputDirs.length > 0) {
     // note this  //
     runOptions.env = runOptions.env || {};
     runOptions.env["TEXINPUTS"] = `${context.texInputDirs.join(";")};`;
@@ -229,7 +229,7 @@ async function runLatexCommand(
     const tex = await hasTexLive() || await hasLatexDistribution();
     if (!tex) {
       info(
-        "\nNo TeX installation was detected.\n\nPlease run 'quarto install tool tinytex' to install TinyTex.\nIf you prefer, you may install TexLive or another TeX distribution.\n",
+        "\nNo TeX installation was detected.\n\nPlease run 'quarto install tinytex' to install TinyTex.\nIf you prefer, you may install TexLive or another TeX distribution.\n",
       );
       return Promise.reject();
     } else if (context.pkgMgr && context.pkgMgr.autoInstall) {

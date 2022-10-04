@@ -86,6 +86,7 @@ import {
   extensionFilesFromDirs,
   inputExtensionDirs,
 } from "../../extension/extension.ts";
+import { kOutputFile } from "../../config/constants.ts";
 
 interface PreviewOptions {
   port?: number;
@@ -616,11 +617,15 @@ function htmlFileRequestHandlerOptions(
         renderHandler();
         return Promise.resolve(httpContentResponse("rendered"));
       } else if (isPreviewRenderRequest(req)) {
-        const prevReq = previewRenderRequest(req, reloader.hasClients());
+        const outputFile = format.pandoc[kOutputFile];
+        const prevReq = previewRenderRequest(
+          req,
+          !isBrowserPreviewable(outputFile) || reloader.hasClients(),
+        );
         if (
           prevReq &&
           existsSync(prevReq.path) &&
-          Deno.realPathSync(prevReq.path) === inputFile &&
+          Deno.realPathSync(prevReq.path) === Deno.realPathSync(inputFile) &&
           await previewRenderRequestIsCompatible(prevReq, flags)
         ) {
           // don't wait for the promise so the

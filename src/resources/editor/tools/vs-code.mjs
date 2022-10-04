@@ -8864,6 +8864,11 @@ var require_yaml_intelligence_resources = __commonJS({
                   description: "Additional command line arguments for preview command."
                 }
               },
+              env: {
+                object: {
+                  description: "Environment variables to set for preview command."
+                }
+              },
               ready: {
                 string: {
                   description: "Regular expression for detecting when the server is ready."
@@ -13359,6 +13364,19 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           schema: "boolean",
           description: "Set to `false` to prevent an installation of TinyTex from being used to compile PDF documents."
+        },
+        {
+          name: "latex-input-paths",
+          tags: {
+            formats: [
+              "pdf",
+              "beamer"
+            ]
+          },
+          schema: {
+            arrayOf: "string"
+          },
+          description: "Array of paths LaTeX should search for inputs."
         }
       ],
       "schema/document-layout.yml": [
@@ -19783,7 +19801,8 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
-        "internal-schema-hack"
+        "internal-schema-hack",
+        "Array of paths LaTeX should search for inputs."
       ],
       "schema/external-schemas.yml": [
         {
@@ -19996,12 +20015,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 128294,
+        _internalId: 131741,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 128293,
+            _internalId: 131740,
             type: "enum",
             enum: [
               "png",

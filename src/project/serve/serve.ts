@@ -56,6 +56,7 @@ import {
   httpContentResponse,
   httpFileRequestHandler,
   HttpFileRequestOptions,
+  isBrowserPreviewable,
 } from "../../core/http.ts";
 import { ProjectWatcher, ServeOptions } from "./types.ts";
 import { watchProject } from "./watch.ts";
@@ -388,6 +389,7 @@ function externalPreviewServer(
   // start the process
   const process = Deno.run({
     cmd,
+    env: serve.env,
     cwd: projectOutputDir(project),
     stdout: "piped",
     stderr: "piped",
@@ -474,7 +476,7 @@ async function internalPreviewServer(
       resourceFiles,
       flags,
       pandocArgs,
-      true,
+      isBrowserPreviewable(finalOutput),
     ),
 
     // handle html file requests w/ re-renders
@@ -724,7 +726,7 @@ function previewControlChannelRequestHandler(
               // print output created
               const finalOutput = renderResultFinalOutput(
                 result,
-                project!.dir,
+                dirname(prevReq.path),
               );
               if (!finalOutput) {
                 throw new Error(
@@ -742,10 +744,13 @@ function previewControlChannelRequestHandler(
 
               info("Output created: " + finalOutput + "\n");
 
+              // notify user we are watching for reload
+              printWatchingForChangesMessage();
+
               watcher.reloadClients(
                 true,
                 !isPdfContent(finalOutput)
-                  ? join(project!.dir, finalOutput)
+                  ? join(dirname(prevReq.path), finalOutput)
                   : undefined,
               );
             }

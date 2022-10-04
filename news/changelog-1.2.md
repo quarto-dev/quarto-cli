@@ -23,7 +23,7 @@
 - Preview live reload for changes to extension source files
 - HTML dependencies may be provided by paths to files outside the extension directory
 - HTML dependencies may now include `serviceworkers`, which are copied into the output directory.
-- New `quarto.doc.attachToDependency` function to attach files to html dependencies (copies files into the lib dir for a named HTML dependency).
+- New `quarto.doc.attach_to_dependency` function to attach files to html dependencies (copies files into the lib dir for a named HTML dependency).
 - Ensure that `quarto.utils.dump` works with pandoc's builtin global variables (#2254)
 - Provide a better error message for non-existent format resources (#2291)
 - Ability to specify a minimum quarto version via the `quarto-required` option.
@@ -165,6 +165,11 @@
 - To prevent Quarto from using an installation of TinyTex (if you'd prefer the system installation be used), set `latex-tinytex: false` in your project or document front matter.
 - To install TinyTex system wide, using the `--update-path` flag when installing (this will add TinyTex to the system path)
 
+## Video Shortcode
+
+- The video shortcode extension is now native to the Quarto CLI
+- Reveal-JS Video Snippet backgrounds are now better supported. For common video snippets, like YouTube, you can specify them as `video` backgrounds and quarto will ensure the correct embed URL and swap to be an `iframe` background if needed.
+
 ## Miscellaneous
 
 - Render: ability to compose `--to all` with other formats (e.g. `--to all,json`)
@@ -187,3 +192,4 @@
 - Disallow names with paths in command line option `--output` and YAML option `output-file` (#2440)
 - Add possible chrome process running error to the error message thrown when quarto fails to connect to chrome headless (#2499)
 - Only pass `pagetitle` metadata for HTML file output
+- Provide non-HTML treatment for code block `filename`

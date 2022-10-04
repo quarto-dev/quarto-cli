@@ -1,0 +1,8 @@
+title: Video
+author: RStudio, PBC
+organization: quarto
+contributes:
+  shortcodes:
+    - video.lua
+  filters:
+    - video-filter.lua
