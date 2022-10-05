@@ -1,3 +1,4 @@
+---@diagnostic disable: unbalanced-assignments, need-check-nil, param-type-mismatch, cast-local-type, redundant-parameter
 --[[
         luaunit.lua
 
