@@ -264,7 +264,7 @@ return {
       return htmlVideo(srcValue, heightValue, widthValue, titleValue, startValue, aspectRatio)
     else
       -- Fall-back to a link of the source
-      return pandoc.Link({srcValue}, srcValue)
+      return pandoc.Link(srcValue, srcValue)
     end
 
   end,
