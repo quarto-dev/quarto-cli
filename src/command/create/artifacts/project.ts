@@ -19,7 +19,7 @@ import { kMarkdownEngine } from "../../../execute/types.ts";
 import { ArtifactCreator, CreateOptions } from "../cmd.ts";
 import { basename, join } from "path/mod.ts";
 
-import { Confirm, Input, Select } from "cliffy/prompt/mod.ts";
+import { Input, Select } from "cliffy/prompt/mod.ts";
 
 // ensures project types are registered
 import "../../../project/types/register.ts";
@@ -37,62 +37,91 @@ const kTitle = "title";
 const kScaffold = "scaffold";
 const kSubdirectory = "subdirectory";
 
+const kBlogTypeAlias = "blog";
+
+const kDefaultDirectory = "project";
+
 export const projectArtifactCreator: ArtifactCreator = {
   displayName: "Project",
   type: "project",
   resolveOptions,
-  completeDefaults,
+  finalizeOptions,
   nextPrompt,
   createArtifact,
 };
 
 function resolveOptions(args: string[]): Record<string, unknown> {
-  if (args.length > 0) {
-    const type = args[0];
-    if (type) {
-      if (kProjectTypes.includes(type)) {
-        // This is a recognized type
-        return {
-          type,
-        };
-      } else {
-        // Special case - the type `blog` means to create
-        // a website with the blog template
-        if (type === "blog") {
-          return {
-            type: "website",
-            template: "blog",
-          };
-        }
-        return {};
-      }
-    } else {
-      return {};
+  // The first argument is the type (website, default, etc...)
+  // The second argument is the directory
+  const typeRaw = args.length > 0 ? args[0] : undefined;
+  const directoryRaw = args.length > 1 ? args[1] : undefined;
+
+  const options: Record<string, unknown> = {};
+  if (typeRaw) {
+    if (kProjectTypes.includes(typeRaw) || typeRaw === kBlogTypeAlias) {
+      // This is a recognized type
+      options[kType] = typeRaw;
     }
+  }
+  // Populate a directory, if provided
+  if (directoryRaw) {
+    options[kSubdirectory] = directoryRaw;
+  }
+
+  return options;
+}
+
+// We specially handle website and blog
+// (website means a website with the default template,
+// blog means a website with the blog template)
+function resolveTemplate(type: string) {
+  if (type === "website") {
+    return {
+      type,
+      template: "default",
+    };
+  } else if (type === kBlogTypeAlias) {
+    return {
+      type: "website",
+      template: "blog",
+    };
   } else {
-    return {};
+    return {
+      type,
+    };
   }
 }
 
-function completeDefaults(createOptions: CreateOptions) {
-  const defaultTitle = "Project";
-  const defaultDirectory = "project";
-
-  const type = createOptions.commandOpts[kType] as string || "default";
-  const projType = projectType(type);
-  const template = projType.templates && projType.templates.length > 0
-    ? projType.templates[0]
-    : undefined;
-
+function finalizeOptions(createOptions: CreateOptions) {
+  // Resolve the type and template
+  const resolved = resolveTemplate(
+    createOptions.commandOpts[kType] as string || "default",
+  );
+  const type = resolved.type;
   createOptions.commandOpts.type = type;
-  createOptions.commandOpts.template = createOptions.commandOpts[kTemplate] ||
-    template;
+  if (resolved.template) {
+    createOptions.commandOpts[kTemplate] = resolved.template;
+  }
+
+  // If there is no template specified, use the default project
+  // template, if one is available
+  if (createOptions.commandOpts[kTemplate] === undefined) {
+    const projType = projectType(type);
+    const defaultTemplate = projType.templates && projType.templates.length > 0
+      ? projType.templates[0]
+      : undefined;
+    createOptions.commandOpts[kTemplate] = defaultTemplate;
+  }
+
+  // Always create the scaffold files
   createOptions.commandOpts[kScaffold] = createOptions.commandOpts[kScaffold] ||
     true;
-  createOptions.commandOpts[kTitle] = createOptions.commandOpts[kTitle] ||
-    defaultTitle;
+
+  // Provide a directory and title
   createOptions.commandOpts[kSubdirectory] =
-    createOptions.commandOpts[kSubdirectory] || defaultDirectory;
+    createOptions.commandOpts[kSubdirectory] || kDefaultDirectory;
+  createOptions.commandOpts[kTitle] = createOptions.commandOpts[kTitle] ||
+    createOptions.commandOpts[kSubdirectory];
 
   return createOptions;
 }
@@ -102,11 +131,24 @@ function nextPrompt(
 ) {
   // First ensure that there is a type
   if (!createOptions.commandOpts[kType]) {
+    const types = [...kProjectTypes, kBlogTypeAlias];
+    const typeOrder = ["default", "website", kBlogTypeAlias, "book"];
+
+    const orderedTypes = types.sort((t1, t2) => {
+      if (t1 === t2) {
+        return 0;
+      } else if (typeOrder.indexOf(t1) === -1) {
+        return 1;
+      } else {
+        return typeOrder.indexOf(t1) - typeOrder.indexOf(t2);
+      }
+    });
+
     return {
       name: kType,
-      message: "Project type",
+      message: "Type",
       type: Select,
-      options: kProjectTypes.map((t) => {
+      options: orderedTypes.map((t) => {
         return {
           name: t,
           value: t,
@@ -115,53 +157,12 @@ function nextPrompt(
     };
   }
 
-  // Next, if this type supports various templates, ask about those
-  const template = createOptions.commandOpts[kTemplate];
-  const type = createOptions.commandOpts[kType] as string;
-  const projType = projectType(type);
-  if (
-    template === undefined && projType.templates &&
-    projType.templates.length > 0
-  ) {
-    return {
-      name: kTemplate,
-      message: `Select the type of ${type}`,
-      type: Select,
-      options: projType.templates.map((template) => {
-        return {
-          name: template,
-          value: template,
-        };
-      }),
-    };
-  }
-
-  // Collect whether to populate a scaffold
-  /*
-  if (!createOptions.commandOpts[kScaffold]) {
-    return {
-      name: kScaffold,
-      message: "Create initial project file(s)",
-      type: Confirm,
-    };
-  }
-  */
-
   // Collect a title
-  if (!createOptions.commandOpts[kTitle]) {
-    return {
-      name: kTitle,
-      message: "Project name",
-      type: Input,
-    };
-  }
-
   if (!createOptions.commandOpts[kSubdirectory]) {
     return {
       name: kSubdirectory,
       message: "Directory",
       type: Input,
-      default: createOptions.commandOpts[kTitle],
     };
   }
 }

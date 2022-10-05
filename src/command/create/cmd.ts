@@ -30,9 +30,9 @@ export interface ArtifactCreator {
   // and may use those arguments to populate the options
   resolveOptions: (args: string[]) => Record<string, unknown>;
 
-  // if this is called with `no-prompt`, we will ask artifact creators to
-  // to complete defaults and then use those options for creation
-  completeDefaults: (options: CreateOptions) => void;
+  // this will always be called, giving the artifact creator
+  // a change to finalize / transform options
+  finalizeOptions: (options: CreateOptions) => void;
 
   // As long as prompting is allowed, allow the artifact creator prompting to populate
   // the options. This will be called until it return undefined, at which point
@@ -109,7 +109,7 @@ export const createCommand = new Command()
         }
 
         // Complete the defaults
-        resolvedArtifact.completeDefaults(createOptions);
+        resolvedArtifact.finalizeOptions(createOptions);
 
         // Create the artifact using the options
         await resolvedArtifact.createArtifact(createOptions);
