@@ -256,8 +256,13 @@ return {
       aspectRatio = checkArg(kwargs, 'aspect-ratio')
     end
 
-    if #args == 1 and isEmpty(srcValue) then
-      srcValue = pandoc.utils.stringify(args[1])
+    if isEmpty(srcValue) then
+      if #args > 0 then
+        srcValue = pandoc.utils.stringify(args[1])
+      else
+        print("No video source specified for video shortcode")
+        os.exit(1)
+      end
     end
 
     if quarto.doc.isFormat("html:js") then

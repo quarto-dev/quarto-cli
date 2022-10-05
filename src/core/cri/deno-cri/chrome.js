@@ -39,6 +39,24 @@ class ProtocolError extends Error {
   }
 }
 
+async function tryUntilTimeout(cb, timeout = 3000) {
+  const interval = 50;
+  let soFar = 0;
+  let lastE;
+
+  do {
+    try {
+      const result = await cb();
+      return result;
+    } catch (e) {
+      lastE = e;
+      soFar += interval;
+      await new Promise((resolve) => setTimeout(resolve, interval));
+    }
+  } while (soFar < timeout);
+  throw lastE;
+}
+
 export default class Chrome extends EventEmitter {
   constructor(options, notifier) {
     super();
@@ -196,7 +214,9 @@ export default class Chrome extends EventEmitter {
         }
         // a target id is specified by the user
         else {
-          const targets = await devtools.List(options);
+          const targets = await tryUntilTimeout(async () => {
+            return await devtools.List(options);
+          });
           const object = targets.find((target) => target.id === idOrUrl);
           return object.webSocketDebuggerUrl;
         }

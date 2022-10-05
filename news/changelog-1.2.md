@@ -17,6 +17,7 @@
 
 - support `revealjs` and `html` formats in `width` builtin, fallback gracefully otherwise (#2058)
 - Don't emit `ojs_define` HTML in non-html formats (#2338)
+- Support jszip and exceljs (#1981)
 
 ## Extensions
 
@@ -24,6 +25,13 @@
 - HTML dependencies may be provided by paths to files outside the extension directory
 - HTML dependencies may now include `serviceworkers`, which are copied into the output directory.
 - New `quarto.doc.attach_to_dependency` function to attach files to html dependencies (copies files into the lib dir for a named HTML dependency).
+- New `quarto.version`, which provides the Quarto version
+- New `quarto.project.profile` which provides the list of currently active profiles (or an empty table if none are active)
+- New `quarto.project.directory` which provides the current project directory (if a project is active)
+- New `quarto.project.output_directory` which provides the current project output directory (if a project is active)
+- New `quarto.project.offset` which provides an offset from the current input document to the project directory.
+- New `quarto.doc.input_file` which provides the path to the input document
+- New `quarto.doc.output_file` which provides the path to the output file
 - Ensure that `quarto.utils.dump` works with pandoc's builtin global variables (#2254)
 - Provide a better error message for non-existent format resources (#2291)
 - Ability to specify a minimum quarto version via the `quarto-required` option.
@@ -192,3 +200,5 @@
 - Add possible chrome process running error to the error message thrown when quarto fails to connect to chrome headless (#2499)
 - Only pass `pagetitle` metadata for HTML file output
 - Provide non-HTML treatment for code block `filename`
+- prevent Chrome CRI race during initialization (#2733)
+- Work around `mermaid-format: svg` diagram clipping (#1622)

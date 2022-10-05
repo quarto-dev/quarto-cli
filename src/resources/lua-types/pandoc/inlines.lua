@@ -1,5 +1,7 @@
 ---@meta
 
+---@alias inlines_content string|pandoc.Inline|pandoc.List
+
 --[[
 Inline element
 ]]
@@ -45,7 +47,7 @@ pandoc.Cite = {}
 --[[
 Creates a Cite inline element
 ]]
----@param content string|pandoc.Inline|pandoc.List List of inlines
+---@param content inlines_content List of inlines
 ---@param citations pandoc.List List of `Citation`
 ---@return pandoc.Cite
 function pandoc.Cite(content, citations) end
@@ -100,7 +102,7 @@ pandoc.Emph = {}
 --[[
 Creates an inline element representing emphasized text.
 ]]
----@param content string|pandoc.Inline|pandoc.List List of inlines
+---@param content inlines_content List of inlines
 ---@return pandoc.Emph
 function pandoc.Emph(content) end
 
@@ -130,7 +132,7 @@ pandoc.Image = {}
 --[[
 Creates an Image inline element
 ]]
----@param caption string|pandoc.Inline|pandoc.List List of inlines
+---@param caption inlines_content List of inlines
 ---@param src string Path to the image
 ---@param title? string Brief image description
 ---@param attr? pandoc.Attr Attributes
@@ -186,7 +188,7 @@ pandoc.Link = {}
 --[[
 Creates a Link inline element
 ]]
----@param content pandoc.List Text for this link (list of inlines)
+---@param content inlines_content Text for this link (list of inlines)
 ---@param target string The link target
 ---@param title? string Brief link description
 ---@param attr? pandoc.Attr Attributes
@@ -242,7 +244,7 @@ pandoc.Note = {}
 --[[
 Creates a note element
 ]]
----@param content string|pandoc.Inline|pandoc.List Div content (list of blocks)
+---@param content string|pandoc.Inline|pandoc.Block|pandoc.List Div content (list of blocks)
 ---@return pandoc.Note
 function pandoc.Note(content) end
 
@@ -265,10 +267,10 @@ Quoted text
 pandoc.Quoted = {}
 
 --[[
-Creates an inline code element
+Creates quoted text
 ]]
 ---@param quotetype string|quote_type Type of quotes to be used; one of SingleQuote or DoubleQuote
----@param content pandoc.List Quoted text (list of inlines)
+---@param content inlines_content Quoted text (list of inlines)
 ---@return pandoc.Quoted
 function pandoc.Quoted(quotetype, content) end
 
@@ -321,7 +323,7 @@ pandoc.SmallCaps = {}
 --[[
 Creates text rendered in small caps
 ]]
----@param content string|pandoc.Inline|pandoc.List List of inlines
+---@param content inlines_content List of inlines
 ---@return pandoc.SmallCaps
 function pandoc.SmallCaps(content) end
 
@@ -394,7 +396,7 @@ pandoc.Span = {}
 --[[
 Creates a Span inline element
 ]]
----@param content string|pandoc.Inline|pandoc.List Span content (list of inlines)
+---@param content inlines_content Span content (list of inlines)
 ---@param attr? pandoc.Attr Span attributes
 ---@return pandoc.Span
 function pandoc.Span(content, attr) end
@@ -445,7 +447,7 @@ pandoc.Strikeout = {}
 --[[
 Creates text which is struck out.
 ]]
----@param content string|pandoc.Inline|pandoc.List List of inlines
+---@param content inlines_content List of inlines
 ---@return pandoc.Strikeout
 function pandoc.Strikeout(content) end
 
@@ -469,7 +471,7 @@ pandoc.Strong = {}
 --[[
 Creates a Strong element, whose text is usually displayed in a bold font.
 ]]
----@param content string|pandoc.Inline|pandoc.List List of inlines
+---@param content inlines_content List of inlines
 ---@return pandoc.Strong
 function pandoc.Strong(content) end
 
@@ -493,7 +495,7 @@ pandoc.Subscript = {}
 --[[
 Creates a Subscript inline element
 ]]
----@param content string|pandoc.Inline|pandoc.List List of inlines
+---@param content inlines_content List of inlines
 ---@return pandoc.Subscript
 function pandoc.Subscript(content) end
 
@@ -517,7 +519,7 @@ pandoc.Superscript = {}
 --[[
 Creates a Superscript inline element
 ]]
----@param content string|pandoc.Inline|pandoc.List List of inlines
+---@param content inlines_content List of inlines
 ---@return pandoc.Superscript
 function pandoc.Superscript(content) end
 
@@ -542,7 +544,7 @@ pandoc.Underline = {}
 --[[
 Creates an Underline inline element
 ]]
----@param content string|pandoc.Inline|pandoc.List List of inlines
+---@param content inlines_content List of inlines
 ---@return pandoc.Underline
 function pandoc.Underline(content) end
 
