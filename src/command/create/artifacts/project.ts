@@ -137,6 +137,7 @@ function nextPrompt(
   }
 
   // Collect whether to populate a scaffold
+  /*
   if (!createOptions.commandOpts[kScaffold]) {
     return {
       name: kScaffold,
@@ -144,12 +145,13 @@ function nextPrompt(
       type: Confirm,
     };
   }
+  */
 
   // Collect a title
   if (!createOptions.commandOpts[kTitle]) {
     return {
       name: kTitle,
-      message: "Project title",
+      message: "Project name",
       type: Input,
     };
   }
@@ -157,8 +159,9 @@ function nextPrompt(
   if (!createOptions.commandOpts[kSubdirectory]) {
     return {
       name: kSubdirectory,
-      message: "Name of project directory",
+      message: "Directory",
       type: Input,
+      default: createOptions.commandOpts[kTitle],
     };
   }
 }

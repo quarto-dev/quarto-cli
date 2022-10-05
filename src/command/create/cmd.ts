@@ -100,9 +100,10 @@ export const createCommand = new Command()
             }
             nextPrompt = resolvedArtifact.nextPrompt(createOptions);
           }
-        } else {
-          resolvedArtifact.completeDefaults(createOptions);
         }
+
+        // Complete the defaults
+        resolvedArtifact.completeDefaults(createOptions);
 
         // Create the artifact using the options
         await resolvedArtifact.createArtifact(createOptions);
