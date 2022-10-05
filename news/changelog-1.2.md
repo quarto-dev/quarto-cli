@@ -17,6 +17,7 @@
 
 - support `revealjs` and `html` formats in `width` builtin, fallback gracefully otherwise (#2058)
 - Don't emit `ojs_define` HTML in non-html formats (#2338)
+- Support jszip and exceljs (#1981)
 
 ## Extensions
 
@@ -199,3 +200,4 @@
 - Add possible chrome process running error to the error message thrown when quarto fails to connect to chrome headless (#2499)
 - Only pass `pagetitle` metadata for HTML file output
 - Provide non-HTML treatment for code block `filename`
+- prevent Chrome CRI race during initialization (#2733)
