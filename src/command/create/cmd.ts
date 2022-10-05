@@ -10,24 +10,41 @@ import { Command } from "cliffy/command/mod.ts";
 import { prompt, Select } from "cliffy/prompt/mod.ts";
 import { info } from "log/mod.ts";
 
-// JSON stdin?
+// TODO: JSON stdin?
 // If JSON provided, make completely non-interactive (must provide all required)
-
 export interface CreateOptions {
   dir: string;
   commandOpts: Record<string, unknown>;
 }
 
 export interface ArtifactCreator {
+  // The name that is displayed to users
   displayName: string;
+
+  // The identifier for this artifact type
   type: string;
+
+  // artifact creators are passed any leftover args from the create command
+  // and may use those arguments to populate the options
   resolveOptions: (args: string[]) => Record<string, unknown>;
-  resolveDefaults: (options: CreateOptions) => void;
+
+  // if this is called with `no-prompt`, we will ask artifact creators to
+  // to complete defaults and then use those options for creation
+  completeDefaults: (options: CreateOptions) => void;
+
+  // As long as prompting is allowed, allow the artifact creator prompting to populate
+  // the options. This will be called until it return undefined, at which point
+  // the artifact will be created using the options
   nextPrompt: (options: CreateOptions) => any | undefined; // TODO: this any is a nightmare
+
+  // Creates the artifact using the specified options
   createArtifact: (options: CreateOptions) => Promise<void>;
+
+  // Set this to false to exclude this artifact type from the create command
   enabled?: boolean;
 }
 
+// The registered artifact creators
 const kArtifactCreators: ArtifactCreator[] = [
   projectArtifactCreator,
 ];
@@ -83,7 +100,7 @@ export const createCommand = new Command()
             nextPrompt = resolvedArtifact.nextPrompt(createOptions);
           }
         } else {
-          resolvedArtifact.resolveDefaults(createOptions);
+          resolvedArtifact.completeDefaults(createOptions);
         }
 
         // Create the artifact using the options

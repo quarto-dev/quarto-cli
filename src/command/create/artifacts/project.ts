@@ -41,7 +41,7 @@ export const projectArtifactCreator: ArtifactCreator = {
   displayName: "Project",
   type: "project",
   resolveOptions,
-  resolveDefaults,
+  completeDefaults,
   nextPrompt,
   createArtifact,
 };
@@ -51,10 +51,19 @@ function resolveOptions(args: string[]): Record<string, unknown> {
     const type = args[0];
     if (type) {
       if (kProjectTypes.includes(type)) {
+        // This is a recognized type
         return {
           type,
         };
       } else {
+        // Special case - the type `blog` means to create
+        // a website with the blog template
+        if (type === "blog") {
+          return {
+            type: "website",
+            template: "blog",
+          };
+        }
         return {};
       }
     } else {
@@ -65,7 +74,7 @@ function resolveOptions(args: string[]): Record<string, unknown> {
   }
 }
 
-function resolveDefaults(createOptions: CreateOptions) {
+function completeDefaults(createOptions: CreateOptions) {
   const defaultTitle = "Project";
   const defaultDirectory = "project";
 
