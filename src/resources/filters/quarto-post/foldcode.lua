@@ -18,8 +18,12 @@ function foldCode()
               if fold == "show" then
                 open = " open"
               end
+              local style = ""
+              if block.attr.classes:includes("hidden") then
+                style = ' class="hidden"'
+              end
               local beginPara = pandoc.Plain({
-                pandoc.RawInline("html", "<details" .. open .. ">\n<summary>"),
+                pandoc.RawInline("html", "<details" .. open .. style .. ">\n<summary>"),
               })
               
               if not isEmpty(summary) then
