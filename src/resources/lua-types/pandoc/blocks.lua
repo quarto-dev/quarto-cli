@@ -1,5 +1,7 @@
 ---@meta
 
+---@alias blocks_content string|pandoc.Inline|pandoc.Block|pandoc.List
+
 --[[
 Block element
 ]]
@@ -51,7 +53,7 @@ pandoc.BlockQuote = {}
 --[[
 Creates a block quote element
 ]]
----@param content pandoc.Block|pandoc.List Block or list of blocks
+---@param content blocks_content Block or list of blocks
 ---@return pandoc.BlockQuote
 function pandoc.BlockQuote(content) end
 
@@ -82,7 +84,7 @@ pandoc.BulletList = {}
 --[[
 Creates a bullet list element
 ]]
----@param content pandoc.Block|pandoc.List Bullet list items (block or list of blocks)
+---@param content blocks_content Bullet list items (block or list of blocks)
 ---@return pandoc.BulletList
 function pandoc.BulletList(content) end
 
@@ -149,7 +151,7 @@ pandoc.DefinitionList = {}
 --[[
 Creates a definition list, containing terms and their explanation.
 ]]
----@param content pandoc.Block|pandoc.List Block or list of blocks
+---@param content pandoc.List List of defined terms (alternating term and definiition, each of which are lists of inlines)
 ---@return pandoc.DefinitionList
 function pandoc.DefinitionList(content) end
 
@@ -184,7 +186,7 @@ pandoc.Div = {}
 --[[
 Creates a div dlement
 ]]
----@param content pandoc.Block|pandoc.List Block or list of blocks
+---@param content blocks_content Block or list of blocks
 ---@param attr? pandoc.Attr Div attributes
 ---@return pandoc.Div
 function pandoc.Div(content, attr) end
@@ -223,7 +225,7 @@ pandoc.Header = {}
 Creates a header element
 ]]
 ---@param level integer Header level
----@param content pandoc.Inline|pandoc.List Header content (list of inlines)
+---@param content inlines_content Header content (list of inlines)
 ---@param attr? pandoc.Attr Header attributes
 ---@return pandoc.Header
 function pandoc.Header(level, content, attr) end
@@ -353,7 +355,7 @@ pandoc.OrderedList = {}
 --[[
 Create an ordered list
 ]]
----@param items pandoc.Block|pandoc.List Block or list of blocks
+---@param items blocks_content Block or list of blocks
 ---@param listAttributes? pandoc.ListAttributes List parameters
 ---@return pandoc.OrderedList
 function pandoc.OrderedList(items, listAttributes) end
@@ -387,7 +389,7 @@ pandoc.Para = {}
 --[[
 Creates a paragraph element
 ]]
----@param content pandoc.Inline|pandoc.List Inline content (list of inlines)
+---@param content inlines_content Inline content (list of inlines)
 ---@return pandoc.Para
 function pandoc.Para(content) end
 
@@ -418,7 +420,7 @@ pandoc.Plain = {}
 --[[
 Creates a plain element
 ]]
----@param content pandoc.Inline|pandoc.List Inline content (list of inlines)
+---@param content inlines_content Inline content (list of inlines)
 ---@return pandoc.Plain
 function pandoc.Plain(content) end
 
