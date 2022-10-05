@@ -10988,6 +10988,18 @@ try {
             description: "Document date"
           },
           {
+            name: "date-modified",
+            tags: {
+              formats: [
+                "$html-doc"
+              ]
+            },
+            schema: {
+              ref: "date"
+            },
+            description: "Document date modified"
+          },
+          {
             name: "author",
             schema: {
               maybeArrayOf: {
@@ -17535,6 +17547,7 @@ try {
           "Time (in seconds) after which to exit if there are no active\nclients",
           "Serve project preview using the specified command. Interpolate the\n<code>--port</code> into the command using <code>{port}</code>.",
           "Additional command line arguments for preview command.",
+          "Environment variables to set for preview command.",
           "Regular expression for detecting when the server is ready.",
           "Sites published from project",
           "Unique identifier for site",
@@ -18734,6 +18747,7 @@ try {
           "Array of command line options for <code>tlmgr</code>.",
           "Output directory for intermediates and PDF.",
           "Set to <code>false</code> to prevent an installation of TinyTex from\nbeing used to compile PDF documents.",
+          "Array of paths LaTeX should search for inputs.",
           "The document class.",
           {
             short: "Options for the document class,",
@@ -19803,7 +19817,7 @@ try {
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "internal-schema-hack",
-          "Array of paths LaTeX should search for inputs."
+          "Document date modified"
         ],
         "schema/external-schemas.yml": [
           {
@@ -20016,12 +20030,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 131741,
+          _internalId: 132075,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 131740,
+              _internalId: 132074,
               type: "enum",
               enum: [
                 "png",

@@ -1637,32 +1637,23 @@ function param(name, default)
 end
 
 local function projectDirectory() 
-   -- the offset to the project
-   local projectOffset = _quarto.projectOffset()
-   if projectOffset then
-      -- get the current working directory - we always change
-      -- the working directory to the input file when we render
-      local wd = pandoc.system.get_working_directory()  
-      -- process the offset, adjusting the working directory
-      local projectDir = wd
-      for i, v in ipairs(pandoc.path.split(projectOffset)) do
-         if v == '.' then
-            -- no op
-         elseif v == '..' then
-            projectDir = pandoc.path.directory(projectDir)
-         else
-            projectDir = pandoc.path.join({projectDir, v})
-         end
-      end
-      return projectDir
+   return os.getenv("QUARTO_PROJECT_DIR")
+end
+
+local function projectOutputDirectory()
+   local outputDir = param("project-output-dir", "")
+   local projectDir = projectDirectory()
+   if projectDir then
+      return pandoc.path.join({projectDir, outputDir})
    else
       return nil
-   end 
+   end
 end
 
 -- Provides the project relative path to the current input
 -- if this render is in the context of a project
 local function projectRelativeOutputFile()
+   
    -- the project directory
    local projDir = projectDirectory()
 
@@ -1678,6 +1669,49 @@ local function projectRelativeOutputFile()
    else
       return nil
    end
+end
+
+local function inputFile()
+   local source = param("quarto-source", "")
+   if pandoc.path.is_absolute(source) then 
+      return source
+   else
+      local projectDir = projectDirectory()
+      if projectDir then
+         return pandoc.path.join({projectDir, param("quarto-source", "")})
+      else
+         return pandoc.path.join({pandoc.system.get_working_directory(), param("quarto-source", "")})
+      end   
+   end
+end
+
+local function outputFile() 
+   local projectOutDir = projectOutputDirectory()
+   if projectOutDir then
+      local projectDir = projectDirectory()
+      if projectDir then
+         local input = pandoc.path.directory(inputFile())
+         local relativeDir = pandoc.path.make_relative(input, projectDir)
+         if relativeDir and relativeDir ~= '.' then
+            return pandoc.path.join({projectOutDir, relativeDir, PANDOC_STATE['output_file']})
+         end
+      end
+      return pandoc.path.join({projectOutDir, PANDOC_STATE['output_file']})
+   else
+      return pandoc.path.join({pandoc.system.get_working_directory(), PANDOC_STATE['output_file']})
+   end
+end
+
+local function version() 
+   return param('quarto-version', 'unknown')
+end
+
+local function projectProfiles()
+   return param('quarto_profile', {})
+end
+
+local function projectOffset() 
+   return param('project-offset', nil)
 end
 
 -- Quarto internal module - makes functions available
@@ -1697,9 +1731,7 @@ _quarto = {
       table.remove(scriptFile, #scriptFile)
       return result
    end,
-   projectOffset = function()
-      return param('project-offset', nil)
-   end
+   projectOffset = projectOffset
 
  } 
 
@@ -1836,14 +1868,18 @@ quarto = {
       local hasBootstrap = param('has-bootstrap', false)
       return hasBootstrap
     end,
-    project_output_file = projectRelativeOutputFile,
-
     is_filter_active = function(filter)
       return preState.active_filters[filter]
-    end
+    end,
+
+    output_file = outputFile(),
+    input_file = inputFile()
   },
   project = {
-    directory = projectDirectory
+   directory = projectDirectory(),
+   offset = projectOffset(),
+   profile = projectProfiles(),
+   output_directory = projectOutputDirectory()
   },
   utils = {
    dump = utils.dump,
@@ -1853,7 +1889,8 @@ quarto = {
   },
   json = json,
   base64 = base64,
-  log = logging
+  log = logging,
+  version = version()
 }
 
 -- alias old names for backwards compatibility
@@ -1867,5 +1904,7 @@ quarto.doc.isFormat = quarto.doc.is_format
 quarto.doc.citeMethod = quarto.doc.cite_method
 quarto.doc.pdfEngine = quarto.doc.pdf_engine
 quarto.doc.hasBootstrap = quarto.doc.has_bootstrap
+quarto.doc.project_output_file = projectRelativeOutputFile
 quarto.utils.resolvePath = quarto.utils.resolve_path
+
 

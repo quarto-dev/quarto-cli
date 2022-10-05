@@ -17,6 +17,9 @@
 
 - support `revealjs` and `html` formats in `width` builtin, fallback gracefully otherwise (#2058)
 - Don't emit `ojs_define` HTML in non-html formats (#2338)
+- Support jszip and exceljs (#1981)
+- Improve error messages when cell options are specified with wrong comment syntax (#1856)
+- Hide `code-fold` chrome when OJS code is hidden (#2134)
 
 ## Extensions
 
@@ -24,6 +27,13 @@
 - HTML dependencies may be provided by paths to files outside the extension directory
 - HTML dependencies may now include `serviceworkers`, which are copied into the output directory.
 - New `quarto.doc.attach_to_dependency` function to attach files to html dependencies (copies files into the lib dir for a named HTML dependency).
+- New `quarto.version`, which provides the Quarto version
+- New `quarto.project.profile` which provides the list of currently active profiles (or an empty table if none are active)
+- New `quarto.project.directory` which provides the current project directory (if a project is active)
+- New `quarto.project.output_directory` which provides the current project output directory (if a project is active)
+- New `quarto.project.offset` which provides an offset from the current input document to the project directory.
+- New `quarto.doc.input_file` which provides the path to the input document
+- New `quarto.doc.output_file` which provides the path to the output file
 - Ensure that `quarto.utils.dump` works with pandoc's builtin global variables (#2254)
 - Provide a better error message for non-existent format resources (#2291)
 - Ability to specify a minimum quarto version via the `quarto-required` option.
@@ -41,6 +51,7 @@
 ## Projects
 
 - Project configuration `profile` for varying configuration and output based on global `QUARTO_PROFILE` or `--profile` command-line option.
+- Project level environment variables (including local overrides)
 - Ensure that `execute-dir` is always resolved to an absolute path
 
 ## HTML Format
@@ -126,9 +137,8 @@
 
 - Fix issue that caused incomplete search indexes for books
 - Don't display the book description in each chapter's title block
-- book YAML now accepts fields from csl-item schema (#2148, #2398)
-- book YAML now accepts date-format explicitly (#2148, #2398)
-- Books no longer require an `index.qmd` file in the chapter list. If not present, the first chapter will serve as the website home page.
+- Book YAML now accepts fields from csl-item schema (#2148, #2398)
+- Book YAML now accepts date-format explicitly (#2148, #2398)
 
 ## Preview
 
@@ -159,8 +169,8 @@
 
 ## TinyTex
 
-- `quarto install tool tinytex` will now install TinyTex even if a system installation of TeX is detected.
-- `quarto install tool tinytex` will no longer add TinyTex to the system path by default.
+- `quarto install tinytex` will now install TinyTex even if a system installation of TeX is detected.
+- `quarto install tinytex` will no longer add TinyTex to the system path by default.
 - When rendering PDFs, Quarto will prefer an existing installation of TinyTex over a system Tex installation
 - To prevent Quarto from using an installation of TinyTex (if you'd prefer the system installation be used), set `latex-tinytex: false` in your project or document front matter.
 - To install TinyTex system wide, using the `--update-path` flag when installing (this will add TinyTex to the system path)
@@ -168,7 +178,7 @@
 ## Video Shortcode
 
 - The video shortcode extension is now native to the Quarto CLI
-- Reveal-JS Video Snippet backgrounds are now better supported. For common video snippets, like YouTube, you can specify them as `video` backgrounds and quarto will ensure the correct embed URL and swap to be an `iframe` background if needed.
+- Reveal-JS Video Snippet backgrounds are now better supported. For common video snippets, like YouTube, you can specify them as `background-video` and quarto will ensure the correct embed URL is used and swap to `background-iframe` background if needed.
 
 ## Miscellaneous
 
@@ -181,7 +191,6 @@
 - Increase contrast for a11y-light theme to work with default code-block background (#2067, #2528)
 - Upgrade to deno 1.25.1, which should lead to a 2-3x speedup in quarto startup time
 - Use deno arm64 native binaries on macOS
-- Set working dir to `QUARTO_WORKING_DIR` variable if provided.
 - Resolve absolute paths in include shortcodes (#2320)
 - New metadata field `quarto-required` to specify required versions of quarto in a document
 - Provide project configuration for calls to `quarto inspect` for files
@@ -193,3 +202,5 @@
 - Add possible chrome process running error to the error message thrown when quarto fails to connect to chrome headless (#2499)
 - Only pass `pagetitle` metadata for HTML file output
 - Provide non-HTML treatment for code block `filename`
+- prevent Chrome CRI race during initialization (#2733)
+- Work around `mermaid-format: svg` diagram clipping (#1622)

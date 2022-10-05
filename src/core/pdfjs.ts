@@ -7,7 +7,7 @@
 
 import { basename, join } from "path/mod.ts";
 import { md5Hash } from "./hash.ts";
-import { isViewerIFrameRequest } from "./http-devserver.ts";
+import { viewerIFrameURL } from "./http-devserver.ts";
 import { FileResponse } from "./http.ts";
 import { contentType } from "./mime.ts";
 import { pathWithForwardSlashes } from "./path.ts";
@@ -48,7 +48,7 @@ export function pdfJsFileHandler(
   return async (file: string, req: Request) => {
     // initialize isViewer w/ the first request
     if (isViewer === undefined) {
-      isViewer = isViewerIFrameRequest(req);
+      isViewer = !!viewerIFrameURL(req);
     }
 
     // base behavior (injects the reloader into html files)

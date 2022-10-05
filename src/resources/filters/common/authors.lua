@@ -149,8 +149,11 @@ local kAffiliationAliasedFields = {
 local kNumber = "number"
 
 function processAuthorMeta(meta)
-  if not _quarto.format.isHtmlOutput() and not _quarto.format.isLatexOutput() and not _quarto.format.isIpynbOutput() and not _quarto.format.isDocxOutput() then
-    return
+  -- prevents the front matter for markdown from containing
+  -- all the rendered author information that we generate
+  if _quarto.format.isMarkdownOutput() then
+    meta[kAuthors] = nil
+    return meta
   end
 
   -- prefer to render 'authors' if it is available
