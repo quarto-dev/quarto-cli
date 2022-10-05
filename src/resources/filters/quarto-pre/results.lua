@@ -15,15 +15,16 @@ end
 function writeResults()
   return {
     Pandoc = function(doc)
+      local jsonResults = quarto.json.encode(preState.results)
+      local rfile = io.open(resultsFile(), "w")
+      if rfile then
+        rfile:write(jsonResults)
+        rfile:close()
+      else
+        warn('Error writing LUA results file')
+      end
+
       if os.getenv("QUARTO_PROFILER_OUTPUT") ~= nil then
-        local jsonResults = quarto.json.encode(preState.results)
-        local rfile = io.open(resultsFile(), "w")
-        if rfile then
-          rfile:write(jsonResults)
-          rfile:close()
-        else
-          warn('Error writing profiler results file')
-        end
 
         local jsonTimings = quarto.json.encode(timing_events)
         local tfile = io.open(timingsFile(), "w")

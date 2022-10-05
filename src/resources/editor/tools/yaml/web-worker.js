@@ -10988,6 +10988,18 @@ try {
             description: "Document date"
           },
           {
+            name: "date-modified",
+            tags: {
+              formats: [
+                "$html-doc"
+              ]
+            },
+            schema: {
+              ref: "date"
+            },
+            description: "Document date modified"
+          },
+          {
             name: "author",
             schema: {
               maybeArrayOf: {
@@ -18298,6 +18310,7 @@ try {
           "Document title",
           "Identifies the subtitle of the document.",
           "Document date",
+          "Document date modified",
           "Author or authors of the document",
           {
             short: "The list of organizations with which contributors are affiliated.",
@@ -18693,6 +18706,7 @@ try {
           "Array of command line options for <code>tlmgr</code>.",
           "Output directory for intermediates and PDF.",
           "Set to <code>false</code> to prevent an installation of TinyTex from\nbeing used to compile PDF documents.",
+          "Array of paths LaTeX should search for inputs.",
           "The document class.",
           {
             short: "Options for the document class,",
@@ -19761,8 +19775,7 @@ try {
             long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
-          "internal-schema-hack",
-          "Array of paths LaTeX should search for inputs."
+          "internal-schema-hack"
         ],
         "schema/external-schemas.yml": [
           {
@@ -19975,12 +19988,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 131744,
+          _internalId: 132335,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 131743,
+              _internalId: 132334,
               type: "enum",
               enum: [
                 "png",

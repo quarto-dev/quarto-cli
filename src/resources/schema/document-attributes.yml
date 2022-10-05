@@ -13,6 +13,13 @@
     ref: date
   description: "Document date"
 
+- name: date-modified
+  tags:
+    formats: [$html-doc]
+  schema:
+    ref: date
+  description: "Document date modified"
+
 - name: author
   schema:
     maybeArrayOf:

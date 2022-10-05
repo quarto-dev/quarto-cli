@@ -225,7 +225,7 @@ function TestVimeoBuilder:testTitle()
     src = 'https://vimeo.com/548291210',
     title = 'fake-title'
   }
-  local expected = {snippet = '<iframe src="https://player.vimeo.com/video/548291210" frameborder="0" allow="autoplay; title="fake-title" fullscreen; picture-in-picture" allowfullscreen></iframe>', type = VIDEO_TYPES.VIMEO, src='https://player.vimeo.com/video/548291210', src='https://player.vimeo.com/video/548291210' }
+  local expected = {snippet = '<iframe src="https://player.vimeo.com/video/548291210" frameborder="0" allow="autoplay; title="fake-title" fullscreen; picture-in-picture" allowfullscreen></iframe>', type = VIDEO_TYPES.VIMEO, src='https://player.vimeo.com/video/548291210' }
   checkVimeoBuilder(params, expected)
 end
 
