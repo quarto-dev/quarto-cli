@@ -108,7 +108,13 @@ const resolveArtifact = async (type?: string, prompt?: boolean) => {
   while (artifact === undefined) {
     if (!prompt) {
       // We can't prompt to resolve this, so just throw an Error
-      throw new Error(`Failed to create ${type} - the type isn't recognized`);
+      if (type) {
+        throw new Error(`Failed to create ${type} - the type isn't recognized`);
+      } else {
+        throw new Error(
+          `Creation failed - you must provide a type to create when using '--no-prompt'`,
+        );
+      }
     }
 
     if (type) {
