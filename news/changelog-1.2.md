@@ -202,3 +202,4 @@
 - Only pass `pagetitle` metadata for HTML file output
 - Provide non-HTML treatment for code block `filename`
 - prevent Chrome CRI race during initialization (#2733)
+- Work around `mermaid-format: svg` diagram clipping (#1622)
