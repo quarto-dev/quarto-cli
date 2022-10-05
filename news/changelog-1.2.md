@@ -193,3 +193,4 @@
 - Add possible chrome process running error to the error message thrown when quarto fails to connect to chrome headless (#2499)
 - Only pass `pagetitle` metadata for HTML file output
 - Provide non-HTML treatment for code block `filename`
+- Work around `mermaid-format: svg` diagram clipping (#1622)
