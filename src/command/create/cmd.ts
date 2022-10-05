@@ -35,6 +35,7 @@ export interface ArtifactCreator {
   // As long as prompting is allowed, allow the artifact creator prompting to populate
   // the options. This will be called until it return undefined, at which point
   // the artifact will be created using the options
+  // deno-lint-ignore no-explicit-any
   nextPrompt: (options: CreateOptions) => any | undefined; // TODO: this any is a nightmare
 
   // Creates the artifact using the specified options

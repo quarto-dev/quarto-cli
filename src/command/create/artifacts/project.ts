@@ -5,7 +5,7 @@
 *
 */
 
-import { executionEngine, executionEngines } from "../../../execute/engine.ts";
+// import { executionEngine, executionEngines } from "../../../execute/engine.ts";
 
 import { projectCreate } from "../../../project/project-create.ts";
 import {
@@ -28,7 +28,7 @@ const kProjectTypes = projectTypes();
 const kProjectTypeAliases = projectTypeAliases();
 const kProjectTypesAndAliases = [...kProjectTypes, ...kProjectTypeAliases];
 
-const kExecutionEngines = executionEngines().reverse();
+// const kExecutionEngines = executionEngines().reverse();
 const kEditorTypes = ["source", "visual"];
 
 const kTemplate = "template";
@@ -99,7 +99,7 @@ function completeDefaults(createOptions: CreateOptions) {
 
 function nextPrompt(
   createOptions: CreateOptions,
-): any | undefined {
+) {
   // First ensure that there is a type
   if (!createOptions.commandOpts[kType]) {
     return {
