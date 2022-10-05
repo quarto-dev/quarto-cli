@@ -16,7 +16,7 @@ import {
 } from "../../../project/types/project-types.ts";
 import { kMarkdownEngine } from "../../../execute/types.ts";
 
-import { CreateOptions } from "../cmd.ts";
+import { ArtifactCreator, CreateOptions } from "../cmd.ts";
 import { basename, join } from "path/mod.ts";
 
 import { Confirm, Input, Select } from "cliffy/prompt/mod.ts";
@@ -37,7 +37,16 @@ const kTitle = "title";
 const kScaffold = "scaffold";
 const kSubdirectory = "subdirectory";
 
-export function parseArgs(args: string[]): Record<string, unknown> {
+export const projectArtifactCreator: ArtifactCreator = {
+  displayName: "Project",
+  type: "project",
+  resolveOptions,
+  resolveDefaults,
+  nextPrompt,
+  createArtifact,
+};
+
+function resolveOptions(args: string[]): Record<string, unknown> {
   if (args.length > 0) {
     const type = args[0];
     if (type) {
@@ -56,7 +65,30 @@ export function parseArgs(args: string[]): Record<string, unknown> {
   }
 }
 
-export function nextPrompt(
+function resolveDefaults(createOptions: CreateOptions) {
+  const defaultTitle = "Project";
+  const defaultDirectory = "project";
+
+  const type = createOptions.commandOpts[kType] as string || "default";
+  const projType = projectType(type);
+  const template = projType.templates && projType.templates.length > 0
+    ? projType.templates[0]
+    : undefined;
+
+  createOptions.commandOpts.type = type;
+  createOptions.commandOpts.template = createOptions.commandOpts[kTemplate] ||
+    template;
+  createOptions.commandOpts[kScaffold] = createOptions.commandOpts[kScaffold] ||
+    true;
+  createOptions.commandOpts[kTitle] = createOptions.commandOpts[kTitle] ||
+    defaultTitle;
+  createOptions.commandOpts[kSubdirectory] =
+    createOptions.commandOpts[kSubdirectory] || defaultDirectory;
+
+  return createOptions;
+}
+
+function nextPrompt(
   createOptions: CreateOptions,
 ): any | undefined {
   // First ensure that there is a type
@@ -113,7 +145,7 @@ export function nextPrompt(
     };
   }
 
-  if (!createOptions.commandOpts["subdirectory"]) {
+  if (!createOptions.commandOpts[kSubdirectory]) {
     return {
       name: kSubdirectory,
       message: "Name of project directory",
@@ -122,7 +154,7 @@ export function nextPrompt(
   }
 }
 
-export async function create(createOptions: CreateOptions) {
+async function createArtifact(createOptions: CreateOptions) {
   const options = createOptions.commandOpts;
 
   const engine = (options.engine || []) as string[];

@@ -4,40 +4,33 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { create, nextPrompt, parseArgs } from "./artifacts/project.ts";
+import { projectArtifactCreator } from "./artifacts/project.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 import { prompt, Select } from "cliffy/prompt/mod.ts";
 import { info } from "log/mod.ts";
 
-import { readAllSync } from "streams/conversion.ts";
+// JSON stdin?
+// If JSON provided, make completely non-interactive (must provide all required)
 
 export interface CreateOptions {
   dir: string;
   commandOpts: Record<string, unknown>;
 }
 
-// JSON stdin?
-// If JSON provided, make completely non-interactive (must provide all required)
-
-// Pass variadic args to artifacts to populate options
-
-// TODO: this any is a nightmare
-interface Artifact {
-  name: string;
-  parseArgs: (args: string[]) => Record<string, unknown>;
-  nextPrompt: (options: CreateOptions) => any | undefined;
-  create: (options: CreateOptions) => Promise<void>;
+export interface ArtifactCreator {
+  displayName: string;
+  type: string;
+  resolveOptions: (args: string[]) => Record<string, unknown>;
+  resolveDefaults: (options: CreateOptions) => void;
+  nextPrompt: (options: CreateOptions) => any | undefined; // TODO: this any is a nightmare
+  createArtifact: (options: CreateOptions) => Promise<void>;
+  enabled?: boolean;
 }
 
-const kArtifacts: Record<string, Artifact> = {
-  "project": {
-    name: "Project",
-    parseArgs: parseArgs,
-    nextPrompt: nextPrompt,
-    create: create,
-  },
-};
+const kArtifactCreators: ArtifactCreator[] = [
+  projectArtifactCreator,
+];
 
 export const createCommand = new Command()
   .name("create")
@@ -46,49 +39,55 @@ export const createCommand = new Command()
     default: ".",
   })
   .option("--no-prompt", "Do not prompt to confirm actions")
-  .arguments("[artifact] [commands...]")
+  .arguments("[type] [commands...]")
   .action(
     async (
       options: { dir?: string | true; prompt: boolean },
-      artifact?: string,
+      type?: string,
       commands?: string[],
     ) => {
       // TODO: why can dir be 'true'?
       if (
-        options.dir === undefined || options.dir === "." || options.dir === true
+        options.dir === undefined ||
+        options.dir === "." ||
+        options.dir === true
       ) {
         options.dir = Deno.cwd();
       }
 
-      const commandOpts = commands ? parseArgs(commands) : {};
-      const createOptions = {
-        dir: options.dir,
-        prompt: options.prompt,
-        commandOpts,
-      };
+      // Resolve the type into an artifact
+      const resolvedArtifact = await resolveArtifact(type, options.prompt);
 
-      // If no artifact has been provided, resolve that
-      if (!artifact && options.prompt) {
-        artifact = await selectArtifact();
-      }
-
-      const resolvedArtifact = await resolveArtifact(artifact);
       if (resolvedArtifact) {
-        // Now that we've resolved the artifact, resolve the prompts
-        // for the artifact
-        let nextPrompt = resolvedArtifact.nextPrompt(createOptions);
-        while (nextPrompt !== undefined) {
-          if (nextPrompt) {
-            const result = await prompt([nextPrompt]);
-            createOptions.commandOpts = {
-              ...createOptions.commandOpts,
-              ...result,
-            };
+        // Resolve the argumenst that the user provided into options
+        // for the artifact provider
+        const commandOpts = commands
+          ? resolvedArtifact.resolveOptions(commands)
+          : {};
+        const createOptions = {
+          dir: options.dir,
+          commandOpts,
+        };
+
+        if (options.prompt) {
+          // Prompt the user until the options have been fully realized
+          let nextPrompt = resolvedArtifact.nextPrompt(createOptions);
+          while (nextPrompt !== undefined) {
+            if (nextPrompt) {
+              const result = await prompt([nextPrompt]);
+              createOptions.commandOpts = {
+                ...createOptions.commandOpts,
+                ...result,
+              };
+            }
+            nextPrompt = resolvedArtifact.nextPrompt(createOptions);
           }
-          nextPrompt = resolvedArtifact.nextPrompt(createOptions);
+        } else {
+          resolvedArtifact.resolveDefaults(createOptions);
         }
 
-        await resolvedArtifact.create(createOptions);
+        // Create the artifact using the options
+        await resolvedArtifact.createArtifact(createOptions);
       }
     },
   );
@@ -96,35 +95,44 @@ export const createCommand = new Command()
 // Resolves the artifact string (or undefined) into an
 // Artifact interface which will provide the functions
 // needed to complete the creation
-const resolveArtifact = async (artifact?: string) => {
-  artifact = artifact?.toLowerCase();
-  if (artifact && kArtifacts[artifact]) {
-    return kArtifacts[artifact];
-  } else if (artifact) {
-    // Unrecognized - prompt or error
-    info(`Unknown type ${artifact} - please select from the following:`);
-    const selected = await selectArtifact();
-    return kArtifacts[selected];
-  } else {
-    // Not provided, prompt
-    const selected = await selectArtifact();
-    return kArtifacts[selected];
+const resolveArtifact = async (type?: string, prompt?: boolean) => {
+  // Finds an artifact
+  const findArtifact = (type: string) => {
+    return kArtifactCreators.find((artifact) =>
+      artifact.type === type && artifact.enabled !== false
+    );
+  };
+
+  // Use the provided type to search (or prompt the user)
+  let artifact = type ? findArtifact(type) : undefined;
+  while (artifact === undefined) {
+    if (!prompt) {
+      // We can't prompt to resolve this, so just throw an Error
+      throw new Error(`Failed to create ${type} - the type isn't recognized`);
+    }
+
+    if (type) {
+      // The user provided a type, but it isn't recognized
+      info(`Unknown type ${type} - please select from the following:`);
+    }
+
+    // Prompt the user to select a type
+    type = await promptForType();
+
+    // Find the type (this should always work since we provided the id)
+    artifact = findArtifact(type);
   }
+  return artifact;
 };
 
-// Provides a selection list of the artifacts that can
-// be created
-async function selectArtifact() {
-  const result = await Select.prompt({
-    message: "Select what you'd like to create",
-    options: Object.keys(kArtifacts).map((key) => {
-      const artifact = kArtifacts[key];
+const promptForType = async () => {
+  return await Select.prompt({
+    message: "Select type",
+    options: kArtifactCreators.map((artifact) => {
       return {
-        name: artifact.name,
-        value: key,
+        name: artifact.displayName,
+        value: artifact.type,
       };
     }),
   });
-
-  return result;
-}
+};
