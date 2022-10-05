@@ -9,6 +9,8 @@ import { projectArtifactCreator } from "./artifacts/project.ts";
 import { Command } from "cliffy/command/mod.ts";
 import { prompt, Select } from "cliffy/prompt/mod.ts";
 import { info } from "log/mod.ts";
+import { isInteractiveTerminal } from "../../core/platform.ts";
+import { runningInCI } from "../../core/ci-info.ts";
 
 // TODO: JSON stdin?
 // If JSON provided, make completely non-interactive (must provide all required)
@@ -73,6 +75,10 @@ export const createCommand = new Command()
         options.dir = Deno.cwd();
       }
 
+      // Compute a sane default for prompting
+      const allowPrompt = !!options.prompt ||
+        isInteractiveTerminal() && !runningInCI();
+
       // Resolve the type into an artifact
       const resolvedArtifact = await resolveArtifact(type, options.prompt);
 
@@ -87,7 +93,7 @@ export const createCommand = new Command()
           commandOpts,
         };
 
-        if (options.prompt) {
+        if (allowPrompt) {
           // Prompt the user until the options have been fully realized
           let nextPrompt = resolvedArtifact.nextPrompt(createOptions);
           while (nextPrompt !== undefined) {
@@ -152,10 +158,10 @@ const resolveArtifact = async (type?: string, prompt?: boolean) => {
 
 const promptForType = async () => {
   return await Select.prompt({
-    message: "Select type",
+    message: "Create",
     options: kArtifactCreators.map((artifact) => {
       return {
-        name: artifact.displayName,
+        name: artifact.displayName.toLowerCase(),
         value: artifact.type,
       };
     }),
