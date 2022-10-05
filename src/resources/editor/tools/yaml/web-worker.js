@@ -28863,7 +28863,7 @@ ${tidyverseInfo(
     }
     return mappedString(source, params);
   }
-  async function parseAndValidateCellOptions(mappedYaml, language, validate2 = false, engine = "") {
+  async function parseAndValidateCellOptions(mappedYaml, language, validate2 = false, engine = "", lenient = false) {
     if (mappedYaml.value.trim().length === 0) {
       return void 0;
     }
@@ -28882,11 +28882,13 @@ ${tidyverseInfo(
       }
     }
     if (schema2 === void 0 || !validate2) {
-      return readAnnotatedYamlFromMappedString(mappedYaml).result;
+      return readAnnotatedYamlFromMappedString(mappedYaml, lenient).result;
     }
     const { yaml, yamlValidationErrors } = await readAndValidateYamlFromMappedString(
       mappedYaml,
-      schema2
+      schema2,
+      void 0,
+      lenient
     );
     if (yamlValidationErrors.length > 0) {
       throw new ValidationError2(
@@ -28941,7 +28943,7 @@ ${tidyverseInfo(
       sourceStartLine: yamlLines.length
     };
   }
-  async function partitionCellOptionsMapped(language, outerSource, validate2 = false, engine = "") {
+  async function partitionCellOptionsMapped(language, outerSource, validate2 = false, engine = "", lenient = false) {
     const {
       yaml: mappedYaml,
       optionsSource,
@@ -28953,7 +28955,8 @@ ${tidyverseInfo(
         mappedYaml || asMappedString(""),
         language,
         validate2,
-        engine
+        engine,
+        lenient
       );
       return {
         yaml,
@@ -29063,7 +29066,7 @@ ${tidyverseInfo(
   }
 
   // ../break-quarto-md.ts
-  async function breakQuartoMd(src, validate2 = false) {
+  async function breakQuartoMd(src, validate2 = false, lenient = false) {
     if (typeof src === "string") {
       src = asMappedString(src);
     }
@@ -29115,7 +29118,9 @@ ${tidyverseInfo(
           const { yaml, sourceStartLine } = await partitionCellOptionsMapped(
             language,
             cell.source,
-            validate2
+            validate2,
+            "",
+            lenient
           );
           const breaks = Array.from(lineOffsets(cell.source.value));
           let strUpToLastBreak = "";
