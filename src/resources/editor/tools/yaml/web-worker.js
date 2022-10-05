@@ -19988,12 +19988,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 132335,
+          _internalId: 132274,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 132334,
+              _internalId: 132273,
               type: "enum",
               enum: [
                 "png",
@@ -26550,12 +26550,14 @@ ${reindented}
       return yml;
     }
   }
-  function readAnnotatedYamlFromMappedString(mappedSource2) {
-    const parser = getTreeSitterSync();
-    const tree = parser.parse(mappedSource2.value);
-    const treeSitterAnnotation = buildTreeSitterAnnotation(tree, mappedSource2);
-    if (treeSitterAnnotation) {
-      return treeSitterAnnotation;
+  function readAnnotatedYamlFromMappedString(mappedSource2, lenient = false) {
+    if (lenient) {
+      const parser = getTreeSitterSync();
+      const tree = parser.parse(mappedSource2.value);
+      const treeSitterAnnotation = buildTreeSitterAnnotation(tree, mappedSource2);
+      if (treeSitterAnnotation) {
+        return treeSitterAnnotation;
+      }
     }
     try {
       return buildJsYamlAnnotation(mappedSource2);
@@ -28208,8 +28210,11 @@ ${tidyverseInfo(
     const type2 = typeof value;
     return value !== null && (type2 === "object" || type2 === "function");
   };
-  async function readAndValidateYamlFromMappedString(mappedYaml, schema2, pruneErrors = true) {
-    const annotation = await readAnnotatedYamlFromMappedString(mappedYaml);
+  async function readAndValidateYamlFromMappedString(mappedYaml, schema2, pruneErrors = true, lenient = false) {
+    const annotation = await readAnnotatedYamlFromMappedString(
+      mappedYaml,
+      lenient
+    );
     if (annotation === null) {
       throw new Error("Parse error in readAnnotatedYamlFromMappedString");
     }

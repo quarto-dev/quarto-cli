@@ -41,12 +41,13 @@ function jsYamlParseLenient(yml: string): unknown {
   }
 }
 
-export function readAnnotatedYamlFromString(yml: string) {
-  return readAnnotatedYamlFromMappedString(asMappedString(yml))!;
+export function readAnnotatedYamlFromString(yml: string, lenient = false) {
+  return readAnnotatedYamlFromMappedString(asMappedString(yml), lenient)!;
 }
 
 export function readAnnotatedYamlFromMappedString(
   mappedSource: MappedString,
+  lenient = false,
 ) {
   /*
    * We use both tree-sitter-yaml and js-yaml to get the
@@ -55,13 +56,29 @@ export function readAnnotatedYamlFromMappedString(
    *
    * In addition, tree-sitter-yaml fails to parse some valid yaml, see https://github.com/ikatyang/tree-sitter-yaml/issues/29
    *
-   * In case tree-sitter-yaml fails, then, we use js-yaml.
+   * It also generated incorrect parses for some inputs, like
+   *
+   * foo:
+   *   bar
+   *
+   * tree-sitter parses this as { "foo": { "bar": null } },
+   *
+   * but the correct output should be { "foo": "bar" }
+   *
+   * So we use tree-sitter-yaml if lenient === true, meaning we want
+   * to generate parses on bad inputs (and consequently live with
+   * incorrect tree-sitter parses)
+   *
+   * if lenient === false, we use jsYaml, a compliant parser.
    */
-  const parser = getTreeSitterSync();
-  const tree = parser.parse(mappedSource.value);
-  const treeSitterAnnotation = buildTreeSitterAnnotation(tree, mappedSource);
-  if (treeSitterAnnotation) {
-    return treeSitterAnnotation;
+
+  if (lenient) {
+    const parser = getTreeSitterSync();
+    const tree = parser.parse(mappedSource.value);
+    const treeSitterAnnotation = buildTreeSitterAnnotation(tree, mappedSource);
+    if (treeSitterAnnotation) {
+      return treeSitterAnnotation;
+    }
   }
   try {
     return buildJsYamlAnnotation(mappedSource);

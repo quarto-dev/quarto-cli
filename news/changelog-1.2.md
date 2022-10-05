@@ -202,3 +202,4 @@
 - Provide non-HTML treatment for code block `filename`
 - prevent Chrome CRI race during initialization (#2733)
 - Work around `mermaid-format: svg` diagram clipping (#1622)
+- Don't use tree-sitter outside of interactive IDE contexts (#2502)
