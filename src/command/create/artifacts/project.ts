@@ -37,6 +37,25 @@ const kTitle = "title";
 const kScaffold = "scaffold";
 const kSubdirectory = "subdirectory";
 
+export function parseArgs(args: string[]): Record<string, unknown> {
+  if (args.length > 0) {
+    const type = args[0];
+    if (type) {
+      if (kProjectTypes.includes(type)) {
+        return {
+          type,
+        };
+      } else {
+        return {};
+      }
+    } else {
+      return {};
+    }
+  } else {
+    return {};
+  }
+}
+
 export function nextPrompt(
   createOptions: CreateOptions,
 ): any | undefined {

@@ -4,11 +4,13 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { create, nextPrompt } from "./artifacts/project.ts";
+import { create, nextPrompt, parseArgs } from "./artifacts/project.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 import { prompt, Select } from "cliffy/prompt/mod.ts";
 import { info } from "log/mod.ts";
+
+import { readAllSync } from "streams/conversion.ts";
 
 export interface CreateOptions {
   dir: string;
@@ -23,7 +25,7 @@ export interface CreateOptions {
 // TODO: this any is a nightmare
 interface Artifact {
   name: string;
-  // parseArgs: (args: string[]) => Record<string, unknown>;
+  parseArgs: (args: string[]) => Record<string, unknown>;
   nextPrompt: (options: CreateOptions) => any | undefined;
   create: (options: CreateOptions) => Promise<void>;
 }
@@ -31,8 +33,9 @@ interface Artifact {
 const kArtifacts: Record<string, Artifact> = {
   "project": {
     name: "Project",
-    create: create,
+    parseArgs: parseArgs,
     nextPrompt: nextPrompt,
+    create: create,
   },
 };
 
@@ -43,11 +46,12 @@ export const createCommand = new Command()
     default: ".",
   })
   .option("--no-prompt", "Do not prompt to confirm actions")
-  .arguments("[artifact]")
+  .arguments("[artifact] [commands...]")
   .action(
     async (
       options: { dir?: string | true; prompt: boolean },
       artifact?: string,
+      commands?: string[],
     ) => {
       // TODO: why can dir be 'true'?
       if (
@@ -55,13 +59,13 @@ export const createCommand = new Command()
       ) {
         options.dir = Deno.cwd();
       }
+
+      const commandOpts = commands ? parseArgs(commands) : {};
       const createOptions = {
         dir: options.dir,
         prompt: options.prompt,
-        commandOpts: options as Record<string, unknown>,
+        commandOpts,
       };
-      delete createOptions.commandOpts.dir;
-      delete createOptions.commandOpts.prompt;
 
       // If no artifact has been provided, resolve that
       if (!artifact && options.prompt) {
