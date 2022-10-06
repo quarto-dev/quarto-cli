@@ -45,11 +45,15 @@ export async function readAndValidateYamlFromMappedString(
   mappedYaml: MappedString,
   schema: Schema,
   pruneErrors = true,
+  lenient = false,
 ): Promise<{
   yaml: { [key: string]: unknown };
   yamlValidationErrors: LocalizedError[];
 }> {
-  const annotation = await readAnnotatedYamlFromMappedString(mappedYaml);
+  const annotation = await readAnnotatedYamlFromMappedString(
+    mappedYaml,
+    lenient,
+  );
   // FIXME how do we handle _parse_ errors?
   if (annotation === null) {
     throw new Error("Parse error in readAnnotatedYamlFromMappedString");
