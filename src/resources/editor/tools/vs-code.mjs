@@ -26529,6 +26529,16 @@ function createLocalizedError(obj) {
 }
 
 // annotated-yaml.ts
+function postProcessAnnotation(parse) {
+  if (parse.components.length === 1 && parse.start === parse.components[0].start && parse.end === parse.components[0].end) {
+    return postProcessAnnotation(parse.components[0]);
+  } else {
+    return {
+      ...parse,
+      components: parse.components.map(postProcessAnnotation)
+    };
+  }
+}
 function jsYamlParseLenient(yml) {
   try {
     return load(yml, { schema: QuartoJSONSchema });
@@ -26644,7 +26654,7 @@ function buildJsYamlAnnotation(mappedYaml) {
     );
   }
   JSON.stringify(results[0]);
-  return results[0];
+  return postProcessAnnotation(results[0]);
 }
 function buildTreeSitterAnnotation(tree, mappedSource2) {
   const errors = [];
@@ -27389,7 +27399,7 @@ function validateObject(value, schema2, context) {
   const objResult = value.result;
   const locate = (key, keyOrValue = "value") => {
     for (let i = 0; i < value.components.length; i += 2) {
-      if (value.components[i].result === key) {
+      if (String(value.components[i].result) === key) {
         if (keyOrValue === "value") {
           return value.components[i + 1];
         } else {
@@ -30133,7 +30143,11 @@ async function automationFromGoodParseMarkdown(kind, context) {
     position,
     line
   } = context;
-  const result = await breakQuartoMd(asMappedString(context.code));
+  const result = await breakQuartoMd(
+    asMappedString(context.code),
+    void 0,
+    true
+  );
   const adjustedCellSize = (cell) => {
     const cellLines = lines(cell.source.value);
     let size = cellLines.length;

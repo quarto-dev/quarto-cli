@@ -1,5 +1,5 @@
 /*
-* annotated-yaml.js
+* annotated-yaml.ts
 *
 * Copyright (C) 2021 by RStudio, PBC
 *
@@ -26,6 +26,34 @@ import { tidyverseInfo } from "../errors.ts";
 type TreeSitterParse = any;
 // deno-lint-ignore no-explicit-any
 type TreeSitterNode = any;
+
+// jsYaml sometimes reports "trivial" nested annotations where the span of
+// the internal contents is identical to the outside content. This
+// happens in case of unusually-indented yaml arrays such as
+//
+// foo:
+//   [
+//     a,
+//     b,
+//     c
+//   ]
+//
+// This incorrect annotation breaks our navigation, so we work around it here
+// by normalizing those away.
+function postProcessAnnotation(parse: AnnotatedParse): AnnotatedParse {
+  if (
+    parse.components.length === 1 &&
+    parse.start === parse.components[0].start &&
+    parse.end === parse.components[0].end
+  ) {
+    return postProcessAnnotation(parse.components[0]);
+  } else {
+    return {
+      ...parse,
+      components: parse.components.map(postProcessAnnotation),
+    };
+  }
+}
 
 function jsYamlParseLenient(yml: string): unknown {
   try {
@@ -205,7 +233,7 @@ export function buildJsYamlAnnotation(mappedYaml: MappedString) {
   }
 
   JSON.stringify(results[0]); // this is here so that we throw on circular structures
-  return results[0];
+  return postProcessAnnotation(results[0]);
 }
 
 export function buildTreeSitterAnnotation(
