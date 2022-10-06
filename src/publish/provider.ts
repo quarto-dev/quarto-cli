@@ -90,7 +90,7 @@ export interface PublishProvider {
   name: string;
   description: string;
   requiresServer: boolean;
-  listOriginOnly: boolean;
+  listOriginOnly?: boolean;
   requiresRender?: boolean;
   publishRecord?: (
     input: string | ProjectContext,

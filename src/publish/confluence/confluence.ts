@@ -20,19 +20,16 @@ import { Content, ContentBody, kPageType } from "./api/types.ts";
 import { ensureTrailingSlash } from "../../core/path.ts";
 import { withSpinner } from "../../core/console.ts";
 
-export const kConfluence = "confluence";
-
+export const kConfluenceId = "confluence";
 const kConfluenceDescription = "Confluence";
-
 const kConfluenceDomain = "CONFLUENCE_DOMAIN";
 const kConfluenceUserEmail = "CONFLUENCE_USER_EMAIL";
 const kConfluenceAuthToken = "CONFLUENCE_AUTH_TOKEN";
 
 export const confluenceProvider: PublishProvider = {
-  name: kConfluence,
+  name: kConfluenceId,
   description: kConfluenceDescription,
   requiresServer: true,
-  listOriginOnly: false,
   requiresRender: true,
   accountTokens,
   authorizeToken,
@@ -53,7 +50,7 @@ function accountTokens() {
   }
 
   // read any other tokens that are stored
-  accounts.push(...(readAccessTokens<AccountToken>(kConfluence) || []));
+  accounts.push(...(readAccessTokens<AccountToken>(kConfluenceId) || []));
 
   // return the accounts
   return Promise.resolve(accounts);
@@ -132,17 +129,18 @@ async function authorizeToken(_options: PublishOptions) {
     const client = new ConfluenceClient(accountToken);
     await client.getUser();
   } catch (err) {
-    const msg = err instanceof ApiError
-      ? `${err.status} - ${err.statusText}`
-      : err.message || "Unknown error";
+    const msg =
+      err instanceof ApiError
+        ? `${err.status} - ${err.statusText}`
+        : err.message || "Unknown error";
     throw new Error(`Unable to sign into Confluence account: ${msg}`);
   }
 
   // save it
   writeAccessToken<AccountToken>(
-    kConfluence,
+    kConfluenceId,
     accountToken,
-    (a, b) => a.server === a.server && a.name === b.name,
+    (a, b) => a.server === a.server && a.name === b.name
   );
 
   return Promise.resolve(accountToken);
@@ -150,7 +148,7 @@ async function authorizeToken(_options: PublishOptions) {
 
 function transformAtlassianDomain(domain: string) {
   return ensureTrailingSlash(
-    isHttpUrl(domain) ? domain : `https://${domain}.atlassian.net`,
+    isHttpUrl(domain) ? domain : `https://${domain}.atlassian.net`
   );
 }
 
@@ -159,16 +157,17 @@ function removeToken(token: AccountToken) {
     confluenceProvider.name,
     readAccessTokens<AccountToken>(confluenceProvider.name)?.filter(
       (accessToken) => {
-        return accessToken.server !== token.server &&
-          accessToken.name !== token.name;
-      },
-    ) || [],
+        return (
+          accessToken.server !== token.server && accessToken.name !== token.name
+        );
+      }
+    ) || []
   );
 }
 
 function resolveTarget(
   _account: AccountToken,
-  target: PublishRecord,
+  target: PublishRecord
 ): Promise<PublishRecord | undefined> {
   // TODO: confirm that the specified target exists and return a modified
   // version w/ any update to the URL which has occurred (this may not be
@@ -184,8 +183,10 @@ async function publish(
   _slug: string,
   render: (flags?: RenderFlags) => Promise<PublishFiles>,
   _options: PublishOptions,
-  target?: PublishRecord,
+  target?: PublishRecord
 ): Promise<[PublishRecord, URL | undefined]> {
+  console.log("publish");
+
   // REST api
   const client = new ConfluenceClient(account);
 
@@ -233,40 +234,46 @@ async function publish(
 
     let content: Content | undefined;
     if (target) {
-      await withSpinner({
-        message: `Updating content at ${target.url}...`,
-      }, async () => {
-        // for updates we need to get the existing version and increment by 1
-        const prevContent = await client.getContent(target.id);
+      await withSpinner(
+        {
+          message: `Updating content at ${target.url}...`,
+        },
+        async () => {
+          // for updates we need to get the existing version and increment by 1
+          const prevContent = await client.getContent(target.id);
 
-        // update the content
-        content = await client.updateContent(target.id, {
-          version: { number: (prevContent?.version?.number || 0) + 1 },
-          title,
-          type: kPageType,
-          status: "current",
-          ancestors: null,
-          body,
-        });
-      });
+          // update the content
+          content = await client.updateContent(target.id, {
+            version: { number: (prevContent?.version?.number || 0) + 1 },
+            title,
+            type: kPageType,
+            status: "current",
+            ancestors: null,
+            body,
+          });
+        }
+      );
     } else {
-      await withSpinner({
-        message: `Creating content in space ${parent.space}...`,
-      }, async () => {
-        // for creates we need to get the space info
-        const space = await client.getSpace(parent.space);
+      await withSpinner(
+        {
+          message: `Creating content in space ${parent.space}...`,
+        },
+        async () => {
+          // for creates we need to get the space info
+          const space = await client.getSpace(parent.space);
 
-        // create the content
-        content = await client.createContent({
-          id: null,
-          title,
-          type: kPageType,
-          space,
-          status: "current",
-          ancestors: parent.parent ? [{ id: parent.parent }] : null,
-          body,
-        });
-      });
+          // create the content
+          content = await client.createContent({
+            id: null,
+            title,
+            type: kPageType,
+            space,
+            status: "current",
+            ancestors: parent.parent ? [{ id: parent.parent }] : null,
+            body,
+          });
+        }
+      );
     }
 
     // if we got this far we have the content
@@ -291,7 +298,7 @@ function isUnauthorized(err: Error) {
 }
 
 function isNotFound(err: Error) {
-  return err instanceof ApiError && (err.status === 404);
+  return err instanceof ApiError && err.status === 404;
 }
 
 type ConfluenceParent = {
@@ -299,11 +306,12 @@ type ConfluenceParent = {
   parent?: string;
 };
 
+//TODO Write a Unit Test for this
 function confluenceParent(url: string): ConfluenceParent | undefined {
   // https://rstudiopbc.atlassian.net/wiki/spaces/OPESOUGRO/overview
   // https://rstudiopbc.atlassian.net/wiki/spaces/OPESOUGRO/pages/100565233/Quarto
   const match = url.match(
-    /^https.*?wiki\/spaces\/(?:(\w+)|(\w+)\/overview|(\w+)\/pages\/(\d+).*)$/,
+    /^https.*?wiki\/spaces\/(?:(\w+)|(\w+)\/overview|(\w+)\/pages\/(\d+).*)$/
   );
   if (match) {
     return {
