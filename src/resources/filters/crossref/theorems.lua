@@ -84,12 +84,21 @@ function theorems()
 
           -- prepend the prefix
           local caption = el.content[1]
-          tprepend(caption.content, { 
+          local prefix = { 
             pandoc.Span(
               pandoc.Strong(prefix), 
               pandoc.Attr("", { "theorem-title" })
             )
-          })
+          }
+
+          if caption.content == nil then
+            -- https://github.com/quarto-dev/quarto-cli/issues/2228
+            -- caption doesn't always have a content field; in that case,
+            -- use the parent?
+            tprepend(el.content, prefix)
+          else
+            tprepend(caption.content, prefix)
+          end
         end
 
       else
