@@ -33,6 +33,7 @@ import {
   kWebsite,
 } from "../../project/types/website/website-constants.ts";
 import { basename } from "path/mod.ts";
+import { resolveAndFormatDate } from "../../core/date.ts";
 
 const kDOI = "DOI";
 const kCitation = "citation";
@@ -124,7 +125,7 @@ export function documentCSL(
     ),
   );
   if (csl.editor && csl.editor.length === 0) {
-    csl.editor = undefined;
+    delete csl.editor;
   }
 
   // Categories
@@ -144,13 +145,14 @@ export function documentCSL(
 
   // Date
   const availableDate = citationMetadata[kAvailableDate] ||
-    inputMetadata[kDate];
+    resolveAndFormatDate(input, inputMetadata[kDate]);
   if (availableDate) {
     csl[kAvailableDate] = cslDate(availableDate);
   }
 
   // Issued date
-  const issued = citationMetadata[kIssued] || inputMetadata[kDate];
+  const issued = citationMetadata[kIssued] ||
+    resolveAndFormatDate(input, inputMetadata[kDate]);
   if (issued) {
     csl.issued = cslDate(issued);
   }
