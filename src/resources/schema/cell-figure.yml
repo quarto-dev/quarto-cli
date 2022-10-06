@@ -107,7 +107,7 @@
     anyOf:
       - string
       - schema:
-          null:
+          "null":
             completions: []
   description:
     short: "Width of plot in the output document"

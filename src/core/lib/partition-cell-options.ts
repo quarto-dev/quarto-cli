@@ -96,6 +96,7 @@ export async function parseAndValidateCellOptions(
   language: string,
   validate = false,
   engine = "",
+  lenient = false,
 ) {
   if (mappedYaml.value.trim().length === 0) {
     return undefined;
@@ -119,13 +120,15 @@ export async function parseAndValidateCellOptions(
   }
 
   if (schema === undefined || !validate) {
-    return readAnnotatedYamlFromMappedString(mappedYaml)!.result;
+    return readAnnotatedYamlFromMappedString(mappedYaml, lenient)!.result;
   }
 
   const { yaml, yamlValidationErrors } =
     await readAndValidateYamlFromMappedString(
       mappedYaml,
       schema,
+      undefined,
+      lenient,
     );
 
   if (yamlValidationErrors.length > 0) {
@@ -212,6 +215,7 @@ export async function partitionCellOptionsMapped(
   outerSource: MappedString,
   validate = false,
   engine = "",
+  lenient = false,
 ) {
   const {
     yaml: mappedYaml,
@@ -229,6 +233,7 @@ export async function partitionCellOptionsMapped(
       language,
       validate,
       engine,
+      lenient,
     );
 
     return {

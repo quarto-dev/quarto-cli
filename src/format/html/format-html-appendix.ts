@@ -203,7 +203,7 @@ export async function processDocumentAppendix(
             bibTexLabelEl.classList.add(kQuartoSecondaryLabelClass);
             bibTexLabelEl.innerText =
               format.language[kAppendixAttributionBibTex] ||
-              "BibTeX citation";
+              "BibLaTeX citation";
             contentsDiv.appendChild(bibTexLabelEl);
 
             const bibTexDiv = createCodeBlock(doc, cite.bibtex, "bibtex");

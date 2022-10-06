@@ -11327,6 +11327,7 @@
     "Document title",
     "Identifies the subtitle of the document.",
     "Document date",
+    "Document date modified",
     "Author or authors of the document",
     {
       "short": "The list of organizations with which contributors are affiliated.",
@@ -12791,8 +12792,7 @@
       "long": "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
     },
     "Disambiguating year suffix in author-date styles (e.g.&nbsp;“a” in “Doe,\n1999a”).",
-    "internal-schema-hack",
-    "Document date modified"
+    "internal-schema-hack"
   ],
   "schema/external-schemas.yml": [
     {
@@ -13005,12 +13005,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 132075,
+    "_internalId": 132274,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 132074,
+        "_internalId": 132273,
         "type": "enum",
         "enum": [
           "png",
