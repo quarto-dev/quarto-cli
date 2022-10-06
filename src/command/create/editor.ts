@@ -11,12 +11,20 @@ import { which } from "../../core/path.ts";
 import { dirname } from "path/win32.ts";
 
 export interface Editor {
+  // A short, command line friendly id
+  id: string;
+
+  // A display name
   name: string;
+
+  // The cmd to open the editor
   cmd: string[];
+
+  // The working directory to use when opening the editor
   cwd?: string;
 }
 
-export const kEditorScanners: EditorInfo[] = [
+export const kEditorInfos: EditorInfo[] = [
   vscodeEditorInfo(),
   rstudioEditorInfo(),
 ];
@@ -30,6 +38,7 @@ export async function scanForEditors(
     const editorPath = await findEditorPath(editorInfo.actions);
     if (editorPath) {
       editors.push({
+        id: editorInfo.id,
         name: editorInfo.name,
         cmd: editorInfo.cmd(editorPath, artifactPath),
         cwd: editorInfo.cwd(artifactPath),
@@ -40,6 +49,7 @@ export async function scanForEditors(
 }
 
 interface EditorInfo {
+  id: string;
   name: string;
   actions: ScanAction[];
   cmd: (path: string, artifactPath: string) => string[];
@@ -53,6 +63,7 @@ interface ScanAction {
 
 function vscodeEditorInfo(): EditorInfo {
   const editorInfo: EditorInfo = {
+    id: "vscode",
     name: "Visual Studio Code",
     cmd: (path: string, artifactPath: string) => {
       return [path, artifactPath];
@@ -111,6 +122,7 @@ function vscodeEditorInfo(): EditorInfo {
 
 function rstudioEditorInfo(): EditorInfo {
   const editorInfo: EditorInfo = {
+    id: "rstudio",
     name: "RStudio",
     cmd: (path: string, artifactPath: string) => {
       if (path.endsWith(".app") && Deno.build.os === "darwin") {

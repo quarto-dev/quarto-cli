@@ -12,7 +12,7 @@ import { info } from "log/mod.ts";
 import { isInteractiveTerminal } from "../../core/platform.ts";
 import { runningInCI } from "../../core/ci-info.ts";
 import { execProcess } from "../../core/process.ts";
-import { kEditorScanners, scanForEditors } from "./editor.ts";
+import { kEditorInfos, scanForEditors } from "./editor.ts";
 
 // TODO: JSON stdin?
 // If JSON provided, make completely non-interactive (must provide all required)
@@ -61,11 +61,22 @@ export const createCommand = new Command()
   .option("-d, --dir [dir:string]", "Directory in which to create artifact", {
     default: ".",
   })
+  .option(
+    "--open [editor:string]",
+    `Open new artifact in this editor (${
+      kEditorInfos.map((info) => info.id).join(",")
+    })`,
+  )
+  .option("--no-open", "Do not open in an editor")
   .option("--no-prompt", "Do not prompt to confirm actions")
   .arguments("[type] [commands...]")
   .action(
     async (
-      options: { dir?: string | true; prompt: boolean },
+      options: {
+        dir?: string | true;
+        prompt: boolean;
+        open?: string | boolean;
+      },
       type?: string,
       commands?: string[],
     ) => {
@@ -127,12 +138,15 @@ export const createCommand = new Command()
         );
 
         // Now that the article was created, offer to open the item
-        if (allowPrompt) {
-          const editor = await promptForEditor(artifactPath);
-          if (editor) {
+        if (allowPrompt && options.open !== false) {
+          const resolvedEditor = await resolveEditor(
+            artifactPath,
+            typeof (options.open) === "string" ? options.open : undefined,
+          );
+          if (resolvedEditor) {
             execProcess({
-              cmd: editor.cmd,
-              cwd: editor.cwd,
+              cmd: resolvedEditor.cmd,
+              cwd: resolvedEditor.cwd,
             });
           }
         }
@@ -194,26 +208,34 @@ const promptForType = async () => {
   });
 };
 
-const promptForEditor = async (artifactPath: string) => {
-  const editors = await scanForEditors(kEditorScanners, artifactPath);
-  const editorOptions = editors.map((editor) => {
-    return {
-      name: editor.name.toLowerCase(),
-      value: editor.name,
-    };
+const resolveEditor = async (artifactPath: string, editor?: string) => {
+  const editors = await scanForEditors(kEditorInfos, artifactPath);
+
+  const defaultEditor = editors.find((ed) => {
+    return ed.id === editor;
   });
+  if (defaultEditor) {
+    return defaultEditor;
+  } else {
+    const editorOptions = editors.map((editor) => {
+      return {
+        name: editor.name.toLowerCase(),
+        value: editor.name,
+      };
+    });
 
-  // Add an option to not open
-  const options = [...editorOptions, {
-    name: "do not open",
-    value: "do not open",
-  }];
+    // Add an option to not open
+    const options = [...editorOptions, {
+      name: "do not open",
+      value: "do not open",
+    }];
 
-  const name = await Select.prompt({
-    message: "Open with",
-    options: options,
-  });
+    const name = await Select.prompt({
+      message: "Open with",
+      options: options,
+    });
 
-  const editor = editors.find((edit) => edit.name === name);
-  return editor;
+    const selectedEditor = editors.find((edit) => edit.name === name);
+    return selectedEditor;
+  }
 };
