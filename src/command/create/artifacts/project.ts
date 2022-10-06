@@ -43,6 +43,8 @@ const kDefaultDirectory = "project";
 
 const kTypeProj = "project";
 
+const kProjectCreateTypes = [...kProjectTypes, kBlogTypeAlias];
+
 export const projectArtifactCreator: ArtifactCreator = {
   displayName: "Project",
   type: kTypeProj,
@@ -54,25 +56,11 @@ export const projectArtifactCreator: ArtifactCreator = {
 };
 
 function resolveAlias(alias: string) {
-  if (alias === "book") {
+  if (kProjectCreateTypes.includes(alias)) {
     return {
       type: kTypeProj,
       options: {
-        type: "book",
-      },
-    };
-  } else if (alias === "website") {
-    return {
-      type: kTypeProj,
-      options: {
-        type: "website",
-      },
-    };
-  } else if (alias === "blog") {
-    return {
-      type: kTypeProj,
-      options: {
-        type: "blog",
+        type: alias,
       },
     };
   } else {
@@ -88,7 +76,7 @@ function resolveOptions(args: string[]): Record<string, unknown> {
 
   const options: Record<string, unknown> = {};
   if (typeRaw) {
-    if (kProjectTypes.includes(typeRaw) || typeRaw === kBlogTypeAlias) {
+    if (kProjectCreateTypes.includes(typeRaw)) {
       // This is a recognized type
       options[kType] = typeRaw;
     }
@@ -161,10 +149,9 @@ function nextPrompt(
 ) {
   // First ensure that there is a type
   if (!createOptions.commandOpts[kType]) {
-    const types = [...kProjectTypes, kBlogTypeAlias];
     const typeOrder = ["default", "website", kBlogTypeAlias, "book"];
 
-    const orderedTypes = types.sort((t1, t2) => {
+    const orderedTypes = kProjectCreateTypes.sort((t1, t2) => {
       if (t1 === t2) {
         return 0;
       } else if (typeOrder.indexOf(t1) === -1) {

@@ -17,8 +17,8 @@ export interface Editor {
 }
 
 export const kEditorScanners: EditorInfo[] = [
-  vscodeScanInfo(),
-  rstudioScanInfo(),
+  vscodeEditorInfo(),
+  rstudioEditorInfo(),
 ];
 
 export async function scanForEditors(
@@ -51,7 +51,7 @@ interface ScanAction {
   arg: string;
 }
 
-function vscodeScanInfo(): EditorInfo {
+function vscodeEditorInfo(): EditorInfo {
   const editorInfo: EditorInfo = {
     name: "Visual Studio Code",
     cmd: (path: string, artifactPath: string) => {
@@ -109,7 +109,7 @@ function vscodeScanInfo(): EditorInfo {
   return editorInfo;
 }
 
-function rstudioScanInfo(): EditorInfo {
+function rstudioEditorInfo(): EditorInfo {
   const editorInfo: EditorInfo = {
     name: "RStudio",
     cmd: (path: string, artifactPath: string) => {
