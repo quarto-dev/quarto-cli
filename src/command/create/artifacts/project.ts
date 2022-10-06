@@ -41,14 +41,44 @@ const kBlogTypeAlias = "blog";
 
 const kDefaultDirectory = "project";
 
+const kTypeProj = "project";
+
 export const projectArtifactCreator: ArtifactCreator = {
   displayName: "Project",
-  type: "project",
+  type: kTypeProj,
+  resolveAlias,
   resolveOptions,
   finalizeOptions,
   nextPrompt,
   createArtifact,
 };
+
+function resolveAlias(alias: string) {
+  if (alias === "book") {
+    return {
+      type: kTypeProj,
+      options: {
+        type: "book",
+      },
+    };
+  } else if (alias === "website") {
+    return {
+      type: kTypeProj,
+      options: {
+        type: "website",
+      },
+    };
+  } else if (alias === "blog") {
+    return {
+      type: kTypeProj,
+      options: {
+        type: "blog",
+      },
+    };
+  } else {
+    return undefined;
+  }
+}
 
 function resolveOptions(args: string[]): Record<string, unknown> {
   // The first argument is the type (website, default, etc...)

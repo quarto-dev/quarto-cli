@@ -28,6 +28,12 @@ export interface ArtifactCreator {
   // The identifier for this artifact type
   type: string;
 
+  // Allow the artifact creators to resolve an unknown type
+  // into a type (for example quarto create blog)
+  resolveAlias?: (
+    alias: string,
+  ) => { type: string; options?: Record<string, unknown> } | undefined;
+
   // artifact creators are passed any leftover args from the create command
   // and may use those arguments to populate the options
   resolveOptions: (args: string[]) => Record<string, unknown>;
@@ -83,14 +89,20 @@ export const createCommand = new Command()
         isInteractiveTerminal() && !runningInCI();
 
       // Resolve the type into an artifact
-      const resolvedArtifact = await resolveArtifact(type, options.prompt);
+      const resolved = await resolveArtifact(
+        type,
+        options.prompt,
+      );
+      const resolvedArtifact = resolved.artifact;
+      const resolvedOptions = resolved.options;
 
       if (resolvedArtifact) {
-        // Resolve the argumenst that the user provided into options
+        // Resolve the arguments that the user provided into options
         // for the artifact provider
-        const commandOpts = commands
-          ? resolvedArtifact.resolveOptions(commands)
-          : {};
+        const commandOpts = {
+          ...resolvedOptions,
+          ...(commands ? resolvedArtifact.resolveOptions(commands) : {}),
+        };
         const createOptions = {
           dir: options.dir,
           commandOpts,
@@ -123,7 +135,6 @@ export const createCommand = new Command()
         if (allowPrompt) {
           const editor = await promptForEditor(artifactPath);
           if (editor) {
-            console.log(editor);
             execProcess({
               cmd: editor.cmd,
               cwd: editor.cwd,
@@ -147,6 +158,22 @@ const resolveArtifact = async (type?: string, prompt?: boolean) => {
 
   // Use the provided type to search (or prompt the user)
   let artifact = type ? findArtifact(type) : undefined;
+  let options: Record<string, unknown> = {};
+
+  // See if anyone recognizes this alias
+  if (type) {
+    for (const creator of kArtifactCreators) {
+      if (creator.resolveAlias) {
+        const result = creator.resolveAlias(type);
+        if (result) {
+          artifact = findArtifact(result.type);
+          options = result.options || {};
+          break;
+        }
+      }
+    }
+  }
+
   while (artifact === undefined) {
     if (!prompt) {
       // We can't prompt to resolve this, so just throw an Error
@@ -170,7 +197,10 @@ const resolveArtifact = async (type?: string, prompt?: boolean) => {
     // Find the type (this should always work since we provided the id)
     artifact = findArtifact(type);
   }
-  return artifact;
+  return {
+    artifact,
+    options,
+  };
 };
 
 const promptForType = async () => {
