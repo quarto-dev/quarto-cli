@@ -11,6 +11,8 @@ import { prompt, Select } from "cliffy/prompt/mod.ts";
 import { info } from "log/mod.ts";
 import { isInteractiveTerminal } from "../../core/platform.ts";
 import { runningInCI } from "../../core/ci-info.ts";
+import { execProcess } from "../../core/process.ts";
+import { kEditorScanners, scanForEditors } from "./editor.ts";
 
 // TODO: JSON stdin?
 // If JSON provided, make completely non-interactive (must provide all required)
@@ -41,7 +43,8 @@ export interface ArtifactCreator {
   nextPrompt: (options: CreateOptions) => any | undefined; // TODO: this any is a nightmare
 
   // Creates the artifact using the specified options
-  createArtifact: (options: CreateOptions) => Promise<void>;
+  // Returns the path to the created artifact
+  createArtifact: (options: CreateOptions) => Promise<string>;
 
   // Set this to false to exclude this artifact type from the create command
   enabled?: boolean;
@@ -112,7 +115,21 @@ export const createCommand = new Command()
         resolvedArtifact.finalizeOptions(createOptions);
 
         // Create the artifact using the options
-        await resolvedArtifact.createArtifact(createOptions);
+        const artifactPath = await resolvedArtifact.createArtifact(
+          createOptions,
+        );
+
+        // Now that the article was created, offer to open the item
+        if (allowPrompt) {
+          const editor = await promptForEditor(artifactPath);
+          if (editor) {
+            console.log(editor);
+            execProcess({
+              cmd: editor.cmd,
+              cwd: editor.cwd,
+            });
+          }
+        }
       }
     },
   );
@@ -166,4 +183,28 @@ const promptForType = async () => {
       };
     }),
   });
+};
+
+const promptForEditor = async (artifactPath: string) => {
+  const editors = await scanForEditors(kEditorScanners, artifactPath);
+  const editorOptions = editors.map((editor) => {
+    return {
+      name: editor.name.toLowerCase(),
+      value: editor.name,
+    };
+  });
+
+  // Add an option to not open
+  const options = [...editorOptions, {
+    name: "do not open",
+    value: "do not open",
+  }];
+
+  const name = await Select.prompt({
+    message: "Open with",
+    options: options,
+  });
+
+  const editor = editors.find((edit) => edit.name === name);
+  return editor;
 };

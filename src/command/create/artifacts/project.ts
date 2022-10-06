@@ -221,11 +221,12 @@ async function createArtifact(createOptions: CreateOptions) {
   }
 
   const subdirectory = createOptions.commandOpts["subdirectory"] as string;
+  const fullPath = subdirectory
+    ? join(createOptions.dir, subdirectory)
+    : createOptions.dir;
 
   await projectCreate({
-    dir: subdirectory
-      ? join(createOptions.dir, subdirectory)
-      : createOptions.dir,
+    dir: fullPath,
     type: type,
     title: createTitle || basename(createOptions.dir),
     scaffold: !!options.scaffold,
@@ -237,4 +238,6 @@ async function createArtifact(createOptions: CreateOptions) {
     envPackages,
     template: projectTemplate,
   });
+
+  return fullPath;
 }
