@@ -274,13 +274,18 @@ export function codeToolsPostprocessor(format: Format) {
           }
 
           // if code is statically hidden, hide code-tools chrome as well.
-          // note that we're querying on pre.hidden and not div.hidden
-          // because the hidden class hasn't been hoisted to the parent by
-          // the html postprocessor yet.
+
+          // note that we're querying on pre.hidden and div.hidden both
+          //
+          // because for regular code cells, the hidden class hasn't been
+          // hoisted to the parent by the html postprocessor yet,
+          // but for OJS cells, they're emitted as hidden from the start.
 
           for (
             const el of Array.from(
-              doc.querySelectorAll("details div pre.hidden"),
+              doc.querySelectorAll(
+                "details div pre.hidden",
+              ),
             )
           ) {
             const det = el.parentElement!.parentElement;
@@ -329,9 +334,12 @@ function resolveCodeTools(format: Format, doc: Document): CodeTools {
   // if we have requested toggle, make sure there are things to toggle
   if (codeToolsResolved.toggle) {
     const codeDetails = doc.querySelector(".cell > details > .sourceCode");
-    const codeHidden = doc.querySelector(".cell .sourceCode.hidden");
-    codeToolsResolved.toggle = codeToolsResolved.toggle &&
-      (!!codeDetails || !!codeHidden);
+
+    // we don't OJS hidden cells in this check, since when echo: false, we emit them hidden
+    const codeHidden = doc.querySelector(
+      ".cell .sourceCode.hidden:not(div pre.js)",
+    );
+    codeToolsResolved.toggle = !!codeDetails || !!codeHidden;
   }
 
   // return resolved

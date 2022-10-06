@@ -19,29 +19,37 @@ export function ojsParseError(
     "",
   );
 
-  // console.log({
-  //   ojsSource,
-  //   pos: acornError.pos
-  // });
-
   const { line, column } = mappedIndexToLineCol(ojsSource)(acornError.pos)!;
-  /*const { index, originalString } = ojsSource.map(acornError.pos, true)!;
-  const { line, column } = indexToLineCol(
-    originalString.value,
-  )(index);*/
+
+  const errLines: string[] = [];
+  const ourError = (msg: string) => {
+    if (msg.length) {
+      errLines.push(msg);
+    }
+  };
 
   const errMsg = `OJS parsing failed on line ${line + 1}, column ${column + 1}`;
-  error(errMsg);
-  error(acornMsg);
-  error("----- OJS Source:");
+  ourError(errMsg);
+  ourError(acornMsg);
+  if (
+    acornMsg.endsWith("Unexpected character '#'") &&
+    ojsSource.value.slice(acornError.pos, acornError.pos + 2) === "#|"
+  ) {
+    ourError("\n(Did you mean to use '//|' instead?)\n");
+  }
+  ourError("----- OJS Source:");
   const ojsSourceSplit = ojsSource.value.split("\n");
   for (let i = 0; i < ojsSourceSplit.length; ++i) {
-    error(ojsSourceSplit[i]);
+    ourError(ojsSourceSplit[i]);
     if (i + 1 === acornError.loc.line) {
-      error(" ".repeat(acornError.loc.column) + "^");
+      ourError(" ".repeat(acornError.loc.column) + "^");
     }
   }
-  error("-----");
+  ourError("-----");
+
+  if (errLines.length) {
+    error(errLines.join("\n"));
+  }
 }
 
 // FIXME Figure out line numbering story for error reporting

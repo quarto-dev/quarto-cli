@@ -18,6 +18,8 @@
 - support `revealjs` and `html` formats in `width` builtin, fallback gracefully otherwise (#2058)
 - Don't emit `ojs_define` HTML in non-html formats (#2338)
 - Support jszip and exceljs (#1981)
+- Improve error messages when cell options are specified with wrong comment syntax (#1856)
+- Hide `code-fold` chrome when OJS code is hidden (#2134)
 
 ## Extensions
 
