@@ -132,7 +132,7 @@ export async function projectContext(
   const configSchema = await getProjectConfigSchema();
   const configResolvers = [
     quartoYamlProjectConfigResolver(configSchema),
-    await builtinProjectExtensionsConfigResolver(extensionContext),
+    await projectExtensionsConfigResolver(extensionContext, dir),
   ];
 
   while (true) {
@@ -376,12 +376,13 @@ type ProjectTypeDetector = {
   detect: string[][];
 };
 
-async function builtinProjectExtensionsConfigResolver(
+async function projectExtensionsConfigResolver(
   context: ExtensionContext,
+  dir: string,
 ) {
   // load built-in project types and see if they have detectors
   const projectTypeDetectors: ProjectTypeDetector[] =
-    (await context.extensions()).reduce(
+    (await context.extensions(dir)).reduce(
       (projectTypeDetectors, extension) => {
         if (extension.contributes.project) {
           const project = extension.contributes.project as
