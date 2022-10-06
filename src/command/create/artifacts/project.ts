@@ -48,25 +48,11 @@ const kProjectCreateTypes = [...kProjectTypes, kBlogTypeAlias];
 export const projectArtifactCreator: ArtifactCreator = {
   displayName: "Project",
   type: kTypeProj,
-  resolveAlias,
   resolveOptions,
   finalizeOptions,
   nextPrompt,
   createArtifact,
 };
-
-function resolveAlias(alias: string) {
-  if (kProjectCreateTypes.includes(alias)) {
-    return {
-      type: kTypeProj,
-      options: {
-        type: alias,
-      },
-    };
-  } else {
-    return undefined;
-  }
-}
 
 function resolveOptions(args: string[]): Record<string, unknown> {
   // The first argument is the type (website, default, etc...)

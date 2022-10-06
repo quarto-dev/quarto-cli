@@ -28,12 +28,6 @@ export interface ArtifactCreator {
   // The identifier for this artifact type
   type: string;
 
-  // Allow the artifact creators to resolve an unknown type
-  // into a type (for example quarto create blog)
-  resolveAlias?: (
-    alias: string,
-  ) => { type: string; options?: Record<string, unknown> } | undefined;
-
   // artifact creators are passed any leftover args from the create command
   // and may use those arguments to populate the options
   resolveOptions: (args: string[]) => Record<string, unknown>;
@@ -94,9 +88,6 @@ export const createCommand = new Command()
         options.prompt,
       );
       const resolvedArtifact = resolved.artifact;
-      const resolvedOptions = resolved.options;
-      const aliased = resolved.aliased;
-
       if (resolvedArtifact) {
         // Resolve the arguments that the user provided into options
         // for the artifact provider
@@ -104,14 +95,9 @@ export const createCommand = new Command()
         // If we aliased the type, shift the args (including what was
         // the type alias in the list of args for the artifact creator
         // to resolve)
-        const args = (aliased
-          ? type ? [type, ...(commands || [])] : commands
-          : commands) || [];
+        const args = commands || [];
 
-        const commandOpts = {
-          ...resolvedOptions,
-          ...(commands ? resolvedArtifact.resolveOptions(args) : {}),
-        };
+        const commandOpts = resolvedArtifact.resolveOptions(args);
         const createOptions = {
           dir: options.dir,
           commandOpts,
@@ -167,23 +153,6 @@ const resolveArtifact = async (type?: string, prompt?: boolean) => {
 
   // Use the provided type to search (or prompt the user)
   let artifact = type ? findArtifact(type) : undefined;
-  let options: Record<string, unknown> = {};
-  let aliased = false;
-
-  // See if anyone recognizes this alias
-  if (type) {
-    for (const creator of kArtifactCreators) {
-      if (creator.resolveAlias) {
-        const result = creator.resolveAlias(type);
-        if (result) {
-          artifact = findArtifact(result.type);
-          options = result.options || {};
-          aliased = true;
-          break;
-        }
-      }
-    }
-  }
 
   while (artifact === undefined) {
     if (!prompt) {
@@ -210,8 +179,6 @@ const resolveArtifact = async (type?: string, prompt?: boolean) => {
   }
   return {
     artifact,
-    options,
-    aliased,
   };
 };
 
