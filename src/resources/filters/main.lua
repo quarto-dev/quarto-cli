@@ -123,7 +123,6 @@ import("./quarto-pre/panel-input.lua")
 import("./quarto-pre/panel-layout.lua")
 import("./quarto-pre/panel-sidebar.lua")
 import("./quarto-pre/panel-tabset.lua")
-import("./quarto-pre/profile.lua")
 import("./quarto-pre/project-paths.lua")
 import("./quarto-pre/resourcefiles.lua")
 import("./quarto-pre/results.lua")
@@ -175,7 +174,6 @@ local quartoPre = {
   { name = "pre-outputLocation", filter = outputLocation() },
   { name = "pre-combined-figures-theorems-etc", filter = combineFilters({
     fileMetadata(),
-    configProfile(),
     indexBookFileTargets(),
     bookNumbering(),
     includePaths(),
