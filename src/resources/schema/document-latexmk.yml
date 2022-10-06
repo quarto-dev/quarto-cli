@@ -69,3 +69,10 @@
     formats: [pdf, beamer]
   schema: boolean
   description: "Set to `false` to prevent an installation of TinyTex from being used to compile PDF documents."
+
+- name: latex-input-paths
+  tags:
+    formats: [pdf, beamer]
+  schema:
+    arrayOf: string
+  description: "Array of paths LaTeX should search for inputs."

@@ -47,15 +47,15 @@ export function contentType(path: string): string | undefined {
 }
 
 export function isPdfContent(path?: string) {
-  return path && contentType(path) === kApplicationPdf;
+  return !!path && contentType(path) === kApplicationPdf;
 }
 
 export function isHtmlContent(path?: string) {
-  return path && contentType(path) === kTextHtml;
+  return !!path && contentType(path) === kTextHtml;
 }
 
 export function isTextContent(path?: string) {
-  return path &&
+  return !!path &&
     (contentType(path) === kTextMarkdown ||
       contentType(path) === kTextPlain);
 }

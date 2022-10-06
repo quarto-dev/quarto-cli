@@ -102,6 +102,28 @@ mermaid.initialize();
       ),
     ]];
 
+    const setupMermaidSvgJsRuntime = () => {
+      if (handlerContext.getState().hasSetupMermaidSvgJsRuntime) {
+        return;
+      }
+      handlerContext.getState().hasSetupMermaidSvgJsRuntime = true;
+
+      const dep: FormatDependency = {
+        name: "quarto-diagram",
+        scripts: [
+          {
+            name: "mermaid-postprocess-shim.js",
+            path: formatResourcePath(
+              "html",
+              join("mermaid", "mermaid-postprocess-shim.js"),
+            ),
+            afterBody: true,
+          },
+        ],
+      };
+      handlerContext.addHtmlDependency(dep);
+    };
+
     const setupMermaidJsRuntime = () => {
       if (handlerContext.getState().hasSetupMermaidJsRuntime) {
         return;
@@ -167,6 +189,7 @@ mermaid.initialize();
       ?.[kFigResponsive];
 
     const makeSvg = async () => {
+      setupMermaidSvgJsRuntime();
       let svg = asMappedString(
         (await handlerContext.extractHtml({
           html: content,

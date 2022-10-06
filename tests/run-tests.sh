@@ -37,7 +37,7 @@ if [[ $QUARTO_TESTS_VIRTUALENV != "FALSE" ]]; then
 fi
 
 # Ensure that tinytex is installed
-quarto install tool tinytex --no-prompt
+quarto install tinytex --no-prompt
 
 "${DENO_DIR}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_ARGMAP}" $@
 

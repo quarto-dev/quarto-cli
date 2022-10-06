@@ -29,8 +29,7 @@ import { haveArrowKeys } from "../../core/platform.ts";
 export const removeCommand = new Command()
   .hidden()
   .name("remove")
-  .arguments("[target:string]")
-  .arguments("<type:string> [target:string]")
+  .arguments("[target...]")
   .option(
     "--no-prompt",
     "Do not prompt to confirm actions",
@@ -42,42 +41,48 @@ export const removeCommand = new Command()
   .option(
     "--update-path",
     "Update system path when a tool is installed",
+    {
+      hidden: true,
+    },
   )
   .description(
-    "Removes an extension or global dependency.",
+    "Removes an extension.",
   )
   .example(
     "Remove extension using name",
-    "quarto remove extension <extension-name>",
-  )
-  .example(
-    "Choose extensions to remove",
-    "quarto remove extension",
-  )
-  .example(
-    "Remove TinyTeX",
-    "quarto remove tool tinytex",
-  )
-  .example(
-    "Remove Chromium",
-    "quarto remove tool chromium",
-  )
-  .example(
-    "Choose tools to remove",
-    "quarto remove tool",
+    "quarto remove <extension-name>",
   )
   .action(
     async (
       options: { prompt?: boolean; embed?: string; updatePath?: boolean },
-      type: string,
-      target?: string,
+      target?: string[],
     ) => {
       await initYamlIntelligenceResourcesFromFilesystem();
       const temp = createTempContext();
       const extensionContext = createExtensionContext();
 
+      // -- update path
       try {
-        if (type.toLowerCase() === "extension") {
+        const resolved = resolveCompatibleArgs(target || [], "extension");
+        if (resolved.action === "tool") {
+          if (resolved.name) {
+            // Explicitly provided
+            await removeTool(resolved.name, options.prompt, options.updatePath);
+          } else {
+            // Not provided, give the user a list to choose from
+            const allTools = await loadTools();
+            if (allTools.filter((tool) => tool.installed).length === 0) {
+              info("No tools are installed.");
+            } else {
+              // Select which tool should be installed
+              const toolTarget = await selectTool(allTools, "remove");
+              if (toolTarget) {
+                info("");
+                await removeTool(toolTarget);
+              }
+            }
+          }
+        } else {
           // Not provided, give the user a list to select from
           const workingDir = Deno.cwd();
 
@@ -103,10 +108,10 @@ export const removeCommand = new Command()
           const targetDir = await resolveTargetDir();
 
           // Process extension
-          if (target) {
+          if (resolved.name) {
             // explicitly provided
             const extensions = await extensionContext.find(
-              target,
+              resolved.name,
               targetDir,
               undefined,
               undefined,
@@ -138,36 +143,74 @@ export const removeCommand = new Command()
               info("No extensions installed.");
             }
           }
-        } else if (type.toLowerCase() === "tool") {
-          // Process tool
-          if (target) {
-            // Explicitly provided
-            await removeTool(target, options.prompt, options.updatePath);
-          } else {
-            // Not provided, give the user a list to choose from
-            const allTools = await loadTools();
-            if (allTools.filter((tool) => tool.installed).length === 0) {
-              info("No tools are installed.");
-            } else {
-              // Select which tool should be installed
-              const toolTarget = await selectTool(allTools, "remove");
-              if (toolTarget) {
-                info("");
-                await removeTool(toolTarget);
-              }
-            }
-          }
-        } else {
-          // This is an unrecognized type option
-          info(
-            `Unrecognized option '${type}' - please choose 'tool' or 'extension'.`,
-          );
         }
       } finally {
         temp.cleanup();
       }
     },
   );
+
+// note that we're using variadic arguments here to preserve backware compatibility.
+export const resolveCompatibleArgs = (
+  args: string[],
+  defaultAction: "extension" | "tool",
+): {
+  action: string;
+  name?: string;
+} => {
+  if (args.length === 1) {
+    // tool
+    // extension
+    // quarto-ext/lightbox
+    const extname = args[0];
+    if (extname === "tool") {
+      return {
+        action: "tool",
+      };
+    } else if (extname === "extension") {
+      return {
+        action: "extension",
+      };
+    } else if (extname === "tinytex" || extname === "chromium") {
+      return {
+        action: "tool",
+        name: args[0],
+      };
+    } else {
+      return {
+        action: defaultAction,
+        name: args[0],
+      };
+    }
+  } else if (args.length > 1) {
+    // tool chromium
+    // tool tinytex
+    // extension quarto-ext/lightbox
+    const action = args[0];
+    const name = args[1];
+
+    if (action === "tool") {
+      return {
+        action,
+        name,
+      };
+    } else if (action === "extension") {
+      return {
+        action: "extension",
+        name,
+      };
+    } else {
+      return {
+        action: defaultAction,
+        name,
+      };
+    }
+  } else {
+    return {
+      action: defaultAction,
+    };
+  }
+};
 
 function removeExtensions(extensions: Extension[], prompt?: boolean) {
   const removeOneExtension = async (extension: Extension) => {

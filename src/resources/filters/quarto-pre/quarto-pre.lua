@@ -70,7 +70,6 @@ import("panel-input.lua")
 import("panel-layout.lua")
 import("hidden.lua")
 import("content-hidden.lua")
-import("profile.lua")
 import("line-numbers.lua")
 import("output-location.lua")
 import("include-paths.lua")
@@ -96,7 +95,6 @@ local filterList = {
   { name = "outputLocation", filter = outputLocation() },
   { name = "combined-figures-theorems-etc", filter = combineFilters({
     fileMetadata(),
-    configProfile(),
     indexBookFileTargets(),
     bookNumbering(),
     includePaths(),

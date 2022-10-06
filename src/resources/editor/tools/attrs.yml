@@ -50,6 +50,14 @@
       doc: "Make content hidden for a given format."
     - value: '.content-hidden unless-format="$0"'
       doc: "Make content hidden except for a given format."
+    - value: '.content-visible when-profile="$0"'
+      doc: "Make content visible for a given profile."
+    - value: '.content-visible unless-profile="$0"'
+      doc: "Make content visible except for a given profile."
+    - value: '.content-hidden when-profile="$0"'
+      doc: "Make content hidden for a given profile."
+    - value: '.content-hidden unless-profile"$0"'
+      doc: "Make content hidden except for a given profile."
 
 - group: "contentAttribs"
   contexts: [div]

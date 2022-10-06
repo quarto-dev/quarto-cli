@@ -54,7 +54,23 @@ end
 
 function renderDivColumn(el) 
 
-  if el.identifier and el.identifier:find("^lst%-") then
+  -- for html output that isn't reveal...
+  if _quarto.format.isHtmlOutput() and not _quarto.format.isHtmlSlideOutput() then
+
+    -- For HTML output, note that any div marked an aside should
+    -- be marked a column-margin element (so that it is processed 
+    -- by post processors). 
+    -- For example: https://github.com/quarto-dev/quarto-cli/issues/2701
+    if el.attr.classes and tcontains(el.attr.classes, 'aside') then
+      noteHasColumns()
+      el.attr.classes = el.attr.classes:filter(function(attr) 
+        return attr ~= "aside"
+      end)
+      tappend(el.attr.classes, {'column-margin'})
+      return el
+    end
+
+  elseif el.identifier and el.identifier:find("^lst%-") then
     -- for listings, fetch column classes from sourceCode element
     -- and move to the appropriate spot (e.g. caption, container div)
     local captionEl = el.content[1]
