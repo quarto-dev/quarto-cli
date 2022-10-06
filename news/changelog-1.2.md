@@ -47,6 +47,7 @@
 - Support installation of extensions from with subdirectories of a github repo
 - Lua `require` can now find modules adjacent to the current script
 - Use snake case for Quarto Lua API functions (match Pandoc API)
+- Fix theorem captions when there's no text (#2166, #2228)
 
 ## Projects
 

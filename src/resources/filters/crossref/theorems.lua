@@ -78,8 +78,8 @@ function theorems()
           end
 
           -- If this theorem has no content, then create a placeholder
-          if #el.content == 0 then
-            el.content[1] = pandoc.Para({})
+          if #el.content == 0 or el.content[1].t ~= "Para" then
+            tprepend(el.content, {pandoc.Para({})})
           end
 
           -- prepend the prefix
