@@ -123,6 +123,9 @@ export function documentCSL(
       editor?.name
     ),
   );
+  if (csl.editor && csl.editor.length === 0) {
+    csl.editor = undefined;
+  }
 
   // Categories
   const categories =
