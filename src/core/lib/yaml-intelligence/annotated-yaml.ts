@@ -1,5 +1,5 @@
 /*
-* annotated-yaml.js
+* annotated-yaml.ts
 *
 * Copyright (C) 2021 by RStudio, PBC
 *
@@ -27,6 +27,34 @@ type TreeSitterParse = any;
 // deno-lint-ignore no-explicit-any
 type TreeSitterNode = any;
 
+// jsYaml sometimes reports "trivial" nested annotations where the span of
+// the internal contents is identical to the outside content. This
+// happens in case of unusually-indented yaml arrays such as
+//
+// foo:
+//   [
+//     a,
+//     b,
+//     c
+//   ]
+//
+// This incorrect annotation breaks our navigation, so we work around it here
+// by normalizing those away.
+function postProcessAnnotation(parse: AnnotatedParse): AnnotatedParse {
+  if (
+    parse.components.length === 1 &&
+    parse.start === parse.components[0].start &&
+    parse.end === parse.components[0].end
+  ) {
+    return postProcessAnnotation(parse.components[0]);
+  } else {
+    return {
+      ...parse,
+      components: parse.components.map(postProcessAnnotation),
+    };
+  }
+}
+
 function jsYamlParseLenient(yml: string): unknown {
   try {
     return jsYamlParse(yml, { schema: QuartoJSONSchema });
@@ -41,12 +69,13 @@ function jsYamlParseLenient(yml: string): unknown {
   }
 }
 
-export function readAnnotatedYamlFromString(yml: string) {
-  return readAnnotatedYamlFromMappedString(asMappedString(yml))!;
+export function readAnnotatedYamlFromString(yml: string, lenient = false) {
+  return readAnnotatedYamlFromMappedString(asMappedString(yml), lenient)!;
 }
 
 export function readAnnotatedYamlFromMappedString(
   mappedSource: MappedString,
+  lenient = false,
 ) {
   /*
    * We use both tree-sitter-yaml and js-yaml to get the
@@ -55,13 +84,29 @@ export function readAnnotatedYamlFromMappedString(
    *
    * In addition, tree-sitter-yaml fails to parse some valid yaml, see https://github.com/ikatyang/tree-sitter-yaml/issues/29
    *
-   * In case tree-sitter-yaml fails, then, we use js-yaml.
+   * It also generated incorrect parses for some inputs, like
+   *
+   * foo:
+   *   bar
+   *
+   * tree-sitter parses this as { "foo": { "bar": null } },
+   *
+   * but the correct output should be { "foo": "bar" }
+   *
+   * So we use tree-sitter-yaml if lenient === true, meaning we want
+   * to generate parses on bad inputs (and consequently live with
+   * incorrect tree-sitter parses)
+   *
+   * if lenient === false, we use jsYaml, a compliant parser.
    */
-  const parser = getTreeSitterSync();
-  const tree = parser.parse(mappedSource.value);
-  const treeSitterAnnotation = buildTreeSitterAnnotation(tree, mappedSource);
-  if (treeSitterAnnotation) {
-    return treeSitterAnnotation;
+
+  if (lenient) {
+    const parser = getTreeSitterSync();
+    const tree = parser.parse(mappedSource.value);
+    const treeSitterAnnotation = buildTreeSitterAnnotation(tree, mappedSource);
+    if (treeSitterAnnotation) {
+      return treeSitterAnnotation;
+    }
   }
   try {
     return buildJsYamlAnnotation(mappedSource);
@@ -188,7 +233,7 @@ export function buildJsYamlAnnotation(mappedYaml: MappedString) {
   }
 
   JSON.stringify(results[0]); // this is here so that we throw on circular structures
-  return results[0];
+  return postProcessAnnotation(results[0]);
 }
 
 export function buildTreeSitterAnnotation(

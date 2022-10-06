@@ -63,10 +63,14 @@ import {
   filterBuiltInExtensions,
   filterExtensions,
 } from "../../extension/extension.ts";
+import { kVersion } from "../../extension/extension-shared.ts";
+import { quartoConfig } from "../../core/quarto.ts";
+import { optionsToKebab } from "../../format/reveal/metadata.ts";
 
 const kQuartoParams = "quarto-params";
 
 const kProjectOffset = "project-offset";
+const kProjectOutputDir = "project-output-dir";
 
 const kMediabagDir = "mediabag-dir";
 
@@ -75,6 +79,9 @@ const kResultsFile = "results-file";
 const kTimingFile = "timings-file";
 
 const kHasBootstrap = "has-bootstrap";
+
+const kQuartoVersion = "quarto-version";
+const kQuartoSource = "quarto-source";
 
 export async function filterParamsJson(
   args: string[],
@@ -399,14 +406,20 @@ function projectFilterParams(options: PandocOptions) {
     ((projType.filterParams ? projType.filterParams(options) : undefined) ||
       {}) as Metadata;
 
-  if (options.offset) {
-    return {
-      ...params,
-      [kProjectOffset]: options.offset,
-    };
-  } else {
-    return params;
+  const additionalParams: Metadata = {};
+
+  const outputDir = options.project?.config?.project["output-dir"];
+  if (outputDir) {
+    additionalParams[kProjectOutputDir] = outputDir;
   }
+  if (options.offset) {
+    additionalParams[kProjectOffset] = options.offset;
+  }
+
+  return {
+    ...additionalParams,
+    ...params,
+  };
 }
 
 function ipynbFilterParams(options: PandocOptions) {
@@ -476,8 +489,14 @@ async function quartoFilterParams(
   params[kPdfEngine] = pdfEngine(options);
   params[kHasBootstrap] = formatHasBootstrap(options.format);
 
+  // The source document
+  params[kQuartoSource] = options.source;
+
   // profile as an array
   params[kQuartoProfile.toLowerCase()] = activeProfiles();
+
+  // version
+  params[kQuartoVersion] = quartoConfig.version();
 
   return params;
 }

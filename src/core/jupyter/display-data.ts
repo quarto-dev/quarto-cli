@@ -105,13 +105,24 @@ export function displayDataMimeType(
   return null;
 }
 
+export function displayDataLatexIsMath(latex: string[]) {
+  if (latex.length > 0) {
+    const first = latex[0];
+    const last = latex[latex.length - 1];
+    return (
+      // Inline or display math
+      (first.startsWith("$") && last.endsWith("$")) ||
+      // Latex environment
+      (first.startsWith("\\begin{") && last.includes("\\end{"))
+    );
+  }
+  return false;
+}
+
 export function displayDataWithMarkdownMath(output: JupyterOutputDisplayData) {
   if (Array.isArray(output.data[kTextLatex]) && !output.data[kTextMarkdown]) {
     const latex = output.data[kTextLatex] as string[];
-    if (
-      latex.length > 0 && latex[0].startsWith("$") &&
-      latex[latex.length - 1].endsWith("$")
-    ) {
+    if (displayDataLatexIsMath(latex)) {
       output = ld.cloneDeep(output);
       output.data[kTextMarkdown] = output.data[kTextLatex];
       return output;

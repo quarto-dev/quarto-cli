@@ -8865,6 +8865,11 @@ try {
                     description: "Additional command line arguments for preview command."
                   }
                 },
+                env: {
+                  object: {
+                    description: "Environment variables to set for preview command."
+                  }
+                },
                 ready: {
                   string: {
                     description: "Regular expression for detecting when the server is ready."
@@ -10981,6 +10986,18 @@ try {
               ref: "date"
             },
             description: "Document date"
+          },
+          {
+            name: "date-modified",
+            tags: {
+              formats: [
+                "$html-doc"
+              ]
+            },
+            schema: {
+              ref: "date"
+            },
+            description: "Document date modified"
           },
           {
             name: "author",
@@ -13360,6 +13377,19 @@ try {
             },
             schema: "boolean",
             description: "Set to `false` to prevent an installation of TinyTex from being used to compile PDF documents."
+          },
+          {
+            name: "latex-input-paths",
+            tags: {
+              formats: [
+                "pdf",
+                "beamer"
+              ]
+            },
+            schema: {
+              arrayOf: "string"
+            },
+            description: "Array of paths LaTeX should search for inputs."
           }
         ],
         "schema/document-layout.yml": [
@@ -17475,6 +17505,7 @@ try {
           "Time (in seconds) after which to exit if there are no active\nclients",
           "Serve project preview using the specified command. Interpolate the\n<code>--port</code> into the command using <code>{port}</code>.",
           "Additional command line arguments for preview command.",
+          "Environment variables to set for preview command.",
           "Regular expression for detecting when the server is ready.",
           "Sites published from project",
           "Unique identifier for site",
@@ -18279,6 +18310,7 @@ try {
           "Document title",
           "Identifies the subtitle of the document.",
           "Document date",
+          "Document date modified",
           "Author or authors of the document",
           {
             short: "The list of organizations with which contributors are affiliated.",
@@ -18674,6 +18706,7 @@ try {
           "Array of command line options for <code>tlmgr</code>.",
           "Output directory for intermediates and PDF.",
           "Set to <code>false</code> to prevent an installation of TinyTex from\nbeing used to compile PDF documents.",
+          "Array of paths LaTeX should search for inputs.",
           "The document class.",
           {
             short: "Options for the document class,",
@@ -19955,12 +19988,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 131733,
+          _internalId: 132274,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 131732,
+              _internalId: 132273,
               type: "enum",
               enum: [
                 "png",
@@ -26510,6 +26543,16 @@ ${reindented}
   }
 
   // annotated-yaml.ts
+  function postProcessAnnotation(parse) {
+    if (parse.components.length === 1 && parse.start === parse.components[0].start && parse.end === parse.components[0].end) {
+      return postProcessAnnotation(parse.components[0]);
+    } else {
+      return {
+        ...parse,
+        components: parse.components.map(postProcessAnnotation)
+      };
+    }
+  }
   function jsYamlParseLenient(yml) {
     try {
       return load(yml, { schema: QuartoJSONSchema });
@@ -26517,12 +26560,14 @@ ${reindented}
       return yml;
     }
   }
-  function readAnnotatedYamlFromMappedString(mappedSource2) {
-    const parser = getTreeSitterSync();
-    const tree = parser.parse(mappedSource2.value);
-    const treeSitterAnnotation = buildTreeSitterAnnotation(tree, mappedSource2);
-    if (treeSitterAnnotation) {
-      return treeSitterAnnotation;
+  function readAnnotatedYamlFromMappedString(mappedSource2, lenient = false) {
+    if (lenient) {
+      const parser = getTreeSitterSync();
+      const tree = parser.parse(mappedSource2.value);
+      const treeSitterAnnotation = buildTreeSitterAnnotation(tree, mappedSource2);
+      if (treeSitterAnnotation) {
+        return treeSitterAnnotation;
+      }
     }
     try {
       return buildJsYamlAnnotation(mappedSource2);
@@ -26623,7 +26668,7 @@ ${tidyverseInfo(
       );
     }
     JSON.stringify(results[0]);
-    return results[0];
+    return postProcessAnnotation(results[0]);
   }
   function buildTreeSitterAnnotation(tree, mappedSource2) {
     const errors = [];
@@ -27368,7 +27413,7 @@ ${tidyverseInfo(
     const objResult = value.result;
     const locate = (key, keyOrValue = "value") => {
       for (let i = 0; i < value.components.length; i += 2) {
-        if (value.components[i].result === key) {
+        if (String(value.components[i].result) === key) {
           if (keyOrValue === "value") {
             return value.components[i + 1];
           } else {
@@ -28175,8 +28220,11 @@ ${tidyverseInfo(
     const type2 = typeof value;
     return value !== null && (type2 === "object" || type2 === "function");
   };
-  async function readAndValidateYamlFromMappedString(mappedYaml, schema2, pruneErrors = true) {
-    const annotation = await readAnnotatedYamlFromMappedString(mappedYaml);
+  async function readAndValidateYamlFromMappedString(mappedYaml, schema2, pruneErrors = true, lenient = false) {
+    const annotation = await readAnnotatedYamlFromMappedString(
+      mappedYaml,
+      lenient
+    );
     if (annotation === null) {
       throw new Error("Parse error in readAnnotatedYamlFromMappedString");
     }
@@ -28825,7 +28873,7 @@ ${tidyverseInfo(
     }
     return mappedString(source, params);
   }
-  async function parseAndValidateCellOptions(mappedYaml, language, validate2 = false, engine = "") {
+  async function parseAndValidateCellOptions(mappedYaml, language, validate2 = false, engine = "", lenient = false) {
     if (mappedYaml.value.trim().length === 0) {
       return void 0;
     }
@@ -28844,11 +28892,13 @@ ${tidyverseInfo(
       }
     }
     if (schema2 === void 0 || !validate2) {
-      return readAnnotatedYamlFromMappedString(mappedYaml).result;
+      return readAnnotatedYamlFromMappedString(mappedYaml, lenient).result;
     }
     const { yaml, yamlValidationErrors } = await readAndValidateYamlFromMappedString(
       mappedYaml,
-      schema2
+      schema2,
+      void 0,
+      lenient
     );
     if (yamlValidationErrors.length > 0) {
       throw new ValidationError2(
@@ -28903,7 +28953,7 @@ ${tidyverseInfo(
       sourceStartLine: yamlLines.length
     };
   }
-  async function partitionCellOptionsMapped(language, outerSource, validate2 = false, engine = "") {
+  async function partitionCellOptionsMapped(language, outerSource, validate2 = false, engine = "", lenient = false) {
     const {
       yaml: mappedYaml,
       optionsSource,
@@ -28915,7 +28965,8 @@ ${tidyverseInfo(
         mappedYaml || asMappedString(""),
         language,
         validate2,
-        engine
+        engine,
+        lenient
       );
       return {
         yaml,
@@ -29025,7 +29076,7 @@ ${tidyverseInfo(
   }
 
   // ../break-quarto-md.ts
-  async function breakQuartoMd(src, validate2 = false) {
+  async function breakQuartoMd(src, validate2 = false, lenient = false) {
     if (typeof src === "string") {
       src = asMappedString(src);
     }
@@ -29077,7 +29128,9 @@ ${tidyverseInfo(
           const { yaml, sourceStartLine } = await partitionCellOptionsMapped(
             language,
             cell.source,
-            validate2
+            validate2,
+            "",
+            lenient
           );
           const breaks = Array.from(lineOffsets(cell.source.value));
           let strUpToLastBreak = "";
@@ -29944,7 +29997,11 @@ ${tidyverseInfo(
       position,
       line
     } = context;
-    const result = await breakQuartoMd(asMappedString(context.code));
+    const result = await breakQuartoMd(
+      asMappedString(context.code),
+      void 0,
+      true
+    );
     const adjustedCellSize = (cell) => {
       const cellLines = lines(cell.source.value);
       let size = cellLines.length;
