@@ -22,44 +22,19 @@ import { withSpinner } from "../../core/console.ts";
 
 export const kConfluenceId = "confluence";
 const kConfluenceDescription = "Confluence";
-const kConfluenceDomain = "CONFLUENCE_DOMAIN";
-const kConfluenceUserEmail = "CONFLUENCE_USER_EMAIL";
-const kConfluenceAuthToken = "CONFLUENCE_AUTH_TOKEN";
 
-export const confluenceProvider: PublishProvider = {
-  name: kConfluenceId,
-  description: kConfluenceDescription,
-  requiresServer: true,
-  requiresRender: true,
-  accountTokens,
-  authorizeToken,
-  removeToken,
-  resolveTarget,
-  publish,
-  isUnauthorized,
-  isNotFound,
-};
-
-function accountTokens() {
-  const accounts: AccountToken[] = [];
-
-  // account based on environment variables
-  const envAccount = confluenceEnvironmentVarAccount();
-  if (envAccount) {
-    accounts.push(envAccount);
-  }
-
-  // read any other tokens that are stored
-  accounts.push(...(readAccessTokens<AccountToken>(kConfluenceId) || []));
-
-  // return the accounts
-  return Promise.resolve(accounts);
+export const transformAtlassianDomain = (domain: string) => {
+  return ensureTrailingSlash(
+      isHttpUrl(domain) ? domain : `https://${domain}.atlassian.net`
+  );
 }
 
-function confluenceEnvironmentVarAccount() {
-  const server = Deno.env.get(kConfluenceDomain);
-  const name = Deno.env.get(kConfluenceUserEmail);
-  const token = Deno.env.get(kConfluenceAuthToken);
+//TODO Test this works
+const confluenceEnvironmentVarAccount = () => {
+  const server = Deno.env.get("CONFLUENCE_DOMAIN");
+  console.log("server", server);
+  const name = Deno.env.get("CONFLUENCE_USER_EMAIL");
+  const token = Deno.env.get("CONFLUENCE_AUTH_TOKEN");
   if (server && name && token) {
     return {
       type: AccountTokenType.Environment,
@@ -68,7 +43,27 @@ function confluenceEnvironmentVarAccount() {
       token,
     };
   }
-}
+};
+
+const readConfluenceAccessTokens = (): AccountToken[] => {
+  return readAccessTokens<AccountToken>(kConfluenceId) ?? [];
+};
+
+const accountTokens = () => {
+  console.log("accountTokens");
+  let accounts: AccountToken[] = [];
+
+  const envAccount = confluenceEnvironmentVarAccount();
+  if (envAccount) {
+    accounts = [...accounts, envAccount];
+  }
+  console.log("env accounts", accounts);
+
+  // read any other tokens that are stored
+  accounts = [...accounts, ...readConfluenceAccessTokens()];
+  console.log("read accounts", accounts);
+  return Promise.resolve(accounts);
+};
 
 async function authorizeToken(_options: PublishOptions) {
   // TODO: validate that:
@@ -144,12 +139,6 @@ async function authorizeToken(_options: PublishOptions) {
   );
 
   return Promise.resolve(accountToken);
-}
-
-function transformAtlassianDomain(domain: string) {
-  return ensureTrailingSlash(
-    isHttpUrl(domain) ? domain : `https://${domain}.atlassian.net`
-  );
 }
 
 function removeToken(token: AccountToken) {
@@ -320,3 +309,17 @@ function confluenceParent(url: string): ConfluenceParent | undefined {
     };
   }
 }
+
+export const confluenceProvider: PublishProvider = {
+  name: kConfluenceId,
+  description: kConfluenceDescription,
+  requiresServer: true,
+  requiresRender: true,
+  accountTokens,
+  authorizeToken,
+  removeToken,
+  resolveTarget,
+  publish,
+  isUnauthorized,
+  isNotFound,
+};
