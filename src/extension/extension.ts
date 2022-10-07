@@ -381,11 +381,11 @@ function resolveExtensionPaths(
     extension.path,
     inputDir,
     extension,
-    [kExtensionIgnoreFields],
+    kExtensionIgnoreFields,
   ) as unknown as Extension;
 }
 
-const kExtensionIgnoreFields = "biblio-style";
+const kExtensionIgnoreFields = ["biblio-style", "revealjs-plugins"];
 
 // Read the raw extension information out of a directory
 // (e.g. read all the extensions from _extensions)
@@ -741,7 +741,7 @@ async function readExtension(
   const revealJSPlugins = ((contributes?.[kRevealJSPlugins] || []) as Array<
     string | RevealPluginBundle | RevealPlugin
   >).map((plugin) => {
-    return resolveRevealPluginPath(extensionDir, plugin);
+    return resolveRevealPlugin(extensionDir, plugin);
   });
 
   // Create the extension data structure
@@ -788,7 +788,7 @@ function resolveRevealJSPlugin(
     } else {
       // There are no embedded extensions for this, validate the path
       validateExtensionPath("revealjs-plugin", dir, plugin);
-      return resolveRevealPluginPath(dir, plugin);
+      return resolveRevealPlugin(dir, plugin);
     }
   } else {
     return plugin;
@@ -801,7 +801,7 @@ export function isPluginRaw(
   return (plugin as RevealPluginBundle).plugin === undefined;
 }
 
-function resolveRevealPluginPath(
+function resolveRevealPlugin(
   extensionDir: string,
   plugin: string | RevealPluginBundle | RevealPluginInline,
 ): string | RevealPluginBundle | RevealPlugin {
