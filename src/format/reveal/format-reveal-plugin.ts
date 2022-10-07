@@ -91,7 +91,7 @@ export interface RevealPluginBundle {
   config?: Metadata;
 }
 
-interface RevealPlugin {
+export interface RevealPlugin {
   path: string;
   name: string;
   register?: boolean;
@@ -105,6 +105,12 @@ interface RevealPlugin {
 export interface RevealPluginScript {
   path: string;
   async?: boolean;
+}
+
+export function isPluginBundle(
+  plugin: RevealPluginBundle | RevealPlugin,
+): plugin is RevealPluginBundle {
+  return (plugin as RevealPluginBundle).plugin !== undefined;
 }
 
 export async function revealPluginExtras(
@@ -187,12 +193,6 @@ export async function revealPluginExtras(
     }
   };
 
-  const isPluginBundle = (
-    plugin: RevealPluginBundle | RevealPlugin,
-  ): plugin is RevealPluginBundle => {
-    return (plugin as RevealPluginBundle).plugin !== undefined;
-  };
-
   const resolvePlugin = async (
     plugin: string | RevealPluginBundle | RevealPlugin,
   ) => {
@@ -218,7 +218,7 @@ export async function revealPluginExtras(
                 plugin: resolvedPlug,
                 config: plugin.config,
               };
-            } else {
+            } else if (isPluginBundle(resolvedPlug)) {
               return {
                 plugin: resolvedPlug.plugin,
                 config: mergeConfigs(
@@ -226,6 +226,8 @@ export async function revealPluginExtras(
                   resolvedPlug.config,
                 ),
               };
+            } else {
+              return plugin;
             }
           },
         );
