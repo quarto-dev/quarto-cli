@@ -29,10 +29,8 @@ export const transformAtlassianDomain = (domain: string) => {
   );
 }
 
-//TODO Test this works
 const confluenceEnvironmentVarAccount = () => {
   const server = Deno.env.get("CONFLUENCE_DOMAIN");
-  console.log("server", server);
   const name = Deno.env.get("CONFLUENCE_USER_EMAIL");
   const token = Deno.env.get("CONFLUENCE_AUTH_TOKEN");
   if (server && name && token) {
@@ -46,22 +44,20 @@ const confluenceEnvironmentVarAccount = () => {
 };
 
 const readConfluenceAccessTokens = (): AccountToken[] => {
-  return readAccessTokens<AccountToken>(kConfluenceId) ?? [];
+  const result = readAccessTokens<AccountToken>(kConfluenceId) ?? [];
+  return result;
 };
 
-const accountTokens = () => {
-  console.log("accountTokens");
+const accountTokens = ():Promise<AccountToken[]> => {
   let accounts: AccountToken[] = [];
 
   const envAccount = confluenceEnvironmentVarAccount();
   if (envAccount) {
     accounts = [...accounts, envAccount];
   }
-  console.log("env accounts", accounts);
 
-  // read any other tokens that are stored
-  accounts = [...accounts, ...readConfluenceAccessTokens()];
-  console.log("read accounts", accounts);
+  const tempStoredAccessTokens = readConfluenceAccessTokens();
+  accounts = [...accounts, ...tempStoredAccessTokens];
   return Promise.resolve(accounts);
 };
 
