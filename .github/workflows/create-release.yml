@@ -129,8 +129,8 @@ jobs:
            
        - name: Move Custom Deno
          run: |
-           echo Placing custom Deno ${env.DENO:1}. See available versions at https://anaconda.org/conda-forge/deno/files
-           curl -L https://anaconda.org/conda-forge/deno/${env.DENO:1}/download/linux-64/deno-${env.DENO:1}-h2f28480_0.tar.bz2 --output deno.tar.bz2
+           echo Placing custom Deno ${DENO:1}. See available versions at https://anaconda.org/conda-forge/deno/files
+           curl -L https://anaconda.org/conda-forge/deno/${DENO:1}/download/linux-64/deno-${DENO:1}-h2f28480_0.tar.bz2 --output deno.tar.bz2
            tar -xf deno.tar.bz2 
            cp bin/deno package/dist/bin/tools/deno
            
