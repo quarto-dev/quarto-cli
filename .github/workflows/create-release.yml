@@ -130,19 +130,10 @@ jobs:
        - name: Move Custom Deno
          run: |
          
-           denore="export DENO=v([0-9\.]*)"
-           configcontents=`cat configuration`
-           echo $configcontents
-
-           if [[ $configcontents =~ $denore ]]
-           then
-             VERSION="${BASH_REMATCH[1]}"
-           else
-             echo OOP
-           fi
+           source ./configuration
          
-           echo Placing custom Deno ${VERSION}. See available versions at https://anaconda.org/conda-forge/deno/files
-           curl -L https://anaconda.org/conda-forge/deno/${VERSION}/download/linux-64/deno-${VERSION}-h2f28480_0.tar.bz2 --output deno.tar.bz2
+           echo Placing custom Deno ${DENO}. See available versions at https://anaconda.org/conda-forge/deno/files
+           curl -L https://anaconda.org/conda-forge/deno/${DENO}/download/linux-64/deno-${DENO}-h2f28480_0.tar.bz2 --output deno.tar.bz2
            tar -xf deno.tar.bz2 
            cp bin/deno package/dist/bin/tools/deno
            
