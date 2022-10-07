@@ -73,6 +73,7 @@ import {
   printWatchingForChangesMessage,
   render,
   renderServices,
+  renderToken,
 } from "../../command/render/render-shared.ts";
 import { renderProgress } from "../../command/render/render-info.ts";
 import { resourceFilesFromFile } from "../../command/render/resources.ts";
@@ -344,32 +345,37 @@ function externalPreviewServer(
   pandocArgs: string[],
 ): Promise<PreviewServer> {
   // run a control channel server for handling render requests
-  const outputDir = projectOutputDir(project);
-  const handlerOptions: HttpFileRequestOptions = {
-    //  base dir
-    baseDir: outputDir,
+  // if there was a renderToken() passed
+  let controlListener: Deno.Listener | undefined;
+  if (renderToken()) {
+    const outputDir = projectOutputDir(project);
+    const handlerOptions: HttpFileRequestOptions = {
+      //  base dir
+      baseDir: outputDir,
 
-    // handle websocket upgrade and render requests
-    onRequest: previewControlChannelRequestHandler(
-      project,
-      renderManager,
-      watcher,
-      extensionDirs,
-      resourceFiles,
-      flags,
-      pandocArgs,
-      false,
-    ),
-  };
-  const handler = httpFileRequestHandler(handlerOptions);
-  const port = findOpenPort();
-  const listener = Deno.listen({ port, hostname: kLocalhost });
-  handleHttpRequests(listener, handler).then(() => {
-    // terminanted
-  }).catch((_error) => {
-    // ignore errors
-  });
-  info(`Preview service running (${port})`);
+      // handle websocket upgrade and render requests
+      onRequest: previewControlChannelRequestHandler(
+        project,
+        renderManager,
+        watcher,
+        extensionDirs,
+        resourceFiles,
+        flags,
+        pandocArgs,
+        false,
+      ),
+    };
+
+    const handler = httpFileRequestHandler(handlerOptions);
+    const port = findOpenPort();
+    controlListener = Deno.listen({ port, hostname: kLocalhost });
+    handleHttpRequests(controlListener, handler).then(() => {
+      // terminanted
+    }).catch((_error) => {
+      // ignore errors
+    });
+    info(`Preview service running (${port})`);
+  }
 
   // parse command line args and interpolate host and port
   const cmd = serve.cmd.split(/[\t ]/).map((arg) => {
@@ -425,7 +431,9 @@ function externalPreviewServer(
     stop: () => {
       process.kill("SIGTERM");
       process.close();
-      listener.close();
+      if (controlListener) {
+        controlListener.close();
+      }
       return Promise.resolve();
     },
   });
