@@ -12963,12 +12963,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 132335,
+    "_internalId": 132274,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 132334,
+        "_internalId": 132273,
         "type": "enum",
         "enum": [
           "png",

@@ -2,7 +2,7 @@
 
 - Always ignore .ipynb inputs when they have a corresponding .qmd
 - Correctly interpret cell metadata with `false` values
-- Render text/latex outputs consisting entirely of $ math as markdown math
+- Render text/latex outputs as markdown math when they consist entirely of $ math, or are wrapped in a LaTeX environment block (such as \begin{align} ... \end{align})
 - Use IPython 7.14 import syntax in `ojs_define`
 - Correct handling of multiple attachments in Jupyter Notebook classic
 - Prevent overwrite of source .ipynb when output format is ipynb
@@ -47,6 +47,7 @@
 - Support installation of extensions from with subdirectories of a github repo
 - Lua `require` can now find modules adjacent to the current script
 - Use snake case for Quarto Lua API functions (match Pandoc API)
+- Fix theorem captions when there's no text (#2166, #2228)
 
 ## Projects
 
@@ -204,3 +205,4 @@
 - Provide non-HTML treatment for code block `filename`
 - prevent Chrome CRI race during initialization (#2733)
 - Work around `mermaid-format: svg` diagram clipping (#1622)
+- Don't use tree-sitter outside of interactive IDE contexts (#2502)
