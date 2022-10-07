@@ -820,6 +820,12 @@ function resolveRevealPluginInline(
   plugin: RevealPluginInline,
   extensionDir: string,
 ): RevealPlugin {
+  if (!plugin.name) {
+    throw new Error(
+      `Invalid revealjs-plugin in ${extensionDir} - 'name' property is required.`,
+    );
+  }
+
   // Resolve plugin raw into plugin
   const resolvedPlugin: RevealPlugin = {
     name: plugin.name,
