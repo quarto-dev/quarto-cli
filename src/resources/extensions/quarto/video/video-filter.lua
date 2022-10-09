@@ -1,4 +1,4 @@
-local videoHelpers = dofile(quarto.utils.resolvePath('video.lua'))
+local videoHelpers = dofile(quarto.utils.resolve_path('video.lua'))
 local getSnippetFromBuilders = videoHelpers['video-helpers'].getSnippetFromBuilders
 
 function Header(el)
