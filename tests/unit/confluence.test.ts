@@ -5,7 +5,12 @@
  */
 import { unitTest } from "../test.ts";
 import { assertEquals, assertThrows } from "testing/asserts.ts";
-import {transformAtlassianDomain, validateEmail, validateServer} from "../../src/publish/confluence/confluence.ts";
+import {
+  transformAtlassianDomain,
+  validateEmail,
+  validateServer,
+  validateToken
+} from "../../src/publish/confluence/confluence.ts";
 
 unitTest("transformAtlassianDomain_basic", async () => {
   const result = transformAtlassianDomain("fake-domain");
@@ -49,8 +54,9 @@ unitTest("validateServer_valid", async () => {
 });
 
 unitTest("validateServer_invalid", async () => {
-  const toCall = () => validateServer('_!@ ... #');
-  assertThrows(toCall, '');
+  const result = validateServer('_!@ ... #');
+  const expected = 'Not a valid URL';
+  assertEquals(expected, result);
 });
 
 unitTest("validateName_empty", async () => {
@@ -66,6 +72,11 @@ unitTest("validateName_valid", async () => {
 
 unitTest("validateName_invalid_JustName", async () => {
   const result = validateEmail('al.manning');
-  const expected = false;
+  const expected = 'Invalid email address';
   assertEquals(expected, result);
+});
+
+unitTest("validateToken_empty", async () => {
+  const toCall = () => validateToken('');
+  assertThrows(toCall, '');
 });

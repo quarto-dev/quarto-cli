@@ -61,7 +61,7 @@ const accountTokens = ():Promise<AccountToken[]> => {
   return Promise.resolve(accounts);
 };
 
-export const validateServer = (value:string):boolean => {
+export const validateServer = (value:string):boolean|string => {
   // 'Enter' with no value ends publish
   if (value.length === 0) {
     throw new Error('');
@@ -70,11 +70,11 @@ export const validateServer = (value:string):boolean => {
     new URL(transformAtlassianDomain(value));
     return true;
   } catch {
-    throw new Error(`${value} is not a valid URL`);
+    return `Not a valid URL`;
   }
 };
 
-export const validateEmail = (value:string):boolean => {
+export const validateEmail = (value:string):boolean|string => {
   // 'Enter' with no value exits publish
   if (value.length === 0) {
     throw new Error('');
@@ -83,8 +83,35 @@ export const validateEmail = (value:string):boolean => {
   // TODO use deno validation
   // https://deno.land/x/validation@v0.4.0
   const expression: RegExp = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
-  return expression.test(value);
+  const isValid = expression.test(value);
+
+  if(!isValid) {
+    return 'Invalid email address'
+  }
+
+  return true;
 };
+
+export const validateToken = (value:string):boolean => {
+  // 'Enter' with no value exits publish
+  if (value.length === 0) {
+    throw new Error('');
+  }
+  return true;
+};
+
+const verifyAccountToken = async (accountToken:AccountToken) => {
+  try {
+    const client = new ConfluenceClient(accountToken);
+    await client.getUser();
+  } catch (err) {
+    const msg =
+        err instanceof ApiError
+            ? `${err.status} - ${err.statusText}`
+            : err.message || "Unknown error";
+    throw new Error(`Unable to sign into Confluence account: ${msg}`);
+  }
+}
 
 /**
  * When Authorizing a new Account
@@ -102,6 +129,7 @@ const authorizeToken = async () => {
   const server = await Input.prompt({
     indent: "",
     message: "Confluence Domain:",
+    //TODO Resource bundles?
     hint: "e.g. https://mydomain.atlassian.net/",
     validate: validateServer,
     transform: transformAtlassianDomain,
@@ -117,13 +145,9 @@ const authorizeToken = async () => {
     indent: "",
     message: "Confluence API Token:",
     hint: "Create an API token at https://id.atlassian.com/manage/api-tokens",
+    validate: validateToken
   });
-  // 'Enter' with no value ends publish
-  if (token.length === 0) {
-    throw new Error();
-  }
 
-  // create the token
   const accountToken: AccountToken = {
     type: AccountTokenType.Authorized,
     name,
@@ -131,19 +155,8 @@ const authorizeToken = async () => {
     token,
   };
 
-  // verify that the token works
-  try {
-    const client = new ConfluenceClient(accountToken);
-    await client.getUser();
-  } catch (err) {
-    const msg =
-      err instanceof ApiError
-        ? `${err.status} - ${err.statusText}`
-        : err.message || "Unknown error";
-    throw new Error(`Unable to sign into Confluence account: ${msg}`);
-  }
+  await verifyAccountToken(accountToken);
 
-  // save it
   writeAccessToken<AccountToken>(
     kConfluenceId,
     accountToken,
