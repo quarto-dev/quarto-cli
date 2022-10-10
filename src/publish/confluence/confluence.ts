@@ -25,9 +25,9 @@ const kConfluenceDescription = "Confluence";
 
 export const transformAtlassianDomain = (domain: string) => {
   return ensureTrailingSlash(
-      isHttpUrl(domain) ? domain : `https://${domain}.atlassian.net`
+    isHttpUrl(domain) ? domain : `https://${domain}.atlassian.net`
   );
-}
+};
 
 const confluenceEnvironmentVarAccount = () => {
   const server = Deno.env.get("CONFLUENCE_DOMAIN");
@@ -48,7 +48,7 @@ const readConfluenceAccessTokens = (): AccountToken[] => {
   return result;
 };
 
-const accountTokens = ():Promise<AccountToken[]> => {
+const accountTokens = (): Promise<AccountToken[]> => {
   let accounts: AccountToken[] = [];
 
   const envAccount = confluenceEnvironmentVarAccount();
@@ -61,10 +61,10 @@ const accountTokens = ():Promise<AccountToken[]> => {
   return Promise.resolve(accounts);
 };
 
-export const validateServer = (value:string):boolean|string => {
+export const validateServer = (value: string): boolean | string => {
   // 'Enter' with no value ends publish
   if (value.length === 0) {
-    throw new Error('');
+    throw new Error("");
   }
   try {
     new URL(transformAtlassianDomain(value));
@@ -74,10 +74,10 @@ export const validateServer = (value:string):boolean|string => {
   }
 };
 
-export const validateEmail = (value:string):boolean|string => {
+export const validateEmail = (value: string): boolean | string => {
   // 'Enter' with no value exits publish
   if (value.length === 0) {
-    throw new Error('');
+    throw new Error("");
   }
 
   // TODO use deno validation
@@ -85,39 +85,48 @@ export const validateEmail = (value:string):boolean|string => {
   const expression: RegExp = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
   const isValid = expression.test(value);
 
-  if(!isValid) {
-    return 'Invalid email address'
+  if (!isValid) {
+    return "Invalid email address";
   }
 
   return true;
 };
 
-export const validateToken = (value:string):boolean => {
+export const validateToken = (value: string): boolean => {
   // 'Enter' with no value exits publish
   if (value.length === 0) {
-    throw new Error('');
+    throw new Error("");
   }
   return true;
 };
 
-const verifyAccountToken = async (accountToken:AccountToken) => {
+export const getMessageFromAPIError = (error: any): string => {
+  if (error instanceof ApiError) {
+    return `${error.status} - ${error.statusText}`;
+  }
+
+  if (error?.message) {
+    return error.message;
+  }
+
+  return "Unknown error";
+};
+
+const verifyAccountToken = async (accountToken: AccountToken) => {
   try {
     const client = new ConfluenceClient(accountToken);
     await client.getUser();
-  } catch (err) {
-    const msg =
-        err instanceof ApiError
-            ? `${err.status} - ${err.statusText}`
-            : err.message || "Unknown error";
-    throw new Error(`Unable to sign into Confluence account: ${msg}`);
+  } catch (error) {
+    throw new Error(
+      `Unable to sign into Confluence account: ${getMessageFromAPIError(error)}`
+    );
   }
-}
+};
 
 /**
  * When Authorizing a new Account
  */
 const authorizeToken = async () => {
-
   // TODO: validate that:
   //   - the server exists
   //   - the username exists
@@ -138,14 +147,14 @@ const authorizeToken = async () => {
   const name = await Input.prompt({
     indent: "",
     message: `Confluence Account Email:`,
-    validate: validateEmail
+    validate: validateEmail,
   });
 
   const token = await Secret.prompt({
     indent: "",
     message: "Confluence API Token:",
     hint: "Create an API token at https://id.atlassian.com/manage/api-tokens",
-    validate: validateToken
+    validate: validateToken,
   });
 
   const accountToken: AccountToken = {
@@ -164,7 +173,7 @@ const authorizeToken = async () => {
   );
 
   return Promise.resolve(accountToken);
-}
+};
 
 function removeToken(token: AccountToken) {
   writeAccessTokens(
@@ -275,7 +284,7 @@ async function publish(
         async () => {
           // for creates we need to get the space info
           const space = await client.getSpace(parent.space);
-          console.log('space', space)
+          console.log("space", space);
           // create the content
           content = await client.createContent({
             id: null,
