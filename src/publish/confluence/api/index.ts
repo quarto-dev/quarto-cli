@@ -78,8 +78,11 @@ export class ConfluenceClient {
     if (response.ok) {
       return response.json() as unknown as T;
     } else if (response.status !== 200) {
+      //TODO log levels to show extended error messages
+      console.error('response.status !== 200', response);
       throw new ApiError(response.status, response.statusText);
     } else {
+      console.error('other error', response)
       throw new Error(`${response.status} - ${response.statusText}`);
     }
   }

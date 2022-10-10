@@ -4,8 +4,8 @@
  *
  */
 import { unitTest } from "../test.ts";
-import { assertEquals } from "testing/asserts.ts";
-import { transformAtlassianDomain } from "../../src/publish/confluence/confluence.ts";
+import { assertEquals, assertThrows } from "testing/asserts.ts";
+import { transformAtlassianDomain, validateServer } from "../../src/publish/confluence/confluence.ts";
 
 unitTest("transformAtlassianDomain_basic", async () => {
   const result = transformAtlassianDomain("fake-domain");
@@ -36,3 +36,20 @@ unitTest("transformAtlassianDomain_addPrefixAndTrailing", async () => {
   const expected = "https://something.atlassian.net/";
   assertEquals(expected, result);
 });
+
+unitTest("validateServer_empty", async () => {
+  const toCall = () => validateServer('');
+  assertThrows(toCall, '');
+});
+
+unitTest("validateServer_valid", async () => {
+  const result = validateServer('fake-domain');
+  const expected = true;
+  assertEquals(expected, result);
+});
+
+unitTest("validateServer_invalid", async () => {
+  const toCall = () => validateServer('_!@ ... #');
+  assertThrows(toCall, '');
+});
+

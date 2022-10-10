@@ -61,7 +61,24 @@ const accountTokens = ():Promise<AccountToken[]> => {
   return Promise.resolve(accounts);
 };
 
-async function authorizeToken(_options: PublishOptions) {
+export const validateServer = (value:string):boolean => {
+  // 'Enter' with no value ends publish
+  if (value.length === 0) {
+    throw new Error('');
+  }
+  try {
+    new URL(transformAtlassianDomain(value));
+    return true;
+  } catch {
+    throw new Error(`${value} is not a valid URL`);
+  }
+};
+
+/**
+ * When Authorizing a new Account
+ */
+const authorizeToken = async () => {
+
   // TODO: validate that:
   //   - the server exists
   //   - the username exists
@@ -74,18 +91,7 @@ async function authorizeToken(_options: PublishOptions) {
     indent: "",
     message: "Confluence Domain:",
     hint: "e.g. https://mydomain.atlassian.net/",
-    validate: (value) => {
-      // 'Enter' with no value ends publish
-      if (value.length === 0) {
-        throw new Error();
-      }
-      try {
-        new URL(transformAtlassianDomain(value));
-        return true;
-      } catch {
-        return `${value} is not a valid URL`;
-      }
-    },
+    validate: validateServer,
     transform: transformAtlassianDomain,
   });
 
@@ -246,7 +252,7 @@ async function publish(
         async () => {
           // for creates we need to get the space info
           const space = await client.getSpace(parent.space);
-
+          console.log('space', space)
           // create the content
           content = await client.createContent({
             id: null,
