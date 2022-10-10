@@ -6,16 +6,16 @@
 */
 import { projectArtifactCreator } from "./artifacts/project.ts";
 
-import { Command } from "cliffy/command/mod.ts";
-import { prompt, Select } from "cliffy/prompt/mod.ts";
-import { info } from "log/mod.ts";
 import { isInteractiveTerminal } from "../../core/platform.ts";
 import { runningInCI } from "../../core/ci-info.ts";
 import { execProcess } from "../../core/process.ts";
 import { kEditorInfos, scanForEditors } from "./editor.ts";
 
-// TODO: JSON stdin?
-// If JSON provided, make completely non-interactive (must provide all required)
+import { Command } from "cliffy/command/mod.ts";
+import { prompt, Select } from "cliffy/prompt/mod.ts";
+import { info } from "log/mod.ts";
+import { readLines } from "io/mod.ts";
+
 export interface CreateOptions {
   dir: string;
   commandOpts: Record<string, unknown>;
@@ -69,12 +69,16 @@ export const createCommand = new Command()
   )
   .option("--no-open", "Do not open in an editor")
   .option("--no-prompt", "Do not prompt to confirm actions")
+  .option("--json", "Pass serialized creation options via stdin", {
+    hidden: true,
+  })
   .arguments("[type] [commands...]")
   .action(
     async (
       options: {
         dir?: string | true;
         prompt: boolean;
+        json?: boolean;
         open?: string | boolean;
       },
       type?: string,
@@ -89,65 +93,69 @@ export const createCommand = new Command()
         options.dir = Deno.cwd();
       }
 
-      // Compute a sane default for prompting
-      const allowPrompt = !!options.prompt ||
-        isInteractiveTerminal() && !runningInCI();
+      if (options.json) {
+        await createFromStdin(options.dir);
+      } else {
+        // Compute a sane default for prompting
+        const isInteractive = isInteractiveTerminal() && !runningInCI();
+        const allowPrompt = isInteractive && !!options.prompt && !options.json;
 
-      // Resolve the type into an artifact
-      const resolved = await resolveArtifact(
-        type,
-        options.prompt,
-      );
-      const resolvedArtifact = resolved.artifact;
-      if (resolvedArtifact) {
-        // Resolve the arguments that the user provided into options
-        // for the artifact provider
-
-        // If we aliased the type, shift the args (including what was
-        // the type alias in the list of args for the artifact creator
-        // to resolve)
-        const args = commands || [];
-
-        const commandOpts = resolvedArtifact.resolveOptions(args);
-        const createOptions = {
-          dir: options.dir,
-          commandOpts,
-        };
-
-        if (allowPrompt) {
-          // Prompt the user until the options have been fully realized
-          let nextPrompt = resolvedArtifact.nextPrompt(createOptions);
-          while (nextPrompt !== undefined) {
-            if (nextPrompt) {
-              const result = await prompt([nextPrompt]);
-              createOptions.commandOpts = {
-                ...createOptions.commandOpts,
-                ...result,
-              };
-            }
-            nextPrompt = resolvedArtifact.nextPrompt(createOptions);
-          }
-        }
-
-        // Complete the defaults
-        resolvedArtifact.finalizeOptions(createOptions);
-
-        // Create the artifact using the options
-        const artifactPath = await resolvedArtifact.createArtifact(
-          createOptions,
+        // Resolve the type into an artifact
+        const resolved = await resolveArtifact(
+          type,
+          options.prompt,
         );
+        const resolvedArtifact = resolved.artifact;
+        if (resolvedArtifact) {
+          // Resolve the arguments that the user provided into options
+          // for the artifact provider
 
-        // Now that the article was created, offer to open the item
-        if (allowPrompt && options.open !== false) {
-          const resolvedEditor = await resolveEditor(
-            artifactPath,
-            typeof (options.open) === "string" ? options.open : undefined,
+          // If we aliased the type, shift the args (including what was
+          // the type alias in the list of args for the artifact creator
+          // to resolve)
+          const args = commands || [];
+
+          const commandOpts = resolvedArtifact.resolveOptions(args);
+          const createOptions = {
+            dir: options.dir,
+            commandOpts,
+          };
+
+          if (allowPrompt) {
+            // Prompt the user until the options have been fully realized
+            let nextPrompt = resolvedArtifact.nextPrompt(createOptions);
+            while (nextPrompt !== undefined) {
+              if (nextPrompt) {
+                const result = await prompt([nextPrompt]);
+                createOptions.commandOpts = {
+                  ...createOptions.commandOpts,
+                  ...result,
+                };
+              }
+              nextPrompt = resolvedArtifact.nextPrompt(createOptions);
+            }
+          }
+
+          // Complete the defaults
+          resolvedArtifact.finalizeOptions(createOptions);
+
+          // Create the artifact using the options
+          const artifactPath = await resolvedArtifact.createArtifact(
+            createOptions,
           );
-          if (resolvedEditor) {
-            execProcess({
-              cmd: resolvedEditor.cmd,
-              cwd: resolvedEditor.cwd,
-            });
+
+          // Now that the article was created, offer to open the item
+          if (allowPrompt && options.open !== false) {
+            const resolvedEditor = await resolveEditor(
+              artifactPath,
+              typeof (options.open) === "string" ? options.open : undefined,
+            );
+            if (resolvedEditor) {
+              execProcess({
+                cmd: resolvedEditor.cmd,
+                cwd: resolvedEditor.cwd,
+              });
+            }
           }
         }
       }
@@ -239,3 +247,36 @@ const resolveEditor = async (artifactPath: string, editor?: string) => {
     return selectedEditor;
   }
 };
+
+async function createFromStdin(dir: string) {
+  // Read a single line (should be json)
+  const { value: input } = await readLines(Deno.stdin).next();
+
+  // Close stdin
+  Deno.stdin.close();
+
+  // Parse options
+  const jsonOptions = JSON.parse(input);
+  const type = jsonOptions.type;
+  if (!type) {
+    throw new Error(
+      "The provided json for create artifacts must include a valid type",
+    );
+  }
+
+  // Find the artifact creator
+  const resolved = await resolveArtifact(
+    type,
+    false,
+  );
+
+  // Resolve the provided options
+  const createOptions = { dir, commandOpts: jsonOptions.options };
+  resolved.artifact.finalizeOptions(createOptions);
+
+  // Create the artifact using the options
+  const artifactPath = await resolved.artifact.createArtifact(
+    createOptions,
+  );
+  info(`${type} created at ${artifactPath}`);
+}
