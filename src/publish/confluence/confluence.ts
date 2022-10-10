@@ -74,6 +74,18 @@ export const validateServer = (value:string):boolean => {
   }
 };
 
+export const validateEmail = (value:string):boolean => {
+  // 'Enter' with no value exits publish
+  if (value.length === 0) {
+    throw new Error('');
+  }
+
+  // TODO use deno validation
+  // https://deno.land/x/validation@v0.4.0
+  const expression: RegExp = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+  return expression.test(value);
+};
+
 /**
  * When Authorizing a new Account
  */
@@ -98,10 +110,8 @@ const authorizeToken = async () => {
   const name = await Input.prompt({
     indent: "",
     message: `Confluence Account Email:`,
+    validate: validateEmail
   });
-  if (name.length === 0) {
-    throw new Error();
-  }
 
   const token = await Secret.prompt({
     indent: "",
