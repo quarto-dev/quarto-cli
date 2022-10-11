@@ -12,7 +12,12 @@ import { execProcess } from "../../core/process.ts";
 import { kEditorInfos, scanForEditors } from "./editor.ts";
 
 import { Command } from "cliffy/command/mod.ts";
-import { prompt, Select } from "cliffy/prompt/mod.ts";
+import {
+  Checkbox,
+  prompt,
+  Select,
+  SelectValueOptions,
+} from "cliffy/prompt/mod.ts";
 import { info } from "log/mod.ts";
 import { readLines } from "io/mod.ts";
 
@@ -126,6 +131,14 @@ export const createCommand = new Command()
             let nextPrompt = resolvedArtifact.nextPrompt(createOptions);
             while (nextPrompt !== undefined) {
               if (nextPrompt) {
+                if (
+                  (nextPrompt.type === Select ||
+                    nextPrompt.type === Checkbox) &&
+                  nextPrompt.hint === undefined
+                ) {
+                  nextPrompt.hint = arrowKeyHint();
+                }
+
                 const result = await prompt([nextPrompt]);
                 createOptions.commandOpts = {
                   ...createOptions.commandOpts,
@@ -204,16 +217,34 @@ const resolveArtifact = async (type?: string, prompt?: boolean) => {
   };
 };
 
-const promptForType = async () => {
+function arrowKeyHint() {
+  return Deno.build.os === "windows"
+    ? `ℹ | Next: d, n | Previous: u, p |`
+    : undefined;
+}
+
+async function promptSelect(
+  message: string,
+  options: SelectValueOptions,
+) {
+  const hint = arrowKeyHint();
   return await Select.prompt({
-    message: "Create",
-    options: kArtifactCreators.map((artifact) => {
+    message,
+    options,
+    hint,
+  });
+}
+
+const promptForType = async () => {
+  return await promptSelect(
+    "Create",
+    kArtifactCreators.map((artifact) => {
       return {
         name: artifact.displayName.toLowerCase(),
         value: artifact.type,
       };
     }),
-  });
+  );
 };
 
 const resolveEditor = async (artifactPath: string, editor?: string) => {
@@ -237,11 +268,7 @@ const resolveEditor = async (artifactPath: string, editor?: string) => {
       name: "do not open",
       value: "do not open",
     }];
-
-    const name = await Select.prompt({
-      message: "Open with",
-      options: options,
-    });
+    const name = await promptSelect("Open with", options);
 
     const selectedEditor = editors.find((edit) => edit.name === name);
     return selectedEditor;
