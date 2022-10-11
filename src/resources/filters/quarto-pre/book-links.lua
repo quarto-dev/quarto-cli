@@ -77,5 +77,5 @@ function flatten(targetPath)
       resolvedPath:insert(part)
     end
   end
-  return path.join(resolvedPath)
+  return pandoc.path.join(resolvedPath)
 end
