@@ -6,7 +6,7 @@
 */
 
 import { ansi } from "cliffy/ansi/mod.ts";
-import { readAllSync, writeAllSync } from "io/mod.ts";
+import { readAllSync, writeAllSync } from "streams/conversion.ts";
 import { info } from "log/mod.ts";
 import { runningInCI } from "./ci-info.ts";
 

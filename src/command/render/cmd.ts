@@ -122,9 +122,7 @@ export const renderCommand = new Command()
     "quarto render document.qmd --output -",
   )
   // deno-lint-ignore no-explicit-any
-  .action(async (options: any, input?: string, args?: string[]) => {
-    args = args || [];
-
+  .action(async (options: any, input?: string, ...args: string[]) => {
     // remove implicit clean argument (re-injected based on what the user
     // actually passes in flags.ts)
     delete options.clean;
