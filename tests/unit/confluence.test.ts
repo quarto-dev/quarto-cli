@@ -5,16 +5,17 @@
  */
 import { unitTest } from "../test.ts";
 import { assertEquals, assertThrows } from "testing/asserts.ts";
+
 import {
-  getMessageFromAPIError,
   isNotFound,
   isUnauthorized,
-  tokenFilterOut,
   transformAtlassianDomain,
+  getMessageFromAPIError,
+  tokenFilterOut,
   validateEmail,
   validateServer,
   validateToken,
-} from "../../src/publish/confluence/confluence.ts";
+} from "../../src/publish/confluence/confluence-helper.ts";
 import { ApiError } from "../../src/publish/types.ts";
 import { AccountTokenType } from "../../src/publish/provider.ts";
 

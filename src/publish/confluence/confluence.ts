@@ -1,55 +1,62 @@
+//TODO extract pure functions to the helper
+
 import { join } from "path/mod.ts";
 import { generate as generateUuid } from "uuid/v4.ts";
 import { Input, Secret } from "cliffy/prompt/mod.ts";
 import { RenderFlags } from "../../command/render/types.ts";
-import { isHttpUrl } from "../../core/url.ts";
 
 import {
   readAccessTokens,
   writeAccessToken,
   writeAccessTokens,
 } from "../common/account.ts";
+
 import {
   AccountToken,
   AccountTokenType,
   PublishFiles,
   PublishProvider,
 } from "../provider.ts";
+
 import { ApiError, PublishOptions, PublishRecord } from "../types.ts";
 import { ConfluenceClient } from "./api/index.ts";
 import { Content, ContentBody, ContentUpdate, kPageType } from "./api/types.ts";
 import { ensureTrailingSlash } from "../../core/path.ts";
 import { withSpinner } from "../../core/console.ts";
+import {
+  isNotFound,
+  isUnauthorized,
+  transformAtlassianDomain,
+  getMessageFromAPIError,
+  tokenFilterOut,
+  validateEmail,
+  validateServer,
+  validateToken,
+} from "./confluence-helper.ts";
 
-export const confluenceId = "confluence";
-const kConfluenceDescription = "Confluence";
-
-export const transformAtlassianDomain = (domain: string) => {
-  return ensureTrailingSlash(
-    isHttpUrl(domain) ? domain : `https://${domain}.atlassian.net`
-  );
-};
-
-const confluenceEnvironmentVarAccount = () => {
-  const server = Deno.env.get("CONFLUENCE_DOMAIN");
-  const name = Deno.env.get("CONFLUENCE_USER_EMAIL");
-  const token = Deno.env.get("CONFLUENCE_AUTH_TOKEN");
-  if (server && name && token) {
-    return {
-      type: AccountTokenType.Environment,
-      name,
-      server: transformAtlassianDomain(server),
-      token,
-    };
-  }
-};
-
-const readConfluenceAccessTokens = (): AccountToken[] => {
-  const result = readAccessTokens<AccountToken>(confluenceId) ?? [];
-  return result;
-};
+export const CONFLUENCE_ID = "confluence";
+const CONFLUENCE_DESCRIPTION = "Confluence";
 
 const accountTokens = (): Promise<AccountToken[]> => {
+  const confluenceEnvironmentVarAccount = () => {
+    const server = Deno.env.get("CONFLUENCE_DOMAIN");
+    const name = Deno.env.get("CONFLUENCE_USER_EMAIL");
+    const token = Deno.env.get("CONFLUENCE_AUTH_TOKEN");
+    if (server && name && token) {
+      return {
+        type: AccountTokenType.Environment,
+        name,
+        server: transformAtlassianDomain(server),
+        token,
+      };
+    }
+  };
+
+  const readConfluenceAccessTokens = (): AccountToken[] => {
+    const result = readAccessTokens<AccountToken>(CONFLUENCE_ID) ?? [];
+    return result;
+  };
+
   let accounts: AccountToken[] = [];
 
   const envAccount = confluenceEnvironmentVarAccount();
@@ -62,61 +69,6 @@ const accountTokens = (): Promise<AccountToken[]> => {
   return Promise.resolve(accounts);
 };
 
-const exitIfNoValue = (value: string) => {
-  if (value?.length === 0) {
-    throw new Error("");
-  }
-};
-
-export const validateServer = (value: string): boolean | string => {
-  exitIfNoValue(value);
-  try {
-    new URL(transformAtlassianDomain(value));
-    return true;
-  } catch {
-    return `Not a valid URL`;
-  }
-};
-
-export const validateEmail = (value: string): boolean | string => {
-  exitIfNoValue(value);
-
-  // TODO use deno validation
-  // https://deno.land/x/validation@v0.4.0
-  const expression: RegExp = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
-  const isValid = expression.test(value);
-
-  if (!isValid) {
-    return "Invalid email address";
-  }
-
-  return true;
-};
-
-export const validateToken = (value: string): boolean => {
-  exitIfNoValue(value);
-  return true;
-};
-
-export const getMessageFromAPIError = (error: any): string => {
-  if (error instanceof ApiError) {
-    return `${error.status} - ${error.statusText}`;
-  }
-
-  if (error?.message) {
-    return error.message;
-  }
-
-  return "Unknown error";
-};
-
-export const tokenFilterOut = (
-  accessToken: AccountToken,
-  token: AccountToken
-) => {
-  return accessToken.server !== token.server && accessToken.name !== token.name;
-};
-
 const removeToken = (token: AccountToken) => {
   const existingTokens =
     readAccessTokens<AccountToken>(confluenceProvider.name) ?? [];
@@ -125,7 +77,7 @@ const removeToken = (token: AccountToken) => {
     tokenFilterOut(accessToken, token)
   );
 
-  writeAccessTokens(confluenceId, toWrite);
+  writeAccessTokens(CONFLUENCE_ID, toWrite);
 };
 
 const verifyAccountToken = async (accountToken: AccountToken) => {
@@ -185,7 +137,7 @@ const authorizeToken = async () => {
   await verifyAccountToken(accountToken);
 
   writeAccessToken<AccountToken>(
-    confluenceId,
+    CONFLUENCE_ID,
     accountToken,
     (a, b) => a.server === a.server && a.name === b.name
   );
@@ -198,16 +150,6 @@ const resolveTarget = async (
   target: PublishRecord
 ): Promise<PublishRecord> => {
   return Promise.resolve(target);
-};
-
-export const isUnauthorized = (error: Error): boolean => {
-  return (
-    error instanceof ApiError && (error.status === 401 || error.status === 403)
-  );
-};
-
-export const isNotFound = (error: Error): boolean => {
-  return error instanceof ApiError && error.status === 404;
 };
 
 async function publish(
@@ -286,7 +228,7 @@ async function publish(
           // update the content
           const toCreate: ContentUpdate = {
             version: { number: (prevContent?.version?.number || 0) + 1 },
-            title,
+            title: `${title} ${generateUuid()}`,
             type: kPageType,
             status: "current",
             ancestors: null,
@@ -357,8 +299,8 @@ function confluenceParent(url: string): ConfluenceParent | undefined {
 }
 
 export const confluenceProvider: PublishProvider = {
-  name: confluenceId,
-  description: kConfluenceDescription,
+  name: CONFLUENCE_ID,
+  description: CONFLUENCE_DESCRIPTION,
   requiresServer: true,
   requiresRender: true,
   accountTokens,
