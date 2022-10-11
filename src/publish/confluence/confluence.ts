@@ -1,4 +1,5 @@
 import { join } from "path/mod.ts";
+import { generate as generateUuid } from "uuid/v4.ts";
 import { Input, Secret } from "cliffy/prompt/mod.ts";
 import { RenderFlags } from "../../command/render/types.ts";
 import { isHttpUrl } from "../../core/url.ts";
@@ -16,11 +17,11 @@ import {
 } from "../provider.ts";
 import { ApiError, PublishOptions, PublishRecord } from "../types.ts";
 import { ConfluenceClient } from "./api/index.ts";
-import { Content, ContentBody, kPageType } from "./api/types.ts";
+import { Content, ContentBody, ContentUpdate, kPageType } from "./api/types.ts";
 import { ensureTrailingSlash } from "../../core/path.ts";
 import { withSpinner } from "../../core/console.ts";
 
-export const kConfluenceId = "confluence";
+export const confluenceId = "confluence";
 const kConfluenceDescription = "Confluence";
 
 export const transformAtlassianDomain = (domain: string) => {
@@ -44,7 +45,7 @@ const confluenceEnvironmentVarAccount = () => {
 };
 
 const readConfluenceAccessTokens = (): AccountToken[] => {
-  const result = readAccessTokens<AccountToken>(kConfluenceId) ?? [];
+  const result = readAccessTokens<AccountToken>(confluenceId) ?? [];
   return result;
 };
 
@@ -61,11 +62,15 @@ const accountTokens = (): Promise<AccountToken[]> => {
   return Promise.resolve(accounts);
 };
 
-export const validateServer = (value: string): boolean | string => {
-  // 'Enter' with no value ends publish
-  if (value.length === 0) {
+const exitIfNoValue = (value: string) => {
+  if (value?.length === 0) {
     throw new Error("");
   }
+};
+
+export const validateServer = (value: string): boolean | string => {
+  exitIfNoValue(value);
+
   try {
     new URL(transformAtlassianDomain(value));
     return true;
@@ -75,10 +80,7 @@ export const validateServer = (value: string): boolean | string => {
 };
 
 export const validateEmail = (value: string): boolean | string => {
-  // 'Enter' with no value exits publish
-  if (value.length === 0) {
-    throw new Error("");
-  }
+  exitIfNoValue(value);
 
   // TODO use deno validation
   // https://deno.land/x/validation@v0.4.0
@@ -93,10 +95,7 @@ export const validateEmail = (value: string): boolean | string => {
 };
 
 export const validateToken = (value: string): boolean => {
-  // 'Enter' with no value exits publish
-  if (value.length === 0) {
-    throw new Error("");
-  }
+  exitIfNoValue(value);
   return true;
 };
 
@@ -123,9 +122,6 @@ const verifyAccountToken = async (accountToken: AccountToken) => {
   }
 };
 
-/**
- * When Authorizing a new Account
- */
 const authorizeToken = async () => {
   // TODO: validate that:
   //   - the server exists
@@ -167,7 +163,7 @@ const authorizeToken = async () => {
   await verifyAccountToken(accountToken);
 
   writeAccessToken<AccountToken>(
-    kConfluenceId,
+    confluenceId,
     accountToken,
     (a, b) => a.server === a.server && a.name === b.name
   );
@@ -175,18 +171,23 @@ const authorizeToken = async () => {
   return Promise.resolve(accountToken);
 };
 
-function removeToken(token: AccountToken) {
-  writeAccessTokens(
-    confluenceProvider.name,
-    readAccessTokens<AccountToken>(confluenceProvider.name)?.filter(
-      (accessToken) => {
-        return (
-          accessToken.server !== token.server && accessToken.name !== token.name
-        );
-      }
-    ) || []
+export const tokenFilterOut = (
+  accessToken: AccountToken,
+  token: AccountToken
+) => {
+  return accessToken.server !== token.server && accessToken.name !== token.name;
+};
+
+const removeToken = (token: AccountToken) => {
+  const existingTokens =
+    readAccessTokens<AccountToken>(confluenceProvider.name) ?? [];
+
+  const toWrite: Array<AccountToken> = existingTokens.filter((accessToken) =>
+    tokenFilterOut(accessToken, token)
   );
-}
+
+  writeAccessTokens(confluenceId, toWrite);
+};
 
 function resolveTarget(
   _account: AccountToken,
@@ -215,8 +216,10 @@ async function publish(
 
   // determine the parent to publish into
   let parentUrl = target?.url;
+
+  console.log("target", target);
+
   if (!target) {
-    // user needs to tell us where to publish!
     parentUrl = await Input.prompt({
       indent: "",
       message: `Space or Parent Page URL:`,
@@ -236,11 +239,13 @@ async function publish(
 
   // parse the parent
   const parent = confluenceParent(parentUrl);
+  console.log("parent", parent);
   if (!parent) {
     throw new Error("Invalid Confluence parent URL: " + parentUrl);
   }
 
   if (type === "document") {
+    console.log('type === "document"');
     // render the document
     const flags: RenderFlags = {
       to: "confluence-publish",
@@ -255,6 +260,8 @@ async function publish(
       },
     };
 
+    console.log("body", body);
+
     let content: Content | undefined;
     if (target) {
       await withSpinner(
@@ -266,14 +273,15 @@ async function publish(
           const prevContent = await client.getContent(target.id);
 
           // update the content
-          content = await client.updateContent(target.id, {
+          const toCreate: ContentUpdate = {
             version: { number: (prevContent?.version?.number || 0) + 1 },
             title,
             type: kPageType,
             status: "current",
             ancestors: null,
             body,
-          });
+          };
+          content = await client.updateContent(target.id, toCreate);
         }
       );
     } else {
@@ -282,13 +290,14 @@ async function publish(
           message: `Creating content in space ${parent.space}...`,
         },
         async () => {
+          console.log("parent", parent);
           // for creates we need to get the space info
           const space = await client.getSpace(parent.space);
           console.log("space", space);
           // create the content
           content = await client.createContent({
             id: null,
-            title,
+            title: `${title} ${generateUuid()}`,
             type: kPageType,
             space,
             status: "current",
@@ -345,7 +354,7 @@ function confluenceParent(url: string): ConfluenceParent | undefined {
 }
 
 export const confluenceProvider: PublishProvider = {
-  name: kConfluenceId,
+  name: confluenceId,
   description: kConfluenceDescription,
   requiresServer: true,
   requiresRender: true,

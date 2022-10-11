@@ -1,9 +1,9 @@
 /*
-* index.ts
-*
-* Copyright (C) 2020 by RStudio, PBC
-*
-*/
+ * index.ts
+ *
+ * Copyright (C) 2020 by RStudio, PBC
+ *
+ */
 
 import { encode as base64encode } from "encoding/base64.ts";
 import { ensureTrailingSlash } from "../../../core/path.ts";
@@ -13,8 +13,7 @@ import { ApiError } from "../../types.ts";
 import { Content, ContentCreate, ContentUpdate, Space, User } from "./types.ts";
 
 export class ConfluenceClient {
-  public constructor(private readonly token_: AccountToken) {
-  }
+  public constructor(private readonly token_: AccountToken) {}
 
   public getUser(): Promise<User> {
     return this.get<User>("user/current");
@@ -45,7 +44,7 @@ export class ConfluenceClient {
   private fetch = async <T>(
     method: string,
     path: string,
-    body?: BodyInit | null,
+    body?: BodyInit | null
   ): Promise<T> => {
     const headers = {
       Accept: "application/json",
@@ -54,14 +53,13 @@ export class ConfluenceClient {
         : {}),
       ...this.authorizationHeader(),
     };
+    console.log("headers", headers);
     const request = {
       method,
       headers,
       body,
     };
-    return this.handleResponse<T>(
-      await fetch(this.apiUrl(path), request),
-    );
+    return this.handleResponse<T>(await fetch(this.apiUrl(path), request));
   };
 
   private apiUrl = (path: string) =>
@@ -79,10 +77,10 @@ export class ConfluenceClient {
       return response.json() as unknown as T;
     } else if (response.status !== 200) {
       //TODO log levels to show extended error messages
-      console.error('response.status !== 200', response);
+      console.error("response.status !== 200", response);
       throw new ApiError(response.status, response.statusText);
     } else {
-      console.error('other error', response)
+      console.error("other error", response);
       throw new Error(`${response.status} - ${response.statusText}`);
     }
   }

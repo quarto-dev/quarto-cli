@@ -7,12 +7,14 @@ import { unitTest } from "../test.ts";
 import { assertEquals, assertThrows } from "testing/asserts.ts";
 import {
   getMessageFromAPIError,
+  tokenFilterOut,
   transformAtlassianDomain,
   validateEmail,
   validateServer,
   validateToken,
 } from "../../src/publish/confluence/confluence.ts";
 import { ApiError } from "../../src/publish/types.ts";
+import { AccountTokenType } from "../../src/publish/provider.ts";
 
 unitTest("transformAtlassianDomain_basic", async () => {
   const result = transformAtlassianDomain("fake-domain");
@@ -98,5 +100,38 @@ unitTest("getMessageFromAPIError_emptyString", async () => {
 unitTest("getMessageFromAPIError_APIError", async () => {
   const result = getMessageFromAPIError(new ApiError(123, "status-text"));
   const expected = "123 - status-text";
+  assertEquals(expected, result);
+});
+
+unitTest("tokenFilterOut_sameToken", async () => {
+  const fakeToken = {
+    type: AccountTokenType.Environment,
+    name: "fake-name",
+    server: "fake-server",
+    token: "fake-token",
+  };
+
+  const result = tokenFilterOut(fakeToken, fakeToken);
+  const expected = false;
+  assertEquals(expected, result);
+});
+
+unitTest("tokenFilterOut_differentToken", async () => {
+  const fakeToken = {
+    type: AccountTokenType.Environment,
+    name: "fake-name",
+    server: "fake-server",
+    token: "fake-token",
+  };
+
+  const fakeToken2 = {
+    type: AccountTokenType.Environment,
+    name: "fake-name2",
+    server: "fake-server2",
+    token: "fake-token2",
+  };
+
+  const result = tokenFilterOut(fakeToken, fakeToken2);
+  const expected = true;
   assertEquals(expected, result);
 });
