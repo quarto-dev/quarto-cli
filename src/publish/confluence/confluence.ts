@@ -37,7 +37,6 @@ import {
 import { verifyAccountToken, verifyServerExists } from "./confluence-verify.ts";
 
 export const CONFLUENCE_ID = "confluence";
-const CONFLUENCE_DESCRIPTION = "Confluence";
 
 const getAccountTokens = (): Promise<AccountToken[]> => {
   const getConfluenceEnvironmentAccount = () => {
@@ -72,8 +71,7 @@ const getAccountTokens = (): Promise<AccountToken[]> => {
 };
 
 const removeToken = (token: AccountToken) => {
-  const existingTokens =
-    readAccessTokens<AccountToken>(confluenceProvider.name) ?? [];
+  const existingTokens = readAccessTokens<AccountToken>(CONFLUENCE_ID) ?? [];
 
   const toWrite: Array<AccountToken> = existingTokens.filter((accessToken) =>
     tokenFilterOut(accessToken, token)
@@ -82,7 +80,7 @@ const removeToken = (token: AccountToken) => {
   writeAccessTokens(CONFLUENCE_ID, toWrite);
 };
 
-const authorizeToken = async () => {
+const promptAndAuthorizeToken = async () => {
   const server: string = await Input.prompt({
     indent: "",
     message: "Confluence Domain:",
@@ -90,7 +88,9 @@ const authorizeToken = async () => {
     validate: validateServer,
     transform: transformAtlassianDomain,
   });
-  await verifyServerExists(server);
+  await withSpinner({ message: "Verifying server..." }, () =>
+    verifyServerExists(server)
+  );
 
   const name = await Input.prompt({
     indent: "",
@@ -111,8 +111,9 @@ const authorizeToken = async () => {
     server,
     token,
   };
-  await verifyAccountToken(accountToken);
-
+  await withSpinner({ message: "Verifying account..." }, () =>
+    verifyAccountToken(accountToken)
+  );
   writeAccessToken<AccountToken>(
     CONFLUENCE_ID,
     accountToken,
@@ -139,15 +140,11 @@ async function publish(
   _options: PublishOptions,
   target?: PublishRecord
 ): Promise<[PublishRecord, URL | undefined]> {
-  console.log("publish");
-
   // REST api
   const client = new ConfluenceClient(account);
 
   // determine the parent to publish into
   let parentUrl = target?.url;
-
-  console.log("target", target);
 
   if (!target) {
     parentUrl = await Input.prompt({
@@ -169,13 +166,12 @@ async function publish(
 
   // parse the parent
   const parent = confluenceParent(parentUrl);
-  console.log("parent", parent);
+
   if (!parent) {
     throw new Error("Invalid Confluence parent URL: " + parentUrl);
   }
 
   if (type === "document") {
-    console.log('type === "document"');
     // render the document
     const flags: RenderFlags = {
       to: "confluence-publish",
@@ -189,8 +185,6 @@ async function publish(
         representation: "storage",
       },
     };
-
-    console.log("body", body);
 
     let content: Content | undefined;
     if (target) {
@@ -220,10 +214,9 @@ async function publish(
           message: `Creating content in space ${parent.space}...`,
         },
         async () => {
-          console.log("parent", parent);
           // for creates we need to get the space info
           const space = await client.getSpace(parent.space);
-          console.log("space", space);
+
           // create the content
           content = await client.createContent({
             id: null,
@@ -260,7 +253,7 @@ type ConfluenceParent = {
   parent?: string;
 };
 
-//TODO Write a Unit Test for this
+//TODO extract to helper and test
 function confluenceParent(url: string): ConfluenceParent | undefined {
   // https://rstudiopbc.atlassian.net/wiki/spaces/OPESOUGRO/overview
   // https://rstudiopbc.atlassian.net/wiki/spaces/OPESOUGRO/pages/100565233/Quarto
@@ -277,11 +270,11 @@ function confluenceParent(url: string): ConfluenceParent | undefined {
 
 export const confluenceProvider: PublishProvider = {
   name: CONFLUENCE_ID,
-  description: CONFLUENCE_DESCRIPTION,
+  description: "Confluence",
   requiresServer: true,
   requiresRender: true,
   accountTokens: getAccountTokens,
-  authorizeToken,
+  authorizeToken: promptAndAuthorizeToken,
   removeToken,
   resolveTarget,
   publish,
