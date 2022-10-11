@@ -56,7 +56,7 @@ jobs:
           echo ::set-output name=build_number::$QUARTO_BUILD_NUMBER
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: News
           path: ./news/changelog-${{steps.config.outputs.version}}.md
@@ -73,7 +73,7 @@ jobs:
           tar -zcvf  quarto-${{needs.configure.outputs.version}}.tar.gz *
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: Source
           path: ./quarto-${{needs.configure.outputs.version}}.tar.gz
@@ -105,7 +105,7 @@ jobs:
           popd
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: Deb Zip
           path: ./package/quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz
