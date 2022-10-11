@@ -56,7 +56,6 @@ export async function bookBibliographyPostRender(
     // determine the bibliography, csl, and nocite based on the first file
     const file = outputFiles[0];
     const bibliography = file.format.metadata[kBibliography] as string[];
-    const csl = file.format.metadata[kCsl];
     const nocite = typeof (file.format.metadata[kNoCite]) === "string"
       ? file.format.metadata[kNoCite] as string
       : undefined;
@@ -66,18 +65,24 @@ export async function bookBibliographyPostRender(
 
     // We need to be sure we're properly resolving the bibliography
     // path from the metadata using the path of the file that provided the
-    // metadata
+    // metadata (the same goes for the CSL file, if present)
     // The relative path to the output file
     const fileRelativePath = relative(projectOutputDir(context), file.file);
     // The path to the input file
     const inputfile = await inputFileForOutputFile(context, fileRelativePath);
     const bibliographyPaths: string[] = [];
+    let csl = file.format.metadata[kCsl] as string;
     if (inputfile) {
       // Use the dirname from the input file to resolve the bibliography paths
       const firstFileDir = dirname(inputfile);
       bibliographyPaths.push(
         ...bibliography.map((file) => join(firstFileDir, file)),
       );
+
+      // Fixes https://github.com/quarto-dev/quarto-cli/issues/2755
+      if (csl) {
+        csl = join(firstFileDir, csl);
+      }
     } else {
       throw new Error(
         "Unable to determine proper path to use when computing bibliography path.",

@@ -39,6 +39,7 @@ import {
   kRevealJSPlugins,
   kTitle,
   kVersion,
+  RevealPluginInline,
 } from "./extension-shared.ts";
 import { cloneDeep } from "../core/lodash.ts";
 import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
@@ -46,7 +47,12 @@ import { getExtensionConfigSchema } from "../core/lib/yaml-schema/project-config
 import { projectIgnoreGlobs } from "../project/project-context.ts";
 import { ProjectType } from "../project/types/types.ts";
 import { copyResourceFile } from "../project/project-resources.ts";
-import { RevealPluginBundle } from "../format/reveal/format-reveal-plugin.ts";
+import {
+  isPluginBundle,
+  RevealPlugin,
+  RevealPluginBundle,
+  RevealPluginScript,
+} from "../format/reveal/format-reveal-plugin.ts";
 import { resourcePath } from "../core/resources.ts";
 import { warnOnce } from "../core/log.ts";
 
@@ -375,11 +381,11 @@ function resolveExtensionPaths(
     extension.path,
     inputDir,
     extension,
-    [kExtensionIgnoreFields],
+    kExtensionIgnoreFields,
   ) as unknown as Extension;
 }
 
-const kExtensionIgnoreFields = "biblio-style";
+const kExtensionIgnoreFields = ["biblio-style", "revealjs-plugins"];
 
 // Read the raw extension information out of a directory
 // (e.g. read all the extensions from _extensions)
@@ -704,18 +710,19 @@ async function readExtension(
         return resolveFilter(embeddedExtensions, extensionDir, filter);
       },
     );
-    formatMeta[kRevealJSPlugins] =
-      (formatMeta?.[kRevealJSPlugins] as Array<string | RevealPluginBundle> ||
-        [])
-        .flatMap(
-          (plugin) => {
-            return resolveRevealJSPlugin(
-              embeddedExtensions,
-              extensionDir,
-              plugin,
-            );
-          },
-        );
+    formatMeta[kRevealJSPlugins] = (formatMeta?.[kRevealJSPlugins] as Array<
+      string | RevealPluginBundle | RevealPlugin
+    > ||
+      [])
+      .flatMap(
+        (plugin) => {
+          return resolveRevealJSPlugin(
+            embeddedExtensions,
+            extensionDir,
+            plugin,
+          );
+        },
+      );
   });
   delete formats[kCommon];
 
@@ -732,9 +739,9 @@ async function readExtension(
   );
   const project = (contributes?.project || {}) as Record<string, unknown>;
   const revealJSPlugins = ((contributes?.[kRevealJSPlugins] || []) as Array<
-    string | RevealPluginBundle
+    string | RevealPluginBundle | RevealPlugin
   >).map((plugin) => {
-    return resolveRevealPluginPath(extensionDir, plugin);
+    return resolveRevealPlugin(extensionDir, plugin);
   });
 
   // Create the extension data structure
@@ -760,7 +767,7 @@ async function readExtension(
 function resolveRevealJSPlugin(
   embeddedExtensions: Extension[],
   dir: string,
-  plugin: string | RevealPluginBundle,
+  plugin: string | RevealPluginBundle | RevealPlugin,
 ) {
   if (typeof (plugin) === "string") {
     // First attempt to load this plugin from an embedded extension
@@ -773,7 +780,7 @@ function resolveRevealJSPlugin(
 
     // If there are embedded extensions, return their plugins
     if (extensions.length > 0) {
-      const plugins: Array<string | RevealPluginBundle> = [];
+      const plugins: Array<string | RevealPluginBundle | RevealPlugin> = [];
       for (const plugin of extensions[0].contributes[kRevealJSPlugins] || []) {
         plugins.push(plugin);
       }
@@ -781,24 +788,72 @@ function resolveRevealJSPlugin(
     } else {
       // There are no embedded extensions for this, validate the path
       validateExtensionPath("revealjs-plugin", dir, plugin);
-      return resolveRevealPluginPath(dir, plugin);
+      return resolveRevealPlugin(dir, plugin);
     }
   } else {
     return plugin;
   }
 }
 
-function resolveRevealPluginPath(
+export function isPluginRaw(
+  plugin: RevealPluginBundle | RevealPluginInline,
+): plugin is RevealPluginInline {
+  return (plugin as RevealPluginBundle).plugin === undefined;
+}
+
+function resolveRevealPlugin(
   extensionDir: string,
-  plugin: string | RevealPluginBundle,
-): string | RevealPluginBundle {
+  plugin: string | RevealPluginBundle | RevealPluginInline,
+): string | RevealPluginBundle | RevealPlugin {
   // Filters are expected to be absolute
   if (typeof (plugin) === "string") {
     return join(extensionDir, plugin);
+  } else if (isPluginRaw(plugin)) {
+    return resolveRevealPluginInline(plugin, extensionDir);
   } else {
     plugin.plugin = join(extensionDir, plugin.plugin);
     return plugin;
   }
+}
+
+function resolveRevealPluginInline(
+  plugin: RevealPluginInline,
+  extensionDir: string,
+): RevealPlugin {
+  if (!plugin.name) {
+    throw new Error(
+      `Invalid revealjs-plugin in ${extensionDir} - 'name' property is required.`,
+    );
+  }
+
+  // Resolve plugin raw into plugin
+  const resolvedPlugin: RevealPlugin = {
+    name: plugin.name,
+    path: extensionDir,
+    register: plugin.register,
+    config: plugin.config,
+  };
+  if (plugin.script) {
+    const pluginArr = Array.isArray(plugin.script)
+      ? plugin.script
+      : [plugin.script];
+    resolvedPlugin.script = pluginArr.map((plug) => {
+      if (typeof (plug) === "string") {
+        return {
+          path: plug,
+        } as RevealPluginScript;
+      } else {
+        return plug;
+      }
+    });
+  }
+
+  if (plugin.stylesheet) {
+    resolvedPlugin.stylesheet = Array.isArray(plugin.stylesheet)
+      ? plugin.stylesheet
+      : [plugin.stylesheet];
+  }
+  return resolvedPlugin;
 }
 
 // This will resolve a shortcode contributed by this extension

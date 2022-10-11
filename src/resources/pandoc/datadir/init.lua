@@ -1878,7 +1878,7 @@ quarto = {
   project = {
    directory = projectDirectory(),
    offset = projectOffset(),
-   profile = projectProfiles(),
+   profile = pandoc.List(projectProfiles()),
    output_directory = projectOutputDirectory()
   },
   utils = {

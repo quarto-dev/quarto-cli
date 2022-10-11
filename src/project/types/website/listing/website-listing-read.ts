@@ -5,7 +5,7 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { warning } from "log/mod.ts";
+import { debug, warning } from "log/mod.ts";
 import { basename, dirname, join, relative } from "path/mod.ts";
 import { cloneDeep, orderBy } from "../../../../core/lodash.ts";
 import { existsSync } from "fs/mod.ts";
@@ -504,6 +504,13 @@ async function readContents(
   project: ProjectContext,
   listing: ListingDehydrated,
 ) {
+  debug(`[listing] Reading listing '${listing.id}' from ${source}`);
+  debug(`[listing] Contents: ${
+    listing.contents.map((lst) => {
+      return typeof (lst) === "string" ? lst : "<yaml>";
+    }).join(",")
+  }`);
+
   const listingItems: ListingItem[] = [];
   const listingItemSources = new Set<ListingItemSource>();
 
@@ -544,10 +551,12 @@ async function readContents(
       // Find the files we should use based upon this glob or path
 
       const files = filterListingFiles(content);
+      debug(`[listing] matches ${files.include.length} files:`);
 
       for (const file of files.include) {
         if (!files.exclude.includes(file)) {
           if (isYamlPath(file)) {
+            debug(`[listing] Reading YAML file ${file}`);
             const yaml = readYaml(file);
             if (Array.isArray(yaml)) {
               const items = yaml as Array<unknown>;
@@ -580,11 +589,17 @@ async function readContents(
           } else {
             const isFile = Deno.statSync(file).isFile;
             if (isFile) {
+              debug(`[listing] Reading file ${file}`);
               const item = await listItemFromFile(file, project, listing);
               if (item) {
                 validateItem(listing, item, (field: string) => {
                   return `The file ${file} is missing the required field '${field}'.`;
                 });
+
+                if (item.item.title === undefined) {
+                  debug(`[listing] Missing Title in File ${file}`);
+                }
+
                 listingItemSources.add(item.source);
                 listingItems.push(item.item);
               }
