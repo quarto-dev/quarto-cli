@@ -18,7 +18,7 @@ end
 function quartoBook()
   return {
     Header = function(el) 
-      if (quarto.doc.isFormat("pdf") and param("single-file-book", false)) then
+      if (quarto.doc.is_format("pdf") and param("single-file-book", false)) then
           -- Works around https://github.com/jgm/pandoc/issues/1632
           -- See https://github.com/quarto-dev/quarto-cli/issues/2412
           if el.level <= 2 and el.classes:includes 'unnumbered' then

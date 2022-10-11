@@ -1,0 +1,13 @@
+---
+format: html
+---
+
+::: {#thm-line}
+
+## Line (with or without the Lua filter error occurs)
+
+```
+1+1
+```
+
+:::

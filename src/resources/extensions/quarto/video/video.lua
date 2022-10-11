@@ -189,14 +189,14 @@ function htmlVideo(src, height, width, title, start, aspectRatio)
   if (videoSnippetAndType.type == VIDEO_TYPES.VIDEOJS) then
     -- Can this be bundled with the VideoJS dependency
     -- Avoid disjointed combination?
-    quarto.doc.addHtmlDependency({
+    quarto.doc.add_html_dependency({
       name = 'videojs',
       scripts = { 'resources/videojs/video.min.js' },
       stylesheets = { 'resources/videojs/video-js.css' }
     })
     local id = videoSnippetAndType.id or ''
     local scriptTag = "<script>videojs(" .. id .. ");</script>"
-    quarto.doc.includeText("after-body", scriptTag)
+    quarto.doc.include_text("after-body", scriptTag)
   end
 
   local isVideoJS = function()
@@ -204,15 +204,15 @@ function htmlVideo(src, height, width, title, start, aspectRatio)
   end
 
   local isRevealJS = function()
-    return quarto.doc.isFormat('revealjs')
+    return quarto.doc.is_format('revealjs')
   end
 
   local shouldAddResponsiveClasses = false
   if isResponsive(width, height)
           and not isRevealJS()
           and not isVideoJS() then
-    if (not quarto.doc.hasBootstrap()) then
-      quarto.doc.addHtmlDependency({
+    if (not quarto.doc.has_bootstrap()) then
+      quarto.doc.add_html_dependency({
         name = 'bootstrap-responsive',
         stylesheets = { 'resources/bootstrap/bootstrap-responsive-ratio.css' }
       })
@@ -265,7 +265,7 @@ return {
       end
     end
 
-    if quarto.doc.isFormat("html:js") then
+    if quarto.doc.is_format("html:js") then
       return htmlVideo(srcValue, heightValue, widthValue, titleValue, startValue, aspectRatio)
     else
       -- Fall-back to a link of the source

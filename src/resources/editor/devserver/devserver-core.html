@@ -642,6 +642,12 @@
     const devServerSocket = new WebSocket(protocol + "//" + window.location.host + path);
     devServerSocket.onopen = () => {
       console.log('Socket connection open. Listening for events.');
+      // if the socket closes for any reason (e.g. this occurs in electron apps
+      // when the computer suspends) then reload to reestablish the connection 
+      devServerSocket.onclose = () => {
+        console.log('Socket connection closed. Reloading.');
+        window.location.reload(true);
+      }
     };
     // append for errors that occur within the error window
     let lastError = 0;
@@ -672,7 +678,6 @@
     };
     devServerSocket.onmessage = (msg) => {
       if (msg.data.startsWith('reload')) {
-        devServerSocket.close();
         let target = normalizeTarget(msg.data.replace(/^reload/, ""));
         // prepend proxy path to target if we have one
         if (target) {
