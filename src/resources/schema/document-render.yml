@@ -142,11 +142,11 @@
       are constructed from the SHA1 hash of the contents.
 
 - name: resource-path
-  schema: path
-  default: "."
+  schema:
+    arrayOf: path
+  default: ["."]
   description: |
-    List of paths to search for images and other resources. The paths should
-    be separated by : on Linux, UNIX, and macOS systems, and by ; on Windows.
+    List of paths to search for images and other resources.
 
 - name: default-image-extension
   schema: string
