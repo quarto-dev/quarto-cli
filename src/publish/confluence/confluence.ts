@@ -200,6 +200,16 @@ const resolveTarget = async (
   return Promise.resolve(target);
 };
 
+export const isUnauthorized = (error: Error): boolean => {
+  return (
+    error instanceof ApiError && (error.status === 401 || error.status === 403)
+  );
+};
+
+export const isNotFound = (error: Error): boolean => {
+  return error instanceof ApiError && error.status === 404;
+};
+
 async function publish(
   account: AccountToken,
   type: "document" | "site",
@@ -324,14 +334,6 @@ async function publish(
   } else {
     throw new Error("Confluence site publishing not implemented");
   }
-}
-
-function isUnauthorized(err: Error) {
-  return err instanceof ApiError && (err.status === 401 || err.status === 403);
-}
-
-function isNotFound(err: Error) {
-  return err instanceof ApiError && err.status === 404;
 }
 
 type ConfluenceParent = {

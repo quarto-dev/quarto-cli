@@ -7,6 +7,8 @@ import { unitTest } from "../test.ts";
 import { assertEquals, assertThrows } from "testing/asserts.ts";
 import {
   getMessageFromAPIError,
+  isNotFound,
+  isUnauthorized,
   tokenFilterOut,
   transformAtlassianDomain,
   validateEmail,
@@ -132,6 +134,36 @@ unitTest("tokenFilterOut_differentToken", async () => {
   };
 
   const result = tokenFilterOut(fakeToken, fakeToken2);
+  const expected = true;
+  assertEquals(expected, result);
+});
+
+unitTest("isUnauthorized_EmptyError", async () => {
+  const result = isUnauthorized(new Error());
+  const expected = false;
+  assertEquals(expected, result);
+});
+
+unitTest("isUnauthorized_401", async () => {
+  const result = isUnauthorized(new ApiError(401, "fake-status"));
+  const expected = true;
+  assertEquals(expected, result);
+});
+
+unitTest("isUnauthorized_403", async () => {
+  const result = isUnauthorized(new ApiError(403, "fake-status"));
+  const expected = true;
+  assertEquals(expected, result);
+});
+
+unitTest("isNotFound_Empty", async () => {
+  const result = isNotFound(new Error());
+  const expected = false;
+  assertEquals(expected, result);
+});
+
+unitTest("isNotFound_404", async () => {
+  const result = isNotFound(new ApiError(404, "fake-status"));
   const expected = true;
   assertEquals(expected, result);
 });
