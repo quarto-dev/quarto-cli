@@ -14878,9 +14878,13 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           name: "resource-path",
-          schema: "path",
-          default: ".",
-          description: "List of paths to search for images and other resources. The paths should\nbe separated by : on Linux, UNIX, and macOS systems, and by ; on Windows.\n"
+          schema: {
+            arrayOf: "path"
+          },
+          default: [
+            "."
+          ],
+          description: "List of paths to search for images and other resources.\n"
         },
         {
           name: "default-image-extension",
@@ -19987,12 +19991,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 132274,
+        _internalId: 132472,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 132273,
+            _internalId: 132471,
             type: "enum",
             enum: [
               "png",
