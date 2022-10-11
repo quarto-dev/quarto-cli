@@ -5,8 +5,6 @@
 *
 */
 
-import { generate as generateUuid } from "uuid/v4.ts";
-
 export function shortUuid() {
-  return generateUuid().replaceAll("-", "").slice(0, 8);
+  return globalThis.crypto.randomUUID().replaceAll("-", "").slice(0, 8);
 }
