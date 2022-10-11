@@ -9,7 +9,7 @@ import { info, warning } from "log/mod.ts";
 import * as colors from "fmt/colors.ts";
 
 import { basename, dirname, join } from "path/mod.ts";
-import { writeAll } from "io/mod.ts";
+import { writeAll } from "streams/conversion.ts";
 import { ensureDirSync } from "fs/mod.ts";
 import { pandocAutoIdentifier } from "../../core/pandoc/pandoc-id.ts";
 

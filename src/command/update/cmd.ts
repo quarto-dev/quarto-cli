@@ -59,12 +59,12 @@ export const updateCommand = new Command()
   .action(
     async (
       options: { prompt?: boolean; embed?: string },
-      target?: string[],
+      ...target: string[]
     ) => {
       await initYamlIntelligenceResourcesFromFilesystem();
       const temp = createTempContext();
       try {
-        const resolved = resolveCompatibleArgs(target || [], "extension");
+        const resolved = resolveCompatibleArgs(target, "extension");
 
         if (resolved.action === "extension") {
           // Install an extension
