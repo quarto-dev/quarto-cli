@@ -53,7 +53,6 @@ export class ConfluenceClient {
         : {}),
       ...this.authorizationHeader(),
     };
-    console.log("headers", headers);
     const request = {
       method,
       headers,

@@ -1,4 +1,4 @@
-//TODO extract pure functions to the helper
+//TODO Resource bundles
 
 import { join } from "path/mod.ts";
 import { generate as generateUuid } from "uuid/v4.ts";
@@ -34,11 +34,13 @@ import {
   validateToken,
 } from "./confluence-helper.ts";
 
+import { verifyAccountToken, verifyServerExists } from "./confluence-verify.ts";
+
 export const CONFLUENCE_ID = "confluence";
 const CONFLUENCE_DESCRIPTION = "Confluence";
 
-const accountTokens = (): Promise<AccountToken[]> => {
-  const confluenceEnvironmentVarAccount = () => {
+const getAccountTokens = (): Promise<AccountToken[]> => {
+  const getConfluenceEnvironmentAccount = () => {
     const server = Deno.env.get("CONFLUENCE_DOMAIN");
     const name = Deno.env.get("CONFLUENCE_USER_EMAIL");
     const token = Deno.env.get("CONFLUENCE_AUTH_TOKEN");
@@ -59,7 +61,7 @@ const accountTokens = (): Promise<AccountToken[]> => {
 
   let accounts: AccountToken[] = [];
 
-  const envAccount = confluenceEnvironmentVarAccount();
+  const envAccount = getConfluenceEnvironmentAccount();
   if (envAccount) {
     accounts = [...accounts, envAccount];
   }
@@ -80,46 +82,21 @@ const removeToken = (token: AccountToken) => {
   writeAccessTokens(CONFLUENCE_ID, toWrite);
 };
 
-const verifyAccountToken = async (accountToken: AccountToken) => {
-  try {
-    const client = new ConfluenceClient(accountToken);
-    await client.getUser();
-  } catch (error) {
-    throw new Error(
-      `Unable to sign into Confluence account: ${getMessageFromAPIError(error)}`
-    );
-  }
-};
-
-const verifyParentExists = async (
-  parentId: string,
-  accountToken: AccountToken
-) => {
-  try {
-    const client = new ConfluenceClient(accountToken);
-    await client.getContent(parentId);
-  } catch (error) {
-    throw new Error(`Parent doesn't exist: ${getMessageFromAPIError(error)}`);
-  }
-};
-
 const authorizeToken = async () => {
-  const server = await Input.prompt({
+  const server: string = await Input.prompt({
     indent: "",
     message: "Confluence Domain:",
-    //TODO Resource bundles?
     hint: "e.g. https://mydomain.atlassian.net/",
     validate: validateServer,
     transform: transformAtlassianDomain,
   });
-  //TODO verify server exists
+  await verifyServerExists(server);
 
   const name = await Input.prompt({
     indent: "",
     message: `Confluence Account Email:`,
     validate: validateEmail,
   });
-  //TODO verify name exists
 
   const token = await Secret.prompt({
     indent: "",
@@ -303,7 +280,7 @@ export const confluenceProvider: PublishProvider = {
   description: CONFLUENCE_DESCRIPTION,
   requiresServer: true,
   requiresRender: true,
-  accountTokens,
+  accountTokens: getAccountTokens,
   authorizeToken,
   removeToken,
   resolveTarget,
