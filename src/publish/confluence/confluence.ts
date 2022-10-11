@@ -70,7 +70,6 @@ const exitIfNoValue = (value: string) => {
 
 export const validateServer = (value: string): boolean | string => {
   exitIfNoValue(value);
-
   try {
     new URL(transformAtlassianDomain(value));
     return true;
@@ -111,66 +110,6 @@ export const getMessageFromAPIError = (error: any): string => {
   return "Unknown error";
 };
 
-const verifyAccountToken = async (accountToken: AccountToken) => {
-  try {
-    const client = new ConfluenceClient(accountToken);
-    await client.getUser();
-  } catch (error) {
-    throw new Error(
-      `Unable to sign into Confluence account: ${getMessageFromAPIError(error)}`
-    );
-  }
-};
-
-const authorizeToken = async () => {
-  // TODO: validate that:
-  //   - the server exists
-  //   - the username exists
-  //   - the token works
-  // This can be done in while(true) loops that call the prompt functions
-  // and validate as appropriate. It could also be done in a single
-  // call to getUser at the end
-
-  const server = await Input.prompt({
-    indent: "",
-    message: "Confluence Domain:",
-    //TODO Resource bundles?
-    hint: "e.g. https://mydomain.atlassian.net/",
-    validate: validateServer,
-    transform: transformAtlassianDomain,
-  });
-
-  const name = await Input.prompt({
-    indent: "",
-    message: `Confluence Account Email:`,
-    validate: validateEmail,
-  });
-
-  const token = await Secret.prompt({
-    indent: "",
-    message: "Confluence API Token:",
-    hint: "Create an API token at https://id.atlassian.com/manage/api-tokens",
-    validate: validateToken,
-  });
-
-  const accountToken: AccountToken = {
-    type: AccountTokenType.Authorized,
-    name,
-    server,
-    token,
-  };
-
-  await verifyAccountToken(accountToken);
-
-  writeAccessToken<AccountToken>(
-    confluenceId,
-    accountToken,
-    (a, b) => a.server === a.server && a.name === b.name
-  );
-
-  return Promise.resolve(accountToken);
-};
-
 export const tokenFilterOut = (
   accessToken: AccountToken,
   token: AccountToken
@@ -189,15 +128,77 @@ const removeToken = (token: AccountToken) => {
   writeAccessTokens(confluenceId, toWrite);
 };
 
-function resolveTarget(
-  _account: AccountToken,
+const verifyAccountToken = async (accountToken: AccountToken) => {
+  try {
+    const client = new ConfluenceClient(accountToken);
+    await client.getUser();
+  } catch (error) {
+    throw new Error(
+      `Unable to sign into Confluence account: ${getMessageFromAPIError(error)}`
+    );
+  }
+};
+
+const verifyParentExists = async (
+  parentId: string,
+  accountToken: AccountToken
+) => {
+  try {
+    const client = new ConfluenceClient(accountToken);
+    await client.getContent(parentId);
+  } catch (error) {
+    throw new Error(`Parent doesn't exist: ${getMessageFromAPIError(error)}`);
+  }
+};
+
+const authorizeToken = async () => {
+  const server = await Input.prompt({
+    indent: "",
+    message: "Confluence Domain:",
+    //TODO Resource bundles?
+    hint: "e.g. https://mydomain.atlassian.net/",
+    validate: validateServer,
+    transform: transformAtlassianDomain,
+  });
+  //TODO verify server exists
+
+  const name = await Input.prompt({
+    indent: "",
+    message: `Confluence Account Email:`,
+    validate: validateEmail,
+  });
+  //TODO verify name exists
+
+  const token = await Secret.prompt({
+    indent: "",
+    message: "Confluence API Token:",
+    hint: "Create an API token at https://id.atlassian.com/manage/api-tokens",
+    validate: validateToken,
+  });
+
+  const accountToken: AccountToken = {
+    type: AccountTokenType.Authorized,
+    name,
+    server,
+    token,
+  };
+  await verifyAccountToken(accountToken);
+
+  writeAccessToken<AccountToken>(
+    confluenceId,
+    accountToken,
+    (a, b) => a.server === a.server && a.name === b.name
+  );
+
+  return Promise.resolve(accountToken);
+};
+
+const resolveTarget = async (
+  accountToken: AccountToken,
   target: PublishRecord
-): Promise<PublishRecord | undefined> {
-  // TODO: confirm that the specified target exists and return a modified
-  // version w/ any update to the URL which has occurred (this may not be
-  //  a thing in confluence so just validating may be enough)
+): Promise<PublishRecord> => {
   return Promise.resolve(target);
-}
+};
 
 async function publish(
   account: AccountToken,
