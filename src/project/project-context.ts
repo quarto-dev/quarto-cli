@@ -200,7 +200,7 @@ export async function projectContext(
           [flags?.to]: toFormat,
         };
         Object.keys(projectFormats).forEach((format) => {
-          formats[format] = projectFormats[format];
+          formats[format] = projectFormats[format] as Record<never, never>;
         });
         projectConfig[kMetadataFormat] = formats;
       }

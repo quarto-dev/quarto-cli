@@ -45,7 +45,7 @@ import { RenderedFile } from "../../command/render/types.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { BookExtension } from "../../project/types/book/book-shared.ts";
 
-import { readLines } from "io/bufio.ts";
+import { readLines } from "io/buffer.ts";
 import { TempContext } from "../../core/temp.ts";
 import { isLatexPdfEngine, pdfEngine } from "../../config/pdf.ts";
 import { formatResourcePath } from "../../core/resources.ts";
