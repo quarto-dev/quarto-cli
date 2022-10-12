@@ -514,12 +514,15 @@ apply_slides_patch <- function(includes) {
   // Fire the "slideenter" event (handled by htmlwidgets.js) when the current
   // slide changes (different for each slide format).
   (function () {
-    function fireSlideChanged(previousSlide, currentSlide) {
-
-      // dispatch for htmlwidgets
+    // dispatch for htmlwidgets
+    function fireSlideEnter() {
       const event = window.document.createEvent("Event");
       event.initEvent("slideenter", true, true);
       window.document.dispatchEvent(event);
+    }
+
+    function fireSlideChanged(previousSlide, currentSlide) {
+      fireSlideEnter();
 
       // dispatch for shiny
       if (window.jQuery) {
@@ -531,6 +534,9 @@ apply_slides_patch <- function(includes) {
         }
       }
     }
+
+    // fire slideEnter for tabby tab activations (for htmlwidget resize behavior)
+    document.addEventListener("tabby", fireSlideEnter, false);
 
     // hookup for reveal
     if (window.Reveal) {
