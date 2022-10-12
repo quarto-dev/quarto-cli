@@ -427,6 +427,7 @@ export const kLang = "lang";
 export const kOrder = "order";
 
 // The authors user input
+export const KAuthor = "author";
 export const kAuthors = "authors";
 export const kDateFormatted = "date-formatted";
 

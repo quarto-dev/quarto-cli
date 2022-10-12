@@ -360,7 +360,10 @@ export async function renderFiles(
           context.format.metadata[kLang] &&
           typeof (context.format.metadata[kLang]) === "string"
         ) {
-          await setDateLocale(context.format.metadata[kLang] as string);
+          await setDateLocale(
+            options.flags?.pandocMetadata?.[kLang] as string ||
+              context.format.metadata[kLang] as string,
+          );
         }
 
         const fileLifetime = createNamedLifetime("render-file");

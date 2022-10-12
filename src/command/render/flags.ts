@@ -11,6 +11,8 @@ import { readYaml, readYamlFromString } from "../../core/yaml.ts";
 import { mergeConfigs } from "../../core/config.ts";
 
 import {
+  kAuthor,
+  kDate,
   kEmbedResources,
   kListings,
   kNumberOffset,
@@ -485,7 +487,10 @@ function removeQuartoMetadataFlags(pandocArgs: string[]) {
     const arg = pandocArgs[i];
     if (arg === "--metadata" || arg === "-M") {
       const flagValue = parseMetadataFlagValue(pandocArgs[i + 1] || "");
-      if (flagValue !== undefined && isQuartoMetadata(flagValue.name)) {
+      if (
+        flagValue !== undefined && (isQuartoMetadata(flagValue.name) ||
+          kQuartoForwardedMetadataFields.includes(flagValue.name))
+      ) {
         i++;
       } else {
         args.push(arg);
@@ -496,6 +501,7 @@ function removeQuartoMetadataFlags(pandocArgs: string[]) {
   }
   return args;
 }
+export const kQuartoForwardedMetadataFields = [kAuthor, kDate];
 
 function parseMetadataFlagValue(
   arg: string,
