@@ -88,6 +88,7 @@
 - Improved title slide that uses normalized author and affiliation schema
 - Introduce template partials for RevealJS. You may provide partials for `title-slide.html` or `toc-slide.html`.
 - Ensure that `output-location` works properly in fenced divs
+- Change SCSS so styles respond to both linkColor and link-color (#2820)
 
 ## Markdown Formats
 
