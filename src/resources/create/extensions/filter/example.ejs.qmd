@@ -1,0 +1,10 @@
+---
+title: "<%= title %> Example"
+filters:
+  - <%= name %>
+---
+
+:::{.example}
+
+
+:::
