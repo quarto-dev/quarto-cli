@@ -80,7 +80,6 @@ import {
 } from "../../core/lib/mapped-text.ts";
 import { getDivAttributes } from "../../core/handlers/base.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
-import { makeAbsolutePath } from "../../core/qualified-path.ts";
 
 export interface OjsCompileOptions {
   source: string;
@@ -368,7 +367,7 @@ export async function ojsCompile(
       pageResources.push(
         ...(await extractResourceDescriptionsFromOJSChunk(
           cellSrcStr,
-          makeAbsolutePath(Deno.realPathSync(dirname(options.source))),
+          dirname(options.source),
           projDir,
         )),
       );
