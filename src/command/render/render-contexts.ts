@@ -13,7 +13,7 @@ import {
   RenderOptions,
 } from "./types.ts";
 
-import { dirname, join, relative, resolve } from "path/mod.ts";
+import { dirname, join, relative } from "path/mod.ts";
 
 import * as ld from "../../core/lodash.ts";
 import { projectType } from "../../project/types/project-types.ts";
@@ -85,7 +85,6 @@ import {
 } from "../../core/pandoc/pandoc-formats.ts";
 import { ExtensionContext } from "../../extension/extension-shared.ts";
 import { renderServices } from "./render-shared.ts";
-import { DocumentInfo, ProjectInfo } from "../../core/qualified-path-types.ts";
 
 export async function resolveFormatsFromMetadata(
   metadata: Metadata,
@@ -225,11 +224,6 @@ export async function renderContexts(
   // return contexts
   const contexts: Record<string, RenderContext> = {};
   for (const format of Object.keys(formats)) {
-    const paths: ProjectInfo & DocumentInfo = {
-      documentDir: resolve(dirname(target.source)),
-      projectDir: resolve(project?.dir ?? dirname(target.source)),
-    };
-
     // set format
     const context: RenderContext = {
       target,
@@ -238,7 +232,6 @@ export async function renderContexts(
       format: formats[format],
       project,
       libDir: libDir!,
-      paths,
     };
     contexts[format] = context;
 
