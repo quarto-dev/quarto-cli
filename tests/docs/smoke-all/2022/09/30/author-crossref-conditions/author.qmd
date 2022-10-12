@@ -1,0 +1,5 @@
+---
+author-parsing: false
+filters:
+  - author.lua
+---
