@@ -345,7 +345,7 @@ mermaid.initialize();
           "",
         );
       const preEl = pandocHtmlBlock("pre")({
-        classes: ["mermaid"],
+        classes: ["mermaid", "mermaid-js"],
         attrs: [`tooltip-selector="#${tooltipName}"`],
       });
       preEl.push(pandocRawStr(escape(cell.source.value))); // TODO escaping removes MappedString information.
