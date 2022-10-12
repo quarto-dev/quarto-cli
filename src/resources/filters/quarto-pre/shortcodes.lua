@@ -356,7 +356,10 @@ function processShortCode(inlines)
               value = argInlines 
             })
         end
-      else
+      -- a standalone SoftBreak or LineBreak is not an argument!
+      -- (happens when users delimit args with newlines)
+      elseif #argInlines > 1 or 
+             (argInlines[1].t ~= "SoftBreak" and argInlines[1].t ~= "LineBreak") then
         -- this is an unnamed argument
         args:insert(
           { 
