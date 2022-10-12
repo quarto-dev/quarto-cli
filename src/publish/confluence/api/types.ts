@@ -1,9 +1,9 @@
 /*
-* types.ts
-*
-* Copyright (C) 2020 by RStudio, PBC
-*
-*/
+ * types.ts
+ *
+ * Copyright (C) 2020 by RStudio, PBC
+ *
+ */
 
 export type User = {
   type: "known" | "unknown" | "anonymous" | "user";
@@ -85,4 +85,9 @@ export type LongTask = {
   links: {
     status: string;
   };
+};
+
+export type ConfluenceParent = {
+  space: string;
+  parent?: string;
 };

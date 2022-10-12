@@ -15,9 +15,11 @@ import {
   validateEmail,
   validateServer,
   validateToken,
+  confluenceParentFromString,
 } from "../../src/publish/confluence/confluence-helper.ts";
 import { ApiError } from "../../src/publish/types.ts";
 import { AccountTokenType } from "../../src/publish/provider.ts";
+import { ConfluenceParent } from "../../src/publish/confluence/api/types.ts";
 
 unitTest("transformAtlassianDomain_basic", async () => {
   const result = transformAtlassianDomain("fake-domain");
@@ -166,5 +168,39 @@ unitTest("isNotFound_Empty", async () => {
 unitTest("isNotFound_404", async () => {
   const result = isNotFound(new ApiError(404, "fake-status"));
   const expected = true;
+  assertEquals(expected, result);
+});
+
+unitTest("confluenceParentFromString_empty", async () => {
+  const result = confluenceParentFromString("");
+  const expected = null;
+  assertEquals(expected, result);
+});
+
+unitTest("confluenceParentFromString_valid", async () => {
+  const url =
+    "https://allenmanning.atlassian.net/wiki/spaces/QUARTOCONF/pages/8781825/Markdown+Basics1";
+  const result = confluenceParentFromString(url);
+  const expected: ConfluenceParent = {
+    space: "QUARTOCONF",
+    parent: "8781825",
+  };
+  assertEquals(expected, result);
+});
+
+unitTest("confluenceParentFromString_valid_noParent", async () => {
+  const url = "https://allenmanning.atlassian.net/wiki/spaces/QUARTOCONF";
+  const result = confluenceParentFromString(url);
+  const expected: ConfluenceParent = {
+    space: "QUARTOCONF",
+    parent: undefined,
+  };
+  assertEquals(expected, result);
+});
+
+unitTest("confluenceParentFromString_invalid_noSpace", async () => {
+  const url = "https://allenmanning.atlassian.net/QUARTOCONF";
+  const result = confluenceParentFromString(url);
+  const expected = null;
   assertEquals(expected, result);
 });

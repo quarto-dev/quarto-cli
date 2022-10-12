@@ -33,6 +33,7 @@ import {
   validateServer,
   validateToken,
   validateParentURL,
+  confluenceParentFromString,
 } from "./confluence-helper.ts";
 
 import { verifyAccountToken, verifyLocation } from "./confluence-verify.ts";
@@ -163,14 +164,13 @@ async function publish(
     parentUrl = await promptForParentURL();
   }
 
-  verifyLocation(parentUrl);
-
-  // parse the parent
-  const parent = confluenceParent(parentUrl);
+  const parent = confluenceParentFromString(parentUrl);
 
   if (!parent) {
     throw new Error("Invalid Confluence parent URL: " + parentUrl);
   }
+
+  verifyLocation(parentUrl);
 
   if (type === "document") {
     // render the document
@@ -246,26 +246,6 @@ async function publish(
     return [newPublishRecord, new URL(newPublishRecord.url!)];
   } else {
     throw new Error("Confluence site publishing not implemented");
-  }
-}
-
-type ConfluenceParent = {
-  space: string;
-  parent?: string;
-};
-
-//TODO extract to helper and test
-function confluenceParent(url: string): ConfluenceParent | undefined {
-  // https://rstudiopbc.atlassian.net/wiki/spaces/OPESOUGRO/overview
-  // https://rstudiopbc.atlassian.net/wiki/spaces/OPESOUGRO/pages/100565233/Quarto
-  const match = url.match(
-    /^https.*?wiki\/spaces\/(?:(\w+)|(\w+)\/overview|(\w+)\/pages\/(\d+).*)$/
-  );
-  if (match) {
-    return {
-      space: match[1] || match[2] || match[3],
-      parent: match[4],
-    };
   }
 }
 

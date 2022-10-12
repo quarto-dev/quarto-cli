@@ -2,6 +2,7 @@ import { ApiError } from "../types.ts";
 import { ensureTrailingSlash } from "../../core/path.ts";
 import { isHttpUrl } from "../../core/url.ts";
 import { AccountToken } from "../provider.ts";
+import { ConfluenceParent } from "./api/types.ts";
 
 export const transformAtlassianDomain = (domain: string) => {
   return ensureTrailingSlash(
@@ -78,4 +79,20 @@ export const tokenFilterOut = (
   token: AccountToken
 ) => {
   return accessToken.server !== token.server && accessToken.name !== token.name;
+};
+
+export const confluenceParentFromString = (
+  url: string
+): ConfluenceParent | null => {
+  const match = url.match(
+    /^https.*?wiki\/spaces\/(?:(\w+)|(\w+)\/overview|(\w+)\/pages\/(\d+).*)$/
+  );
+  if (match) {
+    return {
+      space: match[1] || match[2] || match[3],
+      parent: match[4],
+    };
+  } else {
+    return null;
+  }
 };
