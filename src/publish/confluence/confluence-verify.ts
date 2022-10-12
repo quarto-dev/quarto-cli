@@ -2,6 +2,7 @@ import { AccountToken } from "../provider.ts";
 import { ConfluenceClient } from "./api/index.ts";
 import { getMessageFromAPIError } from "./confluence-helper.ts";
 import { withSpinner } from "../../core/console.ts";
+import { ConfluenceParent } from "./api/types.ts";
 
 const verifyWithSpinner = async (
   verifyCommand: () => Promise<void>,
@@ -46,4 +47,14 @@ const verifyParentExists = async (
   } catch (error) {
     throw new Error(`Parent doesn't exist: ${getMessageFromAPIError(error)}`);
   }
+};
+
+export const verifyConfluenceParent = async (
+  parentUrl: string,
+  parent: ConfluenceParent
+) => {
+  if (parent.space.length === 0) {
+    throw new Error("Invalid Confluence parent URL: " + parentUrl);
+  }
+  await verifyLocation(parentUrl);
 };

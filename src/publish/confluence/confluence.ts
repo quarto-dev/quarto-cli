@@ -20,7 +20,13 @@ import {
 
 import { ApiError, PublishOptions, PublishRecord } from "../types.ts";
 import { ConfluenceClient } from "./api/index.ts";
-import { Content, ContentBody, ContentUpdate, kPageType } from "./api/types.ts";
+import {
+  ConfluenceParent,
+  Content,
+  ContentBody,
+  ContentUpdate,
+  kPageType,
+} from "./api/types.ts";
 import { ensureTrailingSlash } from "../../core/path.ts";
 import { withSpinner } from "../../core/console.ts";
 import {
@@ -36,7 +42,11 @@ import {
   confluenceParentFromString,
 } from "./confluence-helper.ts";
 
-import { verifyAccountToken, verifyLocation } from "./confluence-verify.ts";
+import {
+  verifyAccountToken,
+  verifyLocation,
+  verifyConfluenceParent,
+} from "./confluence-verify.ts";
 
 export const CONFLUENCE_ID = "confluence";
 
@@ -157,20 +167,10 @@ async function publish(
 
   const client = new ConfluenceClient(account);
 
-  // determine the parent to publish into
-  let parentUrl: string = publishRecord?.url ?? "";
+  let parentUrl: string = publishRecord?.url ?? (await promptForParentURL());
+  const parent: ConfluenceParent = confluenceParentFromString(parentUrl);
 
-  if (!parentUrl) {
-    parentUrl = await promptForParentURL();
-  }
-
-  const parent = confluenceParentFromString(parentUrl);
-
-  if (!parent) {
-    throw new Error("Invalid Confluence parent URL: " + parentUrl);
-  }
-
-  verifyLocation(parentUrl);
+  await verifyConfluenceParent(parentUrl, parent);
 
   if (type === "document") {
     // render the document
@@ -225,7 +225,7 @@ async function publish(
             type: kPageType,
             space,
             status: "current",
-            ancestors: parent.parent ? [{ id: parent.parent }] : null,
+            ancestors: parent?.parent ? [{ id: parent.parent }] : null,
             body,
           });
         }

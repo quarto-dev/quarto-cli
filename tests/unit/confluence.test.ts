@@ -173,7 +173,10 @@ unitTest("isNotFound_404", async () => {
 
 unitTest("confluenceParentFromString_empty", async () => {
   const result = confluenceParentFromString("");
-  const expected = null;
+  const expected = {
+    space: "",
+    parent: "",
+  };
   assertEquals(expected, result);
 });
 
@@ -201,6 +204,9 @@ unitTest("confluenceParentFromString_valid_noParent", async () => {
 unitTest("confluenceParentFromString_invalid_noSpace", async () => {
   const url = "https://allenmanning.atlassian.net/QUARTOCONF";
   const result = confluenceParentFromString(url);
-  const expected = null;
+  const expected = {
+    space: "",
+    parent: "",
+  };
   assertEquals(expected, result);
 });

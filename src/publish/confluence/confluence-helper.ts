@@ -81,9 +81,7 @@ export const tokenFilterOut = (
   return accessToken.server !== token.server && accessToken.name !== token.name;
 };
 
-export const confluenceParentFromString = (
-  url: string
-): ConfluenceParent | null => {
+export const confluenceParentFromString = (url: string): ConfluenceParent => {
   const match = url.match(
     /^https.*?wiki\/spaces\/(?:(\w+)|(\w+)\/overview|(\w+)\/pages\/(\d+).*)$/
   );
@@ -92,7 +90,10 @@ export const confluenceParentFromString = (
       space: match[1] || match[2] || match[3],
       parent: match[4],
     };
-  } else {
-    return null;
   }
+
+  return {
+    space: "",
+    parent: "",
+  };
 };
