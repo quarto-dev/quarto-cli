@@ -31,7 +31,7 @@ jobs:
       - name: Install libc6-div
         run: sudo apt-get install libc6-dev
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
@@ -56,7 +56,7 @@ jobs:
           echo ::set-output name=build_number::$QUARTO_BUILD_NUMBER
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: News
           path: ./news/changelog-${{steps.config.outputs.version}}.md
@@ -66,14 +66,14 @@ jobs:
     needs: [configure]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Make Tarball
         run: |
           tar -zcvf  quarto-${{needs.configure.outputs.version}}.tar.gz *
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: Source
           path: ./quarto-${{needs.configure.outputs.version}}.tar.gz
@@ -83,7 +83,7 @@ jobs:
     needs: [configure]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
           
       - name: Configure
         run: |
@@ -105,7 +105,7 @@ jobs:
           popd
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: Deb Zip
           path: ./package/quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz
@@ -115,7 +115,7 @@ jobs:
      needs: [configure]
 
      steps:
-       - uses: actions/checkout@v2
+       - uses: actions/checkout@v3
 
        - name: Configure
          run: |
@@ -147,7 +147,7 @@ jobs:
            popd
 
        - name: Upload Artifact
-         uses: actions/upload-artifact@v2
+         uses: actions/upload-artifact@v3
          with:
            name: RHEL Zip
            path: ./package/quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar.gz
@@ -159,7 +159,7 @@ jobs:
     needs: [configure]
 
     steps:
-      - uses: actions/checkout@v2        
+      - uses: actions/checkout@v3        
 
       - name: Configure
         run: |
@@ -178,7 +178,7 @@ jobs:
           popd
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: Deb Installer
           path: ./package/out/quarto-${{needs.configure.outputs.version}}-linux-amd64.deb
@@ -212,7 +212,7 @@ jobs:
           override: true
           components: rustfmt, clippy    
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Configure
         run: |
@@ -239,13 +239,13 @@ jobs:
           QUARTO_WIN_PFX_PW: ${{ secrets.WIN_PFX_PW }}
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: Windows Installer
           path: ./package/out/quarto-${{needs.configure.outputs.version}}-win.msi
 
       - name: Upload Zip
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: Windows Zip
           path: ./package/out/quarto-${{needs.configure.outputs.version}}-win.zip
@@ -271,7 +271,7 @@ jobs:
     needs: [configure]
 
     steps:
-      - uses: actions/checkout@v2              
+      - uses: actions/checkout@v3              
 
       - name: Configure
         run: |
@@ -313,13 +313,13 @@ jobs:
           QUARTO_APPLE_CONNECT_PW: ${{ secrets.APPLE_CONNECT_PW }}
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: Mac Installer
           path: ./package/out/quarto-${{needs.configure.outputs.version}}-macos.pkg
 
       - name: Upload Zip
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: Mac Zip
           path: ./package/out/quarto-${{needs.configure.outputs.version}}-macos.tar.gz
@@ -365,7 +365,7 @@ jobs:
 
     steps:
       - name: Download Artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
 
       - name: Create Release
         id: create_release

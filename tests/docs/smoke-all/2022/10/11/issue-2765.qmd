@@ -1,0 +1,7 @@
+---
+resource-path: ["a-path:another-path"]
+validate-yaml: false
+---
+
+Hello.
+
