@@ -28,6 +28,8 @@ import { resourcePath } from "../../core/resources.ts";
 import { error } from "log/mod.ts";
 import { stripColor } from "../../core/lib/external/colors.ts";
 import { lines } from "../../core/lib/text.ts";
+import { AbsolutePath } from "../../core/qualified-path-types.ts";
+import { makeAbsolutePath } from "../../core/qualified-path.ts";
 
 // ResourceDescription filenames are always project-relative
 export interface ResourceDescription {
@@ -87,14 +89,14 @@ interface ResolvedES6Path {
 
 const resolveES6Path = (
   path: string,
-  originDir: string,
+  originDir: AbsolutePath,
   projectRoot?: string,
 ): ResolvedES6Path => {
   if (path.startsWith("/")) {
     if (projectRoot === undefined) {
       return {
         pathType: "root-relative",
-        resolvedImportPath: resolve(originDir, `.${path}`),
+        resolvedImportPath: resolve(originDir.value, `.${path}`),
       };
     } else {
       return {
@@ -106,7 +108,7 @@ const resolveES6Path = (
     // Here, it's always the case that path.startsWith('.')
     return {
       pathType: "relative",
-      resolvedImportPath: resolve(originDir, path),
+      resolvedImportPath: resolve(originDir.value, path),
     };
   }
 };
@@ -148,7 +150,7 @@ const localImports = (parse: any) => {
 // Extracts the direct dependencies from a single js, ojs or qmd file
 async function directDependencies(
   source: MappedString,
-  fileDir: string,
+  fileDir: AbsolutePath,
   language: "js" | "ojs" | "qmd",
   projectRoot?: string,
 ): Promise<DirectDependency[]> {
@@ -209,7 +211,7 @@ async function directDependencies(
 
 export async function extractResolvedResourceFilenamesFromQmd(
   markdown: MappedString,
-  mdDir: string,
+  mdDir: AbsolutePath,
   projectRoot: string,
 ) {
   const pageResources = [];
@@ -287,7 +289,7 @@ async function resolveImport(
   file: string,
   referent: string,
   projectRoot: string | undefined,
-  mdDir: string,
+  mdDir: AbsolutePath,
   visited?: Set<string>,
 ): Promise<
   {
@@ -485,7 +487,7 @@ quarto will only generate javascript files in ${
     resourceType: "import",
     referent,
     filename: resolve(dirname(referent!), localFile),
-    importPath: `./${relative(resolve(mdDir), localFile)}`,
+    importPath: `./${relative(mdDir.value, localFile)}`,
   });
 
   source = Deno.readTextFileSync(localFile);
@@ -494,7 +496,7 @@ quarto will only generate javascript files in ${
 
 export async function extractResourceDescriptionsFromOJSChunk(
   ojsSource: MappedString,
-  mdDir: string,
+  mdDir: AbsolutePath,
   projectRoot?: string,
 ) {
   let result: ResourceDescription[] = [];
@@ -502,7 +504,7 @@ export async function extractResourceDescriptionsFromOJSChunk(
   const imports: Map<string, ResourceDescription> = new Map();
 
   // FIXME get a uuid here
-  const rootReferent = `${mdDir}/<<root>>.qmd`;
+  const rootReferent = `${mdDir.value}/<<root>>.qmd`;
 
   // we're assuming that we always start in an {ojs} block.
   for (
@@ -594,7 +596,7 @@ export async function extractResourceDescriptionsFromOJSChunk(
       const { resolvedImportPath, pathType, importPath }
         of await directDependencies(
           asMappedString(source),
-          dirname(thisResolvedImportPath),
+          makeAbsolutePath(dirname(thisResolvedImportPath)),
           language as ("js" | "ojs" | "qmd"),
           projectRoot,
         )
@@ -665,7 +667,7 @@ export async function extractResourceDescriptionsFromOJSChunk(
   // convert resolved paths to relative paths
   result = result.map((description) => {
     const { referent, resourceType, importPath, pathType } = description;
-    let relName = relative(mdDir, description.filename);
+    let relName = relative(mdDir.value, description.filename);
     if (!relName.startsWith(".")) {
       relName = `./${relName}`;
     }
@@ -679,22 +681,19 @@ export async function extractResourceDescriptionsFromOJSChunk(
   });
 
   result.push(...fileAttachments.map(({ filename, referent }) => {
-    let pathType;
+    let pathType: "root-relative" | "relative";
     if (filename.startsWith("/")) {
       pathType = "root-relative";
     } else {
       pathType = "relative";
     }
 
-    // FIXME why can't the TypeScript typechecker realize this cast is unneeded?
-    // it complains about pathType and resourceType being strings
-    // rather than one of their two respectively allowed values.
-    return ({
+    return {
       referent,
       filename,
       pathType,
-      resourceType: "FileAttachment",
-    }) as ResourceDescription;
+      resourceType: "FileAttachment" as const,
+    };
   }));
 
   return result;

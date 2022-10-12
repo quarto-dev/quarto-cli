@@ -66,12 +66,17 @@ import {
   kTblCapLoc,
 } from "../../config/constants.ts";
 import { DirectiveCell } from "../lib/break-quarto-md-types.ts";
-import { basename, dirname, join, relative, resolve } from "path/mod.ts";
+import { basename, dirname, join, relative } from "path/mod.ts";
 import { figuresDir, inputFilesDir } from "../render.ts";
 import { ensureDirSync } from "fs/mod.ts";
 import { mappedStringFromFile } from "../mapped-text.ts";
 import { error } from "log/mod.ts";
 import { withCriClient } from "../cri/cri.ts";
+import {
+  makeDocumentRelativePath,
+  makeProjectRelativePath,
+} from "../qualified-path.ts";
+
 /* import {
   extractHtmlFromElements,
   extractImagesFromElements,
@@ -212,14 +217,16 @@ function makeHandlerContext(
       }
     },
     resolvePath(path: string): string {
-      const sourceDir = dirname(options.context.target.source);
-      const rootDir = options.context.project?.dir || sourceDir;
+      const documentDir = dirname(options.context.target.source);
+      const info = {
+        projectDir: options.context.project?.dir || documentDir,
+        documentDir,
+      };
+
       if (path.startsWith("/")) {
-        // it's a root-relative path
-        return resolve(rootDir, `.${path}`);
+        return makeProjectRelativePath(path).asAbsolute(info).value;
       } else {
-        // it's a relative path
-        return resolve(sourceDir, path);
+        return makeDocumentRelativePath(path).asAbsolute(info).value;
       }
     },
     uniqueFigureName(prefix?: string, extension?: string) {
