@@ -521,100 +521,127 @@ async function readContents(
     file !== source
   );
 
-  const filterListingFiles = (globOrPath: string) => {
-    const isDefaultGlob = globOrPath === kDefaultContentsGlobToken;
-    if (isDefaultGlob) {
-      globOrPath = "*";
-    }
+  const filterListingFiles = (globOrPaths: string[]) => {
+    const hasDefaultGlob = globOrPaths.some((glob) => {
+      return glob === kDefaultContentsGlobToken;
+    });
+
+    const resolvedGlobs = globOrPaths.map((glob) => {
+      if (glob === kDefaultContentsGlobToken) {
+        return "*";
+      } else {
+        return glob;
+      }
+    });
+
+    const expandedGlobs = resolvedGlobs.map((resolved) => {
+      return expandGlob(source, project, resolved);
+    });
+
+    const hasInputs = expandedGlobs.some((expanded) => {
+      return !!expanded.inputs;
+    });
+
+    const finalGlobs = expandedGlobs.map((expanded) => {
+      return expanded.glob;
+    });
 
     // Convert a bare directory path into a consumer
     // of everything in the directory
-    const expanded = expandGlob(source, project, globOrPath);
-    if (expanded.inputs || isDefaultGlob) {
+    if (hasInputs || hasDefaultGlob) {
       // If this is a glob, expand it
       return filterPaths(
         dirname(source),
         inputsWithoutSource,
-        [expanded.glob],
+        finalGlobs,
       );
     } else {
       return resolvePathGlobs(
         dirname(source),
-        [expanded.glob],
+        finalGlobs,
         ["_*", ".*", "**/_*", "**/.*", source],
       );
     }
   };
 
-  for (const content of listing.contents) {
-    if (typeof (content) === "string") {
-      // Find the files we should use based upon this glob or path
+  const contentGlobs = listing.contents.filter((content) => {
+    return typeof (content) === "string";
+  }) as string[];
 
-      const files = filterListingFiles(content);
-      debug(`[listing] matches ${files.include.length} files:`);
+  const contentMetadatas = listing.contents.filter((content) => {
+    return typeof (content) !== "string";
+  }) as Metadata[];
 
-      for (const file of files.include) {
-        if (!files.exclude.includes(file)) {
-          if (isYamlPath(file)) {
-            debug(`[listing] Reading YAML file ${file}`);
-            const yaml = readYaml(file);
-            if (Array.isArray(yaml)) {
-              const items = yaml as Array<unknown>;
-              items.forEach((item) => {
-                if (typeof (item) === "object") {
-                  const listingItem = listItemFromMeta(item as Metadata);
-                  validateItem(listing, listingItem, (field: string) => {
-                    return `An item from the file '${file}' is missing the required field '${field}'.`;
-                  });
-                  listingItemSources.add(ListingItemSource.metadata);
-                  listingItems.push(listingItem);
-                } else {
-                  throw new Error(
-                    `Unexpected listing contents in file ${file}. The array may only contain listing items, not paths or other types of data.`,
-                  );
-                }
-              });
-            } else if (typeof (yaml) === "object") {
-              const listingItem = listItemFromMeta(yaml as Metadata);
-              validateItem(listing, listingItem, (field: string) => {
-                return `The item defined in file '${file}' is missing the required field '${field}'.`;
-              });
-              listingItemSources.add(ListingItemSource.metadata);
-              listingItems.push(listingItem);
-            } else {
-              throw new Error(
-                `Unexpected listing contents in file ${file}. The file should contain only one more listing items.`,
-              );
-            }
-          } else {
-            const isFile = Deno.statSync(file).isFile;
-            if (isFile) {
-              debug(`[listing] Reading file ${file}`);
-              const item = await listItemFromFile(file, project, listing);
-              if (item) {
-                validateItem(listing, item, (field: string) => {
-                  return `The file ${file} is missing the required field '${field}'.`;
+  if (contentGlobs.length > 0) {
+    const files = filterListingFiles(contentGlobs);
+    debug(`[listing] matches ${files.include.length} files:`);
+
+    for (const file of files.include) {
+      if (!files.exclude.includes(file)) {
+        if (isYamlPath(file)) {
+          debug(`[listing] Reading YAML file ${file}`);
+          const yaml = readYaml(file);
+          if (Array.isArray(yaml)) {
+            const items = yaml as Array<unknown>;
+            items.forEach((item) => {
+              if (typeof (item) === "object") {
+                const listingItem = listItemFromMeta(item as Metadata);
+                validateItem(listing, listingItem, (field: string) => {
+                  return `An item from the file '${file}' is missing the required field '${field}'.`;
                 });
-
-                if (item.item.title === undefined) {
-                  debug(`[listing] Missing Title in File ${file}`);
-                }
-
-                listingItemSources.add(item.source);
-                listingItems.push(item.item);
+                listingItemSources.add(ListingItemSource.metadata);
+                listingItems.push(listingItem);
+              } else {
+                throw new Error(
+                  `Unexpected listing contents in file ${file}. The array may only contain listing items, not paths or other types of data.`,
+                );
               }
+            });
+          } else if (typeof (yaml) === "object") {
+            const listingItem = listItemFromMeta(yaml as Metadata);
+            validateItem(listing, listingItem, (field: string) => {
+              return `The item defined in file '${file}' is missing the required field '${field}'.`;
+            });
+            listingItemSources.add(ListingItemSource.metadata);
+            listingItems.push(listingItem);
+          } else {
+            throw new Error(
+              `Unexpected listing contents in file ${file}. The file should contain only one more listing items.`,
+            );
+          }
+        } else {
+          const isFile = Deno.statSync(file).isFile;
+          if (isFile) {
+            debug(`[listing] Reading file ${file}`);
+            const item = await listItemFromFile(file, project, listing);
+            if (item) {
+              validateItem(listing, item, (field: string) => {
+                return `The file ${file} is missing the required field '${field}'.`;
+              });
+
+              if (item.item.title === undefined) {
+                debug(`[listing] Missing Title in File ${file}`);
+              }
+
+              listingItemSources.add(item.source);
+              listingItems.push(item.item);
             }
           }
         }
       }
-    } else {
+    }
+  }
+
+  // Process any metadata that appears in contents
+  if (contentMetadatas.length > 0) {
+    contentMetadatas.forEach((content) => {
       const listingItem = listItemFromMeta(content);
       validateItem(listing, listingItem, (field: string) => {
         return `An item in the listing '${listing.id}' is missing the required field '${field}'.`;
       });
       listingItemSources.add(ListingItemSource.metadata);
       listingItems.push(listingItem);
-    }
+    });
   }
 
   return {
