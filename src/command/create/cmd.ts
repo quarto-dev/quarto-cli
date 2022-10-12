@@ -8,7 +8,6 @@ import { projectArtifactCreator } from "./artifacts/project.ts";
 
 import { isInteractiveTerminal } from "../../core/platform.ts";
 import { runningInCI } from "../../core/ci-info.ts";
-import { execProcess } from "../../core/process.ts";
 import { kEditorInfos, scanForEditors } from "./editor.ts";
 
 import { Command } from "cliffy/command/mod.ts";
@@ -59,7 +58,7 @@ export interface ArtifactCreator {
 // The registered artifact creators
 const kArtifactCreators: ArtifactCreator[] = [
   projectArtifactCreator,
-  extensionArtifactCreator,
+  // extensionArtifactCreator,
 ];
 
 export const createCommand = new Command()
@@ -166,10 +165,7 @@ export const createCommand = new Command()
               typeof (options.open) === "string" ? options.open : undefined,
             );
             if (resolvedEditor) {
-              execProcess({
-                cmd: resolvedEditor.cmd,
-                cwd: resolvedEditor.cwd,
-              });
+              resolvedEditor.open();
             }
           }
         }

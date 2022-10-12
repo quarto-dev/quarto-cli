@@ -9,6 +9,7 @@ import { join } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 import { which } from "../../core/path.ts";
 import { dirname } from "path/win32.ts";
+import { execProcess } from "../../core/process.ts";
 
 export interface Editor {
   // A short, command line friendly id
@@ -17,11 +18,9 @@ export interface Editor {
   // A display name
   name: string;
 
-  // The cmd to open the editor
-  cmd: string[];
-
-  // The working directory to use when opening the editor
-  cwd?: string;
+  // Function that can be called to open the matched
+  // artifact in the editor
+  open: () => Promise<unknown>;
 }
 
 export const kEditorInfos: EditorInfo[] = [
@@ -40,8 +39,7 @@ export async function scanForEditors(
       editors.push({
         id: editorInfo.id,
         name: editorInfo.name,
-        cmd: editorInfo.cmd(editorPath, artifactPath),
-        cwd: editorInfo.cwd(artifactPath),
+        open: editorInfo.open(editorPath, artifactPath),
       });
     }
   }
@@ -49,11 +47,18 @@ export async function scanForEditors(
 }
 
 interface EditorInfo {
+  // The identifier for this editor
   id: string;
+
+  // The name of this editor
   name: string;
+
+  // Actions that are used to scan for this editor
   actions: ScanAction[];
-  cmd: (path: string, artifactPath: string) => string[];
-  cwd: (artifactPath: string) => string | undefined;
+
+  // Uses a path and artifact path to provide a function
+  // that can be used to open this editor to the given artifact
+  open: (path: string, artifactPath: string) => () => Promise<unknown>;
 }
 
 interface ScanAction {
@@ -65,15 +70,17 @@ function vscodeEditorInfo(): EditorInfo {
   const editorInfo: EditorInfo = {
     id: "vscode",
     name: "Visual Studio Code",
-    cmd: (path: string, artifactPath: string) => {
-      return [path, artifactPath];
-    },
-    cwd: (artifactPath: string) => {
-      if (Deno.statSync(artifactPath).isDirectory) {
-        return artifactPath;
-      } else {
-        return dirname(artifactPath);
-      }
+    open: (path: string, artifactPath: string) => {
+      const cwd = Deno.statSync(artifactPath).isDirectory
+        ? artifactPath
+        : dirname(artifactPath);
+
+      return () => {
+        return execProcess({
+          cmd: [path, artifactPath],
+          cwd,
+        });
+      };
     },
     actions: [],
   };
@@ -124,19 +131,21 @@ function rstudioEditorInfo(): EditorInfo {
   const editorInfo: EditorInfo = {
     id: "rstudio",
     name: "RStudio",
-    cmd: (path: string, artifactPath: string) => {
-      if (path.endsWith(".app") && Deno.build.os === "darwin") {
-        return ["open", "-na", path, "--args", artifactPath];
-      } else {
-        return [path];
-      }
-    },
-    cwd: (artifactPath: string) => {
-      if (Deno.statSync(artifactPath).isDirectory) {
-        return artifactPath;
-      } else {
-        return dirname(artifactPath);
-      }
+    open: (path: string, artifactPath: string) => {
+      const cmd = path.endsWith(".app") && Deno.build.os === "darwin"
+        ? ["open", "-na", path, "--args", artifactPath]
+        : [path];
+
+      const cwd = Deno.statSync(artifactPath).isDirectory
+        ? artifactPath
+        : dirname(artifactPath);
+
+      return () => {
+        return execProcess({
+          cmd: cmd,
+          cwd,
+        });
+      };
     },
     actions: [],
   };
