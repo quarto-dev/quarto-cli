@@ -8,16 +8,6 @@
 */
 
 import { join, relative, resolve } from "path/mod.ts";
-import {
-  AbsolutePath,
-  CwdRelativePath,
-  DocumentInfo,
-  DocumentRelativePath,
-  ProjectInfo,
-  ProjectRelativePath,
-} from "./qualified-path-types.ts";
-
-import { isAbsolute } from "path/mod.ts";
 
 export class InvalidPathError extends Error {
   constructor(msg: string) {
@@ -25,91 +15,264 @@ export class InvalidPathError extends Error {
   }
 }
 
-export function makeAbsolutePath(path: string): AbsolutePath {
-  if (!isAbsolute(path)) {
-    throw new InvalidPathError(`path ${path} must be absolute`);
+export type PathInfo = {
+  projectRoot: string;
+  currentFileDir: string;
+};
+
+export type PathType = "project-relative" | "relative" | "absolute";
+
+type BasePath = {
+  value: string;
+  asAbsolute: (info?: PathInfo) => AbsolutePath;
+  asRelative: (info?: PathInfo) => RelativePath;
+  asProjectRelative: (info?: PathInfo) => ProjectRelativePath;
+};
+
+export type QualifiedPath = BasePath & { type?: PathType };
+export type AbsolutePath = BasePath & { type: "absolute" };
+export type RelativePath = BasePath & { type: "relative" };
+export type ProjectRelativePath = BasePath & { type: "project-relative" };
+
+export function makePath(
+  path: string,
+  info?: PathInfo,
+  forceAbsolute?: boolean,
+): QualifiedPath {
+  const type = path.startsWith("/")
+    ? (forceAbsolute ? "absolute" : "project-relative")
+    : "relative";
+
+  const result: QualifiedPath = {
+    value: path,
+    type,
+    asAbsolute(info?: PathInfo) {
+      return toAbsolutePath(this, info);
+    },
+    asRelative(info?: PathInfo) {
+      return toRelativePath(this, info);
+    },
+    asProjectRelative(info?: PathInfo) {
+      return toProjectRelativePath(this, info);
+    },
+  };
+
+  // we call asAbsolute() at least once on each path so
+  // that the path is validated; this is simply
+  // so that exceptions can be raised appropriately.
+  const quartoPaths: PathInfo = resolvePathInfo(info);
+  result.asAbsolute(quartoPaths);
+
+  return result;
+}
+
+export function readTextFile(t: QualifiedPath, options?: Deno.ReadFileOptions) {
+  return Deno.readTextFile(t.asAbsolute().value, options);
+}
+
+export function readTextFileSync(
+  t: QualifiedPath,
+) {
+  return Deno.readTextFileSync(t.asAbsolute().value);
+}
+
+// validates an absolute path
+function validate(value: string, quartoPaths: PathInfo): string {
+  if (!value.startsWith(quartoPaths.projectRoot)) {
+    throw new InvalidPathError(
+      "Paths cannot resolve outside of document or project root",
+    );
   }
+  return value;
+}
+
+function toAbsolutePath(
+  path: QualifiedPath,
+  info?: PathInfo,
+): AbsolutePath {
+  let value: string;
+
+  if (isAbsolutePath(path)) {
+    return path;
+  }
+
+  const quartoPaths: PathInfo = resolvePathInfo(info);
+
+  switch (path.type) {
+    case "project-relative":
+      // project-relative -> absolute
+      value = resolve(join(quartoPaths.projectRoot, path.value));
+      break;
+    case "relative":
+      // relative -> absolute
+      value = resolve(join(quartoPaths.currentFileDir, path.value));
+      break;
+    default:
+      if (path.value.startsWith("/")) {
+        // project-relative -> absolute
+        value = resolve(join(quartoPaths.projectRoot, path.value));
+      } else {
+        // relative -> absolute
+        value = resolve(join(quartoPaths.currentFileDir, path.value));
+      }
+  }
+  value = validate(value, quartoPaths);
+
   return {
+    value,
     type: "absolute",
-    value: path,
-    asCwdRelative() {
-      return makeCwdRelativePath(relative(Deno.cwd(), this.value));
+    asAbsolute(_info?: PathInfo) {
+      return this;
     },
-    asDocumentRelative(info: DocumentInfo) {
-      return makeDocumentRelativePath(relative(info.documentDir, this.value));
+    asRelative(info?: PathInfo) {
+      return toRelativePath(this, info);
     },
-    asProjectRelative(info: ProjectInfo) {
-      return makeProjectRelativePath(
-        `/${relative(info.projectDir, this.value)}`,
-      );
+    asProjectRelative(info?: PathInfo) {
+      return toProjectRelativePath(this, info);
     },
   };
 }
 
-export function makeCwdRelativePath(path: string): CwdRelativePath {
-  if (path.startsWith("/")) {
-    throw new InvalidPathError(`path ${path} must be relative`);
+function toRelativePath(
+  path: QualifiedPath,
+  info?: PathInfo,
+): RelativePath {
+  let value: string;
+
+  if (isRelativePath(path)) {
+    return path;
   }
-  return {
-    type: "cwd-relative",
-    value: path,
-    asAbsolute() {
-      return makeAbsolutePath(resolve(join(Deno.cwd(), this.value)));
-    },
-    asDocumentRelative(info: DocumentInfo) {
-      return makeDocumentRelativePath(
-        relative(info.documentDir, resolve(join(Deno.cwd(), this.value))),
-      );
-    },
-    asProjectRelative(info: ProjectInfo) {
-      return makeProjectRelativePath(
-        `/${relative(info.projectDir, resolve(join(Deno.cwd(), this.value)))}`,
-      );
-    },
-  };
-}
 
-export function makeDocumentRelativePath(path: string): DocumentRelativePath {
-  if (path.startsWith("/")) {
-    throw new InvalidPathError(`path ${path} must be relative`);
+  const quartoPaths: PathInfo = resolvePathInfo(info);
+
+  switch (path.type) {
+    case "absolute":
+      // absolute -> relative
+      value = relative(quartoPaths.currentFileDir, path.value);
+      break;
+    case "project-relative": {
+      // project-relative -> absolute -> relative
+      const absPath = validate(
+        resolve(join(quartoPaths.projectRoot, path.value)),
+        quartoPaths,
+      );
+      value = relative(
+        quartoPaths.currentFileDir,
+        absPath,
+      );
+      break;
+    }
+    default:
+      if (path.value.startsWith("/")) {
+        // project-relative -> absolute -> relative
+        const absPath = validate(
+          resolve(join(quartoPaths.projectRoot, path.value)),
+          quartoPaths,
+        );
+        value = relative(
+          quartoPaths.currentFileDir,
+          absPath,
+        );
+      } else {
+        throw new Error("Internal Error, should never arrive here.");
+      }
   }
+
   return {
-    type: "document-relative",
-    value: path,
-    asAbsolute(info: DocumentInfo) {
-      return makeAbsolutePath(resolve(join(info.documentDir, this.value)));
+    value,
+    type: "relative",
+    asAbsolute(info?: PathInfo) {
+      return toAbsolutePath(this, info);
     },
-    asCwdRelative(info: DocumentInfo) {
-      return makeCwdRelativePath(
-        relative(Deno.cwd(), resolve(join(info.documentDir, this.value))),
-      );
+    asRelative(_info?: PathInfo) {
+      return this;
     },
-    asProjectRelative(info: DocumentInfo & ProjectInfo) {
-      return makeProjectRelativePath(
-        `/${
-          relative(info.projectDir, resolve(join(info.documentDir, this.value)))
-        }`,
-      );
+    asProjectRelative(info?: PathInfo) {
+      return toProjectRelativePath(this, info);
     },
   };
 }
 
-export function makeProjectRelativePath(path: string): ProjectRelativePath {
+function toProjectRelativePath(
+  path: QualifiedPath,
+  info?: PathInfo,
+): ProjectRelativePath {
+  let value: string;
+
+  if (isProjectRelativePath(path)) {
+    return path;
+  }
+
+  const quartoPaths: PathInfo = resolvePathInfo(info);
+
+  switch (path.type) {
+    case "absolute":
+      // absolute -> project-relative
+      value = `/${relative(quartoPaths.projectRoot, path.value)}`;
+      break;
+    case "relative":
+      // relative -> absolute -> project-relative
+      value = `/${
+        relative(
+          quartoPaths.projectRoot,
+          validate(
+            resolve(join(quartoPaths.currentFileDir, path.value)),
+            quartoPaths,
+          ),
+        )
+      }`;
+      break;
+    default:
+      if (!path.value.startsWith("/")) {
+        throw new Error("Internal Error, should never arrive here.");
+      } else {
+        // relative -> absolute -> project-relative
+        value = `/${
+          relative(
+            quartoPaths.projectRoot,
+            validate(
+              resolve(join(quartoPaths.currentFileDir, path.value)),
+              quartoPaths,
+            ),
+          )
+        }`;
+      }
+  }
+
   return {
+    value,
     type: "project-relative",
-    value: path,
-    asAbsolute(info: ProjectInfo) {
-      return makeAbsolutePath(resolve(join(info.projectDir, this.value)));
+    asAbsolute(info?: PathInfo) {
+      return toAbsolutePath(this, info);
     },
-    asCwdRelative(info: ProjectInfo) {
-      return makeCwdRelativePath(
-        relative(Deno.cwd(), resolve(join(info.projectDir, this.value))),
-      );
+    asProjectRelative(_info?: PathInfo) {
+      return this;
     },
-    asDocumentRelative(info: DocumentInfo & ProjectInfo) {
-      return makeDocumentRelativePath(
-        relative(info.documentDir, resolve(join(info.projectDir, this.value))),
-      );
+    asRelative(info?: PathInfo) {
+      return toRelativePath(this, info);
     },
   };
+}
+
+function resolvePathInfo(path?: PathInfo): PathInfo {
+  if (path !== undefined) {
+    return path;
+  }
+  return {} as any; // FIXME this should get information from quarto's runtime.
+}
+
+function isRelativePath(path: QualifiedPath): path is RelativePath {
+  return (path.type === "relative") ||
+    (path.type === undefined && !path.value.startsWith("/"));
+}
+
+function isProjectRelativePath(
+  path: QualifiedPath,
+): path is ProjectRelativePath {
+  return (path.type === "project-relative") ||
+    (path.type === undefined && path.value.startsWith("/"));
+}
+
+function isAbsolutePath(path: QualifiedPath): path is AbsolutePath {
+  return path.type === "absolute";
 }
