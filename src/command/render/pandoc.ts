@@ -65,7 +65,12 @@ import {
 } from "../../project/project-context.ts";
 import { deleteCrossrefMetadata } from "../../project/project-crossrefs.ts";
 
-import { getPandocArg, havePandocArg, removePandocArgs } from "./flags.ts";
+import {
+  getPandocArg,
+  havePandocArg,
+  kQuartoForwardedMetadataFields,
+  removePandocArgs,
+} from "./flags.ts";
 import {
   generateDefaults,
   pandocDefaultsMessage,
@@ -240,6 +245,13 @@ export async function runPandoc(
     }
   };
   cleanMetadataForPrinting(printMetadata);
+
+  // Forward flags metadata into the format
+  kQuartoForwardedMetadataFields.forEach((field) => {
+    if (options.flags?.pandocMetadata?.[field]) {
+      options.format.metadata[field] = options.flags.pandocMetadata[field];
+    }
+  });
 
   // generate defaults and capture defaults to be printed
   let allDefaults = (await generateDefaults(options)) || {};
