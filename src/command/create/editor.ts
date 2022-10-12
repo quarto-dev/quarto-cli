@@ -8,7 +8,7 @@
 import { join } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 import { which } from "../../core/path.ts";
-import { dirname } from "path/win32.ts";
+import { basename, dirname } from "path/win32.ts";
 import { execProcess } from "../../core/process.ts";
 
 export interface Editor {
@@ -132,15 +132,21 @@ function rstudioEditorInfo(): EditorInfo {
     id: "rstudio",
     name: "RStudio",
     open: (path: string, artifactPath: string) => {
-      const cmd = path.endsWith(".app") && Deno.build.os === "darwin"
-        ? ["open", "-na", path, "--args", artifactPath]
-        : [path];
-
-      const cwd = Deno.statSync(artifactPath).isDirectory
-        ? artifactPath
-        : dirname(artifactPath);
-
       return () => {
+        // The directory that the artifact is in
+        const cwd = Deno.statSync(artifactPath).isDirectory
+          ? artifactPath
+          : dirname(artifactPath);
+
+        // Write an rproj file for RStudio and open that
+        const artifactName = basename(artifactPath);
+        const rProjPath = join(cwd, `${artifactName}.rproj`);
+        Deno.writeTextFileSync(rProjPath, kRProjContents);
+
+        const cmd = path.endsWith(".app") && Deno.build.os === "darwin"
+          ? ["open", "-na", path, "--args", rProjPath]
+          : [path];
+
         return execProcess({
           cmd: cmd,
           cwd,
@@ -178,6 +184,21 @@ function rstudioEditorInfo(): EditorInfo {
   }
   return editorInfo;
 }
+
+// Write an rproj file to the cwd and open that
+const kRProjContents = `Version: 1.0
+
+RestoreWorkspace: Default
+SaveWorkspace: Default
+AlwaysSaveHistory: Default
+
+EnableCodeIndexing: Yes
+UseSpacesForTab: Yes
+NumSpacesForTab: 2
+Encoding: UTF-8
+
+RnwWeave: Knitr
+LaTeX: pdfLaTeX`;
 
 async function findEditorPath(
   actions: ScanAction[],
