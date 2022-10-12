@@ -27,7 +27,6 @@ import {
 
 import { formatResourcePath } from "../../core/resources.ts";
 import { Document, Element } from "../../core/deno-dom.ts";
-import { ConsoleHandler } from "../../vendor/deno.land/std@0.153.0/log/handlers.ts";
 
 // features that are enabled by default for 'html'. setting
 // all of these to false will yield the minimal html output

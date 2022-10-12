@@ -54,7 +54,7 @@ export const installCommand = new Command()
   .action(
     async (
       options: { prompt?: boolean; embed?: string; updatePath?: boolean },
-      target?: string[],
+      ...target: string[]
     ) => {
       await initYamlIntelligenceResourcesFromFilesystem();
       const temp = createTempContext();

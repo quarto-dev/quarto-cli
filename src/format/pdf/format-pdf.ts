@@ -45,13 +45,12 @@ import { RenderedFile } from "../../command/render/types.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { BookExtension } from "../../project/types/book/book-shared.ts";
 
-import { readLines } from "io/bufio.ts";
+import { readLines } from "io/buffer.ts";
 import { TempContext } from "../../core/temp.ts";
 import { isLatexPdfEngine, pdfEngine } from "../../config/pdf.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { kTemplatePartials } from "../../command/render/template.ts";
 import { copyTo } from "../../core/copy.ts";
-import { LineStream } from "../../vendor/deno.land/std@0.153.0/streams/delimiter.ts";
 
 export function pdfFormat(): Format {
   return mergeConfigs(

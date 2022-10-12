@@ -16382,6 +16382,48 @@ try {
             description: "The alt text for preview image on this page."
           }
         ],
+        "schema/extension.yml": [
+          {
+            name: "title",
+            description: "Extension title.",
+            schema: "string"
+          },
+          {
+            name: "author",
+            description: "Extension author.",
+            schema: "string"
+          },
+          {
+            name: "version",
+            description: "Extension version.",
+            schema: {
+              ref: "semver"
+            }
+          },
+          {
+            name: "quarto-required",
+            description: "Quarto version range. See https://docs.npmjs.com/cli/v6/using-npm/semver for syntax details.",
+            schema: "string"
+          },
+          {
+            name: "contributes",
+            schema: {
+              object: {
+                properties: {
+                  shortcodes: {
+                    arrayOf: "path"
+                  },
+                  filters: {
+                    arrayOf: "path"
+                  },
+                  formats: {
+                    schema: "object"
+                  }
+                }
+              }
+            }
+          }
+        ],
         "schema/format-aliases.yml": {
           aliases: {
             "epub-all": [
@@ -20024,49 +20066,7 @@ try {
             ]
           },
           $id: "handlers/mermaid"
-        },
-        "schema/extension.yml": [
-          {
-            name: "title",
-            description: "Extension title.",
-            schema: "string"
-          },
-          {
-            name: "author",
-            description: "Extension author.",
-            schema: "string"
-          },
-          {
-            name: "version",
-            description: "Extension version.",
-            schema: {
-              ref: "semver"
-            }
-          },
-          {
-            name: "quarto-required",
-            description: "Quarto version range. See https://docs.npmjs.com/cli/v6/using-npm/semver for syntax details.",
-            schema: "string"
-          },
-          {
-            name: "contributes",
-            schema: {
-              object: {
-                properties: {
-                  shortcodes: {
-                    arrayOf: "path"
-                  },
-                  filters: {
-                    arrayOf: "path"
-                  },
-                  formats: {
-                    schema: "object"
-                  }
-                }
-              }
-            }
-          }
-        ]
+        }
       };
     }
   });

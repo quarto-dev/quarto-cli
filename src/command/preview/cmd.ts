@@ -124,8 +124,8 @@ export const previewCommand = new Command()
     "quarto preview --render html",
   )
   // deno-lint-ignore no-explicit-any
-  .action(async (options: any, file?: string, args?: string[]) => {
-    // one-time initialization of yaml validation modules
+  .action(async (options: any, file?: string, ...args: string[]) => {
+  // one-time initialization of yaml validation modules
     setInitializer(initYamlIntelligenceResourcesFromFilesystem);
     await initState();
 
@@ -133,8 +133,6 @@ export const previewCommand = new Command()
     if (!existsSync(file)) {
       throw new Error(`${file} not found`);
     }
-    // provide default args
-    args = args || [];
 
     // show help if requested
     if (args.length > 0 && args[0] === "--help") {
