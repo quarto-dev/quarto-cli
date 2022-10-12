@@ -2,7 +2,7 @@ import { ApiError } from "../types.ts";
 import { ensureTrailingSlash } from "../../core/path.ts";
 import { isHttpUrl } from "../../core/url.ts";
 import { AccountToken } from "../provider.ts";
-import { ConfluenceParent } from "./api/types.ts";
+import { ConfluenceParent, ContentBody, EMPTY_PARENT } from "./api/types.ts";
 
 export const transformAtlassianDomain = (domain: string) => {
   return ensureTrailingSlash(
@@ -91,9 +91,15 @@ export const confluenceParentFromString = (url: string): ConfluenceParent => {
       parent: match[4],
     };
   }
+  return EMPTY_PARENT;
+};
 
-  return {
-    space: "",
-    parent: "",
+export const wrapBodyForConfluence = (value: string) => {
+  const body: ContentBody = {
+    storage: {
+      value,
+      representation: "storage",
+    },
   };
+  return body;
 };

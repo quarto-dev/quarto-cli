@@ -16,6 +16,7 @@ import {
   validateServer,
   validateToken,
   confluenceParentFromString,
+  wrapBodyForConfluence,
 } from "../../src/publish/confluence/confluence-helper.ts";
 import { ApiError } from "../../src/publish/types.ts";
 import { AccountTokenType } from "../../src/publish/provider.ts";
@@ -207,6 +208,18 @@ unitTest("confluenceParentFromString_invalid_noSpace", async () => {
   const expected = {
     space: "",
     parent: "",
+  };
+  assertEquals(expected, result);
+});
+
+unitTest("wrapBodyForConfluence_empty", async () => {
+  const value = "";
+  const result = wrapBodyForConfluence(value);
+  const expected = {
+    storage: {
+      value: "",
+      representation: "storage",
+    },
   };
   assertEquals(expected, result);
 });

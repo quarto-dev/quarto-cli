@@ -5,6 +5,9 @@
  *
  */
 
+import { RenderFlags } from "../../../command/render/types.ts";
+import { PublishFiles } from "../../provider.ts";
+
 export type User = {
   type: "known" | "unknown" | "anonymous" | "user";
   username: string;
@@ -21,12 +24,25 @@ export type Space = {
 export const kPageType = "page";
 export const kBlogPostType = "blogpost";
 
+export const EMPTY_PARENT: ConfluenceParent = {
+  space: "",
+  parent: "",
+};
+
 export type ContentVersion = {
   number: number;
 };
 
 export type ContentStatus = "current" | "deleted" | "historical" | "draft";
 
+export type PublishType = "document" | "site";
+
+export type PublishRenderer = (flags?: RenderFlags) => Promise<PublishFiles>;
+
+export enum PublishTypeEnum {
+  document = "document",
+  site = "site",
+}
 export type ContentAncestor = {
   id: string;
 };

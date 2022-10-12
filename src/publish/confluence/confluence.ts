@@ -26,6 +26,9 @@ import {
   ContentBody,
   ContentUpdate,
   kPageType,
+  PublishRenderer,
+  PublishType,
+  PublishTypeEnum,
 } from "./api/types.ts";
 import { ensureTrailingSlash } from "../../core/path.ts";
 import { withSpinner } from "../../core/console.ts";
@@ -40,6 +43,7 @@ import {
   validateToken,
   validateParentURL,
   confluenceParentFromString,
+  wrapBodyForConfluence,
 } from "./confluence-helper.ts";
 
 import {
@@ -150,9 +154,25 @@ const resolveTarget = async (
   return Promise.resolve(target);
 };
 
+async function renderAndLoadDocument(render: PublishRenderer) {
+  const flags: RenderFlags = {
+    to: "confluence-publish",
+  };
+
+  const renderResult = await render(flags);
+
+  const documentValue = Deno.readTextFileSync(
+    join(renderResult.baseDir, renderResult.rootFile)
+  );
+
+  const body = wrapBodyForConfluence(documentValue);
+
+  return body;
+}
+
 async function publish(
   account: AccountToken,
-  type: "document" | "site",
+  type: PublishType,
   _input: string,
   title: string,
   _slug: string,
@@ -172,20 +192,8 @@ async function publish(
 
   await verifyConfluenceParent(parentUrl, parent);
 
-  if (type === "document") {
-    // render the document
-    const flags: RenderFlags = {
-      to: "confluence-publish",
-    };
-    const result = await render(flags);
-
-    // body to publish
-    const body: ContentBody = {
-      storage: {
-        value: Deno.readTextFileSync(join(result.baseDir, result.rootFile)),
-        representation: "storage",
-      },
-    };
+  if (type === PublishTypeEnum.document) {
+    const body = await renderAndLoadDocument(render);
 
     let content: Content | undefined;
     if (publishRecord) {
