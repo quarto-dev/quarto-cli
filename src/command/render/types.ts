@@ -18,11 +18,6 @@ import { ProjectContext } from "../../project/types.ts";
 import { TempContext } from "../../core/temp-types.ts";
 import { ExtensionContext } from "../../extension/extension-shared.ts";
 import { kPositionedRefs } from "../../config/constants.ts";
-import {
-  AbsolutePath,
-  DocumentInfo,
-  ProjectInfo,
-} from "../../core/qualified-path-types.ts";
 
 // options for render
 export interface RenderOptions {
@@ -52,7 +47,6 @@ export interface RenderContext {
   format: Format;
   libDir: string;
   project?: ProjectContext;
-  paths: ProjectInfo & DocumentInfo;
 }
 
 export interface RunPandocResult {
@@ -198,7 +192,7 @@ export interface RenderFlags extends PandocFlags {
   // quarto flags
   outputDir?: string;
   siteUrl?: string;
-  executeDir?: AbsolutePath;
+  executeDir?: string;
   execute?: boolean;
   executeCache?: true | false | "refresh";
   executeDaemon?: number;
