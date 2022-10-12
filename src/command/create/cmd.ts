@@ -20,6 +20,7 @@ import {
 } from "cliffy/prompt/mod.ts";
 import { info } from "log/mod.ts";
 import { readLines } from "io/mod.ts";
+import { extensionArtifactCreator } from "./artifacts/extension.ts";
 
 export interface CreateOptions {
   dir: string;
@@ -58,6 +59,7 @@ export interface ArtifactCreator {
 // The registered artifact creators
 const kArtifactCreators: ArtifactCreator[] = [
   projectArtifactCreator,
+  extensionArtifactCreator,
 ];
 
 export const createCommand = new Command()
