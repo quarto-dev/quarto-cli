@@ -32,9 +32,14 @@ import {
   validateEmail,
   validateServer,
   validateToken,
+  validateParentURL,
 } from "./confluence-helper.ts";
 
-import { verifyAccountToken, verifyServerExists } from "./confluence-verify.ts";
+import {
+  verifyAccountToken,
+  verifyLocationExists,
+  verifyLocation,
+} from "./confluence-verify.ts";
 
 export const CONFLUENCE_ID = "confluence";
 
@@ -89,7 +94,7 @@ const promptAndAuthorizeToken = async () => {
     transform: transformAtlassianDomain,
   });
   await withSpinner({ message: "Verifying server..." }, () =>
-    verifyServerExists(server)
+    verifyLocationExists(server)
   );
 
   const name = await Input.prompt({
@@ -123,6 +128,15 @@ const promptAndAuthorizeToken = async () => {
   return Promise.resolve(accountToken);
 };
 
+const promptForParentURL = async () => {
+  return await Input.prompt({
+    indent: "",
+    message: `Space or Parent Page URL:`,
+    hint: "Browse in Confluence to the space or parent, then copy the URL",
+    validate: validateParentURL,
+  });
+};
+
 const resolveTarget = async (
   accountToken: AccountToken,
   target: PublishRecord
@@ -138,31 +152,23 @@ async function publish(
   _slug: string,
   render: (flags?: RenderFlags) => Promise<PublishFiles>,
   _options: PublishOptions,
-  target?: PublishRecord
+  publishRecord?: PublishRecord
 ): Promise<[PublishRecord, URL | undefined]> {
-  // REST api
+  console.log("publishing...");
+  console.log("type", type);
+  console.log("title", title);
+  console.log("publishRecord", publishRecord);
+
   const client = new ConfluenceClient(account);
 
   // determine the parent to publish into
-  let parentUrl = target?.url;
+  let parentUrl: string = publishRecord?.url ?? "";
 
-  if (!target) {
-    parentUrl = await Input.prompt({
-      indent: "",
-      message: `Space or Parent Page URL:`,
-      hint: "Browse in Confluence to the space or parent, then copy the URL",
-    });
-    if (parentUrl.length === 0) {
-      throw new Error();
-    }
+  if (!parentUrl) {
+    parentUrl = await promptForParentURL();
   }
-  // TODO: the only way this could happen is if there is no `url` in the _publish.yml
-  // file. We will _always_ write one, but the user could remove it by hand. We could
-  // recover from this by finding the parentUrl via the REST API just given an ID,
-  // but perhaps not worth it? Users should just not remove the URL.
-  if (parentUrl === undefined) {
-    throw new Error("No Confuence parent URL to publish to");
-  }
+
+  verifyLocation(parentUrl);
 
   // parse the parent
   const parent = confluenceParent(parentUrl);
@@ -187,14 +193,14 @@ async function publish(
     };
 
     let content: Content | undefined;
-    if (target) {
+    if (publishRecord) {
       await withSpinner(
         {
-          message: `Updating content at ${target.url}...`,
+          message: `Updating content at ${publishRecord.url}...`,
         },
         async () => {
           // for updates we need to get the existing version and increment by 1
-          const prevContent = await client.getContent(target.id);
+          const prevContent = await client.getContent(publishRecord.id);
 
           // update the content
           const toCreate: ContentUpdate = {
@@ -205,7 +211,7 @@ async function publish(
             ancestors: null,
             body,
           };
-          content = await client.updateContent(target.id, toCreate);
+          content = await client.updateContent(publishRecord.id, toCreate);
         }
       );
     } else {
@@ -235,14 +241,14 @@ async function publish(
     content = content!;
 
     // create publish record
-    const publishRecord: PublishRecord = {
+    const newPublishRecord: PublishRecord = {
       id: content.id!,
       url: `${ensureTrailingSlash(account.server!)}wiki/spaces/${
         content.space!.key
       }/pages/${content.id}`,
     };
     // return record and browse url
-    return [publishRecord, new URL(publishRecord.url!)];
+    return [newPublishRecord, new URL(newPublishRecord.url!)];
   } else {
     throw new Error("Confluence site publishing not implemented");
   }

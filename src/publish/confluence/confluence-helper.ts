@@ -55,6 +55,12 @@ export const validateToken = (value: string): boolean => {
   return true;
 };
 
+export const validateParentURL = (value: string): boolean => {
+  //TODO validate URL
+  exitIfNoValue(value);
+  return true;
+};
+
 export const getMessageFromAPIError = (error: any): string => {
   if (error instanceof ApiError) {
     return `${error.status} - ${error.statusText}`;
