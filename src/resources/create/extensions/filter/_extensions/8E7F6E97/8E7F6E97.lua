@@ -1,5 +1,6 @@
 function Div(el)
   if el.attr.classes:includes("example") then
-    quarto.log.output("Example div was filtered")
+    el.content:insert(pandoc.Header(3, {pandoc.Str("Example Div")}))
+    return el
   end
 end
