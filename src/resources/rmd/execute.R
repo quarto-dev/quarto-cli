@@ -535,16 +535,6 @@ apply_slides_patch <- function(includes) {
       }
     }
 
-    // fire slideEnter for tabby tab activations (for htmlwidget resize behavior)
-    document.addEventListener("tabby", fireSlideEnter, false);
-
-    // hookup for reveal
-    if (window.Reveal) {
-      window.Reveal.addEventListener("slidechanged", function(event) {
-        fireSlideChanged(event.previousSlide, event.currentSlide);
-      });
-    }
-
     // hookup for slidy
     if (window.w3c_slidy) {
       window.w3c_slidy.add_observer(function (slide_num) {
