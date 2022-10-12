@@ -3,6 +3,13 @@ import { ConfluenceClient } from "./api/index.ts";
 import { getMessageFromAPIError } from "./confluence-helper.ts";
 import { withSpinner } from "../../core/console.ts";
 
+const verifyWithSpinner = async (
+  verifyCommand: () => Promise<void>,
+  message: string = "Verifying..."
+) => {
+  return await withSpinner({ message }, verifyCommand);
+};
+
 export const verifyAccountToken = async (accountToken: AccountToken) => {
   try {
     const client = new ConfluenceClient(accountToken);
@@ -14,17 +21,11 @@ export const verifyAccountToken = async (accountToken: AccountToken) => {
   }
 };
 
-export const verifyWithSpinner = async (
-  verifyCommand: () => Promise<void>,
-  message: string = "Verifying..."
-) => {
-  await withSpinner({ message }, verifyCommand);
+export const verifyLocation = async (locationURL: string) => {
+  return await verifyWithSpinner(() => verifyLocationExists(locationURL));
 };
 
-export const verifyLocation = async (locationURL: string) =>
-  verifyWithSpinner(() => verifyLocationExists(locationURL));
-
-export const verifyLocationExists = async (server: string) => {
+const verifyLocationExists = async (server: string) => {
   try {
     const result: Response = await fetch(server);
     if (!result.ok) {

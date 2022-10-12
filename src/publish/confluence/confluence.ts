@@ -35,11 +35,7 @@ import {
   validateParentURL,
 } from "./confluence-helper.ts";
 
-import {
-  verifyAccountToken,
-  verifyLocationExists,
-  verifyLocation,
-} from "./confluence-verify.ts";
+import { verifyAccountToken, verifyLocation } from "./confluence-verify.ts";
 
 export const CONFLUENCE_ID = "confluence";
 
@@ -93,9 +89,8 @@ const promptAndAuthorizeToken = async () => {
     validate: validateServer,
     transform: transformAtlassianDomain,
   });
-  await withSpinner({ message: "Verifying server..." }, () =>
-    verifyLocationExists(server)
-  );
+
+  await verifyLocation(server);
 
   const name = await Input.prompt({
     indent: "",
