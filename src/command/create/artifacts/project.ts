@@ -16,34 +16,28 @@ import {
 } from "../../../project/types/project-types.ts";
 import { kMarkdownEngine } from "../../../execute/types.ts";
 
-import { ArtifactCreator, CreateOptions } from "../cmd.ts";
-import { basename, join } from "path/mod.ts";
+import { ArtifactCreator, CreateContext, CreateDirective } from "../cmd.ts";
 
 import { Input, Select } from "cliffy/prompt/mod.ts";
 
 // ensures project types are registered
 import "../../../project/types/register.ts";
+import { capitalizeTitle } from "../../../core/text.ts";
+import { join } from "path/mod.ts";
 
 const kProjectTypes = projectTypes();
 const kProjectTypeAliases = projectTypeAliases();
 const kProjectTypesAndAliases = [...kProjectTypes, ...kProjectTypeAliases];
 
-// const kExecutionEngines = executionEngines().reverse();
-const kEditorTypes = ["source", "visual"];
-
-const kTemplate = "template";
 const kType = "type";
-const kTitle = "title";
-const kScaffold = "scaffold";
 const kSubdirectory = "subdirectory";
 
 const kBlogTypeAlias = "blog";
 
-const kDefaultDirectory = "project";
-
 const kTypeProj = "project";
 
 const kProjectCreateTypes = [...kProjectTypes, kBlogTypeAlias];
+const kProjectTypeOrder = ["default", "website", kBlogTypeAlias, "book"];
 
 export const projectArtifactCreator: ArtifactCreator = {
   displayName: "Project",
@@ -96,54 +90,39 @@ function resolveTemplate(type: string) {
   }
 }
 
-function finalizeOptions(createOptions: CreateOptions) {
+function finalizeOptions(createContext: CreateContext) {
   // Resolve the type and template
   const resolved = resolveTemplate(
-    createOptions.commandOpts[kType] as string || "default",
+    createContext.options[kType] as string || "default",
   );
-  const type = resolved.type;
-  createOptions.commandOpts.type = type;
-  if (resolved.template) {
-    createOptions.commandOpts[kTemplate] = resolved.template;
-  }
+  const name = createContext.options[kSubdirectory];
+  const directory = join(
+    createContext.cwd,
+    createContext.options[kSubdirectory] as string,
+  );
+  const template = resolved.template
+    ? `${resolved.type}:${resolved.template}`
+    : resolved.type;
 
-  // If there is no template specified, use the default project
-  // template, if one is available
-  if (createOptions.commandOpts[kTemplate] === undefined) {
-    const projType = projectType(type);
-    const defaultTemplate = projType.templates && projType.templates.length > 0
-      ? projType.templates[0]
-      : undefined;
-    createOptions.commandOpts[kTemplate] = defaultTemplate;
-  }
-
-  // Always create the scaffold files
-  createOptions.commandOpts[kScaffold] = createOptions.commandOpts[kScaffold] ||
-    true;
-
-  // Provide a directory and title
-  createOptions.commandOpts[kSubdirectory] =
-    createOptions.commandOpts[kSubdirectory] || kDefaultDirectory;
-  createOptions.commandOpts[kTitle] = createOptions.commandOpts[kTitle] ||
-    createOptions.commandOpts[kSubdirectory];
-
-  return createOptions;
+  return {
+    name,
+    directory,
+    template,
+  } as CreateDirective;
 }
 
 function nextPrompt(
-  createOptions: CreateOptions,
+  createOptions: CreateContext,
 ) {
   // First ensure that there is a type
-  if (!createOptions.commandOpts[kType]) {
-    const typeOrder = ["default", "website", kBlogTypeAlias, "book"];
-
+  if (!createOptions.options[kType]) {
     const orderedTypes = kProjectCreateTypes.sort((t1, t2) => {
       if (t1 === t2) {
         return 0;
-      } else if (typeOrder.indexOf(t1) === -1) {
+      } else if (kProjectTypeOrder.indexOf(t1) === -1) {
         return 1;
       } else {
-        return typeOrder.indexOf(t1) - typeOrder.indexOf(t2);
+        return kProjectTypeOrder.indexOf(t1) - kProjectTypeOrder.indexOf(t2);
       }
     });
 
@@ -160,8 +139,8 @@ function nextPrompt(
     };
   }
 
-  // Collect a title
-  if (!createOptions.commandOpts[kSubdirectory]) {
+  // Collect a name
+  if (!createOptions.options[kSubdirectory]) {
     return {
       name: kSubdirectory,
       message: "Directory",
@@ -170,23 +149,14 @@ function nextPrompt(
   }
 }
 
-async function createArtifact(createOptions: CreateOptions) {
-  const options = createOptions.commandOpts;
-
-  const engine = (options.engine || []) as string[];
-  const createType = options.type as string;
-  const createTemplate = options.template as string;
-  const createTitle = options.title as string;
-
-  const envPackages = typeof (options.withVenv) === "string"
-    ? options.withVenv.split(",").map((pkg: string) => pkg.trim())
-    : typeof (options.withCondaenv) === "string"
-    ? options.withCondaenv.split(",").map((pkg: string) => pkg.trim())
-    : undefined;
+async function createArtifact(createDirective: CreateDirective) {
+  console.log(createDirective);
+  const dir = createDirective.directory;
+  const projectTitle = capitalizeTitle(createDirective.name);
+  const directiveType = createDirective.template;
 
   // Parse the project type and template
-  const { type, template } = parseProjectType(createType);
-  const projectTemplate = createTemplate || template;
+  const { type, template } = parseProjectType(directiveType);
 
   // Validate the type
   if (kProjectTypesAndAliases.indexOf(type) === -1) {
@@ -197,24 +167,14 @@ async function createArtifact(createOptions: CreateOptions) {
     );
   }
 
-  // Validate the editor
-  const editorType = options.editor as string;
-  if (editorType && !kEditorTypes.includes(editorType)) {
-    throw new Error(
-      `Editor type must be one of ${
-        kEditorTypes.join(", ")
-      }, but got "${editorType}".`,
-    );
-  }
-
   // Validate the template
   const projType = projectType(type);
-  if (projectTemplate && !projType.templates?.includes(projectTemplate)) {
+  if (template && !projType.templates?.includes(template)) {
     if (projType.templates) {
       throw new Error(
         `Project template must be one of ${
           projType.templates.join(", ")
-        }, but got "${projectTemplate}".`,
+        }, but got "${template}".`,
       );
     } else {
       throw new Error(
@@ -223,24 +183,14 @@ async function createArtifact(createOptions: CreateOptions) {
     }
   }
 
-  const subdirectory = createOptions.commandOpts["subdirectory"] as string;
-  const fullPath = subdirectory
-    ? join(createOptions.dir, subdirectory)
-    : createOptions.dir;
-
   await projectCreate({
-    dir: fullPath,
+    dir,
     type: type,
-    title: createTitle || basename(createOptions.dir),
-    scaffold: !!options.scaffold,
-    engine: engine[0] || kMarkdownEngine,
-    kernel: engine[1],
-    editor: editorType,
-    venv: !!options.withVenv,
-    condaenv: !!options.withCondaenv,
-    envPackages,
-    template: projectTemplate,
+    title: projectTitle,
+    scaffold: true,
+    engine: kMarkdownEngine,
+    template: template,
   });
 
-  return fullPath;
+  return dir;
 }

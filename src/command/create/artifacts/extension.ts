@@ -7,21 +7,34 @@
 
 // import { executionEngine, executionEngines } from "../../../execute/engine.ts";
 
-import { ArtifactCreator, CreateOptions } from "../cmd.ts";
+import { ArtifactCreator, CreateContext, CreateDirective } from "../cmd.ts";
 import { join } from "path/mod.ts";
 
 import { Input, Select } from "cliffy/prompt/mod.ts";
 
 const kType = "type";
-const kTitle = "title";
-const kScaffold = "scaffold";
-const kSubdirectory = "subdirectory";
-
-const kDefaultDirectory = "extension";
+const kSubType = "subtype";
+const kName = "name";
 
 const kTypeExtension = "extension";
 
-const kExtensionTypes = ["filter", "format", "shortcode"];
+const kExtensionTypes = [
+  { name: "filter", value: "filter" },
+  { name: "revealjs plugin", value: "revealjs-plugin" },
+  { name: "shortcode", value: "shortcode" },
+  "---",
+  { name: "journal article format", value: "journal" },
+  { name: "custom format", value: "format" },
+  "---",
+  { name: "project", value: "project" },
+];
+
+const kExtensionSubtypes: Record<string, string[]> = {
+  "format": ["html", "pdf", "docx", "revealjs"],
+};
+
+const kExtensionValues = kExtensionTypes.filter((t) => typeof (t) === "object")
+  .map((t) => (t as { name: string; value: string }).value);
 
 export const extensionArtifactCreator: ArtifactCreator = {
   displayName: "Extension",
@@ -33,50 +46,100 @@ export const extensionArtifactCreator: ArtifactCreator = {
 };
 
 function resolveOptions(args: string[]): Record<string, unknown> {
-  // The first argument is the type (website, default, etc...)
-  // The second argument is the directory
+  // The first argument is the extension type
+  // The second argument is the name
   const typeRaw = args.length > 0 ? args[0] : undefined;
-  const directoryRaw = args.length > 1 ? args[1] : undefined;
+  const nameRaw = args.length > 1 ? args[1] : undefined;
 
   const options: Record<string, unknown> = {};
+
+  // Populate the type data
   if (typeRaw) {
-    if (kExtensionTypes.includes(typeRaw)) {
-      // This is a recognized type
-      options[kType] = typeRaw;
-    }
+    const [type, template] = typeRaw.split(":");
+    options[kType] = type;
+    options[kSubType] = template;
   }
+
   // Populate a directory, if provided
-  if (directoryRaw) {
-    options[kSubdirectory] = directoryRaw;
+  if (nameRaw) {
+    options[kName] = nameRaw;
   }
 
   return options;
 }
 
-function finalizeOptions(createOptions: CreateOptions) {
-  // Always create the scaffold files
-  createOptions.commandOpts[kScaffold] = createOptions.commandOpts[kScaffold] ||
-    true;
+function finalizeOptions(createOptions: CreateContext) {
+  // There should be a name
+  if (!createOptions.options.name) {
+    throw new Error("Required property 'name' is missing.");
+  }
+
+  // Is the type valid
+  const type = createOptions.options[kType] as string;
+  if (!kExtensionValues.includes(type)) {
+    throw new Error(
+      `The type ${type} isn't valid. Expected one of ${
+        kExtensionValues.join(", ")
+      }`,
+    );
+  }
+
+  // Is the subtype valid
+  const subType = createOptions.options[kSubType] as string;
+  const subTypes = kExtensionSubtypes[type];
+  if (subTypes && !subTypes.includes(subType)) {
+    throw new Error(
+      `The sub type ${subType} isn't valid. Expected one of ${
+        subTypes.join(", ")
+      }`,
+    );
+  }
+
+  // Form a template
+  const template = createOptions.options[kSubType]
+    ? `${createOptions.options[kType]}:${createOptions.options[kSubType]}`
+    : createOptions.options[kType];
 
   // Provide a directory and title
-  createOptions.commandOpts[kSubdirectory] =
-    createOptions.commandOpts[kSubdirectory] || kDefaultDirectory;
-  createOptions.commandOpts[kTitle] = createOptions.commandOpts[kTitle] ||
-    createOptions.commandOpts[kSubdirectory];
-
-  return createOptions;
+  return {
+    name: createOptions.options[kName],
+    directory: join(
+      createOptions.cwd,
+      createOptions.options[kName] as string,
+    ),
+    template,
+  } as CreateDirective;
 }
 
 function nextPrompt(
-  createOptions: CreateOptions,
+  createOptions: CreateContext,
 ) {
   // First ensure that there is a type
-  if (!createOptions.commandOpts[kType]) {
+  if (!createOptions.options[kType]) {
     return {
       name: kType,
       message: "Type",
       type: Select,
       options: kExtensionTypes.map((t) => {
+        if (t === "---") {
+          return Select.separator("--------");
+        } else {
+          return t;
+        }
+      }),
+    };
+  }
+
+  const subTypes = kExtensionSubtypes[createOptions.options[kType] as string];
+  if (
+    !createOptions.options[kSubType] &&
+    subTypes && subTypes.length > 0
+  ) {
+    return {
+      name: kSubType,
+      message: "Base Format",
+      type: Select,
+      options: subTypes.map((t) => {
         return {
           name: t,
           value: t,
@@ -86,38 +149,16 @@ function nextPrompt(
   }
 
   // Collect a title
-  if (!createOptions.commandOpts[kSubdirectory]) {
+  if (!createOptions.options[kName]) {
     return {
-      name: kSubdirectory,
-      message: "Directory",
+      name: kName,
+      message: "Extension Name",
       type: Input,
     };
   }
 }
 
-function createArtifact(createOptions: CreateOptions) {
-  const options = createOptions.commandOpts;
-
-  // Validate the type
-  const type = options.type as string | undefined;
-  if (type === undefined) {
-    throw new Error(
-      `You must provide an extension type.`,
-    );
-  } else if (kExtensionTypes.indexOf(type) === -1) {
-    throw new Error(
-      `Extension type must be one of ${
-        kExtensionTypes.join(", ")
-      }, but got "${type}".`,
-    );
-  }
-
-  const subdirectory = createOptions.commandOpts["subdirectory"] as string;
-  const fullPath = subdirectory
-    ? join(createOptions.dir, subdirectory)
-    : createOptions.dir;
-
-  console.log(createOptions);
-
-  return Promise.resolve(fullPath);
+function createArtifact(createDirective: CreateDirective) {
+  console.log(createDirective);
+  return Promise.resolve(createDirective.directory);
 }

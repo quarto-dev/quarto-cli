@@ -21,9 +21,15 @@ import { info } from "log/mod.ts";
 import { readLines } from "io/mod.ts";
 import { extensionArtifactCreator } from "./artifacts/extension.ts";
 
-export interface CreateOptions {
-  dir: string;
-  commandOpts: Record<string, unknown>;
+export interface CreateContext {
+  cwd: string;
+  options: Record<string, unknown>;
+}
+
+export interface CreateDirective {
+  name: string;
+  directory: string;
+  template: string;
 }
 
 export interface ArtifactCreator {
@@ -39,17 +45,17 @@ export interface ArtifactCreator {
 
   // this will always be called, giving the artifact creator
   // a change to finalize / transform options
-  finalizeOptions: (options: CreateOptions) => void;
+  finalizeOptions: (options: CreateContext) => CreateDirective;
 
   // As long as prompting is allowed, allow the artifact creator prompting to populate
   // the options. This will be called until it return undefined, at which point
   // the artifact will be created using the options
   // deno-lint-ignore no-explicit-any
-  nextPrompt: (options: CreateOptions) => any | undefined; // TODO: this any is a nightmare
+  nextPrompt: (options: CreateContext) => any | undefined; // TODO: this any is a nightmare
 
   // Creates the artifact using the specified options
   // Returns the path to the created artifact
-  createArtifact: (options: CreateOptions) => Promise<string>;
+  createArtifact: (directive: CreateDirective) => Promise<string>;
 
   // Set this to false to exclude this artifact type from the create command
   enabled?: boolean;
@@ -58,15 +64,12 @@ export interface ArtifactCreator {
 // The registered artifact creators
 const kArtifactCreators: ArtifactCreator[] = [
   projectArtifactCreator,
-  // extensionArtifactCreator,
+  extensionArtifactCreator,
 ];
 
 export const createCommand = new Command()
   .name("create")
   .description("Create a Quarto artifact (project, document, or extension)")
-  .option("-d, --dir [dir:string]", "Directory in which to create artifact", {
-    default: ".",
-  })
   .option(
     "--open [editor:string]",
     `Open new artifact in this editor (${
@@ -82,7 +85,6 @@ export const createCommand = new Command()
   .action(
     async (
       options: {
-        dir?: string | true;
         prompt: boolean;
         json?: boolean;
         open?: string | boolean;
@@ -90,17 +92,8 @@ export const createCommand = new Command()
       type?: string,
       commands?: string[],
     ) => {
-      // TODO: why can dir be 'true'?
-      if (
-        options.dir === undefined ||
-        options.dir === "." ||
-        options.dir === true
-      ) {
-        options.dir = Deno.cwd();
-      }
-
       if (options.json) {
-        await createFromStdin(options.dir);
+        await createFromStdin();
       } else {
         // Compute a sane default for prompting
         const isInteractive = isInteractiveTerminal() && !runningInCI();
@@ -123,8 +116,8 @@ export const createCommand = new Command()
 
           const commandOpts = resolvedArtifact.resolveOptions(args);
           const createOptions = {
-            dir: options.dir,
-            commandOpts,
+            cwd: Deno.cwd(),
+            options: commandOpts,
           };
 
           if (allowPrompt) {
@@ -141,8 +134,8 @@ export const createCommand = new Command()
                 }
 
                 const result = await prompt([nextPrompt]);
-                createOptions.commandOpts = {
-                  ...createOptions.commandOpts,
+                createOptions.options = {
+                  ...createOptions.options,
                   ...result,
                 };
               }
@@ -151,11 +144,13 @@ export const createCommand = new Command()
           }
 
           // Complete the defaults
-          resolvedArtifact.finalizeOptions(createOptions);
+          const createDirective = resolvedArtifact.finalizeOptions(
+            createOptions,
+          );
 
           // Create the artifact using the options
           const artifactPath = await resolvedArtifact.createArtifact(
-            createOptions,
+            createDirective,
           );
 
           // Now that the article was created, offer to open the item
@@ -273,8 +268,17 @@ const resolveEditor = async (artifactPath: string, editor?: string) => {
   }
 };
 
-async function createFromStdin(dir: string) {
-  // Read a single line (should be json)
+async function createFromStdin() {
+  /* Read a single line (should be json) like:
+  {
+    type: "project",
+    directive: {
+      "directory" : "",
+      "template" : "",
+      "name": ""
+    }
+  }
+  */
   const { value: input } = await readLines(Deno.stdin).next();
 
   // Close stdin
@@ -282,10 +286,20 @@ async function createFromStdin(dir: string) {
 
   // Parse options
   const jsonOptions = JSON.parse(input);
+
   const type = jsonOptions.type;
   if (!type) {
     throw new Error(
       "The provided json for create artifacts must include a valid type",
+    );
+  }
+
+  if (
+    !jsonOptions.directive || !jsonOptions.directive.name ||
+    !jsonOptions.directive.directory || !jsonOptions.directive.template
+  ) {
+    throw new Error(
+      "The provided json for create artifacts must include a directive with a name, directory, and template.",
     );
   }
 
@@ -294,14 +308,11 @@ async function createFromStdin(dir: string) {
     type,
     false,
   );
-
-  // Resolve the provided options
-  const createOptions = { dir, commandOpts: jsonOptions.options };
-  resolved.artifact.finalizeOptions(createOptions);
+  const createDirective = jsonOptions.directive as CreateDirective;
 
   // Create the artifact using the options
   const artifactPath = await resolved.artifact.createArtifact(
-    createOptions,
+    createDirective,
   );
   info(`${type} created at ${artifactPath}`);
 }
