@@ -160,6 +160,7 @@
 
 - Fix escaping issue in RSS feed fields
 - Properly support `max-desc-length` to trim descriptions within listings
+- Properly support exclude globs (like `!blog/index.qmd`) when resolve listing contents
 
 ## Bibliographies and Citations
 
