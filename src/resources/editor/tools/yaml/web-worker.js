@@ -18953,7 +18953,7 @@ try {
             short: "Extract images and other media contained in or linked from the source\ndocument to the path DIR.",
             long: "Extract images and other media contained in or linked from the source\ndocument to the path DIR, creating it if necessary, and adjust the\nimages references in the document so they point to the extracted files.\nMedia are downloaded, read from the file system, or extracted from a\nbinary container (e.g.&nbsp;docx), as needed. The original file paths are\nused if they are relative paths not containing \u2026 Otherwise filenames are\nconstructed from the SHA1 hash of the contents."
           },
-          "List of paths to search for images and other resources. The paths\nshould be separated by : on Linux, UNIX, and macOS systems, and by ; on\nWindows.",
+          "List of paths to search for images and other resources.",
           {
             short: "Specify a default extension to use when image paths/URLs have no\nextension.",
             long: "Specify a default extension to use when image paths/URLs have no\nextension. This allows you to use the same source for formats that\nrequire different kinds of images. Currently this option only affects\nthe Markdown and LaTeX readers."
@@ -19992,12 +19992,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 132472,
+          _internalId: 132474,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 132471,
+              _internalId: 132473,
               type: "enum",
               enum: [
                 "png",
@@ -29337,6 +29337,8 @@ ${tidyverseInfo(
         return completeSchema(schema2, name);
       }
     );
+    const luaFilenameS = regexSchema("^.+.lua$");
+    plusFormatStringSchemas.push(luaFilenameS);
     const completionsObject = fromEntries(
       formatSchemaDescriptorList.filter(({ hidden }) => !hidden).map(({ name }) => [name, {
         type: "key",
@@ -29352,6 +29354,9 @@ ${tidyverseInfo(
           anyOfSchema(...plusFormatStringSchemas),
           "the name of a pandoc-supported output format"
         ),
+        objectSchema({
+          propertyNames: luaFilenameS
+        }),
         allOfSchema(
           objectSchema({
             patternProperties: fromEntries(formatSchemas),
