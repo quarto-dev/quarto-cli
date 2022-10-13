@@ -111,9 +111,9 @@ export const wrapBodyForConfluence = (value: string) => {
 
 export const buildPublishRecord = (
   server: string,
-  content: Content
+  content: Content | undefined
 ): [PublishRecord, URL] => {
-  if (!content.id || !content?.space) {
+  if (!content?.id || !content?.space) {
     throw new Error("Invalid Content");
   }
 

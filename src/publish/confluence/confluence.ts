@@ -44,6 +44,7 @@ import {
   validateParentURL,
   confluenceParentFromString,
   wrapBodyForConfluence,
+  buildPublishRecord,
 } from "./confluence-helper.ts";
 
 import {
@@ -192,20 +193,6 @@ async function publish(
 
   await verifyConfluenceParent(parentUrl, parent);
 
-  // TODO extract and test this
-  const buildPublishRecord = (
-    content: Content | undefined
-  ): [PublishRecord, URL] => {
-    const newPublishRecord: PublishRecord = {
-      id: content?.id ?? "",
-      url: `${ensureTrailingSlash(account.server!)}wiki/spaces/${
-        content?.space?.key ?? ""
-      }/pages/${content?.id}`,
-    };
-    // return record and browse url
-    return [newPublishRecord, new URL(newPublishRecord?.url ?? "")];
-  };
-
   const publishDocument = async (): Promise<
     [PublishRecord, URL | undefined]
   > => {
@@ -261,7 +248,11 @@ async function publish(
       );
     }
 
-    return buildPublishRecord(content);
+    const publishRecordToSave = buildPublishRecord(
+      account.server ?? "",
+      content
+    );
+    return publishRecordToSave;
   };
 
   if (type === PublishTypeEnum.document) {

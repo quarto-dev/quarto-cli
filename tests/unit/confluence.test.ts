@@ -294,13 +294,17 @@ const runPublishRecordTests = () => {
   unitTest("buildPublishRecord_noIdThrows", async () => {
     const fakeContent = buildFakeContent();
     fakeContent.id = null;
-    const toCall = () => checkThrows(fakeServer, fakeContent);
+    checkThrows(fakeServer, fakeContent);
   });
 
   unitTest("buildPublishRecord_noSpaceThrows", async () => {
     const fakeContent = buildFakeContent();
     fakeContent.space = null;
-    const toCall = () => checkThrows(fakeServer, fakeContent);
+    checkThrows(fakeServer, fakeContent);
+  });
+
+  unitTest("buildPublishRecord_emptyServerThrows", async () => {
+    checkThrows("");
   });
 };
 runPublishRecordTests();
