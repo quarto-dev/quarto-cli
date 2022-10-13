@@ -114,7 +114,7 @@ export const buildPublishRecord = (
   server: string,
   content: Content | undefined
 ): [PublishRecord, URL] => {
-  if (!content?.id || !content?.space) {
+  if (!content?.id || !content?.space || !(server.length > 0)) {
     throw new Error("Invalid Content");
   }
 

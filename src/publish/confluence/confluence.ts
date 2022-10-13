@@ -245,7 +245,7 @@ async function publish(
     }
 
     const publishRecordToSave = buildPublishRecord(
-      account.server ?? "",
+      account?.server ?? "",
       content
     );
     return publishRecordToSave;
