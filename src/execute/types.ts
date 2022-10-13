@@ -45,7 +45,7 @@ export interface ExecutionEngine {
     format: Format,
   ) => Format;
   execute: (options: ExecuteOptions) => Promise<ExecuteResult>;
-  executeTargetSkipped?: (target: ExecutionTarget, format: Format) => void;
+  executeTargetCleanup?: (target: ExecutionTarget, format: Format) => void;
   dependencies: (options: DependenciesOptions) => Promise<DependenciesResult>;
   postprocess: (options: PostProcessOptions) => Promise<void>;
   canFreeze: boolean;

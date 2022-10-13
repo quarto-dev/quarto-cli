@@ -329,10 +329,6 @@ export const jupyterEngine: ExecutionEngine = {
       }
     }
 
-    // if it's a transient notebook then remove it
-    // (unless keep-ipynb was specified)
-    cleanupNotebook(options.target, options.format);
-
     // return results
     return {
       markdown: result.markdown,
@@ -347,7 +343,7 @@ export const jupyterEngine: ExecutionEngine = {
     };
   },
 
-  executeTargetSkipped: cleanupNotebook,
+  executeTargetCleanup: cleanupNotebook,
 
   dependencies: (options: DependenciesOptions) => {
     const includes: PandocIncludes = {};

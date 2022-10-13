@@ -170,8 +170,8 @@ export async function renderExecute(
         removeFreezeResults(join(context.project.dir, projRelativeFilesDir!));
 
         // notify engine that we skipped execute
-        if (context.engine.executeTargetSkipped) {
-          context.engine.executeTargetSkipped(context.target, context.format);
+        if (context.engine.executeTargetCleanup) {
+          context.engine.executeTargetCleanup(context.target, context.format);
         }
 
         // return results
@@ -347,148 +347,156 @@ export async function renderFiles(
         }
         executeResult.supporting.push(...results.supporting);
       };
-      for (const format of Object.keys(contexts)) {
-        pushTiming("render-context");
-        const context = ld.cloneDeep(contexts[format]) as RenderContext; // since we're going to mutate it...
+      try {
+        for (const format of Object.keys(contexts)) {
+          pushTiming("render-context");
+          const context = ld.cloneDeep(contexts[format]) as RenderContext; // since we're going to mutate it...
 
-        // Set the date locale for this render
-        // Used for date formatting
-        initDayJsPlugins();
-        if (
-          context.format.metadata[kLang] &&
-          typeof (context.format.metadata[kLang]) === "string"
-        ) {
-          await setDateLocale(
-            options.flags?.pandocMetadata?.[kLang] as string ||
-              context.format.metadata[kLang] as string,
-          );
-        }
-
-        const fileLifetime = createNamedLifetime("render-file");
-        fileLifetime.attach({
-          cleanup() {
-            resetFigureCounter();
-          },
-        });
-        try {
-          // one time denoDom init for html compatible formats
-          if (isHtmlCompatible(context.format)) {
-            await initDenoDom();
+          // Set the date locale for this render
+          // Used for date formatting
+          initDayJsPlugins();
+          if (
+            context.format.metadata[kLang] &&
+            typeof (context.format.metadata[kLang]) === "string"
+          ) {
+            await setDateLocale(
+              options.flags?.pandocMetadata?.[kLang] as string ||
+                context.format.metadata[kLang] as string,
+            );
           }
 
-          // get output recipe
-          const recipe = await outputRecipe(context);
-
-          // determine execute options
-          const executeOptions = mergeConfigs(
-            {
-              alwaysExecute: alwaysExecuteFiles?.includes(file.path),
+          const fileLifetime = createNamedLifetime("render-file");
+          fileLifetime.attach({
+            cleanup() {
+              resetFigureCounter();
             },
-            pandocRenderer.onBeforeExecute(recipe.format),
-          );
-
-          const validate = context.format.metadata?.["validate-yaml"];
-          if (validate !== false) {
-            const validationResult = await validateDocument(context);
-            if (validationResult.length) {
-              throw new RenderInvalidYAMLError();
-            }
-          }
-
-          // FIXME it should be possible to infer this directly now
-          // based on the information in the mapped strings.
-          //
-          // collect line numbers to facilitate runtime error reporting
-          const { ojsBlockLineNumbers } = annotateOjsLineNumbers(context);
-
-          // execute
-          const baseExecuteResult = await renderExecute(
-            context,
-            recipe.output,
-            executeOptions,
-          );
-
-          // recover source map from diff and create a mappedExecuteResult
-          // for markdown processing pre-pandoc with mapped strings
-          let mappedMarkdown: MappedString;
-
-          withTiming("diff-execute-result", () => {
-            if (!isJupyterNotebook(context.target.source)) {
-              mappedMarkdown = mappedDiff(
-                context.target.markdown,
-                baseExecuteResult.markdown,
-              );
-            } else {
-              mappedMarkdown = asMappedString(baseExecuteResult.markdown);
-            }
           });
+          try {
+            // one time denoDom init for html compatible formats
+            if (isHtmlCompatible(context.format)) {
+              await initDenoDom();
+            }
 
-          const resourceFiles: string[] = [];
-          if (baseExecuteResult.resourceFiles) {
-            resourceFiles.push(...baseExecuteResult.resourceFiles);
-          }
+            // get output recipe
+            const recipe = await outputRecipe(context);
 
-          const languageCellHandlerOptions: LanguageCellHandlerOptions = {
-            name: "", // will be filled out by handleLanguageCells internally
-            temp: tempContext,
-            format: recipe.format,
-            markdown: mappedMarkdown!,
-            context,
-            stage: "post-engine",
-          };
-
-          let unmappedExecuteResult: ExecuteResult;
-          await withTimingAsync("handle-language-cells", async () => {
-            // handle language cells
-            const { markdown, results } = await handleLanguageCells(
-              languageCellHandlerOptions,
+            // determine execute options
+            const executeOptions = mergeConfigs(
+              {
+                alwaysExecute: alwaysExecuteFiles?.includes(file.path),
+              },
+              pandocRenderer.onBeforeExecute(recipe.format),
             );
-            const mappedExecuteResult: MappedExecuteResult = {
-              ...baseExecuteResult,
-              markdown,
-            };
 
-            mergeHandlerResults(
-              context.target.preEngineExecuteResults,
-              mappedExecuteResult,
+            const validate = context.format.metadata?.["validate-yaml"];
+            if (validate !== false) {
+              const validationResult = await validateDocument(context);
+              if (validationResult.length) {
+                throw new RenderInvalidYAMLError();
+              }
+            }
+
+            // FIXME it should be possible to infer this directly now
+            // based on the information in the mapped strings.
+            //
+            // collect line numbers to facilitate runtime error reporting
+            const { ojsBlockLineNumbers } = annotateOjsLineNumbers(context);
+
+            // execute
+            const baseExecuteResult = await renderExecute(
               context,
+              recipe.output,
+              executeOptions,
             );
-            mergeHandlerResults(results, mappedExecuteResult, context);
 
-            // process ojs
-            const { executeResult, resourceFiles: ojsResourceFiles } =
-              await ojsExecuteResult(
-                context,
-                mappedExecuteResult,
-                ojsBlockLineNumbers,
-              );
-            resourceFiles.push(...ojsResourceFiles);
+            // recover source map from diff and create a mappedExecuteResult
+            // for markdown processing pre-pandoc with mapped strings
+            let mappedMarkdown: MappedString;
 
-            // keep md if requested
-            const keepMd = executionEngineKeepMd(context.target.input);
-            if (keepMd && context.format.execute[kKeepMd]) {
-              Deno.writeTextFileSync(keepMd, executeResult.markdown.value);
+            withTiming("diff-execute-result", () => {
+              if (!isJupyterNotebook(context.target.source)) {
+                mappedMarkdown = mappedDiff(
+                  context.target.markdown,
+                  baseExecuteResult.markdown,
+                );
+              } else {
+                mappedMarkdown = asMappedString(baseExecuteResult.markdown);
+              }
+            });
+
+            const resourceFiles: string[] = [];
+            if (baseExecuteResult.resourceFiles) {
+              resourceFiles.push(...baseExecuteResult.resourceFiles);
             }
 
-            // now get "unmapped" execute result back to send to pandoc
-            unmappedExecuteResult = {
-              ...executeResult,
-              markdown: executeResult.markdown.value,
+            const languageCellHandlerOptions: LanguageCellHandlerOptions = {
+              name: "", // will be filled out by handleLanguageCells internally
+              temp: tempContext,
+              format: recipe.format,
+              markdown: mappedMarkdown!,
+              context,
+              stage: "post-engine",
             };
-          });
 
-          // callback
-          pushTiming("render-pandoc");
-          await pandocRenderer.onRender(format, {
-            context,
-            recipe,
-            executeResult: unmappedExecuteResult!,
-            resourceFiles,
-          }, pandocQuiet);
-          popTiming();
-        } finally {
-          fileLifetime.cleanup();
-          popTiming();
+            let unmappedExecuteResult: ExecuteResult;
+            await withTimingAsync("handle-language-cells", async () => {
+              // handle language cells
+              const { markdown, results } = await handleLanguageCells(
+                languageCellHandlerOptions,
+              );
+              const mappedExecuteResult: MappedExecuteResult = {
+                ...baseExecuteResult,
+                markdown,
+              };
+
+              mergeHandlerResults(
+                context.target.preEngineExecuteResults,
+                mappedExecuteResult,
+                context,
+              );
+              mergeHandlerResults(results, mappedExecuteResult, context);
+
+              // process ojs
+              const { executeResult, resourceFiles: ojsResourceFiles } =
+                await ojsExecuteResult(
+                  context,
+                  mappedExecuteResult,
+                  ojsBlockLineNumbers,
+                );
+              resourceFiles.push(...ojsResourceFiles);
+
+              // keep md if requested
+              const keepMd = executionEngineKeepMd(context.target.input);
+              if (keepMd && context.format.execute[kKeepMd]) {
+                Deno.writeTextFileSync(keepMd, executeResult.markdown.value);
+              }
+
+              // now get "unmapped" execute result back to send to pandoc
+              unmappedExecuteResult = {
+                ...executeResult,
+                markdown: executeResult.markdown.value,
+              };
+            });
+
+            // callback
+            pushTiming("render-pandoc");
+            await pandocRenderer.onRender(format, {
+              context,
+              recipe,
+              executeResult: unmappedExecuteResult!,
+              resourceFiles,
+            }, pandocQuiet);
+            popTiming();
+          } finally {
+            fileLifetime.cleanup();
+            popTiming();
+          }
+        }
+      } finally {
+        for (const context of Object.values(contexts)) {
+          if (context.engine.executeTargetCleanup) {
+            context.engine.executeTargetCleanup(context.target, context.format);
+          }
         }
       }
     }

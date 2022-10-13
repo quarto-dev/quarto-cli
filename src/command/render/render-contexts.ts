@@ -276,8 +276,8 @@ export async function renderContexts(
     }
 
     // if this isn't for execute then cleanup context
-    if (!forExecute && engine.executeTargetSkipped) {
-      engine.executeTargetSkipped(target, formats[format]);
+    if (!forExecute && engine.executeTargetCleanup) {
+      engine.executeTargetCleanup(target, formats[format]);
     }
   }
   return contexts;
