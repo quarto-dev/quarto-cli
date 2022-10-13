@@ -17,10 +17,19 @@ import {
   validateToken,
   confluenceParentFromString,
   wrapBodyForConfluence,
+  buildPublishRecord,
 } from "../../src/publish/confluence/confluence-helper.ts";
-import { ApiError } from "../../src/publish/types.ts";
+import { ApiError, PublishRecord } from "../../src/publish/types.ts";
 import { AccountTokenType } from "../../src/publish/provider.ts";
-import { ConfluenceParent } from "../../src/publish/confluence/api/types.ts";
+import {
+  ConfluenceParent,
+  Content,
+  ContentAncestor,
+  ContentBody,
+  ContentStatus,
+  ContentVersion,
+  Space,
+} from "../../src/publish/confluence/api/types.ts";
 
 unitTest("transformAtlassianDomain_basic", async () => {
   const result = transformAtlassianDomain("fake-domain");
@@ -223,3 +232,75 @@ unitTest("wrapBodyForConfluence_empty", async () => {
   };
   assertEquals(expected, result);
 });
+
+const runPublishRecordTests = () => {
+  const buildFakeContent = (): Content => {
+    return {
+      id: "fake-id",
+      type: "fake-type",
+      status: "current",
+      title: "fake-title",
+      space: {
+        key: "fake-key",
+      },
+      version: {
+        number: 1,
+      },
+      ancestors: null,
+      body: {
+        storage: {
+          value: "fake-body",
+          representation: "raw",
+        },
+      },
+    };
+  };
+
+  const fakeServer = "https://allenmanning.atlassian.net";
+
+  const checkExpected = (
+    expectedURL: string,
+    expectedId: string,
+    server: string = fakeServer,
+    content: Content = buildFakeContent()
+  ) => {
+    const result = buildPublishRecord(server, content);
+    const expectedPublishRecord: PublishRecord = {
+      id: expectedId,
+      url: expectedURL,
+    };
+    const url: URL = new URL(expectedURL);
+    const expected: [PublishRecord, URL] = [expectedPublishRecord, url];
+
+    assertEquals(expected[0], result[0]);
+    assertEquals(expected[1], result[1]);
+  };
+
+  const checkThrows = (
+    server: string = fakeServer,
+    content: Content = buildFakeContent()
+  ) => {
+    assertThrows(() => buildPublishRecord(server, content));
+  };
+
+  unitTest("buildPublishRecord_validWithChecker", async () => {
+    const expectedURL =
+      "https://allenmanning.atlassian.net/wiki/spaces/fake-key/pages/fake-id";
+    const expectedId = "fake-id";
+
+    checkExpected(expectedURL, expectedId);
+  });
+
+  unitTest("buildPublishRecord_noIdThrows", async () => {
+    const fakeContent = buildFakeContent();
+    fakeContent.id = null;
+    const toCall = () => checkThrows(fakeServer, fakeContent);
+  });
+
+  unitTest("buildPublishRecord_noSpaceThrows", async () => {
+    const fakeContent = buildFakeContent();
+    fakeContent.space = null;
+    const toCall = () => checkThrows(fakeServer, fakeContent);
+  });
+};
+runPublishRecordTests();

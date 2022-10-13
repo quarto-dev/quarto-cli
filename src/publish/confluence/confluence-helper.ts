@@ -1,8 +1,13 @@
-import { ApiError } from "../types.ts";
+import { ApiError, PublishRecord } from "../types.ts";
 import { ensureTrailingSlash } from "../../core/path.ts";
 import { isHttpUrl } from "../../core/url.ts";
 import { AccountToken } from "../provider.ts";
-import { ConfluenceParent, ContentBody, EMPTY_PARENT } from "./api/types.ts";
+import {
+  ConfluenceParent,
+  Content,
+  ContentBody,
+  EMPTY_PARENT,
+} from "./api/types.ts";
 
 export const transformAtlassianDomain = (domain: string) => {
   return ensureTrailingSlash(
@@ -102,4 +107,24 @@ export const wrapBodyForConfluence = (value: string) => {
     },
   };
   return body;
+};
+
+export const buildPublishRecord = (
+  server: string,
+  content: Content
+): [PublishRecord, URL] => {
+  if (!content.id || !content?.space) {
+    throw new Error("Invalid Content");
+  }
+
+  const url = `${ensureTrailingSlash(server)}wiki/spaces/${
+    content.space.key
+  }/pages/${content.id}`;
+
+  const newPublishRecord: PublishRecord = {
+    id: content.id,
+    url,
+  };
+
+  return [newPublishRecord, new URL(url)];
 };

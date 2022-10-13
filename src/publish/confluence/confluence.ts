@@ -192,66 +192,80 @@ async function publish(
 
   await verifyConfluenceParent(parentUrl, parent);
 
-  if (type === PublishTypeEnum.document) {
+  // TODO extract and test this
+  const buildPublishRecord = (
+    content: Content | undefined
+  ): [PublishRecord, URL] => {
+    const newPublishRecord: PublishRecord = {
+      id: content?.id ?? "",
+      url: `${ensureTrailingSlash(account.server!)}wiki/spaces/${
+        content?.space?.key ?? ""
+      }/pages/${content?.id}`,
+    };
+    // return record and browse url
+    return [newPublishRecord, new URL(newPublishRecord?.url ?? "")];
+  };
+
+  const publishDocument = async (): Promise<
+    [PublishRecord, URL | undefined]
+  > => {
     const body = await renderAndLoadDocument(render);
 
     let content: Content | undefined;
+
+    const updateContent = async (publishRecord: PublishRecord) => {
+      // for updates we need to get the existing version and increment by 1
+      const prevContent = await client.getContent(publishRecord.id);
+
+      // update the content
+      const toCreate: ContentUpdate = {
+        version: { number: (prevContent?.version?.number || 0) + 1 },
+        title: `${title} ${generateUuid()}`,
+        type: kPageType,
+        status: "current",
+        ancestors: null,
+        body,
+      };
+      content = await client.updateContent(publishRecord.id, toCreate);
+    };
+
+    const createContent = async () => {
+      // for creates we need to get the space info
+      const space = await client.getSpace(parent.space);
+
+      // create the content
+      content = await client.createContent({
+        id: null,
+        title: `${title} ${generateUuid()}`,
+        type: kPageType,
+        space,
+        status: "current",
+        ancestors: parent?.parent ? [{ id: parent.parent }] : null,
+        body,
+      });
+    };
+
     if (publishRecord) {
       await withSpinner(
         {
           message: `Updating content at ${publishRecord.url}...`,
         },
-        async () => {
-          // for updates we need to get the existing version and increment by 1
-          const prevContent = await client.getContent(publishRecord.id);
-
-          // update the content
-          const toCreate: ContentUpdate = {
-            version: { number: (prevContent?.version?.number || 0) + 1 },
-            title: `${title} ${generateUuid()}`,
-            type: kPageType,
-            status: "current",
-            ancestors: null,
-            body,
-          };
-          content = await client.updateContent(publishRecord.id, toCreate);
-        }
+        () => updateContent(publishRecord)
       );
     } else {
       await withSpinner(
         {
           message: `Creating content in space ${parent.space}...`,
         },
-        async () => {
-          // for creates we need to get the space info
-          const space = await client.getSpace(parent.space);
-
-          // create the content
-          content = await client.createContent({
-            id: null,
-            title: `${title} ${generateUuid()}`,
-            type: kPageType,
-            space,
-            status: "current",
-            ancestors: parent?.parent ? [{ id: parent.parent }] : null,
-            body,
-          });
-        }
+        createContent
       );
     }
 
-    // if we got this far we have the content
-    content = content!;
+    return buildPublishRecord(content);
+  };
 
-    // create publish record
-    const newPublishRecord: PublishRecord = {
-      id: content.id!,
-      url: `${ensureTrailingSlash(account.server!)}wiki/spaces/${
-        content.space!.key
-      }/pages/${content.id}`,
-    };
-    // return record and browse url
-    return [newPublishRecord, new URL(newPublishRecord.url!)];
+  if (type === PublishTypeEnum.document) {
+    return await publishDocument();
   } else {
     throw new Error("Confluence site publishing not implemented");
   }
