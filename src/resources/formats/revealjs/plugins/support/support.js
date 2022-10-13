@@ -257,6 +257,16 @@ window.QuartoSupport = function () {
     });
   }
 
+  function workaroundMermaidDistance(deck) {
+    if (window.document.querySelector("pre.mermaid-js")) {
+      const slideCount = deck.getTotalSlides();
+      deck.configure({
+        mobileViewDistance: slideCount,
+        viewDistance: slideCount,
+      });
+    }
+  }
+
   return {
     id: "quarto-support",
     init: function (deck) {
@@ -269,6 +279,7 @@ window.QuartoSupport = function () {
       addChalkboardButtons(deck);
       handleTabbyClicks();
       handleSlideChanges(deck);
+      workaroundMermaidDistance(deck);
     },
   };
 };
