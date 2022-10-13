@@ -239,11 +239,14 @@ function templateFolder(createDirective: CreateDirective) {
   return join(basePath, artifactFolderName);
 }
 
+// TODO: use git config to try to find author name
+// TODO: trim quarto version to 0 build number
+
 function ejsData(createDirective: CreateDirective) {
   return {
     title: capitalizeTitle(createDirective.name),
     name: createDirective.name,
-    author: "Norah Jones",
+    author: "First Last",
     version: "1.0.0",
     fileSafeName: texSafeFilename(createDirective.name),
     quartoVersion: quartoConfig.version(),
