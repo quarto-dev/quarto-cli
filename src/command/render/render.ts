@@ -39,7 +39,7 @@ import { projectOffset } from "../../project/project-shared.ts";
 import { ExecutedFile, RenderedFile, RenderResult } from "./types.ts";
 import { PandocIncludes } from "../../execute/types.ts";
 import { Metadata } from "../../config/types.ts";
-import { isHtmlFileOutput, isMarkdownOutput } from "../../config/format.ts";
+import { isHtmlFileOutput } from "../../config/format.ts";
 
 import { isSelfContainedOutput } from "./render-info.ts";
 import { execProcess } from "../../core/process.ts";
@@ -50,12 +50,6 @@ import {
   withTimingAsync,
 } from "../../core/timing.ts";
 import { filesDirMediabagDir } from "./render-paths.ts";
-import {
-  kIncludeAfterBody,
-  kIncludeBeforeBody,
-  kIncludeInHeader,
-  kPreferHtml,
-} from "../../config/constants.ts";
 
 export async function renderPandoc(
   file: ExecutedFile,
@@ -67,25 +61,12 @@ export async function renderPandoc(
   // alias format
   const format = recipe.format;
 
-  // function to handle includes (for markdown output we bundle the includes
-  //  in ```{html} within the actual markdown if prefer-html is set)
-  const handleIncludes = (includes: PandocIncludes) => {
-    if (isMarkdownOutput(format.pandoc) && format.render[kPreferHtml]) {
-      executeResult.markdown = markdownWithPandocIncludes(
-        executeResult.markdown,
-        includes,
-      );
-    } else {
-      format.pandoc = mergePandocIncludes(
-        format.pandoc || {},
-        includes,
-      );
-    }
-  };
-
   // merge any pandoc options provided by the computation
   if (executeResult.includes) {
-    handleIncludes(executeResult.includes);
+    format.pandoc = mergePandocIncludes(
+      format.pandoc || {},
+      executeResult.includes,
+    );
   }
   if (executeResult.pandoc) {
     format.pandoc = mergeConfigs(
@@ -109,7 +90,10 @@ export async function renderPandoc(
         dependencies: executeResult.engineDependencies[engineName],
         quiet: context.options.flags?.quiet,
       });
-      handleIncludes(dependenciesResult.includes);
+      format.pandoc = mergePandocIncludes(
+        format.pandoc,
+        dependenciesResult.includes,
+      );
     }
   }
 
@@ -379,29 +363,9 @@ export function renderResultUrlPath(renderResult: RenderResult) {
 
 function mergePandocIncludes(
   format: FormatPandoc,
-  includes: PandocIncludes,
+  pandocIncludes: PandocIncludes,
 ) {
-  return mergeConfigs(format, includes);
-}
-
-function markdownWithPandocIncludes(
-  markdown: string,
-  includes: PandocIncludes,
-) {
-  return collectIncludes(includes[kIncludeInHeader]) +
-    collectIncludes(includes[kIncludeBeforeBody]) +
-    markdown +
-    collectIncludes(includes[kIncludeAfterBody]);
-}
-
-function collectIncludes(includes?: string[]) {
-  if (includes) {
-    return "```{=html}\n" +
-      includes.map(Deno.readTextFileSync).join("\n") +
-      "```\n";
-  } else {
-    return "";
-  }
+  return mergeConfigs(format, pandocIncludes);
 }
 
 async function runHtmlPostprocessors(

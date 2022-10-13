@@ -88,6 +88,7 @@
 - Improved title slide that uses normalized author and affiliation schema
 - Introduce template partials for RevealJS. You may provide partials for `title-slide.html` or `toc-slide.html`.
 - Ensure that `output-location` works properly in fenced divs
+- Change SCSS so styles respond to both linkColor and link-color (#2820)
 
 ## Markdown Formats
 
@@ -184,6 +185,7 @@
 
 ## Miscellaneous
 
+- Render: ability to set `enigne` and `jupyter` metadata values from the command line
 - Render: ability to compose `--to all` with other formats (e.g. `--to all,json`)
 - Don't call Deno.realPathSync on Windows (avoid problems w/ UNC paths)
 - Don't include Unicode literals on Windows directly (#2184), thanks @yihui
@@ -207,3 +209,5 @@
 - prevent Chrome CRI race during initialization (#2733)
 - Work around `mermaid-format: svg` diagram clipping (#1622)
 - Don't use tree-sitter outside of interactive IDE contexts (#2502)
+- Support custom Lua writers in YAML front matter (#2687)
+- Better error message with inadvertent `!` in YAML strings (#2808)

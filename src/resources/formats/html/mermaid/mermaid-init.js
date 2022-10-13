@@ -186,9 +186,9 @@ const _quartoMermaid = {
 window.addEventListener(
   "load",
   function () {
-    mermaid.init("div.cell-output-display pre.mermaid");
+    mermaid.init("pre.mermaid-js");
     for (const svgEl of Array.from(
-      document.querySelectorAll("div.cell-output-display pre.mermaid svg")
+      document.querySelectorAll("pre.mermaid-js svg")
     )) {
       _quartoMermaid.postProcess(svgEl);
     }

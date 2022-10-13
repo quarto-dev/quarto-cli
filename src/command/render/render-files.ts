@@ -302,7 +302,7 @@ export async function renderFiles(
         // note that this ignores "validate-yaml: false"
         const { engine, target } = await fileExecutionEngineAndTarget(
           file.path,
-          options.flags?.quiet,
+          options.flags,
         );
         const validationResult = await validateDocumentFromSource(
           target.markdown,

@@ -52,7 +52,7 @@ export function readYaml(file: string) {
   if (existsSync(file)) {
     const decoder = new TextDecoder("utf-8");
     const yml = Deno.readFileSync(file);
-    const result = parse(decoder.decode(yml), { schema: QuartoJSONSchema });
+    const result = parseWithNiceErrors(decoder.decode(yml));
     try {
       JSON.stringify(result);
       return result;
@@ -69,7 +69,7 @@ export function readYaml(file: string) {
 }
 
 export function readYamlFromString(yml: string) {
-  return parse(yml, { schema: QuartoJSONSchema });
+  return parseWithNiceErrors(yml);
 }
 
 export function readYamlFromMarkdown(
@@ -101,7 +101,7 @@ export function readYamlFromMarkdown(
         (yamlBlock.trim().length > 0)
       ) {
         // surface errors immediately for invalid yaml
-        parse(yamlBlock, {
+        parseWithNiceErrors(yamlBlock, {
           json: true,
           schema: QuartoJSONSchema,
         });
@@ -114,7 +114,10 @@ export function readYamlFromMarkdown(
     kRegExYAML.lastIndex = 0;
 
     // parse the yaml
-    const metadata = parse(yaml, { json: true, schema: QuartoJSONSchema });
+    const metadata = parseWithNiceErrors(yaml, {
+      json: true,
+      schema: QuartoJSONSchema,
+    });
     return (metadata || {}) as { [key: string]: unknown };
   } else {
     return {};
@@ -167,7 +170,7 @@ export async function readAndValidateYamlFromMarkdown(
   const mappedYaml = mappedConcat(yaml);
 
   // parse the yaml
-  const metadata = parse(mappedYaml.value, {
+  const metadata = parseWithNiceErrors(mappedYaml.value, {
     json: true,
     schema: QuartoJSONSchema,
   }) as { [key: string]: unknown };
@@ -275,3 +278,26 @@ export const QuartoJSONSchema = new Schema({
     }),
   ],
 });
+
+// TODO there's lots of work to do here.
+// TODO take MappedString and fix line numbers
+// TODO use the same error infrastructure as YAML validation
+function parseWithNiceErrors(
+  content: string,
+  // deno-lint-ignore no-explicit-any
+  options?: any,
+) {
+  try {
+    return parse(content, options || { json: true, schema: QuartoJSONSchema });
+  } catch (e) {
+    throw improveYamlParseErrorMessage(e);
+  }
+}
+
+function improveYamlParseErrorMessage(e: any) {
+  if (e.message.match(/unknown tag/)) {
+    e.message =
+      `${e.message}\nDid you try to use a '!' in a YAML string? If so, you need to add explicit quotes to your string.`;
+  }
+  return e;
+}
