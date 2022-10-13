@@ -32,13 +32,11 @@ const kTypeExtension = "extension";
 
 const kExtensionTypes = [
   { name: "filter", value: "filter" },
-  { name: "revealjs plugin", value: "revealjs-plugin" },
   { name: "shortcode", value: "shortcode" },
+  { name: "revealjs plugin", value: "revealjs-plugin" },
   "---",
-  { name: "journal article format", value: "journal" },
+  { name: "journal format", value: "journal" },
   { name: "custom format", value: "format" },
-  "---",
-  { name: "project", value: "project" },
 ];
 
 const kExtensionSubtypes: Record<string, string[]> = {
@@ -241,6 +239,7 @@ function templateFolder(createDirective: CreateDirective) {
 
 // TODO: use git config to try to find author name
 // TODO: trim quarto version to 0 build number
+// TODO: Provide a class name for revealjs
 
 function ejsData(createDirective: CreateDirective) {
   return {

@@ -1,0 +1,7 @@
+---
+title: "<%= title %> Example"
+filters:
+  - <%= fileSafeName %>
+---
+
+TODO Make a simple deck here
