@@ -613,7 +613,7 @@ function validateExtension(extension: Extension) {
   }
   if (
     extension.quartoVersion &&
-    !satisfies(quartoConfig.version(), `>=${extension.quartoVersion}`)
+    !satisfies(quartoConfig.version(), extension.quartoVersion)
   ) {
     throw new Error(
       `The extension ${
