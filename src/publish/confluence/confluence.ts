@@ -182,11 +182,6 @@ async function publish(
   _options: PublishOptions,
   publishRecord?: PublishRecord
 ): Promise<[PublishRecord, URL | undefined]> {
-  console.log("publishing...");
-  console.log("type", type);
-  console.log("title", title);
-  console.log("publishRecord", publishRecord);
-
   const client = new ConfluenceClient(account);
 
   let parentUrl: string = publishRecord?.url ?? (await promptForParentURL());
@@ -235,22 +230,18 @@ async function publish(
     };
 
     let content: Content | undefined;
+    let message: string = "";
+    let doOperation;
     if (publishRecord) {
-      const message = `Updating content at ${publishRecord.url}...`;
-      const doUpdate = async () =>
-        (content = await updateContent(publishRecord));
-      await doWithSpinner(message, doUpdate);
+      message = `Updating content at ${publishRecord.url}...`;
+      doOperation = async () => (content = await updateContent(publishRecord));
     } else {
-      const message = `Creating content in space ${parent.space}...`;
-      const doCreate = async () => (content = await createContent());
-      await doWithSpinner(message, doCreate);
+      message = `Creating content in space ${parent.space}...`;
+      doOperation = async () => (content = await createContent());
     }
 
-    const publishRecordToSave = buildPublishRecord(
-      account?.server ?? "",
-      content
-    );
-    return publishRecordToSave;
+    await doWithSpinner(message, doOperation);
+    return buildPublishRecord(account?.server ?? "", content);
   };
 
   if (type === PublishTypeEnum.document) {
