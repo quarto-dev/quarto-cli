@@ -560,3 +560,16 @@ $panel-sidebar-padding: 0.5em;
 .reveal ol[type="1"] {
   list-style-type: decimal;
 }
+
+// https://github.com/quarto-dev/quarto-cli/issues/2834
+// temporary workaround while we come up with a pure CSS solution
+
+.reveal ul.task-list {
+  list-style: none;
+}
+.reveal ul.task-list li input[type="checkbox"] {
+  width: 2em;
+  height: 2em;
+  margin: 0 1em 0.5em -1.6em;
+  vertical-align: middle;
+}
