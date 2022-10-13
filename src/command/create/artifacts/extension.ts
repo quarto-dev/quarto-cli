@@ -318,7 +318,7 @@ async function ejsData(
     filesafename,
     title,
     classname,
-    author,
+    author: author.trim(),
     version,
     quartoversion,
   };
