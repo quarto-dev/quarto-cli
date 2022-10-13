@@ -1,6 +1,6 @@
-function Div(el)
-  if el.attr.classes:includes("example") then
-    el.content:insert(pandoc.Header(3, {pandoc.Str("Example Div")}))
-    return el
-  end
+
+-- Reformat all heading text 
+function Header(el)
+  el.content = pandoc.Emph(el.content)
+  return el
 end

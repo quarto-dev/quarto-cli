@@ -1,1 +1,3 @@
-/.luarc.json
+*.html
+*.pdf
+*_files/

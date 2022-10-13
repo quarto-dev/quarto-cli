@@ -1,7 +1,7 @@
 title: <%= title %>
 author: <%= author %>
 version: <%= version %>
-quarto-required: <%= quartoVersion %>
+quarto-required: ">=<%= quartoVersion %>"
 contributes:
   filters:
     - <%= fileSafeName %>.lua
