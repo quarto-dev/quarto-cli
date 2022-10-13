@@ -788,6 +788,9 @@ async function listItemFromFile(
       };
     }
   } else {
+    warning(
+      `File ${input} was not included in the listing '${listing.id}' because there is no file metadata.`,
+    );
     return undefined;
   }
 }
