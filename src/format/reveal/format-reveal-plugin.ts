@@ -5,7 +5,7 @@
 *
 */
 
-import { existsSync } from "fs/mod.ts";
+import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { join } from "path/mod.ts";
 import { kIncludeInHeader, kSelfContained } from "../../config/constants.ts";
 
@@ -37,6 +37,7 @@ import {
 } from "../../extension/extension-shared.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { filterExtensions } from "../../extension/extension.ts";
+import { basename } from "../../vendor/deno.land/std@0.153.0/path/win32.ts";
 
 const kRevealjsPlugins = "revealjs-plugins";
 
@@ -286,6 +287,20 @@ export async function revealPluginExtras(
     const pluginDir = join(pluginsDestDir, camelToKebab(plugin.name));
     if (isPluginBundle(bundle)) {
       copyMinimal(bundle.plugin, pluginDir);
+    } else {
+      ensureDirSync(pluginDir);
+      plugin.script?.forEach((script) => {
+        Deno.copyFileSync(
+          join(plugin.path, script.path),
+          join(pluginDir, basename(script.path)),
+        );
+      });
+      plugin.stylesheet?.forEach((style) => {
+        Deno.copyFileSync(
+          join(plugin.path, style),
+          join(pluginDir, basename(style)),
+        );
+      });
     }
 
     // note scripts
