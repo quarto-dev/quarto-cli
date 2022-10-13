@@ -1,11 +1,11 @@
 title: <%= title %>
 author: <%= author %>
 version: <%= version %>
-quarto-required: ">=<%= quartoVersion %>"
+quarto-required: ">=<%= quartoversion %>"
 contributes:
   revealjs-plugins:
     - name: Reveal<%= classname %>
       script:
-        - <%= fileSafeName %>.js
+        - <%= filesafename %>.js
       stylesheet:
-        - <%= fileSafeName %>.css
+        - <%= filesafename %>.css

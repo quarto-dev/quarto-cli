@@ -5,10 +5,7 @@
 *
 */
 
-// import { executionEngine, executionEngines } from "../../../execute/engine.ts";
-
 import { ArtifactCreator, CreateContext, CreateDirective } from "../cmd.ts";
-import { join, relative } from "path/mod.ts";
 
 import { Input, Select } from "cliffy/prompt/mod.ts";
 import { resourcePath } from "../../../core/resources.ts";
@@ -22,7 +19,11 @@ import { capitalizeTitle } from "../../../core/text.ts";
 import { quartoConfig } from "../../../core/quarto.ts";
 import { texSafeFilename } from "../../../core/tex.ts";
 import { renderEjs } from "../../../core/ejs.ts";
+
 import { ensureDirSync, walkSync } from "fs/mod.ts";
+import { coerce } from "semver/mod.ts";
+import { join, relative } from "path/mod.ts";
+import { execProcess } from "../../../core/process.ts";
 
 const kType = "type";
 const kSubType = "subtype";
@@ -168,19 +169,24 @@ function nextPrompt(
   }
 }
 
-function createArtifact(createDirective: CreateDirective) {
-  console.log(createDirective);
-  copyArtifact(createDirective);
-  return Promise.resolve(createDirective.directory);
+async function createArtifact(createDirective: CreateDirective) {
+  await createExtension(createDirective);
+  return createDirective.directory;
 }
 
-function copyArtifact(createDirective: CreateDirective) {
+async function createExtension(createDirective: CreateDirective) {
+  // The folder for this extension
   const artifact = templateFolder(createDirective);
+
+  // The target directory
   const target = createDirective.directory;
-  const data = ejsData(createDirective);
 
+  // Data for this extension
+  const data = await ejsData(createDirective);
+
+  // Ensure that the target directory exists and
+  // copy the files
   ensureDirSync(target);
-
   copyMinimal(
     artifact,
     createDirective.directory,
@@ -188,38 +194,51 @@ function copyArtifact(createDirective: CreateDirective) {
     (src: string) => {
       const srcFileName = basename(src);
       if (srcFileName.includes(".ejs.")) {
-        // Render the ejs instead
-        const relativeDir = dirname(relative(artifact, src));
-        const targetFileName = srcFileName.replace(".ejs.", ".");
-
-        const renderTarget = join(target, join(relativeDir, targetFileName));
-        const rendered = renderEjs(src, data, false);
-        ensureDirSync(dirname(renderTarget));
-        Deno.writeTextFileSync(renderTarget, rendered);
+        // Render the EJS file rather than copying this file
+        renderFile(artifact, src, target, data);
         return false;
       } else {
+        // Copy this file
         return true;
       }
     },
   );
 
+  // extension-filesafeName
+  const renamed = (name: string, data: CreateDirectiveData) => {
+    if (name.startsWith(kPlaceholderPrefix)) {
+      // the key to replace
+      const key = name.substring(kPlaceholderPrefix.length);
+      if (data[key]) {
+        return data[key];
+      }
+    } else {
+      return undefined;
+    }
+  };
+
+  // Find any paths that contain a placeholder and rename them
   const pathsToRename = [];
   for (
     const walk of walkSync(target)
   ) {
-    if (walk.isDirectory && walk.name === "8E7F6E97") {
-      pathsToRename.unshift({
-        from: walk.path,
-        to: join(dirname(walk.path), texSafeFilename(createDirective.name)),
-      });
-    } else if (walk.isFile) {
-      const base = basename(walk.name, extname(walk.name));
-      if (base === "8E7F6E97") {
+    if (walk.isDirectory) {
+      const newName = renamed(walk.name, data);
+      if (newName) {
+        pathsToRename.unshift({
+          from: walk.path,
+          to: join(dirname(walk.path), newName),
+        });
+      }
+    } else {
+      const filenameNoExt = basename(walk.name, extname(walk.name));
+      const newName = renamed(filenameNoExt, data);
+      if (newName) {
         pathsToRename.unshift({
           from: walk.path,
           to: join(
             dirname(walk.path),
-            `${texSafeFilename(createDirective.name)}${extname(walk.name)}`,
+            `${newName}${extname(walk.name)}`,
           ),
         });
       }
@@ -231,23 +250,87 @@ function copyArtifact(createDirective: CreateDirective) {
   }
 }
 
+// Render an ejs file to the output directory
+const renderFile = (
+  inputDir: string,
+  src: string,
+  outputDir: string,
+  data: CreateDirectiveData,
+) => {
+  const srcFileName = basename(src);
+  // The relative path within the output dir that should be used
+  const relativeDir = dirname(relative(inputDir, src));
+
+  // The target file name
+  const targetFileName = srcFileName.replace(/\.ejs\./, ".");
+
+  // The render output target
+  const renderTarget = join(outputDir, join(relativeDir, targetFileName));
+
+  // Render the EJS
+  const rendered = renderEjs(src, data, false);
+
+  // Write the rendered EJS to the output file
+  ensureDirSync(dirname(renderTarget));
+  Deno.writeTextFileSync(renderTarget, rendered);
+  return false;
+};
+
+const kPlaceholderPrefix = "extension-";
+
 function templateFolder(createDirective: CreateDirective) {
   const basePath = resourcePath(join("create", "extensions"));
   const artifactFolderName = createDirective.template.replace(":", "-");
   return join(basePath, artifactFolderName);
 }
 
-// TODO: use git config to try to find author name
-// TODO: trim quarto version to 0 build number
-// TODO: Provide a class name for revealjs
+interface CreateDirectiveData extends Record<string, string> {
+  name: string;
+  filesafename: string;
+  classname: string;
+  title: string;
+  author: string;
+  version: string;
+  quartoversion: string;
+}
 
-function ejsData(createDirective: CreateDirective) {
+async function ejsData(
+  createDirective: CreateDirective,
+): Promise<CreateDirectiveData> {
+  // Name variants
+  const title = capitalizeTitle(createDirective.name);
+  const classname = title.replaceAll(/[^\w]/gm, "");
+  const filesafename = createDirective.name.replaceAll(
+    /[^\w]/gm,
+    "-",
+  );
+
+  // Other metadata
+  const version = "1.0.0";
+  const author = await gitAuthor() || "First Last";
+
+  // Limit the quarto version to the major and minor version
+  const qVer = coerce(quartoConfig.version());
+  const quartoversion = `${qVer?.major}.${qVer?.minor}.0`;
+
   return {
-    title: capitalizeTitle(createDirective.name),
     name: createDirective.name,
-    author: "First Last",
-    version: "1.0.0",
-    fileSafeName: texSafeFilename(createDirective.name),
-    quartoVersion: quartoConfig.version(),
+    filesafename,
+    title,
+    classname,
+    author,
+    version,
+    quartoversion,
   };
+}
+
+async function gitAuthor() {
+  const result = await execProcess({
+    cmd: ["git", "config", "--global", "user.name"],
+  });
+  if (result.success) {
+    return result.stdout;
+  } else {
+    return undefined;
+  }
 }

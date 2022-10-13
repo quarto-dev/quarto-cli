@@ -7,7 +7,7 @@
 *TODO*: Replace the `<github-organization>` with your GitHub organization.
 
 ```bash
-quarto install extension <github-organization>/<%= fileSafeName %>
+quarto install extension <github-organization>/<%= filesafename %>
 ```
 
 This will install the extension under the `_extensions` subdirectory.

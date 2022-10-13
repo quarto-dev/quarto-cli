@@ -48,7 +48,6 @@ import { projectIgnoreGlobs } from "../project/project-context.ts";
 import { ProjectType } from "../project/types/types.ts";
 import { copyResourceFile } from "../project/project-resources.ts";
 import {
-  isPluginBundle,
   RevealPlugin,
   RevealPluginBundle,
   RevealPluginScript,

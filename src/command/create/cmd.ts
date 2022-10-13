@@ -210,12 +210,15 @@ const resolveArtifact = async (type?: string, prompt?: boolean) => {
   };
 };
 
+// The hint that is displayed to windows users to work around
+// the fact that the arrow keys don't work on Windows.
 function arrowKeyHint() {
   return Deno.build.os === "windows"
     ? `ℹ | Next: d, n | Previous: u, p |`
     : undefined;
 }
 
+// Wrapper that will provide keyboard selection hint (if necessary)
 async function promptSelect(
   message: string,
   options: SelectValueOptions,
@@ -228,6 +231,7 @@ async function promptSelect(
   });
 }
 
+// Prompts from the type of artifact to create
 const promptForType = async () => {
   return await promptSelect(
     "Create",
@@ -240,15 +244,20 @@ const promptForType = async () => {
   );
 };
 
+// Determine the selected editor that should be used to open
+// the artifact once created
 const resolveEditor = async (artifactPath: string, editor?: string) => {
+  // Find supported editors
   const editors = await scanForEditors(kEditorInfos, artifactPath);
 
   const defaultEditor = editors.find((ed) => {
     return ed.id === editor;
   });
   if (defaultEditor) {
+    // If an editor is specified, use that
     return defaultEditor;
   } else {
+    // Prompt the user to select an editor
     const editorOptions = editors.map((editor) => {
       return {
         name: editor.name.toLowerCase(),
@@ -263,6 +272,7 @@ const resolveEditor = async (artifactPath: string, editor?: string) => {
     }];
     const name = await promptSelect("Open with", options);
 
+    // Return the matching editor (if any)
     const selectedEditor = editors.find((edit) => edit.name === name);
     return selectedEditor;
   }
@@ -279,14 +289,15 @@ async function createFromStdin() {
     }
   }
   */
-  const { value: input } = await readLines(Deno.stdin).next();
 
-  // Close stdin
+  // Read the stdin and then close it
+  const { value: input } = await readLines(Deno.stdin).next();
   Deno.stdin.close();
 
   // Parse options
   const jsonOptions = JSON.parse(input);
 
+  // A type is required in the JSON no matter what
   const type = jsonOptions.type;
   if (!type) {
     throw new Error(
@@ -294,6 +305,7 @@ async function createFromStdin() {
     );
   }
 
+  // Validate other required fields
   if (
     !jsonOptions.directive || !jsonOptions.directive.name ||
     !jsonOptions.directive.directory || !jsonOptions.directive.template

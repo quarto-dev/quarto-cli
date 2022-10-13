@@ -79,6 +79,7 @@ function vscodeEditorInfo(): EditorInfo {
         return execProcess({
           cmd: [path, artifactPath],
           cwd,
+          stdin: "null",
         });
       };
     },
@@ -150,6 +151,7 @@ function rstudioEditorInfo(): EditorInfo {
         return execProcess({
           cmd: cmd,
           cwd,
+          stdin: "null",
         });
       };
     },
