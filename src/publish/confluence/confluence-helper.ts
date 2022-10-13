@@ -8,6 +8,7 @@ import {
   ContentBody,
   EMPTY_PARENT,
 } from "./api/types.ts";
+import { withSpinner } from "../../core/console.ts";
 
 export const transformAtlassianDomain = (domain: string) => {
   return ensureTrailingSlash(
@@ -127,4 +128,16 @@ export const buildPublishRecord = (
   };
 
   return [newPublishRecord, new URL(url)];
+};
+
+export const doWithSpinner = async (
+  message: string,
+  toDo: () => Promise<void>
+) => {
+  return await withSpinner(
+    {
+      message,
+    },
+    toDo
+  );
 };

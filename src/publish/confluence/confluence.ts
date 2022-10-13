@@ -45,6 +45,7 @@ import {
   confluenceParentFromString,
   wrapBodyForConfluence,
   buildPublishRecord,
+  doWithSpinner,
 } from "./confluence-helper.ts";
 
 import {
@@ -196,7 +197,7 @@ async function publish(
   const publishDocument = async (): Promise<
     [PublishRecord, URL | undefined]
   > => {
-    const body = await renderAndLoadDocument(render);
+    const body: ContentBody = await renderAndLoadDocument(render);
 
     let content: Content | undefined;
 
@@ -233,17 +234,12 @@ async function publish(
     };
 
     if (publishRecord) {
-      await withSpinner(
-        {
-          message: `Updating content at ${publishRecord.url}...`,
-        },
-        () => updateContent(publishRecord)
-      );
+      const updateMessage = `Updating content at ${publishRecord.url}...`;
+      const doUpdate = () => updateContent(publishRecord);
+      await doWithSpinner(updateMessage, doUpdate);
     } else {
-      await withSpinner(
-        {
-          message: `Creating content in space ${parent.space}...`,
-        },
+      await doWithSpinner(
+        `Creating content in space ${parent.space}...`,
         createContent
       );
     }
