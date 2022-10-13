@@ -199,13 +199,12 @@ async function publish(
   > => {
     const body: ContentBody = await renderAndLoadDocument(render);
 
-    let content: Content | undefined;
-
-    const updateContent = async (publishRecord: PublishRecord) => {
+    const updateContent = async (
+      publishRecord: PublishRecord
+    ): Promise<Content> => {
       // for updates we need to get the existing version and increment by 1
       const prevContent = await client.getContent(publishRecord.id);
 
-      // update the content
       const toCreate: ContentUpdate = {
         version: { number: (prevContent?.version?.number || 0) + 1 },
         title: `${title} ${generateUuid()}`,
@@ -214,15 +213,15 @@ async function publish(
         ancestors: null,
         body,
       };
-      content = await client.updateContent(publishRecord.id, toCreate);
+
+      const result = await client.updateContent(publishRecord.id, toCreate);
+      return result;
     };
 
-    const createContent = async () => {
-      // for creates we need to get the space info
+    const createContent = async (): Promise<Content> => {
       const space = await client.getSpace(parent.space);
 
-      // create the content
-      content = await client.createContent({
+      const result = await client.createContent({
         id: null,
         title: `${title} ${generateUuid()}`,
         type: kPageType,
@@ -231,17 +230,20 @@ async function publish(
         ancestors: parent?.parent ? [{ id: parent.parent }] : null,
         body,
       });
+
+      return result;
     };
 
+    let content: Content | undefined;
     if (publishRecord) {
-      const updateMessage = `Updating content at ${publishRecord.url}...`;
-      const doUpdate = () => updateContent(publishRecord);
-      await doWithSpinner(updateMessage, doUpdate);
+      const message = `Updating content at ${publishRecord.url}...`;
+      const doUpdate = async () =>
+        (content = await updateContent(publishRecord));
+      await doWithSpinner(message, doUpdate);
     } else {
-      await doWithSpinner(
-        `Creating content in space ${parent.space}...`,
-        createContent
-      );
+      const message = `Creating content in space ${parent.space}...`;
+      const doCreate = async () => (content = await createContent());
+      await doWithSpinner(message, doCreate);
     }
 
     const publishRecordToSave = buildPublishRecord(

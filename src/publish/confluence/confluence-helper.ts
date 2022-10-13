@@ -132,7 +132,7 @@ export const buildPublishRecord = (
 
 export const doWithSpinner = async (
   message: string,
-  toDo: () => Promise<void>
+  toDo: () => Promise<any>
 ) => {
   return await withSpinner(
     {
