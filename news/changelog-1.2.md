@@ -185,6 +185,7 @@
 
 ## Miscellaneous
 
+- Render: ability to set `enigne` and `jupyter` metadata values from the command line
 - Render: ability to compose `--to all` with other formats (e.g. `--to all,json`)
 - Don't call Deno.realPathSync on Windows (avoid problems w/ UNC paths)
 - Don't include Unicode literals on Windows directly (#2184), thanks @yihui
