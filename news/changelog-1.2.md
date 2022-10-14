@@ -212,3 +212,4 @@
 - Don't use tree-sitter outside of interactive IDE contexts (#2502)
 - Support custom Lua writers in YAML front matter (#2687)
 - Better error message with inadvertent `!` in YAML strings (#2808)
+- More precise underlining of YAML validation errors (#2681)
