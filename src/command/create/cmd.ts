@@ -273,7 +273,7 @@ const resolveEditor = async (createResult: CreateResult, editor?: string) => {
     const inEditor = editors.find((ed) => ed.inEditor);
     if (inEditor) {
       return inEditor;
-    } else {
+    } else if (editors.length > 0) {
       // Prompt the user to select an editor
       const editorOptions = editors.map((editor) => {
         return {
@@ -292,6 +292,8 @@ const resolveEditor = async (createResult: CreateResult, editor?: string) => {
       // Return the matching editor (if any)
       const selectedEditor = editors.find((edit) => edit.name === name);
       return selectedEditor;
+    } else {
+      return undefined;
     }
   }
 };
