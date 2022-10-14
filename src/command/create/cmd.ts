@@ -268,24 +268,31 @@ const resolveEditor = async (createResult: CreateResult, editor?: string) => {
     // If an editor is specified, use that
     return defaultEditor;
   } else {
-    // Prompt the user to select an editor
-    const editorOptions = editors.map((editor) => {
-      return {
-        name: editor.name.toLowerCase(),
-        value: editor.name,
-      };
-    });
+    // See if we are executing inside of an editor, and just use
+    // that editor
+    const inEditor = editors.find((ed) => ed.inEditor);
+    if (inEditor) {
+      return inEditor;
+    } else {
+      // Prompt the user to select an editor
+      const editorOptions = editors.map((editor) => {
+        return {
+          name: editor.name.toLowerCase(),
+          value: editor.name,
+        };
+      });
 
-    // Add an option to not open
-    const options = [...editorOptions, {
-      name: "do not open",
-      value: "do not open",
-    }];
-    const name = await promptSelect("Open with", options);
+      // Add an option to not open
+      const options = [...editorOptions, {
+        name: "do not open",
+        value: "do not open",
+      }];
+      const name = await promptSelect("Open with", options);
 
-    // Return the matching editor (if any)
-    const selectedEditor = editors.find((edit) => edit.name === name);
-    return selectedEditor;
+      // Return the matching editor (if any)
+      const selectedEditor = editors.find((edit) => edit.name === name);
+      return selectedEditor;
+    }
   }
 };
 

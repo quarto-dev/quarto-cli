@@ -23,8 +23,6 @@ import { ensureDirSync, walkSync } from "fs/mod.ts";
 import { coerce } from "semver/mod.ts";
 import { join, relative } from "path/mod.ts";
 import { execProcess } from "../../../core/process.ts";
-import { extensionProjectType } from "../../../extension/extension.ts";
-import { Metadata } from "../../../config/types.ts";
 
 const kType = "type";
 const kSubType = "subtype";

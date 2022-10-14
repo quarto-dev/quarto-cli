@@ -11,6 +11,7 @@ import { which } from "../../core/path.ts";
 import { basename, dirname } from "path/win32.ts";
 import { execProcess } from "../../core/process.ts";
 import { CreateResult } from "./cmd.ts";
+import { isRStudioTerminal, isVSCodeTerminal } from "../../core/platform.ts";
 
 export interface Editor {
   // A short, command line friendly id
@@ -18,6 +19,10 @@ export interface Editor {
 
   // A display name
   name: string;
+
+  // Whether this is being run from within the editor
+  // (e.g. from the vscode or rstudio terminal)
+  inEditor: boolean;
 
   // Function that can be called to open the matched
   // artifact in the editor
@@ -41,6 +46,7 @@ export async function scanForEditors(
         id: editorInfo.id,
         name: editorInfo.name,
         open: editorInfo.open(editorPath, createResult),
+        inEditor: editorInfo.inEditor,
       });
     }
   }
@@ -56,6 +62,10 @@ interface EditorInfo {
 
   // Actions that are used to scan for this editor
   actions: ScanAction[];
+
+  // Whether this is being run from within the editor
+  // (e.g. from the vscode or rstudio terminal)
+  inEditor: boolean;
 
   // Uses a path and artifact path to provide a function
   // that can be used to open this editor to the given artifact
@@ -85,6 +95,7 @@ function vscodeEditorInfo(): EditorInfo {
         });
       };
     },
+    inEditor: isVSCodeTerminal(),
     actions: [],
   };
 
@@ -158,6 +169,7 @@ function rstudioEditorInfo(): EditorInfo {
         });
       };
     },
+    inEditor: isRStudioTerminal(),
     actions: [],
   };
 
