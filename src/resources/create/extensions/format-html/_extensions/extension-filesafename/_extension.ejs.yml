@@ -8,9 +8,9 @@ contributes:
       toc: true
       toc-location: left
       theme:
-        - darkly
+        - yeti
         - custom.scss
       cap-location: margin
       code-fold: true
       code-line-numbers: true
-      highlight-style: solar
+      highlight-style: solarized

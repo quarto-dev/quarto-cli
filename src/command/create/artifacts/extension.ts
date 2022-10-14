@@ -17,7 +17,6 @@ import {
 } from "../../../vendor/deno.land/std@0.153.0/path/win32.ts";
 import { capitalizeTitle } from "../../../core/text.ts";
 import { quartoConfig } from "../../../core/quarto.ts";
-import { texSafeFilename } from "../../../core/tex.ts";
 import { renderEjs } from "../../../core/ejs.ts";
 
 import { ensureDirSync, walkSync } from "fs/mod.ts";

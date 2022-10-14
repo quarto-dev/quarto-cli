@@ -1,8 +1,8 @@
 ---
-title: "Demo aft format to use as template"
+title: <%= title %> Document Example
 format:
   <%= name %>-html: default
-author: John Doe
+author: <%= author %>
 date: last-modified
 description: |
   This document is only a demo explaining how to use the template.
@@ -16,3 +16,6 @@ begin
   writeln ('Hello, world.');
 end.
 ```
+
+## Another Section
+
