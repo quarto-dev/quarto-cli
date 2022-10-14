@@ -193,7 +193,7 @@ export async function renderExecute(
     libDir: context.libDir,
     format: context.format,
     projectDir: context.project?.dir,
-    cwd: flags.executeDir || dirname(Deno.realPathSync(context.target.input)),
+    cwd: flags.executeDir || dirname(Deno.realPathSync(context.target.source)),
     params: resolveParams(flags.params, flags.paramsFile),
     quiet: flags.quiet,
     previewServer: context.options.previewServer,
@@ -302,7 +302,7 @@ export async function renderFiles(
         // note that this ignores "validate-yaml: false"
         const { engine, target } = await fileExecutionEngineAndTarget(
           file.path,
-          options.flags?.quiet,
+          options.flags,
         );
         const validationResult = await validateDocumentFromSource(
           target.markdown,
@@ -358,7 +358,10 @@ export async function renderFiles(
           context.format.metadata[kLang] &&
           typeof (context.format.metadata[kLang]) === "string"
         ) {
-          await setDateLocale(context.format.metadata[kLang] as string);
+          await setDateLocale(
+            options.flags?.pandocMetadata?.[kLang] as string ||
+              context.format.metadata[kLang] as string,
+          );
         }
 
         const fileLifetime = createNamedLifetime("render-file");

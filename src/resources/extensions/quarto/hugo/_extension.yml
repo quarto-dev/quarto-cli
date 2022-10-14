@@ -14,13 +14,13 @@ contributes:
       preview:
         serve:
           cmd: "hugo serve --port {port} --bind {host} --navigateToChanged"
-          env: 
+          env:
             HUGO_RELATIVEURLS: "true"
           ready: "Web Server is available at"
     format: hugo-md
   formats:
     md:
-      variant: gfm+yaml_metadata_block+definition_lists
+      variant: gfm+yaml_metadata_block+definition_lists+smart
       prefer-html: true
       fig-format: retina
       fig-width: 8

@@ -8,7 +8,7 @@
 
   
   <% if (navbar.title) { %>
-    <a class="navbar-brand" href="/index.html">
+    <a class="navbar-brand" href="<%- navbar['logo-href'] || '/index.html' %>">
     <span class="navbar-title"><%- navbar.title %></span>
     </a>
   <% } %>

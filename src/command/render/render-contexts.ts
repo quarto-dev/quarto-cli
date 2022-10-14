@@ -202,7 +202,7 @@ export async function renderContexts(
 
   const { engine, target } = await fileExecutionEngineAndTarget(
     file.path,
-    options.flags?.quiet,
+    options.flags,
   );
 
   const engineClaimReason = fileEngineClaimReason(file.path);
@@ -267,7 +267,7 @@ export async function renderContexts(
 
         const { engine, target } = await fileExecutionEngineAndTarget(
           file.path,
-          options.flags?.quiet,
+          options.flags,
           markdown,
         );
         context.engine = engine;

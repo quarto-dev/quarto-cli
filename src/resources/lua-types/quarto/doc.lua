@@ -2,6 +2,12 @@
 
 quarto.doc = {}
 
+---@type string Full path to input file for the current render
+quarto.doc.input_file = ""
+
+---@type string Full path to output file for the current render
+quarto.doc.output_file = ""
+
 --[[
 Add an HTML dependency (additional resources and content) to a document. 
 

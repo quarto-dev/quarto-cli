@@ -5,8 +5,13 @@
 *
 */
 import SemVer, { Range } from "semver/mod.ts";
+import { kSelfContained } from "../config/constants.ts";
 import { Metadata, QuartoFilter } from "../config/types.ts";
-import { RevealPluginBundle } from "../format/reveal/format-reveal-plugin.ts";
+import {
+  RevealPlugin,
+  RevealPluginBundle,
+  RevealPluginScript,
+} from "../format/reveal/format-reveal-plugin.ts";
 import { ProjectConfig } from "../project/types.ts";
 
 export const kBuiltInExtOrg = "quarto";
@@ -41,8 +46,17 @@ export interface Extension extends Record<string, unknown> {
     shortcodes?: string[];
     filters?: QuartoFilter[];
     formats?: Record<string, unknown>;
-    [kRevealJSPlugins]?: Array<string | RevealPluginBundle>;
+    [kRevealJSPlugins]?: Array<string | RevealPluginBundle | RevealPlugin>;
   };
+}
+
+export interface RevealPluginInline {
+  name: string;
+  register?: boolean;
+  script?: string | string[] | RevealPluginScript | RevealPluginScript[];
+  stylesheet?: string | string[];
+  config?: Metadata;
+  [kSelfContained]?: boolean;
 }
 
 export interface ExtensionOptions {

@@ -5,7 +5,7 @@
 *
 */
 
-import { existsSync } from "fs/mod.ts";
+import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { join } from "path/mod.ts";
 import { kIncludeInHeader, kSelfContained } from "../../config/constants.ts";
 
@@ -37,6 +37,7 @@ import {
 } from "../../extension/extension-shared.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { filterExtensions } from "../../extension/extension.ts";
+import { basename } from "../../vendor/deno.land/std@0.153.0/path/win32.ts";
 
 const kRevealjsPlugins = "revealjs-plugins";
 
@@ -91,7 +92,7 @@ export interface RevealPluginBundle {
   config?: Metadata;
 }
 
-interface RevealPlugin {
+export interface RevealPlugin {
   path: string;
   name: string;
   register?: boolean;
@@ -105,6 +106,12 @@ interface RevealPlugin {
 export interface RevealPluginScript {
   path: string;
   async?: boolean;
+}
+
+export function isPluginBundle(
+  plugin: RevealPluginBundle | RevealPlugin,
+): plugin is RevealPluginBundle {
+  return (plugin as RevealPluginBundle).plugin !== undefined;
 }
 
 export async function revealPluginExtras(
@@ -130,7 +137,7 @@ export async function revealPluginExtras(
   const dependencies: FormatDependency[] = [];
 
   // built-in plugins
-  const pluginBundles: Array<RevealPluginBundle | string> = [
+  const pluginBundles: Array<RevealPlugin | RevealPluginBundle | string> = [
     {
       plugin: formatResourcePath("revealjs", join("plugins", "line-highlight")),
     },
@@ -187,7 +194,9 @@ export async function revealPluginExtras(
     }
   };
 
-  const resolvePlugin = async (plugin: string | RevealPluginBundle) => {
+  const resolvePlugin = async (
+    plugin: string | RevealPluginBundle | RevealPlugin,
+  ) => {
     if (typeof (plugin) === "string") {
       // This is just a simple path
       // If the path can be resolved to a file on disk then
@@ -198,26 +207,35 @@ export async function revealPluginExtras(
         return await resolvePluginPath(plugin);
       }
     } else {
-      // This is a plugin bundle, so try to resolve that
-      const path = plugin.plugin;
-      const resolvedPlugins = await resolvePluginPath(path);
+      if (isPluginBundle(plugin)) {
+        // This is a plugin bundle, so try to resolve that
+        const path = plugin.plugin;
+        const resolvedPlugins = await resolvePluginPath(path);
 
-      const pluginBundles = resolvedPlugins.map(
-        (resolvedPlug): RevealPluginBundle => {
-          if (typeof (resolvedPlug) === "string") {
-            return {
-              plugin: resolvedPlug,
-              config: plugin.config,
-            };
-          } else {
-            return {
-              plugin: resolvedPlug.plugin,
-              config: mergeConfigs(plugin.config, resolvedPlug.config),
-            };
-          }
-        },
-      );
-      return pluginBundles;
+        const pluginBundles = resolvedPlugins.map(
+          (resolvedPlug): RevealPluginBundle => {
+            if (typeof (resolvedPlug) === "string") {
+              return {
+                plugin: resolvedPlug,
+                config: plugin.config,
+              };
+            } else if (isPluginBundle(resolvedPlug)) {
+              return {
+                plugin: resolvedPlug.plugin,
+                config: mergeConfigs(
+                  plugin.config,
+                  resolvedPlug.config,
+                ),
+              };
+            } else {
+              return plugin;
+            }
+          },
+        );
+        return pluginBundles;
+      } else {
+        return Promise.resolve([plugin]);
+      }
     }
   };
 
@@ -243,7 +261,9 @@ export async function revealPluginExtras(
     }
 
     // read from bundle
-    const plugin = await pluginFromBundle(bundle);
+    const plugin = isPluginBundle(bundle)
+      ? await pluginFromBundle(bundle)
+      : bundle;
 
     // check for self-contained incompatibility
     if (isSelfContained(flags, format)) {
@@ -265,7 +285,23 @@ export async function revealPluginExtras(
       join(revealUrl, "plugin", camelToKebab(plugin.name)),
     );
     const pluginDir = join(pluginsDestDir, camelToKebab(plugin.name));
-    copyMinimal(bundle.plugin, pluginDir);
+    if (isPluginBundle(bundle)) {
+      copyMinimal(bundle.plugin, pluginDir);
+    } else {
+      ensureDirSync(pluginDir);
+      plugin.script?.forEach((script) => {
+        Deno.copyFileSync(
+          join(plugin.path, script.path),
+          join(pluginDir, basename(script.path)),
+        );
+      });
+      plugin.stylesheet?.forEach((style) => {
+        Deno.copyFileSync(
+          join(plugin.path, style),
+          join(pluginDir, basename(style)),
+        );
+      });
+    }
 
     // note scripts
     if (plugin.script) {

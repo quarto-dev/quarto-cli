@@ -227,6 +227,46 @@ window.QuartoSupport = function () {
     }
   }
 
+  function handleSlideChanges(deck) {
+    // dispatch for htmlwidgets
+    const fireSlideEnter = () => {
+      const event = window.document.createEvent("Event");
+      event.initEvent("slideenter", true, true);
+      window.document.dispatchEvent(event);
+    };
+
+    const fireSlideChanged = (previousSlide, currentSlide) => {
+      fireSlideEnter();
+
+      // dispatch for shiny
+      if (window.jQuery) {
+        if (previousSlide) {
+          window.jQuery(previousSlide).trigger("hidden");
+        }
+        if (currentSlide) {
+          window.jQuery(currentSlide).trigger("shown");
+        }
+      }
+    };
+
+    // fire slideEnter for tabby tab activations (for htmlwidget resize behavior)
+    document.addEventListener("tabby", fireSlideEnter, false);
+
+    deck.on("slidechanged", function (event) {
+      fireSlideChanged(event.previousSlide, event.currentSlide);
+    });
+  }
+
+  function workaroundMermaidDistance(deck) {
+    if (window.document.querySelector("pre.mermaid-js")) {
+      const slideCount = deck.getTotalSlides();
+      deck.configure({
+        mobileViewDistance: slideCount,
+        viewDistance: slideCount,
+      });
+    }
+  }
+
   return {
     id: "quarto-support",
     init: function (deck) {
@@ -238,6 +278,8 @@ window.QuartoSupport = function () {
       addFooter(deck);
       addChalkboardButtons(deck);
       handleTabbyClicks();
+      handleSlideChanges(deck);
+      workaroundMermaidDistance(deck);
     },
   };
 };

@@ -2,7 +2,7 @@
 
 - Always ignore .ipynb inputs when they have a corresponding .qmd
 - Correctly interpret cell metadata with `false` values
-- Render text/latex outputs consisting entirely of $ math as markdown math
+- Render text/latex outputs as markdown math when they consist entirely of $ math, or are wrapped in a LaTeX environment block (such as \begin{align} ... \end{align})
 - Use IPython 7.14 import syntax in `ojs_define`
 - Correct handling of multiple attachments in Jupyter Notebook classic
 - Prevent overwrite of source .ipynb when output format is ipynb
@@ -47,6 +47,7 @@
 - Support installation of extensions from with subdirectories of a github repo
 - Lua `require` can now find modules adjacent to the current script
 - Use snake case for Quarto Lua API functions (match Pandoc API)
+- Fix theorem captions when there's no text (#2166, #2228)
 
 ## Projects
 
@@ -87,6 +88,8 @@
 - Improved title slide that uses normalized author and affiliation schema
 - Introduce template partials for RevealJS. You may provide partials for `title-slide.html` or `toc-slide.html`.
 - Ensure that `output-location` works properly in fenced divs
+- Change SCSS so styles respond to both linkColor and link-color (#2820)
+- When mermaidjs diagrams exist, set viewdistance to cover entire slideshow (#2607)
 
 ## Markdown Formats
 
@@ -159,6 +162,7 @@
 
 - Fix escaping issue in RSS feed fields
 - Properly support `max-desc-length` to trim descriptions within listings
+- Properly support exclude globs (like `!blog/index.qmd`) when resolve listing contents
 
 ## Bibliographies and Citations
 
@@ -182,6 +186,7 @@
 
 ## Miscellaneous
 
+- Render: ability to set `enigne` and `jupyter` metadata values from the command line
 - Render: ability to compose `--to all` with other formats (e.g. `--to all,json`)
 - Don't call Deno.realPathSync on Windows (avoid problems w/ UNC paths)
 - Don't include Unicode literals on Windows directly (#2184), thanks @yihui
@@ -204,3 +209,6 @@
 - Provide non-HTML treatment for code block `filename`
 - prevent Chrome CRI race during initialization (#2733)
 - Work around `mermaid-format: svg` diagram clipping (#1622)
+- Don't use tree-sitter outside of interactive IDE contexts (#2502)
+- Support custom Lua writers in YAML front matter (#2687)
+- Better error message with inadvertent `!` in YAML strings (#2808)

@@ -41,6 +41,7 @@ import {
 } from "./constants.ts";
 import { Format, Metadata } from "./types.ts";
 import { kGfmCommonmarkVariant } from "../format/markdown/format-markdown.ts";
+import { kJupyterEngine, kKnitrEngine } from "../execute/types.ts";
 
 export async function includedMetadata(
   dir: string,
@@ -146,7 +147,8 @@ export function isQuartoMetadata(key: string) {
   return kRenderDefaultsKeys.includes(key) ||
     kExecuteDefaultsKeys.includes(key) ||
     kPandocDefaultsKeys.includes(key) ||
-    kLanguageDefaultsKeys.includes(key);
+    kLanguageDefaultsKeys.includes(key) ||
+    [kKnitrEngine, kJupyterEngine].includes(key);
 }
 
 export function isIncludeMetadata(key: string) {

@@ -25,6 +25,8 @@ import { ExecutionEngine } from "./types.ts";
 import { languagesInMarkdown } from "./engine-shared.ts";
 import { languages as handlerLanguages } from "../core/handlers/base.ts";
 import { MappedString } from "../core/lib/text-types.ts";
+import { RenderFlags } from "../command/render/types.ts";
+import { mergeConfigs } from "../core/config.ts";
 
 const kEngines: ExecutionEngine[] = [
   knitrEngine,
@@ -81,14 +83,17 @@ export function engineValidExtensions(): string[] {
 
 export function markdownExecutionEngine(
   markdown: string,
+  flags?: RenderFlags,
 ) {
   // read yaml and see if the engine is declared in yaml
   // (note that if the file were a non text-file like ipynb
   //  it would have already been claimed via extension)
   const result = partitionYamlFrontMatter(markdown);
   if (result) {
-    const yaml = readYamlFromMarkdown(result.yaml);
+    let yaml = readYamlFromMarkdown(result.yaml);
     if (yaml) {
+      // merge in command line fags
+      yaml = mergeConfigs(yaml, flags?.metadata);
       for (const engine of kEngines) {
         if (yaml[engine.name]) {
           return engine;
@@ -157,6 +162,7 @@ export function fileEngineClaimReason(
 
 export function fileExecutionEngine(
   file: string,
+  flags?: RenderFlags,
   markdown?: MappedString,
 ) {
   // get the extension and validate that it can be handled by at least one of our engines
@@ -176,20 +182,21 @@ export function fileExecutionEngine(
   // of the contents of the file.
   return markdownExecutionEngine(
     markdown ? markdown.value : Deno.readTextFileSync(file),
+    flags,
   );
 }
 
 export async function fileExecutionEngineAndTarget(
   file: string,
-  quiet?: boolean,
+  flags?: RenderFlags,
   markdown?: MappedString,
 ) {
-  const engine = fileExecutionEngine(file, markdown);
+  const engine = fileExecutionEngine(file, flags, markdown);
   if (!engine) {
     throw new Error("Unable to render " + file);
   }
 
-  const target = await engine.target(file, quiet, markdown);
+  const target = await engine.target(file, flags?.quiet, markdown);
   if (!target) {
     throw new Error("Unable to render " + file);
   }

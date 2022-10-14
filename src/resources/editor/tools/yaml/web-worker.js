@@ -14879,9 +14879,13 @@ try {
           },
           {
             name: "resource-path",
-            schema: "path",
-            default: ".",
-            description: "List of paths to search for images and other resources. The paths should\nbe separated by : on Linux, UNIX, and macOS systems, and by ; on Windows.\n"
+            schema: {
+              arrayOf: "path"
+            },
+            default: [
+              "."
+            ],
+            description: "List of paths to search for images and other resources.\n"
           },
           {
             name: "default-image-extension",
@@ -18949,7 +18953,7 @@ try {
             short: "Extract images and other media contained in or linked from the source\ndocument to the path DIR.",
             long: "Extract images and other media contained in or linked from the source\ndocument to the path DIR, creating it if necessary, and adjust the\nimages references in the document so they point to the extracted files.\nMedia are downloaded, read from the file system, or extracted from a\nbinary container (e.g.&nbsp;docx), as needed. The original file paths are\nused if they are relative paths not containing \u2026 Otherwise filenames are\nconstructed from the SHA1 hash of the contents."
           },
-          "List of paths to search for images and other resources. The paths\nshould be separated by : on Linux, UNIX, and macOS systems, and by ; on\nWindows.",
+          "List of paths to search for images and other resources.",
           {
             short: "Specify a default extension to use when image paths/URLs have no\nextension.",
             long: "Specify a default extension to use when image paths/URLs have no\nextension. This allows you to use the same source for formats that\nrequire different kinds of images. Currently this option only affects\nthe Markdown and LaTeX readers."
@@ -19988,12 +19992,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 132335,
+          _internalId: 132474,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 132334,
+              _internalId: 132473,
               type: "enum",
               enum: [
                 "png",
@@ -26543,6 +26547,16 @@ ${reindented}
   }
 
   // annotated-yaml.ts
+  function postProcessAnnotation(parse) {
+    if (parse.components.length === 1 && parse.start === parse.components[0].start && parse.end === parse.components[0].end) {
+      return postProcessAnnotation(parse.components[0]);
+    } else {
+      return {
+        ...parse,
+        components: parse.components.map(postProcessAnnotation)
+      };
+    }
+  }
   function jsYamlParseLenient(yml) {
     try {
       return load(yml, { schema: QuartoJSONSchema });
@@ -26550,12 +26564,14 @@ ${reindented}
       return yml;
     }
   }
-  function readAnnotatedYamlFromMappedString(mappedSource2) {
-    const parser = getTreeSitterSync();
-    const tree = parser.parse(mappedSource2.value);
-    const treeSitterAnnotation = buildTreeSitterAnnotation(tree, mappedSource2);
-    if (treeSitterAnnotation) {
-      return treeSitterAnnotation;
+  function readAnnotatedYamlFromMappedString(mappedSource2, lenient = false) {
+    if (lenient) {
+      const parser = getTreeSitterSync();
+      const tree = parser.parse(mappedSource2.value);
+      const treeSitterAnnotation = buildTreeSitterAnnotation(tree, mappedSource2);
+      if (treeSitterAnnotation) {
+        return treeSitterAnnotation;
+      }
     }
     try {
       return buildJsYamlAnnotation(mappedSource2);
@@ -26656,7 +26672,7 @@ ${tidyverseInfo(
       );
     }
     JSON.stringify(results[0]);
-    return results[0];
+    return postProcessAnnotation(results[0]);
   }
   function buildTreeSitterAnnotation(tree, mappedSource2) {
     const errors = [];
@@ -27401,7 +27417,7 @@ ${tidyverseInfo(
     const objResult = value.result;
     const locate = (key, keyOrValue = "value") => {
       for (let i = 0; i < value.components.length; i += 2) {
-        if (value.components[i].result === key) {
+        if (String(value.components[i].result) === key) {
           if (keyOrValue === "value") {
             return value.components[i + 1];
           } else {
@@ -28208,8 +28224,11 @@ ${tidyverseInfo(
     const type2 = typeof value;
     return value !== null && (type2 === "object" || type2 === "function");
   };
-  async function readAndValidateYamlFromMappedString(mappedYaml, schema2, pruneErrors = true) {
-    const annotation = await readAnnotatedYamlFromMappedString(mappedYaml);
+  async function readAndValidateYamlFromMappedString(mappedYaml, schema2, pruneErrors = true, lenient = false) {
+    const annotation = await readAnnotatedYamlFromMappedString(
+      mappedYaml,
+      lenient
+    );
     if (annotation === null) {
       throw new Error("Parse error in readAnnotatedYamlFromMappedString");
     }
@@ -28858,7 +28877,7 @@ ${tidyverseInfo(
     }
     return mappedString(source, params);
   }
-  async function parseAndValidateCellOptions(mappedYaml, language, validate2 = false, engine = "") {
+  async function parseAndValidateCellOptions(mappedYaml, language, validate2 = false, engine = "", lenient = false) {
     if (mappedYaml.value.trim().length === 0) {
       return void 0;
     }
@@ -28877,11 +28896,13 @@ ${tidyverseInfo(
       }
     }
     if (schema2 === void 0 || !validate2) {
-      return readAnnotatedYamlFromMappedString(mappedYaml).result;
+      return readAnnotatedYamlFromMappedString(mappedYaml, lenient).result;
     }
     const { yaml, yamlValidationErrors } = await readAndValidateYamlFromMappedString(
       mappedYaml,
-      schema2
+      schema2,
+      void 0,
+      lenient
     );
     if (yamlValidationErrors.length > 0) {
       throw new ValidationError2(
@@ -28936,7 +28957,7 @@ ${tidyverseInfo(
       sourceStartLine: yamlLines.length
     };
   }
-  async function partitionCellOptionsMapped(language, outerSource, validate2 = false, engine = "") {
+  async function partitionCellOptionsMapped(language, outerSource, validate2 = false, engine = "", lenient = false) {
     const {
       yaml: mappedYaml,
       optionsSource,
@@ -28948,7 +28969,8 @@ ${tidyverseInfo(
         mappedYaml || asMappedString(""),
         language,
         validate2,
-        engine
+        engine,
+        lenient
       );
       return {
         yaml,
@@ -29058,7 +29080,7 @@ ${tidyverseInfo(
   }
 
   // ../break-quarto-md.ts
-  async function breakQuartoMd(src, validate2 = false) {
+  async function breakQuartoMd(src, validate2 = false, lenient = false) {
     if (typeof src === "string") {
       src = asMappedString(src);
     }
@@ -29110,7 +29132,9 @@ ${tidyverseInfo(
           const { yaml, sourceStartLine } = await partitionCellOptionsMapped(
             language,
             cell.source,
-            validate2
+            validate2,
+            "",
+            lenient
           );
           const breaks = Array.from(lineOffsets(cell.source.value));
           let strUpToLastBreak = "";
@@ -29313,6 +29337,8 @@ ${tidyverseInfo(
         return completeSchema(schema2, name);
       }
     );
+    const luaFilenameS = regexSchema("^.+.lua$");
+    plusFormatStringSchemas.push(luaFilenameS);
     const completionsObject = fromEntries(
       formatSchemaDescriptorList.filter(({ hidden }) => !hidden).map(({ name }) => [name, {
         type: "key",
@@ -29328,6 +29354,9 @@ ${tidyverseInfo(
           anyOfSchema(...plusFormatStringSchemas),
           "the name of a pandoc-supported output format"
         ),
+        objectSchema({
+          propertyNames: luaFilenameS
+        }),
         allOfSchema(
           objectSchema({
             patternProperties: fromEntries(formatSchemas),
@@ -29977,7 +30006,11 @@ ${tidyverseInfo(
       position,
       line
     } = context;
-    const result = await breakQuartoMd(asMappedString(context.code));
+    const result = await breakQuartoMd(
+      asMappedString(context.code),
+      void 0,
+      true
+    );
     const adjustedCellSize = (cell) => {
       const cellLines = lines(cell.source.value);
       let size = cellLines.length;
