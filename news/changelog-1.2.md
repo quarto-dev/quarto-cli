@@ -8,6 +8,7 @@
 - Prevent overwrite of source .ipynb when output format is ipynb
 - Prefer kernel declared in YAML front matter when executing notebooks
 - Fix v1.1 regression in handling of cell display_data w/ Juptyer widgets
+- Allow jupyter kernel to be determined project-wide (#2853)
 
 ## Knitr
 
@@ -212,3 +213,4 @@
 - Don't use tree-sitter outside of interactive IDE contexts (#2502)
 - Support custom Lua writers in YAML front matter (#2687)
 - Better error message with inadvertent `!` in YAML strings (#2808)
+- More precise underlining of YAML validation errors (#2681)

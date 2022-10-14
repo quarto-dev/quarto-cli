@@ -10,6 +10,7 @@
 import { dirname, join } from "path/mod.ts";
 import { kBibliography } from "../config/constants.ts";
 import { Metadata } from "../config/types.ts";
+import { isAbsolute } from "../vendor/deno.land/std@0.153.0/path/win32.ts";
 import { asArray } from "./array.ts";
 import { CSL } from "./csl.ts";
 
@@ -81,8 +82,13 @@ export async function renderToCSLJSON(
 ): Promise<CSL[]> {
   const bibloEntries = [];
   for (const biblio of biblios) {
+    // The bibliopath might end up as an absolute path
+    // in which case just leave it alone (otherwise it is cwd relative)
+    const biblioPath = join(dir, biblio);
     const cmd = [pandocBinaryPath()];
-    cmd.push(join(Deno.cwd(), join(dir, biblio)));
+    cmd.push(
+      isAbsolute(biblioPath) ? biblioPath : join(Deno.cwd(), biblioPath),
+    );
     cmd.push("-t");
     cmd.push("csljson");
     cmd.push("--citeproc");
