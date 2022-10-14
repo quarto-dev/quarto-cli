@@ -253,6 +253,7 @@ async function findEditorPath(
       case "env": {
         const envValue = Deno.env.get(action.arg);
         if (envValue) {
+          console.log("HIT " + action.arg);
           return filter(envValue);
         }
       }
