@@ -12,6 +12,7 @@ import { basename, dirname } from "path/win32.ts";
 import { execProcess } from "../../core/process.ts";
 import { CreateResult } from "./cmd.ts";
 import { isRStudioTerminal, isVSCodeTerminal } from "../../core/platform.ts";
+import path from "../../vendor/deno.land/std@0.153.0/node/path.ts";
 
 export interface Editor {
   // A short, command line friendly id
@@ -73,8 +74,9 @@ interface EditorInfo {
 }
 
 interface ScanAction {
-  action: "path" | "which";
+  action: "path" | "which" | "env";
   arg: string;
+  filter?: (path: string) => string;
 }
 
 function vscodeEditorInfo(): EditorInfo {
@@ -173,8 +175,17 @@ function rstudioEditorInfo(): EditorInfo {
     actions: [],
   };
 
+  const rstudioExe = "rstudio.exe";
   if (Deno.build.os === "windows") {
-    const paths = windowsAppPaths(join("RStudio", "bin"), "rstudio.exe").map(
+    editorInfo.actions.push({
+      action: "env",
+      arg: "RS_RPOSTBACK_PATH",
+      filter: (path: string) => {
+        return join(dirname(path), rstudioExe);
+      },
+    });
+
+    const paths = windowsAppPaths(join("RStudio", "bin"), rstudioExe).map(
       (path) => {
         return {
           action: "path",
@@ -223,19 +234,28 @@ async function findEditorPath(
   actions: ScanAction[],
 ): Promise<string | undefined> {
   for (const action of actions) {
+    const filter = action.filter || ((path) => {
+      return path;
+    });
     switch (action.action) {
       case "which": {
         const path = await which(action.arg);
         if (path) {
-          return path;
+          return filter(path);
         }
         break;
       }
       case "path":
         if (existsSync(action.arg)) {
-          return action.arg;
+          return filter(action.arg);
         }
         break;
+      case "env": {
+        const envValue = Deno.env.get(action.arg);
+        if (envValue) {
+          return filter(envValue);
+        }
+      }
     }
   }
   // Couldn't find it, give up
