@@ -32,6 +32,14 @@ export interface CreateDirective {
   template: string;
 }
 
+export interface CreateResult {
+  // Path to the directory or document
+  path: string;
+
+  // Files to open
+  openfiles: string[];
+}
+
 export interface ArtifactCreator {
   // The name that is displayed to users
   displayName: string;
@@ -55,7 +63,10 @@ export interface ArtifactCreator {
 
   // Creates the artifact using the specified options
   // Returns the path to the created artifact
-  createArtifact: (directive: CreateDirective) => Promise<string>;
+  createArtifact: (
+    directive: CreateDirective,
+    quiet?: boolean,
+  ) => Promise<CreateResult>;
 
   // Set this to false to exclude this artifact type from the create command
   enabled?: boolean;
@@ -149,14 +160,14 @@ export const createCommand = new Command()
           );
 
           // Create the artifact using the options
-          const artifactPath = await resolvedArtifact.createArtifact(
+          const createResult = await resolvedArtifact.createArtifact(
             createDirective,
           );
 
           // Now that the article was created, offer to open the item
           if (allowPrompt && options.open !== false) {
             const resolvedEditor = await resolveEditor(
-              artifactPath,
+              createResult,
               typeof (options.open) === "string" ? options.open : undefined,
             );
             if (resolvedEditor) {
@@ -246,9 +257,9 @@ const promptForType = async () => {
 
 // Determine the selected editor that should be used to open
 // the artifact once created
-const resolveEditor = async (artifactPath: string, editor?: string) => {
+const resolveEditor = async (createResult: CreateResult, editor?: string) => {
   // Find supported editors
-  const editors = await scanForEditors(kEditorInfos, artifactPath);
+  const editors = await scanForEditors(kEditorInfos, createResult);
 
   const defaultEditor = editors.find((ed) => {
     return ed.id === editor;
@@ -323,8 +334,10 @@ async function createFromStdin() {
   const createDirective = jsonOptions.directive as CreateDirective;
 
   // Create the artifact using the options
-  const artifactPath = await resolved.artifact.createArtifact(
+  const createResult = await resolved.artifact.createArtifact(
     createDirective,
+    true,
   );
-  info(`${type} created at ${artifactPath}`);
+  const resultJSON = JSON.stringify(createResult, undefined);
+  Deno.stdout.writeSync(new TextEncoder().encode(resultJSON));
 }

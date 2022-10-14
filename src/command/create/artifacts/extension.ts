@@ -23,6 +23,8 @@ import { ensureDirSync, walkSync } from "fs/mod.ts";
 import { coerce } from "semver/mod.ts";
 import { join, relative } from "path/mod.ts";
 import { execProcess } from "../../../core/process.ts";
+import { extensionProjectType } from "../../../extension/extension.ts";
+import { Metadata } from "../../../config/types.ts";
 
 const kType = "type";
 const kSubType = "subtype";
@@ -30,13 +32,23 @@ const kName = "name";
 
 const kTypeExtension = "extension";
 
-const kExtensionTypes = [
-  { name: "filter", value: "filter" },
-  { name: "shortcode", value: "shortcode" },
-  { name: "revealjs plugin", value: "revealjs-plugin" },
+interface ExtensionType {
+  name: string;
+  value: string;
+  openfiles: string[];
+}
+
+const kExtensionTypes: Array<string | ExtensionType> = [
+  { name: "filter", value: "filter", openfiles: ["example.qmd"] },
+  { name: "shortcode", value: "shortcode", openfiles: ["example.qmd"] },
+  {
+    name: "revealjs plugin",
+    value: "revealjs-plugin",
+    openfiles: ["example.qmd"],
+  },
   "---",
-  { name: "journal format", value: "journal" },
-  { name: "custom format", value: "format" },
+  { name: "journal format", value: "journal", openfiles: ["template.qmd"] },
+  { name: "custom format", value: "format", openfiles: ["example.qmd"] },
 ];
 
 const kExtensionSubtypes: Record<string, string[]> = {
@@ -168,9 +180,32 @@ function nextPrompt(
   }
 }
 
-async function createArtifact(createDirective: CreateDirective) {
+function typeFromTemplate(template: string) {
+  return template.split(":")[0];
+}
+
+async function createArtifact(
+  createDirective: CreateDirective,
+  _quiet?: boolean,
+) {
+  // Find the type using the template
+  const createType = typeFromTemplate(createDirective.template);
+  const extType = kExtensionTypes.find((type) => {
+    if (typeof (type) === "object") {
+      return type.value === createType;
+    } else {
+      return false;
+    }
+  });
+  const openfiles = extType ? (extType as ExtensionType).openfiles : [];
+
+  // Create the extension
   await createExtension(createDirective);
-  return createDirective.directory;
+
+  return {
+    path: createDirective.directory,
+    openfiles,
+  };
 }
 
 async function createExtension(createDirective: CreateDirective) {

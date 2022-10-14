@@ -10,6 +10,7 @@ import { existsSync } from "fs/mod.ts";
 import { which } from "../../core/path.ts";
 import { basename, dirname } from "path/win32.ts";
 import { execProcess } from "../../core/process.ts";
+import { CreateResult } from "./cmd.ts";
 
 export interface Editor {
   // A short, command line friendly id
@@ -30,7 +31,7 @@ export const kEditorInfos: EditorInfo[] = [
 
 export async function scanForEditors(
   editorInfos: EditorInfo[],
-  artifactPath: string,
+  createResult: CreateResult,
 ) {
   const editors: Editor[] = [];
   for (const editorInfo of editorInfos) {
@@ -39,7 +40,7 @@ export async function scanForEditors(
       editors.push({
         id: editorInfo.id,
         name: editorInfo.name,
-        open: editorInfo.open(editorPath, artifactPath),
+        open: editorInfo.open(editorPath, createResult),
       });
     }
   }
@@ -58,7 +59,7 @@ interface EditorInfo {
 
   // Uses a path and artifact path to provide a function
   // that can be used to open this editor to the given artifact
-  open: (path: string, artifactPath: string) => () => Promise<unknown>;
+  open: (path: string, createResult: CreateResult) => () => Promise<unknown>;
 }
 
 interface ScanAction {
@@ -70,7 +71,8 @@ function vscodeEditorInfo(): EditorInfo {
   const editorInfo: EditorInfo = {
     id: "vscode",
     name: "Visual Studio Code",
-    open: (path: string, artifactPath: string) => {
+    open: (path: string, createResult: CreateResult) => {
+      const artifactPath = createResult.path;
       const cwd = Deno.statSync(artifactPath).isDirectory
         ? artifactPath
         : dirname(artifactPath);
@@ -132,8 +134,9 @@ function rstudioEditorInfo(): EditorInfo {
   const editorInfo: EditorInfo = {
     id: "rstudio",
     name: "RStudio",
-    open: (path: string, artifactPath: string) => {
+    open: (path: string, createResult: CreateResult) => {
       return () => {
+        const artifactPath = createResult.path;
         // The directory that the artifact is in
         const cwd = Deno.statSync(artifactPath).isDirectory
           ? artifactPath

@@ -149,8 +149,10 @@ function nextPrompt(
   }
 }
 
-async function createArtifact(createDirective: CreateDirective) {
-  console.log(createDirective);
+async function createArtifact(
+  createDirective: CreateDirective,
+  quiet?: boolean,
+) {
   const dir = createDirective.directory;
   const projectTitle = capitalizeTitle(createDirective.name);
   const directiveType = createDirective.template;
@@ -190,7 +192,13 @@ async function createArtifact(createDirective: CreateDirective) {
     scaffold: true,
     engine: kMarkdownEngine,
     template: template,
+    quiet,
   });
 
-  return dir;
+  return {
+    path: dir,
+    openfiles: type !== "default"
+      ? ["index.qmd", "_quarto.yml"]
+      : ["_quarto.yml"],
+  };
 }
