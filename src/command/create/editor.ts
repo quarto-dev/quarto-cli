@@ -174,12 +174,14 @@ function rstudioEditorInfo(): EditorInfo {
   };
 
   if (Deno.build.os === "windows") {
-    const paths = windowsAppPaths("RStudio", "rstudio.exe").map((path) => {
-      return {
-        action: "path",
-        arg: path,
-      } as ScanAction;
-    });
+    const paths = windowsAppPaths(join("RStudio", "bin"), "rstudio.exe").map(
+      (path) => {
+        return {
+          action: "path",
+          arg: path,
+        } as ScanAction;
+      },
+    );
     editorInfo.actions.push(...paths);
   } else if (Deno.build.os === "darwin") {
     const paths = macosAppPaths("RStudio.app").map((path) => {
