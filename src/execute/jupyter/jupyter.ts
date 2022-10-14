@@ -86,6 +86,7 @@ import {
 import { asMappedString } from "../../core/lib/mapped-text.ts";
 import { MappedString, mappedStringFromFile } from "../../core/mapped-text.ts";
 import { breakQuartoMd } from "../../core/lib/break-quarto-md.ts";
+import { ProjectContext } from "../../project/types.ts";
 
 export const jupyterEngine: ExecutionEngine = {
   name: kJupyterEngine,
@@ -128,6 +129,7 @@ export const jupyterEngine: ExecutionEngine = {
     file: string,
     _quiet?: boolean,
     markdown?: MappedString,
+    project?: ProjectContext,
   ): Promise<ExecutionTarget | undefined> => {
     // at some point we'll resolve a full notebook/kernelspec
     let nb: JupyterNotebook | undefined;
@@ -157,8 +159,9 @@ export const jupyterEngine: ExecutionEngine = {
         metadata,
         data: { transient: true, kernelspec: {} },
       };
-      nb = await createNotebookforTarget(target);
+      nb = await createNotebookforTarget(target, project);
       target.data.kernelspec = nb.metadata.kernelspec;
+
       return target;
     } else if (isJupyterNotebook(file)) {
       return {
@@ -422,8 +425,11 @@ async function ensureYamlKernelspec(
   }
 }
 
-async function createNotebookforTarget(target: ExecutionTarget) {
-  const nb = await quartoMdToJupyter(target.markdown.value, true);
+async function createNotebookforTarget(
+  target: ExecutionTarget,
+  project?: ProjectContext,
+) {
+  const nb = await quartoMdToJupyter(target.markdown.value, true, project);
   Deno.writeTextFileSync(target.input, JSON.stringify(nb, null, 2));
   return nb;
 }

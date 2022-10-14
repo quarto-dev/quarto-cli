@@ -146,6 +146,8 @@ import { readYamlFromMarkdown } from "../yaml.ts";
 import { languagesInMarkdown } from "../../execute/engine-shared.ts";
 import { pathWithForwardSlashes } from "../path.ts";
 import { convertToHtmlSpans, hasAnsiEscapeCodes } from "../ansi-colors.ts";
+import { ProjectContext } from "../../project/types.ts";
+import { mergeConfigs } from "../config.ts";
 
 export const kJupyterNotebookExtensions = [
   ".ipynb",
@@ -235,8 +237,12 @@ export interface JupyterOutputError extends JupyterOutput {
 export async function quartoMdToJupyter(
   markdown: string,
   includeIds: boolean,
+  project?: ProjectContext,
 ): Promise<JupyterNotebook> {
-  const [kernelspec, metadata] = await jupyterKernelspecFromMarkdown(markdown);
+  const [kernelspec, metadata] = await jupyterKernelspecFromMarkdown(
+    markdown,
+    project,
+  );
 
   // notebook to return
   const nb: JupyterNotebook = {
@@ -426,10 +432,15 @@ export async function quartoMdToJupyter(
 
 export async function jupyterKernelspecFromMarkdown(
   markdown: string,
+  project?: ProjectContext,
 ): Promise<[JupyterKernelspec, Metadata]> {
-  const yaml = readYamlFromMarkdown(markdown);
+  const config = (project as any)?.config;
+  const yaml = config
+    ? mergeConfigs(config, readYamlFromMarkdown(markdown))
+    : readYamlFromMarkdown(markdown);
   const yamlJupyter = yaml.jupyter;
 
+  console.log({ config, project, yamlJupyter });
   // if there is no yaml.jupyter then detect the file's language(s) and
   // find a kernelspec that supports this language
   if (!yamlJupyter) {
