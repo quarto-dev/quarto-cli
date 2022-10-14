@@ -12,7 +12,6 @@ import { basename, dirname } from "path/win32.ts";
 import { execProcess } from "../../core/process.ts";
 import { CreateResult } from "./cmd.ts";
 import { isRStudioTerminal, isVSCodeTerminal } from "../../core/platform.ts";
-import path from "../../vendor/deno.land/std@0.153.0/node/path.ts";
 
 export interface Editor {
   // A short, command line friendly id
@@ -204,12 +203,20 @@ function rstudioEditorInfo(): EditorInfo {
     editorInfo.actions.push(...paths);
   } else {
     editorInfo.actions.push({
+      action: "env",
+      arg: "RS_RPOSTBACK_PATH",
+      filter: (path: string) => {
+        return join(dirname(path), rstudioExe);
+      },
+    });
+
+    editorInfo.actions.push({
       action: "path",
-      arg: "/usr/lib/rstudio/bin",
+      arg: "/usr/lib/rstudio/bin/rstudio",
     });
     editorInfo.actions.push({
       action: "which",
-      arg: "RStudio",
+      arg: "rstudio",
     });
   }
   return editorInfo;
@@ -253,7 +260,6 @@ async function findEditorPath(
       case "env": {
         const envValue = Deno.env.get(action.arg);
         if (envValue) {
-          console.log("HIT " + action.arg);
           return filter(envValue);
         }
       }
