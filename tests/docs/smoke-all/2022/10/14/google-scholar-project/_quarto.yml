@@ -1,0 +1,20 @@
+project:
+  type: website
+
+website:
+  title: "Web"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - about.qmd
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
+
+bibliography: references.bib
+reference-location: margin
+google-scholar: true
