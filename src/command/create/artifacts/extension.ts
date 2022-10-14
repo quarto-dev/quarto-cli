@@ -359,6 +359,8 @@ async function ejsData(
 async function gitAuthor() {
   const result = await execProcess({
     cmd: ["git", "config", "--global", "user.name"],
+    stdout: "piped",
+    stderr: "piped",
   });
   if (result.success) {
     return result.stdout;
