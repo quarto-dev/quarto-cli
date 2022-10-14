@@ -6,6 +6,7 @@ import {
   ConfluenceParent,
   Content,
   ContentBody,
+  ContentVersion,
   EMPTY_PARENT,
 } from "./api/types.ts";
 import { withSpinner } from "../../core/console.ts";
@@ -140,4 +141,11 @@ export const doWithSpinner = async (
     },
     toDo
   );
+};
+
+export const getNextVersion = (previousPage: Content): ContentVersion => {
+  const previousNumber: number = previousPage.version?.number ?? 0;
+  return {
+    number: previousNumber + 1,
+  };
 };

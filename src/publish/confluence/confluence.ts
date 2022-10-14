@@ -46,6 +46,7 @@ import {
   wrapBodyForConfluence,
   buildPublishRecord,
   doWithSpinner,
+  getNextVersion,
 } from "./confluence-helper.ts";
 
 import {
@@ -191,14 +192,12 @@ async function publish(
   await verifyConfluenceParent(parentUrl, parent);
 
   const updateContent = async (
-    publishRecord: PublishRecord,
+    publishRecordId: string,
     body: ContentBody
   ): Promise<Content> => {
-    // for updates we need to get the existing version and increment by 1
-    const prevContent = await client.getContent(publishRecord.id);
-
+    const previousPage = await client.getContent(publishRecordId);
     const toUpdate: ContentUpdate = {
-      version: { number: (prevContent?.version?.number || 0) + 1 },
+      version: getNextVersion(previousPage),
       title: `${title}`,
       type: kPageType,
       status: "current",
@@ -206,8 +205,7 @@ async function publish(
       body,
     };
 
-    const result = await client.updateContent(publishRecord.id, toUpdate);
-    return result;
+    return await client.updateContent(publishRecordId, toUpdate);
   };
 
   const createContent = async (body: ContentBody): Promise<Content> => {
@@ -237,7 +235,7 @@ async function publish(
     if (publishRecord) {
       message = `Updating content at ${publishRecord.url}...`;
       doOperation = async () =>
-        (content = await updateContent(publishRecord, body));
+        (content = await updateContent(publishRecord.id, body));
     } else {
       message = `Creating content in space ${parent.space}...`;
       doOperation = async () => (content = await createContent(body));

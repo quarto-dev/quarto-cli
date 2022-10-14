@@ -18,6 +18,7 @@ import {
   confluenceParentFromString,
   wrapBodyForConfluence,
   buildPublishRecord,
+  getNextVersion,
 } from "../../src/publish/confluence/confluence-helper.ts";
 import { ApiError, PublishRecord } from "../../src/publish/types.ts";
 import { AccountTokenType } from "../../src/publish/provider.ts";
@@ -30,6 +31,28 @@ import {
   ContentVersion,
   Space,
 } from "../../src/publish/confluence/api/types.ts";
+
+const buildFakeContent = (): Content => {
+  return {
+    id: "fake-id",
+    type: "fake-type",
+    status: "current",
+    title: "fake-title",
+    space: {
+      key: "fake-key",
+    },
+    version: {
+      number: 1,
+    },
+    ancestors: null,
+    body: {
+      storage: {
+        value: "fake-body",
+        representation: "raw",
+      },
+    },
+  };
+};
 
 unitTest("transformAtlassianDomain_basic", async () => {
   const result = transformAtlassianDomain("fake-domain");
@@ -234,28 +257,6 @@ unitTest("wrapBodyForConfluence_empty", async () => {
 });
 
 const runPublishRecordTests = () => {
-  const buildFakeContent = (): Content => {
-    return {
-      id: "fake-id",
-      type: "fake-type",
-      status: "current",
-      title: "fake-title",
-      space: {
-        key: "fake-key",
-      },
-      version: {
-        number: 1,
-      },
-      ancestors: null,
-      body: {
-        storage: {
-          value: "fake-body",
-          representation: "raw",
-        },
-      },
-    };
-  };
-
   const fakeServer = "https://allenmanning.atlassian.net";
 
   const checkExpected = (
@@ -308,3 +309,26 @@ const runPublishRecordTests = () => {
   });
 };
 runPublishRecordTests();
+
+const runGetNextVersionTests = () => {
+  const suiteLabel = (label: string) => `GetNextVersionTests_${label}`;
+
+  const check = (previousPage: Content, expected: ContentVersion) => {
+    const actual = getNextVersion(previousPage);
+    assertEquals(expected, actual);
+  };
+
+  unitTest(suiteLabel("1to2"), async () => {
+    const previousPage: Content = buildFakeContent();
+    const expected: ContentVersion = { number: 2 };
+    check(previousPage, expected);
+  });
+
+  unitTest(suiteLabel("Nullto1"), async () => {
+    const previousPage: Content = buildFakeContent();
+    previousPage.version = null;
+    const expected: ContentVersion = { number: 1 };
+    check(previousPage, expected);
+  });
+};
+runGetNextVersionTests();
