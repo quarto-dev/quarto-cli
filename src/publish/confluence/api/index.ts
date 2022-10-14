@@ -10,7 +10,14 @@ import { ensureTrailingSlash } from "../../../core/path.ts";
 
 import { AccountToken } from "../../provider.ts";
 import { ApiError } from "../../types.ts";
-import { Content, ContentCreate, ContentUpdate, Space, User } from "./types.ts";
+import {
+  Content,
+  ContentArray,
+  ContentCreate,
+  ContentUpdate,
+  Space,
+  User,
+} from "./types.ts";
 
 export class ConfluenceClient {
   public constructor(private readonly token_: AccountToken) {}
@@ -25,6 +32,12 @@ export class ConfluenceClient {
 
   public getContent(id: string): Promise<Content> {
     return this.get<Content>(`content/${id}`);
+  }
+
+  public async findTitleInSpace(title: string, space: Space): Promise<boolean> {
+    const cql = `title="${title}" and space=${space.key}`;
+    const result = await this.get<ContentArray>(`content/search?cql=${cql}`);
+    return result.results.length > 0;
   }
 
   public createContent(content: ContentCreate): Promise<Content> {

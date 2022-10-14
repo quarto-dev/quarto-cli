@@ -107,3 +107,17 @@ export type ConfluenceParent = {
   space: string;
   parent?: string;
 };
+
+export type GenericLinks = {
+  webui: string;
+  self: string;
+  tinyui: string;
+};
+
+export type ContentArray = {
+  results: Content[];
+  start: number;
+  limit: number;
+  size: number;
+  _links: GenericLinks;
+};

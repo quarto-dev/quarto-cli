@@ -191,6 +191,8 @@ async function publish(
 
   await verifyConfluenceParent(parentUrl, parent);
 
+  const space = await client.getSpace(parent.space);
+
   const updateContent = async (
     publishRecordId: string,
     body: ContentBody
@@ -209,11 +211,19 @@ async function publish(
   };
 
   const createContent = async (body: ContentBody): Promise<Content> => {
-    const space = await client.getSpace(parent.space);
+    const titleAlreadyExistsInSpace: boolean = await client.findTitleInSpace(
+      title,
+      space
+    );
+
+    //TODO use a smaller hash rather than full UUID
+    const createTitle = titleAlreadyExistsInSpace
+      ? `${title} ${generateUuid()}`
+      : title;
 
     const result = await client.createContent({
       id: null,
-      title: `${title} ${generateUuid()}`,
+      title: createTitle,
       type: kPageType,
       space,
       status: "current",
