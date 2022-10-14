@@ -185,59 +185,62 @@ async function publish(
   const client = new ConfluenceClient(account);
 
   let parentUrl: string = publishRecord?.url ?? (await promptForParentURL());
+
   const parent: ConfluenceParent = confluenceParentFromString(parentUrl);
 
   await verifyConfluenceParent(parentUrl, parent);
+
+  const updateContent = async (
+    publishRecord: PublishRecord,
+    body: ContentBody
+  ): Promise<Content> => {
+    // for updates we need to get the existing version and increment by 1
+    const prevContent = await client.getContent(publishRecord.id);
+
+    const toUpdate: ContentUpdate = {
+      version: { number: (prevContent?.version?.number || 0) + 1 },
+      title: `${title}`,
+      type: kPageType,
+      status: "current",
+      ancestors: null,
+      body,
+    };
+
+    const result = await client.updateContent(publishRecord.id, toUpdate);
+    return result;
+  };
+
+  const createContent = async (body: ContentBody): Promise<Content> => {
+    const space = await client.getSpace(parent.space);
+
+    const result = await client.createContent({
+      id: null,
+      title: `${title} ${generateUuid()}`,
+      type: kPageType,
+      space,
+      status: "current",
+      ancestors: parent?.parent ? [{ id: parent.parent }] : null,
+      body,
+    });
+
+    return result;
+  };
 
   const publishDocument = async (): Promise<
     [PublishRecord, URL | undefined]
   > => {
     const body: ContentBody = await renderAndLoadDocument(render);
 
-    const updateContent = async (
-      publishRecord: PublishRecord
-    ): Promise<Content> => {
-      // for updates we need to get the existing version and increment by 1
-      const prevContent = await client.getContent(publishRecord.id);
-
-      const toCreate: ContentUpdate = {
-        version: { number: (prevContent?.version?.number || 0) + 1 },
-        title: `${title} ${generateUuid()}`,
-        type: kPageType,
-        status: "current",
-        ancestors: null,
-        body,
-      };
-
-      const result = await client.updateContent(publishRecord.id, toCreate);
-      return result;
-    };
-
-    const createContent = async (): Promise<Content> => {
-      const space = await client.getSpace(parent.space);
-
-      const result = await client.createContent({
-        id: null,
-        title: `${title} ${generateUuid()}`,
-        type: kPageType,
-        space,
-        status: "current",
-        ancestors: parent?.parent ? [{ id: parent.parent }] : null,
-        body,
-      });
-
-      return result;
-    };
-
     let content: Content | undefined;
     let message: string = "";
     let doOperation;
     if (publishRecord) {
       message = `Updating content at ${publishRecord.url}...`;
-      doOperation = async () => (content = await updateContent(publishRecord));
+      doOperation = async () =>
+        (content = await updateContent(publishRecord, body));
     } else {
       message = `Creating content in space ${parent.space}...`;
-      doOperation = async () => (content = await createContent());
+      doOperation = async () => (content = await createContent(body));
     }
 
     await doWithSpinner(message, doOperation);
