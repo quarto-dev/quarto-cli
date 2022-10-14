@@ -251,14 +251,15 @@ function windowsAppPaths(folderName: string, command: string) {
   // Scan program files folder
   const programFiles = Deno.env.get("PROGRAMFILES");
   if (programFiles) {
-    paths.push(programFiles, folderName, command);
+    paths.push(join(programFiles, folderName, command));
   }
 
   // Scan program files x86
   const programFilesx86 = Deno.env.get("PROGRAMFILES(X86)");
   if (programFilesx86) {
-    paths.push(programFilesx86, folderName, command);
+    paths.push(join(programFilesx86, folderName, command));
   }
+
   return paths;
 }
 
