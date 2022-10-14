@@ -1,0 +1,18 @@
+---
+title: "Demo aft format to use as template"
+format:
+  <%= name %>-html: default
+author: John Doe
+date: last-modified
+description: |
+  This document is only a demo explaining how to use the template.
+---
+
+## Introduction
+
+```delphi
+program Hello;
+begin
+  writeln ('Hello, world.');
+end.
+```
