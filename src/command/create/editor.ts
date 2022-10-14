@@ -161,7 +161,7 @@ function rstudioEditorInfo(): EditorInfo {
 
         const cmd = path.endsWith(".app") && Deno.build.os === "darwin"
           ? ["open", "-na", path, "--args", rProjPath]
-          : [rProjPath];
+          : [path, rProjPath];
 
         return execProcess({
           cmd: cmd,
