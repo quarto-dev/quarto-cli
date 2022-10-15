@@ -440,7 +440,6 @@ export async function jupyterKernelspecFromMarkdown(
     : readYamlFromMarkdown(markdown);
   const yamlJupyter = yaml.jupyter;
 
-  console.log({ config, project, yamlJupyter });
   // if there is no yaml.jupyter then detect the file's language(s) and
   // find a kernelspec that supports this language
   if (!yamlJupyter) {
