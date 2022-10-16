@@ -80,7 +80,7 @@ const kArtifactCreators: ArtifactCreator[] = [
 
 export const createCommand = new Command()
   .name("create")
-  .description("Create a Quarto artifact (project, document, or extension)")
+  .description("Create a Quarto project or extension")
   .option(
     "--open [editor:string]",
     `Open new artifact in this editor (${
