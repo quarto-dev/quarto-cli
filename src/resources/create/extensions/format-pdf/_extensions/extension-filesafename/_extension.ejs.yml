@@ -1,0 +1,14 @@
+title: <%= title %>
+author: <%= author %>
+version: <%= version %>
+quarto-required: ">=<%= quartoversion %>"
+contributes:
+  formats:
+    pdf:
+      documentclass: report
+      classoption: [twocolumn, landscape]
+      geometry:
+        - top=30mm
+        - left=20mm
+        - heightrounded
+      colorlinks: true

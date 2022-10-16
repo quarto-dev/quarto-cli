@@ -39,6 +39,7 @@ export interface ProjectCreateOptions {
   condaenv?: boolean;
   envPackages?: string[];
   template?: string;
+  quiet?: boolean;
 }
 
 export async function projectCreate(options: ProjectCreateOptions) {
@@ -55,9 +56,11 @@ export async function projectCreate(options: ProjectCreateOptions) {
   ensureDirSync(options.dir);
 
   options.dir = Deno.realPathSync(options.dir);
-  info(`Creating project at `, { newline: false });
-  info(`${options.dir}`, { bold: true, newline: false });
-  info(":");
+  if (!options.quiet) {
+    info(`Creating project at `, { newline: false });
+    info(`${options.dir}`, { bold: true, newline: false });
+    info(":");
+  }
 
   // 'website' used to be 'site'
   if (options.type === "site") {
@@ -75,12 +78,15 @@ export async function projectCreate(options: ProjectCreateOptions) {
     ext: engine.defaultExt,
   }, false);
   Deno.writeTextFileSync(join(options.dir, "_quarto.yml"), quartoConfig);
-  info(
-    "- Created _quarto.yml",
-    { indent: 2 },
-  );
+  if (!options.quiet) {
+    info(
+      "- Created _quarto.yml",
+      { indent: 2 },
+    );
+  }
   if (
-    await ensureGitignore(options.dir, !!options.venv || !!options.condaenv)
+    await ensureGitignore(options.dir, !!options.venv || !!options.condaenv) &&
+    !options.quiet
   ) {
     info(
       "- Created .gitignore",
@@ -110,7 +116,7 @@ export async function projectCreate(options: ProjectCreateOptions) {
         scaffold.subdirectory,
         scaffold.supporting,
       );
-      if (md) {
+      if (md && !options.quiet) {
         info("- Created " + md, { indent: 2 });
       }
     }
@@ -134,7 +140,9 @@ export async function projectCreate(options: ProjectCreateOptions) {
 
       ensureDirSync(dirname(dest));
       copyTo(src, dest);
-      info("- Created " + displayName, { indent: 2 });
+      if (!options.quiet) {
+        info("- Created " + displayName, { indent: 2 });
+      }
     }
   }
 

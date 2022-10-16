@@ -1,0 +1,7 @@
+title: <%= title %>
+author: <%= author %>
+version: <%= version %>
+quarto-required: ">=<%= quartoversion %>"
+contributes:
+  filters:
+    - <%= filesafename %>.lua
