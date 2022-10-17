@@ -59,25 +59,40 @@ testQuartoCmd(
   },
 );
 
-// Verify installation using a remote github repo
-testQuartoCmd(
-  "add",
-  ["quarto-ext/lightbox", "--no-prompt"],
-  [
-    noErrorsOrWarnings,
-    verifySubDirCount("_extensions", 1),
-    verifySubDirName("_extensions", "quarto-ext"),
-  ],
-  {
-    cwd: () => {
-      return workingDir;
+// Verify install using urls
+const extUrls = [
+  "quarto-ext/lightbox",
+  "quarto-ext/lightbox@cool",
+  "quarto-ext/lightbox@v0.1.4",
+  "https://github.com/quarto-ext/lightbox/archive/refs/tags/v0.1.4.tar.gz",
+  "https://github.com/quarto-ext/lightbox/archive/refs/heads/main.zip",
+  "https://github.com/quarto-ext/lightbox/archive/refs/heads/cool.zip",
+];
+
+for (const extUrl of extUrls) {
+  // Verify installation using a remote github repo
+  testQuartoCmd(
+    "add",
+    [extUrl, "--no-prompt"],
+    [
+      noErrorsOrWarnings,
+      verifySubDirCount("_extensions", 1),
+      verifySubDirName("_extensions", "quarto-ext"),
+    ],
+    {
+      cwd: () => {
+        return workingDir;
+      },
+      teardown: () => {
+        Deno.removeSync("_extensions", { recursive: true });
+        return Promise.resolve();
+      },
+      santize: {
+        resources: false,
+      },
     },
-    teardown: () => {
-      Deno.removeSync("_extensions", { recursive: true });
-      return Promise.resolve();
-    },
-  },
-);
+  );
+}
 
 // Verify use template using a remote github repo
 const templateDir = join(workingDir, "template");
