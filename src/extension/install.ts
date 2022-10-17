@@ -255,10 +255,11 @@ async function unzipAndStage(
         let count = 0;
         let name;
         for (const dirEntry of dirEntries) {
+          // ignore any files
           if (dirEntry.isDirectory) {
             name = dirEntry.name;
+            count++;
           }
-          count++;
         }
 
         if (count === 1 && name && name !== kExtensionDir) {
