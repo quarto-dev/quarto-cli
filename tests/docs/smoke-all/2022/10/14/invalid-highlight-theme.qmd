@@ -1,0 +1,16 @@
+---
+title: test
+format:
+  html:
+    theme: 
+      - custom.scss
+      - lux
+#    code-fold: true
+#    code-line-numbers: true
+    highlight-style: asa
+
+---
+
+```r
+plot(cars)
+```

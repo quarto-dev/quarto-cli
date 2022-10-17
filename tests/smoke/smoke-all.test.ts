@@ -6,7 +6,7 @@
  */
 
 import { expandGlobSync } from "fs/mod.ts";
-import { testQuartoCmd, unitTest } from "../test.ts";
+import { testQuartoCmd } from "../test.ts";
 
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../src/core/schema/utils.ts";
 import {

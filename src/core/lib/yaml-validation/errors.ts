@@ -953,8 +953,8 @@ export function createSourceContext(
         const endColumn = (lineNumber < end.line ? rawLine.length : end.column);
         contextLines.push(content);
         contextLines.push(
-          " ".repeat(prefixWidth + startColumn) +
-            "~".repeat(endColumn - startColumn),
+          " ".repeat(prefixWidth + startColumn - 1) +
+            "~".repeat(endColumn - startColumn + 1),
         );
       }
     }

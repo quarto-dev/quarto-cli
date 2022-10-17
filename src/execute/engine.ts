@@ -27,6 +27,7 @@ import { languages as handlerLanguages } from "../core/handlers/base.ts";
 import { MappedString } from "../core/lib/text-types.ts";
 import { RenderFlags } from "../command/render/types.ts";
 import { mergeConfigs } from "../core/config.ts";
+import { ProjectContext } from "../project/types.ts";
 
 const kEngines: ExecutionEngine[] = [
   knitrEngine,
@@ -190,13 +191,14 @@ export async function fileExecutionEngineAndTarget(
   file: string,
   flags?: RenderFlags,
   markdown?: MappedString,
+  project?: ProjectContext,
 ) {
   const engine = fileExecutionEngine(file, flags, markdown);
   if (!engine) {
     throw new Error("Unable to render " + file);
   }
 
-  const target = await engine.target(file, flags?.quiet, markdown);
+  const target = await engine.target(file, flags?.quiet, markdown, project);
   if (!target) {
     throw new Error("Unable to render " + file);
   }
