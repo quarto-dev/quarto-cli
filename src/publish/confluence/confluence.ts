@@ -1,7 +1,4 @@
 //TODO Resource bundles
-
-//TODO replace "magic strings" and "k"s
-
 import { join } from "path/mod.ts";
 import { generate as generateUuid } from "uuid/v4.ts";
 import { Input, Secret } from "cliffy/prompt/mod.ts";
@@ -26,8 +23,9 @@ import {
   ConfluenceParent,
   Content,
   ContentBody,
+  ContentStatusEnum,
   ContentUpdate,
-  kPageType,
+  PAGE_TYPE,
   PublishRenderer,
   PublishType,
   PublishTypeEnum,
@@ -204,8 +202,8 @@ async function publish(
     const toUpdate: ContentUpdate = {
       version: getNextVersion(previousPage),
       title: `${title}`,
-      type: kPageType,
-      status: "current",
+      type: PAGE_TYPE,
+      status: ContentStatusEnum.current,
       ancestors: null,
       body,
     };
@@ -227,9 +225,9 @@ async function publish(
     const result = await client.createContent({
       id: null,
       title: createTitle,
-      type: kPageType,
+      type: PAGE_TYPE,
       space,
-      status: "current",
+      status: ContentStatusEnum.current,
       ancestors: parent?.parent ? [{ id: parent.parent }] : null,
       body,
     });

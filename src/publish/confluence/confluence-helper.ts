@@ -6,6 +6,7 @@ import {
   ConfluenceParent,
   Content,
   ContentBody,
+  ContentBodyRepresentation,
   ContentVersion,
   EMPTY_PARENT,
 } from "./api/types.ts";
@@ -105,7 +106,7 @@ export const wrapBodyForConfluence = (value: string) => {
   const body: ContentBody = {
     storage: {
       value,
-      representation: "storage",
+      representation: ContentBodyRepresentation.storage,
     },
   };
   return body;

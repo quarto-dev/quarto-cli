@@ -21,8 +21,7 @@ export type Space = {
   key: string;
 };
 
-export const kPageType = "page";
-export const kBlogPostType = "blogpost";
+export const PAGE_TYPE = "page";
 
 export const EMPTY_PARENT: ConfluenceParent = {
   space: "",
@@ -35,6 +34,13 @@ export type ContentVersion = {
 
 export type ContentStatus = "current" | "deleted" | "historical" | "draft";
 
+export enum ContentStatusEnum {
+  current = "current",
+  deleted = "deleted",
+  historical = "historical",
+  draft = "draft",
+}
+
 export type PublishType = "document" | "site";
 
 export type PublishRenderer = (flags?: RenderFlags) => Promise<PublishFiles>;
@@ -46,6 +52,10 @@ export enum PublishTypeEnum {
 export type ContentAncestor = {
   id: string;
 };
+
+export enum ContentBodyRepresentation {
+  storage = "storage",
+}
 
 export type ContentBody = {
   storage: {
