@@ -37,14 +37,13 @@ interface ExtensionType {
 }
 
 const kExtensionTypes: Array<string | ExtensionType> = [
-  { name: "filter", value: "filter", openfiles: ["example.qmd"] },
   { name: "shortcode", value: "shortcode", openfiles: ["example.qmd"] },
+  { name: "filter", value: "filter", openfiles: ["example.qmd"] },
   {
     name: "revealjs plugin",
     value: "revealjs-plugin",
     openfiles: ["example.qmd"],
   },
-  "---",
   { name: "journal format", value: "journal", openfiles: ["template.qmd"] },
   { name: "custom format", value: "format", openfiles: ["example.qmd"] },
 ];
