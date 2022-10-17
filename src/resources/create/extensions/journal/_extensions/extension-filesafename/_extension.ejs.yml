@@ -5,24 +5,10 @@ quarto-required: ">=<%= quartoversion %>"
 contributes:
   formats:
     common:
-      # YAML configuration common to all formats
-      filters:
-        # Lua filters may be needed to form proper output
-        - <%= filesafename %>.lua
-      execute:
-        echo: false
-    pdf:
-      # define default configuration for the pdf version of your format
-      fig-width: 6.5
-      fig-height: 4.5
-      # Content to add in header that your format is using
-      header-includes: |
-        \usepackage{orcidlink}
-      template-partials:
-        # Replace portions of the underlying LaTeX template with custom version
-        - "partials/title.tex"
-        - "partials/_authors.tex"
-    html:
-      # define default configuration for the html version of your format
-      number-sections: true
       toc: true
+      filters:
+        - <%= filesafename %>.lua
+    pdf:
+      include-in-header: header.tex
+    html:
+      css: styles.css

@@ -3,7 +3,7 @@
 
 ## Creating a New Article
 
-You can use this as a template to create an article for the %<= titl %>. To do this, use the following command:
+To create a new article using this format:
 
 *TODO*: Replace the `<github-organization>` with your GitHub organization.
 
@@ -11,24 +11,24 @@ You can use this as a template to create an article for the %<= titl %>. To do t
 quarto use template <github-organization>/<%= filesafename %>
 ```
 
-This will install the extension and create an example qmd file that you can use as a starting place for your article.
+This will create a new directory with an example document that uses this format.
 
-## Usage
+## Using with an Existing Document
 
-To use the format, you can use the format names <%= filesafefilename %>-pdf and <%= filesafefilename %>-html. For example:
+To add this format to an existing document:
 
-`quarto render article.qmd --to <%= filesafefilename %>-pdf`
+*TODO*: Replace the `<github-organization>` with your GitHub organization.
 
-or in your document yaml
+```bash
+quarto add <github-organization>/<%= filesafename %>
+```
+
+Then, add the format to your document options:
 
 ```yaml
 format:
-  pdf: default
-  <%= filesafefilename %>-pdf:
-    keep-tex: true    
+  <%= filesafename %>-pdf: default
 ```    
-
-*TODO*: Describe how to use your extension.
 
 ## Options
 

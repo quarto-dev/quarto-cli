@@ -23,28 +23,10 @@ author:
 abstract: |
   This document is a template demonstrating the <%= title %> format.
 keywords: [template, demo]
-reference-section-title: References
 bibliography: bibliography.bib  
 ---
 
 ## Introduction {#sec-intro}
 
-*TODO* Create a template that demonstrates the appearance and formatting, layout, and functionality of your journal format. It is often useful to use the example template available from the journal publisher, porting that to markdown for this template.
-
-## About Quarto Extensions formats And Quarto Journals Article
-
-*TODO* Learn more usin the following resources
-
-- [Creating Formats](https://quarto.org/docs/extensions/formats.html) in Quarto as part of the [Extensions](https://quarto.org/docs/extensions/) mechanism.
-- [Journals Articles](https://quarto.org/docs/journals/) for Quarto.
-
-## Style Guide
-
-*TODO* If a style guide is available from the publisher, consider including that in a `style-guide` folder for reference.
-
-### PDF and HTML Output
-
-*TODO* Test HTML output for your journal format. When possible, implement markdown support for journal LaTeX specific commands or environments, which makes producing multiple formats from the same document possible [@CameronTrivedi2013].
-
-{{< pagebreak >}}
+*TODO* Create a template that demonstrates the appearance, formatting, layout, and functionality of your format. Learn more about journal formats at <https://quarto.org/docs/journals/>.
 
