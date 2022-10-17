@@ -69,6 +69,16 @@ const extUrls = [
   "https://github.com/quarto-ext/lightbox/archive/refs/heads/cool.tar.gz",
 ];
 
+if (Deno.build.os !== "linux") {
+  extUrls.push(
+    ...[
+      "https://github.com/quarto-ext/lightbox/archive/refs/tags/v0.1.4.zip",
+      "https://github.com/quarto-ext/lightbox/archive/refs/heads/main.zip",
+      "https://github.com/quarto-ext/lightbox/archive/refs/heads/cool.zip",
+    ],
+  );
+}
+
 for (const extUrl of extUrls) {
   // Verify installation using a remote github repo
   testQuartoCmd(
@@ -121,19 +131,23 @@ const testDir = docs("extensions");
 const testDirAbs = join(Deno.cwd(), testDir);
 
 const zipFiles = [
-  { path: "owned-multiple.zip", count: 3, names: ["acm", "acs", "coolster"] },
   {
-    path: "unowned-multiple.zip",
+    path: "owned-multiple.tar.gz",
     count: 3,
     names: ["acm", "acs", "coolster"],
   },
   {
-    path: "rootdir.zip",
+    path: "unowned-multiple.tar.gz",
+    count: 3,
+    names: ["acm", "acs", "coolster"],
+  },
+  {
+    path: "rootdir.tar.gz",
     count: 1,
     names: ["latex-environments"],
   },
   {
-    path: "subdir.zip",
+    path: "subdir.tar.gz",
     count: 1,
     names: ["latex-environments"],
   },
