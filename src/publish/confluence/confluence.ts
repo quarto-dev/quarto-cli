@@ -1,4 +1,5 @@
 //TODO Resource bundles
+//TODO replace "magic strings" and "k"s
 
 import { join } from "path/mod.ts";
 import { generate as generateUuid } from "uuid/v4.ts";
@@ -157,7 +158,7 @@ const resolveTarget = async (
   return Promise.resolve(target);
 };
 
-async function renderAndLoadDocument(render: PublishRenderer) {
+const renderAndLoadDocument = async (render: PublishRenderer) => {
   const flags: RenderFlags = {
     to: "confluence-publish",
   };
@@ -171,7 +172,7 @@ async function renderAndLoadDocument(render: PublishRenderer) {
   const body = wrapBodyForConfluence(documentValue);
 
   return body;
-}
+};
 
 async function publish(
   account: AccountToken,
@@ -211,7 +212,7 @@ async function publish(
   };
 
   const createContent = async (body: ContentBody): Promise<Content> => {
-    const titleAlreadyExistsInSpace: boolean = await client.findTitleInSpace(
+    const titleAlreadyExistsInSpace: boolean = await client.isTitleInSpace(
       title,
       space
     );
