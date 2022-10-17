@@ -127,6 +127,16 @@ const zipFiles = [
     count: 3,
     names: ["acm", "acs", "coolster"],
   },
+  {
+    path: "rootdir.zip",
+    count: 1,
+    names: ["latex-environments"],
+  },
+  {
+    path: "subdir.zip",
+    count: 1,
+    names: ["latex-environments"],
+  },
 ];
 
 for (const zipFile of zipFiles) {
