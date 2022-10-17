@@ -9,6 +9,7 @@ import { assertEquals, assertThrows } from "testing/asserts.ts";
 import {
   buildPublishRecord,
   confluenceParentFromString,
+  filterFilesForUpdate,
   getMessageFromAPIError,
   getNextVersion,
   isNotFound,
@@ -433,3 +434,43 @@ const runWriteTokenComparator = () => {
   });
 };
 runWriteTokenComparator();
+
+const runFilterFilesForUpdate = () => {
+  const suiteLabel = (label: string) => `FilterFilesForUpdate_${label}`;
+
+  const check = (allFiles: string[], expected: string[]) => {
+    const actual = filterFilesForUpdate(allFiles);
+    assertEquals(expected, actual);
+  };
+
+  unitTest(suiteLabel("noFiles"), async () => {
+    check([], []);
+  });
+
+  unitTest(suiteLabel("flatMixed"), async () => {
+    const fakeFileList = [
+      "knowledge-base.html",
+      "team.xml",
+      "agreements.html",
+      "mission.xml",
+      "ci-log.html",
+    ];
+    const expected = ["team.xml", "mission.xml"];
+
+    check(fakeFileList, expected);
+  });
+
+  unitTest(suiteLabel("nestedMixed"), async () => {
+    const fakeFileList = [
+      "knowledge-base.html",
+      "team.xml",
+      "agreements.html",
+      "mission.xml",
+      "ci-log.html",
+    ];
+    const expected = ["team.xml", "mission.xml"];
+
+    check(fakeFileList, expected);
+  });
+};
+runFilterFilesForUpdate();

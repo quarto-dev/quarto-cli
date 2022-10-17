@@ -11,6 +11,7 @@ import {
   EMPTY_PARENT,
 } from "./api/types.ts";
 import { withSpinner } from "../../core/console.ts";
+import { ProjectContext } from "../../project/types.ts";
 
 export const transformAtlassianDomain = (domain: string) => {
   return ensureTrailingSlash(
@@ -102,7 +103,7 @@ export const confluenceParentFromString = (url: string): ConfluenceParent => {
   return EMPTY_PARENT;
 };
 
-export const wrapBodyForConfluence = (value: string) => {
+export const wrapBodyForConfluence = (value: string): ContentBody => {
   const body: ContentBody = {
     storage: {
       value,
@@ -155,3 +156,15 @@ export const writeTokenComparator = (
   a: AccountToken,
   b: AccountToken
 ): boolean => a.server === b.server && a.name === b.name;
+
+export const isProjectContext = (
+  input: ProjectContext | string
+): input is ProjectContext => {
+  return (input as ProjectContext).files !== undefined;
+};
+
+export const filterFilesForUpdate = (allFiles: string[]): string[] => {
+  const fileFilter = (fileName: string): boolean => fileName.endsWith(".xml");
+  const result: string[] = allFiles.filter(fileFilter);
+  return result;
+};

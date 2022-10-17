@@ -48,6 +48,7 @@ import {
   doWithSpinner,
   getNextVersion,
   writeTokenComparator,
+  isProjectContext,
 } from "./confluence-helper.ts";
 
 import {
@@ -55,6 +56,8 @@ import {
   verifyLocation,
   verifyConfluenceParent,
 } from "./confluence-verify.ts";
+
+import { ProjectContext } from "../../project/types.ts";
 
 export const CONFLUENCE_ID = "confluence";
 
@@ -158,20 +161,32 @@ const resolveTarget = async (
   return Promise.resolve(target);
 };
 
-const renderAndLoadDocument = async (render: PublishRenderer) => {
+const loadDocument = (baseDirectory: string, rootFile: string): ContentBody => {
+  const documentValue = Deno.readTextFileSync(join(baseDirectory, rootFile));
+
+  const body: ContentBody = wrapBodyForConfluence(documentValue);
+
+  return body;
+};
+
+const renderAndLoadDocument = async (
+  render: PublishRenderer
+): Promise<ContentBody> => {
   const flags: RenderFlags = {
     to: "confluence-publish",
   };
 
   const renderResult = await render(flags);
+  return loadDocument(renderResult.baseDir, renderResult.rootFile);
+};
 
-  const documentValue = Deno.readTextFileSync(
-    join(renderResult.baseDir, renderResult.rootFile)
-  );
+const renderSite = async (render: PublishRenderer): Promise<PublishFiles> => {
+  const flags: RenderFlags = {
+    to: "confluence-publish",
+  };
 
-  const body = wrapBodyForConfluence(documentValue);
-
-  return body;
+  const renderResult: PublishFiles = await render(flags);
+  return renderResult;
 };
 
 async function publish(
@@ -184,6 +199,14 @@ async function publish(
   _options: PublishOptions,
   publishRecord?: PublishRecord
 ): Promise<[PublishRecord, URL | undefined]> {
+  console.log("publish");
+  console.log("type", type);
+  console.log("_input", _input);
+  console.log("title", title);
+  console.log("_slug", _slug);
+  console.log("_options", _options);
+  console.log("publishRecord", publishRecord);
+
   const client = new ConfluenceClient(account);
 
   let parentUrl: string = publishRecord?.url ?? (await promptForParentURL());
@@ -256,10 +279,19 @@ async function publish(
     return buildPublishRecord(account?.server ?? "", content);
   };
 
+  const publishSite = async (): Promise<[PublishRecord, URL | undefined]> => {
+    const publishFiles: PublishFiles = await renderSite(render);
+    console.log("publishFiles", publishFiles);
+    //TODO publishing with all create from empty
+    //TODO Diff existing
+
+    throw new Error("Confluence site publishing not implemented");
+  };
+
   if (type === PublishTypeEnum.document) {
     return await publishDocument();
   } else {
-    throw new Error("Confluence site publishing not implemented");
+    return await publishSite();
   }
 }
 
