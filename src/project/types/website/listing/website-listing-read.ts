@@ -694,6 +694,17 @@ function listItemFromMeta(meta: Metadata) {
       meta.author = [meta.author];
     }
   }
+
+  if (meta.date) {
+    if (meta.path !== undefined) {
+      listingItem.date = parsePandocDate(
+        resolveDate(meta.path as string, meta.date) as string,
+      );
+    } else {
+      listingItem.date = parsePandocDate(meta.date as string);
+    }
+  }
+
   return listingItem;
 }
 
