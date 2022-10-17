@@ -164,7 +164,17 @@ export const isProjectContext = (
 };
 
 export const filterFilesForUpdate = (allFiles: string[]): string[] => {
-  const fileFilter = (fileName: string): boolean => fileName.endsWith(".xml");
+  const fileFilter = (fileName: string): boolean => {
+    if (!fileName.endsWith(".xml")) {
+      return false;
+    }
+
+    if (fileName.includes("/")) {
+      return false; //No support for nested children, yet
+    }
+
+    return true;
+  };
   const result: string[] = allFiles.filter(fileFilter);
   return result;
 };

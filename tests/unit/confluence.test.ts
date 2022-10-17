@@ -462,6 +462,8 @@ const runFilterFilesForUpdate = () => {
 
   unitTest(suiteLabel("nestedMixed"), async () => {
     const fakeFileList = [
+      "parent/not-supported-child.xml",
+
       "knowledge-base.html",
       "team.xml",
       "agreements.html",
