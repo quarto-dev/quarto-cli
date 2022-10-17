@@ -20,6 +20,7 @@ import { downloadWithProgress } from "../core/download.ts";
 import { createExtensionContext, readExtensions } from "./extension.ts";
 import { info } from "log/mod.ts";
 import { ExtensionSource, extensionSource } from "./extension-host.ts";
+import { safeExistsSync } from "../core/path.ts";
 
 const kUnversionedFrom = "  (?)";
 const kUnversionedTo = "(?)  ";
@@ -238,10 +239,42 @@ async function unzipAndStage(
   // Use any subdirectory inside, if appropriate
   const archiveDir = dirname(zipFile);
 
+  const findExtensionDir = () => {
+    if (source.targetSubdir) {
+      // If the source provides a subdirectory, just use that
+      return join(archiveDir, source.targetSubdir);
+    } else {
+      // Otherwise, we should inspect the directory either:
+      // - use the directory itself it has an _extensions dir
+      // - use a subdirectory if there is a single subdirectory and it has an
+      // _extensions dir
+      if (safeExistsSync(join(archiveDir, kExtensionDir))) {
+        return archiveDir;
+      } else {
+        const dirEntries = Deno.readDirSync(archiveDir);
+        let count = 0;
+        let name;
+        for (const dirEntry of dirEntries) {
+          if (dirEntry.isDirectory) {
+            name = dirEntry.name;
+          }
+          count++;
+        }
+
+        if (count === 1 && name && name !== kExtensionDir) {
+          if (safeExistsSync(join(archiveDir, name, kExtensionDir))) {
+            return join(archiveDir, name);
+          } else {
+            return archiveDir;
+          }
+        } else {
+          return archiveDir;
+        }
+      }
+    }
+  };
   // Use a subdirectory if the source provides one
-  const extensionsDir = extensionDir(
-    source.targetSubdir ? join(archiveDir, source.targetSubdir) : archiveDir,
-  );
+  const extensionsDir = join(findExtensionDir(), kExtensionDir);
 
   // Make the final directory we're staging into
   const finalDir = join(archiveDir, "staged");
