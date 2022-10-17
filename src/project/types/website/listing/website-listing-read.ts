@@ -370,7 +370,7 @@ function hydrateListing(
     if (sources.size === 1 && sources.has(ListingItemSource.rawfile)) {
       // If all the items are raw files, we should just show file info
       return [kFieldFileName, kFieldFileModified];
-    } else if (sources.has(ListingItemSource.metadata)) {
+    } else if (!sources.has(ListingItemSource.document)) {
       // If the items have come from metadata, we should just show
       // all the columns in the table. Otherwise, we should use the
       // document default columns
