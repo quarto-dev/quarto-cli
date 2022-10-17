@@ -27,6 +27,7 @@ import { listCommand } from "./list/cmd.ts";
 import { useCommand } from "./use/cmd.ts";
 import { addCommand } from "./add/cmd.ts";
 import { uninstallCommand } from "./uninstall/cmd.ts";
+import { createCommand } from "./create/cmd.ts";
 
 // deno-lint-ignore no-explicit-any
 export function commands(): Command<any>[] {
@@ -35,6 +36,7 @@ export function commands(): Command<any>[] {
     renderCommand as any,
     previewCommand,
     serveCommand,
+    createCommand,
     createProjectCommand,
     convertCommand,
     pandocCommand,

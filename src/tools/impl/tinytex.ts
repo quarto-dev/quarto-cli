@@ -30,7 +30,7 @@ import {
 import { getLatestRelease } from "../github.ts";
 import { hasTinyTex, tinyTexInstallDir } from "./tinytex-info.ts";
 import { copyTo } from "../../core/copy.ts";
-import { getenv, suggestUserBinPaths } from "../../core/env.ts";
+import { suggestUserBinPaths } from "../../core/env.ts";
 
 import { ensureDirSync } from "fs/mod.ts";
 
@@ -50,10 +50,6 @@ const kPackageMaximal = "TinyTeX"; // Compiles 80% of documents
 
 // The name of the file that we use to store the installed version
 const kVersionFileName = "version";
-
-const addTexLiveToPath = () => {
-  return getenv("QUARTO_TINYTEX_ADD_BIN", "false").toLowerCase() === "true";
-};
 
 export const tinyTexInstallable: InstallableTool = {
   name: "TinyTeX",
