@@ -48,6 +48,12 @@ function theorems()
         local label = el.attr.identifier
         local order = indexNextOrder(type)
         indexAddEntry(label, nil, order, name)
+        
+        -- If this theorem has no content, then create a placeholder
+        if #el.content == 0 or el.content[1].t ~= "Para" then
+          print("PLACEHOLDER NEEDED")
+          tprepend(el.content, {pandoc.Para({pandoc.Str '\u{a0}'})})
+        end
       
         if _quarto.format.isLatexOutput() then
           local preamble = pandoc.Para(pandoc.RawInline("latex", 
@@ -75,11 +81,6 @@ function theorems()
             tappend(prefix, name)
             table.insert(prefix, pandoc.Str(")"))
             table.insert(prefix, pandoc.Space())
-          end
-
-          -- If this theorem has no content, then create a placeholder
-          if #el.content == 0 or el.content[1].t ~= "Para" then
-            tprepend(el.content, {pandoc.Para({})})
           end
 
           -- prepend the prefix
