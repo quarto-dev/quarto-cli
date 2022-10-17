@@ -1,4 +1,5 @@
 //TODO Resource bundles
+
 //TODO replace "magic strings" and "k"s
 
 import { join } from "path/mod.ts";
@@ -48,6 +49,7 @@ import {
   buildPublishRecord,
   doWithSpinner,
   getNextVersion,
+  writeTokenComparator,
 } from "./confluence-helper.ts";
 
 import {
@@ -136,7 +138,7 @@ const promptAndAuthorizeToken = async () => {
   writeAccessToken<AccountToken>(
     CONFLUENCE_ID,
     accountToken,
-    (a, b) => a.server === a.server && a.name === b.name
+    writeTokenComparator
   );
 
   return Promise.resolve(accountToken);

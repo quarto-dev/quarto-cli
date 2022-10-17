@@ -149,3 +149,8 @@ export const getNextVersion = (previousPage: Content): ContentVersion => {
     number: previousNumber + 1,
   };
 };
+
+export const writeTokenComparator = (
+  a: AccountToken,
+  b: AccountToken
+): boolean => a.server === b.server && a.name === b.name;

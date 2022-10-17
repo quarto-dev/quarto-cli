@@ -7,29 +7,26 @@ import { unitTest } from "../test.ts";
 import { assertEquals, assertThrows } from "testing/asserts.ts";
 
 import {
+  buildPublishRecord,
+  confluenceParentFromString,
+  getMessageFromAPIError,
+  getNextVersion,
   isNotFound,
   isUnauthorized,
-  transformAtlassianDomain,
-  getMessageFromAPIError,
   tokenFilterOut,
+  transformAtlassianDomain,
   validateEmail,
   validateServer,
   validateToken,
-  confluenceParentFromString,
   wrapBodyForConfluence,
-  buildPublishRecord,
-  getNextVersion,
+  writeTokenComparator,
 } from "../../src/publish/confluence/confluence-helper.ts";
 import { ApiError, PublishRecord } from "../../src/publish/types.ts";
-import { AccountTokenType } from "../../src/publish/provider.ts";
+import { AccountToken, AccountTokenType } from "../../src/publish/provider.ts";
 import {
   ConfluenceParent,
   Content,
-  ContentAncestor,
-  ContentBody,
-  ContentStatus,
   ContentVersion,
-  Space,
 } from "../../src/publish/confluence/api/types.ts";
 
 const buildFakeContent = (): Content => {
@@ -332,3 +329,107 @@ const runGetNextVersionTests = () => {
   });
 };
 runGetNextVersionTests();
+
+const runWriteTokenComparator = () => {
+  const suiteLabel = (label: string) => `WriteTokenComparator_${label}`;
+
+  const check = (
+    aToken: AccountToken,
+    bToken: AccountToken,
+    expected: boolean
+  ) => {
+    const actual = writeTokenComparator(aToken, bToken);
+    assertEquals(expected, actual);
+  };
+
+  unitTest(suiteLabel("allNotEqual"), async () => {
+    check(
+      {
+        server: "a-server",
+        name: "a-name",
+        type: AccountTokenType.Authorized,
+        token: "fake-token-a",
+      },
+      {
+        server: "b-server",
+        name: "b-name",
+        type: AccountTokenType.Environment,
+        token: "fake-token-b",
+      },
+      false
+    );
+  });
+
+  unitTest(suiteLabel("nameNotEqual"), async () => {
+    check(
+      {
+        server: "a-server",
+        name: "different-a-name",
+        type: AccountTokenType.Authorized,
+        token: "fake-token-a",
+      },
+      {
+        server: "a-server",
+        name: "a-name",
+        type: AccountTokenType.Authorized,
+        token: "fake-token-a",
+      },
+      false
+    );
+  });
+
+  unitTest(suiteLabel("serverNotEqual"), async () => {
+    check(
+      {
+        server: "different-a-server",
+        name: "a-name",
+        type: AccountTokenType.Authorized,
+        token: "fake-token-a",
+      },
+      {
+        server: "a-server",
+        name: "a-name",
+        type: AccountTokenType.Authorized,
+        token: "fake-token-a",
+      },
+      false
+    );
+  });
+
+  unitTest(suiteLabel("typeNotEqual"), async () => {
+    check(
+      {
+        server: "a-server",
+        name: "a-name",
+        type: AccountTokenType.Environment,
+        token: "fake-token-a",
+      },
+      {
+        server: "a-server",
+        name: "a-name",
+        type: AccountTokenType.Authorized,
+        token: "fake-token-a",
+      },
+      true
+    );
+  });
+
+  unitTest(suiteLabel("tokenNotEqual"), async () => {
+    check(
+      {
+        server: "a-server",
+        name: "a-name",
+        type: AccountTokenType.Authorized,
+        token: "differet-fake-token-a",
+      },
+      {
+        server: "a-server",
+        name: "a-name",
+        type: AccountTokenType.Authorized,
+        token: "fake-token-a",
+      },
+      true
+    );
+  });
+};
+runWriteTokenComparator();
