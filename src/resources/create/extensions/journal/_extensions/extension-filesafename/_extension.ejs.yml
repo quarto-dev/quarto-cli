@@ -5,43 +5,24 @@ quarto-required: ">=<%= quartoversion %>"
 contributes:
   formats:
     common:
-      # define below YAML configuration common to all formats
+      # YAML configuration common to all formats
       filters:
-        # You can include here Lua filters from your extension format
-        - color-text.lua
-      shortcodes:
-        # You can include here Lua filters defining shortcodes from your extension
-        - shortcodes.lua
+        # Lua filters may be needed to form proper output
+        - <%= filesafename %>.lua
       execute:
         echo: false
     pdf:
       # define default configuration for the pdf version of your format
-      documentclass: aft
-      colorlinks: true
-      urlcolor: red
       fig-width: 6.5
       fig-height: 4.5
-      # This format use a bst file with natbib
-      biblio-style: te
-      cite-method: natbib
-      # Set this below (`biblio-config: false`) if your cls already load a bst file
-      # biblio-config: false
       # Content to add in header that your format is using
       header-includes: |
         \usepackage{orcidlink}
-        \definecolor{mypink}{RGB}{219, 48, 122}
       template-partials:
-        # Add here the partials your format is using
+        # Replace portions of the underlying LaTeX template with custom version
         - "partials/title.tex"
         - "partials/_authors.tex"
-      format-resources:
-        # Add here the resources required for the PDF rendering
-        - aft.cls
-        - te.bst
     html:
       # define default configuration for the html version of your format
       number-sections: true
       toc: true
-      theme: custom.scss
-      # Use a CSL file to style (https://www.zotero.org/styles/)
-      csl: https://www.zotero.org/styles/journal-of-institutional-and-theoretical-economics
