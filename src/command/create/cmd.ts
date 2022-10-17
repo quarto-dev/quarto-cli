@@ -284,10 +284,10 @@ const resolveEditor = async (createResult: CreateResult, editor?: string) => {
 
       // Add an option to not open
       const options = [...editorOptions, {
-        name: "do not open",
+        name: "(don't open)",
         value: "do not open",
       }];
-      const name = await promptSelect("Open with", options);
+      const name = await promptSelect("Open With", options);
 
       // Return the matching editor (if any)
       const selectedEditor = editors.find((edit) => edit.name === name);
