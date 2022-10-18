@@ -4,11 +4,13 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
+
 import { projectArtifactCreator } from "./artifacts/project.ts";
+import { kEditorInfos, scanForEditors } from "./editor.ts";
+import { extensionArtifactCreator } from "./artifacts/extension.ts";
 
 import { isInteractiveTerminal } from "../../core/platform.ts";
 import { runningInCI } from "../../core/ci-info.ts";
-import { kEditorInfos, scanForEditors } from "./editor.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 import {
@@ -17,9 +19,8 @@ import {
   Select,
   SelectValueOptions,
 } from "cliffy/prompt/mod.ts";
-import { info } from "log/mod.ts";
 import { readLines } from "io/mod.ts";
-import { extensionArtifactCreator } from "./artifacts/extension.ts";
+import { info } from "log/mod.ts";
 
 export interface CreateContext {
   cwd: string;
