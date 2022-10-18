@@ -7,25 +7,19 @@
 
 import { ArtifactCreator, CreateContext, CreateDirective } from "../cmd.ts";
 
-import { Input, Select } from "cliffy/prompt/mod.ts";
-import { resourcePath } from "../../../core/resources.ts";
 import { copyMinimal } from "../../../core/copy.ts";
-import {
-  basename,
-  dirname,
-  extname,
-} from "../../../vendor/deno.land/std@0.153.0/path/win32.ts";
-import { capitalizeTitle } from "../../../core/text.ts";
-import { quartoConfig } from "../../../core/quarto.ts";
 import { renderEjs } from "../../../core/ejs.ts";
-
-import { ensureDirSync, walkSync } from "fs/mod.ts";
-import { coerce } from "semver/mod.ts";
-import { join, relative } from "path/mod.ts";
-import { execProcess } from "../../../core/process.ts";
-
-import { info } from "log/mod.ts";
 import { gfmAutoIdentifier } from "../../../core/pandoc/pandoc-id.ts";
+import { execProcess } from "../../../core/process.ts";
+import { quartoConfig } from "../../../core/quarto.ts";
+import { resourcePath } from "../../../core/resources.ts";
+import { capitalizeTitle } from "../../../core/text.ts";
+
+import { Input, Select } from "cliffy/prompt/mod.ts";
+import { ensureDirSync, walkSync } from "fs/mod.ts";
+import { info } from "log/mod.ts";
+import { basename, dirname, extname, join, relative } from "path/mod.ts";
+import { coerce } from "semver/mod.ts";
 
 const kType = "type";
 const kSubType = "subtype";
