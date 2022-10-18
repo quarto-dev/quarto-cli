@@ -28,10 +28,8 @@ import { AccountToken, AccountTokenType } from "../../src/publish/provider.ts";
 import {
   ConfluenceParent,
   Content,
-  ContentAncestor,
   ContentBody,
   ContentCreate,
-  ContentStatus,
   ContentStatusEnum,
   ContentVersion,
   PAGE_TYPE,
@@ -505,7 +503,6 @@ const runBuildContentCreate = () => {
         },
       },
     };
-    const fakeTitle = "fake-title";
     const fakeSpace: Space = {
       key: "fake-space-key",
     };
@@ -516,9 +513,53 @@ const runBuildContentCreate = () => {
       },
     };
     const actual: ContentCreate = buildContentCreate(
-      fakeTitle,
+      "fake-title",
       fakeSpace,
       fakeBody
+    );
+
+    assertEquals(expected, actual);
+  });
+
+  unitTest(suiteLabel("allParams"), async () => {
+    const expected: ContentCreate = {
+      id: "fake-id",
+      title: "fake-title",
+      type: "fake-type",
+      space: {
+        key: "fake-space-key",
+      },
+      status: ContentStatusEnum.deleted,
+      ancestors: [
+        {
+          id: "fake-parent",
+        },
+      ],
+      body: {
+        storage: {
+          value: "fake-value",
+          representation: "storage",
+        },
+      },
+    };
+
+    const fakeSpace: Space = {
+      key: "fake-space-key",
+    };
+    const fakeBody: ContentBody = {
+      storage: {
+        value: "fake-value",
+        representation: "storage",
+      },
+    };
+    const actual: ContentCreate = buildContentCreate(
+      "fake-title",
+      fakeSpace,
+      fakeBody,
+      "fake-parent",
+      ContentStatusEnum.deleted,
+      "fake-id",
+      "fake-type"
     );
 
     assertEquals(expected, actual);
