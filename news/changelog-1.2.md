@@ -214,4 +214,5 @@
 - Support custom Lua writers in YAML front matter (#2687)
 - Better error message with inadvertent `!` in YAML strings (#2808)
 - More precise underlining of YAML validation errors (#2681)
+- When converting raw html tables to pdf, use all tables generated (#2615)
 - Fix theorem (thm, def, ...) environments in all formats (#2866)
