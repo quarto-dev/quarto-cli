@@ -56,31 +56,33 @@ export async function archiveBinaryDependency(
       architectureDependency.windows,
     ];
     for (const platformDep of platformDeps) {
-      const dependencyAwsPath =
-        `${kBucket}/${dependencyBucketPath}/${platformDep.filename}`;
-      const response = await s3cmd("ls", [dependencyAwsPath]);
-      if (!response) {
-        // This dependency doesn't exist, archive it
-        info(
-          `Archiving ${dependencyBucketPath} - ${platformDep.filename}`,
-        );
+      if (platformDep) {
+        const dependencyAwsPath =
+          `${kBucket}/${dependencyBucketPath}/${platformDep.filename}`;
+        const response = await s3cmd("ls", [dependencyAwsPath]);
+        if (!response) {
+          // This dependency doesn't exist, archive it
+          info(
+            `Archiving ${dependencyBucketPath} - ${platformDep.filename}`,
+          );
 
-        // Download the file
-        const localPath = await download(
-          workingDir,
-          platformDep,
-        );
+          // Download the file
+          const localPath = await download(
+            workingDir,
+            platformDep,
+          );
 
-        // Sync to S3
-        info(`Copying to ${dependencyAwsPath}\n`);
-        await s3cmd("cp", [
-          localPath,
-          dependencyAwsPath,
-          "--acl",
-          "public-read",
-        ]);
-      } else {
-        info(`${dependencyAwsPath} already archived.`);
+          // Sync to S3
+          info(`Copying to ${dependencyAwsPath}\n`);
+          await s3cmd("cp", [
+            localPath,
+            dependencyAwsPath,
+            "--acl",
+            "public-read",
+          ]);
+        } else {
+          info(`${dependencyAwsPath} already archived.`);
+        }
       }
     }
   };

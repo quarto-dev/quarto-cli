@@ -21,11 +21,9 @@ export function esBuild(version: string): Dependency {
       url:
         `https://registry.npmjs.org/esbuild-${platformstr}/-/esbuild-${platformstr}-${version}.tgz`,
       configure: async (path: string) => {
-
         const file = Deno.build.os === "windows" ? "esbuild.exe" : "esbuild";
         const vendor = Deno.env.get("QUARTO_VENDOR_BINARIES");
         if (vendor === undefined || vendor === "true") {
-
           // Remove existing dir
           const dir = dirname(path);
 
@@ -73,6 +71,9 @@ export function esBuild(version: string): Dependency {
         "windows": esBuildRelease("windows-64"),
         "linux": esBuildRelease("linux-64"),
         "darwin": esBuildRelease("darwin-64"),
+      },
+      "arm64": {
+        "linux": esBuildRelease("linux-arm64"),
       },
     },
   };
