@@ -7,6 +7,7 @@ import { unitTest } from "../test.ts";
 import { assertEquals, assertThrows } from "testing/asserts.ts";
 
 import {
+  buildContentCreate,
   buildPublishRecord,
   confluenceParentFromString,
   filterFilesForUpdate,
@@ -27,7 +28,14 @@ import { AccountToken, AccountTokenType } from "../../src/publish/provider.ts";
 import {
   ConfluenceParent,
   Content,
+  ContentAncestor,
+  ContentBody,
+  ContentCreate,
+  ContentStatus,
+  ContentStatusEnum,
   ContentVersion,
+  PAGE_TYPE,
+  Space,
 } from "../../src/publish/confluence/api/types.ts";
 
 const buildFakeContent = (): Content => {
@@ -476,3 +484,44 @@ const runFilterFilesForUpdate = () => {
   });
 };
 runFilterFilesForUpdate();
+
+const runBuildContentCreate = () => {
+  const suiteLabel = (label: string) => `BuildContentCreate_${label}`;
+
+  unitTest(suiteLabel("minParams"), async () => {
+    const expected: ContentCreate = {
+      id: null,
+      title: "fake-title",
+      type: PAGE_TYPE,
+      space: {
+        key: "fake-space-key",
+      },
+      status: ContentStatusEnum.current,
+      ancestors: null,
+      body: {
+        storage: {
+          value: "fake-value",
+          representation: "storage",
+        },
+      },
+    };
+    const fakeTitle = "fake-title";
+    const fakeSpace: Space = {
+      key: "fake-space-key",
+    };
+    const fakeBody: ContentBody = {
+      storage: {
+        value: "fake-value",
+        representation: "storage",
+      },
+    };
+    const actual: ContentCreate = buildContentCreate(
+      fakeTitle,
+      fakeSpace,
+      fakeBody
+    );
+
+    assertEquals(expected, actual);
+  });
+};
+runBuildContentCreate();

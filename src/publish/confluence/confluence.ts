@@ -17,47 +17,50 @@ import {
   PublishProvider,
 } from "../provider.ts";
 
-import { ApiError, PublishOptions, PublishRecord } from "../types.ts";
+import { PublishOptions, PublishRecord } from "../types.ts";
 import { ConfluenceClient } from "./api/index.ts";
 import {
   ConfluenceParent,
+  ConfluenceSpaceChange,
   Content,
+  ContentAncestor,
   ContentBody,
+  ContentCreate,
+  ContentStatus,
   ContentStatusEnum,
   ContentUpdate,
   PAGE_TYPE,
   PublishRenderer,
   PublishType,
   PublishTypeEnum,
+  Space,
+  SpaceChangeType,
 } from "./api/types.ts";
-import { ensureTrailingSlash } from "../../core/path.ts";
 import { withSpinner } from "../../core/console.ts";
 import {
+  buildPublishRecord,
+  confluenceParentFromString,
+  doWithSpinner,
+  filterFilesForUpdate,
+  getNextVersion,
+  isContentCreate,
   isNotFound,
   isUnauthorized,
-  transformAtlassianDomain,
-  getMessageFromAPIError,
   tokenFilterOut,
+  transformAtlassianDomain,
   validateEmail,
+  validateParentURL,
   validateServer,
   validateToken,
-  validateParentURL,
-  confluenceParentFromString,
   wrapBodyForConfluence,
-  buildPublishRecord,
-  doWithSpinner,
-  getNextVersion,
   writeTokenComparator,
-  isProjectContext,
 } from "./confluence-helper.ts";
 
 import {
   verifyAccountToken,
-  verifyLocation,
   verifyConfluenceParent,
+  verifyLocation,
 } from "./confluence-verify.ts";
-
-import { ProjectContext } from "../../project/types.ts";
 
 export const CONFLUENCE_ID = "confluence";
 
@@ -282,8 +285,80 @@ async function publish(
   const publishSite = async (): Promise<[PublishRecord, URL | undefined]> => {
     const publishFiles: PublishFiles = await renderSite(render);
     console.log("publishFiles", publishFiles);
+    const filteredFiles: string[] = filterFilesForUpdate(publishFiles.files);
+
+    const buildSpaceChangesForFiles = (
+      fileList: string[],
+      baseDir: string
+    ): ConfluenceSpaceChange[] => {
+      console.log("buildSiteOperationsForFiles");
+      console.log("fileList", fileList);
+      console.log("baseDir", baseDir);
+
+      const spaceChangesCallback = (
+        accumulatedChanges: ConfluenceSpaceChange[],
+        currentFileName: string
+      ): ConfluenceSpaceChange[] => {
+        console.log("accumulatedChanges", accumulatedChanges);
+        console.log("currentFileName", currentFileName);
+
+        // Load content
+        const body: ContentBody = loadDocument(baseDir, currentFileName);
+        console.log("body", body);
+        // TODO extract to buildContent(withDefaults)
+        const content = {
+          id: null,
+          title: currentFileName, // FIXME How do I get the title?
+          type: PAGE_TYPE,
+          space,
+          status: ContentStatusEnum.current, //TODO default this
+          ancestors: parent?.parent ? [{ id: parent.parent }] : null, //TODO extract to helper
+          body,
+        };
+
+        const spaceChange: ConfluenceSpaceChange = {
+          type: SpaceChangeType.create, //TODO type based on content type so ConfluenceSpaceChange = ContentCreate | ContentUpdate
+          content,
+        };
+
+        return [...accumulatedChanges, spaceChange];
+      };
+
+      const spaceChanges: ConfluenceSpaceChange[] = fileList.reduce(
+        spaceChangesCallback,
+        []
+      );
+
+      return spaceChanges;
+    };
+
+    const changeList: ConfluenceSpaceChange[] = buildSpaceChangesForFiles(
+      filteredFiles,
+      publishFiles.baseDir
+    );
+
+    const promisesFromSpaceChanges = (
+      changeList: ConfluenceSpaceChange[]
+    ): Promise<Content>[] => {
+      return changeList.map(async (change: ConfluenceSpaceChange) => {
+        console.log("change.content", change.content);
+        return await client.createContent(change.content as ContentCreate);
+      });
+    };
+
+    const changePromiseList: Promise<Content>[] =
+      promisesFromSpaceChanges(changeList);
+
+    console.log("changeList.length", changeList.length);
+    console.log("changePromiseList.length", changePromiseList.length);
+    await Promise.all(changePromiseList);
+
+    //TODO create a promise list
     //TODO publishing with all create from empty
+
+    //TODO only update if changed
     //TODO Diff existing
+    //TODO create Publish Record
 
     throw new Error("Confluence site publishing not implemented");
   };

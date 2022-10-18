@@ -7,8 +7,13 @@ import {
   Content,
   ContentBody,
   ContentBodyRepresentation,
+  ContentCreate,
+  ContentStatusEnum,
+  ContentUpdate,
   ContentVersion,
   EMPTY_PARENT,
+  PAGE_TYPE,
+  Space,
 } from "./api/types.ts";
 import { withSpinner } from "../../core/console.ts";
 import { ProjectContext } from "../../project/types.ts";
@@ -177,4 +182,30 @@ export const filterFilesForUpdate = (allFiles: string[]): string[] => {
   };
   const result: string[] = allFiles.filter(fileFilter);
   return result;
+};
+
+export const isContentCreate = (
+  content: ContentCreate | ContentUpdate
+): content is ContentCreate => {
+  return (content as ContentCreate).id !== undefined;
+};
+
+export const buildContentCreate = (
+  title: string | null,
+  space: Space,
+  body: ContentBody,
+  parent?: string,
+  status: ContentStatusEnum = ContentStatusEnum.current,
+  id: string | null = null,
+  type: string = PAGE_TYPE
+): ContentCreate => {
+  return {
+    id,
+    title,
+    type,
+    space,
+    status,
+    ancestors: parent ? [{ id: parent }] : null,
+    body,
+  };
 };
