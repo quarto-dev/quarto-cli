@@ -100,7 +100,7 @@ export const createCommand = new Command()
         open?: string | boolean;
       },
       type?: string,
-      commands?: string[],
+      ...commands: string[]
     ) => {
       if (options.json) {
         await createFromStdin();
@@ -122,7 +122,7 @@ export const createCommand = new Command()
           // If we aliased the type, shift the args (including what was
           // the type alias in the list of args for the artifact creator
           // to resolve)
-          const args = commands || [];
+          const args = commands;
 
           const commandOpts = resolvedArtifact.resolveOptions(args);
           const createOptions = {
