@@ -7,24 +7,19 @@
 
 import { ArtifactCreator, CreateContext, CreateDirective } from "../cmd.ts";
 
-import { Input, Select } from "cliffy/prompt/mod.ts";
-import { resourcePath } from "../../../core/resources.ts";
 import { copyMinimal } from "../../../core/copy.ts";
-import {
-  basename,
-  dirname,
-  extname,
-} from "../../../vendor/deno.land/std@0.153.0/path/win32.ts";
-import { capitalizeTitle } from "../../../core/text.ts";
-import { quartoConfig } from "../../../core/quarto.ts";
 import { renderEjs } from "../../../core/ejs.ts";
-
-import { ensureDirSync, walkSync } from "fs/mod.ts";
-import { coerce } from "semver/mod.ts";
-import { join, relative } from "path/mod.ts";
+import { gfmAutoIdentifier } from "../../../core/pandoc/pandoc-id.ts";
 import { execProcess } from "../../../core/process.ts";
+import { quartoConfig } from "../../../core/quarto.ts";
+import { resourcePath } from "../../../core/resources.ts";
+import { capitalizeTitle } from "../../../core/text.ts";
 
+import { Input, Select } from "cliffy/prompt/mod.ts";
+import { ensureDirSync, walkSync } from "fs/mod.ts";
 import { info } from "log/mod.ts";
+import { basename, dirname, extname, join, relative } from "path/mod.ts";
+import { coerce } from "semver/mod.ts";
 
 const kType = "type";
 const kSubType = "subtype";
@@ -289,6 +284,9 @@ async function createExtension(
   // so that all files, renames, and so on will be completed
   // (since some paths will be variables that are resolved at the very end)
   if (!quiet) {
+    info(`Creating extension at `, { newline: false });
+    info(`${createDirective.directory}`, { bold: true, newline: false });
+    info(":");
     for (const walk of walkSync(target)) {
       if (walk.isFile) {
         info(
@@ -348,11 +346,9 @@ async function ejsData(
 ): Promise<CreateDirectiveData> {
   // Name variants
   const title = capitalizeTitle(createDirective.name);
+
   const classname = title.replaceAll(/[^\w]/gm, "");
-  const filesafename = createDirective.name.replaceAll(
-    /[^\w]/gm,
-    "-",
-  );
+  const filesafename = gfmAutoIdentifier(createDirective.name, true);
 
   // Other metadata
   const version = "1.0.0";

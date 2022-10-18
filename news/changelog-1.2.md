@@ -158,6 +158,7 @@
 
 - Italian translation for Quarto UI text
 - Polish translation for Quarto UI text
+- Korean translation for Quarto UI text
 
 ## Listing and Feeds
 
