@@ -12,4 +12,4 @@ date: last-modified
 
 ## More Information
 
-You can learn more about controlling the appearance of HTML output here: <https://quarto.org/docs/output-formats/html-basics.html#overview>
+You can learn more about controlling the appearance of HTML output here: <https://quarto.org/docs/output-formats/html-basics.html>

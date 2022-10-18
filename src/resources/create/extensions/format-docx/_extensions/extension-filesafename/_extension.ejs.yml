@@ -5,4 +5,5 @@ quarto-required: ">=<%= quartoversion %>"
 contributes:
   formats:
     docx:
+      # See https://quarto.org/docs/output-formats/ms-word-templates.html
       reference-doc: <%= filesafename %>.docx

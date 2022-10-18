@@ -24,6 +24,8 @@ import { coerce } from "semver/mod.ts";
 import { join, relative } from "path/mod.ts";
 import { execProcess } from "../../../core/process.ts";
 
+import { info } from "log/mod.ts";
+
 const kType = "type";
 const kSubType = "subtype";
 const kName = "name";
@@ -37,14 +39,13 @@ interface ExtensionType {
 }
 
 const kExtensionTypes: Array<string | ExtensionType> = [
-  { name: "filter", value: "filter", openfiles: ["example.qmd"] },
   { name: "shortcode", value: "shortcode", openfiles: ["example.qmd"] },
+  { name: "filter", value: "filter", openfiles: ["example.qmd"] },
   {
     name: "revealjs plugin",
     value: "revealjs-plugin",
     openfiles: ["example.qmd"],
   },
-  "---",
   { name: "journal format", value: "journal", openfiles: ["template.qmd"] },
   { name: "custom format", value: "format", openfiles: ["example.qmd"] },
 ];
@@ -184,7 +185,7 @@ function typeFromTemplate(template: string) {
 
 async function createArtifact(
   createDirective: CreateDirective,
-  _quiet?: boolean,
+  quiet?: boolean,
 ) {
   // Find the type using the template
   const createType = typeFromTemplate(createDirective.template);
@@ -198,7 +199,7 @@ async function createArtifact(
   const openfiles = extType ? (extType as ExtensionType).openfiles : [];
 
   // Create the extension
-  await createExtension(createDirective);
+  await createExtension(createDirective, quiet);
 
   return {
     path: createDirective.directory,
@@ -206,7 +207,10 @@ async function createArtifact(
   };
 }
 
-async function createExtension(createDirective: CreateDirective) {
+async function createExtension(
+  createDirective: CreateDirective,
+  quiet?: boolean,
+) {
   // The folder for this extension
   const artifact = templateFolder(createDirective);
 
@@ -279,6 +283,19 @@ async function createExtension(createDirective: CreateDirective) {
 
   for (const folder of pathsToRename) {
     Deno.renameSync(folder.from, folder.to);
+  }
+
+  // Provide status - wait until the end
+  // so that all files, renames, and so on will be completed
+  // (since some paths will be variables that are resolved at the very end)
+  if (!quiet) {
+    for (const walk of walkSync(target)) {
+      if (walk.isFile) {
+        info(
+          `  - Created ${relative(createDirective.directory, walk.path)}`,
+        );
+      }
+    }
   }
 }
 

@@ -81,7 +81,7 @@ interface ScanAction {
 function vscodeEditorInfo(): EditorInfo {
   const editorInfo: EditorInfo = {
     id: "vscode",
-    name: "Visual Studio Code",
+    name: "vscode",
     open: (path: string, createResult: CreateResult) => {
       const artifactPath = createResult.path;
       const cwd = Deno.statSync(artifactPath).isDirectory
