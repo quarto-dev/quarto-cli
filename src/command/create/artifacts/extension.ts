@@ -284,6 +284,9 @@ async function createExtension(
   // so that all files, renames, and so on will be completed
   // (since some paths will be variables that are resolved at the very end)
   if (!quiet) {
+    info(`Creating extension at `, { newline: false });
+    info(`${createDirective.directory}`, { bold: true, newline: false });
+    info(":");
     for (const walk of walkSync(target)) {
       if (walk.isFile) {
         info(
