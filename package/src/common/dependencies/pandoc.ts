@@ -28,7 +28,7 @@ export function pandoc(version: string): Dependency {
         const pandocSubdir = join(dir, `pandoc-${version}`);
         const vendor = Deno.env.get("QUARTO_VENDOR_BINARIES");
         if (vendor === undefined || vendor === "true") {
-         // Clean pandoc interim dir
+          // Clean pandoc interim dir
           if (existsSync(pandocSubdir)) {
             Deno.removeSync(pandocSubdir, { recursive: true });
           }
@@ -85,6 +85,12 @@ export function pandoc(version: string): Dependency {
         ),
         "darwin": pandocRelease(
           `pandoc-${version}-macOS.zip`,
+          "pandoc",
+        ),
+      },
+      "arm64": {
+        "linux": pandocRelease(
+          `pandoc-${version}-linux-arm64.zip`,
           "pandoc",
         ),
       },

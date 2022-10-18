@@ -37,9 +37,9 @@ export interface Dependency {
 // Defines the specific Platform dependencies for
 // a given architecture
 export interface ArchitectureDependency {
-  "darwin": PlatformDependency;
-  "linux": PlatformDependency;
-  "windows": PlatformDependency;
+  "darwin"?: PlatformDependency;
+  "linux"?: PlatformDependency;
+  "windows"?: PlatformDependency;
 }
 
 // Defines an individual binary dependency, specific
@@ -74,7 +74,7 @@ export async function configureDependency(
     const platformDep = archDep[Deno.build.os];
     const vendor = Deno.env.get("QUARTO_VENDOR_BINARIES");
     let targetFile = "";
-    if (vendor === undefined || vendor === "true") {
+    if (platformDep && (vendor === undefined || vendor === "true")) {
       info(`Downloading ${dependency.name}`);
 
       try {
@@ -90,8 +90,10 @@ export async function configureDependency(
       }
     }
 
-    info(`Configuring ${dependency.name}`);
-    await platformDep.configure(targetFile);
+    if (platformDep) {
+      info(`Configuring ${dependency.name}`);
+      await platformDep.configure(targetFile);
+    }
 
     if (targetFile) {
       info(`Cleaning up`);
