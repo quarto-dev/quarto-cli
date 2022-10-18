@@ -427,7 +427,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   nexttick(() => {
     let lastBottom = 0;
     for (const marginChild of marginChildren) {
-      const top = marginChild.getBoundingClientRect().top;
+      const top = marginChild.getBoundingClientRect().top + window.scrollY;
       if (top < lastBottom) {
         const margin = lastBottom - top;
         marginChild.style.marginTop = `${margin}px`;

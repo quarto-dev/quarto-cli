@@ -54,7 +54,7 @@ function tableRenderRawHtml()
           if tableBegin then
             local tableHtml = tableBegin .. "\n" .. tableBody .. "\n" .. tableEnd
             local tableDoc = pandoc.read(tableHtml, "html")
-            return tableDoc.blocks[1]
+            return tableDoc.blocks
           end
         end
       end
