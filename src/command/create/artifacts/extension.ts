@@ -5,7 +5,9 @@
 *
 */
 
-import { ArtifactCreator, CreateContext, CreateDirective } from "../cmd.ts";
+import { ArtifactCreator, CreateContext } from "../cmd.ts";
+
+import { CreateDirective } from "./artifact-shared.ts";
 
 import { copyMinimal } from "../../../core/copy.ts";
 import { renderEjs } from "../../../core/ejs.ts";
@@ -118,6 +120,7 @@ function finalizeOptions(createOptions: CreateContext) {
 
   // Provide a directory and title
   return {
+    displayType: "extension",
     name: createOptions.options[kName],
     directory: join(
       createOptions.cwd,
