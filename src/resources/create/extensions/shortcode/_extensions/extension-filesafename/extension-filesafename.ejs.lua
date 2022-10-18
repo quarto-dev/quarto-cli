@@ -1,4 +1,5 @@
-<%= `
-function hello(args)
-  return pandoc.Str("Hello from ${title}!")
-end` %>
+return {
+  ['<%= filesafename %>'] = function(args, kwargs, meta) 
+    return pandoc.Str("Hello from ${title}!")
+  end
+}

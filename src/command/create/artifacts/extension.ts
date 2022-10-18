@@ -25,6 +25,7 @@ import { join, relative } from "path/mod.ts";
 import { execProcess } from "../../../core/process.ts";
 
 import { info } from "log/mod.ts";
+import { gfmAutoIdentifier } from "../../../core/pandoc/pandoc-id.ts";
 
 const kType = "type";
 const kSubType = "subtype";
@@ -348,11 +349,9 @@ async function ejsData(
 ): Promise<CreateDirectiveData> {
   // Name variants
   const title = capitalizeTitle(createDirective.name);
+
   const classname = title.replaceAll(/[^\w]/gm, "");
-  const filesafename = createDirective.name.replaceAll(
-    /[^\w]/gm,
-    "-",
-  );
+  const filesafename = gfmAutoIdentifier(createDirective.name, true);
 
   // Other metadata
   const version = "1.0.0";
