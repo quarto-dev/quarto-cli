@@ -136,6 +136,7 @@
 - Prevent website content from shifting when page first loads
 - Improve animation smoothness when expanding navbar in mobile mode (#1873)
 - Permit icons in top level navbar, if specified
+- Fix incorrect computation of the next and previous buttons after the first separator
 
 ## Books
 

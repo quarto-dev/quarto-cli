@@ -943,7 +943,7 @@ function nextAndPrevious(
     const sidebarItemsUniq = ld.uniqBy(
       sidebarItems,
       (sidebarItem: SidebarItem) => {
-        return sidebarItem.href;
+        return sidebarItem.href || Math.random().toString();
       },
     );
 
