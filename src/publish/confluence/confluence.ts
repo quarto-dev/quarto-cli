@@ -238,7 +238,7 @@ async function publish(
     return await client.updateContent(publishRecordId, toUpdate);
   };
 
-  const createContent = async (body: ContentBody): Promise<Content> => {
+  const checkAndReturnUniqueTitle = async (title: string) => {
     const titleAlreadyExistsInSpace: boolean = await client.isTitleInSpace(
       title,
       space
@@ -248,6 +248,11 @@ async function publish(
     const createTitle = titleAlreadyExistsInSpace
       ? `${title} ${generateUuid()}`
       : title;
+    return createTitle;
+  };
+
+  const createContent = async (body: ContentBody): Promise<Content> => {
+    const createTitle = await checkAndReturnUniqueTitle(title);
 
     const result = await client.createContent({
       id: null,

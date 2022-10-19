@@ -4,6 +4,7 @@ import { isHttpUrl } from "../../core/url.ts";
 import { AccountToken } from "../provider.ts";
 import {
   ConfluenceParent,
+  ConfluenceSpaceChange,
   Content,
   ContentBody,
   ContentBodyRepresentation,
@@ -17,6 +18,7 @@ import {
 } from "./api/types.ts";
 import { withSpinner } from "../../core/console.ts";
 import { ProjectContext } from "../../project/types.ts";
+import { capitalizeWord } from "../../core/text.ts";
 
 export const transformAtlassianDomain = (domain: string) => {
   return ensureTrailingSlash(
