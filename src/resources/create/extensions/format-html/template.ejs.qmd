@@ -1,5 +1,5 @@
 ---
-title: <%= title %> Document Example
+title: Untitled
 format:
   <%= name %>-html: default
 author: <%= author %>
