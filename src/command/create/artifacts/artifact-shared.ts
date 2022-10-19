@@ -37,9 +37,9 @@ export interface CreateDirectiveData extends Record<string, string> {
 
 // File paths that include this string will get fixed up
 // and the value from the ejs data will be substituted
-const keyRegExp = /^(.*)qstart-(.*)-qend(.*)$/gm;
+const keyRegExp = /(.*)qstart-(.*)-qend(.*)/;
 
-export function renderTemplate(
+export function renderAndCopyArtifacts(
   target: string,
   artifactSrcDir: string,
   createDirective: CreateDirective,
@@ -55,19 +55,24 @@ export function renderTemplate(
   const copiedFiles: string[] = [];
   for (const artifact of walkSync(artifactSrcDir)) {
     if (artifact.isFile) {
-      const targetFile = artifact.path.replaceAll(
-        keyRegExp,
-        (_match: string, prefix: string, key: string, suffix: string) => {
-          if (data[key]) {
-            return `${prefix}${data[key]}${suffix}`;
-          } else {
-            return artifact.path;
-          }
-        },
-      );
+      keyRegExp.lastIndex = 0;
+      let match = keyRegExp.exec(artifact.path);
+      let resolvedPath = artifact.path;
+      while (match) {
+        const prefix = match[1];
+        const key = match[2];
+        const suffix = match[3];
 
+        if (data[key]) {
+          resolvedPath = `${prefix}${data[key]}${suffix}`;
+        } else {
+          resolvedPath = `${prefix}${key}${suffix}`;
+        }
+        match = keyRegExp.exec(resolvedPath);
+      }
+      keyRegExp.lastIndex = 0;
       // Compute target paths
-      const targetRelativePath = relative(artifactSrcDir, targetFile);
+      const targetRelativePath = relative(artifactSrcDir, resolvedPath);
       const targetAbsolutePath = join(
         createDirective.directory,
         targetRelativePath,
@@ -108,7 +113,6 @@ const renderArtifact = (
   data: CreateDirectiveData,
 ) => {
   const srcFileName = basename(src);
-
   if (srcFileName.includes(".ejs.")) {
     // The target file name
     const renderTarget = target.replace(/\.ejs\./, ".");
@@ -128,7 +132,7 @@ const renderArtifact = (
     if (safeExistsSync(target)) {
       throw new Error(`The file ${target} already exists.`);
     }
-
+    ensureDirSync(dirname(target));
     Deno.copyFileSync(src, target);
     return target;
   }
