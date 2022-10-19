@@ -74,7 +74,7 @@ export interface ArtifactCreator {
 const kArtifactCreators: ArtifactCreator[] = [
   projectArtifactCreator,
   extensionArtifactCreator,
-  documentArtifactCreator,
+  // documentArtifactCreator, CT: Disabled for 1.2 as it arrived too late on the scene
 ];
 
 export const createCommand = new Command()

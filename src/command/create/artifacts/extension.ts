@@ -39,7 +39,7 @@ const kExtensionTypes: Array<string | ExtensionType> = [
     openfiles: ["example.qmd"],
   },
   { name: "journal format", value: "journal", openfiles: ["template.qmd"] },
-  { name: "custom format", value: "format", openfiles: ["example.qmd"] },
+  { name: "custom format", value: "format", openfiles: ["template.qmd"] },
 ];
 
 const kExtensionSubtypes: Record<string, string[]> = {
@@ -189,6 +189,9 @@ async function createArtifact(
       return false;
     }
   });
+  if (!extType) {
+    throw new Error(`Unrecognized extension type ${createType}`);
+  }
   const openfiles = extType ? (extType as ExtensionType).openfiles : [];
 
   // Create the extension
