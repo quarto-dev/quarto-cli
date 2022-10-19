@@ -5,7 +5,9 @@
 *
 */
 
-import { ArtifactCreator, CreateContext, CreateDirective } from "../cmd.ts";
+import { ArtifactCreator, CreateContext } from "../cmd.ts";
+
+import { CreateDirective } from "./artifact-shared.ts";
 
 import { capitalizeTitle } from "../../../core/text.ts";
 import { kMarkdownEngine } from "../../../execute/types.ts";
@@ -103,6 +105,7 @@ function finalizeOptions(createContext: CreateContext) {
     : resolved.type;
 
   return {
+    displayType: "project",
     name,
     directory,
     template,

@@ -6,11 +6,9 @@
 */
 
 import { execProcess } from "../../../src/core/process.ts";
-
 import { join } from "path/mod.ts";
-import { assert } from "testing/asserts.ts";
 import { CreateResult } from "../../../src/command/create/cmd.ts";
-import { ensureDirSync } from "fs/ensure_dir.ts";
+import { assert } from "testing/asserts.ts";
 
 const kCreateTypes: Record<string, string[]> = {
   "project": ["website", "default", "book", "website:blog"],
@@ -19,7 +17,10 @@ const kCreateTypes: Record<string, string[]> = {
     "shortcode",
     "revealjs-plugin",
     "journal",
-    "format-html",
+    "format:html",
+    "format:pdf",
+    "format:docx",
+    "format:revealjs",
   ],
 };
 
@@ -54,23 +55,29 @@ for (const type of Object.keys(kCreateTypes)) {
         if (process.stdout) {
           result = JSON.parse(process.stdout) as CreateResult;
         }
-        assert(process.success);
+        assert(process.success, process.stderr);
       });
 
       // Render the artifact
       await t.step(`> render ${type} ${template}`, async () => {
         const path = result!.path;
         const openfiles = result!.openfiles;
+        assert(
+          openfiles.length > 0,
+          `Artifact ${type} ${template} failed to produce any files to open.`,
+        );
+
         for (const file of openfiles) {
           if (file.endsWith(".qmd")) {
             // provide a step name and function
-            const cmd = ["quarto", "render", join(path, file)];
+            const cmd = ["quarto", "render", file];
             const process = await execProcess({
               cmd,
+              cwd: path,
               stdout: "piped",
               stderr: "piped",
             });
-            assert(process.success);
+            assert(process.success, process.stderr);
           }
         }
       });
