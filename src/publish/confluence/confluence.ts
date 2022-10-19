@@ -42,6 +42,7 @@ import {
   buildPublishRecord,
   confluenceParentFromString,
   doWithSpinner,
+  fileMetadataToSpaceChanges,
   filterFilesForUpdate,
   getNextVersion,
   isContentCreate,
@@ -204,14 +205,6 @@ async function publish(
   _options: PublishOptions,
   publishRecord?: PublishRecord
 ): Promise<[PublishRecord, URL | undefined]> {
-  console.log("publish");
-  console.log("type", type);
-  console.log("_input", _input);
-  console.log("title", title);
-  console.log("_slug", _slug);
-  console.log("_options", _options);
-  console.log("publishRecord", publishRecord);
-
   const client = new ConfluenceClient(account);
 
   let parentUrl: string = publishRecord?.url ?? (await promptForParentURL());
@@ -291,7 +284,7 @@ async function publish(
 
   const publishSite = async (): Promise<[PublishRecord, URL | undefined]> => {
     const publishFiles: PublishFiles = await renderSite(render);
-    console.log("publishFiles", publishFiles);
+
     const filteredFiles: string[] = filterFilesForUpdate(publishFiles.files);
 
     const assembleSiteFileMetadata = async (
@@ -322,47 +315,16 @@ async function publish(
       filteredFiles.map(assembleSiteFileMetadata)
     );
 
-    const fileMetadataToSpaceChanges = (
-      fileMetadataList: SiteFileMetadata[]
-    ): ConfluenceSpaceChange[] => {
-      console.log("fileMetadataToSpaceChanges");
-      console.log("fileMetadata", fileMetadataList);
-
-      const spaceChangesCallback = (
-        accumulatedChanges: ConfluenceSpaceChange[],
-        fileMetadata: SiteFileMetadata
-      ): ConfluenceSpaceChange[] => {
-        console.log("accumulatedChanges", accumulatedChanges);
-        console.log("fileMetadata", fileMetadata);
-
-        const content = buildContentCreate(
-          fileMetadata.title,
-          space,
-          fileMetadata.contentBody,
-          parent?.parent
-        );
-
-        const spaceChange: ConfluenceSpaceChange = content;
-
-        return [...accumulatedChanges, spaceChange];
-      };
-
-      const spaceChanges: ConfluenceSpaceChange[] = fileMetadataList.reduce(
-        spaceChangesCallback,
-        []
-      );
-
-      return spaceChanges;
-    };
-
-    const changeList: ConfluenceSpaceChange[] =
-      fileMetadataToSpaceChanges(fileMetadata);
+    const changeList: ConfluenceSpaceChange[] = fileMetadataToSpaceChanges(
+      fileMetadata,
+      parent,
+      space
+    );
 
     const promisesFromSpaceChanges = (
       changeList: ConfluenceSpaceChange[]
     ): Promise<Content>[] => {
       return changeList.map(async (change: ConfluenceSpaceChange) => {
-        console.log("change.content", change);
         return await client.createContent(change as ContentCreate);
       });
     };
@@ -370,8 +332,6 @@ async function publish(
     const changePromiseList: Promise<Content>[] =
       promisesFromSpaceChanges(changeList);
 
-    console.log("changeList.length", changeList.length);
-    console.log("changePromiseList.length", changePromiseList.length);
     await Promise.all(changePromiseList);
 
     //TODO refresh page

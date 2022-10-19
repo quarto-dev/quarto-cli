@@ -14,6 +14,7 @@ import {
   ContentVersion,
   EMPTY_PARENT,
   PAGE_TYPE,
+  SiteFileMetadata,
   Space,
 } from "./api/types.ts";
 import { withSpinner } from "../../core/console.ts";
@@ -210,4 +211,33 @@ export const buildContentCreate = (
     ancestors: parent ? [{ id: parent }] : null,
     body,
   };
+};
+
+export const fileMetadataToSpaceChanges = (
+  fileMetadataList: SiteFileMetadata[],
+  parent: ConfluenceParent,
+  space: Space
+): ConfluenceSpaceChange[] => {
+  const spaceChangesCallback = (
+    accumulatedChanges: ConfluenceSpaceChange[],
+    fileMetadata: SiteFileMetadata
+  ): ConfluenceSpaceChange[] => {
+    const content = buildContentCreate(
+      fileMetadata.title,
+      space,
+      fileMetadata.contentBody,
+      parent?.parent
+    );
+
+    const spaceChange: ConfluenceSpaceChange = content;
+
+    return [...accumulatedChanges, spaceChange];
+  };
+
+  const spaceChanges: ConfluenceSpaceChange[] = fileMetadataList.reduce(
+    spaceChangesCallback,
+    []
+  );
+
+  return spaceChanges;
 };
