@@ -32,7 +32,7 @@ jobs:
           r-version: "4.1.0"
 
       - name: Cache packages
-        uses: actions/cache@v1
+        uses: actions/cache@v3
         with:
           path: ${{ env.RENV_PATHS_ROOT }}
           key: ${{ runner.os }}-renv-${{ hashFiles('**/renv.lock') }}
@@ -47,7 +47,7 @@ jobs:
           popd
 
       - name: Set up Python
-        uses: actions/setup-python@v2.3.1
+        uses: actions/setup-python@v4
         with:
           python-version: "3.x"
           cache: "pip"
