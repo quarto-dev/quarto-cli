@@ -27,6 +27,7 @@ import { ApiError, PublishRecord } from "../../src/publish/types.ts";
 import { AccountToken, AccountTokenType } from "../../src/publish/provider.ts";
 import {
   ConfluenceParent,
+  ConfluenceSpaceChange,
   Content,
   ContentBody,
   ContentCreate,
@@ -566,3 +567,29 @@ const runBuildContentCreate = () => {
   });
 };
 runBuildContentCreate();
+
+// const runBuildSpaceChangesForFiles = () => {
+//   const suiteLabel = (label: string) => `BuildSpaceChangesForFiles_${label}`;
+//
+//   unitTest(suiteLabel("no files"), async () => {
+//     const expected: ConfluenceSpaceChange[] = [];
+//     const fakeSpace: Space = {
+//       key: "fake-space-key",
+//     };
+//     const fakeBody: ContentBody = {
+//       storage: {
+//         value: "fake-value",
+//         representation: "storage",
+//       },
+//     };
+//     const actual: ContentCreate = buildContentCreate(
+//       "fake-title",
+//       fakeSpace,
+//       fakeBody
+//     );
+//
+//     assertEquals(expected, actual);
+//   });
+//
+// };
+// runBiuldSpaceChangesForFiles();

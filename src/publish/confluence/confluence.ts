@@ -301,21 +301,31 @@ async function publish(
       return uniqueName;
     };
 
-    const namedFiles: string[] = await Promise.all(
+    const fileToContentBody = async (
+      fileName: string
+    ): Promise<ContentBody> => {
+      return loadDocument(publishFiles.baseDir, fileName);
+    };
+
+    const namedFileList: string[] = await Promise.all(
       filteredFiles.map(fileToName)
     );
 
-    console.log("namedFiles", namedFiles);
+    const contentBodyList: ContentBody[] = await Promise.all(
+      filteredFiles.map(fileToContentBody)
+    );
+
+    console.log("namedFiles", namedFileList);
 
     const buildSpaceChangesForFiles = (
       fileList: string[],
-      namedFiles: string[],
-      baseDir: string
+      namedFileList: string[],
+      contentBodyList: ContentBody[]
     ): ConfluenceSpaceChange[] => {
       console.log("buildSiteOperationsForFiles");
       console.log("fileList", fileList);
-      console.log("namedFiles", namedFiles);
-      console.log("baseDir", baseDir);
+      console.log("namedFileList", namedFileList);
+      console.log("contentBodyList", contentBodyList);
 
       const spaceChangesCallback = (
         accumulatedChanges: ConfluenceSpaceChange[],
@@ -324,21 +334,12 @@ async function publish(
       ): ConfluenceSpaceChange[] => {
         console.log("accumulatedChanges", accumulatedChanges);
         console.log("currentFileName", currentFileName);
-        console.log("namedFiles", namedFiles);
         console.log("index", index);
 
-        //FIXME replace with actual title
-        const titleFromFilename = capitalizeWord(
-          namedFiles[index] ?? currentFileName
-        );
-
-        // Load content
-        const body: ContentBody = loadDocument(baseDir, currentFileName);
-
         const content = buildContentCreate(
-          titleFromFilename,
+          namedFileList[index],
           space,
-          body,
+          contentBodyList[index],
           parent?.parent
         );
 
@@ -357,8 +358,8 @@ async function publish(
 
     const changeList: ConfluenceSpaceChange[] = buildSpaceChangesForFiles(
       filteredFiles,
-      namedFiles,
-      publishFiles.baseDir
+      namedFileList,
+      contentBodyList
     );
 
     const promisesFromSpaceChanges = (
@@ -377,12 +378,10 @@ async function publish(
     console.log("changePromiseList.length", changePromiseList.length);
     await Promise.all(changePromiseList);
 
-    //TODO create a promise list
-    //TODO publishing with all create from empty
-
+    //TODO refresh page
+    //TODO create Publish Record
     //TODO only update if changed
     //TODO Diff existing
-    //TODO create Publish Record
 
     throw new Error("Confluence site publishing not implemented");
   };
