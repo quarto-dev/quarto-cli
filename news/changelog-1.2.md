@@ -186,6 +186,10 @@
 - The video shortcode extension is now native to the Quarto CLI
 - Reveal-JS Video Snippet backgrounds are now better supported. For common video snippets, like YouTube, you can specify them as `background-video` and quarto will ensure the correct embed URL is used and swap to `background-iframe` background if needed.
 
+## Creating Artifacts
+
+- Introduce a new `quarto create` command which will create projects or extensions
+
 ## Miscellaneous
 
 - Render: ability to set `enigne` and `jupyter` metadata values from the command line
