@@ -293,24 +293,43 @@ async function publish(
     console.log("publishFiles", publishFiles);
     const filteredFiles: string[] = filterFilesForUpdate(publishFiles.files);
 
+    const fileToName = async (fileName: string): Promise<string> => {
+      const titleFromFilename = capitalizeWord(
+        fileName.split(".")[0] ?? fileName
+      );
+      const uniqueName = await checkAndReturnUniqueTitle(titleFromFilename);
+      return uniqueName;
+    };
+
+    const namedFiles: string[] = await Promise.all(
+      filteredFiles.map(fileToName)
+    );
+
+    console.log("namedFiles", namedFiles);
+
     const buildSpaceChangesForFiles = (
       fileList: string[],
+      namedFiles: string[],
       baseDir: string
     ): ConfluenceSpaceChange[] => {
       console.log("buildSiteOperationsForFiles");
       console.log("fileList", fileList);
+      console.log("namedFiles", namedFiles);
       console.log("baseDir", baseDir);
 
       const spaceChangesCallback = (
         accumulatedChanges: ConfluenceSpaceChange[],
-        currentFileName: string
+        currentFileName: string,
+        index: number
       ): ConfluenceSpaceChange[] => {
         console.log("accumulatedChanges", accumulatedChanges);
         console.log("currentFileName", currentFileName);
+        console.log("namedFiles", namedFiles);
+        console.log("index", index);
 
         //FIXME replace with actual title
         const titleFromFilename = capitalizeWord(
-          currentFileName.split(".")[0] ?? currentFileName
+          namedFiles[index] ?? currentFileName
         );
 
         // Load content
@@ -338,6 +357,7 @@ async function publish(
 
     const changeList: ConfluenceSpaceChange[] = buildSpaceChangesForFiles(
       filteredFiles,
+      namedFiles,
       publishFiles.baseDir
     );
 
