@@ -33,6 +33,7 @@ import {
   PublishRenderer,
   PublishType,
   PublishTypeEnum,
+  SiteFileMetadata,
   Space,
 } from "./api/types.ts";
 import { withSpinner } from "../../core/console.ts";
@@ -293,53 +294,51 @@ async function publish(
     console.log("publishFiles", publishFiles);
     const filteredFiles: string[] = filterFilesForUpdate(publishFiles.files);
 
-    const fileToName = async (fileName: string): Promise<string> => {
-      const titleFromFilename = capitalizeWord(
-        fileName.split(".")[0] ?? fileName
-      );
-      const uniqueName = await checkAndReturnUniqueTitle(titleFromFilename);
-      return uniqueName;
-    };
-
-    const fileToContentBody = async (
+    const assembleSiteFileMetadata = async (
       fileName: string
-    ): Promise<ContentBody> => {
-      return loadDocument(publishFiles.baseDir, fileName);
+    ): Promise<SiteFileMetadata> => {
+      const fileToTitle = async (fileName: string): Promise<string> => {
+        const titleFromFilename = capitalizeWord(
+          fileName.split(".")[0] ?? fileName
+        );
+        const uniqueName = await checkAndReturnUniqueTitle(titleFromFilename);
+        return uniqueName;
+      };
+
+      const fileToContentBody = async (
+        fileName: string
+      ): Promise<ContentBody> => {
+        return loadDocument(publishFiles.baseDir, fileName);
+      };
+
+      return await {
+        fileName,
+        title: await fileToTitle(fileName),
+        contentBody: await fileToContentBody(fileName),
+      };
     };
 
-    const namedFileList: string[] = await Promise.all(
-      filteredFiles.map(fileToName)
+    const fileMetadata: SiteFileMetadata[] = await Promise.all(
+      filteredFiles.map(assembleSiteFileMetadata)
     );
 
-    const contentBodyList: ContentBody[] = await Promise.all(
-      filteredFiles.map(fileToContentBody)
-    );
-
-    console.log("namedFiles", namedFileList);
-
-    const buildSpaceChangesForFiles = (
-      fileList: string[],
-      namedFileList: string[],
-      contentBodyList: ContentBody[]
+    const fileMetadataToSpaceChanges = (
+      fileMetadataList: SiteFileMetadata[]
     ): ConfluenceSpaceChange[] => {
-      console.log("buildSiteOperationsForFiles");
-      console.log("fileList", fileList);
-      console.log("namedFileList", namedFileList);
-      console.log("contentBodyList", contentBodyList);
+      console.log("fileMetadataToSpaceChanges");
+      console.log("fileMetadata", fileMetadataList);
 
       const spaceChangesCallback = (
         accumulatedChanges: ConfluenceSpaceChange[],
-        currentFileName: string,
-        index: number
+        fileMetadata: SiteFileMetadata
       ): ConfluenceSpaceChange[] => {
         console.log("accumulatedChanges", accumulatedChanges);
-        console.log("currentFileName", currentFileName);
-        console.log("index", index);
+        console.log("fileMetadata", fileMetadata);
 
         const content = buildContentCreate(
-          namedFileList[index],
+          fileMetadata.title,
           space,
-          contentBodyList[index],
+          fileMetadata.contentBody,
           parent?.parent
         );
 
@@ -348,7 +347,7 @@ async function publish(
         return [...accumulatedChanges, spaceChange];
       };
 
-      const spaceChanges: ConfluenceSpaceChange[] = fileList.reduce(
+      const spaceChanges: ConfluenceSpaceChange[] = fileMetadataList.reduce(
         spaceChangesCallback,
         []
       );
@@ -356,11 +355,8 @@ async function publish(
       return spaceChanges;
     };
 
-    const changeList: ConfluenceSpaceChange[] = buildSpaceChangesForFiles(
-      filteredFiles,
-      namedFileList,
-      contentBodyList
-    );
+    const changeList: ConfluenceSpaceChange[] =
+      fileMetadataToSpaceChanges(fileMetadata);
 
     const promisesFromSpaceChanges = (
       changeList: ConfluenceSpaceChange[]

@@ -49,6 +49,7 @@ export enum PublishTypeEnum {
   document = "document",
   site = "site",
 }
+
 export type ContentAncestor = {
   id: string;
 };
@@ -133,3 +134,9 @@ export type ContentArray = {
 };
 
 export type ConfluenceSpaceChange = ContentCreate | ContentUpdate;
+
+export type SiteFileMetadata = {
+  fileName: string;
+  title: string;
+  contentBody: ContentBody;
+};
