@@ -22,9 +22,10 @@ function wrapped_writer()
             table.insert(result, block)
           end
         end
-        if doc.meta then
-          table.insert(result, doc.meta)
-        end
+        -- TODO I think we shouldn't walk meta, but I'm not positive.
+        -- if doc.meta then
+        --   table.insert(result, doc.meta)
+        -- end
         return result
       end,
       BlockQuote = contentHandler,
@@ -135,7 +136,7 @@ function wrapped_writer()
       if nodeHandler == nil then 
         -- no handler, just walk the internals in some default order
         if bottomUpWalkers[t] then
-          for _, v in (bottomUpWalkers[t] and ipairs(bottomUpWalkers[t](node))) or pairs(node) do
+          for _, v in ipairs(bottomUpWalkers[t](node)) do
             bottomUp(v)
           end
         else
@@ -152,8 +153,14 @@ function wrapped_writer()
   
     local wrappedFilter = {
       Pandoc = function(doc)
-        bottomUp(doc)
-        return pandoc.Pandoc(pandoc.Blocks(pandoc.RawBlock("markdown", table.concat(resultingStrs, "") .. "\n")))
+        local strs
+        if handler.Writer then
+          strs = handler.Writer.handle(doc)
+        else
+          bottomUp(doc)
+          strs = table.concat(resultingStrs, "")
+        end
+        return pandoc.Pandoc(pandoc.Blocks(pandoc.RawBlock("markdown", strs .. "\n")))
       end
     }
     return wrappedFilter
