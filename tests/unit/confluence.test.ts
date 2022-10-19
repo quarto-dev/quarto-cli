@@ -10,6 +10,7 @@ import {
   buildContentCreate,
   buildPublishRecord,
   confluenceParentFromString,
+  fileMetadataToSpaceChanges,
   filterFilesForUpdate,
   getMessageFromAPIError,
   getNextVersion,
@@ -34,6 +35,7 @@ import {
   ContentStatusEnum,
   ContentVersion,
   PAGE_TYPE,
+  SiteFileMetadata,
   Space,
 } from "../../src/publish/confluence/api/types.ts";
 
@@ -568,28 +570,131 @@ const runBuildContentCreate = () => {
 };
 runBuildContentCreate();
 
-// const runBuildSpaceChangesForFiles = () => {
-//   const suiteLabel = (label: string) => `BuildSpaceChangesForFiles_${label}`;
-//
-//   unitTest(suiteLabel("no files"), async () => {
-//     const expected: ConfluenceSpaceChange[] = [];
-//     const fakeSpace: Space = {
-//       key: "fake-space-key",
-//     };
-//     const fakeBody: ContentBody = {
-//       storage: {
-//         value: "fake-value",
-//         representation: "storage",
-//       },
-//     };
-//     const actual: ContentCreate = buildContentCreate(
-//       "fake-title",
-//       fakeSpace,
-//       fakeBody
-//     );
-//
-//     assertEquals(expected, actual);
-//   });
-//
-// };
-// runBiuldSpaceChangesForFiles();
+const runFileMetadataToSpaceChanges = () => {
+  const suiteLabel = (label: string) => `FileMetadataToSpaceChanges_${label}`;
+  const fakeSpace: Space = {
+    key: "fake-space-key",
+  };
+  const fakeParent: ConfluenceParent = {
+    space: "QUARTOCONF",
+    parent: "8781825",
+  };
+
+  const fakeFile: SiteFileMetadata = {
+    fileName: "fake-file-name",
+    title: "fake-title",
+    contentBody: {
+      storage: {
+        value: "fake-value",
+        representation: "storage",
+      },
+    },
+  };
+
+  const fakeFile2: SiteFileMetadata = {
+    fileName: "fake-file-name2",
+    title: "fake-title2",
+    contentBody: {
+      storage: {
+        value: "fake-value2",
+        representation: "storage",
+      },
+    },
+  };
+
+  unitTest(suiteLabel("no files"), async () => {
+    const fileMetadataList: SiteFileMetadata[] = [];
+    const expected: ConfluenceSpaceChange[] = [];
+    const actual: ConfluenceSpaceChange[] = fileMetadataToSpaceChanges(
+      fileMetadataList,
+      fakeParent,
+      fakeSpace
+    );
+    assertEquals(expected, actual);
+  });
+
+  unitTest(suiteLabel("one file"), async () => {
+    const fileMetadataList: SiteFileMetadata[] = [fakeFile];
+    const expected: ConfluenceSpaceChange[] = [
+      {
+        ancestors: [
+          {
+            id: "8781825",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "fake-value",
+          },
+        },
+        id: null,
+        space: {
+          key: "fake-space-key",
+        },
+        status: "current",
+        title: "fake-title",
+        type: "page",
+      },
+    ];
+    const actual: ConfluenceSpaceChange[] = fileMetadataToSpaceChanges(
+      fileMetadataList,
+      fakeParent,
+      fakeSpace
+    );
+    assertEquals(expected, actual);
+  });
+
+  unitTest(suiteLabel("two files"), async () => {
+    const fileMetadataList: SiteFileMetadata[] = [fakeFile, fakeFile2];
+    const expected: ConfluenceSpaceChange[] = [
+      {
+        ancestors: [
+          {
+            id: "8781825",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "fake-value",
+          },
+        },
+        id: null,
+        space: {
+          key: "fake-space-key",
+        },
+        status: "current",
+        title: "fake-title",
+        type: "page",
+      },
+      {
+        ancestors: [
+          {
+            id: "8781825",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "fake-value2",
+          },
+        },
+        id: null,
+        space: {
+          key: "fake-space-key",
+        },
+        status: "current",
+        title: "fake-title2",
+        type: "page",
+      },
+    ];
+    const actual: ConfluenceSpaceChange[] = fileMetadataToSpaceChanges(
+      fileMetadataList,
+      fakeParent,
+      fakeSpace
+    );
+    assertEquals(expected, actual);
+  });
+};
+runFileMetadataToSpaceChanges();

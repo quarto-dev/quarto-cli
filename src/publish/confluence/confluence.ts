@@ -290,6 +290,7 @@ async function publish(
     const assembleSiteFileMetadata = async (
       fileName: string
     ): Promise<SiteFileMetadata> => {
+      //TODO use QMD yaml for title
       const fileToTitle = async (fileName: string): Promise<string> => {
         const titleFromFilename = capitalizeWord(
           fileName.split(".")[0] ?? fileName
@@ -321,7 +322,7 @@ async function publish(
       space
     );
 
-    const promisesFromSpaceChanges = (
+    const spaceChanges = (
       changeList: ConfluenceSpaceChange[]
     ): Promise<Content>[] => {
       return changeList.map(async (change: ConfluenceSpaceChange) => {
@@ -329,10 +330,7 @@ async function publish(
       });
     };
 
-    const changePromiseList: Promise<Content>[] =
-      promisesFromSpaceChanges(changeList);
-
-    await Promise.all(changePromiseList);
+    await Promise.all(spaceChanges(changeList));
 
     //TODO refresh page
     //TODO create Publish Record
