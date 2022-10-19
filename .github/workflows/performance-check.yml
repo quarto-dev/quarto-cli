@@ -62,10 +62,10 @@ jobs:
           q_render_elapsed=$(printf '%.3f\n' $(echo "scale=3; $q_render_end - $q_render_start" | bc))
 
           # return the measures
-          echo "::set-output name=bundle_time::$bundle_elapsed"
-          echo "::set-output name=q_time::$q_elapsed"
-          echo "::set-output name=q_render_time::$q_render_elapsed"
-          echo "::set-output name=commit::$(git rev-parse --short $GITHUB_SHA)"
+          echo "bundle_time=$bundle_elapsed" >> $GITHUB_OUTPUT
+          echo "q_time=$q_elapsed" >> $GITHUB_OUTPUT
+          echo "q_render_time=$q_render_elapsed" >> $GITHUB_OUTPUT
+          echo "commit=$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_OUTPUT
 
       - name: Send Event
         uses: ./.github/workflows/actions/amplitude
