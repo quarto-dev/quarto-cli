@@ -8,9 +8,9 @@
 import { execProcess } from "../../../src/core/process.ts";
 
 import { join } from "path/mod.ts";
-import { assert } from "../../../src/vendor/deno.land/std@0.153.0/_util/assert.ts";
+import { assert } from "testing/asserts.ts";
 import { CreateResult } from "../../../src/command/create/cmd.ts";
-import { ensureDirSync } from "../../../src/vendor/deno.land/std@0.153.0/fs/ensure_dir.ts";
+import { ensureDirSync } from "fs/ensure_dir.ts";
 
 const kCreateTypes: Record<string, string[]> = {
   "project": ["website", "default", "book", "website:blog"],
