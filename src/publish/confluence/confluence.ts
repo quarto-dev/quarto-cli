@@ -38,6 +38,7 @@ import {
 } from "./api/types.ts";
 import { withSpinner } from "../../core/console.ts";
 import {
+  buildContentCreate,
   buildPublishRecord,
   confluenceParentFromString,
   doWithSpinner,
@@ -302,19 +303,20 @@ async function publish(
         console.log("accumulatedChanges", accumulatedChanges);
         console.log("currentFileName", currentFileName);
 
+        //FIXME replace with actual title
+        const titleFromFilename = (
+          currentFileName.split(".")[0] ?? currentFileName
+        ).toUpperCase();
+
         // Load content
         const body: ContentBody = loadDocument(baseDir, currentFileName);
-        console.log("body", body);
-        // TODO extract to buildContent(withDefaults)
-        const content = {
-          id: null,
-          title: currentFileName, // FIXME How do I get the title?
-          type: PAGE_TYPE,
+
+        const content = buildContentCreate(
+          titleFromFilename,
           space,
-          status: ContentStatusEnum.current, //TODO default this
-          ancestors: parent?.parent ? [{ id: parent.parent }] : null, //TODO extract to helper
           body,
-        };
+          parent?.parent
+        );
 
         const spaceChange: ConfluenceSpaceChange = {
           type: SpaceChangeType.create, //TODO type based on content type so ConfluenceSpaceChange = ContentCreate | ContentUpdate
