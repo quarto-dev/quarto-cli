@@ -34,7 +34,6 @@ import {
   PublishType,
   PublishTypeEnum,
   Space,
-  SpaceChangeType,
 } from "./api/types.ts";
 import { withSpinner } from "../../core/console.ts";
 import {
@@ -62,6 +61,7 @@ import {
   verifyConfluenceParent,
   verifyLocation,
 } from "./confluence-verify.ts";
+import { capitalizeWord } from "../../core/text.ts";
 
 export const CONFLUENCE_ID = "confluence";
 
@@ -304,9 +304,9 @@ async function publish(
         console.log("currentFileName", currentFileName);
 
         //FIXME replace with actual title
-        const titleFromFilename = (
+        const titleFromFilename = capitalizeWord(
           currentFileName.split(".")[0] ?? currentFileName
-        ).toUpperCase();
+        );
 
         // Load content
         const body: ContentBody = loadDocument(baseDir, currentFileName);
@@ -318,10 +318,7 @@ async function publish(
           parent?.parent
         );
 
-        const spaceChange: ConfluenceSpaceChange = {
-          type: SpaceChangeType.create, //TODO type based on content type so ConfluenceSpaceChange = ContentCreate | ContentUpdate
-          content,
-        };
+        const spaceChange: ConfluenceSpaceChange = content;
 
         return [...accumulatedChanges, spaceChange];
       };
@@ -343,8 +340,8 @@ async function publish(
       changeList: ConfluenceSpaceChange[]
     ): Promise<Content>[] => {
       return changeList.map(async (change: ConfluenceSpaceChange) => {
-        console.log("change.content", change.content);
-        return await client.createContent(change.content as ContentCreate);
+        console.log("change.content", change);
+        return await client.createContent(change as ContentCreate);
       });
     };
 

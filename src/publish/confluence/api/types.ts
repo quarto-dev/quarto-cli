@@ -132,12 +132,4 @@ export type ContentArray = {
   _links: GenericLinks;
 };
 
-export enum SpaceChangeType {
-  create = "create",
-  update = "update",
-}
-
-export type ConfluenceSpaceChange = {
-  type: SpaceChangeType;
-  content: ContentCreate | ContentUpdate;
-};
+export type ConfluenceSpaceChange = ContentCreate | ContentUpdate;
