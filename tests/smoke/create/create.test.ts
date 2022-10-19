@@ -6,11 +6,10 @@
 */
 
 import { execProcess } from "../../../src/core/process.ts";
-import { CreateResult } from "../../../src/command/create/cmd.ts";
 
 import { join } from "path/mod.ts";
-
 import { assert } from "testing/asserts.ts";
+import { CreateResult } from "../../../src/command/create/cmd.ts";
 
 const kCreateTypes: Record<string, string[]> = {
   "project": ["website", "default", "book", "website:blog"],
