@@ -738,7 +738,10 @@ async function listItemFromFile(
     // This is a draft, don't include it in the listing
     return undefined;
   } else {
-    if (!docRawMetadata && extname(input) === ".qmd") {
+    if (
+      !docRawMetadata && extname(input) === ".qmd" ||
+      extname(input) === ".ipynb"
+    ) {
       warning(
         `File ${input} in the listing '${listing.id}' contains no metadata.`,
       );
