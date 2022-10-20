@@ -136,6 +136,7 @@
 - Prevent website content from shifting when page first loads
 - Improve animation smoothness when expanding navbar in mobile mode (#1873)
 - Permit icons in top level navbar, if specified
+- Fix incorrect computation of the next and previous buttons after the first separator
 
 ## Books
 
@@ -185,6 +186,10 @@
 
 - The video shortcode extension is now native to the Quarto CLI
 - Reveal-JS Video Snippet backgrounds are now better supported. For common video snippets, like YouTube, you can specify them as `background-video` and quarto will ensure the correct embed URL is used and swap to `background-iframe` background if needed.
+
+## Creating Artifacts
+
+- Introduce a new `quarto create` command which will create projects or extensions
 
 ## Miscellaneous
 

@@ -667,6 +667,14 @@
         awaitCloseAnimation: true,
         onClose: () => { display.innerHTML = ""; }
       });
+
+      // post message to parent indicating we had an error
+      if (window.parent.postMessage) {
+        window.parent.postMessage({
+          type: "error",
+          msg: msg,
+        }, "*");
+      }
     }
     // see if there is already an error to show
     const renderError = document.getElementById("quarto-render-error");
