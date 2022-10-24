@@ -81,10 +81,9 @@ export async function bookBibliographyPostRender(
 
       // Fixes https://github.com/quarto-dev/quarto-cli/issues/2755
       if (csl) {
-        const inputRelToProject = relative(dirname(inputfile), context.dir);
-        const resolvedCSL = join(inputRelToProject, csl);
-        if (safeExistsSync(resolvedCSL)) {
-          csl = resolvedCSL;
+        const cslAbsPath = join(firstFileDir, csl);
+        if (safeExistsSync(cslAbsPath)) {
+          csl = cslAbsPath;
         }
       }
     } else {
