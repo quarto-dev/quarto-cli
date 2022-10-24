@@ -14,7 +14,7 @@ import { error } from "log/mod.ts";
 
 import { Document, Element, parseHtml } from "../../../core/deno-dom.ts";
 
-import { pathWithForwardSlashes } from "../../../core/path.ts";
+import { pathWithForwardSlashes, safeExistsSync } from "../../../core/path.ts";
 import { execProcess } from "../../../core/process.ts";
 import { pandocBinaryPath } from "../../../core/resources.ts";
 
@@ -81,7 +81,10 @@ export async function bookBibliographyPostRender(
 
       // Fixes https://github.com/quarto-dev/quarto-cli/issues/2755
       if (csl) {
-        csl = join(firstFileDir, csl);
+        const cslAbsPath = join(firstFileDir, csl);
+        if (safeExistsSync(cslAbsPath)) {
+          csl = cslAbsPath;
+        }
       }
     } else {
       throw new Error(

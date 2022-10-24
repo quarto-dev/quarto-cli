@@ -9,6 +9,7 @@
 - Prefer kernel declared in YAML front matter when executing notebooks
 - Fix v1.1 regression in handling of cell display_data w/ Juptyer widgets
 - Allow jupyter kernel to be determined project-wide (#2853)
+- Ensure that Jupyter engine dependencies (widgets) appear after other dependencies (manage require/define conflicts)
 
 ## Knitr
 
