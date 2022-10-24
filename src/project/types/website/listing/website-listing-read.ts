@@ -6,7 +6,7 @@
 *
 */
 import { debug, warning } from "log/mod.ts";
-import { basename, dirname, join, relative } from "path/mod.ts";
+import { basename, dirname, extname, join, relative } from "path/mod.ts";
 import { cloneDeep, orderBy } from "../../../../core/lodash.ts";
 import { existsSync } from "fs/mod.ts";
 
@@ -370,7 +370,7 @@ function hydrateListing(
     if (sources.size === 1 && sources.has(ListingItemSource.rawfile)) {
       // If all the items are raw files, we should just show file info
       return [kFieldFileName, kFieldFileModified];
-    } else if (sources.has(ListingItemSource.metadata)) {
+    } else if (!sources.has(ListingItemSource.document)) {
       // If the items have come from metadata, we should just show
       // all the columns in the table. Otherwise, we should use the
       // document default columns
@@ -694,6 +694,17 @@ function listItemFromMeta(meta: Metadata) {
       meta.author = [meta.author];
     }
   }
+
+  if (meta.date) {
+    if (meta.path !== undefined) {
+      listingItem.date = parsePandocDate(
+        resolveDate(meta.path as string, meta.date) as string,
+      );
+    } else {
+      listingItem.date = parsePandocDate(meta.date as string);
+    }
+  }
+
   return listingItem;
 }
 
@@ -714,84 +725,86 @@ async function listItemFromFile(
   );
 
   const docRawMetadata = target?.markdown.yaml;
-  if (docRawMetadata) {
-    const directoryMetadata = await directoryMetadataForInputFile(
-      project,
-      dirname(input),
-    );
-    const documentMeta = mergeConfigs(
-      directoryMetadata,
-      docRawMetadata,
-    ) as Metadata;
+  const directoryMetadata = await directoryMetadataForInputFile(
+    project,
+    dirname(input),
+  );
+  const documentMeta = mergeConfigs(
+    directoryMetadata,
+    docRawMetadata,
+  ) as Metadata;
 
-    if (documentMeta?.draft) {
-      // This is a draft, don't include it in the listing
-      return undefined;
-    } else {
-      // See if we have a max desc length
-      const maxDescLength = listing[kMaxDescLength] as number ||
-        kDefaultMaxDescLength;
-
-      // Create the item
-      const filename = basename(projectRelativePath);
-      const filemodified = fileModifiedDate(input);
-      const description = documentMeta?.description as string ||
-        documentMeta?.abstract as string ||
-        descriptionPlaceholder(inputTarget?.outputHref, maxDescLength);
-
-      const imageRaw = documentMeta?.image as string ||
-        findPreviewImgMd(target?.markdown.markdown);
-      const image = imageRaw !== undefined
-        ? pathWithForwardSlashes(
-          listingItemHref(imageRaw, dirname(projectRelativePath)),
-        )
-        : undefined;
-
-      const imageAlt = documentMeta?.[kImageAlt] as string | undefined;
-
-      const date = documentMeta?.date
-        ? parsePandocDate(resolveDate(input, documentMeta?.date) as string)
-        : undefined;
-
-      const authors = parseAuthor(documentMeta?.author);
-      const author = authors ? authors.map((auth) => auth.name) : [];
-
-      const readingtime = target?.markdown
-        ? estimateReadingTimeMinutes(target.markdown.markdown)
-        : undefined;
-
-      const categories = documentMeta?.categories
-        ? Array.isArray(documentMeta?.categories)
-          ? documentMeta?.categories
-          : [documentMeta?.categories]
-        : undefined;
-
-      const item: ListingItem = {
-        ...documentMeta,
-        path: `/${projectRelativePath}`,
-        [kFieldTitle]: target?.title,
-        [kFieldDate]: date,
-        [kFieldAuthor]: author,
-        [kFieldCategories]: categories,
-        [kFieldImage]: image,
-        [kFieldImageAlt]: imageAlt,
-        [kFieldDescription]: description,
-        [kFieldFileName]: filename,
-        [kFieldFileModified]: filemodified,
-        [kFieldReadingTime]: readingtime,
-      };
-      return {
-        item,
-        source: target !== undefined
-          ? ListingItemSource.document
-          : ListingItemSource.rawfile,
-      };
-    }
-  } else {
-    warning(
-      `File ${input} was not included in the listing '${listing.id}' because there is no file metadata.`,
-    );
+  if (documentMeta?.draft) {
+    // This is a draft, don't include it in the listing
     return undefined;
+  } else {
+    if (
+      !docRawMetadata && extname(input) === ".qmd" ||
+      extname(input) === ".ipynb"
+    ) {
+      warning(
+        `File ${input} in the listing '${listing.id}' contains no metadata.`,
+      );
+    }
+
+    // See if we have a max desc length
+    const maxDescLength = listing[kMaxDescLength] as number ||
+      kDefaultMaxDescLength;
+
+    // Create the item
+    const filename = basename(projectRelativePath);
+    const filemodified = fileModifiedDate(input);
+    const description = documentMeta?.description as string ||
+      documentMeta?.abstract as string ||
+      descriptionPlaceholder(inputTarget?.outputHref, maxDescLength);
+
+    const imageRaw = documentMeta?.image as string ||
+      findPreviewImgMd(target?.markdown.markdown);
+    const image = imageRaw !== undefined
+      ? pathWithForwardSlashes(
+        listingItemHref(imageRaw, dirname(projectRelativePath)),
+      )
+      : undefined;
+
+    const imageAlt = documentMeta?.[kImageAlt] as string | undefined;
+
+    const date = documentMeta?.date
+      ? parsePandocDate(resolveDate(input, documentMeta?.date) as string)
+      : undefined;
+
+    const authors = parseAuthor(documentMeta?.author);
+    const author = authors ? authors.map((auth) => auth.name) : [];
+
+    const readingtime = target?.markdown
+      ? estimateReadingTimeMinutes(target.markdown.markdown)
+      : undefined;
+
+    const categories = documentMeta?.categories
+      ? Array.isArray(documentMeta?.categories)
+        ? documentMeta?.categories
+        : [documentMeta?.categories]
+      : undefined;
+
+    const item: ListingItem = {
+      ...documentMeta,
+      path: `/${projectRelativePath}`,
+      [kFieldTitle]: target?.title,
+      [kFieldDate]: date,
+      [kFieldAuthor]: author,
+      [kFieldCategories]: categories,
+      [kFieldImage]: image,
+      [kFieldImageAlt]: imageAlt,
+      [kFieldDescription]: description,
+      [kFieldFileName]: filename,
+      [kFieldFileModified]: filemodified,
+      [kFieldReadingTime]: readingtime,
+    };
+    return {
+      item,
+      source: target !== undefined
+        ? ListingItemSource.document
+        : ListingItemSource.rawfile,
+    };
   }
 }
 

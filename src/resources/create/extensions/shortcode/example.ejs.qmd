@@ -4,5 +4,5 @@ title: "<%= title %> Example"
 
 ## Heading
 
-{{< hello >}}
+{{< <%= filesafename %> >}}
 

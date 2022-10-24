@@ -5,13 +5,15 @@
 *
 */
 
+import { CreateResult } from "./cmd.ts";
+
+import { which } from "../../core/path.ts";
+import { isRStudioTerminal, isVSCodeTerminal } from "../../core/platform.ts";
+import { execProcess } from "../../core/process.ts";
+
 import { join } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
-import { which } from "../../core/path.ts";
-import { basename, dirname } from "path/win32.ts";
-import { execProcess } from "../../core/process.ts";
-import { CreateResult } from "./cmd.ts";
-import { isRStudioTerminal, isVSCodeTerminal } from "../../core/platform.ts";
+import { basename, dirname } from "path/mod.ts";
 
 export interface Editor {
   // A short, command line friendly id
@@ -81,7 +83,7 @@ interface ScanAction {
 function vscodeEditorInfo(): EditorInfo {
   const editorInfo: EditorInfo = {
     id: "vscode",
-    name: "Visual Studio Code",
+    name: "vscode",
     open: (path: string, createResult: CreateResult) => {
       const artifactPath = createResult.path;
       const cwd = Deno.statSync(artifactPath).isDirectory

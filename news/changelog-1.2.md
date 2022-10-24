@@ -9,6 +9,7 @@
 - Prefer kernel declared in YAML front matter when executing notebooks
 - Fix v1.1 regression in handling of cell display_data w/ Juptyer widgets
 - Allow jupyter kernel to be determined project-wide (#2853)
+- Ensure that Jupyter engine dependencies (widgets) appear after other dependencies (manage require/define conflicts)
 
 ## Knitr
 
@@ -136,6 +137,7 @@
 - Prevent website content from shifting when page first loads
 - Improve animation smoothness when expanding navbar in mobile mode (#1873)
 - Permit icons in top level navbar, if specified
+- Fix incorrect computation of the next and previous buttons after the first separator
 
 ## Books
 
@@ -158,6 +160,7 @@
 
 - Italian translation for Quarto UI text
 - Polish translation for Quarto UI text
+- Korean translation for Quarto UI text
 
 ## Listing and Feeds
 
@@ -184,6 +187,10 @@
 
 - The video shortcode extension is now native to the Quarto CLI
 - Reveal-JS Video Snippet backgrounds are now better supported. For common video snippets, like YouTube, you can specify them as `background-video` and quarto will ensure the correct embed URL is used and swap to `background-iframe` background if needed.
+
+## Creating Artifacts
+
+- Introduce a new `quarto create` command which will create projects or extensions
 
 ## Miscellaneous
 
@@ -214,3 +221,5 @@
 - Support custom Lua writers in YAML front matter (#2687)
 - Better error message with inadvertent `!` in YAML strings (#2808)
 - More precise underlining of YAML validation errors (#2681)
+- When converting raw html tables to pdf, use all tables generated (#2615)
+- Fix theorem (thm, def, ...) environments in all formats (#2866)

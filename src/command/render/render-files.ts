@@ -340,9 +340,12 @@ export async function renderFiles(
           project,
         );
         if (extras[kIncludeInHeader]) {
+          // note that we merge engine execute results back into cell handler
+          // execute results so that jupyter widget dependencies appear at the
+          // end (so that they don't mess w/ other libs using require/define)
           executeResult.includes[kIncludeInHeader] = [
-            ...(executeResult.includes[kIncludeInHeader] || []),
             ...(extras[kIncludeInHeader] || []),
+            ...(executeResult.includes[kIncludeInHeader] || []),
           ];
         }
         executeResult.supporting.push(...results.supporting);

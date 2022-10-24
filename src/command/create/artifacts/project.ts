@@ -5,8 +5,12 @@
 *
 */
 
-// import { executionEngine, executionEngines } from "../../../execute/engine.ts";
+import { ArtifactCreator, CreateContext } from "../cmd.ts";
 
+import { CreateDirective } from "./artifact-shared.ts";
+
+import { capitalizeTitle } from "../../../core/text.ts";
+import { kMarkdownEngine } from "../../../execute/types.ts";
 import { projectCreate } from "../../../project/project-create.ts";
 import {
   parseProjectType,
@@ -14,16 +18,12 @@ import {
   projectTypeAliases,
   projectTypes,
 } from "../../../project/types/project-types.ts";
-import { kMarkdownEngine } from "../../../execute/types.ts";
-
-import { ArtifactCreator, CreateContext, CreateDirective } from "../cmd.ts";
 
 import { Input, Select } from "cliffy/prompt/mod.ts";
+import { join } from "path/mod.ts";
 
 // ensures project types are registered
 import "../../../project/types/register.ts";
-import { capitalizeTitle } from "../../../core/text.ts";
-import { join } from "path/mod.ts";
 
 const kProjectTypes = projectTypes();
 const kProjectTypeAliases = projectTypeAliases();
@@ -105,6 +105,7 @@ function finalizeOptions(createContext: CreateContext) {
     : resolved.type;
 
   return {
+    displayType: "project",
     name,
     directory,
     template,

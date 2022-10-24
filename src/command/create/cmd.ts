@@ -4,11 +4,16 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
+
+import { documentArtifactCreator } from "./artifacts/document.ts";
+import { extensionArtifactCreator } from "./artifacts/extension.ts";
 import { projectArtifactCreator } from "./artifacts/project.ts";
+import { kEditorInfos, scanForEditors } from "./editor.ts";
 
 import { isInteractiveTerminal } from "../../core/platform.ts";
 import { runningInCI } from "../../core/ci-info.ts";
-import { kEditorInfos, scanForEditors } from "./editor.ts";
+
+import { CreateDirective } from "./artifacts/artifact-shared.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 import {
@@ -17,19 +22,12 @@ import {
   Select,
   SelectValueOptions,
 } from "cliffy/prompt/mod.ts";
-import { info } from "log/mod.ts";
 import { readLines } from "io/mod.ts";
-import { extensionArtifactCreator } from "./artifacts/extension.ts";
+import { info } from "log/mod.ts";
 
 export interface CreateContext {
   cwd: string;
   options: Record<string, unknown>;
-}
-
-export interface CreateDirective {
-  name: string;
-  directory: string;
-  template: string;
 }
 
 export interface CreateResult {
@@ -76,6 +74,7 @@ export interface ArtifactCreator {
 const kArtifactCreators: ArtifactCreator[] = [
   projectArtifactCreator,
   extensionArtifactCreator,
+  // documentArtifactCreator, CT: Disabled for 1.2 as it arrived too late on the scene
 ];
 
 export const createCommand = new Command()
@@ -284,10 +283,10 @@ const resolveEditor = async (createResult: CreateResult, editor?: string) => {
 
       // Add an option to not open
       const options = [...editorOptions, {
-        name: "do not open",
+        name: "(don't open)",
         value: "do not open",
       }];
-      const name = await promptSelect("Open with", options);
+      const name = await promptSelect("Open With", options);
 
       // Return the matching editor (if any)
       const selectedEditor = editors.find((edit) => edit.name === name);

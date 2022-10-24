@@ -12,7 +12,7 @@ This will install the extension and create an example qmd file that you can use 
 
 ## Using
 
-*TODO*: Describe how to use your extension.
+*TODO*: Describe how to use your format.
 
 ## Format Options
 

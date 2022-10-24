@@ -47,13 +47,13 @@ jobs:
           # CHANGES="${CHANGES//'%'/'%25'}"
           # CHANGES="${CHANGES//$'\n'/'%0A'}"
           # CHANGES="${CHANGES//$'\r'/'%0D'}"
-          # echo ::set-output name=changes::$CHANGES
+          # echo "changes=$CHANGES" >> $GITHUB_OUTPUT
 
           QUARTO_BUILD_NUMBER=$(($QUARTO_BUILD_RUN_OFFSET + $GITHUB_RUN_NUMBER))
 
-          echo ::set-output name=version::$QUARTO_VERSION
-          echo ::set-output name=changes::$CHANGES
-          echo ::set-output name=build_number::$QUARTO_BUILD_NUMBER
+          echo "version=$QUARTO_VERSION" >> $GITHUB_OUTPUT
+          echo "changes=$CHANGES" >> $GITHUB_OUTPUT
+          echo "build_number=$QUARTO_BUILD_NUMBER" >> $GITHUB_OUTPUT
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
