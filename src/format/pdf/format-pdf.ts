@@ -51,7 +51,6 @@ import { isLatexPdfEngine, pdfEngine } from "../../config/pdf.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { kTemplatePartials } from "../../command/render/template.ts";
 import { copyTo } from "../../core/copy.ts";
-import { LineStream } from "../../vendor/deno.land/std@0.153.0/streams/delimiter.ts";
 
 export function pdfFormat(): Format {
   return mergeConfigs(
