@@ -8,7 +8,7 @@ import { assertEquals, assertThrows } from "testing/asserts.ts";
 
 import {
   buildContentCreate,
-  buildPublishRecord,
+  buildPublishRecordForContent,
   confluenceParentFromString,
   fileMetadataToSpaceChanges,
   filterFilesForUpdate,
@@ -266,13 +266,13 @@ unitTest("wrapBodyForConfluence_empty", async () => {
 const runPublishRecordTests = () => {
   const fakeServer = "https://allenmanning.atlassian.net";
 
-  const checkExpected = (
+  const checkForContent = (
     expectedURL: string,
     expectedId: string,
     server: string = fakeServer,
     content: Content = buildFakeContent()
   ) => {
-    const result = buildPublishRecord(server, content);
+    const result = buildPublishRecordForContent(server, content);
     const expectedPublishRecord: PublishRecord = {
       id: expectedId,
       url: expectedURL,
@@ -288,7 +288,7 @@ const runPublishRecordTests = () => {
     server: string = fakeServer,
     content: Content = buildFakeContent()
   ) => {
-    assertThrows(() => buildPublishRecord(server, content));
+    assertThrows(() => buildPublishRecordForContent(server, content));
   };
 
   unitTest("buildPublishRecord_validWithChecker", async () => {
@@ -296,7 +296,7 @@ const runPublishRecordTests = () => {
       "https://allenmanning.atlassian.net/wiki/spaces/fake-key/pages/fake-id";
     const expectedId = "fake-id";
 
-    checkExpected(expectedURL, expectedId);
+    checkForContent(expectedURL, expectedId);
   });
 
   unitTest("buildPublishRecord_noIdThrows", async () => {
@@ -314,6 +314,24 @@ const runPublishRecordTests = () => {
   unitTest("buildPublishRecord_emptyServerThrows", async () => {
     checkThrows("");
   });
+
+  const checkForParent = (
+    expectedURL: string,
+    expectedId: string,
+    server: string = fakeServer,
+    content: Content = buildFakeContent()
+  ) => {
+    const result = buildPublishRecordForContent(server, content);
+    const expectedPublishRecord: PublishRecord = {
+      id: expectedId,
+      url: expectedURL,
+    };
+    const url: URL = new URL(expectedURL);
+    const expected: [PublishRecord, URL] = [expectedPublishRecord, url];
+
+    assertEquals(expected[0], result[0]);
+    assertEquals(expected[1], result[1]);
+  };
 };
 runPublishRecordTests();
 

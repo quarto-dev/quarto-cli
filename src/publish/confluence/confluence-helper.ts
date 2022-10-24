@@ -121,7 +121,7 @@ export const wrapBodyForConfluence = (value: string): ContentBody => {
   return body;
 };
 
-export const buildPublishRecord = (
+export const buildPublishRecordForContent = (
   server: string,
   content: Content | undefined
 ): [PublishRecord, URL] => {

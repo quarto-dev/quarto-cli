@@ -39,7 +39,7 @@ import {
 import { withSpinner } from "../../core/console.ts";
 import {
   buildContentCreate,
-  buildPublishRecord,
+  buildPublishRecordForContent,
   confluenceParentFromString,
   doWithSpinner,
   fileMetadataToSpaceChanges,
@@ -211,6 +211,8 @@ async function publish(
 
   const parent: ConfluenceParent = confluenceParentFromString(parentUrl);
 
+  const server = account?.server ?? "";
+
   await verifyConfluenceParent(parentUrl, parent);
 
   const space = await client.getSpace(parent.space);
@@ -279,7 +281,7 @@ async function publish(
     }
 
     await doWithSpinner(message, doOperation);
-    return buildPublishRecord(account?.server ?? "", content);
+    return buildPublishRecordForContent(server, content);
   };
 
   const publishSite = async (): Promise<[PublishRecord, URL | undefined]> => {
@@ -332,12 +334,14 @@ async function publish(
 
     await Promise.all(spaceChanges(changeList));
 
-    //TODO refresh page
-    //TODO create Publish Record
+    const parentId: string = parent?.parent ?? "";
+    const parentPage: Content = await client.getContent(parentId);
+
+    return buildPublishRecordForContent(server, parentPage);
+
+    //TODO save file name on save to metadata
     //TODO only update if changed
     //TODO Diff existing
-
-    throw new Error("Confluence site publishing not implemented");
   };
 
   if (type === PublishTypeEnum.document) {
