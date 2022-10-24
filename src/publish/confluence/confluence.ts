@@ -238,9 +238,9 @@ async function publish(
       space
     );
 
-    //TODO use a smaller hash rather than full UUID
+    const shortUUID = generateUuid().split("-")[0] ?? generateUuid();
     const createTitle = titleAlreadyExistsInSpace
-      ? `${title} ${generateUuid()}`
+      ? `${title} ${shortUUID}`
       : title;
     return createTitle;
   };
