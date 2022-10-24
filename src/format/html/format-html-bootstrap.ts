@@ -936,6 +936,28 @@ const marginContainerForEl = (el: Element, doc: Document) => {
     }
   }
 
+  // Find the callout parent and create a container for the callout there
+  // Walks up the parent stack until a callout element is found
+  const findCalloutEl = (el: Element): Element | undefined => {
+    console.log(el.parentElement?.classList);
+    if (el.parentElement?.classList.contains("callout")) {
+      return el.parentElement;
+    } else if (el.parentElement) {
+      return findCalloutEl(el.parentElement);
+    } else {
+      return undefined;
+    }
+  };
+  const calloutEl = findCalloutEl(el);
+  if (calloutEl) {
+    const container = createMarginContainer(doc);
+    calloutEl.parentNode?.insertBefore(
+      container,
+      calloutEl.nextElementSibling,
+    );
+    return container;
+  }
+
   // Deal with a paragraph
   const parentEl = el.parentElement;
   const cantContainBlockTags = ["P"];
