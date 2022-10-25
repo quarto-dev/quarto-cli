@@ -148,6 +148,18 @@ export function test(test: TestDescriptor) {
             return undefined;
           }
         };
+
+        const cleanup = async () => {
+          Deno.removeSync(log);
+          await cleanupLogOnce();
+          if (test.context.teardown) {
+            await test.context.teardown();
+          }
+          if (test.context?.cwd) {
+            Deno.chdir(wd);
+          }
+        };
+
         try {
           await test.execute();
 
@@ -161,8 +173,14 @@ export function test(test: TestDescriptor) {
               await ver.verify(testOutput);
             }
           }
+          await cleanup();
         } catch (ex) {
           const logMessages = logOutput(log);
+          try {
+            await cleanup();
+          } catch (_e) {
+            fail("Internal error: failed to cleanup test");
+          }
           if (logMessages && logMessages.length > 0) {
             const errorTxts = logMessages.map((msg) => msg.msg);
             fail(
@@ -170,16 +188,6 @@ export function test(test: TestDescriptor) {
             );
           } else {
             fail(`${ex.message}\n${ex.stack}`);
-          }
-        } finally {
-          Deno.removeSync(log);
-          await cleanupLogOnce();
-          if (test.context.teardown) {
-            await test.context.teardown();
-          }
-
-          if (test.context?.cwd) {
-            Deno.chdir(wd);
           }
         }
       } else {
