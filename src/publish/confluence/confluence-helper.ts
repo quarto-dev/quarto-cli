@@ -197,6 +197,7 @@ export const buildContentCreate = (
   title: string | null,
   space: Space,
   body: ContentBody,
+  fileName: string,
   parent?: string,
   status: ContentStatusEnum = ContentStatusEnum.current,
   id: string | null = null,
@@ -210,6 +211,7 @@ export const buildContentCreate = (
     status,
     ancestors: parent ? [{ id: parent }] : null,
     body,
+    fileName,
   };
 };
 
@@ -226,6 +228,7 @@ export const fileMetadataToSpaceChanges = (
       fileMetadata.title,
       space,
       fileMetadata.contentBody,
+      fileMetadata.fileName,
       parent?.parent
     );
 

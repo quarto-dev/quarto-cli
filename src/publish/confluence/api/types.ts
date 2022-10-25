@@ -93,6 +93,7 @@ export type ContentCreate = {
   status: ContentStatus;
   ancestors: ContentAncestor[] | null;
   body: ContentBody;
+  fileName?: string;
 };
 
 export type Content = {

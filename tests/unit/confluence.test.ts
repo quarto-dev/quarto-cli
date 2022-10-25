@@ -514,6 +514,7 @@ const runBuildContentCreate = () => {
 
   unitTest(suiteLabel("minParams"), async () => {
     const expected: ContentCreate = {
+      fileName: "fake-file-name",
       id: null,
       title: "fake-title",
       type: PAGE_TYPE,
@@ -541,7 +542,8 @@ const runBuildContentCreate = () => {
     const actual: ContentCreate = buildContentCreate(
       "fake-title",
       fakeSpace,
-      fakeBody
+      fakeBody,
+      "fake-file-name"
     );
 
     assertEquals(expected, actual);
@@ -549,6 +551,7 @@ const runBuildContentCreate = () => {
 
   unitTest(suiteLabel("allParams"), async () => {
     const expected: ContentCreate = {
+      fileName: "fake-filename",
       id: "fake-id",
       title: "fake-title",
       type: "fake-type",
@@ -582,6 +585,7 @@ const runBuildContentCreate = () => {
       "fake-title",
       fakeSpace,
       fakeBody,
+      "fake-filename",
       "fake-parent",
       ContentStatusEnum.deleted,
       "fake-id",
@@ -595,9 +599,11 @@ runBuildContentCreate();
 
 const runFileMetadataToSpaceChanges = () => {
   const suiteLabel = (label: string) => `FileMetadataToSpaceChanges_${label}`;
+
   const fakeSpace: Space = {
     key: "fake-space-key",
   };
+
   const fakeParent: ConfluenceParent = {
     space: "QUARTOCONF",
     parent: "8781825",
@@ -625,7 +631,7 @@ const runFileMetadataToSpaceChanges = () => {
     },
   };
 
-  unitTest(suiteLabel("no files"), async () => {
+  unitTest(suiteLabel("no_files"), async () => {
     const fileMetadataList: SiteFileMetadata[] = [];
     const expected: ConfluenceSpaceChange[] = [];
     const actual: ConfluenceSpaceChange[] = fileMetadataToSpaceChanges(
@@ -636,7 +642,7 @@ const runFileMetadataToSpaceChanges = () => {
     assertEquals(expected, actual);
   });
 
-  unitTest(suiteLabel("one file"), async () => {
+  unitTest(suiteLabel("one_file"), async () => {
     const fileMetadataList: SiteFileMetadata[] = [fakeFile];
     const expected: ConfluenceSpaceChange[] = [
       {
@@ -651,6 +657,7 @@ const runFileMetadataToSpaceChanges = () => {
             value: "fake-value",
           },
         },
+        fileName: "fake-file-name",
         id: null,
         space: {
           key: "fake-space-key",
@@ -668,7 +675,7 @@ const runFileMetadataToSpaceChanges = () => {
     assertEquals(expected, actual);
   });
 
-  unitTest(suiteLabel("two files"), async () => {
+  unitTest(suiteLabel("two_files"), async () => {
     const fileMetadataList: SiteFileMetadata[] = [fakeFile, fakeFile2];
     const expected: ConfluenceSpaceChange[] = [
       {
@@ -683,6 +690,7 @@ const runFileMetadataToSpaceChanges = () => {
             value: "fake-value",
           },
         },
+        fileName: "fake-file-name",
         id: null,
         space: {
           key: "fake-space-key",
@@ -703,6 +711,7 @@ const runFileMetadataToSpaceChanges = () => {
             value: "fake-value2",
           },
         },
+        fileName: "fake-file-name2",
         id: null,
         space: {
           key: "fake-space-key",

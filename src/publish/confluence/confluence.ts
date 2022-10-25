@@ -1,5 +1,3 @@
-//TODO load title metadata
-//TODO save file name on save to metadata
 //TODO only update if changed
 //TODO Diff existing
 //TODO Resource bundles

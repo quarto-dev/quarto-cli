@@ -41,6 +41,8 @@ export class ConfluenceClient {
   }
 
   public createContent(content: ContentCreate): Promise<Content> {
+    console.log("createContent");
+    console.log("content", content);
     return this.post<Content>("content", JSON.stringify(content));
   }
 
