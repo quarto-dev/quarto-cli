@@ -118,6 +118,7 @@
 ## Tables
 
 - Don't require array brackets for `tbl-colwidths` specification
+- Override standard GT style in multiple-column spanners ([#3038](https://github.com/quarto-dev/quarto-cli/issues/3038))
 
 ## Authors and Affiliations
 
