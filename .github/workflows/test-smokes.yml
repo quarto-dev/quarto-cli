@@ -76,7 +76,7 @@ jobs:
         run: |
           git checkout ${{ github.sha}}
           pushd tests
-          ./run-tests.sh smoke/site
+          ./run-tests.sh
           popd
 
       - name: Smoke Test Head
