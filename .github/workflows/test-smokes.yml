@@ -84,5 +84,5 @@ jobs:
         run: |
           pushd tests
           quarto render docs/test.qmd --to pdf
-          ./run-tests.sh
+          ./run-tests.sh smoke/site/render-blog.test.ts
           popd
