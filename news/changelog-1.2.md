@@ -201,7 +201,7 @@
 - Improve YAML validation error messages on values of type object ([#2191](https://github.com/quarto-dev/quarto-cli/issues/2191))
 - Upgrade esbuild to 0.15.6
 - Implement --help option for quarto preview and quarto run
-- Increase contrast for a11y-light theme to work with default code-block background ([#2067, #2528](https://github.com/quarto-dev/quarto-cli/issues/#2067, 2528))
+- Increase contrast for a11y-light theme to work with default code-block background ([#2067](https://github.com/quarto-dev/quarto-cli/issues/2067), [#2528](https://github.com/quarto-dev/quarto-cli/issues/2528))
 - Use deno arm64 native binaries on macOS
 - Resolve absolute paths in include shortcodes ([#2320](https://github.com/quarto-dev/quarto-cli/issues/2320))
 - New metadata field `quarto-required` to specify required versions of quarto in a document
