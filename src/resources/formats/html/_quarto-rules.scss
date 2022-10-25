@@ -519,6 +519,14 @@ table.gt_table {
   border-color: var(--quarto-border-color);
 }
 
+table.gt_table th.gt_column_spanner_outer {
+  color: var(--quarto-body-color);
+  background-color: transparent;
+  border-top-width: inherit;
+  border-bottom-width: inherit;
+  border-color: var(--quarto-border-color);
+}
+
 table.gt_table th.gt_col_heading {
   color: var(--quarto-body-color);
   font-weight: bold;
