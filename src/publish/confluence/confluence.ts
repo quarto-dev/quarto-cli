@@ -50,6 +50,7 @@ import {
   fileMetadataToSpaceChanges,
   filterFilesForUpdate,
   getNextVersion,
+  getTitle,
   isContentCreate,
   isNotFound,
   isUnauthorized,
@@ -239,7 +240,7 @@ async function publish(
     return await client.updateContent(publishRecordId, toUpdate);
   };
 
-  const checkAndReturnUniqueTitle = async (title: string) => {
+  const uniquifyTitle = async (title: string) => {
     const titleAlreadyExistsInSpace: boolean = await client.isTitleInSpace(
       title,
       space
@@ -253,7 +254,7 @@ async function publish(
   };
 
   const createContent = async (body: ContentBody): Promise<Content> => {
-    const createTitle = await checkAndReturnUniqueTitle(title);
+    const createTitle = await uniquifyTitle(title);
 
     const result = await client.createContent({
       id: null,
@@ -299,29 +300,17 @@ async function publish(
     const assembleSiteFileMetadata = async (
       fileName: string
     ): Promise<SiteFileMetadata> => {
-      const getTitle = async (fileName: string): Promise<string> => {
-        //TODO extract to helper
-        const metadataTitle = metadataByInput[fileName]?.title;
-        console.log("fileName", fileName);
-        console.log("metadataByInput", metadataByInput);
-        console.log("metadataTitle", metadataTitle);
-        const titleFromFilename = capitalizeWord(
-          fileName.split(".")[0] ?? fileName
-        );
-        const title = metadataTitle ?? titleFromFilename;
-        const uniqueName = await checkAndReturnUniqueTitle(title);
-        return uniqueName;
-      };
-
       const fileToContentBody = async (
         fileName: string
       ): Promise<ContentBody> => {
         return loadDocument(publishFiles.baseDir, fileName);
       };
 
+      const title = await uniquifyTitle(getTitle(fileName, metadataByInput));
+
       return await {
         fileName,
-        title: await getTitle(fileName),
+        title,
         contentBody: await fileToContentBody(fileName),
       };
     };

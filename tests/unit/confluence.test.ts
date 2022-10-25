@@ -14,6 +14,7 @@ import {
   filterFilesForUpdate,
   getMessageFromAPIError,
   getNextVersion,
+  getTitle,
   isNotFound,
   isUnauthorized,
   tokenFilterOut,
@@ -25,7 +26,11 @@ import {
   writeTokenComparator,
 } from "../../src/publish/confluence/confluence-helper.ts";
 import { ApiError, PublishRecord } from "../../src/publish/types.ts";
-import { AccountToken, AccountTokenType } from "../../src/publish/provider.ts";
+import {
+  AccountToken,
+  AccountTokenType,
+  InputMetadata,
+} from "../../src/publish/provider.ts";
 import {
   ConfluenceParent,
   ConfluenceSpaceChange,
@@ -716,3 +721,48 @@ const runFileMetadataToSpaceChanges = () => {
   });
 };
 runFileMetadataToSpaceChanges();
+
+const runGetTitle = () => {
+  const suiteLabel = (label: string) => `GetTitle_${label}`;
+  const fakeInputMetadata: Record<string, InputMetadata> = {
+    "fake-file.qmd": {
+      title: "fake-title1",
+      author: "fake-author",
+      date: "fake-date",
+    },
+    "fake-file2.qmd": {
+      title: "fake-title2",
+      author: "fake-author2",
+      date: "fake-date2",
+    },
+  };
+
+  unitTest(suiteLabel("valid"), async () => {
+    const fileName = "fake-file.xml";
+    const expected = "fake-title1";
+    const result = getTitle(fileName, fakeInputMetadata);
+    assertEquals(expected, result);
+  });
+
+  unitTest(suiteLabel("valid2"), async () => {
+    const fileName = "fake-file2.xml";
+    const expected = "fake-title2";
+    const result = getTitle(fileName, fakeInputMetadata);
+    assertEquals(expected, result);
+  });
+
+  unitTest(suiteLabel("no-match"), async () => {
+    const fileName = "fake-file3.xml";
+    const expected = "Fake-file3";
+    const result = getTitle(fileName, fakeInputMetadata);
+    assertEquals(expected, result);
+  });
+
+  unitTest(suiteLabel("no-match-empty"), async () => {
+    const fileName = "";
+    const expected = "";
+    const result = getTitle(fileName, fakeInputMetadata);
+    assertEquals(expected, result);
+  });
+};
+runGetTitle();

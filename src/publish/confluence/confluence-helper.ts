@@ -1,7 +1,7 @@
 import { ApiError, PublishRecord } from "../types.ts";
 import { ensureTrailingSlash } from "../../core/path.ts";
 import { isHttpUrl } from "../../core/url.ts";
-import { AccountToken } from "../provider.ts";
+import { AccountToken, InputMetadata } from "../provider.ts";
 import {
   ConfluenceParent,
   ConfluenceSpaceChange,
@@ -240,4 +240,16 @@ export const fileMetadataToSpaceChanges = (
   );
 
   return spaceChanges;
+};
+
+export const getTitle = (
+  fileName: string,
+  metadataByInput: Record<string, InputMetadata>
+): string => {
+  const qmdFileName = fileName.replace(".xml", ".qmd");
+  const metadataTitle = metadataByInput[qmdFileName]?.title;
+
+  const titleFromFilename = capitalizeWord(fileName.split(".")[0] ?? fileName);
+  const title = metadataTitle ?? titleFromFilename;
+  return title;
 };
