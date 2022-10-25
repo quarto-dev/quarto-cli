@@ -1,9 +1,9 @@
 /*
-* provider.ts
-*
-* Copyright (C) 2020 by RStudio, PBC
-*
-*/
+ * provider.ts
+ *
+ * Copyright (C) 2020 by RStudio, PBC
+ *
+ */
 
 import { quartoConfig } from "../core/quarto.ts";
 import { netlifyProvider } from "./netlify/netlify.ts";
@@ -29,8 +29,7 @@ export interface AccountToken {
 }
 
 export function accountTokenText(token: AccountToken) {
-  return token.name +
-    (token.server ? ` (${token.server})` : "");
+  return token.name + (token.server ? ` (${token.server})` : "");
 }
 
 export function anonymousAccount(): AccountToken {
@@ -80,10 +79,17 @@ export interface PublishDeploymentWithAccount extends PublishDeployment {
   account?: AccountToken;
 }
 
+export type InputMetadata = {
+  title?: string;
+  author?: string;
+  date?: string;
+};
+
 export type PublishFiles = {
   baseDir: string;
   rootFile: string;
   files: string[];
+  metadataByInput?: Record<string, InputMetadata>;
 };
 
 export interface PublishProvider {
@@ -93,17 +99,17 @@ export interface PublishProvider {
   listOriginOnly?: boolean;
   requiresRender?: boolean;
   publishRecord?: (
-    input: string | ProjectContext,
+    input: string | ProjectContext
   ) => Promise<PublishRecord | undefined>;
   accountTokens: () => Promise<AccountToken[]>;
   removeToken: (token: AccountToken) => void;
   authorizeToken: (
     options: PublishOptions,
-    target?: PublishRecord,
+    target?: PublishRecord
   ) => Promise<AccountToken | undefined>;
   resolveTarget: (
     account: AccountToken,
-    target: PublishRecord,
+    target: PublishRecord
   ) => Promise<PublishRecord | undefined>;
   publish: (
     account: AccountToken,
@@ -113,7 +119,7 @@ export interface PublishProvider {
     slug: string,
     render: (flags?: RenderFlags) => Promise<PublishFiles>,
     options: PublishOptions,
-    target?: PublishRecord,
+    target?: PublishRecord
   ) => Promise<[PublishRecord | undefined, URL | undefined]>;
   isUnauthorized: (error: Error) => boolean;
   isNotFound: (error: Error) => boolean;

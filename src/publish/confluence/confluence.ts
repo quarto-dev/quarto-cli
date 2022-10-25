@@ -1,3 +1,7 @@
+//TODO load title metadata
+//TODO save file name on save to metadata
+//TODO only update if changed
+//TODO Diff existing
 //TODO Resource bundles
 import { join } from "path/mod.ts";
 import { generate as generateUuid } from "uuid/v4.ts";
@@ -13,6 +17,7 @@ import {
 import {
   AccountToken,
   AccountTokenType,
+  InputMetadata,
   PublishFiles,
   PublishProvider,
 } from "../provider.ts";
@@ -286,18 +291,25 @@ async function publish(
 
   const publishSite = async (): Promise<[PublishRecord, URL | undefined]> => {
     const publishFiles: PublishFiles = await renderSite(render);
+    const metadataByInput: Record<string, InputMetadata> =
+      publishFiles.metadataByInput ?? {};
 
     const filteredFiles: string[] = filterFilesForUpdate(publishFiles.files);
 
     const assembleSiteFileMetadata = async (
       fileName: string
     ): Promise<SiteFileMetadata> => {
-      //TODO use QMD yaml for title
-      const fileToTitle = async (fileName: string): Promise<string> => {
+      const getTitle = async (fileName: string): Promise<string> => {
+        //TODO extract to helper
+        const metadataTitle = metadataByInput[fileName]?.title;
+        console.log("fileName", fileName);
+        console.log("metadataByInput", metadataByInput);
+        console.log("metadataTitle", metadataTitle);
         const titleFromFilename = capitalizeWord(
           fileName.split(".")[0] ?? fileName
         );
-        const uniqueName = await checkAndReturnUniqueTitle(titleFromFilename);
+        const title = metadataTitle ?? titleFromFilename;
+        const uniqueName = await checkAndReturnUniqueTitle(title);
         return uniqueName;
       };
 
@@ -309,7 +321,7 @@ async function publish(
 
       return await {
         fileName,
-        title: await fileToTitle(fileName),
+        title: await getTitle(fileName),
         contentBody: await fileToContentBody(fileName),
       };
     };
@@ -338,10 +350,6 @@ async function publish(
     const parentPage: Content = await client.getContent(parentId);
 
     return buildPublishRecordForContent(server, parentPage);
-
-    //TODO save file name on save to metadata
-    //TODO only update if changed
-    //TODO Diff existing
   };
 
   if (type === PublishTypeEnum.document) {

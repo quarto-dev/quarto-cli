@@ -1,16 +1,16 @@
 /*
-* types.ts
-*
-* Copyright (C) 2020 by RStudio, PBC
-*
-*/
+ * types.ts
+ *
+ * Copyright (C) 2020 by RStudio, PBC
+ *
+ */
 
 import { ProjectContext } from "../project/types.ts";
 
 export class ApiError extends Error {
   public constructor(
     public readonly status: number,
-    public readonly statusText: string,
+    public readonly statusText: string
   ) {
     super(`API Error: ${status} - ${statusText}`);
   }
