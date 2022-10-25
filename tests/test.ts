@@ -121,9 +121,7 @@ export function test(test: TestDescriptor) {
         }
 
         if (test.context.setup) {
-          console.log(`SETUP: ${testName} - start`);
           await test.context.setup();
-          console.log(`SETUP: ${testName} - end`);
         }
 
         let cleanedup = false;
@@ -150,11 +148,20 @@ export function test(test: TestDescriptor) {
             return undefined;
           }
         };
+
+        const cleanup = async () => {
+          Deno.removeSync(log);
+          await cleanupLogOnce();
+          if (test.context.teardown) {
+            await test.context.teardown();
+          }
+          if (test.context?.cwd) {
+            Deno.chdir(wd);
+          }
+        };
+
         try {
-          console.log(`TRY: ${testName}`);
-          console.log(`- EXECUTE: ${testName}`);
           await test.execute();
-          console.log(`- /EXECUTE: ${testName}`);
 
           // Cleanup the output logging
           await cleanupLogOnce();
@@ -166,34 +173,22 @@ export function test(test: TestDescriptor) {
               await ver.verify(testOutput);
             }
           }
-          console.log(`/TRY: ${testName}`);
+          await cleanup();
         } catch (ex) {
-          console.log(`CATCH: ${testName}`);
           const logMessages = logOutput(log);
+          try {
+            await cleanup();
+          } catch (_e) {
+            fail("Internal error: failed to cleanup test");
+          }
           if (logMessages && logMessages.length > 0) {
             const errorTxts = logMessages.map((msg) => msg.msg);
-            console.log(`/CATCH: ${testName}`);
             fail(
               `\n---------------------------------------------\n${ex.message}\n${ex.stack}\n\nTEST OUTPUT:\n${errorTxts}----------------------------------------------`,
             );
           } else {
-            console.log(`/CATCH: ${testName}`);
             fail(`${ex.message}\n${ex.stack}`);
           }
-        } finally {
-          console.log(`FINALLY: ${testName}`);
-          Deno.removeSync(log);
-          await cleanupLogOnce();
-          if (test.context.teardown) {
-            console.log(`- CLEANUP: ${testName}`);
-            await test.context.teardown();
-            console.log(`- /CLEANUP: ${testName}`);
-          }
-
-          if (test.context?.cwd) {
-            Deno.chdir(wd);
-          }
-          console.log(`/FINALLY: ${testName}`);
         }
       } else {
         warning(`Skipped - ${test.name}`);
