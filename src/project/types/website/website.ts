@@ -339,7 +339,7 @@ export async function websitePostRender(
   await updateAliases(context, outputFiles, incremental);
 
   // write redirecting index.html if there is none
-  ensureIndexPage(context);
+  await ensureIndexPage(context);
 }
 
 export function websiteOutputFiles(outputFiles: ProjectOutputFile[]) {
