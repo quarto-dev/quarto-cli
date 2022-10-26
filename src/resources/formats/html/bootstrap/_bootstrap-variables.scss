@@ -779,7 +779,7 @@ $grid-default-wide-margin-seg1: 0.14 * $grid-default-wide-margin-column !default
 
 // Body
 $grid-default-wide-body-column-min: $grid-body-column-min !default;
-$grid-default-wide-body-column-max: $grid-default-body-column + 50px !default;
+$grid-default-wide-body-column-max: $grid-default-body-column !default;
 $grid-default-wide-body: minmax(
   $grid-default-wide-body-column-min,
   calc(
@@ -847,7 +847,7 @@ $grid-default-full-wide-margin-seg1: 0.14 *
 
 // Body
 $grid-default-full-wide-body-column-min: $grid-body-column-min !default;
-$grid-default-full-wide-body-column-max: $grid-default-body-column + 50px !default;
+$grid-default-full-wide-body-column-max: $grid-default-body-column !default;
 $grid-default-full-wide-body: minmax(
   $grid-default-full-wide-body-column-min,
   calc(
@@ -911,7 +911,7 @@ $grid-default-listing-wide-margin-seg1: 0.2 *
 
 // Body
 $grid-default-listing-wide-body-column-min: $grid-body-column-min !default;
-$grid-default-listing-wide-body-column-max: $grid-default-body-column + 50px !default;
+$grid-default-listing-wide-body-column-max: $grid-default-body-column !default;
 $grid-default-listing-wide-body: minmax(
   $grid-default-listing-wide-body-column-min,
   calc(
@@ -970,7 +970,7 @@ $grid-default-slim-wide-margin-seg1: 0.2 * $grid-default-slim-wide-margin-column
 
 // Body
 $grid-default-slim-wide-body-column-min: $grid-body-column-min !default;
-$grid-default-slim-wide-body-column-max: $grid-default-body-column + 50px !default;
+$grid-default-slim-wide-body-column-max: $grid-default-body-column !default;
 $grid-default-slim-wide-body: minmax(
   $grid-default-slim-wide-body-column-min,
   calc(
