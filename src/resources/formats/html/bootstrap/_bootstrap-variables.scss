@@ -748,3 +748,331 @@ $grid-docked-mid-listing-body: minmax(
       $grid-docked-mid-listing-page-margin-end}
   )
 ) !default;
+
+/* DEFAULT (HTML PAGE, NOT IN WEBSITE) GRID */
+$grid-default-sidebar-column: $grid-sidebar-column !default;
+$grid-default-margin-column: $grid-margin-column !default;
+$grid-default-body-column: $grid-body-column + 50px !default;
+
+/* Default Wide Grid */
+// Margins
+$grid-default-wide-page-margin-start: $grid-page-margin-start !default;
+$grid-default-wide-sidebar-margin: 5fr !default;
+$grid-default-wide-body-margin-start: $grid-body-margin-start !default;
+$grid-default-wide-body-margin-end: $grid-body-margin-end !default;
+$grid-default-wide-margin-margin: 5fr !default;
+$grid-default-wide-page-margin-end: $grid-page-margin-end !default;
+
+// Sidebars
+$grid-default-wide-sidebar-column: $grid-default-sidebar-column !default;
+$grid-default-wide-sidebar-seg1: 0.14 * $grid-default-wide-sidebar-column !default;
+$grid-default-wide-sidebar-seg2: 0.14 * $grid-default-wide-sidebar-column !default;
+
+// Margins
+$grid-default-wide-margin-column: $grid-default-margin-column !default;
+$grid-default-wide-margin-seg3: 0.14 * $grid-default-wide-margin-column !default;
+$grid-default-wide-margin-seg2: minmax(
+  #{0.3 * $grid-default-wide-margin-column},
+  #{0.58 * $grid-default-wide-margin-column}
+) !default;
+$grid-default-wide-margin-seg1: 0.14 * $grid-default-wide-margin-column !default;
+
+// Body
+$grid-default-wide-body-column-min: $grid-body-column-min !default;
+$grid-default-wide-body-column-max: $grid-default-body-column + 50px !default;
+$grid-default-wide-body: minmax(
+  $grid-default-wide-body-column-min,
+  calc(
+    #{$grid-default-wide-body-column-max} - #{$grid-default-wide-page-margin-start +
+      $grid-default-wide-page-margin-end}
+  )
+) !default;
+
+/* Default Mid Grid */
+// Margins
+$grid-default-mid-page-margin-start: $grid-page-margin-start !default;
+$grid-default-mid-sidebar-margin: 5fr !default;
+$grid-default-mid-body-margin-start: $grid-body-margin-start !default;
+$grid-default-mid-body-margin-end: $grid-body-margin-end !default;
+$grid-default-mid-margin-margin: 5fr !default;
+$grid-default-mid-page-margin-end: $grid-page-margin-end !default;
+
+// Sidebars
+$grid-default-mid-sidebar-column: $grid-default-sidebar-column !default;
+$grid-default-mid-sidebar-seg1: 0.14 * $grid-default-mid-sidebar-column !default;
+$grid-default-mid-sidebar-seg2: 0.14 * $grid-default-mid-sidebar-column !default;
+
+// Margins
+$grid-default-mid-margin-column: $grid-default-margin-column !default;
+$grid-default-mid-margin-seg3: 0.14 * $grid-default-mid-margin-column !default;
+$grid-default-mid-margin-seg2: minmax(
+  #{0.3 * $grid-default-mid-margin-column},
+  #{0.58 * $grid-default-mid-margin-column}
+) !default;
+$grid-default-mid-margin-seg1: 0.14 * $grid-default-mid-margin-column !default;
+
+// Body
+$grid-default-mid-body-column-min: $grid-body-column-min !default;
+$grid-default-mid-body-column-max: $grid-default-body-column - 50px !default;
+$grid-default-mid-body: minmax(
+  $grid-default-mid-body-column-min,
+  calc(
+    #{$grid-default-mid-body-column-max} - #{$grid-default-mid-page-margin-start +
+      $grid-default-mid-page-margin-end}
+  )
+) !default;
+
+/* Full Content Wide Grid */
+// Margins
+$grid-default-full-wide-page-margin-start: $grid-page-margin-start !default;
+$grid-default-full-wide-sidebar-margin: 5fr !default;
+$grid-default-full-wide-body-margin-start: $grid-body-margin-start !default;
+$grid-default-full-wide-body-margin-end: $grid-body-margin-end !default;
+$grid-default-full-wide-margin-margin: 5fr !default;
+$grid-default-full-wide-page-margin-end: $grid-page-margin-end !default;
+
+// Sidebars
+$grid-default-full-wide-sidebar-column: $grid-default-sidebar-column !default;
+$grid-default-full-wide-sidebar-seg1: 0.14 *
+  $grid-default-full-wide-sidebar-column !default;
+$grid-default-full-wide-sidebar-seg2: 0.14 *
+  $grid-default-full-wide-sidebar-column !default;
+
+// Margins
+$grid-default-full-wide-margin-column: $grid-default-margin-column !default;
+$grid-default-full-wide-margin-seg2: 0.14 *
+  $grid-default-full-wide-margin-column !default;
+$grid-default-full-wide-margin-seg1: 0.14 *
+  $grid-default-full-wide-margin-column !default;
+
+// Body
+$grid-default-full-wide-body-column-min: $grid-body-column-min !default;
+$grid-default-full-wide-body-column-max: $grid-default-body-column + 50px !default;
+$grid-default-full-wide-body: minmax(
+  $grid-default-full-wide-body-column-min,
+  calc(
+    #{$grid-default-full-wide-body-column-max} - #{$grid-default-full-wide-page-margin-start +
+      $grid-default-full-wide-page-margin-end}
+  )
+) !default;
+
+/* Full Content Mid Grid */
+// Margins
+$grid-default-full-mid-page-margin-start: $grid-page-margin-start !default;
+$grid-default-full-mid-sidebar-margin: 5fr !default;
+$grid-default-full-mid-body-margin-start: $grid-body-margin-start !default;
+$grid-default-full-mid-body-margin-end: $grid-body-margin-end !default;
+$grid-default-full-mid-margin-margin: 5fr !default;
+$grid-default-full-mid-page-margin-end: $grid-page-margin-end !default;
+
+// No margins or sidebars
+
+// Body
+$grid-default-full-mid-body-column-min: $grid-body-column-min !default;
+$grid-default-full-mid-body-column-max: $grid-default-body-column - 50px !default;
+$grid-default-full-mid-body: minmax(
+  $grid-default-full-mid-body-column-min,
+  calc(
+    #{$grid-default-full-mid-body-column-max} - #{$grid-default-full-mid-page-margin-start +
+      $grid-default-full-mid-page-margin-end}
+  )
+) !default;
+
+/* Listing Wide Grid */
+// Margins
+$grid-default-listing-wide-page-margin-start: $grid-page-margin-start !default;
+$grid-default-listing-wide-sidebar-margin: 5fr !default;
+$grid-default-listing-wide-body-margin-start: $grid-body-margin-start !default;
+$grid-default-listing-wide-body-margin-end: 2 * $grid-body-margin-end !default;
+$grid-default-listing-wide-margin-margin: 1fr !default;
+$grid-default-listing-wide-page-margin-end: $grid-page-margin-end !default;
+
+// Sidebars
+$grid-default-listing-wide-sidebar-column: $grid-default-sidebar-column !default;
+$grid-default-listing-wide-sidebar-seg1: minmax(
+  #{0.2 * $grid-default-listing-wide-sidebar-column},
+  #{0.4 * $grid-default-listing-wide-sidebar-column}
+) !default;
+$grid-default-listing-wide-sidebar-seg2: 0.2 *
+  $grid-default-listing-wide-sidebar-column !default;
+$grid-default-listing-wide-sidebar-seg3: 0.2 *
+  $grid-default-listing-wide-sidebar-column !default;
+
+// Margins
+$grid-default-listing-wide-margin-column: $grid-default-margin-column !default;
+$grid-default-listing-wide-sidebar-seg3: 0.2 *
+  $grid-default-listing-wide-margin-column !default;
+$grid-default-listing-wide-margin-seg2: minmax(
+  #{0 * $grid-default-listing-wide-margin-column},
+  #{1 * $grid-default-listing-wide-margin-column}
+) !default;
+$grid-default-listing-wide-margin-seg1: 0.2 *
+  $grid-default-listing-wide-margin-column !default;
+
+// Body
+$grid-default-listing-wide-body-column-min: $grid-body-column-min !default;
+$grid-default-listing-wide-body-column-max: $grid-default-body-column + 50px !default;
+$grid-default-listing-wide-body: minmax(
+  $grid-default-listing-wide-body-column-min,
+  calc(
+    #{$grid-default-listing-wide-body-column-max} - #{$grid-default-listing-wide-page-margin-start +
+      $grid-default-listing-wide-page-margin-end}
+  )
+) !default;
+
+/* Listing Mid Grid */
+// Margins
+$grid-default-listing-mid-page-margin-start: $grid-page-margin-start !default;
+$grid-default-listing-mid-sidebar-margin: 5fr !default;
+$grid-default-listing-mid-body-margin-start: $grid-body-margin-start !default;
+$grid-default-listing-mid-body-margin-end: $grid-body-margin-end !default;
+$grid-default-listing-mid-margin-margin: 5fr !default;
+$grid-default-listing-mid-page-margin-end: $grid-page-margin-end !default;
+
+// No margins or sidebars
+
+// Body
+$grid-default-listing-mid-body-column-min: $grid-body-column-min !default;
+$grid-default-listing-mid-body-column-max: $grid-default-body-column + 400px !default;
+$grid-default-listing-mid-body: minmax(
+  $grid-default-listing-mid-body-column-min,
+  calc(
+    #{$grid-default-listing-mid-body-column-max} - #{$grid-default-listing-mid-page-margin-start +
+      $grid-default-listing-mid-page-margin-end}
+  )
+) !default;
+
+/* Slim Wide Grid */
+// Margins
+$grid-default-slim-wide-page-margin-start: $grid-page-margin-start !default;
+$grid-default-slim-wide-sidebar-margin: 5fr !default;
+$grid-default-slim-wide-body-margin-start: $grid-body-margin-start !default;
+$grid-default-slim-wide-body-margin-end: $grid-body-margin-end !default;
+$grid-default-slim-wide-margin-margin: 5fr !default;
+$grid-default-slim-wide-page-margin-end: $grid-page-margin-end !default;
+
+// Sidebars
+$grid-default-slim-wide-sidebar-column: $grid-default-sidebar-column !default;
+$grid-default-slim-wide-sidebar-seg1: 0.14 *
+  $grid-default-slim-wide-sidebar-column !default;
+$grid-default-slim-wide-sidebar-seg2: 0.14 *
+  $grid-default-slim-wide-sidebar-column !default;
+
+// Margins
+$grid-default-slim-wide-margin-column: $grid-default-margin-column !default;
+$grid-default-slim-wide-sidebar-seg3: 0.2 *
+  $grid-default-slim-wide-margin-column !default;
+$grid-default-slim-wide-margin-seg2: minmax(
+  #{0 * $grid-default-slim-wide-margin-column},
+  #{0.8 * $grid-default-slim-wide-margin-column}
+) !default;
+$grid-default-slim-wide-margin-seg1: 0.2 * $grid-default-slim-wide-margin-column !default;
+
+// Body
+$grid-default-slim-wide-body-column-min: $grid-body-column-min !default;
+$grid-default-slim-wide-body-column-max: $grid-default-body-column + 50px !default;
+$grid-default-slim-wide-body: minmax(
+  $grid-default-slim-wide-body-column-min,
+  calc(
+    #{$grid-default-slim-wide-body-column-max} - #{$grid-default-slim-wide-page-margin-start +
+      $grid-default-slim-wide-page-margin-end}
+  )
+) !default;
+
+/* Slim Mid Grid */
+// Margins
+$grid-default-slim-mid-page-margin-start: $grid-page-margin-start !default;
+$grid-default-slim-mid-sidebar-margin: 5fr !default;
+$grid-default-slim-mid-body-margin-start: $grid-body-margin-start !default;
+$grid-default-slim-mid-body-margin-end: $grid-body-margin-end !default;
+$grid-default-slim-mid-margin-margin: 5fr !default;
+$grid-default-slim-mid-page-margin-end: $grid-page-margin-end !default;
+
+// Margins
+$grid-default-slim-mid-margin-column: $grid-default-margin-column !default;
+$grid-default-slim-mid-margin-seg3: 0.14 * $grid-default-slim-mid-margin-column !default;
+$grid-default-slim-mid-margin-seg2: minmax(
+  #{0.3 * $grid-default-slim-mid-margin-column},
+  #{0.58 * $grid-default-slim-mid-margin-column}
+) !default;
+$grid-default-slim-mid-margin-seg1: 0.14 * $grid-default-slim-mid-margin-column !default;
+
+// Body
+$grid-default-slim-mid-body-column-min: $grid-body-column-min !default;
+$grid-default-slim-mid-body-column-max: $grid-default-body-column - 50px !default;
+$grid-default-slim-mid-body: minmax(
+  $grid-default-slim-mid-body-column-min,
+  calc(
+    #{$grid-default-slim-mid-body-column-max} - #{$grid-default-slim-mid-page-margin-start +
+      $grid-default-slim-mid-page-margin-end}
+  )
+) !default;
+
+/* TOC Wide Grid */
+// Margins
+$grid-default-toc-wide-page-margin-start: $grid-page-margin-start !default;
+$grid-default-toc-wide-sidebar-margin: 5fr !default;
+$grid-default-toc-wide-body-margin-start: $grid-body-margin-start !default;
+$grid-default-toc-wide-body-margin-end: $grid-body-margin-end !default;
+$grid-default-toc-wide-margin-margin: 5fr !default;
+$grid-default-toc-wide-page-margin-end: $grid-page-margin-end !default;
+
+// Sidebars
+$grid-default-toc-wide-sidebar-column: $grid-default-sidebar-column !default;
+$grid-default-toc-wide-sidebar-seg1: 0.14 *
+  $grid-default-toc-wide-sidebar-column !default;
+$grid-default-toc-wide-sidebar-seg2: minmax(
+  #{0 * $grid-default-toc-wide-sidebar-column},
+  #{0.7 * $grid-default-toc-wide-sidebar-column}
+) !default;
+$grid-default-toc-wide-sidebar-seg3: 0.14 *
+  $grid-default-toc-wide-sidebar-column !default;
+
+// Margins
+$grid-default-toc-wide-margin-column: $grid-default-margin-column !default;
+$grid-default-toc-wide-sidebar-seg3: 0.2 * $grid-default-toc-wide-margin-column !default;
+$grid-default-toc-wide-margin-seg2: minmax(
+  #{0 * $grid-default-toc-wide-margin-column},
+  #{0.8 * $grid-default-toc-wide-margin-column}
+) !default;
+$grid-default-toc-wide-margin-seg1: 0.2 * $grid-default-toc-wide-margin-column !default;
+
+// Body
+$grid-default-toc-wide-body-column-min: $grid-body-column-min - 50px !default;
+$grid-default-toc-wide-body-column-max: $grid-default-body-column - 50px !default;
+$grid-default-toc-wide-body: minmax(
+  $grid-default-toc-wide-body-column-min,
+  calc(
+    #{$grid-default-toc-wide-body-column-max} - #{$grid-default-toc-wide-page-margin-start +
+      $grid-default-toc-wide-page-margin-end}
+  )
+) !default;
+
+/* TOC Mid Grid */
+// Margins
+$grid-default-toc-mid-page-margin-start: $grid-page-margin-start !default;
+$grid-default-toc-mid-sidebar-margin: 5fr !default;
+$grid-default-toc-mid-body-margin-start: $grid-body-margin-start !default;
+$grid-default-toc-mid-body-margin-end: $grid-body-margin-end !default;
+$grid-default-toc-mid-margin-margin: 5fr !default;
+$grid-default-toc-mid-page-margin-end: $grid-page-margin-end !default;
+
+// Margins
+$grid-default-toc-mid-sidebar-column: $grid-default-sidebar-column !default;
+$grid-default-toc-mid-sidebar-seg1: 0.14 * $grid-default-toc-mid-sidebar-column !default;
+$grid-default-toc-mid-sidebar-seg2: minmax(
+  #{0 * $grid-default-toc-mid-sidebar-column},
+  #{0.58 * $grid-default-toc-mid-sidebar-column}
+) !default;
+$grid-default-toc-mid-sidebar-seg3: 0.14 * $grid-default-toc-mid-sidebar-column !default;
+
+// Body
+$grid-default-toc-mid-body-column-min: $grid-body-column-min - 50px !default;
+$grid-default-toc-mid-body-column-max: $grid-default-body-column - 50px !default;
+$grid-default-toc-mid-body: minmax(
+  $grid-default-toc-mid-body-column-min,
+  calc(
+    #{$grid-default-toc-mid-body-column-max} - #{$grid-default-toc-mid-page-margin-start +
+      $grid-default-toc-mid-page-margin-end}
+  )
+) !default;
