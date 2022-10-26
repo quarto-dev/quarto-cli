@@ -17,27 +17,6 @@
   }
 }
 
-$grid-body-padding: 1.5em;
-$grid-body-padding-start: $grid-body-padding !default;
-$grid-body-padding-end: $grid-body-padding !default;
-$grid-body-minsize: 500px;
-$grid-body-minsize-slim: 450px;
-$grid-body-maxsize-mid: calc(
-  750px - #{$grid-page-margin-start + $grid-page-margin-end}
-);
-$grid-body-maxsize-float-wide: calc(
-  800px - #{$grid-page-margin-start + $grid-page-margin-end}
-);
-$grid-body-maxsize-docked-wide: calc(
-  1000px - #{$grid-page-margin-start + $grid-page-margin-end}
-);
-$grid-body-maxsize-plain-wide: calc(
-  850px - #{$grid-page-margin-start + $grid-page-margin-end}
-);
-$grid-body-maxsize-listing: calc(
-  1200px - #{$grid-page-margin-start + $grid-page-margin-end}
-);
-
 // Floating Grid Definitions
 @mixin page-columns-float-wide {
   @include page-columns();
@@ -322,7 +301,7 @@ $grid-body-maxsize-listing: calc(
     [screen-start] $grid-default-mid-page-margin-start
     [screen-start-inset page-start page-start-inset body-start-outset] $grid-default-mid-sidebar-margin
     [body-start] $grid-default-mid-body-margin-start
-    [body-content-start] minmax($grid-body-minsize, $grid-body-maxsize-mid)
+    [body-content-start] $grid-default-mid-body
     [body-content-end] $grid-default-mid-body-margin-end
     [body-end] $grid-default-mid-margin-seg3
     [body-end-outset] $grid-default-mid-margin-seg2
@@ -355,7 +334,7 @@ $grid-body-maxsize-listing: calc(
     [screen-start] $grid-default-full-mid-page-margin-start
     [screen-start-inset page-start page-start-inset body-start-outset] $grid-default-full-mid-sidebar-margin
     [body-start] $grid-default-full-mid-body-margin-start
-    [body-content-start] minmax($grid-body-minsize, $grid-body-maxsize-mid)
+    [body-content-start] $grid-default-full-mid-body
     [body-content-end] $grid-default-full-mid-body-margin-end
     [body-end body-end-outset page-end-inset page-end] $grid-default-full-mid-margin-margin
     [screen-end-inset] $grid-default-full-mid-page-margin-end
@@ -371,7 +350,7 @@ $grid-body-maxsize-listing: calc(
     [page-start-inset] $grid-default-listing-wide-sidebar-seg2
     [body-start-outset] $grid-default-listing-wide-sidebar-seg3
     [body-start] $grid-default-listing-wide-body-margin-start
-    [body-content-start] minmax($grid-body-minsize, $grid-body-maxsize-listing)
+    [body-content-start] $grid-default-listing-wide-body
     [body-content-end] $grid-default-listing-wide-body-margin-end
     [body-end] $grid-default-listing-wide-sidebar-seg3
     [body-end-outset] $grid-default-listing-wide-margin-seg2
@@ -402,7 +381,7 @@ $grid-body-maxsize-listing: calc(
     [page-start page-start-inset] $grid-default-slim-wide-sidebar-seg1
     [body-start-outset] $grid-default-slim-wide-sidebar-seg2
     [body-start] $grid-default-slim-wide-body-margin-start
-    [body-content-start] minmax($grid-body-minsize, $grid-body-maxsize-mid)
+    [body-content-start] $grid-default-slim-wide-body
     [body-content-end] $grid-default-slim-wide-body-margin-end
     [body-end] $grid-default-slim-wide-sidebar-seg3
     [body-end-outset] $grid-default-slim-wide-margin-seg2
