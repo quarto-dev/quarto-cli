@@ -640,7 +640,7 @@
     let path = window.location.pathname;
     if (!/\/$/.test(path)) path += "/";
     const devServerSocket = new WebSocket(protocol + "//" + window.location.host + path);
-    let reloadPage = false;
+    let reloadPage = true;
     addEventListener("beforeunload", () => {
       // don't reload page in case of navigation events
       reloadPage = false;
