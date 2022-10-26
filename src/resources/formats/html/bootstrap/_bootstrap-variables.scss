@@ -177,3 +177,313 @@ $input-border-color: theme-override-value(
   "input-border-color",
   if(variable-exists(input-border-color), $input-border-color, null)
 );
+
+/* GRID VARIABLES */
+$grid-margin: 1.5em !default;
+$grid-sidebar-column: 250px !default;
+$grid-margin-column: 250px !default;
+
+// body variables
+$grid-body-column: 800px !default;
+$grid-body-column-min: 500px !default;
+$grid-body-column-max: $grid-body-column !default;
+
+// Margin variables
+$grid-page-margin: $grid-margin !default;
+$grid-page-margin-start: $grid-page-margin !default;
+$grid-page-margin-end: $grid-page-margin !default;
+
+$grid-body-margin: $grid-margin !default;
+$grid-body-margin-start: $grid-body-margin !default;
+$grid-body-margin-end: $grid-body-margin !default;
+
+/* FLOATING GRID */
+$grid-page-margin-float: 5fr !default;
+$grid-float-sidebar-column: $grid-sidebar-column !default;
+$grid-float-margin-column: $grid-margin-column !default;
+
+/* Float Wide Default Grid */
+
+// Margins
+$grid-float-wide-page-margin-start: $grid-page-margin-start !default;
+$grid-float-wide-page-margin-end: $grid-page-margin-end !default;
+$grid-float-wide-body-margin-start: $grid-body-margin-start !default;
+$grid-float-wide-body-margin-end: $grid-body-margin-end !default;
+$grid-float-wide-sidebar-margin: $grid-page-margin-float !default;
+$grid-float-wide-margin-margin: $grid-page-margin-float !default;
+
+// Sidebars
+$grid-float-wide-sidebar-column: $grid-float-sidebar-column !default;
+$grid-float-wide-sidebar-seg1: minmax(
+  #{0.1 * $grid-float-wide-sidebar-column},
+  #{0.2 * $grid-float-wide-sidebar-column}
+) !default;
+$grid-float-wide-sidebar-seg2: minmax(
+  #{0.2 * $grid-float-wide-sidebar-column},
+  #{0.6 * $grid-float-wide-sidebar-column}
+) !default;
+$grid-float-wide-sidebar-seg3: minmax(
+  #{0.1 * $grid-float-wide-sidebar-column},
+  #{0.2 * $grid-float-wide-sidebar-column}
+) !default;
+
+// Margins
+$grid-float-wide-margin-column: $grid-float-margin-column !default;
+$grid-float-wide-margin-seg3: minmax(
+  #{0.1 * $grid-float-wide-margin-column},
+  #{0.2 * $grid-float-wide-margin-column}
+) !default;
+$grid-float-wide-margin-seg2: minmax(
+  #{0.2 * $grid-float-wide-margin-column},
+  #{0.6 * $grid-float-wide-margin-column}
+) !default;
+$grid-float-wide-margin-seg1: minmax(
+  #{0.1 * $grid-float-wide-margin-column},
+  #{0.2 * $grid-float-wide-margin-column}
+) !default;
+
+// Body
+$grid-float-wide-body-column-min: $grid-body-column-min !default;
+$grid-float-wide-body-column-max: $grid-body-column-max !default;
+$grid-float-wide-body: minmax(
+  $grid-float-wide-body-column-min,
+  calc(
+    #{$grid-float-wide-body-column-max} - #{$grid-float-wide-page-margin-start +
+      $grid-float-wide-page-margin-end}
+  )
+) !default;
+
+/* Float Wide Slim Content Grid */
+
+// Margins
+$grid-float-wide-slim-page-margin-start: $grid-page-margin-start !default;
+$grid-float-wide-slim-page-margin-end: $grid-page-margin-end !default;
+$grid-float-wide-slim-body-margin-start: $grid-body-margin-start !default;
+$grid-float-wide-slim-body-margin-end: $grid-body-margin-end !default;
+$grid-float-wide-slim-sidebar-margin: $grid-page-margin-float !default;
+$grid-float-wide-slim-margin-margin: $grid-page-margin-float !default;
+
+// Sidebars
+$grid-float-wide-slim-sidebar-column: $grid-float-sidebar-column !default;
+$grid-float-wide-slim-sidebar-seg1: 0.2 * $grid-float-wide-slim-sidebar-column !default;
+$grid-float-wide-slim-sidebar-seg2: minmax(
+  #{0.2 * $grid-float-wide-slim-sidebar-column},
+  #{0.6 * $grid-float-wide-slim-sidebar-column}
+) !default;
+$grid-float-wide-slim-sidebar-seg3: 0.2 * $grid-float-wide-slim-sidebar-column !default;
+
+// Margins
+$grid-float-wide-slim-margin-column: $grid-float-margin-column !default;
+$grid-float-wide-slim-margin-seg3: 0.2 * $grid-float-wide-slim-margin-column !default;
+$grid-float-wide-slim-margin-seg2: minmax(
+  #{0.2 * $grid-float-wide-slim-margin-column},
+  #{0.6 * $grid-float-wide-slim-margin-column}
+) !default;
+$grid-float-wide-slim-margin-seg1: 0.2 * $grid-float-wide-slim-margin-column !default;
+
+// Body
+$grid-float-wide-slim-body-column-min: $grid-body-column-min - 50px !default;
+$grid-float-wide-slim-body-column-max: $grid-body-column-max - 50px !default;
+$grid-float-wide-slim-body: minmax(
+  $grid-float-wide-slim-body-column-min,
+  calc(
+    #{$grid-float-wide-slim-body-column-max} - #{$grid-float-wide-slim-page-margin-start +
+      $grid-float-wide-slim-page-margin-end}
+  )
+) !default;
+
+/* Float Wide Full Grid */
+// Margins
+$grid-float-wide-full-page-margin-start: $grid-page-margin-start !default;
+$grid-float-wide-full-page-margin-end: $grid-page-margin-end !default;
+$grid-float-wide-full-body-margin-start: $grid-body-margin-start !default;
+$grid-float-wide-full-body-margin-end: $grid-body-margin-end !default;
+$grid-float-wide-full-sidebar-margin: $grid-page-margin-float !default;
+$grid-float-wide-full-margin-margin: $grid-page-margin-float !default;
+
+// Sidebars
+$grid-float-wide-full-sidebar-column: $grid-float-sidebar-column !default;
+$grid-float-wide-full-sidebar-seg1: 0.2 * $grid-float-wide-full-sidebar-column !default;
+$grid-float-wide-full-sidebar-seg2: minmax(
+  #{0.2 * $grid-float-wide-full-sidebar-column},
+  #{0.6 * $grid-float-wide-full-sidebar-column}
+) !default;
+$grid-float-wide-full-sidebar-seg3: 0.2 * $grid-float-wide-full-sidebar-column !default;
+
+// Margins
+$grid-float-wide-full-margin-column: $grid-float-margin-column !default;
+$grid-float-wide-full-margin-seg3: 0.2 * $grid-float-wide-full-margin-column !default;
+$grid-float-wide-full-margin-seg2: minmax(
+  #{0.2 * $grid-float-wide-full-margin-column},
+  #{0.6 * $grid-float-wide-full-margin-column}
+) !default;
+$grid-float-wide-full-margin-seg1: 0.2 * $grid-float-wide-full-margin-column !default;
+
+// Body
+$grid-float-wide-full-body-column-min: $grid-body-column-min !default;
+$grid-float-wide-full-body-column-max: $grid-body-column-max !default;
+$grid-float-wide-full-body: minmax(
+  $grid-float-wide-full-body-column-min,
+  calc(
+    #{$grid-float-wide-full-body-column-max} - #{$grid-float-wide-full-page-margin-start +
+      $grid-float-wide-full-page-margin-end}
+  )
+) !default;
+
+/* Float Wide Listing Grid */
+// Margins
+$grid-float-wide-listing-page-margin-start: $grid-page-margin-start !default;
+$grid-float-wide-listing-page-margin-end: $grid-page-margin-end !default;
+$grid-float-wide-listing-body-margin-start: $grid-body-margin-start !default;
+$grid-float-wide-listing-body-margin-end: $grid-body-margin-end !default;
+$grid-float-wide-listing-sidebar-margin: $grid-page-margin-float !default;
+$grid-float-wide-listing-margin-margin: $grid-page-margin-float !default;
+
+// Sidebars
+$grid-float-wide-listing-sidebar-column: $grid-float-sidebar-column !default;
+$grid-float-wide-listing-sidebar-seg1: minmax(
+  #{0.1 * $grid-float-wide-listing-sidebar-column},
+  #{0.2 * $grid-float-wide-listing-sidebar-column}
+) !default;
+$grid-float-wide-listing-sidebar-seg2: minmax(
+  #{0.2 * $grid-float-wide-listing-sidebar-column},
+  #{0.6 * $grid-float-wide-listing-sidebar-column}
+) !default;
+$grid-float-wide-listing-sidebar-seg3: minmax(
+  #{0.1 * $grid-float-wide-listing-sidebar-column},
+  #{0.2 * $grid-float-wide-listing-sidebar-column}
+) !default;
+
+// Margins
+$grid-float-wide-listing-margin-column: $grid-float-margin-column !default;
+$grid-float-wide-listing-margin-seg3: minmax(
+  #{0.1 * $grid-float-wide-listing-margin-column},
+  #{0.2 * $grid-float-wide-listing-margin-column}
+) !default;
+$grid-float-wide-listing-margin-seg2: minmax(
+  #{0.2 * $grid-float-wide-listing-margin-column},
+  #{0.6 * $grid-float-wide-listing-margin-column}
+) !default;
+$grid-float-wide-listing-margin-seg1: minmax(
+  #{0.1 * $grid-float-wide-listing-margin-column},
+  #{0.2 * $grid-float-wide-listing-margin-column}
+) !default;
+
+// Body
+$grid-float-wide-listing-body-column-min: $grid-body-column-min !default;
+$grid-float-wide-listing-body-column-max: $grid-body-column-max !default;
+$grid-float-wide-listing-body: minmax(
+  $grid-float-wide-listing-body-column-min,
+  calc(
+    #{$grid-float-wide-listing-body-column-max} - #{$grid-float-wide-listing-page-margin-start +
+      $grid-float-wide-listing-page-margin-end}
+  )
+) !default;
+
+/* Float Mid Default Grid */
+// Margins
+$grid-float-mid-page-margin-start: $grid-page-margin-start !default;
+$grid-float-mid-page-margin-end: $grid-page-margin-end !default;
+$grid-float-mid-body-margin-start: $grid-body-margin-start !default;
+$grid-float-mid-body-margin-end: $grid-body-margin-end !default;
+$grid-float-mid-sidebar-margin: $grid-page-margin-float !default;
+$grid-float-mid-margin-margin: $grid-page-margin-float !default;
+
+// No sidebar, only margins
+$grid-float-mid-margin-column: $grid-float-margin-column !default;
+$grid-float-mid-margin-seg3: 0.2 * $grid-float-mid-margin-column !default;
+$grid-float-mid-margin-seg2: minmax(
+  #{0.3 * $grid-float-mid-margin-column},
+  #{0.6 * $grid-float-mid-margin-column}
+) !default;
+$grid-float-mid-margin-seg1: 0.1 * $grid-float-mid-margin-column !default;
+
+// Body
+$grid-float-mid-body-column-min: $grid-body-column-min !default;
+$grid-float-mid-body-column-max: $grid-body-column-max - 50px !default;
+$grid-float-mid-body: minmax(
+  $grid-float-mid-body-column-min,
+  calc(
+    #{$grid-float-mid-body-column-max} - #{$grid-float-mid-page-margin-start + $grid-float-mid-page-margin-end}
+  )
+) !default;
+
+/* Float Mid Slim Content Grid */
+// Margins
+$grid-float-mid-slim-page-margin-start: $grid-page-margin-start !default;
+$grid-float-mid-slim-page-margin-end: $grid-page-margin-end !default;
+$grid-float-mid-slim-body-margin-start: 2 * $grid-body-margin-start / 3 !default;
+$grid-float-mid-slim-body-margin-end: $grid-body-margin-end !default;
+$grid-float-mid-slim-sidebar-margin: $grid-page-margin-float !default;
+$grid-float-mid-slim-margin-margin: 0.8 * $grid-page-margin-float !default;
+
+// No sidebar, only margins
+$grid-float-mid-slim-margin-column: $grid-float-margin-column !default;
+$grid-float-mid-slim-margin-seg3: 0.14 * $grid-float-mid-slim-margin-column !default;
+$grid-float-mid-slim-margin-seg2: minmax(
+  #{0.3 * $grid-float-mid-slim-margin-column},
+  #{0.58 * $grid-float-mid-slim-margin-column}
+) !default;
+$grid-float-mid-slim-margin-seg1: 0.14 * $grid-float-mid-slim-margin-column !default;
+
+// Body
+$grid-float-mid-slim-body-column-min: $grid-body-column-min !default;
+$grid-float-mid-slim-body-column-max: $grid-body-column-max - 50px !default;
+$grid-float-mid-slim-body: minmax(
+  $grid-float-mid-slim-body-column-min,
+  calc(
+    #{$grid-float-mid-slim-body-column-max} - #{$grid-float-mid-slim-page-margin-start +
+      $grid-float-mid-slim-page-margin-end}
+  )
+) !default;
+
+/* Float Mid Full Content Grid */
+// Margins
+$grid-float-mid-full-page-margin-start: $grid-page-margin-start !default;
+$grid-float-mid-full-page-margin-end: $grid-page-margin-end !default;
+$grid-float-mid-full-body-margin-start: 2 * $grid-body-margin-start / 3 !default;
+$grid-float-mid-full-body-margin-end: $grid-body-margin-end !default;
+$grid-float-mid-full-sidebar-margin: $grid-page-margin-float !default;
+$grid-float-mid-full-margin-margin: 0.8 * $grid-page-margin-float !default;
+
+// No sidebar or margins
+
+// Body
+$grid-float-mid-full-body-column-min: $grid-body-column-min !default;
+$grid-float-mid-full-body-column-max: $grid-body-column-max !default;
+$grid-float-mid-full-body: minmax(
+  $grid-float-mid-full-body-column-min,
+  calc(
+    #{$grid-float-mid-full-body-column-max} - #{$grid-float-mid-full-page-margin-start +
+      $grid-float-mid-full-page-margin-end}
+  )
+) !default;
+
+/* Float Mid Listing Content Grid */
+// Margins
+$grid-float-mid-listing-page-margin-start: $grid-page-margin-start !default;
+$grid-float-mid-listing-page-margin-end: $grid-page-margin-end !default;
+$grid-float-mid-listing-body-margin-start: 2 * $grid-body-margin-start / 3 !default;
+$grid-float-mid-listing-body-margin-end: $grid-body-margin-end !default;
+$grid-float-mid-listing-sidebar-margin: $grid-page-margin-float !default;
+$grid-float-mid-listing-margin-margin: 0.8 * $grid-page-margin-float !default;
+
+// No sidebar, only margins
+$grid-float-mid-listing-margin-column: $grid-float-margin-column !default;
+$grid-float-mid-listing-margin-seg3: 0.2 * $grid-float-mid-listing-margin-column !default;
+$grid-float-mid-listing-margin-seg2: minmax(
+  #{0.3 * $grid-float-mid-listing-margin-column},
+  #{0.6 * $grid-float-mid-listing-margin-column}
+) !default;
+$grid-float-mid-listing-margin-seg1: 0.1 * $grid-float-mid-listing-margin-column !default;
+
+// Body
+$grid-float-mid-listing-body-column-min: $grid-body-column-min !default;
+$grid-float-mid-listing-body-column-max: $grid-body-column-max - 50px !default;
+$grid-float-mid-listing-body: minmax(
+  $grid-float-mid-listing-body-column-min,
+  calc(
+    #{$grid-float-mid-listing-body-column-max} - #{$grid-float-mid-listing-page-margin-start +
+      $grid-float-mid-listing-page-margin-end}
+  )
+) !default;
