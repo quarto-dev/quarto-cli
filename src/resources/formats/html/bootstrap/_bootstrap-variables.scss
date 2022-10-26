@@ -487,3 +487,264 @@ $grid-float-mid-listing-body: minmax(
       $grid-float-mid-listing-page-margin-end}
   )
 ) !default;
+
+/* DOCKED GRID */
+$grid-docked-sidebar-column: $grid-sidebar-column !default;
+$grid-docked-margin-column: $grid-margin-column !default;
+$grid-docked-body-column: $grid-body-column + 200px !default;
+
+/* Docked Wide Default Grid */
+
+// Margins
+$grid-docked-wide-page-margin-start: $grid-page-margin-start !default;
+$grid-docked-wide-page-margin-end: $grid-page-margin-end !default;
+$grid-docked-wide-body-margin-start: $grid-body-margin-start !default;
+$grid-docked-wide-body-margin-end: $grid-body-margin-end !default;
+$grid-docked-wide-margin-margin: 5fr !default;
+
+// Sidebars
+$grid-docked-wide-sidebar-column: $grid-docked-sidebar-column !default;
+$grid-docked-wide-sidebar-seg1: minmax(
+  #{0.2 * $grid-docked-wide-sidebar-column},
+  #{0.4 * $grid-docked-wide-sidebar-column}
+) !default;
+$grid-docked-wide-sidebar-seg2: 0.2 * $grid-docked-wide-sidebar-column !default;
+$grid-docked-wide-sidebar-seg3: 0.2 * $grid-docked-wide-sidebar-column !default;
+
+// Margins
+$grid-docked-wide-margin-column: $grid-docked-margin-column !default;
+$grid-docked-wide-margin-seg3: 0.2 * $grid-docked-wide-margin-column !default;
+$grid-docked-wide-margin-seg2: minmax(
+  #{0.2 * $grid-docked-wide-margin-column},
+  #{0.4 * $grid-docked-wide-margin-column}
+) !default;
+$grid-docked-wide-margin-seg1: 0.2 * $grid-docked-wide-margin-column !default;
+
+// Body
+$grid-docked-wide-body-column-min: $grid-body-column-min !default;
+$grid-docked-wide-body-column-max: $grid-docked-body-column !default;
+$grid-docked-wide-body: minmax(
+  $grid-docked-wide-body-column-min,
+  calc(
+    #{$grid-docked-wide-body-column-max} - #{$grid-docked-wide-page-margin-start +
+      $grid-docked-wide-page-margin-end}
+  )
+) !default;
+
+/* Docked Slim Content Grid */
+
+// Margins
+$grid-docked-wide-slim-page-margin-start: $grid-page-margin-start !default;
+$grid-docked-wide-slim-page-margin-end: $grid-page-margin-end !default;
+$grid-docked-wide-slim-body-margin-start: $grid-body-margin-start !default;
+$grid-docked-wide-slim-body-margin-end: $grid-body-margin-end !default;
+$grid-docked-wide-slim-margin-margin: 5fr !default;
+
+// Sidebars
+$grid-docked-wide-slim-sidebar-column: $grid-docked-sidebar-column !default;
+$grid-docked-wide-slim-sidebar-seg1: minmax(
+  #{0.2 * $grid-docked-wide-slim-sidebar-column},
+  #{0.4 * $grid-docked-wide-slim-sidebar-column}
+) !default;
+$grid-docked-wide-slim-sidebar-seg2: 0.2 * $grid-docked-wide-slim-sidebar-column !default;
+$grid-docked-wide-slim-sidebar-seg3: 0.2 * $grid-docked-wide-slim-sidebar-column !default;
+
+// Margins
+$grid-docked-wide-slim-margin-column: $grid-docked-margin-column !default;
+$grid-docked-wide-slim-margin-seg3: 0.2 * $grid-docked-wide-slim-margin-column !default;
+$grid-docked-wide-slim-margin-seg2: minmax(
+  #{0 * $grid-docked-wide-slim-margin-column},
+  #{0.8 * $grid-docked-wide-slim-margin-column}
+) !default;
+$grid-docked-wide-slim-margin-seg1: 0.2 * $grid-docked-wide-slim-margin-column !default;
+
+// Body
+$grid-docked-wide-slim-body-column-min: $grid-body-column-min - 50px !default;
+$grid-docked-wide-slim-body-column-max: $grid-body-column-max - 50px !default;
+$grid-docked-wide-slim-body: minmax(
+  $grid-docked-wide-slim-body-column-min,
+  calc(
+    #{$grid-docked-wide-slim-body-column-max} - #{$grid-docked-wide-slim-page-margin-start +
+      $grid-docked-wide-slim-page-margin-end}
+  )
+) !default;
+
+/* Docked Full Content Grid */
+
+// Margins
+$grid-docked-wide-full-page-margin-start: $grid-page-margin-start !default;
+$grid-docked-wide-full-body-margin-start: $grid-body-margin-start !default;
+$grid-docked-wide-full-body-margin-end: $grid-body-margin-end !default;
+$grid-docked-wide-full-margin-margin: 5fr !default;
+$grid-docked-wide-full-page-margin-end: $grid-page-margin-end !default;
+
+// Sidebars
+$grid-docked-wide-full-sidebar-column: $grid-docked-sidebar-column !default;
+$grid-docked-wide-full-sidebar-seg1: minmax(
+  #{0.2 * $grid-docked-wide-full-sidebar-column},
+  #{0.4 * $grid-docked-wide-full-sidebar-column}
+) !default;
+$grid-docked-wide-full-sidebar-seg2: 0.2 * $grid-docked-wide-full-sidebar-column !default;
+$grid-docked-wide-full-sidebar-seg3: 0.2 * $grid-docked-wide-full-sidebar-column !default;
+
+// No Margins
+
+// Body
+$grid-docked-wide-full-body-column-min: $grid-body-column-min !default;
+$grid-docked-wide-full-body-column-max: $grid-docked-body-column !default;
+$grid-docked-wide-full-body: minmax(
+  $grid-docked-wide-full-body-column-min,
+  calc(
+    #{$grid-docked-wide-full-body-column-max} - #{$grid-docked-wide-full-page-margin-start +
+      $grid-docked-wide-full-page-margin-end}
+  )
+) !default;
+
+/* Docked Listing Grid */
+
+// Margins
+$grid-docked-wide-listing-page-margin-start: $grid-page-margin-start !default;
+$grid-docked-wide-listing-body-margin-start: $grid-body-margin-start !default;
+$grid-docked-wide-listing-body-margin-end: $grid-body-margin-end !default;
+$grid-docked-wide-listing-margin-margin: 5fr !default;
+$grid-docked-wide-listing-page-margin-end: $grid-page-margin-end !default;
+
+// Sidebars
+$grid-docked-wide-listing-sidebar-column: $grid-docked-sidebar-column !default;
+$grid-docked-wide-listing-sidebar-seg1: minmax(
+  #{0.2 * $grid-docked-wide-listing-sidebar-column},
+  #{0.4 * $grid-docked-wide-listing-sidebar-column}
+) !default;
+$grid-docked-wide-listing-sidebar-seg2: 0.2 *
+  $grid-docked-wide-listing-sidebar-column !default;
+$grid-docked-wide-listing-sidebar-seg3: 0.2 *
+  $grid-docked-wide-listing-sidebar-column !default;
+
+// Margins
+$grid-docked-wide-listing-margin-column: $grid-docked-margin-column !default;
+$grid-docked-wide-listing-margin-seg3: 0.2 *
+  $grid-docked-wide-listing-margin-column !default;
+$grid-docked-wide-listing-margin-seg2: minmax(
+  #{0 * $grid-docked-wide-listing-margin-column},
+  #{0.8 * $grid-docked-wide-listing-margin-column}
+) !default;
+$grid-docked-wide-listing-margin-seg1: 0.2 *
+  $grid-docked-wide-listing-margin-column !default;
+
+// Body
+$grid-docked-wide-listing-body-column-min: $grid-body-column-min !default;
+$grid-docked-wide-listing-body-column-max: $grid-docked-body-column !default;
+$grid-docked-wide-listing-body: minmax(
+  $grid-docked-wide-listing-body-column-min,
+  calc(
+    #{$grid-docked-wide-listing-body-column-max} - #{$grid-docked-wide-listing-page-margin-start +
+      $grid-docked-wide-listing-page-margin-end}
+  )
+) !default;
+
+/* Docked Mid Default Grid */
+// Margins
+$grid-docked-mid-page-margin-start: $grid-page-margin-start !default;
+$grid-docked-mid-body-margin-start: $grid-body-margin-start !default;
+$grid-docked-mid-body-margin-end: $grid-body-margin-end !default;
+$grid-docked-mid-margin-margin: 5fr !default;
+$grid-docked-mid-page-margin-end: $grid-page-margin-end !default;
+
+// No sidebar, only margins
+$grid-docked-mid-margin-column: $grid-docked-margin-column !default;
+$grid-docked-mid-margin-seg3: 0.2 * $grid-docked-mid-margin-column !default;
+$grid-docked-mid-margin-seg2: minmax(
+  #{0.1 * $grid-docked-mid-margin-column},
+  #{0.2 * $grid-docked-mid-margin-column}
+) !default;
+$grid-docked-mid-margin-seg1: 0.2 * $grid-docked-mid-margin-column !default;
+
+// Body
+$grid-docked-mid-body-column-min: $grid-body-column-min !default;
+$grid-docked-mid-body-column-max: $grid-body-column-max - 50px !default;
+$grid-docked-mid-body: minmax(
+  $grid-docked-mid-body-column-min,
+  calc(
+    #{$grid-docked-mid-body-column-max} - #{$grid-docked-mid-page-margin-start +
+      $grid-docked-mid-page-margin-end}
+  )
+) !default;
+
+/* Docked Mid Slim Content Grid */
+// Margins
+$grid-docked-mid-slim-page-margin-start: $grid-page-margin-start !default;
+$grid-docked-mid-slim-body-margin-start: $grid-body-margin-start !default;
+$grid-docked-mid-slim-body-margin-end: $grid-body-margin-end !default;
+$grid-docked-mid-slim-margin-margin: 5fr !default;
+$grid-docked-mid-slim-page-margin-end: $grid-page-margin-end !default;
+
+// No sidebar, only margins
+$grid-docked-mid-slim-margin-column: $grid-docked-margin-column !default;
+$grid-docked-mid-slim-margin-seg3: 0.2 * $grid-docked-mid-slim-margin-column !default;
+$grid-docked-mid-slim-margin-seg2: minmax(
+  #{0.1 * $grid-docked-mid-slim-margin-column},
+  #{0.2 * $grid-docked-mid-slim-margin-column}
+) !default;
+$grid-docked-mid-slim-margin-seg1: 0.2 * $grid-docked-mid-slim-margin-column !default;
+
+// Body
+$grid-docked-mid-slim-body-column-min: $grid-body-column-min !default;
+$grid-docked-mid-slim-body-column-max: $grid-body-column-max - 50px !default;
+$grid-docked-mid-slim-body: minmax(
+  $grid-docked-mid-slim-body-column-min,
+  calc(
+    #{$grid-docked-mid-slim-body-column-max} - #{$grid-docked-mid-slim-page-margin-start +
+      $grid-docked-mid-slim-page-margin-end}
+  )
+) !default;
+
+/* Docked Mid Full Content Grid */
+// Margins
+$grid-docked-mid-full-page-margin-start: $grid-page-margin-start !default;
+$grid-docked-mid-full-body-margin-start: $grid-body-margin-start !default;
+$grid-docked-mid-full-body-margin-end: $grid-body-margin-end !default;
+$grid-docked-mid-full-margin-margin: 5fr !default;
+$grid-docked-mid-full-page-margin-end: $grid-page-margin-end !default;
+
+// No sidebar or margins
+
+// Body
+$grid-docked-mid-full-body-column-min: $grid-body-column-min !default;
+$grid-docked-mid-full-body-column-max: $grid-docked-body-column !default;
+$grid-docked-mid-full-body: minmax(
+  $grid-docked-mid-full-body-column-min,
+  calc(
+    #{$grid-docked-mid-full-body-column-max} - #{$grid-docked-mid-full-page-margin-start +
+      $grid-docked-mid-full-page-margin-end}
+  )
+) !default;
+
+/* Float Mid Listing Content Grid */
+// Margins
+$grid-docked-mid-listing-page-margin-start: $grid-page-margin-start !default;
+$grid-docked-mid-listing-body-margin-start: $grid-body-margin-start !default;
+$grid-docked-mid-listing-body-margin-end: $grid-body-margin-end !default;
+$grid-docked-mid-listing-margin-margin: $grid-page-margin-float !default;
+$grid-docked-mid-listing-page-margin-end: $grid-page-margin-end !default;
+
+// No sidebar, only margins
+$grid-docked-mid-listing-margin-column: $grid-docked-margin-column !default;
+$grid-docked-mid-listing-margin-seg3: 0.2 *
+  $grid-docked-mid-listing-margin-column !default;
+$grid-docked-mid-listing-margin-seg2: minmax(
+  #{0.3 * $grid-docked-mid-listing-margin-column},
+  #{0.6 * $grid-docked-mid-listing-margin-column}
+) !default;
+$grid-docked-mid-listing-margin-seg1: 0.1 *
+  $grid-docked-mid-listing-margin-column !default;
+
+// Body
+$grid-docked-mid-listing-body-column-min: $grid-body-column-min !default;
+$grid-docked-mid-listing-body-column-max: $grid-body-column-max - 50px !default;
+$grid-docked-mid-listing-body: minmax(
+  $grid-docked-mid-listing-body-column-min,
+  calc(
+    #{$grid-docked-mid-listing-body-column-max} - #{$grid-docked-mid-listing-page-margin-start +
+      $grid-docked-mid-listing-page-margin-end}
+  )
+) !default;
