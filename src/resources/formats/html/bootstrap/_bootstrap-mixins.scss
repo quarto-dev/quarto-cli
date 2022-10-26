@@ -6,6 +6,17 @@
   }
 }
 
+@mixin page-columns {
+  display: grid;
+  gap: 0;
+}
+
+@mixin column-spanning-element {
+  table {
+    background: $body-bg;
+  }
+}
+
 $grid-body-padding: 1.5em;
 $grid-body-padding-start: $grid-body-padding !default;
 $grid-body-padding-end: $grid-body-padding !default;
@@ -275,7 +286,7 @@ $grid-body-maxsize-listing: calc(
 @mixin page-columns-docked-listing-mid {
   @include page-columns();
   grid-template-columns:
-    [screen-start] $grid-page-margin-start
+    [screen-start] $grid-docked-mid-listing-page-margin-start
     [screen-start-inset page-start page-start-inset body-start-outset body-start body-content-start] $grid-docked-mid-listing-body
     [body-content-end] $grid-docked-mid-listing-body-margin-start
     [body-end] $grid-docked-mid-slim-margin-seg3
@@ -290,37 +301,34 @@ $grid-body-maxsize-listing: calc(
 @mixin page-columns-default-wide {
   @include page-columns();
   grid-template-columns:
-    [screen-start] $grid-page-margin-start
-    [screen-start-inset] 5fr
-    [page-start page-start-inset] 35px
-    [body-start-outset] 35px
-    [body-start] 1.5em
-    [body-content-start] minmax(
-      $grid-body-minsize,
-      $grid-body-maxsize-plain-wide
-    )
-    [body-content-end] 1.5em
-    [body-end] 35px
-    [body-end-outset] minmax(75px, 145px)
-    [page-end-inset] 35px
-    [page-end] 5fr
-    [screen-end-inset] $grid-page-margin-end
+    [screen-start] $grid-default-wide-page-margin-start
+    [screen-start-inset] $grid-default-wide-sidebar-margin
+    [page-start page-start-inset] $grid-default-wide-sidebar-seg1
+    [body-start-outset] $grid-default-wide-sidebar-seg2
+    [body-start] $grid-default-wide-body-margin-start
+    [body-content-start] $grid-default-wide-body
+    [body-content-end] $grid-default-wide-body-margin-end
+    [body-end] $grid-default-wide-margin-seg3
+    [body-end-outset] $grid-default-wide-margin-seg2
+    [page-end-inset] $grid-default-wide-margin-seg1
+    [page-end] $grid-default-wide-margin-margin
+    [screen-end-inset] $grid-default-wide-page-margin-end
     [screen-end];
 }
 
 @mixin page-columns-default-mid {
   @include page-columns();
   grid-template-columns:
-    [screen-start] $grid-page-margin-start
-    [screen-start-inset page-start page-start-inset body-start-outset] 5fr
-    [body-start] 1.5em
+    [screen-start] $grid-default-mid-page-margin-start
+    [screen-start-inset page-start page-start-inset body-start-outset] $grid-default-mid-sidebar-margin
+    [body-start] $grid-default-mid-body-margin-start
     [body-content-start] minmax($grid-body-minsize, $grid-body-maxsize-mid)
-    [body-content-end] 1.5em
-    [body-end] 35px
-    [body-end-outset] minmax(75px, 145px)
-    [page-end-inset] 35px
-    [page-end] 5fr
-    [screen-end-inset] $grid-page-margin-end
+    [body-content-end] $grid-default-mid-body-margin-end
+    [body-end] $grid-default-mid-margin-seg3
+    [body-end-outset] $grid-default-mid-margin-seg2
+    [page-end-inset] $grid-default-mid-margin-seg1
+    [page-end] $grid-default-mid-margin-margin
+    [screen-end-inset] $grid-default-mid-page-margin-end
     [screen-end];
 }
 
@@ -328,33 +336,29 @@ $grid-body-maxsize-listing: calc(
 @mixin page-columns-fullcontent-wide {
   @include page-columns();
   grid-template-columns:
-    [screen-start] $grid-page-margin-start
-    [screen-start-inset] 5fr
-    [page-start page-start-inset] 35px
-    [body-start-outset] 35px
-    [body-start] 1.5em
-    [body-content-start] minmax(
-      $grid-body-minsize,
-      $grid-body-maxsize-plain-wide
-    )
-    [body-content-end] 1.5em
-    [body-end] 35px
-    [body-end-outset] 35px
-    [page-end-inset page-end] 5fr
-    [screen-end-inset] $grid-page-margin-end
-    [screen-end];
+    [screen-start] $grid-default-full-wide-page-margin-start
+    [screen-start-inset] $grid-default-full-wide-sidebar-margin
+    [page-start page-start-inset] $grid-default-full-wide-sidebar-seg1
+    [body-start-outset] $grid-default-full-wide-sidebar-seg2
+    [body-start] $grid-default-full-wide-body-margin-start
+    [body-content-start] $grid-default-full-wide-body
+    [body-content-end] $grid-default-full-wide-body-margin-end
+    [body-end] $grid-default-full-wide-margin-seg2
+    [body-end-outset] $grid-default-full-wide-margin-seg1
+    [page-end-inset page-end] $grid-default-full-wide-margin-margin
+    [screen-end-inset] $grid-default-full-wide-page-margin-end;
 }
 
 @mixin page-columns-fullcontent-mid {
   @include page-columns();
   grid-template-columns:
-    [screen-start] $grid-page-margin-start
-    [screen-start-inset page-start page-start-inset body-start-outset] 5fr
-    [body-start] 1.5em
+    [screen-start] $grid-default-full-mid-page-margin-start
+    [screen-start-inset page-start page-start-inset body-start-outset] $grid-default-full-mid-sidebar-margin
+    [body-start] $grid-default-full-mid-body-margin-start
     [body-content-start] minmax($grid-body-minsize, $grid-body-maxsize-mid)
-    [body-content-end] 1.5em
-    [body-end body-end-outset page-end-inset page-end] 5fr
-    [screen-end-inset] $grid-page-margin-end
+    [body-content-end] $grid-default-full-mid-body-margin-end
+    [body-end body-end-outset page-end-inset page-end] $grid-default-full-mid-margin-margin
+    [screen-end-inset] $grid-default-full-mid-page-margin-end
     [screen-end];
 }
 
@@ -362,30 +366,30 @@ $grid-body-maxsize-listing: calc(
 @mixin page-columns-listing-wide {
   @include page-columns();
   grid-template-columns:
-    [screen-start] $grid-page-margin-start
-    [screen-start-inset page-start] minmax(50px, 100px)
-    [page-start-inset] 50px
-    [body-start-outset] 50px
-    [body-start] 1.5em
+    [screen-start] $grid-default-listing-wide-page-margin-start
+    [screen-start-inset page-start] $grid-default-listing-wide-sidebar-seg1
+    [page-start-inset] $grid-default-listing-wide-sidebar-seg2
+    [body-start-outset] $grid-default-listing-wide-sidebar-seg3
+    [body-start] $grid-default-listing-wide-body-margin-start
     [body-content-start] minmax($grid-body-minsize, $grid-body-maxsize-listing)
-    [body-content-end] 3em
-    [body-end] 50px
-    [body-end-outset] minmax(0px, 250px)
-    [page-end-inset] 50px
-    [page-end] 1fr
-    [screen-end-inset] $grid-page-margin-end
+    [body-content-end] $grid-default-listing-wide-body-margin-end
+    [body-end] $grid-default-listing-wide-sidebar-seg3
+    [body-end-outset] $grid-default-listing-wide-margin-seg2
+    [page-end-inset] $grid-default-listing-wide-sidebar-seg1
+    [page-end] $grid-default-listing-wide-margin-margin
+    [screen-end-inset] $grid-default-listing-wide-page-margin-end
     [screen-end];
 }
 
 @mixin page-columns-listing-mid {
   @include page-columns();
   grid-template-columns:
-    [screen-start] $grid-page-margin-start
-    [screen-start-inset page-start page-start-inset body-start-outset] 5fr
-    [body-start] 1.5em
-    [body-content-start] minmax($grid-body-minsize, $grid-body-maxsize-listing)
-    [body-content-end body-end body-end-outset page-end-inset page-end] 5fr
-    [screen-end-inset] $grid-page-margin-end
+    [screen-start] $grid-default-listing-mid-page-margin-start
+    [screen-start-inset page-start page-start-inset body-start-outset] $grid-default-listing-mid-sidebar-margin
+    [body-start] $grid-default-listing-mid-body-margin-start
+    [body-content-start] $grid-default-listing-mid-body
+    [body-content-end body-end body-end-outset page-end-inset page-end] $grid-default-listing-mid-margin-margin
+    [screen-end-inset] $grid-default-listing-mid-page-margin-end
     [screen-end];
 }
 
@@ -393,34 +397,34 @@ $grid-body-maxsize-listing: calc(
 @mixin page-columns-slimcontent-wide {
   @include page-columns();
   grid-template-columns:
-    [screen-start] $grid-page-margin-start
-    [screen-start-inset] 5fr
-    [page-start page-start-inset] 35px
-    [body-start-outset] 35px
-    [body-start] 1.5em
+    [screen-start] $grid-default-slim-wide-page-margin-start
+    [screen-start-inset] $grid-default-slim-wide-sidebar-margin
+    [page-start page-start-inset] $grid-default-slim-wide-sidebar-seg1
+    [body-start-outset] $grid-default-slim-wide-sidebar-seg2
+    [body-start] $grid-default-slim-wide-body-margin-start
     [body-content-start] minmax($grid-body-minsize, $grid-body-maxsize-mid)
-    [body-content-end] 1.5em
-    [body-end] 50px
-    [body-end-outset] minmax(0px, 200px)
-    [page-end-inset] 50px
-    [page-end] 5fr
-    [screen-end-inset] $grid-page-margin-end
+    [body-content-end] $grid-default-slim-wide-body-margin-end
+    [body-end] $grid-default-slim-wide-sidebar-seg3
+    [body-end-outset] $grid-default-slim-wide-margin-seg2
+    [page-end-inset] $grid-default-slim-wide-sidebar-seg1
+    [page-end] $grid-default-slim-wide-margin-margin
+    [screen-end-inset] $grid-default-slim-wide-page-margin-end
     [screen-end];
 }
 
 @mixin page-columns-slimcontent-mid {
   @include page-columns();
   grid-template-columns:
-    [screen-start] $grid-page-margin-start
-    [screen-start-inset page-start page-start-inset body-start-outset] 5fr
-    [body-start] 1.5em
-    [body-content-start] minmax($grid-body-minsize, $grid-body-maxsize-mid)
-    [body-content-end] 1.5em
-    [body-end] 35px
-    [body-end-outset] minmax(75px, 145px)
-    [page-end-inset] 35px
-    [page-end] 5fr
-    [screen-end-inset] $grid-page-margin-end
+    [screen-start] $grid-default-slim-mid-page-margin-start
+    [screen-start-inset page-start page-start-inset body-start-outset] $grid-default-slim-mid-sidebar-margin
+    [body-start] $grid-default-slim-mid-body-margin-start
+    [body-content-start] $grid-default-slim-mid-body
+    [body-content-end] $grid-default-slim-mid-body-margin-end
+    [body-end] $grid-default-slim-mid-margin-seg3
+    [body-end-outset] $grid-default-slim-mid-margin-seg2
+    [page-end-inset] $grid-default-slim-mid-margin-seg1
+    [page-end] $grid-default-slim-mid-margin-margin
+    [screen-end-inset] $grid-default-slim-mid-page-margin-end
     [screen-end];
 }
 
@@ -428,35 +432,35 @@ $grid-body-maxsize-listing: calc(
 @mixin page-columns-tocleft-wide {
   @include page-columns();
   grid-template-columns:
-    [screen-start] $grid-page-margin-start
-    [screen-start-inset] 5fr
-    [page-start] 35px
-    [page-start-inset] minmax(0px, 175px)
-    [body-start-outset] 35px
-    [body-start] 1.5em
-    [body-content-start] minmax($grid-body-minsize-slim, $grid-body-maxsize-mid)
-    [body-content-end] 1.5em
-    [body-end] 50px
-    [body-end-outset] minmax(0px, 200px)
-    [page-end-inset] 50px
-    [page-end] 5fr
-    [screen-end-inset] $grid-page-margin-end
+    [screen-start] $grid-default-toc-wide-page-margin-start
+    [screen-start-inset] $grid-default-toc-wide-sidebar-margin
+    [page-start] $grid-default-toc-wide-sidebar-seg1
+    [page-start-inset] $grid-default-toc-wide-sidebar-seg2
+    [body-start-outset] $grid-default-toc-wide-sidebar-seg3
+    [body-start] $grid-default-toc-wide-body-margin-start
+    [body-content-start] $grid-default-toc-wide-body
+    [body-content-end] $grid-default-toc-wide-body-margin-end
+    [body-end] $grid-default-toc-wide-sidebar-seg3
+    [body-end-outset] $grid-default-toc-wide-sidebar-seg2
+    [page-end-inset] $grid-default-toc-wide-sidebar-seg1
+    [page-end] $grid-default-toc-wide-margin-margin
+    [screen-end-inset] $grid-default-toc-wide-page-margin-end
     [screen-end];
 }
 
 @mixin page-columns-tocleft-mid {
   @include page-columns();
   grid-template-columns:
-    [screen-start] $grid-page-margin-start
-    [screen-start-inset] 5fr
-    [page-start] 35px
-    [page-start-inset] minmax(0px, 145px)
-    [body-start-outset] 35px
-    [body-start] 1.5em
-    [body-content-start] minmax($grid-body-minsize-slim, $grid-body-maxsize-mid)
-    [body-content-end] 1.5em
-    [body-end body-end-outset page-end-inset page-end] 5fr
-    [screen-end-inset] $grid-page-margin-end
+    [screen-start] $grid-default-toc-mid-page-margin-start
+    [screen-start-inset] $grid-default-toc-mid-sidebar-margin
+    [page-start] $grid-default-toc-mid-sidebar-seg1
+    [page-start-inset] $grid-default-toc-mid-sidebar-seg2
+    [body-start-outset] $grid-default-toc-mid-sidebar-seg3
+    [body-start] $grid-default-toc-mid-body-margin-start
+    [body-content-start] $grid-default-toc-mid-body
+    [body-content-end] $grid-default-toc-mid-body-margin-end
+    [body-end body-end-outset page-end-inset page-end] $grid-default-toc-mid-margin-margin
+    [screen-end-inset] $grid-default-toc-mid-page-margin-end
     [screen-end];
 }
 
@@ -472,15 +476,4 @@ $grid-body-maxsize-listing: calc(
     )
     [body-content-end body-end body-end-outset page-end-inset page-end screen-end-inset] $grid-page-margin-end
     [screen-end];
-}
-
-@mixin page-columns {
-  display: grid;
-  gap: 0;
-}
-
-@mixin column-spanning-element {
-  table {
-    background: $body-bg;
-  }
 }
