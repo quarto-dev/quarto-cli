@@ -443,6 +443,13 @@ function pandocVariablesToThemeDefaults(
     add(explicitVars, attrib, metadata[attrib], asCssSize);
   });
 
+  // Resolve any grid variables
+  const gridObj = metadata["grid"] as Metadata;
+  if (gridObj) {
+    add(explicitVars, "grid-sidebar-column", gridObj["sidebar-width"]);
+    add(explicitVars, "grid-margin-column", gridObj["margin-width"]);
+    add(explicitVars, "grid-body-column", gridObj["body-width"]);
+  }
   return explicitVars;
 }
 
