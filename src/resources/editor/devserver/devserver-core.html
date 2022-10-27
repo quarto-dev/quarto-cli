@@ -640,13 +640,20 @@
     let path = window.location.pathname;
     if (!/\/$/.test(path)) path += "/";
     const devServerSocket = new WebSocket(protocol + "//" + window.location.host + path);
+    let reloadPage = true;
+    addEventListener("beforeunload", () => {
+      // don't reload page in case of navigation events
+      reloadPage = false;
+    })
     devServerSocket.onopen = () => {
       console.log('Socket connection open. Listening for events.');
       // if the socket closes for any reason (e.g. this occurs in electron apps
       // when the computer suspends) then reload to reestablish the connection 
       devServerSocket.onclose = () => {
-        console.log('Socket connection closed. Reloading.');
-        window.location.reload(true);
+        if (reloadPage) {
+          console.log('Socket connection closed. Reloading.');
+          window.location.reload(true);
+        }
       }
     };
     // append for errors that occur within the error window
