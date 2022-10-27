@@ -60,9 +60,7 @@ import {
   filterBuiltInExtensions,
   filterExtensions,
 } from "../../extension/extension.ts";
-import { kVersion } from "../../extension/extension-shared.ts";
 import { quartoConfig } from "../../core/quarto.ts";
-import { optionsToKebab } from "../../format/reveal/metadata.ts";
 
 const kQuartoParams = "quarto-params";
 
@@ -77,9 +75,11 @@ const kTimingFile = "timings-file";
 
 const kHasBootstrap = "has-bootstrap";
 
-const kQuartoVersion = "quarto-version";
-const kQuartoSource = "quarto-source";
 const kActiveFilters = "active-filters";
+
+const kQuartoVersion = "quarto-version";
+
+const kQuartoSource = "quarto-source";
 
 export async function filterParamsJson(
   args: string[],
