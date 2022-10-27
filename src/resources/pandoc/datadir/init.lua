@@ -1653,7 +1653,7 @@ end
 -- Provides the project relative path to the current input
 -- if this render is in the context of a project
 local function projectRelativeOutputFile()
-
+   
    -- the project directory
    local projDir = projectDirectory()
 
@@ -1868,25 +1868,25 @@ quarto = {
       local hasBootstrap = param('has-bootstrap', false)
       return hasBootstrap
     end,
-    output_file = outputFile(),
-    input_file = inputFile(),
-    project_output_file = projectRelativeOutputFile,
-
     is_filter_active = function(filter)
       return preState.active_filters[filter]
-    end
-   },
-   project = {
-      directory = projectDirectory(), -- FIXME with or without parentheses?
-      offset = projectOffset(),
-      profile = pandoc.List(projectProfiles()),
-      output_directory = projectOutputDirectory()
-   },
-   utils = {
-      dump = utils.dump,
-      table = utils.table,
-      resolve_path = resolvePathExt,
-   },
+    end,
+
+    output_file = outputFile(),
+    input_file = inputFile()
+  },
+  project = {
+   directory = projectDirectory(),
+   offset = projectOffset(),
+   profile = pandoc.List(projectProfiles()),
+   output_directory = projectOutputDirectory()
+  },
+  utils = {
+   dump = utils.dump,
+   table = utils.table,
+   resolve_path = resolvePathExt,
+   resolve_path_relative_to_document = resolvePath,
+  },
   json = json,
   base64 = base64,
   log = logging,
