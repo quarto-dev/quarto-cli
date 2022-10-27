@@ -187,7 +187,21 @@ export async function updateSearchIndex(
       const doc = new DOMParser().parseFromString(contents, "text/html")!;
 
       // determine title
-      const titleEl = doc.querySelector("h1.title");
+      const findTitle = () => {
+        const titleEl = doc.querySelector("h1.title");
+        if (titleEl) {
+          return titleEl;
+        } else {
+          const title = doc.querySelector("main h1");
+          if (title) {
+            return title;
+          } else {
+            return undefined;
+          }
+        }
+      };
+
+      const titleEl = findTitle();
       const title = titleEl
         ? titleEl.textContent
         : (websiteTitle(context.config) || "");
