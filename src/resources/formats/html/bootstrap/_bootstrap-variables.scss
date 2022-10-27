@@ -179,7 +179,11 @@ $input-border-color: theme-override-value(
 );
 
 /* GRID VARIABLES */
-$grid-margin: 1.5em !default;
-$grid-sidebar-column: 250px !default;
-$grid-margin-column: 250px !default;
-$grid-body-column: 800px !default;
+// The left hand sidebar
+$grid-sidebar-width: 250px !default;
+// The main body
+$grid-body-width: 800px !default;
+// The right hand margin bar
+$grid-margin-width: 250px !default;
+// The gutter that appears between the above columns
+$grid-column-gutter-width: 1.5em !default;
