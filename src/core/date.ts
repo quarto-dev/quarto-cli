@@ -135,17 +135,37 @@ export function initDayJsPlugins() {
   dayjs.extend(advancedPlugin);
 }
 
-export async function setDateLocale(locale: string) {
-  locale = locale.toLowerCase();
-  if (locale !== dayjs.locale()) {
-    const localePath = resourcePath(
-      `library/dayjs/locale/${locale}.js`,
-    );
-    if (existsSync(localePath)) {
-      const localeUrl = toFileUrl(localePath).href;
+export async function setDateLocale(localeStr: string) {
+  localeStr = localeStr.toLowerCase();
+  if (localeStr !== dayjs.locale()) {
+    // Try to find the language + region (e.g. fr-CA) first
+    // but fall back to just the language (e.g. fr)
+    const findLocale = () => {
+      const locales = [localeStr];
+      if (localeStr.includes("-")) {
+        locales.push(localeStr.split("-")[0]);
+      }
+
+      for (const locale of locales) {
+        const path = resourcePath(
+          `library/dayjs/locale/${locale}.js`,
+        );
+        if (existsSync(path)) {
+          return {
+            locale,
+            path,
+          };
+        }
+      }
+      return undefined;
+    };
+
+    const locale = findLocale();
+    if (locale) {
+      const localeUrl = toFileUrl(locale.path).href;
       const localeModule = await import(localeUrl);
       dayjs.locale(localeModule.default, null, true);
-      dayjs.locale(locale);
+      dayjs.locale(locale.locale);
     }
   }
 }
