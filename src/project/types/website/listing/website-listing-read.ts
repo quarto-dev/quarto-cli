@@ -711,7 +711,6 @@ async function listItemFromMeta(
           ...listingItem,
         };
       }
-      console.log({ fileListing, listingItem });
     }
   }
 
