@@ -84,13 +84,13 @@
     object:
       closed: true
       properties:
-        sidebar-base-width:
+        sidebar-width:
           string:
             description: "The base width of the sidebar (left) column in an HTML page."
-        margin-base-width:
+        margin-width:
           string:
             description: "The base width of the margin (right) column in an HTML page."
-        body-base-width:
+        body-width:
           string:
             description: "The base width of the body (center) column in an HTML page."
         gutter-width:
