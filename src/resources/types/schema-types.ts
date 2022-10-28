@@ -731,6 +731,7 @@ Defaults to `false`. */;
   "table-hover"?:
     boolean /* In table type listings, highlight rows of the table when the user hovers the mouse over them.
 Defaults to false. */;
+  "template-params"?: SchemaObject;
   "field-display-names"?:
     SchemaObject /* A mapping that provides display names for specific fields. For example, to display the title column as ‘Report’ in a table listing you would write:
 

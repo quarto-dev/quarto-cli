@@ -10140,6 +10140,10 @@ try {
                     }
                   }
                 },
+                "template-params": {
+                  schema: "object",
+                  description: "Parameters that are passed to the custom template."
+                },
                 fields: {
                   arrayOf: "string",
                   description: {
@@ -20034,12 +20038,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 132474,
+          _internalId: 132478,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 132473,
+              _internalId: 132477,
               type: "enum",
               enum: [
                 "png",
@@ -26490,7 +26494,7 @@ ${reindented}
           const endColumn = lineNumber < end.line ? rawLine.length : end.column;
           contextLines.push(content);
           contextLines.push(
-            " ".repeat(prefixWidth + startColumn) + "~".repeat(endColumn - startColumn)
+            " ".repeat(prefixWidth + startColumn - 1) + "~".repeat(endColumn - startColumn + 1)
           );
         }
       }
