@@ -3115,6 +3115,10 @@
               }
             }
           },
+          "template-params": {
+            "schema": "object",
+            "description": "Parameters that are passed to the custom template."
+          },
           "fields": {
             "arrayOf": "string",
             "description": {
@@ -13009,12 +13013,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 132474,
+    "_internalId": 132478,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 132473,
+        "_internalId": 132477,
         "type": "enum",
         "enum": [
           "png",

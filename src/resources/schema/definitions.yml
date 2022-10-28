@@ -485,7 +485,7 @@
       args:
         string:
           description: Additional command line arguments for preview command.
-      env: 
+      env:
         object:
           description: Environment variables to set for preview command.
       ready:
@@ -1405,6 +1405,9 @@
             short: "The path to a custom listing template."
             long: |
               The path to a custom listing template.
+      template-params:
+        schema: object
+        description: "Parameters that are passed to the custom template."
       fields:
         arrayOf: string
         description:
