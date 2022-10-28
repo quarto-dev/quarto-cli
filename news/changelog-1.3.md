@@ -7,6 +7,7 @@
 ## HTML Format
 
 - Improved handling of margin references that appear within a callout. (#3003)
+- Add support for customizing the baseline widths of grid columns using yaml or scss.
 
 ## Dates
 
