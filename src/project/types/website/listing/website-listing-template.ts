@@ -150,7 +150,7 @@ export function templateMarkdownHandler(
       ejsParams.listing = reshapedListing;
     } else {
       ejsParams["metadataAttrs"] = reshapedListing.utilities.metadataAttrs;
-      ejsParams["template-params"] = reshapedListing["template-params"];
+      ejsParams["templateParams"] = reshapedListing["template-params"];
     }
     return ejsParams;
   };
