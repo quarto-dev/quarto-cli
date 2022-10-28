@@ -40,7 +40,7 @@ const kType = "type";
 const kLinks = "links";
 
 const kImageWidth = "image-width";
-
+const kImageAlt = "image-alt";
 const kImageShape = "image-shape";
 const kImageShapeRound = "round";
 const kImageShapeRounded = "rounded";
@@ -70,6 +70,7 @@ interface AboutPage {
   options: Record<string, unknown>;
   custom: boolean;
   image?: Href;
+  [kImageAlt]?: string;
   links?: Array<NavItem>;
 }
 
@@ -77,6 +78,7 @@ interface AboutPageEjsData {
   title: string;
   body: string;
   image?: string;
+  [kImageAlt]?: string;
   links?: NavItem[];
   options: Record<string, unknown>;
 }
@@ -147,7 +149,7 @@ async function readAbout(
       aboutObj: Record<string, unknown>,
       aboutPage: AboutPage,
     ) => {
-      const knownFieldList = ["image", "template", "links"];
+      const knownFieldList = ["image", kImageAlt, "template", "links"];
       for (const key of Object.keys(aboutObj)) {
         if (!knownFieldList.includes(key)) {
           aboutPage.options[key] = aboutObj[key];
@@ -194,6 +196,9 @@ async function readAbout(
       if (format.metadata[kImage]) {
         aboutPage.image = format.metadata[kImage] as Href;
       }
+      if (format.metadata[kImageAlt]) {
+        aboutPage[kImageAlt] = format.metadata[kImageAlt] as string;
+      }
 
       // Resolve any options
       resolveOptions(about, {}, aboutPage);
@@ -219,6 +224,15 @@ async function readAbout(
       } else {
         if (format.metadata[kImage]) {
           aboutPage.image = format.metadata[kImage] as Href;
+        }
+      }
+
+      const aboutImageAlt = aboutObj[kImageAlt];
+      if (aboutImageAlt) {
+        aboutPage[kImageAlt] = aboutImageAlt as Href;
+      } else {
+        if (format.metadata[kImageAlt]) {
+          aboutPage[kImageAlt] = format.metadata[kImageAlt] as Href;
         }
       }
 
@@ -284,6 +298,7 @@ const aboutPagePostProcessor = (
       title,
       body,
       image: aboutPage.image,
+      [kImageAlt]: aboutPage[kImageAlt],
       links: aboutPage.links,
       options: aboutPage.options,
     };
