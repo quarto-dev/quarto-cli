@@ -42,8 +42,8 @@ $grid-float-wide-page-gutter-start: $grid-page-gutter-start !default;
 $grid-float-wide-page-gutter-end: $grid-page-gutter-end !default;
 $grid-float-wide-body-gutter-start: $grid-body-gutter-start !default;
 $grid-float-wide-body-gutter-end: $grid-body-gutter-end !default;
-$grid-float-wide-sidebar-margin: $grid-page-gutter-float !default;
-$grid-float-wide-margin-margin: $grid-page-gutter-float !default;
+$grid-float-wide-sidebar-gutter: $grid-page-gutter-float !default;
+$grid-float-wide-margin-gutter: $grid-page-gutter-float !default;
 
 // Sidebars
 $grid-float-wide-sidebar-column: $grid-float-sidebar-column !default;
@@ -93,8 +93,8 @@ $grid-float-wide-slim-page-gutter-start: $grid-page-gutter-start !default;
 $grid-float-wide-slim-page-gutter-end: $grid-page-gutter-end !default;
 $grid-float-wide-slim-body-gutter-start: $grid-body-gutter-start !default;
 $grid-float-wide-slim-body-gutter-end: $grid-body-gutter-end !default;
-$grid-float-wide-slim-sidebar-margin: $grid-page-gutter-float !default;
-$grid-float-wide-slim-margin-margin: $grid-page-gutter-float !default;
+$grid-float-wide-slim-sidebar-gutter: $grid-page-gutter-float !default;
+$grid-float-wide-slim-margin-gutter: $grid-page-gutter-float !default;
 
 // Sidebars
 $grid-float-wide-slim-sidebar-column: $grid-float-sidebar-column !default;
@@ -131,8 +131,8 @@ $grid-float-wide-full-page-gutter-start: $grid-page-gutter-start !default;
 $grid-float-wide-full-page-gutter-end: $grid-page-gutter-end !default;
 $grid-float-wide-full-body-gutter-start: $grid-body-gutter-start !default;
 $grid-float-wide-full-body-gutter-end: $grid-body-gutter-end !default;
-$grid-float-wide-full-sidebar-margin: $grid-page-gutter-float !default;
-$grid-float-wide-full-margin-margin: $grid-page-gutter-float !default;
+$grid-float-wide-full-sidebar-gutter: $grid-page-gutter-float !default;
+$grid-float-wide-full-margin-gutter: $grid-page-gutter-float !default;
 
 // Sidebars
 $grid-float-wide-full-sidebar-column: $grid-float-sidebar-column !default;
@@ -169,8 +169,8 @@ $grid-float-wide-listing-page-gutter-start: $grid-page-gutter-start !default;
 $grid-float-wide-listing-page-gutter-end: $grid-page-gutter-end !default;
 $grid-float-wide-listing-body-gutter-start: $grid-body-gutter-start !default;
 $grid-float-wide-listing-body-gutter-end: $grid-body-gutter-end !default;
-$grid-float-wide-listing-sidebar-margin: $grid-page-gutter-float !default;
-$grid-float-wide-listing-margin-margin: $grid-page-gutter-float !default;
+$grid-float-wide-listing-sidebar-gutter: $grid-page-gutter-float !default;
+$grid-float-wide-listing-margin-gutter: $grid-page-gutter-float !default;
 
 // Sidebars
 $grid-float-wide-listing-sidebar-column: $grid-float-sidebar-column !default;
@@ -219,8 +219,8 @@ $grid-float-mid-page-gutter-start: $grid-page-gutter-start !default;
 $grid-float-mid-page-gutter-end: $grid-page-gutter-end !default;
 $grid-float-mid-body-gutter-start: $grid-body-gutter-start !default;
 $grid-float-mid-body-gutter-end: $grid-body-gutter-end !default;
-$grid-float-mid-sidebar-margin: $grid-page-gutter-float !default;
-$grid-float-mid-margin-margin: $grid-page-gutter-float !default;
+$grid-float-mid-sidebar-gutter: $grid-page-gutter-float !default;
+$grid-float-mid-margin-gutter: $grid-page-gutter-float !default;
 
 // No sidebar, only margins
 $grid-float-mid-margin-column: $grid-float-margin-column !default;
@@ -247,8 +247,8 @@ $grid-float-mid-slim-page-gutter-start: $grid-page-gutter-start !default;
 $grid-float-mid-slim-page-gutter-end: $grid-page-gutter-end !default;
 $grid-float-mid-slim-body-gutter-start: 2 * $grid-body-gutter-start / 3 !default;
 $grid-float-mid-slim-body-gutter-end: $grid-body-gutter-end !default;
-$grid-float-mid-slim-sidebar-margin: $grid-page-gutter-float !default;
-$grid-float-mid-slim-margin-margin: 0.8 * $grid-page-gutter-float !default;
+$grid-float-mid-slim-sidebar-gutter: $grid-page-gutter-float !default;
+$grid-float-mid-slim-margin-gutter: 0.8 * $grid-page-gutter-float !default;
 
 // No sidebar, only margins
 $grid-float-mid-slim-margin-column: $grid-float-margin-column !default;
@@ -276,8 +276,8 @@ $grid-float-mid-full-page-gutter-start: $grid-page-gutter-start !default;
 $grid-float-mid-full-page-gutter-end: $grid-page-gutter-end !default;
 $grid-float-mid-full-body-gutter-start: 2 * $grid-body-gutter-start / 3 !default;
 $grid-float-mid-full-body-gutter-end: $grid-body-gutter-end !default;
-$grid-float-mid-full-sidebar-margin: $grid-page-gutter-float !default;
-$grid-float-mid-full-margin-margin: 0.8 * $grid-page-gutter-float !default;
+$grid-float-mid-full-sidebar-gutter: $grid-page-gutter-float !default;
+$grid-float-mid-full-margin-gutter: 0.8 * $grid-page-gutter-float !default;
 
 // No sidebar or margins
 
@@ -298,8 +298,8 @@ $grid-float-mid-listing-page-gutter-start: $grid-page-gutter-start !default;
 $grid-float-mid-listing-page-gutter-end: $grid-page-gutter-end !default;
 $grid-float-mid-listing-body-gutter-start: 2 * $grid-body-gutter-start / 3 !default;
 $grid-float-mid-listing-body-gutter-end: $grid-body-gutter-end !default;
-$grid-float-mid-listing-sidebar-margin: $grid-page-gutter-float !default;
-$grid-float-mid-listing-margin-margin: 0.8 * $grid-page-gutter-float !default;
+$grid-float-mid-listing-sidebar-gutter: $grid-page-gutter-float !default;
+$grid-float-mid-listing-margin-gutter: 0.8 * $grid-page-gutter-float !default;
 
 // No sidebar, only margins
 $grid-float-mid-listing-margin-column: $grid-float-margin-column !default;
@@ -333,7 +333,7 @@ $grid-docked-wide-page-gutter-start: $grid-page-gutter-start !default;
 $grid-docked-wide-page-gutter-end: $grid-page-gutter-end !default;
 $grid-docked-wide-body-gutter-start: $grid-body-gutter-start !default;
 $grid-docked-wide-body-gutter-end: $grid-body-gutter-end !default;
-$grid-docked-wide-margin-margin: 5fr !default;
+$grid-docked-wide-margin-gutter: 5fr !default;
 
 // Sidebars
 $grid-docked-wide-sidebar-column: $grid-docked-sidebar-column !default;
@@ -371,7 +371,7 @@ $grid-docked-wide-slim-page-gutter-start: $grid-page-gutter-start !default;
 $grid-docked-wide-slim-page-gutter-end: $grid-page-gutter-end !default;
 $grid-docked-wide-slim-body-gutter-start: $grid-body-gutter-start !default;
 $grid-docked-wide-slim-body-gutter-end: $grid-body-gutter-end !default;
-$grid-docked-wide-slim-margin-margin: 5fr !default;
+$grid-docked-wide-slim-margin-gutter: 5fr !default;
 
 // Sidebars
 $grid-docked-wide-slim-sidebar-column: $grid-docked-sidebar-column !default;
@@ -408,7 +408,7 @@ $grid-docked-wide-slim-body: minmax(
 $grid-docked-wide-full-page-gutter-start: $grid-page-gutter-start !default;
 $grid-docked-wide-full-body-gutter-start: $grid-body-gutter-start !default;
 $grid-docked-wide-full-body-gutter-end: $grid-body-gutter-end !default;
-$grid-docked-wide-full-margin-margin: 5fr !default;
+$grid-docked-wide-full-margin-gutter: 5fr !default;
 $grid-docked-wide-full-page-gutter-end: $grid-page-gutter-end !default;
 
 // Sidebars
@@ -439,7 +439,7 @@ $grid-docked-wide-full-body: minmax(
 $grid-docked-wide-listing-page-gutter-start: $grid-page-gutter-start !default;
 $grid-docked-wide-listing-body-gutter-start: $grid-body-gutter-start !default;
 $grid-docked-wide-listing-body-gutter-end: $grid-body-gutter-end !default;
-$grid-docked-wide-listing-margin-margin: 5fr !default;
+$grid-docked-wide-listing-margin-gutter: 5fr !default;
 $grid-docked-wide-listing-page-gutter-end: $grid-page-gutter-end !default;
 
 // Sidebars
@@ -480,7 +480,7 @@ $grid-docked-wide-listing-body: minmax(
 $grid-docked-mid-page-gutter-start: $grid-page-gutter-start !default;
 $grid-docked-mid-body-gutter-start: $grid-body-gutter-start !default;
 $grid-docked-mid-body-gutter-end: $grid-body-gutter-end !default;
-$grid-docked-mid-margin-margin: 5fr !default;
+$grid-docked-mid-margin-gutter: 5fr !default;
 $grid-docked-mid-page-gutter-end: $grid-page-gutter-end !default;
 
 // No sidebar, only margins
@@ -508,7 +508,7 @@ $grid-docked-mid-body: minmax(
 $grid-docked-mid-slim-page-gutter-start: $grid-page-gutter-start !default;
 $grid-docked-mid-slim-body-gutter-start: $grid-body-gutter-start !default;
 $grid-docked-mid-slim-body-gutter-end: $grid-body-gutter-end !default;
-$grid-docked-mid-slim-margin-margin: 5fr !default;
+$grid-docked-mid-slim-margin-gutter: 5fr !default;
 $grid-docked-mid-slim-page-gutter-end: $grid-page-gutter-end !default;
 
 // No sidebar, only margins
@@ -536,7 +536,7 @@ $grid-docked-mid-slim-body: minmax(
 $grid-docked-mid-full-page-gutter-start: $grid-page-gutter-start !default;
 $grid-docked-mid-full-body-gutter-start: $grid-body-gutter-start !default;
 $grid-docked-mid-full-body-gutter-end: $grid-body-gutter-end !default;
-$grid-docked-mid-full-margin-margin: 5fr !default;
+$grid-docked-mid-full-margin-gutter: 5fr !default;
 $grid-docked-mid-full-page-gutter-end: $grid-page-gutter-end !default;
 
 // No sidebar or margins
@@ -557,7 +557,7 @@ $grid-docked-mid-full-body: minmax(
 $grid-docked-mid-listing-page-gutter-start: $grid-page-gutter-start !default;
 $grid-docked-mid-listing-body-gutter-start: $grid-body-gutter-start !default;
 $grid-docked-mid-listing-body-gutter-end: $grid-body-gutter-end !default;
-$grid-docked-mid-listing-margin-margin: $grid-page-gutter-float !default;
+$grid-docked-mid-listing-margin-gutter: $grid-page-gutter-float !default;
 $grid-docked-mid-listing-page-gutter-end: $grid-page-gutter-end !default;
 
 // No sidebar, only margins
@@ -590,10 +590,10 @@ $grid-default-body-column: $grid-body-column-max + 50px !default;
 /* Default Wide Grid */
 // Margins
 $grid-default-wide-page-gutter-start: $grid-page-gutter-start !default;
-$grid-default-wide-sidebar-margin: 5fr !default;
+$grid-default-wide-sidebar-gutter: 5fr !default;
 $grid-default-wide-body-gutter-start: $grid-body-gutter-start !default;
 $grid-default-wide-body-gutter-end: $grid-body-gutter-end !default;
-$grid-default-wide-margin-margin: 5fr !default;
+$grid-default-wide-margin-gutter: 5fr !default;
 $grid-default-wide-page-gutter-end: $grid-page-gutter-end !default;
 
 // Sidebars
@@ -624,10 +624,10 @@ $grid-default-wide-body: minmax(
 /* Default Mid Grid */
 // Margins
 $grid-default-mid-page-gutter-start: $grid-page-gutter-start !default;
-$grid-default-mid-sidebar-margin: 5fr !default;
+$grid-default-mid-sidebar-gutter: 5fr !default;
 $grid-default-mid-body-gutter-start: $grid-body-gutter-start !default;
 $grid-default-mid-body-gutter-end: $grid-body-gutter-end !default;
-$grid-default-mid-margin-margin: 5fr !default;
+$grid-default-mid-margin-gutter: 5fr !default;
 $grid-default-mid-page-gutter-end: $grid-page-gutter-end !default;
 
 // Sidebars
@@ -658,10 +658,10 @@ $grid-default-mid-body: minmax(
 /* Full Content Wide Grid */
 // Margins
 $grid-default-full-wide-page-gutter-start: $grid-page-gutter-start !default;
-$grid-default-full-wide-sidebar-margin: 5fr !default;
+$grid-default-full-wide-sidebar-gutter: 5fr !default;
 $grid-default-full-wide-body-gutter-start: $grid-body-gutter-start !default;
 $grid-default-full-wide-body-gutter-end: $grid-body-gutter-end !default;
-$grid-default-full-wide-margin-margin: 5fr !default;
+$grid-default-full-wide-margin-gutter: 5fr !default;
 $grid-default-full-wide-page-gutter-end: $grid-page-gutter-end !default;
 
 // Sidebars
@@ -692,10 +692,10 @@ $grid-default-full-wide-body: minmax(
 /* Full Content Mid Grid */
 // Margins
 $grid-default-full-mid-page-gutter-start: $grid-page-gutter-start !default;
-$grid-default-full-mid-sidebar-margin: 5fr !default;
+$grid-default-full-mid-sidebar-gutter: 5fr !default;
 $grid-default-full-mid-body-gutter-start: $grid-body-gutter-start !default;
 $grid-default-full-mid-body-gutter-end: $grid-body-gutter-end !default;
-$grid-default-full-mid-margin-margin: 5fr !default;
+$grid-default-full-mid-margin-gutter: 5fr !default;
 $grid-default-full-mid-page-gutter-end: $grid-page-gutter-end !default;
 
 // No margins or sidebars
@@ -714,10 +714,10 @@ $grid-default-full-mid-body: minmax(
 /* Listing Wide Grid */
 // Margins
 $grid-default-listing-wide-page-gutter-start: $grid-page-gutter-start !default;
-$grid-default-listing-wide-sidebar-margin: 5fr !default;
+$grid-default-listing-wide-sidebar-gutter: 5fr !default;
 $grid-default-listing-wide-body-gutter-start: $grid-body-gutter-start !default;
 $grid-default-listing-wide-body-gutter-end: 2 * $grid-body-gutter-end !default;
-$grid-default-listing-wide-margin-margin: 1fr !default;
+$grid-default-listing-wide-margin-gutter: 1fr !default;
 $grid-default-listing-wide-page-gutter-end: $grid-page-gutter-end !default;
 
 // Sidebars
@@ -756,10 +756,10 @@ $grid-default-listing-wide-body: minmax(
 /* Listing Mid Grid */
 // Margins
 $grid-default-listing-mid-page-gutter-start: $grid-page-gutter-start !default;
-$grid-default-listing-mid-sidebar-margin: 5fr !default;
+$grid-default-listing-mid-sidebar-gutter: 5fr !default;
 $grid-default-listing-mid-body-gutter-start: $grid-body-gutter-start !default;
 $grid-default-listing-mid-body-gutter-end: $grid-body-gutter-end !default;
-$grid-default-listing-mid-margin-margin: 5fr !default;
+$grid-default-listing-mid-margin-gutter: 5fr !default;
 $grid-default-listing-mid-page-gutter-end: $grid-page-gutter-end !default;
 
 // No margins or sidebars
@@ -778,10 +778,10 @@ $grid-default-listing-mid-body: minmax(
 /* Slim Wide Grid */
 // Margins
 $grid-default-slim-wide-page-gutter-start: $grid-page-gutter-start !default;
-$grid-default-slim-wide-sidebar-margin: 5fr !default;
+$grid-default-slim-wide-sidebar-gutter: 5fr !default;
 $grid-default-slim-wide-body-gutter-start: $grid-body-gutter-start !default;
 $grid-default-slim-wide-body-gutter-end: $grid-body-gutter-end !default;
-$grid-default-slim-wide-margin-margin: 5fr !default;
+$grid-default-slim-wide-margin-gutter: 5fr !default;
 $grid-default-slim-wide-page-gutter-end: $grid-page-gutter-end !default;
 
 // Sidebars
@@ -815,10 +815,10 @@ $grid-default-slim-wide-body: minmax(
 /* Slim Mid Grid */
 // Margins
 $grid-default-slim-mid-page-gutter-start: $grid-page-gutter-start !default;
-$grid-default-slim-mid-sidebar-margin: 5fr !default;
+$grid-default-slim-mid-sidebar-gutter: 5fr !default;
 $grid-default-slim-mid-body-gutter-start: $grid-body-gutter-start !default;
 $grid-default-slim-mid-body-gutter-end: $grid-body-gutter-end !default;
-$grid-default-slim-mid-margin-margin: 5fr !default;
+$grid-default-slim-mid-margin-gutter: 5fr !default;
 $grid-default-slim-mid-page-gutter-end: $grid-page-gutter-end !default;
 
 // Margins
@@ -844,10 +844,10 @@ $grid-default-slim-mid-body: minmax(
 /* TOC Wide Grid */
 // Margins
 $grid-default-toc-wide-page-gutter-start: $grid-page-gutter-start !default;
-$grid-default-toc-wide-sidebar-margin: 5fr !default;
+$grid-default-toc-wide-sidebar-gutter: 5fr !default;
 $grid-default-toc-wide-body-gutter-start: $grid-body-gutter-start !default;
 $grid-default-toc-wide-body-gutter-end: $grid-body-gutter-end !default;
-$grid-default-toc-wide-margin-margin: 5fr !default;
+$grid-default-toc-wide-margin-gutter: 5fr !default;
 $grid-default-toc-wide-page-gutter-end: $grid-page-gutter-end !default;
 
 // Sidebars
@@ -884,10 +884,10 @@ $grid-default-toc-wide-body: minmax(
 /* TOC Mid Grid */
 // Margins
 $grid-default-toc-mid-page-gutter-start: $grid-page-gutter-start !default;
-$grid-default-toc-mid-sidebar-margin: 5fr !default;
+$grid-default-toc-mid-sidebar-gutter: 5fr !default;
 $grid-default-toc-mid-body-gutter-start: $grid-body-gutter-start !default;
 $grid-default-toc-mid-body-gutter-end: $grid-body-gutter-end !default;
-$grid-default-toc-mid-margin-margin: 5fr !default;
+$grid-default-toc-mid-margin-gutter: 5fr !default;
 $grid-default-toc-mid-page-gutter-end: $grid-page-gutter-end !default;
 
 // Margins
@@ -915,7 +915,7 @@ $grid-default-toc-mid-body: minmax(
   @include page-columns();
   grid-template-columns:
     [screen-start] $grid-float-wide-page-gutter-start
-    [screen-start-inset] $grid-float-wide-sidebar-margin
+    [screen-start-inset] $grid-float-wide-sidebar-gutter
     [page-start] $grid-float-wide-sidebar-seg1
     [page-start-inset] $grid-float-wide-sidebar-seg2
     [body-start-outset] $grid-float-wide-sidebar-seg3
@@ -925,7 +925,7 @@ $grid-default-toc-mid-body: minmax(
     [body-end] $grid-float-wide-margin-seg3
     [body-end-outset] $grid-float-wide-margin-seg2
     [page-end-inset] $grid-float-wide-margin-seg1
-    [page-end] $grid-float-wide-margin-margin
+    [page-end] $grid-float-wide-margin-gutter
     [screen-end-inset] $grid-float-wide-page-gutter-end
     [screen-end];
 }
@@ -934,7 +934,7 @@ $grid-default-toc-mid-body: minmax(
   @include page-columns();
   grid-template-columns:
     [screen-start] $grid-float-wide-slim-page-gutter-start
-    [screen-start-inset] $grid-float-wide-slim-sidebar-margin
+    [screen-start-inset] $grid-float-wide-slim-sidebar-gutter
     [page-start] $grid-float-wide-slim-sidebar-seg1
     [page-start-inset] $grid-float-wide-slim-sidebar-seg2
     [body-start-outset] $grid-float-wide-slim-sidebar-seg3
@@ -944,7 +944,7 @@ $grid-default-toc-mid-body: minmax(
     [body-end] $grid-float-wide-slim-margin-seg3
     [body-end-outset] $grid-float-wide-slim-margin-seg2
     [page-end-inset] $grid-float-wide-slim-margin-seg1
-    [page-end] $grid-float-wide-slim-margin-margin
+    [page-end] $grid-float-wide-slim-margin-gutter
     [screen-end-inset] $grid-float-wide-slim-page-gutter-end
     [screen-end];
 }
@@ -953,14 +953,14 @@ $grid-default-toc-mid-body: minmax(
   @include page-columns();
   grid-template-columns:
     [screen-start] $grid-float-wide-full-page-gutter-start
-    [screen-start-inset] $grid-float-wide-full-sidebar-margin
+    [screen-start-inset] $grid-float-wide-full-sidebar-gutter
     [page-start] $grid-float-wide-full-sidebar-seg1
     [page-start-inset] $grid-float-wide-full-sidebar-seg2
     [body-start-outset] $grid-float-wide-full-sidebar-seg3
     [body-start] $grid-float-wide-full-body-gutter-start
     [body-content-start] $grid-float-wide-full-body
     [body-content-end] $grid-float-wide-full-body-gutter-end
-    [body-end body-end-outset page-end-inset page-end] $grid-float-wide-full-margin-margin
+    [body-end body-end-outset page-end-inset page-end] $grid-float-wide-full-margin-gutter
     [screen-end-inset] $grid-float-wide-full-page-gutter-end
     [screen-end];
 }
@@ -969,7 +969,7 @@ $grid-default-toc-mid-body: minmax(
   @include page-columns();
   grid-template-columns:
     [screen-start] $grid-float-wide-listing-page-gutter-start
-    [screen-start-inset] $grid-float-wide-listing-sidebar-margin
+    [screen-start-inset] $grid-float-wide-listing-sidebar-gutter
     [page-start] $grid-float-wide-listing-sidebar-seg1
     [page-start-inset] $grid-float-wide-listing-sidebar-seg2
     [body-start-outset] $grid-float-wide-listing-sidebar-seg3
@@ -979,7 +979,7 @@ $grid-default-toc-mid-body: minmax(
     [body-end] $grid-float-wide-listing-margin-seg3
     [body-end-outset] $grid-float-wide-listing-margin-seg2
     [page-end-inset] $grid-float-wide-listing-margin-seg1
-    [page-end] $grid-float-wide-listing-margin-margin
+    [page-end] $grid-float-wide-listing-margin-gutter
     [screen-end-inset] $grid-float-wide-listing-page-gutter-end
     [screen-end];
 }
@@ -989,14 +989,14 @@ $grid-default-toc-mid-body: minmax(
   @include page-columns();
   grid-template-columns:
     [screen-start] $grid-float-mid-page-gutter-start
-    [screen-start-inset] $grid-float-mid-sidebar-margin
+    [screen-start-inset] $grid-float-mid-sidebar-gutter
     [page-start page-start-inset body-start-outset body-start] $grid-float-mid-body-gutter-start
     [body-content-start] $grid-float-mid-body
     [body-content-end] $grid-float-mid-body-gutter-end
     [body-end] $grid-float-mid-margin-seg3
     [body-end-outset] $grid-float-mid-margin-seg2
     [page-end-inset] $grid-float-mid-margin-seg1
-    [page-end] $grid-float-mid-margin-margin
+    [page-end] $grid-float-mid-margin-gutter
     [screen-end-inset] $grid-float-mid-page-gutter-end
     [screen-end];
 }
@@ -1005,14 +1005,14 @@ $grid-default-toc-mid-body: minmax(
   @include page-columns();
   grid-template-columns:
     [screen-start] $grid-float-mid-slim-page-gutter-start
-    [screen-start-inset] $grid-float-mid-slim-sidebar-margin
+    [screen-start-inset] $grid-float-mid-slim-sidebar-gutter
     [page-start page-start-inset body-start-outset body-start] $grid-float-mid-slim-body-gutter-start
     [body-content-start] $grid-float-mid-slim-body
     [body-content-end] $grid-float-mid-slim-body-gutter-end
     [body-end] $grid-float-mid-slim-margin-seg3
     [body-end-outset] $grid-float-mid-slim-margin-seg2
     [page-end-inset] $grid-float-mid-slim-margin-seg1
-    [page-end] $grid-float-mid-slim-margin-margin
+    [page-end] $grid-float-mid-slim-margin-gutter
     [screen-end-inset] $grid-float-mid-slim-page-gutter-end
     [screen-end];
 }
@@ -1021,11 +1021,11 @@ $grid-default-toc-mid-body: minmax(
   @include page-columns();
   grid-template-columns:
     [screen-start] $grid-float-mid-full-page-gutter-start
-    [screen-start-inset] $grid-float-mid-full-sidebar-margin
+    [screen-start-inset] $grid-float-mid-full-sidebar-gutter
     [page-start page-start-inset body-start-outset body-start] $grid-float-mid-full-body-gutter-start
     [body-content-start] $grid-float-mid-full-body
     [body-content-end]$grid-float-mid-full-body-gutter-end
-    [body-end body-end-outset page-end-inset page-end] $grid-float-mid-full-margin-margin
+    [body-end body-end-outset page-end-inset page-end] $grid-float-mid-full-margin-gutter
     [screen-end-inset] $grid-float-mid-full-page-gutter-end
     [screen-end];
 }
@@ -1034,14 +1034,14 @@ $grid-default-toc-mid-body: minmax(
   @include page-columns();
   grid-template-columns:
     [screen-start] $grid-float-mid-listing-page-gutter-start
-    [screen-start-inset] $grid-float-mid-listing-sidebar-margin
+    [screen-start-inset] $grid-float-mid-listing-sidebar-gutter
     [page-start page-start-inset body-start-outset body-start] $grid-float-mid-listing-body-gutter-start
     [body-content-start] $grid-float-mid-listing-body
     [body-content-end] $grid-float-mid-listing-body-gutter-end
     [body-end] $grid-float-mid-listing-margin-seg3
     [body-end-outset] $grid-float-mid-listing-margin-seg2
     [page-end-inset] $grid-float-mid-listing-margin-seg1
-    [page-end] $grid-float-mid-listing-margin-margin
+    [page-end] $grid-float-mid-listing-margin-gutter
     [screen-end-inset] $grid-float-mid-listing-page-gutter-end
     [screen-end];
 }
@@ -1060,7 +1060,7 @@ $grid-default-toc-mid-body: minmax(
     [body-end] $grid-docked-wide-margin-seg3
     [body-end-outset] $grid-docked-wide-margin-seg2
     [page-end-inset] $grid-docked-wide-margin-seg1
-    [page-end] $grid-docked-wide-margin-margin
+    [page-end] $grid-docked-wide-margin-gutter
     [screen-end-inset] $grid-docked-wide-page-gutter-end
     [screen-end];
 }
@@ -1078,7 +1078,7 @@ $grid-default-toc-mid-body: minmax(
     [body-end] $grid-docked-wide-slim-margin-seg3
     [body-end-outset] $grid-docked-wide-slim-margin-seg2
     [page-end-inset] $grid-docked-wide-slim-margin-seg1
-    [page-end] $grid-docked-wide-slim-margin-margin
+    [page-end] $grid-docked-wide-slim-margin-gutter
     [screen-end-inset] $grid-docked-wide-slim-page-gutter-end
     [screen-end];
 }
@@ -1093,7 +1093,7 @@ $grid-default-toc-mid-body: minmax(
     [body-start] $grid-docked-wide-full-body-gutter-start
     [body-content-start] $grid-docked-wide-full-body
     [body-content-end] $grid-docked-wide-full-body-gutter-end
-    [body-end body-end-outset page-end-inset page-end] $grid-docked-wide-full-margin-margin
+    [body-end body-end-outset page-end-inset page-end] $grid-docked-wide-full-margin-gutter
     [screen-end-inset] $grid-docked-wide-full-page-gutter-end
     [screen-end];
 }
@@ -1111,7 +1111,7 @@ $grid-default-toc-mid-body: minmax(
     [body-end] $grid-docked-wide-listing-margin-seg3
     [body-end-outset] $grid-docked-wide-listing-margin-seg2
     [page-end-inset] $grid-docked-wide-listing-margin-seg1
-    [page-end] $grid-docked-wide-listing-margin-margin
+    [page-end] $grid-docked-wide-listing-margin-gutter
     [screen-end-inset] $grid-docked-wide-listing-page-gutter-end
     [screen-end];
 }
@@ -1125,7 +1125,7 @@ $grid-default-toc-mid-body: minmax(
     [body-end] $grid-docked-mid-margin-seg3
     [body-end-outset] $grid-docked-mid-margin-seg2
     [page-end-inset] $grid-docked-mid-margin-seg1
-    [page-end] $grid-docked-mid-margin-margin
+    [page-end] $grid-docked-mid-margin-gutter
     [screen-end-inset] $grid-docked-mid-page-gutter-end
     [screen-end];
 }
@@ -1139,7 +1139,7 @@ $grid-default-toc-mid-body: minmax(
     [body-end] $grid-docked-mid-slim-margin-seg3
     [body-end-outset] $grid-docked-mid-slim-margin-seg2
     [page-end-inset] $grid-docked-mid-slim-margin-seg1
-    [page-end] $grid-docked-mid-slim-margin-margin
+    [page-end] $grid-docked-mid-slim-margin-gutter
     [screen-end-inset] $grid-docked-mid-slim-page-gutter-end
     [screen-end];
 }
@@ -1150,7 +1150,7 @@ $grid-default-toc-mid-body: minmax(
     [screen-start] $grid-docked-mid-full-page-gutter-start
     [screen-start-inset page-start page-start-inset body-start-outset body-start body-content-start] $grid-docked-mid-full-body
     [body-content-end] $grid-docked-mid-full-body-gutter-end
-    [body-end body-end-outset page-end-inset page-end] $grid-docked-mid-full-margin-margin
+    [body-end body-end-outset page-end-inset page-end] $grid-docked-mid-full-margin-gutter
     [screen-end-inset] $grid-docked-mid-full-page-gutter-end
     [screen-end];
 }
@@ -1164,7 +1164,7 @@ $grid-default-toc-mid-body: minmax(
     [body-end] $grid-docked-mid-slim-margin-seg3
     [body-end-outset] $grid-docked-mid-slim-margin-seg2
     [page-end-inset] $grid-docked-mid-slim-margin-seg1
-    [page-end] $grid-docked-mid-listing-margin-margin
+    [page-end] $grid-docked-mid-listing-margin-gutter
     [screen-end-inset] $grid-docked-mid-listing-page-gutter-end
     [screen-end];
 }
@@ -1174,7 +1174,7 @@ $grid-default-toc-mid-body: minmax(
   @include page-columns();
   grid-template-columns:
     [screen-start] $grid-default-wide-page-gutter-start
-    [screen-start-inset] $grid-default-wide-sidebar-margin
+    [screen-start-inset] $grid-default-wide-sidebar-gutter
     [page-start page-start-inset] $grid-default-wide-sidebar-seg1
     [body-start-outset] $grid-default-wide-sidebar-seg2
     [body-start] $grid-default-wide-body-gutter-start
@@ -1183,7 +1183,7 @@ $grid-default-toc-mid-body: minmax(
     [body-end] $grid-default-wide-margin-seg3
     [body-end-outset] $grid-default-wide-margin-seg2
     [page-end-inset] $grid-default-wide-margin-seg1
-    [page-end] $grid-default-wide-margin-margin
+    [page-end] $grid-default-wide-margin-gutter
     [screen-end-inset] $grid-default-wide-page-gutter-end
     [screen-end];
 }
@@ -1192,14 +1192,14 @@ $grid-default-toc-mid-body: minmax(
   @include page-columns();
   grid-template-columns:
     [screen-start] $grid-default-mid-page-gutter-start
-    [screen-start-inset page-start page-start-inset body-start-outset] $grid-default-mid-sidebar-margin
+    [screen-start-inset page-start page-start-inset body-start-outset] $grid-default-mid-sidebar-gutter
     [body-start] $grid-default-mid-body-gutter-start
     [body-content-start] $grid-default-mid-body
     [body-content-end] $grid-default-mid-body-gutter-end
     [body-end] $grid-default-mid-margin-seg3
     [body-end-outset] $grid-default-mid-margin-seg2
     [page-end-inset] $grid-default-mid-margin-seg1
-    [page-end] $grid-default-mid-margin-margin
+    [page-end] $grid-default-mid-margin-gutter
     [screen-end-inset] $grid-default-mid-page-gutter-end
     [screen-end];
 }
@@ -1209,7 +1209,7 @@ $grid-default-toc-mid-body: minmax(
   @include page-columns();
   grid-template-columns:
     [screen-start] $grid-default-full-wide-page-gutter-start
-    [screen-start-inset] $grid-default-full-wide-sidebar-margin
+    [screen-start-inset] $grid-default-full-wide-sidebar-gutter
     [page-start page-start-inset] $grid-default-full-wide-sidebar-seg1
     [body-start-outset] $grid-default-full-wide-sidebar-seg2
     [body-start] $grid-default-full-wide-body-gutter-start
@@ -1217,7 +1217,7 @@ $grid-default-toc-mid-body: minmax(
     [body-content-end] $grid-default-full-wide-body-gutter-end
     [body-end] $grid-default-full-wide-margin-seg2
     [body-end-outset] $grid-default-full-wide-margin-seg1
-    [page-end-inset page-end] $grid-default-full-wide-margin-margin
+    [page-end-inset page-end] $grid-default-full-wide-margin-gutter
     [screen-end-inset] $grid-default-full-wide-page-gutter-end;
 }
 
@@ -1225,11 +1225,11 @@ $grid-default-toc-mid-body: minmax(
   @include page-columns();
   grid-template-columns:
     [screen-start] $grid-default-full-mid-page-gutter-start
-    [screen-start-inset page-start page-start-inset body-start-outset] $grid-default-full-mid-sidebar-margin
+    [screen-start-inset page-start page-start-inset body-start-outset] $grid-default-full-mid-sidebar-gutter
     [body-start] $grid-default-full-mid-body-gutter-start
     [body-content-start] $grid-default-full-mid-body
     [body-content-end] $grid-default-full-mid-body-gutter-end
-    [body-end body-end-outset page-end-inset page-end] $grid-default-full-mid-margin-margin
+    [body-end body-end-outset page-end-inset page-end] $grid-default-full-mid-margin-gutter
     [screen-end-inset] $grid-default-full-mid-page-gutter-end
     [screen-end];
 }
@@ -1248,7 +1248,7 @@ $grid-default-toc-mid-body: minmax(
     [body-end] $grid-default-listing-wide-sidebar-seg3
     [body-end-outset] $grid-default-listing-wide-margin-seg2
     [page-end-inset] $grid-default-listing-wide-sidebar-seg1
-    [page-end] $grid-default-listing-wide-margin-margin
+    [page-end] $grid-default-listing-wide-margin-gutter
     [screen-end-inset] $grid-default-listing-wide-page-gutter-end
     [screen-end];
 }
@@ -1257,10 +1257,10 @@ $grid-default-toc-mid-body: minmax(
   @include page-columns();
   grid-template-columns:
     [screen-start] $grid-default-listing-mid-page-gutter-start
-    [screen-start-inset page-start page-start-inset body-start-outset] $grid-default-listing-mid-sidebar-margin
+    [screen-start-inset page-start page-start-inset body-start-outset] $grid-default-listing-mid-sidebar-gutter
     [body-start] $grid-default-listing-mid-body-gutter-start
     [body-content-start] $grid-default-listing-mid-body
-    [body-content-end body-end body-end-outset page-end-inset page-end] $grid-default-listing-mid-margin-margin
+    [body-content-end body-end body-end-outset page-end-inset page-end] $grid-default-listing-mid-margin-gutter
     [screen-end-inset] $grid-default-listing-mid-page-gutter-end
     [screen-end];
 }
@@ -1270,7 +1270,7 @@ $grid-default-toc-mid-body: minmax(
   @include page-columns();
   grid-template-columns:
     [screen-start] $grid-default-slim-wide-page-gutter-start
-    [screen-start-inset] $grid-default-slim-wide-sidebar-margin
+    [screen-start-inset] $grid-default-slim-wide-sidebar-gutter
     [page-start page-start-inset] $grid-default-slim-wide-sidebar-seg1
     [body-start-outset] $grid-default-slim-wide-sidebar-seg2
     [body-start] $grid-default-slim-wide-body-gutter-start
@@ -1279,7 +1279,7 @@ $grid-default-toc-mid-body: minmax(
     [body-end] $grid-default-slim-wide-sidebar-seg3
     [body-end-outset] $grid-default-slim-wide-margin-seg2
     [page-end-inset] $grid-default-slim-wide-sidebar-seg1
-    [page-end] $grid-default-slim-wide-margin-margin
+    [page-end] $grid-default-slim-wide-margin-gutter
     [screen-end-inset] $grid-default-slim-wide-page-gutter-end
     [screen-end];
 }
@@ -1288,14 +1288,14 @@ $grid-default-toc-mid-body: minmax(
   @include page-columns();
   grid-template-columns:
     [screen-start] $grid-default-slim-mid-page-gutter-start
-    [screen-start-inset page-start page-start-inset body-start-outset] $grid-default-slim-mid-sidebar-margin
+    [screen-start-inset page-start page-start-inset body-start-outset] $grid-default-slim-mid-sidebar-gutter
     [body-start] $grid-default-slim-mid-body-gutter-start
     [body-content-start] $grid-default-slim-mid-body
     [body-content-end] $grid-default-slim-mid-body-gutter-end
     [body-end] $grid-default-slim-mid-margin-seg3
     [body-end-outset] $grid-default-slim-mid-margin-seg2
     [page-end-inset] $grid-default-slim-mid-margin-seg1
-    [page-end] $grid-default-slim-mid-margin-margin
+    [page-end] $grid-default-slim-mid-margin-gutter
     [screen-end-inset] $grid-default-slim-mid-page-gutter-end
     [screen-end];
 }
@@ -1305,7 +1305,7 @@ $grid-default-toc-mid-body: minmax(
   @include page-columns();
   grid-template-columns:
     [screen-start] $grid-default-toc-wide-page-gutter-start
-    [screen-start-inset] $grid-default-toc-wide-sidebar-margin
+    [screen-start-inset] $grid-default-toc-wide-sidebar-gutter
     [page-start] $grid-default-toc-wide-sidebar-seg1
     [page-start-inset] $grid-default-toc-wide-sidebar-seg2
     [body-start-outset] $grid-default-toc-wide-sidebar-seg3
@@ -1315,7 +1315,7 @@ $grid-default-toc-mid-body: minmax(
     [body-end] $grid-default-toc-wide-sidebar-seg3
     [body-end-outset] $grid-default-toc-wide-sidebar-seg2
     [page-end-inset] $grid-default-toc-wide-sidebar-seg1
-    [page-end] $grid-default-toc-wide-margin-margin
+    [page-end] $grid-default-toc-wide-margin-gutter
     [screen-end-inset] $grid-default-toc-wide-page-gutter-end
     [screen-end];
 }
@@ -1324,14 +1324,14 @@ $grid-default-toc-mid-body: minmax(
   @include page-columns();
   grid-template-columns:
     [screen-start] $grid-default-toc-mid-page-gutter-start
-    [screen-start-inset] $grid-default-toc-mid-sidebar-margin
+    [screen-start-inset] $grid-default-toc-mid-sidebar-gutter
     [page-start] $grid-default-toc-mid-sidebar-seg1
     [page-start-inset] $grid-default-toc-mid-sidebar-seg2
     [body-start-outset] $grid-default-toc-mid-sidebar-seg3
     [body-start] $grid-default-toc-mid-body-gutter-start
     [body-content-start] $grid-default-toc-mid-body
     [body-content-end] $grid-default-toc-mid-body-gutter-end
-    [body-end body-end-outset page-end-inset page-end] $grid-default-toc-mid-margin-margin
+    [body-end body-end-outset page-end-inset page-end] $grid-default-toc-mid-margin-gutter
     [screen-end-inset] $grid-default-toc-mid-page-gutter-end
     [screen-end];
 }
