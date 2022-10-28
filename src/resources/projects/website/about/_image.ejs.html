@@ -15,9 +15,17 @@ const imageSize = () => {
   }
 }
 
-const customClz = imgOpts.classes !== undefined ? imgOpts.classes : "";
+const altText = () => {
+  if (about['image-alt']) {
+    return `alt="${about['image-alt']}" `;
+  } else {
+    return "";
+  }
+}
 
-  %> 
+const customClz = imgOpts.classes !== undefined ? imgOpts.classes : "";
+%> 
+
 <% if (about.image) { %>
-<img src="<%= about.image %>" class="about-image<%= imgClz %> <%= customClz %>" <%= imageSize() %> />
+<img src="<%= about.image %>" <%= altText() %>class="about-image<%= imgClz %> <%= customClz %>" <%= imageSize() %> />
 <%}%>
