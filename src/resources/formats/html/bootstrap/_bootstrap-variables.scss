@@ -180,10 +180,10 @@ $input-border-color: theme-override-value(
 
 /* GRID VARIABLES */
 // The left hand sidebar
-$grid-sidebar-width: 250px !default;
+$grid-sidebar-base-width: 250px !default;
 // The main body
-$grid-body-width: 800px !default;
+$grid-body-base-width: 800px !default;
 // The right hand margin bar
-$grid-margin-width: 250px !default;
+$grid-margin-base-width: 250px !default;
 // The gutter that appears between the above columns
 $grid-column-gutter-width: 1.5em !default;
