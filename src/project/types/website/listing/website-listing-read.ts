@@ -705,7 +705,11 @@ async function listItemFromMeta(
     const markdownExtensions = [".qmd", ".md", ".rmd"];
     if (markdownExtensions.indexOf(extension) !== -1) {
       const fileListing = await listItemFromFile(meta.path, project, listing);
-      if (fileListing) {
+      if (fileListing === undefined) {
+        warning(
+          `Draft document ${meta.path} found in a custom listing: item will not have computed metadata.`,
+        );
+      } else {
         listingItem = {
           ...(fileListing.item || {}),
           ...listingItem,
