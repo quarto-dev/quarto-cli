@@ -13512,6 +13512,36 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
+          name: "grid",
+          schema: {
+            object: {
+              closed: true,
+              properties: {
+                "sidebar-width": {
+                  string: {
+                    description: "The base width of the sidebar (left) column in an HTML page."
+                  }
+                },
+                "margin-width": {
+                  string: {
+                    description: "The base width of the margin (right) column in an HTML page."
+                  }
+                },
+                "body-width": {
+                  string: {
+                    description: "The base width of the body (center) column in an HTML page."
+                  }
+                },
+                "gutter-width": {
+                  string: {
+                    description: "The width of the gutter that appears between columns in an HTML page."
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
           name: "appendix-style",
           schema: {
             anyOf: [
@@ -14824,7 +14854,7 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: {
             ref: "pandoc-shortcodes"
           },
-          description: "Speicfy Lua scripts that implement shortcode handlers\n"
+          description: "Specify Lua scripts that implement shortcode handlers\n"
         },
         {
           name: "keep-md",
@@ -17995,6 +18025,7 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The path to a custom listing template.",
           long: "The path to a custom listing template."
         },
+        "Parameters that are passed to the custom template.",
         {
           short: "The list of fields to include in this listing",
           long: "The list of fields to include in this listing."
@@ -19824,7 +19855,11 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
-        "internal-schema-hack"
+        "internal-schema-hack",
+        "The base width of the sidebar (left) column in an HTML page.",
+        "The base width of the margin (right) column in an HTML page.",
+        "The base width of the body (center) column in an HTML page.",
+        "The width of the gutter that appears between columns in an HTML\npage."
       ],
       "schema/external-schemas.yml": [
         {
@@ -20037,12 +20072,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 132478,
+        _internalId: 132493,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 132477,
+            _internalId: 132492,
             type: "enum",
             enum: [
               "png",
