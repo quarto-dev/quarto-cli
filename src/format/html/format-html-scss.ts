@@ -446,9 +446,9 @@ function pandocVariablesToThemeDefaults(
   // Resolve any grid variables
   const gridObj = metadata["grid"] as Metadata;
   if (gridObj) {
-    add(explicitVars, "grid-sidebar-width", gridObj["sidebar-width"]);
-    add(explicitVars, "grid-margin-width", gridObj["margin-width"]);
-    add(explicitVars, "grid-body-width", gridObj["body-width"]);
+    add(explicitVars, "grid-sidebar-base-width", gridObj["sidebar-base-width"]);
+    add(explicitVars, "grid-margin-base-width", gridObj["margin-base-width"]);
+    add(explicitVars, "grid-body-base-width", gridObj["body-base-width"]);
     add(explicitVars, "grid-gutter-width", gridObj["gutter-width"]);
   }
   return explicitVars;
