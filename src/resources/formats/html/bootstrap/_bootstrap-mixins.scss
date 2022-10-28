@@ -19,7 +19,7 @@
 
 // GRID CASCADE
 $grid-body-column-max: $grid-body-width !default;
-$grid-body-column-min: 500px !default;
+$grid-body-column-min: quarto-math.min(500px, $grid-body-column-max) !default;
 
 // Margin variables
 $grid-page-gutter: $grid-column-gutter-width !default;
