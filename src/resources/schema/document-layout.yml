@@ -78,6 +78,25 @@
       Target page width for output (used to compute columns widths for `layout` divs).
       Defaults to 6.5 inches, which corresponds to default letter page settings in 
       docx and odt.
+
+- name: grid
+  schema:
+    object:
+      closed: true
+      properties:
+        sidebar-base-width:
+          string:
+            description: "The base width of the sidebar (left) column in an HTML page."
+        margin-base-width:
+          string:
+            description: "The base width of the margin (right) column in an HTML page."
+        body-base-width:
+          string:
+            description: "The base width of the body (center) column in an HTML page."
+        gutter-width:
+          string:
+            description: "The width of the gutter that appears between columns in an HTML page."
+
 - name: appendix-style
   schema:
     anyOf:

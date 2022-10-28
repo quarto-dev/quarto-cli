@@ -449,7 +449,7 @@ function pandocVariablesToThemeDefaults(
     add(explicitVars, "grid-sidebar-base-width", gridObj["sidebar-base-width"]);
     add(explicitVars, "grid-margin-base-width", gridObj["margin-base-width"]);
     add(explicitVars, "grid-body-base-width", gridObj["body-base-width"]);
-    add(explicitVars, "grid-gutter-width", gridObj["gutter-width"]);
+    add(explicitVars, "grid-column-gutter-width", gridObj["gutter-width"]);
   }
   return explicitVars;
 }
