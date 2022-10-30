@@ -34,6 +34,17 @@
   }
 
   function initialize() {
+    // only do this if we are in an iframe
+    try {
+      if (window.self === window.top) {
+        return;
+      }
+    // added during rc phase of v1.2 -- don't allow
+    // unexpected exceptions to derail the feature
+    } catch {
+      return;
+    }
+   
     var linkEls = document.getElementsByTagName("a");
     for (var linkEl of linkEls) {
       if (linkEl.href && !isLocalHref(linkEl.href)) {
