@@ -29,14 +29,35 @@ local handlers = {
       })
     end,
 
-    -- a function that renders the extendedNode into output
+    -- a function that renders the extended node into output
     render = function(extendedNode)
       return pandoc.Div(pandoc.Blocks({
         extendedNode.title, extendedNode.content
       }))
     end,
 
-    inner_content = function(extendedNode)
+    -- a function that takes the extended node and
+    -- returns a table with table-valued attributes
+    -- that represent inner content that should
+    -- be visible to filters.
+    inner_content = function(extended_node)
+      return {
+        title = extended_node.title,
+        content = extended_node.content
+      }
+    end,
+
+    -- a function that updates the extended node
+    -- with new inner content (as returned by filters)
+    -- table keys are a subset of those returned by inner_content
+    -- and represent changed values that need to be updated.    
+    set_inner_content = function(extended_node, values)
+      if values.title then
+        extended_node.title = values.title
+      end
+      if values.content then
+        extended_node.content = values.content
+      end
     end
   },
 }
