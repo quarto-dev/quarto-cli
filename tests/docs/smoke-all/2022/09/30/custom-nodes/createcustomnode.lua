@@ -1,8 +1,8 @@
 
 quarto.ast.add_handler({
   -- use either string or array of strings
-  className = "my-custom-node",
-  -- className = {"fancy-callout-warning", "fancy-callout-info", ... }
+  class_name = "my-custom-node",
+  -- class_name = {"fancy-callout-warning", "fancy-callout-info", ... }
 
   -- optional: makePandocExtendedDiv
   -- supply makePandocExtendedDiv if you need to construct
