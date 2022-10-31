@@ -6,8 +6,8 @@
 local handlers = {
   {
     -- use either string or array of strings
-    className = "fancy-callout",
-    -- className = {"fancy-callout-warning", "fancy-callout-info", ... }
+    class_name = "fancy-callout",
+    -- class_name = {"fancy-callout-warning", "fancy-callout-info", ... }
 
     -- optional: makePandocExtendedDiv
     -- This is here as an escape hatch, we expect most developers
@@ -18,7 +18,7 @@ local handlers = {
     -- end
 
     -- the name of the ast node, used as a key in extended ast filter tables
-    astName = "FancyCallout",
+    ast_name = "FancyCallout",
 
     -- a function that takes the div node as supplied in user markdown
     -- and returns the custom node
@@ -35,6 +35,9 @@ local handlers = {
         extendedNode.title, extendedNode.content
       }))
     end,
+
+    inner_content = function(extendedNode)
+    end
   },
 }
 
@@ -85,24 +88,24 @@ quarto.ast = {
   
   add_handler = function(handler)
     local state = (preState or postState).extendedAstHandlers
-    if type(handler.className) == "nil" then
-      print("ERROR: handler must define className")
+    if type(handler.class_name) == "nil" then
+      print("ERROR: handler must define class_name")
       quarto.utils.dump(handler)
       crash_with_stack_trace()
-    elseif type(handler.className) == "string" then
-      state.namedHandlers[handler.className] = handler
-    elseif type(handler.className) == "table" then
-      for _, name in ipairs(handler.className) do
+    elseif type(handler.class_name) == "string" then
+      state.namedHandlers[handler.class_name] = handler
+    elseif type(handler.class_name) == "table" then
+      for _, name in ipairs(handler.class_name) do
         state.namedHandlers[name] = handler
       end
     else
-      print("ERROR: className must be a string or an array of strings")
+      print("ERROR: class_name must be a string or an array of strings")
       quarto.utils.dump(handler)
       crash_with_stack_trace()
     end
 
-    -- we also register them under the astName so that we can render it back
-    state.namedHandlers[handler.astName] = handler
+    -- we also register them under the ast_name so that we can render it back
+    state.namedHandlers[handler.ast_name] = handler
   end,
 
   resolve_handler = function(name)

@@ -122,7 +122,7 @@ function wrapped_writer()
         t = node.t or pandoc.utils.type(node)
         if node.is_custom then
           local astHandler = quarto.ast.resolve_handler(t)
-          nodeHandler = astHandler and handler[astHandler.astName] and handler[astHandler.astName].handle
+          nodeHandler = astHandler and handler[astHandler.ast_name] and handler[astHandler.ast_name].handle
         else
           nodeHandler = handler[t] and handler[t].handle
         end

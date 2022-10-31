@@ -2110,7 +2110,7 @@ function genericOutput:startSuite()
   -- Called once, when the suite is started
 end
 
-function genericOutput:startClass(className)
+function genericOutput:startClass(class_name)
   -- Called each time a new test class is started
 end
 
@@ -2156,9 +2156,9 @@ function TapOutput:startSuite()
   print("1.." .. self.result.selectedCount)
   print('# Started on ' .. self.result.startDate)
 end
-function TapOutput:startClass(className)
-  if className ~= '[TestFunctions]' then
-    print('# Starting class: ' .. className)
+function TapOutput:startClass(class_name)
+  if class_name ~= '[TestFunctions]' then
+    print('# Starting class: ' .. class_name)
   end
 end
 
@@ -2222,9 +2222,9 @@ function JUnitOutput:startSuite()
   print('# XML output to ' .. self.fname)
   print('# Started on ' .. self.result.startDate)
 end
-function JUnitOutput:startClass(className)
-  if className ~= '[TestFunctions]' then
-    print('# Starting class: ' .. className)
+function JUnitOutput:startClass(class_name)
+  if class_name ~= '[TestFunctions]' then
+    print('# Starting class: ' .. class_name)
   end
 end
 function JUnitOutput:startTest(testName)
@@ -2257,8 +2257,8 @@ function JUnitOutput:endSuite()
   self.fd:write("        </properties>\n")
 
   for i, node in ipairs(self.result.allTests) do
-    self.fd:write(string.format('        <testcase classname="%s" name="%s" time="%0.3f">\n',
-            node.className, node.testName, node.duration))
+    self.fd:write(string.format('        <testcase class_name="%s" name="%s" time="%0.3f">\n',
+            node.class_name, node.testName, node.duration))
     if node:isNotSuccess() then
       self.fd:write(node:statusXML())
     end
@@ -2300,9 +2300,9 @@ then "Ran x tests in 0.000s"
 then OK or FAILED (failures=1, error=1)
 
 -- Python Verbose:
-testname (filename.classname) ... ok
-testname (filename.classname) ... FAIL
-testname (filename.classname) ... ERROR
+testname (filename.class_name) ... ok
+testname (filename.class_name) ... FAIL
+testname (filename.class_name) ... ERROR
 
 then --------------
 then "Ran x tests in 0.000s"
@@ -2524,12 +2524,12 @@ end
 
 function M.LuaUnit.splitClassMethod(someName)
   --[[
-        Return a pair of className, methodName strings for a name in the form
+        Return a pair of class_name, methodName strings for a name in the form
         "class.method". If no class part (or separator) is found, will return
         nil, someName instead (the latter being unchanged).
 
         This convention thus also replaces the older isClassMethod() test:
-        You just have to check for a non-nil className (return) value.
+        You just have to check for a non-nil class_name (return) value.
         ]]
   local separator = string.find(someName, '.', 1, true)
   if separator then
@@ -2724,9 +2724,9 @@ NodeStatus.SKIP = 'SKIP'
 NodeStatus.FAIL = 'FAIL'
 NodeStatus.ERROR = 'ERROR'
 
-function NodeStatus.new(number, testName, className)
+function NodeStatus.new(number, testName, class_name)
   -- default constructor, test are PASS by default
-  local t = { number = number, testName = testName, className = className }
+  local t = { number = number, testName = testName, class_name = class_name }
   setmetatable(t, NodeStatus_MT)
   t:success()
   return t
@@ -2840,7 +2840,7 @@ function M.LuaUnit:startSuite(selectedCount, nonSelectedCount)
     successCount = 0,
     runCount = 0,
     currentTestNumber = 0,
-    currentClassName = "",
+    currentclass_name = "",
     currentNode = nil,
     suiteStarted = true,
     startTime = os.clock(),
@@ -2865,10 +2865,10 @@ function M.LuaUnit:startSuite(selectedCount, nonSelectedCount)
   self.output:startSuite()
 end
 
-function M.LuaUnit:startClass(className, classInstance)
-  self.result.currentClassName = className
-  self.output:startClass(className)
-  self:setupClass(className, classInstance)
+function M.LuaUnit:startClass(class_name, classInstance)
+  self.result.currentclass_name = class_name
+  self.output:startClass(class_name)
+  self:setupClass(class_name, classInstance)
 end
 
 function M.LuaUnit:startTest(testName)
@@ -2877,7 +2877,7 @@ function M.LuaUnit:startTest(testName)
   self.result.currentNode = NodeStatus.new(
           self.result.currentTestNumber,
           testName,
-          self.result.currentClassName
+          self.result.currentclass_name
   )
   self.result.currentNode.startTime = os.clock()
   table.insert(self.result.allTests, self.result.currentNode)
@@ -2958,7 +2958,7 @@ function M.LuaUnit:endTest()
 end
 
 function M.LuaUnit:endClass()
-  self:teardownClass(self.lastClassName, self.lastClassInstance)
+  self:teardownClass(self.lastclass_name, self.lastClassInstance)
   self.output:endClass()
 end
 
@@ -3060,8 +3060,8 @@ function M.LuaUnit:protectedCall(classInstance, methodInstance, prettyFuncName)
   return err -- return the error "object" (table)
 end
 
-function M.LuaUnit:execOneFunction(className, methodName, classInstance, methodInstance)
-  -- When executing a test function, className and classInstance must be nil
+function M.LuaUnit:execOneFunction(class_name, methodName, classInstance, methodInstance)
+  -- When executing a test function, class_name and classInstance must be nil
   -- When executing a class method, all parameters must be set
 
   if type(methodInstance) ~= 'function' then
@@ -3070,19 +3070,19 @@ function M.LuaUnit:execOneFunction(className, methodName, classInstance, methodI
   end
 
   local prettyFuncName
-  if className == nil then
-    className = '[TestFunctions]'
+  if class_name == nil then
+    class_name = '[TestFunctions]'
     prettyFuncName = methodName
   else
-    prettyFuncName = className .. '.' .. methodName
+    prettyFuncName = class_name .. '.' .. methodName
   end
 
-  if self.lastClassName ~= className then
-    if self.lastClassName ~= nil then
+  if self.lastclass_name ~= class_name then
+    if self.lastclass_name ~= nil then
       self:endClass()
     end
-    self:startClass(className, classInstance)
-    self.lastClassName = className
+    self:startClass(class_name, classInstance)
+    self.lastclass_name = class_name
     self.lastClassInstance = classInstance
   end
 
@@ -3102,7 +3102,7 @@ function M.LuaUnit:execOneFunction(className, methodName, classInstance, methodI
               self.asFunction(classInstance.setup) or
               self.asFunction(classInstance.SetUp)
       if func then
-        self:updateStatus(self:protectedCall(classInstance, func, className .. '.setUp'))
+        self:updateStatus(self:protectedCall(classInstance, func, class_name .. '.setUp'))
       end
     end
 
@@ -3118,7 +3118,7 @@ function M.LuaUnit:execOneFunction(className, methodName, classInstance, methodI
               self.asFunction(classInstance.teardown) or
               self.asFunction(classInstance.Teardown)
       if func then
-        self:updateStatus(self:protectedCall(classInstance, func, className .. '.tearDown'))
+        self:updateStatus(self:protectedCall(classInstance, func, class_name .. '.tearDown'))
       end
     end
   end
@@ -3126,22 +3126,22 @@ function M.LuaUnit:execOneFunction(className, methodName, classInstance, methodI
   self:endTest()
 end
 
-function M.LuaUnit.expandOneClass(result, className, classInstance)
+function M.LuaUnit.expandOneClass(result, class_name, classInstance)
   --[[
         Input: a list of { name, instance }, a class name, a class instance
         Ouptut: modify result to add all test method instance in the form:
-        { className.methodName, classInstance }
+        { class_name.methodName, classInstance }
         ]]
   for methodName, methodInstance in sortedPairs(classInstance) do
     if M.LuaUnit.asFunction(methodInstance) and M.LuaUnit.isMethodTestName(methodName) then
-      table.insert(result, { className .. '.' .. methodName, classInstance })
+      table.insert(result, { class_name .. '.' .. methodName, classInstance })
     end
   end
 end
 
 function M.LuaUnit.expandClasses(listOfNameAndInst)
   --[[
-        -- expand all classes (provided as {className, classInstance}) to a list of {className.methodName, classInstance}
+        -- expand all classes (provided as {class_name, classInstance}) to a list of {class_name.methodName, classInstance}
         -- functions and methods remain untouched
 
         Input: a list of { name, instance }
@@ -3149,7 +3149,7 @@ function M.LuaUnit.expandClasses(listOfNameAndInst)
         Output:
         * { function name, function instance } : do nothing
         * { class.method name, class instance }: do nothing
-        * { class name, class instance } : add all method names in the form of (className.methodName, classInstance)
+        * { class name, class instance } : add all method names in the form of (class_name.methodName, classInstance)
         ]]
   local result = {}
 
@@ -3161,11 +3161,11 @@ function M.LuaUnit.expandClasses(listOfNameAndInst)
       if type(instance) ~= 'table' then
         error('Instance must be a table or a function, not a ' .. type(instance) .. ' with value ' .. prettystr(instance))
       end
-      local className, methodName = M.LuaUnit.splitClassMethod(name)
-      if className then
+      local class_name, methodName = M.LuaUnit.splitClassMethod(name)
+      if class_name then
         local methodInstance = instance[methodName]
         if methodInstance == nil then
-          error("Could not find method in class " .. tostring(className) .. " for method " .. tostring(methodName))
+          error("Could not find method in class " .. tostring(class_name) .. " for method " .. tostring(methodName))
         end
         table.insert(result, { name, instance })
       else
@@ -3218,15 +3218,15 @@ function M.LuaUnit:teardownSuite(listOfNameAndInst)
   end
 end
 
-function M.LuaUnit:setupClass(className, instance)
+function M.LuaUnit:setupClass(class_name, instance)
   if type(instance) == 'table' and self.asFunction(instance.setupClass) then
-    self:updateStatus(self:protectedCall(instance, instance.setupClass, className .. '.setupClass'))
+    self:updateStatus(self:protectedCall(instance, instance.setupClass, class_name .. '.setupClass'))
   end
 end
 
-function M.LuaUnit:teardownClass(className, instance)
+function M.LuaUnit:teardownClass(class_name, instance)
   if type(instance) == 'table' and self.asFunction(instance.teardownClass) then
-    self:updateStatus(self:protectedCall(instance, instance.teardownClass, className .. '.teardownClass'))
+    self:updateStatus(self:protectedCall(instance, instance.teardownClass, class_name .. '.teardownClass'))
   end
 end
 
@@ -3256,18 +3256,18 @@ function M.LuaUnit:internalRunSuiteByInstances(listOfNameAndInst)
     else
       -- expandClasses() should have already taken care of sanitizing the input
       assert(type(instance) == 'table')
-      local className, methodName = M.LuaUnit.splitClassMethod(name)
-      assert(className ~= nil)
+      local class_name, methodName = M.LuaUnit.splitClassMethod(name)
+      assert(class_name ~= nil)
       local methodInstance = instance[methodName]
       assert(methodInstance ~= nil)
-      self:execOneFunction(className, methodName, instance, methodInstance)
+      self:execOneFunction(class_name, methodName, instance, methodInstance)
     end
     if self.result.aborted then
       break -- "--error" or "--failure" option triggered
     end
   end
 
-  if self.lastClassName ~= nil then
+  if self.lastclass_name ~= nil then
     self:endClass()
   end
 
@@ -3291,9 +3291,9 @@ function M.LuaUnit:internalRunSuiteByNames(listOfName)
   local listOfNameAndInst = {}
 
   for i, name in ipairs(listOfName) do
-    local className, methodName = M.LuaUnit.splitClassMethod(name)
-    if className then
-      instanceName = className
+    local class_name, methodName = M.LuaUnit.splitClassMethod(name)
+    if class_name then
+      instanceName = class_name
       instance = _G[instanceName]
 
       if instance == nil then
@@ -3309,7 +3309,7 @@ function M.LuaUnit:internalRunSuiteByNames(listOfName)
       local methodInstance = instance[methodName]
       if methodInstance == nil then
         self:unregisterSuite()
-        error("Could not find method in class " .. tostring(className) .. " for method " .. tostring(methodName))
+        error("Could not find method in class " .. tostring(class_name) .. " for method " .. tostring(methodName))
       end
 
     else
