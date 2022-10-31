@@ -40,8 +40,8 @@ export interface NotebookInclude {
   params: Record<string, string>;
 }
 
-const resolveCellIds = (hash: string) => {
-  if (hash.indexOf(",") > 0) {
+const resolveCellIds = (hash?: string) => {
+  if (hash && hash.indexOf(",") > 0) {
     return hash.split(",");
   } else {
     return hash;
@@ -49,18 +49,15 @@ const resolveCellIds = (hash: string) => {
 };
 
 // If the path is a notebook path, then process it separately.
-const kPlaceholderProtocol = "ipynb://";
 export function parseNotebookPath(path: string) {
-  if (!path.startsWith(kPlaceholderProtocol)) {
-    path = `${kPlaceholderProtocol}/${path}`;
-  }
-  const url = new URL(path);
-  const pathname = url.pathname;
-  if (extname(pathname) === ".ipynb") {
-    const hash = url.hash;
+  const hasHash = path.indexOf("#") !== -1;
+  const hash = hasHash ? path.split("#")[1] : undefined;
+  path = path.split("#")[0];
+
+  if (extname(path) === ".ipynb") {
     const cellIds = resolveCellIds(hash);
     return {
-      path: pathname,
+      path,
       cellIds,
     } as NotebookInclude;
   } else {
@@ -71,34 +68,38 @@ export function parseNotebookPath(path: string) {
 export function notebookForInclude(
   nbInclude: NotebookInclude,
 ) {
-  const nb = jupyterFromFile(nbInclude.path);
-  const cells: JupyterCell[] = [];
+  try {
+    const nb = jupyterFromFile(nbInclude.path);
+    const cells: JupyterCell[] = [];
 
-  // If cellIds are present, filter the notebook to only include
-  // those cells
-  if (nbInclude.cellIds) {
-    for (const cell of nb.cells) {
-      // cellId can either by a literal cell Id, or a tag with that value
-      const hasId = cell.id ? nbInclude.cellIds.includes(cell.id) : false;
-      if (hasId) {
-        // It's an ID
-        cells.push(cell);
-      } else {
-        // Check tags
-        const hasTag = cell.metadata.tags
-          ? cell.metadata.tags.find((tag) =>
-            nbInclude.cellIds?.includes(tag)
-          ) !==
-            undefined
-          : false;
-        if (hasTag) {
+    // If cellIds are present, filter the notebook to only include
+    // those cells
+    if (nbInclude.cellIds) {
+      for (const cell of nb.cells) {
+        // cellId can either by a literal cell Id, or a tag with that value
+        const hasId = cell.id ? nbInclude.cellIds.includes(cell.id) : false;
+        if (hasId) {
+          // It's an ID
           cells.push(cell);
+        } else {
+          // Check tags
+          const hasTag = cell.metadata.tags
+            ? cell.metadata.tags.find((tag) =>
+              nbInclude.cellIds?.includes(tag)
+            ) !==
+              undefined
+            : false;
+          if (hasTag) {
+            cells.push(cell);
+          }
         }
       }
+      nb.cells = cells;
     }
-    nb.cells = cells;
+    return nb;
+  } catch (ex) {
+    throw new Error(`Failed to read included notebook ${nbInclude.path}`, ex);
   }
-  return nb;
 }
 
 export async function notebookMarkdown(

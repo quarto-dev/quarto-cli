@@ -1,0 +1,11 @@
+---
+title: Embedded Resource Test
+author: Charles Teague
+date: last-modified
+code-fold: true
+keep-hidden: true
+---
+
+## A simple embedded example
+
+{{< include subfolder/plots.ipynb >}}
