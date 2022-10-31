@@ -16,7 +16,7 @@ quarto.ast.add_handler({
   -- end
 
   -- the name of the ast node, used as a key in extended ast filter tables
-  astName = "MyCustomNode",
+  ast_name = "MyCustomNode",
 
   -- a function that takes the extended ast node as supplied in user markdown
   -- and returns a new Pandoc node (use quarto.ast.pandoc instead of pandoc if
