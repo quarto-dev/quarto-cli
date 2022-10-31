@@ -16,10 +16,10 @@ end
 
 quarto.ast.add_handler({
     -- use either string or array of strings
-    className = {"callout", "callout-note", "callout-warning", "callout-important", "callout-caution", "callout-tip" },
+    class_name = {"callout", "callout-note", "callout-warning", "callout-important", "callout-caution", "callout-tip" },
 
     -- the name of the ast node, used as a key in extended ast filter tables
-    astName = "Callout",
+    ast_name = "Callout",
 
     -- a function that takes the div node as supplied in user markdown
     -- and returns the custom node
@@ -781,7 +781,7 @@ function resolveCalloutContents(node, requireCaption)
   local contents = pandoc.List({})
     
   -- Add the captions and contents
-  -- classname 
+  -- class_name 
   if caption == nil and requireCaption then 
     ---@diagnostic disable-next-line: need-check-nil
     caption = stringToInlines(type:sub(1,1):upper()..type:sub(2))
