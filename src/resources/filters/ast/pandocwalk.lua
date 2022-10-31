@@ -133,11 +133,11 @@ local is_atom = {
   -- thread?!?!
 }
 
--- declared as local on top
+-- this function returns nil if the node is unchanged
 apply_filter_bottomup = function(filter, node)
   local nodeType = type(node)
   if is_atom[nodeType] then
-    return node
+    return nil
   end
 
   local t = node.t
@@ -150,28 +150,30 @@ apply_filter_bottomup = function(filter, node)
     if pandocT == "List" then
       local result = pandoc.List()
       result:extend(tmap(node, function(n) 
-        return apply_filter_bottomup(filter, n) end
+        return apply_filter_bottomup(filter, n) or n end
       ))
       return result
     end
+    -- other non-emulated nodes are handled below
+    -- by converting them to emulated nodes.
   end
 
   if t == nil then
     if tisarray(node) then
       return tmap(node, function(n) 
-        return apply_filter_bottomup(filter, n) end
+        return apply_filter_bottomup(filter, n) or n end
       )
     else
       -- TableBody, smh
       local result = {}
       for k, v in pairs(node) do
-        result[k] = apply_filter_bottomup(filter, v)
+        result[k] = apply_filter_bottomup(filter, v) or v
       end
       return result
     end
   end
   if t == "Attr" then
-    return node
+    return nil
   end
 
   -- walk children
@@ -181,22 +183,55 @@ apply_filter_bottomup = function(filter, node)
   end
 
   local newResult = {}
-  local result
+  local result = node
   local changed = false
-  for k, v in ast_node_property_pairs(node) do
-    local newV = apply_filter_bottomup(filter, v)
-    if newV ~= nil then
-      changed = true
-      newResult[k] = newV
-    end
-  end
-  if changed then
-    result = node:clone()
-    for k, v in pairs(newResult) do
-      result[k] = v
+  if result.is_custom then
+    local handler = quarto.ast.resolve_handler(t)
+    local custom_changed = false
+    if handler ~= nil and handler.inner_content ~= nil then
+      local inner_content = handler.inner_content(result)
+      local new_inner_content = {}
+      for inner_content_k, inner_content_v in pairs(inner_content) do
+        local new_inner_content_v = {}
+        local inner_changed = false
+        for _, v in ipairs(inner_content_v) do
+          local new_v = apply_filter_bottomup(filter, v)
+          if new_v ~= nil then
+            inner_changed = true
+            table.insert(new_inner_content_v, new_v)
+          else
+            table.insert(new_inner_content_v, v)
+          end
+        end
+        if inner_changed then
+          new_inner_content[inner_content_k] = new_inner_content_v
+          custom_changed = true
+        end
+      end
+      if custom_changed then
+        changed = true
+        result = result:clone()
+        if handler ~= nil and handler.set_inner_content ~= nil then
+          handler.set_inner_content(result, new_inner_content)
+        end
+      end
     end
   else
-    result = node
+    local ast_node_changed = false
+    for k, v in ast_node_property_pairs(result) do
+      local newV = apply_filter_bottomup(filter, v)
+      if newV ~= nil then
+        ast_node_changed = true
+        newResult[k] = newV
+      end
+    end
+    if ast_node_changed then
+      changed = true
+      result = result:clone()
+      for k, v in pairs(newResult) do
+        result[k] = v
+      end
+    end
   end
 
   local fn = (filter[t] 
@@ -204,13 +239,21 @@ apply_filter_bottomup = function(filter, node)
     or filter[(pandoc_is_block[t] and "Block") or "Inline"])
 
   if fn == nil then
-    return result
+    if changed then
+      return result
+    else
+      return nil
+    end
   end
 
   local filterResult = fn(result)
 
   if filterResult == nil then
-    return result
+    if changed then
+      return result
+    else
+      return nil
+    end
   elseif is_ast_node_array(filterResult) then
     return ast_node_array_map(filterResult, as_emulated)
   else
@@ -305,7 +348,7 @@ local function walk_inline_splicing(filter, node)
       end
       return result
     end,
-  }, node)
+  }, node) or node
 end
 
 local function walk_block_splicing(filter, node)
@@ -325,7 +368,7 @@ local function walk_block_splicing(filter, node)
       end
       return result
     end,
-  }, node)
+  }, node) or node
 end
 
 local function walk_custom_splicing(filter, node)
@@ -360,7 +403,7 @@ local function walk_custom_splicing(filter, node)
       end
       return result
     end,
-  }, node)
+  }, node) or node
 end
 
 local function walk_inlines_straight(filter, node)
@@ -376,7 +419,7 @@ local function walk_inlines_straight(filter, node)
         end
       }, inlines)
     end
-  }, node)
+  }, node) or node
 end
 
 local function walk_blocks_straight(filter, node)
@@ -392,7 +435,7 @@ local function walk_blocks_straight(filter, node)
         end
       }, blocks)
     end
-  }, node)
+  }, node) or node
 end
 
 -- pandoc-lua-marshal/src/Text/Pandoc/Lua/Marshal/Shared.hs:walkBlocksAndInlines
