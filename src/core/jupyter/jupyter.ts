@@ -711,17 +711,27 @@ export function jupyterCellWithOptions(
     }, {} as Record<string, unknown>);
 
   // combine metadata options with yaml options (giving yaml options priority)
-  const options = {
+  const explicitOptions = {
     ...metadataOptions,
     ...yaml,
   };
 
   // if we have layout or tbl-colwidths and it's not a string then json encode it
   [kLayout, kTblColwidths].forEach((option) => {
-    if (options[option] && typeof (options[option]) !== "string") {
-      options[option] = JSON.stringify(options[option]);
+    if (
+      explicitOptions[option] && typeof (explicitOptions[option]) !== "string"
+    ) {
+      explicitOptions[option] = JSON.stringify(explicitOptions[option]);
     }
   });
+
+  // Resolve any tags that map to options
+  const tags = cell.metadata.tags;
+  const tagOptions = tagsToOptions(tags || []);
+  const options = {
+    ...tagOptions,
+    ...explicitOptions,
+  };
 
   return {
     ...cell,
@@ -833,6 +843,59 @@ export function mdEnsureTrailingNewline(source: string[]) {
   } else {
     return source;
   }
+}
+
+// We decode some tags on cells into options for the cell
+// to better support control of Notebook code behavior when
+// included within documents (without requiring the addition of
+// configuration comments within the code cell)
+export const kHideCell = "hide-cell";
+export const kHideCode = "hide-code";
+export const kHideOutput = "hide-output";
+export const kHideWarnings = "hide-warnings";
+export const kShowCode = "show-code";
+export const kShowOutput = "show-output";
+export const kShowWarnings = "show-warnings";
+export const kRemoveCell = "remove-cell";
+const tagMapping: Record<string, Record<string, boolean>> = {
+  [kHideCell]: {
+    include: false,
+  },
+  [kHideCode]: {
+    echo: false,
+  },
+  [kHideOutput]: {
+    output: false,
+  },
+  [kHideWarnings]: {
+    warning: false,
+  },
+  [kShowCode]: {
+    echo: true,
+  },
+  [kShowOutput]: {
+    output: true,
+  },
+  [kShowWarnings]: {
+    warning: true,
+  },
+  [kRemoveCell]: {
+    include: false,
+  },
+};
+
+function tagsToOptions(tags: string[]): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+  tags.forEach((tag) => {
+    const mapping = tagMapping[tag];
+    if (mapping) {
+      const keys = Object.keys(mapping);
+      keys.forEach((key) => {
+        result[key] = mapping[key];
+      });
+    }
+  });
+  return result;
 }
 
 function optionCommentPrefix(comment: string) {
