@@ -70,7 +70,6 @@ export function parseNotebookPath(path: string) {
 
 export function notebookForInclude(
   nbInclude: NotebookInclude,
-  context: RenderContext,
 ) {
   const nb = jupyterFromFile(nbInclude.path);
   const cells: JupyterCell[] = [];
@@ -99,24 +98,6 @@ export function notebookForInclude(
     }
     nb.cells = cells;
   }
-
-  // Read any notebook metadata
-  const notebookMetadata = context.format.metadata["notebook"] as Record<
-    string,
-    unknown
-  >;
-
-  // Resolve any execution options from the notebook metadata
-  nb.cells = nb.cells.map((cell) => {
-    cell.metadata = {
-      "echo": false,
-      "warning": false,
-      ...notebookMetadata,
-      ...cell.metadata,
-    };
-    return cell;
-  });
-
   return nb;
 }
 

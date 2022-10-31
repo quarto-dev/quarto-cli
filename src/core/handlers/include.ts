@@ -60,7 +60,6 @@ const includeHandler: LanguageHandler = {
         // the cells that are specified in the include and include them)
         const nb = notebookForInclude(
           notebookInclude,
-          handlerContext.options.context,
         );
         const assets = jupyterAssets(
           source,
