@@ -1,4 +1,4 @@
-import { RenderContext } from "../../command/render/types.ts";
+import { RenderContext, RenderFlags } from "../../command/render/types.ts";
 import {
   kIncludeAfterBody,
   kIncludeBeforeBody,
@@ -31,6 +31,8 @@ export interface LanguageCellHandlerOptions {
   markdown: MappedString;
 
   context: RenderContext;
+
+  flags: RenderFlags;
 
   // per-document state, so that different handlers can share state as needed.
   state?: Record<string, Record<string, unknown>>;

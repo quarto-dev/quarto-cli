@@ -250,6 +250,7 @@ export async function renderContexts(
         format: context.format,
         markdown: context.target.markdown,
         context,
+        flags: options.flags || {} as RenderFlags,
         stage: "pre-engine",
       };
 

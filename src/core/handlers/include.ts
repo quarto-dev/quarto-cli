@@ -6,7 +6,7 @@
 */
 
 import { LanguageCellHandlerContext, LanguageHandler } from "./types.ts";
-import { baseHandler, install, languages } from "./base.ts";
+import { baseHandler, install } from "./base.ts";
 import {
   asMappedString,
   EitherString,
@@ -18,32 +18,13 @@ import {
 import { rangedLines } from "../lib/ranged-text.ts";
 import { isBlockShortcode } from "../lib/parse-shortcode.ts";
 import { DirectiveCell } from "../lib/break-quarto-md-types.ts";
-import {
-  jupyterAssets,
-  jupyterFromFile,
-  jupyterToMarkdown,
-} from "../jupyter/jupyter.ts";
+import { jupyterAssets } from "../jupyter/jupyter.ts";
 
-import { dirname, extname } from "path/mod.ts";
 import {
-  kFigDpi,
-  kFigFormat,
-  kFigPos,
-  kKeepHidden,
-} from "../../config/constants.ts";
-import {
-  isHtmlCompatible,
-  isIpynbOutput,
-  isLatexOutput,
-  isMarkdownOutput,
-  isPresentationOutput,
-} from "../../config/format.ts";
-import { resourcePath } from "../resources.ts";
-import { resolveParams } from "../../command/render/flags.ts";
-import { RenderFlags } from "../../command/render/types.ts";
-import { callbackify } from "https://deno.land/std@0.153.0/node/util.ts";
-import { translationsForLang } from "../language.ts";
-import { JupyterCell } from "../jupyter/types.ts";
+  notebookForInclude,
+  notebookMarkdown,
+  parseNotebookPath,
+} from "./include-notebook.ts";
 
 const includeHandler: LanguageHandler = {
   ...baseHandler,
@@ -71,105 +52,30 @@ const includeHandler: LanguageHandler = {
         );
       }
 
-      // If the path is a notebook path, then process it separately.
-      const parseNotebookPath = (path: string) => {
-        if (path.includes("#")) {
-          const pathParts = path.split("#");
-          const filePath = pathParts[0];
-          const cellId = pathParts.slice(1);
-          return {
-            path: filePath,
-            cellId,
-          };
-        } else {
-          const ext = extname(path);
-          if (ext === ".ipynb") {
-            return {
-              path,
-            };
-          } else {
-            return undefined;
-          }
-        }
-      };
-
-      const notebookPath = parseNotebookPath(path);
-      if (notebookPath) {
-        const nb = jupyterFromFile(notebookPath.path);
+      // Handle notebooks directly by extracting the items
+      // from the notebook
+      const notebookInclude = parseNotebookPath(path);
+      if (notebookInclude) {
+        // This is a notebook include, so read the notebook (including only
+        // the cells that are specified in the include and include them)
+        const nb = notebookForInclude(
+          notebookInclude,
+          handlerContext.options.context,
+        );
         const assets = jupyterAssets(
           source,
           handlerContext.options.context.format.pandoc.to,
         );
 
-        const cells: JupyterCell[] = [];
-
-        // filter the notebook
-        if (notebookPath.cellId) {
-          for (const cell of nb.cells) {
-            const hasId = cell.id
-              ? notebookPath.cellId.includes(cell.id)
-              : false;
-            if (hasId) {
-              cells.push(cell);
-            } else {
-              const hasTag = cell.metadata.tags
-                ? cell.metadata.tags.find((tag) =>
-                  notebookPath.cellId.includes(tag)
-                ) !== undefined
-                : false;
-              if (hasTag) {
-                cells.push(cell);
-              }
-            }
-          }
-        }
-        nb.cells = cells.map((cell) => {
-          cell.metadata = {
-            ...cell.metadata,
-            "echo": false,
-          };
-          return cell;
-        });
-
-        const options = handlerContext.options;
-        const context = options.context;
-        const flags: RenderFlags = {};
-
-        const executeOptions = {
-          target: context.target,
-          resourceDir: resourcePath(),
-          tempDir: context.options.services.temp.createDir(),
-          dependencies: true,
-          libDir: context.libDir,
-          format: context.format,
-          projectDir: context.project?.dir,
-          cwd: flags.executeDir ||
-            dirname(Deno.realPathSync(context.target.source)),
-          params: resolveParams(flags.params, flags.paramsFile),
-          quiet: flags.quiet,
-          previewServer: context.options.previewServer,
-          handledLanguages: languages(),
-        };
-        const result = await jupyterToMarkdown(
+        // Render the notebook markdown and inject it
+        const markdown = await notebookMarkdown(
           nb,
-          {
-            executeOptions,
-            language: nb.metadata.kernelspec.language.toLowerCase(),
-            assets,
-            execute: options.format.execute,
-            keepHidden: options.format.render[kKeepHidden],
-            toHtml: isHtmlCompatible(options.format),
-            toLatex: isLatexOutput(options.format.pandoc),
-            toMarkdown: isMarkdownOutput(options.format.pandoc),
-            toIpynb: isIpynbOutput(options.format.pandoc),
-            toPresentation: isPresentationOutput(options.format.pandoc),
-            figFormat: options.format.execute[kFigFormat],
-            figDpi: options.format.execute[kFigDpi],
-            figPos: options.format.render[kFigPos],
-          },
+          assets,
+          handlerContext.options.context,
+          handlerContext.options.flags,
         );
-        if (result) {
-          textFragments.push(result.markdown);
+        if (markdown) {
+          textFragments.push(markdown);
         }
       } else {
         let includeSrc;
