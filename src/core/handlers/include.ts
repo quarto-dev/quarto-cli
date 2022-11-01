@@ -21,7 +21,7 @@ import { DirectiveCell } from "../lib/break-quarto-md-types.ts";
 import { jupyterAssets } from "../jupyter/jupyter.ts";
 
 import {
-  notebookForInclude,
+  notebookForAddress,
   notebookMarkdown,
   parseNotebookPath,
 } from "./include-notebook.ts";
@@ -58,7 +58,7 @@ const includeHandler: LanguageHandler = {
       if (notebookInclude) {
         // This is a notebook include, so read the notebook (including only
         // the cells that are specified in the include and include them)
-        const nb = notebookForInclude(
+        const nb = notebookForAddress(
           notebookInclude,
         );
         const assets = jupyterAssets(

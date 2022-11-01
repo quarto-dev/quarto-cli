@@ -33,8 +33,9 @@ import {
 } from "../jupyter/types.ts";
 
 import { dirname, extname } from "path/mod.ts";
+import { Cell } from "https://deno.land/x/cliffy@v0.24.2/table/cell.ts";
 
-export interface NotebookInclude {
+export interface NotebookAddress {
   path: string;
   cellIds: string[] | undefined;
   params: Record<string, string>;
@@ -59,14 +60,15 @@ export function parseNotebookPath(path: string) {
     return {
       path,
       cellIds,
-    } as NotebookInclude;
+    } as NotebookAddress;
   } else {
     return undefined;
   }
 }
 
-export function notebookForInclude(
-  nbInclude: NotebookInclude,
+export function notebookForAddress(
+  nbInclude: NotebookAddress,
+  filter?: (cell: JupyterCell) => JupyterCell,
 ) {
   try {
     const nb = jupyterFromFile(nbInclude.path);
@@ -96,6 +98,11 @@ export function notebookForInclude(
       }
       nb.cells = cells;
     }
+
+    if (filter) {
+      nb.cells = nb.cells.map(filter);
+    }
+
     return nb;
   } catch (ex) {
     throw new Error(`Failed to read included notebook ${nbInclude.path}`, ex);
