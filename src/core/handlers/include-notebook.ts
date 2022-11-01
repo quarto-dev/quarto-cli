@@ -9,7 +9,11 @@ import { resourcePath } from "../resources.ts";
 
 import { languages } from "./base.ts";
 
-import { jupyterFromFile, jupyterToMarkdown } from "../jupyter/jupyter.ts";
+import {
+  jupyterCellWithOptions,
+  jupyterFromFile,
+  jupyterToMarkdown,
+} from "../jupyter/jupyter.ts";
 
 import {
   kFigDpi,
@@ -33,7 +37,6 @@ import {
 } from "../jupyter/types.ts";
 
 import { dirname, extname } from "path/mod.ts";
-import { Cell } from "https://deno.land/x/cliffy@v0.24.2/table/cell.ts";
 
 export interface NotebookAddress {
   path: string;
@@ -48,6 +51,15 @@ const resolveCellIds = (hash?: string) => {
     return hash;
   }
 };
+
+// tag specified in yaml
+// label in yaml
+// notebook.ipynb#cellid1
+// notebook.ipynb#cellid1
+// notebook.ipynb#cellid1,cellid2,cellid3
+// notebook.ipynb[0]
+// notebook.ipynb[0,1]
+// notebook.ipynb[0-2]
 
 // If the path is a notebook path, then process it separately.
 export function parseNotebookPath(path: string) {
@@ -66,6 +78,8 @@ export function parseNotebookPath(path: string) {
   }
 }
 
+const kLabel = "label";
+
 export function notebookForAddress(
   nbInclude: NotebookAddress,
   filter?: (cell: JupyterCell) => JupyterCell,
@@ -75,7 +89,8 @@ export function notebookForAddress(
     const cells: JupyterCell[] = [];
 
     // If cellIds are present, filter the notebook to only include
-    // those cells
+    // those cells (cellIds can eiher be an explicitly set cellId, a label in the
+    // cell metadata, or a tag on a cell that matches an id)
     if (nbInclude.cellIds) {
       for (const cell of nb.cells) {
         // cellId can either by a literal cell Id, or a tag with that value
@@ -84,15 +99,29 @@ export function notebookForAddress(
           // It's an ID
           cells.push(cell);
         } else {
-          // Check tags
-          const hasTag = cell.metadata.tags
-            ? cell.metadata.tags.find((tag) =>
-              nbInclude.cellIds?.includes(tag)
-            ) !==
-              undefined
+          // Check for label in options
+          const cellWithOptions = jupyterCellWithOptions(
+            nb.metadata.kernelspec.language.toLowerCase(),
+            cell,
+          );
+          const hasLabel = cellWithOptions.options[kLabel]
+            ? nbInclude.cellIds.includes(cellWithOptions.options[kLabel])
             : false;
-          if (hasTag) {
+
+          if (hasLabel) {
+            // It matches a label
             cells.push(cell);
+          } else {
+            // Check tags
+            const hasTag = cell.metadata.tags
+              ? cell.metadata.tags.find((tag) =>
+                nbInclude.cellIds?.includes(tag)
+              ) !==
+                undefined
+              : false;
+            if (hasTag) {
+              cells.push(cell);
+            }
           }
         }
       }
