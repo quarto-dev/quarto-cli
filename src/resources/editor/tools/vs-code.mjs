@@ -13541,7 +13541,7 @@ var require_yaml_intelligence_resources = __commonJS({
             }
           },
           description: {
-            short: "Properties of the grid system for quarto HTML pages."
+            short: "Properties of the grid system used to layout Quarto HTML pages."
           }
         },
         {
@@ -18805,6 +18805,10 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           short: "Target page width for output (used to compute columns widths for\n<code>layout</code> divs)",
           long: "Target page width for output (used to compute columns widths for\n<code>layout</code> divs). Defaults to 6.5 inches, which corresponds to\ndefault letter page settings in docx and odt."
+        },
+        {
+          short: "Properties of the grid system for quarto HTML pages.",
+          long: ""
         },
         "The base width of the sidebar (left) column in an HTML page.",
         "The base width of the margin (right) column in an HTML page.",
