@@ -210,11 +210,22 @@ export interface JupyterToMarkdownOptions {
 }
 
 export interface JupyterToMarkdownResult {
-  markdown: string;
   metadata?: Metadata;
   pandoc?: FormatPandoc;
   dependencies?: JupyterWidgetDependencies;
   htmlPreserve?: Record<string, string>;
+  cellOutputs: JupyterCellOutput[];
+  notebookOutputs?: {
+    prefix?: string;
+    suffix?: string;
+  };
+}
+
+export interface JupyterCellOutput {
+  id?: string;
+  options?: JupyterCellOptions;
+  metadata?: JupyterCellMetadata;
+  markdown: string;
 }
 
 export interface JupyterWidgetsState {

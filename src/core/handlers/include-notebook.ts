@@ -9,13 +9,10 @@ import { resourcePath } from "../resources.ts";
 
 import { languages } from "./base.ts";
 
-import {
-  jupyterCellWithOptions,
-  jupyterFromFile,
-  jupyterToMarkdown,
-} from "../jupyter/jupyter.ts";
+import { jupyterFromFile, jupyterToMarkdown } from "../jupyter/jupyter.ts";
 
 import {
+  kCellLabel,
   kFigDpi,
   kFigFormat,
   kFigPos,
@@ -33,12 +30,10 @@ import { RenderContext, RenderFlags } from "../../command/render/types.ts";
 import {
   JupyterAssets,
   JupyterCell,
-  JupyterNotebook,
+  JupyterCellOutput,
 } from "../jupyter/types.ts";
 
 import { dirname, extname } from "path/mod.ts";
-
-const kLabel = "label";
 
 export interface NotebookAddress {
   path: string;
@@ -99,60 +94,19 @@ export function parseNotebookPath(path: string): NotebookAddress | undefined {
   }
 }
 
-export function notebookForAddress(
-  nbAddress: NotebookAddress,
-  filter?: (cell: JupyterCell) => JupyterCell,
-) {
-  try {
-    const nb = jupyterFromFile(nbAddress.path);
-
-    if (nbAddress.ids) {
-      // If cellIds are present, filter the notebook to only include
-      // those cells (cellIds can eiher be an explicitly set cellId, a label in the
-      // cell metadata, or a tag on a cell that matches an id)
-      const theCells = nbAddress.ids.map((id) => {
-        const cell = cellForId(id, nb);
-        if (cell === undefined) {
-          throw new Error(
-            `The cell ${id} does not exist in notebook`,
-          );
-        } else {
-          return cell;
-        }
-      });
-      nb.cells = theCells;
-    } else if (nbAddress.indexes) {
-      // Filter and sort based upon cell index
-      nb.cells = nbAddress.indexes.map((idx) => {
-        if (idx < 0 || idx >= nb.cells.length) {
-          throw new Error(
-            `The cell index ${idx} isn't within the range of cells`,
-          );
-        }
-        return nb.cells[idx];
-      });
-    }
-
-    // If there is a cell filter, apply it
-    if (filter) {
-      nb.cells = nb.cells.map(filter);
-    }
-
-    return nb;
-  } catch (ex) {
-    throw new Error(
-      `Failed to read notebook ${nbAddress.path}\n${ex.message || ""}`,
-      ex,
-    );
-  }
-}
-
 export async function notebookMarkdown(
-  notebook: JupyterNotebook,
+  nbAddress: NotebookAddress,
   assets: JupyterAssets,
   context: RenderContext,
   flags: RenderFlags,
+  filter?: (cell: JupyterCell) => JupyterCell,
 ) {
+  // Read and filter notebook
+  const notebook = jupyterFromFile(nbAddress.path);
+  if (filter) {
+    notebook.cells = notebook.cells.map(filter);
+  }
+
   const format = context.format;
   const executeOptions = {
     target: context.target,
@@ -187,28 +141,48 @@ export async function notebookMarkdown(
       figPos: format.render[kFigPos],
     },
   );
-  if (result) {
-    return result.markdown;
+
+  if (nbAddress.ids) {
+    // If cellIds are present, filter the notebook to only include
+    // those cells (cellIds can eiher be an explicitly set cellId, a label in the
+    // cell metadata, or a tag on a cell that matches an id)
+    const theCells = nbAddress.ids.map((id) => {
+      const cell = cellForId(id, result.cellOutputs);
+      if (cell === undefined) {
+        throw new Error(
+          `The cell ${id} does not exist in notebook`,
+        );
+      } else {
+        return cell;
+      }
+    });
+    return theCells.map((cell) => cell.markdown).join("");
+  } else if (nbAddress.indexes) {
+    // Filter and sort based upon cell index
+    const theCells = nbAddress.indexes.map((idx) => {
+      if (idx < 0 || idx >= result.cellOutputs.length) {
+        throw new Error(
+          `The cell index ${idx} isn't within the range of cells`,
+        );
+      }
+      return result.cellOutputs[idx];
+    });
+    return theCells.map((cell) => cell.markdown).join("");
   } else {
-    return undefined;
+    return result.cellOutputs.map((cell) => cell.markdown).join("");
   }
 }
 
-function cellForId(id: string, nb: JupyterNotebook) {
-  for (const cell of nb.cells) {
+function cellForId(id: string, cells: JupyterCellOutput[]) {
+  for (const cell of cells) {
     // cellId can either by a literal cell Id, or a tag with that value
     const hasId = cell.id ? id === cell.id : false;
     if (hasId) {
       // It's an ID
       return cell;
     } else {
-      // Check for label in options
-      const cellWithOptions = jupyterCellWithOptions(
-        nb.metadata.kernelspec.language.toLowerCase(),
-        cell,
-      );
-      const hasLabel = cellWithOptions.options[kLabel]
-        ? id === cellWithOptions.options[kLabel]
+      const hasLabel = cell.options && cell.options[kCellLabel]
+        ? id === cell.options[kCellLabel]
         : false;
 
       if (hasLabel) {
@@ -216,45 +190,13 @@ function cellForId(id: string, nb: JupyterNotebook) {
         return cell;
       } else {
         // Check tags
-        const hasTag = cell.metadata.tags
+        const hasTag = cell.metadata && cell.metadata.tags
           ? cell.metadata.tags.find((tag) => id === tag) !==
             undefined
           : false;
         if (hasTag) {
           return cell;
         }
-      }
-    }
-  }
-}
-
-function cellInIdList(ids: string[], cell: JupyterCell, nb: JupyterNotebook) {
-  // cellId can either by a literal cell Id, or a tag with that value
-  const hasId = cell.id ? ids.includes(cell.id) : false;
-  if (hasId) {
-    // It's an ID
-    return true;
-  } else {
-    // Check for label in options
-    const cellWithOptions = jupyterCellWithOptions(
-      nb.metadata.kernelspec.language.toLowerCase(),
-      cell,
-    );
-    const hasLabel = cellWithOptions.options[kLabel]
-      ? ids.includes(cellWithOptions.options[kLabel])
-      : false;
-
-    if (hasLabel) {
-      // It matches a label
-      return cell;
-    } else {
-      // Check tags
-      const hasTag = cell.metadata.tags
-        ? cell.metadata.tags.find((tag) => ids.includes(tag)) !==
-          undefined
-        : false;
-      if (hasTag) {
-        return cell;
       }
     }
   }

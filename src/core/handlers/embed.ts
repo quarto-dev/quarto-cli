@@ -16,11 +16,7 @@ import {
 import { DirectiveCell } from "../lib/break-quarto-md-types.ts";
 import { jupyterAssets } from "../jupyter/jupyter.ts";
 
-import {
-  notebookForAddress,
-  notebookMarkdown,
-  parseNotebookPath,
-} from "./include-notebook.ts";
+import { notebookMarkdown, parseNotebookPath } from "./include-notebook.ts";
 import { JupyterCell } from "../jupyter/types.ts";
 
 interface EmbedHandler {
@@ -45,15 +41,6 @@ const kHandlers: EmbedHandler[] = [
 
       const notebookAddress = parseNotebookPath(path);
       if (notebookAddress) {
-        const nb = notebookForAddress(
-          notebookAddress,
-          (cell: JupyterCell) => {
-            cell.metadata["echo"] = false;
-            cell.metadata["warning"] = false;
-            cell.metadata["output"] = "asis";
-            return cell;
-          },
-        );
         const assets = jupyterAssets(
           handlerContext.options.context.target.source,
           handlerContext.options.context.format.pandoc.to,
@@ -61,10 +48,16 @@ const kHandlers: EmbedHandler[] = [
 
         // Render the notebook markdown and inject it
         const markdown = await notebookMarkdown(
-          nb,
+          notebookAddress,
           assets,
           handlerContext.options.context,
           handlerContext.options.flags,
+          (cell: JupyterCell) => {
+            cell.metadata["echo"] = false;
+            cell.metadata["warning"] = false;
+            cell.metadata["output"] = "asis";
+            return cell;
+          },
         );
         if (markdown) {
           markdownFragments.push(markdown);

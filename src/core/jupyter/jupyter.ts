@@ -130,6 +130,7 @@ import {
 } from "./kernels.ts";
 import {
   JupyterCell,
+  JupyterCellOutput,
   JupyterCellWithOptions,
   JupyterKernelspec,
   JupyterNotebook,
@@ -594,6 +595,11 @@ export function jupyterAssets(input: string, to?: string) {
   };
 }
 
+// Attach fully rendered notebook to render services
+// Render notebook only once per document
+// Return cells with markdown instead of complete markdown
+// filter output markdown cells rather than notebook input
+
 export async function jupyterToMarkdown(
   nb: JupyterNotebook,
   options: JupyterToMarkdownOptions,
@@ -607,7 +613,7 @@ export async function jupyterToMarkdown(
   const htmlPreserve = isHtml ? removeAndPreserveHtml(nb) : undefined;
 
   // generate markdown
-  const md: string[] = [];
+  const cellOutputs: JupyterCellOutput[] = [];
 
   // validate unique cell labels as we go
   const validateCellLabel = cellLabelValidator();
@@ -616,6 +622,9 @@ export async function jupyterToMarkdown(
   let codeCellIndex = 0;
 
   for (let i = 0; i < nb.cells.length; i++) {
+    // Collection the markdown for this cell
+    const md: string[] = [];
+
     // convert cell yaml to cell metadata
     const cell = jupyterCellWithOptions(
       nb.metadata.kernelspec.language.toLowerCase(),
@@ -664,10 +673,19 @@ export async function jupyterToMarkdown(
 
     // newline
     md.push("\n");
+
+    cellOutputs.push({
+      id: cell.id,
+      markdown: md.join(""),
+      metadata: cell.metadata,
+      options: cell.options,
+    });
   }
 
   // include jupyter metadata if we are targeting ipynb
+  let notebookOutputs = undefined;
   if (options.toIpynb) {
+    const md: string[] = [];
     md.push("---\n");
     const jupyterMetadata = {
       jupyter: {
@@ -682,11 +700,15 @@ export async function jupyterToMarkdown(
     });
     md.push(yamlText);
     md.push("---\n");
+    notebookOutputs = {
+      suffix: md.join(""),
+    };
   }
 
   // return markdown and any widget requirements
   return {
-    markdown: md.join(""),
+    cellOutputs,
+    notebookOutputs,
     dependencies,
     htmlPreserve,
   };

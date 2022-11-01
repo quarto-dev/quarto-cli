@@ -20,11 +20,7 @@ import { isBlockShortcode } from "../lib/parse-shortcode.ts";
 import { DirectiveCell } from "../lib/break-quarto-md-types.ts";
 import { jupyterAssets } from "../jupyter/jupyter.ts";
 
-import {
-  notebookForAddress,
-  notebookMarkdown,
-  parseNotebookPath,
-} from "./include-notebook.ts";
+import { notebookMarkdown, parseNotebookPath } from "./include-notebook.ts";
 
 const includeHandler: LanguageHandler = {
   ...baseHandler,
@@ -54,13 +50,10 @@ const includeHandler: LanguageHandler = {
 
       // Handle notebooks directly by extracting the items
       // from the notebook
-      const notebookInclude = parseNotebookPath(path);
-      if (notebookInclude) {
+      const notebookAddress = parseNotebookPath(path);
+      if (notebookAddress) {
         // This is a notebook include, so read the notebook (including only
         // the cells that are specified in the include and include them)
-        const nb = notebookForAddress(
-          notebookInclude,
-        );
         const assets = jupyterAssets(
           source,
           handlerContext.options.context.format.pandoc.to,
@@ -68,7 +61,7 @@ const includeHandler: LanguageHandler = {
 
         // Render the notebook markdown and inject it
         const markdown = await notebookMarkdown(
-          nb,
+          notebookAddress,
           assets,
           handlerContext.options.context,
           handlerContext.options.flags,
