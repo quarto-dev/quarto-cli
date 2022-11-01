@@ -16,10 +16,10 @@ end
 
 quarto.ast.add_handler({
     -- use either string or array of strings
-    className = {"callout", "callout-note", "callout-warning", "callout-important", "callout-caution", "callout-tip" },
+    class_name = {"callout", "callout-note", "callout-warning", "callout-important", "callout-caution", "callout-tip" },
 
     -- the name of the ast node, used as a key in extended ast filter tables
-    astName = "Callout",
+    ast_name = "Callout",
 
     -- a function that takes the div node as supplied in user markdown
     -- and returns the custom node
@@ -80,7 +80,31 @@ quarto.ast.add_handler({
         return simpleCallout(node)
       end
     end,
-})
+
+    -- a function that takes the extended node and
+    -- returns a table with table-valued attributes
+    -- that represent inner content that should
+    -- be visible to filters.
+    inner_content = function(extended_node)
+      return {
+        div_content = extended_node.div.content,
+        caption = extended_node.caption
+      }
+    end,
+
+    -- a function that updates the extended node
+    -- with new inner content (as returned by filters)
+    -- table keys are a subset of those returned by inner_content
+    -- and represent changed values that need to be updated.    
+    set_inner_content = function(extended_node, values)
+      if values.caption then
+        extended_node.caption = values.caption
+      end
+      if values.div_content then
+        extended_node.div = pandoc.Div(values.div_content)
+      end
+    end
+  })
 
 local calloutidx = 1
 
@@ -781,7 +805,7 @@ function resolveCalloutContents(node, requireCaption)
   local contents = pandoc.List({})
     
   -- Add the captions and contents
-  -- classname 
+  -- class_name 
   if caption == nil and requireCaption then 
     ---@diagnostic disable-next-line: need-check-nil
     caption = stringToInlines(type:sub(1,1):upper()..type:sub(2))

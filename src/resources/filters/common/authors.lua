@@ -101,7 +101,7 @@ local kPostalCode = 'postal-code'
 -- are localized and should correctly deal with plurals, etc...
 local kLabels = 'labels'
 local kAuthorLbl = 'authors'
-local kAffiliationLbl = 'affiliation'
+local kAffiliationLbl = 'affiliations'
 local kPublishedLbl = 'published'
 local kModifiedLbl = 'modified'
 local kDoiLbl = 'doi'
@@ -712,8 +712,8 @@ end
 function computeLabels(authors, affiliations, meta)
   local language = param("language", nil);
   meta[kLabels] = {
-    authors = {pandoc.Str("Authors")},
-    affilations = {pandoc.Str("Affiliations")}
+    [kAuthorLbl] = {pandoc.Str("Authors")},
+    [kAffiliationLbl] = {pandoc.Str("Affiliations")}
   }
   if #authors == 1 then
     meta[kLabels][kAuthorLbl] = {pandoc.Str(language["title-block-author-single"])}

@@ -759,6 +759,7 @@ async function listItemFromFile(
     dirname(input),
   );
   const documentMeta = mergeConfigs(
+    project.config,
     directoryMetadata,
     docRawMetadata,
   ) as Metadata;

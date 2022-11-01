@@ -53,8 +53,13 @@ window.QuartoSupport = function () {
             }
 
             // if the deck is in an iframe we want to open it externally
+            // (don't do this when in vscode though as it has its own
+            // handler for opening links externally that will be play)
             const iframe = window.location !== window.parent.location;
-            if (iframe) {
+            if (
+              iframe &&
+              !window.location.search.includes("quartoPreviewReqId=")
+            ) {
               ev.preventDefault();
               ev.stopImmediatePropagation();
               window.open(url, "_blank");
