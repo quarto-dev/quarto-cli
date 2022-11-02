@@ -99,7 +99,7 @@ function tdump (tbl, raw)
         empty = false
         formatting = indentStr .. "  " .. k .. ": "
         v = asLua(v)
-        if type(v) == "table" then
+        if type(v) == "table" or type(v) == "userdata" and v.is_emulated then
           printInner(formatting)
           refs[address] = true
           local indentBump = 2
@@ -196,6 +196,7 @@ end
 
 -- dump an object to stdout
 function dump(o, raw)
+
   o = asLua(o)
   if type(o) == 'table' or type(o) == 'userdata' and o.is_emulated then
     tdump(o, raw)
