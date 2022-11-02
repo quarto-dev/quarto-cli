@@ -69,7 +69,9 @@ quarto.ast.add_handler({
     -- a function that renders the extendedNode into output
     render = function(node)
       if _quarto.format.isHtmlOutput() and hasBootstrap() then
-        return calloutDiv(node) 
+        local result = calloutDiv(node)
+        -- print(pandoc.write(quarto.ast.from_emulated(pandoc.Pandoc({result})), "html"))
+        return result
       elseif _quarto.format.isLatexOutput() then
         return calloutLatex(node)
       elseif _quarto.format.isDocxOutput() then
@@ -262,6 +264,9 @@ function calloutDiv(node)
   -- add card attribute
   calloutDiv.attr.classes:insert("callout")
   calloutDiv.attr.classes:insert("callout-style-" .. calloutAppearance)
+  if node.type ~= nil then
+    calloutDiv.attr.classes:insert("callout-" .. node.type)
+  end
 
   -- the image placeholder
   local noicon = ""
@@ -331,7 +336,6 @@ function calloutDiv(node)
     -- add the header and body to the div
     calloutDiv.content:insert(headerDiv)
     calloutDiv.content:insert(bodyDiv)
-
   else 
     -- show an uncaptioned callout
   
