@@ -27,13 +27,10 @@ import {
 } from "../../config/format.ts";
 import { resolveParams } from "../../command/render/flags.ts";
 import { RenderContext, RenderFlags } from "../../command/render/types.ts";
-import {
-  JupyterAssets,
-  JupyterCell,
-  JupyterCellOutput,
-} from "../jupyter/types.ts";
+import { JupyterAssets, JupyterCellOutput } from "../jupyter/types.ts";
 
 import { dirname, extname } from "path/mod.ts";
+import { getNamedLifetime } from "../lifetimes.ts";
 
 export interface NotebookAddress {
   path: string;
@@ -94,52 +91,125 @@ export function parseNotebookPath(path: string): NotebookAddress | undefined {
   }
 }
 
+type JupyterNotebookOutputCache = Record<
+  string,
+  { outputs: JupyterCellOutput[] }
+>;
+
+async function getCellOutputs(
+  nbAddress: NotebookAddress,
+  assets: JupyterAssets,
+  context: RenderContext,
+  flags: RenderFlags,
+  options?: JupyterMarkdownOptions,
+) {
+  const boolkey = (key: string, value: boolean) => {
+    return `${key}:${String(value)}`;
+  };
+  const optionsKey = options
+    ? Object.keys(options).reduce((key, current) => {
+      return current + boolkey(key, options[key]);
+    }, "")
+    : "";
+  const notebookKey = `${nbAddress.path}-${optionsKey}`;
+
+  // TODO: Ensure that we're properly dealing with formats for includes
+  // (e.g. docx / pdf
+
+  const lifetime = getNamedLifetime("render-file");
+  /*
+  if (lifetime === undefined) {
+    throw new Error("Internal Error: named lifetime render-file not found");
+  }*/
+  const nbCache = lifetime
+    ? lifetime.get("notebook-cache") as unknown as JupyterNotebookOutputCache
+    : undefined ||
+      {};
+
+  if (!nbCache[notebookKey]) {
+    // Render the notebook and place it in the cache
+    // Read and filter notebook
+    const notebook = jupyterFromFile(nbAddress.path);
+    if (options) {
+      notebook.cells = notebook.cells.map((cell) => {
+        if (options.echo !== undefined) {
+          cell.metadata[kEcho] = options.echo;
+        }
+
+        if (options.warning !== undefined) {
+          cell.metadata[kWarning] = options.warning;
+        }
+
+        if (options.asis !== undefined) {
+          cell.metadata[kOutput] = options.asis ? true : false;
+        }
+        return cell;
+      });
+    }
+
+    const format = context.format;
+    const executeOptions = {
+      target: context.target,
+      resourceDir: resourcePath(),
+      tempDir: context.options.services.temp.createDir(),
+      dependencies: true,
+      libDir: context.libDir,
+      format: context.format,
+      projectDir: context.project?.dir,
+      cwd: flags.executeDir ||
+        dirname(Deno.realPathSync(context.target.source)),
+      params: resolveParams(flags.params, flags.paramsFile),
+      quiet: flags.quiet,
+      previewServer: context.options.previewServer,
+      handledLanguages: languages(),
+    };
+    const result = await jupyterToMarkdown(
+      notebook,
+      {
+        executeOptions,
+        language: notebook.metadata.kernelspec.language.toLowerCase(),
+        assets,
+        execute: format.execute,
+        keepHidden: format.render[kKeepHidden],
+        toHtml: isHtmlCompatible(format),
+        toLatex: isLatexOutput(format.pandoc),
+        toMarkdown: isMarkdownOutput(format.pandoc),
+        toIpynb: isIpynbOutput(format.pandoc),
+        toPresentation: isPresentationOutput(format.pandoc),
+        figFormat: format.execute[kFigFormat],
+        figDpi: format.execute[kFigDpi],
+        figPos: format.render[kFigPos],
+      },
+    );
+    nbCache[notebookKey] = { outputs: result.cellOutputs };
+
+    // TODO: set this back into the lifetime
+  }
+  return nbCache[notebookKey].outputs;
+}
+
+export interface JupyterMarkdownOptions extends Record<string, boolean> {
+  echo: boolean;
+  warning: boolean;
+  asis: boolean;
+}
+const kEcho = "echo";
+const kWarning = "warning";
+const kOutput = "output";
+
 export async function notebookMarkdown(
   nbAddress: NotebookAddress,
   assets: JupyterAssets,
   context: RenderContext,
   flags: RenderFlags,
-  filter?: (cell: JupyterCell) => JupyterCell,
+  options?: JupyterMarkdownOptions,
 ) {
-  // Read and filter notebook
-  const notebook = jupyterFromFile(nbAddress.path);
-  if (filter) {
-    notebook.cells = notebook.cells.map(filter);
-  }
-
-  const format = context.format;
-  const executeOptions = {
-    target: context.target,
-    resourceDir: resourcePath(),
-    tempDir: context.options.services.temp.createDir(),
-    dependencies: true,
-    libDir: context.libDir,
-    format: context.format,
-    projectDir: context.project?.dir,
-    cwd: flags.executeDir ||
-      dirname(Deno.realPathSync(context.target.source)),
-    params: resolveParams(flags.params, flags.paramsFile),
-    quiet: flags.quiet,
-    previewServer: context.options.previewServer,
-    handledLanguages: languages(),
-  };
-  const result = await jupyterToMarkdown(
-    notebook,
-    {
-      executeOptions,
-      language: notebook.metadata.kernelspec.language.toLowerCase(),
-      assets,
-      execute: format.execute,
-      keepHidden: format.render[kKeepHidden],
-      toHtml: isHtmlCompatible(format),
-      toLatex: isLatexOutput(format.pandoc),
-      toMarkdown: isMarkdownOutput(format.pandoc),
-      toIpynb: isIpynbOutput(format.pandoc),
-      toPresentation: isPresentationOutput(format.pandoc),
-      figFormat: format.execute[kFigFormat],
-      figDpi: format.execute[kFigDpi],
-      figPos: format.render[kFigPos],
-    },
+  const cellOutputs = await getCellOutputs(
+    nbAddress,
+    assets,
+    context,
+    flags,
+    options,
   );
 
   if (nbAddress.ids) {
@@ -147,7 +217,7 @@ export async function notebookMarkdown(
     // those cells (cellIds can eiher be an explicitly set cellId, a label in the
     // cell metadata, or a tag on a cell that matches an id)
     const theCells = nbAddress.ids.map((id) => {
-      const cell = cellForId(id, result.cellOutputs);
+      const cell = cellForId(id, cellOutputs);
       if (cell === undefined) {
         throw new Error(
           `The cell ${id} does not exist in notebook`,
@@ -160,16 +230,16 @@ export async function notebookMarkdown(
   } else if (nbAddress.indexes) {
     // Filter and sort based upon cell index
     const theCells = nbAddress.indexes.map((idx) => {
-      if (idx < 0 || idx >= result.cellOutputs.length) {
+      if (idx < 0 || idx >= cellOutputs.length) {
         throw new Error(
           `The cell index ${idx} isn't within the range of cells`,
         );
       }
-      return result.cellOutputs[idx];
+      return cellOutputs[idx];
     });
     return theCells.map((cell) => cell.markdown).join("");
   } else {
-    return result.cellOutputs.map((cell) => cell.markdown).join("");
+    return cellOutputs.map((cell) => cell.markdown).join("");
   }
 }
 

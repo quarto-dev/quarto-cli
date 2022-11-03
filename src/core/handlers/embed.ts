@@ -17,7 +17,6 @@ import { DirectiveCell } from "../lib/break-quarto-md-types.ts";
 import { jupyterAssets } from "../jupyter/jupyter.ts";
 
 import { notebookMarkdown, parseNotebookPath } from "./include-notebook.ts";
-import { JupyterCell } from "../jupyter/types.ts";
 
 interface EmbedHandler {
   name: string;
@@ -52,11 +51,10 @@ const kHandlers: EmbedHandler[] = [
           assets,
           handlerContext.options.context,
           handlerContext.options.flags,
-          (cell: JupyterCell) => {
-            cell.metadata["echo"] = false;
-            cell.metadata["warning"] = false;
-            cell.metadata["output"] = "asis";
-            return cell;
+          {
+            echo: false,
+            warning: false,
+            asis: true,
           },
         );
         if (markdown) {
