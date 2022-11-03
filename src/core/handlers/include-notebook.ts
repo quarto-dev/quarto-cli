@@ -9,7 +9,11 @@ import { resourcePath } from "../resources.ts";
 
 import { languages } from "./base.ts";
 
-import { jupyterFromFile, jupyterToMarkdown } from "../jupyter/jupyter.ts";
+import {
+  jupyterAssets,
+  jupyterFromFile,
+  jupyterToMarkdown,
+} from "../jupyter/jupyter.ts";
 
 import {
   kCellLabel,
@@ -108,24 +112,25 @@ async function getCellOutputs(
   };
   const optionsKey = options
     ? Object.keys(options).reduce((key, current) => {
-      return current + boolkey(key, options[key]);
+      if (options[key] !== undefined) {
+        return current + boolkey(key, options[key]!);
+      } else {
+        return current;
+      }
     }, "")
     : "";
   const notebookKey = `${nbAddress.path}-${optionsKey}`;
 
-  // TODO: Ensure that we're properly dealing with formats for includes
-  // (e.g. docx / pdf
-
   const lifetime = getNamedLifetime("render-file");
-  /*
   if (lifetime === undefined) {
     throw new Error("Internal Error: named lifetime render-file not found");
-  }*/
-  const nbCache = lifetime
-    ? lifetime.get("notebook-cache") as unknown as JupyterNotebookOutputCache
-    : undefined ||
-      {};
+  }
 
+  const nbCache =
+    lifetime.get("notebook-cache") as unknown as JupyterNotebookOutputCache ||
+    {};
+
+  // TODO: Cache is always missing because we never attach
   if (!nbCache[notebookKey]) {
     // Render the notebook and place it in the cache
     // Read and filter notebook
@@ -183,19 +188,97 @@ async function getCellOutputs(
     );
     nbCache[notebookKey] = { outputs: result.cellOutputs };
 
+    const cacheWithLifetime = {
+      ...nbCache,
+      cleanup: () => {
+      },
+    };
+
+    lifetime.attach(cacheWithLifetime, "notebook-cache");
     // TODO: set this back into the lifetime
   }
   return nbCache[notebookKey].outputs;
 }
 
-export interface JupyterMarkdownOptions extends Record<string, boolean> {
-  echo: boolean;
-  warning: boolean;
-  asis: boolean;
+export interface JupyterMarkdownOptions
+  extends Record<string, boolean | undefined> {
+  echo?: boolean;
+  warning?: boolean;
+  asis?: boolean;
 }
+
 const kEcho = "echo";
 const kWarning = "warning";
 const kOutput = "output";
+
+export function notebookMarkdownPlaceholder(
+  path: string,
+  options: JupyterMarkdownOptions,
+) {
+  return `<!-- 12A0366C:${path} | ${optionsToPlaceholder(options)} -->`;
+}
+
+const kPlaceholderRegex = /<!-- 12A0366C:(.*?) \| (.*?) -->/;
+export async function replaceNotebookPlaceholders(
+  to: string,
+  input: string,
+  context: RenderContext,
+  flags: RenderFlags,
+  markdown: string,
+) {
+  let match = kPlaceholderRegex.exec(markdown);
+  while (match) {
+    const nbPath = match[1];
+    const optionPlaceholder = match[2];
+    const nbOptions = optionPlaceholder
+      ? placeholderToOptions(optionPlaceholder)
+      : {};
+    const nbAddress = parseNotebookPath(nbPath);
+    if (nbAddress) {
+      const assets = jupyterAssets(
+        input,
+        to,
+      );
+
+      // Render the notebook markdown and inject it
+      const nbMarkdown = await notebookMarkdown(
+        nbAddress,
+        assets,
+        context,
+        flags,
+        nbOptions,
+      );
+
+      markdown = markdown.replaceAll(match[0], nbMarkdown);
+    }
+
+    match = kPlaceholderRegex.exec(markdown);
+  }
+  kPlaceholderRegex.lastIndex = 0;
+  return markdown;
+}
+
+function optionsToPlaceholder(options: JupyterMarkdownOptions) {
+  return Object.keys(options).map((key) => {
+    return `${key}:${String(options[key])}`;
+  }).join(",");
+}
+
+function placeholderToOptions(placeholder: string) {
+  const parts = placeholder.split(",");
+  const options: JupyterMarkdownOptions = {};
+  for (const part of parts) {
+    const kv = part.split(":");
+    if (kv.length > 1) {
+      const key = part.split(":")[0];
+      const value = part.split(":").slice(1).join(":");
+      options[key] = Boolean(value);
+    } else {
+      throw new Error("Unexpected placeholder for notebook option: " + part);
+    }
+  }
+  return options;
+}
 
 export async function notebookMarkdown(
   nbAddress: NotebookAddress,

@@ -50,6 +50,7 @@ import {
   withTimingAsync,
 } from "../../core/timing.ts";
 import { filesDirMediabagDir } from "./render-paths.ts";
+import { replaceNotebookPlaceholders } from "../../core/handlers/include-notebook.ts";
 
 export async function renderPandoc(
   file: ExecutedFile,
@@ -103,9 +104,18 @@ export async function renderPandoc(
   const mediabagDir = filesDirMediabagDir(context.target.source);
   ensureDirSync(join(dirname(context.target.source), mediabagDir));
 
+  // Process any placeholder for notebooks that have been injected
+  const markdown = await replaceNotebookPlaceholders(
+    format.pandoc.to || "html",
+    context.target.source,
+    context,
+    context.options.flags || {},
+    executeResult.markdown,
+  );
+
   // pandoc options
   const pandocOptions: PandocOptions = {
-    markdown: executeResult.markdown,
+    markdown,
     source: context.target.source,
     output: recipe.output,
     keepYaml: recipe.keepYaml,

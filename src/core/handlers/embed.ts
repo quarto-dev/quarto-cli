@@ -14,9 +14,11 @@ import {
 } from "../lib/mapped-text.ts";
 
 import { DirectiveCell } from "../lib/break-quarto-md-types.ts";
-import { jupyterAssets } from "../jupyter/jupyter.ts";
 
-import { notebookMarkdown, parseNotebookPath } from "./include-notebook.ts";
+import {
+  notebookMarkdownPlaceholder,
+  parseNotebookPath,
+} from "./include-notebook.ts";
 
 interface EmbedHandler {
   name: string;
@@ -32,7 +34,7 @@ interface EmbedHandler {
 const kHandlers: EmbedHandler[] = [
   {
     name: "Jupyter Notebook Embed",
-    async handle(filename: string, handlerContext: LanguageCellHandlerContext) {
+    handle(filename: string, handlerContext: LanguageCellHandlerContext) {
       const markdownFragments: EitherString[] = [];
 
       // Resolve the filename into a path
@@ -40,35 +42,22 @@ const kHandlers: EmbedHandler[] = [
 
       const notebookAddress = parseNotebookPath(path);
       if (notebookAddress) {
-        const assets = jupyterAssets(
-          handlerContext.options.context.target.source,
-          handlerContext.options.context.format.pandoc.to,
-        );
+        const placeHolder = notebookMarkdownPlaceholder(path, {
+          echo: false,
+          warning: false,
+          asis: true,
+        });
 
-        // Render the notebook markdown and inject it
-        const markdown = await notebookMarkdown(
-          notebookAddress,
-          assets,
-          handlerContext.options.context,
-          handlerContext.options.flags,
-          {
-            echo: false,
-            warning: false,
-            asis: true,
-          },
-        );
-        if (markdown) {
-          markdownFragments.push(markdown);
-        }
-        return {
+        markdownFragments.push(placeHolder);
+        return Promise.resolve({
           handled: true,
           markdownFragments,
-        };
+        });
       } else {
-        return {
+        return Promise.resolve({
           handled: false,
           markdownFragments: [],
-        };
+        });
       }
     },
   },

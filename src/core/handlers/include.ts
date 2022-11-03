@@ -18,9 +18,11 @@ import {
 import { rangedLines } from "../lib/ranged-text.ts";
 import { isBlockShortcode } from "../lib/parse-shortcode.ts";
 import { DirectiveCell } from "../lib/break-quarto-md-types.ts";
-import { jupyterAssets } from "../jupyter/jupyter.ts";
 
-import { notebookMarkdown, parseNotebookPath } from "./include-notebook.ts";
+import {
+  notebookMarkdownPlaceholder,
+  parseNotebookPath,
+} from "./include-notebook.ts";
 
 const includeHandler: LanguageHandler = {
   ...baseHandler,
@@ -48,27 +50,10 @@ const includeHandler: LanguageHandler = {
         );
       }
 
-      // Handle notebooks directly by extracting the items
-      // from the notebook
       const notebookAddress = parseNotebookPath(path);
       if (notebookAddress) {
-        // This is a notebook include, so read the notebook (including only
-        // the cells that are specified in the include and include them)
-        const assets = jupyterAssets(
-          source,
-          handlerContext.options.context.format.pandoc.to,
-        );
-
-        // Render the notebook markdown and inject it
-        const markdown = await notebookMarkdown(
-          notebookAddress,
-          assets,
-          handlerContext.options.context,
-          handlerContext.options.flags,
-        );
-        if (markdown) {
-          textFragments.push(markdown);
-        }
+        const placeHolder = notebookMarkdownPlaceholder(path, {});
+        textFragments.push(placeHolder);
       } else {
         let includeSrc;
         try {
