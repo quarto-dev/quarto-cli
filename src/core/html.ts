@@ -5,8 +5,6 @@
 *
 */
 
-import { generate as generateUuid } from "uuid/v4.ts";
-
 import { Document, Element } from "./deno-dom.ts";
 
 import { pandocAutoIdentifier } from "./pandoc/pandoc-id.ts";
@@ -174,7 +172,7 @@ export function preservePlaceholders(
 ) {
   const placeholders = new Map<string, string>();
   html = html.replaceAll(/<!--\/?quarto-placeholder-.*?-->/g, (match) => {
-    const id = generateUuid();
+    const id = globalThis.crypto.randomUUID();
     placeholders.set(id, match);
     return id;
   });

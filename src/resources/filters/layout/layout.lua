@@ -2,50 +2,12 @@
 -- Copyright (C) 2020 by RStudio, PBC
 
 -- required version
-PANDOC_VERSION:must_be_at_least '2.13'
+-- PANDOC_VERSION:must_be_at_least '2.13'
 
 -- global layout state
 layoutState = {
   hasColumns = false,
 }
-
--- [import]
-function import(script)
-  local path = PANDOC_SCRIPT_FILE:match("(.*[/\\])")
-  dofile(path .. script)
-end
-import("meta.lua")
-import("width.lua")
-import("latex.lua")
-import("html.lua")
-import("wp.lua")
-import("docx.lua")
-import("odt.lua")
-import("pptx.lua")
-import("table.lua")
-import("figures.lua")
-import("cites.lua")
-import("columns.lua")
-import("options.lua")
-import("columns-preprocess.lua")
-import("../common/base64.lua")
-import("../common/latex.lua")
-import("../common/pandoc.lua")
-import("../common/validate.lua")
-import("../common/format.lua")
-import("../common/refs.lua")
-import("../common/layout.lua")
-import("../common/figures.lua")
-import("../common/tables.lua")
-import("../common/options.lua")
-import("../common/meta.lua")
-import("../common/table.lua")
-import("../common/debug.lua")
-import("../common/lunacolors.lua")
-import("../common/colors.lua")
-import("../common/log.lua")
--- [/import]
-
 
 function layoutPanels()
 
@@ -309,17 +271,3 @@ function isPreambleBlock(el)
   return (el.t == "CodeBlock" and el.attr.classes:includes("cell-code")) or
          (el.t == "Div" and el.attr.classes:includes("cell-output-stderr"))
 end
-
--- chain of filters
-return {
-  initOptions(),
-  columnsPreprocess(),
-  columns(),
-  citesPreprocess(),
-  cites(),
-  layoutPanels(),
-  extendedFigures(),
-  layoutMetaInject()
-}
-
-

@@ -1,16 +1,5 @@
 #!/bin/bash
 
-# Before you run this, make sure that you've edited the quarto source code
-# to remove the references to JSON imports, since these currently
-# trigger bugs in `deno vendor`.
-
-# The easy way to find these is to search for 'assert: { type: "json" }'
-# in VS code:
-
-# src/core/schema/utils.ts:23
-# src/core/lib/yaml-intelligence/yaml-intelligence.ts:1175
-# src/core/lib/yaml-intelligence/parsing.ts:60
-
 source configuration
 
 # Defaults are set in configuration file, but can be overridden here.

@@ -1303,18 +1303,28 @@ end
 -- path. Shortcodes can use an internal function
 -- to set and clear the local value that will be used 
 -- instead of pandoc's filter path when a shortcode is executing
-local scriptFile = nil
-local function scriptDir() 
-   if scriptFile ~= nil then
-      return pandoc.path.directory(scriptFile)
-   else 
-      return pandoc.path.directory(PANDOC_SCRIPT_FILE)
+local scriptFile = {}
+
+local function scriptDir()
+   if #scriptFile > 0 then
+      return pandoc.path.directory(scriptFile[#scriptFile])
+   else
+      -- hard fallback
+      return PANDOC_SCRIPT_FILE
    end
+   -- if scriptFile ~= nil then
+   --    return pandoc.path.directory(scriptFile)
+   -- else 
+   --    -- don't use return pandoc.path.directory(PANDOC_SCRIPT_FILE)
+   --    -- because we're now wrapped filters
+   --    -- but we guarantee that wrapped filters run on their own directories
+   --    return pandoc.system.get_working_directory()
+   -- end
 end
 
 local function scriptFileName()
-   if scriptFile ~= nil then
-      return pandoc.path.filename(scriptFile)
+   if #scriptFile > 0 then
+      return pandoc.path.filename(scriptFile[#scriptFile])
    else 
       return pandoc.path.filename(PANDOC_SCRIPT_FILE)
    end
@@ -1334,9 +1344,9 @@ end
 -- resolves a path, providing either the original path
 -- or if relative, a path that is based upon the 
 -- script location
-local function resolvePath(path)          
+local function resolvePath(path)
   if isRelativeRef(path) then
-    local wd = pandoc.system.get_working_directory();
+    local wd = pandoc.system.get_working_directory()
     return pandoc.path.join({wd, pandoc.path.normalize(path)})
   else
     return path    
@@ -1522,14 +1532,15 @@ end
 local function resolveFileDependencies(name, dependencyFiles)
    if dependencyFiles ~= nil then
  
-    -- make sure this is an array
+     -- make sure this is an array
      if type(dependencyFiles) ~= "table" or not utils.table.isarray(dependencyFiles) then
        error("Invalid HTML Dependency: " .. name .. " property must be an array")
      end
+
  
      local finalDependencies = {}
      for i, v in ipairs(dependencyFiles) do
-       if type(v) == "table" then
+      if type(v) == "table" then
              -- fill in the name, if one is not provided
              if v.name == nil then
                 v.name = pandoc.path.filename(v.path)
@@ -1714,8 +1725,11 @@ _quarto = {
       latexTablePatterns = latexTablePatterns
    },
    utils = utils,
-   scriptFile = function(file)
-      scriptFile = file
+   withScriptFile = function(file, callback)
+      table.insert(scriptFile, file)
+      local result = callback()
+      table.remove(scriptFile, #scriptFile)
+      return result
    end,
    projectOffset = projectOffset
 
@@ -1854,6 +1868,10 @@ quarto = {
       local hasBootstrap = param('has-bootstrap', false)
       return hasBootstrap
     end,
+    is_filter_active = function(filter)
+      return preState.active_filters[filter]
+    end,
+
     output_file = outputFile(),
     input_file = inputFile()
   },
@@ -1865,7 +1883,9 @@ quarto = {
   },
   utils = {
    dump = utils.dump,
-   resolve_path = resolvePathExt
+   table = utils.table,
+   resolve_path = resolvePathExt,
+   resolve_path_relative_to_document = resolvePath,
   },
   json = json,
   base64 = base64,
