@@ -14,11 +14,10 @@ import {
 } from "../lib/mapped-text.ts";
 
 import { DirectiveCell } from "../lib/break-quarto-md-types.ts";
-
 import {
   notebookMarkdownPlaceholder,
-  parseNotebookPath,
-} from "./include-notebook.ts";
+  parseNotebookAddress,
+} from "../jupyter/jupyter-embed.ts";
 
 interface EmbedHandler {
   name: string;
@@ -40,7 +39,7 @@ const kHandlers: EmbedHandler[] = [
       // Resolve the filename into a path
       const path = handlerContext.resolvePath(filename);
 
-      const notebookAddress = parseNotebookPath(path);
+      const notebookAddress = parseNotebookAddress(path);
       if (notebookAddress) {
         const placeHolder = notebookMarkdownPlaceholder(path, {
           echo: false,

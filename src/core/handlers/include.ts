@@ -18,11 +18,10 @@ import {
 import { rangedLines } from "../lib/ranged-text.ts";
 import { isBlockShortcode } from "../lib/parse-shortcode.ts";
 import { DirectiveCell } from "../lib/break-quarto-md-types.ts";
-
 import {
   notebookMarkdownPlaceholder,
-  parseNotebookPath,
-} from "./include-notebook.ts";
+  parseNotebookAddress,
+} from "../jupyter/jupyter-embed.ts";
 
 const includeHandler: LanguageHandler = {
   ...baseHandler,
@@ -50,7 +49,7 @@ const includeHandler: LanguageHandler = {
         );
       }
 
-      const notebookAddress = parseNotebookPath(path);
+      const notebookAddress = parseNotebookAddress(path);
       if (notebookAddress) {
         const placeHolder = notebookMarkdownPlaceholder(path, {});
         textFragments.push(placeHolder);

@@ -1,13 +1,12 @@
 /*
-* include-notebook.ts
+* jupyter-embed.ts
 *
 * Copyright (C) 2022 by RStudio, PBC
 *
 */
 
 import { resourcePath } from "../resources.ts";
-
-import { languages } from "./base.ts";
+import { getNamedLifetime, ObjectWithLifetime } from "../lifetimes.ts";
 
 import {
   jupyterAssets,
@@ -34,16 +33,38 @@ import { RenderContext, RenderFlags } from "../../command/render/types.ts";
 import { JupyterAssets, JupyterCellOutput } from "../jupyter/types.ts";
 
 import { dirname, extname } from "path/mod.ts";
-import { getNamedLifetime } from "../lifetimes.ts";
+import { languages } from "../handlers/base.ts";
 
-export interface NotebookAddress {
+export interface JupyterNotebookAddress {
   path: string;
   ids?: string[];
   indexes?: number[];
 }
 
+export interface JupyterMarkdownOptions
+  extends Record<string, boolean | undefined> {
+  echo?: boolean;
+  warning?: boolean;
+  asis?: boolean;
+}
+
+interface JupyterNotebookOutputCache extends ObjectWithLifetime {
+  cache: Record<
+    string,
+    { outputs: JupyterCellOutput[] }
+  >;
+}
+
+const kEcho = "echo";
+const kWarning = "warning";
+const kOutput = "output";
+
 const kHashRegex = /(.*?)#(.*)/;
 const kIndexRegex = /(.*)\[([0-9,-]*)\]/;
+const kPlaceholderRegex = /<!-- 12A0366C:(.*?) \| (.*?) -->/;
+
+const kNotebookCache = "notebook-cache";
+const kRenderFileLifeTime = "render-file";
 
 // notebook.ipynb#cellid1
 // notebook.ipynb#cellid1
@@ -52,7 +73,9 @@ const kIndexRegex = /(.*)\[([0-9,-]*)\]/;
 // notebook.ipynb[0,1]
 // notebook.ipynb[0-2]
 // notebook.ipynb[2,0-1]
-export function parseNotebookPath(path: string): NotebookAddress | undefined {
+export function parseNotebookAddress(
+  path: string,
+): JupyterNotebookAddress | undefined {
   const isNotebook = (path: string) => {
     return extname(path) === ".ipynb";
   };
@@ -95,43 +118,130 @@ export function parseNotebookPath(path: string): NotebookAddress | undefined {
   }
 }
 
-type JupyterNotebookOutputCache = Record<
-  string,
-  { outputs: JupyterCellOutput[] }
->;
+export function notebookMarkdownPlaceholder(
+  path: string,
+  options: JupyterMarkdownOptions,
+) {
+  return `<!-- 12A0366C:${path} | ${optionsToPlaceholder(options)} -->`;
+}
 
-async function getCellOutputs(
-  nbAddress: NotebookAddress,
+export async function replaceNotebookPlaceholders(
+  to: string,
+  input: string,
+  context: RenderContext,
+  flags: RenderFlags,
+  markdown: string,
+) {
+  let match = kPlaceholderRegex.exec(markdown);
+  while (match) {
+    // Find and parse the placeholders
+    const nbPath = match[1];
+    const optionPlaceholder = match[2];
+    const nbOptions = optionPlaceholder
+      ? placeholderToOptions(optionPlaceholder)
+      : {};
+
+    // Parse the address
+    const nbAddress = parseNotebookAddress(nbPath);
+    if (nbAddress) {
+      // Assets
+      const assets = jupyterAssets(
+        input,
+        to,
+      );
+
+      // Render the notebook markdown
+      const nbMarkdown = await notebookMarkdown(
+        nbAddress,
+        assets,
+        context,
+        flags,
+        nbOptions,
+      );
+
+      // Replace the placeholders with the rendered markdown
+      markdown = markdown.replaceAll(match[0], nbMarkdown);
+    }
+
+    match = kPlaceholderRegex.exec(markdown);
+  }
+  kPlaceholderRegex.lastIndex = 0;
+  return markdown;
+}
+
+async function notebookMarkdown(
+  nbAddress: JupyterNotebookAddress,
   assets: JupyterAssets,
   context: RenderContext,
   flags: RenderFlags,
   options?: JupyterMarkdownOptions,
 ) {
-  const boolkey = (key: string, value: boolean) => {
-    return `${key}:${String(value)}`;
-  };
-  const optionsKey = options
-    ? Object.keys(options).reduce((key, current) => {
-      if (options[key] !== undefined) {
-        return current + boolkey(key, options[key]!);
-      } else {
-        return current;
-      }
-    }, "")
-    : "";
-  const notebookKey = `${nbAddress.path}-${optionsKey}`;
+  // Get the cell outputs for this notebook
+  const cellOutputs = await getCellOutputs(
+    nbAddress,
+    assets,
+    context,
+    flags,
+    options,
+  );
 
-  const lifetime = getNamedLifetime("render-file");
+  if (nbAddress.ids) {
+    // If cellIds are present, filter the notebook to only include
+    // those cells (cellIds can eiher be an explicitly set cellId, a label in the
+    // cell metadata, or a tag on a cell that matches an id)
+    const theCells = nbAddress.ids.map((id) => {
+      const cell = cellForId(id, cellOutputs);
+      if (cell === undefined) {
+        throw new Error(
+          `The cell ${id} does not exist in notebook`,
+        );
+      } else {
+        return cell;
+      }
+    });
+    return theCells.map((cell) => cell.markdown).join("");
+  } else if (nbAddress.indexes) {
+    // Filter and sort based upon cell indexes
+    const theCells = nbAddress.indexes.map((idx) => {
+      if (idx < 0 || idx >= cellOutputs.length) {
+        throw new Error(
+          `The cell index ${idx} isn't within the range of cells`,
+        );
+      }
+      return cellOutputs[idx];
+    });
+    return theCells.map((cell) => cell.markdown).join("");
+  } else {
+    // Return all the cell outputs as there is no addtional
+    // specification of cells
+    return cellOutputs.map((cell) => cell.markdown).join("");
+  }
+}
+
+async function getCellOutputs(
+  nbAddress: JupyterNotebookAddress,
+  assets: JupyterAssets,
+  context: RenderContext,
+  flags: RenderFlags,
+  options?: JupyterMarkdownOptions,
+) {
+  // We can cache outputs on a per rendered file basis to
+  // improve performance
+  const lifetime = getNamedLifetime(kRenderFileLifeTime);
   if (lifetime === undefined) {
     throw new Error("Internal Error: named lifetime render-file not found");
   }
-
   const nbCache =
-    lifetime.get("notebook-cache") as unknown as JupyterNotebookOutputCache ||
-    {};
+    lifetime.get(kNotebookCache) as unknown as JupyterNotebookOutputCache ||
+    {
+      cache: {},
+      cleanup: () => {
+      },
+    };
 
-  // TODO: Cache is always missing because we never attach
-  if (!nbCache[notebookKey]) {
+  // Compute a cache key
+  const cacheKey = notebookCacheKey(nbAddress, options);
+  if (!nbCache.cache[cacheKey]) {
     // Render the notebook and place it in the cache
     // Read and filter notebook
     const notebook = jupyterFromFile(nbAddress.path);
@@ -152,6 +262,7 @@ async function getCellOutputs(
       });
     }
 
+    // Get the markdown for the notebook
     const format = context.format;
     const executeOptions = {
       target: context.target,
@@ -186,76 +297,28 @@ async function getCellOutputs(
         figPos: format.render[kFigPos],
       },
     );
-    nbCache[notebookKey] = { outputs: result.cellOutputs };
 
-    const cacheWithLifetime = {
-      ...nbCache,
-      cleanup: () => {
-      },
-    };
-
-    lifetime.attach(cacheWithLifetime, "notebook-cache");
-    // TODO: set this back into the lifetime
+    // Place the outputs in the cache
+    nbCache.cache[cacheKey] = { outputs: result.cellOutputs };
+    lifetime.attach(nbCache, kNotebookCache);
   }
-  return nbCache[notebookKey].outputs;
+  return nbCache.cache[cacheKey].outputs;
 }
 
-export interface JupyterMarkdownOptions
-  extends Record<string, boolean | undefined> {
-  echo?: boolean;
-  warning?: boolean;
-  asis?: boolean;
-}
-
-const kEcho = "echo";
-const kWarning = "warning";
-const kOutput = "output";
-
-export function notebookMarkdownPlaceholder(
-  path: string,
-  options: JupyterMarkdownOptions,
+function notebookCacheKey(
+  nbAddress: JupyterNotebookAddress,
+  nbOptions?: JupyterMarkdownOptions,
 ) {
-  return `<!-- 12A0366C:${path} | ${optionsToPlaceholder(options)} -->`;
-}
-
-const kPlaceholderRegex = /<!-- 12A0366C:(.*?) \| (.*?) -->/;
-export async function replaceNotebookPlaceholders(
-  to: string,
-  input: string,
-  context: RenderContext,
-  flags: RenderFlags,
-  markdown: string,
-) {
-  let match = kPlaceholderRegex.exec(markdown);
-  while (match) {
-    const nbPath = match[1];
-    const optionPlaceholder = match[2];
-    const nbOptions = optionPlaceholder
-      ? placeholderToOptions(optionPlaceholder)
-      : {};
-    const nbAddress = parseNotebookPath(nbPath);
-    if (nbAddress) {
-      const assets = jupyterAssets(
-        input,
-        to,
-      );
-
-      // Render the notebook markdown and inject it
-      const nbMarkdown = await notebookMarkdown(
-        nbAddress,
-        assets,
-        context,
-        flags,
-        nbOptions,
-      );
-
-      markdown = markdown.replaceAll(match[0], nbMarkdown);
-    }
-
-    match = kPlaceholderRegex.exec(markdown);
-  }
-  kPlaceholderRegex.lastIndex = 0;
-  return markdown;
+  const optionsKey = nbOptions
+    ? Object.keys(nbOptions).reduce((key, current) => {
+      if (nbOptions[key] !== undefined) {
+        return current + `${key}:${String(nbOptions[key])}`;
+      } else {
+        return current;
+      }
+    }, "")
+    : "";
+  return optionsKey ? `${nbAddress.path}-${optionsKey}` : nbAddress.path;
 }
 
 function optionsToPlaceholder(options: JupyterMarkdownOptions) {
@@ -278,52 +341,6 @@ function placeholderToOptions(placeholder: string) {
     }
   }
   return options;
-}
-
-export async function notebookMarkdown(
-  nbAddress: NotebookAddress,
-  assets: JupyterAssets,
-  context: RenderContext,
-  flags: RenderFlags,
-  options?: JupyterMarkdownOptions,
-) {
-  const cellOutputs = await getCellOutputs(
-    nbAddress,
-    assets,
-    context,
-    flags,
-    options,
-  );
-
-  if (nbAddress.ids) {
-    // If cellIds are present, filter the notebook to only include
-    // those cells (cellIds can eiher be an explicitly set cellId, a label in the
-    // cell metadata, or a tag on a cell that matches an id)
-    const theCells = nbAddress.ids.map((id) => {
-      const cell = cellForId(id, cellOutputs);
-      if (cell === undefined) {
-        throw new Error(
-          `The cell ${id} does not exist in notebook`,
-        );
-      } else {
-        return cell;
-      }
-    });
-    return theCells.map((cell) => cell.markdown).join("");
-  } else if (nbAddress.indexes) {
-    // Filter and sort based upon cell index
-    const theCells = nbAddress.indexes.map((idx) => {
-      if (idx < 0 || idx >= cellOutputs.length) {
-        throw new Error(
-          `The cell index ${idx} isn't within the range of cells`,
-        );
-      }
-      return cellOutputs[idx];
-    });
-    return theCells.map((cell) => cell.markdown).join("");
-  } else {
-    return cellOutputs.map((cell) => cell.markdown).join("");
-  }
 }
 
 function cellForId(id: string, cells: JupyterCellOutput[]) {
@@ -355,7 +372,7 @@ function cellForId(id: string, cells: JupyterCellOutput[]) {
   }
 }
 
-const resolveCellIds = (hash?: string) => {
+function resolveCellIds(hash?: string) {
   if (hash && hash.indexOf(",") > 0) {
     return hash.split(",");
   } else if (hash) {
@@ -363,9 +380,9 @@ const resolveCellIds = (hash?: string) => {
   } else {
     return undefined;
   }
-};
+}
 
-const resolveCellRange = (rangeRaw?: string) => {
+function resolveCellRange(rangeRaw?: string) {
   if (rangeRaw) {
     const result: number[] = [];
 
@@ -389,4 +406,4 @@ const resolveCellRange = (rangeRaw?: string) => {
   } else {
     return undefined;
   }
-};
+}

@@ -50,7 +50,7 @@ import {
   withTimingAsync,
 } from "../../core/timing.ts";
 import { filesDirMediabagDir } from "./render-paths.ts";
-import { replaceNotebookPlaceholders } from "../../core/handlers/include-notebook.ts";
+import { replaceNotebookPlaceholders } from "../../core/jupyter/jupyter-embed.ts";
 
 export async function renderPandoc(
   file: ExecutedFile,
