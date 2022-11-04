@@ -1,4 +1,4 @@
-// @quarto/quarto-ojs-runtime v0.0.13 Copyright 2022 undefined
+// @quarto/quarto-ojs-runtime v0.0.14 Copyright 2022 undefined
 var EOL = {},
     EOF = {},
     QUOTE = 34,
@@ -195,6 +195,35 @@ function autoType(object) {
 // https://github.com/d3/d3-dsv/issues/45
 const fixtz = new Date("2019-01-01T00:00").getHours() || new Date("2019-07-01T00:00").getHours();
 
+function dependency(name, version, main) {
+  return {
+    resolve(path = main) {
+      return `${name}@${version}/${path}`;
+    }
+  };
+}
+
+const d3 = dependency("d3", "7.6.1", "dist/d3.min.js");
+const inputs = dependency("@observablehq/inputs", "0.10.4", "dist/inputs.min.js");
+const plot = dependency("@observablehq/plot", "0.6.0", "dist/plot.umd.min.js");
+const graphviz = dependency("@observablehq/graphviz", "0.2.1", "dist/graphviz.min.js");
+const highlight = dependency("@observablehq/highlight.js", "2.0.0", "highlight.min.js");
+const katex = dependency("@observablehq/katex", "0.11.1", "dist/katex.min.js");
+const lodash = dependency("lodash", "4.17.21", "lodash.min.js");
+const htl = dependency("htl", "0.3.1", "dist/htl.min.js");
+const jszip = dependency("jszip", "3.10.0", "dist/jszip.min.js");
+const marked = dependency("marked", "0.3.12", "marked.min.js");
+const sql = dependency("sql.js", "1.7.0", "dist/sql-wasm.js");
+const vega = dependency("vega", "5.22.1", "build/vega.min.js");
+const vegalite = dependency("vega-lite", "5.5.0", "build/vega-lite.min.js");
+const vegaliteApi = dependency("vega-lite-api", "5.0.0", "build/vega-lite-api.min.js");
+const arrow = dependency("apache-arrow", "4.0.1", "Arrow.es2015.min.js");
+const arquero = dependency("arquero", "4.8.8", "dist/arquero.min.js");
+const topojson = dependency("topojson-client", "3.1.0", "dist/topojson-client.min.js");
+const exceljs = dependency("exceljs", "4.3.0", "dist/exceljs.min.js");
+const mermaid$1 = dependency("mermaid", "9.1.6", "dist/mermaid.min.js");
+const leaflet$1 = dependency("leaflet", "1.8.0", "dist/leaflet.js");
+
 const metas = new Map;
 const queue$1 = [];
 const map$2 = queue$1.map;
@@ -385,6 +414,239 @@ function setDefaultRequire(require) {
 
 function requirer(resolve) {
   return resolve == null ? requireDefault : requireFrom(resolve);
+}
+
+async function sqlite(require) {
+  const [init, dist] = await Promise.all([require(sql.resolve()), require.resolve(sql.resolve("dist/"))]);
+  return init({locateFile: file => `${dist}${file}`});
+}
+
+class SQLiteDatabaseClient {
+  constructor(db) {
+    Object.defineProperties(this, {
+      _db: {value: db}
+    });
+  }
+  static async open(source) {
+    const [SQL, buffer] = await Promise.all([sqlite(requireDefault), Promise.resolve(source).then(load$1)]);
+    return new SQLiteDatabaseClient(new SQL.Database(buffer));
+  }
+  async query(query, params) {
+    return await exec(this._db, query, params);
+  }
+  async queryRow(query, params) {
+    return (await this.query(query, params))[0] || null;
+  }
+  async explain(query, params) {
+    const rows = await this.query(`EXPLAIN QUERY PLAN ${query}`, params);
+    return element$1("pre", {className: "observablehq--inspect"}, [
+      text$2(rows.map(row => row.detail).join("\n"))
+    ]);
+  }
+  async describeTables({schema} = {}) {
+    return this.query(`SELECT NULLIF(schema, 'main') AS schema, name FROM pragma_table_list() WHERE type = 'table'${schema == null ? "" : ` AND schema = ?`} AND name NOT LIKE 'sqlite_%'`, schema == null ? [] : [schema]);
+  }
+  async describeColumns({schema, table} = {}) {
+    if (table == null) throw new Error(`missing table`);
+    const rows = await this.query(`SELECT name, type, "notnull" FROM pragma_table_info(?${schema == null ? "" : `, ?`}) ORDER BY cid`, schema == null ? [table] : [table, schema]);
+    if (!rows.length) throw new Error(`table not found: ${table}`);
+    return rows.map(({name, type, notnull}) => ({name, type: sqliteType(type), databaseType: type, nullable: !notnull}));
+  }
+  async describe(object) {
+    const rows = await (object === undefined
+      ? this.query(`SELECT name FROM sqlite_master WHERE type = 'table'`)
+      : this.query(`SELECT * FROM pragma_table_info(?)`, [object]));
+    if (!rows.length) throw new Error("Not found");
+    const {columns} = rows;
+    return element$1("table", {value: rows}, [
+      element$1("thead", [element$1("tr", columns.map(c => element$1("th", [text$2(c)])))]),
+      element$1("tbody", rows.map(r => element$1("tr", columns.map(c => element$1("td", [text$2(r[c])])))))
+    ]);
+  }
+  async sql() {
+    return this.query(...this.queryTag.apply(this, arguments));
+  }
+  queryTag(strings, ...params) {
+    return [strings.join("?"), params];
+  }
+}
+
+Object.defineProperty(SQLiteDatabaseClient.prototype, "dialect", {
+  value: "sqlite"
+});
+
+// https://www.sqlite.org/datatype3.html
+function sqliteType(type) {
+  switch (type) {
+    case "NULL":
+      return "null";
+    case "INT":
+    case "INTEGER":
+    case "TINYINT":
+    case "SMALLINT":
+    case "MEDIUMINT":
+    case "BIGINT":
+    case "UNSIGNED BIG INT":
+    case "INT2":
+    case "INT8":
+      return "integer";
+    case "TEXT":
+    case "CLOB":
+      return "string";
+    case "REAL":
+    case "DOUBLE":
+    case "DOUBLE PRECISION":
+    case "FLOAT":
+    case "NUMERIC":
+      return "number";
+    case "BLOB":
+      return "buffer";
+    case "DATE":
+    case "DATETIME":
+      return "string"; // TODO convert strings to Date instances in sql.js
+    default:
+      return /^(?:(?:(?:VARYING|NATIVE) )?CHARACTER|(?:N|VAR|NVAR)CHAR)\(/.test(type) ? "string"
+        : /^(?:DECIMAL|NUMERIC)\(/.test(type) ? "number"
+        : "other";
+  }
+}
+
+function load$1(source) {
+  return typeof source === "string" ? fetch(source).then(load$1)
+    : source instanceof Response || source instanceof Blob ? source.arrayBuffer().then(load$1)
+    : source instanceof ArrayBuffer ? new Uint8Array(source)
+    : source;
+}
+
+async function exec(db, query, params) {
+  const [result] = await db.exec(query, params);
+  if (!result) return [];
+  const {columns, values} = result;
+  const rows = values.map(row => fromEntries(row.map((value, i) => [columns[i], value])));
+  rows.columns = columns;
+  return rows;
+}
+
+function element$1(name, props, children) {
+  if (arguments.length === 2) children = props, props = undefined;
+  const element = document.createElement(name);
+  if (props !== undefined) for (const p in props) element[p] = props[p];
+  if (children !== undefined) for (const c of children) element.appendChild(c);
+  return element;
+}
+
+function text$2(value) {
+  return document.createTextNode(value);
+}
+
+class Workbook {
+  constructor(workbook) {
+    Object.defineProperties(this, {
+      _: {value: workbook},
+      sheetNames: {
+        value: workbook.worksheets.map((s) => s.name),
+        enumerable: true
+      }
+    });
+  }
+  sheet(name, options) {
+    const sname =
+      typeof name === "number"
+        ? this.sheetNames[name]
+        : this.sheetNames.includes((name += ""))
+        ? name
+        : null;
+    if (sname == null) throw new Error(`Sheet not found: ${name}`);
+    const sheet = this._.getWorksheet(sname);
+    return extract(sheet, options);
+  }
+}
+
+function extract(sheet, {range, headers} = {}) {
+  let [[c0, r0], [c1, r1]] = parseRange(range, sheet);
+  const headerRow = headers ? sheet._rows[r0++] : null;
+  let names = new Set(["#"]);
+  for (let n = c0; n <= c1; n++) {
+    const value = headerRow ? valueOf(headerRow.findCell(n + 1)) : null;
+    let name = (value && value + "") || toColumn(n);
+    while (names.has(name)) name += "_";
+    names.add(name);
+  }
+  names = new Array(c0).concat(Array.from(names));
+
+  const output = new Array(r1 - r0 + 1);
+  for (let r = r0; r <= r1; r++) {
+    const row = (output[r - r0] = Object.create(null, {"#": {value: r + 1}}));
+    const _row = sheet.getRow(r + 1);
+    if (_row.hasValues)
+      for (let c = c0; c <= c1; c++) {
+        const value = valueOf(_row.findCell(c + 1));
+        if (value != null) row[names[c + 1]] = value;
+      }
+  }
+
+  output.columns = names.filter(() => true); // Filter sparse columns
+  return output;
+}
+
+function valueOf(cell) {
+  if (!cell) return;
+  const {value} = cell;
+  if (value && typeof value === "object" && !(value instanceof Date)) {
+    if (value.formula || value.sharedFormula) {
+      return value.result && value.result.error ? NaN : value.result;
+    }
+    if (value.richText) {
+      return richText(value);
+    }
+    if (value.text) {
+      let {text} = value;
+      if (text.richText) text = richText(text);
+      return value.hyperlink && value.hyperlink !== text
+        ? `${value.hyperlink} ${text}`
+        : text;
+    }
+    return value;
+  }
+  return value;
+}
+
+function richText(value) {
+  return value.richText.map((d) => d.text).join("");
+}
+
+function parseRange(specifier = ":", {columnCount, rowCount}) {
+  specifier += "";
+  if (!specifier.match(/^[A-Z]*\d*:[A-Z]*\d*$/))
+    throw new Error("Malformed range specifier");
+  const [[c0 = 0, r0 = 0], [c1 = columnCount - 1, r1 = rowCount - 1]] =
+    specifier.split(":").map(fromCellReference);
+  return [
+    [c0, r0],
+    [c1, r1]
+  ];
+}
+
+// Returns the default column name for a zero-based column index.
+// For example: 0 -> "A", 1 -> "B", 25 -> "Z", 26 -> "AA", 27 -> "AB".
+function toColumn(c) {
+  let sc = "";
+  c++;
+  do {
+    sc = String.fromCharCode(64 + (c % 26 || 26)) + sc;
+  } while ((c = Math.floor((c - 1) / 26)));
+  return sc;
+}
+
+// Returns the zero-based indexes from a cell reference.
+// For example: "A1" -> [0, 0], "B2" -> [1, 1], "AA10" -> [26, 9].
+function fromCellReference(s) {
+  const [, sc, sr] = s.match(/^([A-Z]*)(\d*)$/);
+  let c = 0;
+  if (sc)
+    for (let i = 0; i < sc.length; i++)
+      c += Math.pow(26, sc.length - i - 1) * (sc.charCodeAt(i) - 64);
+  return [c ? c - 1 : undefined, sr ? +sr - 1 : undefined];
 }
 
 async function remote_fetch(file) {
@@ -585,7 +847,7 @@ var namespaces = {
   xmlns: "http://www.w3.org/2000/xmlns/"
 };
 
-function element$1(name, attributes) {
+function element(name, attributes) {
   var prefix = name += "", i = prefix.indexOf(":"), value;
   if (i >= 0 && (prefix = name.slice(0, i)) !== "xmlns") name = name.slice(i + 1);
   var element = namespaces.hasOwnProperty(prefix) // eslint-disable-line no-prototype-builtins
@@ -634,7 +896,7 @@ function svg$1(width, height) {
   return svg;
 }
 
-function text$2(value) {
+function text$1(value) {
   return document.createTextNode(value);
 }
 
@@ -657,12 +919,12 @@ var DOM = {
   canvas: canvas,
   context2d: context2d,
   download: download,
-  element: element$1,
+  element: element,
   input: input$1,
   range: range$1,
   select: select,
   svg: svg$1,
-  text: text$2,
+  text: text$1,
   uid: uid
 };
 
@@ -675,7 +937,7 @@ function buffer(file) {
   });
 }
 
-function text$1(file) {
+function text(file) {
   return new Promise(function(resolve, reject) {
     var reader = new FileReader;
     reader.onload = function() { resolve(reader.result); };
@@ -695,7 +957,7 @@ function url(file) {
 
 var Files = {
   buffer: buffer,
-  text: text$1,
+  text: text,
   url: url
 };
 
@@ -942,33 +1204,6 @@ var html$1 = template(function(string) {
   return document.createElement("span");
 });
 
-function dependency(name, version, main) {
-  return {
-    resolve(path = main) {
-      return `${name}@${version}/${path}`;
-    }
-  };
-}
-
-const d3 = dependency("d3", "7.6.1", "dist/d3.min.js");
-const inputs = dependency("@observablehq/inputs", "0.10.4", "dist/inputs.min.js");
-const plot = dependency("@observablehq/plot", "0.6.0", "dist/plot.umd.min.js");
-const graphviz = dependency("@observablehq/graphviz", "0.2.1", "dist/graphviz.min.js");
-const highlight = dependency("@observablehq/highlight.js", "2.0.0", "highlight.min.js");
-const katex = dependency("@observablehq/katex", "0.11.1", "dist/katex.min.js");
-const lodash = dependency("lodash", "4.17.21", "lodash.min.js");
-const htl = dependency("htl", "0.3.1", "dist/htl.min.js");
-const marked = dependency("marked", "0.3.12", "marked.min.js");
-const sql = dependency("sql.js", "1.7.0", "dist/sql-wasm.js");
-const vega = dependency("vega", "5.22.1", "build/vega.min.js");
-const vegalite = dependency("vega-lite", "5.5.0", "build/vega-lite.min.js");
-const vegaliteApi = dependency("vega-lite-api", "5.0.0", "build/vega-lite-api.min.js");
-const arrow$1 = dependency("apache-arrow", "4.0.1", "Arrow.es2015.min.js");
-const arquero = dependency("arquero", "4.8.8", "dist/arquero.min.js");
-const topojson = dependency("topojson-client", "3.1.0", "dist/topojson-client.min.js");
-const mermaid$1 = dependency("mermaid", "9.1.6", "dist/mermaid.min.js");
-const leaflet$1 = dependency("leaflet", "1.8.0", "dist/leaflet.js");
-
 async function leaflet(require) {
   const L = await require(leaflet$1.resolve());
   if (!L._style) {
@@ -1090,129 +1325,6 @@ function resolve(name, base) {
   return "https://unpkg.com/" + name;
 }
 
-async function sqlite(require) {
-  const [init, dist] = await Promise.all([require(sql.resolve()), require.resolve(sql.resolve("dist/"))]);
-  return init({locateFile: file => `${dist}${file}`});
-}
-
-class SQLiteDatabaseClient$1 {
-  constructor(db) {
-    Object.defineProperties(this, {
-      _db: {value: db}
-    });
-  }
-  static async open(source) {
-    const [SQL, buffer] = await Promise.all([sqlite(requireDefault), Promise.resolve(source).then(load$1)]);
-    return new SQLiteDatabaseClient$1(new SQL.Database(buffer));
-  }
-  async query(query, params) {
-    return await exec(this._db, query, params);
-  }
-  async queryRow(query, params) {
-    return (await this.query(query, params))[0] || null;
-  }
-  async explain(query, params) {
-    const rows = await this.query(`EXPLAIN QUERY PLAN ${query}`, params);
-    return element("pre", {className: "observablehq--inspect"}, [
-      text(rows.map(row => row.detail).join("\n"))
-    ]);
-  }
-  async describeTables({schema} = {}) {
-    return this.query(`SELECT NULLIF(schema, 'main') AS schema, name FROM pragma_table_list() WHERE type = 'table'${schema == null ? "" : ` AND schema = ?`} AND name NOT LIKE 'sqlite_%'`, schema == null ? [] : [schema]);
-  }
-  async describeColumns({schema, table} = {}) {
-    if (table == null) throw new Error(`missing table`);
-    const rows = await this.query(`SELECT name, type, "notnull" FROM pragma_table_info(?${schema == null ? "" : `, ?`}) ORDER BY cid`, schema == null ? [table] : [table, schema]);
-    if (!rows.length) throw new Error(`table not found: ${table}`);
-    return rows.map(({name, type, notnull}) => ({name, type: sqliteType(type), databaseType: type, nullable: !notnull}));
-  }
-  async describe(object) {
-    const rows = await (object === undefined
-      ? this.query(`SELECT name FROM sqlite_master WHERE type = 'table'`)
-      : this.query(`SELECT * FROM pragma_table_info(?)`, [object]));
-    if (!rows.length) throw new Error("Not found");
-    const {columns} = rows;
-    return element("table", {value: rows}, [
-      element("thead", [element("tr", columns.map(c => element("th", [text(c)])))]),
-      element("tbody", rows.map(r => element("tr", columns.map(c => element("td", [text(r[c])])))))
-    ]);
-  }
-  async sql() {
-    return this.query(...this.queryTag.apply(this, arguments));
-  }
-  queryTag(strings, ...params) {
-    return [strings.join("?"), params];
-  }
-}
-
-Object.defineProperty(SQLiteDatabaseClient$1.prototype, "dialect", {
-  value: "sqlite"
-});
-
-// https://www.sqlite.org/datatype3.html
-function sqliteType(type) {
-  switch (type) {
-    case "NULL":
-      return "null";
-    case "INT":
-    case "INTEGER":
-    case "TINYINT":
-    case "SMALLINT":
-    case "MEDIUMINT":
-    case "BIGINT":
-    case "UNSIGNED BIG INT":
-    case "INT2":
-    case "INT8":
-      return "integer";
-    case "TEXT":
-    case "CLOB":
-      return "string";
-    case "REAL":
-    case "DOUBLE":
-    case "DOUBLE PRECISION":
-    case "FLOAT":
-    case "NUMERIC":
-      return "number";
-    case "BLOB":
-      return "buffer";
-    case "DATE":
-    case "DATETIME":
-      return "string"; // TODO convert strings to Date instances in sql.js
-    default:
-      return /^(?:(?:(?:VARYING|NATIVE) )?CHARACTER|(?:N|VAR|NVAR)CHAR)\(/.test(type) ? "string"
-        : /^(?:DECIMAL|NUMERIC)\(/.test(type) ? "number"
-        : "other";
-  }
-}
-
-function load$1(source) {
-  return typeof source === "string" ? fetch(source).then(load$1)
-    : source instanceof Response || source instanceof Blob ? source.arrayBuffer().then(load$1)
-    : source instanceof ArrayBuffer ? new Uint8Array(source)
-    : source;
-}
-
-async function exec(db, query, params) {
-  const [result] = await db.exec(query, params);
-  if (!result) return [];
-  const {columns, values} = result;
-  const rows = values.map(row => fromEntries(row.map((value, i) => [columns[i], value])));
-  rows.columns = columns;
-  return rows;
-}
-
-function element(name, props, children) {
-  if (arguments.length === 2) children = props, props = undefined;
-  const element = document.createElement(name);
-  if (props !== undefined) for (const p in props) element[p] = props[p];
-  if (children !== undefined) for (const c of children) element.appendChild(c);
-  return element;
-}
-
-function text(value) {
-  return document.createTextNode(value);
-}
-
 var svg = template(function(string) {
   var root = document.createElementNS("http://www.w3.org/2000/svg", "g");
   root.innerHTML = string.trim();
@@ -1274,25 +1386,198 @@ function width() {
   });
 }
 
+// These are copied from d3-array; TODO import once this package adopts type: module.
+
+function descending(a, b) {
+  return a == null || b == null ? NaN : b < a ? -1 : b > a ? 1 : b >= a ? 0 : NaN;
+}
+
+function ascending(a, b) {
+  return a == null || b == null ? NaN : a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
+}
+
+function reverse(values) {
+  if (typeof values[Symbol.iterator] !== "function") throw new TypeError("values is not iterable");
+  return Array.from(values).reverse();
+}
+
+const nChecks = 20; // number of values to check in each array
+
+// We support two levels of DatabaseClient. The simplest DatabaseClient
+// implements only the client.sql tagged template literal. More advanced
+// DatabaseClients implement client.query and client.queryStream, which support
+// streaming and abort, and the client.queryTag tagged template literal is used
+// to translate the contents of a SQL cell or Table cell into the appropriate
+// arguments for calling client.query or client.queryStream. For table cells, we
+// additionally require client.describeColumns. The client.describeTables method
+// is optional.
+function isDatabaseClient(value, mode) {
+  return (
+    value &&
+    (typeof value.sql === "function" ||
+      (typeof value.queryTag === "function" &&
+        (typeof value.query === "function" ||
+          typeof value.queryStream === "function"))) &&
+    (mode !== "table" || typeof value.describeColumns === "function") &&
+    value !== __query // don’t match our internal helper
+  );
+}
+
+// Returns true if the value is a typed array (for a single-column table), or if
+// it’s an array. In the latter case, the elements of the array must be
+// consistently typed: either plain objects or primitives or dates.
+function isDataArray(value) {
+  return (
+    (Array.isArray(value) &&
+      (isQueryResultSetSchema(value.schema) ||
+        isQueryResultSetColumns(value.columns) ||
+        arrayContainsObjects(value) ||
+        arrayContainsPrimitives(value) ||
+        arrayContainsDates(value))) ||
+    isTypedArray(value)
+  );
+}
+
+// Given an array, checks that the given value is an array that does not contain
+// any primitive values (at least for the first few values that we check), and
+// that the first object contains enumerable keys (see computeSchema for how we
+// infer the columns). We assume that the contents of the table are homogenous,
+// but we don’t currently enforce this.
+// https://observablehq.com/@observablehq/database-client-specification#§1
+function arrayContainsObjects(value) {
+  const n = Math.min(nChecks, value.length);
+  for (let i = 0; i < n; ++i) {
+    const v = value[i];
+    if (v === null || typeof v !== "object") return false;
+  }
+  return n > 0 && objectHasEnumerableKeys(value[0]);
+}
+
+// Using a for-in loop here means that we can abort after finding at least one
+// enumerable key (whereas Object.keys would require materializing the array of
+// all keys, which would be considerably slower if the value has many keys!).
+// This function assumes that value is an object; see arrayContainsObjects.
+function objectHasEnumerableKeys(value) {
+  for (const _ in value) return true;
+  return false;
+}
+
+function isQueryResultSetSchema(schemas) {
+  return (Array.isArray(schemas) && schemas.every((s) => s && typeof s.name === "string"));
+}
+
+function isQueryResultSetColumns(columns) {
+  return (Array.isArray(columns) && columns.every((name) => typeof name === "string"));
+}
+
+// Returns true if the value represents an array of primitives (i.e., a
+// single-column table). This should only be passed values for which
+// isDataArray returns true.
+function arrayIsPrimitive(value) {
+  return (
+    isTypedArray(value) ||
+    arrayContainsPrimitives(value) ||
+    arrayContainsDates(value)
+  );
+}
+
+// Given an array, checks that the first n elements are primitives (number,
+// string, boolean, bigint) of a consistent type.
+function arrayContainsPrimitives(value) {
+  const n = Math.min(nChecks, value.length);
+  if (!(n > 0)) return false;
+  let type;
+  let hasPrimitive = false; // ensure we encounter 1+ primitives
+  for (let i = 0; i < n; ++i) {
+    const v = value[i];
+    if (v == null) continue; // ignore null and undefined
+    const t = typeof v;
+    if (type === undefined) {
+      switch (t) {
+        case "number":
+        case "boolean":
+        case "string":
+        case "bigint":
+          type = t;
+          break;
+        default:
+          return false;
+      }
+    } else if (t !== type) {
+      return false;
+    }
+    hasPrimitive = true;
+  }
+  return hasPrimitive;
+}
+
+// Given an array, checks that the first n elements are dates.
+function arrayContainsDates(value) {
+  const n = Math.min(nChecks, value.length);
+  if (!(n > 0)) return false;
+  let hasDate = false; // ensure we encounter 1+ dates
+  for (let i = 0; i < n; ++i) {
+    const v = value[i];
+    if (v == null) continue; // ignore null and undefined
+    if (!(v instanceof Date)) return false;
+    hasDate = true;
+  }
+  return hasDate;
+}
+
+function isTypedArray(value) {
+  return (
+    value instanceof Int8Array ||
+    value instanceof Int16Array ||
+    value instanceof Int32Array ||
+    value instanceof Uint8Array ||
+    value instanceof Uint8ClampedArray ||
+    value instanceof Uint16Array ||
+    value instanceof Uint32Array ||
+    value instanceof Float32Array ||
+    value instanceof Float64Array
+  );
+}
+
+// __query is used by table cells; __query.sql is used by SQL cells.
 const __query = Object.assign(
-  // This function is used by table cells.
   async (source, operations, invalidation) => {
-    const args = makeQueryTemplate(operations, await source);
-    if (!args) return null; // the empty state
-    return evaluateQuery(await source, args, invalidation);
+    source = await loadDataSource(await source, "table");
+    if (isDatabaseClient(source)) return evaluateQuery(source, makeQueryTemplate(operations, source), invalidation);
+    if (isDataArray(source)) return __table(source, operations);
+    if (!source) throw new Error("missing data source");
+    throw new Error("invalid data source");
   },
   {
-    // This function is used by SQL cells.
     sql(source, invalidation) {
       return async function () {
-        return evaluateQuery(source, arguments, invalidation);
+        return evaluateQuery(await loadDataSource(await source, "sql"), arguments, invalidation);
       };
     }
   }
 );
 
+async function loadDataSource(source, mode) {
+  if (source instanceof FileAttachment) {
+    if (mode === "table") {
+      switch (source.mimeType) {
+        case "text/csv": return source.csv({typed: true});
+        case "text/tab-separated-values": return source.tsv({typed: true});
+        case "application/json": return source.json();
+      }
+    }
+    if (mode === "table" || mode === "sql") {
+      switch (source.mimeType) {
+        case "application/x-sqlite3": return source.sqlite();
+      }
+    }
+    throw new Error(`unsupported file type: ${source.mimeType}`);
+  }
+  return source;
+}
+
 async function evaluateQuery(source, args, invalidation) {
-  if (!source) return;
+  if (!source) throw new Error("missing data source");
 
   // If this DatabaseClient supports abort and streaming, use that.
   if (typeof source.queryTag === "function") {
@@ -1349,17 +1634,15 @@ async function* accumulateQuery(queryRequest) {
  * of sub-strings and params are the parameter values to be inserted between each
  * sub-string.
  */
- function makeQueryTemplate(operations, source) {
+function makeQueryTemplate(operations, source) {
   const escaper =
-    source && typeof source.escape === "function" ? source.escape : (i) => i;
+    typeof source.escape === "function" ? source.escape : (i) => i;
   const {select, from, filter, sort, slice} = operations;
-  if (
-    from.table === null ||
-    select.columns === null ||
-    (select.columns && select.columns.length === 0)
-  )
-    return;
-  const columns = select.columns.map((c) => `t.${escaper(c)}`);
+  if (!from.table)
+    throw new Error("missing from table");
+  if (select.columns && select.columns.length === 0)
+    throw new Error("at least one column must be selected");
+  const columns = select.columns ? select.columns.map((c) => `t.${escaper(c)}`) : "*";
   const args = [
     [`SELECT ${columns} FROM ${formatTable(from.table, escaper)} t`]
   ];
@@ -1384,7 +1667,7 @@ async function* accumulateQuery(queryRequest) {
 }
 
 function formatTable(table, escaper) {
-  if (typeof table === "object") {
+  if (typeof table === "object") { // i.e., not a bare string specifier
     let from = "";
     if (table.database != null) from += escaper(table.database) + ".";
     if (table.schema != null) from += escaper(table.schema) + ".";
@@ -1505,6 +1788,119 @@ function likeOperand(operand) {
   return {...operand, value: `%${operand.value}%`};
 }
 
+// This function applies table cell operations to an in-memory table (array of
+// objects); it should be equivalent to the corresponding SQL query.
+function __table(source, operations) {
+  const input = source;
+  let {schema, columns} = source;
+  let primitive = arrayIsPrimitive(source);
+  if (primitive) source = Array.from(source, (value) => ({value}));
+  for (const {type, operands} of operations.filter) {
+    const [{value: column}] = operands;
+    const values = operands.slice(1).map(({value}) => value);
+    switch (type) {
+      case "eq": {
+        const [value] = values;
+        if (value instanceof Date) {
+          const time = +value; // compare as primitive
+          source = source.filter((d) => +d[column] === time);
+        } else {
+          source = source.filter((d) => d[column] === value);
+        }
+        break;
+      }
+      case "ne": {
+        const [value] = values;
+        source = source.filter((d) => d[column] !== value);
+        break;
+      }
+      case "c": {
+        const [value] = values;
+        source = source.filter(
+          (d) => typeof d[column] === "string" && d[column].includes(value)
+        );
+        break;
+      }
+      case "nc": {
+        const [value] = values;
+        source = source.filter(
+          (d) => typeof d[column] === "string" && !d[column].includes(value)
+        );
+        break;
+      }
+      case "in": {
+        const set = new Set(values); // TODO support dates?
+        source = source.filter((d) => set.has(d[column]));
+        break;
+      }
+      case "nin": {
+        const set = new Set(values); // TODO support dates?
+        source = source.filter((d) => !set.has(d[column]));
+        break;
+      }
+      case "n": {
+        source = source.filter((d) => d[column] == null);
+        break;
+      }
+      case "nn": {
+        source = source.filter((d) => d[column] != null);
+        break;
+      }
+      case "lt": {
+        const [value] = values;
+        source = source.filter((d) => d[column] < value);
+        break;
+      }
+      case "lte": {
+        const [value] = values;
+        source = source.filter((d) => d[column] <= value);
+        break;
+      }
+      case "gt": {
+        const [value] = values;
+        source = source.filter((d) => d[column] > value);
+        break;
+      }
+      case "gte": {
+        const [value] = values;
+        source = source.filter((d) => d[column] >= value);
+        break;
+      }
+      default:
+        throw new Error(`unknown filter type: ${type}`);
+    }
+  }
+  for (const {column, direction} of reverse(operations.sort)) {
+    const compare = direction === "desc" ? descending : ascending;
+    if (source === input) source = source.slice(); // defensive copy
+    source.sort((a, b) => compare(a[column], b[column]));
+  }
+  let {from, to} = operations.slice;
+  from = from == null ? 0 : Math.max(0, from);
+  to = to == null ? Infinity : Math.max(0, to);
+  if (from > 0 || to < Infinity) {
+    source = source.slice(Math.max(0, from), Math.max(0, to));
+  }
+  if (operations.select.columns) {
+    if (schema) {
+      const schemaByName = new Map(schema.map((s) => [s.name, s]));
+      schema = operations.select.columns.map((c) => schemaByName.get(c));
+    }
+    if (columns) {
+      columns = operations.select.columns;
+    }
+    source = source.map((d) =>
+      Object.fromEntries(operations.select.columns.map((c) => [c, d[c]]))
+    );
+  }
+  if (primitive) source = source.map((d) => d.value);
+  if (source !== input) {
+    if (schema) source.schema = schema;
+    if (columns) source.columns = columns;
+  }
+  return source;
+}
+
 var Library = Object.assign(Object.defineProperties(function Library(resolver) {
   const require = requirer(resolver);
   Object.defineProperties(this, properties({
@@ -1524,8 +1920,8 @@ var Library = Object.assign(Object.defineProperties(function Library(resolver) {
     // Recommended libraries
     // https://observablehq.com/@observablehq/recommended-libraries
     _: () => require(lodash.resolve()),
-    aq: () => require.alias({"apache-arrow": arrow$1.resolve()})(arquero.resolve()),
-    Arrow: () => require(arrow$1.resolve()),
+    aq: () => require.alias({"apache-arrow": arrow.resolve()})(arquero.resolve()),
+    Arrow: () => require(arrow.resolve()),
     d3: () => require(d3.resolve()),
     Inputs: () => require(inputs.resolve()).then(Inputs => ({...Inputs, file: Inputs.fileOf(AbstractFile)})),
     L: () => leaflet(require),
@@ -1535,7 +1931,7 @@ var Library = Object.assign(Object.defineProperties(function Library(resolver) {
     require: () => require,
     resolve: () => resolve, // deprecated; use async require.resolve instead
     SQLite: () => sqlite(require),
-    SQLiteDatabaseClient: () => SQLiteDatabaseClient$1,
+    SQLiteDatabaseClient: () => SQLiteDatabaseClient,
     topojson: () => require(topojson.resolve()),
     vl: () => vl(require),
 
