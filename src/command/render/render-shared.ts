@@ -179,7 +179,7 @@ export async function printBrowsePreviewMessage(
     info(`\nBrowse at ${url}`, { format: colors.green });
   } else if (isVSCodeTerminal() && isVSCodeServer()) {
     const browseUrl = vsCodeServerProxyUri()!.replace("{{port}}", `${port}`) +
-      "/" + path;
+      path;
     info(`\nBrowse at ${browseUrl}`, { format: colors.green });
   } else if (isJupyterHubServer()) {
     const httpReferrer = `${
