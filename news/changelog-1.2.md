@@ -152,6 +152,7 @@
 - Restart Jupyter kernel daemon if preview server is restarted.
 - Enable use of external preview servers for serving project output
 - Add `--no-serve` command line parameter to prevent serving altogether
+- Do not add trailing slash to VSCODE_PROXY_URI set by code-server
 
 ## Publishing
 
