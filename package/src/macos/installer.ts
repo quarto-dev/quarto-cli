@@ -328,6 +328,13 @@ async function waitForNotaryStatus(
   username: string,
   password: string,
 ) {
+  const starttime = Date.now();
+
+  // 20 minutes
+  const msToWait = 1200000;
+
+  const pollIntervalSeconds = 15;
+
   let errorCount = 0;
   let notaryResult = undefined;
   while (notaryResult == undefined) {
@@ -352,7 +359,9 @@ async function waitForNotaryStatus(
         errorCount = 0;
 
         // Sleep for 15 seconds between checks
-        await new Promise((resolve) => setTimeout(resolve, 15 * 1000));
+        await new Promise((resolve) =>
+          setTimeout(resolve, pollIntervalSeconds * 1000)
+        );
       } else if (status === "success") {
         notaryResult = "Success";
       } else {
@@ -364,6 +373,13 @@ async function waitForNotaryStatus(
         //increment error counter
         errorCount = errorCount + 1;
       }
+    }
+    if (Date.now() - starttime > msToWait) {
+      throw new Error(
+        `Failed to Notarize - timed out after ${
+          msToWait / 1000
+        } seconds when awaiting notarization`,
+      );
     }
   }
   return notaryResult;
