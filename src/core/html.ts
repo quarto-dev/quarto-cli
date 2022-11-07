@@ -11,6 +11,7 @@ import { pandocAutoIdentifier } from "./pandoc/pandoc-id.ts";
 import { isFileRef } from "./http.ts";
 import { cssFileRefs } from "./css.ts";
 import { HtmlPostProcessResult } from "../command/render/types.ts";
+import { warning } from "log/mod.ts";
 
 export function asHtmlId(text: string) {
   return pandocAutoIdentifier(text, false);
@@ -19,7 +20,18 @@ export function asHtmlId(text: string) {
 export function getDecodedAttribute(element: Element, attrib: string) {
   const value = element.getAttribute(attrib);
   if (value) {
-    return decodeURI(value);
+    try {
+      return decodeURI(value);
+    } catch (e) {
+      if (e instanceof URIError) {
+        warning(
+          `Invalid URI '${value}' in attribute '${attrib}' of element '${element.tagName}'`,
+        );
+        return value;
+      } else {
+        throw e;
+      }
+    }
   } else {
     return value;
   }
