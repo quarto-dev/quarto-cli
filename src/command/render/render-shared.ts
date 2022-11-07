@@ -178,8 +178,9 @@ export async function printBrowsePreviewMessage(
     info(`\nPreview server: ${previewURL(host, port, path = "")}`);
     info(`\nBrowse at ${url}`, { format: colors.green });
   } else if (isVSCodeTerminal() && isVSCodeServer()) {
+    const sep = path.startsWith("/") ? "" : "/";
     const browseUrl = vsCodeServerProxyUri()!.replace("{{port}}", `${port}`) +
-      path;
+      sep + path;
     info(`\nBrowse at ${browseUrl}`, { format: colors.green });
   } else if (isJupyterHubServer()) {
     const httpReferrer = `${
