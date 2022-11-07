@@ -335,7 +335,7 @@ function placeholderToOptions(placeholder: string) {
     if (kv.length > 1) {
       const key = part.split(":")[0];
       const value = part.split(":").slice(1).join(":");
-      options[key] = Boolean(value);
+      options[key] = value.toLowerCase() === "true";
     } else {
       throw new Error("Unexpected placeholder for notebook option: " + part);
     }
