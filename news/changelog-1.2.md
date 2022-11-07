@@ -225,3 +225,4 @@
 - When converting raw html tables to pdf, use all tables generated ([#2615](https://github.com/quarto-dev/quarto-cli/issues/2615))
 - Fix theorem (thm, def, ...) environments in all formats ([#2866](https://github.com/quarto-dev/quarto-cli/issues/2866))
 - Upgrade to deno 1.25.2, which should lead to a 2-3x speedup in quarto startup time and fix an issue with Fedora 37 ([#3012](https://github.com/quarto-dev/quarto-cli/issues/3012))
+- quarto preview: only prefix paths with `/` when needed ([#3183](https://github.com/quarto-dev/quarto-cli/issues/3183))
