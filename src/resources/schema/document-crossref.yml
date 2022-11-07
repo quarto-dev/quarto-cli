@@ -165,3 +165,11 @@
               boolean:
                 default: true
                 description: Whether cross references should be hyper-linked.
+
+            appendix-title:
+              string:
+                description: The title used for appendix.
+
+            appendix-delim:
+              string:
+                description: The delimiter beween appendix number and title.
