@@ -1,7 +1,0 @@
----
-title: Break
----
-
-This will [break quarto](hi.html#oh%20%no).
-
-It's a bad URL (`%n` is not allowed), but our error reporting is atrocious.
