@@ -8,7 +8,7 @@ keep-hidden: true
 
 ### A simple include example, using tag
 
-{{< include "subfolder/plots.ipynb#plot-line" >}}
+{{< include subfolder/plots.ipynb#plot-line >}}
 
 ### A simple include example, using label
 
