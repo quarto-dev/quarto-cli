@@ -14,7 +14,10 @@ import {
   kIPynbTitleBlockTemplate,
 } from "../../config/constants.ts";
 import { Format, PandocFlags } from "../../config/types.ts";
-import { jupyterFromFile } from "../../core/jupyter/jupyter.ts";
+import {
+  jupyterFromFile,
+  kQuartoMimeType,
+} from "../../core/jupyter/jupyter.ts";
 import {
   kApplicationRtf,
   kRestructuredText,
@@ -25,6 +28,11 @@ import { formatResourcePath } from "../../core/resources.ts";
 import { createFormat } from "../formats-shared.ts";
 
 import { decode as base64decode } from "encoding/base64.ts";
+import {
+  JupyterOutput,
+  JupyterOutputDisplayData,
+} from "../../core/jupyter/types.ts";
+
 export function ipynbFormat(): Format {
   return createFormat("ipynb", {
     pandoc: {
@@ -100,6 +108,30 @@ export function ipynbFormat(): Format {
                 }
               }
             }
+
+            // Fix up mime types that Quarto has emplaced
+            cell.outputs?.forEach((output) => {
+              const cellOutput = output as JupyterOutput;
+              if (cellOutput.output_type === "display_data") {
+                const cellDisplayOutput =
+                  cellOutput as JupyterOutputDisplayData;
+                if (cellDisplayOutput.data["application/json"]) {
+                  const jsonData =
+                    (cellDisplayOutput.data["application/json"] as Record<
+                      string,
+                      unknown
+                    >);
+                  if (jsonData[kQuartoMimeType]) {
+                    const realMimetype = jsonData[kQuartoMimeType] as string;
+                    delete jsonData[kQuartoMimeType];
+
+                    cellDisplayOutput.data[realMimetype] = jsonData;
+                    delete cellDisplayOutput.data["application/json"];
+                  }
+                }
+              }
+            });
+
             return cell;
           });
           Deno.writeTextFileSync(output, JSON.stringify(nb, null, 2));

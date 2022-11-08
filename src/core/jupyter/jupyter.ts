@@ -151,6 +151,8 @@ import { ProjectContext } from "../../project/types.ts";
 import { mergeConfigs } from "../config.ts";
 import { encode as encodeBase64 } from "encoding/base64.ts";
 
+export const kQuartoMimeType = "quarto_mimetype";
+
 export const kJupyterNotebookExtensions = [
   ".ipynb",
 ];
@@ -1511,9 +1513,12 @@ async function mdOutputDisplayData(
     } else if (displayDataIsHtml(mimeType)) {
       return mdHtmlOutput(output.data[mimeType] as string[]);
     } else if (displayDataIsJson(mimeType)) {
+      // Add the literal mimetype information to the payload, for later use
+      const json = output.data[mimeType] as Record<string, unknown>;
+      json[kQuartoMimeType] = mimeType;
       return mdJsonOutput(
         mimeType,
-        output.data[mimeType] as Record<string, unknown>,
+        json,
         options,
       );
     } else if (displayDataIsJavascript(mimeType)) {
