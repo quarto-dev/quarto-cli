@@ -6,6 +6,7 @@
 */
 import { dirname } from "path/mod.ts";
 import { execProcess } from "./process.ts";
+import { requireQuoting, safeWindowsExec } from "./windows.ts";
 
 export function unzip(file: string) {
   const dir = dirname(file);
@@ -13,11 +14,18 @@ export function unzip(file: string) {
   if (file.endsWith("zip")) {
     // It's a zip file
     if (Deno.build.os === "windows") {
-      return execProcess(
-        {
-          cmd: ["powershell", "Expand-Archive", file, "-DestinationPath", dir],
-          cwd: dir,
-          stdout: "piped",
+      const args = ["Expand-Archive", file, "-DestinationPath", dir];
+      const quoted = requireQuoting(args);
+      return safeWindowsExec(
+        "powershell",
+        quoted.args,
+        (cmd: string[]) => {
+          return execProcess(
+            {
+              cmd: cmd,
+              stdout: "piped",
+            },
+          );
         },
       );
     } else {

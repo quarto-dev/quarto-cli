@@ -2,7 +2,7 @@
 -- Copyright (C) 2020 by RStudio, PBC
 
 -- available theorem types
-theoremTypes = pandoc.List({
+theoremTypes = {
   thm = {
     env = "theorem",
     style = "plain",
@@ -43,7 +43,7 @@ theoremTypes = pandoc.List({
     style = "definition",
     title = "Exercise"
   }
-})
+}
 
 function hasTheoremRef(el)
   local type = refType(el.attr.identifier)

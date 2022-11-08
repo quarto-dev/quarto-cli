@@ -114,8 +114,7 @@ end
 function isCodeCellFigure(el)
   local isFigure = false
   pandoc.walk_block(el, {
-    Div = function(div) 
-      quarto.log.output(div)
+    Div = function(div)
       if div.attr.classes:find_if(isCodeCellDisplay) then
         if (isFigureDiv(div)) then
           isFigure = true
