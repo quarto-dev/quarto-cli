@@ -25,10 +25,10 @@ function bookNumbering()
               return partPara  
             elseif bookItemType == "appendix" then
               local appendixPara = pandoc.Para({
-                pandoc.RawInline('latex', '\\appendix\n\\addcontentsline{toc}{part}{')
+                pandoc.RawInline('latex', '\\cleardoublepage\n\\phantomsection\n\\addcontentsline{toc}{part}{')
               })
               tappend(appendixPara.content, el.content)
-              appendixPara.content:insert(pandoc.RawInline('latex', '}'))
+              appendixPara.content:insert(pandoc.RawInline('latex', '}\n\\appendix'))
               return appendixPara
             elseif bookItemType == "chapter" and bookItemDepth == 0 then
               preState.usingBookmark = true
