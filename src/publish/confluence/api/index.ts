@@ -35,7 +35,9 @@ export class ConfluenceClient {
   }
 
   public async isTitleInSpace(title: string, space: Space): Promise<boolean> {
-    const cql = `title="${title}" and space=${space.key}`;
+    const cqlContext =
+      "%7B%22contentStatuses%22%3A%5B%22archived%22%2C%20%22current%22%2C%20%22draft%22%5D%7D"; //{"contentStatuses":["archived", "current", "draft"]}
+    const cql = `title="${title}" and space=${space.key}&cqlcontext=${cqlContext}`;
     const result = await this.get<ContentArray>(`content/search?cql=${cql}`);
     return result.results.length > 0;
   }
