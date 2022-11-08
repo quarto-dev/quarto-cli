@@ -939,7 +939,6 @@ const marginContainerForEl = (el: Element, doc: Document) => {
   // Find the callout parent and create a container for the callout there
   // Walks up the parent stack until a callout element is found
   const findCalloutEl = (el: Element): Element | undefined => {
-    console.log(el.parentElement?.classList);
     if (el.parentElement?.classList.contains("callout")) {
       return el.parentElement;
     } else if (el.parentElement) {
