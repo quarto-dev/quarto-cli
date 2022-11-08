@@ -24,6 +24,7 @@ import {
 import { formatResourcePath } from "../../core/resources.ts";
 import { createFormat } from "../formats-shared.ts";
 
+import { decode as base64decode } from "encoding/base64.ts";
 export function ipynbFormat(): Format {
   return createFormat("ipynb", {
     pandoc: {
@@ -68,6 +69,16 @@ export function ipynbFormat(): Format {
         postprocessors: [(output: string) => {
           // read notebook
           const nb = jupyterFromFile(output);
+
+          // We 'hide' widget metafrom the YAML by encoding it to
+          // prevent the YAML representation from mangling it. Restore
+          // it here if it is so hidden
+          const widgets = nb.metadata.widgets;
+          if (widgets && typeof (widgets) === "string") {
+            nb.metadata.widgets = JSON.parse(
+              new TextDecoder().decode(base64decode(widgets)),
+            );
+          }
 
           // convert raw cell metadata format to raw_mimetype used by jupyter
           nb.cells = nb.cells.map((cell) => {

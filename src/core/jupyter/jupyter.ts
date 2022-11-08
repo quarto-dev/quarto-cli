@@ -149,6 +149,7 @@ import { pathWithForwardSlashes } from "../path.ts";
 import { convertToHtmlSpans, hasAnsiEscapeCodes } from "../ansi-colors.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { mergeConfigs } from "../config.ts";
+import { encode as encodeBase64 } from "encoding/base64.ts";
 
 export const kJupyterNotebookExtensions = [
   ".ipynb",
@@ -687,9 +688,17 @@ export async function jupyterToMarkdown(
   if (options.toIpynb) {
     const md: string[] = [];
     md.push("---\n");
+
+    // If widgets are present, base64 encode their metadata to prevent true round
+    // tripping through YAML, which heavily mutates the metadata
+    const widgets = nb.metadata.widgets
+      ? encodeBase64(JSON.stringify(nb.metadata.widgets))
+      : undefined;
+
     const jupyterMetadata = {
       jupyter: {
         ...nb.metadata,
+        widgets,
       },
     };
     const yamlText = stringify(jupyterMetadata, {
