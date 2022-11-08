@@ -1,4 +1,4 @@
-// @quarto/quarto-ojs-runtime v0.0.14 Copyright 2022 undefined
+// @quarto/quarto-ojs-runtime v0.0.15 Copyright 2022 undefined
 var EOL = {},
     EOF = {},
     QUOTE = 34,
@@ -414,6 +414,14 @@ function setDefaultRequire(require) {
 
 function requirer(resolve) {
   return resolve == null ? requireDefault : requireFrom(resolve);
+}
+
+function fromEntries(obj) {
+  const result = {};
+  for (const [key, value] of obj) {
+    result[key] = value;
+  }
+  return result;
 }
 
 async function sqlite(require) {
@@ -11084,7 +11092,7 @@ var dist = {exports: {}};
 
 	  if (!mapValue) return "";
 	  return `  const fileAttachments = new Map(${mapValue});
-	  main.builtin("FileAttachment", runtime.fileAttachments(name => fileAttachments.get(name)));`;
+  main.builtin("FileAttachment", runtime.fileAttachments(name => fileAttachments.get(name)));`;
 	}
 
 	function ESMVariables(moduleObject, importMap, params) {
@@ -11110,12 +11118,12 @@ var dist = {exports: {}};
 	        if (defineImportMarkdown)
 	          src +=
 	            `  main.variable(observer()).define(
-	    null,
-	    ["md"],
-	    md => md\`~~~javascript
-	${importString}
-	~~~\`
-	  );` + "\n";
+    null,
+    ["md"],
+    md => md\`~~~javascript
+${importString}
+~~~\`
+  );` + "\n";
 
 	        // name imported notebook define functions
 	        const childName = `child${++childJ}`;
@@ -11124,7 +11132,7 @@ var dist = {exports: {}};
 	        })${
 	          hasInjections ? `.derive(${JSON.stringify(injections)}, main)` : ""
 	        };
-	${specifiers
+${specifiers
 	  .map(
 	    specifier =>
 	      `  main.import("${specifier.name}", "${specifier.alias}", ${childName});`
@@ -11143,8 +11151,8 @@ var dist = {exports: {}};
 	        let code = "";
 	        if (cell.body.type !== "BlockStatement")
 	          code = `{return(
-	${bodyText}
-	)}`;
+${bodyText}
+)}`;
 	        else code = "\n" + bodyText + "\n";
 	        const cellReferencesString = cellReferences.length
 	          ? JSON.stringify(cellReferences) + ", "
@@ -11161,15 +11169,15 @@ var dist = {exports: {}};
 	        if (cell.id && cell.id.type === "ViewExpression") {
 	          const reference = `"viewof ${cellName}"`;
 	          src += `  main.variable(observer(${reference})).define(${reference}, ${cellReferencesString}${cellFunction});
-	  main.variable(${
+  main.variable(${
 	    observeViewofValues ? `observer("${cellName}")` : `null`
 	  }).define("${cellName}", ["Generators", ${reference}], (G, _) => G.input(_));`;
 	        } else if (cell.id && cell.id.type === "MutableExpression") {
 	          const initialName = `"initial ${cellName}"`;
 	          const mutableName = `"mutable ${cellName}"`;
 	          src += `  main.define(${initialName}, ${cellReferencesString}${cellFunction});
-	  main.variable(observer(${mutableName})).define(${mutableName}, ["Mutable", ${initialName}], (M, _) => new M(_));
-	  main.variable(${
+  main.variable(observer(${mutableName})).define(${mutableName}, ["Mutable", ${initialName}], (M, _) => new M(_));
+  main.variable(${
 	    observeMutableValues ? `observer("${cellName}")` : `null`
 	  }).define("${cellName}", [${mutableName}], _ => _.generator);`;
 	        } else {
@@ -11193,19 +11201,19 @@ var dist = {exports: {}};
 	  } = params;
 	  const { importSrc, importMap } = ESMImports(moduleObject, resolveImportPath);
 	  return `${importSrc}export default function define(runtime, observer) {
-	  const main = runtime.module();
-	${ESMAttachments(
+  const main = runtime.module();
+${ESMAttachments(
 	  moduleObject,
 	  resolveFileAttachments,
 	  UNSAFE_allowJavascriptFileAttachments
 	)}
-	${ESMVariables(moduleObject, importMap, {
+${ESMVariables(moduleObject, importMap, {
 	  defineImportMarkdown,
 	  observeViewofValues,
 	  observeMutableValues
 	}) || ""}
-	  return main;
-	}`;
+  return main;
+}`;
 	}
 
 	function defaultResolveImportPath(path) {
@@ -11384,8 +11392,8 @@ var dist = {exports: {}};
 	          null,
 	          ["md"],
 	          md => md`~~~javascript
-	  ${importString}
-	  ~~~`
+  ${importString}
+  ~~~`
 	        );
 	      if (hasInjections) {
 	        const child = other.derive(injections, module);
@@ -16963,7 +16971,7 @@ pp.readWord = function() {
 
 // Acorn is a tiny, fast JavaScript parser written in JavaScript.
 
-var version = "8.8.0";
+var version = "8.8.1";
 
 Parser.acorn = {
   Parser: Parser,
