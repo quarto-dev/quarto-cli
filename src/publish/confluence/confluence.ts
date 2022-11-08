@@ -331,7 +331,8 @@ async function publish(
       });
     };
 
-    await Promise.all(spaceChanges(changeList));
+    const changes: Content[] = await Promise.all(spaceChanges(changeList));
+    //TODO check to see if filename is retreivable using getContentById
 
     const parentId: string = parent?.parent ?? "";
     const parentPage: Content = await client.getContent(parentId);
