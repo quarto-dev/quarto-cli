@@ -5,6 +5,10 @@
 - Improved handling of margin references that appear within a callout. ([#3003](https://github.com/quarto-dev/quarto-cli/issues/3003))
 - Add support for customizing the baseline widths of grid columns using yaml or scss.
 
+## PDF Format
+
+- Fix wrong page number in the TOC for appendices ([#3164](https://github.com/quarto-dev/quarto-cli/issues/3164)) (Thank you, @iusgit!)
+
 ## Dates
 
 - Properly fall back to language only locale when a supported language-region locale isn't available. ([#3059](https://github.com/quarto-dev/quarto-cli/issues/3059))
