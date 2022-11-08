@@ -207,7 +207,12 @@ function to_emulated(node)
     end,
 
     -- others
-    Citation = baseHandler,
+    Citation = function(citation)
+      local result = baseHandler(citation)
+      result.prefix = doInlinesArray(citation.prefix)
+      result.suffix = doInlinesArray(citation.suffix)
+      return result
+    end,
     ListAttributes = baseHandler,
   }
 
@@ -433,7 +438,13 @@ function from_emulated(node)
       return quarto.ast._true_pandoc.Null()
     end,
     
-    Citation = baseHandler,
+    Citation = function(tbl)
+      tbl = copy(tbl)
+      tbl.prefix = doArray(tbl.prefix)
+      tbl.suffix = doArray(tbl.suffix)
+      local result = baseHandler(tbl)
+      return result
+    end,
 
     Table = function(tbl)
       tbl = copy(tbl)
