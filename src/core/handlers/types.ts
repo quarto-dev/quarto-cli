@@ -118,7 +118,7 @@ export interface LanguageCellHandlerContext {
     resources?: [string, string][];
   }): Promise<string[]>;
 
-  addResource: (name: string, contents: string) => void;
+  addResource: (fileName: string) => void;
   addInclude: (content: string, where: PandocIncludeType) => void;
   addHtmlDependency: (
     dep: FormatDependency,

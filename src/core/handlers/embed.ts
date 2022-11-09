@@ -27,21 +27,20 @@ interface EmbedHandler {
   ): Promise<{
     handled: boolean;
     markdownFragments: EitherString[];
+    resources?: string[];
   }>;
 }
 
 const kHandlers: EmbedHandler[] = [
   {
     name: "Jupyter Notebook Embed",
-    handle(filename: string, handlerContext: LanguageCellHandlerContext) {
+    handle(filename: string, _handlerContext: LanguageCellHandlerContext) {
       const markdownFragments: EitherString[] = [];
 
       // Resolve the filename into a path
-      const path = handlerContext.resolvePath(filename);
-
-      const notebookAddress = parseNotebookAddress(path);
+      const notebookAddress = parseNotebookAddress(filename);
       if (notebookAddress) {
-        const placeHolder = notebookMarkdownPlaceholder(path, {
+        const placeHolder = notebookMarkdownPlaceholder(filename, {
           echo: false,
           warning: false,
           asis: true,
@@ -51,6 +50,9 @@ const kHandlers: EmbedHandler[] = [
         return Promise.resolve({
           handled: true,
           markdownFragments,
+          resources: [
+            notebookAddress.path,
+          ],
         });
       } else {
         return Promise.resolve({
@@ -87,6 +89,12 @@ const embedHandler: LanguageHandler = {
       const result = await handler.handle(filename, handlerContext);
       if (result.handled) {
         textFragments.push(...result.markdownFragments);
+        if (result.resources) {
+          result.resources.forEach((res) => {
+            handlerContext.addResource(res);
+          });
+        }
+
         break;
       }
     }

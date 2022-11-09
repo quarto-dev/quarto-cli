@@ -185,6 +185,15 @@ async function notebookMarkdown(
     options,
   );
 
+  const notebookMarkdown = (cells: JupyterCellOutput[]) => {
+    const markdown = ["", `:::{notebook="${nbAddress.path}"}`];
+    markdown.push("");
+    markdown.push(cells.map((cell) => cell.markdown).join(""));
+    markdown.push("");
+    markdown.push(":::");
+    return markdown.join("\n");
+  };
+
   if (nbAddress.ids) {
     // If cellIds are present, filter the notebook to only include
     // those cells (cellIds can eiher be an explicitly set cellId, a label in the
@@ -199,7 +208,7 @@ async function notebookMarkdown(
         return cell;
       }
     });
-    return theCells.map((cell) => cell.markdown).join("");
+    return notebookMarkdown(theCells);
   } else if (nbAddress.indexes) {
     // Filter and sort based upon cell indexes
     const theCells = nbAddress.indexes.map((idx) => {
@@ -210,11 +219,11 @@ async function notebookMarkdown(
       }
       return cellOutputs[idx];
     });
-    return theCells.map((cell) => cell.markdown).join("");
+    return notebookMarkdown(theCells);
   } else {
     // Return all the cell outputs as there is no addtional
     // specification of cells
-    return cellOutputs.map((cell) => cell.markdown).join("");
+    return notebookMarkdown(cellOutputs);
   }
 }
 
