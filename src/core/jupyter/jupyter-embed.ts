@@ -185,6 +185,8 @@ async function notebookMarkdown(
     options,
   );
 
+  // Wrap any injected cells with a div that includes a back link to
+  // the notebook that originated the cells
   const notebookMarkdown = (cells: JupyterCellOutput[]) => {
     const markdown = ["", `:::{notebook="${nbAddress.path}"}`];
     markdown.push("");
