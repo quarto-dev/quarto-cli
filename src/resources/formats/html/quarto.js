@@ -269,11 +269,6 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       const lastChildEl = el.lastElementChild;
 
       if (lastChildEl) {
-        // Find the top and bottom o the element that is being managed
-        const elTop = el.offsetTop;
-        const elBottom =
-          elTop + lastChildEl.offsetTop + lastChildEl.offsetHeight;
-
         // Converts the sidebar to a menu
         const convertToMenu = () => {
           for (const child of el.children) {
@@ -299,7 +294,10 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
             placeholderDescriptor.titleSelector
           );
           if (titleEl) {
-            toggleTitle.append(titleEl.innerText, toggleIcon);
+            toggleTitle.append(
+              titleEl.textContent || titleEl.innerText,
+              toggleIcon
+            );
           }
           toggleTitle.classList.add("zindex-over-content");
           toggleTitle.classList.add("quarto-sidebar-toggle-title");
@@ -321,6 +319,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
           }
           toggleContents.style.height = "0px";
           toggleContainer.append(toggleContents);
+
           el.parentElement.prepend(toggleContainer);
 
           // Process clicks
@@ -398,6 +397,11 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
           convertToMenu();
           isVisible = false;
         } else {
+          // Find the top and bottom o the element that is being managed
+          const elTop = el.offsetTop;
+          const elBottom =
+            elTop + lastChildEl.offsetTop + lastChildEl.offsetHeight;
+
           if (!isVisible) {
             // If the element is current not visible reveal if there are
             // no conflicts with overlay regions
@@ -506,8 +510,9 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   const kOverlapPaddingSize = 10;
   function toRegions(els) {
     return els.map((el) => {
+      const boundRect = el.getBoundingClientRect();
       const top =
-        el.getBoundingClientRect().top +
+        boundRect.top +
         document.documentElement.scrollTop -
         kOverlapPaddingSize;
       return {
@@ -517,11 +522,45 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     });
   }
 
+  const visibleItemObserver = (els) => {
+    let visibleElements = [];
+    const intersectionObserver = new IntersectionObserver(
+      (entries, _observer) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            if (visibleElements.indexOf(entry.target) === -1) {
+              visibleElements.push(entry.target);
+            }
+          } else {
+            visibleElements = visibleElements.filter((visibleEntry) => {
+              return visibleEntry !== entry;
+            });
+          }
+        });
+      },
+      {}
+    );
+    els.forEach((el) => {
+      intersectionObserver.observe(el);
+    });
+
+    return {
+      getVisibleEntries: () => {
+        return visibleElements;
+      },
+    };
+  };
+
+  const rightElementObserver = visibleItemObserver(rightSideConflictEls);
+  const leftElementObserver = visibleItemObserver(leftSideConflictEls);
+
   const hideOverlappedSidebars = () => {
-    marginScrollVisibility(toRegions(rightSideConflictEls));
-    sidebarScrollVisiblity(toRegions(leftSideConflictEls));
+    marginScrollVisibility(toRegions(rightElementObserver.getVisibleEntries()));
+    sidebarScrollVisiblity(toRegions(leftElementObserver.getVisibleEntries()));
     if (tocLeftScrollVisibility) {
-      tocLeftScrollVisibility(toRegions(leftSideConflictEls));
+      tocLeftScrollVisibility(
+        toRegions(leftElementObserver.getVisibleEntries())
+      );
     }
   };
 
