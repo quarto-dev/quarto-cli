@@ -23,6 +23,7 @@ import {
 } from "../../config/constants.ts";
 import {
   isHtmlCompatible,
+  isHtmlOutput,
   isIpynbOutput,
   isLatexOutput,
   isMarkdownOutput,
@@ -34,6 +35,11 @@ import { JupyterAssets, JupyterCellOutput } from "../jupyter/types.ts";
 
 import { dirname, extname } from "path/mod.ts";
 import { languages } from "../handlers/base.ts";
+import {
+  extractJupyterWidgetDependencies,
+  includesForJupyterWidgetDependencies,
+} from "./widgets.ts";
+import { globalTempContext } from "../temp.ts";
 
 export interface JupyterNotebookAddress {
   path: string;
@@ -133,6 +139,7 @@ export async function replaceNotebookPlaceholders(
   markdown: string,
 ) {
   let match = kPlaceholderRegex.exec(markdown);
+  let includes;
   while (match) {
     // Find and parse the placeholders
     const nbPath = match[1];
@@ -150,6 +157,23 @@ export async function replaceNotebookPlaceholders(
         to,
       );
 
+      const notebookIncludes = () => {
+        const notebook = jupyterFromFile(nbAddress.path);
+        const dependencies = isHtmlOutput(context.format.pandoc)
+          ? extractJupyterWidgetDependencies(notebook)
+          : undefined;
+        if (dependencies) {
+          const tempDir = globalTempContext().createDir();
+          return includesForJupyterWidgetDependencies(
+            [dependencies],
+            tempDir,
+          );
+        } else {
+          return undefined;
+        }
+      };
+      includes = notebookIncludes();
+
       // Render the notebook markdown
       const nbMarkdown = await notebookMarkdown(
         nbAddress,
@@ -166,7 +190,10 @@ export async function replaceNotebookPlaceholders(
     match = kPlaceholderRegex.exec(markdown);
   }
   kPlaceholderRegex.lastIndex = 0;
-  return markdown;
+  return {
+    includes,
+    markdown,
+  };
 }
 
 async function notebookMarkdown(

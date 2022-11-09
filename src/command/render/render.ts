@@ -51,6 +51,7 @@ import {
 } from "../../core/timing.ts";
 import { filesDirMediabagDir } from "./render-paths.ts";
 import { replaceNotebookPlaceholders } from "../../core/jupyter/jupyter-embed.ts";
+import { kIncludeAfterBody, kIncludeInHeader } from "../../config/constants.ts";
 
 export async function renderPandoc(
   file: ExecutedFile,
@@ -105,7 +106,7 @@ export async function renderPandoc(
   ensureDirSync(join(dirname(context.target.source), mediabagDir));
 
   // Process any placeholder for notebooks that have been injected
-  const markdown = await replaceNotebookPlaceholders(
+  const notebookResult = await replaceNotebookPlaceholders(
     format.pandoc.to || "html",
     context.target.source,
     context,
@@ -113,9 +114,25 @@ export async function renderPandoc(
     executeResult.markdown,
   );
 
+  // Map notebook includes to pandoc includes
+  const pandocIncludes: PandocIncludes = {
+    [kIncludeAfterBody]: notebookResult.includes?.afterBody
+      ? [notebookResult.includes?.afterBody]
+      : undefined,
+    [kIncludeInHeader]: notebookResult.includes?.inHeader
+      ? [notebookResult.includes?.inHeader]
+      : undefined,
+  };
+
+  // Inject dependencies
+  format.pandoc = mergePandocIncludes(
+    format.pandoc,
+    pandocIncludes,
+  );
+
   // pandoc options
   const pandocOptions: PandocOptions = {
-    markdown,
+    markdown: notebookResult.markdown,
     source: context.target.source,
     output: recipe.output,
     keepYaml: recipe.keepYaml,
