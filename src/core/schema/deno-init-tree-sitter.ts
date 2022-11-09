@@ -7,12 +7,15 @@
 *
 */
 
-import { resourcePath } from "../../resources.ts";
+import { resourcePath } from "../resources.ts";
 
 //@ts-ignore: importing from .js makes type-script unhappy
-import { setWasmBinaryFile, TreeSitter } from "../external/tree-sitter-deno.js";
-import { setMainPath } from "../yaml-intelligence/paths.ts";
-import { setTreeSitter } from "../yaml-intelligence/parsing.ts";
+import {
+  setWasmBinaryFile,
+  TreeSitter,
+} from "../lib/external/tree-sitter-deno.js";
+import { setMainPath } from "../lib/yaml-intelligence/paths.ts";
+import { setTreeSitter } from "../lib/yaml-intelligence/parsing.ts";
 
 export async function initTreeSitter() {
   // run standard initialization...
