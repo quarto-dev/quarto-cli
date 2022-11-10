@@ -211,7 +211,8 @@ export function bookPandocRenderer(
         }
 
         // perform the render
-        renderedFiles.push(await renderPandoc(file, quiet));
+        const renderCompletion = await renderPandoc(file, quiet);
+        renderedFiles.push(await renderCompletion.complete());
 
         // accumulate executed files for single file formats
       } else {
@@ -300,7 +301,8 @@ async function renderSingleFileBook(
   );
 
   // do pandoc render
-  const renderedFile = await renderPandoc(executedFile, quiet);
+  const renderCompletion = await renderPandoc(executedFile, quiet);
+  const renderedFile = await renderCompletion.complete();
 
   // cleanup step for each executed file
   files.forEach((file) => {

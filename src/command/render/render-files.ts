@@ -42,7 +42,7 @@ import { ojsExecuteResult } from "../../execute/ojs/compile.ts";
 import { ExecuteResult, MappedExecuteResult } from "../../execute/types.ts";
 import { kProjectLibDir, ProjectContext } from "../../project/types.ts";
 import { outputRecipe } from "./output.ts";
-import { renderPandoc } from "./render.ts";
+import { PandocRenderCompletion, renderPandoc } from "./render.ts";
 import { renderContexts } from "./render-contexts.ts";
 import { renderProgress } from "./render-info.ts";
 import {
@@ -530,7 +530,7 @@ function defaultPandocRenderer(
   _options: RenderOptions,
   _project?: ProjectContext,
 ): PandocRenderer {
-  const renderedFiles: RenderedFile[] = [];
+  const renderCompletions: PandocRenderCompletion[] = [];
 
   return {
     onBeforeExecute: (_format: Format) => ({}),
@@ -540,9 +540,13 @@ function defaultPandocRenderer(
       executedFile: ExecutedFile,
       quiet: boolean,
     ) => {
-      renderedFiles.push(await renderPandoc(executedFile, quiet));
+      renderCompletions.push(await renderPandoc(executedFile, quiet));
     },
     onComplete: async () => {
+      const renderedFiles = [];
+      for (const renderCompletion of renderCompletions) {
+        renderedFiles.push(await renderCompletion.complete());
+      }
       return {
         files: await Promise.resolve(renderedFiles),
       };

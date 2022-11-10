@@ -53,10 +53,14 @@ import { filesDirMediabagDir } from "./render-paths.ts";
 import { replaceNotebookPlaceholders } from "../../core/jupyter/jupyter-embed.ts";
 import { kIncludeAfterBody, kIncludeInHeader } from "../../config/constants.ts";
 
+export interface PandocRenderCompletion {
+  complete: () => Promise<RenderedFile>;
+}
+
 export async function renderPandoc(
   file: ExecutedFile,
   quiet: boolean,
-): Promise<RenderedFile> {
+): Promise<PandocRenderCompletion> {
   // alias options
   const { context, recipe, executeResult, resourceFiles } = file;
 
@@ -159,161 +163,168 @@ export async function renderPandoc(
     return Promise.reject();
   }
 
-  pushTiming("render-postprocessor");
-  // run optional post-processor (e.g. to restore html-preserve regions)
-  if (executeResult.postProcess) {
-    await withTimingAsync("engine-postprocess", async () => {
-      return await context.engine.postprocess({
-        engine: context.engine,
-        target: context.target,
-        format,
-        output: recipe.output,
-        tempDir: context.options.services.temp.createDir(),
-        projectDir: context.project?.dir,
-        preserve: executeResult.preserve,
-        quiet: context.options.flags?.quiet,
+  return {
+    complete: async () => {
+      pushTiming("render-postprocessor");
+      // run optional post-processor (e.g. to restore html-preserve regions)
+      if (executeResult.postProcess) {
+        await withTimingAsync("engine-postprocess", async () => {
+          return await context.engine.postprocess({
+            engine: context.engine,
+            target: context.target,
+            format,
+            output: recipe.output,
+            tempDir: context.options.services.temp.createDir(),
+            projectDir: context.project?.dir,
+            preserve: executeResult.preserve,
+            quiet: context.options.flags?.quiet,
+          });
+        });
+      }
+
+      // run html postprocessors if we have them
+      const canHtmlPostProcess = isHtmlFileOutput(format.pandoc);
+      if (!canHtmlPostProcess && pandocResult.htmlPostprocessors.length > 0) {
+        const postProcessorNames = pandocResult.htmlPostprocessors.map((p) =>
+          p.name
+        ).join(", ");
+        const msg =
+          `Attempt to HTML post process non HTML output using: ${postProcessorNames}`;
+        throw new Error(msg);
+      }
+      const htmlPostProcessors = canHtmlPostProcess
+        ? pandocResult.htmlPostprocessors
+        : [];
+      const htmlFinalizers = canHtmlPostProcess
+        ? pandocResult.htmlFinalizers || []
+        : [];
+
+      const htmlPostProcessResult = await runHtmlPostprocessors(
+        pandocResult.inputMetadata,
+        pandocResult.inputTraits,
+        pandocOptions,
+        htmlPostProcessors,
+        htmlFinalizers,
+      );
+
+      // Compute the path to the output file
+      const outputFile = isAbsolute(pandocOptions.output)
+        ? pandocOptions.output
+        : join(dirname(pandocOptions.source), pandocOptions.output);
+
+      // run generic postprocessors
+      if (pandocResult.postprocessors) {
+        for (const postprocessor of pandocResult.postprocessors) {
+          await postprocessor(outputFile);
+        }
+      }
+
+      let finalOutput: string;
+      let selfContained: boolean;
+
+      await withTimingAsync("postprocess-selfcontained", async () => {
+        // ensure flags
+        const flags = context.options.flags || {};
+
+        // call complete handler (might e.g. run latexmk to complete the render)
+        finalOutput = await recipe.complete(pandocOptions) || recipe.output;
+
+        // determine whether this is self-contained output
+        selfContained = isSelfContainedOutput(
+          flags,
+          format,
+          finalOutput,
+        );
+
+        // If this is self-contained, run pandoc to 'suck in' the dependencies
+        // which may have been added in the post processor
+        if (selfContained && isHtmlFileOutput(format.pandoc)) {
+          await pandocIngestSelfContainedContent(outputFile);
+        }
       });
-    });
-  }
 
-  // run html postprocessors if we have them
-  const canHtmlPostProcess = isHtmlFileOutput(format.pandoc);
-  if (!canHtmlPostProcess && pandocResult.htmlPostprocessors.length > 0) {
-    const postProcessorNames = pandocResult.htmlPostprocessors.map((p) =>
-      p.name
-    ).join(", ");
-    const msg =
-      `Attempt to HTML post process non HTML output using: ${postProcessorNames}`;
-    throw new Error(msg);
-  }
-  const htmlPostProcessors = canHtmlPostProcess
-    ? pandocResult.htmlPostprocessors
-    : [];
-  const htmlFinalizers = canHtmlPostProcess
-    ? pandocResult.htmlFinalizers || []
-    : [];
+      // compute the relative path to the files dir
+      let filesDir: string | undefined = inputFilesDir(context.target.source);
+      // undefine it if it doesn't exist
+      filesDir = existsSync(join(dirname(context.target.source), filesDir))
+        ? filesDir
+        : undefined;
 
-  const htmlPostProcessResult = await runHtmlPostprocessors(
-    pandocResult.inputMetadata,
-    pandocResult.inputTraits,
-    pandocOptions,
-    htmlPostProcessors,
-    htmlFinalizers,
-  );
-
-  // Compute the path to the output file
-  const outputFile = isAbsolute(pandocOptions.output)
-    ? pandocOptions.output
-    : join(dirname(pandocOptions.source), pandocOptions.output);
-
-  // run generic postprocessors
-  if (pandocResult.postprocessors) {
-    for (const postprocessor of pandocResult.postprocessors) {
-      await postprocessor(outputFile);
-    }
-  }
-
-  let finalOutput: string;
-  let selfContained: boolean;
-
-  await withTimingAsync("postprocess-selfcontained", async () => {
-    // ensure flags
-    const flags = context.options.flags || {};
-
-    // call complete handler (might e.g. run latexmk to complete the render)
-    finalOutput = await recipe.complete(pandocOptions) || recipe.output;
-
-    // determine whether this is self-contained output
-    selfContained = isSelfContainedOutput(
-      flags,
-      format,
-      finalOutput,
-    );
-
-    // If this is self-contained, run pandoc to 'suck in' the dependencies
-    // which may have been added in the post processor
-    if (selfContained && isHtmlFileOutput(format.pandoc)) {
-      await pandocIngestSelfContainedContent(outputFile);
-    }
-  });
-
-  // compute the relative path to the files dir
-  let filesDir: string | undefined = inputFilesDir(context.target.source);
-  // undefine it if it doesn't exist
-  filesDir = existsSync(join(dirname(context.target.source), filesDir))
-    ? filesDir
-    : undefined;
-
-  // add any injected libs to supporting
-  let supporting = filesDir ? executeResult.supporting : undefined;
-  if (filesDir && isHtmlFileOutput(format.pandoc)) {
-    const filesDirAbsolute = join(dirname(context.target.source), filesDir);
-    if (
-      existsSync(filesDirAbsolute) &&
-      (!supporting || !supporting.includes(filesDirAbsolute))
-    ) {
-      const filesLibs = join(dirname(context.target.source), context.libDir);
+      // add any injected libs to supporting
+      let supporting = filesDir ? executeResult.supporting : undefined;
+      if (filesDir && isHtmlFileOutput(format.pandoc)) {
+        const filesDirAbsolute = join(dirname(context.target.source), filesDir);
+        if (
+          existsSync(filesDirAbsolute) &&
+          (!supporting || !supporting.includes(filesDirAbsolute))
+        ) {
+          const filesLibs = join(
+            dirname(context.target.source),
+            context.libDir,
+          );
+          if (
+            existsSync(filesLibs) &&
+            (!supporting || !supporting.includes(filesLibs))
+          ) {
+            supporting = supporting || [];
+            supporting.push(filesLibs);
+          }
+        }
+      }
       if (
-        existsSync(filesLibs) &&
-        (!supporting || !supporting.includes(filesLibs))
+        htmlPostProcessResult.supporting &&
+        htmlPostProcessResult.supporting.length > 0
       ) {
         supporting = supporting || [];
-        supporting.push(filesLibs);
+        supporting.push(...htmlPostProcessResult.supporting);
       }
-    }
-  }
-  if (
-    htmlPostProcessResult.supporting &&
-    htmlPostProcessResult.supporting.length > 0
-  ) {
-    supporting = supporting || [];
-    supporting.push(...htmlPostProcessResult.supporting);
-  }
 
-  withTiming("render-cleanup", () =>
-    renderCleanup(
-      context.target.input,
-      finalOutput!,
-      format,
-      selfContained! ? supporting : undefined,
-      executionEngineKeepMd(context.target.input),
-    ));
+      withTiming("render-cleanup", () =>
+        renderCleanup(
+          context.target.input,
+          finalOutput!,
+          format,
+          selfContained! ? supporting : undefined,
+          executionEngineKeepMd(context.target.input),
+        ));
 
-  // if there is a project context then return paths relative to the project
-  const projectPath = (path: string) => {
-    if (context.project) {
-      if (isAbsolute(path)) {
-        return relative(
-          Deno.realPathSync(context.project.dir),
-          Deno.realPathSync(path),
-        );
-      } else {
-        return relative(
-          Deno.realPathSync(context.project.dir),
-          Deno.realPathSync(join(dirname(context.target.source), path)),
-        );
-      }
-    } else {
-      return path;
-    }
-  };
-  popTiming();
+      // if there is a project context then return paths relative to the project
+      const projectPath = (path: string) => {
+        if (context.project) {
+          if (isAbsolute(path)) {
+            return relative(
+              Deno.realPathSync(context.project.dir),
+              Deno.realPathSync(path),
+            );
+          } else {
+            return relative(
+              Deno.realPathSync(context.project.dir),
+              Deno.realPathSync(join(dirname(context.target.source), path)),
+            );
+          }
+        } else {
+          return path;
+        }
+      };
+      popTiming();
 
-  return {
-    input: projectPath(context.target.source),
-    markdown: executeResult.markdown,
-    format,
-    supporting: supporting
-      ? supporting.filter(existsSync).map((file: string) =>
-        context.project ? relative(context.project.dir, file) : file
-      )
-      : undefined,
-    file: projectPath(finalOutput!),
-    resourceFiles: {
-      globs: pandocResult.resources,
-      files: resourceFiles.concat(htmlPostProcessResult.resources),
+      return {
+        input: projectPath(context.target.source),
+        markdown: executeResult.markdown,
+        format,
+        supporting: supporting
+          ? supporting.filter(existsSync).map((file: string) =>
+            context.project ? relative(context.project.dir, file) : file
+          )
+          : undefined,
+        file: projectPath(finalOutput!),
+        resourceFiles: {
+          globs: pandocResult.resources,
+          files: resourceFiles.concat(htmlPostProcessResult.resources),
+        },
+        selfContained: selfContained!,
+      };
     },
-    selfContained: selfContained!,
   };
 }
 
