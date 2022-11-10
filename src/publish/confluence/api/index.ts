@@ -64,8 +64,8 @@ export class ConfluenceClient {
     );
   }
 
-  public updateContent(id: string, content: ContentUpdate): Promise<Content> {
-    return this.put<Content>(`content/${id}`, JSON.stringify(content));
+  public updateContent(content: ContentUpdate): Promise<Content> {
+    return this.put<Content>(`content/${content.id}`, JSON.stringify(content));
   }
 
   private get = <T>(path: string): Promise<T> => this.fetch<T>("GET", path);

@@ -231,6 +231,7 @@ async function publish(
   ): Promise<Content> => {
     const previousPage = await client.getContent(publishRecordId);
     const toUpdate: ContentUpdate = {
+      id: publishRecordId,
       version: getNextVersion(previousPage),
       title: `${title}`,
       type: PAGE_TYPE,
@@ -239,7 +240,7 @@ async function publish(
       body,
     };
 
-    return await client.updateContent(publishRecordId, toUpdate);
+    return await client.updateContent(toUpdate);
   };
 
   const uniquifyTitle = async (title: string) => {
@@ -259,7 +260,6 @@ async function publish(
     const createTitle = await uniquifyTitle(title);
 
     const result = await client.createContent({
-      id: null,
       title: createTitle,
       type: PAGE_TYPE,
       space,
@@ -313,7 +313,6 @@ async function publish(
   const publishSite = async (): Promise<[PublishRecord, URL | undefined]> => {
     const parentId: string = parent?.parent ?? "";
     const existingSite: SitePage[] = await fetchExistingSite(parentId);
-    console.log("existingSite", existingSite);
 
     const publishFiles: PublishFiles = await renderSite(render);
     const metadataByInput: Record<string, InputMetadata> =
@@ -346,7 +345,8 @@ async function publish(
     const changeList: ConfluenceSpaceChange[] = fileMetadataToSpaceChanges(
       fileMetadata,
       parent,
-      space
+      space,
+      existingSite
     );
 
     const spaceChanges = (

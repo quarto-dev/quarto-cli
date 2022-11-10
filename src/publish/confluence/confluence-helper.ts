@@ -193,7 +193,7 @@ export const filterFilesForUpdate = (allFiles: string[]): string[] => {
 export const isContentCreate = (
   content: ContentCreate | ContentUpdate
 ): content is ContentCreate => {
-  return (content as ContentCreate).id !== undefined;
+  return (content as ContentUpdate).id === undefined;
 };
 
 export const buildContentCreate = (
@@ -207,7 +207,6 @@ export const buildContentCreate = (
   type: string = PAGE_TYPE
 ): ContentCreate => {
   return {
-    id,
     title,
     type,
     space,
@@ -221,12 +220,14 @@ export const buildContentCreate = (
 export const fileMetadataToSpaceChanges = (
   fileMetadataList: SiteFileMetadata[],
   parent: ConfluenceParent,
-  space: Space
+  space: Space,
+  existingSite: SitePage[] = []
 ): ConfluenceSpaceChange[] => {
   const spaceChangesCallback = (
     accumulatedChanges: ConfluenceSpaceChange[],
     fileMetadata: SiteFileMetadata
   ): ConfluenceSpaceChange[] => {
+    console.log("existingSite", existingSite);
     const content = buildContentCreate(
       fileMetadata.title,
       space,

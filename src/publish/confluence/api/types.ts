@@ -76,24 +76,22 @@ export type ContentBody = {
   };
 };
 
-export type ContentUpdate = {
-  version: ContentVersion | null;
+export type ContentChange = {
   title: string | null;
   type: string;
-  status: ContentStatus;
-  ancestors: ContentAncestor[] | null;
-  body: ContentBody;
-};
-
-export type ContentCreate = {
-  id: string | null;
-  title: string | null;
-  type: string;
-  space: Space;
   status: ContentStatus;
   ancestors: ContentAncestor[] | null;
   body: ContentBody;
   fileName?: string;
+};
+
+export type ContentUpdate = ContentChange & {
+  id: string | null;
+  version: ContentVersion | null;
+};
+
+export type ContentCreate = ContentChange & {
+  space: Space;
 };
 
 export type Content = {
