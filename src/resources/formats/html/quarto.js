@@ -259,6 +259,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
 
   const manageSidebarVisiblity = (el, placeholderDescriptor) => {
     let isVisible = true;
+    let elRect;
 
     return (hiddenRegions) => {
       if (el === null) {
@@ -276,104 +277,107 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
             child.style.overflow = "hidden";
           }
 
-          const toggleContainer = window.document.createElement("div");
-          toggleContainer.style.width = "100%";
-          toggleContainer.classList.add("zindex-over-content");
-          toggleContainer.classList.add("quarto-sidebar-toggle");
-          toggleContainer.classList.add("headroom-target"); // Marks this to be managed by headeroom
-          toggleContainer.id = placeholderDescriptor.id;
-          toggleContainer.style.position = "fixed";
+          nexttick(() => {
+            const toggleContainer = window.document.createElement("div");
+            toggleContainer.style.width = "100%";
+            toggleContainer.classList.add("zindex-over-content");
+            toggleContainer.classList.add("quarto-sidebar-toggle");
+            toggleContainer.classList.add("headroom-target"); // Marks this to be managed by headeroom
+            toggleContainer.id = placeholderDescriptor.id;
+            toggleContainer.style.position = "fixed";
 
-          const toggleIcon = window.document.createElement("i");
-          toggleIcon.classList.add("quarto-sidebar-toggle-icon");
-          toggleIcon.classList.add("bi");
-          toggleIcon.classList.add("bi-caret-down-fill");
+            const toggleIcon = window.document.createElement("i");
+            toggleIcon.classList.add("quarto-sidebar-toggle-icon");
+            toggleIcon.classList.add("bi");
+            toggleIcon.classList.add("bi-caret-down-fill");
 
-          const toggleTitle = window.document.createElement("div");
-          const titleEl = window.document.body.querySelector(
-            placeholderDescriptor.titleSelector
-          );
-          if (titleEl) {
-            toggleTitle.append(
-              titleEl.textContent || titleEl.innerText,
-              toggleIcon
+            const toggleTitle = window.document.createElement("div");
+            const titleEl = window.document.body.querySelector(
+              placeholderDescriptor.titleSelector
             );
-          }
-          toggleTitle.classList.add("zindex-over-content");
-          toggleTitle.classList.add("quarto-sidebar-toggle-title");
-          toggleContainer.append(toggleTitle);
-
-          const toggleContents = window.document.createElement("div");
-          toggleContents.classList = el.classList;
-          toggleContents.classList.add("zindex-over-content");
-          toggleContents.classList.add("quarto-sidebar-toggle-contents");
-          for (const child of el.children) {
-            if (child.id === "toc-title") {
-              continue;
+            if (titleEl) {
+              toggleTitle.append(
+                titleEl.textContent || titleEl.innerText,
+                toggleIcon
+              );
             }
+            toggleTitle.classList.add("zindex-over-content");
+            toggleTitle.classList.add("quarto-sidebar-toggle-title");
+            toggleContainer.append(toggleTitle);
 
-            const clone = child.cloneNode(true);
-            clone.style.opacity = 1;
-            clone.style.display = null;
-            toggleContents.append(clone);
-          }
-          toggleContents.style.height = "0px";
-          toggleContainer.append(toggleContents);
+            const toggleContents = window.document.createElement("div");
+            toggleContents.classList = el.classList;
+            toggleContents.classList.add("zindex-over-content");
+            toggleContents.classList.add("quarto-sidebar-toggle-contents");
+            for (const child of el.children) {
+              if (child.id === "toc-title") {
+                continue;
+              }
 
-          el.parentElement.prepend(toggleContainer);
-
-          // Process clicks
-          let tocShowing = false;
-          // Allow the caller to control whether this is dismissed
-          // when it is clicked (e.g. sidebar navigation supports
-          // opening and closing the nav tree, so don't dismiss on click)
-          const clickEl = placeholderDescriptor.dismissOnClick
-            ? toggleContainer
-            : toggleTitle;
-
-          const closeToggle = () => {
-            if (tocShowing) {
-              toggleContainer.classList.remove("expanded");
-              toggleContents.style.height = "0px";
-              tocShowing = false;
+              const clone = child.cloneNode(true);
+              clone.style.opacity = 1;
+              clone.style.display = null;
+              toggleContents.append(clone);
             }
-          };
+            toggleContents.style.height = "0px";
+            const positionToggle = () => {
+              // position the element (top left of parent, same width as parent)
+              if (!elRect) {
+                elRect = el.getBoundingClientRect();
+              }
+              toggleContainer.style.left = `${elRect.left}px`;
+              toggleContainer.style.top = `${elRect.top}px`;
+              toggleContainer.style.width = `${elRect.width}px`;
+            };
+            positionToggle();
 
-          const positionToggle = () => {
-            // position the element (top left of parent, same width as parent)
-            const elRect = el.getBoundingClientRect();
-            toggleContainer.style.left = `${elRect.left}px`;
-            toggleContainer.style.top = `${elRect.top}px`;
-            toggleContainer.style.width = `${elRect.width}px`;
-          };
+            toggleContainer.append(toggleContents);
+            el.parentElement.prepend(toggleContainer);
 
-          // Get rid of any expanded toggle if the user scrolls
-          window.document.addEventListener(
-            "scroll",
-            throttle(() => {
-              closeToggle();
-            }, 50)
-          );
+            // Process clicks
+            let tocShowing = false;
+            // Allow the caller to control whether this is dismissed
+            // when it is clicked (e.g. sidebar navigation supports
+            // opening and closing the nav tree, so don't dismiss on click)
+            const clickEl = placeholderDescriptor.dismissOnClick
+              ? toggleContainer
+              : toggleTitle;
 
-          // Handle positioning of the toggle
-          window.addEventListener(
-            "resize",
-            throttle(() => {
-              positionToggle();
-            }, 50)
-          );
-          positionToggle();
+            const closeToggle = () => {
+              if (tocShowing) {
+                toggleContainer.classList.remove("expanded");
+                toggleContents.style.height = "0px";
+                tocShowing = false;
+              }
+            };
 
-          // Process the click
-          clickEl.onclick = () => {
-            if (!tocShowing) {
-              toggleContainer.classList.add("expanded");
-              toggleContents.style.height = null;
-              tocShowing = true;
-            } else {
-              closeToggle();
-            }
-          };
+            // Get rid of any expanded toggle if the user scrolls
+            window.document.addEventListener(
+              "scroll",
+              throttle(() => {
+                closeToggle();
+              }, 50)
+            );
+
+            // Handle positioning of the toggle
+            window.addEventListener(
+              "resize",
+              throttle(() => {
+                positionToggle();
+              }, 50)
+            );
+
+            // Process the click
+            clickEl.onclick = () => {
+              if (!tocShowing) {
+                toggleContainer.classList.add("expanded");
+                toggleContents.style.height = null;
+                tocShowing = true;
+              } else {
+                closeToggle();
+              }
+            };
+          });
         };
 
         // Converts a sidebar from a menu back to a sidebar
