@@ -49,9 +49,9 @@ const includeHandler: LanguageHandler = {
         );
       }
 
-      const notebookAddress = parseNotebookAddress(path);
+      const notebookAddress = parseNotebookAddress(filename);
       if (notebookAddress) {
-        const placeHolder = notebookMarkdownPlaceholder(path, {});
+        const placeHolder = notebookMarkdownPlaceholder(filename, {});
         textFragments.push(placeHolder);
       } else {
         let includeSrc;

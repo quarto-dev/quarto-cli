@@ -33,13 +33,14 @@ import { resolveParams } from "../../command/render/flags.ts";
 import { RenderContext, RenderFlags } from "../../command/render/types.ts";
 import { JupyterAssets, JupyterCellOutput } from "../jupyter/types.ts";
 
-import { dirname, extname } from "path/mod.ts";
+import { dirname, extname, join } from "path/mod.ts";
 import { languages } from "../handlers/base.ts";
 import {
   extractJupyterWidgetDependencies,
   includesForJupyterWidgetDependencies,
 } from "./widgets.ts";
 import { globalTempContext } from "../temp.ts";
+import { isAbsolute } from "https://deno.land/std@0.159.0/path/win32.ts";
 
 export interface JupyterNotebookAddress {
   path: string;
@@ -158,7 +159,7 @@ export async function replaceNotebookPlaceholders(
       );
 
       const notebookIncludes = () => {
-        const notebook = jupyterFromFile(nbAddress.path);
+        const notebook = jupyterFromFile(resolveNbPath(input, nbAddress.path));
         const dependencies = isHtmlOutput(context.format.pandoc)
           ? extractJupyterWidgetDependencies(notebook)
           : undefined;
@@ -194,6 +195,14 @@ export async function replaceNotebookPlaceholders(
     includes,
     markdown,
   };
+}
+
+function resolveNbPath(input: string, path: string) {
+  if (isAbsolute(path)) {
+    return path;
+  } else {
+    return join(dirname(input), path);
+  }
 }
 
 async function notebookMarkdown(
@@ -282,7 +291,9 @@ async function getCellOutputs(
   if (!nbCache.cache[cacheKey]) {
     // Render the notebook and place it in the cache
     // Read and filter notebook
-    const notebook = jupyterFromFile(nbAddress.path);
+    const notebook = jupyterFromFile(
+      resolveNbPath(context.target.input, nbAddress.path),
+    );
     if (options) {
       notebook.cells = notebook.cells.map((cell) => {
         if (options.echo !== undefined) {
