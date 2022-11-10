@@ -708,7 +708,7 @@ export async function makeSelfContainedResources(
   wd: string,
 ) {
   const asDataURL = (
-    content: string,
+    content: ArrayBuffer | string,
     mimeType: string,
   ) => {
     const b64Src = base64Encode(content);
@@ -758,11 +758,13 @@ export async function makeSelfContainedResources(
     ...attachments.map(
       (f) => {
         const resolvedFileName = resolveResourceFilename(f, Deno.cwd());
+        const mimeType = lookup(resolvedFileName) ||
+          "application/octet-stream";
         return [
           f.filename,
           asDataURL(
-            Deno.readTextFileSync(resolvedFileName),
-            lookup(resolvedFileName)!,
+            Deno.readFileSync(resolvedFileName).buffer,
+            mimeType,
           ),
         ];
       },
