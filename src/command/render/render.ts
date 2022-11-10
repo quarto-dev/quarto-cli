@@ -20,7 +20,7 @@ import {
 import { inputFilesDir } from "../../core/render.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
 
-import { FormatPandoc } from "../../config/types.ts";
+import { Format, FormatPandoc } from "../../config/types.ts";
 import {
   executionEngine,
   executionEngineKeepMd,
@@ -31,6 +31,7 @@ import {
   HtmlPostProcessResult,
   PandocInputTraits,
   PandocOptions,
+  RenderedFormat,
 } from "./types.ts";
 import { runPandoc } from "./pandoc.ts";
 import { renderCleanup } from "./cleanup.ts";
@@ -54,7 +55,9 @@ import { replaceNotebookPlaceholders } from "../../core/jupyter/jupyter-embed.ts
 import { kIncludeAfterBody, kIncludeInHeader } from "../../config/constants.ts";
 
 export interface PandocRenderCompletion {
-  complete: () => Promise<RenderedFile>;
+  complete: (
+    outputs: RenderedFormat[],
+  ) => Promise<RenderedFile>;
 }
 
 export async function renderPandoc(
@@ -164,7 +167,7 @@ export async function renderPandoc(
   }
 
   return {
-    complete: async () => {
+    complete: async (renderedFormats: RenderedFormat[]) => {
       pushTiming("render-postprocessor");
       // run optional post-processor (e.g. to restore html-preserve regions)
       if (executeResult.postProcess) {

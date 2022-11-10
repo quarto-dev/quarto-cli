@@ -21,11 +21,14 @@ import { OutputRecipe } from "./types.ts";
 import { pdfEngine } from "../../config/pdf.ts";
 import { execProcess } from "../../core/process.ts";
 
-export type PdfGenerator = (
-  input: string,
-  format: Format,
-  pandocOptions: PandocOptions,
-) => Promise<string>;
+export interface PdfGenerator {
+  generate: (
+    input: string,
+    format: Format,
+    pandocOptions: PandocOptions,
+  ) => Promise<string>;
+  computePath: (input: string, format: Format) => string;
+}
 
 export function texToPdfOutputRecipe(
   input: string,
@@ -58,24 +61,13 @@ export function texToPdfOutputRecipe(
   // ouptut to the user's requested destination
   const complete = async (pandocOptions: PandocOptions) => {
     const input = join(inputDir, output);
-    const pdfOutput = await pdfGenerator(input, format, pandocOptions);
+    const pdfOutput = await pdfGenerator.generate(input, format, pandocOptions);
 
     // keep tex if requested
     const compileTex = join(inputDir, output);
     if (!format.render[kKeepTex]) {
       Deno.removeSync(compileTex);
     }
-
-    const normalizePath = (input: string, output: string) => {
-      if (isAbsolute(output)) {
-        return output;
-      } else {
-        return relative(
-          Deno.realPathSync(dirname(input)),
-          Deno.realPathSync(output),
-        );
-      }
-    };
 
     // copy (or write for stdout) compiled pdf to final output location
     if (finalOutput) {
@@ -111,6 +103,10 @@ export function texToPdfOutputRecipe(
     }
   };
 
+  const pdfOutput = finalOutput
+    ? finalOutput === kStdOut ? undefined : normalizePath(input, finalOutput)
+    : normalizePath(input, pdfGenerator.computePath(input, format));
+
   // tweak writer if it's pdf
   const to = format.pandoc.to === "pdf" ? pdfIntermediateTo : format.pandoc.to;
 
@@ -127,6 +123,7 @@ export function texToPdfOutputRecipe(
       },
     },
     complete,
+    finalOutput: pdfOutput,
   };
 }
 
@@ -151,7 +148,12 @@ export function contextPdfOutputRecipe(
   options: RenderOptions,
   format: Format,
 ): OutputRecipe {
-  const pdfGenerator = async (
+  const computePath = (input: string, _format: Format) => {
+    const [dir, stem] = dirAndStem(input);
+    return join(dir, stem + ".pdf");
+  };
+
+  const generate = async (
     input: string,
     format: Format,
     pandocOptions: PandocOptions,
@@ -177,8 +179,7 @@ export function contextPdfOutputRecipe(
     // run context
     const result = await execProcess({ cmd });
     if (result.success) {
-      const [dir, stem] = dirAndStem(input);
-      return join(dir, stem + ".pdf");
+      return computePath(input, format);
     } else {
       throw new Error();
     }
@@ -190,6 +191,20 @@ export function contextPdfOutputRecipe(
     options,
     format,
     "context",
-    pdfGenerator,
+    {
+      generate,
+      computePath,
+    },
   );
 }
+
+const normalizePath = (input: string, output: string) => {
+  if (isAbsolute(output)) {
+    return output;
+  } else {
+    return relative(
+      dirname(input),
+      output,
+    );
+  }
+};

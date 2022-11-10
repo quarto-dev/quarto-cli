@@ -33,7 +33,10 @@ import {
 import { Format, Metadata } from "../../../config/types.ts";
 import { isHtmlOutput } from "../../../config/format.ts";
 
-import { renderPandoc } from "../../../command/render/render.ts";
+import {
+  PandocRenderCompletion,
+  renderPandoc,
+} from "../../../command/render/render.ts";
 
 import { renderContexts } from "../../../command/render/render-contexts.ts";
 
@@ -41,6 +44,7 @@ import {
   ExecutedFile,
   RenderContext,
   RenderedFile,
+  RenderedFormat,
   RenderOptions,
 } from "../../../command/render/types.ts";
 import { outputRecipe } from "../../../command/render/output.ts";
@@ -96,6 +100,7 @@ export function bookPandocRenderer(
   // rendered files to return. some formats need to end up returning all of the individual
   // renderedFiles (e.g. html or asciidoc) and some formats will consolidate all of their
   // files into a single one (e.g. pdf or epub)
+  const renderCompletions: PandocRenderCompletion[] = [];
   const renderedFiles: RenderedFile[] = [];
 
   // accumulate executed files for formats that need deferred rendering
@@ -212,12 +217,20 @@ export function bookPandocRenderer(
 
         // perform the render
         const renderCompletion = await renderPandoc(file, quiet);
-        renderedFiles.push(await renderCompletion.complete());
-
+        renderCompletions.push(renderCompletion);
         // accumulate executed files for single file formats
       } else {
         executedFiles[format] = executedFiles[format] || [];
         executedFiles[format].push(file);
+      }
+    },
+    onPostProcess: async (
+      renderedFormats: RenderedFormat[],
+    ) => {
+      let completion = renderCompletions.pop();
+      while (completion) {
+        renderedFiles.push(await completion.complete(renderedFormats));
+        completion = renderCompletions.pop();
       }
     },
     onComplete: async (error?: boolean, quiet?: boolean) => {
@@ -302,7 +315,8 @@ async function renderSingleFileBook(
 
   // do pandoc render
   const renderCompletion = await renderPandoc(executedFile, quiet);
-  const renderedFile = await renderCompletion.complete();
+  const renderedFormats: RenderedFormat[] = [];
+  const renderedFile = await renderCompletion.complete(renderedFormats);
 
   // cleanup step for each executed file
   files.forEach((file) => {

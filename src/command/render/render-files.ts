@@ -50,6 +50,7 @@ import {
   PandocRenderer,
   RenderContext,
   RenderedFile,
+  RenderedFormat,
   RenderExecuteOptions,
   RenderFile,
   RenderFilesResult,
@@ -88,6 +89,7 @@ import {
 } from "../../core/timing.ts";
 import { satisfies } from "semver/mod.ts";
 import { quartoConfig } from "../../core/quarto.ts";
+import { registerProjectType } from "../../project/types/project-types.ts";
 
 export async function renderExecute(
   context: RenderContext,
@@ -351,6 +353,12 @@ export async function renderFiles(
         }
         executeResult.supporting.push(...results.supporting);
       };
+
+      const outputs: Array<{
+        path: string;
+        format: Format;
+      }> = [];
+
       for (const format of Object.keys(contexts)) {
         pushTiming("render-context");
         const context = ld.cloneDeep(contexts[format]) as RenderContext; // since we're going to mutate it...
@@ -388,6 +396,10 @@ export async function renderFiles(
 
           // get output recipe
           const recipe = await outputRecipe(context);
+          outputs.push({
+            path: recipe.finalOutput || recipe.output,
+            format: context.format,
+          });
 
           // determine execute options
           const executeOptions = mergeConfigs(
@@ -502,6 +514,7 @@ export async function renderFiles(
           popTiming();
         }
       }
+      await pandocRenderer.onPostProcess(outputs);
     }
 
     if (progress) {
@@ -531,10 +544,10 @@ function defaultPandocRenderer(
   _project?: ProjectContext,
 ): PandocRenderer {
   const renderCompletions: PandocRenderCompletion[] = [];
+  const renderedFiles: RenderedFile[] = [];
 
   return {
     onBeforeExecute: (_format: Format) => ({}),
-
     onRender: async (
       _format: string,
       executedFile: ExecutedFile,
@@ -542,11 +555,14 @@ function defaultPandocRenderer(
     ) => {
       renderCompletions.push(await renderPandoc(executedFile, quiet));
     },
-    onComplete: async () => {
-      const renderedFiles = [];
-      for (const renderCompletion of renderCompletions) {
-        renderedFiles.push(await renderCompletion.complete());
+    onPostProcess: async (renderedFormats: RenderedFormat[]) => {
+      let completion = renderCompletions.pop();
+      while (completion) {
+        renderedFiles.push(await completion.complete(renderedFormats));
+        completion = renderCompletions.pop();
       }
+    },
+    onComplete: async () => {
       return {
         files: await Promise.resolve(renderedFiles),
       };
