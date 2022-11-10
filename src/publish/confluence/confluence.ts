@@ -226,14 +226,15 @@ async function publish(
   const space = await client.getSpace(parent.space);
 
   const updateContent = async (
-    publishRecordId: string,
-    body: ContentBody
+    id: string,
+    body: ContentBody,
+    titleParam: string = title
   ): Promise<Content> => {
-    const previousPage = await client.getContent(publishRecordId);
+    const previousPage = await client.getContent(id);
     const toUpdate: ContentUpdate = {
-      id: publishRecordId,
+      id,
       version: getNextVersion(previousPage),
-      title: `${title}`,
+      title: `${titleParam}`,
       type: PAGE_TYPE,
       status: ContentStatusEnum.current,
       ancestors: null,
@@ -354,24 +355,30 @@ async function publish(
     ): Promise<Content>[] => {
       return changeList.map(async (change: ConfluenceSpaceChange) => {
         const doChanges = async () => {
-          const result: Content = await client.createContent(
-            change as ContentCreate
-          );
-
-          const contentPropertyResult: Content =
-            await client.createContentProperty(result.id ?? "", {
-              key: "fileName",
-              value: (change as ContentCreate).fileName,
-            });
-          return result;
+          if (isContentCreate(change)) {
+            const result: Content = await client.createContent(
+              change as ContentCreate
+            );
+            const contentPropertyResult: Content =
+              await client.createContentProperty(result.id ?? "", {
+                key: "fileName",
+                value: (change as ContentCreate).fileName,
+              });
+            return result;
+          } else {
+            return await updateContent(
+              change.id ?? "",
+              change.body,
+              change.title ?? ""
+            );
+          }
         };
+
         return await doChanges();
       });
     };
 
     const changes: Content[] = await Promise.all(spaceChanges(changeList));
-    //TODO check to see if filename is retreivable using getContentById
-
     const parentPage: Content = await client.getContent(parentId);
 
     return buildPublishRecordForContent(server, parentPage);

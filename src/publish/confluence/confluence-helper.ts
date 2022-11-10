@@ -217,6 +217,28 @@ export const buildContentCreate = (
   };
 };
 
+export const buildContentUpdate = (
+  id: string | null,
+  title: string | null,
+  body: ContentBody,
+  fileName: string,
+  parent?: string,
+  status: ContentStatusEnum = ContentStatusEnum.current,
+  type: string = PAGE_TYPE,
+  version: ContentVersion | null = null
+): ContentUpdate => {
+  return {
+    id,
+    version,
+    title,
+    type,
+    status,
+    ancestors: parent ? [{ id: parent }] : null,
+    body,
+    fileName,
+  };
+};
+
 export const fileMetadataToSpaceChanges = (
   fileMetadataList: SiteFileMetadata[],
   parent: ConfluenceParent,
@@ -227,16 +249,30 @@ export const fileMetadataToSpaceChanges = (
     accumulatedChanges: ConfluenceSpaceChange[],
     fileMetadata: SiteFileMetadata
   ): ConfluenceSpaceChange[] => {
-    console.log("existingSite", existingSite);
-    const content = buildContentCreate(
-      fileMetadata.title,
-      space,
-      fileMetadata.contentBody,
-      fileMetadata.fileName,
-      parent?.parent
+    const existingPage = existingSite.find(
+      (page: SitePage) => page?.metadata?.fileName === fileMetadata.fileName
     );
 
-    const spaceChange: ConfluenceSpaceChange = content;
+    let spaceChange: ConfluenceSpaceChange;
+
+    if (existingPage) {
+      spaceChange = buildContentUpdate(
+        existingPage.id,
+        fileMetadata.title,
+        fileMetadata.contentBody,
+        fileMetadata.fileName,
+        parent?.parent
+      );
+    } else {
+      spaceChange = buildContentCreate(
+        fileMetadata.title,
+        space,
+        fileMetadata.contentBody,
+        fileMetadata.fileName,
+        parent?.parent,
+        ContentStatusEnum.current
+      );
+    }
 
     return [...accumulatedChanges, spaceChange];
   };

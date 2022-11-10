@@ -936,12 +936,11 @@ const runFileMetadataToSpaceChanges = () => {
           },
         },
         fileName: "fake-file-name",
-        space: {
-          key: "fake-space-key",
-        },
         status: "current",
         title: "fake-title",
         type: "page",
+        id: "123456",
+        version: null,
       },
     ];
     const existingSite: SitePage[] = [
