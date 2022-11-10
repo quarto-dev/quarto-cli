@@ -29,6 +29,7 @@ import {
   ContentAncestor,
   ContentBody,
   ContentCreate,
+  ContentProperty,
   ContentStatus,
   ContentStatusEnum,
   ContentUpdate,
@@ -37,7 +38,9 @@ import {
   PublishType,
   PublishTypeEnum,
   SiteFileMetadata,
+  SitePage,
   Space,
+  WrappedContentProperty,
 } from "./api/types.ts";
 import { withSpinner } from "../../core/console.ts";
 import {
@@ -52,6 +55,7 @@ import {
   isContentCreate,
   isNotFound,
   isUnauthorized,
+  mergeSitePages,
   tokenFilterOut,
   transformAtlassianDomain,
   validateEmail,
@@ -288,7 +292,29 @@ async function publish(
     return buildPublishRecordForContent(server, content);
   };
 
+  const fetchExistingSite = async (parentId: string): Promise<any> => {
+    const shallowSite: Content = await client.getPagesFromParent(parentId);
+    const contentProperties = await Promise.all(
+      shallowSite.descendants.page.results.map((page: any) =>
+        client.getContentProperty(page.id ?? "")
+      )
+    );
+    const contentPropertyResults: ContentProperty[][] = contentProperties.map(
+      (wrappedContentProperty: WrappedContentProperty) =>
+        wrappedContentProperty.results
+    );
+    const sitePageList: SitePage[] = mergeSitePages(
+      shallowSite?.descendants?.page?.results,
+      contentPropertyResults
+    );
+    return sitePageList;
+  };
+
   const publishSite = async (): Promise<[PublishRecord, URL | undefined]> => {
+    const parentId: string = parent?.parent ?? "";
+    const existingSite: SitePage[] = await fetchExistingSite(parentId);
+    console.log("existingSite", existingSite);
+
     const publishFiles: PublishFiles = await renderSite(render);
     const metadataByInput: Record<string, InputMetadata> =
       publishFiles.metadataByInput ?? {};
@@ -327,14 +353,25 @@ async function publish(
       changeList: ConfluenceSpaceChange[]
     ): Promise<Content>[] => {
       return changeList.map(async (change: ConfluenceSpaceChange) => {
-        return await client.createContent(change as ContentCreate);
+        const doChanges = async () => {
+          const result: Content = await client.createContent(
+            change as ContentCreate
+          );
+
+          const contentPropertyResult: Content =
+            await client.createContentProperty(result.id ?? "", {
+              key: "fileName",
+              value: (change as ContentCreate).fileName,
+            });
+          return result;
+        };
+        return await doChanges();
       });
     };
 
     const changes: Content[] = await Promise.all(spaceChanges(changeList));
     //TODO check to see if filename is retreivable using getContentById
 
-    const parentId: string = parent?.parent ?? "";
     const parentPage: Content = await client.getContent(parentId);
 
     return buildPublishRecordForContent(server, parentPage);

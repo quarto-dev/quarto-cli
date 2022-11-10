@@ -34,6 +34,17 @@ export class ConfluenceClient {
     return this.get<Content>(`content/${id}`);
   }
 
+  public getContentProperty(id: string): Promise<Content> {
+    return this.get<Content>(`content/${id}/property`);
+  }
+
+  public getPagesFromParent(
+    id: string,
+    expand = ["descendants.page"]
+  ): Promise<Content> {
+    return this.get<Content>(`content/${id}?expand=${expand}`);
+  }
+
   public async isTitleInSpace(title: string, space: Space): Promise<boolean> {
     const cqlContext =
       "%7B%22contentStatuses%22%3A%5B%22archived%22%2C%20%22current%22%2C%20%22draft%22%5D%7D"; //{"contentStatuses":["archived", "current", "draft"]}
@@ -44,6 +55,13 @@ export class ConfluenceClient {
 
   public createContent(content: ContentCreate): Promise<Content> {
     return this.post<Content>("content", JSON.stringify(content));
+  }
+
+  public createContentProperty(id: string, content: any): Promise<Content> {
+    return this.post<Content>(
+      `content/${id}/property`,
+      JSON.stringify(content)
+    );
   }
 
   public updateContent(id: string, content: ContentUpdate): Promise<Content> {

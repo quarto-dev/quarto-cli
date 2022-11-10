@@ -17,6 +17,7 @@ import {
   getTitle,
   isNotFound,
   isUnauthorized,
+  mergeSitePages,
   tokenFilterOut,
   transformAtlassianDomain,
   validateEmail,
@@ -38,9 +39,11 @@ import {
   ContentBody,
   ContentCreate,
   ContentStatusEnum,
+  ContentSummary,
   ContentVersion,
   PAGE_TYPE,
   SiteFileMetadata,
+  SitePage,
   Space,
 } from "../../src/publish/confluence/api/types.ts";
 
@@ -57,6 +60,7 @@ const buildFakeContent = (): Content => {
       number: 1,
     },
     ancestors: null,
+    descendants: null,
     body: {
       storage: {
         value: "fake-body",
@@ -775,3 +779,150 @@ const runGetTitle = () => {
   });
 };
 runGetTitle();
+
+const runMergeSitePages = () => {
+  const suiteLabel = (label: string) => `MergeSitePages_${label}`;
+
+  unitTest(suiteLabel("basic_valid"), async () => {
+    const shallowPages: ContentSummary[] = [
+      {
+        id: "123",
+        title: "fake-title",
+      },
+    ];
+    const contentProperties = [
+      [
+        {
+          key: "fake-key",
+          value: "fake-value",
+        },
+      ],
+    ];
+    const expected: SitePage[] = [
+      {
+        id: "123",
+        metadata: {
+          ["fake-key"]: "fake-value",
+        },
+      },
+    ];
+    const result = mergeSitePages(shallowPages, contentProperties);
+    assertEquals(expected, result);
+  });
+
+  unitTest(suiteLabel("basic_valid_2props"), async () => {
+    const shallowPages: ContentSummary[] = [
+      {
+        id: "123",
+        title: "fake-title",
+      },
+    ];
+    const contentProperties = [
+      [
+        {
+          key: "fake-key",
+          value: "fake-value",
+        },
+        {
+          key: "fake-key2",
+          value: "fake-value2",
+        },
+      ],
+    ];
+    const expected: SitePage[] = [
+      {
+        id: "123",
+        metadata: {
+          ["fake-key"]: "fake-value",
+          ["fake-key2"]: "fake-value2",
+        },
+      },
+    ];
+    const result = mergeSitePages(shallowPages, contentProperties);
+    assertEquals(expected, result);
+  });
+
+  unitTest(suiteLabel("multiple_valid"), async () => {
+    const shallowPages: ContentSummary[] = [
+      {
+        id: "123",
+        title: "fake-title",
+      },
+      {
+        id: "456",
+        title: "fake-title2",
+      },
+    ];
+    const contentProperties = [
+      [
+        {
+          key: "fake-key",
+          value: "fake-value",
+        },
+      ],
+      [
+        {
+          key: "fake-key2",
+          value: "fake-value2",
+        },
+        {
+          key: "fake-key3",
+          value: "fake-value3",
+        },
+      ],
+    ];
+    const expected: SitePage[] = [
+      {
+        id: "123",
+        metadata: {
+          ["fake-key"]: "fake-value",
+        },
+      },
+      {
+        id: "456",
+        metadata: {
+          ["fake-key2"]: "fake-value2",
+          ["fake-key3"]: "fake-value3",
+        },
+      },
+    ];
+    const result = mergeSitePages(shallowPages, contentProperties);
+    assertEquals(expected, result);
+  });
+
+  unitTest(suiteLabel("not_matching"), async () => {
+    const shallowPages: ContentSummary[] = [
+      {
+        id: "123",
+        title: "fake-title",
+      },
+      {
+        id: "456",
+        title: "fake-title2",
+      },
+    ];
+    const contentProperties = [
+      [
+        {
+          key: "fake-key",
+          value: "fake-value",
+        },
+      ],
+    ];
+    const expected: SitePage[] = [
+      {
+        id: "123",
+        metadata: {
+          ["fake-key"]: "fake-value",
+        },
+      },
+      {
+        id: "456",
+        metadata: {},
+      },
+    ];
+    const result = mergeSitePages(shallowPages, contentProperties);
+    assertEquals(expected, result);
+  });
+};
+runMergeSitePages();

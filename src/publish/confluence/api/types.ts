@@ -104,7 +104,17 @@ export type Content = {
   space: Space | null;
   version: ContentVersion | null;
   ancestors: ContentAncestor[] | null;
+  descendants: any | null;
   body: ContentBody;
+};
+
+export type WrappedContentProperty = {
+  results: ContentProperty[];
+};
+
+export type ContentProperty = {
+  key: string;
+  value: string | number;
 };
 
 export type LongTask = {
@@ -140,4 +150,14 @@ export type SiteFileMetadata = {
   fileName: string;
   title: string;
   contentBody: ContentBody;
+};
+
+export type ContentSummary = {
+  id: string | null;
+  title: string | null;
+};
+
+export type SitePage = {
+  id: string;
+  metadata: Record<string, any>;
 };

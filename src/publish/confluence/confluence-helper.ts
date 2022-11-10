@@ -9,12 +9,15 @@ import {
   ContentBody,
   ContentBodyRepresentation,
   ContentCreate,
+  ContentProperty,
   ContentStatusEnum,
+  ContentSummary,
   ContentUpdate,
   ContentVersion,
   EMPTY_PARENT,
   PAGE_TYPE,
   SiteFileMetadata,
+  SitePage,
   Space,
 } from "./api/types.ts";
 import { withSpinner } from "../../core/console.ts";
@@ -255,4 +258,33 @@ export const getTitle = (
   const titleFromFilename = capitalizeWord(fileName.split(".")[0] ?? fileName);
   const title = metadataTitle ?? titleFromFilename;
   return title;
+};
+
+const flattenMetadata = (list: ContentProperty[] = []): Record<string, any> => {
+  const result: Record<string, any> = list.reduce(
+    (accumulator: any, currentValue: ContentProperty) => {
+      const updated: any = accumulator;
+      updated[currentValue.key] = currentValue.value;
+      return updated;
+    },
+    {}
+  );
+
+  return result;
+};
+
+export const mergeSitePages = (
+  shallowPages: ContentSummary[] = [],
+  contentProperties: ContentProperty[][] = []
+): SitePage[] => {
+  const result: SitePage[] = shallowPages.map(
+    (contentSummary: ContentSummary, index) => {
+      const sitePage: SitePage = {
+        id: contentSummary.id ?? "",
+        metadata: flattenMetadata(contentProperties[index]),
+      };
+      return sitePage;
+    }
+  );
+  return result;
 };
