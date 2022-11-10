@@ -89,7 +89,6 @@ import {
 } from "../../core/timing.ts";
 import { satisfies } from "semver/mod.ts";
 import { quartoConfig } from "../../core/quarto.ts";
-import { registerProjectType } from "../../project/types/project-types.ts";
 
 export async function renderExecute(
   context: RenderContext,

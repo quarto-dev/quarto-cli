@@ -18,6 +18,7 @@ import {
   kLinkCitations,
   kQuartoTemplateParams,
   kSectionDivs,
+  kTitle,
   kTocDepth,
   kTocLocation,
 } from "../../config/constants.ts";
@@ -52,6 +53,7 @@ import {
   HtmlPostProcessor,
   HtmlPostProcessResult,
   PandocInputTraits,
+  RenderedFormat,
 } from "../../command/render/types.ts";
 import { processDocumentAppendix } from "./format-html-appendix.ts";
 import {
@@ -63,6 +65,7 @@ import {
 } from "./format-html-title.ts";
 import { kTemplatePartials } from "../../command/render/template.ts";
 import { TempContext } from "../../core/temp-types.ts";
+import { isHtmlOutput } from "../../config/format.ts";
 
 export function formatPageLayout(format: Format) {
   return format.metadata[kPageLayout] as string || kPageLayoutArticle;
@@ -214,8 +217,11 @@ function bootstrapHtmlPostprocessor(
 ): HtmlPostProcessor {
   return async (
     doc: Document,
-    _inputMedata: Metadata,
-    inputTraits: PandocInputTraits,
+    options: {
+      inputMetadata: Metadata;
+      inputTraits: PandocInputTraits;
+      renderedFormats: RenderedFormat[];
+    },
   ): Promise<HtmlPostProcessResult> => {
     // use display-7 style for title
     const title = doc.querySelector("header > .title");
@@ -372,12 +378,28 @@ function bootstrapHtmlPostprocessor(
     ) {
       await processDocumentAppendix(
         input,
-        inputTraits,
+        options.inputTraits,
         format,
         flags,
         doc,
         offset,
       );
+    }
+
+    // Inject links to other formats if there is another
+    // format that of this file that has been rendered
+    if (options.renderedFormats.length > 1) {
+      const el = doc.createElement("div");
+      for (const renderedFormat of options.renderedFormats) {
+        if (!isHtmlOutput(renderedFormat.format.pandoc, true)) {
+          const link = doc.createElement("a");
+          link.setAttribute("href", renderedFormat.path);
+          link.innerHTML = `${renderedFormat.format.pandoc.to}`;
+          el.appendChild(link);
+          el.appendChild(doc.createElement("br"));
+        }
+      }
+      doc.body.appendChild(el);
     }
 
     // no resource refs

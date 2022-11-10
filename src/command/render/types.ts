@@ -64,8 +64,11 @@ export interface PandocInputTraits {
 
 export type HtmlPostProcessor = (
   doc: Document,
-  inputMedata: Metadata,
-  inputTraits: PandocInputTraits,
+  options: {
+    inputMetadata: Metadata;
+    inputTraits: PandocInputTraits;
+    renderedFormats: RenderedFormat[];
+  },
 ) => Promise<HtmlPostProcessResult>;
 
 export interface HtmlPostProcessResult {
