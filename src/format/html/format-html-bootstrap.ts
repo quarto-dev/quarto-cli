@@ -18,8 +18,8 @@ import {
   kLinkCitations,
   kQuartoTemplateParams,
   kRelatedFormatsTitle,
+  kRelatedNotebooksTitle,
   kSectionDivs,
-  kTitle,
   kTocDepth,
   kTocLocation,
 } from "../../config/constants.ts";
@@ -75,6 +75,7 @@ import {
   isPdfOutput,
   isPresentationOutput,
 } from "../../config/format.ts";
+import * as ld from "../../core/lodash.ts";
 import { basename } from "path/mod.ts";
 
 export function formatPageLayout(format: Format) {
@@ -233,6 +234,9 @@ function bootstrapHtmlPostprocessor(
       renderedFormats: RenderedFormat[];
     },
   ): Promise<HtmlPostProcessResult> => {
+    // Resources used in this post processor
+    const resources: string[] = [];
+
     // use display-7 style for title
     const title = doc.querySelector("header > .title");
     if (title) {
@@ -314,78 +318,10 @@ function bootstrapHtmlPostprocessor(
 
     // Inject links to other formats if there is another
     // format that of this file that has been rendered
-    if (options.renderedFormats.length > 1) {
-      let dlLinkTarget = doc.querySelector(`nav[role="doc-toc"]`);
-      if (dlLinkTarget === null) {
-        dlLinkTarget = doc.querySelector("#quarto-margin-sidebar");
-      }
+    processAlternateFormatLinks(options, doc, format, resources);
 
-      if (dlLinkTarget) {
-        const bsIcon = (format: Format) => {
-          if (isDocxOutput(format.pandoc)) {
-            return "file-word";
-          } else if (isPdfOutput(format.pandoc)) {
-            return "file-pdf";
-          } else if (isIpynbOutput(format.pandoc)) {
-            return "journal-arrow-down";
-          } else if (isMarkdownOutput(format.pandoc)) {
-            return "file-code";
-          } else if (isPresentationOutput(format.pandoc)) {
-            return "file-slides";
-          } else {
-            return "file";
-          }
-        };
-
-        const dlName = (format: Format, path: string) => {
-          if (isIpynbOutput(format.pandoc)) {
-            return basename(path);
-          } else {
-            return undefined;
-          }
-        };
-
-        const containerEl = doc.createElement("div");
-        containerEl.classList.add("quarto-alternate-formats");
-
-        const heading = doc.createElement("h2");
-        if (format.language[kRelatedFormatsTitle]) {
-          heading.innerText = format.language[kRelatedFormatsTitle];
-        }
-        containerEl.appendChild(heading);
-
-        const formatList = doc.createElement("ul");
-
-        for (const renderedFormat of options.renderedFormats) {
-          if (!isHtmlOutput(renderedFormat.format.pandoc, true)) {
-            const li = doc.createElement("li");
-
-            const link = doc.createElement("a");
-            link.setAttribute("href", renderedFormat.path);
-            const dlAttrValue = dlName(
-              renderedFormat.format,
-              renderedFormat.path,
-            );
-            if (dlAttrValue) {
-              link.setAttribute("download", dlAttrValue);
-            }
-
-            const icon = doc.createElement("i");
-            icon.classList.add("bi");
-            icon.classList.add(`bi-${bsIcon(renderedFormat.format)}`);
-            link.appendChild(icon);
-            link.appendChild(
-              doc.createTextNode(`${renderedFormat.format.pandoc.to}`),
-            );
-
-            li.appendChild(link);
-            formatList.appendChild(li);
-          }
-        }
-        containerEl.appendChild(formatList);
-        dlLinkTarget.appendChild(containerEl);
-      }
-    }
+    // Look for included / embedded notebooks and include those
+    processNotebookEmbeds(doc, format, resources);
 
     // default treatment for computational tables
     const addTableClasses = (table: Element, computational = false) => {
@@ -447,7 +383,6 @@ function bootstrapHtmlPostprocessor(
     }
 
     // Process the title elements of this document
-    const resources: string[] = [];
     const titleResourceFiles = processDocumentTitle(
       input,
       format,
@@ -474,6 +409,152 @@ function bootstrapHtmlPostprocessor(
     // no resource refs
     return Promise.resolve({ resources, supporting: [] });
   };
+}
+
+// Provides a download name for a format/path
+const fileDownloadAttr = (format: Format, path: string) => {
+  if (isIpynbOutput(format.pandoc)) {
+    return basename(path);
+  } else {
+    return undefined;
+  }
+};
+
+// Provides an icon for a format
+const fileBsIconName = (format: Format) => {
+  if (isDocxOutput(format.pandoc)) {
+    return "file-word";
+  } else if (isPdfOutput(format.pandoc)) {
+    return "file-pdf";
+  } else if (isIpynbOutput(format.pandoc)) {
+    return "journal-arrow-down";
+  } else if (isMarkdownOutput(format.pandoc)) {
+    return "file-code";
+  } else if (isPresentationOutput(format.pandoc)) {
+    return "file-slides";
+  } else {
+    return "file";
+  }
+};
+
+function processAlternateFormatLinks(
+  options: {
+    inputMetadata: Metadata;
+    inputTraits: PandocInputTraits;
+    renderedFormats: RenderedFormat[];
+  },
+  doc: Document,
+  format: Format,
+  resources: string[],
+) {
+  if (options.renderedFormats.length > 1) {
+    let dlLinkTarget = doc.querySelector(`nav[role="doc-toc"]`);
+    if (dlLinkTarget === null) {
+      dlLinkTarget = doc.querySelector("#quarto-margin-sidebar");
+    }
+
+    if (dlLinkTarget) {
+      const containerEl = doc.createElement("div");
+      containerEl.classList.add("quarto-alternate-formats");
+
+      const heading = doc.createElement("h2");
+      if (format.language[kRelatedFormatsTitle]) {
+        heading.innerText = format.language[kRelatedFormatsTitle];
+      }
+      containerEl.appendChild(heading);
+
+      const formatList = doc.createElement("ul");
+
+      for (const renderedFormat of options.renderedFormats) {
+        if (!isHtmlOutput(renderedFormat.format.pandoc, true)) {
+          const li = doc.createElement("li");
+
+          const link = doc.createElement("a");
+          link.setAttribute("href", renderedFormat.path);
+          const dlAttrValue = fileDownloadAttr(
+            renderedFormat.format,
+            renderedFormat.path,
+          );
+          if (dlAttrValue) {
+            link.setAttribute("download", dlAttrValue);
+          }
+
+          const icon = doc.createElement("i");
+          icon.classList.add("bi");
+          icon.classList.add(`bi-${fileBsIconName(renderedFormat.format)}`);
+          link.appendChild(icon);
+          link.appendChild(
+            doc.createTextNode(`${renderedFormat.format.pandoc.to}`),
+          );
+
+          li.appendChild(link);
+          formatList.appendChild(li);
+
+          resources.push(renderedFormat.path);
+        }
+      }
+      containerEl.appendChild(formatList);
+      dlLinkTarget.appendChild(containerEl);
+    }
+  }
+}
+
+function processNotebookEmbeds(
+  doc: Document,
+  format: Format,
+  resources: string[],
+) {
+  const notebookDivNodes = doc.querySelectorAll("[data-notebook]");
+  if (notebookDivNodes.length > 0) {
+    const nbPaths: string[] = [];
+    notebookDivNodes.forEach((nbDivNode) => {
+      const nbDivEl = nbDivNode as Element;
+      const nbPath = nbDivEl.getAttribute("data-notebook");
+      if (nbPath) {
+        nbPaths.push(nbPath);
+      }
+    });
+
+    const containerEl = doc.createElement("div");
+    containerEl.classList.add("quarto-alternate-notebooks");
+
+    const heading = doc.createElement("h2");
+    if (format.language[kRelatedNotebooksTitle]) {
+      heading.innerText = format.language[kRelatedNotebooksTitle];
+    }
+    containerEl.appendChild(heading);
+
+    const formatList = doc.createElement("ul");
+    containerEl.appendChild(formatList);
+    ld.uniq(nbPaths).forEach((nbPath) => {
+      const li = doc.createElement("li");
+
+      const link = doc.createElement("a");
+      link.setAttribute("href", nbPath);
+      link.setAttribute("download", basename(nbPath));
+
+      const icon = doc.createElement("i");
+      icon.classList.add("bi");
+      icon.classList.add(`bi-journal-arrow-down`);
+      link.appendChild(icon);
+      link.appendChild(
+        doc.createTextNode(`${basename(nbPath)}`),
+      );
+
+      li.appendChild(link);
+      formatList.appendChild(li);
+
+      resources.push(nbPath);
+    });
+    let dlLinkTarget = doc.querySelector(`nav[role="doc-toc"]`);
+    if (dlLinkTarget === null) {
+      dlLinkTarget = doc.querySelector("#quarto-margin-sidebar");
+    }
+
+    if (dlLinkTarget) {
+      dlLinkTarget.appendChild(containerEl);
+    }
+  }
 }
 
 function bootstrapHtmlFinalizer(format: Format, flags: PandocFlags) {

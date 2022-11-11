@@ -977,10 +977,12 @@ td code:not(.sourceCode) {
   }
 }
 
+.quarto-alternate-notebooks i.bi,
 .quarto-alternate-formats i.bi {
   margin-right: 0.4em;
 }
 
+.sidebar .quarto-alternate-notebooks h2,
 .sidebar .quarto-alternate-formats h2,
 .sidebar nav[role="doc-toc"] > h2 {
   font-size: $toc-font-size;
@@ -993,21 +995,29 @@ td code:not(.sourceCode) {
   padding-top: 0px;
 }
 
+.sidebar .quarto-alternate-notebooks h2,
+.sidebar .quarto-alternate-formats h2 {
+  margin-top: 1rem;
+}
+
 .sidebar nav[role="doc-toc"] > ul a {
   border-left: 1px solid $toc-inactive-border;
   padding-left: 0.6rem;
 }
 
+.sidebar .quarto-alternate-notebooks h2 > ul a,
 .sidebar .quarto-alternate-formats h2 > ul a {
   border-left: none;
   padding-left: 0.6rem;
 }
 
+.sidebar .quarto-alternate-notebooks ul a:empty,
 .sidebar .quarto-alternate-formats ul a:empty,
 .sidebar nav[role="doc-toc"] > ul a:empty {
   display: none;
 }
 
+.sidebar .quarto-alternate-notebooks ul,
 .sidebar .quarto-alternate-formats ul,
 .sidebar nav[role="doc-toc"] ul {
   padding-left: 0;
@@ -1016,6 +1026,7 @@ td code:not(.sourceCode) {
   font-weight: 300;
 }
 
+.sidebar .quarto-alternate-notebooks ul li a,
 .sidebar .quarto-alternate-formats ul li a,
 .sidebar nav[role="doc-toc"] > ul li a {
   line-height: 1.1rem;
