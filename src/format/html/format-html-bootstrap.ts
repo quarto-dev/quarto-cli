@@ -17,6 +17,7 @@ import {
   kIncludeInHeader,
   kLinkCitations,
   kQuartoTemplateParams,
+  kRelatedFormatsTitle,
   kSectionDivs,
   kTitle,
   kTocDepth,
@@ -66,6 +67,14 @@ import {
 import { kTemplatePartials } from "../../command/render/template.ts";
 import { TempContext } from "../../core/temp-types.ts";
 import { isHtmlOutput } from "../../config/format.ts";
+import {
+  isDocxOutput,
+  isHtmlOutput,
+  isIpynbOutput,
+  isMarkdownOutput,
+  isPdfOutput,
+  isPresentationOutput,
+} from "../../config/format.ts";
 import { basename } from "path/mod.ts";
 
 export function formatPageLayout(format: Format) {
@@ -312,24 +321,69 @@ function bootstrapHtmlPostprocessor(
       }
 
       if (dlLinkTarget) {
+        const bsIcon = (format: Format) => {
+          if (isDocxOutput(format.pandoc)) {
+            return "file-word";
+          } else if (isPdfOutput(format.pandoc)) {
+            return "file-pdf";
+          } else if (isIpynbOutput(format.pandoc)) {
+            return "journal-arrow-down";
+          } else if (isMarkdownOutput(format.pandoc)) {
+            return "file-code";
+          } else if (isPresentationOutput(format.pandoc)) {
+            return "file-slides";
+          } else {
+            return "file";
+          }
+        };
+
+        const dlName = (format: Format, path: string) => {
+          if (isIpynbOutput(format.pandoc)) {
+            return basename(path);
+          } else {
+            return undefined;
+          }
+        };
+
+        const containerEl = doc.createElement("div");
+        containerEl.classList.add("quarto-alternate-formats");
+
         const heading = doc.createElement("h2");
-        heading.innerText = "Related";
-        dlLinkTarget.appendChild(heading);
+        if (format.language[kRelatedFormatsTitle]) {
+          heading.innerText = format.language[kRelatedFormatsTitle];
+        }
+        containerEl.appendChild(heading);
 
         const formatList = doc.createElement("ul");
 
         for (const renderedFormat of options.renderedFormats) {
           if (!isHtmlOutput(renderedFormat.format.pandoc, true)) {
             const li = doc.createElement("li");
+
             const link = doc.createElement("a");
             link.setAttribute("href", renderedFormat.path);
-            link.setAttribute("download", basename(renderedFormat.path));
-            link.innerHTML = `${renderedFormat.format.pandoc.to}`;
+            const dlAttrValue = dlName(
+              renderedFormat.format,
+              renderedFormat.path,
+            );
+            if (dlAttrValue) {
+              link.setAttribute("download", dlAttrValue);
+            }
+
+            const icon = doc.createElement("i");
+            icon.classList.add("bi");
+            icon.classList.add(`bi-${bsIcon(renderedFormat.format)}`);
+            link.appendChild(icon);
+            link.appendChild(
+              doc.createTextNode(`${renderedFormat.format.pandoc.to}`),
+            );
+
             li.appendChild(link);
             formatList.appendChild(li);
           }
         }
-        dlLinkTarget.appendChild(formatList);
+        containerEl.appendChild(formatList);
+        dlLinkTarget.appendChild(containerEl);
       }
     }
 

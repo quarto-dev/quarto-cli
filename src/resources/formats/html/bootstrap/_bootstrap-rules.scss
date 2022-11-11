@@ -977,6 +977,11 @@ td code:not(.sourceCode) {
   }
 }
 
+.quarto-alternate-formats i.bi {
+  margin-right: 0.4em;
+}
+
+.sidebar .quarto-alternate-formats h2,
 .sidebar nav[role="doc-toc"] > h2 {
   font-size: $toc-font-size;
   font-weight: 400;
@@ -993,10 +998,17 @@ td code:not(.sourceCode) {
   padding-left: 0.6rem;
 }
 
+.sidebar .quarto-alternate-formats h2 > ul a {
+  border-left: none;
+  padding-left: 0.6rem;
+}
+
+.sidebar .quarto-alternate-formats ul a:empty,
 .sidebar nav[role="doc-toc"] > ul a:empty {
   display: none;
 }
 
+.sidebar .quarto-alternate-formats ul,
 .sidebar nav[role="doc-toc"] ul {
   padding-left: 0;
   list-style: none;
@@ -1004,6 +1016,7 @@ td code:not(.sourceCode) {
   font-weight: 300;
 }
 
+.sidebar .quarto-alternate-formats ul li a,
 .sidebar nav[role="doc-toc"] > ul li a {
   line-height: 1.1rem;
   padding-bottom: 0.2rem;
