@@ -123,7 +123,7 @@ export function texToPdfOutputRecipe(
       },
     },
     complete,
-    finalOutput: pdfOutput,
+    finalOutput: pdfOutput ? relative(inputDir, pdfOutput) : undefined,
   };
 }
 
