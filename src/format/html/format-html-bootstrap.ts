@@ -66,6 +66,7 @@ import {
 import { kTemplatePartials } from "../../command/render/template.ts";
 import { TempContext } from "../../core/temp-types.ts";
 import { isHtmlOutput } from "../../config/format.ts";
+import { basename } from "https://deno.land/std@0.159.0/path/win32.ts";
 
 export function formatPageLayout(format: Format) {
   return format.metadata[kPageLayout] as string || kPageLayoutArticle;
@@ -302,6 +303,36 @@ function bootstrapHtmlPostprocessor(
       tocTarget?.remove();
     }
 
+    // Inject links to other formats if there is another
+    // format that of this file that has been rendered
+    if (options.renderedFormats.length > 1) {
+      let dlLinkTarget = doc.querySelector(`nav[role="doc-toc"]`);
+      if (dlLinkTarget === null) {
+        dlLinkTarget = doc.querySelector("#quarto-margin-sidebar");
+      }
+
+      if (dlLinkTarget) {
+        const heading = doc.createElement("h2");
+        heading.innerText = "Related";
+        dlLinkTarget.appendChild(heading);
+
+        const formatList = doc.createElement("ul");
+
+        for (const renderedFormat of options.renderedFormats) {
+          if (!isHtmlOutput(renderedFormat.format.pandoc, true)) {
+            const li = doc.createElement("li");
+            const link = doc.createElement("a");
+            link.setAttribute("href", renderedFormat.path);
+            link.setAttribute("download", basename(renderedFormat.path));
+            link.innerHTML = `${renderedFormat.format.pandoc.to}`;
+            li.appendChild(link);
+            formatList.appendChild(li);
+          }
+        }
+        dlLinkTarget.appendChild(formatList);
+      }
+    }
+
     // default treatment for computational tables
     const addTableClasses = (table: Element, computational = false) => {
       table.classList.add("table");
@@ -384,22 +415,6 @@ function bootstrapHtmlPostprocessor(
         doc,
         offset,
       );
-    }
-
-    // Inject links to other formats if there is another
-    // format that of this file that has been rendered
-    if (options.renderedFormats.length > 1) {
-      const el = doc.createElement("div");
-      for (const renderedFormat of options.renderedFormats) {
-        if (!isHtmlOutput(renderedFormat.format.pandoc, true)) {
-          const link = doc.createElement("a");
-          link.setAttribute("href", renderedFormat.path);
-          link.innerHTML = `${renderedFormat.format.pandoc.to}`;
-          el.appendChild(link);
-          el.appendChild(doc.createElement("br"));
-        }
-      }
-      doc.body.appendChild(el);
     }
 
     // no resource refs
