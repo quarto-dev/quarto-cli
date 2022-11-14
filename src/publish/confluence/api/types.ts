@@ -76,7 +76,14 @@ export type ContentBody = {
   };
 };
 
+export enum ContentChangeType {
+  create = "create",
+  update = "update",
+  delete = "delete",
+}
+
 export type ContentChange = {
+  contentChangeType: ContentChangeType;
   title: string | null;
   type: string;
   status: ContentStatus;
@@ -93,6 +100,13 @@ export type ContentUpdate = ContentChange & {
 export type ContentCreate = ContentChange & {
   space: Space;
 };
+
+export type ContentDelete = {
+  contentChangeType: ContentChangeType;
+  id: string;
+};
+
+export type SpaceChangeResult = Content | null;
 
 export type Content = {
   id: string | null;
@@ -142,7 +156,10 @@ export type ContentArray = {
   _links: GenericLinks;
 };
 
-export type ConfluenceSpaceChange = ContentCreate | ContentUpdate;
+export type ConfluenceSpaceChange =
+  | ContentCreate
+  | ContentUpdate
+  | ContentDelete;
 
 export type SiteFileMetadata = {
   fileName: string;

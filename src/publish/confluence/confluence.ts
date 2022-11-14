@@ -1,6 +1,10 @@
+//FIXME uniqify added to file names on second rotation with no changes
+
 //TODO only update if changed
-//TODO Diff existing
 //TODO Resource bundles
+
+//TODO JJ Question - do we delete manually added?
+
 import { join } from "path/mod.ts";
 import { generate as generateUuid } from "uuid/v4.ts";
 import { Input, Secret } from "cliffy/prompt/mod.ts";
@@ -26,11 +30,10 @@ import {
   ConfluenceParent,
   ConfluenceSpaceChange,
   Content,
-  ContentAncestor,
   ContentBody,
+  ContentChangeType,
   ContentCreate,
   ContentProperty,
-  ContentStatus,
   ContentStatusEnum,
   ContentUpdate,
   PAGE_TYPE,
@@ -39,20 +42,21 @@ import {
   PublishTypeEnum,
   SiteFileMetadata,
   SitePage,
-  Space,
+  SpaceChangeResult,
   WrappedContentProperty,
 } from "./api/types.ts";
 import { withSpinner } from "../../core/console.ts";
 import {
-  buildContentCreate,
   buildPublishRecordForContent,
   confluenceParentFromString,
   doWithSpinner,
-  fileMetadataToSpaceChanges,
+  buildSpaceChanges,
   filterFilesForUpdate,
   getNextVersion,
   getTitle,
   isContentCreate,
+  isContentDelete,
+  isContentUpdate,
   isNotFound,
   isUnauthorized,
   mergeSitePages,
@@ -71,7 +75,6 @@ import {
   verifyConfluenceParent,
   verifyLocation,
 } from "./confluence-verify.ts";
-import { capitalizeWord } from "../../core/text.ts";
 
 export const CONFLUENCE_ID = "confluence";
 
@@ -232,6 +235,7 @@ async function publish(
   ): Promise<Content> => {
     const previousPage = await client.getContent(id);
     const toUpdate: ContentUpdate = {
+      contentChangeType: ContentChangeType.update,
       id,
       version: getNextVersion(previousPage),
       title: `${titleParam}`,
@@ -261,6 +265,7 @@ async function publish(
     const createTitle = await uniquifyTitle(title);
 
     const result = await client.createContent({
+      contentChangeType: ContentChangeType.create,
       title: createTitle,
       type: PAGE_TYPE,
       space,
@@ -343,7 +348,7 @@ async function publish(
       filteredFiles.map(assembleSiteFileMetadata)
     );
 
-    const changeList: ConfluenceSpaceChange[] = fileMetadataToSpaceChanges(
+    const changeList: ConfluenceSpaceChange[] = buildSpaceChanges(
       fileMetadata,
       parent,
       space,
@@ -352,7 +357,7 @@ async function publish(
 
     const spaceChanges = (
       changeList: ConfluenceSpaceChange[]
-    ): Promise<Content>[] => {
+    ): Promise<SpaceChangeResult>[] => {
       return changeList.map(async (change: ConfluenceSpaceChange) => {
         const doChanges = async () => {
           if (isContentCreate(change)) {
@@ -365,12 +370,19 @@ async function publish(
                 value: (change as ContentCreate).fileName,
               });
             return result;
-          } else {
+          } else if (isContentUpdate(change)) {
+            const update = change as ContentUpdate;
             return await updateContent(
-              change.id ?? "",
-              change.body,
-              change.title ?? ""
+              update.id ?? "",
+              update.body,
+              update.title ?? ""
             );
+          } else if (isContentDelete(change)) {
+            const result = await client.deleteContent(change);
+            return result;
+          } else {
+            console.error("Space Change not defined");
+            return null;
           }
         };
 
@@ -378,7 +390,9 @@ async function publish(
       });
     };
 
-    const changes: Content[] = await Promise.all(spaceChanges(changeList));
+    const changes: SpaceChangeResult[] = await Promise.all(
+      spaceChanges(changeList)
+    );
     const parentPage: Content = await client.getContent(parentId);
 
     return buildPublishRecordForContent(server, parentPage);

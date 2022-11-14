@@ -10,7 +10,7 @@ import {
   buildContentCreate,
   buildPublishRecordForContent,
   confluenceParentFromString,
-  fileMetadataToSpaceChanges,
+  buildSpaceChanges,
   filterFilesForUpdate,
   getMessageFromAPIError,
   getNextVersion,
@@ -25,6 +25,7 @@ import {
   validateToken,
   wrapBodyForConfluence,
   writeTokenComparator,
+  findPagesToDelete,
 } from "../../src/publish/confluence/confluence-helper.ts";
 import { ApiError, PublishRecord } from "../../src/publish/types.ts";
 import {
@@ -37,6 +38,7 @@ import {
   ConfluenceSpaceChange,
   Content,
   ContentBody,
+  ContentChangeType,
   ContentCreate,
   ContentStatusEnum,
   ContentSummary,
@@ -518,6 +520,7 @@ const runBuildContentCreate = () => {
 
   unitTest(suiteLabel("minParams"), async () => {
     const expected: ContentCreate = {
+      contentChangeType: ContentChangeType.create,
       fileName: "fake-file-name",
       title: "fake-title",
       type: PAGE_TYPE,
@@ -554,6 +557,7 @@ const runBuildContentCreate = () => {
 
   unitTest(suiteLabel("allParams"), async () => {
     const expected: ContentCreate = {
+      contentChangeType: ContentChangeType.create,
       fileName: "fake-filename",
       title: "fake-title",
       type: "fake-type",
@@ -828,7 +832,7 @@ const runFileMetadataToSpaceChanges = () => {
   unitTest(suiteLabel("no_files"), async () => {
     const fileMetadataList: SiteFileMetadata[] = [];
     const expected: ConfluenceSpaceChange[] = [];
-    const actual: ConfluenceSpaceChange[] = fileMetadataToSpaceChanges(
+    const actual: ConfluenceSpaceChange[] = buildSpaceChanges(
       fileMetadataList,
       fakeParent,
       fakeSpace
@@ -840,6 +844,7 @@ const runFileMetadataToSpaceChanges = () => {
     const fileMetadataList: SiteFileMetadata[] = [fakeFile];
     const expected: ConfluenceSpaceChange[] = [
       {
+        contentChangeType: ContentChangeType.create,
         ancestors: [
           {
             id: "8781825",
@@ -860,7 +865,7 @@ const runFileMetadataToSpaceChanges = () => {
         type: "page",
       },
     ];
-    const actual: ConfluenceSpaceChange[] = fileMetadataToSpaceChanges(
+    const actual: ConfluenceSpaceChange[] = buildSpaceChanges(
       fileMetadataList,
       fakeParent,
       fakeSpace
@@ -872,6 +877,7 @@ const runFileMetadataToSpaceChanges = () => {
     const fileMetadataList: SiteFileMetadata[] = [fakeFile, fakeFile2];
     const expected: ConfluenceSpaceChange[] = [
       {
+        contentChangeType: ContentChangeType.create,
         ancestors: [
           {
             id: "8781825",
@@ -892,6 +898,7 @@ const runFileMetadataToSpaceChanges = () => {
         type: "page",
       },
       {
+        contentChangeType: ContentChangeType.create,
         ancestors: [
           {
             id: "8781825",
@@ -912,7 +919,7 @@ const runFileMetadataToSpaceChanges = () => {
         type: "page",
       },
     ];
-    const actual: ConfluenceSpaceChange[] = fileMetadataToSpaceChanges(
+    const actual: ConfluenceSpaceChange[] = buildSpaceChanges(
       fileMetadataList,
       fakeParent,
       fakeSpace
@@ -924,6 +931,7 @@ const runFileMetadataToSpaceChanges = () => {
     const fileMetadataList: SiteFileMetadata[] = [fakeFile];
     const expected: ConfluenceSpaceChange[] = [
       {
+        contentChangeType: ContentChangeType.update,
         ancestors: [
           {
             id: "8781825",
@@ -949,7 +957,76 @@ const runFileMetadataToSpaceChanges = () => {
         metadata: { fileName: "fake-file-name" },
       },
     ];
-    const actual: ConfluenceSpaceChange[] = fileMetadataToSpaceChanges(
+    const actual: ConfluenceSpaceChange[] = buildSpaceChanges(
+      fileMetadataList,
+      fakeParent,
+      fakeSpace,
+      existingSite
+    );
+    assertEquals(expected, actual);
+  });
+
+  unitTest(suiteLabel("findPagesToDelete"), async () => {
+    const fileMetadataList: SiteFileMetadata[] = [fakeFile];
+    const existingSite: SitePage[] = [
+      {
+        id: "fake-file-id",
+        metadata: { fileName: "fake-file-name" },
+      },
+      {
+        id: "delete-me-file-id",
+        metadata: { fileName: "delete-me-file-name" },
+      },
+    ];
+    const expected = [
+      {
+        id: "delete-me-file-id",
+        metadata: { fileName: "delete-me-file-name" },
+      },
+    ];
+    const actual = findPagesToDelete(fileMetadataList, existingSite);
+    assertEquals(expected, actual);
+  });
+
+  unitTest(suiteLabel("one_file_delete"), async () => {
+    const fileMetadataList: SiteFileMetadata[] = [fakeFile];
+    const existingSite: SitePage[] = [
+      {
+        id: "fake-file-id",
+        metadata: { fileName: "fake-file-name" },
+      },
+      {
+        id: "delete-me-file-id",
+        metadata: { fileName: "delete-me-file-name" },
+      },
+    ];
+    const expected: ConfluenceSpaceChange[] = [
+      {
+        id: "delete-me-file-id",
+        contentChangeType: ContentChangeType.delete,
+      },
+      {
+        contentChangeType: ContentChangeType.update,
+        ancestors: [
+          {
+            id: "8781825",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "fake-value",
+          },
+        },
+        fileName: "fake-file-name",
+        status: "current",
+        title: "fake-title",
+        type: "page",
+        id: "fake-file-id",
+        version: null,
+      },
+    ];
+    const actual: ConfluenceSpaceChange[] = buildSpaceChanges(
       fileMetadataList,
       fakeParent,
       fakeSpace,

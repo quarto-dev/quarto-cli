@@ -14,6 +14,7 @@ import {
   Content,
   ContentArray,
   ContentCreate,
+  ContentDelete,
   ContentUpdate,
   Space,
   User,
@@ -68,9 +69,18 @@ export class ConfluenceClient {
     return this.put<Content>(`content/${content.id}`, JSON.stringify(content));
   }
 
+  public deleteContent(content: ContentDelete): Promise<Content> {
+    return this.delete<Content>(`content/${content.id}`);
+  }
+
   private get = <T>(path: string): Promise<T> => this.fetch<T>("GET", path);
+
+  private delete = <T>(path: string): Promise<T> =>
+    this.fetch<T>("DELETE", path);
+
   private post = <T>(path: string, body?: BodyInit | null): Promise<T> =>
     this.fetch<T>("POST", path, body);
+
   private put = <T>(path: string, body?: BodyInit | null): Promise<T> =>
     this.fetch<T>("PUT", path, body);
 
@@ -106,7 +116,11 @@ export class ConfluenceClient {
 
   private handleResponse<T>(response: Response) {
     if (response.ok) {
-      return response.json() as unknown as T;
+      if (response.body) {
+        return response.json() as unknown as T;
+      } else {
+        return response as unknown as T;
+      }
     } else if (response.status !== 200) {
       //TODO log levels to show extended error messages
       console.error("response.status !== 200", response);

@@ -8,7 +8,9 @@ import {
   Content,
   ContentBody,
   ContentBodyRepresentation,
+  ContentChangeType,
   ContentCreate,
+  ContentDelete,
   ContentProperty,
   ContentStatusEnum,
   ContentSummary,
@@ -191,9 +193,21 @@ export const filterFilesForUpdate = (allFiles: string[]): string[] => {
 };
 
 export const isContentCreate = (
-  content: ContentCreate | ContentUpdate
+  content: ConfluenceSpaceChange
 ): content is ContentCreate => {
-  return (content as ContentUpdate).id === undefined;
+  return content.contentChangeType === ContentChangeType.create;
+};
+
+export const isContentUpdate = (
+  content: ConfluenceSpaceChange
+): content is ContentUpdate => {
+  return content.contentChangeType === ContentChangeType.update;
+};
+
+export const isContentDelete = (
+  content: ConfluenceSpaceChange
+): content is ContentDelete => {
+  return content.contentChangeType === ContentChangeType.delete;
 };
 
 export const buildContentCreate = (
@@ -207,6 +221,7 @@ export const buildContentCreate = (
   type: string = PAGE_TYPE
 ): ContentCreate => {
   return {
+    contentChangeType: ContentChangeType.create,
     title,
     type,
     space,
@@ -228,6 +243,7 @@ export const buildContentUpdate = (
   version: ContentVersion | null = null
 ): ContentUpdate => {
   return {
+    contentChangeType: ContentChangeType.update,
     id,
     version,
     title,
@@ -239,7 +255,26 @@ export const buildContentUpdate = (
   };
 };
 
-export const fileMetadataToSpaceChanges = (
+export const findPagesToDelete = (
+  fileMetadataList: SiteFileMetadata[],
+  existingSite: SitePage[] = []
+): SitePage[] => {
+  return existingSite.reduce((accumulator: SitePage[], page: SitePage) => {
+    
+    
+    if (
+      !fileMetadataList.find(
+        (file) => file.fileName === page?.metadata?.fileName ?? ""
+      )
+    ) {
+      return [...accumulator, page];
+    }
+
+    return accumulator;
+  }, []);
+};
+
+export const buildSpaceChanges = (
   fileMetadataList: SiteFileMetadata[],
   parent: ConfluenceParent,
   space: Space,
@@ -277,9 +312,20 @@ export const fileMetadataToSpaceChanges = (
     return [...accumulatedChanges, spaceChange];
   };
 
+  const pagesToDelete: SitePage[] = findPagesToDelete(
+    fileMetadataList,
+    existingSite
+  );
+
+  const deleteChanges: ContentDelete[] = pagesToDelete.map(
+    (toDelete: SitePage) => {
+      return { contentChangeType: ContentChangeType.delete, id: toDelete.id };
+    }
+  );
+
   const spaceChanges: ConfluenceSpaceChange[] = fileMetadataList.reduce(
     spaceChangesCallback,
-    []
+    deleteChanges
   );
 
   return spaceChanges;
