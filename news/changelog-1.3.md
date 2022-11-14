@@ -1,19 +1,30 @@
-## Article Layout
-
-- Improve the performance of extremely large documents with margin elements by improving the efficiency of positioning the elements.
+## Changes
 
 ## HTML Format
 
-- Improved handling of margin references that appear within a callout. (#3003)
+- Improved handling of margin references that appear within a callout. ([#3003](https://github.com/quarto-dev/quarto-cli/issues/3003))
 - Add support for customizing the baseline widths of grid columns using yaml or scss. For more information, see [https://www.quarto.org/docs/prerelease/1.3.html](https://www.quarto.org/docs/prerelease/1.3.html).
+- Fix wrapping of long `code` entries inside table cells ([#3221](https://github.com/quarto-dev/quarto-cli/issues/3221))
 
 ## Dates
 
 - Properly fall back to language only locale when a supported language-region locale isn't available. (#3059)
 
+## PDF Format
+
+- Fix wrong page number in the TOC for appendices ([#3164](https://github.com/quarto-dev/quarto-cli/issues/3164)) (Thank you, @iusgit!)
+
+## Dates
+
+- Properly fall back to language only locale when a supported language-region locale isn't available. ([#3059](https://github.com/quarto-dev/quarto-cli/issues/3059))
+
 ## About Pages
 
-- Add support for `image-alt` which provides alternate text for the about page image. (#3010)
+- Add support for `image-alt` which provides alternate text for the about page image. ([#3010](https://github.com/quarto-dev/quarto-cli/issues/3010))
+
+## Article Layout
+
+- Improve the performance of extremely large documents with margin elements by improving the efficiency of positioning the elements.
 
 ## Listings
 
@@ -22,4 +33,6 @@
 
 ## Miscellaneous
 
+- Work around pandoc strict checking of `number-offset` type. ([#3126](https://github.com/quarto-dev/quarto-cli/issues/3126))
+- Warn instead of crash on bad URI ([#3220](https://github.com/quarto-dev/quarto-cli/issues/3220))
 - ensure `video` shortcode works with `embed-resources` and `self-contained` ([#3310](https://github.com/quarto-dev/quarto-cli/issues/3310))

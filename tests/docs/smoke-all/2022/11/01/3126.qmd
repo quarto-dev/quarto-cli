@@ -1,0 +1,20 @@
+---
+title: "Title"
+author: "Author"
+format:
+  pdf:
+    number-sections: true
+    number-offset: -1
+keep-md: true
+keep-tex: true
+---
+
+## Introduction
+
+## The Methods
+
+### Loading Data
+
+### Computing methods
+
+## Results

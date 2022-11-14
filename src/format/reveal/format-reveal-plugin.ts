@@ -6,7 +6,7 @@
 */
 
 import { ensureDirSync, existsSync } from "fs/mod.ts";
-import { join } from "path/mod.ts";
+import { basename, join } from "path/mod.ts";
 import { kIncludeInHeader, kSelfContained } from "../../config/constants.ts";
 
 import { error } from "log/mod.ts";
@@ -37,7 +37,6 @@ import {
 } from "../../extension/extension-shared.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { filterExtensions } from "../../extension/extension.ts";
-import { basename } from "../../vendor/deno.land/std@0.153.0/path/win32.ts";
 
 const kRevealjsPlugins = "revealjs-plugins";
 

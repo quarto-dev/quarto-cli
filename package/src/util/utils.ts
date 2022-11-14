@@ -1,4 +1,4 @@
-import { writeAll } from "io/mod.ts";
+import { writeAll } from "streams/conversion.ts";
 import { CmdResult, runCmd } from "./cmd.ts";
 
 // Read an environment variable

@@ -37,6 +37,10 @@ end
 -- re-emits GT's CSS with lower specificity
 function respecifyGtCSS(text)
   local s, e, v = text:find('<div id="([a-z]+)"')
+  -- if gt does not emit a div, do nothing
+  if v == nil then
+    return text
+  end
   return text:gsub("\n#" .. v, "\n:where(#" .. v .. ")")
 end
 

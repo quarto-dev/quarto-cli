@@ -66,10 +66,12 @@ export async function configure(
       join(config.directoryInfo.bin, "quarto.cmd"),
     );
   } else {
+    const out = join(config.directoryInfo.bin, "quarto");
     Deno.copyFileSync(
       join(config.directoryInfo.pkg, "scripts", "common", "quarto"),
-      join(config.directoryInfo.bin, "quarto"),
+      out,
     );
+    Deno.chmodSync(out, 0o755);
   }
 
   // record dev config. These are versions as defined in the root configuration file.
