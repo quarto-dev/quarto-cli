@@ -6,7 +6,7 @@
  */
 
 import { expandGlobSync } from "fs/mod.ts";
-import { testQuartoCmd } from "../test.ts";
+import { testQuartoCmd, Verify } from "../test.ts";
 
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../src/core/schema/utils.ts";
 import {
@@ -17,7 +17,15 @@ import {
 import { breakQuartoMd } from "../../src/core/lib/break-quarto-md.ts";
 import { parse } from "encoding/yaml.ts";
 import { cleanoutput } from "./render/render.ts";
-import { noErrorsOrWarnings } from "../verify.ts";
+import {
+  ensureDocxRegexMatches,
+  ensureFileRegexMatches,
+  ensureHtmlElements,
+  noErrors,
+  noErrorsOrWarnings,
+} from "../verify.ts";
+import { readYamlFromMarkdown } from "../../src/core/yaml.ts";
+import { outputForInput } from "../utils.ts";
 
 async function fullInit() {
   await initYamlIntelligenceResourcesFromFilesystem();
@@ -52,21 +60,99 @@ async function guessFormat(fileName: string): Promise<string[]> {
   return Array.from(formats);
 }
 
-for (
-  const { path: fileName } of expandGlobSync(
+//deno-lint-ignore no-explicit-any
+function hasTestSpecs(metadata: any): boolean {
+  return metadata?.["_quarto"]?.["tests"] != undefined;
+}
+
+interface QuartoInlineTestSpec {
+  format: string;
+  verifyFns: Verify[];
+}
+
+function resolveTestSpecs(
+  input: string,
+  // deno-lint-ignore no-explicit-any
+  metadata: Record<string, any>,
+): QuartoInlineTestSpec[] {
+  const specs = metadata["_quarto"]["tests"];
+
+  const result = [];
+  // deno-lint-ignore no-explicit-any
+  const verifyMap: Record<string, any> = {
+    ensureHtmlElements,
+    ensureFileRegexMatches,
+    ensureDocxRegexMatches,
+  };
+
+  for (const [format, testObj] of Object.entries(specs)) {
+    let checkWarnings = true;
+    const verifyFns: Verify[] = [];
+    if (testObj) {
+      for (
+        // deno-lint-ignore no-explicit-any
+        const [key, value] of Object.entries(testObj as Record<string, any>)
+      ) {
+        if (key === "noErrors") {
+          console.log("NO ERRORS!!!");
+          checkWarnings = false;
+          verifyFns.push(noErrors);
+        } else {
+          if (verifyMap[key]) {
+            const outputFile = outputForInput(input, format);
+            verifyFns.push(verifyMap[key](outputFile.outputPath, ...value));
+          }
+        }
+      }
+    }
+    if (checkWarnings) {
+      console.log("added no errors or warnings");
+      verifyFns.push(noErrorsOrWarnings);
+    }
+
+    result.push({
+      format,
+      verifyFns,
+    });
+  }
+  return result;
+}
+
+const globOutput = Deno.args.length
+  ? expandGlobSync(Deno.args[0])
+  : expandGlobSync(
     "docs/smoke-all/**/*.qmd",
-  )
+  );
+
+for (
+  const { path: fileName } of globOutput
 ) {
   const input = fileName;
 
-  const formats = await guessFormat(input);
+  const metadata = readYamlFromMarkdown(Deno.readTextFileSync(input));
+  const testSpecs = [];
 
-  if (formats.length == 0) {
-    formats.push("html");
+  if (hasTestSpecs(metadata)) {
+    testSpecs.push(...resolveTestSpecs(input, metadata));
+  } else {
+    const formats = await guessFormat(input);
+
+    if (formats.length == 0) {
+      formats.push("html");
+    }
+    for (const format of formats) {
+      testSpecs.push({ format: format, verifyFns: [noErrorsOrWarnings] });
+    }
   }
 
-  for (const format of formats) {
-    testQuartoCmd("render", [input, "--to", format], [noErrorsOrWarnings], {
+  for (const testSpec of testSpecs) {
+    const {
+      format,
+      verifyFns,
+      //deno-lint-ignore no-explicit-any
+    } = testSpec as any;
+
+    testQuartoCmd("render", [input, "--to", format], verifyFns, {
       prereq: async () => {
         setInitializer(fullInit);
         await initState();
