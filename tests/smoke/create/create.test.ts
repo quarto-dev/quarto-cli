@@ -6,10 +6,8 @@
 */
 
 import { execProcess } from "../../../src/core/process.ts";
-import { CreateResult } from "../../../src/command/create/cmd.ts";
-
 import { join } from "path/mod.ts";
-
+import { CreateResult } from "../../../src/command/create/cmd.ts";
 import { assert } from "testing/asserts.ts";
 
 const kCreateTypes: Record<string, string[]> = {
