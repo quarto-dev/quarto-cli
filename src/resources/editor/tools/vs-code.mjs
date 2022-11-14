@@ -10139,6 +10139,10 @@ var require_yaml_intelligence_resources = __commonJS({
                   }
                 }
               },
+              "template-params": {
+                schema: "object",
+                description: "Parameters that are passed to the custom template."
+              },
               fields: {
                 arrayOf: "string",
                 description: {

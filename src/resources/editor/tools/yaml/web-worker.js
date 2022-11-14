@@ -10140,6 +10140,10 @@ try {
                     }
                   }
                 },
+                "template-params": {
+                  schema: "object",
+                  description: "Parameters that are passed to the custom template."
+                },
                 fields: {
                   arrayOf: "string",
                   description: {
