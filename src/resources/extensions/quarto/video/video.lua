@@ -77,7 +77,7 @@ local youTubeBuilder = function(params)
   local YOUTUBE_EMBED = 'https://www.youtube.com/embed/'
   params.src = YOUTUBE_EMBED .. match
 
-  local SNIPPET = [[<iframe src="{src}{start}"{width}{height} title="{title}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>]]
+  local SNIPPET = [[<iframe data-external="1" src="{src}{start}"{width}{height} title="{title}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>]]
   snippet = replaceCommonAttributes(SNIPPET, params)
 
   local result = {}
