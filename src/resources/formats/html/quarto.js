@@ -363,9 +363,14 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
             window.addEventListener(
               "resize",
               throttle(() => {
+                elRect = undefined;
                 positionToggle();
               }, 50)
             );
+
+            window.addEventListener("quarto-hrChanged", () => {
+              elRect = undefined;
+            });
 
             // Process the click
             clickEl.onclick = () => {
