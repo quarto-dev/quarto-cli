@@ -96,6 +96,8 @@
         gutter-width:
           string:
             description: "The width of the gutter that appears between columns in an HTML page."
+  description:
+    short: "Properties of the grid system used to layout Quarto HTML pages."
 
 - name: appendix-style
   schema:
