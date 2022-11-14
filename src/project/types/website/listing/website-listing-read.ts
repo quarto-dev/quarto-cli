@@ -583,9 +583,13 @@ async function readContents(
           const yaml = readYaml(file);
           if (Array.isArray(yaml)) {
             const items = yaml as Array<unknown>;
-            items.forEach((item) => {
+            for (const item of items) {
               if (typeof (item) === "object") {
-                const listingItem = listItemFromMeta(item as Metadata);
+                const listingItem = await listItemFromMeta(
+                  item as Metadata,
+                  project,
+                  listing,
+                );
                 validateItem(listing, listingItem, (field: string) => {
                   return `An item from the file '${file}' is missing the required field '${field}'.`;
                 });
@@ -596,9 +600,13 @@ async function readContents(
                   `Unexpected listing contents in file ${file}. The array may only contain listing items, not paths or other types of data.`,
                 );
               }
-            });
+            }
           } else if (typeof (yaml) === "object") {
-            const listingItem = listItemFromMeta(yaml as Metadata);
+            const listingItem = await listItemFromMeta(
+              yaml as Metadata,
+              project,
+              listing,
+            );
             validateItem(listing, listingItem, (field: string) => {
               return `The item defined in file '${file}' is missing the required field '${field}'.`;
             });
@@ -634,14 +642,14 @@ async function readContents(
 
   // Process any metadata that appears in contents
   if (contentMetadatas.length > 0) {
-    contentMetadatas.forEach((content) => {
-      const listingItem = listItemFromMeta(content);
+    for (const content of contentMetadatas) {
+      const listingItem = await listItemFromMeta(content, project, listing);
       validateItem(listing, listingItem, (field: string) => {
         return `An item in the listing '${listing.id}' is missing the required field '${field}'.`;
       });
       listingItemSources.add(ListingItemSource.metadata);
       listingItems.push(listingItem);
-    });
+    }
   }
 
   return {
@@ -679,14 +687,35 @@ function validateItem(
   }
 }
 
-function listItemFromMeta(meta: Metadata) {
-  const listingItem = cloneDeep(meta);
+async function listItemFromMeta(
+  meta: Metadata,
+  project: ProjectContext,
+  listing: ListingDehydrated,
+) {
+  let listingItem = cloneDeep(meta);
 
   // If there is a path, try to complete the filename and
   // modified values
-  if (meta.path !== undefined) {
-    meta[kFieldFileName] = basename(meta.path as string);
-    meta[kFieldFileModified] = fileModifiedDate(meta.path as string);
+  if (typeof meta.path === "string") {
+    const base = basename(meta.path);
+    const extension = extname(base).toLocaleLowerCase();
+    meta[kFieldFileName] = base;
+    meta[kFieldFileModified] = fileModifiedDate(meta.path);
+
+    const markdownExtensions = [".qmd", ".md", ".rmd"];
+    if (markdownExtensions.indexOf(extension) !== -1) {
+      const fileListing = await listItemFromFile(meta.path, project, listing);
+      if (fileListing === undefined) {
+        warning(
+          `Draft document ${meta.path} found in a custom listing: item will not have computed metadata.`,
+        );
+      } else {
+        listingItem = {
+          ...(fileListing.item || {}),
+          ...listingItem,
+        };
+      }
+    }
   }
 
   if (meta.author) {
