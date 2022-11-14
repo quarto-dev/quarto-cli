@@ -4,6 +4,10 @@
 
 - Improve the performance of extremely large documents with margin elements by improving the efficiency of positioning the elements.
 
+## HTML Format
+
+- Improved handling of margin references that appear within a callout. (#3003)
+
 ## Dates
 
 - Properly fall back to language only locale when a supported language-region locale isn't available. (#3059)
