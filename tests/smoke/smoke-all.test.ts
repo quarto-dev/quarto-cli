@@ -94,7 +94,6 @@ function resolveTestSpecs(
         const [key, value] of Object.entries(testObj as Record<string, any>)
       ) {
         if (key === "noErrors") {
-          console.log("NO ERRORS!!!");
           checkWarnings = false;
           verifyFns.push(noErrors);
         } else {
@@ -106,7 +105,6 @@ function resolveTestSpecs(
       }
     }
     if (checkWarnings) {
-      console.log("added no errors or warnings");
       verifyFns.push(noErrorsOrWarnings);
     }
 
