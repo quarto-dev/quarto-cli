@@ -10,17 +10,12 @@ import { Document, Element } from "../../core/deno-dom.ts";
 import { kPageWidth } from "../../config/constants.ts";
 import { Format } from "../../config/types.ts";
 import { Metadata } from "../../config/types.ts";
-import { resourcePath } from "../../core/resources.ts";
 
 import { HtmlPostProcessResult } from "./types.ts";
 import { hasAdaptiveTheme } from "../../quarto-core/text-highlighting.ts";
 import { kHtmlEmptyPostProcessResult } from "./constants.ts";
 
 const kAdaptiveTextHighlighting = "adaptive-text-highlighting";
-
-export function layoutFilter() {
-  return resourcePath("filters/layout/layout.lua");
-}
 
 export function layoutFilterParams(format: Format) {
   const params: Metadata = {};

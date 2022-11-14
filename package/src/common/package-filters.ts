@@ -26,18 +26,22 @@ export function buildFilter(
     return "";
   }).trimStart();
 
+  const importSrcs = [];
   // append imports to src
   const importRe = /^import\("(.*)?"\)$/gm;
   let match = importRe.exec(imports);
   while (match) {
     const importFilePath = join(filterDir, match[1]);
+    console.log(`Inlining ${match[1]} from ${importFilePath}`);
     let importSrc = Deno.readTextFileSync(importFilePath);
     if (!importSrc.endsWith("\n")) {
       importSrc += "\n";
     }
-    src = `${importSrc}\n` + src;
+    importSrcs.push(importSrc);
     match = importRe.exec(imports);
   }
+  importSrcs.push(src);
+  src = importSrcs.join("");
 
   // write src to dist
   info(`Writing inlined file ${output}`);

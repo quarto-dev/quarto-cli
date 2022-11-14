@@ -13,44 +13,35 @@ function import(script)
   dofile(path .. script)
 end
 
-import("../common/pandoc.lua")
-import("../common/string.lua")
-import("../common/table.lua")
-import("../common/lunacolors.lua")
-import("../common/log.lua")
-import("../common/base64.lua")
-import("../common/meta.lua")
-import("../common/debug.lua")
-import("../common/authors.lua")
-import("../common/citations.lua")
-import("../common/license.lua")
 -- [/import]
 
-return {
-  {
-    Meta = function(meta)
-      -- normalizes the author/affiliation metadata
-      local normalized = processAuthorMeta(meta)
+function normalizeFilter() 
+  return {
+    {
+      Meta = function(meta)
+        -- normalizes the author/affiliation metadata
+        local normalized = processAuthorMeta(meta)
 
-      -- normalizes the citation metadata
-      normalized = processCitationMeta(normalized)
+        -- normalizes the citation metadata
+        normalized = processCitationMeta(normalized)
 
-      -- normalizes the license metadata
-      normalized = processLicenseMeta(normalized)
+        -- normalizes the license metadata
+        normalized = processLicenseMeta(normalized)
 
-      -- for JATs, forward keywords or categories to tags
-      if _quarto.format.isJatsOutput() then
-        if normalized.tags == nil then
-          if normalized.keywords ~= nil then
-            normalized.tags = normalized.keywords
-          elseif meta.categories ~= nil then
-            normalized.tags = normalized.categories
+        -- for JATs, forward keywords or categories to tags
+        if _quarto.format.isJatsOutput() then
+          if normalized.tags == nil then
+            if normalized.keywords ~= nil then
+              normalized.tags = normalized.keywords
+            elseif meta.categories ~= nil then
+              normalized.tags = normalized.categories
+            end
           end
         end
-      end
 
-      return normalized
-    end
+        return normalized
+      end
+    }
   }
-}
+end
 
