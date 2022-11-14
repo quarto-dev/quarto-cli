@@ -66,7 +66,6 @@ import {
 } from "./format-html-title.ts";
 import { kTemplatePartials } from "../../command/render/template.ts";
 import { TempContext } from "../../core/temp-types.ts";
-import { isHtmlOutput } from "../../config/format.ts";
 import {
   isDocxOutput,
   isHtmlOutput,
