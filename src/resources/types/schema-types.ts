@@ -71,6 +71,10 @@ export type NavigationItemObject = {
 See <https://icons.getbootstrap.com/> for a list of available icons */;
   id?: string;
   menu?: (NavigationItem)[];
+  rel?:
+    string /* Value for rel attribute. Multiple space-separated values are permitted.
+See <https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel>
+for a details. */;
   text?: string /* Text to display for item (defaults to the
 document title if not provided) */;
   url?: string; /* Alias for href */
