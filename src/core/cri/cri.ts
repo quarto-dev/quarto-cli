@@ -111,7 +111,7 @@ export async function criClient(appPath?: string, port?: number) {
     rawClient: () => client,
 
     open: async (url: string) => {
-      client = await cdp();
+      client = await cdp({ port });
       const { Network, Page } = client;
       await Network.enable();
       await Page.enable();
