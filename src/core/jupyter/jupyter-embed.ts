@@ -41,6 +41,7 @@ import {
 } from "./widgets.ts";
 import { globalTempContext } from "../temp.ts";
 import { isAbsolute } from "path/mod.ts";
+import { partitionMarkdown } from "../pandoc/pandoc-partition.ts";
 
 export interface JupyterNotebookAddress {
   path: string;
@@ -58,7 +59,7 @@ export interface JupyterMarkdownOptions
 interface JupyterNotebookOutputCache extends ObjectWithLifetime {
   cache: Record<
     string,
-    { outputs: JupyterCellOutput[] }
+    { outputs: JupyterCellOutput[]; title?: string }
   >;
 }
 
@@ -213,7 +214,7 @@ async function notebookMarkdown(
   options?: JupyterMarkdownOptions,
 ) {
   // Get the cell outputs for this notebook
-  const cellOutputs = await getCellOutputs(
+  const notebookInfo = await getCachedNotebookInfo(
     nbAddress,
     assets,
     context,
@@ -223,8 +224,13 @@ async function notebookMarkdown(
 
   // Wrap any injected cells with a div that includes a back link to
   // the notebook that originated the cells
-  const notebookMarkdown = (cells: JupyterCellOutput[]) => {
-    const markdown = ["", `:::{notebook="${nbAddress.path}"}`];
+  const notebookMarkdown = (cells: JupyterCellOutput[], title?: string) => {
+    const markdown = [
+      "",
+      `:::{notebook="${nbAddress.path}" ${
+        title ? `notebook-title="${title}"` : ""
+      }}`,
+    ];
     markdown.push("");
     markdown.push(cells.map((cell) => cell.markdown).join(""));
     markdown.push("");
@@ -237,7 +243,7 @@ async function notebookMarkdown(
     // those cells (cellIds can eiher be an explicitly set cellId, a label in the
     // cell metadata, or a tag on a cell that matches an id)
     const theCells = nbAddress.ids.map((id) => {
-      const cell = cellForId(id, cellOutputs);
+      const cell = cellForId(id, notebookInfo.outputs);
       if (cell === undefined) {
         throw new Error(
           `The cell ${id} does not exist in notebook`,
@@ -246,26 +252,26 @@ async function notebookMarkdown(
         return cell;
       }
     });
-    return notebookMarkdown(theCells);
+    return notebookMarkdown(theCells, notebookInfo.title);
   } else if (nbAddress.indexes) {
     // Filter and sort based upon cell indexes
     const theCells = nbAddress.indexes.map((idx) => {
-      if (idx < 0 || idx >= cellOutputs.length) {
+      if (idx < 0 || idx >= notebookInfo.outputs.length) {
         throw new Error(
           `The cell index ${idx} isn't within the range of cells`,
         );
       }
-      return cellOutputs[idx];
+      return notebookInfo.outputs[idx];
     });
-    return notebookMarkdown(theCells);
+    return notebookMarkdown(theCells, notebookInfo.title);
   } else {
     // Return all the cell outputs as there is no addtional
     // specification of cells
-    return notebookMarkdown(cellOutputs);
+    return notebookMarkdown(notebookInfo.outputs, notebookInfo.title);
   }
 }
 
-async function getCellOutputs(
+async function getCachedNotebookInfo(
   nbAddress: JupyterNotebookAddress,
   assets: JupyterAssets,
   context: RenderContext,
@@ -347,11 +353,26 @@ async function getCellOutputs(
       },
     );
 
+    // Compute the notebook title
+    const title = findTitle(result.cellOutputs);
+
     // Place the outputs in the cache
-    nbCache.cache[cacheKey] = { outputs: result.cellOutputs };
+    nbCache.cache[cacheKey] = { outputs: result.cellOutputs, title };
     lifetime.attach(nbCache, kNotebookCache);
   }
-  return nbCache.cache[cacheKey].outputs;
+  return nbCache.cache[cacheKey];
+}
+
+function findTitle(cells: JupyterCellOutput[]) {
+  for (const cell of cells) {
+    const partitioned = partitionMarkdown(cell.markdown);
+    if (partitioned.yaml?.title) {
+      return partitioned.yaml.title as string;
+    } else if (partitioned.headingText) {
+      return partitioned.headingText;
+    }
+  }
+  return undefined;
 }
 
 function notebookCacheKey(

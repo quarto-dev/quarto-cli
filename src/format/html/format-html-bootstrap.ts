@@ -505,12 +505,15 @@ function processNotebookEmbeds(
 ) {
   const notebookDivNodes = doc.querySelectorAll("[data-notebook]");
   if (notebookDivNodes.length > 0) {
-    const nbPaths: string[] = [];
+    const nbPaths: { path: string; title: string | null }[] = [];
     notebookDivNodes.forEach((nbDivNode) => {
       const nbDivEl = nbDivNode as Element;
       const nbPath = nbDivEl.getAttribute("data-notebook");
       if (nbPath) {
-        nbPaths.push(nbPath);
+        nbPaths.push({
+          path: nbPath,
+          title: nbDivEl.getAttribute("data-notebook-title"),
+        });
       }
     });
 
@@ -525,25 +528,28 @@ function processNotebookEmbeds(
 
     const formatList = doc.createElement("ul");
     containerEl.appendChild(formatList);
-    ld.uniq(nbPaths).forEach((nbPath) => {
+    ld.uniqBy(nbPaths, (nbPath: { path: string; title?: string }) => {
+      return nbPath.path;
+    }).forEach((nbPath) => {
+      const filename = basename(nbPath.path);
       const li = doc.createElement("li");
 
       const link = doc.createElement("a");
-      link.setAttribute("href", nbPath);
-      link.setAttribute("download", basename(nbPath));
+      link.setAttribute("href", nbPath.path);
+      link.setAttribute("download", filename);
 
       const icon = doc.createElement("i");
       icon.classList.add("bi");
       icon.classList.add(`bi-journal-arrow-down`);
       link.appendChild(icon);
       link.appendChild(
-        doc.createTextNode(`${basename(nbPath)}`),
+        doc.createTextNode(`${nbPath.title || filename}`),
       );
 
       li.appendChild(link);
       formatList.appendChild(li);
 
-      resources.push(nbPath);
+      resources.push(nbPath.path);
     });
     let dlLinkTarget = doc.querySelector(`nav[role="doc-toc"]`);
     if (dlLinkTarget === null) {
