@@ -962,10 +962,10 @@ function latexFrameColorForType(type)
 end
 
 function iconForType(type) 
-  return callout_attrs[type].icon
+  return callout_attrs[type].fa_icon
 end
 
-function isBuiltInType(type) 
+function isBuiltInType(type)
   local icon = iconForType(type)
   return icon ~= nil
 end
