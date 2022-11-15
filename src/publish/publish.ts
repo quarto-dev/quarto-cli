@@ -36,6 +36,8 @@ import {
 } from "./config.ts";
 import { websiteTitle } from "../project/types/website/website-config.ts";
 import { gfmAutoIdentifier } from "../core/pandoc/pandoc-id.ts";
+import { RenderResultFile } from "../command/render/types.ts";
+import { isHtmlContent, isPdfContent } from "../core/mime.ts";
 
 export const kSiteContent = "site";
 export const kDocumentContent = "document";
@@ -149,12 +151,27 @@ export async function publishDocument(
             return file;
           }
         };
-        let rootFile: string | undefined;
+
+        // When publishing a document, try using an HTML or PDF
+        // document as the rootFile, if one isn't present, just take
+        // the first one
+        const findRootFile = (files: RenderResultFile[]) => {
+          const rootFile = files.find((renderResult) => {
+            return isHtmlContent(renderResult.file);
+          }) || files.find((renderResult) => {
+            return isPdfContent(renderResult.file);
+          }) || files[0];
+
+          if (rootFile) {
+            return asRelative(rootFile.file);
+          } else {
+            return undefined;
+          }
+        };
+
+        const rootFile: string | undefined = findRootFile(result.files);
         for (const resultFile of result.files) {
           const file = asRelative(resultFile.file);
-          if (!rootFile) {
-            rootFile = file;
-          }
           files.push(file);
           if (resultFile.supporting) {
             files.push(
