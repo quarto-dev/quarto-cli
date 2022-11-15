@@ -2,11 +2,11 @@
 
 <% if (item.href) { %>
   <li class="nav-item<%- item.text === undefined ? ' compact' : '' %>">
-    <a class="nav-link" href="<%- item.href %>"><% partial('navicon.ejs', { item }) %> <span class="menu-text"><%- item.text %></span></a>
+    <a class="nav-link" href="<%- item.href %>" rel="<%- item.rel %>"><% partial('navicon.ejs', { item }) %> <span class="menu-text"><%- item.text %></span></a>
   </li>  
 <% } else if (item.menu) { %>
   <li class="nav-item dropdown <%- item.text === undefined ? ' compact' : '' %>">
-    <a class="nav-link dropdown-toggle" href="#" id="<%- item.id %>" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    <a class="nav-link dropdown-toggle" href="#" id="<%- item.id %>" role="button" data-bs-toggle="dropdown" aria-expanded="false" rel="<%- item.rel %>">
       <% partial('navicon.ejs', { item }) %> <span class="menu-text"><%- item.text %></span>
     </a>
     <ul class="dropdown-menu<%- align === 'end' ? ' dropdown-menu-end' : ''%>" aria-labelledby="<%- item.id %>">    

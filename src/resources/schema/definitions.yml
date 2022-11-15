@@ -126,6 +126,12 @@
         string:
           description: |
             Alias for href
+      rel:
+        string:
+          description: |
+            Value for rel attribute. Multiple space-separated values are permitted.
+            See <https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel>
+            for a details.
 
 - id: comments
   anyOf:
