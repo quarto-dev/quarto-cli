@@ -15,6 +15,7 @@ import { findParent } from "../../core/html.ts";
 import {
   kDisplayName,
   kExtensionName,
+  kFormatLinks,
   kHtmlMathMethod,
   kIncludeInHeader,
   kLinkCitations,
@@ -319,7 +320,9 @@ function bootstrapHtmlPostprocessor(
 
     // Inject links to other formats if there is another
     // format that of this file that has been rendered
-    processAlternateFormatLinks(options, doc, format, resources);
+    if (format.render[kFormatLinks] !== false) {
+      processAlternateFormatLinks(options, doc, format, resources);
+    }
 
     // Look for included / embedded notebooks and include those
     processNotebookEmbeds(doc, format, resources);
@@ -451,9 +454,8 @@ function processAlternateFormatLinks(
   if (options.renderedFormats.length > 1) {
     let dlLinkTarget = doc.querySelector(`nav[role="doc-toc"]`);
     if (dlLinkTarget === null) {
-      dlLinkTarget = doc.querySelector("#quarto-margin-sidebar");
+      dlLinkTarget = doc.querySelector(kMarginSidebarId);
     }
-
     if (dlLinkTarget) {
       const containerEl = doc.createElement("div");
       containerEl.classList.add("quarto-alternate-formats");

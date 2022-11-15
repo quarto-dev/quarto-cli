@@ -24,3 +24,10 @@
       ```
       ^(?:http:|https:)\/\/www\.quarto\.org\/custom
       ```
+
+- name: format-links
+  tags:
+    formats: [$html-doc]
+  schema: boolean
+  description:
+    short: "Controls whether links to other rendered formats are displayed in HTML output"

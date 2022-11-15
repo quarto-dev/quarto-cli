@@ -36,6 +36,8 @@ export const kInclude = "include";
 export const kResources = "resources";
 export const kFormatResources = "format-resources";
 
+export const kFormatLinks = "format-links";
+
 export const kKeepHidden = "keep-hidden";
 
 export const kExecuteEnabled = "enabled";
@@ -155,6 +157,7 @@ export const kRenderDefaultsKeys = [
   kLinkExternalNewwindow,
   kLinkExternalFilter,
   kFormatResources,
+  kFormatLinks,
 ];
 
 // language fields
