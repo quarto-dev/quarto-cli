@@ -48,6 +48,7 @@ import {
   kCrossrefThmTitle,
   kCss,
   kDfPrint,
+  kDisplayName,
   kEcho,
   kEmbedResources,
   kEngine,
@@ -62,6 +63,7 @@ import {
   kExecuteDebug,
   kExecuteEnabled,
   kExecuteIpynb,
+  kExtensionName,
   kFigAlign,
   kFigDpi,
   kFigEnv,
@@ -307,6 +309,8 @@ export interface FormatExtras {
 
 // pandoc output format
 export interface Format {
+  [kDisplayName]?: string;
+  [kExtensionName]?: string;
   render: FormatRender;
   execute: FormatExecute;
   pandoc: FormatPandoc;

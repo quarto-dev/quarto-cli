@@ -31,12 +31,14 @@ import {
   kBibliography,
   kCache,
   kCss,
+  kDisplayName,
   kEcho,
   kEngine,
   kExecuteDaemon,
   kExecuteDaemonRestart,
   kExecuteDebug,
   kExecuteEnabled,
+  kExtensionName,
   kHeaderIncludes,
   kIncludeAfter,
   kIncludeAfterBody,
@@ -156,7 +158,9 @@ export async function resolveFormatsFromMetadata(
     const config = mergeFormatMetadata(baseFormat, format);
 
     // apply any metadata filter
-    const resolveFormat = defaultWriterFormat(to).resolveFormat;
+    const defaultFormat = defaultWriterFormat(to);
+    config[kDisplayName] = config[kDisplayName] || defaultFormat[kDisplayName];
+    const resolveFormat = defaultFormat.resolveFormat;
     if (resolveFormat) {
       resolveFormat(config);
     }
@@ -638,6 +642,8 @@ const readExtensionFormat = async (
     if (extensionFormat) {
       const extensionMetadata =
         (extensionFormat[formatDesc.baseFormat] || {}) as Metadata;
+      extensionMetadata[kExtensionName] = extensionMetadata[kExtensionName] ||
+        formatDesc.extension;
 
       const formats = await resolveFormatsFromMetadata(
         extensionMetadata,

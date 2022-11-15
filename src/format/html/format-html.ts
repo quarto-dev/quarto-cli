@@ -92,7 +92,7 @@ export function htmlFormat(
   figheight: number,
 ): Format {
   return mergeConfigs(
-    createHtmlFormat(figwidth, figheight),
+    createHtmlFormat("HTML", figwidth, figheight),
     {
       resolveFormat: (format: Format) => {
         if (format.metadata[kMinimal] === true) {

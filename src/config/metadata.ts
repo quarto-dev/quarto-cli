@@ -16,9 +16,11 @@ import { mergeArrayCustomizer } from "../core/config.ts";
 import { Schema } from "../core/lib/yaml-schema/types.ts";
 
 import {
+  kDisplayName,
   kExecuteDefaults,
   kExecuteDefaultsKeys,
   kExecuteEnabled,
+  kExtensionName,
   kHeaderIncludes,
   kIncludeAfter,
   kIncludeBefore,
@@ -169,6 +171,8 @@ export function metadataAsFormat(metadata: Metadata): Format {
     // allow stuff already sorted into a top level key through unmodified
     if (
       [
+        kDisplayName,
+        kExtensionName,
         kRenderDefaults,
         kExecuteDefaults,
         kPandocDefaults,
@@ -178,7 +182,9 @@ export function metadataAsFormat(metadata: Metadata): Format {
         .includes(key)
     ) {
       // special case for 'execute' as boolean
-      if (typeof (metadata[key]) == "boolean") {
+      if ([kDisplayName, kExtensionName].includes(key)) {
+        format[key] = metadata[key];
+      } else if (typeof (metadata[key]) == "boolean") {
         if (key === kExecuteDefaults) {
           format[key] = format[key] || {};
           format[kExecuteDefaults][kExecuteEnabled] = metadata[key];

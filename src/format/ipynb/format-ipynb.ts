@@ -34,7 +34,7 @@ import {
 } from "../../core/jupyter/types.ts";
 
 export function ipynbFormat(): Format {
-  return createFormat("ipynb", {
+  return createFormat("Jupyter", "ipynb", {
     pandoc: {
       standalone: true,
       [kDefaultImageExtension]: "png",

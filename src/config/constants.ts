@@ -7,6 +7,8 @@
 
 export const kMetadataFormat = "format";
 
+export const kDisplayName = "display-name";
+export const kExtensionName = "extension-name";
 export const kRenderDefaults = "render";
 export const kExecuteDefaults = "execute";
 export const kPandocDefaults = "pandoc";

@@ -54,7 +54,7 @@ import { copyTo } from "../../core/copy.ts";
 
 export function pdfFormat(): Format {
   return mergeConfigs(
-    createPdfFormat(),
+    createPdfFormat("PDF"),
     {
       extensions: {
         book: pdfBookExtension,
@@ -65,8 +65,9 @@ export function pdfFormat(): Format {
 
 export function beamerFormat(): Format {
   return createFormat(
+    "Beamer",
     "pdf",
-    createPdfFormat(false, false),
+    createPdfFormat("Beamer", false, false),
     {
       execute: {
         [kFigWidth]: 10,
@@ -78,15 +79,21 @@ export function beamerFormat(): Format {
   );
 }
 
-export function latexFormat(): Format {
+export function latexFormat(displayName: string): Format {
   return createFormat(
+    displayName,
     "tex",
-    createPdfFormat(),
+    createPdfFormat(displayName),
   );
 }
 
-function createPdfFormat(autoShiftHeadings = true, koma = true): Format {
+function createPdfFormat(
+  displayName: string,
+  autoShiftHeadings = true,
+  koma = true,
+): Format {
   return createFormat(
+    displayName,
     "pdf",
     {
       execute: {

@@ -13,6 +13,8 @@ import { formatResourcePath } from "../../core/resources.ts";
 import { findParent } from "../../core/html.ts";
 
 import {
+  kDisplayName,
+  kExtensionName,
   kHtmlMathMethod,
   kIncludeInHeader,
   kLinkCitations,
@@ -483,7 +485,16 @@ function processAlternateFormatLinks(
           icon.classList.add(`bi-${fileBsIconName(renderedFormat.format)}`);
           link.appendChild(icon);
           link.appendChild(
-            doc.createTextNode(`${renderedFormat.format.pandoc.to}`),
+            doc.createTextNode(
+              `${
+                renderedFormat.format[kDisplayName] ||
+                renderedFormat.format.pandoc.to
+              }${
+                renderedFormat.format[kExtensionName]
+                  ? ` (${renderedFormat.format[kExtensionName]})`
+                  : ""
+              }`,
+            ),
           );
 
           li.appendChild(link);
