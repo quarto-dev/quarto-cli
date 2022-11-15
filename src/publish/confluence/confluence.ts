@@ -1,9 +1,16 @@
-//FIXME uniqify added to file names on second rotation with no changes
+//TODO Image Attachments
 
-//TODO only update if changed
+//TODO Archive pages instead of delete
+
+//TODO only update if changed images
+//TODO only update if changed body contents
+
 //TODO Resource bundles
 
-//TODO JJ Question - do we delete manually added?
+//TODO JJ Question - do we delete manually added?  Archive?
+//TODO JJ Question - deletes and putting in the wrong space (danger)
+
+const DELETE_ENABLED = false;
 
 import { join } from "path/mod.ts";
 import { generate as generateUuid } from "uuid/v4.ts";
@@ -253,7 +260,6 @@ async function publish(
       title,
       space
     );
-
     const shortUUID = generateUuid().split("-")[0] ?? generateUuid();
     const createTitle = titleAlreadyExistsInSpace
       ? `${title} ${shortUUID}`
@@ -300,6 +306,7 @@ async function publish(
 
   const fetchExistingSite = async (parentId: string): Promise<any> => {
     const shallowSite: Content = await client.getPagesFromParent(parentId);
+
     const contentProperties = await Promise.all(
       shallowSite.descendants.page.results.map((page: any) =>
         client.getContentProperty(page.id ?? "")
@@ -335,11 +342,19 @@ async function publish(
         return loadDocument(publishFiles.baseDir, fileName);
       };
 
-      const title = await uniquifyTitle(getTitle(fileName, metadataByInput));
+      const originalTitle = getTitle(fileName, metadataByInput);
+      const title = await uniquifyTitle(originalTitle);
+
+      const matchingPages = await client.fetchMatchingTitlePages(
+        originalTitle,
+        space
+      );
 
       return await {
         fileName,
         title,
+        originalTitle,
+        matchingPages,
         contentBody: await fileToContentBody(fileName),
       };
     };
@@ -378,6 +393,9 @@ async function publish(
               update.title ?? ""
             );
           } else if (isContentDelete(change)) {
+            if (!DELETE_ENABLED) {
+              return null;
+            }
             const result = await client.deleteContent(change);
             return result;
           } else {

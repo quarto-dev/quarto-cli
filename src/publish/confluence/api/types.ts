@@ -164,6 +164,8 @@ export type ConfluenceSpaceChange =
 export type SiteFileMetadata = {
   fileName: string;
   title: string;
+  originalTitle: string;
+  matchingPages: ContentSummary[];
   contentBody: ContentBody;
 };
 
@@ -175,4 +177,5 @@ export type ContentSummary = {
 export type SitePage = {
   id: string;
   metadata: Record<string, any>;
+  title: string | null;
 };

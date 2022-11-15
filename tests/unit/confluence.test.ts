@@ -669,6 +669,7 @@ const runMergeSitePages = () => {
     const expected: SitePage[] = [
       {
         id: "123",
+        title: "fake-title",
         metadata: {
           ["fake-key"]: "fake-value",
         },
@@ -700,6 +701,7 @@ const runMergeSitePages = () => {
     const expected: SitePage[] = [
       {
         id: "123",
+        title: "fake-title",
         metadata: {
           ["fake-key"]: "fake-value",
           ["fake-key2"]: "fake-value2",
@@ -742,12 +744,14 @@ const runMergeSitePages = () => {
     const expected: SitePage[] = [
       {
         id: "123",
+        title: "fake-title",
         metadata: {
           ["fake-key"]: "fake-value",
         },
       },
       {
         id: "456",
+        title: "fake-title2",
         metadata: {
           ["fake-key2"]: "fake-value2",
           ["fake-key3"]: "fake-value3",
@@ -780,12 +784,14 @@ const runMergeSitePages = () => {
     const expected: SitePage[] = [
       {
         id: "123",
+        title: "fake-title",
         metadata: {
           ["fake-key"]: "fake-value",
         },
       },
       {
         id: "456",
+        title: "fake-title2",
         metadata: {},
       },
     ];
@@ -810,6 +816,26 @@ const runFileMetadataToSpaceChanges = () => {
   const fakeFile: SiteFileMetadata = {
     fileName: "fake-file-name",
     title: "fake-title",
+    originalTitle: "fake-title-original",
+    matchingPages: [],
+    contentBody: {
+      storage: {
+        value: "fake-value",
+        representation: "storage",
+      },
+    },
+  };
+
+  const fakeFileMatchingPage: SiteFileMetadata = {
+    fileName: "fake-file-name",
+    title: "fake-title",
+    originalTitle: "fake-title-original",
+    matchingPages: [
+      {
+        id: "123456",
+        title: "fake-title-original",
+      },
+    ],
     contentBody: {
       storage: {
         value: "fake-value",
@@ -821,6 +847,8 @@ const runFileMetadataToSpaceChanges = () => {
   const fakeFile2: SiteFileMetadata = {
     fileName: "fake-file-name2",
     title: "fake-title2",
+    originalTitle: "fake-title2-original",
+    matchingPages: [],
     contentBody: {
       storage: {
         value: "fake-value2",
@@ -954,6 +982,47 @@ const runFileMetadataToSpaceChanges = () => {
     const existingSite: SitePage[] = [
       {
         id: "123456",
+        title: "fake-title",
+        metadata: { fileName: "fake-file-name" },
+      },
+    ];
+    const actual: ConfluenceSpaceChange[] = buildSpaceChanges(
+      fileMetadataList,
+      fakeParent,
+      fakeSpace,
+      existingSite
+    );
+    assertEquals(expected, actual);
+  });
+
+  unitTest(suiteLabel("one_file_update_matching"), async () => {
+    const fileMetadataList: SiteFileMetadata[] = [fakeFileMatchingPage];
+    const expected: ConfluenceSpaceChange[] = [
+      {
+        contentChangeType: ContentChangeType.update,
+        ancestors: [
+          {
+            id: "8781825",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "fake-value",
+          },
+        },
+        fileName: "fake-file-name",
+        status: "current",
+        title: "fake-title-original",
+        type: "page",
+        id: "123456",
+        version: null,
+      },
+    ];
+    const existingSite: SitePage[] = [
+      {
+        id: "123456",
+        title: "fake-title",
         metadata: { fileName: "fake-file-name" },
       },
     ];
@@ -971,16 +1040,19 @@ const runFileMetadataToSpaceChanges = () => {
     const existingSite: SitePage[] = [
       {
         id: "fake-file-id",
+        title: "fake-title",
         metadata: { fileName: "fake-file-name" },
       },
       {
         id: "delete-me-file-id",
+        title: "delete-me-title",
         metadata: { fileName: "delete-me-file-name" },
       },
     ];
     const expected = [
       {
         id: "delete-me-file-id",
+        title: "delete-me-title",
         metadata: { fileName: "delete-me-file-name" },
       },
     ];
@@ -993,10 +1065,12 @@ const runFileMetadataToSpaceChanges = () => {
     const existingSite: SitePage[] = [
       {
         id: "fake-file-id",
+        title: "fake-title",
         metadata: { fileName: "fake-file-name" },
       },
       {
         id: "delete-me-file-id",
+        title: "delete-me-title",
         metadata: { fileName: "delete-me-file-name" },
       },
     ];

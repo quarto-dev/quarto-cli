@@ -54,6 +54,18 @@ export class ConfluenceClient {
     return result.results.length > 0;
   }
 
+  //TODO remove duplication
+  public async fetchMatchingTitlePages(
+    title: string,
+    space: Space
+  ): Promise<Content[]> {
+    const cqlContext =
+      "%7B%22contentStatuses%22%3A%5B%22archived%22%2C%20%22current%22%2C%20%22draft%22%5D%7D"; //{"contentStatuses":["archived", "current", "draft"]}
+    const cql = `title="${title}" and space=${space.key}&cqlcontext=${cqlContext}`;
+    const result = await this.get<ContentArray>(`content/search?cql=${cql}`);
+    return result?.results ?? [];
+  }
+
   public createContent(content: ContentCreate): Promise<Content> {
     return this.post<Content>("content", JSON.stringify(content));
   }

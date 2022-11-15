@@ -260,8 +260,6 @@ export const findPagesToDelete = (
   existingSite: SitePage[] = []
 ): SitePage[] => {
   return existingSite.reduce((accumulator: SitePage[], page: SitePage) => {
-    
-    
     if (
       !fileMetadataList.find(
         (file) => file.fileName === page?.metadata?.fileName ?? ""
@@ -291,9 +289,16 @@ export const buildSpaceChanges = (
     let spaceChange: ConfluenceSpaceChange;
 
     if (existingPage) {
+      let useOriginalTitle = false;
+      if (fileMetadata.matchingPages.length === 1) {
+        if (fileMetadata.matchingPages[0].id === existingPage.id) {
+          useOriginalTitle = true;
+        }
+      }
+
       spaceChange = buildContentUpdate(
         existingPage.id,
-        fileMetadata.title,
+        useOriginalTitle ? fileMetadata.originalTitle : fileMetadata.title,
         fileMetadata.contentBody,
         fileMetadata.fileName,
         parent?.parent
@@ -317,6 +322,12 @@ export const buildSpaceChanges = (
     existingSite
   );
 
+  // TODO sanity check and limiter to prevent any major run-away deletes
+  // Archive instead of delete
+  // length limited
+  // must be in current space
+  // !DANGER! if you put in the wrong parent you will be deleting big parts of confluence !DANGER!
+  // It seems like we will want some prompts
   const deleteChanges: ContentDelete[] = pagesToDelete.map(
     (toDelete: SitePage) => {
       return { contentChangeType: ContentChangeType.delete, id: toDelete.id };
@@ -363,6 +374,7 @@ export const mergeSitePages = (
   const result: SitePage[] = shallowPages.map(
     (contentSummary: ContentSummary, index) => {
       const sitePage: SitePage = {
+        title: contentSummary.title,
         id: contentSummary.id ?? "",
         metadata: flattenMetadata(contentProperties[index]),
       };
