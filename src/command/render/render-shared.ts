@@ -178,13 +178,14 @@ export async function printBrowsePreviewMessage(
     info(`\nPreview server: ${previewURL(host, port, path = "")}`);
     info(`\nBrowse at ${url}`, { format: colors.green });
   } else if (isVSCodeTerminal() && isVSCodeServer()) {
-    if (vsCodeServerProxyUri().endsWith("/")) {
+    const proxyUrl = vsCodeServerProxyUri()!;
+    if (proxyUrl.endsWith("/")) {
       path = path.startsWith("/") ? path.slice(1) : path;
     } else {
       path = path.startsWith("/") ? path : "/" + path;
     }
-    const browseUrl = vsCodeServerProxyUri()!.replace("{{port}}", `${port}`) +
-      sep + path;
+    const browseUrl = proxyUrl.replace("{{port}}", `${port}`) +
+      path;
     info(`\nBrowse at ${browseUrl}`, { format: colors.green });
   } else if (isJupyterHubServer()) {
     const httpReferrer = `${
