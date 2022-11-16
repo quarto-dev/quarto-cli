@@ -1,5 +1,5 @@
 name: Lightbox
-author: RStudio, PBC
+author: "Posit Software, PBC"
 version: 0.0.1
 contributes:
   filters:
