@@ -13,7 +13,6 @@
 const DELETE_ENABLED = false;
 
 import { join } from "path/mod.ts";
-import { generate as generateUuid } from "uuid/v4.ts";
 import { Input, Secret } from "cliffy/prompt/mod.ts";
 import { RenderFlags } from "../../command/render/types.ts";
 
@@ -260,7 +259,8 @@ async function publish(
       title,
       space
     );
-    const shortUUID = generateUuid().split("-")[0] ?? generateUuid();
+    const uuid = globalThis.crypto.randomUUID();
+    const shortUUID = uuid.split("-")[0] ?? uuid;
     const createTitle = titleAlreadyExistsInSpace
       ? `${title} ${shortUUID}`
       : title;
