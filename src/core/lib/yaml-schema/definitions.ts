@@ -1,7 +1,7 @@
 /*
 * definitions.ts
 *
-* Copyright (C) 2021 by RStudio, PBC
+* Copyright (C) 2021-2022 Posit Software, PBC
 *
 */
 
@@ -28,7 +28,7 @@ export function defineCached(
     { schema: ConcreteSchema; errorHandlers: ValidatorErrorHandlerFunction[] }
   >,
   schemaId: string,
-): (() => Promise<ConcreteSchema>) {
+): () => Promise<ConcreteSchema> {
   let schema: ConcreteSchema;
 
   return async () => {

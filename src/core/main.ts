@@ -3,7 +3,7 @@
 *
 * Utilities for main() functions (setup, cleanup, etc)
 *
-* Copyright (C) 2022 by RStudio, PBC
+* Copyright (C) 2022 Posit Software, PBC
 *
 */
 
@@ -25,7 +25,7 @@ import { cleanupSessionTempDir } from "./temp.ts";
 // }
 
 export async function mainRunner(
-  runner: (() => Promise<unknown>),
+  runner: () => Promise<unknown>,
 ): Promise<unknown> {
   try {
     // install termination signal handlers

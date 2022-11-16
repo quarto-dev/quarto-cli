@@ -1,7 +1,7 @@
 /*
 * devconfig.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -36,7 +36,8 @@ export function createDevConfig(
   scriptDir: string,
 ): DevConfig {
   const scriptPath = join(scriptDir, "quarto" + (isWindows() ? ".cmd" : ""));
-  const srcDir = Deno.env.get("QUARTO_SRC_PATH") || join(quartoConfig.sharePath(), "../../src");
+  const srcDir = Deno.env.get("QUARTO_SRC_PATH") ||
+    join(quartoConfig.sharePath(), "../../src");
   return {
     deno,
     deno_dom,
@@ -77,8 +78,8 @@ export function readInstalledDevConfig(): DevConfig | null {
 }
 
 export function readSourceDevConfig(): DevConfig {
-
-  const rootDir = Deno.env.get("QUARTO_ROOT") || join(quartoConfig.sharePath(), "../../src");
+  const rootDir = Deno.env.get("QUARTO_ROOT") ||
+    join(quartoConfig.sharePath(), "../../src");
   const configurationScript = join(
     rootDir,
     "configuration",
@@ -119,9 +120,7 @@ export async function reconfigureQuarto(
   installed: DevConfig | null,
   source: DevConfig,
 ) {
-  const configureScript = isWindows()
-    ? ".\\configure.cmd"
-    : "./configure.sh";
+  const configureScript = isWindows() ? ".\\configure.cmd" : "./configure.sh";
 
   const quartoDir = Deno.realPathSync(
     join(quartoConfig.sharePath(), "..", ".."),

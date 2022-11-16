@@ -1,7 +1,7 @@
 /*
 * cmd.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -125,7 +125,7 @@ export const previewCommand = new Command()
   )
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, file?: string, ...args: string[]) => {
-  // one-time initialization of yaml validation modules
+    // one-time initialization of yaml validation modules
     setInitializer(initYamlIntelligenceResourcesFromFilesystem);
     await initState();
 

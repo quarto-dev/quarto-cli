@@ -1,7 +1,7 @@
 /*
 * cmd.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -53,7 +53,7 @@ export const publishCommand =
       "Publish a document or project. Available providers include:\n\n" +
         " - Quarto Pub (quarto-pub)\n" +
         " - GitHub Pages (gh-pages)\n" +
-        " - RStudio Connect (connect)\n" +
+        " - Posit Connect (connect)\n" +
         " - Netlify (netlify)\n\n" +
         "Accounts are configured interactively during publishing.\n" +
         "Manage/remove accounts with: quarto publish accounts",
@@ -104,7 +104,7 @@ export const publishCommand =
       "quarto publish gh-pages",
     )
     .example(
-      "Publish project to RStudio Connect",
+      "Publish project to Posit Connect",
       "quarto publish connect",
     )
     .example(

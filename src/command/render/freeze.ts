@@ -1,7 +1,7 @@
 /*
 * freeze.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -20,7 +20,11 @@ import { cloneDeep } from "../../core/lodash.ts";
 import { inputFilesDir } from "../../core/render.ts";
 import { TempContext } from "../../core/temp.ts";
 import { md5Hash } from "../../core/hash.ts";
-import { removeIfEmptyDir, removeIfExists, safeRemoveIfExists } from "../../core/path.ts";
+import {
+  removeIfEmptyDir,
+  removeIfExists,
+  safeRemoveIfExists,
+} from "../../core/path.ts";
 
 import {
   kIncludeAfterBody,

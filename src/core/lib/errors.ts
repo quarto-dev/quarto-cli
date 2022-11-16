@@ -3,7 +3,7 @@
 *
 * functions that help format errors consistently
 *
-* Copyright (C) 2021 by RStudio, PBC
+* Copyright (C) 2021-2022 Posit Software, PBC
 *
 */
 
@@ -134,7 +134,7 @@ function errorKey(err: TidyverseError): string {
 }
 
 export function reportOnce(
-  reporter: ((err: TidyverseError) => unknown),
+  reporter: (err: TidyverseError) => unknown,
   reportSet?: Set<string>,
 ): (err: TidyverseError) => unknown {
   const errorsReported = reportSet || new Set();

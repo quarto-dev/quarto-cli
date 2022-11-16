@@ -1,7 +1,7 @@
 /*
 * esbuild.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 import { existsSync } from "fs/mod.ts";
@@ -21,11 +21,9 @@ export function esBuild(version: string): Dependency {
       url:
         `https://registry.npmjs.org/esbuild-${platformstr}/-/esbuild-${platformstr}-${version}.tgz`,
       configure: async (path: string) => {
-
         const file = Deno.build.os === "windows" ? "esbuild.exe" : "esbuild";
         const vendor = Deno.env.get("QUARTO_VENDOR_BINARIES");
         if (vendor === undefined || vendor === "true") {
-
           // Remove existing dir
           const dir = dirname(path);
 

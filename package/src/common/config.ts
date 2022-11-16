@@ -1,7 +1,7 @@
 /*
 * config.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -42,8 +42,10 @@ export function readConfiguration(
   const out = join(pkg, getEnv("QUARTO_OUT_DIR") || "out");
 
   const dist = getEnv("QUARTO_DIST_PATH") || "dist";
-  const share = getEnv("QUARTO_SHARE_PATH") || join(dist, getEnv("QUARTO_SHARE_DIR") || "share");
-  const bin = getEnv("QUARTO_BIN_PATH") || join(dist, getEnv("QUARTO_BIN_DIR") || "bin");
+  const share = getEnv("QUARTO_SHARE_PATH") ||
+    join(dist, getEnv("QUARTO_SHARE_DIR") || "share");
+  const bin = getEnv("QUARTO_BIN_PATH") ||
+    join(dist, getEnv("QUARTO_BIN_DIR") || "bin");
   const directoryInfo = {
     root,
     pkg,

@@ -1,7 +1,7 @@
 /*
 * proejct-default.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -17,14 +17,13 @@ export const kDefaultProjectFileContents = "{ project: { type: 'default' } }";
 export const defaultProjectType: ProjectType = {
   type: "default",
 
-  formatLibDirs:
-    () => [
-      "bootstrap",
-      "quarto-html",
-      "quarto-ojs",
-      "quarto-diagram",
-      "quarto-contrib",
-    ],
+  formatLibDirs: () => [
+    "bootstrap",
+    "quarto-html",
+    "quarto-ojs",
+    "quarto-diagram",
+    "quarto-contrib",
+  ],
 
   create: (title: string): ProjectCreate => {
     const resourceDir = resourcePath(join("projects", "default"));

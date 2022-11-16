@@ -1,7 +1,7 @@
 /*
 * capabilities.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -24,7 +24,6 @@ export async function jupyterCapabilities(kernelspec?: JupyterKernelspec) {
   const language = kernelspec?.language || kNoLanguage;
 
   if (!jupyterCapsCache.has(language)) {
-
     // if we are targeting julia then prefer the julia installed miniconda
     const juliaCaps = await getVerifiedJuliaCondaJupyterCapabilities();
     if (language === "julia" && juliaCaps) {
@@ -81,7 +80,7 @@ async function getVerifiedJuliaCondaJupyterCapabilities() {
       ".julia",
       "conda",
       "3",
-      isWindows() ? "python.exe" : join("bin", "python3")
+      isWindows() ? "python.exe" : join("bin", "python3"),
     );
     if (existsSync(juliaPython)) {
       const caps = await getJupyterCapabilities([juliaPython]);

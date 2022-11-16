@@ -1,7 +1,7 @@
 /*
  * chromium.ts
  *
- * Copyright (C) 2020 by RStudio, PBC
+ * Copyright (C) 2020-2022 Posit Software, PBC
  *
  */
 
@@ -76,7 +76,7 @@ async function preparePackage(_ctx: InstallContext): Promise<PackageInfo> {
     `Downloading Chromium ${revision}`,
   );
   //  const spin = spinner("Installing");
-  let spinnerStatus: ((() => void) | undefined);
+  let spinnerStatus: (() => void) | undefined;
   const fetcherObj = await fetcher();
   const revisionInfo = await fetcherObj.download(
     revision,

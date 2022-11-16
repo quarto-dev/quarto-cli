@@ -1,7 +1,7 @@
 /*
 * installer.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 import { join } from "path/mod.ts";
@@ -82,7 +82,8 @@ export async function makeInstallerDeb(
   control = control + val("Installed-Size", `${Math.round(size / 1024)}`);
   control = control + val("Section", "user/text");
   control = control + val("Priority", "optional");
-  control = control + val("Maintainer", "RStudio, PBC <quarto@rstudio.org>");
+  control = control +
+    val("Maintainer", "Posit Software, PBC <quarto@rstudio.org>");
   control = control + val("Homepage", url);
   control = control +
     val(
@@ -108,7 +109,7 @@ export async function makeInstallerDeb(
   copyrightLines.push(`Source: ${url}`);
   copyrightLines.push("");
   copyrightLines.push("Files: *");
-  copyrightLines.push("Copyright: RStudio, PBC.");
+  copyrightLines.push("Copyright: Posit Software, PBC.");
   copyrightLines.push("License: GPL-2+");
   const copyrightText = copyrightLines.join("\n");
   Deno.writeTextFileSync(join(debianDir, "copyright"), copyrightText);

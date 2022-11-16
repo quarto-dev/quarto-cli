@@ -1,7 +1,7 @@
 /*
 * dartsass.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 import { existsSync } from "fs/mod.ts";
@@ -19,7 +19,6 @@ export function dartSass(version: string): Dependency {
       url:
         `https://github.com/sass/dart-sass/releases/download/${version}/${filename}`,
       configure: async (path: string) => {
-
         const vendor = Deno.env.get("QUARTO_VENDOR_BINARIES");
         if (vendor === undefined || vendor === "true") {
           // Remove existing dart-sass dir

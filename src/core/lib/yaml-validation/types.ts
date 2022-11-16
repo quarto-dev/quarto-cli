@@ -1,7 +1,7 @@
 /*
 * types.ts
 *
-* Copyright (C) 2022 by RStudio, PBC
+* Copyright (C) 2022 Posit Software, PBC
 *
 */
 
@@ -28,7 +28,7 @@ export type ValidatorErrorHandlerFunction = (
    * error.violatingObject (a subobject of parse.result).
    */
   schema: Schema,
-) => (LocalizedError | null);
+) => LocalizedError | null;
 
 export interface YAMLSchemaT {
   schema: Schema;

@@ -3,7 +3,7 @@
 *
 * Manages all resources needed to create/validate YAML schema, including schemas themselves
 *
-* Copyright (C) 2022 by RStudio, PBC
+* Copyright (C) 2022 Posit Software, PBC
 *
 */
 

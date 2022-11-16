@@ -1,7 +1,7 @@
 /*
 * cyclic-dependencies.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 import { basename, isAbsolute, join } from "path/mod.ts";
@@ -140,8 +140,8 @@ function parseSwcBundlerLog(
 }
 async function loadModules(config: Configuration) {
   info("Reading modules");
-  const denoExecPath = Deno.env.get("QUARTO_DENO")
-  if (! denoExecPath) {
+  const denoExecPath = Deno.env.get("QUARTO_DENO");
+  if (!denoExecPath) {
     throw Error("QUARTO_DENO is not defined");
   }
   const result = await runCmd(

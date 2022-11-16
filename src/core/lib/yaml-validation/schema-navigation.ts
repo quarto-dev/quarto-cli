@@ -4,7 +4,7 @@
 *
 * functions to navigate schema
 *
-* Copyright (C) 2022 by RStudio, PBC
+* Copyright (C) 2022 Posit Software, PBC
 *
 */
 
@@ -54,8 +54,8 @@ export function navigateSchemaByInstancePath(
       const patternPropMatch = matchPatternProperties(
         subSchema,
         key,
-        allowPartialMatches !== undefined && 
-        allowPartialMatches &&
+        allowPartialMatches !== undefined &&
+          allowPartialMatches &&
           index === path.length - 1, // allow prefix matches only if it's the last entry
       );
       if (patternPropMatch) {
@@ -111,8 +111,8 @@ export function navigateSchemaBySchemaPathSingle(
   // deno-lint-ignore no-explicit-any
 ): any {
   const ensurePathFragment = (
-    fragment: (number | string),
-    expected: (number | string),
+    fragment: number | string,
+    expected: number | string,
   ) => {
     if (fragment !== expected) {
       throw new Error(

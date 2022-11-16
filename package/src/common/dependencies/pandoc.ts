@@ -1,7 +1,7 @@
 /*
 * pandoc.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 import { existsSync } from "fs/mod.ts";
@@ -28,7 +28,7 @@ export function pandoc(version: string): Dependency {
         const pandocSubdir = join(dir, `pandoc-${version}`);
         const vendor = Deno.env.get("QUARTO_VENDOR_BINARIES");
         if (vendor === undefined || vendor === "true") {
-         // Clean pandoc interim dir
+          // Clean pandoc interim dir
           if (existsSync(pandocSubdir)) {
             Deno.removeSync(pandocSubdir, { recursive: true });
           }

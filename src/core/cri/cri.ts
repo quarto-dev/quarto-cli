@@ -3,7 +3,7 @@
  *
  * Chrome Remote Interface
  *
- * Copyright (c) 2022 by RStudio, PBC.
+ * Copyright (c) 2022 Posit Software, PBC
  */
 
 import { decode } from "encoding/base64.ts";

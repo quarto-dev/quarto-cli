@@ -1,7 +1,7 @@
 /*
 * create-dev-import-map.ts
 *
-* Copyright (C) 2022 by RStudio, PBC
+* Copyright (C) 2022 Posit Software, PBC
 *
 */
 
@@ -12,7 +12,9 @@ const QUARTO_SRC_PATH = Deno.env.get("QUARTO_SRC_PATH") || ".";
 
 const importMapSpecs = [
   {
-    importMap: JSON.parse(Deno.readTextFileSync(join(QUARTO_SRC_PATH, "import_map.json"))),
+    importMap: JSON.parse(
+      Deno.readTextFileSync(join(QUARTO_SRC_PATH, "import_map.json")),
+    ),
     prefix: "",
   },
   {

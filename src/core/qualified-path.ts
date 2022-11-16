@@ -3,7 +3,7 @@
 *
 * Path objects that hold additional information about their status
 *
-* Copyright (C) 2022 by RStudio, PBC
+* Copyright (C) 2022 Posit Software, PBC
 *
 */
 

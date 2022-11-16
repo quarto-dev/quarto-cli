@@ -1,7 +1,7 @@
 /*
 * esbuild.ts
 *
-* Copyright (C) 2021 by RStudio, PBC
+* Copyright (C) 2021-2022 Posit Software, PBC
 *
 */
 
@@ -20,7 +20,7 @@ export async function esbuildCompile(
     `--format=${format}`,
     ...(args || []),
   ];
-  
+
   return await esbuildCommand(fullArgs, input, workingDir);
 }
 

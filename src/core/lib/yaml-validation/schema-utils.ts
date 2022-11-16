@@ -1,7 +1,7 @@
 /*
 * schema-utils.ts
 *
-* Copyright (C) 2022 by RStudio, PBC
+* Copyright (C) 2022 Posit Software, PBC
 *
 */
 
@@ -205,7 +205,7 @@ function getObjectCompletions(s: ConcreteSchema): Completion[] {
         if (hidden) {
           continue;
         }
-        let description: (string | { $ref: string }) = "";
+        let description: string | { $ref: string } = "";
         for (const md of maybeDescriptions) {
           if (md !== undefined) {
             description = md;

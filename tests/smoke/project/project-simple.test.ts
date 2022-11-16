@@ -1,7 +1,7 @@
 /*
 * project-render.test.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 import { existsSync } from "fs/mod.ts";
@@ -32,11 +32,11 @@ testQuartoCmd(
     fileExists(kQuartoProjectFile),
     verifyYamlFile(
       kQuartoProjectFile,
-      ((yaml: unknown) => {
+      (yaml: unknown) => {
         // Make sure there is a project yaml section
         const metadata = yaml as Metadata;
         return metadata.project !== undefined;
-      }),
+      },
     ),
   ],
   {
