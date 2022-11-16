@@ -55,7 +55,7 @@ import {
   RenderFilesResult,
   RenderOptions,
 } from "./types.ts";
-import { error, info } from "log/mod.ts";
+import { error, info, warning } from "log/mod.ts";
 import * as ld from "../../core/lodash.ts";
 import { basename, dirname, join, relative } from "path/mod.ts";
 import { Format } from "../../config/types.ts";

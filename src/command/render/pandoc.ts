@@ -722,6 +722,13 @@ export async function runPandoc(
     pandocArgs = removePandocArgs(pandocArgs, removeArgs);
   }
 
+  // https://github.com/quarto-dev/quarto-cli/issues/3126
+  // it seems that we still need to coerce number-offset to be an number list,
+  // otherwise pandoc fails.
+  if (typeof allDefaults[kNumberOffset] === "number") {
+    allDefaults[kNumberOffset] = [allDefaults[kNumberOffset]];
+  }
+
   // We always use our own pandoc data-dir, so tear off the user
   // data-dir and use ours.
   const dataDirArgs = new Map<string, boolean>();

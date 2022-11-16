@@ -8334,6 +8334,11 @@ var require_yaml_intelligence_resources = __commonJS({
                 string: {
                   description: "Alias for href\n"
                 }
+              },
+              rel: {
+                string: {
+                  description: "Value for rel attribute. Multiple space-separated values are permitted.\nSee <https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel>\nfor a details.\n"
+                }
               }
             }
           }
@@ -10138,6 +10143,10 @@ var require_yaml_intelligence_resources = __commonJS({
                     long: "The path to a custom listing template.\n"
                   }
                 }
+              },
+              "template-params": {
+                schema: "object",
+                description: "Parameters that are passed to the custom template."
               },
               fields: {
                 arrayOf: "string",
@@ -13527,6 +13536,39 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
+          name: "grid",
+          schema: {
+            object: {
+              closed: true,
+              properties: {
+                "sidebar-width": {
+                  string: {
+                    description: "The base width of the sidebar (left) column in an HTML page."
+                  }
+                },
+                "margin-width": {
+                  string: {
+                    description: "The base width of the margin (right) column in an HTML page."
+                  }
+                },
+                "body-width": {
+                  string: {
+                    description: "The base width of the body (center) column in an HTML page."
+                  }
+                },
+                "gutter-width": {
+                  string: {
+                    description: "The width of the gutter that appears between columns in an HTML page."
+                  }
+                }
+              }
+            }
+          },
+          description: {
+            short: "Properties of the grid system used to layout Quarto HTML pages."
+          }
+        },
+        {
           name: "appendix-style",
           schema: {
             anyOf: [
@@ -14839,7 +14881,7 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: {
             ref: "pandoc-shortcodes"
           },
-          description: "Speicfy Lua scripts that implement shortcode handlers\n"
+          description: "Specify Lua scripts that implement shortcode handlers\n"
         },
         {
           name: "keep-md",
@@ -17437,6 +17479,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Text to display for item (defaults to the document title if not\nprovided)",
         "Alias for href",
+        'Value for rel attribute. Multiple space-separated values are\npermitted. See <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel" class="uri">https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel</a>\nfor a details.',
         "The Github repo that will be used to store comments.",
         "The label that will be assigned to issues created by Utterances.",
         {
@@ -17968,6 +18011,7 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The path to a custom listing template.",
           long: "The path to a custom listing template."
         },
+        "Parameters that are passed to the custom template.",
         {
           short: "The list of fields to include in this listing",
           long: "The list of fields to include in this listing."
@@ -18469,6 +18513,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "The number scheme used for references.",
         "The number scheme used for sub references.",
         "Whether cross references should be hyper-linked.",
+        "The title used for appendix.",
+        "The delimiter beween appendix number and title.",
         "Visual editor configuration",
         "Default editing mode for document",
         "Markdown writing options for visual editor",
@@ -18755,6 +18801,14 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Target page width for output (used to compute columns widths for\n<code>layout</code> divs). Defaults to 6.5 inches, which corresponds to\ndefault letter page settings in docx and odt."
         },
         {
+          short: "Properties of the grid system used to layout Quarto HTML pages.",
+          long: ""
+        },
+        "The base width of the sidebar (left) column in an HTML page.",
+        "The base width of the margin (right) column in an HTML page.",
+        "The base width of the body (center) column in an HTML page.",
+        "The width of the gutter that appears between columns in an HTML\npage.",
+        {
           short: "The layout of the appendix for this document (<code>none</code>,\n<code>plain</code>, or <code>default</code>)",
           long: "The layout of the appendix for this document (<code>none</code>,\n<code>plain</code>, or <code>default</code>).\nTo completely disable any styling of the appendix, choose the\nappendix style <code>none</code>. For minimal styling, choose\n<code>plain.</code>"
         },
@@ -18971,7 +19025,7 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Embed math libraries (e.g.&nbsp;MathJax) within\n<code>self-contained</code> output. Note that math libraries are not\nembedded by default because they are quite large and often time\nconsuming to download."
         },
         "Specify executables or Lua scripts to be used as a filter\ntransforming the pandoc AST after the input is parsed and before the\noutput is written.",
-        "Speicfy Lua scripts that implement shortcode handlers",
+        "Specify Lua scripts that implement shortcode handlers",
         "Keep the markdown file generated by executing code",
         "Keep the notebook file generated from executing code.",
         "Filters to pre-process ipynb files before rendering to markdown",
@@ -20019,12 +20073,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 132478,
+        _internalId: 133541,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 132477,
+            _internalId: 133540,
             type: "enum",
             enum: [
               "png",

@@ -71,6 +71,10 @@ export type NavigationItemObject = {
 See <https://icons.getbootstrap.com/> for a list of available icons */;
   id?: string;
   menu?: (NavigationItem)[];
+  rel?:
+    string /* Value for rel attribute. Multiple space-separated values are permitted.
+See <https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel>
+for a details. */;
   text?: string /* Text to display for item (defaults to the
 document title if not provided) */;
   url?: string; /* Alias for href */
@@ -731,6 +735,7 @@ Defaults to `false`. */;
   "table-hover"?:
     boolean /* In table type listings, highlight rows of the table when the user hovers the mouse over them.
 Defaults to false. */;
+  "template-params"?: SchemaObject;
   "field-display-names"?:
     SchemaObject /* A mapping that provides display names for specific fields. For example, to display the title column as ‘Report’ in a table listing you would write:
 

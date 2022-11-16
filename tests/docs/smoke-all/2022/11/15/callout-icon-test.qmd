@@ -1,0 +1,18 @@
+---
+format: html
+title: test
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["div.callout-icon-container i.callout-icon"]
+        - ["div.callout-icon-container i.callout-icon.no-icon"]
+---
+
+::: callout-note
+
+## This is the title
+
+This is the body.
+
+:::

@@ -860,7 +860,8 @@ pre {
 
 // Default padding if background is set
 p code:not(.sourceCode),
-li code:not(.sourceCode) {
+li code:not(.sourceCode),
+td code:not(.sourceCode) {
   @if variable-exists(code-bg) {
     background-color: $code-bg;
   }
@@ -873,9 +874,14 @@ li code:not(.sourceCode) {
 }
 
 nav p code:not(.sourceCode),
-nav li code:not(.sourceCode) {
+nav li code:not(.sourceCode),
+nav td code:not(.sourceCode) {
   background-color: transparent;
   padding: 0;
+}
+
+td code:not(.sourceCode) {
+  white-space: pre-wrap;
 }
 
 #quarto-embedded-source-code-modal > .modal-dialog {

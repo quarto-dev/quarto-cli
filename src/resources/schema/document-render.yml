@@ -97,7 +97,7 @@
   schema:
     ref: pandoc-shortcodes
   description: |
-    Speicfy Lua scripts that implement shortcode handlers
+    Specify Lua scripts that implement shortcode handlers
 
 - name: keep-md
   schema: boolean
