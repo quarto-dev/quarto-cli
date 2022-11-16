@@ -454,7 +454,7 @@ function processAlternateFormatLinks(
   if (options.renderedFormats.length > 1) {
     let dlLinkTarget = doc.querySelector(`nav[role="doc-toc"]`);
     if (dlLinkTarget === null) {
-      dlLinkTarget = doc.querySelector(kMarginSidebarId);
+      dlLinkTarget = doc.getElementById(kMarginSidebarId);
     }
     if (dlLinkTarget) {
       const containerEl = doc.createElement("div");
