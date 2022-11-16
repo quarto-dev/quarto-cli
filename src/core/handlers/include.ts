@@ -18,10 +18,6 @@ import {
 import { rangedLines } from "../lib/ranged-text.ts";
 import { isBlockShortcode } from "../lib/parse-shortcode.ts";
 import { DirectiveCell } from "../lib/break-quarto-md-types.ts";
-import {
-  notebookMarkdownPlaceholder,
-  parseNotebookAddress,
-} from "../jupyter/jupyter-embed.ts";
 
 const includeHandler: LanguageHandler = {
   ...baseHandler,
@@ -49,62 +45,53 @@ const includeHandler: LanguageHandler = {
         );
       }
 
-      const notebookAddress = parseNotebookAddress(filename);
-      if (notebookAddress) {
-        const outputs = directive.shortcode.namedParams.outputs as
-          | string
-          | undefined;
-        const placeHolder = notebookMarkdownPlaceholder(filename, {}, outputs);
-        textFragments.push(placeHolder);
-      } else {
-        let includeSrc;
-        try {
-          includeSrc = asMappedString(
-            Deno.readTextFileSync(path),
-            path,
-          );
-        } catch (_e) {
-          const errMsg: string[] = [`Include directive failed.`];
-          errMsg.push(...retrievedFiles.map((s) => `  in file ${s}, `));
-          errMsg.push(
-            `  could not find file ${path
-              //            relative(handlerContext.options.context.target.source, path)
-            }.`,
-          );
-          throw new Error(errMsg.join("\n"));
-        }
+      let includeSrc;
+      try {
+        includeSrc = asMappedString(
+          Deno.readTextFileSync(path),
+          path,
+        );
+      } catch (_e) {
+        const errMsg: string[] = [`Include directive failed.`];
+        errMsg.push(...retrievedFiles.map((s) => `  in file ${s}, `));
+        errMsg.push(
+          `  could not find file ${path
+            //            relative(handlerContext.options.context.target.source, path)
+          }.`,
+        );
+        throw new Error(errMsg.join("\n"));
+      }
 
-        retrievedFiles.push(filename);
+      retrievedFiles.push(filename);
 
-        let rangeStart = 0;
-        for (const { substring, range } of rangedLines(includeSrc.value)) {
-          const m = isBlockShortcode(substring);
-          if (m && m.name.toLocaleLowerCase() === "include") {
-            textFragments.push(
-              mappedString(includeSrc, [{
-                start: rangeStart,
-                end: range.start,
-              }]),
-            );
-            rangeStart = range.end;
-            const params = m.params;
-            if (params.length === 0) {
-              throw new Error("Include directive needs file parameter");
-            }
-
-            await retrieveInclude(params[0]);
-          }
-        }
-        if (rangeStart !== includeSrc.value.length) {
+      let rangeStart = 0;
+      for (const { substring, range } of rangedLines(includeSrc.value)) {
+        const m = isBlockShortcode(substring);
+        if (m && m.name.toLocaleLowerCase() === "include") {
           textFragments.push(
             mappedString(includeSrc, [{
               start: rangeStart,
-              end: includeSrc.value.length,
+              end: range.start,
             }]),
           );
+          rangeStart = range.end;
+          const params = m.params;
+          if (params.length === 0) {
+            throw new Error("Include directive needs file parameter");
+          }
+
+          await retrieveInclude(params[0]);
         }
-        textFragments.push(includeSrc.value.endsWith("\n") ? "\n" : "\n\n");
       }
+      if (rangeStart !== includeSrc.value.length) {
+        textFragments.push(
+          mappedString(includeSrc, [{
+            start: rangeStart,
+            end: includeSrc.value.length,
+          }]),
+        );
+      }
+      textFragments.push(includeSrc.value.endsWith("\n") ? "\n" : "\n\n");
 
       retrievedFiles.pop();
     };
