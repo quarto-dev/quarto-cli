@@ -15,10 +15,13 @@ import {
   ContentArray,
   ContentCreate,
   ContentDelete,
+  ContentSummary,
   ContentUpdate,
   Space,
   User,
+  WrappedResult,
 } from "./types.ts";
+import { DESCENDANT_LIMIT } from "../constants.ts";
 
 export class ConfluenceClient {
   public constructor(private readonly token_: AccountToken) {}
@@ -39,13 +42,15 @@ export class ConfluenceClient {
     return this.get<Content>(`content/${id}/property`);
   }
 
-  public getPagesFromParent(
+  public getDescendants(
     id: string,
-    expand = ["descendants.page"]
-  ): Promise<Content> {
-    return this.get<Content>(`content/${id}?expand=${expand}`);
+    expand = ["metadata.properties"]
+  ): Promise<WrappedResult<ContentSummary>> {
+    const url = `content/${id}/descendant/page?limit=${DESCENDANT_LIMIT}&expand=${expand}`;
+    return this.get<WrappedResult<ContentSummary>>(url);
   }
 
+  //TODO remove duplication
   public async isTitleInSpace(title: string, space: Space): Promise<boolean> {
     const cqlContext =
       "%7B%22contentStatuses%22%3A%5B%22archived%22%2C%20%22current%22%2C%20%22draft%22%5D%7D"; //{"contentStatuses":["archived", "current", "draft"]}

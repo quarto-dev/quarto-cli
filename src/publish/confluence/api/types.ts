@@ -120,9 +120,9 @@ export type Content = {
   body: ContentBody;
 };
 
-export type WrappedContentProperty = {
-  results: ContentProperty[];
-};
+export interface WrappedResult<T> {
+  results: T[];
+}
 
 export type ContentProperty = {
   key: string;

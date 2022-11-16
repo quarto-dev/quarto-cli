@@ -10,8 +10,6 @@
 //TODO JJ Question - do we delete manually added?  Archive?
 //TODO JJ Question - deletes and putting in the wrong space (danger)
 
-const DELETE_ENABLED = false;
-
 import { join } from "path/mod.ts";
 import { Input, Secret } from "cliffy/prompt/mod.ts";
 import { RenderFlags } from "../../command/render/types.ts";
@@ -41,6 +39,7 @@ import {
   ContentCreate,
   ContentProperty,
   ContentStatusEnum,
+  ContentSummary,
   ContentUpdate,
   PAGE_TYPE,
   PublishRenderer,
@@ -49,7 +48,7 @@ import {
   SiteFileMetadata,
   SitePage,
   SpaceChangeResult,
-  WrappedContentProperty,
+  WrappedResult,
 } from "./api/types.ts";
 import { withSpinner } from "../../core/console.ts";
 import {
@@ -81,6 +80,7 @@ import {
   verifyConfluenceParent,
   verifyLocation,
 } from "./confluence-verify.ts";
+import { CHANGES_DISABLED, DELETE_DISABLED } from "./constants.ts";
 
 export const CONFLUENCE_ID = "confluence";
 
@@ -305,19 +305,23 @@ async function publish(
   };
 
   const fetchExistingSite = async (parentId: string): Promise<any> => {
-    const shallowSite: Content = await client.getPagesFromParent(parentId);
+    const descendants: any[] =
+      (await client.getDescendants(parentId))?.results ?? [];
 
     const contentProperties = await Promise.all(
-      shallowSite.descendants.page.results.map((page: any) =>
+      descendants.map((page: ContentSummary) =>
         client.getContentProperty(page.id ?? "")
       )
     );
+
     const contentPropertyResults: ContentProperty[][] = contentProperties.map(
-      (wrappedContentProperty: WrappedContentProperty) =>
-        wrappedContentProperty.results
+      (wrappedContentProperty: any) => {
+        return wrappedContentProperty.results;
+      }
     );
+
     const sitePageList: SitePage[] = mergeSitePages(
-      shallowSite?.descendants?.page?.results,
+      descendants,
       contentPropertyResults
     );
     return sitePageList;
@@ -326,6 +330,8 @@ async function publish(
   const publishSite = async (): Promise<[PublishRecord, URL | undefined]> => {
     const parentId: string = parent?.parent ?? "";
     const existingSite: SitePage[] = await fetchExistingSite(parentId);
+
+    //
 
     const publishFiles: PublishFiles = await renderSite(render);
     const metadataByInput: Record<string, InputMetadata> =
@@ -375,6 +381,10 @@ async function publish(
     ): Promise<SpaceChangeResult>[] => {
       return changeList.map(async (change: ConfluenceSpaceChange) => {
         const doChanges = async () => {
+          if (CHANGES_DISABLED) {
+            console.warn("CHANGES DISABELD", change);
+            return null;
+          }
           if (isContentCreate(change)) {
             const result: Content = await client.createContent(
               change as ContentCreate
@@ -393,7 +403,8 @@ async function publish(
               update.title ?? ""
             );
           } else if (isContentDelete(change)) {
-            if (!DELETE_ENABLED) {
+            if (DELETE_DISABLED) {
+              console.warn("DELETE DISABELD");
               return null;
             }
             const result = await client.deleteContent(change);
