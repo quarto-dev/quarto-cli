@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-  <Product Id="*" Name="Quarto" Language="1033" Manufacturer="Rstudio, PBC" Version="$(env.QUARTO_INSTALLER_VERSION)" UpgradeCode="$(env.QUARTO_MSI_UPGRADE_CODE)">
+  <Product Id="*" Name="Quarto" Language="1033" Manufacturer="Posit Software, PBC" Version="$(env.QUARTO_INSTALLER_VERSION)" UpgradeCode="$(env.QUARTO_MSI_UPGRADE_CODE)">
 
     <Package InstallerVersion="300" Compressed="yes" InstallScope="perMachine" />
 
