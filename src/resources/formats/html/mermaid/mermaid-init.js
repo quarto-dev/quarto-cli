@@ -1,7 +1,7 @@
 // mermaid-init.js
 // Initializes the quarto-mermaid JS runtime
 //
-// Copyright (C) 2022 by RStudio, PBC
+// Copyright (C) 2022 Posit Software, PBC
 
 /**
  * String.prototype.replaceAll() polyfill

@@ -4,7 +4,7 @@
 * test that guess-chunk-options-format correctly controls YAML
 * validation in knitr chunks
 *
-* Copyright (C) 2022 by RStudio, PBC
+* Copyright (C) 2022 Posit Software, PBC
 *
 */
 

@@ -1,7 +1,7 @@
 /*
 * encode-metadata.ts
 *
-* Copyright (C) 2022 by RStudio, PBC
+* Copyright (C) 2022 Posit Software, PBC
 *
 */
 import { encode as base64Encode } from "encoding/base64.ts";

@@ -3,7 +3,7 @@
 *
 * generates a typescript file with type definitions from our yaml schema definitions.
 *
-* Copyright (C) 2022 by RStudio, PBC
+* Copyright (C) 2022 Posit Software, PBC
 *
 */
 

@@ -9,7 +9,7 @@
 * styles are being used, so we don't attempt to validate or parse
 * something that really isn't YAML.
 *
-* Copyright (C) 2022 by RStudio, PBC
+* Copyright (C) 2022 Posit Software, PBC
 *
 */
 

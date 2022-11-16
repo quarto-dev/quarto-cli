@@ -1,5 +1,5 @@
 # patch.R
-# Copyright (C) 2020 by RStudio, PBC
+# Copyright (C) 2020-2022 Posit Software, PBC
 
 # check whether knitr has native yaml chunk option parsing
 knitr_has_yaml_chunk_options <- function() {

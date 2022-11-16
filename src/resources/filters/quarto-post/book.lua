@@ -1,5 +1,5 @@
 -- book.lua
--- Copyright (C) 2020 by RStudio, PBC
+-- Copyright (C) 2020-2022 Posit Software, PBC
 
 --- Removes notes and links
 local function clean (inlines)

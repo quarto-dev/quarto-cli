@@ -1,5 +1,5 @@
 -- validate.lua
--- Copyright (C) 2020 by RStudio, PBC
+-- Copyright (C) 2020-2022 Posit Software, PBC
 
 kAlignments = pandoc.List({ "center", "left", "right" })
 kVAlignments = pandoc.List({"top", "center", "bottom"})

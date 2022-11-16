@@ -3,7 +3,7 @@
 *
 * tests that `echo: false` in an ojs cell doesn't break the codetools dropdown
 *
-* Copyright (C) 2021 by RStudio, PBC
+* Copyright (C) 2021-2022 Posit Software, PBC
 *
 */
 

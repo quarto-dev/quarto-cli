@@ -3,7 +3,7 @@
 *
 * Unit tests regarding the YAML validation error narrowing heuristics
 *
-* Copyright (C) 2022 by RStudio, PBC
+* Copyright (C) 2022 Posit Software, PBC
 *
 */
 

@@ -2,7 +2,7 @@
 * website-listing-template
 .ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";

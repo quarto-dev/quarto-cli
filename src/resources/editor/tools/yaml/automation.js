@@ -6,7 +6,7 @@
 * In build-js, this gets concatenated with the iife bundle of
 * tree-sitter to make yaml.js.
 *
-* Copyright (C) 2021 by RStudio, PBC
+* Copyright (C) 2021-2022 Posit Software, PBC
 *
 */
 
