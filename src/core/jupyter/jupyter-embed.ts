@@ -12,6 +12,8 @@ import {
   jupyterAssets,
   jupyterFromFile,
   jupyterToMarkdown,
+  kQuartoOutputDisplay,
+  kQuartoOutputOrder,
 } from "../jupyter/jupyter.ts";
 
 import {
@@ -69,18 +71,13 @@ const kOutput = "output";
 
 const kHashRegex = /(.*?)#(.*)/;
 const kIndexRegex = /(.*)\[([0-9,-]*)\]/;
-const kPlaceholderRegex = /<!-- 12A0366C:(.*?) \| (.*?) -->/;
+const kPlaceholderRegex = /<!-- 12A0366C:(.*?) \| (.*?) \| (.*?) -->/;
 
 const kNotebookCache = "notebook-cache";
 const kRenderFileLifeTime = "render-file";
 
-// notebook.ipynb#cellid1
-// notebook.ipynb#cellid1
-// notebook.ipynb#cellid1,cellid2,cellid3
-// notebook.ipynb[0]
-// notebook.ipynb[0,1]
-// notebook.ipynb[0-2]
-// notebook.ipynb[2,0-1]
+// Parses a notebook address string into a file path with
+// an optional list of ids or list of cell indexes.
 export function parseNotebookAddress(
   path: string,
 ): JupyterNotebookAddress | undefined {
@@ -109,7 +106,7 @@ export function parseNotebookAddress(
     if (isNotebook(path)) {
       return {
         path,
-        indexes: resolveCellRange(indexResult[2]),
+        indexes: resolveRange(indexResult[2]),
       };
     } else {
       return undefined;
@@ -126,13 +123,22 @@ export function parseNotebookAddress(
   }
 }
 
+// Creates a placeholder that will later be replaced with
+// rendered notebook markdown. Note that the placeholder
+// must stipulate all the information required to generate the
+// markdown (e.g. options, output indexes and so on)
 export function notebookMarkdownPlaceholder(
   path: string,
   options: JupyterMarkdownOptions,
+  outputs?: string,
 ) {
-  return `<!-- 12A0366C:${path} | ${optionsToPlaceholder(options)} -->`;
+  return `<!-- 12A0366C:${path} | ${outputs || ""} | ${
+    optionsToPlaceholder(options)
+  } -->`;
 }
 
+// Replaces any notebook markdown placeholders with the
+// rendered contents.
 export async function replaceNotebookPlaceholders(
   to: string,
   input: string,
@@ -143,22 +149,29 @@ export async function replaceNotebookPlaceholders(
   let match = kPlaceholderRegex.exec(markdown);
   let includes;
   while (match) {
-    // Find and parse the placeholders
-    const nbPath = match[1];
-    const optionPlaceholder = match[2];
-    const nbOptions = optionPlaceholder
-      ? placeholderToOptions(optionPlaceholder)
-      : {};
-
-    // Parse the address
-    const nbAddress = parseNotebookAddress(nbPath);
+    // Parse the address and if this is a notebook
+    // then proceed with the replacement
+    const nbAddressStr = match[1];
+    const nbAddress = parseNotebookAddress(nbAddressStr);
     if (nbAddress) {
+      // If a list of outputs are provided, resolve that range
+      const outputsStr = match[2];
+      const nbOutputs = outputsStr ? resolveRange(outputsStr) : undefined;
+
+      // If cell options are provided, resolve those
+      const placeholderStr = match[3];
+      const nbOptions = placeholderStr
+        ? placeholderToOptions(placeholderStr)
+        : {};
+
       // Assets
       const assets = jupyterAssets(
         input,
         to,
       );
 
+      // Compute appropriate includes based upon the note
+      // dependendencies
       const notebookIncludes = () => {
         const notebook = jupyterFromFile(resolveNbPath(input, nbAddress.path));
         const dependencies = isHtmlOutput(context.format.pandoc)
@@ -183,12 +196,12 @@ export async function replaceNotebookPlaceholders(
         context,
         flags,
         nbOptions,
+        nbOutputs,
       );
 
       // Replace the placeholders with the rendered markdown
       markdown = markdown.replaceAll(match[0], nbMarkdown);
     }
-
     match = kPlaceholderRegex.exec(markdown);
   }
   kPlaceholderRegex.lastIndex = 0;
@@ -206,12 +219,14 @@ function resolveNbPath(input: string, path: string) {
   }
 }
 
+// Gets the markdown for a specific notebook and set of options
 async function notebookMarkdown(
   nbAddress: JupyterNotebookAddress,
   assets: JupyterAssets,
   context: RenderContext,
   flags: RenderFlags,
   options?: JupyterMarkdownOptions,
+  outputs?: number[],
 ) {
   // Get the cell outputs for this notebook
   const notebookInfo = await getCachedNotebookInfo(
@@ -220,6 +235,7 @@ async function notebookMarkdown(
     context,
     flags,
     options,
+    outputs,
   );
 
   // Wrap any injected cells with a div that includes a back link to
@@ -271,12 +287,17 @@ async function notebookMarkdown(
   }
 }
 
+// Caches the notebook info for a a particular notebook and
+// set of options. Since the markdown is what is cached,
+// the cache will include options that control markdown output
+// when determining whether it can use cached contents.
 async function getCachedNotebookInfo(
   nbAddress: JupyterNotebookAddress,
   assets: JupyterAssets,
   context: RenderContext,
   flags: RenderFlags,
   options?: JupyterMarkdownOptions,
+  outputs?: number[],
 ) {
   // We can cache outputs on a per rendered file basis to
   // improve performance
@@ -293,7 +314,7 @@ async function getCachedNotebookInfo(
     };
 
   // Compute a cache key
-  const cacheKey = notebookCacheKey(nbAddress, options);
+  const cacheKey = notebookCacheKey(nbAddress, options, outputs);
   if (!nbCache.cache[cacheKey]) {
     // Render the notebook and place it in the cache
     // Read and filter notebook
@@ -312,6 +333,23 @@ async function getCachedNotebookInfo(
 
         if (options.asis !== undefined) {
           cell.metadata[kOutput] = options.asis ? true : false;
+        }
+
+        // Filter outputs if so desired
+        if (outputs && cell.outputs) {
+          cell.outputs = cell.outputs.map((output, index) => {
+            const oneBasedIdx = index + 1;
+            output.metadata = output.metadata || {};
+            if (!outputs.includes(oneBasedIdx)) {
+              output.metadata[kQuartoOutputDisplay] = false;
+            } else {
+              const explicitOrder = outputs.indexOf(oneBasedIdx);
+              if (explicitOrder > -1) {
+                output.metadata[kQuartoOutputOrder] = explicitOrder;
+              }
+            }
+            return output;
+          });
         }
         return cell;
       });
@@ -363,6 +401,7 @@ async function getCachedNotebookInfo(
   return nbCache.cache[cacheKey];
 }
 
+// Tries to find a title within a Notebook
 function findTitle(cells: JupyterCellOutput[]) {
   for (const cell of cells) {
     const partitioned = partitionMarkdown(cell.markdown);
@@ -375,9 +414,13 @@ function findTitle(cells: JupyterCellOutput[]) {
   return undefined;
 }
 
+// Create a notebook hash key for the cache
+// that incorporates options that affect markdown
+// output
 function notebookCacheKey(
   nbAddress: JupyterNotebookAddress,
   nbOptions?: JupyterMarkdownOptions,
+  nbOutputs?: number[],
 ) {
   const optionsKey = nbOptions
     ? Object.keys(nbOptions).reduce((key, current) => {
@@ -388,7 +431,13 @@ function notebookCacheKey(
       }
     }, "")
     : "";
-  return optionsKey ? `${nbAddress.path}-${optionsKey}` : nbAddress.path;
+
+  const coreKey = optionsKey
+    ? `${nbAddress.path}-${optionsKey}`
+    : nbAddress.path;
+
+  const outputsKey = nbOutputs ? nbOutputs.join(",") : "";
+  return `${coreKey}:${outputsKey}`;
 }
 
 function optionsToPlaceholder(options: JupyterMarkdownOptions) {
@@ -413,6 +462,9 @@ function placeholderToOptions(placeholder: string) {
   return options;
 }
 
+// Finds a cell matching an id. It will first try an explicit
+// matching cell Id, then a cell label (in the code chunk front matter),
+// and otherwise look for a cell(s) with that tag
 function cellForId(id: string, cells: JupyterCellOutput[]) {
   for (const cell of cells) {
     // cellId can either by a literal cell Id, or a tag with that value
@@ -442,6 +494,10 @@ function cellForId(id: string, cells: JupyterCellOutput[]) {
   }
 }
 
+// Parses a string into one or more cellids.
+// Syntax like:
+//   notebook.ipynb#cellid1
+//   notebook.ipynb#cellid1,cellid2,cellid3
 function resolveCellIds(hash?: string) {
   if (hash && hash.indexOf(",") > 0) {
     return hash.split(",");
@@ -452,7 +508,15 @@ function resolveCellIds(hash?: string) {
   }
 }
 
-function resolveCellRange(rangeRaw?: string) {
+// Parses a string with one more numbers or ranges into
+// a list of numbers, in order.
+// Syntax like:
+//   notebook.ipynb[0]
+//   notebook.ipynb[0,1]
+//   notebook.ipynb[0-2]
+//   notebook.ipynb[2,0-1]
+//   notebook.ipynb[2,6-4]
+function resolveRange(rangeRaw?: string) {
   if (rangeRaw) {
     const result: number[] = [];
 

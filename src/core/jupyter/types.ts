@@ -143,6 +143,7 @@ export interface JupyterOutput {
   output_type: "stream" | "display_data" | "execute_result" | "error";
   execution_count?: null | number;
   isolated?: boolean;
+  metadata?: Record<string, unknown>;
 }
 
 export interface JupyterOutputStream extends JupyterOutput {

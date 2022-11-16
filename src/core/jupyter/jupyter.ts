@@ -152,10 +152,13 @@ import { mergeConfigs } from "../config.ts";
 import { encode as encodeBase64 } from "encoding/base64.ts";
 
 export const kQuartoMimeType = "quarto_mimetype";
+export const kQuartoOutputOrder = "quarto_order";
+export const kQuartoOutputDisplay = "quarto_display";
 
 export const kJupyterNotebookExtensions = [
   ".ipynb",
 ];
+
 export function isJupyterNotebook(file: string) {
   return kJupyterNotebookExtensions.includes(extname(file).toLowerCase());
 }
@@ -1252,16 +1255,31 @@ async function mdFromCodeCell(
     const outputName = pandocAutoIdentifier(labelName, true) + "-output";
 
     let nextOutputSuffix = 1;
-    for (
-      const { index, output } of outputs.map((value, index) => ({
-        index,
-        output: value,
-      }))
-    ) {
+    const sortedOutputs = outputs.map((value, index) => ({
+      index,
+      output: value,
+    })).sort((a, b) => {
+      // Sort any explicitly ordered cells
+      const aIdx = a.output.metadata?.[kQuartoOutputOrder] !== undefined
+        ? a.output.metadata?.[kQuartoOutputOrder] as number
+        : Number.MAX_SAFE_INTEGER;
+      const bIdx = b.output.metadata?.[kQuartoOutputOrder] !== undefined
+        ? b.output.metadata?.[kQuartoOutputOrder] as number
+        : Number.MAX_SAFE_INTEGER;
+      return aIdx - bIdx;
+    });
+
+    for (const { index, output } of sortedOutputs) {
       // compute output label
       const outputLabel = label && labelCellContainer && isDisplayData(output)
         ? (label + "-" + nextOutputSuffix++)
         : label;
+
+      // If this output has been marked to not be displayed
+      // just continue
+      if (output.metadata?.[kQuartoOutputDisplay] === false) {
+        continue;
+      }
 
       // leading newline and beginning of div
       if (!asis) {

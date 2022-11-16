@@ -51,7 +51,10 @@ const includeHandler: LanguageHandler = {
 
       const notebookAddress = parseNotebookAddress(filename);
       if (notebookAddress) {
-        const placeHolder = notebookMarkdownPlaceholder(filename, {});
+        const outputs = directive.shortcode.namedParams.outputs as
+          | string
+          | undefined;
+        const placeHolder = notebookMarkdownPlaceholder(filename, {}, outputs);
         textFragments.push(placeHolder);
       } else {
         let includeSrc;

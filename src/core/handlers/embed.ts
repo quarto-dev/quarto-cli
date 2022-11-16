@@ -45,12 +45,13 @@ const kHandlers: EmbedHandler[] = [
       // Resolve the filename into a path
       const notebookAddress = parseNotebookAddress(filename);
       if (notebookAddress) {
+        const outputs = params.outputs as string | undefined;
         const placeHolder = notebookMarkdownPlaceholder(filename, {
           echo: params.echo !== undefined ? params.echo as boolean : false,
           warning: false,
           asis: true,
           eval: false,
-        });
+        }, outputs);
 
         markdownFragments.push(placeHolder);
         return Promise.resolve({
@@ -87,7 +88,7 @@ const embedHandler: LanguageHandler = {
     // The first parameter is a path to a file
     const filename = directive.shortcode.params[0];
     if (!filename) {
-      throw new Error("Embed directive needs filename as a parameter");
+      throw new Error("Embed directive requires a filename as a parameter");
     }
 
     // Go through handlers until one handles the embed by returning markdown
