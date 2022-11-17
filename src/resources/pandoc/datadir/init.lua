@@ -1703,6 +1703,36 @@ local function projectOffset()
    return param('project-offset', nil)
 end
 
+local function file_exists(name)
+   local f = io.open(name, 'r')
+   if f ~= nil then
+     io.close(f)
+     return true
+   else
+     return false
+   end
+ end
+ 
+ local function write_file(path, contents)
+   pandoc.system.make_directory(pandoc.path.directory(path), true)
+   local file = io.open(path, "a")
+   if file then
+     file:write(contents)
+     file:close()
+     return true
+   else
+     return false
+   end
+ end
+ 
+ local function read_file(path)
+   local file = io.open(path, "rb") 
+   if not file then return nil end
+   local content = file:read "*a"
+   file:close()
+   return content
+ end
+
 -- Quarto internal module - makes functions available
 -- through the filters
 _quarto = {
@@ -1717,8 +1747,12 @@ _quarto = {
    scriptFile = function(file)
       scriptFile = file
    end,
-   projectOffset = projectOffset
-
+   projectOffset = projectOffset,
+   file = {
+      read = read_file,
+      write = write_file,
+      exists = file_exists
+   }
  } 
 
 -- The main exports of the quarto module
