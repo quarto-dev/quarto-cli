@@ -50,16 +50,11 @@ export class ConfluenceClient {
     return this.get<WrappedResult<ContentSummary>>(url);
   }
 
-  //TODO remove duplication
   public async isTitleInSpace(title: string, space: Space): Promise<boolean> {
-    const cqlContext =
-      "%7B%22contentStatuses%22%3A%5B%22archived%22%2C%20%22current%22%2C%20%22draft%22%5D%7D"; //{"contentStatuses":["archived", "current", "draft"]}
-    const cql = `title="${title}" and space=${space.key}&cqlcontext=${cqlContext}`;
-    const result = await this.get<ContentArray>(`content/search?cql=${cql}`);
-    return result.results.length > 0;
+    const result = await this.fetchMatchingTitlePages(title, space);
+    return result.length > 0;
   }
 
-  //TODO remove duplication
   public async fetchMatchingTitlePages(
     title: string,
     space: Space
