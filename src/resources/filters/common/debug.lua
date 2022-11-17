@@ -1,5 +1,5 @@
 -- debug.lua
--- Copyright (C) 2020 by RStudio, PBC
+-- Copyright (C) 2020-2022 Posit Software, PBC
 
 -- improved formatting for dumping tables
 function tdump (tbl, indent, refs)

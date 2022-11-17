@@ -1,7 +1,7 @@
 /*
 * cmd.ts
 *
-* Copyright (C) 2021 by RStudio, PBC
+* Copyright (C) 2021-2022 Posit Software, PBC
 *
 */
 import { Command, ValidationError } from "cliffy/command/mod.ts";

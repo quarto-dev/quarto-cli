@@ -1,5 +1,5 @@
 -- paths.lua
--- Copyright (C) 2022 by RStudio, PBC
+-- Copyright (C) 2022 Posit Software, PBC
 
 function resourceRef(ref, dir)
   -- if the ref starts with / then just strip if off

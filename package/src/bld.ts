@@ -1,7 +1,7 @@
 /*
 * package.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 import { Command } from "cliffy/command/mod.ts";

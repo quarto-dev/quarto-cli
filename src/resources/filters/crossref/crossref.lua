@@ -1,5 +1,5 @@
 -- crossref.lua
--- Copyright (C) 2020 by RStudio, PBC
+-- Copyright (C) 2020-2022 Posit Software, PBC
 
 -- required version
 PANDOC_VERSION:must_be_at_least '2.13'

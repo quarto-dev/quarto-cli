@@ -1,5 +1,5 @@
 -- options.lua
--- Copyright (C) 2020 by RStudio, PBC
+-- Copyright (C) 2020-2022 Posit Software, PBC
 
 -- initialize options from 'crossref' metadata value
 function readFilterOptions(meta, filter)

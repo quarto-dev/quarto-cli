@@ -1,7 +1,7 @@
 /*
 * cast.ts
 *
-* Copyright (C) 2022 by RStudio, PBC
+* Copyright (C) 2022 Posit Software, PBC
 */
 
 export function asNumber(x?: unknown, defaultValue = 0) {

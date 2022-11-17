@@ -1,5 +1,5 @@
 -- preprocess.lua
--- Copyright (C) 2020 by RStudio, PBC
+-- Copyright (C) 2020-2022 Posit Software, PBC
 
 -- figures and tables support sub-references. mark them up before
 -- we proceed with crawling for cross-refs

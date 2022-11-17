@@ -1,5 +1,5 @@
 -- format.lua
--- Copyright (C) 2020 by RStudio, PBC
+-- Copyright (C) 2020-2022 Posit Software, PBC
 
 function round(num, numDecimalPlaces)
   local mult = 10^(numDecimalPlaces or 0)
