@@ -10936,6 +10936,23 @@ var require_yaml_intelligence_resources = __commonJS({
               }
             }
           }
+        },
+        {
+          id: "quarto-dev-schema",
+          schema: {
+            object: {
+              properties: {
+                _quarto: {
+                  hidden: true,
+                  object: {
+                    properties: {
+                      tests: "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       ],
       "schema/document-about.yml": [
@@ -20073,12 +20090,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 133541,
+        _internalId: 133552,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 133540,
+            _internalId: 133551,
             type: "enum",
             enum: [
               "png",
@@ -29472,7 +29489,8 @@ var getFrontMatterSchema = defineCached(
             "document-*",
             (field) => field.name !== "format"
           ),
-          executeObjSchema
+          executeObjSchema,
+          refSchema("quarto-dev-schema", "")
         )
       ),
       errorHandlers: []

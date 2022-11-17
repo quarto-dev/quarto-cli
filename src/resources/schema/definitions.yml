@@ -2031,3 +2031,13 @@
       propertyNames:
         string:
           pattern: "^[^\\s]+$"
+
+- id: quarto-dev-schema
+  schema:
+    object:
+      properties:
+        _quarto:
+          hidden: true
+          object:
+            properties:
+              tests: object

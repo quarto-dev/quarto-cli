@@ -10937,6 +10937,23 @@ try {
                 }
               }
             }
+          },
+          {
+            id: "quarto-dev-schema",
+            schema: {
+              object: {
+                properties: {
+                  _quarto: {
+                    hidden: true,
+                    object: {
+                      properties: {
+                        tests: "object"
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
         ],
         "schema/document-about.yml": [
@@ -20074,12 +20091,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 133541,
+          _internalId: 133552,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 133540,
+              _internalId: 133551,
               type: "enum",
               enum: [
                 "png",
@@ -29486,7 +29503,8 @@ ${tidyverseInfo(
               "document-*",
               (field) => field.name !== "format"
             ),
-            executeObjSchema
+            executeObjSchema,
+            refSchema("quarto-dev-schema", "")
           )
         ),
         errorHandlers: []

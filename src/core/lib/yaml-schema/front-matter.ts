@@ -14,8 +14,8 @@ import {
   anyOfSchema as anyOfS,
   completeSchema,
   describeSchema,
-  enumSchema,
   objectSchema as objectS,
+  refSchema,
   regexSchema as regexS,
 } from "./common.ts";
 
@@ -155,6 +155,7 @@ export const getFrontMatterSchema = defineCached(
             (field: SchemaField) => field.name !== "format",
           ),
           executeObjSchema,
+          refSchema("quarto-dev-schema", ""),
         ),
       ),
       errorHandlers: [],
