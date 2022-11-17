@@ -26,6 +26,7 @@ import {
   wrapBodyForConfluence,
   writeTokenComparator,
   findPagesToDelete,
+  buildFileToMetaTable,
 } from "../../src/publish/confluence/confluence-helper.ts";
 import { ApiError, PublishRecord } from "../../src/publish/types.ts";
 import {
@@ -1110,3 +1111,84 @@ const runFileMetadataToSpaceChanges = () => {
   });
 };
 runFileMetadataToSpaceChanges();
+
+const runBuildFileToMetaTable = () => {
+  const suiteLabel = (label: string) => `BuildFileToMetaTable_${label}`;
+
+  const fakeSite: SitePage[] = [
+    {
+      title: "Issue Triage",
+      id: "19890180",
+      metadata: {
+        fileName: "triage.xml",
+      },
+    },
+    {
+      title: "Release Planning",
+      id: "19890228",
+      metadata: { fileName: "release-planning.xml" },
+    },
+    {
+      title: "Team",
+      id: "19857455",
+      metadata: { fileName: "team.xml" },
+    },
+  ];
+
+  const fakeSite_ONE: SitePage[] = [
+    {
+      title: "Issue Triage",
+      id: "19890180",
+      metadata: {
+        fileName: "triage.xml",
+      },
+    },
+  ];
+
+  const check = (expected: Record<string, SitePage>, site: SitePage[]) => {
+    assertEquals(expected, buildFileToMetaTable(site));
+  };
+
+  unitTest(suiteLabel("no_files"), async () => {
+    const expected = {};
+    const site: SitePage[] = [];
+    check(expected, site);
+  });
+
+  unitTest(suiteLabel("one_file"), async () => {
+    const expected = {
+      ["triage.qmd"]: {
+        title: "Issue Triage",
+        id: "19890180",
+        metadata: {
+          fileName: "triage.xml",
+        },
+      },
+    };
+    check(expected, fakeSite_ONE);
+  });
+
+  unitTest(suiteLabel("multiple"), async () => {
+    const expected = {
+      ["release-planning.qmd"]: {
+        title: "Release Planning",
+        id: "19890228",
+        metadata: { fileName: "release-planning.xml" },
+      },
+      ["team.qmd"]: {
+        title: "Team",
+        id: "19857455",
+        metadata: { fileName: "team.xml" },
+      },
+      ["triage.qmd"]: {
+        title: "Issue Triage",
+        id: "19890180",
+        metadata: {
+          fileName: "triage.xml",
+        },
+      },
+    };
+    check(expected, fakeSite);
+  });
+};
+runBuildFileToMetaTable();

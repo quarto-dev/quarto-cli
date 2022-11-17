@@ -383,3 +383,21 @@ export const mergeSitePages = (
   );
   return result;
 };
+
+export const buildFileToMetaTable = (
+  fileMetadata: SitePage[]
+): Record<string, SitePage> => {
+  return fileMetadata.reduce(
+    (accumulator: Record<string, SitePage>, page: SitePage) => {
+      const fileName: string = page?.metadata?.fileName ?? "";
+      const fileNameQMD = fileName.replace("xml", "qmd");
+      if (fileName.length === 0) {
+        return accumulator;
+      }
+
+      accumulator[fileNameQMD] = page;
+      return accumulator;
+    },
+    {}
+  );
+};

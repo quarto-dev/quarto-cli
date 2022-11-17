@@ -5,6 +5,8 @@
 //TODO only update if changed images
 //TODO only update if changed body contents
 
+// TODO potential namespace collision for `fileName`
+
 //TODO Resource bundles
 
 //TODO JJ Question - do we delete manually added?  Archive?
@@ -73,6 +75,7 @@ import {
   validateToken,
   wrapBodyForConfluence,
   writeTokenComparator,
+  buildFileToMetaTable,
 } from "./confluence-helper.ts";
 
 import {
@@ -331,8 +334,6 @@ async function publish(
     const parentId: string = parent?.parent ?? "";
     const existingSite: SitePage[] = await fetchExistingSite(parentId);
 
-    //
-
     const publishFiles: PublishFiles = await renderSite(render);
     const metadataByInput: Record<string, InputMetadata> =
       publishFiles.metadataByInput ?? {};
@@ -368,6 +369,12 @@ async function publish(
     const fileMetadata: SiteFileMetadata[] = await Promise.all(
       filteredFiles.map(assembleSiteFileMetadata)
     );
+
+    console.log("existingSite", existingSite);
+    console.log("fileMetadata", fileMetadata);
+
+    const metadataByFilename = buildFileToMetaTable(existingSite);
+    console.log("metadataByFilename", metadataByFilename);
 
     const changeList: ConfluenceSpaceChange[] = buildSpaceChanges(
       fileMetadata,
