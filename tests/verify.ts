@@ -180,9 +180,18 @@ export const ensureHtmlElements = (
 
 export const ensureFileRegexMatches = (
   file: string,
-  matches: RegExp[],
-  noMatches?: RegExp[],
+  matchesUntyped: (string | RegExp)[],
+  noMatchesUntyped?: (string | RegExp)[],
 ): Verify => {
+  const asRegexp = (m: string | RegExp) => {
+    if (typeof m === "string") {
+      return new RegExp(m);
+    } else {
+      return m;
+    }
+  };
+  const matches = matchesUntyped.map(asRegexp);
+  const noMatches = noMatchesUntyped?.map(asRegexp);
   return {
     name: `Inspecting ${file} for Regex matches`,
     verify: async (_output: ExecuteOutput[]) => {
