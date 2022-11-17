@@ -1455,16 +1455,21 @@
                       "description": "Place the comment input box above or below the comments."
                     },
                     "theme": {
-                      "enum": [
-                        "light",
-                        "light_high_contrast",
-                        "light_protanopia",
-                        "dark",
-                        "dark_high_contrast",
-                        "dark_protanopia",
-                        "dark_dimmed",
-                        "transparent_dark",
-                        "preferred_color_scheme"
+                      "anyOf": [
+                        "string",
+                        {
+                          "enum": [
+                            "light",
+                            "light_high_contrast",
+                            "light_protanopia",
+                            "dark",
+                            "dark_high_contrast",
+                            "dark_protanopia",
+                            "dark_dimmed",
+                            "transparent_dark",
+                            "preferred_color_scheme"
+                          ]
+                        }
                       ],
                       "description": "The giscus theme to use when displaying comments."
                     },
@@ -13066,12 +13071,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 133552,
+    "_internalId": 133567,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 133551,
+        "_internalId": 133566,
         "type": "enum",
         "enum": [
           "png",
