@@ -23,61 +23,7 @@ export async function getPuppeteer() {
   return puppeteerImport;
 }
 
-/**
- * Extracts images and elements from an URL
- *
- * @param urlOrOptions webpage url or page options
- * @param selector css selector
- * @param filenames filenames to write screenshots to
- * @returns html content of selected results
- */
-export async function extractImagesFromElements(
-  urlOrOptions: string | PageOptions,
-  selector: string,
-  filenames: string[],
-): Promise<string[]> {
-  return await withPuppeteerBrowserAndPage(
-    urlOrOptions,
-    // deno-lint-ignore no-explicit-any
-    async (_browser: any, page: any) => {
-      const elements = await page.$$(selector);
-      if (elements.length !== filenames.length) {
-        throw new Error(
-          `extractImagesFromElements was given ${filenames.length} filenames, but selector yielded ${elements.length} elements.`,
-        );
-      }
-      for (let i = 0; i < elements.length; ++i) {
-        await elements[i].screenshot({ path: filenames[i] });
-      }
-
-      // deno-lint-ignore no-explicit-any
-      const document = (undefined as any);
-      const clientSideResult = await page.evaluate((selector: string) => {
-        // deno-lint-ignore no-explicit-any
-        return Array.from(document.querySelectorAll(selector)).map((n: any) =>
-          n.outerHTML
-        );
-      }, selector);
-      return clientSideResult;
-    },
-  );
-}
-
-export function extractHtmlFromElements(
-  url: string,
-  selector: string,
-): Promise<string[]> {
-  // deno-lint-ignore no-explicit-any
-  const document = (undefined as any);
-  return inPuppeteer(url, (selector: string) => {
-    // deno-lint-ignore no-explicit-any
-    return Array.from(document.querySelectorAll(selector)).map((n: any) =>
-      n.outerHTML
-    );
-  }, selector);
-}
-
-export interface PageOptions {
+interface PageOptions {
   url: string;
   viewport?: {
     // https://github.com/puppeteer/puppeteer/blob/v0.12.0/docs/api.md#pagesetviewportviewport
@@ -88,115 +34,6 @@ export interface PageOptions {
     hasTouch?: boolean;
     isLandscape?: boolean;
   };
-}
-export async function withPuppeteerBrowserAndPage<T>(
-  url: string | PageOptions,
-  // deno-lint-ignore no-explicit-any
-  f: (b: any, p: any) => Promise<T>,
-): Promise<T> {
-  const allowedErrorMessages = [
-    "Navigation failed because browser has disconnected!",
-    "Navigation timeout of 30000 ms exceeded",
-    "Evaluation failed: undefined",
-  ];
-
-  let attempts = 0;
-  const maxAttempts = 5;
-  while (attempts++ < maxAttempts) {
-    try {
-      let finished = false;
-      let result: T;
-      // deno-lint-ignore no-explicit-any
-      await withHeadlessBrowser(async (browser: any) => {
-        const page = await browser.newPage();
-        if (typeof url === "string") {
-          await page.goto(url);
-        } else {
-          if (url.viewport) {
-            page.setViewport(url.viewport);
-          }
-          await page.goto(url.url);
-        }
-        result = await f(browser, page);
-        finished = true;
-      });
-      if (finished) {
-        return result!;
-      }
-    } catch (error) {
-      if (
-        (allowedErrorMessages.indexOf(error.message) !== -1) &&
-        (attempts < maxAttempts)
-      ) {
-        console.log(
-          `\nEncountered a bad error message from puppeteer: "${error.message}"\n Retrying ${attempts}/${maxAttempts}`,
-        );
-      } else {
-        throw error;
-      }
-    }
-  }
-  throw new Error("Internal Error - shouldn't have arrived here.");
-}
-
-export async function inPuppeteer(
-  url: string,
-  // deno-lint-ignore no-explicit-any
-  f: any,
-  // deno-lint-ignore no-explicit-any
-  ...params: any[]
-  // deno-lint-ignore no-explicit-any
-): Promise<any> {
-  const allowedErrorMessages = [
-    "Navigation failed because browser has disconnected!",
-    "Navigation timeout of 30000 ms exceeded",
-    "Evaluation failed: undefined",
-  ];
-
-  let attempts = 0;
-  const maxAttempts = 5;
-  while (attempts++ < maxAttempts) {
-    try {
-      // deno-lint-ignore no-explicit-any
-      return await withHeadlessBrowser(async (browser: any) => {
-        const page = await browser.newPage();
-        await page.goto(url);
-        const clientSideResult = await page.evaluate(f, ...params);
-        return clientSideResult;
-      });
-    } catch (error) {
-      if (
-        (allowedErrorMessages.indexOf(error.message) !== -1) &&
-        (attempts < maxAttempts)
-      ) {
-        console.log(
-          `\nEncountered a bad error message from puppeteer: "${error.message}"\n Retrying ${attempts}/${maxAttempts}`,
-        );
-      } else {
-        throw error;
-      }
-    }
-  }
-  throw new Error("Internal Error - shouldn't have arrived here.");
-}
-
-export async function withHeadlessBrowser<T>(
-  // deno-lint-ignore no-explicit-any
-  fn: (browser: any) => Promise<T>,
-) {
-  const browser = await fetchBrowser();
-  if (browser !== undefined) {
-    try {
-      const result = await fn(browser);
-      await browser.close();
-      return result;
-    } catch (e) {
-      // we can't try ... finally here because it plays badly with async
-      // and return values.
-      await browser.close();
-      throw e;
-    }
-  }
 }
 
 async function findChrome(): Promise<string | undefined> {
@@ -265,13 +102,4 @@ export async function getBrowserExecutablePath() {
   }
 
   return executablePath;
-}
-
-async function fetchBrowser() {
-  const executablePath = await getBrowserExecutablePath();
-  const puppeteer = await getPuppeteer();
-  return await puppeteer.launch({
-    product: "chrome",
-    executablePath,
-  });
 }

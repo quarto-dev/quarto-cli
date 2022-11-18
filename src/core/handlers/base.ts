@@ -72,11 +72,6 @@ import { ensureDirSync } from "fs/mod.ts";
 import { mappedStringFromFile } from "../mapped-text.ts";
 import { error } from "log/mod.ts";
 import { withCriClient } from "../cri/cri.ts";
-/* import {
-  extractHtmlFromElements,
-  extractImagesFromElements,
-} from "../puppeteer.ts";
- */
 const handlers: Record<string, LanguageHandler> = {};
 
 let globalFigureCounter: Record<string, number> = {};
