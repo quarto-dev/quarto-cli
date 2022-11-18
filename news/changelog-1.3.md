@@ -14,6 +14,10 @@
 
 - Fix wrong page number in the TOC for appendices ([#3164](https://github.com/quarto-dev/quarto-cli/issues/3164)) (Thank you, @iusgit!)
 
+## Beamer Format
+
+- Document `theme` format metadata option ([#3377](https://github.com/quarto-dev/quarto-cli/issues/3377))
+
 ## Dates
 
 - Properly fall back to language only locale when a supported language-region locale isn't available. ([#3059](https://github.com/quarto-dev/quarto-cli/issues/3059))
