@@ -18,6 +18,20 @@
 
 - Fix wrong page number in the TOC for appendices ([#3164](https://github.com/quarto-dev/quarto-cli/issues/3164)) (Thank you, @iusgit!)
 
+## Mermaid diagrams
+
+- Upgrade to mermaid 9.2.2
+- Use mermaid's `neutral` theme by default.
+- Add support for mermaid theming ([#2165](https://github.com/quarto-dev/quarto-cli/issues/2165)). Use
+
+  ```yaml
+  html:
+    mermaid:
+      theme: forest
+  ```
+
+- Allow `%%| label` mermaid cell option to control the `id` of the resulting SVG, to facilitate CSS overrides.
+
 ## Dates
 
 - Properly fall back to language only locale when a supported language-region locale isn't available. ([#3059](https://github.com/quarto-dev/quarto-cli/issues/3059))

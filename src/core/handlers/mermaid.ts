@@ -53,6 +53,10 @@ object:
   properties:
     mermaid-format:
       enum: [png, svg, js]
+    theme:
+      anyOf:
+        - null
+        - string
 `)));
   },
 
@@ -81,6 +85,21 @@ object:
     cell: QuartoMdCell, // this has unmerged cell options
     options: Record<string, unknown>, // this merges default and cell options, we have to be careful.
   ) {
+    const mermaidOpts: Record<string, string> = {};
+    if (
+      typeof handlerContext.options.format.metadata.mermaid === "object" &&
+      handlerContext.options.format.metadata.mermaid
+    ) {
+      const { mermaid } = handlerContext.options.format.metadata as {
+        mermaid: Record<string, string>;
+      };
+      if (mermaid.theme) {
+        mermaidOpts.theme = mermaid.theme;
+      } else {
+        mermaidOpts.theme = "neutral";
+      }
+    }
+
     const cellContent = handlerContext.cellContent(cell);
     // TODO escaping removes MappedString information.
     // create puppeteer target page
@@ -91,7 +110,7 @@ object:
 <body>
 <pre class="mermaid">\n${escape(cellContent.value)}\n</pre> 
 <script>
-mermaid.initialize();
+mermaid.initialize(${JSON.stringify(mermaidOpts)});
 </script>
 </html>`;
     const selector = "pre.mermaid svg";
@@ -158,6 +177,16 @@ mermaid.initialize();
           },
         ],
       };
+      const mermaidMeta: Record<string, string> = {};
+      if (mermaidOpts.theme) {
+        mermaidMeta["mermaid-theme"] = mermaidOpts.theme;
+      } else {
+        mermaidMeta["mermaid-theme"] = "neutral";
+      }
+      handlerContext.addHtmlDependency({
+        name: "quarto-mermaid-conf",
+        meta: mermaidMeta,
+      });
       handlerContext.addHtmlDependency(dep);
     };
 
@@ -344,9 +373,13 @@ mermaid.initialize();
           "mermaid-tooltip-",
           "",
         );
+      const preAttrs = [`tooltip-selector="#${tooltipName}"`];
+      if (options.label) {
+        preAttrs.push(`label="${options.label}"`);
+      }
       const preEl = pandocHtmlBlock("pre")({
         classes: ["mermaid", "mermaid-js"],
-        attrs: [`tooltip-selector="#${tooltipName}"`],
+        attrs: preAttrs,
       });
       preEl.push(pandocRawStr(escape(cell.source.value))); // TODO escaping removes MappedString information.
 

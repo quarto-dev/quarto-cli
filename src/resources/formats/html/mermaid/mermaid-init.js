@@ -23,7 +23,14 @@ if (!String.prototype.replaceAll) {
   };
 }
 
-mermaid.initialize({ startOnLoad: false });
+const mermaidOpts = { startOnLoad: false };
+
+const mermaidThemeEl = document.querySelector('meta[name="mermaid-theme"]');
+if (mermaidThemeEl) {
+  mermaidOpts.theme = mermaidThemeEl.content;
+}
+
+mermaid.initialize(mermaidOpts);
 
 const _quartoMermaid = {
   // NB: there's effectively a copy of this function
@@ -198,7 +205,28 @@ const _quartoMermaid = {
 window.addEventListener(
   "load",
   function () {
-    mermaid.init("pre.mermaid-js");
+    let i = 0;
+    for (const el of Array.from(document.querySelectorAll("pre.mermaid-js"))) {
+      const text = el.innerText;
+      const output = mermaid.mermaidAPI.render(
+        `mermaid-${++i}`,
+        text,
+        () => {},
+        el
+      );
+      el.innerHTML = output;
+      if (el.dataset.label) {
+        // patch mermaid's emitted style
+        const svg = el.firstChild;
+        const style = svg.querySelector("style");
+        style.innerHTML = style.innerHTML.replaceAll(
+          `#${svg.id}`,
+          `#${el.dataset.label}`
+        );
+        svg.id = el.dataset.label;
+        delete el.dataset.label;
+      }
+    }
     for (const svgEl of Array.from(
       document.querySelectorAll("pre.mermaid-js svg")
     )) {
