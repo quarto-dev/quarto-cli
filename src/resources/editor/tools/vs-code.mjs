@@ -14546,6 +14546,16 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "Options passed to LaTeX Beamer themes."
         },
         {
+          name: "theme",
+          schema: "string",
+          tags: {
+            formats: [
+              "beamer"
+            ]
+          },
+          description: "The Beamer theme for this presentation."
+        },
+        {
           name: "section",
           schema: "number",
           tags: {
@@ -20095,12 +20105,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 133567,
+        _internalId: 133574,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 133566,
+            _internalId: 133573,
             type: "enum",
             enum: [
               "png",

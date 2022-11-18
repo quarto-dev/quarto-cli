@@ -253,6 +253,12 @@
     formats: [beamer]
   description: Options passed to LaTeX Beamer themes.
 
+- name: theme
+  schema: string
+  tags:
+    formats: [beamer]
+  description: The Beamer theme for this presentation.
+
 - name: section
   schema: number
   tags:
