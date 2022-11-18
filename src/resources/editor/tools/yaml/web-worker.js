@@ -14176,7 +14176,8 @@ try {
             tags: {
               formats: [
                 "$html-doc",
-                "revealjs"
+                "revealjs",
+                "beamer"
               ]
             },
             schema: {
@@ -14545,16 +14546,6 @@ try {
               ]
             },
             description: "Options passed to LaTeX Beamer themes."
-          },
-          {
-            name: "theme",
-            schema: "string",
-            tags: {
-              formats: [
-                "beamer"
-              ]
-            },
-            description: "The Beamer theme for this presentation."
           },
           {
             name: "section",
@@ -18946,11 +18937,7 @@ try {
           },
           "If <code>true</code>, force the presence of the OJS runtime. If\n<code>false</code>, force the absence instead. If unset, the OJS runtime\nis included only if OJS cells are present in the document.",
           "Use the specified file as a style reference in producing a docx,\npptx, or odt file.",
-          "Theme name, theme scss file, or a mix of both.",
-          "The light theme name, theme scss file, or a mix of both.",
-          "The light theme name, theme scss file, or a mix of both.",
-          "The dark theme name, theme scss file, or a mix of both.",
-          "The dark theme name, theme scss file, or a mix of both.",
+          "The Beamer theme for this presentation.",
           "Disables the built in html features like theming, anchor sections,\ncode block behavior, and more.",
           "Enables inclusion of Pandoc default CSS for this document.",
           "One or more CSS style sheets.",
@@ -20106,12 +20093,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 133574,
+          _internalId: 133704,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 133573,
+              _internalId: 133703,
               type: "enum",
               enum: [
                 "png",
