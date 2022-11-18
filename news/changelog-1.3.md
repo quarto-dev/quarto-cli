@@ -6,6 +6,10 @@
 - Add support for customizing the baseline widths of grid columns using yaml or scss. For more information, see [https://www.quarto.org/docs/prerelease/1.3.html](https://www.quarto.org/docs/prerelease/1.3.html).
 - Fix wrapping of long `code` entries inside table cells ([#3221](https://github.com/quarto-dev/quarto-cli/issues/3221))
 
+## Revealjs Format
+
+- reduce font size of `df-print: paged` tables ([#3380](https://github.com/quarto-dev/quarto-cli/issues/3380))
+
 ## Dates
 
 - Properly fall back to language only locale when a supported language-region locale isn't available. (#3059)
