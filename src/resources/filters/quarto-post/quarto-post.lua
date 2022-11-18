@@ -23,7 +23,7 @@ import("tikz.lua")
 import("meta.lua")
 import("delink.lua")
 import("book.lua")
-import("svg.lua")
+import("pdf-images.lua")
 import("../common/lunacolors.lua")
 import("../common/log.lua")
 import("../common/base64.lua")
@@ -48,7 +48,7 @@ return {
     tikz(),
     delink(),
     figCleanup(),
-    svg()
+    pdfImages()
   }),
   ojs(),
   quartoPostMetaInject(),
