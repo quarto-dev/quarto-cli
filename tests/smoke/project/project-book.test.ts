@@ -4,7 +4,7 @@
 * Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
-import { exists, existsSync } from "fs/mod.ts";
+import { existsSync } from "node/fs.ts";
 import { join } from "path/mod.ts";
 
 import { Metadata } from "../../../src/config/types.ts";
@@ -33,7 +33,7 @@ testQuartoCmd(
     fileExists(join(kProjectWorkingDir, "references.bib")),
     verifyYamlFile(
       kQuartoProjectFile,
-      ((yaml: unknown) => {
+      (yaml: unknown) => {
         // Make sure there is a project yaml section
         const metadata = yaml as Metadata;
         if (
@@ -44,7 +44,7 @@ testQuartoCmd(
         } else {
           return false;
         }
-      }),
+      },
     ),
   ],
   {
@@ -85,7 +85,7 @@ testQuartoCmd(
   verifyDocxBook,
   {
     teardown: async () => {
-      if (await exists(bookOutDir)) {
+      if (existsSync(bookOutDir)) {
         await Deno.remove(bookOutDir, { recursive: true });
       }
     },
