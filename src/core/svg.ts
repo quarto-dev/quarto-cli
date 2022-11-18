@@ -80,11 +80,14 @@ export async function resolveSize(
     widthInInches = svgWidthInInches;
   }
 
+  console.log({ options });
   return {
     widthInInches,
     heightInInches,
     widthInPoints: Math.round(widthInInches * 96),
     heightInPoints: Math.round(heightInInches * 96),
+    explicitWidth: options?.[kFigWidth] !== undefined,
+    explicitHeight: options?.[kFigHeight] !== undefined,
   };
 }
 
@@ -96,13 +99,13 @@ export const fixupAlignment = (svg: Element, align: string) => {
 
   switch (align) {
     case "left":
-      style = `${style} display: block; margin: auto auto auto 0`;
+      style = `${style}; display: block; margin: auto auto auto 0`;
       break;
     case "right":
-      style = `${style} display: block; margin: auto 0 auto auto`;
+      style = `${style}; display: block; margin: auto 0 auto auto`;
       break;
     case "center":
-      style = `${style} display: block; margin: auto auto auto auto`;
+      style = `${style}; display: block; margin: auto auto auto auto`;
       break;
   }
   svg.setAttribute("style", style);
@@ -120,15 +123,46 @@ export async function setSvgSize(
   const {
     widthInPoints,
     heightInPoints,
+    explicitHeight,
+    explicitWidth,
   } = await resolveSize(mappedSvgSrc.value, options);
+
+  console.log({
+    widthInPoints,
+    heightInPoints,
+    explicitHeight,
+    explicitWidth,
+  });
 
   const dom = (await getDomParser()).parseFromString(
     mappedSvgSrc.value,
     "text/html",
   );
   const svg = dom!.querySelector("svg")!;
-  svg.setAttribute("width", widthInPoints);
-  svg.setAttribute("height", heightInPoints);
+  if (explicitWidth && explicitHeight) {
+    svg.setAttribute("width", widthInPoints);
+    svg.setAttribute("height", heightInPoints);
+    // if explicit width and height are given, we need to remove max-width and max-height
+    // so that the figure doesn't get squished.
+    svg.setAttribute(
+      "style",
+      (svg.attributes.getNamedItem("style")?.value || "") +
+        "; max-width: none; max-height: none",
+    );
+  } else {
+    // we don't have access to svg.style as a property here...
+    // so we have to do it the roundabout way.
+    let style = svg.attributes.getNamedItem("style")?.value || "";
+    if (explicitWidth) {
+      style = `${style}; max-width: ${widthInPoints}px`;
+    }
+    if (explicitHeight) {
+      style = `${style}; max-height: ${heightInPoints}px`;
+    }
+    if (explicitWidth || explicitHeight) {
+      svg.setAttribute("style", style);
+    }
+  }
   if (extra) {
     extra(svg);
   }

@@ -30,11 +30,21 @@ const _quartoMermaid = {
   // in `core/svg.ts`.
   // if you change something here, you must keep it consistent there as well.
   setSvgSize(svg) {
-    const { widthInPoints, heightInPoints } = this.resolveSize(svg);
+    const { widthInPoints, heightInPoints, explicitHeight, explicitWidth } =
+      this.resolveSize(svg);
 
-    svg.setAttribute("width", widthInPoints);
-    svg.setAttribute("height", heightInPoints);
-    svg.style.maxWidth = null; // clear preset mermaid value.
+    if (explicitWidth && explicitHeight) {
+      svg.setAttribute("width", widthInPoints);
+      svg.setAttribute("height", heightInPoints);
+      svg.style.maxWidth = null; // remove mermaid's default max-width
+    } else {
+      if (explicitWidth) {
+        svg.style.maxWidth = `${widthInPoints}px`;
+      }
+      if (explicitHeight) {
+        svg.style.maxHeight = `${heightInPoints}px`;
+      }
+    }
   },
 
   // NB: there's effectively a copy of this function
@@ -62,13 +72,13 @@ const _quartoMermaid = {
 
     switch (align) {
       case "left":
-        style = `${style} display: block; margin: auto auto auto 0`;
+        style = `${style}; display: block; margin: auto auto auto 0`;
         break;
       case "right":
-        style = `${style} display: block; margin: auto 0 auto auto`;
+        style = `${style}; display: block; margin: auto 0 auto auto`;
         break;
       case "center":
-        style = `${style} display: block; margin: auto auto auto auto`;
+        style = `${style}; display: block; margin: auto auto auto auto`;
         break;
     }
     svg.setAttribute("style", style);
@@ -162,6 +172,8 @@ const _quartoMermaid = {
       heightInInches,
       widthInPoints: Math.round(widthInInches * 96),
       heightInPoints: Math.round(heightInInches * 96),
+      explicitWidth: options?.[kFigWidth] !== undefined,
+      explicitHeight: options?.[kFigHeight] !== undefined,
     };
   },
 
