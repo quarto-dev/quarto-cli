@@ -62,6 +62,9 @@ if [[ "${QUARTO_VENDOR_BINARIES}" = "true" ]]; then
       echo [Upgrading Deno to Canary]
       ./deno upgrade --canary --version $DENO_CANARY_COMMIT
     fi
+
+    # write deno version file for later use
+    echo $DENO > $QUARTO_BIN_PATH/../config/deno-version
   fi
   export DENO_BIN_PATH=$QUARTO_BIN_PATH/tools/$DENO_DIR/deno
 else
