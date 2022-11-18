@@ -80,7 +80,6 @@ export async function resolveSize(
     widthInInches = svgWidthInInches;
   }
 
-  console.log({ options });
   return {
     widthInInches,
     heightInInches,
@@ -126,13 +125,6 @@ export async function setSvgSize(
     explicitHeight,
     explicitWidth,
   } = await resolveSize(mappedSvgSrc.value, options);
-
-  console.log({
-    widthInPoints,
-    heightInPoints,
-    explicitHeight,
-    explicitWidth,
-  });
 
   const dom = (await getDomParser()).parseFromString(
     mappedSvgSrc.value,
