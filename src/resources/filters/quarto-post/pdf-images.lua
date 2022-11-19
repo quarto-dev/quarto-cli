@@ -4,12 +4,19 @@
 local function convert_svg(path)
   local stem = pandoc.path.split_extension(path)
   local output = stem .. '.pdf'
-  local result = os.execute("rsvg-convert -f pdf -a -o" .. output .. " " .. path)
-  if result then
+
+  local status, results = pcall(pandoc.pipe, "rsvg-convert", {"-f", "pdf", "-a", "-o", output, path}, "")
+  if status then
     return output
   else 
-    error("Failed when attempting to convert a SVG to a PDF for output. Please ensure that rsvg-convert is available on the path.")
-    os.exit(1)
+    if results['command'] == nil then
+      -- command not found
+      error("Failed when attempting to convert a SVG to a PDF for output. Please ensure that rsvg-convert is available on the path.")
+      os.exit(1)
+    else
+      error("Failed when attempting to convert a SVG to a PDF for output. An error occurred while attempting to run rsvg-convert.\nError code " .. tostring(results['error_code']) )
+      os.exit(1)
+    end
   end
 end
 
