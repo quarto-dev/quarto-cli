@@ -154,6 +154,15 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
           ? "mermaid.js"
           : "mermaid.min.js";
 
+      if (mermaidOpts.theme) {
+        const mermaidMeta: Record<string, string> = {};
+        mermaidMeta["mermaid-theme"] = mermaidOpts.theme;
+        handlerContext.addHtmlDependency({
+          name: "quarto-mermaid-conf",
+          meta: mermaidMeta,
+        });
+      }
+
       const dep: FormatDependency = {
         name: "quarto-diagram",
         scripts: [
@@ -177,16 +186,6 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
           },
         ],
       };
-      const mermaidMeta: Record<string, string> = {};
-      if (mermaidOpts.theme) {
-        mermaidMeta["mermaid-theme"] = mermaidOpts.theme;
-      } else {
-        mermaidMeta["mermaid-theme"] = "neutral";
-      }
-      handlerContext.addHtmlDependency({
-        name: "quarto-mermaid-conf",
-        meta: mermaidMeta,
-      });
       handlerContext.addHtmlDependency(dep);
     };
 
@@ -373,7 +372,7 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
           "mermaid-tooltip-",
           "",
         );
-      const preAttrs = [`tooltip-selector="#${tooltipName}"`];
+      const preAttrs = [];
       if (options.label) {
         preAttrs.push(`label="${options.label}"`);
       }
@@ -393,7 +392,10 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
         cell,
         mappedConcat([
           preEl.mappedString(),
-          `\n<div id="${tooltipName}" class="mermaidTooltip"></div>`,
+          // tooltips appear to be broken in mermaid 9.2.2?
+          // They don't even work on their website: https://mermaid-js.github.io/mermaid/#/flowchart
+          // we drop them for now.
+          // `\n<div id="${tooltipName}" class="mermaidTooltip"></div>`,
         ]),
         options,
         attrs,

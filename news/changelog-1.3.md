@@ -21,16 +21,10 @@
 ## Mermaid diagrams
 
 - Upgrade to mermaid 9.2.2
-- Use mermaid's `neutral` theme by default.
-- Add support for mermaid theming ([#2165](https://github.com/quarto-dev/quarto-cli/issues/2165)). Use
-
-  ```yaml
-  html:
-    mermaid:
-      theme: forest
-  ```
-
-- Allow `%%| label` mermaid cell option to control the `id` of the resulting SVG, to facilitate CSS overrides.
+- Add support for theming mermaid diagrams in Javascript formats ([#2165](https://github.com/quarto-dev/quarto-cli/issues/2165)). See the [prerelease documentation notes](https://quarto.org/docs/prerelease/1.3.html) for details.
+- Allow `%%| label` mermaid cell option that control the `id` of the resulting SVG, to facilitate CSS overrides.
+- Use `htmlLabels: false` in mermaid flowcharts.
+- Remove support for tooltips, which appear to not be working in mermaid 9.2.2.
 
 ## Dates
 
