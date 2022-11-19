@@ -573,7 +573,12 @@ div.column {
 }
 
 // Mermaid Theming
-$body-color: #222 !default; // if none comes from theme
+// if none come from theme, we need these
+$body-color: #222 !default;
+$body-bg: #fff !default;
+$primary: #468 !default;
+$secondary: #999 !default;
+$font-family-sans-serif: sans-serif !default;
 
 /* SCSS variables */
 $mermaid-bg-color: $body-bg !default;
