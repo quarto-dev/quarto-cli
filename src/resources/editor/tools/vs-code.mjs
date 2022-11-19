@@ -14175,7 +14175,8 @@ var require_yaml_intelligence_resources = __commonJS({
           tags: {
             formats: [
               "$html-doc",
-              "revealjs"
+              "revealjs",
+              "beamer"
             ]
           },
           schema: {
@@ -18935,11 +18936,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "If <code>true</code>, force the presence of the OJS runtime. If\n<code>false</code>, force the absence instead. If unset, the OJS runtime\nis included only if OJS cells are present in the document.",
         "Use the specified file as a style reference in producing a docx,\npptx, or odt file.",
-        "Theme name, theme scss file, or a mix of both.",
-        "The light theme name, theme scss file, or a mix of both.",
-        "The light theme name, theme scss file, or a mix of both.",
-        "The dark theme name, theme scss file, or a mix of both.",
-        "The dark theme name, theme scss file, or a mix of both.",
+        "The Beamer theme for this presentation.",
         "Disables the built in html features like theming, anchor sections,\ncode block behavior, and more.",
         "Enables inclusion of Pandoc default CSS for this document.",
         "One or more CSS style sheets.",
@@ -20095,12 +20092,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 133567,
+        _internalId: 133704,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 133566,
+            _internalId: 133703,
             type: "enum",
             enum: [
               "png",
