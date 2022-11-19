@@ -18937,7 +18937,11 @@ try {
           },
           "If <code>true</code>, force the presence of the OJS runtime. If\n<code>false</code>, force the absence instead. If unset, the OJS runtime\nis included only if OJS cells are present in the document.",
           "Use the specified file as a style reference in producing a docx,\npptx, or odt file.",
-          "The Beamer theme for this presentation.",
+          "Theme name, theme scss file, or a mix of both.",
+          "The light theme name, theme scss file, or a mix of both.",
+          "The light theme name, theme scss file, or a mix of both.",
+          "The dark theme name, theme scss file, or a mix of both.",
+          "The dark theme name, theme scss file, or a mix of both.",
           "Disables the built in html features like theming, anchor sections,\ncode block behavior, and more.",
           "Enables inclusion of Pandoc default CSS for this document.",
           "One or more CSS style sheets.",
@@ -19880,7 +19884,9 @@ try {
             long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
-          "internal-schema-hack"
+          "internal-schema-hack",
+          "Mermaid diagram options",
+          "The mermaid built-in theme to use."
         ],
         "schema/external-schemas.yml": [
           {
@@ -20093,12 +20099,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 133704,
+          _internalId: 133586,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 133703,
+              _internalId: 133578,
               type: "enum",
               enum: [
                 "png",
@@ -20112,6 +20118,25 @@ try {
                 "js"
               ],
               exhaustiveCompletions: true
+            },
+            theme: {
+              _internalId: 133585,
+              type: "anyOf",
+              anyOf: [
+                {
+                  type: "null",
+                  description: "be the null value",
+                  completions: [
+                    "null"
+                  ],
+                  exhaustiveCompletions: true
+                },
+                {
+                  type: "string",
+                  description: "be a string"
+                }
+              ],
+              description: "be at least one of: the null value, a string"
             }
           },
           patternProperties: {},
@@ -20166,6 +20191,32 @@ try {
                 }
               }
             }
+          }
+        ],
+        "schema/document-mermaid.yml": [
+          {
+            name: "mermaid",
+            tags: {
+              formats: [
+                "$html-files"
+              ]
+            },
+            schema: {
+              object: {
+                properties: {
+                  theme: {
+                    enum: [
+                      "default",
+                      "dark",
+                      "forest",
+                      "neutral"
+                    ],
+                    description: "The mermaid built-in theme to use."
+                  }
+                }
+              }
+            },
+            description: "Mermaid diagram options"
           }
         ]
       };

@@ -22,6 +22,14 @@
 
 - Document `theme` format metadata option ([#3377](https://github.com/quarto-dev/quarto-cli/issues/3377))
 
+## Mermaid diagrams
+
+- Upgrade to mermaid 9.2.2
+- Add support for theming mermaid diagrams in Javascript formats ([#2165](https://github.com/quarto-dev/quarto-cli/issues/2165)). See the [prerelease documentation notes](https://quarto.org/docs/prerelease/1.3.html) for details.
+- Allow `%%| label` mermaid cell option that control the `id` of the resulting SVG, to facilitate CSS overrides.
+- Use `htmlLabels: false` in mermaid flowcharts.
+- Remove support for tooltips, which appear to not be working in mermaid 9.2.2.
+
 ## Dates
 
 - Properly fall back to language only locale when a supported language-region locale isn't available. ([#3059](https://github.com/quarto-dev/quarto-cli/issues/3059))
