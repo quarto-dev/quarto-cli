@@ -11,7 +11,7 @@ function tdump (tbl, indent, refs)
     return
   end
 
-  if tbl.t then
+  if tbl.t and type(t) == "string" then
     print(string.rep("  ", indent) .. tbl.t)
   end
   local empty = true
