@@ -56,7 +56,7 @@
 
 ## Preview
 
-- Correct redirect for code-server (#3352)
+- Correct redirect for VS Code Server (#3352)
 
 ## Miscellaneous
 
