@@ -1,9 +1,9 @@
 /*
- * provider.ts
- *
- * Copyright (C) 2020 by RStudio, PBC
- *
- */
+* provider.ts
+*
+* Copyright (C) 2020-2022 Posit Software, PBC
+*
+*/
 
 import { quartoConfig } from "../core/quarto.ts";
 import { netlifyProvider } from "./netlify/netlify.ts";

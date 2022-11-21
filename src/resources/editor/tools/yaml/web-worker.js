@@ -8480,16 +8480,21 @@ try {
                             description: "Place the comment input box above or below the comments."
                           },
                           theme: {
-                            enum: [
-                              "light",
-                              "light_high_contrast",
-                              "light_protanopia",
-                              "dark",
-                              "dark_high_contrast",
-                              "dark_protanopia",
-                              "dark_dimmed",
-                              "transparent_dark",
-                              "preferred_color_scheme"
+                            anyOf: [
+                              "string",
+                              {
+                                enum: [
+                                  "light",
+                                  "light_high_contrast",
+                                  "light_protanopia",
+                                  "dark",
+                                  "dark_high_contrast",
+                                  "dark_protanopia",
+                                  "dark_dimmed",
+                                  "transparent_dark",
+                                  "preferred_color_scheme"
+                                ]
+                              }
                             ],
                             description: "The giscus theme to use when displaying comments."
                           },
@@ -10933,6 +10938,23 @@ try {
                 propertyNames: {
                   string: {
                     pattern: "^[^\\s]+$"
+                  }
+                }
+              }
+            }
+          },
+          {
+            id: "quarto-dev-schema",
+            schema: {
+              object: {
+                properties: {
+                  _quarto: {
+                    hidden: true,
+                    object: {
+                      properties: {
+                        tests: "object"
+                      }
+                    }
                   }
                 }
               }
@@ -14154,7 +14176,8 @@ try {
             tags: {
               formats: [
                 "$html-doc",
-                "revealjs"
+                "revealjs",
+                "beamer"
               ]
             },
             schema: {
@@ -19861,7 +19884,9 @@ try {
             long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
-          "internal-schema-hack"
+          "internal-schema-hack",
+          "Mermaid diagram options",
+          "The mermaid built-in theme to use."
         ],
         "schema/external-schemas.yml": [
           {
@@ -20074,12 +20099,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 133541,
+          _internalId: 133586,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 133540,
+              _internalId: 133578,
               type: "enum",
               enum: [
                 "png",
@@ -20093,6 +20118,25 @@ try {
                 "js"
               ],
               exhaustiveCompletions: true
+            },
+            theme: {
+              _internalId: 133585,
+              type: "anyOf",
+              anyOf: [
+                {
+                  type: "null",
+                  description: "be the null value",
+                  completions: [
+                    "null"
+                  ],
+                  exhaustiveCompletions: true
+                },
+                {
+                  type: "string",
+                  description: "be a string"
+                }
+              ],
+              description: "be at least one of: the null value, a string"
             }
           },
           patternProperties: {},
@@ -20147,6 +20191,32 @@ try {
                 }
               }
             }
+          }
+        ],
+        "schema/document-mermaid.yml": [
+          {
+            name: "mermaid",
+            tags: {
+              formats: [
+                "$html-files"
+              ]
+            },
+            schema: {
+              object: {
+                properties: {
+                  theme: {
+                    enum: [
+                      "default",
+                      "dark",
+                      "forest",
+                      "neutral"
+                    ],
+                    description: "The mermaid built-in theme to use."
+                  }
+                }
+              }
+            },
+            description: "Mermaid diagram options"
           }
         ]
       };
@@ -29486,7 +29556,8 @@ ${tidyverseInfo(
               "document-*",
               (field) => field.name !== "format"
             ),
-            executeObjSchema
+            executeObjSchema,
+            refSchema("quarto-dev-schema", "")
           )
         ),
         errorHandlers: []

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2021 Andrea Cardaci <cyrus.and@gmail.com>
  *
- * Deno port Copyright (C) 2022 by RStudio, PBC
+ * Deno port Copyright (C) 2022 Posit Software, PBC
  */
 
 export default async function externalRequest(options) {

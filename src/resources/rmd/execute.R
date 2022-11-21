@@ -1,5 +1,5 @@
 # execute.R
-# Copyright (C) 2020 by RStudio, PBC
+# Copyright (C) 2020-2022 Posit Software, PBC
 
 # execute rmarkdown::render
 execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, resourceDir, handledLanguages, markdown) {

@@ -1,7 +1,7 @@
 /*
 * extract-resources.ts
 *
-* Copyright (C) 2021 by RStudio, PBC
+* Copyright (C) 2021-2022 Posit Software, PBC
 *
 */
 

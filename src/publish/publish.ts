@@ -1,9 +1,9 @@
 /*
- * publish.ts
- *
- * Copyright (C) 2020 by RStudio, PBC
- *
- */
+* publish.ts
+*
+* Copyright (C) 2020-2022 Posit Software, PBC
+*
+*/
 
 import * as ld from "../core/lodash.ts";
 
@@ -62,7 +62,6 @@ export async function publishSite(
     if (options.render) {
       renderProgress("Rendering for publish:\n");
       const services = renderServices();
-      // const renderResultById;
       try {
         const result = await render(project.dir, {
           services,

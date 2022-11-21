@@ -4,7 +4,7 @@
 * Parses YAML and returns an annotated parse with location information
 * to enable good error messages on validation
 *
-* Copyright (C) 2021 by RStudio, PBC
+* Copyright (C) 2021-2022 Posit Software, PBC
 *
 */
 

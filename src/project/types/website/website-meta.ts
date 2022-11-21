@@ -1,7 +1,7 @@
 /*
 * website-meta.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -10,6 +10,7 @@ import { dirname, join, relative } from "path/mod.ts";
 import {
   kAbstract,
   kDescription,
+  kNumberSections,
   kSubtitle,
   kTitle,
 } from "../../../config/constants.ts";
@@ -418,7 +419,6 @@ function metaMarkdownPipeline(format: Format, extras: FormatExtras) {
 
       const ogMeta = opengraphMetadata(format);
       inlines[kOgTitle] = ogMeta.title as string || resolvedTitle || "";
-
       return { inlines };
     },
     processRendered(rendered: Record<string, Element>, doc: Document) {
@@ -429,7 +429,18 @@ function metaMarkdownPipeline(format: Format, extras: FormatExtras) {
           `head title`,
         );
         if (el) {
-          el.innerHTML = renderedEl.innerText;
+          if (format.pandoc[kNumberSections] === false) {
+            // Remove chapter numbers if not numbered
+            const numberEl = renderedEl.querySelector("span.chapter-number");
+            if (numberEl) {
+              numberEl.remove();
+            }
+            // Collapse contiguous whitespace
+            const collapsed = renderedEl.innerText.replaceAll(/\s+/g, " ");
+            el.innerHTML = collapsed;
+          } else {
+            el.innerHTML = renderedEl.innerText;
+          }
         }
       }
 

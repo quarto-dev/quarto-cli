@@ -1,7 +1,7 @@
 /*
  * latexmk.ts
  *
- * Copyright (C) 2020 by RStudio, PBC
+ * Copyright (C) 2020-2022 Posit Software, PBC
  *
  */
 
@@ -41,7 +41,7 @@ export function useQuartoLatexmk(
   // if we are creating pdf output
   if (["beamer", "pdf"].includes(to || "") && ext === "pdf") {
     const engine = pdfEngine(format.pandoc, format.render, flags);
-    return isLatexPdfEngine(engine) && engine.pdfEngine !== "latexmk";
+    return isLatexPdfEngine(engine);
   }
 
   // default to false

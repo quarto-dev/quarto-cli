@@ -1,7 +1,7 @@
 /*
 * bibliography.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 * Copyright (c) 2016-2021 Thomas Watson Steen
 *
 * Adapted from: https://github.com/watson/ci-info

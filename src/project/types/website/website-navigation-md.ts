@@ -1,7 +1,7 @@
 /*
 * website-navigation-md.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 import { dirname, extname, isAbsolute, join } from "path/mod.ts";

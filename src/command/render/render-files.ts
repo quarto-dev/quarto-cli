@@ -1,7 +1,7 @@
 /*
 * render-files.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -357,13 +357,19 @@ export async function renderFiles(
         // Set the date locale for this render
         // Used for date formatting
         initDayJsPlugins();
-        if (
-          context.format.metadata[kLang] &&
-          typeof (context.format.metadata[kLang]) === "string"
-        ) {
+        const resolveLang = () => {
+          const lang = context.format.metadata[kLang] ||
+            options.flags?.pandocMetadata?.[kLang];
+          if (typeof (lang) === "string") {
+            return lang;
+          } else {
+            return undefined;
+          }
+        };
+        const dateFormatLang = resolveLang();
+        if (dateFormatLang) {
           await setDateLocale(
-            options.flags?.pandocMetadata?.[kLang] as string ||
-              context.format.metadata[kLang] as string,
+            dateFormatLang,
           );
         }
 

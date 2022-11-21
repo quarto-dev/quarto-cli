@@ -245,18 +245,20 @@
                   enum: [top, bottom]
                   description: Place the comment input box above or below the comments.
                 theme:
-                  enum:
-                    [
-                      light,
-                      light_high_contrast,
-                      light_protanopia,
-                      dark,
-                      dark_high_contrast,
-                      dark_protanopia,
-                      dark_dimmed,
-                      transparent_dark,
-                      preferred_color_scheme,
-                    ]
+                  anyOf:
+                    - string
+                    - enum:
+                        [
+                          light,
+                          light_high_contrast,
+                          light_protanopia,
+                          dark,
+                          dark_high_contrast,
+                          dark_protanopia,
+                          dark_dimmed,
+                          transparent_dark,
+                          preferred_color_scheme,
+                        ]
                   description: The giscus theme to use when displaying comments.
                 language:
                   string:
@@ -2031,3 +2033,13 @@
       propertyNames:
         string:
           pattern: "^[^\\s]+$"
+
+- id: quarto-dev-schema
+  schema:
+    object:
+      properties:
+        _quarto:
+          hidden: true
+          object:
+            properties:
+              tests: object

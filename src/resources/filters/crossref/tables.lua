@@ -1,5 +1,5 @@
 -- tables.lua
--- Copyright (C) 2020 by RStudio, PBC
+-- Copyright (C) 2020-2022 Posit Software, PBC
 
 -- process all tables (note that cross referenced tables are *always*
 -- wrapped in a div so they can carry parent information and so that

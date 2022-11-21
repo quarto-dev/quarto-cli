@@ -3,7 +3,7 @@
 *
 * piecemeal exports of lodash to make the tree-shaker happier
 *
-* Copyright (C) 2022 by RStudio, PBC
+* Copyright (C) 2022 Posit Software, PBC
 *
 */
 

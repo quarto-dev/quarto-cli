@@ -1,9 +1,9 @@
 /*
- * types.ts
- *
- * Copyright (C) 2020 by RStudio, PBC
- *
- */
+* types.ts
+*
+* Copyright (C) 2020-2022 Posit Software, PBC
+*
+*/
 
 import { ProjectContext } from "../project/types.ts";
 

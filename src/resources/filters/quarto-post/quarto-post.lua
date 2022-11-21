@@ -1,5 +1,5 @@
 -- quarto-post.lua
--- Copyright (C) 2020 by RStudio, PBC
+-- Copyright (C) 2020-2022 Posit Software, PBC
 
 -- required version
 PANDOC_VERSION:must_be_at_least '2.13'
@@ -23,6 +23,7 @@ import("tikz.lua")
 import("meta.lua")
 import("delink.lua")
 import("book.lua")
+import("pdf-images.lua")
 import("../common/lunacolors.lua")
 import("../common/log.lua")
 import("../common/base64.lua")
@@ -46,7 +47,8 @@ return {
     reveal(),
     tikz(),
     delink(),
-    figCleanup()
+    figCleanup(),
+    pdfImages()
   }),
   ojs(),
   quartoPostMetaInject(),
