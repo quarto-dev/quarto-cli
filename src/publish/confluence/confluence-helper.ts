@@ -408,32 +408,23 @@ export const updateLinks = (
   server: string,
   parent: ConfluenceParent
 ): ConfluenceSpaceChange[] => {
-  console.log("updateLinks");
-  console.log("fileMetadataTable", fileMetadataTable);
   const root = `${server}`;
   const url = `${ensureTrailingSlash(server)}wiki/spaces/${
     parent.space
   }/pages/`;
-  console.log("url", url);
 
   const replacer = (match: string): string => {
-    console.log("replacer");
     let updated: string = match;
-
-    console.log("match", match); //href="????.qmd"
     const fileNameMatch = FILE_FINDER.exec(match);
     const fileName = fileNameMatch ? fileNameMatch[0] ?? "" : "";
-    console.log("fileName", fileName);
 
     const sitePage: SitePage | null = fileMetadataTable[fileName] ?? null;
     if (sitePage) {
-      console.log("do replace for", fileName);
       updated = match.replace('href="', `href="${url}`);
       const pagePath: string = `${url}${sitePage.id}/${encodeURI(
         sitePage.title ?? ""
       )}`;
       updated = updated.replace(fileName, pagePath);
-      console.log("updated", updated);
     }
 
     return updated;
@@ -442,16 +433,14 @@ export const updateLinks = (
   const changeMapper = (
     changeToProcess: ConfluenceSpaceChange
   ): ConfluenceSpaceChange => {
-    console.log("changeMapper");
     if (isContentUpdate(changeToProcess) || isContentCreate(changeToProcess)) {
       const valueToProcess = changeToProcess?.body?.storage?.value;
       if (valueToProcess) {
-        console.log("valueToProcess", valueToProcess);
         const replacedLinks: string = valueToProcess.replaceAll(
           LINK_FINDER,
           replacer
         );
-        console.log("replacedLinks", replacedLinks);
+
         changeToProcess.body.storage.value = replacedLinks;
       }
     }

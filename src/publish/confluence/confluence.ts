@@ -372,7 +372,6 @@ async function publish(
     );
 
     const metadataByFilename = buildFileToMetaTable(existingSite);
-    console.log("metadataByFilename", metadataByFilename);
 
     let changeList: ConfluenceSpaceChange[] = buildSpaceChanges(
       fileMetadata,
@@ -380,12 +379,8 @@ async function publish(
       space,
       existingSite
     );
-    console.log("server", server);
-    console.log("parent", parent);
-    console.log("space", space);
-    console.log("changeList before", changeList);
+
     changeList = updateLinks(metadataByFilename, changeList, server, parent);
-    console.log("changeList after", changeList);
 
     const spaceChanges = (
       changeList: ConfluenceSpaceChange[]
