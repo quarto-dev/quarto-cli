@@ -1,0 +1,6 @@
+title: Kbd
+author: Posit, PBC
+organization: quarto
+contributes:
+  shortcodes:
+    - kbd.lua
