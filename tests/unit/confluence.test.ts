@@ -8,25 +8,28 @@ import { assertEquals, assertThrows } from "testing/asserts.ts";
 
 import {
   buildContentCreate,
+  buildFileToMetaTable,
   buildPublishRecordForContent,
-  confluenceParentFromString,
   buildSpaceChanges,
+  confluenceParentFromString,
+  FILE_FINDER,
   filterFilesForUpdate,
+  findPagesToDelete,
   getMessageFromAPIError,
   getNextVersion,
   getTitle,
   isNotFound,
   isUnauthorized,
+  LINK_FINDER,
   mergeSitePages,
   tokenFilterOut,
   transformAtlassianDomain,
+  updateLinks,
   validateEmail,
   validateServer,
   validateToken,
   wrapBodyForConfluence,
   writeTokenComparator,
-  findPagesToDelete,
-  buildFileToMetaTable,
 } from "../../src/publish/confluence/confluence-helper.ts";
 import { ApiError, PublishRecord } from "../../src/publish/types.ts";
 import {
@@ -43,7 +46,9 @@ import {
   ContentCreate,
   ContentStatusEnum,
   ContentSummary,
+  ContentUpdate,
   ContentVersion,
+  ExtractedLink,
   PAGE_TYPE,
   SiteFileMetadata,
   SitePage,
@@ -71,6 +76,11 @@ const buildFakeContent = (): Content => {
       },
     },
   };
+};
+
+const FAKE_PARENT: ConfluenceParent = {
+  space: "QUARTOCONF",
+  parent: "8781825",
 };
 
 unitTest("transformAtlassianDomain_basic", async () => {
@@ -809,11 +819,6 @@ const runFileMetadataToSpaceChanges = () => {
     key: "fake-space-key",
   };
 
-  const fakeParent: ConfluenceParent = {
-    space: "QUARTOCONF",
-    parent: "8781825",
-  };
-
   const fakeFile: SiteFileMetadata = {
     fileName: "fake-file-name",
     title: "fake-title",
@@ -863,7 +868,7 @@ const runFileMetadataToSpaceChanges = () => {
     const expected: ConfluenceSpaceChange[] = [];
     const actual: ConfluenceSpaceChange[] = buildSpaceChanges(
       fileMetadataList,
-      fakeParent,
+      FAKE_PARENT,
       fakeSpace
     );
     assertEquals(expected, actual);
@@ -896,7 +901,7 @@ const runFileMetadataToSpaceChanges = () => {
     ];
     const actual: ConfluenceSpaceChange[] = buildSpaceChanges(
       fileMetadataList,
-      fakeParent,
+      FAKE_PARENT,
       fakeSpace
     );
     assertEquals(expected, actual);
@@ -950,7 +955,7 @@ const runFileMetadataToSpaceChanges = () => {
     ];
     const actual: ConfluenceSpaceChange[] = buildSpaceChanges(
       fileMetadataList,
-      fakeParent,
+      FAKE_PARENT,
       fakeSpace
     );
     assertEquals(expected, actual);
@@ -989,7 +994,7 @@ const runFileMetadataToSpaceChanges = () => {
     ];
     const actual: ConfluenceSpaceChange[] = buildSpaceChanges(
       fileMetadataList,
-      fakeParent,
+      FAKE_PARENT,
       fakeSpace,
       existingSite
     );
@@ -1029,7 +1034,7 @@ const runFileMetadataToSpaceChanges = () => {
     ];
     const actual: ConfluenceSpaceChange[] = buildSpaceChanges(
       fileMetadataList,
-      fakeParent,
+      FAKE_PARENT,
       fakeSpace,
       existingSite
     );
@@ -1103,7 +1108,7 @@ const runFileMetadataToSpaceChanges = () => {
     ];
     const actual: ConfluenceSpaceChange[] = buildSpaceChanges(
       fileMetadataList,
-      fakeParent,
+      FAKE_PARENT,
       fakeSpace,
       existingSite
     );
@@ -1192,3 +1197,219 @@ const runBuildFileToMetaTable = () => {
   });
 };
 runBuildFileToMetaTable();
+
+const runExtractLinks = () => {
+  const suiteLabel = (label: string) => `ExtractLinks_${label}`;
+
+  const extractLinks = (value: string): ExtractedLink[] => {
+    const links: string[] = value.match(LINK_FINDER) ?? [];
+    const extractedLinks: ExtractedLink[] = links.map(
+      (link: string): ExtractedLink => {
+        const fileMatches = link.match(FILE_FINDER);
+        const file = fileMatches ? fileMatches[0] ?? "" : "";
+        return { link, file };
+      }
+    );
+    return extractedLinks;
+  };
+
+  const check = (expected: ExtractedLink[], value: string) => {
+    assertEquals(expected, extractLinks(value));
+  };
+
+  unitTest(suiteLabel("empty_string"), async () => {
+    const value = "";
+    const expected: ExtractedLink[] = [];
+    check(expected, value);
+  });
+
+  unitTest(suiteLabel("three_links"), async () => {
+    const value =
+      "<a href='no-replace.qmd'/>no</a> content content <a href='team.qmd'>team</a> content content <a href='zqmdzz.qmd'>team</a>";
+    const expected: ExtractedLink[] = [
+      { link: "href='no-replace.qmd'", file: "no-replace.qmd" },
+      { link: "href='team.qmd'", file: "team.qmd" },
+      { link: "href='zqmdzz.qmd'", file: "zqmdzz.qmd" },
+    ];
+    check(expected, value);
+  });
+
+  unitTest(suiteLabel("three_links_messy"), async () => {
+    const value =
+      "no-replace.qmd <a href='no-replace.qmd'/>no</a> no-replace.qmd content content <a href='team.qmd'>team</a> content content <a href='zqmdzz.qmd'>team</a> qmd.qmd <a href='team.txt'>team</a>";
+    const expected: ExtractedLink[] = [
+      { link: "href='no-replace.qmd'", file: "no-replace.qmd" },
+      { link: "href='team.qmd'", file: "team.qmd" },
+      { link: "href='zqmdzz.qmd'", file: "zqmdzz.qmd" },
+    ];
+    check(expected, value);
+  });
+};
+runExtractLinks();
+
+const runUpdateLinks = () => {
+  const suiteLabel = (label: string) => `UpdateLinks_${label}`;
+
+  const fileMetadataTable = {
+    ["release-planning.qmd"]: {
+      title: "Release Planning",
+      id: "19890228",
+      metadata: { fileName: "release-planning.xml" },
+    },
+    ["team.qmd"]: {
+      title: "Team",
+      id: "19857455",
+      metadata: { fileName: "team.xml" },
+    },
+    ["triage.qmd"]: {
+      title: "Issue Triage",
+      id: "19890180",
+      metadata: {
+        fileName: "triage.xml",
+      },
+    },
+  };
+
+  const UPDATE_NO_LINKS: ContentUpdate = {
+    contentChangeType: ContentChangeType.update,
+    id: "19890228",
+    version: null,
+    title: "Release Planning",
+    type: "page",
+    status: "current",
+    ancestors: [{ id: "19759105" }],
+    body: {
+      storage: {
+        value: "no links",
+        representation: "storage",
+      },
+    },
+    fileName: "release-planning.xml",
+  };
+
+  const UPDATE_LINKS_ONE: ContentUpdate = {
+    contentChangeType: ContentChangeType.update,
+    id: "19890228",
+    version: null,
+    title: "Release Planning",
+    type: "page",
+    status: "current",
+    ancestors: [{ id: "19759105" }],
+    body: {
+      storage: {
+        value:
+          "<a href='no-replace.qmd'/>no</a> content content <a href='team.qmd'>team</a> content content <a href='zqmdzz.qmd'>team</a>",
+        representation: "storage",
+      },
+    },
+    fileName: "release-planning.xml",
+  };
+
+  const UPDATE_LINKS_SEVERAL: ContentUpdate = {
+    contentChangeType: ContentChangeType.update,
+    id: "19890228",
+    version: null,
+    title: "Release Planning",
+    type: "page",
+    status: "current",
+    ancestors: [{ id: "19759105" }],
+    body: {
+      storage: {
+        value:
+          "<a href='no-replace.qmd'/>not-found</a> content content <a href='team.qmd'>teamz</a> content content <a href='zqmdzz.qmd'>not-found</a> <a href='release-planning.qmd'>Do the Release Planning</a> and then triage.qmd .qmd <a href='triage.qmd'>triage.qmd</a>",
+        representation: "storage",
+      },
+    },
+    fileName: "release-planning.xml",
+  };
+
+  const check = (
+    expected: ConfluenceSpaceChange[],
+    changes: ConfluenceSpaceChange[],
+    fileMetadataTable: Record<string, SitePage>,
+    server = "fake-server",
+    parent = FAKE_PARENT
+  ) => {
+    assertEquals(
+      expected,
+      updateLinks(fileMetadataTable, changes, server, parent)
+    );
+  };
+
+  unitTest(suiteLabel("no_files"), async () => {
+    const changes: ConfluenceSpaceChange[] = [];
+    const expected: ConfluenceSpaceChange[] = [];
+    check(expected, changes, fileMetadataTable);
+  });
+
+  unitTest(suiteLabel("one_update_noLink"), async () => {
+    const changes: ConfluenceSpaceChange[] = [UPDATE_NO_LINKS];
+    const expected: ConfluenceSpaceChange[] = [UPDATE_NO_LINKS];
+    check(expected, changes, fileMetadataTable);
+  });
+
+  unitTest(suiteLabel("one_update_link"), async () => {
+    const changes: ConfluenceSpaceChange[] = [UPDATE_LINKS_ONE];
+    const rootURL = "fake-server/wiki/spaces/QUARTOCONF/pages";
+    const expectedUpdate: ContentUpdate = {
+      ...UPDATE_LINKS_ONE,
+      body: {
+        storage: {
+          value: `<a href=\'no-replace.qmd\'/>no</a> content content <a href=\'fake-server/wiki/spaces/QUARTOCONF/pages/19857455/Team\'>team</a> content content <a href=\'zqmdzz.qmd\'>team</a>`,
+          representation: "storage",
+        },
+      },
+    };
+    const expected: ConfluenceSpaceChange[] = [expectedUpdate];
+    check(expected, changes, fileMetadataTable);
+  });
+
+  unitTest(suiteLabel("one_change_several_update_links"), async () => {
+    const changes: ConfluenceSpaceChange[] = [UPDATE_LINKS_SEVERAL];
+    const rootURL = "fake-server/wiki/spaces/QUARTOCONF/pages";
+    const expectedUpdate: ContentUpdate = {
+      ...UPDATE_LINKS_ONE,
+      body: {
+        storage: {
+          value: `<a href='no-replace.qmd'/>not-found</a> content content <a href='fake-server/wiki/spaces/QUARTOCONF/pages/19857455/Team'>teamz</a> content content <a href='zqmdzz.qmd'>not-found</a> <a href='fake-server/wiki/spaces/QUARTOCONF/pages/19890228/Release%20Planning'>Do the Release Planning</a> and then triage.qmd .qmd <a href='fake-server/wiki/spaces/QUARTOCONF/pages/19890180/Issue%20Triage'>triage.qmd</a>`,
+          representation: "storage",
+        },
+      },
+    };
+    const expected: ConfluenceSpaceChange[] = [expectedUpdate];
+    check(expected, changes, fileMetadataTable);
+  });
+
+  unitTest(suiteLabel("two_changes_several_update_links"), async () => {
+    const changes: ConfluenceSpaceChange[] = [
+      UPDATE_LINKS_SEVERAL,
+      UPDATE_LINKS_ONE,
+    ];
+    const rootURL = "fake-server/wiki/spaces/QUARTOCONF/pages";
+    const expectedUpdateSeveralLinks: ContentUpdate = {
+      ...UPDATE_LINKS_ONE,
+      body: {
+        storage: {
+          value: `<a href='no-replace.qmd'/>not-found</a> content content <a href='fake-server/wiki/spaces/QUARTOCONF/pages/19857455/Team'>teamz</a> content content <a href='zqmdzz.qmd'>not-found</a> <a href='fake-server/wiki/spaces/QUARTOCONF/pages/19890228/Release%20Planning'>Do the Release Planning</a> and then triage.qmd .qmd <a href='fake-server/wiki/spaces/QUARTOCONF/pages/19890180/Issue%20Triage'>triage.qmd</a>`,
+          representation: "storage",
+        },
+      },
+    };
+
+    const expectedUpdateOneLink: ContentUpdate = {
+      ...UPDATE_LINKS_ONE,
+      body: {
+        storage: {
+          value: `<a href='no-replace.qmd'/>no</a> content content <a href='fake-server/wiki/spaces/QUARTOCONF/pages/19857455/Team'>team</a> content content <a href='zqmdzz.qmd'>team</a>`,
+          representation: "storage",
+        },
+      },
+    };
+    const expected: ConfluenceSpaceChange[] = [
+      expectedUpdateSeveralLinks,
+      expectedUpdateOneLink,
+    ];
+    check(expected, changes, fileMetadataTable);
+  });
+};
+runUpdateLinks();

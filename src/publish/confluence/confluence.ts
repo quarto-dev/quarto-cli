@@ -76,6 +76,7 @@ import {
   wrapBodyForConfluence,
   writeTokenComparator,
   buildFileToMetaTable,
+  updateLinks,
 } from "./confluence-helper.ts";
 
 import {
@@ -370,18 +371,21 @@ async function publish(
       filteredFiles.map(assembleSiteFileMetadata)
     );
 
-    console.log("existingSite", existingSite);
-    console.log("fileMetadata", fileMetadata);
-
     const metadataByFilename = buildFileToMetaTable(existingSite);
     console.log("metadataByFilename", metadataByFilename);
 
-    const changeList: ConfluenceSpaceChange[] = buildSpaceChanges(
+    let changeList: ConfluenceSpaceChange[] = buildSpaceChanges(
       fileMetadata,
       parent,
       space,
       existingSite
     );
+    console.log("server", server);
+    console.log("parent", parent);
+    console.log("space", space);
+    console.log("changeList before", changeList);
+    changeList = updateLinks(metadataByFilename, changeList, server, parent);
+    console.log("changeList after", changeList);
 
     const spaceChanges = (
       changeList: ConfluenceSpaceChange[]

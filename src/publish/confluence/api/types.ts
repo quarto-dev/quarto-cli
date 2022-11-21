@@ -179,3 +179,8 @@ export type SitePage = {
   metadata: Record<string, any>;
   title: string | null;
 };
+
+export type ExtractedLink = {
+  link: string;
+  file: string;
+};
