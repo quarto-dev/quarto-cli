@@ -54,6 +54,10 @@
 
 - Remove chapter number of HTML head title when `number-sections` is `false` (#3304).
 
+## Preview
+
+- Correct redirect for VS Code Server (#3352) (Thank you, @benz0li!)
+
 ## Miscellaneous
 
 - Work around pandoc strict checking of `number-offset` type. ([#3126](https://github.com/quarto-dev/quarto-cli/issues/3126))
