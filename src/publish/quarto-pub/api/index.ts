@@ -23,6 +23,8 @@ const contentTypeApplicationJsonHeader = {
   "Content-Type": "application/json",
 };
 
+const kUrlResolveRegex = /https:\/\/quartopub\.com\/sites\/([^\/]+)\/(.*)/;
+
 // Creates an authorization header, if a token was supplied.
 const authorizationHeader = (
   token?: string,
@@ -163,7 +165,9 @@ export class QuartoPubClient {
     }
 
     // Return the result.
-    return <Site> await response.json();
+    const site = <Site> await response.json();
+    site.url = this.resolveUrl(site.url);
+    return site;
   };
 
   // Creates a site deploy.
@@ -197,7 +201,9 @@ export class QuartoPubClient {
     }
 
     // Return the result.
-    return <PublishDeploy> await response.json();
+    const deploy = <PublishDeploy> await response.json();
+    deploy.url = this.resolveUrl(deploy.url);
+    return deploy;
   };
 
   // Gets a deploy.
@@ -217,7 +223,9 @@ export class QuartoPubClient {
     }
 
     // Return the result.
-    return <PublishDeploy> await response.json();
+    const deploy = <PublishDeploy> await response.json();
+    deploy.url = this.resolveUrl(deploy.url);
+    return deploy;
   };
 
   // Uploads a deploy file.
@@ -266,6 +274,18 @@ export class QuartoPubClient {
 
   // Creates a URL.
   private createURL = (path: string) => `${this.baseURL_}/${path}`;
+
+  // Resolve the URL into a form that can be used to address resources
+  // (not just the root redirect). For example this form allows
+  // social metadata cards to properly form links to images, and so on.
+  private resolveUrl = (url: string) => {
+    const match = url.match(kUrlResolveRegex);
+    if (match) {
+      return `https://${match[1]}.quarto.pub/${match[2]}`;
+    } else {
+      return url;
+    }
+  };
 }
 
 async function descriptionFromErrorResponse(response: Response) {
