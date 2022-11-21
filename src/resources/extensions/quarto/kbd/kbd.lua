@@ -3,7 +3,7 @@ return {
   ['kbd'] = function(args, kwargs, meta)
     local function osname(v)
       if v == "win" then return "Windows" end
-      if v == "mac" then return "macOS" end
+      if v == "mac" then return "Mac" end
       if v == "linux" then return "Linux" end       
     end
     if quarto.doc.is_format("html:js") then
@@ -20,6 +20,11 @@ return {
 
       local default_arg_str
       if #args == 0 then
+        for k, v in pairs(kwargs) do
+          default_arg_str = pandoc.utils.stringify(v)
+          break
+        end
+
         default_arg_str = ""
       else
         default_arg_str = pandoc.utils.stringify(args[1])
@@ -41,7 +46,6 @@ return {
         if n_kwargs > 0 then
           table.insert(result, pandoc.Str(' ('))
           for k, v in pairs(kwargs) do
-            table.insert(result, pandoc.Str('on '))
             table.insert(result, pandoc.Str(osname(k)))
             table.insert(result, pandoc.Str(': '))
             table.insert(result, pandoc.Code(pandoc.utils.stringify(v)))
@@ -56,32 +60,19 @@ return {
         -- all kwargs
         if n_kwargs == 0 then
           error("kbd requires at least one argument")
-        elseif n_kwargs == 1 then
-          for k, v in pairs(kwargs) do
-            result = {
-              pandoc.Code(pandoc.utils.stringify(v)),
-              pandoc.Str(" (on "),
-              pandoc.Str(osname(k)),
-              pandoc.Str(")")
-            }
-          end
         else
           for k, v in pairs(kwargs) do
             table.insert(result, pandoc.Code(pandoc.utils.stringify(v)))
-            table.insert(result, pandoc.Str(' on '))
+            table.insert(result, pandoc.Str(' ('))
             table.insert(result, pandoc.Str(osname(k)))
+            table.insert(result, pandoc.Str(')'))
             n_kwargs = n_kwargs - 1
-            if n_kwargs > 1 then
+            if n_kwargs > 0 then
               table.insert(result, pandoc.Str(', '))
-            elseif n_kwargs == 1 then
-              table.insert(result, pandoc.Str(', and '))
             end
           end
         end
       end
-
-
-      
       return result
     end
   end
