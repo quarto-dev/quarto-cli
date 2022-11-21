@@ -91,7 +91,7 @@ export async function resolveFormatsFromMetadata(
   input: string,
   formats: string[],
   flags?: RenderFlags,
-): Promise<Record<string, Format>> {
+): Promise<Record<string, { format: Format; active: boolean }>> {
   const includeDir = dirname(input);
 
   // Read any included metadata files and merge in and metadata from the command
@@ -139,9 +139,12 @@ export async function resolveFormatsFromMetadata(
     renderFormats.push(...toFormats);
   }
 
-  const resolved: Record<string, Format> = {};
+  // get a list of _all_ formats
+  formats = ld.uniq(formats.concat(renderFormats));
 
-  renderFormats.forEach((to) => {
+  const resolved: Record<string, { format: Format; active: boolean }> = {};
+
+  formats.forEach((to) => {
     // determine the target format
     const format = formatFromMetadata(
       baseFormat,
@@ -185,7 +188,10 @@ export async function resolveFormatsFromMetadata(
       config.execute[kExecuteDebug] = flags.executeDebug;
     }
 
-    resolved[to] = config;
+    resolved[to] = {
+      format: config,
+      active: renderFormats.includes(to),
+    };
   });
 
   return resolved;
@@ -225,17 +231,18 @@ export async function renderContexts(
 
   // return contexts
   const contexts: Record<string, RenderContext> = {};
-  for (const format of Object.keys(formats)) {
+  for (const formatKey of Object.keys(formats)) {
     // set format
     const context: RenderContext = {
       target,
       options,
       engine,
-      format: formats[format],
+      format: formats[formatKey].format,
+      active: formats[formatKey].active,
       project,
       libDir: libDir!,
     };
-    contexts[format] = context;
+    contexts[formatKey] = context;
 
     // at this point we have enough to fix up the target and engine
     // in case that's needed.
@@ -281,7 +288,7 @@ export async function renderContexts(
 
     // if this isn't for execute then cleanup context
     if (!forExecute && engine.executeTargetSkipped) {
-      engine.executeTargetSkipped(target, formats[format]);
+      engine.executeTargetSkipped(target, formats[formatKey].format);
     }
   }
   return contexts;
@@ -380,7 +387,7 @@ async function resolveFormats(
   engine: ExecutionEngine,
   options: RenderOptions,
   project?: ProjectContext,
-): Promise<Record<string, Format>> {
+): Promise<Record<string, { format: Format; active: boolean }>> {
   // input level metadata
   const inputMetadata = target.metadata;
 
@@ -456,19 +463,33 @@ async function resolveFormats(
     options.flags,
   );
 
-  // merge the formats
-  const targetFormats = ld.uniq(
+  const activeKeys = (
+    formats: Record<string, { format: Format; active: boolean }>,
+  ) => {
+    return Object.keys(formats).filter((key) => {
+      return formats[key].active;
+    });
+  };
+
+  // A list of all the active format keys
+  const activeFormatKeys = ld.uniq(
+    activeKeys(projFormats).concat(activeKeys(directoryFormats)).concat(
+      activeKeys(inputFormats),
+    ),
+  );
+  // A list of all the format keys included
+  const allFormatKeys = ld.uniq(
     Object.keys(projFormats).concat(Object.keys(directoryFormats)).concat(
       Object.keys(inputFormats),
     ),
   );
 
   const mergedFormats: Record<string, Format> = {};
-  for (const format of targetFormats) {
+  for (const format of allFormatKeys) {
     // alias formats
-    const projFormat = projFormats[format];
-    const directoryFormat = directoryFormats[format];
-    const inputFormat = inputFormats[format];
+    const projFormat = projFormats[format].format;
+    const directoryFormat = directoryFormats[format].format;
+    const inputFormat = inputFormats[format].format;
 
     // resolve theme (project-level bootstrap theme always wins for web drived output)
     if (
@@ -513,14 +534,18 @@ async function resolveFormats(
     // do the merge of the writer format into this format
     mergedFormats[format] = mergeFormatMetadata(
       defaultWriterFormat(formatDesc.formatWithVariants),
-      extensionMetadata[formatDesc.baseFormat],
+      extensionMetadata[formatDesc.baseFormat]
+        ? extensionMetadata[formatDesc.baseFormat].format
+        : {},
       userFormat,
     );
     //deno-lint-ignore no-explicit-any
     mergedFormats[format].mergeAdditionalFormats = (...configs: any[]) => {
       return mergeFormatMetadata(
         defaultWriterFormat(formatDesc.formatWithVariants),
-        extensionMetadata[formatDesc.baseFormat],
+        extensionMetadata[formatDesc.baseFormat]
+          ? extensionMetadata[formatDesc.baseFormat].format
+          : {},
         ...configs,
         userFormat,
       );
@@ -581,7 +606,15 @@ async function resolveFormats(
     mergedFormats[formatName] = format;
   }
 
-  return mergedFormats;
+  const finalFormats: Record<string, { format: Format; active: boolean }> = {};
+  for (const key of Object.keys(mergedFormats)) {
+    const active = activeFormatKeys.includes(key);
+    finalFormats[key] = {
+      format: mergedFormats[key],
+      active,
+    };
+  }
+  return finalFormats;
 }
 
 const readExtensionFormat = async (

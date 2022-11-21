@@ -47,6 +47,7 @@ export interface RenderContext {
   format: Format;
   libDir: string;
   project?: ProjectContext;
+  active: boolean;
 }
 
 export interface RunPandocResult {

@@ -597,7 +597,7 @@ export async function bookIncrementalRenderAll(
 
     // do any of them have a single-file book extension?
     for (const context of Object.values(contexts)) {
-      if (!isMultiFileBookFormat(context.format)) {
+      if (context.active && !isMultiFileBookFormat(context.format)) {
         return true;
       }
     }
