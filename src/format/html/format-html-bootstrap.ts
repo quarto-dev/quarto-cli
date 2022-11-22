@@ -66,7 +66,7 @@ import {
 import { kTemplatePartials } from "../../command/render/template.ts";
 import { TempContext } from "../../core/temp-types.ts";
 import { isHtmlOutput } from "../../config/format.ts";
-import { basename } from "https://deno.land/std@0.159.0/path/win32.ts";
+import { basename } from "path/mod.ts";
 
 export function formatPageLayout(format: Format) {
   return format.metadata[kPageLayout] as string || kPageLayoutArticle;

@@ -40,7 +40,7 @@ import {
   includesForJupyterWidgetDependencies,
 } from "./widgets.ts";
 import { globalTempContext } from "../temp.ts";
-import { isAbsolute } from "https://deno.land/std@0.159.0/path/win32.ts";
+import { isAbsolute } from "path/mod.ts";
 
 export interface JupyterNotebookAddress {
   path: string;

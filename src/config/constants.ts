@@ -158,6 +158,8 @@ export const kRenderDefaultsKeys = [
 // language fields
 export const kTocTitleDocument = "toc-title-document";
 export const kTocTitleWebsite = "toc-title-website";
+export const kRelatedFormatsTitle = "related-formats-title";
+export const kRelatedNotebooksTitle = "related-notebooks-title";
 export const kCalloutTipCaption = "callout-tip-caption";
 export const kCalloutNoteCaption = "callout-note-caption";
 export const kCalloutWarningCaption = "callout-warning-caption";
@@ -253,6 +255,8 @@ export const kListingPageNoMatches = "listing-page-no-matches";
 export const kLanguageDefaultsKeys = [
   kTocTitleDocument,
   kTocTitleWebsite,
+  kRelatedFormatsTitle,
+  kRelatedNotebooksTitle,
   kCalloutTipCaption,
   kCalloutNoteCaption,
   kCalloutWarningCaption,
