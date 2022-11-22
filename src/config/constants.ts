@@ -165,6 +165,7 @@ export const kTocTitleDocument = "toc-title-document";
 export const kTocTitleWebsite = "toc-title-website";
 export const kRelatedFormatsTitle = "related-formats-title";
 export const kRelatedNotebooksTitle = "related-notebooks-title";
+export const kSourceNotebookPrefix = "source-notebooks-prefix";
 export const kCalloutTipCaption = "callout-tip-caption";
 export const kCalloutNoteCaption = "callout-note-caption";
 export const kCalloutWarningCaption = "callout-warning-caption";
@@ -262,6 +263,7 @@ export const kLanguageDefaultsKeys = [
   kTocTitleWebsite,
   kRelatedFormatsTitle,
   kRelatedNotebooksTitle,
+  kSourceNotebookPrefix,
   kCalloutTipCaption,
   kCalloutNoteCaption,
   kCalloutWarningCaption,

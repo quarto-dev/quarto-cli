@@ -23,6 +23,7 @@ import {
   kRelatedFormatsTitle,
   kRelatedNotebooksTitle,
   kSectionDivs,
+  kSourceNotebookPrefix,
   kTocDepth,
   kTocLocation,
 } from "../../config/constants.ts";
@@ -543,8 +544,14 @@ function processNotebookEmbeds(
         nbLinkEl.setAttribute("id", `${id}`);
         nbLinkEl.setAttribute("href", nbPath.path);
         nbLinkEl.setAttribute("download", nbPath.filename);
-        nbLinkEl.appendChild(doc.createTextNode(`Source: ${nbPath.title}`));
+        nbLinkEl.appendChild(
+          doc.createTextNode(
+            `${format.language[kSourceNotebookPrefix]}: ${nbPath.title}`,
+          ),
+        );
 
+        // If there is a figure caption, place the source after that
+        // otherwise just place it at the bottom of the notebook div
         const nbParentEl = nbDivEl.parentElement;
         if (nbParentEl?.tagName.toLocaleLowerCase() === "figure") {
           const figCapEl = nbDivEl.parentElement?.querySelector("figcaption");
@@ -556,9 +563,6 @@ function processNotebookEmbeds(
         } else {
           nbDivEl.appendChild(nbLinkEl);
         }
-
-        // Try to place it after the figure caption, if possible
-        // For tables, place after the table caption if they are on the bottom
       }
     });
 

@@ -165,6 +165,7 @@ import {
   kShiftHeadingLevelBy,
   kShortcodes,
   kSlideLevel,
+  kSourceNotebookPrefix,
   kStandalone,
   kSyntaxDefinitions,
   kTableOfContents,
@@ -501,6 +502,7 @@ export interface FormatLanguage {
   [kTocTitleDocument]?: string;
   [kTocTitleWebsite]?: string;
   [kRelatedFormatsTitle]?: string;
+  [kSourceNotebookPrefix]?: string;
   [kRelatedNotebooksTitle]?: string;
   [kCalloutTipCaption]?: string;
   [kCalloutNoteCaption]?: string;
