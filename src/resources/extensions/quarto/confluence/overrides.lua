@@ -66,8 +66,7 @@ function CaptionedImageConfluence(source, title, caption, attr)
   local IMAGE_SNIPPET = [[<ac:image
     ac:align="{align}"
     ac:layout="{layout}"
-    ac:alt="{alt}"
-    ac:src="{source}">
+    ac:alt="{alt}">
         <ri:attachment ri:filename="{source}" />{caption}
     </ac:image>]]
 
