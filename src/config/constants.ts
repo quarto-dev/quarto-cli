@@ -9,6 +9,8 @@ export const kMetadataFormat = "format";
 
 export const kDisplayName = "display-name";
 export const kExtensionName = "extension-name";
+export const kTargetFormat = "target-format";
+export const kIdentifierDefaults = "indentifier";
 export const kRenderDefaults = "render";
 export const kExecuteDefaults = "execute";
 export const kPandocDefaults = "pandoc";
@@ -94,6 +96,12 @@ export const kLinkExternalFilter = "link-external-filter";
 
 export const kQuartoVersion = "quarto-version";
 export const kQuartoRequired = "quarto-required";
+
+export const kIdentifierDefaultsKeys = [
+  kTargetFormat,
+  kDisplayName,
+  kExtensionName,
+];
 
 export const kExecuteDefaultsKeys = [
   kFigWidth,

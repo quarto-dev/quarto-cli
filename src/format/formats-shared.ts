@@ -189,7 +189,9 @@ export function plaintextFormat(displayName: string, ext: string): Format {
 
 function defaultFormat(displayName: string): Format {
   return {
-    [kDisplayName]: displayName,
+    identifier: {
+      [kDisplayName]: displayName,
+    },
     execute: {
       [kFigWidth]: 7,
       [kFigHeight]: 5,

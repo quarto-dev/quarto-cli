@@ -12,6 +12,7 @@ import {
   kFigWidth,
   kOutputDivs,
   kPageWidth,
+  kTargetFormat,
   kWarning,
 } from "../config/constants.ts";
 
@@ -259,6 +260,9 @@ export function defaultWriterFormat(to: string): Format {
   if (!writerFormat.pandoc.to) {
     writerFormat.pandoc.to = pandocTo;
   }
+
+  // Set the originating to
+  writerFormat.identifier[kTargetFormat] = to;
 
   // return the createFormat
   return writerFormat;

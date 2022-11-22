@@ -169,6 +169,7 @@ import {
   kStandalone,
   kSyntaxDefinitions,
   kTableOfContents,
+  kTargetFormat,
   kTblColwidths,
   kTemplate,
   kTitleBlockAffiliationPlural,
@@ -309,10 +310,15 @@ export interface FormatExtras {
   };
 }
 
-// pandoc output format
-export interface Format {
+export interface FormatIdentifier {
+  [kTargetFormat]?: string;
   [kDisplayName]?: string;
   [kExtensionName]?: string;
+}
+
+// pandoc output format
+export interface Format {
+  identifier: FormatIdentifier;
   render: FormatRender;
   execute: FormatExecute;
   pandoc: FormatPandoc;
@@ -389,7 +395,7 @@ export interface FormatRender {
   [kLinkExternalFilter]?: string;
   [kSelfContainedMath]?: boolean;
   [kFormatResources]?: string[];
-  [kFormatLinks]?: boolean;
+  [kFormatLinks]?: boolean | string[];
 }
 
 export interface FormatExecute {

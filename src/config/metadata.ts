@@ -16,12 +16,12 @@ import { mergeArrayCustomizer } from "../core/config.ts";
 import { Schema } from "../core/lib/yaml-schema/types.ts";
 
 import {
-  kDisplayName,
   kExecuteDefaults,
   kExecuteDefaultsKeys,
   kExecuteEnabled,
-  kExtensionName,
   kHeaderIncludes,
+  kIdentifierDefaults,
+  kIdentifierDefaultsKeys,
   kIncludeAfter,
   kIncludeBefore,
   kIpynbFilter,
@@ -95,6 +95,7 @@ export function formatFromMetadata(
 ): Format {
   // user format options (allow any b/c this is just untyped yaml)
   const typedFormat: Format = {
+    identifier: {},
     render: {},
     execute: {},
     pandoc: {},
@@ -159,6 +160,7 @@ export function isIncludeMetadata(key: string) {
 
 export function metadataAsFormat(metadata: Metadata): Format {
   const typedFormat: Format = {
+    identifier: {},
     render: {},
     execute: {},
     pandoc: {},
@@ -171,8 +173,7 @@ export function metadataAsFormat(metadata: Metadata): Format {
     // allow stuff already sorted into a top level key through unmodified
     if (
       [
-        kDisplayName,
-        kExtensionName,
+        kIdentifierDefaults,
         kRenderDefaults,
         kExecuteDefaults,
         kPandocDefaults,
@@ -182,9 +183,7 @@ export function metadataAsFormat(metadata: Metadata): Format {
         .includes(key)
     ) {
       // special case for 'execute' as boolean
-      if ([kDisplayName, kExtensionName].includes(key)) {
-        format[key] = metadata[key];
-      } else if (typeof (metadata[key]) == "boolean") {
+      if (typeof (metadata[key]) == "boolean") {
         if (key === kExecuteDefaults) {
           format[key] = format[key] || {};
           format[kExecuteDefaults][kExecuteEnabled] = metadata[key];
@@ -194,7 +193,9 @@ export function metadataAsFormat(metadata: Metadata): Format {
       }
     } else {
       // move the key into the appropriate top level key
-      if (kRenderDefaultsKeys.includes(key)) {
+      if (kIdentifierDefaultsKeys.includes(key)) {
+        format.identifier[key] = metadata[key];
+      } else if (kRenderDefaultsKeys.includes(key)) {
         format.render[key] = metadata[key];
       } else if (kExecuteDefaultsKeys.includes(key)) {
         format.execute[key] = metadata[key];

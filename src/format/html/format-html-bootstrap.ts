@@ -24,6 +24,7 @@ import {
   kRelatedNotebooksTitle,
   kSectionDivs,
   kSourceNotebookPrefix,
+  kTargetFormat,
   kTocDepth,
   kTocLocation,
 } from "../../config/constants.ts";
@@ -469,7 +470,29 @@ function processAlternateFormatLinks(
 
       const formatList = doc.createElement("ul");
 
-      for (const renderedFormat of options.renderedFormats) {
+      const formats = Array.isArray(format.render[kFormatLinks])
+        ? format.render[kFormatLinks]
+        : undefined;
+
+      const displayFormats = formats
+        ? options.renderedFormats.filter((renderedFormat) => {
+          const name = renderedFormat.format.identifier[kTargetFormat];
+          return !formats || (name && formats.includes(name));
+        }).sort((a, b) => {
+          if (
+            a.format.identifier[kTargetFormat] &&
+            b.format.identifier[kTargetFormat]
+          ) {
+            const aIdx = formats.indexOf(a.format.identifier[kTargetFormat]);
+            const bIdx = formats.indexOf(b.format.identifier[kTargetFormat]);
+            return aIdx - bIdx;
+          } else {
+            return 0;
+          }
+        })
+        : options.renderedFormats;
+
+      for (const renderedFormat of displayFormats) {
         if (!isHtmlOutput(renderedFormat.format.pandoc, true)) {
           const li = doc.createElement("li");
 
@@ -490,11 +513,11 @@ function processAlternateFormatLinks(
           link.appendChild(
             doc.createTextNode(
               `${
-                renderedFormat.format[kDisplayName] ||
+                renderedFormat.format.identifier[kDisplayName] ||
                 renderedFormat.format.pandoc.to
               }${
-                renderedFormat.format[kExtensionName]
-                  ? ` (${renderedFormat.format[kExtensionName]})`
+                renderedFormat.format.identifier[kExtensionName]
+                  ? ` (${renderedFormat.format.identifier[kExtensionName]})`
                   : ""
               }`,
             ),

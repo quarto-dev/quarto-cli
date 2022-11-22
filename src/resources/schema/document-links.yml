@@ -28,6 +28,14 @@
 - name: format-links
   tags:
     formats: [$html-doc]
-  schema: boolean
+  schema:
+    anyOf:
+      - boolean
+      - arrayOf: string
   description:
-    short: "Controls whether links to other rendered formats are displayed in HTML output"
+    short: "Controls whether links to other rendered formats are displayed in HTML output."
+    long: |
+      Controls whether links to other rendered formats are displayed in HTML output.
+
+      Pass `false` to disable the display of format lengths or pass a list of format names for which you'd
+      like links to be shown.

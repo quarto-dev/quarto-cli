@@ -31,7 +31,6 @@ import {
   kBibliography,
   kCache,
   kCss,
-  kDisplayName,
   kEcho,
   kEngine,
   kExecuteDaemon,
@@ -50,6 +49,7 @@ import {
   kOutputExt,
   kOutputFile,
   kServer,
+  kTargetFormat,
   kTheme,
 } from "../../config/constants.ts";
 import { resolveLanguageMetadata } from "../../core/language.ts";
@@ -159,7 +159,6 @@ export async function resolveFormatsFromMetadata(
 
     // apply any metadata filter
     const defaultFormat = defaultWriterFormat(to);
-    config[kDisplayName] = config[kDisplayName] || defaultFormat[kDisplayName];
     const resolveFormat = defaultFormat.resolveFormat;
     if (resolveFormat) {
       resolveFormat(config);
@@ -543,6 +542,9 @@ async function resolveFormats(
         : {},
       userFormat,
     );
+    // Insist that the target format reflect the correct value.
+    mergedFormats[format].identifier[kTargetFormat] = format;
+
     //deno-lint-ignore no-explicit-any
     mergedFormats[format].mergeAdditionalFormats = (...configs: any[]) => {
       return mergeFormatMetadata(
