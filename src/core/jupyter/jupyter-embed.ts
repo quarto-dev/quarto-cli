@@ -240,15 +240,21 @@ async function notebookMarkdown(
 
   // Wrap any injected cells with a div that includes a back link to
   // the notebook that originated the cells
-  const notebookMarkdown = (cells: JupyterCellOutput[], title?: string) => {
+  const notebookMarkdown = (
+    nbAddress: JupyterNotebookAddress,
+    cells: JupyterCellOutput[],
+    title?: string,
+  ) => {
     const markdown = [
       "",
       `:::{notebook="${nbAddress.path}" ${
         title ? `notebook-title="${title}"` : ""
       }}`,
     ];
+
+    const cellOutput = cells.map((cell) => cell.markdown).join("");
     markdown.push("");
-    markdown.push(cells.map((cell) => cell.markdown).join(""));
+    markdown.push(cellOutput);
     markdown.push("");
     markdown.push(":::");
     return markdown.join("\n");
@@ -264,11 +270,15 @@ async function notebookMarkdown(
         throw new Error(
           `The cell ${id} does not exist in notebook`,
         );
+      } else if (cell.markdown.trim() === "") {
+        throw new Error(
+          `The notebook ${nbAddress.path} doesn't contain output to embed with the cell id, tag, or label '${id}'. Please be sure to have executed any cells that you are embedding.`,
+        );
       } else {
         return cell;
       }
     });
-    return notebookMarkdown(theCells, notebookInfo.title);
+    return notebookMarkdown(nbAddress, theCells, notebookInfo.title);
   } else if (nbAddress.indexes) {
     // Filter and sort based upon cell indexes
     const theCells = nbAddress.indexes.map((idx) => {
@@ -276,14 +286,32 @@ async function notebookMarkdown(
         throw new Error(
           `The cell index ${idx} isn't within the range of cells`,
         );
+      } else {
+        const cell = notebookInfo.outputs[idx - 1];
+        if (cell.markdown.trim() === "") {
+          throw new Error(
+            `The notebook ${nbAddress.path} doesn't contain output to embed for the cell in position ${idx}. Please be sure to have executed any cells that you are embedding.`,
+          );
+        }
+        return cell;
       }
-      return notebookInfo.outputs[idx - 1];
     });
-    return notebookMarkdown(theCells, notebookInfo.title);
+    return notebookMarkdown(nbAddress, theCells, notebookInfo.title);
   } else {
     // Return all the cell outputs as there is no addtional
     // specification of cells
-    return notebookMarkdown(notebookInfo.outputs, notebookInfo.title);
+    const notebookMd = notebookMarkdown(
+      nbAddress,
+      notebookInfo.outputs,
+      notebookInfo.title,
+    );
+    if (notebookMd.trim() === "") {
+      throw new Error(
+        `The notebook ${nbAddress.path} doesn't contain output to embed. Please be sure to have executed any cells that you are embedding.`,
+      );
+    } else {
+      return notebookMd;
+    }
   }
 }
 
