@@ -2,8 +2,7 @@
 
 ## Jupyter Notebooks
 
-- Add support for including cells from in quarto documents using `{{< include >}}`. This includes the cell (including code) as if the cell were inline in the document.
-- Add support for embedding cells in quarto documents using `{{< embed >}}`. This embeds only output from a cell, asis.
+- Add support for embedding cell outputs in quarto documents using `{{< embed >}}`. You can address cells by Id, Tag, or label, such as `{{< embed mynotebook.ipynb#fig-output >}}` which would embed the output of a cell with the label `fig-output`). You can also provide a list of ids like `{{< embed mynotebook.ipynb#fig-output,tbl-out >}}`.
 
 ## HTML Format
 
@@ -11,6 +10,8 @@
 - Add support for customizing the baseline widths of grid columns using yaml or scss. For more information, see [https://www.quarto.org/docs/prerelease/1.3.html](https://www.quarto.org/docs/prerelease/1.3.html).
 - Fix wrapping of long `code` entries inside table cells ([#3221](https://github.com/quarto-dev/quarto-cli/issues/3221))
 - Fix author display to use the `url` for an author even when there is no affiliation.
+- Add support for linking to other formats, when more than one format is produced. Alternate formats will appear with the TOC. Control using `format-links`.
+- Add support for linking to source notebooks that provide embedded content. Control using `notebook-links`
 
 ## Revealjs Format
 
