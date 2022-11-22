@@ -431,7 +431,7 @@ const fileBsIconName = (format: Format) => {
   } else if (isPdfOutput(format.pandoc)) {
     return "file-pdf";
   } else if (isIpynbOutput(format.pandoc)) {
-    return "journal-arrow-down";
+    return "journal-code";
   } else if (isMarkdownOutput(format.pandoc)) {
     return "file-code";
   } else if (isPresentationOutput(format.pandoc)) {
@@ -518,15 +518,47 @@ function processNotebookEmbeds(
 ) {
   const notebookDivNodes = doc.querySelectorAll("[data-notebook]");
   if (notebookDivNodes.length > 0) {
-    const nbPaths: { path: string; title: string | null }[] = [];
+    const nbPaths: { path: string; title: string; filename: string }[] = [];
+    let count = 1;
     notebookDivNodes.forEach((nbDivNode) => {
       const nbDivEl = nbDivNode as Element;
-      const nbPath = nbDivEl.getAttribute("data-notebook");
-      if (nbPath) {
-        nbPaths.push({
-          path: nbPath,
-          title: nbDivEl.getAttribute("data-notebook-title"),
-        });
+      nbDivEl.classList.add("quarto-notebook");
+      const notebookPath = nbDivEl.getAttribute("data-notebook");
+      if (notebookPath) {
+        const title = nbDivEl.getAttribute("data-notebook-title");
+        const filename = basename(notebookPath);
+
+        const nbPath = {
+          path: notebookPath,
+          title: title || filename,
+          filename,
+        };
+        nbPaths.push(nbPath);
+
+        // Add a decoration to this div node
+        const id = "nblink-" + count++;
+
+        const nbLinkEl = doc.createElement("a");
+        nbLinkEl.classList.add("quarto-notebook-link");
+        nbLinkEl.setAttribute("id", `${id}`);
+        nbLinkEl.setAttribute("href", nbPath.path);
+        nbLinkEl.setAttribute("download", nbPath.filename);
+        nbLinkEl.appendChild(doc.createTextNode(`Source: ${nbPath.title}`));
+
+        const nbParentEl = nbDivEl.parentElement;
+        if (nbParentEl?.tagName.toLocaleLowerCase() === "figure") {
+          const figCapEl = nbDivEl.parentElement?.querySelector("figcaption");
+          if (figCapEl) {
+            figCapEl.after(nbLinkEl);
+          } else {
+            nbDivEl.appendChild(nbLinkEl);
+          }
+        } else {
+          nbDivEl.appendChild(nbLinkEl);
+        }
+
+        // Try to place it after the figure caption, if possible
+        // For tables, place after the table caption if they are on the bottom
       }
     });
 
@@ -544,19 +576,18 @@ function processNotebookEmbeds(
     ld.uniqBy(nbPaths, (nbPath: { path: string; title?: string }) => {
       return nbPath.path;
     }).forEach((nbPath) => {
-      const filename = basename(nbPath.path);
       const li = doc.createElement("li");
 
       const link = doc.createElement("a");
       link.setAttribute("href", nbPath.path);
-      link.setAttribute("download", filename);
+      link.setAttribute("download", nbPath.filename);
 
       const icon = doc.createElement("i");
       icon.classList.add("bi");
-      icon.classList.add(`bi-journal-arrow-down`);
+      icon.classList.add(`bi-journal-code`);
       link.appendChild(icon);
       link.appendChild(
-        doc.createTextNode(`${nbPath.title || filename}`),
+        doc.createTextNode(nbPath.title),
       );
 
       li.appendChild(link);
