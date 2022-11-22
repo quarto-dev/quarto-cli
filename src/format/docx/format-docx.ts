@@ -19,7 +19,7 @@ const kIconWarning = "icon-warning";
 
 export function docxFormat(): Format {
   return mergeConfigs(
-    createWordprocessorFormat("docx"),
+    createWordprocessorFormat("MS Word", "docx"),
     {
       formatExtras: () => {
         return {

@@ -1,5 +1,10 @@
 ## Changes
 
+## Jupyter Notebooks
+
+- Add support for including cells from in quarto documents using `{{< include >}}`. This includes the cell (including code) as if the cell were inline in the document.
+- Add support for embedding cells in quarto documents using `{{< embed >}}`. This embeds only output from a cell, asis.
+
 ## HTML Format
 
 - Improved handling of margin references that appear within a callout. ([#3003](https://github.com/quarto-dev/quarto-cli/issues/3003))

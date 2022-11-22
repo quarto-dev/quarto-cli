@@ -1,6 +1,10 @@
 toc-title-document: "Inhoudsopgave"
 toc-title-website: "Op deze pagina"
 
+related-formats-title: "Andere formaten"
+related-notebooks-title: "Notebooks"
+source-notebooks-prefix: "Bron"
+
 section-title-abstract: "Samenvatting"
 section-title-appendices: "Bijlagen"
 section-title-footnotes: "Voetnoten"

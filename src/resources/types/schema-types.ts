@@ -599,6 +599,8 @@ attempt to be automatically translated. */;
 export type FormatLanguage = {
   "toc-title-document"?: string;
   "toc-title-website"?: string;
+  "related-formats-title"?: string;
+  "related-notebooks-title"?: string;
   "callout-tip-caption"?: string;
   "callout-note-caption"?: string;
   "callout-warning-caption"?: string;

@@ -1,6 +1,10 @@
 toc-title-document: "Table des matières"
 toc-title-website: "Sur cette page"
 
+related-formats-title: "Autres formats"
+related-notebooks-title: "Notebooks"
+source-notebooks-prefix: "La source"
+
 section-title-abstract: "Résumé"
 section-title-appendices: "Annexes"
 section-title-footnotes: "Notes de bas de page"

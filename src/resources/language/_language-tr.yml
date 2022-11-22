@@ -1,6 +1,10 @@
 toc-title-document: "Içindekiler"
 toc-title-website: "Bu sayfada"
 
+related-formats-title: "Diğer Formatlar"
+related-notebooks-title: "Notebooks"
+source-notebooks-prefix: "Kaynak"
+
 section-title-abstract: "Özet"
 section-title-appendices: "Ekler"
 section-title-footnotes: "Dipnotlar"

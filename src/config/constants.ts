@@ -7,6 +7,10 @@
 
 export const kMetadataFormat = "format";
 
+export const kDisplayName = "display-name";
+export const kExtensionName = "extension-name";
+export const kTargetFormat = "target-format";
+export const kIdentifierDefaults = "indentifier";
 export const kRenderDefaults = "render";
 export const kExecuteDefaults = "execute";
 export const kPandocDefaults = "pandoc";
@@ -33,6 +37,9 @@ export const kInclude = "include";
 
 export const kResources = "resources";
 export const kFormatResources = "format-resources";
+
+export const kFormatLinks = "format-links";
+export const kNotebookLinks = "notebook-links";
 
 export const kKeepHidden = "keep-hidden";
 
@@ -90,6 +97,12 @@ export const kLinkExternalFilter = "link-external-filter";
 
 export const kQuartoVersion = "quarto-version";
 export const kQuartoRequired = "quarto-required";
+
+export const kIdentifierDefaultsKeys = [
+  kTargetFormat,
+  kDisplayName,
+  kExtensionName,
+];
 
 export const kExecuteDefaultsKeys = [
   kFigWidth,
@@ -153,11 +166,16 @@ export const kRenderDefaultsKeys = [
   kLinkExternalNewwindow,
   kLinkExternalFilter,
   kFormatResources,
+  kFormatLinks,
+  kNotebookLinks,
 ];
 
 // language fields
 export const kTocTitleDocument = "toc-title-document";
 export const kTocTitleWebsite = "toc-title-website";
+export const kRelatedFormatsTitle = "related-formats-title";
+export const kRelatedNotebooksTitle = "related-notebooks-title";
+export const kSourceNotebookPrefix = "source-notebooks-prefix";
 export const kCalloutTipCaption = "callout-tip-caption";
 export const kCalloutNoteCaption = "callout-note-caption";
 export const kCalloutWarningCaption = "callout-warning-caption";
@@ -253,6 +271,9 @@ export const kListingPageNoMatches = "listing-page-no-matches";
 export const kLanguageDefaultsKeys = [
   kTocTitleDocument,
   kTocTitleWebsite,
+  kRelatedFormatsTitle,
+  kRelatedNotebooksTitle,
+  kSourceNotebookPrefix,
   kCalloutTipCaption,
   kCalloutNoteCaption,
   kCalloutWarningCaption,

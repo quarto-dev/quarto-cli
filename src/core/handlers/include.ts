@@ -27,7 +27,7 @@ const includeHandler: LanguageHandler = {
   type: "directive",
   stage: "pre-engine",
 
-  directive(
+  async directive(
     handlerContext: LanguageCellHandlerContext,
     directive: DirectiveCell,
   ): Promise<MappedString> {
@@ -36,7 +36,7 @@ const includeHandler: LanguageHandler = {
 
     const textFragments: EitherString[] = [];
 
-    const retrieveInclude = (filename: string) => {
+    const retrieveInclude = async (filename: string) => {
       const path = handlerContext.resolvePath(filename);
 
       if (retrievedFiles.indexOf(path) !== -1) {
@@ -69,7 +69,10 @@ const includeHandler: LanguageHandler = {
         const m = isBlockShortcode(substring);
         if (m && m.name.toLocaleLowerCase() === "include") {
           textFragments.push(
-            mappedString(includeSrc, [{ start: rangeStart, end: range.start }]),
+            mappedString(includeSrc, [{
+              start: rangeStart,
+              end: range.start,
+            }]),
           );
           rangeStart = range.end;
           const params = m.params;
@@ -77,7 +80,7 @@ const includeHandler: LanguageHandler = {
             throw new Error("Include directive needs file parameter");
           }
 
-          retrieveInclude(params[0]);
+          await retrieveInclude(params[0]);
         }
       }
       if (rangeStart !== includeSrc.value.length) {
@@ -98,7 +101,7 @@ const includeHandler: LanguageHandler = {
       throw new Error("Include directive needs filename as a parameter");
     }
 
-    retrieveInclude(param);
+    await retrieveInclude(param);
 
     return Promise.resolve(mappedConcat(textFragments));
   },

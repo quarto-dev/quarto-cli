@@ -24,3 +24,33 @@
       ```
       ^(?:http:|https:)\/\/www\.quarto\.org\/custom
       ```
+
+- name: format-links
+  tags:
+    formats: [$html-doc]
+  schema:
+    anyOf:
+      - boolean
+      - arrayOf: string
+  description:
+    short: "Controls whether links to other rendered formats are displayed in HTML output."
+    long: |
+      Controls whether links to other rendered formats are displayed in HTML output.
+
+      Pass `false` to disable the display of format lengths or pass a list of format names for which you'd
+      like links to be shown.
+
+- name: notebook-links
+  tags:
+    formats: [$html-doc]
+  schema:
+    anyOf:
+      - boolean
+      - enum: [inline, global]
+  description:
+    short: "Controls the display of links to notebooks that provided embedded content or are created from documents."
+    long: |
+      Controls the display of links to notebooks that provided embedded content or are created from documents.
+
+      Specify `false` to disable linking to source Notebooks. Specify `inline` to show links to source notebooks beneath the content they provide. 
+      Specify `global` to show a set of global links to source notebooks.
