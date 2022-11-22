@@ -533,7 +533,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
 
   let hasObserved = false;
   const visibleItemObserver = (els) => {
-    let visibleElements = [];
+    let visibleElements = [...els];
     const intersectionObserver = new IntersectionObserver(
       (entries, _observer) => {
         entries.forEach((entry) => {

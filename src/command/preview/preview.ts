@@ -72,6 +72,8 @@ import {
   isJupyterHubServer,
   isRStudioServer,
   isRStudioWorkbench,
+  isVSCodeServer,
+  vsCodeServerProxyUri,
 } from "../../core/platform.ts";
 import { isJupyterNotebook } from "../../core/jupyter/jupyter.ts";
 import { watchForFileChanges } from "../../core/watch.ts";
@@ -690,6 +692,9 @@ function pdfFileRequestHandler(
       if (new URL(req.url).pathname === "/") {
         const url = isRStudioWorkbench()
           ? await rswURL(port, kPdfJsInitialPath)
+          : isVSCodeServer()
+          ? vsCodeServerProxyUri()!.replace("{{port}}", `${port}`)
+            + kPdfJsInitialPath
           : "/" + kPdfJsInitialPath;
         return Promise.resolve(serveRedirect(url));
       } else {
