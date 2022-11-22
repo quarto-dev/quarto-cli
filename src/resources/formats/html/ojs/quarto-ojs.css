@@ -155,3 +155,9 @@ code span.quarto-ojs-error-pinpoint {
 .quarto-ojs-table-fixup {
   padding-left: 14px;
 }
+
+div.observablehq input[type="date"] {
+  border-style: solid;
+  padding: 0.8em 0.5em 0.8em 0.5em;
+  border-color: rgba(220, 220, 220, 0.3);
+}
