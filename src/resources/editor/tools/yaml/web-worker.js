@@ -9781,6 +9781,8 @@ try {
               properties: {
                 "toc-title-document": "string",
                 "toc-title-website": "string",
+                "related-formats-title": "string",
+                "related-notebooks-title": "string",
                 "callout-tip-caption": "string",
                 "callout-note-caption": "string",
                 "callout-warning-caption": "string",
@@ -13894,6 +13896,49 @@ try {
             description: {
               short: "A regular expression that can be used to determine whether a link is an internal link.",
               long: "A regular expression that can be used to determine whether a link is an internal link. For example, \nthe following will treat links that start with http://www.quarto.org as internal links (and others\nwill be considered external):\n\n```\n^(?:http:|https:)\\/\\/www\\.quarto\\.org\\/custom\n```\n"
+            }
+          },
+          {
+            name: "format-links",
+            tags: {
+              formats: [
+                "$html-doc"
+              ]
+            },
+            schema: {
+              anyOf: [
+                "boolean",
+                {
+                  arrayOf: "string"
+                }
+              ]
+            },
+            description: {
+              short: "Controls whether links to other rendered formats are displayed in HTML output.",
+              long: "Controls whether links to other rendered formats are displayed in HTML output.\n\nPass `false` to disable the display of format lengths or pass a list of format names for which you'd\nlike links to be shown.\n"
+            }
+          },
+          {
+            name: "notebook-links",
+            tags: {
+              formats: [
+                "$html-doc"
+              ]
+            },
+            schema: {
+              anyOf: [
+                "boolean",
+                {
+                  enum: [
+                    "inline",
+                    "global"
+                  ]
+                }
+              ]
+            },
+            description: {
+              short: "Controls the display of links to notebooks that provided embedded content or are created from documents.",
+              long: "Controls the display of links to notebooks that provided embedded content or are created from documents.\n\nSpecify `false` to disable linking to source Notebooks. Specify `inline` to show links to source notebooks beneath the content they provide. \nSpecify `global` to show a set of global links to source notebooks.\n"
             }
           }
         ],
@@ -18895,6 +18940,14 @@ try {
             short: "A regular expression that can be used to determine whether a link is\nan internal link.",
             long: "A regular expression that can be used to determine whether a link is\nan internal link. For example, the following will treat links that start\nwith http://www.quarto.org as internal links (and others will be\nconsidered external):"
           },
+          {
+            short: "Controls whether links to other rendered formats are displayed in\nHTML output.",
+            long: "Controls whether links to other rendered formats are displayed in\nHTML output.\nPass <code>false</code> to disable the display of format lengths or\npass a list of format names for which you\u2019d like links to be shown."
+          },
+          {
+            short: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.",
+            long: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.\nSpecify <code>false</code> to disable linking to source Notebooks.\nSpecify <code>inline</code> to show links to source notebooks beneath\nthe content they provide. Specify <code>global</code> to show a set of\nglobal links to source notebooks."
+          },
           "Automatically generate the contents of a page from a list of Quarto\ndocuments or other custom data.",
           "List of keywords to be included in the document metadata.",
           "The document subject",
@@ -20042,7 +20095,8 @@ try {
         "handlers/languages.yml": [
           "mermaid",
           "include",
-          "dot"
+          "dot",
+          "embed"
         ],
         "handlers/lang-comment-chars.yml": {
           r: "#",
@@ -20099,12 +20153,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 133985,
+          _internalId: 135189,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 133977,
+              _internalId: 135181,
               type: "enum",
               enum: [
                 "png",
@@ -20120,7 +20174,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 133984,
+              _internalId: 135188,
               type: "anyOf",
               anyOf: [
                 {
