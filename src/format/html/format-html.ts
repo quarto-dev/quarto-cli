@@ -20,12 +20,14 @@ import {
   kCodeLink,
   kFigResponsive,
   kFilterParams,
+  kFormatLinks,
   kHeaderIncludes,
   kIncludeAfterBody,
   kIncludeInHeader,
   kLinkExternalFilter,
   kLinkExternalIcon,
   kLinkExternalNewwindow,
+  kNotebookLinks,
   kTheme,
 } from "../../config/constants.ts";
 
@@ -94,6 +96,10 @@ export function htmlFormat(
   return mergeConfigs(
     createHtmlFormat("HTML", figwidth, figheight),
     {
+      render: {
+        [kNotebookLinks]: true,
+        [kFormatLinks]: true,
+      },
       resolveFormat: (format: Format) => {
         if (format.metadata[kMinimal] === true) {
           if (format.metadata[kFigResponsive] === undefined) {

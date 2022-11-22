@@ -128,6 +128,7 @@ import {
   kMathml,
   kMergeIncludes,
   kMermaidFormat,
+  kNotebookLinks,
   kNumberOffset,
   kNumberSections,
   kOutput,
@@ -396,6 +397,7 @@ export interface FormatRender {
   [kSelfContainedMath]?: boolean;
   [kFormatResources]?: string[];
   [kFormatLinks]?: boolean | string[];
+  [kNotebookLinks]?: boolean | "inline" | "global";
 }
 
 export interface FormatExecute {

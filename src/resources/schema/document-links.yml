@@ -39,3 +39,18 @@
 
       Pass `false` to disable the display of format lengths or pass a list of format names for which you'd
       like links to be shown.
+
+- name: notebook-links
+  tags:
+    formats: [$html-doc]
+  schema:
+    anyOf:
+      - boolean
+      - enum: [inline, global]
+  description:
+    short: "Controls the display of links to notebooks that provided embedded content or are created from documents."
+    long: |
+      Controls the display of links to notebooks that provided embedded content or are created from documents.
+
+      Specify `false` to disable linking to source Notebooks. Specify `inline` to show links to source notebooks beneath the content they provide. 
+      Specify `global` to show a set of global links to source notebooks.

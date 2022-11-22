@@ -19,6 +19,7 @@ import {
   kHtmlMathMethod,
   kIncludeInHeader,
   kLinkCitations,
+  kNotebookLinks,
   kQuartoTemplateParams,
   kRelatedFormatsTitle,
   kRelatedNotebooksTitle,
@@ -327,7 +328,9 @@ function bootstrapHtmlPostprocessor(
     }
 
     // Look for included / embedded notebooks and include those
-    processNotebookEmbeds(doc, format, resources);
+    if (format.render[kNotebookLinks] !== false) {
+      processNotebookEmbeds(doc, format, resources);
+    }
 
     // default treatment for computational tables
     const addTableClasses = (table: Element, computational = false) => {
@@ -540,6 +543,11 @@ function processNotebookEmbeds(
   format: Format,
   resources: string[],
 ) {
+  const inline = format.render[kNotebookLinks] === "inline" ||
+    format.render[kNotebookLinks] === true;
+  const global = format.render[kNotebookLinks] === "global" ||
+    format.render[kNotebookLinks] === true;
+
   const notebookDivNodes = doc.querySelectorAll("[data-notebook]");
   if (notebookDivNodes.length > 0) {
     const nbPaths: { path: string; title: string; filename: string }[] = [];
@@ -560,75 +568,79 @@ function processNotebookEmbeds(
         nbPaths.push(nbPath);
 
         // Add a decoration to this div node
-        const id = "nblink-" + count++;
+        if (inline) {
+          const id = "nblink-" + count++;
 
-        const nbLinkEl = doc.createElement("a");
-        nbLinkEl.classList.add("quarto-notebook-link");
-        nbLinkEl.setAttribute("id", `${id}`);
-        nbLinkEl.setAttribute("href", nbPath.path);
-        nbLinkEl.setAttribute("download", nbPath.filename);
-        nbLinkEl.appendChild(
-          doc.createTextNode(
-            `${format.language[kSourceNotebookPrefix]}: ${nbPath.title}`,
-          ),
-        );
+          const nbLinkEl = doc.createElement("a");
+          nbLinkEl.classList.add("quarto-notebook-link");
+          nbLinkEl.setAttribute("id", `${id}`);
+          nbLinkEl.setAttribute("href", nbPath.path);
+          nbLinkEl.setAttribute("download", nbPath.filename);
+          nbLinkEl.appendChild(
+            doc.createTextNode(
+              `${format.language[kSourceNotebookPrefix]}: ${nbPath.title}`,
+            ),
+          );
 
-        // If there is a figure caption, place the source after that
-        // otherwise just place it at the bottom of the notebook div
-        const nbParentEl = nbDivEl.parentElement;
-        if (nbParentEl?.tagName.toLocaleLowerCase() === "figure") {
-          const figCapEl = nbDivEl.parentElement?.querySelector("figcaption");
-          if (figCapEl) {
-            figCapEl.after(nbLinkEl);
+          // If there is a figure caption, place the source after that
+          // otherwise just place it at the bottom of the notebook div
+          const nbParentEl = nbDivEl.parentElement;
+          if (nbParentEl?.tagName.toLocaleLowerCase() === "figure") {
+            const figCapEl = nbDivEl.parentElement?.querySelector("figcaption");
+            if (figCapEl) {
+              figCapEl.after(nbLinkEl);
+            } else {
+              nbDivEl.appendChild(nbLinkEl);
+            }
           } else {
             nbDivEl.appendChild(nbLinkEl);
           }
-        } else {
-          nbDivEl.appendChild(nbLinkEl);
         }
       }
     });
 
-    const containerEl = doc.createElement("div");
-    containerEl.classList.add("quarto-alternate-notebooks");
+    if (global) {
+      const containerEl = doc.createElement("div");
+      containerEl.classList.add("quarto-alternate-notebooks");
 
-    const heading = doc.createElement("h2");
-    if (format.language[kRelatedNotebooksTitle]) {
-      heading.innerText = format.language[kRelatedNotebooksTitle];
-    }
-    containerEl.appendChild(heading);
+      const heading = doc.createElement("h2");
+      if (format.language[kRelatedNotebooksTitle]) {
+        heading.innerText = format.language[kRelatedNotebooksTitle];
+      }
+      containerEl.appendChild(heading);
 
-    const formatList = doc.createElement("ul");
-    containerEl.appendChild(formatList);
-    ld.uniqBy(nbPaths, (nbPath: { path: string; title?: string }) => {
-      return nbPath.path;
-    }).forEach((nbPath) => {
-      const li = doc.createElement("li");
+      const formatList = doc.createElement("ul");
+      containerEl.appendChild(formatList);
+      ld.uniqBy(nbPaths, (nbPath: { path: string; title?: string }) => {
+        return nbPath.path;
+      }).forEach((nbPath) => {
+        const li = doc.createElement("li");
 
-      const link = doc.createElement("a");
-      link.setAttribute("href", nbPath.path);
-      link.setAttribute("download", nbPath.filename);
+        const link = doc.createElement("a");
+        link.setAttribute("href", nbPath.path);
+        link.setAttribute("download", nbPath.filename);
 
-      const icon = doc.createElement("i");
-      icon.classList.add("bi");
-      icon.classList.add(`bi-journal-code`);
-      link.appendChild(icon);
-      link.appendChild(
-        doc.createTextNode(nbPath.title),
-      );
+        const icon = doc.createElement("i");
+        icon.classList.add("bi");
+        icon.classList.add(`bi-journal-code`);
+        link.appendChild(icon);
+        link.appendChild(
+          doc.createTextNode(nbPath.title),
+        );
 
-      li.appendChild(link);
-      formatList.appendChild(li);
+        li.appendChild(link);
+        formatList.appendChild(li);
 
-      resources.push(nbPath.path);
-    });
-    let dlLinkTarget = doc.querySelector(`nav[role="doc-toc"]`);
-    if (dlLinkTarget === null) {
-      dlLinkTarget = doc.querySelector("#quarto-margin-sidebar");
-    }
+        resources.push(nbPath.path);
+      });
+      let dlLinkTarget = doc.querySelector(`nav[role="doc-toc"]`);
+      if (dlLinkTarget === null) {
+        dlLinkTarget = doc.querySelector("#quarto-margin-sidebar");
+      }
 
-    if (dlLinkTarget) {
-      dlLinkTarget.appendChild(containerEl);
+      if (dlLinkTarget) {
+        dlLinkTarget.appendChild(containerEl);
+      }
     }
   }
 }

@@ -39,6 +39,7 @@ export const kResources = "resources";
 export const kFormatResources = "format-resources";
 
 export const kFormatLinks = "format-links";
+export const kNotebookLinks = "notebook-links";
 
 export const kKeepHidden = "keep-hidden";
 
@@ -166,6 +167,7 @@ export const kRenderDefaultsKeys = [
   kLinkExternalFilter,
   kFormatResources,
   kFormatLinks,
+  kNotebookLinks,
 ];
 
 // language fields
