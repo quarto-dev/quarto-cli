@@ -15797,7 +15797,7 @@ try {
           },
           {
             name: "multiplex",
-            description: "Configuraiotn for reveal presentation multiplexing.",
+            description: "Configuration for reveal presentation multiplexing.",
             tags: {
               formats: [
                 "revealjs"
@@ -19166,7 +19166,7 @@ try {
           "Configuration option to prevent changes to existing drawings",
           "Add chalkboard buttons at the bottom of the slide",
           "Gives the duration (in ms) of the transition for a slide change, so\nthat the notes canvas is drawn after the transition is completed.",
-          "Configuraiotn for reveal presentation multiplexing.",
+          "Configuration for reveal presentation multiplexing.",
           "Multiplex token server (defaults to Reveal-hosted server)",
           "Unique presentation id provided by multiplex token server",
           "Secret provided by multiplex token server",
@@ -19580,6 +19580,8 @@ try {
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "internal-schema-hack",
+          "Mermaid diagram options",
+          "The mermaid built-in theme to use.",
           "Project configuration.",
           "Project type (<code>default</code>, <code>website</code>, or\n<code>book</code>)",
           "Files to render (defaults to all files)",
@@ -19884,9 +19886,7 @@ try {
             long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
-          "internal-schema-hack",
-          "Mermaid diagram options",
-          "The mermaid built-in theme to use."
+          "internal-schema-hack"
         ],
         "schema/external-schemas.yml": [
           {
@@ -20099,12 +20099,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 133586,
+          _internalId: 133985,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 133578,
+              _internalId: 133977,
               type: "enum",
               enum: [
                 "png",
@@ -20120,7 +20120,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 133585,
+              _internalId: 133984,
               type: "anyOf",
               anyOf: [
                 {
