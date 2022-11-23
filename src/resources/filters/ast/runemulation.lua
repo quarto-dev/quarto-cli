@@ -59,6 +59,7 @@ function install_pandoc_overrides()
   state.walk_block = pandoc.walk_block
   state.walk_inline = pandoc.walk_inline
   state.write = pandoc.write
+  state.read = pandoc.read
   state.Inlines = pandoc.Inlines
   state.Blocks = pandoc.Blocks
   state.MetaBlocks = pandoc.MetaBlocks
@@ -71,6 +72,7 @@ function install_pandoc_overrides()
   local lua_type = type
   local walk_block = state.walk_block
   local walk_inline = state.walk_inline
+  local read = state.read
   local write = state.write
   local Inlines = state.Inlines
   local Blocks = state.Blocks
@@ -99,14 +101,11 @@ function install_pandoc_overrides()
     citeproc = function(lst)
       return to_emulated(state.old_utils.citeproc(from_emulated(doc)))
     end,
-    make_sections = function(number_sections, base_level, blocks)
-      return to_emulated(state.old_utils.make_sections(number_sections, base_level, from_emulated(blocks)))
-    end,
     from_simple_table = function(v)
       return to_emulated(state.old_utils.from_simple_table(from_emulated(v)))
     end,
-    to_simple_table = function(v)
-      return to_emulated(state.old_utils.to_simple_table(from_emulated(v)))
+    make_sections = function(number_sections, base_level, blocks)
+      return to_emulated(state.old_utils.make_sections(number_sections, base_level, from_emulated(blocks)))
     end,
     references = function(doc)
       return state.old_utils.references(from_emulated(doc))
@@ -114,18 +113,27 @@ function install_pandoc_overrides()
     run_json_filter = function(doc, command, arguments)
       return to_emulated(state.old_utils.run_json_filter(from_emulated(doc), command, arguments))
     end,
+    -- normalize_date,
+    -- sha1,
     stringify = function(v)
       return state.old_utils.stringify(from_emulated(v))
     end,
+    -- to_roman_numeral,
+    to_simple_table = function(v)
+      return to_emulated(state.old_utils.to_simple_table(from_emulated(v)))
+    end,
     type = function(v)
+      local t = type(v)
+      if t ~= "table" and t ~= "userdata" then
+        return t
+      end
       if v.is_emulated then
         if v.t == "Inlines" then return v.t end
         if v.t == "Blocks" then return v.t end
         if pandoc_is_block[v.t] then return "Block" end
         if pandoc_is_inline[v.t] then return "Inline" end
-      else
-        return state.old_utils.type(v)
       end
+      return state.old_utils.type(v)
     end
   }
 
@@ -142,9 +150,16 @@ function install_pandoc_overrides()
   })
 
   local our_mediabag = {
+    -- delete,
+    -- empty,
     fill = function(doc)
       return to_emulated(mediabag.fill(from_emulated(doc)))
     end
+    -- insert,
+    -- items,
+    -- list,
+    -- lookup,
+    -- fetch
   }
 
   setmetatable(our_mediabag, {
@@ -196,6 +211,9 @@ function install_pandoc_overrides()
   pandoc.utils = our_utils
 
   pandoc.mediabag = our_mediabag
+
+  -- pandoc doesn't appear to expose a TableBody constructor
+  -- but we do it here.
   pandoc.TableBody = function(body, head, row_head_columns, attr)
     return {
       body = body,
@@ -217,12 +235,15 @@ function install_pandoc_overrides()
     end
     return walk_inline(el, filter)
   end
-  pandoc.write = function(el, format)
+  pandoc.read = function(markup, format, reader_options)
+    return to_emulated(read(markup, format, reader_options))
+  end
+  pandoc.write = function(el, format, writer_options)
     if el.is_emulated then
       local native = from_emulated(el)
-      return write(native, format)
+      return write(native, format, writer_options)
     end
-    return write(el, format)
+    return write(el, format, writer_options)
   end
   for k, _ in pairs(pandoc_constructors_args) do
     ast_constructors[k] = pandoc[k]
