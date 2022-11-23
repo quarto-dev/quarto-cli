@@ -94,13 +94,16 @@ figure .quarto-layout-row figure figcaption {
   width: 100%;
   margin-bottom: 0;
 }
-.quarto-figure-left > figure > p {
+.quarto-figure-left > figure > p,
+.quarto-figure-left > figure > div /* for mermaid and dot diagrams */ {
   text-align: left;
 }
-.quarto-figure-center > figure > p {
+.quarto-figure-center > figure > p,
+.quarto-figure-center > figure > div /* for mermaid and dot diagrams */ {
   text-align: center;
 }
-.quarto-figure-right > figure > p {
+.quarto-figure-right > figure > p,
+.quarto-figure-right > figure > div /* for mermaid and dot diagrams */ {
   text-align: right;
 }
 figure > p:empty {
