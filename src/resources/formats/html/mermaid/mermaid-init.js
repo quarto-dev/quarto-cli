@@ -211,6 +211,17 @@ const _quartoMermaid = {
     if (options["reveal"]) {
       this.fixupAlignment(svg, options["figAlign"] || "center");
     }
+
+    // forward align attributes to the correct parent dif
+    // so that the svg figure is aligned correctly
+    const div = svg.parentElement.parentElement.parentElement;
+    const align = div.parentElement.parentElement.dataset.layoutAlign;
+    if (align) {
+      div.classList.remove("quarto-figure-left");
+      div.classList.remove("quarto-figure-center");
+      div.classList.remove("quarto-figure-right");
+      div.classList.add(`quarto-figure-${align}`);
+    }
   },
 };
 
@@ -219,6 +230,7 @@ window.addEventListener(
   "load",
   function () {
     let i = 0;
+    // we need pre because of whitespace preservation
     for (const el of Array.from(document.querySelectorAll("pre.mermaid-js"))) {
       // &nbsp; doesn't appear to be treated as whitespace by mermaid
       // so we replace it with a space.
@@ -241,9 +253,15 @@ window.addEventListener(
         svg.id = el.dataset.label;
         delete el.dataset.label;
       }
+
+      const svg = el.querySelector("svg");
+      const parent = el.parentElement;
+      parent.removeChild(el);
+      parent.appendChild(svg);
+      svg.classList.add("mermaid-js");
     }
     for (const svgEl of Array.from(
-      document.querySelectorAll("pre.mermaid-js svg")
+      document.querySelectorAll("svg.mermaid-js")
     )) {
       _quartoMermaid.postProcess(svgEl);
     }

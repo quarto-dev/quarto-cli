@@ -131,14 +131,14 @@ export function pandocList(opts: {
 
 export function pandocBlock(delimiter: string) {
   return function (
-    opts: {
+    opts?: {
       language?: string;
       id?: string;
       classes?: string[];
       attrs?: string[];
       skipFirstLineBreak?: boolean;
       contents?: PandocNode[];
-    } | undefined,
+    },
   ): PandocNode {
     let { id, classes, attrs, language, skipFirstLineBreak, contents } = opts ||
       {};
