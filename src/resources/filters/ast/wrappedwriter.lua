@@ -111,7 +111,7 @@ function wrapped_writer()
       if type(node) == "userdata" then
         -- ast nodes: emulated, custom, or not.
         if not node.is_emulated then
-          node = quarto.ast.to_emulated(node)
+          node = _quarto.ast.to_emulated(node)
           if node == nil then -- shouldn't happen but let's appease the type system
             crash()
             return nil
@@ -121,7 +121,7 @@ function wrapped_writer()
 
         t = node.t or pandoc.utils.type(node)
         if node.is_custom then
-          local astHandler = quarto.ast.resolve_handler(t)
+          local astHandler = _quarto.ast.resolve_handler(t)
           nodeHandler = astHandler and handler[astHandler.ast_name] and handler[astHandler.ast_name].handle
         else
           nodeHandler = handler[t] and handler[t].handle

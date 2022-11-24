@@ -1750,7 +1750,7 @@ local function file_exists(name)
 
 -- Quarto internal module - makes functions available
 -- through the filters
-_quarto = {
+_quarto = {   
    processDependencies = processDependencies,
    format = format,
    patterns = {
@@ -1945,5 +1945,3 @@ quarto.doc.pdfEngine = quarto.doc.pdf_engine
 quarto.doc.hasBootstrap = quarto.doc.has_bootstrap
 quarto.doc.project_output_file = projectRelativeOutputFile
 quarto.utils.resolvePath = quarto.utils.resolve_path
-
-

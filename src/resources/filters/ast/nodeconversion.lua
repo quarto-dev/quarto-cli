@@ -26,7 +26,7 @@ function to_emulated(node)
     return tmap(lst, doInlinesArray) 
   end
 
-  local baseHandler = quarto.ast.copy_as_emulated_node
+  local baseHandler = _quarto.ast.copy_as_emulated_node
 
   local blocksContentHandler = function(el)
     local result = baseHandler(el)
@@ -89,7 +89,7 @@ function to_emulated(node)
 
     Div = function(div)
       local name = div.attr.attributes["quarto-extended-ast-tag"]
-      local handler = quarto.ast.resolve_handler(name)
+      local handler = _quarto.ast.resolve_handler(name)
       if handler == nil then
         -- we don't use the handler, but just check for its
         -- absence and build a standard div block in that case.
@@ -244,19 +244,19 @@ function from_emulated(node)
     Blocks = doArray,
     Inlines = doArray,
     ["pandoc Row"] = function(tbl)
-      return quarto.ast._true_pandoc.Row(tbl.cells, tbl.attr)
+      return _quarto.ast._true_pandoc.Row(tbl.cells, tbl.attr)
     end,
     ["pandoc TableHead"] = function(tbl)
-      return quarto.ast._true_pandoc.TableHead(tbl.rows, tbl.attr)
+      return _quarto.ast._true_pandoc.TableHead(tbl.rows, tbl.attr)
     end,
     ["pandoc TableBody"] = function(tbl)
-      return quarto.ast._true_pandoc.TableBody(tbl.body, tbl.head, tbl.row_head_columns, tbl.attr)
+      return _quarto.ast._true_pandoc.TableBody(tbl.body, tbl.head, tbl.row_head_columns, tbl.attr)
     end,
     ["pandoc TableFoot"] = function (tbl)
-      return quarto.ast._true_pandoc.TableFoot(tbl.rows, tbl.attr)
+      return _quarto.ast._true_pandoc.TableFoot(tbl.rows, tbl.attr)
     end,
     ["pandoc Cell"] = function(tbl)
-      return quarto.ast._true_pandoc.Cell(tbl.contents, tbl.align, tbl.row_span, tbl.col_span, tbl.attr)
+      return _quarto.ast._true_pandoc.Cell(tbl.contents, tbl.align, tbl.row_span, tbl.col_span, tbl.attr)
     end
   }
 
@@ -274,12 +274,12 @@ function from_emulated(node)
       crash_with_stack_trace()
       return
     end
-    local result = quarto.ast._true_pandoc[t](table.unpack(args))
+    local result = _quarto.ast._true_pandoc[t](table.unpack(args))
     return result
   end
 
   local copy = function(tbl)
-    local result = quarto.ast.copy_as_emulated_node(tbl)
+    local result = _quarto.ast.copy_as_emulated_node(tbl)
     if result == nil then
       crash_with_stack_trace()
       return tbl -- a lie to appease the type system
@@ -407,35 +407,35 @@ function from_emulated(node)
     end,
 
     Inlines = function(inlines)
-      return quarto.ast._true_pandoc.Inlines(tmap(inlines, from_emulated))
+      return _quarto.ast._true_pandoc.Inlines(tmap(inlines, from_emulated))
     end,
 
     Blocks = function(blocks)
-      return quarto.ast._true_pandoc.Blocks(tmap(blocks, from_emulated))
+      return _quarto.ast._true_pandoc.Blocks(tmap(blocks, from_emulated))
     end,
 
     Str = function(str)
-      return quarto.ast._true_pandoc.Str(str.text)
+      return _quarto.ast._true_pandoc.Str(str.text)
     end,
 
     Space = function(space)
-      return quarto.ast._true_pandoc.Space()
+      return _quarto.ast._true_pandoc.Space()
     end,
 
     SoftBreak = function()
-      return quarto.ast._true_pandoc.SoftBreak()
+      return _quarto.ast._true_pandoc.SoftBreak()
     end,
 
     HorizontalRule = function()
-      return quarto.ast._true_pandoc.HorizontalRule()
+      return _quarto.ast._true_pandoc.HorizontalRule()
     end,
 
     LineBreak = function()
-      return quarto.ast._true_pandoc.LineBreak()
+      return _quarto.ast._true_pandoc.LineBreak()
     end,
 
     Null = function()
-      return quarto.ast._true_pandoc.Null()
+      return _quarto.ast._true_pandoc.Null()
     end,
     
     Citation = function(tbl)
@@ -482,10 +482,10 @@ function from_emulated(node)
   }
 
   if node == " " then
-    return quarto.ast._true_pandoc.Space()
+    return _quarto.ast._true_pandoc.Space()
   end
   if type(node) == "string" then
-    return quarto.ast._true_pandoc.Str(node)
+    return _quarto.ast._true_pandoc.Str(node)
   end
   -- we want to skip all nodes that aren't emulated or plain tables
   -- while not checking .is_emulated for atomic nodes
@@ -504,7 +504,7 @@ function from_emulated(node)
         nativeTable[k] = v
       end
     end
-    return quarto.ast.build(node.t, nativeTable)
+    return _quarto.ast.build(node.t, nativeTable)
   end
 
   local t = node.t

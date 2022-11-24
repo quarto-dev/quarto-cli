@@ -33,8 +33,8 @@ end
 local function pandoc_emulated_node_factory(t)
   return function(...)
     local args = { ... }
-    -- NB: we can't index into quarto.ast.pandoc in this function
-    -- because it's used in the __index metatable of quarto.ast.pandoc
+    -- NB: we can't index into _quarto.ast.pandoc in this function
+    -- because it's used in the __index metatable of _quarto.ast.pandoc
     -- which can cause infinite recursion
 
     local result = create_emulated_node(t)
@@ -286,9 +286,9 @@ function install_pandoc_overrides()
   pandoc.MetaBlocks = function(value)
     local is_emulated = value.is_emulated
     if is_emulated then
-      return MetaBlocks(quarto.ast.from_emulated(value))
+      return MetaBlocks(_quarto.ast.from_emulated(value))
     elseif tisarray(value) then
-      return MetaBlocks(tmap(value, quarto.ast.from_emulated))
+      return MetaBlocks(tmap(value, _quarto.ast.from_emulated))
     else
       return MetaBlocks(value)
     end
@@ -296,14 +296,14 @@ function install_pandoc_overrides()
   pandoc.MetaInlines = function(value)
     local is_emulated = value.is_emulated
     if is_emulated then
-      return MetaInlines(quarto.ast.from_emulated(value))
+      return MetaInlines(_quarto.ast.from_emulated(value))
     elseif tisarray(value) then
-      return MetaInlines(tmap(value, quarto.ast.from_emulated))
+      return MetaInlines(tmap(value, _quarto.ast.from_emulated))
     else
       return MetaInlines(value)
     end
   end
-  quarto.ast._true_pandoc = state.ast_constructors
+  _quarto.ast._true_pandoc = state.ast_constructors
   return state
 end
 

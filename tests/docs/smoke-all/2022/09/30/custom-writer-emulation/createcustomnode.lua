@@ -1,5 +1,5 @@
 
-quarto.ast.add_handler({
+_quarto.ast.add_handler({
   -- use either string or array of strings
   class_name = "my-custom-node",
   -- className = {"fancy-callout-warning", "fancy-callout-info", ... }
@@ -19,10 +19,10 @@ quarto.ast.add_handler({
   ast_name = "MyCustomNode",
 
   -- a function that takes the extended ast node as supplied in user markdown
-  -- and returns a new Pandoc node (use quarto.ast.pandoc instead of pandoc if
+  -- and returns a new Pandoc node (use _quarto.ast.pandoc instead of pandoc if
   -- you need access to extended ast nodes)
   parse = function(div)
-    return quarto.ast.custom("MyCustomNode", {
+    return _quarto.ast.custom("MyCustomNode", {
       content = div.content[1]
     })
   end,
