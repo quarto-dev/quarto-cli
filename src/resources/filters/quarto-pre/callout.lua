@@ -14,7 +14,7 @@ function calloutType(div)
   return nil
 end
 
-quarto.ast.add_handler({
+_quarto.ast.add_handler({
     -- use either string or array of strings
     class_name = {"callout", "callout-note", "callout-warning", "callout-important", "callout-caution", "callout-tip" },
 
@@ -63,14 +63,14 @@ quarto.ast.add_handler({
       table.appearance = appearance
       table.div = div -- the original div, with captions and attributes stripped. holds the contents
 
-      return quarto.ast.custom("Callout", table)
+      return _quarto.ast.custom("Callout", table)
     end,
 
     -- a function that renders the extendedNode into output
     render = function(node)
       if _quarto.format.isHtmlOutput() and hasBootstrap() then
         local result = calloutDiv(node)
-        -- print(pandoc.write(quarto.ast.from_emulated(pandoc.Pandoc({result})), "html"))
+        -- print(pandoc.write(_quarto.ast.from_emulated(pandoc.Pandoc({result})), "html"))
         return result
       elseif _quarto.format.isLatexOutput() then
         return calloutLatex(node)

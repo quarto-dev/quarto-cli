@@ -186,7 +186,7 @@ apply_filter_bottomup = function(filter, node)
   local result = node
   local changed = false
   if result.is_custom then
-    local handler = quarto.ast.resolve_handler(t)
+    local handler = _quarto.ast.resolve_handler(t)
     local custom_changed = false
     if handler ~= nil and handler.inner_content ~= nil then
       local inner_content = handler.inner_content(result)

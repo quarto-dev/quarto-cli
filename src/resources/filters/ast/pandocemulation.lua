@@ -183,7 +183,7 @@ end
 local pandoc_ast_methods = {
   clone = function(self)
     -- TODO deep copy?
-    return quarto.ast.copy_as_emulated_node(self)
+    return _quarto.ast.copy_as_emulated_node(self)
   end,
   walk = function(node, filter)
     return emulate_pandoc_walk(node, filter)

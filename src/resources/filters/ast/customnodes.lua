@@ -23,7 +23,7 @@ local handlers = {
     -- a function that takes the div node as supplied in user markdown
     -- and returns the custom node
     parse = function(div)
-      return quarto.ast.custom("FancyCallout", {
+      return _quarto.ast.custom("FancyCallout", {
         title = div.content[1],
         content = div.content[2],
       })
@@ -64,7 +64,7 @@ local handlers = {
 
 local kExtendedAstTag = "quarto-extended-ast-tag"
 
-quarto.ast = {
+_quarto.ast = {
   custom = function(name, tbl)
     local result = create_emulated_node(name, true)
     for k, v in pairs(tbl) do
@@ -140,7 +140,7 @@ quarto.ast = {
 
   unbuild = function(emulatedNode)
     local name = emulatedNode.attr.attributes["quarto-extended-ast-tag"]
-    local handler = quarto.ast.resolve_handler(name)
+    local handler = _quarto.ast.resolve_handler(name)
     if handler == nil then
       print("ERROR: couldn't find a handler for " .. name)
       crash_with_stack_trace()
@@ -159,7 +159,7 @@ quarto.ast = {
   end,
 
   build = function(name, nodeTable)
-    local handler = quarto.ast.resolve_handler(name)
+    local handler = _quarto.ast.resolve_handler(name)
     if handler == nil then
       print("Internal Error: couldn't find a handler for " .. tostring(name))
       crash_with_stack_trace()
@@ -186,6 +186,7 @@ quarto.ast = {
     return pandoc.Div(blocks, resultAttr)
   end,
 }
+quarto._quarto = _quarto
 
 function constructExtendedAstHandlerState()
   local state = {
@@ -200,7 +201,7 @@ function constructExtendedAstHandlerState()
   end
 
   for _, handler in ipairs(handlers) do
-    quarto.ast.add_handler(handler)
+    _quarto.ast.add_handler(handler)
   end
 end
 
