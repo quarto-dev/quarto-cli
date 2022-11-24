@@ -1,4 +1,4 @@
-// @quarto/quarto-ojs-runtime v0.0.15 Copyright 2022 undefined
+// quarto-ojs-runtime v0.0.15 Copyright 2022 undefined
 var EOL = {},
     EOF = {},
     QUOTE = 34,
@@ -19256,6 +19256,62 @@ var mime = new Mime(standard, other);
  */
 
 //////////////////////////////////////////////////////////////////////////////
+
+function displayOJSWarning(warning)
+{
+  const cells = [];
+  for (
+    const content of document.querySelectorAll('script[type="ojs-module-contents"]')
+  ) {
+    for (const cellJson of JSON.parse(content.text).contents) {
+      let cell = document.getElementById(cellJson.cellName) || document.getElementById(`${cellJson.cellName}-1`);
+      if (!cell) {
+        // give up
+        continue;
+      }
+      cells.push(cell);
+    }
+  }
+
+  debugger;
+  cells.forEach((cell) => {
+    debugger;
+    cell.innerHTML = "";
+
+    const message = warning();
+
+    cell.appendChild(
+      calloutBlock({
+        type: "error",
+        message
+      })
+    );
+  });
+}
+
+function displayQtWebEngineError() {
+  displayOJSWarning(() => {
+    const message = document.createElement("div");
+    message.appendChild(document.createTextNode("This document uses OJS, which requires JavaScript features not present in this version of QtWebEngine. If you're using RStudio IDE, please upgrade to a "));
+    const link = document.createElement("a");
+    link.appendChild(document.createTextNode("2022.12 build"));
+    link.href = "https://dailies.rstudio.com/rstudio/elsbeth-geranium/";
+    message.appendChild(link);
+    message.appendChild(document.createTextNode("."));
+    return message;
+  });
+}
+
+function displayFileProtocolError() {
+  displayOJSWarning(() => {
+    const message = document.createElement("div");
+    message.appendChild(document.createTextNode("This document uses OJS, which requires JavaScript features disabled when running in file://... URLs. In order for these features to work, run this document in a web server."));
+    return message;
+  });
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
 // Quarto-specific code starts here.
 
 // For RStudio IDE integration
@@ -19775,6 +19831,18 @@ class QuartoOJSConnector extends OJSConnector {
 function createRuntime() {
   const quartoOjsGlobal = window._ojs;
   const isShiny = window.Shiny !== undefined;
+
+  // Are we QtWebEngine? bail
+  if (window.navigator.userAgent.includes("QtWebEngine")) {
+    displayQtWebEngineError();
+    return;
+  }
+
+  // Are we file://? bail
+  if (window.location.protocol === "file:") {
+    displayFileProtocolError();
+    return;
+  }
 
   // Are we shiny?
   if (isShiny) {
