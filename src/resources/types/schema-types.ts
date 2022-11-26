@@ -518,7 +518,6 @@ The user’s cookie preferences will automatically control Google Analytics (if 
           string /* Path to a logo image that will be displayed in the sidebar. */;
         pinned?:
           boolean /* When collapsed, pin the collapsed sidebar to the top of the page. */;
-        subtitle?: string /* The subtitle for this sidebar. */;
         search?: boolean /* Include a search control in the sidebar. */;
         style?:
           | "docked"

@@ -862,9 +862,6 @@
                       - string
                       - boolean
                     description: "The sidebar title. Uses the project title if none is specified."
-                  subtitle:
-                    string:
-                      description: "The subtitle for this sidebar."
                   logo:
                     path:
                       description: "Path to a logo image that will be displayed in the sidebar."

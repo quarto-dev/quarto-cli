@@ -9403,11 +9403,6 @@ var require_yaml_intelligence_resources = __commonJS({
                             ],
                             description: "The sidebar title. Uses the project title if none is specified."
                           },
-                          subtitle: {
-                            string: {
-                              description: "The subtitle for this sidebar."
-                            }
-                          },
                           logo: {
                             path: {
                               description: "Path to a logo image that will be displayed in the sidebar."
@@ -20152,12 +20147,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 135189,
+        _internalId: 135187,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 135181,
+            _internalId: 135179,
             type: "enum",
             enum: [
               "png",
@@ -20173,7 +20168,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 135188,
+            _internalId: 135186,
             type: "anyOf",
             anyOf: [
               {
