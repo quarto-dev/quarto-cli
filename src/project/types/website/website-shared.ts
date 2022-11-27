@@ -11,7 +11,7 @@ import * as ld from "../../../core/lodash.ts";
 
 import { dirAndStem, pathWithForwardSlashes } from "../../../core/path.ts";
 
-import { ProjectContext } from "../../types.ts";
+import { ProjectConfig, ProjectContext } from "../../types.ts";
 import {
   Navbar,
   NavigationFooter,
@@ -169,29 +169,7 @@ export function websiteNavigationConfig(project: ProjectContext) {
   );
 
   // read any footer
-  const footerValue = (
-    value?: unknown,
-  ): string | NavItem[] | undefined => {
-    if (typeof (value) === "string") {
-      return value as string;
-    } else if (Array.isArray(value)) {
-      return value as NavItem[];
-    } else {
-      return undefined;
-    }
-  };
-
-  const footer: NavigationFooter = {};
-  const footerConfig = websiteConfig(kPageFooter, project.config);
-  if (typeof (footerConfig) === "string") {
-    // place the markdown in the center
-    footer.center = footerConfig;
-  } else if (!Array.isArray(footerConfig)) {
-    // Map left center and right to the footer
-    footer.left = footerValue(footerConfig?.left);
-    footer.center = footerValue(footerConfig?.center);
-    footer.right = footerValue(footerConfig?.right);
-  }
+  const footer: NavigationFooter = resolvePageFooter(project.config);
 
   // Ensure there is a spot for cookie-consent to place a link
   if (footer.center === undefined && cookieConsentEnabled(project)) {
@@ -227,6 +205,33 @@ export function websiteNavigationConfig(project: ProjectContext) {
     pageMargin,
     bodyDecorators,
   };
+}
+
+export function resolvePageFooter(config?: ProjectConfig) {
+  const footerValue = (
+    value?: unknown,
+  ): string | NavItem[] | undefined => {
+    if (typeof (value) === "string") {
+      return value as string;
+    } else if (Array.isArray(value)) {
+      return value as NavItem[];
+    } else {
+      return undefined;
+    }
+  };
+
+  const footer: NavigationFooter = {};
+  const footerConfig = websiteConfig(kPageFooter, config);
+  if (typeof (footerConfig) === "string") {
+    // place the markdown in the center
+    footer.center = footerConfig;
+  } else if (!Array.isArray(footerConfig)) {
+    // Map left center and right to the footer
+    footer.left = footerValue(footerConfig?.left);
+    footer.center = footerValue(footerConfig?.center);
+    footer.right = footerValue(footerConfig?.right);
+  }
+  return footer;
 }
 
 export function flattenItems(
