@@ -3,7 +3,8 @@ import type { CallbackWithError } from "./_fs_common.ts";
 import { makeCallback } from "./_fs_common.ts";
 import { Buffer } from "../buffer.ts";
 import { getValidatedPath, getValidMode } from "../internal/fs/utils.mjs";
-import { fs, os } from "../internal_binding/constants.ts";
+import { fs } from "../internal_binding/constants.ts";
+import { codeMap } from "../internal_binding/uv.ts";
 import { promisify } from "../internal/util.mjs";
 
 export function copyFile(
@@ -39,7 +40,7 @@ export function copyFile(
         `EEXIST: file already exists, copyfile '${srcStr}' -> '${destStr}'`,
       );
       e.syscall = "copyfile";
-      e.errno = os.errno.EEXIST;
+      e.errno = codeMap.get("EEXIST");
       e.code = "EEXIST";
       cb(e);
     }, (e) => {

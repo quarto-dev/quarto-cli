@@ -1,7 +1,8 @@
 // Copyright 2018-2022 the Deno authors. All rights reserved. MIT license.
 
 import { type CallbackWithError, makeCallback } from "./_fs_common.ts";
-import { fs, os } from "../internal_binding/constants.ts";
+import { fs } from "../internal_binding/constants.ts";
+import { codeMap } from "../internal_binding/uv.ts";
 import { getValidatedPath, getValidMode } from "../internal/fs/utils.mjs";
 import type { Buffer } from "../buffer.ts";
 import { promisify } from "../internal/util.mjs";
@@ -45,7 +46,7 @@ export function access(
       const e: any = new Error(`EACCES: permission denied, access '${path}'`);
       e.path = path;
       e.syscall = "access";
-      e.errno = os.errno.EACCES;
+      e.errno = codeMap.get("EACCES");
       e.code = "EACCES";
       cb(e);
     }
@@ -57,7 +58,7 @@ export function access(
       );
       e.path = path;
       e.syscall = "access";
-      e.errno = os.errno.ENOENT;
+      e.errno = codeMap.get("ENOENT");
       e.code = "ENOENT";
       cb(e);
     } else {
@@ -98,7 +99,7 @@ export function accessSync(path: string | Buffer | URL, mode?: number) {
       const e: any = new Error(`EACCES: permission denied, access '${path}'`);
       e.path = path;
       e.syscall = "access";
-      e.errno = os.errno.EACCES;
+      e.errno = codeMap.get("EACCES");
       e.code = "EACCES";
       throw e;
     }
@@ -110,7 +111,7 @@ export function accessSync(path: string | Buffer | URL, mode?: number) {
       );
       e.path = path;
       e.syscall = "access";
-      e.errno = os.errno.ENOENT;
+      e.errno = codeMap.get("ENOENT");
       e.code = "ENOENT";
       throw e;
     } else {

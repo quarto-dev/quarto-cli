@@ -21,7 +21,6 @@
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 import { Buffer } from "./buffer.ts";
-import { core } from "./_core.ts";
 import { normalizeEncoding as castEncoding, notImplemented } from "./_utils.ts";
 
 enum NotImplemented {
@@ -38,6 +37,15 @@ function normalizeEncoding(enc?: string): string {
   }
   return String(encoding);
 }
+
+/**
+ * Check is `ArrayBuffer` and not `TypedArray`. Typescript allowed `TypedArray` to be passed as `ArrayBuffer` and does not do a deep check
+ */
+
+function isBufferType(buf: Buffer) {
+  return buf instanceof ArrayBuffer && buf.BYTES_PER_ELEMENT;
+}
+
 /*
  * Checks the type of a UTF-8 byte, whether it's ASCII, a leading byte, or a
  * continuation byte. If an invalid byte is detected, -2 is returned.
@@ -184,15 +192,21 @@ function utf8Write(
   if (buf.length === 0) return "";
   let r;
   let i;
+  // Because `TypedArray` is recognized as `ArrayBuffer` but in the reality, there are some fundamental difference. We would need to cast it properly
+  const normalizedBuffer: Buffer = isBufferType(buf) ? buf : Buffer.from(buf);
   if (this.lastNeed) {
-    r = this.fillLast(buf);
+    r = this.fillLast(normalizedBuffer);
     if (r === undefined) return "";
     i = this.lastNeed;
     this.lastNeed = 0;
   } else {
     i = 0;
   }
-  if (i < buf.length) return r ? r + this.text(buf, i) : this.text(buf, i);
+  if (i < buf.length) {
+    return r
+      ? r + this.text(normalizedBuffer, i)
+      : this.text(normalizedBuffer, i);
+  }
   return r || "";
 }
 
@@ -228,16 +242,6 @@ function simpleWrite(
   return buf.toString(this.encoding);
 }
 
-function simpleUtf8Write(
-  this: StringDecoderBase,
-  buf: Buffer | string,
-): string {
-  if (typeof buf === "string") {
-    return buf;
-  }
-  return core.decode(buf);
-}
-
 function simpleEnd(this: GenericDecoder, buf?: Buffer): string {
   return buf && buf.length ? this.write(buf) : "";
 }
@@ -270,9 +274,6 @@ class GenericDecoder extends StringDecoderBase {
 
   constructor(encoding?: string) {
     super(normalizeEncoding(encoding), 4);
-    if (this.encoding === "utf8") {
-      this.write = simpleUtf8Write;
-    }
   }
 }
 
@@ -303,8 +304,9 @@ export class StringDecoder {
   public write: (buf: Buffer) => string;
 
   constructor(encoding?: string) {
-    let decoder;
-    switch (encoding) {
+    const normalizedEncoding = normalizeEncoding(encoding);
+    let decoder: Utf8Decoder | Base64Decoder | GenericDecoder;
+    switch (normalizedEncoding) {
       case "utf8":
         decoder = new Utf8Decoder(encoding);
         break;

@@ -5,11 +5,9 @@ import { ERR_INVALID_ARG_TYPE, ERR_OUT_OF_RANGE } from "../errors.ts";
 import { deprecate, kEmptyObject } from "../util.mjs";
 import { validateFunction, validateInteger } from "../validators.mjs";
 import { errorOrDestroy } from "../streams/destroy.mjs";
-import { open as fsOpen, type openFlags } from "../../_fs/_fs_open.ts";
+import { open as fsOpen } from "../../_fs/_fs_open.ts";
 import { read as fsRead } from "../../_fs/_fs_read.ts";
-// @deno-types="../../_fs/_fs_write.d.ts""
 import { write as fsWrite } from "../../_fs/_fs_write.mjs";
-// @deno-types="../../_fs/_fs_writev.d.ts""
 import { writev as fsWritev } from "../../_fs/_fs_writev.mjs";
 import { close as fsClose } from "../../_fs/_fs_close.ts";
 import { Buffer } from "../../buffer.ts";
@@ -20,79 +18,16 @@ import {
   validatePath,
 } from "./utils.mjs";
 import { finished, Readable, Writable } from "../../stream.ts";
-import { ReadableOptions, WritableOptions } from "../../_stream.d.ts";
 import { toPathIfFileURL } from "../url.ts";
-import { BufferEncoding } from "../../_global.d.ts";
 import { nextTick } from "../../_next_tick.ts";
 const kIoDone = Symbol("kIoDone");
 const kIsPerformingIO = Symbol("kIsPerformingIO");
 
 const kFs = Symbol("kFs");
 
-type OneRequired<T, U extends keyof T> = U extends keyof T
-  ? { [K in U]: NonNullable<T[K]> } & T
-  : never;
-type SomeNullable<T, U extends keyof T> = {
-  [K in keyof T]: (K extends U ? T[K] | null : T[K]);
-};
-
-type FS = {
-  open?: typeof fsOpen;
-  read?: typeof fsRead;
-  write?: typeof fsWrite;
-  writev?: typeof fsWritev;
-  close?: typeof fsClose;
-};
-type ReadFS = OneRequired<FS, "read">;
-type WriteFS = OneRequired<FS, "write" | "writev">;
-
-interface StreamOptions {
-  flags?: openFlags;
-  encoding?: BufferEncoding;
-  fd?: number;
-  mode?: number;
-  autoClose?: boolean;
-  emitClose?: boolean;
-  start?: number;
-}
-interface ReadStreamOptions extends StreamOptions {
-  end?: number;
-  highWaterMark?: number;
-  fs?: ReadFS | null;
-}
-interface WriteStreamOptions extends StreamOptions {
-  fs?: WriteFS | null;
-}
-
-interface Stream {
-  fd: number | null;
-  path?: string | Buffer;
-  flags?: openFlags;
-  mode?: number;
-  start?: number;
-  pos?: number;
-  [kIsPerformingIO]: boolean;
-  autoClose: boolean;
-  close(callback?: (err?: Error | null) => void): void;
-  pending: boolean;
-}
-export interface ReadStream extends Readable, Stream {
-  [kFs]: ReadFS;
-  end: number;
-  bytesRead: number;
-}
-export interface WriteStream
-  extends SomeNullable<Writable, "_write" | "_writev">, Stream {
-  [kFs]: WriteFS;
-  bytesWritten: number;
-}
-type EitherStream = ReadStream | WriteStream;
-
-function _construct(
-  this: EitherStream,
-  callback: (err?: Error | null) => void,
-) {
-  const stream = this as EitherStream & { open: () => void };
+function _construct(callback) {
+  // deno-lint-ignore no-this-alias
+  const stream = this;
   if (typeof stream.fd === "number") {
     callback();
     return;
@@ -101,7 +36,7 @@ function _construct(
   if (stream.open !== openWriteFs && stream.open !== openReadFs) {
     // Backwards compat for monkey patching open().
     const orgEmit = stream.emit;
-    stream.emit = function (this: EitherStream, ...args) {
+    stream.emit = function (...args) {
       if (args[0] === "open") {
         this.emit = orgEmit;
         callback();
@@ -112,13 +47,13 @@ function _construct(
       } else {
         Reflect.apply(orgEmit, this, args);
       }
-    } as typeof orgEmit;
+    };
     stream.open();
   } else {
-    stream[kFs].open!(
-      stream.path!.toString(),
-      stream.flags!,
-      stream.mode!,
+    stream[kFs].open(
+      stream.path.toString(),
+      stream.flags,
+      stream.mode,
       (er, fd) => {
         if (er) {
           callback(er);
@@ -133,25 +68,18 @@ function _construct(
   }
 }
 
-function close(
-  stream: EitherStream,
-  err: Error | null,
-  cb: (err?: Error | null) => void,
-) {
+function close(stream, err, cb) {
   if (!stream.fd) {
     cb(err);
   } else {
-    stream[kFs].close!(stream.fd, (er) => {
+    stream[kFs].close(stream.fd, (er) => {
       cb(er || err);
     });
     stream.fd = null;
   }
 }
 
-function importFd(
-  stream: EitherStream,
-  options: ReadStreamOptions | WriteStreamOptions,
-) {
+function importFd(stream, options) {
   if (typeof options.fd === "number") {
     // When fd is a raw descriptor, we must keep our fingers crossed
     // that the descriptor won't get closed, or worse, replaced with
@@ -170,18 +98,10 @@ function importFd(
   throw new ERR_INVALID_ARG_TYPE("options.fd", ["number"], options.fd);
 }
 
-export function ReadStream(
-  this: ReadStream | unknown,
-  path: string | Buffer | URL,
-  options?: BufferEncoding | (ReadStreamOptions & ReadableOptions),
-): ReadStream {
+export function ReadStream(path, options) {
   if (!(this instanceof ReadStream)) {
-    // deno-lint-ignore ban-ts-comment
-    // @ts-ignore
     return new ReadStream(path, options);
   }
-
-  const self = this as ReadStream;
 
   // A little bit bigger buffer and water marks by default
   options = copyObject(getOptions(options, kEmptyObject));
@@ -194,57 +114,55 @@ export function ReadStream(
   }
 
   if (options.fd == null) {
-    self.fd = null;
-    self[kFs] = options.fs || { open: fsOpen, read: fsRead, close: fsClose };
-    validateFunction(self[kFs].open, "options.fs.open");
+    this.fd = null;
+    this[kFs] = options.fs || { open: fsOpen, read: fsRead, close: fsClose };
+    validateFunction(this[kFs].open, "options.fs.open");
 
     // Path will be ignored when fd is specified, so it can be falsy
-    self.path = toPathIfFileURL(path);
-    self.flags = options.flags === undefined ? "r" : options.flags;
-    self.mode = options.mode === undefined ? 0o666 : options.mode;
+    this.path = toPathIfFileURL(path);
+    this.flags = options.flags === undefined ? "r" : options.flags;
+    this.mode = options.mode === undefined ? 0o666 : options.mode;
 
-    validatePath(self.path);
+    validatePath(this.path);
   } else {
-    self.fd = getValidatedFd(importFd(self, options));
+    this.fd = getValidatedFd(importFd(this, options));
   }
 
   options.autoDestroy = options.autoClose === undefined
     ? true
     : options.autoClose;
 
-  validateFunction(self[kFs].read, "options.fs.read");
+  validateFunction(this[kFs].read, "options.fs.read");
 
   if (options.autoDestroy) {
-    validateFunction(self[kFs].close, "options.fs.close");
+    validateFunction(this[kFs].close, "options.fs.close");
   }
 
-  self.start = options.start;
-  self.end = options.end ?? Infinity;
-  self.pos = undefined;
-  self.bytesRead = 0;
-  self[kIsPerformingIO] = false;
+  this.start = options.start;
+  this.end = options.end ?? Infinity;
+  this.pos = undefined;
+  this.bytesRead = 0;
+  this[kIsPerformingIO] = false;
 
-  if (self.start !== undefined) {
-    validateInteger(self.start, "start", 0);
+  if (this.start !== undefined) {
+    validateInteger(this.start, "start", 0);
 
-    self.pos = self.start;
+    this.pos = this.start;
   }
 
-  if (self.end !== Infinity) {
-    validateInteger(self.end, "end", 0);
+  if (this.end !== Infinity) {
+    validateInteger(this.end, "end", 0);
 
-    if (self.start !== undefined && self.start > self.end) {
+    if (this.start !== undefined && this.start > this.end) {
       throw new ERR_OUT_OF_RANGE(
         "start",
-        `<= "end" (here: ${self.end})`,
-        self.start,
+        `<= "end" (here: ${this.end})`,
+        this.start,
       );
     }
   }
 
-  Reflect.apply(Readable, self, [options]);
-
-  return self;
+  Reflect.apply(Readable, this, [options]);
 }
 
 Object.setPrototypeOf(ReadStream.prototype, Readable.prototype);
@@ -270,7 +188,7 @@ ReadStream.prototype.open = openReadFs;
 
 ReadStream.prototype._construct = _construct;
 
-ReadStream.prototype._read = async function (this: ReadStream, n: number) {
+ReadStream.prototype._read = async function (n) {
   n = this.pos !== undefined
     ? Math.min(this.end - this.pos + 1, n)
     : Math.min(this.end - this.bytesRead + 1, n);
@@ -282,16 +200,16 @@ ReadStream.prototype._read = async function (this: ReadStream, n: number) {
 
   const buf = Buffer.allocUnsafeSlow(n);
 
-  let error: Error | null = null;
-  let bytesRead: number | null = null;
-  let buffer: Buffer | undefined = undefined;
+  let error = null;
+  let bytesRead = null;
+  let buffer = undefined;
 
   this[kIsPerformingIO] = true;
 
   await new Promise((resolve) => {
     this[kFs]
       .read(
-        this.fd!,
+        this.fd,
         buf,
         0,
         n,
@@ -325,12 +243,12 @@ ReadStream.prototype._read = async function (this: ReadStream, n: number) {
 
     this.bytesRead += bytesRead;
 
-    if (bytesRead !== buffer!.length) {
+    if (bytesRead !== buffer.length) {
       // Slow path. Shrink to fit.
       // Copy instead of slice so that we don't retain
       // large backing buffer for small reads.
       const dst = Buffer.allocUnsafeSlow(bytesRead);
-      buffer!.copy(dst, 0, 0, bytesRead);
+      buffer.copy(dst, 0, 0, bytesRead);
       buffer = dst;
     }
 
@@ -340,11 +258,7 @@ ReadStream.prototype._read = async function (this: ReadStream, n: number) {
   }
 };
 
-ReadStream.prototype._destroy = function (
-  this: ReadStream,
-  err: Error | null,
-  cb: (err?: Error | null) => void,
-) {
+ReadStream.prototype._destroy = function (err, cb) {
   // Usually for async IO it is safe to close a file descriptor
   // even when there are pending operations. However, due to platform
   // differences file IO is implemented using synchronous operations
@@ -358,10 +272,7 @@ ReadStream.prototype._destroy = function (
   }
 };
 
-ReadStream.prototype.close = function (
-  this: ReadStream,
-  cb: (err?: Error | null) => void,
-) {
+ReadStream.prototype.close = function (cb) {
   if (typeof cb === "function") finished(this, cb);
   this.destroy();
 };
@@ -373,18 +284,10 @@ Object.defineProperty(ReadStream.prototype, "pending", {
   configurable: true,
 });
 
-export function WriteStream(
-  this: WriteStream | unknown,
-  path: string | Buffer | URL,
-  options?: BufferEncoding | (WriteStreamOptions & WritableOptions),
-): WriteStream {
+export function WriteStream(path, options) {
   if (!(this instanceof WriteStream)) {
-    // deno-lint-ignore ban-ts-comment
-    // @ts-ignore
     return new WriteStream(path, options);
   }
-
-  const self = this as WriteStream;
 
   options = copyObject(getOptions(options, kEmptyObject));
 
@@ -392,71 +295,69 @@ export function WriteStream(
   options.decodeStrings = true;
 
   if (options.fd == null) {
-    self.fd = null;
-    self[kFs] = options.fs ||
+    this.fd = null;
+    this[kFs] = options.fs ||
       { open: fsOpen, write: fsWrite, writev: fsWritev, close: fsClose };
-    validateFunction(self[kFs].open, "options.fs.open");
+    validateFunction(this[kFs].open, "options.fs.open");
 
     // Path will be ignored when fd is specified, so it can be falsy
-    self.path = toPathIfFileURL(path);
-    self.flags = options.flags === undefined ? "w" : options.flags;
-    self.mode = options.mode === undefined ? 0o666 : options.mode;
+    this.path = toPathIfFileURL(path);
+    this.flags = options.flags === undefined ? "w" : options.flags;
+    this.mode = options.mode === undefined ? 0o666 : options.mode;
 
-    validatePath(self.path);
+    validatePath(this.path);
   } else {
-    self.fd = getValidatedFd(importFd(self, options));
+    this.fd = getValidatedFd(importFd(this, options));
   }
 
   options.autoDestroy = options.autoClose === undefined
     ? true
     : options.autoClose;
 
-  if (!self[kFs].write && !self[kFs].writev) {
+  if (!this[kFs].write && !this[kFs].writev) {
     throw new ERR_INVALID_ARG_TYPE(
       "options.fs.write",
       "function",
-      self[kFs].write,
+      this[kFs].write,
     );
   }
 
-  if (self[kFs].write) {
-    validateFunction(self[kFs].write, "options.fs.write");
+  if (this[kFs].write) {
+    validateFunction(this[kFs].write, "options.fs.write");
   }
 
-  if (self[kFs].writev) {
-    validateFunction(self[kFs].writev, "options.fs.writev");
+  if (this[kFs].writev) {
+    validateFunction(this[kFs].writev, "options.fs.writev");
   }
 
   if (options.autoDestroy) {
-    validateFunction(self[kFs].close, "options.fs.close");
+    validateFunction(this[kFs].close, "options.fs.close");
   }
 
   // It's enough to override either, in which case only one will be used.
-  if (!self[kFs].write) {
-    self._write = null;
+  if (!this[kFs].write) {
+    this._write = null;
   }
-  if (!self[kFs].writev) {
-    self._writev = null;
+  if (!this[kFs].writev) {
+    this._writev = null;
   }
 
-  self.start = options.start;
-  self.pos = undefined;
-  self.bytesWritten = 0;
-  self[kIsPerformingIO] = false;
+  this.start = options.start;
+  this.pos = undefined;
+  this.bytesWritten = 0;
+  this[kIsPerformingIO] = false;
 
-  if (self.start !== undefined) {
-    validateInteger(self.start, "start", 0);
+  if (this.start !== undefined) {
+    validateInteger(this.start, "start", 0);
 
-    self.pos = self.start;
+    this.pos = this.start;
   }
 
   Reflect.apply(Writable, this, [options]);
 
   if (options.encoding) {
-    self.setDefaultEncoding(options.encoding);
+    this.setDefaultEncoding(options.encoding);
   }
-
-  return self;
 }
 
 Object.setPrototypeOf(WriteStream.prototype, Writable.prototype);
@@ -482,14 +383,9 @@ WriteStream.prototype.open = openWriteFs;
 
 WriteStream.prototype._construct = _construct;
 
-WriteStream.prototype._write = function (
-  this: WriteStream,
-  data: Buffer,
-  _encoding: BufferEncoding,
-  cb: (err?: Error | null) => void,
-) {
+WriteStream.prototype._write = function (data, _encoding, cb) {
   this[kIsPerformingIO] = true;
-  this[kFs].write!(this.fd!, data, 0, data.length, this.pos, (er, bytes) => {
+  this[kFs].write(this.fd, data, 0, data.length, this.pos, (er, bytes) => {
     this[kIsPerformingIO] = false;
     if (this.destroyed) {
       // Tell ._destroy() that it's safe to close the fd now.
@@ -510,14 +406,7 @@ WriteStream.prototype._write = function (
   }
 };
 
-WriteStream.prototype._writev = function (
-  this: WriteStream,
-  data: Array<{
-    chunk: Buffer;
-    encoding: BufferEncoding;
-  }>,
-  cb: (err?: Error | null) => void,
-) {
+WriteStream.prototype._writev = function (data, cb) {
   const len = data.length;
   const chunks = new Array(len);
   let size = 0;
@@ -530,7 +419,7 @@ WriteStream.prototype._writev = function (
   }
 
   this[kIsPerformingIO] = true;
-  this[kFs].writev!(this.fd!, chunks, this.pos ?? null, (er, bytes) => {
+  this[kFs].writev(this.fd, chunks, this.pos ?? null, (er, bytes) => {
     this[kIsPerformingIO] = false;
     if (this.destroyed) {
       // Tell ._destroy() that it's safe to close the fd now.
@@ -551,11 +440,7 @@ WriteStream.prototype._writev = function (
   }
 };
 
-WriteStream.prototype._destroy = function (
-  this: WriteStream,
-  err: Error | null,
-  cb: (err?: Error | null) => void,
-) {
+WriteStream.prototype._destroy = function (err, cb) {
   // Usually for async IO it is safe to close a file descriptor
   // even when there are pending operations. However, due to platform
   // differences file IO is implemented using synchronous operations
@@ -569,10 +454,7 @@ WriteStream.prototype._destroy = function (
   }
 };
 
-WriteStream.prototype.close = function (
-  this: WriteStream,
-  cb: (err?: Error | null) => void,
-) {
+WriteStream.prototype.close = function (cb) {
   if (cb) {
     if (this.closed) {
       nextTick(cb);
@@ -602,20 +484,10 @@ Object.defineProperty(WriteStream.prototype, "pending", {
   configurable: true,
 });
 
-export function createReadStream(
-  path: string | Buffer | URL,
-  options?: BufferEncoding | ReadStreamOptions,
-): ReadStream {
-  // deno-lint-ignore ban-ts-comment
-  // @ts-ignore
+export function createReadStream(path, options) {
   return new ReadStream(path, options);
 }
 
-export function createWriteStream(
-  path: string | Buffer | URL,
-  options?: BufferEncoding | WriteStreamOptions,
-): WriteStream {
-  // deno-lint-ignore ban-ts-comment
-  // @ts-ignore
+export function createWriteStream(path, options) {
   return new WriteStream(path, options);
 }

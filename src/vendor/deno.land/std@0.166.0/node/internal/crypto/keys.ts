@@ -1,8 +1,12 @@
 // Copyright 2018-2022 the Deno authors. All rights reserved. MIT license.
 // Copyright Joyent, Inc. and Node.js contributors. All rights reserved. MIT license.
 
-import { kHandle } from "./constants.ts";
-import { ERR_INVALID_ARG_TYPE, ERR_INVALID_ARG_VALUE } from "../errors.ts";
+import { kHandle, kKeyObject } from "./constants.ts";
+import {
+  ERR_CRYPTO_INVALID_KEY_OBJECT_TYPE,
+  ERR_INVALID_ARG_TYPE,
+  ERR_INVALID_ARG_VALUE,
+} from "../errors.ts";
 import { notImplemented } from "../../_utils.ts";
 import type {
   KeyFormat,
@@ -11,9 +15,41 @@ import type {
   PublicKeyInput,
 } from "./types.ts";
 import { Buffer } from "../../buffer.ts";
-import { isCryptoKey, isKeyObject, kKeyType } from "./_keys.ts";
+import { isAnyArrayBuffer, isArrayBufferView } from "../util/types.ts";
+import { hideStackFrames } from "../errors.ts";
+import {
+  isCryptoKey as isCryptoKey_,
+  isKeyObject as isKeyObject_,
+  kKeyType,
+} from "./_keys.ts";
 
-export { isCryptoKey, isKeyObject };
+const getArrayBufferOrView = hideStackFrames(
+  (buffer, name, encoding): Buffer => {
+    if (isAnyArrayBuffer(buffer)) {
+      return buffer;
+    }
+    if (typeof buffer === "string") {
+      if (encoding === "buffer") {
+        encoding = "utf8";
+      }
+      return Buffer.from(buffer, encoding);
+    }
+    if (!isArrayBufferView(buffer)) {
+      throw new ERR_INVALID_ARG_TYPE(
+        name,
+        [
+          "string",
+          "ArrayBuffer",
+          "Buffer",
+          "TypedArray",
+          "DataView",
+        ],
+        buffer,
+      );
+    }
+    return buffer;
+  },
+);
 
 export interface AsymmetricKeyDetails {
   /**
@@ -57,6 +93,16 @@ export interface KeyExportOptions<T extends KeyFormat> {
 
 export interface JwkKeyExportOptions {
   format: "jwk";
+}
+
+export function isKeyObject(obj: unknown): obj is KeyObject {
+  return isKeyObject_(obj);
+}
+
+export function isCryptoKey(
+  obj: unknown,
+): obj is { type: string; [kKeyObject]: KeyObject } {
+  return isCryptoKey_(obj);
 }
 
 export class KeyObject {
@@ -149,6 +195,57 @@ export function createPublicKey(
   notImplemented("crypto.createPublicKey");
 }
 
+function getKeyTypes(allowKeyObject: boolean, bufferOnly = false) {
+  const types = [
+    "ArrayBuffer",
+    "Buffer",
+    "TypedArray",
+    "DataView",
+    "string", // Only if bufferOnly == false
+    "KeyObject", // Only if allowKeyObject == true && bufferOnly == false
+    "CryptoKey", // Only if allowKeyObject == true && bufferOnly == false
+  ];
+  if (bufferOnly) {
+    return types.slice(0, 4);
+  } else if (!allowKeyObject) {
+    return types.slice(0, 5);
+  }
+  return types;
+}
+
+export function prepareSecretKey(
+  key: string | ArrayBuffer | KeyObject,
+  encoding: string | undefined,
+  bufferOnly = false,
+) {
+  if (!bufferOnly) {
+    if (isKeyObject(key)) {
+      if (key.type !== "secret") {
+        throw new ERR_CRYPTO_INVALID_KEY_OBJECT_TYPE(key.type, "secret");
+      }
+      return key[kHandle];
+    } else if (isCryptoKey(key)) {
+      if (key.type !== "secret") {
+        throw new ERR_CRYPTO_INVALID_KEY_OBJECT_TYPE(key.type, "secret");
+      }
+      return key[kKeyObject][kHandle];
+    }
+  }
+  if (
+    typeof key !== "string" &&
+    !isArrayBufferView(key) &&
+    !isAnyArrayBuffer(key)
+  ) {
+    throw new ERR_INVALID_ARG_TYPE(
+      "key",
+      getKeyTypes(!bufferOnly, bufferOnly),
+      key,
+    );
+  }
+
+  return getArrayBufferOrView(key, "key", encoding);
+}
+
 export function createSecretKey(key: ArrayBufferView): KeyObject;
 export function createSecretKey(
   key: string,
@@ -162,10 +259,11 @@ export function createSecretKey(
 }
 
 export default {
-  isKeyObject,
-  isCryptoKey,
-  KeyObject,
   createPrivateKey,
   createPublicKey,
   createSecretKey,
+  isKeyObject,
+  isCryptoKey,
+  KeyObject,
+  prepareSecretKey,
 };

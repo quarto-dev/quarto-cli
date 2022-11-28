@@ -13,9 +13,9 @@ import { encode as encodeToBase64 } from "../../../encoding/base64.ts";
 import { encode as encodeToBase64Url } from "../../../encoding/base64url.ts";
 import type { TransformOptions } from "../../_stream.d.ts";
 import { validateString } from "../validators.mjs";
+import type { BinaryToTextEncoding, Encoding } from "./types.ts";
+import { KeyObject, prepareSecretKey } from "./keys.ts";
 import { notImplemented } from "../../_utils.ts";
-import type { BinaryLike, BinaryToTextEncoding, Encoding } from "./types.ts";
-import { KeyObject } from "./keys.ts";
 
 const coerceToBytes = (data: string | BufferSource): Uint8Array => {
   if (data instanceof Uint8Array) {
@@ -118,39 +118,99 @@ export class Hash extends Transform {
         return encodeToBase64(digest);
       case "base64url":
         return encodeToBase64Url(digest);
+      case "buffer":
+        return Buffer.from(digest);
       default:
-        throw new Error(
-          `The output encoding for hash digest is not implemented: ${encoding}`,
-        );
+        return Buffer.from(digest).toString(encoding);
     }
   }
 }
 
-export class Hmac extends Transform {
+export function Hmac(
+  hmac: string,
+  key: string | ArrayBuffer | KeyObject,
+  options?: TransformOptions,
+): Hmac {
+  return new HmacImpl(hmac, key, options);
+}
+
+type Hmac = HmacImpl;
+
+class HmacImpl extends Transform {
+  #ipad: Uint8Array;
+  #opad: Uint8Array;
+  #ZEROES = Buffer.alloc(128);
+  #algorithm: string;
+  #hash: Hash;
+
   constructor(
     hmac: string,
-    _key: BinaryLike | KeyObject,
-    _options?: TransformOptions,
+    key: string | ArrayBuffer | KeyObject,
+    options?: TransformOptions,
   ) {
+    super({
+      transform(chunk: string, encoding: string, callback: () => void) {
+        // deno-lint-ignore no-explicit-any
+        self.update(coerceToBytes(chunk), encoding as any);
+        callback();
+      },
+      flush(callback: () => void) {
+        this.push(self.digest());
+        callback();
+      },
+    });
+    // deno-lint-ignore no-this-alias
+    const self = this;
+    if (key instanceof KeyObject) {
+      notImplemented("Hmac: KeyObject key is not implemented");
+    }
+
     validateString(hmac, "hmac");
+    const u8Key = prepareSecretKey(key, options?.encoding) as Buffer;
 
-    super();
+    const alg = hmac.toLowerCase();
+    this.#hash = new Hash(alg, options);
+    this.#algorithm = alg;
+    const blockSize = (alg === "sha512" || alg === "sha384") ? 128 : 64;
+    const keySize = u8Key.length;
 
-    notImplemented("crypto.Hmac");
+    let bufKey: Buffer;
+
+    if (keySize > blockSize) {
+      bufKey = this.#hash.update(u8Key).digest() as Buffer;
+    } else {
+      bufKey = Buffer.concat([u8Key, this.#ZEROES], blockSize);
+    }
+
+    this.#ipad = Buffer.allocUnsafe(blockSize);
+    this.#opad = Buffer.allocUnsafe(blockSize);
+
+    for (let i = 0; i < blockSize; i++) {
+      this.#ipad[i] = bufKey[i] ^ 0x36;
+      this.#opad[i] = bufKey[i] ^ 0x5C;
+    }
+
+    this.#hash = new Hash(alg);
+    this.#hash.update(this.#ipad);
   }
 
   digest(): Buffer;
   digest(encoding: BinaryToTextEncoding): string;
-  digest(_encoding?: BinaryToTextEncoding): Buffer | string {
-    notImplemented("crypto.Hmac.prototype.digest");
+  digest(encoding?: BinaryToTextEncoding): Buffer | string {
+    const result = this.#hash.digest();
+
+    return new Hash(this.#algorithm).update(this.#opad).update(result).digest(
+      encoding,
+    );
   }
 
-  update(data: BinaryLike): this;
-  update(data: string, inputEncoding: Encoding): this;
-  update(_data: BinaryLike, _inputEncoding?: Encoding): this {
-    notImplemented("crypto.Hmac.prototype.update");
+  update(data: string | ArrayBuffer, inputEncoding?: Encoding): this {
+    this.#hash.update(data, inputEncoding);
+    return this;
   }
 }
+
+Hmac.prototype = HmacImpl.prototype;
 
 /**
  * Supported digest names that OpenSSL/Node and WebCrypto identify differently.
