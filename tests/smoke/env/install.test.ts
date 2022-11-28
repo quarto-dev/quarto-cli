@@ -13,6 +13,7 @@ testQuartoCmd(
   [
     noErrorsOrWarnings,
     printsMessage("INFO", /tinytex\s+/),
-    printsMessage("INFO", /chromium\s+/),
+    // printsMessage("INFO", /chromium\s+/),
+    // temporarily disabled until we get puppeteer back
   ],
 );
