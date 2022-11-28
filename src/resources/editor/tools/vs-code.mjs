@@ -8479,16 +8479,21 @@ var require_yaml_intelligence_resources = __commonJS({
                           description: "Place the comment input box above or below the comments."
                         },
                         theme: {
-                          enum: [
-                            "light",
-                            "light_high_contrast",
-                            "light_protanopia",
-                            "dark",
-                            "dark_high_contrast",
-                            "dark_protanopia",
-                            "dark_dimmed",
-                            "transparent_dark",
-                            "preferred_color_scheme"
+                          anyOf: [
+                            "string",
+                            {
+                              enum: [
+                                "light",
+                                "light_high_contrast",
+                                "light_protanopia",
+                                "dark",
+                                "dark_high_contrast",
+                                "dark_protanopia",
+                                "dark_dimmed",
+                                "transparent_dark",
+                                "preferred_color_scheme"
+                              ]
+                            }
                           ],
                           description: "The giscus theme to use when displaying comments."
                         },
@@ -9398,11 +9403,6 @@ var require_yaml_intelligence_resources = __commonJS({
                             ],
                             description: "The sidebar title. Uses the project title if none is specified."
                           },
-                          subtitle: {
-                            string: {
-                              description: "The subtitle for this sidebar."
-                            }
-                          },
                           logo: {
                             path: {
                               description: "Path to a logo image that will be displayed in the sidebar."
@@ -9775,6 +9775,8 @@ var require_yaml_intelligence_resources = __commonJS({
             properties: {
               "toc-title-document": "string",
               "toc-title-website": "string",
+              "related-formats-title": "string",
+              "related-notebooks-title": "string",
               "callout-tip-caption": "string",
               "callout-note-caption": "string",
               "callout-warning-caption": "string",
@@ -13889,6 +13891,49 @@ var require_yaml_intelligence_resources = __commonJS({
             short: "A regular expression that can be used to determine whether a link is an internal link.",
             long: "A regular expression that can be used to determine whether a link is an internal link. For example, \nthe following will treat links that start with http://www.quarto.org as internal links (and others\nwill be considered external):\n\n```\n^(?:http:|https:)\\/\\/www\\.quarto\\.org\\/custom\n```\n"
           }
+        },
+        {
+          name: "format-links",
+          tags: {
+            formats: [
+              "$html-doc"
+            ]
+          },
+          schema: {
+            anyOf: [
+              "boolean",
+              {
+                arrayOf: "string"
+              }
+            ]
+          },
+          description: {
+            short: "Controls whether links to other rendered formats are displayed in HTML output.",
+            long: "Controls whether links to other rendered formats are displayed in HTML output.\n\nPass `false` to disable the display of format lengths or pass a list of format names for which you'd\nlike links to be shown.\n"
+          }
+        },
+        {
+          name: "notebook-links",
+          tags: {
+            formats: [
+              "$html-doc"
+            ]
+          },
+          schema: {
+            anyOf: [
+              "boolean",
+              {
+                enum: [
+                  "inline",
+                  "global"
+                ]
+              }
+            ]
+          },
+          description: {
+            short: "Controls the display of links to notebooks that provided embedded content or are created from documents.",
+            long: "Controls the display of links to notebooks that provided embedded content or are created from documents.\n\nSpecify `false` to disable linking to source Notebooks. Specify `inline` to show links to source notebooks beneath the content they provide. \nSpecify `global` to show a set of global links to source notebooks.\n"
+          }
         }
       ],
       "schema/document-listing.yml": [
@@ -14170,7 +14215,8 @@ var require_yaml_intelligence_resources = __commonJS({
           tags: {
             formats: [
               "$html-doc",
-              "revealjs"
+              "revealjs",
+              "beamer"
             ]
           },
           schema: {
@@ -15790,7 +15836,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           name: "multiplex",
-          description: "Configuraiotn for reveal presentation multiplexing.",
+          description: "Configuration for reveal presentation multiplexing.",
           tags: {
             formats: [
               "revealjs"
@@ -18888,6 +18934,14 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "A regular expression that can be used to determine whether a link is\nan internal link.",
           long: "A regular expression that can be used to determine whether a link is\nan internal link. For example, the following will treat links that start\nwith http://www.quarto.org as internal links (and others will be\nconsidered external):"
         },
+        {
+          short: "Controls whether links to other rendered formats are displayed in\nHTML output.",
+          long: "Controls whether links to other rendered formats are displayed in\nHTML output.\nPass <code>false</code> to disable the display of format lengths or\npass a list of format names for which you\u2019d like links to be shown."
+        },
+        {
+          short: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.",
+          long: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.\nSpecify <code>false</code> to disable linking to source Notebooks.\nSpecify <code>inline</code> to show links to source notebooks beneath\nthe content they provide. Specify <code>global</code> to show a set of\nglobal links to source notebooks."
+        },
         "Automatically generate the contents of a page from a list of Quarto\ndocuments or other custom data.",
         "List of keywords to be included in the document metadata.",
         "The document subject",
@@ -19159,7 +19213,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Configuration option to prevent changes to existing drawings",
         "Add chalkboard buttons at the bottom of the slide",
         "Gives the duration (in ms) of the transition for a slide change, so\nthat the notes canvas is drawn after the transition is completed.",
-        "Configuraiotn for reveal presentation multiplexing.",
+        "Configuration for reveal presentation multiplexing.",
         "Multiplex token server (defaults to Reveal-hosted server)",
         "Unique presentation id provided by multiplex token server",
         "Secret provided by multiplex token server",
@@ -19573,6 +19627,8 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "internal-schema-hack",
+        "Mermaid diagram options",
+        "The mermaid built-in theme to use.",
         "Project configuration.",
         "Project type (<code>default</code>, <code>website</code>, or\n<code>book</code>)",
         "Files to render (defaults to all files)",
@@ -20033,7 +20089,8 @@ var require_yaml_intelligence_resources = __commonJS({
       "handlers/languages.yml": [
         "mermaid",
         "include",
-        "dot"
+        "dot",
+        "embed"
       ],
       "handlers/lang-comment-chars.yml": {
         r: "#",
@@ -20090,12 +20147,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 133552,
+        _internalId: 135187,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 133551,
+            _internalId: 135179,
             type: "enum",
             enum: [
               "png",
@@ -20109,6 +20166,25 @@ var require_yaml_intelligence_resources = __commonJS({
               "js"
             ],
             exhaustiveCompletions: true
+          },
+          theme: {
+            _internalId: 135186,
+            type: "anyOf",
+            anyOf: [
+              {
+                type: "null",
+                description: "be the null value",
+                completions: [
+                  "null"
+                ],
+                exhaustiveCompletions: true
+              },
+              {
+                type: "string",
+                description: "be a string"
+              }
+            ],
+            description: "be at least one of: the null value, a string"
           }
         },
         patternProperties: {},
@@ -20163,6 +20239,32 @@ var require_yaml_intelligence_resources = __commonJS({
               }
             }
           }
+        }
+      ],
+      "schema/document-mermaid.yml": [
+        {
+          name: "mermaid",
+          tags: {
+            formats: [
+              "$html-files"
+            ]
+          },
+          schema: {
+            object: {
+              properties: {
+                theme: {
+                  enum: [
+                    "default",
+                    "dark",
+                    "forest",
+                    "neutral"
+                  ],
+                  description: "The mermaid built-in theme to use."
+                }
+              }
+            }
+          },
+          description: "Mermaid diagram options"
         }
       ]
     };

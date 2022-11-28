@@ -20,7 +20,7 @@ import { createEbookFormat } from "../formats-shared.ts";
 
 export function epubFormat(): Format {
   return mergeConfigs(
-    createEbookFormat("epub"),
+    createEbookFormat("ePub", "epub"),
     {
       extensions: {
         book: epubBookExtension,

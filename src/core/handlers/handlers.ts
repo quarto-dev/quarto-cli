@@ -8,3 +8,4 @@
 import "./mermaid.ts";
 import "./include.ts";
 import "./dot.ts";
+import "./embed.ts";

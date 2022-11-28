@@ -6,6 +6,10 @@
 */
 
 import { kHtmlEmptyPostProcessResult } from "../../command/render/constants.ts";
+import {
+  PandocInputTraits,
+  RenderedFormat,
+} from "../../command/render/types.ts";
 import { Format, Metadata } from "../../config/types.ts";
 import { bibliographyCslJson } from "../../core/bibliography.ts";
 import {
@@ -29,11 +33,15 @@ export function metadataPostProcessor(
   format: Format,
   offset?: string,
 ) {
-  return async (doc: Document, inputMetadata: Metadata) => {
+  return async (doc: Document, options: {
+    inputMetadata: Metadata;
+    inputTraits: PandocInputTraits;
+    renderedFormats: RenderedFormat[];
+  }) => {
     if (googleScholarEnabled(format)) {
       const { csl, extras } = documentCSL(
         input,
-        inputMetadata,
+        options.inputMetadata,
         "webpage",
         format.pandoc["output-file"],
         offset,
@@ -41,7 +49,7 @@ export function metadataPostProcessor(
       const documentMetadata = googleScholarMeta(csl, extras);
       const referenceMetadata = await googleScholarReferences(
         input,
-        inputMetadata,
+        options.inputMetadata,
       );
       [...documentMetadata, ...referenceMetadata].forEach((meta) => {
         writeMetaTag(meta.name, meta.content, doc);

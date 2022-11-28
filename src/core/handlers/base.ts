@@ -58,6 +58,7 @@ import {
   kCodeOverflow,
   kCodeSummary,
   kEcho,
+  kFigAlign,
   kFigCapLoc,
   kLayout,
   kLayoutNcol,
@@ -613,7 +614,6 @@ export const baseHandler: LanguageHandler = {
       }
     }
 
-    const paraBlock = pandocHtmlBlock("p");
     const divBlock = pandocBlock(":::");
 
     // PandocNodes ignore self-pushes (n.push(n))
@@ -633,7 +633,7 @@ export const baseHandler: LanguageHandler = {
       };
     }
     const figureLike = unrolledOutput ? cellBlock : divBlock(figureLikeOptions);
-    const cellOutput = unrolledOutput ? cellBlock : paraBlock();
+    const cellOutput = unrolledOutput ? cellBlock : divBlock();
 
     figureLike.push(cellOutput);
     cellOutputDiv.push(figureLike);
@@ -718,6 +718,9 @@ export function getDivAttributes(
   const classStr = (options?.classes as (string | undefined)) || "";
 
   const classes = classStr === "" ? [] : classStr.trim().split(" ");
+  if (typeof options?.[kFigAlign] === "string") {
+    attrs.push(`layout-align="${options?.[kFigAlign]}"`);
+  }
   if (typeof options?.panel === "string") {
     classes.push(`panel-${options?.panel}`);
   }

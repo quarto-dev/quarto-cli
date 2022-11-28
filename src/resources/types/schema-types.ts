@@ -118,15 +118,18 @@ as a discussion number and automatic discussion creation is not supported. */;
 In order to work correctly, the repo must be public, with the giscus app installed, and
 the discussions feature must be enabled. */;
     theme?:
-      | "light"
-      | "light_high_contrast"
-      | "light_protanopia"
-      | "dark"
-      | "dark_high_contrast"
-      | "dark_protanopia"
-      | "dark_dimmed"
-      | "transparent_dark"
-      | "preferred_color_scheme"; /* The giscus theme to use when displaying comments. */
+      | string
+      | (
+        | "light"
+        | "light_high_contrast"
+        | "light_protanopia"
+        | "dark"
+        | "dark_high_contrast"
+        | "dark_protanopia"
+        | "dark_dimmed"
+        | "transparent_dark"
+        | "preferred_color_scheme"
+      ); /* The giscus theme to use when displaying comments. */
   };
   hypothesis?: boolean | {
     assetRoot?: string /* The root URL from which assets are loaded. */;
@@ -515,7 +518,6 @@ The user’s cookie preferences will automatically control Google Analytics (if 
           string /* Path to a logo image that will be displayed in the sidebar. */;
         pinned?:
           boolean /* When collapsed, pin the collapsed sidebar to the top of the page. */;
-        subtitle?: string /* The subtitle for this sidebar. */;
         search?: boolean /* Include a search control in the sidebar. */;
         style?:
           | "docked"
@@ -596,6 +598,8 @@ attempt to be automatically translated. */;
 export type FormatLanguage = {
   "toc-title-document"?: string;
   "toc-title-website"?: string;
+  "related-formats-title"?: string;
+  "related-notebooks-title"?: string;
   "callout-tip-caption"?: string;
   "callout-note-caption"?: string;
   "callout-warning-caption"?: string;

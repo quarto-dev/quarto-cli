@@ -1,0 +1,31 @@
+---
+title: Included Resource Test
+author: Charles Teague
+date: last-modified
+code-fold: true
+keep-hidden: true
+---
+
+### A simple include example, using tag
+
+{{< embed subfolder/plots.ipynb#plot-line >}}
+
+### A simple include example, using label
+
+{{< embed subfolder/plots.ipynb#plot-dot >}}
+
+### A simple include example, using index
+
+{{< embed subfolder/plots.ipynb[2] >}}
+
+### Index ranges
+
+{{< embed subfolder/plots.ipynb[2-4,1] >}}
+
+### Multiple Ids
+
+{{< embed subfolder/plots.ipynb#plot-dot,plot-line >}}
+
+### Whole notebook
+
+{{< embed subfolder/plots.ipynb#plot-dot,plot-line >}}

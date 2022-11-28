@@ -336,9 +336,21 @@ export const jupyterEngine: ExecutionEngine = {
     // (unless keep-ipynb was specified)
     cleanupNotebook(options.target, options.format);
 
+    // Create markdown from the result
+    const outputs = result.cellOutputs.map((output) => output.markdown);
+    if (result.notebookOutputs) {
+      if (result.notebookOutputs.prefix) {
+        outputs.unshift(result.notebookOutputs.prefix);
+      }
+      if (result.notebookOutputs.suffix) {
+        outputs.push(result.notebookOutputs.suffix);
+      }
+    }
+    const markdown = outputs.join("");
+
     // return results
     return {
-      markdown: result.markdown,
+      markdown: markdown,
       supporting: [join(assets.base_dir, assets.supporting_dir)],
       filters: [],
       pandoc: result.pandoc,

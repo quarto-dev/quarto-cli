@@ -28,6 +28,10 @@ export function requiresShortcodeUnescapePostprocessor(markdown: string) {
   return markdown.includes("{{{<");
 }
 
+const kDisplayNameGFM = "Github (GFM)";
+const kDisplayNameCommonMark = "CommonMark";
+const kDisplayNameMarkdown = "Markdown";
+
 export function shortcodeUnescapePostprocessor(output: string): Promise<void> {
   // unescape shortcodes
   Deno.writeTextFileSync(
@@ -40,7 +44,7 @@ export function shortcodeUnescapePostprocessor(output: string): Promise<void> {
 }
 
 export function gfmFormat(): Format {
-  return createFormat("md", markdownFormat(), {
+  return createFormat(kDisplayNameGFM, "md", markdownFormat(kDisplayNameGFM), {
     pandoc: {
       to: "commonmark",
     },
@@ -52,37 +56,52 @@ export function gfmFormat(): Format {
 
 // for 'md' alias
 export function markdownWithCommonmarkExtensionsFormat() {
-  return createFormat("md", markdownFormat(), {
-    pandoc: {
-      to: [
-        "markdown_strict",
-        "+raw_html",
-        "+all_symbols_escapable",
-        "+backtick_code_blocks",
-        "+fenced_code_blocks",
-        "+space_in_atx_header",
-        "+intraword_underscores",
-        "+lists_without_preceding_blankline",
-        "+shortcut_reference_links",
-      ].join(""),
+  return createFormat(
+    kDisplayNameCommonMark,
+    "md",
+    markdownFormat(kDisplayNameCommonMark),
+    {
+      pandoc: {
+        to: [
+          "markdown_strict",
+          "+raw_html",
+          "+all_symbols_escapable",
+          "+backtick_code_blocks",
+          "+fenced_code_blocks",
+          "+space_in_atx_header",
+          "+intraword_underscores",
+          "+lists_without_preceding_blankline",
+          "+shortcut_reference_links",
+        ].join(""),
+      },
     },
-  });
+  );
 }
 
 export function commonmarkFormat(to: string) {
-  return createFormat("md", markdownFormat(), {
-    pandoc: {
-      to,
+  return createFormat(
+    kDisplayNameCommonMark,
+    "md",
+    markdownFormat(kDisplayNameCommonMark),
+    {
+      pandoc: {
+        to,
+      },
     },
-  });
+  );
 }
 
 export function pandocMarkdownFormat(): Format {
-  return createFormat("md", plaintextFormat("md"), {});
+  return createFormat(
+    kDisplayNameMarkdown,
+    "md",
+    plaintextFormat(kDisplayNameMarkdown, "md"),
+    {},
+  );
 }
 
-export function markdownFormat(): Format {
-  return createFormat("md", plaintextFormat("md"), {
+export function markdownFormat(displayName: string): Format {
+  return createFormat(displayName, "md", plaintextFormat(displayName, "md"), {
     // markdown shouldn't include cell divs (even if it
     // technically supports raw html)
     render: {

@@ -42,7 +42,7 @@ import { ojsExecuteResult } from "../../execute/ojs/compile.ts";
 import { ExecuteResult, MappedExecuteResult } from "../../execute/types.ts";
 import { kProjectLibDir, ProjectContext } from "../../project/types.ts";
 import { outputRecipe } from "./output.ts";
-import { renderPandoc } from "./render.ts";
+import { PandocRenderCompletion, renderPandoc } from "./render.ts";
 import { renderContexts } from "./render-contexts.ts";
 import { renderProgress } from "./render-info.ts";
 import {
@@ -50,9 +50,11 @@ import {
   PandocRenderer,
   RenderContext,
   RenderedFile,
+  RenderedFormat,
   RenderExecuteOptions,
   RenderFile,
   RenderFilesResult,
+  RenderFlags,
   RenderOptions,
 } from "./types.ts";
 import { error, info, warning } from "log/mod.ts";
@@ -350,150 +352,171 @@ export async function renderFiles(
         }
         executeResult.supporting.push(...results.supporting);
       };
+
+      const outputs: Array<{
+        path: string;
+        format: Format;
+      }> = [];
+
       for (const format of Object.keys(contexts)) {
         pushTiming("render-context");
         const context = ld.cloneDeep(contexts[format]) as RenderContext; // since we're going to mutate it...
 
-        // Set the date locale for this render
-        // Used for date formatting
-        initDayJsPlugins();
-        if (
-          context.format.metadata[kLang] &&
-          typeof (context.format.metadata[kLang]) === "string"
-        ) {
-          await setDateLocale(
-            options.flags?.pandocMetadata?.[kLang] as string ||
-              context.format.metadata[kLang] as string,
-          );
-        }
-
-        const fileLifetime = createNamedLifetime("render-file");
-        fileLifetime.attach({
-          cleanup() {
-            resetFigureCounter();
-          },
+        // get output recipe
+        const recipe = outputRecipe(context);
+        outputs.push({
+          path: recipe.finalOutput || recipe.output,
+          format: context.format,
         });
-        try {
-          // one time denoDom init for html compatible formats
-          if (isHtmlCompatible(context.format)) {
-            await initDenoDom();
-          }
 
-          // get output recipe
-          const recipe = await outputRecipe(context);
-
-          // determine execute options
-          const executeOptions = mergeConfigs(
-            {
-              alwaysExecute: alwaysExecuteFiles?.includes(file.path),
-            },
-            pandocRenderer.onBeforeExecute(recipe.format),
-          );
-
-          const validate = context.format.metadata?.["validate-yaml"];
-          if (validate !== false) {
-            const validationResult = await validateDocument(context);
-            if (validationResult.length) {
-              throw new RenderInvalidYAMLError();
-            }
-          }
-
-          // FIXME it should be possible to infer this directly now
-          // based on the information in the mapped strings.
-          //
-          // collect line numbers to facilitate runtime error reporting
-          const { ojsBlockLineNumbers } = annotateOjsLineNumbers(context);
-
-          // execute
-          const baseExecuteResult = await renderExecute(
-            context,
-            recipe.output,
-            executeOptions,
-          );
-
-          // recover source map from diff and create a mappedExecuteResult
-          // for markdown processing pre-pandoc with mapped strings
-          let mappedMarkdown: MappedString;
-
-          withTiming("diff-execute-result", () => {
-            if (!isJupyterNotebook(context.target.source)) {
-              mappedMarkdown = mappedDiff(
-                context.target.markdown,
-                baseExecuteResult.markdown,
-              );
+        // TODO
+        if (context.active) {
+          // Set the date locale for this render
+          // Used for date formatting
+          initDayJsPlugins();
+          const resolveLang = () => {
+            const lang = context.format.metadata[kLang] ||
+              options.flags?.pandocMetadata?.[kLang];
+            if (typeof (lang) === "string") {
+              return lang;
             } else {
-              mappedMarkdown = asMappedString(baseExecuteResult.markdown);
+              return undefined;
             }
-          });
-
-          const resourceFiles: string[] = [];
-          if (baseExecuteResult.resourceFiles) {
-            resourceFiles.push(...baseExecuteResult.resourceFiles);
+          };
+          const dateFormatLang = resolveLang();
+          if (dateFormatLang) {
+            await setDateLocale(
+              dateFormatLang,
+            );
           }
 
-          const languageCellHandlerOptions: LanguageCellHandlerOptions = {
-            name: "", // will be filled out by handleLanguageCells internally
-            temp: tempContext,
-            format: recipe.format,
-            markdown: mappedMarkdown!,
-            context,
-            stage: "post-engine",
-          };
-
-          let unmappedExecuteResult: ExecuteResult;
-          await withTimingAsync("handle-language-cells", async () => {
-            // handle language cells
-            const { markdown, results } = await handleLanguageCells(
-              languageCellHandlerOptions,
-            );
-            const mappedExecuteResult: MappedExecuteResult = {
-              ...baseExecuteResult,
-              markdown,
-            };
-
-            mergeHandlerResults(
-              context.target.preEngineExecuteResults,
-              mappedExecuteResult,
-              context,
-            );
-            mergeHandlerResults(results, mappedExecuteResult, context);
-
-            // process ojs
-            const { executeResult, resourceFiles: ojsResourceFiles } =
-              await ojsExecuteResult(
-                context,
-                mappedExecuteResult,
-                ojsBlockLineNumbers,
-              );
-            resourceFiles.push(...ojsResourceFiles);
-
-            // keep md if requested
-            const keepMd = executionEngineKeepMd(context.target.input);
-            if (keepMd && context.format.execute[kKeepMd]) {
-              Deno.writeTextFileSync(keepMd, executeResult.markdown.value);
+          const fileLifetime = createNamedLifetime("render-file");
+          fileLifetime.attach({
+            cleanup() {
+              resetFigureCounter();
+            },
+          });
+          try {
+            // one time denoDom init for html compatible formats
+            if (isHtmlCompatible(context.format)) {
+              await initDenoDom();
             }
 
-            // now get "unmapped" execute result back to send to pandoc
-            unmappedExecuteResult = {
-              ...executeResult,
-              markdown: executeResult.markdown.value,
-            };
-          });
+            // determine execute options
+            const executeOptions = mergeConfigs(
+              {
+                alwaysExecute: alwaysExecuteFiles?.includes(file.path),
+              },
+              pandocRenderer.onBeforeExecute(recipe.format),
+            );
 
-          // callback
-          pushTiming("render-pandoc");
-          await pandocRenderer.onRender(format, {
-            context,
-            recipe,
-            executeResult: unmappedExecuteResult!,
-            resourceFiles,
-          }, pandocQuiet);
-          popTiming();
-        } finally {
-          fileLifetime.cleanup();
-          popTiming();
+            const validate = context.format.metadata?.["validate-yaml"];
+            if (validate !== false) {
+              const validationResult = await validateDocument(context);
+              if (validationResult.length) {
+                throw new RenderInvalidYAMLError();
+              }
+            }
+
+            // FIXME it should be possible to infer this directly now
+            // based on the information in the mapped strings.
+            //
+            // collect line numbers to facilitate runtime error reporting
+            const { ojsBlockLineNumbers } = annotateOjsLineNumbers(context);
+
+            // execute
+            const baseExecuteResult = await renderExecute(
+              context,
+              recipe.output,
+              executeOptions,
+            );
+
+            // recover source map from diff and create a mappedExecuteResult
+            // for markdown processing pre-pandoc with mapped strings
+            let mappedMarkdown: MappedString;
+
+            withTiming("diff-execute-result", () => {
+              if (!isJupyterNotebook(context.target.source)) {
+                mappedMarkdown = mappedDiff(
+                  context.target.markdown,
+                  baseExecuteResult.markdown,
+                );
+              } else {
+                mappedMarkdown = asMappedString(baseExecuteResult.markdown);
+              }
+            });
+
+            const resourceFiles: string[] = [];
+            if (baseExecuteResult.resourceFiles) {
+              resourceFiles.push(...baseExecuteResult.resourceFiles);
+            }
+
+            const languageCellHandlerOptions: LanguageCellHandlerOptions = {
+              name: "", // will be filled out by handleLanguageCells internally
+              temp: tempContext,
+              format: recipe.format,
+              markdown: mappedMarkdown!,
+              context,
+              flags: options.flags || {} as RenderFlags,
+              stage: "post-engine",
+            };
+
+            let unmappedExecuteResult: ExecuteResult;
+            await withTimingAsync("handle-language-cells", async () => {
+              // handle language cells
+              const { markdown, results } = await handleLanguageCells(
+                languageCellHandlerOptions,
+              );
+              const mappedExecuteResult: MappedExecuteResult = {
+                ...baseExecuteResult,
+                markdown,
+              };
+
+              mergeHandlerResults(
+                context.target.preEngineExecuteResults,
+                mappedExecuteResult,
+                context,
+              );
+              mergeHandlerResults(results, mappedExecuteResult, context);
+
+              // process ojs
+              const { executeResult, resourceFiles: ojsResourceFiles } =
+                await ojsExecuteResult(
+                  context,
+                  mappedExecuteResult,
+                  ojsBlockLineNumbers,
+                );
+              resourceFiles.push(...ojsResourceFiles);
+
+              // keep md if requested
+              const keepMd = executionEngineKeepMd(context.target.input);
+              if (keepMd && context.format.execute[kKeepMd]) {
+                Deno.writeTextFileSync(keepMd, executeResult.markdown.value);
+              }
+
+              // now get "unmapped" execute result back to send to pandoc
+              unmappedExecuteResult = {
+                ...executeResult,
+                markdown: executeResult.markdown.value,
+              };
+            });
+
+            // callback
+            pushTiming("render-pandoc");
+            await pandocRenderer.onRender(format, {
+              context,
+              recipe,
+              executeResult: unmappedExecuteResult!,
+              resourceFiles,
+            }, pandocQuiet);
+            popTiming();
+          } finally {
+            fileLifetime.cleanup();
+            popTiming();
+          }
         }
       }
+      await pandocRenderer.onPostProcess(outputs);
     }
 
     if (progress) {
@@ -522,17 +545,24 @@ function defaultPandocRenderer(
   _options: RenderOptions,
   _project?: ProjectContext,
 ): PandocRenderer {
+  const renderCompletions: PandocRenderCompletion[] = [];
   const renderedFiles: RenderedFile[] = [];
 
   return {
     onBeforeExecute: (_format: Format) => ({}),
-
     onRender: async (
       _format: string,
       executedFile: ExecutedFile,
       quiet: boolean,
     ) => {
-      renderedFiles.push(await renderPandoc(executedFile, quiet));
+      renderCompletions.push(await renderPandoc(executedFile, quiet));
+    },
+    onPostProcess: async (renderedFormats: RenderedFormat[]) => {
+      let completion = renderCompletions.pop();
+      while (completion) {
+        renderedFiles.push(await completion.complete(renderedFormats));
+        completion = renderCompletions.pop();
+      }
     },
     onComplete: async () => {
       return {

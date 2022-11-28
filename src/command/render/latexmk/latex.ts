@@ -41,6 +41,15 @@ export async function hasLatexDistribution() {
   }
 }
 
+const kLatexMkEngineFlags = [
+  "-pdf",
+  "-pdfdvi",
+  "-pdfps",
+  "-pdflua",
+  "-pdfxe",
+  "-pdf-",
+];
+
 // Runs the Pdf engine
 export async function runPdfEngine(
   input: string,
@@ -65,7 +74,26 @@ export async function runPdfEngine(
   });
 
   // build pdf engine command line
-  const args = ["-interaction=batchmode", "-halt-on-error"];
+  // ensure that we provide latexmk with its require custom options
+  // Note that users may control the latexmk engine options, but
+  // if not specified, we should provide a default
+  const computeEngineArgs = () => {
+    if (engine.pdfEngine === "latexmk") {
+      const engineArgs = ["-interaction=batchmode", "-halt-on-error"];
+      if (
+        !engine.pdfEngineOpts || engine.pdfEngineOpts.find((opt) => {
+            return kLatexMkEngineFlags.includes(opt);
+          }) === undefined
+      ) {
+        engineArgs.push("-pdf");
+      }
+      engineArgs.push("-quiet");
+      return engineArgs;
+    } else {
+      return ["-interaction=batchmode", "-halt-on-error"];
+    }
+  };
+  const args = computeEngineArgs();
 
   // output directory
   if (outputDir !== undefined) {

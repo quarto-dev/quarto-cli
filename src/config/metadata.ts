@@ -20,6 +20,8 @@ import {
   kExecuteDefaultsKeys,
   kExecuteEnabled,
   kHeaderIncludes,
+  kIdentifierDefaults,
+  kIdentifierDefaultsKeys,
   kIncludeAfter,
   kIncludeBefore,
   kIpynbFilter,
@@ -93,6 +95,7 @@ export function formatFromMetadata(
 ): Format {
   // user format options (allow any b/c this is just untyped yaml)
   const typedFormat: Format = {
+    identifier: {},
     render: {},
     execute: {},
     pandoc: {},
@@ -157,6 +160,7 @@ export function isIncludeMetadata(key: string) {
 
 export function metadataAsFormat(metadata: Metadata): Format {
   const typedFormat: Format = {
+    identifier: {},
     render: {},
     execute: {},
     pandoc: {},
@@ -169,6 +173,7 @@ export function metadataAsFormat(metadata: Metadata): Format {
     // allow stuff already sorted into a top level key through unmodified
     if (
       [
+        kIdentifierDefaults,
         kRenderDefaults,
         kExecuteDefaults,
         kPandocDefaults,
@@ -188,7 +193,9 @@ export function metadataAsFormat(metadata: Metadata): Format {
       }
     } else {
       // move the key into the appropriate top level key
-      if (kRenderDefaultsKeys.includes(key)) {
+      if (kIdentifierDefaultsKeys.includes(key)) {
+        format.identifier[key] = metadata[key];
+      } else if (kRenderDefaultsKeys.includes(key)) {
         format.render[key] = metadata[key];
       } else if (kExecuteDefaultsKeys.includes(key)) {
         format.execute[key] = metadata[key];

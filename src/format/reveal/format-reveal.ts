@@ -81,7 +81,7 @@ export function revealResolveFormat(format: Format) {
 
 export function revealjsFormat() {
   return mergeConfigs(
-    createHtmlPresentationFormat(10, 5),
+    createHtmlPresentationFormat("RevealJS", 10, 5),
     {
       pandoc: {
         [kHtmlMathMethod]: {

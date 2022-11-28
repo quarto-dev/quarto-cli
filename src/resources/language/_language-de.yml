@@ -1,6 +1,10 @@
 toc-title-document: "Inhaltsverzeichnis"
 toc-title-website: "Auf dieser Seite"
 
+related-formats-title: "Andere Formate"
+related-notebooks-title: "Notebooks"
+source-notebooks-prefix: "Quelle"
+
 section-title-abstract: "Zusammenfassung"
 section-title-appendices: "Anhang"
 section-title-footnotes: "Fußnoten"

@@ -184,7 +184,7 @@ export async function bookBibliographyPostRender(
 async function generateBibliographyHTML(
   context: ProjectContext,
   bibliography: string[],
-  csl: unknown,
+  csl: string,
   citeIds: string[],
 ) {
   const biblioPaths = bibliography.map((biblio) => {
@@ -201,7 +201,7 @@ async function generateBibliographyHTML(
     [kNoCite]: ld.uniq(citeIds).map((id) => "@" + id).join(", "),
   };
   if (csl) {
-    yaml[kCsl] = csl;
+    yaml[kCsl] = isAbsolute(csl) ? relative(context.dir, csl) : csl;
   }
   const frontMatter = `---\n${stringify(yaml, { indent: 2 })}\n---\n`;
   const result = await execProcess({

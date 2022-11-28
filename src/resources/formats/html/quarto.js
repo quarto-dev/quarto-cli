@@ -531,8 +531,9 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     });
   }
 
+  let hasObserved = false;
   const visibleItemObserver = (els) => {
-    let visibleElements = [];
+    let visibleElements = [...els];
     const intersectionObserver = new IntersectionObserver(
       (entries, _observer) => {
         entries.forEach((entry) => {
@@ -546,6 +547,11 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
             });
           }
         });
+
+        if (!hasObserved) {
+          hideOverlappedSidebars();
+        }
+        hasObserved = true;
       },
       {}
     );
@@ -600,7 +606,6 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       slowTransition(readerMode);
     }
     highlightReaderToggle(readerMode);
-    hideOverlappedSidebars();
 
     // If we're exiting reader mode, restore the non-slow transition
     if (!readerMode) {

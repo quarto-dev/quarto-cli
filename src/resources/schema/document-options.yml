@@ -8,7 +8,7 @@
 
 - name: theme
   tags:
-    formats: [$html-doc, revealjs]
+    formats: [$html-doc, revealjs, beamer]
   schema:
     anyOf:
       - string
