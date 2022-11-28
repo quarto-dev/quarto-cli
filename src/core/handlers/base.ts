@@ -109,33 +109,19 @@ function makeHandlerContext(
       return options.state![options.name];
     },
 
-    async extractHtml(opts: {
+    //deno-lint-ignore require-await
+    async extractHtml(_opts: {
       html: string;
       selector: string;
       resources?: [string, string][];
     }): Promise<string[]> {
-      const {
-        html: content,
-        selector,
-      } = opts;
-      const nonEmptyHtmlResources: [string, string][] = opts.resources ||
-        [];
-      const dirName = context.options.temp.createDir();
-      // create temporary resources
-      for (const [name, content] of nonEmptyHtmlResources) {
-        Deno.writeTextFileSync(join(dirName, name), content);
-      }
-      const fileName = join(dirName, "index.html");
-      Deno.writeTextFileSync(fileName, content);
-      const url = `file://${fileName}`;
-
-      return await withCriClient(async (client) => {
-        await client.open(url);
-        return await client.contents(selector);
-      });
+      throw new Error(
+        "Internal error: temporarily disabled until deno 1.28.* gets puppeteer support",
+      );
     },
 
-    async createPngsFromHtml(opts: {
+    //deno-lint-ignore require-await
+    async createPngsFromHtml(_opts: {
       prefix: string;
       html: string;
       deviceScaleFactor: number;
@@ -145,51 +131,9 @@ function makeHandlerContext(
       filenames: string[];
       elements: string[];
     }> {
-      const {
-        prefix,
-        html: content,
-        deviceScaleFactor,
-        selector,
-      } = opts;
-      const nonEmptyHtmlResources: [string, string][] = opts.resources ||
-        [];
-      const dirName = context.options.temp.createDir();
-
-      // create temporary resources
-      for (const [name, content] of nonEmptyHtmlResources) {
-        Deno.writeTextFileSync(join(dirName, name), content);
-      }
-      const fileName = join(dirName, "index.html");
-      Deno.writeTextFileSync(fileName, content);
-      const url = `file://${fileName}`;
-
-      const { elements, images } = await withCriClient(async (client) => {
-        await client.open(url);
-        const elements = await client.contents(selector);
-        const screenshots = await client.screenshots(
-          selector,
-          deviceScaleFactor,
-        );
-        return {
-          elements,
-          images: screenshots.map((x) => x.data),
-        };
-      });
-
-      // write figures to disk
-      const sourceNames: string[] = [];
-
-      for (let i = 0; i < images.length; ++i) {
-        const { sourceName, fullName } = context
-          .uniqueFigureName(prefix, ".png");
-        sourceNames.push(sourceName);
-        Deno.writeFileSync(fullName, images[i]);
-      }
-
-      return {
-        filenames: sourceNames,
-        elements,
-      };
+      throw new Error(
+        "Internal error: temporarily disabled until deno 1.28.* gets puppeteer support",
+      );
     },
 
     cellContent(cell: QuartoMdCell): MappedString {
