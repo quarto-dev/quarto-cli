@@ -6,7 +6,8 @@
 */
 
 import { join } from "path/mod.ts";
-import { exists, walkSync } from "fs/mod.ts";
+import { existsSync } from "node/fs.ts";
+import { walkSync } from "fs/mod.ts";
 
 import { which } from "../core/path.ts";
 import { execProcess } from "../core/process.ts";
@@ -23,7 +24,7 @@ export async function ensureGitignore(
 ): Promise<boolean> {
   // if .gitignore exists, then ensure it has the requisite entries
   const gitignorePath = join(dir, ".gitignore");
-  if (await exists(gitignorePath)) {
+  if (existsSync(gitignorePath)) {
     const gitignore = lines(Deno.readTextFileSync(gitignorePath))
       .map((line) => line.trim());
     const requiredEntries: string[] = [];
