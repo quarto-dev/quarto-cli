@@ -41,7 +41,6 @@ import {
   ContentStatusEnum,
   ContentSummary,
   ContentUpdate,
-  LogLevel,
   LogPrefix,
   PAGE_TYPE,
   PublishRenderer,
@@ -276,6 +275,20 @@ async function publish(
     return sitePageList;
   };
 
+  const uploadAttachments = (
+    baseDirectory: string,
+    pathList: string[],
+    parent: ContentUpdate
+  ): Promise<Content>[] => {
+    const uploadAttachment = async (pathToUpload: string): Promise<Content> => {
+      const fileBuffer = await Deno.readFile(join(baseDirectory, pathToUpload));
+      const file = new File([fileBuffer as BlobPart], pathToUpload);
+      return await client.createOrUpdateAttachment(parent, file);
+    };
+
+    return pathList.map(uploadAttachment);
+  };
+
   const updateContent = async (
     publishFiles: PublishFiles,
     id: string,
@@ -296,37 +309,19 @@ async function publish(
 
     trace("updateContent", { publishFiles, toUpdate });
 
-    const buildUploadList = (
-      baseDirectory: string,
-      pathList: string[],
-      parent: ContentUpdate
-    ): Promise<Content>[] => {
-      trace("attachmentsToUpload", attachmentsToUpload, LogPrefix.ATTACHMENT);
-
-      const uploadAttachment = async (
-        pathToUpload: string
-      ): Promise<Content> => {
-        const fileBuffer = await Deno.readFile(
-          join(baseDirectory, pathToUpload)
-        );
-        const file = new File([fileBuffer as BlobPart], pathToUpload);
-        return await client.createOrUpdateAttachment(parent, file);
-      };
-
-      return pathList.map(uploadAttachment);
-    };
-
     const attachmentsToUpload: string[] = findAttachments(
       toUpdate.body.storage.value
     );
+    trace("attachmentsToUpload", attachmentsToUpload, LogPrefix.ATTACHMENT);
 
-    const uploadList: Promise<Content>[] = buildUploadList(
-      publishFiles.baseDir,
-      attachmentsToUpload,
-      toUpdate
+    const uploadAttachmentsResult = await Promise.all(
+      uploadAttachments(publishFiles.baseDir, attachmentsToUpload, toUpdate)
     );
-
-    trace("uploadList", uploadList);
+    trace(
+      "uploadAttachmentsResult",
+      uploadAttachmentsResult,
+      LogPrefix.ATTACHMENT
+    );
 
     const page: Content = await client.updateContent(toUpdate);
     return page;
