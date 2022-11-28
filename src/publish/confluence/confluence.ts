@@ -278,12 +278,12 @@ async function publish(
   const uploadAttachments = (
     baseDirectory: string,
     pathList: string[],
-    parent: ContentUpdate
+    parentId: string
   ): Promise<Content>[] => {
     const uploadAttachment = async (pathToUpload: string): Promise<Content> => {
       const fileBuffer = await Deno.readFile(join(baseDirectory, pathToUpload));
       const file = new File([fileBuffer as BlobPart], pathToUpload);
-      return await client.createOrUpdateAttachment(parent, file);
+      return await client.createOrUpdateAttachment(parentId, file);
     };
 
     return pathList.map(uploadAttachment);
@@ -308,23 +308,29 @@ async function publish(
     };
 
     trace("updateContent", { publishFiles, toUpdate });
+    const updatedContent: Content = await client.updateContent(toUpdate);
 
-    const attachmentsToUpload: string[] = findAttachments(
-      toUpdate.body.storage.value
-    );
-    trace("attachmentsToUpload", attachmentsToUpload, LogPrefix.ATTACHMENT);
+    if (toUpdate.id) {
+      const attachmentsToUpload: string[] = findAttachments(
+        toUpdate.body.storage.value
+      );
+      trace("attachmentsToUpload", attachmentsToUpload, LogPrefix.ATTACHMENT);
 
-    const uploadAttachmentsResult = await Promise.all(
-      uploadAttachments(publishFiles.baseDir, attachmentsToUpload, toUpdate)
-    );
-    trace(
-      "uploadAttachmentsResult",
-      uploadAttachmentsResult,
-      LogPrefix.ATTACHMENT
-    );
+      const uploadAttachmentsResult = await Promise.all(
+        uploadAttachments(
+          publishFiles.baseDir,
+          attachmentsToUpload,
+          toUpdate.id
+        )
+      );
+      trace(
+        "uploadAttachmentsResult",
+        uploadAttachmentsResult,
+        LogPrefix.ATTACHMENT
+      );
+    }
 
-    const page: Content = await client.updateContent(toUpdate);
-    return page;
+    return updatedContent;
   };
 
   const createContent = async (
@@ -333,7 +339,7 @@ async function publish(
   ): Promise<Content> => {
     const createTitle = await uniquifyTitle(title);
 
-    const result = await client.createContent({
+    const toCreate: ContentCreate = {
       contentChangeType: ContentChangeType.create,
       title: createTitle,
       type: PAGE_TYPE,
@@ -341,9 +347,33 @@ async function publish(
       status: ContentStatusEnum.current,
       ancestors: parent?.parent ? [{ id: parent.parent }] : null,
       body,
-    });
+    };
 
-    return result;
+    trace("createContent", { publishFiles, toCreate });
+    const createdContent = await client.createContent(toCreate);
+    console.log("createdContent", createdContent);
+
+    if (createdContent.id) {
+      const attachmentsToUpload: string[] = findAttachments(
+        toCreate.body.storage.value
+      );
+      trace("attachmentsToUpload", attachmentsToUpload, LogPrefix.ATTACHMENT);
+
+      const uploadAttachmentsResult = await Promise.all(
+        uploadAttachments(
+          publishFiles.baseDir,
+          attachmentsToUpload,
+          createdContent.id
+        )
+      );
+      trace(
+        "uploadAttachmentsResult",
+        uploadAttachmentsResult,
+        LogPrefix.ATTACHMENT
+      );
+    }
+
+    return createdContent;
   };
 
   const publishDocument = async (): Promise<

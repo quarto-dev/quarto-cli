@@ -89,13 +89,13 @@ export class ConfluenceClient {
   }
 
   public createOrUpdateAttachment(
-    parent: ContentUpdate,
+    parentId: string,
     file: File
   ): Promise<Content> {
-    trace("createOrUpdateAttachment", { file, parent }, LogPrefix.ATTACHMENT);
+    trace("createOrUpdateAttachment", { file, parentId }, LogPrefix.ATTACHMENT);
 
     return this.putAttachment<Content>(
-      `content/${parent.id}/child/attachment`,
+      `content/${parentId}/child/attachment`,
       file
     );
   }
