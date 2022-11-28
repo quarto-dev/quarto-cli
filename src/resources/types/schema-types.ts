@@ -518,7 +518,6 @@ The user’s cookie preferences will automatically control Google Analytics (if 
           string /* Path to a logo image that will be displayed in the sidebar. */;
         pinned?:
           boolean /* When collapsed, pin the collapsed sidebar to the top of the page. */;
-        subtitle?: string /* The subtitle for this sidebar. */;
         search?: boolean /* Include a search control in the sidebar. */;
         style?:
           | "docked"
@@ -599,6 +598,8 @@ attempt to be automatically translated. */;
 export type FormatLanguage = {
   "toc-title-document"?: string;
   "toc-title-website"?: string;
+  "related-formats-title"?: string;
+  "related-notebooks-title"?: string;
   "callout-tip-caption"?: string;
   "callout-note-caption"?: string;
   "callout-warning-caption"?: string;

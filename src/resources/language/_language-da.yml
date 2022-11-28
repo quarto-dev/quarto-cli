@@ -1,6 +1,10 @@
 toc-title-document: "Indholdsfortegnelse"
 toc-title-website: "På denne side"
 
+related-formats-title: "Andre formater"
+related-notebooks-title: "Notebooks"
+source-notebooks-prefix: "Kilde"
+
 section-title-abstract: "Resume"
 section-title-appendices: "Bilag"
 section-title-footnotes: "Fodnoter"

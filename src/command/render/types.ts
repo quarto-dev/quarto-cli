@@ -47,6 +47,7 @@ export interface RenderContext {
   format: Format;
   libDir: string;
   project?: ProjectContext;
+  active: boolean;
 }
 
 export interface RunPandocResult {
@@ -64,8 +65,11 @@ export interface PandocInputTraits {
 
 export type HtmlPostProcessor = (
   doc: Document,
-  inputMedata: Metadata,
-  inputTraits: PandocInputTraits,
+  options: {
+    inputMetadata: Metadata;
+    inputTraits: PandocInputTraits;
+    renderedFormats: RenderedFormat[];
+  },
 ) => Promise<HtmlPostProcessResult>;
 
 export interface HtmlPostProcessResult {
@@ -125,7 +129,15 @@ export interface PandocRenderer {
     file: ExecutedFile,
     quiet: boolean,
   ) => Promise<void>;
+  onPostProcess: (
+    renderedFormats: RenderedFormat[],
+  ) => Promise<void>;
   onComplete: (error?: boolean, quiet?: boolean) => Promise<RenderFilesResult>;
+}
+
+export interface RenderedFormat {
+  path: string;
+  format: Format;
 }
 
 export interface RenderFile {
@@ -222,4 +234,7 @@ export interface OutputRecipe {
   // can optionally return an alternate output path. passed the actual
   // options used to run pandoc (for deducing e.g. pdf engine options)
   complete: (options: PandocOptions) => Promise<string | void>;
+
+  // The final output for the recipe (if different than the output itself)
+  finalOutput?: string;
 }

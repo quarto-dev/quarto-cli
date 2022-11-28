@@ -862,9 +862,6 @@
                       - string
                       - boolean
                     description: "The sidebar title. Uses the project title if none is specified."
-                  subtitle:
-                    string:
-                      description: "The subtitle for this sidebar."
                   logo:
                     path:
                       description: "Path to a logo image that will be displayed in the sidebar."
@@ -1098,6 +1095,8 @@
     properties:
       toc-title-document: string
       toc-title-website: string
+      related-formats-title: string
+      related-notebooks-title: string
       callout-tip-caption: string
       callout-note-caption: string
       callout-warning-caption: string

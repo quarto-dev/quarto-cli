@@ -24,6 +24,8 @@ import { OutputRecipe } from "../types.ts";
 import { generatePdf } from "./pdf.ts";
 import { LatexmkOptions } from "./types.ts";
 import { texToPdfOutputRecipe } from "../output-tex.ts";
+import { join } from "path/mod.ts";
+import { dirAndStem } from "../../../core/path.ts";
 
 export function useQuartoLatexmk(
   format: Format,
@@ -57,7 +59,7 @@ export function quartoLatexmkOutputRecipe(
   // output dir
   const outputDir = format.render[kLatexOutputDir];
 
-  const pdfGenerator = (
+  const generate = (
     input: string,
     format: Format,
     pandocOptions: PandocOptions,
@@ -87,13 +89,24 @@ export function quartoLatexmkOutputRecipe(
     return generatePdf(mkOptions);
   };
 
+  const computePath = (input: string, format: Format) => {
+    const [cwd, stem] = dirAndStem(input);
+    const mkOutputdir = format.render[kLatexOutputDir];
+    return mkOutputdir
+      ? join(mkOutputdir, stem + ".pdf")
+      : join(cwd, stem + ".pdf");
+  };
+
   return texToPdfOutputRecipe(
     input,
     finalOutput,
     options,
     format,
     "latex",
-    pdfGenerator,
+    {
+      generate,
+      computePath,
+    },
     outputDir,
   );
 }

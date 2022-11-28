@@ -1,6 +1,10 @@
 toc-title-document: "目录"
 toc-title-website: "该页面内容"
 
+related-formats-title: "其他格式"
+related-notebooks-title: "Notebooks"
+source-notebooks-prefix: "资源"
+
 section-title-abstract: "摘要"
 section-title-appendices: "附录"
 section-title-footnotes: "脚注"

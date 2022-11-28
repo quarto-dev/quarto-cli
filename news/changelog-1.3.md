@@ -1,11 +1,17 @@
 ## Changes
 
+## Jupyter Notebooks
+
+- Add support for embedding cell outputs in quarto documents using `{{< embed >}}`. You can address cells by Id, Tag, or label, such as `{{< embed mynotebook.ipynb#fig-output >}}` which would embed the output of a cell with the label `fig-output`). You can also provide a list of ids like `{{< embed mynotebook.ipynb#fig-output,tbl-out >}}`.
+
 ## HTML Format
 
 - Improved handling of margin references that appear within a callout. ([#3003](https://github.com/quarto-dev/quarto-cli/issues/3003))
 - Add support for customizing the baseline widths of grid columns using yaml or scss. For more information, see [https://www.quarto.org/docs/prerelease/1.3.html](https://www.quarto.org/docs/prerelease/1.3.html).
 - Fix wrapping of long `code` entries inside table cells ([#3221](https://github.com/quarto-dev/quarto-cli/issues/3221))
 - Fix author display to use the `url` for an author even when there is no affiliation.
+- Add support for linking to other formats, when more than one format is produced. Alternate formats will appear with the TOC. Control using `format-links`.
+- Add support for linking to source notebooks that provide embedded content. Control using `notebook-links`
 
 ## Revealjs Format
 
@@ -32,6 +38,7 @@
 - Allow `%%| label` mermaid cell option that control the `id` of the resulting SVG, to facilitate CSS overrides.
 - Use `htmlLabels: false` in mermaid flowcharts.
 - Remove support for tooltips, which appear to not be working in mermaid 9.2.2.
+- Add support for `fig-align` in mermaid diagrams in HTML format ([#3294](https://github.com/quarto-dev/quarto-cli/issues/3294))
 
 ## Dates
 
@@ -66,4 +73,5 @@
 - Add optional `rel` attribute to navigation links ([#3212](https://github.com/quarto-dev/quarto-cli/issues/3212))
 - Use the right port when CRI is initialized multiple times ([#3066](https://github.com/quarto-dev/quarto-cli/issues/3066))
 - Allow custom themes for giscus ([#3105](https://github.com/quarto-dev/quarto-cli/issues/3105))
-- new `kbd` shortcode, to describe keyboard keys ([#3384](https://github.com/quarto-dev/quarto-cli/issues/3384)). See the [pre-release documentation](https://quarto.org/docs/prerelease/1.3.html) for details.
+- Add new `kbd` shortcode, to describe keyboard keys ([#3384](https://github.com/quarto-dev/quarto-cli/issues/3384)). See the [pre-release documentation](https://quarto.org/docs/prerelease/1.3.html) for details.
+- Replace default style for date picker component in OJS ([#2863](https://github.com/quarto-dev/quarto-cli/issues/2863)).

@@ -9404,11 +9404,6 @@ try {
                               ],
                               description: "The sidebar title. Uses the project title if none is specified."
                             },
-                            subtitle: {
-                              string: {
-                                description: "The subtitle for this sidebar."
-                              }
-                            },
                             logo: {
                               path: {
                                 description: "Path to a logo image that will be displayed in the sidebar."
@@ -9781,6 +9776,8 @@ try {
               properties: {
                 "toc-title-document": "string",
                 "toc-title-website": "string",
+                "related-formats-title": "string",
+                "related-notebooks-title": "string",
                 "callout-tip-caption": "string",
                 "callout-note-caption": "string",
                 "callout-warning-caption": "string",
@@ -13895,6 +13892,49 @@ try {
               short: "A regular expression that can be used to determine whether a link is an internal link.",
               long: "A regular expression that can be used to determine whether a link is an internal link. For example, \nthe following will treat links that start with http://www.quarto.org as internal links (and others\nwill be considered external):\n\n```\n^(?:http:|https:)\\/\\/www\\.quarto\\.org\\/custom\n```\n"
             }
+          },
+          {
+            name: "format-links",
+            tags: {
+              formats: [
+                "$html-doc"
+              ]
+            },
+            schema: {
+              anyOf: [
+                "boolean",
+                {
+                  arrayOf: "string"
+                }
+              ]
+            },
+            description: {
+              short: "Controls whether links to other rendered formats are displayed in HTML output.",
+              long: "Controls whether links to other rendered formats are displayed in HTML output.\n\nPass `false` to disable the display of format lengths or pass a list of format names for which you'd\nlike links to be shown.\n"
+            }
+          },
+          {
+            name: "notebook-links",
+            tags: {
+              formats: [
+                "$html-doc"
+              ]
+            },
+            schema: {
+              anyOf: [
+                "boolean",
+                {
+                  enum: [
+                    "inline",
+                    "global"
+                  ]
+                }
+              ]
+            },
+            description: {
+              short: "Controls the display of links to notebooks that provided embedded content or are created from documents.",
+              long: "Controls the display of links to notebooks that provided embedded content or are created from documents.\n\nSpecify `false` to disable linking to source Notebooks. Specify `inline` to show links to source notebooks beneath the content they provide. \nSpecify `global` to show a set of global links to source notebooks.\n"
+            }
           }
         ],
         "schema/document-listing.yml": [
@@ -15797,7 +15837,7 @@ try {
           },
           {
             name: "multiplex",
-            description: "Configuraiotn for reveal presentation multiplexing.",
+            description: "Configuration for reveal presentation multiplexing.",
             tags: {
               formats: [
                 "revealjs"
@@ -18895,6 +18935,14 @@ try {
             short: "A regular expression that can be used to determine whether a link is\nan internal link.",
             long: "A regular expression that can be used to determine whether a link is\nan internal link. For example, the following will treat links that start\nwith http://www.quarto.org as internal links (and others will be\nconsidered external):"
           },
+          {
+            short: "Controls whether links to other rendered formats are displayed in\nHTML output.",
+            long: "Controls whether links to other rendered formats are displayed in\nHTML output.\nPass <code>false</code> to disable the display of format lengths or\npass a list of format names for which you\u2019d like links to be shown."
+          },
+          {
+            short: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.",
+            long: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.\nSpecify <code>false</code> to disable linking to source Notebooks.\nSpecify <code>inline</code> to show links to source notebooks beneath\nthe content they provide. Specify <code>global</code> to show a set of\nglobal links to source notebooks."
+          },
           "Automatically generate the contents of a page from a list of Quarto\ndocuments or other custom data.",
           "List of keywords to be included in the document metadata.",
           "The document subject",
@@ -19166,7 +19214,7 @@ try {
           "Configuration option to prevent changes to existing drawings",
           "Add chalkboard buttons at the bottom of the slide",
           "Gives the duration (in ms) of the transition for a slide change, so\nthat the notes canvas is drawn after the transition is completed.",
-          "Configuraiotn for reveal presentation multiplexing.",
+          "Configuration for reveal presentation multiplexing.",
           "Multiplex token server (defaults to Reveal-hosted server)",
           "Unique presentation id provided by multiplex token server",
           "Secret provided by multiplex token server",
@@ -19580,6 +19628,8 @@ try {
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "internal-schema-hack",
+          "Mermaid diagram options",
+          "The mermaid built-in theme to use.",
           "Project configuration.",
           "Project type (<code>default</code>, <code>website</code>, or\n<code>book</code>)",
           "Files to render (defaults to all files)",
@@ -19884,9 +19934,7 @@ try {
             long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
-          "internal-schema-hack",
-          "Mermaid diagram options",
-          "The mermaid built-in theme to use."
+          "internal-schema-hack"
         ],
         "schema/external-schemas.yml": [
           {
@@ -20042,7 +20090,8 @@ try {
         "handlers/languages.yml": [
           "mermaid",
           "include",
-          "dot"
+          "dot",
+          "embed"
         ],
         "handlers/lang-comment-chars.yml": {
           r: "#",
@@ -20099,12 +20148,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 133586,
+          _internalId: 135187,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 133578,
+              _internalId: 135179,
               type: "enum",
               enum: [
                 "png",
@@ -20120,7 +20169,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 133585,
+              _internalId: 135186,
               type: "anyOf",
               anyOf: [
                 {

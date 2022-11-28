@@ -48,6 +48,7 @@ import {
   kCrossrefThmTitle,
   kCss,
   kDfPrint,
+  kDisplayName,
   kEcho,
   kEmbedResources,
   kEngine,
@@ -62,6 +63,7 @@ import {
   kExecuteDebug,
   kExecuteEnabled,
   kExecuteIpynb,
+  kExtensionName,
   kFigAlign,
   kFigDpi,
   kFigEnv,
@@ -71,6 +73,7 @@ import {
   kFigWidth,
   kFilterParams,
   kFilters,
+  kFormatLinks,
   kFormatResources,
   kFreeze,
   kGladtex,
@@ -125,6 +128,7 @@ import {
   kMathml,
   kMergeIncludes,
   kMermaidFormat,
+  kNotebookLinks,
   kNumberOffset,
   kNumberSections,
   kOutput,
@@ -137,6 +141,8 @@ import {
   kPdfEngineOpts,
   kPreferHtml,
   kReferenceLocation,
+  kRelatedFormatsTitle,
+  kRelatedNotebooksTitle,
   kRepoActionLinksEdit,
   kRepoActionLinksIssue,
   kRepoActionLinksSource,
@@ -160,9 +166,11 @@ import {
   kShiftHeadingLevelBy,
   kShortcodes,
   kSlideLevel,
+  kSourceNotebookPrefix,
   kStandalone,
   kSyntaxDefinitions,
   kTableOfContents,
+  kTargetFormat,
   kTblColwidths,
   kTemplate,
   kTitleBlockAffiliationPlural,
@@ -303,8 +311,15 @@ export interface FormatExtras {
   };
 }
 
+export interface FormatIdentifier {
+  [kTargetFormat]?: string;
+  [kDisplayName]?: string;
+  [kExtensionName]?: string;
+}
+
 // pandoc output format
 export interface Format {
+  identifier: FormatIdentifier;
   render: FormatRender;
   execute: FormatExecute;
   pandoc: FormatPandoc;
@@ -381,6 +396,8 @@ export interface FormatRender {
   [kLinkExternalFilter]?: string;
   [kSelfContainedMath]?: boolean;
   [kFormatResources]?: string[];
+  [kFormatLinks]?: boolean | string[];
+  [kNotebookLinks]?: boolean | "inline" | "global";
 }
 
 export interface FormatExecute {
@@ -492,6 +509,9 @@ export interface PdfEngine {
 export interface FormatLanguage {
   [kTocTitleDocument]?: string;
   [kTocTitleWebsite]?: string;
+  [kRelatedFormatsTitle]?: string;
+  [kSourceNotebookPrefix]?: string;
+  [kRelatedNotebooksTitle]?: string;
   [kCalloutTipCaption]?: string;
   [kCalloutNoteCaption]?: string;
   [kCalloutWarningCaption]?: string;
