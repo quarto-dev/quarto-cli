@@ -17,11 +17,14 @@ import {
   ContentDelete,
   ContentSummary,
   ContentUpdate,
+  LogPrefix,
   Space,
   User,
   WrappedResult,
 } from "./types.ts";
+
 import { DESCENDANT_LIMIT } from "../constants.ts";
+import { trace, logError } from "../confluence-logger.ts";
 
 export class ConfluenceClient {
   public constructor(private readonly token_: AccountToken) {}
@@ -85,6 +88,18 @@ export class ConfluenceClient {
     return this.delete<Content>(`content/${content.id}`);
   }
 
+  public createOrUpdateAttachment(
+    parent: ContentUpdate,
+    file: File
+  ): Promise<Content> {
+    trace("createOrUpdateAttachment", { file, parent }, LogPrefix.ATTACHMENT);
+
+    return this.putAttachment<Content>(
+      `content/${parent.id}/child/attachment`,
+      file
+    );
+  }
+
   private get = <T>(path: string): Promise<T> => this.fetch<T>("GET", path);
 
   private delete = <T>(path: string): Promise<T> =>
@@ -95,6 +110,9 @@ export class ConfluenceClient {
 
   private put = <T>(path: string, body?: BodyInit | null): Promise<T> =>
     this.fetch<T>("PUT", path, body);
+
+  private putAttachment = <T>(path: string, file: File): Promise<T> =>
+    this.fetchWithAttachment<T>("PUT", path, file);
 
   private fetch = async <T>(
     method: string,
@@ -112,6 +130,29 @@ export class ConfluenceClient {
       method,
       headers,
       body,
+    };
+    return this.handleResponse<T>(await fetch(this.apiUrl(path), request));
+  };
+
+  private fetchWithAttachment = async <T>(
+    method: string,
+    path: string,
+    file: File
+  ): Promise<T> => {
+    // https://blog.hyper.io/uploading-files-with-deno/
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("minorEdit", "true");
+
+    const headers = {
+      ["X-Atlassian-Token"]: "nocheck",
+      ...this.authorizationHeader(),
+    };
+
+    const request = {
+      method,
+      headers,
+      body: formData,
     };
     return this.handleResponse<T>(await fetch(this.apiUrl(path), request));
   };
@@ -134,11 +175,10 @@ export class ConfluenceClient {
         return response as unknown as T;
       }
     } else if (response.status !== 200) {
-      //TODO log levels to show extended error messages
-      console.error("response.status !== 200", response);
+      logError("response.status !== 200", response);
       throw new ApiError(response.status, response.statusText);
     } else {
-      console.error("other error", response);
+      logError("handleResponse", response);
       throw new Error(`${response.status} - ${response.statusText}`);
     }
   }

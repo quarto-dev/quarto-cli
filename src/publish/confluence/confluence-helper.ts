@@ -17,6 +17,8 @@ import {
   ContentUpdate,
   ContentVersion,
   EMPTY_PARENT,
+  LogLevel,
+  LogPrefix,
   PAGE_TYPE,
   SiteFileMetadata,
   SitePage,
@@ -25,6 +27,9 @@ import {
 import { withSpinner } from "../../core/console.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { capitalizeWord } from "../../core/text.ts";
+
+export const LINK_FINDER: RegExp = /(\S*.qmd'\w*)/g;
+export const FILE_FINDER: RegExp = /(?<=href=\')(.*)(?=\')/;
 
 export const transformAtlassianDomain = (domain: string) => {
   return ensureTrailingSlash(
@@ -453,5 +458,12 @@ export const updateLinks = (
   return updatedChanges;
 };
 
-export const LINK_FINDER: RegExp = /(\S*.qmd'\w*)/g;
-export const FILE_FINDER: RegExp = /(?<=href=\')(.*)(?=\')/;
+export const findAttachments = (bodyValue: string): string[] => {
+  const IMAGE_FINDER: RegExp =
+    /(?<=ri:attachment ri:filename=["\'])[^"\']+?\.(?:jpe?g|png|gif)(?=["\'])/g;
+
+  const result = bodyValue.match(IMAGE_FINDER);
+  const uniqueResult = [...new Set(result)];
+
+  return uniqueResult ?? [];
+};

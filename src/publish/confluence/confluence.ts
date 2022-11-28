@@ -1,16 +1,14 @@
 //TODO Image Attachments
 
-//TODO Archive pages instead of delete
+// TODO Diagnostic Logging
 
-//TODO only update if changed images
-//TODO only update if changed body contents
+//TODO for sites, always have a 'tagged' parent, you can't delete away from that
 
-// TODO potential namespace collision for `fileName`
+// TODO only update if changed images
+// TODO only update if changed body contents
+// Did it change underneath me and setting permissions
 
-//TODO Resource bundles
-
-//TODO JJ Question - do we delete manually added?  Archive?
-//TODO JJ Question - deletes and putting in the wrong space (danger)
+// TODO Resource bundles
 
 import { join } from "path/mod.ts";
 import { Input, Secret } from "cliffy/prompt/mod.ts";
@@ -43,6 +41,8 @@ import {
   ContentStatusEnum,
   ContentSummary,
   ContentUpdate,
+  LogLevel,
+  LogPrefix,
   PAGE_TYPE,
   PublishRenderer,
   PublishType,
@@ -50,15 +50,16 @@ import {
   SiteFileMetadata,
   SitePage,
   SpaceChangeResult,
-  WrappedResult,
 } from "./api/types.ts";
 import { withSpinner } from "../../core/console.ts";
 import {
+  buildFileToMetaTable,
   buildPublishRecordForContent,
+  buildSpaceChanges,
   confluenceParentFromString,
   doWithSpinner,
-  buildSpaceChanges,
   filterFilesForUpdate,
+  findAttachments,
   getNextVersion,
   getTitle,
   isContentCreate,
@@ -69,14 +70,13 @@ import {
   mergeSitePages,
   tokenFilterOut,
   transformAtlassianDomain,
+  updateLinks,
   validateEmail,
   validateParentURL,
   validateServer,
   validateToken,
   wrapBodyForConfluence,
   writeTokenComparator,
-  buildFileToMetaTable,
-  updateLinks,
 } from "./confluence-helper.ts";
 
 import {
@@ -85,6 +85,7 @@ import {
   verifyLocation,
 } from "./confluence-verify.ts";
 import { CHANGES_DISABLED, DELETE_DISABLED } from "./constants.ts";
+import { trace } from "./confluence-logger.ts";
 
 export const CONFLUENCE_ID = "confluence";
 
@@ -196,15 +197,14 @@ const loadDocument = (baseDirectory: string, rootFile: string): ContentBody => {
   return body;
 };
 
-const renderAndLoadDocument = async (
+const renderDocument = async (
   render: PublishRenderer
-): Promise<ContentBody> => {
+): Promise<PublishFiles> => {
   const flags: RenderFlags = {
     to: "confluence-publish",
   };
 
-  const renderResult = await render(flags);
-  return loadDocument(renderResult.baseDir, renderResult.rootFile);
+  return await render(flags);
 };
 
 const renderSite = async (render: PublishRenderer): Promise<PublishFiles> => {
@@ -238,25 +238,7 @@ async function publish(
 
   const space = await client.getSpace(parent.space);
 
-  const updateContent = async (
-    id: string,
-    body: ContentBody,
-    titleParam: string = title
-  ): Promise<Content> => {
-    const previousPage = await client.getContent(id);
-    const toUpdate: ContentUpdate = {
-      contentChangeType: ContentChangeType.update,
-      id,
-      version: getNextVersion(previousPage),
-      title: `${titleParam}`,
-      type: PAGE_TYPE,
-      status: ContentStatusEnum.current,
-      ancestors: null,
-      body,
-    };
-
-    return await client.updateContent(toUpdate);
-  };
+  trace("publish", { parent, server, space });
 
   const uniquifyTitle = async (title: string) => {
     const titleAlreadyExistsInSpace: boolean = await client.isTitleInSpace(
@@ -269,43 +251,6 @@ async function publish(
       ? `${title} ${shortUUID}`
       : title;
     return createTitle;
-  };
-
-  const createContent = async (body: ContentBody): Promise<Content> => {
-    const createTitle = await uniquifyTitle(title);
-
-    const result = await client.createContent({
-      contentChangeType: ContentChangeType.create,
-      title: createTitle,
-      type: PAGE_TYPE,
-      space,
-      status: ContentStatusEnum.current,
-      ancestors: parent?.parent ? [{ id: parent.parent }] : null,
-      body,
-    });
-
-    return result;
-  };
-
-  const publishDocument = async (): Promise<
-    [PublishRecord, URL | undefined]
-  > => {
-    const body: ContentBody = await renderAndLoadDocument(render);
-
-    let content: Content | undefined;
-    let message: string = "";
-    let doOperation;
-    if (publishRecord) {
-      message = `Updating content at ${publishRecord.url}...`;
-      doOperation = async () =>
-        (content = await updateContent(publishRecord.id, body));
-    } else {
-      message = `Creating content in space ${parent.space}...`;
-      doOperation = async () => (content = await createContent(body));
-    }
-
-    await doWithSpinner(message, doOperation);
-    return buildPublishRecordForContent(server, content);
   };
 
   const fetchExistingSite = async (parentId: string): Promise<any> => {
@@ -331,6 +276,110 @@ async function publish(
     return sitePageList;
   };
 
+  const updateContent = async (
+    publishFiles: PublishFiles,
+    id: string,
+    body: ContentBody,
+    titleParam: string = title
+  ): Promise<Content> => {
+    const previousPage = await client.getContent(id);
+    const toUpdate: ContentUpdate = {
+      contentChangeType: ContentChangeType.update,
+      id,
+      version: getNextVersion(previousPage),
+      title: `${titleParam}`,
+      type: PAGE_TYPE,
+      status: ContentStatusEnum.current,
+      ancestors: null,
+      body,
+    };
+
+    trace("updateContent", { publishFiles, toUpdate });
+
+    const buildUploadList = (
+      baseDirectory: string,
+      pathList: string[],
+      parent: ContentUpdate
+    ): Promise<Content>[] => {
+      trace("attachmentsToUpload", attachmentsToUpload, LogPrefix.ATTACHMENT);
+
+      const uploadAttachment = async (
+        pathToUpload: string
+      ): Promise<Content> => {
+        const fileBuffer = await Deno.readFile(
+          join(baseDirectory, pathToUpload)
+        );
+        const file = new File([fileBuffer as BlobPart], pathToUpload);
+        return await client.createOrUpdateAttachment(parent, file);
+      };
+
+      return pathList.map(uploadAttachment);
+    };
+
+    const attachmentsToUpload: string[] = findAttachments(
+      toUpdate.body.storage.value
+    );
+
+    const uploadList: Promise<Content>[] = buildUploadList(
+      publishFiles.baseDir,
+      attachmentsToUpload,
+      toUpdate
+    );
+
+    trace("uploadList", uploadList);
+
+    const page: Content = await client.updateContent(toUpdate);
+    return page;
+  };
+
+  const createContent = async (
+    publishFiles: PublishFiles,
+    body: ContentBody
+  ): Promise<Content> => {
+    const createTitle = await uniquifyTitle(title);
+
+    const result = await client.createContent({
+      contentChangeType: ContentChangeType.create,
+      title: createTitle,
+      type: PAGE_TYPE,
+      space,
+      status: ContentStatusEnum.current,
+      ancestors: parent?.parent ? [{ id: parent.parent }] : null,
+      body,
+    });
+
+    return result;
+  };
+
+  const publishDocument = async (): Promise<
+    [PublishRecord, URL | undefined]
+  > => {
+    const publishFiles: PublishFiles = await renderDocument(render);
+
+    const body: ContentBody = loadDocument(
+      publishFiles.baseDir,
+      publishFiles.rootFile
+    );
+
+    trace("publishDocument", { publishFiles, body }, LogPrefix.RENDER);
+
+    let content: Content | undefined;
+    let message: string = "";
+    let doOperation;
+    if (publishRecord) {
+      message = `Updating content at ${publishRecord.url}...`;
+      doOperation = async () =>
+        (content = await updateContent(publishFiles, publishRecord.id, body));
+    } else {
+      message = `Creating content in space ${parent.space}...`;
+      doOperation = async () =>
+        (content = await createContent(publishFiles, body));
+    }
+
+    await doWithSpinner(message, doOperation);
+    return buildPublishRecordForContent(server, content);
+  };
+
   const publishSite = async (): Promise<[PublishRecord, URL | undefined]> => {
     const parentId: string = parent?.parent ?? "";
     const existingSite: SitePage[] = await fetchExistingSite(parentId);
@@ -338,6 +387,13 @@ async function publish(
     const publishFiles: PublishFiles = await renderSite(render);
     const metadataByInput: Record<string, InputMetadata> =
       publishFiles.metadataByInput ?? {};
+
+    trace("publishSite", {
+      parentId,
+      existingSite,
+      publishFiles,
+      metadataByInput,
+    });
 
     const filteredFiles: string[] = filterFilesForUpdate(publishFiles.files);
 
@@ -404,6 +460,7 @@ async function publish(
           } else if (isContentUpdate(change)) {
             const update = change as ContentUpdate;
             return await updateContent(
+              publishFiles,
               update.id ?? "",
               update.body,
               update.title ?? ""

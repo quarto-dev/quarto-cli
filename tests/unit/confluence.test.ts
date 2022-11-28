@@ -14,6 +14,7 @@ import {
   confluenceParentFromString,
   FILE_FINDER,
   filterFilesForUpdate,
+  findAttachments,
   findPagesToDelete,
   getMessageFromAPIError,
   getNextVersion,
@@ -1413,3 +1414,71 @@ const runUpdateLinks = () => {
   });
 };
 runUpdateLinks();
+
+const runFindAttachments = () => {
+  const suiteLabel = (label: string) => `FindAttachments_${label}`;
+
+  const check = (expected: string[], bodyValue: string) => {
+    
+    
+    
+    assertEquals(
+      JSON.stringify(expected),
+      JSON.stringify(findAttachments(bodyValue))
+    );
+  };
+
+  unitTest(suiteLabel("empty"), async () => {
+    const bodyValue: string = "";
+    const expected: string[] = [];
+    check(expected, bodyValue);
+  });
+
+  unitTest(suiteLabel("no_attachment"), async () => {
+    const bodyValue: string = "fake body value";
+    const expected: string[] = [];
+    check(expected, bodyValue);
+  });
+
+  unitTest(suiteLabel("no_attachment_CDATA"), async () => {
+    const bodyValue: string =
+      "<ac:plain-text-body> <![CDATA[![Caption](elephant.png)]]> </ac:plain-text-body>";
+    const expected: string[] = [];
+    check(expected, bodyValue);
+  });
+
+  unitTest(suiteLabel("single_image"), async () => {
+    const bodyValue: string =
+      '<ri:attachment ri:filename="elephant.png" ri:version-at-save="1" />';
+    const expected: string[] = ["elephant.png"];
+    check(expected, bodyValue);
+  });
+
+  unitTest(suiteLabel("two_images"), async () => {
+    const bodyValue: string =
+      '<ri:attachment ri:filename="fake-image.png" ri:version-at-save="1" /> <ri:attachment ri:filename="fake-image2.png" ri:version-at-save="1" />';
+    const expected: string[] = ["fake-image.png", "fake-image2.png"];
+    check(expected, bodyValue);
+  });
+
+  unitTest(suiteLabel("two_images_with_dupes"), async () => {
+    const bodyValue: string =
+      '<ri:attachment ri:filename="fake-image.png" ri:version-at-save="1" /> <ri:attachment ri:filename="fake-image.png" ri:version-at-save="1" /> <ri:attachment ri:filename="fake-image2.png" ri:version-at-save="1" />';
+    const expected: string[] = ["fake-image.png", "fake-image2.png"];
+    check(expected, bodyValue);
+  });
+
+  unitTest(suiteLabel("image_not_attachment"), async () => {
+    const bodyValue: string = '"elephant.png"';
+    const expected: string[] = [];
+    check(expected, bodyValue);
+  });
+
+  unitTest(suiteLabel("two_images_with_dupes_invalids"), async () => {
+    const bodyValue: string =
+      '<ri:attachment ri:filename="fake-image.png" ri:version-at-save="1" /> <ri:attachment ri:filename="fake-image.png" ri:version-at-save="1" /> <ri:attachment ri:filename="fake-image2.png" ri:version-at-save="1" /> no-match.png "no-match.png"';
+    const expected: string[] = ["fake-image.png", "fake-image2.png"];
+    check(expected, bodyValue);
+  });
+};
+runFindAttachments();

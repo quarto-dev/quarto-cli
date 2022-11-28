@@ -8,6 +8,19 @@
 import { RenderFlags } from "../../../command/render/types.ts";
 import { PublishFiles } from "../../provider.ts";
 
+export enum LogLevel {
+  DEBUG = "DEBUG",
+  INFO = "INFO",
+  WARN = "WARN",
+  ERROR = "ERROR",
+}
+
+export enum LogPrefix {
+  GENERAL = "[General]",
+  ATTACHMENT = "[Attach]",
+  RENDER = "[Render]",
+}
+
 export type User = {
   type: "known" | "unknown" | "anonymous" | "user";
   username: string;
