@@ -184,7 +184,7 @@ export async function bookBibliographyPostRender(
 async function generateBibliographyHTML(
   context: ProjectContext,
   bibliography: string[],
-  csl: unknown,
+  csl: string,
   citeIds: string[],
 ) {
   const biblioPaths = bibliography.map((biblio) => {
