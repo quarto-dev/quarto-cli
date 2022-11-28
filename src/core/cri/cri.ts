@@ -8,7 +8,7 @@
 
 import { decode } from "encoding/base64.ts";
 import cdp from "./deno-cri/index.js";
-// import { getBrowserExecutablePath } from "../puppeteer.ts";
+import { getBrowserExecutablePath } from "../puppeteer.ts";
 import { Semaphore } from "../lib/semaphore.ts";
 import { findOpenPort } from "../port.ts";
 import { getNamedLifetime, ObjectWithLifetime } from "../lifetimes.ts";
@@ -74,10 +74,7 @@ export async function criClient(appPath?: string, port?: number) {
     port = findOpenPort(9222);
   }
   if (appPath === undefined) {
-    throw new Error(
-      "appPath is temporarily required while deno 1.28.* lacks support for puppeteer and browser discovery",
-    );
-    // appPath = await getBrowserExecutablePath();
+    appPath = await getBrowserExecutablePath();
   }
 
   const cmd = [
