@@ -10,17 +10,11 @@ import { which } from "./path.ts";
 import { error, info } from "log/mod.ts";
 import { fetcher } from "../tools/impl/chromium.ts";
 import { existsSync } from "fs/mod.ts";
+import puppeteer from "puppeteer/mod.ts";
 
-// deno-lint-ignore no-explicit-any
-let puppeteerImport: any = undefined;
-// deno-lint-ignore prefer-const
-let puppeteerUrl = "puppeteer/mod.ts";
+// deno-lint-ignore require-await
 export async function getPuppeteer() {
-  if (puppeteerImport !== undefined) {
-    return puppeteerImport;
-  }
-  puppeteerImport = (await import(puppeteerUrl)).default;
-  return puppeteerImport;
+  return puppeteer;
 }
 
 /**

@@ -40,11 +40,6 @@
     "diff": "./vendor/cdn.skypack.dev/diff@5.0.0.js",
     "observablehq/parser": "./vendor/cdn.skypack.dev/@observablehq/parser@4.5.0.js",
     "js-yaml": "./vendor/cdn.skypack.dev/js-yaml@4.1.0.js",
-    "https://deno.land/std@0.161.0/": "./vendor/deno.land/std@0.166.0/",
-    "https://deno.land/std@0.101.0/": "./vendor/deno.land/std@0.166.0/",
-    "https://deno.land/std@0.105.0/": "./vendor/deno.land/std@0.166.0/",
-    "https://deno.land/std@0.91.0/": "./vendor/deno.land/std@0.166.0/",
-    "https://deno.land/std@0.93.0/": "./vendor/deno.land/std@0.166.0/",
     "cliffy/command/mod.ts": "./vendor/deno.land/x/cliffy@v0.25.4/command/mod.ts",
     "log/mod.ts": "./vendor/deno.land/std@0.166.0/log/mod.ts",
     "path/mod.ts": "./vendor/deno.land/std@0.166.0/path/mod.ts",
@@ -98,6 +93,7 @@
     "log/handlers.ts": "./vendor/deno.land/std@0.166.0/log/handlers.ts",
     "log/logger.ts": "./vendor/deno.land/std@0.166.0/log/logger.ts",
     "async/mod.ts": "./vendor/deno.land/std@0.166.0/async/mod.ts",
+    "puppeteer/mod.ts": "./vendor/deno.land/x/puppeteer@16.2.0/mod.ts",
     "dotenv/mod.ts": "./vendor/deno.land/std@0.166.0/dotenv/mod.ts",
     "fmt/printf.ts": "./vendor/deno.land/std@0.166.0/fmt/printf.ts",
     "encoding/_yaml/schema.ts": "./vendor/deno.land/std@0.166.0/encoding/_yaml/schema.ts",
@@ -115,12 +111,10 @@
     "node/crypto.ts": "./vendor/deno.land/std@0.166.0/node/crypto.ts",
     "cliffy/prompt/secret.ts": "./vendor/deno.land/x/cliffy@v0.25.4/prompt/secret.ts",
     "testing/asserts.ts": "./vendor/deno.land/std@0.166.0/testing/asserts.ts",
-    "https://deno.land/std@0.161.0/fmt/colors.ts": "./vendor/deno.land/std@0.166.0/fmt/colors.ts",
-    "https://deno.land/std@0.161.0/encoding/base64.ts": "./vendor/deno.land/std@0.166.0/encoding/base64.ts",
-    "https://deno.land/std@0.161.0/path/mod.ts": "./vendor/deno.land/std@0.166.0/path/mod.ts",
-    "https://deno.land/std@0.105.0/path/mod.ts": "./vendor/deno.land/std@0.166.0/path/mod.ts",
+    "https://esm.sh/jszip@3.5.0": "./vendor/esm.sh/jszip@3.5.0.js",
     "https://cdn.skypack.dev/": "./vendor/cdn.skypack.dev/",
-    "https://deno.land/": "./vendor/deno.land/"
+    "https://deno.land/": "./vendor/deno.land/",
+    "https://esm.sh/": "./vendor/esm.sh/"
   },
   "scopes": {
     "./vendor/cdn.skypack.dev/": {
@@ -148,6 +142,20 @@
       "/-/lodash@v4.17.21-K6GEbP02mWFnLA45zAmi/dist=es2019,mode=imports/unoptimized/uniq.js": "./vendor/cdn.skypack.dev/-/lodash@v4.17.21-K6GEbP02mWFnLA45zAmi/dist=es2019,mode=imports/unoptimized/uniq.js",
       "/-/lodash@v4.17.21-K6GEbP02mWFnLA45zAmi/dist=es2019,mode=imports/unoptimized/uniqBy.js": "./vendor/cdn.skypack.dev/-/lodash@v4.17.21-K6GEbP02mWFnLA45zAmi/dist=es2019,mode=imports/unoptimized/uniqBy.js",
       "/-/moment-guess@v1.2.4-bDXl7KQy0hLGNuGhyGb4/dist=es2019,mode=imports/optimized/moment-guess.js": "./vendor/cdn.skypack.dev/-/moment-guess@v1.2.4-bDXl7KQy0hLGNuGhyGb4/dist=es2019,mode=imports/optimized/moment-guess.js"
+    },
+    "./vendor/esm.sh/": {
+      "/v99/node_buffer.js": "./vendor/esm.sh/v99/node_buffer.js",
+      "/v99/lie@3.3.0/deno/lie.js": "./vendor/esm.sh/v99/lie@3.3.0/deno/lie.js",
+      "/v99/pako@1.0.11/deno/pako.js": "./vendor/esm.sh/v99/pako@1.0.11/deno/pako.js",
+      "/v99/readable-stream@2.3.7/deno/readable-stream.js": "./vendor/esm.sh/v99/readable-stream@2.3.7/deno/readable-stream.js",
+      "/v99/set-immediate-shim@1.0.1/deno/set-immediate-shim.js": "./vendor/esm.sh/v99/set-immediate-shim@1.0.1/deno/set-immediate-shim.js",
+      "/v99/immediate@3.0.6/deno/immediate.js": "./vendor/esm.sh/v99/immediate@3.0.6/deno/immediate.js",
+      "/v99/core-util-is@1.0.3/deno/core-util-is.js": "./vendor/esm.sh/v99/core-util-is@1.0.3/deno/core-util-is.js",
+      "/v99/inherits@2.0.4/deno/inherits.js": "./vendor/esm.sh/v99/inherits@2.0.4/deno/inherits.js",
+      "/v99/isarray@1.0.0/deno/isarray.js": "./vendor/esm.sh/v99/isarray@1.0.0/deno/isarray.js",
+      "/v99/process-nextick-args@2.0.1/deno/process-nextick-args.js": "./vendor/esm.sh/v99/process-nextick-args@2.0.1/deno/process-nextick-args.js",
+      "/v99/safe-buffer@5.1.2/deno/safe-buffer.js": "./vendor/esm.sh/v99/safe-buffer@5.1.2/deno/safe-buffer.js",
+      "/v99/util-deprecate@1.0.2/deno/util-deprecate.js": "./vendor/esm.sh/v99/util-deprecate@1.0.2/deno/util-deprecate.js"
     }
   }
 }
