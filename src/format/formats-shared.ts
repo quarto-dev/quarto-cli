@@ -53,6 +53,7 @@ import {
   kLatexMaxRuns,
   kLatexOutputDir,
   kLatexTlmgrOpts,
+  kLinkCitations,
   kLinkExternalIcon,
   kLinkExternalNewwindow,
   kMergeIncludes,
@@ -183,6 +184,18 @@ export function plaintextFormat(displayName: string, ext: string): Format {
     pandoc: {
       standalone: true,
       [kDefaultImageExtension]: "png",
+    },
+  });
+}
+
+export function jatsFormat(displayName: string, ext: string): Format {
+  return createFormat(displayName, ext, {
+    pandoc: {
+      standalone: true,
+      [kDefaultImageExtension]: "png",
+    },
+    metadata: {
+      [kLinkCitations]: true,
     },
   });
 }
