@@ -354,6 +354,9 @@ export function watchProject(
     injectClient: (req: Request, file: Uint8Array, inputFile?: string) => {
       return devServer.injectClient(req, file, inputFile);
     },
+    clientHtml: (req: Request, inputFile?: string) => {
+      return devServer.clientHtml(req, inputFile);
+    },
     hasClients: () => devServer.hasClients(),
     reloadClients: async (output: boolean, reloadTarget?: string) => {
       await reloadClients({
