@@ -188,18 +188,6 @@ export function plaintextFormat(displayName: string, ext: string): Format {
   });
 }
 
-export function jatsFormat(displayName: string, ext: string): Format {
-  return createFormat(displayName, ext, {
-    pandoc: {
-      standalone: true,
-      [kDefaultImageExtension]: "png",
-    },
-    metadata: {
-      [kLinkCitations]: true,
-    },
-  });
-}
-
 function defaultFormat(displayName: string): Format {
   return {
     identifier: {

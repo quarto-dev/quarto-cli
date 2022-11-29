@@ -27,7 +27,6 @@ import {
   createFormat,
   createHtmlPresentationFormat,
   createWordprocessorFormat,
-  jatsFormat,
   plaintextFormat,
 } from "./formats-shared.ts";
 import { revealjsFormat } from "./reveal/format-reveal.ts";
@@ -40,6 +39,7 @@ import {
   markdownWithCommonmarkExtensionsFormat,
   pandocMarkdownFormat,
 } from "./markdown/format-markdown.ts";
+import { jatsFormat } from "./jats/format-jats.ts";
 
 export function defaultWriterFormat(to: string): Format {
   // to can sometimes have a variant, don't include that in the lookup here
