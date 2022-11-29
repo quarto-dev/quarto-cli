@@ -5,7 +5,7 @@
 *
 */
 
-import { exists, existsSync } from "fs/exists.ts";
+import { existsSync } from "node/fs.ts";
 import { DOMParser, NodeList } from "../src/core/deno-dom.ts";
 import { assert } from "testing/asserts.ts";
 import { join } from "path/mod.ts";
@@ -283,7 +283,7 @@ export const verifyYamlFile = (
   return {
     name: "Project Yaml is Valid",
     verify: async (_output: ExecuteOutput[]) => {
-      if (await exists(file)) {
+      if (existsSync(file)) {
         const raw = await Deno.readTextFile(file);
         if (raw) {
           const yaml = readYamlFromString(raw);

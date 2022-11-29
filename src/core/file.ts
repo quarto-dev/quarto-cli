@@ -5,23 +5,23 @@
 *
 */
 
-import { TextProtoReader } from "textproto/mod.ts";
-import { BufReader } from "io/mod.ts";
-import { exists } from "fs/mod.ts";
+import { existsSync } from "node/fs.ts";
 import { execProcess } from "./process.ts";
+import { TextLineStream } from "streams/mod.ts";
 
 export async function visitLines(
   path: string,
   visitor: (line: string | null, count: number) => boolean,
 ) {
-  if (await exists(path)) {
+  if (existsSync(path)) {
     const file = await Deno.open(path, { read: true });
     try {
-      const reader = new TextProtoReader(BufReader.create(file));
+      const stream = file.readable
+        .pipeThrough(new TextDecoderStream())
+        .pipeThrough(new TextLineStream());
 
       let count = 0;
-      while (true) {
-        const line = await reader.readLine();
+      for await (const line of stream) {
         if (line !== null) {
           if (!visitor(line, count)) {
             break;

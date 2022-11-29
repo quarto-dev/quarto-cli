@@ -27,6 +27,7 @@ import {
   createFormat,
   createHtmlPresentationFormat,
   createWordprocessorFormat,
+  jatsFormat,
   plaintextFormat,
 } from "./formats-shared.ts";
 import { revealjsFormat } from "./reveal/format-reveal.ts";
@@ -173,16 +174,16 @@ export function defaultWriterFormat(to: string): Format {
       break;
 
     case "jats":
-      writerFormat = plaintextFormat("JATS", "xml");
+      writerFormat = jatsFormat("JATS", "xml");
       break;
     case "jats_archiving":
-      writerFormat = plaintextFormat("JATS Archiving", "xml");
+      writerFormat = jatsFormat("JATS Archiving", "xml");
       break;
     case "jats_articleauthoring":
-      writerFormat = plaintextFormat("JATS Authoring", "xml");
+      writerFormat = jatsFormat("JATS Authoring", "xml");
       break;
     case "jats_publishing":
-      writerFormat = plaintextFormat("JATS Publising", "xml");
+      writerFormat = jatsFormat("JATS Publising", "xml");
       break;
 
     case "ipynb":

@@ -48,10 +48,11 @@ export const updateCommand = new Command()
     "Update TinyTeX",
     "quarto update tool tinytex",
   )
-  .example(
-    "Update Chromium",
-    "quarto update tool chromium",
-  )
+  // temporarily disabled until we get things in order in 1.28.*
+  // .example(
+  //   "Update Chromium",
+  //   "quarto update tool chromium",
+  // )
   .example(
     "Choose tool to update",
     "quarto update tool",

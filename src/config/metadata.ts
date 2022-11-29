@@ -7,7 +7,7 @@
 
 import * as ld from "../core/lodash.ts";
 
-import { exists } from "fs/exists.ts";
+import { existsSync } from "node/fs.ts";
 import { join } from "path/mod.ts";
 import { error } from "log/mod.ts";
 
@@ -64,7 +64,7 @@ export async function includedMetadata(
 
   // Read the yaml
   const filesMetadata = await Promise.all(yamlFiles.map(async (yamlFile) => {
-    if (await exists(yamlFile)) {
+    if (existsSync(yamlFile)) {
       try {
         const yaml = await readAndValidateYamlFromFile(
           yamlFile,

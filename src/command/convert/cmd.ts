@@ -5,7 +5,7 @@
 *
 */
 
-import { exists } from "fs/exists.ts";
+import { existsSync } from "node/fs.ts";
 import { join } from "path/mod.ts";
 import { info } from "log/mod.ts";
 
@@ -51,7 +51,7 @@ export const convertCommand = new Command()
   .action(async (options: any, input: string) => {
     await initYamlIntelligenceResourcesFromFilesystem();
 
-    if (!await exists(input)) {
+    if (!existsSync(input)) {
       throw new Error(`File not found: '${input}'`);
     }
 
