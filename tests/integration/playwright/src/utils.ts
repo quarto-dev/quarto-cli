@@ -105,3 +105,16 @@ export const ojsRuns = async (page: any) => {
     return true;
   });
 };
+
+export const checkClick = async (page: any, locator: any) => {
+  let error = false;
+  page.on("pageerror", (_e) => {
+    error = true;
+  });
+  try {
+    await locator.click();
+  } catch (_e) {
+    error = true;
+  }
+  return !error;
+};

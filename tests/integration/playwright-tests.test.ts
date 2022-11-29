@@ -13,7 +13,6 @@ import {
 } from "../../src/core/lib/yaml-validation/state.ts";
 import { cleanoutput } from "../smoke/render/render.ts";
 import { execProcess } from "../../src/core/process.ts";
-import { lookup } from "media_types/mod.ts";
 
 async function fullInit() {
   await initYamlIntelligenceResourcesFromFilesystem();
@@ -35,43 +34,24 @@ for (const { path: fileName } of globOutput) {
   const input = fileName;
 
   // sigh, we have a race condition somewhere in
-  // mediabag inspection if we don't wait all renders. This
-  // is very slow..
+  // mediabag inspection if we don't wait all renders
+  // individually. This is very slow..
   await execProcess({
     cmd: ["quarto", "render", input, "--to", "html"],
   });
   fileNames.push(fileName);
 }
 
-const ac = new AbortController();
-const basePath = "docs/playwright";
-const handle = async (req: Request) => {
-  if (req.url === "/stop") {
-    ac.abort();
-  }
+// start a web server
+// This is attempt #3
+// attempt #1 through Deno.server causes hangs on repeated requests
+// attempt #2 through http/server causes a deno vendor crash: https://github.com/denoland/deno/issues/16861
 
-  const filePath = basePath + new URL(req.url).pathname;
-  let fileSize;
-  try {
-    fileSize = (await Deno.stat(filePath)).size;
-  } catch (e) {
-    if (e instanceof Deno.errors.NotFound) {
-      return new Response(null, { status: 404 });
-    }
-    return new Response(null, { status: 500 });
-  }
-  const body = Deno.readFileSync(filePath);
-  return new Response(body, {
-    headers: {
-      "content-length": fileSize.toString(),
-      "content-type": lookup(filePath) || "application/octet-stream",
-    },
-  });
-};
+// we'll just use python :facepalm:
 
-const serverPromise = Deno.serve(handle, {
-  port: 8080, // FIXME: use random port
-  signal: ac.signal,
+const proc = Deno.run({
+  cmd: ["python", "-m", "http.server", "8080"],
+  cwd: "docs/playwright",
 });
 
 try {
@@ -82,8 +62,8 @@ try {
   });
 } finally {
   // cleanup
-  ac.abort();
-  await serverPromise;
+  proc.kill();
+  proc.close();
   for (const fileName of fileNames) {
     cleanoutput(fileName, "html");
   }
