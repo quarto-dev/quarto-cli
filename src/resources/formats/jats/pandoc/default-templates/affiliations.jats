@@ -1,0 +1,36 @@
+$--
+$-- Affiliations
+$--
+<aff id="aff-$it.id$">
+$-- wrap affiliation if it has a known institution identifier
+$if(it.group)$
+<institution content-type="group">${it.group}</institution>
+$endif$
+$if(it.department)$
+<institution content-type="dept">${it.department}</institution>
+$endif$
+<institution-wrap>
+$if(it.organization)$
+<institution>${it.organization}</institution>
+$else$
+<institution>${it.name}</institution>
+$endif$
+$if(it.isni)$
+<institution-id institution-id-type="ISNI">${it.isni}</institution-id>
+$endif$
+$if(it.ringgold)$
+<institution-id institution-id-type="Ringgold">${it.ringgold}</institution-id>
+$endif$
+$if(it.ror)$
+<institution-id institution-id-type="ROR">${it.ror}</institution-id>
+$endif$
+$for(it.pid)$
+<institution-id institution-id-type="${it.type}">${it.id}</institution-id>
+$endfor$
+</institution-wrap>$if(it.street-address)$,
+$for(it.street-address)$
+<addr-line>${it}</addr-line>$sep$,
+$endfor$
+$else$$if(it.city)$, <city>$it.city$</city>$endif$$endif$$if(it.country)$,
+<country$if(it.country-code)$ country="$it.country-code$"$endif$>$it.country$</country>$endif$
+</aff>
