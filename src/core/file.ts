@@ -32,7 +32,11 @@ export async function visitLines(
         count += 1;
       }
     } finally {
-      file.close();
+      try {
+        file.close();
+      } catch {
+        // Swallow error see https://github.com/denoland/deno/issues/15442
+      }
     }
   }
 }
