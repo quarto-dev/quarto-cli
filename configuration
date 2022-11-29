@@ -23,7 +23,7 @@ export BOOTSWATCH=5.2.2
 # javascript HTML dependencies
 export ANCHOR_JS=4.3.1
 export POPPER_JS=2.11.4
-export CLIPBOARD_JS=2.0.10
+export CLIPBOARD_JS=2.0.11
 export TIPPY_JS=6.3.7
 export PDF_JS=2.8.335
 # Using commit to fix https://github.com/quarto-dev/quarto-cli/issues/2430 - revert to using a release tag when included
