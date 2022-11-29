@@ -1,0 +1,216 @@
+/*  Stylesheet for NLM/NCBI  Journal Publishing 3.0 Preview HTML
+    January 2009
+
+    ~~~~~~~~~~~~~~
+    National Center for Biotechnology Information (NCBI)
+    National Library of Medicine (NLM)
+    ~~~~~~~~~~~~~~
+    
+This work is in the public domain and may be reproduced, published or 
+otherwise used without the permission of the National Library of Medicine (NLM).
+
+We request only that the NLM is cited as the source of the work.
+
+Although all reasonable efforts have been taken to ensure the accuracy and 
+reliability of the software and data, the NLM and the U.S. Government  do 
+not and cannot warrant the performance or results that may be obtained  by
+using this software or data. The NLM and the U.S. Government disclaim all 
+warranties, express or implied, including warranties of performance, 
+merchantability or fitness for any particular purpose.
+
+*/
+
+
+/* --------------- Page setup ------------------------ */
+
+/* page and text defaults */
+
+body { margin-left: 8%;
+     margin-right: 8%;
+     background-color: #f8f8f8 }
+
+
+div > *:first-child { margin-top:0em }
+
+div { margin-top: 0.5em }
+
+div.front, div.footer { }
+
+.back, .body { font-family: serif }
+
+div.metadata { font-family: sans-serif }
+div.centered { text-align: center }
+
+div.table { display: table }
+div.metadata.table { width: 100% }
+div.row { display: table-row }
+div.cell { display: table-cell; padding-left: 0.25em; padding-right: 0.25em }
+
+div.metadata div.cell {
+    vertical-align: top }
+
+div.two-column div.cell {
+    width: 50% }
+
+div.one-column div.cell.spanning { width: 100% }
+
+div.metadata-group { margin-top: 0.5em;
+  font-size: 75% }
+
+div.metadata-group > p, div.metadata-group > div { margin-top: 0.5em }
+
+div.metadata-area * { margin: 0em }
+
+div.metadata-chunk { margin-left: 1em }
+
+div.branding { text-align: center }
+
+div.document-title-notes {
+   text-align: center;
+   width: 60%;
+   margin-left: auto;
+   margin-right: auto
+   }
+
+div.footnote { font-size: 90% }
+
+/* rules */
+hr.part-rule {
+    border: thin solid black;
+    width: 50%;
+    margin-top: 1em;
+    margin-bottom: 1em;
+    }
+
+hr.section-rule {
+    border: thin dotted black;
+    width: 50%;
+    margin-top: 1em;
+    margin-bottom: 1em;
+    }
+
+/* superior numbers that are cross-references */
+.xref {
+    color: red;
+    }
+    
+/* generated text */     
+.generated { color: gray; }
+
+.warning, tex-math {
+    font-size:80%; font-family: sans-serif }
+
+.warning {
+    color: red }
+
+.tex-math { color: green }
+
+.data {
+    color: black;
+    }
+
+.formula {
+    font-family: sans-serif;
+    font-size: 90% }
+    
+/* --------------- Titling levels -------------------- */
+
+
+h1, h2, h3, h4, h5, h6 {
+   display: block;
+   margin-top: 0em;
+   margin-bottom: 0.5em;
+   font-family: helvetica, sans-serif;
+   font-weight: bold;
+   color: midnightblue;
+  }
+/* titling level 1: document title */
+.document-title {
+   text-align: center;
+   }
+
+/* callout titles appear in a left column (table cell)
+   opposite what they head */
+.callout-title { text-align: right;
+  margin-top: 0.5em;
+  margin-right: 1em;
+  font-size: 140% }
+  
+
+
+div.section, div.back-section {
+  margin-top: 1em; margin-bottom: 0.5em }
+
+div.panel { background-color: white;
+  font-size: 90%;
+  border: thin solid black;
+  padding-left: 0.5em; padding-right: 0.5em;
+  padding-top: 0.5em; padding-bottom: 0.5em;
+  margin-top: 0.5em; margin-bottom: 0.5em }
+
+div.blockquote { font-size: 90%;
+  margin-left: 1em; margin-right: 1em;
+  margin-top: 0.5em; margin-bottom: 0.5em }
+
+div.caption {
+  margin-top: 0.5em; margin-bottom: 0.5em }
+
+div.speech {
+  margin-left: 1em; margin-right: 1em;
+  margin-top: 0.5em; margin-bottom: 0.5em }
+
+div.verse-group {
+  margin-left: 1em;
+  margin-top: 0.5em; margin-bottom: 0.5em }
+
+div.verse-group div.verse-group {
+  margin-left: 1em;
+  margin-top: 0em; margin-bottom: 0em }
+
+div.note { margin-top: 0em; margin-left: 1em;
+  font-size: 85% }
+
+.ref-label { margin-top: 0em; vertical-align: top }
+
+.ref-content { margin-top: 0em; padding-left: 0.25em }
+
+h5.label { margin-top: 0em; margin-bottom: 0em }
+
+p { margin-top: 0.5em; margin-bottom: 0em }
+
+p.first { margin-top: 0em }
+
+p.verse-line, p.citation { margin-top: 0em; margin-bottom: 0em; margin-left: 2em; text-indent: -2em }
+
+p.address-line { margin-top: 0em; margin-bottom: 0em; margin-left: 2em }
+
+ul, ol { margin-top: 0.5em }
+
+li { margin-top: 0.5em; margin-bottom: 0em }
+li > p { margin-top: 0.2em; margin-bottom: 0em  }
+
+div.def-list { border-spacing: 0.25em }
+
+div.def-list div.cell { vertical-align: top;
+  border-bottom: thin solid black;
+  padding-bottom: 0.5em }
+
+div.def-list div.def-list-head {
+  text-align: left }
+
+/* text decoration */
+.label { font-weight: bold; font-family: sans-serif; font-size: 80% }
+
+.monospace {
+	font-family: monospace;
+	}
+
+.overline{
+	text-decoration: overline;
+	}
+ 
+a       { text-decoration: none }
+a:hover { text-decoration: underline }
+
+/* ---------------- End ------------------------------ */
+

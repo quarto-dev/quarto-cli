@@ -25,6 +25,10 @@ export interface HttpDevServer {
     file: Uint8Array,
     inputFile?: string,
   ) => FileResponse;
+  clientHtml: (
+    req: Request,
+    inputFile?: string,
+  ) => string;
   reloadClients: (reloadTarget?: string) => Promise<void>;
   hasClients: () => boolean;
 }
@@ -78,6 +82,13 @@ export function httpDevServer(
 
   let injectClientInitialized = false;
   let iframeURL: URL | undefined;
+  const getiFrameURL = (req: Request) => {
+    if (!injectClientInitialized) {
+      iframeURL = viewerIFrameURL(req);
+      injectClientInitialized = true;
+    }
+    return iframeURL;
+  };
 
   return {
     handle: (req: Request) => {
@@ -97,23 +108,29 @@ export function httpDevServer(
         return Promise.resolve(undefined);
       }
     },
+    clientHtml: (
+      req: Request,
+      inputFile?: string,
+    ): string => {
+      const script = devServerClientScript(
+        port,
+        inputFile,
+        isPresentation,
+        getiFrameURL(req),
+      );
+      return script;
+    },
     injectClient: (
       req: Request,
       file: Uint8Array,
       inputFile?: string,
     ): FileResponse => {
-      if (!injectClientInitialized) {
-        iframeURL = viewerIFrameURL(req);
-        injectClientInitialized = true;
-      }
-
       const script = devServerClientScript(
         port,
         inputFile,
         isPresentation,
-        iframeURL,
+        getiFrameURL(req),
       );
-
       const scriptContents = new TextEncoder().encode("\n" + script);
       const fileWithScript = new Uint8Array(
         file.length + scriptContents.length,
