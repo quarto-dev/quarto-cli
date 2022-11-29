@@ -90,6 +90,7 @@ export async function updateHtmlDepedencies(config: Configuration) {
         join(dir, `clipboard.js-${version}`, "dist", "clipboard.min.js"),
         clipboardJs,
       );
+      return Promise.resolve();
     },
   );
   cleanSourceMap(clipboardJs);
@@ -131,6 +132,7 @@ export async function updateHtmlDepedencies(config: Configuration) {
           "import dayjs from 'dayjs'",
           "dayjs.locale(locale, null, true)",
         ];
+        info("Visiting lines of " + targetFile);
         const output: string[] = [];
         await visitLines(targetFile, (line: string | null, _count: number) => {
           if (line !== null) {
@@ -177,6 +179,7 @@ export async function updateHtmlDepedencies(config: Configuration) {
         join(dir, `list.js-${version}`, "dist", "list.min.js"),
         listJs,
       );
+      return Promise.resolve();
     },
   );
 
@@ -194,6 +197,7 @@ export async function updateHtmlDepedencies(config: Configuration) {
         join(dir, `zenscroll-${version}`, "zenscroll-min.js"),
         zenscrollJs,
       );
+      return Promise.resolve();
     },
   );
 
@@ -228,6 +232,7 @@ export async function updateHtmlDepedencies(config: Configuration) {
         join(dir, `Fuse-${version}`, "dist", "fuse.min.js"),
         fuseJs,
       );
+      return Promise.resolve();
     },
   );
   cleanSourceMap(fuseJs);
@@ -272,6 +277,7 @@ export async function updateHtmlDepedencies(config: Configuration) {
         join(dir, `reveal.js-${version}`, "plugin"),
         join(revealJs, "plugin"),
       );
+      return Promise.resolve();
     },
     true,
     false,
@@ -297,6 +303,7 @@ export async function updateHtmlDepedencies(config: Configuration) {
         join(dir, `reveal.js-plugins-${version}`, "chalkboard"),
         revealJsChalkboard,
       );
+      return Promise.resolve();
     },
     true, // not a commit
   );
@@ -338,6 +345,7 @@ export async function updateHtmlDepedencies(config: Configuration) {
         join(dir, `reveal.js-menu-${version}`, "font-awesome"),
         join(revealJsChalkboard, "font-awesome"),
       );
+      return Promise.resolve();
     },
     false, // not a commit
     false, // no v prefix
@@ -363,6 +371,7 @@ export async function updateHtmlDepedencies(config: Configuration) {
         join(dir, `reveal-pdfexport-${version}`, "pdfexport.js"),
         join(revealJsPdfExport, "pdfexport.js"),
       );
+      return Promise.resolve();
     },
     false, // not a commit
     false, // no v prefix
@@ -741,7 +750,7 @@ async function updateGithubSourceCodeDependency(
   repo: string,
   versionEnvVar: string,
   working: string,
-  onDownload: (dir: string, version: string) => void,
+  onDownload: (dir: string, version: string) => Promise<void>,
   commit = false, // set to true when commit is used instead of a tag
   vPrefix = true, // set to false if github tags don't use a v prefix
 ) {
@@ -762,7 +771,7 @@ async function updateGithubSourceCodeDependency(
     await download(distUrl, zipFile);
     await unzip(zipFile, working);
 
-    onDownload(working, version);
+    await onDownload(working, version);
   } else {
     throw new Error(`${versionEnvVar} is not defined`);
   }
