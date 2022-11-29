@@ -29,7 +29,12 @@ import {
   serveRedirect,
 } from "../../core/http.ts";
 import { HttpDevServer, httpDevServer } from "../../core/http-devserver.ts";
-import { isHtmlContent, isPdfContent, isTextContent } from "../../core/mime.ts";
+import {
+  isHtmlContent,
+  isPdfContent,
+  isTextContent,
+  kTextXml,
+} from "../../core/mime.ts";
 import { PromiseQueue } from "../../core/promise.ts";
 import { inputFilesDir } from "../../core/render.ts";
 
@@ -678,6 +683,7 @@ function htmlFileRequestHandlerOptions(
         if (isJatsOutput(format.pandoc)) {
           const xml = await jatsPreviewXml(file, req);
           return {
+            contentType: kTextXml,
             body: new TextEncoder().encode(xml),
           };
         } else {
