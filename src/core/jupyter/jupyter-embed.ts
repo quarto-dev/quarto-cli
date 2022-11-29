@@ -451,7 +451,7 @@ function notebookCacheKey(
   nbOutputs?: number[],
 ) {
   const optionsKey = nbOptions
-    ? Object.keys(nbOptions).reduce((key, current) => {
+    ? Object.keys(nbOptions).reduce((current, key) => {
       if (nbOptions[key] !== undefined) {
         return current + `${key}:${String(nbOptions[key])}`;
       } else {
