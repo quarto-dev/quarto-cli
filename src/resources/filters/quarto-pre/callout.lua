@@ -25,45 +25,22 @@ _quarto.ast.add_handler({
     -- and returns the custom node
     parse = function(div)
       preState.hasCallouts = true
-      
-      local table = {
-        type = calloutType(div),
-        caption = resolveHeadingCaption(div),
-      }
-
-      local iconDefault = true
-      local appearanceDefault = nil
-      if type == "none" then
-        iconDefault = false
-        appearanceDefault = "simple"
-      end
-    
+      local caption = resolveHeadingCaption(div)
+      local appearanceRaw = div.attr.attributes["appearance"]
       local icon = div.attr.attributes["icon"]
+      local collapse = div.attr.attributes["collapse"]
+      div.attr.attributes["appearance"] = nil
+      div.attr.attributes["collapse"] = nil
       div.attr.attributes["icon"] = nil
 
-      if icon == nil then
-        icon = option("callout-icon", iconDefault)
-      elseif icon == "false" then
-        icon = false
-      end
-      
-      local appearanceRaw = div.attr.attributes["appearance"]
-      div.attr.attributes["appearance"] = nil
-      if appearanceRaw == nil then
-        appearanceRaw = option("callout-appearance", appearanceDefault)
-      end
-      
-      local appearance = nameForCalloutStyle(appearanceRaw);
-      if appearance == "minimal" then
-        icon = false
-        appearance = "simple"
-      end
-
-      table.icon = icon
-      table.appearance = appearance
-      table.div = div -- the original div, with captions and attributes stripped. holds the contents
-
-      return _quarto.ast.custom("Callout", table)
+      return quarto.Callout({
+        appearance = appearanceRaw,
+        caption = caption,
+        collapse = collapse,
+        content = div.content,
+        icon = icon,
+        type = calloutType(div)
+      })
     end,
 
     -- a function that renders the extendedNode into output
@@ -91,7 +68,7 @@ _quarto.ast.add_handler({
     -- be visible to filters.
     inner_content = function(extended_node)
       return {
-        div_content = extended_node.div.content,
+        content = extended_node.content,
         caption = extended_node.caption
       }
     end,
@@ -104,9 +81,48 @@ _quarto.ast.add_handler({
       if values.caption then
         extended_node.caption = values.caption
       end
-      if values.div_content then
-        extended_node.div = pandoc.Div(values.div_content)
+      if values.content then
+        extended_node.content = values.content
       end
+    end,
+
+    constructor = function(tbl)
+      preState.hasCallouts = true
+
+      local type = tbl.type
+      local iconDefault = true
+      local appearanceDefault = nil
+      if type == "none" then
+        iconDefault = false
+        appearanceDefault = "simple"
+      end
+      local appearanceRaw = tbl.appearance
+      if appearanceRaw == nil then
+        appearanceRaw = option("callout-appearance", appearanceDefault)
+      end
+
+      local icon = tbl.icon
+      if icon == nil then
+        icon = option("callout-icon", iconDefault)
+      elseif icon == "false" then
+        icon = false
+      end
+
+      local appearance = nameForCalloutStyle(appearanceRaw);
+      if appearance == "minimal" then
+        icon = false
+        appearance = "simple"
+      end
+
+      local ctbl = {
+        caption = tbl.caption,
+        collapse = tbl.collapse,
+        content = tbl.content,
+        appearance = appearance,
+        icon = icon,
+        type = type,
+      }
+      return _quarto.ast.custom("Callout", ctbl)
     end
   })
 
@@ -189,7 +205,7 @@ end
 function isCodeCellTable(el) 
   local isTable = false
   pandoc.walk_block(el, {
-    Div = function(div) 
+    Div = function(div)
       if div.attr.classes:find_if(isCodeCellDisplay) then
         pandoc.walk_block(div, {
           Table = function(tbl)
@@ -224,20 +240,18 @@ local kCalloutDefaultMinimal = "minimal"
 
 -- an HTML callout div
 function calloutDiv(node)
-
   -- the first heading is the caption
-  local div = node.div
+  local div = pandoc.Div({})
+  div.content:extend(node.content)
   local caption = node.caption
   local type = node.type
   local calloutAppearance = node.appearance
   local icon = node.icon
+  local collapse = node.collapse
 
   if calloutAppearance == kCalloutAppearanceDefault and caption == nil then
     caption = displayName(type)
   end
-
-  local collapse = div.attr.attributes["collapse"]
-  div.attr.attributes["collapse"] = nil
 
   -- Make an outer card div and transfer classes and id
   local calloutDiv = pandoc.Div({})
@@ -285,7 +299,7 @@ function calloutDiv(node)
 
       -- collapse default value     
       local expandedAttrVal= "true"
-      if collapse == "true" then
+      if collapse == "true" or collapse == true then
         expandedAttrVal = "false"
       end
 

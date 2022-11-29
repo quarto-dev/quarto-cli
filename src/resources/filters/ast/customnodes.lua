@@ -3,64 +3,7 @@
 -- 
 -- Copyright (C) 2022 by RStudio, PBC
 
-local handlers = {
-  {
-    -- use either string or array of strings
-    class_name = "fancy-callout",
-    -- class_name = {"fancy-callout-warning", "fancy-callout-info", ... }
-
-    -- optional: makePandocExtendedDiv
-    -- This is here as an escape hatch, we expect most developers
-    -- to not need it.
-    -- makePandocExtendedDiv = function(table)
-    --   -- returns a pandoc Div that can be parsed back into a table
-    --   -- later use
-    -- end
-
-    -- the name of the ast node, used as a key in extended ast filter tables
-    ast_name = "FancyCallout",
-
-    -- a function that takes the div node as supplied in user markdown
-    -- and returns the custom node
-    parse = function(div)
-      return _quarto.ast.custom("FancyCallout", {
-        title = div.content[1],
-        content = div.content[2],
-      })
-    end,
-
-    -- a function that renders the extended node into output
-    render = function(extendedNode)
-      return pandoc.Div(pandoc.Blocks({
-        extendedNode.title, extendedNode.content
-      }))
-    end,
-
-    -- a function that takes the extended node and
-    -- returns a table with table-valued attributes
-    -- that represent inner content that should
-    -- be visible to filters.
-    inner_content = function(extended_node)
-      return {
-        title = extended_node.title,
-        content = extended_node.content
-      }
-    end,
-
-    -- a function that updates the extended node
-    -- with new inner content (as returned by filters)
-    -- table keys are a subset of those returned by inner_content
-    -- and represent changed values that need to be updated.    
-    set_inner_content = function(extended_node, values)
-      if values.title then
-        extended_node.title = values.title
-      end
-      if values.content then
-        extended_node.content = values.content
-      end
-    end
-  },
-}
+local handlers = {}
 
 local kExtendedAstTag = "quarto-extended-ast-tag"
 
@@ -109,7 +52,11 @@ _quarto.ast = {
   
   add_handler = function(handler)
     local state = (preState or postState).extendedAstHandlers
-    if type(handler.class_name) == "nil" then
+    if type(handler.constructor) == "nil" then
+      print("Internal Error: extended ast handler must have a constructor")
+      quarto.utils.dump(handler)
+      crash_with_stack_trace()
+    elseif type(handler.class_name) == "nil" then
       print("ERROR: handler must define class_name")
       quarto.utils.dump(handler)
       crash_with_stack_trace()
@@ -124,6 +71,7 @@ _quarto.ast = {
       quarto.utils.dump(handler)
       crash_with_stack_trace()
     end
+    quarto[handler.ast_name] = handler.constructor
 
     -- we also register them under the ast_name so that we can render it back
     state.namedHandlers[handler.ast_name] = handler
