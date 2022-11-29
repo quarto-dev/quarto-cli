@@ -17,6 +17,7 @@ import("latexdiv.lua")
 import("foldcode.lua")
 import("fig-cleanup.lua")
 import("ipynb.lua")
+import("jats.lua")
 import("ojs.lua")
 import("reveal.lua")
 import("tikz.lua")
@@ -50,6 +51,7 @@ return {
     figCleanup(),
     pdfImages()
   }),
+  jats(),
   ojs(),
   quartoPostMetaInject(),
 }
