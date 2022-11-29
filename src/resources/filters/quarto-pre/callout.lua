@@ -69,6 +69,8 @@ function callout()
           return calloutDocx(div)
         elseif _quarto.format.isEpubOutput() or _quarto.format.isRevealJsOutput() then
           return epubCallout(div)
+        elseif _quarto.format.isJatsOutput() then
+          return jatsCallout(div)
         else
           return simpleCallout(div)
         end
@@ -702,6 +704,19 @@ function epubCallout(div)
   attributes:insert("callout-style-" .. calloutAppearance)
 
   return pandoc.Div({calloutBody}, pandoc.Attr(div.attr.identifier, attributes))
+end
+
+function jatsCallout(div)
+  local icon, type, contents = resolveCalloutContents(div, true)
+
+  local boxedStart = '<boxed-text>'
+  if div.attr.identifier and div.attr.identifier ~= '' then
+    boxedStart = "<boxed-text id='" .. div.attr.identifier .. "'>"
+  end
+
+  contents:insert(1, pandoc.RawBlock('jats', boxedStart))
+  contents:insert(pandoc.RawBlock('jats', '</boxed-text>'))
+  return pandoc.Div(contents)
 end
 
 function simpleCallout(div) 

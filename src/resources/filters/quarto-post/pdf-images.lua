@@ -33,9 +33,16 @@ function pdfImages()
           -- If the src is pointing to a local file that is an svg, process it
           local ext = select(2, pandoc.path.split_extension(image.src))
           if ext == '.svg' then
-            local converted = convert_svg(image.src)
-            if converted then
-              image.src = converted
+            local convertedPath = convert_svg(image.src)
+            if convertedPath then
+              local contents = _quarto.file.read(convertedPath)
+              local relativePath = pandoc.path.make_relative(convertedPath, '.')
+
+              -- add to media bag and remove the converted file
+              pandoc.mediabag.insert(relativePath, 'application/pdf', contents)
+              _quarto.file.remove(relativePath)
+              
+              image.src = relativePath
               return image
             end
           end

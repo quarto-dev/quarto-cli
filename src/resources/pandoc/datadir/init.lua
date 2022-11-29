@@ -1733,6 +1733,10 @@ local function file_exists(name)
    return content
  end
 
+ local function remove_file(path) 
+   return os.remove(path)
+ end
+
 -- Quarto internal module - makes functions available
 -- through the filters
 _quarto = {
@@ -1751,7 +1755,8 @@ _quarto = {
    file = {
       read = read_file,
       write = write_file,
-      exists = file_exists
+      exists = file_exists,
+      remove = remove_file
    }
  } 
 
