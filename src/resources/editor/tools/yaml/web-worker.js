@@ -13963,6 +13963,32 @@ try {
             description: "Automatically generate the contents of a page from a list of Quarto documents or other custom data."
           }
         ],
+        "schema/document-mermaid.yml": [
+          {
+            name: "mermaid",
+            tags: {
+              formats: [
+                "$html-files"
+              ]
+            },
+            schema: {
+              object: {
+                properties: {
+                  theme: {
+                    enum: [
+                      "default",
+                      "dark",
+                      "forest",
+                      "neutral"
+                    ],
+                    description: "The mermaid built-in theme to use."
+                  }
+                }
+              }
+            },
+            description: "Mermaid diagram options"
+          }
+        ],
         "schema/document-metadata.yml": [
           {
             name: "keywords",
@@ -16506,6 +16532,48 @@ try {
             description: "The alt text for preview image on this page."
           }
         ],
+        "schema/extension.yml": [
+          {
+            name: "title",
+            description: "Extension title.",
+            schema: "string"
+          },
+          {
+            name: "author",
+            description: "Extension author.",
+            schema: "string"
+          },
+          {
+            name: "version",
+            description: "Extension version.",
+            schema: {
+              ref: "semver"
+            }
+          },
+          {
+            name: "quarto-required",
+            description: "Quarto version range. See https://docs.npmjs.com/cli/v6/using-npm/semver for syntax details.",
+            schema: "string"
+          },
+          {
+            name: "contributes",
+            schema: {
+              object: {
+                properties: {
+                  shortcodes: {
+                    arrayOf: "path"
+                  },
+                  filters: {
+                    arrayOf: "path"
+                  },
+                  formats: {
+                    schema: "object"
+                  }
+                }
+              }
+            }
+          }
+        ],
         "schema/format-aliases.yml": {
           aliases: {
             "epub-all": [
@@ -17774,7 +17842,6 @@ try {
           "Side navigation options",
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
-          "The subtitle for this sidebar.",
           "Path to a logo image that will be displayed in the sidebar.",
           "Include a search control in the sidebar.",
           "List of sidebar tools",
@@ -17790,7 +17857,6 @@ try {
           "Markdown to place below sidebar content (text or file path)",
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
-          "The subtitle for this sidebar.",
           "Path to a logo image that will be displayed in the sidebar.",
           "Include a search control in the sidebar.",
           "List of sidebar tools",
@@ -17895,7 +17961,6 @@ try {
           "Side navigation options",
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
-          "The subtitle for this sidebar.",
           "Path to a logo image that will be displayed in the sidebar.",
           "Include a search control in the sidebar.",
           "List of sidebar tools",
@@ -17911,7 +17976,6 @@ try {
           "Markdown to place below sidebar content (text or file path)",
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
-          "The subtitle for this sidebar.",
           "Path to a logo image that will be displayed in the sidebar.",
           "Include a search control in the sidebar.",
           "List of sidebar tools",
@@ -18944,6 +19008,8 @@ try {
             long: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.\nSpecify <code>false</code> to disable linking to source Notebooks.\nSpecify <code>inline</code> to show links to source notebooks beneath\nthe content they provide. Specify <code>global</code> to show a set of\nglobal links to source notebooks."
           },
           "Automatically generate the contents of a page from a list of Quarto\ndocuments or other custom data.",
+          "Mermaid diagram options",
+          "The mermaid built-in theme to use.",
           "List of keywords to be included in the document metadata.",
           "The document subject",
           "The document description. Some applications show this as\n<code>Comments</code> metadata.",
@@ -19422,7 +19488,6 @@ try {
           "Side navigation options",
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
-          "The subtitle for this sidebar.",
           "Path to a logo image that will be displayed in the sidebar.",
           "Include a search control in the sidebar.",
           "List of sidebar tools",
@@ -19438,7 +19503,6 @@ try {
           "Markdown to place below sidebar content (text or file path)",
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
-          "The subtitle for this sidebar.",
           "Path to a logo image that will be displayed in the sidebar.",
           "Include a search control in the sidebar.",
           "List of sidebar tools",
@@ -19628,8 +19692,6 @@ try {
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "internal-schema-hack",
-          "Mermaid diagram options",
-          "The mermaid built-in theme to use.",
           "Project configuration.",
           "Project type (<code>default</code>, <code>website</code>, or\n<code>book</code>)",
           "Files to render (defaults to all files)",
@@ -19729,7 +19791,6 @@ try {
           "Side navigation options",
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
-          "The subtitle for this sidebar.",
           "Path to a logo image that will be displayed in the sidebar.",
           "Include a search control in the sidebar.",
           "List of sidebar tools",
@@ -19745,7 +19806,6 @@ try {
           "Markdown to place below sidebar content (text or file path)",
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
-          "The subtitle for this sidebar.",
           "Path to a logo image that will be displayed in the sidebar.",
           "Include a search control in the sidebar.",
           "List of sidebar tools",
@@ -20148,12 +20208,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 135187,
+          _internalId: 131670,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 135179,
+              _internalId: 131662,
               type: "enum",
               enum: [
                 "png",
@@ -20169,7 +20229,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 135186,
+              _internalId: 131669,
               type: "anyOf",
               anyOf: [
                 {
@@ -20199,75 +20259,7 @@ try {
             ]
           },
           $id: "handlers/mermaid"
-        },
-        "schema/extension.yml": [
-          {
-            name: "title",
-            description: "Extension title.",
-            schema: "string"
-          },
-          {
-            name: "author",
-            description: "Extension author.",
-            schema: "string"
-          },
-          {
-            name: "version",
-            description: "Extension version.",
-            schema: {
-              ref: "semver"
-            }
-          },
-          {
-            name: "quarto-required",
-            description: "Quarto version range. See https://docs.npmjs.com/cli/v6/using-npm/semver for syntax details.",
-            schema: "string"
-          },
-          {
-            name: "contributes",
-            schema: {
-              object: {
-                properties: {
-                  shortcodes: {
-                    arrayOf: "path"
-                  },
-                  filters: {
-                    arrayOf: "path"
-                  },
-                  formats: {
-                    schema: "object"
-                  }
-                }
-              }
-            }
-          }
-        ],
-        "schema/document-mermaid.yml": [
-          {
-            name: "mermaid",
-            tags: {
-              formats: [
-                "$html-files"
-              ]
-            },
-            schema: {
-              object: {
-                properties: {
-                  theme: {
-                    enum: [
-                      "default",
-                      "dark",
-                      "forest",
-                      "neutral"
-                    ],
-                    description: "The mermaid built-in theme to use."
-                  }
-                }
-              }
-            },
-            description: "Mermaid diagram options"
-          }
-        ]
+        }
       };
     }
   });
@@ -20806,7 +20798,7 @@ ${heading}`;
     }
     await Parser.init();
     _parser = new Parser();
-    const treeSitterYamlJson = await Promise.resolve().then(() => __toESM(require_tree_sitter_yaml()));
+    const treeSitterYamlJson = (await Promise.resolve().then(() => __toESM(require_tree_sitter_yaml()))).default;
     const YAML = await Parser.Language.load(
       new Uint8Array(treeSitterYamlJson.data)
     );
