@@ -188,7 +188,6 @@ local quartoPre = {
     lineNumbers(),
     engineEscape(),
     panelInput(),
-    panelTabset(),
     panelLayout(),
     panelSidebar(),
     inputTraits()

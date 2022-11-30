@@ -1,35 +1,22 @@
 -- panel-tabset.lua
--- Copyright (C) 2021-2022 Posit Software, PBC
+-- Copyright (C) 2022 Posit Software, PBC
 
-local tabsetidx = 1
-
-function panelTabset() 
+quarto.Tab = function(params)
   return {
-    -- tabsets and callouts
-    Div = function(div)
-      if div.attr.classes:find("panel-tabset") then
-        if hasBootstrap() then
-          return tabsetDiv(div, bootstrapTabs())
-        elseif _quarto.format.isHtmlOutput() then
-          return tabsetDiv(div, tabbyTabs())
-        elseif _quarto.format.isLatexOutput() or _quarto.format.isDocxOutput() or _quarto.format.isEpubOutput() then
-          return tabsetLatex(div)
-        end
-      else
-        return div
-      end  
+    content = params.content or pandoc.List(),
+    title = params.title,
+    render = function(tbl, tabset)
+      local content = tbl.content
+      local title = tbl.title
+      local inner_content = pandoc.List()
+      inner_content:insert(pandoc.Header(tabset.level, title))
+      inner_content:extend(content)
+      return pandoc.Div(inner_content)
     end
   }
 end
 
-
-function tabsetDiv(div, renderer)
-
-  -- create a unique id for the tabset
-  local tabsetid = "tabset-" .. tabsetidx
-  tabsetidx = tabsetidx + 1
-
-  -- find the first heading in the tabset
+function parse_tabset_contents(div)
   local heading = div.content:find_if(function(el) return el.t == "Header" end)
   if heading ~= nil then
     -- note the level, then build tab buckets for content after these levels
@@ -39,63 +26,211 @@ function tabsetDiv(div, renderer)
     for i=1,#div.content do 
       local el = div.content[i]
       if el.t == "Header" and el.level == level then
-        tab = pandoc.Div({})
-        tab.content:insert(el)
+        tab = quarto.Tab({ title = el.content })
         tabs:insert(tab)
       elseif tab ~= nil then
         tab.content:insert(el)
       end
     end
-
-    -- init tab navigation 
-    local nav = pandoc.List()
-    nav:insert(pandoc.RawInline('html', '<ul ' .. renderer.ulAttribs(tabsetid) .. '>'))
-
-    -- init tab panes
-    local panes = pandoc.Div({}, div.attr)
-    panes.attr.classes = div.attr.classes:map(function(class) 
-      if class == "panel-tabset" then
-        return "tab-content" 
-      else
-        return class
-      end
-    end)
-   
-    -- populate
-    for i=1,#tabs do
-      -- alias tab and heading
-      local tab = tabs[i]
-      local heading = tab.content[1]
-      tab.content:remove(1)
-
-      -- tab id
-      local tabid = tabsetid .. "-" .. i
-      local tablinkid = tabid .. "-tab"
-
-      -- navigation
-      nav:insert(pandoc.RawInline('html', '<li ' .. renderer.liAttribs() .. '>'))
-      nav:insert(pandoc.RawInline('html', '<a ' .. renderer.liLinkAttribs(tabid, i==1) .. '>'))
-      nav:extend(heading.content)
-      nav:insert(pandoc.RawInline('html', '</a></li>'))
-
-      -- pane
-      local paneAttr = renderer.paneAttribs(tabid, i==1, heading.attr)
-      local pane = pandoc.Div({}, paneAttr)
-      pane.content:extend(tab.content)
-      panes.content:insert(pane)
-    end
-
-    -- end tab navigation
-    nav:insert(pandoc.RawInline('html', '</ul>'))
-
-    -- return tabset
-    return pandoc.Div({
-      pandoc.Plain(nav),
-      panes
-    }, div.attr:clone())
-
-  end 
+    return tabs, level
+  else
+    return nil
+  end
 end
+
+local tabsetidx = 1
+
+function render_tabset(attr, tabs, renderer)
+  -- create a unique id for the tabset
+  local tabsetid = "tabset-" .. tabsetidx
+  tabsetidx = tabsetidx + 1
+
+  -- init tab navigation 
+  local nav = pandoc.List()
+  nav:insert(pandoc.RawInline('html', '<ul ' .. renderer.ulAttribs(tabsetid) .. '>'))
+
+  -- init tab panes
+  local panes = pandoc.Div({}, attr)
+  panes.attr.classes = attr.classes:map(function(class) 
+    if class == "panel-tabset" then
+      return "tab-content" 
+    else
+      return class
+    end
+  end)
+  
+  -- populate
+  for i=1,#tabs do
+    -- alias tab and heading
+    local tab = tabs[i]
+    local heading = tab.content[1]
+    tab.content:remove(1)
+
+    -- tab id
+    local tabid = tabsetid .. "-" .. i
+    local tablinkid = tabid .. "-tab" -- FIXME unused from before?
+
+    -- navigation
+    nav:insert(pandoc.RawInline('html', '<li ' .. renderer.liAttribs() .. '>'))
+    nav:insert(pandoc.RawInline('html', '<a ' .. renderer.liLinkAttribs(tabid, i==1) .. '>'))
+    nav:extend(heading.content)
+    nav:insert(pandoc.RawInline('html', '</a></li>'))
+
+    -- pane
+    local paneAttr = renderer.paneAttribs(tabid, i==1, heading.attr)
+    local pane = pandoc.Div({}, paneAttr)
+    pane.content:extend(tab.content)
+    panes.content:insert(pane)
+  end
+
+  -- end tab navigation
+  nav:insert(pandoc.RawInline('html', '</ul>'))
+
+  -- return tabset
+  return pandoc.Div({
+    pandoc.Plain(nav),
+    panes
+  }, attr:clone())
+end
+
+_quarto.ast.add_handler({
+  -- use either string or array of strings
+  class_name = { "panel-tabset" },
+
+  -- the name of the ast node, used as a key in extended ast filter tables
+  ast_name = "Tabset",
+
+  constructor = function(params)
+    local tbl = {
+      level = params.level or 2,
+      tabs = params.tabs or pandoc.List(),
+      div_attr = params.attr or pandoc.Attr(), -- FIXME apparently "attr" breaks things.
+      add_tab = function(node, title, content)
+        table.insert(node.tabs, quarto.Tab( { title = title, content = content } ))
+      end
+    }
+    return quarto.ast.custom("Tabset", tbl)
+  end,
+
+  -- a function that takes the div node as supplied in user markdown
+  -- and returns the custom node
+  parse = function(div)
+    local tabs, level = parse_tabset_contents(div)
+    return quarto.Tabset({
+      level = level,
+      tabs = tabs,
+      attr = div.attr
+    })
+  end,
+
+  -- a function that renders the extendedNode into output
+  render = function(node)
+    local tabs = tmap(node.tabs, function(tab) return tab.render(tab, node) end)
+    if node.div_attr.classes:find("panel-tabset") then
+      if hasBootstrap() then
+        return render_tabset(node.div_attr, tabs, bootstrapTabs())
+      elseif _quarto.format.isHtmlOutput() then
+        return render_tabset(node.div_attr, tabs, tabbyTabs())
+      elseif _quarto.format.isLatexOutput() or _quarto.format.isDocxOutput() or _quarto.format.isEpubOutput() then
+        return pandoc.Div(render_tabset_with_l4_headings(tabs), node.div_attr)
+      end
+    else
+      return div
+    end  
+  end,
+
+  -- a function that takes the extended node and
+  -- returns a table with table-valued attributes
+  -- that represent inner content that should
+  -- be visible to filters.
+  inner_content = function(extended_node)
+    return extended_node.tabs
+  end,
+
+  -- a function that updates the extended node
+  -- with new inner content (as returned by filters)
+  -- table keys are a subset of those returned by inner_content
+  -- and represent changed values that need to be updated.    
+  set_inner_content = function(extended_node, values)
+    for k, v in pairs(values) do
+      extended_node.tabs[k] = v
+    end
+  end
+})
+
+-- function tabsetDiv(div, renderer)
+
+--   -- create a unique id for the tabset
+--   local tabsetid = "tabset-" .. tabsetidx
+--   tabsetidx = tabsetidx + 1
+
+--   -- find the first heading in the tabset
+--   local heading = div.content:find_if(function(el) return el.t == "Header" end)
+--   if heading ~= nil then
+--     -- note the level, then build tab buckets for content after these levels
+--     local level = heading.level
+--     local tabs = pandoc.List()
+--     local tab = nil
+--     for i=1,#div.content do 
+--       local el = div.content[i]
+--       if el.t == "Header" and el.level == level then
+--         tab = pandoc.Div({})
+--         tab.content:insert(el)
+--         tabs:insert(tab)
+--       elseif tab ~= nil then
+--         tab.content:insert(el)
+--       end
+--     end
+
+--     -- init tab navigation 
+--     local nav = pandoc.List()
+--     nav:insert(pandoc.RawInline('html', '<ul ' .. renderer.ulAttribs(tabsetid) .. '>'))
+
+--     -- init tab panes
+--     local panes = pandoc.Div({}, div.attr)
+--     panes.attr.classes = div.attr.classes:map(function(class) 
+--       if class == "panel-tabset" then
+--         return "tab-content" 
+--       else
+--         return class
+--       end
+--     end)
+   
+--     -- populate
+--     for i=1,#tabs do
+--       -- alias tab and heading
+--       local tab = tabs[i]
+--       local heading = tab.content[1]
+--       tab.content:remove(1)
+
+--       -- tab id
+--       local tabid = tabsetid .. "-" .. i
+--       local tablinkid = tabid .. "-tab"
+
+--       -- navigation
+--       nav:insert(pandoc.RawInline('html', '<li ' .. renderer.liAttribs() .. '>'))
+--       nav:insert(pandoc.RawInline('html', '<a ' .. renderer.liLinkAttribs(tabid, i==1) .. '>'))
+--       nav:extend(heading.content)
+--       nav:insert(pandoc.RawInline('html', '</a></li>'))
+
+--       -- pane
+--       local paneAttr = renderer.paneAttribs(tabid, i==1, heading.attr)
+--       local pane = pandoc.Div({}, paneAttr)
+--       pane.content:extend(tab.content)
+--       panes.content:insert(pane)
+--     end
+
+--     -- end tab navigation
+--     nav:insert(pandoc.RawInline('html', '</ul>'))
+
+--     -- return tabset
+--     return pandoc.Div({
+--       pandoc.Plain(nav),
+--       panes
+--     }, div.attr:clone())
+
+--   end 
+-- end
 
 function bootstrapTabs() 
   return {
@@ -153,23 +288,44 @@ function tabbyTabs()
   }
 end
 
-
-function tabsetLatex(div)
-  -- find the first heading in the tabset
-  local heading = div.content:find_if(function(el) return el.t == "Header" end)
-  if heading ~= nil then
-    local level = heading.level
-    if level < 4 then
-      heading.level = 4
-
-      for i=1,#div.content do 
-        local el = div.content[i]
-        if el.t == "Header" and el.level == level then
-          el.level = 4
-        end
-      end 
-    end
+local function min(a, b)
+  if a < b then
+    return a
+  else
+    return b
   end
-
-  return div
 end
+
+function render_tabset_with_l4_headings(tabs)
+  local result = pandoc.List()
+  for i=1,#tabs do
+    local tab = tabs[i]
+    local heading = tab.content[1]
+    local level = heading.level
+    tab.content:remove(1)
+    local tabid = "tab-" .. i
+    result:insert(pandoc.Header(min(4, level), heading.content, heading.attr))
+    result:extend(tab.content)
+  end
+  return result
+end
+
+-- function tabsetLatex(div_content)
+--   -- find the first heading in the tabset
+--   local heading = div_content:find_if(function(el) return el.t == "Header" end)
+--   if heading ~= nil then
+--     local level = heading.level
+--     if level < 4 then
+--       heading.level = 4
+
+--       for i=1,#div_content do 
+--         local el = div_content[i]
+--         if el.t == "Header" and el.level == level then
+--           el.level = 4
+--         end
+--       end 
+--     end
+--   end
+
+--   return div_content
+-- end
