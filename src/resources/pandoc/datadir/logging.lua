@@ -94,7 +94,7 @@ local function dump_(prefix, value, maxlen, level, add, visited)
         local valueCopy, numKeys, lastKey = {}, 0, nil
         for key, val in pairs(value) do
             -- pandoc >= 2.15 includes 'tag', nil values and functions
-            if key ~= 'tag' and val and type(val) ~= 'function' then
+            if key ~= 'tag' and val then
                 valueCopy[key] = val
                 numKeys = numKeys + 1
                 lastKey = key
@@ -118,9 +118,8 @@ local function dump_(prefix, value, maxlen, level, add, visited)
     local typsep = #typ > 0 and ' ' or ''
     local valtyp = type(value)
     if visited[address] then
-        add(string.format('%scircular-reference(%s)', prefix, address))
+        add(string.format('%s%scircular-reference(%s)', indent, prefix, address))
     else
-        visited[address] = true
         if valtyp == 'nil' then
             add('nil')
         elseif ({boolean=1, number=1, string=1})[valtyp] then
@@ -129,7 +128,15 @@ local function dump_(prefix, value, maxlen, level, add, visited)
             local quo = typename == 'string' and '"' or ''
             add(string.format('%s%s%s%s%s%s%s%s', indent, prefix, presep, typ,
                               typsep, quo, value, quo))
+        elseif valtyp == 'function' then
+            typsep = #typ > 0 and valtyp == 'string' and #value > 0 and ' ' or ''
+            -- don't use the %q format specifier; doesn't work with multi-bytes
+            local quo = typename == 'string' and '"' or ''
+            add(string.format('%s%s%s%s%s%s', indent, prefix, presep, 
+                              quo, value, quo))
+
         elseif ({table=1, userdata=1})[valtyp] then
+            visited[address] = true
             add(string.format('%s%s%s%s%s{', indent, prefix, presep, typ, typsep))
             -- Attr and Attr.attributes have both numeric and string keys, so
             -- ignore the numeric ones
