@@ -357,7 +357,7 @@ function calloutLatex(node)
   local type = node.type
   local calloutAppearance = node.appearance
   local icon = node.icon
-  local div = node.div
+  local div = pandoc.Div({})
 
   div.attr.attributes["caption"] = nil
   div.attr.attributes["collapse"] = nil
@@ -555,7 +555,7 @@ function calloutDocx(node)
 end
 
 function calloutDocxDefault(node, type, hasIcon)
-  local div = node.div
+  local div = pandoc.Div({})
   local caption = node.caption
   local color = htmlColorForType(type)
   local backgroundColor = htmlBackgroundColorForType(type)
@@ -665,9 +665,9 @@ end
 
 
 function calloutDocxSimple(node, type, hasIcon) 
-  local div = node.div
+  local div = pandoc.Div({})
   local color = htmlColorForType(type)
-  local caption = resolveHeadingCaption(div)  
+  local caption = node.caption
 
   local tablePrefix = [[
     <w:tbl>
@@ -739,7 +739,7 @@ function calloutDocxSimple(node, type, hasIcon)
 end
 
 function epubCallout(node)
-  local div = node.div
+  local div = pandoc.Div({})
   local caption = node.caption
   local type = node.type
   local calloutAppearance = node.appearance
@@ -791,8 +791,8 @@ function epubCallout(node)
 end
 
 function jatsCallout(node)
-  local div = node.div
-  local contents = resolveCalloutContents(div, true)
+  local div = pandoc.Div({})
+  local contents = resolveCalloutContents(node, true)
 
   local boxedStart = '<boxed-text>'
   if div.attr.identifier and div.attr.identifier ~= '' then
@@ -805,8 +805,8 @@ function jatsCallout(node)
 end
 
 function simpleCallout(node) 
-  local div = node.div
-  local contents = resolveCalloutContents(div, true)
+  local div = pandoc.Div({})
+  local contents = resolveCalloutContents(node, true)
   local callout = pandoc.BlockQuote(contents)
   return pandoc.Div(callout, pandoc.Attr(div.attr.identifier))
 end
