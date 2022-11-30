@@ -197,3 +197,9 @@ export type ExtractedLink = {
   link: string;
   file: string;
 };
+
+export type AttachmentSummary = {
+  id: string;
+  title: string;
+  metadata: Record<string, any>;
+};

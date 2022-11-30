@@ -11,6 +11,7 @@ import { ensureTrailingSlash } from "../../../core/path.ts";
 import { AccountToken } from "../../provider.ts";
 import { ApiError } from "../../types.ts";
 import {
+  AttachmentSummary,
   Content,
   ContentArray,
   ContentCreate,
@@ -24,7 +25,7 @@ import {
 } from "./types.ts";
 
 import { DESCENDANT_LIMIT } from "../constants.ts";
-import { trace, logError } from "../confluence-logger.ts";
+import { logError, trace } from "../confluence-logger.ts";
 
 export class ConfluenceClient {
   public constructor(private readonly token_: AccountToken) {}
@@ -88,16 +89,35 @@ export class ConfluenceClient {
     return this.delete<Content>(`content/${content.id}`);
   }
 
-  public createOrUpdateAttachment(
+  public async getAttachments(id: string): Promise<AttachmentSummary[]> {
+    const wrappedResult: WrappedResult<AttachmentSummary> = await this.get<
+      WrappedResult<AttachmentSummary>
+    >(`content/${id}/child/attachment`);
+
+    trace("getAttachments", wrappedResult, LogPrefix.ATTACHMENT);
+
+    const result = wrappedResult?.results ?? [];
+    return result;
+  }
+
+  public async createOrUpdateAttachment(
     parentId: string,
-    file: File
-  ): Promise<Content> {
+    file: File,
+    comment: string = ""
+  ): Promise<AttachmentSummary> {
     trace("createOrUpdateAttachment", { file, parentId }, LogPrefix.ATTACHMENT);
 
-    return this.putAttachment<Content>(
-      `content/${parentId}/child/attachment`,
-      file
-    );
+    const wrappedResult: WrappedResult<AttachmentSummary> =
+      await this.putAttachment<WrappedResult<AttachmentSummary>>(
+        `content/${parentId}/child/attachment`,
+        file,
+        comment
+      );
+
+    trace("createOrUpdateAttachment", wrappedResult, LogPrefix.ATTACHMENT);
+
+    const result = wrappedResult.results[0] ?? null;
+    return result;
   }
 
   private get = <T>(path: string): Promise<T> => this.fetch<T>("GET", path);
@@ -111,8 +131,11 @@ export class ConfluenceClient {
   private put = <T>(path: string, body?: BodyInit | null): Promise<T> =>
     this.fetch<T>("PUT", path, body);
 
-  private putAttachment = <T>(path: string, file: File): Promise<T> =>
-    this.fetchWithAttachment<T>("PUT", path, file);
+  private putAttachment = <T>(
+    path: string,
+    file: File,
+    comment: string = ""
+  ): Promise<T> => this.fetchWithAttachment<T>("PUT", path, file, comment);
 
   private fetch = async <T>(
     method: string,
@@ -137,12 +160,14 @@ export class ConfluenceClient {
   private fetchWithAttachment = async <T>(
     method: string,
     path: string,
-    file: File
+    file: File,
+    comment: string = ""
   ): Promise<T> => {
     // https://blog.hyper.io/uploading-files-with-deno/
     const formData = new FormData();
     formData.append("file", file);
     formData.append("minorEdit", "true");
+    formData.append("comment", comment);
 
     const headers = {
       ["X-Atlassian-Token"]: "nocheck",

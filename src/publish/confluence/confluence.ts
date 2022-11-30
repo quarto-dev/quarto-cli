@@ -1,14 +1,8 @@
-//TODO Image Attachments
-
-// TODO Diagnostic Logging
-
-//TODO for sites, always have a 'tagged' parent, you can't delete away from that
-
-// TODO only update if changed images
-// TODO only update if changed body contents
-// Did it change underneath me and setting permissions
+// TODO for sites, always have a 'tagged' parent, you can't delete away from that
 
 // TODO Resource bundles
+
+// Did it change underneath me and setting permissions
 
 import { join } from "path/mod.ts";
 import { Input, Secret } from "cliffy/prompt/mod.ts";
@@ -31,6 +25,7 @@ import {
 import { PublishOptions, PublishRecord } from "../types.ts";
 import { ConfluenceClient } from "./api/index.ts";
 import {
+  AttachmentSummary,
   ConfluenceParent,
   ConfluenceSpaceChange,
   Content,
@@ -85,6 +80,7 @@ import {
 } from "./confluence-verify.ts";
 import { CHANGES_DISABLED, DELETE_DISABLED } from "./constants.ts";
 import { trace } from "./confluence-logger.ts";
+import { md5Hash } from "../../core/hash.ts";
 
 export const CONFLUENCE_ID = "confluence";
 
@@ -278,12 +274,43 @@ async function publish(
   const uploadAttachments = (
     baseDirectory: string,
     pathList: string[],
-    parentId: string
-  ): Promise<Content>[] => {
-    const uploadAttachment = async (pathToUpload: string): Promise<Content> => {
+    parentId: string,
+    existingAttachments: AttachmentSummary[] = []
+  ): Promise<AttachmentSummary>[] => {
+    const uploadAttachment = async (
+      pathToUpload: string
+    ): Promise<AttachmentSummary> => {
+      trace(
+        "uploadAttachment",
+        { baseDirectory, pathList, parentId, existingAttachments },
+        LogPrefix.ATTACHMENT
+      );
       const fileBuffer = await Deno.readFile(join(baseDirectory, pathToUpload));
-      const file = new File([fileBuffer as BlobPart], pathToUpload);
-      return await client.createOrUpdateAttachment(parentId, file);
+      const fileHash = md5Hash(fileBuffer.toString());
+      const fileName = pathToUpload;
+
+      const existingDuplicateAttachment = existingAttachments.find(
+        (attachment: AttachmentSummary) => {
+          return attachment?.metadata?.comment === fileHash;
+        }
+      );
+
+      if (existingDuplicateAttachment) {
+        trace(
+          "existing duplicate attachment found",
+          existingDuplicateAttachment.title,
+          LogPrefix.ATTACHMENT
+        );
+        return existingDuplicateAttachment;
+      }
+
+      const file = new File([fileBuffer as BlobPart], fileName);
+      const attachment: AttachmentSummary =
+        await client.createOrUpdateAttachment(parentId, file, fileHash);
+
+      trace("attachment", attachment, LogPrefix.ATTACHMENT);
+
+      return attachment;
     };
 
     return pathList.map(uploadAttachment);
@@ -311,6 +338,11 @@ async function publish(
     const updatedContent: Content = await client.updateContent(toUpdate);
 
     if (toUpdate.id) {
+      const existingAttachments: AttachmentSummary[] =
+        await client.getAttachments(toUpdate.id);
+
+      trace("existingAttachments", existingAttachments, LogPrefix.ATTACHMENT);
+
       const attachmentsToUpload: string[] = findAttachments(
         toUpdate.body.storage.value
       );
@@ -320,7 +352,8 @@ async function publish(
         uploadAttachments(
           publishFiles.baseDir,
           attachmentsToUpload,
-          toUpdate.id
+          toUpdate.id,
+          existingAttachments
         )
       );
       trace(
@@ -351,12 +384,12 @@ async function publish(
 
     trace("createContent", { publishFiles, toCreate });
     const createdContent = await client.createContent(toCreate);
-    console.log("createdContent", createdContent);
 
     if (createdContent.id) {
       const attachmentsToUpload: string[] = findAttachments(
         toCreate.body.storage.value
       );
+
       trace("attachmentsToUpload", attachmentsToUpload, LogPrefix.ATTACHMENT);
 
       const uploadAttachmentsResult = await Promise.all(
