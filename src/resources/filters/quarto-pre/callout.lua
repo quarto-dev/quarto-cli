@@ -33,7 +33,7 @@ _quarto.ast.add_handler({
       div.attr.attributes["collapse"] = nil
       div.attr.attributes["icon"] = nil
 
-      return quarto.Callout({
+      local result = quarto.Callout({
         appearance = appearanceRaw,
         caption = caption,
         collapse = collapse,
@@ -41,6 +41,7 @@ _quarto.ast.add_handler({
         icon = icon,
         type = calloutType(div)
       })
+      return result
     end,
 
     -- a function that renders the extendedNode into output
@@ -383,7 +384,7 @@ function calloutLatex(node)
     calloutContents = pandoc.List({})
   end
 
-  tappend(calloutContents, div.content)
+  tappend(calloutContents, node.content)
   
   if calloutContents[1] ~= nil and calloutContents[1].t == "Para" and calloutContents[#calloutContents].t == "Para" then
     tprepend(calloutContents, { pandoc.Plain(beginEnvironment) })
@@ -725,7 +726,7 @@ function calloutDocxSimple(node, type, hasIcon)
   end
   
   -- convert to open xml paragraph
-  local contents = div.content;
+  local contents = node.content
   removeParagraphPadding(contents)
   
   -- ensure there are no nested callouts
@@ -774,7 +775,7 @@ function epubCallout(node)
   end
 
   -- contents 
-  local calloutContents = pandoc.Div(div.content, pandoc.Attr("", {"callout-content"}))
+  local calloutContents = pandoc.Div(node.content, pandoc.Attr("", {"callout-content"}))
   calloutBody.content:insert(calloutContents)
 
   -- set attributes (including hiding icon)
