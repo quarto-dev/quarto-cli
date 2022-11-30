@@ -351,6 +351,8 @@ end
 
 -- Latex callout
 function calloutLatex(node)
+
+  quarto.log.output(node)
   
   -- read and clear attributes
   local caption = node.caption
@@ -392,7 +394,9 @@ function calloutLatex(node)
   end
 
 
-  return pandoc.Div(calloutContents)
+  local result = pandoc.Div(calloutContents)
+  quarto.log.output(result)
+  return result
 end
 
 function latexCalloutBoxDefault(caption, type, icon) 
