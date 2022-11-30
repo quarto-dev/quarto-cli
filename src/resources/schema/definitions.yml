@@ -1988,12 +1988,28 @@
       resolveRef: csl-item
     closed: true
     properties:
+      article-id:
+        maybeArrayOf:
+          anyOf:
+            - string
+            - object:
+                properties:
+                  type:
+                    string:
+                      description: The type of identifier
+                  value:
+                    string:
+                      description: The value for the identifier
+        description: The unique identifier for this article.
       eissn:
         string:
           description: Electronic International Standard Serial Number.
       pissn:
         string:
           description: Print International Standard Serial Number.
+      art-access-id:
+        string:
+          description: Generic article accession identifier.
       publisher-location:
         string:
           description: The location of the publisher of this item.

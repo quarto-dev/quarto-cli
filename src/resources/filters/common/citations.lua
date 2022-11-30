@@ -8,13 +8,32 @@
 
 local kCitation = "citation"
 local kContainerId = "container-id"
+local kArticleId = "article-id"
 
 
-local function processContainerId(containerId) 
-  if pandoc.utils.type(containerId) == "Inlines" then
-    return { value = containerId }
+local function processTypedId(el) 
+  if pandoc.utils.type(el) == "Inlines" then
+    return { value = el }
   else
-    return containerId    
+    return el    
+  end
+end
+
+local function normalizeTypedId(els)
+  if pandoc.utils.type(els) == "List" then
+    -- this is a list of ids
+    local normalizedEls = {}
+    for i,v in ipairs(els) do        
+      local normalized = processTypedId(v)
+      tappend(normalizedEls, {normalized})
+    end
+    return normalizedEls
+  elseif pandoc.utils.type(els) == "Inlines" then
+    -- this is a simple id (a string)
+    return { processTypedId(els )}
+  else
+    -- this is a single id, but is already a typed id
+    return { processTypedId(els)}
   end
 end
 
@@ -23,20 +42,13 @@ function processCitationMeta(meta)
   if citationMeta then
 
     local containerIds = citationMeta[kContainerId]
-    if pandoc.utils.type(containerIds) == "List" then
-      -- this is a list of container id
-      local normalizedContainerIds = {}
-      for i,v in ipairs(containerIds) do        
-        local normalized = processContainerId(v)
-        tappend(normalizedContainerIds, {normalized})
-      end
-      meta[kCitation][kContainerId] = normalizedContainerIds
-    elseif pandoc.utils.type(containerIds) == "Inlines" then
-      -- this is a simple container-id (a string)
-      meta[kCitation][kContainerId] = { processContainerId(containerIds )}
-    else
-      -- this is a single container-id, but is 'complex'
-      meta[kCitation][kContainerId] = { processContainerId(containerIds)}
+    if containerIds ~= nil then
+      meta[kCitation][kContainerId] = normalizeTypedId(containerIds)
+    end
+
+    local articleIds = citationMeta[kArticleId]
+    if articleIds ~= nil then
+      meta[kCitation][kArticleId] = normalizeTypedId(articleIds)
     end
     return meta
   else

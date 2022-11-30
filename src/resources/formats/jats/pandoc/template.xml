@@ -71,20 +71,26 @@ $endif$
 <article-meta>
 
 $if(quarto-internal.jats-extended)$
-$if(article.publisher-id)$
-<article-id pub-id-type="publisher-id">$article.publisher-id$</article-id>
+$if(citation.article-id)$
+$for(citation.article-id)$
+$if(citation.article-id.type)$
+<article-id pub-id-type="$citation.article-id.type$">$citation.article-id.value$</article-id>
+$else$
+<article-id pub-id-type="publisher-id">$citation.article-id.value$</article-id>
 $endif$
-$if(article.doi)$
-<article-id pub-id-type="doi">$article.doi$</article-id>
+$endfor$
 $endif$
-$if(article.pmid)$
-<article-id pub-id-type="pmid">$article.pmid$</article-id>
+$if(citation.doi)$
+<article-id pub-id-type="doi">$citation.doi$</article-id>
 $endif$
-$if(article.pmcid)$
-<article-id pub-id-type="pmcid">$article.pmcid$</article-id>
+$if(citation.pmid)$
+<article-id pub-id-type="pmid">$citation.pmid$</article-id>
 $endif$
-$if(article.art-access-id)$
-<article-id pub-id-type="art-access-id">$article.art-access-id$</article-id>
+$if(citation.pmcid)$
+<article-id pub-id-type="pmcid">$citation.pmcid$</article-id>
+$endif$
+$if(citation.art-access-id)$
+<article-id pub-id-type="art-access-id">$citation.art-access-id$</article-id>
 $endif$
 $if(article.heading)$
 <article-categories>
