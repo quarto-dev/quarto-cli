@@ -18,9 +18,9 @@ Pull requests are very welcome! Here's how to contribute via PR:
     # clone your fork
     $ git clone https://github.com/<username>/quarto-cli
 
-    # configure for your platform (./configure-macos.sh, ./configure-linux.sh, or ./configure-windows.cmd)
+    # configure for your platform (./configure.sh on mac/linux, or ./configure.cmd on windows powershell)
     $ cd quarto-cli
-    $ ./configure-macos.sh
+    $ ./configure.sh
 
     # checkout a new branch
     $ git checkout -b feature/newthing
