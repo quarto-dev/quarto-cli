@@ -89,7 +89,7 @@
             "underline": false
         },
         "BuiltIn": {
-            "text-color": null,
+            "text-color": "#008000",
             "background-color": null,
             "bold": false,
             "italic": false,
@@ -138,9 +138,9 @@
             "underline": false
         },
         "Import": {
-            "text-color": null,
+            "text-color": "#008000",
             "background-color": null,
-            "bold": false,
+            "bold": true,
             "italic": false,
             "underline": false
         },

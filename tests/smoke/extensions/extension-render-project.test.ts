@@ -11,7 +11,7 @@ import { basename, dirname, extname, join, relative } from "path/mod.ts";
 import { ensureHtmlElements } from "../../verify.ts";
 import { testQuartoCmd } from "../../test.ts";
 import { noErrors } from "../../verify.ts";
-import { exists } from "fs/mod.ts";
+import { existsSync } from "node/fs.ts";
 
 const siteOutputForInput = (rootDir: string, input: string) => {
   const dir = join(rootDir, "_site");
@@ -51,7 +51,7 @@ const testRender = (
     {
       teardown: async () => {
         const siteDir = dirname(output.supportPath);
-        if (await exists(siteDir)) {
+        if (existsSync(siteDir)) {
           await Deno.remove(siteDir, { recursive: true });
         }
       },

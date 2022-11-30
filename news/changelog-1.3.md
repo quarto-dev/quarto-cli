@@ -26,6 +26,7 @@
 - Fix wrong page number in the TOC for appendices ([#3164](https://github.com/quarto-dev/quarto-cli/issues/3164)) (Thank you, @iusgit!)
 - Add support for automatically converting SVG images to PDF ([#2575](https://github.com/quarto-dev/quarto-cli/issues/2575))
 - Previously, if the `pdf-engine` was set to `latexmk`, we would bypass many features of Quarto and use Pandoc to produce the PDF output. Starting in in Quarto 1.3, all Quarto features will be enabled for the `latexmk` engine and `latexmk` will be used to run the PDF generation loop.
+- Fix author processing in default PDFs for complex author names (#3483)
 
 ## Beamer Format
 

@@ -39,6 +39,7 @@ import {
   markdownWithCommonmarkExtensionsFormat,
   pandocMarkdownFormat,
 } from "./markdown/format-markdown.ts";
+import { jatsFormat } from "./jats/format-jats.ts";
 
 export function defaultWriterFormat(to: string): Format {
   // to can sometimes have a variant, don't include that in the lookup here
@@ -173,16 +174,16 @@ export function defaultWriterFormat(to: string): Format {
       break;
 
     case "jats":
-      writerFormat = plaintextFormat("JATS", "xml");
+      writerFormat = jatsFormat("JATS", "xml");
       break;
     case "jats_archiving":
-      writerFormat = plaintextFormat("JATS Archiving", "xml");
+      writerFormat = jatsFormat("JATS Archiving", "xml");
       break;
     case "jats_articleauthoring":
-      writerFormat = plaintextFormat("JATS Authoring", "xml");
+      writerFormat = jatsFormat("JATS Authoring", "xml");
       break;
     case "jats_publishing":
-      writerFormat = plaintextFormat("JATS Publising", "xml");
+      writerFormat = jatsFormat("JATS Publising", "xml");
       break;
 
     case "ipynb":

@@ -11,7 +11,7 @@ import { dirname, join } from "path/mod.ts";
 import { copy } from "streams/conversion.ts";
 import { ensureDirSync } from "fs/mod.ts";
 
-import { createHash } from "hash/mod.ts";
+import { createHash } from "node/crypto.ts";
 import { Tar } from "archive/tar.ts";
 
 import { PublishFiles } from "../provider.ts";
@@ -33,7 +33,7 @@ export async function createBundle(
         hash.update(chunk);
       }
       Deno.close(f.rid);
-      manifestFiles[file] = { checksum: hash.toString("hex") };
+      manifestFiles[file] = { checksum: hash.digest("hex") as string };
     }
   }
 

@@ -11,13 +11,12 @@ function mediabag()
          not _quarto.format.isPowerPointOutput() then
         local mt, contents = pandoc.mediabag.lookup(el.src)
         if contents ~= nil then
+          
           local mediabagDir = param("mediabag-dir", nil)
           local mediaFile = pandoc.path.join{mediabagDir, el.src}
-          local file = io.open(mediaFile, "wb")
-          if file then
-            file:write(contents)
-            file:close()
-          else
+
+          local file = _quarto.file.write(mediaFile, contents)
+          if not file then
             warn('failed to write mediabag entry: ' .. mediaFile)
           end
           el.src = mediaFile

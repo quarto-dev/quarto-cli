@@ -43,10 +43,11 @@ export const installCommand = new Command()
     "Install TinyTeX",
     "quarto install tool tinytex",
   )
-  .example(
-    "Install Chromium",
-    "quarto install tool chromium",
-  )
+  // temporarily disabled until we get things in order in 1.28.*
+  // .example(
+  //   "Install Chromium",
+  //   "quarto install tool chromium",
+  // )
   .example(
     "Choose tool to install",
     "quarto install tool",

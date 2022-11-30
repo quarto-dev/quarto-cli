@@ -97,6 +97,18 @@ export function isHtmlSlideOutput(format?: string | FormatPandoc) {
   ].includes(format);
 }
 
+export function isJatsOutput(format?: string | FormatPandoc) {
+  if (typeof (format) !== "string") {
+    format = format?.to || "html";
+  }
+  return [
+    "jats",
+    "jats_archiving",
+    "jats_articleauthoring",
+    "jats_publishing"
+  ].includes(format);
+}
+
 export function isPresentationOutput(format: FormatPandoc) {
   if (format.to) {
     return ["s5", "dzslides", "slidy", "slideous", "revealjs", "beamer", "pptx"]

@@ -4,7 +4,7 @@
 * Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
-import { exists } from "fs/exists.ts";
+import { existsSync } from "node/fs.ts";
 import { dirname } from "path/mod.ts";
 import { testQuartoCmd } from "../../test.ts";
 import { siteOutputForInput } from "../../utils.ts";
@@ -32,7 +32,7 @@ export const testSite = (
     {
       teardown: async () => {
         const siteDir = dirname(output.outputPath);
-        if (await exists(siteDir)) {
+        if (existsSync(siteDir)) {
           await Deno.remove(siteDir, { recursive: true });
         }
       },

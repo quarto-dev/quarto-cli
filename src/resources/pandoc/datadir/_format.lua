@@ -181,6 +181,16 @@ local function isAstOutput()
   return isNativeOutput() or isJsonOutput()
 end
 
+local function isJatsOutput() 
+  local formats = {
+    "jats",
+    "jats_archiving",
+    "jats_articleauthoring",
+    "jats_publishing",
+  }
+  return tcontains(formats, FORMAT)
+end
+
 
 return {
   isRawHtml = isRawHtml,
@@ -204,5 +214,6 @@ return {
   isBibliographyOutput = isBibliographyOutput,
   isNativeOutput = isNativeOutput,
   isJsonOutput = isJsonOutput,
-  isAstOutput = isAstOutput
+  isAstOutput = isAstOutput,
+  isJatsOutput = isJatsOutput
 }
