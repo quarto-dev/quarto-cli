@@ -30,6 +30,8 @@ import { capitalizeWord } from "../../core/text.ts";
 
 export const LINK_FINDER: RegExp = /(\S*.qmd'\w*)/g;
 export const FILE_FINDER: RegExp = /(?<=href=\')(.*)(?=\')/;
+const IMAGE_FINDER: RegExp =
+  /(?<=ri:attachment ri:filename=["\'])[^"\']+?\.(?:jpe?g|png|gif)(?=["\'])/g;
 
 export const transformAtlassianDomain = (domain: string) => {
   return ensureTrailingSlash(
@@ -458,10 +460,48 @@ export const updateLinks = (
   return updatedChanges;
 };
 
-export const findAttachments = (bodyValue: string): string[] => {
-  const IMAGE_FINDER: RegExp =
-    /(?<=ri:attachment ri:filename=["\'])[^"\']+?\.(?:jpe?g|png|gif)(?=["\'])/g;
+export const updateImagePaths = (body: ContentBody): ContentBody => {
+  const replacer = (match: string): string => {
+    let updated: string = match.replace(/^.*[\\\/]/, "");
+    return updated;
+  };
 
+  const bodyValue: string = body?.storage?.value;
+  if (!bodyValue) {
+    return body;
+  }
+
+  const attachments = findAttachments(bodyValue);
+
+  const withReplacedImages: string = bodyValue.replaceAll(
+    IMAGE_FINDER,
+    replacer
+  );
+
+  body.storage.value = withReplacedImages;
+  return body;
+};
+
+export const updateImagePathsForChanges = (
+  spaceChanges: ConfluenceSpaceChange[]
+): ConfluenceSpaceChange[] => {
+  const changeMapper = (
+    changeToProcess: ConfluenceSpaceChange
+  ): ConfluenceSpaceChange => {
+    if (isContentUpdate(changeToProcess) || isContentCreate(changeToProcess)) {
+      changeToProcess.body = updateImagePaths(changeToProcess.body);
+    }
+
+    return changeToProcess;
+  };
+
+  const updatedChanges: ConfluenceSpaceChange[] =
+    spaceChanges.map(changeMapper);
+
+  return updatedChanges;
+};
+
+export const findAttachments = (bodyValue: string): string[] => {
   const result = bodyValue.match(IMAGE_FINDER);
   const uniqueResult = [...new Set(result)];
 

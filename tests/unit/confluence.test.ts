@@ -25,6 +25,8 @@ import {
   mergeSitePages,
   tokenFilterOut,
   transformAtlassianDomain,
+  updateImagePaths,
+  updateImagePathsForChanges,
   updateLinks,
   validateEmail,
   validateServer,
@@ -1419,9 +1421,6 @@ const runFindAttachments = () => {
   const suiteLabel = (label: string) => `FindAttachments_${label}`;
 
   const check = (expected: string[], bodyValue: string) => {
-    
-    
-    
     assertEquals(
       JSON.stringify(expected),
       JSON.stringify(findAttachments(bodyValue))
@@ -1442,7 +1441,7 @@ const runFindAttachments = () => {
 
   unitTest(suiteLabel("no_attachment_CDATA"), async () => {
     const bodyValue: string =
-      "<ac:plain-text-body> <![CDATA[![Caption](elephant.png)]]> </ac:plain-text-body>";
+      "<ac:plain-text-body> <![CDATA[![Caption](elephant.png)]</ac:plain-text-body><ac:plain-text-body>]> </ac:plain-text-body>";
     const expected: string[] = [];
     check(expected, bodyValue);
   });
@@ -1482,3 +1481,136 @@ const runFindAttachments = () => {
   });
 };
 runFindAttachments();
+
+const runUpdateImagePathsForChanges = () => {
+  const suiteLabel = (label: string) => `UpdateImagePathsForChanges_${label}`;
+
+  const UPDATE_NO_IMAGES: ContentUpdate = {
+    contentChangeType: ContentChangeType.update,
+    id: "19890228",
+    version: null,
+    title: "Release Planning",
+    type: "page",
+    status: "current",
+    ancestors: [{ id: "19759105" }],
+    body: {
+      storage: {
+        value: "no images",
+        representation: "storage",
+      },
+    },
+    fileName: "release-planning.xml",
+  };
+
+  const UPDATE_ONE_FLAT_IMAGE: ContentUpdate = {
+    contentChangeType: ContentChangeType.update,
+    id: "19890228",
+    version: null,
+    title: "Release Planning",
+    type: "page",
+    status: "current",
+    ancestors: [{ id: "19759105" }],
+    body: {
+      storage: {
+        value:
+          '<ri:attachment ri:filename="elephant.png" ri:version-at-save="1" />',
+        representation: "storage",
+      },
+    },
+    fileName: "release-planning.xml",
+  };
+
+  const UPDATE_ONE_TO_FLATTEN_IMAGE: ContentUpdate = {
+    contentChangeType: ContentChangeType.update,
+    id: "19890228",
+    version: null,
+    title: "Release Planning",
+    type: "page",
+    status: "current",
+    ancestors: [{ id: "19759105" }],
+    body: {
+      storage: {
+        value:
+          '<ri:attachment ri:filename="a/b/c/elephant.png" ri:version-at-save="1" />',
+        representation: "storage",
+      },
+    },
+    fileName: "release-planning.xml",
+  };
+
+  const check = (
+    expected: ConfluenceSpaceChange[],
+    changes: ConfluenceSpaceChange[]
+  ) => {
+    assertEquals(expected, updateImagePathsForChanges(changes));
+  };
+
+  unitTest(suiteLabel("no_images"), async () => {
+    const changes: ConfluenceSpaceChange[] = [UPDATE_NO_IMAGES];
+    const expected: ConfluenceSpaceChange[] = [UPDATE_NO_IMAGES];
+    check(expected, changes);
+  });
+
+  unitTest(suiteLabel("images-already-flattened"), async () => {
+    const changes: ConfluenceSpaceChange[] = [UPDATE_ONE_FLAT_IMAGE];
+    const expected: ConfluenceSpaceChange[] = [UPDATE_ONE_FLAT_IMAGE];
+    check(expected, changes);
+  });
+
+  unitTest(suiteLabel("images-to-flatten"), async () => {
+    const changes: ConfluenceSpaceChange[] = [UPDATE_ONE_TO_FLATTEN_IMAGE];
+    const expected: ConfluenceSpaceChange[] = [UPDATE_ONE_FLAT_IMAGE];
+    check(expected, changes);
+  });
+};
+runUpdateImagePathsForChanges();
+
+const runUpdateImagePathsForContentBody = () => {
+  const suiteLabel = (label: string) =>
+    `UpdateImagePathsForContentBody_${label}`;
+
+  const UPDATE_NO_IMAGES: ContentBody = {
+    storage: {
+      value: "no-images",
+      representation: "raw",
+    },
+  };
+
+  const UPDATE_ONE_FLAT_IMAGE: ContentBody = {
+    storage: {
+      value:
+        '<ri:attachment ri:filename="elephant.png" ri:version-at-save="1" />',
+      representation: "raw",
+    },
+  };
+  const UPDATE_ONE_TO_FLATTEN_IMAGE: ContentBody = {
+    storage: {
+      value:
+        '<ri:attachment ri:filename="a/b/c/elephant.png" ri:version-at-save="1" />',
+      representation: "raw",
+    },
+  };
+
+  const check = (expected: ContentBody, bodyValue: ContentBody) => {
+    assertEquals(expected, updateImagePaths(bodyValue));
+  };
+
+  unitTest(suiteLabel("no_images"), async () => {
+    const changes = UPDATE_NO_IMAGES;
+    const expected = UPDATE_NO_IMAGES;
+    check(expected, changes);
+  });
+
+  unitTest(suiteLabel("images-already-flattened"), async () => {
+    const changes = UPDATE_ONE_FLAT_IMAGE;
+    const expected = UPDATE_ONE_FLAT_IMAGE;
+    check(expected, changes);
+  });
+
+  unitTest(suiteLabel("images-to-flatten"), async () => {
+    const changes = UPDATE_ONE_TO_FLATTEN_IMAGE;
+    const expected = UPDATE_ONE_FLAT_IMAGE;
+    check(expected, changes);
+  });
+};
+runUpdateImagePathsForContentBody();

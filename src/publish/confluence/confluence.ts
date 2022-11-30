@@ -1,8 +1,10 @@
-// TODO for sites, always have a 'tagged' parent, you can't delete away from that
+// TODO Computation Images
+
+// TODO Sites - 'tagged' parent
+// - Deletes only work with quarto parent
+// - Set permissions on quarto parent
 
 // TODO Resource bundles
-
-// Did it change underneath me and setting permissions
 
 import { join } from "path/mod.ts";
 import { Input, Secret } from "cliffy/prompt/mod.ts";
@@ -64,6 +66,8 @@ import {
   mergeSitePages,
   tokenFilterOut,
   transformAtlassianDomain,
+  updateImagePaths,
+  updateImagePathsForChanges,
   updateLinks,
   validateEmail,
   validateParentURL,
@@ -323,6 +327,11 @@ async function publish(
     titleParam: string = title
   ): Promise<Content> => {
     const previousPage = await client.getContent(id);
+
+    const attachmentsToUpload: string[] = findAttachments(body.storage.value);
+    trace("attachmentsToUpload", attachmentsToUpload, LogPrefix.ATTACHMENT);
+
+    const updatedBody: ContentBody = updateImagePaths(body);
     const toUpdate: ContentUpdate = {
       contentChangeType: ContentChangeType.update,
       id,
@@ -331,7 +340,7 @@ async function publish(
       type: PAGE_TYPE,
       status: ContentStatusEnum.current,
       ancestors: null,
-      body,
+      body: updatedBody,
     };
 
     trace("updateContent", { publishFiles, toUpdate });
@@ -340,13 +349,7 @@ async function publish(
     if (toUpdate.id) {
       const existingAttachments: AttachmentSummary[] =
         await client.getAttachments(toUpdate.id);
-
       trace("existingAttachments", existingAttachments, LogPrefix.ATTACHMENT);
-
-      const attachmentsToUpload: string[] = findAttachments(
-        toUpdate.body.storage.value
-      );
-      trace("attachmentsToUpload", attachmentsToUpload, LogPrefix.ATTACHMENT);
 
       const uploadAttachmentsResult = await Promise.all(
         uploadAttachments(
@@ -495,6 +498,8 @@ async function publish(
     );
 
     changeList = updateLinks(metadataByFilename, changeList, server, parent);
+    changeList = updateImagePathsForChanges(changeList);
+    trace("changelist", changeList);
 
     const spaceChanges = (
       changeList: ConfluenceSpaceChange[]
