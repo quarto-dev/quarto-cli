@@ -2001,6 +2001,9 @@
                     string:
                       description: The value for the identifier
         description: The unique identifier for this article.
+      elocation-id:
+        string:
+          description: Bibliographic identifier for a document that does not have traditional printed page numbers.
       eissn:
         string:
           description: Electronic International Standard Serial Number.

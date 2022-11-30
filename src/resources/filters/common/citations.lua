@@ -9,6 +9,9 @@
 local kCitation = "citation"
 local kContainerId = "container-id"
 local kArticleId = "article-id"
+local kPage = "page"
+local kPageFirst = "page-first"
+local kPageLast = "page-last"
 
 
 local function processTypedId(el) 
@@ -50,6 +53,15 @@ function processCitationMeta(meta)
     if articleIds ~= nil then
       meta[kCitation][kArticleId] = normalizeTypedId(articleIds)
     end
+
+    if citationMeta[kPage] and citationMeta[kPageFirst] == nil and citationMeta[kPageLast] == nil then
+      local pagerange = split(pandoc.utils.stringify(citationMeta[kPage]), '-')
+      meta[kCitation][kPageFirst] = pandoc.Inlines(pagerange[1])
+      if pagerange[2] then
+        meta[kCitation][kPageLast] = pandoc.Inlines(pagerange[2])
+      end
+    end
+
     return meta
   else
     return nil

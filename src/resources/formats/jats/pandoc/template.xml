@@ -136,6 +136,8 @@ $if(article.author-notes.con)$
 $endif$
 </author-notes>
 $endif$
+
+<!-- TODO deal with date formatting and CSL date stuff-->
 $if(date)$
 <pub-date date-type="$if(date.type)$$date.type$$else$pub$endif$" publication-format="electronic"$if(date.iso-8601)$ iso-8601-date="$date.iso-8601$"$endif$>
 $if(date.day)$
@@ -147,20 +149,21 @@ $endif$
 <year>$date.year$</year>
 </pub-date>
 $endif$
-$if(article.volume)$
-<volume>$article.volume$</volume>
+
+$if(citation.volume)$
+<volume>$citation.volume$</volume>
 $endif$
-$if(article.issue)$
-<issue>$article.issue$</issue>
+$if(citation.issue)$
+<issue>$citation.issue$</issue>
 $endif$
-$if(article.fpage)$
-<fpage>$article.fpage$</fpage>
+$if(citation.first-page)$
+<fpage>$citation.first-page$</fpage>
 $endif$
-$if(article.lpage)$
-<lpage>$article.lpage$</lpage>
+$if(citation.last-page)$
+<lpage>$citation.last-page$</lpage>
 $endif$
-$if(article.elocation-id)$
-<elocation-id>$article.elocation-id$</elocation-id>
+$if(citation.elocation-id)$
+<elocation-id>$citation.elocation-id$</elocation-id>
 $endif$
 $if(history)$
 <history>
