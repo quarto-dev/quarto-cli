@@ -22,12 +22,19 @@ import("../common/base64.lua")
 import("../common/meta.lua")
 import("../common/debug.lua")
 import("../common/authors.lua")
+import("../common/citations.lua")
 -- [/import]
 
 return {
   {
     Meta = function(meta)
-      return processAuthorMeta(meta)
+      -- normalizes the author/affiliation metadata
+      local normalized = processAuthorMeta(meta)
+
+      -- normalizes the citation metadata
+      normalized = processCitationMeta(meta)
+
+      return normalized
     end
   }
 }
