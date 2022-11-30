@@ -165,10 +165,8 @@ $endif$
 $if(citation.elocation-id)$
 <elocation-id>$citation.elocation-id$</elocation-id>
 $endif$
-$if(history)$
 <history>
 </history>
-$endif$
 
 <permissions>
 $for(copyright.statement)$
