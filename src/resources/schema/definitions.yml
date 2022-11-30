@@ -2013,6 +2013,13 @@
       publisher-location:
         string:
           description: The location of the publisher of this item.
+      subject:
+        string:
+          description: The name of a subject or topic describing the article.
+      categories:
+        maybeArrayOf:
+          string:
+            description: A list of subjects or topics describing the article.
       container-id:
         maybeArrayOf:
           anyOf:

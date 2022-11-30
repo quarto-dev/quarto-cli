@@ -92,16 +92,18 @@ $endif$
 $if(citation.art-access-id)$
 <article-id pub-id-type="art-access-id">$citation.art-access-id$</article-id>
 $endif$
-$if(article.heading)$
+$if(citation.subject)$
 <article-categories>
-<subj-group subj-group-type="heading">
-<subject>$article.heading$</subject>
+<subj-group>
+<subj-group subj-group-type="subject">
+<subject>$citation.subject$</subject>
 </subj-group>
-$if(article.categories)$
+$if(citation.categories)$
 <subj-group subj-group-type="categories">
-$for(article.categories)$
-<subject>$article.categories$</subject>
+$for(citation.categories)$
+<subject>$citation.categories$</subject>
 $endfor$
+</subj-group>
 </subj-group>
 $endif$
 </article-categories>
