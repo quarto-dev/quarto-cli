@@ -16,46 +16,50 @@ $endif$
 
 $if(quarto-internal.jats-extended)$
 <journal-meta>
-$if(journal.publisher-id)$
-<journal-id journal-id-type="publisher-id">$journal.publisher-id$</journal-id>
-$endif$
-$if(journal.nlm-ta)$
-<journal-id journal-id-type="nlm-ta">$journal.nlm-ta$</journal-id>
-$endif$
-$if(journal.pmc)$
-<journal-id journal-id-type="pmc">$journal.pmc$</journal-id>
-$endif$
-$-- Fallback: an empty journal-id in case none is available.
-$if(journal.publisher-id)$
-$elseif(journal.nlm-ta)$
-$elseif(journal.pmc)$
+$-- Formulate the journal-id
+$if(citation.container-id)$
+$for(citation.container-id)$
+$if(citation.container-id.type)$
+<journal-id journal-id-type="$citation.container-id.type$">$citation.container-id.value$</journal-id>
 $else$
+<journal-id>$citation.container-id.value$</journal-id>
+$endif$
+$endfor$
+$else$
+$-- Fallback: an empty journal-id in case none is available.
 <journal-id></journal-id>
 $endif$
+
+$-- Formulate the journal title
 <journal-title-group>
-$if(journal.title)$
-<journal-title>$journal.title$</journal-title>
+$if(citation.container-title)$
+<journal-title>$citation.container-title$</journal-title>
 $endif$
-$if(journal.abbrev-title)$
-<abbrev-journal-title>$journal.abbrev-title$</abbrev-journal-title>
+$if(citation.container-title-short)$
+<abbrev-journal-title>$citation.container-title-short$</abbrev-journal-title>
 $endif$
 </journal-title-group>
-$if(journal.pissn)$
-<issn publication-format="print">$journal.pissn$</issn>
+$if(citation.issn)$
+<issn>$citation.issn$</issn>
 $endif$
-$if(journal.eissn)$
-<issn publication-format="electronic">$journal.eissn$</issn>
+$if(citation.pissn)$
+<issn publication-format="print">$citation.pissn$</issn>
+$endif$
+$if(citation.eissn)$
+<issn publication-format="electronic">$citation.eissn$</issn>
 $endif$
 $-- At least one issn element is required; use empty issn as fallback
-$if(journal.pissn)$
-$elseif(journal.eissn)$
+$if(citation.issn)$
+$elseif(citation.pissn)$
+$elseif(citation.eissn)$
 $else$
 <issn></issn>
 $endif$
+
 <publisher>
-<publisher-name>$journal.publisher-name$</publisher-name>
-$if(journal.publisher-loc)$
-<publisher-loc>$journal.publisher-loc$</publisher-loc>
+<publisher-name>$citation.publisher$</publisher-name>
+$if(citation.publisher-location)$
+<publisher-loc>$citation.publisher-location$</publisher-loc>
 $endif$
 </publisher>
 </journal-meta>
