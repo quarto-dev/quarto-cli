@@ -134,7 +134,7 @@ jobs:
            
            echo Placing custom Deno ${DENO:1}. See available versions at https://anaconda.org/conda-forge/deno/files
            curl -L https://anaconda.org/conda-forge/deno/${DENO:1}/download/linux-64/deno-${DENO:1}-h2f28480_0.conda --output deno.conda
-           tar -xf deno.conda
+           unzip deno.conda
            tar --use-compress-program=unzstd -xvf pkg-deno-${DENO:1}-h2f28480_0.tar.zst
            cp bin/deno package/dist/bin/tools/deno
            
