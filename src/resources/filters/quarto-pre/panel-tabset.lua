@@ -109,7 +109,7 @@ _quarto.ast.add_handler({
         table.insert(node.tabs, quarto.Tab( { title = title, content = content } ))
       end
     }
-    return quarto.ast.custom("Tabset", tbl)
+    return _quarto.ast.custom("Tabset", tbl)
   end,
 
   -- a function that takes the div node as supplied in user markdown
