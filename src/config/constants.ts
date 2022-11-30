@@ -430,6 +430,7 @@ export const kGladtex = "gladtex";
 export const kWebtex = "webtex";
 
 // metadata fields
+export const kQuartoInternal = "quarto-internal";
 export const kTitle = "title";
 export const kSubtitle = "subtitle";
 export const kAuthor = "author";

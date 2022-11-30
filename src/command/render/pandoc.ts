@@ -106,6 +106,7 @@ import {
   kNumberOffset,
   kNumberSections,
   kPageTitle,
+  kQuartoInternal,
   kQuartoTemplateParams,
   kQuartoVarsKey,
   kQuartoVersion,
@@ -228,6 +229,7 @@ export async function runPandoc(
   // remove some metadata that are used as parameters to our lua filters
   const cleanMetadataForPrinting = (metadata: Metadata) => {
     delete metadata.params;
+    delete metadata[kQuartoInternal];
     delete metadata[kQuartoVarsKey];
     delete metadata[kQuartoVersion];
     delete metadata[kFigResponsive];
