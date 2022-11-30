@@ -1982,6 +1982,39 @@
         string:
           description: Disambiguating year suffix in author-date styles (e.g. "a" in "Doe, 1999a").
 
+- id: citation-item
+  object:
+    super:
+      resolveRef: csl-item
+    closed: true
+    properties:
+      eissn:
+        string:
+          description: Electronic International Standard Serial Number.
+      pissn:
+        string:
+          description: Print International Standard Serial Number.
+      publisher-location:
+        string:
+          description: The location of the publisher of this item.
+      container-id:
+        maybeArrayOf:
+          anyOf:
+            - string
+            - object:
+                properties:
+                  type:
+                    string:
+                      description: The type of identifier (e.g. `nlm-ta` or `pmc`).
+                  value:
+                    string:
+                      description: The value for the identifier
+        description:
+          short: External identifier of a publication or journal.
+          long: |
+            External identifier, typically assigned to a journal by 
+            a publisher, archive, or library to provide a unique identifier for 
+            the journal or publication.
 - id: smart-include
   anyOf:
     - record:
