@@ -114,11 +114,12 @@ _quarto.ast.add_handler({
         icon = false
         appearance = "simple"
       end
-
+      local content = pandoc.List()
+      content:extend(tbl.content)
       local ctbl = {
         caption = tbl.caption,
         collapse = tbl.collapse,
-        content = tbl.content,
+        content = content,
         appearance = appearance,
         icon = icon,
         type = type,
@@ -352,9 +353,6 @@ end
 
 -- Latex callout
 function calloutLatex(node)
-
-  quarto.log.output(node)
-  
   -- read and clear attributes
   local caption = node.caption
   local type = node.type
@@ -394,10 +392,7 @@ function calloutLatex(node)
     tappend(calloutContents, { pandoc.Para(endEnvironment) })
   end
 
-
-  local result = pandoc.Div(calloutContents)
-  quarto.log.output(result)
-  return result
+  return pandoc.Div(calloutContents)
 end
 
 function latexCalloutBoxDefault(caption, type, icon) 
@@ -726,7 +721,8 @@ function calloutDocxSimple(node, type, hasIcon)
   end
   
   -- convert to open xml paragraph
-  local contents = node.content
+  local contents = pandoc.List({}) -- use as pandoc.List() for find_if
+  contents:extend(node.content)
   removeParagraphPadding(contents)
   
   -- ensure there are no nested callouts
