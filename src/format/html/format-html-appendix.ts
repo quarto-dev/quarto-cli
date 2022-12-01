@@ -166,24 +166,45 @@ export async function processDocumentAppendix(
           kAppendixContentsClass,
         );
 
-        const creativeCommons = creativeCommonsLicense(
-          format.metadata[kLicense] as string,
-        );
-        if (creativeCommons) {
-          const licenseUrl = creativeCommonsUrl(
-            creativeCommons,
-            format.metadata[kLang] as string | undefined,
-          );
+        // Note: We should ultimately replace this with a template
+        // based approach that emits the appendix using a partial
+        //
+        // this will allow us to not include the following code.
+        const normalizedLicense = (license: unknown) => {
+          if (typeof (license) === "string") {
+            const creativeCommons = creativeCommonsLicense(
+              format.metadata[kLicense] as string,
+            );
+            if (creativeCommons) {
+              const licenseUrl = creativeCommonsUrl(
+                creativeCommons,
+                format.metadata[kLang] as string | undefined,
+              );
+              return {
+                url: licenseUrl,
+                text: licenseUrl,
+              };
+            } else {
+              return { text: license };
+            }
+          } else {
+            return license as { url?: string; text: string };
+          }
+        };
+        const license = format.metadata[kLicense];
+        const normalLicense = normalizedLicense(license);
+        if (normalLicense.url) {
           const linkEl = doc.createElement("A");
-          linkEl.innerText = licenseUrl;
+          linkEl.innerText = normalLicense.text;
           linkEl.setAttribute("rel", "license");
-          linkEl.setAttribute("href", licenseUrl);
+          linkEl.setAttribute("href", normalLicense.url);
           contentsDiv.appendChild(linkEl);
         } else {
           const licenseEl = doc.createElement("DIV");
-          licenseEl.innerText = format.metadata[kLicense] as string;
+          licenseEl.innerText = normalLicense.text;
           contentsDiv.appendChild(licenseEl);
         }
+
         sectionEl.appendChild(contentsDiv);
       }, format.language[kSectionTitleReuse] || "Usage");
     }

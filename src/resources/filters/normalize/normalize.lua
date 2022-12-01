@@ -23,6 +23,7 @@ import("../common/meta.lua")
 import("../common/debug.lua")
 import("../common/authors.lua")
 import("../common/citations.lua")
+import("../common/license.lua")
 -- [/import]
 
 return {
@@ -32,7 +33,10 @@ return {
       local normalized = processAuthorMeta(meta)
 
       -- normalizes the citation metadata
-      normalized = processCitationMeta(meta)
+      normalized = processCitationMeta(normalized)
+
+      -- normalizes the license metadata
+      normalized = processLicenseMeta(normalized)
 
       return normalized
     end

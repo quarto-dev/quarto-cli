@@ -37,7 +37,7 @@ import {
   resolveFilters,
 } from "./filters.ts";
 import { TempContext } from "../../core/temp.ts";
-import { authorsFilter } from "./authors.ts";
+import { metadataNormalizationFilter } from "./normalize.ts";
 
 export async function generateDefaults(
   options: PandocOptions,
@@ -148,7 +148,7 @@ export function pandocDefaultsMessage(
         return filter !== quartoPreFilter() &&
           filter !== quartoPostFilter() &&
           filter !== layoutFilter() &&
-          filter !== authorsFilter() &&
+          filter !== metadataNormalizationFilter() &&
           filter !== quartoFinalizeFilter() &&
           filtersContains(sysFilters, filter);
       });
