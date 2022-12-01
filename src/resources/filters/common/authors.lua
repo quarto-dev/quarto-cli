@@ -96,6 +96,9 @@ local kRegion = 'region'
 local kState = 'state'
 local kCountry = 'country'
 local kPostalCode = 'postal-code'
+local kISNI = "isni"
+local kRinggold = "ringgold"
+local kROR = "ror"
 
 -- labels contains the suggested labels for the various elements which 
 -- are localized and should correctly deal with plurals, etc...
@@ -135,7 +138,7 @@ local kAuthorAffiliationFields = { kAffiliation, kAffiliations }
 
 -- Fields for affiliations (either inline in authors or 
 -- separately in a affiliations key)
-local kAffiliationFields = { kId, kAffilName, kDepartment, kAddress, kCity, kRegion, kCountry, kPostalCode, kUrl }
+local kAffiliationFields = { kId, kAffilName, kDepartment, kAddress, kCity, kRegion, kCountry, kPostalCode, kUrl, kISNI, kRinggold, kROR }
 
 -- These affiliation fields will be mapped into 'region' 
 -- (so users may also write 'state')
