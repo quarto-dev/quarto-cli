@@ -25,19 +25,20 @@
 
 - name: license
   schema:
-    anyOf:
-      - object:
-          properties:
-            type:
-              string:
-                description: The type of the license.
-            url:
-              string:
-                description: A URL to the license.
-            text:
-              string:
-                description: The text to display for the license.
-      - string
+    maybeArrayOf:
+      anyOf:
+        - object:
+            properties:
+              type:
+                string:
+                  description: The type of the license.
+              url:
+                string:
+                  description: A URL to the license.
+              text:
+                string:
+                  description: The text to display for the license.
+        - string
   tags:
     formats: [$html-doc, $jats-all]
   description:

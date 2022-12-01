@@ -48,23 +48,38 @@ local licenses = {
   },
 }
 
+function processLicense(el, meta) 
+  if pandoc.utils.type(el) == "Inlines" then
+    local licenseStr = pandoc.utils.stringify(el)
+    local license = licenses[licenseStr:lower()]
+    if license ~= nil then
+      return {
+        type = pandoc.Inlines(license.type),
+        url = pandoc.Inlines(license.licenseUrl(meta.lang)),
+        text = pandoc.Inlines('')
+      }
+    else
+      return {
+        text = el
+      }
+    end
+  else 
+    return el
+  end
+end
+
 function processLicenseMeta(meta)
   local licenseMeta = meta[kLicense]
   if licenseMeta then
-    if pandoc.utils.type(licenseMeta) == "Inlines" then
-      local licenseStr = pandoc.utils.stringify(licenseMeta)
-      local license = licenses[licenseStr:lower()]
-      if license then
-        meta[kLicense] = {
-          type = license.type,
-          url = license.licenseUrl(meta.lang),
-          text = pandoc.Inlines('')
-        }
-      else
-        meta[kLicense] = {
-          text = licenseMeta
-        }
+    if pandoc.utils.type(licenseMeta) == "List" then
+      local normalizedEls = {}
+      for i,v in ipairs(licenseMeta) do        
+        local normalized = processLicense(v, meta)
+        tappend(normalizedEls, {normalized})
       end
+      meta[kLicense] = normalizedEls
+    elseif pandoc.utils.type(licenseMeta) == "Inlines" then
+      meta[kLicense] = processLicense(licenseMeta, meta)
     end
     return meta
   else
