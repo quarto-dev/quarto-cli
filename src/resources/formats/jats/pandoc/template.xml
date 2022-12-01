@@ -118,41 +118,20 @@ $if(subtitle)$
 $endif$
 </title-group>
 $endif$
-
 ${ authors.xml() }
-
 ${ affiliations.xml() }
+$if(citation.issued)$<pub-date date-type="pub" publication-format="electronic" iso-8601-date="$citation.issued.iso-8601$">
+$if(citation.issued.date-parts/first/first)$<year>$citation.issued.date-parts/first/first$</year>$endif$
+$if(citation.issued.date-parts/first/rest)$<month>$citation.issued.date-parts/first/rest/first$</month>$endif$
+$if(citation.issued.date-parts/first/rest/rest)$<day>$citation.issued.date-parts/first/rest/rest/first$</day>
+$endif$</pub-date>$endif$
 
-<!-- TODO deal with date formatting and CSL date stuff-->
-$if(date)$
-<pub-date date-type="$if(date.type)$$date.type$$else$pub$endif$" publication-format="electronic"$if(date.iso-8601)$ iso-8601-date="$date.iso-8601$"$endif$>
-$if(date.day)$
-<day>$date.day$</day>
-$endif$
-$if(date.month)$
-<month>$date.month$</month>
-$endif$
-<year>$date.year$</year>
-</pub-date>
-$endif$
-
-$if(citation.volume)$
-<volume>$citation.volume$</volume>
-$endif$
-$if(citation.issue)$
-<issue>$citation.issue$</issue>
-$endif$
-$if(citation.first-page)$
-<fpage>$citation.first-page$</fpage>
-$endif$
-$if(citation.last-page)$
-<lpage>$citation.last-page$</lpage>
-$endif$
-$if(citation.elocation-id)$
-<elocation-id>$citation.elocation-id$</elocation-id>
-$endif$
-<history>
-</history>
+$if(citation.volume)$<volume>$citation.volume$</volume>$endif$
+$if(citation.issue)$<issue>$citation.issue$</issue>$endif$
+$if(citation.first-page)$<fpage>$citation.first-page$</fpage>$endif$
+$if(citation.last-page)$<lpage>$citation.last-page$</lpage>$endif$
+$if(citation.elocation-id)$<elocation-id>$citation.elocation-id$</elocation-id>$endif$
+<history></history>
 
 <permissions>
 $for(copyright.statement)$

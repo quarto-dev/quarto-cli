@@ -163,7 +163,7 @@ import { logLevel } from "../../core/log.ts";
 
 import { cacheCodePage, clearCodePageCache } from "../../core/windows.ts";
 import { textHighlightThemePath } from "../../quarto-core/text-highlighting.ts";
-import { resolveAndFormatDate } from "../../core/date.ts";
+import { resolveAndFormatDate, resolveDate } from "../../core/date.ts";
 import { katexPostProcessor } from "../../format/html/format-html-math.ts";
 import {
   readAndInjectDependencies,
@@ -186,6 +186,9 @@ import {
 } from "../../format/markdown/format-markdown.ts";
 
 import { kRevealJSPlugins } from "../../extension/extension-shared.ts";
+import { kCitation } from "../../format/html/format-html-shared.ts";
+import { cslDate } from "../../core/csl.ts";
+import { citationMeta } from "../../quarto-core/attribution/document.ts";
 
 export async function runPandoc(
   options: PandocOptions,
@@ -834,6 +837,7 @@ export async function runPandoc(
   }
 
   // Resolve any date fields
+  const dateRaw = pandocMetadata[kDate];
   const dateFields = [kDate, kDateModified];
   dateFields.forEach((dateField) => {
     const date = pandocMetadata[dateField];
@@ -844,6 +848,22 @@ export async function runPandoc(
       format,
     );
   });
+
+  // Expand citation dates into CSL dates
+  const citationMetadata = pandocMetadata[kCitation];
+  if (citationMetadata) {
+    const docCSLDate = dateRaw
+      ? cslDate(resolveDate(options.source, dateRaw))
+      : undefined;
+    const fields = ["issued", "available-date"];
+    fields.forEach((field) => {
+      if (citationMetadata[field]) {
+        citationMetadata[field] = cslDate(citationMetadata[field]);
+      } else if (docCSLDate) {
+        citationMetadata[field] = docCSLDate;
+      }
+    });
+  }
 
   // Resolve the author metadata into a form that Pandoc will recognize
   const authorsRaw = pandocMetadata[kAuthors] || pandocMetadata[kAuthor];
