@@ -1,4 +1,5 @@
 // TODO Computation Images
+// -site updates
 
 // TODO Sites - 'tagged' parent
 // - Deletes only work with quarto parent
@@ -375,6 +376,10 @@ async function publish(
   ): Promise<Content> => {
     const createTitle = await uniquifyTitle(title);
 
+    const attachmentsToUpload: string[] = findAttachments(body.storage.value);
+    trace("attachmentsToUpload", attachmentsToUpload, LogPrefix.ATTACHMENT);
+    const updatedBody: ContentBody = updateImagePaths(body);
+
     const toCreate: ContentCreate = {
       contentChangeType: ContentChangeType.create,
       title: createTitle,
@@ -382,19 +387,13 @@ async function publish(
       space,
       status: ContentStatusEnum.current,
       ancestors: parent?.parent ? [{ id: parent.parent }] : null,
-      body,
+      body: updatedBody,
     };
 
     trace("createContent", { publishFiles, toCreate });
     const createdContent = await client.createContent(toCreate);
 
     if (createdContent.id) {
-      const attachmentsToUpload: string[] = findAttachments(
-        toCreate.body.storage.value
-      );
-
-      trace("attachmentsToUpload", attachmentsToUpload, LogPrefix.ATTACHMENT);
-
       const uploadAttachmentsResult = await Promise.all(
         uploadAttachments(
           publishFiles.baseDir,
@@ -427,6 +426,7 @@ async function publish(
     let content: Content | undefined;
     let message: string = "";
     let doOperation;
+
     if (publishRecord) {
       message = `Updating content at ${publishRecord.url}...`;
       doOperation = async () =>
