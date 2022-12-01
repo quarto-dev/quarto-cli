@@ -121,21 +121,7 @@ $endif$
 
 ${ authors.xml() }
 
-$if(article.author-notes)$
-<author-notes>
-$if(article.author-notes.corresp)$
-$for(article.author-notes.corresp)$
-<corresp id="cor-$article.author-notes.corresp.id$">* E-mail: <email>$article.author-notes.corresp.email$</email></corresp>
-$endfor$
-$endif$
-$if(article.author-notes.conflict)$
-<fn fn-type="conflict"><p>$article.author-notes.conflict$</p></fn>
-$endif$
-$if(article.author-notes.con)$
-<fn fn-type="con"><p>$article.author-notes.con$</p></fn>
-$endif$
-</author-notes>
-$endif$
+${ affiliations.xml() }
 
 <!-- TODO deal with date formatting and CSL date stuff-->
 $if(date)$

@@ -147,6 +147,7 @@ local kAffiliationAliasedFields = {
 -- This field will be included with 'by-author' and 'by-affiliation' and provides
 -- a simple incremental counter that can be used for things like note numbers
 local kNumber = "number"
+local kLetter = "letter"
 
 function processAuthorMeta(meta)
   -- prevents the front matter for markdown from containing
@@ -252,9 +253,11 @@ function processAuthorMeta(meta)
   -- number the authors and affiliations
   for i,affil in ipairs(affiliations) do
     affil[kNumber] = i
+    affil[kLetter] = letter(i)
   end
   for i,auth in ipairs(authors) do
     auth[kNumber] = i
+    auth[kLetter] = letter(i)
   end
 
   -- Write the normalized data back to metadata
@@ -282,6 +285,7 @@ function processAuthorMeta(meta)
   if meta[kBiblioConfig] == nil then
     meta[kBiblioConfig] = true
   end
+
   return meta
 end
 
@@ -759,6 +763,12 @@ function computeLabels(authors, affiliations, meta)
   end
 
   return meta
+end
+
+-- Get a letter for a number 
+function letter(number)
+  number = number%26
+  return string.char(96 + number)
 end
 
 -- Remove Spaces from the ends of tables
