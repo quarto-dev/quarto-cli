@@ -24,9 +24,22 @@
   description: "The document category."
 
 - name: license
-  schema: string
+  schema:
+    anyOf:
+      - object:
+          properties:
+            type:
+              string:
+                description: The type of the license.
+            url:
+              string:
+                description: A URL to the license.
+            text:
+              string:
+                description: The text to display for the license.
+      - string
   tags:
-    formats: [$html-doc]
+    formats: [$html-doc, $jats-all]
   description:
     short: The License for this document, if any. (e.g. `CC BY`)
     long: |
