@@ -143,11 +143,6 @@ $endfor$
 $for(copyright.holder)$
 <copyright-holder>$copyright.holder$</copyright-holder>
 $endfor$
-$if(copyright.text)$
-<license license-type="$copyright.type$" xlink:href="$copyright.link$">
-<license-p>$copyright.text$</license-p>
-</license>
-$endif$
 
 $for(license)$
 <license$if(it.type)$ license-type="${it.type}"$endif$$if(it.url)$ xlink:href="${it.url}"$endif$>

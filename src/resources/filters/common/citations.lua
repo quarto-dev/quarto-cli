@@ -41,30 +41,32 @@ local function normalizeTypedId(els)
 end
 
 function processCitationMeta(meta)
-  local citationMeta = meta[kCitation]
-  if citationMeta then
+  if meta then
+    local citationMeta = meta[kCitation]
+    if citationMeta then
 
-    local containerIds = citationMeta[kContainerId]
-    if containerIds ~= nil then
-      meta[kCitation][kContainerId] = normalizeTypedId(containerIds)
-    end
-
-    local articleIds = citationMeta[kArticleId]
-    if articleIds ~= nil then
-      meta[kCitation][kArticleId] = normalizeTypedId(articleIds)
-    end
-
-    if citationMeta[kPage] and citationMeta[kPageFirst] == nil and citationMeta[kPageLast] == nil then
-      local pagerange = split(pandoc.utils.stringify(citationMeta[kPage]), '-')
-      meta[kCitation][kPageFirst] = pandoc.Inlines(pagerange[1])
-      if pagerange[2] then
-        meta[kCitation][kPageLast] = pandoc.Inlines(pagerange[2])
+      local containerIds = citationMeta[kContainerId]
+      if containerIds ~= nil then
+        meta[kCitation][kContainerId] = normalizeTypedId(containerIds)
       end
-    end
 
-    return meta
-  else
-    return nil
+      local articleIds = citationMeta[kArticleId]
+      if articleIds ~= nil then
+        meta[kCitation][kArticleId] = normalizeTypedId(articleIds)
+      end
+
+      if citationMeta[kPage] and citationMeta[kPageFirst] == nil and citationMeta[kPageLast] == nil then
+        local pagerange = split(pandoc.utils.stringify(citationMeta[kPage]), '-')
+        meta[kCitation][kPageFirst] = pandoc.Inlines(pagerange[1])
+        if pagerange[2] then
+          meta[kCitation][kPageLast] = pandoc.Inlines(pagerange[2])
+        end
+      end
+
+      return meta
+    else
+      return nil
+    end
   end
 end
 
