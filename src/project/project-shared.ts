@@ -10,10 +10,8 @@ import { dirname, isAbsolute, join, relative } from "path/mod.ts";
 import { kHtmlMathMethod } from "../config/constants.ts";
 
 import { pathWithForwardSlashes } from "../core/path.ts";
-import * as ld from "../core/lodash.ts";
 import { kProjectOutputDir, ProjectContext } from "./types.ts";
 import { ProjectType } from "./types/types.ts";
-import path from "../vendor/deno.land/std@0.166.0/node/path.ts";
 
 export function projectExcludeDirs(context: ProjectContext): string[] {
   const outputDir = projectOutputDir(context);
@@ -84,22 +82,22 @@ export function toInputRelativePaths(
 
   const fixup = (value: string) => {
     // if this is a valid file, then transform it to be relative to the input path
-    const projectPath = join(baseDir, value);
-    if (!existsCache.has(projectPath)) {
+    if (!existsCache.has(value)) {
+      const projectPath = join(baseDir, value);
       try {
         if (existsSync(projectPath)) {
           existsCache.set(
-            projectPath,
+            value,
             pathWithForwardSlashes(join(offset!, value)),
           );
         } else {
-          existsCache.set(projectPath, value);
+          existsCache.set(value, value);
         }
       } catch {
-        existsCache.set(projectPath, value);
+        existsCache.set(value, value);
       }
     }
-    return existsCache.get(projectPath);
+    return existsCache.get(value);
   };
 
   const inner = (
