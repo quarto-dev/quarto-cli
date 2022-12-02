@@ -201,6 +201,8 @@ function create_emulated_node(t, is_custom)
   is_custom = is_custom or false
 
   local metaFields = {
+    clone = pandoc_ast_methods.clone,
+    walk = pandoc_ast_methods.walk,
     t = t,
     is_emulated = true,
     is_custom = is_custom
@@ -208,26 +210,15 @@ function create_emulated_node(t, is_custom)
 
   for k, v in pairs(pandoc_fixed_field_types[t] or {}) do
     metaFields[k] = create_emulated_node(v)
-  end
-
-  local special_resolution = function(tbl, key)
-    if metaFields[key] then return true, metaFields[key] end
-    if key == "identifier" and tbl.attr then return true, tbl.attr.identifier end
-    if key == "attributes" and tbl.attr then return true, tbl.attr.attributes end
-    if key == "classes" and tbl.attr then return true, tbl.attr.classes end
-    if key == "c" then
-      if tbl.content then return true, tbl.content end
+    if k == "attr" then
+      metaFields.identifier = v.identifier
+      metaFields.classes = v.classes
+      metaFields.attributes = v.attributes
     end
-    return false
   end
 
   setmetatable(emulatedNode, {
-    __index = function(tbl, key)
-      local resolved, value = special_resolution(tbl, key)
-      if resolved then return value end
-      local method = pandoc_ast_methods[key]
-      if method then return method end
-    end,
+    __index = metaFields,
     __eq = emulated_node_eq,
     __pairs = function(tbl)
       local inMeta = pandoc_fixed_field_types[t] ~= nil
@@ -263,8 +254,22 @@ function create_emulated_node(t, is_custom)
     __concat = emulated_node_concat,
     __newindex = function(tbl, key, value)
       local fixedFieldType = (pandoc_fixed_field_types[t] or {})[key]
+      if key == "classes" and metaFields.attr then
+        metaFields.attr.classes = value
+      end
+      if key == "identifier" and metaFields.attr then
+        metaFields.attr.identifier = value
+      end
+      if key == "attributes" and metaFields.attr then
+        metaFields.attr.attributes = value
+      end
       if fixedFieldType then
         metaFields[key] = pandoc[fixedFieldType](value)
+        if key == "attr" then
+          metaFields.identifier = metaFields[key].identifier
+          metaFields.classes = metaFields[key].classes
+          metaFields.attributes = metaFields[key].attributes
+        end
       else
         rawset(tbl, key, value)
       end

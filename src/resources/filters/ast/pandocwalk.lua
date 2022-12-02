@@ -78,8 +78,10 @@ local function apply_filter_topdown_blocks_or_inlines(filter, blocks_or_inlines)
       elseif is_ast_node_array(filterResult) then
         -- array of results: splice those in.
         -- this includes empty array, which means "remove me"
-        for _, innerV in ast_node_property_pairs(filterResult) do
-          table.insert(result, as_emulated(innerV))
+        for innerK, innerV in pairs(filterResult) do
+          if innerK ~= "attr" and type(innerV) ~= "function" then
+            table.insert(result, as_emulated(innerV))
+          end
         end
       else
         -- changed object, use that instead
@@ -110,8 +112,10 @@ local function apply_filter_bottomup_blocks_or_inlines(filter, blocks_or_inlines
       elseif is_ast_node_array(filterResult) then
         -- array of results: splice those in.
         -- this includes empty array, which means "remove me"
-        for _, innerV in ast_node_property_pairs(filterResult) do
-          result:insert(as_emulated(innerV))
+        for innerK, innerV in pairs(filterResult) do
+          if innerK ~= "attr" and type(innerV) ~= "function" then
+            result:insert(as_emulated(innerV))
+          end
         end
       else
         -- changed object, use that instead
@@ -149,9 +153,9 @@ apply_filter_bottomup = function(filter, node)
     end
     if pandocT == "List" then
       local result = pandoc.List()
-      result:extend(tmap(node, function(n) 
-        return apply_filter_bottomup(filter, n) or n end
-      ))
+      for _, v in ipairs(node) do
+        table.insert(result, apply_filter_bottomup(filter, v) or v)
+      end
       return result
     end
     -- other non-emulated nodes are handled below
@@ -218,11 +222,13 @@ apply_filter_bottomup = function(filter, node)
     end
   else
     local ast_node_changed = false
-    for k, v in ast_node_property_pairs(result) do
-      local newV = apply_filter_bottomup(filter, v)
-      if newV ~= nil then
-        ast_node_changed = true
-        newResult[k] = newV
+    for k, v in pairs(result) do
+      if k ~= "attr" and type(v) ~= "function" then
+        local newV = apply_filter_bottomup(filter, v)
+        if newV ~= nil then
+          ast_node_changed = true
+          newResult[k] = newV
+        end
       end
     end
     if ast_node_changed then
@@ -325,8 +331,10 @@ apply_filter_topdown = function(filter, node)
 
   -- now we recurse on the node, either new or old
   local result = node:clone()
-  for k, v in ast_node_property_pairs(result) do
-    result[k] = apply_filter_topdown(filter, v)
+  for k, v in pairs(result) do
+    if k ~= "attr" and type(v) ~= "function" then
+      result[k] = apply_filter_topdown(filter, v)
+    end
   end
   return result
 end
@@ -376,14 +384,18 @@ local function walk_custom_splicing(filter, node)
     Blocks = function(blocks)
       local result = pandoc.Blocks()
       for _, custom in ipairs(blocks) do
-        local filterFn = custom.is_custom and (filter[custom.t] or filter.Custom)
-        local filterResult = filterFn and filterFn(custom)
-        if filterResult == nil then
+        if not custom.is_custom then
           result:insert(custom)
-        elseif is_ast_node_array(filterResult) or filterResult.t == "Blocks" then
-          result:extend(filterResult)
         else
-          result:insert(filterResult)
+          local filterFn = filter[custom.t] or filter.Custom
+          local filterResult = filterFn(custom)
+          if filterResult == nil then
+            result:insert(custom)
+          elseif is_ast_node_array(filterResult) or filterResult.t == "Blocks" then
+            result:extend(filterResult)
+          else
+            result:insert(filterResult)
+          end
         end
       end
       return result
@@ -391,14 +403,18 @@ local function walk_custom_splicing(filter, node)
     Inlines = function(inlines)
       local result = pandoc.Inlines()
       for _, custom in ipairs(inlines) do
-        local filterFn = custom.is_custom and (filter[custom.t] or filter.Custom)
-        local filterResult = filterFn and filterFn(custom)
-        if filterResult == nil then
+        if not custom.is_custom then
           result:insert(custom)
-        elseif is_ast_node_array(filterResult) or filterResult.t == "Inlines" then
-          result:extend(filterResult)
         else
-          result:insert(filterResult)
+          local filterFn = filter[custom.t] or filter.Custom
+          local filterResult = filterFn(custom)
+          if filterResult == nil then
+            result:insert(custom)
+          elseif is_ast_node_array(filterResult) or filterResult.t == "Inlines" then
+            result:extend(filterResult)
+          else
+            result:insert(filterResult)
+          end
         end
       end
       return result
