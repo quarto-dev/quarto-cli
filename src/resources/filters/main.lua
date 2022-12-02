@@ -275,6 +275,8 @@ tappend(filterList, quartoLayout)
 tappend(filterList, quartoPost)
 tappend(filterList, quartoFinalize)
 
+local profiler = require("profiler")
+
 local result = run_as_extended_ast({
   pre = {
     initOptions()

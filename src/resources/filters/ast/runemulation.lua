@@ -333,16 +333,35 @@ local function emulate_pandoc_filter(filters, overrides_state)
   return {
     traverse = 'topdown',
     Pandoc = function(doc)
+      local result
+      if profiling then
+        local profiler = require('profiler')
+        profiler.start()
+        doc = to_emulated(doc)
+        doc = do_it(doc, filters)
+        doc = from_emulated(doc)
 
-      doc = to_emulated(doc)
-      doc = do_it(doc, filters)
-      doc = from_emulated(doc)
+        -- the installation happens in main.lua ahead of loaders
+        restore_pandoc_overrides(overrides_state)
 
-      -- the installation happens in main.lua ahead of loaders
-      restore_pandoc_overrides(overrides_state)
+        -- this call is now a real pandoc.Pandoc call
+        result = pandoc.Pandoc(doc.blocks, doc.meta)
+        profiler.stop()
 
-      -- this call is now a real pandoc.Pandoc call
-      return pandoc.Pandoc(doc.blocks, doc.meta), false
+        profiler.report("profiler.txt")
+        crash_with_stack_trace() -- run a single file for now.
+      else
+        doc = to_emulated(doc)
+        doc = do_it(doc, filters)
+        doc = from_emulated(doc)
+
+        -- the installation happens in main.lua ahead of loaders
+        restore_pandoc_overrides(overrides_state)
+
+        -- this call is now a real pandoc.Pandoc call
+        result = pandoc.Pandoc(doc.blocks, doc.meta)
+      end
+      return result,false
     end
   }
 end
