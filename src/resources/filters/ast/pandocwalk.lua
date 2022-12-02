@@ -388,13 +388,17 @@ local function walk_custom_splicing(filter, node)
           result:insert(custom)
         else
           local filterFn = filter[custom.t] or filter.Custom
-          local filterResult = filterFn(custom)
-          if filterResult == nil then
+          if filterFn == nil then
             result:insert(custom)
-          elseif is_ast_node_array(filterResult) or filterResult.t == "Blocks" then
-            result:extend(filterResult)
           else
-            result:insert(filterResult)
+            local filterResult = filterFn(custom)
+            if filterResult == nil then
+              result:insert(custom)
+            elseif is_ast_node_array(filterResult) or filterResult.t == "Blocks" then
+              result:extend(filterResult)
+            else
+              result:insert(filterResult)
+            end
           end
         end
       end

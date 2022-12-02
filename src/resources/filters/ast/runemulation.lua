@@ -55,7 +55,7 @@ end
 function install_pandoc_overrides()
   local state = {}
 
-  state.lua_type = type
+  --  state.lua_type = type
   state.walk_block = pandoc.walk_block
   state.walk_inline = pandoc.walk_inline
   state.write = pandoc.write
@@ -69,7 +69,7 @@ function install_pandoc_overrides()
   state.utils = pandoc.utils
   state.mediabag = pandoc.mediabag
 
-  local lua_type = type
+  --  local lua_type = type
   local walk_block = state.walk_block
   local walk_inline = state.walk_inline
   local read = state.read
@@ -83,8 +83,8 @@ function install_pandoc_overrides()
   local utils = state.utils
   local mediabag = state.mediabag
 
-  type = function(v)
-    local lt = lua_type(v)
+  local emulated_type = function(v)
+    local lt = type(v)
     -- return lt
     if lt ~= "table" then return lt end
     if v.is_emulated and v.t ~= "Inlines" and v.t ~= "List" and v.t ~= "Blocks" then
@@ -92,6 +92,20 @@ function install_pandoc_overrides()
     end
     return lt
   end
+  local emulated_utils_type = function(v)
+    local t = type(v)
+    if t ~= "table" and t ~= "userdata" then
+      return t
+    end
+    if v.is_emulated then
+      if v.t == "Inlines" then return v.t end
+      if v.t == "Blocks" then return v.t end
+      if pandoc_is_block[v.t] then return "Block" end
+      if pandoc_is_inline[v.t] then return "Inline" end
+    end
+    return pandoc.utils.type(v)
+  end
+
   state.old_utils = {}
 
   local our_utils = {
@@ -122,19 +136,6 @@ function install_pandoc_overrides()
     to_simple_table = function(v)
       return to_emulated(state.old_utils.to_simple_table(from_emulated(v)))
     end,
-    type = function(v)
-      local t = type(v)
-      if t ~= "table" and t ~= "userdata" then
-        return t
-      end
-      if v.is_emulated then
-        if v.t == "Inlines" then return v.t end
-        if v.t == "Blocks" then return v.t end
-        if pandoc_is_block[v.t] then return "Block" end
-        if pandoc_is_inline[v.t] then return "Inline" end
-      end
-      return state.old_utils.type(v)
-    end
   }
 
   -- import with this notation before anyone else to avoid
@@ -325,7 +326,7 @@ function restore_pandoc_overrides(state)
   pandoc.MetaInlines = state.MetaInlines
   pandoc.MetaBlocks = state.MetaBlocks
   pandoc.TableBody = state.TableBody -- pretty sure it'll always be nil, but..
-  type = state.lua_type
+  -- type = state.lua_type
 end
 
 local function emulate_pandoc_filter(filters, overrides_state)
@@ -334,6 +335,7 @@ local function emulate_pandoc_filter(filters, overrides_state)
     traverse = 'topdown',
     Pandoc = function(doc)
       local result
+      -- local profiling = true
       if profiling then
         local profiler = require('profiler')
         profiler.start()
