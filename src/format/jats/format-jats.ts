@@ -19,6 +19,7 @@ import { createFormat } from "../formats-shared.ts";
 import { warning } from "log/mod.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { join } from "path/mod.ts";
+import { reformat } from "../../core/xml.ts";
 
 const kJatsExtended = "jats-extended";
 const kJatsDtd = "jats-dtd";
@@ -66,6 +67,10 @@ export function jatsFormat(displayName: string, ext: string): Format {
         );
       }
 
+      const reformatXmlPostProcessor = async (output: string) => {
+        await reformat(output);
+      };
+
       return {
         metadata: {
           [kQuartoInternal]: {
@@ -76,12 +81,17 @@ export function jatsFormat(displayName: string, ext: string): Format {
         },
         templateContext,
         metadataOverride,
+        postprocessors: [reformatXmlPostProcessor],
       };
     },
   });
 }
 
 type JatsTagset = "archiving" | "publishing" | "authoring";
+interface DTDInfo {
+  name: string;
+  location: string;
+}
 
 const kTagSets: Record<string, JatsTagset> = {
   "jats": "archiving",
@@ -93,13 +103,20 @@ function jatsTagset(to: string): JatsTagset {
   return kTagSets[to];
 }
 
-const kDJatsDtds: Record<JatsTagset, string> = {
-  "archiving":
-    ' "-//NLM//DTD JATS (Z39.96) Journal Archiving and Interchange DTD v1.2 20190208//EN" "JATS-archivearticle1.dtd" ',
-  "publishing":
-    ' "-//NLM//DTD JATS (Z39.96) Journal Publishing DTD v1.2 20190208//EN" "JATS-publishing1.dtd" ',
-  "authoring":
-    ' "-//NLM//DTD JATS (Z39.96) Article Authoring DTD v1.2 20190208//EN" "JATS-articleauthoring1.dtd" ',
+const kDJatsDtds: Record<JatsTagset, DTDInfo> = {
+  "archiving": {
+    name:
+      "-//NLM//DTD JATS (Z39.96) Journal Archiving and Interchange DTD v1.2 20190208//EN",
+    location: "JATS-archivearticle1.dtd",
+  },
+  "publishing": {
+    name: "-//NLM//DTD JATS (Z39.96) Journal Publishing DTD v1.2 20190208//EN",
+    location: "JATS-publishing1.dtd",
+  },
+  "authoring": {
+    name: "-//NLM//DTD JATS (Z39.96) Article Authoring DTD v1.2 20190208//EN",
+    location: "JATS-articleauthoring1.dtd",
+  },
 };
 
 function jatsDtd(tagset: JatsTagset) {
