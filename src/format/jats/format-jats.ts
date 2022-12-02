@@ -45,7 +45,6 @@ export function jatsFormat(displayName: string, ext: string): Format {
       const templateDir = formatResourcePath("jats", "pandoc");
       const partials = [
         "authors.xml",
-        "affiliations.xml",
       ];
       const templateContext = {
         template: join(templateDir, "template.xml"),

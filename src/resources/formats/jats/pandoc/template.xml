@@ -3,7 +3,7 @@ $if(xml-stylesheet)$
 <?xml-stylesheet type="text/xsl" href="$xml-stylesheet$"?>
 $endif$
 $if(quarto-internal.jats-dtd)$
-<!DOCTYPE article PUBLIC$quarto-internal.jats-dtd$>
+<!DOCTYPE article PUBLIC "$quarto-internal.jats-dtd.name$" "$quarto-internal.jats-dtd.location$">
 $endif$
 
 $if(citation.jats-type)$
@@ -69,7 +69,6 @@ $endif$
 
 
 <article-meta>
-
 $if(quarto-internal.jats-extended)$
 $if(citation.article-id)$
 $for(citation.article-id)$
@@ -92,12 +91,11 @@ $endif$
 $if(citation.art-access-id)$
 <article-id pub-id-type="art-access-id">$citation.art-access-id$</article-id>
 $endif$
+
 $if(citation.subject)$
 <article-categories>
 <subj-group>
-<subj-group subj-group-type="subject">
 <subject>$citation.subject$</subject>
-</subj-group>
 $if(citation.categories)$
 <subj-group subj-group-type="categories">
 $for(citation.categories)$
@@ -118,8 +116,9 @@ $if(subtitle)$
 $endif$
 </title-group>
 $endif$
+
 ${ authors.xml() }
-${ affiliations.xml() }
+
 $if(citation.issued)$<pub-date date-type="pub" publication-format="electronic" iso-8601-date="$citation.issued.iso-8601$">
 $if(citation.issued.date-parts/first/first)$<year>$citation.issued.date-parts/first/first$</year>$endif$
 $if(citation.issued.date-parts/first/rest)$<month>$citation.issued.date-parts/first/rest/first$</month>$endif$
@@ -128,6 +127,8 @@ $endif$</pub-date>$endif$
 
 $if(citation.volume)$<volume>$citation.volume$</volume>$endif$
 $if(citation.issue)$<issue>$citation.issue$</issue>$endif$
+$if(citation.isbn)$<issue>$citation.isbn$</isbn>$endif$
+<!--Supplements here -->
 $if(citation.first-page)$<fpage>$citation.first-page$</fpage>$endif$
 $if(citation.last-page)$<lpage>$citation.last-page$</lpage>$endif$
 $if(citation.elocation-id)$<elocation-id>$citation.elocation-id$</elocation-id>$endif$
