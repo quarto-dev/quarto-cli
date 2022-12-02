@@ -141,8 +141,7 @@ function processLicenseMeta(meta)
     if copyrightMeta then
         meta[kCopyright] = processCopyright(copyrightMeta)
     end
-    
-    return meta
   end
+  return meta
 end
 

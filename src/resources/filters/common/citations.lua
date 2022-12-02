@@ -62,11 +62,8 @@ function processCitationMeta(meta)
           meta[kCitation][kPageLast] = pandoc.Inlines(pagerange[2])
         end
       end
-
-      return meta
-    else
-      return nil
     end
+    return meta
   end
 end
 
