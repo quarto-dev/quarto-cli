@@ -8339,6 +8339,11 @@ var require_yaml_intelligence_resources = __commonJS({
                 string: {
                   description: "Value for rel attribute. Multiple space-separated values are permitted.\nSee <https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel>\nfor a details.\n"
                 }
+              },
+              target: {
+                string: {
+                  description: "Value for the target attribute.\n\nSee <https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/target>\nfor details.\n"
+                }
               }
             }
           }
