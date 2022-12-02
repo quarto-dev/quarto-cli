@@ -8342,7 +8342,7 @@ var require_yaml_intelligence_resources = __commonJS({
               },
               target: {
                 string: {
-                  description: "Value for the target attribute.\n\nSee <https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/target>\nfor details.\n"
+                  description: "Value for the target attribute.\n\nSee <https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target>\nfor details.\n"
                 }
               }
             }

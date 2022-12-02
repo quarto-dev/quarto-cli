@@ -136,7 +136,7 @@
         string:
           description: |
             Value for target attribute.
-            See <https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/target>
+            See <https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target>
             for details.
      
 - id: comments

@@ -8343,7 +8343,7 @@ try {
                 },
                 target: {
                   string: {
-                    description: "Value for target attribute.\nSee <https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/target>\nfor details.\n"
+                    description: "Value for target attribute.\nSee <https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target>\nfor details.\n"
                   }
                 }
                 
@@ -17618,7 +17618,7 @@ try {
           "Text to display for item (defaults to the document title if not\nprovided)",
           "Alias for href",
           'Value for rel attribute. Multiple space-separated values are\npermitted. See <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel" class="uri">https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel</a>\nfor a details.',
-          'Value for target attribute. See <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/target" class="uri">https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/target</a>\nfor details.',
+          'Value for target attribute. See <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target" class="uri">https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/target</a>\nfor details.',
           "The Github repo that will be used to store comments.",
           "The label that will be assigned to issues created by Utterances.",
           {
