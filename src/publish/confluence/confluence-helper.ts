@@ -461,6 +461,7 @@ export const updateLinks = (
 };
 
 export const updateImagePaths = (body: ContentBody): ContentBody => {
+  
   const replacer = (match: string): string => {
     let updated: string = match.replace(/^.*[\\\/]/, "");
     return updated;
@@ -480,25 +481,6 @@ export const updateImagePaths = (body: ContentBody): ContentBody => {
 
   body.storage.value = withReplacedImages;
   return body;
-};
-
-export const updateImagePathsForChanges = (
-  spaceChanges: ConfluenceSpaceChange[]
-): ConfluenceSpaceChange[] => {
-  const changeMapper = (
-    changeToProcess: ConfluenceSpaceChange
-  ): ConfluenceSpaceChange => {
-    if (isContentUpdate(changeToProcess) || isContentCreate(changeToProcess)) {
-      changeToProcess.body = updateImagePaths(changeToProcess.body);
-    }
-
-    return changeToProcess;
-  };
-
-  const updatedChanges: ConfluenceSpaceChange[] =
-    spaceChanges.map(changeMapper);
-
-  return updatedChanges;
 };
 
 export const findAttachments = (bodyValue: string): string[] => {

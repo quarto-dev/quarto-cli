@@ -1,9 +1,12 @@
 // TODO Computation Images
 // -site updates
+// -site create
 
 // TODO Sites - 'tagged' parent
 // - Deletes only work with quarto parent
 // - Set permissions on quarto parent
+
+// TODO Confluence Preview
 
 // TODO Resource bundles
 
@@ -68,7 +71,6 @@ import {
   tokenFilterOut,
   transformAtlassianDomain,
   updateImagePaths,
-  updateImagePathsForChanges,
   updateLinks,
   validateEmail,
   validateParentURL,
@@ -84,7 +86,7 @@ import {
   verifyLocation,
 } from "./confluence-verify.ts";
 import { CHANGES_DISABLED, DELETE_DISABLED } from "./constants.ts";
-import { trace } from "./confluence-logger.ts";
+import { logError, trace } from "./confluence-logger.ts";
 import { md5Hash } from "../../core/hash.ts";
 
 export const CONFLUENCE_ID = "confluence";
@@ -281,17 +283,26 @@ async function publish(
     pathList: string[],
     parentId: string,
     existingAttachments: AttachmentSummary[] = []
-  ): Promise<AttachmentSummary>[] => {
+  ): Promise<AttachmentSummary | null>[] => {
     const uploadAttachment = async (
       pathToUpload: string
-    ): Promise<AttachmentSummary> => {
+    ): Promise<AttachmentSummary | null> => {
       trace(
         "uploadAttachment",
         { baseDirectory, pathList, parentId, existingAttachments },
         LogPrefix.ATTACHMENT
       );
-      const fileBuffer = await Deno.readFile(join(baseDirectory, pathToUpload));
-      const fileHash = md5Hash(fileBuffer.toString());
+      let fileBuffer: Uint8Array;
+      let fileHash: string;
+      const path = join(baseDirectory, pathToUpload);
+      try {
+        fileBuffer = await Deno.readFile(path);
+        fileHash = md5Hash(fileBuffer.toString());
+      } catch (error) {
+        logError(`${path} not found`, error);
+        return null;
+      }
+
       const fileName = pathToUpload;
 
       const existingDuplicateAttachment = existingAttachments.find(
@@ -372,9 +383,10 @@ async function publish(
 
   const createContent = async (
     publishFiles: PublishFiles,
-    body: ContentBody
+    body: ContentBody,
+    titleToCreate: string = title
   ): Promise<Content> => {
-    const createTitle = await uniquifyTitle(title);
+    const createTitle = await uniquifyTitle(titleToCreate);
 
     const attachmentsToUpload: string[] = findAttachments(body.storage.value);
     trace("attachmentsToUpload", attachmentsToUpload, LogPrefix.ATTACHMENT);
@@ -498,7 +510,6 @@ async function publish(
     );
 
     changeList = updateLinks(metadataByFilename, changeList, server, parent);
-    changeList = updateImagePathsForChanges(changeList);
     trace("changelist", changeList);
 
     const spaceChanges = (
@@ -511,8 +522,10 @@ async function publish(
             return null;
           }
           if (isContentCreate(change)) {
-            const result: Content = await client.createContent(
-              change as ContentCreate
+            const result = await createContent(
+              publishFiles,
+              change.body,
+              change.title ?? ""
             );
             const contentPropertyResult: Content =
               await client.createContentProperty(result.id ?? "", {
