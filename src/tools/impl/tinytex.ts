@@ -32,7 +32,8 @@ import { hasTinyTex, tinyTexInstallDir } from "./tinytex-info.ts";
 import { copyTo } from "../../core/copy.ts";
 import { suggestUserBinPaths } from "../../core/env.ts";
 
-import { ensureDirSync } from "fs/mod.ts";
+import { ensureDirSync, walkSync } from "fs/mod.ts";
+import { relative } from "path/mod.ts";
 
 // This the https texlive repo that we use by default
 const kDefaultRepos = [
@@ -199,6 +200,28 @@ async function install(
 
           copyTo(from, installDir);
           Deno.removeSync(from, { recursive: true });
+
+          // Work around: https://github.com/denoland/deno/issues/16921
+          // This will verify that the permissions of the file
+          // are preserved after the file has been copied.
+          //
+          // Once the Deno bug is resolve, the commit containing
+          // this change should be reverted, quarto tinytex should
+          // be remove and reinstalled and the smoke tests
+          // should be run and pass.
+          if (Deno.build.os === "darwin") {
+            for (const file of walkSync(from)) {
+              if (file.isFile) {
+                const relativePath = relative(from, file.path);
+                const destPath = join(installDir, relativePath);
+                const srcStat = Deno.statSync(file.path);
+                const destStat = Deno.statSync(destPath);
+                if (srcStat.mode !== null && srcStat.mode !== destStat.mode) {
+                  Deno.chmodSync(destPath, srcStat.mode);
+                }
+              }
+            }
+          }
 
           // Note the version that we have installed
           noteInstalledVersion(pkgInfo.version);
