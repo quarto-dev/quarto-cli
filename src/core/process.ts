@@ -8,12 +8,33 @@
 import { MuxAsyncIterator, pooledMap } from "async/mod.ts";
 import { iterateReader } from "streams/mod.ts";
 import { info } from "log/mod.ts";
+import { onCleanup } from "./cleanup.ts";
 
 export interface ProcessResult {
   success: boolean;
   code: number;
   stdout?: string;
   stderr?: string;
+}
+
+const processList = new Map<number, Deno.Process>();
+let processCount = 0;
+let cleanupRegistered = false;
+
+function ensureCleanup() {
+  if (!cleanupRegistered) {
+    cleanupRegistered = true;
+    onCleanup(() => {
+      for (const process of processList.values()) {
+        try {
+          process.kill();
+          process.close();
+        } catch (error) {
+          info("Error occurred during cleanup: " + error);
+        }
+      }
+    });
+  }
 }
 
 export async function execProcess(
@@ -23,6 +44,7 @@ export async function execProcess(
   stderrFilter?: (output: string) => string,
   respectStreams?: boolean,
 ): Promise<ProcessResult> {
+  ensureCleanup();
   // define process
   try {
     // If the caller asked for stdout/stderr to be directed to the rid of an open
@@ -34,9 +56,12 @@ export async function execProcess(
       stdout: typeof (options.stdout) === "number" ? options.stdout : "piped",
       stderr: typeof (options.stderr) === "number" ? options.stderr : "piped",
     });
+    let thisProcessId = ++processCount; // don't risk repeated PIDs
+    processList.set(thisProcessId, process);
 
     if (stdin !== undefined) {
       if (!process.stdin) {
+        processList.delete(processCount);
         throw new Error("Process stdin not available");
       }
       // write in 4k chunks (deno observed to overflow at > 64k)
@@ -128,6 +153,8 @@ export async function execProcess(
 
     // close the process
     process.close();
+
+    processList.delete(thisProcessId);
 
     return {
       success: status.success,
