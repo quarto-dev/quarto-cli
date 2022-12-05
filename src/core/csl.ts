@@ -5,6 +5,7 @@
 *
 */
 
+import { CslDate } from "../resources/types/schema-types.ts";
 import { formatDate, parsePandocDate } from "./date.ts";
 
 export const kPdfUrl = "pdf-url";
@@ -192,6 +193,17 @@ export function cslNames(authors: unknown) {
   return cslNames;
 }
 
+const isCslDate = (dateRaw: unknown) => {
+  if (typeof (dateRaw) === "object") {
+    // deno-lint-ignore no-explicit-any
+    return ((dateRaw as any)["date-parts"] !== undefined) &&
+      // deno-lint-ignore no-explicit-any
+      (dateRaw as any)["iso-8601"] !== undefined;
+  } else {
+    return false;
+  }
+};
+
 export function cslDate(dateRaw: unknown): CSLDate | undefined {
   const toDateArray = (dateArr: number[]): CSLDate | undefined => {
     if (dateArr.length === 0) {
@@ -286,6 +298,8 @@ export function cslDate(dateRaw: unknown): CSLDate | undefined {
     }
 
     return undefined;
+  } else if (isCslDate(dateRaw)) {
+    return dateRaw as CSLDate;
   }
 }
 
