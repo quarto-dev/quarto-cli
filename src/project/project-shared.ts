@@ -10,7 +10,6 @@ import { dirname, isAbsolute, join, relative } from "path/mod.ts";
 import { kHtmlMathMethod } from "../config/constants.ts";
 
 import { pathWithForwardSlashes } from "../core/path.ts";
-import * as ld from "../core/lodash.ts";
 import { kProjectOutputDir, ProjectContext } from "./types.ts";
 import { ProjectType } from "./types/types.ts";
 
@@ -73,65 +72,69 @@ export function toInputRelativePaths(
   inputDir: string,
   collection: Array<unknown> | Record<string, unknown>,
   ignoreResources?: string[],
-  parentKey?: unknown,
 ) {
+  const existsCache = new Map<string, string>();
   const resourceIgnoreFields = [
-    ignoreFieldsForProjectType(type),
+    ...ignoreFieldsForProjectType(type),
     ...(ignoreResources || []),
   ];
-  ld.forEach(
-    collection,
-    (
-      value: unknown,
-      index: unknown,
-      collection: Array<unknown> | Record<string, unknown>,
-    ) => {
-      const assign = (value: unknown) => {
-        if (typeof (index) === "number") {
-          (collection as Array<unknown>)[index] = value;
-        } else if (typeof (index) === "string") {
-          (collection as Record<string, unknown>)[index] = value;
+  const offset = relative(inputDir, baseDir);
+
+  const fixup = (value: string) => {
+    // if this is a valid file, then transform it to be relative to the input path
+    if (!existsCache.has(value)) {
+      const projectPath = join(baseDir, value);
+      try {
+        if (existsSync(projectPath)) {
+          existsCache.set(
+            value,
+            pathWithForwardSlashes(join(offset!, value)),
+          );
+        } else {
+          existsCache.set(value, value);
         }
-      };
+      } catch {
+        existsCache.set(value, value);
+      }
+    }
+    return existsCache.get(value);
+  };
 
-      if (
-        resourceIgnoreFields.includes(index as string) ||
-        (parentKey === kHtmlMathMethod && index === "method")
-      ) {
-        // don't fixup html-math-method
-      } else if (Array.isArray(value)) {
-        assign(
-          toInputRelativePaths(type, baseDir, inputDir, value, ignoreResources),
-        );
-      } else if (typeof (value) === "object") {
-        assign(
-          toInputRelativePaths(
-            type,
-            baseDir,
-            inputDir,
-            value as Record<string, unknown>,
-            ignoreResources,
-            index,
-          ),
-        );
-      } else if (typeof (value) === "string") {
-        if (value.length > 0 && !isAbsolute(value)) {
-          // if this is a valid file, then transform it to be relative to the input path
-          const projectPath = join(baseDir, value);
-
-          // Paths could be invalid paths (e.g. with colons or other weird characters)
-          try {
-            if (existsSync(projectPath)) {
-              const offset = relative(inputDir, baseDir);
-              assign(pathWithForwardSlashes(join(offset, value)));
-            }
-          } catch {
-            // Just ignore this error as the path must not be a local file path
+  const inner = (
+    collection: Array<unknown> | Record<string, unknown>,
+    parentKey?: unknown,
+  ) => {
+    if (Array.isArray(collection)) {
+      for (let index = 0; index < collection.length; ++index) {
+        const value = collection[index];
+        if (Array.isArray(value) || typeof value === "object") {
+          inner(value as any);
+        } else if (typeof value === "string") {
+          if (value.length > 0 && !isAbsolute(value)) {
+            collection[index] = fixup(value);
           }
         }
       }
-    },
-  );
+    } else {
+      for (const index of Object.keys(collection)) {
+        const value = collection[index];
+        if (
+          (parentKey === kHtmlMathMethod && index === "method") ||
+          resourceIgnoreFields!.includes(index)
+        ) {
+          // don't fixup html-math-method
+        } else if (Array.isArray(value) || typeof value === "object") {
+          inner(value as any, index);
+        } else if (typeof value === "string") {
+          if (value.length > 0 && !isAbsolute(value)) {
+            collection[index] = fixup(value);
+          }
+        }
+      }
+    }
+  };
+
+  inner(collection);
   return collection;
 }
 

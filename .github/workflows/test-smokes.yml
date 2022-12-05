@@ -31,13 +31,26 @@ jobs:
         with:
           r-version: "4.1.0"
 
+      - name: Install node (for Playwright)
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      - name: Install node dependencies
+        run: yarn
+        working-directory: ./tests/integration/playwright
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+        working-directory: ./tests/integration/playwright
+
       - name: Cache packages
         uses: actions/cache@v3
         with:
           path: ${{ env.RENV_PATHS_ROOT }}
-          key: ${{ runner.os }}-renv-${{ hashFiles('**/renv.lock') }}
+          key: ${{ runner.os }}-1-renv-${{ hashFiles('**/renv.lock') }}
           restore-keys: |
-            ${{ runner.os }}-renv-
+            ${{ runner.os }}-1-renv-
 
       - name: Restore packages
         run: |

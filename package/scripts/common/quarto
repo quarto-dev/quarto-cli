@@ -141,6 +141,7 @@ if [ "$QUARTO_DENO" == "" ]; then
   export QUARTO_DENO="${SCRIPT_PATH}/tools/${DENO_DIR}/deno"
 fi
 
+export DENO_NO_UPDATE_CHECK=1
 # Be sure to include any already defined QUARTO_DENO_OPTIONS
 QUARTO_DENO_OPTIONS="--unstable --no-config --cached-only --allow-read --allow-write --allow-run --allow-env --allow-net --allow-ffi ${QUARTO_DENO_OPTIONS}"
 
