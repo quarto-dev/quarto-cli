@@ -1,0 +1,9 @@
+---
+title: Quarto
+format: man
+---
+
+Quarto® is an open-source scientific and technical publishing system built on Pandoc.
+
+Quarto's command line options are documented via `quarto <cmd> help`. For an overview of
+available options, type `quarto help` on your shell.
