@@ -1,6 +1,10 @@
 -- Confluence Storage Format for Pandoc
 -- https://confluence.atlassian.com/doc/confluence-storage-format-790796544.html
 -- https://pandoc.org/MANUAL.html#custom-readers-and-writers
+function startswith(text, prefix)
+  return text:find(prefix, 1, true) == 1
+end
+
 local function escape(s, in_attribute)
   return s:gsub("[<>&\"']",
           function(x)
@@ -99,6 +103,23 @@ function CaptionedImageConfluence(source, title, caption, attr)
     layout = layoutValue,
     alt = altValue,
     caption = captionValue}
+end
+
+function LinkConfluence(source, target, title, attr)
+  local LINK_ATTACHMENT_SNIPPET = [[<ac:link><ri:attachment ri:filename="{source}"/><ac:plain-text-link-body><![CDATA[{target}{doubleBraket}></ac:plain-text-link-body></ac:link>]]
+
+  if(not startswith(source,"http")) then
+    return interpolate {
+    LINK_ATTACHMENT_SNIPPET,
+    source = source,
+    target = target,
+    doubleBraket = "]]"
+  }
+
+  end
+
+    return "<a href='" .. escape(target,true) .. "' title='" ..
+            escape(title,true) .. "'>" .. source .. "</a>"
 end
 
 function CodeBlockConfluence(codeValue, attributes)
@@ -210,6 +231,7 @@ end
 return {
   CaptionedImageConfluence = CaptionedImageConfluence,
   CodeBlockConfluence = CodeBlockConfluence,
+  LinkConfluence = LinkConfluence,
   TableConfluence = TableConfluence,
   escape = escape,
   html_align = html_align,

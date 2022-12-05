@@ -1,11 +1,10 @@
-// TODO Confluence Preview
+// TODO non-image attachment links - see positive leadership talks
+
+// TODO anchored#links - see handbook
 
 // TODO Sites - 'tagged' parent
 // - Deletes only work with quarto parent
 // - Set permissions on quarto parent
-
-// TODO non-image attachment links
-// TODO anchored#links
 
 // TODO Resource bundles
 
@@ -353,13 +352,19 @@ async function publish(
       body: updatedBody,
     };
 
-    trace("updateContent", { toUpdate, attachmentsToUpload });
+    trace("updateContent", toUpdate);
+    trace("updateContent body", toUpdate?.body?.storage?.value);
+
     const updatedContent: Content = await client.updateContent(toUpdate);
 
     if (toUpdate.id) {
       const existingAttachments: AttachmentSummary[] =
         await client.getAttachments(toUpdate.id);
-      trace("existingAttachments", existingAttachments, LogPrefix.ATTACHMENT);
+      trace(
+        "attachments",
+        { existingAttachments, attachmentsToUpload },
+        LogPrefix.ATTACHMENT
+      );
 
       const uploadAttachmentsResult = await Promise.all(
         uploadAttachments(

@@ -132,8 +132,7 @@ function Strikeout(s)
 end
 
 function Link(s, tgt, tit, attr)
-  return "<a href='" .. escape(tgt,true) .. "' title='" ..
-          escape(tit,true) .. "'>" .. s .. "</a>"
+  return confluence.LinkConfluence(s, tgt, tit, attr)
 end
 
 function Image(s, src, tit, attr)
