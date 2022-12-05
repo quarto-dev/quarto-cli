@@ -1,12 +1,11 @@
-// TODO Computation Images
-// -site updates
-// -site create
+// TODO Confluence Preview
 
 // TODO Sites - 'tagged' parent
 // - Deletes only work with quarto parent
 // - Set permissions on quarto parent
 
-// TODO Confluence Preview
+// TODO non-image attachment links
+// TODO anchored#links
 
 // TODO Resource bundles
 
@@ -341,7 +340,6 @@ async function publish(
     const previousPage = await client.getContent(id);
 
     const attachmentsToUpload: string[] = findAttachments(body.storage.value);
-    trace("attachmentsToUpload", attachmentsToUpload, LogPrefix.ATTACHMENT);
 
     const updatedBody: ContentBody = updateImagePaths(body);
     const toUpdate: ContentUpdate = {
@@ -355,7 +353,7 @@ async function publish(
       body: updatedBody,
     };
 
-    trace("updateContent", { publishFiles, toUpdate });
+    trace("updateContent", { toUpdate, attachmentsToUpload });
     const updatedContent: Content = await client.updateContent(toUpdate);
 
     if (toUpdate.id) {
