@@ -2042,7 +2042,9 @@
             a publisher, archive, or library to provide a unique identifier for 
             the journal or publication.
       jats-type:
-        string: The type used for the JATS `article` tag.
+        string:
+          description: The type used for the JATS `article` tag.
+
 - id: smart-include
   anyOf:
     - record:
