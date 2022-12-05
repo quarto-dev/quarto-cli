@@ -1,8 +1,40 @@
-// Copyright 2018-2022 the Deno authors. All rights reserved. MIT license.
-// This module is browser compatible.
-// deno-fmt-ignore-file
+/*!
+ * Ported from: https://github.com/jshttp/mime-db and licensed as:
+ *
+ * (The MIT License)
+ *
+ * Copyright (c) 2014 Jonathan Ong <me@jongleberry.com>
+ * Copyright (c) 2020 the Deno authors
+ * Copyright (c) 2020 the oak authors
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * 'Software'), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
-export default {
+export const db: {
+  [mediaType: string]: {
+    source?: string;
+    compressible?: boolean;
+    charset?: string;
+    extensions?: string[];
+  };
+} = JSON.parse(`{
   "application/1d-interleaved-parityfec": {
     "source": "iana"
   },
@@ -24,9 +56,6 @@ export default {
     "compressible": true
   },
   "application/a2l": {
-    "source": "iana"
-  },
-  "application/ace+cbor": {
     "source": "iana"
   },
   "application/activemessage": {
@@ -97,9 +126,6 @@ export default {
   "application/applixware": {
     "source": "apache",
     "extensions": ["aw"]
-  },
-  "application/at+jwt": {
-    "source": "iana"
   },
   "application/atf": {
     "source": "iana"
@@ -254,10 +280,6 @@ export default {
   "application/cfw": {
     "source": "iana"
   },
-  "application/city+json": {
-    "source": "iana",
-    "compressible": true
-  },
   "application/clr": {
     "source": "iana"
   },
@@ -301,8 +323,7 @@ export default {
   },
   "application/cpl+xml": {
     "source": "iana",
-    "compressible": true,
-    "extensions": ["cpl"]
+    "compressible": true
   },
   "application/csrattrs": {
     "source": "iana"
@@ -336,11 +357,6 @@ export default {
     "source": "iana",
     "compressible": true,
     "extensions": ["mpd"]
-  },
-  "application/dash-patch+xml": {
-    "source": "iana",
-    "compressible": true,
-    "extensions": ["mpp"]
   },
   "application/dashdelta": {
     "source": "iana"
@@ -417,7 +433,7 @@ export default {
   "application/ecmascript": {
     "source": "iana",
     "compressible": true,
-    "extensions": ["es", "ecma"]
+    "extensions": ["es","ecma"]
   },
   "application/edi-consent": {
     "source": "iana"
@@ -510,10 +526,6 @@ export default {
   "application/expect-ct-report+json": {
     "source": "iana",
     "compressible": true
-  },
-  "application/express": {
-    "source": "iana",
-    "extensions": ["exp"]
   },
   "application/fastinfoset": {
     "source": "iana"
@@ -651,7 +663,7 @@ export default {
   "application/inkml+xml": {
     "source": "iana",
     "compressible": true,
-    "extensions": ["ink", "inkml"]
+    "extensions": ["ink","inkml"]
   },
   "application/iotp": {
     "source": "iana"
@@ -674,7 +686,7 @@ export default {
   "application/java-archive": {
     "source": "apache",
     "compressible": false,
-    "extensions": ["jar", "war", "ear"]
+    "extensions": ["jar","war","ear"]
   },
   "application/java-serialized-object": {
     "source": "apache",
@@ -690,7 +702,7 @@ export default {
     "source": "iana",
     "charset": "UTF-8",
     "compressible": true,
-    "extensions": ["js", "mjs"]
+    "extensions": ["js","mjs"]
   },
   "application/jf2feed+json": {
     "source": "iana",
@@ -715,7 +727,7 @@ export default {
     "source": "iana",
     "charset": "UTF-8",
     "compressible": true,
-    "extensions": ["json", "map"]
+    "extensions": ["json","map"]
   },
   "application/json-patch+json": {
     "source": "iana",
@@ -817,7 +829,7 @@ export default {
   },
   "application/mathematica": {
     "source": "iana",
-    "extensions": ["ma", "nb", "mb"]
+    "extensions": ["ma","nb","mb"]
   },
   "application/mathml+xml": {
     "source": "iana",
@@ -882,8 +894,7 @@ export default {
   },
   "application/media-policy-dataset+xml": {
     "source": "iana",
-    "compressible": true,
-    "extensions": ["mpf"]
+    "compressible": true
   },
   "application/media_control+xml": {
     "source": "iana",
@@ -954,11 +965,11 @@ export default {
   },
   "application/mp21": {
     "source": "iana",
-    "extensions": ["m21", "mp21"]
+    "extensions": ["m21","mp21"]
   },
   "application/mp4": {
     "source": "iana",
-    "extensions": ["mp4s", "m4p"]
+    "extensions": ["mp4s","m4p"]
   },
   "application/mpeg4-generic": {
     "source": "iana"
@@ -990,7 +1001,7 @@ export default {
   "application/msword": {
     "source": "iana",
     "compressible": false,
-    "extensions": ["doc", "dot"]
+    "extensions": ["doc","dot"]
   },
   "application/mud+json": {
     "source": "iana",
@@ -1039,9 +1050,6 @@ export default {
   "application/oauth-authz-req+jwt": {
     "source": "iana"
   },
-  "application/oblivious-dns-message": {
-    "source": "iana"
-  },
   "application/ocsp-request": {
     "source": "iana"
   },
@@ -1051,30 +1059,7 @@ export default {
   "application/octet-stream": {
     "source": "iana",
     "compressible": false,
-    "extensions": [
-      "bin",
-      "dms",
-      "lrf",
-      "mar",
-      "so",
-      "dist",
-      "distz",
-      "pkg",
-      "bpk",
-      "dump",
-      "elc",
-      "deploy",
-      "exe",
-      "dll",
-      "deb",
-      "dmg",
-      "iso",
-      "img",
-      "msi",
-      "msp",
-      "msm",
-      "buffer"
-    ]
+    "extensions": ["bin","dms","lrf","mar","so","dist","distz","pkg","bpk","dump","elc","deploy","exe","dll","deb","dmg","iso","img","msi","msp","msm","buffer"]
   },
   "application/oda": {
     "source": "iana",
@@ -1104,7 +1089,7 @@ export default {
   },
   "application/onenote": {
     "source": "apache",
-    "extensions": ["onetoc", "onetoc2", "onetmp", "onepkg"]
+    "extensions": ["onetoc","onetoc2","onetmp","onepkg"]
   },
   "application/opc-nodeset+xml": {
     "source": "iana",
@@ -1116,9 +1101,6 @@ export default {
   "application/oxps": {
     "source": "iana",
     "extensions": ["oxps"]
-  },
-  "application/p21": {
-    "source": "iana"
   },
   "application/p21+zip": {
     "source": "iana",
@@ -1157,12 +1139,11 @@ export default {
     "extensions": ["pgp"]
   },
   "application/pgp-keys": {
-    "source": "iana",
-    "extensions": ["asc"]
+    "source": "iana"
   },
   "application/pgp-signature": {
     "source": "iana",
-    "extensions": ["asc", "sig"]
+    "extensions": ["asc","sig"]
   },
   "application/pics-rules": {
     "source": "apache",
@@ -1187,7 +1168,7 @@ export default {
   },
   "application/pkcs7-mime": {
     "source": "iana",
-    "extensions": ["p7m", "p7c"]
+    "extensions": ["p7m","p7c"]
   },
   "application/pkcs7-signature": {
     "source": "iana",
@@ -1233,7 +1214,7 @@ export default {
   "application/postscript": {
     "source": "iana",
     "compressible": true,
-    "extensions": ["ai", "eps", "ps"]
+    "extensions": ["ai","eps","ps"]
   },
   "application/ppsp-tracker+json": {
     "source": "iana",
@@ -1306,7 +1287,7 @@ export default {
   "application/rdf+xml": {
     "source": "iana",
     "compressible": true,
-    "extensions": ["rdf", "owl"]
+    "extensions": ["rdf","owl"]
   },
   "application/reginfo+xml": {
     "source": "iana",
@@ -1533,7 +1514,7 @@ export default {
   },
   "application/sieve": {
     "source": "iana",
-    "extensions": ["siv", "sieve"]
+    "extensions": ["siv","sieve"]
   },
   "application/simple-filter+xml": {
     "source": "iana",
@@ -1557,7 +1538,7 @@ export default {
   "application/smil+xml": {
     "source": "iana",
     "compressible": true,
-    "extensions": ["smi", "smil"]
+    "extensions": ["smi","smil"]
   },
   "application/smpte336m": {
     "source": "iana"
@@ -1577,10 +1558,6 @@ export default {
     "source": "iana",
     "compressible": true,
     "extensions": ["srx"]
-  },
-  "application/spdx+json": {
-    "source": "iana",
-    "compressible": true
   },
   "application/spirits-event+xml": {
     "source": "iana",
@@ -1669,7 +1646,7 @@ export default {
   "application/tei+xml": {
     "source": "iana",
     "compressible": true,
-    "extensions": ["tei", "teicorpus"]
+    "extensions": ["tei","teicorpus"]
   },
   "application/tetra_isi": {
     "source": "iana"
@@ -1697,9 +1674,6 @@ export default {
     "compressible": true
   },
   "application/tnauthlist": {
-    "source": "iana"
-  },
-  "application/token-introspection+jwt": {
     "source": "iana"
   },
   "application/toml": {
@@ -1991,7 +1965,7 @@ export default {
   },
   "application/vnd.acucorp": {
     "source": "iana",
-    "extensions": ["atc", "acutc"]
+    "extensions": ["atc","acutc"]
   },
   "application/vnd.adobe.air-application-installer-package+zip": {
     "source": "apache",
@@ -2007,7 +1981,7 @@ export default {
   },
   "application/vnd.adobe.fxp": {
     "source": "iana",
-    "extensions": ["fxp", "fxpl"]
+    "extensions": ["fxp","fxpl"]
   },
   "application/vnd.adobe.partial-upload": {
     "source": "iana"
@@ -2062,10 +2036,6 @@ export default {
   },
   "application/vnd.afpc.modca-pagesegment": {
     "source": "iana"
-  },
-  "application/vnd.age": {
-    "source": "iana",
-    "extensions": ["age"]
   },
   "application/vnd.ah-barcode": {
     "source": "iana"
@@ -2332,7 +2302,7 @@ export default {
   },
   "application/vnd.clonk.c4group": {
     "source": "iana",
-    "extensions": ["c4g", "c4d", "c4f", "c4p", "c4u"]
+    "extensions": ["c4g","c4d","c4f","c4p","c4u"]
   },
   "application/vnd.cluetrust.cartomobile-config": {
     "source": "iana",
@@ -2525,20 +2495,20 @@ export default {
   },
   "application/vnd.dece.data": {
     "source": "iana",
-    "extensions": ["uvf", "uvvf", "uvd", "uvvd"]
+    "extensions": ["uvf","uvvf","uvd","uvvd"]
   },
   "application/vnd.dece.ttml+xml": {
     "source": "iana",
     "compressible": true,
-    "extensions": ["uvt", "uvvt"]
+    "extensions": ["uvt","uvvt"]
   },
   "application/vnd.dece.unspecified": {
     "source": "iana",
-    "extensions": ["uvx", "uvvx"]
+    "extensions": ["uvx","uvvx"]
   },
   "application/vnd.dece.zip": {
     "source": "iana",
-    "extensions": ["uvz", "uvvz"]
+    "extensions": ["uvz","uvvz"]
   },
   "application/vnd.denovo.fcselayout-link": {
     "source": "iana",
@@ -2689,10 +2659,6 @@ export default {
   "application/vnd.ecip.rlp": {
     "source": "iana"
   },
-  "application/vnd.eclipse.ditto+json": {
-    "source": "iana",
-    "compressible": true
-  },
   "application/vnd.ecowin.chart": {
     "source": "iana",
     "extensions": ["mag"]
@@ -2763,7 +2729,7 @@ export default {
   "application/vnd.eszigno3+xml": {
     "source": "iana",
     "compressible": true,
-    "extensions": ["es3", "et3"]
+    "extensions": ["es3","et3"]
   },
   "application/vnd.etsi.aoc+xml": {
     "source": "iana",
@@ -2850,10 +2816,6 @@ export default {
   "application/vnd.etsi.tsl.der": {
     "source": "iana"
   },
-  "application/vnd.eu.kasparian.car+json": {
-    "source": "iana",
-    "compressible": true
-  },
   "application/vnd.eudora.data": {
     "source": "iana"
   },
@@ -2884,10 +2846,6 @@ export default {
   "application/vnd.f-secure.mobile": {
     "source": "iana"
   },
-  "application/vnd.familysearch.gedcom+zip": {
-    "source": "iana",
-    "compressible": false
-  },
   "application/vnd.fastcopy-disk-image": {
     "source": "iana"
   },
@@ -2901,7 +2859,7 @@ export default {
   },
   "application/vnd.fdsn.seed": {
     "source": "iana",
-    "extensions": ["seed", "dataless"]
+    "extensions": ["seed","dataless"]
   },
   "application/vnd.ffsns": {
     "source": "iana"
@@ -2932,7 +2890,7 @@ export default {
   },
   "application/vnd.framemaker": {
     "source": "iana",
-    "extensions": ["fm", "frame", "maker", "book"]
+    "extensions": ["fm","frame","maker","book"]
   },
   "application/vnd.frogans.fnc": {
     "source": "iana",
@@ -3046,7 +3004,7 @@ export default {
   },
   "application/vnd.geometry-explorer": {
     "source": "iana",
-    "extensions": ["gex", "gre"]
+    "extensions": ["gex","gre"]
   },
   "application/vnd.geonext": {
     "source": "iana",
@@ -3109,7 +3067,7 @@ export default {
   },
   "application/vnd.grafeq": {
     "source": "iana",
-    "extensions": ["gqf", "gqs"]
+    "extensions": ["gqf","gqs"]
   },
   "application/vnd.gridmp": {
     "source": "iana"
@@ -3178,16 +3136,6 @@ export default {
     "source": "iana",
     "extensions": ["les"]
   },
-  "application/vnd.hl7cda+xml": {
-    "source": "iana",
-    "charset": "UTF-8",
-    "compressible": true
-  },
-  "application/vnd.hl7v2+xml": {
-    "source": "iana",
-    "charset": "UTF-8",
-    "compressible": true
-  },
   "application/vnd.hp-hpgl": {
     "source": "iana",
     "extensions": ["hpgl"]
@@ -3246,7 +3194,7 @@ export default {
   },
   "application/vnd.ibm.modcap": {
     "source": "iana",
-    "extensions": ["afp", "listafp", "list3820"]
+    "extensions": ["afp","listafp","list3820"]
   },
   "application/vnd.ibm.rights-management": {
     "source": "iana",
@@ -3258,7 +3206,7 @@ export default {
   },
   "application/vnd.iccprofile": {
     "source": "iana",
-    "extensions": ["icc", "icm"]
+    "extensions": ["icc","icm"]
   },
   "application/vnd.ieee.1905": {
     "source": "iana"
@@ -3339,7 +3287,7 @@ export default {
   },
   "application/vnd.intercon.formnet": {
     "source": "iana",
-    "extensions": ["xpw", "xpx"]
+    "extensions": ["xpw","xpx"]
   },
   "application/vnd.intergeo": {
     "source": "iana",
@@ -3453,7 +3401,7 @@ export default {
   },
   "application/vnd.kahootz": {
     "source": "iana",
-    "extensions": ["ktz", "ktr"]
+    "extensions": ["ktz","ktr"]
   },
   "application/vnd.kde.karbon": {
     "source": "iana",
@@ -3477,7 +3425,7 @@ export default {
   },
   "application/vnd.kde.kpresenter": {
     "source": "iana",
-    "extensions": ["kpr", "kpt"]
+    "extensions": ["kpr","kpt"]
   },
   "application/vnd.kde.kspread": {
     "source": "iana",
@@ -3485,7 +3433,7 @@ export default {
   },
   "application/vnd.kde.kword": {
     "source": "iana",
-    "extensions": ["kwd", "kwt"]
+    "extensions": ["kwd","kwt"]
   },
   "application/vnd.kenameaapp": {
     "source": "iana",
@@ -3497,11 +3445,11 @@ export default {
   },
   "application/vnd.kinar": {
     "source": "iana",
-    "extensions": ["kne", "knp"]
+    "extensions": ["kne","knp"]
   },
   "application/vnd.koan": {
     "source": "iana",
-    "extensions": ["skp", "skd", "skt", "skm"]
+    "extensions": ["skp","skd","skt","skm"]
   },
   "application/vnd.kodak-descriptor": {
     "source": "iana",
@@ -3600,10 +3548,6 @@ export default {
   "application/vnd.mason+json": {
     "source": "iana",
     "compressible": true
-  },
-  "application/vnd.maxar.archive.3tz+zip": {
-    "source": "iana",
-    "compressible": false
   },
   "application/vnd.maxmind.maxmind-db": {
     "source": "iana"
@@ -3748,7 +3692,7 @@ export default {
   "application/vnd.ms-excel": {
     "source": "iana",
     "compressible": false,
-    "extensions": ["xls", "xlm", "xla", "xlc", "xlt", "xlw"]
+    "extensions": ["xls","xlm","xla","xlc","xlt","xlw"]
   },
   "application/vnd.ms-excel.addin.macroenabled.12": {
     "source": "iana",
@@ -3817,7 +3761,7 @@ export default {
   "application/vnd.ms-powerpoint": {
     "source": "iana",
     "compressible": false,
-    "extensions": ["ppt", "pps", "pot"]
+    "extensions": ["ppt","pps","pot"]
   },
   "application/vnd.ms-powerpoint.addin.macroenabled.12": {
     "source": "iana",
@@ -3853,7 +3797,7 @@ export default {
   },
   "application/vnd.ms-project": {
     "source": "iana",
-    "extensions": ["mpp", "mpt"]
+    "extensions": ["mpp","mpt"]
   },
   "application/vnd.ms-tnef": {
     "source": "iana"
@@ -3892,7 +3836,7 @@ export default {
   },
   "application/vnd.ms-works": {
     "source": "iana",
-    "extensions": ["wps", "wks", "wcm", "wdb"]
+    "extensions": ["wps","wks","wcm","wdb"]
   },
   "application/vnd.ms-wpl": {
     "source": "iana",
@@ -3934,10 +3878,6 @@ export default {
     "source": "iana",
     "extensions": ["taglet"]
   },
-  "application/vnd.nacamar.ybrid+json": {
-    "source": "iana",
-    "compressible": true
-  },
   "application/vnd.ncd.control": {
     "source": "iana"
   },
@@ -3972,7 +3912,7 @@ export default {
   },
   "application/vnd.nitf": {
     "source": "iana",
-    "extensions": ["ntf", "nitf"]
+    "extensions": ["ntf","nitf"]
   },
   "application/vnd.noblenet-directory": {
     "source": "iana",
@@ -4738,7 +4678,7 @@ export default {
   },
   "application/vnd.palm": {
     "source": "iana",
-    "extensions": ["pdb", "pqa", "oprc"]
+    "extensions": ["pdb","pqa","oprc"]
   },
   "application/vnd.panoply": {
     "source": "iana"
@@ -4842,7 +4782,7 @@ export default {
   },
   "application/vnd.quark.quarkxpress": {
     "source": "iana",
-    "extensions": ["qxd", "qxt", "qwd", "qwt", "qxl", "qxb"]
+    "extensions": ["qxd","qxt","qwd","qwt","qxl","qxb"]
   },
   "application/vnd.quobject-quoxdocument": {
     "source": "iana"
@@ -5077,7 +5017,7 @@ export default {
   },
   "application/vnd.simtech-mindmapper": {
     "source": "iana",
-    "extensions": ["twd", "twds"]
+    "extensions": ["twd","twds"]
   },
   "application/vnd.siren+json": {
     "source": "iana",
@@ -5108,7 +5048,7 @@ export default {
   "application/vnd.solent.sdkm+xml": {
     "source": "iana",
     "compressible": true,
-    "extensions": ["sdkm", "sdkd"]
+    "extensions": ["sdkm","sdkd"]
   },
   "application/vnd.spotfire.dxp": {
     "source": "iana",
@@ -5148,7 +5088,7 @@ export default {
   },
   "application/vnd.stardivision.writer": {
     "source": "apache",
-    "extensions": ["sdw", "vor"]
+    "extensions": ["sdw","vor"]
   },
   "application/vnd.stardivision.writer-global": {
     "source": "apache",
@@ -5212,7 +5152,7 @@ export default {
   },
   "application/vnd.sus-calendar": {
     "source": "iana",
-    "extensions": ["sus", "susp"]
+    "extensions": ["sus","susp"]
   },
   "application/vnd.svd": {
     "source": "iana",
@@ -5225,13 +5165,9 @@ export default {
     "source": "iana",
     "compressible": true
   },
-  "application/vnd.syft+json": {
-    "source": "iana",
-    "compressible": true
-  },
   "application/vnd.symbian.install": {
     "source": "apache",
-    "extensions": ["sis", "sisx"]
+    "extensions": ["sis","sisx"]
   },
   "application/vnd.syncml+xml": {
     "source": "iana",
@@ -5283,7 +5219,7 @@ export default {
   },
   "application/vnd.tcpdump.pcap": {
     "source": "iana",
-    "extensions": ["pcap", "cap", "dmp"]
+    "extensions": ["pcap","cap","dmp"]
   },
   "application/vnd.think-cell.ppttc+json": {
     "source": "iana",
@@ -5323,7 +5259,7 @@ export default {
   },
   "application/vnd.ufdl": {
     "source": "iana",
-    "extensions": ["ufd", "ufdl"]
+    "extensions": ["ufd","ufdl"]
   },
   "application/vnd.uiq.theme": {
     "source": "iana",
@@ -5419,7 +5355,7 @@ export default {
   },
   "application/vnd.visio": {
     "source": "iana",
-    "extensions": ["vsd", "vst", "vss", "vsw"]
+    "extensions": ["vsd","vst","vss","vsw"]
   },
   "application/vnd.visionary": {
     "source": "iana",
@@ -5593,7 +5529,7 @@ export default {
   },
   "application/vnd.zul": {
     "source": "iana",
-    "extensions": ["zir", "zirz"]
+    "extensions": ["zir","zirz"]
   },
   "application/vnd.zzazz.deck+xml": {
     "source": "iana",
@@ -5619,8 +5555,7 @@ export default {
   },
   "application/watcherinfo+xml": {
     "source": "iana",
-    "compressible": true,
-    "extensions": ["wif"]
+    "compressible": true
   },
   "application/webpush-options+json": {
     "source": "iana",
@@ -5682,7 +5617,7 @@ export default {
   },
   "application/x-authorware-bin": {
     "source": "apache",
-    "extensions": ["aab", "x32", "u32", "vox"]
+    "extensions": ["aab","x32","u32","vox"]
   },
   "application/x-authorware-map": {
     "source": "apache",
@@ -5706,7 +5641,7 @@ export default {
   },
   "application/x-blorb": {
     "source": "apache",
-    "extensions": ["blb", "blorb"]
+    "extensions": ["blb","blorb"]
   },
   "application/x-bzip": {
     "source": "apache",
@@ -5716,11 +5651,11 @@ export default {
   "application/x-bzip2": {
     "source": "apache",
     "compressible": false,
-    "extensions": ["bz2", "boz"]
+    "extensions": ["bz2","boz"]
   },
   "application/x-cbr": {
     "source": "apache",
-    "extensions": ["cbr", "cba", "cbt", "cbz", "cb7"]
+    "extensions": ["cbr","cba","cbt","cbz","cb7"]
   },
   "application/x-cdlink": {
     "source": "apache",
@@ -5765,7 +5700,7 @@ export default {
   },
   "application/x-debian-package": {
     "source": "apache",
-    "extensions": ["deb", "udeb"]
+    "extensions": ["deb","udeb"]
   },
   "application/x-dgc-compressed": {
     "source": "apache",
@@ -5773,17 +5708,7 @@ export default {
   },
   "application/x-director": {
     "source": "apache",
-    "extensions": [
-      "dir",
-      "dcr",
-      "dxr",
-      "cst",
-      "cct",
-      "cxt",
-      "w3d",
-      "fgd",
-      "swa"
-    ]
+    "extensions": ["dir","dcr","dxr","cst","cct","cxt","w3d","fgd","swa"]
   },
   "application/x-doom": {
     "source": "apache",
@@ -5854,7 +5779,7 @@ export default {
   },
   "application/x-font-type1": {
     "source": "apache",
-    "extensions": ["pfa", "pfb", "pfm", "afm"]
+    "extensions": ["pfa","pfb","pfm","afm"]
   },
   "application/x-font-vfont": {
     "source": "apache"
@@ -5906,15 +5831,6 @@ export default {
     "source": "apache",
     "extensions": ["iso"]
   },
-  "application/x-iwork-keynote-sffkey": {
-    "extensions": ["key"]
-  },
-  "application/x-iwork-numbers-sffnumbers": {
-    "extensions": ["numbers"]
-  },
-  "application/x-iwork-pages-sffpages": {
-    "extensions": ["pages"]
-  },
   "application/x-java-archive-diff": {
     "source": "nginx",
     "extensions": ["jardiff"]
@@ -5940,7 +5856,7 @@ export default {
   },
   "application/x-lzh-compressed": {
     "source": "apache",
-    "extensions": ["lzh", "lha"]
+    "extensions": ["lzh","lha"]
   },
   "application/x-makeself": {
     "source": "nginx",
@@ -5952,7 +5868,7 @@ export default {
   },
   "application/x-mobipocket-ebook": {
     "source": "apache",
-    "extensions": ["prc", "mobi"]
+    "extensions": ["prc","mobi"]
   },
   "application/x-mpegurl": {
     "compressible": false
@@ -5998,15 +5914,15 @@ export default {
   },
   "application/x-msdownload": {
     "source": "apache",
-    "extensions": ["exe", "dll", "com", "bat", "msi"]
+    "extensions": ["exe","dll","com","bat","msi"]
   },
   "application/x-msmediaview": {
     "source": "apache",
-    "extensions": ["mvb", "m13", "m14"]
+    "extensions": ["mvb","m13","m14"]
   },
   "application/x-msmetafile": {
     "source": "apache",
-    "extensions": ["wmf", "wmz", "emf", "emz"]
+    "extensions": ["wmf","wmz","emf","emz"]
   },
   "application/x-msmoney": {
     "source": "apache",
@@ -6030,7 +5946,7 @@ export default {
   },
   "application/x-netcdf": {
     "source": "apache",
-    "extensions": ["nc", "cdf"]
+    "extensions": ["nc","cdf"]
   },
   "application/x-ns-proxy-autoconfig": {
     "compressible": true,
@@ -6042,20 +5958,20 @@ export default {
   },
   "application/x-perl": {
     "source": "nginx",
-    "extensions": ["pl", "pm"]
+    "extensions": ["pl","pm"]
   },
   "application/x-pilot": {
     "source": "nginx",
-    "extensions": ["prc", "pdb"]
+    "extensions": ["prc","pdb"]
   },
   "application/x-pkcs12": {
     "source": "apache",
     "compressible": false,
-    "extensions": ["p12", "pfx"]
+    "extensions": ["p12","pfx"]
   },
   "application/x-pkcs7-certificates": {
     "source": "apache",
-    "extensions": ["p7b", "spc"]
+    "extensions": ["p7b","spc"]
   },
   "application/x-pkcs7-certreqresp": {
     "source": "apache",
@@ -6139,7 +6055,7 @@ export default {
   },
   "application/x-tcl": {
     "source": "apache",
-    "extensions": ["tcl", "tk"]
+    "extensions": ["tcl","tk"]
   },
   "application/x-tex": {
     "source": "apache",
@@ -6151,7 +6067,7 @@ export default {
   },
   "application/x-texinfo": {
     "source": "apache",
-    "extensions": ["texinfo", "texi"]
+    "extensions": ["texinfo","texi"]
   },
   "application/x-tgif": {
     "source": "apache",
@@ -6207,7 +6123,7 @@ export default {
   },
   "application/x-x509-ca-cert": {
     "source": "iana",
-    "extensions": ["der", "crt", "pem"]
+    "extensions": ["der","crt","pem"]
   },
   "application/x-x509-ca-ra-cert": {
     "source": "iana"
@@ -6235,7 +6151,7 @@ export default {
   },
   "application/x-zmachine": {
     "source": "apache",
-    "extensions": ["z1", "z2", "z3", "z4", "z5", "z6", "z7", "z8"]
+    "extensions": ["z1","z2","z3","z4","z5","z6","z7","z8"]
   },
   "application/x400-bp": {
     "source": "iana"
@@ -6294,7 +6210,7 @@ export default {
   "application/xhtml+xml": {
     "source": "iana",
     "compressible": true,
-    "extensions": ["xhtml", "xht"]
+    "extensions": ["xhtml","xht"]
   },
   "application/xhtml-voice+xml": {
     "source": "apache",
@@ -6308,7 +6224,7 @@ export default {
   "application/xml": {
     "source": "iana",
     "compressible": true,
-    "extensions": ["xml", "xsl", "xsd", "rng"]
+    "extensions": ["xml","xsl","xsd","rng"]
   },
   "application/xml-dtd": {
     "source": "iana",
@@ -6339,7 +6255,7 @@ export default {
   "application/xslt+xml": {
     "source": "iana",
     "compressible": true,
-    "extensions": ["xsl", "xslt"]
+    "extensions": ["xsl","xslt"]
   },
   "application/xspf+xml": {
     "source": "apache",
@@ -6349,7 +6265,7 @@ export default {
   "application/xv+xml": {
     "source": "iana",
     "compressible": true,
-    "extensions": ["mxml", "xhvml", "xvml", "xvm"]
+    "extensions": ["mxml","xhvml","xvml","xvm"]
   },
   "application/yang": {
     "source": "iana",
@@ -6439,7 +6355,7 @@ export default {
   "audio/basic": {
     "source": "iana",
     "compressible": false,
-    "extensions": ["au", "snd"]
+    "extensions": ["au","snd"]
   },
   "audio/bv16": {
     "source": "iana"
@@ -6624,7 +6540,7 @@ export default {
   },
   "audio/midi": {
     "source": "apache",
-    "extensions": ["mid", "midi", "kar", "rmi"]
+    "extensions": ["mid","midi","kar","rmi"]
   },
   "audio/mobile-xmf": {
     "source": "iana",
@@ -6637,7 +6553,7 @@ export default {
   "audio/mp4": {
     "source": "iana",
     "compressible": false,
-    "extensions": ["m4a", "mp4a"]
+    "extensions": ["m4a","mp4a"]
   },
   "audio/mp4a-latm": {
     "source": "iana"
@@ -6651,7 +6567,7 @@ export default {
   "audio/mpeg": {
     "source": "iana",
     "compressible": false,
-    "extensions": ["mpga", "mp2", "mp2a", "mp3", "m2a", "m3a"]
+    "extensions": ["mpga","mp2","mp2a","mp3","m2a","m3a"]
   },
   "audio/mpeg4-generic": {
     "source": "iana"
@@ -6662,7 +6578,7 @@ export default {
   "audio/ogg": {
     "source": "iana",
     "compressible": false,
-    "extensions": ["oga", "ogg", "spx", "opus"]
+    "extensions": ["oga","ogg","spx","opus"]
   },
   "audio/opus": {
     "source": "iana"
@@ -6797,7 +6713,7 @@ export default {
   },
   "audio/vnd.dece.audio": {
     "source": "iana",
-    "extensions": ["uva", "uvva"]
+    "extensions": ["uva","uvva"]
   },
   "audio/vnd.digital-winds": {
     "source": "iana",
@@ -6935,7 +6851,7 @@ export default {
   },
   "audio/x-aiff": {
     "source": "apache",
-    "extensions": ["aif", "aiff", "aifc"]
+    "extensions": ["aif","aiff","aifc"]
   },
   "audio/x-caf": {
     "source": "apache",
@@ -6968,7 +6884,7 @@ export default {
   },
   "audio/x-pn-realaudio": {
     "source": "apache",
-    "extensions": ["ram", "ra"]
+    "extensions": ["ram","ra"]
   },
   "audio/x-pn-realaudio-plugin": {
     "source": "apache",
@@ -7050,12 +6966,10 @@ export default {
     "extensions": ["apng"]
   },
   "image/avci": {
-    "source": "iana",
-    "extensions": ["avci"]
+    "source": "iana"
   },
   "image/avcs": {
-    "source": "iana",
-    "extensions": ["avcs"]
+    "source": "iana"
   },
   "image/avif": {
     "source": "iana",
@@ -7127,12 +7041,12 @@ export default {
   "image/jp2": {
     "source": "iana",
     "compressible": false,
-    "extensions": ["jp2", "jpg2"]
+    "extensions": ["jp2","jpg2"]
   },
   "image/jpeg": {
     "source": "iana",
     "compressible": false,
-    "extensions": ["jpeg", "jpg", "jpe"]
+    "extensions": ["jpeg","jpg","jpe"]
   },
   "image/jph": {
     "source": "iana",
@@ -7150,7 +7064,7 @@ export default {
   "image/jpx": {
     "source": "iana",
     "compressible": false,
-    "extensions": ["jpx", "jpf"]
+    "extensions": ["jpx","jpf"]
   },
   "image/jxr": {
     "source": "iana",
@@ -7217,7 +7131,7 @@ export default {
   "image/svg+xml": {
     "source": "iana",
     "compressible": true,
-    "extensions": ["svg", "svgz"]
+    "extensions": ["svg","svgz"]
   },
   "image/t38": {
     "source": "iana",
@@ -7226,7 +7140,7 @@ export default {
   "image/tiff": {
     "source": "iana",
     "compressible": false,
-    "extensions": ["tif", "tiff"]
+    "extensions": ["tif","tiff"]
   },
   "image/tiff-fx": {
     "source": "iana",
@@ -7246,11 +7160,11 @@ export default {
   },
   "image/vnd.dece.graphic": {
     "source": "iana",
-    "extensions": ["uvi", "uvvi", "uvg", "uvvg"]
+    "extensions": ["uvi","uvvi","uvg","uvvg"]
   },
   "image/vnd.djvu": {
     "source": "iana",
-    "extensions": ["djvu", "djv"]
+    "extensions": ["djvu","djv"]
   },
   "image/vnd.dvb.subtitle": {
     "source": "iana",
@@ -7289,7 +7203,6 @@ export default {
   },
   "image/vnd.microsoft.icon": {
     "source": "iana",
-    "compressible": true,
     "extensions": ["ico"]
   },
   "image/vnd.mix": {
@@ -7299,7 +7212,6 @@ export default {
     "source": "iana"
   },
   "image/vnd.ms-dds": {
-    "compressible": true,
     "extensions": ["dds"]
   },
   "image/vnd.ms-modi": {
@@ -7375,7 +7287,7 @@ export default {
   },
   "image/x-freehand": {
     "source": "apache",
-    "extensions": ["fh", "fhc", "fh4", "fh5", "fh7"]
+    "extensions": ["fh","fhc","fh4","fh5","fh7"]
   },
   "image/x-icon": {
     "source": "apache",
@@ -7401,7 +7313,7 @@ export default {
   },
   "image/x-pict": {
     "source": "apache",
-    "extensions": ["pic", "pct"]
+    "extensions": ["pic","pct"]
   },
   "image/x-portable-anymap": {
     "source": "apache",
@@ -7494,7 +7406,7 @@ export default {
   "message/rfc822": {
     "source": "iana",
     "compressible": true,
-    "extensions": ["eml", "mime"]
+    "extensions": ["eml","mime"]
   },
   "message/s-http": {
     "source": "iana"
@@ -7535,12 +7447,12 @@ export default {
   "model/iges": {
     "source": "iana",
     "compressible": false,
-    "extensions": ["igs", "iges"]
+    "extensions": ["igs","iges"]
   },
   "model/mesh": {
     "source": "iana",
     "compressible": false,
-    "extensions": ["msh", "mesh", "silo"]
+    "extensions": ["msh","mesh","silo"]
   },
   "model/mtl": {
     "source": "iana",
@@ -7549,14 +7461,6 @@ export default {
   "model/obj": {
     "source": "iana",
     "extensions": ["obj"]
-  },
-  "model/step": {
-    "source": "iana"
-  },
-  "model/step+xml": {
-    "source": "iana",
-    "compressible": true,
-    "extensions": ["stpx"]
   },
   "model/step+zip": {
     "source": "iana",
@@ -7644,12 +7548,12 @@ export default {
   "model/vrml": {
     "source": "iana",
     "compressible": false,
-    "extensions": ["wrl", "vrml"]
+    "extensions": ["wrl","vrml"]
   },
   "model/x3d+binary": {
     "source": "apache",
     "compressible": false,
-    "extensions": ["x3db", "x3dbz"]
+    "extensions": ["x3db","x3dbz"]
   },
   "model/x3d+fastinfoset": {
     "source": "iana",
@@ -7658,12 +7562,12 @@ export default {
   "model/x3d+vrml": {
     "source": "apache",
     "compressible": false,
-    "extensions": ["x3dv", "x3dvz"]
+    "extensions": ["x3dv","x3dvz"]
   },
   "model/x3d+xml": {
     "source": "iana",
     "compressible": true,
-    "extensions": ["x3d", "x3dz"]
+    "extensions": ["x3d","x3dz"]
   },
   "model/x3d-vrml": {
     "source": "iana",
@@ -7728,11 +7632,11 @@ export default {
   "text/cache-manifest": {
     "source": "iana",
     "compressible": true,
-    "extensions": ["appcache", "manifest"]
+    "extensions": ["appcache","manifest"]
   },
   "text/calendar": {
     "source": "iana",
-    "extensions": ["ics", "ifb"]
+    "extensions": ["ics","ifb"]
   },
   "text/calender": {
     "compressible": true
@@ -7741,7 +7645,7 @@ export default {
     "compressible": true
   },
   "text/coffeescript": {
-    "extensions": ["coffee", "litcoffee"]
+    "extensions": ["coffee","litcoffee"]
   },
   "text/cql": {
     "source": "iana"
@@ -7799,7 +7703,7 @@ export default {
   "text/html": {
     "source": "iana",
     "compressible": true,
-    "extensions": ["html", "htm", "shtml"]
+    "extensions": ["html","htm","shtml"]
   },
   "text/jade": {
     "extensions": ["jade"]
@@ -7822,7 +7726,7 @@ export default {
   "text/markdown": {
     "source": "iana",
     "compressible": true,
-    "extensions": ["markdown", "md"]
+    "extensions": ["markdown","md"]
   },
   "text/mathml": {
     "source": "nginx",
@@ -7851,7 +7755,7 @@ export default {
   "text/plain": {
     "source": "iana",
     "compressible": true,
-    "extensions": ["txt", "text", "conf", "def", "list", "log", "in", "ini"]
+    "extensions": ["txt","text","conf","def","list","log","in","ini"]
   },
   "text/provenance-notation": {
     "source": "iana",
@@ -7897,7 +7801,7 @@ export default {
   },
   "text/sgml": {
     "source": "iana",
-    "extensions": ["sgml", "sgm"]
+    "extensions": ["sgml","sgm"]
   },
   "text/shaclc": {
     "source": "iana"
@@ -7907,7 +7811,7 @@ export default {
     "extensions": ["shex"]
   },
   "text/slim": {
-    "extensions": ["slim", "slm"]
+    "extensions": ["slim","slm"]
   },
   "text/spdx": {
     "source": "iana",
@@ -7917,7 +7821,7 @@ export default {
     "source": "iana"
   },
   "text/stylus": {
-    "extensions": ["stylus", "styl"]
+    "extensions": ["stylus","styl"]
   },
   "text/t140": {
     "source": "iana"
@@ -7929,7 +7833,7 @@ export default {
   },
   "text/troff": {
     "source": "iana",
-    "extensions": ["t", "tr", "roff", "man", "me", "ms"]
+    "extensions": ["t","tr","roff","man","me","ms"]
   },
   "text/turtle": {
     "source": "iana",
@@ -7942,7 +7846,7 @@ export default {
   "text/uri-list": {
     "source": "iana",
     "compressible": true,
-    "extensions": ["uri", "uris", "urls"]
+    "extensions": ["uri","uris","urls"]
   },
   "text/vcard": {
     "source": "iana",
@@ -7988,10 +7892,6 @@ export default {
   "text/vnd.esmertec.theme-descriptor": {
     "source": "iana",
     "charset": "UTF-8"
-  },
-  "text/vnd.familysearch.gedcom": {
-    "source": "iana",
-    "extensions": ["ged"]
   },
   "text/vnd.ficlab.flt": {
     "source": "iana"
@@ -8086,11 +7986,11 @@ export default {
   },
   "text/x-asm": {
     "source": "apache",
-    "extensions": ["s", "asm"]
+    "extensions": ["s","asm"]
   },
   "text/x-c": {
     "source": "apache",
-    "extensions": ["c", "cc", "cxx", "cpp", "h", "hh", "dic"]
+    "extensions": ["c","cc","cxx","cpp","h","hh","dic"]
   },
   "text/x-component": {
     "source": "nginx",
@@ -8098,7 +7998,7 @@ export default {
   },
   "text/x-fortran": {
     "source": "apache",
-    "extensions": ["f", "for", "f77", "f90"]
+    "extensions": ["f","for","f77","f90"]
   },
   "text/x-gwt-rpc": {
     "compressible": true
@@ -8134,7 +8034,7 @@ export default {
   },
   "text/x-pascal": {
     "source": "apache",
-    "extensions": ["p", "pas"]
+    "extensions": ["p","pas"]
   },
   "text/x-processing": {
     "compressible": true,
@@ -8180,14 +8080,14 @@ export default {
   },
   "text/yaml": {
     "compressible": true,
-    "extensions": ["yaml", "yml"]
+    "extensions": ["yaml","yml"]
   },
   "video/1d-interleaved-parityfec": {
     "source": "iana"
   },
   "video/3gpp": {
     "source": "iana",
-    "extensions": ["3gp", "3gpp"]
+    "extensions": ["3gp","3gpp"]
   },
   "video/3gpp-tt": {
     "source": "iana"
@@ -8260,14 +8160,11 @@ export default {
   },
   "video/jpm": {
     "source": "apache",
-    "extensions": ["jpm", "jpgm"]
-  },
-  "video/jxsv": {
-    "source": "iana"
+    "extensions": ["jpm","jpgm"]
   },
   "video/mj2": {
     "source": "iana",
-    "extensions": ["mj2", "mjp2"]
+    "extensions": ["mj2","mjp2"]
   },
   "video/mp1s": {
     "source": "iana"
@@ -8282,7 +8179,7 @@ export default {
   "video/mp4": {
     "source": "iana",
     "compressible": false,
-    "extensions": ["mp4", "mp4v", "mpg4"]
+    "extensions": ["mp4","mp4v","mpg4"]
   },
   "video/mp4v-es": {
     "source": "iana"
@@ -8290,7 +8187,7 @@ export default {
   "video/mpeg": {
     "source": "iana",
     "compressible": false,
-    "extensions": ["mpeg", "mpg", "mpe", "m1v", "m2v"]
+    "extensions": ["mpeg","mpg","mpe","m1v","m2v"]
   },
   "video/mpeg4-generic": {
     "source": "iana"
@@ -8315,7 +8212,7 @@ export default {
   "video/quicktime": {
     "source": "iana",
     "compressible": false,
-    "extensions": ["qt", "mov"]
+    "extensions": ["qt","mov"]
   },
   "video/raptorfec": {
     "source": "iana"
@@ -8355,26 +8252,26 @@ export default {
   },
   "video/vnd.dece.hd": {
     "source": "iana",
-    "extensions": ["uvh", "uvvh"]
+    "extensions": ["uvh","uvvh"]
   },
   "video/vnd.dece.mobile": {
     "source": "iana",
-    "extensions": ["uvm", "uvvm"]
+    "extensions": ["uvm","uvvm"]
   },
   "video/vnd.dece.mp4": {
     "source": "iana"
   },
   "video/vnd.dece.pd": {
     "source": "iana",
-    "extensions": ["uvp", "uvvp"]
+    "extensions": ["uvp","uvvp"]
   },
   "video/vnd.dece.sd": {
     "source": "iana",
-    "extensions": ["uvs", "uvvs"]
+    "extensions": ["uvs","uvvs"]
   },
   "video/vnd.dece.video": {
     "source": "iana",
-    "extensions": ["uvv", "uvvv"]
+    "extensions": ["uvv","uvvv"]
   },
   "video/vnd.directv.mpeg": {
     "source": "iana"
@@ -8422,7 +8319,7 @@ export default {
   },
   "video/vnd.mpegurl": {
     "source": "iana",
-    "extensions": ["mxu", "m4u"]
+    "extensions": ["mxu","m4u"]
   },
   "video/vnd.ms-playready.media.pyv": {
     "source": "iana",
@@ -8460,7 +8357,7 @@ export default {
   },
   "video/vnd.uvvu.mp4": {
     "source": "iana",
-    "extensions": ["uvu", "uvvu"]
+    "extensions": ["uvu","uvvu"]
   },
   "video/vnd.vivo": {
     "source": "iana",
@@ -8500,7 +8397,7 @@ export default {
   "video/x-matroska": {
     "source": "apache",
     "compressible": false,
-    "extensions": ["mkv", "mk3d", "mks"]
+    "extensions": ["mkv","mk3d","mks"]
   },
   "video/x-mng": {
     "source": "apache",
@@ -8508,7 +8405,7 @@ export default {
   },
   "video/x-ms-asf": {
     "source": "apache",
-    "extensions": ["asf", "asx"]
+    "extensions": ["asf","asx"]
   },
   "video/x-ms-vob": {
     "source": "apache",
@@ -8553,4 +8450,4 @@ export default {
   "x-shader/x-vertex": {
     "compressible": true
   }
-} as const;
+}`);
