@@ -1478,6 +1478,15 @@ const runFindAttachments = () => {
     const expected: string[] = ["fake-image.png", "fake-image2.png"];
     check(expected, bodyValue);
   });
+
+  unitTest(suiteLabel("audio_file"), async () => {
+    const bodyValue: string =
+      '<ac:link><ri:attachment ri:filename="audio/2022-11-10-intro-psychological-safety.m4a"/><ac:plain-text-link-body><![CDATA[audio/2022-11-10-intro-psychological-safety.m4a]]></ac:plain-text-link-body></ac:link>';
+    const expected: string[] = [
+      "audio/2022-11-10-intro-psychological-safety.m4a",
+    ];
+    check(expected, bodyValue);
+  });
 };
 runFindAttachments();
 

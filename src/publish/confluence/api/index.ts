@@ -71,7 +71,9 @@ export class ConfluenceClient {
   }
 
   public createContent(content: ContentCreate): Promise<Content> {
-    return this.post<Content>("content", JSON.stringify(content));
+    trace("createContent body", content.body.storage.value);
+    const createBody = JSON.stringify(content);
+    return this.post<Content>("content", createBody);
   }
 
   public createContentProperty(id: string, content: any): Promise<Content> {

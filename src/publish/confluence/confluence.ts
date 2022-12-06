@@ -1,5 +1,3 @@
-// TODO non-image attachment links - see positive leadership talks
-
 // TODO anchored#links - see handbook
 
 // TODO Sites - 'tagged' parent
@@ -339,6 +337,8 @@ async function publish(
     const previousPage = await client.getContent(id);
 
     const attachmentsToUpload: string[] = findAttachments(body.storage.value);
+
+    trace("attachmentsToUpload", attachmentsToUpload, LogPrefix.ATTACHMENT);
 
     const updatedBody: ContentBody = updateImagePaths(body);
     const toUpdate: ContentUpdate = {

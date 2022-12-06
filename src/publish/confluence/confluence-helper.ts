@@ -31,7 +31,7 @@ import { capitalizeWord } from "../../core/text.ts";
 export const LINK_FINDER: RegExp = /(\S*.qmd'\w*)/g;
 export const FILE_FINDER: RegExp = /(?<=href=\')(.*)(?=\')/;
 const IMAGE_FINDER: RegExp =
-  /(?<=ri:attachment ri:filename=["\'])[^"\']+?\.(?:jpe?g|png|gif)(?=["\'])/g;
+  /(?<=ri:attachment ri:filename=["\'])[^"\']+?\.(?:jpe?g|png|gif|m4a|mp3|txt)(?=["\'])/g;
 
 export const transformAtlassianDomain = (domain: string) => {
   return ensureTrailingSlash(
@@ -461,7 +461,6 @@ export const updateLinks = (
 };
 
 export const updateImagePaths = (body: ContentBody): ContentBody => {
-  
   const replacer = (match: string): string => {
     let updated: string = match.replace(/^.*[\\\/]/, "");
     return updated;
