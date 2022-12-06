@@ -156,7 +156,7 @@ local quartoInit = {
 local quartoAuthors = {
   { name = "authors", filter = filterIf(function()
     return preState.active_filters.normalization
-  end, authorsFilter()) }
+  end, normalizeFilter()) }
 }
 
 local quartoPre = {
