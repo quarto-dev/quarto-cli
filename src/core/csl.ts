@@ -5,6 +5,7 @@
 *
 */
 
+import { CslDate } from "../resources/types/schema-types.ts";
 import { formatDate, parsePandocDate } from "./date.ts";
 
 export const kPdfUrl = "pdf-url";
@@ -126,6 +127,7 @@ export interface CSLName {
 
 export interface CSLDate {
   "date-parts"?: Array<[number, number?, number?]>;
+  ["iso-8601"]: string;
   // The raw input
   raw?: string;
   // A 'literal' representation of the name. May be displayed verbatim in contexts
@@ -191,6 +193,17 @@ export function cslNames(authors: unknown) {
   return cslNames;
 }
 
+const isCslDate = (dateRaw: unknown) => {
+  if (typeof (dateRaw) === "object") {
+    // deno-lint-ignore no-explicit-any
+    return ((dateRaw as any)["date-parts"] !== undefined) &&
+      // deno-lint-ignore no-explicit-any
+      (dateRaw as any)["iso-8601"] !== undefined;
+  } else {
+    return false;
+  }
+};
+
 export function cslDate(dateRaw: unknown): CSLDate | undefined {
   const toDateArray = (dateArr: number[]): CSLDate | undefined => {
     if (dateArr.length === 0) {
@@ -200,6 +213,7 @@ export function cslDate(dateRaw: unknown): CSLDate | undefined {
         "date-parts": [[
           dateArr[0],
         ]],
+        "iso-8601": `${dateArr[0]}`,
       };
     } else if (dateArr.length === 2) {
       return {
@@ -207,6 +221,7 @@ export function cslDate(dateRaw: unknown): CSLDate | undefined {
           dateArr[0],
           dateArr[1],
         ]],
+        "iso-8601": `${dateArr[0]}-${dateArr[1]}`,
       };
     } else if (dateArr.length >= 3) {
       return {
@@ -215,6 +230,7 @@ export function cslDate(dateRaw: unknown): CSLDate | undefined {
           dateArr[1],
           dateArr[2],
         ]],
+        "iso-8601": `${dateArr[0]}-${dateArr[1]}-${dateArr[2]}`,
       };
     }
   };
@@ -253,20 +269,37 @@ export function cslDate(dateRaw: unknown): CSLDate | undefined {
       return toDateArray(dateArr);
     }
   } else if (typeof (dateRaw) === "string") {
-    // Trying parsing format strings
-    const date = parsePandocDate(dateRaw);
-    if (date) {
+    // Look for an explicit month year like 1999-04
+    const match = dateRaw.match(/^(\d\d\d\d)[-/](\d\d)$/);
+    if (match) {
       return {
         "date-parts": [[
-          date.getFullYear(),
-          date.getMonth() + 1,
-          date.getDate(),
+          parseInt(match[1]),
+          parseInt(match[2]),
         ]],
-        literal: formatDate(date, "YYYY-MM-DD"),
-        raw: formatDate(date, "YYYY-MM-DD"),
+        "iso-8601": `${match[1]}-${match[2]}`,
       };
+    } else {
+      // Trying parsing format strings
+      const date = parsePandocDate(dateRaw);
+      if (date) {
+        const formatted = formatDate(date, "YYYY-MM-DD");
+        return {
+          "date-parts": [[
+            date.getFullYear(),
+            date.getMonth() + 1,
+            date.getDate(),
+          ]],
+          literal: formatDate(date, "YYYY-MM-DD"),
+          raw: dateRaw,
+          "iso-8601": formatted,
+        };
+      }
     }
+
     return undefined;
+  } else if (isCslDate(dateRaw)) {
+    return dateRaw as CSLDate;
   }
 }
 

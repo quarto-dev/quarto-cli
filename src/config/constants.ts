@@ -186,6 +186,7 @@ export const kSectionTitleFootnotes = "section-title-footnotes";
 export const kSectionTitleReferences = "section-title-references";
 export const kSectionTitleAppendices = "section-title-appendices";
 export const kSectionTitleReuse = "section-title-reuse";
+export const kSectionTitleCopyright = "section-title-copyright";
 export const kSectionTitleCitation = "section-title-citation";
 export const kAppendixAttributionBibTex = "appendix-attribution-bibtex";
 export const kAppendixAttributionCiteAs = "appendix-attribution-cite-as";
@@ -284,6 +285,7 @@ export const kLanguageDefaultsKeys = [
   kSectionTitleReferences,
   kSectionTitleAppendices,
   kSectionTitleReuse,
+  kSectionTitleCopyright,
   kSectionTitleCitation,
   kAppendixAttributionBibTex,
   kAppendixAttributionCiteAs,
@@ -430,6 +432,7 @@ export const kGladtex = "gladtex";
 export const kWebtex = "webtex";
 
 // metadata fields
+export const kQuartoInternal = "quarto-internal";
 export const kTitle = "title";
 export const kSubtitle = "subtitle";
 export const kAuthor = "author";

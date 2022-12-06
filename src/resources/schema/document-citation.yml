@@ -1,7 +1,7 @@
 - name: citation
   schema:
     anyOf:
-      - ref: csl-item
+      - ref: citation-item
       - boolean
   description:
     short: Citation information for the document itself.

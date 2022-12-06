@@ -59,6 +59,7 @@ export const kDraft = "draft";
 
 export const kAppendixStyle = "appendix-style";
 export const kLicense = "license";
+export const kCopyright = "copyright";
 
 export const kCitation = "citation";
 

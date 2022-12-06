@@ -56,16 +56,17 @@ import { removePandocArgs } from "./flags.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { projectType } from "../../project/types/project-types.ts";
 import { readCodePage } from "../../core/windows.ts";
-import { authorsFilter, authorsFilterActive } from "./authors.ts";
 import { formatHasBootstrap } from "../../format/html/format-html-info.ts";
 import { activeProfiles, kQuartoProfile } from "../../quarto-core/profile.ts";
 import {
   filterBuiltInExtensions,
   filterExtensions,
 } from "../../extension/extension.ts";
-import { kVersion } from "../../extension/extension-shared.ts";
 import { quartoConfig } from "../../core/quarto.ts";
-import { optionsToKebab } from "../../format/reveal/metadata.ts";
+import {
+  metadataNormalizationFilter,
+  metadataNormalizationFilterActive,
+} from "./normalize.ts";
 
 const kQuartoParams = "quarto-params";
 
@@ -583,8 +584,8 @@ export async function resolveFilters(
   }
 
   // The author filter, if enabled
-  if (authorsFilterActive(options)) {
-    filters.unshift(authorsFilter());
+  if (metadataNormalizationFilterActive(options)) {
+    filters.unshift(metadataNormalizationFilter());
   }
 
   // The initializer for Quarto
