@@ -199,7 +199,6 @@ async function install(
           const from = join(context.workingDir, tinyTexDirName);
 
           copyTo(from, installDir);
-          Deno.removeSync(from, { recursive: true });
 
           // Work around: https://github.com/denoland/deno/issues/16921
           // This will verify that the permissions of the file
@@ -222,6 +221,8 @@ async function install(
               }
             }
           }
+
+          Deno.removeSync(from, { recursive: true });
 
           // Note the version that we have installed
           noteInstalledVersion(pkgInfo.version);
