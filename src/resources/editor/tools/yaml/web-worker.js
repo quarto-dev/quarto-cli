@@ -20620,12 +20620,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 144616,
+          _internalId: 144610,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 144608,
+              _internalId: 144602,
               type: "enum",
               enum: [
                 "png",
@@ -20641,7 +20641,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 144615,
+              _internalId: 144609,
               type: "anyOf",
               anyOf: [
                 {
@@ -20762,9 +20762,9 @@ try {
                                       anyOf: [
                                         "string",
                                         "object"
-                                      ]
-                                    },
-                                    description: "The institution that was the recipient of the funding."
+                                      ],
+                                      description: "The institution that was the recipient of the funding."
+                                    }
                                   }
                                 }
                               }
@@ -20808,9 +20808,9 @@ try {
                                       anyOf: [
                                         "string",
                                         "object"
-                                      ]
-                                    },
-                                    description: "The institution that was responsible for the intellectual content of the work reported in the document."
+                                      ],
+                                      description: "The institution that was responsible for the intellectual content of the work reported in the document."
+                                    }
                                   }
                                 }
                               }

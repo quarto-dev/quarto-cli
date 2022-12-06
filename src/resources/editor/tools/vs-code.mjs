@@ -20619,12 +20619,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 144616,
+        _internalId: 144610,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 144608,
+            _internalId: 144602,
             type: "enum",
             enum: [
               "png",
@@ -20640,7 +20640,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 144615,
+            _internalId: 144609,
             type: "anyOf",
             anyOf: [
               {
@@ -20761,9 +20761,9 @@ var require_yaml_intelligence_resources = __commonJS({
                                     anyOf: [
                                       "string",
                                       "object"
-                                    ]
-                                  },
-                                  description: "The institution that was the recipient of the funding."
+                                    ],
+                                    description: "The institution that was the recipient of the funding."
+                                  }
                                 }
                               }
                             }
@@ -20807,9 +20807,9 @@ var require_yaml_intelligence_resources = __commonJS({
                                     anyOf: [
                                       "string",
                                       "object"
-                                    ]
-                                  },
-                                  description: "The institution that was responsible for the intellectual content of the work reported in the document."
+                                    ],
+                                    description: "The institution that was responsible for the intellectual content of the work reported in the document."
+                                  }
                                 }
                               }
                             }
