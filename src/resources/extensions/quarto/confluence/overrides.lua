@@ -1,8 +1,12 @@
 -- Confluence Storage Format for Pandoc
 -- https://confluence.atlassian.com/doc/confluence-storage-format-790796544.html
 -- https://pandoc.org/MANUAL.html#custom-readers-and-writers
-function startswith(text, prefix)
+local function startsWith(text, prefix)
   return text:find(prefix, 1, true) == 1
+end
+
+local function endsWith(text, ending)
+  return ending == "" or text:sub(-#ending) == ending
 end
 
 local function escape(s, in_attribute)
@@ -107,15 +111,13 @@ end
 
 function LinkConfluence(source, target, title, attr)
   local LINK_ATTACHMENT_SNIPPET = [[<ac:link><ri:attachment ri:filename="{source}"/><ac:plain-text-link-body><![CDATA[{target}{doubleBraket}></ac:plain-text-link-body></ac:link>]]
-
-  if(not startswith(source,"http")) then
+  if(not startsWith(target,"http") and (not endsWith(target,"qmd"))) then
     return interpolate {
     LINK_ATTACHMENT_SNIPPET,
     source = source,
     target = target,
     doubleBraket = "]]"
   }
-
   end
 
     return "<a href='" .. escape(target,true) .. "' title='" ..

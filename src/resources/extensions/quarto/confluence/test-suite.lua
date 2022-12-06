@@ -112,7 +112,19 @@ function TestLinkConfluence:testExternal()
 
   lu.assertEquals(actual, expected)
 end
+function TestLinkConfluence:testQMD()
+  local expected = [[<a href='fake-target.qmd' title='fake-title'>fake-source</a>]]
+  local source = 'fake-source'
+  local target = 'fake-target.qmd'
+  local title = 'fake-title'
+  local attributes = {
+    class = 'fake-class'
+  }
+  expected = confluence.interpolate{expected, doubleBracket = ']]'}
+  local actual = confluence.LinkConfluence(source, target, title, attributes)
 
+  lu.assertEquals(actual, expected)
+end
 function TestLinkConfluence:testAttachment()
   local expected = [[<ac:link><ri:attachment ri:filename="fake-source"/><ac:plain-text-link-body><![CDATA[fake-target{doubleBracket}></ac:plain-text-link-body></ac:link>]]
   expected = confluence.interpolate{expected, doubleBracket = ']]'}
