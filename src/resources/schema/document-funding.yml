@@ -56,7 +56,7 @@
                             anyOf:
                               - string
                               - object
-                          description: The institution that was the recipient of the funding.
+                            description: The institution that was the recipient of the funding.
                 description: Individual(s) or institution(s) to whom the award was given (for example, the principal grant holder or the sponsored individual).
               investigator:
                 maybeArrayOf:
@@ -81,7 +81,7 @@
                             anyOf:
                               - string
                               - object
-                          description: The institution that was responsible for the intellectual content of the work reported in the document.
+                            description: The institution that was responsible for the intellectual content of the work reported in the document.
                 description: Individual(s) responsible for the intellectual content of the work reported in the document.
   description: |
     Information about the funding of the research reported in the article 
