@@ -16,6 +16,7 @@ import { resolveInputTarget } from "../../../project-index.ts";
 import { ProjectOutputFile } from "../../types.ts";
 import { projectOutputDir } from "../../../project-shared.ts";
 import { kListing } from "./website-listing-shared.ts";
+import { warning } from "log/mod.ts";
 
 export async function createListingIndex(
   source: string,
@@ -90,40 +91,50 @@ export function updateGlobalListingIndex(
 
   // start with a set of search docs if this is incremental
   const listingPaths = new Array<ListingPaths>();
+  let generateListings = true;
   if (incremental && listingJson) {
     // Read the existing index
-    const existingListingJson = JSON.parse(listingJson);
-    listingPaths.push(...(existingListingJson as ListingPaths[]));
-  }
-
-  // Go through output files and for each one, see if there is a listing index.
-  for (const outputFile of outputFiles) {
-    const hasListing = !!outputFile.format.metadata[kListing];
-    if (hasListing) {
-      const indexPath = listingIndex(outputFile.file);
-      if (existsSync(indexPath)) {
-        const json = Deno.readTextFileSync(indexPath);
-        const indexJson = JSON.parse(json) as ListingPaths;
-
-        const existingIndex = listingPaths.findIndex((paths) =>
-          paths.listing === indexJson.listing
-        );
-        if (existingIndex > -1) {
-          listingPaths[existingIndex] = indexJson;
-        } else {
-          listingPaths.push(indexJson);
-        }
-
-        Deno.removeSync(indexPath);
-      }
+    try {
+      const existingListingJson = JSON.parse(listingJson);
+      listingPaths.push(...(existingListingJson as ListingPaths[]));
+    } catch {
+      generateListings = false;
+      warning(
+        "Unable to read listing index - it may be corrupt. Please re-render the entire site to create a valid listing index.",
+      );
     }
   }
 
-  if (listingPaths.length > 0) {
-    Deno.writeTextFileSync(
-      listingJsonPath,
-      JSON.stringify(listingPaths, undefined, 2),
-    );
+  // Go through output files and for each one, see if there is a listing index.
+  if (generateListings) {
+    for (const outputFile of outputFiles) {
+      const hasListing = !!outputFile.format.metadata[kListing];
+      if (hasListing) {
+        const indexPath = listingIndex(outputFile.file);
+        if (existsSync(indexPath)) {
+          const json = Deno.readTextFileSync(indexPath);
+          const indexJson = JSON.parse(json) as ListingPaths;
+
+          const existingIndex = listingPaths.findIndex((paths) =>
+            paths.listing === indexJson.listing
+          );
+          if (existingIndex > -1) {
+            listingPaths[existingIndex] = indexJson;
+          } else {
+            listingPaths.push(indexJson);
+          }
+
+          Deno.removeSync(indexPath);
+        }
+      }
+    }
+
+    if (listingPaths.length > 0) {
+      Deno.writeTextFileSync(
+        listingJsonPath,
+        JSON.stringify(listingPaths, undefined, 2),
+      );
+    }
   }
 }
 

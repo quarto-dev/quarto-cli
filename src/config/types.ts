@@ -158,6 +158,7 @@ import {
   kSectionTitleAbstract,
   kSectionTitleAppendices,
   kSectionTitleCitation,
+  kSectionTitleCopyright,
   kSectionTitleFootnotes,
   kSectionTitleReferences,
   kSectionTitleReuse,
@@ -531,6 +532,7 @@ export interface FormatLanguage {
   [kSectionTitleReferences]?: string;
   [kSectionTitleAppendices]?: string;
   [kSectionTitleReuse]?: string;
+  [kSectionTitleCopyright]?: string;
   [kCodeSummary]?: string;
   [kCodeToolsMenuCaption]?: string;
   [kCodeToolsShowAllCode]?: string;

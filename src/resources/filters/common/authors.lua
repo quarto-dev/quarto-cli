@@ -18,6 +18,9 @@ local kAuthorOutput = kAuthorInput
 -- Where we'll write the normalized list of affiliations
 local kAffiliationOutput = "affiliations"
 
+-- Where we'll write the normalized list of funding
+local kFundingOutput = "funding"
+
 -- Where we'll write the 'by-author' list of authors which
 -- includes expanded affiliation information inline with the author
 local kByAuthor = "by-author"
@@ -26,6 +29,26 @@ local kByAuthor = "by-author"
 -- includes expanded author information inline with each affiliation
 local kByAffiliation = "by-affiliation"
 local kAuthors = "authors"
+
+-- Funding placeholders
+-- Normalized into:
+-- funding:
+--   - id: string (optional)
+--     statement: string (optional)
+--     open-access: string (optional)
+--     source: 
+--       - { text } | { institution }
+--     investigator:
+--       - { text } | { name } | { insitution }
+--     recipient:
+--       - { text } | { name } | { insitution }
+local kFunding = "funding"
+local kAwardId = 'id'
+local kSource = "source"
+local kStatement = "statement"
+local kOpenAccess = "open-access"
+local kRecipient = "recipient"
+local kInvestigator = "investigator"
 
 -- Properties that may appear on an individual author
 local kId = 'id'
@@ -96,6 +119,9 @@ local kRegion = 'region'
 local kState = 'state'
 local kCountry = 'country'
 local kPostalCode = 'postal-code'
+local kISNI = "isni"
+local kRinggold = "ringgold"
+local kROR = "ror"
 
 -- labels contains the suggested labels for the various elements which 
 -- are localized and should correctly deal with plurals, etc...
@@ -135,7 +161,7 @@ local kAuthorAffiliationFields = { kAffiliation, kAffiliations }
 
 -- Fields for affiliations (either inline in authors or 
 -- separately in a affiliations key)
-local kAffiliationFields = { kId, kAffilName, kDepartment, kAddress, kCity, kRegion, kCountry, kPostalCode, kUrl }
+local kAffiliationFields = { kId, kAffilName, kDepartment, kAddress, kCity, kRegion, kCountry, kPostalCode, kUrl, kISNI, kRinggold, kROR }
 
 -- These affiliation fields will be mapped into 'region' 
 -- (so users may also write 'state')
@@ -147,6 +173,7 @@ local kAffiliationAliasedFields = {
 -- This field will be included with 'by-author' and 'by-affiliation' and provides
 -- a simple incremental counter that can be used for things like note numbers
 local kNumber = "number"
+local kLetter = "letter"
 
 function processAuthorMeta(meta)
   -- prevents the front matter for markdown from containing
@@ -252,9 +279,11 @@ function processAuthorMeta(meta)
   -- number the authors and affiliations
   for i,affil in ipairs(affiliations) do
     affil[kNumber] = i
+    affil[kLetter] = letter(i)
   end
   for i,auth in ipairs(authors) do
     auth[kNumber] = i
+    auth[kLetter] = letter(i)
   end
 
   -- Write the normalized data back to metadata
@@ -275,6 +304,31 @@ function processAuthorMeta(meta)
     meta[kByAffiliation] = byAffiliations(authors, affiliations)
   end
 
+  -- the normalized funding
+  local funding = {}
+
+  -- process the 'funding' key
+  local fundingRaw = meta[kFunding]
+  if fundingRaw then
+    -- ensure that this is table
+    if pandoc.utils.type(fundingRaw) ~= "List" then
+      fundingRaw = pandoc.List({fundingRaw})
+    end
+    
+  
+    for i,fundingAward in ipairs(fundingRaw) do 
+      local normalizedAward = processFundingAward(fundingAward, authors, affiliations)
+      if normalizedAward then
+        funding[i] = normalizedAward
+      end 
+    end
+  end
+  
+  -- write the normalized funding to output
+  if #funding ~= 0 then
+    meta[kFundingOutput] = funding
+  end 
+
   -- Provide localized or user specified strings for title block elements
   meta = computeLabels(authors, affiliations, meta)
 
@@ -282,6 +336,7 @@ function processAuthorMeta(meta)
   if meta[kBiblioConfig] == nil then
     meta[kBiblioConfig] = true
   end
+
   return meta
 end
 
@@ -395,8 +450,7 @@ function processAffiliation(author, affiliation)
   local affiliations = {}
   local pandocType = pandoc.utils.type(affiliation)
   if pandocType == 'Inlines' then
-    -- The affiliations is simple a set of inlines, use this as the nam
-    -- of a single affiliation
+    -- The affiliations is simple a set of inlines,  use
     affiliations[#affiliations + 1] = processAffilationObj({ name=affiliation })
   elseif pandocType == 'List' then
     for i, v in ipairs(affiliation) do
@@ -425,6 +479,117 @@ function processAffiliation(author, affiliation)
 
 
   return affiliations
+end
+
+-- Normalizes an indivudal funding entry
+function processFundingAward(fundingAward, authors, affiliations)
+  if pandoc.utils.type(fundingAward) == 'table' then
+    
+    -- this is a table of properties, process them
+    local result = {}
+
+    -- process the simple values
+    for i, key in ipairs({ kAwardId, kStatement, kOpenAccess }) do
+      local valueRaw = fundingAward[key]
+      if valueRaw ~= nil then
+        result[key] = valueRaw
+      end
+    end
+
+    -- Process the funding source
+    local sourceRaw = fundingAward[kSource]
+    if sourceRaw ~= nil then
+      result[kSource] = processSources(sourceRaw)     
+    end
+
+    -- Process recipients
+    local recipientRaw = fundingAward[kRecipient]
+    if recipientRaw ~= nil then
+      result[kRecipient] = processNameOrInstitution(kRecipient, recipientRaw, authors, affiliations)
+    end
+
+    local investigatorRaw = fundingAward[kInvestigator]
+    if investigatorRaw ~= nil then
+      result[kInvestigator] = processNameOrInstitution(kInvestigator, investigatorRaw, authors, affiliations)
+    end
+
+    return result
+  else
+    
+    -- this is a simple string / inlines, just 
+    -- use it as the source
+    return {
+      [kStatement] = fundingAward
+    }
+  end
+end
+
+function processNameOrInstitution(keyName, values, authors, affiliations) 
+  if values ~= nil then
+    local pandocType = pandoc.utils.type(values)
+    if pandocType == "List" then
+      local results = pandoc.List()
+      for i, value in ipairs(values) do
+        results:insert(processNameOrInstitutionObj(keyName, value, authors, affiliations))
+      end
+      return results
+    else
+      return { processNameOrInstitutionObj(values, values, authors, affiliations) }
+    end
+  else 
+    return {}
+  end
+end
+
+
+function processSources(sourceRaw)
+  local pandocType = pandoc.utils.type(sourceRaw)
+  if pandocType == 'Inlines' then
+    return {{ text = sourceRaw }}
+  else
+    local result = pandoc.List()
+    for i, value in ipairs(sourceRaw) do
+      if pandoc.utils.type(value) == 'Inlines' then
+        result:insert({ text = value})
+      else
+        result:insert(value)
+      end
+    end
+    return result
+  end
+end
+
+-- Normalizes a value that could be either a plain old markdown string,
+-- a name, or an affiliation
+function processNameOrInstitutionObj(keyName, valueRaw, authors, affiliations)
+  if (pandoc.utils.type(valueRaw) == 'Inlines') then
+    return { text = valueRaw }
+  else
+    if valueRaw.name ~= nil then
+      return { name = toName(valueRaw.name) }
+    elseif valueRaw.institution ~= nil then
+      return { institition = processAffilationObj(valueRaw.institution) }
+    elseif valueRaw.ref ~= nil then
+      local refStr = pandoc.utils.stringify(valueRaw.ref)
+
+      -- discover the reference (could be author or affiliation)
+      local affiliation = findAffiliation({{ text = refStr }}, affiliations)
+      if affiliation then
+        return { institition = affiliation }
+      else
+        local author = findAuthor(refStr, authors)
+        if author then
+          return { [kName] = author[kName] }
+        else
+          error("Invalid funding ref " .. refStr)
+          os.exit(1)
+        end
+      end
+    else
+      error("Invalid value for " .. keyName)
+      os.exit(1)
+    end
+  end
 end
 
 -- Normalizes an affilation object into the properly
@@ -674,7 +839,7 @@ end
 function byAffiliations(authors, affiliations)
   local denormalizedAffiliations = deepCopy(affiliations)
   for i, affiliation in ipairs(denormalizedAffiliations) do
-    local affilAuthor = findAuthors(affiliation[kId], authors)
+    local affilAuthor = findAffiliationAuthors(affiliation[kId], authors)
     if affilAuthor then
       affiliation[kAuthors] = affilAuthor
     end
@@ -692,8 +857,8 @@ function findAffiliation(id, affiliations)
   return nil
 end
 
--- Finds a matching author by id
-function findAuthors(id, authors)
+-- Finds a matching author by affiliation id
+function findAffiliationAuthors(id, authors)
   local matchingAuthors = {}
   for i, author in ipairs(authors) do
     local authorAffils = author[kAffiliations]
@@ -707,6 +872,17 @@ function findAuthors(id, authors)
   end
   return matchingAuthors
 end
+
+-- Finds a matching author by author id
+function findAuthor(id, authors)
+  for i, author in ipairs(authors) do
+    if pandoc.utils.stringify(author[kId]) == id then
+      return author
+    end
+  end
+  return nil
+end
+
 
 -- Resolve labels for elements into metadata
 function computeLabels(authors, affiliations, meta)
@@ -759,6 +935,12 @@ function computeLabels(authors, affiliations, meta)
   end
 
   return meta
+end
+
+-- Get a letter for a number 
+function letter(number)
+  number = number%26
+  return string.char(96 + number)
 end
 
 -- Remove Spaces from the ends of tables

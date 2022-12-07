@@ -12,6 +12,7 @@ import {
   kLang,
   kPositionedRefs,
   kSectionTitleCitation,
+  kSectionTitleCopyright,
   kSectionTitleReuse,
 } from "../../config/constants.ts";
 import { Format, PandocFlags } from "../../config/types.ts";
@@ -31,6 +32,7 @@ import {
   insertTitle,
   kAppendixStyle,
   kCitation,
+  kCopyright,
   kLicense,
 } from "./format-html-shared.ts";
 
@@ -166,26 +168,88 @@ export async function processDocumentAppendix(
           kAppendixContentsClass,
         );
 
-        const creativeCommons = creativeCommonsLicense(
-          format.metadata[kLicense] as string,
-        );
-        if (creativeCommons) {
-          const licenseUrl = creativeCommonsUrl(
-            creativeCommons,
-            format.metadata[kLang] as string | undefined,
-          );
-          const linkEl = doc.createElement("A");
-          linkEl.innerText = licenseUrl;
-          linkEl.setAttribute("rel", "license");
-          linkEl.setAttribute("href", licenseUrl);
-          contentsDiv.appendChild(linkEl);
-        } else {
+        // Note: We should ultimately replace this with a template
+        // based approach that emits the appendix using a partial
+        //
+        // this will allow us to not include the following code.
+        const normalizedLicense = (license: unknown) => {
+          if (typeof (license) === "string") {
+            const creativeCommons = creativeCommonsLicense(license);
+            if (creativeCommons) {
+              const licenseUrl = creativeCommonsUrl(
+                creativeCommons,
+                format.metadata[kLang] as string | undefined,
+              );
+              return {
+                url: licenseUrl,
+                text: licenseUrl,
+              };
+            } else {
+              return { text: license };
+            }
+          } else {
+            return license as { url?: string; text: string };
+          }
+        };
+        const normalizedLicenses = (licenses: unknown) => {
+          if (Array.isArray(licenses)) {
+            return licenses.map((license) => {
+              return normalizedLicense(license);
+            });
+          } else {
+            return [normalizedLicense(licenses)];
+          }
+        };
+
+        const license = format.metadata[kLicense];
+        const normalized = normalizedLicenses(license);
+        for (const normalLicense of normalized) {
           const licenseEl = doc.createElement("DIV");
-          licenseEl.innerText = format.metadata[kLicense] as string;
+          if (normalLicense.url) {
+            const linkEl = doc.createElement("A");
+            linkEl.innerText = normalLicense.text;
+            linkEl.setAttribute("rel", "license");
+            linkEl.setAttribute("href", normalLicense.url);
+            licenseEl.appendChild(linkEl);
+          } else {
+            licenseEl.innerText = normalLicense.text;
+          }
           contentsDiv.appendChild(licenseEl);
         }
+
         sectionEl.appendChild(contentsDiv);
-      }, format.language[kSectionTitleReuse] || "Usage");
+      }, format.language[kSectionTitleReuse] || "Reuse");
+    }
+
+    if (format.metadata[kCopyright]) {
+      // Note: We should ultimately replace this with a template
+      // based approach that emits the appendix using a partial
+      //
+      // this will allow us to not include the following code.
+      const normalizedCopyright = (copyright: unknown) => {
+        if (typeof (copyright) === "string") {
+          return copyright;
+        } else if (copyright) {
+          return (copyright as { statement?: string }).statement;
+        }
+      };
+      const copyrightRaw = format.metadata[kCopyright];
+      const copyright = normalizedCopyright(copyrightRaw);
+      if (copyright) {
+        addSection((sectionEl) => {
+          const contentsDiv = doc.createElement("DIV");
+          contentsDiv.id = "quarto-copyright";
+          contentsDiv.classList.add(
+            kAppendixContentsClass,
+          );
+
+          const licenseEl = doc.createElement("DIV");
+          licenseEl.innerText = copyright;
+          contentsDiv.appendChild(licenseEl);
+
+          sectionEl.appendChild(contentsDiv);
+        }, format.language[kSectionTitleCopyright] || "Copyright");
+      }
     }
 
     // Place the citation for this document itself, if appropriate
@@ -307,8 +371,12 @@ function parseStyle(style?: string) {
 function creativeCommonsLicense(
   license?: string,
 ): "CC BY" | "CC BY-SA" | "CC BY-ND" | "CC BY-NC" | undefined {
-  if (license && kAppendixCreativeCommonsLic.includes(license)) {
-    return license as "CC BY" | "CC BY-SA" | "CC BY-ND" | "CC BY-NC";
+  if (license && kAppendixCreativeCommonsLic.includes(license.toUpperCase())) {
+    return license.toUpperCase() as
+      | "CC BY"
+      | "CC BY-SA"
+      | "CC BY-ND"
+      | "CC BY-NC";
   } else {
     return undefined;
   }
