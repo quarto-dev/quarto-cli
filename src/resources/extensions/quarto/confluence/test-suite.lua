@@ -100,9 +100,9 @@ end
 
 TestLinkConfluence = {}
 function TestLinkConfluence:testExternal()
-  local expected = [[<a href='fake-target' title='fake-title'>http://external</a>]]
-  local source = 'http://external'
-  local target = 'fake-target'
+  local expected = "<a href='http://fake-target' title='fake-title'>fake-source</a>"
+  local source = 'fake-source'
+  local target = 'http://fake-target'
   local title = 'fake-title'
   local attributes = {
     class = 'fake-class'
