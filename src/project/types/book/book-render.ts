@@ -22,6 +22,7 @@ import {
   kDate,
   kDescription,
   kDoi,
+  kFormatLinks,
   kHideDescription,
   kNumberSections,
   kOutputExt,
@@ -214,6 +215,9 @@ export function bookPandocRenderer(
             }
           }
         }
+
+        // Since this is a book page, don't include other format links
+        file.recipe.format.render[kFormatLinks] = false;
 
         // perform the render
         const renderCompletion = await renderPandoc(file, quiet);
