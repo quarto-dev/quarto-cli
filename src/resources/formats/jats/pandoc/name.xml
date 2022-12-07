@@ -1,0 +1,5 @@
+<name>
+<surname>$if(it.name.non-dropping-particle)$${it.name.non-dropping-particle} $endif$${it.name.family}</surname>
+<given-names>${it.name.given}$if(it.name.dropping-particle)$ ${it.name.dropping-particle}$endif$</given-names>
+</name>
+<string-name>$it.name.literal$</string-name>

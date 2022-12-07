@@ -18667,6 +18667,7 @@ try {
           "The value for the identifier",
           "The type of identifier (e.g.&nbsp;<code>nlm-ta</code> or\n<code>pmc</code>).",
           "The value for the identifier",
+          "The type used for the JATS <code>article</code> tag.",
           "Textual content to add to includes",
           "Name of file with content to add to includes",
           "Version number according to Semantic Versioning",
@@ -20054,6 +20055,55 @@ try {
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "internal-schema-hack",
+          "Information about the funding of the research reported in the article\n(for example, grants, contracts, sponsors) and any open access fees for\nthe article itself",
+          "Unique identifier assigned to an award, contract, or grant.",
+          "Displayable prose statement that describes the funding for the\nresearch on which a work was based.",
+          "Open access provisions that apply to a work or the funding\ninformation that provided the open access provisions.",
+          "Agency or organization that funded the research on which a work was\nbased.",
+          "The text describing the source of the funding.",
+          {
+            short: "Abbreviation for country where source of grant is located.",
+            long: "Abbreviation for country where source of grant is located. Whenever\npossible, ISO 3166-1 2-letter alphabetic codes should be used."
+          },
+          "The text describing the source of the funding.",
+          {
+            short: "Abbreviation for country where source of grant is located.",
+            long: "Abbreviation for country where source of grant is located. Whenever\npossible, ISO 3166-1 2-letter alphabetic codes should be used."
+          },
+          "Individual(s) or institution(s) to whom the award was given (for\nexample, the principal grant holder or the sponsored individual).",
+          "The id of an author or affiliation in the document metadata.",
+          "The name of an individual that was the recipient of the funding.",
+          "The id of an author or affiliation in the document metadata.",
+          "The name of an individual that was the recipient of the funding.",
+          "Individual(s) responsible for the intellectual content of the work\nreported in the document.",
+          "The id of an author or affiliation in the document metadata.",
+          "The name of an individual that was responsible for the intellectual\ncontent of the work reported in the document.",
+          "The id of an author or affiliation in the document metadata.",
+          "The name of an individual that was responsible for the intellectual\ncontent of the work reported in the document.",
+          "Unique identifier assigned to an award, contract, or grant.",
+          "Displayable prose statement that describes the funding for the\nresearch on which a work was based.",
+          "Open access provisions that apply to a work or the funding\ninformation that provided the open access provisions.",
+          "Agency or organization that funded the research on which a work was\nbased.",
+          "The text describing the source of the funding.",
+          {
+            short: "Abbreviation for country where source of grant is located.",
+            long: "Abbreviation for country where source of grant is located. Whenever\npossible, ISO 3166-1 2-letter alphabetic codes should be used."
+          },
+          "The text describing the source of the funding.",
+          {
+            short: "Abbreviation for country where source of grant is located.",
+            long: "Abbreviation for country where source of grant is located. Whenever\npossible, ISO 3166-1 2-letter alphabetic codes should be used."
+          },
+          "Individual(s) or institution(s) to whom the award was given (for\nexample, the principal grant holder or the sponsored individual).",
+          "The id of an author or affiliation in the document metadata.",
+          "The name of an individual that was the recipient of the funding.",
+          "The id of an author or affiliation in the document metadata.",
+          "The name of an individual that was the recipient of the funding.",
+          "Individual(s) responsible for the intellectual content of the work\nreported in the document.",
+          "The id of an author or affiliation in the document metadata.",
+          "The name of an individual that was responsible for the intellectual\ncontent of the work reported in the document.",
+          "The id of an author or affiliation in the document metadata.",
+          "The name of an individual that was responsible for the intellectual\ncontent of the work reported in the document.",
           "Project configuration.",
           "Project type (<code>default</code>, <code>website</code>, or\n<code>book</code>)",
           "Files to render (defaults to all files)",
@@ -20570,12 +20620,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 138083,
+          _internalId: 144610,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 138075,
+              _internalId: 144602,
               type: "enum",
               enum: [
                 "png",
@@ -20591,7 +20641,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 138082,
+              _internalId: 144609,
               type: "anyOf",
               anyOf: [
                 {
@@ -20621,7 +20671,162 @@ try {
             ]
           },
           $id: "handlers/mermaid"
-        }
+        },
+        "schema/document-funding.yml": [
+          {
+            name: "funding",
+            schema: {
+              maybeArrayOf: {
+                anyOf: [
+                  "string",
+                  {
+                    object: {
+                      closed: true,
+                      properties: {
+                        id: {
+                          string: {
+                            description: "Unique identifier assigned to an award, contract, or grant."
+                          }
+                        },
+                        statement: {
+                          string: {
+                            description: "Displayable prose statement that describes the funding for the research on which a work was based."
+                          }
+                        },
+                        "open-access": {
+                          string: {
+                            description: "Open access provisions that apply to a work or the funding information that provided the open access provisions."
+                          }
+                        },
+                        source: {
+                          maybeArrayOf: {
+                            anyOf: [
+                              "string",
+                              {
+                                object: {
+                                  closed: true,
+                                  properties: {
+                                    text: {
+                                      string: {
+                                        description: "The text describing the source of the funding."
+                                      }
+                                    },
+                                    country: {
+                                      string: {
+                                        description: {
+                                          short: "Abbreviation for country where source of grant is located.",
+                                          long: "Abbreviation for country where source of grant is located.\nWhenever possible, ISO 3166-1 2-letter alphabetic codes should be used.\n"
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          description: "Agency or organization that funded the research on which a work was based."
+                        },
+                        recipient: {
+                          maybeArrayOf: {
+                            anyOf: [
+                              "string",
+                              {
+                                object: {
+                                  closed: true,
+                                  properties: {
+                                    ref: {
+                                      string: {
+                                        description: "The id of an author or affiliation in the document metadata."
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                object: {
+                                  closed: true,
+                                  properties: {
+                                    name: {
+                                      string: {
+                                        description: "The name of an individual that was the recipient of the funding."
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                object: {
+                                  closed: true,
+                                  properties: {
+                                    institution: {
+                                      anyOf: [
+                                        "string",
+                                        "object"
+                                      ],
+                                      description: "The institution that was the recipient of the funding."
+                                    }
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          description: "Individual(s) or institution(s) to whom the award was given (for example, the principal grant holder or the sponsored individual)."
+                        },
+                        investigator: {
+                          maybeArrayOf: {
+                            anyOf: [
+                              "string",
+                              {
+                                object: {
+                                  closed: true,
+                                  properties: {
+                                    ref: {
+                                      string: {
+                                        description: "The id of an author or affiliation in the document metadata."
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                object: {
+                                  closed: true,
+                                  properties: {
+                                    name: {
+                                      string: {
+                                        description: "The name of an individual that was responsible for the intellectual content of the work reported in the document."
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                object: {
+                                  closed: true,
+                                  properties: {
+                                    institution: {
+                                      anyOf: [
+                                        "string",
+                                        "object"
+                                      ],
+                                      description: "The institution that was responsible for the intellectual content of the work reported in the document."
+                                    }
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          description: "Individual(s) responsible for the intellectual content of the work reported in the document."
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            description: "Information about the funding of the research reported in the article \n(for example, grants, contracts, sponsors) and any open access fees for the article itself\n"
+          }
+        ]
       };
     }
   });
