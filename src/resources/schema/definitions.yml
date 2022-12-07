@@ -132,7 +132,13 @@
             Value for rel attribute. Multiple space-separated values are permitted.
             See <https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel>
             for a details.
-
+      target:
+        string:
+          description: |
+            Value for target attribute.
+            See <https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target>
+            for details.
+     
 - id: comments
   anyOf:
     - enum: [false]
