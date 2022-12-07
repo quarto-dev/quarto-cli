@@ -142,8 +142,6 @@ initCrossrefIndex()
 
 initShortcodeHandlers()
 
-local pandoc_overrides_state = install_pandoc_overrides()
-
 local quartoInit = {
   { name = "init-configure-filters", filter = configureFilters() },
   { name = "init-readIncludes", filter = readIncludes() },
@@ -153,8 +151,8 @@ local quartoInit = {
   })},
 }
 
-local quartoAuthors = {
-  { name = "authors", filter = filterIf(function()
+local quartoNormalize = {
+  { name = "normalize", filter = filterIf(function()
     return preState.active_filters.normalization
   end, normalizeFilter()) }
 }
@@ -268,7 +266,7 @@ local quartoCrossref = {
 local filterList = {}
 
 tappend(filterList, quartoInit)
-tappend(filterList, quartoAuthors)
+tappend(filterList, quartoNormalize)
 tappend(filterList, quartoPre)
 tappend(filterList, quartoCrossref)
 tappend(filterList, quartoLayout)
@@ -282,7 +280,7 @@ local result = run_as_extended_ast({
     initOptions()
   },
   filters = capture_timings(filterList),
-}, pandoc_overrides_state)
+})
 
 return result
 
