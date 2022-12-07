@@ -1,5 +1,3 @@
-// TODO anchored#links - see handbook
-
 // TODO Sites - 'tagged' parent
 // - Deletes only work with quarto parent
 // - Set permissions on quarto parent
@@ -512,8 +510,11 @@ async function publish(
       existingSite
     );
 
-    changeList = updateLinks(metadataByFilename, changeList, server, parent);
     trace("changelist", changeList);
+
+    changeList = updateLinks(metadataByFilename, changeList, server, parent);
+
+    trace("update links changelist", changeList);
 
     const spaceChanges = (
       changeList: ConfluenceSpaceChange[]

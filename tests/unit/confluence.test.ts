@@ -1209,7 +1209,7 @@ const runExtractLinks = () => {
       (link: string): ExtractedLink => {
         const fileMatches = link.match(FILE_FINDER);
         const file = fileMatches ? fileMatches[0] ?? "" : "";
-        return { link, file };
+        return { link, file: `${file}.qmd` };
       }
     );
     return extractedLinks;
@@ -1227,10 +1227,10 @@ const runExtractLinks = () => {
 
   unitTest(suiteLabel("three_links"), async () => {
     const value =
-      "<a href='no-replace.qmd'/>no</a> content content <a href='team.qmd'>team</a> content content <a href='zqmdzz.qmd'>team</a>";
+      "<a href='no-replace.qmd'/>no</a> content content <a href='team.qmd#Fake-Anchor'>team</a> content content <a href='zqmdzz.qmd'>team</a>";
     const expected: ExtractedLink[] = [
       { link: "href='no-replace.qmd'", file: "no-replace.qmd" },
-      { link: "href='team.qmd'", file: "team.qmd" },
+      { link: "href='team.qmd#Fake-Anchor'", file: "team.qmd" },
       { link: "href='zqmdzz.qmd'", file: "zqmdzz.qmd" },
     ];
     check(expected, value);
@@ -1238,10 +1238,10 @@ const runExtractLinks = () => {
 
   unitTest(suiteLabel("three_links_messy"), async () => {
     const value =
-      "no-replace.qmd <a href='no-replace.qmd'/>no</a> no-replace.qmd content content <a href='team.qmd'>team</a> content content <a href='zqmdzz.qmd'>team</a> qmd.qmd <a href='team.txt'>team</a>";
+      "no-replace.qmd <a href='no-replace.qmd'/>no</a> no-replace.qmd content content <a href='team.qmd#Fake-Anchor'>team</a> content content <a href='zqmdzz.qmd'>team</a> qmd.qmd <a href='team.txt'>team</a>";
     const expected: ExtractedLink[] = [
       { link: "href='no-replace.qmd'", file: "no-replace.qmd" },
-      { link: "href='team.qmd'", file: "team.qmd" },
+      { link: "href='team.qmd#Fake-Anchor'", file: "team.qmd" },
       { link: "href='zqmdzz.qmd'", file: "zqmdzz.qmd" },
     ];
     check(expected, value);
@@ -1307,6 +1307,24 @@ const runUpdateLinks = () => {
     fileName: "release-planning.xml",
   };
 
+  const UPDATE_LINKS_ONE_ANCHOR: ContentUpdate = {
+    contentChangeType: ContentChangeType.update,
+    id: "19890228",
+    version: null,
+    title: "Release Planning",
+    type: "page",
+    status: "current",
+    ancestors: [{ id: "19759105" }],
+    body: {
+      storage: {
+        value:
+          "<a href='no-replace.qmd'/>no</a> content content <a href='team.qmd#Fake-Anchor'>team</a> content content <a href='zqmdzz.qmd'>team</a>",
+        representation: "storage",
+      },
+    },
+    fileName: "release-planning.xml",
+  };
+
   const UPDATE_LINKS_SEVERAL: ContentUpdate = {
     contentChangeType: ContentChangeType.update,
     id: "19890228",
@@ -1332,10 +1350,8 @@ const runUpdateLinks = () => {
     server = "fake-server",
     parent = FAKE_PARENT
   ) => {
-    assertEquals(
-      expected,
-      updateLinks(fileMetadataTable, changes, server, parent)
-    );
+    const result = updateLinks(fileMetadataTable, changes, server, parent);
+    assertEquals(expected, result);
   };
 
   unitTest(suiteLabel("no_files"), async () => {
@@ -1358,6 +1374,23 @@ const runUpdateLinks = () => {
       body: {
         storage: {
           value: `<a href=\'no-replace.qmd\'/>no</a> content content <a href=\'fake-server/wiki/spaces/QUARTOCONF/pages/19857455/Team\'>team</a> content content <a href=\'zqmdzz.qmd\'>team</a>`,
+          representation: "storage",
+        },
+      },
+    };
+    const expected: ConfluenceSpaceChange[] = [expectedUpdate];
+    check(expected, changes, fileMetadataTable);
+  });
+
+  unitTest(suiteLabel("one_update_link_anchor"), async () => {
+    const changes: ConfluenceSpaceChange[] = [UPDATE_LINKS_ONE_ANCHOR];
+    const rootURL = "fake-server/wiki/spaces/QUARTOCONF/pages";
+    const expectedUpdate: ContentUpdate = {
+      ...UPDATE_LINKS_ONE,
+      body: {
+        storage: {
+          value:
+            "<a href='no-replace.qmd'/>no</a> content content <a href='fake-server/wiki/spaces/QUARTOCONF/pages/19857455/Team#Fake-Anchor'>team</a> content content <a href='zqmdzz.qmd'>team</a>",
           representation: "storage",
         },
       },
@@ -1480,8 +1513,8 @@ const runFindAttachments = () => {
   });
 
   unitTest(suiteLabel("audio_file"), async () => {
-    const bodyValue: string =
-      '<ac:link><ri:attachment ri:filename="audio/2022-11-10-intro-psychological-safety.m4a"/><ac:plain-text-link-body><![CDATA[audio/2022-11-10-intro-psychological-safety.m4a]]></ac:plain-text-link-body></ac:link>';
+    const DOUBLE_BRACKET = "]]";
+    const bodyValue: string = `<ac:link><ri:attachment ri:filename="audio/2022-11-10-intro-psychological-safety.m4a"/><ac:plain-text-link-body><![CDATA[audio/2022-11-10-intro-psychological-safety.m4a${DOUBLE_BRACKET}></ac:plain-text-link-body></ac:link>`;
     const expected: string[] = [
       "audio/2022-11-10-intro-psychological-safety.m4a",
     ];

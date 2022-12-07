@@ -5,10 +5,6 @@ local function startsWith(text, prefix)
   return text:find(prefix, 1, true) == 1
 end
 
-local function endsWith(text, ending)
-  return ending == "" or text:sub(-#ending) == ending
-end
-
 local function escape(s, in_attribute)
   return s:gsub("[<>&\"']",
           function(x)
@@ -111,7 +107,7 @@ end
 
 function LinkConfluence(source, target, title, attr)
   local LINK_ATTACHMENT_SNIPPET = [[<ac:link><ri:attachment ri:filename="{source}"/><ac:plain-text-link-body><![CDATA[{target}{doubleBraket}></ac:plain-text-link-body></ac:link>]]
-  if(not startsWith(target,"http") and (not endsWith(target,"qmd"))) then
+  if(not startsWith(target,"http") and (not string.find(target, ".qmd"))) then
     return interpolate {
     LINK_ATTACHMENT_SNIPPET,
     source = source,

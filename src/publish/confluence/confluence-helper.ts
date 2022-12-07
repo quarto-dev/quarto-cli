@@ -28,8 +28,8 @@ import { withSpinner } from "../../core/console.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { capitalizeWord } from "../../core/text.ts";
 
-export const LINK_FINDER: RegExp = /(\S*.qmd'\w*)/g;
-export const FILE_FINDER: RegExp = /(?<=href=\')(.*)(?=\')/;
+export const LINK_FINDER: RegExp = /(\S*.qmd'|\S*.qmd#\S*')/g;
+export const FILE_FINDER: RegExp = /(?<=href=\')(.*)(?=\.qmd)/;
 const IMAGE_FINDER: RegExp =
   /(?<=ri:attachment ri:filename=["\'])[^"\']+?\.(?:jpe?g|png|gif|m4a|mp3|txt)(?=["\'])/g;
 
@@ -425,13 +425,17 @@ export const updateLinks = (
     const fileNameMatch = FILE_FINDER.exec(match);
     const fileName = fileNameMatch ? fileNameMatch[0] ?? "" : "";
 
-    const sitePage: SitePage | null = fileMetadataTable[fileName] ?? null;
+    const fileNameExtension = `${fileName}.qmd`;
+
+    const sitePage: SitePage | null =
+      fileMetadataTable[fileNameExtension] ?? null;
     if (sitePage) {
       updated = match.replace('href="', `href="${url}`);
       const pagePath: string = `${url}${sitePage.id}/${encodeURI(
         sitePage.title ?? ""
       )}`;
-      updated = updated.replace(fileName, pagePath);
+
+      updated = updated.replace(fileNameExtension, pagePath);
     }
 
     return updated;
