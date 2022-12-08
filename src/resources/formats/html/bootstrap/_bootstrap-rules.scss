@@ -1175,6 +1175,12 @@ div.hanging-indent {
   margin-top: $callout-margin-top;
   margin-bottom: $callout-margin-bottom;
   border-radius: $border-radius;
+
+  overflow-wrap: break-word;
+}
+
+.callout .callout-caption-container {
+  overflow-wrap: anywhere;
 }
 
 .callout.callout-style-simple {
