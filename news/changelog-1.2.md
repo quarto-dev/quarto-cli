@@ -1,3 +1,8 @@
+## New In This Patch Release
+
+- Correct handling of the proxy url when starting preview server (fix issue previewing within IDEs)
+- Fix tinytex failure to install packages caused by invalid installation of tinytex on MacOS
+
 ## Jupyter
 
 - Always ignore .ipynb inputs when they have a corresponding .qmd
