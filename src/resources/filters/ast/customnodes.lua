@@ -5,8 +5,6 @@
 
 local handlers = {}
 
-local kExtendedAstTag = "quarto-extended-ast-tag"
-
 _quarto.ast = {
   custom = function(name, tbl)
     local result = create_emulated_node(name, true)
@@ -16,39 +14,39 @@ _quarto.ast = {
     return result
   end,
 
-  copy_as_emulated_node = function(el)
-    -- this will probably crash other places, but they shouldn't be calling us like this anyway
-    if el == nil then return nil end
+  -- copy_as_emulated_node = function(el)
+  --   -- this will probably crash other places, but they shouldn't be calling us like this anyway
+  --   if el == nil then return nil end
 
-    if type(el) ~= "table" and type(el) ~= "userdata" then
-      error("Internal Error: copy_as_emulated_node can't handle type " .. type(el))
-      crash_with_stack_trace()
-      return create_emulated_node("Div") -- a lie to appease to type system
-    end
+  --   if type(el) ~= "table" and type(el) ~= "userdata" then
+  --     error("Internal Error: copy_as_emulated_node can't handle type " .. type(el))
+  --     crash_with_stack_trace()
+  --     return create_emulated_node("Div") -- a lie to appease to type system
+  --   end
 
-    local emulatedNode = create_emulated_node(
-      el.t or pandoc.utils.type(el),
-      el.is_custom or false
-    )
+  --   local emulatedNode = create_emulated_node(
+  --     el.t or pandoc.utils.type(el),
+  --     el.is_custom or false
+  --   )
 
-    if pandoc_fixed_field_types[el.t] and pandoc_fixed_field_types[el.t].attr then
-      emulatedNode.attr = pandoc.Attr(el.attr)
-    end
+  --   if pandoc_fixed_field_types[el.t] and pandoc_fixed_field_types[el.t].attr then
+  --     emulatedNode.attr = pandoc.Attr(el.attr)
+  --   end
 
-    function is_content_field(k)
-      return k ~= "walk" and k ~= "clone" and k ~= "show"
-    end
+  --   function is_content_field(k)
+  --     return k ~= "walk" and k ~= "clone" and k ~= "show"
+  --   end
 
-    for k, v in pairs(el) do
-      if is_content_field(k) then
-        emulatedNode[k] = v
-      end
-    end
-    return emulatedNode
-  end,
+  --   for k, v in pairs(el) do
+  --     if is_content_field(k) then
+  --       emulatedNode[k] = v
+  --     end
+  --   end
+  --   return emulatedNode
+  -- end,
 
-  to_emulated = to_emulated,
-  from_emulated = from_emulated,
+  -- to_emulated = to_emulated,
+  -- from_emulated = from_emulated,
   
   add_handler = function(handler)
     local state = (preState or postState).extendedAstHandlers
@@ -86,53 +84,53 @@ _quarto.ast = {
   end,
 
 
-  unbuild = function(emulatedNode)
-    local name = emulatedNode.attr.attributes["quarto-extended-ast-tag"]
-    local handler = _quarto.ast.resolve_handler(name)
-    if handler == nil then
-      print("ERROR: couldn't find a handler for " .. name)
-      crash_with_stack_trace()
-    end
-    local divTable = { attr = emulatedNode.attr }
-    local key
-    for i, v in ipairs(emulatedNode.content) do
-      if i % 2 == 1 then
-        key = pandoc.utils.stringify(v)
-      else
-        divTable[key] = v
-      end
-    end
-    divTable.class = pandoc.utils.stringify(divTable.class)
-    return divTable
-  end,
+  -- unbuild = function(emulatedNode)
+  --   local name = emulatedNode.attr.attributes["quarto-extended-ast-tag"]
+  --   local handler = _quarto.ast.resolve_handler(name)
+  --   if handler == nil then
+  --     print("ERROR: couldn't find a handler for " .. name)
+  --     crash_with_stack_trace()
+  --   end
+  --   local divTable = { attr = emulatedNode.attr }
+  --   local key
+  --   for i, v in ipairs(emulatedNode.content) do
+  --     if i % 2 == 1 then
+  --       key = pandoc.utils.stringify(v)
+  --     else
+  --       divTable[key] = v
+  --     end
+  --   end
+  --   divTable.class = pandoc.utils.stringify(divTable.class)
+  --   return divTable
+  -- end,
 
-  build = function(name, nodeTable)
-    local handler = _quarto.ast.resolve_handler(name)
-    if handler == nil then
-      print("Internal Error: couldn't find a handler for " .. tostring(name))
-      crash_with_stack_trace()
-      return pandoc.Div({}, {}) -- a lie to appease the type system
-    end
-    if handler.makePandocExtendedDiv then
-      return handler.makePandocExtendedDiv(nodeTable)
-    end
+  -- build = function(name, nodeTable)
+  --   local handler = _quarto.ast.resolve_handler(name)
+  --   if handler == nil then
+  --     print("Internal Error: couldn't find a handler for " .. tostring(name))
+  --     crash_with_stack_trace()
+  --     return pandoc.Div({}, {}) -- a lie to appease the type system
+  --   end
+  --   if handler.makePandocExtendedDiv then
+  --     return handler.makePandocExtendedDiv(nodeTable)
+  --   end
 
-    local resultAttr
-    local blocks = {}
-    for key, value in pairs(nodeTable) do
-      if key == "attr" then
-        resultAttr = value
-      else
-        table.insert(blocks, pandoc.Str(key))
-        table.insert(blocks, value)
-      end                    
-    end
-    if resultAttr == nil then
-      resultAttr = pandoc.Attr("", { name }, {})
-    end
-    resultAttr.attributes[kExtendedAstTag] = name
-    return pandoc.Div(blocks, resultAttr)
-  end,
+  --   local resultAttr
+  --   local blocks = {}
+  --   for key, value in pairs(nodeTable) do
+  --     if key == "attr" then
+  --       resultAttr = value
+  --     else
+  --       table.insert(blocks, pandoc.Str(key))
+  --       table.insert(blocks, value)
+  --     end                    
+  --   end
+  --   if resultAttr == nil then
+  --     resultAttr = pandoc.Attr("", { name }, {})
+  --   end
+  --   resultAttr.attributes[kExtendedAstTag] = name
+  --   return pandoc.Div(blocks, resultAttr)
+  -- end,
 }
 quarto._quarto = _quarto
 
