@@ -188,7 +188,6 @@ import {
 import { kRevealJSPlugins } from "../../extension/extension-shared.ts";
 import { kCitation } from "../../format/html/format-html-shared.ts";
 import { cslDate } from "../../core/csl.ts";
-import { citationMeta } from "../../quarto-core/attribution/document.ts";
 
 export async function runPandoc(
   options: PandocOptions,
