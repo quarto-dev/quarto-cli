@@ -9,6 +9,7 @@ import {
   kDefaultImageExtension,
   kLinkCitations,
   kQuartoInternal,
+  kVariant,
 } from "../../config/constants.ts";
 import { Format, PandocFlags } from "../../config/types.ts";
 import { TempContext } from "../../core/temp-types.ts";
@@ -23,12 +24,16 @@ import { reformat } from "../../core/xml.ts";
 
 const kJatsExtended = "jats-extended";
 const kJatsDtd = "jats-dtd";
+const kElementsVariant = "+element_citations";
 
 export function jatsFormat(displayName: string, ext: string): Format {
   return createFormat(displayName, ext, {
     pandoc: {
       standalone: true,
       [kDefaultImageExtension]: "png",
+    },
+    render: {
+      [kVariant]: kElementsVariant,
     },
     formatExtras: (
       _input: string,
