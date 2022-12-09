@@ -3,18 +3,11 @@
 --
 -- Copyright (C) 2022 by RStudio, PBC
 
-local function run_emulated_filter(doc, filter)
-  
-end
-
 local function run_emulated_filter_chain(doc, filters)
   if tisarray(filters) then
     for _, v in ipairs(filters) do
       local function callback()
-        local newDoc = doc:walk(v)
-        if newDoc ~= nil then
-          doc = newDoc
-        end
+        doc = run_emulated_filter(doc, v)
       end
       if v.scriptFile then
         _quarto.withScriptFile(v.scriptFile, callback)
@@ -23,10 +16,7 @@ local function run_emulated_filter_chain(doc, filters)
       end
     end
   elseif type(filters) == "table" then
-    local newDoc = doc:walk(filters)
-    if newDoc ~= nil then
-      doc = newDoc
-    end
+    doc = run_emulated_filter(doc, filters)
   else
     error("Internal Error: run_emulated_filter_chain expected a table or array instead of " .. type(filters))
     crash_with_stack_trace()
@@ -51,23 +41,12 @@ local function emulate_pandoc_filter(filters)
         -- restore_pandoc_overrides(overrides_state)
 
         -- this call is now a real pandoc.Pandoc call
-        result = pandoc.Pandoc(doc.blocks, doc.meta)
         profiler.stop()
 
         profiler.report("profiler.txt")
         crash_with_stack_trace() -- run a single file for now.
-      else
-        -- doc = to_emulated(doc)
-        doc = run_emulated_filter_chain(doc, filters)
-        -- doc = from_emulated(doc)
-
-        -- the installation happens in main.lua ahead of loaders
-        -- restore_pandoc_overrides(overrides_state)
-
-        -- this call is now a real pandoc.Pandoc call
-        result = pandoc.Pandoc(doc.blocks, doc.meta)
       end
-      return result, false
+      return run_emulated_filter_chain(doc, filters), false
     end
   }
 end

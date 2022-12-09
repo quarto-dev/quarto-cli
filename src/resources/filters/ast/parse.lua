@@ -3,17 +3,18 @@
 --
 -- Copyright (C) 2022 by RStudio, PBC
 
+local function parse(node)
+  local tag = pandoc.utils.stringify(node.attr.classes)
+  local handler = _quarto.ast.resolve_handler(tag)
+  if handler == nil then
+    return node
+  end
+  return handler.parse(node)
+end
+
 function parseExtendedNodes() 
   return {
-    Div = function(div)
-      local tag = pandoc.utils.stringify(div.attr.classes)
-      local handler = _quarto.ast.resolve_handler(tag)
-      if handler == nil then
-        return div
-      end
-      local divTable = handler.parse(div)
-
-      return _quarto.ast.copy_as_emulated_node(divTable)
-    end
+    Div = parse,
+    Span = parse,
   }
 end

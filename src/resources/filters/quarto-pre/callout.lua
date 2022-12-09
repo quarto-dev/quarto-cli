@@ -15,118 +15,116 @@ function calloutType(div)
 end
 
 _quarto.ast.add_handler({
-    -- use either string or array of strings
-    class_name = {"callout", "callout-note", "callout-warning", "callout-important", "callout-caution", "callout-tip" },
+  -- use either string or array of strings
+  class_name = {"callout", "callout-note", "callout-warning", "callout-important", "callout-caution", "callout-tip" },
 
-    -- the name of the ast node, used as a key in extended ast filter tables
-    ast_name = "Callout",
+  -- the name of the ast node, used as a key in extended ast filter tables
+  ast_name = "Callout",
 
-    -- a function that takes the div node as supplied in user markdown
-    -- and returns the custom node
-    parse = function(div)
-      preState.hasCallouts = true
-      local caption = resolveHeadingCaption(div)
-      local appearanceRaw = div.attr.attributes["appearance"]
-      local icon = div.attr.attributes["icon"]
-      local collapse = div.attr.attributes["collapse"]
-      div.attr.attributes["appearance"] = nil
-      div.attr.attributes["collapse"] = nil
-      div.attr.attributes["icon"] = nil
+  -- a function that takes the div node as supplied in user markdown
+  -- and returns the custom node
+  parse = function(div)
+    preState.hasCallouts = true
+    local caption = resolveHeadingCaption(div)
+    local appearanceRaw = div.attr.attributes["appearance"]
+    local icon = div.attr.attributes["icon"]
+    local collapse = div.attr.attributes["collapse"]
+    div.attr.attributes["appearance"] = nil
+    div.attr.attributes["collapse"] = nil
+    div.attr.attributes["icon"] = nil
 
-      local result = quarto.Callout({
-        appearance = appearanceRaw,
-        caption = caption,
-        collapse = collapse,
-        content = div.content,
-        icon = icon,
-        type = calloutType(div)
-      })
+    return quarto.Callout({
+      appearance = appearanceRaw,
+      caption = caption,
+      collapse = collapse,
+      content = div.content,
+      icon = icon,
+      type = calloutType(div)
+    })
+  end,
+
+  -- a function that renders the extendedNode into output
+  render = function(node)
+    if _quarto.format.isHtmlOutput() and hasBootstrap() then
+      local result = calloutDiv(node)
+      -- print(pandoc.write(_quarto.ast.from_emulated(pandoc.Pandoc({result})), "html"))
       return result
-    end,
-
-    -- a function that renders the extendedNode into output
-    render = function(node)
-      if _quarto.format.isHtmlOutput() and hasBootstrap() then
-        local result = calloutDiv(node)
-        -- print(pandoc.write(_quarto.ast.from_emulated(pandoc.Pandoc({result})), "html"))
-        return result
-      elseif _quarto.format.isLatexOutput() then
-        return calloutLatex(node)
-      elseif _quarto.format.isDocxOutput() then
-        return calloutDocx(node)
-      elseif _quarto.format.isJatsOutput() then
-        return jatsCallout(node)
-      elseif _quarto.format.isEpubOutput() or _quarto.format.isRevealJsOutput() then
-        return epubCallout(node)
-      else
-        return simpleCallout(node)
-      end
-    end,
-
-    -- a function that takes the extended node and
-    -- returns a table with table-valued attributes
-    -- that represent inner content that should
-    -- be visible to filters.
-    inner_content = function(extended_node)
-      return {
-        content = extended_node.content,
-        caption = extended_node.caption
-      }
-    end,
-
-    -- a function that updates the extended node
-    -- with new inner content (as returned by filters)
-    -- table keys are a subset of those returned by inner_content
-    -- and represent changed values that need to be updated.    
-    set_inner_content = function(extended_node, values)
-      if values.caption then
-        extended_node.caption = values.caption
-      end
-      if values.content then
-        extended_node.content = values.content
-      end
-    end,
-
-    constructor = function(tbl)
-      preState.hasCallouts = true
-
-      local type = tbl.type
-      local iconDefault = true
-      local appearanceDefault = nil
-      if type == "none" then
-        iconDefault = false
-        appearanceDefault = "simple"
-      end
-      local appearanceRaw = tbl.appearance
-      if appearanceRaw == nil then
-        appearanceRaw = option("callout-appearance", appearanceDefault)
-      end
-
-      local icon = tbl.icon
-      if icon == nil then
-        icon = option("callout-icon", iconDefault)
-      elseif icon == "false" then
-        icon = false
-      end
-
-      local appearance = nameForCalloutStyle(appearanceRaw);
-      if appearance == "minimal" then
-        icon = false
-        appearance = "simple"
-      end
-      local content = pandoc.List()
-      content:extend(tbl.content)
-      local ctbl = {
-        caption = tbl.caption,
-        collapse = tbl.collapse,
-        content = content,
-        appearance = appearance,
-        icon = icon,
-        type = type,
-      }
-      return _quarto.ast.custom("Callout", ctbl)
+    elseif _quarto.format.isLatexOutput() then
+      return calloutLatex(node)
+    elseif _quarto.format.isDocxOutput() then
+      return calloutDocx(node)
+    elseif _quarto.format.isJatsOutput() then
+      return jatsCallout(node)
+    elseif _quarto.format.isEpubOutput() or _quarto.format.isRevealJsOutput() then
+      return epubCallout(node)
+    else
+      return simpleCallout(node)
     end
-  })
+  end,
+
+  -- a function that takes the extended node and
+  -- returns a table with table-valued attributes
+  -- that represent inner content that should
+  -- be visible to filters.
+  inner_content = function(extended_node)
+    return {
+      content = extended_node.content,
+      caption = extended_node.caption
+    }
+  end,
+
+  -- a function that updates the extended node
+  -- with new inner content (as returned by filters)
+  -- table keys are a subset of those returned by inner_content
+  -- and represent changed values that need to be updated.    
+  set_inner_content = function(extended_node, values)
+    if values.caption then
+      extended_node.caption = values.caption
+    end
+    if values.content then
+      extended_node.content = values.content
+    end
+  end,
+
+  constructor = function(tbl)
+    preState.hasCallouts = true
+
+    local type = tbl.type
+    local iconDefault = true
+    local appearanceDefault = nil
+    if type == "none" then
+      iconDefault = false
+      appearanceDefault = "simple"
+    end
+    local appearanceRaw = tbl.appearance
+    if appearanceRaw == nil then
+      appearanceRaw = option("callout-appearance", appearanceDefault)
+    end
+
+    local icon = tbl.icon
+    if icon == nil then
+      icon = option("callout-icon", iconDefault)
+    elseif icon == "false" then
+      icon = false
+    end
+
+    local appearance = nameForCalloutStyle(appearanceRaw);
+    if appearance == "minimal" then
+      icon = false
+      appearance = "simple"
+    end
+    local content = pandoc.List()
+    content:extend(tbl.content)
+    return {
+      caption = tbl.caption,
+      collapse = tbl.collapse,
+      content = content,
+      appearance = appearance,
+      icon = icon,
+      type = type,
+    }
+  end
+})
 
 local calloutidx = 1
 
