@@ -12,9 +12,6 @@ end
 
 import("./mainstateinit.lua")
 
-import("./ast/pandocemulation.lua")
-import("./ast/nodeconversion.lua")
-import("./ast/pandocwalk.lua")
 import("./ast/customnodes.lua")
 import("./ast/emulatedfilter.lua")
 import("./ast/parse.lua")
@@ -160,7 +157,7 @@ local quartoNormalize = {
 local quartoPre = {
   -- quarto-pre
   { name = "pre-parseExtendedNodes", filter = parseExtendedNodes() },
-  { name = "pre-quartoBeforeExtendedUserFilters", filters = make_emulated_user_filters("beforeQuartoFilters") },
+  { name = "pre-quartoBeforeExtendedUserFilters", filters = make_wrapped_user_filters("beforeQuartoFilters") },
   { name = "pre-bibliographyFormats", filter = bibliographyFormats() }, 
   { name = "pre-shortCodesBlocks", filter = shortCodesBlocks() } ,
   { name = "pre-shortCodesInlines", filter = shortCodesInlines() },
@@ -215,7 +212,7 @@ local quartoPost = {
   { name = "post-ojs", filter = ojs() },
   { name = "post-postMetaInject", filter = quartoPostMetaInject() },
   { name = "post-renderExtendedNodes", filter = renderExtendedNodes() },
-  { name = "post-userAfterQuartoFilters", filter = make_emulated_user_filters("afterQuartoFilters") },
+  { name = "post-userAfterQuartoFilters", filter = make_wrapped_user_filters("afterQuartoFilters") },
 }
 
 local quartoFinalize = {

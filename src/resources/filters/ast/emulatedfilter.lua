@@ -15,7 +15,7 @@ local function plain_loader(handlers)
   return map_or_call(wrapFilter, handlers)
 end
 
-make_emulated_user_filters = function(filterListName)
+make_wrapped_user_filters = function(filterListName)
   local filters = {}
   for _, v in ipairs(param("quarto-filters")[filterListName]) do
     local wrapped = makeWrappedFilter(v, plain_loader)

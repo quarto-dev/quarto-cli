@@ -79,12 +79,22 @@ function wrapped_writer()
       Blocks = function(blocks)
         return blocks
       end,
+      RawInline = function(inline)
+        local node, t = _quarto.ast.resolve_custom_node(inline)
+        if node == nil then 
+          return {}
+        end
+        local handler = _quarto.ast.resolve_handler(t)
+        if handler == nil then
+          return {}
+        end
+        local result = pandoc.List({})
+        for _, v in ipairs(handler.inner_content(node)) do
+          result:extend(v)
+        end
+        return result
+      end
     }
-    -- setmetatable(bottomUpWalkers, {
-    --   __index = function(_, key)
-    --     return function() return {} end
-    --   end
-    -- })  
   
     function handleBottomUpResult(v)
       if type(v) == "string" then
@@ -104,50 +114,43 @@ function wrapped_writer()
         table.insert(resultingStrs, node)
         return nil
       end
-  
-      local nodeHandler
-      local t
 
-      if type(node) == "userdata" then
-        -- ast nodes: emulated, custom, or not.
-        if not node.is_emulated then
-          node = _quarto.ast.to_emulated(node)
-          if node == nil then -- shouldn't happen but let's appease the type system
-            crash()
-            return nil
-          end            
-        end
-        -- postcondition: they're all emulated
-
-        t = node.t or pandoc.utils.type(node)
-        if node.is_custom then
+      if type(node) == "userdata" and node.t == "RawInline" and node.format == "QUARTO_custom" then
+        local tbl, t = _quarto.ast.resolve_custom_node(node)
+        if tbl ~= nil then 
           local astHandler = _quarto.ast.resolve_handler(t)
-          nodeHandler = astHandler and handler[astHandler.ast_name] and handler[astHandler.ast_name].handle
-        else
-          nodeHandler = handler[t] and handler[t].handle
-        end
-      else
-        if type(node) ~= "table" then
-          error("Internal error, expected type of node to be table, got " .. type(node) .. " instead")
-          crash_with_stack_trace()
-        end
-      end
-  
-      if nodeHandler == nil then 
-        -- no handler, just walk the internals in some default order
-        if bottomUpWalkers[t] then
-          for _, v in ipairs(bottomUpWalkers[t](node)) do
-            bottomUp(v)
+          local nodeHandler = astHandler and handler[astHandler.ast_name] and handler[astHandler.ast_name].handle
+          if nodeHandler == nil then
+            for _, v in ipairs(astHandler.inner_content(tbl)) do
+              bottomUp(v)
+            end
+          else
+            handleBottomUpResult(nodeHandler(tbl, bottomUp))
           end
         else
-          for _, v in pairs(node) do
-            bottomUp(v)
-          end
+          bottomupWalkers.RawInline(node)
         end
       else
-        handleBottomUpResult(nodeHandler(node, bottomUp))
+        local nodeHandler
+        local t
+        nodeHandler = handler[t] and handler[t].handle
+        t = node.t
+        if nodeHandler == nil then 
+          -- no handler, just walk the internals in some default order
+          if bottomUpWalkers[t] then
+            for _, v in ipairs(bottomUpWalkers[t](node)) do
+              bottomUp(v)
+            end
+          else
+            for _, v in pairs(node) do
+              bottomUp(v)
+            end
+          end
+        else
+          handleBottomUpResult(nodeHandler(node, bottomUp))
+        end
       end
-  
+    
       return nil
     end
   
