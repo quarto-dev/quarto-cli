@@ -8,72 +8,132 @@ local handlers = {}
 local custom_tbl_to_node = pandoc.List({})
 local n_custom_nodes = 0
 
+function resolve_custom(node)
+  if type(node) == "userdata" and node.t == "Plain" and #node.content == 1 and node.content[1].t == "RawInline" and node.content[1].format == "QUARTO_custom" then
+    return node.content[1], "CustomBlock"
+  end
+  if type(node) == "userdata" and node.t == "RawInline" and node.format == "QUARTO_custom" then
+    return node, "CustomInline"
+  end
+end
+
 function run_emulated_filter(doc, filter)
   local custom_nodes_content = pandoc.List({})
 
-  local custom_filter = {
-    RawInline = function(raw)
-      if raw.format ~= "QUARTO_custom" then
-        return
+  function process_custom_inner(raw)
+    local parts = split(raw.text, " ")
+    local t = parts[1]
+    local n = tonumber(parts[2])
+    local handler = _quarto.ast.resolve_handler(t)
+    if handler == nil then
+      error("Internal Error: handler not found for custom node " .. t)
+      crash_with_stack_trace()
+    end
+    local custom_node = _quarto.ast.custom_tbl_to_node[n]
+    
+    if handler.inner_content ~= nil then
+      local new_inner_content = {}
+      local inner_content = handler.inner_content(custom_node)
+      for k, v in pairs(inner_content) do
+        local new_v = v:walk(filter)
+        if new_v ~= nil then
+          new_inner_content[k] = new_v
+        end
       end
-      local parts = mysplit(raw.text, " ")
-      local t = parts[1]
-      local n = tonumber(parts[2])
-      local handler = _quarto.ast.resolve_handler(t)
-      if handler == nil then
-        error("Internal Error: handler not found for custom node " .. t)
-        crash_with_stack_trace()
-      end
+      handler.set_inner_content(custom_node, new_inner_content)
+    end
+  end
 
-      local custom_node = _quarto.ast.custom_tbl_to_node[n]
-      
-      
-      if handler.inner_content ~= nil then
-        local new_inner_content = {}
-        local inner_content = handler.inner_content(custom_tbl_to_node[n])
-        for k, v in pairs(inner_content) do
-          local new_v = v:walk(filter)
-          if new_v ~= nil then
-            new_inner_content[k] = new_v
+  function process_custom_preamble(raw, node_type)
+    local parts = split(raw.text, " ")
+    local t = parts[1]
+    local n = tonumber(parts[2])
+    local handler = _quarto.ast.resolve_handler(t)
+    if handler == nil then
+      error("Internal Error: handler not found for custom node " .. t)
+      crash_with_stack_trace()
+    end
+    local custom_node = _quarto.ast.custom_tbl_to_node[n]
+
+    local filter_fn = filter[t] or filter[node_type] or filter.Custom
+
+    if filter_fn ~= nil then
+      return filter_fn(custom_node)
+    end
+  end
+
+  function process_custom(node)
+    local custom, node_type = resolve_custom(node)
+    if custom ~= nil then
+      node = process_custom_preamble(custom, node_type)
+      if type(node) == "table" then
+        for i, v in ipairs(table) do
+          local inner_node, _ = resolve_custom(inner_node)
+          if inner_node ~= nil then
+            process_custom_inner(inner_node)
           end
         end
-        handler.set_inner_content(custom_tbl_to_node[n], new_inner_content)
+      elseif type(node) == "userdata" then
+        local inner_node, _ = resolve_custom(node)
+        if inner_node ~= nil then
+          process_custom_inner(inner_node)
+        end
       end
+      return node
     end
+  end,
+
+  local custom_filter = {
+    Plain = process_custom,
+    RawInline = process_custom,
+  }
+
+  local custom_filter_check = {
+    Plain = function(node)
+      local custom = resolve_custom(node)
+      if custom then
+        return process_custom(node)
+      else
+        if filter.Plain ~= nil then
+          return filter.Plain(node)
+        else
+          return nil
+        end
+      end
+    end,
+    RawInline = function(node)
+      local custom = resolve_custom(node)
+      if custom then
+        return process_custom(node)
+      else
+        if filter.RawInline ~= nil then
+          return filter.RawInline(node)
+        else
+          return nil
+        end
+      end
+    end,
   }
 
   local wrapped_filter = {}
-  if filter.RawInline ~= nil then
+  if filter.RawInline ~= nil or filter.Plain == nil then
+    setmetatable(wrapped_filter, {
+      __index = custom_filter_check
+    })
   else
     setmetatable(wrapped_filter, {
       __index = custom_filter
     })
   end
-  setmetatable(wrapped_filter, {
-    __index = function(t, k)
-      if k == "RawInline" then
-        return function(raw)
-
-        end
-      end
-    end
-  });
 
   local emulated_filter = {
+    traverse = "topdown",
     Pandoc = function(doc)
-      custom_nodes_content = pandoc.Blocks(custom_nodes_content):walk(real_filter)
-    
-      print("walking custom nodes")
-      result = result:walk(custom_filter)
-    
-      return result, false
+      return doc:walk(wrapped_filter), false
     end  
   }
 
-  local newDoc = doc:walk(filter)
-  if newDoc ~= nil then
-    doc = newDoc
-  end
+ return doc:walk(emulated_filter)
 end
 
 function create_emulated_node(t, tbl)

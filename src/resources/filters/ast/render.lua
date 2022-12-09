@@ -3,20 +3,8 @@
 --
 -- Copyright (C) 2022 by RStudio, PBC
 
-function mysplit(inputstr, pattern)
-  local t = pandoc.List({})
-  local match = string.gmatch(inputstr, pattern)
-  if match == nil then
-    return { inputstr }
-  end
-  for str in match do
-    t:insert(str)
-  end
-  return t
-end
-
 function render_raw(raw)
-  local parts = mysplit(raw.text, " ")
+  local parts = split(raw.text)
   local t = parts[1]
   local n = tonumber(parts[2])
   local handler = _quarto.ast.resolve_handler(t)
