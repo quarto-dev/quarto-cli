@@ -5,7 +5,7 @@
 
 local function run_emulated_filter_chain(doc, filters)
   if tisarray(filters) then
-    for _, v in ipairs(filters) do
+    for i, v in ipairs(filters) do
       local function callback()
         doc = run_emulated_filter(doc, v)
       end

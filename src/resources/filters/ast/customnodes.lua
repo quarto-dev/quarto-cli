@@ -19,6 +19,9 @@ end
 
 function run_emulated_filter(doc, filter)
   local wrapped_filter = {}
+  for k, v in pairs(filter) do
+    wrapped_filter[k] = v
+  end
 
   function process_custom_inner(raw)
     local custom_node = _quarto.ast.resolve_custom_node(raw)    
@@ -65,11 +68,6 @@ function run_emulated_filter(doc, filter)
     end
   end
 
-  local custom_filter = {
-    Plain = process_custom,
-    RawInline = process_custom,
-  }
-
   local custom_filter_check = {
     Plain = function(node)
       local custom = resolve_custom(node)
@@ -98,13 +96,11 @@ function run_emulated_filter(doc, filter)
   }
 
   if filter.RawInline ~= nil or filter.Plain == nil then
-    setmetatable(wrapped_filter, {
-      __index = custom_filter_check
-    })
+    wrapped_filter.Plain = process_custom
+    wrapped_filter.RawInline = process_custom
   else
-    setmetatable(wrapped_filter, {
-      __index = custom_filter
-    })
+    wrapped_filter.Plain = custom_filter_check.Plain
+    wrapped_filter.RawInline = custom_filter_check.RawInline
   end
 
   return doc:walk(wrapped_filter)
