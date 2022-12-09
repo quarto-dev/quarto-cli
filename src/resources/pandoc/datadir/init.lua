@@ -1691,8 +1691,14 @@ local function outputFile()
    end
 end
 
-local function version() 
-   return param('quarto-version', 'unknown')
+local function version()
+   local versionString = param('quarto-version', 'unknown')
+   local success, versionObject = pcall(pandoc.types.Version, versionString)
+   if success then
+      return versionObject
+   else
+      return versionString
+   end
 end
 
 local function projectProfiles()
