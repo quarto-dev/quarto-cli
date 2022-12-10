@@ -33,6 +33,9 @@ export function outputForInput(input: string, to: string) {
   if (baseFormat === "bibtex" || baseFormat === "biblatex") {
     outputExt = "bib";
   }
+  if (baseFormat === "jats") {
+    outputExt = "xml";
+  }
 
   const outputPath = join(dir, `${stem}.${outputExt}`);
   const supportPath = join(dir, `${stem}_files`);
