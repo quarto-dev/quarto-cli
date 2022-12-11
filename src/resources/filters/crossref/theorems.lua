@@ -73,12 +73,12 @@ function theorems()
         elseif _quarto.format.isJatsOutput() then
 
           -- JATS XML theorem
-          local title = captionPrefix(type, theoremType, order)
-          el = jatsTheorem(el, name, title)          
+          local lbl = captionPrefix(nil, type, theoremType, order)
+          el = jatsTheorem(el, lbl, name)          
           
         else
           -- create caption prefix
-          local captionPrefix = captionPrefix(type, theoremType, order)
+          local captionPrefix = captionPrefix(name, type, theoremType, order)
           local prefix =  { 
             pandoc.Span(
               pandoc.Strong(captionPrefix), 
@@ -132,7 +132,7 @@ function theorems()
               "\\end{" .. proof.env .. "}"
             )))
           elseif _quarto.format.isJatsOutput() then
-            el = jatsTheorem(el,  name )
+            el = jatsTheorem(el,  nil, name )
           else
             local span = pandoc.Span(
               { pandoc.Emph(pandoc.Str(envTitle(proof.env, proof.title)))},
@@ -200,7 +200,7 @@ function jatsTheorem(el, label, title)
   return el
 end
 
-function captionPrefix(type, theoremType, order) 
+function captionPrefix(name, type, theoremType, order) 
   local prefix = title(type, theoremType.title)
   table.insert(prefix, pandoc.Space())
   tappend(prefix, numberOption(type, order))
