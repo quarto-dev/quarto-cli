@@ -1,4 +1,5 @@
 // TODO Sites - 'tagged' parent
+// - create parent in top-level space
 // - Deletes only work with quarto parent
 // - Set permissions on quarto parent
 
@@ -30,9 +31,11 @@ import {
   ConfluenceSpaceChange,
   Content,
   ContentBody,
+  ContentBodyRepresentation,
   ContentChangeType,
   ContentCreate,
   ContentProperty,
+  ContentPropertyKey,
   ContentStatusEnum,
   ContentSummary,
   ContentUpdate,
@@ -79,7 +82,6 @@ import {
   verifyConfluenceParent,
   verifyLocation,
 } from "./confluence-verify.ts";
-import { CHANGES_DISABLED, DELETE_DISABLED } from "./constants.ts";
 import { logError, trace } from "./confluence-logger.ts";
 import { md5Hash } from "../../core/hash.ts";
 
@@ -222,6 +224,16 @@ async function publish(
   _options: PublishOptions,
   publishRecord?: PublishRecord
 ): Promise<[PublishRecord, URL | undefined]> {
+  trace("publish", {
+    account,
+    type,
+    _input,
+    title,
+    _slug,
+    _options,
+    publishRecord,
+  });
+
   const client = new ConfluenceClient(account);
 
   let parentUrl: string = publishRecord?.url ?? (await promptForParentURL());
@@ -249,26 +261,21 @@ async function publish(
     return createTitle;
   };
 
-  const fetchExistingSite = async (parentId: string): Promise<any> => {
+  const fetchExistingSite = async (parentId: string): Promise<SitePage[]> => {
     const descendants: any[] =
       (await client.getDescendants(parentId))?.results ?? [];
 
-    const contentProperties = await Promise.all(
+    const contentProperties: ContentProperty[][] = await Promise.all(
       descendants.map((page: ContentSummary) =>
         client.getContentProperty(page.id ?? "")
       )
     );
 
-    const contentPropertyResults: ContentProperty[][] = contentProperties.map(
-      (wrappedContentProperty: any) => {
-        return wrappedContentProperty.results;
-      }
-    );
-
     const sitePageList: SitePage[] = mergeSitePages(
       descendants,
-      contentPropertyResults
+      contentProperties
     );
+
     return sitePageList;
   };
 
@@ -382,10 +389,73 @@ async function publish(
     return updatedContent;
   };
 
+  const createSiteParent = async (
+    title: string,
+    body: ContentBody
+  ): Promise<Content> => {
+    const ancestors = parent?.parent
+      ? [{ id: parent.parent }]
+      : [{ id: space.key }];
+    const toCreate: ContentCreate = {
+      contentChangeType: ContentChangeType.create,
+      title,
+      type: PAGE_TYPE,
+      space,
+      status: ContentStatusEnum.current,
+      ancestors,
+      body,
+    };
+
+    trace("createSiteParent", toCreate);
+
+    const createdContent = await client.createContent(toCreate);
+    return createdContent;
+  };
+
+  const checkToCreateSiteParent = async (parentId: string = "") => {
+    const existingSiteParent: ContentSummary = await client.getContent(
+      parentId
+    );
+    const siteParentContentProperties: ContentProperty[] =
+      await client.getContentProperty(existingSiteParent.id ?? "");
+
+    const isQuartoSiteParent =
+      siteParentContentProperties.find(
+        (property: ContentProperty) =>
+          property.key === ContentPropertyKey.isQuartoSiteParent
+      ) !== undefined;
+
+    if (!isQuartoSiteParent) {
+      const body: ContentBody = {
+        storage: {
+          value: "",
+          representation: ContentBodyRepresentation.storage,
+        },
+      };
+
+      const siteParentTitle = await uniquifyTitle(title);
+      const siteParent: ContentSummary = await createSiteParent(
+        siteParentTitle,
+        body
+      );
+
+      const newSiteParentId: string = siteParent.id ?? "";
+
+      const contentProperty: Content = await client.createContentProperty(
+        newSiteParentId,
+        { key: ContentPropertyKey.isQuartoSiteParent, value: true }
+      );
+
+      parentId = newSiteParentId;
+    }
+    return parentId;
+  };
+
   const createContent = async (
     publishFiles: PublishFiles,
     body: ContentBody,
-    titleToCreate: string = title
+    titleToCreate: string = title,
+    createParent: ConfluenceParent = parent
   ): Promise<Content> => {
     const createTitle = await uniquifyTitle(titleToCreate);
 
@@ -399,7 +469,7 @@ async function publish(
       type: PAGE_TYPE,
       space,
       status: ContentStatusEnum.current,
-      ancestors: parent?.parent ? [{ id: parent.parent }] : null,
+      ancestors: createParent?.parent ? [{ id: createParent.parent }] : null,
       body: updatedBody,
     };
 
@@ -455,7 +525,19 @@ async function publish(
   };
 
   const publishSite = async (): Promise<[PublishRecord, URL | undefined]> => {
-    const parentId: string = parent?.parent ?? "";
+    let parentId: string = parent?.parent ?? "";
+
+    if (!parentId) {
+      //TODO create parent in space, fetch space to get ancestor ID
+    }
+
+    parentId = await checkToCreateSiteParent(parentId);
+
+    const siteParent: ConfluenceParent = {
+      space: parent.space,
+      parent: parentId,
+    };
+
     const existingSite: SitePage[] = await fetchExistingSite(parentId);
 
     const publishFiles: PublishFiles = await renderSite(render);
@@ -503,16 +585,23 @@ async function publish(
 
     const metadataByFilename = buildFileToMetaTable(existingSite);
 
+    trace("metadataByFilename", metadataByFilename);
+
     let changeList: ConfluenceSpaceChange[] = buildSpaceChanges(
       fileMetadata,
-      parent,
+      siteParent,
       space,
       existingSite
     );
 
     trace("changelist", changeList);
 
-    changeList = updateLinks(metadataByFilename, changeList, server, parent);
+    changeList = updateLinks(
+      metadataByFilename,
+      changeList,
+      server,
+      siteParent
+    );
 
     trace("update links changelist", changeList);
 
@@ -521,21 +610,19 @@ async function publish(
     ): Promise<SpaceChangeResult>[] => {
       return changeList.map(async (change: ConfluenceSpaceChange) => {
         const doChanges = async () => {
-          if (CHANGES_DISABLED) {
-            console.warn("CHANGES DISABELD", change);
-            return null;
-          }
           if (isContentCreate(change)) {
             const result = await createContent(
               publishFiles,
               change.body,
-              change.title ?? ""
+              change.title ?? "",
+              siteParent
             );
             const contentPropertyResult: Content =
               await client.createContentProperty(result.id ?? "", {
-                key: "fileName",
+                key: ContentPropertyKey.fileName,
                 value: (change as ContentCreate).fileName,
               });
+
             return result;
           } else if (isContentUpdate(change)) {
             const update = change as ContentUpdate;
@@ -546,10 +633,6 @@ async function publish(
               update.title ?? ""
             );
           } else if (isContentDelete(change)) {
-            if (DELETE_DISABLED) {
-              console.warn("DELETE DISABELD");
-              return null;
-            }
             const result = await client.deleteContent(change);
             return result;
           } else {

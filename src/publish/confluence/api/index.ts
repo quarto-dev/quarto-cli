@@ -16,6 +16,7 @@ import {
   ContentArray,
   ContentCreate,
   ContentDelete,
+  ContentProperty,
   ContentSummary,
   ContentUpdate,
   LogPrefix,
@@ -42,8 +43,12 @@ export class ConfluenceClient {
     return this.get<Content>(`content/${id}`);
   }
 
-  public getContentProperty(id: string): Promise<Content> {
-    return this.get<Content>(`content/${id}/property`);
+  public async getContentProperty(id: string): Promise<ContentProperty[]> {
+    const result: WrappedResult<ContentProperty> = await this.get<
+      WrappedResult<ContentProperty>
+    >(`content/${id}/property`);
+
+    return result.results;
   }
 
   public getDescendants(

@@ -137,6 +137,11 @@ export interface WrappedResult<T> {
   results: T[];
 }
 
+export enum ContentPropertyKey {
+  fileName = "fileName",
+  isQuartoSiteParent = "isQuartoSiteParent",
+}
+
 export type ContentProperty = {
   key: string;
   value: string | number;
