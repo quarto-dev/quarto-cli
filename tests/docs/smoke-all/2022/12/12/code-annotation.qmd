@@ -3,6 +3,7 @@ title: Test Code Annotation
 author: Norah Jones
 date: last-modified
 format: html
+code-line-numbers: true
 ---
 
 ## Where You At
@@ -16,22 +17,21 @@ theme_set(theme_bw())
 
 
 data("mtcars")
-mtcars$`car name` <- rownames(mtcars)  # <2>
-mtcars$mpg_z <- round((mtcars$mpg - mean(mtcars$mpg))/sd(mtcars$mpg), 2)  # <3>
-mtcars$mpg_type <- ifelse(mtcars$mpg_z < 0, "below", "above")  # <4>
-mtcars <- mtcars[order(mtcars$mpg_z), ]  # <5>
-mtcars$`car name` <- factor(mtcars$`car name`, levels = mtcars$`car name`)  # <6>
+mtcars$`car name` <- rownames(mtcars)  # <1>
+mtcars$mpg_z <- round((mtcars$mpg - mean(mtcars$mpg))/sd(mtcars$mpg), 2)  # <2>
+mtcars$mpg_type <- ifelse(mtcars$mpg_z < 0, "below", "above")  # <3>
+mtcars <- mtcars[order(mtcars$mpg_z), ]  # <4>
+mtcars$`car name` <- factor(mtcars$`car name`, levels = mtcars$`car name`)  # <5>
 
-ggplot(mtcars, aes(x=`car name`, y=mpg_z, label=mpg_z)) + # <7> 
+ggplot(mtcars, aes(x=`car name`, y=mpg_z, label=mpg_z)) + # <6> 
   geom_bar(stat='identity', aes(fill=mpg_type), width=.5)  + # <7> 
   scale_fill_manual(name="Mileage", # <7> 
                     labels = c("Above Average", "Below Average"), # <7> 
-                    values = c("above"="#00ba38", "below"="#f8766d")) + # <7> 
+                    values = c("above"="#00ba38", "below"="#f8766d")) + 
   labs(subtitle="Normalised mileage from 'mtcars'", # <7> 
        title= "Diverging Bars") + # <7> 
   coord_flip() # <7> 
 ```
-
 
 1. `mtcars` is a built in data set that we'll use for the purposes of making this plot. For more about built in data sets in R, see <https://vincentarelbundock.github.io/Rdatasets/>
 2. Here, we're creating a new column for car names (for display purposes).
