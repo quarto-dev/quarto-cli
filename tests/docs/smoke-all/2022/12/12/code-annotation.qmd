@@ -3,12 +3,11 @@ title: Test Code Annotation
 author: Norah Jones
 date: last-modified
 format: html
-code-line-numbers: true
 ---
 
 ## Where You At
 
-```{r}
+```r
 #| label: fig-plot
 #| warning: false
 #| fig-cap: Bro this chart is fire and is definitely not sus.
