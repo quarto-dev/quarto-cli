@@ -144,7 +144,7 @@ local function resolveCellAnnotes(codeBlockEl)
       codeBlockEl.text = outputText
     end
     return codeBlockEl, annotations 
-  else
+  elseif lang then
     warn("Unknown language " .. lang .. " when attempting to read code annotations. Any annotations will be ignored.")
     return codeBlockEl, {}
   end
@@ -211,12 +211,6 @@ end
 
 -- The actual filter that will look for a code cell and then
 -- find its annotations, then process the subsequent OL
--- 
--- TODO: Deal with the pending annotations and update the OL text to include
--- line numbers (e.g. convert to a definition list, most likely)
--- TODO: Warn for unused annotations and warn for OL items without a correlated annotation
--- TODO: Need function to produce pretty line number text to use in DL
--- TODO: note that annote-id is key to pending annotations
 function code() 
   return {
     traverse = 'topdown',
@@ -224,32 +218,56 @@ function code()
       local outputs = pandoc.List()
 
       -- annotations[annotation-number] = {list of line numbers}
-      local pendingAnnotations = nilquarto
+      local pendingAnnotations = nil
+      local pendingCellId = nil
+      local idCounter = 1
+
+      local clearPending = function() 
+        pendingAnnotations = nil
+        pendingCellId = nil
+      end
+
+      local processCodeCell = function(el, identifier)
+        local resolvedCodeBlock, annotations = resolveCellAnnotes(el)
+        if annotations and #annotations then
+          pendingAnnotations = annotations
+          pendingCellId = identifier
+          return resolvedCodeBlock
+        else
+          return nil
+        end
+      end
+
       for i, block in ipairs(blocks) do
         if block.t == 'Div' and block.attr.classes:find('cell') then
           -- walk to find the code and 
           local resolvedBlock = pandoc.walk_block(block, {
             CodeBlock = function(el)
               if el.attr.classes:find('cell-code') then
-                resolvedCodeBlock, annotations = resolveCellAnnotes(el)
-                if #annotations then
-                  pendingAnnotations = annotations
-                  return resolvedCodeBlock
-                else
-                  return nil
-                end
+                return processCodeCell(el, block.attr.identifier)
               end
             end
           })
           outputs:insert(resolvedBlock)
         elseif block.t == 'CodeBlock'  then
-          local resolvedCodeBlock, annotations = resolveCellAnnotes(block)
-          if #annotations then
-            pendingAnnotations = annotations
-            outputs:insert(resolvedCodeBlock)
+          if not block.attr.classes:find('cell-code') then
+            local cellId = block.attr.identifier
+            if cellId == '' then
+              cellId = 'annotated-cell-' .. tostring(idCounter)
+              idCounter = idCounter + 1
+            end
+  
+            local codeCell = processCodeCell(block, cellId)
+            if codeCell then
+              -- codeCell.attr.identifier = cellId;
+              outputs:insert(codeCell)
+            else
+              outputs:insert(block)
+              clearPending()
+            end
           else
             outputs:insert(block)
-            pendingAnnotations = nil
+            clearPending()
           end
         elseif block.t == 'OrderedList' and pendingAnnotations ~= nil and next(pendingAnnotations) ~= nil then
           -- There are pending annotations, which means this OL is immediately after
@@ -261,24 +279,30 @@ function code()
             local annoteId = toAnnoteId(i)
             local annotation = pendingAnnotations[annoteId]
             if annotation then
-              local lineNos = lineNumberStr(annotation)
+              local lineNoStr = lineNumberStr(annotation)
+              local cellReference = pandoc.Span(lineNoStr, {
+                ['data-code-cell'] = pendingCellId
+              });
+
               -- find the lines that annotate this and convert to a DL
               items:insert({
-                lineNos,
+                cellReference,
                 v})
             else
               -- there was an OL item without a corresponding annotation
               warn("List item " .. tostring(i) .. " has no corresponding annotation in the code cell\n(" .. pandoc.utils.stringify(v) ..  ")")
             end
           end
+
+          -- add the definition list
           local dl = pandoc.DefinitionList(items)
           outputs:insert(dl)
 
           -- annotations were processed
-          pendingAnnotations = nil
+          clearPending()
         else
-          pendingAnnotations = nil
           outputs:insert(block)
+          clearPending()
         end
       end
       return outputs
