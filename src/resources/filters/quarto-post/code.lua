@@ -140,6 +140,7 @@ local function resolveCellAnnotes(codeBlockEl)
       for i, output in ipairs(outputs) do
         outputText = outputText .. '\n' .. output
       end
+      codeBlockEl.attr.classes:insert('numberLines')
       codeBlockEl.text = outputText
     end
     return codeBlockEl, annotations 
