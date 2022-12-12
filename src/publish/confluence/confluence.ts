@@ -1,6 +1,5 @@
 // TODO Sites - 'tagged' parent
 // - create parent in top-level space
-// - Deletes only work with quarto parent
 // - Set permissions on quarto parent
 
 // TODO Resource bundles
@@ -82,6 +81,7 @@ import {
   verifyConfluenceParent,
   verifyLocation,
 } from "./confluence-verify.ts";
+import { DELETE_DISABLED } from "./constants.ts";
 import { logError, trace } from "./confluence-logger.ts";
 import { md5Hash } from "../../core/hash.ts";
 
@@ -633,6 +633,10 @@ async function publish(
               update.title ?? ""
             );
           } else if (isContentDelete(change)) {
+            if (DELETE_DISABLED) {
+              console.warn("DELETE DISABELD");
+              return null;
+            }
             const result = await client.deleteContent(change);
             return result;
           } else {
