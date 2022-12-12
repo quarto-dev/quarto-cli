@@ -2,27 +2,97 @@
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
 
+-- for a given language, the comment character(s)
+local kLangCommentChars = {
+  r = {"#"},
+  python = {"#"},
+  julia = {"#"},
+  scala = {"//"},
+  matlab = {"%"},
+  csharp = {"//"},
+  fsharp = {"//"},
+  c = {"/*", "*/"},
+  css = {"/*", "*/"},
+  sas = {"*", ";"},
+  powershell = {"#"},
+  bash = {"#"},
+  sql = {"--"},
+  mysql = {"--"},
+  psql = {"--"},
+  lua = {"--"},
+  cpp = {"//"},
+  cc = {"//"},
+  stan = {"#"},
+  octave = {"#"},
+  fortran = {"!"},
+  fortran95 = {"!"},
+  awk = {"#"},
+  gawk = {"#"},
+  stata = {"*"},
+  java = {"//"},
+  groovy = {"//"},
+  sed = {"#"},
+  perl = {"#"},
+  ruby = {"#"},
+  tikz = {"%"},
+  js = {"//"},
+  d3 = {"//"},
+  node = {"//"},
+  sass = {"//"},
+  coffee = {"#"},
+  go = {"//"},
+  asy = {"//"},
+  haskell = {"--"},
+  dot = {"//"},
+  mermaid = {"%%"},
+  apl = {"⍝"}
+}
+
 -- annotations appear at the end of the line and are of the form
 -- # <1> 
 -- where they start with a comment character valid for that code cell
 -- and they contain a number which is the annotation number in the
 -- OL that will appear after the annotation
--- 
--- TODO: Implement per language comment character
-local kLineAnnotePattern = '.*# <([0-9]+)>%s*$'
-local function annotationNumber(line)
-  local _, _, annoteNumber = string.find(line, kLineAnnotePattern)
-  if annoteNumber ~= nil then
-    return tonumber(annoteNumber)
+--
+-- This provider will yield functions for a particular language that 
+-- can be used to resolve annotation numbers and strip them from source 
+-- code
+local function annoteProvider(lang) 
+  local commentChars = kLangCommentChars[lang]
+  if commentChars ~= nil then
+    local expressions = pandoc.List({})
+    for _i, v in ipairs(commentChars) do
+      expressions:insert({
+        match = '.*' .. v .. ' <([0-9]+)>%s*$',
+        strip = {
+          prefix = '%s*' .. v .. ' <',
+          suffix = '>%s*$'
+        },
+      })
+    end
+
+    return {
+      annotationNumber = function(line) 
+        for _i, v in ipairs(expressions) do
+          local _, _, annoteNumber = string.find(line, v.match)
+          if annoteNumber ~= nil then
+            return tonumber(annoteNumber)
+          end
+        end
+        return nil
+      end,
+      stripAnnotation = function(line, annoteId) 
+        for _i, v in ipairs(expressions) do
+          line = line:gsub(v.strip.prefix .. annoteId .. v.strip.suffix, "")
+        end
+        return line
+      end,
+    }
   else
     return nil
   end
 end
 
--- Removes the annotation from the line
-local function stripAnnotation(line, annoteId)
-  return line:gsub('# <' .. annoteId .. '>%s*$', "")
-end
 
 -- Finds annotations in a code cell and returns 
 -- the annotations as well as a code cell that
@@ -31,36 +101,47 @@ end
 -- TODO: Only use the stripped code cell when an OL is processed, otherwise we should 
 -- just use the original code cell as is.
 local function resolveCellAnnotes(codeBlockEl) 
-  local annotations = {}
-  local code = codeBlockEl.text
-  local lines = split(code, "\n")
-  local outputs = pandoc.List({})
-  for i, line in ipairs(lines) do
+  -- collect any annotations on this code cell
+  
 
-    local annoteNumber = annotationNumber(line)
-    if annoteNumber then
-      -- Capture the annotation number and strip it
-      local annoteId = 'annote-' .. tostring(annoteNumber)
-      local lineNumbers = annotations[annoteId]
-      if lineNumbers == nil then
-        lineNumbers = pandoc.List({})
+  local lang = codeBlockEl.attr.classes[1]  
+  local annotationProvider = annoteProvider(lang)
+  if annotationProvider ~= nil then
+    local annotations = {}
+    local code = codeBlockEl.text
+    local lines = split(code, "\n")
+    local outputs = pandoc.List({})
+    for i, line in ipairs(lines) do
+  
+      local annoteNumber = annotationProvider.annotationNumber(line)
+      if annoteNumber then
+        -- Capture the annotation number and strip it
+        local annoteId = 'annote-' .. tostring(annoteNumber)
+        local lineNumbers = annotations[annoteId]
+        if lineNumbers == nil then
+          lineNumbers = pandoc.List({})
+        end
+        lineNumbers:insert(i)
+        annotations[annoteId] = lineNumbers         
+  
+        local stripped = annotationProvider.stripAnnotation(line, annoteNumber)
+        outputs:insert(stripped)
+      else
+        outputs:insert(line)
       end
-      lineNumbers:insert(i)
-      annotations[annoteId] = lineNumbers         
-
-      local stripped = stripAnnotation(line, annoteId)
-      outputs:insert(stripped)
-    else
-      outputs:insert(line)
+    end      
+  
+    local outputText = ""
+    for i, output in ipairs(outputs) do
+      outputText = outputText .. '\n' .. output
     end
-  end      
-
-  local outputText = ""
-  for i, output in ipairs(outputs) do
-    outputText = outputText .. '\n' .. output
+    codeBlockEl.text = outputText
+    return codeBlockEl, annotations 
+  else
+    warn("Unknown language " .. lang .. " when attempting to read code annotations. Any annotations will be ignored.")
+    return codeBlockEl, {}
   end
-  codeBlockEl.text = outputText
-  return  codeBlockEl, annotations 
+  
 end
 
 -- The actual filter that will look for a code cell and then
@@ -88,8 +169,10 @@ function code()
                 resolvedCodeBlock, annotations = resolveCellAnnotes(el)
                 if #annotations then
                   pendingAnnotations = annotations
+                  return resolvedCodeBlock
+                else
+                  return nil
                 end
-                return resolvedCodeBlock
               end
             end
           })
