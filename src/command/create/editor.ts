@@ -9,7 +9,6 @@ import { CreateResult } from "./cmd.ts";
 
 import { which } from "../../core/path.ts";
 import { isRStudioTerminal, isVSCodeTerminal } from "../../core/platform.ts";
-import { execProcess } from "../../core/process.ts";
 
 import { join } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
@@ -28,7 +27,7 @@ export interface Editor {
 
   // Function that can be called to open the matched
   // artifact in the editor
-  open: () => Promise<unknown>;
+  open: () => Promise<void>;
 }
 
 export const kEditorInfos: EditorInfo[] = [
@@ -71,7 +70,7 @@ interface EditorInfo {
 
   // Uses a path and artifact path to provide a function
   // that can be used to open this editor to the given artifact
-  open: (path: string, createResult: CreateResult) => () => Promise<unknown>;
+  open: (path: string, createResult: CreateResult) => () => Promise<void>;
 }
 
 interface ScanAction {
@@ -90,12 +89,12 @@ function vscodeEditorInfo(): EditorInfo {
         ? artifactPath
         : dirname(artifactPath);
 
-      return () => {
-        return execProcess({
+      return async () => {
+        const p = Deno.run({
           cmd: [path, artifactPath],
           cwd,
-          stdin: "null",
         });
+        await p.status();
       };
     },
     inEditor: isVSCodeTerminal(),
@@ -149,7 +148,7 @@ function rstudioEditorInfo(): EditorInfo {
     id: "rstudio",
     name: "RStudio",
     open: (path: string, createResult: CreateResult) => {
-      return () => {
+      return async () => {
         const artifactPath = createResult.path;
         // The directory that the artifact is in
         const cwd = Deno.statSync(artifactPath).isDirectory
@@ -165,11 +164,11 @@ function rstudioEditorInfo(): EditorInfo {
           ? ["open", "-na", path, "--args", rProjPath]
           : [path, rProjPath];
 
-        return execProcess({
-          cmd: cmd,
+        const p = Deno.run({
+          cmd,
           cwd,
-          stdin: "null",
         });
+        await p.status();
       };
     },
     inEditor: isRStudioTerminal(),
