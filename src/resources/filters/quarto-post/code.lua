@@ -97,13 +97,8 @@ end
 -- Finds annotations in a code cell and returns 
 -- the annotations as well as a code cell that
 -- removes the annotations
---
--- TODO: Only use the stripped code cell when an OL is processed, otherwise we should 
--- just use the original code cell as is.
 local function resolveCellAnnotes(codeBlockEl) 
   -- collect any annotations on this code cell
-  
-
   local lang = codeBlockEl.attr.classes[1]  
   local annotationProvider = annoteProvider(lang)
   if annotationProvider ~= nil then
@@ -113,6 +108,7 @@ local function resolveCellAnnotes(codeBlockEl)
     local outputs = pandoc.List({})
     for i, line in ipairs(lines) do
   
+      -- Look and annotation
       local annoteNumber = annotationProvider.annotationNumber(line)
       if annoteNumber then
         -- Capture the annotation number and strip it
@@ -130,12 +126,16 @@ local function resolveCellAnnotes(codeBlockEl)
         outputs:insert(line)
       end
     end      
-  
-    local outputText = ""
-    for i, output in ipairs(outputs) do
-      outputText = outputText .. '\n' .. output
+
+    -- if we capture annotations, then replace the code source
+    -- code, stripping annotation comments
+    if #annotations then
+      local outputText = ""
+      for i, output in ipairs(outputs) do
+        outputText = outputText .. '\n' .. output
+      end
+      codeBlockEl.text = outputText
     end
-    codeBlockEl.text = outputText
     return codeBlockEl, annotations 
   else
     warn("Unknown language " .. lang .. " when attempting to read code annotations. Any annotations will be ignored.")
