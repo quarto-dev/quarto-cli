@@ -4,6 +4,7 @@
 -- Copyright (C) 2022 by RStudio, PBC
 
 local function run_emulated_filter_chain(doc, filters)
+  init_trace(doc)
   if tisarray(filters) then
     for i, v in ipairs(filters) do
       local function callback()
@@ -21,6 +22,7 @@ local function run_emulated_filter_chain(doc, filters)
     error("Internal Error: run_emulated_filter_chain expected a table or array instead of " .. type(filters))
     crash_with_stack_trace()
   end
+  end_trace()
   return doc
 end
 

@@ -17,6 +17,7 @@ import("./ast/emulatedfilter.lua")
 import("./ast/parse.lua")
 import("./ast/render.lua")
 import("./ast/runemulation.lua")
+import("./ast/traceexecution.lua")
 import("./ast/wrappedwriter.lua")
 
 import("./common/authors.lua")

@@ -18,6 +18,7 @@ function resolve_custom(node)
 end
 
 function run_emulated_filter(doc, filter)
+  add_trace(doc, filter_name)
   local wrapped_filter = {}
   for k, v in pairs(filter) do
     wrapped_filter[k] = v
@@ -103,7 +104,8 @@ function run_emulated_filter(doc, filter)
     wrapped_filter.RawInline = custom_filter_check.RawInline
   end
 
-  return doc:walk(wrapped_filter)
+  local result = doc:walk(wrapped_filter)
+  return result
 end
 
 function create_emulated_node(t, tbl)
