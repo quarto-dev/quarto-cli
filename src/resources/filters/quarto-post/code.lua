@@ -241,6 +241,15 @@ function code()
             end
           })
           outputs:insert(resolvedBlock)
+        elseif block.t == 'CodeBlock'  then
+          local resolvedCodeBlock, annotations = resolveCellAnnotes(block)
+          if #annotations then
+            pendingAnnotations = annotations
+            outputs:insert(resolvedCodeBlock)
+          else
+            outputs:insert(block)
+            pendingAnnotations = nil
+          end
         elseif block.t == 'OrderedList' and pendingAnnotations ~= nil and next(pendingAnnotations) ~= nil then
           -- There are pending annotations, which means this OL is immediately after
           -- a code cell with annotations. Use to emit a DL describing the code
