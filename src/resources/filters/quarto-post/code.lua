@@ -51,6 +51,9 @@ local kLangCommentChars = {
 local kDataCodeCellTarget = 'data-code-cell'
 local kDataCodeCellLines = 'data-code-lines'
 
+local kCodeLine = "code-line"
+local kCodeLines = "code-lines"
+
 -- annotations appear at the end of the line and are of the form
 -- # <1> 
 -- where they start with a comment character valid for that code cell
@@ -221,6 +224,12 @@ end
 -- The actual filter that will look for a code cell and then
 -- find its annotations, then process the subsequent OL
 function code() 
+  -- the localized strings
+  local language = param("language", nil);              
+
+  -- walk the blocks and look for annotated code
+  -- process the list top down so that we see the outer
+  -- code divs first
   return {
     traverse = 'topdown',
     Blocks = function(blocks) 
@@ -259,6 +268,7 @@ function code()
           })
           outputs:insert(resolvedBlock)
         elseif block.t == 'CodeBlock'  then
+          -- don't process code cell output here - we'll get it above
           if not block.attr.classes:find('cell-code') then
             local cellId = block.attr.identifier
             if cellId == '' then
@@ -289,13 +299,11 @@ function code()
             local annotation = pendingAnnotations[annoteId]
             if annotation then
               local lineNumberTbl = lineNumberStr(annotation)
-
-              -- TODO: Localize
               local label = ""
               if lineNumberTbl.count == 1 then
-                label = "Line " .. lineNumberTbl.text;
+                label = language[kCodeLine] .. " " .. lineNumberTbl.text;
               else
-                label = "Lines " .. lineNumberTbl.text;
+                label = language[kCodeLines] .. " " .. lineNumberTbl.text;
               end
 
               local cellReference = pandoc.Span(label, {

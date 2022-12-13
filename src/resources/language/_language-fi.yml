@@ -31,6 +31,9 @@ callout-caution-caption: "Vaara"
 
 code-summary: "Koodi"
 
+code-line: "Linja"
+code-lines: "Linjat"
+
 code-tools-menu-caption: "Koodi"
 code-tools-show-all-code: "Näytä kaikki koodi"
 code-tools-hide-all-code: "Piilota kaikki koodi"

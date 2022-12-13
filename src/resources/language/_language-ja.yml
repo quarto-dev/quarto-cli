@@ -31,6 +31,9 @@ callout-caution-caption: "注意"
 
 code-summary: "コード"
 
+code-line: "ライン"
+code-lines: "ライン"
+
 code-tools-menu-caption: "コード"
 code-tools-show-all-code: "すべてのコードを表示"
 code-tools-hide-all-code: "すべてのコードを非表示"
