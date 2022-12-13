@@ -18,7 +18,7 @@ function resolve_custom(node)
 end
 
 function run_emulated_filter(doc, filter)
-  add_trace(doc, filter_name)
+  add_trace(doc, filter._filter_name)
   local wrapped_filter = {}
   for k, v in pairs(filter) do
     wrapped_filter[k] = v
