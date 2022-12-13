@@ -30,8 +30,10 @@
           properties:
             year:
               maybeArrayOf:
-                string:
-                  description: The year for this copyright
+                anyOf:
+                  - string
+                  - number
+              description: The year for this copyright
             holder:
               maybeArrayOf:
                 string:

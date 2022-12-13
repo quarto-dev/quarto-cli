@@ -53,7 +53,6 @@ import {
   kLatexMaxRuns,
   kLatexOutputDir,
   kLatexTlmgrOpts,
-  kLinkCitations,
   kLinkExternalIcon,
   kLinkExternalNewwindow,
   kMergeIncludes,

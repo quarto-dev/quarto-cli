@@ -89,6 +89,8 @@ main.quarto-banner-title-block section:first-of-type h4:first-of-type {
 .quarto-title {
   .quarto-categories {
     display: flex;
+    flex-wrap: wrap;
+    row-gap: 0.5em;
     column-gap: 0.4em;
     padding-bottom: 0.5em;
     margin-top: 0.75em;

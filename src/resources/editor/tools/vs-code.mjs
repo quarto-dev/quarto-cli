@@ -8339,6 +8339,11 @@ var require_yaml_intelligence_resources = __commonJS({
                 string: {
                   description: "Value for rel attribute. Multiple space-separated values are permitted.\nSee <https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel>\nfor a details.\n"
                 }
+              },
+              target: {
+                string: {
+                  description: "Value for target attribute.\nSee <https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target>\nfor details.\n"
+                }
               }
             }
           }
@@ -14148,10 +14153,12 @@ var require_yaml_intelligence_resources = __commonJS({
                   properties: {
                     year: {
                       maybeArrayOf: {
-                        string: {
-                          description: "The year for this copyright"
-                        }
-                      }
+                        anyOf: [
+                          "string",
+                          "number"
+                        ]
+                      },
+                      description: "The year for this copyright"
                     },
                     holder: {
                       maybeArrayOf: {
@@ -17784,7 +17791,8 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Text to display for item (defaults to the document title if not\nprovided)",
         "Alias for href",
-        'Value for rel attribute. Multiple space-separated values are\npermitted. See <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel" class="uri">https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel</a>\nfor a details.',
+        'Value for rel attribute. Multiple space-separated values are\npermitted. See <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel" class="uri">https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel</a>\nfor details.',
+        'Value for target attribute. See <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target" class="uri">https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target</a>\nfor details.',
         "The Github repo that will be used to store comments.",
         "The label that will be assigned to issues created by Utterances.",
         {
@@ -20072,13 +20080,17 @@ var require_yaml_intelligence_resources = __commonJS({
         "Individual(s) or institution(s) to whom the award was given (for\nexample, the principal grant holder or the sponsored individual).",
         "The id of an author or affiliation in the document metadata.",
         "The name of an individual that was the recipient of the funding.",
+        "The institution that was the recipient of the funding.",
         "The id of an author or affiliation in the document metadata.",
         "The name of an individual that was the recipient of the funding.",
+        "The institution that was the recipient of the funding.",
         "Individual(s) responsible for the intellectual content of the work\nreported in the document.",
         "The id of an author or affiliation in the document metadata.",
         "The name of an individual that was responsible for the intellectual\ncontent of the work reported in the document.",
+        "The institution that was responsible for the intellectual content of\nthe work reported in the document.",
         "The id of an author or affiliation in the document metadata.",
         "The name of an individual that was responsible for the intellectual\ncontent of the work reported in the document.",
+        "The institution that was responsible for the intellectual content of\nthe work reported in the document.",
         "Unique identifier assigned to an award, contract, or grant.",
         "Displayable prose statement that describes the funding for the\nresearch on which a work was based.",
         "Open access provisions that apply to a work or the funding\ninformation that provided the open access provisions.",
@@ -20096,13 +20108,17 @@ var require_yaml_intelligence_resources = __commonJS({
         "Individual(s) or institution(s) to whom the award was given (for\nexample, the principal grant holder or the sponsored individual).",
         "The id of an author or affiliation in the document metadata.",
         "The name of an individual that was the recipient of the funding.",
+        "The institution that was the recipient of the funding.",
         "The id of an author or affiliation in the document metadata.",
         "The name of an individual that was the recipient of the funding.",
+        "The institution that was the recipient of the funding.",
         "Individual(s) responsible for the intellectual content of the work\nreported in the document.",
         "The id of an author or affiliation in the document metadata.",
         "The name of an individual that was responsible for the intellectual\ncontent of the work reported in the document.",
+        "The institution that was responsible for the intellectual content of\nthe work reported in the document.",
         "The id of an author or affiliation in the document metadata.",
         "The name of an individual that was responsible for the intellectual\ncontent of the work reported in the document.",
+        "The institution that was responsible for the intellectual content of\nthe work reported in the document.",
         "Project configuration.",
         "Project type (<code>default</code>, <code>website</code>, or\n<code>book</code>)",
         "Files to render (defaults to all files)",
@@ -20619,12 +20635,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 144610,
+        _internalId: 144229,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 144602,
+            _internalId: 144221,
             type: "enum",
             enum: [
               "png",
@@ -20640,7 +20656,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 144609,
+            _internalId: 144228,
             type: "anyOf",
             anyOf: [
               {

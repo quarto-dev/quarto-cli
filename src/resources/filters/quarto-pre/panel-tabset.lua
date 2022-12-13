@@ -12,7 +12,7 @@ function panelTabset()
           return tabsetDiv(div, bootstrapTabs())
         elseif _quarto.format.isHtmlOutput() then
           return tabsetDiv(div, tabbyTabs())
-        elseif _quarto.format.isLatexOutput() or _quarto.format.isDocxOutput() or _quarto.format.isEpubOutput() then
+        elseif _quarto.format.isLatexOutput() or _quarto.format.isDocxOutput() or _quarto.format.isEpubOutput() or _quarto.format.isJatsOutput() then
           return tabsetLatex(div)
         end
       else

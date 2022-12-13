@@ -8,6 +8,7 @@
 import { info } from "log/mod.ts";
 
 import { render, renderServices } from "../render/render-shared.ts";
+
 import { JupyterCapabilities } from "../../core/jupyter/types.ts";
 import { jupyterCapabilities } from "../../core/jupyter/capabilities.ts";
 import {
@@ -28,15 +29,23 @@ import { quartoConfig } from "../../core/quarto.ts";
 import { readCodePage } from "../../core/windows.ts";
 import { RenderServices } from "../render/types.ts";
 import { jupyterKernelspecForLanguage } from "../../core/jupyter/kernels.ts";
+import { execProcess } from "../../core/process.ts";
+import { pandocBinaryPath } from "../../core/resources.ts";
+import { lines } from "../../core/text.ts";
+import { satisfies } from "semver/mod.ts";
+import { dartCommand } from "../../core/dart-sass.ts";
 
 const kIndent = "      ";
 
-export type Target = "install" | "jupyter" | "knitr" | "all";
+export type Target = "install" | "jupyter" | "knitr" | "versions" | "all";
 
 export async function check(target: Target): Promise<void> {
   const services = renderServices();
   try {
     info("");
+    if (target === "versions" || target === "all") {
+      await checkVersions(services);
+    }
     if (target === "install" || target === "all") {
       await checkInstall(services);
     }
@@ -49,6 +58,42 @@ export async function check(target: Target): Promise<void> {
   } finally {
     services.cleanup();
   }
+}
+
+async function checkVersions(_services: RenderServices) {
+  const checkVersion = (
+    version: string | undefined,
+    constraint: string,
+    name: string,
+  ) => {
+    if (typeof version !== "string") {
+      throw new Error(`Unable to determine ${name} version`);
+    }
+    if (!satisfies(version, constraint)) {
+      info(
+        `      NOTE: ${name} version ${version} is too old. Please upgrade to ${
+          constraint.slice(2)
+        } or later.`,
+      );
+    } else {
+      info(`      ${name} version ${version}: OK`);
+    }
+  };
+
+  completeMessage("Checking versions of quarto binary dependencies...");
+
+  const pandocVersion = lines(
+    (await execProcess({
+      cmd: [pandocBinaryPath(), "--version"],
+      stdout: "piped",
+    })).stdout!,
+  )[0]?.split(" ")[1];
+  checkVersion(pandocVersion, ">=2.19.2", "Pandoc");
+
+  const sassVersion = (await dartCommand(["--version"]))?.trim();
+  checkVersion(sassVersion, ">=1.32.8", "Dart Sass");
+
+  completeMessage("Checking versions of quarto dependencies......OK");
 }
 
 async function checkInstall(services: RenderServices) {

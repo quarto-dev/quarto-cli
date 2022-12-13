@@ -34,6 +34,7 @@ import {
   kFieldAuthor,
   kFieldCategories,
   kFieldDate,
+  kFieldDateModified,
   kFieldDescription,
   kFieldDisplayNames,
   kFieldFileModified,
@@ -74,6 +75,7 @@ import {
   renderedContentReader,
 } from "./website-listing-shared.ts";
 import {
+  kDateModified,
   kListingPageFieldAuthor,
   kListingPageFieldCategories,
   kListingPageFieldDate,
@@ -128,6 +130,7 @@ const defaultFieldDisplayNames = (format: Format) => {
     [kFieldDescription]: format.language[kListingPageFieldDescription] || "",
     [kFieldAuthor]: format.language[kListingPageFieldAuthor] || "",
     [kFieldFileName]: format.language[kListingPageFieldFileName] || "",
+    [kFieldDateModified]: format.language[kListingPageFieldFileModified] || "",
     [kFieldFileModified]: format.language[kListingPageFieldFileModified] || "",
     [kFieldSubtitle]: format.language[kListingPageFieldSubtitle] || "",
     [kFieldReadingTime]: format.language[kListingPageFieldReadingTime] || "",
@@ -138,6 +141,7 @@ const defaultFieldDisplayNames = (format: Format) => {
 const kDefaultFieldTypes: Record<string, ColumnType> = {
   [kFieldDate]: "date",
   [kFieldFileModified]: "date",
+  [kFieldDateModified]: "date",
   [kFieldReadingTime]: "minutes",
 };
 const kDefaultFieldLinks = [kFieldTitle, kFieldFileName];
@@ -784,6 +788,7 @@ async function listItemFromFile(
     // Create the item
     const filename = basename(projectRelativePath);
     const filemodified = fileModifiedDate(input);
+
     const description = documentMeta?.description as string ||
       documentMeta?.abstract as string ||
       descriptionPlaceholder(inputTarget?.outputHref, maxDescLength);
@@ -800,6 +805,12 @@ async function listItemFromFile(
 
     const date = documentMeta?.date
       ? parsePandocDate(resolveDate(input, documentMeta?.date) as string)
+      : undefined;
+
+    const datemodified = documentMeta?.date
+      ? parsePandocDate(
+        resolveDate(input, documentMeta?.[kDateModified]) as string,
+      )
       : undefined;
 
     const authors = parseAuthor(documentMeta?.author);
@@ -820,6 +831,7 @@ async function listItemFromFile(
       path: `/${projectRelativePath}`,
       [kFieldTitle]: target?.title,
       [kFieldDate]: date,
+      [kFieldDateModified]: datemodified,
       [kFieldAuthor]: author,
       [kFieldCategories]: categories,
       [kFieldImage]: image,

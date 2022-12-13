@@ -77,6 +77,9 @@ See <https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel>
 for a details. */;
   text?: string /* Text to display for item (defaults to the
 document title if not provided) */;
+  target?: string /* Value for target attribute.
+See <https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target>
+for details. */;
   url?: string; /* Alias for href */
 };
 

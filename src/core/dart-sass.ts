@@ -52,7 +52,7 @@ export async function dartCompile(
   return outputFilePath;
 }
 
-async function dartCommand(args: string[]) {
+export async function dartCommand(args: string[]) {
   const resolvePath = () => {
     const dartOverrideCmd = Deno.env.get("QUARTO_DART_SASS");
     if (dartOverrideCmd) {
@@ -74,7 +74,6 @@ async function dartCommand(args: string[]) {
     sass,
     ...args,
   ];
-
   // Run the sass compiler
   const result = await execProcess(
     {
