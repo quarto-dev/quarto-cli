@@ -18,7 +18,6 @@ function resolve_custom(node)
 end
 
 function run_emulated_filter(doc, filter)
-  add_trace(doc, filter._filter_name)
   local wrapped_filter = {}
   for k, v in pairs(filter) do
     wrapped_filter[k] = v
@@ -40,7 +39,10 @@ function run_emulated_filter(doc, filter)
   end
 
   function process_custom_preamble(raw, node_type)
-    local custom_node, t = _quarto.ast.resolve_custom_node(raw)    
+    local custom_node, t = _quarto.ast.resolve_custom_node(raw)
+    if custom_node == nil then
+      return nil
+    end
     local filter_fn = filter[t] or filter[node_type] or filter.Custom
 
     if filter_fn ~= nil then
@@ -96,7 +98,7 @@ function run_emulated_filter(doc, filter)
     end,
   }
 
-  if filter.RawInline ~= nil or filter.Plain == nil then
+  if filter.RawInline == nil and filter.Plain == nil then
     wrapped_filter.Plain = process_custom
     wrapped_filter.RawInline = process_custom
   else
@@ -105,6 +107,7 @@ function run_emulated_filter(doc, filter)
   end
 
   local result = doc:walk(wrapped_filter)
+  add_trace(result, filter._filter_name)
   return result
 end
 
@@ -112,6 +115,7 @@ function create_emulated_node(t, tbl)
   n_custom_nodes = n_custom_nodes + 1
   local result = pandoc.RawInline("QUARTO_custom", tostring(t .. " " .. n_custom_nodes))
   custom_tbl_to_node[n_custom_nodes] = tbl
+  tbl.t = t -- set t always to custom ast type
   return result
 end
 
@@ -136,6 +140,7 @@ _quarto.ast = {
       crash_with_stack_trace()
     end
     local custom_node = _quarto.ast.custom_tbl_to_node[n]
+    return custom_node
   end,
   add_handler = function(handler)
     local state = (preState or postState).extendedAstHandlers

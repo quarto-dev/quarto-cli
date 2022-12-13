@@ -22,15 +22,18 @@ function renderExtendedNodes()
   end
 
   return {
-    Plain = function(plain)
-      if #plain.content == 1 and plain.content[1].t == "RawInline" and plain.content[1].format == "QUARTO_custom" then
-        return render_raw(plain.content[1])
+    Custom = function(node)
+      -- print("Found custom!")
+      -- quarto.utils.dump(node)
+      local handler = _quarto.ast.resolve_handler(node.t)
+      if handler == nil then
+        error("Internal Error: handler not found for custom node " .. node.t)
+        crash_with_stack_trace()
       end
+      return handler.render(node)
     end,
-    RawInline = function(raw)
-      if raw.format == "QUARTO_custom" then
-        return render_raw(raw)
-      end
-    end,
+    Pandoc = function(doc)
+      print(doc)
+    end
   }
 end
