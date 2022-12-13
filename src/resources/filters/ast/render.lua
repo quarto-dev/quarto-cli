@@ -23,17 +23,12 @@ function renderExtendedNodes()
 
   return {
     Custom = function(node)
-      -- print("Found custom!")
-      -- quarto.utils.dump(node)
       local handler = _quarto.ast.resolve_handler(node.t)
       if handler == nil then
         error("Internal Error: handler not found for custom node " .. node.t)
         crash_with_stack_trace()
       end
       return handler.render(node)
-    end,
-    Pandoc = function(doc)
-      print(doc)
     end
   }
 end

@@ -100,10 +100,10 @@ function run_emulated_filter(doc, filter)
 
   if filter.RawInline == nil and filter.Plain == nil then
     wrapped_filter.Plain = process_custom
-    wrapped_filter.RawInline = process_custom
+    -- wrapped_filter.RawInline = process_custom
   else
     wrapped_filter.Plain = custom_filter_check.Plain
-    wrapped_filter.RawInline = custom_filter_check.RawInline
+    -- wrapped_filter.RawInline = custom_filter_check.RawInline
   end
 
   local result = doc:walk(wrapped_filter)
