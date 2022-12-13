@@ -17,31 +17,29 @@ end
 
 function normalizeFilter() 
   return {
-    {
-      Meta = function(meta)
-        -- normalizes the author/affiliation metadata
-        local normalized = processAuthorMeta(meta)
+    Meta = function(meta)
+      -- normalizes the author/affiliation metadata
+      local normalized = processAuthorMeta(meta)
 
-        -- normalizes the citation metadata
-        normalized = processCitationMeta(normalized)
+      -- normalizes the citation metadata
+      normalized = processCitationMeta(normalized)
 
-        -- normalizes the license metadata
-        normalized = processLicenseMeta(normalized)
+      -- normalizes the license metadata
+      normalized = processLicenseMeta(normalized)
 
-        -- for JATs, forward keywords or categories to tags
-        if _quarto.format.isJatsOutput() then
-          if normalized.tags == nil then
-            if normalized.keywords ~= nil then
-              normalized.tags = normalized.keywords
-            elseif meta.categories ~= nil then
-              normalized.tags = normalized.categories
-            end
+      -- for JATs, forward keywords or categories to tags
+      if _quarto.format.isJatsOutput() then
+        if normalized.tags == nil then
+          if normalized.keywords ~= nil then
+            normalized.tags = normalized.keywords
+          elseif meta.categories ~= nil then
+            normalized.tags = normalized.categories
           end
         end
-
-        return normalized
       end
-    }
+
+      return normalized
+    end
   }
 end
 
