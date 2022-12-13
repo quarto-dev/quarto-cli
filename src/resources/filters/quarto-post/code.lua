@@ -50,6 +50,8 @@ local kLangCommentChars = {
 
 local kDataCodeCellTarget = 'data-code-cell'
 local kDataCodeCellLines = 'data-code-lines'
+local kDataCodeCellAnnotation = 'data-code-annotation'
+local kDataCodeAnnonationClz = 'code-annotation-code'
 
 local kCodeLine = "code-line"
 local kCodeLines = "code-lines"
@@ -156,7 +158,7 @@ local function resolveCellAnnotes(codeBlockEl)
   
 end
 
-local function lineNumberStr(list) 
+local function lineNumberMeta(list) 
 
   -- accumulates the output string
   local val = ''
@@ -245,11 +247,25 @@ function code()
         pendingCellId = nil
       end
 
+      local resolveCellId = function(identifier) 
+        if identifier ~= nil and identifier ~= '' then
+          return identifier
+        else
+          local cellId = 'annotated-cell-' .. tostring(idCounter)
+          idCounter = idCounter + 1
+          return cellId
+        end
+      end
+
       local processCodeCell = function(el, identifier)
         local resolvedCodeBlock, annotations = resolveCellAnnotes(el)
         if annotations and #annotations then
+          -- store the annotations and  cell info
           pendingAnnotations = annotations
           pendingCellId = identifier
+          
+          -- decorate the cell and return it
+          resolvedCodeBlock.attr.classes:insert(kDataCodeAnnonationClz);
           return resolvedCodeBlock
         else
           return nil
@@ -262,7 +278,13 @@ function code()
           local resolvedBlock = pandoc.walk_block(block, {
             CodeBlock = function(el)
               if el.attr.classes:find('cell-code') then
-                return processCodeCell(el, block.attr.identifier)
+                
+                local cellId = resolveCellId(el.attr.identifier)
+                local codeCell = processCodeCell(el, cellId)
+                if codeCell then
+                  codeCell.attr.identifier = cellId;
+                end
+                return codeCell
               end
             end
           })
@@ -270,12 +292,8 @@ function code()
         elseif block.t == 'CodeBlock'  then
           -- don't process code cell output here - we'll get it above
           if not block.attr.classes:find('cell-code') then
-            local cellId = block.attr.identifier
-            if cellId == '' then
-              cellId = 'annotated-cell-' .. tostring(idCounter)
-              idCounter = idCounter + 1
-            end
-  
+
+            local cellId = resolveCellId(block.attr.identifier)
             local codeCell = processCodeCell(block, cellId)
             if codeCell then
               codeCell.attr.identifier = cellId;
@@ -294,29 +312,34 @@ function code()
 
           local items = pandoc.List()
           for i, v in ipairs(block.content) do
-            -- get the line numbers
+            -- find the annotation for this OL
             local annoteId = toAnnoteId(i)
             local annotation = pendingAnnotations[annoteId]
             if annotation then
-              local lineNumberTbl = lineNumberStr(annotation)
-              local label = ""
-              if lineNumberTbl.count == 1 then
-                label = language[kCodeLine] .. " " .. lineNumberTbl.text;
+
+              local lineNumMeta = lineNumberMeta(annotation)
+
+              -- compute the term for the DT
+              local term = ""
+              if lineNumMeta.count == 1 then
+                term = language[kCodeLine] .. " " .. lineNumMeta.text;
               else
-                label = language[kCodeLines] .. " " .. lineNumberTbl.text;
+                term = language[kCodeLines] .. " " .. lineNumMeta.text;
               end
 
-              
-
-              local cellValue = pandoc.Span(v[1].content, {
+              -- compute the definition for the DD
+              local definitionContent = v[1].content 
+              local annotationToken = tostring(i);                           
+              local definition = pandoc.Span(definitionContent, {
                 [kDataCodeCellTarget] = pendingCellId,
-                [kDataCodeCellLines] = lineNumberTbl.lineNumbers
+                [kDataCodeCellLines] = lineNumMeta.lineNumbers,
+                [kDataCodeCellAnnotation] = annotationToken
               });
 
               -- find the lines that annotate this and convert to a DL
               items:insert({
-                label,
-                cellValue})
+                term,
+                definition})
             else
               -- there was an OL item without a corresponding annotation
               warn("List item " .. tostring(i) .. " has no corresponding annotation in the code cell\n(" .. pandoc.utils.stringify(v) ..  ")")
