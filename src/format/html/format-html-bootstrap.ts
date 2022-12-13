@@ -400,8 +400,6 @@ function bootstrapHtmlPostprocessor(
     );
     resources.push(...titleResourceFiles);
 
-    processCodeAnnotations(doc);
-
     // Process the elements of this document into an appendix
     if (
       format.metadata[kAppendixStyle] !== false &&
@@ -447,37 +445,6 @@ const fileBsIconName = (format: Format) => {
     return "file";
   }
 };
-
-function processCodeAnnotations(doc: Document) {
-  const annoteNodes = doc.querySelectorAll("span[data-code-cell]");
-  for (const annoteNode of annoteNodes) {
-    const annoteEl = annoteNode as Element;
-
-    // Mark the parent DL container
-    const parentDL = annoteEl.parentElement?.parentElement;
-    if (parentDL) {
-      parentDL.classList.add("code-annotation-container");
-    }
-
-    const targetCell = annoteEl.getAttribute("data-code-cell");
-    const targetLines = annoteEl.getAttribute("data-code-lines");
-    if (targetCell && targetLines) {
-      const lineArr = targetLines?.split(",");
-      for (const line of lineArr) {
-        const targetId = `${targetCell}-${line}`;
-        const targetEl = doc.getElementById(targetId);
-        if (targetEl) {
-          const chevronEl = doc.createElement("i");
-          chevronEl.classList.add("code-annotation-glyph");
-          chevronEl.classList.add("bi");
-          chevronEl.classList.add("bi-chevron-compact-right");
-          targetEl.parentElement?.insertBefore(chevronEl, targetEl);
-          targetEl.classList.add("code-annotation-target");
-        }
-      }
-    }
-  }
-}
 
 function processAlternateFormatLinks(
   options: {

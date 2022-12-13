@@ -577,6 +577,36 @@ div.column {
   width: 50%;
 }
 
+// Code Annotation
+.code-annotation-code code {
+  font-size: 0.9em;
+}
+
+.code-annotation-container {
+  display: none;
+}
+
+code.sourceCode a.code-annotation-anchor {
+  @if variable-exists(font-family-sans-serif) {
+    font-family: $font-family-sans-serif;
+  }
+
+  color: var(--quarto-hl-co-color);
+  border: solid var(--quarto-hl-co-color) 1px;
+  border-radius: 50%;
+  height: 18px;
+  width: 18px;
+
+  font-size: 10px;
+
+  text-align: center;
+  text-decoration: none;
+
+  position: absolute;
+  right: 0;
+  left: inherit;
+}
+
 // Mermaid Theming
 // if none come from theme, we need these
 $body-color: #222 !default;

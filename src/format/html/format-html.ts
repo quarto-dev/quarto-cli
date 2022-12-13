@@ -662,9 +662,71 @@ function htmlFormatPostprocessor(
       }
     }
 
+    // Process code annotations that may appear in this document
+    processCodeAnnotations(doc);
+
     // no resource refs
     return Promise.resolve(kHtmlEmptyPostProcessResult);
   };
+}
+
+const kCodeCellAttr = "data-code-cell";
+const kCodeLinesAttr = "data-code-lines";
+const kCodeAnnotationAttr = "data-code-annotation";
+
+const kCodeCellTargetAttr = "data-target-cell";
+const kCodeAnnotationTargetAttr = "data-target-annotation";
+
+const kCodeAnnotationContainerClz = "code-annotation-container";
+const kCodeAnnotationAnchorClz = "code-annotation-anchor";
+const kCodeAnnotationTargetClz = "code-annotation-target";
+
+function processCodeAnnotations(doc: Document) {
+  // Read the definition list values which contain the annotations
+  const annoteNodes = doc.querySelectorAll(`span[${kCodeCellAttr}]`);
+  for (const annoteNode of annoteNodes) {
+    const annoteEl = annoteNode as Element;
+
+    // Mark the parent DL container with a class
+    // so CSS can target it
+    const parentDL = annoteEl.parentElement?.parentElement;
+    if (parentDL) {
+      parentDL.classList.add(kCodeAnnotationContainerClz);
+    }
+
+    // Read the target values from the annotation DL
+    const targetCell = annoteEl.getAttribute(kCodeCellAttr);
+    const targetLines = annoteEl.getAttribute(kCodeLinesAttr);
+    const targetAnnotation = annoteEl.getAttribute(kCodeAnnotationAttr);
+    if (targetCell && targetLines) {
+      const lineArr = targetLines?.split(",");
+
+      const targetIndex = Math.floor(lineArr.length / 2);
+      const line = lineArr[targetIndex];
+
+      const targetId = `${targetCell}-${line}`;
+      const targetEl = doc.getElementById(targetId);
+      if (targetEl) {
+        const annoteAnchorEl = doc.createElement("a");
+        annoteAnchorEl.classList.add(kCodeAnnotationAnchorClz);
+        annoteAnchorEl.setAttribute(
+          "href",
+          `#${targetCell}-${line}`,
+        );
+        annoteAnchorEl.setAttribute(
+          kCodeCellTargetAttr,
+          `${targetCell}`,
+        );
+        annoteAnchorEl.setAttribute(
+          kCodeAnnotationTargetAttr,
+          `${targetAnnotation}`,
+        );
+        annoteAnchorEl.innerText = targetAnnotation || "?";
+        targetEl.parentElement?.insertBefore(annoteAnchorEl, targetEl);
+        targetEl.classList.add(kCodeAnnotationTargetClz);
+      }
+    }
+  }
 }
 
 function themeFormatExtras(
