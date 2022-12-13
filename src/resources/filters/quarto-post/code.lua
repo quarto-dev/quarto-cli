@@ -278,7 +278,7 @@ function code()
   
             local codeCell = processCodeCell(block, cellId)
             if codeCell then
-              -- codeCell.attr.identifier = cellId;
+              codeCell.attr.identifier = cellId;
               outputs:insert(codeCell)
             else
               outputs:insert(block)
