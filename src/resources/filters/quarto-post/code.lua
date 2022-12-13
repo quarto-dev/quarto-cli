@@ -306,15 +306,17 @@ function code()
                 label = language[kCodeLines] .. " " .. lineNumberTbl.text;
               end
 
-              local cellReference = pandoc.Span(label, {
+              
+
+              local cellValue = pandoc.Span(v[1].content, {
                 [kDataCodeCellTarget] = pendingCellId,
                 [kDataCodeCellLines] = lineNumberTbl.lineNumbers
               });
 
               -- find the lines that annotate this and convert to a DL
               items:insert({
-                cellReference,
-                v})
+                label,
+                cellValue})
             else
               -- there was an OL item without a corresponding annotation
               warn("List item " .. tostring(i) .. " has no corresponding annotation in the code cell\n(" .. pandoc.utils.stringify(v) ..  ")")
