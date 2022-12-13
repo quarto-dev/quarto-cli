@@ -64,7 +64,12 @@ const buildFakeContent = (): Content => {
     status: "current",
     title: "fake-title",
     space: {
-      key: "fake-key",
+      key: "fake-space-key",
+      id: "fake-space-id",
+      homepage: {
+        id: "fake-space-id",
+        title: "fake-space-title",
+      },
     },
     version: {
       number: 1,
@@ -317,7 +322,7 @@ const runPublishRecordTests = () => {
 
   unitTest("buildPublishRecord_validWithChecker", async () => {
     const expectedURL =
-      "https://allenmanning.atlassian.net/wiki/spaces/fake-key/pages/fake-id";
+      "https://allenmanning.atlassian.net/wiki/spaces/fake-space-key/pages/fake-id";
     const expectedId = "fake-id";
 
     checkForContent(expectedURL, expectedId);
@@ -539,6 +544,8 @@ const runBuildContentCreate = () => {
       type: PAGE_TYPE,
       space: {
         key: "fake-space-key",
+        id: "fake-space-id",
+        homepage: buildFakeContent(),
       },
       status: ContentStatusEnum.current,
       ancestors: null,
@@ -551,6 +558,8 @@ const runBuildContentCreate = () => {
     };
     const fakeSpace: Space = {
       key: "fake-space-key",
+      id: "fake-space-id",
+      homepage: buildFakeContent(),
     };
     const fakeBody: ContentBody = {
       storage: {
@@ -576,6 +585,8 @@ const runBuildContentCreate = () => {
       type: "fake-type",
       space: {
         key: "fake-space-key",
+        id: "fake-space-id",
+        homepage: buildFakeContent(),
       },
       status: ContentStatusEnum.deleted,
       ancestors: [
@@ -593,6 +604,8 @@ const runBuildContentCreate = () => {
 
     const fakeSpace: Space = {
       key: "fake-space-key",
+      id: "fake-space-id",
+      homepage: buildFakeContent(),
     };
     const fakeBody: ContentBody = {
       storage: {
@@ -819,6 +832,8 @@ const runFileMetadataToSpaceChanges = () => {
 
   const fakeSpace: Space = {
     key: "fake-space-key",
+    id: "fake-space-id",
+    homepage: buildFakeContent(),
   };
 
   const fakeFile: SiteFileMetadata = {
@@ -895,6 +910,8 @@ const runFileMetadataToSpaceChanges = () => {
         fileName: "fake-file-name",
         space: {
           key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
         },
         status: "current",
         title: "fake-title",
@@ -928,6 +945,8 @@ const runFileMetadataToSpaceChanges = () => {
         fileName: "fake-file-name",
         space: {
           key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
         },
         status: "current",
         title: "fake-title",
@@ -949,6 +968,8 @@ const runFileMetadataToSpaceChanges = () => {
         fileName: "fake-file-name2",
         space: {
           key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
         },
         status: "current",
         title: "fake-title2",

@@ -31,7 +31,9 @@ export type User = {
 };
 
 export type Space = {
+  id: string;
   key: string;
+  homepage: ContentSummary;
 };
 
 export const PAGE_TYPE = "page";

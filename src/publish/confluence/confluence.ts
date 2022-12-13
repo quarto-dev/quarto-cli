@@ -1,7 +1,3 @@
-// TODO Sites - 'tagged' parent
-// - create parent in top-level space
-// - Set permissions on quarto parent
-
 // TODO Resource bundles
 
 import { join } from "path/mod.ts";
@@ -29,6 +25,7 @@ import {
   ConfluenceParent,
   ConfluenceSpaceChange,
   Content,
+  ContentAncestor,
   ContentBody,
   ContentBodyRepresentation,
   ContentChangeType,
@@ -393,9 +390,14 @@ async function publish(
     title: string,
     body: ContentBody
   ): Promise<Content> => {
-    const ancestors = parent?.parent
-      ? [{ id: parent.parent }]
-      : [{ id: space.key }];
+    let ancestors: ContentAncestor[] = [];
+
+    if (parent?.parent) {
+      ancestors = [{ id: parent.parent }];
+    } else if (space.homepage?.id) {
+      ancestors = [{ id: space.homepage?.id }];
+    }
+
     const toCreate: ContentCreate = {
       contentChangeType: ContentChangeType.create,
       title,
@@ -412,18 +414,23 @@ async function publish(
     return createdContent;
   };
 
-  const checkToCreateSiteParent = async (parentId: string = "") => {
-    const existingSiteParent: ContentSummary = await client.getContent(
-      parentId
-    );
-    const siteParentContentProperties: ContentProperty[] =
-      await client.getContentProperty(existingSiteParent.id ?? "");
+  const checkToCreateSiteParent = async (
+    parentId: string = ""
+  ): Promise<string> => {
+    let isQuartoSiteParent = false;
 
-    const isQuartoSiteParent =
-      siteParentContentProperties.find(
-        (property: ContentProperty) =>
-          property.key === ContentPropertyKey.isQuartoSiteParent
-      ) !== undefined;
+    const existingSiteParent: any = await client.getContent(parentId);
+
+    if (existingSiteParent?.id) {
+      const siteParentContentProperties: ContentProperty[] =
+        await client.getContentProperty(existingSiteParent.id ?? "");
+
+      isQuartoSiteParent =
+        siteParentContentProperties.find(
+          (property: ContentProperty) =>
+            property.key === ContentPropertyKey.isQuartoSiteParent
+        ) !== undefined;
+    }
 
     if (!isQuartoSiteParent) {
       const body: ContentBody = {
@@ -525,11 +532,7 @@ async function publish(
   };
 
   const publishSite = async (): Promise<[PublishRecord, URL | undefined]> => {
-    let parentId: string = parent?.parent ?? "";
-
-    if (!parentId) {
-      //TODO create parent in space, fetch space to get ancestor ID
-    }
+    let parentId: string = parent?.parent ?? space.homepage.id ?? "";
 
     parentId = await checkToCreateSiteParent(parentId);
 

@@ -35,8 +35,8 @@ export class ConfluenceClient {
     return this.get<User>("user/current");
   }
 
-  public getSpace(spaceId: string): Promise<Space> {
-    return this.get<Space>(`space/${spaceId}`);
+  public getSpace(spaceId: string, expand = ["homepage"]): Promise<Space> {
+    return this.get<Space>(`space/${spaceId}?expand=${expand}`);
   }
 
   public getContent(id: string): Promise<Content> {
