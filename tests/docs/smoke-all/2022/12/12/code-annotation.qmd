@@ -29,7 +29,7 @@ ggplot(mtcars, aes(x=`car name`, y=mpg_z, label=mpg_z)) + # <6>
                     values = c("above"="#00ba38", "below"="#f8766d")) + 
   labs(subtitle="Normalised mileage from 'mtcars'", # <7> 
        title= "Diverging Bars") + # <7> 
-  coord_flip() # <7> 
+  coord_flip() # <8> 
 ```
 
 1. `mtcars` is a built in data set that we'll use for the purposes of making this plot. For more about built in data sets in R, see <https://vincentarelbundock.github.io/Rdatasets/>

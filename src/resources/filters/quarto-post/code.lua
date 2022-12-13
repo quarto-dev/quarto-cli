@@ -48,14 +48,16 @@ local kLangCommentChars = {
   apl = {"⍝"}
 }
 
--- TODO: deal with codeblock, not just div code cell
+local kDataCodeCellTarget = 'data-code-cell'
+local kDataCodeCellLines = 'data-code-lines'
 
 -- annotations appear at the end of the line and are of the form
 -- # <1> 
 -- where they start with a comment character valid for that code cell
 -- and they contain a number which is the annotation number in the
 -- OL that will appear after the annotation
---
+
+
 -- This provider will yield functions for a particular language that 
 -- can be used to resolve annotation numbers and strip them from source 
 -- code
@@ -184,7 +186,14 @@ local function lineNumberStr(list)
 
   -- go through the line numbers and collapse sequences of numbers
   -- into a line number ranges when possible
+  local lineNoStr = ""
   for _i, v in ipairs(list) do
+    if lineNoStr == "" then
+      lineNoStr = v
+    else 
+      lineNoStr = lineNoStr .. ',' .. v
+    end
+
     if pending == nil then
       pending = v
       current = v
@@ -202,11 +211,11 @@ local function lineNumberStr(list)
     writePending()
   end
 
-  if valuesWritten > 1 then
-    return 'Lines ' .. val
-  else 
-    return 'Line ' .. val
-  end
+  return {
+    text = val,
+    count = valuesWritten,
+    lineNumbers = lineNoStr
+  }
 end
 
 -- The actual filter that will look for a code cell and then
@@ -279,9 +288,19 @@ function code()
             local annoteId = toAnnoteId(i)
             local annotation = pendingAnnotations[annoteId]
             if annotation then
-              local lineNoStr = lineNumberStr(annotation)
-              local cellReference = pandoc.Span(lineNoStr, {
-                ['data-code-cell'] = pendingCellId
+              local lineNumberTbl = lineNumberStr(annotation)
+
+              -- TODO: Localize
+              local label = ""
+              if lineNumberTbl.count == 1 then
+                label = "Line " .. lineNumberTbl.text;
+              else
+                label = "Lines " .. lineNumberTbl.text;
+              end
+
+              local cellReference = pandoc.Span(label, {
+                [kDataCodeCellTarget] = pendingCellId,
+                [kDataCodeCellLines] = lineNumberTbl.lineNumbers
               });
 
               -- find the lines that annotate this and convert to a DL
