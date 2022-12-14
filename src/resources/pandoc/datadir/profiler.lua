@@ -140,8 +140,9 @@ local function rebuildColumnPatterns()
   local str = "s: %-"
   outputHeader = "| %-"..c.fW..str..c.fnW..str..c.lW..str..c.tW..str..c.rW..str..c.cW.."s|\n"
   formatHeader = string.format(outputHeader, "FILE", "FUNCTION", "LINE", "TIME", "%", "#")
-  outputTitle = "%-"..c.fW.."."..c.fW..str..c.fnW.."."..c.fnW..str..c.lW.."s"
-  formatOutput = "| %s: %-"..c.tW..str..c.rW..str..c.cW.."s|\n"
+  -- outputTitle = "%-"..c.fW.."."..c.fW..str..c.fnW.."."..c.fnW..str..c.lW.."s"
+  outputTitle = "%s : %s : %s"
+  formatOutput = "| %s: %"..str..c.rW..str..c.cW.."s|\n"
   formatTotalTime = "Total time: %f s\n"
   formatFunLine = "%"..(c.lW - 2).."i"
   formatFunTime = "%04.4f"
@@ -153,11 +154,9 @@ local function rebuildColumnPatterns()
 end
 
 local function functionReport(information)
-  local src = information.short_src
+  local src = information.source
   if not src then
     src = "<C>"
-  elseif string.sub(src, #src - 3, #src) == ".lua" then
-    src = string.sub(src, 1, #src - 4)
   end
   local name = information.name
   if not name then
