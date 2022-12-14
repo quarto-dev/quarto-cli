@@ -62,6 +62,7 @@ import {
   kAnchorSections,
   kBootstrapDependencyName,
   kCitationsHover,
+  kCodeAnnotations,
   kCodeCopy,
   kComments,
   kDocumentCss,
@@ -144,6 +145,7 @@ export interface HtmlFormatFeatureDefaults {
   hoverCitations?: boolean;
   hoverFootnotes?: boolean;
   figResponsive?: boolean;
+  codeAnnotations?: boolean;
 }
 
 export interface HtmlFormatTippyOptions {
@@ -247,6 +249,12 @@ export async function htmlFormatExtras(
   } else {
     options.figResponsive = format.metadata[kFigResponsive] || false;
   }
+  if (featureDefaults.codeAnnotations) {
+    options.codeAnnotations = format.metadata[kCodeAnnotations] !== false;
+  } else {
+    options.codeAnnotations = format.metadata[kCodeAnnotations] || false;
+  }
+
   options.zenscroll = format.metadata[kSmoothScroll];
   options.codeTools = formatHasCodeTools(format);
   options.darkMode = formatDarkMode(format);
@@ -303,7 +311,8 @@ export async function htmlFormatExtras(
   }
 
   // popper if required
-  options.tippy = options.hoverCitations || options.hoverFootnotes;
+  options.tippy = options.hoverCitations || options.hoverFootnotes ||
+    options.codeAnnotations;
   if (bootstrap || options.tippy) {
     scripts.push({
       name: "popper.min.js",
@@ -663,7 +672,7 @@ function htmlFormatPostprocessor(
     }
 
     // Process code annotations that may appear in this document
-    processCodeAnnotations(doc);
+    processCodeAnnotations(format, doc);
 
     // no resource refs
     return Promise.resolve(kHtmlEmptyPostProcessResult);
@@ -681,7 +690,9 @@ const kCodeAnnotationContainerClz = "code-annotation-container";
 const kCodeAnnotationAnchorClz = "code-annotation-anchor";
 const kCodeAnnotationTargetClz = "code-annotation-target";
 
-function processCodeAnnotations(doc: Document) {
+function processCodeAnnotations(format: Format, doc: Document) {
+  const showAnnotations = format.metadata[kCodeAnnotations] !== false;
+
   // Read the definition list values which contain the annotations
   const annoteNodes = doc.querySelectorAll(`span[${kCodeCellAttr}]`);
   for (const annoteNode of annoteNodes) {
@@ -695,35 +706,37 @@ function processCodeAnnotations(doc: Document) {
     }
 
     // Read the target values from the annotation DL
-    const targetCell = annoteEl.getAttribute(kCodeCellAttr);
-    const targetLines = annoteEl.getAttribute(kCodeLinesAttr);
-    const targetAnnotation = annoteEl.getAttribute(kCodeAnnotationAttr);
-    if (targetCell && targetLines) {
-      const lineArr = targetLines?.split(",");
+    if (showAnnotations) {
+      const targetCell = annoteEl.getAttribute(kCodeCellAttr);
+      const targetLines = annoteEl.getAttribute(kCodeLinesAttr);
+      const targetAnnotation = annoteEl.getAttribute(kCodeAnnotationAttr);
+      if (targetCell && targetLines) {
+        const lineArr = targetLines?.split(",");
 
-      const targetIndex = Math.floor(lineArr.length / 2);
-      const line = lineArr[targetIndex];
+        const targetIndex = Math.floor(lineArr.length / 2);
+        const line = lineArr[targetIndex];
 
-      const targetId = `${targetCell}-${line}`;
-      const targetEl = doc.getElementById(targetId);
-      if (targetEl) {
-        const annoteAnchorEl = doc.createElement("a");
-        annoteAnchorEl.classList.add(kCodeAnnotationAnchorClz);
-        annoteAnchorEl.setAttribute(
-          "href",
-          `#${targetCell}-${line}`,
-        );
-        annoteAnchorEl.setAttribute(
-          kCodeCellTargetAttr,
-          `${targetCell}`,
-        );
-        annoteAnchorEl.setAttribute(
-          kCodeAnnotationTargetAttr,
-          `${targetAnnotation}`,
-        );
-        annoteAnchorEl.innerText = targetAnnotation || "?";
-        targetEl.parentElement?.insertBefore(annoteAnchorEl, targetEl);
-        targetEl.classList.add(kCodeAnnotationTargetClz);
+        const targetId = `${targetCell}-${line}`;
+        const targetEl = doc.getElementById(targetId);
+        if (targetEl) {
+          const annoteAnchorEl = doc.createElement("a");
+          annoteAnchorEl.classList.add(kCodeAnnotationAnchorClz);
+          annoteAnchorEl.setAttribute(
+            "href",
+            `#${targetCell}-${line}`,
+          );
+          annoteAnchorEl.setAttribute(
+            kCodeCellTargetAttr,
+            `${targetCell}`,
+          );
+          annoteAnchorEl.setAttribute(
+            kCodeAnnotationTargetAttr,
+            `${targetAnnotation}`,
+          );
+          annoteAnchorEl.innerText = targetAnnotation || "?";
+          targetEl.parentElement?.insertBefore(annoteAnchorEl, targetEl);
+          targetEl.classList.add(kCodeAnnotationTargetClz);
+        }
       }
     }
   }

@@ -40,6 +40,9 @@ export const kCitationsHover = "citations-hover";
 export const kFootnotesHover = "footnotes-hover";
 export const kSmoothScroll = "smooth-scroll";
 
+// Code Annotation
+export const kCodeAnnotations = "code-annotations";
+
 // turn off optional html features as well as all themes
 export const kMinimal = "minimal";
 

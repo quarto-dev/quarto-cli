@@ -32,6 +32,18 @@
       Code linking is currently implemented only for the knitr engine 
       (via the [downlit](https://downlit.r-lib.org/) package).
 
+- name: code-annotations
+  schema:
+    anyOf:
+      - boolean
+      - enum: [hover]
+    default: hover
+    description:
+      short: The style to use when displahing code annotations
+      long: |
+        The style to use when displahing code annotations. Set this value
+        to false to hide code annotations.
+
 - name: code-tools
   tags:
     formats: [$html-doc]

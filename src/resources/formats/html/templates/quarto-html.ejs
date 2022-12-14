@@ -329,6 +329,44 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 
   <% } %>
 
+  const annoteTargets = window.document.querySelectorAll('.code-annotation-anchor');
+  for (let i=0; i<annoteTargets.length; i++) {
+    const annoteTarget = annoteTargets[i];
+    const targetCell = annoteTarget.getAttribute("data-target-cell");
+    const targetAnnotation = annoteTarget.getAttribute("data-target-annotation");
+
+
+    const contentFn = () => {
+      let cellAttr = 'data-code-cell="' + targetCell + '"';
+      let lineAttr = 'data-code-annotation="' +  targetAnnotation + '"';
+
+      const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+      const content = window.document.querySelector(selector);
+      if (content) {
+        const tipContent = content.cloneNode(true);
+        tipContent.classList.add("code-annotation-tip-content");
+        return tipContent.outerHTML;
+      }
+    }
+
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 300,
+      delay: 50,
+      appendTo: function(el) {
+        return el.parentElement.parentElement.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: '<%= tippyOptions.theme %>',
+      placement: 'right-end',
+      positionFixed: true
+    };
+    window.tippy(annoteTarget, config); 
+  }
+
+
   <% if (hoverCitations) { %>
 
 

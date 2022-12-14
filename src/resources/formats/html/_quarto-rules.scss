@@ -578,6 +578,10 @@ div.column {
 }
 
 // Code Annotation
+.code-annotation-tip-content {
+  word-wrap: break-word;
+}
+
 .code-annotation-code code {
   font-size: 0.9em;
 }
