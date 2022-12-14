@@ -259,7 +259,7 @@ function code()
 
       local processCodeCell = function(el, identifier)
         local resolvedCodeBlock, annotations = resolveCellAnnotes(el)
-        if annotations and #annotations then
+        if annotations and next(annotations) ~= nil then
           -- store the annotations and  cell info
           pendingAnnotations = annotations
           pendingCellId = identifier
