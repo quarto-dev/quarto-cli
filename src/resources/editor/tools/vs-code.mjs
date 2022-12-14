@@ -11363,15 +11363,17 @@ var require_yaml_intelligence_resources = __commonJS({
               "boolean",
               {
                 enum: [
-                  "hover"
+                  "hover",
+                  "select",
+                  "below"
                 ]
               }
-            ],
-            default: "hover",
-            description: {
-              short: "The style to use when displahing code annotations",
-              long: "The style to use when displahing code annotations. Set this value\nto false to hide code annotations.\n"
-            }
+            ]
+          },
+          default: "below",
+          description: {
+            short: "The style to use when displaying code annotations",
+            long: "The style to use when displaying code annotations. Set this value\nto false to hide code annotations.\n"
           }
         },
         {
@@ -19073,6 +19075,10 @@ var require_yaml_intelligence_resources = __commonJS({
           long: 'Enables hyper-linking of functions within code blocks to their online\ndocumentation.\nCode linking is currently implemented only for the knitr engine (via\nthe <a href="https://downlit.r-lib.org/">downlit</a> package).'
         },
         {
+          short: "The style to use when displahing code annotations",
+          long: "The style to use when displahing code annotations. Set this value to\nfalse to hide code annotations."
+        },
+        {
           short: "Include a code tools menu (for hiding and showing code).",
           long: "Include a code tools menu (for hiding and showing code). Use\n<code>true</code> or <code>false</code> to enable or disable the\nstandard code tools menu. Specify sub-properties <code>source</code>,\n<code>toggle</code>, and <code>caption</code> to customize the behavior\nand appearnce of code tools."
         },
@@ -20593,11 +20599,7 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
-        "internal-schema-hack",
-        {
-          short: "The style to use when displahing code annotations",
-          long: "The style to use when displahing code annotations. Set this value to\nfalse to hide code annotations."
-        }
+        "internal-schema-hack"
       ],
       "schema/external-schemas.yml": [
         {
@@ -20811,12 +20813,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 144562,
+        _internalId: 145147,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 144554,
+            _internalId: 145139,
             type: "enum",
             enum: [
               "png",
@@ -20832,7 +20834,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 144561,
+            _internalId: 145146,
             type: "anyOf",
             anyOf: [
               {
