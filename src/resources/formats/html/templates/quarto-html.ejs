@@ -354,8 +354,14 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     const config = {
       allowHTML: true,
       content: contentFn,
+      onShow: () => {
+        window.tippy.hideAll();
+      },
       maxWidth: 300,
-      delay: 50,
+      delay: [50, 0],
+      duration: [200, 0],
+      offset: [5, 10],
+      arrow: true,
       appendTo: function(el) {
         return el.parentElement.parentElement.parentElement;
       },
