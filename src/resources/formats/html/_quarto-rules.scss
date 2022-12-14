@@ -328,7 +328,9 @@ ul.task-list {
 }
 
 // fix for selectize inputs getting their contents clipped
-.cell-output-display:not(.no-overflow-x) {
+// this also works for knitr sql cells (see github issue #3497)
+.cell-output-display:not(.no-overflow-x),
+.knitsql-table:not(.no-overflow-x) {
   overflow-x: auto;
 }
 

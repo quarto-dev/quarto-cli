@@ -13,6 +13,7 @@
 - Add support for linking to other formats, when more than one format is produced. Alternate formats will appear with the TOC. Control using `format-links`.
 - Add support for linking to source notebooks that provide embedded content. Control using `notebook-links`
 - Improve callout wrapping behavior for long strings with no word breaks.
+- Add overflow to tables generated from SQL code cells ([#3497](https://github.com/quarto-dev/quarto-cli/issues/3497)).
 
 ## Article Layout
 
