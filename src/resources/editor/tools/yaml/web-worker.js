@@ -11358,6 +11358,24 @@ try {
             }
           },
           {
+            name: "code-annotations",
+            schema: {
+              anyOf: [
+                "boolean",
+                {
+                  enum: [
+                    "hover"
+                  ]
+                }
+              ],
+              default: "hover",
+              description: {
+                short: "The style to use when displahing code annotations",
+                long: "The style to use when displahing code annotations. Set this value\nto false to hide code annotations.\n"
+              }
+            }
+          },
+          {
             name: "code-tools",
             tags: {
               formats: [
@@ -20576,7 +20594,11 @@ try {
             long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
-          "internal-schema-hack"
+          "internal-schema-hack",
+          {
+            short: "The style to use when displahing code annotations",
+            long: "The style to use when displahing code annotations. Set this value to\nfalse to hide code annotations."
+          }
         ],
         "schema/external-schemas.yml": [
           {
@@ -20790,12 +20812,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 144554,
+          _internalId: 144562,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 144546,
+              _internalId: 144554,
               type: "enum",
               enum: [
                 "png",
@@ -20811,7 +20833,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 144553,
+              _internalId: 144561,
               type: "anyOf",
               anyOf: [
                 {
