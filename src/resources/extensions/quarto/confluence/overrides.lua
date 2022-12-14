@@ -226,11 +226,16 @@ function TableConfluence(caption, aligns, widths, headers, rows)
   return table.concat(buffer,'\n')
 end
 
+function BlockQuoteConfluence(source)
+  return "<blockquote>" .. source .. "</blockquote>"
+end
+
 return {
   CaptionedImageConfluence = CaptionedImageConfluence,
   CodeBlockConfluence = CodeBlockConfluence,
   LinkConfluence = LinkConfluence,
   TableConfluence = TableConfluence,
+  BlockQuoteConfluence = BlockQuoteConfluence,
   escape = escape,
   html_align = html_align,
   interpolate = interpolate

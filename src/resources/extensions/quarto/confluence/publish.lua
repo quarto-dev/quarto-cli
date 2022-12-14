@@ -206,7 +206,7 @@ function Header(lev, s, attr)
 end
 
 function BlockQuote(s)
-  return "<blockquote>\n" .. s .. "\n</blockquote>"
+  return confluence.BlockQuoteConfluence(s)
 end
 
 function HorizontalRule()
