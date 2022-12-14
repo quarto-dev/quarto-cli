@@ -696,13 +696,15 @@ function processCodeAnnotations(format: Format, doc: Document) {
 
   // Read the definition list values which contain the annotations
   const annoteNodes = doc.querySelectorAll(`span[${kCodeCellAttr}]`);
+  const codeParentEls: Element[] = [];
+
   for (const annoteNode of annoteNodes) {
     const annoteEl = annoteNode as Element;
 
     // Mark the parent DL container with a class
     // so CSS can target it
     const parentDL = annoteEl.parentElement?.parentElement;
-    if (parentDL) {
+    if (parentDL && !parentDL.classList.contains(kCodeAnnotationContainerClz)) {
       parentDL.classList.add(kCodeAnnotationContainerClz);
     }
 
@@ -737,9 +739,22 @@ function processCodeAnnotations(format: Format, doc: Document) {
           annoteAnchorEl.innerText = targetAnnotation || "?";
           targetEl.parentElement?.insertBefore(annoteAnchorEl, targetEl);
           targetEl.classList.add(kCodeAnnotationTargetClz);
+
+          if (
+            targetEl.parentElement &&
+            !codeParentEls.includes(targetEl.parentElement)
+          ) {
+            codeParentEls.push(targetEl.parentElement);
+          }
         }
       }
     }
+  }
+
+  for (const codeParentEl of codeParentEls) {
+    const gutterDivEl = doc.createElement("div");
+    gutterDivEl.classList.add("code-annotation-gutter");
+    codeParentEl.parentElement?.appendChild(gutterDivEl);
   }
 }
 
