@@ -250,7 +250,7 @@ export async function htmlFormatExtras(
     options.figResponsive = format.metadata[kFigResponsive] || false;
   }
   if (featureDefaults.codeAnnotations) {
-    options.codeAnnotations = format.metadata[kCodeAnnotations] !== false;
+    options.codeAnnotations = format.metadata[kCodeAnnotations];
   } else {
     options.codeAnnotations = format.metadata[kCodeAnnotations] || false;
   }
@@ -687,74 +687,145 @@ const kCodeAnnotationAttr = "data-code-annotation";
 const kCodeCellTargetAttr = "data-target-cell";
 const kCodeAnnotationTargetAttr = "data-target-annotation";
 
-const kCodeAnnotationContainerClz = "code-annotation-container";
+const kCodeAnnotationHiddenClz = "code-annotation-container-hidden";
+const kCodeAnnotationGridClz = "code-annotation-container-grid";
 const kCodeAnnotationAnchorClz = "code-annotation-anchor";
 const kCodeAnnotationTargetClz = "code-annotation-target";
 
 function processCodeAnnotations(format: Format, doc: Document) {
-  const showAnnotations = format.metadata[kCodeAnnotations] !== false;
+  const annotationStyle: boolean | string = format.metadata[kCodeAnnotations] as
+    | string
+    | boolean;
+
+  if (annotationStyle === false) {
+    // Read the definition list values which contain the annotations
+    const annoteNodes = doc.querySelectorAll(`span[${kCodeCellAttr}]`);
+
+    // annotations are disabled, just hide the DL container
+    for (const annoteNode of annoteNodes) {
+      const annoteEl = annoteNode as Element;
+
+      // Mark the parent DL container with a class
+      // so CSS can target it
+      const parentDL = annoteEl.parentElement?.parentElement;
+      if (
+        parentDL && !parentDL.classList.contains(kCodeAnnotationHiddenClz)
+      ) {
+        parentDL.classList.add(kCodeAnnotationHiddenClz);
+      }
+    }
+  } else if (annotationStyle === "hover") {
+    const definitionLists = processCodeBlockAnnotation(doc, true);
+    definitionLists.forEach((dl) => {
+      dl.classList.add(kCodeAnnotationHiddenClz);
+    });
+  } else if (annotationStyle === "select") {
+  } else {
+    const definitionLists = processCodeBlockAnnotation(
+      doc,
+      false,
+      (annoteEl: Element, dtEl: Element) => {
+        const annotation = annoteEl.getAttribute(kCodeAnnotationAttr);
+        if (annotation !== null) {
+          const ddEl = dtEl.previousElementSibling;
+          if (ddEl) {
+            ddEl.innerHTML = "";
+            ddEl.innerText = annotation;
+          }
+        }
+      },
+    );
+    definitionLists.forEach((dl) => {
+      dl.classList.add(kCodeAnnotationGridClz);
+    });
+  }
+}
+
+// returns DLs that were processed
+
+function processCodeBlockAnnotation(
+  doc: Document,
+  linkAnnotations: boolean,
+  processDt?: (annotationEl: Element, dtEl: Element) => void,
+) {
+  const definitionLists: Element[] = [];
+  const codeBlockParents: Element[] = [];
 
   // Read the definition list values which contain the annotations
   const annoteNodes = doc.querySelectorAll(`span[${kCodeCellAttr}]`);
-  const codeParentEls: Element[] = [];
-
   for (const annoteNode of annoteNodes) {
     const annoteEl = annoteNode as Element;
 
-    // Mark the parent DL container with a class
-    // so CSS can target it
+    // Accumulate the Definition Lists
     const parentDL = annoteEl.parentElement?.parentElement;
-    if (parentDL && !parentDL.classList.contains(kCodeAnnotationContainerClz)) {
-      parentDL.classList.add(kCodeAnnotationContainerClz);
+    if (parentDL && !definitionLists.includes(parentDL)) {
+      definitionLists.push(parentDL);
     }
 
-    // Read the target values from the annotation DL
-    if (showAnnotations) {
-      const targetCell = annoteEl.getAttribute(kCodeCellAttr);
-      const targetLines = annoteEl.getAttribute(kCodeLinesAttr);
-      const targetAnnotation = annoteEl.getAttribute(kCodeAnnotationAttr);
-      if (targetCell && targetLines) {
-        const lineArr = targetLines?.split(",");
+    // Accumulate the Code Blocks
+    const parentCodeBlock = processLineAnnotation(
+      doc,
+      annoteEl,
+      linkAnnotations,
+    );
+    if (parentCodeBlock && !codeBlockParents.includes(parentCodeBlock)) {
+      codeBlockParents.push(parentCodeBlock);
+    }
 
-        const targetIndex = Math.floor(lineArr.length / 2);
-        const line = lineArr[targetIndex];
-
-        const targetId = `${targetCell}-${line}`;
-        const targetEl = doc.getElementById(targetId);
-        if (targetEl) {
-          const annoteAnchorEl = doc.createElement("a");
-          annoteAnchorEl.classList.add(kCodeAnnotationAnchorClz);
-          annoteAnchorEl.setAttribute(
-            "href",
-            `#${targetCell}-${line}`,
-          );
-          annoteAnchorEl.setAttribute(
-            kCodeCellTargetAttr,
-            `${targetCell}`,
-          );
-          annoteAnchorEl.setAttribute(
-            kCodeAnnotationTargetAttr,
-            `${targetAnnotation}`,
-          );
-          annoteAnchorEl.innerText = targetAnnotation || "?";
-          targetEl.parentElement?.insertBefore(annoteAnchorEl, targetEl);
-          targetEl.classList.add(kCodeAnnotationTargetClz);
-
-          if (
-            targetEl.parentElement &&
-            !codeParentEls.includes(targetEl.parentElement)
-          ) {
-            codeParentEls.push(targetEl.parentElement);
-          }
-        }
-      }
+    if (annoteEl.parentElement && processDt) {
+      processDt(annoteEl, annoteEl.parentElement);
     }
   }
 
-  for (const codeParentEl of codeParentEls) {
+  // Inject a gutter for the annotations
+  for (const codeParentEl of codeBlockParents) {
     const gutterDivEl = doc.createElement("div");
     gutterDivEl.classList.add("code-annotation-gutter");
     codeParentEl.parentElement?.appendChild(gutterDivEl);
+  }
+
+  return definitionLists;
+}
+
+function processLineAnnotation(
+  doc: Document,
+  annoteEl: Element,
+  link: boolean,
+) {
+  // Read the target values from the annotation DL
+  const targetCell = annoteEl.getAttribute(kCodeCellAttr);
+  const targetLines = annoteEl.getAttribute(kCodeLinesAttr);
+  const targetAnnotation = annoteEl.getAttribute(kCodeAnnotationAttr);
+  if (targetCell && targetLines) {
+    const lineArr = targetLines?.split(",");
+
+    const targetIndex = Math.floor(lineArr.length / 2);
+    const line = lineArr[targetIndex];
+
+    const targetId = `${targetCell}-${line}`;
+    const targetEl = doc.getElementById(targetId);
+    if (targetEl) {
+      const annoteAnchorEl = doc.createElement(link ? "a" : "span");
+      annoteAnchorEl.classList.add(kCodeAnnotationAnchorClz);
+      if (link) {
+        annoteAnchorEl.setAttribute(
+          "href",
+          `#${targetCell}-${line}`,
+        );
+      }
+      annoteAnchorEl.setAttribute(
+        kCodeCellTargetAttr,
+        `${targetCell}`,
+      );
+      annoteAnchorEl.setAttribute(
+        kCodeAnnotationTargetAttr,
+        `${targetAnnotation}`,
+      );
+      annoteAnchorEl.innerText = targetAnnotation || "?";
+      targetEl.parentElement?.insertBefore(annoteAnchorEl, targetEl);
+      targetEl.classList.add(kCodeAnnotationTargetClz);
+      return targetEl.parentElement;
+    }
   }
 }
 

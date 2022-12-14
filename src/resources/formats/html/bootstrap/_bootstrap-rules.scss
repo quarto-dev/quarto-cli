@@ -1739,6 +1739,42 @@ textarea {
   background-color: var(--bs-body-bg);
 }
 
+// Code Annotation
+.code-annotation-gutter {
+  @if variable-exists(code-block-bg-color) {
+    background-color: $code-block-bg-color;
+  }
+  height: 100%;
+  width: calc(20px + 0.5em);
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+dl.code-annotation-container-grid {
+  dt {
+    margin-right: 1em;
+    margin-top: 0.5em;
+  }
+}
+
+dl.code-annotation-container-grid dt,
+code.sourceCode .code-annotation-anchor {
+  @if variable-exists(font-family-sans-serif) {
+    font-family: $font-family-sans-serif;
+  }
+
+  color: var(--quarto-hl-co-color);
+  border: solid var(--quarto-hl-co-color) 1px;
+  border-radius: 50%;
+  height: 18px;
+  width: 18px;
+  font-size: 10px;
+  text-align: center;
+  text-decoration: none;
+  line-height: inherit;
+}
+
 // change .column-screen-* to behave like .column-page (which hugs the body margins)
 // cf https://github.com/quarto-dev/quarto-cli/issues/1824#issuecomment-1216018434
 @media print {

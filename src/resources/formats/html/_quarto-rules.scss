@@ -577,47 +577,32 @@ div.column {
   width: 50%;
 }
 
-// Code Annotation
+// Code Annotation LayoutBoot
 .code-annotation-tip-content {
   word-wrap: break-word;
 }
 
-.code-annotation-container {
+.code-annotation-container-hidden {
   display: none;
+}
+
+dl.code-annotation-container-grid {
+  display: grid;
+  grid-template-columns: min-content auto;
+  dt {
+    grid-column: 1;
+  }
+  dd {
+    grid-column: 2;
+  }
 }
 
 pre.sourceCode.code-annotation-code {
   padding-right: 0;
 }
 
-.code-annotation-gutter {
-  @if variable-exists(code-block-bg) {
-    background-color: $code-block-bg;
-  }
-  height: 100%;
-  width: calc(20px + 0.5em);
-  position: absolute;
-  top: 0;
-  right: 0;
-}
-
-code.sourceCode a.code-annotation-anchor {
-  @if variable-exists(font-family-sans-serif) {
-    font-family: $font-family-sans-serif;
-  }
-
-  color: var(--quarto-hl-co-color);
-  border: solid var(--quarto-hl-co-color) 1px;
-  border-radius: 50%;
-  height: 18px;
-  width: 18px;
+code.sourceCode .code-annotation-anchor {
   z-index: 100;
-
-  font-size: 10px;
-
-  text-align: center;
-  text-decoration: none;
-
   position: absolute;
   right: 0.5em;
   left: inherit;

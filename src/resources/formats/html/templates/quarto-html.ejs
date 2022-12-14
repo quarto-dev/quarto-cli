@@ -329,7 +329,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 
   <% } %>
 
-  <% if (codeAnnotations) { %>
+  <% if (codeAnnotations && codeAnnotations === "hover") { %>
 
   const annoteTargets = window.document.querySelectorAll('.code-annotation-anchor');
   for (let i=0; i<annoteTargets.length; i++) {
