@@ -41,7 +41,12 @@ theoremTypes = {
   exr  = {
     env = "exercise",
     style = "definition",
-    title = "Exercise"
+    title = "Exercise",
+  },
+  alg = {
+    env = "algorithm",
+    style = "plain",
+    title = "Algorithm",
   }
 }
 
