@@ -21,6 +21,9 @@ _quarto.ast.add_handler({
   -- the name of the ast node, used as a key in extended ast filter tables
   ast_name = "Callout",
 
+  -- callouts will be rendered as blocks
+  kind = "Block",
+
   -- a function that takes the div node as supplied in user markdown
   -- and returns the custom node
   parse = function(div)

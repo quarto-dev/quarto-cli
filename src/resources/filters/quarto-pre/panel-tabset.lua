@@ -100,8 +100,10 @@ _quarto.ast.add_handler({
   -- the name of the ast node, used as a key in extended ast filter tables
   ast_name = "Tabset",
 
+  kind = "Block",
+
   constructor = function(params)
-    local tbl = {
+    return {
       level = params.level or 2,
       tabs = params.tabs or pandoc.List(),
       div_attr = params.attr or pandoc.Attr(), -- FIXME apparently "attr" breaks things.
@@ -109,7 +111,6 @@ _quarto.ast.add_handler({
         table.insert(node.tabs, quarto.Tab( { title = title, content = content } ))
       end
     }
-    return _quarto.ast.custom("Tabset", tbl)
   end,
 
   -- a function that takes the div node as supplied in user markdown
