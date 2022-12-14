@@ -89,6 +89,7 @@ import {
 } from "../../core/giscus.ts";
 import { metadataPostProcessor } from "./format-html-meta.ts";
 import { kHtmlEmptyPostProcessResult } from "../../command/render/constants.ts";
+import { coerce } from "https://deno.land/x/semver@v1.4.0/mod.ts";
 
 export function htmlFormat(
   figwidth: number,
@@ -716,7 +717,8 @@ function processCodeAnnotations(format: Format, doc: Document) {
     }
   } else if (annotationStyle === "hover") {
     const definitionLists = processCodeBlockAnnotation(doc, true);
-    definitionLists.forEach((dl) => {
+
+    Object.values(definitionLists).forEach((dl) => {
       dl.classList.add(kCodeAnnotationHiddenClz);
     });
   } else if (annotationStyle === "select") {
@@ -735,7 +737,23 @@ function processCodeAnnotations(format: Format, doc: Document) {
         }
       },
     );
-    definitionLists.forEach((dl) => {
+
+    Object.keys(definitionLists).forEach((codeblockId) => {
+      const dlEl = definitionLists[codeblockId];
+
+      const codeDivEl = doc.getElementById(codeblockId);
+      if (codeDivEl) {
+        if (dlEl.previousSibling !== codeDivEl) {
+          dlEl.remove();
+          codeDivEl.parentElement?.insertBefore(
+            dlEl,
+            codeDivEl.nextSibling,
+          );
+        }
+      }
+    });
+
+    Object.values(definitionLists).forEach((dl) => {
       dl.classList.add(kCodeAnnotationGridClz);
     });
   }
@@ -748,19 +766,13 @@ function processCodeBlockAnnotation(
   linkAnnotations: boolean,
   processDt?: (annotationEl: Element, dtEl: Element) => void,
 ) {
-  const definitionLists: Element[] = [];
+  const definitionLists: Record<string, Element> = {};
   const codeBlockParents: Element[] = [];
 
   // Read the definition list values which contain the annotations
   const annoteNodes = doc.querySelectorAll(`span[${kCodeCellAttr}]`);
   for (const annoteNode of annoteNodes) {
     const annoteEl = annoteNode as Element;
-
-    // Accumulate the Definition Lists
-    const parentDL = annoteEl.parentElement?.parentElement;
-    if (parentDL && !definitionLists.includes(parentDL)) {
-      definitionLists.push(parentDL);
-    }
 
     // Accumulate the Code Blocks
     const parentCodeBlock = processLineAnnotation(
@@ -772,6 +784,16 @@ function processCodeBlockAnnotation(
       codeBlockParents.push(parentCodeBlock);
     }
 
+    // Accumulate the Definition Lists
+    const parentDL = annoteEl.parentElement?.parentElement;
+    const codeParentDivId = parentCodeBlock?.parentElement?.parentElement?.id;
+    if (
+      parentDL && codeParentDivId &&
+      !Object.keys(definitionLists).includes(codeParentDivId)
+    ) {
+      definitionLists[codeParentDivId] = parentDL;
+    }
+
     if (annoteEl.parentElement && processDt) {
       processDt(annoteEl, annoteEl.parentElement);
     }
@@ -779,6 +801,10 @@ function processCodeBlockAnnotation(
 
   // Inject a gutter for the annotations
   for (const codeParentEl of codeBlockParents) {
+    const gutterBgDivEl = doc.createElement("div");
+    gutterBgDivEl.classList.add("code-annotation-gutter-bg");
+    codeParentEl.parentElement?.appendChild(gutterBgDivEl);
+
     const gutterDivEl = doc.createElement("div");
     gutterDivEl.classList.add("code-annotation-gutter");
     codeParentEl.parentElement?.appendChild(gutterDivEl);

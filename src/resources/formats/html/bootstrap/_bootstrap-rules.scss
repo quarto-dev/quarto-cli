@@ -1740,10 +1740,17 @@ textarea {
 }
 
 // Code Annotation
+
+.code-annotation-gutter-bg {
+  background-color: $body-bg;
+}
+
 .code-annotation-gutter {
-  @if variable-exists(code-block-bg-color) {
-    background-color: $code-block-bg-color;
-  }
+  background-color: $code-block-bg-color;
+}
+
+.code-annotation-gutter,
+.code-annotation-gutter-bg {
   height: 100%;
   width: calc(20px + 0.5em);
   position: absolute;
@@ -1754,25 +1761,40 @@ textarea {
 dl.code-annotation-container-grid {
   dt {
     margin-right: 1em;
-    margin-top: 0.5em;
+    margin-top: 0.25rem;
   }
 }
 
-dl.code-annotation-container-grid dt,
-code.sourceCode .code-annotation-anchor {
-  @if variable-exists(font-family-sans-serif) {
-    font-family: $font-family-sans-serif;
-  }
+dl.code-annotation-container-grid dt {
+  font-family: $font-family-code;
+  color: var(--quarto-hl-co-color);
+  border: solid var(--quarto-hl-co-color) 1px;
+  border-radius: 50%;
+  height: 24px;
+  width: 24px;
+  line-height: 24px;
+  font-size: 12px;
 
+  text-align: center;
+  vertical-align: middle;
+
+  text-decoration: none;
+}
+
+code.sourceCode .code-annotation-anchor {
+  font-family: $font-family-code;
   color: var(--quarto-hl-co-color);
   border: solid var(--quarto-hl-co-color) 1px;
   border-radius: 50%;
   height: 18px;
   width: 18px;
-  font-size: 10px;
+  line-height: 18px;
+  font-size: 9px;
+
   text-align: center;
+  vertical-align: middle;
+
   text-decoration: none;
-  line-height: inherit;
 }
 
 // change .column-screen-* to behave like .column-page (which hugs the body margins)
