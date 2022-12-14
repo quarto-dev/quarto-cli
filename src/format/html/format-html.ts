@@ -716,7 +716,7 @@ function processCodeAnnotations(format: Format, doc: Document) {
       }
     }
   } else if (annotationStyle === "hover") {
-    const definitionLists = processCodeBlockAnnotation(doc, true);
+    const definitionLists = processCodeBlockAnnotation(doc, true, "start");
 
     Object.values(definitionLists).forEach((dl) => {
       dl.classList.add(kCodeAnnotationHiddenClz);
@@ -726,6 +726,7 @@ function processCodeAnnotations(format: Format, doc: Document) {
     const definitionLists = processCodeBlockAnnotation(
       doc,
       false,
+      "start",
       (annoteEl: Element, dtEl: Element) => {
         const annotation = annoteEl.getAttribute(kCodeAnnotationAttr);
         if (annotation !== null) {
@@ -764,6 +765,7 @@ function processCodeAnnotations(format: Format, doc: Document) {
 function processCodeBlockAnnotation(
   doc: Document,
   linkAnnotations: boolean,
+  annotationPosition: "start" | "middle",
   processDt?: (annotationEl: Element, dtEl: Element) => void,
 ) {
   const definitionLists: Record<string, Element> = {};
@@ -779,6 +781,7 @@ function processCodeBlockAnnotation(
       doc,
       annoteEl,
       linkAnnotations,
+      annotationPosition,
     );
     if (parentCodeBlock && !codeBlockParents.includes(parentCodeBlock)) {
       codeBlockParents.push(parentCodeBlock);
@@ -817,6 +820,7 @@ function processLineAnnotation(
   doc: Document,
   annoteEl: Element,
   link: boolean,
+  position: "start" | "middle",
 ) {
   // Read the target values from the annotation DL
   const targetCell = annoteEl.getAttribute(kCodeCellAttr);
@@ -825,7 +829,9 @@ function processLineAnnotation(
   if (targetCell && targetLines) {
     const lineArr = targetLines?.split(",");
 
-    const targetIndex = Math.floor(lineArr.length / 2);
+    const targetIndex = position === "start"
+      ? 0
+      : Math.floor(lineArr.length / 2);
     const line = lineArr[targetIndex];
 
     const targetId = `${targetCell}-${line}`;
