@@ -37,12 +37,12 @@
     anyOf:
       - boolean
       - enum: [hover, select, below]
-    default: below
-    description:
-      short: The style to use when displaying code annotations
-      long: |
-        The style to use when displaying code annotations. Set this value
-        to false to hide code annotations.
+  default: below
+  description:
+    short: The style to use when displaying code annotations
+    long: |
+      The style to use when displaying code annotations. Set this value
+      to false to hide code annotations.
 
 - name: code-tools
   tags:
