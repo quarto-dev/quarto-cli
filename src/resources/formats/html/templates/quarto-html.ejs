@@ -329,6 +329,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 
   <% } %>
 
+  <% if (codeAnnotations) { %>
+
   const annoteTargets = window.document.querySelectorAll('.code-annotation-anchor');
   for (let i=0; i<annoteTargets.length; i++) {
     const annoteTarget = annoteTargets[i];
@@ -365,6 +367,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     };
     window.tippy(annoteTarget, config); 
   }
+
+  <% } %>
 
 
   <% if (hoverCitations) { %>
