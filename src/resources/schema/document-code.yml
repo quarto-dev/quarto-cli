@@ -36,12 +36,12 @@
   schema:
     anyOf:
       - boolean
-      - enum: [hover]
-    default: hover
+      - enum: [hover, select, below]
+    default: below
     description:
-      short: The style to use when displahing code annotations
+      short: The style to use when displaying code annotations
       long: |
-        The style to use when displahing code annotations. Set this value
+        The style to use when displaying code annotations. Set this value
         to false to hide code annotations.
 
 - name: code-tools
