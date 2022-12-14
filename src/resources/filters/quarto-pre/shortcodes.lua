@@ -186,6 +186,15 @@ function transformShortcodeInlines(inlines, noRawInlines)
   local outputInlines = pandoc.List()
   local shortcodeInlines = pandoc.List()
   local accum = outputInlines
+
+  function ensure_accum(i)
+    if not transformed then
+      transformed = true
+      for j = 1,i do
+        outputInlines:insert(inlines[j])
+      end
+    end
+  end
   
   -- iterate through any inlines and process any shortcodes
   for i, el in ipairs(inlines) do
@@ -198,7 +207,7 @@ function transformShortcodeInlines(inlines, noRawInlines)
 
       -- handle {{{< shortcode escape
       if beginEscapeMatch then
-        transformed = true
+        ensure_accum(i)
         local prefixLen = #el.text - #beginEscapeMatch
         if prefixLen > 0 then
           accum:insert(pandoc.Str(el.text:sub(1, prefixLen)))
@@ -207,7 +216,7 @@ function transformShortcodeInlines(inlines, noRawInlines)
         
       -- handle >}}} shortcode escape
       elseif endEscapeMatch then
-        transformed = true
+        ensure_accum(i)
         local suffixLen = #el.text - #endEscapeMatch
         accum:insert(pandoc.Str(endEscapeMatch:sub(1, #endEscapeMatch-1)))
         if suffixLen > 0 then
@@ -217,16 +226,17 @@ function transformShortcodeInlines(inlines, noRawInlines)
       -- handle shortcode escape -- e.g. {{</* shortcode_name */>}}
       elseif endsWith(el.text, kOpenShortcode .. kOpenShortcodeEscape) then
         -- This is an escape, so insert the raw shortcode as text (remove the comment chars)
-        transformed = true
+        ensure_accum(i)
         accum:insert(pandoc.Str(kOpenShortcode))
         
 
       elseif startsWith(el.text, kCloseShortcodeEscape .. kCloseShortcode) then 
         -- This is an escape, so insert the raw shortcode as text (remove the comment chars)
-        transformed = true
+        ensure_accum(i)
         accum:insert(pandoc.Str(kCloseShortcode))
 
       elseif endsWith(el.text, kOpenShortcode) then
+        ensure_accum(i)
         -- note that the text might have other text with it (e.g. a case like)
         -- This is my inline ({{< foo bar >}}).
         -- Need to pare off prefix and suffix and preserve them
@@ -241,7 +251,7 @@ function transformShortcodeInlines(inlines, noRawInlines)
       elseif startsWith(el.text, kCloseShortcode) then
 
         -- since we closed a shortcode, mark this transformed
-        transformed = true
+        ensure_accum(i)
 
         -- the end of the shortcode, stop accumulating the shortcode
         accum:insert(pandoc.Str(kCloseShortcode))
@@ -281,11 +291,15 @@ function transformShortcodeInlines(inlines, noRawInlines)
         shortcodeInlines = pandoc.List()        
       else 
         -- not a shortcode, accumulate
-        accum:insert(el)
+        if transformed then
+          accum:insert(el)
+        end
       end
     else
       -- not a string, accumulate
-      accum:insert(el)
+      if transformed then
+        accum:insert(el)
+      end
     end
   end
   
