@@ -564,6 +564,7 @@ function htmlFormatFeatureDefaults(
     hoverCitations: !minimal,
     hoverFootnotes: !minimal,
     figResponsive: !minimal,
+    codeAnnotations: !minimal,
   };
 }
 
