@@ -70,27 +70,24 @@ function theorems()
           el.content:insert(pandoc.Para(pandoc.RawInline("latex", 
             "\\end{" .. theoremType.env .. "}"
           )))
+        elseif _quarto.format.isJatsOutput() then
+
+          -- JATS XML theorem
+          local lbl = captionPrefix(nil, type, theoremType, order)
+          el = jatsTheorem(el, lbl, name)          
+          
         else
           -- create caption prefix
-          local prefix = title(type, theoremType.title)
-          table.insert(prefix, pandoc.Space())
-          tappend(prefix, numberOption(type, order))
-          table.insert(prefix, pandoc.Space())
-          if name then
-            table.insert(prefix, pandoc.Str("("))
-            tappend(prefix, name)
-            table.insert(prefix, pandoc.Str(")"))
-            table.insert(prefix, pandoc.Space())
-          end
-
-          -- prepend the prefix
-          local caption = el.content[1]
-          local prefix = { 
+          local captionPrefix = captionPrefix(name, type, theoremType, order)
+          local prefix =  { 
             pandoc.Span(
-              pandoc.Strong(prefix), 
+              pandoc.Strong(captionPrefix), 
               pandoc.Attr("", { "theorem-title" })
             )
           }
+
+          -- prepend the prefix
+          local caption = el.content[1]
 
           if caption.content == nil then
             -- https://github.com/quarto-dev/quarto-cli/issues/2228
@@ -134,6 +131,8 @@ function theorems()
             el.content:insert(pandoc.Para(pandoc.RawInline("latex", 
               "\\end{" .. proof.env .. "}"
             )))
+          elseif _quarto.format.isJatsOutput() then
+            el = jatsTheorem(el,  nil, name )
           else
             local span = pandoc.Span(
               { pandoc.Emph(pandoc.Str(envTitle(proof.env, proof.title)))},
@@ -164,6 +163,55 @@ function theorems()
     end
   }
 
+end
+
+function jatsTheorem(el, label, title) 
+
+  -- <statement>
+  --   <label>Equation 2</label>
+  --   <title>The Pythagorean</title>
+  --   <p>
+  --     ...
+  --   </p>
+  -- </statement> 
+
+  if title then
+    tprepend(el.content, {
+      pandoc.RawBlock("jats", "<title>"),  
+      pandoc.Plain(title), 
+      pandoc.RawBlock("jats", "</title>")})
+  end
+
+  if label then
+    tprepend(el.content, {
+      pandoc.RawBlock("jats", "<label>"),  
+      pandoc.Plain(label), 
+      pandoc.RawBlock("jats", "</label>")})
+  end
+  
+  -- Process the caption (if any)
+  
+  -- Emit the statement
+  local stmtPrefix = pandoc.RawBlock("jats",  '<statement id="' .. el.attr.identifier .. '">')
+  local stmtSuffix = pandoc.RawBlock("jats",  '</statement>')
+
+  el.content:insert(1, stmtPrefix)
+  el.content:insert(stmtSuffix)
+  return el
+end
+
+function captionPrefix(name, type, theoremType, order) 
+  local prefix = title(type, theoremType.title)
+  table.insert(prefix, pandoc.Space())
+  tappend(prefix, numberOption(type, order))
+  table.insert(prefix, pandoc.Space())
+  if name then
+    table.insert(prefix, pandoc.Str("("))
+    tappend(prefix, name)
+    table.insert(prefix, pandoc.Str(")"))
+    table.insert(prefix, pandoc.Space())
+  end
+  return prefix
 end
 
 

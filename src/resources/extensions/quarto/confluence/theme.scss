@@ -1,0 +1,201 @@
+/*-- scss:defaults --*/
+
+/* quarto vars: https://quarto.org/docs/output-formats/html-themes.html#sass-variables */
+/* bootstrap vars: https://github.com/twbs/bootstrap/blob/main/scss/_variables.scss */
+
+$font-family-sans-serif: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+$body-color: #333 !default;
+
+/*-- scss:rules --*/
+main.content {
+  padding: 0 50px;
+}
+
+@include media-breakpoint-up(xl) {
+  main.content {
+    padding: 0 100px;
+  }
+}
+
+
+#title-block-header {
+  margin-left: -30px;
+
+  #avatar-icon {
+    align-self: center;
+    border-radius: 50%;
+    height: 32px;
+    width: 32px;
+  }
+
+  #page-properties {
+    display: flex;
+    flex-direction: row;
+    margin-top: 20px;
+    margin-bottom: 20px;
+
+    .details {
+      flex: 1;
+      font-size: 12px;
+      font-weight: 400;
+      line-height: 18px;
+      color: #6b778c
+    }
+  }
+
+  #title {
+    color: rgb(23, 43, 77);
+    font-size: 29px;
+    letter-spacing: -0.01em;
+    line-height: 1.10345;
+    font-weight: normal;
+    margin-top: 0;
+  }
+
+}
+
+body {
+  font-size: 16px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  padding: 0;
+  border-bottom: none;
+  color: rgb(23, 43, 77);
+  font-weight: 500;
+}
+
+main > section:first-of-type > h2:first-of-type {
+  margin-top: 0;
+}
+
+h1 {
+  font-size: 1.714em;
+  line-height: 1.166;
+  margin-top: 1.667em;
+}
+
+h2 {
+  font-size: 1.43em;
+  line-height: 1.2;
+  margin-top: 1.8em;
+}
+
+h3 {
+  font-size: 1.142em;
+  line-height: 1.5;
+  font-weight: 600;
+  margin-top: 10px;
+}
+
+h4 {
+  font-size: 1em;
+  line-height: 1.428;
+  font-weight: 600;
+  margin-top: 1.357em;
+}
+
+h5 {
+  font-size: 0.857em;
+  line-height: 1.333;
+  font-weight: 600;
+  margin-top: 1.357em;
+}
+
+h6 {
+  line-height: 1.454;
+  font-size: 0.785em;
+  font-weight: 700;
+  color: #6B778C;
+  margin-top: 1.455em;
+}
+
+p {
+  font-size: 1em;
+  line-height: 1.714;
+  font-weight: normal;
+  margin-top: 0.75rem;
+  margin-bottom: 0;
+}
+
+ul, ol {
+  padding-left: 24px;
+  margin-top: 10px;
+
+  li {
+    line-height: 1.714rem;
+    p, ul, ol {
+      margin: 0;
+    }
+  }
+
+}
+
+.table {
+  margin-top: 24px;
+  height: 1px;
+  margin-left: 0;
+  margin-right: 0;
+  border-collapse: collapse;
+  border: 1px solid #C1C7D0;
+  table-layout: fixed;
+  font-size: 16px;
+  width: 100%;
+
+  th, td {
+    border: 1px solid var(--ds-border, #C1C7D0);
+    text-align: left;
+    font-size: 1em;
+    line-height: 1.714;
+    font-weight: normal;
+    margin-top: 0.75rem;
+    letter-spacing: -0.005em;
+  }
+
+  th {
+    background-color: var(--ds-background-neutral, #F4F5F7);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    margin-top: 0;
+  }
+
+}
+
+pre code {
+  color: #172B4D;
+  padding: 8px;
+  background-color: rgba(233,236,239,.5);
+}
+
+pre {
+  margin: 0;
+  .numberSource {
+    margin-left: 2em;
+    padding-left: 4px;
+  }
+}
+
+.sourceCode {
+  pre {
+    margin-left: 2em;
+    padding: 0;
+  }
+}
+
+
+blockquote {
+  border-left: 1px solid rgb(204, 204, 204);
+  border-left-width: 1px;
+  border-left-style: solid;
+  border-left-color: rgb(204, 204, 204);
+  color: rgb(112, 112, 112);
+  margin-left: 19px;
+  padding: 10px 20px;
+
+  p {
+    margin-top: 0;
+  }
+
+}

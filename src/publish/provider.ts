@@ -10,8 +10,10 @@ import { netlifyProvider } from "./netlify/netlify.ts";
 import { ghpagesProvider } from "./gh-pages/gh-pages.ts";
 import { quartoPubProvider } from "./quarto-pub/quarto-pub.ts";
 import { rsconnectProvider } from "./rsconnect/rsconnect.ts";
+import { confluenceProvider } from "./confluence/confluence.ts";
 import { PublishOptions, PublishRecord } from "./types.ts";
 import { ProjectContext } from "../project/types.ts";
+import { RenderFlags } from "../command/render/types.ts";
 
 export enum AccountTokenType {
   Environment,
@@ -27,8 +29,7 @@ export interface AccountToken {
 }
 
 export function accountTokenText(token: AccountToken) {
-  return token.name +
-    (token.server ? ` (${token.server})` : "");
+  return token.name + (token.server ? ` (${token.server})` : "");
 }
 
 export function anonymousAccount(): AccountToken {
@@ -45,6 +46,7 @@ const kPublishProviders = [
   ghpagesProvider,
   rsconnectProvider,
   netlifyProvider,
+  confluenceProvider,
 ];
 
 export async function publishProviders() {
@@ -57,6 +59,10 @@ export async function publishProviders() {
   providers.push(ghpagesProvider);
   providers.push(rsconnectProvider);
   providers.push(netlifyProvider);
+  if (dotenvConfig["CONFLUENCE_PUBLISH_ENABLED"] === "true") {
+    providers.push(confluenceProvider);
+  }
+
   return providers;
 }
 
@@ -73,29 +79,37 @@ export interface PublishDeploymentWithAccount extends PublishDeployment {
   account?: AccountToken;
 }
 
+export type InputMetadata = {
+  title?: string;
+  author?: string;
+  date?: string;
+};
+
 export type PublishFiles = {
   baseDir: string;
   rootFile: string;
   files: string[];
+  metadataByInput?: Record<string, InputMetadata>;
 };
 
 export interface PublishProvider {
   name: string;
   description: string;
   requiresServer: boolean;
-  listOriginOnly: boolean;
+  listOriginOnly?: boolean;
+  requiresRender?: boolean;
   publishRecord?: (
-    input: string | ProjectContext,
+    input: string | ProjectContext
   ) => Promise<PublishRecord | undefined>;
   accountTokens: () => Promise<AccountToken[]>;
   removeToken: (token: AccountToken) => void;
   authorizeToken: (
     options: PublishOptions,
-    target?: PublishRecord,
+    target?: PublishRecord
   ) => Promise<AccountToken | undefined>;
   resolveTarget: (
     account: AccountToken,
-    target: PublishRecord,
+    target: PublishRecord
   ) => Promise<PublishRecord | undefined>;
   publish: (
     account: AccountToken,
@@ -103,9 +117,9 @@ export interface PublishProvider {
     input: string,
     title: string,
     slug: string,
-    render: (siteUrl?: string) => Promise<PublishFiles>,
+    render: (flags?: RenderFlags) => Promise<PublishFiles>,
     options: PublishOptions,
-    target?: PublishRecord,
+    target?: PublishRecord
   ) => Promise<[PublishRecord | undefined, URL | undefined]>;
   isUnauthorized: (error: Error) => boolean;
   isNotFound: (error: Error) => boolean;

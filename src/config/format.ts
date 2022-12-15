@@ -101,12 +101,15 @@ export function isJatsOutput(format?: string | FormatPandoc) {
   if (typeof (format) !== "string") {
     format = format?.to || "html";
   }
+
   return [
     "jats",
     "jats_archiving",
     "jats_articleauthoring",
-    "jats_publishing"
-  ].includes(format);
+    "jats_publishing",
+  ].find((formatStr) => {
+    return (format as string).startsWith(formatStr);
+  });
 }
 
 export function isPresentationOutput(format: FormatPandoc) {

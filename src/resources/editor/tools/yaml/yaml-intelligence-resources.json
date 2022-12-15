@@ -1315,6 +1315,11 @@
             "string": {
               "description": "Value for rel attribute. Multiple space-separated values are permitted.\nSee <https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel>\nfor a details.\n"
             }
+          },
+          "target": {
+            "string": {
+              "description": "Value for target attribute.\nSee <https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target>\nfor details.\n"
+            }
           }
         }
       }
@@ -3833,6 +3838,110 @@
       }
     },
     {
+      "id": "citation-item",
+      "object": {
+        "super": {
+          "resolveRef": "csl-item"
+        },
+        "closed": true,
+        "properties": {
+          "article-id": {
+            "maybeArrayOf": {
+              "anyOf": [
+                "string",
+                {
+                  "object": {
+                    "properties": {
+                      "type": {
+                        "string": {
+                          "description": "The type of identifier"
+                        }
+                      },
+                      "value": {
+                        "string": {
+                          "description": "The value for the identifier"
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            "description": "The unique identifier for this article."
+          },
+          "elocation-id": {
+            "string": {
+              "description": "Bibliographic identifier for a document that does not have traditional printed page numbers."
+            }
+          },
+          "eissn": {
+            "string": {
+              "description": "Electronic International Standard Serial Number."
+            }
+          },
+          "pissn": {
+            "string": {
+              "description": "Print International Standard Serial Number."
+            }
+          },
+          "art-access-id": {
+            "string": {
+              "description": "Generic article accession identifier."
+            }
+          },
+          "publisher-location": {
+            "string": {
+              "description": "The location of the publisher of this item."
+            }
+          },
+          "subject": {
+            "string": {
+              "description": "The name of a subject or topic describing the article."
+            }
+          },
+          "categories": {
+            "maybeArrayOf": {
+              "string": {
+                "description": "A list of subjects or topics describing the article."
+              }
+            }
+          },
+          "container-id": {
+            "maybeArrayOf": {
+              "anyOf": [
+                "string",
+                {
+                  "object": {
+                    "properties": {
+                      "type": {
+                        "string": {
+                          "description": "The type of identifier (e.g. `nlm-ta` or `pmc`)."
+                        }
+                      },
+                      "value": {
+                        "string": {
+                          "description": "The value for the identifier"
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            "description": {
+              "short": "External identifier of a publication or journal.",
+              "long": "External identifier, typically assigned to a journal by \na publisher, archive, or library to provide a unique identifier for \nthe journal or publication.\n"
+            }
+          },
+          "jats-type": {
+            "string": {
+              "description": "The type used for the JATS `article` tag."
+            }
+          }
+        }
+      }
+    },
+    {
       "id": "smart-include",
       "anyOf": [
         {
@@ -4173,7 +4282,7 @@
       "schema": {
         "anyOf": [
           {
-            "ref": "csl-item"
+            "ref": "citation-item"
           },
           "boolean"
         ]
@@ -7012,11 +7121,83 @@
       "description": "The document category."
     },
     {
-      "name": "license",
-      "schema": "string",
+      "name": "copyright",
+      "schema": {
+        "anyOf": [
+          {
+            "object": {
+              "properties": {
+                "year": {
+                  "maybeArrayOf": {
+                    "anyOf": [
+                      "string",
+                      "number"
+                    ]
+                  },
+                  "description": "The year for this copyright"
+                },
+                "holder": {
+                  "maybeArrayOf": {
+                    "string": {
+                      "description": "The holder of the copyright."
+                    }
+                  }
+                },
+                "statement": {
+                  "maybeArrayOf": {
+                    "string": {
+                      "description": "The text to display for the license."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "string"
+        ]
+      },
       "tags": {
         "formats": [
-          "$html-doc"
+          "$html-doc",
+          "$jats-all"
+        ]
+      },
+      "description": "The copyright for this document, if any."
+    },
+    {
+      "name": "license",
+      "schema": {
+        "maybeArrayOf": {
+          "anyOf": [
+            {
+              "object": {
+                "properties": {
+                  "type": {
+                    "string": {
+                      "description": "The type of the license."
+                    }
+                  },
+                  "url": {
+                    "string": {
+                      "description": "A URL to the license."
+                    }
+                  },
+                  "text": {
+                    "string": {
+                      "description": "The text to display for the license."
+                    }
+                  }
+                }
+              }
+            },
+            "string"
+          ]
+        }
+      },
+      "tags": {
+        "formats": [
+          "$html-doc",
+          "$jats-all"
         ]
       },
       "description": {
@@ -10586,7 +10767,8 @@
     },
     "Text to display for item (defaults to the document title if not\nprovided)",
     "Alias for href",
-    "Value for rel attribute. Multiple space-separated values are\npermitted. See <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel\" class=\"uri\">https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel</a>\nfor a details.",
+    "Value for rel attribute. Multiple space-separated values are\npermitted. See <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel\" class=\"uri\">https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel</a>\nfor details.",
+    "Value for target attribute. See <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target\" class=\"uri\">https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target</a>\nfor details.",
     "The Github repo that will be used to store comments.",
     "The label that will be assigned to issues created by Utterances.",
     {
@@ -11293,6 +11475,182 @@
       "long": "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
     },
     "Disambiguating year suffix in author-date styles (e.g.&nbsp;“a” in “Doe,\n1999a”).",
+    "Abstract of the item (e.g.&nbsp;the abstract of a journal article)",
+    "A url to the abstract for this item.",
+    "Date the item has been accessed.",
+    {
+      "short": "Short markup, decoration, or annotation to the item (e.g., to\nindicate items included in a review).",
+      "long": "Short markup, decoration, or annotation to the item (e.g., to\nindicate items included in a review);\nFor descriptive text (e.g., in an annotated bibliography), use\n<code>note</code> instead"
+    },
+    "Archive storing the item",
+    "Collection the item is part of within an archive.",
+    "Storage location within an archive (e.g.&nbsp;a box and folder\nnumber).",
+    "Geographic location of the archive.",
+    "The author(s) of the item.",
+    "Issuing or judicial authority (e.g.&nbsp;“USPTO” for a patent, “Fairfax\nCircuit Court” for a legal case).",
+    {
+      "short": "Date the item was initially available",
+      "long": "Date the item was initially available (e.g.&nbsp;the online publication\ndate of a journal article before its formal publication date; the date a\ntreaty was made available for signing)."
+    },
+    "Call number (to locate the item in a library).",
+    "The person leading the session containing a presentation (e.g.&nbsp;the\norganizer of the <code>container-title</code> of a\n<code>speech</code>).",
+    "Chapter number (e.g.&nbsp;chapter number in a book; track number on an\nalbum).",
+    {
+      "short": "Identifier of the item in the input data file (analogous to BiTeX\nentrykey).",
+      "long": "Identifier of the item in the input data file (analogous to BiTeX\nentrykey);\nUse this variable to facilitate conversion between word-processor and\nplain-text writing systems; For an identifer intended as formatted\noutput label for a citation (e.g.&nbsp;“Ferr78”), use\n<code>citation-label</code> instead"
+    },
+    {
+      "short": "Label identifying the item in in-text citations of label styles\n(e.g.&nbsp;“Ferr78”).",
+      "long": "Label identifying the item in in-text citations of label styles\n(e.g.&nbsp;“Ferr78”);\nMay be assigned by the CSL processor based on item metadata; For the\nidentifier of the item in the input data file, use\n<code>citation-key</code> instead"
+    },
+    "Index (starting at 1) of the cited reference in the bibliography\n(generated by the CSL processor).",
+    "Editor of the collection holding the item (e.g.&nbsp;the series editor for\na book).",
+    "Number identifying the collection holding the item (e.g.&nbsp;the series\nnumber for a book)",
+    "Title of the collection holding the item (e.g.&nbsp;the series title for a\nbook; the lecture series title for a presentation).",
+    "Person compiling or selecting material for an item from the works of\nvarious persons or bodies (e.g.&nbsp;for an anthology).",
+    "Composer (e.g.&nbsp;of a musical score).",
+    "Author of the container holding the item (e.g.&nbsp;the book author for a\nbook chapter).",
+    {
+      "short": "Title of the container holding the item.",
+      "long": "Title of the container holding the item (e.g.&nbsp;the book title for a\nbook chapter, the journal title for a journal article; the album title\nfor a recording; the session title for multi-part presentation at a\nconference)"
+    },
+    "Short/abbreviated form of container-title;",
+    "A minor contributor to the item; typically cited using “with” before\nthe name when listed in a bibliography.",
+    "Curator of an exhibit or collection (e.g.&nbsp;in a museum).",
+    "Physical (e.g.&nbsp;size) or temporal (e.g.&nbsp;running time) dimensions of\nthe item.",
+    "Director (e.g.&nbsp;of a film).",
+    "Minor subdivision of a court with a <code>jurisdiction</code> for a\nlegal item",
+    "Digital Object Identifier (e.g.&nbsp;“10.1128/AEM.02591-07”)",
+    "(Container) edition holding the item (e.g.&nbsp;“3” when citing a chapter\nin the third edition of a book).",
+    "The editor of the item.",
+    "Managing editor (“Directeur de la Publication” in French).",
+    {
+      "short": "Combined editor and translator of a work.",
+      "long": "Combined editor and translator of a work.\nThe citation processory must be automatically generate if editor and\ntranslator variables are identical; May also be provided directly in\nitem data."
+    },
+    "Date the event related to an item took place.",
+    "Name of the event related to the item (e.g.&nbsp;the conference name when\nciting a conference paper; the meeting where presentation was made).",
+    "Geographic location of the event related to the item\n(e.g.&nbsp;“Amsterdam, The Netherlands”).",
+    "Executive producer of the item (e.g.&nbsp;of a television series).",
+    {
+      "short": "Number of a preceding note containing the first reference to the\nitem.",
+      "long": "Number of a preceding note containing the first reference to the\nitem\nAssigned by the CSL processor; Empty in non-note-based styles or when\nthe item hasn’t been cited in any preceding notes in a document"
+    },
+    "A url to the full text for this item.",
+    {
+      "short": "Type, class, or subtype of the item",
+      "long": "Type, class, or subtype of the item (e.g.&nbsp;“Doctoral dissertation” for\na PhD thesis; “NIH Publication” for an NIH technical report);\nDo not use for topical descriptions or categories (e.g.&nbsp;“adventure”\nfor an adventure movie)"
+    },
+    "Guest (e.g.&nbsp;on a TV show or podcast).",
+    "Host of the item (e.g.&nbsp;of a TV show or podcast).",
+    "Illustrator (e.g.&nbsp;of a children’s book or graphic novel).",
+    "Interviewer (e.g.&nbsp;of an interview).",
+    "International Standard Book Number (e.g.&nbsp;“978-3-8474-1017-1”).",
+    "International Standard Serial Number.",
+    {
+      "short": "Issue number of the item or container holding the item",
+      "long": "Issue number of the item or container holding the item (e.g.&nbsp;“5” when\nciting a journal article from journal volume 2, issue 5);\nUse <code>volume-title</code> for the title of the issue, if any."
+    },
+    "Date the item was issued/published.",
+    "Geographic scope of relevance (e.g.&nbsp;“US” for a US patent; the court\nhearing a legal case).",
+    "Keyword(s) or tag(s) attached to the item.",
+    {
+      "short": "The language of the item.",
+      "long": "The language of the item;\nShould be entered as an ISO 639-1 two-letter language code\n(e.g.&nbsp;“en”, “zh”), optionally with a two-letter locale code\n(e.g.&nbsp;“de-DE”, “de-AT”)"
+    },
+    {
+      "short": "The license information applicable to an item.",
+      "long": "The license information applicable to an item (e.g.&nbsp;the license an\narticle or software is released under; the copyright information for an\nitem; the classification status of a document)"
+    },
+    {
+      "short": "A cite-specific pinpointer within the item.",
+      "long": "A cite-specific pinpointer within the item (e.g.&nbsp;a page number within\na book, or a volume in a multi-volume work).\nMust be accompanied in the input data by a label indicating the\nlocator type (see the Locators term list)."
+    },
+    "Description of the item’s format or medium (e.g.&nbsp;“CD”, “DVD”,\n“Album”, etc.)",
+    "Narrator (e.g.&nbsp;of an audio book).",
+    "Descriptive text or notes about an item (e.g.&nbsp;in an annotated\nbibliography).",
+    "Number identifying the item (e.g.&nbsp;a report number).",
+    "Total number of pages of the cited item.",
+    "Total number of volumes, used when citing multi-volume books and\nsuch.",
+    "Organizer of an event (e.g.&nbsp;organizer of a workshop or\nconference).",
+    {
+      "short": "The original creator of a work.",
+      "long": "The original creator of a work (e.g.&nbsp;the form of the author name\nlisted on the original version of a book; the historical author of a\nwork; the original songwriter or performer for a musical piece; the\noriginal developer or programmer for a piece of software; the original\nauthor of an adapted work such as a book adapted into a screenplay)"
+    },
+    "Issue date of the original version.",
+    "Original publisher, for items that have been republished by a\ndifferent publisher.",
+    "Geographic location of the original publisher (e.g.&nbsp;“London,\nUK”).",
+    "Title of the original version (e.g.&nbsp;“Война и мир”, the untranslated\nRussian title of “War and Peace”).",
+    "Range of pages the item (e.g.&nbsp;a journal article) covers in a\ncontainer (e.g.&nbsp;a journal issue).",
+    "First page of the range of pages the item (e.g.&nbsp;a journal article)\ncovers in a container (e.g.&nbsp;a journal issue).",
+    "Last page of the range of pages the item (e.g.&nbsp;a journal article)\ncovers in a container (e.g.&nbsp;a journal issue).",
+    {
+      "short": "Number of the specific part of the item being cited (e.g.&nbsp;part 2 of a\njournal article).",
+      "long": "Number of the specific part of the item being cited (e.g.&nbsp;part 2 of a\njournal article).\nUse <code>part-title</code> for the title of the part, if any."
+    },
+    "Title of the specific part of an item being cited.",
+    "A url to the pdf for this item.",
+    "Performer of an item (e.g.&nbsp;an actor appearing in a film; a muscian\nperforming a piece of music).",
+    "PubMed Central reference number.",
+    "PubMed reference number.",
+    "Printing number of the item or container holding the item.",
+    "Producer (e.g.&nbsp;of a television or radio broadcast).",
+    "A public url for this item.",
+    "The publisher of the item.",
+    "The geographic location of the publisher.",
+    "Recipient (e.g.&nbsp;of a letter).",
+    {
+      "short": "Resources related to the procedural history of a legal case or\nlegislation.",
+      "long": "Resources related to the procedural history of a legal case or\nlegislation;\nCan also be used to refer to the procedural history of other items\n(e.g.&nbsp; “Conference canceled” for a presentation accepted as a conference\nthat was subsequently canceled; details of a retraction or correction\nnotice)"
+    },
+    "Author of the item reviewed by the current item.",
+    "Type of the item being reviewed by the current item (e.g.&nbsp;book,\nfilm).",
+    "Title of the item reviewed by the current item.",
+    "Scale of e.g.&nbsp;a map or model.",
+    "Writer of a script or screenplay (e.g.&nbsp;of a film).",
+    "Section of the item or container holding the item (e.g.&nbsp;“§2.0.1” for\na law; “politics” for a newspaper article).",
+    "Creator of a series (e.g.&nbsp;of a television series).",
+    "Source from whence the item originates (e.g.&nbsp;a library catalog or\ndatabase).",
+    "Publication status of the item (e.g.&nbsp;“forthcoming”; “in press”;\n“advance online publication”; “retracted”)",
+    "Date the item (e.g.&nbsp;a manuscript) was submitted for publication.",
+    "Supplement number of the item or container holding the item (e.g.&nbsp;for\nsecondary legal items that are regularly updated between editions).",
+    "The primary title of the item.",
+    "Short/abbreviated form of<code>title</code>.",
+    "Translator",
+    "The <a href=\"https://docs.citationstyles.org/en/stable/specification.html#appendix-iii-types\">type</a>\nof the item.",
+    "Uniform Resource Locator\n(e.g.&nbsp;“https://aem.asm.org/cgi/content/full/74/9/2766”)",
+    "Version of the item (e.g.&nbsp;“2.0.9” for a software program).",
+    {
+      "short": "Volume number of the item (e.g.&nbsp;“2” when citing volume 2 of a book)\nor the container holding the item.",
+      "long": "Volume number of the item (e.g.&nbsp;“2” when citing volume 2 of a book)\nor the container holding the item (e.g.&nbsp;“2” when citing a chapter from\nvolume 2 of a book).\nUse <code>volume-title</code> for the title of the volume, if\nany."
+    },
+    {
+      "short": "Title of the volume of the item or container holding the item.",
+      "long": "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
+    },
+    "Disambiguating year suffix in author-date styles (e.g.&nbsp;“a” in “Doe,\n1999a”).",
+    "The unique identifier for this article.",
+    "The type of identifier",
+    "The value for the identifier",
+    "The type of identifier",
+    "The value for the identifier",
+    "Bibliographic identifier for a document that does not have\ntraditional printed page numbers.",
+    "Electronic International Standard Serial Number.",
+    "Print International Standard Serial Number.",
+    "Generic article accession identifier.",
+    "The location of the publisher of this item.",
+    "The name of a subject or topic describing the article.",
+    "A list of subjects or topics describing the article.",
+    "A list of subjects or topics describing the article.",
+    {
+      "short": "External identifier of a publication or journal.",
+      "long": "External identifier, typically assigned to a journal by a publisher,\narchive, or library to provide a unique identifier for the journal or\npublication."
+    },
+    "The type of identifier (e.g.&nbsp;<code>nlm-ta</code> or\n<code>pmc</code>).",
+    "The value for the identifier",
+    "The type of identifier (e.g.&nbsp;<code>nlm-ta</code> or\n<code>pmc</code>).",
+    "The value for the identifier",
+    "The type used for the JATS <code>article</code> tag.",
     "Textual content to add to includes",
     "Name of file with content to add to includes",
     "Version number according to Semantic Versioning",
@@ -11989,10 +12347,23 @@
     "The document subject",
     "The document description. Some applications show this as\n<code>Comments</code> metadata.",
     "The document category.",
+    "The copyright for this document, if any.",
+    "The year for this copyright",
+    "The year for this copyright",
+    "The holder of the copyright.",
+    "The holder of the copyright.",
+    "The text to display for the license.",
+    "The text to display for the license.",
     {
       "short": "The License for this document, if any. (e.g.&nbsp;<code>CC BY</code>)",
       "long": "The license for this document, if any.\nCreative Commons licenses <code>CC BY</code>, <code>CC BY-SA</code>,\n<code>CC BY-ND</code>, <code>CC BY-NC</code> will automatically generate\na license link in the document appendix. Other license text will be\nplaced in the appendix verbatim."
     },
+    "The type of the license.",
+    "A URL to the license.",
+    "The text to display for the license.",
+    "The type of the license.",
+    "A URL to the license.",
+    "The text to display for the license.",
     "Sets the title metadata for the document",
     "Sets the title metadata for the document",
     "Specify STRING as a prefix at the beginning of the title that appears\nin the HTML header (but not in the title as it appears at the beginning\nof the body)",
@@ -12667,6 +13038,63 @@
     },
     "Disambiguating year suffix in author-date styles (e.g.&nbsp;“a” in “Doe,\n1999a”).",
     "internal-schema-hack",
+    "Information about the funding of the research reported in the article\n(for example, grants, contracts, sponsors) and any open access fees for\nthe article itself",
+    "Unique identifier assigned to an award, contract, or grant.",
+    "Displayable prose statement that describes the funding for the\nresearch on which a work was based.",
+    "Open access provisions that apply to a work or the funding\ninformation that provided the open access provisions.",
+    "Agency or organization that funded the research on which a work was\nbased.",
+    "The text describing the source of the funding.",
+    {
+      "short": "Abbreviation for country where source of grant is located.",
+      "long": "Abbreviation for country where source of grant is located. Whenever\npossible, ISO 3166-1 2-letter alphabetic codes should be used."
+    },
+    "The text describing the source of the funding.",
+    {
+      "short": "Abbreviation for country where source of grant is located.",
+      "long": "Abbreviation for country where source of grant is located. Whenever\npossible, ISO 3166-1 2-letter alphabetic codes should be used."
+    },
+    "Individual(s) or institution(s) to whom the award was given (for\nexample, the principal grant holder or the sponsored individual).",
+    "The id of an author or affiliation in the document metadata.",
+    "The name of an individual that was the recipient of the funding.",
+    "The institution that was the recipient of the funding.",
+    "The id of an author or affiliation in the document metadata.",
+    "The name of an individual that was the recipient of the funding.",
+    "The institution that was the recipient of the funding.",
+    "Individual(s) responsible for the intellectual content of the work\nreported in the document.",
+    "The id of an author or affiliation in the document metadata.",
+    "The name of an individual that was responsible for the intellectual\ncontent of the work reported in the document.",
+    "The institution that was responsible for the intellectual content of\nthe work reported in the document.",
+    "The id of an author or affiliation in the document metadata.",
+    "The name of an individual that was responsible for the intellectual\ncontent of the work reported in the document.",
+    "The institution that was responsible for the intellectual content of\nthe work reported in the document.",
+    "Unique identifier assigned to an award, contract, or grant.",
+    "Displayable prose statement that describes the funding for the\nresearch on which a work was based.",
+    "Open access provisions that apply to a work or the funding\ninformation that provided the open access provisions.",
+    "Agency or organization that funded the research on which a work was\nbased.",
+    "The text describing the source of the funding.",
+    {
+      "short": "Abbreviation for country where source of grant is located.",
+      "long": "Abbreviation for country where source of grant is located. Whenever\npossible, ISO 3166-1 2-letter alphabetic codes should be used."
+    },
+    "The text describing the source of the funding.",
+    {
+      "short": "Abbreviation for country where source of grant is located.",
+      "long": "Abbreviation for country where source of grant is located. Whenever\npossible, ISO 3166-1 2-letter alphabetic codes should be used."
+    },
+    "Individual(s) or institution(s) to whom the award was given (for\nexample, the principal grant holder or the sponsored individual).",
+    "The id of an author or affiliation in the document metadata.",
+    "The name of an individual that was the recipient of the funding.",
+    "The institution that was the recipient of the funding.",
+    "The id of an author or affiliation in the document metadata.",
+    "The name of an individual that was the recipient of the funding.",
+    "The institution that was the recipient of the funding.",
+    "Individual(s) responsible for the intellectual content of the work\nreported in the document.",
+    "The id of an author or affiliation in the document metadata.",
+    "The name of an individual that was responsible for the intellectual\ncontent of the work reported in the document.",
+    "The institution that was responsible for the intellectual content of\nthe work reported in the document.",
+    "The id of an author or affiliation in the document metadata.",
+    "The name of an individual that was responsible for the intellectual\ncontent of the work reported in the document.",
+    "The institution that was responsible for the intellectual content of\nthe work reported in the document.",
     "Project configuration.",
     "Project type (<code>default</code>, <code>website</code>, or\n<code>book</code>)",
     "Files to render (defaults to all files)",
@@ -13183,12 +13611,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 131670,
+    "_internalId": 144229,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 131662,
+        "_internalId": 144221,
         "type": "enum",
         "enum": [
           "png",
@@ -13204,7 +13632,7 @@
         "exhaustiveCompletions": true
       },
       "theme": {
-        "_internalId": 131669,
+        "_internalId": 144228,
         "type": "anyOf",
         "anyOf": [
           {
@@ -13234,5 +13662,160 @@
       ]
     },
     "$id": "handlers/mermaid"
-  }
+  },
+  "schema/document-funding.yml": [
+    {
+      "name": "funding",
+      "schema": {
+        "maybeArrayOf": {
+          "anyOf": [
+            "string",
+            {
+              "object": {
+                "closed": true,
+                "properties": {
+                  "id": {
+                    "string": {
+                      "description": "Unique identifier assigned to an award, contract, or grant."
+                    }
+                  },
+                  "statement": {
+                    "string": {
+                      "description": "Displayable prose statement that describes the funding for the research on which a work was based."
+                    }
+                  },
+                  "open-access": {
+                    "string": {
+                      "description": "Open access provisions that apply to a work or the funding information that provided the open access provisions."
+                    }
+                  },
+                  "source": {
+                    "maybeArrayOf": {
+                      "anyOf": [
+                        "string",
+                        {
+                          "object": {
+                            "closed": true,
+                            "properties": {
+                              "text": {
+                                "string": {
+                                  "description": "The text describing the source of the funding."
+                                }
+                              },
+                              "country": {
+                                "string": {
+                                  "description": {
+                                    "short": "Abbreviation for country where source of grant is located.",
+                                    "long": "Abbreviation for country where source of grant is located.\nWhenever possible, ISO 3166-1 2-letter alphabetic codes should be used.\n"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "description": "Agency or organization that funded the research on which a work was based."
+                  },
+                  "recipient": {
+                    "maybeArrayOf": {
+                      "anyOf": [
+                        "string",
+                        {
+                          "object": {
+                            "closed": true,
+                            "properties": {
+                              "ref": {
+                                "string": {
+                                  "description": "The id of an author or affiliation in the document metadata."
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "object": {
+                            "closed": true,
+                            "properties": {
+                              "name": {
+                                "string": {
+                                  "description": "The name of an individual that was the recipient of the funding."
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "object": {
+                            "closed": true,
+                            "properties": {
+                              "institution": {
+                                "anyOf": [
+                                  "string",
+                                  "object"
+                                ],
+                                "description": "The institution that was the recipient of the funding."
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "description": "Individual(s) or institution(s) to whom the award was given (for example, the principal grant holder or the sponsored individual)."
+                  },
+                  "investigator": {
+                    "maybeArrayOf": {
+                      "anyOf": [
+                        "string",
+                        {
+                          "object": {
+                            "closed": true,
+                            "properties": {
+                              "ref": {
+                                "string": {
+                                  "description": "The id of an author or affiliation in the document metadata."
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "object": {
+                            "closed": true,
+                            "properties": {
+                              "name": {
+                                "string": {
+                                  "description": "The name of an individual that was responsible for the intellectual content of the work reported in the document."
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "object": {
+                            "closed": true,
+                            "properties": {
+                              "institution": {
+                                "anyOf": [
+                                  "string",
+                                  "object"
+                                ],
+                                "description": "The institution that was responsible for the intellectual content of the work reported in the document."
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "description": "Individual(s) responsible for the intellectual content of the work reported in the document."
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "description": "Information about the funding of the research reported in the article \n(for example, grants, contracts, sponsors) and any open access fees for the article itself\n"
+    }
+  ]
 }

@@ -23,10 +23,47 @@
     formats: [$office-all]
   description: "The document category."
 
-- name: license
-  schema: string
+- name: copyright
+  schema:
+    anyOf:
+      - object:
+          properties:
+            year:
+              maybeArrayOf:
+                anyOf:
+                  - string
+                  - number
+              description: The year for this copyright
+            holder:
+              maybeArrayOf:
+                string:
+                  description: The holder of the copyright.
+            statement:
+              maybeArrayOf:
+                string:
+                  description: The text to display for the license.
+      - string
   tags:
-    formats: [$html-doc]
+    formats: [$html-doc, $jats-all]
+  description: The copyright for this document, if any.
+- name: license
+  schema:
+    maybeArrayOf:
+      anyOf:
+        - object:
+            properties:
+              type:
+                string:
+                  description: The type of the license.
+              url:
+                string:
+                  description: A URL to the license.
+              text:
+                string:
+                  description: The text to display for the license.
+        - string
+  tags:
+    formats: [$html-doc, $jats-all]
   description:
     short: The License for this document, if any. (e.g. `CC BY`)
     long: |

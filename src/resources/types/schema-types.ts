@@ -77,6 +77,9 @@ See <https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel>
 for a details. */;
   text?: string /* Text to display for item (defaults to the
 document title if not provided) */;
+  target?: string /* Value for target attribute.
+See <https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target>
+for details. */;
   url?: string; /* Alias for href */
 };
 
@@ -1060,6 +1063,35 @@ canceled; details of a retraction or correction notice) */;
   version?: CslNumber;
   volume?: CslNumber;
 };
+
+export type CitationItem = {
+  "article-id"?: MaybeArrayOf<
+    (string | {
+      type?: string /* The type of identifier */;
+      value?: string; /* The value for the identifier */
+    })
+  > /* The unique identifier for this article. */;
+  "elocation-id"?:
+    string /* Bibliographic identifier for a document that does not have traditional printed page numbers. */;
+  "art-access-id"?: string /* Generic article accession identifier. */;
+  "publisher-location"?:
+    string /* The location of the publisher of this item. */;
+  "container-id"?: MaybeArrayOf<
+    (string | {
+      type?: string /* The type of identifier (e.g. `nlm-ta` or `pmc`). */;
+      value?: string; /* The value for the identifier */
+    })
+  > /* External identifier, typically assigned to a journal by
+a publisher, archive, or library to provide a unique identifier for
+the journal or publication. */;
+  "jats-type"?: string /* The type used for the JATS `article` tag. */;
+  categories?: MaybeArrayOf<
+    string /* A list of subjects or topics describing the article. */
+  >;
+  eissn?: string /* Electronic International Standard Serial Number. */;
+  pissn?: string /* Print International Standard Serial Number. */;
+  subject?: string; /* The name of a subject or topic describing the article. */
+} & CslItem;
 
 export type SmartInclude = {
   text: string; /* Textual content to add to includes */

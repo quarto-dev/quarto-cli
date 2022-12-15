@@ -132,7 +132,13 @@
             Value for rel attribute. Multiple space-separated values are permitted.
             See <https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel>
             for a details.
-
+      target:
+        string:
+          description: |
+            Value for target attribute.
+            See <https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target>
+            for details.
+     
 - id: comments
   anyOf:
     - enum: [false]
@@ -1981,6 +1987,69 @@
       year-suffix:
         string:
           description: Disambiguating year suffix in author-date styles (e.g. "a" in "Doe, 1999a").
+
+- id: citation-item
+  object:
+    super:
+      resolveRef: csl-item
+    closed: true
+    properties:
+      article-id:
+        maybeArrayOf:
+          anyOf:
+            - string
+            - object:
+                properties:
+                  type:
+                    string:
+                      description: The type of identifier
+                  value:
+                    string:
+                      description: The value for the identifier
+        description: The unique identifier for this article.
+      elocation-id:
+        string:
+          description: Bibliographic identifier for a document that does not have traditional printed page numbers.
+      eissn:
+        string:
+          description: Electronic International Standard Serial Number.
+      pissn:
+        string:
+          description: Print International Standard Serial Number.
+      art-access-id:
+        string:
+          description: Generic article accession identifier.
+      publisher-location:
+        string:
+          description: The location of the publisher of this item.
+      subject:
+        string:
+          description: The name of a subject or topic describing the article.
+      categories:
+        maybeArrayOf:
+          string:
+            description: A list of subjects or topics describing the article.
+      container-id:
+        maybeArrayOf:
+          anyOf:
+            - string
+            - object:
+                properties:
+                  type:
+                    string:
+                      description: The type of identifier (e.g. `nlm-ta` or `pmc`).
+                  value:
+                    string:
+                      description: The value for the identifier
+        description:
+          short: External identifier of a publication or journal.
+          long: |
+            External identifier, typically assigned to a journal by 
+            a publisher, archive, or library to provide a unique identifier for 
+            the journal or publication.
+      jats-type:
+        string:
+          description: The type used for the JATS `article` tag.
 
 - id: smart-include
   anyOf:

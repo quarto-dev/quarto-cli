@@ -172,6 +172,13 @@ async function publishAction(
     publishTarget?: PublishRecord,
     account?: AccountToken,
   ) => {
+    // enforce requiresRender
+    if (publishProvider.requiresRender && publishOptions.render === false) {
+      throw new Error(
+        `${publishProvider.description} requires rendering before publish.`,
+      );
+    }
+
     // resolve account
     account = (account && !publishOptions.prompt)
       ? account

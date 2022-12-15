@@ -875,7 +875,7 @@ async function jatsPreviewXml(file: string, _request: Request) {
 
   // Attach the stylesheet
   let xmlContents = fileContents.replace(
-    '<?xml version="1.0" encoding="utf-8" ?>',
+    /<\?xml version="1.0" encoding="utf-8"\s*\?>/,
     '<?xml version="1.0" encoding="utf-8" ?>\n<?xml-stylesheet href="quarto-jats-html.xsl" type="text/xsl" ?>',
   );
 

@@ -15,5 +15,11 @@ import { GitHubRelease } from "./types.ts";
 export async function getLatestRelease(repo: string): Promise<GitHubRelease> {
   const url = `https://api.github.com/repos/${repo}/releases/latest`;
   const response = await fetch(url);
-  return response.json();
+  if (response.status !== 200) {
+    throw new Error(
+      `Unable to determine latest release for ${repo}\n${response.status} - ${response.statusText}`,
+    );
+  } else {
+    return response.json();
+  }
 }

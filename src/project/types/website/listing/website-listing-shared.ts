@@ -87,6 +87,7 @@ export const kFieldTitle = "title";
 export const kFieldSubtitle = "subtitle";
 export const kFieldAuthor = "author";
 export const kFieldFileName = "filename";
+export const kFieldDateModified = "date-modified";
 export const kFieldFileModified = "file-modified";
 export const kFieldDate = "date";
 export const kFieldImage = "image";

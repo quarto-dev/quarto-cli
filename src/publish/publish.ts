@@ -18,7 +18,12 @@ import {
   relative,
 } from "path/mod.ts";
 
-import { AccountToken, PublishFiles, PublishProvider } from "./provider.ts";
+import {
+  AccountToken,
+  PublishFiles,
+  PublishProvider,
+  InputMetadata,
+} from "./provider.ts";
 
 import { PublishOptions } from "./types.ts";
 
@@ -38,6 +43,7 @@ import { websiteTitle } from "../project/types/website/website-config.ts";
 import { gfmAutoIdentifier } from "../core/pandoc/pandoc-id.ts";
 import { RenderResultFile } from "../command/render/types.ts";
 import { isHtmlContent, isPdfContent } from "../core/mime.ts";
+import { RenderFlags } from "../command/render/types.ts";
 
 export const kSiteContent = "site";
 export const kDocumentContent = "document";
@@ -47,21 +53,37 @@ export async function publishSite(
   provider: PublishProvider,
   account: AccountToken,
   options: PublishOptions,
-  target?: PublishRecord,
+  target?: PublishRecord
 ) {
   // create render function
-  const renderForPublish = async (siteUrl?: string): Promise<PublishFiles> => {
+  const renderForPublish = async (
+    flags?: RenderFlags
+  ): Promise<PublishFiles> => {
+    let metadataByInput: Record<string, InputMetadata> = {};
+
     if (options.render) {
       renderProgress("Rendering for publish:\n");
       const services = renderServices();
       try {
         const result = await render(project.dir, {
           services,
-          flags: {
-            siteUrl,
-          },
+          flags,
           setProjectDir: true,
         });
+
+        metadataByInput = result.files.reduce(
+          (accumulatedResult: any, currentInput) => {
+            const key: string = currentInput.input as string;
+            accumulatedResult[key] = {
+              title: currentInput.format.metadata.title,
+              author: currentInput.format.metadata.author,
+              date: currentInput.format.metadata.date,
+            };
+            return accumulatedResult;
+          },
+          {}
+        );
+
         if (result.error) {
           throw result.error;
         }
@@ -81,6 +103,7 @@ export async function publishSite(
       baseDir: outputDir,
       rootFile: "index.html",
       files,
+      metadataByInput,
     });
   };
 
@@ -95,7 +118,7 @@ export async function publishSite(
     siteSlug,
     renderForPublish,
     options,
-    target,
+    target
   );
   if (publishRecord) {
     // write publish record if the id wasn't explicitly provided
@@ -104,7 +127,7 @@ export async function publishSite(
         project,
         provider.name,
         account,
-        publishRecord,
+        publishRecord
       );
     }
   }
@@ -118,7 +141,7 @@ export async function publishDocument(
   provider: PublishProvider,
   account: AccountToken,
   options: PublishOptions,
-  target?: PublishRecord,
+  target?: PublishRecord
 ) {
   // establish title
   let title = basename(document, extname(document));
@@ -129,7 +152,9 @@ export async function publishDocument(
   }
 
   // create render function
-  const renderForPublish = async (): Promise<PublishFiles> => {
+  const renderForPublish = async (
+    flags?: RenderFlags
+  ): Promise<PublishFiles> => {
     const files: string[] = [];
     if (options.render) {
       renderProgress("Rendering for publish:\n");
@@ -137,6 +162,7 @@ export async function publishDocument(
       try {
         const result = await render(document, {
           services,
+          flags,
         });
         if (result.error) {
           throw result.error;
@@ -175,9 +201,9 @@ export async function publishDocument(
           files.push(file);
           if (resultFile.supporting) {
             files.push(
-              ...resultFile.supporting.map((sf) => Deno.realPathSync(sf)).map(
-                asRelative,
-              ),
+              ...resultFile.supporting
+                .map((sf) => Deno.realPathSync(sf))
+                .map(asRelative)
             );
           }
           files.push(...resultFile.resourceFiles.map(asRelative));
@@ -223,7 +249,7 @@ export async function publishDocument(
         });
       } else {
         throw new Error(
-          `The specifed document (${document}) is not a valid quarto input file`,
+          `The specifed document (${document}) is not a valid quarto input file`
         );
       }
     }
@@ -238,17 +264,12 @@ export async function publishDocument(
     gfmAutoIdentifier(title, false),
     renderForPublish,
     options,
-    target,
+    target
   );
   if (publishRecord) {
     // write publish record if the id wasn't explicitly provided
     if (options.id === undefined) {
-      writePublishDeployment(
-        document,
-        provider.name,
-        account,
-        publishRecord,
-      );
+      writePublishDeployment(document, provider.name, account, publishRecord);
     }
   }
 

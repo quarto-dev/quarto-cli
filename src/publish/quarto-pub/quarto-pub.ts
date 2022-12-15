@@ -19,11 +19,12 @@ import {
   writeAccessTokens,
 } from "../common/account.ts";
 import { handlePublish, PublishHandler } from "../common/publish.ts";
-import { PublishOptions, PublishRecord } from "../types.ts";
+import { ApiError, PublishOptions, PublishRecord } from "../types.ts";
 
-import { ApiError, QuartoPubClient } from "./api/index.ts";
+import { QuartoPubClient } from "./api/index.ts";
 import { authorizePrompt } from "../account.ts";
 import { quartoConfig } from "../../core/quarto.ts";
+import { RenderFlags } from "../../command/render/types.ts";
 
 export const kQuartoPub = "quarto-pub";
 export const kQuartoPubAuthTokenVar = "QUARTO_PUB_AUTH_TOKEN";
@@ -145,7 +146,7 @@ function publish(
   _input: string,
   title: string,
   slug: string,
-  render: (siteUrl?: string) => Promise<PublishFiles>,
+  render: (flags?: RenderFlags) => Promise<PublishFiles>,
   _options: PublishOptions,
   target?: PublishRecord,
 ): Promise<[PublishRecord, URL | undefined]> {

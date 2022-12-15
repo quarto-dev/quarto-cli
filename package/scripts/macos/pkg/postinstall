@@ -7,6 +7,7 @@ echo "$2/bin" > /etc/paths.d/quarto
 
 ## Add symlink
 ln -fs $2/bin/quarto /usr/local/bin/quarto
+ln -fs $2/share/man/quarto.man /usr/local/man/quarto.1
 
 else
 
@@ -23,6 +24,7 @@ grep -qxF "$EXPORTLINE" "${HOME}/.zshrc" || echo "$EXPORTLINE" >> "${HOME}/.zshr
 
 # try creating symlink, its ok if this doesn't work
 ln -fs $2/bin/quarto /usr/local/bin/quarto
+ln -fs $2/share/man/quarto.man /usr/local/man/quarto.1
 
 fi
 

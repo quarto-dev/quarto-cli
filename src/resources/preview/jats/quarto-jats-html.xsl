@@ -160,7 +160,7 @@ or pipeline) parameterized.
               mml:mo mml:ms mml:mtext"/>
 
   
-  <xsl:param name="transform" select="'jats-html.xsl'"/>
+  <xsl:param name="transform" select="'quarto-jats-html.xsl'"/>
 
   <xsl:param name="css" select="'quarto-jats-preview.css'"/>
   
@@ -188,7 +188,6 @@ or pipeline) parameterized.
       <body>
         <xsl:apply-templates/>
       </body>
-      <!-- quarto-after-body -->
     </html>
   </xsl:template>
 
@@ -292,6 +291,86 @@ or pipeline) parameterized.
   </xsl:template>
 
   <xsl:template match="front | front-stub">
+    
+      <!-- change context to front/article-meta (again) -->
+      <xsl:for-each select="article-meta | self::front-stub">
+        <div class="metadata centered">
+          <xsl:apply-templates mode="metadata" select="title-group"/>
+        </div>
+        <div class="metadata two-column table authors">
+          <div class="row">
+            <div class="cell">
+            <!-- contrib-group, aff, aff-alternatives, author-notes -->
+            <xsl:apply-templates mode="metadata" select="contrib-group"/>
+            <xsl:if test="aff | aff-alternatives">
+              <div class="metadata table cell metadata-group">
+                <xsl:apply-templates mode="metadata"
+                      select="author-notes"/>
+              </div>
+            </xsl:if>
+
+            </div>
+            <div class="cell">
+            <!-- back in article-meta or front-stub context -->
+            <xsl:if test="aff | aff-alternatives">
+              <div class="metadata two-column table">
+                <div class="row">
+                
+                <div class="cell">
+                  <div class="metadata-group">
+                    <xsl:apply-templates mode="metadata"
+                      select="aff | aff-alternatives"/>
+                  </div>
+                </div>
+                </div>
+              </div>
+            </xsl:if>
+            </div>
+          </div>
+        </div>
+
+        
+        <!-- abstract(s) -->
+        <xsl:if test="abstract | trans-abstract">
+          <!-- rule separates title+authors from abstract(s) -->
+          <hr class="section-rule"/>
+          
+          <xsl:for-each select="abstract | trans-abstract">
+            <!-- title in left column, content (paras, secs) in right -->
+            <div class="section-abstract">
+                <h4 class="abstract-title">
+                  <xsl:apply-templates select="title/node()"/>
+                  <xsl:if test="not(normalize-space(string(title)))">
+                    <span class="generated">
+                      <xsl:if test="self::trans-abstract">Translated </xsl:if>
+                      <xsl:text>Abstract</xsl:text>
+                    </span>
+                  </xsl:if>
+                </h4>
+                <xsl:apply-templates select="*[not(self::title)]"/>
+            </div>
+          </xsl:for-each>
+          <!-- end of abstract or trans-abstract -->
+        </xsl:if>
+        <!-- end of dealing with abstracts -->
+      </xsl:for-each>
+      <xsl:for-each select="notes">
+            <div class="metadata">
+              <xsl:apply-templates mode="metadata" select="."/>
+            </div>
+      </xsl:for-each>
+        <hr class="part-rule"/>
+    
+    <!-- end of big front-matter pull -->
+  </xsl:template>
+
+ 
+  <xsl:template name="footer-metadata">
+
+    <hr class="part-rule"/>
+
+    <xsl:for-each select="front | front-stub">
+
     <!-- First Table: journal and article metadata -->
     <div class="metadata two-column table">
       <div class="row">
@@ -435,104 +514,23 @@ or pipeline) parameterized.
                 <!-- includes (award-group*, funding-statement*,
                      open-access?) -->
               </xsl:apply-templates>
+
+              <xsl:apply-templates mode="metadata"
+                select="supplementary-material"/>
+
+              <xsl:apply-templates mode="metadata"
+                select="article-categories | kwd-group | counts"/>
+              
+              <xsl:apply-templates mode="metadata"
+                select="custom-meta-group | custom-meta-wrap"/>
+
             </div>
           </div>
         </xsl:for-each>
       </div>
     </div>
     
-    <hr class="part-rule"/>
-    
-      <!-- change context to front/article-meta (again) -->
-      <xsl:for-each select="article-meta | self::front-stub">
-        <div class="metadata centered">
-          <xsl:apply-templates mode="metadata" select="title-group"/>
-        </div>
-        <!-- contrib-group, aff, aff-alternatives, author-notes -->
-        <xsl:apply-templates mode="metadata" select="contrib-group"/>
-        <!-- back in article-meta or front-stub context -->
-        <xsl:if test="aff | aff-alternatives | author-notes">
-          <div class="metadata two-column table">
-            <div class="row">
-            <div class="cell empty"/>
-            <div class="cell">
-              <div class="metadata-group">
-                <xsl:apply-templates mode="metadata"
-                  select="aff | aff-alternatives | author-notes"/>
-              </div>
-            </div>
-            </div>
-          </div>
-        </xsl:if>
-        
-        <!-- abstract(s) -->
-        <xsl:if test="abstract | trans-abstract">
-          <!-- rule separates title+authors from abstract(s) -->
-          <hr class="section-rule"/>
-          
-          <xsl:for-each select="abstract | trans-abstract">
-            <!-- title in left column, content (paras, secs) in right -->
-            <div class="metadata two-column table">
-              <div class="row">
-              <div class="cell" style="text-align: right">
-                <h4 class="callout-title">
-                  <xsl:apply-templates select="title/node()"/>
-                  <xsl:if test="not(normalize-space(string(title)))">
-                    <span class="generated">
-                      <xsl:if test="self::trans-abstract">Translated </xsl:if>
-                      <xsl:text>Abstract</xsl:text>
-                    </span>
-                  </xsl:if>
-                </h4>
-              </div>
-              <div class="cell">
-                <xsl:apply-templates select="*[not(self::title)]"/>
-              </div>
-              </div>
-            </div>
-          </xsl:for-each>
-          <!-- end of abstract or trans-abstract -->
-        </xsl:if>
-        <!-- end of dealing with abstracts -->
-      </xsl:for-each>
-      <xsl:for-each select="notes">
-            <div class="metadata">
-              <xsl:apply-templates mode="metadata" select="."/>
-            </div>
-      </xsl:for-each>
-        <hr class="part-rule"/>
-    
-    <!-- end of big front-matter pull -->
-  </xsl:template>
 
- 
-  <xsl:template name="footer-metadata">
-    <!-- handles: article-categories, kwd-group, counts, 
-           supplementary-material, custom-meta-group
-         Plus also generates a sheet of processing warnings
-         -->
-    <xsl:for-each select="front/article-meta | front-stub">
-      <xsl:if test="article-categories | kwd-group | counts |
-                    supplementary-material | custom-meta-group |
-                    custom-meta-wrap">
-        <!-- custom-meta-wrap is from NLM 2.3 -->
-       <hr class="part-rule"/>
-        <div class="metadata">
-            <h4 class="generated">
-              <xsl:text>Article Information (continued)</xsl:text>
-            </h4>
-            <div class="metadata-group">
-              <xsl:apply-templates mode="metadata"
-                select="supplementary-material"/>
-
-              <xsl:apply-templates mode="metadata"
-                select="article-categories | kwd-group | counts"/>
-
-              <xsl:apply-templates mode="metadata"
-                select="custom-meta-group | custom-meta-wrap"/>
-            </div>
-      </div>
-      </xsl:if>
     </xsl:for-each>
 
     <xsl:variable name="process-warnings">
@@ -1457,33 +1455,34 @@ or pipeline) parameterized.
         (address | aff | author-comment | bio | email |
         ext-link | on-behalf-of | role | uri | xref)*) -->
       <!-- each contrib makes a row: name at left, details at right -->
+      <div class="metadata">
       <xsl:for-each select="contrib">
         <!--  content model of contrib:
           ((contrib-id)*,
-           (anonymous | collab | collab-alternatives | name | name-alternatives)*,
-           (degrees)*,
-           (address | aff | aff-alternatives | author-comment | bio | email |
+          (anonymous | collab | collab-alternatives | name | name-alternatives)*,
+          (degrees)*,
+          (address | aff | aff-alternatives | author-comment | bio | email |
             ext-link | on-behalf-of | role | uri | xref)*)       -->
-        <div class="metadata two-column table">
+
           <div class="row">
-          <div class="cell" style="text-align: right">
+          <div class="cell" style="text-align: left">
             <xsl:call-template name="contrib-identify">
               <!-- handles (contrib-id)*,
                 (anonymous | collab | collab-alternatives |
-                 name | name-alternatives | degrees | xref) -->
+                name | name-alternatives | degrees | xref) -->
             </xsl:call-template>
-          </div>
-          <div class="cell">
             <xsl:call-template name="contrib-info">
               <!-- handles
-                   (address | aff | author-comment | bio | email |
+                  (address | aff | author-comment | bio | email |
                     ext-link | on-behalf-of | role | uri) -->
             </xsl:call-template>
+
           </div>
           </div>
-        </div>
+        
       </xsl:for-each>
-      <!-- end of contrib -->
+      </div>
+    <!-- end of contrib -->
       <xsl:variable name="misc-contrib-data"
         select="*[not(self::contrib | self::xref)]"/>
       <xsl:if test="$misc-contrib-data">
@@ -1518,8 +1517,6 @@ or pipeline) parameterized.
               first member -->
               <xsl:call-template name="named-anchor"/>
               <!-- so do any contrib-ids -->
-              <xsl:apply-templates mode="metadata-inline"
-                select="../contrib-id"/>
             </xsl:if>
             <xsl:apply-templates select="." mode="metadata-inline"/>
             <xsl:if test="position() = last()">
@@ -1530,17 +1527,14 @@ or pipeline) parameterized.
               <xsl:apply-templates mode="metadata-inline"
                 select="following-sibling::xref"/>
             </xsl:if>
+            <br/>
+                          <xsl:apply-templates mode="metadata-inline"
+                select="../contrib-id"/>
+
             
           </xsl:with-param>
         </xsl:call-template>
       </xsl:for-each>
-      <xsl:if test="@equal-contrib='yes'">
-        <xsl:call-template name="metadata-entry">
-          <xsl:with-param name="contents">
-          <span class="generated">(Equal contributor)</span>
-          </xsl:with-param>
-        </xsl:call-template>
-      </xsl:if>
     </div>
   </xsl:template>
 
@@ -2393,6 +2387,14 @@ or pipeline) parameterized.
   <xsl:template match="preformat">
     <pre class="preformat">
       <xsl:apply-templates/>
+    </pre>
+  </xsl:template>
+
+  <xsl:template match="code">
+    <pre class="sourceCode">
+      <code class="sourceCode">
+        <xsl:apply-templates/>
+      </code>
     </pre>
   </xsl:template>
 
@@ -3904,17 +3906,9 @@ or pipeline) parameterized.
 <!-- ============================================================= -->
 
   <xsl:template name="footer-branding">
-    <hr class="part-rule"/>
     <div class="branding">
       <p>
-        <xsl:text>This display is generated from </xsl:text>
-        <xsl:text>NISO JATS XML with </xsl:text>
-        <b>
-          <xsl:value-of select="$transform"/>
-        </b>
-        <xsl:text>. The XSLT engine is </xsl:text>
-        <xsl:value-of select="system-property('xsl:vendor')"/>
-        <xsl:text>.</xsl:text>
+        <xsl:text>(Preview based upon NISO JATS XSLT)</xsl:text>
       </p>
     </div>
   </xsl:template>
