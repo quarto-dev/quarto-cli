@@ -7,6 +7,10 @@
 
 import { ensureTrailingSlash } from "./path.ts";
 
+export function isHttpUrl(url: string) {
+  return /^https?:/i.test(url);
+}
+
 export function joinUrl(baseUrl: string, path: string) {
   const baseHasSlash = baseUrl.endsWith("/");
   const pathHasSlash = path.startsWith("/");

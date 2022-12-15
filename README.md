@@ -35,6 +35,24 @@ cd quarto-cli
 git pull
 ```
 
+## Running Tests
+
+To run all unit tests, execute the script in the test directory.
+
+```bash
+cd tests
+./run-tests.sh
+```
+
+To run a specific unit test, specify the script name.
+
+```bash
+cd tests
+./run-tests.sh smoke/extensions/extension-render-doc.test.ts
+./run-tests.sh smoke/extensions/
+```
+
+
 ## License
 
 Quarto is open source software licensed under v2 of the GNU GPL (<https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html>).
