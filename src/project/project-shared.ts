@@ -107,7 +107,7 @@ export function toInputRelativePaths(
     if (Array.isArray(collection)) {
       for (let index = 0; index < collection.length; ++index) {
         const value = collection[index];
-        if (Array.isArray(value) || typeof value === "object") {
+        if (Array.isArray(value) || value instanceof Object) {
           inner(value as any);
         } else if (typeof value === "string") {
           if (value.length > 0 && !isAbsolute(value)) {
@@ -123,7 +123,7 @@ export function toInputRelativePaths(
           resourceIgnoreFields!.includes(index)
         ) {
           // don't fixup html-math-method
-        } else if (Array.isArray(value) || typeof value === "object") {
+        } else if (Array.isArray(value) || value instanceof Object) {
           inner(value as any, index);
         } else if (typeof value === "string") {
           if (value.length > 0 && !isAbsolute(value)) {

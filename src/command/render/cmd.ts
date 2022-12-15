@@ -125,6 +125,9 @@ export const renderCommand = new Command()
   .action(async (options: any, input?: string, ...args: string[]) => {
     // remove implicit clean argument (re-injected based on what the user
     // actually passes in flags.ts)
+    if (options === undefined) {
+      throw new Error("Internal error, expected `options` to be an object");
+    }
     delete options.clean;
 
     // if an option got defined then this was mis-parsed as an 'option'
