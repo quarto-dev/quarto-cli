@@ -715,13 +715,12 @@ function processCodeAnnotations(format: Format, doc: Document) {
         parentDL.classList.add(kCodeAnnotationHiddenClz);
       }
     }
-  } else if (annotationStyle === "hover") {
+  } else if (annotationStyle === "hover" || annotationStyle === "select") {
     const definitionLists = processCodeBlockAnnotation(doc, true, "start");
 
     Object.values(definitionLists).forEach((dl) => {
       dl.classList.add(kCodeAnnotationHiddenClz);
     });
-  } else if (annotationStyle === "select") {
   } else {
     const definitionLists = processCodeBlockAnnotation(
       doc,

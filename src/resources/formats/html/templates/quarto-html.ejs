@@ -329,7 +329,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 
   <% } %>
 
-  <% if (codeAnnotations && codeAnnotations === "hover") { %>
+  <% if (codeAnnotations && (codeAnnotations === "hover" || codeAnnotations === "select")) { %>
 
   const annoteTargets = window.document.querySelectorAll('.code-annotation-anchor');
   for (let i=0; i<annoteTargets.length; i++) {
@@ -362,14 +362,34 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       duration: [200, 0],
       offset: [5, 10],
       arrow: true,
+      <% if (codeAnnotations === "select") { %>trigger: 'click',<% } %>
       appendTo: function(el) {
         return el.parentElement.parentElement.parentElement;
       },
       interactive: true,
       interactiveBorder: 10,
       theme: '<%= tippyOptions.theme %>',
-      placement: 'right-end',
-      positionFixed: true
+      placement: 'right',
+      <% if (codeAnnotations === "select") { %>positionFixed: true,<% } %>
+      popperOptions: {
+        modifiers: [
+        {
+          name: 'flip',
+          options: {
+            flipVariations: false, // true by default
+            allowedAutoPlacements: ['right'],
+            fallbackPlacements: ['right', 'top', 'top-start', 'top-end'],
+          },
+        },
+        {
+          name: 'preventOverflow',
+          options: {
+            mainAxis: false,
+            altAxis: false
+          }
+        }
+        ]        
+      }      
     };
     window.tippy(annoteTarget, config); 
   }
