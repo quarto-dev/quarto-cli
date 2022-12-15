@@ -29,6 +29,7 @@ import {
   readTheme,
 } from "../../quarto-core/text-highlighting.ts";
 import { isHtmlOutput } from "../../config/format.ts";
+import { schemaType } from "../../core/lib/yaml-schema/types.ts";
 
 // The output target for a sass bundle
 // (controls the overall style tag that is emitted)
@@ -348,6 +349,23 @@ function generateThemeCssVars(
                   "inherit"
                 };`,
               );
+
+              // Add an alpha blended co color, if possible
+              if (abbr === "co") {
+                const value = textValues[textAttr];
+                if (typeof (value) === "string" && value.length === 7) {
+                  lines.push(
+                    `  --quarto-hl-${abbr}-light-color: ${
+                      textValues[textAttr] + "22"
+                    };`,
+                  );
+                  lines.push(
+                    `  --quarto-hl-${abbr}-light-light-color: ${
+                      textValues[textAttr] + "11"
+                    };`,
+                  );
+                }
+              }
               break;
           }
         });

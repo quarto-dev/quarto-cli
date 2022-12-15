@@ -331,19 +331,72 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 
   <% if (codeAnnotations && (codeAnnotations === "hover" || codeAnnotations === "select")) { %>
 
+
+  const selectorForAnnotation = (cell, annotation) => {
+    let cellAttr = 'data-code-cell="' + cell + '"';
+    let lineAttr = 'data-code-annotation="' +  annotation + '"';
+
+    const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+    return selector;
+  }
+
+  const selectCodeLines = (annoteEl) => {
+    const doc = window.document;
+    const targetCell = annoteEl.getAttribute("data-target-cell");
+    const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+
+    const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+    const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+
+    const lineIds = lines.map((line) => {
+      return targetCell + "-" + line;
+    })
+
+    let top = null;
+    let height = null;
+    let parent = null;
+    if (lineIds.length > 0) {
+        //compute the position of the single el (top and bottom and make a div)
+        const el = doc.getElementById(lineIds[0]);
+        top = el.offsetTop;
+        height = el.offsetHeight;
+        parent = el.parentElement.parentElement;
+
+      if (lineIds.length > 1) {
+        const lastEl = doc.getElementById(lineIds[lineIds.length - 1]);
+        const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+        height = bottom - top;
+      }
+
+      if (top !== null && height !== null && parent !== null) {
+        // cook up a div an position it
+        const div = doc.createElement("div");
+        div.setAttribute("id", "code-annotation-line-highlight");
+        div.style.position = 'absolute';
+        div.style.top = top - 1 + "px";
+        div.style.height = height + 1 + "px";
+//        div.style.width = "100%";
+        parent.appendChild(div);
+      }
+    }
+  };
+
+  const unselectCodeLines = () => {
+    const div = window.document.getElementById("code-annotation-line-highlight");
+    if (div) {
+      div.remove();
+    }
+  };
+
+
   const annoteTargets = window.document.querySelectorAll('.code-annotation-anchor');
   for (let i=0; i<annoteTargets.length; i++) {
     const annoteTarget = annoteTargets[i];
+
     const targetCell = annoteTarget.getAttribute("data-target-cell");
     const targetAnnotation = annoteTarget.getAttribute("data-target-annotation");
-
-
     const contentFn = () => {
-      let cellAttr = 'data-code-cell="' + targetCell + '"';
-      let lineAttr = 'data-code-annotation="' +  targetAnnotation + '"';
-
-      const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
-      const content = window.document.querySelector(selector);
+      const content = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
       if (content) {
         const tipContent = content.cloneNode(true);
         tipContent.classList.add("code-annotation-tip-content");
@@ -355,10 +408,12 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       allowHTML: true,
       content: contentFn,
       onShow: (instance) => {
+        <% if (codeAnnotations === "select") { %>selectCodeLines(instance.reference);<% } %>
         instance.reference.classList.add('code-annotation-active');
         window.tippy.hideAll();
       },
       onHide: (instance) => {
+        <% if (codeAnnotations === "select") { %>unselectCodeLines();<% } %>
         instance.reference.classList.remove('code-annotation-active');
       },
       maxWidth: 300,

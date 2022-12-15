@@ -808,11 +808,11 @@ function processCodeBlockAnnotation(
   for (const codeParentEl of codeBlockParents) {
     const gutterBgDivEl = doc.createElement("div");
     gutterBgDivEl.classList.add(kCodeAnnotationGutterBgClz);
-    codeParentEl.parentElement?.appendChild(gutterBgDivEl);
+    codeParentEl?.appendChild(gutterBgDivEl);
 
     const gutterDivEl = doc.createElement("div");
     gutterDivEl.classList.add(kCodeAnnotationGutterClz);
-    codeParentEl.parentElement?.appendChild(gutterDivEl);
+    codeParentEl?.appendChild(gutterDivEl);
   }
 
   return definitionLists;

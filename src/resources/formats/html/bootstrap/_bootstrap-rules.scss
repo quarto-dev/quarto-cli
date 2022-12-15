@@ -1756,6 +1756,7 @@ textarea {
   position: absolute;
   top: 0;
   right: 0;
+  border-left: solid var(--quarto-hl-co-light-color) 1px;
 }
 
 dl.code-annotation-container-grid {
@@ -1781,9 +1782,26 @@ dl.code-annotation-container-grid dt {
   text-decoration: none;
 }
 
+pre.code-annotation-code {
+  padding-top: 0;
+  padding-bottom: 0;
+  code {
+    z-index: 3;
+  }
+}
+
+#code-annotation-line-highlight {
+  background-color: var(--quarto-hl-co-light-light-color);
+  margin-left: -4em;
+  width: calc(100% + 4em);
+  border-top: solid var(--quarto-hl-co-light-color) 1px;
+  border-bottom: solid var(--quarto-hl-co-light-color) 1px;
+  z-index: 2;
+}
+
 code.sourceCode .code-annotation-anchor.code-annotation-active {
-  background-color: var(--quarto-hl-st-color);
-  border: solid var(--quarto-hl-st-color) 1px;
+  background-color: var(--quarto-hl-va-color);
+  border: solid var(--quarto-hl-va-color) 1px;
   color: rgb(
     red($code-block-bg-color),
     green($code-block-bg-color),
