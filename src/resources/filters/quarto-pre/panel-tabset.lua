@@ -1,19 +1,27 @@
 -- panel-tabset.lua
 -- Copyright (C) 2022 Posit Software, PBC
 
+---@alias quarto.Tab { content:nil|pandoc.Blocks|string, title:pandoc.Inlines|string }
+
+--[[
+Create a Tab AST node (represented as a Lua table)
+]]
+---@param params { content:nil|pandoc.Blocks|string, title:pandoc.Inlines|string }
+---@return quarto.Tab
 quarto.Tab = function(params)
   return {
     content = params.content or pandoc.List(),
-    title = params.title,
-    render = function(tbl, tabset)
-      local content = tbl.content
-      local title = tbl.title
-      local inner_content = pandoc.List()
-      inner_content:insert(pandoc.Header(tabset.level, title))
-      inner_content:extend(content)
-      return pandoc.Div(inner_content)
-    end
+    title = params.title
   }
+end
+
+local function render_quarto_tab(tbl, tabset)
+  local content = tbl.content
+  local title = tbl.title
+  local inner_content = pandoc.List()
+  inner_content:insert(pandoc.Header(tabset.level, title))
+  inner_content:extend(content)
+  return pandoc.Div(inner_content)
 end
 
 function parse_tabset_contents(div)
@@ -106,10 +114,7 @@ _quarto.ast.add_handler({
     return {
       level = params.level or 2,
       tabs = params.tabs or pandoc.List(),
-      div_attr = params.attr or pandoc.Attr(), -- FIXME apparently "attr" breaks things.
-      add_tab = function(node, title, content)
-        table.insert(node.tabs, quarto.Tab( { title = title, content = content } ))
-      end
+      attr = params.attr or pandoc.Attr(),
     }
   end,
 
@@ -126,14 +131,14 @@ _quarto.ast.add_handler({
 
   -- a function that renders the extendedNode into output
   render = function(node)
-    local tabs = tmap(node.tabs, function(tab) return tab.render(tab, node) end)
-    if node.div_attr.classes:find("panel-tabset") then
+    local tabs = tmap(node.tabs, function(tab) return render_quarto_tab(tab, node) end)
+    if node.attr.classes:find("panel-tabset") then
       if hasBootstrap() then
-        return render_tabset(node.div_attr, tabs, bootstrapTabs())
+        return render_tabset(node.attr, tabs, bootstrapTabs())
       elseif _quarto.format.isHtmlOutput() then
-        return render_tabset(node.div_attr, tabs, tabbyTabs())
+        return render_tabset(node.attr, tabs, tabbyTabs())
       elseif _quarto.format.isLatexOutput() or _quarto.format.isDocxOutput() or _quarto.format.isEpubOutput() or _quarto.format.isJatsOutput() then
-        return pandoc.Div(render_tabset_with_l4_headings(tabs), node.div_attr)
+        return pandoc.Div(render_tabset_with_l4_headings(tabs), node.attr)
       end
     else
       return div

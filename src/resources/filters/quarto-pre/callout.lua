@@ -858,7 +858,7 @@ function removeParagraphPadding(contents)
   end
 end
 
-function openXmlPara(para, spacing) 
+function openXmlPara(para, spacing)
   local xmlPara = pandoc.Para({
     pandoc.RawInline("openxml", "<w:pPr>\n<w:spacing " .. spacing .. "/>\n</w:pPr>")
   })
