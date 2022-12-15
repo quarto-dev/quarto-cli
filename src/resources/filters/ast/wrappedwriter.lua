@@ -80,8 +80,8 @@ function wrapped_writer()
         return blocks
       end,
       RawInline = function(inline)
-        local node, t = _quarto.ast.resolve_custom_node(inline)
-        if node == nil then 
+        local tbl, t = _quarto.ast.resolve_custom_data(inline)
+        if tbl == nil then 
           return {}
         end
         local handler = _quarto.ast.resolve_handler(t)
@@ -89,7 +89,7 @@ function wrapped_writer()
           return {}
         end
         local result = pandoc.List({})
-        for _, v in ipairs(handler.inner_content(node)) do
+        for _, v in ipairs(handler.inner_content(tbl)) do
           result:extend(v)
         end
         return result
@@ -116,7 +116,7 @@ function wrapped_writer()
       end
 
       if type(node) == "userdata" and node.t == "RawInline" and node.format == "QUARTO_custom" then
-        local tbl, t = _quarto.ast.resolve_custom_node(node)
+        local tbl, t = _quarto.ast.resolve_custom_data(node)
         if tbl ~= nil then 
           local astHandler = _quarto.ast.resolve_handler(t)
           local nodeHandler = astHandler and handler[astHandler.ast_name] and handler[astHandler.ast_name].handle

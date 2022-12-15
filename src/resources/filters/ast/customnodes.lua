@@ -5,10 +5,10 @@
 
 local handlers = {}
 
-local custom_tbl_to_node = pandoc.List({})
+local custom_node_data = pandoc.List({})
 local n_custom_nodes = 0
 
-function resolve_custom(node)
+function resolve_custom_node(node)
   if type(node) == "userdata" and node.t == "Plain" and #node.content == 1 and node.content[1].t == "RawInline" and node.content[1].format == "QUARTO_custom" then
     return node.content[1]
   end
@@ -38,8 +38,8 @@ function run_emulated_filter(doc, filter)
     end
   end
 
-  function process_custom_preamble(custom_node, t, kind)
-    if custom_node == nil then
+  function process_custom_preamble(custom_data, t, kind, custom_node)
+    if custom_data == nil then
       return nil
     end
     local node_type = {
@@ -49,38 +49,59 @@ function run_emulated_filter(doc, filter)
     local filter_fn = filter[t] or filter[node_type[kind]] or filter.Custom
 
     if filter_fn ~= nil then
-      return filter_fn(custom_node)
+      return filter_fn(custom_data, custom_node)
     end
   end
 
-  function process_custom(custom, t, kind)
-
-    local node = process_custom_preamble(custom, t, kind)
-    if type(node) == "table" then
-      for i, v in ipairs(table) do
-        local inner_node, _ = resolve_custom(v)
-        if inner_node ~= nil then
-          process_custom_inner(inner_node)
+  function process_custom(custom_data, t, kind, custom_node)
+    local result, recurse = process_custom_preamble(custom_data, t, kind, custom_node)
+    if filter.traverse == "topdown" and recurse then
+      if tisarray(result) then
+        local new_result = {}
+        for i, v in ipairs(result) do
+          if type(v) == "table" then
+            new_result[i] = quarto[t](v) --- create new custom object of the same kind as passed and recurse.
+            process_custom_inner(new_result[i])
+          else
+            new_result[i] = v
+          end
         end
+        return new_result, recurse
+        
+      elseif type(result) == "table" then
+        return quarto[t](result), recurse
+      else
+        return result, recurse
       end
-    elseif type(node) == "userdata" then
-      local inner_node, _ = resolve_custom(node)
-      if inner_node ~= nil then
-        process_custom_inner(inner_node)
+    else
+      -- typewise or non-recursing traversal
+      if tisarray(result) then
+        local new_result = {}
+        for i, v in ipairs(result) do
+          if type(v) == "table" then
+            new_result[i] = quarto[t](v) --- create new custom object of the same kind as passed.
+          else
+            new_result[i] = v
+          end
+        end
+        return new_result, recurse
+      elseif type(result) == "table" then
+        local new_result = quarto[t](result)
+        return new_result, recurse
+      else
+        return result, recurse
       end
     end
-    return node
   end
 
   function wrapped_filter.Plain(node)
-    local custom = resolve_custom(node)
+    local custom = resolve_custom_node(node)
 
     if custom then
-      local t, kind
-      node, t, kind = _quarto.ast.resolve_custom_node(custom)
+      local custom_data, t, kind = _quarto.ast.resolve_custom_data(custom)
       -- only follow through if node matches the expected kind
       if kind == "Block" then
-        return process_custom(node, t, kind)
+        return process_custom(custom_data, t, kind, custom)
       else
         return nil
       end
@@ -94,14 +115,13 @@ function run_emulated_filter(doc, filter)
   end
 
   function wrapped_filter.RawInline(node)
-    local custom = resolve_custom(node)
+    local custom = resolve_custom_node(node)
 
     if custom then
-      local t, kind
-      node, t, kind = _quarto.ast.resolve_custom_node(custom)
+      local custom_data, t, kind = _quarto.ast.resolve_custom_data(custom)
       -- only follow through if node matches the expected kind
       if kind == "Inline" then
-        return process_custom(node, t, kind)
+        return process_custom(custom_data, t, kind, custom)
       else
         return nil
       end
@@ -122,17 +142,23 @@ end
 function create_emulated_node(t, tbl, context)
   n_custom_nodes = n_custom_nodes + 1
   local result = pandoc.RawInline("QUARTO_custom", tostring(t .. " " .. n_custom_nodes .. " " .. context))
-  custom_tbl_to_node[n_custom_nodes] = tbl
+  custom_node_data[n_custom_nodes] = tbl
   tbl.t = t -- set t always to custom ast type
   return result
 end
 
 _quarto.ast = {
-  custom_tbl_to_node = custom_tbl_to_node,
+  custom_node_data = custom_node_data,
 
-  resolve_custom_node = function(raw_or_plain_container)
+  -- this is used in non-lua filters to handle custom nodes
+  reset_custom_tbl = function(tbl)
+    custom_node_data = tbl
+    n_custom_nodes = #tbl
+  end,
+
+  resolve_custom_data = function(raw_or_plain_container)
     if type(raw_or_plain_container) ~= "userdata" then
-      error("Internal Error: resolve_custom_node called with non-pandoc node")
+      error("Internal Error: resolve_custom_data called with non-pandoc node")
       crash_with_stack_trace()
     end
     local raw
@@ -158,7 +184,7 @@ _quarto.ast = {
       error("Internal Error: handler not found for custom node " .. t)
       crash_with_stack_trace()
     end
-    local custom_node = _quarto.ast.custom_tbl_to_node[n]
+    local custom_node = _quarto.ast.custom_node_data[n]
     return custom_node, t, kind
   end,
   
@@ -186,7 +212,7 @@ _quarto.ast = {
 
     quarto[handler.ast_name] = function(...)
       local tbl = handler.constructor(...)
-      return create_emulated_node(handler.ast_name, tbl, handler.kind)
+      return create_emulated_node(handler.ast_name, tbl, handler.kind), tbl
     end
 
     -- we also register them under the ast_name so that we can render it back

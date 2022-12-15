@@ -64,7 +64,33 @@ function makeWrappedJsonFilter(scriptFile, filterHandler)
       handle = function(doc)
         local json = pandoc.write(doc, "json")
         path = quarto.utils.resolve_path_relative_to_document(scriptFile)
-        return pandoc.utils.run_json_filter(doc, path)
+        local custom_node_map = {}
+        local has_custom_nodes = false
+        doc = doc:walk({
+          RawInline = function(raw)
+            local custom_node, t, kind = _quarto.ast.resolve_custom_data(raw)
+            if custom_node ~= nil then
+              has_custom_nodes = true
+              table.insert(custom_node_map, { id = raw.text, tbl = custom_node, t = t, kind = kind })
+            end
+          end,
+          Meta = function(meta)
+            if has_custom_nodes then
+              meta["quarto-custom-nodes"] = pandoc.MetaList(custom_node_map)
+            end
+            return meta
+          end
+        })
+        local result = pandoc.utils.run_json_filter(doc, path)
+        if has_custom_nodes then
+          doc:walk({
+            Meta = function(meta)
+              _quarto.ast.reset_custom_tbl(meta["quarto-custom-nodes"])
+            end
+          })
+        end
+
+        return result
       end
     }
   }

@@ -12,7 +12,7 @@ function render_raw(raw)
     error("Internal Error: handler not found for custom node " .. t)
     crash_with_stack_trace()
   end
-  local customNode = _quarto.ast.custom_tbl_to_node[n]
+  local customNode = _quarto.ast.custom_node_data[n]
   return handler.render(customNode)
 end
 
