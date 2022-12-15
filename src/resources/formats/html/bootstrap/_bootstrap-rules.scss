@@ -1781,6 +1781,17 @@ dl.code-annotation-container-grid dt {
   text-decoration: none;
 }
 
+code.sourceCode .code-annotation-anchor.code-annotation-active {
+  background-color: var(--quarto-hl-st-color);
+  border: solid var(--quarto-hl-st-color) 1px;
+  color: rgb(
+    red($code-block-bg-color),
+    green($code-block-bg-color),
+    blue($code-block-bg-color)
+  );
+  font-weight: bolder;
+}
+
 code.sourceCode .code-annotation-anchor {
   font-family: $font-family-code;
   color: var(--quarto-hl-co-color);
@@ -1788,13 +1799,17 @@ code.sourceCode .code-annotation-anchor {
   border-radius: 50%;
   height: 18px;
   width: 18px;
-  line-height: 18px;
   font-size: 9px;
+}
 
+code.sourceCode button.code-annotation-anchor {
+  padding: 2px;
+}
+
+code.sourceCode span.code-annotation-anchor {
+  line-height: 18px;
   text-align: center;
   vertical-align: middle;
-
-  text-decoration: none;
 }
 
 // change .column-screen-* to behave like .column-page (which hugs the body margins)

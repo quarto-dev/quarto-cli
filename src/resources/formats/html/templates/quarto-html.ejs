@@ -354,8 +354,12 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     const config = {
       allowHTML: true,
       content: contentFn,
-      onShow: () => {
+      onShow: (instance) => {
+        instance.reference.classList.add('code-annotation-active');
         window.tippy.hideAll();
+      },
+      onHide: (instance) => {
+        instance.reference.classList.remove('code-annotation-active');
       },
       maxWidth: 300,
       delay: [50, 0],

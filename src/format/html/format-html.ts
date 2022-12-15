@@ -693,6 +693,9 @@ const kCodeAnnotationGridClz = "code-annotation-container-grid";
 const kCodeAnnotationAnchorClz = "code-annotation-anchor";
 const kCodeAnnotationTargetClz = "code-annotation-target";
 
+const kCodeAnnotationGutterClz = "code-annotation-gutter";
+const kCodeAnnotationGutterBgClz = "code-annotation-gutter-bg";
+
 function processCodeAnnotations(format: Format, doc: Document) {
   const annotationStyle: boolean | string = format.metadata[kCodeAnnotations] as
     | string
@@ -763,7 +766,7 @@ function processCodeAnnotations(format: Format, doc: Document) {
 
 function processCodeBlockAnnotation(
   doc: Document,
-  linkAnnotations: boolean,
+  interactiveAnnotations: boolean,
   annotationPosition: "start" | "middle",
   processDt?: (annotationEl: Element, dtEl: Element) => void,
 ) {
@@ -779,7 +782,7 @@ function processCodeBlockAnnotation(
     const parentCodeBlock = processLineAnnotation(
       doc,
       annoteEl,
-      linkAnnotations,
+      interactiveAnnotations,
       annotationPosition,
     );
     if (parentCodeBlock && !codeBlockParents.includes(parentCodeBlock)) {
@@ -804,11 +807,11 @@ function processCodeBlockAnnotation(
   // Inject a gutter for the annotations
   for (const codeParentEl of codeBlockParents) {
     const gutterBgDivEl = doc.createElement("div");
-    gutterBgDivEl.classList.add("code-annotation-gutter-bg");
+    gutterBgDivEl.classList.add(kCodeAnnotationGutterBgClz);
     codeParentEl.parentElement?.appendChild(gutterBgDivEl);
 
     const gutterDivEl = doc.createElement("div");
-    gutterDivEl.classList.add("code-annotation-gutter");
+    gutterDivEl.classList.add(kCodeAnnotationGutterClz);
     codeParentEl.parentElement?.appendChild(gutterDivEl);
   }
 
@@ -818,7 +821,7 @@ function processCodeBlockAnnotation(
 function processLineAnnotation(
   doc: Document,
   annoteEl: Element,
-  link: boolean,
+  interactive: boolean,
   position: "start" | "middle",
 ) {
   // Read the target values from the annotation DL
@@ -836,14 +839,8 @@ function processLineAnnotation(
     const targetId = `${targetCell}-${line}`;
     const targetEl = doc.getElementById(targetId);
     if (targetEl) {
-      const annoteAnchorEl = doc.createElement(link ? "a" : "span");
+      const annoteAnchorEl = doc.createElement(interactive ? "button" : "span");
       annoteAnchorEl.classList.add(kCodeAnnotationAnchorClz);
-      if (link) {
-        annoteAnchorEl.setAttribute(
-          "href",
-          `#${targetCell}-${line}`,
-        );
-      }
       annoteAnchorEl.setAttribute(
         kCodeCellTargetAttr,
         `${targetCell}`,
