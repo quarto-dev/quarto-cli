@@ -1,3 +1,5 @@
+// TODO enable new editor experience by default
+// https://tinyurl.com/2ds6rq8a
 // TODO Resource bundles
 
 import { join } from "path/mod.ts";
