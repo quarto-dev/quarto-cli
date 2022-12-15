@@ -18,7 +18,7 @@ end
 make_wrapped_user_filters = function(filterListName)
   local filters = {}
   for _, v in ipairs(param("quarto-filters")[filterListName]) do
-    if (string.match(v, ".lua$") == nil) then
+    if (type(v) == "string" and string.match(v, ".lua$") == nil) then
       v = {
         path = v,
         type = "json"
