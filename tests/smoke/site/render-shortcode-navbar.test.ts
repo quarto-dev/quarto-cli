@@ -17,6 +17,6 @@ testSite(
     siteOutputForInput(docs("websites/issue-3686/index.qmd"))
       .outputPath,
     [],
-    [/\{\{\&lt\;/],
+    [/\{\{\&lt\;/, /\&gt\;\}\}/],
   ),
 );

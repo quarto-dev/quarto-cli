@@ -181,7 +181,7 @@ function callShortcodeHandler(handler, shortCode)
 end
 
 -- scans through a list of inlines, finds shortcodes, and processes them
-function transformShortcodeInlines(inlines, noRawInlines) 
+function transformShortcodeInlines(inlines, noRawInlines)
   local transformed = false
   local outputInlines = pandoc.List()
   local shortcodeInlines = pandoc.List()
@@ -190,7 +190,7 @@ function transformShortcodeInlines(inlines, noRawInlines)
   function ensure_accum(i)
     if not transformed then
       transformed = true
-      for j = 1,i do
+      for j = 1,i - 1 do
         outputInlines:insert(inlines[j])
       end
     end
