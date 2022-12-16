@@ -69,7 +69,7 @@
 
 - Fix issue assigning specific sidebar to a specific page using `sidebar:` (#3389)
 - Change behavior of `publish gh-pages` to always render into a clean directory.
-  Previous behavior was to add to existing contents of `gh-pages` branch. ([dicsussion #3189](https://github.com/quarto-dev/quarto-cli/discussions/3199), @ijlyttle)
+  Previous behavior was to add to existing contents of `gh-pages` branch. ([#3199](https://github.com/quarto-dev/quarto-cli/discussions/3199), @ijlyttle)
 
 ## Books
 
