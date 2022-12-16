@@ -1,0 +1,24 @@
+project:
+  type: website
+
+website:
+  title: "Issue-3686"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - href: https://r-project.org
+        text: "{{< fa brands r-project >}} This is R"
+      - href: https://r-project.org
+        text: "This is also R {{< fa brands r-project >}}"
+      - href: https://r-project.org
+        text: "This is also R {{< fa brands r-project >}} This is R on both sides"
+      - href: https://r-project.org
+        text: "{{< fa brands r-project >}}"
+      - about.qmd
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
