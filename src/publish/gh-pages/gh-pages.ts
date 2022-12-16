@@ -338,6 +338,12 @@ async function withWorktree(
     cwd: dir,
   });
 
+  // remove files in existing site, i.e. start clean
+  await execProcess({
+    cmd: ["git", "rm", "-r", "--quiet", "."],
+    cwd: join(dir, siteDir),
+  })
+
   try {
     await f();
   } finally {
