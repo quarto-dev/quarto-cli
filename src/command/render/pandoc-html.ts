@@ -349,23 +349,6 @@ function generateThemeCssVars(
                   "inherit"
                 };`,
               );
-
-              // Add an alpha blended co color, if possible
-              if (abbr === "co") {
-                const value = textValues[textAttr];
-                if (typeof (value) === "string" && value.length === 7) {
-                  lines.push(
-                    `  --quarto-hl-${abbr}-light-color: ${
-                      textValues[textAttr] + "22"
-                    };`,
-                  );
-                  lines.push(
-                    `  --quarto-hl-${abbr}-light-light-color: ${
-                      textValues[textAttr] + "11"
-                    };`,
-                  );
-                }
-              }
               break;
           }
         });
