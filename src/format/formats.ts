@@ -270,7 +270,7 @@ export function defaultWriterFormat(to: string): Format {
 }
 
 function powerpointFormat(): Format {
-  return createFormat("pptx", "Powerpoint", {
+  return createFormat("Powerpoint", "pptx", {
     render: {
       [kPageWidth]: 10,
       [kOutputDivs]: false,
