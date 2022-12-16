@@ -374,18 +374,28 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
         div.setAttribute("id", "code-annotation-line-highlight");
         div.style.position = 'absolute';
         div.style.top = top - 1 + "px";
-        div.style.height = height + 1 + "px";
-//        div.style.width = "100%";
+        div.style.height = height + 4 + "px";
         parent.appendChild(div);
+
+        const gutterDiv = doc.createElement("div");
+        gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+        gutterDiv.style.position = 'absolute';
+        gutterDiv.style.top = top - 1 + "px";
+        gutterDiv.style.height = height + 4 + "px";
+        const gutter = doc.querySelector('.code-annotation-gutter');
+        gutter.appendChild(gutterDiv);
       }
     }
   };
 
   const unselectCodeLines = () => {
-    const div = window.document.getElementById("code-annotation-line-highlight");
-    if (div) {
-      div.remove();
-    }
+    const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+    elementsIds.forEach((elId) => {
+      const div = window.document.getElementById(elId);
+      if (div) {
+        div.remove();
+      }
+    });
   };
 
 

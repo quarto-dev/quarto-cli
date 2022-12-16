@@ -1756,7 +1756,6 @@ textarea {
   position: absolute;
   top: 0;
   right: 0;
-  border-left: solid var(--quarto-hl-co-light-color) 1px;
 }
 
 dl.code-annotation-container-grid {
@@ -1790,18 +1789,26 @@ pre.code-annotation-code {
   }
 }
 
+#code-annotation-line-highlight-gutter {
+  width: 100%;
+  border-top: solid $code-annotation-higlight-color 1px;
+  border-bottom: solid $code-annotation-higlight-color 1px;
+  z-index: 2;
+  background-color: $code-annotation-higlight-bg;
+}
+
 #code-annotation-line-highlight {
-  background-color: var(--quarto-hl-co-light-light-color);
   margin-left: -4em;
   width: calc(100% + 4em);
-  border-top: solid var(--quarto-hl-co-light-color) 1px;
-  border-bottom: solid var(--quarto-hl-co-light-color) 1px;
+  border-top: solid $code-annotation-higlight-color 1px;
+  border-bottom: solid $code-annotation-higlight-color 1px;
   z-index: 2;
+  background-color: $code-annotation-higlight-bg;
 }
 
 code.sourceCode .code-annotation-anchor.code-annotation-active {
-  background-color: var(--quarto-hl-va-color);
-  border: solid var(--quarto-hl-va-color) 1px;
+  background-color: var(--quarto-hl-normal-color, #aaaaaa);
+  border: solid var(--quarto-hl-normal-color, #aaaaaa) 1px;
   color: rgb(
     red($code-block-bg-color),
     green($code-block-bg-color),
@@ -1818,6 +1825,7 @@ code.sourceCode .code-annotation-anchor {
   height: 18px;
   width: 18px;
   font-size: 9px;
+  margin-top: 4px;
 }
 
 code.sourceCode button.code-annotation-anchor {
