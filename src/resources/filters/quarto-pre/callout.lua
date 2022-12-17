@@ -116,7 +116,7 @@ _quarto.ast.add_handler({
       icon = false
       appearance = "simple"
     end
-    local content = pandoc.List()
+    local content = pandoc.Blocks({})
     content:extend(tbl.content)
     return {
       caption = tbl.caption,

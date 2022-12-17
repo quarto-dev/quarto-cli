@@ -1,7 +1,7 @@
 -- panel-tabset.lua
 -- Copyright (C) 2022 Posit Software, PBC
 
----@alias quarto.Tab { content:nil|pandoc.Blocks|string, title:pandoc.Inlines|string }
+---@alias quarto.Tab { content:pandoc.Blocks, title:pandoc.Inlines }
 
 --[[
 Create a Tab AST node (represented as a Lua table)
@@ -9,9 +9,15 @@ Create a Tab AST node (represented as a Lua table)
 ---@param params { content:nil|pandoc.Blocks|string, title:pandoc.Inlines|string }
 ---@return quarto.Tab
 quarto.Tab = function(params)
+  local content
+  if type(params.content) == "string" then
+    content = pandoc.Blocks(pandoc.read(params.content, "markdown").blocks)
+  else
+    content = params.content or pandoc.Blocks({})
+  end
   return {
-    content = params.content or pandoc.List(),
-    title = params.title
+    content = content,
+    title = pandoc.Inlines(params.title)
   }
 end
 
@@ -146,11 +152,17 @@ _quarto.ast.add_handler({
   end,
 
   -- a function that takes the extended node and
-  -- returns a table with table-valued attributes
+  -- returns a table with walkable attributes (pandoc nodes, Inlines, Blocks)
   -- that represent inner content that should
   -- be visible to filters.
   inner_content = function(extended_node)
-    return extended_node.tabs
+    local result = {}
+
+    for i=1,#extended_node.tabs do
+      result[i * 2 - 1] = extended_node.tabs[i].content
+      result[i * 2] = extended_node.tabs[i].title
+    end
+    return result
   end,
 
   -- a function that updates the extended node
@@ -159,7 +171,9 @@ _quarto.ast.add_handler({
   -- and represent changed values that need to be updated.    
   set_inner_content = function(extended_node, values)
     for k, v in pairs(values) do
-      extended_node.tabs[k] = v
+      local tab = ((k - 1) // 2) + 1
+      local key = ((k % 2 == 0) and "title") or "content"
+      extended_node.tabs[tab][key] = v
     end
   end
 })

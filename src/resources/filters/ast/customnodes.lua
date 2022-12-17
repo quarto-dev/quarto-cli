@@ -24,17 +24,24 @@ function run_emulated_filter(doc, filter)
   end
 
   function process_custom_inner(raw)
-    local custom_node, t, kind = _quarto.ast.resolve_custom_node(raw)    
+    local custom_data, t, kind = _quarto.ast.resolve_custom_data(raw)    
+    local handler = _quarto.ast.resolve_handler(t)
+    if handler == nil then
+      print(raw)
+      error("Internal Error: handler not found for custom node " .. (t or type(t)))
+      crash_with_stack_trace()
+    end
     if handler.inner_content ~= nil then
       local new_inner_content = {}
-      local inner_content = handler.inner_content(custom_node)
+      local inner_content = handler.inner_content(custom_data)
+
       for k, v in pairs(inner_content) do
         local new_v = v:walk(wrapped_filter)
         if new_v ~= nil then
           new_inner_content[k] = new_v
         end
       end
-      handler.set_inner_content(custom_node, new_inner_content)
+      handler.set_inner_content(custom_data, new_inner_content)
     end
   end
 
@@ -55,26 +62,32 @@ function run_emulated_filter(doc, filter)
 
   function process_custom(custom_data, t, kind, custom_node)
     local result, recurse = process_custom_preamble(custom_data, t, kind, custom_node)
-    if filter.traverse == "topdown" and recurse then
+    if filter.traverse ~= "topdown" or recurse then
       if tisarray(result) then
         local new_result = {}
         for i, v in ipairs(result) do
           if type(v) == "table" then
             new_result[i] = quarto[t](v) --- create new custom object of the same kind as passed and recurse.
-            process_custom_inner(new_result[i])
           else
             new_result[i] = v
           end
+          process_custom_inner(new_result[i])
         end
         return new_result, recurse
         
       elseif type(result) == "table" then
-        return quarto[t](result), recurse
+        local new_result = quarto[t](result)
+        process_custom_inner(new_result or custom_node)
+        return result, recurse
+      elseif result == nil then
+        process_custom_inner(custom_node)
+        return nil, recurse
       else
+        -- something non-custom was returned, we just send it along.
         return result, recurse
       end
     else
-      -- typewise or non-recursing traversal
+      -- non-recursing traversal
       if tisarray(result) then
         local new_result = {}
         for i, v in ipairs(result) do
@@ -159,6 +172,7 @@ _quarto.ast = {
   resolve_custom_data = function(raw_or_plain_container)
     if type(raw_or_plain_container) ~= "userdata" then
       error("Internal Error: resolve_custom_data called with non-pandoc node")
+      error(type(raw_or_plain_container))
       crash_with_stack_trace()
     end
     local raw
