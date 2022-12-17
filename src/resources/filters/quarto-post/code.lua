@@ -56,6 +56,8 @@ local kDataCodeAnnonationClz = 'code-annotation-code'
 local kCodeLine = "code-line"
 local kCodeLines = "code-lines"
 
+local hasAnnotations = false;
+
 -- annotations appear at the end of the line and are of the form
 -- # <1> 
 -- where they start with a comment character valid for that code cell
@@ -96,6 +98,23 @@ local function annoteProvider(lang)
         end
         return line
       end,
+      replaceAnnotation = function(line, annoteId, replacement)
+        for _i, v in ipairs(expressions) do
+          line = line:gsub(v.strip.prefix .. annoteId .. v.strip.suffix, replacement)
+        end
+        return line
+      end,
+      createComment = function(value) 
+        if #commentChars == 0 then
+          return value
+        else if #commentChars == 1 then
+          return commentChars[1] .. ' ' .. value
+        else
+          return commentChars[1] .. ' '.. value .. ' ' .. commentChars[2]
+        end
+      end
+
+      end
     }
   else
     return nil
@@ -105,6 +124,14 @@ end
 
 local function toAnnoteId(number) 
   return 'annote-' .. tostring(number)
+end
+
+local function latexCodePlaceholder(number) 
+  return '5CB6E08D-code-annote-' .. number 
+end
+
+local function latexListPlaceholder(number)
+  return '5CB6E08D-list-annote-' .. number 
 end
 
 -- Finds annotations in a code cell and returns 
@@ -132,9 +159,15 @@ local function resolveCellAnnotes(codeBlockEl)
         end
         lineNumbers:insert(i)
         annotations[annoteId] = lineNumbers         
-  
-        local stripped = annotationProvider.stripAnnotation(line, annoteNumber)
-        outputs:insert(stripped)
+        if _quarto.format.isLatexOutput() then           
+          local placeholder = latexCodePlaceholder(annoteNumber)
+          local placeholderComment = annotationProvider.createComment(placeholder)
+          local replaced = annotationProvider.replaceAnnotation(line, annoteNumber, placeholderComment) 
+          outputs:insert(replaced)
+        else
+          local stripped = annotationProvider.stripAnnotation(line, annoteNumber)
+          outputs:insert(stripped)
+        end
       else
         outputs:insert(line)
       end
@@ -147,8 +180,15 @@ local function resolveCellAnnotes(codeBlockEl)
       for i, output in ipairs(outputs) do
         outputText = outputText .. '\n' .. output
       end
-      codeBlockEl.attr.classes:insert('numberLines')
+
+      -- For HTML and PDF output, we have special handling that doesn't depend
+      -- upon line numbers. For non HTML output, we do need line numbering
+      -- since the text will point back to the line numbers
+      if not _quarto.format.isLatexOutput() and not _quarto.format.isHtmlOutput() then
+        codeBlockEl.attr.classes:insert('numberLines')
+      end
       codeBlockEl.text = outputText
+      hasAnnotations = true
     end
     return codeBlockEl, annotations 
   elseif lang then
@@ -220,6 +260,22 @@ local function lineNumberMeta(list)
     text = val,
     count = valuesWritten,
     lineNumbers = lineNoStr
+  }
+end
+
+function codeMeta()
+  return {
+    Meta = function(meta)
+      if _quarto.format.isLatexOutput() and hasAnnotations then
+      quarto.doc.use_latex_package("tikz");
+      quarto.doc.include_text('in-header', [[
+        \newcommand*\circled[1]{\tikz[baseline=(char.base)]{
+          \node[shape=circle,draw,inner sep=1pt] (char) {{\scriptsize#1}};}}  
+                  ]]);
+        
+        end
+    end,
+
   }
 end
 
@@ -321,15 +377,19 @@ function code()
 
               -- compute the term for the DT
               local term = ""
-              if lineNumMeta.count == 1 then
-                term = language[kCodeLine] .. " " .. lineNumMeta.text;
+              if _quarto.format.isLatexOutput() then
+                term = latexListPlaceholder(i)
               else
-                term = language[kCodeLines] .. " " .. lineNumMeta.text;
+                if lineNumMeta.count == 1 then
+                  term = language[kCodeLine] .. " " .. lineNumMeta.text;
+                else
+                  term = language[kCodeLines] .. " " .. lineNumMeta.text;
+                end
               end
 
               -- compute the definition for the DD
               local definitionContent = v[1].content 
-              local annotationToken = tostring(i);                           
+              local annotationToken = tostring(i);
               local definition = pandoc.Span(definitionContent, {
                 [kDataCodeCellTarget] = pendingCellId,
                 [kDataCodeCellLines] = lineNumMeta.lineNumbers,
