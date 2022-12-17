@@ -55,7 +55,7 @@ _quarto.ast.add_handler({
       behavior = tbl.behavior,
       condition = pandoc.List({})
     };
-    for i, v in ipairs(tbl.condition) do
+    for i, v in ipairs(tbl.condition or {}) do
       if kConditions:find(v[1]) == nil then
         error("Ignoring invalid condition in conditional block: " .. v[1])
       else
