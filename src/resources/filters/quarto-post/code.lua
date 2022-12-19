@@ -136,7 +136,8 @@ end
 -- Finds annotations in a code cell and returns 
 -- the annotations as well as a code cell that
 -- removes the annotations
-local function resolveCellAnnotes(codeBlockEl) 
+local function resolveCellAnnotes(codeBlockEl, processAnnotation) 
+
   -- collect any annotations on this code cell
   local lang = codeBlockEl.attr.classes[1]  
   local annotationProvider = annoteProvider(lang)
@@ -157,24 +158,8 @@ local function resolveCellAnnotes(codeBlockEl)
           lineNumbers = pandoc.List({})
         end
         lineNumbers:insert(i)
-        annotations[annoteId] = lineNumbers         
-        if _quarto.format.isLatexOutput() then     
-          local hasHighlighting = param('text-highlighting', false)
-          if hasHighlighting then
-            -- highlighting is enabled, allow the comment through
-            local placeholderComment = annotationProvider.createComment("<" .. tostring(annoteNumber) .. ">")
-            local replaced = annotationProvider.replaceAnnotation(line, annoteNumber, placeholderComment) 
-            outputs:insert(replaced)
-          else
-            -- no highlighting enabled, ensure we use a standard comment character
-            local placeholderComment = "%% (" .. tostring(annoteNumber) .. ")"
-            local replaced = annotationProvider.replaceAnnotation(line, annoteNumber, placeholderComment) 
-            outputs:insert(replaced) 
-          end
-        else
-          local stripped = annotationProvider.stripAnnotation(line, annoteNumber)
-          outputs:insert(stripped)
-        end
+        annotations[annoteId] = lineNumbers      
+        outputs:insert(processAnnotation(line, annoteNumber, annotationProvider))
       else
         outputs:insert(line)
       end
@@ -269,6 +254,30 @@ local function lineNumberMeta(list)
   }
 end
 
+function processLaTeXAnnotation(line, annoteNumber, annotationProvider)
+  -- we specially handle LaTeX output in coordination with the post processor
+  -- which will replace any of these tokens as appropriate.   
+  local hasHighlighting = param('text-highlighting', false)
+  if hasHighlighting then
+    -- highlighting is enabled, allow the comment through
+    local placeholderComment = annotationProvider.createComment("<" .. tostring(annoteNumber) .. ">")
+    local replaced = annotationProvider.replaceAnnotation(line, annoteNumber, placeholderComment) 
+    return replaced
+  else
+    -- no highlighting enabled, ensure we use a standard comment character
+    local placeholderComment = "%% (" .. tostring(annoteNumber) .. ")"
+    local replaced = annotationProvider.replaceAnnotation(line, annoteNumber, placeholderComment) 
+    return replaced
+  end
+end
+
+function processAnnotation(line, annoteNumber, annotationProvider)
+    -- For all other formats, just strip the annotation- the definition list is converted
+    -- to be based upon line numbers. 
+    local stripped = annotationProvider.stripAnnotation(line, annoteNumber)
+    return stripped
+end
+
 function codeMeta()
   return {
     Meta = function(meta)
@@ -320,7 +329,15 @@ function code()
       end
 
       local processCodeCell = function(el, identifier)
-        local resolvedCodeBlock, annotations = resolveCellAnnotes(el)
+
+        -- select the process for this format's annotations
+        local annotationProcessor = processAnnotation
+        if _quarto.format.isLatexOutput() then
+          annotationProcessor = processLaTeXAnnotation
+        end
+
+        -- resolve annotations
+        local resolvedCodeBlock, annotations = resolveCellAnnotes(el, annotationProcessor)
         if annotations and next(annotations) ~= nil then
           -- store the annotations and  cell info
           pendingAnnotations = annotations
