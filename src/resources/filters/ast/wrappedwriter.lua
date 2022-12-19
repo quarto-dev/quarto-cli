@@ -114,41 +114,57 @@ function wrapped_writer()
         table.insert(resultingStrs, node)
         return nil
       end
-
-      if type(node) == "userdata" and node.t == "RawInline" and node.format == "QUARTO_custom" then
-        local tbl, t = _quarto.ast.resolve_custom_data(node)
+      local t
+      if type(node) == "userdata" then
+        local tbl
+        tbl, t = _quarto.ast.resolve_custom_data(node)
         if tbl ~= nil then 
           local astHandler = _quarto.ast.resolve_handler(t)
+          if astHandler == nil then
+            error("Internal error: no handler for " .. t)
+            crash_with_stack_trace()
+          end
           local nodeHandler = astHandler and handler[astHandler.ast_name] and handler[astHandler.ast_name].handle
           if nodeHandler == nil then
-            for _, v in ipairs(astHandler.inner_content(tbl)) do
+            local inner = astHandler.inner_content(tbl)
+            for _, v in pairs(inner) do
               bottomUp(v)
             end
           else
-            handleBottomUpResult(nodeHandler(tbl, bottomUp))
+            handleBottomUpResult(nodeHandler(tbl, bottomUp, node))
           end
         else
-          bottomupWalkers.RawInline(node)
+          local nodeHandler
+          t = node.t or pandoc.utils.type(node)
+          nodeHandler = handler[t] and handler[t].handle
+          if nodeHandler == nil then 
+            -- no handler, just walk the internals in some default order
+            if bottomUpWalkers[t] then
+              for _, v in ipairs(bottomUpWalkers[t](node)) do
+                bottomUp(v)
+              end
+            else
+              for _, v in pairs(node) do
+                bottomUp(v)
+              end
+            end
+          else
+            handleBottomUpResult(nodeHandler(node, bottomUp))
+          end
         end
       else
-        local nodeHandler
-        local t
-        nodeHandler = handler[t] and handler[t].handle
-        t = node.t
-        if nodeHandler == nil then 
-          -- no handler, just walk the internals in some default order
-          if bottomUpWalkers[t] then
-            for _, v in ipairs(bottomUpWalkers[t](node)) do
-              bottomUp(v)
-            end
-          else
-            for _, v in pairs(node) do
-              bottomUp(v)
-            end
-          end
-        else
+        -- allow
+        t = type(node)
+        local nodeHandler = handler[t]
+        if nodeHandler ~= nil then
           handleBottomUpResult(nodeHandler(node, bottomUp))
         end
+        if tisarray(node) then
+          for _, v in ipairs(node) do
+            bottomUp(v)
+          end
+        end
+        -- do nothing if no handler for builtin type        
       end
     
       return nil
