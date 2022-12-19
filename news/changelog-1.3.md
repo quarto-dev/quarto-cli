@@ -79,6 +79,10 @@
 
 - Correct redirect for VS Code Server (#3352) (Thank you, @benz0li!)
 
+## LUA
+
+- `quarto.version()` now returns `Version` object that simplifies comparison (thank you @tarleb)
+
 ## Miscellaneous
 
 - Work around pandoc strict checking of `number-offset` type. ([#3126](https://github.com/quarto-dev/quarto-cli/issues/3126))
