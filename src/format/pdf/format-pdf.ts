@@ -743,8 +743,8 @@ const placePandocBibliographyEntries = (
 };
 
 const kCodeAnnotationRegex =
-  /(.*)\\CommentTok\{\\\# 5CB6E08D\{-\}code\{-\}annote\{-\}(\d)\}(.*)/g;
-const kCodePlainAnnotationRegex = /(.*)# 5CB6E08D-code-annote-(\d)(.*)/g;
+  /(.*)\\CommentTok\{\\\# \\textless\{\}(\d)\\textgreater\{\}\s*\}$/gm;
+const kCodePlainAnnotationRegex = /(.*)% \((\d)\)$/g;
 const codeAnnotationPostProcessor = () => {
   let lastAnnotation: string | undefined;
 
@@ -756,12 +756,12 @@ const codeAnnotationPostProcessor = () => {
     // Replace colorized code
     line = line.replaceAll(
       kCodeAnnotationRegex,
-      (_match, prefix: string, annotationNumber: string, suffix: string) => {
+      (_match, prefix: string, annotationNumber: string) => {
         if (annotationNumber !== lastAnnotation) {
           lastAnnotation = annotationNumber;
-          return `${prefix}\\hspace*{\\fill}\\NormalTok{\\circled{${annotationNumber}}}${suffix}`;
+          return `${prefix}\\hspace*{\\fill}\\NormalTok{\\circled{${annotationNumber}}}`;
         } else {
-          return `${prefix}${suffix}`;
+          return `${prefix}`;
         }
       },
     );
@@ -769,19 +769,19 @@ const codeAnnotationPostProcessor = () => {
     // Replace plain code
     line = line.replaceAll(
       kCodePlainAnnotationRegex,
-      (_match, prefix: string, annotationNumber: string, suffix: string) => {
+      (_match, prefix: string, annotationNumber: string) => {
         if (annotationNumber !== lastAnnotation) {
           lastAnnotation = annotationNumber;
 
           const replaceValue = `(${annotationNumber})`;
           const paddingNumber = Math.max(
             0,
-            75 - prefix.length - suffix.length - replaceValue.length,
+            75 - prefix.length - replaceValue.length,
           );
           const padding = " ".repeat(paddingNumber);
-          return `${prefix}${padding}${replaceValue}${suffix}`;
+          return `${prefix}${padding}${replaceValue}`;
         } else {
-          return `${prefix}${suffix}`;
+          return `${prefix}`;
         }
       },
     );

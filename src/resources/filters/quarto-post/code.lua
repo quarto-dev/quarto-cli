@@ -129,10 +129,6 @@ local function toAnnoteId(number)
   return 'annote-' .. tostring(number)
 end
 
-local function latexCodePlaceholder(number) 
-  return '5CB6E08D-code-annote-' .. number 
-end
-
 local function latexListPlaceholder(number)
   return '5CB6E08D-list-annote-' .. number 
 end
@@ -162,11 +158,19 @@ local function resolveCellAnnotes(codeBlockEl)
         end
         lineNumbers:insert(i)
         annotations[annoteId] = lineNumbers         
-        if _quarto.format.isLatexOutput() then           
-          local placeholder = latexCodePlaceholder(annoteNumber)
-          local placeholderComment = annotationProvider.createComment(placeholder)
-          local replaced = annotationProvider.replaceAnnotation(line, annoteNumber, placeholderComment) 
-          outputs:insert(replaced)
+        if _quarto.format.isLatexOutput() then     
+          local hasHighlighting = param('text-highlighting', false)
+          if hasHighlighting then
+            -- highlighting is enabled, allow the comment through
+            local placeholderComment = annotationProvider.createComment("<" .. tostring(annoteNumber) .. ">")
+            local replaced = annotationProvider.replaceAnnotation(line, annoteNumber, placeholderComment) 
+            outputs:insert(replaced)
+          else
+            -- no highlighting enabled, ensure we use a standard comment character
+            local placeholderComment = "%% (" .. tostring(annoteNumber) .. ")"
+            local replaced = annotationProvider.replaceAnnotation(line, annoteNumber, placeholderComment) 
+            outputs:insert(replaced) 
+          end
         else
           local stripped = annotationProvider.stripAnnotation(line, annoteNumber)
           outputs:insert(stripped)
