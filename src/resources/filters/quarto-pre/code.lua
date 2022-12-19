@@ -306,6 +306,7 @@ function code()
   return {
     traverse = 'topdown',
     Blocks = function(blocks) 
+
       local outputs = pandoc.List()
 
       -- annotations[annotation-number] = {list of line numbers}
