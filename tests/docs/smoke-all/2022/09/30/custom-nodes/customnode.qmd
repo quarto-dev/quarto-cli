@@ -1,0 +1,11 @@
+---
+filters:
+  - createcustomnode.lua
+  - testcustomnode.lua
+---
+
+::: my-custom-node
+
+This is a custom node.
+
+:::

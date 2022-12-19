@@ -122,6 +122,8 @@ const globOutput = Deno.args.length
     "docs/smoke-all/**/*.qmd",
   );
 
+await initYamlIntelligenceResourcesFromFilesystem();
+
 for (
   const { path: fileName } of globOutput
 ) {
