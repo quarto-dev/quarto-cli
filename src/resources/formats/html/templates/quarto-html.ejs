@@ -382,7 +382,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
         gutterDiv.style.position = 'absolute';
         gutterDiv.style.top = top - 1 + "px";
         gutterDiv.style.height = height + 4 + "px";
-        const gutter = doc.querySelector('.code-annotation-gutter');
+        const codeCell = doc.getElementById(targetCell);
+        const gutter = codeCell.querySelector('.code-annotation-gutter');
         gutter.appendChild(gutterDiv);
       }
     }
