@@ -45,7 +45,10 @@ local kLangCommentChars = {
   haskell = {"--"},
   dot = {"//"},
   mermaid = {"%%"},
-  apl = {"⍝"}
+  apl = {"⍝"},
+  yaml = {"#"},
+  json = {"//"},
+  latex = {"%"}
 }
 
 local kDataCodeCellTarget = 'data-code-cell'
@@ -192,7 +195,6 @@ local function resolveCellAnnotes(codeBlockEl)
     end
     return codeBlockEl, annotations 
   elseif lang then
-    warn("Unknown language " .. lang .. " when attempting to read code annotations. Any annotations will be ignored.")
     return codeBlockEl, {}
   end
   
