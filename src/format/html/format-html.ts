@@ -741,21 +741,6 @@ function processCodeAnnotations(format: Format, doc: Document) {
       },
     );
 
-    Object.keys(definitionLists).forEach((codeblockId) => {
-      const dlEl = definitionLists[codeblockId];
-
-      const codeDivEl = doc.getElementById(codeblockId);
-      if (codeDivEl) {
-        if (dlEl.previousSibling !== codeDivEl) {
-          dlEl.remove();
-          codeDivEl.parentElement?.insertBefore(
-            dlEl,
-            codeDivEl.nextSibling,
-          );
-        }
-      }
-    });
-
     Object.values(definitionLists).forEach((dl) => {
       dl.classList.add(kCodeAnnotationGridClz);
     });

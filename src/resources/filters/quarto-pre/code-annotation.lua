@@ -312,11 +312,29 @@ function code()
       -- annotations[annotation-number] = {list of line numbers}
       local pendingAnnotations = nil
       local pendingCellId = nil
+      local pendingCodeCell = nil
       local idCounter = 1
 
       local clearPending = function() 
         pendingAnnotations = nil
         pendingCellId = nil
+        pendingCodeCell = nil
+      end
+
+      local outputBlockClearPending = function(block)
+        if pendingCodeCell then
+          outputs:insert(pendingCodeCell)
+        end
+        outputs:insert(block)
+        clearPending()
+      end
+
+      local outputBlock = function(block)
+        outputs:insert(block)
+      end
+
+      local allOutputs = function()
+        return outputs
       end
 
       local resolveCellId = function(identifier) 
@@ -357,6 +375,7 @@ function code()
       for i, block in ipairs(blocks) do
         if block.t == 'Div' and block.attr.classes:find('cell') then
           -- walk to find the code and 
+          local processedAnnotation = false
           local resolvedBlock = pandoc.walk_block(block, {
             CodeBlock = function(el)
               if el.attr.classes:find('cell-code') then
@@ -364,13 +383,18 @@ function code()
                 local cellId = resolveCellId(el.attr.identifier)
                 local codeCell = processCodeCell(el, cellId)
                 if codeCell then
+                  processedAnnotation = true
                   codeCell.attr.identifier = cellId;
                 end
                 return codeCell
               end
             end
           })
-          outputs:insert(resolvedBlock)
+          if processedAnnotation then
+            pendingCodeCell = resolvedBlock
+          else
+            outputBlock(resolvedBlock)
+          end
         elseif block.t == 'CodeBlock'  then
           -- don't process code cell output here - we'll get it above
           if not block.attr.classes:find('cell-code') then
@@ -379,14 +403,12 @@ function code()
             local codeCell = processCodeCell(block, cellId)
             if codeCell then
               codeCell.attr.identifier = cellId;
-              outputs:insert(codeCell)
+              outputBlock(codeCell)
             else
-              outputs:insert(block)
-              clearPending()
+              outputBlockClearPending(block)
             end
           else
-            outputs:insert(block)
-            clearPending()
+            outputBlockClearPending(block)
           end
         elseif block.t == 'OrderedList' and pendingAnnotations ~= nil and next(pendingAnnotations) ~= nil then
           -- There are pending annotations, which means this OL is immediately after
@@ -442,16 +464,20 @@ function code()
 
           -- add the definition list
           local dl = pandoc.DefinitionList(items)
-          outputs:insert(dl)
 
-          -- annotations were processed
-          clearPending()
+          -- if there is a pending code cell, then insert into that and add it
+          if pendingCodeCell ~= nil then
+            pendingCodeCell.content:insert(2, dl)
+            outputBlock(pendingCodeCell)
+            clearPending();
+          else
+            outputBlockClearPending(dl)
+          end
         else
-          outputs:insert(block)
-          clearPending()
+          outputBlockClearPending(block)
         end
       end
-      return outputs
+      return allOutputs()
     end
   }
 end
