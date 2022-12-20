@@ -352,6 +352,8 @@ function code()
         end
       end
 
+      -- TODO: Reorder cell-output-display
+
       for i, block in ipairs(blocks) do
         if block.t == 'Div' and block.attr.classes:find('cell') then
           -- walk to find the code and 
@@ -414,11 +416,19 @@ function code()
               -- compute the definition for the DD
               local definitionContent = v[1].content 
               local annotationToken = tostring(i);
-              local definition = pandoc.Span(definitionContent, {
-                [kDataCodeCellTarget] = pendingCellId,
-                [kDataCodeCellLines] = lineNumMeta.lineNumbers,
-                [kDataCodeCellAnnotation] = annotationToken
-              });
+
+              -- Only output span for certain formats (HTML)
+              -- for markdown / gfm we should drop the spans
+              local definition = nil
+              if _quarto.format.isHtmlOutput() then
+                definition = pandoc.Span(definitionContent, {
+                  [kDataCodeCellTarget] = pendingCellId,
+                  [kDataCodeCellLines] = lineNumMeta.lineNumbers,
+                  [kDataCodeCellAnnotation] = annotationToken
+                });
+              else 
+                definition = pandoc.Plain(definitionContent)
+              end
 
               -- find the lines that annotate this and convert to a DL
               items:insert({
