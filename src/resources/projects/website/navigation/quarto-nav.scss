@@ -285,7 +285,7 @@ $sidebar-section-bottom-margin: 0.2em;
   margin-bottom: 0.5rem;
 }
 
-// Toggle the top secondar navigation bar
+// Toggle the top secondary navigation bar
 @include media-breakpoint-down(md) {
   .quarto-secondary-nav {
     display: block;
