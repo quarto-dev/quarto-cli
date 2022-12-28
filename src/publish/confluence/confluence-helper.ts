@@ -112,7 +112,7 @@ export const tokenFilterOut = (
 
 export const confluenceParentFromString = (url: string): ConfluenceParent => {
   const match = url.match(
-    /^https.*?wiki\/spaces\/(?:(\w+)|(\w+)\/overview|.(\w+)\/pages\/(\d+).*)$/
+    /^https.*?wiki\/spaces\/(?:(\w+)|(\w+)\/overview|~?(\w+)\/pages\/(\d+).*)$/
   );
   if (match) {
     return {
