@@ -265,7 +265,7 @@ unitTest("confluenceParentFromString_valid", async () => {
     "https://allenmanning.atlassian.net/wiki/spaces/~QUARTOCONF/pages/8781825/Markdown+Basics1";
   const result = confluenceParentFromString(url);
   const expected: ConfluenceParent = {
-    space: "QUARTOCONF",
+    space: "~QUARTOCONF",
     parent: "8781825",
   };
   assertEquals(expected, result);
