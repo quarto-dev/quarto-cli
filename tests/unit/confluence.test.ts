@@ -260,6 +260,18 @@ unitTest("confluenceParentFromString_valid", async () => {
   assertEquals(expected, result);
 });
 
+unitTest("confluenceParentFromString_valid", async () => {
+  const url =
+    "https://allenmanning.atlassian.net/wiki/spaces/~QUARTOCONF/pages/8781825/Markdown+Basics1";
+  const result = confluenceParentFromString(url);
+  const expected: ConfluenceParent = {
+    space: "QUARTOCONF",
+    parent: "8781825",
+  };
+  assertEquals(expected, result);
+});
+
+
 unitTest("confluenceParentFromString_valid_noParent", async () => {
   const url = "https://allenmanning.atlassian.net/wiki/spaces/QUARTOCONF";
   const result = confluenceParentFromString(url);
