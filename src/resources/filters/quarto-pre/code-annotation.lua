@@ -471,7 +471,6 @@ function code()
           if pendingCodeCell ~= nil then
             -- wrap the definition list in a cell
             local dlDiv = pandoc.Div({dl}, pandoc.Attr("", {kCellAnnotationClass}))
-            quarto.log.output(dlDiv)
             pendingCodeCell.content:insert(2, dlDiv)
             outputBlock(pendingCodeCell)
             clearPending();
