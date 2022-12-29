@@ -61,6 +61,8 @@ local kCodeLines = "code-lines"
 
 local hasAnnotations = false;
 
+local kCellAnnotationClass = "cell-annotation"
+
 -- annotations appear at the end of the line and are of the form
 -- # <1> 
 -- where they start with a comment character valid for that code cell
@@ -467,7 +469,10 @@ function code()
 
           -- if there is a pending code cell, then insert into that and add it
           if pendingCodeCell ~= nil then
-            pendingCodeCell.content:insert(2, dl)
+            -- wrap the definition list in a cell
+            local dlDiv = pandoc.Div({dl}, pandoc.Attr("", {kCellAnnotationClass}))
+            quarto.log.output(dlDiv)
+            pendingCodeCell.content:insert(2, dlDiv)
             outputBlock(pendingCodeCell)
             clearPending();
           else

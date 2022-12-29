@@ -3,7 +3,7 @@ title: Test Code Annotation
 author: Norah Jones
 date: last-modified
 format: html
-code-annotations: select
+code-annotations: below
 code-line-numbers: false
 keep-tex: true
 ---
