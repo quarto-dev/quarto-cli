@@ -83,6 +83,10 @@
 
 - `quarto.version()` now returns `Version` object that simplifies comparison (thank you @tarleb)
 
+## HTML Output
+
+- HTML output will not decorate links within source code (for example, from `code-link: true`) with external icons. (#3755)
+
 ## Miscellaneous
 
 - Work around pandoc strict checking of `number-offset` type. ([#3126](https://github.com/quarto-dev/quarto-cli/issues/3126))
