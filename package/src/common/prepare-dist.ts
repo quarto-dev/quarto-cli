@@ -145,6 +145,8 @@ function inlineFilters(config: Configuration) {
   const filtersToInline: Filter[] = [
     { name: "main", dir: "." },
     { name: "pagebreak", dir: "rmarkdown" },
+    { name: "quarto-init" },
+    { name: "crossref" },
   ];
 
   filtersToInline.forEach((filter) => {
