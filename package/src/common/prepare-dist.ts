@@ -144,14 +144,7 @@ function inlineFilters(config: Configuration) {
   const outDir = join(config.directoryInfo.share, "filters");
   const filtersToInline: Filter[] = [
     { name: "main", dir: "." },
-    // { name: "quarto-init" },
-    // { name: "normalize" },
-    // { name: "quarto-pre" },
-    // { name: "crossref" },
-    // { name: "layout" },
-    // { name: "quarto-post" },
-    // { name: "pagebreak", dir: "rmarkdown" },
-    // { name: "quarto-finalize" },
+    { name: "pagebreak", dir: "rmarkdown" },
   ];
 
   filtersToInline.forEach((filter) => {
