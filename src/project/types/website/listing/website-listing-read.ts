@@ -6,7 +6,14 @@
 *
 */
 import { debug, warning } from "log/mod.ts";
-import { basename, dirname, extname, join, relative } from "path/mod.ts";
+import {
+  basename,
+  dirname,
+  extname,
+  isAbsolute,
+  join,
+  relative,
+} from "path/mod.ts";
 import { cloneDeep, orderBy } from "../../../../core/lodash.ts";
 import { existsSync } from "fs/mod.ts";
 
@@ -15,6 +22,7 @@ import {
   filterPaths,
   pathWithForwardSlashes,
   resolvePathGlobs,
+  safeExistsSync,
 } from "../../../../core/path.ts";
 import {
   inputTargetIndex,
@@ -554,11 +562,23 @@ async function readContents(
     // of everything in the directory
     if (hasInputs || hasDefaultGlob) {
       // If this is a glob, expand it
-      return filterPaths(
+      const filtered = filterPaths(
         dirname(source),
         inputsWithoutSource,
         finalGlobs,
       );
+
+      // If a glob points to a file that exists, go ahead and just include
+      // that, even if it isn't a project input
+      for (const glob of finalGlobs) {
+        if (safeExistsSync(glob)) {
+          filtered.include.push(
+            isAbsolute(glob) ? glob : join(Deno.cwd(), glob),
+          );
+        }
+      }
+
+      return filtered;
     } else {
       return resolvePathGlobs(
         dirname(source),
