@@ -340,6 +340,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     return selector;
   }
 
+  let selectedAnnoteEl;
   const selectCodeLines = (annoteEl) => {
     const doc = window.document;
     const targetCell = annoteEl.getAttribute("data-target-cell");
@@ -369,23 +370,32 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       }
 
       if (top !== null && height !== null && parent !== null) {
-        // cook up a div an position it
-        const div = doc.createElement("div");
-        div.setAttribute("id", "code-annotation-line-highlight");
-        div.style.position = 'absolute';
+        // cook up a div (if necessary) and position it 
+        let div = doc.getElementById("code-annotation-line-highlight");
+        if (div === null) {
+          div = doc.createElement("div");
+          div.setAttribute("id", "code-annotation-line-highlight");
+          div.style.position = 'absolute';
+          parent.appendChild(div);
+        }
         div.style.top = top - 1 + "px";
         div.style.height = height + 4 + "px";
-        parent.appendChild(div);
+        
 
-        const gutterDiv = doc.createElement("div");
-        gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
-        gutterDiv.style.position = 'absolute';
+        let gutterDiv = doc.getElementById("code-annotation-line-highlight-gutter");
+        if (gutterDiv === null) {
+          gutterDiv = doc.createElement("div");
+          gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+          gutterDiv.style.position = 'absolute';
+          const codeCell = doc.getElementById(targetCell);
+          const gutter = codeCell.querySelector('.code-annotation-gutter');
+          gutter.appendChild(gutterDiv);
+        }
+
         gutterDiv.style.top = top - 1 + "px";
         gutterDiv.style.height = height + 4 + "px";
-        const codeCell = doc.getElementById(targetCell);
-        const gutter = codeCell.querySelector('.code-annotation-gutter');
-        gutter.appendChild(gutterDiv);
       }
+      selectedAnnoteEl = annoteEl;
     }
   };
 
@@ -397,7 +407,38 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
         div.remove();
       }
     });
+    selectedAnnoteEl = undefined;
   };
+
+  // Handle positioning of the toggle
+  window.addEventListener(
+  "resize",
+  throttle(() => {
+    elRect = undefined;
+    if (selectedAnnoteEl) {
+      selectCodeLines(selectedAnnoteEl);
+    }
+  }, 10)
+  );
+
+  function throttle(fn, ms) {
+   let throttle = false;
+   let timer;
+
+    return (...args) => {
+      if(!throttle) { // first call gets through
+          fn.apply(this, args);
+          throttle = true;
+      } else { // all the others get throttled
+          if(timer) clearTimeout(timer); // cancel #2
+          timer = setTimeout(() => {
+            fn.apply(this, args);
+            timer = throttle = false;
+          }, ms);
+      }
+    };
+  }
+
 
 
   const annoteTargets = window.document.querySelectorAll('.code-annotation-anchor');
