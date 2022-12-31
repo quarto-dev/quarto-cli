@@ -571,7 +571,7 @@ async function readContents(
       // If a glob points to a file that exists, go ahead and just include
       // that, even if it isn't a project input
       for (const glob of finalGlobs) {
-        if (safeExistsSync(glob)) {
+        if (safeExistsSync(glob) && Deno.statSync(glob).isFile) {
           filtered.include.push(
             isAbsolute(glob) ? glob : join(Deno.cwd(), glob),
           );
