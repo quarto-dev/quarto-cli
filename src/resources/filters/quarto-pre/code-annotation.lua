@@ -165,14 +165,14 @@ local function resolveCellAnnotes(codeBlockEl, processAnnotation)
       else
         outputs:insert(line)
       end
-    end      
+    end    
 
     -- if we capture annotations, then replace the code source
     -- code, stripping annotation comments
     if #annotations then
       local outputText = ""
       for i, output in ipairs(outputs) do
-        outputText = outputText .. '\n' .. output
+        outputText = outputText .. output .. '\n'
       end
 
       -- For HTML and PDF output, we have special handling that doesn't depend
