@@ -853,6 +853,15 @@ export async function runPandoc(
     );
   });
 
+  // Ensure that citationMetadat is expanded into
+  // and object for downstream use
+  if (
+    typeof (pandocMetadata[kCitation]) === "boolean" &&
+    pandocMetadata[kCitation] === true
+  ) {
+    pandocMetadata[kCitation] = {};
+  }
+
   // Expand citation dates into CSL dates
   const citationMetadata = pandocMetadata[kCitation];
   if (citationMetadata) {
