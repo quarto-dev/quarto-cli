@@ -1,7 +1,5 @@
--- crossref.lua
+-- crossref-standalone.lua
 -- Copyright (C) 2020-2023 Posit Software, PBC
-
--- this is the standalone version of our crossref filters, used in the IDEs for auto-completion
 
 -- required version
 PANDOC_VERSION:must_be_at_least '2.13'

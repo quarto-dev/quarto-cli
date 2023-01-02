@@ -1,5 +1,5 @@
 -- main.lua
--- Copyright (C) 2020 by RStudio, PBC
+-- Copyright (C) 2020-2023 Posit Software, PBC
 
 -- required version
 PANDOC_VERSION:must_be_at_least '2.13'
@@ -102,7 +102,12 @@ import("./crossref/refs.lua")
 import("./crossref/meta.lua")
 import("./crossref/format.lua")
 import("./crossref/options.lua")
-import("./crossref/crossref.lua")
+--import("./crossref/crossref.lua")
+
+crossref = {
+  usingTheorems = false,
+  startAppendix = nil
+}
 
 import("./quarto-pre/bibliography-formats.lua")
 import("./quarto-pre/book-links.lua")
