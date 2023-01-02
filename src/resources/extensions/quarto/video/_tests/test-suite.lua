@@ -65,9 +65,9 @@ function TestYouTubeBuilder:testShareURL()
   checkYouTubeBuilder(params, expected)
 end
 
-function TestYouTubeBuilder:testShareURL()
+function TestYouTubeBuilder:testWebRawURL()
   local params = {
-    src = 'https://youtu.be/wo9vZccmqwc'
+    src = 'https://www.youtube.com/watch?v=wo9vZccmqwc'
   }
   local expected = SIMPLE_YOUTUBE_EXPECTED
   checkYouTubeBuilder(params, expected)
