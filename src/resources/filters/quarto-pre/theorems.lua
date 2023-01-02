@@ -2,7 +2,7 @@
 -- Copyright (C) 2021-2022 Posit Software, PBC
 
 
-function theorems() 
+function quartoPreTheorems() 
   
   return {
     Div = function(el)

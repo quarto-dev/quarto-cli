@@ -13,21 +13,10 @@ function import(script)
   dofile(path .. script)
 end
 
-import("../common/pandoc.lua")
-import("../common/string.lua")
-import("../common/table.lua")
-import("../common/lunacolors.lua")
-import("../common/log.lua")
-import("../common/base64.lua")
-import("../common/meta.lua")
-import("../common/debug.lua")
-import("../common/authors.lua")
-import("../common/citations.lua")
-import("../common/license.lua")
 -- [/import]
 
-return {
-  {
+function normalizeFilter() 
+  return {
     Meta = function(meta)
       -- normalizes the author/affiliation metadata
       local normalized = processAuthorMeta(meta)
@@ -52,5 +41,5 @@ return {
       return normalized
     end
   }
-}
+end
 

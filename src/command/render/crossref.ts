@@ -20,14 +20,11 @@ import { PandocOptions } from "./types.ts";
 import {
   crossrefIndexForOutputFile,
   kCrossrefIndexFile,
+  kCrossrefInputType,
 } from "../../project/project-crossrefs.ts";
 import { pandocMetadataPath } from "./render-paths.ts";
 import { isMultiFileBookFormat } from "../../project/types/book/book-shared.ts";
 import { projectIsBook } from "../../project/project-context.ts";
-
-export function crossrefFilter() {
-  return resourcePath("filters/crossref/crossref.lua");
-}
 
 export function crossrefFilterActive(options: PandocOptions) {
   return options.format.metadata.crossref !== false;
@@ -92,6 +89,12 @@ export function crossrefFilterParams(
     if (crossrefIndex) {
       params[kCrossrefIndexFile] = pandocMetadataPath(crossrefIndex);
     }
+  }
+
+  // caller may have requested a special input type
+  const crossrefInputType = Deno.env.get("QUARTO_CROSSREF_INPUT_TYPE");
+  if (crossrefInputType) {
+    params[kCrossrefInputType] = crossrefInputType;
   }
 
   return params;

@@ -6,7 +6,7 @@
 */
 import { existsSync } from "node/fs.ts";
 import { dirname } from "path/mod.ts";
-import { testQuartoCmd } from "../../test.ts";
+import { testQuartoCmd, Verify } from "../../test.ts";
 import { siteOutputForInput } from "../../utils.ts";
 import { ensureHtmlElements, noErrorsOrWarnings } from "../../verify.ts";
 
@@ -15,6 +15,7 @@ export const testSite = (
   renderTarget: string,
   includeSelectors: string[],
   excludeSelectors: string[],
+  ...verify: Verify[]
 ) => {
   const output = siteOutputForInput(input);
 
@@ -28,7 +29,7 @@ export const testSite = (
   testQuartoCmd(
     "render",
     [renderTarget],
-    [noErrorsOrWarnings, verifySel],
+    [noErrorsOrWarnings, verifySel, ...verify],
     {
       teardown: async () => {
         const siteDir = dirname(output.outputPath);

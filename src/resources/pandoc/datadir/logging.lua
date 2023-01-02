@@ -73,12 +73,12 @@ logging.spairs = function(list, comp)
 end
 
 -- helper function to dump a value with a prefix (recursive)
--- XXX should detect repetition/recursion
 -- XXX would like maxlen logic to apply at all levels? but not trivial
-local function dump_(prefix, value, maxlen, level, add)
+local function dump_(prefix, value, maxlen, level, add, visited)
     local buffer = {}
     if prefix == nil then prefix = '' end
     if level == nil then level = 0 end
+    if visited == nil then visited = {} end
     if add == nil then add = function(item) table.insert(buffer, item) end end
     local indent = maxlen and '' or ('  '):rep(level)
 
@@ -88,13 +88,13 @@ local function dump_(prefix, value, maxlen, level, add)
     -- don't explicitly indicate 'obvious' typenames
     local typ = (({boolean=1, number=1, string=1, table=1, userdata=1})
                  [typename] and '' or typename)
-
+    local address = string.format("%p", value)
     -- modify the value heuristically
     if ({table=1, userdata=1})[type(value)] then
         local valueCopy, numKeys, lastKey = {}, 0, nil
         for key, val in pairs(value) do
             -- pandoc >= 2.15 includes 'tag', nil values and functions
-            if key ~= 'tag' and val and type(val) ~= 'function' then
+            if key ~= 'tag' and val then
                 valueCopy[key] = val
                 numKeys = numKeys + 1
                 lastKey = key
@@ -117,41 +117,54 @@ local function dump_(prefix, value, maxlen, level, add)
     local presep = #prefix > 0 and ' ' or ''
     local typsep = #typ > 0 and ' ' or ''
     local valtyp = type(value)
-    if valtyp == 'nil' then
-        add('nil')
-    elseif ({boolean=1, number=1, string=1})[valtyp] then
-        typsep = #typ > 0 and valtyp == 'string' and #value > 0 and ' ' or ''
-        -- don't use the %q format specifier; doesn't work with multi-bytes
-        local quo = typename == 'string' and '"' or ''
-        add(string.format('%s%s%s%s%s%s%s%s', indent, prefix, presep, typ,
-                          typsep, quo, value, quo))
-    elseif ({table=1, userdata=1})[valtyp] then
-        add(string.format('%s%s%s%s%s{', indent, prefix, presep, typ, typsep))
-        -- Attr and Attr.attributes have both numeric and string keys, so
-        -- ignore the numeric ones
-        -- XXX this is no longer the case for pandoc >= 2.15, so could remove
-        --     the special case?
-        local first = true
-        if prefix ~= 'attributes:' and typ ~= 'Attr' then
-            for i, val in ipairs(value) do
-                local pre = maxlen and not first and ', ' or ''
-                local text = dump_(string.format('%s[%s]', pre, i), val,
-                                   maxlen, level + 1, add)
+    if visited[address] then
+        add(string.format('%s%scircular-reference(%s)', indent, prefix, address))
+    else
+        if valtyp == 'nil' then
+            add('nil')
+        elseif ({boolean=1, number=1, string=1})[valtyp] then
+            typsep = #typ > 0 and valtyp == 'string' and #value > 0 and ' ' or ''
+            -- don't use the %q format specifier; doesn't work with multi-bytes
+            local quo = typename == 'string' and '"' or ''
+            add(string.format('%s%s%s%s%s%s%s%s', indent, prefix, presep, typ,
+                              typsep, quo, value, quo))
+        elseif valtyp == 'function' then
+            typsep = #typ > 0 and valtyp == 'string' and #value > 0 and ' ' or ''
+            -- don't use the %q format specifier; doesn't work with multi-bytes
+            local quo = typename == 'string' and '"' or ''
+            add(string.format('%s%s%s%s%s%s', indent, prefix, presep, 
+                              quo, value, quo))
+
+        elseif ({table=1, userdata=1})[valtyp] then
+            visited[address] = true
+            add(string.format('%s%s%s%s%s{', indent, prefix, presep, typ, typsep))
+            -- Attr and Attr.attributes have both numeric and string keys, so
+            -- ignore the numeric ones
+            -- XXX this is no longer the case for pandoc >= 2.15, so could remove
+            --     the special case?
+            local first = true
+            if prefix ~= 'attributes:' and typ ~= 'Attr' then
+                for i, val in ipairs(value) do
+                    local pre = maxlen and not first and ', ' or ''
+                    local text = dump_(string.format('%s[%s]', pre, i), val,
+                                       maxlen, level + 1, add, visited)
+                    first = false
+                end
+            end
+            -- report keys in alphabetical order to ensure repeatability
+            for key, val in logging.spairs(value) do
+                -- pandoc >= 2.15 includes 'tag'
+                if not tonumber(key) and key ~= 'tag' then
+                    local pre = maxlen and not first and ', ' or ''
+                    local text = dump_(string.format('%s%s:', pre, key), val,
+                                       maxlen, level + 1, add, visited)
+                end
                 first = false
             end
+            add(string.format('%s}', indent))
         end
-        -- report keys in alphabetical order to ensure repeatability
-        for key, val in logging.spairs(value) do
-            -- pandoc >= 2.15 includes 'tag'
-            if not tonumber(key) and key ~= 'tag' then
-                local pre = maxlen and not first and ', ' or ''
-                local text = dump_(string.format('%s%s:', pre, key), val,
-                                   maxlen, level + 1, add)
-            end
-            first = false
-        end
-        add(string.format('%s}', indent))
     end
+
     return table.concat(buffer, maxlen and '' or '\n')
 end
 

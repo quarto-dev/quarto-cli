@@ -1,6 +1,134 @@
 -- callout.lua
 -- Copyright (C) 2021-2022 Posit Software, PBC
 
+function calloutType(div)
+  for _, class in ipairs(div.attr.classes) do
+    if isCallout(class) then 
+      local type = class:match("^callout%-(.*)")
+      if type == nil then
+        type = "none"
+      end
+      return type
+    end
+  end
+  return nil
+end
+
+_quarto.ast.add_handler({
+  -- use either string or array of strings
+  class_name = {"callout", "callout-note", "callout-warning", "callout-important", "callout-caution", "callout-tip" },
+
+  -- the name of the ast node, used as a key in extended ast filter tables
+  ast_name = "Callout",
+
+  -- callouts will be rendered as blocks
+  kind = "Block",
+
+  -- a function that takes the div node as supplied in user markdown
+  -- and returns the custom node
+  parse = function(div)
+    preState.hasCallouts = true
+    local caption = resolveHeadingCaption(div)
+    local appearanceRaw = div.attr.attributes["appearance"]
+    local icon = div.attr.attributes["icon"]
+    local collapse = div.attr.attributes["collapse"]
+    div.attr.attributes["appearance"] = nil
+    div.attr.attributes["collapse"] = nil
+    div.attr.attributes["icon"] = nil
+
+    return quarto.Callout({
+      appearance = appearanceRaw,
+      caption = caption,
+      collapse = collapse,
+      content = div.content,
+      icon = icon,
+      type = calloutType(div)
+    })
+  end,
+
+  -- a function that renders the extendedNode into output
+  render = function(node)
+    if _quarto.format.isHtmlOutput() and hasBootstrap() then
+      local result = calloutDiv(node)
+      -- print(pandoc.write(_quarto.ast.from_emulated(pandoc.Pandoc({result})), "html"))
+      return result
+    elseif _quarto.format.isLatexOutput() then
+      return calloutLatex(node)
+    elseif _quarto.format.isDocxOutput() then
+      return calloutDocx(node)
+    elseif _quarto.format.isJatsOutput() then
+      return jatsCallout(node)
+    elseif _quarto.format.isEpubOutput() or _quarto.format.isRevealJsOutput() then
+      return epubCallout(node)
+    else
+      return simpleCallout(node)
+    end
+  end,
+
+  -- a function that takes the extended node and
+  -- returns a table with table-valued attributes
+  -- that represent inner content that should
+  -- be visible to filters.
+  inner_content = function(extended_node)
+    return {
+      content = extended_node.content,
+      caption = extended_node.caption
+    }
+  end,
+
+  -- a function that updates the extended node
+  -- with new inner content (as returned by filters)
+  -- table keys are a subset of those returned by inner_content
+  -- and represent changed values that need to be updated.    
+  set_inner_content = function(extended_node, values)
+    if values.caption then
+      extended_node.caption = values.caption
+    end
+    if values.content then
+      extended_node.content = values.content
+    end
+  end,
+
+  constructor = function(tbl)
+    preState.hasCallouts = true
+
+    local type = tbl.type
+    local iconDefault = true
+    local appearanceDefault = nil
+    if type == "none" then
+      iconDefault = false
+      appearanceDefault = "simple"
+    end
+    local appearanceRaw = tbl.appearance
+    if appearanceRaw == nil then
+      appearanceRaw = option("callout-appearance", appearanceDefault)
+    end
+
+    local icon = tbl.icon
+    if icon == nil then
+      icon = option("callout-icon", iconDefault)
+    elseif icon == "false" then
+      icon = false
+    end
+
+    local appearance = nameForCalloutStyle(appearanceRaw);
+    if appearance == "minimal" then
+      icon = false
+      appearance = "simple"
+    end
+    local content = pandoc.Blocks({})
+    content:extend(tbl.content)
+    return {
+      caption = tbl.caption,
+      collapse = tbl.collapse,
+      content = content,
+      appearance = appearance,
+      icon = icon,
+      type = type,
+    }
+  end
+})
+
 local calloutidx = 1
 
 function callout() 
@@ -14,14 +142,14 @@ function callout()
         local newBlocks = pandoc.List()
         for i,el in ipairs(blocks) do 
           -- determine what this block is
-          local isCallout = el.t == "Div" and el.attr.classes:find_if(isDocxCallout)
+          local isCallout = el.t == "Callout"
           local isTableOrFigure = el.t == "Table" or isFigureDiv(el) or (discoverFigure(el, true) ~= nil)
           local isCodeBlock = el.t == "CodeBlock"
 
           -- Determine whether this is a code cell that outputs a table
           local isCodeCell = el.t == "Div" and el.attr.classes:find_if(isCodeCell)
           if isCodeCell and (isCodeCellTable(el) or isCodeCellFigure(el)) then 
-            isTableOrFigure = true;
+            isTableOrFigure = true
           end
           
           -- insert spacer if appropriate
@@ -46,7 +174,6 @@ function callout()
           -- record last state
           lastWasCallout = isCallout
           lastWasTableOrFigure = isTableOrFigure
-
         end
 
         if #newBlocks > #blocks then
@@ -55,27 +182,8 @@ function callout()
           return nil
         end
       end
-    end,
-
-    -- Convert callout Divs into the appropriate element for this format
-    Div = function(div)
-      if div.attr.classes:find_if(isCallout) then
-        preState.hasCallouts = true
-        if _quarto.format.isHtmlOutput() and hasBootstrap() then
-          return calloutDiv(div) 
-        elseif _quarto.format.isLatexOutput() then
-          return calloutLatex(div)
-        elseif _quarto.format.isDocxOutput() then
-          return calloutDocx(div)
-        elseif _quarto.format.isEpubOutput() or _quarto.format.isRevealJsOutput() then
-          return epubCallout(div)
-        elseif _quarto.format.isJatsOutput() then
-          return jatsCallout(div)
-        else
-          return simpleCallout(div)
-        end
-      end  
     end
+
   }
 end
 
@@ -100,7 +208,7 @@ end
 function isCodeCellTable(el) 
   local isTable = false
   pandoc.walk_block(el, {
-    Div = function(div) 
+    Div = function(div)
       if div.attr.classes:find_if(isCodeCellDisplay) then
         pandoc.walk_block(div, {
           Table = function(tbl)
@@ -129,41 +237,24 @@ function isCodeCellFigure(el)
   return isFigure
 end
 
-function calloutType(div)
-  for _, class in ipairs(div.attr.classes) do
-    if isCallout(class) then 
-      local type = class:match("^callout%-(.*)")
-      if type == nil then
-        type = "none"
-      end
-      return type
-    end
-  end
-  return nil
-end
-
 local kCalloutAppearanceDefault = "default"
 local kCalloutDefaultSimple = "simple"
 local kCalloutDefaultMinimal = "minimal"
 
 -- an HTML callout div
-function calloutDiv(div)
-
+function calloutDiv(node)
   -- the first heading is the caption
-  local caption = resolveHeadingCaption(div)
-  local type = calloutType(div)
-
-  -- the callout type
-  local processedCallout = processCalloutDiv(div)
-  local calloutAppearance = processedCallout.appearance
-  local icon = processedCallout.icon
+  local div = pandoc.Div({})
+  div.content:extend(node.content)
+  local caption = node.caption
+  local type = node.type
+  local calloutAppearance = node.appearance
+  local icon = node.icon
+  local collapse = node.collapse
 
   if calloutAppearance == kCalloutAppearanceDefault and caption == nil then
     caption = displayName(type)
   end
-
-  local collapse = div.attr.attributes["collapse"]
-  div.attr.attributes["collapse"] = nil
 
   -- Make an outer card div and transfer classes and id
   local calloutDiv = pandoc.Div({})
@@ -175,6 +266,9 @@ function calloutDiv(div)
   -- add card attribute
   calloutDiv.attr.classes:insert("callout")
   calloutDiv.attr.classes:insert("callout-style-" .. calloutAppearance)
+  if node.type ~= nil then
+    calloutDiv.attr.classes:insert("callout-" .. node.type)
+  end
 
   -- the image placeholder
   local noicon = ""
@@ -208,7 +302,7 @@ function calloutDiv(div)
 
       -- collapse default value     
       local expandedAttrVal= "true"
-      if collapse == "true" then
+      if collapse == "true" or collapse == true then
         expandedAttrVal = "false"
       end
 
@@ -244,7 +338,6 @@ function calloutDiv(div)
     -- add the header and body to the div
     calloutDiv.content:insert(headerDiv)
     calloutDiv.content:insert(bodyDiv)
-
   else 
     -- show an uncaptioned callout
   
@@ -260,15 +353,13 @@ function calloutDiv(div)
 end
 
 -- Latex callout
-function calloutLatex(div)
-  
+function calloutLatex(node)
   -- read and clear attributes
-  local caption = resolveHeadingCaption(div)
-  local type = calloutType(div)
-
-  local processedCallout = processCalloutDiv(div)
-  local calloutAppearance = processedCallout.appearance
-  local icon = processedCallout.icon
+  local caption = node.caption
+  local type = node.type
+  local calloutAppearance = node.appearance
+  local icon = node.icon
+  local div = pandoc.Div({})
 
   div.attr.attributes["caption"] = nil
   div.attr.attributes["collapse"] = nil
@@ -292,7 +383,7 @@ function calloutLatex(div)
     calloutContents = pandoc.List({})
   end
 
-  tappend(calloutContents, div.content)
+  tappend(calloutContents, node.content)
   
   if calloutContents[1] ~= nil and calloutContents[1].t == "Para" and calloutContents[#calloutContents].t == "Para" then
     tprepend(calloutContents, { pandoc.Plain(beginEnvironment) })
@@ -301,7 +392,6 @@ function calloutLatex(div)
     tprepend(calloutContents, { pandoc.Para(beginEnvironment) })
     tappend(calloutContents, { pandoc.Para(endEnvironment) })
   end
-
 
   return pandoc.Div(calloutContents)
 end
@@ -453,23 +543,21 @@ function processCalloutDiv(div)
 
 end
 
-function calloutDocx(div)
-  local type = calloutType(div)
-  local processedCallout = processCalloutDiv(div)
-  local appearance = processedCallout.appearance
-  local hasIcon = processedCallout.icon 
+function calloutDocx(node)
+  local type = node.type
+  local appearance = node.appearance
+  local hasIcon = node.icon 
 
   if appearance == kCalloutAppearanceDefault then
-    return calloutDocxDefault(div, type, hasIcon)
+    return calloutDocxDefault(node, type, hasIcon)
   else
-    return calloutDocxSimple(div, type, hasIcon)
+    return calloutDocxSimple(node, type, hasIcon)
   end
 end
 
-
-function calloutDocxDefault(div, type, hasIcon)
-
-  local caption = resolveHeadingCaption(div)  
+function calloutDocxDefault(node, type, hasIcon)
+  local div = pandoc.Div({})
+  local caption = node.caption
   local color = htmlColorForType(type)
   local backgroundColor = htmlBackgroundColorForType(type)
 
@@ -577,10 +665,10 @@ function calloutDocxDefault(div, type, hasIcon)
 end
 
 
-function calloutDocxSimple(div, type, hasIcon) 
-
+function calloutDocxSimple(node, type, hasIcon) 
+  local div = pandoc.Div({})
   local color = htmlColorForType(type)
-  local caption = resolveHeadingCaption(div)  
+  local caption = node.caption
 
   local tablePrefix = [[
     <w:tbl>
@@ -634,7 +722,8 @@ function calloutDocxSimple(div, type, hasIcon)
   end
   
   -- convert to open xml paragraph
-  local contents = div.content;
+  local contents = pandoc.List({}) -- use as pandoc.List() for find_if
+  contents:extend(node.content)
   removeParagraphPadding(contents)
   
   -- ensure there are no nested callouts
@@ -651,15 +740,12 @@ function calloutDocxSimple(div, type, hasIcon)
   return callout
 end
 
-function epubCallout(div)
-  -- read the caption and type info
-  local caption = resolveHeadingCaption(div)
-  local type = calloutType(div)
-  
-  -- the callout type
-  local processedCallout = processCalloutDiv(div)
-  local calloutAppearance = processedCallout.appearance
-  local hasIcon = processedCallout.icon
+function epubCallout(node)
+  local div = pandoc.Div({})
+  local caption = node.caption
+  local type = node.type
+  local calloutAppearance = node.appearance
+  local hasIcon = node.icon
 
   if calloutAppearance == kCalloutAppearanceDefault and caption == nil then
     caption = displayName(type)
@@ -686,7 +772,7 @@ function epubCallout(div)
   end
 
   -- contents 
-  local calloutContents = pandoc.Div(div.content, pandoc.Attr("", {"callout-content"}))
+  local calloutContents = pandoc.Div(node.content, pandoc.Attr("", {"callout-content"}))
   calloutBody.content:insert(calloutContents)
 
   -- set attributes (including hiding icon)
@@ -706,8 +792,9 @@ function epubCallout(div)
   return pandoc.Div({calloutBody}, pandoc.Attr(div.attr.identifier, attributes))
 end
 
-function jatsCallout(div)
-  local icon, type, contents = resolveCalloutContents(div, true)
+function jatsCallout(node)
+  local div = pandoc.Div({})
+  local contents = resolveCalloutContents(node, true)
 
   local boxedStart = '<boxed-text>'
   if div.attr.identifier and div.attr.identifier ~= '' then
@@ -719,27 +806,27 @@ function jatsCallout(div)
   return pandoc.Div(contents)
 end
 
-function simpleCallout(div) 
-  local icon, type, contents = resolveCalloutContents(div, true)
+function simpleCallout(node) 
+  local div = pandoc.Div({})
+  local contents = resolveCalloutContents(node, true)
   local callout = pandoc.BlockQuote(contents)
   return pandoc.Div(callout, pandoc.Attr(div.attr.identifier))
 end
 
-function resolveCalloutContents(div, requireCaption)
-  local caption = resolveHeadingCaption(div)
-  local type = calloutType(div)
-  local icon = div.attr.attributes["icon"]
+function resolveCalloutContents(node, requireCaption)
+  local div = node.div
+  local caption = node.caption
   
   div.attr.attributes["caption"] = nil
   div.attr.attributes["icon"] = nil
   div.attr.attributes["collapse"] = nil
 
-  local contents = pandoc.List({});
+  local contents = pandoc.List({})
     
   -- Add the captions and contents
-  -- classname 
+  -- class_name 
   if caption == nil and requireCaption then 
----@diagnostic disable-next-line: need-check-nil
+    ---@diagnostic disable-next-line: need-check-nil
     caption = stringToInlines(type:sub(1,1):upper()..type:sub(2))
   end
   
@@ -749,7 +836,7 @@ function resolveCalloutContents(div, requireCaption)
   end
   tappend(contents, div.content)
 
-  return icon, type, contents
+  return contents
 end
 
 function removeParagraphPadding(contents) 
@@ -771,7 +858,7 @@ function removeParagraphPadding(contents)
   end
 end
 
-function openXmlPara(para, spacing) 
+function openXmlPara(para, spacing)
   local xmlPara = pandoc.Para({
     pandoc.RawInline("openxml", "<w:pPr>\n<w:spacing " .. spacing .. "/>\n</w:pPr>")
   })
@@ -822,88 +909,79 @@ function docxCalloutImage(type)
   end
 end
 
-function htmlColorForType(type) 
-  if type == 'note' then
-    return kColorNote
-  elseif type == "warning" then
-    return kColorWarning
-  elseif type == "important" then
-    return kColorImportant
-  elseif type == "caution" then
-    return kColorCaution
-  elseif type == "tip" then 
-    return kColorTip
-  else
-    return kColorUnknown
+local callout_attrs = {
+  note = {
+    color = kColorNote,
+    background_color = kBackgroundColorNote,
+    latex_color = "quarto-callout-note-color",
+    latex_frame_color = "quarto-callout-note-color-frame",
+    fa_icon = "faInfo"
+  },
+  warning = {
+    color = kColorWarning,
+    background_color = kBackgroundColorWarning,
+    latex_color = "quarto-callout-warning-color",
+    latex_frame_color = "quarto-callout-warn-coloring-frame",
+    fa_icon = "faExclamationTriangle"
+  },
+  important = {
+    color = kColorImportant,
+    background_color = kBackgroundColorImportant,
+    latex_color = "quarto-callout-important-color",
+    latex_frame_color = "quarto-callout-impo-colorrtant-frame",
+    fa_icon = "faExclamation"
+  },
+  caution = {
+    color = kColorCaution,
+    background_color = kBackgroundColorCaution,
+    latex_color = "quarto-callout-caution-color",
+    latex_frame_color = "quarto-callout-caut-colorion-frame",
+    fa_icon = "faFire"
+  },
+  tip = {
+    color = kColorTip,
+    background_color = kBackgroundColorTip,
+    latex_color = "quarto-callout-tip-color",
+    latex_frame_color = "quarto-callout-tip--colorframe",
+    fa_icon = "faLightbulb"
+  },
+
+  __other = {
+    color = kColorUnknown,
+    background_color = kColorUnknown,
+    latex_color = "quarto-callout-color",
+    latex_color_frame = "quarto-callout-color-frame",
+    fa_icon = nil
+  }
+}
+
+setmetatable(callout_attrs, {
+  __index = function(tbl, key)
+    return tbl.__other
   end
+})
+
+function htmlColorForType(type) 
+  return callout_attrs[type].color
 end
 
 function htmlBackgroundColorForType(type)
-  if type == 'note' then
-    return kBackgroundColorNote
-  elseif type == "warning" then
-    return kBackgroundColorWarning
-  elseif type == "important" then
-    return kBackgroundColorImportant
-  elseif type == "caution" then
-    return kBackgroundColorCaution
-  elseif type == "tip" then 
-    return kBackgroundColorTip
-  else
-    return kColorUnknown
-  end
+  return callout_attrs[type].background_color
 end
 
 function latexColorForType(type) 
-  if type == 'note' then
-    return "quarto-callout-note-color"
-  elseif type == "warning" then
-    return "quarto-callout-warning-color"
-  elseif type == "important" then
-    return "quarto-callout-important-color"
-  elseif type == "caution" then
-    return "quarto-callout-caution-color"
-  elseif type == "tip" then 
-    return "quarto-callout-tip-color"
-  else
-    return "quarto-callout-color"
-  end
+  return callout_attrs[type].latex_color
 end
 
 function latexFrameColorForType(type) 
-  if type == 'note' then
-    return "quarto-callout-note-color-frame"
-  elseif type == "warning" then
-    return "quarto-callout-warning-color-frame"
-  elseif type == "important" then
-    return "quarto-callout-important-color-frame"
-  elseif type == "caution" then
-    return "quarto-callout-caution-color-frame"
-  elseif type == "tip" then 
-    return "quarto-callout-tip-color-frame"
-  else
-    return "quarto-callout-color-frame"
-  end
+  return callout_attrs[type].latex_color_frame
 end
-
 
 function iconForType(type) 
-  if type == 'note' then
-    return "faInfo"
-  elseif type == "warning" then
-    return "faExclamationTriangle"
-  elseif type == "important" then
-    return "faExclamation"
-  elseif type == "caution" then
-    return "faFire"
-  elseif type == "tip" then 
-    return "faLightbulb"
-  else
-    return nil
-  end
+  return callout_attrs[type].fa_icon
 end
 
-function isBuiltInType(type) 
+function isBuiltInType(type)
   local icon = iconForType(type)
   return icon ~= nil
 end
