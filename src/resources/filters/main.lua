@@ -4,6 +4,11 @@
 -- required version
 PANDOC_VERSION:must_be_at_least '2.13'
 
+crossref = {
+  usingTheorems = false,
+  startAppendix = nil
+}
+
 -- [import]
 function import(script)
   local path = PANDOC_SCRIPT_FILE:match("(.*[/\\])")
@@ -88,7 +93,6 @@ import("./layout/columns.lua")
 import("./layout/options.lua")
 import("./layout/columns-preprocess.lua")
 import("./layout/layout.lua")
-
 import("./crossref/index.lua")
 import("./crossref/preprocess.lua")
 import("./crossref/sections.lua")
@@ -104,10 +108,6 @@ import("./crossref/format.lua")
 import("./crossref/options.lua")
 --import("./crossref/crossref.lua")
 
-crossref = {
-  usingTheorems = false,
-  startAppendix = nil
-}
 
 import("./quarto-pre/bibliography-formats.lua")
 import("./quarto-pre/book-links.lua")
