@@ -25,7 +25,7 @@ import {
   WrappedResult,
 } from "./types.ts";
 
-import { DESCENDANT_LIMIT } from "../constants.ts";
+import { DESCENDANT_LIMIT, V2EDITOR_METADATA } from "../constants.ts";
 import { logError, trace } from "../confluence-logger.ts";
 
 export class ConfluenceClient {
@@ -75,10 +75,31 @@ export class ConfluenceClient {
     return result?.results ?? [];
   }
 
-  public createContent(content: ContentCreate): Promise<Content> {
+  public createContent(
+    content: ContentCreate,
+    metadata: Record<string, any> = V2EDITOR_METADATA
+  ): Promise<Content> {
+    const toCreate = {
+      ...content,
+      ...metadata,
+    };
+
+    trace("to create", toCreate);
     trace("createContent body", content.body.storage.value);
-    const createBody = JSON.stringify(content);
+    const createBody = JSON.stringify(toCreate);
     return this.post<Content>("content", createBody);
+  }
+
+  public updateContent(
+    content: ContentUpdate,
+    metadata: Record<string, any> = V2EDITOR_METADATA
+  ): Promise<Content> {
+    const toUpdate = {
+      ...content,
+      ...metadata,
+    };
+    trace("updateContent", toUpdate);
+    return this.put<Content>(`content/${content.id}`, JSON.stringify(toUpdate));
   }
 
   public createContentProperty(id: string, content: any): Promise<Content> {
@@ -86,10 +107,6 @@ export class ConfluenceClient {
       `content/${id}/property`,
       JSON.stringify(content)
     );
-  }
-
-  public updateContent(content: ContentUpdate): Promise<Content> {
-    return this.put<Content>(`content/${content.id}`, JSON.stringify(content));
   }
 
   public deleteContent(content: ContentDelete): Promise<Content> {
