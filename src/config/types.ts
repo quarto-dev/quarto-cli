@@ -19,7 +19,9 @@ import {
   kCiteMethod,
   kCiteproc,
   kCodeFold,
+  kCodeLine,
   kCodeLineNumbers,
+  kCodeLines,
   kCodeLink,
   kCodeOverflow,
   kCodeSummary,
@@ -537,6 +539,8 @@ export interface FormatLanguage {
   [kSectionTitleReuse]?: string;
   [kSectionTitleCopyright]?: string;
   [kCodeSummary]?: string;
+  [kCodeLine]?: string;
+  [kCodeLines]?: string;
   [kCodeToolsMenuCaption]?: string;
   [kCodeToolsShowAllCode]?: string;
   [kCodeToolsHideAllCode]?: string;

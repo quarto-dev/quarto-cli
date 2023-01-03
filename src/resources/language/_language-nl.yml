@@ -31,6 +31,9 @@ callout-caution-caption: "Opgelet"
 
 code-summary: "Code"
 
+code-line: "Lijn"
+code-lines: "Lijnen"
+
 code-tools-menu-caption: "Code"
 code-tools-show-all-code: "Alle code tonen"
 code-tools-hide-all-code: "Alle code verbergen"

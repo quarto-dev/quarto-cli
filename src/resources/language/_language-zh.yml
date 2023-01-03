@@ -31,6 +31,9 @@ callout-caution-caption: "警告"
 
 code-summary: "代码"
 
+code-line: "线"
+code-lines: "线条"
+
 code-tools-menu-caption: "代码"
 code-tools-show-all-code: "显示所有代码"
 code-tools-hide-all-code: "隐藏所有代码"

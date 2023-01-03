@@ -37,6 +37,9 @@ code-tools-hide-all-code: "Hide All Code"
 code-tools-view-source: "View Source"
 code-tools-source-code: "Source Code"
 
+code-line: "Line"
+code-lines: "Lines"
+
 copy-button-tooltip: "Copy to Clipboard"
 copy-button-tooltip-success: "Copied!"
 

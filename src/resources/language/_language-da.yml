@@ -31,6 +31,9 @@ callout-caution-caption: "Forsigtig"
 
 code-summary: "Kode"
 
+code-line: "Linje"
+code-lines: "Linjer"
+
 code-tools-menu-caption: "Kode"
 code-tools-show-all-code: "Vis al kode"
 code-tools-hide-all-code: "Skjul al kode"

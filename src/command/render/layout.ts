@@ -12,10 +12,14 @@ import { Format } from "../../config/types.ts";
 import { Metadata } from "../../config/types.ts";
 
 import { HtmlPostProcessResult } from "./types.ts";
-import { hasAdaptiveTheme } from "../../quarto-core/text-highlighting.ts";
+import {
+  hasAdaptiveTheme,
+  hasTextHighlighting,
+} from "../../quarto-core/text-highlighting.ts";
 import { kHtmlEmptyPostProcessResult } from "./constants.ts";
 
 const kAdaptiveTextHighlighting = "adaptive-text-highlighting";
+const kTextHighlighting = "text-highlighting";
 
 export function layoutFilterParams(format: Format) {
   const params: Metadata = {};
@@ -26,6 +30,10 @@ export function layoutFilterParams(format: Format) {
 
   if (hasAdaptiveTheme(format.pandoc)) {
     params[kAdaptiveTextHighlighting] = true;
+  }
+
+  if (hasTextHighlighting(format.pandoc)) {
+    params[kTextHighlighting] = true;
   }
 
   return params;

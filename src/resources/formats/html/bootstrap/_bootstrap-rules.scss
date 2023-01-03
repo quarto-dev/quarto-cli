@@ -1739,6 +1739,105 @@ textarea {
   background-color: var(--bs-body-bg);
 }
 
+// Code Annotation
+
+.code-annotation-gutter-bg {
+  background-color: $body-bg;
+}
+
+.code-annotation-gutter {
+  background-color: $code-block-bg-color;
+}
+
+.code-annotation-gutter,
+.code-annotation-gutter-bg {
+  height: 100%;
+  width: calc(20px + 0.5em);
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+dl.code-annotation-container-grid {
+  dt {
+    margin-right: 1em;
+    margin-top: 0.25rem;
+  }
+}
+
+dl.code-annotation-container-grid dt {
+  font-family: $font-family-code;
+  color: var(--quarto-hl-co-color);
+  border: solid var(--quarto-hl-co-color) 1px;
+  border-radius: 50%;
+  height: 24px;
+  width: 24px;
+  line-height: 24px;
+  font-size: 12px;
+
+  text-align: center;
+  vertical-align: middle;
+
+  text-decoration: none;
+}
+
+pre.code-annotation-code {
+  padding-top: 0;
+  padding-bottom: 0;
+  code {
+    z-index: 3;
+  }
+}
+
+#code-annotation-line-highlight-gutter {
+  width: 100%;
+  border-top: solid $code-annotation-higlight-color 1px;
+  border-bottom: solid $code-annotation-higlight-color 1px;
+  z-index: 2;
+  background-color: $code-annotation-higlight-bg;
+}
+
+#code-annotation-line-highlight {
+  margin-left: -4em;
+  width: calc(100% + 4em);
+  border-top: solid $code-annotation-higlight-color 1px;
+  border-bottom: solid $code-annotation-higlight-color 1px;
+  z-index: 2;
+  background-color: $code-annotation-higlight-bg;
+}
+
+code.sourceCode .code-annotation-anchor.code-annotation-active {
+  background-color: var(--quarto-hl-normal-color, #aaaaaa);
+  border: solid var(--quarto-hl-normal-color, #aaaaaa) 1px;
+  color: rgb(
+    red($code-block-bg-color),
+    green($code-block-bg-color),
+    blue($code-block-bg-color)
+  );
+  font-weight: bolder;
+}
+
+code.sourceCode .code-annotation-anchor {
+  font-family: $font-family-code;
+  color: var(--quarto-hl-co-color);
+  border: solid var(--quarto-hl-co-color) 1px;
+  border-radius: 50%;
+  height: 18px;
+  width: 18px;
+  font-size: 9px;
+  margin-top: 4px;
+}
+
+code.sourceCode button.code-annotation-anchor {
+  padding: 2px;
+}
+
+code.sourceCode span.code-annotation-anchor {
+  line-height: 18px;
+  text-align: center;
+  vertical-align: middle;
+}
+
 // change .column-screen-* to behave like .column-page (which hugs the body margins)
 // cf https://github.com/quarto-dev/quarto-cli/issues/1824#issuecomment-1216018434
 @media print {

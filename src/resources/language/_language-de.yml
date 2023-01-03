@@ -31,6 +31,9 @@ callout-caution-caption: "Vorsicht"
 
 code-summary: "Code"
 
+code-line: "Zeile"
+code-lines: "Zeilen"
+
 code-tools-menu-caption: "Code"
 code-tools-show-all-code: "Gesamten Code zeigen"
 code-tools-hide-all-code: "Gesamten Code verbergen"

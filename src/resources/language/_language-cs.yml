@@ -31,6 +31,9 @@ callout-caution-caption: "Upozornění"
 
 code-summary: "Kód"
 
+code-line: "Řádek"
+code-lines: "Řádky"
+
 code-tools-menu-caption: "Kód"
 code-tools-show-all-code: "Zobrazit celý kód"
 code-tools-hide-all-code: "Skrýt celý kód"

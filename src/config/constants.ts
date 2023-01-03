@@ -197,6 +197,8 @@ export const kTitleBlockAffiliationPlural = "title-block-affiliation-plural";
 export const kTitleBlockPublished = "title-block-published";
 export const kTitleBlockModified = "title-block-modified";
 export const kCodeSummary = "code-summary";
+export const kCodeLine = "code-line";
+export const kCodeLines = "code-lines";
 export const kCodeToolsMenuCaption = "code-tools-menu-caption";
 export const kCodeToolsShowAllCode = "code-tools-show-all-code";
 export const kCodeToolsHideAllCode = "code-tools-hide-all-code";
@@ -293,6 +295,8 @@ export const kLanguageDefaultsKeys = [
   kTitleBlockPublished,
   kTitleBlockModified,
   kCodeSummary,
+  kCodeLine,
+  kCodeLines,
   kCodeToolsMenuCaption,
   kCodeToolsShowAllCode,
   kCodeToolsHideAllCode,

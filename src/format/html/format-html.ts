@@ -62,6 +62,7 @@ import {
   kAnchorSections,
   kBootstrapDependencyName,
   kCitationsHover,
+  kCodeAnnotations,
   kCodeCopy,
   kComments,
   kDocumentCss,
@@ -88,6 +89,7 @@ import {
 } from "../../core/giscus.ts";
 import { metadataPostProcessor } from "./format-html-meta.ts";
 import { kHtmlEmptyPostProcessResult } from "../../command/render/constants.ts";
+import { coerce } from "https://deno.land/x/semver@v1.4.0/mod.ts";
 
 export function htmlFormat(
   figwidth: number,
@@ -144,6 +146,7 @@ export interface HtmlFormatFeatureDefaults {
   hoverCitations?: boolean;
   hoverFootnotes?: boolean;
   figResponsive?: boolean;
+  codeAnnotations?: boolean;
 }
 
 export interface HtmlFormatTippyOptions {
@@ -247,6 +250,12 @@ export async function htmlFormatExtras(
   } else {
     options.figResponsive = format.metadata[kFigResponsive] || false;
   }
+  if (featureDefaults.codeAnnotations) {
+    options.codeAnnotations = format.metadata[kCodeAnnotations];
+  } else {
+    options.codeAnnotations = format.metadata[kCodeAnnotations] || false;
+  }
+
   options.zenscroll = format.metadata[kSmoothScroll];
   options.codeTools = formatHasCodeTools(format);
   options.darkMode = formatDarkMode(format);
@@ -303,7 +312,8 @@ export async function htmlFormatExtras(
   }
 
   // popper if required
-  options.tippy = options.hoverCitations || options.hoverFootnotes;
+  options.tippy = options.hoverCitations || options.hoverFootnotes ||
+    options.codeAnnotations;
   if (bootstrap || options.tippy) {
     scripts.push({
       name: "popper.min.js",
@@ -555,6 +565,7 @@ function htmlFormatFeatureDefaults(
     hoverCitations: !minimal,
     hoverFootnotes: !minimal,
     figResponsive: !minimal,
+    codeAnnotations: !minimal,
   };
 }
 
@@ -662,9 +673,173 @@ function htmlFormatPostprocessor(
       }
     }
 
+    // Process code annotations that may appear in this document
+    processCodeAnnotations(format, doc);
+
     // no resource refs
     return Promise.resolve(kHtmlEmptyPostProcessResult);
   };
+}
+
+const kCodeCellAttr = "data-code-cell";
+const kCodeLinesAttr = "data-code-lines";
+const kCodeAnnotationAttr = "data-code-annotation";
+
+const kCodeCellTargetAttr = "data-target-cell";
+const kCodeAnnotationTargetAttr = "data-target-annotation";
+
+const kCodeAnnotationHiddenClz = "code-annotation-container-hidden";
+const kCodeAnnotationGridClz = "code-annotation-container-grid";
+const kCodeAnnotationAnchorClz = "code-annotation-anchor";
+const kCodeAnnotationTargetClz = "code-annotation-target";
+
+const kCodeAnnotationGutterClz = "code-annotation-gutter";
+const kCodeAnnotationGutterBgClz = "code-annotation-gutter-bg";
+
+function processCodeAnnotations(format: Format, doc: Document) {
+  const annotationStyle: boolean | string = format.metadata[kCodeAnnotations] as
+    | string
+    | boolean;
+
+  if (annotationStyle === false) {
+    // Read the definition list values which contain the annotations
+    const annoteNodes = doc.querySelectorAll(`span[${kCodeCellAttr}]`);
+
+    // annotations are disabled, just hide the DL container
+    for (const annoteNode of annoteNodes) {
+      const annoteEl = annoteNode as Element;
+
+      // Mark the parent DL container with a class
+      // so CSS can target it
+      const parentDL = annoteEl.parentElement?.parentElement;
+      if (
+        parentDL && !parentDL.classList.contains(kCodeAnnotationHiddenClz)
+      ) {
+        parentDL.classList.add(kCodeAnnotationHiddenClz);
+      }
+    }
+  } else if (annotationStyle === "hover" || annotationStyle === "select") {
+    const definitionLists = processCodeBlockAnnotation(doc, true, "start");
+
+    Object.values(definitionLists).forEach((dl) => {
+      dl.classList.add(kCodeAnnotationHiddenClz);
+    });
+  } else {
+    const definitionLists = processCodeBlockAnnotation(
+      doc,
+      false,
+      "start",
+      (annoteEl: Element, dtEl: Element) => {
+        const annotation = annoteEl.getAttribute(kCodeAnnotationAttr);
+        if (annotation !== null) {
+          const ddEl = dtEl.previousElementSibling;
+          if (ddEl) {
+            ddEl.innerHTML = "";
+            ddEl.innerText = annotation;
+          }
+        }
+      },
+    );
+
+    Object.values(definitionLists).forEach((dl) => {
+      dl.classList.add(kCodeAnnotationGridClz);
+    });
+  }
+}
+
+// returns DLs that were processed
+
+function processCodeBlockAnnotation(
+  doc: Document,
+  interactiveAnnotations: boolean,
+  annotationPosition: "start" | "middle",
+  processDt?: (annotationEl: Element, dtEl: Element) => void,
+) {
+  const definitionLists: Record<string, Element> = {};
+  const codeBlockParents: Element[] = [];
+
+  // Read the definition list values which contain the annotations
+  const annoteNodes = doc.querySelectorAll(`span[${kCodeCellAttr}]`);
+  for (const annoteNode of annoteNodes) {
+    const annoteEl = annoteNode as Element;
+
+    // Accumulate the Code Blocks
+    const parentCodeBlock = processLineAnnotation(
+      doc,
+      annoteEl,
+      interactiveAnnotations,
+      annotationPosition,
+    );
+    if (parentCodeBlock && !codeBlockParents.includes(parentCodeBlock)) {
+      codeBlockParents.push(parentCodeBlock);
+    }
+
+    // Accumulate the Definition Lists
+    const parentDL = annoteEl.parentElement?.parentElement;
+    const codeParentDivId = parentCodeBlock?.parentElement?.parentElement?.id;
+    if (
+      parentDL && codeParentDivId &&
+      !Object.keys(definitionLists).includes(codeParentDivId)
+    ) {
+      definitionLists[codeParentDivId] = parentDL;
+    }
+
+    if (annoteEl.parentElement && processDt) {
+      processDt(annoteEl, annoteEl.parentElement);
+    }
+  }
+
+  // Inject a gutter for the annotations
+  for (const codeParentEl of codeBlockParents) {
+    const gutterBgDivEl = doc.createElement("div");
+    gutterBgDivEl.classList.add(kCodeAnnotationGutterBgClz);
+    codeParentEl?.appendChild(gutterBgDivEl);
+
+    const gutterDivEl = doc.createElement("div");
+    gutterDivEl.classList.add(kCodeAnnotationGutterClz);
+    codeParentEl?.appendChild(gutterDivEl);
+  }
+
+  return definitionLists;
+}
+
+function processLineAnnotation(
+  doc: Document,
+  annoteEl: Element,
+  interactive: boolean,
+  position: "start" | "middle",
+) {
+  // Read the target values from the annotation DL
+  const targetCell = annoteEl.getAttribute(kCodeCellAttr);
+  const targetLines = annoteEl.getAttribute(kCodeLinesAttr);
+  const targetAnnotation = annoteEl.getAttribute(kCodeAnnotationAttr);
+  if (targetCell && targetLines) {
+    const lineArr = targetLines?.split(",");
+
+    const targetIndex = position === "start"
+      ? 0
+      : Math.floor(lineArr.length / 2);
+    const line = lineArr[targetIndex];
+
+    const targetId = `${targetCell}-${line}`;
+    const targetEl = doc.getElementById(targetId);
+    if (targetEl) {
+      const annoteAnchorEl = doc.createElement(interactive ? "button" : "span");
+      annoteAnchorEl.classList.add(kCodeAnnotationAnchorClz);
+      annoteAnchorEl.setAttribute(
+        kCodeCellTargetAttr,
+        `${targetCell}`,
+      );
+      annoteAnchorEl.setAttribute(
+        kCodeAnnotationTargetAttr,
+        `${targetAnnotation}`,
+      );
+      annoteAnchorEl.innerText = targetAnnotation || "?";
+      targetEl.parentElement?.insertBefore(annoteAnchorEl, targetEl);
+      targetEl.classList.add(kCodeAnnotationTargetClz);
+      return targetEl.parentElement;
+    }
+  }
 }
 
 function themeFormatExtras(

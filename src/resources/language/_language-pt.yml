@@ -31,6 +31,9 @@ callout-caution-caption: "Cuidado"
 
 code-summary: "Código"
 
+code-line: "Linha"
+code-lines: "Linhas"
+
 code-tools-menu-caption: "Código"
 code-tools-show-all-code: "Mostrar o código"
 code-tools-hide-all-code: "Esconder o código"

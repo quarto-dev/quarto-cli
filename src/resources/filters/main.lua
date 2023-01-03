@@ -113,6 +113,7 @@ import("./quarto-pre/bibliography-formats.lua")
 import("./quarto-pre/book-links.lua")
 import("./quarto-pre/book-numbering.lua")
 import("./quarto-pre/callout.lua")
+import("./quarto-pre/code-annotation.lua")
 import("./quarto-pre/code-filename.lua")
 import("./quarto-pre/content-hidden.lua")
 import("./quarto-pre/engine-escape.lua")
@@ -174,6 +175,10 @@ local quartoPre = {
   { name = "pre-hidden", filter = hidden() },
   { name = "pre-contentHidden", filter = contentHidden() },
   { name = "pre-tableCaptions", filter = tableCaptions() },
+  { name = "pre-code-annotations", filter = combineFilters({
+    codeMeta(),
+    code(),
+    })},
   { name = "pre-outputs", filter = outputs() },
   { name = "pre-outputLocation", filter = outputLocation() },
   { name = "pre-combined-figures-theorems-etc", filter = combineFilters({

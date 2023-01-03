@@ -31,6 +31,9 @@ callout-caution-caption: "Осторожность"
 
 code-summary: "Код"
 
+code-line: "Линия"
+code-lines: "Линии"
+
 code-tools-menu-caption: "Код"
 code-tools-show-all-code: "Развернуть код"
 code-tools-hide-all-code: "Скрыть код"

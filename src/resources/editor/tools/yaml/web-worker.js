@@ -11358,6 +11358,26 @@ try {
             }
           },
           {
+            name: "code-annotations",
+            schema: {
+              anyOf: [
+                "boolean",
+                {
+                  enum: [
+                    "hover",
+                    "select",
+                    "below"
+                  ]
+                }
+              ]
+            },
+            default: "below",
+            description: {
+              short: "The style to use when displaying code annotations",
+              long: "The style to use when displaying code annotations. Set this value\nto false to hide code annotations.\n"
+            }
+          },
+          {
             name: "code-tools",
             tags: {
               formats: [
@@ -19056,6 +19076,10 @@ try {
             long: 'Enables hyper-linking of functions within code blocks to their online\ndocumentation.\nCode linking is currently implemented only for the knitr engine (via\nthe <a href="https://downlit.r-lib.org/">downlit</a> package).'
           },
           {
+            short: "The style to use when displahing code annotations",
+            long: "The style to use when displahing code annotations. Set this value to\nfalse to hide code annotations."
+          },
+          {
             short: "Include a code tools menu (for hiding and showing code).",
             long: "Include a code tools menu (for hiding and showing code). Use\n<code>true</code> or <code>false</code> to enable or disable the\nstandard code tools menu. Specify sub-properties <code>source</code>,\n<code>toggle</code>, and <code>caption</code> to customize the behavior\nand appearnce of code tools."
           },
@@ -20790,12 +20814,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 144554,
+          _internalId: 145147,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 144546,
+              _internalId: 145139,
               type: "enum",
               enum: [
                 "png",
@@ -20811,7 +20835,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 144553,
+              _internalId: 145146,
               type: "anyOf",
               anyOf: [
                 {

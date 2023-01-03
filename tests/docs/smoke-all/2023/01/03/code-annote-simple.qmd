@@ -1,0 +1,44 @@
+---
+title: Hello World
+code-annotations: true
+format:
+  html: default
+code-line-numbers: true
+_quarto:
+  tests: 
+    html:
+      ensureHtmlElements:
+        - ["span[data-target-annotation='1']", "span[data-target-annotation='2']", "div.cell-annotation > dl"]
+---
+
+## Hi There
+
+```{r}
+#| label: fig-air
+#| fig-cap: "Air Quality"
+#| warning: false
+library(ggplot2) # <1>
+ggplot(airquality, aes(Temp, Ozone)) + geom_point() + # <2> 
+  geom_smooth(method = "loess", se = FALSE) # <2>
+```
+
+1. First, load the ggplot library which is so cool.
+2. This creates the base plot based upon the built in `airquality` data set (@fig-air).
+
+Also, see @fig-air.
+
+```{r}
+plot(mtcars) # <1>
+```
+
+1. This plots mtcars
+
+
+```typescript
+const foo = "bar";
+if (foo === "bar") {
+  console.log("Woah"); // <1>
+}
+```
+
+1. This is a console output

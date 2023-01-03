@@ -30,6 +30,9 @@ callout-caution-caption: "주의"
 
 code-summary: "코드"
 
+code-line: "선"
+code-lines: "윤곽"
+
 code-tools-menu-caption: "코드"
 code-tools-show-all-code: "전체 코드 표시"
 code-tools-hide-all-code: "전체 코드 숨기기"
