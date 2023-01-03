@@ -281,13 +281,13 @@ function codeMeta()
   return {
     Meta = function(meta)
       if _quarto.format.isLatexOutput() and hasAnnotations then
-      quarto.doc.use_latex_package("tikz");
-      quarto.doc.include_text('in-header', [[
+        -- ensure we have tikx for making the circles
+        quarto.doc.use_latex_package("tikz");
+        quarto.doc.include_text('in-header', [[
         \newcommand*\circled[1]{\tikz[baseline=(char.base)]{
           \node[shape=circle,draw,inner sep=1pt] (char) {{\scriptsize#1}};}}  
-                  ]]);
-        
-        end
+                  ]]);  
+      end
     end,
 
   }
@@ -306,179 +306,184 @@ function code()
     traverse = 'topdown',
     Blocks = function(blocks) 
 
-      local outputs = pandoc.List()
+      -- the user request code annotations value
+      local codeAnnotations = param('code-annotations')
 
-      -- annotations[annotation-number] = {list of line numbers}
-      local pendingAnnotations = nil
-      local pendingCellId = nil
-      local pendingCodeCell = nil
-      local idCounter = 1
+      -- if code annotations is false, then shut it down
+      if codeAnnotations ~= false then
 
-      local clearPending = function() 
-        pendingAnnotations = nil
-        pendingCellId = nil
-        pendingCodeCell = nil
-      end
+        local outputs = pandoc.List()
 
-      local outputBlockClearPending = function(block)
-        if pendingCodeCell then
-          outputs:insert(pendingCodeCell)
-        end
-        outputs:insert(block)
-        clearPending()
-      end
+        -- annotations[annotation-number] = {list of line numbers}
+        local pendingAnnotations = nil
+        local pendingCellId = nil
+        local pendingCodeCell = nil
+        local idCounter = 1
 
-      local outputBlock = function(block)
-        outputs:insert(block)
-      end
-
-      local allOutputs = function()
-        return outputs
-      end
-
-      local resolveCellId = function(identifier) 
-        if identifier ~= nil and identifier ~= '' then
-          return identifier
-        else
-          local cellId = 'annotated-cell-' .. tostring(idCounter)
-          idCounter = idCounter + 1
-          return cellId
-        end
-      end
-
-      local processCodeCell = function(el, identifier)
-
-        -- select the process for this format's annotations
-        local annotationProcessor = processAnnotation
-        if _quarto.format.isLatexOutput() then
-          annotationProcessor = processLaTeXAnnotation
+        local clearPending = function() 
+          pendingAnnotations = nil
+          pendingCellId = nil
+          pendingCodeCell = nil
         end
 
-        -- resolve annotations
-        local resolvedCodeBlock, annotations = resolveCellAnnotes(el, annotationProcessor)
-        if annotations and next(annotations) ~= nil then
-          -- store the annotations and  cell info
-          pendingAnnotations = annotations
-          pendingCellId = identifier
-          
-          -- decorate the cell and return it
-          resolvedCodeBlock.attr.classes:insert(kDataCodeAnnonationClz);
-          return resolvedCodeBlock
-        else
-          return nil
-        end
-      end
-
-      -- TODO: Reorder cell-output-display
-
-      for i, block in ipairs(blocks) do
-        if block.t == 'Div' and block.attr.classes:find('cell') then
-          -- walk to find the code and 
-          local processedAnnotation = false
-          local resolvedBlock = pandoc.walk_block(block, {
-            CodeBlock = function(el)
-              if el.attr.classes:find('cell-code') then
-                
-                local cellId = resolveCellId(el.attr.identifier)
-                local codeCell = processCodeCell(el, cellId)
-                if codeCell then
-                  processedAnnotation = true
-                  codeCell.attr.identifier = cellId;
-                end
-                return codeCell
-              end
-            end
-          })
-          if processedAnnotation then
-            pendingCodeCell = resolvedBlock
-          else
-            outputBlock(resolvedBlock)
+        local outputBlockClearPending = function(block)
+          if pendingCodeCell then
+            outputs:insert(pendingCodeCell)
           end
-        elseif block.t == 'CodeBlock'  then
-          -- don't process code cell output here - we'll get it above
-          if not block.attr.classes:find('cell-code') then
+          outputs:insert(block)
+          clearPending()
+        end
 
-            local cellId = resolveCellId(block.attr.identifier)
-            local codeCell = processCodeCell(block, cellId)
-            if codeCell then
-              codeCell.attr.identifier = cellId;
-              outputBlock(codeCell)
+        local outputBlock = function(block)
+          outputs:insert(block)
+        end
+
+        local allOutputs = function()
+          return outputs
+        end
+
+        local resolveCellId = function(identifier) 
+          if identifier ~= nil and identifier ~= '' then
+            return identifier
+          else
+            local cellId = 'annotated-cell-' .. tostring(idCounter)
+            idCounter = idCounter + 1
+            return cellId
+          end
+        end
+
+        local processCodeCell = function(el, identifier)
+
+          -- select the process for this format's annotations
+          local annotationProcessor = processAnnotation
+          if _quarto.format.isLatexOutput() then
+            annotationProcessor = processLaTeXAnnotation
+          end
+
+          -- resolve annotations
+          local resolvedCodeBlock, annotations = resolveCellAnnotes(el, annotationProcessor)
+          if annotations and next(annotations) ~= nil then
+            -- store the annotations and  cell info
+            pendingAnnotations = annotations
+            pendingCellId = identifier
+            
+            -- decorate the cell and return it
+            resolvedCodeBlock.attr.classes:insert(kDataCodeAnnonationClz);
+            return resolvedCodeBlock
+          else
+            return nil
+          end
+        end
+
+        for i, block in ipairs(blocks) do
+          if block.t == 'Div' and block.attr.classes:find('cell') then
+            -- walk to find the code and 
+            local processedAnnotation = false
+            local resolvedBlock = pandoc.walk_block(block, {
+              CodeBlock = function(el)
+                if el.attr.classes:find('cell-code') then
+                  
+                  local cellId = resolveCellId(el.attr.identifier)
+                  local codeCell = processCodeCell(el, cellId)
+                  if codeCell then
+                    processedAnnotation = true
+                    codeCell.attr.identifier = cellId;
+                  end
+                  return codeCell
+                end
+              end
+            })
+            if processedAnnotation then
+              pendingCodeCell = resolvedBlock
+            else
+              outputBlock(resolvedBlock)
+            end
+          elseif block.t == 'CodeBlock'  then
+            -- don't process code cell output here - we'll get it above
+            if not block.attr.classes:find('cell-code') then
+
+              local cellId = resolveCellId(block.attr.identifier)
+              local codeCell = processCodeCell(block, cellId)
+              if codeCell then
+                codeCell.attr.identifier = cellId;
+                outputBlock(codeCell)
+              else
+                outputBlockClearPending(block)
+              end
             else
               outputBlockClearPending(block)
+            end
+          elseif block.t == 'OrderedList' and pendingAnnotations ~= nil and next(pendingAnnotations) ~= nil then
+            -- There are pending annotations, which means this OL is immediately after
+            -- a code cell with annotations. Use to emit a DL describing the code
+
+            local items = pandoc.List()
+            for i, v in ipairs(block.content) do
+              -- find the annotation for this OL
+              local annoteId = toAnnoteId(i)
+              local annotation = pendingAnnotations[annoteId]
+              if annotation then
+
+                local lineNumMeta = lineNumberMeta(annotation)
+
+                -- compute the term for the DT
+                local term = ""
+                if _quarto.format.isLatexOutput() then
+                  term = latexListPlaceholder(i)
+                else
+                  if lineNumMeta.count == 1 then
+                    term = language[kCodeLine] .. " " .. lineNumMeta.text;
+                  else
+                    term = language[kCodeLines] .. " " .. lineNumMeta.text;
+                  end
+                end
+
+                -- compute the definition for the DD
+                local definitionContent = v[1].content 
+                local annotationToken = tostring(i);
+
+                -- Only output span for certain formats (HTML)
+                -- for markdown / gfm we should drop the spans
+                local definition = nil
+                if _quarto.format.isHtmlOutput() then
+                  definition = pandoc.Span(definitionContent, {
+                    [kDataCodeCellTarget] = pendingCellId,
+                    [kDataCodeCellLines] = lineNumMeta.lineNumbers,
+                    [kDataCodeCellAnnotation] = annotationToken
+                  });
+                else 
+                  definition = pandoc.Plain(definitionContent)
+                end
+
+                -- find the lines that annotate this and convert to a DL
+                items:insert({
+                  term,
+                  definition})
+              else
+                -- there was an OL item without a corresponding annotation
+                warn("List item " .. tostring(i) .. " has no corresponding annotation in the code cell\n(" .. pandoc.utils.stringify(v) ..  ")")
+              end
+            end
+
+            -- add the definition list
+            local dl = pandoc.DefinitionList(items)
+
+            -- if there is a pending code cell, then insert into that and add it
+            if pendingCodeCell ~= nil then
+              -- wrap the definition list in a cell
+              local dlDiv = pandoc.Div({dl}, pandoc.Attr("", {kCellAnnotationClass}))
+              pendingCodeCell.content:insert(2, dlDiv)
+              outputBlock(pendingCodeCell)
+              clearPending();
+            else
+              outputBlockClearPending(dl)
             end
           else
             outputBlockClearPending(block)
           end
-        elseif block.t == 'OrderedList' and pendingAnnotations ~= nil and next(pendingAnnotations) ~= nil then
-          -- There are pending annotations, which means this OL is immediately after
-          -- a code cell with annotations. Use to emit a DL describing the code
-
-          local items = pandoc.List()
-          for i, v in ipairs(block.content) do
-            -- find the annotation for this OL
-            local annoteId = toAnnoteId(i)
-            local annotation = pendingAnnotations[annoteId]
-            if annotation then
-
-              local lineNumMeta = lineNumberMeta(annotation)
-
-              -- compute the term for the DT
-              local term = ""
-              if _quarto.format.isLatexOutput() then
-                term = latexListPlaceholder(i)
-              else
-                if lineNumMeta.count == 1 then
-                  term = language[kCodeLine] .. " " .. lineNumMeta.text;
-                else
-                  term = language[kCodeLines] .. " " .. lineNumMeta.text;
-                end
-              end
-
-              -- compute the definition for the DD
-              local definitionContent = v[1].content 
-              local annotationToken = tostring(i);
-
-              -- Only output span for certain formats (HTML)
-              -- for markdown / gfm we should drop the spans
-              local definition = nil
-              if _quarto.format.isHtmlOutput() then
-                definition = pandoc.Span(definitionContent, {
-                  [kDataCodeCellTarget] = pendingCellId,
-                  [kDataCodeCellLines] = lineNumMeta.lineNumbers,
-                  [kDataCodeCellAnnotation] = annotationToken
-                });
-              else 
-                definition = pandoc.Plain(definitionContent)
-              end
-
-              -- find the lines that annotate this and convert to a DL
-              items:insert({
-                term,
-                definition})
-            else
-              -- there was an OL item without a corresponding annotation
-              warn("List item " .. tostring(i) .. " has no corresponding annotation in the code cell\n(" .. pandoc.utils.stringify(v) ..  ")")
-            end
-          end
-
-          -- add the definition list
-          local dl = pandoc.DefinitionList(items)
-
-          -- if there is a pending code cell, then insert into that and add it
-          if pendingCodeCell ~= nil then
-            -- wrap the definition list in a cell
-            local dlDiv = pandoc.Div({dl}, pandoc.Attr("", {kCellAnnotationClass}))
-            pendingCodeCell.content:insert(2, dlDiv)
-            outputBlock(pendingCodeCell)
-            clearPending();
-          else
-            outputBlockClearPending(dl)
-          end
-        else
-          outputBlockClearPending(block)
         end
+        return allOutputs()
       end
-      return allOutputs()
     end
   }
 end

@@ -61,6 +61,7 @@ import {
 } from "../../extension/extension.ts";
 import { quartoConfig } from "../../core/quarto.ts";
 import { metadataNormalizationFilterActive } from "./normalize.ts";
+import { kCodeAnnotations } from "../../format/html/format-html-shared.ts";
 
 const kQuartoParams = "quarto-params";
 
@@ -502,6 +503,9 @@ async function quartoFilterParams(
 
   // version
   params[kQuartoVersion] = quartoConfig.version();
+
+  // code-annotations
+  params[kCodeAnnotations] = format.metadata[kCodeAnnotations];
 
   return params;
 }
