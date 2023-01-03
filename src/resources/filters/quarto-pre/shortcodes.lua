@@ -169,7 +169,7 @@ function callShortcodeHandler(handler, shortCode)
   end})
 
   local callback = function()
-    return handler.handle(args, kwargs, meta)
+    return handler.handle(args, kwargs, meta, shortCode.raw_args)
   end
   -- set the script file path, if present
   if handler.file ~= nil then
@@ -330,6 +330,7 @@ function processShortCode(inlines)
   local kSep = "="
   local shortCode = nil
   local args = pandoc.List()
+  local raw_args = pandoc.List()
 
   -- slice off the open and close tags
   inlines = tslice(inlines, 2, #inlines - 1)
@@ -351,6 +352,7 @@ function processShortCode(inlines)
           value = argInlines
         })
       pendingName = nil
+      raw_args:insert(argInlines)
     else
       -- split the string on equals
       if #argInlines == 1 and argInlines[1].t == "Str" and string.match(argInlines[1].text, kSep) then 
@@ -369,6 +371,7 @@ function processShortCode(inlines)
               value = argInlines 
             })
         end
+        raw_args:insert(argInlines)
       -- a standalone SoftBreak or LineBreak is not an argument!
       -- (happens when users delimit args with newlines)
       elseif #argInlines > 1 or 
@@ -378,6 +381,7 @@ function processShortCode(inlines)
           { 
             value = argInlines
           })
+        raw_args:insert(argInlines)
       end
     end
   end
@@ -408,6 +412,7 @@ function processShortCode(inlines)
 
   return {
     args = args,
+    raw_args = raw_args,
     name = shortCode
   }
 end

@@ -235,7 +235,7 @@ end
 -- defining shortcodes this way allows us to create helper
 -- functions that are not themselves considered shortcodes
 return {
-  ["video"] = function(args, kwargs)
+  ["video"] = function(args, kwargs, _meta, raw_args)
     checkArg = function(toCheck, key)
       value = pandoc.utils.stringify(toCheck[key])
       if not isEmpty(value) then
@@ -257,8 +257,8 @@ return {
     end
 
     if isEmpty(srcValue) then
-      if #args > 0 then
-        srcValue = pandoc.utils.stringify(args[1])
+      if #raw_args > 0 then
+        srcValue = pandoc.utils.stringify(raw_args[1])
       else
         print("No video source specified for video shortcode")
         os.exit(1)
