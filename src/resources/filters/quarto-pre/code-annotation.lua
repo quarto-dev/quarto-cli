@@ -77,38 +77,42 @@ local kCellAnnotationClass = "cell-annotation"
 local function annoteProvider(lang) 
   local commentChars = kLangCommentChars[lang]
   if commentChars ~= nil then
-    local expressions = pandoc.List({})
-    for _i, v in ipairs(commentChars) do
-      expressions:insert({
-        match = '.*' .. v .. ' <([0-9]+)>%s*$',
-        strip = {
-          prefix = '%s*' .. v .. ' <',
-          suffix = '>%s*$'
-        },
-      })
+
+    local startComment = patternEscape(commentChars[1])
+    local matchExpr = '.*' .. startComment .. ' <([0-9]+)>%s*'
+    local stripPrefix = '%s*' .. startComment .. ' <'
+    local stripSuffix = '>%s*'
+    if #commentChars == 2 then
+      local endComment = patternEscape(commentChars[2])
+      matchExpr = matchExpr .. endComment .. '%s*'
+      stripSuffix = stripSuffix .. endComment .. '%s*'
     end
+    matchExpr = matchExpr .. '$'
+    stripSuffix = stripSuffix .. '$'
+
+    local expression = {
+        match = matchExpr,
+        strip = {
+          prefix = stripPrefix,
+          suffix = stripSuffix
+        },
+      }
+    quarto.log.output(expression)
 
     return {
       annotationNumber = function(line) 
-        for _i, v in ipairs(expressions) do
-          local _, _, annoteNumber = string.find(line, v.match)
+          local _, _, annoteNumber = string.find(line, expression.match)
           if annoteNumber ~= nil then
             return tonumber(annoteNumber)
+          else
+            return nil
           end
-        end
-        return nil
       end,
       stripAnnotation = function(line, annoteId) 
-        for _i, v in ipairs(expressions) do
-          line = line:gsub(v.strip.prefix .. annoteId .. v.strip.suffix, "")
-        end
-        return line
+        return line:gsub(expression.strip.prefix .. annoteId .. expression.strip.suffix, "")
       end,
       replaceAnnotation = function(line, annoteId, replacement)
-        for _i, v in ipairs(expressions) do
-          line = line:gsub(v.strip.prefix .. annoteId .. v.strip.suffix, replacement)
-        end
-        return line
+        return line:gsub(expression.strip.prefix .. annoteId .. expression.strip.suffix, replacement)
       end,
       createComment = function(value) 
         if #commentChars == 0 then
