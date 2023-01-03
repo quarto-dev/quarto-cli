@@ -97,7 +97,6 @@ local function annoteProvider(lang)
           suffix = stripSuffix
         },
       }
-    quarto.log.output(expression)
 
     return {
       annotationNumber = function(line) 
