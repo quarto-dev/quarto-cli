@@ -104,6 +104,7 @@
 - Add new `kbd` shortcode, to describe keyboard keys ([#3384](https://github.com/quarto-dev/quarto-cli/issues/3384)). See the [pre-release documentation](https://quarto.org/docs/prerelease/1.3.html) for details.
 - Replace default style for date picker component in OJS ([#2863](https://github.com/quarto-dev/quarto-cli/issues/2863)).
 - `quarto check` now supports `quarto check versions` for checking binary dependency versions in the case of custom binaries ([#3602](https://github.com/quarto-dev/quarto-cli/issues/3602)).
+- the API for shortcode handlers in lua now accepts a fourth parameter `raw_args` which hold the unparsed arguments in a table ([#3833](https://github.com/quarto-dev/quarto-cli/issues/3833)).
 
 ## Pandoc filter changes
 
