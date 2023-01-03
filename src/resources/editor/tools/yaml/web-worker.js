@@ -11366,7 +11366,8 @@ try {
                   enum: [
                     "hover",
                     "select",
-                    "below"
+                    "below",
+                    "none"
                   ]
                 }
               ]
@@ -19076,8 +19077,8 @@ try {
             long: 'Enables hyper-linking of functions within code blocks to their online\ndocumentation.\nCode linking is currently implemented only for the knitr engine (via\nthe <a href="https://downlit.r-lib.org/">downlit</a> package).'
           },
           {
-            short: "The style to use when displahing code annotations",
-            long: "The style to use when displahing code annotations. Set this value to\nfalse to hide code annotations."
+            short: "The style to use when displaying code annotations",
+            long: "The style to use when displaying code annotations. Set this value to\nfalse to hide code annotations."
           },
           {
             short: "Include a code tools menu (for hiding and showing code).",

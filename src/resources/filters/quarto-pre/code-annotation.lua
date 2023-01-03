@@ -52,10 +52,13 @@ local kLangCommentChars = {
   typescript = {"//"}
 }
 
+local kCodeAnnotationsParam = 'code-annotations'
 local kDataCodeCellTarget = 'data-code-cell'
 local kDataCodeCellLines = 'data-code-lines'
 local kDataCodeCellAnnotation = 'data-code-annotation'
 local kDataCodeAnnonationClz = 'code-annotation-code'
+
+local kCodeAnnotationStyleNone = "none"
 
 local kCodeLine = "code-line"
 local kCodeLines = "code-lines"
@@ -257,16 +260,21 @@ function processLaTeXAnnotation(line, annoteNumber, annotationProvider)
   -- we specially handle LaTeX output in coordination with the post processor
   -- which will replace any of these tokens as appropriate.   
   local hasHighlighting = param('text-highlighting', false)
-  if hasHighlighting then
-    -- highlighting is enabled, allow the comment through
-    local placeholderComment = annotationProvider.createComment("<" .. tostring(annoteNumber) .. ">")
-    local replaced = annotationProvider.replaceAnnotation(line, annoteNumber, placeholderComment) 
+  if param(kCodeAnnotationsParam) == kCodeAnnotationStyleNone then
+    local replaced = annotationProvider.replaceAnnotation(line, annoteNumber, '') 
     return replaced
   else
-    -- no highlighting enabled, ensure we use a standard comment character
-    local placeholderComment = "%% (" .. tostring(annoteNumber) .. ")"
-    local replaced = annotationProvider.replaceAnnotation(line, annoteNumber, placeholderComment) 
-    return replaced
+    if hasHighlighting then
+      -- highlighting is enabled, allow the comment through
+      local placeholderComment = annotationProvider.createComment("<" .. tostring(annoteNumber) .. ">")
+      local replaced = annotationProvider.replaceAnnotation(line, annoteNumber, placeholderComment) 
+      return replaced
+    else
+      -- no highlighting enabled, ensure we use a standard comment character
+      local placeholderComment = "%% (" .. tostring(annoteNumber) .. ")"
+      local replaced = annotationProvider.replaceAnnotation(line, annoteNumber, placeholderComment) 
+      return replaced
+    end
   end
 end
 
@@ -307,7 +315,7 @@ function code()
     Blocks = function(blocks) 
 
       -- the user request code annotations value
-      local codeAnnotations = param('code-annotations')
+      local codeAnnotations = param(kCodeAnnotationsParam)
 
       -- if code annotations is false, then shut it down
       if codeAnnotations ~= false then
@@ -368,7 +376,9 @@ function code()
             pendingCellId = identifier
             
             -- decorate the cell and return it
-            resolvedCodeBlock.attr.classes:insert(kDataCodeAnnonationClz);
+            if codeAnnotations ~= kCodeAnnotationStyleNone then
+              resolvedCodeBlock.attr.classes:insert(kDataCodeAnnonationClz);
+            end
             return resolvedCodeBlock
           else
             return nil
@@ -387,7 +397,9 @@ function code()
                   local codeCell = processCodeCell(el, cellId)
                   if codeCell then
                     processedAnnotation = true
-                    codeCell.attr.identifier = cellId;
+                    if codeAnnotations ~= kCodeAnnotationStyleNone then
+                      codeCell.attr.identifier = cellId;
+                    end
                   end
                   return codeCell
                 end
@@ -405,7 +417,9 @@ function code()
               local cellId = resolveCellId(block.attr.identifier)
               local codeCell = processCodeCell(block, cellId)
               if codeCell then
-                codeCell.attr.identifier = cellId;
+                if codeAnnotations ~= kCodeAnnotationStyleNone then
+                  codeCell.attr.identifier = cellId;
+                end
                 outputBlock(codeCell)
               else
                 outputBlockClearPending(block)
@@ -416,7 +430,6 @@ function code()
           elseif block.t == 'OrderedList' and pendingAnnotations ~= nil and next(pendingAnnotations) ~= nil then
             -- There are pending annotations, which means this OL is immediately after
             -- a code cell with annotations. Use to emit a DL describing the code
-
             local items = pandoc.List()
             for i, v in ipairs(block.content) do
               -- find the annotation for this OL
@@ -469,14 +482,16 @@ function code()
             local dl = pandoc.DefinitionList(items)
 
             -- if there is a pending code cell, then insert into that and add it
-            if pendingCodeCell ~= nil then
-              -- wrap the definition list in a cell
-              local dlDiv = pandoc.Div({dl}, pandoc.Attr("", {kCellAnnotationClass}))
-              pendingCodeCell.content:insert(2, dlDiv)
-              outputBlock(pendingCodeCell)
-              clearPending();
-            else
-              outputBlockClearPending(dl)
+            if codeAnnotations ~= kCodeAnnotationStyleNone then
+              if pendingCodeCell ~= nil then
+                -- wrap the definition list in a cell
+                local dlDiv = pandoc.Div({dl}, pandoc.Attr("", {kCellAnnotationClass}))
+                pendingCodeCell.content:insert(2, dlDiv)
+                outputBlock(pendingCodeCell)
+                clearPending();
+              else
+                outputBlockClearPending(dl)
+              end
             end
           else
             outputBlockClearPending(block)

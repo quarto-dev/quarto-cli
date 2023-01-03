@@ -36,7 +36,7 @@
   schema:
     anyOf:
       - boolean
-      - enum: [hover, select, below]
+      - enum: [hover, select, below, none]
   default: below
   description:
     short: The style to use when displaying code annotations
