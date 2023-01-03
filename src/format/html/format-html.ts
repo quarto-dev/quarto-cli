@@ -824,7 +824,7 @@ function processLineAnnotation(
     const targetId = `${targetCell}-${line}`;
     const targetEl = doc.getElementById(targetId);
     if (targetEl) {
-      const annoteAnchorEl = doc.createElement(interactive ? "button" : "span");
+      const annoteAnchorEl = doc.createElement(interactive ? "button" : "a");
       annoteAnchorEl.classList.add(kCodeAnnotationAnchorClz);
       annoteAnchorEl.setAttribute(
         kCodeCellTargetAttr,

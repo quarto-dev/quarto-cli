@@ -1770,10 +1770,10 @@ dl.code-annotation-container-grid dt {
   color: var(--quarto-hl-co-color);
   border: solid var(--quarto-hl-co-color) 1px;
   border-radius: 50%;
-  height: 24px;
-  width: 24px;
-  line-height: 24px;
-  font-size: 12px;
+  height: 22px;
+  width: 22px;
+  line-height: 22px;
+  font-size: 11px;
 
   text-align: center;
   vertical-align: middle;
@@ -1832,10 +1832,12 @@ code.sourceCode button.code-annotation-anchor {
   padding: 2px;
 }
 
-code.sourceCode span.code-annotation-anchor {
+code.sourceCode a.code-annotation-anchor {
   line-height: 18px;
   text-align: center;
   vertical-align: middle;
+  cursor: default;
+  text-decoration: none;
 }
 
 // change .column-screen-* to behave like .column-page (which hugs the body margins)

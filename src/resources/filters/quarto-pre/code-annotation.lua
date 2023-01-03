@@ -178,13 +178,6 @@ local function resolveCellAnnotes(codeBlockEl, processAnnotation)
       for i, output in ipairs(outputs) do
         outputText = outputText .. output .. '\n'
       end
-
-      -- For HTML and PDF output, we have special handling that doesn't depend
-      -- upon line numbers. For non HTML output, we do need line numbering
-      -- since the text will point back to the line numbers
-      if not _quarto.format.isLatexOutput() and not _quarto.format.isHtmlOutput() then
-        codeBlockEl.attr.classes:insert('numberLines')
-      end
       codeBlockEl.text = outputText
       hasAnnotations = true
     end
