@@ -249,7 +249,7 @@ function theoremLatexIncludes()
     end
     theoremIncludes = theoremIncludes ..
       "\\theoremstyle{remark}\n" ..
-      "\\renewcommand*{\\proofname}{" .. envTitle("proof", "Proof") .. "}\n" ..
+      "\\AtBeginDocument{\\renewcommand*{\\proofname}{" .. envTitle("proof", "Proof") .. "}}\n" ..
       "\\newtheorem*{remark}{" .. envTitle("remark", "Remark") .. "}\n" ..
       "\\newtheorem*{solution}{" .. envTitle("solution", "Solution") .. "}\n"
     return theoremIncludes
