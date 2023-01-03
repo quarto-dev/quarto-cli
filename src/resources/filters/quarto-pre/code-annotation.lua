@@ -79,8 +79,8 @@ local function annoteProvider(lang)
   if commentChars ~= nil then
 
     local startComment = patternEscape(commentChars[1])
-    local matchExpr = '.*' .. startComment .. ' <([0-9]+)>%s*'
-    local stripPrefix = '%s*' .. startComment .. ' <'
+    local matchExpr = '.*' .. startComment .. '%s*<([0-9]+)>%s*'
+    local stripPrefix = '%s*' .. startComment .. '%s*<'
     local stripSuffix = '>%s*'
     if #commentChars == 2 then
       local endComment = patternEscape(commentChars[2])
