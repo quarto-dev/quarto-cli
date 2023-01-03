@@ -48,7 +48,8 @@ local kLangCommentChars = {
   apl = {"⍝"},
   yaml = {"#"},
   json = {"//"},
-  latex = {"%"}
+  latex = {"%"},
+  typescript = {"//"}
 }
 
 local kDataCodeCellTarget = 'data-code-cell'
