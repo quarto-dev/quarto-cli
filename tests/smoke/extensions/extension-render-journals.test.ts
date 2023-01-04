@@ -24,12 +24,11 @@ const journalRepos = [
 for (const journalRepo of journalRepos) {
   const format = journalRepo.format || journalRepo.repo;
   const baseDir = join(
-    Deno.cwd(),
     "docs",
     "_temp-test-artifacts",
   );
   const workingDir = join(baseDir, format);
-  const input = `${format}.qmd`;
+  const input = join(workingDir, `${format}.qmd`);
 
   testRender(input, format + "-pdf", journalRepo.noSupporting, [], {
     prereq: () => {
@@ -42,22 +41,21 @@ for (const journalRepo of journalRepos) {
 
     // Sets up the test
     setup: async () => {
+      const wd = Deno.cwd();
+      Deno.chdir(workingDir);
       await quarto([
         "use",
         "template",
         `quarto-journals/${journalRepo.repo}`,
         "--no-prompt",
       ]);
+      Deno.chdir(wd);
     },
 
     // Cleans up the test
     teardown: async () => {
       await Deno.remove(workingDir, { recursive: true });
       removeIfEmptyDir(baseDir);
-    },
-
-    cwd: () => {
-      return workingDir;
     },
   });
 }
