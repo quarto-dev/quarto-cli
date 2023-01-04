@@ -7,8 +7,9 @@
 
 import { join } from "path/mod.ts";
 import { quarto } from "../../../src/quarto.ts";
-import { ensureDirSync } from "fs/mod.ts";
+import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { testRender } from "../render/render.ts";
+import { removeIfEmptyDir } from "../../../src/core/path.ts";
 
 const journalRepos = [
   { repo: "acm", noSupporting: true },
@@ -20,14 +21,25 @@ const journalRepos = [
   // { repo: "plos", noSupporting: true },
 ];
 
-const baseWorkingDir = Deno.makeTempDirSync();
-
 for (const journalRepo of journalRepos) {
   const format = journalRepo.format || journalRepo.repo;
-  const workingDir = join(baseWorkingDir, format);
-  ensureDirSync(workingDir);
+  const baseDir = join(
+    Deno.cwd(),
+    "docs",
+    "_temp-test-artifacts",
+  );
+  const workingDir = join(baseDir, format);
   const input = `${format}.qmd`;
+
   testRender(input, format + "-pdf", journalRepo.noSupporting, [], {
+    prereq: () => {
+      if (existsSync(workingDir)) {
+        Deno.removeSync(workingDir, { recursive: true });
+      }
+      ensureDirSync(workingDir);
+      return Promise.resolve(true);
+    },
+
     // Sets up the test
     setup: async () => {
       await quarto([
@@ -40,7 +52,8 @@ for (const journalRepo of journalRepos) {
 
     // Cleans up the test
     teardown: async () => {
-      // await Deno.remove(workingDir, { recursive: true });
+      await Deno.remove(workingDir, { recursive: true });
+      removeIfEmptyDir(baseDir);
     },
 
     cwd: () => {
