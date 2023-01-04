@@ -188,11 +188,6 @@ export const filterFilesForUpdate = (allFiles: string[]): string[] => {
     if (!fileName.endsWith(".xml")) {
       return false;
     }
-
-    if (fileName.includes("/")) {
-      return false; //No support for nested children, yet
-    }
-
     return true;
   };
   const result: string[] = allFiles.filter(fileFilter);
@@ -285,6 +280,9 @@ export const buildSpaceChanges = (
   space: Space,
   existingSite: SitePage[] = []
 ): ConfluenceSpaceChange[] => {
+  console.log("fileMetadataList", fileMetadataList);
+  console.log("exisitingSite", existingSite);
+
   const spaceChangesCallback = (
     accumulatedChanges: ConfluenceSpaceChange[],
     fileMetadata: SiteFileMetadata
@@ -293,7 +291,7 @@ export const buildSpaceChanges = (
       (page: SitePage) => page?.metadata?.fileName === fileMetadata.fileName
     );
 
-    let spaceChange: ConfluenceSpaceChange;
+    let spaceChangeList: ConfluenceSpaceChange[] = [];
 
     if (existingPage) {
       let useOriginalTitle = false;
@@ -303,25 +301,64 @@ export const buildSpaceChanges = (
         }
       }
 
-      spaceChange = buildContentUpdate(
-        existingPage.id,
-        useOriginalTitle ? fileMetadata.originalTitle : fileMetadata.title,
-        fileMetadata.contentBody,
-        fileMetadata.fileName,
-        parent?.parent
-      );
+      spaceChangeList = [
+        buildContentUpdate(
+          existingPage.id,
+          useOriginalTitle ? fileMetadata.originalTitle : fileMetadata.title,
+          fileMetadata.contentBody,
+          fileMetadata.fileName,
+          parent?.parent
+        ),
+      ];
     } else {
-      spaceChange = buildContentCreate(
-        fileMetadata.title,
-        space,
-        fileMetadata.contentBody,
-        fileMetadata.fileName,
-        parent?.parent,
-        ContentStatusEnum.current
-      );
+      console.log("fileMetadata.fileName", fileMetadata.fileName);
+
+      // TODO Create parents
+      const path = fileMetadata.fileName.split("/");
+      console.log("path", path);
+      if (path.length > 1) {
+        const parents = path.slice(0, path.length - 1);
+        console.log("parents", parents);
+        parents.forEach((parentPath) => {
+          console.log("create page for", parentPath);
+          spaceChangeList = [
+            buildContentCreate(
+              parentPath,
+              space,
+              {
+                storage: {
+                  value: "",
+                  representation: "storage",
+                },
+              },
+              parentPath,
+              parent?.parent,
+              ContentStatusEnum.current
+            ),
+          ];
+        });
+      }
+
+      const pageParent =
+        path.length > 1 ? path[path.length - 2] : parent?.parent;
+
+      console.log("path.length", path.length);
+      console.log("pageParent", pageParent);
+
+      spaceChangeList = [
+        ...spaceChangeList,
+        buildContentCreate(
+          fileMetadata.title,
+          space,
+          fileMetadata.contentBody,
+          fileMetadata.fileName,
+          pageParent,
+          ContentStatusEnum.current
+        ),
+      ];
     }
 
-    return [...accumulatedChanges, spaceChange];
+    return [...accumulatedChanges, ...spaceChangeList];
   };
 
   const pagesToDelete: SitePage[] = findPagesToDelete(
@@ -329,12 +366,7 @@ export const buildSpaceChanges = (
     existingSite
   );
 
-  // TODO sanity check and limiter to prevent any major run-away deletes
-  // Archive instead of delete
-  // length limited
-  // must be in current space
-  // !DANGER! if you put in the wrong parent you will be deleting big parts of confluence !DANGER!
-  // It seems like we will want some prompts
+  // TODO prompt as a sanity check and limiter to prevent any major run-away deletes
   const deleteChanges: ContentDelete[] = pagesToDelete.map(
     (toDelete: SitePage) => {
       return { contentChangeType: ContentChangeType.delete, id: toDelete.id };

@@ -554,6 +554,8 @@ async function publish(
 
     const filteredFiles: string[] = filterFilesForUpdate(publishFiles.files);
 
+    trace("filteredFiles", filteredFiles);
+
     const assembleSiteFileMetadata = async (
       fileName: string
     ): Promise<SiteFileMetadata> => {
@@ -580,9 +582,12 @@ async function publish(
       };
     };
 
+    //TODO consider using existing files
     const fileMetadata: SiteFileMetadata[] = await Promise.all(
       filteredFiles.map(assembleSiteFileMetadata)
     );
+
+    trace("fileMetadata", fileMetadata);
 
     const metadataByFilename = buildFileToMetaTable(existingSite);
 

@@ -90,207 +90,209 @@ const FAKE_PARENT: ConfluenceParent = {
   parent: "8781825",
 };
 
-unitTest("transformAtlassianDomain_basic", async () => {
-  const result = transformAtlassianDomain("fake-domain");
-  const expected = "https://fake-domain.atlassian.net/";
-  assertEquals(expected, result);
-});
+const runGeneralTests = () => {
+  unitTest("transformAtlassianDomain_basic", async () => {
+    const result = transformAtlassianDomain("fake-domain");
+    const expected = "https://fake-domain.atlassian.net/";
+    assertEquals(expected, result);
+  });
 
-unitTest("transformAtlassianDomain_EmptyString", async () => {
-  const result = transformAtlassianDomain("");
-  const expected = "https://.atlassian.net/";
-  assertEquals(expected, result);
-});
+  unitTest("transformAtlassianDomain_EmptyString", async () => {
+    const result = transformAtlassianDomain("");
+    const expected = "https://.atlassian.net/";
+    assertEquals(expected, result);
+  });
 
-unitTest("transformAtlassianDomain_addTrailing", async () => {
-  const result = transformAtlassianDomain("https://something");
-  const expected = "https://something/";
-  assertEquals(expected, result);
-});
+  unitTest("transformAtlassianDomain_addTrailing", async () => {
+    const result = transformAtlassianDomain("https://something");
+    const expected = "https://something/";
+    assertEquals(expected, result);
+  });
 
-unitTest("transformAtlassianDomain_partialPrefix", async () => {
-  const result = transformAtlassianDomain("htt://something");
-  const expected = "https://htt://something.atlassian.net/";
-  assertEquals(expected, result);
-});
+  unitTest("transformAtlassianDomain_partialPrefix", async () => {
+    const result = transformAtlassianDomain("htt://something");
+    const expected = "https://htt://something.atlassian.net/";
+    assertEquals(expected, result);
+  });
 
-unitTest("transformAtlassianDomain_addPrefixAndTrailing", async () => {
-  const result = transformAtlassianDomain("something");
-  const expected = "https://something.atlassian.net/";
-  assertEquals(expected, result);
-});
+  unitTest("transformAtlassianDomain_addPrefixAndTrailing", async () => {
+    const result = transformAtlassianDomain("something");
+    const expected = "https://something.atlassian.net/";
+    assertEquals(expected, result);
+  });
 
-unitTest("validateServer_empty", async () => {
-  const toCall = () => validateServer("");
-  assertThrows(toCall, "");
-});
+  unitTest("validateServer_empty", async () => {
+    const toCall = () => validateServer("");
+    assertThrows(toCall, "");
+  });
 
-unitTest("validateServer_valid", async () => {
-  const result = validateServer("fake-domain");
-  const expected = true;
-  assertEquals(expected, result);
-});
+  unitTest("validateServer_valid", async () => {
+    const result = validateServer("fake-domain");
+    const expected = true;
+    assertEquals(expected, result);
+  });
 
-unitTest("validateServer_invalid", async () => {
-  const result = validateServer("_!@ ... #");
-  const expected = "Not a valid URL";
-  assertEquals(expected, result);
-});
+  unitTest("validateServer_invalid", async () => {
+    const result = validateServer("_!@ ... #");
+    const expected = "Not a valid URL";
+    assertEquals(expected, result);
+  });
 
-unitTest("validateName_empty", async () => {
-  const toCall = () => validateEmail("");
-  assertThrows(toCall, "");
-});
+  unitTest("validateName_empty", async () => {
+    const toCall = () => validateEmail("");
+    assertThrows(toCall, "");
+  });
 
-unitTest("validateName_valid", async () => {
-  const result = validateEmail("al.manning@rstudio.com");
-  const expected = true;
-  assertEquals(expected, result);
-});
+  unitTest("validateName_valid", async () => {
+    const result = validateEmail("al.manning@rstudio.com");
+    const expected = true;
+    assertEquals(expected, result);
+  });
 
-unitTest("validateName_invalid_JustName", async () => {
-  const result = validateEmail("al.manning");
-  const expected = "Invalid email address";
-  assertEquals(expected, result);
-});
+  unitTest("validateName_invalid_JustName", async () => {
+    const result = validateEmail("al.manning");
+    const expected = "Invalid email address";
+    assertEquals(expected, result);
+  });
 
-unitTest("validateToken_empty", async () => {
-  const toCall = () => validateToken("");
-  assertThrows(toCall, "");
-});
+  unitTest("validateToken_empty", async () => {
+    const toCall = () => validateToken("");
+    assertThrows(toCall, "");
+  });
 
-unitTest("getMessageFromAPIError_null", async () => {
-  const result = getMessageFromAPIError(null);
-  const expected = "Unknown error";
-  assertEquals(expected, result);
-});
+  unitTest("getMessageFromAPIError_null", async () => {
+    const result = getMessageFromAPIError(null);
+    const expected = "Unknown error";
+    assertEquals(expected, result);
+  });
 
-unitTest("getMessageFromAPIError_emptyString", async () => {
-  const result = getMessageFromAPIError("");
-  const expected = "Unknown error";
-  assertEquals(expected, result);
-});
+  unitTest("getMessageFromAPIError_emptyString", async () => {
+    const result = getMessageFromAPIError("");
+    const expected = "Unknown error";
+    assertEquals(expected, result);
+  });
 
-unitTest("getMessageFromAPIError_APIError", async () => {
-  const result = getMessageFromAPIError(new ApiError(123, "status-text"));
-  const expected = "123 - status-text";
-  assertEquals(expected, result);
-});
+  unitTest("getMessageFromAPIError_APIError", async () => {
+    const result = getMessageFromAPIError(new ApiError(123, "status-text"));
+    const expected = "123 - status-text";
+    assertEquals(expected, result);
+  });
 
-unitTest("tokenFilterOut_sameToken", async () => {
-  const fakeToken = {
-    type: AccountTokenType.Environment,
-    name: "fake-name",
-    server: "fake-server",
-    token: "fake-token",
-  };
+  unitTest("tokenFilterOut_sameToken", async () => {
+    const fakeToken = {
+      type: AccountTokenType.Environment,
+      name: "fake-name",
+      server: "fake-server",
+      token: "fake-token",
+    };
 
-  const result = tokenFilterOut(fakeToken, fakeToken);
-  const expected = false;
-  assertEquals(expected, result);
-});
+    const result = tokenFilterOut(fakeToken, fakeToken);
+    const expected = false;
+    assertEquals(expected, result);
+  });
 
-unitTest("tokenFilterOut_differentToken", async () => {
-  const fakeToken = {
-    type: AccountTokenType.Environment,
-    name: "fake-name",
-    server: "fake-server",
-    token: "fake-token",
-  };
+  unitTest("tokenFilterOut_differentToken", async () => {
+    const fakeToken = {
+      type: AccountTokenType.Environment,
+      name: "fake-name",
+      server: "fake-server",
+      token: "fake-token",
+    };
 
-  const fakeToken2 = {
-    type: AccountTokenType.Environment,
-    name: "fake-name2",
-    server: "fake-server2",
-    token: "fake-token2",
-  };
+    const fakeToken2 = {
+      type: AccountTokenType.Environment,
+      name: "fake-name2",
+      server: "fake-server2",
+      token: "fake-token2",
+    };
 
-  const result = tokenFilterOut(fakeToken, fakeToken2);
-  const expected = true;
-  assertEquals(expected, result);
-});
+    const result = tokenFilterOut(fakeToken, fakeToken2);
+    const expected = true;
+    assertEquals(expected, result);
+  });
 
-unitTest("isUnauthorized_EmptyError", async () => {
-  const result = isUnauthorized(new Error());
-  const expected = false;
-  assertEquals(expected, result);
-});
+  unitTest("isUnauthorized_EmptyError", async () => {
+    const result = isUnauthorized(new Error());
+    const expected = false;
+    assertEquals(expected, result);
+  });
 
-unitTest("isUnauthorized_401", async () => {
-  const result = isUnauthorized(new ApiError(401, "fake-status"));
-  const expected = true;
-  assertEquals(expected, result);
-});
+  unitTest("isUnauthorized_401", async () => {
+    const result = isUnauthorized(new ApiError(401, "fake-status"));
+    const expected = true;
+    assertEquals(expected, result);
+  });
 
-unitTest("isUnauthorized_403", async () => {
-  const result = isUnauthorized(new ApiError(403, "fake-status"));
-  const expected = true;
-  assertEquals(expected, result);
-});
+  unitTest("isUnauthorized_403", async () => {
+    const result = isUnauthorized(new ApiError(403, "fake-status"));
+    const expected = true;
+    assertEquals(expected, result);
+  });
 
-unitTest("isNotFound_Empty", async () => {
-  const result = isNotFound(new Error());
-  const expected = false;
-  assertEquals(expected, result);
-});
+  unitTest("isNotFound_Empty", async () => {
+    const result = isNotFound(new Error());
+    const expected = false;
+    assertEquals(expected, result);
+  });
 
-unitTest("isNotFound_404", async () => {
-  const result = isNotFound(new ApiError(404, "fake-status"));
-  const expected = true;
-  assertEquals(expected, result);
-});
+  unitTest("isNotFound_404", async () => {
+    const result = isNotFound(new ApiError(404, "fake-status"));
+    const expected = true;
+    assertEquals(expected, result);
+  });
 
-unitTest("confluenceParentFromString_empty", async () => {
-  const result = confluenceParentFromString("");
-  const expected = {
-    space: "",
-    parent: "",
-  };
-  assertEquals(expected, result);
-});
+  unitTest("confluenceParentFromString_empty", async () => {
+    const result = confluenceParentFromString("");
+    const expected = {
+      space: "",
+      parent: "",
+    };
+    assertEquals(expected, result);
+  });
 
-unitTest("confluenceParentFromString_valid", async () => {
-  const url =
-    "https://allenmanning.atlassian.net/wiki/spaces/QUARTOCONF/pages/8781825/Markdown+Basics1";
-  const result = confluenceParentFromString(url);
-  const expected: ConfluenceParent = {
-    space: "QUARTOCONF",
-    parent: "8781825",
-  };
-  assertEquals(expected, result);
-});
+  unitTest("confluenceParentFromString_valid", async () => {
+    const url =
+      "https://allenmanning.atlassian.net/wiki/spaces/QUARTOCONF/pages/8781825/Markdown+Basics1";
+    const result = confluenceParentFromString(url);
+    const expected: ConfluenceParent = {
+      space: "QUARTOCONF",
+      parent: "8781825",
+    };
+    assertEquals(expected, result);
+  });
 
-unitTest("confluenceParentFromString_valid_noParent", async () => {
-  const url = "https://allenmanning.atlassian.net/wiki/spaces/QUARTOCONF";
-  const result = confluenceParentFromString(url);
-  const expected: ConfluenceParent = {
-    space: "QUARTOCONF",
-    parent: undefined,
-  };
-  assertEquals(expected, result);
-});
+  unitTest("confluenceParentFromString_valid_noParent", async () => {
+    const url = "https://allenmanning.atlassian.net/wiki/spaces/QUARTOCONF";
+    const result = confluenceParentFromString(url);
+    const expected: ConfluenceParent = {
+      space: "QUARTOCONF",
+      parent: undefined,
+    };
+    assertEquals(expected, result);
+  });
 
-unitTest("confluenceParentFromString_invalid_noSpace", async () => {
-  const url = "https://allenmanning.atlassian.net/QUARTOCONF";
-  const result = confluenceParentFromString(url);
-  const expected = {
-    space: "",
-    parent: "",
-  };
-  assertEquals(expected, result);
-});
+  unitTest("confluenceParentFromString_invalid_noSpace", async () => {
+    const url = "https://allenmanning.atlassian.net/QUARTOCONF";
+    const result = confluenceParentFromString(url);
+    const expected = {
+      space: "",
+      parent: "",
+    };
+    assertEquals(expected, result);
+  });
 
-unitTest("wrapBodyForConfluence_empty", async () => {
-  const value = "";
-  const result = wrapBodyForConfluence(value);
-  const expected = {
-    storage: {
-      value: "",
-      representation: "storage",
-    },
-  };
-  assertEquals(expected, result);
-});
+  unitTest("wrapBodyForConfluence_empty", async () => {
+    const value = "";
+    const result = wrapBodyForConfluence(value);
+    const expected = {
+      storage: {
+        value: "",
+        representation: "storage",
+      },
+    };
+    assertEquals(expected, result);
+  });
+};
 
 const runPublishRecordTests = () => {
   const fakeServer = "https://allenmanning.atlassian.net";
@@ -362,7 +364,6 @@ const runPublishRecordTests = () => {
     assertEquals(expected[1], result[1]);
   };
 };
-runPublishRecordTests();
 
 const runGetNextVersionTests = () => {
   const suiteLabel = (label: string) => `GetNextVersionTests_${label}`;
@@ -385,7 +386,6 @@ const runGetNextVersionTests = () => {
     check(previousPage, expected);
   });
 };
-runGetNextVersionTests();
 
 const runWriteTokenComparator = () => {
   const suiteLabel = (label: string) => `WriteTokenComparator_${label}`;
@@ -489,7 +489,6 @@ const runWriteTokenComparator = () => {
     );
   });
 };
-runWriteTokenComparator();
 
 const runFilterFilesForUpdate = () => {
   const suiteLabel = (label: string) => `FilterFilesForUpdate_${label}`;
@@ -518,20 +517,18 @@ const runFilterFilesForUpdate = () => {
 
   unitTest(suiteLabel("nestedMixed"), async () => {
     const fakeFileList = [
-      "parent/not-supported-child.xml",
-
+      "parent/child.xml",
       "knowledge-base.html",
       "team.xml",
       "agreements.html",
       "mission.xml",
       "ci-log.html",
     ];
-    const expected = ["team.xml", "mission.xml"];
+    const expected = ["parent/child.xml", "team.xml", "mission.xml"];
 
     check(fakeFileList, expected);
   });
 };
-runFilterFilesForUpdate();
 
 const runBuildContentCreate = () => {
   const suiteLabel = (label: string) => `BuildContentCreate_${label}`;
@@ -627,7 +624,6 @@ const runBuildContentCreate = () => {
     assertEquals(expected, actual);
   });
 };
-runBuildContentCreate();
 
 const runGetTitle = () => {
   const suiteLabel = (label: string) => `GetTitle_${label}`;
@@ -672,7 +668,6 @@ const runGetTitle = () => {
     assertEquals(expected, result);
   });
 };
-runGetTitle();
 
 const runMergeSitePages = () => {
   const suiteLabel = (label: string) => `MergeSitePages_${label}`;
@@ -825,7 +820,6 @@ const runMergeSitePages = () => {
     assertEquals(expected, result);
   });
 };
-runMergeSitePages();
 
 const runFileMetadataToSpaceChanges = () => {
   const suiteLabel = (label: string) => `FileMetadataToSpaceChanges_${label}`;
@@ -1138,7 +1132,131 @@ const runFileMetadataToSpaceChanges = () => {
     assertEquals(expected, actual);
   });
 };
-runFileMetadataToSpaceChanges();
+
+const runFileMetadataToSpaceChangesWithNesting = () => {
+  const suiteLabel = (label: string) => `FileMetadataToSpaceChanges_${label}`;
+
+  const fakeSpace: Space = {
+    key: "fake-space-key",
+    id: "fake-space-id",
+    homepage: buildFakeContent(),
+  };
+
+  const fakeFile: SiteFileMetadata = {
+    fileName: "fake-file-name",
+    title: "fake-title",
+    originalTitle: "fake-title-original",
+    matchingPages: [],
+    contentBody: {
+      storage: {
+        value: "fake-value",
+        representation: "storage",
+      },
+    },
+  };
+
+  const fakeNestedFile: SiteFileMetadata = {
+    fileName: "fake-parent/fake-file-name",
+    title: "fake-title",
+    originalTitle: "fake-title-original",
+    matchingPages: [],
+    contentBody: {
+      storage: {
+        value: "fake-value",
+        representation: "storage",
+      },
+    },
+  };
+
+  const fakeFileMatchingPage: SiteFileMetadata = {
+    fileName: "fake-file-name",
+    title: "fake-title",
+    originalTitle: "fake-title-original",
+    matchingPages: [
+      {
+        id: "123456",
+        title: "fake-title-original",
+      },
+    ],
+    contentBody: {
+      storage: {
+        value: "fake-value",
+        representation: "storage",
+      },
+    },
+  };
+
+  const fakeFile2: SiteFileMetadata = {
+    fileName: "fake-file-name2",
+    title: "fake-title2",
+    originalTitle: "fake-title2-original",
+    matchingPages: [],
+    contentBody: {
+      storage: {
+        value: "fake-value2",
+        representation: "storage",
+      },
+    },
+  };
+
+  unitTest(suiteLabel("one_nested_file"), async () => {
+    const fileMetadataList: SiteFileMetadata[] = [fakeNestedFile];
+    const expected: ConfluenceSpaceChange[] = [
+      {
+        contentChangeType: ContentChangeType.create,
+        ancestors: [
+          {
+            id: "8781825",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "",
+          },
+        },
+        fileName: "fake-parent",
+        space: {
+          key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
+        },
+        status: "current",
+        title: "fake-parent",
+        type: "page",
+      },
+      {
+        contentChangeType: ContentChangeType.create,
+        ancestors: [
+          {
+            id: "fake-parent",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "fake-value",
+          },
+        },
+        fileName: "fake-parent/fake-file-name",
+        space: {
+          key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
+        },
+        status: "current",
+        title: "fake-title",
+        type: "page",
+      },
+    ];
+    const actual: ConfluenceSpaceChange[] = buildSpaceChanges(
+      fileMetadataList,
+      FAKE_PARENT,
+      fakeSpace
+    );
+    assertEquals(expected, actual);
+  });
+};
 
 const runBuildFileToMetaTable = () => {
   const suiteLabel = (label: string) => `BuildFileToMetaTable_${label}`;
@@ -1219,7 +1337,6 @@ const runBuildFileToMetaTable = () => {
     check(expected, fakeSite);
   });
 };
-runBuildFileToMetaTable();
 
 const runExtractLinks = () => {
   const suiteLabel = (label: string) => `ExtractLinks_${label}`;
@@ -1268,7 +1385,6 @@ const runExtractLinks = () => {
     check(expected, value);
   });
 };
-runExtractLinks();
 
 const runUpdateLinks = () => {
   const suiteLabel = (label: string) => `UpdateLinks_${label}`;
@@ -1468,7 +1584,6 @@ const runUpdateLinks = () => {
     check(expected, changes, fileMetadataTable);
   });
 };
-runUpdateLinks();
 
 const runFindAttachments = () => {
   const suiteLabel = (label: string) => `FindAttachments_${label}`;
@@ -1542,7 +1657,6 @@ const runFindAttachments = () => {
     check(expected, bodyValue);
   });
 };
-runFindAttachments();
 
 const runUpdateImagePathsForContentBody = () => {
   const suiteLabel = (label: string) =>
@@ -1592,4 +1706,21 @@ const runUpdateImagePathsForContentBody = () => {
     check(expected, changes);
   });
 };
+
+runGeneralTests();
+runFilterFilesForUpdate();
+runFileMetadataToSpaceChanges();
+runFileMetadataToSpaceChangesWithNesting();
+runMergeSitePages();
+runPublishRecordTests();
+runGetNextVersionTests();
+runWriteTokenComparator();
+runBuildContentCreate();
+runGetTitle();
+runBuildFileToMetaTable();
+runExtractLinks();
+runUpdateLinks();
+runFindAttachments();
 runUpdateImagePathsForContentBody();
+
+// runFileMetadataToSpaceChangesWithNesting();
