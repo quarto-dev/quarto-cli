@@ -609,55 +609,73 @@ async function publish(
       siteParent
     );
 
-    trace("update links changelist", changeList);
+    let pathsToId: Record<string, string> = {};
 
-    const spaceChanges = (
-      changeList: ConfluenceSpaceChange[]
-    ): Promise<SpaceChangeResult>[] => {
-      return changeList.map(async (change: ConfluenceSpaceChange) => {
-        const doChanges = async () => {
-          if (isContentCreate(change)) {
-            const result = await createContent(
-              publishFiles,
-              change.body,
-              change.title ?? "",
-              siteParent
-            );
-            const contentPropertyResult: Content =
-              await client.createContentProperty(result.id ?? "", {
-                key: ContentPropertyKey.fileName,
-                value: (change as ContentCreate).fileName,
-              });
+    const doChange = async (change: ConfluenceSpaceChange) => {
+      if (isContentCreate(change)) {
+        let ancestorId =
+          (change?.ancestors && change?.ancestors[0]?.id) ?? null;
 
-            return result;
-          } else if (isContentUpdate(change)) {
-            const update = change as ContentUpdate;
-            return await updateContent(
-              publishFiles,
-              update.id ?? "",
-              update.body,
-              update.title ?? ""
-            );
-          } else if (isContentDelete(change)) {
-            if (DELETE_DISABLED) {
-              console.warn("DELETE DISABELD");
-              return null;
-            }
-            const result = await client.deleteContent(change);
-            return result;
-          } else {
-            console.error("Space Change not defined");
-            return null;
-          }
+        console.log("swap parent from", ancestorId);
+        console.log("pathsToId before await", pathsToId);
+
+        if (ancestorId && pathsToId[ancestorId]) {
+          ancestorId = pathsToId[ancestorId];
+          console.log("swapped");
+        }
+
+        console.log("ancestorId", ancestorId);
+
+        const ancestorParent: ConfluenceParent = {
+          space: parent.space,
+          parent: ancestorId ?? siteParent.parent,
         };
 
-        return await doChanges();
-      });
+        const result = await createContent(
+          publishFiles,
+          change.body,
+          change.title ?? "",
+          ancestorParent
+        );
+
+        if (change.fileName) {
+          pathsToId[change.fileName] = result.id ?? "";
+        }
+
+        console.log("pathsToId after await", pathsToId);
+
+        const contentPropertyResult: Content =
+          await client.createContentProperty(result.id ?? "", {
+            key: ContentPropertyKey.fileName,
+            value: (change as ContentCreate).fileName,
+          });
+
+        return result;
+      } else if (isContentUpdate(change)) {
+        const update = change as ContentUpdate;
+        return await updateContent(
+          publishFiles,
+          update.id ?? "",
+          update.body,
+          update.title ?? ""
+        );
+      } else if (isContentDelete(change)) {
+        if (DELETE_DISABLED) {
+          console.warn("DELETE DISABELD");
+          return null;
+        }
+        const result = await client.deleteContent(change);
+        return result;
+      } else {
+        console.error("Space Change not defined");
+        return null;
+      }
     };
 
-    const changes: SpaceChangeResult[] = await Promise.all(
-      spaceChanges(changeList)
-    );
+    for (let currentChange of changeList) {
+      await doChange(currentChange);
+    }
+
     const parentPage: Content = await client.getContent(parentId);
 
     return buildPublishRecordForContent(server, parentPage);
