@@ -1562,6 +1562,137 @@ const runFileMetadataToSpaceChangesWithNesting = () => {
     );
     assertEquals(expected, actual);
   });
+
+  unitTest(suiteLabel("three_nested_files_same_different_parent"), async () => {
+    const fileMetadataList: SiteFileMetadata[] = [
+      fakeNestedFile,
+      fakeNestedFile2,
+      fakeNestedFile3,
+    ];
+    const expected: ConfluenceSpaceChange[] = [
+      {
+        contentChangeType: ContentChangeType.create,
+        ancestors: [
+          {
+            id: "8781825",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "",
+          },
+        },
+        fileName: "fake-parent",
+        space: {
+          key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
+        },
+        status: "current",
+        title: "fake-parent",
+        type: "page",
+      },
+      {
+        contentChangeType: ContentChangeType.create,
+        ancestors: [
+          {
+            id: "fake-parent",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "fake-value",
+          },
+        },
+        fileName: "fake-parent/fake-file-name",
+        space: {
+          key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
+        },
+        status: "current",
+        title: "fake-title",
+        type: "page",
+      },
+      {
+        contentChangeType: ContentChangeType.create,
+        ancestors: [
+          {
+            id: "fake-parent",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "fake-value",
+          },
+        },
+        fileName: "fake-parent/fake-file-name2",
+        space: {
+          key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
+        },
+        status: "current",
+        title: "fake-title2",
+        type: "page",
+      },
+      {
+        contentChangeType: ContentChangeType.create,
+        ancestors: [
+          {
+            id: "8781825",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "",
+          },
+        },
+        fileName: "fake-parent2",
+        space: {
+          key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
+        },
+        status: "current",
+        title: "fake-parent2",
+        type: "page",
+      },
+      {
+        contentChangeType: ContentChangeType.create,
+        ancestors: [
+          {
+            id: "fake-parent2",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "fake-value",
+          },
+        },
+        fileName: "fake-parent2/fake-file-name3",
+        space: {
+          key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
+        },
+        status: "current",
+        title: "fake-title3",
+        type: "page",
+      },
+    ];
+    const actual: ConfluenceSpaceChange[] = buildSpaceChanges(
+      fileMetadataList,
+      FAKE_PARENT,
+      fakeSpace
+    );
+    assertEquals(expected, actual);
+  });
 };
 
 const runBuildFileToMetaTable = () => {
