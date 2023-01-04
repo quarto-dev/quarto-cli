@@ -327,7 +327,7 @@ export const buildSpaceChanges = (
           }
           console.log("ancestor", ancestor);
 
-          let fileName = `${parents.slice(0, index).toString()}/${parentPath}`;
+          let fileName = `${parents.slice(0, index).join("/")}/${parentPath}`;
 
           if (fileName.startsWith("/")) {
             fileName = parentPath;
