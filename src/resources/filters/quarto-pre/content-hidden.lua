@@ -51,7 +51,7 @@ _quarto.ast.add_handler({
       crash_with_stack_trace()
     end
     if visible then
-      return el
+      return el.content
     end
     return {}
   end,
@@ -105,13 +105,12 @@ function handleHiddenVisible(profiles)
       clearHiddenVisibleAttributes(el)
       visible = not propertiesMatch(el.attributes, profiles)
     end
+    -- this is only called on spans and codeblocks, so here we keep the scaffolding element
+    -- as opposed to in the Div where we return the inlined content
     if visible then
       return el
-    end
-    if el.t == "Span" then
-      return pandoc.Span({})
     else
-      return pandoc.Null()
+      return {}
     end
   end
 end
@@ -142,4 +141,22 @@ function clearHiddenVisibleAttributes(el)
   el.attributes[kWhenProfile] = nil
   el.attr.classes = removeClass(el.attr.classes, kContentVisible)
   el.attr.classes = removeClass(el.attr.classes, kContentHidden)
+end
+
+function handleVisible(el, profiles)
+  local show = propertiesMatch(el.attributes, profiles)
+  clearHiddenVisibleAttributes(el)
+  if not show then
+    return {}
+  end
+  return el.content
+end
+
+function handleHidden(el, profiles)
+  local hide = propertiesMatch(el.attributes, profiles)
+  clearHiddenVisibleAttributes(el)
+  if hide then
+    return {}
+  end
+  return el.content
 end
