@@ -313,15 +313,30 @@ export const buildSpaceChanges = (
     } else {
       console.log("fileMetadata.fileName", fileMetadata.fileName);
 
-      // TODO Create parents
       const path = fileMetadata.fileName.split("/");
       console.log("path", path);
       if (path.length > 1) {
         const parents = path.slice(0, path.length - 1);
         console.log("parents", parents);
-        parents.forEach((parentPath) => {
+        parents.forEach((parentPath, index) => {
           console.log("create page for", parentPath);
+          console.log("index", index);
+          let ancestor = parent?.parent;
+          if (index > 0) {
+            ancestor = parents[index - 1];
+          }
+          console.log("ancestor", ancestor);
+
+          let fileName = `${parents.slice(0, index).toString()}/${parentPath}`;
+
+          if (fileName.startsWith("/")) {
+            fileName = parentPath;
+          }
+
+          console.log("fileName", fileName);
+
           spaceChangeList = [
+            ...spaceChangeList,
             buildContentCreate(
               parentPath,
               space,
@@ -331,8 +346,8 @@ export const buildSpaceChanges = (
                   representation: "storage",
                 },
               },
-              parentPath,
-              parent?.parent,
+              fileName,
+              ancestor,
               ContentStatusEnum.current
             ),
           ];

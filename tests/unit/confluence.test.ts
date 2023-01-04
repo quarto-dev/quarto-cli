@@ -1168,16 +1168,11 @@ const runFileMetadataToSpaceChangesWithNesting = () => {
     },
   };
 
-  const fakeFileMatchingPage: SiteFileMetadata = {
-    fileName: "fake-file-name",
+  const fakeDoubleNestedFile: SiteFileMetadata = {
+    fileName: "fake-grand-parent/fake-parent/fake-file-name",
     title: "fake-title",
     originalTitle: "fake-title-original",
-    matchingPages: [
-      {
-        id: "123456",
-        title: "fake-title-original",
-      },
-    ],
+    matchingPages: [],
     contentBody: {
       storage: {
         value: "fake-value",
@@ -1186,21 +1181,66 @@ const runFileMetadataToSpaceChangesWithNesting = () => {
     },
   };
 
-  const fakeFile2: SiteFileMetadata = {
-    fileName: "fake-file-name2",
-    title: "fake-title2",
-    originalTitle: "fake-title2-original",
-    matchingPages: [],
-    contentBody: {
-      storage: {
-        value: "fake-value2",
-        representation: "storage",
-      },
-    },
-  };
+  // unitTest(suiteLabel("one_nested_file"), async () => {
+  //   const fileMetadataList: SiteFileMetadata[] = [fakeNestedFile];
+  //   const expected: ConfluenceSpaceChange[] = [
+  //     {
+  //       contentChangeType: ContentChangeType.create,
+  //       ancestors: [
+  //         {
+  //           id: "8781825",
+  //         },
+  //       ],
+  //       body: {
+  //         storage: {
+  //           representation: "storage",
+  //           value: "",
+  //         },
+  //       },
+  //       fileName: "fake-parent",
+  //       space: {
+  //         key: "fake-space-key",
+  //         id: "fake-space-id",
+  //         homepage: buildFakeContent(),
+  //       },
+  //       status: "current",
+  //       title: "fake-parent",
+  //       type: "page",
+  //     },
+  //     {
+  //       contentChangeType: ContentChangeType.create,
+  //       ancestors: [
+  //         {
+  //           id: "fake-parent",
+  //         },
+  //       ],
+  //       body: {
+  //         storage: {
+  //           representation: "storage",
+  //           value: "fake-value",
+  //         },
+  //       },
+  //       fileName: "fake-parent/fake-file-name",
+  //       space: {
+  //         key: "fake-space-key",
+  //         id: "fake-space-id",
+  //         homepage: buildFakeContent(),
+  //       },
+  //       status: "current",
+  //       title: "fake-title",
+  //       type: "page",
+  //     },
+  //   ];
+  //   const actual: ConfluenceSpaceChange[] = buildSpaceChanges(
+  //     fileMetadataList,
+  //     FAKE_PARENT,
+  //     fakeSpace
+  //   );
+  //   assertEquals(expected, actual);
+  // });
 
-  unitTest(suiteLabel("one_nested_file"), async () => {
-    const fileMetadataList: SiteFileMetadata[] = [fakeNestedFile];
+  unitTest(suiteLabel("one_double_nested_file"), async () => {
+    const fileMetadataList: SiteFileMetadata[] = [fakeDoubleNestedFile];
     const expected: ConfluenceSpaceChange[] = [
       {
         contentChangeType: ContentChangeType.create,
@@ -1215,7 +1255,30 @@ const runFileMetadataToSpaceChangesWithNesting = () => {
             value: "",
           },
         },
-        fileName: "fake-parent",
+        fileName: "fake-grand-parent",
+        space: {
+          key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
+        },
+        status: "current",
+        title: "fake-grand-parent",
+        type: "page",
+      },
+      {
+        contentChangeType: ContentChangeType.create,
+        ancestors: [
+          {
+            id: "fake-grand-parent",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "",
+          },
+        },
+        fileName: "fake-grand-parent/fake-parent",
         space: {
           key: "fake-space-key",
           id: "fake-space-id",
@@ -1238,7 +1301,7 @@ const runFileMetadataToSpaceChangesWithNesting = () => {
             value: "fake-value",
           },
         },
-        fileName: "fake-parent/fake-file-name",
+        fileName: "fake-grand-parent/fake-parent/fake-file-name",
         space: {
           key: "fake-space-key",
           id: "fake-space-id",
@@ -1254,6 +1317,7 @@ const runFileMetadataToSpaceChangesWithNesting = () => {
       FAKE_PARENT,
       fakeSpace
     );
+    console.log("actual", actual);
     assertEquals(expected, actual);
   });
 };
@@ -1707,20 +1771,24 @@ const runUpdateImagePathsForContentBody = () => {
   });
 };
 
-runGeneralTests();
-runFilterFilesForUpdate();
-runFileMetadataToSpaceChanges();
-runFileMetadataToSpaceChangesWithNesting();
-runMergeSitePages();
-runPublishRecordTests();
-runGetNextVersionTests();
-runWriteTokenComparator();
-runBuildContentCreate();
-runGetTitle();
-runBuildFileToMetaTable();
-runExtractLinks();
-runUpdateLinks();
-runFindAttachments();
-runUpdateImagePathsForContentBody();
+const runAllTests = true;
 
-// runFileMetadataToSpaceChangesWithNesting();
+if (runAllTests) {
+  runGeneralTests();
+  runFilterFilesForUpdate();
+  runFileMetadataToSpaceChanges();
+  runFileMetadataToSpaceChangesWithNesting();
+  runMergeSitePages();
+  runPublishRecordTests();
+  runGetNextVersionTests();
+  runWriteTokenComparator();
+  runBuildContentCreate();
+  runGetTitle();
+  runBuildFileToMetaTable();
+  runExtractLinks();
+  runUpdateLinks();
+  runFindAttachments();
+  runUpdateImagePathsForContentBody();
+} else {
+  runFileMetadataToSpaceChangesWithNesting();
+}
