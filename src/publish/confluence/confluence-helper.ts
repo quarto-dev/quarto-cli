@@ -280,9 +280,6 @@ export const buildSpaceChanges = (
   space: Space,
   existingSite: SitePage[] = []
 ): ConfluenceSpaceChange[] => {
-  console.log("fileMetadataList", fileMetadataList);
-  console.log("exisitingSite", existingSite);
-
   const spaceChangesCallback = (
     accumulatedChanges: ConfluenceSpaceChange[],
     fileMetadata: SiteFileMetadata
@@ -311,54 +308,56 @@ export const buildSpaceChanges = (
         ),
       ];
     } else {
-      console.log("fileMetadata.fileName", fileMetadata.fileName);
-
       const path = fileMetadata.fileName.split("/");
-      console.log("path", path);
+
       if (path.length > 1) {
         const parents = path.slice(0, path.length - 1);
-        console.log("parents", parents);
+
         parents.forEach((parentPath, index) => {
-          console.log("create page for", parentPath);
-          console.log("index", index);
           let ancestor = parent?.parent;
           if (index > 0) {
             ancestor = parents[index - 1];
           }
-          console.log("ancestor", ancestor);
 
           let fileName = `${parents.slice(0, index).join("/")}/${parentPath}`;
 
           if (fileName.startsWith("/")) {
             fileName = parentPath;
           }
+          
+          const existingParentCreateChange = accumulatedChanges.find(
+            (spaceChange: any) => {
+              if (spaceChange.fileName) {
+                return spaceChange?.fileName === fileName;
+              }
+              return false;
+            }
+          );
 
-          console.log("fileName", fileName);
-
-          spaceChangeList = [
-            ...spaceChangeList,
-            buildContentCreate(
-              parentPath,
-              space,
-              {
-                storage: {
-                  value: "",
-                  representation: "storage",
+          
+          if (!existingParentCreateChange) {
+            spaceChangeList = [
+              ...spaceChangeList,
+              buildContentCreate(
+                parentPath,
+                space,
+                {
+                  storage: {
+                    value: "",
+                    representation: "storage",
+                  },
                 },
-              },
-              fileName,
-              ancestor,
-              ContentStatusEnum.current
-            ),
-          ];
+                fileName,
+                ancestor,
+                ContentStatusEnum.current
+              ),
+            ];
+          }
         });
       }
 
       const pageParent =
         path.length > 1 ? path[path.length - 2] : parent?.parent;
-
-      console.log("path.length", path.length);
-      console.log("pageParent", pageParent);
 
       spaceChangeList = [
         ...spaceChangeList,
