@@ -189,7 +189,6 @@ export function revealjsFormat() {
               figResponsive: false,
             }, // tippy options
             {
-              theme: "quarto-reveal",
               parent: "section.slide",
               config: {
                 offset: [0, 0],
