@@ -24,6 +24,9 @@ function run_emulated_filter(doc, filter)
   end
 
   function process_custom_inner(raw)
+    if type(raw) == "userdata" then
+      return raw:walk(wrapped_filter)
+    end
     local custom_data, t, kind = _quarto.ast.resolve_custom_data(raw)    
     local handler = _quarto.ast.resolve_handler(t)
     if handler == nil then
