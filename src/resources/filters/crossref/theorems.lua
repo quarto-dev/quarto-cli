@@ -48,6 +48,8 @@ function crossrefTheorems()
         local label = el.attr.identifier
         local order = indexNextOrder(type)
         indexAddEntry(label, nil, order, name)
+        -- Remove id on those div to avoid Pandoc inserting \hypertaget #3776
+        el.attr.identifier = ""
         
         -- If this theorem has no content, then create a placeholder
         if #el.content == 0 or el.content[1].t ~= "Para" then
