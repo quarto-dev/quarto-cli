@@ -601,11 +601,10 @@ div.cell-output-display div.pagedtable-wrapper table.table {
 }
 
 .reveal code.sourceCode a.code-annotation-anchor {
-  line-height: 18px;
   text-align: center;
   vertical-align: middle;
-  cursor: default;
   text-decoration: none;
+  cursor: default;
 }
 
 .reveal #code-annotation-line-highlight-gutter {
@@ -637,5 +636,27 @@ div.cell-output-display div.pagedtable-wrapper table.table {
   code {
     z-index: 3;
     padding-left: 0px;
+  }
+}
+
+.reveal dl.code-annotation-container-grid {
+  margin-left: 0.1em;
+  dt {
+    margin-top: 0.65rem;
+    font-family: $font-family-monospace;
+    border: solid $body-color 1px;
+    border-radius: 50%;
+    height: 1.3em;
+    width: 1.3em;
+    line-height: 1.3em;
+    font-size: 0.5em;
+    text-align: center;
+    vertical-align: middle;
+
+    text-decoration: none;
+  }
+
+  dd {
+    margin-left: 0.25em;
   }
 }
