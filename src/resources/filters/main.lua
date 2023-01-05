@@ -70,6 +70,7 @@ import("./quarto-post/ojs.lua")
 import("./quarto-post/responsive.lua")
 import("./quarto-post/reveal.lua")
 import("./quarto-post/tikz.lua")
+import("./quarto-post/pdf-images.lua")
 
 import("./quarto-finalize/dependencies.lua")
 import("./quarto-finalize/book-cleanup.lua")
@@ -217,6 +218,7 @@ local quartoPost = {
     quartoBook(),
     reveal(),
     tikz(),
+    pdfImages(),
     delink(),
     figCleanup()
   }) },
