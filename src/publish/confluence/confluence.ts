@@ -616,15 +616,9 @@ async function publish(
         let ancestorId =
           (change?.ancestors && change?.ancestors[0]?.id) ?? null;
 
-        console.log("swap parent from", ancestorId);
-        console.log("pathsToId before await", pathsToId);
-
         if (ancestorId && pathsToId[ancestorId]) {
           ancestorId = pathsToId[ancestorId];
-          console.log("swapped");
         }
-
-        console.log("ancestorId", ancestorId);
 
         const ancestorParent: ConfluenceParent = {
           space: parent.space,
@@ -641,8 +635,6 @@ async function publish(
         if (change.fileName) {
           pathsToId[change.fileName] = result.id ?? "";
         }
-
-        console.log("pathsToId after await", pathsToId);
 
         const contentPropertyResult: Content =
           await client.createContentProperty(result.id ?? "", {

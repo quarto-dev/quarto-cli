@@ -33,6 +33,10 @@ export const FILE_FINDER: RegExp = /(?<=href=\')(.*)(?=\.qmd)/;
 const IMAGE_FINDER: RegExp =
   /(?<=ri:attachment ri:filename=["\'])[^"\']+?\.(?:jpe?g|png|gif|m4a|mp3|txt)(?=["\'])/g;
 
+const capitalizeFirstLetter = (value: string): string => {
+  return value[0].toUpperCase() + value.slice(1);
+};
+
 export const transformAtlassianDomain = (domain: string) => {
   return ensureTrailingSlash(
     isHttpUrl(domain) ? domain : `https://${domain}.atlassian.net`
@@ -290,6 +294,60 @@ export const buildSpaceChanges = (
 
     let spaceChangeList: ConfluenceSpaceChange[] = [];
 
+    const pathList = fileMetadata.fileName.split("/");
+
+    const pageParent =
+      pathList.length > 1
+        ? pathList.slice(0, pathList.length - 1).join("/")
+        : parent?.parent;
+
+    const checkCreateParents = () => {
+      if (pathList.length < 2) {
+        return;
+      }
+
+      const parentsList = pathList.slice(0, pathList.length - 1);
+
+      parentsList.forEach((parentFileName, index) => {
+        const ancestorFilePath = parentsList.slice(0, index).join("/");
+
+        const ancestor = index > 0 ? ancestorFilePath : parent?.parent;
+
+        let fileName = `${ancestorFilePath}/${parentFileName}`;
+        if (fileName.startsWith("/")) {
+          fileName = parentFileName;
+        }
+
+        const existingParentCreateChange = accumulatedChanges.find(
+          (spaceChange: any) => {
+            if (spaceChange.fileName) {
+              return spaceChange?.fileName === fileName;
+            }
+            return false;
+          }
+        );
+
+        if (!existingParentCreateChange) {
+          spaceChangeList = [
+            ...spaceChangeList,
+            buildContentCreate(
+              capitalizeFirstLetter(parentFileName),
+              space,
+              {
+                storage: {
+                  value: "",
+                  representation: "storage",
+                },
+              },
+              fileName,
+              ancestor,
+              ContentStatusEnum.current
+            ),
+          ];
+        }
+      });
+    };
+
     if (existingPage) {
       let useOriginalTitle = false;
       if (fileMetadata.matchingPages.length === 1) {
@@ -308,56 +366,7 @@ export const buildSpaceChanges = (
         ),
       ];
     } else {
-      const path = fileMetadata.fileName.split("/");
-
-      if (path.length > 1) {
-        const parents = path.slice(0, path.length - 1);
-
-        parents.forEach((parentPath, index) => {
-          let ancestor = parent?.parent;
-          if (index > 0) {
-            ancestor = parents[index - 1];
-          }
-
-          let fileName = `${parents.slice(0, index).join("/")}/${parentPath}`;
-
-          if (fileName.startsWith("/")) {
-            fileName = parentPath;
-          }
-          
-          const existingParentCreateChange = accumulatedChanges.find(
-            (spaceChange: any) => {
-              if (spaceChange.fileName) {
-                return spaceChange?.fileName === fileName;
-              }
-              return false;
-            }
-          );
-
-          
-          if (!existingParentCreateChange) {
-            spaceChangeList = [
-              ...spaceChangeList,
-              buildContentCreate(
-                parentPath,
-                space,
-                {
-                  storage: {
-                    value: "",
-                    representation: "storage",
-                  },
-                },
-                fileName,
-                ancestor,
-                ContentStatusEnum.current
-              ),
-            ];
-          }
-        });
-      }
-
-      const pageParent =
-        path.length > 1 ? path[path.length - 2] : parent?.parent;
+      checkCreateParents();
 
       spaceChangeList = [
         ...spaceChangeList,

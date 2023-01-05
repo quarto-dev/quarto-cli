@@ -1231,7 +1231,7 @@ const runFileMetadataToSpaceChangesWithNesting = () => {
           homepage: buildFakeContent(),
         },
         status: "current",
-        title: "fake-parent",
+        title: "Fake-parent",
         type: "page",
       },
       {
@@ -1289,7 +1289,7 @@ const runFileMetadataToSpaceChangesWithNesting = () => {
           homepage: buildFakeContent(),
         },
         status: "current",
-        title: "fake-great-grand-parent",
+        title: "Fake-great-grand-parent",
         type: "page",
       },
       {
@@ -1312,14 +1312,14 @@ const runFileMetadataToSpaceChangesWithNesting = () => {
           homepage: buildFakeContent(),
         },
         status: "current",
-        title: "fake-grand-parent",
+        title: "Fake-grand-parent",
         type: "page",
       },
       {
         contentChangeType: ContentChangeType.create,
         ancestors: [
           {
-            id: "fake-grand-parent",
+            id: "fake-great-grand-parent/fake-grand-parent",
           },
         ],
         body: {
@@ -1335,14 +1335,14 @@ const runFileMetadataToSpaceChangesWithNesting = () => {
           homepage: buildFakeContent(),
         },
         status: "current",
-        title: "fake-parent",
+        title: "Fake-parent",
         type: "page",
       },
       {
         contentChangeType: ContentChangeType.create,
         ancestors: [
           {
-            id: "fake-parent",
+            id: "fake-great-grand-parent/fake-grand-parent/fake-parent",
           },
         ],
         body: {
@@ -1368,7 +1368,7 @@ const runFileMetadataToSpaceChangesWithNesting = () => {
       FAKE_PARENT,
       fakeSpace
     );
-    console.log("actual", actual);
+
     assertEquals(expected, actual);
   });
 
@@ -1398,7 +1398,7 @@ const runFileMetadataToSpaceChangesWithNesting = () => {
           homepage: buildFakeContent(),
         },
         status: "current",
-        title: "fake-parent",
+        title: "Fake-parent",
         type: "page",
       },
       {
@@ -1482,7 +1482,7 @@ const runFileMetadataToSpaceChangesWithNesting = () => {
           homepage: buildFakeContent(),
         },
         status: "current",
-        title: "fake-parent",
+        title: "Fake-parent",
         type: "page",
       },
       {
@@ -1528,7 +1528,7 @@ const runFileMetadataToSpaceChangesWithNesting = () => {
           homepage: buildFakeContent(),
         },
         status: "current",
-        title: "fake-parent2",
+        title: "Fake-parent2",
         type: "page",
       },
       {
@@ -1590,7 +1590,7 @@ const runFileMetadataToSpaceChangesWithNesting = () => {
           homepage: buildFakeContent(),
         },
         status: "current",
-        title: "fake-parent",
+        title: "Fake-parent",
         type: "page",
       },
       {
@@ -1659,7 +1659,7 @@ const runFileMetadataToSpaceChangesWithNesting = () => {
           homepage: buildFakeContent(),
         },
         status: "current",
-        title: "fake-parent2",
+        title: "Fake-parent2",
         type: "page",
       },
       {
