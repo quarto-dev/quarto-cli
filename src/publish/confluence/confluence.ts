@@ -464,7 +464,14 @@ async function publish(
   ): Promise<Content> => {
     const createTitle = await uniquifyTitle(titleToCreate);
 
-    const attachmentsToUpload: string[] = findAttachments(body.storage.value);
+    //TODO lookup from publishFiles.files to find the file path to attachment
+    console.log("publishFiles.files", publishFiles.files);
+
+    const attachmentsToUpload: string[] = findAttachments(
+      body.storage.value,
+      publishFiles.files
+    );
+
     trace("attachmentsToUpload", attachmentsToUpload, LogPrefix.ATTACHMENT);
     const updatedBody: ContentBody = updateImagePaths(body);
 

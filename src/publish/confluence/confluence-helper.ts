@@ -541,9 +541,22 @@ export const updateImagePaths = (body: ContentBody): ContentBody => {
   return body;
 };
 
-export const findAttachments = (bodyValue: string): string[] => {
+export const findAttachments = (
+  bodyValue: string,
+  publishFiles: string[] = []
+): string[] => {
   const result = bodyValue.match(IMAGE_FINDER);
-  const uniqueResult = [...new Set(result)];
+  let uniqueResult = [...new Set(result)];
+
+  if (publishFiles.length > 0) {
+    uniqueResult = uniqueResult.map((fileName: string) => {
+      const assetInPublishFiles = publishFiles.find((assetPath) => {
+        return assetPath.endsWith(fileName);
+      });
+
+      return assetInPublishFiles ?? fileName;
+    });
+  }
 
   return uniqueResult ?? [];
 };

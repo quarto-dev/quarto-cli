@@ -2025,10 +2025,14 @@ const runUpdateLinks = () => {
 const runFindAttachments = () => {
   const suiteLabel = (label: string) => `FindAttachments_${label}`;
 
-  const check = (expected: string[], bodyValue: string) => {
+  const check = (
+    expected: string[],
+    bodyValue: string,
+    filePaths: string[] = []
+  ) => {
     assertEquals(
       JSON.stringify(expected),
-      JSON.stringify(findAttachments(bodyValue))
+      JSON.stringify(findAttachments(bodyValue, filePaths))
     );
   };
 
@@ -2056,6 +2060,14 @@ const runFindAttachments = () => {
       '<ri:attachment ri:filename="elephant.png" ri:version-at-save="1" />';
     const expected: string[] = ["elephant.png"];
     check(expected, bodyValue);
+  });
+
+  unitTest(suiteLabel("single_image_lookup"), async () => {
+    const bodyValue: string =
+      '<ri:attachment ri:filename="elephant.png" ri:version-at-save="1" />';
+    const filePaths: string[] = ["fake-path/elephant.png"];
+    const expected: string[] = ["fake-path/elephant.png"];
+    check(expected, bodyValue, filePaths);
   });
 
   unitTest(suiteLabel("two_images"), async () => {
@@ -2163,5 +2175,5 @@ if (runAllTests) {
   runFindAttachments();
   runUpdateImagePathsForContentBody();
 } else {
-  runFileMetadataToSpaceChangesWithNesting();
+  runFindAttachments();
 }
