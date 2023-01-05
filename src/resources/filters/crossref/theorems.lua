@@ -64,7 +64,7 @@ function crossrefTheorems()
           end
           preamble.content:insert(pandoc.RawInline("latex", "]"))
           preamble.content:insert(pandoc.RawInline("latex",
-            "\\label{" .. label .. "}")
+            "\\protect\\hypertarget{" .. label .. "}{}\\label{" .. label .. "}")
           )
           el.content:insert(1, preamble)
           el.content:insert(pandoc.Para(pandoc.RawInline("latex", 
