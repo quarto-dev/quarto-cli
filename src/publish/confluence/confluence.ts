@@ -460,16 +460,15 @@ async function publish(
     publishFiles: PublishFiles,
     body: ContentBody,
     titleToCreate: string = title,
-    createParent: ConfluenceParent = parent
+    createParent: ConfluenceParent = parent,
+    fileName: string = ""
   ): Promise<Content> => {
     const createTitle = await uniquifyTitle(titleToCreate);
 
-    //TODO lookup from publishFiles.files to find the file path to attachment
-    console.log("publishFiles.files", publishFiles.files);
-
     const attachmentsToUpload: string[] = findAttachments(
       body.storage.value,
-      publishFiles.files
+      publishFiles.files,
+      fileName
     );
 
     trace("attachmentsToUpload", attachmentsToUpload, LogPrefix.ATTACHMENT);
@@ -636,7 +635,8 @@ async function publish(
           publishFiles,
           change.body,
           change.title ?? "",
-          ancestorParent
+          ancestorParent,
+          change.fileName
         );
 
         if (change.fileName) {

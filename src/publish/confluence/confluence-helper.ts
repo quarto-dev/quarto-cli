@@ -543,18 +543,21 @@ export const updateImagePaths = (body: ContentBody): ContentBody => {
 
 export const findAttachments = (
   bodyValue: string,
-  publishFiles: string[] = []
+  publishFiles: string[] = [],
+  filePath: string = ""
 ): string[] => {
+  const pathList = filePath.split("/");
+  const parentPath = pathList.slice(0, pathList.length - 1).join("/");
+
   const result = bodyValue.match(IMAGE_FINDER);
   let uniqueResult = [...new Set(result)];
 
   if (publishFiles.length > 0) {
-    uniqueResult = uniqueResult.map((fileName: string) => {
+    uniqueResult = uniqueResult.map((assetFileName: string) => {
       const assetInPublishFiles = publishFiles.find((assetPath) => {
-        return assetPath.endsWith(fileName);
+        return assetPath.endsWith(`${parentPath}/${assetFileName}`);
       });
-
-      return assetInPublishFiles ?? fileName;
+      return assetInPublishFiles ?? assetFileName;
     });
   }
 

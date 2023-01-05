@@ -2028,11 +2028,12 @@ const runFindAttachments = () => {
   const check = (
     expected: string[],
     bodyValue: string,
-    filePaths: string[] = []
+    filePaths: string[] = [],
+    path: string = ""
   ) => {
     assertEquals(
       JSON.stringify(expected),
-      JSON.stringify(findAttachments(bodyValue, filePaths))
+      JSON.stringify(findAttachments(bodyValue, filePaths, path))
     );
   };
 
@@ -2068,6 +2069,30 @@ const runFindAttachments = () => {
     const filePaths: string[] = ["fake-path/elephant.png"];
     const expected: string[] = ["fake-path/elephant.png"];
     check(expected, bodyValue, filePaths);
+  });
+
+  unitTest(suiteLabel("single_image_lookup_dupe_name"), async () => {
+    const bodyValue: string =
+      '<ri:attachment ri:filename="elephant.png" ri:version-at-save="1" />';
+    const filePaths: string[] = [
+      "fake-path/elephant.png",
+      "fake-path2/elephant.png",
+    ];
+    const filePath = "fake-path2/file.xml";
+    const expected: string[] = ["fake-path2/elephant.png"];
+    check(expected, bodyValue, filePaths, filePath);
+  });
+
+  unitTest(suiteLabel("single_image_lookup_bad_paths"), async () => {
+    const bodyValue: string =
+      '<ri:attachment ri:filename="elephant.png" ri:version-at-save="1" />';
+    const filePaths: string[] = [
+      "fake-path-fail/elephant.png",
+      "fake-path2-fail/elephant.png",
+    ];
+    const filePath = "fake-path2/file.xml";
+    const expected: string[] = ["elephant.png"];
+    check(expected, bodyValue, filePaths, filePath);
   });
 
   unitTest(suiteLabel("two_images"), async () => {
