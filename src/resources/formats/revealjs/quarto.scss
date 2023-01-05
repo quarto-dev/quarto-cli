@@ -584,19 +584,18 @@ div.cell-output-display div.pagedtable-wrapper table.table {
   display: none;
 }
 
+.reveal code.sourceCode button.code-annotation-anchor,
 .reveal code.sourceCode .code-annotation-anchor {
   font-family: $font-family-monospace;
   color: var(--quarto-hl-co-color);
   border: solid var(--quarto-hl-co-color) 1px;
   border-radius: 50%;
-  height: 24px;
-  width: 24px;
-  font-size: 14px;
+  font-size: 0.7em;
+  line-height: 1.2em;
   margin-top: 2px;
 }
 
 .reveal code.sourceCode button.code-annotation-anchor {
-  padding: 2px;
   cursor: pointer;
 }
 
@@ -605,6 +604,8 @@ div.cell-output-display div.pagedtable-wrapper table.table {
   vertical-align: middle;
   text-decoration: none;
   cursor: default;
+  height: 1.2em;
+  width: 1.2em;
 }
 
 .reveal #code-annotation-line-highlight-gutter {
