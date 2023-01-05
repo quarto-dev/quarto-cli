@@ -104,6 +104,8 @@ function handleHiddenVisible(profiles)
     elseif el.attr.classes:find(kContentHidden) then
       clearHiddenVisibleAttributes(el)
       visible = not propertiesMatch(el.attributes, profiles)
+    else
+      return el
     end
     -- this is only called on spans and codeblocks, so here we keep the scaffolding element
     -- as opposed to in the Div where we return the inlined content
@@ -141,22 +143,4 @@ function clearHiddenVisibleAttributes(el)
   el.attributes[kWhenProfile] = nil
   el.attr.classes = removeClass(el.attr.classes, kContentVisible)
   el.attr.classes = removeClass(el.attr.classes, kContentHidden)
-end
-
-function handleVisible(el, profiles)
-  local show = propertiesMatch(el.attributes, profiles)
-  clearHiddenVisibleAttributes(el)
-  if not show then
-    return {}
-  end
-  return el.content
-end
-
-function handleHidden(el, profiles)
-  local hide = propertiesMatch(el.attributes, profiles)
-  clearHiddenVisibleAttributes(el)
-  if hide then
-    return {}
-  end
-  return el.content
 end
