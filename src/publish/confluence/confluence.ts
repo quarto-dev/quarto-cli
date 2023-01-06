@@ -262,6 +262,7 @@ async function publish(
     const descendants: any[] =
       (await client.getDescendants(parentId))?.results ?? [];
 
+    console.log("descendants", descendants);
     const contentProperties: ContentProperty[][] = await Promise.all(
       descendants.map((page: ContentSummary) =>
         client.getContentProperty(page.id ?? "")

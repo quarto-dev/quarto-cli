@@ -6,6 +6,7 @@ import {
   ConfluenceParent,
   ConfluenceSpaceChange,
   Content,
+  ContentAncestor,
   ContentBody,
   ContentBodyRepresentation,
   ContentChangeType,
@@ -265,11 +266,22 @@ export const findPagesToDelete = (
   fileMetadataList: SiteFileMetadata[],
   existingSite: SitePage[] = []
 ): SitePage[] => {
+  const activeParents = existingSite.reduce(
+    (accumulator: ContentAncestor[], page: SitePage): ContentAncestor[] => {
+      return [...accumulator, ...(page.ancestors ?? [])];
+    },
+    []
+  );
+
+  const isActiveParent = (id: string): boolean =>
+    !!activeParents.find((parent) => parent.id === id);
+
   return existingSite.reduce((accumulator: SitePage[], page: SitePage) => {
     if (
       !fileMetadataList.find(
         (file) => file.fileName === page?.metadata?.fileName ?? ""
-      )
+      ) &&
+      !isActiveParent(page.id)
     ) {
       return [...accumulator, page];
     }
@@ -348,6 +360,8 @@ export const buildSpaceChanges = (
       });
     };
 
+    checkCreateParents();
+
     if (existingPage) {
       let useOriginalTitle = false;
       if (fileMetadata.matchingPages.length === 1) {
@@ -362,12 +376,10 @@ export const buildSpaceChanges = (
           useOriginalTitle ? fileMetadata.originalTitle : fileMetadata.title,
           fileMetadata.contentBody,
           fileMetadata.fileName,
-          parent?.parent
+          pageParent
         ),
       ];
     } else {
-      checkCreateParents();
-
       spaceChangeList = [
         ...spaceChangeList,
         buildContentCreate(
@@ -439,6 +451,7 @@ export const mergeSitePages = (
         title: contentSummary.title,
         id: contentSummary.id ?? "",
         metadata: flattenMetadata(contentProperties[index]),
+        ancestors: contentSummary.ancestors ?? [],
       };
       return sitePage;
     }

@@ -53,7 +53,7 @@ export class ConfluenceClient {
 
   public getDescendants(
     id: string,
-    expand = ["metadata.properties"]
+    expand = ["metadata.properties", "ancestors"]
   ): Promise<WrappedResult<ContentSummary>> {
     const url = `content/${id}/descendant/page?limit=${DESCENDANT_LIMIT}&expand=${expand}`;
     return this.get<WrappedResult<ContentSummary>>(url);
