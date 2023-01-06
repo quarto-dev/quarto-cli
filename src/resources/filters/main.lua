@@ -253,24 +253,22 @@ local quartoLayout = {
 }
 
 local quartoCrossref = {
-  { name = "crossref-main", filter = filterSeq({
-    { name = "crossref-initCrossrefOptions", filter = initCrossrefOptions() },
-    { name = "crossref-preprocess", filter = crossrefPreprocess() },
-    { name = "crossref-preprocessTheorems", filter = crossrefPreprocessTheorems() },
-    { name = "crossref-combineFilters", filter = combineFilters({
-      fileMetadata(),
-      qmd(),
-      sections(),
-      crossrefFigures(),
-      crossrefTables(),
-      equations(),
-      listings(),
-      crossrefTheorems(),
-    })},
-    { name = "crossref-resolveRefs", filter = resolveRefs() },
-    { name = "crossref-crossrefMetaInject", filter = crossrefMetaInject() },
-    { name = "crossref-writeIndex", filter = writeIndex() },
-  })}
+  { name = "crossref-initCrossrefOptions", filter = initCrossrefOptions() },
+  { name = "crossref-preprocess", filter = crossrefPreprocess() },
+  { name = "crossref-preprocessTheorems", filter = crossrefPreprocessTheorems() },
+  { name = "crossref-combineFilters", filter = combineFilters({
+    fileMetadata(),
+    qmd(),
+    sections(),
+    crossrefFigures(),
+    crossrefTables(),
+    equations(),
+    listings(),
+    crossrefTheorems(),
+  })},
+  { name = "crossref-resolveRefs", filter = resolveRefs() },
+  { name = "crossref-crossrefMetaInject", filter = crossrefMetaInject() },
+  { name = "crossref-writeIndex", filter = writeIndex() },
 }
 
 local filterList = {}

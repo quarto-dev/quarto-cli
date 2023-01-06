@@ -1,0 +1,27 @@
+---
+title: Xref Test
+format: html
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - []
+        - ["@fig-foobar"]
+---
+
+::::{.callout-note}
+
+
+Hi there, I'm putting a figure in a call and then referencing it.
+
+:::{#fig-foobar fig-cap="This is a figure in a callout"}
+FIGURE
+:::
+
+::::
+
+:::{#fig-foobar2 fig-cap="This is a figure2 in a callout"}
+FIGURE2
+:::
+
+See @fig-foobar, @fig-foobar2.
