@@ -1,0 +1,13 @@
+title: Test
+author: Charles Teague
+version: 1.0.0
+quarto-required: ">=99.9.0"
+contributes:
+  project:
+    project:
+      type: book
+      output-dir: docs
+    format:
+      html:
+        format-resources: 
+          - tufte-book.cls
