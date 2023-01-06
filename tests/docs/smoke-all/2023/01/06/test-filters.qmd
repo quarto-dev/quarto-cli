@@ -1,0 +1,20 @@
+---
+format: html
+filters:
+  - preprocess.lua
+  - quarto
+  - postprocess.lua
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["div.ensure-pre.called", "div.ensure-post.called"]
+---
+
+::: {.ensure-pre}
+
+:::
+
+::: {.ensure-post}
+
+:::

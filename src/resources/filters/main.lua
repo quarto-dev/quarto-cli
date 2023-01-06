@@ -225,7 +225,7 @@ local quartoPost = {
   { name = "post-ojs", filter = ojs() },
   { name = "post-postMetaInject", filter = quartoPostMetaInject() },
   { name = "post-renderExtendedNodes", filter = renderExtendedNodes() },
-  { name = "post-userAfterQuartoFilters", filter = make_wrapped_user_filters("afterQuartoFilters") },
+  { name = "post-userAfterQuartoFilters", filters = make_wrapped_user_filters("afterQuartoFilters") },
 }
 
 local quartoFinalize = {
