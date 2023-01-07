@@ -592,7 +592,6 @@ async function processNotebookEmbeds(
           }
         };
         const nbPath = await notePreview();
-        console.log(nbPath);
         nbPaths.push(nbPath);
 
         // Add a decoration to this div node
