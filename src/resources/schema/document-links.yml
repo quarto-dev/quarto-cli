@@ -54,3 +54,11 @@
 
       Specify `false` to disable linking to source Notebooks. Specify `inline` to show links to source notebooks beneath the content they provide. 
       Specify `global` to show a set of global links to source notebooks.
+
+- name: notebook-preview
+  tags:
+    formats: [$html-doc]
+  schema:
+    anyOf:
+      - boolean
+  description: "Provide an HTML preview of notebooks used to provide embedded content."
