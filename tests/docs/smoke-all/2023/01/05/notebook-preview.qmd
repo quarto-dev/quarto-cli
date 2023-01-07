@@ -10,6 +10,7 @@ date: last-modified
 format:
   html:
     title-block-banner: "#370D32"
+    title-block-banner-color: white
   pdf: default
   ipynb: default
 code-line-numbers: true
@@ -20,7 +21,7 @@ grid:
     body-width: 1000px
     margin-width: 300px
     gutter-width: 1.5rem
-theme: sketchy
+theme: darkly
 ---
 
 ## Sample Code. Cool!
