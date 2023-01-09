@@ -28,7 +28,7 @@ import {
 } from "../../command/render/types.ts";
 import { render, renderServices } from "../../command/render/render-shared.ts";
 
-import { basename, dirname, join } from "path/mod.ts";
+import { basename, dirname, join, relative } from "path/mod.ts";
 
 interface NotebookView {
   title: string;
@@ -111,13 +111,14 @@ export async function processNotebookEmbeds(
         const title = nbDivEl.getAttribute("data-notebook-title");
         const nbDir = dirname(notebookPath);
         const filename = basename(notebookPath);
+        const inputDir = dirname(input);
 
         const nbView = async () => {
           if (nbViewConfig) {
             // Read options for this notebook
             const nbPreviewOptions = nbViewConfig.options(notebookPath);
 
-            const nbAbsPath = join(dirname(input), notebookPath);
+            const nbAbsPath = join(inputDir, notebookPath);
             const htmlPreview = await renderHtmlView(
               nbAbsPath,
               nbPreviewOptions,
@@ -126,7 +127,7 @@ export async function processNotebookEmbeds(
             );
             return {
               title: htmlPreview.title,
-              href: htmlPreview.href,
+              href: relative(inputDir, htmlPreview.href),
             };
           } else {
             return {
@@ -220,6 +221,8 @@ export async function processNotebookEmbeds(
       }
     }
 
+    console.log(nbPaths);
+
     // Validate that there are no unused notebooks in the front matter
     nbViewConfig.unused(linkedNotebooks);
   }
@@ -288,7 +291,7 @@ async function renderHtmlView(
           [kTemplate]: templatePath,
           [kNotebookViewStyle]: kNotebookViewStyleNotebook,
         },
-        quiet: false,
+        quiet: true,
       },
     });
 
