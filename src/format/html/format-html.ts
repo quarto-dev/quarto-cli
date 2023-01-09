@@ -28,7 +28,6 @@ import {
   kLinkExternalIcon,
   kLinkExternalNewwindow,
   kNotebookLinks,
-  kNotebookPublish,
   kTheme,
 } from "../../config/constants.ts";
 
@@ -100,7 +99,6 @@ export function htmlFormat(
     {
       render: {
         [kNotebookLinks]: true,
-        [kNotebookPublish]: true,
         [kFormatLinks]: true,
       },
       resolveFormat: (format: Format) => {
