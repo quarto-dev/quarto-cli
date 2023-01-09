@@ -800,12 +800,12 @@ function jatsCallout(node)
   local contents = resolveCalloutContents(node, true)
 
   local boxedStart = '<boxed-text>'
-  if div.attr.identifier and div.attr.identifier ~= '' then
-    boxedStart = "<boxed-text id='" .. div.attr.identifier .. "'>"
+  if node.attr.identifier and node.attr.identifier ~= '' then
+    boxedStart = "<boxed-text id='" .. node.attr.identifier .. "'>"
   end
-
   contents:insert(1, pandoc.RawBlock('jats', boxedStart))
   contents:insert(pandoc.RawBlock('jats', '</boxed-text>'))
+
   return pandoc.Div(contents)
 end
 
