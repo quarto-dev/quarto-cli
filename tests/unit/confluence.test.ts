@@ -2173,7 +2173,7 @@ const runSpaceUpdatesWithNestedMoves = () => {
     },
   };
 
-  unitTest(suiteLabel("move_from_root_to_parent"), async () => {
+  unitTest(suiteLabel("move_from_root_to_nested_parent"), async () => {
     const fileMetadataList: SiteFileMetadata[] = [fakeNestedFile];
     const existingSite = [
       {
@@ -2951,6 +2951,6 @@ if (runAllTests) {
   runUpdateImagePathsForContentBody();
 } else {
   // runSpaceCreatesWithNesting();
-  runSpaceUpdatesWithNestedMoves();
   // runSpaceUpdatesWithNesting();
+  runSpaceUpdatesWithNestedMoves();
 }

@@ -78,7 +78,7 @@ import {
   verifyConfluenceParent,
   verifyLocation,
 } from "./confluence-verify.ts";
-import { DELETE_DISABLED } from "./constants.ts";
+import { DELETE_DISABLED, DELETE_SLEEP_MILLIS } from "./constants.ts";
 import { logError, trace } from "./confluence-logger.ts";
 import { md5Hash } from "../../core/hash.ts";
 import { sleep } from "../../core/async.ts";
@@ -629,11 +629,12 @@ async function publish(
       siteParent
     );
 
-    let pathsToId: Record<string, string> = {};
+    let pathsToId: Record<string, string> = {}; // build from existing site
 
     const doChange = async (change: ConfluenceSpaceChange) => {
       if (isContentCreate(change)) {
-        console.log("DO CREATE");
+        console.log("DO CREATE", change);
+
         let ancestorId =
           (change?.ancestors && change?.ancestors[0]?.id) ?? null;
         console.log("ancestorId", ancestorId);
@@ -657,6 +658,7 @@ async function publish(
 
         if (change.fileName) {
           pathsToId[change.fileName] = result.id ?? "";
+          console.log("pathsToId added", pathsToId);
         }
 
         const contentPropertyResult: Content =
@@ -682,7 +684,7 @@ async function publish(
           return null;
         }
         const result = await client.deleteContent(change);
-        await sleep(2000); // Consider polling on delete to support uniqify rather than sleep
+        await sleep(DELETE_SLEEP_MILLIS); // TODO replace with polling
         return result;
       } else {
         console.error("Space Change not defined");

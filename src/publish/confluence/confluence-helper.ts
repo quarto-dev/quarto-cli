@@ -351,8 +351,6 @@ export const buildSpaceChanges = (
           return false;
         });
 
-        // TODO on create, replace nested parent ID
-        //  ancestors: [ { id: "authoring" } ]
         console.log("existingSite", existingSite);
         console.log("existingSiteParent", existingSiteParent);
 
