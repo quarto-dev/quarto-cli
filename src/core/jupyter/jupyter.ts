@@ -1061,7 +1061,9 @@ async function mdFromCodeCell(
     if (output.output_type === "execute_result") {
       const textPlain = (output as JupyterOutputDisplayData).data
         ?.[kTextPlain] as string[] | undefined;
-      if (textPlain && textPlain[0].startsWith("[<matplotlib")) {
+      if (
+        textPlain && textPlain.length && textPlain[0].startsWith("[<matplotlib")
+      ) {
         return false;
       }
     }
