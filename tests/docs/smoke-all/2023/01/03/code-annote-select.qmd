@@ -10,7 +10,7 @@ _quarto:
       ensureHtmlElements:
         - ["button[data-target-annotation='1']"]
       ensureFileRegexMatches:
-        - [".*trigger: 'click'.*'"]
+        - [".*trigger: 'click'.*"]
 ---
 
 ## Hi There
