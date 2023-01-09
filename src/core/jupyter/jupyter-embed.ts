@@ -45,7 +45,7 @@ import { globalTempContext } from "../temp.ts";
 import { isAbsolute } from "path/mod.ts";
 import { partitionMarkdown } from "../pandoc/pandoc-partition.ts";
 import { safeExistsSync } from "../path.ts";
-import { basename } from "../../vendor/deno.land/std@0.166.0/path/win32.ts";
+import { basename } from "path/mod.ts";
 
 export interface JupyterNotebookAddress {
   path: string;
