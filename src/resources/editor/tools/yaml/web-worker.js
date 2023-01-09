@@ -14262,6 +14262,22 @@ try {
               ]
             },
             description: "Configures the HTML viewer for notebooks that provide embedded content."
+          },
+          {
+            name: "notebook-view-style",
+            tags: {
+              formats: [
+                "$html-doc"
+              ]
+            },
+            schema: {
+              enum: [
+                "document",
+                "notebook"
+              ]
+            },
+            hidden: true,
+            description: "The style of document to render. Setting this to `notebook` will create additional notebook style affordances."
           }
         ],
         "schema/document-listing.yml": [
@@ -19644,6 +19660,13 @@ try {
             short: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.",
             long: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.\nSpecify <code>false</code> to disable linking to source Notebooks.\nSpecify <code>inline</code> to show links to source notebooks beneath\nthe content they provide. Specify <code>global</code> to show a set of\nglobal links to source notebooks."
           },
+          "Configures the HTML viewer for notebooks that provide embedded\ncontent.",
+          "The path to the locally referenced notebook.",
+          "The title of the notebook when viewed.",
+          "The url to use when viewing this notebook.",
+          "The path to the locally referenced notebook.",
+          "The title of the notebook when viewed.",
+          "The url to use when viewing this notebook.",
           "Automatically generate the contents of a page from a list of Quarto\ndocuments or other custom data.",
           "Mermaid diagram options",
           "The mermaid built-in theme to use.",
@@ -20644,13 +20667,7 @@ try {
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "internal-schema-hack",
-          "Configures the HTML viewer for notebooks that provide embedded\ncontent.",
-          "The path to the locally referenced notebook.",
-          "The title of the notebook when viewed.",
-          "The url to use when viewing this notebook.",
-          "The path to the locally referenced notebook.",
-          "The title of the notebook when viewed.",
-          "The url to use when viewing this notebook."
+          "The style of document to render. Setting this to\n<code>notebook</code> will create additional notebook style\naffordances."
         ],
         "schema/external-schemas.yml": [
           {
@@ -20864,12 +20881,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 145170,
+          _internalId: 146672,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 145162,
+              _internalId: 146664,
               type: "enum",
               enum: [
                 "png",
@@ -20885,7 +20902,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 145169,
+              _internalId: 146671,
               type: "anyOf",
               anyOf: [
                 {
