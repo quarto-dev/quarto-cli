@@ -11,17 +11,18 @@ format:
   html:
     title-block-banner: "#370D32"
     title-block-banner-color: white
-  pdf: default
   ipynb: default
 code-line-numbers: true
 code-annotations: select
-notebook-preview: true
 grid:
     sidebar-width: 300px
     body-width: 1000px
     margin-width: 300px
     gutter-width: 1.5rem
 theme: darkly
+
+notebook-view: true 
+notebook-links: true
 ---
 
 ## Sample Code. Cool!
