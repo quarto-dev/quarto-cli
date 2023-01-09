@@ -50,7 +50,6 @@ _quarto.ast.add_handler({
   render = function(node)
     if _quarto.format.isHtmlOutput() and hasBootstrap() then
       local result = calloutDiv(node)
-      -- print(pandoc.write(_quarto.ast.from_emulated(pandoc.Pandoc({result})), "html"))
       return result
     elseif _quarto.format.isLatexOutput() then
       return calloutLatex(node)

@@ -51,7 +51,6 @@ function crossrefTheorems()
         
         -- If this theorem has no content, then create a placeholder
         if #el.content == 0 or el.content[1].t ~= "Para" then
-          print("PLACEHOLDER NEEDED")
           tprepend(el.content, {pandoc.Para({pandoc.Str '\u{a0}'})})
         end
       
