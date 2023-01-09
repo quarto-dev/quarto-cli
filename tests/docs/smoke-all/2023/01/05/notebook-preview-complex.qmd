@@ -20,9 +20,19 @@ grid:
     margin-width: 300px
     gutter-width: 1.5rem
 theme: spacelab
-
-notebook-view: true 
-notebook-links: true
+notebook-view:
+  - notebook: plots.ipynb 
+    url: https://www.kaggle.com/code/kanncaa1/data-sciencetutorial-for-beginners
+    title: TEST NB
+notebook-links: "inline"
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['a.quarto-notebook-link']
+        - ['div.quarto-alternate-notebooks a']
+      ensureFileRegexMatches:
+        - ['Source: TEST NB']
 ---
 
 ## Sample Code. Cool!

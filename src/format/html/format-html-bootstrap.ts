@@ -327,7 +327,7 @@ function bootstrapHtmlPostprocessor(
 
     // Look for included / embedded notebooks and include those
     if (format.render[kNotebookLinks] !== false) {
-      await processNotebookEmbeds(doc, format, resources);
+      await processNotebookEmbeds(input, doc, format, resources);
     }
 
     // default treatment for computational tables

@@ -83,6 +83,7 @@ export function notebookViewPostProcessor() {
 
 // Processes embeds within an HTML page and emits notebook previews as apprpriate
 export async function processNotebookEmbeds(
+  input: string,
   doc: Document,
   format: Format,
   resources: string[],
@@ -116,8 +117,9 @@ export async function processNotebookEmbeds(
             // Read options for this notebook
             const nbPreviewOptions = nbViewConfig.options(notebookPath);
 
+            const nbAbsPath = join(dirname(input), notebookPath);
             const htmlPreview = await renderHtmlView(
-              notebookPath,
+              nbAbsPath,
               nbPreviewOptions,
               format,
               services,
