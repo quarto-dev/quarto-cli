@@ -46,6 +46,7 @@ const kQuartoNbClass = "quarto-notebook";
 const kQuartoCellContainerClass = "cell-container";
 const kQuartoCellDecoratorClass = "cell-decorator";
 
+// Post processes the notebook and adds 'notebook' style affordances
 export function notebookViewPostProcessor() {
   return (doc: Document): Promise<HtmlPostProcessResult> => {
     doc.body.classList.add(kQuartoNbClass);
@@ -80,6 +81,7 @@ export function notebookViewPostProcessor() {
   };
 }
 
+// Processes embeds within an HTML page and emits notebook previews as apprpriate
 export async function processNotebookEmbeds(
   doc: Document,
   format: Format,
@@ -98,6 +100,7 @@ export async function processNotebookEmbeds(
     let count = 1;
     const services = renderServices();
 
+    // Emit links to the notebooks inline (where the embedded content is located)
     const linkedNotebooks: string[] = [];
     for (const nbDivNode of notebookDivNodes) {
       const nbDivEl = nbDivNode as Element;
@@ -168,6 +171,7 @@ export async function processNotebookEmbeds(
       }
     }
 
+    // Emit global links to the notebooks
     if (global) {
       const containerEl = doc.createElement("div");
       containerEl.classList.add("quarto-alternate-notebooks");
@@ -248,6 +252,7 @@ function notebookViewConfig(
   };
 }
 
+// Renders an HTML preview of a notebook
 async function renderHtmlView(
   path: string,
   options: NotebookViewOptions,
