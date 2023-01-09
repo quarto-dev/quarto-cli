@@ -91,10 +91,10 @@ _quarto.ast.add_handler({
   constructor = function(tbl)
     preState.hasCallouts = true
 
-    local type = tbl.type
+    local t = tbl.type
     local iconDefault = true
     local appearanceDefault = nil
-    if type == "none" then
+    if t == "none" then
       iconDefault = false
       appearanceDefault = "simple"
     end
@@ -117,13 +117,17 @@ _quarto.ast.add_handler({
     end
     local content = pandoc.Blocks({})
     content:extend(tbl.content)
+    local caption = tbl.caption
+    if type(caption) == "string" then
+      caption = pandoc.Str(caption)
+    end
     return {
-      caption = tbl.caption,
+      caption = caption,
       collapse = tbl.collapse,
       content = content,
       appearance = appearance,
       icon = icon,
-      type = type,
+      type = t,
     }
   end
 })
