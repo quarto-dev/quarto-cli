@@ -131,7 +131,7 @@ import {
   kMergeIncludes,
   kMermaidFormat,
   kNotebookLinks,
-  kNotebookPreview,
+  kNotebookPublish,
   kNumberOffset,
   kNumberSections,
   kOutput,
@@ -404,7 +404,7 @@ export interface FormatRender {
   [kFormatResources]?: string[];
   [kFormatLinks]?: boolean | string[];
   [kNotebookLinks]?: boolean | "inline" | "global";
-  [kNotebookPreview]?: boolean;
+  [kNotebookPublish]?: boolean;
 }
 
 export interface FormatExecute {

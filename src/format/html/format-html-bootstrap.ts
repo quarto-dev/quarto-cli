@@ -20,16 +20,13 @@ import {
   kIncludeInHeader,
   kLinkCitations,
   kNotebookLinks,
-  kNotebookPreview,
-  kOutputFile,
+  kNotebookPublish,
   kQuartoTemplateParams,
   kRelatedFormatsTitle,
   kRelatedNotebooksTitle,
   kSectionDivs,
   kSourceNotebookPrefix,
   kTargetFormat,
-  kTemplate,
-  kTheme,
   kTocDepth,
   kTocLocation,
 } from "../../config/constants.ts";
@@ -555,7 +552,7 @@ async function processNotebookEmbeds(
     format.render[kNotebookLinks] === true;
   const global = format.render[kNotebookLinks] === "global" ||
     format.render[kNotebookLinks] === true;
-  const notebookPreview = format.render[kNotebookPreview] ?? true;
+  const notebookPreview = format.render[kNotebookPublish] ?? true;
 
   const notebookDivNodes = doc.querySelectorAll("[data-notebook]");
   if (notebookDivNodes.length > 0) {
