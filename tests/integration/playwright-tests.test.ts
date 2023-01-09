@@ -5,7 +5,7 @@
  *
  */
 
-import { expandGlobSync } from "fs/mod.ts";
+import { expandGlobSync } from "../../src/core/deno/expand-glob.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../src/core/schema/utils.ts";
 import {
   initState,

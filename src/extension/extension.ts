@@ -5,7 +5,8 @@
 *
 */
 
-import { existsSync, expandGlobSync, walkSync } from "fs/mod.ts";
+import { existsSync, walkSync } from "fs/mod.ts";
+import { expandGlobSync } from "../core/deno/expand-glob.ts";
 import { warning } from "log/mod.ts";
 import { coerce, Range, satisfies } from "semver/mod.ts";
 

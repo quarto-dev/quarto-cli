@@ -15,7 +15,7 @@ import {
   refSchema,
 } from "../../../src/core/lib/yaml-schema/common.ts";
 import { readAndValidateYamlFromFile } from "../../../src/core/schema/validated-yaml.ts";
-import { expandGlobSync } from "fs/expand_glob.ts";
+import { expandGlobSync } from "../../../src/core/deno/expand-glob.ts";
 import { readAndValidateYamlFromMappedString } from "../../../src/core/lib/yaml-schema/validated-yaml.ts";
 import { asMappedString } from "../../../src/core/lib/mapped-text.ts";
 

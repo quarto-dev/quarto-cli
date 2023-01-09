@@ -5,7 +5,7 @@
  *
  */
 
-import { expandGlobSync } from "fs/mod.ts";
+import { expandGlobSync } from "../../../src/core/deno/expand-glob.ts";
 import { unitTest } from "../../test.ts";
 
 import { assert, assertEquals } from "testing/asserts.ts";
