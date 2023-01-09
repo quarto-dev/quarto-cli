@@ -44,6 +44,8 @@ import {
 import { globalTempContext } from "../temp.ts";
 import { isAbsolute } from "path/mod.ts";
 import { partitionMarkdown } from "../pandoc/pandoc-partition.ts";
+import { safeExistsSync } from "../path.ts";
+import { basename } from "../../vendor/deno.land/std@0.166.0/path/win32.ts";
 
 export interface JupyterNotebookAddress {
   path: string;
@@ -173,18 +175,26 @@ export async function replaceNotebookPlaceholders(
       // Compute appropriate includes based upon the note
       // dependendencies
       const notebookIncludes = () => {
-        const notebook = jupyterFromFile(resolveNbPath(input, nbAddress.path));
-        const dependencies = isHtmlOutput(context.format.pandoc)
-          ? extractJupyterWidgetDependencies(notebook)
-          : undefined;
-        if (dependencies) {
-          const tempDir = globalTempContext().createDir();
-          return includesForJupyterWidgetDependencies(
-            [dependencies],
-            tempDir,
-          );
+        const nbPath = resolveNbPath(input, nbAddress.path);
+        if (safeExistsSync(nbPath)) {
+          const notebook = jupyterFromFile(nbPath);
+          const dependencies = isHtmlOutput(context.format.pandoc)
+            ? extractJupyterWidgetDependencies(notebook)
+            : undefined;
+          if (dependencies) {
+            const tempDir = globalTempContext().createDir();
+            return includesForJupyterWidgetDependencies(
+              [dependencies],
+              tempDir,
+            );
+          } else {
+            return undefined;
+          }
         } else {
-          return undefined;
+          const notebookName = basename(nbPath);
+          throw new Error(
+            `Unable to embed content from notebook '${notebookName}'\nThe file ${nbPath} doesn't exist or cannot be read.`,
+          );
         }
       };
       includes = notebookIncludes();

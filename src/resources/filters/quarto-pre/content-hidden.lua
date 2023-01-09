@@ -40,13 +40,20 @@ _quarto.ast.add_handler({
   render = function(node)
     local el = node.node
     local profiles = pandoc.List(param("quarto_profile", {}))
+    local visible
     if node.behavior == kContentVisible then
-      return handleVisible(el, profiles)
-    elseif node.behavior == kContentHidden then 
-      return handleHidden(el, profiles)
+      clearHiddenVisibleAttributes(el)
+      visible = propertiesMatch(node.condition, profiles)
+    elseif node.behavior == kContentHidden then
+      clearHiddenVisibleAttributes(el)
+      visible = not propertiesMatch(node.condition, profiles)
     else
-      return el
+      crash_with_stack_trace()
     end
+    if visible then
+      return el.content
+    end
+    return {}
   end,
 
   constructor = function(tbl)
@@ -59,11 +66,11 @@ _quarto.ast.add_handler({
       if kConditions:find(v[1]) == nil then
         error("Ignoring invalid condition in conditional block: " .. v[1])
       else
-        result.condition:insert(v)
+        result.condition[v[1]] = v[2]
       end
     end
 
-    return tbl
+    return result
   end,
 
   inner_content = function(tbl)
@@ -90,29 +97,41 @@ end
 
 function handleHiddenVisible(profiles)
   return function(el)
+    local visible
     if el.attr.classes:find(kContentVisible) then
-      return handleVisible(el, profiles)
+      clearHiddenVisibleAttributes(el)
+      visible = propertiesMatch(el.attributes, profiles)
     elseif el.attr.classes:find(kContentHidden) then
-      return handleHidden(el, profiles)
+      clearHiddenVisibleAttributes(el)
+      visible = not propertiesMatch(el.attributes, profiles)
     else
       return el
+    end
+    -- this is only called on spans and codeblocks, so here we keep the scaffolding element
+    -- as opposed to in the Div where we return the inlined content
+    if visible then
+      return el
+    else
+      return {}
     end
   end
 end
 
-function attributesMatch(el, profiles)
+-- "properties" here will come either from "conditions", in the case of a custom AST node
+-- or from the attributes of the element itself in the case of spans or codeblocks
+function propertiesMatch(properties, profiles)
   local match = true
-  if el.attributes[kWhenFormat] ~= nil then
-    match = match and _quarto.format.isFormat(el.attributes[kWhenFormat])
+  if properties[kWhenFormat] ~= nil then
+    match = match and _quarto.format.isFormat(properties[kWhenFormat])
   end
-  if el.attributes[kUnlessFormat] ~= nil then
-    match = match and not _quarto.format.isFormat(el.attributes[kUnlessFormat])
+  if properties[kUnlessFormat] ~= nil then
+    match = match and not _quarto.format.isFormat(properties[kUnlessFormat])
   end
-  if el.attributes[kWhenProfile] ~= nil then
-    match = match and profiles:includes(el.attributes[kWhenProfile])
+  if properties[kWhenProfile] ~= nil then
+    match = match and profiles:includes(properties[kWhenProfile])
   end
-  if el.attributes[kUnlessProfile] ~= nil then
-    match = match and not profiles:includes(el.attributes[kUnlessProfile])
+  if properties[kUnlessProfile] ~= nil then
+    match = match and not profiles:includes(properties[kUnlessProfile])
   end
   return match
 end
@@ -124,30 +143,4 @@ function clearHiddenVisibleAttributes(el)
   el.attributes[kWhenProfile] = nil
   el.attr.classes = removeClass(el.attr.classes, kContentVisible)
   el.attr.classes = removeClass(el.attr.classes, kContentHidden)
-end
-
-function handleVisible(el, profiles)
-  local show = attributesMatch(el, profiles)
-  clearHiddenVisibleAttributes(el)
-  if not show then
-    if el.t == "Span" then
-      return pandoc.Span({})
-    else
-      return pandoc.Null()
-    end
-  end
-  return el
-end
-
-function handleHidden(el, profiles)
-  local hide = attributesMatch(el, profiles)
-  clearHiddenVisibleAttributes(el)
-  if hide then
-    if el.t == "Span" then
-      return pandoc.Span({})
-    else
-      return pandoc.Null()
-    end
-  end
-  return el
 end

@@ -28,6 +28,7 @@ import {
   kLinkExternalIcon,
   kLinkExternalNewwindow,
   kNotebookLinks,
+  kNotebookPreview,
   kTheme,
 } from "../../config/constants.ts";
 
@@ -89,7 +90,6 @@ import {
 } from "../../core/giscus.ts";
 import { metadataPostProcessor } from "./format-html-meta.ts";
 import { kHtmlEmptyPostProcessResult } from "../../command/render/constants.ts";
-import { coerce } from "https://deno.land/x/semver@v1.4.0/mod.ts";
 
 export function htmlFormat(
   figwidth: number,
@@ -100,6 +100,7 @@ export function htmlFormat(
     {
       render: {
         [kNotebookLinks]: true,
+        [kNotebookPreview]: true,
         [kFormatLinks]: true,
       },
       resolveFormat: (format: Format) => {

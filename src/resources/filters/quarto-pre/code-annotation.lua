@@ -433,7 +433,9 @@ function code()
             local items = pandoc.List()
             for i, v in ipairs(block.content) do
               -- find the annotation for this OL
-              local annoteId = toAnnoteId(i)
+              local annotationNumber = block.start + i - 1
+
+              local annoteId = toAnnoteId(annotationNumber)
               local annotation = pendingAnnotations[annoteId]
               if annotation then
 
@@ -442,7 +444,7 @@ function code()
                 -- compute the term for the DT
                 local term = ""
                 if _quarto.format.isLatexOutput() then
-                  term = latexListPlaceholder(i)
+                  term = latexListPlaceholder(annotationNumber)
                 else
                   if lineNumMeta.count == 1 then
                     term = language[kCodeLine] .. " " .. lineNumMeta.text;
@@ -453,7 +455,7 @@ function code()
 
                 -- compute the definition for the DD
                 local definitionContent = v[1].content 
-                local annotationToken = tostring(i);
+                local annotationToken = tostring(annotationNumber);
 
                 -- Only output span for certain formats (HTML)
                 -- for markdown / gfm we should drop the spans

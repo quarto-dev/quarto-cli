@@ -74,10 +74,8 @@ export function toInputRelativePaths(
   ignoreResources?: string[],
 ) {
   const existsCache = new Map<string, string>();
-  const resourceIgnoreFields = [
-    ...ignoreFieldsForProjectType(type),
-    ...(ignoreResources || []),
-  ];
+  const resourceIgnoreFields = ignoreResources ||
+    ignoreFieldsForProjectType(type) || [];
   const offset = relative(inputDir, baseDir);
 
   const fixup = (value: string) => {

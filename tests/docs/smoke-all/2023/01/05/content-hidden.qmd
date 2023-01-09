@@ -1,0 +1,48 @@
+---
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["div.be-here"]
+        - ["div.do-not-be-here"]
+---
+
+::: {.content-hidden unless-format="html"}
+
+::: {.be-here}
+
+Hi!
+
+:::
+
+:::
+
+::: {.content-hidden when-format="html"}
+
+::: {.do-not-be-here}
+
+Hi!
+
+:::
+
+:::
+
+::: {.content-visible unless-format="html"}
+
+::: {.do-not-be-here}
+
+Hi!
+
+:::
+
+:::
+
+::: {.content-visible when-format="html"}
+
+::: {.be-here}
+
+Hi!
+
+:::
+
+:::

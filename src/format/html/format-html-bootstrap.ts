@@ -5,7 +5,7 @@
 *
 */
 
-import { Document, Element, Node } from "../../core/deno-dom.ts";
+import { Document, Element } from "../../core/deno-dom.ts";
 import { join } from "path/mod.ts";
 
 import { renderEjs } from "../../core/ejs.ts";
@@ -20,12 +20,16 @@ import {
   kIncludeInHeader,
   kLinkCitations,
   kNotebookLinks,
+  kNotebookPreview,
+  kOutputFile,
   kQuartoTemplateParams,
   kRelatedFormatsTitle,
   kRelatedNotebooksTitle,
   kSectionDivs,
   kSourceNotebookPrefix,
   kTargetFormat,
+  kTemplate,
+  kTheme,
   kTocDepth,
   kTocLocation,
 } from "../../config/constants.ts";
@@ -82,6 +86,10 @@ import {
 } from "../../config/format.ts";
 import * as ld from "../../core/lodash.ts";
 import { basename } from "path/mod.ts";
+import { render, renderServices } from "../../command/render/render-shared.ts";
+import { info } from "log/mod.ts";
+import { dirname } from "../../vendor/deno.land/std@0.166.0/path/win32.ts";
+import { renderHtmlPreview } from "./format-html-embed.ts";
 
 export function formatPageLayout(format: Format) {
   return format.metadata[kPageLayout] as string || kPageLayoutArticle;
@@ -329,7 +337,7 @@ function bootstrapHtmlPostprocessor(
 
     // Look for included / embedded notebooks and include those
     if (format.render[kNotebookLinks] !== false) {
-      processNotebookEmbeds(doc, format, resources);
+      await processNotebookEmbeds(doc, format, resources);
     }
 
     // default treatment for computational tables
@@ -538,7 +546,7 @@ function processAlternateFormatLinks(
   }
 }
 
-function processNotebookEmbeds(
+async function processNotebookEmbeds(
   doc: Document,
   format: Format,
   resources: string[],
@@ -547,24 +555,43 @@ function processNotebookEmbeds(
     format.render[kNotebookLinks] === true;
   const global = format.render[kNotebookLinks] === "global" ||
     format.render[kNotebookLinks] === true;
+  const notebookPreview = format.render[kNotebookPreview] ?? true;
 
   const notebookDivNodes = doc.querySelectorAll("[data-notebook]");
   if (notebookDivNodes.length > 0) {
-    const nbPaths: { path: string; title: string; filename: string }[] = [];
+    const nbPaths: { path: string; title: string; filename?: string }[] = [];
     let count = 1;
-    notebookDivNodes.forEach((nbDivNode) => {
+    const services = renderServices();
+
+    for (const nbDivNode of notebookDivNodes) {
       const nbDivEl = nbDivNode as Element;
       nbDivEl.classList.add("quarto-notebook");
       const notebookPath = nbDivEl.getAttribute("data-notebook");
       if (notebookPath) {
         const title = nbDivEl.getAttribute("data-notebook-title");
+        const nbDir = dirname(notebookPath);
         const filename = basename(notebookPath);
 
-        const nbPath = {
-          path: notebookPath,
-          title: title || filename,
-          filename,
+        const notePreview = async () => {
+          if (notebookPreview) {
+            const htmlPreview = await renderHtmlPreview(
+              notebookPath,
+              format,
+              services,
+            );
+            return {
+              title: htmlPreview.title,
+              path: htmlPreview.path,
+            };
+          } else {
+            return {
+              path: join(nbDir, filename),
+              title: title || filename,
+              filename,
+            };
+          }
         };
+        const nbPath = await notePreview();
         nbPaths.push(nbPath);
 
         // Add a decoration to this div node
@@ -575,7 +602,9 @@ function processNotebookEmbeds(
           nbLinkEl.classList.add("quarto-notebook-link");
           nbLinkEl.setAttribute("id", `${id}`);
           nbLinkEl.setAttribute("href", nbPath.path);
-          nbLinkEl.setAttribute("download", nbPath.filename);
+          if (nbPath.filename) {
+            nbLinkEl.setAttribute("download", nbPath.filename);
+          }
           nbLinkEl.appendChild(
             doc.createTextNode(
               `${format.language[kSourceNotebookPrefix]}: ${nbPath.title}`,
@@ -597,7 +626,7 @@ function processNotebookEmbeds(
           }
         }
       }
-    });
+    }
 
     if (global) {
       const containerEl = doc.createElement("div");
@@ -618,7 +647,9 @@ function processNotebookEmbeds(
 
         const link = doc.createElement("a");
         link.setAttribute("href", nbPath.path);
-        link.setAttribute("download", nbPath.filename);
+        if (nbPath.filename) {
+          link.setAttribute("download", nbPath.filename);
+        }
 
         const icon = doc.createElement("i");
         icon.classList.add("bi");

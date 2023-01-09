@@ -195,7 +195,7 @@ function filterSeq(filters)
         if filter.filter ~= nil then
           filter = filter.filter
         end
-        local r = doc:walk(filter)
+        local r = run_emulated_filter(doc, filter)
         if r ~= nil then
           doc = r
           result = r

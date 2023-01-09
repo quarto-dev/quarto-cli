@@ -70,6 +70,7 @@ import("./quarto-post/ojs.lua")
 import("./quarto-post/responsive.lua")
 import("./quarto-post/reveal.lua")
 import("./quarto-post/tikz.lua")
+import("./quarto-post/pdf-images.lua")
 
 import("./quarto-finalize/dependencies.lua")
 import("./quarto-finalize/book-cleanup.lua")
@@ -217,13 +218,14 @@ local quartoPost = {
     quartoBook(),
     reveal(),
     tikz(),
+    pdfImages(),
     delink(),
     figCleanup()
   }) },
   { name = "post-ojs", filter = ojs() },
   { name = "post-postMetaInject", filter = quartoPostMetaInject() },
   { name = "post-renderExtendedNodes", filter = renderExtendedNodes() },
-  { name = "post-userAfterQuartoFilters", filter = make_wrapped_user_filters("afterQuartoFilters") },
+  { name = "post-userAfterQuartoFilters", filters = make_wrapped_user_filters("afterQuartoFilters") },
 }
 
 local quartoFinalize = {
@@ -251,24 +253,22 @@ local quartoLayout = {
 }
 
 local quartoCrossref = {
-  { name = "crossref-main", filter = filterSeq({
-    { name = "crossref-initCrossrefOptions", filter = initCrossrefOptions() },
-    { name = "crossref-preprocess", filter = crossrefPreprocess() },
-    { name = "crossref-preprocessTheorems", filter = crossrefPreprocessTheorems() },
-    { name = "crossref-combineFilters", filter = combineFilters({
-      fileMetadata(),
-      qmd(),
-      sections(),
-      crossrefFigures(),
-      crossrefTables(),
-      equations(),
-      listings(),
-      crossrefTheorems(),
-    })},
-    { name = "crossref-resolveRefs", filter = resolveRefs() },
-    { name = "crossref-crossrefMetaInject", filter = crossrefMetaInject() },
-    { name = "crossref-writeIndex", filter = writeIndex() },
-  })}
+  { name = "crossref-initCrossrefOptions", filter = initCrossrefOptions() },
+  { name = "crossref-preprocess", filter = crossrefPreprocess() },
+  { name = "crossref-preprocessTheorems", filter = crossrefPreprocessTheorems() },
+  { name = "crossref-combineFilters", filter = combineFilters({
+    fileMetadata(),
+    qmd(),
+    sections(),
+    crossrefFigures(),
+    crossrefTables(),
+    equations(),
+    listings(),
+    crossrefTheorems(),
+  })},
+  { name = "crossref-resolveRefs", filter = resolveRefs() },
+  { name = "crossref-crossrefMetaInject", filter = crossrefMetaInject() },
+  { name = "crossref-writeIndex", filter = writeIndex() },
 }
 
 local filterList = {}

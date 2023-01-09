@@ -379,9 +379,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
           parent.appendChild(div);
         }
         div.style.top = top - 1 + "px";
-        div.style.height = height + 4 + "px";
+        div.style.height = height + "px";
         
-
         let gutterDiv = doc.getElementById("code-annotation-line-highlight-gutter");
         if (gutterDiv === null) {
           gutterDiv = doc.createElement("div");
@@ -393,7 +392,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
         }
 
         gutterDiv.style.top = top - 1 + "px";
-        gutterDiv.style.height = height + 4 + "px";
+        gutterDiv.style.height = height + "px";
       }
       selectedAnnoteEl = annoteEl;
     }
