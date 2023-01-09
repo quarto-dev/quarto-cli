@@ -143,12 +143,15 @@ function crossrefTheorems()
               span.content:insert(pandoc.Str(")"))
             end
             tappend(span.content, { pandoc.Str(". ")})
+
+            -- if the first block is a paragraph, then prepend the title span
             if #el.content > 0 and 
-               el.content[1].content ~= nil and #el.content[1].content > 0 then
+               el.content[1].t == "Para" and
+               el.content[1].content ~= nil and 
+               #el.content[1].content > 0 then
               el.content[1].content:insert(1, span)
             else
-              -- if the first block can't handle content insertion
-              -- then insert a new paragraph
+              -- else insert a new paragraph
               el.content:insert(1, pandoc.Para{span})
             end
           end
