@@ -2281,7 +2281,7 @@ const runSpaceUpdatesWithNestedMoves = () => {
         contentChangeType: ContentChangeType.create,
         ancestors: [
           {
-            id: "fake-parent",
+            id: "fake-parent-id",
           },
         ],
         body: {
@@ -2307,6 +2307,79 @@ const runSpaceUpdatesWithNestedMoves = () => {
       fakeSpace,
       existingSite
     );
+    assertEquals(expected, actual);
+  });
+
+  unitTest(suiteLabel("from_root_to_existing_parent"), async () => {
+    const fileMetadataList: SiteFileMetadata[] = [
+      fakeNestedFile,
+      fakeNestedFile2,
+    ];
+    const existingSite = [
+      {
+        id: "fake-title-id",
+        title: "fake-title",
+        metadata: { fileName: "fake-file-name.xml" },
+        ancestors: [{ id: "fake-grand-parent-id" }],
+      },
+      {
+        id: "fake-title2-id",
+        title: "fake-title",
+        metadata: { fileName: "fake-parent/fake-file-name2.xml" },
+        ancestors: [{ id: "fake-grand-parent-id" }, { id: "fake-parent-id" }],
+      },
+      {
+        title: "Fake Parent",
+        id: "fake-parent-id",
+        metadata: { editor: "v2", fileName: "fake-parent" },
+        ancestors: [{ id: "fake-grand-parent-id" }],
+      },
+    ];
+
+    const expected: ConfluenceSpaceChange[] = [
+      { contentChangeType: ContentChangeType.delete, id: "fake-title-id" },
+      {
+        contentChangeType: ContentChangeType.create,
+        ancestors: [
+          {
+            id: "fake-parent-id",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "fake-value",
+          },
+        },
+        fileName: "fake-parent/fake-file-name.xml",
+        space: {
+          key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
+        },
+        status: "current",
+        title: "fake-title",
+        type: "page",
+      },
+      {
+        contentChangeType: ContentChangeType.update,
+        id: "fake-title2-id",
+        version: null,
+        title: "fake-title2",
+        type: "page",
+        status: "current",
+        ancestors: [{ id: "fake-parent-id" }],
+        body: { storage: { value: "fake-value", representation: "storage" } },
+        fileName: "fake-parent/fake-file-name2.xml",
+      },
+    ];
+    const actual: ConfluenceSpaceChange[] = buildSpaceChanges(
+      fileMetadataList,
+      FAKE_PARENT,
+      fakeSpace,
+      existingSite
+    );
+    console.log("actual", actual);
     assertEquals(expected, actual);
   });
 
@@ -2878,6 +2951,6 @@ if (runAllTests) {
   runUpdateImagePathsForContentBody();
 } else {
   // runSpaceCreatesWithNesting();
-  // runSpaceUpdatesWithNestedMoves();
-  runSpaceUpdatesWithNesting();
+  runSpaceUpdatesWithNestedMoves();
+  // runSpaceUpdatesWithNesting();
 }

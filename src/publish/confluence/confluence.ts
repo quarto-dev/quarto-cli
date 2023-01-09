@@ -619,6 +619,9 @@ async function publish(
 
     trace("changelist", changeList);
 
+    console.log("existingSite", existingSite);
+    console.log("changeList", changeList);
+
     changeList = updateLinks(
       metadataByFilename,
       changeList,

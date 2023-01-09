@@ -308,7 +308,7 @@ export const buildSpaceChanges = (
 
     const pathList = fileMetadata.fileName.split("/");
 
-    const pageParent =
+    let pageParent =
       pathList.length > 1
         ? pathList.slice(0, pathList.length - 1).join("/")
         : parent?.parent;
@@ -378,8 +378,11 @@ export const buildSpaceChanges = (
 
       return existingSiteParent;
     };
+
     const existingParent: SitePage | null = checkCreateParents();
-    console.log("existingSiteParent", existingParent);
+    console.log("existingParent", existingParent);
+
+    pageParent = existingParent ? existingParent.id : pageParent;
 
     if (existingPage) {
       let useOriginalTitle = false;
@@ -395,7 +398,7 @@ export const buildSpaceChanges = (
           useOriginalTitle ? fileMetadata.originalTitle : fileMetadata.title,
           fileMetadata.contentBody,
           fileMetadata.fileName,
-          existingParent ? existingParent.id : pageParent
+          pageParent
         ),
       ];
     } else {
