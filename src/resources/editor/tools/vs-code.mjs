@@ -14219,6 +14219,48 @@ var require_yaml_intelligence_resources = __commonJS({
             short: "Controls the display of links to notebooks that provided embedded content or are created from documents.",
             long: "Controls the display of links to notebooks that provided embedded content or are created from documents.\n\nSpecify `false` to disable linking to source Notebooks. Specify `inline` to show links to source notebooks beneath the content they provide. \nSpecify `global` to show a set of global links to source notebooks.\n"
           }
+        },
+        {
+          name: "notebook-view",
+          tags: {
+            formats: [
+              "$html-doc"
+            ]
+          },
+          schema: {
+            anyOf: [
+              "boolean",
+              {
+                maybeArrayOf: {
+                  object: {
+                    properties: {
+                      notebook: {
+                        string: {
+                          description: "The path to the locally referenced notebook."
+                        }
+                      },
+                      title: {
+                        description: "The title of the notebook when viewed.",
+                        anyOf: [
+                          "string",
+                          "boolean"
+                        ]
+                      },
+                      url: {
+                        string: {
+                          description: "The url to use when viewing this notebook."
+                        }
+                      }
+                    },
+                    required: [
+                      "notebook"
+                    ]
+                  }
+                }
+              }
+            ]
+          },
+          description: "Configures the HTML viewer for notebooks that provide embedded content."
         }
       ],
       "schema/document-listing.yml": [
@@ -20600,7 +20642,14 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
-        "internal-schema-hack"
+        "internal-schema-hack",
+        "Configures the HTML viewer for notebooks that provide embedded\ncontent.",
+        "The path to the locally referenced notebook.",
+        "The title of the notebook when viewed.",
+        "The url to use when viewing this notebook.",
+        "The path to the locally referenced notebook.",
+        "The title of the notebook when viewed.",
+        "The url to use when viewing this notebook."
       ],
       "schema/external-schemas.yml": [
         {
@@ -20814,12 +20863,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 145147,
+        _internalId: 145170,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 145139,
+            _internalId: 145162,
             type: "enum",
             enum: [
               "png",
@@ -20835,7 +20884,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 145146,
+            _internalId: 145169,
             type: "anyOf",
             anyOf: [
               {
