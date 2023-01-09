@@ -79,7 +79,7 @@ import {
   isPresentationOutput,
 } from "../../config/format.ts";
 import { basename } from "path/mod.ts";
-import { processNotebookEmbeds } from "./format-html-embed.ts";
+import { processNotebookEmbeds } from "./format-html-notebook.ts";
 
 export function formatPageLayout(format: Format) {
   return format.metadata[kPageLayout] as string || kPageLayoutArticle;

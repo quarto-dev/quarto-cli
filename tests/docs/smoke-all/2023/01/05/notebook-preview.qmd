@@ -19,7 +19,7 @@ grid:
     body-width: 1000px
     margin-width: 300px
     gutter-width: 1.5rem
-theme: darkly
+theme: spacelab
 
 notebook-view: true 
 notebook-links: true

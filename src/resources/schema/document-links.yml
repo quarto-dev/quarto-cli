@@ -78,3 +78,11 @@
             required: [notebook]
 
   description: "Configures the HTML viewer for notebooks that provide embedded content."
+
+- name: notebook-view-style
+  tags:
+    formats: [$html-doc]
+  schema:
+    enum: [document, notebook]
+  hidden: true
+  description: "The style of document to render. Setting this to `notebook` will create additional notebook style affordances."

@@ -132,6 +132,7 @@ import {
   kMermaidFormat,
   kNotebookLinks,
   kNotebookView,
+  kNotebookViewStyle,
   kNumberOffset,
   kNumberSections,
   kOutput,
@@ -410,6 +411,7 @@ export interface FormatRender {
   [kFormatResources]?: string[];
   [kFormatLinks]?: boolean | string[];
   [kNotebookLinks]?: boolean | "inline" | "global";
+  [kNotebookViewStyle]?: "document" | "notebook";
   [kNotebookView]?:
     | boolean
     | NotebookPublishOptions

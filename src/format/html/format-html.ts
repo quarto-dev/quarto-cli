@@ -28,6 +28,7 @@ import {
   kLinkExternalIcon,
   kLinkExternalNewwindow,
   kNotebookLinks,
+  kNotebookViewStyle,
   kTheme,
 } from "../../config/constants.ts";
 
@@ -89,6 +90,10 @@ import {
 } from "../../core/giscus.ts";
 import { metadataPostProcessor } from "./format-html-meta.ts";
 import { kHtmlEmptyPostProcessResult } from "../../command/render/constants.ts";
+import {
+  kNotebookViewStyleNotebook,
+  notebookViewPostProcessor,
+} from "./format-html-notebook.ts";
 
 export function htmlFormat(
   figwidth: number,
@@ -528,6 +533,15 @@ export async function htmlFormatExtras(
     partials: partials.map((partial) => join(templateDir, partial)),
   };
 
+  const htmlPostProcessors = [
+    htmlFormatPostprocessor(format, featureDefaults),
+    metadataPostProcessor(input, format, offset),
+  ];
+  const viewStyle = format.render[kNotebookViewStyle];
+  if (viewStyle === kNotebookViewStyleNotebook) {
+    htmlPostProcessors.push(notebookViewPostProcessor());
+  }
+
   const metadata: Metadata = {};
   return {
     [kIncludeInHeader]: includeInHeader,
@@ -537,10 +551,7 @@ export async function htmlFormatExtras(
     html: {
       [kDependencies]: dependencies,
       [kSassBundles]: sassBundles,
-      [kHtmlPostprocessors]: [
-        htmlFormatPostprocessor(format, featureDefaults),
-        metadataPostProcessor(input, format, offset),
-      ],
+      [kHtmlPostprocessors]: htmlPostProcessors,
     },
   };
 }

@@ -1017,6 +1017,24 @@ figure .quarto-notebook-link {
   margin-right: 0.4em;
 }
 
+.quarto-notebook .cell-container {
+  display: flex;
+}
+
+.quarto-notebook .cell-container .cell {
+  flex-grow: 4;
+}
+
+.quarto-notebook .cell-container .cell-decorator {
+  padding-top: 1.5em;
+  padding-right: 1em;
+  text-align: right;
+}
+
+.quarto-notebook h2 {
+  border-bottom: none;
+}
+
 .sidebar .quarto-alternate-formats a,
 .sidebar .quarto-alternate-notebooks a {
   text-decoration: none;

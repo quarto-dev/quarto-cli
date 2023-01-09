@@ -13,6 +13,7 @@ import * as ld from "../../core/lodash.ts";
 import {
   kNotebookLinks,
   kNotebookView,
+  kNotebookViewStyle,
   kOutputFile,
   kRelatedNotebooksTitle,
   kSourceNotebookPrefix,
@@ -21,7 +22,10 @@ import {
 } from "../../config/constants.ts";
 import { Format, NotebookPublishOptions } from "../../config/types.ts";
 
-import { RenderServices } from "../../command/render/types.ts";
+import {
+  HtmlPostProcessResult,
+  RenderServices,
+} from "../../command/render/types.ts";
 import { render, renderServices } from "../../command/render/render-shared.ts";
 
 import { basename, dirname, join } from "path/mod.ts";
@@ -34,6 +38,46 @@ interface NotebookView {
 interface NotebookViewOptions {
   title: string;
   href?: string;
+}
+
+export const kNotebookViewStyleNotebook = "notebook";
+
+const kQuartoNbClass = "quarto-notebook";
+const kQuartoCellContainerClass = "cell-container";
+const kQuartoCellDecoratorClass = "cell-decorator";
+
+export function notebookViewPostProcessor() {
+  return (doc: Document): Promise<HtmlPostProcessResult> => {
+    doc.body.classList.add(kQuartoNbClass);
+    const cells = doc.querySelectorAll("div.cell[data-execution_count]");
+    for (const cell of cells) {
+      const cellEl = cell as Element;
+      const count = cellEl.getAttribute("data-execution_count");
+      if (count) {
+        const containerNode = doc.createElement("div");
+        containerNode.classList.add(kQuartoCellContainerClass);
+        containerNode.classList.add("column-page-left");
+
+        const decoratorNode = doc.createElement("div");
+        decoratorNode.classList.add(kQuartoCellDecoratorClass);
+
+        const contentsEl = doc.createElement("pre");
+        contentsEl.appendChild(doc.createTextNode(`In [${count}]:`));
+        decoratorNode.appendChild(contentsEl);
+
+        containerNode.appendChild(decoratorNode);
+        cell.parentElement?.insertBefore(containerNode, cell);
+        containerNode.appendChild(cell);
+      }
+    }
+
+    const resources: string[] = [];
+    const supporting: string[] = [];
+    return Promise.resolve({
+      resources,
+      supporting,
+    });
+  };
 }
 
 export async function processNotebookEmbeds(
@@ -57,7 +101,6 @@ export async function processNotebookEmbeds(
     const linkedNotebooks: string[] = [];
     for (const nbDivNode of notebookDivNodes) {
       const nbDivEl = nbDivNode as Element;
-      nbDivEl.classList.add("quarto-notebook");
       const notebookPath = nbDivEl.getAttribute("data-notebook");
       if (notebookPath) {
         linkedNotebooks.push(notebookPath);
@@ -236,6 +279,7 @@ async function renderHtmlView(
           [kTheme]: format.metadata[kTheme],
           [kOutputFile]: nbPreviewFile,
           [kTemplate]: templatePath,
+          [kNotebookViewStyle]: kNotebookViewStyleNotebook,
         },
         quiet: false,
       },
