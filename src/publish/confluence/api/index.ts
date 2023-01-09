@@ -110,6 +110,7 @@ export class ConfluenceClient {
   }
 
   public deleteContent(content: ContentDelete): Promise<Content> {
+    trace("deleteContent", content);
     return this.delete<Content>(`content/${content.id}`);
   }
 

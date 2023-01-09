@@ -313,12 +313,17 @@ export const buildSpaceChanges = (
         ? pathList.slice(0, pathList.length - 1).join("/")
         : parent?.parent;
 
-    const checkCreateParents = () => {
+    const checkCreateParents = (): SitePage | null => {
+      console.log("checkCreateParents");
+      console.log("pathList", pathList);
       if (pathList.length < 2) {
-        return;
+        return null;
       }
 
+      let existingSiteParent = null;
+
       const parentsList = pathList.slice(0, pathList.length - 1);
+      console.log("parentsList", parentsList);
 
       parentsList.forEach((parentFileName, index) => {
         const ancestorFilePath = parentsList.slice(0, index).join("/");
@@ -339,7 +344,19 @@ export const buildSpaceChanges = (
           }
         );
 
-        if (!existingParentCreateChange) {
+        existingSiteParent = existingSite.find((page: SitePage) => {
+          if (page?.metadata?.fileName) {
+            return page.metadata.fileName === fileName;
+          }
+          return false;
+        });
+
+        // TODO on create, replace nested parent ID
+        //  ancestors: [ { id: "authoring" } ]
+        console.log("existingSite", existingSite);
+        console.log("existingSiteParent", existingSiteParent);
+
+        if (!existingParentCreateChange && !existingSiteParent) {
           spaceChangeList = [
             ...spaceChangeList,
             buildContentCreate(
@@ -358,9 +375,11 @@ export const buildSpaceChanges = (
           ];
         }
       });
-    };
 
-    checkCreateParents();
+      return existingSiteParent;
+    };
+    const existingParent: SitePage | null = checkCreateParents();
+    console.log("existingSiteParent", existingParent);
 
     if (existingPage) {
       let useOriginalTitle = false;
@@ -376,7 +395,7 @@ export const buildSpaceChanges = (
           useOriginalTitle ? fileMetadata.originalTitle : fileMetadata.title,
           fileMetadata.contentBody,
           fileMetadata.fileName,
-          pageParent
+          existingParent ? existingParent.id : pageParent
         ),
       ];
     } else {
@@ -400,6 +419,8 @@ export const buildSpaceChanges = (
     fileMetadataList,
     existingSite
   );
+
+  console.log("pagesToDelete", pagesToDelete);
 
   // TODO prompt as a sanity check and limiter to prevent any major run-away deletes
   const deleteChanges: ContentDelete[] = pagesToDelete.map(

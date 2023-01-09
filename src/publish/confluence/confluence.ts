@@ -81,6 +81,7 @@ import {
 import { DELETE_DISABLED } from "./constants.ts";
 import { logError, trace } from "./confluence-logger.ts";
 import { md5Hash } from "../../core/hash.ts";
+import { sleep } from "../../core/async.ts";
 
 export const CONFLUENCE_ID = "confluence";
 
@@ -246,10 +247,14 @@ async function publish(
   trace("publish", { parent, server, space });
 
   const uniquifyTitle = async (title: string) => {
+    console.log("uniquifyTitle", title);
     const titleAlreadyExistsInSpace: boolean = await client.isTitleInSpace(
       title,
       space
     );
+
+    console.log("titleAlreadyExistsInSpace", titleAlreadyExistsInSpace);
+
     const uuid = globalThis.crypto.randomUUID();
     const shortUUID = uuid.split("-")[0] ?? uuid;
     const createTitle = titleAlreadyExistsInSpace
@@ -262,7 +267,6 @@ async function publish(
     const descendants: any[] =
       (await client.getDescendants(parentId))?.results ?? [];
 
-    console.log("descendants", descendants);
     const contentProperties: ContentProperty[][] = await Promise.all(
       descendants.map((page: ContentSummary) =>
         client.getContentProperty(page.id ?? "")
@@ -464,7 +468,12 @@ async function publish(
     createParent: ConfluenceParent = parent,
     fileName: string = ""
   ): Promise<Content> => {
+    //TODO check why files are always being uniquified
+    console.log("create Content");
+    console.log("titleToCreate");
     const createTitle = await uniquifyTitle(titleToCreate);
+
+    console.log("createTitle", createTitle);
 
     const attachmentsToUpload: string[] = findAttachments(
       body.storage.value,
@@ -554,10 +563,11 @@ async function publish(
 
     trace("publishSite", {
       parentId,
-      existingSite,
       publishFiles,
       metadataByInput,
     });
+
+    trace("existingSite", existingSite);
 
     const filteredFiles: string[] = filterFilesForUpdate(publishFiles.files);
 
@@ -573,7 +583,7 @@ async function publish(
       };
 
       const originalTitle = getTitle(fileName, metadataByInput);
-      const title = await uniquifyTitle(originalTitle);
+      const title = originalTitle;
 
       const matchingPages = await client.fetchMatchingTitlePages(
         originalTitle,
@@ -620,9 +630,11 @@ async function publish(
 
     const doChange = async (change: ConfluenceSpaceChange) => {
       if (isContentCreate(change)) {
+        console.log("DO CREATE");
         let ancestorId =
           (change?.ancestors && change?.ancestors[0]?.id) ?? null;
-
+        console.log("ancestorId", ancestorId);
+        console.log("pathsToId", pathsToId);
         if (ancestorId && pathsToId[ancestorId]) {
           ancestorId = pathsToId[ancestorId];
         }
@@ -652,6 +664,7 @@ async function publish(
 
         return result;
       } else if (isContentUpdate(change)) {
+        console.log("DO UPDATE");
         const update = change as ContentUpdate;
         return await updateContent(
           publishFiles,
@@ -660,11 +673,13 @@ async function publish(
           update.title ?? ""
         );
       } else if (isContentDelete(change)) {
+        console.log("DO DELETE", change);
         if (DELETE_DISABLED) {
           console.warn("DELETE DISABELD");
           return null;
         }
         const result = await client.deleteContent(change);
+        await sleep(2000); // Consider polling on delete to support uniqify rather than sleep
         return result;
       } else {
         console.error("Space Change not defined");
