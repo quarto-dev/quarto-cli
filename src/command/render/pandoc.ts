@@ -308,6 +308,7 @@ export async function runPandoc(
       isEpubOutput(options.format.pandoc))
   ) {
     options.format.metadata[kAbstractTitle] =
+      options.format.metadata[kAbstractTitle] ||
       options.format.language[kSectionTitleAbstract];
   }
 
