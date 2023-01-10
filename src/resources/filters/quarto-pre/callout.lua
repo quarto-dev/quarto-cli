@@ -29,6 +29,7 @@ _quarto.ast.add_handler({
   parse = function(div)
     preState.hasCallouts = true
     local caption = resolveHeadingCaption(div)
+    local old_attr = div.attr
     local appearanceRaw = div.attr.attributes["appearance"]
     local icon = div.attr.attributes["icon"]
     local collapse = div.attr.attributes["collapse"]
@@ -42,7 +43,8 @@ _quarto.ast.add_handler({
       collapse = collapse,
       content = div.content,
       icon = icon,
-      type = calloutType(div)
+      type = calloutType(div),
+      id = div.attr.identifier,
     })
   end,
 
@@ -128,6 +130,7 @@ _quarto.ast.add_handler({
       appearance = appearance,
       icon = icon,
       type = t,
+      id = tbl.id
     }
   end
 })
@@ -364,9 +367,6 @@ function calloutLatex(node)
   local icon = node.icon
   local div = pandoc.Div({})
 
-  div.attr.attributes["caption"] = nil
-  div.attr.attributes["collapse"] = nil
-
   -- generate the callout box
   local callout
   if calloutAppearance == kCalloutAppearanceDefault then
@@ -509,41 +509,6 @@ function latexCalloutBoxSimple(caption, type, icon)
     beginInlines = beginInlines, 
     endInlines = endInlines
   }
-end
-
-function processCalloutDiv(div) 
-
-  local type = calloutType(div)
-  local iconDefault = true
-  local appearanceDefault = nil
-  if type == "none" then
-    iconDefault = false
-    appearanceDefault = "simple"
-  end
-
-  local icon = div.attr.attributes["icon"]
-  div.attr.attributes["icon"] = nil
-  if icon == nil then
-    icon = option("callout-icon", iconDefault)
-  elseif icon == "false" then
-    icon = false
-  end
-  
-
-  local appearanceRaw = div.attr.attributes["appearance"]
-  div.attr.attributes["appearance"] = nil
-  if appearanceRaw == nil then
-    appearanceRaw = option("callout-appearance", appearanceDefault)
-  end
-  
-  local appearance = nameForCalloutStyle(appearanceRaw);
-  if appearance == "minimal" then
-    icon = false
-    appearance = "simple"
-  end
-
-  return { icon = icon, appearance = appearance}
-
 end
 
 function calloutDocx(node)
@@ -715,7 +680,7 @@ function calloutDocxSimple(node, type, hasIcon)
   </w:tbl>
   ]])})
 
-  local calloutContents = pandoc.List({});
+  local calloutContents = pandoc.List({})
   tappend(calloutContents, prefix)
 
   -- deal with the caption, if present
@@ -744,7 +709,6 @@ function calloutDocxSimple(node, type, hasIcon)
 end
 
 function epubCallout(node)
-  local div = pandoc.Div({})
   local caption = node.caption
   local type = node.type
   local calloutAppearance = node.appearance
@@ -792,16 +756,15 @@ function epubCallout(node)
   end
   attributes:insert("callout-style-" .. calloutAppearance)
 
-  return pandoc.Div({calloutBody}, pandoc.Attr(div.attr.identifier, attributes))
+  return pandoc.Div({calloutBody}, pandoc.Attr(node.id or "", attributes))
 end
 
 function jatsCallout(node)
-  local div = pandoc.Div({})
   local contents = resolveCalloutContents(node, true)
 
   local boxedStart = '<boxed-text>'
-  if node.attr.identifier and node.attr.identifier ~= '' then
-    boxedStart = "<boxed-text id='" .. node.attr.identifier .. "'>"
+  if node.id and node.id ~= "" then
+    boxedStart = "<boxed-text id='" .. node.id .. "'>"
   end
   contents:insert(1, pandoc.RawBlock('jats', boxedStart))
   contents:insert(pandoc.RawBlock('jats', '</boxed-text>'))
@@ -810,20 +773,14 @@ function jatsCallout(node)
 end
 
 function simpleCallout(node) 
-  local div = pandoc.Div({})
   local contents = resolveCalloutContents(node, true)
   local callout = pandoc.BlockQuote(contents)
-  return pandoc.Div(callout, pandoc.Attr(div.attr.identifier))
+  return pandoc.Div(callout, pandoc.Attr(node.id or ""))
 end
 
 function resolveCalloutContents(node, requireCaption)
-  local div = node.div
   local caption = node.caption
   
-  div.attr.attributes["caption"] = nil
-  div.attr.attributes["icon"] = nil
-  div.attr.attributes["collapse"] = nil
-
   local contents = pandoc.List({})
     
   -- Add the captions and contents
@@ -837,7 +794,7 @@ function resolveCalloutContents(node, requireCaption)
   if caption ~= nil then
     contents:insert(pandoc.Para(pandoc.Strong(caption)))
   end
-  tappend(contents, div.content)
+  tappend(contents, node.content)
 
   return contents
 end
