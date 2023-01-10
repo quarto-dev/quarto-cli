@@ -221,8 +221,6 @@ export async function processNotebookEmbeds(
       }
     }
 
-    console.log(nbPaths);
-
     // Validate that there are no unused notebooks in the front matter
     nbViewConfig.unused(linkedNotebooks);
   }
