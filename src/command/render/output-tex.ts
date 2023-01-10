@@ -44,7 +44,17 @@ export function texToPdfOutputRecipe(
 
   // there are many characters that give tex trouble in filenames, create
   // a target stem that replaces them with the '-' character
-  const texStem = texSafeFilename(inputStem);
+
+  // include variants in the tex stem if they are present to avoid
+  // overwriting files
+  const formatSuffix = (format.identifier["target-format"] ?? "").match(/[+-]/g)
+    ? `-${
+      (format.identifier["target-format"] ?? "").split(/[+-]/g).slice(1).join(
+        "-",
+      )
+    }`
+    : "";
+  const texStem = texSafeFilename(`${inputStem}${formatSuffix}`);
 
   // cacluate output and args for pandoc (this is an intermediate file
   // which we will then compile to a pdf and rename to .tex)
