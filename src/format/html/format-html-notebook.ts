@@ -120,6 +120,7 @@ export async function processNotebookEmbeds(
 
             const nbAbsPath = join(inputDir, notebookPath);
             const htmlPreview = await renderHtmlView(
+              inputDir,
               nbAbsPath,
               nbPreviewOptions,
               format,
@@ -127,7 +128,7 @@ export async function processNotebookEmbeds(
             );
             return {
               title: htmlPreview.title,
-              href: relative(inputDir, htmlPreview.href),
+              href: htmlPreview.href,
             };
           } else {
             return {
@@ -222,7 +223,9 @@ export async function processNotebookEmbeds(
     }
 
     // Validate that there are no unused notebooks in the front matter
-    nbViewConfig.unused(linkedNotebooks);
+    if (nbViewConfig) {
+      nbViewConfig.unused(linkedNotebooks);
+    }
   }
 }
 
@@ -230,39 +233,44 @@ function notebookViewConfig(
   notebookPublish?: boolean | NotebookPublishOptions | NotebookPublishOptions[],
 ) {
   const nbOptions: Record<string, NotebookViewOptions> = {};
-  if (notebookPublish && typeof (notebookPublish) !== "boolean") {
-    asArray(notebookPublish).forEach((pub) => {
-      nbOptions[pub.notebook] = {
-        title: pub.title || basename(pub.notebook),
-        href: pub.url,
-      };
-    });
-  }
-
-  return {
-    options: (notebook: string) => {
-      return nbOptions[notebook] || { title: basename(notebook) };
-    },
-    unused: (notebooks: string[]) => {
-      Object.keys(nbOptions).forEach((nb) => {
-        if (!notebooks.includes(nb)) {
-          throw new Error(
-            `The notebook ${nb} is included in 'notebook-view' but isn't used to embed content. Please remove it from 'notebook-view'.`,
-          );
-        }
+  if (notebookPublish) {
+    if (typeof (notebookPublish) !== "boolean") {
+      asArray(notebookPublish).forEach((pub) => {
+        nbOptions[pub.notebook] = {
+          title: pub.title || basename(pub.notebook),
+          href: pub.url,
+        };
       });
-    },
-  };
+    }
+    return {
+      options: (notebook: string) => {
+        return nbOptions[notebook] || { title: basename(notebook) };
+      },
+      unused: (notebooks: string[]) => {
+        Object.keys(nbOptions).forEach((nb) => {
+          if (!notebooks.includes(nb)) {
+            throw new Error(
+              `The notebook ${nb} is included in 'notebook-view' but isn't used to embed content. Please remove it from 'notebook-view'.`,
+            );
+          }
+        });
+      },
+    };
+  } else {
+    return undefined;
+  }
 }
 
 // Renders an HTML preview of a notebook
 async function renderHtmlView(
-  path: string,
+  inputDir: string,
+  nbAbsPath: string,
   options: NotebookViewOptions,
   format: Format,
   services: RenderServices,
 ): Promise<NotebookView> {
-  const filename = basename(path);
+  const filename = basename(nbAbsPath);
+  const href = relative(inputDir, nbAbsPath);
 
   if (options.href === undefined) {
     // Use the special `embed` template for this render
@@ -272,7 +280,7 @@ async function renderHtmlView(
     );
     const embedTemplate = renderEjs(embedHtmlEjs, {
       title: options.title,
-      path,
+      path: href,
       filename,
     });
     const templatePath = services.temp.createFile({ suffix: "html" });
@@ -280,7 +288,7 @@ async function renderHtmlView(
 
     // Render the notebook and update the path
     const nbPreviewFile = `${filename}.html`;
-    await render(path, {
+    await render(nbAbsPath, {
       services,
       flags: {
         metadata: {
@@ -295,7 +303,7 @@ async function renderHtmlView(
 
     return {
       title: options.title,
-      href: join(dirname(path), nbPreviewFile),
+      href: join(dirname(href), nbPreviewFile),
     };
   } else {
     return {
