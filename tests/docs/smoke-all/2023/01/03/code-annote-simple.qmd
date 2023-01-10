@@ -8,7 +8,7 @@ _quarto:
   tests: 
     html:
       ensureHtmlElements:
-        - ["span[data-target-annotation='1']", "span[data-target-annotation='2']", "div.cell-annotation > dl"]
+        - ["a[data-target-annotation='1']", "a[data-target-annotation='2']", "div.cell-annotation > dl"]
 ---
 
 ## Hi There
