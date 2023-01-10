@@ -2160,10 +2160,9 @@ const runSpaceUpdatesWithNestedMoves = () => {
   };
 
   const fakeMultiNestedFile: SiteFileMetadata = {
-    fileName:
-      "fake-great-grand-parent/fake-grand-parent/fake-parent/fake-file-name.xml",
-    title: "fake-title",
-    originalTitle: "fake-title-original",
+    fileName: "fake-parent/fake-inner-parent/fake-file-name.xml",
+    title: "fake-multi-nested-title",
+    originalTitle: "fake-multi-nested-title-original",
     matchingPages: [],
     contentBody: {
       storage: {
@@ -2379,69 +2378,96 @@ const runSpaceUpdatesWithNestedMoves = () => {
       fakeSpace,
       existingSite
     );
-    console.log("actual", actual);
     assertEquals(expected, actual);
   });
 
-  // TODO Delete orphaned parents
-  // unitTest(suiteLabel("parent_to_root_del_parent"), async () => {
-  //   const fileMetadataList: SiteFileMetadata[] = [fakeRootFile];
-  //   const existingSite = [
-  //     {
-  //       id: "fake-title-id",
-  //       title: "fake-title",
-  //       metadata: { fileName: "fake-parent-id/fake-file-name.xml" },
-  //       ancestors: [{ id: "fake-grand-parent-id" }, { id: "fake-parent-id" }],
-  //     },
-  //   ];
-  //
-  //   const expected: ConfluenceSpaceChange[] = [
-  //     {
-  //       contentChangeType: ContentChangeType.delete,
-  //       id: "fake-title-id",
-  //     },
-  //     {
-  //       contentChangeType: ContentChangeType.delete,
-  //       id: "fake-parent-id",
-  //     },
-  //     {
-  //       contentChangeType: ContentChangeType.create,
-  //       ancestors: [
-  //         {
-  //           id: "8781825",
-  //         },
-  //       ],
-  //       body: {
-  //         storage: {
-  //           representation: "storage",
-  //           value: "fake-value",
-  //         },
-  //       },
-  //       fileName: "fake-file-name.xml",
-  //       space: {
-  //         key: "fake-space-key",
-  //         id: "fake-space-id",
-  //         homepage: buildFakeContent(),
-  //       },
-  //       status: "current",
-  //       title: "fake-title",
-  //       type: "page",
-  //     },
-  //   ];
-  //   const pagesToDelete = findPagesToDelete(fileMetadataList, existingSite);
-  //
-  //   console.log("pagesToDelete", pagesToDelete);
-  //
-  //   const actual: ConfluenceSpaceChange[] = buildSpaceChanges(
-  //     fileMetadataList,
-  //     FAKE_PARENT,
-  //     fakeSpace,
-  //     existingSite
-  //   );
-  //
-  //   console.log("actual", actual);
-  //   // assertEquals(expected, actual);
-  // });
+  unitTest(suiteLabel("create_in_nested_parent"), async () => {
+    const fileMetadataList: SiteFileMetadata[] = [
+      fakeNestedFile,
+      fakeMultiNestedFile,
+    ];
+    const existingSite = [
+      {
+        id: "fake-title-id",
+        title: "fake-title",
+        metadata: { fileName: "fake-parent/fake-file-name.xml" },
+        ancestors: [{ id: "fake-grand-parent-id" }, { id: "fake-parent-id" }],
+      },
+      {
+        title: "Fake Parent",
+        id: "fake-parent-id",
+        metadata: { editor: "v2", fileName: "fake-parent" },
+        ancestors: [{ id: "fake-grand-parent-id" }],
+      },
+    ];
+
+    const expected: ConfluenceSpaceChange[] = [
+      {
+        contentChangeType: ContentChangeType.update,
+        id: "fake-title-id",
+        version: null,
+        title: "fake-title",
+        type: "page",
+        status: "current",
+        ancestors: [{ id: "fake-parent-id" }],
+        body: { storage: { value: "fake-value", representation: "storage" } },
+        fileName: "fake-parent/fake-file-name.xml",
+      },
+      {
+        contentChangeType: ContentChangeType.create,
+        title: "Fake-inner-parent",
+        type: "page",
+        ancestors: [
+          {
+            id: "fake-parent-id",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "",
+          },
+        },
+        fileName: "fake-parent/fake-inner-parent",
+        space: {
+          key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
+        },
+        status: "current",
+      },
+      {
+        contentChangeType: ContentChangeType.create,
+        title: "fake-multi-nested-title",
+        type: "page",
+        ancestors: [
+          {
+            id: "fake-parent/fake-inner-parent",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "fake-value",
+          },
+        },
+        fileName: "fake-parent/fake-inner-parent/fake-file-name.xml",
+        space: {
+          key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
+        },
+        status: "current",
+      },
+    ];
+    const actual: ConfluenceSpaceChange[] = buildSpaceChanges(
+      fileMetadataList,
+      FAKE_PARENT,
+      fakeSpace,
+      existingSite
+    );
+    assertEquals(expected, actual);
+  });
 };
 
 const runBuildFileToMetaTable = () => {

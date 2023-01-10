@@ -300,9 +300,12 @@ export const buildSpaceChanges = (
     accumulatedChanges: ConfluenceSpaceChange[],
     fileMetadata: SiteFileMetadata
   ): ConfluenceSpaceChange[] => {
-    const existingPage = existingSite.find(
-      (page: SitePage) => page?.metadata?.fileName === fileMetadata.fileName
-    );
+    const findPageInExistingSite = (fileName: string) =>
+      existingSite.find(
+        (page: SitePage) => page?.metadata?.fileName === fileName
+      );
+
+    const existingPage = findPageInExistingSite(fileMetadata.fileName);
 
     let spaceChangeList: ConfluenceSpaceChange[] = [];
 
@@ -314,8 +317,6 @@ export const buildSpaceChanges = (
         : parent?.parent;
 
     const checkCreateParents = (): SitePage | null => {
-      console.log("checkCreateParents");
-      console.log("pathList", pathList);
       if (pathList.length < 2) {
         return null;
       }
@@ -323,7 +324,6 @@ export const buildSpaceChanges = (
       let existingSiteParent = null;
 
       const parentsList = pathList.slice(0, pathList.length - 1);
-      console.log("parentsList", parentsList);
 
       parentsList.forEach((parentFileName, index) => {
         const ancestorFilePath = parentsList.slice(0, index).join("/");
@@ -351,10 +351,11 @@ export const buildSpaceChanges = (
           return false;
         });
 
-        console.log("existingSite", existingSite);
-        console.log("existingSiteParent", existingSiteParent);
-
         if (!existingParentCreateChange && !existingSiteParent) {
+          // Create a new parent page
+
+          const existingAncestor = findPageInExistingSite(ancestor ?? "");
+
           spaceChangeList = [
             ...spaceChangeList,
             buildContentCreate(
@@ -367,7 +368,7 @@ export const buildSpaceChanges = (
                 },
               },
               fileName,
-              ancestor,
+              existingAncestor ? existingAncestor.id : ancestor,
               ContentStatusEnum.current
             ),
           ];
@@ -378,7 +379,6 @@ export const buildSpaceChanges = (
     };
 
     const existingParent: SitePage | null = checkCreateParents();
-    console.log("existingParent", existingParent);
 
     pageParent = existingParent ? existingParent.id : pageParent;
 
@@ -420,8 +420,6 @@ export const buildSpaceChanges = (
     fileMetadataList,
     existingSite
   );
-
-  console.log("pagesToDelete", pagesToDelete);
 
   // TODO prompt as a sanity check and limiter to prevent any major run-away deletes
   const deleteChanges: ContentDelete[] = pagesToDelete.map(
