@@ -26,7 +26,7 @@ import {
   HtmlPostProcessResult,
   RenderServices,
 } from "../../command/render/types.ts";
-import { render, renderServices } from "../../command/render/render-shared.ts";
+import { render } from "../../command/render/render-shared.ts";
 
 import { basename, dirname, join, relative } from "path/mod.ts";
 
@@ -87,6 +87,7 @@ export async function processNotebookEmbeds(
   doc: Document,
   format: Format,
   resources: string[],
+  services: RenderServices,
 ) {
   const inline = format.render[kNotebookLinks] === "inline" ||
     format.render[kNotebookLinks] === true;
@@ -99,7 +100,6 @@ export async function processNotebookEmbeds(
   if (notebookDivNodes.length > 0) {
     const nbPaths: { href: string; title: string; filename?: string }[] = [];
     let count = 1;
-    const services = renderServices();
 
     // Emit links to the notebooks inline (where the embedded content is located)
     const linkedNotebooks: string[] = [];

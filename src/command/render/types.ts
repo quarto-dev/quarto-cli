@@ -176,17 +176,14 @@ export interface PandocOptions {
   // command line args for pandoc
   args: string[];
 
-  // temp context
-  temp: TempContext;
+  // the render services
+  services: RenderServices;
 
   // extra metadata to merge
   metadata?: Metadata;
 
   // optoinal project context
   project?: ProjectContext;
-
-  // optional extension context
-  extension?: ExtensionContext;
 
   // quiet quarto pandoc informational output
   quiet?: boolean;

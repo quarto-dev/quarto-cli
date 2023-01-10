@@ -148,9 +148,8 @@ export async function renderPandoc(
     format,
     project: context.project,
     args: recipe.args,
-    temp: context.options.services.temp,
+    services: context.options.services,
     metadata: executeResult.metadata,
-    extension: context.options.services.extension,
     quiet,
     flags: context.options.flags,
   };
@@ -437,8 +436,8 @@ async function runHtmlPostprocessors(
           {
             inputMetadata,
             inputTraits,
-            renderedFormats  
-          }
+            renderedFormats,
+          },
         );
 
         postProcessResult.resources.push(...result.resources);

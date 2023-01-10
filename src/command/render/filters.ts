@@ -512,8 +512,8 @@ async function quartoFilterParams(
 
 async function extensionShortcodes(options: PandocOptions) {
   const extensionShortcodes: string[] = [];
-  if (options.extension) {
-    const allExtensions = await options.extension?.extensions(
+  if (options.services.extension) {
+    const allExtensions = await options.services.extension?.extensions(
       options.source,
       options.project?.config,
       options.project?.dir,
@@ -681,7 +681,7 @@ async function resolveFilterExtension(
       typeof (filter) === "string" &&
       !existsSync(filter)
     ) {
-      let extensions = await options.extension?.find(
+      let extensions = await options.services.extension?.find(
         filter,
         options.source,
         "filters",

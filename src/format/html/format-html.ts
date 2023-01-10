@@ -83,7 +83,10 @@ import {
   kSiteUrl,
   kWebsite,
 } from "../../project/types/website/website-constants.ts";
-import { HtmlPostProcessResult } from "../../command/render/types.ts";
+import {
+  HtmlPostProcessResult,
+  RenderServices,
+} from "../../command/render/types.ts";
 import {
   getDiscussionCategoryId,
   getGithubDiscussionsMetadata,
@@ -122,13 +125,13 @@ export function htmlFormat(
         flags: PandocFlags,
         format: Format,
         _libDir: string,
-        temp: TempContext,
+        services: RenderServices,
         offset: string,
       ) => {
         const htmlFilterParams = htmlFormatFilterParams(format);
         return mergeConfigs(
-          await htmlFormatExtras(input, flags, offset, format, temp),
-          themeFormatExtras(input, flags, format, temp, offset),
+          await htmlFormatExtras(input, flags, offset, format, services.temp),
+          themeFormatExtras(input, flags, format, services, offset),
           { [kFilterParams]: htmlFilterParams },
         );
       },
@@ -856,7 +859,7 @@ function themeFormatExtras(
   input: string,
   flags: PandocFlags,
   format: Format,
-  temp: TempContext,
+  sevices: RenderServices,
   offset?: string,
 ) {
   const theme = format.metadata[kTheme];
@@ -869,7 +872,7 @@ function themeFormatExtras(
   } else if (theme === "pandoc") {
     return pandocExtras(format);
   } else {
-    return boostrapExtras(input, flags, format, temp, offset);
+    return boostrapExtras(input, flags, format, sevices, offset);
   }
 }
 

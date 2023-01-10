@@ -59,6 +59,7 @@ import {
   HtmlPostProcessResult,
   PandocInputTraits,
   RenderedFormat,
+  RenderServices,
 } from "../../command/render/types.ts";
 import { processDocumentAppendix } from "./format-html-appendix.ts";
 import {
@@ -124,7 +125,7 @@ export function boostrapExtras(
   input: string,
   flags: PandocFlags,
   format: Format,
-  temp: TempContext,
+  services: RenderServices,
   offset?: string,
 ): FormatExtras {
   const toc = hasTableOfContents(flags, format);
@@ -175,7 +176,11 @@ export function boostrapExtras(
     sassLayers.push(titleSassLayer);
   }
   const includeInHeader: string[] = [];
-  const titleInclude = documentTitleIncludeInHeader(input, format, temp);
+  const titleInclude = documentTitleIncludeInHeader(
+    input,
+    format,
+    services.temp,
+  );
   if (titleInclude) {
     includeInHeader.push(titleInclude);
   }
@@ -206,6 +211,7 @@ export function boostrapExtras(
           input,
           format,
           flags,
+          services,
           offset,
         ),
       ],
@@ -227,6 +233,7 @@ function bootstrapHtmlPostprocessor(
   input: string,
   format: Format,
   flags: PandocFlags,
+  services: RenderServices,
   offset?: string,
 ): HtmlPostProcessor {
   return async (
@@ -327,7 +334,7 @@ function bootstrapHtmlPostprocessor(
 
     // Look for included / embedded notebooks and include those
     if (format.render[kNotebookLinks] !== false) {
-      await processNotebookEmbeds(input, doc, format, resources);
+      await processNotebookEmbeds(input, doc, format, resources, services);
     }
 
     // default treatment for computational tables
