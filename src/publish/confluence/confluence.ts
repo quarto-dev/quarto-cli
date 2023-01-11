@@ -53,6 +53,7 @@ import {
   doWithSpinner,
   filterFilesForUpdate,
   findAttachments,
+  getAttachmentsDirectory,
   getNextVersion,
   getTitle,
   isContentCreate,
@@ -336,7 +337,8 @@ async function publish(
     publishFiles: PublishFiles,
     id: string,
     body: ContentBody,
-    titleParam: string = title
+    titleParam: string = title,
+    fileName: string = ""
   ): Promise<Content> => {
     const previousPage = await client.getContent(id);
 
@@ -364,15 +366,22 @@ async function publish(
     if (toUpdate.id) {
       const existingAttachments: AttachmentSummary[] =
         await client.getAttachments(toUpdate.id);
+
+      const baseDirectory = getAttachmentsDirectory(
+        publishFiles.baseDir,
+        fileName,
+        attachmentsToUpload
+      );
+
       trace(
         "attachments",
-        { existingAttachments, attachmentsToUpload },
+        { existingAttachments, attachmentsToUpload, baseDirectory },
         LogPrefix.ATTACHMENT
       );
 
       const uploadAttachmentsResult = await Promise.all(
         uploadAttachments(
-          publishFiles.baseDir,
+          baseDirectory,
           attachmentsToUpload,
           toUpdate.id,
           existingAttachments
@@ -661,7 +670,8 @@ async function publish(
           publishFiles,
           update.id ?? "",
           update.body,
-          update.title ?? ""
+          update.title ?? "",
+          update.fileName ?? ""
         );
       } else if (isContentDelete(change)) {
         if (DELETE_DISABLED) {

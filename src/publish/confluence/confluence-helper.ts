@@ -596,3 +596,31 @@ export const findAttachments = (
 
   return uniqueResult ?? [];
 };
+
+export const getAttachmentsDirectory = (
+  baseDirectory: string,
+  fileName: string = "",
+  attachmentsToUpload: string[] = []
+): string => {
+  if (attachmentsToUpload.length === 0 || fileName.length === 0) {
+    return "";
+  }
+
+  let result = baseDirectory;
+
+  if (result.endsWith("/_site")) {
+    result = result.slice(0, -6);
+  }
+
+  const filePathList = fileName.split("/");
+
+  if (filePathList.length > 1) {
+    const directoryPath = filePathList
+      .slice(0, filePathList.length - 1)
+      .join("/");
+
+    result = `${result}/${directoryPath}`;
+  }
+
+  return result;
+};

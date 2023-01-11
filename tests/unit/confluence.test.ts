@@ -16,6 +16,7 @@ import {
   filterFilesForUpdate,
   findAttachments,
   findPagesToDelete,
+  getAttachmentsDirectory,
   getMessageFromAPIError,
   getNextVersion,
   getTitle,
@@ -2907,6 +2908,75 @@ const runFindAttachments = () => {
   });
 };
 
+const runGetAttachmentsDirectory = () => {
+  const suiteLabel = (label: string) => `GetAttachmentsDirectory_${label}`;
+
+  const check = (
+    expected: string,
+    baseDirectory: string,
+    attachmentsToUpload: string[],
+    fileName: string
+  ) => {
+    assertEquals(
+      getAttachmentsDirectory(baseDirectory, fileName, attachmentsToUpload),
+      expected
+    );
+  };
+
+  unitTest(suiteLabel("empty_to_upload"), async () => {
+    const expected = "";
+    const baseDirectory = "/Users/fake-base";
+    check(expected, baseDirectory, [], "file-name.png");
+  });
+
+  unitTest(suiteLabel("empty_fileName"), async () => {
+    const expected = "";
+    const attachmentsToUpload = ["file1.png", "file2.png"];
+    const baseDirectory = "/Users/fake-base";
+    check(expected, baseDirectory, attachmentsToUpload, "");
+  });
+
+  unitTest(suiteLabel("simple"), async () => {
+    const expected = "/Users/fake-base";
+
+    const baseDirectory = "/Users/fake-base";
+    const attachmentsToUpload = ["file1.png"];
+    const fileName = "fake-file.xml";
+
+    check(expected, baseDirectory, attachmentsToUpload, fileName);
+  });
+
+  unitTest(suiteLabel("site_in_root"), async () => {
+    const expected = "/Users/fake-base";
+
+    const baseDirectory = "/Users/fake-base/_site";
+    const attachmentsToUpload = ["file1.png"];
+    const fileName = "fake-file.xml";
+
+    check(expected, baseDirectory, attachmentsToUpload, fileName);
+  });
+
+  unitTest(suiteLabel("site_nested"), async () => {
+    const expected = "/Users/fake-base/fake-parent";
+
+    const baseDirectory = "/Users/fake-base/_site";
+    const attachmentsToUpload = ["file1.png"];
+    const fileName = "fake-parent/fake-file.xml";
+
+    check(expected, baseDirectory, attachmentsToUpload, fileName);
+  });
+
+  unitTest(suiteLabel("site_nested_multi"), async () => {
+    const expected = "/Users/fake-base/fake-grand-parent/fake-parent";
+
+    const baseDirectory = "/Users/fake-base/_site";
+    const attachmentsToUpload = ["file1.png"];
+    const fileName = "fake-grand-parent/fake-parent/fake-file.xml";
+
+    check(expected, baseDirectory, attachmentsToUpload, fileName);
+  });
+};
+
 const runUpdateImagePathsForContentBody = () => {
   const suiteLabel = (label: string) =>
     `UpdateImagePathsForContentBody_${label}`;
@@ -2974,9 +3044,8 @@ if (runAllTests) {
   runExtractLinks();
   runUpdateLinks();
   runFindAttachments();
+  runGetAttachmentsDirectory();
   runUpdateImagePathsForContentBody();
 } else {
-  // runSpaceCreatesWithNesting();
-  // runSpaceUpdatesWithNesting();
-  runSpaceUpdatesWithNestedMoves();
+  runGetAttachmentsDirectory();
 }
