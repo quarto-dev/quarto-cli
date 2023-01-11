@@ -965,6 +965,8 @@ export async function runPandoc(
   const pandocPassedMetadata = ld.cloneDeep(pandocMetadata);
   delete pandocPassedMetadata.format;
   delete pandocPassedMetadata.project;
+  delete pandocPassedMetadata.website;
+
   Deno.writeTextFileSync(
     metadataTemp,
     stringify(pandocPassedMetadata, {
