@@ -1248,7 +1248,9 @@
             - ref: website-listing-contents-object
         description: "The files or path globs of Quarto documents or YAML files that should be included in the listing."
       sort:
-        maybeArrayOf: string
+        anyOf:
+          - boolean
+          - maybeArrayOf: string
         description:
           short: "Sort items in the listing by these fields."
           long: |
@@ -1257,6 +1259,8 @@
 
             For example:
             `date asc`
+
+            Use `sort:false` to use the unsorted original order of items.
       max-items:
         number:
           description: The maximum number of items to include in this listing.

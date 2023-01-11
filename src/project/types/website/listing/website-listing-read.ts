@@ -990,17 +990,27 @@ function computeListingSort(rawValue: unknown): ListingSort[] | undefined {
     }
   };
 
-  if (Array.isArray(rawValue)) {
-    return rawValue.map(parseValue).filter((val) =>
-      val !== undefined
-    ) as ListingSort[];
+  if (typeof (rawValue) === "boolean") {
+    if (rawValue) {
+      // Apply default sorting behavior
+      return undefined;
+    } else {
+      // Don't apply sorting
+      return [];
+    }
   } else {
-    const sort = parseValue(rawValue);
-    if (sort) {
-      return [sort];
+    // Apply sorting
+    if (Array.isArray(rawValue)) {
+      return rawValue.map(parseValue).filter((val) =>
+        val !== undefined
+      ) as ListingSort[];
+    } else {
+      const sort = parseValue(rawValue);
+      if (sort) {
+        return [sort];
+      }
     }
   }
-  return undefined;
 }
 
 function defaultFields(type: ListingType, itemFields: string[]) {

@@ -71,6 +71,7 @@
 - Improve support for `date-modified` in listings
 - Improve support for `yml` based listings by supporting usage of title and description from `yml`.
 - Allow listings in project to point directly to non-input files (such as `yml` files) to use for contents.
+- Allow `sort: false` to disable any sorting, allowing items to appear in their original / natural order. (#3296)
 
 ## Websites
 
