@@ -17,7 +17,7 @@ import { dartCompile } from "./dart-sass.ts";
 import * as ld from "./lodash.ts";
 import { lines } from "./text.ts";
 import { md5Hash } from "./hash.ts";
-import { debug } from "../vendor/deno.land/std@0.166.0/log/mod.ts";
+import { debug } from "log/mod.ts";
 
 export interface SassVariable {
   name: string;
