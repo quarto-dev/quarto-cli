@@ -599,26 +599,33 @@ export const findAttachments = (
 
 export const getAttachmentsDirectory = (
   baseDirectory: string,
-  fileName: string = "",
-  attachmentsToUpload: string[] = []
+  filePath: string = "",
+  attachmentPath: string = ""
 ): string => {
-  if (attachmentsToUpload.length === 0 || fileName.length === 0) {
+  let result = baseDirectory;
+
+  if (attachmentPath.length === 0 || filePath.length === 0) {
     return "";
   }
 
-  let result = baseDirectory;
+  const filePathList = filePath.split("/");
+  const attachmentPathList = attachmentPath.split("/");
+
+  const pathNoFileFromList = (pathList: string[]) =>
+    pathList.slice(0, pathList.length - 1).join("/");
+
+  if (attachmentPathList.some((path) => path.endsWith("_files"))) {
+    return baseDirectory;
+  }
 
   if (result.endsWith("/_site")) {
     result = result.slice(0, -6);
   }
 
-  const filePathList = fileName.split("/");
+  const isRelative = attachmentPathList.length === 1;
 
-  if (filePathList.length > 1) {
-    const directoryPath = filePathList
-      .slice(0, filePathList.length - 1)
-      .join("/");
-
+  if (isRelative && filePathList.length > 1) {
+    const directoryPath = pathNoFileFromList(filePathList);
     result = `${result}/${directoryPath}`;
   }
 

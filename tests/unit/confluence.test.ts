@@ -58,6 +58,16 @@ import {
   Space,
 } from "../../src/publish/confluence/api/types.ts";
 
+const RUN_ALL_TESTS = true;
+const FOCUS_TEST = false;
+
+const xtest = (
+  name: string,
+  ver: () => Promise<unknown> // VoidFunction,
+) => {};
+const test = FOCUS_TEST ? xtest : unitTest;
+const otest = unitTest;
+
 const buildFakeContent = (): Content => {
   return {
     id: "fake-id",
@@ -2813,33 +2823,33 @@ const runFindAttachments = () => {
     );
   };
 
-  unitTest(suiteLabel("empty"), async () => {
+  test(suiteLabel("empty"), async () => {
     const bodyValue: string = "";
     const expected: string[] = [];
     check(expected, bodyValue);
   });
 
-  unitTest(suiteLabel("no_attachment"), async () => {
+  test(suiteLabel("no_attachment"), async () => {
     const bodyValue: string = "fake body value";
     const expected: string[] = [];
     check(expected, bodyValue);
   });
 
-  unitTest(suiteLabel("no_attachment_CDATA"), async () => {
+  test(suiteLabel("no_attachment_CDATA"), async () => {
     const bodyValue: string =
       "<ac:plain-text-body> <![CDATA[![Caption](elephant.png)]</ac:plain-text-body><ac:plain-text-body>]> </ac:plain-text-body>";
     const expected: string[] = [];
     check(expected, bodyValue);
   });
 
-  unitTest(suiteLabel("single_image"), async () => {
+  test(suiteLabel("single_image"), async () => {
     const bodyValue: string =
       '<ri:attachment ri:filename="elephant.png" ri:version-at-save="1" />';
     const expected: string[] = ["elephant.png"];
     check(expected, bodyValue);
   });
 
-  unitTest(suiteLabel("single_image_lookup"), async () => {
+  test(suiteLabel("single_image_lookup"), async () => {
     const bodyValue: string =
       '<ri:attachment ri:filename="elephant.png" ri:version-at-save="1" />';
     const filePaths: string[] = ["fake-path/elephant.png"];
@@ -2847,7 +2857,19 @@ const runFindAttachments = () => {
     check(expected, bodyValue, filePaths);
   });
 
-  unitTest(suiteLabel("single_image_lookup_dupe_name"), async () => {
+  test(suiteLabel("single_image_lookup_full_path"), async () => {
+    const bodyValue: string =
+      '<ri:attachment ri:filename="computations-r_files/figure-publish/fig-airquality-1.png" ri:version-at-save="1" />';
+    const filePaths: string[] = [
+      "computations/r/computations-r_files/figure-publish/fig-airquality-1.png",
+    ];
+    const expected: string[] = [
+      "computations/r/computations-r_files/figure-publish/fig-airquality-1.png",
+    ];
+    check(expected, bodyValue, filePaths);
+  });
+
+  test(suiteLabel("single_image_lookup_dupe_name"), async () => {
     const bodyValue: string =
       '<ri:attachment ri:filename="elephant.png" ri:version-at-save="1" />';
     const filePaths: string[] = [
@@ -2859,7 +2881,7 @@ const runFindAttachments = () => {
     check(expected, bodyValue, filePaths, filePath);
   });
 
-  unitTest(suiteLabel("single_image_lookup_bad_paths"), async () => {
+  test(suiteLabel("single_image_lookup_bad_paths"), async () => {
     const bodyValue: string =
       '<ri:attachment ri:filename="elephant.png" ri:version-at-save="1" />';
     const filePaths: string[] = [
@@ -2871,34 +2893,34 @@ const runFindAttachments = () => {
     check(expected, bodyValue, filePaths, filePath);
   });
 
-  unitTest(suiteLabel("two_images"), async () => {
+  test(suiteLabel("two_images"), async () => {
     const bodyValue: string =
       '<ri:attachment ri:filename="fake-image.png" ri:version-at-save="1" /> <ri:attachment ri:filename="fake-image2.png" ri:version-at-save="1" />';
     const expected: string[] = ["fake-image.png", "fake-image2.png"];
     check(expected, bodyValue);
   });
 
-  unitTest(suiteLabel("two_images_with_dupes"), async () => {
+  test(suiteLabel("two_images_with_dupes"), async () => {
     const bodyValue: string =
       '<ri:attachment ri:filename="fake-image.png" ri:version-at-save="1" /> <ri:attachment ri:filename="fake-image.png" ri:version-at-save="1" /> <ri:attachment ri:filename="fake-image2.png" ri:version-at-save="1" />';
     const expected: string[] = ["fake-image.png", "fake-image2.png"];
     check(expected, bodyValue);
   });
 
-  unitTest(suiteLabel("image_not_attachment"), async () => {
+  test(suiteLabel("image_not_attachment"), async () => {
     const bodyValue: string = '"elephant.png"';
     const expected: string[] = [];
     check(expected, bodyValue);
   });
 
-  unitTest(suiteLabel("two_images_with_dupes_invalids"), async () => {
+  test(suiteLabel("two_images_with_dupes_invalids"), async () => {
     const bodyValue: string =
       '<ri:attachment ri:filename="fake-image.png" ri:version-at-save="1" /> <ri:attachment ri:filename="fake-image.png" ri:version-at-save="1" /> <ri:attachment ri:filename="fake-image2.png" ri:version-at-save="1" /> no-match.png "no-match.png"';
     const expected: string[] = ["fake-image.png", "fake-image2.png"];
     check(expected, bodyValue);
   });
 
-  unitTest(suiteLabel("audio_file"), async () => {
+  test(suiteLabel("audio_file"), async () => {
     const DOUBLE_BRACKET = "]]";
     const bodyValue: string = `<ac:link><ri:attachment ri:filename="audio/2022-11-10-intro-psychological-safety.m4a"/><ac:plain-text-link-body><![CDATA[audio/2022-11-10-intro-psychological-safety.m4a${DOUBLE_BRACKET}></ac:plain-text-link-body></ac:link>`;
     const expected: string[] = [
@@ -2914,66 +2936,101 @@ const runGetAttachmentsDirectory = () => {
   const check = (
     expected: string,
     baseDirectory: string,
-    attachmentsToUpload: string[],
+    attachmentToUpload: string,
     fileName: string
   ) => {
     assertEquals(
-      getAttachmentsDirectory(baseDirectory, fileName, attachmentsToUpload),
+      getAttachmentsDirectory(baseDirectory, fileName, attachmentToUpload),
       expected
     );
   };
 
-  unitTest(suiteLabel("empty_to_upload"), async () => {
+  test(suiteLabel("empty_to_upload"), async () => {
     const expected = "";
     const baseDirectory = "/Users/fake-base";
-    check(expected, baseDirectory, [], "file-name.png");
+    check(expected, baseDirectory, "", "file-name.png");
   });
 
-  unitTest(suiteLabel("empty_fileName"), async () => {
+  test(suiteLabel("empty_fileName"), async () => {
     const expected = "";
-    const attachmentsToUpload = ["file1.png", "file2.png"];
+    const attachmentPath = "file1.png";
     const baseDirectory = "/Users/fake-base";
-    check(expected, baseDirectory, attachmentsToUpload, "");
+    check(expected, baseDirectory, attachmentPath, "");
   });
 
-  unitTest(suiteLabel("simple"), async () => {
+  test(suiteLabel("simple"), async () => {
     const expected = "/Users/fake-base";
 
     const baseDirectory = "/Users/fake-base";
-    const attachmentsToUpload = ["file1.png"];
+    const attachmentPath = "file1.png";
     const fileName = "fake-file.xml";
 
-    check(expected, baseDirectory, attachmentsToUpload, fileName);
+    check(expected, baseDirectory, attachmentPath, fileName);
   });
 
-  unitTest(suiteLabel("site_in_root"), async () => {
+  test(suiteLabel("site_in_root"), async () => {
     const expected = "/Users/fake-base";
 
     const baseDirectory = "/Users/fake-base/_site";
-    const attachmentsToUpload = ["file1.png"];
+    const attachmentPath = "file1.png";
     const fileName = "fake-file.xml";
 
-    check(expected, baseDirectory, attachmentsToUpload, fileName);
+    check(expected, baseDirectory, attachmentPath, fileName);
   });
 
-  unitTest(suiteLabel("site_nested"), async () => {
+  test(suiteLabel("real"), async () => {
+    const expected =
+      "/Users/amanning/projects/github/allenmanning/confluence/guide-site";
+
+    const baseDirectory =
+      "/Users/amanning/projects/github/allenmanning/confluence/guide-site/_site";
+    const attachmentPath = "authoring/elephant2.png";
+    const fileName = "authoring/hello-world5.xml";
+
+    check(expected, baseDirectory, attachmentPath, fileName);
+  });
+
+  test(suiteLabel("simple_computation"), async () => {
+    const baseDirectory =
+      "/Users/amanning/projects/github/allenmanning/confluence/guide-site/_site";
+
+    const expected = baseDirectory;
+
+    const attachmentPath =
+      "computations/r/computations-r_files/figure-publish/fig-airquality-1.png";
+    const filePath = "computations/r/computations-r.xml";
+
+    check(expected, baseDirectory, attachmentPath, filePath);
+  });
+
+  test(suiteLabel("site_nested_relative"), async () => {
     const expected = "/Users/fake-base/fake-parent";
 
     const baseDirectory = "/Users/fake-base/_site";
-    const attachmentsToUpload = ["file1.png"];
+    const attachmentPath = "file1.png";
     const fileName = "fake-parent/fake-file.xml";
 
-    check(expected, baseDirectory, attachmentsToUpload, fileName);
+    check(expected, baseDirectory, attachmentPath, fileName);
   });
 
-  unitTest(suiteLabel("site_nested_multi"), async () => {
+  test(suiteLabel("site_nested_absolute"), async () => {
+    const expected = "/Users/fake-base";
+
+    const baseDirectory = "/Users/fake-base/_site";
+    const attachmentPath = "fake/absolute/directory/file1.png";
+    const fileName = "fake-parent/fake-file.xml";
+
+    check(expected, baseDirectory, attachmentPath, fileName);
+  });
+
+  test(suiteLabel("site_nested_multi"), async () => {
     const expected = "/Users/fake-base/fake-grand-parent/fake-parent";
 
     const baseDirectory = "/Users/fake-base/_site";
-    const attachmentsToUpload = ["file1.png"];
+    const attachmentPath = "file1.png";
     const fileName = "fake-grand-parent/fake-parent/fake-file.xml";
 
-    check(expected, baseDirectory, attachmentsToUpload, fileName);
+    check(expected, baseDirectory, attachmentPath, fileName);
   });
 };
 
@@ -3026,9 +3083,7 @@ const runUpdateImagePathsForContentBody = () => {
   });
 };
 
-const runAllTests = true;
-
-if (runAllTests) {
+if (RUN_ALL_TESTS) {
   runGeneralTests();
   runFilterFilesForUpdate();
   runFileMetadataToSpaceChanges();

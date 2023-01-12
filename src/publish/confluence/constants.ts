@@ -12,4 +12,4 @@ export const V2EDITOR_METADATA = {
   },
 };
 
-export const DELETE_SLEEP_MILLIS = 5000; //TODO replace with polling
+export const DELETE_SLEEP_MILLIS = 1000; //TODO replace with polling

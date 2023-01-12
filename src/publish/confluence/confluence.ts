@@ -281,21 +281,34 @@ async function publish(
 
   const uploadAttachments = (
     baseDirectory: string,
-    pathList: string[],
+    attachmentsToUpload: string[],
     parentId: string,
+    filePath: string,
     existingAttachments: AttachmentSummary[] = []
   ): Promise<AttachmentSummary | null>[] => {
     const uploadAttachment = async (
-      pathToUpload: string
+      attachmentPath: string
     ): Promise<AttachmentSummary | null> => {
+      const uploadDirectory = getAttachmentsDirectory(
+        baseDirectory,
+        filePath,
+        attachmentPath
+      );
+
       trace(
         "uploadAttachment",
-        { baseDirectory, pathList, parentId, existingAttachments },
+        {
+          baseDirectory,
+          pathList: attachmentsToUpload,
+          parentId,
+          existingAttachments,
+        },
         LogPrefix.ATTACHMENT
       );
       let fileBuffer: Uint8Array;
       let fileHash: string;
-      const path = join(baseDirectory, pathToUpload);
+      const path = join(uploadDirectory, attachmentPath);
+
       try {
         fileBuffer = await Deno.readFile(path);
         fileHash = md5Hash(fileBuffer.toString());
@@ -304,7 +317,7 @@ async function publish(
         return null;
       }
 
-      const fileName = pathToUpload;
+      const fileName = attachmentPath;
 
       const existingDuplicateAttachment = existingAttachments.find(
         (attachment: AttachmentSummary) => {
@@ -330,7 +343,7 @@ async function publish(
       return attachment;
     };
 
-    return pathList.map(uploadAttachment);
+    return attachmentsToUpload.map(uploadAttachment);
   };
 
   const updateContent = async (
@@ -342,7 +355,10 @@ async function publish(
   ): Promise<Content> => {
     const previousPage = await client.getContent(id);
 
-    const attachmentsToUpload: string[] = findAttachments(body.storage.value);
+    const attachmentsToUpload: string[] = findAttachments(
+      body.storage.value,
+      publishFiles.files
+    );
 
     trace("attachmentsToUpload", attachmentsToUpload, LogPrefix.ATTACHMENT);
 
@@ -367,23 +383,18 @@ async function publish(
       const existingAttachments: AttachmentSummary[] =
         await client.getAttachments(toUpdate.id);
 
-      const baseDirectory = getAttachmentsDirectory(
-        publishFiles.baseDir,
-        fileName,
-        attachmentsToUpload
-      );
-
       trace(
         "attachments",
-        { existingAttachments, attachmentsToUpload, baseDirectory },
+        { existingAttachments, attachmentsToUpload },
         LogPrefix.ATTACHMENT
       );
 
       const uploadAttachmentsResult = await Promise.all(
         uploadAttachments(
-          baseDirectory,
+          publishFiles.baseDir,
           attachmentsToUpload,
           toUpdate.id,
+          fileName,
           existingAttachments
         )
       );
@@ -474,8 +485,6 @@ async function publish(
     createParent: ConfluenceParent = parent,
     fileName: string = ""
   ): Promise<Content> => {
-    //TODO check why files are always being uniquified
-
     const createTitle = await uniquifyTitle(titleToCreate);
 
     const attachmentsToUpload: string[] = findAttachments(
@@ -505,7 +514,8 @@ async function publish(
         uploadAttachments(
           publishFiles.baseDir,
           attachmentsToUpload,
-          createdContent.id
+          createdContent.id,
+          fileName
         )
       );
       trace(
