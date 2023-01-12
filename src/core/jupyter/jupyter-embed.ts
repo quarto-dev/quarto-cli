@@ -148,6 +148,12 @@ export async function replaceNotebookPlaceholders(
   flags: RenderFlags,
   markdown: string,
 ) {
+  // Assets
+  const assets = jupyterAssets(
+    input,
+    to,
+  );
+
   let match = kPlaceholderRegex.exec(markdown);
   let includes;
   while (match) {
@@ -165,12 +171,6 @@ export async function replaceNotebookPlaceholders(
       const nbOptions = placeholderStr
         ? placeholderToOptions(placeholderStr)
         : {};
-
-      // Assets
-      const assets = jupyterAssets(
-        input,
-        to,
-      );
 
       // Compute appropriate includes based upon the note
       // dependendencies
@@ -218,6 +218,7 @@ export async function replaceNotebookPlaceholders(
   return {
     includes,
     markdown,
+    supporting: [join(assets.base_dir, assets.supporting_dir)],
   };
 }
 

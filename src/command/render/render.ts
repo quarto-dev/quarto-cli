@@ -282,6 +282,15 @@ export async function renderPandoc(
         supporting.push(...htmlPostProcessResult.supporting);
       }
 
+      // Add notebook embed results
+      if (
+        notebookResult.supporting &&
+        notebookResult.supporting.length > 0
+      ) {
+        supporting = supporting || [];
+        supporting.push(...notebookResult.supporting);
+      }
+
       withTiming("render-cleanup", () =>
         renderCleanup(
           context.target.input,
