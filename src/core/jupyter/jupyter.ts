@@ -150,6 +150,7 @@ import { convertToHtmlSpans, hasAnsiEscapeCodes } from "../ansi-colors.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { mergeConfigs } from "../config.ts";
 import { encode as encodeBase64 } from "encoding/base64.ts";
+import { isIpynbOutput } from "../../config/format.ts";
 
 export const kQuartoMimeType = "quarto_mimetype";
 export const kQuartoOutputOrder = "quarto_order";
@@ -1095,6 +1096,14 @@ async function mdFromCodeCell(
 
   // write div enclosure
   const divMd: string[] = [`::: {`];
+
+  // If we're targeting ipynb output, include the id in the
+  // markdown. This will cause the id to be included in the
+  // rendered notebook. Note that elsewhere we forard the
+  // label to the id, so that can appear as the cell id.
+  if (isIpynbOutput(options.executeOptions.format.pandoc) && cell.id) {
+    divMd.push(`#${cell.id} `);
+  }
 
   // metadata to exclude from cell div attributes
   const kCellOptionsFilter = kJupyterCellInternalOptionKeys.concat(
