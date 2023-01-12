@@ -583,7 +583,7 @@ div.column {
 }
 
 .code-annotation-container-hidden {
-  display: none;
+  display: none !important;
 }
 
 dl.code-annotation-container-grid {

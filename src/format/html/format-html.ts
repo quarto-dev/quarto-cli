@@ -721,6 +721,11 @@ function processCodeAnnotations(format: Format, doc: Document) {
       if (ddEl) {
         ddEl.innerHTML = "";
         ddEl.innerText = annotation;
+        const codeCell = annoteEl.getAttribute(kCodeCellAttr);
+        if (codeCell) {
+          ddEl.setAttribute(kCodeCellTargetAttr, codeCell);
+          ddEl.setAttribute(kCodeAnnotationTargetAttr, annotation);
+        }
       }
     }
   };
