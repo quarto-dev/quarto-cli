@@ -129,7 +129,7 @@
   close(stdin)
 
   # parse request and params
-  request <- jsonlite::parse_json(input)
+  request <- jsonlite::parse_json(input, simplifyVector = TRUE)
   params <- request$params
 
   # source in helper functions if we have a resourceDir
