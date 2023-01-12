@@ -1,0 +1,22 @@
+---
+title: "Define knitr options in YAML"
+knitr:
+  opts_chunk:
+    dev:
+      - png
+      - pdf
+      - svg
+---
+
+Issue [#3909](https://github.com/quarto-dev/quarto-cli/issues/3909) for details 
+
+```{r}
+knitr::opts_chunk$get("dev")
+```
+
+```{r}
+#| dev:
+#|   - png
+#|   - svg
+knitr::opts_current$get("dev")
+```
