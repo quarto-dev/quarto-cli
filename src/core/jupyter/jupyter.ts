@@ -1096,6 +1096,11 @@ async function mdFromCodeCell(
   // write div enclosure
   const divMd: string[] = [`::: {`];
 
+  // add the id
+  if (cell.id) {
+    divMd.push(`#${cell.id} `);
+  }
+
   // metadata to exclude from cell div attributes
   const kCellOptionsFilter = kJupyterCellInternalOptionKeys.concat(
     kJupyterCellStandardMetadataKeys,
