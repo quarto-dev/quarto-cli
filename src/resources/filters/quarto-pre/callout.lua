@@ -777,6 +777,7 @@ end
 
 function resolveCalloutContents(node, requireCaption)
   local caption = node.caption
+  local type = node.type
   
   local contents = pandoc.List({})
     
