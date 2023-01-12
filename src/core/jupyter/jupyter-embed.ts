@@ -148,78 +148,82 @@ export async function replaceNotebookPlaceholders(
   flags: RenderFlags,
   markdown: string,
 ) {
-  // Assets
-  const assets = jupyterAssets(
-    input,
-    to,
-  );
-
   let match = kPlaceholderRegex.exec(markdown);
-  let includes;
-  while (match) {
-    // Parse the address and if this is a notebook
-    // then proceed with the replacement
-    const nbAddressStr = match[1];
-    const nbAddress = parseNotebookAddress(nbAddressStr);
-    if (nbAddress) {
-      // If a list of outputs are provided, resolve that range
-      const outputsStr = match[2];
-      const nbOutputs = outputsStr ? resolveRange(outputsStr) : undefined;
+  if (match) {
+    // Assets
+    const assets = jupyterAssets(
+      input,
+      to,
+    );
 
-      // If cell options are provided, resolve those
-      const placeholderStr = match[3];
-      const nbOptions = placeholderStr
-        ? placeholderToOptions(placeholderStr)
-        : {};
+    let includes;
+    while (match) {
+      // Parse the address and if this is a notebook
+      // then proceed with the replacement
+      const nbAddressStr = match[1];
+      const nbAddress = parseNotebookAddress(nbAddressStr);
+      if (nbAddress) {
+        // If a list of outputs are provided, resolve that range
+        const outputsStr = match[2];
+        const nbOutputs = outputsStr ? resolveRange(outputsStr) : undefined;
 
-      // Compute appropriate includes based upon the note
-      // dependendencies
-      const notebookIncludes = () => {
-        const nbPath = resolveNbPath(input, nbAddress.path);
-        if (safeExistsSync(nbPath)) {
-          const notebook = jupyterFromFile(nbPath);
-          const dependencies = isHtmlOutput(context.format.pandoc)
-            ? extractJupyterWidgetDependencies(notebook)
-            : undefined;
-          if (dependencies) {
-            const tempDir = globalTempContext().createDir();
-            return includesForJupyterWidgetDependencies(
-              [dependencies],
-              tempDir,
-            );
+        // If cell options are provided, resolve those
+        const placeholderStr = match[3];
+        const nbOptions = placeholderStr
+          ? placeholderToOptions(placeholderStr)
+          : {};
+
+        // Compute appropriate includes based upon the note
+        // dependendencies
+        const notebookIncludes = () => {
+          const nbPath = resolveNbPath(input, nbAddress.path);
+          if (safeExistsSync(nbPath)) {
+            const notebook = jupyterFromFile(nbPath);
+            const dependencies = isHtmlOutput(context.format.pandoc)
+              ? extractJupyterWidgetDependencies(notebook)
+              : undefined;
+            if (dependencies) {
+              const tempDir = globalTempContext().createDir();
+              return includesForJupyterWidgetDependencies(
+                [dependencies],
+                tempDir,
+              );
+            } else {
+              return undefined;
+            }
           } else {
-            return undefined;
+            const notebookName = basename(nbPath);
+            throw new Error(
+              `Unable to embed content from notebook '${notebookName}'\nThe file ${nbPath} doesn't exist or cannot be read.`,
+            );
           }
-        } else {
-          const notebookName = basename(nbPath);
-          throw new Error(
-            `Unable to embed content from notebook '${notebookName}'\nThe file ${nbPath} doesn't exist or cannot be read.`,
-          );
-        }
-      };
-      includes = notebookIncludes();
+        };
+        includes = notebookIncludes();
 
-      // Render the notebook markdown
-      const nbMarkdown = await notebookMarkdown(
-        nbAddress,
-        assets,
-        context,
-        flags,
-        nbOptions,
-        nbOutputs,
-      );
+        // Render the notebook markdown
+        const nbMarkdown = await notebookMarkdown(
+          nbAddress,
+          assets,
+          context,
+          flags,
+          nbOptions,
+          nbOutputs,
+        );
 
-      // Replace the placeholders with the rendered markdown
-      markdown = markdown.replaceAll(match[0], nbMarkdown);
+        // Replace the placeholders with the rendered markdown
+        markdown = markdown.replaceAll(match[0], nbMarkdown);
+      }
+      match = kPlaceholderRegex.exec(markdown);
     }
-    match = kPlaceholderRegex.exec(markdown);
+    kPlaceholderRegex.lastIndex = 0;
+    return {
+      includes,
+      markdown,
+      supporting: [join(assets.base_dir, assets.supporting_dir)],
+    };
+  } else {
+    return undefined;
   }
-  kPlaceholderRegex.lastIndex = 0;
-  return {
-    includes,
-    markdown,
-    supporting: [join(assets.base_dir, assets.supporting_dir)],
-  };
 }
 
 function resolveNbPath(input: string, path: string) {

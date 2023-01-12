@@ -123,10 +123,10 @@ export async function renderPandoc(
 
   // Map notebook includes to pandoc includes
   const pandocIncludes: PandocIncludes = {
-    [kIncludeAfterBody]: notebookResult.includes?.afterBody
+    [kIncludeAfterBody]: notebookResult && notebookResult.includes?.afterBody
       ? [notebookResult.includes?.afterBody]
       : undefined,
-    [kIncludeInHeader]: notebookResult.includes?.inHeader
+    [kIncludeInHeader]: notebookResult && notebookResult.includes?.inHeader
       ? [notebookResult.includes?.inHeader]
       : undefined,
   };
@@ -139,7 +139,7 @@ export async function renderPandoc(
 
   // pandoc options
   const pandocOptions: PandocOptions = {
-    markdown: notebookResult.markdown,
+    markdown: notebookResult ? notebookResult.markdown : executeResult.markdown,
     source: context.target.source,
     output: recipe.output,
     keepYaml: recipe.keepYaml,
@@ -280,15 +280,6 @@ export async function renderPandoc(
       ) {
         supporting = supporting || [];
         supporting.push(...htmlPostProcessResult.supporting);
-      }
-
-      // Add notebook embed results
-      if (
-        notebookResult.supporting &&
-        notebookResult.supporting.length > 0
-      ) {
-        supporting = supporting || [];
-        supporting.push(...notebookResult.supporting);
       }
 
       withTiming("render-cleanup", () =>
