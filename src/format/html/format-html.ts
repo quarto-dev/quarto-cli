@@ -714,6 +714,17 @@ function processCodeAnnotations(format: Format, doc: Document) {
     | string
     | boolean;
 
+  const replaceLineNumberWithAnnote = (annoteEl: Element, dtEl: Element) => {
+    const annotation = annoteEl.getAttribute(kCodeAnnotationAttr);
+    if (annotation !== null) {
+      const ddEl = dtEl.previousElementSibling;
+      if (ddEl) {
+        ddEl.innerHTML = "";
+        ddEl.innerText = annotation;
+      }
+    }
+  };
+
   if (annotationStyle === false) {
     // Read the definition list values which contain the annotations
     const annoteNodes = doc.querySelectorAll(`span[${kCodeCellAttr}]`);
@@ -732,26 +743,23 @@ function processCodeAnnotations(format: Format, doc: Document) {
       }
     }
   } else if (annotationStyle === "hover" || annotationStyle === "select") {
-    const definitionLists = processCodeBlockAnnotation(doc, true, "start");
+    const definitionLists = processCodeBlockAnnotation(
+      doc,
+      true,
+      "start",
+      replaceLineNumberWithAnnote,
+    );
 
     Object.values(definitionLists).forEach((dl) => {
       dl.classList.add(kCodeAnnotationHiddenClz);
+      dl.classList.add(kCodeAnnotationGridClz);
     });
   } else {
     const definitionLists = processCodeBlockAnnotation(
       doc,
       false,
       "start",
-      (annoteEl: Element, dtEl: Element) => {
-        const annotation = annoteEl.getAttribute(kCodeAnnotationAttr);
-        if (annotation !== null) {
-          const ddEl = dtEl.previousElementSibling;
-          if (ddEl) {
-            ddEl.innerHTML = "";
-            ddEl.innerText = annotation;
-          }
-        }
-      },
+      replaceLineNumberWithAnnote,
     );
 
     Object.values(definitionLists).forEach((dl) => {
