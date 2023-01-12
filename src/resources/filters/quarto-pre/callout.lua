@@ -365,7 +365,6 @@ function calloutLatex(node)
   local type = node.type
   local calloutAppearance = node.appearance
   local icon = node.icon
-  local div = pandoc.Div({})
 
   -- generate the callout box
   local callout
@@ -524,7 +523,6 @@ function calloutDocx(node)
 end
 
 function calloutDocxDefault(node, type, hasIcon)
-  local div = pandoc.Div({})
   local caption = node.caption
   local color = htmlColorForType(type)
   local backgroundColor = htmlBackgroundColorForType(type)
@@ -606,7 +604,7 @@ function calloutDocxDefault(node, type, hasIcon)
   calloutContents:insert(pandoc.Div(pandoc.RawBlock("openxml", tableMiddle)))  
 
   -- the main contents of the callout
-  local contents = div.content
+  local contents = node.content
 
   -- ensure there are no nested callouts
   if contents:find_if(function(el) 
@@ -634,7 +632,6 @@ end
 
 
 function calloutDocxSimple(node, type, hasIcon) 
-  local div = pandoc.Div({})
   local color = htmlColorForType(type)
   local caption = node.caption
 
