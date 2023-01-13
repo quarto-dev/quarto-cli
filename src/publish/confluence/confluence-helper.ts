@@ -543,9 +543,8 @@ export const updateLinks = (
       console.log("linkFullFileName", linkFullFileName);
 
       let siteFilePath = linkFullFileName;
-      const isRelative =
-        !siteFilePath.startsWith("/") && docFileNamePathList.length > 1;
-      if (isRelative) {
+      const isAbsolute = siteFilePath.startsWith("/");
+      if (!isAbsolute && docFileNamePathList.length > 1) {
         const relativePath = docFileNamePathList
           .slice(0, docFileNamePathList.length - 1)
           .join("/");
@@ -556,6 +555,11 @@ export const updateLinks = (
           siteFilePath = `${relativePath}/${linkFullFileName}`;
         }
       }
+
+      if (isAbsolute) {
+        siteFilePath = siteFilePath.slice(1); //remove '/'
+      }
+
       console.log("siteFilePath", siteFilePath);
 
       const sitePage: SitePage | null = fileMetadataTable[siteFilePath] ?? null;

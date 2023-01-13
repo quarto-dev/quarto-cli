@@ -2706,6 +2706,23 @@ const runUpdateLinks = () => {
     fileName: "authoring/links2.xml",
   };
 
+  const UPDATE_LINKS_ONE_NESTED_ABS: ContentUpdate = {
+    contentChangeType: ContentChangeType.update,
+    id: "43778049",
+    version: null,
+    title: "Links2",
+    type: "page",
+    status: "current",
+    ancestors: [{ id: "42336414" }],
+    body: {
+      storage: {
+        value: `<a href='/release-planning.qmd'>Release Planning</a>`,
+        representation: "storage",
+      },
+    },
+    fileName: "authoring/links2.xml",
+  };
+
   const UPDATE_LINKS_ONE_ANCHOR: ContentUpdate = {
     contentChangeType: ContentChangeType.update,
     id: "19890228",
@@ -2751,7 +2768,7 @@ const runUpdateLinks = () => {
   ) => {
     const result = updateLinks(fileMetadataTable, changes, server, parent);
     console.log("result", result);
-    // assertEquals(expected, result);
+    assertEquals(expected, result);
   };
 
   test(suiteLabel("no_files"), async () => {
@@ -2800,7 +2817,7 @@ const runUpdateLinks = () => {
     check(expected, changes, fileMetadataTable);
   });
 
-  otest(suiteLabel("one_update_link_nested_relative"), async () => {
+  test(suiteLabel("one_update_link_nested_relative"), async () => {
     const changes: ConfluenceSpaceChange[] = [UPDATE_LINKS_ONE_NESTED];
     const rootURL = "fake-server/wiki/spaces/QUARTOCONF/pages";
     const expectedUpdate: ContentUpdate = {
@@ -2808,6 +2825,22 @@ const runUpdateLinks = () => {
       body: {
         storage: {
           value: `<a href=\'fake-server/wiki/spaces/QUARTOCONF/pages/43417628/Hello%20World5\'>Hello World 5</a>`,
+          representation: "storage",
+        },
+      },
+    };
+    const expected: ConfluenceSpaceChange[] = [expectedUpdate];
+    check(expected, changes, fileMetadataTable);
+  });
+
+  otest(suiteLabel("one_update_link_nested_absolute"), async () => {
+    const changes: ConfluenceSpaceChange[] = [UPDATE_LINKS_ONE_NESTED_ABS];
+    const rootURL = "fake-server/wiki/spaces/QUARTOCONF/pages";
+    const expectedUpdate: ContentUpdate = {
+      ...UPDATE_LINKS_ONE_NESTED_ABS,
+      body: {
+        storage: {
+          value: `<a href=\'fake-server/wiki/spaces/QUARTOCONF/pages/19890228/Release%20Planning\'>Release Planning</a>`,
           representation: "storage",
         },
       },
