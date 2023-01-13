@@ -26,9 +26,9 @@ import {
   HtmlPostProcessResult,
   RenderServices,
 } from "../../command/render/types.ts";
-import { render } from "../../command/render/render-shared.ts";
 
 import { basename, dirname, join, relative } from "path/mod.ts";
+import { renderFiles } from "../../command/render/render-files.ts";
 
 interface NotebookView {
   title: string;
@@ -226,6 +226,11 @@ export async function processNotebookEmbeds(
     if (nbViewConfig) {
       nbViewConfig.unused(linkedNotebooks);
     }
+
+    const inputDir = dirname(input);
+    return nbPaths.map((nbPath) => {
+      return join(inputDir, nbPath.href);
+    });
   }
 }
 
@@ -288,7 +293,7 @@ async function renderHtmlView(
 
     // Render the notebook and update the path
     const nbPreviewFile = `${filename}.html`;
-    await render(nbAbsPath, {
+    await renderFiles([{ path: nbAbsPath }], {
       services,
       flags: {
         metadata: {

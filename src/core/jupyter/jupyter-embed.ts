@@ -9,6 +9,7 @@ import { resourcePath } from "../resources.ts";
 import { getNamedLifetime, ObjectWithLifetime } from "../lifetimes.ts";
 
 import {
+  cleanEmptyJupyterAssets,
   jupyterAssets,
   jupyterFromFile,
   jupyterToMarkdown,
@@ -44,7 +45,7 @@ import {
 import { globalTempContext } from "../temp.ts";
 import { isAbsolute } from "path/mod.ts";
 import { partitionMarkdown } from "../pandoc/pandoc-partition.ts";
-import { safeExistsSync } from "../path.ts";
+import { removeIfEmptyDir, safeExistsSync } from "../path.ts";
 import { basename } from "path/mod.ts";
 
 export interface JupyterNotebookAddress {
@@ -149,8 +150,16 @@ export async function replaceNotebookPlaceholders(
   markdown: string,
 ) {
   let match = kPlaceholderRegex.exec(markdown);
+  let assets;
   let includes;
   while (match) {
+    if (!assets) {
+      assets = jupyterAssets(
+        context.target.source,
+        to,
+      );
+    }
+
     // Parse the address and if this is a notebook
     // then proceed with the replacement
     const nbAddressStr = match[1];
@@ -165,12 +174,6 @@ export async function replaceNotebookPlaceholders(
       const nbOptions = placeholderStr
         ? placeholderToOptions(placeholderStr)
         : {};
-
-      // Assets
-      const assets = jupyterAssets(
-        input,
-        to,
-      );
 
       // Compute appropriate includes based upon the note
       // dependendencies
@@ -215,9 +218,13 @@ export async function replaceNotebookPlaceholders(
     match = kPlaceholderRegex.exec(markdown);
   }
   kPlaceholderRegex.lastIndex = 0;
+  const supporting = assets
+    ? join(assets.base_dir, assets.supporting_dir)
+    : undefined;
   return {
     includes,
     markdown,
+    supporting,
   };
 }
 

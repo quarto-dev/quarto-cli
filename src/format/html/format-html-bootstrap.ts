@@ -246,6 +246,7 @@ function bootstrapHtmlPostprocessor(
   ): Promise<HtmlPostProcessResult> => {
     // Resources used in this post processor
     const resources: string[] = [];
+    const supporting: string[] = [];
 
     // use display-7 style for title
     const title = doc.querySelector("header > .title");
@@ -334,7 +335,16 @@ function bootstrapHtmlPostprocessor(
 
     // Look for included / embedded notebooks and include those
     if (format.render[kNotebookLinks] !== false) {
-      await processNotebookEmbeds(input, doc, format, resources, services);
+      const notebookPreviews = await processNotebookEmbeds(
+        input,
+        doc,
+        format,
+        resources,
+        services,
+      );
+      if (notebookPreviews && notebookPreviews.length > 0) {
+        supporting.push(...notebookPreviews);
+      }
     }
 
     // default treatment for computational tables
@@ -421,7 +431,7 @@ function bootstrapHtmlPostprocessor(
     }
 
     // no resource refs
-    return Promise.resolve({ resources, supporting: [] });
+    return Promise.resolve({ resources, supporting });
   };
 }
 

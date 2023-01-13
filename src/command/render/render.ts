@@ -20,7 +20,7 @@ import {
 import { inputFilesDir } from "../../core/render.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
 
-import { Format, FormatPandoc } from "../../config/types.ts";
+import { FormatPandoc } from "../../config/types.ts";
 import {
   executionEngine,
   executionEngineKeepMd,
@@ -121,6 +121,11 @@ export async function renderPandoc(
     executeResult.markdown,
   );
 
+  if (notebookResult.supporting) {
+    executeResult.supporting = executeResult.supporting || [];
+    executeResult.supporting.push(notebookResult.supporting);
+  }
+
   // Map notebook includes to pandoc includes
   const pandocIncludes: PandocIncludes = {
     [kIncludeAfterBody]: notebookResult.includes?.afterBody
@@ -139,7 +144,9 @@ export async function renderPandoc(
 
   // pandoc options
   const pandocOptions: PandocOptions = {
-    markdown: notebookResult.markdown,
+    markdown: notebookResult.markdown
+      ? notebookResult.markdown
+      : executeResult.markdown,
     source: context.target.source,
     output: recipe.output,
     keepYaml: recipe.keepYaml,

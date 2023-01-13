@@ -1783,20 +1783,32 @@ dl.code-annotation-container-grid {
   }
 }
 
-dl.code-annotation-container-grid dt {
-  font-family: $font-family-code;
-  color: var(--quarto-hl-co-color);
-  border: solid var(--quarto-hl-co-color) 1px;
-  border-radius: 50%;
-  height: 22px;
-  width: 22px;
-  line-height: 22px;
-  font-size: 11px;
+dl.code-annotation-container-grid {
+  dt {
+    font-family: $font-family-code;
+    color: theme-dim($body-color, 10%);
+    border: solid theme-dim($body-color, 10%) 1px;
+    border-radius: 50%;
+    height: 22px;
+    width: 22px;
+    line-height: 22px;
+    font-size: 11px;
 
-  text-align: center;
-  vertical-align: middle;
+    text-align: center;
+    vertical-align: middle;
 
-  text-decoration: none;
+    text-decoration: none;
+  }
+
+  dt[data-target-cell] {
+    cursor: pointer;
+  }
+
+  dt[data-target-cell].code-annotation-active {
+    color: $body-bg;
+    border: solid #aaaaaa 1px;
+    background-color: #aaaaaa;
+  }
 }
 
 pre.code-annotation-code {

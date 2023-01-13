@@ -63,12 +63,14 @@ function crossrefTheorems()
           end
           preamble.content:insert(pandoc.RawInline("latex", "]"))
           preamble.content:insert(pandoc.RawInline("latex",
-            "\\label{" .. label .. "}")
+            "\\protect\\hypertarget{" .. label .. "}{}\\label{" .. label .. "}")
           )
           el.content:insert(1, preamble)
           el.content:insert(pandoc.Para(pandoc.RawInline("latex", 
             "\\end{" .. theoremType.env .. "}"
           )))
+          -- Remove id on those div to avoid Pandoc inserting \hypertaget #3776
+          el.attr.identifier = ""
         elseif _quarto.format.isJatsOutput() then
 
           -- JATS XML theorem

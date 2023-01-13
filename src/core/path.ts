@@ -40,7 +40,7 @@ export function safeRemoveIfExists(file: string) {
   }
 }
 
-export function removeIfEmptyDir(dir: string) {
+export function removeIfEmptyDir(dir: string): boolean {
   if (existsSync(dir)) {
     let empty = true;
     for (const _entry of Deno.readDirSync(dir)) {
@@ -49,7 +49,11 @@ export function removeIfEmptyDir(dir: string) {
     }
     if (empty) {
       Deno.removeSync(dir, { recursive: true });
+      return true;
     }
+    return false;
+  } else {
+    return false;
   }
 }
 
