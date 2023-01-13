@@ -19,7 +19,7 @@ filters:
             <td>3,000</td>
         </tr>
         <tr>
-            <th scope="row"><span data-contents="_process me_" class="quarto-markdown-input"></span></th>
+            <th scope="row"><span data-qmd="_process me_"></span></th>
             <td>18,000</td>
         </tr>
     </tbody>
