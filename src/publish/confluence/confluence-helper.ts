@@ -503,43 +503,89 @@ export const updateLinks = (
   server: string,
   parent: ConfluenceParent
 ): ConfluenceSpaceChange[] => {
+  console.log("updateLinks");
+  console.log("fileMetadataTable", fileMetadataTable);
+
   const root = `${server}`;
   const url = `${ensureTrailingSlash(server)}wiki/spaces/${
     parent.space
   }/pages/`;
 
-  const replacer = (match: string): string => {
-    let updated: string = match;
-    const fileNameMatch = FILE_FINDER.exec(match);
-    const fileName = fileNameMatch ? fileNameMatch[0] ?? "" : "";
-
-    const fileNameExtension = `${fileName}.qmd`;
-
-    const sitePage: SitePage | null =
-      fileMetadataTable[fileNameExtension] ?? null;
-    if (sitePage) {
-      updated = match.replace('href="', `href="${url}`);
-      const pagePath: string = `${url}${sitePage.id}/${encodeURI(
-        sitePage.title ?? ""
-      )}`;
-
-      updated = updated.replace(fileNameExtension, pagePath);
-    }
-
-    return updated;
-  };
-
   const changeMapper = (
     changeToProcess: ConfluenceSpaceChange
   ): ConfluenceSpaceChange => {
+    console.log("changeToProcess", changeToProcess);
+
+    const replacer = (match: string): string => {
+      console.log("replacer");
+      console.log("match", match);
+
+      let documentFileName = "";
+      if (
+        isContentUpdate(changeToProcess) ||
+        isContentCreate(changeToProcess)
+      ) {
+        documentFileName = changeToProcess.fileName ?? "";
+      }
+
+      const docFileNamePathList = documentFileName.split("/");
+      console.log("docFileNamePathList", docFileNamePathList);
+
+      let updated: string = match;
+      const linkFileNameMatch = FILE_FINDER.exec(match);
+      console.log("linkFileNameMatch", linkFileNameMatch);
+      const linkFileName = linkFileNameMatch ? linkFileNameMatch[0] ?? "" : "";
+      console.log("fileName", linkFileName);
+      const fileNamePathList = linkFileName.split("/");
+      console.log("fileNamePathList", fileNamePathList);
+
+      const linkFullFileName = `${linkFileName}.qmd`;
+      console.log("linkFullFileName", linkFullFileName);
+
+      let siteFilePath = linkFullFileName;
+      const isRelative =
+        !siteFilePath.startsWith("/") && docFileNamePathList.length > 1;
+      if (isRelative) {
+        const relativePath = docFileNamePathList
+          .slice(0, docFileNamePathList.length - 1)
+          .join("/");
+        console.log("relativePath", relativePath);
+        if (siteFilePath.startsWith("./")) {
+          siteFilePath = siteFilePath.replace("./", `${relativePath}/`);
+        } else {
+          siteFilePath = `${relativePath}/${linkFullFileName}`;
+        }
+      }
+      console.log("siteFilePath", siteFilePath);
+
+      const sitePage: SitePage | null = fileMetadataTable[siteFilePath] ?? null;
+
+      console.log("sitePage", sitePage);
+
+      if (sitePage) {
+        updated = match.replace('href="', `href="${url}`);
+        const pagePath: string = `${url}${sitePage.id}/${encodeURI(
+          sitePage.title ?? ""
+        )}`;
+
+        updated = updated.replace(linkFullFileName, pagePath);
+        console.log("updated", updated);
+      } else {
+        console.warn("no site page found");
+      }
+
+      return updated;
+    };
+
     if (isContentUpdate(changeToProcess) || isContentCreate(changeToProcess)) {
       const valueToProcess = changeToProcess?.body?.storage?.value;
+      console.log("valueToProcess", valueToProcess);
       if (valueToProcess) {
         const replacedLinks: string = valueToProcess.replaceAll(
           LINK_FINDER,
           replacer
         );
-
+        console.log("replacedLinks", replacedLinks);
         changeToProcess.body.storage.value = replacedLinks;
       }
     }

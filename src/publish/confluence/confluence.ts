@@ -612,7 +612,6 @@ async function publish(
       };
     };
 
-    //TODO consider using existing files
     const fileMetadata: SiteFileMetadata[] = await Promise.all(
       filteredFiles.map(assembleSiteFileMetadata)
     );
@@ -630,14 +629,16 @@ async function publish(
       existingSite
     );
 
-    trace("changelist", changeList);
-
     changeList = updateLinks(
       metadataByFilename,
       changeList,
       server,
       siteParent
     );
+
+    trace("changelist", changeList);
+
+    console.log("changeList", changeList);
 
     let pathsToId: Record<string, string> = {}; // build from existing site
 
