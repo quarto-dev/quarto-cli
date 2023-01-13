@@ -86,7 +86,6 @@ export async function processNotebookEmbeds(
   input: string,
   doc: Document,
   format: Format,
-  resources: string[],
   services: RenderServices,
 ) {
   const inline = format.render[kNotebookLinks] === "inline" ||
@@ -191,7 +190,8 @@ export async function processNotebookEmbeds(
 
       const formatList = doc.createElement("ul");
       containerEl.appendChild(formatList);
-      ld.uniqBy(nbPaths, (nbPath: { href: string; title?: string }) => {
+      const allPaths = Object.values(nbPaths);
+      ld.uniqBy(allPaths, (nbPath: { href: string; title?: string }) => {
         return nbPath.href;
       }).forEach((nbPath) => {
         const li = doc.createElement("li");
@@ -212,8 +212,6 @@ export async function processNotebookEmbeds(
 
         li.appendChild(link);
         formatList.appendChild(li);
-
-        resources.push(nbPath.href);
       });
       let dlLinkTarget = doc.querySelector(`nav[role="doc-toc"]`);
       if (dlLinkTarget === null) {
@@ -230,10 +228,25 @@ export async function processNotebookEmbeds(
       nbViewConfig.unused(linkedNotebooks);
     }
 
+    const supporting: string[] = [];
+    const resources: string[] = [];
     const inputDir = dirname(input);
-    return Object.values(nbPaths).map((nbPath) => {
-      return join(inputDir, nbPath.href);
-    });
+    for (const notebookPath of Object.keys(nbPaths)) {
+      const nbPath = nbPaths[notebookPath];
+      // If there is a view configured for this, then
+      // include it in the supporting dir
+      if (nbViewConfig) {
+        supporting.push(join(inputDir, nbPath.href));
+      }
+
+      // This is the notebook itself
+      resources.push(notebookPath);
+    }
+
+    return {
+      resources,
+      supporting,
+    };
   }
 }
 

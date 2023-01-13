@@ -335,15 +335,15 @@ function bootstrapHtmlPostprocessor(
 
     // Look for included / embedded notebooks and include those
     if (format.render[kNotebookLinks] !== false) {
-      const notebookPreviews = await processNotebookEmbeds(
+      const notebookResults = await processNotebookEmbeds(
         input,
         doc,
         format,
-        resources,
         services,
       );
-      if (notebookPreviews && notebookPreviews.length > 0) {
-        supporting.push(...notebookPreviews);
+      if (notebookResults) {
+        resources.push(...notebookResults.resources);
+        supporting.push(...notebookResults.supporting);
       }
     }
 
@@ -429,7 +429,6 @@ function bootstrapHtmlPostprocessor(
         offset,
       );
     }
-
     // no resource refs
     return Promise.resolve({ resources, supporting });
   };
