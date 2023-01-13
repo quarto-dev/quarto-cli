@@ -172,12 +172,29 @@ export async function processNotebookEmbeds(
         if (inline) {
           const id = "nblink-" + count++;
 
+          // If the first element of the notebook cell is a cell div with an id
+          // then use that as the hash
+          let firstCellId;
+          if (
+            nbDivEl.firstElementChild &&
+            nbDivEl.firstElementChild.classList.contains("cell")
+          ) {
+            firstCellId = nbDivEl.firstElementChild.getAttribute("id");
+          }
+
           const nbLinkEl = doc.createElement("a");
           nbLinkEl.classList.add("quarto-notebook-link");
           nbLinkEl.setAttribute("id", `${id}`);
-          nbLinkEl.setAttribute("href", nbPath.href);
+
           if (nbPath.filename) {
             nbLinkEl.setAttribute("download", nbPath.filename);
+            nbLinkEl.setAttribute("href", nbPath.href);
+          } else {
+            if (firstCellId) {
+              nbLinkEl.setAttribute("href", `${nbPath.href}#${firstCellId}`);
+            } else {
+              nbLinkEl.setAttribute("href", `${nbPath.href}`);
+            }
           }
           nbLinkEl.appendChild(
             doc.createTextNode(
