@@ -68,8 +68,30 @@ export function notebookViewPostProcessor() {
         decoratorNode.appendChild(contentsEl);
 
         containerNode.appendChild(decoratorNode);
-        cell.parentElement?.insertBefore(containerNode, cell);
-        containerNode.appendChild(cell);
+
+        const prevSibling = cellEl.previousElementSibling;
+        if (
+          prevSibling &&
+          prevSibling.tagName === "DIV" &&
+          prevSibling.classList.contains("cell-code")
+        ) {
+          // If the previous sibling is a cell-code, that is the code cell
+          // for this output and we should grab it too
+          cell.parentElement?.insertBefore(containerNode, cell);
+
+          // Grab the previous element too
+          const wrapperDiv = doc.createElement("div");
+          containerNode.appendChild(wrapperDiv);
+
+          // move the cells
+          wrapperDiv.appendChild(prevSibling.cloneNode(true));
+          prevSibling.remove();
+
+          wrapperDiv.appendChild(cell);
+        } else {
+          cell.parentElement?.insertBefore(containerNode, cell);
+          containerNode.appendChild(cell);
+        }
       }
     }
 
