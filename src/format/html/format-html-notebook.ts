@@ -29,6 +29,7 @@ import {
 
 import { basename, dirname, join, relative } from "path/mod.ts";
 import { renderFiles } from "../../command/render/render-files.ts";
+import { ProjectContext } from "../../project/types.ts";
 
 interface NotebookView {
   title: string;
@@ -87,6 +88,7 @@ export async function processNotebookEmbeds(
   doc: Document,
   format: Format,
   services: RenderServices,
+  project?: ProjectContext,
 ) {
   const inline = format.render[kNotebookLinks] === "inline" ||
     format.render[kNotebookLinks] === true;
@@ -127,6 +129,7 @@ export async function processNotebookEmbeds(
               nbPreviewOptions,
               format,
               services,
+              project,
             );
             return {
               title: htmlPreview.title,
@@ -289,6 +292,7 @@ async function renderHtmlView(
   options: NotebookViewOptions,
   format: Format,
   services: RenderServices,
+  project?: ProjectContext,
 ): Promise<NotebookView> {
   const filename = basename(nbAbsPath);
   const href = relative(inputDir, nbAbsPath);
@@ -309,18 +313,24 @@ async function renderHtmlView(
 
     // Render the notebook and update the path
     const nbPreviewFile = `${filename}.html`;
-    await renderFiles([{ path: nbAbsPath }], {
-      services,
-      flags: {
-        metadata: {
-          [kTheme]: format.metadata[kTheme],
-          [kOutputFile]: nbPreviewFile,
-          [kTemplate]: templatePath,
-          [kNotebookViewStyle]: kNotebookViewStyleNotebook,
+    await renderFiles(
+      [{ path: nbAbsPath }],
+      {
+        services,
+        flags: {
+          metadata: {
+            [kTheme]: format.metadata[kTheme],
+            [kOutputFile]: nbPreviewFile,
+            [kTemplate]: templatePath,
+            [kNotebookViewStyle]: kNotebookViewStyleNotebook,
+          },
+          quiet: true,
         },
-        quiet: true,
       },
-    });
+      undefined,
+      undefined,
+      project,
+    );
 
     return {
       title: options.title,

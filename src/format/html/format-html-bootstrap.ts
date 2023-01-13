@@ -81,6 +81,8 @@ import {
 } from "../../config/format.ts";
 import { basename } from "path/mod.ts";
 import { processNotebookEmbeds } from "./format-html-notebook.ts";
+import { projectContext } from "../../project/project-context.ts";
+import { ProjectContext } from "../../project/types.ts";
 
 export function formatPageLayout(format: Format) {
   return format.metadata[kPageLayout] as string || kPageLayoutArticle;
@@ -127,6 +129,7 @@ export function boostrapExtras(
   format: Format,
   services: RenderServices,
   offset?: string,
+  project?: ProjectContext,
 ): FormatExtras {
   const toc = hasTableOfContents(flags, format);
   const tocLocation = toc
@@ -213,6 +216,7 @@ export function boostrapExtras(
           flags,
           services,
           offset,
+          project,
         ),
       ],
       [kHtmlFinalizers]: [
@@ -235,6 +239,7 @@ function bootstrapHtmlPostprocessor(
   flags: PandocFlags,
   services: RenderServices,
   offset?: string,
+  project?: ProjectContext,
 ): HtmlPostProcessor {
   return async (
     doc: Document,
@@ -340,6 +345,7 @@ function bootstrapHtmlPostprocessor(
         doc,
         format,
         services,
+        project,
       );
       if (notebookResults) {
         resources.push(...notebookResults.resources);

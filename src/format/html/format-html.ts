@@ -97,6 +97,7 @@ import {
   kNotebookViewStyleNotebook,
   notebookViewPostProcessor,
 } from "./format-html-notebook.ts";
+import { ProjectContext } from "../../project/types.ts";
 
 export function htmlFormat(
   figwidth: number,
@@ -127,11 +128,12 @@ export function htmlFormat(
         _libDir: string,
         services: RenderServices,
         offset: string,
+        project: ProjectContext,
       ) => {
         const htmlFilterParams = htmlFormatFilterParams(format);
         return mergeConfigs(
           await htmlFormatExtras(input, flags, offset, format, services.temp),
-          themeFormatExtras(input, flags, format, services, offset),
+          themeFormatExtras(input, flags, format, services, offset, project),
           { [kFilterParams]: htmlFilterParams },
         );
       },
@@ -874,6 +876,7 @@ function themeFormatExtras(
   format: Format,
   sevices: RenderServices,
   offset?: string,
+  project?: ProjectContext,
 ) {
   const theme = format.metadata[kTheme];
   if (theme === "none") {
@@ -885,7 +888,7 @@ function themeFormatExtras(
   } else if (theme === "pandoc") {
     return pandocExtras(format);
   } else {
-    return boostrapExtras(input, flags, format, sevices, offset);
+    return boostrapExtras(input, flags, format, sevices, offset, project);
   }
 }
 
