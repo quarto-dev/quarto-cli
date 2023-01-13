@@ -98,7 +98,10 @@ export async function processNotebookEmbeds(
 
   const notebookDivNodes = doc.querySelectorAll("[data-notebook]");
   if (notebookDivNodes.length > 0) {
-    const nbPaths: { href: string; title: string; filename?: string }[] = [];
+    const nbPaths: Record<
+      string,
+      { href: string; title: string; filename?: string }
+    > = {};
     let count = 1;
 
     // Emit links to the notebooks inline (where the embedded content is located)
@@ -138,8 +141,8 @@ export async function processNotebookEmbeds(
             };
           }
         };
-        const nbPath = await nbView();
-        nbPaths.push(nbPath);
+        const nbPath = nbPaths[notebookPath] || await nbView();
+        nbPaths[notebookPath] = nbPath;
 
         // Add a decoration to this div node
         if (inline) {
@@ -228,7 +231,7 @@ export async function processNotebookEmbeds(
     }
 
     const inputDir = dirname(input);
-    return nbPaths.map((nbPath) => {
+    return Object.values(nbPaths).map((nbPath) => {
       return join(inputDir, nbPath.href);
     });
   }
