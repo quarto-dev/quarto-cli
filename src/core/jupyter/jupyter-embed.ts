@@ -9,6 +9,7 @@ import { resourcePath } from "../resources.ts";
 import { getNamedLifetime, ObjectWithLifetime } from "../lifetimes.ts";
 
 import {
+  cleanEmptyJupyterAssets,
   jupyterAssets,
   jupyterFromFile,
   jupyterToMarkdown,
@@ -44,7 +45,7 @@ import {
 import { globalTempContext } from "../temp.ts";
 import { isAbsolute } from "path/mod.ts";
 import { partitionMarkdown } from "../pandoc/pandoc-partition.ts";
-import { safeExistsSync } from "../path.ts";
+import { removeIfEmptyDir, safeExistsSync } from "../path.ts";
 import { basename } from "path/mod.ts";
 
 export interface JupyterNotebookAddress {
@@ -148,82 +149,82 @@ export async function replaceNotebookPlaceholders(
   flags: RenderFlags,
   markdown: string,
 ) {
+  // Assets
+  const assets = jupyterAssets(
+    input,
+    to,
+  );
   let match = kPlaceholderRegex.exec(markdown);
-  if (match) {
-    // Assets
-    const assets = jupyterAssets(
-      input,
-      to,
-    );
+  let includes;
+  while (match) {
+    // Parse the address and if this is a notebook
+    // then proceed with the replacement
+    const nbAddressStr = match[1];
+    const nbAddress = parseNotebookAddress(nbAddressStr);
+    if (nbAddress) {
+      // If a list of outputs are provided, resolve that range
+      const outputsStr = match[2];
+      const nbOutputs = outputsStr ? resolveRange(outputsStr) : undefined;
 
-    let includes;
-    while (match) {
-      // Parse the address and if this is a notebook
-      // then proceed with the replacement
-      const nbAddressStr = match[1];
-      const nbAddress = parseNotebookAddress(nbAddressStr);
-      if (nbAddress) {
-        // If a list of outputs are provided, resolve that range
-        const outputsStr = match[2];
-        const nbOutputs = outputsStr ? resolveRange(outputsStr) : undefined;
+      // If cell options are provided, resolve those
+      const placeholderStr = match[3];
+      const nbOptions = placeholderStr
+        ? placeholderToOptions(placeholderStr)
+        : {};
 
-        // If cell options are provided, resolve those
-        const placeholderStr = match[3];
-        const nbOptions = placeholderStr
-          ? placeholderToOptions(placeholderStr)
-          : {};
-
-        // Compute appropriate includes based upon the note
-        // dependendencies
-        const notebookIncludes = () => {
-          const nbPath = resolveNbPath(input, nbAddress.path);
-          if (safeExistsSync(nbPath)) {
-            const notebook = jupyterFromFile(nbPath);
-            const dependencies = isHtmlOutput(context.format.pandoc)
-              ? extractJupyterWidgetDependencies(notebook)
-              : undefined;
-            if (dependencies) {
-              const tempDir = globalTempContext().createDir();
-              return includesForJupyterWidgetDependencies(
-                [dependencies],
-                tempDir,
-              );
-            } else {
-              return undefined;
-            }
-          } else {
-            const notebookName = basename(nbPath);
-            throw new Error(
-              `Unable to embed content from notebook '${notebookName}'\nThe file ${nbPath} doesn't exist or cannot be read.`,
+      // Compute appropriate includes based upon the note
+      // dependendencies
+      const notebookIncludes = () => {
+        const nbPath = resolveNbPath(input, nbAddress.path);
+        if (safeExistsSync(nbPath)) {
+          const notebook = jupyterFromFile(nbPath);
+          const dependencies = isHtmlOutput(context.format.pandoc)
+            ? extractJupyterWidgetDependencies(notebook)
+            : undefined;
+          if (dependencies) {
+            const tempDir = globalTempContext().createDir();
+            return includesForJupyterWidgetDependencies(
+              [dependencies],
+              tempDir,
             );
+          } else {
+            return undefined;
           }
-        };
-        includes = notebookIncludes();
+        } else {
+          const notebookName = basename(nbPath);
+          throw new Error(
+            `Unable to embed content from notebook '${notebookName}'\nThe file ${nbPath} doesn't exist or cannot be read.`,
+          );
+        }
+      };
+      includes = notebookIncludes();
 
-        // Render the notebook markdown
-        const nbMarkdown = await notebookMarkdown(
-          nbAddress,
-          assets,
-          context,
-          flags,
-          nbOptions,
-          nbOutputs,
-        );
+      // Render the notebook markdown
+      const nbMarkdown = await notebookMarkdown(
+        nbAddress,
+        assets,
+        context,
+        flags,
+        nbOptions,
+        nbOutputs,
+      );
 
-        // Replace the placeholders with the rendered markdown
-        markdown = markdown.replaceAll(match[0], nbMarkdown);
-      }
-      match = kPlaceholderRegex.exec(markdown);
+      // Replace the placeholders with the rendered markdown
+      markdown = markdown.replaceAll(match[0], nbMarkdown);
     }
-    kPlaceholderRegex.lastIndex = 0;
-    return {
-      includes,
-      markdown,
-      supporting: [join(assets.base_dir, assets.supporting_dir)],
-    };
-  } else {
-    return undefined;
+    match = kPlaceholderRegex.exec(markdown);
   }
+  kPlaceholderRegex.lastIndex = 0;
+  const cleaned = cleanEmptyJupyterAssets(assets);
+  const supporting = cleaned
+    ? []
+    : [join(assets.base_dir, assets.supporting_dir)];
+
+  return {
+    includes,
+    markdown,
+    supporting: supporting,
+  };
 }
 
 function resolveNbPath(input: string, path: string) {

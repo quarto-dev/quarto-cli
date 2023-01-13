@@ -20,7 +20,7 @@ import {
 import { inputFilesDir } from "../../core/render.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
 
-import { Format, FormatPandoc } from "../../config/types.ts";
+import { FormatPandoc } from "../../config/types.ts";
 import {
   executionEngine,
   executionEngineKeepMd,
@@ -123,10 +123,10 @@ export async function renderPandoc(
 
   // Map notebook includes to pandoc includes
   const pandocIncludes: PandocIncludes = {
-    [kIncludeAfterBody]: notebookResult && notebookResult.includes?.afterBody
+    [kIncludeAfterBody]: notebookResult.includes?.afterBody
       ? [notebookResult.includes?.afterBody]
       : undefined,
-    [kIncludeInHeader]: notebookResult && notebookResult.includes?.inHeader
+    [kIncludeInHeader]: notebookResult.includes?.inHeader
       ? [notebookResult.includes?.inHeader]
       : undefined,
   };
@@ -139,7 +139,9 @@ export async function renderPandoc(
 
   // pandoc options
   const pandocOptions: PandocOptions = {
-    markdown: notebookResult ? notebookResult.markdown : executeResult.markdown,
+    markdown: notebookResult.markdown
+      ? notebookResult.markdown
+      : executeResult.markdown,
     source: context.target.source,
     output: recipe.output,
     keepYaml: recipe.keepYaml,
@@ -280,6 +282,11 @@ export async function renderPandoc(
       ) {
         supporting = supporting || [];
         supporting.push(...htmlPostProcessResult.supporting);
+      }
+
+      if (notebookResult.supporting) {
+        supporting = supporting || [];
+        supporting.push(...notebookResult.supporting);
       }
 
       withTiming("render-cleanup", () =>
