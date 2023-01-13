@@ -2767,7 +2767,6 @@ const runUpdateLinks = () => {
     parent = FAKE_PARENT
   ) => {
     const result = updateLinks(fileMetadataTable, changes, server, parent);
-    console.log("result", result);
     assertEquals(expected, result);
   };
 

@@ -503,9 +503,6 @@ export const updateLinks = (
   server: string,
   parent: ConfluenceParent
 ): ConfluenceSpaceChange[] => {
-  console.log("updateLinks");
-  console.log("fileMetadataTable", fileMetadataTable);
-
   const root = `${server}`;
   const url = `${ensureTrailingSlash(server)}wiki/spaces/${
     parent.space
@@ -514,12 +511,7 @@ export const updateLinks = (
   const changeMapper = (
     changeToProcess: ConfluenceSpaceChange
   ): ConfluenceSpaceChange => {
-    console.log("changeToProcess", changeToProcess);
-
     const replacer = (match: string): string => {
-      console.log("replacer");
-      console.log("match", match);
-
       let documentFileName = "";
       if (
         isContentUpdate(changeToProcess) ||
@@ -529,18 +521,15 @@ export const updateLinks = (
       }
 
       const docFileNamePathList = documentFileName.split("/");
-      console.log("docFileNamePathList", docFileNamePathList);
 
       let updated: string = match;
       const linkFileNameMatch = FILE_FINDER.exec(match);
-      console.log("linkFileNameMatch", linkFileNameMatch);
+
       const linkFileName = linkFileNameMatch ? linkFileNameMatch[0] ?? "" : "";
-      console.log("fileName", linkFileName);
+
       const fileNamePathList = linkFileName.split("/");
-      console.log("fileNamePathList", fileNamePathList);
 
       const linkFullFileName = `${linkFileName}.qmd`;
-      console.log("linkFullFileName", linkFullFileName);
 
       let siteFilePath = linkFullFileName;
       const isAbsolute = siteFilePath.startsWith("/");
@@ -548,7 +537,7 @@ export const updateLinks = (
         const relativePath = docFileNamePathList
           .slice(0, docFileNamePathList.length - 1)
           .join("/");
-        console.log("relativePath", relativePath);
+
         if (siteFilePath.startsWith("./")) {
           siteFilePath = siteFilePath.replace("./", `${relativePath}/`);
         } else {
@@ -560,11 +549,7 @@ export const updateLinks = (
         siteFilePath = siteFilePath.slice(1); //remove '/'
       }
 
-      console.log("siteFilePath", siteFilePath);
-
       const sitePage: SitePage | null = fileMetadataTable[siteFilePath] ?? null;
-
-      console.log("sitePage", sitePage);
 
       if (sitePage) {
         updated = match.replace('href="', `href="${url}`);
@@ -573,9 +558,8 @@ export const updateLinks = (
         )}`;
 
         updated = updated.replace(linkFullFileName, pagePath);
-        console.log("updated", updated);
       } else {
-        console.warn("no site page found");
+        console.warn(`Link not found for ${siteFilePath}`);
       }
 
       return updated;
@@ -583,13 +567,13 @@ export const updateLinks = (
 
     if (isContentUpdate(changeToProcess) || isContentCreate(changeToProcess)) {
       const valueToProcess = changeToProcess?.body?.storage?.value;
-      console.log("valueToProcess", valueToProcess);
+
       if (valueToProcess) {
         const replacedLinks: string = valueToProcess.replaceAll(
           LINK_FINDER,
           replacer
         );
-        console.log("replacedLinks", replacedLinks);
+
         changeToProcess.body.storage.value = replacedLinks;
       }
     }

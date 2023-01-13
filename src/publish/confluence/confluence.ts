@@ -350,7 +350,7 @@ async function publish(
     publishFiles: PublishFiles,
     id: string,
     body: ContentBody,
-    titleParam: string = title,
+    titleToUpdate: string = title,
     fileName: string = ""
   ): Promise<Content> => {
     const previousPage = await client.getContent(id);
@@ -360,6 +360,8 @@ async function publish(
       publishFiles.files
     );
 
+    const uniqueTitle = await uniquifyTitle(titleToUpdate);
+
     trace("attachmentsToUpload", attachmentsToUpload, LogPrefix.ATTACHMENT);
 
     const updatedBody: ContentBody = updateImagePaths(body);
@@ -367,7 +369,7 @@ async function publish(
       contentChangeType: ContentChangeType.update,
       id,
       version: getNextVersion(previousPage),
-      title: `${titleParam}`,
+      title: uniqueTitle,
       type: PAGE_TYPE,
       status: ContentStatusEnum.current,
       ancestors: null,
@@ -637,8 +639,6 @@ async function publish(
     );
 
     trace("changelist", changeList);
-
-    console.log("changeList", changeList);
 
     let pathsToId: Record<string, string> = {}; // build from existing site
 
