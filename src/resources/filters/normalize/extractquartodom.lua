@@ -17,7 +17,6 @@ function extract_quarto_dom()
       end
     end,
     Span = function(span)
-      print(span.attributes)
       if span.attributes.qmd ~= nil or span.attributes["qmd-base64"] ~= nil then
         local doc = process_quarto_markdown_input_element(span)
         return doc.blocks[1].content
