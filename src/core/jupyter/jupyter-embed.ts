@@ -149,14 +149,17 @@ export async function replaceNotebookPlaceholders(
   flags: RenderFlags,
   markdown: string,
 ) {
-  // Assets
-  const assets = jupyterAssets(
-    input,
-    to,
-  );
   let match = kPlaceholderRegex.exec(markdown);
+  let assets;
   let includes;
   while (match) {
+    if (!assets) {
+      assets = jupyterAssets(
+        context.target.source,
+        to,
+      );
+    }
+
     // Parse the address and if this is a notebook
     // then proceed with the replacement
     const nbAddressStr = match[1];
@@ -215,15 +218,13 @@ export async function replaceNotebookPlaceholders(
     match = kPlaceholderRegex.exec(markdown);
   }
   kPlaceholderRegex.lastIndex = 0;
-  const cleaned = cleanEmptyJupyterAssets(assets);
-  const supporting = cleaned
-    ? []
-    : [join(assets.base_dir, assets.supporting_dir)];
-
+  const supporting = assets
+    ? join(assets.base_dir, assets.supporting_dir)
+    : undefined;
   return {
     includes,
     markdown,
-    supporting: supporting,
+    supporting,
   };
 }
 

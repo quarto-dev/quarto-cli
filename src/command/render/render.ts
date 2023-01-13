@@ -121,6 +121,11 @@ export async function renderPandoc(
     executeResult.markdown,
   );
 
+  if (notebookResult.supporting) {
+    executeResult.supporting = executeResult.supporting || [];
+    executeResult.supporting.push(notebookResult.supporting);
+  }
+
   // Map notebook includes to pandoc includes
   const pandocIncludes: PandocIncludes = {
     [kIncludeAfterBody]: notebookResult.includes?.afterBody
@@ -282,11 +287,6 @@ export async function renderPandoc(
       ) {
         supporting = supporting || [];
         supporting.push(...htmlPostProcessResult.supporting);
-      }
-
-      if (notebookResult.supporting) {
-        supporting = supporting || [];
-        supporting.push(...notebookResult.supporting);
       }
 
       withTiming("render-cleanup", () =>
