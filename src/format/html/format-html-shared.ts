@@ -1,7 +1,7 @@
 /*
 * format-html-shared.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 import { dirname, join, relative } from "path/mod.ts";
@@ -27,7 +27,6 @@ import {
 
 import { formatResourcePath } from "../../core/resources.ts";
 import { Document, Element } from "../../core/deno-dom.ts";
-import { ConsoleHandler } from "../../vendor/deno.land/std@0.153.0/log/handlers.ts";
 
 // features that are enabled by default for 'html'. setting
 // all of these to false will yield the minimal html output
@@ -40,6 +39,9 @@ export const kAnchorSections = "anchor-sections";
 export const kCitationsHover = "citations-hover";
 export const kFootnotesHover = "footnotes-hover";
 export const kSmoothScroll = "smooth-scroll";
+
+// Code Annotation
+export const kCodeAnnotations = "code-annotations";
 
 // turn off optional html features as well as all themes
 export const kMinimal = "minimal";
@@ -60,6 +62,7 @@ export const kDraft = "draft";
 
 export const kAppendixStyle = "appendix-style";
 export const kLicense = "license";
+export const kCopyright = "copyright";
 
 export const kCitation = "citation";
 

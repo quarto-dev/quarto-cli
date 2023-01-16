@@ -1,10 +1,11 @@
 /*
 * types.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
+import { RenderServices } from "../command/render/types.ts";
 import { PandocFlags } from "../config/types.ts";
 import { Format, FormatExtras } from "../config/types.ts";
 import { mergeConfigs } from "../core/config.ts";
@@ -49,7 +50,7 @@ export interface ProjectContext {
     source: string,
     flags: PandocFlags,
     format: Format,
-    temp: TempContext,
+    services: RenderServices,
   ) => Promise<FormatExtras>;
 }
 

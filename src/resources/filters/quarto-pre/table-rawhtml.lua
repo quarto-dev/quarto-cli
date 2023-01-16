@@ -1,5 +1,5 @@
 -- table-rawhtml.lua
--- Copyright (C) 2020 by RStudio, PBC
+-- Copyright (C) 2020-2022 Posit Software, PBC
 
 -- flextable outputs consecutive html blocks so we merge them
 -- back together here so they can be processed by ourraw  table
@@ -37,6 +37,10 @@ end
 -- re-emits GT's CSS with lower specificity
 function respecifyGtCSS(text)
   local s, e, v = text:find('<div id="([a-z]+)"')
+  -- if gt does not emit a div, do nothing
+  if v == nil then
+    return text
+  end
   return text:gsub("\n#" .. v, "\n:where(#" .. v .. ")")
 end
 
@@ -54,7 +58,7 @@ function tableRenderRawHtml()
           if tableBegin then
             local tableHtml = tableBegin .. "\n" .. tableBody .. "\n" .. tableEnd
             local tableDoc = pandoc.read(tableHtml, "html")
-            return tableDoc.blocks[1]
+            return tableDoc.blocks
           end
         end
       end

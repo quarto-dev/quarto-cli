@@ -860,7 +860,8 @@ pre {
 
 // Default padding if background is set
 p code:not(.sourceCode),
-li code:not(.sourceCode) {
+li code:not(.sourceCode),
+td code:not(.sourceCode) {
   @if variable-exists(code-bg) {
     background-color: $code-bg;
   }
@@ -873,9 +874,14 @@ li code:not(.sourceCode) {
 }
 
 nav p code:not(.sourceCode),
-nav li code:not(.sourceCode) {
+nav li code:not(.sourceCode),
+nav td code:not(.sourceCode) {
   background-color: transparent;
   padding: 0;
+}
+
+td code:not(.sourceCode) {
+  white-space: pre-wrap;
 }
 
 #quarto-embedded-source-code-modal > .modal-dialog {
@@ -971,6 +977,76 @@ nav li code:not(.sourceCode) {
   }
 }
 
+figure .quarto-notebook-link {
+  margin-top: 0.5em;
+}
+
+.quarto-notebook-link {
+  font-size: 0.75em;
+  color: $text-muted;
+  margin-bottom: 1em;
+  text-decoration: none;
+  display: block;
+}
+
+.quarto-notebook-link:hover {
+  text-decoration: underline;
+  color: $link-color;
+}
+
+.quarto-notebook-link::before {
+  display: inline-block;
+  height: 0.75rem;
+  width: 0.75rem;
+  margin-bottom: 0em;
+  margin-right: 0.25em;
+  content: "";
+  vertical-align: -0.125em;
+
+  @if variable-exists(text-muted) {
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{colorToRGB($text-muted)}" class="bi bi-journal-code" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8.646 5.646a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1 0 .708l-2 2a.5.5 0 0 1-.708-.708L10.293 8 8.646 6.354a.5.5 0 0 1 0-.708zm-1.292 0a.5.5 0 0 0-.708 0l-2 2a.5.5 0 0 0 0 .708l2 2a.5.5 0 0 0 .708-.708L5.707 8l1.647-1.646a.5.5 0 0 0 0-.708z"/><path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2z"/><path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1z"/></svg>');
+  } @else {
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-journal-code" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8.646 5.646a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1 0 .708l-2 2a.5.5 0 0 1-.708-.708L10.293 8 8.646 6.354a.5.5 0 0 1 0-.708zm-1.292 0a.5.5 0 0 0-.708 0l-2 2a.5.5 0 0 0 0 .708l2 2a.5.5 0 0 0 .708-.708L5.707 8l1.647-1.646a.5.5 0 0 0 0-.708z"/><path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2z"/><path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1z"/></svg>');
+  }
+  background-repeat: no-repeat;
+  background-size: 0.75rem 0.75rem;
+}
+
+.quarto-alternate-notebooks i.bi,
+.quarto-alternate-formats i.bi {
+  margin-right: 0.4em;
+}
+
+.quarto-notebook .cell-container {
+  display: flex;
+}
+
+.quarto-notebook .cell-container .cell {
+  flex-grow: 4;
+}
+
+.quarto-notebook .cell-container .cell-decorator {
+  padding-top: 1.5em;
+  padding-right: 1em;
+  text-align: right;
+}
+
+.quarto-notebook h2 {
+  border-bottom: none;
+}
+
+.sidebar .quarto-alternate-formats a,
+.sidebar .quarto-alternate-notebooks a {
+  text-decoration: none;
+}
+
+.sidebar .quarto-alternate-formats a:hover,
+.sidebar .quarto-alternate-notebooks a:hover {
+  color: $link-color;
+}
+
+.sidebar .quarto-alternate-notebooks h2,
+.sidebar .quarto-alternate-formats h2,
 .sidebar nav[role="doc-toc"] > h2 {
   font-size: $toc-font-size;
   font-weight: 400;
@@ -982,15 +1058,30 @@ nav li code:not(.sourceCode) {
   padding-top: 0px;
 }
 
+.sidebar .quarto-alternate-notebooks h2,
+.sidebar .quarto-alternate-formats h2 {
+  margin-top: 1rem;
+}
+
 .sidebar nav[role="doc-toc"] > ul a {
   border-left: 1px solid $toc-inactive-border;
   padding-left: 0.6rem;
 }
 
+.sidebar .quarto-alternate-notebooks h2 > ul a,
+.sidebar .quarto-alternate-formats h2 > ul a {
+  border-left: none;
+  padding-left: 0.6rem;
+}
+
+.sidebar .quarto-alternate-notebooks ul a:empty,
+.sidebar .quarto-alternate-formats ul a:empty,
 .sidebar nav[role="doc-toc"] > ul a:empty {
   display: none;
 }
 
+.sidebar .quarto-alternate-notebooks ul,
+.sidebar .quarto-alternate-formats ul,
 .sidebar nav[role="doc-toc"] ul {
   padding-left: 0;
   list-style: none;
@@ -998,6 +1089,8 @@ nav li code:not(.sourceCode) {
   font-weight: 300;
 }
 
+.sidebar .quarto-alternate-notebooks ul li a,
+.sidebar .quarto-alternate-formats ul li a,
 .sidebar nav[role="doc-toc"] > ul li a {
   line-height: 1.1rem;
   padding-bottom: 0.2rem;
@@ -1100,6 +1193,12 @@ div.hanging-indent {
   margin-top: $callout-margin-top;
   margin-bottom: $callout-margin-bottom;
   border-radius: $border-radius;
+
+  overflow-wrap: break-word;
+}
+
+.callout .callout-caption-container {
+  overflow-wrap: anywhere;
 }
 
 .callout.callout-style-simple {
@@ -1658,6 +1757,119 @@ textarea {
   background-color: var(--bs-body-bg);
 }
 
+// Code Annotation
+
+.code-annotation-gutter-bg {
+  background-color: $body-bg;
+}
+
+.code-annotation-gutter {
+  background-color: $code-block-bg-color;
+}
+
+.code-annotation-gutter,
+.code-annotation-gutter-bg {
+  height: 100%;
+  width: calc(20px + 0.5em);
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+dl.code-annotation-container-grid {
+  dt {
+    margin-right: 1em;
+    margin-top: 0.25rem;
+  }
+}
+
+dl.code-annotation-container-grid {
+  dt {
+    font-family: $font-family-code;
+    color: theme-dim($body-color, 10%);
+    border: solid theme-dim($body-color, 10%) 1px;
+    border-radius: 50%;
+    height: 22px;
+    width: 22px;
+    line-height: 22px;
+    font-size: 11px;
+
+    text-align: center;
+    vertical-align: middle;
+
+    text-decoration: none;
+  }
+
+  dt[data-target-cell] {
+    cursor: pointer;
+  }
+
+  dt[data-target-cell].code-annotation-active {
+    color: $body-bg;
+    border: solid #aaaaaa 1px;
+    background-color: #aaaaaa;
+  }
+}
+
+pre.code-annotation-code {
+  padding-top: 0;
+  padding-bottom: 0;
+  code {
+    z-index: 3;
+  }
+}
+
+#code-annotation-line-highlight-gutter {
+  width: 100%;
+  border-top: solid $code-annotation-higlight-color 1px;
+  border-bottom: solid $code-annotation-higlight-color 1px;
+  z-index: 2;
+  background-color: $code-annotation-higlight-bg;
+}
+
+#code-annotation-line-highlight {
+  margin-left: -4em;
+  width: calc(100% + 4em);
+  border-top: solid $code-annotation-higlight-color 1px;
+  border-bottom: solid $code-annotation-higlight-color 1px;
+  z-index: 2;
+  background-color: $code-annotation-higlight-bg;
+}
+
+code.sourceCode .code-annotation-anchor.code-annotation-active {
+  background-color: var(--quarto-hl-normal-color, #aaaaaa);
+  border: solid var(--quarto-hl-normal-color, #aaaaaa) 1px;
+  color: rgb(
+    red($code-block-bg-color),
+    green($code-block-bg-color),
+    blue($code-block-bg-color)
+  );
+  font-weight: bolder;
+}
+
+code.sourceCode .code-annotation-anchor {
+  font-family: $font-family-code;
+  color: var(--quarto-hl-co-color);
+  border: solid var(--quarto-hl-co-color) 1px;
+  border-radius: 50%;
+  height: 18px;
+  width: 18px;
+  font-size: 9px;
+  margin-top: 2px;
+}
+
+code.sourceCode button.code-annotation-anchor {
+  padding: 2px;
+}
+
+code.sourceCode a.code-annotation-anchor {
+  line-height: 18px;
+  text-align: center;
+  vertical-align: middle;
+  cursor: default;
+  text-decoration: none;
+}
+
 // change .column-screen-* to behave like .column-page (which hugs the body margins)
 // cf https://github.com/quarto-dev/quarto-cli/issues/1824#issuecomment-1216018434
 @media print {
@@ -1711,4 +1923,8 @@ textarea {
     transform: translate3d(0, 0, 0);
     margin-bottom: 1em;
   }
+}
+
+.quarto-video {
+  margin-bottom: 1em;
 }

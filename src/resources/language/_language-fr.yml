@@ -1,11 +1,16 @@
 toc-title-document: "Table des matières"
 toc-title-website: "Sur cette page"
 
+related-formats-title: "Autres formats"
+related-notebooks-title: "Notebooks"
+source-notebooks-prefix: "La source"
+
 section-title-abstract: "Résumé"
 section-title-appendices: "Annexes"
 section-title-footnotes: "Notes de bas de page"
 section-title-references: "Les références"
 section-title-reuse: "Réutilisation"
+section-title-copyright: "Droits d'auteur"
 section-title-citation: "Citation"
 
 appendix-attribution-bibtex: "BibTeX"
@@ -25,6 +30,9 @@ callout-important-caption: "Important"
 callout-caution-caption: "Mise en garde"
 
 code-summary: "Code"
+
+code-line: "Ligne"
+code-lines: "Lignes"
 
 code-tools-menu-caption: "Code"
 code-tools-show-all-code: "Montrer tout le code"

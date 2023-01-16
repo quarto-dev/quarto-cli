@@ -1,7 +1,7 @@
 /*
 * preview.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -29,7 +29,12 @@ import {
   serveRedirect,
 } from "../../core/http.ts";
 import { HttpDevServer, httpDevServer } from "../../core/http-devserver.ts";
-import { isHtmlContent, isPdfContent, isTextContent } from "../../core/mime.ts";
+import {
+  isHtmlContent,
+  isPdfContent,
+  isTextContent,
+  kTextXml,
+} from "../../core/mime.ts";
 import { PromiseQueue } from "../../core/promise.ts";
 import { inputFilesDir } from "../../core/render.ts";
 
@@ -72,11 +77,14 @@ import {
   isJupyterHubServer,
   isRStudioServer,
   isRStudioWorkbench,
+  isVSCodeServer,
+  vsCodeServerProxyUri,
 } from "../../core/platform.ts";
 import { isJupyterNotebook } from "../../core/jupyter/jupyter.ts";
 import { watchForFileChanges } from "../../core/watch.ts";
 import {
   pandocBinaryPath,
+  resourcePath,
   textHighlightThemePath,
 } from "../../core/resources.ts";
 import { execProcess } from "../../core/process.ts";
@@ -86,6 +94,9 @@ import {
   extensionFilesFromDirs,
   inputExtensionDirs,
 } from "../../extension/extension.ts";
+import { kOutputFile } from "../../config/constants.ts";
+import { isJatsOutput } from "../../config/format.ts";
+import { kDefaultProjectFileContents } from "../../project/types/project-default.ts";
 
 interface PreviewOptions {
   port?: number;
@@ -616,11 +627,15 @@ function htmlFileRequestHandlerOptions(
         renderHandler();
         return Promise.resolve(httpContentResponse("rendered"));
       } else if (isPreviewRenderRequest(req)) {
-        const prevReq = previewRenderRequest(req, reloader.hasClients());
+        const outputFile = format.pandoc[kOutputFile];
+        const prevReq = previewRenderRequest(
+          req,
+          !isBrowserPreviewable(outputFile) || reloader.hasClients(),
+        );
         if (
           prevReq &&
           existsSync(prevReq.path) &&
-          Deno.realPathSync(prevReq.path) === inputFile &&
+          Deno.realPathSync(prevReq.path) === Deno.realPathSync(inputFile) &&
           await previewRenderRequestIsCompatible(prevReq, flags)
         ) {
           // don't wait for the promise so the
@@ -635,7 +650,29 @@ function htmlFileRequestHandlerOptions(
       }
     },
     onFile: async (file: string, req: Request) => {
-      if (isHtmlContent(file)) {
+      const staticResponse = await staticResource(format, baseDir, file);
+      if (staticResponse) {
+        const resolveBody = () => {
+          if (staticResponse.injectClient) {
+            const client = reloader.clientHtml(
+              req,
+              inputFile,
+            );
+            const contents = new TextDecoder().decode(
+              staticResponse.contents,
+            );
+            return staticResponse.injectClient(contents, client);
+          } else {
+            return staticResponse.contents;
+          }
+        };
+        const body = resolveBody();
+
+        return {
+          body,
+          contentType: staticResponse.contentType,
+        };
+      } else if (isHtmlContent(file)) {
         // does the provide an alternate preview file?
         if (format.formatPreviewFile) {
           file = format.formatPreviewFile(file, format);
@@ -643,9 +680,17 @@ function htmlFileRequestHandlerOptions(
         const fileContents = await Deno.readFile(file);
         return reloader.injectClient(req, fileContents, inputFile);
       } else if (isTextContent(file)) {
-        const html = await textPreviewHtml(file, req);
-        const fileContents = new TextEncoder().encode(html);
-        return reloader.injectClient(req, fileContents, inputFile);
+        if (isJatsOutput(format.pandoc)) {
+          const xml = await jatsPreviewXml(file, req);
+          return {
+            contentType: kTextXml,
+            body: new TextEncoder().encode(xml),
+          };
+        } else {
+          const html = await textPreviewHtml(file, req);
+          const fileContents = new TextEncoder().encode(html);
+          return reloader.injectClient(req, fileContents, inputFile);
+        }
       }
     },
   };
@@ -685,6 +730,9 @@ function pdfFileRequestHandler(
       if (new URL(req.url).pathname === "/") {
         const url = isRStudioWorkbench()
           ? await rswURL(port, kPdfJsInitialPath)
+          : isVSCodeServer()
+          ? vsCodeServerProxyUri()!.replace("{{port}}", `${port}`) +
+            kPdfJsInitialPath
           : "/" + kPdfJsInitialPath;
         return Promise.resolve(serveRedirect(url));
       } else {
@@ -766,4 +814,76 @@ async function textPreviewHtml(file: string, req: Request) {
   } else {
     throw new Error();
   }
+}
+
+// Static reources provide a list of 'special' resources that we should
+// satisfy using internal resources
+const kStaticResources = [
+  {
+    name: "quarto-jats-preview.css",
+    contentType: "text/css",
+    isActive: isJatsOutput,
+  },
+  {
+    name: "quarto-jats-html.xsl",
+    contentType: "text/xsl",
+    isActive: isJatsOutput,
+    injectClient: (contents: string, client: string) => {
+      const protectedClient = client.replaceAll(
+        /(<style.*?>)|(<script.*?>)/g,
+        (substring: string) => {
+          return `${substring}\n<![CDATA[`;
+        },
+      ).replaceAll(
+        /(<\/style.*?>)|(<\/script.*?>)/g,
+        (substring: string) => {
+          return `]]>\n${substring}`;
+        },
+      ).replaceAll("data-micromodal-close", 'data-micromodal-close="true"');
+
+      const bodyContents = contents.replace(
+        "<!-- quarto-after-body -->",
+        protectedClient,
+      );
+      return new TextEncoder().encode(bodyContents);
+    },
+  },
+];
+
+const staticResource = async (
+  format: Format,
+  baseDir: string,
+  file: string,
+) => {
+  const filename = relative(baseDir, file);
+  const resource = kStaticResources.find((resource) => {
+    return resource.isActive(format.pandoc) && resource.name === filename;
+  });
+
+  if (resource) {
+    const path = resourcePath(join("preview", "jats", filename));
+    const contents = await Deno.readFile(path);
+    return {
+      ...resource,
+      contents,
+    };
+  }
+};
+
+async function jatsPreviewXml(file: string, _request: Request) {
+  const fileContents = await Deno.readTextFile(file);
+
+  // Attach the stylesheet
+  let xmlContents = fileContents.replace(
+    /<\?xml version="1.0" encoding="utf-8"\s*\?>/,
+    '<?xml version="1.0" encoding="utf-8" ?>\n<?xml-stylesheet href="quarto-jats-html.xsl" type="text/xsl" ?>',
+  );
+
+  // Strip the DTD to disable the fetching of the DTD and validation (for preview)
+  xmlContents = xmlContents.replace(
+    /<!DOCTYPE((.|\n)*?)>/,
+    "",
+  );
+
+  return xmlContents;
 }

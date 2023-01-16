@@ -3,7 +3,7 @@
 *
 * main validator class.
 *
-* Copyright (C) 2022 by RStudio, PBC
+* Copyright (C) 2022 Posit Software, PBC
 *
 */
 
@@ -545,7 +545,7 @@ function validateObject(
     keyOrValue: "key" | "value" = "value",
   ): AnnotatedParse => {
     for (let i = 0; i < value.components.length; i += 2) {
-      if (value.components[i].result === key) {
+      if (String(value.components[i].result) === key) {
         if (keyOrValue === "value") {
           return value.components[i + 1];
         } else {

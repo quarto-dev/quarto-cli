@@ -1,9 +1,9 @@
 -- preprocess.lua
--- Copyright (C) 2020 by RStudio, PBC
+-- Copyright (C) 2020-2022 Posit Software, PBC
 
 -- figures and tables support sub-references. mark them up before
 -- we proceed with crawling for cross-refs
-function preprocess()
+function crossrefPreprocess()
   
   return {
 
@@ -79,7 +79,6 @@ function preprocess()
 
       -- walk all blocks in the document
       for i,el in pairs(doc.blocks) do
-      
         -- always wrap referenced tables in a div
         if el.t == "Table" then
           doc.blocks[i] = preprocessTable(el, nil)
@@ -87,7 +86,7 @@ function preprocess()
           doc.blocks[i] = preprocessRawTableBlock(el, nil)
         elseif el.t ~= "Header" then
           local parentId = nil
-          if hasFigureOrTableRef(el) then
+          if hasFigureOrTableRef(el) and el.content ~= nil then
             parentId = el.attr.identifier
 
             -- mark as parent

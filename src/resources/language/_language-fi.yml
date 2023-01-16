@@ -1,11 +1,16 @@
 toc-title-document: "Sisällysluettelo"
 toc-title-website: "Tällä sivulla"
 
+related-formats-title: "Muut muodot"
+related-notebooks-title: "Notebooks"
+source-notebooks-prefix: "Lähde"
+
 section-title-abstract: "Tiivistelmä"
 section-title-appendices: "Liitteet"
 section-title-footnotes: "Alaviitteet"
 section-title-references: "Lähteet"
 section-title-reuse: "Uudelleenkäyttö"
+section-title-copyright: "Tekijänoikeus"
 section-title-citation: "Viittaus"
 
 appendix-attribution-cite-as: "Viitatkaa tähän teokseen seuraavasti:"
@@ -25,6 +30,9 @@ callout-important-caption: "Tärkeää"
 callout-caution-caption: "Vaara"
 
 code-summary: "Koodi"
+
+code-line: "Linja"
+code-lines: "Linjat"
 
 code-tools-menu-caption: "Koodi"
 code-tools-show-all-code: "Näytä kaikki koodi"

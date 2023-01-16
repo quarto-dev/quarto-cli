@@ -1,8 +1,8 @@
 -- theorems.lua
--- Copyright (C) 2020 by RStudio, PBC
+-- Copyright (C) 2020-2022 Posit Software, PBC
 
 -- preprocess theorem to ensure that embedded headings are unnumered
-function preprocessTheorems()
+function crossrefPreprocessTheorems()
   local types = theoremTypes
   return {
     Div = function(el)
@@ -20,7 +20,7 @@ function preprocessTheorems()
   }
 end
 
-function theorems()
+function crossrefTheorems()
 
   local types = theoremTypes
 
@@ -48,6 +48,11 @@ function theorems()
         local label = el.attr.identifier
         local order = indexNextOrder(type)
         indexAddEntry(label, nil, order, name)
+        
+        -- If this theorem has no content, then create a placeholder
+        if #el.content == 0 or el.content[1].t ~= "Para" then
+          tprepend(el.content, {pandoc.Para({pandoc.Str '\u{a0}'})})
+        end
       
         if _quarto.format.isLatexOutput() then
           local preamble = pandoc.Para(pandoc.RawInline("latex", 
@@ -58,38 +63,41 @@ function theorems()
           end
           preamble.content:insert(pandoc.RawInline("latex", "]"))
           preamble.content:insert(pandoc.RawInline("latex",
-            "\\label{" .. label .. "}")
+            "\\protect\\hypertarget{" .. label .. "}{}\\label{" .. label .. "}")
           )
           el.content:insert(1, preamble)
           el.content:insert(pandoc.Para(pandoc.RawInline("latex", 
             "\\end{" .. theoremType.env .. "}"
           )))
+          -- Remove id on those div to avoid Pandoc inserting \hypertaget #3776
+          el.attr.identifier = ""
+        elseif _quarto.format.isJatsOutput() then
+
+          -- JATS XML theorem
+          local lbl = captionPrefix(nil, type, theoremType, order)
+          el = jatsTheorem(el, lbl, name)          
+          
         else
           -- create caption prefix
-          local prefix = title(type, theoremType.title)
-          table.insert(prefix, pandoc.Space())
-          tappend(prefix, numberOption(type, order))
-          table.insert(prefix, pandoc.Space())
-          if name then
-            table.insert(prefix, pandoc.Str("("))
-            tappend(prefix, name)
-            table.insert(prefix, pandoc.Str(")"))
-            table.insert(prefix, pandoc.Space())
-          end
-
-          -- If this theorem has no content, then create a placeholder
-          if #el.content == 0 then
-            el.content[1] = pandoc.Para({})
-          end
+          local captionPrefix = captionPrefix(name, type, theoremType, order)
+          local prefix =  { 
+            pandoc.Span(
+              pandoc.Strong(captionPrefix), 
+              pandoc.Attr("", { "theorem-title" })
+            )
+          }
 
           -- prepend the prefix
           local caption = el.content[1]
-          tprepend(caption.content, { 
-            pandoc.Span(
-              pandoc.Strong(prefix), 
-              pandoc.Attr("", { "theorem-title" })
-            )
-          })
+
+          if caption.content == nil then
+            -- https://github.com/quarto-dev/quarto-cli/issues/2228
+            -- caption doesn't always have a content field; in that case,
+            -- use the parent?
+            tprepend(el.content, prefix)
+          else
+            tprepend(caption.content, prefix)
+          end
         end
 
       else
@@ -124,6 +132,8 @@ function theorems()
             el.content:insert(pandoc.Para(pandoc.RawInline("latex", 
               "\\end{" .. proof.env .. "}"
             )))
+          elseif _quarto.format.isJatsOutput() then
+            el = jatsTheorem(el,  nil, name )
           else
             local span = pandoc.Span(
               { pandoc.Emph(pandoc.Str(envTitle(proof.env, proof.title)))},
@@ -135,12 +145,15 @@ function theorems()
               span.content:insert(pandoc.Str(")"))
             end
             tappend(span.content, { pandoc.Str(". ")})
+
+            -- if the first block is a paragraph, then prepend the title span
             if #el.content > 0 and 
-               el.content[1].content ~= nil and #el.content[1].content > 0 then
+               el.content[1].t == "Para" and
+               el.content[1].content ~= nil and 
+               #el.content[1].content > 0 then
               el.content[1].content:insert(1, span)
             else
-              -- if the first block can't handle content insertion
-              -- then insert a new paragraph
+              -- else insert a new paragraph
               el.content:insert(1, pandoc.Para{span})
             end
           end
@@ -154,6 +167,55 @@ function theorems()
     end
   }
 
+end
+
+function jatsTheorem(el, label, title) 
+
+  -- <statement>
+  --   <label>Equation 2</label>
+  --   <title>The Pythagorean</title>
+  --   <p>
+  --     ...
+  --   </p>
+  -- </statement> 
+
+  if title then
+    tprepend(el.content, {
+      pandoc.RawBlock("jats", "<title>"),  
+      pandoc.Plain(title), 
+      pandoc.RawBlock("jats", "</title>")})
+  end
+
+  if label then
+    tprepend(el.content, {
+      pandoc.RawBlock("jats", "<label>"),  
+      pandoc.Plain(label), 
+      pandoc.RawBlock("jats", "</label>")})
+  end
+  
+  -- Process the caption (if any)
+  
+  -- Emit the statement
+  local stmtPrefix = pandoc.RawBlock("jats",  '<statement id="' .. el.attr.identifier .. '">')
+  local stmtSuffix = pandoc.RawBlock("jats",  '</statement>')
+
+  el.content:insert(1, stmtPrefix)
+  el.content:insert(stmtSuffix)
+  return el
+end
+
+function captionPrefix(name, type, theoremType, order) 
+  local prefix = title(type, theoremType.title)
+  table.insert(prefix, pandoc.Space())
+  tappend(prefix, numberOption(type, order))
+  table.insert(prefix, pandoc.Space())
+  if name then
+    table.insert(prefix, pandoc.Str("("))
+    tappend(prefix, name)
+    table.insert(prefix, pandoc.Str(")"))
+    table.insert(prefix, pandoc.Space())
+  end
+  return prefix
 end
 
 
@@ -191,7 +253,7 @@ function theoremLatexIncludes()
     end
     theoremIncludes = theoremIncludes ..
       "\\theoremstyle{remark}\n" ..
-      "\\renewcommand*{\\proofname}{" .. envTitle("proof", "Proof") .. "}\n" ..
+      "\\AtBeginDocument{\\renewcommand*{\\proofname}{" .. envTitle("proof", "Proof") .. "}}\n" ..
       "\\newtheorem*{remark}{" .. envTitle("remark", "Remark") .. "}\n" ..
       "\\newtheorem*{solution}{" .. envTitle("solution", "Solution") .. "}\n"
     return theoremIncludes

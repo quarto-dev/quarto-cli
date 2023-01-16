@@ -1,11 +1,11 @@
 /*
 * cmd.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
-import { exists } from "fs/exists.ts";
+import { existsSync } from "node/fs.ts";
 import { join } from "path/mod.ts";
 import { info } from "log/mod.ts";
 
@@ -16,7 +16,6 @@ import {
   jupyterNotebookToMarkdown,
   markdownToJupyterNotebook,
 } from "./jupyter.ts";
-import { isObservableUrl, observableNotebookToMarkdown } from "./observable.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 
 const kNotebookFormat = "notebook";
@@ -52,40 +51,32 @@ export const convertCommand = new Command()
   .action(async (options: any, input: string) => {
     await initYamlIntelligenceResourcesFromFilesystem();
 
-    // separate codepath for observable urls
-    if (isObservableUrl(input)) {
-      await observableNotebookToMarkdown(
-        input,
-        options.output as string | undefined,
-      );
-    } else {
-      if (!await exists(input)) {
-        throw new Error(`File not found: '${input}'`);
-      }
-
-      // determine source format
-      const srcFormat = isJupyterNotebook(input)
-        ? kNotebookFormat
-        : kMarkdownFormat;
-
-      // are we converting ids?
-      const withIds = options.withIds === undefined ? false : !!options.withIds;
-
-      // perform conversion
-      const converted = srcFormat === kNotebookFormat
-        ? await jupyterNotebookToMarkdown(input, withIds)
-        : await markdownToJupyterNotebook(input, withIds);
-
-      // write output
-      const [dir, stem] = dirAndStem(input);
-      let output = options.output;
-      if (!output) {
-        output = join(
-          dir,
-          stem + (srcFormat === kMarkdownFormat ? ".ipynb" : ".qmd"),
-        );
-      }
-      Deno.writeTextFileSync(output, converted);
-      info(`Converted to ${output}`);
+    if (!existsSync(input)) {
+      throw new Error(`File not found: '${input}'`);
     }
+
+    // determine source format
+    const srcFormat = isJupyterNotebook(input)
+      ? kNotebookFormat
+      : kMarkdownFormat;
+
+    // are we converting ids?
+    const withIds = options.withIds === undefined ? false : !!options.withIds;
+
+    // perform conversion
+    const converted = srcFormat === kNotebookFormat
+      ? await jupyterNotebookToMarkdown(input, withIds)
+      : await markdownToJupyterNotebook(input, withIds);
+
+    // write output
+    const [dir, stem] = dirAndStem(input);
+    let output = options.output;
+    if (!output) {
+      output = join(
+        dir,
+        stem + (srcFormat === kMarkdownFormat ? ".ipynb" : ".qmd"),
+      );
+    }
+    Deno.writeTextFileSync(output, converted);
+    info(`Converted to ${output}`);
   });

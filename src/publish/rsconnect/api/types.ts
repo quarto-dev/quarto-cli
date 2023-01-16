@@ -1,18 +1,9 @@
 /*
 * types.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
-
-export class ApiError extends Error {
-  public constructor(
-    public readonly status: number,
-    public readonly statusText: string,
-  ) {
-    super(`API Error: ${status} - ${statusText}`);
-  }
-}
 
 export type User = {
   guid: string;

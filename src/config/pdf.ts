@@ -1,7 +1,7 @@
 /*
 * pdf.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -71,5 +71,7 @@ export function pdfEngine(
 }
 
 export function isLatexPdfEngine(engine: PdfEngine) {
-  return ["pdflatex", "xelatex", "lualatex"].includes(engine.pdfEngine);
+  return ["pdflatex", "xelatex", "lualatex", "latexmk"].includes(
+    engine.pdfEngine,
+  );
 }

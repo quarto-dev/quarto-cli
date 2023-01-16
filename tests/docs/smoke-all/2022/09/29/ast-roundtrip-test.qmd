@@ -1,0 +1,68 @@
+---
+title: Lots of AST things
+format:
+  html: default
+  pdf: default
+  docx: default
+some-arbitrary-metadata:
+  with-some-values: to test
+---
+
+# Heading
+
+## Subheading
+
+### And so on
+
+#### More
+
+`some code`
+
+```
+some block code
+```
+
+::: a-div-of-a-class
+
+with stuff inside it
+
+:::
+
+- A bulleted list
+  - that nests
+
+1. An ordered list
+2. with more than one element
+   
+   1. it nests, too
+
+[a link](https://www.example.com)
+
+> A blockquote with lots of stuff
+> It has multiple lines, even.
+
+## Definition Lists
+
+Term 1
+  :  This is the definition of this term
+This is a phrase
+  :  This is the definition of the phrase
+
+
+## Some tables
+
++--------------------------------------------+----------+-------------+
+| Type of Service                            | Cost     |     Total   |
++:===========================================+=========:+:===========:+
+| Game Engine                                | 70.0     | 70.0        |
+|                                            |          |             |
++--------------------------------------------+----------+-------------+
+|                                            |          |             |
++--------------------------------------------+----------+-------------+
+| Extra: Comply with defined API functions   | 10.0     | 10.0        |
+|        and expected returned format        |          |             |
++--------------------------------------------+----------+-------------+
+|                                            |          |             |
++--------------------------------------------+----------+-------------+
+| **Total Cost**                             |          | **80.0**    |
++--------------------------------------------+----------+-------------+

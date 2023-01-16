@@ -1,11 +1,16 @@
 toc-title-document: "Içindekiler"
 toc-title-website: "Bu sayfada"
 
+related-formats-title: "Diğer Formatlar"
+related-notebooks-title: "Notebooks"
+source-notebooks-prefix: "Kaynak"
+
 section-title-abstract: "Özet"
 section-title-appendices: "Ekler"
 section-title-footnotes: "Dipnotlar"
 section-title-references: "Referanslar"
 section-title-reuse: "Yeniden kullanın"
+section-title-copyright: "Telif hakkı"
 section-title-citation: "Alıntı"
 
 appendix-attribution-bibtex: "BibTeX"
@@ -25,6 +30,9 @@ callout-important-caption: "Önemli"
 callout-caution-caption: "Dikkat"
 
 code-summary: "Kod"
+
+code-line: "Satiri"
+code-lines: "Satırlar"
 
 code-tools-menu-caption: "Kod"
 code-tools-show-all-code: "Tüm Kodu Göster"

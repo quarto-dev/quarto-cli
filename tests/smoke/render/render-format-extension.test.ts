@@ -1,7 +1,7 @@
 /*
 * render-format-extension.test.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -21,7 +21,20 @@ testRender(
 
 // some PDF tests
 testRender(docs("extensions/format/academic/document.qmd"), "pdf", true);
-testRender(docs("extensions/format/academic/document.qmd"), "acm-pdf", true);
+testRender(
+  docs("extensions/format/academic/document.qmd"),
+  "acm-pdf",
+  true,
+  [],
+  {
+    teardown: async () => {
+      await Deno.remove(docs("extensions/format/academic/sensys-abstract.cls"));
+      await Deno.remove(
+        docs("extensions/format/academic/acm_proc_article-sp.cls"),
+      );
+    },
+  },
+);
 testRender(
   docs("extensions/format/academic/document.qmd"),
   "acs-pdf",

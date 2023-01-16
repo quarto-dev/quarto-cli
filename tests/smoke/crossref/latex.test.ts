@@ -1,7 +1,7 @@
 /*
 * latex.test.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -32,8 +32,12 @@ const subTableRegexes = [
 ];
 
 const theoremRegexes = [
-  /\\begin{theorem}[^]*?\\label{thm-line}[^]*?\\end{theorem}/,
+  /\\begin{theorem}[^]*?\\protect\\hypertarget{thm-line}{}\\label{thm-line}[^]*?\\end{theorem}/,
   /Theorem~\\ref{thm-line}/,
+];
+
+const theoremRegexesNo = [
+  /\\leavevmode\\vadjust pre{\\hypertarget{thm-line}{}}%/,
 ];
 
 testRender(allQmd.input, "latex", true, [
@@ -43,5 +47,7 @@ testRender(allQmd.input, "latex", true, [
     ...simpleTableRegexes,
     ...subTableRegexes,
     ...theoremRegexes,
+  ], [
+    ...theoremRegexesNo,
   ]),
 ]);

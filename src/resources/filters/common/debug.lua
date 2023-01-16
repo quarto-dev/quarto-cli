@@ -1,5 +1,5 @@
 -- debug.lua
--- Copyright (C) 2020 by RStudio, PBC
+-- Copyright (C) 2020-2022 Posit Software, PBC
 
 -- improved formatting for dumping tables
 function tdump (tbl, indent, refs)
@@ -11,7 +11,7 @@ function tdump (tbl, indent, refs)
     return
   end
 
-  if tbl.t then
+  if tbl.t and type(t) == "string" then
     print(string.rep("  ", indent) .. tbl.t)
   end
   local empty = true

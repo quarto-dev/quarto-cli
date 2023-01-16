@@ -1,0 +1,13 @@
+---
+title: "Quarto"
+format:
+  html:
+    toc: true
+    #self-contained: true
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["iframe[data-external=\"1\"]"]
+---
+{{< video https://www.youtube.com/embed/wo9vZccmqwc >}}

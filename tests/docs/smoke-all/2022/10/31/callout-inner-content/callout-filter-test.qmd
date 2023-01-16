@@ -1,0 +1,15 @@
+---
+title: Callout filter test
+filters:
+  - custom.lua
+---
+
+Some content here. I wonder about punctuation content.
+
+::: callout-note
+
+This is the title!
+
+This is the callout content.
+
+:::

@@ -1,0 +1,10 @@
+---
+title: "<%= title %> Example"
+filters:
+  - <%= filesafename %>
+---
+
+## Heading
+
+This filter adds formatting to heading text.
+

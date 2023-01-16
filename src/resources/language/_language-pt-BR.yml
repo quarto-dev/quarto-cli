@@ -1,11 +1,16 @@
 toc-title-document: "Índice"
 toc-title-website: "Nesta página"
 
+related-formats-title: "Outros formatos"
+related-notebooks-title: "Notebooks"
+source-notebooks-prefix: "Fonte"
+
 section-title-abstract: "Resumo"
 section-title-appendices: "Apêndices"
 section-title-footnotes: "Notas de rodapé"
 section-title-references: "Referências"
 section-title-reuse: "Reuso"
+section-title-copyright: "Direito autoral"
 section-title-citation: "Citação"
 
 appendix-attribution-bibtex: "BibTeX"
@@ -24,6 +29,9 @@ callout-important-caption: "Importante"
 callout-caution-caption: "Cuidado"
 
 code-summary: "Código"
+
+code-line: "Linha"
+code-lines: "Linhas"
 
 code-tools-menu-caption: "Código"
 code-tools-show-all-code: "Mostrar o código"

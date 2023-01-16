@@ -1,7 +1,7 @@
 /*
 * watch.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -106,8 +106,10 @@ export function watchProject(
         event.paths
           // filter out paths in hidden folders (e.g. .quarto, .git, .Rproj.user)
           .filter((path) => !path.startsWith(projDirHidden))
-          // filter out the output dir
-          .filter((path) => !path.startsWith(outputDir)),
+          // filter out the output dir if its distinct from the project dir
+          .filter((path) =>
+            outputDir === project.dir || !path.startsWith(outputDir)
+          ),
       );
 
       // return if there are no paths
@@ -351,6 +353,9 @@ export function watchProject(
     connect: devServer.connect,
     injectClient: (req: Request, file: Uint8Array, inputFile?: string) => {
       return devServer.injectClient(req, file, inputFile);
+    },
+    clientHtml: (req: Request, inputFile?: string) => {
+      return devServer.clientHtml(req, inputFile);
     },
     hasClients: () => devServer.hasClients(),
     reloadClients: async (output: boolean, reloadTarget?: string) => {

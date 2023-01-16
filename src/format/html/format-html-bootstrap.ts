@@ -1,7 +1,7 @@
 /*
 * format-html-bootstrap.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -13,11 +13,17 @@ import { formatResourcePath } from "../../core/resources.ts";
 import { findParent } from "../../core/html.ts";
 
 import {
+  kDisplayName,
+  kExtensionName,
+  kFormatLinks,
   kHtmlMathMethod,
   kIncludeInHeader,
   kLinkCitations,
+  kNotebookLinks,
   kQuartoTemplateParams,
+  kRelatedFormatsTitle,
   kSectionDivs,
+  kTargetFormat,
   kTocDepth,
   kTocLocation,
 } from "../../config/constants.ts";
@@ -52,6 +58,8 @@ import {
   HtmlPostProcessor,
   HtmlPostProcessResult,
   PandocInputTraits,
+  RenderedFormat,
+  RenderServices,
 } from "../../command/render/types.ts";
 import { processDocumentAppendix } from "./format-html-appendix.ts";
 import {
@@ -63,6 +71,18 @@ import {
 } from "./format-html-title.ts";
 import { kTemplatePartials } from "../../command/render/template.ts";
 import { TempContext } from "../../core/temp-types.ts";
+import {
+  isDocxOutput,
+  isHtmlOutput,
+  isIpynbOutput,
+  isMarkdownOutput,
+  isPdfOutput,
+  isPresentationOutput,
+} from "../../config/format.ts";
+import { basename } from "path/mod.ts";
+import { processNotebookEmbeds } from "./format-html-notebook.ts";
+import { projectContext } from "../../project/project-context.ts";
+import { ProjectContext } from "../../project/types.ts";
 
 export function formatPageLayout(format: Format) {
   return format.metadata[kPageLayout] as string || kPageLayoutArticle;
@@ -107,8 +127,9 @@ export function boostrapExtras(
   input: string,
   flags: PandocFlags,
   format: Format,
-  temp: TempContext,
+  services: RenderServices,
   offset?: string,
+  project?: ProjectContext,
 ): FormatExtras {
   const toc = hasTableOfContents(flags, format);
   const tocLocation = toc
@@ -158,7 +179,11 @@ export function boostrapExtras(
     sassLayers.push(titleSassLayer);
   }
   const includeInHeader: string[] = [];
-  const titleInclude = documentTitleIncludeInHeader(input, format, temp);
+  const titleInclude = documentTitleIncludeInHeader(
+    input,
+    format,
+    services.temp,
+  );
   if (titleInclude) {
     includeInHeader.push(titleInclude);
   }
@@ -189,7 +214,9 @@ export function boostrapExtras(
           input,
           format,
           flags,
+          services,
           offset,
+          project,
         ),
       ],
       [kHtmlFinalizers]: [
@@ -210,13 +237,22 @@ function bootstrapHtmlPostprocessor(
   input: string,
   format: Format,
   flags: PandocFlags,
+  services: RenderServices,
   offset?: string,
+  project?: ProjectContext,
 ): HtmlPostProcessor {
   return async (
     doc: Document,
-    _inputMedata: Metadata,
-    inputTraits: PandocInputTraits,
+    options: {
+      inputMetadata: Metadata;
+      inputTraits: PandocInputTraits;
+      renderedFormats: RenderedFormat[];
+    },
   ): Promise<HtmlPostProcessResult> => {
+    // Resources used in this post processor
+    const resources: string[] = [];
+    const supporting: string[] = [];
+
     // use display-7 style for title
     const title = doc.querySelector("header > .title");
     if (title) {
@@ -296,6 +332,27 @@ function bootstrapHtmlPostprocessor(
       tocTarget?.remove();
     }
 
+    // Inject links to other formats if there is another
+    // format that of this file that has been rendered
+    if (format.render[kFormatLinks] !== false) {
+      processAlternateFormatLinks(options, doc, format, resources);
+    }
+
+    // Look for included / embedded notebooks and include those
+    if (format.render[kNotebookLinks] !== false) {
+      const notebookResults = await processNotebookEmbeds(
+        input,
+        doc,
+        format,
+        services,
+        project,
+      );
+      if (notebookResults) {
+        resources.push(...notebookResults.resources);
+        supporting.push(...notebookResults.supporting);
+      }
+    }
+
     // default treatment for computational tables
     const addTableClasses = (table: Element, computational = false) => {
       table.classList.add("table");
@@ -356,7 +413,6 @@ function bootstrapHtmlPostprocessor(
     }
 
     // Process the title elements of this document
-    const resources: string[] = [];
     const titleResourceFiles = processDocumentTitle(
       input,
       format,
@@ -372,17 +428,134 @@ function bootstrapHtmlPostprocessor(
     ) {
       await processDocumentAppendix(
         input,
-        inputTraits,
+        options.inputTraits,
         format,
         flags,
         doc,
         offset,
       );
     }
-
     // no resource refs
-    return Promise.resolve({ resources, supporting: [] });
+    return Promise.resolve({ resources, supporting });
   };
+}
+
+// Provides a download name for a format/path
+const fileDownloadAttr = (format: Format, path: string) => {
+  if (isIpynbOutput(format.pandoc)) {
+    return basename(path);
+  } else {
+    return undefined;
+  }
+};
+
+// Provides an icon for a format
+const fileBsIconName = (format: Format) => {
+  if (isDocxOutput(format.pandoc)) {
+    return "file-word";
+  } else if (isPdfOutput(format.pandoc)) {
+    return "file-pdf";
+  } else if (isIpynbOutput(format.pandoc)) {
+    return "journal-code";
+  } else if (isMarkdownOutput(format.pandoc)) {
+    return "file-code";
+  } else if (isPresentationOutput(format.pandoc)) {
+    return "file-slides";
+  } else {
+    return "file";
+  }
+};
+
+function processAlternateFormatLinks(
+  options: {
+    inputMetadata: Metadata;
+    inputTraits: PandocInputTraits;
+    renderedFormats: RenderedFormat[];
+  },
+  doc: Document,
+  format: Format,
+  resources: string[],
+) {
+  if (options.renderedFormats.length > 1) {
+    let dlLinkTarget = doc.querySelector(`nav[role="doc-toc"]`);
+    if (dlLinkTarget === null) {
+      dlLinkTarget = doc.getElementById(kMarginSidebarId);
+    }
+    if (dlLinkTarget) {
+      const containerEl = doc.createElement("div");
+      containerEl.classList.add("quarto-alternate-formats");
+
+      const heading = doc.createElement("h2");
+      if (format.language[kRelatedFormatsTitle]) {
+        heading.innerText = format.language[kRelatedFormatsTitle];
+      }
+      containerEl.appendChild(heading);
+
+      const formatList = doc.createElement("ul");
+
+      const formats = Array.isArray(format.render[kFormatLinks])
+        ? format.render[kFormatLinks]
+        : undefined;
+
+      const displayFormats = formats
+        ? options.renderedFormats.filter((renderedFormat) => {
+          const name = renderedFormat.format.identifier[kTargetFormat];
+          return !formats || (name && formats.includes(name));
+        }).sort((a, b) => {
+          if (
+            a.format.identifier[kTargetFormat] &&
+            b.format.identifier[kTargetFormat]
+          ) {
+            const aIdx = formats.indexOf(a.format.identifier[kTargetFormat]);
+            const bIdx = formats.indexOf(b.format.identifier[kTargetFormat]);
+            return aIdx - bIdx;
+          } else {
+            return 0;
+          }
+        })
+        : options.renderedFormats;
+
+      for (const renderedFormat of displayFormats) {
+        if (!isHtmlOutput(renderedFormat.format.pandoc, true)) {
+          const li = doc.createElement("li");
+
+          const link = doc.createElement("a");
+          link.setAttribute("href", renderedFormat.path);
+          const dlAttrValue = fileDownloadAttr(
+            renderedFormat.format,
+            renderedFormat.path,
+          );
+          if (dlAttrValue) {
+            link.setAttribute("download", dlAttrValue);
+          }
+
+          const icon = doc.createElement("i");
+          icon.classList.add("bi");
+          icon.classList.add(`bi-${fileBsIconName(renderedFormat.format)}`);
+          link.appendChild(icon);
+          link.appendChild(
+            doc.createTextNode(
+              `${
+                renderedFormat.format.identifier[kDisplayName] ||
+                renderedFormat.format.pandoc.to
+              }${
+                renderedFormat.format.identifier[kExtensionName]
+                  ? ` (${renderedFormat.format.identifier[kExtensionName]})`
+                  : ""
+              }`,
+            ),
+          );
+
+          li.appendChild(link);
+          formatList.appendChild(li);
+
+          resources.push(renderedFormat.path);
+        }
+      }
+      containerEl.appendChild(formatList);
+      dlLinkTarget.appendChild(containerEl);
+    }
+  }
 }
 
 function bootstrapHtmlFinalizer(format: Format, flags: PandocFlags) {
@@ -581,7 +754,10 @@ const processMarginNodes = (
 };
 
 const findQuartoFigure = (el: Element): Element | undefined => {
-  if (el.classList.contains("quarto-figure")) {
+  if (
+    el.classList.contains("quarto-figure") ||
+    el.classList.contains("quarto-layout-panel")
+  ) {
     return el;
   } else if (el.parentElement) {
     return findQuartoFigure(el.parentElement);
@@ -931,6 +1107,27 @@ const marginContainerForEl = (el: Element, doc: Document) => {
       }
       return container;
     }
+  }
+
+  // Find the callout parent and create a container for the callout there
+  // Walks up the parent stack until a callout element is found
+  const findCalloutEl = (el: Element): Element | undefined => {
+    if (el.parentElement?.classList.contains("callout")) {
+      return el.parentElement;
+    } else if (el.parentElement) {
+      return findCalloutEl(el.parentElement);
+    } else {
+      return undefined;
+    }
+  };
+  const calloutEl = findCalloutEl(el);
+  if (calloutEl) {
+    const container = createMarginContainer(doc);
+    calloutEl.parentNode?.insertBefore(
+      container,
+      calloutEl.nextElementSibling,
+    );
+    return container;
   }
 
   // Deal with a paragraph

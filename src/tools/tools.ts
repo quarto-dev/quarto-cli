@@ -1,7 +1,7 @@
 /*
 * install.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -17,14 +17,15 @@ import {
   ToolSummaryData,
 } from "./types.ts";
 import { tinyTexInstallable } from "./impl/tinytex.ts";
-import { chromiumInstallable } from "./impl/chromium.ts";
+// import { chromiumInstallable } from "./impl/chromium.ts";
 import { downloadWithProgress } from "../core/download.ts";
 import { Confirm } from "cliffy/prompt/mod.ts";
 
 // The tools that are available to install
 const kInstallableTools: { [key: string]: InstallableTool } = {
   tinytex: tinyTexInstallable,
-  chromium: chromiumInstallable,
+  // temporarily disabled until deno 1.28.* gets puppeteer support
+  // chromium: chromiumInstallable,
 };
 
 export async function allTools(): Promise<{

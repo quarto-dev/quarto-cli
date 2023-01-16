@@ -1,7 +1,7 @@
 /*
 * pandoc-partition.test.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 import { assert } from "testing/asserts.ts";

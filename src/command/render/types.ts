@@ -1,7 +1,7 @@
 /*
 * types.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -47,6 +47,7 @@ export interface RenderContext {
   format: Format;
   libDir: string;
   project?: ProjectContext;
+  active: boolean;
 }
 
 export interface RunPandocResult {
@@ -64,8 +65,11 @@ export interface PandocInputTraits {
 
 export type HtmlPostProcessor = (
   doc: Document,
-  inputMedata: Metadata,
-  inputTraits: PandocInputTraits,
+  options: {
+    inputMetadata: Metadata;
+    inputTraits: PandocInputTraits;
+    renderedFormats: RenderedFormat[];
+  },
 ) => Promise<HtmlPostProcessResult>;
 
 export interface HtmlPostProcessResult {
@@ -125,7 +129,15 @@ export interface PandocRenderer {
     file: ExecutedFile,
     quiet: boolean,
   ) => Promise<void>;
+  onPostProcess: (
+    renderedFormats: RenderedFormat[],
+  ) => Promise<void>;
   onComplete: (error?: boolean, quiet?: boolean) => Promise<RenderFilesResult>;
+}
+
+export interface RenderedFormat {
+  path: string;
+  format: Format;
 }
 
 export interface RenderFile {
@@ -149,6 +161,9 @@ export interface PandocOptions {
   // output file that will be written
   output: string;
 
+  // is the keepYaml flag set
+  keepYaml: boolean;
+
   // mediabag directory
   mediabagDir: string;
 
@@ -161,17 +176,14 @@ export interface PandocOptions {
   // command line args for pandoc
   args: string[];
 
-  // temp context
-  temp: TempContext;
+  // the render services
+  services: RenderServices;
 
   // extra metadata to merge
   metadata?: Metadata;
 
   // optoinal project context
   project?: ProjectContext;
-
-  // optional extension context
-  extension?: ExtensionContext;
 
   // quiet quarto pandoc informational output
   quiet?: boolean;
@@ -209,6 +221,8 @@ export interface RenderFlags extends PandocFlags {
 export interface OutputRecipe {
   // --output file that pandoc will produce
   output: string;
+  // are we implementing keepYaml
+  keepYaml: boolean;
   // transformed pandoc args reflecting 'output'
   args: string[];
   // modifications to format spec
@@ -217,4 +231,7 @@ export interface OutputRecipe {
   // can optionally return an alternate output path. passed the actual
   // options used to run pandoc (for deducing e.g. pdf engine options)
   complete: (options: PandocOptions) => Promise<string | void>;
+
+  // The final output for the recipe (if different than the output itself)
+  finalOutput?: string;
 }

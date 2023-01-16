@@ -1,7 +1,7 @@
 /*
 * http.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -88,12 +88,18 @@ export function httpFileRequestHandler(
         : { print: true, response: { body: encoder.encode("Not Found") } };
 
       // Ignore 404s from specific files
-      const ignoreFileNames = ["favicon.ico", "listings.json"];
+      const ignoreFileNames = [
+        "favicon.ico",
+        "listings.json",
+        /jupyter-.*.js/,
+      ];
 
       handle404.print = handle404.print &&
         !!options.printUrls &&
         (!fsPath || (
-          !ignoreFileNames.includes(basename(fsPath)) &&
+          !ignoreFileNames.find((name) => {
+            return basename(fsPath).match(name);
+          }) &&
           extname(fsPath) !== ".map"
         ));
       if (handle404.print) {
@@ -224,7 +230,7 @@ export function normalizeURL(url: string): string {
     : normalizedUrl;
 }
 
-export function isBrowserPreviewable(file: string) {
+export function isBrowserPreviewable(file?: string) {
   return (
     isHtmlContent(file) ||
     isPdfContent(file) ||

@@ -1,7 +1,7 @@
 /*
 * formats-shared.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -16,6 +16,7 @@ import {
   kCodeTools,
   kDefaultImageExtension,
   kDfPrint,
+  kDisplayName,
   kEcho,
   kError,
   kEval,
@@ -42,7 +43,6 @@ import {
   kKeepMd,
   kKeepSource,
   kKeepTex,
-  kKeepYaml,
   kLang,
   kLatexAutoInstall,
   kLatexAutoMk,
@@ -75,9 +75,13 @@ import { Format } from "../config/types.ts";
 import { formatResourcePath } from "../core/resources.ts";
 import { quartoConfig } from "../core/quarto.ts";
 
-export function createFormat(ext: string, ...formats: Array<unknown>): Format {
+export function createFormat(
+  displayName: string,
+  ext: string,
+  ...formats: Array<unknown>
+): Format {
   return mergeConfigs(
-    defaultFormat(),
+    defaultFormat(displayName),
     ...formats,
     {
       render: {
@@ -88,10 +92,11 @@ export function createFormat(ext: string, ...formats: Array<unknown>): Format {
 }
 
 export function createHtmlFormat(
+  displayName: string,
   figwidth: number,
   figheight: number,
 ) {
-  return createFormat("html", {
+  return createFormat(displayName, "html", {
     metadata: {
       [kLang]: "en",
       [kFigResponsive]: true,
@@ -114,11 +119,12 @@ export function createHtmlFormat(
 }
 
 export function createHtmlPresentationFormat(
+  displayName: string,
   figwidth: number,
   figheight: number,
 ): Format {
   return mergeConfigs(
-    createHtmlFormat(figwidth, figheight),
+    createHtmlFormat(displayName, figwidth, figheight),
     {
       metadata: {
         [kFigResponsive]: false,
@@ -131,8 +137,8 @@ export function createHtmlPresentationFormat(
   );
 }
 
-export function createEbookFormat(ext: string): Format {
-  return createFormat(ext, {
+export function createEbookFormat(displayName: string, ext: string): Format {
+  return createFormat(displayName, ext, {
     formatExtras: () => {
       return {
         [kIncludeInHeader]: [
@@ -154,8 +160,11 @@ export function createEbookFormat(ext: string): Format {
   });
 }
 
-export function createWordprocessorFormat(ext: string): Format {
-  return createFormat(ext, {
+export function createWordprocessorFormat(
+  displayName: string,
+  ext: string,
+): Format {
+  return createFormat(displayName, ext, {
     render: {
       [kPageWidth]: 6.5,
     },
@@ -169,8 +178,20 @@ export function createWordprocessorFormat(ext: string): Format {
   });
 }
 
-function defaultFormat(): Format {
+export function plaintextFormat(displayName: string, ext: string): Format {
+  return createFormat(displayName, ext, {
+    pandoc: {
+      standalone: true,
+      [kDefaultImageExtension]: "png",
+    },
+  });
+}
+
+function defaultFormat(displayName: string): Format {
   return {
+    identifier: {
+      [kDisplayName]: displayName,
+    },
     execute: {
       [kFigWidth]: 7,
       [kFigHeight]: 5,
@@ -197,7 +218,6 @@ function defaultFormat(): Format {
     },
     render: {
       [kKeepTex]: false,
-      [kKeepYaml]: false,
       [kKeepSource]: false,
       [kKeepHidden]: false,
       [kPreferHtml]: false,

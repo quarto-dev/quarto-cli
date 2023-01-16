@@ -1,7 +1,7 @@
 /*
 * flags.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 import { existsSync } from "fs/mod.ts";
@@ -11,6 +11,8 @@ import { readYaml, readYamlFromString } from "../../core/yaml.ts";
 import { mergeConfigs } from "../../core/config.ts";
 
 import {
+  kAuthor,
+  kDate,
   kEmbedResources,
   kListings,
   kNumberOffset,
@@ -28,7 +30,7 @@ import { RenderFlags, RenderOptions } from "./types.ts";
 
 import * as ld from "../../core/lodash.ts";
 
-import { SEP_PATTERN } from "path/mod.ts";
+import { isAbsolute, SEP_PATTERN } from "path/mod.ts";
 
 export const kStdOut = "-";
 
@@ -212,7 +214,14 @@ export async function parseRenderFlags(args: string[]) {
 
       case "--execute-dir":
         arg = argsStack.shift();
-        flags.executeDir = arg;
+        if (arg) {
+          if (isAbsolute(arg)) {
+            flags.executeDir = arg;
+          } else {
+            flags.executeDir = Deno.realPathSync(arg);
+          }
+        }
+
         break;
 
       case "--execute-daemon":
@@ -478,7 +487,10 @@ function removeQuartoMetadataFlags(pandocArgs: string[]) {
     const arg = pandocArgs[i];
     if (arg === "--metadata" || arg === "-M") {
       const flagValue = parseMetadataFlagValue(pandocArgs[i + 1] || "");
-      if (flagValue !== undefined && isQuartoMetadata(flagValue.name)) {
+      if (
+        flagValue !== undefined && (isQuartoMetadata(flagValue.name) ||
+          kQuartoForwardedMetadataFields.includes(flagValue.name))
+      ) {
         i++;
       } else {
         args.push(arg);
@@ -489,6 +501,7 @@ function removeQuartoMetadataFlags(pandocArgs: string[]) {
   }
   return args;
 }
+export const kQuartoForwardedMetadataFields = [kAuthor, kDate];
 
 function parseMetadataFlagValue(
   arg: string,

@@ -1,7 +1,7 @@
 /*
 * format-html.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 import { join } from "path/mod.ts";
@@ -20,12 +20,15 @@ import {
   kCodeLink,
   kFigResponsive,
   kFilterParams,
+  kFormatLinks,
   kHeaderIncludes,
   kIncludeAfterBody,
   kIncludeInHeader,
   kLinkExternalFilter,
   kLinkExternalIcon,
   kLinkExternalNewwindow,
+  kNotebookLinks,
+  kNotebookViewStyle,
   kTheme,
 } from "../../config/constants.ts";
 
@@ -60,6 +63,7 @@ import {
   kAnchorSections,
   kBootstrapDependencyName,
   kCitationsHover,
+  kCodeAnnotations,
   kCodeCopy,
   kComments,
   kDocumentCss,
@@ -79,21 +83,33 @@ import {
   kSiteUrl,
   kWebsite,
 } from "../../project/types/website/website-constants.ts";
-import { HtmlPostProcessResult } from "../../command/render/types.ts";
+import {
+  HtmlPostProcessResult,
+  RenderServices,
+} from "../../command/render/types.ts";
 import {
   getDiscussionCategoryId,
   getGithubDiscussionsMetadata,
 } from "../../core/giscus.ts";
 import { metadataPostProcessor } from "./format-html-meta.ts";
 import { kHtmlEmptyPostProcessResult } from "../../command/render/constants.ts";
+import {
+  kNotebookViewStyleNotebook,
+  notebookViewPostProcessor,
+} from "./format-html-notebook.ts";
+import { ProjectContext } from "../../project/types.ts";
 
 export function htmlFormat(
   figwidth: number,
   figheight: number,
 ): Format {
   return mergeConfigs(
-    createHtmlFormat(figwidth, figheight),
+    createHtmlFormat("HTML", figwidth, figheight),
     {
+      render: {
+        [kNotebookLinks]: true,
+        [kFormatLinks]: true,
+      },
       resolveFormat: (format: Format) => {
         if (format.metadata[kMinimal] === true) {
           if (format.metadata[kFigResponsive] === undefined) {
@@ -110,13 +126,14 @@ export function htmlFormat(
         flags: PandocFlags,
         format: Format,
         _libDir: string,
-        temp: TempContext,
+        services: RenderServices,
         offset: string,
+        project: ProjectContext,
       ) => {
         const htmlFilterParams = htmlFormatFilterParams(format);
         return mergeConfigs(
-          await htmlFormatExtras(input, flags, offset, format, temp),
-          themeFormatExtras(input, flags, format, temp, offset),
+          await htmlFormatExtras(input, flags, offset, format, services.temp),
+          themeFormatExtras(input, flags, format, services, offset, project),
           { [kFilterParams]: htmlFilterParams },
         );
       },
@@ -138,6 +155,7 @@ export interface HtmlFormatFeatureDefaults {
   hoverCitations?: boolean;
   hoverFootnotes?: boolean;
   figResponsive?: boolean;
+  codeAnnotations?: boolean;
 }
 
 export interface HtmlFormatTippyOptions {
@@ -241,6 +259,12 @@ export async function htmlFormatExtras(
   } else {
     options.figResponsive = format.metadata[kFigResponsive] || false;
   }
+  if (featureDefaults.codeAnnotations) {
+    options.codeAnnotations = format.metadata[kCodeAnnotations];
+  } else {
+    options.codeAnnotations = format.metadata[kCodeAnnotations] || false;
+  }
+
   options.zenscroll = format.metadata[kSmoothScroll];
   options.codeTools = formatHasCodeTools(format);
   options.darkMode = formatDarkMode(format);
@@ -297,7 +321,8 @@ export async function htmlFormatExtras(
   }
 
   // popper if required
-  options.tippy = options.hoverCitations || options.hoverFootnotes;
+  options.tippy = options.hoverCitations || options.hoverFootnotes ||
+    options.codeAnnotations;
   if (bootstrap || options.tippy) {
     scripts.push({
       name: "popper.min.js",
@@ -513,6 +538,15 @@ export async function htmlFormatExtras(
     partials: partials.map((partial) => join(templateDir, partial)),
   };
 
+  const htmlPostProcessors = [
+    htmlFormatPostprocessor(format, featureDefaults),
+    metadataPostProcessor(input, format, offset),
+  ];
+  const viewStyle = format.render[kNotebookViewStyle];
+  if (viewStyle === kNotebookViewStyleNotebook) {
+    htmlPostProcessors.push(notebookViewPostProcessor());
+  }
+
   const metadata: Metadata = {};
   return {
     [kIncludeInHeader]: includeInHeader,
@@ -522,10 +556,7 @@ export async function htmlFormatExtras(
     html: {
       [kDependencies]: dependencies,
       [kSassBundles]: sassBundles,
-      [kHtmlPostprocessors]: [
-        htmlFormatPostprocessor(format, featureDefaults),
-        metadataPostProcessor(input, format, offset),
-      ],
+      [kHtmlPostprocessors]: htmlPostProcessors,
     },
   };
 }
@@ -549,6 +580,7 @@ function htmlFormatFeatureDefaults(
     hoverCitations: !minimal,
     hoverFootnotes: !minimal,
     figResponsive: !minimal,
+    codeAnnotations: !minimal,
   };
 }
 
@@ -656,17 +688,195 @@ function htmlFormatPostprocessor(
       }
     }
 
+    // Process code annotations that may appear in this document
+    processCodeAnnotations(format, doc);
+
     // no resource refs
     return Promise.resolve(kHtmlEmptyPostProcessResult);
   };
+}
+
+const kCodeCellAttr = "data-code-cell";
+const kCodeLinesAttr = "data-code-lines";
+const kCodeAnnotationAttr = "data-code-annotation";
+
+const kCodeCellTargetAttr = "data-target-cell";
+const kCodeAnnotationTargetAttr = "data-target-annotation";
+
+const kCodeAnnotationHiddenClz = "code-annotation-container-hidden";
+const kCodeAnnotationGridClz = "code-annotation-container-grid";
+const kCodeAnnotationAnchorClz = "code-annotation-anchor";
+const kCodeAnnotationTargetClz = "code-annotation-target";
+
+const kCodeAnnotationGutterClz = "code-annotation-gutter";
+const kCodeAnnotationGutterBgClz = "code-annotation-gutter-bg";
+
+function processCodeAnnotations(format: Format, doc: Document) {
+  const annotationStyle: boolean | string = format.metadata[kCodeAnnotations] as
+    | string
+    | boolean;
+
+  const replaceLineNumberWithAnnote = (annoteEl: Element, dtEl: Element) => {
+    const annotation = annoteEl.getAttribute(kCodeAnnotationAttr);
+    if (annotation !== null) {
+      const ddEl = dtEl.previousElementSibling;
+      if (ddEl) {
+        ddEl.innerHTML = "";
+        ddEl.innerText = annotation;
+        const codeCell = annoteEl.getAttribute(kCodeCellAttr);
+        if (codeCell) {
+          ddEl.setAttribute(kCodeCellTargetAttr, codeCell);
+          ddEl.setAttribute(kCodeAnnotationTargetAttr, annotation);
+        }
+      }
+    }
+  };
+
+  if (annotationStyle === false) {
+    // Read the definition list values which contain the annotations
+    const annoteNodes = doc.querySelectorAll(`span[${kCodeCellAttr}]`);
+
+    // annotations are disabled, just hide the DL container
+    for (const annoteNode of annoteNodes) {
+      const annoteEl = annoteNode as Element;
+
+      // Mark the parent DL container with a class
+      // so CSS can target it
+      const parentDL = annoteEl.parentElement?.parentElement;
+      if (
+        parentDL && !parentDL.classList.contains(kCodeAnnotationHiddenClz)
+      ) {
+        parentDL.classList.add(kCodeAnnotationHiddenClz);
+      }
+    }
+  } else if (annotationStyle === "hover" || annotationStyle === "select") {
+    const definitionLists = processCodeBlockAnnotation(
+      doc,
+      true,
+      "start",
+      replaceLineNumberWithAnnote,
+    );
+
+    Object.values(definitionLists).forEach((dl) => {
+      dl.classList.add(kCodeAnnotationHiddenClz);
+      dl.classList.add(kCodeAnnotationGridClz);
+    });
+  } else {
+    const definitionLists = processCodeBlockAnnotation(
+      doc,
+      false,
+      "start",
+      replaceLineNumberWithAnnote,
+    );
+
+    Object.values(definitionLists).forEach((dl) => {
+      dl.classList.add(kCodeAnnotationGridClz);
+    });
+  }
+}
+
+// returns DLs that were processed
+
+function processCodeBlockAnnotation(
+  doc: Document,
+  interactiveAnnotations: boolean,
+  annotationPosition: "start" | "middle",
+  processDt?: (annotationEl: Element, dtEl: Element) => void,
+) {
+  const definitionLists: Record<string, Element> = {};
+  const codeBlockParents: Element[] = [];
+
+  // Read the definition list values which contain the annotations
+  const annoteNodes = doc.querySelectorAll(`span[${kCodeCellAttr}]`);
+  for (const annoteNode of annoteNodes) {
+    const annoteEl = annoteNode as Element;
+
+    // Accumulate the Code Blocks
+    const parentCodeBlock = processLineAnnotation(
+      doc,
+      annoteEl,
+      interactiveAnnotations,
+      annotationPosition,
+    );
+    if (parentCodeBlock && !codeBlockParents.includes(parentCodeBlock)) {
+      codeBlockParents.push(parentCodeBlock);
+    }
+
+    // Accumulate the Definition Lists
+    const parentDL = annoteEl.parentElement?.parentElement;
+    const codeParentDivId = parentCodeBlock?.parentElement?.parentElement?.id;
+    if (
+      parentDL && codeParentDivId &&
+      !Object.keys(definitionLists).includes(codeParentDivId)
+    ) {
+      definitionLists[codeParentDivId] = parentDL;
+    }
+
+    if (annoteEl.parentElement && processDt) {
+      processDt(annoteEl, annoteEl.parentElement);
+    }
+  }
+
+  // Inject a gutter for the annotations
+  for (const codeParentEl of codeBlockParents) {
+    const gutterBgDivEl = doc.createElement("div");
+    gutterBgDivEl.classList.add(kCodeAnnotationGutterBgClz);
+    codeParentEl?.appendChild(gutterBgDivEl);
+
+    const gutterDivEl = doc.createElement("div");
+    gutterDivEl.classList.add(kCodeAnnotationGutterClz);
+    codeParentEl?.appendChild(gutterDivEl);
+  }
+
+  return definitionLists;
+}
+
+function processLineAnnotation(
+  doc: Document,
+  annoteEl: Element,
+  interactive: boolean,
+  position: "start" | "middle",
+) {
+  // Read the target values from the annotation DL
+  const targetCell = annoteEl.getAttribute(kCodeCellAttr);
+  const targetLines = annoteEl.getAttribute(kCodeLinesAttr);
+  const targetAnnotation = annoteEl.getAttribute(kCodeAnnotationAttr);
+  if (targetCell && targetLines) {
+    const lineArr = targetLines?.split(",");
+
+    const targetIndex = position === "start"
+      ? 0
+      : Math.floor(lineArr.length / 2);
+    const line = lineArr[targetIndex];
+
+    const targetId = `${targetCell}-${line}`;
+    const targetEl = doc.getElementById(targetId);
+    if (targetEl) {
+      const annoteAnchorEl = doc.createElement(interactive ? "button" : "a");
+      annoteAnchorEl.classList.add(kCodeAnnotationAnchorClz);
+      annoteAnchorEl.setAttribute(
+        kCodeCellTargetAttr,
+        `${targetCell}`,
+      );
+      annoteAnchorEl.setAttribute(
+        kCodeAnnotationTargetAttr,
+        `${targetAnnotation}`,
+      );
+      annoteAnchorEl.innerText = targetAnnotation || "?";
+      targetEl.parentElement?.insertBefore(annoteAnchorEl, targetEl);
+      targetEl.classList.add(kCodeAnnotationTargetClz);
+      return targetEl.parentElement;
+    }
+  }
 }
 
 function themeFormatExtras(
   input: string,
   flags: PandocFlags,
   format: Format,
-  temp: TempContext,
+  sevices: RenderServices,
   offset?: string,
+  project?: ProjectContext,
 ) {
   const theme = format.metadata[kTheme];
   if (theme === "none") {
@@ -678,7 +888,7 @@ function themeFormatExtras(
   } else if (theme === "pandoc") {
     return pandocExtras(format);
   } else {
-    return boostrapExtras(input, flags, format, temp, offset);
+    return boostrapExtras(input, flags, format, sevices, offset, project);
   }
 }
 

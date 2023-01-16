@@ -1,7 +1,7 @@
 /*
 * render-shared.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -178,8 +178,14 @@ export async function printBrowsePreviewMessage(
     info(`\nPreview server: ${previewURL(host, port, path = "")}`);
     info(`\nBrowse at ${url}`, { format: colors.green });
   } else if (isVSCodeTerminal() && isVSCodeServer()) {
-    const browseUrl = vsCodeServerProxyUri()!.replace("{{port}}", `${port}`) +
-      "/" + path;
+    const proxyUrl = vsCodeServerProxyUri()!;
+    if (proxyUrl.endsWith("/")) {
+      path = path.startsWith("/") ? path.slice(1) : path;
+    } else {
+      path = path.startsWith("/") ? path : "/" + path;
+    }
+    const browseUrl = proxyUrl.replace("{{port}}", `${port}`) +
+      path;
     info(`\nBrowse at ${browseUrl}`, { format: colors.green });
   } else if (isJupyterHubServer()) {
     const httpReferrer = `${

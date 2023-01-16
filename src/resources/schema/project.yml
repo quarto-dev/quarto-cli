@@ -44,6 +44,12 @@
           description: "Scripts to run as a post-render step"
           schema:
             maybeArrayOf: string
+        detect:
+          description: "Array of paths used to detect the project type within a directory"
+          schema:
+            arrayOf:
+              arrayOf: string
+          hidden: true
 
 - name: website
   description: Website configuration.

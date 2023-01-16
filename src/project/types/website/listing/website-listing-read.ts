@@ -2,11 +2,18 @@
 * website-listing-resolve.ts
 .ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
-import { warning } from "log/mod.ts";
-import { basename, dirname, join, relative } from "path/mod.ts";
+import { debug, warning } from "log/mod.ts";
+import {
+  basename,
+  dirname,
+  extname,
+  isAbsolute,
+  join,
+  relative,
+} from "path/mod.ts";
 import { cloneDeep, orderBy } from "../../../../core/lodash.ts";
 import { existsSync } from "fs/mod.ts";
 
@@ -15,6 +22,7 @@ import {
   filterPaths,
   pathWithForwardSlashes,
   resolvePathGlobs,
+  safeExistsSync,
 } from "../../../../core/path.ts";
 import {
   inputTargetIndex,
@@ -29,10 +37,12 @@ import {
 import {
   ColumnType,
   kCategoryStyle,
+  kDefaultMaxDescLength,
   kFeed,
   kFieldAuthor,
   kFieldCategories,
   kFieldDate,
+  kFieldDateModified,
   kFieldDescription,
   kFieldDisplayNames,
   kFieldFileModified,
@@ -73,6 +83,7 @@ import {
   renderedContentReader,
 } from "./website-listing-shared.ts";
 import {
+  kDateModified,
   kListingPageFieldAuthor,
   kListingPageFieldCategories,
   kListingPageFieldDate,
@@ -127,6 +138,7 @@ const defaultFieldDisplayNames = (format: Format) => {
     [kFieldDescription]: format.language[kListingPageFieldDescription] || "",
     [kFieldAuthor]: format.language[kListingPageFieldAuthor] || "",
     [kFieldFileName]: format.language[kListingPageFieldFileName] || "",
+    [kFieldDateModified]: format.language[kListingPageFieldFileModified] || "",
     [kFieldFileModified]: format.language[kListingPageFieldFileModified] || "",
     [kFieldSubtitle]: format.language[kListingPageFieldSubtitle] || "",
     [kFieldReadingTime]: format.language[kListingPageFieldReadingTime] || "",
@@ -137,6 +149,7 @@ const defaultFieldDisplayNames = (format: Format) => {
 const kDefaultFieldTypes: Record<string, ColumnType> = {
   [kFieldDate]: "date",
   [kFieldFileModified]: "date",
+  [kFieldDateModified]: "date",
   [kFieldReadingTime]: "minutes",
 };
 const kDefaultFieldLinks = [kFieldTitle, kFieldFileName];
@@ -272,9 +285,11 @@ export function completeListingDescriptions(
   outputFiles: ProjectOutputFile[],
   _incremental: boolean,
 ) {
-  const contentReader = renderedContentReader(context, {
+  const options = {
     remove: { links: true, images: true },
-  });
+  };
+
+  const contentReader = renderedContentReader(context, options);
 
   // Go through any output files and fix up any feeds associated with them
   outputFiles.forEach((outputFile) => {
@@ -290,11 +305,17 @@ export function completeListingDescriptions(
       while (match) {
         // For each placeholder, get its target href, then read the contents of that
         // file and inject the contents.
-        const relativePath = match[1];
+        const maxDescLength = parseInt(match[1]);
+        const relativePath = match[2];
         const absolutePath = join(projectOutputDir(context), relativePath);
-        const placeholder = descriptionPlaceholder(relativePath);
+        const placeholder = descriptionPlaceholder(relativePath, maxDescLength);
         if (existsSync(absolutePath)) {
-          const contents = contentReader(absolutePath);
+          // Truncate the description if need be
+          const options = maxDescLength > 0
+            ? { "max-length": maxDescLength }
+            : {};
+          const contents = contentReader(absolutePath, options);
+
           fileContents = fileContents.replace(
             placeholder,
             contents.firstPara || "",
@@ -319,11 +340,16 @@ export function completeListingDescriptions(
   });
 }
 
-function descriptionPlaceholder(file?: string): string {
-  return file ? `<!-- desc(5A0113B34292):${file} -->` : "";
+function descriptionPlaceholder(file?: string, maxLength?: number): string {
+  return file ? `<!-- desc(5A0113B34292)[max=${maxLength}]:${file} -->` : "";
 }
 
-const descriptionPlaceholderRegex = /<!-- desc\(5A0113B34292\):(.*) -->/;
+export function isPlaceHolder(text: string) {
+  return text.match(descriptionPlaceholderRegex);
+}
+
+const descriptionPlaceholderRegex =
+  /<!-- desc\(5A0113B34292\)\[max\=(.*)\]:(.*) -->/;
 
 function hydrateListing(
   format: Format,
@@ -356,7 +382,7 @@ function hydrateListing(
     if (sources.size === 1 && sources.has(ListingItemSource.rawfile)) {
       // If all the items are raw files, we should just show file info
       return [kFieldFileName, kFieldFileModified];
-    } else if (sources.has(ListingItemSource.metadata)) {
+    } else if (!sources.has(ListingItemSource.document)) {
       // If the items have come from metadata, we should just show
       // all the columns in the table. Otherwise, we should use the
       // document default columns
@@ -455,7 +481,8 @@ function hydrateListing(
   if (listing.type === ListingType.Grid) {
     listingHydrated[kGridColumns] = listingHydrated[kGridColumns] || 3;
     listingHydrated[kImageHeight] = listingHydrated[kImageHeight] || "150px";
-    listingHydrated[kMaxDescLength] = listingHydrated[kMaxDescLength] || 175;
+    listingHydrated[kMaxDescLength] = listingHydrated[kMaxDescLength] ||
+      kDefaultMaxDescLength;
   } else if (listing.type === ListingType.Default) {
     listingHydrated[kImageAlign] = listingHydrated[kImageAlign] || "right";
   } else if (listing.type === ListingType.Table) {
@@ -489,6 +516,13 @@ async function readContents(
   project: ProjectContext,
   listing: ListingDehydrated,
 ) {
+  debug(`[listing] Reading listing '${listing.id}' from ${source}`);
+  debug(`[listing] Contents: ${
+    listing.contents.map((lst) => {
+      return typeof (lst) === "string" ? lst : "<yaml>";
+    }).join(",")
+  }`);
+
   const listingItems: ListingItem[] = [];
   const listingItemSources = new Set<ListingItemSource>();
 
@@ -499,86 +533,141 @@ async function readContents(
     file !== source
   );
 
-  const filterListingFiles = (globOrPath: string) => {
-    const isDefaultGlob = globOrPath === kDefaultContentsGlobToken;
-    if (isDefaultGlob) {
-      globOrPath = "*";
-    }
+  const filterListingFiles = (globOrPaths: string[]) => {
+    const hasDefaultGlob = globOrPaths.some((glob) => {
+      return glob === kDefaultContentsGlobToken;
+    });
+
+    const resolvedGlobs = globOrPaths.map((glob) => {
+      if (glob === kDefaultContentsGlobToken) {
+        return "*";
+      } else {
+        return glob;
+      }
+    });
+
+    const expandedGlobs = resolvedGlobs.map((resolved) => {
+      return expandGlob(source, project, resolved);
+    });
+
+    const hasInputs = expandedGlobs.some((expanded) => {
+      return !!expanded.inputs;
+    });
+
+    const finalGlobs = expandedGlobs.map((expanded) => {
+      return expanded.glob;
+    });
 
     // Convert a bare directory path into a consumer
     // of everything in the directory
-    const expanded = expandGlob(source, project, globOrPath);
-    if (expanded.inputs || isDefaultGlob) {
+    if (hasInputs || hasDefaultGlob) {
       // If this is a glob, expand it
-      return filterPaths(
+      const filtered = filterPaths(
         dirname(source),
         inputsWithoutSource,
-        [expanded.glob],
+        finalGlobs,
       );
+
+      // If a glob points to a file that exists, go ahead and just include
+      // that, even if it isn't a project input
+      for (const glob of finalGlobs) {
+        if (safeExistsSync(glob) && Deno.statSync(glob).isFile) {
+          filtered.include.push(
+            isAbsolute(glob) ? glob : join(Deno.cwd(), glob),
+          );
+        }
+      }
+
+      return filtered;
     } else {
       return resolvePathGlobs(
         dirname(source),
-        [expanded.glob],
+        finalGlobs,
         ["_*", ".*", "**/_*", "**/.*", source],
       );
     }
   };
 
-  for (const content of listing.contents) {
-    if (typeof (content) === "string") {
-      // Find the files we should use based upon this glob or path
+  const contentGlobs = listing.contents.filter((content) => {
+    return typeof (content) === "string";
+  }) as string[];
 
-      const files = filterListingFiles(content);
+  const contentMetadatas = listing.contents.filter((content) => {
+    return typeof (content) !== "string";
+  }) as Metadata[];
 
-      for (const file of files.include) {
-        if (!files.exclude.includes(file)) {
-          if (isYamlPath(file)) {
-            const yaml = readYaml(file);
-            if (Array.isArray(yaml)) {
-              const items = yaml as Array<unknown>;
-              items.forEach((item) => {
-                if (typeof (item) === "object") {
-                  const listingItem = listItemFromMeta(item as Metadata);
-                  validateItem(listing, listingItem, (field: string) => {
-                    return `An item from the file '${file}' is missing the required field '${field}'.`;
-                  });
-                  listingItemSources.add(ListingItemSource.metadata);
-                  listingItems.push(listingItem);
-                } else {
-                  throw new Error(
-                    `Unexpected listing contents in file ${file}. The array may only contain listing items, not paths or other types of data.`,
-                  );
-                }
-              });
-            } else if (typeof (yaml) === "object") {
-              const listingItem = listItemFromMeta(yaml as Metadata);
-              validateItem(listing, listingItem, (field: string) => {
-                return `The item defined in file '${file}' is missing the required field '${field}'.`;
-              });
-              listingItemSources.add(ListingItemSource.metadata);
-              listingItems.push(listingItem);
-            } else {
-              throw new Error(
-                `Unexpected listing contents in file ${file}. The file should contain only one more listing items.`,
-              );
-            }
-          } else {
-            const isFile = Deno.statSync(file).isFile;
-            if (isFile) {
-              const item = await listItemFromFile(file, project);
-              if (item) {
-                validateItem(listing, item, (field: string) => {
-                  return `The file ${file} is missing the required field '${field}'.`;
+  if (contentGlobs.length > 0) {
+    const files = filterListingFiles(contentGlobs);
+    debug(`[listing] matches ${files.include.length} files:`);
+
+    for (const file of files.include) {
+      if (!files.exclude.includes(file)) {
+        if (isYamlPath(file)) {
+          debug(`[listing] Reading YAML file ${file}`);
+          const yaml = readYaml(file);
+          if (Array.isArray(yaml)) {
+            const items = yaml as Array<unknown>;
+            for (const item of items) {
+              if (typeof (item) === "object") {
+                const listingItem = await listItemFromMeta(
+                  item as Metadata,
+                  project,
+                  listing,
+                );
+                validateItem(listing, listingItem, (field: string) => {
+                  return `An item from the file '${file}' is missing the required field '${field}'.`;
                 });
-                listingItemSources.add(item.source);
-                listingItems.push(item.item);
+                listingItemSources.add(ListingItemSource.metadata);
+                listingItems.push(listingItem);
+              } else {
+                throw new Error(
+                  `Unexpected listing contents in file ${file}. The array may only contain listing items, not paths or other types of data.`,
+                );
               }
+            }
+          } else if (typeof (yaml) === "object") {
+            const listingItem = await listItemFromMeta(
+              yaml as Metadata,
+              project,
+              listing,
+            );
+            validateItem(listing, listingItem, (field: string) => {
+              return `The item defined in file '${file}' is missing the required field '${field}'.`;
+            });
+            listingItemSources.add(ListingItemSource.metadata);
+            listingItems.push(listingItem);
+          } else {
+            throw new Error(
+              `Unexpected listing contents in file ${file}. The file should contain only one more listing items.`,
+            );
+          }
+        } else {
+          const isFile = Deno.statSync(file).isFile;
+          if (isFile) {
+            debug(`[listing] Reading file ${file}`);
+            const item = await listItemFromFile(file, project, listing);
+            if (item) {
+              validateItem(listing, item, (field: string) => {
+                return `The file ${file} is missing the required field '${field}'.`;
+              });
+
+              if (item.item.title === undefined) {
+                debug(`[listing] Missing Title in File ${file}`);
+              }
+
+              listingItemSources.add(item.source);
+              listingItems.push(item.item);
             }
           }
         }
       }
-    } else {
-      const listingItem = listItemFromMeta(content);
+    }
+  }
+
+  // Process any metadata that appears in contents
+  if (contentMetadatas.length > 0) {
+    for (const content of contentMetadatas) {
+      const listingItem = await listItemFromMeta(content, project, listing);
       validateItem(listing, listingItem, (field: string) => {
         return `An item in the listing '${listing.id}' is missing the required field '${field}'.`;
       });
@@ -622,14 +711,35 @@ function validateItem(
   }
 }
 
-function listItemFromMeta(meta: Metadata) {
-  const listingItem = cloneDeep(meta);
+async function listItemFromMeta(
+  meta: Metadata,
+  project: ProjectContext,
+  listing: ListingDehydrated,
+) {
+  let listingItem = cloneDeep(meta);
 
   // If there is a path, try to complete the filename and
   // modified values
-  if (meta.path !== undefined) {
-    meta[kFieldFileName] = basename(meta.path as string);
-    meta[kFieldFileModified] = fileModifiedDate(meta.path as string);
+  if (typeof meta.path === "string") {
+    const base = basename(meta.path);
+    const extension = extname(base).toLocaleLowerCase();
+    meta[kFieldFileName] = base;
+    meta[kFieldFileModified] = fileModifiedDate(meta.path);
+
+    const markdownExtensions = [".qmd", ".md", ".rmd"];
+    if (markdownExtensions.indexOf(extension) !== -1) {
+      const fileListing = await listItemFromFile(meta.path, project, listing);
+      if (fileListing === undefined) {
+        warning(
+          `Draft document ${meta.path} found in a custom listing: item will not have computed metadata.`,
+        );
+      } else {
+        listingItem = {
+          ...(fileListing.item || {}),
+          ...listingItem,
+        };
+      }
+    }
   }
 
   if (meta.author) {
@@ -637,10 +747,25 @@ function listItemFromMeta(meta: Metadata) {
       meta.author = [meta.author];
     }
   }
+
+  if (meta.date) {
+    if (meta.path !== undefined) {
+      listingItem.date = parsePandocDate(
+        resolveDate(meta.path as string, meta.date) as string,
+      );
+    } else {
+      listingItem.date = parsePandocDate(meta.date as string);
+    }
+  }
+
   return listingItem;
 }
 
-async function listItemFromFile(input: string, project: ProjectContext) {
+async function listItemFromFile(
+  input: string,
+  project: ProjectContext,
+  listing: ListingDehydrated,
+) {
   const projectRelativePath = relative(project.dir, input);
   const target = await inputTargetIndex(
     project,
@@ -658,6 +783,7 @@ async function listItemFromFile(input: string, project: ProjectContext) {
     dirname(input),
   );
   const documentMeta = mergeConfigs(
+    project.config,
     directoryMetadata,
     docRawMetadata,
   ) as Metadata;
@@ -666,12 +792,26 @@ async function listItemFromFile(input: string, project: ProjectContext) {
     // This is a draft, don't include it in the listing
     return undefined;
   } else {
+    if (
+      !docRawMetadata && extname(input) === ".qmd" ||
+      extname(input) === ".ipynb"
+    ) {
+      warning(
+        `File ${input} in the listing '${listing.id}' contains no metadata.`,
+      );
+    }
+
+    // See if we have a max desc length
+    const maxDescLength = listing[kMaxDescLength] as number ||
+      kDefaultMaxDescLength;
+
     // Create the item
     const filename = basename(projectRelativePath);
     const filemodified = fileModifiedDate(input);
+
     const description = documentMeta?.description as string ||
       documentMeta?.abstract as string ||
-      descriptionPlaceholder(inputTarget?.outputHref);
+      descriptionPlaceholder(inputTarget?.outputHref, maxDescLength);
 
     const imageRaw = documentMeta?.image as string ||
       findPreviewImgMd(target?.markdown.markdown);
@@ -685,6 +825,12 @@ async function listItemFromFile(input: string, project: ProjectContext) {
 
     const date = documentMeta?.date
       ? parsePandocDate(resolveDate(input, documentMeta?.date) as string)
+      : undefined;
+
+    const datemodified = documentMeta?.date
+      ? parsePandocDate(
+        resolveDate(input, documentMeta?.[kDateModified]) as string,
+      )
       : undefined;
 
     const authors = parseAuthor(documentMeta?.author);
@@ -705,6 +851,7 @@ async function listItemFromFile(input: string, project: ProjectContext) {
       path: `/${projectRelativePath}`,
       [kFieldTitle]: target?.title,
       [kFieldDate]: date,
+      [kFieldDateModified]: datemodified,
       [kFieldAuthor]: author,
       [kFieldCategories]: categories,
       [kFieldImage]: image,
@@ -843,17 +990,27 @@ function computeListingSort(rawValue: unknown): ListingSort[] | undefined {
     }
   };
 
-  if (Array.isArray(rawValue)) {
-    return rawValue.map(parseValue).filter((val) =>
-      val !== undefined
-    ) as ListingSort[];
+  if (typeof (rawValue) === "boolean") {
+    if (rawValue) {
+      // Apply default sorting behavior
+      return undefined;
+    } else {
+      // Don't apply sorting
+      return [];
+    }
   } else {
-    const sort = parseValue(rawValue);
-    if (sort) {
-      return [sort];
+    // Apply sorting
+    if (Array.isArray(rawValue)) {
+      return rawValue.map(parseValue).filter((val) =>
+        val !== undefined
+      ) as ListingSort[];
+    } else {
+      const sort = parseValue(rawValue);
+      if (sort) {
+        return [sort];
+      }
     }
   }
-  return undefined;
 }
 
 function defaultFields(type: ListingType, itemFields: string[]) {

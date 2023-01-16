@@ -1,10 +1,11 @@
 /*
 * handlers.ts
 *
-* Copyright (C) 2022 by RStudio, PBC
+* Copyright (C) 2022 Posit Software, PBC
 *
 */
 
 import "./mermaid.ts";
 import "./include.ts";
 import "./dot.ts";
+import "./embed.ts";

@@ -1,5 +1,5 @@
 -- shortcodes.lua
--- Copyright (C) 2020 by RStudio, PBC
+-- Copyright (C) 2020-2022 Posit Software, PBC
 
 
 -- The open and close shortcode indicators
@@ -168,24 +168,32 @@ function callShortcodeHandler(handler, shortCode)
     return readMetadata(i)
   end})
 
+  local callback = function()
+    return handler.handle(args, kwargs, meta, shortCode.raw_args)
+  end
   -- set the script file path, if present
   if handler.file ~= nil then
-    _quarto.scriptFile(handler.file)
+    return _quarto.withScriptFile(handler.file, callback)
+  else
+    return callback()
   end
-  local result = handler.handle(args, kwargs, meta)
-
-  -- clear the scsript file path
-  _quarto.scriptFile(nil)
-
-  return result;
 end
 
 -- scans through a list of inlines, finds shortcodes, and processes them
-function transformShortcodeInlines(inlines, noRawInlines) 
+function transformShortcodeInlines(inlines, noRawInlines)
   local transformed = false
   local outputInlines = pandoc.List()
   local shortcodeInlines = pandoc.List()
   local accum = outputInlines
+
+  function ensure_accum(i)
+    if not transformed then
+      transformed = true
+      for j = 1,i - 1 do
+        outputInlines:insert(inlines[j])
+      end
+    end
+  end
   
   -- iterate through any inlines and process any shortcodes
   for i, el in ipairs(inlines) do
@@ -198,7 +206,7 @@ function transformShortcodeInlines(inlines, noRawInlines)
 
       -- handle {{{< shortcode escape
       if beginEscapeMatch then
-        transformed = true
+        ensure_accum(i)
         local prefixLen = #el.text - #beginEscapeMatch
         if prefixLen > 0 then
           accum:insert(pandoc.Str(el.text:sub(1, prefixLen)))
@@ -207,7 +215,7 @@ function transformShortcodeInlines(inlines, noRawInlines)
         
       -- handle >}}} shortcode escape
       elseif endEscapeMatch then
-        transformed = true
+        ensure_accum(i)
         local suffixLen = #el.text - #endEscapeMatch
         accum:insert(pandoc.Str(endEscapeMatch:sub(1, #endEscapeMatch-1)))
         if suffixLen > 0 then
@@ -217,16 +225,17 @@ function transformShortcodeInlines(inlines, noRawInlines)
       -- handle shortcode escape -- e.g. {{</* shortcode_name */>}}
       elseif endsWith(el.text, kOpenShortcode .. kOpenShortcodeEscape) then
         -- This is an escape, so insert the raw shortcode as text (remove the comment chars)
-        transformed = true
+        ensure_accum(i)
         accum:insert(pandoc.Str(kOpenShortcode))
         
 
       elseif startsWith(el.text, kCloseShortcodeEscape .. kCloseShortcode) then 
         -- This is an escape, so insert the raw shortcode as text (remove the comment chars)
-        transformed = true
+        ensure_accum(i)
         accum:insert(pandoc.Str(kCloseShortcode))
 
       elseif endsWith(el.text, kOpenShortcode) then
+        ensure_accum(i)
         -- note that the text might have other text with it (e.g. a case like)
         -- This is my inline ({{< foo bar >}}).
         -- Need to pare off prefix and suffix and preserve them
@@ -241,7 +250,7 @@ function transformShortcodeInlines(inlines, noRawInlines)
       elseif startsWith(el.text, kCloseShortcode) then
 
         -- since we closed a shortcode, mark this transformed
-        transformed = true
+        ensure_accum(i)
 
         -- the end of the shortcode, stop accumulating the shortcode
         accum:insert(pandoc.Str(kCloseShortcode))
@@ -281,11 +290,15 @@ function transformShortcodeInlines(inlines, noRawInlines)
         shortcodeInlines = pandoc.List()        
       else 
         -- not a shortcode, accumulate
-        accum:insert(el)
+        if transformed then
+          accum:insert(el)
+        end
       end
     else
       -- not a string, accumulate
-      accum:insert(el)
+      if transformed then
+        accum:insert(el)
+      end
     end
   end
   
@@ -317,6 +330,7 @@ function processShortCode(inlines)
   local kSep = "="
   local shortCode = nil
   local args = pandoc.List()
+  local raw_args = pandoc.List()
 
   -- slice off the open and close tags
   inlines = tslice(inlines, 2, #inlines - 1)
@@ -338,6 +352,7 @@ function processShortCode(inlines)
           value = argInlines
         })
       pendingName = nil
+      raw_args:insert(argInlines)
     else
       -- split the string on equals
       if #argInlines == 1 and argInlines[1].t == "Str" and string.match(argInlines[1].text, kSep) then 
@@ -356,12 +371,17 @@ function processShortCode(inlines)
               value = argInlines 
             })
         end
-      else
+        raw_args:insert(argInlines)
+      -- a standalone SoftBreak or LineBreak is not an argument!
+      -- (happens when users delimit args with newlines)
+      elseif #argInlines > 1 or 
+             (argInlines[1].t ~= "SoftBreak" and argInlines[1].t ~= "LineBreak") then
         -- this is an unnamed argument
         args:insert(
           { 
             value = argInlines
           })
+        raw_args:insert(argInlines)
       end
     end
   end
@@ -392,6 +412,7 @@ function processShortCode(inlines)
 
   return {
     args = args,
+    raw_args = raw_args,
     name = shortCode
   }
 end
@@ -517,4 +538,3 @@ function shortcodeResultAsBlocks(result, name)
     os.exit(1)
   end
 end
-

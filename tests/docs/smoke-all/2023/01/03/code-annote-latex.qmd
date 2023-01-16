@@ -1,0 +1,23 @@
+---
+title: Hello World
+code-annotations: true
+format:
+  latex: default
+code-line-numbers: true
+_quarto:
+  tests: 
+    latex:
+      ensureFileRegexMatches:
+        - ["\\\\item\\[\\\\circled\\{1\\}\\]"]
+---
+
+## Hi There
+
+```typescript
+const foo = "bar";
+if (foo === "bar") {
+  console.log("Woah"); // <1>
+}
+```
+
+1. This is a console output

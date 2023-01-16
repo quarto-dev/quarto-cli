@@ -1,7 +1,7 @@
 /*
 * types.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -12,6 +12,7 @@ import {
   RenderFile,
   RenderFlags,
   RenderOptions,
+  RenderServices,
 } from "../../command/render/types.ts";
 import { PandocOptions } from "../../command/render/types.ts";
 import { ProjectConfig, ProjectContext } from "../types.ts";
@@ -30,13 +31,14 @@ export interface ProjectType {
   ) => Promise<ProjectConfig>;
   libDir?: string;
   outputDir?: string;
+  cleanOutputDir?: boolean;
   formatLibDirs?: () => string[];
   formatExtras?: (
     context: ProjectContext,
     input: string,
     flags: PandocFlags,
     format: Format,
-    temp: TempContext,
+    services: RenderServices,
   ) => Promise<FormatExtras>;
   projectFormatsOnly?: boolean;
   isSupportedFormat?: (format: Format) => boolean;

@@ -24,3 +24,65 @@
       ```
       ^(?:http:|https:)\/\/www\.quarto\.org\/custom
       ```
+
+- name: format-links
+  tags:
+    formats: [$html-doc]
+  schema:
+    anyOf:
+      - boolean
+      - arrayOf: string
+  description:
+    short: "Controls whether links to other rendered formats are displayed in HTML output."
+    long: |
+      Controls whether links to other rendered formats are displayed in HTML output.
+
+      Pass `false` to disable the display of format lengths or pass a list of format names for which you'd
+      like links to be shown.
+
+- name: notebook-links
+  tags:
+    formats: [$html-doc]
+  schema:
+    anyOf:
+      - boolean
+      - enum: [inline, global]
+  description:
+    short: "Controls the display of links to notebooks that provided embedded content or are created from documents."
+    long: |
+      Controls the display of links to notebooks that provided embedded content or are created from documents.
+
+      Specify `false` to disable linking to source Notebooks. Specify `inline` to show links to source notebooks beneath the content they provide. 
+      Specify `global` to show a set of global links to source notebooks.
+
+- name: notebook-view
+  tags:
+    formats: [$html-doc]
+  schema:
+    anyOf:
+      - boolean
+      - maybeArrayOf:
+          object:
+            properties:
+              notebook:
+                string:
+                  description: "The path to the locally referenced notebook."
+              title:
+                description: "The title of the notebook when viewed."
+                anyOf:
+                  - string
+                  - boolean
+              url:
+                string:
+                  description: "The url to use when viewing this notebook."
+            required: [notebook]
+
+  description: "Configures the HTML viewer for notebooks that provide embedded content."
+
+- name: notebook-view-style
+  tags:
+    formats: [$html-doc]
+  schema:
+    enum: [document, notebook]
+  hidden: true
+  description: "The style of document to render. Setting this to `notebook` will create additional notebook style affordances."

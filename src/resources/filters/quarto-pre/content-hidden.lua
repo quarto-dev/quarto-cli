@@ -1,56 +1,146 @@
 -- content-hidden.lua
--- Copyright (C) 2022 by RStudio, PBC
+-- Copyright (C) 2022 Posit Software, PBC
+
+
+local kContentVisible = "content-visible"
+local kContentHidden = "content-hidden"
+local kWhenFormat = "when-format"
+local kUnlessFormat = "unless-format"
+local kWhenProfile = "when-profile"
+local kUnlessProfile = "unless-profile"
+local kConditions = pandoc.List({kWhenFormat, kUnlessFormat, kWhenProfile, kUnlessProfile})
+
+_quarto.ast.add_handler({
+  class_name = { kContentVisible, kContentHidden },
+  
+  ast_name = "ConditionalBlock",
+
+  kind = "Block",
+
+  parse = function(div)
+    local behavior = div.classes:find(kContentVisible) or div.classes:find(kContentHidden)
+    local condition = pandoc.List({})
+    local remaining_attributes = pandoc.List({})
+    for i, v in ipairs(div.attributes) do
+      if kConditions:find(v[1]) ~= nil then
+        condition:insert(v)
+      else
+        remaining_attributes:insert(v)
+      end
+    end
+    div.attributes = remaining_attributes
+    div.classes = div.classes:filter(function(k) return k ~= kContentVisible and k ~= kContentHidden end)
+    return quarto.ConditionalBlock({
+      node = div,
+      behavior = behavior,
+      condition = condition
+    })
+  end,
+
+  render = function(node)
+    local el = node.node
+    local profiles = pandoc.List(param("quarto_profile", {}))
+    local visible
+    if node.behavior == kContentVisible then
+      clearHiddenVisibleAttributes(el)
+      visible = propertiesMatch(node.condition, profiles)
+    elseif node.behavior == kContentHidden then
+      clearHiddenVisibleAttributes(el)
+      visible = not propertiesMatch(node.condition, profiles)
+    else
+      crash_with_stack_trace()
+    end
+    if visible then
+      return el.content
+    end
+    return {}
+  end,
+
+  constructor = function(tbl)
+    local result = {
+      node = tbl.node,
+      behavior = tbl.behavior,
+      condition = pandoc.List({})
+    };
+    for i, v in ipairs(tbl.condition or {}) do
+      if kConditions:find(v[1]) == nil then
+        error("Ignoring invalid condition in conditional block: " .. v[1])
+      else
+        result.condition[v[1]] = v[2]
+      end
+    end
+
+    return result
+  end,
+
+  inner_content = function(tbl)
+    return {
+      content = tbl.node.content,
+    }
+  end,
+
+  set_inner_content = function(tbl, content)
+    if content.content ~= nil then
+      tbl.node.content = content.content
+    end
+  end
+})
 
 function contentHidden()
-  -- return {}
+  local profiles = pandoc.List(param("quarto_profile", {}))
   return {
-    Div = handleHiddenVisible,
-    CodeBlock = handleHiddenVisible
+    -- Div = handleHiddenVisible(profiles),
+    CodeBlock = handleHiddenVisible(profiles),
+    Span = handleHiddenVisible(profiles)
   }
 end
 
-function handleHiddenVisible(el)
-  if el.attr.classes:find("content-visible") then
-    return handleVisible(el)
-  elseif el.attr.classes:find("content-hidden") then
-    return handleHidden(el)
-  else
-    return el
+function handleHiddenVisible(profiles)
+  return function(el)
+    local visible
+    if el.attr.classes:find(kContentVisible) then
+      clearHiddenVisibleAttributes(el)
+      visible = propertiesMatch(el.attributes, profiles)
+    elseif el.attr.classes:find(kContentHidden) then
+      clearHiddenVisibleAttributes(el)
+      visible = not propertiesMatch(el.attributes, profiles)
+    else
+      return el
+    end
+    -- this is only called on spans and codeblocks, so here we keep the scaffolding element
+    -- as opposed to in the Div where we return the inlined content
+    if visible then
+      return el
+    else
+      return {}
+    end
   end
 end
 
-function attributesMatch(el)
+-- "properties" here will come either from "conditions", in the case of a custom AST node
+-- or from the attributes of the element itself in the case of spans or codeblocks
+function propertiesMatch(properties, profiles)
   local match = true
-  if el.attributes["when-format"] ~= nil then
-    match = match and _quarto.format.isFormat(el.attributes["when-format"])
+  if properties[kWhenFormat] ~= nil then
+    match = match and _quarto.format.isFormat(properties[kWhenFormat])
   end
-  if el.attributes["unless-format"] ~= nil then
-    match = match and not _quarto.format.isFormat(el.attributes["unless-format"])
+  if properties[kUnlessFormat] ~= nil then
+    match = match and not _quarto.format.isFormat(properties[kUnlessFormat])
+  end
+  if properties[kWhenProfile] ~= nil then
+    match = match and profiles:includes(properties[kWhenProfile])
+  end
+  if properties[kUnlessProfile] ~= nil then
+    match = match and not profiles:includes(properties[kUnlessProfile])
   end
   return match
 end
 
 function clearHiddenVisibleAttributes(el)
-  el.attributes["unless-format"] = nil
-  el.attributes["when-format"] = nil
-  el.attr.classes = removeClass(el.attr.classes, "content-visible")
-  el.attr.classes = removeClass(el.attr.classes, "content-hidden")
-end
-
-function handleVisible(el)
-  local show = attributesMatch(el)
-  clearHiddenVisibleAttributes(el)
-  if not show then
-    return pandoc.Null()
-  end
-  return el
-end
-
-function handleHidden(el)
-  local hide = attributesMatch(el)
-  clearHiddenVisibleAttributes(el)
-  if hide then
-    return pandoc.Null()
-  end
-  return el
+  el.attributes[kUnlessFormat] = nil
+  el.attributes[kWhenFormat] = nil
+  el.attributes[kUnlessProfile] = nil
+  el.attributes[kWhenProfile] = nil
+  el.attr.classes = removeClass(el.attr.classes, kContentVisible)
+  el.attr.classes = removeClass(el.attr.classes, kContentHidden)
 end

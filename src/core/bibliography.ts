@@ -1,13 +1,13 @@
 /*
 * bibliography.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 * Copyright (c) 2016-2021 Thomas Watson Steen
 *
 * Adapted from: https://github.com/watson/ci-info
 */
 
-import { dirname, join } from "path/mod.ts";
+import { dirname, isAbsolute, join } from "path/mod.ts";
 import { kBibliography } from "../config/constants.ts";
 import { Metadata } from "../config/types.ts";
 import { asArray } from "./array.ts";
@@ -81,8 +81,13 @@ export async function renderToCSLJSON(
 ): Promise<CSL[]> {
   const bibloEntries = [];
   for (const biblio of biblios) {
+    // The bibliopath might end up as an absolute path
+    // in which case just leave it alone (otherwise it is cwd relative)
+    const biblioPath = join(dir, biblio);
     const cmd = [pandocBinaryPath()];
-    cmd.push(join(Deno.cwd(), join(dir, biblio)));
+    cmd.push(
+      isAbsolute(biblioPath) ? biblioPath : join(Deno.cwd(), biblioPath),
+    );
     cmd.push("-t");
     cmd.push("csljson");
     cmd.push("--citeproc");

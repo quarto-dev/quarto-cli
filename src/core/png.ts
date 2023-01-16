@@ -1,7 +1,7 @@
 /*
 * png.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 * Copyright (C) 2020 by mel-mouk@achiev (ISC license):
 *   https://github.com/achiev-open/png-decoder-intro
 * Copyright (C) 2017 by Michael Wang (ISC license):

@@ -1,7 +1,7 @@
 /*
 * format-epub.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -20,7 +20,7 @@ import { createEbookFormat } from "../formats-shared.ts";
 
 export function epubFormat(): Format {
   return mergeConfigs(
-    createEbookFormat("epub"),
+    createEbookFormat("ePub", "epub"),
     {
       extensions: {
         book: epubBookExtension,

@@ -1,7 +1,7 @@
 /*
 * types.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -143,6 +143,7 @@ export interface JupyterOutput {
   output_type: "stream" | "display_data" | "execute_result" | "error";
   execution_count?: null | number;
   isolated?: boolean;
+  metadata?: Record<string, unknown>;
 }
 
 export interface JupyterOutputStream extends JupyterOutput {
@@ -210,11 +211,22 @@ export interface JupyterToMarkdownOptions {
 }
 
 export interface JupyterToMarkdownResult {
-  markdown: string;
   metadata?: Metadata;
   pandoc?: FormatPandoc;
   dependencies?: JupyterWidgetDependencies;
   htmlPreserve?: Record<string, string>;
+  cellOutputs: JupyterCellOutput[];
+  notebookOutputs?: {
+    prefix?: string;
+    suffix?: string;
+  };
+}
+
+export interface JupyterCellOutput {
+  id?: string;
+  options?: JupyterCellOptions;
+  metadata?: JupyterCellMetadata;
+  markdown: string;
 }
 
 export interface JupyterWidgetsState {

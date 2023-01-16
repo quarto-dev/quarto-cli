@@ -1,12 +1,12 @@
 /*
 * site.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
-import { exists } from "fs/exists.ts";
+import { existsSync } from "node/fs.ts";
 import { dirname } from "path/mod.ts";
-import { testQuartoCmd } from "../../test.ts";
+import { testQuartoCmd, Verify } from "../../test.ts";
 import { siteOutputForInput } from "../../utils.ts";
 import { ensureHtmlElements, noErrorsOrWarnings } from "../../verify.ts";
 
@@ -15,6 +15,7 @@ export const testSite = (
   renderTarget: string,
   includeSelectors: string[],
   excludeSelectors: string[],
+  ...verify: Verify[]
 ) => {
   const output = siteOutputForInput(input);
 
@@ -28,11 +29,11 @@ export const testSite = (
   testQuartoCmd(
     "render",
     [renderTarget],
-    [noErrorsOrWarnings, verifySel],
+    [noErrorsOrWarnings, verifySel, ...verify],
     {
       teardown: async () => {
         const siteDir = dirname(output.outputPath);
-        if (await exists(siteDir)) {
+        if (existsSync(siteDir)) {
           await Deno.remove(siteDir, { recursive: true });
         }
       },

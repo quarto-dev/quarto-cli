@@ -1,0 +1,236 @@
+$if(article.type)$
+<article xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:xlink="http://www.w3.org/1999/xlink" dtd-version="1.2" article-type="$article.type$">
+$else$
+<article xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:xlink="http://www.w3.org/1999/xlink" dtd-version="1.2" article-type="other">
+$endif$
+<front>
+<journal-meta>
+$if(journal.publisher-id)$
+<journal-id journal-id-type="publisher-id">$journal.publisher-id$</journal-id>
+$endif$
+$if(journal.nlm-ta)$
+<journal-id journal-id-type="nlm-ta">$journal.nlm-ta$</journal-id>
+$endif$
+$if(journal.pmc)$
+<journal-id journal-id-type="pmc">$journal.pmc$</journal-id>
+$endif$
+$-- Fallback: an empty journal-id in case none is available.
+$if(journal.publisher-id)$
+$elseif(journal.nlm-ta)$
+$elseif(journal.pmc)$
+$else$
+<journal-id></journal-id>
+$endif$
+<journal-title-group>
+$if(journal.title)$
+<journal-title>$journal.title$</journal-title>
+$endif$
+$if(journal.abbrev-title)$
+<abbrev-journal-title>$journal.abbrev-title$</abbrev-journal-title>
+$endif$
+</journal-title-group>
+$if(journal.pissn)$
+<issn publication-format="print">$journal.pissn$</issn>
+$endif$
+$if(journal.eissn)$
+<issn publication-format="electronic">$journal.eissn$</issn>
+$endif$
+$-- At least one issn element is required; use empty issn as fallback
+$if(journal.pissn)$
+$elseif(journal.eissn)$
+$else$
+<issn></issn>
+$endif$
+<publisher>
+<publisher-name>$journal.publisher-name$</publisher-name>
+$if(journal.publisher-loc)$
+<publisher-loc>$journal.publisher-loc$</publisher-loc>
+$endif$
+</publisher>
+</journal-meta>
+<article-meta>
+$if(article.publisher-id)$
+<article-id pub-id-type="publisher-id">$article.publisher-id$</article-id>
+$endif$
+$if(article.doi)$
+<article-id pub-id-type="doi">$article.doi$</article-id>
+$endif$
+$if(article.pmid)$
+<article-id pub-id-type="pmid">$article.pmid$</article-id>
+$endif$
+$if(article.pmcid)$
+<article-id pub-id-type="pmcid">$article.pmcid$</article-id>
+$endif$
+$if(article.art-access-id)$
+<article-id pub-id-type="art-access-id">$article.art-access-id$</article-id>
+$endif$
+$if(article.heading)$
+<article-categories>
+<subj-group subj-group-type="heading">
+<subject>$article.heading$</subject>
+</subj-group>
+$if(article.categories)$
+<subj-group subj-group-type="categories">
+$for(article.categories)$
+<subject>$article.categories$</subject>
+$endfor$
+</subj-group>
+$endif$
+</article-categories>
+$endif$
+$if(title)$
+<title-group>
+<article-title>$title$</article-title>
+$if(subtitle)$
+<subtitle>${subtitle}</subtitle>
+$endif$
+</title-group>
+$endif$
+$if(author)$
+<contrib-group>
+$for(author)$
+<contrib contrib-type="author"$if(author.equal-contrib)$ equal-contrib="yes"$endif$$if(author.cor-id)$ corresp="yes"$endif$>
+$if(author.orcid)$
+<contrib-id contrib-id-type="orcid">$author.orcid$</contrib-id>
+$endif$
+$if(author.surname)$
+<name>
+<surname>$if(author.non-dropping-particle)$${author.non-dropping-particle} $endif$$author.surname$</surname>
+<given-names>$author.given-names$$if(author.dropping-particle)$ ${author.dropping-particle}$endif$</given-names>
+$if(author.prefix)$
+<prefix>${author.suffix}</prefix>
+$endif$
+$if(author.suffix)$
+<suffix>${author.suffix}</suffix>
+$endif$
+</name>
+$elseif(author.name)$
+<string-name>$author.name$</string-name>
+$else$
+<string-name>$author$</string-name>
+$endif$
+$if(author.email)$
+<email>$author.email$</email>
+$endif$
+$-- if affiliations are listed separately, then create links. Otherwise
+$-- include them here.
+$if(affiliation)$
+$for(author.affiliation)$
+<xref ref-type="aff" rid="aff-$author.affiliation$"/>
+$endfor$
+$else$
+$for(author.affiliation)$
+${ it:affiliations.jats() }
+$endfor$
+$endif$
+$if(author.cor-id)$
+<xref ref-type="corresp" rid="cor-$author.cor-id$"><sup>*</sup></xref>
+$endif$
+</contrib>
+$endfor$
+$for(affiliation)$
+${ it:affiliations.jats() }
+$endfor$
+</contrib-group>
+$endif$
+$if(article.author-notes)$
+<author-notes>
+$if(article.author-notes.corresp)$
+$for(article.author-notes.corresp)$
+<corresp id="cor-$article.author-notes.corresp.id$">* E-mail: <email>$article.author-notes.corresp.email$</email></corresp>
+$endfor$
+$endif$
+$if(article.author-notes.conflict)$
+<fn fn-type="conflict"><p>$article.author-notes.conflict$</p></fn>
+$endif$
+$if(article.author-notes.con)$
+<fn fn-type="con"><p>$article.author-notes.con$</p></fn>
+$endif$
+</author-notes>
+$endif$
+$if(date)$
+<pub-date date-type="$if(date.type)$$date.type$$else$pub$endif$" publication-format="electronic"$if(date.iso-8601)$ iso-8601-date="$date.iso-8601$"$endif$>
+$if(date.day)$
+<day>$date.day$</day>
+$endif$
+$if(date.month)$
+<month>$date.month$</month>
+$endif$
+<year>$date.year$</year>
+</pub-date>
+$endif$
+$if(article.volume)$
+<volume>$article.volume$</volume>
+$endif$
+$if(article.issue)$
+<issue>$article.issue$</issue>
+$endif$
+$if(article.fpage)$
+<fpage>$article.fpage$</fpage>
+$endif$
+$if(article.lpage)$
+<lpage>$article.lpage$</lpage>
+$endif$
+$if(article.elocation-id)$
+<elocation-id>$article.elocation-id$</elocation-id>
+$endif$
+$if(history)$
+<history>
+</history>
+$endif$
+<permissions>
+$for(copyright.statement)$
+<copyright-statement>$copyright.statement$</copyright-statement>
+$endfor$
+$for(copyright.year)$
+<copyright-year>$copyright.year$</copyright-year>
+$endfor$
+$for(copyright.holder)$
+<copyright-holder>$copyright.holder$</copyright-holder>
+$endfor$
+$if(copyright.text)$
+<license license-type="$copyright.type$" xlink:href="$copyright.link$">
+<license-p>$copyright.text$</license-p>
+</license>
+$endif$
+$for(license)$
+<license$if(it.type)$ license-type="${it.type}"$endif$>
+$if(it.link)$
+<ali:license_ref xmlns:ali="http://www.niso.org/schemas/ali/1.0/">${it.link}</ali:license_ref>
+$endif$
+<license-p>$if(it.text)$${it.text}$else$${it}$endif$</license-p>
+</license>
+$endfor$
+</permissions>
+$if(abstract)$
+<abstract>
+$abstract$
+</abstract>
+$endif$
+$if(tags)$
+<kwd-group kwd-group-type="author">
+$for(tags)$
+<kwd>$tags$</kwd>
+$endfor$
+</kwd-group>
+$endif$
+$if(article.funding-statement)$
+<funding-group>
+<funding-statement>$article.funding-statement$</funding-statement>
+</funding-group>
+$endif$
+</article-meta>
+$if(notes)$
+<notes>$notes$</notes>
+$endif$
+</front>
+<body>
+$body$
+</body>
+<back>
+$if(back)$
+$back$
+$endif$
+</back>
+</article>
+

@@ -1,11 +1,16 @@
 toc-title-document: "目录"
 toc-title-website: "该页面内容"
 
+related-formats-title: "其他格式"
+related-notebooks-title: "Notebooks"
+source-notebooks-prefix: "资源"
+
 section-title-abstract: "摘要"
 section-title-appendices: "附录"
 section-title-footnotes: "脚注"
 section-title-references: "参考"
 section-title-reuse: "重用"
+section-title-copyright: "版权"
 section-title-citation: "引文"
 
 appendix-attribution-bibtex: "BibTeX"
@@ -25,6 +30,9 @@ callout-important-caption: "重要"
 callout-caution-caption: "警告"
 
 code-summary: "代码"
+
+code-line: "线"
+code-lines: "线条"
 
 code-tools-menu-caption: "代码"
 code-tools-show-all-code: "显示所有代码"

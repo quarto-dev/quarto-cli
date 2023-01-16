@@ -1,7 +1,7 @@
 /*
 * mermaid.ts
 *
-* Copyright (C) 2022 by RStudio, PBC
+* Copyright (C) 2022 Posit Software, PBC
 *
 */
 
@@ -53,6 +53,10 @@ object:
   properties:
     mermaid-format:
       enum: [png, svg, js]
+    theme:
+      anyOf:
+        - null
+        - string
 `)));
   },
 
@@ -81,6 +85,21 @@ object:
     cell: QuartoMdCell, // this has unmerged cell options
     options: Record<string, unknown>, // this merges default and cell options, we have to be careful.
   ) {
+    const mermaidOpts: Record<string, string> = {};
+    if (
+      typeof handlerContext.options.format.metadata.mermaid === "object" &&
+      handlerContext.options.format.metadata.mermaid
+    ) {
+      const { mermaid } = handlerContext.options.format.metadata as {
+        mermaid: Record<string, string>;
+      };
+      if (mermaid.theme) {
+        mermaidOpts.theme = mermaid.theme;
+      } else {
+        mermaidOpts.theme = "neutral";
+      }
+    }
+
     const cellContent = handlerContext.cellContent(cell);
     // TODO escaping removes MappedString information.
     // create puppeteer target page
@@ -91,7 +110,7 @@ object:
 <body>
 <pre class="mermaid">\n${escape(cellContent.value)}\n</pre> 
 <script>
-mermaid.initialize();
+mermaid.initialize(${JSON.stringify(mermaidOpts)});
 </script>
 </html>`;
     const selector = "pre.mermaid svg";
@@ -101,6 +120,28 @@ mermaid.initialize();
         formatResourcePath("html", join("mermaid", "mermaid.min.js")),
       ),
     ]];
+
+    const setupMermaidSvgJsRuntime = () => {
+      if (handlerContext.getState().hasSetupMermaidSvgJsRuntime) {
+        return;
+      }
+      handlerContext.getState().hasSetupMermaidSvgJsRuntime = true;
+
+      const dep: FormatDependency = {
+        name: "quarto-diagram",
+        scripts: [
+          {
+            name: "mermaid-postprocess-shim.js",
+            path: formatResourcePath(
+              "html",
+              join("mermaid", "mermaid-postprocess-shim.js"),
+            ),
+            afterBody: true,
+          },
+        ],
+      };
+      handlerContext.addHtmlDependency(dep);
+    };
 
     const setupMermaidJsRuntime = () => {
       if (handlerContext.getState().hasSetupMermaidJsRuntime) {
@@ -112,6 +153,15 @@ mermaid.initialize();
         handlerContext.options.context.format.metadata?.["mermaid-debug"]
           ? "mermaid.js"
           : "mermaid.min.js";
+
+      if (mermaidOpts.theme) {
+        const mermaidMeta: Record<string, string> = {};
+        mermaidMeta["mermaid-theme"] = mermaidOpts.theme;
+        handlerContext.addHtmlDependency({
+          name: "quarto-mermaid-conf",
+          meta: mermaidMeta,
+        });
+      }
 
       const dep: FormatDependency = {
         name: "quarto-diagram",
@@ -167,6 +217,7 @@ mermaid.initialize();
       ?.[kFigResponsive];
 
     const makeSvg = async () => {
+      setupMermaidSvgJsRuntime();
       let svg = asMappedString(
         (await handlerContext.extractHtml({
           html: content,
@@ -321,9 +372,13 @@ mermaid.initialize();
           "mermaid-tooltip-",
           "",
         );
+      const preAttrs = [];
+      if (options.label) {
+        preAttrs.push(`label="${options.label}"`);
+      }
       const preEl = pandocHtmlBlock("pre")({
-        classes: ["mermaid"],
-        attrs: [`tooltip-selector="#${tooltipName}"`],
+        classes: ["mermaid", "mermaid-js"],
+        attrs: preAttrs,
       });
       preEl.push(pandocRawStr(escape(cell.source.value))); // TODO escaping removes MappedString information.
 
@@ -337,7 +392,10 @@ mermaid.initialize();
         cell,
         mappedConcat([
           preEl.mappedString(),
-          `\n<div id="${tooltipName}" class="mermaidTooltip"></div>`,
+          // tooltips appear to be broken in mermaid 9.2.2?
+          // They don't even work on their website: https://mermaid-js.github.io/mermaid/#/flowchart
+          // we drop them for now.
+          // `\n<div id="${tooltipName}" class="mermaidTooltip"></div>`,
         ]),
         options,
         attrs,

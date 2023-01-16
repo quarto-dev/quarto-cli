@@ -3,7 +3,7 @@
 *
 * JSON Schema for Quarto's YAML frontmatter
 *
-* Copyright (C) 2021 by RStudio, PBC
+* Copyright (C) 2021-2022 Posit Software, PBC
 *
 */
 
@@ -15,6 +15,7 @@ import {
   completeSchema,
   describeSchema,
   objectSchema as objectS,
+  refSchema,
   regexSchema as regexS,
 } from "./common.ts";
 
@@ -45,7 +46,8 @@ export async function makeFrontMatterFormatSchema(nonStrict = false) {
     return { name: format, hidden };
   };
   const formatSchemaDescriptorList = (await pandocFormatsResource()).concat(
-    "hugo",
+    "md", // alias for 'commonmark'
+    "hugo", // tolerage for compatibility: initially built-in, now referrred to as 'hugo-md'
   )
     .map(
       (format) => {
@@ -79,6 +81,8 @@ export async function makeFrontMatterFormatSchema(nonStrict = false) {
       return completeSchema(schema, name);
     },
   );
+  const luaFilenameS = regexS("^.+\.lua$");
+  plusFormatStringSchemas.push(luaFilenameS);
   const completionsObject = fromEntries(
     formatSchemaDescriptorList
       .filter(({ hidden }) => !hidden)
@@ -97,6 +101,9 @@ export async function makeFrontMatterFormatSchema(nonStrict = false) {
         anyOfS(...plusFormatStringSchemas),
         "the name of a pandoc-supported output format",
       ),
+      objectS({
+        propertyNames: luaFilenameS,
+      }),
       allOfS(
         objectS({
           patternProperties: fromEntries(formatSchemas),
@@ -148,6 +155,7 @@ export const getFrontMatterSchema = defineCached(
             (field: SchemaField) => field.name !== "format",
           ),
           executeObjSchema,
+          refSchema("quarto-dev-schema", ""),
         ),
       ),
       errorHandlers: [],

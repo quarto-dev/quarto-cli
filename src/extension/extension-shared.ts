@@ -1,13 +1,20 @@
 /*
 * extension-shared.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 import SemVer, { Range } from "semver/mod.ts";
+import { kSelfContained } from "../config/constants.ts";
 import { Metadata, QuartoFilter } from "../config/types.ts";
-import { RevealPluginBundle } from "../format/reveal/format-reveal-plugin.ts";
+import {
+  RevealPlugin,
+  RevealPluginBundle,
+  RevealPluginScript,
+} from "../format/reveal/format-reveal-plugin.ts";
 import { ProjectConfig } from "../project/types.ts";
+
+export const kBuiltInExtOrg = "quarto";
 
 export const kCommon = "common";
 export const kExtensionDir = "_extensions";
@@ -39,15 +46,29 @@ export interface Extension extends Record<string, unknown> {
     shortcodes?: string[];
     filters?: QuartoFilter[];
     formats?: Record<string, unknown>;
-    [kRevealJSPlugins]?: Array<string | RevealPluginBundle>;
+    [kRevealJSPlugins]?: Array<string | RevealPluginBundle | RevealPlugin>;
   };
+}
+
+export interface RevealPluginInline {
+  name: string;
+  register?: boolean;
+  script?: string | string[] | RevealPluginScript | RevealPluginScript[];
+  stylesheet?: string | string[];
+  config?: Metadata;
+  [kSelfContained]?: boolean;
+}
+
+export interface ExtensionOptions {
+  builtIn: boolean;
 }
 
 export interface ExtensionContext {
   extensions(
-    input: string,
+    input?: string,
     config?: ProjectConfig,
     projectDir?: string,
+    options?: ExtensionOptions,
   ): Promise<Extension[]>;
   extension(
     name: string,
@@ -66,6 +87,7 @@ export interface ExtensionContext {
       | "revealjs-plugins",
     config?: ProjectConfig,
     projectDir?: string,
+    options?: ExtensionOptions,
   ): Promise<Extension[]>;
 }
 

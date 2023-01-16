@@ -1,5 +1,5 @@
 -- figures.lua
--- Copyright (C) 2020 by RStudio, PBC
+-- Copyright (C) 2020-2022 Posit Software, PBC
 
 -- extended figure features including fig-align, fig-env, etc.
 function extendedFigures() 
@@ -26,10 +26,11 @@ function extendedFigures()
           return htmlDivFigure(el)
         elseif _quarto.format.isDocxOutput() then
           return wpDivFigure(el)
+        elseif _quarto.format.isJatsOutput() then
+          return jatsDivFigure(el)
         end
       end
     end
-    
   }
 end
 

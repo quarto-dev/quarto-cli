@@ -1,7 +1,7 @@
 /*
 * project-context.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -15,7 +15,6 @@ import {
   SEP_PATTERN,
 } from "path/mod.ts";
 import { existsSync, walkSync } from "fs/mod.ts";
-import { warning } from "log/mod.ts";
 import * as ld from "../core/lodash.ts";
 
 import { ProjectType } from "./types/types.ts";
@@ -33,7 +32,12 @@ import {
 
 import { isYamlPath, readYaml } from "../core/yaml.ts";
 import { mergeConfigs } from "../core/config.ts";
-import { kSkipHidden, pathWithForwardSlashes } from "../core/path.ts";
+import {
+  ensureTrailingSlash,
+  kSkipHidden,
+  pathWithForwardSlashes,
+  safeExistsSync,
+} from "../core/path.ts";
 
 import { includedMetadata, mergeProjectMetadata } from "../config/metadata.ts";
 import {
@@ -78,9 +82,15 @@ import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
 import { getProjectConfigSchema } from "../core/lib/yaml-schema/project-config.ts";
 import { getFrontMatterSchema } from "../core/lib/yaml-schema/front-matter.ts";
 import { kDefaultProjectFileContents } from "./types/project-default.ts";
-import { createExtensionContext } from "../extension/extension.ts";
+import {
+  createExtensionContext,
+  filterExtensions,
+} from "../extension/extension.ts";
 import { initializeProfileConfig } from "./project-profile.ts";
 import { dotenvSetVariables } from "../quarto-core/dotenv.ts";
+import { ConcreteSchema } from "../core/lib/yaml-schema/types.ts";
+import { ExtensionContext } from "../extension/extension-shared.ts";
+import { asArray } from "../core/array.ts";
 
 export function deleteProjectMetadata(metadata: Metadata) {
   // see if the active project type wants to filter the config printed
@@ -115,31 +125,23 @@ export async function projectContext(
   );
   const originalDir = dir;
 
-  while (true) {
-    const configFile = projectConfigFile(dir);
-    if (configFile) {
-      const configSchema = await getProjectConfigSchema();
-      // config files are the main file + any subfiles read
-      const configFiles = [configFile];
+  // create a shared extension context
+  const extensionContext = createExtensionContext();
 
-      const errMsg = "Project _quarto.yml validation failed.";
-      let projectConfig = (await readAndValidateYamlFromFile(
-        configFile,
-        configSchema,
-        errMsg,
-        kDefaultProjectFileContents,
-      )) as ProjectConfig;
-      projectConfig.project = projectConfig.project || {};
-      const includedMeta = await includedMetadata(
-        dir,
-        projectConfig,
-        configSchema,
-      );
-      const metadata = includedMeta.metadata;
-      configFiles.push(...includedMeta.files);
-      projectConfig = mergeProjectMetadata(projectConfig, metadata);
-      delete projectConfig[kMetadataFile];
-      delete projectConfig[kMetadataFiles];
+  // first pass uses the config file resolve
+  const configSchema = await getProjectConfigSchema();
+  const configResolvers = [
+    quartoYamlProjectConfigResolver(configSchema),
+    await projectExtensionsConfigResolver(extensionContext, dir),
+  ];
+
+  while (true) {
+    // use the current resolver
+    const resolver = configResolvers[0];
+    const resolved = await resolver(dir);
+    if (resolved) {
+      let projectConfig = resolved.config;
+      const configFiles = resolved.files;
 
       // migrate any legacy config
       projectConfig = migrateProjectConfig(projectConfig);
@@ -148,6 +150,7 @@ export async function projectContext(
       const projType = projectConfig.project[kProjectType];
       if (projType && !(projectTypes().includes(projType))) {
         projectConfig = await resolveProjectExtension(
+          extensionContext,
           projType,
           projectConfig,
           dir,
@@ -155,6 +158,7 @@ export async function projectContext(
       }
 
       // collect then merge configuration profiles
+      const configSchema = await getProjectConfigSchema();
       const result = await initializeProfileConfig(
         dir,
         projectConfig,
@@ -196,7 +200,7 @@ export async function projectContext(
           [flags?.to]: toFormat,
         };
         Object.keys(projectFormats).forEach((format) => {
-          formats[format] = projectFormats[format];
+          formats[format] = projectFormats[format] as Record<never, never>;
         });
         projectConfig[kMetadataFormat] = formats;
       }
@@ -292,7 +296,11 @@ export async function projectContext(
     } else {
       const nextDir = dirname(dir);
       if (nextDir === dir) {
-        if (force) {
+        if (configResolvers.length > 1) {
+          // reset dir and proceed to next resolver
+          dir = originalDir;
+          configResolvers.shift();
+        } else if (force) {
           const context: ProjectContext = {
             dir: originalDir,
             engines: [],
@@ -323,12 +331,107 @@ export async function projectContext(
   }
 }
 
+type ResolvedProjectConfig = {
+  config: ProjectConfig;
+  files: string[];
+};
+
+function quartoYamlProjectConfigResolver(
+  configSchema: ConcreteSchema,
+) {
+  return async (dir: string): Promise<ResolvedProjectConfig | undefined> => {
+    const configFile = projectConfigFile(dir);
+    if (configFile) {
+      // read config file
+      const files = [configFile];
+      const errMsg = "Project _quarto.yml validation failed.";
+      let config = (await readAndValidateYamlFromFile(
+        configFile,
+        configSchema,
+        errMsg,
+        kDefaultProjectFileContents,
+      )) as ProjectConfig;
+      config.project = config.project || {};
+
+      // resolve includes
+      const includedMeta = await includedMetadata(
+        dir,
+        config,
+        configSchema,
+      );
+      const metadata = includedMeta.metadata;
+      files.push(...includedMeta.files);
+      config = mergeProjectMetadata(config, metadata);
+      delete config[kMetadataFile];
+      delete config[kMetadataFiles];
+      return { config, files };
+    } else {
+      return undefined;
+    }
+  };
+}
+
+type ProjectTypeDetector = {
+  type: string;
+  detect: string[][];
+};
+
+async function projectExtensionsConfigResolver(
+  context: ExtensionContext,
+  dir: string,
+) {
+  // load built-in project types and see if they have detectors
+  const projectTypeDetectors: ProjectTypeDetector[] =
+    (await context.extensions(dir)).reduce(
+      (projectTypeDetectors, extension) => {
+        if (extension.contributes.project) {
+          const project = extension.contributes.project as
+            | ProjectConfig
+            | undefined;
+          if (project?.project?.detect) {
+            const detect = asArray<string[]>(project?.project.detect);
+            projectTypeDetectors.push({
+              type: extension.id.name,
+              detect,
+            });
+          }
+        }
+
+        return projectTypeDetectors;
+      },
+      [] as ProjectTypeDetector[],
+    );
+
+  // function that will run the detectors on a directory
+  return (dir: string): Promise<ResolvedProjectConfig | undefined> => {
+    // look for the detector files
+    for (const detector of projectTypeDetectors) {
+      if (
+        detector.detect.some((files) =>
+          files.every((file) => safeExistsSync(join(dir, file)))
+        )
+      ) {
+        return Promise.resolve({
+          config: {
+            project: {
+              type: detector.type,
+            },
+          },
+          files: [],
+        });
+      }
+    }
+    return Promise.resolve(undefined);
+  };
+}
+
 async function resolveProjectExtension(
+  context: ExtensionContext,
   projectType: string,
   projectConfig: ProjectConfig,
   dir: string,
 ) {
-  const context = createExtensionContext();
+  // Find extensions
   const extensions = await context.find(
     projectType,
     dir,
@@ -337,22 +440,25 @@ async function resolveProjectExtension(
     dir,
   );
 
-  if (extensions.length > 1) {
-    // There are more than one extensions matching this project
-    warning(
-      `The project type '${projectType}' matched more than one extension. Please use a full name to disambiguate between the types:\n  ${
-        extensions.map((ext) => {
-          return ext.id;
-        }).join("\n  ")
-      }`,
-    );
-  }
+  // filter the extensions to resolve duplication
+  const filtered = filterExtensions(extensions, projectType, "project");
 
-  if (extensions.length > 0) {
-    const extension = extensions[0];
+  if (filtered.length > 0) {
+    const extension = filtered[0];
     const projectExt = extension.contributes.project;
 
     if (projectExt) {
+      // alias and clone (as we may  mutate)
+      const projectExtConfig = ld.cloneDeep(projectExt) as ProjectConfig;
+
+      // remove the 'detect' field from the ext as that's just for bootstrapping
+      delete projectExtConfig.project.detect;
+
+      // user render config should fully override the extension config
+      if (projectConfig.project.render) {
+        delete projectExtConfig.project.render;
+      }
+
       // Ensure that we replace the project type with a
       // system supported project type (rather than the extension name)
       const extProjType = () => {
@@ -372,7 +478,7 @@ async function resolveProjectExtension(
 
       // Merge config
       projectConfig = mergeProjectMetadata(
-        projectExt as ProjectConfig,
+        projectExtConfig,
         projectConfig,
       );
     }
@@ -432,6 +538,14 @@ export function projectIsWebsite(context?: ProjectContext): boolean {
   } else {
     return false;
   }
+}
+
+export function projectPreviewServe(context?: ProjectContext) {
+  return context?.config?.project?.preview?.serve;
+}
+
+export function projectIsServeable(context?: ProjectContext): boolean {
+  return projectIsWebsite(context) || !!projectPreviewServe(context);
 }
 
 export function projectTypeIsWebsite(projType: ProjectType): boolean {
@@ -610,7 +724,19 @@ export function projectInputFiles(
   );
 
   const addFile = (file: string) => {
-    if (!outputDir || !file.startsWith(join(dir, outputDir))) {
+    if (
+      // no output dir to worry about
+      !outputDir ||
+      // crawled file is not inside the output directory
+      !ensureTrailingSlash(dirname(file)).startsWith(
+        ensureTrailingSlash(join(dir, outputDir)),
+      ) ||
+      // output directory is not in the project directory
+      // so we don't need to worry about crawling outputs
+      !ensureTrailingSlash(join(dir, outputDir)).startsWith(
+        ensureTrailingSlash(dir),
+      )
+    ) {
       const engine = fileExecutionEngine(file);
       if (engine) {
         if (!engines.includes(engine.name)) {

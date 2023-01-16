@@ -1,11 +1,15 @@
 /*
 * url.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
 import { ensureTrailingSlash } from "./path.ts";
+
+export function isHttpUrl(url: string) {
+  return /^https?:/i.test(url);
+}
 
 export function joinUrl(baseUrl: string, path: string) {
   const baseHasSlash = baseUrl.endsWith("/");

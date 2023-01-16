@@ -1,13 +1,13 @@
 /*
 * config.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
 import * as ld from "../core/lodash.ts";
 
-import { exists } from "fs/exists.ts";
+import { existsSync } from "node/fs.ts";
 import { join } from "path/mod.ts";
 import { error } from "log/mod.ts";
 
@@ -20,6 +20,8 @@ import {
   kExecuteDefaultsKeys,
   kExecuteEnabled,
   kHeaderIncludes,
+  kIdentifierDefaults,
+  kIdentifierDefaultsKeys,
   kIncludeAfter,
   kIncludeBefore,
   kIpynbFilter,
@@ -37,8 +39,11 @@ import {
   kRenderDefaults,
   kRenderDefaultsKeys,
   kTblColwidths,
+  kVariant,
 } from "./constants.ts";
 import { Format, Metadata } from "./types.ts";
+import { kGfmCommonmarkVariant } from "../format/markdown/format-markdown.ts";
+import { kJupyterEngine, kKnitrEngine } from "../execute/types.ts";
 
 export async function includedMetadata(
   dir: string,
@@ -59,7 +64,7 @@ export async function includedMetadata(
 
   // Read the yaml
   const filesMetadata = await Promise.all(yamlFiles.map(async (yamlFile) => {
-    if (await exists(yamlFile)) {
+    if (existsSync(yamlFile)) {
       try {
         const yaml = await readAndValidateYamlFromFile(
           yamlFile,
@@ -90,6 +95,7 @@ export function formatFromMetadata(
 ): Format {
   // user format options (allow any b/c this is just untyped yaml)
   const typedFormat: Format = {
+    identifier: {},
     render: {},
     execute: {},
     pandoc: {},
@@ -144,7 +150,8 @@ export function isQuartoMetadata(key: string) {
   return kRenderDefaultsKeys.includes(key) ||
     kExecuteDefaultsKeys.includes(key) ||
     kPandocDefaultsKeys.includes(key) ||
-    kLanguageDefaultsKeys.includes(key);
+    kLanguageDefaultsKeys.includes(key) ||
+    [kKnitrEngine, kJupyterEngine].includes(key);
 }
 
 export function isIncludeMetadata(key: string) {
@@ -153,6 +160,7 @@ export function isIncludeMetadata(key: string) {
 
 export function metadataAsFormat(metadata: Metadata): Format {
   const typedFormat: Format = {
+    identifier: {},
     render: {},
     execute: {},
     pandoc: {},
@@ -165,6 +173,7 @@ export function metadataAsFormat(metadata: Metadata): Format {
     // allow stuff already sorted into a top level key through unmodified
     if (
       [
+        kIdentifierDefaults,
         kRenderDefaults,
         kExecuteDefaults,
         kPandocDefaults,
@@ -184,7 +193,9 @@ export function metadataAsFormat(metadata: Metadata): Format {
       }
     } else {
       // move the key into the appropriate top level key
-      if (kRenderDefaultsKeys.includes(key)) {
+      if (kIdentifierDefaultsKeys.includes(key)) {
+        format.identifier[key] = metadata[key];
+      } else if (kRenderDefaultsKeys.includes(key)) {
         format.render[key] = metadata[key];
       } else if (kExecuteDefaultsKeys.includes(key)) {
         format.execute[key] = metadata[key];
@@ -205,6 +216,14 @@ export function metadataAsFormat(metadata: Metadata): Format {
       [];
     typedFormat.execute[kIpynbFilters]?.push(filter);
     delete (typedFormat.execute as Record<string, unknown>)[kIpynbFilter];
+  }
+
+  // expand gfm alias in variant
+  if (typeof (typedFormat.render.variant) === "string") {
+    typedFormat.render.variant = typedFormat.render.variant.replace(
+      /^gfm/,
+      kGfmCommonmarkVariant,
+    );
   }
 
   return typedFormat;
@@ -244,9 +263,11 @@ export function mergeFormatMetadata<T>(
   const kUnmergeableKeys = [kTblColwidths];
 
   return mergeConfigsCustomized<T>(
-    (_objValue: unknown, srcValue: unknown, key: string) => {
+    (objValue: unknown, srcValue: unknown, key: string) => {
       if (kUnmergeableKeys.includes(key)) {
         return srcValue;
+      } else if (key === kVariant) {
+        return mergePandocVariant(objValue, srcValue);
       } else {
         return undefined;
       }
@@ -304,4 +325,39 @@ export function mergeConfigsCustomized<T>(
       }
     },
   );
+}
+
+function mergePandocVariant(objValue: unknown, srcValue: unknown) {
+  if (
+    typeof (objValue) === "string" && typeof (srcValue) === "string" &&
+    (objValue !== srcValue)
+  ) {
+    // merge srcValue into objValue
+    const extensions: { [key: string]: boolean } = {};
+    [...parsePandocVariant(objValue), ...parsePandocVariant(srcValue)]
+      .forEach((extension) => {
+        extensions[extension.name] = extension.enabled;
+      });
+    return Object.keys(extensions).map((name) =>
+      `${extensions[name] ? "+" : "-"}${name}`
+    ).join("");
+  } else {
+    return undefined;
+  }
+}
+
+function parsePandocVariant(variant: string) {
+  // remove any linebreaks
+  variant = variant.split("\n").join();
+
+  // parse into separate entries
+  const extensions: Array<{ name: string; enabled: boolean }> = [];
+  const re = /([+-])([a-z_]+)/g;
+  let match = re.exec(variant);
+  while (match) {
+    extensions.push({ name: match[2], enabled: match[1] === "+" });
+    match = re.exec(variant);
+  }
+
+  return extensions;
 }

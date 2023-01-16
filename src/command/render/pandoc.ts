@@ -1,7 +1,7 @@
 /*
 * pandoc.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -65,7 +65,12 @@ import {
 } from "../../project/project-context.ts";
 import { deleteCrossrefMetadata } from "../../project/project-crossrefs.ts";
 
-import { getPandocArg, havePandocArg, removePandocArgs } from "./flags.ts";
+import {
+  getPandocArg,
+  havePandocArg,
+  kQuartoForwardedMetadataFields,
+  removePandocArgs,
+} from "./flags.ts";
 import {
   generateDefaults,
   pandocDefaultsMessage,
@@ -101,6 +106,7 @@ import {
   kNumberOffset,
   kNumberSections,
   kPageTitle,
+  kQuartoInternal,
   kQuartoTemplateParams,
   kQuartoVarsKey,
   kQuartoVersion,
@@ -147,6 +153,7 @@ import {
 } from "./template.ts";
 import { formatLanguage } from "../../core/language.ts";
 import {
+  kYamlMetadataBlock,
   pandocFormatWith,
   parseFormatString,
   splitPandocFormatString,
@@ -156,13 +163,7 @@ import { logLevel } from "../../core/log.ts";
 
 import { cacheCodePage, clearCodePageCache } from "../../core/windows.ts";
 import { textHighlightThemePath } from "../../quarto-core/text-highlighting.ts";
-import {
-  formatDate,
-  isSpecialDate,
-  parsePandocDate,
-  parseSpecialDate,
-  resolveAndFormatDate,
-} from "../../core/date.ts";
+import { resolveAndFormatDate, resolveDate } from "../../core/date.ts";
 import { katexPostProcessor } from "../../format/html/format-html-math.ts";
 import {
   readAndInjectDependencies,
@@ -178,6 +179,15 @@ import {
   insertExplicitTimingEntries,
   withTiming,
 } from "../../core/timing.ts";
+
+import {
+  requiresShortcodeUnescapePostprocessor,
+  shortcodeUnescapePostprocessor,
+} from "../../format/markdown/format-markdown.ts";
+
+import { kRevealJSPlugins } from "../../extension/extension-shared.ts";
+import { kCitation } from "../../format/html/format-html-shared.ts";
+import { cslDate } from "../../core/csl.ts";
 
 export async function runPandoc(
   options: PandocOptions,
@@ -221,6 +231,7 @@ export async function runPandoc(
   // remove some metadata that are used as parameters to our lua filters
   const cleanMetadataForPrinting = (metadata: Metadata) => {
     delete metadata.params;
+    delete metadata[kQuartoInternal];
     delete metadata[kQuartoVarsKey];
     delete metadata[kQuartoVersion];
     delete metadata[kFigResponsive];
@@ -228,8 +239,23 @@ export async function runPandoc(
     delete metadata[kRevealJsScripts];
     deleteProjectMetadata(metadata);
     deleteCrossrefMetadata(metadata);
+
+    // Don't print empty reveal-js plugins
+    if (
+      metadata[kRevealJSPlugins] &&
+      (metadata[kRevealJSPlugins] as Array<unknown>).length === 0
+    ) {
+      delete metadata[kRevealJSPlugins];
+    }
   };
   cleanMetadataForPrinting(printMetadata);
+
+  // Forward flags metadata into the format
+  kQuartoForwardedMetadataFields.forEach((field) => {
+    if (options.flags?.pandocMetadata?.[field]) {
+      options.format.metadata[field] = options.flags.pandocMetadata[field];
+    }
+  });
 
   // generate defaults and capture defaults to be printed
   let allDefaults = (await generateDefaults(options)) || {};
@@ -282,6 +308,7 @@ export async function runPandoc(
       isEpubOutput(options.format.pandoc))
   ) {
     options.format.metadata[kAbstractTitle] =
+      options.format.metadata[kAbstractTitle] ||
       options.format.language[kSectionTitleAbstract];
   }
 
@@ -290,7 +317,7 @@ export async function runPandoc(
   const htmlPostprocessors: Array<HtmlPostProcessor> = [];
   const htmlFinalizers: Array<(doc: Document) => Promise<void>> = [];
   const htmlRenderAfterBody: string[] = [];
-  const dependenciesFile = options.temp.createFile();
+  const dependenciesFile = options.services.temp.createFile();
 
   if (
     sysFilters.length > 0 || options.format.formatExtras ||
@@ -302,7 +329,7 @@ export async function runPandoc(
         options.source,
         options.flags || {},
         options.format,
-        options.temp,
+        options.services,
       ))
       : {};
 
@@ -313,9 +340,8 @@ export async function runPandoc(
         options.flags || {},
         options.format,
         options.libDir,
-        options.temp,
+        options.services,
         options.offset,
-        options.extension,
         options.project,
       ))
       : {};
@@ -326,7 +352,7 @@ export async function runPandoc(
       options.format,
       cwd,
       options.libDir,
-      options.temp,
+      options.services.temp,
       dependenciesFile,
       options.project,
     );
@@ -424,13 +450,13 @@ export async function runPandoc(
     }
 
     // merge metadata
-    if (extras.metadata) {
+    if (extras.metadata || extras.metadataOverride) {
       options.format.metadata = {
         ...mergeConfigs(
-          extras.metadata,
+          extras.metadata || {},
           options.format.metadata,
         ),
-        ...extras.metadataOverride,
+        ...extras.metadataOverride || {},
       };
       printMetadata = mergeConfigs(extras.metadata, printMetadata);
       cleanMetadataForPrinting(printMetadata);
@@ -592,7 +618,7 @@ export async function runPandoc(
     if (extras.html?.[kBodyEnvelope] && projectExtras.html?.[kBodyEnvelope]) {
       extras.html[kBodyEnvelope] = projectExtras.html[kBodyEnvelope];
     }
-    resolveBodyEnvelope(allDefaults, extras, options.temp);
+    resolveBodyEnvelope(allDefaults, extras, options.services.temp);
 
     // add any filters
     allDefaults.filters = [
@@ -622,6 +648,14 @@ export async function runPandoc(
     }
   }
 
+  // add a shortcode escaping post-processor if we need one
+  if (
+    isMarkdownOutput(options.format.pandoc) &&
+    requiresShortcodeUnescapePostprocessor(options.markdown)
+  ) {
+    postprocessors.push(shortcodeUnescapePostprocessor);
+  }
+
   // resolve some title variables
   const title = allDefaults?.[kVariables]?.[kTitle] ||
     options.format.metadata[kTitle];
@@ -646,6 +680,11 @@ export async function runPandoc(
     delete allDefaults[kTitlePrefix];
   }
 
+  // if we are doing keepYaml then remove it from pandoc 'to'
+  if (options.keepYaml && allDefaults.to) {
+    allDefaults.to = allDefaults.to.replaceAll(`+${kYamlMetadataBlock}`, "");
+  }
+
   // Attempt to cache the code page, if this windows.
   // We cache the code page to prevent looking it up
   // in the registry repeatedly (which triggers MS Defender)
@@ -654,10 +693,15 @@ export async function runPandoc(
   }
 
   // filter results json file
-  const filterResultsFile = options.temp.createFile();
+  const filterResultsFile = options.services.temp.createFile();
 
   // timing results json file
-  const timingResultsFile = options.temp.createFile();
+  const timingResultsFile = options.services.temp.createFile();
+
+  if (allDefaults.to?.match(/[.]lua$/)) {
+    formatFilterParams["custom-writer"] = allDefaults.to;
+    allDefaults.to = resourcePath("filters/customwriter/customwriter.lua");
+  }
 
   // set parameters required for filters (possibily mutating all of it's arguments
   // to pull includes out into quarto parameters so they can be merged)
@@ -685,6 +729,13 @@ export async function runPandoc(
     removeArgs.set("--number-sections", false);
     removeArgs.set("--number-offset", true);
     pandocArgs = removePandocArgs(pandocArgs, removeArgs);
+  }
+
+  // https://github.com/quarto-dev/quarto-cli/issues/3126
+  // it seems that we still need to coerce number-offset to be an number list,
+  // otherwise pandoc fails.
+  if (typeof allDefaults[kNumberOffset] === "number") {
+    allDefaults[kNumberOffset] = [allDefaults[kNumberOffset]];
   }
 
   // We always use our own pandoc data-dir, so tear off the user
@@ -717,7 +768,7 @@ export async function runPandoc(
   // provide alternate markdown template that actually prints the title block
   if (
     !allDefaults[kTemplate] && !havePandocArg(args, "--template") &&
-    !options.format.render["keep-yaml"] &&
+    !options.keepYaml &&
     allDefaults.to
   ) {
     const formatDesc = parseFormatString(allDefaults.to);
@@ -757,7 +808,10 @@ export async function runPandoc(
 
   // write the defaults file
   if (allDefaults) {
-    const defaultsFile = await writeDefaultsFile(allDefaults, options.temp);
+    const defaultsFile = await writeDefaultsFile(
+      allDefaults,
+      options.services.temp,
+    );
     cmd.push("--defaults", defaultsFile);
   }
 
@@ -790,6 +844,7 @@ export async function runPandoc(
   }
 
   // Resolve any date fields
+  const dateRaw = pandocMetadata[kDate];
   const dateFields = [kDate, kDateModified];
   dateFields.forEach((dateField) => {
     const date = pandocMetadata[dateField];
@@ -800,6 +855,31 @@ export async function runPandoc(
       format,
     );
   });
+
+  // Ensure that citationMetadat is expanded into
+  // and object for downstream use
+  if (
+    typeof (pandocMetadata[kCitation]) === "boolean" &&
+    pandocMetadata[kCitation] === true
+  ) {
+    pandocMetadata[kCitation] = {};
+  }
+
+  // Expand citation dates into CSL dates
+  const citationMetadata = pandocMetadata[kCitation];
+  if (citationMetadata) {
+    const docCSLDate = dateRaw
+      ? cslDate(resolveDate(options.source, dateRaw))
+      : undefined;
+    const fields = ["issued", "available-date"];
+    fields.forEach((field) => {
+      if (citationMetadata[field]) {
+        citationMetadata[field] = cslDate(citationMetadata[field]);
+      } else if (docCSLDate) {
+        citationMetadata[field] = docCSLDate;
+      }
+    });
+  }
 
   // Resolve the author metadata into a form that Pandoc will recognize
   const authorsRaw = pandocMetadata[kAuthors] || pandocMetadata[kAuthor];
@@ -855,7 +935,7 @@ export async function runPandoc(
     keepSourceBlock(options.format, options.source);
 
   // write input to temp file and pass it to pandoc
-  const inputTemp = options.temp.createFile({
+  const inputTemp = options.services.temp.createFile({
     prefix: "quarto-input",
     suffix: ".md",
   });
@@ -878,13 +958,15 @@ export async function runPandoc(
   // This gives the semantics we want, as our metadata is 'logically' at the top of the
   // file and subsequent blocks within the file should indeed override it (as should
   // user invocations of --metadata-file or -M, which are included below in pandocArgs)
-  const metadataTemp = options.temp.createFile({
+  const metadataTemp = options.services.temp.createFile({
     prefix: "quarto-metadata",
     suffix: ".yml",
   });
   const pandocPassedMetadata = ld.cloneDeep(pandocMetadata);
   delete pandocPassedMetadata.format;
   delete pandocPassedMetadata.project;
+  delete pandocPassedMetadata.website;
+
   Deno.writeTextFileSync(
     metadataTemp,
     stringify(pandocPassedMetadata, {

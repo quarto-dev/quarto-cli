@@ -1,5 +1,5 @@
 # execute.R
-# Copyright (C) 2020 by RStudio, PBC
+# Copyright (C) 2020-2022 Posit Software, PBC
 
 # execute rmarkdown::render
 execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, resourceDir, handledLanguages, markdown) {
@@ -514,12 +514,15 @@ apply_slides_patch <- function(includes) {
   // Fire the "slideenter" event (handled by htmlwidgets.js) when the current
   // slide changes (different for each slide format).
   (function () {
-    function fireSlideChanged(previousSlide, currentSlide) {
-
-      // dispatch for htmlwidgets
+    // dispatch for htmlwidgets
+    function fireSlideEnter() {
       const event = window.document.createEvent("Event");
       event.initEvent("slideenter", true, true);
       window.document.dispatchEvent(event);
+    }
+
+    function fireSlideChanged(previousSlide, currentSlide) {
+      fireSlideEnter();
 
       // dispatch for shiny
       if (window.jQuery) {
@@ -530,13 +533,6 @@ apply_slides_patch <- function(includes) {
           window.jQuery(currentSlide).trigger("shown");
         }
       }
-    }
-
-    // hookup for reveal
-    if (window.Reveal) {
-      window.Reveal.addEventListener("slidechanged", function(event) {
-        fireSlideChanged(event.previousSlide, event.currentSlide);
-      });
     }
 
     // hookup for slidy

@@ -1,0 +1,28 @@
+title: Hugo
+author: RStudio, PBC
+organization: quarto
+contributes:
+  project:
+    project:
+      type: default
+      detect:
+        - ["config.toml", "content"]
+        - ["config/_default/config.toml", "content"]
+      render:
+        - "**/*.qmd"
+        - "**/*.ipynb"
+      preview:
+        serve:
+          cmd: "hugo serve --port {port} --bind {host} --navigateToChanged"
+          env:
+            HUGO_RELATIVEURLS: "true"
+          ready: "Web Server is available at"
+    format: hugo-md
+  formats:
+    md:
+      variant: gfm+yaml_metadata_block+definition_lists+smart
+      prefer-html: true
+      fig-format: retina
+      fig-width: 8
+      fig-height: 5
+      wrap: preserve

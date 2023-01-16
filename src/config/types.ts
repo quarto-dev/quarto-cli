@@ -1,7 +1,7 @@
 /*
 * types.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 import { Document } from "../core/deno-dom.ts";
@@ -19,7 +19,9 @@ import {
   kCiteMethod,
   kCiteproc,
   kCodeFold,
+  kCodeLine,
   kCodeLineNumbers,
+  kCodeLines,
   kCodeLink,
   kCodeOverflow,
   kCodeSummary,
@@ -48,6 +50,7 @@ import {
   kCrossrefThmTitle,
   kCss,
   kDfPrint,
+  kDisplayName,
   kEcho,
   kEmbedResources,
   kEngine,
@@ -62,6 +65,7 @@ import {
   kExecuteDebug,
   kExecuteEnabled,
   kExecuteIpynb,
+  kExtensionName,
   kFigAlign,
   kFigDpi,
   kFigEnv,
@@ -71,6 +75,7 @@ import {
   kFigWidth,
   kFilterParams,
   kFilters,
+  kFormatLinks,
   kFormatResources,
   kFreeze,
   kGladtex,
@@ -87,7 +92,6 @@ import {
   kKeepMd,
   kKeepSource,
   kKeepTex,
-  kKeepYaml,
   kLatexAutoInstall,
   kLatexAutoMk,
   kLatexClean,
@@ -126,6 +130,9 @@ import {
   kMathml,
   kMergeIncludes,
   kMermaidFormat,
+  kNotebookLinks,
+  kNotebookView,
+  kNotebookViewStyle,
   kNumberOffset,
   kNumberSections,
   kOutput,
@@ -137,7 +144,10 @@ import {
   kPdfEngineOpt,
   kPdfEngineOpts,
   kPreferHtml,
+  kQuartoFilters,
   kReferenceLocation,
+  kRelatedFormatsTitle,
+  kRelatedNotebooksTitle,
   kRepoActionLinksEdit,
   kRepoActionLinksIssue,
   kRepoActionLinksSource,
@@ -153,6 +163,7 @@ import {
   kSectionTitleAbstract,
   kSectionTitleAppendices,
   kSectionTitleCitation,
+  kSectionTitleCopyright,
   kSectionTitleFootnotes,
   kSectionTitleReferences,
   kSectionTitleReuse,
@@ -161,9 +172,11 @@ import {
   kShiftHeadingLevelBy,
   kShortcodes,
   kSlideLevel,
+  kSourceNotebookPrefix,
   kStandalone,
   kSyntaxDefinitions,
   kTableOfContents,
+  kTargetFormat,
   kTblColwidths,
   kTemplate,
   kTitleBlockAffiliationPlural,
@@ -185,7 +198,8 @@ import {
 } from "./constants.ts";
 
 import { TempContext } from "../core/temp-types.ts";
-import { HtmlPostProcessor } from "../command/render/types.ts";
+import { HtmlPostProcessor, RenderServices } from "../command/render/types.ts";
+import { QuartoFilterSpec } from "../command/render/filters.ts";
 import { ExtensionContext } from "../extension/extension-shared.ts";
 import { ProjectContext } from "../project/types.ts";
 
@@ -275,6 +289,12 @@ export function isPandocFilter(filter: QuartoFilter): filter is PandocFilter {
   return (<PandocFilter> filter).path !== undefined;
 }
 
+export interface NotebookPublishOptions {
+  notebook: string;
+  url?: string;
+  title?: string;
+}
+
 export interface FormatExtras {
   args?: string[];
   pandoc?: FormatPandoc;
@@ -304,8 +324,15 @@ export interface FormatExtras {
   };
 }
 
+export interface FormatIdentifier {
+  [kTargetFormat]?: string;
+  [kDisplayName]?: string;
+  [kExtensionName]?: string;
+}
+
 // pandoc output format
 export interface Format {
+  identifier: FormatIdentifier;
   render: FormatRender;
   execute: FormatExecute;
   pandoc: FormatPandoc;
@@ -330,9 +357,8 @@ export interface Format {
     flags: PandocFlags,
     format: Format,
     libDir: string,
-    temp: TempContext,
+    services: RenderServices,
     offset?: string,
-    extensionContext?: ExtensionContext,
     project?: ProjectContext,
   ) => Promise<FormatExtras>;
   formatPreviewFile?: (
@@ -344,7 +370,6 @@ export interface Format {
 
 export interface FormatRender {
   [kKeepTex]?: boolean;
-  [kKeepYaml]?: boolean;
   [kKeepSource]?: boolean;
   [kKeepHidden]?: boolean;
   [kPreferHtml]?: boolean;
@@ -383,6 +408,13 @@ export interface FormatRender {
   [kLinkExternalFilter]?: string;
   [kSelfContainedMath]?: boolean;
   [kFormatResources]?: string[];
+  [kFormatLinks]?: boolean | string[];
+  [kNotebookLinks]?: boolean | "inline" | "global";
+  [kNotebookViewStyle]?: "document" | "notebook";
+  [kNotebookView]?:
+    | boolean
+    | NotebookPublishOptions
+    | NotebookPublishOptions[];
 }
 
 export interface FormatExecute {
@@ -431,6 +463,7 @@ export interface FormatPandoc {
   [kCiteproc]?: boolean;
   [kCiteMethod]?: string;
   [kFilters]?: QuartoFilter[];
+  [kQuartoFilters]?: QuartoFilterSpec;
   [kPdfEngine]?: string;
   [kPdfEngineOpts]?: string[];
   [kPdfEngineOpt]?: string;
@@ -494,6 +527,9 @@ export interface PdfEngine {
 export interface FormatLanguage {
   [kTocTitleDocument]?: string;
   [kTocTitleWebsite]?: string;
+  [kRelatedFormatsTitle]?: string;
+  [kSourceNotebookPrefix]?: string;
+  [kRelatedNotebooksTitle]?: string;
   [kCalloutTipCaption]?: string;
   [kCalloutNoteCaption]?: string;
   [kCalloutWarningCaption]?: string;
@@ -513,7 +549,10 @@ export interface FormatLanguage {
   [kSectionTitleReferences]?: string;
   [kSectionTitleAppendices]?: string;
   [kSectionTitleReuse]?: string;
+  [kSectionTitleCopyright]?: string;
   [kCodeSummary]?: string;
+  [kCodeLine]?: string;
+  [kCodeLines]?: string;
   [kCodeToolsMenuCaption]?: string;
   [kCodeToolsShowAllCode]?: string;
   [kCodeToolsHideAllCode]?: string;

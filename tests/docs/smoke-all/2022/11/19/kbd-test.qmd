@@ -1,0 +1,10 @@
+---
+title: test
+format: 
+  html: default
+  pdf: default
+---
+
+To foo, press {{< kbd Shift-Ctrl-P >}}. To bar, press {{< kbd Shift-Ctrl-P mac=Shift-Command-P >}}. To baz, press {{< kbd mac=Shift-Command-P win=Shift-Control-S linux=Shift-Ctrl-S >}}.
+
+To foo, press {{< kbd win=Shift-Ctrl-P >}}. 

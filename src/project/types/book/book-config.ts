@@ -1,7 +1,7 @@
 /*
 * book-config.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -19,7 +19,7 @@ import {
 } from "../../../execute/engine.ts";
 import { defaultWriterFormat } from "../../../format/formats.ts";
 
-import { Navbar, SidebarItem, SidebarTool } from "../../types.ts";
+import { Navbar, NavItem, SidebarItem, SidebarTool } from "../../types.ts";
 
 import {
   normalizeSidebarItem,
@@ -85,6 +85,11 @@ import {
 import { RenderFlags } from "../../../command/render/types.ts";
 import { formatLanguage } from "../../../core/language.ts";
 import { kComments } from "../../../format/html/format-html-shared.ts";
+import { resolvePageFooter } from "../website/website-shared.ts";
+import {
+  NavigationItemObject,
+  PageFooterRegion,
+} from "../../../resources/types/schema-types.ts";
 
 export const kBookChapters = "chapters";
 export const kBookAppendix = "appendices";
@@ -216,6 +221,26 @@ export async function bookProjectConfig(
   config.project[kProjectRender] = renderItems
     .filter((target) => !!target.file)
     .map((target) => target.file!);
+
+  // Add any files that are in the footer to the render list
+  const footerFiles: string[] = [];
+  const pageFooter = resolvePageFooter(config);
+  const addFooterItems = (region?: PageFooterRegion) => {
+    if (region) {
+      for (const item of region) {
+        if (typeof (item) !== "string") {
+          const navItem = item as NavigationItemObject;
+          if (navItem.href) {
+            footerFiles.push(navItem.href);
+          }
+        }
+      }
+    }
+  };
+  addFooterItems(pageFooter.left);
+  addFooterItems(pageFooter.right);
+  addFooterItems(pageFooter.center);
+  config.project[kProjectRender].push(...footerFiles);
 
   // add any 404 page we find
   const ext404 = engineValidExtensions().find((ext) =>

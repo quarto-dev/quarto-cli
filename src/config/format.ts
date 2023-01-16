@@ -1,7 +1,7 @@
 /*
 * format.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -95,6 +95,21 @@ export function isHtmlSlideOutput(format?: string | FormatPandoc) {
     "slideous",
     "revealjs",
   ].includes(format);
+}
+
+export function isJatsOutput(format?: string | FormatPandoc) {
+  if (typeof (format) !== "string") {
+    format = format?.to || "html";
+  }
+
+  return [
+    "jats",
+    "jats_archiving",
+    "jats_articleauthoring",
+    "jats_publishing",
+  ].find((formatStr) => {
+    return (format as string).startsWith(formatStr);
+  });
 }
 
 export function isPresentationOutput(format: FormatPandoc) {

@@ -6,8 +6,10 @@ set -e
 
 if [[ $EUID -eq 0 ]]; then
 ln -fs /opt/quarto/bin/quarto /usr/local/bin/quarto
+ln -fs /opt/quarto/share/man/quarto.man /usr/local/man/quarto.1
 else
 ln -fs /opt/quarto/bin/quarto ~/bin/quarto
+ln -fs /opt/quarto/share/man/quarto.man ~/man/quarto.1
 fi
 
 exit 0

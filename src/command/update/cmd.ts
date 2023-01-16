@@ -1,7 +1,7 @@
 /*
 * cmd.ts
 *
-* Copyright (C) 2021 by RStudio, PBC
+* Copyright (C) 2021-2022 Posit Software, PBC
 *
 */
 import { Command } from "cliffy/command/mod.ts";
@@ -15,11 +15,12 @@ import {
   selectTool,
   updateOrInstallTool,
 } from "../../tools/tools-console.ts";
+import { resolveCompatibleArgs } from "../remove/cmd.ts";
 
 export const updateCommand = new Command()
   .hidden()
   .name("update")
-  .arguments("<type:string> [target:string]")
+  .arguments("[target...]")
   .option(
     "--no-prompt",
     "Do not prompt to confirm actions",
@@ -47,10 +48,11 @@ export const updateCommand = new Command()
     "Update TinyTeX",
     "quarto update tool tinytex",
   )
-  .example(
-    "Update Chromium",
-    "quarto update tool chromium",
-  )
+  // temporarily disabled until we get things in order in 1.28.*
+  // .example(
+  //   "Update Chromium",
+  //   "quarto update tool chromium",
+  // )
   .example(
     "Choose tool to update",
     "quarto update tool",
@@ -58,17 +60,18 @@ export const updateCommand = new Command()
   .action(
     async (
       options: { prompt?: boolean; embed?: string },
-      type: string,
-      target?: string,
+      ...target: string[]
     ) => {
       await initYamlIntelligenceResourcesFromFilesystem();
       const temp = createTempContext();
       try {
-        if (type.toLowerCase() === "extension") {
+        const resolved = resolveCompatibleArgs(target, "extension");
+
+        if (resolved.action === "extension") {
           // Install an extension
-          if (target) {
+          if (resolved.name) {
             await installExtension(
-              target,
+              resolved.name,
               temp,
               options.prompt !== false,
               options.embed,
@@ -76,11 +79,11 @@ export const updateCommand = new Command()
           } else {
             info("Please provide an extension name, url, or path.");
           }
-        } else if (type.toLowerCase() === "tool") {
+        } else if (resolved.action === "tool") {
           // Install a tool
-          if (target) {
+          if (resolved.name) {
             // Use the tool name
-            await updateOrInstallTool(target, "update", options.prompt);
+            await updateOrInstallTool(resolved.name, "update", options.prompt);
           } else {
             // Not provided, give the user a list to choose from
             const allTools = await loadTools();
@@ -98,7 +101,7 @@ export const updateCommand = new Command()
         } else {
           // This is an unrecognized type option
           info(
-            `Unrecognized option '${type}' - please choose 'tool' or 'extension'.`,
+            `Unrecognized option '${resolved.action}' - please choose 'tool' or 'extension'.`,
           );
         }
       } finally {

@@ -52,7 +52,7 @@ Usage:
 ]]
 ---@param lua_filter table<string,function> Map of filter functions
 ---@return pandoc.Pandoc # Filtered document
-function pandoc.Pandoc.walk(lua_filter) end
+function pandoc.Pandoc:walk(lua_filter) end
 
 --[[
 Runs command with arguments, passing it some input, and returns the output.

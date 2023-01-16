@@ -1,7 +1,7 @@
 /*
 * cmd.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -122,11 +122,12 @@ export const renderCommand = new Command()
     "quarto render document.qmd --output -",
   )
   // deno-lint-ignore no-explicit-any
-  .action(async (options: any, input?: string, args?: string[]) => {
-    args = args || [];
-
+  .action(async (options: any, input?: string, ...args: string[]) => {
     // remove implicit clean argument (re-injected based on what the user
     // actually passes in flags.ts)
+    if (options === undefined) {
+      throw new Error("Internal error, expected `options` to be an object");
+    }
     delete options.clean;
 
     // if an option got defined then this was mis-parsed as an 'option'

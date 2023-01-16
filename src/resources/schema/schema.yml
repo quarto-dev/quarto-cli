@@ -55,7 +55,7 @@
     super:
       resolveRef: schema/base
     properties:
-      null:
+      "null":
         ref: schema/schema
 
 - id: schema/explicit-schema

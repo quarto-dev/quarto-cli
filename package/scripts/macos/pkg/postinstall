@@ -1,18 +1,30 @@
 #!/bin/sh
 
 if [[ $EUID -eq 0 ]]; then
+
+## Add to paths.d
+echo "$2/bin" > /etc/paths.d/quarto
+
+## Add symlink
 ln -fs $2/bin/quarto /usr/local/bin/quarto
+ln -fs $2/share/man/quarto.man /usr/local/man/quarto.1
+
 else
 
-# write path to zshenv
-EXPORTLINE='export PATH="'$2'/bin:$PATH"'
-EXPORTFILE=~/.zshenv
+# write path to zshrc
+touch "${HOME}/.zshrc"
 
-# Add the path to the zshenv if it doesn't already exist
-grep -qxF "$EXPORTLINE" "$EXPORTFILE" || echo "$EXPORTLINE" >> "$EXPORTFILE"
+BINDIR=$2/bin
+EXPORTLINE='# Add quarto to the path
+if [[ -d '$BINDIR' ]]; then
+  export PATH="'$BINDIR':$PATH"
+fi'
+# Add the path to the zshrc if it doesn't already exist
+grep -qxF "$EXPORTLINE" "${HOME}/.zshrc" || echo "$EXPORTLINE" >> "${HOME}/.zshrc"
 
 # try creating symlink, its ok if this doesn't work
 ln -fs $2/bin/quarto /usr/local/bin/quarto
+ln -fs $2/share/man/quarto.man /usr/local/man/quarto.1
 
 fi
 

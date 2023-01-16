@@ -1,7 +1,7 @@
 /*
 * book.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -37,6 +37,7 @@ import {
 import {
   HtmlPostProcessResult,
   PandocOptions,
+  RenderServices,
 } from "../../../command/render/types.ts";
 
 import { ProjectCreate, ProjectType } from "../types.ts";
@@ -61,7 +62,6 @@ import {
 } from "./book-shared.ts";
 import { kBootstrapDependencyName } from "../../../format/html/format-html-shared.ts";
 import { formatHasBootstrap } from "../../../format/html/format-html-info.ts";
-import { TempContext } from "../../../core/temp.ts";
 import { isSpecialDate, parseSpecialDate } from "../../../core/date.ts";
 import { kHtmlEmptyPostProcessResult } from "../../../command/render/constants.ts";
 
@@ -112,6 +112,7 @@ export const bookProjectType: ProjectType = {
 
   libDir: "site_libs",
   outputDir: "_book",
+  cleanOutputDir: true,
 
   config: bookProjectConfig,
 
@@ -168,7 +169,7 @@ export const bookProjectType: ProjectType = {
     source: string,
     flags: PandocFlags,
     format: Format,
-    temp: TempContext,
+    services: RenderServices,
   ) => {
     // defaults for all formats
     let extras: FormatExtras = {
@@ -197,7 +198,7 @@ export const bookProjectType: ProjectType = {
         source,
         flags,
         format,
-        temp,
+        services,
       );
 
       // merge

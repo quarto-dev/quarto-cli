@@ -1,7 +1,7 @@
 /*
 * cmd.ts
 *
-* Copyright (C) 2021 by RStudio, PBC
+* Copyright (C) 2021-2022 Posit Software, PBC
 *
 */
 import { Command } from "cliffy/command/mod.ts";
@@ -66,6 +66,7 @@ async function outputExtensions(
     path,
     project?.config,
     project?.dir,
+    { builtIn: false },
   );
   if (extensions.length === 0) {
     info(

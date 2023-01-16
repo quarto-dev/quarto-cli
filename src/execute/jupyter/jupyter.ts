@@ -1,7 +1,7 @@
 /*
 * jupyter.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -86,6 +86,7 @@ import {
 import { asMappedString } from "../../core/lib/mapped-text.ts";
 import { MappedString, mappedStringFromFile } from "../../core/mapped-text.ts";
 import { breakQuartoMd } from "../../core/lib/break-quarto-md.ts";
+import { ProjectContext } from "../../project/types.ts";
 
 export const jupyterEngine: ExecutionEngine = {
   name: kJupyterEngine,
@@ -128,6 +129,7 @@ export const jupyterEngine: ExecutionEngine = {
     file: string,
     _quiet?: boolean,
     markdown?: MappedString,
+    project?: ProjectContext,
   ): Promise<ExecutionTarget | undefined> => {
     // at some point we'll resolve a full notebook/kernelspec
     let nb: JupyterNotebook | undefined;
@@ -157,8 +159,9 @@ export const jupyterEngine: ExecutionEngine = {
         metadata,
         data: { transient: true, kernelspec: {} },
       };
-      nb = await createNotebookforTarget(target);
+      nb = await createNotebookforTarget(target, project);
       target.data.kernelspec = nb.metadata.kernelspec;
+
       return target;
     } else if (isJupyterNotebook(file)) {
       return {
@@ -333,9 +336,21 @@ export const jupyterEngine: ExecutionEngine = {
     // (unless keep-ipynb was specified)
     cleanupNotebook(options.target, options.format);
 
+    // Create markdown from the result
+    const outputs = result.cellOutputs.map((output) => output.markdown);
+    if (result.notebookOutputs) {
+      if (result.notebookOutputs.prefix) {
+        outputs.unshift(result.notebookOutputs.prefix);
+      }
+      if (result.notebookOutputs.suffix) {
+        outputs.push(result.notebookOutputs.suffix);
+      }
+    }
+    const markdown = outputs.join("");
+
     // return results
     return {
-      markdown: result.markdown,
+      markdown: markdown,
       supporting: [join(assets.base_dir, assets.supporting_dir)],
       filters: [],
       pandoc: result.pandoc,
@@ -422,8 +437,11 @@ async function ensureYamlKernelspec(
   }
 }
 
-async function createNotebookforTarget(target: ExecutionTarget) {
-  const nb = await quartoMdToJupyter(target.markdown.value, true);
+async function createNotebookforTarget(
+  target: ExecutionTarget,
+  project?: ProjectContext,
+) {
+  const nb = await quartoMdToJupyter(target.markdown.value, true, project);
   Deno.writeTextFileSync(target.input, JSON.stringify(nb, null, 2));
   return nb;
 }

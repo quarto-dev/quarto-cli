@@ -1,7 +1,7 @@
 /*
 * inspect.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -38,6 +38,7 @@ export interface InspectedConfig {
 }
 
 export interface InspectedProjectConfig extends InspectedConfig {
+  dir: string;
   config: ProjectConfig;
   files: ProjectFiles;
 }
@@ -82,6 +83,7 @@ export async function inspectConfig(path: string): Promise<InspectedConfig> {
         quarto: {
           version,
         },
+        dir: context.dir,
         engines: context.engines,
         config: context.config,
         files: context.files,

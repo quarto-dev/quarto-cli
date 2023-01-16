@@ -1,11 +1,16 @@
 toc-title-document: "Obsah"
 toc-title-website: "Na této stránce"
 
+related-formats-title: "Jiné formáty"
+related-notebooks-title: "Notebooks"
+source-notebooks-prefix: "Zdroj"
+
 section-title-abstract: "Abstrakt"
 section-title-appendices: "Přílohy"
 section-title-footnotes: "Poznámky pod čarou"
 section-title-references: "Reference"
 section-title-reuse: "Pravidla uživání"
+section-title-copyright: "Autorská práva"
 section-title-citation: "Citace"
 
 appendix-attribution-cite-as: "Tuto práci citujte jako:"
@@ -25,6 +30,9 @@ callout-important-caption: "Důležité"
 callout-caution-caption: "Upozornění"
 
 code-summary: "Kód"
+
+code-line: "Řádek"
+code-lines: "Řádky"
 
 code-tools-menu-caption: "Kód"
 code-tools-show-all-code: "Zobrazit celý kód"

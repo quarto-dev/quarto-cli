@@ -1,11 +1,16 @@
 toc-title-document: "Table of contents"
 toc-title-website: "On this page"
 
+related-formats-title: "Other Formats"
+related-notebooks-title: "Notebooks"
+source-notebooks-prefix: "Source"
+
 section-title-abstract: "Abstract"
 section-title-appendices: "Appendices"
 section-title-footnotes: "Footnotes"
 section-title-references: "References"
 section-title-reuse: "Reuse"
+section-title-copyright: "Copyright"
 section-title-citation: "Citation"
 
 appendix-attribution-cite-as: "For attribution, please cite this work as:"
@@ -31,6 +36,9 @@ code-tools-show-all-code: "Show All Code"
 code-tools-hide-all-code: "Hide All Code"
 code-tools-view-source: "View Source"
 code-tools-source-code: "Source Code"
+
+code-line: "Line"
+code-lines: "Lines"
 
 copy-button-tooltip: "Copy to Clipboard"
 copy-button-tooltip-success: "Copied!"

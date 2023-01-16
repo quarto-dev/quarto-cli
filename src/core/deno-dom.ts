@@ -1,7 +1,7 @@
 /*
 * deno-dom.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -116,6 +116,7 @@ export async function initDenoDom() {
 
         // Register parse function and return
         register(parse, parseFrag);
+        s_DenoDomInitialized = true;
         return;
       }
     } catch (e) {
@@ -124,8 +125,10 @@ export async function initDenoDom() {
   }
 
   // didn't successfully load deno-dom-native, load the wasm version
-  await initParser();
-  s_DenoDomInitialized = true;
+  if (!s_DenoDomInitialized) {
+    await initParser();
+    s_DenoDomInitialized = true;
+  }
 }
 
 export * from "deno_dom/src/api.ts";

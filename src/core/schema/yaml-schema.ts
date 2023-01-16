@@ -1,7 +1,7 @@
 /*
 * yaml-schema.ts
 *
-* Copyright (C) 2022 by RStudio, PBC
+* Copyright (C) 2022 Posit Software, PBC
 *
 */
 
@@ -12,7 +12,7 @@ import { YAMLSchema } from "../lib/yaml-validation/yaml-schema.ts";
 import { MappedString } from "../lib/text-types.ts";
 import { readAnnotatedYamlFromMappedString } from "./annotated-yaml.ts";
 import { loadDefaultSchemaDefinitions } from "../lib/yaml-schema/definitions.ts";
-import { expandGlobSync } from "fs/mod.ts";
+import { expandGlobSync } from "../deno/expand-glob.ts";
 import { resourcePath } from "../resources.ts";
 import { readYaml } from "../yaml.ts";
 import { JSONValue } from "../lib/yaml-schema/types.ts";

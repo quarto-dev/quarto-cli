@@ -1,17 +1,22 @@
 toc-title-document: "Indice del contenuto"
 toc-title-website: "In questa pagina"
 
+related-formats-title: "Altri Formati"
+related-notebooks-title: "Notebooks"
+source-notebooks-prefix: "Fonte"
+
 section-title-abstract: "Sommario"
 section-title-appendices: "Appendici"
 section-title-footnotes: "Note"
 section-title-references: "Referenze"
 section-title-reuse: "Riutilizzare"
+section-title-copyright: "Diritto d'autore"
 section-title-citation: "Citazione"
 
 appendix-attribution-bibtex: "BibTeX"
 appendix-attribution-cite-as: "Per favore citare questo lavoro come:"
 
-title-block-author-single: "Autore/a"
+title-block-author-single: "Autore/Autrice"
 title-block-author-plural: "Autori"
 title-block-affiliation-single: "Affiliazione"
 title-block-affiliation-plural: "Affiliazioni"
@@ -25,6 +30,9 @@ callout-important-caption: "Importante"
 callout-caution-caption: "Attenzione"
 
 code-summary: "Codice"
+
+code-line: "Linea"
+code-lines: "Linee"
 
 code-tools-menu-caption: "Codice"
 code-tools-show-all-code: "Mostra il codice"
@@ -81,7 +89,7 @@ listing-page-order-by-number-asc: "Numero da minore a maggiore"
 listing-page-field-date: "Data"
 listing-page-field-title: "Titolo"
 listing-page-field-description: "Descrizione"
-listing-page-field-author: "Autore/a"
+listing-page-field-author: "Autore/Autrice"
 listing-page-field-filename: "Nome del file"
 listing-page-field-filemodified: "Data di modifica"
 listing-page-field-subtitle: "Sottotitolo"

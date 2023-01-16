@@ -1,7 +1,7 @@
 /*
 * book-bibliography.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -14,7 +14,7 @@ import { error } from "log/mod.ts";
 
 import { Document, Element, parseHtml } from "../../../core/deno-dom.ts";
 
-import { pathWithForwardSlashes } from "../../../core/path.ts";
+import { pathWithForwardSlashes, safeExistsSync } from "../../../core/path.ts";
 import { execProcess } from "../../../core/process.ts";
 import { pandocBinaryPath } from "../../../core/resources.ts";
 
@@ -56,7 +56,6 @@ export async function bookBibliographyPostRender(
     // determine the bibliography, csl, and nocite based on the first file
     const file = outputFiles[0];
     const bibliography = file.format.metadata[kBibliography] as string[];
-    const csl = file.format.metadata[kCsl];
     const nocite = typeof (file.format.metadata[kNoCite]) === "string"
       ? file.format.metadata[kNoCite] as string
       : undefined;
@@ -66,18 +65,27 @@ export async function bookBibliographyPostRender(
 
     // We need to be sure we're properly resolving the bibliography
     // path from the metadata using the path of the file that provided the
-    // metadata
+    // metadata (the same goes for the CSL file, if present)
     // The relative path to the output file
     const fileRelativePath = relative(projectOutputDir(context), file.file);
     // The path to the input file
     const inputfile = await inputFileForOutputFile(context, fileRelativePath);
     const bibliographyPaths: string[] = [];
+    let csl = file.format.metadata[kCsl] as string;
     if (inputfile) {
       // Use the dirname from the input file to resolve the bibliography paths
       const firstFileDir = dirname(inputfile);
       bibliographyPaths.push(
         ...bibliography.map((file) => join(firstFileDir, file)),
       );
+
+      // Fixes https://github.com/quarto-dev/quarto-cli/issues/2755
+      if (csl) {
+        const cslAbsPath = join(firstFileDir, csl);
+        if (safeExistsSync(cslAbsPath)) {
+          csl = cslAbsPath;
+        }
+      }
     } else {
       throw new Error(
         "Unable to determine proper path to use when computing bibliography path.",
@@ -176,7 +184,7 @@ export async function bookBibliographyPostRender(
 async function generateBibliographyHTML(
   context: ProjectContext,
   bibliography: string[],
-  csl: unknown,
+  csl: string,
   citeIds: string[],
 ) {
   const biblioPaths = bibliography.map((biblio) => {
@@ -193,7 +201,7 @@ async function generateBibliographyHTML(
     [kNoCite]: ld.uniq(citeIds).map((id) => "@" + id).join(", "),
   };
   if (csl) {
-    yaml[kCsl] = csl;
+    yaml[kCsl] = isAbsolute(csl) ? relative(context.dir, csl) : csl;
   }
   const frontMatter = `---\n${stringify(yaml, { indent: 2 })}\n---\n`;
   const result = await execProcess({

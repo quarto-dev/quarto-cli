@@ -31,7 +31,7 @@ jobs:
       - name: Install libc6-div
         run: sudo apt-get install libc6-dev
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
@@ -47,16 +47,16 @@ jobs:
           # CHANGES="${CHANGES//'%'/'%25'}"
           # CHANGES="${CHANGES//$'\n'/'%0A'}"
           # CHANGES="${CHANGES//$'\r'/'%0D'}"
-          # echo ::set-output name=changes::$CHANGES
+          # echo "changes=$CHANGES" >> $GITHUB_OUTPUT
 
           QUARTO_BUILD_NUMBER=$(($QUARTO_BUILD_RUN_OFFSET + $GITHUB_RUN_NUMBER))
 
-          echo ::set-output name=version::$QUARTO_VERSION
-          echo ::set-output name=changes::$CHANGES
-          echo ::set-output name=build_number::$QUARTO_BUILD_NUMBER
+          echo "version=$QUARTO_VERSION" >> $GITHUB_OUTPUT
+          echo "changes=$CHANGES" >> $GITHUB_OUTPUT
+          echo "build_number=$QUARTO_BUILD_NUMBER" >> $GITHUB_OUTPUT
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: News
           path: ./news/changelog-${{steps.config.outputs.version}}.md
@@ -66,14 +66,14 @@ jobs:
     needs: [configure]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Make Tarball
         run: |
           tar -zcvf  quarto-${{needs.configure.outputs.version}}.tar.gz *
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: Source
           path: ./quarto-${{needs.configure.outputs.version}}.tar.gz
@@ -83,7 +83,7 @@ jobs:
     needs: [configure]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
           
       - name: Configure
         run: |
@@ -105,17 +105,62 @@ jobs:
           popd
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: Deb Zip
           path: ./package/quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz
+
+  make-tarball-rhel:
+     runs-on: ubuntu-latest
+     needs: [configure]
+
+     steps:
+       - uses: actions/checkout@v3
+
+       - name: Configure
+         run: |
+           ./configure.sh
+
+       - name: Prepare Distribution
+         run: |
+           pushd package/src/
+           ./quarto-bld prepare-dist --set-version ${{needs.configure.outputs.version}} --log-level info
+           popd
+           
+       - name: Move Custom Deno
+         run: |
+         
+           source ./configuration
+           
+           echo Placing custom Deno ${DENO:1}. See available versions at https://anaconda.org/conda-forge/deno/files
+           curl -L https://anaconda.org/conda-forge/deno/${DENO:1}/download/linux-64/deno-${DENO:1}-h2f28480_0.conda --output deno.conda
+           unzip deno.conda
+           tar --use-compress-program=unzstd -xvf pkg-deno-${DENO:1}-h2f28480_0.tar.zst
+           cp bin/deno package/dist/bin/tools/deno
+           
+       - name: Make Tarball
+         run: |
+           pushd package/
+           mv dist quarto-${{needs.configure.outputs.version}}
+           tar -cvf  quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar quarto-${{needs.configure.outputs.version}}
+           gzip quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar
+           mv quarto-${{needs.configure.outputs.version}} dist
+           popd
+
+       - name: Upload Artifact
+         uses: actions/upload-artifact@v3
+         with:
+           name: RHEL Zip
+           path: ./package/quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar.gz
+
+
 
   make-installer-deb:
     runs-on: ubuntu-latest
     needs: [configure]
 
     steps:
-      - uses: actions/checkout@v2        
+      - uses: actions/checkout@v3        
 
       - name: Configure
         run: |
@@ -134,7 +179,7 @@ jobs:
           popd
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: Deb Installer
           path: ./package/out/quarto-${{needs.configure.outputs.version}}-linux-amd64.deb
@@ -168,7 +213,7 @@ jobs:
           override: true
           components: rustfmt, clippy    
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Configure
         run: |
@@ -195,13 +240,13 @@ jobs:
           QUARTO_WIN_PFX_PW: ${{ secrets.WIN_PFX_PW }}
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: Windows Installer
           path: ./package/out/quarto-${{needs.configure.outputs.version}}-win.msi
 
       - name: Upload Zip
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: Windows Zip
           path: ./package/out/quarto-${{needs.configure.outputs.version}}-win.zip
@@ -227,7 +272,7 @@ jobs:
     needs: [configure]
 
     steps:
-      - uses: actions/checkout@v2              
+      - uses: actions/checkout@v3              
 
       - name: Configure
         run: |
@@ -269,13 +314,13 @@ jobs:
           QUARTO_APPLE_CONNECT_PW: ${{ secrets.APPLE_CONNECT_PW }}
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: Mac Installer
           path: ./package/out/quarto-${{needs.configure.outputs.version}}-macos.pkg
 
       - name: Upload Zip
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: Mac Zip
           path: ./package/out/quarto-${{needs.configure.outputs.version}}-macos.tar.gz
@@ -321,7 +366,7 @@ jobs:
 
     steps:
       - name: Download Artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
 
       - name: Create Release
         id: create_release
@@ -357,6 +402,17 @@ jobs:
           asset_path: ./Deb Zip/quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz
           asset_name: quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz
           asset_content_type: application/gzip
+
+      - name: Attach RHEL Tarball
+        id: attach-rhel-tarball
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./RHEL Zip/quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar.gz
+          asset_name: quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar.gz
+          asset_content_type: application/gzip      
 
       - name: Attach Debian Installer
         id: attach-deb-installer
@@ -443,6 +499,10 @@ jobs:
           sha256sum quarto-${{needs.configure.outputs.version}}-macos.pkg >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
           popd
 
+          pushd RHEL\ Zip
+          sha256sum quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
+          popd           
+           
           pushd Deb\ Zip
           sha256sum quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
           popd

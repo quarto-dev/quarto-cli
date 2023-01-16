@@ -4,7 +4,7 @@
 * Collects the existing schemas and builds a single JSON file with
 * their description
 *
-* Copyright (C) 2021 by RStudio, PBC
+* Copyright (C) 2021-2022 Posit Software, PBC
 *
 */
 

@@ -1,11 +1,12 @@
 /*
 * dependencies.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 import { dirname, join, SEP } from "path/mod.ts";
-import { ensureDirSync, existsSync } from "fs/mod.ts";
+import { existsSync } from "node/fs.ts";
+import { ensureDirSync } from "fs/mod.ts";
 import { info, warning } from "log/mod.ts";
 
 import { expandPath } from "../../../src/core/path.ts";
@@ -66,10 +67,12 @@ export async function configure(
       join(config.directoryInfo.bin, "quarto.cmd"),
     );
   } else {
+    const out = join(config.directoryInfo.bin, "quarto");
     Deno.copyFileSync(
       join(config.directoryInfo.pkg, "scripts", "common", "quarto"),
-      join(config.directoryInfo.bin, "quarto"),
+      out,
     );
+    Deno.chmodSync(out, 0o755);
   }
 
   // record dev config. These are versions as defined in the root configuration file.

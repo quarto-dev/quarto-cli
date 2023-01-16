@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           # checkout full tree
           fetch-depth: 0
@@ -31,13 +31,26 @@ jobs:
         with:
           r-version: "4.1.0"
 
+      - name: Install node (for Playwright)
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      - name: Install node dependencies
+        run: yarn
+        working-directory: ./tests/integration/playwright
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+        working-directory: ./tests/integration/playwright
+
       - name: Cache packages
-        uses: actions/cache@v1
+        uses: actions/cache@v3
         with:
           path: ${{ env.RENV_PATHS_ROOT }}
-          key: ${{ runner.os }}-renv-${{ hashFiles('**/renv.lock') }}
+          key: ${{ runner.os }}-1-renv-${{ hashFiles('**/renv.lock') }}
           restore-keys: |
-            ${{ runner.os }}-renv-
+            ${{ runner.os }}-1-renv-
 
       - name: Restore packages
         run: |
@@ -47,7 +60,7 @@ jobs:
           popd
 
       - name: Set up Python
-        uses: actions/setup-python@v2.3.1
+        uses: actions/setup-python@v4
         with:
           python-version: "3.x"
           cache: "pip"
@@ -65,8 +78,10 @@ jobs:
       - uses: ./.github/workflows/actions/quarto-dev
 
       - name: Install Tinytex
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          quarto install tool tinytex
+          quarto install tinytex
 
       - name: Install Chrome
         uses: browser-actions/setup-chrome@latest

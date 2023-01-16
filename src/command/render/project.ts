@@ -1,7 +1,7 @@
 /*
 * project.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -160,7 +160,7 @@ export async function renderProject(
   const projOutputDir = context.config?.project?.[kProjectOutputDir];
   if (
     renderAll && (typeof (projOutputDir) === "string") &&
-    (options.flags?.clean == true)
+    (options.flags?.clean == true) && (projType.cleanOutputDir === true)
   ) {
     const realProjectDir = Deno.realPathSync(context.dir);
     // ouptut dir

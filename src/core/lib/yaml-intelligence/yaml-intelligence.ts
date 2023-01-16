@@ -1,7 +1,7 @@
 /*
 * yaml-intelligence.ts
 *
-* Copyright (C) 2022 by RStudio, PBC
+* Copyright (C) 2022 Posit Software, PBC
 *
 */
 
@@ -790,7 +790,11 @@ async function automationFromGoodParseMarkdown(
     line,
   } = context;
 
-  const result = await breakQuartoMd(asMappedString(context.code));
+  const result = await breakQuartoMd(
+    asMappedString(context.code),
+    undefined,
+    true,
+  );
 
   const adjustedCellSize = (cell: QuartoMdCell) => {
     const cellLines = lines(cell.source.value);
@@ -1166,11 +1170,6 @@ async function init(
   context: YamlIntelligenceContext,
 ) {
   const ideInit = async () => {
-    // 2022-08-26: There seems to be a bug on `deno vendor` for 1.25.0 where it fails to take json imports correctly.
-    // we need to work around it during the vendoring process by removing the bogus imports like so:
-    //
-    // Uncomment this line:
-    // const resourceModule = {} as Record<string, unknown>;
     const resourceModule = (await import(
       "../../../resources/editor/tools/yaml/yaml-intelligence-resources.json",
       { assert: { type: "json" } }

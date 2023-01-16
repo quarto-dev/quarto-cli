@@ -1,11 +1,16 @@
 toc-title-document: "Содержание"
 toc-title-website: "Содержание"
 
+related-formats-title: "Другие форматы"
+related-notebooks-title: "Notebooks"
+source-notebooks-prefix: "Источник"
+
 section-title-abstract: "Аннотация"
 section-title-appendices: "Приложения"
 section-title-footnotes: "Сноски"
 section-title-references: "использованная литература"
 section-title-reuse: "Повторное использование"
+section-title-copyright: "Авторские права"
 section-title-citation: "Цитата"
 
 appendix-attribution-bibtex: "BibTeX"
@@ -25,6 +30,9 @@ callout-important-caption: "Важное уведомление"
 callout-caution-caption: "Осторожность"
 
 code-summary: "Код"
+
+code-line: "Линия"
+code-lines: "Линии"
 
 code-tools-menu-caption: "Код"
 code-tools-show-all-code: "Развернуть код"

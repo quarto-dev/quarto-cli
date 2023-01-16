@@ -1,11 +1,9 @@
 /*
 * preserve.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
-
-import { generate as generateUuid } from "uuid/v4.ts";
 
 import { kTextHtml, kTextMarkdown } from "../mime.ts";
 import { isDisplayData } from "./display-data.ts";
@@ -24,7 +22,8 @@ export function removeAndPreserveHtml(
           const html = displayOutput.data[kTextHtml];
           const htmlText = Array.isArray(html) ? html.join("") : html as string;
           if (html && isPreservedHtml(htmlText)) {
-            const key = "preserve" + generateUuid().replaceAll("-", "");
+            const key = "preserve" +
+              globalThis.crypto.randomUUID().replaceAll("-", "");
             htmlPreserve[key] = htmlText;
             displayOutput.data[kTextMarkdown] = [key];
             displayOutput.noCaption = true;

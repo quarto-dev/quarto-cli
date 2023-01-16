@@ -6,7 +6,7 @@ Quarto is an open-source scientific and technical publishing system built on [Pa
 
 In addition to the core capabilities of Pandoc, Quarto includes:
 
-1.  Embedding code and output from Python, R, and JavaScript via integration with [Jupyter](https://jupyter.org/), [Knitr](https://yihui.org/knitr/), and [Observable](https://github.com/observablehq/).
+1.  Embedding code and output from Python, R, Julia, and JavaScript via integration with [Jupyter](https://jupyter.org/), [Knitr](https://yihui.org/knitr/), and [Observable](https://github.com/observablehq/).
 
 2.  A variety of extensions to Pandoc markdown useful for technical writing including cross-references, sub-figures, layout panels, hoverable citations and footnotes, callouts, and more.
 
@@ -34,6 +34,24 @@ To update to the latest development version, just `git pull` from the local repo
 cd quarto-cli
 git pull
 ```
+
+## Running Tests
+
+To run all unit tests, execute the script in the test directory.
+
+```bash
+cd tests
+./run-tests.sh
+```
+
+To run a specific unit test, specify the script name.
+
+```bash
+cd tests
+./run-tests.sh smoke/extensions/extension-render-doc.test.ts
+./run-tests.sh smoke/extensions/
+```
+
 
 ## License
 

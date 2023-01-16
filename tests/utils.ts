@@ -1,7 +1,7 @@
 /*
 * utils.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -32,6 +32,9 @@ export function outputForInput(input: string, to: string) {
   }
   if (baseFormat === "bibtex" || baseFormat === "biblatex") {
     outputExt = "bib";
+  }
+  if (baseFormat === "jats") {
+    outputExt = "xml";
   }
 
   const outputPath = join(dir, `${stem}.${outputExt}`);

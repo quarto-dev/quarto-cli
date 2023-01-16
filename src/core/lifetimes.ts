@@ -1,7 +1,7 @@
 /*
 * lifetimes.ts
 *
-* Copyright (C) 2022 by RStudio, PBC
+* Copyright (C) 2022 Posit Software, PBC
 *
 */
 
@@ -9,18 +9,41 @@ export interface ObjectWithLifetime {
   cleanup(): Promise<void> | void;
 }
 
+type PromiseResolver = (value: Lifetime | PromiseLike<Lifetime>) => void;
 const _globalLifetimes: Record<string, Lifetime> = {};
+const _globalAwaitQueues: Record<string, PromiseResolver[]> = {};
+
+export function waitUntilNamedLifetime(name: string): Promise<Lifetime> {
+  const lt = getNamedLifetime(name);
+  if (lt === undefined) {
+    return Promise.resolve(createNamedLifetime(name));
+  }
+
+  // let reject: any; FIXME figure out what to do with rejects
+  const promise = new Promise<Lifetime>((resolve) => {
+    if (_globalAwaitQueues[name] === undefined) {
+      _globalAwaitQueues[name] = [];
+    }
+    _globalAwaitQueues[name].push(resolve);
+  });
+  return promise;
+}
 
 export function createNamedLifetime(name: string): Lifetime {
   if (_globalLifetimes[name] !== undefined) {
     throw new Error(
-      `Internal Error: cannot recreate existing named lifetime ${name}`,
+      `Internal Error: lifetime ${name} already exists. This is a bug in Quarto.`,
     );
   }
   const lifetime = new Lifetime();
   lifetime.attach({
     cleanup: () => {
       delete _globalLifetimes[name];
+      if (_globalAwaitQueues[name] && _globalAwaitQueues[name].length) {
+        const resolver = _globalAwaitQueues[name].shift()!;
+        const newLifetime = createNamedLifetime(name);
+        resolver(newLifetime);
+      }
     },
   });
   _globalLifetimes[name] = lifetime;

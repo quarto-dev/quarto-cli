@@ -1,7 +1,7 @@
 /*
 * jupyter.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -130,6 +130,7 @@ import {
 } from "./kernels.ts";
 import {
   JupyterCell,
+  JupyterCellOutput,
   JupyterCellWithOptions,
   JupyterKernelspec,
   JupyterNotebook,
@@ -144,13 +145,21 @@ import { figuresDir, inputFilesDir } from "../render.ts";
 import { lines } from "../text.ts";
 import { readYamlFromMarkdown } from "../yaml.ts";
 import { languagesInMarkdown } from "../../execute/engine-shared.ts";
-import { pathWithForwardSlashes } from "../path.ts";
+import { pathWithForwardSlashes, removeIfEmptyDir } from "../path.ts";
 import { convertToHtmlSpans, hasAnsiEscapeCodes } from "../ansi-colors.ts";
-import { warning } from "log/mod.ts";
+import { ProjectContext } from "../../project/types.ts";
+import { mergeConfigs } from "../config.ts";
+import { encode as encodeBase64 } from "encoding/base64.ts";
+import { isIpynbOutput } from "../../config/format.ts";
+
+export const kQuartoMimeType = "quarto_mimetype";
+export const kQuartoOutputOrder = "quarto_order";
+export const kQuartoOutputDisplay = "quarto_display";
 
 export const kJupyterNotebookExtensions = [
   ".ipynb",
 ];
+
 export function isJupyterNotebook(file: string) {
   return kJupyterNotebookExtensions.includes(extname(file).toLowerCase());
 }
@@ -236,8 +245,12 @@ export interface JupyterOutputError extends JupyterOutput {
 export async function quartoMdToJupyter(
   markdown: string,
   includeIds: boolean,
+  project?: ProjectContext,
 ): Promise<JupyterNotebook> {
-  const [kernelspec, metadata] = await jupyterKernelspecFromMarkdown(markdown);
+  const [kernelspec, metadata] = await jupyterKernelspecFromMarkdown(
+    markdown,
+    project,
+  );
 
   // notebook to return
   const nb: JupyterNotebook = {
@@ -427,8 +440,12 @@ export async function quartoMdToJupyter(
 
 export async function jupyterKernelspecFromMarkdown(
   markdown: string,
+  project?: ProjectContext,
 ): Promise<[JupyterKernelspec, Metadata]> {
-  const yaml = readYamlFromMarkdown(markdown);
+  const config = (project as any)?.config;
+  const yaml = config
+    ? mergeConfigs(config, readYamlFromMarkdown(markdown))
+    : readYamlFromMarkdown(markdown);
   const yamlJupyter = yaml.jupyter;
 
   // if there is no yaml.jupyter then detect the file's language(s) and
@@ -555,7 +572,17 @@ export function jupyterAutoIdentifier(label: string) {
   }
 }
 
-export function jupyterAssets(input: string, to?: string) {
+export interface JupyterNotebookAssetPaths {
+  base_dir: string;
+  files_dir: string;
+  figures_dir: string;
+  supporting_dir: string;
+}
+
+export function jupyterAssets(
+  input: string,
+  to?: string,
+): JupyterNotebookAssetPaths {
   // calculate and create directories
   input = Deno.realPathSync(input);
   const files_dir = join(dirname(input), inputFilesDir(input));
@@ -585,6 +612,21 @@ export function jupyterAssets(input: string, to?: string) {
   };
 }
 
+export function cleanEmptyJupyterAssets(assets: JupyterNotebookAssetPaths) {
+  const figuresRemoved = removeIfEmptyDir(
+    join(assets.base_dir, assets.figures_dir),
+  );
+  const filesRemoved = removeIfEmptyDir(
+    join(assets.base_dir, assets.files_dir),
+  );
+  return figuresRemoved && filesRemoved;
+}
+
+// Attach fully rendered notebook to render services
+// Render notebook only once per document
+// Return cells with markdown instead of complete markdown
+// filter output markdown cells rather than notebook input
+
 export async function jupyterToMarkdown(
   nb: JupyterNotebook,
   options: JupyterToMarkdownOptions,
@@ -598,7 +640,7 @@ export async function jupyterToMarkdown(
   const htmlPreserve = isHtml ? removeAndPreserveHtml(nb) : undefined;
 
   // generate markdown
-  const md: string[] = [];
+  const cellOutputs: JupyterCellOutput[] = [];
 
   // validate unique cell labels as we go
   const validateCellLabel = cellLabelValidator();
@@ -607,6 +649,9 @@ export async function jupyterToMarkdown(
   let codeCellIndex = 0;
 
   for (let i = 0; i < nb.cells.length; i++) {
+    // Collection the markdown for this cell
+    const md: string[] = [];
+
     // convert cell yaml to cell metadata
     const cell = jupyterCellWithOptions(
       nb.metadata.kernelspec.language.toLowerCase(),
@@ -655,14 +700,31 @@ export async function jupyterToMarkdown(
 
     // newline
     md.push("\n");
+
+    cellOutputs.push({
+      id: cell.id,
+      markdown: md.join(""),
+      metadata: cell.metadata,
+      options: cell.options,
+    });
   }
 
   // include jupyter metadata if we are targeting ipynb
+  let notebookOutputs = undefined;
   if (options.toIpynb) {
+    const md: string[] = [];
     md.push("---\n");
+
+    // If widgets are present, base64 encode their metadata to prevent true round
+    // tripping through YAML, which heavily mutates the metadata
+    const widgets = nb.metadata.widgets
+      ? encodeBase64(JSON.stringify(nb.metadata.widgets))
+      : undefined;
+
     const jupyterMetadata = {
       jupyter: {
         ...nb.metadata,
+        widgets,
       },
     };
     const yamlText = stringify(jupyterMetadata, {
@@ -673,11 +735,15 @@ export async function jupyterToMarkdown(
     });
     md.push(yamlText);
     md.push("---\n");
+    notebookOutputs = {
+      suffix: md.join(""),
+    };
   }
 
   // return markdown and any widget requirements
   return {
-    markdown: md.join(""),
+    cellOutputs,
+    notebookOutputs,
     dependencies,
     htmlPreserve,
   };
@@ -702,17 +768,27 @@ export function jupyterCellWithOptions(
     }, {} as Record<string, unknown>);
 
   // combine metadata options with yaml options (giving yaml options priority)
-  const options = {
+  const explicitOptions = {
     ...metadataOptions,
     ...yaml,
   };
 
   // if we have layout or tbl-colwidths and it's not a string then json encode it
   [kLayout, kTblColwidths].forEach((option) => {
-    if (options[option] && typeof (options[option]) !== "string") {
-      options[option] = JSON.stringify(options[option]);
+    if (
+      explicitOptions[option] && typeof (explicitOptions[option]) !== "string"
+    ) {
+      explicitOptions[option] = JSON.stringify(explicitOptions[option]);
     }
   });
+
+  // Resolve any tags that map to options
+  const tags = cell.metadata.tags;
+  const tagOptions = tagsToOptions(tags || []);
+  const options = {
+    ...tagOptions,
+    ...explicitOptions,
+  };
 
   return {
     ...cell,
@@ -824,6 +900,59 @@ export function mdEnsureTrailingNewline(source: string[]) {
   } else {
     return source;
   }
+}
+
+// We decode some tags on cells into options for the cell
+// to better support control of Notebook code behavior when
+// included within documents (without requiring the addition of
+// configuration comments within the code cell)
+export const kHideCell = "hide-cell";
+export const kHideCode = "hide-code";
+export const kHideOutput = "hide-output";
+export const kHideWarnings = "hide-warnings";
+export const kShowCode = "show-code";
+export const kShowOutput = "show-output";
+export const kShowWarnings = "show-warnings";
+export const kRemoveCell = "remove-cell";
+const tagMapping: Record<string, Record<string, boolean>> = {
+  [kHideCell]: {
+    include: false,
+  },
+  [kHideCode]: {
+    echo: false,
+  },
+  [kHideOutput]: {
+    output: false,
+  },
+  [kHideWarnings]: {
+    warning: false,
+  },
+  [kShowCode]: {
+    echo: true,
+  },
+  [kShowOutput]: {
+    output: true,
+  },
+  [kShowWarnings]: {
+    warning: true,
+  },
+  [kRemoveCell]: {
+    include: false,
+  },
+};
+
+function tagsToOptions(tags: string[]): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+  tags.forEach((tag) => {
+    const mapping = tagMapping[tag];
+    if (mapping) {
+      const keys = Object.keys(mapping);
+      keys.forEach((key) => {
+        result[key] = mapping[key];
+      });
+    }
+  });
+  return result;
 }
 
 function optionCommentPrefix(comment: string) {
@@ -953,7 +1082,9 @@ async function mdFromCodeCell(
     if (output.output_type === "execute_result") {
       const textPlain = (output as JupyterOutputDisplayData).data
         ?.[kTextPlain] as string[] | undefined;
-      if (textPlain && textPlain[0].startsWith("[<matplotlib")) {
+      if (
+        textPlain && textPlain.length && textPlain[0].startsWith("[<matplotlib")
+      ) {
         return false;
       }
     }
@@ -985,6 +1116,14 @@ async function mdFromCodeCell(
 
   // write div enclosure
   const divMd: string[] = [`::: {`];
+
+  // If we're targeting ipynb output, include the id in the
+  // markdown. This will cause the id to be included in the
+  // rendered notebook. Note that elsewhere we forard the
+  // label to the id, so that can appear as the cell id.
+  if (isIpynbOutput(options.executeOptions.format.pandoc) && cell.id) {
+    divMd.push(`#${cell.id} `);
+  }
 
   // metadata to exclude from cell div attributes
   const kCellOptionsFilter = kJupyterCellInternalOptionKeys.concat(
@@ -1147,16 +1286,31 @@ async function mdFromCodeCell(
     const outputName = pandocAutoIdentifier(labelName, true) + "-output";
 
     let nextOutputSuffix = 1;
-    for (
-      const { index, output } of outputs.map((value, index) => ({
-        index,
-        output: value,
-      }))
-    ) {
+    const sortedOutputs = outputs.map((value, index) => ({
+      index,
+      output: value,
+    })).sort((a, b) => {
+      // Sort any explicitly ordered cells
+      const aIdx = a.output.metadata?.[kQuartoOutputOrder] !== undefined
+        ? a.output.metadata?.[kQuartoOutputOrder] as number
+        : Number.MAX_SAFE_INTEGER;
+      const bIdx = b.output.metadata?.[kQuartoOutputOrder] !== undefined
+        ? b.output.metadata?.[kQuartoOutputOrder] as number
+        : Number.MAX_SAFE_INTEGER;
+      return aIdx - bIdx;
+    });
+
+    for (const { index, output } of sortedOutputs) {
       // compute output label
       const outputLabel = label && labelCellContainer && isDisplayData(output)
         ? (label + "-" + nextOutputSuffix++)
         : label;
+
+      // If this output has been marked to not be displayed
+      // just continue
+      if (output.metadata?.[kQuartoOutputDisplay] === false) {
+        continue;
+      }
 
       // leading newline and beginning of div
       if (!asis) {
@@ -1408,9 +1562,12 @@ async function mdOutputDisplayData(
     } else if (displayDataIsHtml(mimeType)) {
       return mdHtmlOutput(output.data[mimeType] as string[]);
     } else if (displayDataIsJson(mimeType)) {
+      // Add the literal mimetype information to the payload, for later use
+      const json = output.data[mimeType] as Record<string, unknown>;
+      json[kQuartoMimeType] = mimeType;
       return mdJsonOutput(
         mimeType,
-        output.data[mimeType] as Record<string, unknown>,
+        json,
         options,
       );
     } else if (displayDataIsJavascript(mimeType)) {

@@ -1,4 +1,5 @@
 .DS_Store
+.idea
 *.RData
 *.Rproj
 *.Rhistory
@@ -9,6 +10,7 @@ package/dist/**
 /package/out
 /tests/cov_profile
 /tests/cov_profile.lcov
+/tests/test-out.json
 *~
 .env
 # deno_std library

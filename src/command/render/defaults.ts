@@ -1,7 +1,7 @@
 /*
 * defaults.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -20,6 +20,7 @@ import {
   kIncludeInHeader,
   kNumberDepth,
   kOutputFile,
+  kQuartoFilters,
   kSelfContained,
   kStandalone,
   kTemplate,
@@ -28,16 +29,8 @@ import {
 
 import { kPatchedTemplateExt } from "./template.ts";
 import { PandocOptions } from "./types.ts";
-import { crossrefFilter } from "./crossref.ts";
-import { layoutFilter } from "./layout.ts";
-import {
-  quartoFinalizeFilter,
-  quartoPostFilter,
-  quartoPreFilter,
-  resolveFilters,
-} from "./filters.ts";
+import { quartoMainFilter, resolveFilters } from "./filters.ts";
 import { TempContext } from "../../core/temp.ts";
-import { authorsFilter } from "./authors.ts";
 
 export async function generateDefaults(
   options: PandocOptions,
@@ -55,7 +48,9 @@ export async function generateDefaults(
       options,
     );
     if (resolvedFilters) {
-      allDefaults[kFilters] = resolvedFilters;
+      allDefaults[kFilters] = resolvedFilters.quartoFilters;
+      // forward the filter spec with everything to pandoc via metadata
+      options.format.metadata[kQuartoFilters] = resolvedFilters;
     }
 
     // If we're rendering Latex, forward the number-depth to pandoc (it handles numbering)
@@ -137,19 +132,8 @@ export function pandocDefaultsMessage(
   // simplify crossref filter
   if (defaults.filters?.length) {
     defaults.filters = defaults.filters
-      .map((filter) => {
-        if (filter === crossrefFilter()) {
-          return "crossref";
-        } else {
-          return filter;
-        }
-      })
       .filter((filter) => {
-        return filter !== quartoPreFilter() &&
-          filter !== quartoPostFilter() &&
-          filter !== layoutFilter() &&
-          filter !== authorsFilter() &&
-          filter !== quartoFinalizeFilter() &&
+        return filter !== quartoMainFilter() &&
           filtersContains(sysFilters, filter);
       });
     if (defaults.filters?.length === 0) {
@@ -160,6 +144,16 @@ export function pandocDefaultsMessage(
   // remove template if it's patched
   if (defaults.template && extname(defaults.template) === kPatchedTemplateExt) {
     delete defaults.template;
+  }
+
+  // TODO / HACK: suppress writer if it is coming from an extension
+  if (defaults.writer) {
+    if (
+      defaults.writer.match(/(?:^|[\\/])_extensions[\\/]/) ||
+      defaults.writer.match(/(?:^|[\\/])extensions[\\/]quarto[\\/]/)
+    ) {
+      delete defaults.writer;
+    }
   }
 
   return stringify(defaults as Record<string, unknown>);

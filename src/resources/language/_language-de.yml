@@ -1,11 +1,16 @@
 toc-title-document: "Inhaltsverzeichnis"
 toc-title-website: "Auf dieser Seite"
 
+related-formats-title: "Andere Formate"
+related-notebooks-title: "Notebooks"
+source-notebooks-prefix: "Quelle"
+
 section-title-abstract: "Zusammenfassung"
 section-title-appendices: "Anhang"
 section-title-footnotes: "Fußnoten"
 section-title-references: "Literatur"
 section-title-reuse: "Wiederverwendung"
+section-title-copyright: "Urheberrechte"
 section-title-citation: "Zitat"
 
 appendix-attribution-bibtex: "Mit BibTeX zitieren:"
@@ -25,6 +30,9 @@ callout-important-caption: "Wichtig"
 callout-caution-caption: "Vorsicht"
 
 code-summary: "Code"
+
+code-line: "Zeile"
+code-lines: "Zeilen"
 
 code-tools-menu-caption: "Code"
 code-tools-show-all-code: "Gesamten Code zeigen"

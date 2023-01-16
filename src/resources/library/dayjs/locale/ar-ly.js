@@ -9,7 +9,7 @@ const locale = {
   monthsShort: 'يناير_فبراير_مارس_أبريل_مايو_يونيو_يوليو_أغسطس_سبتمبر_أكتوبر_نوفمبر_ديسمبر'.split('_'),
   weekdaysMin: 'ح_ن_ث_ر_خ_ج_س'.split('_'),
   ordinal: n => n,
-  meridiem: hour => (hour > 12 ? 'ص' : 'م'),
+  meridiem: hour => (hour > 12 ? 'م' : 'ص'),
   formats: {
     LT: 'HH:mm',
     LTS: 'HH:mm:ss',
@@ -22,3 +22,4 @@ const locale = {
 
 
 export default locale
+

@@ -1,5 +1,5 @@
 -- quarto-pre.lua
--- Copyright (C) 2020 by RStudio, PBC
+-- Copyright (C) 2020-2022 Posit Software, PBC
 
 -- required version
 PANDOC_VERSION:must_be_at_least '2.13'
@@ -62,6 +62,7 @@ import("bibliography-formats.lua")
 import("book-numbering.lua")
 import("book-links.lua")
 import("meta.lua")
+import("code.lua")
 import("callout.lua")
 import("engine-escape.lua")
 import("panel-sidebar.lua")
@@ -70,7 +71,6 @@ import("panel-input.lua")
 import("panel-layout.lua")
 import("hidden.lua")
 import("content-hidden.lua")
-import("profile.lua")
 import("line-numbers.lua")
 import("output-location.lua")
 import("include-paths.lua")
@@ -92,11 +92,14 @@ local filterList = {
   { name = "hidden", filter = hidden() },
   { name = "contentHidden", filter = contentHidden() },
   { name = "tableCaptions", filter = tableCaptions() },
+  { name = "code-annotations", filter = combineFilters({
+    codeMeta(),
+    code(),
+    })},
   { name = "outputs", filter = outputs() },
   { name = "outputLocation", filter = outputLocation() },
   { name = "combined-figures-theorems-etc", filter = combineFilters({
     fileMetadata(),
-    configProfile(),
     indexBookFileTargets(),
     bookNumbering(),
     includePaths(),

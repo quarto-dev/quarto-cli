@@ -1,7 +1,7 @@
 /*
 * ghpages.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -25,10 +25,11 @@ import {
 import { PublishOptions, PublishRecord } from "../types.ts";
 import { shortUuid } from "../../core/uuid.ts";
 import { sleep } from "../../core/wait.ts";
-import { joinUrl } from "../../core/url.ts";
+import { isHttpUrl, joinUrl } from "../../core/url.ts";
 import { completeMessage, withSpinner } from "../../core/console.ts";
 import { renderForPublish } from "../common/publish.ts";
 import { websiteBaseurl } from "../../project/types/website/website-config.ts";
+import { RenderFlags } from "../../command/render/types.ts";
 
 export const kGhpages = "gh-pages";
 const kGhpagesDescription = "GitHub Pages";
@@ -101,7 +102,7 @@ async function publish(
   input: string,
   title: string,
   _slug: string,
-  render: (siteUrl?: string) => Promise<PublishFiles>,
+  render: (flags?: RenderFlags) => Promise<PublishFiles>,
   options: PublishOptions,
   target?: PublishRecord,
 ): Promise<[PublishRecord | undefined, URL | undefined]> {
@@ -337,6 +338,12 @@ async function withWorktree(
     cwd: dir,
   });
 
+  // remove files in existing site, i.e. start clean
+  await execProcess({
+    cmd: ["git", "rm", "-r", "--quiet", "."],
+    cwd: join(dir, siteDir),
+  })
+
   try {
     await f();
   } finally {
@@ -458,7 +465,7 @@ function siteUrl(
   const cname = join(dir, "CNAME");
   if (existsSync(cname)) {
     const url = Deno.readTextFileSync(cname).trim();
-    if (/^https?:/i.test(url)) {
+    if (isHttpUrl(url)) {
       return url;
     } else {
       return `https://${url}`;

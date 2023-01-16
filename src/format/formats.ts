@@ -1,23 +1,19 @@
 /*
 * formats.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
 import {
   kDefaultImageExtension,
   kEcho,
-  kFigFormat,
   kFigHeight,
   kFigWidth,
-  kKeepYaml,
   kOutputDivs,
   kPageWidth,
-  kPreferHtml,
-  kVariant,
+  kTargetFormat,
   kWarning,
-  kWrap,
 } from "../config/constants.ts";
 
 import { Format } from "../config/types.ts";
@@ -31,10 +27,19 @@ import {
   createFormat,
   createHtmlPresentationFormat,
   createWordprocessorFormat,
+  plaintextFormat,
 } from "./formats-shared.ts";
 import { revealjsFormat } from "./reveal/format-reveal.ts";
 import { ipynbFormat } from "./ipynb/format-ipynb.ts";
 import { parseFormatString } from "../core/pandoc/pandoc-formats.ts";
+import {
+  commonmarkFormat,
+  gfmFormat,
+  markdownFormat,
+  markdownWithCommonmarkExtensionsFormat,
+  pandocMarkdownFormat,
+} from "./markdown/format-markdown.ts";
+import { jatsFormat } from "./jats/format-jats.ts";
 
 export function defaultWriterFormat(to: string): Format {
   // to can sometimes have a variant, don't include that in the lookup here
@@ -59,15 +64,24 @@ export function defaultWriterFormat(to: string): Format {
       break;
 
     case "latex":
+      writerFormat = latexFormat("LaTeX");
+      break;
+
     case "context":
-      writerFormat = latexFormat();
+      writerFormat = latexFormat("ConTeXt");
       break;
 
     case "s5":
+      writerFormat = createHtmlPresentationFormat("S5", 9.5, 6.5);
+      break;
     case "dzslides":
+      writerFormat = createHtmlPresentationFormat("DZSlides", 9.5, 6.5);
+      break;
     case "slidy":
+      writerFormat = createHtmlPresentationFormat("Slidy", 9.5, 6.5);
+      break;
     case "slideous":
-      writerFormat = createHtmlPresentationFormat(9.5, 6.5);
+      writerFormat = createHtmlPresentationFormat("Slideous", 9.5, 6.5);
       break;
     case "revealjs":
       writerFormat = revealjsFormat();
@@ -82,9 +96,18 @@ export function defaultWriterFormat(to: string): Format {
     case "markdown_github":
     case "markdown_mmd":
     case "markdown_strict":
-    case "markua":
-      writerFormat = markdownFormat();
+      writerFormat = markdownFormat("Markdown");
       pandocTo = to;
+      break;
+
+    case "markua":
+      writerFormat = markdownFormat("Markua");
+      pandocTo = to;
+      break;
+
+    case "md":
+      writerFormat = markdownWithCommonmarkExtensionsFormat();
+      pandocTo = "markdown_strict";
       break;
 
     case "commonmark":
@@ -99,17 +122,17 @@ export function defaultWriterFormat(to: string): Format {
       break;
 
     case "asciidoc":
-      writerFormat = plaintextFormat("txt");
+      writerFormat = plaintextFormat("Asciidoc", "txt");
       break;
 
     case "asciidoctor":
-      writerFormat = plaintextFormat("adoc");
+      writerFormat = plaintextFormat("Asciidoctor", "adoc");
       break;
 
     case "docbook":
     case "docbook4":
     case "docbook5":
-      writerFormat = plaintextFormat("xml");
+      writerFormat = plaintextFormat("DocBook", "xml");
       break;
 
     case "docx":
@@ -121,11 +144,11 @@ export function defaultWriterFormat(to: string): Format {
       break;
 
     case "odt":
-      writerFormat = createWordprocessorFormat("odt");
+      writerFormat = createWordprocessorFormat("OpenOffice", "odt");
       break;
 
     case "opendocument":
-      writerFormat = createWordprocessorFormat("xml");
+      writerFormat = createWordprocessorFormat("OpenDocument", "xml");
       break;
 
     case "rtf":
@@ -133,7 +156,7 @@ export function defaultWriterFormat(to: string): Format {
       break;
 
     case "plain":
-      writerFormat = plaintextFormat("txt");
+      writerFormat = plaintextFormat("Text", "txt");
       break;
 
     case "epub":
@@ -143,18 +166,24 @@ export function defaultWriterFormat(to: string): Format {
       break;
 
     case "fb2":
-      writerFormat = createEbookFormat("fb2");
+      writerFormat = createEbookFormat("FictionBook", "fb2");
       break;
 
     case "zimwiki":
-      writerFormat = plaintextFormat("zim");
+      writerFormat = plaintextFormat("Zim Wiki", "zim");
       break;
 
     case "jats":
+      writerFormat = jatsFormat("JATS", "xml");
+      break;
     case "jats_archiving":
+      writerFormat = jatsFormat("JATS Archiving", "xml");
+      break;
     case "jats_articleauthoring":
+      writerFormat = jatsFormat("JATS Authoring", "xml");
+      break;
     case "jats_publishing":
-      writerFormat = plaintextFormat("xml");
+      writerFormat = jatsFormat("JATS Publising", "xml");
       break;
 
     case "ipynb":
@@ -162,38 +191,65 @@ export function defaultWriterFormat(to: string): Format {
       break;
 
     case "biblatex":
-    case "bibtex":
-      writerFormat = bibliographyFormat("bib");
+      writerFormat = bibliographyFormat("BibLaTeX", "bib");
       break;
-
+    case "bibtex":
+      writerFormat = bibliographyFormat("BibTeX", "bib");
+      break;
     case "csljson":
-      writerFormat = bibliographyFormat("csl");
+      writerFormat = bibliographyFormat("CSL-JSON", "csl");
       break;
 
     case "texttile":
-    case "texinfo":
-    case "tei":
-    case "rst":
-    case "org":
-    case "opml":
-    case "muse":
-    case "ms":
-    case "native":
-    case "man":
-    case "dokuwiki":
-    case "haddock":
-    case "json":
-    case "icml":
-    case "jira":
-    case "mediawiki":
-    case "xwiki":
-      writerFormat = plaintextFormat(to);
+      writerFormat = plaintextFormat("Textile", to);
       break;
-
-    // syntesized formats (TODO: move these to quarto.land)
-
-    case "hugo":
-      writerFormat = hugoFormat();
+    case "texinfo":
+      writerFormat = plaintextFormat("GNU TexInfo", to);
+      break;
+    case "tei":
+      writerFormat = plaintextFormat("TEI Simple", to);
+      break;
+    case "rst":
+      writerFormat = plaintextFormat("reST", to);
+      break;
+    case "org":
+      writerFormat = plaintextFormat("Org-Mode", to);
+      break;
+    case "opml":
+      writerFormat = plaintextFormat("OPML", to);
+      break;
+    case "muse":
+      writerFormat = plaintextFormat("Muse", to);
+      break;
+    case "ms":
+      writerFormat = plaintextFormat("Groff Manuscript", to);
+      break;
+    case "native":
+      writerFormat = plaintextFormat("Native", to);
+      break;
+    case "man":
+      writerFormat = plaintextFormat("Groff Man Page", to);
+      break;
+    case "dokuwiki":
+      writerFormat = plaintextFormat("DocuWiki", to);
+      break;
+    case "haddock":
+      writerFormat = plaintextFormat("Haddock markup", to);
+      break;
+    case "json":
+      writerFormat = plaintextFormat("JSON", to);
+      break;
+    case "icml":
+      writerFormat = plaintextFormat("InDesign", to);
+      break;
+    case "jira":
+      writerFormat = plaintextFormat("Jira Wiki", to);
+      break;
+    case "mediawiki":
+      writerFormat = plaintextFormat("MediaWiki", to);
+      break;
+    case "xwiki":
+      writerFormat = plaintextFormat("XWiki", to);
       break;
 
     default:
@@ -206,80 +262,15 @@ export function defaultWriterFormat(to: string): Format {
     writerFormat.pandoc.to = pandocTo;
   }
 
+  // Set the originating to
+  writerFormat.identifier[kTargetFormat] = to;
+
   // return the createFormat
   return writerFormat;
 }
 
-function hugoFormat(): Format {
-  return createFormat("md", markdownFormat(), {
-    render: {
-      [kKeepYaml]: true,
-      [kPreferHtml]: true,
-      [kVariant]: "+definition_lists+footnotes+smart+tex_math_dollars",
-    },
-    execute: {
-      [kFigFormat]: "retina",
-      [kFigWidth]: 8,
-      [kFigHeight]: 5,
-    },
-    pandoc: {
-      to: "gfm",
-      [kWrap]: "preserve",
-    },
-    formatExtras: () => {
-      return {
-        postprocessors: [(output: string) => {
-          // unescape shortcodes
-          Deno.writeTextFileSync(
-            output,
-            Deno.readTextFileSync(output)
-              .replaceAll("{{\\<", "{{<")
-              .replaceAll("\\>}}", ">}}"),
-          );
-        }],
-      };
-    },
-  });
-}
-
-function gfmFormat(): Format {
-  return createFormat("md", markdownFormat(), {
-    pandoc: {
-      to: "gfm",
-    },
-    render: {
-      [kVariant]: "+footnotes+tex_math_dollars-yaml_metadata_block",
-    },
-  });
-}
-
-function commonmarkFormat(to: string) {
-  return createFormat("md", markdownFormat(), {
-    pandoc: {
-      to,
-    },
-    render: {
-      [kVariant]: "-yaml_metadata_block",
-    },
-  });
-}
-
-function pandocMarkdownFormat(): Format {
-  return createFormat("md", plaintextFormat("md"), {});
-}
-
-function markdownFormat(): Format {
-  return createFormat("md", plaintextFormat("md"), {
-    // markdown shouldn't include cell divs (even if it
-    // technically supports raw html)
-    render: {
-      [kOutputDivs]: false,
-    },
-  });
-}
-
 function powerpointFormat(): Format {
-  return createFormat("pptx", {
+  return createFormat("Powerpoint", "pptx", {
     render: {
       [kPageWidth]: 10,
       [kOutputDivs]: false,
@@ -297,26 +288,17 @@ function powerpointFormat(): Format {
 }
 
 function rtfFormat(): Format {
-  return createFormat("rtf", createWordprocessorFormat("rtf"), {
+  return createFormat("RTF", "rtf", createWordprocessorFormat("RTF", "rtf"), {
     pandoc: {
       standalone: true,
-    },
-  });
-}
-
-function plaintextFormat(ext: string): Format {
-  return createFormat(ext, {
-    pandoc: {
-      standalone: true,
-      [kDefaultImageExtension]: "png",
     },
   });
 }
 
 function unknownFormat(ext: string): Format {
-  return createFormat(ext);
+  return createFormat("Unknown", ext);
 }
 
-function bibliographyFormat(ext: string): Format {
-  return createFormat(ext);
+function bibliographyFormat(displayName: string, ext: string): Format {
+  return createFormat(displayName, ext);
 }

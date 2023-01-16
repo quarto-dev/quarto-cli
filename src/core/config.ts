@@ -1,13 +1,11 @@
 /*
 * config.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
 import * as ld from "./lodash.ts";
-
-import { generate as generateUuid } from "uuid/v4.ts";
 
 export function mergeConfigs<T>(config: T, ...configs: Array<unknown>): T {
   // copy all configs so we don't mutate them
@@ -43,7 +41,7 @@ export function mergeArrayCustomizer(objValue: unknown, srcValue: unknown) {
     );
     return ld.uniqBy(combined, (value: unknown) => {
       if (typeof (value) === "function") {
-        return generateUuid();
+        return globalThis.crypto.randomUUID();
       } else {
         return JSON.stringify(value);
       }

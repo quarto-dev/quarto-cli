@@ -1,5 +1,5 @@
 -- meta.lua
--- Copyright (C) 2020 by RStudio, PBC
+-- Copyright (C) 2020-2022 Posit Software, PBC
 
 -- inject metadata
 function layoutMetaInject()
@@ -231,7 +231,6 @@ function baseGeometry(meta, oneside)
     -- if one side geometry is explicitly requested, the
     -- set that (used for twoside=semi)
     if oneside then
-      quarto.log.output("ONESIDE")
       tappend(meta.geometry, {"twoside=false"})
     end
       

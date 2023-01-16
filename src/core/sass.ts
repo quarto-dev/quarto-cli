@@ -1,7 +1,7 @@
 /*
 * sass.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -17,6 +17,7 @@ import { dartCompile } from "./dart-sass.ts";
 import * as ld from "./lodash.ts";
 import { lines } from "./text.ts";
 import { md5Hash } from "./hash.ts";
+import { debug } from "log/mod.ts";
 
 export interface SassVariable {
   name: string;
@@ -314,9 +315,13 @@ export async function compileWithCache(
     let cacheIndex: { [key: string]: { key: string; hash: string } } = {};
     let writeCache = true;
     if (existsSync(outputFilePath)) {
-      cacheIndex = JSON.parse(Deno.readTextFileSync(cacheIdxPath));
-      const existingEntry = cacheIndex[identifierHash];
-      writeCache = !existingEntry || (existingEntry.hash !== inputHash);
+      try {
+        cacheIndex = JSON.parse(Deno.readTextFileSync(cacheIdxPath));
+        const existingEntry = cacheIndex[identifierHash];
+        writeCache = !existingEntry || (existingEntry.hash !== inputHash);
+      } catch {
+        debug(`The scss cache index file ${cacheIdxPath} can't be read.`);
+      }
     }
 
     // We need to refresh the cache

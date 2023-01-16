@@ -2,7 +2,7 @@
 * website-listing-template
 .ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
@@ -43,6 +43,7 @@ import { localizedString } from "../../../../config/localization.ts";
 import { formatDate, parsePandocDate } from "../../../../core/date.ts";
 import { truncateText } from "../../../../core/text.ts";
 import { encodeAttributeValue } from "../../../../core/html.ts";
+import { isPlaceHolder } from "./website-listing-read.ts";
 
 export const kDateFormat = "date-format";
 
@@ -105,7 +106,7 @@ export function templateMarkdownHandler(
                 : formatDate(date, "medium");
             }
           }
-        } else if (fieldTypes[field] === "minutes") {
+        } else if (fieldTypes[field] === "minutes" && item[field]) {
           const val = item[field] as number;
           record[field] = localizedString(format, kListingPageMinutesCompact, [
             Math.floor(val).toString(),
@@ -113,7 +114,7 @@ export function templateMarkdownHandler(
         }
       }
 
-      if (item.description !== undefined) {
+      if (item.description !== undefined && !isPlaceHolder(item.description)) {
         const maxDescLength = listing[kMaxDescLength] as number ||
           -1;
         if (maxDescLength > 0) {
@@ -149,6 +150,7 @@ export function templateMarkdownHandler(
       ejsParams.listing = reshapedListing;
     } else {
       ejsParams["metadataAttrs"] = reshapedListing.utilities.metadataAttrs;
+      ejsParams["templateParams"] = reshapedListing["template-params"];
     }
     return ejsParams;
   };

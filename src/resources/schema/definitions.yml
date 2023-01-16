@@ -126,6 +126,18 @@
         string:
           description: |
             Alias for href
+      rel:
+        string:
+          description: |
+            Value for rel attribute. Multiple space-separated values are permitted.
+            See <https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel>
+            for a details.
+      target:
+        string:
+          description: |
+            Value for target attribute.
+            See <https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target>
+            for details.
 
 - id: comments
   anyOf:
@@ -239,18 +251,20 @@
                   enum: [top, bottom]
                   description: Place the comment input box above or below the comments.
                 theme:
-                  enum:
-                    [
-                      light,
-                      light_high_contrast,
-                      light_protanopia,
-                      dark,
-                      dark_high_contrast,
-                      dark_protanopia,
-                      dark_dimmed,
-                      transparent_dark,
-                      preferred_color_scheme,
-                    ]
+                  anyOf:
+                    - string
+                    - enum:
+                        [
+                          light,
+                          light_high_contrast,
+                          light_protanopia,
+                          dark,
+                          dark_high_contrast,
+                          dark_protanopia,
+                          dark_dimmed,
+                          transparent_dark,
+                          preferred_color_scheme,
+                        ]
                   description: The giscus theme to use when displaying comments.
                 language:
                   string:
@@ -456,6 +470,10 @@
       host:
         string:
           description: Hostname to bind to (defaults to 127.0.0.1)
+      serve:
+        description: Use an exernal application to preview the project.
+        schema:
+          ref: project-serve
       browser:
         boolean:
           description: Open a web browser to view the preview (defaults to true)
@@ -468,6 +486,26 @@
       timeout:
         number:
           description: Time (in seconds) after which to exit if there are no active clients
+
+- id: project-serve
+  object:
+    closed: true
+    properties:
+      cmd:
+        string:
+          description: |
+            Serve project preview using the specified command.
+            Interpolate the `--port` into the command using `{port}`.
+      args:
+        string:
+          description: Additional command line arguments for preview command.
+      env:
+        object:
+          description: Environment variables to set for preview command.
+      ready:
+        string:
+          description: Regular expression for detecting when the server is ready.
+    required: [cmd, ready]
 
 - id: publish
   description: Sites published from project
@@ -830,9 +868,6 @@
                       - string
                       - boolean
                     description: "The sidebar title. Uses the project title if none is specified."
-                  subtitle:
-                    string:
-                      description: "The subtitle for this sidebar."
                   logo:
                     path:
                       description: "Path to a logo image that will be displayed in the sidebar."
@@ -1066,6 +1101,8 @@
     properties:
       toc-title-document: string
       toc-title-website: string
+      related-formats-title: string
+      related-notebooks-title: string
       callout-tip-caption: string
       callout-note-caption: string
       callout-warning-caption: string
@@ -1211,7 +1248,9 @@
             - ref: website-listing-contents-object
         description: "The files or path globs of Quarto documents or YAML files that should be included in the listing."
       sort:
-        maybeArrayOf: string
+        anyOf:
+          - boolean
+          - maybeArrayOf: string
         description:
           short: "Sort items in the listing by these fields."
           long: |
@@ -1220,6 +1259,8 @@
 
             For example:
             `date asc`
+
+            Use `sort:false` to use the unsorted original order of items.
       max-items:
         number:
           description: The maximum number of items to include in this listing.
@@ -1381,6 +1422,9 @@
             short: "The path to a custom listing template."
             long: |
               The path to a custom listing template.
+      template-params:
+        schema: object
+        description: "Parameters that are passed to the custom template."
       fields:
         arrayOf: string
         description:
@@ -1948,6 +1992,69 @@
         string:
           description: Disambiguating year suffix in author-date styles (e.g. "a" in "Doe, 1999a").
 
+- id: citation-item
+  object:
+    super:
+      resolveRef: csl-item
+    closed: true
+    properties:
+      article-id:
+        maybeArrayOf:
+          anyOf:
+            - string
+            - object:
+                properties:
+                  type:
+                    string:
+                      description: The type of identifier
+                  value:
+                    string:
+                      description: The value for the identifier
+        description: The unique identifier for this article.
+      elocation-id:
+        string:
+          description: Bibliographic identifier for a document that does not have traditional printed page numbers.
+      eissn:
+        string:
+          description: Electronic International Standard Serial Number.
+      pissn:
+        string:
+          description: Print International Standard Serial Number.
+      art-access-id:
+        string:
+          description: Generic article accession identifier.
+      publisher-location:
+        string:
+          description: The location of the publisher of this item.
+      subject:
+        string:
+          description: The name of a subject or topic describing the article.
+      categories:
+        maybeArrayOf:
+          string:
+            description: A list of subjects or topics describing the article.
+      container-id:
+        maybeArrayOf:
+          anyOf:
+            - string
+            - object:
+                properties:
+                  type:
+                    string:
+                      description: The type of identifier (e.g. `nlm-ta` or `pmc`).
+                  value:
+                    string:
+                      description: The value for the identifier
+        description:
+          short: External identifier of a publication or journal.
+          long: |
+            External identifier, typically assigned to a journal by 
+            a publisher, archive, or library to provide a unique identifier for 
+            the journal or publication.
+      jats-type:
+        string:
+          description: The type used for the JATS `article` tag.
+
 - id: smart-include
   anyOf:
     - record:
@@ -1998,3 +2105,13 @@
       propertyNames:
         string:
           pattern: "^[^\\s]+$"
+
+- id: quarto-dev-schema
+  schema:
+    object:
+      properties:
+        _quarto:
+          hidden: true
+          object:
+            properties:
+              tests: object

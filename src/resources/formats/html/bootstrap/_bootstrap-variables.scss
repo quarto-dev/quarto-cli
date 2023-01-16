@@ -177,3 +177,17 @@ $input-border-color: theme-override-value(
   "input-border-color",
   if(variable-exists(input-border-color), $input-border-color, null)
 );
+
+/* GRID VARIABLES */
+// The left hand sidebar
+$grid-sidebar-width: 250px !default;
+// The main body
+$grid-body-width: 800px !default;
+// The right hand margin bar
+$grid-margin-width: 250px !default;
+// The gutter that appears between the above columns
+$grid-column-gutter-width: 1.5em !default;
+
+/* CODE ANNOTATION COLORS */
+$code-annotation-higlight-color: #aaaaaa44 !default;
+$code-annotation-higlight-bg: #aaaaaa22 !default;

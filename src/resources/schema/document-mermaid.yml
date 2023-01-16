@@ -1,0 +1,10 @@
+- name: mermaid
+  tags:
+    formats: [$html-files]
+  schema:
+    object:
+      properties:
+        theme:
+          enum: ["default", "dark", "forest", "neutral"]
+          description: The mermaid built-in theme to use.
+  description: Mermaid diagram options

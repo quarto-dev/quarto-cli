@@ -1,7 +1,7 @@
 /*
 * template.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 import { basename, isAbsolute, join } from "path/mod.ts";
@@ -62,7 +62,7 @@ export async function stageTemplate(
   extras: FormatExtras,
   userContext?: FormatTemplateContext,
 ) {
-  const stagingDir = options.temp.createDir();
+  const stagingDir = options.services.temp.createDir();
   const template = "template.patched";
 
   const stageContext = (

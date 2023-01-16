@@ -1,5 +1,5 @@
 -- book-links.lua
--- Copyright (C) 2020 by RStudio, PBC
+-- Copyright (C) 2020-2022 Posit Software, PBC
 
 function indexBookFileTargets() 
     if not param("single-file-book", false) then
@@ -67,7 +67,7 @@ function resolveBookFileTargets()
 end
 
 function flatten(targetPath) 
-  local pathParts = path.split(targetPath)
+  local pathParts = pandoc.path.split(targetPath)
   local resolvedPath = pandoc.List()
 
   for _, part in ipairs(pathParts) do 
@@ -77,5 +77,5 @@ function flatten(targetPath)
       resolvedPath:insert(part)
     end
   end
-  return path.join(resolvedPath)
+  return pandoc.path.join(resolvedPath)
 end

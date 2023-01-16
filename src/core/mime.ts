@@ -1,7 +1,7 @@
 /*
 * mime.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -11,6 +11,7 @@ export const kTextHtml = "text/html";
 export const kTextMarkdown = "text/markdown";
 export const kTextLatex = "text/latex";
 export const kTextPlain = "text/plain";
+export const kTextXml = "text/xml";
 export const kImagePng = "image/png";
 export const kImageJpeg = "image/jpeg";
 export const kImageSvg = "image/svg+xml";
@@ -47,17 +48,18 @@ export function contentType(path: string): string | undefined {
 }
 
 export function isPdfContent(path?: string) {
-  return path && contentType(path) === kApplicationPdf;
+  return !!path && contentType(path) === kApplicationPdf;
 }
 
 export function isHtmlContent(path?: string) {
-  return path && contentType(path) === kTextHtml;
+  return !!path && contentType(path) === kTextHtml;
 }
 
 export function isTextContent(path?: string) {
-  return path &&
+  return !!path &&
     (contentType(path) === kTextMarkdown ||
-      contentType(path) === kTextPlain);
+      contentType(path) === kTextPlain ||
+      contentType(path) === kTextXml);
 }
 
 const MEDIA_TYPES: Record<string, string> = {
@@ -71,7 +73,7 @@ const MEDIA_TYPES: Record<string, string> = {
   ".tex": kTextPlain,
   ".adoc": kTextPlain,
   ".asciidoc": kTextPlain,
-  ".xml": "text/xml",
+  ".xml": kTextXml,
   ".ts": "text/typescript",
   ".tsx": "text/tsx",
   ".js": "application/javascript",

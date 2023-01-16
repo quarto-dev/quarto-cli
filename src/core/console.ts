@@ -1,12 +1,12 @@
 /*
 * console.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
 import { ansi } from "cliffy/ansi/mod.ts";
-import { readAllSync, writeAllSync } from "io/mod.ts";
+import { readAllSync, writeAllSync } from "streams/conversion.ts";
 import { info } from "log/mod.ts";
 import { runningInCI } from "./ci-info.ts";
 

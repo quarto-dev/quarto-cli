@@ -1,12 +1,16 @@
 /*
 * constants.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
 export const kMetadataFormat = "format";
 
+export const kDisplayName = "display-name";
+export const kExtensionName = "extension-name";
+export const kTargetFormat = "target-format";
+export const kIdentifierDefaults = "indentifier";
 export const kRenderDefaults = "render";
 export const kExecuteDefaults = "execute";
 export const kPandocDefaults = "pandoc";
@@ -34,6 +38,11 @@ export const kInclude = "include";
 export const kResources = "resources";
 export const kFormatResources = "format-resources";
 
+export const kFormatLinks = "format-links";
+export const kNotebookLinks = "notebook-links";
+export const kNotebookView = "notebook-view";
+export const kNotebookViewStyle = "notebook-view-style";
+
 export const kKeepHidden = "keep-hidden";
 
 export const kExecuteEnabled = "enabled";
@@ -50,7 +59,6 @@ export const kShortcodes = "shortcodes";
 
 export const kKeepMd = "keep-md";
 export const kKeepTex = "keep-tex";
-export const kKeepYaml = "keep-yaml";
 export const kKeepIpynb = "keep-ipynb";
 export const kKeepSource = "keep-source";
 export const kVariant = "variant";
@@ -92,6 +100,12 @@ export const kLinkExternalFilter = "link-external-filter";
 export const kQuartoVersion = "quarto-version";
 export const kQuartoRequired = "quarto-required";
 
+export const kIdentifierDefaultsKeys = [
+  kTargetFormat,
+  kDisplayName,
+  kExtensionName,
+];
+
 export const kExecuteDefaultsKeys = [
   kFigWidth,
   kFigHeight,
@@ -121,7 +135,6 @@ export const kExecuteDefaultsKeys = [
 
 export const kRenderDefaultsKeys = [
   kKeepTex,
-  kKeepYaml,
   kKeepSource,
   kKeepHidden,
   kVariant,
@@ -155,11 +168,18 @@ export const kRenderDefaultsKeys = [
   kLinkExternalNewwindow,
   kLinkExternalFilter,
   kFormatResources,
+  kFormatLinks,
+  kNotebookLinks,
+  kNotebookView,
+  kNotebookViewStyle,
 ];
 
 // language fields
 export const kTocTitleDocument = "toc-title-document";
 export const kTocTitleWebsite = "toc-title-website";
+export const kRelatedFormatsTitle = "related-formats-title";
+export const kRelatedNotebooksTitle = "related-notebooks-title";
+export const kSourceNotebookPrefix = "source-notebooks-prefix";
 export const kCalloutTipCaption = "callout-tip-caption";
 export const kCalloutNoteCaption = "callout-note-caption";
 export const kCalloutWarningCaption = "callout-warning-caption";
@@ -170,6 +190,7 @@ export const kSectionTitleFootnotes = "section-title-footnotes";
 export const kSectionTitleReferences = "section-title-references";
 export const kSectionTitleAppendices = "section-title-appendices";
 export const kSectionTitleReuse = "section-title-reuse";
+export const kSectionTitleCopyright = "section-title-copyright";
 export const kSectionTitleCitation = "section-title-citation";
 export const kAppendixAttributionBibTex = "appendix-attribution-bibtex";
 export const kAppendixAttributionCiteAs = "appendix-attribution-cite-as";
@@ -180,6 +201,8 @@ export const kTitleBlockAffiliationPlural = "title-block-affiliation-plural";
 export const kTitleBlockPublished = "title-block-published";
 export const kTitleBlockModified = "title-block-modified";
 export const kCodeSummary = "code-summary";
+export const kCodeLine = "code-line";
+export const kCodeLines = "code-lines";
 export const kCodeToolsMenuCaption = "code-tools-menu-caption";
 export const kCodeToolsShowAllCode = "code-tools-show-all-code";
 export const kCodeToolsHideAllCode = "code-tools-hide-all-code";
@@ -255,6 +278,9 @@ export const kListingPageNoMatches = "listing-page-no-matches";
 export const kLanguageDefaultsKeys = [
   kTocTitleDocument,
   kTocTitleWebsite,
+  kRelatedFormatsTitle,
+  kRelatedNotebooksTitle,
+  kSourceNotebookPrefix,
   kCalloutTipCaption,
   kCalloutNoteCaption,
   kCalloutWarningCaption,
@@ -265,6 +291,7 @@ export const kLanguageDefaultsKeys = [
   kSectionTitleReferences,
   kSectionTitleAppendices,
   kSectionTitleReuse,
+  kSectionTitleCopyright,
   kSectionTitleCitation,
   kAppendixAttributionBibTex,
   kAppendixAttributionCiteAs,
@@ -272,6 +299,8 @@ export const kLanguageDefaultsKeys = [
   kTitleBlockPublished,
   kTitleBlockModified,
   kCodeSummary,
+  kCodeLine,
+  kCodeLines,
   kCodeToolsMenuCaption,
   kCodeToolsShowAllCode,
   kCodeToolsHideAllCode,
@@ -369,6 +398,7 @@ export const kIncludeInHeader = "include-in-header";
 export const kCiteproc = "citeproc";
 export const kCiteMethod = "cite-method";
 export const kFilters = "filters";
+export const kQuartoFilters = "quarto-filters";
 export const kFilterParams = "filter-params";
 export const kPdfEngine = "pdf-engine";
 export const kPdfEngineOpts = "pdf-engine-opts";
@@ -411,6 +441,7 @@ export const kGladtex = "gladtex";
 export const kWebtex = "webtex";
 
 // metadata fields
+export const kQuartoInternal = "quarto-internal";
 export const kTitle = "title";
 export const kSubtitle = "subtitle";
 export const kAuthor = "author";
@@ -428,6 +459,7 @@ export const kLang = "lang";
 export const kOrder = "order";
 
 // The authors user input
+export const KAuthor = "author";
 export const kAuthors = "authors";
 export const kDateFormatted = "date-formatted";
 

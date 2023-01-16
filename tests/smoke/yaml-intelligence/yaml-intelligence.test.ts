@@ -1,11 +1,11 @@
 /*
  * yaml-intelligence.test.ts
  *
- * Copyright (C) 2022 by RStudio, PBC
+ * Copyright (C) 2022 Posit Software, PBC
  *
  */
 
-import { expandGlobSync } from "fs/mod.ts";
+import { expandGlobSync } from "../../../src/core/deno/expand-glob.ts";
 import { unitTest } from "../../test.ts";
 
 import { assert, assertEquals } from "testing/asserts.ts";

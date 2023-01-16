@@ -1,7 +1,7 @@
 /*
 * http-devserver.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -14,7 +14,7 @@ import { FileResponse, maybeDisplaySocketError } from "./http.ts";
 import { LogEventsHandler } from "./log.ts";
 import { kLocalhost } from "./port.ts";
 import { resourcePath } from "./resources.ts";
-import { isRStudioPreview } from "./platform.ts";
+import { isRStudioPreview, isRStudioServer } from "./platform.ts";
 import { kTextHtml } from "./mime.ts";
 
 export interface HttpDevServer {
@@ -25,6 +25,10 @@ export interface HttpDevServer {
     file: Uint8Array,
     inputFile?: string,
   ) => FileResponse;
+  clientHtml: (
+    req: Request,
+    inputFile?: string,
+  ) => string;
   reloadClients: (reloadTarget?: string) => Promise<void>;
   hasClients: () => boolean;
 }
@@ -77,9 +81,14 @@ export function httpDevServer(
   });
 
   let injectClientInitialized = false;
-  let isFrame: boolean;
-  let origin: string;
-  let search: string;
+  let iframeURL: URL | undefined;
+  const getiFrameURL = (req: Request) => {
+    if (!injectClientInitialized) {
+      iframeURL = viewerIFrameURL(req);
+      injectClientInitialized = true;
+    }
+    return iframeURL;
+  };
 
   return {
     handle: (req: Request) => {
@@ -99,28 +108,29 @@ export function httpDevServer(
         return Promise.resolve(undefined);
       }
     },
+    clientHtml: (
+      req: Request,
+      inputFile?: string,
+    ): string => {
+      const script = devServerClientScript(
+        port,
+        inputFile,
+        isPresentation,
+        getiFrameURL(req),
+      );
+      return script;
+    },
     injectClient: (
       req: Request,
       file: Uint8Array,
       inputFile?: string,
     ): FileResponse => {
-      if (!injectClientInitialized) {
-        const url = new URL(req.url);
-        isFrame = isViewerIFrameRequest(req);
-        origin = url.origin;
-        search = url.search;
-        injectClientInitialized = true;
-      }
-
       const script = devServerClientScript(
-        origin,
-        search,
         port,
         inputFile,
         isPresentation,
-        isFrame,
+        getiFrameURL(req),
       );
-
       const scriptContents = new TextEncoder().encode("\n" + script);
       const fileWithScript = new Uint8Array(
         file.length + scriptContents.length,
@@ -159,12 +169,10 @@ export function httpDevServer(
 }
 
 function devServerClientScript(
-  origin: string,
-  search: string,
   port: number,
   inputFile?: string,
   isPresentation?: boolean,
-  isFrame?: boolean,
+  iframeURL?: URL,
 ): string {
   // core devserver
   const devserver = [
@@ -186,11 +194,11 @@ function devServerClientScript(
     );
   }
 
-  if (isFrame) {
+  if (iframeURL) {
     devserver.push(
       renderEjs(devserverHtmlResourcePath("iframe"), {
-        origin: origin,
-        search: search,
+        origin: devserverOrigin(iframeURL),
+        search: iframeURL.search,
       }),
     );
   }
@@ -198,11 +206,19 @@ function devServerClientScript(
   return devserver.join("\n");
 }
 
+function devserverOrigin(iframeURL: URL) {
+  if (isRStudioServer()) {
+    return iframeURL.searchParams.get("host") || iframeURL.origin;
+  } else {
+    return iframeURL.origin;
+  }
+}
+
 function devserverHtmlResourcePath(resource: string) {
   return resourcePath(`editor/devserver/devserver-${resource}.html`);
 }
 
-export function isViewerIFrameRequest(req: Request) {
+export function viewerIFrameURL(req: Request) {
   for (const url of [req.url, req.referrer]) {
     const isViewer = url && (
       url.includes("capabilities=") || // rstudio viewer
@@ -211,9 +227,7 @@ export function isViewerIFrameRequest(req: Request) {
     );
 
     if (isViewer) {
-      return true;
+      return new URL(url);
     }
   }
-
-  return false;
 }

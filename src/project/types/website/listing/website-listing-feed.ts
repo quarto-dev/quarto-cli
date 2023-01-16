@@ -1,7 +1,7 @@
 /*
 * website-listing-feed.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -426,11 +426,11 @@ async function renderFeed(
     // Core feed item
     const title = inputTarget?.outputHref
       ? placeholder(inputTarget?.outputHref)
-      : "";
+      : item.title || "";
     const link = absoluteUrl(siteUrl, inputTarget?.outputHref || "");
     const description = inputTarget?.outputHref
       ? placeholder(inputTarget?.outputHref)
-      : "";
+      : item.description || "";
     const pubDate = item.date ? new Date(item.date) : new Date();
     const feedItem: FeedItem = {
       title,

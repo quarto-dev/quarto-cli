@@ -1,7 +1,7 @@
 /*
 * project-crossrefs.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -21,6 +21,7 @@ import { shortUuid } from "../core/uuid.ts";
 import { projectScratchPath } from "./project-scratch.ts";
 
 export const kCrossrefIndexFile = "crossref-index-file";
+export const kCrossrefInputType = "crossref-input-type";
 export const kCrossrefResolveRefs = "crossref-resolve-refs";
 
 const kCrossrefIndexDir = "xref";

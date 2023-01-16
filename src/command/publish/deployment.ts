@@ -1,7 +1,7 @@
 /*
 * deployment.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -214,8 +214,7 @@ export async function chooseDeployment(
       try {
         const targetOrigin = new URL(deployment.target.url!).origin;
         if (
-          originCounts.get(targetOrigin) === 1 &&
-          deployment.provider.listOriginOnly
+          originCounts.get(targetOrigin) === 1 && (deployment.provider?.listOriginOnly ?? false)
         ) {
           url = targetOrigin;
         }

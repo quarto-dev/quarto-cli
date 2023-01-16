@@ -1,7 +1,7 @@
 /*
 * format-reveal.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 import { join } from "path/mod.ts";
@@ -16,7 +16,6 @@ import {
   kReferenceLocation,
   kRevealJsScripts,
   kSlideLevel,
-  kTheme,
 } from "../../config/constants.ts";
 
 import {
@@ -30,7 +29,6 @@ import {
 import { mergeConfigs } from "../../core/config.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { renderEjs } from "../../core/ejs.ts";
-import { TempContext } from "../../core/temp.ts";
 import { findParent } from "../../core/html.ts";
 import { createHtmlPresentationFormat } from "../formats-shared.ts";
 import { pandocFormatWith } from "../../core/pandoc/pandoc-formats.ts";
@@ -48,7 +46,10 @@ import {
   insertFootnotesTitle,
   removeFootnoteBacklinks,
 } from "../html/format-html-shared.ts";
-import { HtmlPostProcessResult } from "../../command/render/types.ts";
+import {
+  HtmlPostProcessResult,
+  RenderServices,
+} from "../../command/render/types.ts";
 import {
   kAutoAnimateDuration,
   kAutoAnimateEasing,
@@ -67,7 +68,6 @@ import {
   kSmaller,
 } from "./constants.ts";
 import { revealMetadataFilter } from "./metadata.ts";
-import { ExtensionContext } from "../../extension/extension-shared.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { titleSlidePartial } from "./format-reveal-title.ts";
 
@@ -82,7 +82,7 @@ export function revealResolveFormat(format: Format) {
 
 export function revealjsFormat() {
   return mergeConfigs(
-    createHtmlPresentationFormat(10, 5),
+    createHtmlPresentationFormat("RevealJS", 10, 5),
     {
       pandoc: {
         [kHtmlMathMethod]: {
@@ -106,13 +106,12 @@ export function revealjsFormat() {
         flags: PandocFlags,
         format: Format,
         libDir: string,
-        temp: TempContext,
+        services: RenderServices,
         offset: string,
-        extensionContext: ExtensionContext,
         project: ProjectContext,
       ) => {
         // render styles template based on options
-        const stylesFile = temp.createFile({ suffix: ".html" });
+        const stylesFile = services.temp.createFile({ suffix: ".html" });
         const styles = renderEjs(
           formatResourcePath("revealjs", "styles.html"),
           { [kScrollable]: format.metadata[kScrollable] },
@@ -148,16 +147,16 @@ export function revealjsFormat() {
         };
 
         // get theme info (including text highlighing mode)
-        const theme = await revealTheme(format, input, libDir, temp);
+        const theme = await revealTheme(format, input, libDir, services.temp);
 
         const revealPluginData = await revealPluginExtras(
           input,
           format,
           flags,
-          temp,
+          services.temp,
           theme.revealUrl,
           theme.revealDestDir,
-          extensionContext,
+          services.extension,
           project,
         ); // Add plugin scripts to metadata for template to use
 
@@ -180,7 +179,7 @@ export function revealjsFormat() {
             flags,
             offset,
             format,
-            temp,
+            services.temp,
             {
               tabby: true,
               anchors: false,
@@ -190,7 +189,6 @@ export function revealjsFormat() {
               figResponsive: false,
             }, // tippy options
             {
-              theme: "quarto-reveal",
               parent: "section.slide",
               config: {
                 offset: [0, 0],

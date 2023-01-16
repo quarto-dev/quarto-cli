@@ -1,7 +1,7 @@
 /*
 * website-navigation.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -849,11 +849,19 @@ function sidebarForHref(href: string, format: Format) {
   if (navigation.sidebars.length === 1) {
     return navigation.sidebars[0];
   } else {
-    for (const sidebar of navigation.sidebars) {
-      if (sidebar.id === format.metadata[kSiteSidebar]) {
-        return sidebar;
-      } else if (containsHref(href, sidebar.contents)) {
-        return sidebar;
+    const explicitSidebar = navigation.sidebars.find((sidebar) => {
+      return sidebar.id === format.metadata[kSiteSidebar];
+    });
+    if (explicitSidebar) {
+      return explicitSidebar;
+    } else {
+      const containingSidebar = navigation.sidebars.find((sidebar) => {
+        return containsHref(href, sidebar.contents);
+      });
+      if (containingSidebar) {
+        return containingSidebar;
+      } else {
+        return undefined;
       }
     }
   }
@@ -943,7 +951,7 @@ function nextAndPrevious(
     const sidebarItemsUniq = ld.uniqBy(
       sidebarItems,
       (sidebarItem: SidebarItem) => {
-        return sidebarItem.href;
+        return sidebarItem.href || Math.random().toString();
       },
     );
 

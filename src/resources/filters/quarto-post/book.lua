@@ -1,9 +1,35 @@
 -- book.lua
--- Copyright (C) 2020 by RStudio, PBC
+-- Copyright (C) 2020-2022 Posit Software, PBC
+
+--- Removes notes and links
+local function clean (inlines)
+  return inlines:walk {
+    Note = function (_) return {} end,
+    Link = function (link) return link.content end,
+  }
+end
+
+--- Creates an Inlines singleton containing the raw LaTeX.
+local function l(text)
+  return pandoc.Inlines{pandoc.RawInline('latex', text)}
+end
 
 -- inject metadata
 function quartoBook()
   return {
+    Header = function(el) 
+      if (quarto.doc.is_format("pdf") and param("single-file-book", false)) then
+          -- Works around https://github.com/jgm/pandoc/issues/1632
+          -- See https://github.com/quarto-dev/quarto-cli/issues/2412
+          if el.level <= 2 and el.classes:includes 'unnumbered' then
+            local title = clean(el.content)
+            local secmark = el.level == 1
+              and l'\\markboth{' .. title .. l'}{' .. title .. l'}'
+              or l'\\markright{' .. title .. l'}' -- subsection, keep left mark unchanged
+            return {el, secmark}
+          end
+      end
+    end,
     CodeBlock = function(el)
 
       -- If this is a title block cell, we should render it

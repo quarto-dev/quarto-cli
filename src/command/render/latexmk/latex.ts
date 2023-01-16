@@ -1,7 +1,7 @@
 /*
  * latex.ts
  *
- * Copyright (C) 2020 by RStudio, PBC
+ * Copyright (C) 2020-2022 Posit Software, PBC
  *
  */
 
@@ -41,6 +41,15 @@ export async function hasLatexDistribution() {
   }
 }
 
+const kLatexMkEngineFlags = [
+  "-pdf",
+  "-pdfdvi",
+  "-pdfps",
+  "-pdflua",
+  "-pdfxe",
+  "-pdf-",
+];
+
 // Runs the Pdf engine
 export async function runPdfEngine(
   input: string,
@@ -65,7 +74,26 @@ export async function runPdfEngine(
   });
 
   // build pdf engine command line
-  const args = ["-interaction=batchmode", "-halt-on-error"];
+  // ensure that we provide latexmk with its require custom options
+  // Note that users may control the latexmk engine options, but
+  // if not specified, we should provide a default
+  const computeEngineArgs = () => {
+    if (engine.pdfEngine === "latexmk") {
+      const engineArgs = ["-interaction=batchmode", "-halt-on-error"];
+      if (
+        !engine.pdfEngineOpts || engine.pdfEngineOpts.find((opt) => {
+            return kLatexMkEngineFlags.includes(opt);
+          }) === undefined
+      ) {
+        engineArgs.push("-pdf");
+      }
+      engineArgs.push("-quiet");
+      return engineArgs;
+    } else {
+      return ["-interaction=batchmode", "-halt-on-error"];
+    }
+  };
+  const args = computeEngineArgs();
 
   // output directory
   if (outputDir !== undefined) {
@@ -205,7 +233,7 @@ async function runLatexCommand(
   // Add a tex search path
   // The // means that TeX programs will search recursively in that folder;
   // the trailing colon means "append the standard value of TEXINPUTS" (which you don't need to provide).
-  if (context.texInputDirs) {
+  if (context.texInputDirs && context.texInputDirs.length > 0) {
     // note this  //
     runOptions.env = runOptions.env || {};
     runOptions.env["TEXINPUTS"] = `${context.texInputDirs.join(";")};`;
@@ -229,7 +257,7 @@ async function runLatexCommand(
     const tex = await hasTexLive() || await hasLatexDistribution();
     if (!tex) {
       info(
-        "\nNo TeX installation was detected.\n\nPlease run 'quarto install tool tinytex' to install TinyTex.\nIf you prefer, you may install TexLive or another TeX distribution.\n",
+        "\nNo TeX installation was detected.\n\nPlease run 'quarto install tinytex' to install TinyTex.\nIf you prefer, you may install TexLive or another TeX distribution.\n",
       );
       return Promise.reject();
     } else if (context.pkgMgr && context.pkgMgr.autoInstall) {

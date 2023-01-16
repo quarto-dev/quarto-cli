@@ -1,7 +1,7 @@
 /*
 * format-docx.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -19,7 +19,7 @@ const kIconWarning = "icon-warning";
 
 export function docxFormat(): Format {
   return mergeConfigs(
-    createWordprocessorFormat("docx"),
+    createWordprocessorFormat("MS Word", "docx"),
     {
       formatExtras: () => {
         return {

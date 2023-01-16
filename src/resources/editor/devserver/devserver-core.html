@@ -640,8 +640,21 @@
     let path = window.location.pathname;
     if (!/\/$/.test(path)) path += "/";
     const devServerSocket = new WebSocket(protocol + "//" + window.location.host + path);
+    let reloadPage = true;
+    addEventListener("beforeunload", () => {
+      // don't reload page in case of navigation events
+      reloadPage = false;
+    })
     devServerSocket.onopen = () => {
       console.log('Socket connection open. Listening for events.');
+      // if the socket closes for any reason (e.g. this occurs in electron apps
+      // when the computer suspends) then reload to reestablish the connection 
+      devServerSocket.onclose = () => {
+        if (reloadPage) {
+          console.log('Socket connection closed. Reloading.');
+          window.location.reload(true);
+        }
+      }
     };
     // append for errors that occur within the error window
     let lastError = 0;
@@ -661,16 +674,26 @@
         awaitCloseAnimation: true,
         onClose: () => { display.innerHTML = ""; }
       });
+
+      // post message to parent indicating we had an error
+      if (window.parent.postMessage) {
+        window.parent.postMessage({
+          type: "error",
+          msg: msg,
+        }, "*");
+      }
     }
     // see if there is already an error to show
     const renderError = document.getElementById("quarto-render-error");
     if (renderError) {
       showError(renderError.innerHTML.trim());
     }
+    const normalizeTarget = (target) => {
+      return target.replace(/\/index\.html/, "/")
+    };
     devServerSocket.onmessage = (msg) => {
       if (msg.data.startsWith('reload')) {
-        devServerSocket.close();
-        let target = msg.data.replace(/^reload/, "").replace(/\/index\.html/, "/");
+        let target = normalizeTarget(msg.data.replace(/^reload/, ""));
         // prepend proxy path to target if we have one
         if (target) {
           const pathPrefix = 
@@ -680,7 +703,7 @@
             target = pathPrefix + target.slice(1);
           }
         }
-        if (target && (target !== window.location.pathname)) {
+        if (target && (target !== normalizeTarget(window.location.pathname))) {
           window.location.replace(target);
         } else {
           window.location.reload(true);

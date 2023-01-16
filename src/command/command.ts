@@ -1,7 +1,7 @@
 /*
 * command.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -25,18 +25,26 @@ import { publishCommand } from "./publish/cmd.ts";
 import { removeCommand } from "./remove/cmd.ts";
 import { listCommand } from "./list/cmd.ts";
 import { useCommand } from "./use/cmd.ts";
+import { addCommand } from "./add/cmd.ts";
+import { uninstallCommand } from "./uninstall/cmd.ts";
+import { createCommand } from "./create/cmd.ts";
+import { editorSupportCommand } from "./editor-support/cmd.ts";
 
 // deno-lint-ignore no-explicit-any
 export function commands(): Command<any>[] {
   return [
-    renderCommand,
+    // deno-lint-ignore no-explicit-any
+    renderCommand as any,
     previewCommand,
     serveCommand,
+    createCommand,
     createProjectCommand,
     convertCommand,
     pandocCommand,
     runCommand,
+    addCommand,
     installCommand,
+    uninstallCommand,
     updateCommand,
     removeCommand,
     listCommand,
@@ -47,5 +55,6 @@ export function commands(): Command<any>[] {
     toolsCommand,
     checkCommand,
     buildJsCommand,
+    editorSupportCommand,
   ];
 }

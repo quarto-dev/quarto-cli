@@ -1,7 +1,7 @@
 /*
 * install-tools.test.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 import { testQuartoCmd } from "../../test.ts";
@@ -13,6 +13,7 @@ testQuartoCmd(
   [
     noErrorsOrWarnings,
     printsMessage("INFO", /tinytex\s+/),
-    printsMessage("INFO", /chromium\s+/),
+    // printsMessage("INFO", /chromium\s+/),
+    // temporarily disabled until we get puppeteer back
   ],
 );

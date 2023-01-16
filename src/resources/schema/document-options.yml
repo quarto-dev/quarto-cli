@@ -8,7 +8,7 @@
 
 - name: theme
   tags:
-    formats: [$html-doc, revealjs]
+    formats: [$html-doc, revealjs, beamer]
   schema:
     anyOf:
       - string
@@ -64,7 +64,7 @@
 
 - name: html-math-method
   tags:
-    formats: [$html-doc, $epub-all, gfm, hugo]
+    formats: [$html-doc, $epub-all, gfm]
   schema:
     anyOf:
       - ref: math-methods

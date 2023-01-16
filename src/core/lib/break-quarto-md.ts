@@ -4,7 +4,7 @@
 * Breaks up a qmd file into a list of chunks of related text: YAML
 * front matter, "pure" markdown, triple-backtick sections, and so on.
 *
-* Copyright (C) 2021 by RStudio, PBC
+* Copyright (C) 2021-2022 Posit Software, PBC
 *
 */
 
@@ -27,6 +27,7 @@ export type { QuartoMdCell, QuartoMdChunks } from "./break-quarto-md-types.ts";
 export async function breakQuartoMd(
   src: EitherString,
   validate = false,
+  lenient = false,
 ) {
   if (typeof src === "string") {
     src = asMappedString(src);
@@ -105,6 +106,8 @@ export async function breakQuartoMd(
           language,
           cell.source,
           validate,
+          "",
+          lenient,
         );
         // TODO I'd prefer for this not to depend on sourceStartLine now
         // that we have mapped strings infrastructure

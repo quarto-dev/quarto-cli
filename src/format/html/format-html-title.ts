@@ -1,7 +1,7 @@
 /*
 * format-html-title.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -88,7 +88,14 @@ export function documentTitleIncludeInHeader(
 
   if (variables.length > 0) {
     const styles = `<style>
-    .quarto-title-block .quarto-title-banner {
+    .quarto-title-block .quarto-title-banner,
+    .quarto-title-block .quarto-title-banner h1,
+    .quarto-title-block .quarto-title-banner h2,
+    .quarto-title-block .quarto-title-banner h3,
+    .quarto-title-block .quarto-title-banner h4,
+    .quarto-title-block .quarto-title-banner h5,
+    .quarto-title-block .quarto-title-banner h6
+    {
       ${variables.join("\n")}
     }
     </style>`;

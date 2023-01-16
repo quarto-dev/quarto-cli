@@ -1,0 +1,26 @@
+---
+title: Hello World
+code-annotations: hover
+code-line-numbers: true
+format:
+  html: default
+_quarto:
+  tests: 
+    html:
+      ensureHtmlElements:
+        - ["button[data-target-annotation='1']"]
+      ensureFileRegexMatches:
+        - []
+        - [".*trigger: 'click'.*'"]
+---
+
+## Hi There
+
+```typescript
+const foo = "bar";
+if (foo === "bar") {
+  console.log("Woah"); // <1>
+}
+```
+
+1. This is a console output

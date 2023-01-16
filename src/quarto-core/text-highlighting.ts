@@ -1,7 +1,7 @@
 /*
 * text-highlighting.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 import { join } from "path/mod.ts";
@@ -79,6 +79,11 @@ export function readHighlightingTheme(
 export function hasAdaptiveTheme(pandoc: FormatPandoc) {
   const theme = pandoc[kHighlightStyle] || kDefaultHighlightStyle;
   return theme && isAdaptiveTheme(theme);
+}
+
+export function hasTextHighlighting(pandoc: FormatPandoc): boolean {
+  const theme = pandoc[kHighlightStyle];
+  return theme !== null;
 }
 
 export function isAdaptiveTheme(theme: string | Record<string, string>) {

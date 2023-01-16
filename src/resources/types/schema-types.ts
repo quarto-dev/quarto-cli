@@ -71,8 +71,15 @@ export type NavigationItemObject = {
 See <https://icons.getbootstrap.com/> for a list of available icons */;
   id?: string;
   menu?: (NavigationItem)[];
+  rel?:
+    string /* Value for rel attribute. Multiple space-separated values are permitted.
+See <https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel>
+for a details. */;
   text?: string /* Text to display for item (defaults to the
 document title if not provided) */;
+  target?: string /* Value for target attribute.
+See <https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target>
+for details. */;
   url?: string; /* Alias for href */
 };
 
@@ -114,15 +121,18 @@ as a discussion number and automatic discussion creation is not supported. */;
 In order to work correctly, the repo must be public, with the giscus app installed, and
 the discussions feature must be enabled. */;
     theme?:
-      | "light"
-      | "light_high_contrast"
-      | "light_protanopia"
-      | "dark"
-      | "dark_high_contrast"
-      | "dark_protanopia"
-      | "dark_dimmed"
-      | "transparent_dark"
-      | "preferred_color_scheme"; /* The giscus theme to use when displaying comments. */
+      | string
+      | (
+        | "light"
+        | "light_high_contrast"
+        | "light_protanopia"
+        | "dark"
+        | "dark_high_contrast"
+        | "dark_protanopia"
+        | "dark_dimmed"
+        | "transparent_dark"
+        | "preferred_color_scheme"
+      ); /* The giscus theme to use when displaying comments. */
   };
   hypothesis?: boolean | {
     assetRoot?: string /* The root URL from which assets are loaded. */;
@@ -246,8 +256,18 @@ export type ProjectPreview = {
     boolean /* Navigate the browser automatically when outputs are updated (defaults to true) */;
   port?:
     number /* Port to listen on (defaults to random value between 3000 and 8000) */;
+  serve?: ProjectServe;
   timeout?:
     number; /* Time (in seconds) after which to exit if there are no active clients */
+};
+
+export type ProjectServe = {
+  args?: string /* Additional command line arguments for preview command. */;
+  cmd: string /* Serve project preview using the specified command.
+Interpolate the `--port` into the command using `{port}`. */;
+  env?: SchemaObject /* Environment variables to set for preview command. */;
+  ready:
+    string; /* Regular expression for detecting when the server is ready. */
 };
 
 export type Publish = {
@@ -501,7 +521,6 @@ The user’s cookie preferences will automatically control Google Analytics (if 
           string /* Path to a logo image that will be displayed in the sidebar. */;
         pinned?:
           boolean /* When collapsed, pin the collapsed sidebar to the top of the page. */;
-        subtitle?: string /* The subtitle for this sidebar. */;
         search?: boolean /* Include a search control in the sidebar. */;
         style?:
           | "docked"
@@ -582,6 +601,8 @@ attempt to be automatically translated. */;
 export type FormatLanguage = {
   "toc-title-document"?: string;
   "toc-title-website"?: string;
+  "related-formats-title"?: string;
+  "related-notebooks-title"?: string;
   "callout-tip-caption"?: string;
   "callout-note-caption"?: string;
   "callout-warning-caption"?: string;
@@ -721,6 +742,7 @@ Defaults to `false`. */;
   "table-hover"?:
     boolean /* In table type listings, highlight rows of the table when the user hovers the mouse over them.
 Defaults to false. */;
+  "template-params"?: SchemaObject;
   "field-display-names"?:
     SchemaObject /* A mapping that provides display names for specific fields. For example, to display the title column as ‘Report’ in a table listing you would write:
 
@@ -786,13 +808,17 @@ place the contents into a `div` with this id. If no such `div` is defined on the
 page, a `div` with this id will be created and appended to the end of the page.
 
 In no `id` is provided for a listing, Quarto will synthesize one when rendering the page. */;
-  sort?: MaybeArrayOf<
-    string
-  > /* Sort items in the listing by these fields. The sort key is made up of a
+  sort?:
+    | boolean
+    | MaybeArrayOf<
+      string
+    > /* Sort items in the listing by these fields. The sort key is made up of a
 field name followed by a direction `asc` or `desc`.
 
 For example:
-`date asc` */;
+`date asc`
+
+Use `sort:false` to use the unsorted original order of items. */;
   type?:
     | "default"
     | "table"
@@ -1042,6 +1068,35 @@ canceled; details of a retraction or correction notice) */;
   volume?: CslNumber;
 };
 
+export type CitationItem = {
+  "article-id"?: MaybeArrayOf<
+    (string | {
+      type?: string /* The type of identifier */;
+      value?: string; /* The value for the identifier */
+    })
+  > /* The unique identifier for this article. */;
+  "elocation-id"?:
+    string /* Bibliographic identifier for a document that does not have traditional printed page numbers. */;
+  "art-access-id"?: string /* Generic article accession identifier. */;
+  "publisher-location"?:
+    string /* The location of the publisher of this item. */;
+  "container-id"?: MaybeArrayOf<
+    (string | {
+      type?: string /* The type of identifier (e.g. `nlm-ta` or `pmc`). */;
+      value?: string; /* The value for the identifier */
+    })
+  > /* External identifier, typically assigned to a journal by
+a publisher, archive, or library to provide a unique identifier for
+the journal or publication. */;
+  "jats-type"?: string /* The type used for the JATS `article` tag. */;
+  categories?: MaybeArrayOf<
+    string /* A list of subjects or topics describing the article. */
+  >;
+  eissn?: string /* Electronic International Standard Serial Number. */;
+  pissn?: string /* Print International Standard Serial Number. */;
+  subject?: string; /* The name of a subject or topic describing the article. */
+} & CslItem;
+
 export type SmartInclude = {
   text: string; /* Textual content to add to includes */
 } | { file: string /* Name of file with content to add to includes */ };
@@ -1062,6 +1117,8 @@ export type ProjectProfile = {
 
 export type BadParseSchema = SchemaObject;
 
+export type QuartoDevSchema = { _quarto?: { tests?: SchemaObject } };
+
 export type ProjectConfig = {
   "execute-dir"?:
     | "file"
@@ -1073,6 +1130,7 @@ export type ProjectConfig = {
   "lib-dir"?: string /* HTML library (JS/CSS/etc.) directory */;
   "pre-render"?: MaybeArrayOf<string>;
   "post-render"?: MaybeArrayOf<string>;
+  detect?: ((string)[])[];
   preview?: ProjectPreview;
   render?: (string)[] /* Files to render (defaults to all files) */;
   resources?: MaybeArrayOf<

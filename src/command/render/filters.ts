@@ -1,7 +1,7 @@
 /*
 * filters.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -30,6 +30,7 @@ import {
   kMergeIncludes,
   kOutputDivs,
   kPdfEngine,
+  kQuartoFilters,
   kReferenceLocation,
   kShortcodes,
   kTblColwidths,
@@ -45,25 +46,27 @@ import { Metadata } from "../../config/types.ts";
 import { kProjectType } from "../../project/types.ts";
 import { bibEngine } from "../../config/pdf.ts";
 import { resourcePath } from "../../core/resources.ts";
-import {
-  crossrefFilter,
-  crossrefFilterActive,
-  crossrefFilterParams,
-} from "./crossref.ts";
-import { layoutFilter, layoutFilterParams } from "./layout.ts";
+import { crossrefFilterActive, crossrefFilterParams } from "./crossref.ts";
+import { layoutFilterParams } from "./layout.ts";
 import { pandocMetadataPath } from "./render-paths.ts";
 import { removePandocArgs } from "./flags.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { projectType } from "../../project/types/project-types.ts";
 import { readCodePage } from "../../core/windows.ts";
-import { authorsFilter, authorsFilterActive } from "./authors.ts";
 import { formatHasBootstrap } from "../../format/html/format-html-info.ts";
 import { activeProfiles, kQuartoProfile } from "../../quarto-core/profile.ts";
-import { filterExtensions } from "../../extension/extension.ts";
+import {
+  filterBuiltInExtensions,
+  filterExtensions,
+} from "../../extension/extension.ts";
+import { quartoConfig } from "../../core/quarto.ts";
+import { metadataNormalizationFilterActive } from "./normalize.ts";
+import { kCodeAnnotations } from "../../format/html/format-html-shared.ts";
 
 const kQuartoParams = "quarto-params";
 
 const kProjectOffset = "project-offset";
+const kProjectOutputDir = "project-output-dir";
 
 const kMediabagDir = "mediabag-dir";
 
@@ -72,6 +75,12 @@ const kResultsFile = "results-file";
 const kTimingFile = "timings-file";
 
 const kHasBootstrap = "has-bootstrap";
+
+const kActiveFilters = "active-filters";
+
+const kQuartoVersion = "quarto-version";
+
+const kQuartoSource = "quarto-source";
 
 export async function filterParamsJson(
   args: string[],
@@ -90,6 +99,11 @@ export async function filterParamsJson(
       defaults || {},
     )
     : {};
+
+  // extract the filter spec from pandoc options
+  const filterSpec = extractFilterSpecParams(
+    options.format.metadata,
+  );
 
   // Extract any column params
   const quartoColumnParams = extractColumnParams(
@@ -111,6 +125,11 @@ export async function filterParamsJson(
     ...filterParams,
     [kResultsFile]: pandocMetadataPath(resultsFile),
     [kTimingFile]: pandocMetadataPath(timingFile),
+    [kQuartoFilters]: filterSpec,
+    [kActiveFilters]: {
+      normalization: metadataNormalizationFilterActive(options),
+      crossref: crossrefFilterActive(options),
+    },
   };
   return JSON.stringify(params);
 }
@@ -119,20 +138,17 @@ export function removeFilterParams(metadata: Metadata) {
   delete metadata[kQuartoParams];
 }
 
-export function quartoInitFilter() {
-  return resourcePath("filters/quarto-init/quarto-init.lua");
+export function quartoMainFilter() {
+  return resourcePath("filters/main.lua");
 }
 
-export function quartoPreFilter() {
-  return resourcePath("filters/quarto-pre/quarto-pre.lua");
-}
-
-export function quartoPostFilter() {
-  return resourcePath("filters/quarto-post/quarto-post.lua");
-}
-
-export function quartoFinalizeFilter() {
-  return resourcePath("filters/quarto-finalize/quarto-finalize.lua");
+function extractFilterSpecParams(
+  metadata: Metadata,
+) {
+  // pull out the filter spec that resolveFilters created
+  const filterSpec = metadata[kQuartoFilters];
+  delete metadata[kQuartoFilters];
+  return filterSpec;
 }
 
 function extractIncludeParams(
@@ -396,14 +412,20 @@ function projectFilterParams(options: PandocOptions) {
     ((projType.filterParams ? projType.filterParams(options) : undefined) ||
       {}) as Metadata;
 
-  if (options.offset) {
-    return {
-      ...params,
-      [kProjectOffset]: options.offset,
-    };
-  } else {
-    return params;
+  const additionalParams: Metadata = {};
+
+  const outputDir = options.project?.config?.project["output-dir"];
+  if (outputDir) {
+    additionalParams[kProjectOutputDir] = outputDir;
   }
+  if (options.offset) {
+    additionalParams[kProjectOffset] = options.offset;
+  }
+
+  return {
+    ...additionalParams,
+    ...params,
+  };
 }
 
 function ipynbFilterParams(options: PandocOptions) {
@@ -473,24 +495,39 @@ async function quartoFilterParams(
   params[kPdfEngine] = pdfEngine(options);
   params[kHasBootstrap] = formatHasBootstrap(options.format);
 
+  // The source document
+  params[kQuartoSource] = options.source;
+
   // profile as an array
   params[kQuartoProfile.toLowerCase()] = activeProfiles();
+
+  // version
+  params[kQuartoVersion] = quartoConfig.version();
+
+  // code-annotations
+  params[kCodeAnnotations] = format.metadata[kCodeAnnotations];
 
   return params;
 }
 
 async function extensionShortcodes(options: PandocOptions) {
   const extensionShortcodes: string[] = [];
-  if (options.extension) {
-    const allExtensions = await options.extension?.extensions(
+  if (options.services.extension) {
+    const allExtensions = await options.services.extension?.extensions(
       options.source,
       options.project?.config,
       options.project?.dir,
     );
-    Object.values(allExtensions).forEach((extension) => {
-      if (extension.contributes.shortcodes) {
-        extensionShortcodes.push(...extension.contributes.shortcodes);
-      }
+
+    const shortCodeExtensions = filterBuiltInExtensions(
+      allExtensions.filter((ext) => {
+        return !!ext.contributes.shortcodes;
+      }),
+    );
+
+    shortCodeExtensions.forEach((extension) => {
+      const shortcodes = extension.contributes.shortcodes || [];
+      extensionShortcodes.push(...shortcodes);
     });
   }
   return extensionShortcodes;
@@ -511,28 +548,25 @@ function initFilterParams(dependenciesFile: string) {
 const kQuartoFilterMarker = "quarto";
 const kQuartoCiteProcMarker = "citeproc";
 
+export type QuartoFilterSpec = {
+  // these are filters that will be sent to pandoc directly
+  quartoFilters: QuartoFilter[];
+
+  beforeQuartoFilters: QuartoFilter[];
+  afterQuartoFilters: QuartoFilter[];
+};
+
 export async function resolveFilters(
   filters: QuartoFilter[],
   options: PandocOptions,
-): Promise<QuartoFilter[] | undefined> {
+): Promise<QuartoFilterSpec | undefined> {
   // build list of quarto filters
 
-  // The default order of filters will be
-  // quarto-init
-  // quarto-authors
-  // user filters
-  // extension filters
-  // quarto-filters <quarto>
-  // quarto-finalizer
-  // citeproc
+  const beforeQuartoFilters: QuartoFilter[] = [];
+  const afterQuartoFilters: QuartoFilter[] = [];
 
   const quartoFilters: string[] = [];
-  quartoFilters.push(quartoPreFilter());
-  if (crossrefFilterActive(options)) {
-    quartoFilters.push(crossrefFilter());
-  }
-  quartoFilters.push(layoutFilter());
-  quartoFilters.push(quartoPostFilter());
+  quartoFilters.push(quartoMainFilter());
 
   // Resolve any filters that are provided by an extension
   filters = await resolveFilterExtension(options, filters);
@@ -545,25 +579,12 @@ export async function resolveFilters(
     filter === kQuartoFilterMarker
   );
   if (quartoLoc !== -1) {
-    filters = [
-      ...filters.slice(0, quartoLoc),
-      ...quartoFilters,
-      ...filters.slice(quartoLoc + 1),
-    ];
+    beforeQuartoFilters.push(...filters.slice(0, quartoLoc));
+    afterQuartoFilters.push(...filters.slice(quartoLoc + 1));
   } else {
-    filters.push(...quartoFilters);
+    beforeQuartoFilters.push(...filters);
+    // afterQuartoFilters remains empty.
   }
-
-  // The author filter, if enabled
-  if (authorsFilterActive(options)) {
-    filters.unshift(authorsFilter());
-  }
-
-  // The initializer for Quarto
-  filters.unshift(quartoInitFilter());
-
-  // The finalizer for Quarto
-  filters.push(quartoFinalizeFilter());
 
   // citeproc at the very end so all other filters can interact with citations
   filters = filters.filter((filter) => filter !== kQuartoCiteProcMarker);
@@ -576,12 +597,22 @@ export async function resolveFilters(
       delete options.format.pandoc.citeproc;
     }
 
-    filters.push(kQuartoCiteProcMarker);
+    quartoFilters.push(kQuartoCiteProcMarker);
   }
 
   // return filters
-  if (filters.length > 0) {
-    return filters;
+  if (
+    [
+      quartoFilters,
+      beforeQuartoFilters,
+      afterQuartoFilters,
+    ].some((x) => x.length)
+  ) {
+    return {
+      quartoFilters,
+      beforeQuartoFilters,
+      afterQuartoFilters,
+    };
   } else {
     return undefined;
   }
@@ -650,7 +681,7 @@ async function resolveFilterExtension(
       typeof (filter) === "string" &&
       !existsSync(filter)
     ) {
-      let extensions = await options.extension?.find(
+      let extensions = await options.services.extension?.find(
         filter,
         options.source,
         "filters",

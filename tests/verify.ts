@@ -1,11 +1,11 @@
 /*
 * verify.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
-import { exists, existsSync } from "fs/exists.ts";
+import { existsSync } from "node/fs.ts";
 import { DOMParser, NodeList } from "../src/core/deno-dom.ts";
 import { assert } from "testing/asserts.ts";
 import { join } from "path/mod.ts";
@@ -180,9 +180,18 @@ export const ensureHtmlElements = (
 
 export const ensureFileRegexMatches = (
   file: string,
-  matches: RegExp[],
-  noMatches?: RegExp[],
+  matchesUntyped: (string | RegExp)[],
+  noMatchesUntyped?: (string | RegExp)[],
 ): Verify => {
+  const asRegexp = (m: string | RegExp) => {
+    if (typeof m === "string") {
+      return new RegExp(m);
+    } else {
+      return m;
+    }
+  };
+  const matches = matchesUntyped.map(asRegexp);
+  const noMatches = noMatchesUntyped?.map(asRegexp);
   return {
     name: `Inspecting ${file} for Regex matches`,
     verify: async (_output: ExecuteOutput[]) => {
@@ -274,7 +283,7 @@ export const verifyYamlFile = (
   return {
     name: "Project Yaml is Valid",
     verify: async (_output: ExecuteOutput[]) => {
-      if (await exists(file)) {
+      if (existsSync(file)) {
         const raw = await Deno.readTextFile(file);
         if (raw) {
           const yaml = readYamlFromString(raw);

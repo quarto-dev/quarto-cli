@@ -1,11 +1,16 @@
 toc-title-document: "Spis treści"
 toc-title-website: "Na tej stronie"
 
+related-formats-title: "Inne formaty"
+related-notebooks-title: "Notebooks"
+source-notebooks-prefix: "Źródło"
+
 section-title-abstract: "Abstrakt"
 section-title-appendices: "Załączniki"
 section-title-footnotes: "Przypisy"
 section-title-references: "Bibliografia"
 section-title-reuse: "Licencja"
+section-title-copyright: "Prawa autorskie"
 section-title-citation: "Cytowanie"
 
 appendix-attribution-cite-as: "W celu atrybucji, proszę cytować tę pracę jako:"
@@ -25,6 +30,9 @@ callout-important-caption: "Ważne"
 callout-caution-caption: "Zagrożenie"
 
 code-summary: "Kod"
+
+code-line: "Linia"
+code-lines: "Linie"
 
 code-tools-menu-caption: "Kod"
 code-tools-show-all-code: "Pokaż cały kod"

@@ -1,0 +1,83 @@
+---
+title: Note Preview
+subtitle: This demonstrates some cool stuff with notebooks
+author:
+  - name: Charles Teague
+    affiliation: Posit, PBC
+  - name: Norah Jones
+    affiliation: Blue Note Records
+date: last-modified
+format:
+  html:
+    title-block-banner: "#370D32"
+    title-block-banner-color: white
+  ipynb: default
+code-line-numbers: true
+code-annotations: select
+grid:
+    sidebar-width: 300px
+    body-width: 1000px
+    margin-width: 300px
+    gutter-width: 1.5rem
+theme: spacelab
+notebook-view:
+  - notebook: plots.ipynb 
+    url: https://www.kaggle.com/code/kanncaa1/data-sciencetutorial-for-beginners
+    title: TEST NB
+notebook-links: "inline"
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['a.quarto-notebook-link']
+        - ['div.quarto-alternate-notebooks a']
+      ensureFileRegexMatches:
+        - ['Source: TEST NB']
+---
+
+## Sample Code. Cool!
+
+```{r}
+num = 47
+factorial = 1
+if(num < 0) { # <2>
+  print("Sorry, factorial does not exist for negative numbers")
+} else if(num == 0) {
+  print("The factorial of 0 is 1")
+} else {
+  for(i in 1:num) {             # <3>
+    factorial = factorial * i   # <3>
+  }                             # <3>
+  print(paste("The factorial of", num ,"is",format(factorial)))
+}
+```
+
+2. Check is the number is negative, positive or zero
+3. Actually compute the factorial
+
+## A Figure
+
+Also, see the figure below, which shows something cool.
+
+{{< embed plots.ipynb#plot-dot >}}
+
+2. fo
+3. foo
+
+```{r}
+num = 47
+factorial = 1
+if(num < 0) { # <2>
+  print("Sorry, factorial does not exist for negative numbers")
+} else if(num == 0) {
+  print("The factorial of 0 is 1")
+} else {
+  for(i in 1:num) {             # <3>
+    factorial = factorial * i   # <3>
+  }                             # <3>
+  print(paste("The factorial of", num ,"is",format(factorial)))
+}
+```
+
+2. Check is the number is negative, positive or zero
+3. Actually compute the factorial

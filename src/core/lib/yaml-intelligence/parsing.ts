@@ -1,7 +1,7 @@
 /*
 * parsing.ts
 *
-* Copyright (C) 2022 by RStudio, PBC
+* Copyright (C) 2022 Posit Software, PBC
 *
 */
 
@@ -54,16 +54,10 @@ export async function getTreeSitter(): Promise<any> {
 
   _parser = new Parser();
 
-  // 2022-08-26: There seems to be a bug on `deno vendor` for 1.25.0 where it fails to take json imports correctly.
-  // we need to work around it during the vendoring process by removing the bogus imports like so:
-  //
-  // Uncomment this line:
-  // const treeSitterYamlJson = { data: [1, 2, 3] };
-
   const treeSitterYamlJson = (await import(
     "../../../resources/editor/tools/yaml/tree-sitter-yaml.json",
     { assert: { type: "json" } }
-  )) as { data: number[] };
+  )).default as { data: number[] };
 
   const YAML = await Parser.Language.load(
     new Uint8Array(treeSitterYamlJson.data),

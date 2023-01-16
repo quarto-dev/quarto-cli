@@ -1,7 +1,7 @@
 /*
 * format-html-scss.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
@@ -304,7 +304,7 @@ export function resolveTextHighlightingLayer(
     }
 
     const functionColor = readTextColor("Function");
-    if (commentColor) {
+    if (functionColor) {
       layer.defaults = layer.defaults + "\n" + outputVariable(
         sassVariable(
           "btn-code-copy-color-active",
@@ -443,6 +443,14 @@ function pandocVariablesToThemeDefaults(
     add(explicitVars, attrib, metadata[attrib], asCssSize);
   });
 
+  // Resolve any grid variables
+  const gridObj = metadata["grid"] as Metadata;
+  if (gridObj) {
+    add(explicitVars, "grid-sidebar-width", gridObj["sidebar-width"]);
+    add(explicitVars, "grid-margin-width", gridObj["margin-width"]);
+    add(explicitVars, "grid-body-width", gridObj["body-width"]);
+    add(explicitVars, "grid-column-gutter-width", gridObj["gutter-width"]);
+  }
   return explicitVars;
 }
 

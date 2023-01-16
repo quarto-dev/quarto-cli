@@ -3,7 +3,7 @@
 *
 * A minimal API to build pandoc markdown text.
 *
-* Copyright (C) 2022 by RStudio, PBC
+* Copyright (C) 2022 Posit Software, PBC
 *
 */
 
@@ -131,14 +131,14 @@ export function pandocList(opts: {
 
 export function pandocBlock(delimiter: string) {
   return function (
-    opts: {
+    opts?: {
       language?: string;
       id?: string;
       classes?: string[];
       attrs?: string[];
       skipFirstLineBreak?: boolean;
       contents?: PandocNode[];
-    } | undefined,
+    },
   ): PandocNode {
     let { id, classes, attrs, language, skipFirstLineBreak, contents } = opts ||
       {};

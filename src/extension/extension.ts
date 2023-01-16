@@ -1,11 +1,12 @@
 /*
 * extension.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
 
-import { existsSync, expandGlobSync, walkSync } from "fs/mod.ts";
+import { existsSync, walkSync } from "fs/mod.ts";
+import { expandGlobSync } from "../core/deno/expand-glob.ts";
 import { warning } from "log/mod.ts";
 import { coerce, Range, satisfies } from "semver/mod.ts";
 
@@ -30,13 +31,16 @@ import {
   ExtensionContext,
   ExtensionId,
   extensionIdString,
+  ExtensionOptions,
   kAuthor,
+  kBuiltInExtOrg,
   kCommon,
   kExtensionDir,
   kQuartoRequired,
   kRevealJSPlugins,
   kTitle,
   kVersion,
+  RevealPluginInline,
 } from "./extension-shared.ts";
 import { cloneDeep } from "../core/lodash.ts";
 import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
@@ -44,7 +48,13 @@ import { getExtensionConfigSchema } from "../core/lib/yaml-schema/project-config
 import { projectIgnoreGlobs } from "../project/project-context.ts";
 import { ProjectType } from "../project/types/types.ts";
 import { copyResourceFile } from "../project/project-resources.ts";
-import { RevealPluginBundle } from "../format/reveal/format-reveal-plugin.ts";
+import {
+  RevealPlugin,
+  RevealPluginBundle,
+  RevealPluginScript,
+} from "../format/reveal/format-reveal-plugin.ts";
+import { resourcePath } from "../core/resources.ts";
+import { warnOnce } from "../core/log.ts";
 
 // This is where we maintain a list of extensions that have been promoted
 // to 'built-in' status. If we see these extensions, we will filter them
@@ -60,19 +70,29 @@ export function createExtensionContext(): ExtensionContext {
 
   // Reads all extensions available to an input
   const extensions = async (
-    input: string,
+    input?: string,
     config?: ProjectConfig,
     projectDir?: string,
+    options?: ExtensionOptions,
   ): Promise<Extension[]> => {
     // Load the extensions and resolve extension paths
     const extensions = await loadExtensions(
-      input,
       extensionCache,
+      input,
       projectDir,
     );
-    return Object.values(extensions).map((extension) =>
-      resolveExtensionPaths(extension, input, config)
+
+    const results = Object.values(extensions).filter((ext) =>
+      options?.builtIn !== false || ext.id.organization !== kBuiltInExtOrg
     );
+
+    return results.map((extension) => {
+      if (input) {
+        return resolveExtensionPaths(extension, input, config);
+      } else {
+        return extension;
+      }
+    });
   };
 
   // Reads a specific extension avialable to an input
@@ -93,10 +113,11 @@ export function createExtensionContext(): ExtensionContext {
     contributes?: Contributes,
     config?: ProjectConfig,
     projectDir?: string,
+    options?: ExtensionOptions,
   ): Promise<Extension[]> => {
     const extId = toExtensionId(name);
     return findExtensions(
-      await extensions(input, config, projectDir),
+      await extensions(input, config, projectDir, options),
       extId,
       contributes,
     );
@@ -132,12 +153,66 @@ export function projectExtensionPathResolver(libDir: string) {
   };
 }
 
+export function filterBuiltInExtensions(
+  extensions: Extension[],
+) {
+  // First see if there are now built it (quarto organization)
+  // filters that we previously provided by quarto-ext and
+  // filter those out
+  const quartoExts = extensions.filter((ext) => {
+    return ext.id.organization === kBuiltInExtOrg;
+  });
+
+  // quarto-ext extensions that are now built in
+  const nowBuiltInExtensions = extensions?.filter((ext) => {
+    return ext.id.organization === "quarto-ext" &&
+      quartoExts.map((ext) => ext.id.name).includes(ext.id.name);
+  });
+
+  if (nowBuiltInExtensions.length > 0) {
+    // filter out the extensions that have become built in
+    extensions = filterExtensionAndWarn(extensions, nowBuiltInExtensions);
+  }
+
+  return extensions;
+}
+
+function filterExtensionAndWarn(
+  extensions: Extension[],
+  filterOutExtensions: Extension[],
+) {
+  warnToRemoveExtensions(filterOutExtensions);
+  // filter out the extensions that have become built in
+  return extensions.filter((ext) => {
+    return filterOutExtensions.map((ext) => ext.id.name).includes(
+      ext.id.name,
+    );
+  });
+}
+
+function warnToRemoveExtensions(extensions: Extension[]) {
+  // Warn the user
+  const removeCommands = extensions.map((ext) => {
+    return `quarto remove extension ${extensionIdString(ext.id)}`;
+  });
+  warnOnce(
+    `One or more extensions have been built in to Quarto. Please use the following command to remove the unneeded extension:\n  ${
+      removeCommands.join("\n  ")
+    }`,
+  );
+}
+
 export function filterExtensions(
   extensions: Extension[],
   extensionId: string,
   type: string,
 ) {
   if (extensions && extensions.length > 0) {
+    // First see if there are now built it (quarto organization)
+    // filters that we previously provided by quarto-ext and
+    // filter those out
+    extensions = filterBuiltInExtensions(extensions);
+
     // First see whether there are more than one 'owned' extensions
     // which match. This means that the there are two different extension, from two
     // different orgs that match this simple id - user needs to disambiguate
@@ -149,7 +224,7 @@ export function filterExtensions(
     if (ownedExtensions.length > 1) {
       // There are more than one extensions with owners, warn
       // user that they should disambiguate
-      warning(
+      warnOnce(
         `The ${type} '${extensionId}' matched more than one extension. Please use a full name to disambiguate:\n  ${
           ownedExtensions.join("\n  ")
         }`,
@@ -159,10 +234,14 @@ export function filterExtensions(
     // we periodically build in features that were formerly available from
     // the quarto-ext org. filter them out here (that allows them to remain
     // referenced in the yaml so we don't break code in the wild)
-    extensions = extensions?.filter((ext) => {
-      return !(ext.id.organization === kQuartoExtOrganization &&
+    const oldBuiltInExt = extensions?.filter((ext) => {
+      return (ext.id.organization === kQuartoExtOrganization &&
         kQuartoExtBuiltIn.includes(ext.id.name));
     });
+    if (oldBuiltInExt.length > 0) {
+      filterExtensionAndWarn(extensions, oldBuiltInExt);
+    }
+
     return extensions;
   } else {
     return extensions;
@@ -173,8 +252,8 @@ export function filterExtensions(
 // (note this needs to be sure to return copies from
 // the cache in the event that the objects are mutated)
 const loadExtensions = async (
-  input: string,
   cache: Record<string, Extension[]>,
+  input?: string,
   projectDir?: string,
 ) => {
   const extensionPath = inputExtensionDirs(input, projectDir);
@@ -302,11 +381,11 @@ function resolveExtensionPaths(
     extension.path,
     inputDir,
     extension,
-    [kExtensionIgnoreFields],
+    kExtensionIgnoreFields,
   ) as unknown as Extension;
 }
 
-const kExtensionIgnoreFields = "biblio-style";
+const kExtensionIgnoreFields = ["biblio-style", "revealjs-plugins"];
 
 // Read the raw extension information out of a directory
 // (e.g. read all the extensions from _extensions)
@@ -382,7 +461,7 @@ export function extensionFilesFromDirs(dirs: string[]) {
 
 // Find all the extension directories available for a given input and project
 // This will recursively search valid extension directories
-export function inputExtensionDirs(input: string, projectDir?: string) {
+export function inputExtensionDirs(input?: string, projectDir?: string) {
   const extensionsDirPath = (path: string) => {
     const extPath = join(path, kExtensionDir);
     try {
@@ -404,8 +483,9 @@ export function inputExtensionDirs(input: string, projectDir?: string) {
     }
   };
 
-  const extensionDirectories: string[] = [];
-  if (projectDir) {
+  // read extensions (start with built-in)
+  const extensionDirectories: string[] = [builtinExtensions()];
+  if (projectDir && input) {
     let currentDir = Deno.realPathSync(inputDirName(input));
     do {
       const extensionPath = extensionsDirPath(currentDir);
@@ -415,7 +495,7 @@ export function inputExtensionDirs(input: string, projectDir?: string) {
       currentDir = dirname(currentDir);
     } while (isSubdir(projectDir, currentDir) || projectDir === currentDir);
     return extensionDirectories;
-  } else {
+  } else if (input) {
     const dir = extensionsDirPath(inputDirName(input));
     if (dir) {
       extensionDirectories.push(dir);
@@ -442,10 +522,7 @@ export function discoverExtensionPath(
     extensionDirGlobs.push(`*/${extensionId.name}/`);
   }
 
-  const findExtensionDir = (dir: string, globs: string[]) => {
-    // The `_extensions` directory
-    const extDir = join(dir, kExtensionDir);
-
+  const findExtensionDir = (extDir: string, globs: string[]) => {
     // Find the matching extension for this name (ensuring that an _extension.yml file is present)
     const paths = resolvePathGlobs(extDir, globs, [], { mode: "strict" })
       .include.filter((path) => {
@@ -466,6 +543,15 @@ export function discoverExtensionPath(
     }
   };
 
+  // check for built-in
+  const builtinExtensionDir = findExtensionDir(
+    builtinExtensions(),
+    extensionDirGlobs,
+  );
+  if (builtinExtensionDir) {
+    return builtinExtensionDir;
+  }
+
   // Start in the source directory
   const sourceDir = Deno.statSync(input).isDirectory ? input : dirname(input);
   const sourceDirAbs = Deno.realPathSync(sourceDir);
@@ -475,7 +561,10 @@ export function discoverExtensionPath(
     let currentDir = normalize(sourceDirAbs);
     const projDir = normalize(projectDir);
     while (!extensionDir) {
-      extensionDir = findExtensionDir(currentDir, extensionDirGlobs);
+      extensionDir = findExtensionDir(
+        join(currentDir, kExtensionDir),
+        extensionDirGlobs,
+      );
       if (currentDir == projDir) {
         break;
       }
@@ -483,8 +572,16 @@ export function discoverExtensionPath(
     }
     return extensionDir;
   } else {
-    return findExtensionDir(sourceDirAbs, extensionDirGlobs);
+    return findExtensionDir(
+      join(sourceDirAbs, kExtensionDir),
+      extensionDirGlobs,
+    );
   }
+}
+
+// Path for built-in extensions
+function builtinExtensions() {
+  return resourcePath("extensions");
 }
 
 // Validate the extension
@@ -592,6 +689,15 @@ async function readExtension(
 
     const formatMeta = formats[key] as Metadata;
 
+    // If this is a custom writer, set the writer for the format
+    // using the full path to the lua file
+    if (key.endsWith(".lua")) {
+      const fullPath = join(extensionDir, key);
+      if (existsSync(fullPath)) {
+        formatMeta.writer = fullPath;
+      }
+    }
+
     // Resolve shortcodes and filters (these might come from embedded extension)
     // Note that resolving will throw if the extension cannot be resolved
     formatMeta.shortcodes = (formatMeta.shortcodes as string[] || []).flatMap((
@@ -604,18 +710,19 @@ async function readExtension(
         return resolveFilter(embeddedExtensions, extensionDir, filter);
       },
     );
-    formatMeta[kRevealJSPlugins] =
-      (formatMeta?.[kRevealJSPlugins] as Array<string | RevealPluginBundle> ||
-        [])
-        .flatMap(
-          (plugin) => {
-            return resolveRevealJSPlugin(
-              embeddedExtensions,
-              extensionDir,
-              plugin,
-            );
-          },
-        );
+    formatMeta[kRevealJSPlugins] = (formatMeta?.[kRevealJSPlugins] as Array<
+      string | RevealPluginBundle | RevealPlugin
+    > ||
+      [])
+      .flatMap(
+        (plugin) => {
+          return resolveRevealJSPlugin(
+            embeddedExtensions,
+            extensionDir,
+            plugin,
+          );
+        },
+      );
   });
   delete formats[kCommon];
 
@@ -632,9 +739,9 @@ async function readExtension(
   );
   const project = (contributes?.project || {}) as Record<string, unknown>;
   const revealJSPlugins = ((contributes?.[kRevealJSPlugins] || []) as Array<
-    string | RevealPluginBundle
+    string | RevealPluginBundle | RevealPlugin
   >).map((plugin) => {
-    return resolveRevealPluginPath(extensionDir, plugin);
+    return resolveRevealPlugin(extensionDir, plugin);
   });
 
   // Create the extension data structure
@@ -660,7 +767,7 @@ async function readExtension(
 function resolveRevealJSPlugin(
   embeddedExtensions: Extension[],
   dir: string,
-  plugin: string | RevealPluginBundle,
+  plugin: string | RevealPluginBundle | RevealPlugin,
 ) {
   if (typeof (plugin) === "string") {
     // First attempt to load this plugin from an embedded extension
@@ -673,7 +780,7 @@ function resolveRevealJSPlugin(
 
     // If there are embedded extensions, return their plugins
     if (extensions.length > 0) {
-      const plugins: Array<string | RevealPluginBundle> = [];
+      const plugins: Array<string | RevealPluginBundle | RevealPlugin> = [];
       for (const plugin of extensions[0].contributes[kRevealJSPlugins] || []) {
         plugins.push(plugin);
       }
@@ -681,24 +788,72 @@ function resolveRevealJSPlugin(
     } else {
       // There are no embedded extensions for this, validate the path
       validateExtensionPath("revealjs-plugin", dir, plugin);
-      return resolveRevealPluginPath(dir, plugin);
+      return resolveRevealPlugin(dir, plugin);
     }
   } else {
     return plugin;
   }
 }
 
-function resolveRevealPluginPath(
+export function isPluginRaw(
+  plugin: RevealPluginBundle | RevealPluginInline,
+): plugin is RevealPluginInline {
+  return (plugin as RevealPluginBundle).plugin === undefined;
+}
+
+function resolveRevealPlugin(
   extensionDir: string,
-  plugin: string | RevealPluginBundle,
-): string | RevealPluginBundle {
+  plugin: string | RevealPluginBundle | RevealPluginInline,
+): string | RevealPluginBundle | RevealPlugin {
   // Filters are expected to be absolute
   if (typeof (plugin) === "string") {
     return join(extensionDir, plugin);
+  } else if (isPluginRaw(plugin)) {
+    return resolveRevealPluginInline(plugin, extensionDir);
   } else {
     plugin.plugin = join(extensionDir, plugin.plugin);
     return plugin;
   }
+}
+
+function resolveRevealPluginInline(
+  plugin: RevealPluginInline,
+  extensionDir: string,
+): RevealPlugin {
+  if (!plugin.name) {
+    throw new Error(
+      `Invalid revealjs-plugin in ${extensionDir} - 'name' property is required.`,
+    );
+  }
+
+  // Resolve plugin raw into plugin
+  const resolvedPlugin: RevealPlugin = {
+    name: plugin.name,
+    path: extensionDir,
+    register: plugin.register,
+    config: plugin.config,
+  };
+  if (plugin.script) {
+    const pluginArr = Array.isArray(plugin.script)
+      ? plugin.script
+      : [plugin.script];
+    resolvedPlugin.script = pluginArr.map((plug) => {
+      if (typeof (plug) === "string") {
+        return {
+          path: plug,
+        } as RevealPluginScript;
+      } else {
+        return plug;
+      }
+    });
+  }
+
+  if (plugin.stylesheet) {
+    resolvedPlugin.stylesheet = Array.isArray(plugin.stylesheet)
+      ? plugin.stylesheet
+      : [plugin.stylesheet];
+  }
+  return resolvedPlugin;
 }
 
 // This will resolve a shortcode contributed by this extension
@@ -781,11 +936,17 @@ function resolveFilterPath(
 ): QuartoFilter {
   // Filters are expected to be absolute
   if (typeof (filter) === "string") {
-    return join(extensionDir, filter);
+    if (isAbsolute(filter)) {
+      return filter;
+    } else {
+      return join(extensionDir, filter);
+    }
   } else {
     return {
       type: filter.type,
-      path: join(extensionDir, filter.path),
+      path: isAbsolute(filter.path)
+        ? filter.path
+        : join(extensionDir, filter.path),
     };
   }
 }

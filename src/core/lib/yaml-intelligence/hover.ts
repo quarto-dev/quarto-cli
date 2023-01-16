@@ -1,7 +1,7 @@
 /*
 * hover.ts
 *
-* Copyright (C) 2022 by RStudio, PBC
+* Copyright (C) 2022 Posit Software, PBC
 *
 */
 
@@ -116,6 +116,7 @@ export async function hover(
   const mappedVd = asMappedString(vd);
   const annotation = readAnnotatedYamlFromMappedString(
     mappedVd,
+    true,
   );
   if (annotation === null) {
     // failed to produce partial parsed yaml, don't give hover info

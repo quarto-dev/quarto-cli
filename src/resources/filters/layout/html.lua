@@ -1,5 +1,5 @@
 -- html.lua
--- Copyright (C) 2020 by RStudio, PBC
+-- Copyright (C) 2020-2022 Posit Software, PBC
 
 function htmlPanel(divEl, layout, caption)
   
@@ -178,9 +178,9 @@ function renderHtmlFigure(el, render)
     el.attributes["style"] = nil
   end
 
-  -- create figure div (
+  -- create figure div
   local figureDiv = pandoc.Div({}, pandoc.Attr(el.attr.identifier, {}, figureAttr))
-  
+
   -- remove identifier (it is now on the div)
   el.attr.identifier = ""
           

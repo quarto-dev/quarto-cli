@@ -1,7 +1,7 @@
 /*
 * cmd.ts
 *
-* Copyright (C) 2021 by RStudio, PBC
+* Copyright (C) 2021-2022 Posit Software, PBC
 *
 */
 
@@ -10,7 +10,7 @@ import { error } from "log/mod.ts";
 import { Command } from "cliffy/command/mod.ts";
 import { check, Target } from "./check.ts";
 
-const kTargets = ["install", "jupyter", "knitr", "all"];
+const kTargets = ["install", "jupyter", "knitr", "versions", "all"];
 
 export const checkCommand = new Command()
   .name("check")
