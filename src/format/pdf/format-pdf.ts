@@ -296,7 +296,7 @@ function pdfLatexPostProcessor(
       calloutFigureHoldLineProcessor(),
     ];
 
-    const marginCites = format.metadata[kCitationLocation];
+    const marginCites = format.metadata[kCitationLocation] === "margin";
     const renderedCites = {};
     if (marginCites) {
       // Based upon the cite method, post process the file to
