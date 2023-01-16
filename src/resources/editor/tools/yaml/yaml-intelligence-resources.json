@@ -2558,6 +2558,11 @@
             "resolveRef": "base-website"
           },
           "properties": {
+            "title": {
+              "string": {
+                "description": "Book title"
+              }
+            },
             "subtitle": {
               "string": {
                 "description": "Book subtitle"
@@ -2652,11 +2657,6 @@
                   "ref": "navigation-item"
                 },
                 "description": "Custom tools for navbar or sidebar"
-              }
-            },
-            "title": {
-              "string": {
-                "description": "Book title"
               }
             },
             "doi": {

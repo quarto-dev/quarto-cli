@@ -9582,6 +9582,11 @@ var require_yaml_intelligence_resources = __commonJS({
                 resolveRef: "base-website"
               },
               properties: {
+                title: {
+                  string: {
+                    description: "Book title"
+                  }
+                },
                 subtitle: {
                   string: {
                     description: "Book subtitle"
@@ -9676,11 +9681,6 @@ var require_yaml_intelligence_resources = __commonJS({
                       ref: "navigation-item"
                     },
                     description: "Custom tools for navbar or sidebar"
-                  }
-                },
-                title: {
-                  string: {
-                    description: "Book title"
                   }
                 },
                 doi: {
@@ -28842,8 +28842,12 @@ function objectSchema(params = {}) {
       }
     }
     if (errorMsgs.size > 0) {
-      throw new Error(
+      console.error(
         [...errorMsgs].toSorted((a, b) => a.localeCompare(b)).join("\n")
+      );
+      console.error("This is a bug in quarto's schemas.");
+      console.error(
+        "Note that we don't throw in order to allow build-js to finish, but the generated schemas will be invalid."
       );
     }
     result.properties = Object.assign(

@@ -570,8 +570,8 @@ export type BookSchema = {
 (one or more of `twitter`, `facebook`, `linkedin`) */
   > /* Sharing buttons to include on navbar or sidebar
 (one or more of `twitter`, `facebook`, `linkedin`) */;
-  tools?: (NavigationItem)[] /* Custom tools for navbar or sidebar */;
-  title?: string; /* Book title */
+  title?: string /* Book title */;
+  tools?: (NavigationItem)[]; /* Custom tools for navbar or sidebar */
 } & BaseWebsite;
 
 export type ChapterItem = NavigationItem | {
