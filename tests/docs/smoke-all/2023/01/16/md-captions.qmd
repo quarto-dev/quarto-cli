@@ -7,7 +7,7 @@ _quarto:
   tests: 
     html:
       ensureHtmlElements:
-        - ["h1#html caption sup", "h1#html caption em", "h1#paged caption sup", "h1#paged caption em", "h1#md caption sup", "h1#md caption em"]
+        - ["#html caption sup", "#html caption em", "#paged div.table-caption sup", "#paged div.table-caption em", "#md caption sup"]
     latex:
       ensureFileRegexMatches:
         - ["\\\\textsuperscript\\{superscript\\}", "\\\\emph\\{italics\\}"]
