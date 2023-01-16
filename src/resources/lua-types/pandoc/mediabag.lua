@@ -40,7 +40,7 @@ Usage:
 ---@param filepath string Filename and path relative to the output folder.
 ---@param mime_type string|nil The file's MIME type; use `nil` if unknown or unavailable.
 ---@param contents string The binary contents of the file
-function pandoc.mediabag.fill(filepath, mime_type, contents) end
+function pandoc.mediabag.insert(filepath, mime_type, contents) end
 
 --[[
 Returns an iterator triple to be used with Lua's generic `for`
