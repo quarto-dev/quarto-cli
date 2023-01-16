@@ -247,10 +247,11 @@ async function publish(
 
   trace("publish", { parent, server, space });
 
-  const uniquifyTitle = async (title: string) => {
+  const uniquifyTitle = async (title: string, idToIgnore: string = "") => {
     const titleAlreadyExistsInSpace: boolean = await client.isTitleInSpace(
       title,
-      space
+      space,
+      idToIgnore
     );
 
     const uuid = globalThis.crypto.randomUUID();
@@ -360,7 +361,7 @@ async function publish(
       publishFiles.files
     );
 
-    const uniqueTitle = await uniquifyTitle(titleToUpdate);
+    const uniqueTitle = await uniquifyTitle(titleToUpdate, id);
 
     trace("attachmentsToUpload", attachmentsToUpload, LogPrefix.ATTACHMENT);
 

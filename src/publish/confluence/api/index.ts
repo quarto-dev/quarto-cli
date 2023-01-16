@@ -59,8 +59,17 @@ export class ConfluenceClient {
     return this.get<WrappedResult<ContentSummary>>(url);
   }
 
-  public async isTitleInSpace(title: string, space: Space): Promise<boolean> {
+  public async isTitleInSpace(
+    title: string,
+    space: Space,
+    idToIgnore: string = ""
+  ): Promise<boolean> {
     const result = await this.fetchMatchingTitlePages(title, space);
+
+    if (result.length === 1 && result[0].id === idToIgnore) {
+      return false;
+    }
+
     return result.length > 0;
   }
 
