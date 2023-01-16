@@ -237,6 +237,33 @@ export function objectSchema(params: {
       result.description = description;
     }
 
+    const m: Map<string, [Schema, string][]> = new Map();
+    for (const base of baseSchema) {
+      for (const [k, v] of Object.entries(base.properties || {})) {
+        if (!m.has(k)) {
+          m.set(k, []);
+        }
+        m.get(k)!.push([v, (base as any).$id]);
+      }
+    }
+    const errorMsgs = new Set<string>();
+    for (const [k, l] of m) {
+      if (l.length > 1) {
+        errorMsgs.add(
+          `Internal Error: base schemas ${
+            l
+              .map((x) => x[1])
+              .join(", ")
+          } share property ${k}.`,
+        );
+      }
+    }
+    if (errorMsgs.size > 0) {
+      throw new Error(
+        [...errorMsgs].toSorted((a, b) => a.localeCompare(b)).join("\n"),
+      );
+    }
+
     result.properties = Object.assign(
       {},
       ...(baseSchema.map((s) => s.properties)),
