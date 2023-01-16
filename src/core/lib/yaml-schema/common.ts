@@ -243,6 +243,7 @@ export function objectSchema(params: {
         if (!m.has(k)) {
           m.set(k, []);
         }
+        // deno-lint-ignore no-explicit-any
         m.get(k)!.push([v, (base as any).$id]);
       }
     }
