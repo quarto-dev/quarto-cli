@@ -978,6 +978,7 @@
 - id: book-schema
   schema:
     object:
+      closed: true
       super:
         resolveRef: base-website
       properties:
@@ -1972,7 +1973,7 @@
 - id: csl-item
   object:
     super:
-      - resolveRef: csl-item-shared
+      resolveRef: csl-item-shared
     closed: true
     properties:
       abstract:
@@ -2001,7 +2002,7 @@
 - id: citation-item
   object:
     super:
-      - resolveRef: csl-item
+      resolveRef: csl-item
     closed: true
     properties:
       article-id:
