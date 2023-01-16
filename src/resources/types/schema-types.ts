@@ -1069,7 +1069,7 @@ Can also be used to refer to the procedural history of other items (e.g.
 "Conference canceled" for a presentation accepted as a conference that was subsequently
 canceled; details of a retraction or correction notice) */;
   title?: string; /* The primary title of the item. */
-};
+} & CslItemShared;
 
 export type CitationItem = {
   "article-id"?: MaybeArrayOf<
@@ -1098,7 +1098,7 @@ the journal or publication. */;
   eissn?: string /* Electronic International Standard Serial Number. */;
   pissn?: string /* Print International Standard Serial Number. */;
   subject?: string; /* The name of a subject or topic describing the article. */
-};
+} & CslItem;
 
 export type SmartInclude = {
   text: string; /* Textual content to add to includes */

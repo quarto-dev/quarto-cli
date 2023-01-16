@@ -2554,6 +2554,7 @@
       "id": "book-schema",
       "schema": {
         "object": {
+          "closed": true,
           "super": {
             "resolveRef": "base-website"
           },
@@ -3817,11 +3818,9 @@
     {
       "id": "csl-item",
       "object": {
-        "super": [
-          {
-            "resolveRef": "csl-item-shared"
-          }
-        ],
+        "super": {
+          "resolveRef": "csl-item-shared"
+        },
         "closed": true,
         "properties": {
           "abstract": {
@@ -3857,11 +3856,9 @@
     {
       "id": "citation-item",
       "object": {
-        "super": [
-          {
-            "resolveRef": "csl-item"
-          }
-        ],
+        "super": {
+          "resolveRef": "csl-item"
+        },
         "closed": true,
         "properties": {
           "article-id": {

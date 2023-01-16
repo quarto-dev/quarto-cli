@@ -9578,6 +9578,7 @@ var require_yaml_intelligence_resources = __commonJS({
           id: "book-schema",
           schema: {
             object: {
+              closed: true,
               super: {
                 resolveRef: "base-website"
               },
@@ -10841,11 +10842,9 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           id: "csl-item",
           object: {
-            super: [
-              {
-                resolveRef: "csl-item-shared"
-              }
-            ],
+            super: {
+              resolveRef: "csl-item-shared"
+            },
             closed: true,
             properties: {
               abstract: {
@@ -10881,11 +10880,9 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           id: "citation-item",
           object: {
-            super: [
-              {
-                resolveRef: "csl-item"
-              }
-            ],
+            super: {
+              resolveRef: "csl-item"
+            },
             closed: true,
             properties: {
               "article-id": {
@@ -21367,6 +21364,12 @@ function resolveCaseConventionRegex(keys, conventions) {
     };
   }
   const disallowedNearMisses = [];
+  const keySet = new Set(keys);
+  const addNearMiss = (value) => {
+    if (!keySet.has(value)) {
+      disallowedNearMisses.push(value);
+    }
+  };
   const foundConventions = /* @__PURE__ */ new Set();
   for (const key of keys) {
     const found = detectCaseConvention(key);
@@ -21375,19 +21378,16 @@ function resolveCaseConventionRegex(keys, conventions) {
     }
     switch (found) {
       case "capitalizationCase":
-        disallowedNearMisses.push(toUnderscoreCase(key), toDashCase(key));
+        addNearMiss(toUnderscoreCase(key));
+        addNearMiss(toDashCase(key));
         break;
       case "dash-case":
-        disallowedNearMisses.push(
-          toUnderscoreCase(key),
-          toCapitalizationCase(key)
-        );
+        addNearMiss(toUnderscoreCase(key));
+        addNearMiss(toCapitalizationCase(key));
         break;
       case "underscore_case":
-        disallowedNearMisses.push(
-          toDashCase(key),
-          toCapitalizationCase(key)
-        );
+        addNearMiss(toDashCase(key));
+        addNearMiss(toCapitalizationCase(key));
         break;
     }
   }
