@@ -496,16 +496,14 @@ function metaMarkdownPipeline(format: Format, extras: FormatExtras) {
 
       // Twitter
       const twitterMeta = twitterMetadata(format);
-      inlines[kTwitterDesc] = twitterMeta.title as string || description ||
+      inlines[kTwitterDesc] = twitterMeta.description as string ||
+        description ||
         "";
 
       // Oopengraph
       const ogMeta = opengraphMetadata(format);
-      inlines[kOgDesc] = ogMeta.title as string || description || "";
-
-      if (description !== undefined) {
-        return inlines;
-      }
+      inlines[kOgDesc] = ogMeta.description as string || description || "";
+      return { inlines };
     },
     processRendered(rendered: Record<string, Element>, doc: Document) {
       // Meta values
