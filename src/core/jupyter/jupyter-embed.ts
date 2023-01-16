@@ -98,7 +98,7 @@ export function parseNotebookAddress(
         ids: resolveCellIds(hashResult[2]),
       };
     } else {
-      return undefined;
+      unsupportedEmbed(path);
     }
   }
 
@@ -112,7 +112,7 @@ export function parseNotebookAddress(
         indexes: resolveRange(indexResult[2]),
       };
     } else {
-      return undefined;
+      unsupportedEmbed(path);
     }
   }
 
@@ -122,8 +122,14 @@ export function parseNotebookAddress(
       path,
     };
   } else {
-    return undefined;
+    unsupportedEmbed(path);
   }
+}
+
+function unsupportedEmbed(path: string) {
+  throw new Error(
+    `Unable to embed content from ${path}. Embedding currently only supports content from Juptyer Notebooks.`,
+  );
 }
 
 // Creates a placeholder that will later be replaced with
