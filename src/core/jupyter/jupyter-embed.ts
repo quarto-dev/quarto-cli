@@ -9,6 +9,7 @@ import { resourcePath } from "../resources.ts";
 import { getNamedLifetime, ObjectWithLifetime } from "../lifetimes.ts";
 
 import {
+  cleanEmptyJupyterAssets,
   jupyterAssets,
   jupyterFromFile,
   jupyterToMarkdown,
@@ -44,7 +45,7 @@ import {
 import { globalTempContext } from "../temp.ts";
 import { isAbsolute } from "path/mod.ts";
 import { partitionMarkdown } from "../pandoc/pandoc-partition.ts";
-import { safeExistsSync } from "../path.ts";
+import { removeIfEmptyDir, safeExistsSync } from "../path.ts";
 import { basename } from "path/mod.ts";
 
 export interface JupyterNotebookAddress {
@@ -97,7 +98,7 @@ export function parseNotebookAddress(
         ids: resolveCellIds(hashResult[2]),
       };
     } else {
-      return undefined;
+      unsupportedEmbed(path);
     }
   }
 
@@ -111,7 +112,7 @@ export function parseNotebookAddress(
         indexes: resolveRange(indexResult[2]),
       };
     } else {
-      return undefined;
+      unsupportedEmbed(path);
     }
   }
 
@@ -121,8 +122,14 @@ export function parseNotebookAddress(
       path,
     };
   } else {
-    return undefined;
+    unsupportedEmbed(path);
   }
+}
+
+function unsupportedEmbed(path: string) {
+  throw new Error(
+    `Unable to embed content from ${path}. Embedding currently only supports content from Juptyer Notebooks.`,
+  );
 }
 
 // Creates a placeholder that will later be replaced with
@@ -149,8 +156,16 @@ export async function replaceNotebookPlaceholders(
   markdown: string,
 ) {
   let match = kPlaceholderRegex.exec(markdown);
+  let assets;
   let includes;
   while (match) {
+    if (!assets) {
+      assets = jupyterAssets(
+        context.target.source,
+        to,
+      );
+    }
+
     // Parse the address and if this is a notebook
     // then proceed with the replacement
     const nbAddressStr = match[1];
@@ -165,12 +180,6 @@ export async function replaceNotebookPlaceholders(
       const nbOptions = placeholderStr
         ? placeholderToOptions(placeholderStr)
         : {};
-
-      // Assets
-      const assets = jupyterAssets(
-        input,
-        to,
-      );
 
       // Compute appropriate includes based upon the note
       // dependendencies
@@ -215,9 +224,13 @@ export async function replaceNotebookPlaceholders(
     match = kPlaceholderRegex.exec(markdown);
   }
   kPlaceholderRegex.lastIndex = 0;
+  const supporting = assets
+    ? join(assets.base_dir, assets.supporting_dir)
+    : undefined;
   return {
     includes,
     markdown,
+    supporting,
   };
 }
 

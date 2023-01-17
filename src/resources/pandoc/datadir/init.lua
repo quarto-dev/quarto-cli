@@ -1305,6 +1305,15 @@ end
 -- instead of pandoc's filter path when a shortcode is executing
 local scriptFile = {}
 
+local function scriptDirs()
+   local dirs = {}
+   dirs[#dirs+1] = pandoc.path.directory(PANDOC_SCRIPT_FILE)
+   for i = 1, #scriptFile do
+      dirs[#dirs+1] = pandoc.path.directory(scriptFile[i])
+   end
+   return dirs
+end
+
 local function scriptDir()
    if #scriptFile > 0 then
       return pandoc.path.directory(scriptFile[#scriptFile])
@@ -1330,13 +1339,19 @@ local function scriptFileName()
    end
 end
 
--- patch require to look in current scriptDir
+-- patch require to look in current scriptDirs
 local orig_require = require
 function require(modname)
-   local dir = pandoc.path.join({scriptDir(), '?.lua'})
-   package.path = package.path .. ';' ..dir
+   local old_path = package.path
+   local new_path = old_path
+   local dirs = scriptDirs()
+   for i, v in ipairs(dirs) do
+      new_path = new_path .. ';' .. pandoc.path.join({v, '?.lua'})
+   end
+
+   package.path = new_path
    local mod = orig_require(modname)
-   package.path = package.path:sub(1, #package.path - (#dir + 1))
+   package.path = old_path
    return mod
 end
 

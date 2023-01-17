@@ -62,7 +62,7 @@ export async function stageTemplate(
   extras: FormatExtras,
   userContext?: FormatTemplateContext,
 ) {
-  const stagingDir = options.temp.createDir();
+  const stagingDir = options.services.temp.createDir();
   const template = "template.patched";
 
   const stageContext = (

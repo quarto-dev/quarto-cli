@@ -78,6 +78,8 @@ import("./quarto-finalize/mediabag.lua")
 import("./quarto-finalize/meta-cleanup.lua")
 
 import("./normalize/normalize.lua")
+import("./normalize/parsehtml.lua")
+import("./normalize/extractquartodom.lua")
 
 import("./layout/meta.lua")
 import("./layout/width.lua")
@@ -160,12 +162,14 @@ local quartoInit = {
 local quartoNormalize = {
   { name = "normalize", filter = filterIf(function()
     return preState.active_filters.normalization
-  end, normalizeFilter()) }
+  end, normalizeFilter()) },
+  { name = "normalize-parseHtmlTables", filter = parse_html_tables() },
+  { name = "normalize-extractQuartoDom", filter = extract_quarto_dom() },
+  { name = "normalize-parseExtendedNodes", filter = parseExtendedNodes() }
 }
 
 local quartoPre = {
   -- quarto-pre
-  { name = "pre-parseExtendedNodes", filter = parseExtendedNodes() },
   { name = "pre-quartoBeforeExtendedUserFilters", filters = make_wrapped_user_filters("beforeQuartoFilters") },
   { name = "pre-bibliographyFormats", filter = bibliographyFormats() }, 
   { name = "pre-shortCodesBlocks", filter = shortCodesBlocks() } ,

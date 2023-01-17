@@ -9942,10 +9942,15 @@ try {
                   description: "The files or path globs of Quarto documents or YAML files that should be included in the listing."
                 },
                 sort: {
-                  maybeArrayOf: "string",
+                  anyOf: [
+                    "boolean",
+                    {
+                      maybeArrayOf: "string"
+                    }
+                  ],
                   description: {
                     short: "Sort items in the listing by these fields.",
-                    long: "Sort items in the listing by these fields. The sort key is made up of a \nfield name followed by a direction `asc` or `desc`.\n\nFor example:\n`date asc`\n"
+                    long: "Sort items in the listing by these fields. The sort key is made up of a \nfield name followed by a direction `asc` or `desc`.\n\nFor example:\n`date asc`\n\nUse `sort:false` to use the unsorted original order of items.\n"
                   }
                 },
                 "max-items": {
@@ -19667,6 +19672,7 @@ try {
           "The path to the locally referenced notebook.",
           "The title of the notebook when viewed.",
           "The url to use when viewing this notebook.",
+          "The style of document to render. Setting this to\n<code>notebook</code> will create additional notebook style\naffordances.",
           "Automatically generate the contents of a page from a list of Quarto\ndocuments or other custom data.",
           "Mermaid diagram options",
           "The mermaid built-in theme to use.",
@@ -20666,8 +20672,7 @@ try {
             long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
-          "internal-schema-hack",
-          "The style of document to render. Setting this to\n<code>notebook</code> will create additional notebook style\naffordances."
+          "internal-schema-hack"
         ],
         "schema/external-schemas.yml": [
           {
@@ -20881,12 +20886,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 146672,
+          _internalId: 146876,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 146664,
+              _internalId: 146868,
               type: "enum",
               enum: [
                 "png",
@@ -20902,7 +20907,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 146671,
+              _internalId: 146875,
               type: "anyOf",
               anyOf: [
                 {

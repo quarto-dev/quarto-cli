@@ -78,7 +78,10 @@ import {
 } from "./freeze.ts";
 import { isJupyterNotebook } from "../../core/jupyter/jupyter.ts";
 import { MappedString } from "../../core/lib/text-types.ts";
-import { createNamedLifetime } from "../../core/lifetimes.ts";
+import {
+  createNamedLifetime,
+  waitUntilNamedLifetime,
+} from "../../core/lifetimes.ts";
 import { resolveDependencies } from "./pandoc-dependencies-html.ts";
 import {
   getData as getTimingData,
@@ -390,7 +393,7 @@ export async function renderFiles(
             );
           }
 
-          const fileLifetime = createNamedLifetime("render-file");
+          const fileLifetime = await waitUntilNamedLifetime("render-file");
           fileLifetime.attach({
             cleanup() {
               resetFigureCounter();

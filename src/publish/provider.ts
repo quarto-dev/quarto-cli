@@ -49,20 +49,13 @@ const kPublishProviders = [
   confluenceProvider,
 ];
 
-export async function publishProviders() {
+export function publishProviders() {
   const providers: Array<PublishProvider> = [];
-  const dotenvConfig = await quartoConfig.dotenv();
-  const quartopubAppId = dotenvConfig["QUARTO_PUB_APP_CLIENT_ID"];
-  if (quartopubAppId && quartopubAppId !== "None") {
-    providers.push(quartoPubProvider);
-  }
+  providers.push(quartoPubProvider);
   providers.push(ghpagesProvider);
   providers.push(rsconnectProvider);
   providers.push(netlifyProvider);
-  if (dotenvConfig["CONFLUENCE_PUBLISH_ENABLED"] === "true") {
-    providers.push(confluenceProvider);
-  }
-
+  providers.push(confluenceProvider);
   return providers;
 }
 
@@ -96,20 +89,21 @@ export interface PublishProvider {
   name: string;
   description: string;
   requiresServer: boolean;
+  hidden?: boolean;
   listOriginOnly?: boolean;
   requiresRender?: boolean;
   publishRecord?: (
-    input: string | ProjectContext
+    input: string | ProjectContext,
   ) => Promise<PublishRecord | undefined>;
   accountTokens: () => Promise<AccountToken[]>;
   removeToken: (token: AccountToken) => void;
   authorizeToken: (
     options: PublishOptions,
-    target?: PublishRecord
+    target?: PublishRecord,
   ) => Promise<AccountToken | undefined>;
   resolveTarget: (
     account: AccountToken,
-    target: PublishRecord
+    target: PublishRecord,
   ) => Promise<PublishRecord | undefined>;
   publish: (
     account: AccountToken,
@@ -119,7 +113,7 @@ export interface PublishProvider {
     slug: string,
     render: (flags?: RenderFlags) => Promise<PublishFiles>,
     options: PublishOptions,
-    target?: PublishRecord
+    target?: PublishRecord,
   ) => Promise<[PublishRecord | undefined, URL | undefined]>;
   isUnauthorized: (error: Error) => boolean;
   isNotFound: (error: Error) => boolean;

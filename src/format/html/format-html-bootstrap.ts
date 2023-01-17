@@ -59,6 +59,7 @@ import {
   HtmlPostProcessResult,
   PandocInputTraits,
   RenderedFormat,
+  RenderServices,
 } from "../../command/render/types.ts";
 import { processDocumentAppendix } from "./format-html-appendix.ts";
 import {
@@ -80,6 +81,8 @@ import {
 } from "../../config/format.ts";
 import { basename } from "path/mod.ts";
 import { processNotebookEmbeds } from "./format-html-notebook.ts";
+import { projectContext } from "../../project/project-context.ts";
+import { ProjectContext } from "../../project/types.ts";
 
 export function formatPageLayout(format: Format) {
   return format.metadata[kPageLayout] as string || kPageLayoutArticle;
@@ -124,8 +127,9 @@ export function boostrapExtras(
   input: string,
   flags: PandocFlags,
   format: Format,
-  temp: TempContext,
+  services: RenderServices,
   offset?: string,
+  project?: ProjectContext,
 ): FormatExtras {
   const toc = hasTableOfContents(flags, format);
   const tocLocation = toc
@@ -175,7 +179,11 @@ export function boostrapExtras(
     sassLayers.push(titleSassLayer);
   }
   const includeInHeader: string[] = [];
-  const titleInclude = documentTitleIncludeInHeader(input, format, temp);
+  const titleInclude = documentTitleIncludeInHeader(
+    input,
+    format,
+    services.temp,
+  );
   if (titleInclude) {
     includeInHeader.push(titleInclude);
   }
@@ -206,7 +214,9 @@ export function boostrapExtras(
           input,
           format,
           flags,
+          services,
           offset,
+          project,
         ),
       ],
       [kHtmlFinalizers]: [
@@ -227,7 +237,9 @@ function bootstrapHtmlPostprocessor(
   input: string,
   format: Format,
   flags: PandocFlags,
+  services: RenderServices,
   offset?: string,
+  project?: ProjectContext,
 ): HtmlPostProcessor {
   return async (
     doc: Document,
@@ -239,6 +251,7 @@ function bootstrapHtmlPostprocessor(
   ): Promise<HtmlPostProcessResult> => {
     // Resources used in this post processor
     const resources: string[] = [];
+    const supporting: string[] = [];
 
     // use display-7 style for title
     const title = doc.querySelector("header > .title");
@@ -327,7 +340,17 @@ function bootstrapHtmlPostprocessor(
 
     // Look for included / embedded notebooks and include those
     if (format.render[kNotebookLinks] !== false) {
-      await processNotebookEmbeds(input, doc, format, resources);
+      const notebookResults = await processNotebookEmbeds(
+        input,
+        doc,
+        format,
+        services,
+        project,
+      );
+      if (notebookResults) {
+        resources.push(...notebookResults.resources);
+        supporting.push(...notebookResults.supporting);
+      }
     }
 
     // default treatment for computational tables
@@ -412,9 +435,8 @@ function bootstrapHtmlPostprocessor(
         offset,
       );
     }
-
     // no resource refs
-    return Promise.resolve({ resources, supporting: [] });
+    return Promise.resolve({ resources, supporting });
   };
 }
 

@@ -41,7 +41,7 @@ import { Format, FormatExtras, PandocFlags } from "../../config/types.ts";
 
 import { createFormat } from "../formats-shared.ts";
 
-import { RenderedFile } from "../../command/render/types.ts";
+import { RenderedFile, RenderServices } from "../../command/render/types.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { BookExtension } from "../../project/types/book/book-shared.ts";
 
@@ -120,7 +120,7 @@ function createPdfFormat(
         flags: PandocFlags,
         format: Format,
         _libDir: string,
-        temp: TempContext,
+        services: RenderServices,
       ) => {
         const extras: FormatExtras = {};
 
@@ -131,7 +131,9 @@ function createPdfFormat(
         }
 
         // Post processed for dealing with latex output
-        extras.postprocessors = [pdfLatexPostProcessor(flags, format, temp)];
+        extras.postprocessors = [
+          pdfLatexPostProcessor(flags, format, services.temp),
+        ];
 
         // user may have overridden koma, check for that here
         const documentclass = format.metadata[kDocumentClass] as
@@ -294,7 +296,7 @@ function pdfLatexPostProcessor(
       calloutFigureHoldLineProcessor(),
     ];
 
-    const marginCites = format.metadata[kCitationLocation];
+    const marginCites = format.metadata[kCitationLocation] === "margin";
     const renderedCites = {};
     if (marginCites) {
       // Based upon the cite method, post process the file to

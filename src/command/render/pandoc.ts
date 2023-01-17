@@ -317,7 +317,7 @@ export async function runPandoc(
   const htmlPostprocessors: Array<HtmlPostProcessor> = [];
   const htmlFinalizers: Array<(doc: Document) => Promise<void>> = [];
   const htmlRenderAfterBody: string[] = [];
-  const dependenciesFile = options.temp.createFile();
+  const dependenciesFile = options.services.temp.createFile();
 
   if (
     sysFilters.length > 0 || options.format.formatExtras ||
@@ -329,7 +329,7 @@ export async function runPandoc(
         options.source,
         options.flags || {},
         options.format,
-        options.temp,
+        options.services,
       ))
       : {};
 
@@ -340,9 +340,8 @@ export async function runPandoc(
         options.flags || {},
         options.format,
         options.libDir,
-        options.temp,
+        options.services,
         options.offset,
-        options.extension,
         options.project,
       ))
       : {};
@@ -353,7 +352,7 @@ export async function runPandoc(
       options.format,
       cwd,
       options.libDir,
-      options.temp,
+      options.services.temp,
       dependenciesFile,
       options.project,
     );
@@ -619,7 +618,7 @@ export async function runPandoc(
     if (extras.html?.[kBodyEnvelope] && projectExtras.html?.[kBodyEnvelope]) {
       extras.html[kBodyEnvelope] = projectExtras.html[kBodyEnvelope];
     }
-    resolveBodyEnvelope(allDefaults, extras, options.temp);
+    resolveBodyEnvelope(allDefaults, extras, options.services.temp);
 
     // add any filters
     allDefaults.filters = [
@@ -694,10 +693,10 @@ export async function runPandoc(
   }
 
   // filter results json file
-  const filterResultsFile = options.temp.createFile();
+  const filterResultsFile = options.services.temp.createFile();
 
   // timing results json file
-  const timingResultsFile = options.temp.createFile();
+  const timingResultsFile = options.services.temp.createFile();
 
   if (allDefaults.to?.match(/[.]lua$/)) {
     formatFilterParams["custom-writer"] = allDefaults.to;
@@ -809,7 +808,10 @@ export async function runPandoc(
 
   // write the defaults file
   if (allDefaults) {
-    const defaultsFile = await writeDefaultsFile(allDefaults, options.temp);
+    const defaultsFile = await writeDefaultsFile(
+      allDefaults,
+      options.services.temp,
+    );
     cmd.push("--defaults", defaultsFile);
   }
 
@@ -933,7 +935,7 @@ export async function runPandoc(
     keepSourceBlock(options.format, options.source);
 
   // write input to temp file and pass it to pandoc
-  const inputTemp = options.temp.createFile({
+  const inputTemp = options.services.temp.createFile({
     prefix: "quarto-input",
     suffix: ".md",
   });
@@ -956,13 +958,15 @@ export async function runPandoc(
   // This gives the semantics we want, as our metadata is 'logically' at the top of the
   // file and subsequent blocks within the file should indeed override it (as should
   // user invocations of --metadata-file or -M, which are included below in pandocArgs)
-  const metadataTemp = options.temp.createFile({
+  const metadataTemp = options.services.temp.createFile({
     prefix: "quarto-metadata",
     suffix: ".yml",
   });
   const pandocPassedMetadata = ld.cloneDeep(pandocMetadata);
   delete pandocPassedMetadata.format;
   delete pandocPassedMetadata.project;
+  delete pandocPassedMetadata.website;
+
   Deno.writeTextFileSync(
     metadataTemp,
     stringify(pandocPassedMetadata, {

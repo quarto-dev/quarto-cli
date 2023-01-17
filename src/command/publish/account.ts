@@ -155,7 +155,7 @@ interface ProviderAccountToken extends AccountToken {
 export async function manageAccounts() {
   // build a list of all authorized accounts
   const accounts: ProviderAccountToken[] = [];
-  for (const provider of await publishProviders()) {
+  for (const provider of publishProviders()) {
     for (const account of await provider.accountTokens()) {
       if (account.type === AccountTokenType.Authorized) {
         accounts.push({ provider: provider.name, ...account });

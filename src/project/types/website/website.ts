@@ -65,7 +65,6 @@ import {
 import { htmlResourceResolverPostprocessor } from "./website-resources.ts";
 
 import { defaultProjectType } from "../project-default.ts";
-import { TempContext } from "../../../core/temp.ts";
 import {
   completeListingGeneration,
   listingHtmlDependencies,
@@ -73,7 +72,7 @@ import {
 } from "./listing/website-listing.ts";
 import { aboutHtmlDependencies } from "./about/website-about.ts";
 import { resolveFormatForGiscus } from "./website-giscus.ts";
-import { RenderFile } from "../../../command/render/types.ts";
+import { RenderFile, RenderServices } from "../../../command/render/types.ts";
 import { formatDate } from "../../../core/date.ts";
 import { projectExtensionPathResolver } from "../../../extension/extension.ts";
 
@@ -124,12 +123,18 @@ export const websiteProjectType: ProjectType = {
     source: string,
     flags: PandocFlags,
     format: Format,
-    temp: TempContext,
+    services: RenderServices,
   ): Promise<FormatExtras> => {
     if (isHtmlFileOutput(format.pandoc)) {
       // navigation extras for bootstrap enabled formats
       const extras = formatHasBootstrap(format)
-        ? await websiteNavigationExtras(project, source, flags, format, temp)
+        ? await websiteNavigationExtras(
+          project,
+          source,
+          flags,
+          format,
+          services.temp,
+        )
         : {};
 
       // add some title related variables
@@ -196,7 +201,7 @@ export const websiteProjectType: ProjectType = {
           source,
           project,
           format,
-          temp,
+          services.temp,
           extras,
         );
         if (htmlListingDependencies) {
@@ -232,7 +237,7 @@ export const websiteProjectType: ProjectType = {
           source,
           project,
           format,
-          temp,
+          services.temp,
           extras,
         );
         if (aboutDependencies) {
@@ -268,12 +273,15 @@ export const websiteProjectType: ProjectType = {
       );
 
       // Add html analytics extras, if any
-      const analyticsDependency = websiteAnalyticsScriptFile(project, temp);
+      const analyticsDependency = websiteAnalyticsScriptFile(
+        project,
+        services.temp,
+      );
       if (analyticsDependency) {
         extras[kIncludeInHeader] = extras[kIncludeInHeader] || [];
         extras[kIncludeInHeader]?.push(analyticsDependency);
       }
-      const cookieDep = cookieConsentDependencies(project, temp);
+      const cookieDep = cookieConsentDependencies(project, services.temp);
       if (cookieDep) {
         // Inline script
         extras[kIncludeInHeader] = extras[kIncludeInHeader] || [];

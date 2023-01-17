@@ -198,7 +198,7 @@ import {
 } from "./constants.ts";
 
 import { TempContext } from "../core/temp-types.ts";
-import { HtmlPostProcessor } from "../command/render/types.ts";
+import { HtmlPostProcessor, RenderServices } from "../command/render/types.ts";
 import { QuartoFilterSpec } from "../command/render/filters.ts";
 import { ExtensionContext } from "../extension/extension-shared.ts";
 import { ProjectContext } from "../project/types.ts";
@@ -357,9 +357,8 @@ export interface Format {
     flags: PandocFlags,
     format: Format,
     libDir: string,
-    temp: TempContext,
+    services: RenderServices,
     offset?: string,
-    extensionContext?: ExtensionContext,
     project?: ProjectContext,
   ) => Promise<FormatExtras>;
   formatPreviewFile?: (

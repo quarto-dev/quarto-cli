@@ -83,7 +83,10 @@ import {
   kSiteUrl,
   kWebsite,
 } from "../../project/types/website/website-constants.ts";
-import { HtmlPostProcessResult } from "../../command/render/types.ts";
+import {
+  HtmlPostProcessResult,
+  RenderServices,
+} from "../../command/render/types.ts";
 import {
   getDiscussionCategoryId,
   getGithubDiscussionsMetadata,
@@ -94,6 +97,7 @@ import {
   kNotebookViewStyleNotebook,
   notebookViewPostProcessor,
 } from "./format-html-notebook.ts";
+import { ProjectContext } from "../../project/types.ts";
 
 export function htmlFormat(
   figwidth: number,
@@ -122,13 +126,14 @@ export function htmlFormat(
         flags: PandocFlags,
         format: Format,
         _libDir: string,
-        temp: TempContext,
+        services: RenderServices,
         offset: string,
+        project: ProjectContext,
       ) => {
         const htmlFilterParams = htmlFormatFilterParams(format);
         return mergeConfigs(
-          await htmlFormatExtras(input, flags, offset, format, temp),
-          themeFormatExtras(input, flags, format, temp, offset),
+          await htmlFormatExtras(input, flags, offset, format, services.temp),
+          themeFormatExtras(input, flags, format, services, offset, project),
           { [kFilterParams]: htmlFilterParams },
         );
       },
@@ -255,7 +260,7 @@ export async function htmlFormatExtras(
     options.figResponsive = format.metadata[kFigResponsive] || false;
   }
   if (featureDefaults.codeAnnotations) {
-    options.codeAnnotations = format.metadata[kCodeAnnotations];
+    options.codeAnnotations = format.metadata[kCodeAnnotations] || true;
   } else {
     options.codeAnnotations = format.metadata[kCodeAnnotations] || false;
   }
@@ -711,6 +716,22 @@ function processCodeAnnotations(format: Format, doc: Document) {
     | string
     | boolean;
 
+  const replaceLineNumberWithAnnote = (annoteEl: Element, dtEl: Element) => {
+    const annotation = annoteEl.getAttribute(kCodeAnnotationAttr);
+    if (annotation !== null) {
+      const ddEl = dtEl.previousElementSibling;
+      if (ddEl) {
+        ddEl.innerHTML = "";
+        ddEl.innerText = annotation;
+        const codeCell = annoteEl.getAttribute(kCodeCellAttr);
+        if (codeCell) {
+          ddEl.setAttribute(kCodeCellTargetAttr, codeCell);
+          ddEl.setAttribute(kCodeAnnotationTargetAttr, annotation);
+        }
+      }
+    }
+  };
+
   if (annotationStyle === false) {
     // Read the definition list values which contain the annotations
     const annoteNodes = doc.querySelectorAll(`span[${kCodeCellAttr}]`);
@@ -729,26 +750,23 @@ function processCodeAnnotations(format: Format, doc: Document) {
       }
     }
   } else if (annotationStyle === "hover" || annotationStyle === "select") {
-    const definitionLists = processCodeBlockAnnotation(doc, true, "start");
+    const definitionLists = processCodeBlockAnnotation(
+      doc,
+      true,
+      "start",
+      replaceLineNumberWithAnnote,
+    );
 
     Object.values(definitionLists).forEach((dl) => {
       dl.classList.add(kCodeAnnotationHiddenClz);
+      dl.classList.add(kCodeAnnotationGridClz);
     });
   } else {
     const definitionLists = processCodeBlockAnnotation(
       doc,
       false,
       "start",
-      (annoteEl: Element, dtEl: Element) => {
-        const annotation = annoteEl.getAttribute(kCodeAnnotationAttr);
-        if (annotation !== null) {
-          const ddEl = dtEl.previousElementSibling;
-          if (ddEl) {
-            ddEl.innerHTML = "";
-            ddEl.innerText = annotation;
-          }
-        }
-      },
+      replaceLineNumberWithAnnote,
     );
 
     Object.values(definitionLists).forEach((dl) => {
@@ -844,6 +862,9 @@ function processLineAnnotation(
         kCodeAnnotationTargetAttr,
         `${targetAnnotation}`,
       );
+      if (!interactive) {
+        annoteAnchorEl.setAttribute("onclick", "event.preventDefault();");
+      }
       annoteAnchorEl.innerText = targetAnnotation || "?";
       targetEl.parentElement?.insertBefore(annoteAnchorEl, targetEl);
       targetEl.classList.add(kCodeAnnotationTargetClz);
@@ -856,8 +877,9 @@ function themeFormatExtras(
   input: string,
   flags: PandocFlags,
   format: Format,
-  temp: TempContext,
+  sevices: RenderServices,
   offset?: string,
+  project?: ProjectContext,
 ) {
   const theme = format.metadata[kTheme];
   if (theme === "none") {
@@ -869,7 +891,7 @@ function themeFormatExtras(
   } else if (theme === "pandoc") {
     return pandocExtras(format);
   } else {
-    return boostrapExtras(input, flags, format, temp, offset);
+    return boostrapExtras(input, flags, format, sevices, offset, project);
   }
 }
 

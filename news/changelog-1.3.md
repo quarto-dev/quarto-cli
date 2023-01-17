@@ -1,5 +1,3 @@
-## Changes
-
 ## Jupyter Notebooks
 
 - Add support for embedding cell outputs in quarto documents using `{{< embed >}}`. You can address cells by Id, Tag, or label, such as `{{< embed mynotebook.ipynb#fig-output >}}` which would embed the output of a cell with the label `fig-output`). You can also provide a list of ids like `{{< embed mynotebook.ipynb#fig-output,tbl-out >}}`.
@@ -39,6 +37,7 @@
 - Previously, if the `pdf-engine` was set to `latexmk`, we would bypass many features of Quarto and use Pandoc to produce the PDF output. Starting in in Quarto 1.3, all Quarto features will be enabled for the `latexmk` engine and `latexmk` will be used to run the PDF generation loop.
 - Fix author processing in default PDFs for complex author names (#3483)
 - Fix temporary `.tex` filenames in the presence of multiple variants ([#3762](https://github.com/quarto-dev/quarto-cli/issues/3762)).
+- Remove excessive vertical space between theorem type blocks ([#3776](https://github.com/quarto-dev/quarto-cli/issues/3776)).
 
 ## Beamer Format
 
@@ -72,6 +71,7 @@
 - Improve support for `date-modified` in listings
 - Improve support for `yml` based listings by supporting usage of title and description from `yml`.
 - Allow listings in project to point directly to non-input files (such as `yml` files) to use for contents.
+- Allow `sort: false` to disable any sorting, allowing items to appear in their original / natural order. (#3296)
 
 ## Websites
 
@@ -109,7 +109,9 @@
 - the API for shortcode handlers in lua now accepts a fourth parameter `raw_args` which hold the unparsed arguments in a table ([#3833](https://github.com/quarto-dev/quarto-cli/issues/3833)).
 - remove scaffolding div from conditional content in final output ([#3847](https://github.com/quarto-dev/quarto-cli/issues/3847)).
 - ensure proof titles are appended to paragraph nodes ([#3772](https://github.com/quarto-dev/quarto-cli/issues/3772)).
+- Support parsing markdown in table captions in LaTeX and HTML tables ([#2573](https://github.com/quarto-dev/quarto-cli/issues/2573)).
 
 ## Pandoc filter changes
 
 - Quarto 1.3 introduces the notion of Custom AST nodes to Pandoc filters. If you use Lua filters for processing callouts, tabsets, or conditional blocks, consult the [pre-release documentation](https://quarto.org/docs/prerelease/1.3.html) for how to change your filters to support the new syntax.
+- Quarto 1.3 now processes HTML tables (in Markdown input) into Pandoc AST nodes, which can be processed by user filters and output into non-HTML formats. In addition, it supports "embedded Markdown content" which will be resolved by quarto's processing, including shortcode and crossref resolution. See the [prerelease documentation](https://quarto.org/docs/prerelease/1.3.html) for more.

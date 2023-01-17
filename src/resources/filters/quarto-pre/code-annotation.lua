@@ -142,6 +142,11 @@ local function latexListPlaceholder(number)
   return '5CB6E08D-list-annote-' .. number 
 end
 
+local function toLines(s)
+  if s:sub(-1)~="\n" then s=s.."\n" end
+  return s:gmatch("(.-)\n")
+end
+
 -- Finds annotations in a code cell and returns 
 -- the annotations as well as a code cell that
 -- removes the annotations
@@ -153,12 +158,14 @@ local function resolveCellAnnotes(codeBlockEl, processAnnotation)
   if annotationProvider ~= nil then
     local annotations = {}
     local code = codeBlockEl.text
-    local lines = split(code, "\n")
+    
     local outputs = pandoc.List({})
-    for i, line in ipairs(lines) do
+    local i = 1
+    for line in toLines(code) do
   
       -- Look and annotation
       local annoteNumber = annotationProvider.annotationNumber(line)
+      
       if annoteNumber then
         -- Capture the annotation number and strip it
         local annoteId = toAnnoteId(annoteNumber)
@@ -172,11 +179,12 @@ local function resolveCellAnnotes(codeBlockEl, processAnnotation)
       else
         outputs:insert(line)
       end
+      i = i + 1
     end    
 
     -- if we capture annotations, then replace the code source
     -- code, stripping annotation comments
-    if #annotations then
+    if annotations and next(annotations) ~= nil then
       local outputText = ""
       for i, output in ipairs(outputs) do
         outputText = outputText .. output .. '\n'
@@ -281,7 +289,7 @@ end
 function processAnnotation(line, annoteNumber, annotationProvider)
     -- For all other formats, just strip the annotation- the definition list is converted
     -- to be based upon line numbers. 
-    local stripped = annotationProvider.stripAnnotation(line, annoteNumber)
+        local stripped = annotationProvider.stripAnnotation(line, annoteNumber)
     return stripped
 end
 
@@ -387,7 +395,10 @@ function code()
 
         for i, block in ipairs(blocks) do
           if block.t == 'Div' and block.attr.classes:find('cell') then
-            -- walk to find the code and 
+            -- Process executable code blocks 
+            -- In the case of executable code blocks, we actually want
+            -- to shift the OL up above the output, so we hang onto this outer
+            -- cell so we can move the OL up into it if there are annotations
             local processedAnnotation = false
             local resolvedBlock = pandoc.walk_block(block, {
               CodeBlock = function(el)
@@ -406,13 +417,23 @@ function code()
               end
             })
             if processedAnnotation then
+              -- we found annotations, so hand onto this cell
               pendingCodeCell = resolvedBlock
             else
+              -- no annotations, just output it
               outputBlock(resolvedBlock)
             end
           elseif block.t == 'CodeBlock'  then
             -- don't process code cell output here - we'll get it above
+            -- This processes non-executable code blocks
             if not block.attr.classes:find('cell-code') then
+
+              -- If there is a pending code cell and we get here, just
+              -- output the pending code cell and continue
+              if pendingCodeCell then
+                outputBlock(pendingCodeCell)
+                clearPending()
+              end
 
               local cellId = resolveCellId(block.attr.identifier)
               local codeCell = processCodeCell(block, cellId)
@@ -494,6 +515,11 @@ function code()
               else
                 outputBlockClearPending(dl)
               end
+            else
+              if pendingCodeCell then
+                outputBlock(pendingCodeCell)
+              end
+              clearPending();
             end
           else
             outputBlockClearPending(block)

@@ -145,11 +145,12 @@ import { figuresDir, inputFilesDir } from "../render.ts";
 import { lines } from "../text.ts";
 import { readYamlFromMarkdown } from "../yaml.ts";
 import { languagesInMarkdown } from "../../execute/engine-shared.ts";
-import { pathWithForwardSlashes } from "../path.ts";
+import { pathWithForwardSlashes, removeIfEmptyDir } from "../path.ts";
 import { convertToHtmlSpans, hasAnsiEscapeCodes } from "../ansi-colors.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { mergeConfigs } from "../config.ts";
 import { encode as encodeBase64 } from "encoding/base64.ts";
+import { isIpynbOutput } from "../../config/format.ts";
 
 export const kQuartoMimeType = "quarto_mimetype";
 export const kQuartoOutputOrder = "quarto_order";
@@ -571,7 +572,17 @@ export function jupyterAutoIdentifier(label: string) {
   }
 }
 
-export function jupyterAssets(input: string, to?: string) {
+export interface JupyterNotebookAssetPaths {
+  base_dir: string;
+  files_dir: string;
+  figures_dir: string;
+  supporting_dir: string;
+}
+
+export function jupyterAssets(
+  input: string,
+  to?: string,
+): JupyterNotebookAssetPaths {
   // calculate and create directories
   input = Deno.realPathSync(input);
   const files_dir = join(dirname(input), inputFilesDir(input));
@@ -599,6 +610,16 @@ export function jupyterAssets(input: string, to?: string) {
     figures_dir: pathWithForwardSlashes(relative(base_dir, figures_dir)),
     supporting_dir: pathWithForwardSlashes(relative(base_dir, supporting_dir)),
   };
+}
+
+export function cleanEmptyJupyterAssets(assets: JupyterNotebookAssetPaths) {
+  const figuresRemoved = removeIfEmptyDir(
+    join(assets.base_dir, assets.figures_dir),
+  );
+  const filesRemoved = removeIfEmptyDir(
+    join(assets.base_dir, assets.files_dir),
+  );
+  return figuresRemoved && filesRemoved;
 }
 
 // Attach fully rendered notebook to render services
@@ -1095,6 +1116,14 @@ async function mdFromCodeCell(
 
   // write div enclosure
   const divMd: string[] = [`::: {`];
+
+  // If we're targeting ipynb output, include the id in the
+  // markdown. This will cause the id to be included in the
+  // rendered notebook. Note that elsewhere we forard the
+  // label to the id, so that can appear as the cell id.
+  if (isIpynbOutput(options.executeOptions.format.pandoc) && cell.id) {
+    divMd.push(`#${cell.id} `);
+  }
 
   // metadata to exclude from cell div attributes
   const kCellOptionsFilter = kJupyterCellInternalOptionKeys.concat(
