@@ -422,6 +422,11 @@ function code()
             -- don't process code cell output here - we'll get it above
             if not block.attr.classes:find('cell-code') then
 
+              if pendingCodeCell then
+                outputBlock(pendingCodeCell)
+                clearPending()
+              end
+
               local cellId = resolveCellId(block.attr.identifier)
               local codeCell = processCodeCell(block, cellId)
               if codeCell then
@@ -502,6 +507,11 @@ function code()
               else
                 outputBlockClearPending(dl)
               end
+            else
+              if pendingCodeCell then
+                outputBlock(pendingCodeCell)
+              end
+              clearPending();
             end
           else
             outputBlockClearPending(block)
