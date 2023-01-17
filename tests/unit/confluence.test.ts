@@ -2975,6 +2975,18 @@ const runFindAttachments = () => {
     check(expected, bodyValue, filePaths);
   });
 
+  test(suiteLabel("single_image_lookup_relative_path"), async () => {
+    const bodyValue: string =
+      '<ri:attachment ri:filename="elephant.png" ri:version-at-save="1" />';
+    const filePaths: string[] = [
+      "images/elephant.png",
+      "parent/inner-parent/elephant.png",
+    ];
+    const path = "parent/inner-parent/hello-world3.xml";
+    const expected: string[] = ["parent/inner-parent/elephant.png"];
+    check(expected, bodyValue, filePaths, path);
+  });
+
   test(suiteLabel("single_image_lookup_dupe_name"), async () => {
     const bodyValue: string =
       '<ri:attachment ri:filename="elephant.png" ri:version-at-save="1" />';
@@ -3138,6 +3150,12 @@ const runGetAttachmentsDirectory = () => {
 
     check(expected, baseDirectory, attachmentPath, fileName);
   });
+
+  //TODO test
+  // [
+  //   "images/elephant.png",
+  //   "parent/inner-parent/elephant.png",
+  // ];
 };
 
 const runUpdateImagePathsForContentBody = () => {
@@ -3208,5 +3226,5 @@ if (RUN_ALL_TESTS) {
   runGetAttachmentsDirectory();
   runUpdateImagePathsForContentBody();
 } else {
-  runUpdateLinks();
+  runFindAttachments();
 }

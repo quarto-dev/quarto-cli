@@ -296,6 +296,8 @@ async function publish(
         attachmentPath
       );
 
+      console.log("uploadDirectory", uploadDirectory);
+
       trace(
         "uploadAttachment",
         {
@@ -356,10 +358,21 @@ async function publish(
   ): Promise<Content> => {
     const previousPage = await client.getContent(id);
 
+    console.log("updateContent");
+    console.log("titleToUpdate", titleToUpdate);
+    console.log("body.storage.value", body.storage.value);
+    console.log("publishFiles.files", publishFiles.files);
+    console.log("fileName", fileName);
+
     const attachmentsToUpload: string[] = findAttachments(
       body.storage.value,
-      publishFiles.files
+      publishFiles.files,
+      fileName
     );
+
+    console.log("attachmentsToUpload", attachmentsToUpload);
+
+    //FIXME expected elephant.png
 
     const uniqueTitle = await uniquifyTitle(titleToUpdate, id);
 
@@ -391,6 +404,8 @@ async function publish(
         { existingAttachments, attachmentsToUpload },
         LogPrefix.ATTACHMENT
       );
+
+      console.log("attachmentsToUpload", attachmentsToUpload);
 
       const uploadAttachmentsResult = await Promise.all(
         uploadAttachments(
