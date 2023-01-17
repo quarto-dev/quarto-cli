@@ -636,10 +636,6 @@ export const getAttachmentsDirectory = (
   filePath: string = "",
   attachmentPath: string = ""
 ): string => {
-  console.log("baseDirectory", baseDirectory);
-  console.log("filePath", filePath);
-  console.log("attachmentPath", attachmentPath);
-
   let result = baseDirectory;
 
   if (attachmentPath.length === 0 || filePath.length === 0) {
@@ -647,7 +643,12 @@ export const getAttachmentsDirectory = (
   }
 
   const filePathList = filePath.split("/");
-  const attachmentPathList = attachmentPath.split("/");
+  let attachmentPathList = attachmentPath.split("/");
+
+  //TODO navigate path with '..'
+  if (attachmentPathList.length === 2 && attachmentPathList[0] === ".") {
+    attachmentPathList = attachmentPathList.slice(1);
+  }
 
   const pathNoFileFromList = (pathList: string[]) =>
     pathList.slice(0, pathList.length - 1).join("/");
@@ -661,7 +662,7 @@ export const getAttachmentsDirectory = (
   }
 
   const isRelative = attachmentPathList.length === 1;
-  console.log("isRelative", isRelative);
+
   if (isRelative && filePathList.length > 1) {
     const directoryPath = pathNoFileFromList(filePathList);
     result = `${result}/${directoryPath}`;

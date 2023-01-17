@@ -3131,6 +3131,16 @@ const runGetAttachmentsDirectory = () => {
     check(expected, baseDirectory, attachmentPath, fileName);
   });
 
+  otest(suiteLabel("site_nested_relative_dotslash"), async () => {
+    const expected = "/Users/fake-base/fake-parent";
+
+    const baseDirectory = "/Users/fake-base/_site";
+    const attachmentPath = "./file1.png";
+    const fileName = "fake-parent/fake-file.xml";
+
+    check(expected, baseDirectory, attachmentPath, fileName);
+  });
+
   test(suiteLabel("site_nested_absolute"), async () => {
     const expected = "/Users/fake-base";
 
@@ -3150,12 +3160,6 @@ const runGetAttachmentsDirectory = () => {
 
     check(expected, baseDirectory, attachmentPath, fileName);
   });
-
-  //TODO test
-  // [
-  //   "images/elephant.png",
-  //   "parent/inner-parent/elephant.png",
-  // ];
 };
 
 const runUpdateImagePathsForContentBody = () => {
@@ -3226,5 +3230,5 @@ if (RUN_ALL_TESTS) {
   runGetAttachmentsDirectory();
   runUpdateImagePathsForContentBody();
 } else {
-  runFindAttachments();
+  runGetAttachmentsDirectory();
 }
