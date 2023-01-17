@@ -7,7 +7,6 @@
 
 import { expandGlobSync } from "../../src/core/deno/expand-glob.ts";
 import { testQuartoCmd, Verify } from "../test.ts";
-
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../src/core/schema/utils.ts";
 import {
   initState,
@@ -21,6 +20,7 @@ import {
   ensureDocxRegexMatches,
   ensureFileRegexMatches,
   ensureHtmlElements,
+  fileExists,
   noErrors,
   noErrorsOrWarnings,
 } from "../verify.ts";
@@ -28,6 +28,7 @@ import { readYamlFromMarkdown } from "../../src/core/yaml.ts";
 import { outputForInput } from "../utils.ts";
 import { jupyterToMarkdown } from "../../src/core/jupyter/jupyter.ts";
 import { jupyterNotebookToMarkdown } from "../../src/command/convert/jupyter.ts";
+import { dirname, join } from "path/mod.ts";
 
 async function fullInit() {
   await initYamlIntelligenceResourcesFromFilesystem();
@@ -99,8 +100,24 @@ function resolveTestSpecs(
           checkWarnings = false;
           verifyFns.push(noErrors);
         } else {
-          if (verifyMap[key]) {
-            const outputFile = outputForInput(input, format);
+          const outputFile = outputForInput(input, format);
+          if (key === "fileExists") {
+            for (
+              const [path, file] of Object.entries(
+                value as Record<string, string>,
+              )
+            ) {
+              if (path === "outputPath") {
+                verifyFns.push(
+                  fileExists(join(dirname(outputFile.outputPath), file)),
+                );
+              } else if (path === "supportPath") {
+                verifyFns.push(
+                  fileExists(join(outputFile.supportPath, file)),
+                );
+              }
+            }
+          } else if (verifyMap[key]) {
             verifyFns.push(verifyMap[key](outputFile.outputPath, ...value));
           }
         }

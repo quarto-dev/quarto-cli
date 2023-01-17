@@ -1,11 +1,13 @@
 ---
 title: "Penguins, meet Quarto!"
 format: pdf
-latex-clean: false
+keep-tex: true
 _quarto:
   tests:
     pdf:
       noErrors: default
+      fileExists: 
+        supportPath: mediabag/lter_penguins.png
 ---
 
 ## Meet the penguins
