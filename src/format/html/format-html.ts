@@ -260,7 +260,7 @@ export async function htmlFormatExtras(
     options.figResponsive = format.metadata[kFigResponsive] || false;
   }
   if (featureDefaults.codeAnnotations) {
-    options.codeAnnotations = format.metadata[kCodeAnnotations];
+    options.codeAnnotations = format.metadata[kCodeAnnotations] || "below";
   } else {
     options.codeAnnotations = format.metadata[kCodeAnnotations] || false;
   }
