@@ -82,6 +82,7 @@ import("./quarto-finalize/meta-cleanup.lua")
 
 import("./normalize/normalize.lua")
 import("./normalize/parsehtml.lua")
+import("./normalize/pandoc3.lua")
 import("./normalize/extractquartodom.lua")
 
 import("./layout/asciidoc.lua")
@@ -168,6 +169,7 @@ local quartoNormalize = {
   { name = "normalize", filter = filterIf(function()
     return preState.active_filters.normalization
   end, normalizeFilter()) },
+  { name = "normalize-parse-pandoc3-figures", filter = parse_pandoc3_figures() },
   { name = "normalize-parseHtmlTables", filter = parse_html_tables() },
   { name = "normalize-extractQuartoDom", filter = extract_quarto_dom() },
   { name = "normalize-parseExtendedNodes", filter = parseExtendedNodes() }
