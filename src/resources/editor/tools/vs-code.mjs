@@ -9578,6 +9578,7 @@ var require_yaml_intelligence_resources = __commonJS({
           id: "book-schema",
           schema: {
             object: {
+              closed: true,
               super: {
                 resolveRef: "base-website"
               },
@@ -10256,15 +10257,9 @@ var require_yaml_intelligence_resources = __commonJS({
           ]
         },
         {
-          id: "csl-item",
+          id: "csl-item-shared",
           object: {
-            closed: true,
             properties: {
-              abstract: {
-                string: {
-                  description: "Abstract of the item (e.g. the abstract of a journal article)"
-                }
-              },
               "abstract-url": {
                 string: {
                   description: "A url to the abstract for this item."
@@ -10309,10 +10304,6 @@ var require_yaml_intelligence_resources = __commonJS({
                 string: {
                   description: "Geographic location of the archive."
                 }
-              },
-              author: {
-                ref: "csl-person",
-                description: "The author(s) of the item."
               },
               authority: {
                 string: {
@@ -10421,11 +10412,6 @@ var require_yaml_intelligence_resources = __commonJS({
               division: {
                 string: {
                   description: "Minor subdivision of a court with a `jurisdiction` for a legal item"
-                }
-              },
-              doi: {
-                string: {
-                  description: 'Digital Object Identifier (e.g. "10.1128/AEM.02591-07")'
                 }
               },
               DOI: {
@@ -10708,14 +10694,6 @@ var require_yaml_intelligence_resources = __commonJS({
                 ref: "csl-person",
                 description: "Recipient (e.g. of a letter)."
               },
-              references: {
-                string: {
-                  description: {
-                    short: "Resources related to the procedural history of a legal case or legislation.",
-                    long: 'Resources related to the procedural history of a legal case or legislation;\n\nCan also be used to refer to the procedural history of other items (e.g. \n"Conference canceled" for a presentation accepted as a conference that was subsequently \ncanceled; details of a retraction or correction notice)\n'
-                  }
-                }
-              },
               "reviewed-author": {
                 ref: "csl-person",
                 description: "Author of the item reviewed by the current item."
@@ -10764,11 +10742,6 @@ var require_yaml_intelligence_resources = __commonJS({
               "supplement-number": {
                 ref: "csl-number",
                 description: "Supplement number of the item or container holding the item (e.g. for secondary legal items that are regularly updated between editions)."
-              },
-              title: {
-                string: {
-                  description: "The primary title of the item."
-                }
               },
               "title-short": {
                 string: {
@@ -10861,6 +10834,44 @@ var require_yaml_intelligence_resources = __commonJS({
               "year-suffix": {
                 string: {
                   description: 'Disambiguating year suffix in author-date styles (e.g. "a" in "Doe, 1999a").'
+                }
+              }
+            }
+          }
+        },
+        {
+          id: "csl-item",
+          object: {
+            super: {
+              resolveRef: "csl-item-shared"
+            },
+            closed: true,
+            properties: {
+              abstract: {
+                string: {
+                  description: "Abstract of the item (e.g. the abstract of a journal article)"
+                }
+              },
+              author: {
+                ref: "csl-person",
+                description: "The author(s) of the item."
+              },
+              doi: {
+                string: {
+                  description: 'Digital Object Identifier (e.g. "10.1128/AEM.02591-07")'
+                }
+              },
+              references: {
+                string: {
+                  description: {
+                    short: "Resources related to the procedural history of a legal case or legislation.",
+                    long: 'Resources related to the procedural history of a legal case or legislation;\n\nCan also be used to refer to the procedural history of other items (e.g. \n"Conference canceled" for a presentation accepted as a conference that was subsequently \ncanceled; details of a retraction or correction notice)\n'
+                  }
+                }
+              },
+              title: {
+                string: {
+                  description: "The primary title of the item."
                 }
               }
             }
@@ -17378,7 +17389,7 @@ var require_yaml_intelligence_resources = __commonJS({
                   resolveRef: "book-schema"
                 },
                 {
-                  resolveRef: "csl-item"
+                  resolveRef: "csl-item-shared"
                 }
               ]
             }
@@ -18481,7 +18492,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The files or path globs of Quarto documents or YAML files that should\nbe included in the listing.",
         {
           short: "Sort items in the listing by these fields.",
-          long: "Sort items in the listing by these fields. The sort key is made up of\na field name followed by a direction <code>asc</code> or\n<code>desc</code>.\nFor example: <code>date asc</code>"
+          long: "Sort items in the listing by these fields. The sort key is made up of\na field name followed by a direction <code>asc</code> or\n<code>desc</code>.\nFor example: <code>date asc</code>\nUse <code>sort:false</code> to use the unsorted original order of\nitems."
         },
         "The maximum number of items to include in this listing.",
         "The number of items to display on a page.",
@@ -18584,7 +18595,6 @@ var require_yaml_intelligence_resources = __commonJS({
         "The given name.",
         "The family name.",
         "The given name.",
-        "Abstract of the item (e.g.&nbsp;the abstract of a journal article)",
         "A url to the abstract for this item.",
         "Date the item has been accessed.",
         {
@@ -18595,7 +18605,6 @@ var require_yaml_intelligence_resources = __commonJS({
         "Collection the item is part of within an archive.",
         "Storage location within an archive (e.g.&nbsp;a box and folder\nnumber).",
         "Geographic location of the archive.",
-        "The author(s) of the item.",
         "Issuing or judicial authority (e.g.&nbsp;\u201CUSPTO\u201D for a patent, \u201CFairfax\nCircuit Court\u201D for a legal case).",
         {
           short: "Date the item was initially available",
@@ -18629,7 +18638,6 @@ var require_yaml_intelligence_resources = __commonJS({
         "Physical (e.g.&nbsp;size) or temporal (e.g.&nbsp;running time) dimensions of\nthe item.",
         "Director (e.g.&nbsp;of a film).",
         "Minor subdivision of a court with a <code>jurisdiction</code> for a\nlegal item",
-        "Digital Object Identifier (e.g.&nbsp;\u201C10.1128/AEM.02591-07\u201D)",
         "(Container) edition holding the item (e.g.&nbsp;\u201C3\u201D when citing a chapter\nin the third edition of a book).",
         "The editor of the item.",
         "Managing editor (\u201CDirecteur de la Publication\u201D in French).",
@@ -18708,10 +18716,6 @@ var require_yaml_intelligence_resources = __commonJS({
         "The publisher of the item.",
         "The geographic location of the publisher.",
         "Recipient (e.g.&nbsp;of a letter).",
-        {
-          short: "Resources related to the procedural history of a legal case or\nlegislation.",
-          long: "Resources related to the procedural history of a legal case or\nlegislation;\nCan also be used to refer to the procedural history of other items\n(e.g.&nbsp; \u201CConference canceled\u201D for a presentation accepted as a conference\nthat was subsequently canceled; details of a retraction or correction\nnotice)"
-        },
         "Author of the item reviewed by the current item.",
         "Type of the item being reviewed by the current item (e.g.&nbsp;book,\nfilm).",
         "Title of the item reviewed by the current item.",
@@ -18723,7 +18727,6 @@ var require_yaml_intelligence_resources = __commonJS({
         "Publication status of the item (e.g.&nbsp;\u201Cforthcoming\u201D; \u201Cin press\u201D;\n\u201Cadvance online publication\u201D; \u201Cretracted\u201D)",
         "Date the item (e.g.&nbsp;a manuscript) was submitted for publication.",
         "Supplement number of the item or container holding the item (e.g.&nbsp;for\nsecondary legal items that are regularly updated between editions).",
-        "The primary title of the item.",
         "Short/abbreviated form of<code>title</code>.",
         "Translator",
         'The <a href="https://docs.citationstyles.org/en/stable/specification.html#appendix-iii-types">type</a>\nof the item.',
@@ -18738,7 +18741,6 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
-        "Abstract of the item (e.g.&nbsp;the abstract of a journal article)",
         "A url to the abstract for this item.",
         "Date the item has been accessed.",
         {
@@ -18749,7 +18751,6 @@ var require_yaml_intelligence_resources = __commonJS({
         "Collection the item is part of within an archive.",
         "Storage location within an archive (e.g.&nbsp;a box and folder\nnumber).",
         "Geographic location of the archive.",
-        "The author(s) of the item.",
         "Issuing or judicial authority (e.g.&nbsp;\u201CUSPTO\u201D for a patent, \u201CFairfax\nCircuit Court\u201D for a legal case).",
         {
           short: "Date the item was initially available",
@@ -18783,7 +18784,6 @@ var require_yaml_intelligence_resources = __commonJS({
         "Physical (e.g.&nbsp;size) or temporal (e.g.&nbsp;running time) dimensions of\nthe item.",
         "Director (e.g.&nbsp;of a film).",
         "Minor subdivision of a court with a <code>jurisdiction</code> for a\nlegal item",
-        "Digital Object Identifier (e.g.&nbsp;\u201C10.1128/AEM.02591-07\u201D)",
         "(Container) edition holding the item (e.g.&nbsp;\u201C3\u201D when citing a chapter\nin the third edition of a book).",
         "The editor of the item.",
         "Managing editor (\u201CDirecteur de la Publication\u201D in French).",
@@ -18862,10 +18862,6 @@ var require_yaml_intelligence_resources = __commonJS({
         "The publisher of the item.",
         "The geographic location of the publisher.",
         "Recipient (e.g.&nbsp;of a letter).",
-        {
-          short: "Resources related to the procedural history of a legal case or\nlegislation.",
-          long: "Resources related to the procedural history of a legal case or\nlegislation;\nCan also be used to refer to the procedural history of other items\n(e.g.&nbsp; \u201CConference canceled\u201D for a presentation accepted as a conference\nthat was subsequently canceled; details of a retraction or correction\nnotice)"
-        },
         "Author of the item reviewed by the current item.",
         "Type of the item being reviewed by the current item (e.g.&nbsp;book,\nfilm).",
         "Title of the item reviewed by the current item.",
@@ -18877,7 +18873,6 @@ var require_yaml_intelligence_resources = __commonJS({
         "Publication status of the item (e.g.&nbsp;\u201Cforthcoming\u201D; \u201Cin press\u201D;\n\u201Cadvance online publication\u201D; \u201Cretracted\u201D)",
         "Date the item (e.g.&nbsp;a manuscript) was submitted for publication.",
         "Supplement number of the item or container holding the item (e.g.&nbsp;for\nsecondary legal items that are regularly updated between editions).",
-        "The primary title of the item.",
         "Short/abbreviated form of<code>title</code>.",
         "Translator",
         'The <a href="https://docs.citationstyles.org/en/stable/specification.html#appendix-iii-types">type</a>\nof the item.',
@@ -18892,6 +18887,168 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
+        "Abstract of the item (e.g.&nbsp;the abstract of a journal article)",
+        "The author(s) of the item.",
+        "Digital Object Identifier (e.g.&nbsp;\u201C10.1128/AEM.02591-07\u201D)",
+        {
+          short: "Resources related to the procedural history of a legal case or\nlegislation.",
+          long: "Resources related to the procedural history of a legal case or\nlegislation;\nCan also be used to refer to the procedural history of other items\n(e.g.&nbsp; \u201CConference canceled\u201D for a presentation accepted as a conference\nthat was subsequently canceled; details of a retraction or correction\nnotice)"
+        },
+        "The primary title of the item.",
+        "A url to the abstract for this item.",
+        "Date the item has been accessed.",
+        {
+          short: "Short markup, decoration, or annotation to the item (e.g., to\nindicate items included in a review).",
+          long: "Short markup, decoration, or annotation to the item (e.g., to\nindicate items included in a review);\nFor descriptive text (e.g., in an annotated bibliography), use\n<code>note</code> instead"
+        },
+        "Archive storing the item",
+        "Collection the item is part of within an archive.",
+        "Storage location within an archive (e.g.&nbsp;a box and folder\nnumber).",
+        "Geographic location of the archive.",
+        "Issuing or judicial authority (e.g.&nbsp;\u201CUSPTO\u201D for a patent, \u201CFairfax\nCircuit Court\u201D for a legal case).",
+        {
+          short: "Date the item was initially available",
+          long: "Date the item was initially available (e.g.&nbsp;the online publication\ndate of a journal article before its formal publication date; the date a\ntreaty was made available for signing)."
+        },
+        "Call number (to locate the item in a library).",
+        "The person leading the session containing a presentation (e.g.&nbsp;the\norganizer of the <code>container-title</code> of a\n<code>speech</code>).",
+        "Chapter number (e.g.&nbsp;chapter number in a book; track number on an\nalbum).",
+        {
+          short: "Identifier of the item in the input data file (analogous to BiTeX\nentrykey).",
+          long: "Identifier of the item in the input data file (analogous to BiTeX\nentrykey);\nUse this variable to facilitate conversion between word-processor and\nplain-text writing systems; For an identifer intended as formatted\noutput label for a citation (e.g.&nbsp;\u201CFerr78\u201D), use\n<code>citation-label</code> instead"
+        },
+        {
+          short: "Label identifying the item in in-text citations of label styles\n(e.g.&nbsp;\u201CFerr78\u201D).",
+          long: "Label identifying the item in in-text citations of label styles\n(e.g.&nbsp;\u201CFerr78\u201D);\nMay be assigned by the CSL processor based on item metadata; For the\nidentifier of the item in the input data file, use\n<code>citation-key</code> instead"
+        },
+        "Index (starting at 1) of the cited reference in the bibliography\n(generated by the CSL processor).",
+        "Editor of the collection holding the item (e.g.&nbsp;the series editor for\na book).",
+        "Number identifying the collection holding the item (e.g.&nbsp;the series\nnumber for a book)",
+        "Title of the collection holding the item (e.g.&nbsp;the series title for a\nbook; the lecture series title for a presentation).",
+        "Person compiling or selecting material for an item from the works of\nvarious persons or bodies (e.g.&nbsp;for an anthology).",
+        "Composer (e.g.&nbsp;of a musical score).",
+        "Author of the container holding the item (e.g.&nbsp;the book author for a\nbook chapter).",
+        {
+          short: "Title of the container holding the item.",
+          long: "Title of the container holding the item (e.g.&nbsp;the book title for a\nbook chapter, the journal title for a journal article; the album title\nfor a recording; the session title for multi-part presentation at a\nconference)"
+        },
+        "Short/abbreviated form of container-title;",
+        "A minor contributor to the item; typically cited using \u201Cwith\u201D before\nthe name when listed in a bibliography.",
+        "Curator of an exhibit or collection (e.g.&nbsp;in a museum).",
+        "Physical (e.g.&nbsp;size) or temporal (e.g.&nbsp;running time) dimensions of\nthe item.",
+        "Director (e.g.&nbsp;of a film).",
+        "Minor subdivision of a court with a <code>jurisdiction</code> for a\nlegal item",
+        "(Container) edition holding the item (e.g.&nbsp;\u201C3\u201D when citing a chapter\nin the third edition of a book).",
+        "The editor of the item.",
+        "Managing editor (\u201CDirecteur de la Publication\u201D in French).",
+        {
+          short: "Combined editor and translator of a work.",
+          long: "Combined editor and translator of a work.\nThe citation processory must be automatically generate if editor and\ntranslator variables are identical; May also be provided directly in\nitem data."
+        },
+        "Date the event related to an item took place.",
+        "Name of the event related to the item (e.g.&nbsp;the conference name when\nciting a conference paper; the meeting where presentation was made).",
+        "Geographic location of the event related to the item\n(e.g.&nbsp;\u201CAmsterdam, The Netherlands\u201D).",
+        "Executive producer of the item (e.g.&nbsp;of a television series).",
+        {
+          short: "Number of a preceding note containing the first reference to the\nitem.",
+          long: "Number of a preceding note containing the first reference to the\nitem\nAssigned by the CSL processor; Empty in non-note-based styles or when\nthe item hasn\u2019t been cited in any preceding notes in a document"
+        },
+        "A url to the full text for this item.",
+        {
+          short: "Type, class, or subtype of the item",
+          long: "Type, class, or subtype of the item (e.g.&nbsp;\u201CDoctoral dissertation\u201D for\na PhD thesis; \u201CNIH Publication\u201D for an NIH technical report);\nDo not use for topical descriptions or categories (e.g.&nbsp;\u201Cadventure\u201D\nfor an adventure movie)"
+        },
+        "Guest (e.g.&nbsp;on a TV show or podcast).",
+        "Host of the item (e.g.&nbsp;of a TV show or podcast).",
+        "Illustrator (e.g.&nbsp;of a children\u2019s book or graphic novel).",
+        "Interviewer (e.g.&nbsp;of an interview).",
+        "International Standard Book Number (e.g.&nbsp;\u201C978-3-8474-1017-1\u201D).",
+        "International Standard Serial Number.",
+        {
+          short: "Issue number of the item or container holding the item",
+          long: "Issue number of the item or container holding the item (e.g.&nbsp;\u201C5\u201D when\nciting a journal article from journal volume 2, issue 5);\nUse <code>volume-title</code> for the title of the issue, if any."
+        },
+        "Date the item was issued/published.",
+        "Geographic scope of relevance (e.g.&nbsp;\u201CUS\u201D for a US patent; the court\nhearing a legal case).",
+        "Keyword(s) or tag(s) attached to the item.",
+        {
+          short: "The language of the item.",
+          long: "The language of the item;\nShould be entered as an ISO 639-1 two-letter language code\n(e.g.&nbsp;\u201Cen\u201D, \u201Czh\u201D), optionally with a two-letter locale code\n(e.g.&nbsp;\u201Cde-DE\u201D, \u201Cde-AT\u201D)"
+        },
+        {
+          short: "The license information applicable to an item.",
+          long: "The license information applicable to an item (e.g.&nbsp;the license an\narticle or software is released under; the copyright information for an\nitem; the classification status of a document)"
+        },
+        {
+          short: "A cite-specific pinpointer within the item.",
+          long: "A cite-specific pinpointer within the item (e.g.&nbsp;a page number within\na book, or a volume in a multi-volume work).\nMust be accompanied in the input data by a label indicating the\nlocator type (see the Locators term list)."
+        },
+        "Description of the item\u2019s format or medium (e.g.&nbsp;\u201CCD\u201D, \u201CDVD\u201D,\n\u201CAlbum\u201D, etc.)",
+        "Narrator (e.g.&nbsp;of an audio book).",
+        "Descriptive text or notes about an item (e.g.&nbsp;in an annotated\nbibliography).",
+        "Number identifying the item (e.g.&nbsp;a report number).",
+        "Total number of pages of the cited item.",
+        "Total number of volumes, used when citing multi-volume books and\nsuch.",
+        "Organizer of an event (e.g.&nbsp;organizer of a workshop or\nconference).",
+        {
+          short: "The original creator of a work.",
+          long: "The original creator of a work (e.g.&nbsp;the form of the author name\nlisted on the original version of a book; the historical author of a\nwork; the original songwriter or performer for a musical piece; the\noriginal developer or programmer for a piece of software; the original\nauthor of an adapted work such as a book adapted into a screenplay)"
+        },
+        "Issue date of the original version.",
+        "Original publisher, for items that have been republished by a\ndifferent publisher.",
+        "Geographic location of the original publisher (e.g.&nbsp;\u201CLondon,\nUK\u201D).",
+        "Title of the original version (e.g.&nbsp;\u201C\u0412\u043E\u0439\u043D\u0430 \u0438 \u043C\u0438\u0440\u201D, the untranslated\nRussian title of \u201CWar and Peace\u201D).",
+        "Range of pages the item (e.g.&nbsp;a journal article) covers in a\ncontainer (e.g.&nbsp;a journal issue).",
+        "First page of the range of pages the item (e.g.&nbsp;a journal article)\ncovers in a container (e.g.&nbsp;a journal issue).",
+        "Last page of the range of pages the item (e.g.&nbsp;a journal article)\ncovers in a container (e.g.&nbsp;a journal issue).",
+        {
+          short: "Number of the specific part of the item being cited (e.g.&nbsp;part 2 of a\njournal article).",
+          long: "Number of the specific part of the item being cited (e.g.&nbsp;part 2 of a\njournal article).\nUse <code>part-title</code> for the title of the part, if any."
+        },
+        "Title of the specific part of an item being cited.",
+        "A url to the pdf for this item.",
+        "Performer of an item (e.g.&nbsp;an actor appearing in a film; a muscian\nperforming a piece of music).",
+        "PubMed Central reference number.",
+        "PubMed reference number.",
+        "Printing number of the item or container holding the item.",
+        "Producer (e.g.&nbsp;of a television or radio broadcast).",
+        "A public url for this item.",
+        "The publisher of the item.",
+        "The geographic location of the publisher.",
+        "Recipient (e.g.&nbsp;of a letter).",
+        "Author of the item reviewed by the current item.",
+        "Type of the item being reviewed by the current item (e.g.&nbsp;book,\nfilm).",
+        "Title of the item reviewed by the current item.",
+        "Scale of e.g.&nbsp;a map or model.",
+        "Writer of a script or screenplay (e.g.&nbsp;of a film).",
+        "Section of the item or container holding the item (e.g.&nbsp;\u201C\xA72.0.1\u201D for\na law; \u201Cpolitics\u201D for a newspaper article).",
+        "Creator of a series (e.g.&nbsp;of a television series).",
+        "Source from whence the item originates (e.g.&nbsp;a library catalog or\ndatabase).",
+        "Publication status of the item (e.g.&nbsp;\u201Cforthcoming\u201D; \u201Cin press\u201D;\n\u201Cadvance online publication\u201D; \u201Cretracted\u201D)",
+        "Date the item (e.g.&nbsp;a manuscript) was submitted for publication.",
+        "Supplement number of the item or container holding the item (e.g.&nbsp;for\nsecondary legal items that are regularly updated between editions).",
+        "Short/abbreviated form of<code>title</code>.",
+        "Translator",
+        'The <a href="https://docs.citationstyles.org/en/stable/specification.html#appendix-iii-types">type</a>\nof the item.',
+        "Uniform Resource Locator\n(e.g.&nbsp;\u201Chttps://aem.asm.org/cgi/content/full/74/9/2766\u201D)",
+        "Version of the item (e.g.&nbsp;\u201C2.0.9\u201D for a software program).",
+        {
+          short: "Volume number of the item (e.g.&nbsp;\u201C2\u201D when citing volume 2 of a book)\nor the container holding the item.",
+          long: "Volume number of the item (e.g.&nbsp;\u201C2\u201D when citing volume 2 of a book)\nor the container holding the item (e.g.&nbsp;\u201C2\u201D when citing a chapter from\nvolume 2 of a book).\nUse <code>volume-title</code> for the title of the volume, if\nany."
+        },
+        {
+          short: "Title of the volume of the item or container holding the item.",
+          long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
+        },
+        "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
+        "Abstract of the item (e.g.&nbsp;the abstract of a journal article)",
+        "The author(s) of the item.",
+        "Digital Object Identifier (e.g.&nbsp;\u201C10.1128/AEM.02591-07\u201D)",
+        {
+          short: "Resources related to the procedural history of a legal case or\nlegislation.",
+          long: "Resources related to the procedural history of a legal case or\nlegislation;\nCan also be used to refer to the procedural history of other items\n(e.g.&nbsp; \u201CConference canceled\u201D for a presentation accepted as a conference\nthat was subsequently canceled; details of a retraction or correction\nnotice)"
+        },
+        "The primary title of the item.",
         "The unique identifier for this article.",
         "The type of identifier",
         "The value for the identifier",
@@ -20083,7 +20240,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Array of paths used to detect the project type within a directory",
         "Website configuration.",
         "Book configuration.",
-        "The primary title of the item.",
+        "Book title",
         "Description metadata for HTML version of book",
         "The path to the favicon for this website",
         "Base URL for published website",
@@ -20203,16 +20360,14 @@ var require_yaml_intelligence_resources = __commonJS({
         "Publish open graph metadata",
         "Publish twitter card metadata",
         "Book subtitle",
-        "The author(s) of the item.",
+        "Author or authors of the book",
+        "Author or authors of the book",
         "Book publication date",
         "Format string for dates in the book",
-        "Abstract of the item (e.g.&nbsp;the abstract of a journal article)",
+        "Book abstract",
         "Book part and chapter files",
         "Book appendix files",
-        {
-          short: "Resources related to the procedural history of a legal case or\nlegislation.",
-          long: "Resources related to the procedural history of a legal case or\nlegislation;\nCan also be used to refer to the procedural history of other items\n(e.g.&nbsp; \u201CConference canceled\u201D for a presentation accepted as a conference\nthat was subsequently canceled; details of a retraction or correction\nnotice)"
-        },
+        "Book references file",
         "Base name for single-file output (e.g.&nbsp;PDF, ePub)",
         "Cover image (used in HTML and ePub formats)",
         "Alternative text for cover image (used in HTML format)",
@@ -20221,7 +20376,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
         "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
         "Custom tools for navbar or sidebar",
-        "Digital Object Identifier (e.g.&nbsp;\u201C10.1128/AEM.02591-07\u201D)",
+        "The Digital Object Identifier for this book.",
         "A url to the abstract for this item.",
         "Date the item has been accessed.",
         {
@@ -20386,7 +20541,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Array of paths used to detect the project type within a directory",
         "Website configuration.",
         "Book configuration.",
-        "The primary title of the item.",
+        "Book title",
         "Description metadata for HTML version of book",
         "The path to the favicon for this website",
         "Base URL for published website",
@@ -20506,16 +20661,14 @@ var require_yaml_intelligence_resources = __commonJS({
         "Publish open graph metadata",
         "Publish twitter card metadata",
         "Book subtitle",
-        "The author(s) of the item.",
+        "Author or authors of the book",
+        "Author or authors of the book",
         "Book publication date",
         "Format string for dates in the book",
-        "Abstract of the item (e.g.&nbsp;the abstract of a journal article)",
+        "Book abstract",
         "Book part and chapter files",
         "Book appendix files",
-        {
-          short: "Resources related to the procedural history of a legal case or\nlegislation.",
-          long: "Resources related to the procedural history of a legal case or\nlegislation;\nCan also be used to refer to the procedural history of other items\n(e.g.&nbsp; \u201CConference canceled\u201D for a presentation accepted as a conference\nthat was subsequently canceled; details of a retraction or correction\nnotice)"
-        },
+        "Book references file",
         "Base name for single-file output (e.g.&nbsp;PDF, ePub)",
         "Cover image (used in HTML and ePub formats)",
         "Alternative text for cover image (used in HTML format)",
@@ -20524,7 +20677,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
         "Download buttons for other formats to include on navbar or sidebar\n(one or more of <code>pdf</code>, <code>epub</code>, and\n<code>docx</code>)",
         "Custom tools for navbar or sidebar",
-        "Digital Object Identifier (e.g.&nbsp;\u201C10.1128/AEM.02591-07\u201D)",
+        "The Digital Object Identifier for this book.",
         "A url to the abstract for this item.",
         "Date the item has been accessed.",
         {
@@ -20813,13 +20966,23 @@ var require_yaml_intelligence_resources = __commonJS({
             "name"
           ],
           propertyNames: {
+            errorMessage: "property ${value} does not match case convention path,name,register,script,stylesheet,self-contained",
             type: "string",
-            pattern: "^(?!(self_contained|selfContained))"
+            pattern: "^(?!(self_contained|selfContained))",
+            tags: {
+              "case-convention": [
+                "dash-case"
+              ],
+              "error-importance": -5,
+              "case-detection": true
+            }
           },
           tags: {
             "case-convention": [
               "dash-case"
-            ]
+            ],
+            "error-importance": -5,
+            "case-detection": true
           },
           $id: "plugin-reveal"
         }
@@ -20885,12 +21048,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 146876,
+        _internalId: 146891,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 146868,
+            _internalId: 146883,
             type: "enum",
             enum: [
               "png",
@@ -20906,7 +21069,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 146875,
+            _internalId: 146890,
             type: "anyOf",
             anyOf: [
               {
@@ -20927,13 +21090,23 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         patternProperties: {},
         propertyNames: {
+          errorMessage: "property ${value} does not match case convention mermaid-format,theme",
           type: "string",
-          pattern: "^(?!(mermaid_format|mermaidFormat))"
+          pattern: "^(?!(mermaid_format|mermaidFormat))",
+          tags: {
+            "case-convention": [
+              "dash-case"
+            ],
+            "error-importance": -5,
+            "case-detection": true
+          }
         },
         tags: {
           "case-convention": [
             "dash-case"
-          ]
+          ],
+          "error-importance": -5,
+          "case-detection": true
         },
         $id: "handlers/mermaid"
       }
@@ -21211,6 +21384,12 @@ function resolveCaseConventionRegex(keys, conventions) {
     };
   }
   const disallowedNearMisses = [];
+  const keySet = new Set(keys);
+  const addNearMiss = (value) => {
+    if (!keySet.has(value)) {
+      disallowedNearMisses.push(value);
+    }
+  };
   const foundConventions = /* @__PURE__ */ new Set();
   for (const key of keys) {
     const found = detectCaseConvention(key);
@@ -21219,19 +21398,16 @@ function resolveCaseConventionRegex(keys, conventions) {
     }
     switch (found) {
       case "capitalizationCase":
-        disallowedNearMisses.push(toUnderscoreCase(key), toDashCase(key));
+        addNearMiss(toUnderscoreCase(key));
+        addNearMiss(toDashCase(key));
         break;
       case "dash-case":
-        disallowedNearMisses.push(
-          toUnderscoreCase(key),
-          toCapitalizationCase(key)
-        );
+        addNearMiss(toUnderscoreCase(key));
+        addNearMiss(toCapitalizationCase(key));
         break;
       case "underscore_case":
-        disallowedNearMisses.push(
-          toDashCase(key),
-          toCapitalizationCase(key)
-        );
+        addNearMiss(toDashCase(key));
+        addNearMiss(toCapitalizationCase(key));
         break;
     }
   }
@@ -27974,6 +28150,11 @@ var ValidationContext = class {
         }
         const errorTypeQuality = (e) => {
           const t = e.schemaPath.slice().reverse();
+          if (typeof e.schema === "object") {
+            if (e.schema.tags && e.schema.tags["error-importance"] && typeof e.schema.tags["error-importance"] === "number") {
+              return e.schema.tags["error-importance"];
+            }
+          }
           if (e.schemaPath.indexOf("propertyNames") !== -1) {
             return 10;
           }
@@ -28602,38 +28783,48 @@ function objectSchema(params = {}) {
   required = required || [];
   properties = properties || {};
   patternProperties = patternProperties || {};
-  const tags = {};
+  let tags = {};
   let tagsAreSet = false;
   let propertyNames = propertyNamesSchema;
-  const objectKeys = Object.getOwnPropertyNames(completionsParam || properties);
-  if (namingConvention !== "ignore") {
-    const { pattern, list } = resolveCaseConventionRegex(
-      objectKeys,
-      namingConvention
-    );
-    if (pattern !== void 0) {
-      if (propertyNames === void 0) {
-        propertyNames = {
-          "type": "string",
-          pattern
-        };
-      } else {
-        propertyNames = allOfSchema(
-          propertyNames,
-          {
-            "type": "string",
-            pattern
-          }
-        );
-      }
-      tags["case-convention"] = list;
-      tagsAreSet = true;
-    }
-  }
   if (completionsParam) {
     tags["completions"] = completionsParam;
     tagsAreSet = true;
   }
+  const createCaseConventionSchema = (props) => {
+    if (namingConvention === "ignore") {
+      return void 0;
+    }
+    const objectKeys = Object.getOwnPropertyNames(
+      props
+    );
+    const { pattern, list } = resolveCaseConventionRegex(
+      objectKeys,
+      namingConvention
+    );
+    if (pattern === void 0) {
+      return void 0;
+    }
+    if (propertyNames !== void 0) {
+      console.error(
+        "Warning: propertyNames and case convention detection are mutually exclusive."
+      );
+      console.error(
+        "Add `namingConvention: 'ignore'` to your schema definition to remove this warning."
+      );
+      return void 0;
+    }
+    const tags2 = {
+      "case-convention": list,
+      "error-importance": -5,
+      "case-detection": true
+    };
+    return {
+      errorMessage: `property \${value} does not match case convention ${objectKeys.join(",")}`,
+      "type": "string",
+      pattern,
+      tags: tags2
+    };
+  };
   const hasDescription = description !== void 0;
   description = description || "be an object";
   let result = void 0;
@@ -28668,6 +28859,32 @@ function objectSchema(params = {}) {
     if (hasDescription) {
       result.description = description;
     }
+    const m = /* @__PURE__ */ new Map();
+    for (const base of baseSchema) {
+      for (const [k, v] of Object.entries(base.properties || {})) {
+        if (!m.has(k)) {
+          m.set(k, []);
+        }
+        m.get(k).push([v, base.$id]);
+      }
+    }
+    const errorMsgs = /* @__PURE__ */ new Set();
+    for (const [k, l] of m) {
+      if (l.length > 1) {
+        errorMsgs.add(
+          `Internal Error: base schemas ${l.map((x) => x[1]).join(", ")} share property ${k}.`
+        );
+      }
+    }
+    if (errorMsgs.size > 0) {
+      console.error(
+        [...errorMsgs].toSorted((a, b) => a.localeCompare(b)).join("\n")
+      );
+      console.error("This is a bug in quarto's schemas.");
+      console.error(
+        "Note that we don't throw in order to allow build-js to finish, but the generated schemas will be invalid."
+      );
+    }
     result.properties = Object.assign(
       {},
       ...baseSchema.map((s) => s.properties),
@@ -28675,7 +28892,9 @@ function objectSchema(params = {}) {
     );
     result.patternProperties = Object.assign(
       {},
-      ...baseSchema.map((s) => s.patternProperties),
+      ...baseSchema.map((s) => s.patternProperties).filter(
+        (s) => s !== void 0
+      ),
       patternProperties
     );
     result.required = [
@@ -28692,15 +28911,36 @@ function objectSchema(params = {}) {
     if (additionalPropArray.length) {
       result.additionalProperties = allOfSchema(...additionalPropArray);
     }
-    const propNamesArray = baseSchema.map((s) => s.propertyNames).filter((s) => s !== void 0);
-    if (propertyNames) {
-      propNamesArray.push(propertyNames);
-    }
-    if (propNamesArray.length === baseSchema.length + 1) {
+    let filtered = false;
+    const propNamesArray = baseSchema.map((s) => s.propertyNames).filter((s) => {
+      if (typeof s !== "object")
+        return true;
+      if (s.tags === void 0)
+        return true;
+      if (s.tags["case-detection"] === true) {
+        filtered = true;
+        return false;
+      }
+      return true;
+    }).filter((s) => s !== void 0);
+    if (propNamesArray.length === 1) {
+      result.propertyNames = propNamesArray[0];
+    } else if (propNamesArray.length > 1) {
       result.propertyNames = anyOfSchema(...propNamesArray);
+    } else {
+      delete result.propertyNames;
     }
     result.closed = closed || baseSchema.some((s) => s.closed);
   } else {
+    const caseConventionSchema = createCaseConventionSchema(properties);
+    if (caseConventionSchema !== void 0) {
+      propertyNames = caseConventionSchema;
+      tags = {
+        ...tags,
+        ...caseConventionSchema.tags
+      };
+      tagsAreSet = true;
+    }
     result = {
       ...internalId(),
       "type": "object",
@@ -29295,7 +29535,7 @@ function convertFromRecord(yaml) {
 function convertFromObject(yaml) {
   const schema2 = yaml["object"];
   const params = {};
-  if (schema2.namingConvention) {
+  if (schema2.namingConvention && typeof schema2.namingConvention === "string") {
     switch (schema2.namingConvention) {
       case "capitalizationCase":
         params.namingConvention = "capitalizationCase";
@@ -29354,6 +29594,7 @@ function convertFromObject(yaml) {
       default:
         throw new Error("Internal Error: this should have failed validation");
     }
+  } else {
     params.namingConvention = schema2.namingConvention;
   }
   if (schema2.properties) {
