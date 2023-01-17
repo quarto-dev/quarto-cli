@@ -225,7 +225,7 @@ async function publishAction(
     );
   } else if (publishOptions.prompt) {
     // new deployment, determine provider if needed
-    const providers = await publishProviders();
+    const providers = publishProviders();
     if (!provider) {
       if (haveArrowKeys()) {
         // select provider
@@ -233,10 +233,12 @@ async function publishAction(
           indent: "",
           name: "provider",
           message: "Provider:",
-          options: providers.map((provider) => ({
-            name: provider.description,
-            value: provider.name,
-          })),
+          options: providers
+            .filter((provider) => !provider.hidden)
+            .map((provider) => ({
+              name: provider.description,
+              value: provider.name,
+            })),
           type: Select,
         }]);
         if (result.provider) {

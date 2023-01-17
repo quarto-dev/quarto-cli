@@ -721,6 +721,7 @@ async function publish(
 export const confluenceProvider: PublishProvider = {
   name: CONFLUENCE_ID,
   description: "Confluence",
+  hidden: true,
   requiresServer: true,
   requiresRender: true,
   accountTokens: getAccountTokens,

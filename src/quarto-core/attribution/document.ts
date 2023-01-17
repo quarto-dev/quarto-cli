@@ -452,7 +452,7 @@ function synthesizeCitationUrl(
     } else {
       const relativePath = relative(
         rootDir,
-        join(dirname(outputFile), basename(outputFile)),
+        join(dirname(input), basename(outputFile)),
       );
       const part = pathWithForwardSlashes(relativePath);
       return `${baseUrl}/${part}`;

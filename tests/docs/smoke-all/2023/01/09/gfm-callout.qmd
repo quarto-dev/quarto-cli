@@ -1,0 +1,11 @@
+---
+format: gfm
+---
+
+::: callout-note
+
+## A title
+
+I bet we'll drop this.
+
+:::

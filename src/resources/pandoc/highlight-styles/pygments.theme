@@ -1,9 +1,16 @@
 {
     "text-color": null,
-    "background-color": null,
+    "background-color": "#F3F5F6",
     "line-number-color": "#aaaaaa",
     "line-number-background-color": null,
     "text-styles": {
+        "Normal": {
+            "text-color": "#007020",
+            "background-color": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+        },
         "Other": {
             "text-color": "#007020",
             "background-color": null,

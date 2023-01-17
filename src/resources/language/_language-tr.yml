@@ -31,6 +31,9 @@ callout-caution-caption: "Dikkat"
 
 code-summary: "Kod"
 
+code-line: "Satiri"
+code-lines: "Satırlar"
+
 code-tools-menu-caption: "Kod"
 code-tools-show-all-code: "Tüm Kodu Göster"
 code-tools-hide-all-code: "Tüm Kodu Gizle"

@@ -1,0 +1,11 @@
+---
+format:
+  customformat.lua: default
+validate-yaml: false
+---
+
+::: callout-note
+
+A custom node.
+
+:::

@@ -5,7 +5,8 @@
 *
 */
 
-import { existsSync, expandGlobSync, walkSync } from "fs/mod.ts";
+import { existsSync, walkSync } from "fs/mod.ts";
+import { expandGlobSync } from "../core/deno/expand-glob.ts";
 import { warning } from "log/mod.ts";
 import { coerce, Range, satisfies } from "semver/mod.ts";
 
@@ -935,11 +936,17 @@ function resolveFilterPath(
 ): QuartoFilter {
   // Filters are expected to be absolute
   if (typeof (filter) === "string") {
-    return join(extensionDir, filter);
+    if (isAbsolute(filter)) {
+      return filter;
+    } else {
+      return join(extensionDir, filter);
+    }
   } else {
     return {
       type: filter.type,
-      path: join(extensionDir, filter.path),
+      path: isAbsolute(filter.path)
+        ? filter.path
+        : join(extensionDir, filter.path),
     };
   }
 }

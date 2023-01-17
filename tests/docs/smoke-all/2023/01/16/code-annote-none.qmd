@@ -1,0 +1,39 @@
+---
+title: test
+code-annotations: none
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - []
+        - ["dt"]
+---
+
+```{.python}
+# line 1
+
+# line 2
+```
+
+```{r}
+foo <- "bar" # <1>
+plot(cars)
+```
+1. hi
+
+:::{.column-margin}
+
+```{.python}
+# line 1
+x = "Python" # <1>
+y = "is" #            <1>
+z = "awesome"
+
+print(x, y, z)
+
+# line 2
+```
+
+1. hi
+
+:::

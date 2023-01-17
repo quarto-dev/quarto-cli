@@ -577,6 +577,38 @@ div.column {
   width: 50%;
 }
 
+// Code Annotation LayoutBoot
+.code-annotation-tip-content {
+  word-wrap: break-word;
+}
+
+.code-annotation-container-hidden {
+  display: none !important;
+}
+
+dl.code-annotation-container-grid {
+  display: grid;
+  grid-template-columns: min-content auto;
+  dt {
+    grid-column: 1;
+  }
+  dd {
+    grid-column: 2;
+  }
+}
+
+pre.sourceCode.code-annotation-code {
+  padding-right: 0;
+}
+
+code.sourceCode .code-annotation-anchor {
+  z-index: 100;
+  position: absolute;
+  right: 0.5em;
+  left: inherit;
+  background-color: transparent;
+}
+
 // Mermaid Theming
 // if none come from theme, we need these
 $body-color: #222 !default;

@@ -78,6 +78,8 @@ jobs:
       - uses: ./.github/workflows/actions/quarto-dev
 
       - name: Install Tinytex
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           quarto install tinytex
 

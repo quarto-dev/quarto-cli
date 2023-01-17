@@ -5,7 +5,7 @@
  *
  */
 
-import { expandGlobSync } from "fs/mod.ts";
+import { expandGlobSync } from "../../src/core/deno/expand-glob.ts";
 import { testQuartoCmd, Verify } from "../test.ts";
 
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../src/core/schema/utils.ts";
@@ -26,6 +26,8 @@ import {
 } from "../verify.ts";
 import { readYamlFromMarkdown } from "../../src/core/yaml.ts";
 import { outputForInput } from "../utils.ts";
+import { jupyterToMarkdown } from "../../src/core/jupyter/jupyter.ts";
+import { jupyterNotebookToMarkdown } from "../../src/command/convert/jupyter.ts";
 
 async function fullInit() {
   await initYamlIntelligenceResourcesFromFilesystem();
@@ -119,15 +121,19 @@ function resolveTestSpecs(
 const globOutput = Deno.args.length
   ? expandGlobSync(Deno.args[0])
   : expandGlobSync(
-    "docs/smoke-all/**/*.qmd",
+    "docs/smoke-all/**/*.{qmd,ipynb}",
   );
+
+await initYamlIntelligenceResourcesFromFilesystem();
 
 for (
   const { path: fileName } of globOutput
 ) {
   const input = fileName;
 
-  const metadata = readYamlFromMarkdown(Deno.readTextFileSync(input));
+  const metadata = input.endsWith("qmd")
+    ? readYamlFromMarkdown(Deno.readTextFileSync(input))
+    : readYamlFromMarkdown(await jupyterNotebookToMarkdown(input, false));
   const testSpecs = [];
 
   if (hasTestSpecs(metadata)) {

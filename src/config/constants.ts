@@ -40,6 +40,8 @@ export const kFormatResources = "format-resources";
 
 export const kFormatLinks = "format-links";
 export const kNotebookLinks = "notebook-links";
+export const kNotebookView = "notebook-view";
+export const kNotebookViewStyle = "notebook-view-style";
 
 export const kKeepHidden = "keep-hidden";
 
@@ -168,6 +170,8 @@ export const kRenderDefaultsKeys = [
   kFormatResources,
   kFormatLinks,
   kNotebookLinks,
+  kNotebookView,
+  kNotebookViewStyle,
 ];
 
 // language fields
@@ -197,6 +201,8 @@ export const kTitleBlockAffiliationPlural = "title-block-affiliation-plural";
 export const kTitleBlockPublished = "title-block-published";
 export const kTitleBlockModified = "title-block-modified";
 export const kCodeSummary = "code-summary";
+export const kCodeLine = "code-line";
+export const kCodeLines = "code-lines";
 export const kCodeToolsMenuCaption = "code-tools-menu-caption";
 export const kCodeToolsShowAllCode = "code-tools-show-all-code";
 export const kCodeToolsHideAllCode = "code-tools-hide-all-code";
@@ -293,6 +299,8 @@ export const kLanguageDefaultsKeys = [
   kTitleBlockPublished,
   kTitleBlockModified,
   kCodeSummary,
+  kCodeLine,
+  kCodeLines,
   kCodeToolsMenuCaption,
   kCodeToolsShowAllCode,
   kCodeToolsHideAllCode,
@@ -390,6 +398,7 @@ export const kIncludeInHeader = "include-in-header";
 export const kCiteproc = "citeproc";
 export const kCiteMethod = "cite-method";
 export const kFilters = "filters";
+export const kQuartoFilters = "quarto-filters";
 export const kFilterParams = "filter-params";
 export const kPdfEngine = "pdf-engine";
 export const kPdfEngineOpts = "pdf-engine-opts";

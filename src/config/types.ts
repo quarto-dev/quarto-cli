@@ -19,7 +19,9 @@ import {
   kCiteMethod,
   kCiteproc,
   kCodeFold,
+  kCodeLine,
   kCodeLineNumbers,
+  kCodeLines,
   kCodeLink,
   kCodeOverflow,
   kCodeSummary,
@@ -129,6 +131,8 @@ import {
   kMergeIncludes,
   kMermaidFormat,
   kNotebookLinks,
+  kNotebookView,
+  kNotebookViewStyle,
   kNumberOffset,
   kNumberSections,
   kOutput,
@@ -140,6 +144,7 @@ import {
   kPdfEngineOpt,
   kPdfEngineOpts,
   kPreferHtml,
+  kQuartoFilters,
   kReferenceLocation,
   kRelatedFormatsTitle,
   kRelatedNotebooksTitle,
@@ -193,7 +198,8 @@ import {
 } from "./constants.ts";
 
 import { TempContext } from "../core/temp-types.ts";
-import { HtmlPostProcessor } from "../command/render/types.ts";
+import { HtmlPostProcessor, RenderServices } from "../command/render/types.ts";
+import { QuartoFilterSpec } from "../command/render/filters.ts";
 import { ExtensionContext } from "../extension/extension-shared.ts";
 import { ProjectContext } from "../project/types.ts";
 
@@ -283,6 +289,12 @@ export function isPandocFilter(filter: QuartoFilter): filter is PandocFilter {
   return (<PandocFilter> filter).path !== undefined;
 }
 
+export interface NotebookPublishOptions {
+  notebook: string;
+  url?: string;
+  title?: string;
+}
+
 export interface FormatExtras {
   args?: string[];
   pandoc?: FormatPandoc;
@@ -345,9 +357,8 @@ export interface Format {
     flags: PandocFlags,
     format: Format,
     libDir: string,
-    temp: TempContext,
+    services: RenderServices,
     offset?: string,
-    extensionContext?: ExtensionContext,
     project?: ProjectContext,
   ) => Promise<FormatExtras>;
   formatPreviewFile?: (
@@ -399,6 +410,11 @@ export interface FormatRender {
   [kFormatResources]?: string[];
   [kFormatLinks]?: boolean | string[];
   [kNotebookLinks]?: boolean | "inline" | "global";
+  [kNotebookViewStyle]?: "document" | "notebook";
+  [kNotebookView]?:
+    | boolean
+    | NotebookPublishOptions
+    | NotebookPublishOptions[];
 }
 
 export interface FormatExecute {
@@ -447,6 +463,7 @@ export interface FormatPandoc {
   [kCiteproc]?: boolean;
   [kCiteMethod]?: string;
   [kFilters]?: QuartoFilter[];
+  [kQuartoFilters]?: QuartoFilterSpec;
   [kPdfEngine]?: string;
   [kPdfEngineOpts]?: string[];
   [kPdfEngineOpt]?: string;
@@ -534,6 +551,8 @@ export interface FormatLanguage {
   [kSectionTitleReuse]?: string;
   [kSectionTitleCopyright]?: string;
   [kCodeSummary]?: string;
+  [kCodeLine]?: string;
+  [kCodeLines]?: string;
   [kCodeToolsMenuCaption]?: string;
   [kCodeToolsShowAllCode]?: string;
   [kCodeToolsHideAllCode]?: string;

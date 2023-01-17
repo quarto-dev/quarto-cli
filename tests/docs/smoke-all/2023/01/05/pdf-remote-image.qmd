@@ -1,0 +1,6 @@
+---
+title: test
+format: pdf
+---
+
+![](https://quarto.org/quarto.png)

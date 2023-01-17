@@ -626,6 +626,21 @@ knitr_options_hook <- function(options) {
     # convert any option with fig- into fig. and out- to out.
     options <- normalize_options(options)
   }
+  
+  # if there are line annotations in the code then we need to 
+  # force disable messages/warnings
+  comment_chars <- engine_comment_chars(options$engine)
+  pattern <- paste0(".*\\Q", comment_chars[[1]], "\\E\\s*",
+                    "<[0-9]+>\\s*")
+  if (length(comment_chars) > 1) {
+    pattern <- paste0(pattern, "*\\Q", comment_chars[[2]], "\\E\\s*")
+  }
+  pattern <- paste0(pattern, "$")
+  if (any(grepl(pattern, options$code))) {
+    options$warning <- FALSE
+    options$results <- "hold" 
+  }
+
 
   # fig.subcap: TRUE means fig.subcap: "" (more natural way 
   # to specify that empty subcaps are okay)
@@ -729,7 +744,6 @@ normalize_options <- function(options) {
 
 
 partition_yaml_options <- function(engine, code) {
-
   # mask out empty blocks
   if (length(code) == 0) {
     return(list(
@@ -738,52 +752,7 @@ partition_yaml_options <- function(engine, code) {
       code = code
     ))
   }
-  
-  # determine comment matching patterns
-  knitr_engine_comment_chars <- list(
-    r = "#",
-    python = "#",
-    julia = "#",
-    scala = "//",
-    matlab = "%",
-    csharp = "//",
-    fsharp = "//",
-    c = c("/*",  "*/"),
-    css = c("/*",  "*/"),
-    sas = c("*", ";"),
-    powershell = "#",
-    bash = "#",
-    sql = "--",
-    mysql = "--",
-    psql = "--",
-    lua = "--",
-    Rcpp = "//",
-    cc = "//",
-    stan = "#",
-    octave = "#",
-    fortran = "!",
-    fortran95 = "!",
-    awk = "#",
-    gawk = "#",
-    stata = "*",
-    java = "//",
-    groovy = "//",
-    sed = "#",
-    perl = "#",
-    ruby = "#",
-    tikz = "%",
-    js = "//",
-    d3 = "//",
-    node = "//",
-    sass = "//",
-    coffee = "#",
-    go = "//",
-    asy = "//",
-    haskell = "--",
-    dot = "//",
-    apl = "\u235D"
-  )
-  comment_chars <- knitr_engine_comment_chars[[engine]] %||% "#"
+  comment_chars <- engine_comment_chars(engine)
   comment_start <- paste0(comment_chars[[1]], "| ")
   comment_end <- ifelse(length(comment_chars) > 1, comment_chars[[2]], "")
   
@@ -838,6 +807,53 @@ partition_yaml_options <- function(engine, code) {
       code = code
     )
   }
+}
+
+engine_comment_chars <- function(engine) {
+  comment_chars <- list(
+    r = "#",
+    python = "#",
+    julia = "#",
+    scala = "//",
+    matlab = "%",
+    csharp = "//",
+    fsharp = "//",
+    c = c("/*",  "*/"),
+    css = c("/*",  "*/"),
+    sas = c("*", ";"),
+    powershell = "#",
+    bash = "#",
+    sql = "--",
+    mysql = "--",
+    psql = "--",
+    lua = "--",
+    Rcpp = "//",
+    cc = "//",
+    stan = "#",
+    octave = "#",
+    fortran = "!",
+    fortran95 = "!",
+    awk = "#",
+    gawk = "#",
+    stata = "*",
+    java = "//",
+    groovy = "//",
+    sed = "#",
+    perl = "#",
+    ruby = "#",
+    tikz = "%",
+    js = "//",
+    d3 = "//",
+    node = "//",
+    sass = "//",
+    coffee = "#",
+    go = "//",
+    asy = "//",
+    haskell = "--",
+    dot = "//",
+    apl = "\u235D"
+  )
+  comment_chars[[engine]] %||% "#"
 }
 
 

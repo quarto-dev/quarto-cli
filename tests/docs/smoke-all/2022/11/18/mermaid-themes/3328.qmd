@@ -1,0 +1,28 @@
+---
+title: "3328"
+format: 
+  html:
+    mermaid:
+      theme: forest
+---
+
+```{mermaid}
+graph TD
+    A["{&quot;a&quot;:2,&nbsp;<br/>&nbsp;&nbsp;&nbsp;&quot;b&quot;:3,&nbsp;&nbsp;<br/>&nbsp;&nbsp;&nbsp;&quot;d&quot;:&quot;b&quot;}"] -->|jq| B(Go shopping)
+    B --> C{Let me think}
+```
+
+```{mermaid}
+graph TD
+    A --> B
+    B --> C
+    A --> C
+```
+
+```{mermaid}
+%%| label: diag-3
+graph TD
+    A --> B
+    B --> C
+    A --> C
+```

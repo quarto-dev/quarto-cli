@@ -1,0 +1,46 @@
+---
+title: markdown in captions
+format:
+  html: default
+  latex: default
+_quarto:
+  tests: 
+    html:
+      ensureHtmlElements:
+        - ["#html caption sup", "#html caption em", "#paged div.table-caption sup", "#paged div.table-caption em", "#md caption sup"]
+    latex:
+      ensureFileRegexMatches:
+        - ["\\\\textsuperscript\\{superscript\\}", "\\\\emph\\{italics\\}"]
+execute: 
+  echo: false
+---
+
+# HTML table {#html}
+```{r}
+#| tbl-cap: Using ^superscript^ or _italics_ in table caption
+#| eval: !expr knitr::is_html_output()
+knitr::kable(head(cars), format = "html")
+```
+
+# Paged table {#paged}
+
+```{r}
+#| tbl-cap: Using ^superscript^ or _italics_ in table caption
+#| eval: !expr knitr::is_html_output()
+rmarkdown::paged_table(head(cars))
+```
+
+# Mardown Table {#md}
+
+```{r}
+#| tbl-cap: Using ^superscript^ in caption
+knitr::kable(head(cars))
+```
+
+# LaTeX table {#latex}
+
+```{r}
+#| tbl-cap: Using _italics_ in caption
+#| eval: !expr knitr::is_latex_output()
+knitr::kable(head(cars), format = "latex")
+```

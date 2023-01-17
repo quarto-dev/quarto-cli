@@ -81,6 +81,11 @@ export function hasAdaptiveTheme(pandoc: FormatPandoc) {
   return theme && isAdaptiveTheme(theme);
 }
 
+export function hasTextHighlighting(pandoc: FormatPandoc): boolean {
+  const theme = pandoc[kHighlightStyle];
+  return theme !== null;
+}
+
 export function isAdaptiveTheme(theme: string | Record<string, string>) {
   if (typeof (theme) === "string") {
     return [

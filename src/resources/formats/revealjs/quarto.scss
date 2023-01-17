@@ -448,7 +448,7 @@ $panel-sidebar-padding: 0.5em;
   }
 }
 
-.tippy-box[data-theme~="quarto-reveal"] {
+.tippy-box[data-theme~="light-border"] {
   background-color: $backgroundColor;
   color: $mainColor;
   border-radius: $border-radius;
@@ -456,7 +456,7 @@ $panel-sidebar-padding: 0.5em;
   font-size: 0.6em;
 }
 
-.tippy-box[data-theme~="quarto-reveal"] .tippy-arrow {
+.tippy-box[data-theme~="light-border"] .tippy-arrow {
   color: $border-color;
 }
 
@@ -578,4 +578,86 @@ $panel-sidebar-padding: 0.5em;
 
 div.cell-output-display div.pagedtable-wrapper table.table {
   font-size: 0.6em;
+}
+
+.reveal .code-annotation-container-hidden {
+  display: none;
+}
+
+.reveal code.sourceCode button.code-annotation-anchor,
+.reveal code.sourceCode .code-annotation-anchor {
+  font-family: $font-family-monospace;
+  color: var(--quarto-hl-co-color);
+  border: solid var(--quarto-hl-co-color) 1px;
+  border-radius: 50%;
+  font-size: 0.7em;
+  line-height: 1.2em;
+  margin-top: 2px;
+}
+
+.reveal code.sourceCode button.code-annotation-anchor {
+  cursor: pointer;
+}
+
+.reveal code.sourceCode a.code-annotation-anchor {
+  text-align: center;
+  vertical-align: middle;
+  text-decoration: none;
+  cursor: default;
+  height: 1.2em;
+  width: 1.2em;
+}
+
+.reveal #code-annotation-line-highlight-gutter {
+  width: 100%;
+  border-top: solid var(--quarto-hl-co-color) 1px;
+  border-bottom: solid var(--quarto-hl-co-color) 1px;
+  z-index: 2;
+}
+
+.reveal #code-annotation-line-highlight {
+  margin-left: -8em;
+  width: calc(100% + 4em);
+  border-top: solid var(--quarto-hl-co-color) 1px;
+  border-bottom: solid var(--quarto-hl-co-color) 1px;
+  z-index: 2;
+  margin-bottom: -2px;
+}
+
+.reveal code.sourceCode .code-annotation-anchor.code-annotation-active {
+  background-color: var(--quarto-hl-normal-color, #aaaaaa);
+  border: solid var(--quarto-hl-normal-color, #aaaaaa) 1px;
+  color: rgb(red($code-block-bg), green($code-block-bg), blue($code-block-bg));
+  font-weight: bolder;
+}
+
+.reveal pre.code-annotation-code {
+  padding-top: 0;
+  padding-bottom: 0;
+  code {
+    z-index: 3;
+    padding-left: 0px;
+  }
+}
+
+.reveal dl.code-annotation-container-grid {
+  margin-left: 0.1em;
+  dt {
+    margin-top: 0.65rem;
+    font-family: $font-family-monospace;
+    border: solid $body-color 1px;
+    border-radius: 50%;
+    height: 1.3em;
+    width: 1.3em;
+    line-height: 1.3em;
+    font-size: 0.5em;
+    text-align: center;
+    vertical-align: middle;
+
+    text-decoration: none;
+  }
+
+  dd {
+    margin-left: 0.25em;
+  }
 }

@@ -2,7 +2,7 @@
 $btn-code-copy-color: if(
   variable-exists(text-muted),
   $text-muted,
-  $body-color
+  if(variable-exists(body-color), $body-color, $gray-900)
 ) !default;
 
 $btn-code-copy-color-active: if(

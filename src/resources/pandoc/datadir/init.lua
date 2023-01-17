@@ -1303,30 +1303,55 @@ end
 -- path. Shortcodes can use an internal function
 -- to set and clear the local value that will be used 
 -- instead of pandoc's filter path when a shortcode is executing
-local scriptFile = nil
-local function scriptDir() 
-   if scriptFile ~= nil then
-      return pandoc.path.directory(scriptFile)
-   else 
-      return pandoc.path.directory(PANDOC_SCRIPT_FILE)
+local scriptFile = {}
+
+local function scriptDirs()
+   local dirs = {}
+   dirs[#dirs+1] = pandoc.path.directory(PANDOC_SCRIPT_FILE)
+   for i = 1, #scriptFile do
+      dirs[#dirs+1] = pandoc.path.directory(scriptFile[i])
    end
+   return dirs
+end
+
+local function scriptDir()
+   if #scriptFile > 0 then
+      return pandoc.path.directory(scriptFile[#scriptFile])
+   else
+      -- hard fallback
+      return PANDOC_SCRIPT_FILE
+   end
+   -- if scriptFile ~= nil then
+   --    return pandoc.path.directory(scriptFile)
+   -- else 
+   --    -- don't use return pandoc.path.directory(PANDOC_SCRIPT_FILE)
+   --    -- because we're now wrapped filters
+   --    -- but we guarantee that wrapped filters run on their own directories
+   --    return pandoc.system.get_working_directory()
+   -- end
 end
 
 local function scriptFileName()
-   if scriptFile ~= nil then
-      return pandoc.path.filename(scriptFile)
+   if #scriptFile > 0 then
+      return pandoc.path.filename(scriptFile[#scriptFile])
    else 
       return pandoc.path.filename(PANDOC_SCRIPT_FILE)
    end
 end
 
--- patch require to look in current scriptDir
+-- patch require to look in current scriptDirs
 local orig_require = require
 function require(modname)
-   local dir = pandoc.path.join({scriptDir(), '?.lua'})
-   package.path = package.path .. ';' ..dir
+   local old_path = package.path
+   local new_path = old_path
+   local dirs = scriptDirs()
+   for i, v in ipairs(dirs) do
+      new_path = new_path .. ';' .. pandoc.path.join({v, '?.lua'})
+   end
+
+   package.path = new_path
    local mod = orig_require(modname)
-   package.path = package.path:sub(1, #package.path - (#dir + 1))
+   package.path = old_path
    return mod
 end
 
@@ -1334,9 +1359,9 @@ end
 -- resolves a path, providing either the original path
 -- or if relative, a path that is based upon the 
 -- script location
-local function resolvePath(path)          
+local function resolvePath(path)
   if isRelativeRef(path) then
-    local wd = pandoc.system.get_working_directory();
+    local wd = pandoc.system.get_working_directory()
     return pandoc.path.join({wd, pandoc.path.normalize(path)})
   else
     return path    
@@ -1522,14 +1547,15 @@ end
 local function resolveFileDependencies(name, dependencyFiles)
    if dependencyFiles ~= nil then
  
-    -- make sure this is an array
+     -- make sure this is an array
      if type(dependencyFiles) ~= "table" or not utils.table.isarray(dependencyFiles) then
        error("Invalid HTML Dependency: " .. name .. " property must be an array")
      end
+
  
      local finalDependencies = {}
      for i, v in ipairs(dependencyFiles) do
-       if type(v) == "table" then
+      if type(v) == "table" then
              -- fill in the name, if one is not provided
              if v.name == nil then
                 v.name = pandoc.path.filename(v.path)
@@ -1745,7 +1771,7 @@ local function file_exists(name)
 
 -- Quarto internal module - makes functions available
 -- through the filters
-_quarto = {
+_quarto = {   
    processDependencies = processDependencies,
    format = format,
    patterns = {
@@ -1754,8 +1780,11 @@ _quarto = {
       latexTablePatterns = latexTablePatterns
    },
    utils = utils,
-   scriptFile = function(file)
-      scriptFile = file
+   withScriptFile = function(file, callback)
+      table.insert(scriptFile, file)
+      local result = callback()
+      table.remove(scriptFile, #scriptFile)
+      return result
    end,
    projectOffset = projectOffset,
    file = {
@@ -1899,6 +1928,10 @@ quarto = {
       local hasBootstrap = param('has-bootstrap', false)
       return hasBootstrap
     end,
+    is_filter_active = function(filter)
+      return preState.active_filters[filter]
+    end,
+
     output_file = outputFile(),
     input_file = inputFile()
   },
@@ -1910,7 +1943,9 @@ quarto = {
   },
   utils = {
    dump = utils.dump,
-   resolve_path = resolvePathExt
+   table = utils.table,
+   resolve_path = resolvePathExt,
+   resolve_path_relative_to_document = resolvePath,
   },
   json = json,
   base64 = base64,
@@ -1931,5 +1966,3 @@ quarto.doc.pdfEngine = quarto.doc.pdf_engine
 quarto.doc.hasBootstrap = quarto.doc.has_bootstrap
 quarto.doc.project_output_file = projectRelativeOutputFile
 quarto.utils.resolvePath = quarto.utils.resolve_path
-
-

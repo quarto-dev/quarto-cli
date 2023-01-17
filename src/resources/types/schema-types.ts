@@ -808,13 +808,17 @@ place the contents into a `div` with this id. If no such `div` is defined on the
 page, a `div` with this id will be created and appended to the end of the page.
 
 In no `id` is provided for a listing, Quarto will synthesize one when rendering the page. */;
-  sort?: MaybeArrayOf<
-    string
-  > /* Sort items in the listing by these fields. The sort key is made up of a
+  sort?:
+    | boolean
+    | MaybeArrayOf<
+      string
+    > /* Sort items in the listing by these fields. The sort key is made up of a
 field name followed by a direction `asc` or `desc`.
 
 For example:
-`date asc` */;
+`date asc`
+
+Use `sort:false` to use the unsorted original order of items. */;
   type?:
     | "default"
     | "table"

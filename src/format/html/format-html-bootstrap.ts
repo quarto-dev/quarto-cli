@@ -22,9 +22,7 @@ import {
   kNotebookLinks,
   kQuartoTemplateParams,
   kRelatedFormatsTitle,
-  kRelatedNotebooksTitle,
   kSectionDivs,
-  kSourceNotebookPrefix,
   kTargetFormat,
   kTocDepth,
   kTocLocation,
@@ -61,6 +59,7 @@ import {
   HtmlPostProcessResult,
   PandocInputTraits,
   RenderedFormat,
+  RenderServices,
 } from "../../command/render/types.ts";
 import { processDocumentAppendix } from "./format-html-appendix.ts";
 import {
@@ -80,8 +79,10 @@ import {
   isPdfOutput,
   isPresentationOutput,
 } from "../../config/format.ts";
-import * as ld from "../../core/lodash.ts";
 import { basename } from "path/mod.ts";
+import { processNotebookEmbeds } from "./format-html-notebook.ts";
+import { projectContext } from "../../project/project-context.ts";
+import { ProjectContext } from "../../project/types.ts";
 
 export function formatPageLayout(format: Format) {
   return format.metadata[kPageLayout] as string || kPageLayoutArticle;
@@ -126,8 +127,9 @@ export function boostrapExtras(
   input: string,
   flags: PandocFlags,
   format: Format,
-  temp: TempContext,
+  services: RenderServices,
   offset?: string,
+  project?: ProjectContext,
 ): FormatExtras {
   const toc = hasTableOfContents(flags, format);
   const tocLocation = toc
@@ -177,7 +179,11 @@ export function boostrapExtras(
     sassLayers.push(titleSassLayer);
   }
   const includeInHeader: string[] = [];
-  const titleInclude = documentTitleIncludeInHeader(input, format, temp);
+  const titleInclude = documentTitleIncludeInHeader(
+    input,
+    format,
+    services.temp,
+  );
   if (titleInclude) {
     includeInHeader.push(titleInclude);
   }
@@ -208,7 +214,9 @@ export function boostrapExtras(
           input,
           format,
           flags,
+          services,
           offset,
+          project,
         ),
       ],
       [kHtmlFinalizers]: [
@@ -229,7 +237,9 @@ function bootstrapHtmlPostprocessor(
   input: string,
   format: Format,
   flags: PandocFlags,
+  services: RenderServices,
   offset?: string,
+  project?: ProjectContext,
 ): HtmlPostProcessor {
   return async (
     doc: Document,
@@ -241,6 +251,7 @@ function bootstrapHtmlPostprocessor(
   ): Promise<HtmlPostProcessResult> => {
     // Resources used in this post processor
     const resources: string[] = [];
+    const supporting: string[] = [];
 
     // use display-7 style for title
     const title = doc.querySelector("header > .title");
@@ -329,7 +340,17 @@ function bootstrapHtmlPostprocessor(
 
     // Look for included / embedded notebooks and include those
     if (format.render[kNotebookLinks] !== false) {
-      processNotebookEmbeds(doc, format, resources);
+      const notebookResults = await processNotebookEmbeds(
+        input,
+        doc,
+        format,
+        services,
+        project,
+      );
+      if (notebookResults) {
+        resources.push(...notebookResults.resources);
+        supporting.push(...notebookResults.supporting);
+      }
     }
 
     // default treatment for computational tables
@@ -414,9 +435,8 @@ function bootstrapHtmlPostprocessor(
         offset,
       );
     }
-
     // no resource refs
-    return Promise.resolve({ resources, supporting: [] });
+    return Promise.resolve({ resources, supporting });
   };
 }
 
@@ -534,113 +554,6 @@ function processAlternateFormatLinks(
       }
       containerEl.appendChild(formatList);
       dlLinkTarget.appendChild(containerEl);
-    }
-  }
-}
-
-function processNotebookEmbeds(
-  doc: Document,
-  format: Format,
-  resources: string[],
-) {
-  const inline = format.render[kNotebookLinks] === "inline" ||
-    format.render[kNotebookLinks] === true;
-  const global = format.render[kNotebookLinks] === "global" ||
-    format.render[kNotebookLinks] === true;
-
-  const notebookDivNodes = doc.querySelectorAll("[data-notebook]");
-  if (notebookDivNodes.length > 0) {
-    const nbPaths: { path: string; title: string; filename: string }[] = [];
-    let count = 1;
-    notebookDivNodes.forEach((nbDivNode) => {
-      const nbDivEl = nbDivNode as Element;
-      nbDivEl.classList.add("quarto-notebook");
-      const notebookPath = nbDivEl.getAttribute("data-notebook");
-      if (notebookPath) {
-        const title = nbDivEl.getAttribute("data-notebook-title");
-        const filename = basename(notebookPath);
-
-        const nbPath = {
-          path: notebookPath,
-          title: title || filename,
-          filename,
-        };
-        nbPaths.push(nbPath);
-
-        // Add a decoration to this div node
-        if (inline) {
-          const id = "nblink-" + count++;
-
-          const nbLinkEl = doc.createElement("a");
-          nbLinkEl.classList.add("quarto-notebook-link");
-          nbLinkEl.setAttribute("id", `${id}`);
-          nbLinkEl.setAttribute("href", nbPath.path);
-          nbLinkEl.setAttribute("download", nbPath.filename);
-          nbLinkEl.appendChild(
-            doc.createTextNode(
-              `${format.language[kSourceNotebookPrefix]}: ${nbPath.title}`,
-            ),
-          );
-
-          // If there is a figure caption, place the source after that
-          // otherwise just place it at the bottom of the notebook div
-          const nbParentEl = nbDivEl.parentElement;
-          if (nbParentEl?.tagName.toLocaleLowerCase() === "figure") {
-            const figCapEl = nbDivEl.parentElement?.querySelector("figcaption");
-            if (figCapEl) {
-              figCapEl.after(nbLinkEl);
-            } else {
-              nbDivEl.appendChild(nbLinkEl);
-            }
-          } else {
-            nbDivEl.appendChild(nbLinkEl);
-          }
-        }
-      }
-    });
-
-    if (global) {
-      const containerEl = doc.createElement("div");
-      containerEl.classList.add("quarto-alternate-notebooks");
-
-      const heading = doc.createElement("h2");
-      if (format.language[kRelatedNotebooksTitle]) {
-        heading.innerText = format.language[kRelatedNotebooksTitle];
-      }
-      containerEl.appendChild(heading);
-
-      const formatList = doc.createElement("ul");
-      containerEl.appendChild(formatList);
-      ld.uniqBy(nbPaths, (nbPath: { path: string; title?: string }) => {
-        return nbPath.path;
-      }).forEach((nbPath) => {
-        const li = doc.createElement("li");
-
-        const link = doc.createElement("a");
-        link.setAttribute("href", nbPath.path);
-        link.setAttribute("download", nbPath.filename);
-
-        const icon = doc.createElement("i");
-        icon.classList.add("bi");
-        icon.classList.add(`bi-journal-code`);
-        link.appendChild(icon);
-        link.appendChild(
-          doc.createTextNode(nbPath.title),
-        );
-
-        li.appendChild(link);
-        formatList.appendChild(li);
-
-        resources.push(nbPath.path);
-      });
-      let dlLinkTarget = doc.querySelector(`nav[role="doc-toc"]`);
-      if (dlLinkTarget === null) {
-        dlLinkTarget = doc.querySelector("#quarto-margin-sidebar");
-      }
-
-      if (dlLinkTarget) {
-        dlLinkTarget.appendChild(containerEl);
-      }
     }
   }
 }

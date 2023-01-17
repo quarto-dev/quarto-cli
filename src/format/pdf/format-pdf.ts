@@ -41,7 +41,7 @@ import { Format, FormatExtras, PandocFlags } from "../../config/types.ts";
 
 import { createFormat } from "../formats-shared.ts";
 
-import { RenderedFile } from "../../command/render/types.ts";
+import { RenderedFile, RenderServices } from "../../command/render/types.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { BookExtension } from "../../project/types/book/book-shared.ts";
 
@@ -120,7 +120,7 @@ function createPdfFormat(
         flags: PandocFlags,
         format: Format,
         _libDir: string,
-        temp: TempContext,
+        services: RenderServices,
       ) => {
         const extras: FormatExtras = {};
 
@@ -131,7 +131,9 @@ function createPdfFormat(
         }
 
         // Post processed for dealing with latex output
-        extras.postprocessors = [pdfLatexPostProcessor(flags, format, temp)];
+        extras.postprocessors = [
+          pdfLatexPostProcessor(flags, format, services.temp),
+        ];
 
         // user may have overridden koma, check for that here
         const documentclass = format.metadata[kDocumentClass] as
@@ -294,7 +296,7 @@ function pdfLatexPostProcessor(
       calloutFigureHoldLineProcessor(),
     ];
 
-    const marginCites = format.metadata[kCitationLocation];
+    const marginCites = format.metadata[kCitationLocation] === "margin";
     const renderedCites = {};
     if (marginCites) {
       // Based upon the cite method, post process the file to
@@ -331,6 +333,8 @@ function pdfLatexPostProcessor(
     }
 
     lineProcessors.push(captionFootnoteLineProcessor());
+    lineProcessors.push(codeAnnotationPostProcessor());
+    lineProcessors.push(codeListAnnotationPostProcessor());
 
     await processLines(output, lineProcessors, temp);
     if (Object.keys(renderedCites).length > 0) {
@@ -737,6 +741,66 @@ const placePandocBibliographyEntries = (
         return citeKey;
       }
     });
+  };
+};
+
+const kCodeAnnotationRegex =
+  /(.*)\\CommentTok\{\\\# \\textless\{\}(\d)\\textgreater\{\}\s*\}$/gm;
+const kCodePlainAnnotationRegex = /(.*)% \((\d)\)$/g;
+const codeAnnotationPostProcessor = () => {
+  let lastAnnotation: string | undefined;
+
+  return (line: string): string | undefined => {
+    if (line === "\\begin{Shaded}") {
+      lastAnnotation = undefined;
+    }
+
+    // Replace colorized code
+    line = line.replaceAll(
+      kCodeAnnotationRegex,
+      (_match, prefix: string, annotationNumber: string) => {
+        if (annotationNumber !== lastAnnotation) {
+          lastAnnotation = annotationNumber;
+          return `${prefix}\\hspace*{\\fill}\\NormalTok{\\circled{${annotationNumber}}}`;
+        } else {
+          return `${prefix}`;
+        }
+      },
+    );
+
+    // Replace plain code
+    line = line.replaceAll(
+      kCodePlainAnnotationRegex,
+      (_match, prefix: string, annotationNumber: string) => {
+        if (annotationNumber !== lastAnnotation) {
+          lastAnnotation = annotationNumber;
+
+          const replaceValue = `(${annotationNumber})`;
+          const paddingNumber = Math.max(
+            0,
+            75 - prefix.length - replaceValue.length,
+          );
+          const padding = " ".repeat(paddingNumber);
+          return `${prefix}${padding}${replaceValue}`;
+        } else {
+          return `${prefix}`;
+        }
+      },
+    );
+
+    return line;
+  };
+};
+
+const kListAnnotationRegex = /(.*)5CB6E08D-list-annote-(\d)(.*)/g;
+const codeListAnnotationPostProcessor = () => {
+  return (line: string): string | undefined => {
+    return line.replaceAll(
+      kListAnnotationRegex,
+      (_match, prefix: string, annotationNumber: string, suffix: string) => {
+        return `${prefix}\\circled{${annotationNumber}}${suffix}`;
+      },
+    );
   };
 };
 

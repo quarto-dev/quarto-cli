@@ -125,7 +125,7 @@ export async function publishDeployments(
   const deployments: PublishDeploymentWithAccount[] = [];
 
   // see if there are any static publish records for this directory
-  for (const provider of await publishProviders()) {
+  for (const provider of publishProviders()) {
     if (
       (!providerFilter || providerFilter === provider.name) &&
       provider.publishRecord
@@ -214,7 +214,8 @@ export async function chooseDeployment(
       try {
         const targetOrigin = new URL(deployment.target.url!).origin;
         if (
-          originCounts.get(targetOrigin) === 1 && (deployment.provider?.listOriginOnly ?? false)
+          originCounts.get(targetOrigin) === 1 &&
+          (deployment.provider?.listOriginOnly ?? false)
         ) {
           url = targetOrigin;
         }

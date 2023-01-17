@@ -304,7 +304,7 @@ export function resolveTextHighlightingLayer(
     }
 
     const functionColor = readTextColor("Function");
-    if (commentColor) {
+    if (functionColor) {
       layer.defaults = layer.defaults + "\n" + outputVariable(
         sassVariable(
           "btn-code-copy-color-active",

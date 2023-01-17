@@ -1,0 +1,31 @@
+---
+format: html
+filters:
+  - ensure-inner-content.lua
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['div.inner-content.filter-ran']
+---
+
+::: {.callout-note}
+
+## This is a title 
+
+::: {.inner-content}
+
+This is the content
+
+:::
+
+:::
+
+::: {.content-visible when-format="html"}
+
+Some content.
+
+Some stuff.
+
+:::
+
