@@ -142,6 +142,11 @@ local function latexListPlaceholder(number)
   return '5CB6E08D-list-annote-' .. number 
 end
 
+local function toLines(s)
+  if s:sub(-1)~="\n" then s=s.."\n" end
+  return s:gmatch("(.-)\n")
+end
+
 -- Finds annotations in a code cell and returns 
 -- the annotations as well as a code cell that
 -- removes the annotations
@@ -153,12 +158,14 @@ local function resolveCellAnnotes(codeBlockEl, processAnnotation)
   if annotationProvider ~= nil then
     local annotations = {}
     local code = codeBlockEl.text
-    local lines = split(code, "\n")
+    
     local outputs = pandoc.List({})
-    for i, line in ipairs(lines) do
+    local i = 1
+    for line in toLines(code) do
   
       -- Look and annotation
       local annoteNumber = annotationProvider.annotationNumber(line)
+      
       if annoteNumber then
         -- Capture the annotation number and strip it
         local annoteId = toAnnoteId(annoteNumber)
@@ -172,11 +179,15 @@ local function resolveCellAnnotes(codeBlockEl, processAnnotation)
       else
         outputs:insert(line)
       end
+      i = i + 1
     end    
+
+    quarto.log.output(outputs)
+    quarto.log.output(annotations)
 
     -- if we capture annotations, then replace the code source
     -- code, stripping annotation comments
-    if #annotations > 0 then
+    if annotations and next(annotations) ~= nil then
       local outputText = ""
       for i, output in ipairs(outputs) do
         outputText = outputText .. output .. '\n'
@@ -281,7 +292,7 @@ end
 function processAnnotation(line, annoteNumber, annotationProvider)
     -- For all other formats, just strip the annotation- the definition list is converted
     -- to be based upon line numbers. 
-    local stripped = annotationProvider.stripAnnotation(line, annoteNumber)
+        local stripped = annotationProvider.stripAnnotation(line, annoteNumber)
     return stripped
 end
 

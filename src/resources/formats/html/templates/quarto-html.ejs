@@ -412,7 +412,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       };
     <% } %>
 
-    <% if (codeAnnotations === "below")  { %>
+    <% if (codeAnnotations === true || codeAnnotations === "below")  { %>
       
       // Attach click handler to the DT
       const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
