@@ -395,7 +395,10 @@ function code()
 
         for i, block in ipairs(blocks) do
           if block.t == 'Div' and block.attr.classes:find('cell') then
-            -- walk to find the code and 
+            -- Process executable code blocks 
+            -- In the case of executable code blocks, we actually want
+            -- to shift the OL up above the output, so we hang onto this outer
+            -- cell so we can move the OL up into it if there are annotations
             local processedAnnotation = false
             local resolvedBlock = pandoc.walk_block(block, {
               CodeBlock = function(el)
@@ -414,14 +417,19 @@ function code()
               end
             })
             if processedAnnotation then
+              -- we found annotations, so hand onto this cell
               pendingCodeCell = resolvedBlock
             else
+              -- no annotations, just output it
               outputBlock(resolvedBlock)
             end
           elseif block.t == 'CodeBlock'  then
             -- don't process code cell output here - we'll get it above
+            -- This processes non-executable code blocks
             if not block.attr.classes:find('cell-code') then
 
+              -- If there is a pending code cell and we get here, just
+              -- output the pending code cell and continue
               if pendingCodeCell then
                 outputBlock(pendingCodeCell)
                 clearPending()
