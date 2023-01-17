@@ -862,6 +862,9 @@ function processLineAnnotation(
         kCodeAnnotationTargetAttr,
         `${targetAnnotation}`,
       );
+      if (!interactive) {
+        annoteAnchorEl.setAttribute("onclick", "event.preventDefault();");
+      }
       annoteAnchorEl.innerText = targetAnnotation || "?";
       targetEl.parentElement?.insertBefore(annoteAnchorEl, targetEl);
       targetEl.classList.add(kCodeAnnotationTargetClz);
