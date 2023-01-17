@@ -19,11 +19,44 @@ import { ValidationError } from "../../../src/core/lib/yaml-schema/validated-yam
 import { isEqual } from "../../../src/core/lodash.ts";
 import { assertRejects } from "testing/asserts.ts";
 import { readYamlFromString } from "../../../src/core/yaml.ts";
+import { readAnnotatedYamlFromMappedString } from "../../../src/core/schema/annotated-yaml.ts";
+import {
+  asMappedString,
+  MappedString,
+} from "../../../src/core/lib/mapped-text.ts";
+import {
+  AnnotatedParse,
+  Schema,
+} from "../../../src/core/lib/yaml-schema/types.ts";
+import { navigate } from "../../../src/core/lib/yaml-intelligence/annotated-yaml.ts";
+import { idSchema } from "../../../src/core/lib/yaml-schema/common.ts";
+
 export const schemaTestFile = fileLoader("schema-validation");
 
 export async function fullInit() {
   await initYamlIntelligenceResourcesFromFilesystem();
   await ensureSchemaResources();
+}
+
+export function readSelfValidatingSchemaTestFile(file: string): {
+  annotation: AnnotatedParse;
+  mappedYaml: MappedString;
+  schema: Schema;
+} {
+  const mappedYaml = asMappedString(Deno.readTextFileSync(file));
+  const annotatedYaml = readAnnotatedYamlFromMappedString(
+    mappedYaml,
+  );
+  const annotation = navigate(["value"], annotatedYaml)!;
+
+  // deno-lint-ignore no-explicit-any
+  let schema = convertFromYaml((annotatedYaml.result as any).schema);
+  if (schema.$id === undefined) {
+    schema = idSchema(schema, String(Math.random()).slice(2));
+  }
+  setSchemaDefinition(schema);
+
+  return { annotation, schema, mappedYaml };
 }
 
 export function schemaFromString(schemaStr: string) {

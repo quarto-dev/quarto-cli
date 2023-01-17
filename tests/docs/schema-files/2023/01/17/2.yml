@@ -1,0 +1,25 @@
+schema:
+  anyOf:
+    - ref: citation-item
+    - boolean
+value:
+  container-title: Container Title
+  container-title-short: "C. Title."
+  citation-key: Teague2020
+  isbn: 123123-123131
+  issn: 12313-12312-23
+  issue: 53
+  issued: 2021/05/23
+  volume: 1
+  number: 7
+  page: 23-29
+  type: report
+  doi: 10-12312-123
+  editor:
+    - Don Draper
+  abstract-url: https://www.google.org/abstract
+  public-url: https://www.quarto.org/public
+  pdf-url: https://www.quarto.org/public/pdf
+  fulltext-url: https://www.quarto.org/fulltext
+  collection-title: foo
+  keyword: "foo, bar"

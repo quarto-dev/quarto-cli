@@ -175,18 +175,21 @@ export function objectSchema(params: {
       namingConvention,
     );
     if (pattern !== undefined) {
+      const caseConventionSchema: Schema = {
+        errorMessage: "property ${value} does not match case convention",
+        "type": "string",
+        pattern,
+        tags: {
+          "case-convention": list,
+          "error-importance": -5,
+        },
+      };
       if (propertyNames === undefined) {
-        propertyNames = {
-          "type": "string",
-          pattern,
-        };
+        propertyNames = caseConventionSchema;
       } else {
         propertyNames = allOfSchema(
           propertyNames,
-          {
-            "type": "string",
-            pattern,
-          },
+          caseConventionSchema,
         );
       }
       tags["case-convention"] = list;

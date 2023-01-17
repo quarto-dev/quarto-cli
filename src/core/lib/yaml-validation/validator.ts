@@ -153,6 +153,14 @@ class ValidationContext {
         // As a last resort, we sort suggestions based on "quality"
         const errorTypeQuality = (e: ValidationError): number => {
           const t = e.schemaPath.slice().reverse();
+          if (typeof e.schema === "object") {
+            if (
+              e.schema.tags && e.schema.tags["error-importance"] &&
+              typeof e.schema.tags["error-importance"] === "number"
+            ) {
+              return e.schema.tags["error-importance"];
+            }
+          }
           if (e.schemaPath.indexOf("propertyNames") !== -1) {
             // suggesting invalid property names is bad if there are other errors to report
             return 10;
