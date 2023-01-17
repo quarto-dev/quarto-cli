@@ -20967,8 +20967,15 @@ try {
               "name"
             ],
             propertyNames: {
+              errorMessage: "property ${value} does not match case convention",
               type: "string",
-              pattern: "^(?!(self_contained|selfContained))"
+              pattern: "^(?!(self_contained|selfContained))",
+              tags: {
+                "case-convention": [
+                  "dash-case"
+                ],
+                "error-importance": -5
+              }
             },
             tags: {
               "case-convention": [
@@ -21081,8 +21088,15 @@ try {
           },
           patternProperties: {},
           propertyNames: {
+            errorMessage: "property ${value} does not match case convention",
             type: "string",
-            pattern: "^(?!(mermaid_format|mermaidFormat))"
+            pattern: "^(?!(mermaid_format|mermaidFormat))",
+            tags: {
+              "case-convention": [
+                "dash-case"
+              ],
+              "error-importance": -5
+            }
           },
           tags: {
             "case-convention": [
@@ -28144,6 +28158,11 @@ ${tidyverseInfo(
           }
           const errorTypeQuality = (e) => {
             const t = e.schemaPath.slice().reverse();
+            if (typeof e.schema === "object") {
+              if (e.schema.tags && e.schema.tags["error-importance"] && typeof e.schema.tags["error-importance"] === "number") {
+                return e.schema.tags["error-importance"];
+              }
+            }
             if (e.schemaPath.indexOf("propertyNames") !== -1) {
               return 10;
             }
@@ -28782,18 +28801,21 @@ ${tidyverseInfo(
         namingConvention
       );
       if (pattern !== void 0) {
+        const caseConventionSchema = {
+          errorMessage: "property ${value} does not match case convention",
+          "type": "string",
+          pattern,
+          tags: {
+            "case-convention": list,
+            "error-importance": -5
+          }
+        };
         if (propertyNames === void 0) {
-          propertyNames = {
-            "type": "string",
-            pattern
-          };
+          propertyNames = caseConventionSchema;
         } else {
           propertyNames = allOfSchema(
             propertyNames,
-            {
-              "type": "string",
-              pattern
-            }
+            caseConventionSchema
           );
         }
         tags["case-convention"] = list;

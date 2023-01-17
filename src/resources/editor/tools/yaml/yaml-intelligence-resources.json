@@ -13942,8 +13942,15 @@
         "name"
       ],
       "propertyNames": {
+        "errorMessage": "property ${value} does not match case convention",
         "type": "string",
-        "pattern": "^(?!(self_contained|selfContained))"
+        "pattern": "^(?!(self_contained|selfContained))",
+        "tags": {
+          "case-convention": [
+            "dash-case"
+          ],
+          "error-importance": -5
+        }
       },
       "tags": {
         "case-convention": [
@@ -14056,8 +14063,15 @@
     },
     "patternProperties": {},
     "propertyNames": {
+      "errorMessage": "property ${value} does not match case convention",
       "type": "string",
-      "pattern": "^(?!(mermaid_format|mermaidFormat))"
+      "pattern": "^(?!(mermaid_format|mermaidFormat))",
+      "tags": {
+        "case-convention": [
+          "dash-case"
+        ],
+        "error-importance": -5
+      }
     },
     "tags": {
       "case-convention": [
