@@ -182,9 +182,6 @@ local function resolveCellAnnotes(codeBlockEl, processAnnotation)
       i = i + 1
     end    
 
-    quarto.log.output(outputs)
-    quarto.log.output(annotations)
-
     -- if we capture annotations, then replace the code source
     -- code, stripping annotation comments
     if annotations and next(annotations) ~= nil then
