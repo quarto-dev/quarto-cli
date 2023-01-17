@@ -20966,20 +20966,23 @@ var require_yaml_intelligence_resources = __commonJS({
             "name"
           ],
           propertyNames: {
-            errorMessage: "property ${value} does not match case convention",
+            errorMessage: "property ${value} does not match case convention path,name,register,script,stylesheet,self-contained",
             type: "string",
             pattern: "^(?!(self_contained|selfContained))",
             tags: {
               "case-convention": [
                 "dash-case"
               ],
-              "error-importance": -5
+              "error-importance": -5,
+              "case-detection": true
             }
           },
           tags: {
             "case-convention": [
               "dash-case"
-            ]
+            ],
+            "error-importance": -5,
+            "case-detection": true
           },
           $id: "plugin-reveal"
         }
@@ -21087,20 +21090,23 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         patternProperties: {},
         propertyNames: {
-          errorMessage: "property ${value} does not match case convention",
+          errorMessage: "property ${value} does not match case convention mermaid-format,theme",
           type: "string",
           pattern: "^(?!(mermaid_format|mermaidFormat))",
           tags: {
             "case-convention": [
               "dash-case"
             ],
-            "error-importance": -5
+            "error-importance": -5,
+            "case-detection": true
           }
         },
         tags: {
           "case-convention": [
             "dash-case"
-          ]
+          ],
+          "error-importance": -5,
+          "case-detection": true
         },
         $id: "handlers/mermaid"
       }
@@ -28777,41 +28783,48 @@ function objectSchema(params = {}) {
   required = required || [];
   properties = properties || {};
   patternProperties = patternProperties || {};
-  const tags = {};
+  let tags = {};
   let tagsAreSet = false;
   let propertyNames = propertyNamesSchema;
-  const objectKeys = Object.getOwnPropertyNames(completionsParam || properties);
-  if (namingConvention !== "ignore") {
-    const { pattern, list } = resolveCaseConventionRegex(
-      objectKeys,
-      namingConvention
-    );
-    if (pattern !== void 0) {
-      const caseConventionSchema = {
-        errorMessage: "property ${value} does not match case convention",
-        "type": "string",
-        pattern,
-        tags: {
-          "case-convention": list,
-          "error-importance": -5
-        }
-      };
-      if (propertyNames === void 0) {
-        propertyNames = caseConventionSchema;
-      } else {
-        propertyNames = allOfSchema(
-          propertyNames,
-          caseConventionSchema
-        );
-      }
-      tags["case-convention"] = list;
-      tagsAreSet = true;
-    }
-  }
   if (completionsParam) {
     tags["completions"] = completionsParam;
     tagsAreSet = true;
   }
+  const createCaseConventionSchema = (props) => {
+    if (namingConvention === "ignore") {
+      return void 0;
+    }
+    const objectKeys = Object.getOwnPropertyNames(
+      props
+    );
+    const { pattern, list } = resolveCaseConventionRegex(
+      objectKeys,
+      namingConvention
+    );
+    if (pattern === void 0) {
+      return void 0;
+    }
+    if (propertyNames !== void 0) {
+      console.error(
+        "Warning: propertyNames and case convention detection are mutually exclusive."
+      );
+      console.error(
+        "Add `namingConvention: 'ignore'` to your schema definition to remove this warning."
+      );
+      return void 0;
+    }
+    const tags2 = {
+      "case-convention": list,
+      "error-importance": -5,
+      "case-detection": true
+    };
+    return {
+      errorMessage: `property \${value} does not match case convention ${objectKeys.join(",")}`,
+      "type": "string",
+      pattern,
+      tags: tags2
+    };
+  };
   const hasDescription = description !== void 0;
   description = description || "be an object";
   let result = void 0;
@@ -28879,7 +28892,9 @@ function objectSchema(params = {}) {
     );
     result.patternProperties = Object.assign(
       {},
-      ...baseSchema.map((s) => s.patternProperties),
+      ...baseSchema.map((s) => s.patternProperties).filter(
+        (s) => s !== void 0
+      ),
       patternProperties
     );
     result.required = [
@@ -28896,15 +28911,36 @@ function objectSchema(params = {}) {
     if (additionalPropArray.length) {
       result.additionalProperties = allOfSchema(...additionalPropArray);
     }
-    const propNamesArray = baseSchema.map((s) => s.propertyNames).filter((s) => s !== void 0);
-    if (propertyNames) {
-      propNamesArray.push(propertyNames);
-    }
-    if (propNamesArray.length === baseSchema.length + 1) {
+    let filtered = false;
+    const propNamesArray = baseSchema.map((s) => s.propertyNames).filter((s) => {
+      if (typeof s !== "object")
+        return true;
+      if (s.tags === void 0)
+        return true;
+      if (s.tags["case-detection"] === true) {
+        filtered = true;
+        return false;
+      }
+      return true;
+    }).filter((s) => s !== void 0);
+    if (propNamesArray.length === 1) {
+      result.propertyNames = propNamesArray[0];
+    } else if (propNamesArray.length > 1) {
       result.propertyNames = anyOfSchema(...propNamesArray);
+    } else {
+      delete result.propertyNames;
     }
     result.closed = closed || baseSchema.some((s) => s.closed);
   } else {
+    const caseConventionSchema = createCaseConventionSchema(properties);
+    if (caseConventionSchema !== void 0) {
+      propertyNames = caseConventionSchema;
+      tags = {
+        ...tags,
+        ...caseConventionSchema.tags
+      };
+      tagsAreSet = true;
+    }
     result = {
       ...internalId(),
       "type": "object",
@@ -29499,7 +29535,7 @@ function convertFromRecord(yaml) {
 function convertFromObject(yaml) {
   const schema2 = yaml["object"];
   const params = {};
-  if (schema2.namingConvention) {
+  if (schema2.namingConvention && typeof schema2.namingConvention === "string") {
     switch (schema2.namingConvention) {
       case "capitalizationCase":
         params.namingConvention = "capitalizationCase";
@@ -29558,6 +29594,7 @@ function convertFromObject(yaml) {
       default:
         throw new Error("Internal Error: this should have failed validation");
     }
+  } else {
     params.namingConvention = schema2.namingConvention;
   }
   if (schema2.properties) {

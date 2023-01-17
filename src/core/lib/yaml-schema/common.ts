@@ -163,43 +163,56 @@ export function objectSchema(params: {
   properties = properties || {};
   patternProperties = patternProperties || {};
   // deno-lint-ignore no-explicit-any
-  const tags: Record<string, any> = {};
+  let tags: Record<string, any> = {};
   let tagsAreSet = false;
   let propertyNames: Schema | undefined = propertyNamesSchema;
 
-  const objectKeys = Object.getOwnPropertyNames(completionsParam || properties);
-
-  if (namingConvention !== "ignore") {
-    const { pattern, list } = resolveCaseConventionRegex(
-      objectKeys,
-      namingConvention,
-    );
-    if (pattern !== undefined) {
-      const caseConventionSchema: Schema = {
-        errorMessage: "property ${value} does not match case convention",
-        "type": "string",
-        pattern,
-        tags: {
-          "case-convention": list,
-          "error-importance": -5,
-        },
-      };
-      if (propertyNames === undefined) {
-        propertyNames = caseConventionSchema;
-      } else {
-        propertyNames = allOfSchema(
-          propertyNames,
-          caseConventionSchema,
-        );
-      }
-      tags["case-convention"] = list;
-      tagsAreSet = true;
-    }
-  }
   if (completionsParam) {
     tags["completions"] = completionsParam;
     tagsAreSet = true;
   }
+
+  const createCaseConventionSchema = (
+    props: { [k: string]: Schema },
+  ): StringSchema | undefined => {
+    // 2023-01-17: we no longer support propertyNames _and_ case convention detection.
+    // if propertyNames are defined, we don't add case convention detection.
+    // this simplifies the logic and makes schema debugging easier.
+    if (namingConvention === "ignore") {
+      return undefined;
+    }
+    const objectKeys = Object.getOwnPropertyNames(
+      props,
+    );
+    const { pattern, list } = resolveCaseConventionRegex(
+      objectKeys,
+      namingConvention,
+    );
+    if (pattern === undefined) {
+      return undefined;
+    }
+    if (propertyNames !== undefined) {
+      console.error(
+        "Warning: propertyNames and case convention detection are mutually exclusive.",
+      );
+      console.error(
+        "Add `namingConvention: 'ignore'` to your schema definition to remove this warning.",
+      );
+      return undefined;
+    }
+    const tags = {
+      "case-convention": list,
+      "error-importance": -5,
+      "case-detection": true,
+    };
+    return {
+      errorMessage: "property ${value} does not match case convention " +
+        `${objectKeys.join(",")}`,
+      "type": "string",
+      pattern,
+      tags,
+    };
+  };
 
   const hasDescription = description !== undefined;
   description = description || "be an object";
@@ -279,7 +292,9 @@ export function objectSchema(params: {
     );
     result.patternProperties = Object.assign(
       {},
-      ...(baseSchema.map((s) => s.patternProperties)),
+      ...(baseSchema.map((s) => s.patternProperties).filter((s) =>
+        s !== undefined
+      )),
       patternProperties,
     );
 
@@ -314,18 +329,46 @@ export function objectSchema(params: {
     //
     // as a result, we only set propertyNames on the extended schema if both
     // all propertyNames fields are defined.
+
+    // if we subclass from something with patternProperties that came from case convention
+    // detection, ignore that.
+
+    let filtered = false;
     const propNamesArray = baseSchema.map((s) => s.propertyNames)
+      .filter((s) => {
+        if (typeof s !== "object") return true;
+        if (s.tags === undefined) return true;
+        if (s.tags["case-detection"] === true) {
+          filtered = true;
+          return false;
+        }
+        return true;
+      })
       .filter((s) => s !== undefined) as Schema[];
-    if (propertyNames) {
-      propNamesArray.push(propertyNames);
-    }
-    if (propNamesArray.length === baseSchema.length + 1) {
+    // if (propertyNames) {
+    //   propNamesArray.push(propertyNames);
+    // }
+    if (propNamesArray.length === 1) {
+      result.propertyNames = propNamesArray[0];
+    } else if (propNamesArray.length > 1) {
       result.propertyNames = anyOfSchema(...propNamesArray);
+    } else {
+      delete result.propertyNames;
     }
 
     // if either of schema or base schema is closed, the derived schema is also closed.
     result.closed = closed || baseSchema.some((s) => s.closed);
   } else {
+    const caseConventionSchema = createCaseConventionSchema(properties);
+    if (caseConventionSchema !== undefined) {
+      propertyNames = caseConventionSchema;
+      tags = {
+        ...tags,
+        ...caseConventionSchema.tags,
+      };
+      tagsAreSet = true;
+    }
+
     result = {
       ...internalId(),
       "type": "object",

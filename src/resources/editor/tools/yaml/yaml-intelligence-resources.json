@@ -13942,20 +13942,23 @@
         "name"
       ],
       "propertyNames": {
-        "errorMessage": "property ${value} does not match case convention",
+        "errorMessage": "property ${value} does not match case convention path,name,register,script,stylesheet,self-contained",
         "type": "string",
         "pattern": "^(?!(self_contained|selfContained))",
         "tags": {
           "case-convention": [
             "dash-case"
           ],
-          "error-importance": -5
+          "error-importance": -5,
+          "case-detection": true
         }
       },
       "tags": {
         "case-convention": [
           "dash-case"
-        ]
+        ],
+        "error-importance": -5,
+        "case-detection": true
       },
       "$id": "plugin-reveal"
     }
@@ -14063,20 +14066,23 @@
     },
     "patternProperties": {},
     "propertyNames": {
-      "errorMessage": "property ${value} does not match case convention",
+      "errorMessage": "property ${value} does not match case convention mermaid-format,theme",
       "type": "string",
       "pattern": "^(?!(mermaid_format|mermaidFormat))",
       "tags": {
         "case-convention": [
           "dash-case"
         ],
-        "error-importance": -5
+        "error-importance": -5,
+        "case-detection": true
       }
     },
     "tags": {
       "case-convention": [
         "dash-case"
-      ]
+      ],
+      "error-importance": -5,
+      "case-detection": true
     },
     "$id": "handlers/mermaid"
   }
