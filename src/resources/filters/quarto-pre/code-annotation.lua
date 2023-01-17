@@ -176,7 +176,7 @@ local function resolveCellAnnotes(codeBlockEl, processAnnotation)
 
     -- if we capture annotations, then replace the code source
     -- code, stripping annotation comments
-    if #annotations then
+    if #annotations > 0 then
       local outputText = ""
       for i, output in ipairs(outputs) do
         outputText = outputText .. output .. '\n'
