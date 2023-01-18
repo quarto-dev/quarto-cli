@@ -57,6 +57,7 @@ import { clearProjectIndex } from "../../project/project-index.ts";
 import {
   hasProjectOutputDir,
   projectExcludeDirs,
+  projectFormatOutputDir,
   projectOutputDir,
 } from "../../project/project-shared.ts";
 import { asArray } from "../../core/array.ts";
@@ -266,10 +267,10 @@ export async function renderProject(
     context,
   );
 
-  if (outputDirAbsolute) {
+  const directoryRelocator = (destinationDir: string) => {
     // move or copy dir
-    const relocateDir = (dir: string, copy = false) => {
-      const targetDir = join(outputDirAbsolute, dir);
+    return (dir: string, copy = false) => {
+      const targetDir = join(destinationDir, dir);
       if (existsSync(targetDir)) {
         Deno.removeSync(targetDir, { recursive: true });
       }
@@ -283,9 +284,9 @@ export async function renderProject(
         }
       }
     };
-    const moveDir = relocateDir;
-    const copyDir = (dir: string) => relocateDir(dir, true);
+  };
 
+  if (outputDirAbsolute) {
     // track whether we need to keep the lib dir around
     let keepLibsDir = false;
 
@@ -293,8 +294,18 @@ export async function renderProject(
     for (let i = 0; i < fileResults.files.length; i++) {
       const renderedFile = fileResults.files[i];
 
+      const formatOutputDir = projectFormatOutputDir(
+        renderedFile.format,
+        context,
+        projectType(context.config?.project.type),
+      );
+
+      const formatRelocateDir = directoryRelocator(formatOutputDir);
+      const moveFormatDir = formatRelocateDir;
+      const copyFormatDir = (dir: string) => formatRelocateDir(dir, true);
+
       // move the renderedFile to the output dir
-      const outputFile = join(outputDirAbsolute, renderedFile.file);
+      const outputFile = join(formatOutputDir, renderedFile.file);
       ensureDirSync(dirname(outputFile));
       Deno.renameSync(join(projDir, renderedFile.file), outputFile);
 
@@ -313,9 +324,9 @@ export async function renderProject(
           );
         });
         if (keepFiles) {
-          renderedFile.supporting.map((file) => copyDir(file));
+          renderedFile.supporting.map((file) => copyFormatDir(file));
         } else {
-          renderedFile.supporting.map((file) => moveDir(file));
+          renderedFile.supporting.map((file) => moveFormatDir(file));
         }
       }
 
@@ -386,10 +397,12 @@ export async function renderProject(
             safeRemoveIfExists(libDirFull);
           }
         } else {
+          // move or copy dir
+          const relocateDir = directoryRelocator(outputDirAbsolute);
           if (keepLibsDir) {
-            copyDir(libDir);
+            relocateDir(libDir, true);
           } else {
-            moveDir(libDir);
+            relocateDir(libDir);
           }
         }
       }

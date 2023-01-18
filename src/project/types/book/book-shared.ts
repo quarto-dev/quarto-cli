@@ -41,6 +41,8 @@ export interface BookExtension {
   // bool extensions are single file by default but can elect to be multi file
   multiFile?: boolean;
 
+  formatOutputDirectory?: (format: Format) => string;
+
   // book extensions can modify the format before render
   onSingleFilePreRender?: (format: Format, config?: ProjectConfig) => Format;
 

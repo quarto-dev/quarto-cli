@@ -79,7 +79,7 @@ export interface ProjectType {
   ) => Promise<void>;
   formatOutputDirectory?: (
     format: Format,
-  ) => string;
+  ) => string | undefined;
 }
 
 export interface ProjectOutputFile {
