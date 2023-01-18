@@ -11,6 +11,7 @@ import {
   buildFileToMetaTable,
   buildPublishRecordForContent,
   buildSpaceChanges,
+  capitalizeFirstLetter,
   confluenceParentFromString,
   FILE_FINDER,
   filterFilesForUpdate,
@@ -58,7 +59,7 @@ import {
   Space,
 } from "../../src/publish/confluence/api/types.ts";
 
-const RUN_ALL_TESTS = true;
+const RUN_ALL_TESTS = false;
 const FOCUS_TEST = false;
 
 const xtest = (
@@ -3211,6 +3212,25 @@ const runUpdateImagePathsForContentBody = () => {
   });
 };
 
+const runCapFirstLetter = () => {
+  const suiteLabel = (label: string) => `CapFirstLetter_${label}`;
+  test(suiteLabel("basic"), async () => {
+    assertEquals("A", capitalizeFirstLetter("a"));
+  });
+
+  test(suiteLabel("basic_space"), async () => {
+    assertEquals("A b", capitalizeFirstLetter("a b"));
+  });
+
+  test(suiteLabel("empty"), async () => {
+    assertEquals("", capitalizeFirstLetter(""));
+  });
+
+  test(suiteLabel("empty2"), async () => {
+    assertEquals("", capitalizeFirstLetter());
+  });
+};
+
 if (RUN_ALL_TESTS) {
   runGeneralTests();
   runFilterFilesForUpdate();
@@ -3229,6 +3249,7 @@ if (RUN_ALL_TESTS) {
   runFindAttachments();
   runGetAttachmentsDirectory();
   runUpdateImagePathsForContentBody();
+  runCapFirstLetter();
 } else {
-  runGetAttachmentsDirectory();
+  runCapFirstLetter();
 }

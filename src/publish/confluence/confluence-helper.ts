@@ -34,7 +34,10 @@ export const FILE_FINDER: RegExp = /(?<=href=\')(.*)(?=\.qmd)/;
 const IMAGE_FINDER: RegExp =
   /(?<=ri:attachment ri:filename=["\'])[^"\']+?\.(?:jpe?g|png|gif|m4a|mp3|txt)(?=["\'])/g;
 
-const capitalizeFirstLetter = (value: string): string => {
+export const capitalizeFirstLetter = (value: string = ""): string => {
+  if (!value || value.length === 0) {
+    return "";
+  }
   return value[0].toUpperCase() + value.slice(1);
 };
 
