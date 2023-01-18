@@ -191,6 +191,7 @@ export type SiteFileMetadata = {
 
 export type ContentSummary = {
   id: string | null;
+  ancestors?: ContentAncestor[] | null;
   title: string | null;
 };
 
@@ -198,6 +199,7 @@ export type SitePage = {
   id: string;
   metadata: Record<string, any>;
   title: string | null;
+  ancestors?: ContentAncestor[] | null;
 };
 
 export type ExtractedLink = {

@@ -6,6 +6,7 @@ import {
   ConfluenceParent,
   ConfluenceSpaceChange,
   Content,
+  ContentAncestor,
   ContentBody,
   ContentBodyRepresentation,
   ContentChangeType,
@@ -32,6 +33,13 @@ export const LINK_FINDER: RegExp = /(\S*.qmd'|\S*.qmd#\S*')/g;
 export const FILE_FINDER: RegExp = /(?<=href=\')(.*)(?=\.qmd)/;
 const IMAGE_FINDER: RegExp =
   /(?<=ri:attachment ri:filename=["\'])[^"\']+?\.(?:jpe?g|png|gif|m4a|mp3|txt)(?=["\'])/g;
+
+export const capitalizeFirstLetter = (value: string = ""): string => {
+  if (!value || value.length === 0) {
+    return "";
+  }
+  return value[0].toUpperCase() + value.slice(1);
+};
 
 export const transformAtlassianDomain = (domain: string) => {
   return ensureTrailingSlash(
@@ -188,11 +196,6 @@ export const filterFilesForUpdate = (allFiles: string[]): string[] => {
     if (!fileName.endsWith(".xml")) {
       return false;
     }
-
-    if (fileName.includes("/")) {
-      return false; //No support for nested children, yet
-    }
-
     return true;
   };
   const result: string[] = allFiles.filter(fileFilter);
@@ -266,11 +269,22 @@ export const findPagesToDelete = (
   fileMetadataList: SiteFileMetadata[],
   existingSite: SitePage[] = []
 ): SitePage[] => {
+  const activeParents = existingSite.reduce(
+    (accumulator: ContentAncestor[], page: SitePage): ContentAncestor[] => {
+      return [...accumulator, ...(page.ancestors ?? [])];
+    },
+    []
+  );
+
+  const isActiveParent = (id: string): boolean =>
+    !!activeParents.find((parent) => parent.id === id);
+
   return existingSite.reduce((accumulator: SitePage[], page: SitePage) => {
     if (
       !fileMetadataList.find(
         (file) => file.fileName === page?.metadata?.fileName ?? ""
-      )
+      ) &&
+      !isActiveParent(page.id)
     ) {
       return [...accumulator, page];
     }
@@ -289,11 +303,87 @@ export const buildSpaceChanges = (
     accumulatedChanges: ConfluenceSpaceChange[],
     fileMetadata: SiteFileMetadata
   ): ConfluenceSpaceChange[] => {
-    const existingPage = existingSite.find(
-      (page: SitePage) => page?.metadata?.fileName === fileMetadata.fileName
-    );
+    const findPageInExistingSite = (fileName: string) =>
+      existingSite.find(
+        (page: SitePage) => page?.metadata?.fileName === fileName
+      );
 
-    let spaceChange: ConfluenceSpaceChange;
+    const existingPage = findPageInExistingSite(fileMetadata.fileName);
+
+    let spaceChangeList: ConfluenceSpaceChange[] = [];
+
+    const pathList = fileMetadata.fileName.split("/");
+
+    let pageParent =
+      pathList.length > 1
+        ? pathList.slice(0, pathList.length - 1).join("/")
+        : parent?.parent;
+
+    const checkCreateParents = (): SitePage | null => {
+      if (pathList.length < 2) {
+        return null;
+      }
+
+      let existingSiteParent = null;
+
+      const parentsList = pathList.slice(0, pathList.length - 1);
+
+      parentsList.forEach((parentFileName, index) => {
+        const ancestorFilePath = parentsList.slice(0, index).join("/");
+
+        const ancestor = index > 0 ? ancestorFilePath : parent?.parent;
+
+        let fileName = `${ancestorFilePath}/${parentFileName}`;
+        if (fileName.startsWith("/")) {
+          fileName = parentFileName;
+        }
+
+        const existingParentCreateChange = accumulatedChanges.find(
+          (spaceChange: any) => {
+            if (spaceChange.fileName) {
+              return spaceChange?.fileName === fileName;
+            }
+            return false;
+          }
+        );
+
+        existingSiteParent = existingSite.find((page: SitePage) => {
+          if (page?.metadata?.fileName) {
+            return page.metadata.fileName === fileName;
+          }
+          return false;
+        });
+
+        if (!existingParentCreateChange && !existingSiteParent) {
+          // Create a new parent page
+
+          const existingAncestor = findPageInExistingSite(ancestor ?? "");
+
+          spaceChangeList = [
+            ...spaceChangeList,
+            buildContentCreate(
+              capitalizeFirstLetter(parentFileName),
+              space,
+              {
+                storage: {
+                  value: "",
+                  representation: "storage",
+                },
+              },
+              fileName,
+              existingAncestor ? existingAncestor.id : ancestor,
+              ContentStatusEnum.current
+            ),
+          ];
+        }
+      });
+
+      return existingSiteParent;
+    };
+
+    const existingParent: SitePage | null = checkCreateParents();
+
+    pageParent = existingParent ? existingParent.id : pageParent;
 
     if (existingPage) {
       let useOriginalTitle = false;
@@ -303,25 +393,30 @@ export const buildSpaceChanges = (
         }
       }
 
-      spaceChange = buildContentUpdate(
-        existingPage.id,
-        useOriginalTitle ? fileMetadata.originalTitle : fileMetadata.title,
-        fileMetadata.contentBody,
-        fileMetadata.fileName,
-        parent?.parent
-      );
+      spaceChangeList = [
+        buildContentUpdate(
+          existingPage.id,
+          useOriginalTitle ? fileMetadata.originalTitle : fileMetadata.title,
+          fileMetadata.contentBody,
+          fileMetadata.fileName,
+          pageParent
+        ),
+      ];
     } else {
-      spaceChange = buildContentCreate(
-        fileMetadata.title,
-        space,
-        fileMetadata.contentBody,
-        fileMetadata.fileName,
-        parent?.parent,
-        ContentStatusEnum.current
-      );
+      spaceChangeList = [
+        ...spaceChangeList,
+        buildContentCreate(
+          fileMetadata.title,
+          space,
+          fileMetadata.contentBody,
+          fileMetadata.fileName,
+          pageParent,
+          ContentStatusEnum.current
+        ),
+      ];
     }
 
-    return [...accumulatedChanges, spaceChange];
+    return [...accumulatedChanges, ...spaceChangeList];
   };
 
   const pagesToDelete: SitePage[] = findPagesToDelete(
@@ -329,12 +424,7 @@ export const buildSpaceChanges = (
     existingSite
   );
 
-  // TODO sanity check and limiter to prevent any major run-away deletes
-  // Archive instead of delete
-  // length limited
-  // must be in current space
-  // !DANGER! if you put in the wrong parent you will be deleting big parts of confluence !DANGER!
-  // It seems like we will want some prompts
+  // TODO prompt as a sanity check and limiter to prevent any major run-away deletes
   const deleteChanges: ContentDelete[] = pagesToDelete.map(
     (toDelete: SitePage) => {
       return { contentChangeType: ContentChangeType.delete, id: toDelete.id };
@@ -384,6 +474,7 @@ export const mergeSitePages = (
         title: contentSummary.title,
         id: contentSummary.id ?? "",
         metadata: flattenMetadata(contentProperties[index]),
+        ancestors: contentSummary.ancestors ?? [],
       };
       return sitePage;
     }
@@ -420,32 +511,66 @@ export const updateLinks = (
     parent.space
   }/pages/`;
 
-  const replacer = (match: string): string => {
-    let updated: string = match;
-    const fileNameMatch = FILE_FINDER.exec(match);
-    const fileName = fileNameMatch ? fileNameMatch[0] ?? "" : "";
-
-    const fileNameExtension = `${fileName}.qmd`;
-
-    const sitePage: SitePage | null =
-      fileMetadataTable[fileNameExtension] ?? null;
-    if (sitePage) {
-      updated = match.replace('href="', `href="${url}`);
-      const pagePath: string = `${url}${sitePage.id}/${encodeURI(
-        sitePage.title ?? ""
-      )}`;
-
-      updated = updated.replace(fileNameExtension, pagePath);
-    }
-
-    return updated;
-  };
-
   const changeMapper = (
     changeToProcess: ConfluenceSpaceChange
   ): ConfluenceSpaceChange => {
+    const replacer = (match: string): string => {
+      let documentFileName = "";
+      if (
+        isContentUpdate(changeToProcess) ||
+        isContentCreate(changeToProcess)
+      ) {
+        documentFileName = changeToProcess.fileName ?? "";
+      }
+
+      const docFileNamePathList = documentFileName.split("/");
+
+      let updated: string = match;
+      const linkFileNameMatch = FILE_FINDER.exec(match);
+
+      const linkFileName = linkFileNameMatch ? linkFileNameMatch[0] ?? "" : "";
+
+      const fileNamePathList = linkFileName.split("/");
+
+      const linkFullFileName = `${linkFileName}.qmd`;
+
+      let siteFilePath = linkFullFileName;
+      const isAbsolute = siteFilePath.startsWith("/");
+      if (!isAbsolute && docFileNamePathList.length > 1) {
+        const relativePath = docFileNamePathList
+          .slice(0, docFileNamePathList.length - 1)
+          .join("/");
+
+        if (siteFilePath.startsWith("./")) {
+          siteFilePath = siteFilePath.replace("./", `${relativePath}/`);
+        } else {
+          siteFilePath = `${relativePath}/${linkFullFileName}`;
+        }
+      }
+
+      if (isAbsolute) {
+        siteFilePath = siteFilePath.slice(1); //remove '/'
+      }
+
+      const sitePage: SitePage | null = fileMetadataTable[siteFilePath] ?? null;
+
+      if (sitePage) {
+        updated = match.replace('href="', `href="${url}`);
+        const pagePath: string = `${url}${sitePage.id}/${encodeURI(
+          sitePage.title ?? ""
+        )}`;
+
+        updated = updated.replace(linkFullFileName, pagePath);
+      } else {
+        console.warn(`Link not found for ${siteFilePath}`);
+      }
+
+      return updated;
+    };
+
     if (isContentUpdate(changeToProcess) || isContentCreate(changeToProcess)) {
       const valueToProcess = changeToProcess?.body?.storage?.value;
+
       if (valueToProcess) {
         const replacedLinks: string = valueToProcess.replaceAll(
           LINK_FINDER,
@@ -486,9 +611,65 @@ export const updateImagePaths = (body: ContentBody): ContentBody => {
   return body;
 };
 
-export const findAttachments = (bodyValue: string): string[] => {
+export const findAttachments = (
+  bodyValue: string,
+  publishFiles: string[] = [],
+  filePath: string = ""
+): string[] => {
+  const pathList = filePath.split("/");
+  const parentPath = pathList.slice(0, pathList.length - 1).join("/");
+
   const result = bodyValue.match(IMAGE_FINDER);
-  const uniqueResult = [...new Set(result)];
+  let uniqueResult = [...new Set(result)];
+
+  if (publishFiles.length > 0) {
+    uniqueResult = uniqueResult.map((assetFileName: string) => {
+      const assetInPublishFiles = publishFiles.find((assetPath) => {
+        return assetPath.endsWith(`${parentPath}/${assetFileName}`);
+      });
+      return assetInPublishFiles ?? assetFileName;
+    });
+  }
 
   return uniqueResult ?? [];
+};
+
+export const getAttachmentsDirectory = (
+  baseDirectory: string,
+  filePath: string = "",
+  attachmentPath: string = ""
+): string => {
+  let result = baseDirectory;
+
+  if (attachmentPath.length === 0 || filePath.length === 0) {
+    return "";
+  }
+
+  const filePathList = filePath.split("/");
+  let attachmentPathList = attachmentPath.split("/");
+
+  //TODO navigate path with '..'
+  if (attachmentPathList.length === 2 && attachmentPathList[0] === ".") {
+    attachmentPathList = attachmentPathList.slice(1);
+  }
+
+  const pathNoFileFromList = (pathList: string[]) =>
+    pathList.slice(0, pathList.length - 1).join("/");
+
+  if (attachmentPathList.some((path) => path.endsWith("_files"))) {
+    return baseDirectory;
+  }
+
+  if (result.endsWith("/_site")) {
+    result = result.slice(0, -6);
+  }
+
+  const isRelative = attachmentPathList.length === 1;
+
+  if (isRelative && filePathList.length > 1) {
+    const directoryPath = pathNoFileFromList(filePathList);
+    result = `${result}/${directoryPath}`;
+  }
+
+  return result;
 };

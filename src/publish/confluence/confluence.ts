@@ -1,5 +1,3 @@
-// TODO enable new editor experience by default
-// https://tinyurl.com/2ds6rq8a
 // TODO Resource bundles
 
 import { join } from "path/mod.ts";
@@ -55,6 +53,7 @@ import {
   doWithSpinner,
   filterFilesForUpdate,
   findAttachments,
+  getAttachmentsDirectory,
   getNextVersion,
   getTitle,
   isContentCreate,
@@ -80,9 +79,10 @@ import {
   verifyConfluenceParent,
   verifyLocation,
 } from "./confluence-verify.ts";
-import { DELETE_DISABLED } from "./constants.ts";
+import { DELETE_DISABLED, DELETE_SLEEP_MILLIS } from "./constants.ts";
 import { logError, trace } from "./confluence-logger.ts";
 import { md5Hash } from "../../core/hash.ts";
+import { sleep } from "../../core/async.ts";
 
 export const CONFLUENCE_ID = "confluence";
 
@@ -247,11 +247,13 @@ async function publish(
 
   trace("publish", { parent, server, space });
 
-  const uniquifyTitle = async (title: string) => {
+  const uniquifyTitle = async (title: string, idToIgnore: string = "") => {
     const titleAlreadyExistsInSpace: boolean = await client.isTitleInSpace(
       title,
-      space
+      space,
+      idToIgnore
     );
+
     const uuid = globalThis.crypto.randomUUID();
     const shortUUID = uuid.split("-")[0] ?? uuid;
     const createTitle = titleAlreadyExistsInSpace
@@ -280,21 +282,34 @@ async function publish(
 
   const uploadAttachments = (
     baseDirectory: string,
-    pathList: string[],
+    attachmentsToUpload: string[],
     parentId: string,
+    filePath: string,
     existingAttachments: AttachmentSummary[] = []
   ): Promise<AttachmentSummary | null>[] => {
     const uploadAttachment = async (
-      pathToUpload: string
+      attachmentPath: string
     ): Promise<AttachmentSummary | null> => {
+      const uploadDirectory = getAttachmentsDirectory(
+        baseDirectory,
+        filePath,
+        attachmentPath
+      );
+
       trace(
         "uploadAttachment",
-        { baseDirectory, pathList, parentId, existingAttachments },
+        {
+          baseDirectory,
+          pathList: attachmentsToUpload,
+          parentId,
+          existingAttachments,
+        },
         LogPrefix.ATTACHMENT
       );
       let fileBuffer: Uint8Array;
       let fileHash: string;
-      const path = join(baseDirectory, pathToUpload);
+      const path = join(uploadDirectory, attachmentPath);
+
       try {
         fileBuffer = await Deno.readFile(path);
         fileHash = md5Hash(fileBuffer.toString());
@@ -303,7 +318,7 @@ async function publish(
         return null;
       }
 
-      const fileName = pathToUpload;
+      const fileName = attachmentPath;
 
       const existingDuplicateAttachment = existingAttachments.find(
         (attachment: AttachmentSummary) => {
@@ -329,18 +344,27 @@ async function publish(
       return attachment;
     };
 
-    return pathList.map(uploadAttachment);
+    return attachmentsToUpload.map(uploadAttachment);
   };
 
   const updateContent = async (
     publishFiles: PublishFiles,
     id: string,
     body: ContentBody,
-    titleParam: string = title
+    titleToUpdate: string = title,
+    fileName: string = ""
   ): Promise<Content> => {
     const previousPage = await client.getContent(id);
 
-    const attachmentsToUpload: string[] = findAttachments(body.storage.value);
+    const attachmentsToUpload: string[] = findAttachments(
+      body.storage.value,
+      publishFiles.files,
+      fileName
+    );
+
+    //FIXME expected elephant.png
+
+    const uniqueTitle = await uniquifyTitle(titleToUpdate, id);
 
     trace("attachmentsToUpload", attachmentsToUpload, LogPrefix.ATTACHMENT);
 
@@ -349,7 +373,7 @@ async function publish(
       contentChangeType: ContentChangeType.update,
       id,
       version: getNextVersion(previousPage),
-      title: `${titleParam}`,
+      title: uniqueTitle,
       type: PAGE_TYPE,
       status: ContentStatusEnum.current,
       ancestors: null,
@@ -364,6 +388,7 @@ async function publish(
     if (toUpdate.id) {
       const existingAttachments: AttachmentSummary[] =
         await client.getAttachments(toUpdate.id);
+
       trace(
         "attachments",
         { existingAttachments, attachmentsToUpload },
@@ -375,6 +400,7 @@ async function publish(
           publishFiles.baseDir,
           attachmentsToUpload,
           toUpdate.id,
+          fileName,
           existingAttachments
         )
       );
@@ -409,8 +435,6 @@ async function publish(
       ancestors,
       body,
     };
-
-    trace("createSiteParent", toCreate);
 
     const createdContent = await client.createContent(toCreate);
     return createdContent;
@@ -464,11 +488,17 @@ async function publish(
     publishFiles: PublishFiles,
     body: ContentBody,
     titleToCreate: string = title,
-    createParent: ConfluenceParent = parent
+    createParent: ConfluenceParent = parent,
+    fileName: string = ""
   ): Promise<Content> => {
     const createTitle = await uniquifyTitle(titleToCreate);
 
-    const attachmentsToUpload: string[] = findAttachments(body.storage.value);
+    const attachmentsToUpload: string[] = findAttachments(
+      body.storage.value,
+      publishFiles.files,
+      fileName
+    );
+
     trace("attachmentsToUpload", attachmentsToUpload, LogPrefix.ATTACHMENT);
     const updatedBody: ContentBody = updateImagePaths(body);
 
@@ -490,7 +520,8 @@ async function publish(
         uploadAttachments(
           publishFiles.baseDir,
           attachmentsToUpload,
-          createdContent.id
+          createdContent.id,
+          fileName
         )
       );
       trace(
@@ -551,12 +582,15 @@ async function publish(
 
     trace("publishSite", {
       parentId,
-      existingSite,
       publishFiles,
       metadataByInput,
     });
 
+    trace("existingSite", existingSite);
+
     const filteredFiles: string[] = filterFilesForUpdate(publishFiles.files);
+
+    trace("filteredFiles", filteredFiles);
 
     const assembleSiteFileMetadata = async (
       fileName: string
@@ -568,7 +602,7 @@ async function publish(
       };
 
       const originalTitle = getTitle(fileName, metadataByInput);
-      const title = await uniquifyTitle(originalTitle);
+      const title = originalTitle;
 
       const matchingPages = await client.fetchMatchingTitlePages(
         originalTitle,
@@ -588,6 +622,8 @@ async function publish(
       filteredFiles.map(assembleSiteFileMetadata)
     );
 
+    trace("fileMetadata", fileMetadata);
+
     const metadataByFilename = buildFileToMetaTable(existingSite);
 
     trace("metadataByFilename", metadataByFilename);
@@ -599,8 +635,6 @@ async function publish(
       existingSite
     );
 
-    trace("changelist", changeList);
-
     changeList = updateLinks(
       metadataByFilename,
       changeList,
@@ -608,55 +642,70 @@ async function publish(
       siteParent
     );
 
-    trace("update links changelist", changeList);
+    trace("changelist", changeList);
 
-    const spaceChanges = (
-      changeList: ConfluenceSpaceChange[]
-    ): Promise<SpaceChangeResult>[] => {
-      return changeList.map(async (change: ConfluenceSpaceChange) => {
-        const doChanges = async () => {
-          if (isContentCreate(change)) {
-            const result = await createContent(
-              publishFiles,
-              change.body,
-              change.title ?? "",
-              siteParent
-            );
-            const contentPropertyResult: Content =
-              await client.createContentProperty(result.id ?? "", {
-                key: ContentPropertyKey.fileName,
-                value: (change as ContentCreate).fileName,
-              });
+    let pathsToId: Record<string, string> = {}; // build from existing site
 
-            return result;
-          } else if (isContentUpdate(change)) {
-            const update = change as ContentUpdate;
-            return await updateContent(
-              publishFiles,
-              update.id ?? "",
-              update.body,
-              update.title ?? ""
-            );
-          } else if (isContentDelete(change)) {
-            if (DELETE_DISABLED) {
-              console.warn("DELETE DISABELD");
-              return null;
-            }
-            const result = await client.deleteContent(change);
-            return result;
-          } else {
-            console.error("Space Change not defined");
-            return null;
-          }
+    const doChange = async (change: ConfluenceSpaceChange) => {
+      if (isContentCreate(change)) {
+        let ancestorId =
+          (change?.ancestors && change?.ancestors[0]?.id) ?? null;
+
+        if (ancestorId && pathsToId[ancestorId]) {
+          ancestorId = pathsToId[ancestorId];
+        }
+
+        const ancestorParent: ConfluenceParent = {
+          space: parent.space,
+          parent: ancestorId ?? siteParent.parent,
         };
 
-        return await doChanges();
-      });
+        const result = await createContent(
+          publishFiles,
+          change.body,
+          change.title ?? "",
+          ancestorParent,
+          change.fileName
+        );
+
+        if (change.fileName) {
+          pathsToId[change.fileName] = result.id ?? "";
+        }
+
+        const contentPropertyResult: Content =
+          await client.createContentProperty(result.id ?? "", {
+            key: ContentPropertyKey.fileName,
+            value: (change as ContentCreate).fileName,
+          });
+
+        return result;
+      } else if (isContentUpdate(change)) {
+        const update = change as ContentUpdate;
+        return await updateContent(
+          publishFiles,
+          update.id ?? "",
+          update.body,
+          update.title ?? "",
+          update.fileName ?? ""
+        );
+      } else if (isContentDelete(change)) {
+        if (DELETE_DISABLED) {
+          console.warn("DELETE DISABELD");
+          return null;
+        }
+        const result = await client.deleteContent(change);
+        await sleep(DELETE_SLEEP_MILLIS); // TODO replace with polling
+        return result;
+      } else {
+        console.error("Space Change not defined");
+        return null;
+      }
     };
 
-    const changes: SpaceChangeResult[] = await Promise.all(
-      spaceChanges(changeList)
-    );
+    for (let currentChange of changeList) {
+      await doChange(currentChange);
+    }
+
     const parentPage: Content = await client.getContent(parentId);
 
     return buildPublishRecordForContent(server, parentPage);
