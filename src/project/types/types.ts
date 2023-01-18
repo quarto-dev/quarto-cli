@@ -77,6 +77,9 @@ export interface ProjectType {
     incremental: boolean,
     outputFiles: ProjectOutputFile[],
   ) => Promise<void>;
+  formatOutputDirectory?: (
+    format: Format,
+  ) => string;
 }
 
 export interface ProjectOutputFile {
