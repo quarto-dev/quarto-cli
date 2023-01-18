@@ -29,6 +29,8 @@ export function projectResourceFiles(
 ): string[] {
   let resourceGlobs = asArray(config.project[kProjectResources]);
   const resourceFiles: string[] = [];
+  // This usage of reading the output directory is necessary since we haven't
+  // yet formed the project context (this function is used in creating the context)
   const outputDir = config.project[kProjectOutputDir];
   if (outputDir) {
     resourceGlobs = (resourceGlobs || [])
