@@ -9,7 +9,7 @@ import { dirname, extname, join, relative } from "path/mod.ts";
 
 import { ProjectOutputFile } from "../types.ts";
 
-import { kProjectOutputDir, ProjectContext } from "../../types.ts";
+import { ProjectContext } from "../../types.ts";
 import { projectOutputDir } from "../../project-shared.ts";
 import { renderEjs } from "../../../core/ejs.ts";
 import { resourcePath } from "../../../core/resources.ts";
@@ -58,17 +58,11 @@ export async function updateAliases(
         );
         if (outputTarget) {
           // Note the full path to the outputs of this project
-          const fileFullPath =
-            context.config?.project[kProjectOutputDir] !== undefined
-              ? join(
-                context.config?.project[kProjectOutputDir]!,
-                outputTarget.outputHref,
-              )
-              : outputTarget.outputHref;
+          const projOutputDir = projectOutputDir(context);
           allOutputFiles.push(
             join(
-              context.dir,
-              fileFullPath,
+              projOutputDir,
+              outputTarget.outputHref,
             ),
           );
 
