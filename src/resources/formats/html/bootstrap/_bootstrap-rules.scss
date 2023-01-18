@@ -1108,13 +1108,14 @@ $indent: 1.2em;
   }
 }
 
+.sidebar nav[role="doc-toc"] ul > li > a.active,
 .sidebar nav[role="doc-toc"] ul > li > ul > li > a.active {
   border-left: 1px solid $toc-active-border;
   color: $toc-color !important;
 }
 
-.sidebar nav[role="doc-toc"] ul > li > a.active {
-  border-left: 1px solid $toc-active-border;
+.sidebar nav[role="doc-toc"] ul > li > a:hover,
+.sidebar nav[role="doc-toc"] ul > li > ul > li > a:hover {
   color: $toc-color !important;
 }
 
