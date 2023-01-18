@@ -2,7 +2,6 @@ project:
   type: book
   output-dir: docs
 
-  
 book:
   title: Visualization Curriculum
   author: Jeffrey Heer, Dominik Moritz, Jake VanderPlas, and Brock Craft
@@ -30,3 +29,5 @@ book:
 format:
   html:
     theme: cosmo
+  asciidoc: default
+  docx: default
