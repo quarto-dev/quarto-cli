@@ -59,7 +59,7 @@ import {
   Space,
 } from "../../src/publish/confluence/api/types.ts";
 
-const RUN_ALL_TESTS = false;
+const RUN_ALL_TESTS = true;
 const FOCUS_TEST = false;
 
 const xtest = (
