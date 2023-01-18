@@ -8,6 +8,7 @@
 import { existsSync } from "fs/exists.ts";
 import { dirname, isAbsolute, join, relative } from "path/mod.ts";
 import { kHtmlMathMethod } from "../config/constants.ts";
+import { Format } from "../config/types.ts";
 
 import { pathWithForwardSlashes } from "../core/path.ts";
 import { kProjectOutputDir, ProjectContext } from "./types.ts";
@@ -19,6 +20,20 @@ export function projectExcludeDirs(context: ProjectContext): string[] {
     return [outputDir];
   } else {
     return [];
+  }
+}
+
+export function projectFormatOutputDir(
+  format: Format,
+  context: ProjectContext,
+  type: ProjectType,
+) {
+  const projOutputDir = projectOutputDir(context);
+  if (type.formatOutputDirectory) {
+    const formatOutputDir = type.formatOutputDirectory(format);
+    return join(projOutputDir, formatOutputDir);
+  } else {
+    return projOutputDir;
   }
 }
 
