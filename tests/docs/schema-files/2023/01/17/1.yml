@@ -1,0 +1,4 @@
+schema:
+  ref: book-schema
+value:
+  title: Hello

@@ -978,6 +978,7 @@
 - id: book-schema
   schema:
     object:
+      closed: true
       super:
         resolveRef: base-website
       properties:
@@ -1499,13 +1500,9 @@
     - number
     - string
 
-- id: csl-item
+- id: csl-item-shared
   object:
-    closed: true
     properties:
-      abstract:
-        string:
-          description: Abstract of the item (e.g. the abstract of a journal article)
       abstract-url:
         string:
           description: A url to the abstract for this item.
@@ -1538,9 +1535,6 @@
       archive-place:
         string:
           description: Geographic location of the archive.
-      author:
-        ref: csl-person
-        description: The author(s) of the item.
       authority:
         string:
           description: Issuing or judicial authority (e.g. "USPTO" for a patent, "Fairfax Circuit Court" for a legal case).
@@ -1629,9 +1623,6 @@
       division:
         string:
           description: Minor subdivision of a court with a `jurisdiction` for a legal item
-      doi:
-        string:
-          description: Digital Object Identifier (e.g. "10.1128/AEM.02591-07")
       DOI:
         schema: string
         hidden: true
@@ -1859,16 +1850,6 @@
       recipient:
         ref: csl-person
         description: Recipient (e.g. of a letter).
-      references:
-        string:
-          description:
-            short: Resources related to the procedural history of a legal case or legislation.
-            long: |
-              Resources related to the procedural history of a legal case or legislation;
-
-              Can also be used to refer to the procedural history of other items (e.g. 
-              "Conference canceled" for a presentation accepted as a conference that was subsequently 
-              canceled; details of a retraction or correction notice)
       reviewed-author:
         ref: csl-person
         description: Author of the item reviewed by the current item.
@@ -1902,9 +1883,6 @@
       supplement-number:
         ref: csl-number
         description: Supplement number of the item or container holding the item (e.g. for secondary legal items that are regularly updated between editions).
-      title:
-        string:
-          description: The primary title of the item.
       title-short:
         string:
           description: Short/abbreviated form of`title`.
@@ -1991,6 +1969,35 @@
       year-suffix:
         string:
           description: Disambiguating year suffix in author-date styles (e.g. "a" in "Doe, 1999a").
+
+- id: csl-item
+  object:
+    super:
+      resolveRef: csl-item-shared
+    closed: true
+    properties:
+      abstract:
+        string:
+          description: Abstract of the item (e.g. the abstract of a journal article)
+      author:
+        ref: csl-person
+        description: The author(s) of the item.
+      doi:
+        string:
+          description: Digital Object Identifier (e.g. "10.1128/AEM.02591-07")
+      references:
+        string:
+          description:
+            short: Resources related to the procedural history of a legal case or legislation.
+            long: |
+              Resources related to the procedural history of a legal case or legislation;
+
+              Can also be used to refer to the procedural history of other items (e.g. 
+              "Conference canceled" for a presentation accepted as a conference that was subsequently 
+              canceled; details of a retraction or correction notice)
+      title:
+        string:
+          description: The primary title of the item.
 
 - id: citation-item
   object:

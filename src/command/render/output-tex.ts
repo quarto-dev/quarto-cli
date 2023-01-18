@@ -20,6 +20,7 @@ import { kStdOut, replacePandocOutputArg } from "./flags.ts";
 import { OutputRecipe } from "./types.ts";
 import { pdfEngine } from "../../config/pdf.ts";
 import { execProcess } from "../../core/process.ts";
+import { parseFormatString } from "../../core/pandoc/pandoc-formats.ts";
 
 export interface PdfGenerator {
   generate: (
@@ -44,7 +45,18 @@ export function texToPdfOutputRecipe(
 
   // there are many characters that give tex trouble in filenames, create
   // a target stem that replaces them with the '-' character
-  const texStem = texSafeFilename(inputStem);
+
+  // include variants in the tex stem if they are present to avoid
+  // overwriting files
+  let fixupInputName = "";
+  if (format.identifier["target-format"]) {
+    const formatDesc = parseFormatString(format.identifier["target-format"]);
+    fixupInputName = `${formatDesc.variants.join("")}${
+      formatDesc.modifiers.join("")
+    }`;
+  }
+
+  const texStem = texSafeFilename(`${inputStem}${fixupInputName}`);
 
   // cacluate output and args for pandoc (this is an intermediate file
   // which we will then compile to a pdf and rename to .tex)
