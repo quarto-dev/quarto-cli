@@ -31,7 +31,11 @@ export function projectFormatOutputDir(
   const projOutputDir = projectOutputDir(context);
   if (type.formatOutputDirectory) {
     const formatOutputDir = type.formatOutputDirectory(format);
-    return join(projOutputDir, formatOutputDir);
+    if (formatOutputDir) {
+      return join(projOutputDir, formatOutputDir);
+    } else {
+      return projOutputDir;
+    }
   } else {
     return projOutputDir;
   }

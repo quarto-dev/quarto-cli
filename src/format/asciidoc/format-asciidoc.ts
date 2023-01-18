@@ -13,10 +13,15 @@ import { plaintextFormat } from "../formats-shared.ts";
 
 export function asciidocFormat(): Format {
   return mergeConfigs(
-    plaintextFormat("Asciidoc", "txt"),
+    plaintextFormat("Asciidoc", "adoc"),
     {
       extensions: {
-        book: {},
+        book: {
+          multiFile: true,
+          formatOutputDirectory(_format: Format) {
+            return "asciidoc";
+          },
+        },
       },
     },
   );

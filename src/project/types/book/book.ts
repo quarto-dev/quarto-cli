@@ -56,6 +56,7 @@ import { bookProjectConfig } from "./book-config.ts";
 import { chapterInfoForInput, numberChapterHtmlNav } from "./book-chapters.ts";
 import {
   bookConfig,
+  BookExtension,
   isMultiFileBookFormat,
   kBook,
   setBookConfig,
@@ -113,6 +114,18 @@ export const bookProjectType: ProjectType = {
   libDir: "site_libs",
   outputDir: "_book",
   cleanOutputDir: true,
+  formatOutputDirectory: (format: Format) => {
+    if (format.extensions?.book) {
+      const bookExt = format.extensions?.book as BookExtension;
+      if (bookExt.formatOutputDirectory) {
+        return bookExt.formatOutputDirectory(format);
+      } else {
+        return undefined;
+      }
+    } else {
+      return undefined;
+    }
+  },
 
   config: bookProjectConfig,
 
