@@ -40,6 +40,7 @@ import {
   pandocMarkdownFormat,
 } from "./markdown/format-markdown.ts";
 import { jatsFormat } from "./jats/format-jats.ts";
+import { asciidocFormat } from "./asciidoc/format-asciidoc.ts";
 
 export function defaultWriterFormat(to: string): Format {
   // to can sometimes have a variant, don't include that in the lookup here
@@ -122,7 +123,7 @@ export function defaultWriterFormat(to: string): Format {
       break;
 
     case "asciidoc":
-      writerFormat = plaintextFormat("Asciidoc", "txt");
+      writerFormat = asciidocFormat();
       break;
 
     case "asciidoctor":
