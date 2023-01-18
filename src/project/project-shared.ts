@@ -36,6 +36,10 @@ export function projectOutputDir(context: ProjectContext): string {
   }
 }
 
+export function hasProjectOutputDir(context: ProjectContext): boolean {
+  return !!context.config?.project[kProjectOutputDir];
+}
+
 export function isProjectInputFile(path: string, context: ProjectContext) {
   if (existsSync(path)) {
     const renderPath = Deno.realPathSync(path);

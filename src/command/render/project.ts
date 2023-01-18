@@ -19,7 +19,6 @@ import { kKeepMd } from "../../config/constants.ts";
 import {
   kProjectExecuteDir,
   kProjectLibDir,
-  kProjectOutputDir,
   kProjectPostRender,
   kProjectPreRender,
   kProjectType,
@@ -55,7 +54,11 @@ import { handlerForScript } from "../../core/run/run.ts";
 import { execProcess } from "../../core/process.ts";
 import { parseShellRunCommand } from "../../core/run/shell.ts";
 import { clearProjectIndex } from "../../project/project-index.ts";
-import { projectExcludeDirs } from "../../project/project-shared.ts";
+import {
+  hasProjectOutputDir,
+  projectExcludeDirs,
+  projectOutputDir,
+} from "../../project/project-shared.ts";
 import { asArray } from "../../core/array.ts";
 
 export async function renderProject(
@@ -65,6 +68,8 @@ export async function renderProject(
 ): Promise<RenderResult> {
   // lookup the project type
   const projType = projectType(context.config?.project?.[kProjectType]);
+
+  const projOutputDir = projectOutputDir(context);
 
   // get real path to the project
   const projDir = Deno.realPathSync(context.dir);
@@ -113,8 +118,7 @@ export async function renderProject(
   // some standard pre and post render script env vars
   const renderAll = !files || (files.length === context.files.input.length);
   const prePostEnv = {
-    "QUARTO_PROJECT_OUTPUT_DIR": context.config?.project?.[kProjectOutputDir] ||
-      ".",
+    "QUARTO_PROJECT_OUTPUT_DIR": projOutputDir,
     ...(renderAll ? { QUARTO_PROJECT_RENDER_ALL: "1" } : {}),
   };
 
@@ -146,7 +150,7 @@ export async function renderProject(
   // projResults to return
   const projResults: RenderResult = {
     baseDir: projDir,
-    outputDir: context.config?.project?.[kProjectOutputDir],
+    outputDir: relative(projDir, projOutputDir),
     files: [],
   };
 
@@ -157,16 +161,14 @@ export async function renderProject(
   const progress = !!options.progress || (filesToRender.length > 1);
 
   // if there is an output dir then remove it if clean is specified
-  const projOutputDir = context.config?.project?.[kProjectOutputDir];
   if (
-    renderAll && (typeof (projOutputDir) === "string") &&
+    renderAll && hasProjectOutputDir(context) &&
     (options.flags?.clean == true) && (projType.cleanOutputDir === true)
   ) {
-    const realProjectDir = Deno.realPathSync(context.dir);
     // ouptut dir
-    let realOutputDir = join(realProjectDir, projOutputDir);
-    if (existsSync(realOutputDir)) {
-      realOutputDir = Deno.realPathSync(realOutputDir);
+    const realProjectDir = Deno.realPathSync(context.dir);
+    if (existsSync(projOutputDir)) {
+      const realOutputDir = Deno.realPathSync(projOutputDir);
       if (
         (realOutputDir !== realProjectDir) &&
         realOutputDir.startsWith(realProjectDir)
