@@ -1,0 +1,4 @@
+[deps]
+Conda = "8f4d0f93-b110-5947-807f-2305c1781a2d"
+Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+PyPlot = "d330b81b-6aea-500a-939a-2ce795aea3ee"
