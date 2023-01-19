@@ -4,7 +4,6 @@ format:
   html:
     keep-md: true
     code-background: true
-jupyter: julia-1.8
 ---
 
 I thought `output:false` would suppress the output, but no? `echo: false` does it.

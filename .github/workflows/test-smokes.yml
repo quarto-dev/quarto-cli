@@ -70,9 +70,9 @@ jobs:
           pushd tests
           source bin/activate
           python3 -m pip install --upgrade pip pip==21.3.1
-          python3 -m pip install wheel 
+          python3 -m pip install wheel
           python3 -m pip install --user virtualenv
-          python3 -m pip install -r requirements.txt          
+          python3 -m pip install -r requirements.txt
           popd
 
       - uses: ./.github/workflows/actions/quarto-dev
@@ -85,6 +85,15 @@ jobs:
 
       - name: Install Chrome
         uses: browser-actions/setup-chrome@latest
+
+      - name: Setup Julia
+        uses: julia-actions/setup-julia@v1
+
+      - name: Julia Packages
+        run: |
+          pushd tests
+          julia --project=. -e "import Pkg; Pkg.instantiate(); Pkg.build(\"IJulia\"); Pkg.precompile()"
+          popd
 
       - name: Smoke Test Commits
         if: github.event.before != ''
