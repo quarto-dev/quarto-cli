@@ -9,6 +9,7 @@ import {
   resolve,
 } from "path/mod.ts";
 import { isHttpUrl } from "../../core/url.ts";
+import { pathWithForwardSlashes } from "../../core/path.ts";
 import { AccountToken, InputMetadata } from "../provider.ts";
 import {
   ConfluenceParent,
@@ -624,7 +625,7 @@ export const findAttachments = (
   publishFiles: string[] = [],
   filePathParam: string = ""
 ): string[] => {
-  const filePath = filePathParam.replaceAll("\\", "/");
+  const filePath = pathWithForwardSlashes(filePathParam);
 
   const pathList = filePath.split("/");
   const parentPath = pathList.slice(0, pathList.length - 1).join("/");
@@ -635,7 +636,7 @@ export const findAttachments = (
   if (publishFiles.length > 0) {
     uniqueResult = uniqueResult.map((assetFileName: string) => {
       const assetInPublishFiles = publishFiles.find((assetPathParam) => {
-        const assetPath = assetPathParam.replaceAll("\\", "/");
+        const assetPath = pathWithForwardSlashes(assetPathParam);
 
         const toCheck = join(parentPath, assetFileName);
 
