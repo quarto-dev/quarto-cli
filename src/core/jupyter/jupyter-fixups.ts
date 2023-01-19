@@ -55,8 +55,6 @@ function fixupBokehCells(
     }
   }
 
-  console.log(JSON.stringify({ nb }, null, 2));
-
   return nb;
 }
 
