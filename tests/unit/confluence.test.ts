@@ -18,7 +18,6 @@ import {
   filterFilesForUpdate,
   findAttachments,
   findPagesToDelete,
-  getAttachmentsDirectory,
   getMessageFromAPIError,
   getNextVersion,
   getTitle,
@@ -3110,145 +3109,6 @@ const runFindAttachments = () => {
   });
 };
 
-const runGetAttachmentsDirectory = () => {
-  const suiteLabel = (label: string) => `GetAttachmentsDirectory_${label}`;
-
-  const check = (
-    expected: string,
-    baseDirectory: string,
-    attachmentToUpload: string,
-    fileName: string
-  ) => {
-    assertEquals(
-      getAttachmentsDirectory(baseDirectory, fileName, attachmentToUpload),
-      expected
-    );
-  };
-
-  test(suiteLabel("empty_to_upload"), async () => {
-    const expected = "";
-    const baseDirectory = "/Users/fake-base";
-    check(expected, baseDirectory, "", "file-name.png");
-  });
-
-  test(suiteLabel("empty_to_upload_windows"), async () => {
-    const expected = "";
-    const baseDirectory = win32.fromFileUrl("file:///Users/fake-base");
-    check(expected, baseDirectory, "", "file-name.png");
-  });
-
-  test(suiteLabel("empty_fileName"), async () => {
-    const expected = "";
-    const attachmentPath = "file1.png";
-    const baseDirectory = "/Users/fake-base";
-    check(expected, baseDirectory, attachmentPath, "");
-  });
-
-  test(suiteLabel("empty_fileName_windows"), async () => {
-    const expected = "";
-    const attachmentPath = "file1.png";
-    const baseDirectory = win32.fromFileUrl("file:///Users/fake-base");
-    check(expected, baseDirectory, attachmentPath, "");
-  });
-
-  test(suiteLabel("simple"), async () => {
-    const expected = "/Users/fake-base";
-
-    const baseDirectory = "/Users/fake-base";
-    const attachmentPath = "file1.png";
-    const fileName = "fake-file.xml";
-
-    check(expected, baseDirectory, attachmentPath, fileName);
-  });
-
-  test(suiteLabel("simple_windows"), async () => {
-    const expected = String.raw`c:\Users\fake-base`;
-    const baseDirectory = String.raw`c:\Users\fake-base`;
-
-    console.log("baseDirectory", baseDirectory);
-
-    const attachmentPath = "file1.png";
-    const fileName = "fake-file.xml";
-
-    check(expected, baseDirectory, attachmentPath, fileName);
-  });
-
-  test(suiteLabel("site_in_root"), async () => {
-    const expected = "/Users/fake-base";
-
-    const baseDirectory = "/Users/fake-base/_site";
-    const attachmentPath = "file1.png";
-    const fileName = "fake-file.xml";
-
-    check(expected, baseDirectory, attachmentPath, fileName);
-  });
-
-  test(suiteLabel("real"), async () => {
-    const expected =
-      "/Users/amanning/projects/github/allenmanning/confluence/guide-site";
-
-    const baseDirectory =
-      "/Users/amanning/projects/github/allenmanning/confluence/guide-site/_site";
-    const attachmentPath = "authoring/elephant2.png";
-    const fileName = "authoring/hello-world5.xml";
-
-    check(expected, baseDirectory, attachmentPath, fileName);
-  });
-
-  test(suiteLabel("simple_computation"), async () => {
-    const baseDirectory =
-      "/Users/amanning/projects/github/allenmanning/confluence/guide-site/_site";
-
-    const expected = baseDirectory;
-
-    const attachmentPath =
-      "computations/r/computations-r_files/figure-publish/fig-airquality-1.png";
-    const filePath = "computations/r/computations-r.xml";
-
-    check(expected, baseDirectory, attachmentPath, filePath);
-  });
-
-  test(suiteLabel("site_nested_relative"), async () => {
-    const expected = "/Users/fake-base/fake-parent";
-
-    const baseDirectory = "/Users/fake-base/_site";
-    const attachmentPath = "file1.png";
-    const fileName = "fake-parent/fake-file.xml";
-
-    check(expected, baseDirectory, attachmentPath, fileName);
-  });
-
-  test(suiteLabel("site_nested_relative_dotslash"), async () => {
-    const expected = "/Users/fake-base/fake-parent";
-
-    const baseDirectory = "/Users/fake-base/_site";
-    const attachmentPath = "./file1.png";
-    const fileName = "fake-parent/fake-file.xml";
-
-    check(expected, baseDirectory, attachmentPath, fileName);
-  });
-
-  test(suiteLabel("site_nested_absolute"), async () => {
-    const expected = "/Users/fake-base";
-
-    const baseDirectory = "/Users/fake-base/_site";
-    const attachmentPath = "fake/absolute/directory/file1.png";
-    const fileName = "fake-parent/fake-file.xml";
-
-    check(expected, baseDirectory, attachmentPath, fileName);
-  });
-
-  test(suiteLabel("site_nested_multi"), async () => {
-    const expected = "/Users/fake-base/fake-grand-parent/fake-parent";
-
-    const baseDirectory = "/Users/fake-base/_site";
-    const attachmentPath = "file1.png";
-    const fileName = "fake-grand-parent/fake-parent/fake-file.xml";
-
-    check(expected, baseDirectory, attachmentPath, fileName);
-  });
-};
-
 const runUpdateImagePathsForContentBody = () => {
   const suiteLabel = (label: string) =>
     `UpdateImagePathsForContentBody_${label}`;
@@ -3333,7 +3193,6 @@ if (RUN_ALL_TESTS) {
   runExtractLinks();
   runUpdateLinks();
   runFindAttachments();
-  runGetAttachmentsDirectory();
   runUpdateImagePathsForContentBody();
   runCapFirstLetter();
 } else {
