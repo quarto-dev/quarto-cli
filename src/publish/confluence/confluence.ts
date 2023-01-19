@@ -53,7 +53,6 @@ import {
   doWithSpinner,
   filterFilesForUpdate,
   findAttachments,
-  getAttachmentsDirectory,
   getNextVersion,
   getTitle,
   isContentCreate,
@@ -290,17 +289,6 @@ async function publish(
     const uploadAttachment = async (
       attachmentPath: string
     ): Promise<AttachmentSummary | null> => {
-      // const uploadDirectory = getAttachmentsDirectory(
-      //   baseDirectory,
-      //   filePath,
-      //   attachmentPath
-      // );
-      //
-      //
-      //
-      //
-      //
-
       let fileBuffer: Uint8Array;
       let fileHash: string;
       const path = join(baseDirectory, attachmentPath);
