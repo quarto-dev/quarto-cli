@@ -633,7 +633,7 @@ export async function jupyterToMarkdown(
   options: JupyterToMarkdownOptions,
 ): Promise<JupyterToMarkdownResult> {
   // perform fixups
-  nb = fixupJupyterNotebook(nb);
+  nb = fixupJupyterNotebook(nb, options);
 
   // optional content injection / html preservation for html output
   // that isn't an ipynb

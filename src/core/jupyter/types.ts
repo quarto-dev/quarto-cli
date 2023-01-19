@@ -144,6 +144,7 @@ export interface JupyterOutput {
   execution_count?: null | number;
   isolated?: boolean;
   metadata?: Record<string, unknown>;
+  data?: Record<string, unknown>;
 }
 
 export interface JupyterOutputStream extends JupyterOutput {
