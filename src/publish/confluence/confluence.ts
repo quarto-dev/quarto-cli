@@ -53,7 +53,6 @@ import {
   doWithSpinner,
   filterFilesForUpdate,
   findAttachments,
-  getAttachmentsDirectory,
   getNextVersion,
   getTitle,
   isContentCreate,
@@ -290,25 +289,22 @@ async function publish(
     const uploadAttachment = async (
       attachmentPath: string
     ): Promise<AttachmentSummary | null> => {
-      const uploadDirectory = getAttachmentsDirectory(
-        baseDirectory,
-        filePath,
-        attachmentPath
-      );
+      let fileBuffer: Uint8Array;
+      let fileHash: string;
+      const path = join(baseDirectory, attachmentPath);
 
       trace(
         "uploadAttachment",
         {
           baseDirectory,
-          pathList: attachmentsToUpload,
+          attachmentPath,
+          attachmentsToUpload,
           parentId,
           existingAttachments,
+          path,
         },
         LogPrefix.ATTACHMENT
       );
-      let fileBuffer: Uint8Array;
-      let fileHash: string;
-      const path = join(uploadDirectory, attachmentPath);
 
       try {
         fileBuffer = await Deno.readFile(path);
@@ -361,8 +357,6 @@ async function publish(
       publishFiles.files,
       fileName
     );
-
-    //FIXME expected elephant.png
 
     const uniqueTitle = await uniquifyTitle(titleToUpdate, id);
 

@@ -1,6 +1,15 @@
 import { ApiError, PublishRecord } from "../types.ts";
 import { ensureTrailingSlash } from "../../core/path.ts";
+import {
+  join,
+  basename,
+  parse,
+  dirname,
+  toFileUrl,
+  resolve,
+} from "path/mod.ts";
 import { isHttpUrl } from "../../core/url.ts";
+import { pathWithForwardSlashes } from "../../core/path.ts";
 import { AccountToken, InputMetadata } from "../provider.ts";
 import {
   ConfluenceParent,
@@ -614,8 +623,10 @@ export const updateImagePaths = (body: ContentBody): ContentBody => {
 export const findAttachments = (
   bodyValue: string,
   publishFiles: string[] = [],
-  filePath: string = ""
+  filePathParam: string = ""
 ): string[] => {
+  const filePath = pathWithForwardSlashes(filePathParam);
+
   const pathList = filePath.split("/");
   const parentPath = pathList.slice(0, pathList.length - 1).join("/");
 
@@ -624,52 +635,17 @@ export const findAttachments = (
 
   if (publishFiles.length > 0) {
     uniqueResult = uniqueResult.map((assetFileName: string) => {
-      const assetInPublishFiles = publishFiles.find((assetPath) => {
-        return assetPath.endsWith(`${parentPath}/${assetFileName}`);
+      const assetInPublishFiles = publishFiles.find((assetPathParam) => {
+        const assetPath = pathWithForwardSlashes(assetPathParam);
+
+        const toCheck = join(parentPath, assetFileName);
+
+        return assetPath === toCheck;
       });
+
       return assetInPublishFiles ?? assetFileName;
     });
   }
 
   return uniqueResult ?? [];
-};
-
-export const getAttachmentsDirectory = (
-  baseDirectory: string,
-  filePath: string = "",
-  attachmentPath: string = ""
-): string => {
-  let result = baseDirectory;
-
-  if (attachmentPath.length === 0 || filePath.length === 0) {
-    return "";
-  }
-
-  const filePathList = filePath.split("/");
-  let attachmentPathList = attachmentPath.split("/");
-
-  //TODO navigate path with '..'
-  if (attachmentPathList.length === 2 && attachmentPathList[0] === ".") {
-    attachmentPathList = attachmentPathList.slice(1);
-  }
-
-  const pathNoFileFromList = (pathList: string[]) =>
-    pathList.slice(0, pathList.length - 1).join("/");
-
-  if (attachmentPathList.some((path) => path.endsWith("_files"))) {
-    return baseDirectory;
-  }
-
-  if (result.endsWith("/_site")) {
-    result = result.slice(0, -6);
-  }
-
-  const isRelative = attachmentPathList.length === 1;
-
-  if (isRelative && filePathList.length > 1) {
-    const directoryPath = pathNoFileFromList(filePathList);
-    result = `${result}/${directoryPath}`;
-  }
-
-  return result;
 };
