@@ -31,10 +31,10 @@
     },
     "Matrix": {
       "Package": "Matrix",
-      "Version": "1.5-0",
+      "Version": "1.5-3",
       "Source": "Repository",
       "Repository": "RSPM",
-      "Hash": "19d2a523548a8fd4f6460f4e61bc15fb",
+      "Hash": "4006dffe49958d2dd591c17e61e60591",
       "Requirements": [
         "lattice"
       ]
