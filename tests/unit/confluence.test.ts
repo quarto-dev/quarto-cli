@@ -3,6 +3,7 @@
  * Copyright (C) 2020 by RStudio, PBC
  *
  */
+import { posix, win32 } from "path/mod.ts";
 import { unitTest } from "../test.ts";
 import { assertEquals, assertThrows } from "testing/asserts.ts";
 
@@ -2833,7 +2834,7 @@ const runUpdateLinks = () => {
     check(expected, changes, fileMetadataTable);
   });
 
-  otest(suiteLabel("one_update_link_nested_absolute"), async () => {
+  test(suiteLabel("one_update_link_nested_absolute"), async () => {
     const changes: ConfluenceSpaceChange[] = [UPDATE_LINKS_ONE_NESTED_ABS];
     const rootURL = "fake-server/wiki/spaces/QUARTOCONF/pages";
     const expectedUpdate: ContentUpdate = {
@@ -2960,7 +2961,7 @@ const runFindAttachments = () => {
     const bodyValue: string =
       '<ri:attachment ri:filename="elephant.png" ri:version-at-save="1" />';
     const filePaths: string[] = ["fake-path/elephant.png"];
-    const expected: string[] = ["fake-path/elephant.png"];
+    const expected: string[] = ["elephant.png"];
     check(expected, bodyValue, filePaths);
   });
 
@@ -2973,7 +2974,55 @@ const runFindAttachments = () => {
     const expected: string[] = [
       "computations/r/computations-r_files/figure-publish/fig-airquality-1.png",
     ];
-    check(expected, bodyValue, filePaths);
+    check(expected, bodyValue, filePaths, "computations/r/index.xml");
+  });
+
+  test(suiteLabel("single_image_lookup_full_path_win"), async () => {
+    const bodyValue: string =
+      '<ri:attachment ri:filename="computations-r_files/figure-publish/fig-airquality-1.png" ri:version-at-save="1" />';
+    const filePaths: string[] = [
+      "computations\\r\\computations-r_files\\figure-publish\\fig-airquality-1.png",
+    ];
+    const expected: string[] = [
+      "computations\\r\\computations-r_files\\figure-publish\\fig-airquality-1.png",
+    ];
+    check(expected, bodyValue, filePaths, "computations\\r\\index.xml");
+  });
+
+  test(suiteLabel("single_with_same_name_nested_win"), async () => {
+    const filePaths: string[] = [
+      "folder\\images\\elephant.png",
+      "images\\elephant.png",
+    ];
+    const bodyValue: string =
+      '<ri:attachment ri:filename="images/elephant.png" />';
+    const expected: string[] = ["images\\elephant.png"];
+    const path = "index.xml";
+    check(expected, bodyValue, filePaths, path);
+  });
+
+  test(suiteLabel("single_with_same_name_nested_win2"), async () => {
+    const filePaths: string[] = [
+      "folder\\images\\elephant.png",
+      "images\\elephant.png",
+    ];
+    const bodyValue: string =
+      '<ri:attachment ri:filename="images/elephant.png" />';
+    const expected: string[] = ["folder\\images\\elephant.png"];
+    const path = "folder\\index.xml";
+    check(expected, bodyValue, filePaths, path);
+  });
+
+  test(suiteLabel("single_with_same_name_nested"), async () => {
+    const filePaths: string[] = [
+      "images/elephant.png",
+      "folder/images/elephant.png",
+    ];
+    const bodyValue: string =
+      '<ri:attachment ri:filename="images/elephant.png" />';
+    const expected: string[] = ["images/elephant.png"];
+    const path = "index.xml";
+    check(expected, bodyValue, filePaths, path);
   });
 
   test(suiteLabel("single_image_lookup_relative_path"), async () => {
@@ -2985,6 +3034,18 @@ const runFindAttachments = () => {
     ];
     const path = "parent/inner-parent/hello-world3.xml";
     const expected: string[] = ["parent/inner-parent/elephant.png"];
+    check(expected, bodyValue, filePaths, path);
+  });
+
+  test(suiteLabel("single_image_lookup_relative_path_win"), async () => {
+    const bodyValue: string =
+      '<ri:attachment ri:filename="elephant.png" ri:version-at-save="1" />';
+    const filePaths: string[] = [
+      "images\\elephant.png",
+      "parent\\inner-parent\\elephant.png",
+    ];
+    const path = "parent\\inner-parent\\hello-world3.xml";
+    const expected: string[] = ["parent\\inner-parent\\elephant.png"];
     check(expected, bodyValue, filePaths, path);
   });
 
@@ -3070,6 +3131,12 @@ const runGetAttachmentsDirectory = () => {
     check(expected, baseDirectory, "", "file-name.png");
   });
 
+  test(suiteLabel("empty_to_upload_windows"), async () => {
+    const expected = "";
+    const baseDirectory = win32.fromFileUrl("file:///Users/fake-base");
+    check(expected, baseDirectory, "", "file-name.png");
+  });
+
   test(suiteLabel("empty_fileName"), async () => {
     const expected = "";
     const attachmentPath = "file1.png";
@@ -3077,10 +3144,29 @@ const runGetAttachmentsDirectory = () => {
     check(expected, baseDirectory, attachmentPath, "");
   });
 
+  test(suiteLabel("empty_fileName_windows"), async () => {
+    const expected = "";
+    const attachmentPath = "file1.png";
+    const baseDirectory = win32.fromFileUrl("file:///Users/fake-base");
+    check(expected, baseDirectory, attachmentPath, "");
+  });
+
   test(suiteLabel("simple"), async () => {
     const expected = "/Users/fake-base";
 
     const baseDirectory = "/Users/fake-base";
+    const attachmentPath = "file1.png";
+    const fileName = "fake-file.xml";
+
+    check(expected, baseDirectory, attachmentPath, fileName);
+  });
+
+  test(suiteLabel("simple_windows"), async () => {
+    const expected = String.raw`c:\Users\fake-base`;
+    const baseDirectory = String.raw`c:\Users\fake-base`;
+
+    console.log("baseDirectory", baseDirectory);
+
     const attachmentPath = "file1.png";
     const fileName = "fake-file.xml";
 
@@ -3132,7 +3218,7 @@ const runGetAttachmentsDirectory = () => {
     check(expected, baseDirectory, attachmentPath, fileName);
   });
 
-  otest(suiteLabel("site_nested_relative_dotslash"), async () => {
+  test(suiteLabel("site_nested_relative_dotslash"), async () => {
     const expected = "/Users/fake-base/fake-parent";
 
     const baseDirectory = "/Users/fake-base/_site";
@@ -3251,5 +3337,39 @@ if (RUN_ALL_TESTS) {
   runUpdateImagePathsForContentBody();
   runCapFirstLetter();
 } else {
-  runCapFirstLetter();
+  runFindAttachments();
 }
+
+// WINDOWS
+// publishFiles: {
+//   baseDir: "C:\\Users\\Megaport\\Documents\\dev\\quarto-confluence-test-main\\simple-site2\\_site",
+//       rootFile: "index.html",
+//       files: [
+//     "folder\\images\\elephant.png",
+//     "folder\\index.xml",
+//     "images\\elephant.png",
+//     "index.html",
+//     "index.xml",
+//     "search.json",
+//     "site_libs\\bootstrap\\bootstrap-icons.css",
+//     "site_libs\\bootstrap\\bootstrap-icons.woff",
+//     "site_libs\\bootstrap\\bootstrap.min.css",
+//     "site_libs\\bootstrap\\bootstrap.min.js",
+//     "site_libs\\clipboard\\clipboard.min.js",
+//     "site_libs\\quarto-html\\anchor.min.js",
+//     "site_libs\\quarto-html\\popper.min.js",
+//     "site_libs\\quarto-html\\quarto-syntax-highlighting.css",
+//     "site_libs\\quarto-html\\quarto.js",
+//     "site_libs\\quarto-html\\tippy.css",
+//     "site_libs\\quarto-html\\tippy.umd.min.js",
+//     "site_libs\\quarto-nav\\headroom.min.js",
+//     "site_libs\\quarto-nav\\quarto-nav.js",
+//     "site_libs\\quarto-search\\autocomplete.umd.js",
+//     "site_libs\\quarto-search\\fuse.min.js",
+//     "site_libs\\quarto-search\\quarto-search.js"
+//   ],
+//       metadataByInput: {
+//     "folder\\index.qmd": { title: "Page 2", author: undefined, date: undefined },
+//     "index.qmd": { title: "Page 1", author: undefined, date: undefined }
+//   }
+// },

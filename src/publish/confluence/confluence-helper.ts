@@ -1,5 +1,13 @@
 import { ApiError, PublishRecord } from "../types.ts";
 import { ensureTrailingSlash } from "../../core/path.ts";
+import {
+  join,
+  basename,
+  parse,
+  dirname,
+  toFileUrl,
+  resolve,
+} from "path/mod.ts";
 import { isHttpUrl } from "../../core/url.ts";
 import { AccountToken, InputMetadata } from "../provider.ts";
 import {
@@ -614,8 +622,10 @@ export const updateImagePaths = (body: ContentBody): ContentBody => {
 export const findAttachments = (
   bodyValue: string,
   publishFiles: string[] = [],
-  filePath: string = ""
+  filePathParam: string = ""
 ): string[] => {
+  const filePath = filePathParam.replaceAll("\\", "/");
+
   const pathList = filePath.split("/");
   const parentPath = pathList.slice(0, pathList.length - 1).join("/");
 
@@ -624,9 +634,14 @@ export const findAttachments = (
 
   if (publishFiles.length > 0) {
     uniqueResult = uniqueResult.map((assetFileName: string) => {
-      const assetInPublishFiles = publishFiles.find((assetPath) => {
-        return assetPath.endsWith(`${parentPath}/${assetFileName}`);
+      const assetInPublishFiles = publishFiles.find((assetPathParam) => {
+        const assetPath = assetPathParam.replaceAll("\\", "/");
+
+        const toCheck = join(parentPath, assetFileName);
+
+        return assetPath === toCheck;
       });
+
       return assetInPublishFiles ?? assetFileName;
     });
   }
@@ -634,7 +649,7 @@ export const findAttachments = (
   return uniqueResult ?? [];
 };
 
-export const getAttachmentsDirectory = (
+export const getAttachmentsDirectoryOld = (
   baseDirectory: string,
   filePath: string = "",
   attachmentPath: string = ""
@@ -645,6 +660,7 @@ export const getAttachmentsDirectory = (
     return "";
   }
 
+  //FIXME use DENO
   const filePathList = filePath.split("/");
   let attachmentPathList = attachmentPath.split("/");
 
@@ -669,6 +685,26 @@ export const getAttachmentsDirectory = (
   if (isRelative && filePathList.length > 1) {
     const directoryPath = pathNoFileFromList(filePathList);
     result = `${result}/${directoryPath}`;
+  }
+
+  return result;
+};
+
+export const getAttachmentsDirectory = (
+  baseDirectory: string,
+  filePath: string = "",
+  attachmentPath: string = ""
+): string => {
+  let result = baseDirectory;
+
+  const baseParse = parse(baseDirectory);
+  const baseDirectoryBaseName = basename(baseDirectory);
+
+  if (attachmentPath.length === 0 || filePath.length === 0) {
+    return "";
+  }
+
+  if (baseDirectoryBaseName === "_site") {
   }
 
   return result;
