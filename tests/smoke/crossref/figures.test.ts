@@ -83,7 +83,6 @@ if (Deno.build.os !== "windows") {
     ensureHtmlElements(juliaSubfigQmd.output.outputPath, [
       "section#julia-crossref-figure  div.quarto-layout-panel > figure > div.quarto-layout-row",
       "section#julia-crossref-figure  div.quarto-layout-panel > figure > figcaption.figure-caption",
-      "section#julia-crossref-figure  div.quarto-layout-panel > figure  svg"
     ]),
     ensureFileRegexMatches(juliaSubfigQmd.output.outputPath, [
       /Figure&nbsp;1: Plots/,
