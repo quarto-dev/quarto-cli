@@ -18,6 +18,4 @@ format:
     theme: cosmo
   pdf:
     documentclass: scrreprt
-
-
-
+  asciidoc: default

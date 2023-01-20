@@ -51,6 +51,15 @@ export interface BookExtension {
     project: ProjectContext,
     file: RenderedFile,
   ) => void;
+
+  onMultiFilePrePrender?: (
+    isIndex: boolean,
+    format: Format,
+    markdown: string,
+    project: ProjectContext,
+  ) => Promise<{ format?: Format; markdown?: string }>;
+
+  bookPostProcess?: (format: Format, project: ProjectContext) => Promise<void>;
 }
 
 export function bookConfig(

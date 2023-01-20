@@ -78,6 +78,7 @@ import {
 import {
   bookConfig,
   BookConfigKey,
+  BookExtension,
   isBookIndexPage,
   isMultiFileBookFormat,
   isNumberedChapter,
@@ -93,6 +94,7 @@ import { removePandocTo } from "../../../command/render/flags.ts";
 import { resourcePath } from "../../../core/resources.ts";
 import { PandocAttr, PartitionedMarkdown } from "../../../core/pandoc/types.ts";
 import { stringify } from "encoding/yaml.ts";
+import { markdownEngine } from "../../../execute/markdown.ts";
 
 export function bookPandocRenderer(
   options: RenderOptions,
@@ -138,7 +140,8 @@ export function bookPandocRenderer(
         );
 
         // index file
-        if (isBookIndexPage(fileRelative)) {
+        const isIndex = isBookIndexPage(fileRelative);
+        if (isIndex) {
           file.recipe.format = withBookTitleMetadata(
             file.recipe.format,
             project.config,
@@ -212,6 +215,27 @@ export function bookPandocRenderer(
                 "\n\n" + partitioned.markdown;
             } else {
               file.executeResult.markdown = partitioned.markdown;
+            }
+          }
+        }
+
+        // Use the pre-render hook to allow formats to customize
+        // the format before it is rendered.
+        if (file.recipe.format.extensions?.book) {
+          const bookExtension =
+            (file.recipe.format.extensions?.book as BookExtension);
+          if (bookExtension.onMultiFilePrePrender) {
+            const result = await bookExtension.onMultiFilePrePrender(
+              isIndex,
+              file.recipe.format,
+              file.executeResult.markdown,
+              project,
+            );
+            if (result.format) {
+              file.recipe.format = result.format;
+            }
+            if (result.markdown) {
+              file.executeResult.markdown = result.markdown;
             }
           }
         }
@@ -565,6 +589,21 @@ export async function bookPostRender(
   incremental: boolean,
   outputFiles: ProjectOutputFile[],
 ) {
+  const formats: Format[] = [];
+  outputFiles.forEach((file) => {
+    if (!formats.includes(file.format)) {
+      formats.push(file.format);
+    }
+  });
+  for (const format of formats) {
+    if (format.extensions?.book) {
+      const bookExt = format.extensions?.book as BookExtension;
+      if (bookExt.bookPostProcess) {
+        await bookExt.bookPostProcess(format, context);
+      }
+    }
+  }
+
   // get web output contained in the outputFiles passed to us
   const websiteFiles = websiteOutputFiles(outputFiles);
   if (websiteFiles.length > 0) {
