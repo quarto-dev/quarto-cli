@@ -1,0 +1,13 @@
+---
+title: test-quarto-disable-processing
+filters:
+  - test-quarto-disable-processing.lua
+---
+
+```{=html}
+<table data-quarto-disable-processing="true">
+  <tr>
+    <td>Hello world</td>
+  </tr>
+</table>
+```

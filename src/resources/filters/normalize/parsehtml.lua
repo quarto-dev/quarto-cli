@@ -1,3 +1,8 @@
+-- parsehtml.lua
+-- Copyright (C) 2020-2023 Posit Software, PBC
+
+local kDisableProcessing = "quarto-disable-processing"
+
 function parse_html_tables()
   return {
     RawBlock = function(el)
@@ -8,6 +13,17 @@ function parse_html_tables()
         if tableBegin then
           local tableHtml = tableBegin .. "\n" .. tableBody .. "\n" .. tableEnd
           local tableDoc = pandoc.read(tableHtml, "html")
+          local skip = false
+          tableDoc:walk({
+            Table = function(table)
+              if table.attributes[kDisableProcessing] ~= nil then
+                skip = true
+              end
+            end
+          })
+          if skip then
+            return nil
+          end
           return tableDoc.blocks
         end
       end
