@@ -317,11 +317,12 @@ export const buildSpaceChanges = (
         (page: SitePage) => page?.metadata?.fileName === fileName
       );
 
-    const existingPage = findPageInExistingSite(fileMetadata.fileName);
+    const universalFileName = pathWithForwardSlashes(fileMetadata.fileName);
+    const existingPage = findPageInExistingSite(universalFileName);
 
     let spaceChangeList: ConfluenceSpaceChange[] = [];
 
-    const pathList = fileMetadata.fileName.split("/");
+    const pathList = universalFileName.split("/");
 
     let pageParent =
       pathList.length > 1
@@ -335,6 +336,7 @@ export const buildSpaceChanges = (
 
       let existingSiteParent = null;
 
+      //TODO update with deno paths after tests are in place
       const parentsList = pathList.slice(0, pathList.length - 1);
 
       parentsList.forEach((parentFileName, index) => {
@@ -342,7 +344,10 @@ export const buildSpaceChanges = (
 
         const ancestor = index > 0 ? ancestorFilePath : parent?.parent;
 
+        console.log("parentFileName", parentFileName);
+
         let fileName = `${ancestorFilePath}/${parentFileName}`;
+        console.log("fileName", fileName);
         if (fileName.startsWith("/")) {
           fileName = parentFileName;
         }
@@ -367,6 +372,8 @@ export const buildSpaceChanges = (
           // Create a new parent page
 
           const existingAncestor = findPageInExistingSite(ancestor ?? "");
+
+          console.log("fileNameToSave", fileName);
 
           spaceChangeList = [
             ...spaceChangeList,
@@ -407,7 +414,7 @@ export const buildSpaceChanges = (
           existingPage.id,
           useOriginalTitle ? fileMetadata.originalTitle : fileMetadata.title,
           fileMetadata.contentBody,
-          fileMetadata.fileName,
+          universalFileName,
           pageParent
         ),
       ];
@@ -418,7 +425,7 @@ export const buildSpaceChanges = (
           fileMetadata.title,
           space,
           fileMetadata.contentBody,
-          fileMetadata.fileName,
+          universalFileName,
           pageParent,
           ContentStatusEnum.current
         ),

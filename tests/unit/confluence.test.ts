@@ -845,8 +845,8 @@ const runMergeSitePages = () => {
   });
 };
 
-const runFileMetadataToSpaceChanges = () => {
-  const suiteLabel = (label: string) => `FileMetadataToSpaceChanges_${label}`;
+const runBuildSpaceChanges = () => {
+  const suiteLabel = (label: string) => `BuildSpaceChanges_${label}`;
 
   const fakeSpace: Space = {
     key: "fake-space-key",
@@ -898,7 +898,7 @@ const runFileMetadataToSpaceChanges = () => {
     },
   };
 
-  unitTest(suiteLabel("no_files"), async () => {
+  test(suiteLabel("no_files"), async () => {
     const fileMetadataList: SiteFileMetadata[] = [];
     const expected: ConfluenceSpaceChange[] = [];
     const actual: ConfluenceSpaceChange[] = buildSpaceChanges(
@@ -909,7 +909,7 @@ const runFileMetadataToSpaceChanges = () => {
     assertEquals(expected, actual);
   });
 
-  unitTest(suiteLabel("one_file"), async () => {
+  test(suiteLabel("one_file"), async () => {
     const fileMetadataList: SiteFileMetadata[] = [fakeFile];
     const expected: ConfluenceSpaceChange[] = [
       {
@@ -944,7 +944,7 @@ const runFileMetadataToSpaceChanges = () => {
     assertEquals(expected, actual);
   });
 
-  unitTest(suiteLabel("two_files"), async () => {
+  test(suiteLabel("two_files"), async () => {
     const fileMetadataList: SiteFileMetadata[] = [fakeFile, fakeFile2];
     const expected: ConfluenceSpaceChange[] = [
       {
@@ -1002,7 +1002,7 @@ const runFileMetadataToSpaceChanges = () => {
     assertEquals(expected, actual);
   });
 
-  unitTest(suiteLabel("one_file_update"), async () => {
+  test(suiteLabel("one_file_update"), async () => {
     const fileMetadataList: SiteFileMetadata[] = [fakeFile];
     const expected: ConfluenceSpaceChange[] = [
       {
@@ -1042,7 +1042,7 @@ const runFileMetadataToSpaceChanges = () => {
     assertEquals(expected, actual);
   });
 
-  unitTest(suiteLabel("one_file_update_matching"), async () => {
+  test(suiteLabel("one_file_update_matching"), async () => {
     const fileMetadataList: SiteFileMetadata[] = [fakeFileMatchingPage];
     const expected: ConfluenceSpaceChange[] = [
       {
@@ -1082,7 +1082,7 @@ const runFileMetadataToSpaceChanges = () => {
     assertEquals(expected, actual);
   });
 
-  unitTest(suiteLabel("findPagesToDelete"), async () => {
+  test(suiteLabel("findPagesToDelete"), async () => {
     const fileMetadataList: SiteFileMetadata[] = [fakeFile];
     const existingSite: SitePage[] = [
       {
@@ -1110,7 +1110,7 @@ const runFileMetadataToSpaceChanges = () => {
     assertEquals(expected, actual);
   });
 
-  unitTest(suiteLabel("one_file_delete"), async () => {
+  test(suiteLabel("one_file_delete"), async () => {
     const fileMetadataList: SiteFileMetadata[] = [fakeFile];
     const existingSite: SitePage[] = [
       {
@@ -1195,6 +1195,19 @@ const runSpaceCreatesWithNesting = () => {
     },
   };
 
+  const fakeNestedFileWin: SiteFileMetadata = {
+    fileName: "fake-parent\\fake-file-name",
+    title: "fake-title",
+    originalTitle: "fake-title-original",
+    matchingPages: [],
+    contentBody: {
+      storage: {
+        value: "fake-value",
+        representation: "storage",
+      },
+    },
+  };
+
   const fakeNestedFile2: SiteFileMetadata = {
     fileName: "fake-parent/fake-file-name2",
     title: "fake-title2",
@@ -1208,8 +1221,34 @@ const runSpaceCreatesWithNesting = () => {
     },
   };
 
+  const fakeNestedFile2Win: SiteFileMetadata = {
+    fileName: "fake-parent\\fake-file-name2",
+    title: "fake-title2",
+    originalTitle: "fake-title2-original",
+    matchingPages: [],
+    contentBody: {
+      storage: {
+        value: "fake-value",
+        representation: "storage",
+      },
+    },
+  };
+
   const fakeNestedFile3: SiteFileMetadata = {
     fileName: "fake-parent2/fake-file-name3",
+    title: "fake-title3",
+    originalTitle: "fake-title3-original",
+    matchingPages: [],
+    contentBody: {
+      storage: {
+        value: "fake-value",
+        representation: "storage",
+      },
+    },
+  };
+
+  const fakeNestedFile3Win: SiteFileMetadata = {
+    fileName: "fake-parent2\\fake-file-name3",
     title: "fake-title3",
     originalTitle: "fake-title3-original",
     matchingPages: [],
@@ -1235,7 +1274,21 @@ const runSpaceCreatesWithNesting = () => {
     },
   };
 
-  unitTest(suiteLabel("one_nested_file"), async () => {
+  const fakeMultiNestedFileWin: SiteFileMetadata = {
+    fileName:
+      "fake-great-grand-parent\\fake-grand-parent\\fake-parent\\fake-file-name",
+    title: "fake-title",
+    originalTitle: "fake-title-original",
+    matchingPages: [],
+    contentBody: {
+      storage: {
+        value: "fake-value",
+        representation: "storage",
+      },
+    },
+  };
+
+  test(suiteLabel("one_nested_file"), async () => {
     const fileMetadataList: SiteFileMetadata[] = [fakeNestedFile];
     const expected: ConfluenceSpaceChange[] = [
       {
@@ -1293,7 +1346,65 @@ const runSpaceCreatesWithNesting = () => {
     assertEquals(expected, actual);
   });
 
-  unitTest(suiteLabel("one_multi_nested_file"), async () => {
+  test(suiteLabel("one_nested_file_win"), async () => {
+    const fileMetadataList: SiteFileMetadata[] = [fakeNestedFileWin];
+    const expected: ConfluenceSpaceChange[] = [
+      {
+        contentChangeType: ContentChangeType.create,
+        ancestors: [
+          {
+            id: "8781825",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "",
+          },
+        },
+        fileName: "fake-parent",
+        space: {
+          key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
+        },
+        status: "current",
+        title: "Fake-parent",
+        type: "page",
+      },
+      {
+        contentChangeType: ContentChangeType.create,
+        ancestors: [
+          {
+            id: "fake-parent",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "fake-value",
+          },
+        },
+        fileName: "fake-parent/fake-file-name",
+        space: {
+          key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
+        },
+        status: "current",
+        title: "fake-title",
+        type: "page",
+      },
+    ];
+    const actual: ConfluenceSpaceChange[] = buildSpaceChanges(
+      fileMetadataList,
+      FAKE_PARENT,
+      fakeSpace
+    );
+    assertEquals(expected, actual);
+  });
+
+  test(suiteLabel("one_multi_nested_file"), async () => {
     const fileMetadataList: SiteFileMetadata[] = [fakeMultiNestedFile];
     const expected: ConfluenceSpaceChange[] = [
       {
@@ -1399,7 +1510,113 @@ const runSpaceCreatesWithNesting = () => {
     assertEquals(expected, actual);
   });
 
-  unitTest(suiteLabel("two_nested_files_same_parent"), async () => {
+  test(suiteLabel("one_multi_nested_file_win"), async () => {
+    const fileMetadataList: SiteFileMetadata[] = [fakeMultiNestedFileWin];
+    const expected: ConfluenceSpaceChange[] = [
+      {
+        contentChangeType: ContentChangeType.create,
+        ancestors: [
+          {
+            id: "8781825",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "",
+          },
+        },
+        fileName: "fake-great-grand-parent",
+        space: {
+          key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
+        },
+        status: "current",
+        title: "Fake-great-grand-parent",
+        type: "page",
+      },
+      {
+        contentChangeType: ContentChangeType.create,
+        ancestors: [
+          {
+            id: "fake-great-grand-parent",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "",
+          },
+        },
+        fileName: "fake-great-grand-parent/fake-grand-parent",
+        space: {
+          key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
+        },
+        status: "current",
+        title: "Fake-grand-parent",
+        type: "page",
+      },
+      {
+        contentChangeType: ContentChangeType.create,
+        ancestors: [
+          {
+            id: "fake-great-grand-parent/fake-grand-parent",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "",
+          },
+        },
+        fileName: "fake-great-grand-parent/fake-grand-parent/fake-parent",
+        space: {
+          key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
+        },
+        status: "current",
+        title: "Fake-parent",
+        type: "page",
+      },
+      {
+        contentChangeType: ContentChangeType.create,
+        ancestors: [
+          {
+            id: "fake-great-grand-parent/fake-grand-parent/fake-parent",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "fake-value",
+          },
+        },
+        fileName:
+          "fake-great-grand-parent/fake-grand-parent/fake-parent/fake-file-name",
+        space: {
+          key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
+        },
+        status: "current",
+        title: "fake-title",
+        type: "page",
+      },
+    ];
+    const actual: ConfluenceSpaceChange[] = buildSpaceChanges(
+      fileMetadataList,
+      FAKE_PARENT,
+      fakeSpace
+    );
+
+    assertEquals(expected, actual);
+  });
+
+  test(suiteLabel("two_nested_files_same_parent"), async () => {
     const fileMetadataList: SiteFileMetadata[] = [
       fakeNestedFile,
       fakeNestedFile2,
@@ -1483,7 +1700,7 @@ const runSpaceCreatesWithNesting = () => {
     assertEquals(expected, actual);
   });
 
-  unitTest(suiteLabel("two_nested_files_different_parent"), async () => {
+  test(suiteLabel("two_nested_files_different_parent"), async () => {
     const fileMetadataList: SiteFileMetadata[] = [
       fakeNestedFile,
       fakeNestedFile3,
@@ -1590,11 +1807,249 @@ const runSpaceCreatesWithNesting = () => {
     assertEquals(expected, actual);
   });
 
-  unitTest(suiteLabel("three_nested_files_same_different_parent"), async () => {
+  test(suiteLabel("two_nested_files_different_parent_win"), async () => {
+    const fileMetadataList: SiteFileMetadata[] = [
+      fakeNestedFileWin,
+      fakeNestedFile3Win,
+    ];
+    const expected: ConfluenceSpaceChange[] = [
+      {
+        contentChangeType: ContentChangeType.create,
+        ancestors: [
+          {
+            id: "8781825",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "",
+          },
+        },
+        fileName: "fake-parent",
+        space: {
+          key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
+        },
+        status: "current",
+        title: "Fake-parent",
+        type: "page",
+      },
+      {
+        contentChangeType: ContentChangeType.create,
+        ancestors: [
+          {
+            id: "fake-parent",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "fake-value",
+          },
+        },
+        fileName: "fake-parent/fake-file-name",
+        space: {
+          key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
+        },
+        status: "current",
+        title: "fake-title",
+        type: "page",
+      },
+      {
+        contentChangeType: ContentChangeType.create,
+        ancestors: [
+          {
+            id: "8781825",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "",
+          },
+        },
+        fileName: "fake-parent2",
+        space: {
+          key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
+        },
+        status: "current",
+        title: "Fake-parent2",
+        type: "page",
+      },
+      {
+        contentChangeType: ContentChangeType.create,
+        ancestors: [
+          {
+            id: "fake-parent2",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "fake-value",
+          },
+        },
+        fileName: "fake-parent2/fake-file-name3",
+        space: {
+          key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
+        },
+        status: "current",
+        title: "fake-title3",
+        type: "page",
+      },
+    ];
+    const actual: ConfluenceSpaceChange[] = buildSpaceChanges(
+      fileMetadataList,
+      FAKE_PARENT,
+      fakeSpace
+    );
+    assertEquals(expected, actual);
+  });
+
+  test(suiteLabel("three_nested_files_same_different_parent"), async () => {
     const fileMetadataList: SiteFileMetadata[] = [
       fakeNestedFile,
       fakeNestedFile2,
       fakeNestedFile3,
+    ];
+    const expected: ConfluenceSpaceChange[] = [
+      {
+        contentChangeType: ContentChangeType.create,
+        ancestors: [
+          {
+            id: "8781825",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "",
+          },
+        },
+        fileName: "fake-parent",
+        space: {
+          key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
+        },
+        status: "current",
+        title: "Fake-parent",
+        type: "page",
+      },
+      {
+        contentChangeType: ContentChangeType.create,
+        ancestors: [
+          {
+            id: "fake-parent",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "fake-value",
+          },
+        },
+        fileName: "fake-parent/fake-file-name",
+        space: {
+          key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
+        },
+        status: "current",
+        title: "fake-title",
+        type: "page",
+      },
+      {
+        contentChangeType: ContentChangeType.create,
+        ancestors: [
+          {
+            id: "fake-parent",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "fake-value",
+          },
+        },
+        fileName: "fake-parent/fake-file-name2",
+        space: {
+          key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
+        },
+        status: "current",
+        title: "fake-title2",
+        type: "page",
+      },
+      {
+        contentChangeType: ContentChangeType.create,
+        ancestors: [
+          {
+            id: "8781825",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "",
+          },
+        },
+        fileName: "fake-parent2",
+        space: {
+          key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
+        },
+        status: "current",
+        title: "Fake-parent2",
+        type: "page",
+      },
+      {
+        contentChangeType: ContentChangeType.create,
+        ancestors: [
+          {
+            id: "fake-parent2",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "fake-value",
+          },
+        },
+        fileName: "fake-parent2/fake-file-name3",
+        space: {
+          key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
+        },
+        status: "current",
+        title: "fake-title3",
+        type: "page",
+      },
+    ];
+    const actual: ConfluenceSpaceChange[] = buildSpaceChanges(
+      fileMetadataList,
+      FAKE_PARENT,
+      fakeSpace
+    );
+    assertEquals(expected, actual);
+  });
+
+  test(suiteLabel("three_nested_files_same_different_parent_win"), async () => {
+    const fileMetadataList: SiteFileMetadata[] = [
+      fakeNestedFileWin,
+      fakeNestedFile2Win,
+      fakeNestedFile3Win,
     ];
     const expected: ConfluenceSpaceChange[] = [
       {
@@ -3180,7 +3635,7 @@ const runCapFirstLetter = () => {
 if (RUN_ALL_TESTS) {
   runGeneralTests();
   runFilterFilesForUpdate();
-  runFileMetadataToSpaceChanges();
+  runBuildSpaceChanges();
   runSpaceCreatesWithNesting();
   runSpaceUpdatesWithNesting();
   runMergeSitePages();
@@ -3196,7 +3651,7 @@ if (RUN_ALL_TESTS) {
   runUpdateImagePathsForContentBody();
   runCapFirstLetter();
 } else {
-  runFindAttachments();
+  runSpaceCreatesWithNesting();
 }
 
 // WINDOWS
