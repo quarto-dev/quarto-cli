@@ -1,0 +1,34 @@
+---
+title: "test webpage"
+format:
+  html:
+    code-fold: true
+jupyter: python3
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - []
+        - ["\\?\\(caption\\)"]
+
+---
+
+```{python}
+#| label: fig-demo
+#| fig-cap: "This is a demo figure for debug"
+
+from bokeh.io import output_notebook
+output_notebook(hide_banner=True)
+
+from bokeh.palettes import Spectral5
+from bokeh.plotting import figure, show
+from bokeh.sampledata.autompg import autompg as df
+from bokeh.transform import factor_cmap
+
+df.cyl = df.cyl.astype(str)
+group = df.groupby('cyl')
+cyl_cmap = factor_cmap('cyl', palette=Spectral5, factors=sorted(df.cyl.unique()))
+p = figure(height=350, x_range=group, title="MPG by # Cylinders", toolbar_location=None, tools="")
+p.vbar(x='cyl', top='mpg_mean', width=1, source=group, line_color=cyl_cmap, fill_color=cyl_cmap)
+show(p)
+```

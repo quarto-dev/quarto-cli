@@ -151,6 +151,7 @@ import { ProjectContext } from "../../project/types.ts";
 import { mergeConfigs } from "../config.ts";
 import { encode as encodeBase64 } from "encoding/base64.ts";
 import { isIpynbOutput } from "../../config/format.ts";
+import { fixupJupyterNotebook } from "./jupyter-fixups.ts";
 
 export const kQuartoMimeType = "quarto_mimetype";
 export const kQuartoOutputOrder = "quarto_order";
@@ -631,6 +632,9 @@ export async function jupyterToMarkdown(
   nb: JupyterNotebook,
   options: JupyterToMarkdownOptions,
 ): Promise<JupyterToMarkdownResult> {
+  // perform fixups
+  nb = fixupJupyterNotebook(nb, options);
+
   // optional content injection / html preservation for html output
   // that isn't an ipynb
   const isHtml = options.toHtml && !options.toIpynb;
