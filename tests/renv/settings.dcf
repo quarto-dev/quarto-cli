@@ -1,0 +1,10 @@
+bioconductor.version:
+external.libraries:
+ignored.packages:
+package.dependency.fields: Imports, Depends, LinkingTo
+r.version:
+snapshot.type: implicit
+use.cache: TRUE
+vcs.ignore.cellar: TRUE
+vcs.ignore.library: TRUE
+vcs.ignore.local: TRUE
