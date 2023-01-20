@@ -41,6 +41,9 @@ export function outputForInput(input: string, to: string) {
   if (baseFormat === "jats") {
     outputExt = "xml";
   }
+  if (baseFormat === "asciidoc") {
+    outputExt = "adoc";
+  }
 
   const outputPath = join(dir, `${stem}.${outputExt}`);
   const supportPath = join(dir, `${stem}_files`);
