@@ -128,8 +128,6 @@ export class ConfluenceClient {
       WrappedResult<AttachmentSummary>
     >(`content/${id}/child/attachment`);
 
-    trace("getAttachments", wrappedResult, LogPrefix.ATTACHMENT);
-
     const result = wrappedResult?.results ?? [];
     return result;
   }
