@@ -1792,7 +1792,7 @@ _quarto = {
    file = {
       read = read_file,
       write = function(path, contents) 
-         return write_file(path, contents, "ab") 
+         return write_file(path, contents, "wb") 
       end,
       writeText = function(path, contents) 
          return write_file(path, contents, "a")
