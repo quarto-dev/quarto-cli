@@ -344,10 +344,8 @@ export const buildSpaceChanges = (
 
         const ancestor = index > 0 ? ancestorFilePath : parent?.parent;
 
-        console.log("parentFileName", parentFileName);
-
         let fileName = `${ancestorFilePath}/${parentFileName}`;
-        console.log("fileName", fileName);
+
         if (fileName.startsWith("/")) {
           fileName = parentFileName;
         }
@@ -372,8 +370,6 @@ export const buildSpaceChanges = (
           // Create a new parent page
 
           const existingAncestor = findPageInExistingSite(ancestor ?? "");
-
-          console.log("fileNameToSave", fileName);
 
           spaceChangeList = [
             ...spaceChangeList,
