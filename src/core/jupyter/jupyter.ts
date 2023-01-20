@@ -1812,9 +1812,7 @@ function mdTrimEmptyLines(
 }
 
 function mdCodeOutput(code: string[], clz?: string) {
-  console.log("Code", code);
   const ticks = ticksForCode(code);
-  console.log(ticks);
   const open = ticks + (clz ? `{.${clz}}` : "");
   return mdEnclosedOutput(open, code, ticks);
 }
