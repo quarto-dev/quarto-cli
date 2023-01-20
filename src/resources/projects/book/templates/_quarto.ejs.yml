@@ -3,7 +3,7 @@ project:
 
 book:
   title: "<%= title %>"
-  author: "Jane Doe"
+  author: "Norah Jones"
   date: "<%= new Date().toLocaleDateString() %>"
   chapters:
     - index<%= ext %>
