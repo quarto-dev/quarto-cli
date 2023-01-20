@@ -3,6 +3,7 @@
 import { join } from "path/mod.ts";
 import { Input, Secret } from "cliffy/prompt/mod.ts";
 import { RenderFlags } from "../../command/render/types.ts";
+import { pathWithForwardSlashes } from "../../core/path.ts";
 
 import {
   readAccessTokens,
@@ -244,7 +245,7 @@ async function publish(
 
   const space = await client.getSpace(parent.space);
 
-  trace("publish", { parent, server, space });
+  trace("publish", { parent, server, id: space.id, key: space.key });
 
   const uniquifyTitle = async (title: string, idToIgnore: string = "") => {
     const titleAlreadyExistsInSpace: boolean = await client.isTitleInSpace(
@@ -483,9 +484,11 @@ async function publish(
     body: ContentBody,
     titleToCreate: string = title,
     createParent: ConfluenceParent = parent,
-    fileName: string = ""
+    fileNameParam: string = ""
   ): Promise<Content> => {
     const createTitle = await uniquifyTitle(titleToCreate);
+
+    const fileName = pathWithForwardSlashes(fileNameParam);
 
     const attachmentsToUpload: string[] = findAttachments(
       body.storage.value,
@@ -578,9 +581,8 @@ async function publish(
       parentId,
       publishFiles,
       metadataByInput,
+      existingSite,
     });
-
-    trace("existingSite", existingSite);
 
     const filteredFiles: string[] = filterFilesForUpdate(publishFiles.files);
 
@@ -654,16 +656,18 @@ async function publish(
           parent: ancestorId ?? siteParent.parent,
         };
 
+        const universalPath = pathWithForwardSlashes(change.fileName ?? "");
+
         const result = await createContent(
           publishFiles,
           change.body,
           change.title ?? "",
           ancestorParent,
-          change.fileName
+          universalPath
         );
 
-        if (change.fileName) {
-          pathsToId[change.fileName] = result.id ?? "";
+        if (universalPath) {
+          pathsToId[universalPath] = result.id ?? "";
         }
 
         const contentPropertyResult: Content =
