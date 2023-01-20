@@ -12,6 +12,8 @@ import { resolveInputTarget } from "../../project/project-index.ts";
 import { projectFormatOutputDir } from "../../project/project-shared.ts";
 import { kProjectType, ProjectContext } from "../../project/types.ts";
 import {
+  BookChapterEntry,
+  BookPart,
   kBookAppendix,
   kBookChapters,
 } from "../../project/types/book/book-config.ts";
@@ -78,12 +80,14 @@ const asciidocBookExtension = {
 };
 
 async function bookRootPageMarkdown(project: ProjectContext) {
+  const bookContents = bookConfig(
+    kBookChapters,
+    project.config,
+  ) as BookChapterEntry[];
+
   // Find chapter and appendices
   const chapters = await resolveBookInputs(
-    bookConfig(
-      kBookChapters,
-      project.config,
-    ) as string[],
+    bookContents,
     project,
     (input: string) => {
       // Exclude the index page from the chapter list (since we'll append
@@ -107,8 +111,8 @@ async function bookRootPageMarkdown(project: ProjectContext) {
   const fileContents = [
     "\n```{=asciidoc}\n\n",
     levelOffset("+1"),
-    include(chapters),
-    appendix(appendices),
+    partsAndChapters(chapters, chapter),
+    partsAndChapters(appendices, appendix),
     levelOffset("-1"),
     "```\n",
   ];
@@ -120,45 +124,84 @@ function levelOffset(offset: string) {
   return `:leveloffset: ${offset}\n`;
 }
 
-function include(chapters: string[]) {
-  return chapters.map((chap) => {
-    return `include::${chap}[]\n`;
+function partsAndChapters(
+  entries: BookChapterEntry[],
+  include: (path: string) => string,
+) {
+  return entries.map((entry) => {
+    if (typeof (entry) === "string") {
+      return include(entry);
+    } else {
+      const partOutput: string[] = [];
+      partOutput.push(levelOffset("-1"));
+      partOutput.push(`= ${entry.part}`);
+      partOutput.push(levelOffset("+1"));
+
+      for (const chap of entry.chapters) {
+        partOutput.push(include(chap));
+      }
+
+      return partOutput.join("\n");
+    }
   }).join("\n");
 }
 
-function appendix(apps: string[]) {
-  if (apps.length > 0) {
-    return apps.map((app) => {
-      return `[appendix]\ninclude::${app}[]\n`;
-    }).join("\n");
-  } else {
-    return "";
-  }
+function chapter(path: string) {
+  return `include::${path}[]\n`;
+}
+
+function appendix(path: string) {
+  return `[appendix]\n${chapter(path)}\n`;
 }
 
 async function resolveBookInputs(
-  inputs: string[],
+  inputs: BookChapterEntry[],
   project: ProjectContext,
   filter?: (input: string) => boolean,
 ) {
-  const outputs: string[] = [];
-  for (const input of inputs) {
+  const resolveChapter = async (input: string) => {
     if (filter && !filter(input)) {
-      continue;
-    }
-    const target = await resolveInputTarget(
-      project,
-      input,
-      false,
-    );
-    if (target) {
-      const [dir, stem] = dirAndStem(target?.outputHref);
-      const outputFile = join(
-        dir,
-        `${stem}.adoc`,
+      return undefined;
+    } else {
+      const target = await resolveInputTarget(
+        project,
+        input,
+        false,
       );
+      if (target) {
+        const [dir, stem] = dirAndStem(target?.outputHref);
+        const outputFile = join(
+          dir,
+          `${stem}.adoc`,
+        );
 
-      outputs.push(outputFile);
+        return outputFile;
+      } else {
+        return undefined;
+      }
+    }
+  };
+
+  const outputs: BookChapterEntry[] = [];
+  for (const input of inputs) {
+    if (typeof (input) === "string") {
+      const chapterOutput = await resolveChapter(input);
+      if (chapterOutput) {
+        outputs.push(chapterOutput);
+      }
+    } else {
+      const entry = input as BookPart;
+      const entryOutput = {
+        part: entry.part,
+        chapters: [] as string[],
+      };
+      for (const chapter of entry.chapters) {
+        const resolved = await resolveChapter(chapter);
+        if (resolved) {
+          entryOutput.chapters.push(resolved);
+        }
+      }
+      outputs.push(entryOutput);
     }
   }
   return outputs;
