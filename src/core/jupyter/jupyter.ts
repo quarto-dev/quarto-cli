@@ -243,6 +243,25 @@ export interface JupyterOutputError extends JupyterOutput {
   traceback: string[];
 }
 
+const countTicks = (code: string[]) => {
+  // FIXME do we need trim() here?
+  const countLeadingTicks = (s: string) => {
+    // count leading ticks using regexps
+    const m = s.match(/^`+/);
+    if (m) {
+      return m[0].length;
+    } else {
+      return 0;
+    }
+  };
+  return Math.max(0, ...code.map((s) => countLeadingTicks(s)));
+};
+
+const ticksForCode = (code: string[]) => {
+  const n = Math.max(3, countTicks(code) + 1);
+  return "`".repeat(n);
+};
+
 export async function quartoMdToJupyter(
   markdown: string,
   includeIds: boolean,
@@ -1222,7 +1241,9 @@ async function mdFromCodeCell(
   // write code if appropriate
   if (includeCode(cell, options)) {
     const fenced = echoFenced(cell, options);
-    const ticks = fenced ? "````" : "```";
+    const ticks = "`".repeat(
+      Math.max(countTicks(cell.source) + 1, fenced ? 4 : 3),
+    );
 
     md.push(ticks + " {");
     if (typeof cell.options[kCellLstLabel] === "string") {
@@ -1727,7 +1748,8 @@ function mdMarkdownOutput(md: string[]) {
 }
 
 function mdFormatOutput(format: string, source: string[]) {
-  return mdEnclosedOutput("```{=" + format + "}", source, "```");
+  const ticks = ticksForCode(source);
+  return mdEnclosedOutput(ticks + "{=" + format + "}", source, ticks);
 }
 
 function mdLatexOutput(latex: string[]) {
@@ -1790,8 +1812,9 @@ function mdTrimEmptyLines(
 }
 
 function mdCodeOutput(code: string[], clz?: string) {
-  const open = "```" + (clz ? `{.${clz}}` : "");
-  return mdEnclosedOutput(open, code, "```");
+  const ticks = ticksForCode(code);
+  const open = ticks + (clz ? `{.${clz}}` : "");
+  return mdEnclosedOutput(open, code, ticks);
 }
 
 function mdEnclosedOutput(begin: string, text: string[], end: string) {

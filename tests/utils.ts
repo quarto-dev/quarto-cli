@@ -29,7 +29,7 @@ export function outputForInput(input: string, to: string) {
   if (baseFormat === "revealjs") {
     outputExt = "html";
   }
-  if (baseFormat === "commonmark") {
+  if (baseFormat === "commonmark" || baseFormat === "gfm") {
     outputExt = "md";
   }
   if (baseFormat === "csljson") {
