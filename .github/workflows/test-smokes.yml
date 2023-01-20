@@ -95,6 +95,9 @@ jobs:
           popd
 
       - name: Smoke Test Head
+        env:
+          # Useful as TinyTeX latest release is checked in run-test.sh
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         if: github.event.before == ''
         run: |
           pushd tests
