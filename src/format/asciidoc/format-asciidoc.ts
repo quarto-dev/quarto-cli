@@ -9,8 +9,6 @@ import { Format } from "../../config/types.ts";
 
 import { mergeConfigs } from "../../core/config.ts";
 import { resolveInputTarget } from "../../project/project-index.ts";
-import { projectFormatOutputDir } from "../../project/project-shared.ts";
-import { kProjectType, ProjectContext } from "../../project/types.ts";
 import {
   BookChapterEntry,
   BookPart,
@@ -21,12 +19,19 @@ import {
   bookConfig,
   isBookIndexPage,
 } from "../../project/types/book/book-shared.ts";
-import { projectType } from "../../project/types/project-types.ts";
 import { join } from "path/mod.ts";
 
 import { plaintextFormat } from "../formats-shared.ts";
 import { dirAndStem } from "../../core/path.ts";
 import { formatResourcePath } from "../../core/resources.ts";
+import { ProjectContext } from "../../project/types.ts";
+import { kShiftHeadingLevelBy } from "../../config/constants.ts";
+
+type AsciiDocBookPart = string | {
+  partPath?: string;
+  part?: string;
+  chapters: string[];
+};
 
 // Provide the basic asciidoc format
 export function asciidocFormat(): Format {
@@ -67,13 +72,13 @@ const asciidocBookExtension = {
           "template.asciidoc",
         ),
       );
-
       return { markdown: completeMd, format };
     } else {
       // Turn off the TOC on child pages
       format.pandoc.toc = false;
+      format.pandoc[kShiftHeadingLevelBy] = -1;
+      return { format };
     }
-    return { format };
   },
   async bookPostProcess(_format: Format, _project: ProjectContext) {
   },
@@ -125,7 +130,7 @@ function levelOffset(offset: string) {
 }
 
 function partsAndChapters(
-  entries: BookChapterEntry[],
+  entries: AsciiDocBookPart[],
   include: (path: string) => string,
 ) {
   return entries.map((entry) => {
@@ -133,9 +138,14 @@ function partsAndChapters(
       return include(entry);
     } else {
       const partOutput: string[] = [];
-      partOutput.push(levelOffset("-1"));
-      partOutput.push(`= ${entry.part}`);
-      partOutput.push(levelOffset("+1"));
+
+      if (entry.partPath) {
+        partOutput.push(include(entry.partPath));
+      } else {
+        partOutput.push(levelOffset("-1"));
+        partOutput.push(`= ${entry.part}`);
+        partOutput.push(levelOffset("+1"));
+      }
 
       for (const chap of entry.chapters) {
         partOutput.push(include(chap));
@@ -182,7 +192,7 @@ async function resolveBookInputs(
     }
   };
 
-  const outputs: BookChapterEntry[] = [];
+  const outputs: AsciiDocBookPart[] = [];
   for (const input of inputs) {
     if (typeof (input) === "string") {
       const chapterOutput = await resolveChapter(input);
@@ -191,8 +201,11 @@ async function resolveBookInputs(
       }
     } else {
       const entry = input as BookPart;
+
+      const resolvedPart = await resolveChapter(entry.part);
       const entryOutput = {
-        part: entry.part,
+        partPath: resolvedPart,
+        part: resolvedPart ? undefined : entry.part,
         chapters: [] as string[],
       };
       for (const chapter of entry.chapters) {

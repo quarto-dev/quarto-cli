@@ -1,0 +1,32 @@
+# Code and figures {#sec-code-and-figures}
+
+```{r}
+#| include: false
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+## Code {#sec-code}
+
+This is some R code
+
+```{r}
+1 + 1
+```
+
+This is some html code:
+
+``` html
+<p>Hello!</p>
+```
+
+## Figures
+
+@fig-hist shows a flat histogram.
+
+```{r}
+#| label: fig-hist
+#| echo: false
+#| fig-cap: This is a histogram
+#| fig-alt: This is some alt-text
+hist(1:10)
+```
