@@ -4,11 +4,14 @@ async-generator==1.10
 attrs==21.2.0
 backcall==0.2.0
 bleach==3.3.0
+bokeh==3.0.3
 cffi==1.14.5
+contourpy==1.0.7
 cycler==0.10.0
 decorator==5.0.9
 defusedxml==0.7.1
 entrypoints==0.3
+fonttools==4.38.0
 ipykernel==5.5.5
 ipython==7.25.0
 ipython-genutils==0.2.0
@@ -34,6 +37,7 @@ nest-asyncio==1.5.1
 notebook==6.4.0
 numpy==1.23.2
 packaging==20.9
+pandas==1.5.3
 pandocfilters==1.4.3
 parso==0.8.2
 pexpect==4.8.0
@@ -47,6 +51,8 @@ Pygments==2.9.0
 pyparsing==3.0.9
 pyrsistent==0.17.3
 python-dateutil==2.8.1
+pytz==2022.7.1
+PyYAML==6.0
 pyzmq==24.0.1
 qtconsole==5.1.0
 QtPy==1.9.0
@@ -59,3 +65,4 @@ traitlets==5.0.5
 wcwidth==0.2.5
 webencodings==0.5.1
 widgetsnbextension==3.5.1
+xyzservices==2022.9.0
