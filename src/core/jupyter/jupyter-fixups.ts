@@ -5,7 +5,11 @@
 *
 */
 
-import { JupyterNotebook, JupyterToMarkdownOptions } from "./types.ts";
+import {
+  JupyterNotebook,
+  JupyterOutput,
+  JupyterToMarkdownOptions,
+} from "./types.ts";
 
 function fixupBokehCells(
   nb: JupyterNotebook,
@@ -43,15 +47,38 @@ function fixupBokehCells(
         );
       };
 
-      cell.outputs = [{
-        metadata: {},
-        output_type: "display_data",
-        data: {
-          "text/html": (cell.outputs ?? []).map((output) =>
-            asTextHtml(output.data ?? {})
-          ).flat(),
+      // bokeh emits one 'initialization' cell once per notebook,
+      // and then two cells per plot. So we merge the three first cells into
+      // one, and then merge every two cells after that.
+
+      const oldOutputs = cell.outputs!;
+
+      const newOutputs: JupyterOutput[] = [
+        {
+          metadata: {},
+          output_type: "display_data",
+          data: {
+            "text/html": [
+              asTextHtml(oldOutputs[0].data!),
+              asTextHtml(oldOutputs[1].data!),
+              asTextHtml(oldOutputs[2].data!),
+            ].flat(),
+          },
         },
-      }];
+      ];
+      for (let i = 3; i < oldOutputs.length; i += 2) {
+        newOutputs.push({
+          metadata: {},
+          output_type: "display_data",
+          data: {
+            "text/html": [
+              asTextHtml(oldOutputs[i].data!),
+              asTextHtml(oldOutputs[i + 1].data!),
+            ].flat(),
+          },
+        });
+      }
+      cell.outputs = newOutputs;
     }
   }
 
