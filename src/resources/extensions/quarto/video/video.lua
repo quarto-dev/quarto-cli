@@ -68,6 +68,7 @@ local youTubeBuilder = function(params)
   if not (params and params.src) then return nil end
   local src = params.src
   match = checkEndMatch(src, 'https://www.youtube.com/embed/')
+  match = match or checkEndMatch(src, 'https://www.youtube%-nocookie.com/embed/')
   match = match or checkEndMatch(src, 'https://youtu.be/')
   match = match or string.match(src, '%?v=(.-)&')
   match = match or string.match(src, '%?v=(.-)$')
