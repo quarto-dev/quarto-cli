@@ -647,11 +647,11 @@ export const findAttachments = (
       const assetInPublishFiles = publishFiles.find((assetPathParam) => {
         const assetPath = pathWithForwardSlashes(assetPathParam);
 
-        const toCheck = join(parentPath, assetFileName);
-
+        const toCheck = pathWithForwardSlashes(join(parentPath, assetFileName));
+        console.log("toCheck", toCheck);
         return assetPath === toCheck;
       });
-
+      console.log("assetInPublishFiles", assetInPublishFiles);
       return assetInPublishFiles ?? assetFileName;
     });
   }

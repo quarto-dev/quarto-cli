@@ -315,7 +315,7 @@ async function publish(
         return null;
       }
 
-      const fileName = attachmentPath;
+      const fileName = pathWithForwardSlashes(attachmentPath);
 
       const existingDuplicateAttachment = existingAttachments.find(
         (attachment: AttachmentSummary) => {

@@ -59,7 +59,7 @@ import {
   Space,
 } from "../../src/publish/confluence/api/types.ts";
 
-const RUN_ALL_TESTS = true;
+const RUN_ALL_TESTS = false;
 const FOCUS_TEST = false;
 
 const xtest = (
@@ -3503,6 +3503,15 @@ const runFindAttachments = () => {
     check(expected, bodyValue, filePaths, path);
   });
 
+  test(suiteLabel("single_image_lookup_relative_path_win2"), async () => {
+    const bodyValue: string =
+      '<ri:attachment ri:filename="images/elephant.png" ri:version-at-save="1" />';
+    const filePaths: string[] = ["folder\\images\\elephant.png"];
+    const path = "folder/index.xml";
+    const expected: string[] = ["folder\\images\\elephant.png"];
+    check(expected, bodyValue, filePaths, path);
+  });
+
   test(suiteLabel("single_image_lookup_dupe_name"), async () => {
     const bodyValue: string =
       '<ri:attachment ri:filename="elephant.png" ri:version-at-save="1" />';
@@ -3651,39 +3660,5 @@ if (RUN_ALL_TESTS) {
   runUpdateImagePathsForContentBody();
   runCapFirstLetter();
 } else {
-  runSpaceCreatesWithNesting();
+  runFindAttachments();
 }
-
-// WINDOWS
-// publishFiles: {
-//   baseDir: "C:\\Users\\Megaport\\Documents\\dev\\quarto-confluence-test-main\\simple-site2\\_site",
-//       rootFile: "index.html",
-//       files: [
-//     "folder\\images\\elephant.png",
-//     "folder\\index.xml",
-//     "images\\elephant.png",
-//     "index.html",
-//     "index.xml",
-//     "search.json",
-//     "site_libs\\bootstrap\\bootstrap-icons.css",
-//     "site_libs\\bootstrap\\bootstrap-icons.woff",
-//     "site_libs\\bootstrap\\bootstrap.min.css",
-//     "site_libs\\bootstrap\\bootstrap.min.js",
-//     "site_libs\\clipboard\\clipboard.min.js",
-//     "site_libs\\quarto-html\\anchor.min.js",
-//     "site_libs\\quarto-html\\popper.min.js",
-//     "site_libs\\quarto-html\\quarto-syntax-highlighting.css",
-//     "site_libs\\quarto-html\\quarto.js",
-//     "site_libs\\quarto-html\\tippy.css",
-//     "site_libs\\quarto-html\\tippy.umd.min.js",
-//     "site_libs\\quarto-nav\\headroom.min.js",
-//     "site_libs\\quarto-nav\\quarto-nav.js",
-//     "site_libs\\quarto-search\\autocomplete.umd.js",
-//     "site_libs\\quarto-search\\fuse.min.js",
-//     "site_libs\\quarto-search\\quarto-search.js"
-//   ],
-//       metadataByInput: {
-//     "folder\\index.qmd": { title: "Page 2", author: undefined, date: undefined },
-//     "index.qmd": { title: "Page 1", author: undefined, date: undefined }
-//   }
-// },
