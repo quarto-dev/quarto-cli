@@ -408,6 +408,16 @@ function revealHtmlPostprocessor(
           "slideNumber: '$1'",
         );
 
+        // quote width and heigh if in %
+        scriptEl.innerText = scriptEl.innerText.replace(
+          /width: (\d+(\.\d+)?%)/,
+          "width: '$1'",
+        );
+        scriptEl.innerText = scriptEl.innerText.replace(
+          /height: (\d+(\.\d+)?%)/,
+          "height: '$1'",
+        );
+
         // plugin registration
         if (pluginInit.register.length > 0) {
           const kRevealPluginArray = "plugins: [";
