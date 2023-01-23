@@ -612,6 +612,7 @@ export const updateImagePaths = (body: ContentBody): ContentBody => {
     return body;
   }
 
+  console.log("updateImagePaths call findAttachments");
   const attachments = findAttachments(bodyValue);
 
   const withReplacedImages: string = bodyValue.replaceAll(
@@ -628,11 +629,10 @@ export const findAttachments = (
   publishFiles: string[] = [],
   filePathParam: string = ""
 ): string[] => {
-
-  console.log('findAttachments');
-  console.log('bodyValue', bodyValue);
-  console.log('publishFiles', publishFiles);
-  console.log('filePathParam', filePathParam);
+  console.log("findAttachments called");
+  console.log("bodyValue", bodyValue);
+  console.log("publishFiles", publishFiles);
+  console.log("filePathParam", filePathParam);
 
   const filePath = pathWithForwardSlashes(filePathParam);
 
@@ -655,6 +655,8 @@ export const findAttachments = (
       return assetInPublishFiles ?? assetFileName;
     });
   }
+
+  console.log("uniqueResult", uniqueResult);
 
   return uniqueResult ?? [];
 };

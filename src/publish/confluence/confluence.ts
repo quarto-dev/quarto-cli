@@ -351,8 +351,11 @@ async function publish(
     titleToUpdate: string = title,
     fileName: string = ""
   ): Promise<Content> => {
+    console.log("update content");
+
     const previousPage = await client.getContent(id);
 
+    console.log("findAttachments update");
     const attachmentsToUpload: string[] = findAttachments(
       body.storage.value,
       publishFiles.files,
@@ -486,17 +489,19 @@ async function publish(
     createParent: ConfluenceParent = parent,
     fileNameParam: string = ""
   ): Promise<Content> => {
+    console.log("create content");
+
     const createTitle = await uniquifyTitle(titleToCreate);
 
     const fileName = pathWithForwardSlashes(fileNameParam);
-
+    console.log("findAttachments");
     const attachmentsToUpload: string[] = findAttachments(
       body.storage.value,
       publishFiles.files,
       fileName
     );
 
-    console.log('attachmentsToUpload', attachmentsToUpload);
+    console.log("attachmentsToUpload", attachmentsToUpload);
 
     trace("attachmentsToUpload", attachmentsToUpload, LogPrefix.ATTACHMENT);
     const updatedBody: ContentBody = updateImagePaths(body);
@@ -639,7 +644,7 @@ async function publish(
       server,
       siteParent
     );
-
+    console.log("changeList", changeList);
     trace("changelist", changeList);
 
     let pathsToId: Record<string, string> = {}; // build from existing site
