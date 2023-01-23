@@ -42,6 +42,7 @@
 - Remove excessive vertical space between theorem type blocks ([#3776](https://github.com/quarto-dev/quarto-cli/issues/3776)).
 - Fix temporary `.tex` filenames in the presence of multiple variants ([#3762](https://github.com/quarto-dev/quarto-cli/issues/3762)).
   - Note that this fix changes the filenames used for PDF files with variants. In quarto 1.3, the automatic output names for PDF files include format variants and modifiers.
+- Correctly download online image on Windows ([#3982](https://github.com/quarto-dev/quarto-cli/issues/3982)).
 
 ## Beamer Format
 

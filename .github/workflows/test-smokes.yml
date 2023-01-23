@@ -88,6 +88,8 @@ jobs:
 
       - name: Smoke Test Commits
         if: github.event.before != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git checkout ${{ github.sha}}
           pushd tests

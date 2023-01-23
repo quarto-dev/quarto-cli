@@ -1744,10 +1744,12 @@ local function file_exists(name)
      return false
    end
  end
- 
- local function write_file(path, contents)
+
+
+ local function write_file(path, contents, mode)
    pandoc.system.make_directory(pandoc.path.directory(path), true)
-   local file = io.open(path, "a")
+   mode = mode or "a"
+   local file = io.open(path, mode)
    if file then
      file:write(contents)
      file:close()
@@ -1789,7 +1791,12 @@ _quarto = {
    projectOffset = projectOffset,
    file = {
       read = read_file,
-      write = write_file,
+      write = function(path, contents) 
+         return write_file(path, contents, "wb") 
+      end,
+      write_text = function(path, contents) 
+         return write_file(path, contents, "a")
+      end,
       exists = file_exists,
       remove = remove_file
    }
