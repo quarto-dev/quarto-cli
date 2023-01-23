@@ -14,11 +14,13 @@ export function unzip(file: string) {
   if (file.endsWith("zip")) {
     // It's a zip file
     if (Deno.build.os === "windows") {
-      const args = ["Expand-Archive", file, "-DestinationPath", dir];
-      const quoted = requireQuoting(args);
+      const args = [
+        "-Command",
+        `"& { Add-Type -A 'System.IO.Compression.FileSystem'; [IO.Compression.ZipFile]::ExtractToDirectory('${file}', '${dir}'); }"`,
+      ];
       return safeWindowsExec(
         "powershell",
-        quoted.args,
+        args,
         (cmd: string[]) => {
           return execProcess(
             {
