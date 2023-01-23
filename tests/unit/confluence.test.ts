@@ -2239,7 +2239,21 @@ const runSpaceUpdatesWithNesting = () => {
     },
   };
 
-  unitTest(suiteLabel("one_nested_file_update"), async () => {
+  const fakeMultiNestedFileWin: SiteFileMetadata = {
+    fileName:
+      "fake-great-grand-parent\\fake-grand-parent\\fake-parent\\fake-file-name.xml",
+    title: "fake-title",
+    originalTitle: "fake-title-original",
+    matchingPages: [],
+    contentBody: {
+      storage: {
+        value: "fake-value",
+        representation: "storage",
+      },
+    },
+  };
+
+  test(suiteLabel("one_nested_file_update"), async () => {
     const fileMetadataList: SiteFileMetadata[] = [fakeNestedFile];
 
     const existingSite = [
@@ -2292,7 +2306,7 @@ const runSpaceUpdatesWithNesting = () => {
     assertEquals(expected, actual);
   });
 
-  unitTest(suiteLabel("one_multi-nested_file_update"), async () => {
+  test(suiteLabel("one_multi-nested_file_update"), async () => {
     const fileMetadataList: SiteFileMetadata[] = [fakeMultiNestedFile];
 
     const existingSite = [
@@ -2376,7 +2390,91 @@ const runSpaceUpdatesWithNesting = () => {
     assertEquals(expected, actual);
   });
 
-  unitTest(suiteLabel("two_nested_files_same_parent"), async () => {
+  otest(suiteLabel("one_multi-nested_file_update_win"), async () => {
+    const fileMetadataList: SiteFileMetadata[] = [fakeMultiNestedFileWin];
+
+    const existingSite = [
+      {
+        id: "123456",
+        title: "fake-title",
+        metadata: {
+          fileName:
+            "fake-great-grand-parent/fake-grand-parent/fake-parent/fake-file-name.xml",
+        },
+        ancestors: [
+          { id: "fake-parent-id" },
+          { id: "fake-grand-parent-id" },
+          { id: "fake-great-grand-parent-id" },
+        ],
+      },
+      {
+        title: "Fake Parent",
+        id: "fake-parent-id",
+        metadata: {
+          editor: "v2",
+          fileName: "fake-great-grand-parent/fake-grand-parent/fake-parent",
+        },
+        ancestors: [
+          { id: "fake-grand-parent-id" },
+          { id: "fake-great-grand-parent-id" },
+        ],
+      },
+      {
+        title: "Fake Grand Parent",
+        id: "fake-grand-parent-id",
+        metadata: {
+          editor: "v2",
+          fileName: "fake-great-grand-parent/fake-grand-parent",
+        },
+        ancestors: [{ id: "fake-great-grand-parent-id" }],
+      },
+      {
+        title: "Fake Great Grand Parent",
+        id: "fake-great-grand-parent-id",
+        metadata: { editor: "v2", fileName: "fake-great-grand-parent" },
+        ancestors: [{ id: "fake-great-grand-parent-id" }],
+      },
+    ];
+
+    const expected: ConfluenceSpaceChange[] = [
+      {
+        contentChangeType: ContentChangeType.update,
+        ancestors: [
+          {
+            id: "fake-parent-id",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "fake-value",
+          },
+        },
+        fileName:
+          "fake-great-grand-parent/fake-grand-parent/fake-parent/fake-file-name.xml",
+        status: "current",
+        title: "fake-title",
+        type: "page",
+        id: "123456",
+        version: null,
+      },
+    ];
+
+    const pagesToDelete = findPagesToDelete(fileMetadataList, existingSite);
+
+    assertEquals(pagesToDelete, []);
+
+    const actual: ConfluenceSpaceChange[] = buildSpaceChanges(
+      fileMetadataList,
+      FAKE_PARENT,
+      fakeSpace,
+      existingSite
+    );
+
+    assertEquals(expected, actual);
+  });
+
+  test(suiteLabel("two_nested_files_same_parent"), async () => {
     const fileMetadataList: SiteFileMetadata[] = [
       fakeNestedFile,
       fakeNestedFile2,
@@ -2453,7 +2551,7 @@ const runSpaceUpdatesWithNesting = () => {
     assertEquals(expected, actual);
   });
 
-  unitTest(suiteLabel("three_nested_files_same_different_parent"), async () => {
+  test(suiteLabel("three_nested_files_same_different_parent"), async () => {
     const fileMetadataList: SiteFileMetadata[] = [
       fakeNestedFile,
       fakeNestedFile2,
@@ -3503,6 +3601,15 @@ const runFindAttachments = () => {
     check(expected, bodyValue, filePaths, path);
   });
 
+  test(suiteLabel("single_image_lookup_relative_path_win2"), async () => {
+    const bodyValue: string =
+      '<ri:attachment ri:filename="images/elephant.png" ri:version-at-save="1" />';
+    const filePaths: string[] = ["folder\\images\\elephant.png"];
+    const path = "folder/index.xml";
+    const expected: string[] = ["folder\\images\\elephant.png"];
+    check(expected, bodyValue, filePaths, path);
+  });
+
   test(suiteLabel("single_image_lookup_dupe_name"), async () => {
     const bodyValue: string =
       '<ri:attachment ri:filename="elephant.png" ri:version-at-save="1" />';
@@ -3651,39 +3758,5 @@ if (RUN_ALL_TESTS) {
   runUpdateImagePathsForContentBody();
   runCapFirstLetter();
 } else {
-  runSpaceCreatesWithNesting();
+  runSpaceUpdatesWithNesting();
 }
-
-// WINDOWS
-// publishFiles: {
-//   baseDir: "C:\\Users\\Megaport\\Documents\\dev\\quarto-confluence-test-main\\simple-site2\\_site",
-//       rootFile: "index.html",
-//       files: [
-//     "folder\\images\\elephant.png",
-//     "folder\\index.xml",
-//     "images\\elephant.png",
-//     "index.html",
-//     "index.xml",
-//     "search.json",
-//     "site_libs\\bootstrap\\bootstrap-icons.css",
-//     "site_libs\\bootstrap\\bootstrap-icons.woff",
-//     "site_libs\\bootstrap\\bootstrap.min.css",
-//     "site_libs\\bootstrap\\bootstrap.min.js",
-//     "site_libs\\clipboard\\clipboard.min.js",
-//     "site_libs\\quarto-html\\anchor.min.js",
-//     "site_libs\\quarto-html\\popper.min.js",
-//     "site_libs\\quarto-html\\quarto-syntax-highlighting.css",
-//     "site_libs\\quarto-html\\quarto.js",
-//     "site_libs\\quarto-html\\tippy.css",
-//     "site_libs\\quarto-html\\tippy.umd.min.js",
-//     "site_libs\\quarto-nav\\headroom.min.js",
-//     "site_libs\\quarto-nav\\quarto-nav.js",
-//     "site_libs\\quarto-search\\autocomplete.umd.js",
-//     "site_libs\\quarto-search\\fuse.min.js",
-//     "site_libs\\quarto-search\\quarto-search.js"
-//   ],
-//       metadataByInput: {
-//     "folder\\index.qmd": { title: "Page 2", author: undefined, date: undefined },
-//     "index.qmd": { title: "Page 1", author: undefined, date: undefined }
-//   }
-// },
