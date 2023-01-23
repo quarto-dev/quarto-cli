@@ -75,9 +75,12 @@ function tableClasses()
 
       -- insert the table classes
       tbl.attr = pandoc.Attr("", css_classes)
+      empty_attr = pandoc.Attr("", {})
+      
+      -- regenerate the table caption by parsing only the caption part and placing that into the caption
+      local caption_parsed, attr = parseTableCaption(pandoc.utils.blocks_to_inlines({caption}))
+      tbl.caption.long = pandoc.Plain(createTableCaption(caption_parsed, empty_attr))
 
-      -- determine the index in which table caption begins
-     
       return tbl
     end
   }
