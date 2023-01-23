@@ -628,6 +628,12 @@ export const findAttachments = (
   publishFiles: string[] = [],
   filePathParam: string = ""
 ): string[] => {
+
+  console.log('findAttachments');
+  console.log('bodyValue', bodyValue);
+  console.log('publishFiles', publishFiles);
+  console.log('filePathParam', filePathParam);
+
   const filePath = pathWithForwardSlashes(filePathParam);
 
   const pathList = filePath.split("/");

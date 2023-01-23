@@ -496,6 +496,8 @@ async function publish(
       fileName
     );
 
+    console.log('attachmentsToUpload', attachmentsToUpload);
+
     trace("attachmentsToUpload", attachmentsToUpload, LogPrefix.ATTACHMENT);
     const updatedBody: ContentBody = updateImagePaths(body);
 
