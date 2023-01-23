@@ -257,7 +257,7 @@ export function revealjsFormat() {
             navigationMode === "grid";
 
           // if the user set slideNumber to true then provide
-          // linear slides (if they havne't specified vertical slides)
+          // linear slides (if they haven't specified vertical slides)
           if (format.metadata["slideNumber"] === true) {
             extras.metadataOverride!["slideNumber"] = verticalSlides
               ? "h.v"
