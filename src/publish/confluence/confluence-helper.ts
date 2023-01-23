@@ -18,6 +18,7 @@ import {
   ContentAncestor,
   ContentBody,
   ContentBodyRepresentation,
+  ContentChange,
   ContentChangeType,
   ContentCreate,
   ContentDelete,
@@ -338,7 +339,6 @@ export const buildSpaceChanges = (
 
       let existingSiteParent = null;
 
-      //TODO update with deno paths after tests are in place
       const parentsList = pathList.slice(0, pathList.length - 1);
 
       parentsList.forEach((parentFileName, index) => {
@@ -438,17 +438,40 @@ export const buildSpaceChanges = (
     existingSite
   );
 
-  // TODO prompt as a sanity check and limiter to prevent any major run-away deletes
   const deleteChanges: ContentDelete[] = pagesToDelete.map(
     (toDelete: SitePage) => {
       return { contentChangeType: ContentChangeType.delete, id: toDelete.id };
     }
   );
 
-  const spaceChanges: ConfluenceSpaceChange[] = fileMetadataList.reduce(
+  let spaceChanges: ConfluenceSpaceChange[] = fileMetadataList.reduce(
     spaceChangesCallback,
     deleteChanges
   );
+
+  //TODO filter out parent deletes of newly created pages
+
+  const activeAncestorIds = spaceChanges.reduce(
+    (accumulator: any, change: any) => {
+      if (change?.ancestors?.length) {
+        const idList = change.ancestors.map(
+          (ancestor: ContentAncestor) => ancestor?.id ?? ""
+        );
+
+        return [...accumulator, ...idList];
+      }
+
+      return accumulator;
+    },
+    []
+  );
+
+  spaceChanges = spaceChanges.filter((change: ConfluenceSpaceChange) => {
+    if (isContentDelete(change) && activeAncestorIds.includes(change.id)) {
+      return false;
+    }
+    return true;
+  });
 
   return spaceChanges;
 };
