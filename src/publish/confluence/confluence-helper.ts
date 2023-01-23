@@ -449,8 +449,6 @@ export const buildSpaceChanges = (
     deleteChanges
   );
 
-  //TODO filter out parent deletes of newly created pages
-
   const activeAncestorIds = spaceChanges.reduce(
     (accumulator: any, change: any) => {
       if (change?.ancestors?.length) {
