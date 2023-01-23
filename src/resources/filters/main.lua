@@ -139,6 +139,7 @@ import("./quarto-pre/resourcefiles.lua")
 import("./quarto-pre/results.lua")
 import("./quarto-pre/shortcodes-handlers.lua")
 import("./quarto-pre/shortcodes.lua")
+import("./quarto-pre/table-classes.lua")
 import("./quarto-pre/table-captions.lua")
 import("./quarto-pre/table-colwidth.lua")
 import("./quarto-pre/table-rawhtml.lua")
@@ -178,6 +179,7 @@ local quartoPre = {
   { name = "pre-tableRenderRawHtml", filter = tableRenderRawHtml() },
   { name = "pre-tableColwidthCell", filter = tableColwidthCell() },
   { name = "pre-tableColwidth", filter = tableColwidth() },
+  { name = "pre-tableClasses", filter = tableClasses() },
   { name = "pre-hidden", filter = hidden() },
   { name = "pre-contentHidden", filter = contentHidden() },
   { name = "pre-tableCaptions", filter = tableCaptions() },
