@@ -1,4 +1,4 @@
-// quarto-ojs-runtime v0.0.15 Copyright 2022 undefined
+// quarto-ojs-runtime v0.0.15 Copyright 2023 undefined
 var EOL = {},
     EOF = {},
     QUOTE = 34,
@@ -19974,19 +19974,22 @@ function createRuntime() {
       return localResolver[n];
     }
 
-    const name = (() => {
-      if (n.startsWith("/")) {
-        // docToRoot can be empty, in which case naive concatenation creates
-        // an absolute path.
-        if (quartoOjsGlobal.paths.docToRoot === "") {
-          return `.${n}`;
-        } else {
-          return `${quartoOjsGlobal.paths.docToRoot}${n}`;
-        }
+    let name;
+    const currentPath = window.location.href.replace(/[^/]*$/, '');
+
+    if (n.startsWith("/")) {
+      // docToRoot can be empty, in which case naive concatenation creates
+      // an absolute path.
+      if (quartoOjsGlobal.paths.docToRoot === "") {
+        name = `${currentPath}.${n}`;
       } else {
-        return n;
-      }  
-    })();
+        name = `${currentPath}${quartoOjsGlobal.paths.docToRoot}${n}`;
+      }
+    } else if (n.startsWith("http")) {
+      name = n;
+    } else {
+      name = `${currentPath}${n}`;
+    }
 
     const mimeType = mime.getType(name);
 

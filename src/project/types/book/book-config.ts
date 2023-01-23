@@ -422,6 +422,12 @@ const kDownloadableItems: Record<string, { name: string; icon: string }> = {
   "docx": { name: "Docx", icon: "file-word" },
 };
 
+export type BookChapterEntry = BookPart | string;
+export interface BookPart {
+  part: string;
+  chapters: string[];
+}
+
 interface BookChapterItem extends SidebarItem {
   part?: string;
   chapters?: BookChapterItem[];

@@ -81,7 +81,7 @@ export async function bookBibliographyPostRender(
 
       // Fixes https://github.com/quarto-dev/quarto-cli/issues/2755
       if (csl) {
-        const cslAbsPath = join(firstFileDir, csl);
+        const cslAbsPath = pathWithForwardSlashes(join(firstFileDir, csl));
         if (safeExistsSync(cslAbsPath)) {
           csl = cslAbsPath;
         }
@@ -197,11 +197,13 @@ async function generateBibliographyHTML(
 
   // make the aggregated bibliography
   const yaml: Metadata = {
-    [kBibliography]: biblioPaths,
+    [kBibliography]: biblioPaths.map(pathWithForwardSlashes),
     [kNoCite]: ld.uniq(citeIds).map((id) => "@" + id).join(", "),
   };
   if (csl) {
-    yaml[kCsl] = isAbsolute(csl) ? relative(context.dir, csl) : csl;
+    yaml[kCsl] = isAbsolute(csl)
+      ? pathWithForwardSlashes(relative(context.dir, csl))
+      : csl;
   }
   const frontMatter = `---\n${stringify(yaml, { indent: 2 })}\n---\n`;
   const result = await execProcess({

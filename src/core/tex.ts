@@ -8,5 +8,5 @@
 // there are many characters that give tex trouble in filenames, create
 // a target stem that replaces them with the '-' character
 export function texSafeFilename(file: string) {
-  return file.replaceAll(/[ <>()|\:&;#?*']/g, "-");
+  return file.replaceAll(/[ <>()|\:&;#?*'\\\/]/g, "-");
 }

@@ -2,6 +2,8 @@
 
 - Add support for embedding cell outputs in quarto documents using `{{< embed >}}`. You can address cells by Id, Tag, or label, such as `{{< embed mynotebook.ipynb#fig-output >}}` which would embed the output of a cell with the label `fig-output`). You can also provide a list of ids like `{{< embed mynotebook.ipynb#fig-output,tbl-out >}}`.
 - Only attempt to postprocess `text/plain` output if it's nonempty ([#3896](https://github.com/quarto-dev/quarto-cli/issues/3896)).
+- Fix output of bokeh plots so the right number of cells is generated ([#2107](https://github.com/quarto-dev/quarto-cli/issues/2107)).
+- Fix output of code cells that contain triple backticks (or more) ([#3179](https://github.com/quarto-dev/quarto-cli/issues/3179)).
 
 ## Code Annotation
 
@@ -17,6 +19,7 @@
 - Add support for linking to source notebooks that provide embedded content. Control using `notebook-links`
 - Improve callout wrapping behavior for long strings with no word breaks.
 - Add overflow to tables generated from SQL code cells ([#3497](https://github.com/quarto-dev/quarto-cli/issues/3497)).
+- Fix support for parquet files in OJS code cells ([#3630](https://github.com/quarto-dev/quarto-cli/issues/3630)).
 
 ## Article Layout
 
@@ -37,6 +40,8 @@
 - Previously, if the `pdf-engine` was set to `latexmk`, we would bypass many features of Quarto and use Pandoc to produce the PDF output. Starting in in Quarto 1.3, all Quarto features will be enabled for the `latexmk` engine and `latexmk` will be used to run the PDF generation loop.
 - Fix author processing in default PDFs for complex author names (#3483)
 - Remove excessive vertical space between theorem type blocks ([#3776](https://github.com/quarto-dev/quarto-cli/issues/3776)).
+- Fix temporary `.tex` filenames in the presence of multiple variants ([#3762](https://github.com/quarto-dev/quarto-cli/issues/3762)).
+  - Note that this fix changes the filenames used for PDF files with variants. In quarto 1.3, the automatic output names for PDF files include format variants and modifiers.
 - Correctly download online image on Windows ([#3982](https://github.com/quarto-dev/quarto-cli/issues/3982)).
 
 ## Beamer Format
@@ -110,6 +115,7 @@
 - remove scaffolding div from conditional content in final output ([#3847](https://github.com/quarto-dev/quarto-cli/issues/3847)).
 - ensure proof titles are appended to paragraph nodes ([#3772](https://github.com/quarto-dev/quarto-cli/issues/3772)).
 - Support parsing markdown in table captions in LaTeX and HTML tables ([#2573](https://github.com/quarto-dev/quarto-cli/issues/2573)).
+- Improve parsing of include shortcodes ([#3159](https://github.com/quarto-dev/quarto-cli/issues/3159)).
 
 ## Pandoc filter changes
 

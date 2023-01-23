@@ -1,0 +1,85 @@
+# Formatting
+
+## Inline
+
+-   *italic*
+-   **bold**
+-   `code`
+-   footnote[^formatting-1]
+-   footnote with style[^formatting-2]
+
+[^formatting-1]: This is a footnote.
+
+[^formatting-2]: This is another footnote, but *this* one `has` **style**!
+
+## Cross-links
+
+-   Figure: @fig-hist
+-   Within page: @sec-lists
+-   Across page: @sec-code
+-   Chapter: @sec-code-and-figures
+
+## Lists {#sec-lists}
+
+This is a tight bulleted list:
+
+-   Bullet 1
+-   Bullet 2
+-   Bullet 3
+
+This is a loose bulleted list:
+
+-   Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+    Mauris vel urna id dui posuere gravida ut non nunc.
+    Phasellus porttitor luctus tristique.
+    Nulla mollis accumsan ligula.
+    Vestibulum et posuere turpis.
+    Phasellus porttitor urna metus, at sodales libero imperdiet eu.
+    Pellentesque efficitur diam consectetur ex bibendum, quis luctus tortor ullamcorper.
+    Pellentesque feugiat fringilla justo non tempor.
+
+-   Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Vivamus vitae diam quis justo auctor varius eget in est.
+    Donec gravida tempor lorem non auctor.
+    Etiam in ultricies diam.
+    Curabitur purus sem, pretium viverra pharetra eget, consequat eget tortor.
+    Integer ac ex non erat condimentum efficitur.
+    Nunc nunc mi, dignissim vel commodo at, feugiat vitae diam.
+
+-   Nam metus velit, dapibus tristique lacinia vitae, interdum nec arcu.
+    Praesent magna nunc, porta maximus ex non, sodales euismod justo.
+    Sed sit amet egestas justo.
+    Proin in lectus in dui rutrum porttitor vel eu arcu.
+    Pellentesque lorem ex, ullamcorper eget vulputate sed, maximus vitae diam.
+    Phasellus risus orci, volutpat in magna at, placerat molestie lacus.
+    Proin sapien tortor, consectetur sed est vitae, imperdiet finibus sem.
+
+This is a numbered list:
+
+1.  First element
+2.  Second
+3.  Third
+4.  Fourth
+
+## Callouts
+
+::: callout-note
+This is a note
+:::
+
+::: callout-warning
+This is a warning
+:::
+
+::: callout-tip
+This is a tip
+:::
+
+::: callout-caution
+This is a caution
+:::
+
+::: callout-important
+## This is a heading
+
+This is important!
+:::

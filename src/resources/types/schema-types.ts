@@ -852,7 +852,7 @@ export type CslPerson =
 
 export type CslNumber = number | string;
 
-export type CslItem = {
+export type CslItemShared = {
   "abstract-url"?: string /* A url to the abstract for this item. */;
   "archive-collection"?:
     string /* Collection the item is part of within an archive. */;
@@ -929,8 +929,6 @@ the session title for multi-part presentation at a conference) */;
 Also use for titles of periodical special issues, special sections, and the like. */;
   "year-suffix"?:
     string /* Disambiguating year suffix in author-date styles (e.g. "a" in "Doe, 1999a"). */;
-  abstract?:
-    string /* Abstract of the item (e.g. the abstract of a journal article) */;
   accessed?: CslDate;
   annote?:
     string /* Short markup, decoration, or annotation to the item (e.g., to indicate items included in a review);
@@ -939,7 +937,6 @@ For descriptive text (e.g., in an annotated bibliography), use `note` instead */
   archive?: string /* Archive storing the item */;
   archive_collection?: string;
   archive_location?: string;
-  author?: CslPerson;
   authority?:
     string /* Issuing or judicial authority (e.g. "USPTO" for a patent, "Fairfax Circuit Court" for a legal case). */;
   chair?: CslPerson;
@@ -952,7 +949,6 @@ For descriptive text (e.g., in an annotated bibliography), use `note` instead */
   director?: CslPerson;
   division?:
     string /* Minor subdivision of a court with a `jurisdiction` for a legal item */;
-  doi?: string /* Digital Object Identifier (e.g. "10.1128/AEM.02591-07") */;
   DOI?: string;
   edition?: CslNumber;
   editor?: CslPerson;
@@ -1000,12 +996,6 @@ the classification status of a document) */;
   PMCID?: string;
   PMID?: string;
   recipient?: CslPerson;
-  references?:
-    string /* Resources related to the procedural history of a legal case or legislation;
-
-Can also be used to refer to the procedural history of other items (e.g.
-"Conference canceled" for a presentation accepted as a conference that was subsequently
-canceled; details of a retraction or correction notice) */;
   scale?: string /* Scale of e.g. a map or model. */;
   section?: CslNumber;
   source?:
@@ -1013,7 +1003,6 @@ canceled; details of a retraction or correction notice) */;
   status?:
     string /* Publication status of the item (e.g. "forthcoming"; "in press"; "advance online publication"; "retracted") */;
   submitted?: CslDate;
-  title?: string /* The primary title of the item. */;
   translator?: CslPerson;
   type?:
     | "article"
@@ -1067,6 +1056,20 @@ canceled; details of a retraction or correction notice) */;
   version?: CslNumber;
   volume?: CslNumber;
 };
+
+export type CslItem = {
+  abstract?:
+    string /* Abstract of the item (e.g. the abstract of a journal article) */;
+  author?: CslPerson;
+  doi?: string /* Digital Object Identifier (e.g. "10.1128/AEM.02591-07") */;
+  references?:
+    string /* Resources related to the procedural history of a legal case or legislation;
+
+Can also be used to refer to the procedural history of other items (e.g.
+"Conference canceled" for a presentation accepted as a conference that was subsequently
+canceled; details of a retraction or correction notice) */;
+  title?: string; /* The primary title of the item. */
+} & CslItemShared;
 
 export type CitationItem = {
   "article-id"?: MaybeArrayOf<

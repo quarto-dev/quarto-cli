@@ -285,7 +285,7 @@ function convertFromObject(yaml: any): ConcreteSchema {
   const schema = yaml["object"];
   // deno-lint-ignore no-explicit-any
   const params: Record<string, any> = {};
-  if (schema.namingConvention) {
+  if (schema.namingConvention && typeof schema.namingConvention === "string") {
     switch (schema.namingConvention) {
       case "capitalizationCase":
         params.namingConvention = "capitalizationCase";
@@ -349,6 +349,7 @@ function convertFromObject(yaml: any): ConcreteSchema {
       default:
         throw new Error("Internal Error: this should have failed validation");
     }
+  } else {
     params.namingConvention = schema.namingConvention;
   }
   if (schema.properties) {

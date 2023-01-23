@@ -1,0 +1,26 @@
+project:
+  type: book
+
+book:
+  title: "minibook"
+  author: "Hadley Wickham"
+  chapters:
+    - index.qmd
+    - formatting.qmd
+    - code.qmd
+    - part: part-1.qmd
+      chapters:
+        - chap-1-1.qmd
+        - chap-1-2.qmd
+  appendices:
+    - appendix-1.qmd
+    - appendix-2.qmd
+
+bibliography: references.bib
+
+format:
+  asciidoc: default
+    
+
+editor: visual
+

@@ -25,7 +25,7 @@ import {
   WrappedResult,
 } from "./types.ts";
 
-import { DESCENDANT_LIMIT } from "../constants.ts";
+import { DESCENDANT_LIMIT, V2EDITOR_METADATA } from "../constants.ts";
 import { logError, trace } from "../confluence-logger.ts";
 
 export class ConfluenceClient {
@@ -53,14 +53,23 @@ export class ConfluenceClient {
 
   public getDescendants(
     id: string,
-    expand = ["metadata.properties"]
+    expand = ["metadata.properties", "ancestors"]
   ): Promise<WrappedResult<ContentSummary>> {
     const url = `content/${id}/descendant/page?limit=${DESCENDANT_LIMIT}&expand=${expand}`;
     return this.get<WrappedResult<ContentSummary>>(url);
   }
 
-  public async isTitleInSpace(title: string, space: Space): Promise<boolean> {
+  public async isTitleInSpace(
+    title: string,
+    space: Space,
+    idToIgnore: string = ""
+  ): Promise<boolean> {
     const result = await this.fetchMatchingTitlePages(title, space);
+
+    if (result.length === 1 && result[0].id === idToIgnore) {
+      return false;
+    }
+
     return result.length > 0;
   }
 
@@ -75,10 +84,31 @@ export class ConfluenceClient {
     return result?.results ?? [];
   }
 
-  public createContent(content: ContentCreate): Promise<Content> {
+  public createContent(
+    content: ContentCreate,
+    metadata: Record<string, any> = V2EDITOR_METADATA
+  ): Promise<Content> {
+    const toCreate = {
+      ...content,
+      ...metadata,
+    };
+
+    trace("to create", toCreate);
     trace("createContent body", content.body.storage.value);
-    const createBody = JSON.stringify(content);
+    const createBody = JSON.stringify(toCreate);
     return this.post<Content>("content", createBody);
+  }
+
+  public updateContent(
+    content: ContentUpdate,
+    metadata: Record<string, any> = V2EDITOR_METADATA
+  ): Promise<Content> {
+    const toUpdate = {
+      ...content,
+      ...metadata,
+    };
+    trace("updateContent", toUpdate);
+    return this.put<Content>(`content/${content.id}`, JSON.stringify(toUpdate));
   }
 
   public createContentProperty(id: string, content: any): Promise<Content> {
@@ -88,11 +118,8 @@ export class ConfluenceClient {
     );
   }
 
-  public updateContent(content: ContentUpdate): Promise<Content> {
-    return this.put<Content>(`content/${content.id}`, JSON.stringify(content));
-  }
-
   public deleteContent(content: ContentDelete): Promise<Content> {
+    trace("deleteContent", content);
     return this.delete<Content>(`content/${content.id}`);
   }
 
@@ -100,8 +127,6 @@ export class ConfluenceClient {
     const wrappedResult: WrappedResult<AttachmentSummary> = await this.get<
       WrappedResult<AttachmentSummary>
     >(`content/${id}/child/attachment`);
-
-    trace("getAttachments", wrappedResult, LogPrefix.ATTACHMENT);
 
     const result = wrappedResult?.results ?? [];
     return result;

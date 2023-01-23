@@ -62,11 +62,13 @@ import {
 import { quartoConfig } from "../../core/quarto.ts";
 import { metadataNormalizationFilterActive } from "./normalize.ts";
 import { kCodeAnnotations } from "../../format/html/format-html-shared.ts";
+import { projectOutputDir } from "../../project/project-shared.ts";
+import { relative } from "path/mod.ts";
 
 const kQuartoParams = "quarto-params";
 
 const kProjectOffset = "project-offset";
-const kProjectOutputDir = "project-output-dir";
+const kFilterProjectOutputDir = "project-output-dir";
 
 const kMediabagDir = "mediabag-dir";
 
@@ -414,9 +416,12 @@ function projectFilterParams(options: PandocOptions) {
 
   const additionalParams: Metadata = {};
 
-  const outputDir = options.project?.config?.project["output-dir"];
-  if (outputDir) {
-    additionalParams[kProjectOutputDir] = outputDir;
+  if (options.project) {
+    const absProjectOutputDir = projectOutputDir(options.project);
+    const outputDir = relative(options.project.dir, absProjectOutputDir);
+    if (outputDir) {
+      additionalParams[kFilterProjectOutputDir] = outputDir;
+    }
   }
   if (options.offset) {
     additionalParams[kProjectOffset] = options.offset;

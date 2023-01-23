@@ -97,7 +97,7 @@ import {
   kNotebookViewStyleNotebook,
   notebookViewPostProcessor,
 } from "./format-html-notebook.ts";
-import { ProjectContext } from "../../project/types.ts";
+import { ProjectConfig, ProjectContext } from "../../project/types.ts";
 
 export function htmlFormat(
   figwidth: number,
