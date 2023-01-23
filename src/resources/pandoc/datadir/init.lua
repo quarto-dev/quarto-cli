@@ -1794,7 +1794,7 @@ _quarto = {
       write = function(path, contents) 
          return write_file(path, contents, "wb") 
       end,
-      writeText = function(path, contents) 
+      write_text = function(path, contents) 
          return write_file(path, contents, "a")
       end,
       exists = file_exists,
