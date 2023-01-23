@@ -1406,29 +1406,6 @@ const runSpaceCreatesWithNesting = () => {
 
   test(suiteLabel("one_nested_file_add_back_empty_parent"), async () => {
     const fileMetadataList: SiteFileMetadata[] = [fakeNestedFile];
-    //       {
-    //         contentChangeType: ContentChangeType.create,
-    //         ancestors: [
-    //           {
-    //             id: "8781825",
-    //           },
-    //         ],
-    //         body: {
-    //           storage: {
-    //             representation: "storage",
-    //             value: "",
-    //           },
-    //         },
-    //         fileName: "fake-parent",
-    //         space: {
-    //           key: "fake-space-key",
-    //           id: "fake-space-id",
-    //           homepage: buildFakeContent(),
-    //         },
-    //         status: "current",
-    //         title: "Fake-parent",
-    //         type: "page",
-    //       },
     const existingSite: SitePage[] = [
       {
         id: "fake-parent-id",
