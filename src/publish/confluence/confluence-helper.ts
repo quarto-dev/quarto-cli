@@ -291,7 +291,9 @@ export const findPagesToDelete = (
   return existingSite.reduce((accumulator: SitePage[], page: SitePage) => {
     if (
       !fileMetadataList.find(
-        (file) => file.fileName === page?.metadata?.fileName ?? ""
+        (file) =>
+          pathWithForwardSlashes(file.fileName) === page?.metadata?.fileName ??
+          ""
       ) &&
       !isActiveParent(page.id)
     ) {

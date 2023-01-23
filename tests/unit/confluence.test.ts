@@ -59,7 +59,7 @@ import {
   Space,
 } from "../../src/publish/confluence/api/types.ts";
 
-const RUN_ALL_TESTS = false;
+const RUN_ALL_TESTS = true;
 const FOCUS_TEST = false;
 
 const xtest = (
@@ -2239,7 +2239,21 @@ const runSpaceUpdatesWithNesting = () => {
     },
   };
 
-  unitTest(suiteLabel("one_nested_file_update"), async () => {
+  const fakeMultiNestedFileWin: SiteFileMetadata = {
+    fileName:
+      "fake-great-grand-parent\\fake-grand-parent\\fake-parent\\fake-file-name.xml",
+    title: "fake-title",
+    originalTitle: "fake-title-original",
+    matchingPages: [],
+    contentBody: {
+      storage: {
+        value: "fake-value",
+        representation: "storage",
+      },
+    },
+  };
+
+  test(suiteLabel("one_nested_file_update"), async () => {
     const fileMetadataList: SiteFileMetadata[] = [fakeNestedFile];
 
     const existingSite = [
@@ -2292,7 +2306,7 @@ const runSpaceUpdatesWithNesting = () => {
     assertEquals(expected, actual);
   });
 
-  unitTest(suiteLabel("one_multi-nested_file_update"), async () => {
+  test(suiteLabel("one_multi-nested_file_update"), async () => {
     const fileMetadataList: SiteFileMetadata[] = [fakeMultiNestedFile];
 
     const existingSite = [
@@ -2376,7 +2390,91 @@ const runSpaceUpdatesWithNesting = () => {
     assertEquals(expected, actual);
   });
 
-  unitTest(suiteLabel("two_nested_files_same_parent"), async () => {
+  otest(suiteLabel("one_multi-nested_file_update_win"), async () => {
+    const fileMetadataList: SiteFileMetadata[] = [fakeMultiNestedFileWin];
+
+    const existingSite = [
+      {
+        id: "123456",
+        title: "fake-title",
+        metadata: {
+          fileName:
+            "fake-great-grand-parent/fake-grand-parent/fake-parent/fake-file-name.xml",
+        },
+        ancestors: [
+          { id: "fake-parent-id" },
+          { id: "fake-grand-parent-id" },
+          { id: "fake-great-grand-parent-id" },
+        ],
+      },
+      {
+        title: "Fake Parent",
+        id: "fake-parent-id",
+        metadata: {
+          editor: "v2",
+          fileName: "fake-great-grand-parent/fake-grand-parent/fake-parent",
+        },
+        ancestors: [
+          { id: "fake-grand-parent-id" },
+          { id: "fake-great-grand-parent-id" },
+        ],
+      },
+      {
+        title: "Fake Grand Parent",
+        id: "fake-grand-parent-id",
+        metadata: {
+          editor: "v2",
+          fileName: "fake-great-grand-parent/fake-grand-parent",
+        },
+        ancestors: [{ id: "fake-great-grand-parent-id" }],
+      },
+      {
+        title: "Fake Great Grand Parent",
+        id: "fake-great-grand-parent-id",
+        metadata: { editor: "v2", fileName: "fake-great-grand-parent" },
+        ancestors: [{ id: "fake-great-grand-parent-id" }],
+      },
+    ];
+
+    const expected: ConfluenceSpaceChange[] = [
+      {
+        contentChangeType: ContentChangeType.update,
+        ancestors: [
+          {
+            id: "fake-parent-id",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "fake-value",
+          },
+        },
+        fileName:
+          "fake-great-grand-parent/fake-grand-parent/fake-parent/fake-file-name.xml",
+        status: "current",
+        title: "fake-title",
+        type: "page",
+        id: "123456",
+        version: null,
+      },
+    ];
+
+    const pagesToDelete = findPagesToDelete(fileMetadataList, existingSite);
+
+    assertEquals(pagesToDelete, []);
+
+    const actual: ConfluenceSpaceChange[] = buildSpaceChanges(
+      fileMetadataList,
+      FAKE_PARENT,
+      fakeSpace,
+      existingSite
+    );
+
+    assertEquals(expected, actual);
+  });
+
+  test(suiteLabel("two_nested_files_same_parent"), async () => {
     const fileMetadataList: SiteFileMetadata[] = [
       fakeNestedFile,
       fakeNestedFile2,
@@ -2453,7 +2551,7 @@ const runSpaceUpdatesWithNesting = () => {
     assertEquals(expected, actual);
   });
 
-  unitTest(suiteLabel("three_nested_files_same_different_parent"), async () => {
+  test(suiteLabel("three_nested_files_same_different_parent"), async () => {
     const fileMetadataList: SiteFileMetadata[] = [
       fakeNestedFile,
       fakeNestedFile2,
@@ -3660,5 +3758,5 @@ if (RUN_ALL_TESTS) {
   runUpdateImagePathsForContentBody();
   runCapFirstLetter();
 } else {
-  runFindAttachments();
+  runSpaceUpdatesWithNesting();
 }
