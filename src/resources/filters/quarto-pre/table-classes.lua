@@ -9,26 +9,6 @@ function contains(list, x)
 	return false
 end
 
--- propagate table classes to the table's <table> element
-function tableTableTag() 
-  return {
-    Table = function(el)
-      if tcontains(el.attr.classes) then
-        local tblColwidths = el.attr.attributes[kTblColwidths]
-        el.attr.attributes[kTblColwidths] = nil
-        if tblColwidths ~= nil then
-          return pandoc.walk_block(el, {
-            Table = function(tbl)
-              tbl.attr.attributes[kTblColwidths] = tblColwidths
-              return tbl
-            end
-          })
-        end
-      end
-    end,
-  }
-end
-
 -- handle classes to pass to `<table>` element
 function tableClasses()
 
