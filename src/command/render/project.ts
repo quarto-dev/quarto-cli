@@ -458,9 +458,17 @@ export async function renderProject(
   // call project post-render
   if (!projResults.error) {
     const outputFiles = projResults.files.map((result) => {
-      const file = outputDir ? join(outputDir, result.file) : result.file;
+      const outputDir = projectFormatOutputDir(
+        result.format,
+        context,
+        projType,
+      );
+
+      const file = outputDir
+        ? join(outputDir, result.file)
+        : join(projDir, result.file);
       return {
-        file: join(projDir, file),
+        file,
         format: result.format,
       };
     });
