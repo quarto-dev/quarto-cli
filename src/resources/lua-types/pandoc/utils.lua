@@ -20,7 +20,7 @@ Usage:
     -- }
 ]]
 ---@param blocks pandoc.List List of `Block` elements to be flattened.
----@param sep? pandoc.List List of `Inline` elements inserted as separator between two consecutive blocks; defaults to `{pandoc.Space(), pandoc.Str'¶', pandoc.Space()}`.
+---@param sep? pandoc.List List of `Inline` elements inserted as separator between two consecutive blocks; defaults to `{pandoc.LineBreak()}`.
 ---@return pandoc.List
 function pandoc.utils.blocks_to_inlines(blocks, sep) end
 
@@ -81,13 +81,7 @@ non-null, `Header` levels will be reorganized so
 that there are no gaps, and so that the base level
 is the level specified.
 
-Usage:
-
-    local blocks = {
-      pandoc.Header(2, pandoc.Str 'first'),
-      pandoc.Header(2, pandoc.Str 'second'),
-    }
-    local newblocks = pandoc.utils.make_sections(true, 1, blocks)
+**Deprecated** Use `pandoc.structure.make_sections` instead.
 ]]
 ---@param number_sections boolean Whether section divs should get an additional `number` attribute containing the section number.
 ---@param base_level integer|nil Shift top-level headings to this level.

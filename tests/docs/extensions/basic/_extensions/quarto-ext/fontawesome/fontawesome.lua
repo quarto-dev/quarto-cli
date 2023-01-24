@@ -29,7 +29,7 @@ return {
       ensureLatexDeps()
       return pandoc.RawInline('tex', "\\faIcon{" .. icon .. "}") 
     else
-      return pandoc.Null()
+      return {}
     end
 
   end

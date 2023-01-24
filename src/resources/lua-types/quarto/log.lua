@@ -46,7 +46,7 @@ order.
 ]]
 ---@param list table List to enumerate
 ---@param comp? function Optional comparison function
----@return function Iterator function
+---@return function # Iterator function
 function quarto.log.spairs(list, comp) end
 
 --[[
