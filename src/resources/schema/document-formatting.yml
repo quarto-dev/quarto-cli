@@ -40,3 +40,28 @@
     long: |
       Whether to hyphenate text at line breaks even in words that do not contain 
       hyphens if it is necessary to do so to lay out words on a line without excessive spacing
+
+- name: list-tables
+  schema: boolean
+  default: false
+  tags:
+    formats: [rst]
+  description: If true, tables are formatted as RST list tables.
+
+- name: split-level
+  tags:
+    formats: [$epub-all, $chunkedhtml]
+  schema: number
+  default: 1
+  description:
+    short: |
+      Specify the heading level at which to split the EPUB into separate
+      chapter files.
+    long: |
+      Specify the heading level at which to split the EPUB into separate
+      chapter files. The default is to split into chapters at level-1
+      headings. This option only affects the internal composition of the
+      EPUB, not the way chapters and sections are displayed to users. Some
+      readers may be slow if the chapter files are too large, so for large
+      documents with few level-1 headings, one might want to use a chapter
+      level of 2 or 3.

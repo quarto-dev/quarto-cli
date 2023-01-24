@@ -184,7 +184,7 @@ Generic block container with attributes.
 pandoc.Div = {}
 
 --[[
-Creates a div dlement
+Creates a div element
 ]]
 ---@param content blocks_content Block or list of blocks
 ---@param attr? pandoc.Attr Div attributes
@@ -304,37 +304,6 @@ Apply a Lua filter
 ---@param lua_filter table<string,function> Map of filter functions
 ---@return pandoc.LineBlock 
 function pandoc.LineBlock:walk(lua_filter) end
-
-
-
---======================== Null ========================
-
---[[
-A null element; this element never produces any output in the target format.
-]]
----@class pandoc.Null : pandoc.Block 
----@field t "Null"
----@field tag "Null"
-pandoc.Null = {}
-
---[[
-Creates a null element 
-]]
----@return pandoc.Null
-function pandoc.Null() end
-
---[[
-Make a clone
-]]
----@return pandoc.Null
-function pandoc.Null:clone() end
-
---[[
-Apply a Lua filter
-]]
----@param lua_filter table<string,function> Map of filter functions
----@return pandoc.Null 
-function pandoc.Null:walk(lua_filter) end
 
 
 --======================== OrderedList ========================
