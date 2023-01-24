@@ -31,3 +31,5 @@ format:
     theme: cosmo
   asciidoc: default
   docx: default
+
+bibliography: bibliography.bib
