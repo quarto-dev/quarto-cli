@@ -463,9 +463,17 @@ export async function renderProject(
     const outputFiles = projResults.files
       .filter((x) => !x.isTransient)
       .map((result) => {
-        const file = outputDir ? join(outputDir, result.file) : result.file;
+        const outputDir = projectFormatOutputDir(
+          result.format,
+          context,
+          projType,
+        );
+
+        const file = outputDir
+          ? join(outputDir, result.file)
+          : join(projDir, result.file);
         return {
-          file: join(projDir, file),
+          file,
           format: result.format,
         };
       });
