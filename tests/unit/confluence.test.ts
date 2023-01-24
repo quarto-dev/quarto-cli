@@ -1404,6 +1404,49 @@ const runSpaceCreatesWithNesting = () => {
     assertEquals(expected, actual);
   });
 
+  test(suiteLabel("one_nested_file_add_back_empty_parent"), async () => {
+    const fileMetadataList: SiteFileMetadata[] = [fakeNestedFile];
+    const existingSite: SitePage[] = [
+      {
+        id: "fake-parent-id",
+        title: "Fake-parent",
+        metadata: { fileName: "fake-parent" },
+      },
+    ];
+    const expected: ConfluenceSpaceChange[] = [
+      {
+        contentChangeType: ContentChangeType.create,
+        ancestors: [
+          {
+            id: "fake-parent-id",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "fake-value",
+          },
+        },
+        fileName: "fake-parent/fake-file-name",
+        space: {
+          key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
+        },
+        status: "current",
+        title: "fake-title",
+        type: "page",
+      },
+    ];
+    const actual: ConfluenceSpaceChange[] = buildSpaceChanges(
+      fileMetadataList,
+      FAKE_PARENT,
+      fakeSpace,
+      existingSite
+    );
+    assertEquals(expected, actual);
+  });
+
   test(suiteLabel("one_multi_nested_file"), async () => {
     const fileMetadataList: SiteFileMetadata[] = [fakeMultiNestedFile];
     const expected: ConfluenceSpaceChange[] = [
@@ -2390,7 +2433,7 @@ const runSpaceUpdatesWithNesting = () => {
     assertEquals(expected, actual);
   });
 
-  otest(suiteLabel("one_multi-nested_file_update_win"), async () => {
+  test(suiteLabel("one_multi-nested_file_update_win"), async () => {
     const fileMetadataList: SiteFileMetadata[] = [fakeMultiNestedFileWin];
 
     const existingSite = [
@@ -3758,5 +3801,5 @@ if (RUN_ALL_TESTS) {
   runUpdateImagePathsForContentBody();
   runCapFirstLetter();
 } else {
-  runSpaceUpdatesWithNesting();
+  runSpaceCreatesWithNesting();
 }
