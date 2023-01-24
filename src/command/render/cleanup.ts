@@ -10,7 +10,11 @@ import { dirname, extname, isAbsolute, join } from "path/mod.ts";
 
 import * as ld from "../../core/lodash.ts";
 
-import { removeIfEmptyDir, removeIfExists } from "../../core/path.ts";
+import {
+  normalizePath,
+  removeIfEmptyDir,
+  removeIfExists,
+} from "../../core/path.ts";
 import { figuresDir, inputFilesDir } from "../../core/render.ts";
 
 import { Format } from "../../config/types.ts";
@@ -53,7 +57,7 @@ export function renderCleanup(
         filesDirLibDir(input),
       );
       if (existsSync(libDir)) {
-        supporting.push(Deno.realPathSync(libDir));
+        supporting.push(normalizePath(libDir));
       }
       // narrow supporting to figures dir for non-html formats
     } else {
@@ -62,7 +66,7 @@ export function renderCleanup(
         inputFilesDir(input),
       );
       if (existsSync(filesDir)) {
-        filesDir = Deno.realPathSync(filesDir);
+        filesDir = normalizePath(filesDir);
       }
       supporting = supporting.map((supportingDir) => {
         if (filesDir === supportingDir) {

@@ -109,15 +109,15 @@ export function texToPdfOutputRecipe(
 
       // final output needs to either absolute or input dir relative
       // (however it may be working dir relative when it is passed in)
-      return normalizePath(input, finalOutput);
+      return texNormalizePath(input, finalOutput);
     } else {
-      return normalizePath(input, pdfOutput);
+      return texNormalizePath(input, pdfOutput);
     }
   };
 
   const pdfOutput = finalOutput
-    ? finalOutput === kStdOut ? undefined : normalizePath(input, finalOutput)
-    : normalizePath(input, pdfGenerator.computePath(input, format));
+    ? finalOutput === kStdOut ? undefined : texNormalizePath(input, finalOutput)
+    : texNormalizePath(input, pdfGenerator.computePath(input, format));
 
   // tweak writer if it's pdf
   const to = format.pandoc.to === "pdf" ? pdfIntermediateTo : format.pandoc.to;
@@ -210,7 +210,7 @@ export function contextPdfOutputRecipe(
   );
 }
 
-const normalizePath = (input: string, output: string) => {
+const texNormalizePath = (input: string, output: string) => {
   if (isAbsolute(output)) {
     return output;
   } else {

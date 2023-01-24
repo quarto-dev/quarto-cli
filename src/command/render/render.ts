@@ -18,7 +18,7 @@ import {
   resourcePath,
 } from "../../core/resources.ts";
 import { inputFilesDir } from "../../core/render.ts";
-import { pathWithForwardSlashes } from "../../core/path.ts";
+import { normalizePath, pathWithForwardSlashes } from "../../core/path.ts";
 
 import { FormatPandoc } from "../../config/types.ts";
 import {
@@ -303,13 +303,13 @@ export async function renderPandoc(
         if (context.project) {
           if (isAbsolute(path)) {
             return relative(
-              Deno.realPathSync(context.project.dir),
-              Deno.realPathSync(path),
+              normalizePath(context.project.dir),
+              normalizePath(path),
             );
           } else {
             return relative(
-              Deno.realPathSync(context.project.dir),
-              Deno.realPathSync(join(dirname(context.target.source), path)),
+              normalizePath(context.project.dir),
+              normalizePath(join(dirname(context.target.source), path)),
             );
           }
         } else {
@@ -387,8 +387,8 @@ export function renderResultFinalOutput(
 
   // return a path relative to the input file
   if (relativeToInputDir) {
-    const inputRealPath = Deno.realPathSync(relativeToInputDir);
-    const outputRealPath = Deno.realPathSync(finalOutput);
+    const inputRealPath = normalizePath(relativeToInputDir);
+    const outputRealPath = normalizePath(finalOutput);
     return relative(inputRealPath, outputRealPath);
   } else {
     return finalOutput;

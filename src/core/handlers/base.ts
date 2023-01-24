@@ -73,6 +73,7 @@ import { ensureDirSync } from "fs/mod.ts";
 import { mappedStringFromFile } from "../mapped-text.ts";
 import { error } from "log/mod.ts";
 import { withCriClient } from "../cri/cri.ts";
+import { normalizePath } from "../path.ts";
 const handlers: Record<string, LanguageHandler> = {};
 
 let globalFigureCounter: Record<string, number> = {};
@@ -186,7 +187,7 @@ function makeHandlerContext(
       };
     },
     figuresDir() {
-      const file = Deno.realPathSync(options.context.target.source);
+      const file = normalizePath(options.context.target.source);
       const filesDir = join(dirname(file), inputFilesDir(file));
       const result = join(
         filesDir,

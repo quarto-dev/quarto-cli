@@ -45,7 +45,7 @@ import {
 import { globalTempContext } from "../temp.ts";
 import { isAbsolute } from "path/mod.ts";
 import { partitionMarkdown } from "../pandoc/pandoc-partition.ts";
-import { removeIfEmptyDir, safeExistsSync } from "../path.ts";
+import { normalizePath, removeIfEmptyDir, safeExistsSync } from "../path.ts";
 import { basename } from "path/mod.ts";
 
 export interface JupyterNotebookAddress {
@@ -417,7 +417,7 @@ async function getCachedNotebookInfo(
       format: context.format,
       projectDir: context.project?.dir,
       cwd: flags.executeDir ||
-        dirname(Deno.realPathSync(context.target.source)),
+        dirname(normalizePath(context.target.source)),
       params: resolveParams(flags.params, flags.paramsFile),
       quiet: flags.quiet,
       previewServer: context.options.previewServer,

@@ -62,7 +62,11 @@ import * as ld from "../../core/lodash.ts";
 import { basename, dirname, join, relative } from "path/mod.ts";
 import { Format } from "../../config/types.ts";
 import { figuresDir, inputFilesDir } from "../../core/render.ts";
-import { removeIfEmptyDir, removeIfExists } from "../../core/path.ts";
+import {
+  normalizePath,
+  removeIfEmptyDir,
+  removeIfExists,
+} from "../../core/path.ts";
 import { resourcePath } from "../../core/resources.ts";
 import { YAMLValidationError } from "../../core/yaml.ts";
 import { resolveParams } from "./flags.ts";
@@ -198,7 +202,7 @@ export async function renderExecute(
     libDir: context.libDir,
     format: context.format,
     projectDir: context.project?.dir,
-    cwd: flags.executeDir || dirname(Deno.realPathSync(context.target.source)),
+    cwd: flags.executeDir || dirname(normalizePath(context.target.source)),
     params: resolveParams(flags.params, flags.paramsFile),
     quiet: flags.quiet,
     previewServer: context.options.previewServer,

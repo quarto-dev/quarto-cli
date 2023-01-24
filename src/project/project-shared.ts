@@ -10,7 +10,7 @@ import { dirname, isAbsolute, join, relative } from "path/mod.ts";
 import { kHtmlMathMethod } from "../config/constants.ts";
 import { Format } from "../config/types.ts";
 
-import { pathWithForwardSlashes } from "../core/path.ts";
+import { normalizePath, pathWithForwardSlashes } from "../core/path.ts";
 import { kProjectOutputDir, ProjectContext } from "./types.ts";
 import { ProjectType } from "./types/types.ts";
 
@@ -49,7 +49,7 @@ export function projectOutputDir(context: ProjectContext): string {
     outputDir = context.dir;
   }
   if (existsSync(outputDir)) {
-    return Deno.realPathSync(outputDir);
+    return normalizePath(outputDir);
   } else {
     return outputDir;
   }
@@ -61,8 +61,8 @@ export function hasProjectOutputDir(context: ProjectContext): boolean {
 
 export function isProjectInputFile(path: string, context: ProjectContext) {
   if (existsSync(path)) {
-    const renderPath = Deno.realPathSync(path);
-    return context.files.input.map((file) => Deno.realPathSync(file)).includes(
+    const renderPath = normalizePath(path);
+    return context.files.input.map((file) => normalizePath(file)).includes(
       renderPath,
     );
   } else {
@@ -83,8 +83,8 @@ export function projectVarsFile(dir: string): string | undefined {
 }
 
 export function projectOffset(context: ProjectContext, input: string) {
-  const projDir = Deno.realPathSync(context.dir);
-  const inputDir = Deno.realPathSync(dirname(input));
+  const projDir = normalizePath(context.dir);
+  const inputDir = normalizePath(dirname(input));
   const offset = relative(inputDir, projDir) || ".";
   return pathWithForwardSlashes(offset);
 }

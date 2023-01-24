@@ -15,7 +15,7 @@ import { readYamlFromMarkdown } from "../../core/yaml.ts";
 import { isInteractiveSession } from "../../core/platform.ts";
 import { partitionMarkdown } from "../../core/pandoc/pandoc-partition.ts";
 
-import { dirAndStem, removeIfExists } from "../../core/path.ts";
+import { dirAndStem, normalizePath, removeIfExists } from "../../core/path.ts";
 import { runningInCI } from "../../core/ci-info.ts";
 
 import {
@@ -255,7 +255,7 @@ export const jupyterEngine: ExecutionEngine = {
         ...options,
         target: {
           ...options.target,
-          input: Deno.realPathSync(options.target.input),
+          input: normalizePath(options.target.input),
         },
       };
 

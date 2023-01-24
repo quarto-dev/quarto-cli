@@ -20,7 +20,12 @@ import { cloneDeep } from "../../core/lodash.ts";
 import { inputFilesDir } from "../../core/render.ts";
 import { TempContext } from "../../core/temp.ts";
 import { md5Hash } from "../../core/hash.ts";
-import { removeIfEmptyDir, removeIfExists, safeRemoveIfExists } from "../../core/path.ts";
+import {
+  normalizePath,
+  removeIfEmptyDir,
+  removeIfExists,
+  safeRemoveIfExists,
+} from "../../core/path.ts";
 
 import {
   kIncludeAfterBody,
@@ -63,7 +68,7 @@ export function freezeExecuteResult(
   // make the supporting dirs relative to the input file dir
   result.supporting = result.supporting.map((file) => {
     if (isAbsolute(file)) {
-      return relative(Deno.realPathSync(dirname(input)), file);
+      return relative(normalizePath(dirname(input)), file);
     } else {
       return file;
     }
@@ -101,7 +106,7 @@ export function defrostExecuteResult(
     if (force || hash === freezeInputHash(source)) {
       // full path to supporting
       result.supporting = result.supporting.map((file) =>
-        join(Deno.realPathSync(dirname(source)), file)
+        join(normalizePath(dirname(source)), file)
       );
 
       // convert includes to files
@@ -135,7 +140,7 @@ export function projectFreezerDir(dir: string, hidden: boolean) {
     ? projectScratchPath(dir, kProjectFreezeDir)
     : join(dir, kProjectFreezeDir);
   ensureDirSync(freezeDir);
-  return Deno.realPathSync(freezeDir);
+  return normalizePath(freezeDir);
 }
 
 export function copyToProjectFreezer(

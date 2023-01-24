@@ -19,7 +19,7 @@ import * as ld from "../../core/lodash.ts";
 import { Document } from "../../core/deno-dom.ts";
 
 import { execProcess } from "../../core/process.ts";
-import { dirAndStem } from "../../core/path.ts";
+import { dirAndStem, normalizePath } from "../../core/path.ts";
 import { mergeConfigs } from "../../core/config.ts";
 
 import {
@@ -468,7 +468,7 @@ export async function runPandoc(
 
     // The user partials (if any)
     const userPartials = readPartials(options.format.metadata, cwd);
-    const inputDir = Deno.realPathSync(cwd);
+    const inputDir = normalizePath(cwd);
     const resolvePath = (path: string) => {
       if (isAbsolute(path)) {
         return path;

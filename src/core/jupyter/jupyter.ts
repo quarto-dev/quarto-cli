@@ -145,7 +145,11 @@ import { figuresDir, inputFilesDir } from "../render.ts";
 import { lines } from "../text.ts";
 import { readYamlFromMarkdown } from "../yaml.ts";
 import { languagesInMarkdown } from "../../execute/engine-shared.ts";
-import { pathWithForwardSlashes, removeIfEmptyDir } from "../path.ts";
+import {
+  normalizePath,
+  pathWithForwardSlashes,
+  removeIfEmptyDir,
+} from "../path.ts";
 import { convertToHtmlSpans, hasAnsiEscapeCodes } from "../ansi-colors.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { mergeConfigs } from "../config.ts";
@@ -604,7 +608,7 @@ export function jupyterAssets(
   to?: string,
 ): JupyterNotebookAssetPaths {
   // calculate and create directories
-  input = Deno.realPathSync(input);
+  input = normalizePath(input);
   const files_dir = join(dirname(input), inputFilesDir(input));
   const figures_dir = join(files_dir, figuresDir(to));
   ensureDirSync(figures_dir);

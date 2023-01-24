@@ -14,6 +14,7 @@ import { getenv } from "./env.ts";
 import { exitWithCleanup } from "./cleanup.ts";
 import { onActiveProfileChanged } from "../project/project-profile.ts";
 import { onDotenvChanged } from "../quarto-core/dotenv.ts";
+import { normalizePath } from "./path.ts";
 
 export const kLocalDevelopment = "99.9.9";
 
@@ -66,7 +67,7 @@ export function monitorPreviewTerminationConditions(cleanup?: VoidFunction) {
 
   // src code change
   if (quartoConfig.isDebug()) {
-    const srcDir = Deno.realPathSync(
+    const srcDir = normalizePath(
       join(quartoConfig.binPath(), "../../../src"),
     );
     const watcher = Deno.watchFs([srcDir], { recursive: true });

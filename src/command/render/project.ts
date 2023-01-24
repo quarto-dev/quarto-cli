@@ -61,6 +61,7 @@ import {
   projectOutputDir,
 } from "../../project/project-shared.ts";
 import { asArray } from "../../core/array.ts";
+import { normalizePath } from "../../core/path.ts";
 
 export async function renderProject(
   context: ProjectContext,
@@ -73,7 +74,7 @@ export async function renderProject(
   const projOutputDir = projectOutputDir(context);
 
   // get real path to the project
-  const projDir = Deno.realPathSync(context.dir);
+  const projDir = normalizePath(context.dir);
 
   // is this an incremental render?
   const incremental = !!files;
@@ -90,7 +91,7 @@ export async function renderProject(
       if (!existsSync(target)) {
         throw new Error("Render target does not exist: " + file);
       }
-      return Deno.realPathSync(target);
+      return normalizePath(target);
     });
   };
 
@@ -167,9 +168,9 @@ export async function renderProject(
     (options.flags?.clean == true) && (projType.cleanOutputDir === true)
   ) {
     // ouptut dir
-    const realProjectDir = Deno.realPathSync(context.dir);
+    const realProjectDir = normalizePath(context.dir);
     if (existsSync(projOutputDir)) {
-      const realOutputDir = Deno.realPathSync(projOutputDir);
+      const realOutputDir = normalizePath(projOutputDir);
       if (
         (realOutputDir !== realProjectDir) &&
         realOutputDir.startsWith(realProjectDir)
