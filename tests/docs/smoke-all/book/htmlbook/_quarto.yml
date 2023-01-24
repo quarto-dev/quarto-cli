@@ -12,6 +12,7 @@ book:
       chapters:
         - chap-1-1.qmd
         - chap-1-2.qmd
+    - references.qmd
   appendices:
     - appendix-1.qmd
     - appendix-2.qmd
