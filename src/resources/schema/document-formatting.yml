@@ -50,7 +50,7 @@
 
 - name: split-level
   tags:
-    formats: [$epub-all, $chunkedhtml]
+    formats: [$epub-all, chunkedhtml]
   schema: number
   default: 1
   description:
