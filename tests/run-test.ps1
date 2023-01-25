@@ -24,7 +24,7 @@ $QUARTO_SRC_DIR= Join-Path $QUARTO_ROOT "src"
 # e.g quarto-cli/package/dist/bin
 $QUARTO_BIN_PATH = Join-Path $QUARTO_ROOT "package" "dist" "bin"
 # Deno binary in tools/
-$QUARTO_DENO = Join-Path $Env:QUARTO_BIN_PATH "tools" "deno.exe"
+$QUARTO_DENO = Join-Path $QUARTO_BIN_PATH "tools" "deno.exe"
 
 # Shared resource folder
 # e.g quarto-cli/src/resources
@@ -43,10 +43,10 @@ Write-Host "> Restoring python environment in virtualenv..."
 
 # Ensure that we've actived the python env and restore it
 # FIX: Testing python require a re-design of the environment
-$QUARTO_TESTS_VIRTUALENV="FALSE"
-If ($QUARTO_TESTS_VIRTUALENV -ne "FALSE" )
+If ($QUARTO_TESTS_VIRTUALENV -ne "FALSE")
   {
-    python3 -m pip install -r requirements.txt --prefer-binary -q
+    $Env:QUARTO_PYTHON=$null
+    py -m pip install -r requirements.txt --prefer-binary -q
   } else {
     Write-Host -ForegroundColor "red" ">> No testing with Python"
   }
