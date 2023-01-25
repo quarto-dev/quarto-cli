@@ -294,7 +294,7 @@ async function publish(
       let fileBuffer: Uint8Array;
       let fileHash: string;
       const path = join(baseDirectory, attachmentPath);
-
+      
       trace(
         "uploadAttachment",
         {
@@ -317,6 +317,7 @@ async function publish(
       }
 
       const fileName = pathWithForwardSlashes(attachmentPath);
+      
 
       const existingDuplicateAttachment = existingAttachments.find(
         (attachment: AttachmentSummary) => {
@@ -342,6 +343,8 @@ async function publish(
       return attachment;
     };
 
+    
+
     return attachmentsToUpload.map(uploadAttachment);
   };
 
@@ -350,7 +353,8 @@ async function publish(
     id: string,
     body: ContentBody,
     titleToUpdate: string = title,
-    fileName: string = ""
+    fileName: string = "",
+    uploadFileAttachments: boolean = true
   ): Promise<Content> => {
     const previousPage = await client.getContent(id);
 
@@ -381,7 +385,7 @@ async function publish(
 
     const updatedContent: Content = await client.updateContent(toUpdate);
 
-    if (toUpdate.id) {
+    if (toUpdate.id && uploadFileAttachments) {
       const existingAttachments: AttachmentSummary[] =
         await client.getAttachments(toUpdate.id);
 
@@ -645,7 +649,10 @@ async function publish(
 
     let pathsToId: Record<string, string> = {}; // build from existing site
 
-    const doChange = async (change: ConfluenceSpaceChange) => {
+    const doChange = async (
+      change: ConfluenceSpaceChange,
+      uploadFileAttachments: boolean = true
+    ) => {
       if (isContentCreate(change)) {
         let ancestorId =
           (change?.ancestors && change?.ancestors[0]?.id) ?? null;
@@ -687,7 +694,8 @@ async function publish(
           update.id ?? "",
           update.body,
           update.title ?? "",
-          update.fileName ?? ""
+          update.fileName ?? "",
+          uploadFileAttachments
         );
       } else if (isContentDelete(change)) {
         if (DELETE_DISABLED) {
@@ -703,6 +711,7 @@ async function publish(
       }
     };
 
+    
     for (let currentChange of changeList) {
       await doChange(currentChange);
     }
@@ -722,9 +731,9 @@ async function publish(
         server,
         parent
       );
-
+      
       for (let currentChange of linkUpdateChanges) {
-        await doChange(currentChange);
+        await doChange(currentChange, false);
       }
     }
 
