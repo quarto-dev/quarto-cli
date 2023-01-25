@@ -59,6 +59,7 @@ import("./quarto-init/configurefilters.lua")
 import("./quarto-init/includes.lua")
 import("./quarto-init/resourcerefs.lua")
 
+import("./quarto-post/asciidoc.lua")
 import("./quarto-post/book.lua")
 import("./quarto-post/cites.lua")
 import("./quarto-post/delink.lua")
@@ -219,6 +220,7 @@ local quartoPre = {
 local quartoPost = {
   -- quarto-post
   { name = "post-cites", filter = indexCites() },
+  { name = "post-asciidoc", filter = asciidoc() },
   { name = "post-foldCode", filter = foldCode() },
   { name = "post-figureCleanupCombined", filter = combineFilters({
     latexDiv(),

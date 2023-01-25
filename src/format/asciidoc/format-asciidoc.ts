@@ -45,11 +45,24 @@ export function asciidocFormat(): Format {
   );
 }
 
+const kFormatOutputDir = "asciidoc";
+
+// Ref target marks the refs div so the post process can inject the bibliography
+const kRefTargetIdentifier = "refs-target-identifier";
+const kRefTargetIndentifierValue = "// quarto-refs-target-378736AB";
+const kUseAsciidocNativeCites = "use-asciidoc-native-cites";
+
 // This provide book specific behavior for producing asciidoc books
 const asciidocBookExtension = {
   multiFile: true,
   formatOutputDirectory(_format: Format) {
-    return "asciidoc";
+    return kFormatOutputDir;
+  },
+  filterParams: (_options: PandocOptions) => {
+    return {
+      [kUseAsciidocNativeCites]: true,
+      [kRefTargetIdentifier]: kRefTargetIndentifierValue,
+    };
   },
   async onMultiFilePrePrender(
     isIndex: boolean,
