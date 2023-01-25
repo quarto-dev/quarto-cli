@@ -15,8 +15,10 @@ runs:
         case $RUNNER_OS in
           "Windows")
             pwsh -C "./configure.cmd"
+            ;;
           *)
             ./configure.sh
+            ;;
         esac
 
     - name: Basic dev mode sanity check
