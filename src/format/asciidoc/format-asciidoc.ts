@@ -19,13 +19,26 @@ import {
   bookConfig,
   isBookIndexPage,
 } from "../../project/types/book/book-shared.ts";
-import { join } from "path/mod.ts";
+import { join, relative } from "path/mod.ts";
 
 import { plaintextFormat } from "../formats-shared.ts";
 import { dirAndStem } from "../../core/path.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { ProjectContext } from "../../project/types.ts";
-import { kShiftHeadingLevelBy } from "../../config/constants.ts";
+import {
+  kSectionTitleReferences,
+  kShiftHeadingLevelBy,
+} from "../../config/constants.ts";
+import { existsSync } from "fs/mod.ts";
+import { ProjectOutputFile } from "../../project/types/types.ts";
+import { lines } from "../../core/text.ts";
+import {
+  bookBibliography,
+  generateBibliography,
+} from "../../project/types/book/book-bibliography.ts";
+import { citeIndex } from "../../project/project-cites.ts";
+import { projectOutputDir } from "../../project/project-shared.ts";
+import { PandocOptions } from "../../command/render/types.ts";
 
 type AsciiDocBookPart = string | {
   partPath?: string;
@@ -50,6 +63,8 @@ const kFormatOutputDir = "asciidoc";
 // Ref target marks the refs div so the post process can inject the bibliography
 const kRefTargetIdentifier = "refs-target-identifier";
 const kRefTargetIndentifierValue = "// quarto-refs-target-378736AB";
+const kRefTargetIndentifierMatch = /\/\/ quarto-refs-target-378736AB/g;
+
 const kUseAsciidocNativeCites = "use-asciidoc-native-cites";
 
 // This provide book specific behavior for producing asciidoc books
@@ -93,37 +108,116 @@ const asciidocBookExtension = {
       return { format };
     }
   },
-  async bookPostProcess(_format: Format, _project: ProjectContext) {
+  async bookPostRender(
+    format: Format,
+    context: ProjectContext,
+    _incremental: boolean,
+    outputFiles: ProjectOutputFile[],
+  ) {
+    // Find the explicit ref target
+    let refsTarget;
+    let indexPage;
+    const projDir = projectOutputDir(context);
+    const outDir = join(projDir, kFormatOutputDir);
+    for (const outputFile of outputFiles) {
+      const path = outputFile.file;
+      if (existsSync(path)) {
+        const contents = Deno.readTextFileSync(path);
+        if (contents.match(kRefTargetIndentifierMatch)) {
+          refsTarget = path;
+        }
+      }
+      const relativePath = relative(outDir, outputFile.file);
+      if (isBookIndexPage(relativePath)) {
+        indexPage = outputFile.file;
+      }
+    }
+
+    // If there is a refs target, then generate the bibliography and
+    // replace the refs target with the rendered references
+    //
+    // If not, just append the bibliography to the index page itself
+    if (refsTarget || indexPage) {
+      // Read the cites
+      const cites: Set<string> = new Set();
+
+      const citeIndexObj = citeIndex(context.dir);
+      for (const key of Object.keys(citeIndexObj)) {
+        const citeArr = citeIndexObj[key];
+        citeArr.forEach((cite) => {
+          cites.add(cite);
+        });
+      }
+
+      // Generate the bibliograp context for this document
+      const biblio = await bookBibliography(outputFiles, context);
+
+      // Add explicitl added cites via nocite
+      if (biblio.nocite) {
+        biblio.nocite.forEach((no) => {
+          cites.add(no);
+        });
+      }
+
+      // Generate the bibliography
+      let bibliographyContents = "";
+      if (biblio.bibliographyPaths && cites.size) {
+        bibliographyContents = await generateBibliography(
+          context,
+          biblio.bibliographyPaths,
+          Array.from(cites),
+          "asciidoc",
+          biblio.csl,
+        );
+      }
+
+      // Clean the generated bibliography
+      // - remove the leading `refs` indicator
+      // - make the bibliography an unordered list
+      // see https://docs.asciidoctor.org/asciidoc/latest/sections/bibliography/
+      const cleanedBibliography = lines(bibliographyContents).filter(
+        (line) => {
+          return line !== "[[refs]]";
+        },
+      ).map((line) => {
+        if (line.startsWith("[[ref-")) {
+          return line.replace("[[ref-", "- [[");
+        } else {
+          return `  ${line}`;
+        }
+      }).join("\n").trim();
+
+      if (refsTarget) {
+        // Replace the refs target with the bibliography (or empty to remove it)
+        const refTargetContents = Deno.readTextFileSync(refsTarget);
+        const updatedContents = refTargetContents.replace(
+          kRefTargetIndentifierMatch,
+          cleanedBibliography,
+        );
+        Deno.writeTextFileSync(
+          refsTarget,
+          updatedContents,
+        );
+      } else if (indexPage) {
+        const title = format.language[kSectionTitleReferences] || "References";
+        const titleAdoc = `== ${title}`;
+
+        const indexPageContents = Deno.readTextFileSync(indexPage);
+        const updatedContents =
+          `${indexPageContents}\n\n${titleAdoc}\n\n[[refs]]\n\n${cleanedBibliography}`;
+        Deno.writeTextFileSync(
+          indexPage,
+          updatedContents,
+        );
+      }
+    }
   },
 };
 
 async function bookRootPageMarkdown(project: ProjectContext) {
-  const bookContents = bookConfig(
-    kBookChapters,
-    project.config,
-  ) as BookChapterEntry[];
-
-  // Find chapter and appendices
-  const chapters = await resolveBookInputs(
-    bookContents,
-    project,
-    (input: string) => {
-      // Exclude the index page from the chapter list (since we'll append
-      // this to the index page contents)
-      return !isBookIndexPage(input);
-    },
-  );
-
-  const bookApps = bookConfig(
-    kBookAppendix,
-    project.config,
-  ) as string[];
-  const appendices = bookApps
-    ? await resolveBookInputs(
-      bookApps,
-      project,
-    )
-    : [];
+  // Read the chapter and appendix inputs
+  const chapters = await chapterInputs(project);
+  const appendices = await appendixInputs(project);
 
   // Write a book asciidoc file
   const fileContents = [
@@ -175,6 +269,37 @@ function chapter(path: string) {
 
 function appendix(path: string) {
   return `[appendix]\n${chapter(path)}\n`;
+}
+
+async function chapterInputs(project: ProjectContext) {
+  const bookContents = bookConfig(
+    kBookChapters,
+    project.config,
+  ) as BookChapterEntry[];
+
+  // Find chapter and appendices
+  return await resolveBookInputs(
+    bookContents,
+    project,
+    (input: string) => {
+      // Exclude the index page from the chapter list (since we'll append
+      // this to the index page contents)
+      return !isBookIndexPage(input);
+    },
+  );
+}
+
+async function appendixInputs(project: ProjectContext) {
+  const bookApps = bookConfig(
+    kBookAppendix,
+    project.config,
+  ) as string[];
+  return bookApps
+    ? await resolveBookInputs(
+      bookApps,
+      project,
+    )
+    : [];
 }
 
 async function resolveBookInputs(

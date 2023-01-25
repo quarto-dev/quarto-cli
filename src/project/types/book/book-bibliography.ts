@@ -21,8 +21,11 @@ import { pandocBinaryPath } from "../../../core/resources.ts";
 import { kBibliography, kCsl, kNoCite } from "../../../config/constants.ts";
 import { Metadata } from "../../../config/types.ts";
 
-import { kProjectRender, ProjectContext } from "../../types.ts";
-import { projectOutputDir } from "../../project-shared.ts";
+import { kProjectRender, kProjectType, ProjectContext } from "../../types.ts";
+import {
+  projectFormatOutputDir,
+  projectOutputDir,
+} from "../../project-shared.ts";
 import {
   inputFileForOutputFile,
   inputTargetIndex,
@@ -30,6 +33,67 @@ import {
 } from "../../project-index.ts";
 import { WebsiteProjectOutputFile } from "../website/website.ts";
 import { bookMultiFileHtmlOutputs } from "./book-extension.ts";
+import { ProjectOutputFile } from "../types.ts";
+import { projectType } from "../project-types.ts";
+
+export async function bookBibliography(
+  outputFiles: ProjectOutputFile[],
+  context: ProjectContext,
+) {
+  // determine the bibliography, csl, and nocite based on the first file
+  const file = outputFiles[0];
+  const bibliography = file.format.metadata[kBibliography] as string[];
+  const nocite = typeof (file.format.metadata[kNoCite]) === "string"
+    ? file.format.metadata[kNoCite] as string
+    : undefined;
+  const projType = projectType(context.config?.project?.[kProjectType]);
+
+  if (!bibliography) {
+    return {
+      bibliographyPaths: [],
+    };
+  }
+
+  // We need to be sure we're properly resolving the bibliography
+  // path from the metadata using the path of the file that provided the
+  // metadata (the same goes for the CSL file, if present)
+  // The relative path to the output file
+  const fileRelativePath = relative(
+    projectFormatOutputDir(file.format, context, projType),
+    file.file,
+  );
+  // The path to the input file
+  const inputfile = await inputFileForOutputFile(context, fileRelativePath);
+  const bibliographyPaths: string[] = [];
+  let csl = file.format.metadata[kCsl] as string;
+  if (inputfile) {
+    // Use the dirname from the input file to resolve the bibliography paths
+    const firstFileDir = dirname(inputfile);
+    bibliographyPaths.push(
+      ...bibliography.map((file) => join(firstFileDir, file)),
+    );
+
+    // Fixes https://github.com/quarto-dev/quarto-cli/issues/2755
+    if (csl) {
+      const cslAbsPath = pathWithForwardSlashes(join(firstFileDir, csl));
+      if (safeExistsSync(cslAbsPath)) {
+        csl = cslAbsPath;
+      }
+    }
+
+    return {
+      csl,
+      bibliographyPaths,
+      nocite: nocite
+        ? nocite.split(",").map((x) => x.trim().replace(/^@/, ""))
+        : [],
+    };
+  } else {
+    throw new Error(
+      "Unable to determine proper path to use when computing bibliography path.",
+    );
+  }
+}
 
 export async function bookBibliographyPostRender(
   context: ProjectContext,
@@ -53,44 +117,10 @@ export async function bookBibliographyPostRender(
 
   // bail if there is no target refs file
   if (refsHtml && outputFiles.length > 0) {
-    // determine the bibliography, csl, and nocite based on the first file
-    const file = outputFiles[0];
-    const bibliography = file.format.metadata[kBibliography] as string[];
-    const nocite = typeof (file.format.metadata[kNoCite]) === "string"
-      ? file.format.metadata[kNoCite] as string
-      : undefined;
-    if (!bibliography) {
-      return;
-    }
-
-    // We need to be sure we're properly resolving the bibliography
-    // path from the metadata using the path of the file that provided the
-    // metadata (the same goes for the CSL file, if present)
-    // The relative path to the output file
-    const fileRelativePath = relative(projectOutputDir(context), file.file);
-    // The path to the input file
-    const inputfile = await inputFileForOutputFile(context, fileRelativePath);
-    const bibliographyPaths: string[] = [];
-    let csl = file.format.metadata[kCsl] as string;
-    if (inputfile) {
-      // Use the dirname from the input file to resolve the bibliography paths
-      const firstFileDir = dirname(inputfile);
-      bibliographyPaths.push(
-        ...bibliography.map((file) => join(firstFileDir, file)),
-      );
-
-      // Fixes https://github.com/quarto-dev/quarto-cli/issues/2755
-      if (csl) {
-        const cslAbsPath = pathWithForwardSlashes(join(firstFileDir, csl));
-        if (safeExistsSync(cslAbsPath)) {
-          csl = cslAbsPath;
-        }
-      }
-    } else {
-      throw new Error(
-        "Unable to determine proper path to use when computing bibliography path.",
-      );
-    }
+    const { bibliographyPaths, csl, nocite } = await bookBibliography(
+      outputFiles,
+      context,
+    );
 
     // find all of the refs in each document and fixup their links to point
     // to the shared bibliography output. note these refs so we can generate
@@ -150,7 +180,7 @@ export async function bookBibliographyPostRender(
       // include citeids from nocite
       if (nocite) {
         citeIds.push(
-          ...nocite.split(",").map((x) => x.trim().replace(/^@/, "")),
+          ...nocite,
         );
       }
 
@@ -159,11 +189,12 @@ export async function bookBibliographyPostRender(
         // refs div in the references file
 
         // genereate bibliography html
-        const biblioHtml = await generateBibliographyHTML(
+        const biblioHtml = await generateBibliography(
           context,
           bibliographyPaths,
-          csl,
           citeIds,
+          "html",
+          csl,
         );
         const newRefsDiv = refsOutputFile.doc.createElement("div");
         newRefsDiv.innerHTML = biblioHtml;
@@ -181,11 +212,12 @@ export async function bookBibliographyPostRender(
   }
 }
 
-async function generateBibliographyHTML(
+export async function generateBibliography(
   context: ProjectContext,
   bibliography: string[],
-  csl: string,
   citeIds: string[],
+  to: string,
+  csl?: string,
 ) {
   const biblioPaths = bibliography.map((biblio) => {
     if (isAbsolute(biblio)) {
@@ -212,7 +244,7 @@ async function generateBibliographyHTML(
       "--from",
       "markdown",
       "--to",
-      "html",
+      to,
       "--citeproc",
     ],
     cwd: context.dir,
