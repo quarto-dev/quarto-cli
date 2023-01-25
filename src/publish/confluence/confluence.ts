@@ -571,7 +571,7 @@ async function publish(
       parent: parentId,
     };
 
-    const existingSite: SitePage[] = await fetchExistingSite(parentId);
+    let existingSite: SitePage[] = await fetchExistingSite(parentId);
 
     const publishFiles: PublishFiles = await renderSite(render);
     const metadataByInput: Record<string, InputMetadata> =
@@ -620,7 +620,8 @@ async function publish(
 
     trace("fileMetadata", fileMetadata);
 
-    const metadataByFilename = buildFileToMetaTable(existingSite);
+    let metadataByFilename = buildFileToMetaTable(existingSite);
+    console.log("metadataByFilename", metadataByFilename);
 
     trace("metadataByFilename", metadataByFilename);
 
@@ -631,12 +632,14 @@ async function publish(
       existingSite
     );
 
-    changeList = updateLinks(
+    const { pass1Changes, pass2Changes } = updateLinks(
       metadataByFilename,
       changeList,
       server,
       siteParent
     );
+
+    changeList = pass1Changes;
 
     trace("changelist", changeList);
 
@@ -704,8 +707,27 @@ async function publish(
       await doChange(currentChange);
     }
 
-    const parentPage: Content = await client.getContent(parentId);
+    if (pass2Changes.length) {
+      //PASS #2 to update links to newly created pages
+      console.log("do pass 2 link updates");
 
+      // reload the existing site
+      existingSite = await fetchExistingSite(parentId);
+      metadataByFilename = buildFileToMetaTable(existingSite);
+
+      console.log("metadataByFilename", metadataByFilename);
+      console.log("pass2Changes", pass2Changes);
+
+      const pass2Result = updateLinks(
+        metadataByFilename,
+        pass2Changes,
+        server,
+        parent
+      );
+      console.log("pass2Changes after", pass2Result);
+    }
+
+    const parentPage: Content = await client.getContent(parentId);
     return buildPublishRecordForContent(server, parentPage);
   };
 

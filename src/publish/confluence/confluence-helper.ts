@@ -540,11 +540,16 @@ export const updateLinks = (
   spaceChanges: ConfluenceSpaceChange[],
   server: string,
   parent: ConfluenceParent
-): ConfluenceSpaceChange[] => {
+): {
+  pass1Changes: ConfluenceSpaceChange[];
+  pass2Changes: ConfluenceSpaceChange[];
+} => {
   const root = `${server}`;
   const url = `${ensureTrailingSlash(server)}wiki/spaces/${
     parent.space
   }/pages/`;
+
+  let collectedPass2Changes: ConfluenceSpaceChange[] = [];
 
   const changeMapper = (
     changeToProcess: ConfluenceSpaceChange
@@ -598,6 +603,9 @@ export const updateLinks = (
         updated = updated.replace(linkFullFileName, pagePath);
       } else {
         console.warn(`Link not found for ${siteFilePath}`);
+        if (!collectedPass2Changes.includes(changeToProcess)) {
+          collectedPass2Changes = [...collectedPass2Changes, changeToProcess];
+        }
       }
 
       return updated;
@@ -621,7 +629,7 @@ export const updateLinks = (
   const updatedChanges: ConfluenceSpaceChange[] =
     spaceChanges.map(changeMapper);
 
-  return updatedChanges;
+  return { pass1Changes: updatedChanges, pass2Changes: collectedPass2Changes };
 };
 
 export const updateImagePaths = (body: ContentBody): ContentBody => {

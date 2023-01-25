@@ -3,7 +3,6 @@
  * Copyright (C) 2020 by RStudio, PBC
  *
  */
-import { posix, win32 } from "path/mod.ts";
 import { unitTest } from "../test.ts";
 import { assertEquals, assertThrows } from "testing/asserts.ts";
 
@@ -3357,14 +3356,22 @@ const runUpdateLinks = () => {
   };
 
   const check = (
-    expected: ConfluenceSpaceChange[],
+    expectedPass1Changes: ConfluenceSpaceChange[],
     changes: ConfluenceSpaceChange[],
     fileMetadataTable: Record<string, SitePage>,
     server = "fake-server",
-    parent = FAKE_PARENT
+    parent = FAKE_PARENT,
+    expectedPass2Changes: ConfluenceSpaceChange[] = []
   ) => {
-    const result = updateLinks(fileMetadataTable, changes, server, parent);
-    assertEquals(expected, result);
+    const { pass1Changes, pass2Changes } = updateLinks(
+      fileMetadataTable,
+      changes,
+      server,
+      parent
+    );
+
+    assertEquals(expectedPass1Changes, pass1Changes);
+    assertEquals(expectedPass2Changes, pass2Changes);
   };
 
   test(suiteLabel("no_files"), async () => {
@@ -3392,7 +3399,15 @@ const runUpdateLinks = () => {
       },
     };
     const expected: ConfluenceSpaceChange[] = [expectedUpdate];
-    check(expected, changes, fileMetadataTable);
+    const expectedPass2Changes: ConfluenceSpaceChange[] = [expectedUpdate];
+    check(
+      expected,
+      changes,
+      fileMetadataTable,
+      "fake-server",
+      FAKE_PARENT,
+      expectedPass2Changes
+    );
   });
 
   test(suiteLabel("one_update_link_nested_dot_slash"), async () => {
@@ -3459,7 +3474,15 @@ const runUpdateLinks = () => {
       },
     };
     const expected: ConfluenceSpaceChange[] = [expectedUpdate];
-    check(expected, changes, fileMetadataTable);
+    const expectedSecondPassChanges: ConfluenceSpaceChange[] = [expectedUpdate];
+    check(
+      expected,
+      changes,
+      fileMetadataTable,
+      "fake-server",
+      FAKE_PARENT,
+      expectedSecondPassChanges
+    );
   });
 
   test(suiteLabel("one_change_several_update_links"), async () => {
@@ -3475,7 +3498,15 @@ const runUpdateLinks = () => {
       },
     };
     const expected: ConfluenceSpaceChange[] = [expectedUpdate];
-    check(expected, changes, fileMetadataTable);
+    const expectedSecondPassChanges: ConfluenceSpaceChange[] = [expectedUpdate];
+    check(
+      expected,
+      changes,
+      fileMetadataTable,
+      "fake-server",
+      FAKE_PARENT,
+      expectedSecondPassChanges
+    );
   });
 
   test(suiteLabel("two_changes_several_update_links"), async () => {
@@ -3507,7 +3538,18 @@ const runUpdateLinks = () => {
       expectedUpdateSeveralLinks,
       expectedUpdateOneLink,
     ];
-    check(expected, changes, fileMetadataTable);
+    const expectedSecondPassChanges: ConfluenceSpaceChange[] = [
+      expectedUpdateSeveralLinks,
+      expectedUpdateOneLink,
+    ];
+    check(
+      expected,
+      changes,
+      fileMetadataTable,
+      "fake-server",
+      FAKE_PARENT,
+      expectedSecondPassChanges
+    );
   });
 };
 
@@ -3801,5 +3843,5 @@ if (RUN_ALL_TESTS) {
   runUpdateImagePathsForContentBody();
   runCapFirstLetter();
 } else {
-  runSpaceCreatesWithNesting();
+  runUpdateLinks();
 }
