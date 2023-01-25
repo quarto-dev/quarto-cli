@@ -32,7 +32,6 @@ Rscript -e "renv::restore()"
 
 # Ensure that we've actived the python env
 if [[ $QUARTO_TESTS_VIRTUALENV != "FALSE" ]]; then
-  source bin/activate
   python3 -m pip install -r requirements.txt --prefer-binary -q
 fi
 
