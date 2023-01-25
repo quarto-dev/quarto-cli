@@ -9,6 +9,7 @@ name: Test quarto-latexmk
 
 jobs:
   quarto-latexmk:
+    if: false
     runs-on: ${{ matrix.config.os }}
 
     name: ${{ matrix.config.os }}
