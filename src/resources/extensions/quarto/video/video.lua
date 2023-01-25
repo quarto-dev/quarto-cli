@@ -104,7 +104,7 @@ local brightcoveBuilder = function(params)
 
   local result = {}
 
-  local SNIPPET = [[<iframe src="{src}"{width}{height} allowfullscreen="" title="{title}" allow="encrypted-media"></iframe>]]
+  local SNIPPET = [[<iframe data-external="1" src="{src}"{width}{height} allowfullscreen="" title="{title}" allow="encrypted-media"></iframe>]]
   result.snippet = replaceCommonAttributes(SNIPPET, params)
   result.type = VIDEO_TYPES.BRIGHTCOVE
   result.src = params.src
@@ -120,7 +120,7 @@ local vimeoBuilder = function(params)
 
   params.src = 'https://player.vimeo.com/video/' .. match
 
-  local SNIPPET = [[<iframe src="{src}"{width}{height} frameborder="0" allow="autoplay; title="{title}" fullscreen; picture-in-picture" allowfullscreen></iframe>]]
+  local SNIPPET = [[<iframe data-external="1" src="{src}"{width}{height} frameborder="0" allow="autoplay; title="{title}" fullscreen; picture-in-picture" allowfullscreen></iframe>]]
 
   local result = {}
 
