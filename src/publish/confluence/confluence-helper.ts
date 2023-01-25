@@ -632,6 +632,37 @@ export const updateLinks = (
   return { pass1Changes: updatedChanges, pass2Changes: collectedPass2Changes };
 };
 
+export const convertForSecondPass = (
+  fileMetadataTable: Record<string, SitePage>,
+  spaceChanges: ConfluenceSpaceChange[],
+  server: string,
+  parent: ConfluenceParent
+): ConfluenceSpaceChange[] => {
+  const toUpdatesReducer = (
+    accumulator: ConfluenceSpaceChange[],
+    change: ConfluenceSpaceChange
+  ) => {
+    if (isContentUpdate(change)) {
+      accumulator = [...accumulator, change];
+    }
+
+    if (isContentCreate(change)) {
+      const convertedUpdate = buildContentUpdate(
+        "fake-id-fixme",
+        change.title,
+        change.body, //TODO convert link
+        change.fileName ?? ""
+      );
+      accumulator = [...accumulator, convertedUpdate];
+    }
+
+    return accumulator;
+  };
+
+  const changesAsUpdates = spaceChanges.reduce(toUpdatesReducer, []);
+  return changesAsUpdates;
+};
+
 export const updateImagePaths = (body: ContentBody): ContentBody => {
   const replacer = (match: string): string => {
     let updated: string = match.replace(/^.*[\\\/]/, "");

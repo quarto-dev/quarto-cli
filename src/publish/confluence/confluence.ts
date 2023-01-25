@@ -51,6 +51,7 @@ import {
   buildPublishRecordForContent,
   buildSpaceChanges,
   confluenceParentFromString,
+  convertForSecondPass,
   doWithSpinner,
   filterFilesForUpdate,
   findAttachments,
@@ -718,13 +719,14 @@ async function publish(
       console.log("metadataByFilename", metadataByFilename);
       console.log("pass2Changes", pass2Changes);
 
-      const pass2Result = updateLinks(
+      const linkUpdateChanges: ConfluenceSpaceChange[] = convertForSecondPass(
         metadataByFilename,
         pass2Changes,
         server,
         parent
       );
-      console.log("pass2Changes after", pass2Result);
+
+      console.log("linkUpdateChanges", linkUpdateChanges);
     }
 
     const parentPage: Content = await client.getContent(parentId);

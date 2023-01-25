@@ -13,6 +13,7 @@ import {
   buildSpaceChanges,
   capitalizeFirstLetter,
   confluenceParentFromString,
+  convertForSecondPass,
   FILE_FINDER,
   filterFilesForUpdate,
   findAttachments,
@@ -58,8 +59,8 @@ import {
   Space,
 } from "../../src/publish/confluence/api/types.ts";
 
-const RUN_ALL_TESTS = true;
-const FOCUS_TEST = false;
+const RUN_ALL_TESTS = false;
+const FOCUS_TEST = true;
 
 const xtest = (
   name: string,
@@ -3553,6 +3554,214 @@ const runUpdateLinks = () => {
   });
 };
 
+const runConvertForSecondPass = () => {
+  const suiteLabel = (label: string) => `ConvertForSecondPass_${label}`;
+
+  const fileMetadataTable = {
+    ["release-planning.qmd"]: {
+      title: "Release Planning",
+      id: "19890228",
+      metadata: { fileName: "release-planning.xml" },
+    },
+    ["team.qmd"]: {
+      title: "Team",
+      id: "19857455",
+      metadata: { fileName: "team.xml" },
+    },
+    ["triage.qmd"]: {
+      title: "Issue Triage",
+      id: "19890180",
+      metadata: {
+        fileName: "triage.xml",
+      },
+    },
+    ["authoring/hello-world5.qmd"]: {
+      title: "Hello World5",
+      id: "43417628",
+      metadata: { editor: "v2", fileName: "authoring/hello-world5.xml" },
+    },
+  };
+
+  const fakeSpace: Space = {
+    key: "fake-space-key",
+    id: "fake-space-id",
+    homepage: buildFakeContent(),
+  };
+
+  const UPDATE_NO_LINKS: ContentUpdate = {
+    contentChangeType: ContentChangeType.update,
+    id: "19890228",
+    version: null,
+    title: "Release Planning",
+    type: "page",
+    status: "current",
+    ancestors: [{ id: "19759105" }],
+    body: {
+      storage: {
+        value: "no links",
+        representation: "storage",
+      },
+    },
+    fileName: "release-planning.xml",
+  };
+
+  const CREATE_NO_LINKS: ContentCreate = {
+    contentChangeType: ContentChangeType.create,
+    title: "Release Planning",
+    type: "page",
+    status: "current",
+    ancestors: [{ id: "19759105" }],
+    space: fakeSpace,
+    body: {
+      storage: {
+        value: "no links",
+        representation: "storage",
+      },
+    },
+    fileName: "release-planning.xml",
+  };
+
+  const UPDATE_LINKS_ONE: ContentUpdate = {
+    contentChangeType: ContentChangeType.update,
+    id: "19890228",
+    version: null,
+    title: "Release Planning",
+    type: "page",
+    status: "current",
+    ancestors: [{ id: "19759105" }],
+    body: {
+      storage: {
+        value:
+          "<a href='no-replace.qmd'/>no</a> content content <a href='team.qmd'>team</a> content content <a href='zqmdzz.qmd'>team</a>",
+        representation: "storage",
+      },
+    },
+    fileName: "release-planning.xml",
+  };
+
+  const UPDATE_LINKS_ONE_NESTED_DOT_SLASH: ContentUpdate = {
+    contentChangeType: ContentChangeType.update,
+    id: "43778049",
+    version: null,
+    title: "Links2",
+    type: "page",
+    status: "current",
+    ancestors: [{ id: "42336414" }],
+    body: {
+      storage: {
+        value: `<a href='./hello-world5.qmd'>Hello World 5</a>`,
+        representation: "storage",
+      },
+    },
+    fileName: "authoring/links2.xml",
+  };
+
+  const UPDATE_LINKS_ONE_NESTED: ContentUpdate = {
+    contentChangeType: ContentChangeType.update,
+    id: "43778049",
+    version: null,
+    title: "Links2",
+    type: "page",
+    status: "current",
+    ancestors: [{ id: "42336414" }],
+    body: {
+      storage: {
+        value: `<a href='hello-world5.qmd'>Hello World 5</a>`,
+        representation: "storage",
+      },
+    },
+    fileName: "authoring/links2.xml",
+  };
+
+  const UPDATE_LINKS_ONE_NESTED_ABS: ContentUpdate = {
+    contentChangeType: ContentChangeType.update,
+    id: "43778049",
+    version: null,
+    title: "Links2",
+    type: "page",
+    status: "current",
+    ancestors: [{ id: "42336414" }],
+    body: {
+      storage: {
+        value: `<a href='/release-planning.qmd'>Release Planning</a>`,
+        representation: "storage",
+      },
+    },
+    fileName: "authoring/links2.xml",
+  };
+
+  const UPDATE_LINKS_ONE_ANCHOR: ContentUpdate = {
+    contentChangeType: ContentChangeType.update,
+    id: "19890228",
+    version: null,
+    title: "Release Planning",
+    type: "page",
+    status: "current",
+    ancestors: [{ id: "19759105" }],
+    body: {
+      storage: {
+        value:
+          "<a href='no-replace.qmd'/>no</a> content content <a href='team.qmd#Fake-Anchor'>team</a> content content <a href='zqmdzz.qmd'>team</a>",
+        representation: "storage",
+      },
+    },
+    fileName: "release-planning.xml",
+  };
+
+  const UPDATE_LINKS_SEVERAL: ContentUpdate = {
+    contentChangeType: ContentChangeType.update,
+    id: "19890228",
+    version: null,
+    title: "Release Planning",
+    type: "page",
+    status: "current",
+    ancestors: [{ id: "19759105" }],
+    body: {
+      storage: {
+        value:
+          "<a href='no-replace.qmd'/>not-found</a> content content <a href='team.qmd'>teamz</a> content content <a href='zqmdzz.qmd'>not-found</a> <a href='release-planning.qmd'>Do the Release Planning</a> and then triage.qmd .qmd <a href='triage.qmd'>triage.qmd</a>",
+        representation: "storage",
+      },
+    },
+    fileName: "release-planning.xml",
+  };
+
+  const check = (
+    expected: ConfluenceSpaceChange[] = [],
+    changes: ConfluenceSpaceChange[],
+    fileMetadataTable: Record<string, SitePage>,
+    server = "fake-server",
+    parent = FAKE_PARENT
+  ) => {
+    const result = convertForSecondPass(
+      fileMetadataTable,
+      changes,
+      server,
+      parent
+    );
+    console.log("result", result);
+    // assertEquals(expected, result);
+  };
+
+  test(suiteLabel("no_files"), async () => {
+    const changes: ConfluenceSpaceChange[] = [];
+    const expected: ConfluenceSpaceChange[] = [];
+    check(expected, changes, fileMetadataTable);
+  });
+
+  test(suiteLabel("one_update_noLink"), async () => {
+    const changes: ConfluenceSpaceChange[] = [UPDATE_NO_LINKS];
+    const expected: ConfluenceSpaceChange[] = [UPDATE_NO_LINKS];
+    check(expected, changes, fileMetadataTable);
+  });
+
+  otest(suiteLabel("one_create_noLink_convert_to_update"), async () => {
+    const changes: ConfluenceSpaceChange[] = [CREATE_NO_LINKS];
+    const expected: ConfluenceSpaceChange[] = [UPDATE_NO_LINKS];
+    check(expected, changes, fileMetadataTable);
+  });
+};
+
 const runFindAttachments = () => {
   const suiteLabel = (label: string) => `FindAttachments_${label}`;
 
@@ -3839,9 +4048,10 @@ if (RUN_ALL_TESTS) {
   runBuildFileToMetaTable();
   runExtractLinks();
   runUpdateLinks();
+  runConvertForSecondPass();
   runFindAttachments();
   runUpdateImagePathsForContentBody();
   runCapFirstLetter();
 } else {
-  runUpdateLinks();
+  runConvertForSecondPass();
 }
