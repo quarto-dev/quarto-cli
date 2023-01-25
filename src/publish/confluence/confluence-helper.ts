@@ -651,14 +651,11 @@ export const convertForSecondPass = (
       const qmdFileName = change?.fileName?.replace(".xml", ".qmd") ?? "";
       const updateId = fileMetadataTable[qmdFileName]?.id;
 
-      console.log("change.fileName", change.fileName);
-      console.log("change.ancestors", change.ancestors);
-      console.log("fileMetadataTable", fileMetadataTable);
       if (updateId) {
         const convertedUpdate = buildContentUpdate(
           updateId,
           change.title,
-          change.body, //TODO convert links
+          change.body,
           change.fileName ?? "",
           "",
           ContentStatusEnum.current,
@@ -676,7 +673,15 @@ export const convertForSecondPass = (
   };
 
   const changesAsUpdates = spaceChanges.reduce(toUpdatesReducer, []);
-  return changesAsUpdates;
+
+  const updateLinkResults = updateLinks(
+    fileMetadataTable,
+    changesAsUpdates,
+    server,
+    parent
+  );
+
+  return updateLinkResults.pass1Changes;
 };
 
 export const updateImagePaths = (body: ContentBody): ContentBody => {

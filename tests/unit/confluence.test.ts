@@ -59,8 +59,8 @@ import {
   Space,
 } from "../../src/publish/confluence/api/types.ts";
 
-const RUN_ALL_TESTS = false;
-const FOCUS_TEST = true;
+const RUN_ALL_TESTS = true;
+const FOCUS_TEST = false;
 
 const xtest = (
   name: string,
@@ -3639,6 +3639,23 @@ const runConvertForSecondPass = () => {
     fileName: "release-planning.xml",
   };
 
+  const CREATE_LINKS_ONE: ContentCreate = {
+    contentChangeType: ContentChangeType.create,
+    title: "Release Planning",
+    type: "page",
+    status: "current",
+    ancestors: [{ id: "19759105" }],
+    space: fakeSpace,
+    body: {
+      storage: {
+        value:
+          "<a href='no-replace.qmd'/>no</a> content content <a href='team.qmd'>team</a> content content <a href='zqmdzz.qmd'>team</a>",
+        representation: "storage",
+      },
+    },
+    fileName: "release-planning.xml",
+  };
+
   const UPDATE_LINKS_ONE_NESTED_DOT_SLASH: ContentUpdate = {
     contentChangeType: ContentChangeType.update,
     id: "43778049",
@@ -3755,10 +3772,42 @@ const runConvertForSecondPass = () => {
     check(expected, changes, fileMetadataTable);
   });
 
-  otest(suiteLabel("one_create_noLink_convert_to_update"), async () => {
+  test(suiteLabel("one_create_noLink_convert_to_update"), async () => {
     const changes: ConfluenceSpaceChange[] = [CREATE_NO_LINKS];
     const expected: ConfluenceSpaceChange[] = [UPDATE_NO_LINKS];
     check(expected, changes, fileMetadataTable);
+  });
+
+  test(suiteLabel("one_update_link"), async () => {
+    const changes: ConfluenceSpaceChange[] = [UPDATE_LINKS_ONE];
+    const rootURL = "fake-server/wiki/spaces/QUARTOCONF/pages";
+    const expectedUpdate: ContentUpdate = {
+      ...UPDATE_LINKS_ONE,
+      body: {
+        storage: {
+          value: `<a href=\'no-replace.qmd\'/>no</a> content content <a href=\'fake-server/wiki/spaces/QUARTOCONF/pages/19857455/Team\'>team</a> content content <a href=\'zqmdzz.qmd\'>team</a>`,
+          representation: "storage",
+        },
+      },
+    };
+    const expected: ConfluenceSpaceChange[] = [expectedUpdate];
+    check(expected, changes, fileMetadataTable, "fake-server", FAKE_PARENT);
+  });
+
+  otest(suiteLabel("one_update_link_from_create"), async () => {
+    const changes: ConfluenceSpaceChange[] = [CREATE_LINKS_ONE];
+    const rootURL = "fake-server/wiki/spaces/QUARTOCONF/pages";
+    const expectedUpdate: ContentUpdate = {
+      ...UPDATE_LINKS_ONE,
+      body: {
+        storage: {
+          value: `<a href=\'no-replace.qmd\'/>no</a> content content <a href=\'fake-server/wiki/spaces/QUARTOCONF/pages/19857455/Team\'>team</a> content content <a href=\'zqmdzz.qmd\'>team</a>`,
+          representation: "storage",
+        },
+      },
+    };
+    const expected: ConfluenceSpaceChange[] = [expectedUpdate];
+    check(expected, changes, fileMetadataTable, "fake-server", FAKE_PARENT);
   });
 };
 

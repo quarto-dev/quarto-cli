@@ -622,7 +622,6 @@ async function publish(
     trace("fileMetadata", fileMetadata);
 
     let metadataByFilename = buildFileToMetaTable(existingSite);
-    console.log("metadataByFilename", metadataByFilename);
 
     trace("metadataByFilename", metadataByFilename);
 
@@ -642,7 +641,7 @@ async function publish(
 
     changeList = pass1Changes;
 
-    trace("changelist", changeList);
+    trace("changelist Pass 1", changeList);
 
     let pathsToId: Record<string, string> = {}; // build from existing site
 
@@ -710,14 +709,12 @@ async function publish(
 
     if (pass2Changes.length) {
       //PASS #2 to update links to newly created pages
-      console.log("do pass 2 link updates");
+
+      trace("changelist Pass 2", pass2Changes);
 
       // reload the existing site
       existingSite = await fetchExistingSite(parentId);
       metadataByFilename = buildFileToMetaTable(existingSite);
-
-      console.log("metadataByFilename", metadataByFilename);
-      console.log("pass2Changes", pass2Changes);
 
       const linkUpdateChanges: ConfluenceSpaceChange[] = convertForSecondPass(
         metadataByFilename,
@@ -725,8 +722,6 @@ async function publish(
         server,
         parent
       );
-
-      console.log("linkUpdateChanges", linkUpdateChanges);
 
       for (let currentChange of linkUpdateChanges) {
         await doChange(currentChange);
