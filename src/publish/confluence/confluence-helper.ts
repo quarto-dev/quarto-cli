@@ -603,7 +603,6 @@ export const updateLinks = (
 
         updated = updated.replace(linkFullFileName, pagePath);
       } else {
-        console.warn(`Link not found for ${siteFilePath}`);
         if (!collectedPass2Changes.includes(changeToProcess)) {
           collectedPass2Changes = [...collectedPass2Changes, changeToProcess];
         }
