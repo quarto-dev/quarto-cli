@@ -306,9 +306,11 @@ export async function renderProject(
       const copyFormatDir = (dir: string) => formatRelocateDir(dir, true);
 
       // move the renderedFile to the output dir
-      const outputFile = join(formatOutputDir, renderedFile.file);
-      ensureDirSync(dirname(outputFile));
-      Deno.renameSync(join(projDir, renderedFile.file), outputFile);
+      if (!renderedFile.isTransient) {
+        const outputFile = join(formatOutputDir, renderedFile.file);
+        ensureDirSync(dirname(outputFile));
+        Deno.renameSync(join(projDir, renderedFile.file), outputFile);
+      }
 
       // files dir
       const keepFiles = !!renderedFile.format.execute[kKeepMd];

@@ -108,6 +108,7 @@ export interface RenderedFile {
   supporting?: string[];
   resourceFiles: RenderResourceFiles;
   selfContained: boolean;
+  isTransient?: boolean; // from recipe, indicates that this file shouldn't be copied (eg to project destination)
 }
 
 export interface RenderExecuteOptions {
@@ -138,6 +139,7 @@ export interface PandocRenderer {
 export interface RenderedFormat {
   path: string;
   format: Format;
+  isTransient?: boolean;
 }
 
 export interface RenderFile {
@@ -234,4 +236,6 @@ export interface OutputRecipe {
 
   // The final output for the recipe (if different than the output itself)
   finalOutput?: string;
+
+  isOutputTransient?: boolean;
 }
