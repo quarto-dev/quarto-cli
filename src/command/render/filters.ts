@@ -65,6 +65,7 @@ import { kCodeAnnotations } from "../../format/html/format-html-shared.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
 import { relative } from "path/mod.ts";
 import { citeIndexFilterParams } from "../../project/project-cites.ts";
+import { debug } from "log/mod.ts";
 
 const kQuartoParams = "quarto-params";
 
@@ -545,6 +546,7 @@ function initFilterParams(dependenciesFile: string) {
   if (Deno.build.os === "windows") {
     const value = readCodePage();
     if (value) {
+      debug("Windows: Using code page " + value);
       Deno.env.set("QUARTO_WIN_CODEPAGE", value);
     }
   }
