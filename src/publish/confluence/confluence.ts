@@ -294,7 +294,7 @@ async function publish(
       let fileBuffer: Uint8Array;
       let fileHash: string;
       const path = join(baseDirectory, attachmentPath);
-      
+
       trace(
         "uploadAttachment",
         {
@@ -317,7 +317,6 @@ async function publish(
       }
 
       const fileName = pathWithForwardSlashes(attachmentPath);
-      
 
       const existingDuplicateAttachment = existingAttachments.find(
         (attachment: AttachmentSummary) => {
@@ -342,8 +341,6 @@ async function publish(
 
       return attachment;
     };
-
-    
 
     return attachmentsToUpload.map(uploadAttachment);
   };
@@ -711,7 +708,6 @@ async function publish(
       }
     };
 
-    
     for (let currentChange of changeList) {
       await doChange(currentChange);
     }
@@ -721,7 +717,6 @@ async function publish(
 
       trace("changelist Pass 2", pass2Changes);
 
-      // reload the existing site
       existingSite = await fetchExistingSite(parentId);
       metadataByFilename = buildFileToMetaTable(existingSite);
 
@@ -731,7 +726,7 @@ async function publish(
         server,
         parent
       );
-      
+
       for (let currentChange of linkUpdateChanges) {
         await doChange(currentChange, false);
       }
