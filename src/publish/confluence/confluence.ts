@@ -727,6 +727,10 @@ async function publish(
       );
 
       console.log("linkUpdateChanges", linkUpdateChanges);
+
+      for (let currentChange of linkUpdateChanges) {
+        await doChange(currentChange);
+      }
     }
 
     const parentPage: Content = await client.getContent(parentId);

@@ -3740,7 +3740,7 @@ const runConvertForSecondPass = () => {
       parent
     );
     console.log("result", result);
-    // assertEquals(expected, result);
+    assertEquals(expected, result);
   };
 
   test(suiteLabel("no_files"), async () => {

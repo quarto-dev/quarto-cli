@@ -260,7 +260,8 @@ export const buildContentUpdate = (
   parent?: string,
   status: ContentStatusEnum = ContentStatusEnum.current,
   type: string = PAGE_TYPE,
-  version: ContentVersion | null = null
+  version: ContentVersion | null = null,
+  ancestors: ContentAncestor[] | null = null
 ): ContentUpdate => {
   return {
     contentChangeType: ContentChangeType.update,
@@ -269,7 +270,7 @@ export const buildContentUpdate = (
     title,
     type,
     status,
-    ancestors: parent ? [{ id: parent }] : null,
+    ancestors: parent ? [{ id: parent }] : ancestors,
     body,
     fileName,
   };
@@ -647,13 +648,28 @@ export const convertForSecondPass = (
     }
 
     if (isContentCreate(change)) {
-      const convertedUpdate = buildContentUpdate(
-        "fake-id-fixme",
-        change.title,
-        change.body, //TODO convert link
-        change.fileName ?? ""
-      );
-      accumulator = [...accumulator, convertedUpdate];
+      const qmdFileName = change?.fileName?.replace(".xml", ".qmd") ?? "";
+      const updateId = fileMetadataTable[qmdFileName]?.id;
+
+      console.log("change.fileName", change.fileName);
+      console.log("change.ancestors", change.ancestors);
+      console.log("fileMetadataTable", fileMetadataTable);
+      if (updateId) {
+        const convertedUpdate = buildContentUpdate(
+          updateId,
+          change.title,
+          change.body, //TODO convert links
+          change.fileName ?? "",
+          "",
+          ContentStatusEnum.current,
+          PAGE_TYPE,
+          null,
+          change.ancestors
+        );
+        accumulator = [...accumulator, convertedUpdate];
+      } else {
+        console.warn("update ID not found for", change.fileName);
+      }
     }
 
     return accumulator;
