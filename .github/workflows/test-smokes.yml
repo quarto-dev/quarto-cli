@@ -84,8 +84,10 @@ jobs:
           case $RUNNER_OS in
             "Windows")
               pwsh -F ./run-test.ps1
-          *)
-            ./run-tests.sh
+              ;;
+            *)
+              ./run-tests.sh
+              ;;
           esac
           popd
         shell: bash
@@ -100,8 +102,10 @@ jobs:
           case $RUNNER_OS in
             "Windows")
               pwsh -F ./run-test.ps1
-          *)
-            ./run-tests.sh
+              ;;
+            *)
+              ./run-tests.sh
+              ;;
           esac
         working-directory: tests
         shell: bash
