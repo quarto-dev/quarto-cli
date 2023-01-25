@@ -46,6 +46,7 @@ testRender(pythonQmd.input, "html", false, [
 ]);
 
 const pythonSubfigQmd = crossref("python-subfig.qmd", "html");
+
 testRender(pythonSubfigQmd.input, "html", false, [
   ensureHtmlElements(pythonSubfigQmd.output.outputPath, [
     "section#python-crossref-figure  div.quarto-layout-panel > figure > div.quarto-layout-row",
