@@ -6,6 +6,7 @@
 */
 
 import { RenderedFile } from "../../../command/render/types.ts";
+import { PandocOptions, RenderedFile } from "../../../command/render/types.ts";
 import { kTitle } from "../../../config/constants.ts";
 import { Format } from "../../../config/types.ts";
 import { parsePandocTitle } from "../../../core/pandoc/pandoc-partition.ts";
@@ -40,6 +41,8 @@ export const kBookCoverImageAlt = "cover-image-alt";
 export interface BookExtension {
   // bool extensions are single file by default but can elect to be multi file
   multiFile?: boolean;
+
+  filterParams?: (options: PandocOptions) => Record<string, unknown>;
 
   formatOutputDirectory?: (format: Format) => string;
 
