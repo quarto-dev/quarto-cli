@@ -12,7 +12,12 @@ runs:
     - name: Configure Quarto
       shell: bash
       run: |
-        ./configure.sh
+        case $RUNNER_OS in
+          "Windows")
+            pwsh -C "./configure.cmd"
+          *)
+            ./configure.sh
+        esac
 
     - name: Basic dev mode sanity check
       shell: bash
@@ -23,7 +28,5 @@ runs:
 
     - name: Quarto Check
       shell: bash
-      run: |
-        pushd tests
-        quarto check
-        popd
+      run: quarto check
+      working-directory: tests
