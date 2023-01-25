@@ -60,6 +60,7 @@ import("./quarto-init/includes.lua")
 import("./quarto-init/resourcerefs.lua")
 
 import("./quarto-post/book.lua")
+import("./quarto-post/cites.lua")
 import("./quarto-post/delink.lua")
 import("./quarto-post/fig-cleanup.lua")
 import("./quarto-post/foldcode.lua")
@@ -217,6 +218,7 @@ local quartoPre = {
 
 local quartoPost = {
   -- quarto-post
+  { name = "post-cites", filter = indexCites() },
   { name = "post-foldCode", filter = foldCode() },
   { name = "post-figureCleanupCombined", filter = combineFilters({
     latexDiv(),
@@ -244,6 +246,7 @@ local quartoFinalize = {
     })
   },
   { name = "finalize-bookCleanup", filter = bookCleanup() },
+  { name = "finalize-cites", filter = writeCites() },
   { name = "finalize-metaCleanup", filter = metaCleanup() },
   { name = "finalize-dependencies", filter = dependencies() },
   { name = "finalize-wrapped-writer", filter = wrapped_writer() }

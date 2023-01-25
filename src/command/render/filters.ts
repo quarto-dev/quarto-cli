@@ -64,6 +64,7 @@ import { metadataNormalizationFilterActive } from "./normalize.ts";
 import { kCodeAnnotations } from "../../format/html/format-html-shared.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
 import { relative } from "path/mod.ts";
+import { citeIndexFilterParams } from "../../project/project-cites.ts";
 
 const kQuartoParams = "quarto-params";
 
@@ -122,6 +123,7 @@ export async function filterParamsJson(
     ...quartoColumnParams,
     ...await quartoFilterParams(options, defaults),
     ...crossrefFilterParams(options, defaults),
+    ...citeIndexFilterParams(options, defaults),
     ...layoutFilterParams(options.format),
     ...languageFilterParams(options.format.language),
     ...filterParams,
