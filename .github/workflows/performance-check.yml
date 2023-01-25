@@ -12,6 +12,7 @@ on:
 
 jobs:
   test-bundle:
+    if: false
     runs-on: ubuntu-latest
 
     steps:

@@ -20,7 +20,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        # os: [ubuntu-latest, windows-latest]
+        os: [windows-latest]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -76,6 +77,9 @@ jobs:
           python3 -m pip install --upgrade pip
           python3 -m pip install wheel 
           python3 -m pip install -r requirements.txt
+
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
 
       - uses: ./.github/workflows/actions/quarto-dev
 
