@@ -95,6 +95,7 @@ export interface RenderResultFile {
   markdown: string;
   format: Format;
   file: string;
+  isTransient?: boolean;
   supporting?: string[];
   resourceFiles: string[];
   supplemental?: boolean;
