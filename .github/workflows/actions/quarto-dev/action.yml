@@ -9,17 +9,15 @@ runs:
       run: |
         echo "$HOME/bin" >> $GITHUB_PATH
 
-    - name: Configure Quarto
+    - name: Configure Quarto (.sh)
+      if: runner.os != 'Windows'
       shell: bash
-      run: |
-        case $RUNNER_OS in
-          "Windows")
-            pwsh -C "./configure.cmd"
-            ;;
-          *)
-            ./configure.sh
-            ;;
-        esac
+      run: ./configure.sh
+
+    - name: Configure Quarto (.ps1)
+      if: runner.os == 'Windows'
+      shell: cmd
+      run: ./configure.cmd
 
     - name: Basic dev mode sanity check
       shell: bash
