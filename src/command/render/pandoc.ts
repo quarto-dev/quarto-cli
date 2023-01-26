@@ -9,7 +9,7 @@ import { basename, dirname, isAbsolute, join } from "path/mod.ts";
 
 import { info } from "log/mod.ts";
 
-import { existsSync, expandGlobSync } from "fs/mod.ts";
+import { existsSync, expandGlobSync, moveSync } from "fs/mod.ts";
 
 import { stringify } from "encoding/yaml.ts";
 import { encode as base64Encode } from "encoding/base64.ts";
@@ -188,6 +188,7 @@ import {
 import { kRevealJSPlugins } from "../../extension/extension-shared.ts";
 import { kCitation } from "../../format/html/format-html-shared.ts";
 import { cslDate } from "../../core/csl.ts";
+import { quartoConfig } from "../../core/quarto.ts";
 
 export async function runPandoc(
   options: PandocOptions,
@@ -1009,10 +1010,23 @@ export async function runPandoc(
 
   pandocEnv["QUARTO_FILTER_PARAMS"] = base64Encode(paramsJson);
 
-  const traceFiltersMetadata = pandocPassedMetadata?.["_quarto"]
-    ?.["trace-filters"];
-  if (traceFiltersMetadata) {
-    pandocEnv["QUARTO_TRACE_FILTERS"] = "true";
+  if (pandocMetadata?.["_quarto"]?.["trace-filters"]) {
+    // const metadata = pandocMetadata?.["_quarto"]?.["trace-filters"];
+    beforePandocHooks.push(() => {
+      pandocEnv["QUARTO_TRACE_FILTERS"] = "true";
+    });
+    afterPandocHooks.push(() => {
+      const dest = join(
+        quartoConfig.sharePath(),
+        "../../package/src/common/trace-viewer",
+        pandocMetadata?.["_quarto"]?.["trace-filters"],
+      );
+      try {
+        Deno.removeSync(dest);
+      } catch { // pass
+      }
+      moveSync(join(cwd, "quarto-filter-trace.json"), dest);
+    });
   }
 
   // run beforePandoc hooks
