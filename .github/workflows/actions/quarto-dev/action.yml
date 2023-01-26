@@ -16,7 +16,7 @@ runs:
       shell: cmd
       run: |
         ./configure.cmd
-        echo %QUARTO_BIN_DEV% >> %GITHUB_PATH%
+        endlocal & CALL ECHO %QUARTO_BIN_DEV% >> %GITHUB_PATH%
 
     - shell: pwsh
       if: runner.os == 'Windows'
