@@ -118,6 +118,7 @@
 - Support parsing markdown in table captions in LaTeX and HTML tables ([#2573](https://github.com/quarto-dev/quarto-cli/issues/2573)).
 - Improve parsing of include shortcodes ([#3159](https://github.com/quarto-dev/quarto-cli/issues/3159)).
 - Add support for Youtube privacy-enhanced urls in `video` shortcodes ([#4060](https://github.com/quarto-dev/quarto-cli/issues/4060)).
+- Don't emit empty cells ([#4034](https://github.com/quarto-dev/quarto-cli/issues/4034)).
 
 ## Pandoc filter changes
 

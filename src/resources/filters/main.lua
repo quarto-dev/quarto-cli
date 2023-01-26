@@ -73,6 +73,7 @@ import("./quarto-post/responsive.lua")
 import("./quarto-post/reveal.lua")
 import("./quarto-post/tikz.lua")
 import("./quarto-post/pdf-images.lua")
+import("./quarto-post/cellcleanup.lua")
 
 import("./quarto-finalize/dependencies.lua")
 import("./quarto-finalize/book-cleanup.lua")
@@ -219,6 +220,7 @@ local quartoPre = {
 
 local quartoPost = {
   -- quarto-post
+  { name = "post-cell-cleanup", filter = cell_cleanup() },
   { name = "post-cites", filter = indexCites() },
   { name = "post-foldCode", filter = foldCode() },
   { name = "post-figureCleanupCombined", filter = combineFilters({

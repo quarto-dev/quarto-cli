@@ -970,6 +970,11 @@ export async function runPandoc(
   delete pandocPassedMetadata.format;
   delete pandocPassedMetadata.project;
   delete pandocPassedMetadata.website;
+  if (pandocPassedMetadata._quarto) {
+    // these shouldn't be visible because they are emitted on markdown output
+    // and it breaks ensureFileRegexMatches
+    delete pandocPassedMetadata._quarto.tests;
+  }
 
   Deno.writeTextFileSync(
     metadataTemp,
