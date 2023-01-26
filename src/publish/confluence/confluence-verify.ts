@@ -3,6 +3,7 @@ import { ConfluenceClient } from "./api/index.ts";
 import { getMessageFromAPIError } from "./confluence-helper.ts";
 import { withSpinner } from "../../core/console.ts";
 import { ConfluenceParent } from "./api/types.ts";
+import { VALID_DOMAINS } from "./constants.ts";
 
 const verifyWithSpinner = async (
   verifyCommand: () => Promise<void>,
@@ -53,6 +54,16 @@ export const verifyConfluenceParent = async (
   parentUrl: string,
   parent: ConfluenceParent
 ) => {
+  const validURL = VALID_DOMAINS.find((validURL) =>
+    parentUrl.startsWith(validURL)
+  );
+
+  if (!validURL) {
+    throw new Error(
+      `Invalid Testing URL: ${parentUrl}.  Valid URLs for testing include: ${VALID_DOMAINS}.  After testing is complete, this check will be removed.`
+    );
+  }
+
   if (parent.space.length === 0) {
     throw new Error("Invalid Confluence parent URL: " + parentUrl);
   }

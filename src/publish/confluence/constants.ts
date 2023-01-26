@@ -13,3 +13,8 @@ export const V2EDITOR_METADATA = {
 };
 
 export const DELETE_SLEEP_MILLIS = 1000; //TODO replace with polling
+
+export const VALID_DOMAINS = [
+  "https://rstudiopbc-sandbox-249.atlassian.net/",
+  "https://allenmanning.atlassian.net/",
+];
