@@ -13944,7 +13944,7 @@
       "propertyNames": {
         "errorMessage": "property ${value} does not match case convention path,name,register,script,stylesheet,self-contained",
         "type": "string",
-        "pattern": "^(?!(self_contained|selfContained))",
+        "pattern": "(?!(^self_contained$|^selfContained$))",
         "tags": {
           "case-convention": [
             "dash-case"
@@ -14068,7 +14068,7 @@
     "propertyNames": {
       "errorMessage": "property ${value} does not match case convention mermaid-format,theme",
       "type": "string",
-      "pattern": "^(?!(mermaid_format|mermaidFormat))",
+      "pattern": "(?!(^mermaid_format$|^mermaidFormat$))",
       "tags": {
         "case-convention": [
           "dash-case"

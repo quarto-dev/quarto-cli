@@ -20968,7 +20968,7 @@ var require_yaml_intelligence_resources = __commonJS({
           propertyNames: {
             errorMessage: "property ${value} does not match case convention path,name,register,script,stylesheet,self-contained",
             type: "string",
-            pattern: "^(?!(self_contained|selfContained))",
+            pattern: "(?!(^self_contained$|^selfContained$))",
             tags: {
               "case-convention": [
                 "dash-case"
@@ -21092,7 +21092,7 @@ var require_yaml_intelligence_resources = __commonJS({
         propertyNames: {
           errorMessage: "property ${value} does not match case convention mermaid-format,theme",
           type: "string",
-          pattern: "^(?!(mermaid_format|mermaidFormat))",
+          pattern: "(?!(^mermaid_format$|^mermaidFormat$))",
           tags: {
             "case-convention": [
               "dash-case"
@@ -21363,7 +21363,8 @@ function detectCaseConvention(key) {
   if (key.toLocaleLowerCase() !== key) {
     return "capitalizationCase";
   }
-  if (key.indexOf("_") !== -1) {
+  const underscoreIndex = key.indexOf("_");
+  if (underscoreIndex !== -1) {
     return "underscore_case";
   }
   if (key.indexOf("-") !== -1) {
@@ -21378,8 +21379,9 @@ function resolveCaseConventionRegex(keys, conventions) {
         "Internal Error: resolveCaseConventionRegex requires nonempty `conventions`"
       );
     }
+    console.log({ conventions });
     return {
-      pattern: conventions.map((c) => `(${c})`).join("|"),
+      pattern: conventions.map((c) => `(?:^${c}$)`).join("|"),
       list: conventions
     };
   }
@@ -21418,7 +21420,7 @@ function resolveCaseConventionRegex(keys, conventions) {
     };
   }
   return {
-    pattern: `^(?!(${disallowedNearMisses.join("|")}))`,
+    pattern: `(?!(${disallowedNearMisses.map((c) => `^${c}$`).join("|")}))`,
     list: Array.from(foundConventions)
   };
 }
@@ -30151,30 +30153,55 @@ function isBlockShortcode(content) {
     return parseShortcode(m[1]);
   }
 }
-function parseShortcode(shortCodeCapture) {
-  const [name, ...args] = shortCodeCapture.trim().split(" ");
-  const namedParams = {};
+function parseShortcodeCapture(capture) {
+  const nameMatch = capture.match(/^[a-zA-Z0-9_]+/);
+  if (!nameMatch) {
+    return;
+  }
   const params = [];
-  const rawParams = args.map((v) => {
-    const p = v.indexOf("=");
-    let name2 = void 0;
-    let value;
-    if (p === -1) {
-      value = v;
-      params.push(value);
-    } else {
-      name2 = v.slice(0, p);
-      value = v.slice(p + 1);
-      namedParams[name2] = value;
+  const namedParams = {};
+  const rawParams = [];
+  const name = nameMatch[0];
+  let paramStr = capture.slice(name.length).trim();
+  const paramName = "([a-zA-Z0-9_-]+)";
+  const paramValue1 = `([^"'\\s]+)`;
+  const paramValue2 = `"([^"]*)"`;
+  const paramValue3 = `'([^']*)'`;
+  const paramValue = `(?:${paramValue1})|(?:${paramValue2})|(?:${paramValue3})`;
+  const paramNameAndValue = `(?:${paramName}\\s*=\\s*${paramValue1})|(?:${paramName}\\s*=\\s*${paramValue2})|(?:${paramName}\\s*=\\s*${paramValue3})`;
+  const paramRe = new RegExp(`(?:${paramValue}|${paramNameAndValue})`);
+  while (paramStr.length) {
+    const paramMatch = paramStr.match(paramRe);
+    if (!paramMatch) {
+      throw new Error("invalid shortcode: " + capture);
     }
-    return { name: name2, value };
-  });
-  return {
-    name,
-    rawParams,
-    namedParams,
-    params
-  };
+    const captures = paramMatch.slice(1).filter((x) => x !== void 0);
+    if (captures.length === 1) {
+      params.push(captures[0]);
+      rawParams.push({
+        value: captures[0]
+      });
+    } else if (captures.length === 2) {
+      namedParams[captures[0]] = captures[1];
+      rawParams.push({
+        name: captures[0],
+        value: captures[1]
+      });
+    } else {
+      throw new Error(
+        "Internal Error, could not determine correct shortcode capture for " + capture
+      );
+    }
+    paramStr = paramStr.slice(paramMatch[0].length).trim();
+  }
+  return { name, params, namedParams, rawParams };
+}
+function parseShortcode(shortCodeCapture) {
+  const result = parseShortcodeCapture(shortCodeCapture);
+  if (!result) {
+    throw new Error("invalid shortcode: " + shortCodeCapture);
+  }
+  return result;
 }
 
 // ../break-quarto-md.ts
