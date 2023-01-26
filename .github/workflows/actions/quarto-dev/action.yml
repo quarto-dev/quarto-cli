@@ -19,6 +19,7 @@ runs:
         $env:QUARTO_BIN_DEV >> $env:GITHUB_PATH
 
     - name: Setup tmate session
+      if: runner.os == 'Windows'
       uses: mxschmitt/action-tmate@v3
 
     - shell: pwsh
