@@ -480,8 +480,7 @@ export const replaceExtension = (
   oldExtension: string,
   newExtension: string
 ) => {
-  const base = parse(fileName).name;
-  return `${base}${newExtension}`;
+  return fileName.replace(oldExtension, newExtension);
 };
 
 export const getTitle = (
@@ -489,7 +488,7 @@ export const getTitle = (
   metadataByInput: Record<string, InputMetadata>
 ): string => {
   const qmdFileName = replaceExtension(fileName, ".xml", ".qmd");
-  console.log("qmdFileName", qmdFileName);
+
   const metadataTitle = metadataByInput[qmdFileName]?.title;
 
   const titleFromFilename = capitalizeWord(fileName.split(".")[0] ?? fileName);

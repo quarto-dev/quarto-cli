@@ -645,14 +645,14 @@ const runGetTitle = () => {
       author: "fake-author",
       date: "fake-date",
     },
-    "fake-file2.qmd": {
+    "folder/fake-file2.qmd": {
       title: "fake-title2",
       author: "fake-author2",
       date: "fake-date2",
     },
   };
 
-  otest(suiteLabel("valid"), async () => {
+  test(suiteLabel("valid"), async () => {
     const fileName = "fake-file.xml";
     const expected = "fake-title1";
     const result = getTitle(fileName, fakeInputMetadata);
@@ -660,7 +660,7 @@ const runGetTitle = () => {
   });
 
   test(suiteLabel("valid2"), async () => {
-    const fileName = "fake-file2.xml";
+    const fileName = "folder/fake-file2.xml";
     const expected = "fake-title2";
     const result = getTitle(fileName, fakeInputMetadata);
     assertEquals(expected, result);
@@ -3772,7 +3772,6 @@ const runConvertForSecondPass = () => {
       server,
       parent
     );
-    console.log("result", result);
     assertEquals(expected, result);
   };
 
