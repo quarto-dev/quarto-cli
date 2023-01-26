@@ -10,6 +10,7 @@ runs:
       run: |
         ./configure.sh
         echo "$HOME/bin" >> $GITHUB_PATH
+        echo "QUARTO_BIN=quarto" >> $GITHUB_ENV
 
     - name: Configure Quarto (.ps1)
       if: runner.os == 'Windows'
@@ -17,15 +18,16 @@ runs:
       run: |
         ./configure.cmd
         ECHO %QUARTO_BIN_DEV% >> %GITHUB_PATH%
+        ECHO "QUARTO_BIN=quarto.cmd" >> %GITHUB_ENV%
 
     - name: Basic dev mode sanity check
       shell: bash
       run: |
-        [ "$(quarto --version)" == "99.9.9" ] || exit 1
-        [ "$(quarto --paths | grep package/dist/share)" == "" ] || exit 1
+        [ "$(${{ env.QUARTO_BIN }} --version)" == "99.9.9" ] || exit 1
+        [ "$(${{ env.QUARTO_BIN }} --paths | grep package/dist/share)" == "" ] || exit 1
         [ "$(git status --porcelain)" == "" ] || exit 1
 
     - name: Quarto Check
-      shell: bash
-      run: quarto check
       working-directory: tests
+      shell: bash
+      run: ${{ env.QUARTO_BIN }} check
