@@ -20,8 +20,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # os: [ubuntu-latest, windows-latest]
-        os: [windows-latest]
+        os: [ubuntu-latest, windows-latest]
+        # os: [windows-latest]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -58,7 +58,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-1-renv-
 
-      - name: Restore packages
+      - name: Restore R packages
         working-directory: tests
         run: |
           if (!requireNamespace('renv', quietly = TRUE)) install.packages('renv')
@@ -71,7 +71,7 @@ jobs:
           cache: "pip"
           python-version-file: "./tests/.python-version"
 
-      - name: Python Dependencies
+      - name: Restore Python Dependencies
         working-directory: tests
         run: |
           python3 -m pip install --upgrade pip
@@ -96,11 +96,10 @@ jobs:
       - name: Setup Julia
         uses: julia-actions/setup-julia@v1
 
-      - name: Julia Packages
+      - name: Restore Julia Packages
+        working-directory: tests
         run: |
-          pushd tests
           julia --project=. -e "import Pkg; Pkg.instantiate(); Pkg.build(\"IJulia\"); Pkg.precompile()"
-          popd
 
       - name: Smoke Test Commits
         if: github.event.before != ''
