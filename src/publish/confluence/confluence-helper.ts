@@ -656,10 +656,6 @@ export const convertForSecondPass = (
     }
 
     if (isContentCreate(change)) {
-      console.log(
-        "basename(change?.fileName?)",
-        basename(change?.fileName ?? "")
-      );
       const qmdFileName = replaceExtension(
         change.fileName ?? "",
         ".xml",
