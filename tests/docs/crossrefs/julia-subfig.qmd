@@ -1,0 +1,21 @@
+---
+title: Julia Subfig Test
+---
+
+## Julia Crossref Figure
+
+```{julia}
+#| label: fig-plots
+#| fig-cap: "Plots"
+#| fig-subcap:
+#|   - "Plot 1"
+#|   - "Plot 2"
+#| layout-ncol: 2
+
+using Plots
+plot([1,23,2,4]) |> display
+
+plot([8,65,23,90]) |> display
+```
+
+See @fig-plots for examples. In particular, @fig-plots-2.

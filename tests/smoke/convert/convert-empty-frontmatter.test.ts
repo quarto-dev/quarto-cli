@@ -8,3 +8,4 @@ import { docs } from "../../utils.ts";
 import { testConvert } from "./convert.ts";
 
 testConvert(docs("empty-frontmatter.qmd"));
+testConvert(docs("empty-frontmatter-julia.qmd"));

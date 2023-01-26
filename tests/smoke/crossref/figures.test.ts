@@ -63,6 +63,37 @@ if (Deno.build.os !== "windows") {
       /\?@fig-/,
     ]),
   ]);
+
+  const juliaQmd = crossref("julia.qmd", "html");
+  testRender(juliaQmd.input, "html", false, [
+    ensureHtmlElements(juliaQmd.output.outputPath, [
+      "section#julia-crossref-figure div#fig-plot > figure img.figure-img",
+      "section#julia-crossref-figure div#fig-plot > figure > figcaption",
+    ]),
+    ensureFileRegexMatches(juliaQmd.output.outputPath, [
+      /Figure&nbsp;1: Plot/,
+      /Figure&nbsp;1/,
+    ], [
+      /\?@fig-/,
+    ]),
+  ]);
+
+  const juliaSubfigQmd = crossref("julia-subfig.qmd", "html");
+  testRender(juliaSubfigQmd.input, "html", false, [
+    ensureHtmlElements(juliaSubfigQmd.output.outputPath, [
+      "section#julia-crossref-figure  div.quarto-layout-panel > figure > div.quarto-layout-row",
+      "section#julia-crossref-figure  div.quarto-layout-panel > figure > figcaption.figure-caption",
+    ]),
+    ensureFileRegexMatches(juliaSubfigQmd.output.outputPath, [
+      /Figure&nbsp;1: Plots/,
+      /Figure&nbsp;1/,
+      /Figure&nbsp;1 \(b\)/,
+      /\(a\) Plot 1/,
+      /\(b\) Plot 2/,
+    ], [
+      /\?@fig-/,
+    ]),
+  ]);
 }
 
 const knitrQmd = crossref("knitr.qmd", "html");

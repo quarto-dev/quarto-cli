@@ -1,0 +1,80 @@
+---
+title: "Quarto Jupyter Cell Attribute Implementation Reference"
+format:
+  html:
+    keep-md: true
+    code-background: true
+---
+
+I thought `output:false` would suppress the output, but no? `echo: false` does it.
+
+```{julia}
+#| echo: false
+using Plots
+```
+
+## `label`
+
+```{julia}
+#| label: julia-label-1
+
+plot([1,2,3,4])
+```
+
+
+```{julia}
+#| label: julia label 2
+
+plot([1,2,3,4])
+```
+
+### `fig-cap`
+
+```{julia}
+#| label: fig-caption-test
+#| fig-cap: A caption for the figure
+
+plot([1,2,3,4])
+```
+
+**(Styling Bug?) Centering of images appears inconsistent depending on whether they have captions?**
+
+### `fig-subcap`
+
+```{julia}
+#| label: fig-big-caption-test
+#| fig-cap: Big caption
+#| fig-subcap:
+#|   - Caption 1
+#|   - Caption 2
+plot([4,3,2,1]) |> display
+plot([1,2,3,4]) |> display
+```
+
+
+```{julia}
+#| label: fig-no-big-caption-test
+#| fig-subcap:
+#|   - Caption 1
+#|   - Caption 2
+plot([4,3,2,1]) |> display
+plot([1,2,3,4]) |> display
+```
+
+### `code-fold` and `code-summary`
+
+**(Inconsistency?) The R engine sets code-fold and code-summary for both the outer and inner div; The Julia engine ...**
+
+Fold:
+
+```{julia}
+#| code-fold: true
+plot([1,2,3,4])
+```
+
+Summary:
+
+```{julia}
+#| code-summary: "Some text"
+plot([1,2,3,4])
+```
