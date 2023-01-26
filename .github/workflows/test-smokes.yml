@@ -97,7 +97,7 @@ jobs:
         uses: julia-actions/setup-julia@v1
 
       - name: Cache Julia Packages
-        uses: julia-actions/setup-julia@v1
+        uses: julia-actions/cache@v1
 
       - name: Restore Julia Packages
         working-directory: tests
