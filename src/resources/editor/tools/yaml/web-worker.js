@@ -11074,6 +11074,7 @@ try {
                     hidden: true,
                     object: {
                       properties: {
+                        "trace-filters": "string",
                         tests: "object"
                       }
                     }
@@ -21049,12 +21050,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 146891,
+          _internalId: 146893,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 146883,
+              _internalId: 146885,
               type: "enum",
               enum: [
                 "png",
@@ -21070,7 +21071,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 146890,
+              _internalId: 146892,
               type: "anyOf",
               anyOf: [
                 {
@@ -21378,10 +21379,11 @@ ${heading}`;
       return "capitalizationCase";
     }
     const underscoreIndex = key.indexOf("_");
-    if (underscoreIndex !== -1) {
+    if (underscoreIndex !== -1 && underscoreIndex !== 0 && underscoreIndex !== key.length - 1) {
       return "underscore_case";
     }
-    if (key.indexOf("-") !== -1) {
+    const dashIndex = key.indexOf("-");
+    if (dashIndex !== -1 && dashIndex !== 0 && dashIndex !== key.length - 1) {
       return "dash-case";
     }
     return void 0;
@@ -21393,9 +21395,8 @@ ${heading}`;
           "Internal Error: resolveCaseConventionRegex requires nonempty `conventions`"
         );
       }
-      console.log({ conventions });
       return {
-        pattern: conventions.map((c) => `(?:^${c}$)`).join("|"),
+        pattern: conventions.map((c) => `(${c})`).join("|"),
         list: conventions
       };
     }

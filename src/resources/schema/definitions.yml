@@ -2121,8 +2121,5 @@
           hidden: true
           object:
             properties:
-              trace-filters:
-                anyOf:
-                  - boolean
-                  - path
+              trace-filters: string
               tests: object
