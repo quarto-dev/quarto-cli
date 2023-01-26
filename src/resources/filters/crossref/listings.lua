@@ -24,7 +24,7 @@ function listings()
 
         node.caption = captionContent
         node.order = order
-        return quarto.DecoratedCodeBlock(node)
+        return node
       end
       return nil
     end,

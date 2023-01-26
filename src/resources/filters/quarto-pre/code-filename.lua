@@ -9,7 +9,6 @@
 -- </div>
 
 local function codeBlockWithFilename(el, filename)
-  print("Constructing", el, filename)
   return pandoc.Plain(quarto.DecoratedCodeBlock({
     filename = filename,
     code_block = el:clone()

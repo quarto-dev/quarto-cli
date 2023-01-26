@@ -48,7 +48,6 @@ _quarto.ast.add_handler({
         classes:insert("listing")
         fancy_output = true
       end
-      quarto.utils.dump(classes)
 
       if not fancy_output then
         return el
