@@ -16,8 +16,11 @@ runs:
       shell: cmd
       run: |
         ./configure.cmd
-        endlocal & CALL ECHO %QUARTO_BIN_DEV% >> %GITHUB_PATH%
-
+        echo %GITHUB_PATH%
+        type %GITHUB_PATH%
+        echo %QUARTO_BIN_DEV%
+        echo %QUARTO_BIN_DEV% >> %GITHUB_PATH%
+        type %GITHUB_PATH%
     - shell: pwsh
       if: runner.os == 'Windows'
       run: $env:PATH -Split ";"
