@@ -14,11 +14,11 @@ runs:
 
     - name: Configure Quarto (.ps1)
       if: runner.os == 'Windows'
-      shell: cmd
+      shell: pwsh
       run: |
         ./configure.cmd
-        ECHO %QUARTO_BIN_DEV% >> %GITHUB_PATH%
-        ECHO QUARTO_BIN=quarto.cmd >> %GITHUB_ENV%
+        $env:QUARTO_BIN_DEV >> $env:GITHUB_PATH
+        "QUARTO_BIN=quarto.cmd" >> $env:GITHUB_ENV
 
     - name: Basic dev mode sanity check
       shell: bash
