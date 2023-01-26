@@ -99,7 +99,7 @@ jobs:
       - name: Restore Julia Packages
         working-directory: tests
         run: |
-          julia --project=. -e "import Pkg; Pkg.instantiate(); Pkg.build(\"IJulia\"); Pkg.precompile()"
+          julia --project=. -e 'import Pkg; Pkg.instantiate(); Pkg.build("IJulia"); Pkg.precompile()'
 
       - name: Smoke Test Commits
         if: github.event.before != ''
