@@ -51,6 +51,15 @@ export function asciidocFormat(): Format {
   return mergeConfigs(
     plaintextFormat("Asciidoc", "adoc"),
     {
+      pandoc: {
+        template: formatResourcePath(
+          "asciidoc",
+          join(
+            "pandoc",
+            "template.asciidoc",
+          ),
+        ),
+      },
       extensions: {
         book: asciidocBookExtension,
       },
