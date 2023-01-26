@@ -3,7 +3,6 @@
  * Copyright (C) 2020 by RStudio, PBC
  *
  */
-import { posix, win32 } from "path/mod.ts";
 import { unitTest } from "../test.ts";
 import { assertEquals, assertThrows } from "testing/asserts.ts";
 
@@ -14,6 +13,7 @@ import {
   buildSpaceChanges,
   capitalizeFirstLetter,
   confluenceParentFromString,
+  convertForSecondPass,
   FILE_FINDER,
   filterFilesForUpdate,
   findAttachments,
@@ -103,94 +103,94 @@ const FAKE_PARENT: ConfluenceParent = {
 };
 
 const runGeneralTests = () => {
-  unitTest("transformAtlassianDomain_basic", async () => {
+  test("transformAtlassianDomain_basic", async () => {
     const result = transformAtlassianDomain("fake-domain");
     const expected = "https://fake-domain.atlassian.net/";
     assertEquals(expected, result);
   });
 
-  unitTest("transformAtlassianDomain_EmptyString", async () => {
+  test("transformAtlassianDomain_EmptyString", async () => {
     const result = transformAtlassianDomain("");
     const expected = "https://.atlassian.net/";
     assertEquals(expected, result);
   });
 
-  unitTest("transformAtlassianDomain_addTrailing", async () => {
+  test("transformAtlassianDomain_addTrailing", async () => {
     const result = transformAtlassianDomain("https://something");
     const expected = "https://something/";
     assertEquals(expected, result);
   });
 
-  unitTest("transformAtlassianDomain_partialPrefix", async () => {
+  test("transformAtlassianDomain_partialPrefix", async () => {
     const result = transformAtlassianDomain("htt://something");
     const expected = "https://htt://something.atlassian.net/";
     assertEquals(expected, result);
   });
 
-  unitTest("transformAtlassianDomain_addPrefixAndTrailing", async () => {
+  test("transformAtlassianDomain_addPrefixAndTrailing", async () => {
     const result = transformAtlassianDomain("something");
     const expected = "https://something.atlassian.net/";
     assertEquals(expected, result);
   });
 
-  unitTest("validateServer_empty", async () => {
+  test("validateServer_empty", async () => {
     const toCall = () => validateServer("");
     assertThrows(toCall, "");
   });
 
-  unitTest("validateServer_valid", async () => {
+  test("validateServer_valid", async () => {
     const result = validateServer("fake-domain");
     const expected = true;
     assertEquals(expected, result);
   });
 
-  unitTest("validateServer_invalid", async () => {
+  test("validateServer_invalid", async () => {
     const result = validateServer("_!@ ... #");
     const expected = "Not a valid URL";
     assertEquals(expected, result);
   });
 
-  unitTest("validateName_empty", async () => {
+  test("validateName_empty", async () => {
     const toCall = () => validateEmail("");
     assertThrows(toCall, "");
   });
 
-  unitTest("validateName_valid", async () => {
+  test("validateName_valid", async () => {
     const result = validateEmail("al.manning@rstudio.com");
     const expected = true;
     assertEquals(expected, result);
   });
 
-  unitTest("validateName_invalid_JustName", async () => {
+  test("validateName_invalid_JustName", async () => {
     const result = validateEmail("al.manning");
     const expected = "Invalid email address";
     assertEquals(expected, result);
   });
 
-  unitTest("validateToken_empty", async () => {
+  test("validateToken_empty", async () => {
     const toCall = () => validateToken("");
     assertThrows(toCall, "");
   });
 
-  unitTest("getMessageFromAPIError_null", async () => {
+  test("getMessageFromAPIError_null", async () => {
     const result = getMessageFromAPIError(null);
     const expected = "Unknown error";
     assertEquals(expected, result);
   });
 
-  unitTest("getMessageFromAPIError_emptyString", async () => {
+  test("getMessageFromAPIError_emptyString", async () => {
     const result = getMessageFromAPIError("");
     const expected = "Unknown error";
     assertEquals(expected, result);
   });
 
-  unitTest("getMessageFromAPIError_APIError", async () => {
+  test("getMessageFromAPIError_APIError", async () => {
     const result = getMessageFromAPIError(new ApiError(123, "status-text"));
     const expected = "123 - status-text";
     assertEquals(expected, result);
   });
 
-  unitTest("tokenFilterOut_sameToken", async () => {
+  test("tokenFilterOut_sameToken", async () => {
     const fakeToken = {
       type: AccountTokenType.Environment,
       name: "fake-name",
@@ -203,7 +203,7 @@ const runGeneralTests = () => {
     assertEquals(expected, result);
   });
 
-  unitTest("tokenFilterOut_differentToken", async () => {
+  test("tokenFilterOut_differentToken", async () => {
     const fakeToken = {
       type: AccountTokenType.Environment,
       name: "fake-name",
@@ -223,37 +223,37 @@ const runGeneralTests = () => {
     assertEquals(expected, result);
   });
 
-  unitTest("isUnauthorized_EmptyError", async () => {
+  test("isUnauthorized_EmptyError", async () => {
     const result = isUnauthorized(new Error());
     const expected = false;
     assertEquals(expected, result);
   });
 
-  unitTest("isUnauthorized_401", async () => {
+  test("isUnauthorized_401", async () => {
     const result = isUnauthorized(new ApiError(401, "fake-status"));
     const expected = true;
     assertEquals(expected, result);
   });
 
-  unitTest("isUnauthorized_403", async () => {
+  test("isUnauthorized_403", async () => {
     const result = isUnauthorized(new ApiError(403, "fake-status"));
     const expected = true;
     assertEquals(expected, result);
   });
 
-  unitTest("isNotFound_Empty", async () => {
+  test("isNotFound_Empty", async () => {
     const result = isNotFound(new Error());
     const expected = false;
     assertEquals(expected, result);
   });
 
-  unitTest("isNotFound_404", async () => {
+  test("isNotFound_404", async () => {
     const result = isNotFound(new ApiError(404, "fake-status"));
     const expected = true;
     assertEquals(expected, result);
   });
 
-  unitTest("confluenceParentFromString_empty", async () => {
+  test("confluenceParentFromString_empty", async () => {
     const result = confluenceParentFromString("");
     const expected = {
       space: "",
@@ -262,7 +262,7 @@ const runGeneralTests = () => {
     assertEquals(expected, result);
   });
 
-  unitTest("confluenceParentFromString_valid", async () => {
+  test("confluenceParentFromString_valid", async () => {
     const url =
       "https://allenmanning.atlassian.net/wiki/spaces/QUARTOCONF/pages/8781825/Markdown+Basics1";
     const result = confluenceParentFromString(url);
@@ -273,7 +273,7 @@ const runGeneralTests = () => {
     assertEquals(expected, result);
   });
 
-  unitTest("confluenceParentFromString_valid_noParent", async () => {
+  test("confluenceParentFromString_valid_noParent", async () => {
     const url = "https://allenmanning.atlassian.net/wiki/spaces/QUARTOCONF";
     const result = confluenceParentFromString(url);
     const expected: ConfluenceParent = {
@@ -283,7 +283,7 @@ const runGeneralTests = () => {
     assertEquals(expected, result);
   });
 
-  unitTest("confluenceParentFromString_invalid_noSpace", async () => {
+  test("confluenceParentFromString_invalid_noSpace", async () => {
     const url = "https://allenmanning.atlassian.net/QUARTOCONF";
     const result = confluenceParentFromString(url);
     const expected = {
@@ -293,7 +293,7 @@ const runGeneralTests = () => {
     assertEquals(expected, result);
   });
 
-  unitTest("wrapBodyForConfluence_empty", async () => {
+  test("wrapBodyForConfluence_empty", async () => {
     const value = "";
     const result = wrapBodyForConfluence(value);
     const expected = {
@@ -334,7 +334,7 @@ const runPublishRecordTests = () => {
     assertThrows(() => buildPublishRecordForContent(server, content));
   };
 
-  unitTest("buildPublishRecord_validWithChecker", async () => {
+  test("buildPublishRecord_validWithChecker", async () => {
     const expectedURL =
       "https://allenmanning.atlassian.net/wiki/spaces/fake-space-key/pages/fake-id";
     const expectedId = "fake-id";
@@ -342,19 +342,19 @@ const runPublishRecordTests = () => {
     checkForContent(expectedURL, expectedId);
   });
 
-  unitTest("buildPublishRecord_noIdThrows", async () => {
+  test("buildPublishRecord_noIdThrows", async () => {
     const fakeContent = buildFakeContent();
     fakeContent.id = null;
     checkThrows(fakeServer, fakeContent);
   });
 
-  unitTest("buildPublishRecord_noSpaceThrows", async () => {
+  test("buildPublishRecord_noSpaceThrows", async () => {
     const fakeContent = buildFakeContent();
     fakeContent.space = null;
     checkThrows(fakeServer, fakeContent);
   });
 
-  unitTest("buildPublishRecord_emptyServerThrows", async () => {
+  test("buildPublishRecord_emptyServerThrows", async () => {
     checkThrows("");
   });
 
@@ -385,13 +385,13 @@ const runGetNextVersionTests = () => {
     assertEquals(expected, actual);
   };
 
-  unitTest(suiteLabel("1to2"), async () => {
+  test(suiteLabel("1to2"), async () => {
     const previousPage: Content = buildFakeContent();
     const expected: ContentVersion = { number: 2 };
     check(previousPage, expected);
   });
 
-  unitTest(suiteLabel("Nullto1"), async () => {
+  test(suiteLabel("Nullto1"), async () => {
     const previousPage: Content = buildFakeContent();
     previousPage.version = null;
     const expected: ContentVersion = { number: 1 };
@@ -411,7 +411,7 @@ const runWriteTokenComparator = () => {
     assertEquals(expected, actual);
   };
 
-  unitTest(suiteLabel("allNotEqual"), async () => {
+  test(suiteLabel("allNotEqual"), async () => {
     check(
       {
         server: "a-server",
@@ -429,7 +429,7 @@ const runWriteTokenComparator = () => {
     );
   });
 
-  unitTest(suiteLabel("nameNotEqual"), async () => {
+  test(suiteLabel("nameNotEqual"), async () => {
     check(
       {
         server: "a-server",
@@ -447,7 +447,7 @@ const runWriteTokenComparator = () => {
     );
   });
 
-  unitTest(suiteLabel("serverNotEqual"), async () => {
+  test(suiteLabel("serverNotEqual"), async () => {
     check(
       {
         server: "different-a-server",
@@ -465,7 +465,7 @@ const runWriteTokenComparator = () => {
     );
   });
 
-  unitTest(suiteLabel("typeNotEqual"), async () => {
+  test(suiteLabel("typeNotEqual"), async () => {
     check(
       {
         server: "a-server",
@@ -483,7 +483,7 @@ const runWriteTokenComparator = () => {
     );
   });
 
-  unitTest(suiteLabel("tokenNotEqual"), async () => {
+  test(suiteLabel("tokenNotEqual"), async () => {
     check(
       {
         server: "a-server",
@@ -510,11 +510,11 @@ const runFilterFilesForUpdate = () => {
     assertEquals(expected, actual);
   };
 
-  unitTest(suiteLabel("noFiles"), async () => {
+  test(suiteLabel("noFiles"), async () => {
     check([], []);
   });
 
-  unitTest(suiteLabel("flatMixed"), async () => {
+  test(suiteLabel("flatMixed"), async () => {
     const fakeFileList = [
       "knowledge-base.html",
       "team.xml",
@@ -527,7 +527,7 @@ const runFilterFilesForUpdate = () => {
     check(fakeFileList, expected);
   });
 
-  unitTest(suiteLabel("nestedMixed"), async () => {
+  test(suiteLabel("nestedMixed"), async () => {
     const fakeFileList = [
       "parent/child.xml",
       "knowledge-base.html",
@@ -545,7 +545,7 @@ const runFilterFilesForUpdate = () => {
 const runBuildContentCreate = () => {
   const suiteLabel = (label: string) => `BuildContentCreate_${label}`;
 
-  unitTest(suiteLabel("minParams"), async () => {
+  test(suiteLabel("minParams"), async () => {
     const expected: ContentCreate = {
       contentChangeType: ContentChangeType.create,
       fileName: "fake-file-name",
@@ -586,7 +586,7 @@ const runBuildContentCreate = () => {
     assertEquals(expected, actual);
   });
 
-  unitTest(suiteLabel("allParams"), async () => {
+  test(suiteLabel("allParams"), async () => {
     const expected: ContentCreate = {
       contentChangeType: ContentChangeType.create,
       fileName: "fake-filename",
@@ -645,35 +645,35 @@ const runGetTitle = () => {
       author: "fake-author",
       date: "fake-date",
     },
-    "fake-file2.qmd": {
+    "folder/fake-file2.qmd": {
       title: "fake-title2",
       author: "fake-author2",
       date: "fake-date2",
     },
   };
 
-  unitTest(suiteLabel("valid"), async () => {
+  test(suiteLabel("valid"), async () => {
     const fileName = "fake-file.xml";
     const expected = "fake-title1";
     const result = getTitle(fileName, fakeInputMetadata);
     assertEquals(expected, result);
   });
 
-  unitTest(suiteLabel("valid2"), async () => {
-    const fileName = "fake-file2.xml";
+  test(suiteLabel("valid2"), async () => {
+    const fileName = "folder/fake-file2.xml";
     const expected = "fake-title2";
     const result = getTitle(fileName, fakeInputMetadata);
     assertEquals(expected, result);
   });
 
-  unitTest(suiteLabel("no-match"), async () => {
+  test(suiteLabel("no-match"), async () => {
     const fileName = "fake-file3.xml";
     const expected = "Fake-file3";
     const result = getTitle(fileName, fakeInputMetadata);
     assertEquals(expected, result);
   });
 
-  unitTest(suiteLabel("no-match-empty"), async () => {
+  test(suiteLabel("no-match-empty"), async () => {
     const fileName = "";
     const expected = "";
     const result = getTitle(fileName, fakeInputMetadata);
@@ -684,7 +684,7 @@ const runGetTitle = () => {
 const runMergeSitePages = () => {
   const suiteLabel = (label: string) => `MergeSitePages_${label}`;
 
-  unitTest(suiteLabel("basic_valid"), async () => {
+  test(suiteLabel("basic_valid"), async () => {
     const shallowPages: ContentSummary[] = [
       {
         id: "123",
@@ -714,7 +714,7 @@ const runMergeSitePages = () => {
     assertEquals(expected, result);
   });
 
-  unitTest(suiteLabel("basic_valid_2props"), async () => {
+  test(suiteLabel("basic_valid_2props"), async () => {
     const shallowPages: ContentSummary[] = [
       {
         id: "123",
@@ -749,7 +749,7 @@ const runMergeSitePages = () => {
     assertEquals(expected, result);
   });
 
-  unitTest(suiteLabel("multiple_valid"), async () => {
+  test(suiteLabel("multiple_valid"), async () => {
     const shallowPages: ContentSummary[] = [
       {
         id: "123",
@@ -803,7 +803,7 @@ const runMergeSitePages = () => {
     assertEquals(expected, result);
   });
 
-  unitTest(suiteLabel("not_matching"), async () => {
+  test(suiteLabel("not_matching"), async () => {
     const shallowPages: ContentSummary[] = [
       {
         id: "123",
@@ -1400,6 +1400,49 @@ const runSpaceCreatesWithNesting = () => {
       fileMetadataList,
       FAKE_PARENT,
       fakeSpace
+    );
+    assertEquals(expected, actual);
+  });
+
+  test(suiteLabel("one_nested_file_add_back_empty_parent"), async () => {
+    const fileMetadataList: SiteFileMetadata[] = [fakeNestedFile];
+    const existingSite: SitePage[] = [
+      {
+        id: "fake-parent-id",
+        title: "Fake-parent",
+        metadata: { fileName: "fake-parent" },
+      },
+    ];
+    const expected: ConfluenceSpaceChange[] = [
+      {
+        contentChangeType: ContentChangeType.create,
+        ancestors: [
+          {
+            id: "fake-parent-id",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "fake-value",
+          },
+        },
+        fileName: "fake-parent/fake-file-name",
+        space: {
+          key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
+        },
+        status: "current",
+        title: "fake-title",
+        type: "page",
+      },
+    ];
+    const actual: ConfluenceSpaceChange[] = buildSpaceChanges(
+      fileMetadataList,
+      FAKE_PARENT,
+      fakeSpace,
+      existingSite
     );
     assertEquals(expected, actual);
   });
@@ -2390,7 +2433,7 @@ const runSpaceUpdatesWithNesting = () => {
     assertEquals(expected, actual);
   });
 
-  otest(suiteLabel("one_multi-nested_file_update_win"), async () => {
+  test(suiteLabel("one_multi-nested_file_update_win"), async () => {
     const fileMetadataList: SiteFileMetadata[] = [fakeMultiNestedFileWin];
 
     const existingSite = [
@@ -2737,7 +2780,7 @@ const runSpaceUpdatesWithNestedMoves = () => {
     },
   };
 
-  unitTest(suiteLabel("move_from_root_to_nested_parent"), async () => {
+  test(suiteLabel("move_from_root_to_nested_parent"), async () => {
     const fileMetadataList: SiteFileMetadata[] = [fakeNestedFile];
     const existingSite = [
       {
@@ -2809,7 +2852,7 @@ const runSpaceUpdatesWithNestedMoves = () => {
     assertEquals(expected, actual);
   });
 
-  unitTest(suiteLabel("add_file_existing_parent"), async () => {
+  test(suiteLabel("add_file_existing_parent"), async () => {
     const fileMetadataList: SiteFileMetadata[] = [
       fakeNestedFile,
       fakeNestedFile2,
@@ -2874,7 +2917,7 @@ const runSpaceUpdatesWithNestedMoves = () => {
     assertEquals(expected, actual);
   });
 
-  unitTest(suiteLabel("from_root_to_existing_parent"), async () => {
+  test(suiteLabel("from_root_to_existing_parent"), async () => {
     const fileMetadataList: SiteFileMetadata[] = [
       fakeNestedFile,
       fakeNestedFile2,
@@ -2946,7 +2989,7 @@ const runSpaceUpdatesWithNestedMoves = () => {
     assertEquals(expected, actual);
   });
 
-  unitTest(suiteLabel("create_in_nested_parent"), async () => {
+  test(suiteLabel("create_in_nested_parent"), async () => {
     const fileMetadataList: SiteFileMetadata[] = [
       fakeNestedFile,
       fakeMultiNestedFile,
@@ -3072,13 +3115,13 @@ const runBuildFileToMetaTable = () => {
     assertEquals(expected, buildFileToMetaTable(site));
   };
 
-  unitTest(suiteLabel("no_files"), async () => {
+  test(suiteLabel("no_files"), async () => {
     const expected = {};
     const site: SitePage[] = [];
     check(expected, site);
   });
 
-  unitTest(suiteLabel("one_file"), async () => {
+  test(suiteLabel("one_file"), async () => {
     const expected = {
       ["triage.qmd"]: {
         title: "Issue Triage",
@@ -3091,7 +3134,7 @@ const runBuildFileToMetaTable = () => {
     check(expected, fakeSite_ONE);
   });
 
-  unitTest(suiteLabel("multiple"), async () => {
+  test(suiteLabel("multiple"), async () => {
     const expected = {
       ["release-planning.qmd"]: {
         title: "Release Planning",
@@ -3134,13 +3177,13 @@ const runExtractLinks = () => {
     assertEquals(expected, extractLinks(value));
   };
 
-  unitTest(suiteLabel("empty_string"), async () => {
+  test(suiteLabel("empty_string"), async () => {
     const value = "";
     const expected: ExtractedLink[] = [];
     check(expected, value);
   });
 
-  unitTest(suiteLabel("three_links"), async () => {
+  test(suiteLabel("three_links"), async () => {
     const value =
       "<a href='no-replace.qmd'/>no</a> content content <a href='team.qmd#Fake-Anchor'>team</a> content content <a href='zqmdzz.qmd'>team</a>";
     const expected: ExtractedLink[] = [
@@ -3151,7 +3194,7 @@ const runExtractLinks = () => {
     check(expected, value);
   });
 
-  unitTest(suiteLabel("three_links_messy"), async () => {
+  test(suiteLabel("three_links_messy"), async () => {
     const value =
       "no-replace.qmd <a href='no-replace.qmd'/>no</a> no-replace.qmd content content <a href='team.qmd#Fake-Anchor'>team</a> content content <a href='zqmdzz.qmd'>team</a> qmd.qmd <a href='team.txt'>team</a>";
     const expected: ExtractedLink[] = [
@@ -3314,14 +3357,22 @@ const runUpdateLinks = () => {
   };
 
   const check = (
-    expected: ConfluenceSpaceChange[],
+    expectedPass1Changes: ConfluenceSpaceChange[],
     changes: ConfluenceSpaceChange[],
     fileMetadataTable: Record<string, SitePage>,
     server = "fake-server",
-    parent = FAKE_PARENT
+    parent = FAKE_PARENT,
+    expectedPass2Changes: ConfluenceSpaceChange[] = []
   ) => {
-    const result = updateLinks(fileMetadataTable, changes, server, parent);
-    assertEquals(expected, result);
+    const { pass1Changes, pass2Changes } = updateLinks(
+      fileMetadataTable,
+      changes,
+      server,
+      parent
+    );
+
+    assertEquals(expectedPass1Changes, pass1Changes);
+    assertEquals(expectedPass2Changes, pass2Changes);
   };
 
   test(suiteLabel("no_files"), async () => {
@@ -3349,7 +3400,15 @@ const runUpdateLinks = () => {
       },
     };
     const expected: ConfluenceSpaceChange[] = [expectedUpdate];
-    check(expected, changes, fileMetadataTable);
+    const expectedPass2Changes: ConfluenceSpaceChange[] = [expectedUpdate];
+    check(
+      expected,
+      changes,
+      fileMetadataTable,
+      "fake-server",
+      FAKE_PARENT,
+      expectedPass2Changes
+    );
   });
 
   test(suiteLabel("one_update_link_nested_dot_slash"), async () => {
@@ -3416,7 +3475,15 @@ const runUpdateLinks = () => {
       },
     };
     const expected: ConfluenceSpaceChange[] = [expectedUpdate];
-    check(expected, changes, fileMetadataTable);
+    const expectedSecondPassChanges: ConfluenceSpaceChange[] = [expectedUpdate];
+    check(
+      expected,
+      changes,
+      fileMetadataTable,
+      "fake-server",
+      FAKE_PARENT,
+      expectedSecondPassChanges
+    );
   });
 
   test(suiteLabel("one_change_several_update_links"), async () => {
@@ -3432,7 +3499,15 @@ const runUpdateLinks = () => {
       },
     };
     const expected: ConfluenceSpaceChange[] = [expectedUpdate];
-    check(expected, changes, fileMetadataTable);
+    const expectedSecondPassChanges: ConfluenceSpaceChange[] = [expectedUpdate];
+    check(
+      expected,
+      changes,
+      fileMetadataTable,
+      "fake-server",
+      FAKE_PARENT,
+      expectedSecondPassChanges
+    );
   });
 
   test(suiteLabel("two_changes_several_update_links"), async () => {
@@ -3464,7 +3539,306 @@ const runUpdateLinks = () => {
       expectedUpdateSeveralLinks,
       expectedUpdateOneLink,
     ];
+    const expectedSecondPassChanges: ConfluenceSpaceChange[] = [
+      expectedUpdateSeveralLinks,
+      expectedUpdateOneLink,
+    ];
+    check(
+      expected,
+      changes,
+      fileMetadataTable,
+      "fake-server",
+      FAKE_PARENT,
+      expectedSecondPassChanges
+    );
+  });
+};
+
+const runConvertForSecondPass = () => {
+  const suiteLabel = (label: string) => `ConvertForSecondPass_${label}`;
+
+  const fileMetadataTable = {
+    ["release-planning.qmd"]: {
+      title: "Release Planning",
+      id: "19890228",
+      metadata: { fileName: "release-planning.xml" },
+    },
+    ["team.qmd"]: {
+      title: "Team",
+      id: "19857455",
+      metadata: { fileName: "team.xml" },
+    },
+    ["team.test.qmd"]: {
+      title: "TeamTest",
+      id: "19857456",
+      metadata: { fileName: "team.test.xml" },
+    },
+    ["triage.qmd"]: {
+      title: "Issue Triage",
+      id: "19890180",
+      metadata: {
+        fileName: "triage.xml",
+      },
+    },
+    ["authoring/hello-world5.qmd"]: {
+      title: "Hello World5",
+      id: "43417628",
+      metadata: { editor: "v2", fileName: "authoring/hello-world5.xml" },
+    },
+  };
+
+  const fakeSpace: Space = {
+    key: "fake-space-key",
+    id: "fake-space-id",
+    homepage: buildFakeContent(),
+  };
+
+  const UPDATE_NO_LINKS: ContentUpdate = {
+    contentChangeType: ContentChangeType.update,
+    id: "19890228",
+    version: null,
+    title: "Release Planning",
+    type: "page",
+    status: "current",
+    ancestors: [{ id: "19759105" }],
+    body: {
+      storage: {
+        value: "no links",
+        representation: "storage",
+      },
+    },
+    fileName: "release-planning.xml",
+  };
+
+  const CREATE_NO_LINKS: ContentCreate = {
+    contentChangeType: ContentChangeType.create,
+    title: "Release Planning",
+    type: "page",
+    status: "current",
+    ancestors: [{ id: "19759105" }],
+    space: fakeSpace,
+    body: {
+      storage: {
+        value: "no links",
+        representation: "storage",
+      },
+    },
+    fileName: "release-planning.xml",
+  };
+
+  const UPDATE_LINKS_ONE: ContentUpdate = {
+    contentChangeType: ContentChangeType.update,
+    id: "19890228",
+    version: null,
+    title: "Release Planning",
+    type: "page",
+    status: "current",
+    ancestors: [{ id: "19759105" }],
+    body: {
+      storage: {
+        value:
+          "<a href='no-replace.qmd'/>no</a> content content <a href='team.qmd'>team</a> content content <a href='zqmdzz.qmd'>team</a>",
+        representation: "storage",
+      },
+    },
+    fileName: "release-planning.xml",
+  };
+
+  const UPDATE_LINKS_ONE_DOUBLE_EXT: ContentUpdate = {
+    ...UPDATE_LINKS_ONE,
+    body: {
+      storage: {
+        value:
+          "<a href='no-replace.qmd'/>no</a> content content <a href='team.test.qmd'>team</a> content content <a href='zqmdzz.qmd'>team</a>",
+        representation: "storage",
+      },
+    },
+  };
+
+  const CREATE_LINKS_ONE: ContentCreate = {
+    contentChangeType: ContentChangeType.create,
+    title: "Release Planning",
+    type: "page",
+    status: "current",
+    ancestors: [{ id: "19759105" }],
+    space: fakeSpace,
+    body: {
+      storage: {
+        value:
+          "<a href='no-replace.qmd'/>no</a> content content <a href='team.qmd'>team</a> content content <a href='zqmdzz.qmd'>team</a>",
+        representation: "storage",
+      },
+    },
+    fileName: "release-planning.xml",
+  };
+
+  const UPDATE_LINKS_ONE_NESTED_DOT_SLASH: ContentUpdate = {
+    contentChangeType: ContentChangeType.update,
+    id: "43778049",
+    version: null,
+    title: "Links2",
+    type: "page",
+    status: "current",
+    ancestors: [{ id: "42336414" }],
+    body: {
+      storage: {
+        value: `<a href='./hello-world5.qmd'>Hello World 5</a>`,
+        representation: "storage",
+      },
+    },
+    fileName: "authoring/links2.xml",
+  };
+
+  const UPDATE_LINKS_ONE_NESTED: ContentUpdate = {
+    contentChangeType: ContentChangeType.update,
+    id: "43778049",
+    version: null,
+    title: "Links2",
+    type: "page",
+    status: "current",
+    ancestors: [{ id: "42336414" }],
+    body: {
+      storage: {
+        value: `<a href='hello-world5.qmd'>Hello World 5</a>`,
+        representation: "storage",
+      },
+    },
+    fileName: "authoring/links2.xml",
+  };
+
+  const UPDATE_LINKS_ONE_NESTED_ABS: ContentUpdate = {
+    contentChangeType: ContentChangeType.update,
+    id: "43778049",
+    version: null,
+    title: "Links2",
+    type: "page",
+    status: "current",
+    ancestors: [{ id: "42336414" }],
+    body: {
+      storage: {
+        value: `<a href='/release-planning.qmd'>Release Planning</a>`,
+        representation: "storage",
+      },
+    },
+    fileName: "authoring/links2.xml",
+  };
+
+  const UPDATE_LINKS_ONE_ANCHOR: ContentUpdate = {
+    contentChangeType: ContentChangeType.update,
+    id: "19890228",
+    version: null,
+    title: "Release Planning",
+    type: "page",
+    status: "current",
+    ancestors: [{ id: "19759105" }],
+    body: {
+      storage: {
+        value:
+          "<a href='no-replace.qmd'/>no</a> content content <a href='team.qmd#Fake-Anchor'>team</a> content content <a href='zqmdzz.qmd'>team</a>",
+        representation: "storage",
+      },
+    },
+    fileName: "release-planning.xml",
+  };
+
+  const UPDATE_LINKS_SEVERAL: ContentUpdate = {
+    contentChangeType: ContentChangeType.update,
+    id: "19890228",
+    version: null,
+    title: "Release Planning",
+    type: "page",
+    status: "current",
+    ancestors: [{ id: "19759105" }],
+    body: {
+      storage: {
+        value:
+          "<a href='no-replace.qmd'/>not-found</a> content content <a href='team.qmd'>teamz</a> content content <a href='zqmdzz.qmd'>not-found</a> <a href='release-planning.qmd'>Do the Release Planning</a> and then triage.qmd .qmd <a href='triage.qmd'>triage.qmd</a>",
+        representation: "storage",
+      },
+    },
+    fileName: "release-planning.xml",
+  };
+
+  const check = (
+    expected: ConfluenceSpaceChange[] = [],
+    changes: ConfluenceSpaceChange[],
+    fileMetadataTable: Record<string, SitePage>,
+    server = "fake-server",
+    parent = FAKE_PARENT
+  ) => {
+    const result = convertForSecondPass(
+      fileMetadataTable,
+      changes,
+      server,
+      parent
+    );
+    assertEquals(expected, result);
+  };
+
+  test(suiteLabel("no_files"), async () => {
+    const changes: ConfluenceSpaceChange[] = [];
+    const expected: ConfluenceSpaceChange[] = [];
     check(expected, changes, fileMetadataTable);
+  });
+
+  test(suiteLabel("one_update_noLink"), async () => {
+    const changes: ConfluenceSpaceChange[] = [UPDATE_NO_LINKS];
+    const expected: ConfluenceSpaceChange[] = [UPDATE_NO_LINKS];
+    check(expected, changes, fileMetadataTable);
+  });
+
+  test(suiteLabel("one_create_noLink_convert_to_update"), async () => {
+    const changes: ConfluenceSpaceChange[] = [CREATE_NO_LINKS];
+    const expected: ConfluenceSpaceChange[] = [UPDATE_NO_LINKS];
+    check(expected, changes, fileMetadataTable);
+  });
+
+  test(suiteLabel("one_update_link"), async () => {
+    const changes: ConfluenceSpaceChange[] = [UPDATE_LINKS_ONE];
+    const rootURL = "fake-server/wiki/spaces/QUARTOCONF/pages";
+    const expectedUpdate: ContentUpdate = {
+      ...UPDATE_LINKS_ONE,
+      body: {
+        storage: {
+          value: `<a href=\'no-replace.qmd\'/>no</a> content content <a href=\'fake-server/wiki/spaces/QUARTOCONF/pages/19857455/Team\'>team</a> content content <a href=\'zqmdzz.qmd\'>team</a>`,
+          representation: "storage",
+        },
+      },
+    };
+    const expected: ConfluenceSpaceChange[] = [expectedUpdate];
+    check(expected, changes, fileMetadataTable, "fake-server", FAKE_PARENT);
+  });
+
+  test(suiteLabel("one_update_link_double_QMD"), async () => {
+    const changes: ConfluenceSpaceChange[] = [UPDATE_LINKS_ONE_DOUBLE_EXT];
+    const rootURL = "fake-server/wiki/spaces/QUARTOCONF/pages";
+    const expectedUpdate: ContentUpdate = {
+      ...UPDATE_LINKS_ONE,
+      body: {
+        storage: {
+          value: `<a href=\'no-replace.qmd\'/>no</a> content content <a href=\'fake-server/wiki/spaces/QUARTOCONF/pages/19857456/TeamTest\'>team</a> content content <a href=\'zqmdzz.qmd\'>team</a>`,
+          representation: "storage",
+        },
+      },
+    };
+    const expected: ConfluenceSpaceChange[] = [expectedUpdate];
+    check(expected, changes, fileMetadataTable, "fake-server", FAKE_PARENT);
+  });
+
+  test(suiteLabel("one_update_link_from_create"), async () => {
+    const changes: ConfluenceSpaceChange[] = [CREATE_LINKS_ONE];
+    const rootURL = "fake-server/wiki/spaces/QUARTOCONF/pages";
+    const expectedUpdate: ContentUpdate = {
+      ...UPDATE_LINKS_ONE,
+      body: {
+        storage: {
+          value: `<a href=\'no-replace.qmd\'/>no</a> content content <a href=\'fake-server/wiki/spaces/QUARTOCONF/pages/19857455/Team\'>team</a> content content <a href=\'zqmdzz.qmd\'>team</a>`,
+          representation: "storage",
+        },
+      },
+    };
+    const expected: ConfluenceSpaceChange[] = [expectedUpdate];
+    check(expected, changes, fileMetadataTable, "fake-server", FAKE_PARENT);
   });
 };
 
@@ -3754,9 +4128,10 @@ if (RUN_ALL_TESTS) {
   runBuildFileToMetaTable();
   runExtractLinks();
   runUpdateLinks();
+  runConvertForSecondPass();
   runFindAttachments();
   runUpdateImagePathsForContentBody();
   runCapFirstLetter();
 } else {
-  runSpaceUpdatesWithNesting();
+  runConvertForSecondPass();
 }

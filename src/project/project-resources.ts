@@ -10,7 +10,11 @@ import { dirname, extname, join, relative } from "path/mod.ts";
 import * as ld from "../core/lodash.ts";
 import { asArray } from "../core/array.ts";
 
-import { resolvePathGlobs, safeExistsSync } from "../core/path.ts";
+import {
+  normalizePath,
+  resolvePathGlobs,
+  safeExistsSync,
+} from "../core/path.ts";
 import { kCssImportRegex, kCssUrlRegex } from "../core/css.ts";
 
 import {
@@ -65,7 +69,7 @@ export function copyResourceFile(
   destFile: string,
 ) {
   // ensure that the resource reference doesn't escape the root dir
-  if (!Deno.realPathSync(srcFile).startsWith(Deno.realPathSync(rootDir))) {
+  if (!normalizePath(srcFile).startsWith(normalizePath(rootDir))) {
     return;
   }
 

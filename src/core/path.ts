@@ -9,9 +9,12 @@ import {
   basename,
   dirname,
   extname,
+  fromFileUrl,
   globToRegExp,
+  isAbsolute,
   isGlob,
   join,
+  normalize,
 } from "path/mod.ts";
 
 import { warning } from "log/mod.ts";
@@ -275,4 +278,20 @@ export function resolveGlobs(
     include: includeFiles,
     exclude: excludeFiles,
   };
+}
+
+// Window UNC paths can be mishandled by realPathSync
+// (see https://github.com/quarto-dev/quarto-vscode/issues/67)
+// so we implement the absolute path and normalize
+// parts of realPathSync (we aren't interested in the symlink
+// resolution, and certainly not on windows that has no symlinks!)
+export function normalizePath(path: string | URL): string {
+  let file = path instanceof URL ? fromFileUrl(path) : path;
+  if (!isAbsolute(file)) {
+    file = join(Deno.cwd(), file);
+  }
+  file = normalize(file);
+  // some runtimes (e.g. nodejs) create paths w/ lowercase drive
+  // letters, make those uppercase
+  return file.replace(/^\w:\\/, (m) => m[0].toUpperCase() + ":\\");
 }

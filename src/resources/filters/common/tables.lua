@@ -174,7 +174,7 @@ local tableCheckers = {
 function hasTable(raw)
   for i, checker in ipairs(tableCheckers) do
     local val = checker(raw)
-    if val ~= nil then
+    if val then
       return true
     end
   end

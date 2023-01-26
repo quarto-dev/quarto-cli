@@ -27,6 +27,7 @@ import {
 
 import { formatResourcePath } from "../../core/resources.ts";
 import { Document, Element } from "../../core/deno-dom.ts";
+import { normalizePath } from "../../core/path.ts";
 
 // features that are enabled by default for 'html'. setting
 // all of these to false will yield the minimal html output
@@ -401,7 +402,7 @@ export function computeUrl(
   offset: string,
   outputFileName: string,
 ) {
-  const rootDir = Deno.realPathSync(join(dirname(input), offset));
+  const rootDir = normalizePath(join(dirname(input), offset));
   if (outputFileName === "index.html") {
     return `${baseUrl}/${relative(rootDir, dirname(input))}`;
   } else {

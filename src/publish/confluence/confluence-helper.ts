@@ -18,6 +18,7 @@ import {
   ContentAncestor,
   ContentBody,
   ContentBodyRepresentation,
+  ContentChange,
   ContentChangeType,
   ContentCreate,
   ContentDelete,
@@ -259,7 +260,8 @@ export const buildContentUpdate = (
   parent?: string,
   status: ContentStatusEnum = ContentStatusEnum.current,
   type: string = PAGE_TYPE,
-  version: ContentVersion | null = null
+  version: ContentVersion | null = null,
+  ancestors: ContentAncestor[] | null = null
 ): ContentUpdate => {
   return {
     contentChangeType: ContentChangeType.update,
@@ -268,7 +270,7 @@ export const buildContentUpdate = (
     title,
     type,
     status,
-    ancestors: parent ? [{ id: parent }] : null,
+    ancestors: parent ? [{ id: parent }] : ancestors,
     body,
     fileName,
   };
@@ -338,7 +340,6 @@ export const buildSpaceChanges = (
 
       let existingSiteParent = null;
 
-      //TODO update with deno paths after tests are in place
       const parentsList = pathList.slice(0, pathList.length - 1);
 
       parentsList.forEach((parentFileName, index) => {
@@ -438,26 +439,56 @@ export const buildSpaceChanges = (
     existingSite
   );
 
-  // TODO prompt as a sanity check and limiter to prevent any major run-away deletes
   const deleteChanges: ContentDelete[] = pagesToDelete.map(
     (toDelete: SitePage) => {
       return { contentChangeType: ContentChangeType.delete, id: toDelete.id };
     }
   );
 
-  const spaceChanges: ConfluenceSpaceChange[] = fileMetadataList.reduce(
+  let spaceChanges: ConfluenceSpaceChange[] = fileMetadataList.reduce(
     spaceChangesCallback,
     deleteChanges
   );
 
+  const activeAncestorIds = spaceChanges.reduce(
+    (accumulator: any, change: any) => {
+      if (change?.ancestors?.length) {
+        const idList = change.ancestors.map(
+          (ancestor: ContentAncestor) => ancestor?.id ?? ""
+        );
+
+        return [...accumulator, ...idList];
+      }
+
+      return accumulator;
+    },
+    []
+  );
+
+  spaceChanges = spaceChanges.filter((change: ConfluenceSpaceChange) => {
+    if (isContentDelete(change) && activeAncestorIds.includes(change.id)) {
+      return false;
+    }
+    return true;
+  });
+
   return spaceChanges;
+};
+
+export const replaceExtension = (
+  fileName: string,
+  oldExtension: string,
+  newExtension: string
+) => {
+  return fileName.replace(oldExtension, newExtension);
 };
 
 export const getTitle = (
   fileName: string,
   metadataByInput: Record<string, InputMetadata>
 ): string => {
-  const qmdFileName = fileName.replace(".xml", ".qmd");
+  const qmdFileName = replaceExtension(fileName, ".xml", ".qmd");
+
   const metadataTitle = metadataByInput[qmdFileName]?.title;
 
   const titleFromFilename = capitalizeWord(fileName.split(".")[0] ?? fileName);
@@ -519,11 +550,16 @@ export const updateLinks = (
   spaceChanges: ConfluenceSpaceChange[],
   server: string,
   parent: ConfluenceParent
-): ConfluenceSpaceChange[] => {
+): {
+  pass1Changes: ConfluenceSpaceChange[];
+  pass2Changes: ConfluenceSpaceChange[];
+} => {
   const root = `${server}`;
   const url = `${ensureTrailingSlash(server)}wiki/spaces/${
     parent.space
   }/pages/`;
+
+  let collectedPass2Changes: ConfluenceSpaceChange[] = [];
 
   const changeMapper = (
     changeToProcess: ConfluenceSpaceChange
@@ -576,7 +612,9 @@ export const updateLinks = (
 
         updated = updated.replace(linkFullFileName, pagePath);
       } else {
-        console.warn(`Link not found for ${siteFilePath}`);
+        if (!collectedPass2Changes.includes(changeToProcess)) {
+          collectedPass2Changes = [...collectedPass2Changes, changeToProcess];
+        }
       }
 
       return updated;
@@ -600,7 +638,66 @@ export const updateLinks = (
   const updatedChanges: ConfluenceSpaceChange[] =
     spaceChanges.map(changeMapper);
 
-  return updatedChanges;
+  return { pass1Changes: updatedChanges, pass2Changes: collectedPass2Changes };
+};
+
+export const convertForSecondPass = (
+  fileMetadataTable: Record<string, SitePage>,
+  spaceChanges: ConfluenceSpaceChange[],
+  server: string,
+  parent: ConfluenceParent
+): ConfluenceSpaceChange[] => {
+  const toUpdatesReducer = (
+    accumulator: ConfluenceSpaceChange[],
+    change: ConfluenceSpaceChange
+  ) => {
+    if (isContentUpdate(change)) {
+      accumulator = [...accumulator, change];
+    }
+
+    if (isContentCreate(change)) {
+      console.log(
+        "basename(change?.fileName?)",
+        basename(change?.fileName ?? "")
+      );
+      const qmdFileName = replaceExtension(
+        change.fileName ?? "",
+        ".xml",
+        ".qmd"
+      );
+      const updateId = fileMetadataTable[qmdFileName]?.id;
+
+      if (updateId) {
+        const convertedUpdate = buildContentUpdate(
+          updateId,
+          change.title,
+          change.body,
+          change.fileName ?? "",
+          "",
+          ContentStatusEnum.current,
+          PAGE_TYPE,
+          null,
+          change.ancestors
+        );
+        accumulator = [...accumulator, convertedUpdate];
+      } else {
+        console.warn("update ID not found for", change.fileName);
+      }
+    }
+
+    return accumulator;
+  };
+
+  const changesAsUpdates = spaceChanges.reduce(toUpdatesReducer, []);
+
+  const updateLinkResults = updateLinks(
+    fileMetadataTable,
+    changesAsUpdates,
+    server,
+    parent
+  );
+
+  return updateLinkResults.pass1Changes;
 };
 
 export const updateImagePaths = (body: ContentBody): ContentBody => {

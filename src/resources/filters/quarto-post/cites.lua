@@ -1,0 +1,54 @@
+-- cites.lua
+-- Copyright (C) 2020-2022 Posit Software, PBC
+
+local cites = pandoc.List() 
+local kRefsIndentifier = "refs-target-identifier"
+
+function indexCites()   
+  return {
+    Div = function(el) 
+      local refsIndentifier = param(kRefsIndentifier)
+      if el.attr.identifier == 'refs' and refsIndentifier then 
+        tappend(el.content, {pandoc.Plain(refsIndentifier)})
+        return el;
+      end
+    end,
+    Cite = function(el) 
+      el.citations:map(function (cite) 
+        cites:insert(cite.id)
+      end)
+    end
+  }
+end
+
+function writeCites() 
+  return {
+    Pandoc = function(el)
+      -- the file to write to
+      local citesFilePath = param("cites-index-file")
+      if citesFilePath then
+        -- open the file
+        local citesRaw = _quarto.file.read(citesFilePath)
+        local documentCites = {}
+        if citesRaw then
+          documentCites = quarto.json.decode(citesRaw)
+        end
+
+        -- write the cites
+        local inputFile = quarto.doc.input_file
+        local relativeFilePath = pandoc.path.make_relative(inputFile, quarto.project.directory)
+        documentCites[relativeFilePath] = cites
+
+        -- write the file
+        local json = quarto.json.encode(documentCites)
+        local file = io.open(citesFilePath, "w")
+        if file ~= nil then
+          file:write(json .. "\n")
+          file:close()
+        else
+          fail('Error opening book citations file at ' .. citesFilePath)
+        end
+      end
+    end
+  }
+end

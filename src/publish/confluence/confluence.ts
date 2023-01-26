@@ -51,6 +51,7 @@ import {
   buildPublishRecordForContent,
   buildSpaceChanges,
   confluenceParentFromString,
+  convertForSecondPass,
   doWithSpinner,
   filterFilesForUpdate,
   findAttachments,
@@ -349,7 +350,8 @@ async function publish(
     id: string,
     body: ContentBody,
     titleToUpdate: string = title,
-    fileName: string = ""
+    fileName: string = "",
+    uploadFileAttachments: boolean = true
   ): Promise<Content> => {
     const previousPage = await client.getContent(id);
 
@@ -380,7 +382,7 @@ async function publish(
 
     const updatedContent: Content = await client.updateContent(toUpdate);
 
-    if (toUpdate.id) {
+    if (toUpdate.id && uploadFileAttachments) {
       const existingAttachments: AttachmentSummary[] =
         await client.getAttachments(toUpdate.id);
 
@@ -571,7 +573,7 @@ async function publish(
       parent: parentId,
     };
 
-    const existingSite: SitePage[] = await fetchExistingSite(parentId);
+    let existingSite: SitePage[] = await fetchExistingSite(parentId);
 
     const publishFiles: PublishFiles = await renderSite(render);
     const metadataByInput: Record<string, InputMetadata> =
@@ -620,7 +622,7 @@ async function publish(
 
     trace("fileMetadata", fileMetadata);
 
-    const metadataByFilename = buildFileToMetaTable(existingSite);
+    let metadataByFilename = buildFileToMetaTable(existingSite);
 
     trace("metadataByFilename", metadataByFilename);
 
@@ -631,18 +633,23 @@ async function publish(
       existingSite
     );
 
-    changeList = updateLinks(
+    const { pass1Changes, pass2Changes } = updateLinks(
       metadataByFilename,
       changeList,
       server,
       siteParent
     );
 
-    trace("changelist", changeList);
+    changeList = pass1Changes;
+
+    trace("changelist Pass 1", changeList);
 
     let pathsToId: Record<string, string> = {}; // build from existing site
 
-    const doChange = async (change: ConfluenceSpaceChange) => {
+    const doChange = async (
+      change: ConfluenceSpaceChange,
+      uploadFileAttachments: boolean = true
+    ) => {
       if (isContentCreate(change)) {
         let ancestorId =
           (change?.ancestors && change?.ancestors[0]?.id) ?? null;
@@ -684,7 +691,8 @@ async function publish(
           update.id ?? "",
           update.body,
           update.title ?? "",
-          update.fileName ?? ""
+          update.fileName ?? "",
+          uploadFileAttachments
         );
       } else if (isContentDelete(change)) {
         if (DELETE_DISABLED) {
@@ -704,8 +712,27 @@ async function publish(
       await doChange(currentChange);
     }
 
-    const parentPage: Content = await client.getContent(parentId);
+    if (pass2Changes.length) {
+      //PASS #2 to update links to newly created pages
 
+      trace("changelist Pass 2", pass2Changes);
+
+      existingSite = await fetchExistingSite(parentId);
+      metadataByFilename = buildFileToMetaTable(existingSite);
+
+      const linkUpdateChanges: ConfluenceSpaceChange[] = convertForSecondPass(
+        metadataByFilename,
+        pass2Changes,
+        server,
+        parent
+      );
+
+      for (let currentChange of linkUpdateChanges) {
+        await doChange(currentChange, false);
+      }
+    }
+
+    const parentPage: Content = await client.getContent(parentId);
     return buildPublishRecordForContent(server, parentPage);
   };
 

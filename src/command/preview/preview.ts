@@ -72,7 +72,7 @@ import {
 } from "../../project/types.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
 import { projectContext } from "../../project/project-context.ts";
-import { pathWithForwardSlashes } from "../../core/path.ts";
+import { normalizePath, pathWithForwardSlashes } from "../../core/path.ts";
 import {
   isJupyterHubServer,
   isRStudioServer,
@@ -168,7 +168,7 @@ export async function preview(
   const handler = isPdfContent(result.outputFile)
     ? pdfFileRequestHandler(
       result.outputFile,
-      Deno.realPathSync(file),
+      normalizePath(file),
       flags,
       result.format,
       options.port!,
@@ -178,7 +178,7 @@ export async function preview(
     : project
     ? projectHtmlFileRequestHandler(
       project,
-      Deno.realPathSync(file),
+      normalizePath(file),
       flags,
       result.format,
       reloader,
@@ -186,7 +186,7 @@ export async function preview(
     )
     : htmlFileRequestHandler(
       result.outputFile,
-      Deno.realPathSync(file),
+      normalizePath(file),
       flags,
       result.format,
       reloader,
@@ -368,7 +368,7 @@ async function renderForPreview(
   // determine files to watch for reload -- take the resource
   // files detected during render, chase down additional references
   // in css files, then fitler out the _files dir
-  file = Deno.realPathSync(file);
+  file = normalizePath(file);
   const filesDir = join(dirname(file), inputFilesDir(file));
   const resourceFiles = renderResult.files.reduce(
     (resourceFiles: string[], file: RenderResultFile) => {
@@ -399,7 +399,7 @@ async function renderForPreview(
           if (!isAbsolute(extensionFile)) {
             const extensionFullPath = join(dirname(file.input), extensionFile);
             if (existsSync(extensionFullPath)) {
-              extensionFiles.push(Deno.realPathSync(extensionFullPath));
+              extensionFiles.push(normalizePath(extensionFullPath));
             }
           }
         });
@@ -522,7 +522,7 @@ function previewWatcher(watches: Watch[]): Watcher {
     return {
       ...watch,
       files: watch.files.filter(existsSync).map((file) => {
-        return Deno.realPathSync(file);
+        return normalizePath(file);
       }),
     };
   });
@@ -635,7 +635,7 @@ function htmlFileRequestHandlerOptions(
         if (
           prevReq &&
           existsSync(prevReq.path) &&
-          Deno.realPathSync(prevReq.path) === Deno.realPathSync(inputFile) &&
+          normalizePath(prevReq.path) === normalizePath(inputFile) &&
           await previewRenderRequestIsCompatible(prevReq, flags)
         ) {
           // don't wait for the promise so the

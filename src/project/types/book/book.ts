@@ -136,12 +136,18 @@ export const bookProjectType: ProjectType = {
   },
 
   filterParams: (options: PandocOptions) => {
+    const bookExt = options.format.extensions?.book as BookExtension;
+    const filterParams = bookExt.filterParams
+      ? bookExt.filterParams(options)
+      : {};
     if (isMultiFileBookFormat(options.format)) {
       return {
+        ...filterParams,
         [kCrossrefResolveRefs]: false,
       };
     } else {
       return {
+        ...filterParams,
         [kSingleFileBook]: true,
       };
     }

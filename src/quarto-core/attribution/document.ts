@@ -15,7 +15,7 @@ import {
 } from "../../config/constants.ts";
 import { Format, Metadata } from "../../config/types.ts";
 import { parseAuthor } from "../../core/author.ts";
-import { pathWithForwardSlashes } from "../../core/path.ts";
+import { normalizePath, pathWithForwardSlashes } from "../../core/path.ts";
 import {
   CSL,
   cslDate,
@@ -444,7 +444,7 @@ function synthesizeCitationUrl(
   const baseUrl = siteMeta?.[kSiteUrl] as string;
 
   if (baseUrl && outputFile && offset) {
-    const rootDir = Deno.realPathSync(join(dirname(input), offset));
+    const rootDir = normalizePath(join(dirname(input), offset));
     if (outputFile === "index.html") {
       return `${baseUrl}/${
         pathWithForwardSlashes(relative(rootDir, dirname(input)))

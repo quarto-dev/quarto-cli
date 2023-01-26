@@ -59,7 +59,9 @@ import("./quarto-init/configurefilters.lua")
 import("./quarto-init/includes.lua")
 import("./quarto-init/resourcerefs.lua")
 
+import("./quarto-post/asciidoc.lua")
 import("./quarto-post/book.lua")
+import("./quarto-post/cites.lua")
 import("./quarto-post/delink.lua")
 import("./quarto-post/fig-cleanup.lua")
 import("./quarto-post/foldcode.lua")
@@ -139,6 +141,7 @@ import("./quarto-pre/resourcefiles.lua")
 import("./quarto-pre/results.lua")
 import("./quarto-pre/shortcodes-handlers.lua")
 import("./quarto-pre/shortcodes.lua")
+import("./quarto-pre/table-classes.lua")
 import("./quarto-pre/table-captions.lua")
 import("./quarto-pre/table-colwidth.lua")
 import("./quarto-pre/table-rawhtml.lua")
@@ -178,6 +181,7 @@ local quartoPre = {
   { name = "pre-tableRenderRawHtml", filter = tableRenderRawHtml() },
   { name = "pre-tableColwidthCell", filter = tableColwidthCell() },
   { name = "pre-tableColwidth", filter = tableColwidth() },
+  { name = "pre-tableClasses", filter = tableClasses() },
   { name = "pre-hidden", filter = hidden() },
   { name = "pre-contentHidden", filter = contentHidden() },
   { name = "pre-tableCaptions", filter = tableCaptions() },
@@ -215,6 +219,8 @@ local quartoPre = {
 
 local quartoPost = {
   -- quarto-post
+  { name = "post-cites", filter = indexCites() },
+  { name = "post-asciidoc", filter = asciidoc() },
   { name = "post-foldCode", filter = foldCode() },
   { name = "post-figureCleanupCombined", filter = combineFilters({
     latexDiv(),
@@ -242,6 +248,7 @@ local quartoFinalize = {
     })
   },
   { name = "finalize-bookCleanup", filter = bookCleanup() },
+  { name = "finalize-cites", filter = writeCites() },
   { name = "finalize-metaCleanup", filter = metaCleanup() },
   { name = "finalize-dependencies", filter = dependencies() },
   { name = "finalize-wrapped-writer", filter = wrapped_writer() }

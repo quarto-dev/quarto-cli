@@ -68,6 +68,7 @@ local youTubeBuilder = function(params)
   if not (params and params.src) then return nil end
   local src = params.src
   match = checkEndMatch(src, 'https://www.youtube.com/embed/')
+  match = match or checkEndMatch(src, 'https://www.youtube%-nocookie.com/embed/')
   match = match or checkEndMatch(src, 'https://youtu.be/')
   match = match or string.match(src, '%?v=(.-)&')
   match = match or string.match(src, '%?v=(.-)$')
@@ -103,7 +104,7 @@ local brightcoveBuilder = function(params)
 
   local result = {}
 
-  local SNIPPET = [[<iframe src="{src}"{width}{height} allowfullscreen="" title="{title}" allow="encrypted-media"></iframe>]]
+  local SNIPPET = [[<iframe data-external="1" src="{src}"{width}{height} allowfullscreen="" title="{title}" allow="encrypted-media"></iframe>]]
   result.snippet = replaceCommonAttributes(SNIPPET, params)
   result.type = VIDEO_TYPES.BRIGHTCOVE
   result.src = params.src
@@ -119,7 +120,7 @@ local vimeoBuilder = function(params)
 
   params.src = 'https://player.vimeo.com/video/' .. match
 
-  local SNIPPET = [[<iframe src="{src}"{width}{height} frameborder="0" allow="autoplay; title="{title}" fullscreen; picture-in-picture" allowfullscreen></iframe>]]
+  local SNIPPET = [[<iframe data-external="1" src="{src}"{width}{height} frameborder="0" allow="autoplay; title="{title}" fullscreen; picture-in-picture" allowfullscreen></iframe>]]
 
   local result = {}
 

@@ -20,9 +20,9 @@ import {
 
 import {
   AccountToken,
+  InputMetadata,
   PublishFiles,
   PublishProvider,
-  InputMetadata,
 } from "./provider.ts";
 
 import { PublishOptions } from "./types.ts";
@@ -44,6 +44,7 @@ import { gfmAutoIdentifier } from "../core/pandoc/pandoc-id.ts";
 import { RenderResultFile } from "../command/render/types.ts";
 import { isHtmlContent, isPdfContent } from "../core/mime.ts";
 import { RenderFlags } from "../command/render/types.ts";
+import { normalizePath } from "../core/path.ts";
 
 export const kSiteContent = "site";
 export const kDocumentContent = "document";
@@ -53,11 +54,11 @@ export async function publishSite(
   provider: PublishProvider,
   account: AccountToken,
   options: PublishOptions,
-  target?: PublishRecord
+  target?: PublishRecord,
 ) {
   // create render function
   const renderForPublish = async (
-    flags?: RenderFlags
+    flags?: RenderFlags,
   ): Promise<PublishFiles> => {
     let metadataByInput: Record<string, InputMetadata> = {};
 
@@ -81,7 +82,7 @@ export async function publishSite(
             };
             return accumulatedResult;
           },
-          {}
+          {},
         );
 
         if (result.error) {
@@ -118,7 +119,7 @@ export async function publishSite(
     siteSlug,
     renderForPublish,
     options,
-    target
+    target,
   );
   if (publishRecord) {
     // write publish record if the id wasn't explicitly provided
@@ -127,7 +128,7 @@ export async function publishSite(
         project,
         provider.name,
         account,
-        publishRecord
+        publishRecord,
       );
     }
   }
@@ -141,7 +142,7 @@ export async function publishDocument(
   provider: PublishProvider,
   account: AccountToken,
   options: PublishOptions,
-  target?: PublishRecord
+  target?: PublishRecord,
 ) {
   // establish title
   let title = basename(document, extname(document));
@@ -153,7 +154,7 @@ export async function publishDocument(
 
   // create render function
   const renderForPublish = async (
-    flags?: RenderFlags
+    flags?: RenderFlags,
   ): Promise<PublishFiles> => {
     const files: string[] = [];
     if (options.render) {
@@ -202,8 +203,8 @@ export async function publishDocument(
           if (resultFile.supporting) {
             files.push(
               ...resultFile.supporting
-                .map((sf) => Deno.realPathSync(sf))
-                .map(asRelative)
+                .map((sf) => normalizePath(sf))
+                .map(asRelative),
             );
           }
           files.push(...resultFile.resourceFiles.map(asRelative));
@@ -249,7 +250,7 @@ export async function publishDocument(
         });
       } else {
         throw new Error(
-          `The specifed document (${document}) is not a valid quarto input file`
+          `The specifed document (${document}) is not a valid quarto input file`,
         );
       }
     }
@@ -264,7 +265,7 @@ export async function publishDocument(
     gfmAutoIdentifier(title, false),
     renderForPublish,
     options,
-    target
+    target,
   );
   if (publishRecord) {
     // write publish record if the id wasn't explicitly provided

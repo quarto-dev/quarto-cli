@@ -35,6 +35,7 @@ import { mergeConfigs } from "../core/config.ts";
 import {
   ensureTrailingSlash,
   kSkipHidden,
+  normalizePath,
   pathWithForwardSlashes,
   safeExistsSync,
 } from "../core/path.ts";
@@ -120,7 +121,7 @@ export async function projectContext(
   flags?: RenderFlags,
   force = false,
 ): Promise<ProjectContext | undefined> {
-  let dir = Deno.realPathSync(
+  let dir = normalizePath(
     Deno.statSync(path).isDirectory ? path : dirname(path),
   );
   const originalDir = dir;
@@ -262,7 +263,7 @@ export async function projectContext(
 
         // if we are attemping to get the projectConext for a file and the
         // file isn't in list of input files then return undefined
-        const fullPath = Deno.realPathSync(path);
+        const fullPath = normalizePath(path);
         if (Deno.statSync(fullPath).isFile && !files.includes(fullPath)) {
           return undefined;
         }
@@ -314,7 +315,7 @@ export async function projectContext(
             context.engines = engines;
             context.files.input = files;
           } else {
-            const input = Deno.realPathSync(path);
+            const input = normalizePath(path);
             context.engines = [
               fileExecutionEngine(input)?.name || kMarkdownEngine,
             ];
@@ -831,7 +832,7 @@ function projectConfigResources(
           // Paths could be invalid paths (e.g. with colons or other weird characters)
           try {
             if (existsSync(path) && !Deno.statSync(path).isDirectory) {
-              resources.push(Deno.realPathSync(path));
+              resources.push(normalizePath(path));
             }
           } catch {
             // Just ignore this error as the path must not be a local file path

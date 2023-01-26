@@ -51,7 +51,7 @@ import {
 import { outputRecipe } from "../../../command/render/output.ts";
 import { renderCleanup } from "../../../command/render/cleanup.ts";
 
-import { ProjectConfig, ProjectContext } from "../../types.ts";
+import { kProjectType, ProjectConfig, ProjectContext } from "../../types.ts";
 import { ProjectOutputFile } from "../types.ts";
 
 import { executionEngineKeepMd } from "../../../execute/engine.ts";
@@ -94,7 +94,6 @@ import { removePandocTo } from "../../../command/render/flags.ts";
 import { resourcePath } from "../../../core/resources.ts";
 import { PandocAttr, PartitionedMarkdown } from "../../../core/pandoc/types.ts";
 import { stringify } from "encoding/yaml.ts";
-import { markdownEngine } from "../../../execute/markdown.ts";
 
 export function bookPandocRenderer(
   options: RenderOptions,
@@ -589,18 +588,22 @@ export async function bookPostRender(
   incremental: boolean,
   outputFiles: ProjectOutputFile[],
 ) {
-  const formats: Format[] = [];
+  const outputFormats: Record<string, Format> = {};
   outputFiles.forEach((file) => {
-    if (!formats.includes(file.format)) {
-      formats.push(file.format);
+    if (file.format.pandoc.to) {
+      outputFormats[file.format.pandoc.to] =
+        outputFormats[file.format.pandoc.to] || file.format;
     }
   });
-  for (const format of formats) {
-    if (format.extensions?.book) {
-      const bookExt = format.extensions?.book as BookExtension;
-      if (bookExt.bookPostProcess) {
-        await bookExt.bookPostProcess(format, context);
-      }
+  for (const outputFormat of Object.values(outputFormats)) {
+    const bookExt = outputFormat.extensions?.book as BookExtension;
+    if (bookExt.bookPostRender) {
+      await bookExt.bookPostRender(
+        outputFormat,
+        context,
+        incremental,
+        outputFiles,
+      );
     }
   }
 

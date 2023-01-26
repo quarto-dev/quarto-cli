@@ -31,6 +31,7 @@ import { RenderFlags, RenderOptions } from "./types.ts";
 import * as ld from "../../core/lodash.ts";
 
 import { isAbsolute, SEP_PATTERN } from "path/mod.ts";
+import { normalizePath } from "../../core/path.ts";
 
 export const kStdOut = "-";
 
@@ -218,7 +219,7 @@ export async function parseRenderFlags(args: string[]) {
           if (isAbsolute(arg)) {
             flags.executeDir = arg;
           } else {
-            flags.executeDir = Deno.realPathSync(arg);
+            flags.executeDir = normalizePath(arg);
           }
         }
 

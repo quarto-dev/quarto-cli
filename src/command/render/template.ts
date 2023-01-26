@@ -23,6 +23,7 @@ import { PandocOptions, RenderFlags } from "./types.ts";
 import * as ld from "../../core/lodash.ts";
 import { isHtmlDocOutput, isRevealjsOutput } from "../../config/format.ts";
 import { expandGlobSync } from "fs/mod.ts";
+import { normalizePath } from "../../core/path.ts";
 
 export const kPatchedTemplateExt = ".patched";
 export const kTemplatePartials = "template-partials";
@@ -39,7 +40,7 @@ export function readPartials(metadata: Metadata, inputDir?: string) {
   }
   const result = (metadata?.[kTemplatePartials] || []) as string[];
 
-  inputDir = inputDir ? Deno.realPathSync(inputDir) : undefined;
+  inputDir = inputDir ? normalizePath(inputDir) : undefined;
   const resolvePath = (path: string) => {
     if (!inputDir || isAbsolute(path)) {
       return path;

@@ -7,6 +7,7 @@
 
 import { dirname, join } from "path/mod.ts";
 import { ensureDirSync } from "fs/mod.ts";
+import { normalizePath } from "../core/path.ts";
 
 export const kQuartoScratch = ".quarto";
 
@@ -18,6 +19,6 @@ export function projectScratchPath(dir: string, path = "") {
     ensureDirSync(dirname(path));
     return path;
   } else {
-    return Deno.realPathSync(scratchDir);
+    return normalizePath(scratchDir);
   }
 }

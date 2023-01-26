@@ -17,6 +17,7 @@ import { PartitionedMarkdown } from "../core/pandoc/types.ts";
 
 import {
   dirAndStem,
+  normalizePath,
   pathWithForwardSlashes,
   removeIfExists,
 } from "../core/path.ts";
@@ -55,7 +56,7 @@ export async function inputTargetIndex(
   }
 
   // filter it out if its not in the list of input files
-  if (!project.files.input.includes(Deno.realPathSync(inputFile))) {
+  if (!project.files.input.includes(normalizePath(inputFile))) {
     return Promise.resolve(undefined);
   }
 

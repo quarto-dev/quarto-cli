@@ -49,7 +49,9 @@ local kLangCommentChars = {
   yaml = {"#"},
   json = {"//"},
   latex = {"%"},
-  typescript = {"//"}
+  typescript = {"//"},
+  swift = { "//" },
+  javascript = { "// "}
 }
 
 local kCodeAnnotationsParam = 'code-annotations'

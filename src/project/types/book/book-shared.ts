@@ -5,12 +5,13 @@
 *
 */
 
-import { RenderedFile } from "../../../command/render/types.ts";
+import { PandocOptions, RenderedFile } from "../../../command/render/types.ts";
 import { kTitle } from "../../../config/constants.ts";
 import { Format } from "../../../config/types.ts";
 import { parsePandocTitle } from "../../../core/pandoc/pandoc-partition.ts";
 import { PartitionedMarkdown } from "../../../core/pandoc/types.ts";
 import { ProjectConfig, ProjectContext } from "../../types.ts";
+import { ProjectOutputFile } from "../types.ts";
 
 export type BookConfigKey =
   | "output-file"
@@ -41,6 +42,8 @@ export interface BookExtension {
   // bool extensions are single file by default but can elect to be multi file
   multiFile?: boolean;
 
+  filterParams?: (options: PandocOptions) => Record<string, unknown>;
+
   formatOutputDirectory?: (format: Format) => string;
 
   // book extensions can modify the format before render
@@ -59,7 +62,12 @@ export interface BookExtension {
     project: ProjectContext,
   ) => Promise<{ format?: Format; markdown?: string }>;
 
-  bookPostProcess?: (format: Format, project: ProjectContext) => Promise<void>;
+  bookPostRender?: (
+    format: Format,
+    context: ProjectContext,
+    incremental: boolean,
+    outputFiles: ProjectOutputFile[],
+  ) => Promise<void>;
 }
 
 export function bookConfig(

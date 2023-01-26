@@ -12,6 +12,7 @@ import { FormatPandoc } from "../config/types.ts";
 
 import { existsSync } from "fs/mod.ts";
 import { resourcePath } from "../core/resources.ts";
+import { normalizePath } from "../core/path.ts";
 
 export interface ThemeDescriptor {
   json: Record<string, unknown>;
@@ -39,7 +40,7 @@ export function textHighlightThemePath(
 
   const userThemePath = join(inputDir, resolvedTheme);
   if (existsSync(userThemePath)) {
-    return Deno.realPathSync(userThemePath);
+    return normalizePath(userThemePath);
   }
 
   // First try the style specific version of the theme, otherwise

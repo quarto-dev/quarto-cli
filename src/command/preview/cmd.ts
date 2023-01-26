@@ -41,6 +41,7 @@ import { isHtmlOutput } from "../../config/format.ts";
 import { renderProject } from "../render/project.ts";
 import { renderServices } from "../render/render-shared.ts";
 import { parseFormatString } from "../../core/pandoc/pandoc-formats.ts";
+import { normalizePath } from "../../core/path.ts";
 export const previewCommand = new Command()
   .name("preview")
   .stopEarly()
@@ -249,7 +250,7 @@ export const previewCommand = new Command()
         // in the project input list -- in this case allow things to proceed
         // without a render
         const format = await previewFormat(file, flags.to, project);
-        const filePath = Deno.realPathSync(file);
+        const filePath = normalizePath(file);
         if (!project.files.input.includes(filePath)) {
           if (extname(file) === ".md" && projectPreviewServe(project)) {
             setPreviewFormat(format, flags, args);

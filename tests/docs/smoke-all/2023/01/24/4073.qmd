@@ -1,0 +1,18 @@
+---
+title: issue-4073
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["div.cell-output style"]
+        - []
+---
+
+```{python}
+import pandas as pd
+
+df = pd.DataFrame({'text': ['foo', 'bar'],'number': [1, 2]})
+
+df.style.set_properties(subset=["number"], **{'text-align': 'right'})
+```
+</style>

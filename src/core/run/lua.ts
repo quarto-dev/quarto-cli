@@ -8,6 +8,7 @@
 import { info } from "log/mod.ts";
 
 import { dirname, extname } from "path/mod.ts";
+import { normalizePath } from "../path.ts";
 import { isWindows } from "../platform.ts";
 import { execProcess } from "../process.ts";
 import { pandocBinaryPath, resourcePath } from "../resources.ts";
@@ -63,7 +64,7 @@ export async function runLua(args: string[]) {
   let tempScript: string | undefined;
   args = args.filter((arg) => {
     if (!tempScript && isLuaScript(arg)) {
-      const script = Deno.realPathSync(arg);
+      const script = normalizePath(arg);
       tempScript = Deno.makeTempFileSync({
         dir: dirname(script),
         prefix: ".run-",

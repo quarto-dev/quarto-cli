@@ -1,0 +1,23 @@
+---
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - 
+          - "table.table-striped"
+          - "table.table-hover"
+          - "table.unknown"
+        - 
+          - "table.striped"
+          - "table.hover"
+          - "table.table-unknown"
+---
+
+| Default | Left | Right | Center |
+|---------|:-----|------:|:------:|
+| 12      | 12   |    12 |   12   |
+| 123     | 123  |   123 |  123   |
+| 1       | 1    |     1 |   1    |
+
+: This is a caption {#tbl-id .unknown .striped .hover .sm tbl-colwidths="[15, 15, 35, 35]"}
