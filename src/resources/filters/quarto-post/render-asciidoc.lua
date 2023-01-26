@@ -12,10 +12,11 @@ function renderAsciidoc()
     return {}
   end
 
-
   return {
     Cite = function(el) 
-      if param(kAsciidocNativeCites) or true then
+      -- If quarto is going to be processing the cites, go ahead and convert
+      -- them to a native cite
+      if param(kAsciidocNativeCites) then
         local citesStr = table.concat(el.citations:map(function (cite) 
           return '<<' .. cite.id .. '>>'
         end))
@@ -23,29 +24,21 @@ function renderAsciidoc()
       end
     end,
     Callout = function(el) 
-      -- types map cleanly
+      -- callout -> admonition types pass through
       local admonitionType = el.type:upper();
-      local admonitionCaption = el.caption;
-      local admonitionContents = el.content;
+
+      -- render the callout contents
+      local admonitionContents = pandoc.write(pandoc.Pandoc(el.content), kAsciiDocFormat)
 
       local admonitionStr;
-      if admonitionCaption then
-
-        local renderedCaption = pandoc.write(pandoc.Pandoc(admonitionCaption), kAsciiDocFormat)
-        local renderedContents = pandoc.write(pandoc.Pandoc(admonitionContents), kAsciiDocFormat)
-        admonitionStr = "[" .. admonitionType .. "]\n." .. renderedCaption .. "====\n" .. renderedContents .. "====\n\n" 
-
+      if el.caption then
+        -- A captioned admonition
+        local admonitionCaption = pandoc.write(pandoc.Pandoc(el.caption), kAsciiDocFormat)
+        admonitionStr = "[" .. admonitionType .. "]\n." .. admonitionCaption .. "====\n" .. admonitionContents .. "====\n\n" 
       else
-        local renderedContents = pandoc.write(pandoc.Pandoc(admonitionContents), kAsciiDocFormat)
-
         -- A captionless admonition
-        if #admonitionContents == 1 then
-          admonitionStr = admonitionType .. ': ' .. renderedContents
-        else
-          admonitionStr = "[" .. admonitionType .. "]\n====\n" .. renderedContents .. "====\n\n" 
-        end
+          admonitionStr = "[" .. admonitionType .. "]\n====\n" .. admonitionContents .. "====\n\n" 
       end
-
       return pandoc.RawBlock(kAsciiDocFormat, admonitionStr)
     end
   }
