@@ -115,7 +115,6 @@ import("./crossref/format.lua")
 import("./crossref/options.lua")
 --import("./crossref/crossref.lua")
 
-
 import("./quarto-pre/bibliography-formats.lua")
 import("./quarto-pre/book-links.lua")
 import("./quarto-pre/book-numbering.lua")
@@ -147,6 +146,8 @@ import("./quarto-pre/table-captions.lua")
 import("./quarto-pre/table-colwidth.lua")
 import("./quarto-pre/table-rawhtml.lua")
 import("./quarto-pre/theorems.lua")
+
+import("./customnodes/decoratedcodeblock.lua")
 
 -- [/import]
 
@@ -272,13 +273,13 @@ local quartoCrossref = {
   { name = "crossref-preprocessTheorems", filter = crossrefPreprocessTheorems() },
   { name = "crossref-combineFilters", filter = combineFilters({
     fileMetadata(),
-    qmd(),
-    sections(),
-    crossrefFigures(),
-    crossrefTables(),
-    equations(),
-    listings(),
-    crossrefTheorems(),
+    -- qmd(),
+    -- sections(),
+    -- crossrefFigures(),
+    -- crossrefTables(),
+    -- equations(),
+    -- listings(),
+    -- crossrefTheorems(),
   })},
   { name = "crossref-resolveRefs", filter = resolveRefs() },
   { name = "crossref-crossrefMetaInject", filter = crossrefMetaInject() },

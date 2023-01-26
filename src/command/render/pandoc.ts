@@ -193,6 +193,10 @@ export async function runPandoc(
   options: PandocOptions,
   sysFilters: string[],
 ): Promise<RunPandocResult | null> {
+  const beforePandocHooks: (() => unknown)[] = [];
+  const afterPandocHooks: (() => unknown)[] = [];
+  const pandocEnv: { [key: string]: string } = {};
+
   // compute cwd for render
   const cwd = dirname(options.source);
 
@@ -1003,16 +1007,32 @@ export async function runPandoc(
   // workaround for our wonky Lua timing routines
   const luaEpoch = await getLuaTiming();
 
+  pandocEnv["QUARTO_FILTER_PARAMS"] = base64Encode(paramsJson);
+
+  const traceFiltersMetadata = pandocPassedMetadata?.["_quarto"]
+    ?.["trace-filters"];
+  if (traceFiltersMetadata) {
+    pandocEnv["QUARTO_TRACE_FILTERS"] = "true";
+  }
+
+  // run beforePandoc hooks
+  for (const hook of beforePandocHooks) {
+    await hook();
+  }
+
   // run pandoc
   const result = await execProcess(
     {
       cmd,
       cwd,
-      env: {
-        "QUARTO_FILTER_PARAMS": base64Encode(paramsJson),
-      },
+      env: pandocEnv,
     },
   );
+
+  // run afterPandoc hooks
+  for (const hook of afterPandocHooks) {
+    await hook();
+  }
 
   // resolve resource files from metadata
   const resources: string[] = resourcesFromMetadata(
