@@ -18,6 +18,9 @@ runs:
         ./configure.cmd
         $env:QUARTO_BIN_DEV >> $env:GITHUB_PATH
 
+    - shell: pwsh
+      run: $env:PATH -Split ";"
+
     - name: Basic dev mode sanity check
       shell: pwsh
       run: |
