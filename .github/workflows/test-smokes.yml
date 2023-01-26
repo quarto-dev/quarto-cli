@@ -50,7 +50,7 @@ jobs:
         run: npx playwright install --with-deps
         working-directory: ./tests/integration/playwright
 
-      - name: Cache packages
+      - name: Cache R packages
         uses: actions/cache@v3
         with:
           path: ${{ env.RENV_PATHS_ROOT }}
@@ -96,10 +96,13 @@ jobs:
       - name: Setup Julia
         uses: julia-actions/setup-julia@v1
 
+      - name: Cache Julia Packages
+        uses: julia-actions/setup-julia@v1
+
       - name: Restore Julia Packages
         working-directory: tests
         run: |
-          julia --project=. -e 'import Pkg; Pkg.instantiate(); Pkg.build("IJulia"); Pkg.precompile()'
+          julia --color=yes --project=. -e 'import Pkg; Pkg.instantiate(); Pkg.build("IJulia"); Pkg.precompile()'
 
       - name: Smoke Test Commits
         if: github.event.before != ''
