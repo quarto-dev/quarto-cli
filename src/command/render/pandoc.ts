@@ -702,6 +702,10 @@ export async function runPandoc(
     formatFilterParams["custom-writer"] = allDefaults.to;
     allDefaults.to = resourcePath("filters/customwriter/customwriter.lua");
   }
+  if (allDefaults.writer?.match(/[.]lua$/)) {
+    formatFilterParams["custom-writer"] = allDefaults.writer;
+    allDefaults.writer = resourcePath("filters/customwriter/customwriter.lua");
+  }
 
   // set parameters required for filters (possibily mutating all of it's arguments
   // to pull includes out into quarto parameters so they can be merged)
