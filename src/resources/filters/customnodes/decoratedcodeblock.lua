@@ -24,7 +24,6 @@ _quarto.ast.add_handler({
 
   -- a function that renders the extendedNode into output
   render = function(node)
-    print("Hello?")
     local el = node.code_block
     if _quarto.format.isHtmlOutput() then
       local filenameEl
@@ -65,6 +64,24 @@ _quarto.ast.add_handler({
       return pandoc.Div(blocks, pandoc.Attr("", classes))
     else
       print("TO BE FINISHED")
+      
+          -- -- add listing class to the code block
+          -- el.attr.classes:insert("listing")
+
+          -- -- if we are use the listings package we don't need to do anything
+          -- -- further, otherwise generate the listing div and return it
+          -- if not latexListings() then
+          --   local listingDiv = pandoc.Div({})
+          --   listingDiv.content:insert(pandoc.RawBlock("latex", "\\begin{codelisting}"))
+          --   local listingCaption = pandoc.Plain({pandoc.RawInline("latex", "\\caption{")})
+          --   listingCaption.content:extend(captionContent)
+          --   listingCaption.content:insert(pandoc.RawInline("latex", "}"))
+          --   listingDiv.content:insert(listingCaption)
+          --   listingDiv.content:insert(el)
+          --   listingDiv.content:insert(pandoc.RawBlock("latex", "\\end{codelisting}"))
+          --   return listingDiv
+          -- end
+
       crash_with_stack_trace()
     end
   end,
