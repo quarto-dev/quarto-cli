@@ -123,3 +123,7 @@
 
 - Quarto 1.3 introduces the notion of Custom AST nodes to Pandoc filters. If you use Lua filters for processing callouts, tabsets, or conditional blocks, consult the [pre-release documentation](https://quarto.org/docs/prerelease/1.3.html) for how to change your filters to support the new syntax.
 - Quarto 1.3 now processes HTML tables (in Markdown input) into Pandoc AST nodes, which can be processed by user filters and output into non-HTML formats. In addition, it supports "embedded Markdown content" which will be resolved by quarto's processing, including shortcode and crossref resolution. See the [prerelease documentation](https://quarto.org/docs/prerelease/1.3.html) for more.
+
+## Project
+
+- fix rendering of individual project files to stdout ([#4052](https://github.com/quarto-dev/quarto-cli/issues/4052)).

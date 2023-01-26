@@ -77,7 +77,7 @@ export function outputRecipe(
     // default recipe spec based on user input
     const completeActions: VoidFunction[] = [];
 
-    const recipe = {
+    const recipe: OutputRecipe = {
       output,
       keepYaml: false,
       args: options.pandocArgs || [],
@@ -175,6 +175,7 @@ export function outputRecipe(
       // forward to stdout (necessary b/c a postprocesor may need to act on
       // the output before its complete)
       updateOutput(options.services.temp.createFile({ suffix: "." + ext }));
+      recipe.isOutputTransient = true;
       completeActions.push(() => {
         writeFileToStdout(recipe.output);
         Deno.removeSync(recipe.output);

@@ -318,7 +318,8 @@ export async function renderPandoc(
       };
       popTiming();
 
-      return {
+      const result: RenderedFile = {
+        isTransient: recipe.isOutputTransient,
         input: projectPath(context.target.source),
         markdown: executeResult.markdown,
         format,
@@ -327,13 +328,16 @@ export async function renderPandoc(
             context.project ? relative(context.project.dir, file) : file
           )
           : undefined,
-        file: projectPath(finalOutput!),
+        file: recipe.isOutputTransient
+          ? finalOutput!
+          : projectPath(finalOutput!),
         resourceFiles: {
           globs: pandocResult.resources,
           files: resourceFiles.concat(htmlPostProcessResult.resources),
         },
         selfContained: selfContained!,
       };
+      return result;
     },
   };
 }
