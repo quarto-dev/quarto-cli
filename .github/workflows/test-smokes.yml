@@ -79,6 +79,7 @@ jobs:
           python3 -m pip install -r requirements.txt
 
       - name: Setup tmate session
+        if: false
         uses: mxschmitt/action-tmate@v3
 
       - uses: ./.github/workflows/actions/quarto-dev
