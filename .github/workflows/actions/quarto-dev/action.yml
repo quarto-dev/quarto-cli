@@ -8,22 +8,23 @@ runs:
       if: runner.os != 'Windows'
       shell: bash
       run: |
+        # install with symlink in /usr/local/bin which in PATH on CI
         ./configure.sh
-        echo "$HOME/bin" >> $GITHUB_PATH
 
     - name: Configure Quarto (.ps1)
       if: runner.os == 'Windows'
-      shell: pwsh
+      shell: cmd
       run: |
         ./configure.cmd
-        $env:QUARTO_BIN_DEV >> $env:GITHUB_PATH
+        echo %QUARTO_BIN_DEV% >> %GITHUB_PATH%
+
+    - shell: pwsh
+      if: runner.os == 'Windows'
+      run: $env:PATH -Split ";"
 
     - name: Setup tmate session
       if: runner.os == 'Windows'
       uses: mxschmitt/action-tmate@v3
-
-    - shell: pwsh
-      run: $env:PATH -Split ";"
 
     - name: Basic dev mode sanity check
       shell: pwsh
