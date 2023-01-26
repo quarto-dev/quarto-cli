@@ -475,11 +475,21 @@ export const buildSpaceChanges = (
   return spaceChanges;
 };
 
+export const replaceExtension = (
+  fileName: string,
+  oldExtension: string,
+  newExtension: string
+) => {
+  const base = parse(fileName).name;
+  return `${base}${newExtension}`;
+};
+
 export const getTitle = (
   fileName: string,
   metadataByInput: Record<string, InputMetadata>
 ): string => {
-  const qmdFileName = fileName.replace(".xml", ".qmd");
+  const qmdFileName = replaceExtension(fileName, ".xml", ".qmd");
+  console.log("qmdFileName", qmdFileName);
   const metadataTitle = metadataByInput[qmdFileName]?.title;
 
   const titleFromFilename = capitalizeWord(fileName.split(".")[0] ?? fileName);
@@ -647,7 +657,15 @@ export const convertForSecondPass = (
     }
 
     if (isContentCreate(change)) {
-      const qmdFileName = change?.fileName?.replace(".xml", ".qmd") ?? "";
+      console.log(
+        "basename(change?.fileName?)",
+        basename(change?.fileName ?? "")
+      );
+      const qmdFileName = replaceExtension(
+        change.fileName ?? "",
+        ".xml",
+        ".qmd"
+      );
       const updateId = fileMetadataTable[qmdFileName]?.id;
 
       if (updateId) {
