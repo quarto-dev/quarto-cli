@@ -41,22 +41,29 @@ function combineFilters(filters)
   local combinedFilters = {}
   for key,fns in pairs(filterList) do
 
-    combinedFilters[key] = function(x) 
-      -- capture the current value
-      local current = x
+    -- if there is only one function for this key
+    -- just use it
+    if #fns == 1 then
+      combinedFilters[key] = fns[1]
+    else
+      -- otherwise combine them into a single function
+      combinedFilters[key] = function(x) 
+        -- capture the current value
+        local current = x
 
-      -- iterate through functions for this key
-      for _, fn in ipairs(fns) do
-        local result = fn(current)
-        if result ~= nil then
-          -- if there is a result from this function
-          -- update the current value with the result
-          current = result
+        -- iterate through functions for this key
+        for _, fn in ipairs(fns) do
+          local result = fn(current)
+          if result ~= nil then
+            -- if there is a result from this function
+            -- update the current value with the result
+            current = result
+          end
         end
-      end
 
-      -- return result from calling the functions
-      return current
+        -- return result from calling the functions
+        return current
+      end
     end
   end
   return combinedFilters
