@@ -68,6 +68,7 @@ export function asciidocFormat(): Format {
 }
 
 const kFormatOutputDir = "asciidoc";
+const kAsciidocDocType = "asciidoc-doctype";
 
 // Ref target marks the refs div so the post process can inject the bibliography
 const kRefTargetIdentifier = "refs-target-identifier";
@@ -100,15 +101,9 @@ const asciidocBookExtension = {
       const rootPageMd = await bookRootPageMarkdown(project);
       const completeMd = markdown + "\n" + rootPageMd;
 
-      // Use a book specific template for the book
-      format.pandoc.template = formatResourcePath(
-        "asciidoc",
-        join(
-          "templates",
-          "book",
-          "template.asciidoc",
-        ),
-      );
+      format.pandoc.variables = format.pandoc.variables || {};
+      format.pandoc.variables[kAsciidocDocType] = "book";
+
       return { markdown: completeMd, format };
     } else {
       // Turn off the TOC on child pages

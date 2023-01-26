@@ -3,6 +3,9 @@ $if(titleblock)$
 $if(by-author)$
 $for(by-author)$$it.name.literal$$if(it.email)$ <$it.email$>$endif$$sep$; $endfor$
 $endif$
+$if(description)$
+:description: $description$
+$endif$
 $if(date)$
 $date$
 $endif$
@@ -14,6 +17,9 @@ $if(lang)$
 $endif$
 $if(toc)$
 :toc:
+$endif$
+$if(asciidoc-doctype)$
+:doctype: $asciidoc-doctype$
 $endif$
 
 $endif$
