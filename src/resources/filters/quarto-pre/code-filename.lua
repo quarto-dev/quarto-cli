@@ -60,7 +60,6 @@ function codeFilename()
     
       -- if we found a file name then return the modified list of blocks
       if foundFilename then
-        quarto.utils.dump(newBlocks)
         return newBlocks
       else
         return blocks
