@@ -1021,11 +1021,14 @@ export async function runPandoc(
         "../../package/src/common/trace-viewer",
         pandocMetadata?.["_quarto"]?.["trace-filters"],
       );
-      try {
-        Deno.removeSync(dest);
-      } catch { // pass
+      const source = join(cwd, "quarto-filter-trace.json");
+      if (source !== dest) {
+        try {
+          Deno.removeSync(dest);
+        } catch { // pass
+        }
+        moveSync(join(cwd, "quarto-filter-trace.json"), dest);
       }
-      moveSync(join(cwd, "quarto-filter-trace.json"), dest);
     });
   }
 
