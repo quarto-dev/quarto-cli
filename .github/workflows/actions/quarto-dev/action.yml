@@ -4,20 +4,19 @@ description: "Configures the image for Quarto Development"
 runs:
   using: "composite"
   steps:
-    - name: Set Path
-      shell: bash
-      run: |
-        echo "$HOME/bin" >> $GITHUB_PATH
-
     - name: Configure Quarto (.sh)
       if: runner.os != 'Windows'
       shell: bash
-      run: ./configure.sh
+      run: |
+        ./configure.sh
+        echo "$HOME/bin" >> $GITHUB_PATH
 
     - name: Configure Quarto (.ps1)
       if: runner.os == 'Windows'
       shell: cmd
-      run: ./configure.cmd
+      run: |
+        ./configure.cmd
+        ECHO %QUARTO_BIN_DEV% >> %GITHUB_PATH%
 
     - name: Basic dev mode sanity check
       shell: bash

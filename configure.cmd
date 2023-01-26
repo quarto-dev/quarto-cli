@@ -95,6 +95,7 @@ IF EXIST !QUARTO_BIN_PATH!\quarto.cmd (
 ECHO NOTE: To use quarto please use quarto.cmd (located in this folder) or add the following path to your PATH
 ECHO !QUARTO_BIN_PATH!
 
+endlocal & set QUARTO_BIN_DEV=%QUARTO_BIN_PATH%
 
 GOTO :eof
 
