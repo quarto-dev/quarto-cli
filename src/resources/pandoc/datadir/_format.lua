@@ -30,6 +30,10 @@ local function isLatexOutput()
   return FORMAT == "latex" or FORMAT == "beamer" or FORMAT == "pdf"
 end
 
+local function isAsciiDocOutput()
+  return FORMAT == "asciidoc"
+end 
+
 local function isBeamerOutput()
   return FORMAT == "beamer"
 end
@@ -193,6 +197,7 @@ end
 
 
 return {
+  isAsciiDocOutput = isAsciiDocOutput,
   isRawHtml = isRawHtml,
   isRawLatex = isRawLatex,
   isFormat = isFormat,

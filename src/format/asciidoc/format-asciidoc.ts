@@ -52,6 +52,8 @@ export function asciidocFormat(): Format {
     plaintextFormat("Asciidoc", "adoc"),
     {
       pandoc: {
+        // This is required because Pandoc is wrapping asciidoc images which must be on one line
+        wrap: "none",
         template: formatResourcePath(
           "asciidoc",
           join(

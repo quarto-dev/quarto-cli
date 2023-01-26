@@ -84,6 +84,7 @@ import("./normalize/normalize.lua")
 import("./normalize/parsehtml.lua")
 import("./normalize/extractquartodom.lua")
 
+import("./layout/asciidoc.lua")
 import("./layout/meta.lua")
 import("./layout/width.lua")
 import("./layout/latex.lua")
