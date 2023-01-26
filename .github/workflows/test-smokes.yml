@@ -78,10 +78,6 @@ jobs:
           python3 -m pip install wheel 
           python3 -m pip install -r requirements.txt
 
-      - name: Setup tmate session
-        if: false
-        uses: mxschmitt/action-tmate@v3
-
       - uses: ./.github/workflows/actions/quarto-dev
 
       - name: Install Tinytex
@@ -98,6 +94,9 @@ jobs:
 
       - name: Cache Julia Packages
         uses: julia-actions/cache@v1
+
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
 
       - name: Restore Julia Packages
         working-directory: tests
