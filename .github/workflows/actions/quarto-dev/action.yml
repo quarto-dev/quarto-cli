@@ -18,6 +18,9 @@ runs:
         ./configure.cmd
         $env:QUARTO_BIN_DEV >> $env:GITHUB_PATH
 
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
+
     - shell: pwsh
       run: $env:PATH -Split ";"
 
