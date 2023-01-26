@@ -101,6 +101,7 @@ const asciidocBookExtension = {
       const rootPageMd = await bookRootPageMarkdown(project);
       const completeMd = markdown + "\n" + rootPageMd;
 
+      // Provide a doctype for the template
       format.pandoc.variables = format.pandoc.variables || {};
       format.pandoc.variables[kAsciidocDocType] = "book";
 

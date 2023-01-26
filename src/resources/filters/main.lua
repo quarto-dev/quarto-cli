@@ -59,7 +59,7 @@ import("./quarto-init/configurefilters.lua")
 import("./quarto-init/includes.lua")
 import("./quarto-init/resourcerefs.lua")
 
-import("./quarto-post/asciidoc.lua")
+import("./quarto-post/render-asciidoc.lua")
 import("./quarto-post/book.lua")
 import("./quarto-post/cites.lua")
 import("./quarto-post/delink.lua")
@@ -220,7 +220,6 @@ local quartoPre = {
 local quartoPost = {
   -- quarto-post
   { name = "post-cites", filter = indexCites() },
-  { name = "post-asciidoc", filter = asciidoc() },
   { name = "post-foldCode", filter = foldCode() },
   { name = "post-figureCleanupCombined", filter = combineFilters({
     latexDiv(),
@@ -235,6 +234,7 @@ local quartoPost = {
   }) },
   { name = "post-ojs", filter = ojs() },
   { name = "post-postMetaInject", filter = quartoPostMetaInject() },
+  { name = "post-render-asciidoc", filter = renderAsciidoc() },
   { name = "post-renderExtendedNodes", filter = renderExtendedNodes() },
   { name = "post-userAfterQuartoFilters", filters = make_wrapped_user_filters("afterQuartoFilters") },
 }
