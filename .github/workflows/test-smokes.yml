@@ -96,12 +96,14 @@ jobs:
         uses: julia-actions/cache@v1
 
       - name: Setup tmate session
+        if: false
         uses: mxschmitt/action-tmate@v3
 
       - name: Restore Julia Packages
         working-directory: tests
+        shell: bash
         run: |
-          julia --color=yes --project=. -e 'import Pkg; Pkg.instantiate(); Pkg.build("IJulia"); Pkg.precompile()'
+          julia --color=yes --project=. -e "import Pkg; Pkg.instantiate(); Pkg.build(\"IJulia\"); Pkg.precompile()"
 
       - name: Smoke Test Commits
         if: github.event.before != ''
