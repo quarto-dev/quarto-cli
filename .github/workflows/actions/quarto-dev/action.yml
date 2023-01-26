@@ -13,21 +13,14 @@ runs:
 
     - name: Configure Quarto (.ps1)
       if: runner.os == 'Windows'
-      shell: cmd
+      shell: pwsh
       run: |
         ./configure.cmd
-        echo %GITHUB_PATH%
-        type %GITHUB_PATH%
-        echo %QUARTO_BIN_DEV%
-        echo %QUARTO_BIN_DEV% >> %GITHUB_PATH%
-        type %GITHUB_PATH%
+        "$(Get-ChildItem -Path ./package/dist/bin/quarto.cmd | %{ $_.FullName } | Split-Path)" >> $env:GITHUB_PATH
+
     - shell: pwsh
       if: runner.os == 'Windows'
       run: $env:PATH -Split ";"
-
-    - name: Setup tmate session
-      if: runner.os == 'Windows'
-      uses: mxschmitt/action-tmate@v3
 
     - name: Basic dev mode sanity check
       shell: pwsh
