@@ -21,6 +21,9 @@ $endif$
 $if(asciidoc-doctype)$
 :doctype: $asciidoc-doctype$
 $endif$
+$if(asciidoc-stem)$
+:stem: $asciidoc-stem$
+$endif$
 
 $endif$
 $if(abstract)$

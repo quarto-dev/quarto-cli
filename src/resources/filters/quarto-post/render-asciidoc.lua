@@ -12,7 +12,16 @@ function renderAsciidoc()
     return {}
   end
 
+  local hasMath = false
+
   return {
+    Meta = function(meta)
+      meta['asciidoc-stem'] = 'latexmath'
+      return meta
+    end,
+    Math = function(el)
+      hasMath = true;
+    end,
     Cite = function(el) 
       -- If quarto is going to be processing the cites, go ahead and convert
       -- them to a native cite
