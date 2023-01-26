@@ -1,0 +1,34 @@
+---
+title: test
+format: 
+  asciidoc: default
+_quarto:
+  tests:
+    asciidoc:
+      ensureFileRegexMatches:
+        -
+          - '\[NOTE\]\n.Bruv\n===='
+          - '\[TIP\]\n===='
+
+---
+
+## Hi Dog
+
+:::{.callout-note}
+
+## Bruv
+
+Sorry about all the noise. Sorry about all the dust. Sorry about all that mud.
+
+:::
+
+some content
+
+:::{.callout-tip}
+
+Hi there! this it a tip.
+
+This is another para
+
+:::
+
