@@ -1,0 +1,19 @@
+---
+title: "4034"
+format: markdown
+_quarto:
+  tests:
+    markdown:
+      ensureFileRegexMatches:
+        - []
+        - [".cell"]
+---
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| output: false
+z=3+4
+z
+```
