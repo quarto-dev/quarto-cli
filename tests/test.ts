@@ -166,7 +166,7 @@ export function test(test: TestDescriptor) {
             for (const ver of test.verify) {
               lastVerify = ver;
               if (userSession) {
-                const verifyMsg = "  [verify] > " + ver.name;
+                const verifyMsg = "[verify] > " + ver.name;
                 console.log(userSession ? colors.dim(verifyMsg) : verifyMsg);
               }
               await ver.verify(testOutput);
