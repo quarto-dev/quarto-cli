@@ -89,6 +89,7 @@ local youTubeBuilder = function(params)
   }
   result.type = VIDEO_TYPES.YOUTUBE
   result.src = params.src
+  result.videoId = match
 
   return result
 end
@@ -127,6 +128,7 @@ local vimeoBuilder = function(params)
   result.snippet = replaceCommonAttributes(SNIPPET, params)
   result.type = VIDEO_TYPES.VIMEO
   result.src = params.src
+  result.videoId = match
 
   return result
 end
@@ -179,6 +181,29 @@ local helpers = {
   ["VIDEO_SHORTCODE_NUM_VIDEOJS"] = VIDEO_SHORTCODE_NUM_VIDEOJS,
   ["getSnippetFromBuilders"] = getSnippetFromBuilders
 }
+
+local function asciidocVideo(src, height, width, title, start, _aspectRatio)
+
+  -- makes an asciidoc video raw block
+  -- see https://docs.asciidoctor.org/asciidoc/latest/macros/audio-and-video/
+  local makeAdoc = function(id, type) 
+    return pandoc.RawBlock("asciidoc", 'video::' .. id .. '[' .. type .. ']\n\n')
+  end
+
+  local videoSnippetAndType = getSnippetFromBuilders(src, height, width, title, start)  
+  if videoSnippetAndType.type == VIDEO_TYPES.YOUTUBE then  
+    -- Use the video id to form an asciidoc video
+    if videoSnippetAndType.videoId ~= nil then
+      return makeAdoc(videoSnippetAndType.videoId, 'youtube');
+    end    
+  elseif videoSnippetAndType.type == VIDEO_TYPES.VIMEO then
+    return makeAdoc(videoSnippetAndType.videoId, 'vimeo');
+  elseif videoSnippetAndType.type ==  VIDEO_TYPES.VIDEOJS then
+    return makeAdoc(videoSnippetAndType.src, '');
+  else
+  end
+
+end
 
 function htmlVideo(src, height, width, title, start, aspectRatio)
 
@@ -268,6 +293,8 @@ return {
 
     if quarto.doc.is_format("html:js") then
       return htmlVideo(srcValue, heightValue, widthValue, titleValue, startValue, aspectRatio)
+    elseif quarto.doc.isFormat("asciidoc") then
+      return asciidocVideo(srcValue, heightValue, widthValue, titleValue, startValue, aspectRatio)
     else
       -- Fall-back to a link of the source
       return pandoc.Link(srcValue, srcValue)
