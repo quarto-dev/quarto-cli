@@ -9,7 +9,7 @@ import { basename, dirname, isAbsolute, join } from "path/mod.ts";
 
 import { info } from "log/mod.ts";
 
-import { existsSync, expandGlobSync } from "fs/mod.ts";
+import { existsSync, expandGlobSync, moveSync } from "fs/mod.ts";
 
 import { stringify } from "encoding/yaml.ts";
 import { encode as base64Encode } from "encoding/base64.ts";
@@ -188,11 +188,16 @@ import {
 import { kRevealJSPlugins } from "../../extension/extension-shared.ts";
 import { kCitation } from "../../format/html/format-html-shared.ts";
 import { cslDate } from "../../core/csl.ts";
+import { quartoConfig } from "../../core/quarto.ts";
 
 export async function runPandoc(
   options: PandocOptions,
   sysFilters: string[],
 ): Promise<RunPandocResult | null> {
+  const beforePandocHooks: (() => unknown)[] = [];
+  const afterPandocHooks: (() => unknown)[] = [];
+  const pandocEnv: { [key: string]: string } = {};
+
   // compute cwd for render
   const cwd = dirname(options.source);
 
@@ -1003,16 +1008,48 @@ export async function runPandoc(
   // workaround for our wonky Lua timing routines
   const luaEpoch = await getLuaTiming();
 
+  pandocEnv["QUARTO_FILTER_PARAMS"] = base64Encode(paramsJson);
+
+  if (pandocMetadata?.["_quarto"]?.["trace-filters"]) {
+    // const metadata = pandocMetadata?.["_quarto"]?.["trace-filters"];
+    beforePandocHooks.push(() => {
+      pandocEnv["QUARTO_TRACE_FILTERS"] = "true";
+    });
+    afterPandocHooks.push(() => {
+      const dest = join(
+        quartoConfig.sharePath(),
+        "../../package/src/common/trace-viewer",
+        pandocMetadata?.["_quarto"]?.["trace-filters"],
+      );
+      const source = join(cwd, "quarto-filter-trace.json");
+      if (source !== dest) {
+        try {
+          Deno.removeSync(dest);
+        } catch { // pass
+        }
+        moveSync(join(cwd, "quarto-filter-trace.json"), dest);
+      }
+    });
+  }
+
+  // run beforePandoc hooks
+  for (const hook of beforePandocHooks) {
+    await hook();
+  }
+
   // run pandoc
   const result = await execProcess(
     {
       cmd,
       cwd,
-      env: {
-        "QUARTO_FILTER_PARAMS": base64Encode(paramsJson),
-      },
+      env: pandocEnv,
     },
   );
+
+  // run afterPandoc hooks
+  for (const hook of afterPandocHooks) {
+    await hook();
+  }
 
   // resolve resource files from metadata
   const resources: string[] = resourcesFromMetadata(

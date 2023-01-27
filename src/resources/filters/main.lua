@@ -115,7 +115,6 @@ import("./crossref/format.lua")
 import("./crossref/options.lua")
 --import("./crossref/crossref.lua")
 
-
 import("./quarto-pre/bibliography-formats.lua")
 import("./quarto-pre/book-links.lua")
 import("./quarto-pre/book-numbering.lua")
@@ -147,6 +146,8 @@ import("./quarto-pre/table-captions.lua")
 import("./quarto-pre/table-colwidth.lua")
 import("./quarto-pre/table-rawhtml.lua")
 import("./quarto-pre/theorems.lua")
+
+import("./customnodes/decoratedcodeblock.lua")
 
 -- [/import]
 

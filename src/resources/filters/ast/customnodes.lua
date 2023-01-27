@@ -84,7 +84,7 @@ function run_emulated_filter(doc, filter)
       elseif type(result) == "table" then
         local new_result = quarto[t](result)
         process_custom_inner(new_result or custom_node)
-        return result, recurse
+        return new_result, recurse
       elseif result == nil then
         process_custom_inner(custom_node)
         return nil, recurse

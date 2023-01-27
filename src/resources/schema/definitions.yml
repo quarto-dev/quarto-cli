@@ -2121,4 +2121,5 @@
           hidden: true
           object:
             properties:
+              trace-filters: string
               tests: object
