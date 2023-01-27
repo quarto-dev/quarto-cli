@@ -1,0 +1,30 @@
+---
+title: test
+author:
+  - name: Charles Teague
+    email: cteague@gmail.com
+  - name: Norah Jones
+    email: norah@bluenote.com
+format: 
+  asciidoc: default
+_quarto:
+  tests:
+    asciidoc:
+      ensureFileRegexMatches:
+        - ["video\\:\\:yRLMDtHlwuY\\[youtube\\]", "video\\:\\:783455051\\[vimeo\\]", "video\\:\\:video.mp4\\[\\]"]
+
+---
+
+### Video
+
+The below is a youtube video.
+
+{{< video https://www.youtube.com/watch?v=yRLMDtHlwuY >}}
+
+The below is a vimeo video
+
+{{< video https://vimeo.com/783455051 >}}
+
+This is  local video
+
+{{< video video.mp4 >}}
