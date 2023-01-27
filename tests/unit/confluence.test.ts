@@ -3232,6 +3232,11 @@ const runUpdateLinks = () => {
       id: "43417628",
       metadata: { editor: "v2", fileName: "authoring/hello-world5.xml" },
     },
+    ["special-characters.qmd"]: {
+      title: "Special Characters !@#$%^&*(){}|?//\\",
+      id: "123456",
+      metadata: { fileName: "special-characters.xml" },
+    },
   };
 
   const UPDATE_NO_LINKS: ContentUpdate = {
@@ -3263,6 +3268,23 @@ const runUpdateLinks = () => {
       storage: {
         value:
           "<a href='no-replace.qmd'/>no</a> content content <a href='team.qmd'>team</a> content content <a href='zqmdzz.qmd'>team</a>",
+        representation: "storage",
+      },
+    },
+    fileName: "release-planning.xml",
+  };
+
+  const UPDATE_LINKS_SPECIAL_CHAR: ContentUpdate = {
+    contentChangeType: ContentChangeType.update,
+    id: "19890228",
+    version: null,
+    title: "Release Planning",
+    type: "page",
+    status: "current",
+    ancestors: [{ id: "19759105" }],
+    body: {
+      storage: {
+        value: "<a href='special-characters.qmd'>team</a>",
         representation: "storage",
       },
     },
@@ -3394,7 +3416,7 @@ const runUpdateLinks = () => {
       ...UPDATE_LINKS_ONE,
       body: {
         storage: {
-          value: `<a href=\'no-replace.qmd\'/>no</a> content content <a href=\'fake-server/wiki/spaces/QUARTOCONF/pages/19857455/Team\'>team</a> content content <a href=\'zqmdzz.qmd\'>team</a>`,
+          value: `<a href=\'no-replace.qmd\'/>no</a> content content <a href=\'fake-server/wiki/spaces/QUARTOCONF/pages/19857455'>team</a> content content <a href=\'zqmdzz.qmd\'>team</a>`,
           representation: "storage",
         },
       },
@@ -3411,7 +3433,23 @@ const runUpdateLinks = () => {
     );
   });
 
-  test(suiteLabel("one_update_link_nested_dot_slash"), async () => {
+  test(suiteLabel("one_update_link_special_char"), async () => {
+    const changes: ConfluenceSpaceChange[] = [UPDATE_LINKS_SPECIAL_CHAR];
+    const rootURL = "fake-server/wiki/spaces/QUARTOCONF/pages";
+    const expectedUpdate: ContentUpdate = {
+      ...UPDATE_LINKS_ONE,
+      body: {
+        storage: {
+          value: `<a href=\'fake-server/wiki/spaces/QUARTOCONF/pages/123456'>team</a>`,
+          representation: "storage",
+        },
+      },
+    };
+    const expected: ConfluenceSpaceChange[] = [expectedUpdate];
+    check(expected, changes, fileMetadataTable, "fake-server", FAKE_PARENT);
+  });
+
+  otest(suiteLabel("one_update_link_nested_dot_slash"), async () => {
     const changes: ConfluenceSpaceChange[] = [
       UPDATE_LINKS_ONE_NESTED_DOT_SLASH,
     ];
@@ -3420,7 +3458,7 @@ const runUpdateLinks = () => {
       ...UPDATE_LINKS_ONE_NESTED_DOT_SLASH,
       body: {
         storage: {
-          value: `<a href=\'fake-server/wiki/spaces/QUARTOCONF/pages/43417628/Hello%20World5\'>Hello World 5</a>`,
+          value: `<a href=\'fake-server/wiki/spaces/QUARTOCONF/pages/43417628'>Hello World 5</a>`,
           representation: "storage",
         },
       },
@@ -3436,7 +3474,7 @@ const runUpdateLinks = () => {
       ...UPDATE_LINKS_ONE_NESTED,
       body: {
         storage: {
-          value: `<a href=\'fake-server/wiki/spaces/QUARTOCONF/pages/43417628/Hello%20World5\'>Hello World 5</a>`,
+          value: `<a href=\'fake-server/wiki/spaces/QUARTOCONF/pages/43417628'>Hello World 5</a>`,
           representation: "storage",
         },
       },
@@ -3452,7 +3490,7 @@ const runUpdateLinks = () => {
       ...UPDATE_LINKS_ONE_NESTED_ABS,
       body: {
         storage: {
-          value: `<a href=\'fake-server/wiki/spaces/QUARTOCONF/pages/19890228/Release%20Planning\'>Release Planning</a>`,
+          value: `<a href=\'fake-server/wiki/spaces/QUARTOCONF/pages/19890228'>Release Planning</a>`,
           representation: "storage",
         },
       },
@@ -3469,7 +3507,7 @@ const runUpdateLinks = () => {
       body: {
         storage: {
           value:
-            "<a href='no-replace.qmd'/>no</a> content content <a href='fake-server/wiki/spaces/QUARTOCONF/pages/19857455/Team#Fake-Anchor'>team</a> content content <a href='zqmdzz.qmd'>team</a>",
+            "<a href='no-replace.qmd'/>no</a> content content <a href='fake-server/wiki/spaces/QUARTOCONF/pages/19857455#Fake-Anchor'>team</a> content content <a href='zqmdzz.qmd'>team</a>",
           representation: "storage",
         },
       },
@@ -3493,7 +3531,7 @@ const runUpdateLinks = () => {
       ...UPDATE_LINKS_ONE,
       body: {
         storage: {
-          value: `<a href='no-replace.qmd'/>not-found</a> content content <a href='fake-server/wiki/spaces/QUARTOCONF/pages/19857455/Team'>teamz</a> content content <a href='zqmdzz.qmd'>not-found</a> <a href='fake-server/wiki/spaces/QUARTOCONF/pages/19890228/Release%20Planning'>Do the Release Planning</a> and then triage.qmd .qmd <a href='fake-server/wiki/spaces/QUARTOCONF/pages/19890180/Issue%20Triage'>triage.qmd</a>`,
+          value: `<a href='no-replace.qmd'/>not-found</a> content content <a href='fake-server/wiki/spaces/QUARTOCONF/pages/19857455'>teamz</a> content content <a href='zqmdzz.qmd'>not-found</a> <a href='fake-server/wiki/spaces/QUARTOCONF/pages/19890228'>Do the Release Planning</a> and then triage.qmd .qmd <a href='fake-server/wiki/spaces/QUARTOCONF/pages/19890180'>triage.qmd</a>`,
           representation: "storage",
         },
       },
@@ -3520,7 +3558,7 @@ const runUpdateLinks = () => {
       ...UPDATE_LINKS_ONE,
       body: {
         storage: {
-          value: `<a href='no-replace.qmd'/>not-found</a> content content <a href='fake-server/wiki/spaces/QUARTOCONF/pages/19857455/Team'>teamz</a> content content <a href='zqmdzz.qmd'>not-found</a> <a href='fake-server/wiki/spaces/QUARTOCONF/pages/19890228/Release%20Planning'>Do the Release Planning</a> and then triage.qmd .qmd <a href='fake-server/wiki/spaces/QUARTOCONF/pages/19890180/Issue%20Triage'>triage.qmd</a>`,
+          value: `<a href='no-replace.qmd'/>not-found</a> content content <a href='fake-server/wiki/spaces/QUARTOCONF/pages/19857455'>teamz</a> content content <a href='zqmdzz.qmd'>not-found</a> <a href='fake-server/wiki/spaces/QUARTOCONF/pages/19890228'>Do the Release Planning</a> and then triage.qmd .qmd <a href='fake-server/wiki/spaces/QUARTOCONF/pages/19890180'>triage.qmd</a>`,
           representation: "storage",
         },
       },
@@ -3530,7 +3568,7 @@ const runUpdateLinks = () => {
       ...UPDATE_LINKS_ONE,
       body: {
         storage: {
-          value: `<a href='no-replace.qmd'/>no</a> content content <a href='fake-server/wiki/spaces/QUARTOCONF/pages/19857455/Team'>team</a> content content <a href='zqmdzz.qmd'>team</a>`,
+          value: `<a href='no-replace.qmd'/>no</a> content content <a href='fake-server/wiki/spaces/QUARTOCONF/pages/19857455'>team</a> content content <a href='zqmdzz.qmd'>team</a>`,
           representation: "storage",
         },
       },
@@ -3800,7 +3838,7 @@ const runConvertForSecondPass = () => {
       ...UPDATE_LINKS_ONE,
       body: {
         storage: {
-          value: `<a href=\'no-replace.qmd\'/>no</a> content content <a href=\'fake-server/wiki/spaces/QUARTOCONF/pages/19857455/Team\'>team</a> content content <a href=\'zqmdzz.qmd\'>team</a>`,
+          value: `<a href=\'no-replace.qmd\'/>no</a> content content <a href=\'fake-server/wiki/spaces/QUARTOCONF/pages/19857455'>team</a> content content <a href=\'zqmdzz.qmd\'>team</a>`,
           representation: "storage",
         },
       },
@@ -3816,7 +3854,7 @@ const runConvertForSecondPass = () => {
       ...UPDATE_LINKS_ONE,
       body: {
         storage: {
-          value: `<a href=\'no-replace.qmd\'/>no</a> content content <a href=\'fake-server/wiki/spaces/QUARTOCONF/pages/19857456/TeamTest\'>team</a> content content <a href=\'zqmdzz.qmd\'>team</a>`,
+          value: `<a href=\'no-replace.qmd\'/>no</a> content content <a href=\'fake-server/wiki/spaces/QUARTOCONF/pages/19857456'>team</a> content content <a href=\'zqmdzz.qmd\'>team</a>`,
           representation: "storage",
         },
       },
@@ -3832,7 +3870,7 @@ const runConvertForSecondPass = () => {
       ...UPDATE_LINKS_ONE,
       body: {
         storage: {
-          value: `<a href=\'no-replace.qmd\'/>no</a> content content <a href=\'fake-server/wiki/spaces/QUARTOCONF/pages/19857455/Team\'>team</a> content content <a href=\'zqmdzz.qmd\'>team</a>`,
+          value: `<a href=\'no-replace.qmd\'/>no</a> content content <a href=\'fake-server/wiki/spaces/QUARTOCONF/pages/19857455'>team</a> content content <a href=\'zqmdzz.qmd\'>team</a>`,
           representation: "storage",
         },
       },
@@ -4133,5 +4171,5 @@ if (RUN_ALL_TESTS) {
   runUpdateImagePathsForContentBody();
   runCapFirstLetter();
 } else {
-  runConvertForSecondPass();
+  runUpdateLinks();
 }
