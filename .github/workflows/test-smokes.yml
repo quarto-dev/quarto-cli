@@ -25,9 +25,12 @@ jobs:
           # checkout full tree
           fetch-depth: 0
 
-      - name: Change temp dir to use runner one (windows)
+      - name: Fix temp dir to use runner one (windows)
         if: runner.os == 'Windows'
-        run: echo "TMPDIR=${{ runner.temp }}" >> $GITHUB_ENV
+        run: |
+          echo "TMPDIR=${{ runner.temp }}" >> $GITHUB_ENV
+          echo "TMP=${{ runner.temp }}" >> $GITHUB_ENV
+          echo "TEMP=${{ runner.temp }}" >> $GITHUB_ENV
         shell: bash
 
       - name: Set up R
