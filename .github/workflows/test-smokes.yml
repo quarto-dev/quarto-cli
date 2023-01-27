@@ -18,9 +18,6 @@ jobs:
         os: [windows-latest]
     runs-on: ${{ matrix.os }}
 
-    env:
-      RENV_PATHS_ROOT: ${{ runner.temp }}/renv
-
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v3
@@ -46,6 +43,11 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
         working-directory: ./tests/integration/playwright
+
+      - name: Set RENV_PATHS_ROOT
+        shell: bash
+        run: |
+          echo "RENV_PATHS_ROOT=${{ runner.temp }}/renv" >> $GITHUB_ENV
 
       - name: Cache R packages
         uses: actions/cache@v3
