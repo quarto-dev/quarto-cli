@@ -9,6 +9,14 @@ function resourceFiles()
     -- files for preview if they are newer than the source files. we may need to
     -- record discovered resource files in some sort of index in order to work 
     -- around this
+    Image = function(el)
+      local targetPath = el.src
+      if pandoc.path.is_relative(targetPath) then 
+        local inputDir = pandoc.path.directory(quarto.doc.input_file)
+        targetPath = pandoc.path.join({inputDir, el.src})
+      end
+      recordFileResource(el.src)
+    end,
   }
 end
 
