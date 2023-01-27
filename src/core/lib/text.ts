@@ -165,10 +165,20 @@ export function detectCaseConvention(
   if (key.toLocaleLowerCase() !== key) {
     return "capitalizationCase";
   }
-  if (key.indexOf("_") !== -1) {
+  const underscoreIndex = key.indexOf("_");
+  if (
+    underscoreIndex !== -1 &&
+    underscoreIndex !== 0 &&
+    underscoreIndex !== key.length - 1
+  ) {
     return "underscore_case";
   }
-  if (key.indexOf("-") !== -1) {
+  const dashIndex = key.indexOf("-");
+  if (
+    dashIndex !== -1 &&
+    dashIndex !== 0 &&
+    dashIndex !== key.length - 1
+  ) {
     return "dash-case";
   }
   return undefined;
@@ -236,7 +246,7 @@ export function resolveCaseConventionRegex(
   }
 
   return {
-    pattern: `^(?!(${disallowedNearMisses.join("|")}))`,
+    pattern: `(?!(${disallowedNearMisses.map((c) => `^${c}$`).join("|")}))`,
     list: Array.from(foundConventions),
   };
 }

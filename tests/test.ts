@@ -12,6 +12,9 @@ import { initDenoDom } from "../src/core/deno-dom.ts";
 import { cleanupLogger, initializeLogger } from "../src/core/log.ts";
 import { quarto } from "../src/quarto.ts";
 import { join } from "path/mod.ts";
+import * as colors from "fmt/colors.ts";
+import { isInteractiveTerminal } from "../src/core/platform.ts";
+import { runningInCI } from "../src/core/ci-info.ts";
 
 export interface TestDescriptor {
   // The name of the test
@@ -111,7 +114,7 @@ export function test(test: TestDescriptor) {
 
   Deno.test({
     name: testName,
-    async fn() {
+    async fn(context) {
       await initDenoDom();
       const runTest = !test.context.prereq || await test.context.prereq();
       if (runTest) {
@@ -162,15 +165,39 @@ export function test(test: TestDescriptor) {
             }
           }
         } catch (ex) {
+          const isInteractive = isInteractiveTerminal() && !runningInCI();
+          const border = "-".repeat(80);
+          const coloredName = isInteractive
+            ? colors.brightGreen(colors.italic(testName))
+            : testName;
+          const origin = context.origin.replace("file://", "");
+          const coloredOrigin = isInteractive
+            ? colors.brightGreen(origin)
+            : origin;
+
           const logMessages = logOutput(log);
+          const output: string[] = [
+            "",
+            "",
+            border,
+            coloredName,
+            coloredOrigin,
+            "",
+            ex.message,
+            ex.stack,
+            "",
+          ];
+
           if (logMessages && logMessages.length > 0) {
-            const errorTxts = logMessages.map((msg) => msg.msg);
-            fail(
-              `\n---------------------------------------------\n${ex.message}\n${ex.stack}\n\nTEST OUTPUT:\n${errorTxts}----------------------------------------------`,
-            );
-          } else {
-            fail(`${ex.message}\n${ex.stack}`);
+            output.push("OUTPUT:");
+            logMessages.forEach((out) => {
+              const parts = out.msg.split("\n");
+              parts.forEach((part) => {
+                output.push("    " + part);
+              });
+            });
           }
+          fail(output.join("\n"));
         } finally {
           Deno.removeSync(log);
           await cleanupLogOnce();

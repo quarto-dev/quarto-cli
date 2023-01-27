@@ -306,9 +306,11 @@ export async function renderProject(
       const copyFormatDir = (dir: string) => formatRelocateDir(dir, true);
 
       // move the renderedFile to the output dir
-      const outputFile = join(formatOutputDir, renderedFile.file);
-      ensureDirSync(dirname(outputFile));
-      Deno.renameSync(join(projDir, renderedFile.file), outputFile);
+      if (!renderedFile.isTransient) {
+        const outputFile = join(formatOutputDir, renderedFile.file);
+        ensureDirSync(dirname(outputFile));
+        Deno.renameSync(join(projDir, renderedFile.file), outputFile);
+      }
 
       // files dir
       const keepFiles = !!renderedFile.format.execute[kKeepMd];
@@ -343,6 +345,7 @@ export async function renderProject(
 
       // render file renderedFile
       projResults.files.push({
+        isTransient: renderedFile.isTransient,
         input: renderedFile.input,
         markdown: renderedFile.markdown,
         format: renderedFile.format,
@@ -457,21 +460,23 @@ export async function renderProject(
 
   // call project post-render
   if (!projResults.error) {
-    const outputFiles = projResults.files.map((result) => {
-      const outputDir = projectFormatOutputDir(
-        result.format,
-        context,
-        projType,
-      );
+    const outputFiles = projResults.files
+      .filter((x) => !x.isTransient)
+      .map((result) => {
+        const outputDir = projectFormatOutputDir(
+          result.format,
+          context,
+          projType,
+        );
 
-      const file = outputDir
-        ? join(outputDir, result.file)
-        : join(projDir, result.file);
-      return {
-        file,
-        format: result.format,
-      };
-    });
+        const file = outputDir
+          ? join(outputDir, result.file)
+          : join(projDir, result.file);
+        return {
+          file,
+          format: result.format,
+        };
+      });
 
     if (projType.postRender) {
       await projType.postRender(

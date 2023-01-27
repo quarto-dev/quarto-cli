@@ -14,6 +14,8 @@ function extendedFigures()
           return latexImageFigure(image)
         elseif _quarto.format.isDocxOutput() then
           return wpDivFigure(createFigureDiv(el, image))
+        elseif _quarto.format.isAsciiDocOutput() then
+          return asciidocFigure(image)
         end
       end
     end,
@@ -28,6 +30,8 @@ function extendedFigures()
           return wpDivFigure(el)
         elseif _quarto.format.isJatsOutput() then
           return jatsDivFigure(el)
+        elseif _quarto.format.isAsciiDocOutput() then
+          return asciidocDivFigure(el)
         end
       end
     end

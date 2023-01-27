@@ -4049,6 +4049,7 @@
               "hidden": true,
               "object": {
                 "properties": {
+                  "trace-filters": "string",
                   "tests": "object"
                 }
               }
@@ -13944,7 +13945,7 @@
       "propertyNames": {
         "errorMessage": "property ${value} does not match case convention path,name,register,script,stylesheet,self-contained",
         "type": "string",
-        "pattern": "^(?!(self_contained|selfContained))",
+        "pattern": "(?!(^self_contained$|^selfContained$))",
         "tags": {
           "case-convention": [
             "dash-case"
@@ -14024,12 +14025,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 146891,
+    "_internalId": 146893,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 146883,
+        "_internalId": 146885,
         "type": "enum",
         "enum": [
           "png",
@@ -14045,7 +14046,7 @@
         "exhaustiveCompletions": true
       },
       "theme": {
-        "_internalId": 146890,
+        "_internalId": 146892,
         "type": "anyOf",
         "anyOf": [
           {
@@ -14068,7 +14069,7 @@
     "propertyNames": {
       "errorMessage": "property ${value} does not match case convention mermaid-format,theme",
       "type": "string",
-      "pattern": "^(?!(mermaid_format|mermaidFormat))",
+      "pattern": "(?!(^mermaid_format$|^mermaidFormat$))",
       "tags": {
         "case-convention": [
           "dash-case"

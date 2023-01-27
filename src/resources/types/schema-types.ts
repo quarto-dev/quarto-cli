@@ -1120,7 +1120,9 @@ export type ProjectProfile = {
 
 export type BadParseSchema = SchemaObject;
 
-export type QuartoDevSchema = { _quarto?: { tests?: SchemaObject } };
+export type QuartoDevSchema = {
+  _quarto?: { "trace-filters"?: string; tests?: SchemaObject };
+};
 
 export type ProjectConfig = {
   "execute-dir"?:

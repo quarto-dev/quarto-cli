@@ -59,7 +59,7 @@ import("./quarto-init/configurefilters.lua")
 import("./quarto-init/includes.lua")
 import("./quarto-init/resourcerefs.lua")
 
-import("./quarto-post/asciidoc.lua")
+import("./quarto-post/render-asciidoc.lua")
 import("./quarto-post/book.lua")
 import("./quarto-post/cites.lua")
 import("./quarto-post/delink.lua")
@@ -73,6 +73,7 @@ import("./quarto-post/responsive.lua")
 import("./quarto-post/reveal.lua")
 import("./quarto-post/tikz.lua")
 import("./quarto-post/pdf-images.lua")
+import("./quarto-post/cellcleanup.lua")
 
 import("./quarto-finalize/dependencies.lua")
 import("./quarto-finalize/book-cleanup.lua")
@@ -83,6 +84,7 @@ import("./normalize/normalize.lua")
 import("./normalize/parsehtml.lua")
 import("./normalize/extractquartodom.lua")
 
+import("./layout/asciidoc.lua")
 import("./layout/meta.lua")
 import("./layout/width.lua")
 import("./layout/latex.lua")
@@ -113,7 +115,6 @@ import("./crossref/meta.lua")
 import("./crossref/format.lua")
 import("./crossref/options.lua")
 --import("./crossref/crossref.lua")
-
 
 import("./quarto-pre/bibliography-formats.lua")
 import("./quarto-pre/book-links.lua")
@@ -146,6 +147,8 @@ import("./quarto-pre/table-captions.lua")
 import("./quarto-pre/table-colwidth.lua")
 import("./quarto-pre/table-rawhtml.lua")
 import("./quarto-pre/theorems.lua")
+
+import("./customnodes/decoratedcodeblock.lua")
 
 -- [/import]
 
@@ -219,8 +222,8 @@ local quartoPre = {
 
 local quartoPost = {
   -- quarto-post
+  { name = "post-cell-cleanup", filter = cell_cleanup() },
   { name = "post-cites", filter = indexCites() },
-  { name = "post-asciidoc", filter = asciidoc() },
   { name = "post-foldCode", filter = foldCode() },
   { name = "post-figureCleanupCombined", filter = combineFilters({
     latexDiv(),
@@ -235,6 +238,7 @@ local quartoPost = {
   }) },
   { name = "post-ojs", filter = ojs() },
   { name = "post-postMetaInject", filter = quartoPostMetaInject() },
+  { name = "post-render-asciidoc", filter = renderAsciidoc() },
   { name = "post-renderExtendedNodes", filter = renderExtendedNodes() },
   { name = "post-userAfterQuartoFilters", filters = make_wrapped_user_filters("afterQuartoFilters") },
 }

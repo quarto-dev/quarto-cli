@@ -21,14 +21,18 @@ function renderExtendedNodes()
     return {} -- don't render in custom writers, so we can handle them in the custom writer code.
   end
 
-  return {
-    Custom = function(node)
+  local filter -- beware, it can't be a local initialization because of the recursive call to inner_walk
+  filter = {
+    Custom = function(node, raw)
       local handler = _quarto.ast.resolve_handler(node.t)
       if handler == nil then
         error("Internal Error: handler not found for custom node " .. node.t)
         crash_with_stack_trace()
       end
+      _quarto.ast.inner_walk(raw, filter)
       return handler.render(node)
     end
   }
+
+  return filter
 end
