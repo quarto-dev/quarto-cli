@@ -8,21 +8,18 @@ on:
   push:
     # only trigger on branches, not on tags
     branches: [main]
-env:
-  RENV_PATHS_ROOT: ~/.local/share/renv
-
-# Ubuntu: ~/.local/share/renv
-# macOS: ~/Library/Application Support/renv
-# Windows: %LOCALAPPDATA%/renv
 
 jobs:
   run-smokes:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
-        #os: [windows-latest]
+        #os: [ubuntu-latest, windows-latest]
+        os: [windows-latest]
     runs-on: ${{ matrix.os }}
+
+    env:
+      RENV_PATHS_ROOT: ${{ runner.temp }}/renv
 
     steps:
       - name: Checkout Repo
