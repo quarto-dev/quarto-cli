@@ -720,7 +720,7 @@ normalize_options <- function(options) {
                     "fig-subcap",
                     "fig-ncol",
                     "fig-sep",
-                    "fig.process",
+                    "fig-process",
                     "fig-showtext",
                     # Animation
                     "animation-hook",
