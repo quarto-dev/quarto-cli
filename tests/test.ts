@@ -15,6 +15,7 @@ import { join } from "path/mod.ts";
 import * as colors from "fmt/colors.ts";
 import { runningInCI } from "../src/core/ci-info.ts";
 import { relative } from "path/mod.ts";
+import { quartoConfig } from "../src/core/quarto.ts";
 
 export interface TestDescriptor {
   // The name of the test
@@ -179,7 +180,12 @@ export function test(test: TestDescriptor) {
           // Form the test runner command
           const originUrl = new URL(context.origin);
           const absPath = originUrl.pathname;
-          const relPath = relative(Deno.cwd(), absPath);
+
+          const quartoRoot = join(quartoConfig.binPath(), "..", "..", "..");
+          const relPath = relative(
+            join(quartoRoot, "tests"),
+            absPath,
+          );
           const command = Deno.build.os === "windows"
             ? "run-tests.psl"
             : "./run-test.sh";
