@@ -112,6 +112,7 @@ export function test(test: TestDescriptor) {
   const sanitizeResources = test.context.santize?.resources;
   const sanitizeOps = test.context.santize?.ops;
   const sanitizeExit = test.context.santize?.exit;
+  const userSession = !runningInCI();
 
   Deno.test({
     name: testName,
@@ -164,13 +165,16 @@ export function test(test: TestDescriptor) {
           if (testOutput) {
             for (const ver of test.verify) {
               lastVerify = ver;
+              if (userSession) {
+                const verifyMsg = "  [verify] > " + ver.name;
+                console.log(userSession ? colors.dim(verifyMsg) : verifyMsg);
+              }
               await ver.verify(testOutput);
             }
           }
         } catch (ex) {
-          const colorize = !runningInCI();
           const border = "-".repeat(80);
-          const coloredName = colorize
+          const coloredName = userSession
             ? colors.brightGreen(colors.italic(testName))
             : testName;
 
@@ -192,14 +196,14 @@ export function test(test: TestDescriptor) {
           const testCommand = `${
             offset > 0 ? " ".repeat(offset + 2) : ""
           }${command} ${relPath}`;
-          const coloredTestCommand = colorize
+          const coloredTestCommand = userSession
             ? colors.brightGreen(testCommand)
             : testCommand;
 
           const verifyFailed = `[verify] > ${
             lastVerify ? lastVerify.name : "unknown"
           }`;
-          const coloredVerify = colorize
+          const coloredVerify = userSession
             ? colors.brightGreen(verifyFailed)
             : verifyFailed;
 
