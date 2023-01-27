@@ -13,8 +13,9 @@ import { cleanupLogger, initializeLogger } from "../src/core/log.ts";
 import { quarto } from "../src/quarto.ts";
 import { join } from "path/mod.ts";
 import * as colors from "fmt/colors.ts";
-import { isInteractiveTerminal } from "../src/core/platform.ts";
 import { runningInCI } from "../src/core/ci-info.ts";
+import { relative } from "path/mod.ts";
+import { quartoConfig } from "../src/core/quarto.ts";
 
 export interface TestDescriptor {
   // The name of the test
@@ -111,6 +112,7 @@ export function test(test: TestDescriptor) {
   const sanitizeResources = test.context.santize?.resources;
   const sanitizeOps = test.context.santize?.ops;
   const sanitizeExit = test.context.santize?.exit;
+  const userSession = !runningInCI();
 
   Deno.test({
     name: testName,
@@ -151,6 +153,7 @@ export function test(test: TestDescriptor) {
             return undefined;
           }
         };
+        let lastVerify;
         try {
           await test.execute();
 
@@ -161,19 +164,48 @@ export function test(test: TestDescriptor) {
           const testOutput = logOutput(log);
           if (testOutput) {
             for (const ver of test.verify) {
+              lastVerify = ver;
+              if (userSession) {
+                const verifyMsg = "[verify] > " + ver.name;
+                console.log(userSession ? colors.dim(verifyMsg) : verifyMsg);
+              }
               await ver.verify(testOutput);
             }
           }
         } catch (ex) {
-          const isInteractive = isInteractiveTerminal() && !runningInCI();
           const border = "-".repeat(80);
-          const coloredName = isInteractive
+          const coloredName = userSession
             ? colors.brightGreen(colors.italic(testName))
             : testName;
-          const origin = context.origin.replace("file://", "");
-          const coloredOrigin = isInteractive
-            ? colors.brightGreen(origin)
-            : origin;
+
+          // Compute an inset based upon the testName
+          const offset = testName.indexOf(">");
+
+          // Form the test runner command
+          const originUrl = new URL(context.origin);
+          const absPath = originUrl.pathname;
+
+          const quartoRoot = join(quartoConfig.binPath(), "..", "..", "..");
+          const relPath = relative(
+            join(quartoRoot, "tests"),
+            absPath,
+          );
+          const command = Deno.build.os === "windows"
+            ? "run-tests.psl"
+            : "./run-test.sh";
+          const testCommand = `${
+            offset > 0 ? " ".repeat(offset + 2) : ""
+          }${command} ${relPath}`;
+          const coloredTestCommand = userSession
+            ? colors.brightGreen(testCommand)
+            : testCommand;
+
+          const verifyFailed = `[verify] > ${
+            lastVerify ? lastVerify.name : "unknown"
+          }`;
+          const coloredVerify = userSession
+            ? colors.brightGreen(verifyFailed)
+            : verifyFailed;
 
           const logMessages = logOutput(log);
           const output: string[] = [
@@ -181,7 +213,9 @@ export function test(test: TestDescriptor) {
             "",
             border,
             coloredName,
-            coloredOrigin,
+            coloredTestCommand,
+            "",
+            coloredVerify,
             "",
             ex.message,
             ex.stack,
