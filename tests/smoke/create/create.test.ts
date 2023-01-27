@@ -24,6 +24,8 @@ const kCreateTypes: Record<string, string[]> = {
   ],
 };
 
+const quartoCmd = Deno.build.os === "windows" ? "quarto.cmd" : "quarto";
+
 const tempDir = Deno.makeTempDirSync();
 for (const type of Object.keys(kCreateTypes)) {
   for (const template of kCreateTypes[type]) {
@@ -42,9 +44,9 @@ for (const type of Object.keys(kCreateTypes)) {
 
       // Create the artifact
       let result: CreateResult | undefined = undefined;
-      await t.step(`> create ${type} ${template}`, async () => {
+      await t.step(`> quarto ${type} ${template}`, async () => {
         // test quarto cmd render
-        const cmd = ["quarto", "create", "--json"];
+        const cmd = [quartoCmd, "create", "--json"];
         const stdIn = JSON.stringify(createDirective);
         const process = await execProcess({
           cmd,
@@ -70,7 +72,7 @@ for (const type of Object.keys(kCreateTypes)) {
         for (const file of openfiles) {
           if (file.endsWith(".qmd")) {
             // provide a step name and function
-            const cmd = ["quarto", "render", file];
+            const cmd = [quartoCmd, "render", file];
             const process = await execProcess({
               cmd,
               cwd: path,
