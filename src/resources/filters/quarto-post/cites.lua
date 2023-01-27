@@ -1,7 +1,7 @@
 -- cites.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
-local cites = pandoc.List() 
+local discoveredCites = pandoc.List() 
 local kRefsIndentifier = "refs-target-identifier"
 
 function indexCites()   
@@ -14,9 +14,9 @@ function indexCites()
       end
     end,
     Cite = function(el) 
-      el.citations:map(function (cite) 
-        cites:insert(cite.id)
-      end)
+      for i,v in ipairs(el.citations) do
+        discoveredCites:insert(v.id)
+      end
     end
   }
 end
@@ -37,7 +37,7 @@ function writeCites()
         -- write the cites
         local inputFile = quarto.doc.input_file
         local relativeFilePath = pandoc.path.make_relative(inputFile, quarto.project.directory)
-        documentCites[relativeFilePath] = cites
+        documentCites[relativeFilePath] = discoveredCites
 
         -- write the file
         local json = quarto.json.encode(documentCites)
