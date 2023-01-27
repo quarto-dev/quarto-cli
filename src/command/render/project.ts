@@ -423,6 +423,7 @@ export async function renderProject(
     });
 
     // Expand the resources into the format aware targets
+    // srcPath -> Set<destinationPaths>
     const resourceFilesToCopy: Record<string, Set<string>> = {};
     projResults.files.forEach((file) => {
       const formatOutputDir = projectFormatOutputDir(
@@ -437,25 +438,19 @@ export async function renderProject(
       });
     });
 
-    let count = 0;
-    let duped = 0;
+    // Actually copy the resource files
     Object.keys(resourceFilesToCopy).forEach((srcPath) => {
       const destinationFiles = resourceFilesToCopy[srcPath];
       destinationFiles.forEach((destPath: string) => {
         if (existsSync(srcPath)) {
           if (Deno.statSync(srcPath).isFile) {
             copyResourceFile(context.dir, srcPath, destPath);
-            console.log(destPath);
-            count++;
           }
         } else if (!existsSync(destPath)) {
           warning(`File '${srcPath}' was not found.`);
-        } else {
-          duped++;
         }
       });
     });
-    console.log(`${count} files copied, ${duped} dupes`);
   } else {
     for (const result of fileResults.files) {
       const resourceFiles = await resourcesFrom(result);
