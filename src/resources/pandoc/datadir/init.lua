@@ -1319,7 +1319,7 @@ local function scriptDir()
       return pandoc.path.directory(scriptFile[#scriptFile])
    else
       -- hard fallback
-      return PANDOC_SCRIPT_FILE
+      return pandoc.path.directory(PANDOC_SCRIPT_FILE)
    end
    -- if scriptFile ~= nil then
    --    return pandoc.path.directory(scriptFile)
