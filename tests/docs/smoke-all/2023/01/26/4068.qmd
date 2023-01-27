@@ -1,0 +1,32 @@
+---
+title: test-4068
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["#subtabA-content"]    
+---
+
+::: panel-tabset
+### Tab A
+
+ContentTabA
+
+::: panel-tabset
+### sub-Tab A 
+
+[ContentSubTabA]{#subtabA-content}
+
+```{r}
+plot(1)
+```
+
+### sub-Tab B
+
+ContentSubTabB
+:::
+
+### Tab B
+
+ContentTabB
+:::

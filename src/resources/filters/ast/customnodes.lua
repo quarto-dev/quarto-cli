@@ -24,31 +24,7 @@ function run_emulated_filter(doc, filter)
   end
 
   function process_custom_inner(raw)
-    if raw == nil then
-      return nil
-    end
-    local custom_data, t, kind = _quarto.ast.resolve_custom_data(raw)    
-    local handler = _quarto.ast.resolve_handler(t)
-    if handler == nil then
-      if type(raw) == "userdata" then
-        return raw:walk(wrapped_filter)
-      end
-      print(raw)
-      error("Internal Error: handler not found for custom node " .. (t or type(t)))
-      crash_with_stack_trace()
-    end
-    if handler.inner_content ~= nil then
-      local new_inner_content = {}
-      local inner_content = handler.inner_content(custom_data)
-
-      for k, v in pairs(inner_content) do
-        local new_v = v:walk(wrapped_filter)
-        if new_v ~= nil then
-          new_inner_content[k] = new_v
-        end
-      end
-      handler.set_inner_content(custom_data, new_inner_content)
-    end
+    _quarto.ast.inner_walk(raw, wrapped_filter)
   end
 
   function process_custom_preamble(custom_data, t, kind, custom_node)
@@ -154,7 +130,9 @@ function run_emulated_filter(doc, filter)
   end
 
   local result = doc:walk(wrapped_filter)
-  add_trace(result, filter._filter_name)
+  if filter._filter_name ~= nil then
+    add_trace(result, filter._filter_name)
+  end
   return result
 end
 
@@ -245,6 +223,35 @@ _quarto.ast = {
       return state.namedHandlers[name]
     end
     return nil
+  end,
+
+  inner_walk = function(raw, filter)
+    if raw == nil then
+      return nil
+    end
+    local custom_data, t, kind = _quarto.ast.resolve_custom_data(raw)    
+    local handler = _quarto.ast.resolve_handler(t)
+    if handler == nil then
+      if type(raw) == "userdata" then
+        return raw:walk(filter)
+      end
+      print(raw)
+      error("Internal Error: handler not found for custom node " .. (t or type(t)))
+      crash_with_stack_trace()
+    end
+
+    if handler.inner_content ~= nil then
+      local new_inner_content = {}
+      local inner_content = handler.inner_content(custom_data)
+
+      for k, v in pairs(inner_content) do
+        local new_v = run_emulated_filter(v, filter)
+        if new_v ~= nil then
+          new_inner_content[k] = new_v
+        end
+      end
+      handler.set_inner_content(custom_data, new_inner_content)
+    end
   end,
 }
 quarto._quarto = _quarto
