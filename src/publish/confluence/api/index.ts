@@ -79,7 +79,8 @@ export class ConfluenceClient {
   ): Promise<Content[]> {
     const cqlContext =
       "%7B%22contentStatuses%22%3A%5B%22archived%22%2C%20%22current%22%2C%20%22draft%22%5D%7D"; //{"contentStatuses":["archived", "current", "draft"]}
-    const cql = `title="${title}" and space=${space.key}&cqlcontext=${cqlContext}`;
+    const encodedTitle = encodeURIComponent(title);
+    const cql = `title="${encodedTitle}" and space=${space.key}&cqlcontext=${cqlContext}`;
     const result = await this.get<ContentArray>(`content/search?cql=${cql}`);
     return result?.results ?? [];
   }
