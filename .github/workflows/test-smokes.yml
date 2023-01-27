@@ -137,12 +137,13 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         if: github.event.before == ''
         run: |
-          quarto render docs/test.qmd --to pdf
           case $RUNNER_OS in
             "Windows")
+              ./package/dist/bin/quarto.cmd render docs/test.qmd --to pdf
               pwsh -F ./run-test.ps1
               ;;
             *)
+              quarto render docs/test.qmd --to pdf
               ./run-tests.sh
               ;;
           esac
