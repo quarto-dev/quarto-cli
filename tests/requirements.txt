@@ -20,10 +20,11 @@ jedi==0.18.0
 Jinja2==3.0.1
 jsonschema==3.2.0
 jupyter==1.0.0
-jupyter-client==6.1.12
-jupyter-console==6.4.0
-jupyter-core==4.7.1
-jupyterlab-pygments==0.1.2
+jupyter-console==6.4.4
+jupyter-events==0.6.3
+jupyter_client==8.0.1
+jupyter_core==5.1.5
+jupyter_server==2.1.0
 jupyterlab-widgets==1.0.0
 kiwisolver==1.4.4
 MarkupSafe==2.0.1
