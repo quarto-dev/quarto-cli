@@ -1,5 +1,9 @@
 ## New In This Patch Release
 
+- Fixes an issue using Quarto with the most recent version of jupyter_client (version 8.0.0 and later)
+
+## Fixed In Previous Patch Releases
+
 - Correct handling of the proxy url when starting preview server (fix issue previewing within IDEs)
 - Fix tinytex failure to install packages caused by invalid installation of tinytex on MacOS
 
