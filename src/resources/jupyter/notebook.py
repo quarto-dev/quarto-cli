@@ -17,7 +17,7 @@ from log import trace
 import nbformat
 from nbclient import NotebookClient
 from jupyter_client import KernelManager
-from jupyter_core.utils import run_sync
+from jupyter_core_utils_vendor import run_sync
 
 # optional import of papermill for params support
 try:
@@ -264,7 +264,7 @@ def notebook_init(nb, resources, allow_errors):
       info = client.kc.kernel_info()
 
       async def get_info():
-         return await client.kc.kernel_info()
+         return client.kc.kernel_info()
       info = run_sync(get_info)()
 
       info_msg = client.wait_for_reply(info)
