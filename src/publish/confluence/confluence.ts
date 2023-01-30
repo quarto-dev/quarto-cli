@@ -80,7 +80,11 @@ import {
   verifyConfluenceParent,
   verifyLocation,
 } from "./confluence-verify.ts";
-import { DELETE_DISABLED, DELETE_SLEEP_MILLIS } from "./constants.ts";
+import {
+  DELETE_DISABLED,
+  DELETE_SLEEP_MILLIS,
+  EXIT_ON_ERROR,
+} from "./constants.ts";
 import { logError, trace } from "./confluence-logger.ts";
 import { md5Hash } from "../../core/hash.ts";
 import { sleep } from "../../core/async.ts";
@@ -709,7 +713,18 @@ async function publish(
     };
 
     for (let currentChange of changeList) {
-      await doChange(currentChange);
+      try {
+        await doChange(currentChange);
+      } catch (error: any) {
+        console.info("Error Performing Change Pass 1", currentChange);
+        if (isContentUpdate(currentChange) || isContentCreate(currentChange)) {
+          console.info("Value to Update", currentChange.body.storage.value);
+        }
+        console.error(error);
+        if (EXIT_ON_ERROR) {
+          throw error;
+        }
+      }
     }
 
     if (pass2Changes.length) {
@@ -728,7 +743,22 @@ async function publish(
       );
 
       for (let currentChange of linkUpdateChanges) {
-        await doChange(currentChange, false);
+        try {
+          await doChange(currentChange, false);
+        } catch (error: any) {
+          //TODO remove duplication
+          console.info("Error Performing Change Pass 2", currentChange);
+          if (
+            isContentUpdate(currentChange) ||
+            isContentCreate(currentChange)
+          ) {
+            console.info("Value to Update", currentChange.body.storage.value);
+          }
+          console.error(error);
+          if (EXIT_ON_ERROR) {
+            throw error;
+          }
+        }
       }
     }
 
