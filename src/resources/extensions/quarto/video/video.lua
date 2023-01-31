@@ -26,7 +26,8 @@ local VIDEO_TYPES = {
   YOUTUBE = "YOUTUBE",
   BRIGHTCOVE = "BRIGHTCOVE",
   VIMEO = "VIMEO",
-  VIDEOJS = "VIDEOJS"
+  VIDEOJS = "VIDEOJS",
+  DROPBOX = "DROPBOX"
 }
 
 local ASPECT_RATIOS = {
@@ -152,12 +153,32 @@ local videoJSBuilder = function(params)
   result.id = id
   return result
 end
+
+local dropboxBuilder = function(params)
+  if not (params and params.src) then return nil end
+  local src = params.src
+  local isDropbox = function()
+    return string.find(src, 'https://www.dropbox.com') and checkEndMatch(src, '?raw=1')
+  end
+
+  if not isDropbox() then return nil end
+
+  local result = {}
+
+  local SNIPPET = [[<iframe data-external="1" src="{src}"{width}{height} allowfullscreen="" title="{title}" allow="encrypted-media"></iframe>]]
+  result.snippet = replaceCommonAttributes(SNIPPET, params)
+  result.type = VIDEO_TYPES.DROPBOX
+  result.src = params.src
+  return result
+end
+
 local getSnippetFromBuilders = function(src, height, width, title, start)
   local builderList = {
     youTubeBuilder,
     brightcoveBuilder,
     vimeoBuilder,
-    videoJSBuilder}
+    videoJSBuilder,
+    dropboxBuilder}
 
   local params = { src = src, height = height, width = width, title = title, start = start }
 
@@ -174,6 +195,7 @@ local helpers = {
   ["brightcoveBuilder"] = brightcoveBuilder,
   ["vimeoBuilder"] = vimeoBuilder,
   ["videoJSBuilder"] = videoJSBuilder,
+  ["dropboxBuilder"] = dropboxBuilder,
   ["wrapWithDiv"] = wrapWithDiv,
   ["VIDEO_TYPES"] = VIDEO_TYPES,
   ["VIDEO_SHORTCODE_NUM_VIDEOJS"] = VIDEO_SHORTCODE_NUM_VIDEOJS,
