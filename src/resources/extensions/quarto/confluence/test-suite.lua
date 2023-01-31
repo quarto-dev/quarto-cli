@@ -14,9 +14,7 @@ function TestCaptionedImage:testBasic()
     ac:align="center"
     ac:layout="center"
     ac:alt="fake-title">
-        <ri:attachment ri:filename="fake-source" /><ac:caption>
-            <p>fake-caption</p>
-        </ac:caption>
+        <ri:attachment ri:filename="fake-source" /><ac:caption>fake-caption</ac:caption>
     </ac:image>]]
   local source = 'fake-source'
   local title = 'fake-title'
@@ -30,9 +28,7 @@ function TestCaptionedImage:testFigAltText()
     ac:align="center"
     ac:layout="center"
     ac:alt="fake-alt">
-        <ri:attachment ri:filename="fake-source" /><ac:caption>
-            <p>fake-caption</p>
-        </ac:caption>
+        <ri:attachment ri:filename="fake-source" /><ac:caption>fake-caption</ac:caption>
     </ac:image>]]
   local source = 'fake-source'
   local title = 'fake-title'
@@ -47,9 +43,7 @@ function TestCaptionedImage:testAlignLeft()
     ac:align="left"
     ac:layout="align-start"
     ac:alt="fake-title">
-        <ri:attachment ri:filename="fake-source" /><ac:caption>
-            <p>fake-caption</p>
-        </ac:caption>
+        <ri:attachment ri:filename="fake-source" /><ac:caption>fake-caption</ac:caption>
     </ac:image>]]
   local source = 'fake-source'
   local title = 'fake-title'
@@ -64,9 +58,7 @@ function TestCaptionedImage:testAlignRight()
     ac:align="right"
     ac:layout="align-end"
     ac:alt="fake-title">
-        <ri:attachment ri:filename="fake-source" /><ac:caption>
-            <p>fake-caption</p>
-        </ac:caption>
+        <ri:attachment ri:filename="fake-source" /><ac:caption>fake-caption</ac:caption>
     </ac:image>]]
   local source = 'fake-source'
   local title = 'fake-title'

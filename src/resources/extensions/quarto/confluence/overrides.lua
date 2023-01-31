@@ -63,9 +63,7 @@ function CaptionedImageConfluence(source, title, caption, attr)
   --Note Title isn't usable by confluence at this time it will
   -- serve as the default value for attr.alt-text
 
-  local CAPTION_SNIPPET = [[<ac:caption>
-            <p>{caption}</p>
-        </ac:caption>]]
+  local CAPTION_SNIPPET = [[<ac:caption>{caption}</ac:caption>]]
 
   local IMAGE_SNIPPET = [[<ac:image
     ac:align="{align}"
@@ -74,9 +72,9 @@ function CaptionedImageConfluence(source, title, caption, attr)
         <ri:attachment ri:filename="{source}" />{caption}
     </ac:image>]]
 
-  local sourceValue = escape(source, true)
-  local titleValue = escape(title, true)
-  local captionValue = escape(caption)
+  local sourceValue = source
+  local titleValue = title
+  local captionValue = caption
 
   local alignValue = 'center'
   if (attr and attr['fig-align']) then
