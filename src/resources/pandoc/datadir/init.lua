@@ -1693,9 +1693,9 @@ local function inputFile()
    else
       local projectDir = projectDirectory()
       if projectDir then
-         return pandoc.path.join({projectDir, param("quarto-source", "")})
+         return pandoc.path.join({projectDir, source})
       else
-         return pandoc.path.join({pandoc.system.get_working_directory(), param("quarto-source", "")})
+         return pandoc.path.join({pandoc.system.get_working_directory(), source})
       end   
    end
 end
