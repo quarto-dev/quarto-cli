@@ -5,7 +5,6 @@ format:
 _quarto:
   tests:
     asciidoc: default
-code-annotations: false
 ---
 
 ## Annotated Code
