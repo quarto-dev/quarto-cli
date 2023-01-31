@@ -306,6 +306,7 @@ export const kLangCommentChars: Record<string, string | [string, string]> = {
   groovy: "//",
   sed: "#",
   perl: "#",
+  prql: "#",
   ruby: "#",
   tikz: "%",
   js: "//",

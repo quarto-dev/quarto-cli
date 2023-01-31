@@ -21033,6 +21033,7 @@ var require_yaml_intelligence_resources = __commonJS({
         groovy: "//",
         sed: "#",
         perl: "#",
+        prql: "#",
         ruby: "#",
         tikz: "%",
         js: "//",
@@ -21049,12 +21050,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 146893,
+        _internalId: 146895,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 146885,
+            _internalId: 146887,
             type: "enum",
             enum: [
               "png",
@@ -21070,7 +21071,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 146892,
+            _internalId: 146894,
             type: "anyOf",
             anyOf: [
               {
@@ -30129,6 +30130,7 @@ var kLangCommentChars = {
   groovy: "//",
   sed: "#",
   perl: "#",
+  prql: "#",
   ruby: "#",
   tikz: "%",
   js: "//",
