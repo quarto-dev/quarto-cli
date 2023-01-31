@@ -633,7 +633,7 @@ knitr_options_hook <- function(options) {
   pattern <- paste0(".*\\Q", comment_chars[[1]], "\\E\\s*",
                     "<[0-9]+>\\s*")
   if (length(comment_chars) > 1) {
-    pattern <- paste0(pattern, "*\\Q", comment_chars[[2]], "\\E\\s*")
+    pattern <- paste0(pattern, ".*\\Q", comment_chars[[2]], "\\E\\s*")
   }
   pattern <- paste0(pattern, "$")
   if (any(grepl(pattern, options$code))) {

@@ -1,0 +1,32 @@
+---
+knitr:
+  opts_chunk:
+    fig.height: 3
+    fig.width: 5
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements: 
+        - [".code-annotation-container-grid"]
+---
+  
+  
+```{css}
+h1 {
+  color: blue;
+}
+```
+
+
+# Section 1
+
+
+```{css}
+h2 {
+  color: red; /* <1> */
+}
+```
+1. Ensure that the H2 elements are red
+
+
+
