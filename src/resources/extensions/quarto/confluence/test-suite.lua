@@ -75,17 +75,15 @@ function TestCodeBlockConfluence:testWithAllAttributes()
       ac:name="code"
       ac:schema-version="1"
       ac:macro-id="1d1a2d13-0179-4d8f-b448-b28dfaceea4a">
-        <ac:parameter ac:name="language">fake-class</ac:parameter>
+        <ac:parameter ac:name="language">python</ac:parameter>
         <ac:plain-text-body>
           <![CDATA[fake-codeValue{doubleBracket}>
         </ac:plain-text-body>
     </ac:structured-macro>]]
   local codeValue = 'fake-codeValue'
-  local attributes = {
-    class = 'fake-class'
-  }
+  local languageValue = 'python'
   expected = confluence.interpolate{expected, doubleBracket = ']]'}
-  local actual = confluence.CodeBlockConfluence(codeValue, attributes)
+  local actual = confluence.CodeBlockConfluence(codeValue, languageValue)
 
   lu.assertEquals(actual, expected)
 end

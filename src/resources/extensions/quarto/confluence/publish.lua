@@ -25,7 +25,7 @@ function Writer (doc, opts)
               image.src,
               image.title,
               pandoc.utils.stringify(image.caption),
-              image.attr)
+              image.attributes)
       return pandoc.RawInline('html', renderString)
     end,
     Link = function (link)
@@ -33,7 +33,13 @@ function Writer (doc, opts)
               pandoc.utils.stringify(link.content),
               link.target,
               link.title,
-              link.attr)
+              link.attributes)
+      return pandoc.RawInline('html', renderString)
+    end,
+    CodeBlock = function (codeBlock)
+      local renderString = confluence.CodeBlockConfluence(
+              codeBlock.text,
+              codeBlock.classes[1] or '')
       return pandoc.RawInline('html', renderString)
     end
   }

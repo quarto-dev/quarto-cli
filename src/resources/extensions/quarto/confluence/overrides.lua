@@ -118,8 +118,7 @@ function LinkConfluence(source, target, title, attr)
             escape(title,true) .. "'>" .. source .. "</a>"
 end
 
-function CodeBlockConfluence(codeValue, attributes)
-  local languageValue = attributes and attributes.class or ''
+function CodeBlockConfluence(codeValue, languageValue)
   local CODE_SNIPPET = [[<ac:structured-macro
       ac:name="code"
       ac:schema-version="1"
@@ -132,7 +131,7 @@ function CodeBlockConfluence(codeValue, attributes)
 
   return interpolate {
     CODE_SNIPPET,
-    languageValue = languageValue,
+    languageValue = languageValue or '',
     codeValue = codeValue,
     doubleBraket = ']]'
   }
