@@ -12,10 +12,7 @@ fileMetadataState = {
 function fileMetadata() 
   return {
     RawInline = parseFileMetadata,
-    RawBlock = parseFileMetadata,
-    Pandoc = function(_el) 
-      resetFileMetadata()
-    end,
+    RawBlock = parseFileMetadata      
   }
 end
 
