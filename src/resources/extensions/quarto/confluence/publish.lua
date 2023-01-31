@@ -19,19 +19,8 @@ function dump(object, label)
 end
 
 function Writer (doc, opts)
-  dump(doc, 'doc')
   local filter = {
     Image = function (img)
-      dump('Image')
-      dump(img, 'img')
-      dump(img.c, 'img.c')
-      dump(img.attributes, 'img.attributes')
-      dump(img.src, 'img.src')
-      dump(img.title, 'img.title')
-      dump(img.caption, 'img.caption')
-      dump(img.caption[1] or '', 'img.caption[1]')
-      dump(img.attr, 'img.attr')
-
       local renderString = confluence.CaptionedImageConfluence(
               img.src, img.title, 'Elephant', img.attr)
       dump(renderString, 'renderString')
