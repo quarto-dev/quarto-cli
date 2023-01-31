@@ -20,12 +20,22 @@ end
 
 function Writer (doc, opts)
   local filter = {
-    Image = function (img)
+    Image = function (image)
       local renderString = confluence.CaptionedImageConfluence(
-              img.src, img.title, 'Elephant', img.attr)
-      dump(renderString, 'renderString')
+              image.src,
+              image.title,
+              pandoc.utils.stringify(image.caption),
+              image.attr)
       return pandoc.RawInline('html', renderString)
     end,
+    Link = function (link)
+      local renderString = confluence.LinkConfluence(
+              pandoc.utils.stringify(link.content),
+              link.target,
+              link.title,
+              link.attr)
+      return pandoc.RawInline('html', renderString)
+    end
   }
   return pandoc.write(doc:walk(filter), 'html', opts)
 end
