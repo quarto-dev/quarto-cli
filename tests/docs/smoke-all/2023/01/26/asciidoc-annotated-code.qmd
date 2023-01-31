@@ -1,0 +1,28 @@
+---
+title: test
+format: 
+  asciidoc: default
+_quarto:
+  tests:
+    asciidoc: default
+code-annotations: false
+---
+
+## Annotated Code
+
+```python
+import matplotlib.pyplot as plt
+
+Partition = 'Holidays', 'Eating_Out', 'Shopping', 'Groceries'                   # <1> 
+sizes = [250, 100, 300, 200]
+
+fig1, ax1 = plt.subplots()                                                      # <2> 
+ax1.pie(sizes, labels=Partition, autopct='%1.1f%%', shadow=True, startangle=90) # <2>          
+ax1.axis('equal')
+
+plt.show()                                                                      # <3> 
+```
+
+1. First set up the sections
+2. Then, define the plot as a pie chart
+3. Finally, show the plot
