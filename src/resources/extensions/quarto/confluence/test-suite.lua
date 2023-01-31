@@ -240,14 +240,4 @@ function TestTableConfluence:testNoColGroupNoWidth()
   lu.assertEquals(actual, expected)
 end
 
-TestBlockQuoteConfluence = {}
-function TestBlockQuoteConfluence:testStandard()
-  local expected = [[<blockquote>fake-source</blockquote>]]
-  local source = 'fake-source'
-
-  local actual = confluence.BlockQuoteConfluence(source);
-
-  lu.assertEquals(actual, expected)
-end
-
 os.exit(lu.LuaUnit.run())

@@ -40,8 +40,17 @@ function Writer (doc, opts)
       local renderString = confluence.CodeBlockConfluence(
               codeBlock.text,
               codeBlock.classes[1] or '')
-      return pandoc.RawInline('html', renderString)
+      return pandoc.RawBlock('html', renderString)
+    end,
+    Table = function (tbl)
+      local caption = tbl.caption.long
+      tbl.caption = {}
+      return {tbl} .. caption
     end
   }
+
+  opts = opts or {}
+  opts.wrap_text = "none"
+
   return pandoc.write(doc:walk(filter), 'html', opts)
 end

@@ -562,8 +562,17 @@ async function publish(
       doOperation = async () =>
         (content = await createContent(publishFiles, body));
     }
+    try {
+      await doWithSpinner(message, doOperation);
+    } catch (error: any) {
+      console.info("Error Performing Operation");
+      console.info("Value to Update", body?.storage?.value);
+      console.error(error);
+      if (EXIT_ON_ERROR) {
+        throw error;
+      }
+    }
 
-    await doWithSpinner(message, doOperation);
     return buildPublishRecordForContent(server, content);
   };
 
