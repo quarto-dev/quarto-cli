@@ -257,7 +257,7 @@ export function revealjsFormat() {
             navigationMode === "grid";
 
           // if the user set slideNumber to true then provide
-          // linear slides (if they havne't specified vertical slides)
+          // linear slides (if they haven't specified vertical slides)
           if (format.metadata["slideNumber"] === true) {
             extras.metadataOverride!["slideNumber"] = verticalSlides
               ? "h.v"
@@ -406,6 +406,16 @@ function revealHtmlPostprocessor(
         scriptEl.innerText = scriptEl.innerText.replace(
           /slideNumber: (h[\.\/]v|c(?:\/t)?)/,
           "slideNumber: '$1'",
+        );
+
+        // quote width and heigh if in %
+        scriptEl.innerText = scriptEl.innerText.replace(
+          /width: (\d+(\.\d+)?%)/,
+          "width: '$1'",
+        );
+        scriptEl.innerText = scriptEl.innerText.replace(
+          /height: (\d+(\.\d+)?%)/,
+          "height: '$1'",
         );
 
         // plugin registration
