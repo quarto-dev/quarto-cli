@@ -36,22 +36,10 @@ export interface ExtensionSource {
 export async function extensionSource(
   target: string,
 ): Promise<ExtensionSource | undefined> {
-  let targetUrl;
-  try {
-    // is this a remote extension with full URL ?
-    targetUrl = new URL(target);
-    if (!/^http(s)?/.test(targetUrl.protocol)) {
-      throw new Error("Only http(s) remote extensions can be installed.");
-    }
-  } catch {
-    // is this a local extension ?
-    if (existsSync(target)) {
-      // local extensions on file system
-      return { type: "local", resolvedTarget: target };
-    }
+  if (!target.match(/^https?:\/\/.*$/) && existsSync(target)) {
+    return { type: "local", resolvedTarget: target };
   }
 
-  // resolve remote extension shortener (e.g quarto-ext/lightbox)
   for (const resolver of extensionHostResolvers) {
     const resolved = resolver(target);
     if (!resolved) {
