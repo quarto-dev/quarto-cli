@@ -11,6 +11,7 @@ import { mergeConfigs } from "../../core/config.ts";
 import { resolveInputTarget } from "../../project/project-index.ts";
 import {
   BookChapterEntry,
+  bookOutputStem,
   BookPart,
   kBookAppendix,
   kBookChapters,
@@ -39,6 +40,7 @@ import {
 import { citeIndex } from "../../project/project-cites.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
 import { PandocOptions } from "../../command/render/types.ts";
+import { warning } from "log/mod.ts";
 
 type AsciiDocBookPart = string | {
   partPath?: string;
@@ -137,6 +139,23 @@ const asciidocBookExtension = {
       const relativePath = relative(outDir, outputFile.file);
       if (isBookIndexPage(relativePath)) {
         indexPage = outputFile.file;
+      }
+    }
+
+    // Rename the index page
+    if (indexPage) {
+      const title = bookOutputStem(context.dir, context.config);
+      const adocOutputFile = title + ".adoc";
+      const adocOutputPath = join(outDir, adocOutputFile);
+      if (!existsSync(adocOutputPath)) {
+        Deno.renameSync(
+          join(indexPage),
+          join(outDir, adocOutputFile),
+        );
+      } else {
+        warning(
+          `A an output named ${adocOutputFile} already exists. The root document for this book is 'index.adoc'.`,
+        );
       }
     }
 
