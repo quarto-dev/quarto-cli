@@ -16,8 +16,10 @@ function renderAsciidoc()
 
   return {
     Meta = function(meta)
-      meta['asciidoc-stem'] = 'latexmath'
-      return meta
+      if hasMath then
+        meta['asciidoc-stem'] = 'latexmath'
+        return meta
+      end 
     end,
     Math = function(el)
       hasMath = true;
