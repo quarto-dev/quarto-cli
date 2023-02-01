@@ -142,23 +142,6 @@ const asciidocBookExtension = {
       }
     }
 
-    // Rename the index page
-    if (indexPage) {
-      const title = bookOutputStem(context.dir, context.config);
-      const adocOutputFile = title + ".adoc";
-      const adocOutputPath = join(outDir, adocOutputFile);
-      if (!existsSync(adocOutputPath)) {
-        Deno.renameSync(
-          join(indexPage),
-          join(outDir, adocOutputFile),
-        );
-      } else {
-        warning(
-          `A an output named ${adocOutputFile} already exists. The root document for this book is 'index.adoc'.`,
-        );
-      }
-    }
-
     // If there is a refs target, then generate the bibliography and
     // replace the refs target with the rendered references
     //
@@ -234,6 +217,23 @@ const asciidocBookExtension = {
         Deno.writeTextFileSync(
           indexPage,
           updatedContents,
+        );
+      }
+    }
+
+    // Rename the index page
+    if (indexPage) {
+      const title = bookOutputStem(context.dir, context.config);
+      const adocOutputFile = title + ".adoc";
+      const adocOutputPath = join(outDir, adocOutputFile);
+      if (!existsSync(adocOutputPath)) {
+        Deno.renameSync(
+          join(indexPage),
+          join(outDir, adocOutputFile),
+        );
+      } else {
+        warning(
+          `A an output named ${adocOutputFile} already exists. The root document for this book is 'index.adoc'.`,
         );
       }
     }
