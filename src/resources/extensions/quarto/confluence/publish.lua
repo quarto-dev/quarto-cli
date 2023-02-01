@@ -47,6 +47,9 @@ function Writer (doc, opts)
       table.attributes.style = ""
       local head = table.head
       local caption = table.caption.long
+
+      -- Captions placed inside of the table will throw an error with CSF
+      table.caption = {}
       return { table } .. caption
     end
   }
