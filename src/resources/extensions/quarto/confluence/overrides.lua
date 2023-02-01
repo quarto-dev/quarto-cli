@@ -115,7 +115,7 @@ function LinkConfluence(source, target, title, attr)
   end
 
     return "<a href='" .. escape(target,true) .. "' title='" ..
-            escape(title,true) .. "'>" .. source .. "</a>"
+            escape(title,true) .. "'>" .. escape(source, false) .. "</a>"
 end
 
 function CodeBlockConfluence(codeValue, languageValue)
