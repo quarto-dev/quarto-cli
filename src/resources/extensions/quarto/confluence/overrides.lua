@@ -38,7 +38,7 @@ function dumpObject(o)
   end
 end
 
-function dump(object, label)
+function dump(label, object)
   print(label or '' .. ': ', dumpObject(object))
 end
 
@@ -108,14 +108,13 @@ function LinkConfluence(source, target, title, attr)
   if(not startsWith(target,"http") and (not string.find(target, ".qmd"))) then
     return interpolate {
     LINK_ATTACHMENT_SNIPPET,
-    source = source,
+    source = escape(source),
     target = target,
     doubleBraket = "]]"
   }
   end
-
-    return "<a href='" .. escape(target,true) .. "' title='" ..
-            escape(title,true) .. "'>" .. escape(source, false) .. "</a>"
+  return "<a href='" .. escape(target,true) .. "' title='" ..
+          escape(title,true) .. "'>" .. escape(source, false) .. "</a>"
 end
 
 function CodeBlockConfluence(codeValue, languageValue)

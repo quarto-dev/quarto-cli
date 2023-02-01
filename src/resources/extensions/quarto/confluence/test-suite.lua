@@ -133,12 +133,18 @@ function TestLinkConfluence:testEscape()
   local source = 'A & B'
   local target = 'fake-target.qmd'
   local title = 'fake-title'
-  local attributes = {
-    class = 'fake-class'
-  }
   expected = confluence.interpolate{expected, doubleBracket = ']]'}
-  local actual = confluence.LinkConfluence(source, target, title, attributes)
+  local actual = confluence.LinkConfluence(source, target, title)
 
+  lu.assertEquals(actual, expected)
+end
+function TestLinkConfluence:testEscapeNotQMD()
+  local expected = "<a href='http://www.test.com' title='fake-title'>A &amp; B</a>"
+  local source = 'A & B'
+  local target = 'http://www.test.com'
+  local title = 'fake-title'
+  expected = confluence.interpolate{expected, doubleBracket = ']]'}
+  local actual = confluence.LinkConfluence(source, target, title)
   lu.assertEquals(actual, expected)
 end
 function TestLinkConfluence:testAttachment()
