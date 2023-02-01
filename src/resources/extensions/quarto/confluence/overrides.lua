@@ -137,99 +137,11 @@ function CodeBlockConfluence(codeValue, languageValue)
   }
 end
 
--- Convert pandoc alignment to something HTML can use.
--- align is AlignLeft, AlignRight, AlignCenter, or AlignDefault.
-local function html_align(align)
-  if align == 'AlignLeft' then
-    return 'left'
-  elseif align == 'AlignRight' then
-    return 'right'
-  elseif align == 'AlignCenter' then
-    return 'center'
-  else
-    return 'left'
-  end
-end
-
--- Caption is a string, aligns is an array of strings,
--- widths is an array of floats, headers is an array of
--- strings, rows is an array of arrays of strings.
-function TableConfluence(caption, aligns, widths, headers, rows)
-  --dump(caption, 'caption')
-  --dump(aligns, 'aligns')
-  --dump(widths, 'widths')
-  --dump(headers, 'headers')
-  --dump(rows, 'rows')
-
-  local buffer = {}
-  local function add(s)
-    table.insert(buffer, s)
-  end
-  add("<table>")
-  if widths and widths[1] ~= 0 then
-    add("<colgroup>")
-    -- extract with test and put a colgroup here
-    for _, w in pairs(widths) do
-      add('<col width="' .. string.format("%.0f%%", w * 100) .. '" />')
-    end
-    add("</colgroup>")
-  end
-  local header_row = {}
-  local empty_header = true
-  for i, h in pairs(headers) do
-    local align = html_align(aligns[i])
-    table.insert(header_row,
-            '<th align="' ..
-                    align ..
-                    '">' ..
-                    '<p style="text-align: ' ..
-                    html_align(aligns[i]) ..
-                    ';">' ..
-                    h ..
-                    '</p>' ..
-                    '</th>')
-    empty_header = empty_header and h == ""
-  end
-  if empty_header then
-    head = ""
-  else
-    add('<tr class="header">')
-    for _,h in pairs(header_row) do
-      add(h)
-    end
-    add('</tr>')
-  end
-  local class = "even"
-  for _, row in pairs(rows) do
-    class = (class == "even" and "odd") or "even"
-    add('<tr class="' .. class .. '">')
-    for i,c in pairs(row) do
-      add('<td align="' ..
-              html_align(aligns[i]) ..
-              '">' ..
-              '<p style="text-align: ' ..
-              html_align(aligns[i]) ..
-              ';">' ..
-              c ..
-              '</p>' ..
-              '</td>')
-    end
-    add('</tr>')
-  end
-  add('</table>')
-  if caption ~= "" then
-    add("<p>" .. caption .. "</p>")
-  end
-  return table.concat(buffer,'\n')
-end
-
-
 return {
   CaptionedImageConfluence = CaptionedImageConfluence,
   CodeBlockConfluence = CodeBlockConfluence,
   LinkConfluence = LinkConfluence,
   TableConfluence = TableConfluence,
   escape = escape,
-  html_align = html_align,
   interpolate = interpolate
 }
