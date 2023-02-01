@@ -63,6 +63,7 @@ export function asciidocFormat(): Format {
             "template.asciidoc",
           ),
         ),
+        to: "asciidoctor",
       },
       extensions: {
         book: asciidocBookExtension,
