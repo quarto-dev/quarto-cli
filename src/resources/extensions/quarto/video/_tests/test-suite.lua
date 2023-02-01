@@ -47,7 +47,8 @@ end
 local SIMPLE_YOUTUBE_EXPECTED = {
   snippet = '<iframe src="https://www.youtube.com/embed/wo9vZccmqwc" title="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>',
   type = VIDEO_TYPES.YOUTUBE,
-  src = 'https://www.youtube.com/embed/wo9vZccmqwc'}
+  src = 'https://www.youtube.com/embed/wo9vZccmqwc',
+  videoId="wo9vZccmqwc"}
 
 function TestYouTubeBuilder:testEmbedURL()
   local params = {
@@ -87,7 +88,7 @@ function TestYouTubeBuilder:testTitle()
     title = 'fake-title',
   }
   local expected = {snippet = '<iframe src="https://www.youtube.com/embed/wo9vZccmqwc" title="fake-title" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>',
-    type = VIDEO_TYPES.YOUTUBE, src='https://www.youtube.com/embed/wo9vZccmqwc'
+    type = VIDEO_TYPES.YOUTUBE, src='https://www.youtube.com/embed/wo9vZccmqwc', videoId = 'wo9vZccmqwc'
   }
   checkYouTubeBuilder(params, expected)
 end
@@ -97,7 +98,7 @@ function TestYouTubeBuilder:testStartTime()
     src = 'https://www.youtube.com/embed/wo9vZccmqwc',
     start = 10,
   }
-  local expected = {snippet = '<iframe src="https://www.youtube.com/embed/wo9vZccmqwc?start=10" title="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>', type = VIDEO_TYPES.YOUTUBE, src='https://www.youtube.com/embed/wo9vZccmqwc'}
+  local expected = {snippet = '<iframe src="https://www.youtube.com/embed/wo9vZccmqwc?start=10" title="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>', type = VIDEO_TYPES.YOUTUBE, src='https://www.youtube.com/embed/wo9vZccmqwc', videoId = 'wo9vZccmqwc'}
   checkYouTubeBuilder(params, expected)
 end
 
@@ -108,7 +109,7 @@ function TestYouTubeBuilder:testHeightWidth()
     width = 200,
   }
   local expected = {snippet = '<iframe src="https://www.youtube.com/embed/wo9vZccmqwc" width="200" height="100" title="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>', type = VIDEO_TYPES.YOUTUBE,
-   src = 'https://www.youtube.com/embed/wo9vZccmqwc'}
+   src = 'https://www.youtube.com/embed/wo9vZccmqwc', videoId = 'wo9vZccmqwc'}
   checkYouTubeBuilder(params, expected)
 end
 
@@ -215,7 +216,7 @@ function TestVimeoBuilder:testBasic()
   }
   local expected = {
     snippet = '<iframe src="https://player.vimeo.com/video/548291210" frameborder="0" allow="autoplay; title="" fullscreen; picture-in-picture" allowfullscreen></iframe>',
-    type = VIDEO_TYPES.VIMEO, src='https://player.vimeo.com/video/548291210' }
+    type = VIDEO_TYPES.VIMEO, src='https://player.vimeo.com/video/548291210', videoId = '548291210' }
 
   checkVimeoBuilder(params, expected)
 end
@@ -225,7 +226,7 @@ function TestVimeoBuilder:testTitle()
     src = 'https://vimeo.com/548291210',
     title = 'fake-title'
   }
-  local expected = {snippet = '<iframe src="https://player.vimeo.com/video/548291210" frameborder="0" allow="autoplay; title="fake-title" fullscreen; picture-in-picture" allowfullscreen></iframe>', type = VIDEO_TYPES.VIMEO, src='https://player.vimeo.com/video/548291210' }
+  local expected = {snippet = '<iframe src="https://player.vimeo.com/video/548291210" frameborder="0" allow="autoplay; title="fake-title" fullscreen; picture-in-picture" allowfullscreen></iframe>', type = VIDEO_TYPES.VIMEO, src='https://player.vimeo.com/video/548291210', videoId = '548291210' }
   checkVimeoBuilder(params, expected)
 end
 
@@ -235,7 +236,7 @@ function TestVimeoBuilder:testHeightWidth()
     height = 100,
     width = 200,
   }
-  local expected = {snippet = '<iframe src="https://player.vimeo.com/video/548291210" width="200" height="100" frameborder="0" allow="autoplay; title="" fullscreen; picture-in-picture" allowfullscreen></iframe>', type = VIDEO_TYPES.VIMEO, src='https://player.vimeo.com/video/548291210' }
+  local expected = {snippet = '<iframe src="https://player.vimeo.com/video/548291210" width="200" height="100" frameborder="0" allow="autoplay; title="" fullscreen; picture-in-picture" allowfullscreen></iframe>', type = VIDEO_TYPES.VIMEO, src='https://player.vimeo.com/video/548291210', videoId = '548291210' }
   checkVimeoBuilder(params, expected)
 end
 
@@ -338,6 +339,25 @@ end
 TestHelperConvertURL = {}
 function TestHelperConvertURL:testCanLoadModule()
   --helper.helloWorld()
+end
+
+TestAsciidocVideo = {}
+function TestAsciidocVideo:testYoutube()
+  result = formatAsciiDocVideo('qItugh-fFgg', 'youtube')
+  expected = 'video::qItugh-fFgg[youtube]'
+  lu.assertEquals(result, expected)
+end
+
+function TestAsciidocVideo:testVimeo()
+  result = formatAsciiDocVideo('783455773', 'vimeo')
+  expected = 'video::783455773[vimeo]'
+  lu.assertEquals(result, expected)
+end
+
+function TestAsciidocVideo:textLocal()
+  result = formatAsciiDocVideo('foo/bar.mp4', '')
+  expected = 'video::foo/bar.mp4[]'
+  lu.assertEquals(result, expected)
 end
 
 

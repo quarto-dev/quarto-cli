@@ -182,25 +182,30 @@ local helpers = {
   ["getSnippetFromBuilders"] = getSnippetFromBuilders
 }
 
-local function asciidocVideo(src, height, width, title, start, _aspectRatio)
+-- makes an asciidoc video raw block
+-- see https://docs.asciidoctor.org/asciidoc/latest/macros/audio-and-video/
+function formatAsciiDocVideo(src, type)
+  return  'video::' .. src .. '[' .. type .. ']'
+end
 
-  -- makes an asciidoc video raw block
-  -- see https://docs.asciidoctor.org/asciidoc/latest/macros/audio-and-video/
-  local makeAdoc = function(id, type) 
-    return pandoc.RawBlock("asciidoc", 'video::' .. id .. '[' .. type .. ']\n\n')
+local function asciidocVideo(src, height, width, title, start, _aspectRatio)
+  local asciiDocVideoRawBlock = function(src, type) 
+    return pandoc.RawBlock("asciidoc", formatAsciiDocVideo(src, type) .. '\n\n')
   end
 
   local videoSnippetAndType = getSnippetFromBuilders(src, height, width, title, start)  
   if videoSnippetAndType.type == VIDEO_TYPES.YOUTUBE then  
     -- Use the video id to form an asciidoc video
     if videoSnippetAndType.videoId ~= nil then
-      return makeAdoc(videoSnippetAndType.videoId, 'youtube');
+      return asciiDocVideoRawBlock(videoSnippetAndType.videoId, 'youtube');
     end    
   elseif videoSnippetAndType.type == VIDEO_TYPES.VIMEO then
-    return makeAdoc(videoSnippetAndType.videoId, 'vimeo');
+    return asciiDocVideoRawBlock(videoSnippetAndType.videoId, 'vimeo');
   elseif videoSnippetAndType.type ==  VIDEO_TYPES.VIDEOJS then
-    return makeAdoc(videoSnippetAndType.src, '');
+    return asciiDocVideoRawBlock(videoSnippetAndType.src, '');
   else
+    -- this is not a local or supported video type for asciidoc
+    -- we should just emit a hyper link
   end
 
 end
