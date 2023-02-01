@@ -42,10 +42,12 @@ function Writer (doc, opts)
               codeBlock.classes[1] or '')
       return pandoc.RawBlock('html', renderString)
     end,
-    Table = function (tbl)
-      local caption = tbl.caption.long
-      tbl.caption = {}
-      return {tbl} .. caption
+    Table = function (table)
+      -- Grid tables add a width style that widens the table, remove it
+      table.attributes.style = ""
+      local head = table.head
+      local caption = table.caption.long
+      return { table } .. caption
     end
   }
 
