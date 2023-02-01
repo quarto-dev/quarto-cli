@@ -36,7 +36,7 @@ export interface ExtensionSource {
 export async function extensionSource(
   target: string,
 ): Promise<ExtensionSource | undefined> {
-  if (existsSync(target)) {
+  if (!target.match(/^https?:\/\/.*$/) && existsSync(target)) {
     return { type: "local", resolvedTarget: target };
   }
 
