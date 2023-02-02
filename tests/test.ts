@@ -192,7 +192,7 @@ export function test(test: TestDescriptor) {
           );
           const command = Deno.build.os === "windows"
             ? "run-tests.psl"
-            : "./run-test.sh";
+            : "./run-tests.sh";
           const testCommand = `${
             offset > 0 ? " ".repeat(offset + 2) : ""
           }${command} ${relPath}`;

@@ -303,6 +303,11 @@ local result = run_as_extended_ast({
   pre = {
     initOptions()
   },
+  afterFilterPass = function() 
+    -- After filter pass is called after each pass through a filter group
+    -- allowing state or other items to be handled
+    resetFileMetadata()
+  end,
   filters = capture_timings(filterList),
 })
 

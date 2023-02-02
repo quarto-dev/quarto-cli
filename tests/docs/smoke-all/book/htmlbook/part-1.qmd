@@ -1,3 +1,9 @@
+---
+_quarto:
+  tests:
+    asciidoc: default
+---
+
 # First part
 
 This is text introduction the first part.

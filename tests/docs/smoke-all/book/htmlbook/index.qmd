@@ -1,1 +1,7 @@
+---
+_quarto:
+  tests:
+    asciidoc: default
+---
+
 # Index

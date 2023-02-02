@@ -51,7 +51,7 @@ import {
 import { outputRecipe } from "../../../command/render/output.ts";
 import { renderCleanup } from "../../../command/render/cleanup.ts";
 
-import { kProjectType, ProjectConfig, ProjectContext } from "../../types.ts";
+import { ProjectConfig, ProjectContext } from "../../types.ts";
 import { ProjectOutputFile } from "../types.ts";
 
 import { executionEngineKeepMd } from "../../../execute/engine.ts";
@@ -588,25 +588,6 @@ export async function bookPostRender(
   incremental: boolean,
   outputFiles: ProjectOutputFile[],
 ) {
-  const outputFormats: Record<string, Format> = {};
-  outputFiles.forEach((file) => {
-    if (file.format.pandoc.to) {
-      outputFormats[file.format.pandoc.to] =
-        outputFormats[file.format.pandoc.to] || file.format;
-    }
-  });
-  for (const outputFormat of Object.values(outputFormats)) {
-    const bookExt = outputFormat.extensions?.book as BookExtension;
-    if (bookExt.bookPostRender) {
-      await bookExt.bookPostRender(
-        outputFormat,
-        context,
-        incremental,
-        outputFiles,
-      );
-    }
-  }
-
   // get web output contained in the outputFiles passed to us
   const websiteFiles = websiteOutputFiles(outputFiles);
   if (websiteFiles.length > 0) {
@@ -624,6 +605,26 @@ export async function bookPostRender(
 
     // run standard website stuff (search, etc.)
     await websitePostRender(context, incremental, outputFiles);
+  }
+
+  // Process any post rendering
+  const outputFormats: Record<string, Format> = {};
+  outputFiles.forEach((file) => {
+    if (file.format.pandoc.to) {
+      outputFormats[file.format.pandoc.to] =
+        outputFormats[file.format.pandoc.to] || file.format;
+    }
+  });
+  for (const outputFormat of Object.values(outputFormats)) {
+    const bookExt = outputFormat.extensions?.book as BookExtension;
+    if (bookExt.bookPostRender) {
+      await bookExt.bookPostRender(
+        outputFormat,
+        context,
+        incremental,
+        outputFiles,
+      );
+    }
   }
 }
 

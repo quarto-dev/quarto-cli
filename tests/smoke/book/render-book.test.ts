@@ -31,7 +31,9 @@ testQuartoCmd(
 const vizInput = docs("books/visualization-curriculum");
 const verifyViz = [
   fileExists(join(vizInput, "docs", "Visualization-Curriculum.docx")),
-  fileExists(join(vizInput, "docs", "asciidoc", "index.adoc")),
+  fileExists(
+    join(vizInput, "docs", "asciidoc", "Visualization-Curriculum.adoc"),
+  ),
   fileExists(join(vizInput, "docs", "index.html")),
 ];
 testQuartoCmd(

@@ -606,10 +606,7 @@ export const updateLinks = (
 
       if (sitePage) {
         updated = match.replace('href="', `href="${url}`);
-        const pagePath: string = `${url}${sitePage.id}/${encodeURI(
-          sitePage.title ?? ""
-        )}`;
-
+        const pagePath: string = `${url}${sitePage.id}`;
         updated = updated.replace(linkFullFileName, pagePath);
       } else {
         if (!collectedPass2Changes.includes(changeToProcess)) {

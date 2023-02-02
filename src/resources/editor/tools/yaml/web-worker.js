@@ -21034,6 +21034,7 @@ try {
           groovy: "//",
           sed: "#",
           perl: "#",
+          prql: "#",
           ruby: "#",
           tikz: "%",
           js: "//",
@@ -21050,12 +21051,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 146893,
+          _internalId: 146895,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 146885,
+              _internalId: 146887,
               type: "enum",
               enum: [
                 "png",
@@ -21071,7 +21072,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 146892,
+              _internalId: 146894,
               type: "anyOf",
               anyOf: [
                 {
@@ -30143,6 +30144,7 @@ ${tidyverseInfo(
     groovy: "//",
     sed: "#",
     perl: "#",
+    prql: "#",
     ruby: "#",
     tikz: "%",
     js: "//",

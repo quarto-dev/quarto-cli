@@ -31,7 +31,7 @@ local function isLatexOutput()
 end
 
 local function isAsciiDocOutput()
-  return FORMAT == "asciidoc"
+  return FORMAT == "asciidoc" or FORMAT == "asciidoctor"
 end 
 
 local function isBeamerOutput()
@@ -167,6 +167,8 @@ local function isFormat(to)
     -- markdown: markdown*, commonmark*, gfm, markua
     elseif to == "markdown" then
       return isMarkdownOutput()
+    elseif to == "asciidoc" or to == "asciidoctor" then
+      return isAsciiDocOutput()
     else
       return false
     end 

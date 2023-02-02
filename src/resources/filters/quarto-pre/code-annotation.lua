@@ -288,6 +288,16 @@ function processLaTeXAnnotation(line, annoteNumber, annotationProvider)
   end
 end
 
+function processAsciidocAnnotation(line, annoteNumber, annotationProvider)
+  if param(kCodeAnnotationsParam) == kCodeAnnotationStyleNone then
+    local replaced = annotationProvider.replaceAnnotation(line, annoteNumber, '') 
+    return replaced
+  else
+    local replaced = annotationProvider.replaceAnnotation(line, annoteNumber, " <" .. tostring(annoteNumber) .. ">") 
+    return replaced
+  end
+end
+
 function processAnnotation(line, annoteNumber, annotationProvider)
     -- For all other formats, just strip the annotation- the definition list is converted
     -- to be based upon line numbers. 
@@ -376,6 +386,8 @@ function code()
           local annotationProcessor = processAnnotation
           if _quarto.format.isLatexOutput() then
             annotationProcessor = processLaTeXAnnotation
+          elseif _quarto.format.isAsciiDocOutput() then
+            annotationProcessor = processAsciidocAnnotation
           end
 
           -- resolve annotations
@@ -468,6 +480,8 @@ function code()
                 local term = ""
                 if _quarto.format.isLatexOutput() then
                   term = latexListPlaceholder(annotationNumber)
+                elseif _quarto.format.isAsciiDocOutput() then
+                  term = "<" .. tostring(annotationNumber) .. ">"
                 else
                   if lineNumMeta.count == 1 then
                     term = language[kCodeLine] .. " " .. lineNumMeta.text;
@@ -504,7 +518,19 @@ function code()
             end
 
             -- add the definition list
-            local dl = pandoc.DefinitionList(items)
+            local dl
+            if _quarto.format.isAsciiDocOutput() then
+              local formatted = pandoc.List()
+              for _i,v in ipairs(items) do
+                local annotationMarker = v[1] .. ' '
+                local definition = v[2]
+                tprepend(definition.content, {annotationMarker})
+                formatted:insert(definition)
+              end
+              dl = pandoc.Div(formatted)
+            else
+              dl = pandoc.DefinitionList(items)
+            end
 
             -- if there is a pending code cell, then insert into that and add it
             if codeAnnotations ~= kCodeAnnotationStyleNone then

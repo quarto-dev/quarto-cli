@@ -1,3 +1,9 @@
+---
+_quarto:
+  tests:
+    asciidoc: default
+---
+
 # Second appendix
 
 Donec orci nulla, eleifend finibus tempor vel, condimentum non nibh.

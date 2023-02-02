@@ -89,6 +89,7 @@ local youTubeBuilder = function(params)
   }
   result.type = VIDEO_TYPES.YOUTUBE
   result.src = params.src
+  result.videoId = match
 
   return result
 end
@@ -127,6 +128,7 @@ local vimeoBuilder = function(params)
   result.snippet = replaceCommonAttributes(SNIPPET, params)
   result.type = VIDEO_TYPES.VIMEO
   result.src = params.src
+  result.videoId = match
 
   return result
 end
@@ -179,6 +181,34 @@ local helpers = {
   ["VIDEO_SHORTCODE_NUM_VIDEOJS"] = VIDEO_SHORTCODE_NUM_VIDEOJS,
   ["getSnippetFromBuilders"] = getSnippetFromBuilders
 }
+
+-- makes an asciidoc video raw block
+-- see https://docs.asciidoctor.org/asciidoc/latest/macros/audio-and-video/
+function formatAsciiDocVideo(src, type)
+  return  'video::' .. src .. '[' .. type .. ']'
+end
+
+local function asciidocVideo(src, height, width, title, start, _aspectRatio)
+  local asciiDocVideoRawBlock = function(src, type) 
+    return pandoc.RawBlock("asciidoc", formatAsciiDocVideo(src, type) .. '\n\n')
+  end
+
+  local videoSnippetAndType = getSnippetFromBuilders(src, height, width, title, start)  
+  if videoSnippetAndType.type == VIDEO_TYPES.YOUTUBE then  
+    -- Use the video id to form an asciidoc video
+    if videoSnippetAndType.videoId ~= nil then
+      return asciiDocVideoRawBlock(videoSnippetAndType.videoId, 'youtube');
+    end    
+  elseif videoSnippetAndType.type == VIDEO_TYPES.VIMEO then
+    return asciiDocVideoRawBlock(videoSnippetAndType.videoId, 'vimeo');
+  elseif videoSnippetAndType.type ==  VIDEO_TYPES.VIDEOJS then
+    return asciiDocVideoRawBlock(videoSnippetAndType.src, '');
+  else
+    -- this is not a local or supported video type for asciidoc
+    -- we should just emit a hyper link
+  end
+
+end
 
 function htmlVideo(src, height, width, title, start, aspectRatio)
 
@@ -268,6 +298,8 @@ return {
 
     if quarto.doc.is_format("html:js") then
       return htmlVideo(srcValue, heightValue, widthValue, titleValue, startValue, aspectRatio)
+    elseif quarto.doc.isFormat("asciidoc") then
+      return asciidocVideo(srcValue, heightValue, widthValue, titleValue, startValue, aspectRatio)
     else
       -- Fall-back to a link of the source
       return pandoc.Link(srcValue, srcValue)

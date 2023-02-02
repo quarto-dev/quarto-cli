@@ -1,0 +1,14 @@
+---
+format: 
+  revealjs:
+    width: 5.3%
+    height: 53%
+_quarto:
+  tests:
+    revealjs:
+      ensureFileRegexMatches:
+        - ["width: '5\\.3%',", "height: '53%',"]
+        - ["width: 5\\.3%,", "height: 53%,"]
+---
+
+# Slide

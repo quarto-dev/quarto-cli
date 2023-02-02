@@ -123,11 +123,8 @@ export function defaultWriterFormat(to: string): Format {
       break;
 
     case "asciidoc":
-      writerFormat = asciidocFormat();
-      break;
-
     case "asciidoctor":
-      writerFormat = plaintextFormat("Asciidoctor", "adoc");
+      writerFormat = asciidocFormat();
       break;
 
     case "docbook":
