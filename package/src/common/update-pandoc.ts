@@ -158,6 +158,7 @@ async function writePandocTemplates(
   );
   const latexOutdir = join(formatSrcDir, "pdf", "pandoc");
   const revealOutdir = join(formatSrcDir, "revealjs", "pandoc");
+  const asciidocOutdir = join(formatSrcDir, "asciidoc", "pandoc");
 
   const templateDirFiles: Record<string, Array<{ from: string; to?: string }>> =
     {
@@ -176,6 +177,9 @@ async function writePandocTemplates(
       ],
       [latexOutdir]: [
         { from: "default.latex", to: "latex.template" },
+      ],
+      [asciidocOutdir]: [
+        { from: "default.asciidoctor", to: "asciidoc.template" },
       ],
     };
 
