@@ -72,7 +72,7 @@ export function asciidocFormat(): Format {
   );
 }
 
-const kFormatOutputDir = "asciidoc";
+const kFormatOutputDir = "book-asciidoc";
 const kAsciidocDocType = "asciidoc-doctype";
 
 // Ref target marks the refs div so the post process can inject the bibliography
@@ -85,7 +85,7 @@ const kUseAsciidocNativeCites = "use-asciidoc-native-cites";
 // This provide book specific behavior for producing asciidoc books
 const asciidocBookExtension = {
   multiFile: true,
-  formatOutputDirectory(_format: Format) {
+  formatOutputDirectory() {
     return kFormatOutputDir;
   },
   filterParams: (_options: PandocOptions) => {

@@ -33,7 +33,11 @@ export function docxFormat(): Format {
         };
       },
       extensions: {
-        book: {},
+        book: {
+          formatOutputDirectory: () => {
+            return "book-docx";
+          },
+        },
       },
     },
   );

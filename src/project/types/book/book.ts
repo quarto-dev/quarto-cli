@@ -118,7 +118,7 @@ export const bookProjectType: ProjectType = {
     if (format.extensions?.book) {
       const bookExt = format.extensions?.book as BookExtension;
       if (bookExt.formatOutputDirectory) {
-        return bookExt.formatOutputDirectory(format);
+        return bookExt.formatOutputDirectory();
       } else {
         return undefined;
       }
