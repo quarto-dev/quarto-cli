@@ -51,6 +51,10 @@ function Writer (doc, opts)
       -- Captions placed inside of the table will throw an error with CSF
       table.caption = {}
       return { table } .. caption
+    end,
+    RawBlock = function (table)
+      -- Raw blocks inclding arbirtary HTML like JavaScript is not supported in CSF
+      return ""
     end
   }
 

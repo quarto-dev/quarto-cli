@@ -1,5 +1,3 @@
-// TODO Resource bundles
-
 import { join } from "path/mod.ts";
 import { Input, Secret } from "cliffy/prompt/mod.ts";
 import { RenderFlags } from "../../command/render/types.ts";
@@ -566,9 +564,8 @@ async function publish(
     try {
       await doWithSpinner(message, doOperation);
     } catch (error: any) {
-      console.info("Error Performing Operation");
-      console.info("Value to Update", body?.storage?.value);
-      console.error(error);
+      trace("Error Performing Operation", error);
+      trace("Value to Update", body?.storage?.value);
       if (EXIT_ON_ERROR) {
         throw error;
       }
@@ -660,11 +657,31 @@ async function publish(
 
     let pathsToId: Record<string, string> = {}; // build from existing site
 
+    const handleChangeError = (
+      label: string,
+      currentChange: ConfluenceSpaceChange,
+      error: any
+    ) => {
+      if (isContentUpdate(currentChange) || isContentCreate(currentChange)) {
+        trace("currentChange.fileName", currentChange.fileName);
+        console.log("currentChange.fileName", currentChange.fileName);
+        trace("Value to Update", currentChange.body.storage.value);
+      }
+      if (EXIT_ON_ERROR) {
+        throw error;
+      }
+    };
+
     const doChange = async (
       change: ConfluenceSpaceChange,
       uploadFileAttachments: boolean = true
     ) => {
       if (isContentCreate(change)) {
+        if (change.fileName === "sitemap.xml") {
+          trace("sitemap.xml skipped", change);
+          return;
+        }
+
         let ancestorId =
           (change?.ancestors && change?.ancestors[0]?.id) ?? null;
 
@@ -722,25 +739,15 @@ async function publish(
       }
     };
 
-    const handleChangeError = (
-      label: string,
-      currentChange: ConfluenceSpaceChange,
-      error: any
-    ) => {
-      console.info(label, currentChange);
-      if (isContentUpdate(currentChange) || isContentCreate(currentChange)) {
-        console.info("currentChange.fileName", currentChange.fileName);
-        // console.info("Value to Update", currentChange.body.storage.value);
-      }
-      console.error(error);
-      if (EXIT_ON_ERROR) {
-        throw error;
-      }
-    };
-
+    let pass1Count = 0;
     for (let currentChange of changeList) {
       try {
-        await doChange(currentChange);
+        pass1Count = pass1Count + 1;
+        const doOperation = async () => await doChange(currentChange);
+        await doWithSpinner(
+          `Site Updates [${pass1Count}/${changeList.length}]`,
+          doOperation
+        );
       } catch (error: any) {
         handleChangeError(
           "Error Performing Change Pass 1",
@@ -765,9 +772,15 @@ async function publish(
         parent
       );
 
+      let pass2Count = 0;
       for (let currentChange of linkUpdateChanges) {
         try {
-          await doChange(currentChange, false);
+          pass2Count = pass2Count + 1;
+          const doOperation = async () => await doChange(currentChange, false);
+          await doWithSpinner(
+            `Updating Links [${pass2Count}/${linkUpdateChanges.length}]`,
+            doOperation
+          );
         } catch (error: any) {
           handleChangeError(
             "Error Performing Change Pass 2",
