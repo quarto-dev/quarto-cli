@@ -12,7 +12,7 @@ fileMetadataState = {
 function fileMetadata() 
   return {
     RawInline = parseFileMetadata,
-    RawBlock = parseFileMetadata
+    RawBlock = parseFileMetadata      
   }
 end
 
@@ -44,3 +44,13 @@ function currentFileMetadataState()
   return fileMetadataState
 end
 
+
+function resetFileMetadata()  
+  fileMetadataState = {
+    file = nil,
+    appendix = false,
+    include_directory = nil,
+  }
+end
+
+  

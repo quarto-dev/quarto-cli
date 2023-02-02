@@ -1,3 +1,9 @@
+---
+_quarto:
+  tests:
+    asciidoc: default
+---
+
 # First appendix
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit.

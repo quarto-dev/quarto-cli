@@ -1,3 +1,9 @@
+---
+_quarto:
+  tests:
+    asciidoc: default
+---
+
 # First chapter
 
 Duis porttitor commodo risus, non pellentesque quam faucibus a.

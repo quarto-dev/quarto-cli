@@ -3,7 +3,6 @@
 
 
 local kAsciidocNativeCites = 'use-asciidoc-native-cites'
-local kAsciiDocFormat = "asciidoc"
 
 function renderAsciidoc()   
 
@@ -16,8 +15,10 @@ function renderAsciidoc()
 
   return {
     Meta = function(meta)
-      meta['asciidoc-stem'] = 'latexmath'
-      return meta
+      if hasMath then
+        meta['asciidoc-stem'] = 'latexmath'
+        return meta
+      end 
     end,
     Math = function(el)
       hasMath = true;
@@ -37,18 +38,18 @@ function renderAsciidoc()
       local admonitionType = el.type:upper();
 
       -- render the callout contents
-      local admonitionContents = pandoc.write(pandoc.Pandoc(el.content), kAsciiDocFormat)
+      local admonitionContents = pandoc.write(pandoc.Pandoc(el.content), "asciidoc")
 
       local admonitionStr;
       if el.caption then
         -- A captioned admonition
-        local admonitionCaption = pandoc.write(pandoc.Pandoc(el.caption), kAsciiDocFormat)
+        local admonitionCaption = pandoc.write(pandoc.Pandoc(el.caption), "asciidoc")
         admonitionStr = "[" .. admonitionType .. "]\n." .. admonitionCaption .. "====\n" .. admonitionContents .. "====\n\n" 
       else
         -- A captionless admonition
           admonitionStr = "[" .. admonitionType .. "]\n====\n" .. admonitionContents .. "====\n\n" 
       end
-      return pandoc.RawBlock(kAsciiDocFormat, admonitionStr)
+      return pandoc.RawBlock("asciidoc", admonitionStr)
     end
   }
 end

@@ -1,3 +1,9 @@
+---
+_quarto:
+  tests:
+    asciidoc: default
+---
+
 # Code and figures {#sec-code-and-figures}
 
 ```{r}

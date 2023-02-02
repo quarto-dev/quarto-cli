@@ -26,7 +26,7 @@ function writeCites()
     Pandoc = function(el)
       -- the file to write to
       local citesFilePath = param("cites-index-file")
-      if citesFilePath then
+      if citesFilePath and quarto.project.directory then
         -- open the file
         local citesRaw = _quarto.file.read(citesFilePath)
         local documentCites = {}

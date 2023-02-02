@@ -422,24 +422,34 @@ export async function renderProject(
       );
     });
 
-    // copy all of the resource files
-    const allResourceFiles = ld.uniq(
-      (context.files.resources || []).concat(
-        projResults.files.flatMap((file) => file.resourceFiles),
-      ),
-    );
+    // Expand the resources into the format aware targets
+    // srcPath -> Set<destinationPaths>
+    const resourceFilesToCopy: Record<string, Set<string>> = {};
+    projResults.files.forEach((file) => {
+      const formatOutputDir = projectFormatOutputDir(
+        file.format,
+        context,
+        projType,
+      );
+      file.resourceFiles.forEach((file) => {
+        resourceFilesToCopy[file] = resourceFilesToCopy[file] || new Set();
+        const relativePath = relative(projDir, file);
+        resourceFilesToCopy[file].add(join(formatOutputDir, relativePath));
+      });
+    });
 
-    // copy the resource files to the output dir
-    allResourceFiles.forEach((file: string) => {
-      const sourcePath = relative(projDir, file);
-      const destPath = join(outputDirAbsolute, sourcePath);
-      if (existsSync(file)) {
-        if (Deno.statSync(file).isFile) {
-          copyResourceFile(context.dir, file, destPath);
+    // Actually copy the resource files
+    Object.keys(resourceFilesToCopy).forEach((srcPath) => {
+      const destinationFiles = resourceFilesToCopy[srcPath];
+      destinationFiles.forEach((destPath: string) => {
+        if (existsSync(srcPath)) {
+          if (Deno.statSync(srcPath).isFile) {
+            copyResourceFile(context.dir, srcPath, destPath);
+          }
+        } else if (!existsSync(destPath)) {
+          warning(`File '${srcPath}' was not found.`);
         }
-      } else if (!existsSync(destPath)) {
-        warning(`File '${sourcePath}' was not found.`);
-      }
+      });
     });
   } else {
     for (const result of fileResults.files) {
