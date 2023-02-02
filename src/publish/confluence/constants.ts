@@ -1,6 +1,6 @@
 export const DELETE_DISABLED = false;
 
-export const EXIT_ON_ERROR = true;
+export const EXIT_ON_ERROR = false;
 
 export const DESCENDANT_LIMIT = 500; // Render time would be the big worry here, we can consider paging in the future
 

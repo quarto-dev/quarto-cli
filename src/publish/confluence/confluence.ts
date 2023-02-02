@@ -29,6 +29,7 @@ import {
   ContentAncestor,
   ContentBody,
   ContentBodyRepresentation,
+  ContentChange,
   ContentChangeType,
   ContentCreate,
   ContentProperty,
@@ -562,8 +563,17 @@ async function publish(
       doOperation = async () =>
         (content = await createContent(publishFiles, body));
     }
+    try {
+      await doWithSpinner(message, doOperation);
+    } catch (error: any) {
+      console.info("Error Performing Operation");
+      console.info("Value to Update", body?.storage?.value);
+      console.error(error);
+      if (EXIT_ON_ERROR) {
+        throw error;
+      }
+    }
 
-    await doWithSpinner(message, doOperation);
     return buildPublishRecordForContent(server, content);
   };
 
@@ -712,18 +722,31 @@ async function publish(
       }
     };
 
+    const handleChangeError = (
+      label: string,
+      currentChange: ConfluenceSpaceChange,
+      error: any
+    ) => {
+      console.info(label, currentChange);
+      if (isContentUpdate(currentChange) || isContentCreate(currentChange)) {
+        console.info("currentChange.fileName", currentChange.fileName);
+        // console.info("Value to Update", currentChange.body.storage.value);
+      }
+      console.error(error);
+      if (EXIT_ON_ERROR) {
+        throw error;
+      }
+    };
+
     for (let currentChange of changeList) {
       try {
         await doChange(currentChange);
       } catch (error: any) {
-        console.info("Error Performing Change Pass 1", currentChange);
-        if (isContentUpdate(currentChange) || isContentCreate(currentChange)) {
-          console.info("Value to Update", currentChange.body.storage.value);
-        }
-        console.error(error);
-        if (EXIT_ON_ERROR) {
-          throw error;
-        }
+        handleChangeError(
+          "Error Performing Change Pass 1",
+          currentChange,
+          error
+        );
       }
     }
 
@@ -746,18 +769,11 @@ async function publish(
         try {
           await doChange(currentChange, false);
         } catch (error: any) {
-          //TODO remove duplication
-          console.info("Error Performing Change Pass 2", currentChange);
-          if (
-            isContentUpdate(currentChange) ||
-            isContentCreate(currentChange)
-          ) {
-            console.info("Value to Update", currentChange.body.storage.value);
-          }
-          console.error(error);
-          if (EXIT_ON_ERROR) {
-            throw error;
-          }
+          handleChangeError(
+            "Error Performing Change Pass 2",
+            currentChange,
+            error
+          );
         }
       }
     }
