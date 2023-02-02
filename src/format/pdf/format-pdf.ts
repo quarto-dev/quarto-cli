@@ -83,7 +83,18 @@ export function latexFormat(displayName: string): Format {
   return createFormat(
     displayName,
     "tex",
-    createPdfFormat(displayName),
+    mergeConfigs(
+      createPdfFormat(displayName),
+      {
+        extensions: {
+          book: {
+            formatOutputDirectory: () => {
+              return "book-latex";
+            },
+          },
+        },
+      },
+    ),
   );
 }
 
@@ -265,7 +276,7 @@ function createPdfFormat(
 }
 
 const pdfBookExtension: BookExtension = {
-  formatOutputDirectory: () => { 
+  formatOutputDirectory: () => {
     return "book-pdf";
   },
 
