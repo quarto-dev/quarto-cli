@@ -24,6 +24,7 @@ import {
   kDoi,
   kFormatLinks,
   kHideDescription,
+  kKeepTex,
   kNumberSections,
   kOutputExt,
   kOutputFile,
@@ -347,6 +348,10 @@ async function renderSingleFileBook(
 
   // cleanup step for each executed file
   files.forEach((file) => {
+    // Forward render cleanup options from parent format
+    file.recipe.format.render[kKeepTex] =
+      executedFile.recipe.format.render[kKeepTex];
+
     cleanupExecutedFile(
       file,
       join(project.dir, renderedFile.file),

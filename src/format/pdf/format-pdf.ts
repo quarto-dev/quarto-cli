@@ -42,7 +42,7 @@ import { Format, FormatExtras, PandocFlags } from "../../config/types.ts";
 import { createFormat } from "../formats-shared.ts";
 
 import { RenderedFile, RenderServices } from "../../command/render/types.ts";
-import { ProjectContext } from "../../project/types.ts";
+import { ProjectConfig, ProjectContext } from "../../project/types.ts";
 import { BookExtension } from "../../project/types/book/book-shared.ts";
 
 import { readLines } from "io/buffer.ts";
@@ -88,6 +88,16 @@ export function latexFormat(displayName: string): Format {
       {
         extensions: {
           book: {
+            onSingleFilePreRender: (
+              format: Format,
+              _config?: ProjectConfig,
+            ) => {
+              // If we're targeting LaTeX output, be sure to keep
+              // the supporting files around (since we're not building
+              // them into a PDF)
+              format.render[kKeepTex] = true;
+              return format;
+            },
             formatOutputDirectory: () => {
               return "book-latex";
             },
