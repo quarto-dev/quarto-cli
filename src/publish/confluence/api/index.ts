@@ -25,7 +25,7 @@ import {
   WrappedResult,
 } from "./types.ts";
 
-import { DESCENDANT_LIMIT, V2EDITOR_METADATA } from "../constants.ts";
+import { DESCENDANT_PAGE_SIZE, V2EDITOR_METADATA } from "../constants.ts";
 import { logError, trace } from "../confluence-logger.ts";
 
 export class ConfluenceClient {
@@ -51,11 +51,12 @@ export class ConfluenceClient {
     return result.results;
   }
 
-  public getDescendants(
+  public getDescendantsPage(
     id: string,
+    start: number = 0,
     expand = ["metadata.properties", "ancestors"]
   ): Promise<WrappedResult<ContentSummary>> {
-    const url = `content/${id}/descendant/page?limit=${DESCENDANT_LIMIT}&expand=${expand}`;
+    const url = `content/${id}/descendant/page?limit=${DESCENDANT_PAGE_SIZE}&start=${start}&expand=${expand}`;
     return this.get<WrappedResult<ContentSummary>>(url);
   }
 

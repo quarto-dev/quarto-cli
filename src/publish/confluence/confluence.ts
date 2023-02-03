@@ -43,6 +43,7 @@ import {
   SiteFileMetadata,
   SitePage,
   SpaceChangeResult,
+  WrappedResult,
 } from "./api/types.ts";
 import { withSpinner } from "../../core/console.ts";
 import {
@@ -82,7 +83,9 @@ import {
 import {
   DELETE_DISABLED,
   DELETE_SLEEP_MILLIS,
+  DESCENDANT_PAGE_SIZE,
   EXIT_ON_ERROR,
+  MAX_PAGES_TO_LOAD,
 } from "./constants.ts";
 import { logError, trace } from "./confluence-logger.ts";
 import { md5Hash } from "../../core/hash.ts";
@@ -267,8 +270,22 @@ async function publish(
   };
 
   const fetchExistingSite = async (parentId: string): Promise<SitePage[]> => {
-    const descendants: any[] =
-      (await client.getDescendants(parentId))?.results ?? [];
+    let descendants: ContentSummary[] = [];
+    let start = 0;
+
+    for (let i = 0; i < MAX_PAGES_TO_LOAD; i++) {
+      const result: WrappedResult<ContentSummary> =
+        await client.getDescendantsPage(parentId, start);
+      if (result.results.length === 0) {
+        break;
+      }
+
+      descendants = [...descendants, ...result.results];
+
+      start = start + DESCENDANT_PAGE_SIZE;
+    }
+
+    trace("descendants.length", descendants);
 
     const contentProperties: ContentProperty[][] = await Promise.all(
       descendants.map((page: ContentSummary) =>
@@ -585,16 +602,17 @@ async function publish(
     };
 
     let existingSite: SitePage[] = await fetchExistingSite(parentId);
+    trace("existingSite", existingSite);
 
     const publishFiles: PublishFiles = await renderSite(render);
     const metadataByInput: Record<string, InputMetadata> =
       publishFiles.metadataByInput ?? {};
 
+    trace("metadataByInput", metadataByInput);
+
     trace("publishSite", {
       parentId,
       publishFiles,
-      metadataByInput,
-      existingSite,
     });
 
     const filteredFiles: string[] = filterFilesForUpdate(publishFiles.files);
@@ -634,7 +652,6 @@ async function publish(
     trace("fileMetadata", fileMetadata);
 
     let metadataByFilename = buildFileToMetaTable(existingSite);
-
     trace("metadataByFilename", metadataByFilename);
 
     let changeList: ConfluenceSpaceChange[] = buildSpaceChanges(
@@ -664,7 +681,6 @@ async function publish(
     ) => {
       if (isContentUpdate(currentChange) || isContentCreate(currentChange)) {
         trace("currentChange.fileName", currentChange.fileName);
-        console.log("currentChange.fileName", currentChange.fileName);
         trace("Value to Update", currentChange.body.storage.value);
       }
       if (EXIT_ON_ERROR) {
