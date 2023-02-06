@@ -10,7 +10,7 @@ const NodeListFakeClass: any = (() => {
     static [Symbol.hasInstance](value: any) {
       return value.constructor === NodeListClass;
     }
-  }
+  };
 })();
 
 export const nodeListMutatorSym = Symbol();
@@ -51,7 +51,9 @@ class NodeListMutatorImpl {
         (item) => item.nodeType === Node.ELEMENT_NODE,
       );
 
-      const toInsert = items.filter((item) => item.nodeType === Node.ELEMENT_NODE);
+      const toInsert = items.filter((item) =>
+        item.nodeType === Node.ELEMENT_NODE
+      );
 
       // Find where to start splicing in the element view
       let elementViewSpliceIndex = -1;
@@ -81,8 +83,12 @@ class NodeListMutatorImpl {
     return splice.call(this.arrayInstance, index, deleteCount, ...items);
   }
 
-  indexOf(item: any) {
-    return indexOf.call(this.arrayInstance, item);
+  indexOf(item: any, fromIndex = 0) {
+    return indexOf.call(this.arrayInstance, item, fromIndex);
+  }
+
+  indexOfElementsView(item: any, fromIndex = 0) {
+    return indexOf.call(this.elementsView(), item, fromIndex);
   }
 
   // Return the elements-only view for this NodeList. Creates one if
@@ -93,7 +99,13 @@ class NodeListMutatorImpl {
     if (!view) {
       view = new HTMLCollection() as any as any[];
       this.elementViews.push(view);
-      push.call(view, ...filter.call(this.arrayInstance, (item) => item.nodeType === Node.ELEMENT_NODE));
+      push.call(
+        view,
+        ...filter.call(
+          this.arrayInstance,
+          (item) => item.nodeType === Node.ELEMENT_NODE,
+        ),
+      );
     }
 
     return view;
@@ -109,7 +121,7 @@ const NodeListClass: any = (() => {
     // @ts-ignore
     forEach(
       cb: (node: Node, index: number, nodeList: Node[]) => void,
-      thisArg: NodeList | undefined = undefined
+      thisArg: NodeList | undefined = undefined,
     ) {
       super.forEach(cb, thisArg);
     }
@@ -138,47 +150,51 @@ const NodeListClass: any = (() => {
   return NodeList;
 })();
 
-for (const staticMethod of [
-  "from",
-  "isArray",
-  "of",
-]) {
+for (
+  const staticMethod of [
+    "from",
+    "isArray",
+    "of",
+  ]
+) {
   NodeListClass[staticMethod] = undefined;
 }
 
-for (const instanceMethod of [
-  "concat",
-  "copyWithin",
-  "every",
-  "fill",
-  "filter",
-  "find",
-  "findIndex",
-  "flat",
-  "flatMap",
-  "includes",
-  "indexOf",
-  "join",
-  "lastIndexOf",
-  "map",
-  "pop",
-  "push",
-  "reduce",
-  "reduceRight",
-  "reverse",
-  "shift",
-  "slice",
-  "some",
-  "sort",
-  "splice",
-  "toLocaleString",
-  "unshift",
-]) {
+for (
+  const instanceMethod of [
+    "concat",
+    "copyWithin",
+    "every",
+    "fill",
+    "filter",
+    "find",
+    "findIndex",
+    "flat",
+    "flatMap",
+    "includes",
+    "indexOf",
+    "join",
+    "lastIndexOf",
+    "map",
+    "pop",
+    "push",
+    "reduce",
+    "reduceRight",
+    "reverse",
+    "shift",
+    "slice",
+    "some",
+    "sort",
+    "splice",
+    "toLocaleString",
+    "unshift",
+  ]
+) {
   NodeListClass.prototype[instanceMethod] = undefined;
 }
 
 export interface NodeList {
-  new(): NodeList;
+  new (): NodeList;
   readonly [index: number]: Node;
   readonly length: number;
   [Symbol.iterator](): Generator<Node>;
@@ -191,17 +207,14 @@ export interface NodeList {
   [nodeListMutatorSym](): NodeListMutator;
 }
 
-export interface NodeListPublic extends NodeList {
-  [nodeListMutatorSym]: never;
-}
-
+export type NodeListPublic = Omit<NodeList, typeof nodeListMutatorSym>;
 export interface NodeListMutator {
   push(...nodes: Node[]): number;
   splice(start: number, deleteCount?: number, ...items: Node[]): Node[];
   indexOf(node: Node, fromIndex?: number | undefined): number;
+  indexOfElementsView(node: Node, fromIndex?: number | undefined): number;
   elementsView(): HTMLCollection;
 }
 
 export const NodeList = <NodeList> NodeListClass;
 export const NodeListPublic = <NodeListPublic> NodeListFakeClass;
-

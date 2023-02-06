@@ -21,4 +21,3 @@ export function register(func: Parser, fragFunc: Parser) {
   parse = func;
   parseFrag = fragFunc;
 }
-

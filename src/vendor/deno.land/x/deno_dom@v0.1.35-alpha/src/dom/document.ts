@@ -1,8 +1,12 @@
 import { CTOR_KEY } from "../constructor-lock.ts";
-import { Node, NodeType, Text, Comment } from "./node.ts";
+import { Comment, Node, NodeType, Text } from "./node.ts";
 import { NodeList, nodeListMutatorSym } from "./node-list.ts";
 import { Element } from "./element.ts";
-import { DOM as NWAPI } from "./nwsapi-types.ts";
+import { DocumentFragment } from "./document-fragment.ts";
+import { HTMLTemplateElement } from "./elements/html-template-element.ts";
+import { getSelectorEngine, SelectorApi } from "./selectors/selectors.ts";
+import { getElementsByClassName } from "./utils.ts";
+import UtilTypes from "./utils-types.ts";
 
 export class DOMImplementation {
   constructor(key: typeof CTOR_KEY) {
@@ -39,8 +43,17 @@ export class DOMImplementation {
     return doc;
   }
 
-  createDocumentType(qualifiedName: string, publicId: string, systemId: string): DocumentType {
-    const doctype = new DocumentType(qualifiedName, publicId, systemId, CTOR_KEY);
+  createDocumentType(
+    qualifiedName: string,
+    publicId: string,
+    systemId: string,
+  ): DocumentType {
+    const doctype = new DocumentType(
+      qualifiedName,
+      publicId,
+      systemId,
+      CTOR_KEY,
+    );
 
     return doctype;
   }
@@ -58,10 +71,10 @@ export class DocumentType extends Node {
     key: typeof CTOR_KEY,
   ) {
     super(
-      "html", 
-      NodeType.DOCUMENT_TYPE_NODE, 
+      "html",
+      NodeType.DOCUMENT_TYPE_NODE,
       null,
-      key
+      key,
     );
 
     this.#qualifiedName = name;
@@ -82,7 +95,12 @@ export class DocumentType extends Node {
   }
 
   _shallowClone(): Node {
-    return new DocumentType(this.#qualifiedName, this.#publicId, this.#systemId, CTOR_KEY);
+    return new DocumentType(
+      this.#qualifiedName,
+      this.#publicId,
+      this.#systemId,
+      CTOR_KEY,
+    );
   }
 }
 
@@ -91,7 +109,10 @@ export interface ElementCreationOptions {
 }
 
 export type VisibilityState = "visible" | "hidden" | "prerender";
-export type NamespaceURI = "http://www.w3.org/1999/xhtml" | "http://www.w3.org/2000/svg" | "http://www.w3.org/1998/Math/MathML";
+export type NamespaceURI =
+  | "http://www.w3.org/1999/xhtml"
+  | "http://www.w3.org/2000/svg"
+  | "http://www.w3.org/1998/Math/MathML";
 
 export class Document extends Node {
   public head: Element = <Element> <unknown> null;
@@ -101,7 +122,7 @@ export class Document extends Node {
   #lockState = false;
   #documentURI = "about:blank"; // TODO
   #title = "";
-  #nwapi = NWAPI(this);
+  #nwapi: SelectorApi | null = null;
 
   constructor() {
     super(
@@ -121,7 +142,7 @@ export class Document extends Node {
   // Expose the document's NWAPI for Element's access to
   // querySelector/querySelectorAll
   get _nwapi() {
-    return this.#nwapi;
+    return this.#nwapi || (this.#nwapi = getSelectorEngine()(this));
   }
 
   get documentURI() {
@@ -191,9 +212,25 @@ export class Document extends Node {
   createElement(tagName: string, options?: ElementCreationOptions): Element {
     tagName = tagName.toUpperCase();
 
-    const elm = new Element(tagName, null, [], CTOR_KEY);
-    elm._setOwnerDocument(this);
-    return elm;
+    switch (tagName) {
+      case "TEMPLATE": {
+        const frag = new DocumentFragment();
+        const elm = new HTMLTemplateElement(
+          null,
+          [],
+          CTOR_KEY,
+          frag,
+        );
+        elm._setOwnerDocument(this);
+        return elm;
+      }
+
+      default: {
+        const elm = new Element(tagName, null, [], CTOR_KEY);
+        elm._setOwnerDocument(this);
+        return elm;
+      }
+    }
   }
 
   createElementNS(
@@ -204,7 +241,9 @@ export class Document extends Node {
     if (namespace === "http://www.w3.org/1999/xhtml") {
       return this.createElement(qualifiedName, options);
     } else {
-      throw new Error(`createElementNS: "${ namespace }" namespace unimplemented`); // TODO
+      throw new Error(
+        `createElementNS: "${namespace}" namespace unimplemented`,
+      ); // TODO
     }
   }
 
@@ -216,6 +255,12 @@ export class Document extends Node {
     return new Comment(data);
   }
 
+  createDocumentFragment(): DocumentFragment {
+    const fragment = new DocumentFragment();
+    fragment._setOwnerDocument(this);
+    return fragment;
+  }
+
   importNode(node: Node, deep: boolean = false) {
     const copy = node.cloneNode(deep);
 
@@ -225,6 +270,12 @@ export class Document extends Node {
   }
 
   adoptNode(node: Node) {
+    if (node instanceof Document) {
+      throw new DOMException(
+        "Adopting a Document node is not supported.",
+        "NotSupportedError",
+      );
+    }
     node._setParent(null);
     node._setOwnerDocument(this);
 
@@ -232,13 +283,13 @@ export class Document extends Node {
   }
 
   querySelector(selectors: string): Element | null {
-    return this.#nwapi.first(selectors, this);
+    return this._nwapi.first(selectors, this);
   }
 
   querySelectorAll(selectors: string): NodeList {
     const nodeList = new NodeList();
     const mutator = nodeList[nodeListMutatorSym]();
-    mutator.push(...this.#nwapi.select(selectors, this))
+    mutator.push(...this._nwapi.select(selectors, this));
 
     return nodeList;
   }
@@ -264,7 +315,10 @@ export class Document extends Node {
   getElementsByTagName(tagName: string): Element[] {
     if (tagName === "*") {
       return this.documentElement
-        ? <Element[]> this._getElementsByTagNameWildcard(this.documentElement, [])
+        ? <Element[]> this._getElementsByTagNameWildcard(
+          this.documentElement,
+          [],
+        )
         : [];
     } else {
       return <Element[]> this._getElementsByTagName(tagName.toUpperCase(), []);
@@ -301,21 +355,7 @@ export class Document extends Node {
   }
 
   getElementsByClassName(className: string): Element[] {
-    return <Element[]> this._getElementsByClassName(className, []);
-  }
-
-  private _getElementsByClassName(className: string, search: Node[]): Node[] {
-    for (const child of this.childNodes) {
-      if (child.nodeType === NodeType.ELEMENT_NODE) {
-        if ((<Element> child).classList.contains(className)) {
-          search.push(child);
-        }
-
-        (<any> child)._getElementsByClassName(className, search);
-      }
-    }
-
-    return search;
+    return <Element[]> getElementsByClassName(this, className, []);
   }
 
   hasFocus(): boolean {
@@ -336,3 +376,4 @@ export class HTMLDocument extends Document {
   }
 }
 
+UtilTypes.Document = Document;
