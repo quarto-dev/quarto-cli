@@ -51,6 +51,10 @@
 
 - Document `theme` format metadata option ([#3377](https://github.com/quarto-dev/quarto-cli/issues/3377))
 
+## Markdown Formats
+
+- Properly forward variants (e.g. `+yaml_metadata_block`) to `gfm` format.
+
 ## Mermaid diagrams
 
 - Upgrade to mermaid 9.2.2
