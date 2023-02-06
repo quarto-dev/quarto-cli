@@ -23,6 +23,16 @@ function TestCaptionedImage:testBasic()
 
   lu.assertEquals(actual, expected)
 end
+
+function TestCaptionedImage:testRemote()
+  local expected = [[<img src='https://d33wubrfki0l68.cloudfront.net/18153fb9953057ee5cff086122bd26f9cee8fe93/3aba9/images/notebook-run-chunk.png' title=''/>]]
+  local source = 'https://d33wubrfki0l68.cloudfront.net/18153fb9953057ee5cff086122bd26f9cee8fe93/3aba9/images/notebook-run-chunk.png'
+  local title = ''
+  local caption = ''
+  local actual = confluence.CaptionedImageConfluence(source, title, caption)
+
+  lu.assertEquals(actual, expected)
+end
 function TestCaptionedImage:testFigAltText()
   local expected = [[<ac:image
     ac:align="center"

@@ -5,6 +5,10 @@ local function startsWith(text, prefix)
   return text:find(prefix, 1, true) == 1
 end
 
+local function startsWithHttp(source)
+  return startsWith(source, "http")
+end
+
 local function escape(s, in_attribute)
   return s:gsub("[<>&\"']",
           function(x)
@@ -94,18 +98,26 @@ function CaptionedImageConfluence(source, title, caption, attr)
     captionValue =
     interpolate {CAPTION_SNIPPET, caption = captionValue}
   end
-  return interpolate {
-    IMAGE_SNIPPET,
-    source = sourceValue,
-    align = alignValue,
-    layout = layoutValue,
-    alt = altValue,
-    caption = captionValue}
+
+  if(not startsWithHttp(source)) then
+    return interpolate {
+      IMAGE_SNIPPET,
+      source = sourceValue,
+      align = alignValue,
+      layout = layoutValue,
+      alt = altValue,
+      caption = captionValue}
+  end
+
+  return "<img src='" .. escape(source,true) .. "' title='" ..
+          escape(title,true) .. "'/>"
+
 end
 
 function LinkConfluence(source, target, title, attr)
   local LINK_ATTACHMENT_SNIPPET = [[<ac:link><ri:attachment ri:filename="{source}"/><ac:plain-text-link-body><![CDATA[{target}{doubleBraket}></ac:plain-text-link-body></ac:link>]]
-  if(not startsWith(target,"http") and (not string.find(target, ".qmd"))) then
+
+  if(not startsWithHttp(target) and (not string.find(target, ".qmd"))) then
     return interpolate {
     LINK_ATTACHMENT_SNIPPET,
     source = escape(source),
