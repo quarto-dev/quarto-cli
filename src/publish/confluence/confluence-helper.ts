@@ -1,3 +1,4 @@
+import { trace } from "./confluence-logger.ts";
 import { ApiError, PublishRecord } from "../types.ts";
 import { ensureTrailingSlash } from "../../core/path.ts";
 import {
@@ -674,7 +675,7 @@ export const convertForSecondPass = (
         );
         accumulator = [...accumulator, convertedUpdate];
       } else {
-        console.warn("update ID not found for", change.fileName);
+        trace("update ID not found for", change.fileName);
       }
     }
 

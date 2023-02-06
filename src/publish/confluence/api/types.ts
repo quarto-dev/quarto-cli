@@ -137,6 +137,9 @@ export type Content = {
 
 export interface WrappedResult<T> {
   results: T[];
+  start?: number;
+  limit?: number;
+  size?: number;
 }
 
 export enum ContentPropertyKey {
