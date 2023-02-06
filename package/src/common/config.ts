@@ -32,6 +32,7 @@ export interface DirectoryInfo {
   bin: string;
   out: string;
   pkgWorking: {
+    root: string;
     bin: string;
     share: string;
   };
@@ -73,6 +74,7 @@ export function readConfiguration(
     out,
     bin,
     pkgWorking: {
+      root: pkgWorkingBase,
       bin: join(pkgWorkingBase, binName),
       share: join(pkgWorkingBase, shareName),
     },

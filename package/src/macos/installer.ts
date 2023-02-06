@@ -79,34 +79,40 @@ export async function makeInstallerMac(config: Configuration) {
     // and include our entitlements declaration
     const signWithEntitlements: string[] = [
       join(
-        config.directoryInfo.bin,
+        config.directoryInfo.pkgWorking.bin,
         "tools",
         "deno-x86_64-apple-darwin",
         "deno",
       ),
       join(
-        config.directoryInfo.bin,
+        config.directoryInfo.pkgWorking.bin,
         "tools",
         "deno-aarch64-apple-darwin",
         "deno",
       ),
       join(
-        config.directoryInfo.bin,
+        config.directoryInfo.pkgWorking.bin,
         "tools",
         "deno_dom",
         "libplugin.dylib",
       ),
-      join(config.directoryInfo.bin, "tools", "esbuild"),
-      join(config.directoryInfo.bin, "tools", "dart-sass", "src", "dart"),
-      join(config.directoryInfo.bin, "tools", "pandoc"),
+      join(config.directoryInfo.pkgWorking.bin, "tools", "esbuild"),
+      join(
+        config.directoryInfo.pkgWorking.bin,
+        "tools",
+        "dart-sass",
+        "src",
+        "dart",
+      ),
+      join(config.directoryInfo.pkgWorking.bin, "tools", "pandoc"),
     ];
 
     // Sign these non-binary files and don't include
     // the entitlements declaration
     const signWithoutEntitlements: string[] = [
-      join(config.directoryInfo.bin, "tools", "dart-sass", "sass"),
-      join(config.directoryInfo.bin, "quarto.js"),
-      join(config.directoryInfo.bin, "quarto"),
+      join(config.directoryInfo.pkgWorking.bin, "tools", "dart-sass", "sass"),
+      join(config.directoryInfo.pkgWorking.bin, "quarto.js"),
+      join(config.directoryInfo.pkgWorking.bin, "quarto"),
     ];
 
     for (const fileToSign of signWithEntitlements) {
@@ -166,7 +172,7 @@ export async function makeInstallerMac(config: Configuration) {
     "pkgbuild",
     [
       "--root",
-      config.directoryInfo.dist,
+      config.directoryInfo.pkgWorking.root,
       "--identifier",
       packageIdentifier,
       "--version",

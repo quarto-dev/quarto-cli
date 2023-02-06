@@ -43,7 +43,7 @@ export async function makeInstallerDeb(
     "bin",
   );
   info(`Preparing bin directory ${workingBinPath}`);
-  copySync(configuration.directoryInfo.bin, workingBinPath, {
+  copySync(configuration.directoryInfo.pkgWorking.bin, workingBinPath, {
     overwrite: true,
   });
 
@@ -54,7 +54,7 @@ export async function makeInstallerDeb(
     "share",
   );
   info(`Preparing share directory ${workingSharePath}`);
-  copySync(configuration.directoryInfo.share, workingSharePath, {
+  copySync(configuration.directoryInfo.pkgWorking.share, workingSharePath, {
     overwrite: true,
   });
 
@@ -64,7 +64,7 @@ export async function makeInstallerDeb(
 
   // Calculate the install size
   const fileSizes = [];
-  for await (const entry of walk(configuration.directoryInfo.dist)) {
+  for await (const entry of walk(configuration.directoryInfo.pkgWorking.root)) {
     if (entry.isFile) {
       fileSizes.push((await Deno.stat(entry.path)).size);
     }
