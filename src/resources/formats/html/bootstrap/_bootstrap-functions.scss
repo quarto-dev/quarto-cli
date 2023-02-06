@@ -40,7 +40,11 @@
   $contrastRatio: 0;
   $contrastColor: null;
   @while ($contrastRatio < $goalContrastRatio and $percentMix > 0) {
-    $contrastColor: mix($startColor, $mixColor, percentage($percentMix/100));
+    $contrastColor: mix(
+      $startColor,
+      $mixColor,
+      percentage(quarto-math.div($percentMix, 100))
+    );
     $contrastRatio: contrast($contrastColor, $bgColor);
     $percentMix: $percentMix - 1;
   }
@@ -222,12 +226,15 @@
 }
 
 @function _linear-channel-value($channel-value) {
-  $normalized-channel-value: $channel-value / 255;
+  $normalized-channel-value: quarto-math.div($channel-value, 255);
   @if $normalized-channel-value < 0.03928 {
-    @return $normalized-channel-value / 12.92;
+    @return quarto-math.div($normalized-channel-value, 12.92);
   }
 
-  @return quarto-math.pow(($normalized-channel-value + 0.055)/1.055, 2.4);
+  @return quarto-math.pow(
+    quarto-math.div(($normalized-channel-value + 0.055), 1.055),
+    2.4
+  );
 }
 
 // Calculate the luminance for a color.
@@ -246,8 +253,10 @@
   $backLum: luminance($back) + 0.05;
   $foreLum: luminance($front) + 0.05;
 
-  @return quarto-math.max($backLum, $foreLum) /
-    quarto-math.min($backLum, $foreLum);
+  @return quarto-math.div(
+    quarto-math.max($backLum, $foreLum),
+    quarto-math.min($backLum, $foreLum)
+  );
 }
 
 // Determine whether the color is 'light' or 'dark'.
