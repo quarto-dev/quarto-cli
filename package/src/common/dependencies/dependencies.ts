@@ -7,7 +7,7 @@
 
 import { join } from "path/mod.ts";
 import { info } from "log/mod.ts";
-import { Configuration } from "../config.ts";
+import { Configuration, PlatformConfiguration } from "../config.ts";
 
 import { dartSass } from "./dartsass.ts";
 import { deno_dom } from "./deno_dom.ts";
@@ -47,7 +47,7 @@ export interface ArchitectureDependency {
 export interface PlatformDependency {
   filename: string;
   url: string;
-  configure(config: Configuration, path: string): Promise<void>;
+  configure(config: PlatformConfiguration, path: string): Promise<void>;
 }
 
 function version(env: string) {
@@ -61,7 +61,8 @@ function version(env: string) {
 
 export async function configureDependency(
   dependency: Dependency,
-  config: Configuration,
+  targetDir: string,
+  config: PlatformConfiguration,
 ) {
   info(`Preparing ${dependency.name}`);
   let archDep = dependency.architectureDependencies[config.arch];
@@ -81,8 +82,9 @@ export async function configureDependency(
         targetFile = await downloadBinaryDependency(
           dependency,
           platformDep,
-          config,
+          targetDir,
         );
+        console.log(targetFile);
       } catch (error) {
         const msg =
           `Failed to Download ${dependency.name}\nAre you sure that version ${dependency.version} of ${dependency.bucket} has been archived using './quarto-bld archive-bin-deps'?\n${error.message}`;
@@ -111,13 +113,9 @@ export async function configureDependency(
 async function downloadBinaryDependency(
   dependency: Dependency,
   platformDependency: PlatformDependency,
-  configuration: Configuration,
+  targetDir: string,
 ) {
-  const targetFile = join(
-    configuration.directoryInfo.bin,
-    "tools",
-    platformDependency.filename,
-  );
+  const targetFile = join(targetDir, platformDependency.filename);
   const dlUrl = archiveUrl(dependency, platformDependency);
 
   info("Downloading " + dlUrl);

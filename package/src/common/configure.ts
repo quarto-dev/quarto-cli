@@ -45,7 +45,11 @@ export async function configure(
   // Download dependencies
   for (const dependency of kDependencies) {
     try {
-      await configureDependency(dependency, config);
+      const targetDir = join(
+        config.directoryInfo.bin,
+        "tools",
+      );
+      await configureDependency(dependency, targetDir, config);
     } catch (e) {
       if (
         e.message ===

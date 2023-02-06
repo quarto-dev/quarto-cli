@@ -10,11 +10,14 @@ import { join } from "path/mod.ts";
 import { getEnv } from "../util/utils.ts";
 
 // The core configuration for the packaging process
-export interface Configuration {
+export interface Configuration extends PlatformConfiguration {
   productName: string;
   version: string;
   importmap: string;
   directoryInfo: DirectoryInfo;
+}
+
+export interface PlatformConfiguration {
   os: "windows" | "linux" | "darwin";
   arch: "x86_64" | "aarch64";
 }
@@ -28,7 +31,10 @@ export interface DirectoryInfo {
   share: string;
   bin: string;
   out: string;
-  pkgWorking: string;
+  pkgWorking: {
+    bin: string;
+    share: string;
+  };
 }
 
 export const kValidOS = ["windows", "linux", "darwin"];
@@ -50,11 +56,13 @@ export function readConfiguration(
   const out = join(pkg, getEnv("QUARTO_OUT_DIR") || "out");
 
   const dist = getEnv("QUARTO_DIST_PATH") || "dist";
+  const shareName = getEnv("QUARTO_SHARE_DIR") || "share";
   const share = getEnv("QUARTO_SHARE_PATH") ||
-    join(dist, getEnv("QUARTO_SHARE_DIR") || "share");
+    join(dist, shareName);
+  const binName = getEnv("QUARTO_BIN_DIR") || "bin";
   const bin = getEnv("QUARTO_BIN_PATH") ||
-    join(dist, getEnv("QUARTO_BIN_DIR") || "bin");
-  const pkgWorking = join(pkg, "pkg-working");
+    join(dist, binName);
+  const pkgWorkingBase = join(pkg, "pkg-working");
 
   const directoryInfo = {
     root,
@@ -64,7 +72,10 @@ export function readConfiguration(
     src,
     out,
     bin,
-    pkgWorking,
+    pkgWorking: {
+      bin: join(pkgWorkingBase, binName),
+      share: join(pkgWorkingBase, shareName),
+    },
   };
 
   const cmdOs = os || getEnv("QUARTO_OS", Deno.build.os);

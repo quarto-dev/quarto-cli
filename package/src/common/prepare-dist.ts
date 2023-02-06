@@ -15,7 +15,10 @@ import { bundle } from "../util/deno.ts";
 import { info } from "log/mod.ts";
 import { buildAssets } from "../../../src/command/build-js/cmd.ts";
 import { initTreeSitter } from "../../../src/core/schema/deno-init-tree-sitter.ts";
-import { kDependencies } from "./dependencies/dependencies.ts";
+import {
+  configureDependency,
+  kDependencies,
+} from "./dependencies/dependencies.ts";
 
 export async function prepareDist(
   config: Configuration,
@@ -29,12 +32,26 @@ export async function prepareDist(
 
   // Moving appropriate binaries into place
 
-
   // Get each dependency extracted into the 'bin' folder
   // Download dependencies
+
+  // Ensure that the working directory exists
+  ensureDirSync(config.directoryInfo.pkgWorking.bin);
+  ensureDirSync(config.directoryInfo.pkgWorking.share);
+  const toolsDir = join(
+    config.directoryInfo.pkgWorking.bin,
+    "tools",
+  );
+  ensureDirSync(toolsDir);
+
+  // Download the dependencies
   for (const dependency of kDependencies) {
     try {
-      await configureDependency(dependency, config);
+      const targetDir = join(
+        config.directoryInfo.pkgWorking.bin,
+        "tools",
+      );
+      await configureDependency(dependency, targetDir, config);
     } catch (e) {
       if (
         e.message ===
@@ -48,9 +65,6 @@ export async function prepareDist(
     }
   }
 
-
-
-
   // Move the supporting files into place
   info("\nMoving supporting files");
   supportingFiles(config);
@@ -58,7 +72,7 @@ export async function prepareDist(
 
   // Create the deno bundle
   const input = join(config.directoryInfo.src, "quarto.ts");
-  const output = join(config.directoryInfo.bin, "quarto.js");
+  const output = join(config.directoryInfo.pkgWorking.bin, "quarto.js");
   info("\nCreating Deno Bundle");
   info(output);
   await bundle(
@@ -81,7 +95,7 @@ export async function prepareDist(
   // Write a version file to share
   info(`Writing version: ${config.version}`);
   Deno.writeTextFileSync(
-    join(config.directoryInfo.share, "version"),
+    join(config.directoryInfo.pkgWorking.share, "version"),
     config.version,
   );
   info("");
@@ -98,7 +112,7 @@ export async function prepareDist(
   for (const file of buildAssetFiles) {
     copySync(
       join(config.directoryInfo.src, "resources", file),
-      join(config.directoryInfo.share, file),
+      join(config.directoryInfo.pkgWorking.share, file),
       { overwrite: true },
     );
   }
@@ -121,19 +135,19 @@ function supportingFiles(config: Configuration) {
   const filesToCopy = [
     {
       from: join(config.directoryInfo.root, "COPYING.md"),
-      to: join(config.directoryInfo.share, "COPYING.md"),
+      to: join(config.directoryInfo.pkgWorking.share, "COPYING.md"),
     },
     {
       from: join(config.directoryInfo.root, "COPYRIGHT"),
-      to: join(config.directoryInfo.share, "COPYRIGHT"),
+      to: join(config.directoryInfo.pkgWorking.share, "COPYRIGHT"),
     },
     {
       from: join(config.directoryInfo.src, "resources"),
-      to: config.directoryInfo.share,
+      to: config.directoryInfo.pkgWorking.share,
     },
     {
       from: join(config.directoryInfo.src, "resources", "vendor"),
-      to: join(config.directoryInfo.bin, "vendor"),
+      to: join(config.directoryInfo.pkgWorking.bin, "vendor"),
     },
   ];
 
@@ -150,8 +164,8 @@ function supportingFiles(config: Configuration) {
   // Cleanup the filters directory, which contains filter source that will be
   // compiled later
   const pathsToClean = [
-    join(config.directoryInfo.share, "filters"),
-    join(config.directoryInfo.share, "vendor"),
+    join(config.directoryInfo.pkgWorking.share, "filters"),
+    join(config.directoryInfo.pkgWorking.share, "vendor"),
   ];
   pathsToClean.forEach((path) => Deno.removeSync(path, { recursive: true }));
 }
@@ -166,7 +180,7 @@ interface Filter {
 
 function inlineFilters(config: Configuration) {
   info("Building inlined filters");
-  const outDir = join(config.directoryInfo.share, "filters");
+  const outDir = join(config.directoryInfo.pkgWorking.share, "filters");
   const filtersToInline: Filter[] = [
     { name: "main", dir: "." },
     { name: "pagebreak", dir: "rmarkdown" },
