@@ -298,7 +298,7 @@ export function readRenderedContents(
   const navEls = doc.querySelectorAll("nav");
   if (navEls) {
     for (const navEl of navEls) {
-      navEl.remove();
+      (navEl as Element).remove();
     }
   }
 
@@ -327,7 +327,7 @@ export function readRenderedContents(
   stripSelectors.forEach((sel) => {
     const nodes = doc.querySelectorAll(sel);
     nodes?.forEach((node) => {
-      node.remove();
+      (node as Element).remove();
     });
   });
 
@@ -362,8 +362,9 @@ export function readRenderedContents(
     const linkNodes = doc.querySelectorAll(relativeLinkSel);
     linkNodes.forEach((linkNode) => {
       const nodesToMove = linkNode.childNodes;
-      linkNode.after(...nodesToMove);
-      linkNode.remove();
+      const linkEl = linkNode as Element;
+      linkEl.after(...nodesToMove);
+      linkEl.remove();
     });
   }
 
@@ -422,8 +423,9 @@ export function readRenderedContents(
     const linkNodes = doc.querySelectorAll(relativeLinkSel);
     linkNodes.forEach((linkNode) => {
       const nodesToMove = linkNode.childNodes;
-      linkNode.after(...nodesToMove);
-      linkNode.remove();
+      const linkEl = linkNode as Element;
+      linkEl.after(...nodesToMove);
+      linkEl.remove();
     });
   }
 

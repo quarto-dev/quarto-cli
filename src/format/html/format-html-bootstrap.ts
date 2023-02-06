@@ -70,7 +70,6 @@ import {
   processDocumentTitle,
 } from "./format-html-title.ts";
 import { kTemplatePartials } from "../../command/render/template.ts";
-import { TempContext } from "../../core/temp-types.ts";
 import {
   isDocxOutput,
   isHtmlOutput,
@@ -81,7 +80,6 @@ import {
 } from "../../config/format.ts";
 import { basename } from "path/mod.ts";
 import { processNotebookEmbeds } from "./format-html-notebook.ts";
-import { projectContext } from "../../project/project-context.ts";
 import { ProjectContext } from "../../project/types.ts";
 
 export function formatPageLayout(format: Format) {
@@ -357,7 +355,8 @@ function bootstrapHtmlPostprocessor(
     const addTableClasses = (table: Element, computational = false) => {
       table.classList.add("table");
       if (computational) {
-        table.classList.add("table-sm").add("table-striped");
+        table.classList.add("table-sm");
+        table.classList.add("table-striped");
       }
     };
 

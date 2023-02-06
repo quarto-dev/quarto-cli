@@ -269,8 +269,8 @@ function bookHtmlPostprocessor() {
     // if the very next element is a section, move it into the section below the header
     const nextEl = (coverImage?.parentNode as Element)?.nextElementSibling;
     if (nextEl && nextEl.tagName === "SECTION" && coverImage?.parentNode) {
-      coverImage?.parentNode.remove();
-      nextEl.firstChild.after(coverImage?.parentNode);
+      coverImage?.parentElement?.remove();
+      nextEl.firstElementChild?.after(coverImage?.parentNode);
     }
     return Promise.resolve(kHtmlEmptyPostProcessResult);
   };

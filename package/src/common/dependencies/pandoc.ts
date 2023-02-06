@@ -90,7 +90,7 @@ export function pandoc(version: string): Dependency {
       },
       "arm64": {
         "linux": pandocRelease(
-          `pandoc-${version}-linux-arm64.zip`,
+          `pandoc-${version}-linux-arm64.tar.gz`,
           "pandoc",
         ),
       },

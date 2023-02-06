@@ -614,7 +614,7 @@ function htmlFormatPostprocessor(
       // hoist hidden and cell-code to parent div
       const parentHoist = (clz: string) => {
         if (code.classList.contains(clz)) {
-          code.classList.delete(clz);
+          code.classList.remove(clz);
           code.parentElement?.classList.add(clz);
         }
       };
@@ -623,7 +623,7 @@ function htmlFormatPostprocessor(
 
       // hoist hidden to parent div
       if (code.classList.contains("hidden")) {
-        code.classList.delete("hidden");
+        code.classList.remove("hidden");
         code.parentElement?.classList.add("hidden");
       }
 

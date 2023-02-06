@@ -590,7 +590,8 @@ function handleRepoLinks(
           actionsDiv.classList.add("toc-actions");
           const iconDiv = doc.createElement("div");
           const iconEl = doc.createElement("i");
-          iconEl.classList.add("bi").add("bi-" + repoUrlIcon(repoInfo.baseUrl));
+          iconEl.classList.add("bi");
+          iconEl.classList.add("bi-" + repoUrlIcon(repoInfo.baseUrl));
           iconDiv.appendChild(iconEl);
           actionsDiv.appendChild(iconDiv);
           const linksDiv = doc.createElement("div");
