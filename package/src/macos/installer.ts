@@ -131,7 +131,7 @@ export async function makeInstallerMac(config: Configuration) {
 
   // Now that runtimes have been signed, create a zip
   makeTarball(
-    config.directoryInfo.dist,
+    config.directoryInfo.pkgWorking.root,
     join(config.directoryInfo.out, `quarto-${config.version}-macos.tar.gz`),
     true,
   );
