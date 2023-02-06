@@ -44,8 +44,7 @@ import { asciidocFormat } from "./asciidoc/format-asciidoc.ts";
 
 export function defaultWriterFormat(to: string): Format {
   // to can sometimes have a variant, don't include that in the lookup here
-  const fmtDescriptor = parseFormatString(to);
-  const lookupTo = fmtDescriptor.baseFormat;
+  const lookupTo = parseFormatString(to).baseFormat;
   let pandocTo = lookupTo;
 
   // get defaults for writer
@@ -119,7 +118,7 @@ export function defaultWriterFormat(to: string): Format {
       break;
 
     case "gfm":
-      writerFormat = gfmFormat(fmtDescriptor);
+      writerFormat = gfmFormat();
       pandocTo = to;
       break;
 

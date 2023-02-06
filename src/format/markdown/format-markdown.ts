@@ -5,7 +5,6 @@
 *
 */
 
-import { FormatDescriptor } from "../../core/pandoc/pandoc-formats.ts";
 import { kOutputDivs, kVariant } from "../../config/constants.ts";
 import { Format } from "../../config/types.ts";
 import { createFormat, plaintextFormat } from "../formats-shared.ts";
@@ -44,13 +43,13 @@ export function shortcodeUnescapePostprocessor(output: string): Promise<void> {
   return Promise.resolve();
 }
 
-export function gfmFormat(descriptor: FormatDescriptor): Format {
+export function gfmFormat(): Format {
   return createFormat(kDisplayNameGFM, "md", markdownFormat(kDisplayNameGFM), {
     pandoc: {
       to: "commonmark",
     },
     render: {
-      [kVariant]: kGfmCommonmarkVariant + descriptor.variants.join(""),
+      [kVariant]: kGfmCommonmarkVariant,
     },
   });
 }
