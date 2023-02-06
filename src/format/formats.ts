@@ -13,6 +13,7 @@ import {
   kOutputDivs,
   kPageWidth,
   kTargetFormat,
+  kVariant,
   kWarning,
 } from "../config/constants.ts";
 
@@ -41,10 +42,12 @@ import {
 } from "./markdown/format-markdown.ts";
 import { jatsFormat } from "./jats/format-jats.ts";
 import { asciidocFormat } from "./asciidoc/format-asciidoc.ts";
+import { mergeFormatMetadata, mergePandocVariant } from "../config/metadata.ts";
 
 export function defaultWriterFormat(to: string): Format {
   // to can sometimes have a variant, don't include that in the lookup here
-  const lookupTo = parseFormatString(to).baseFormat;
+  const formatDescriptor = parseFormatString(to);
+  const lookupTo = formatDescriptor.baseFormat;
   let pandocTo = lookupTo;
 
   // get defaults for writer
@@ -262,6 +265,12 @@ export function defaultWriterFormat(to: string): Format {
 
   // Set the originating to
   writerFormat.identifier[kTargetFormat] = to;
+
+  // Merge any explicitly provided variants
+  writerFormat.render[kVariant] = mergePandocVariant(
+    writerFormat.render[kVariant],
+    formatDescriptor.variants.join(""),
+  );
 
   // return the createFormat
   return writerFormat;

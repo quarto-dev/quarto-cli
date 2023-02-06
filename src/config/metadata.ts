@@ -327,7 +327,7 @@ export function mergeConfigsCustomized<T>(
   );
 }
 
-function mergePandocVariant(objValue: unknown, srcValue: unknown) {
+export function mergePandocVariant(objValue: unknown, srcValue: unknown) {
   if (
     typeof (objValue) === "string" && typeof (srcValue) === "string" &&
     (objValue !== srcValue)

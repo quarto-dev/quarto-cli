@@ -66,6 +66,7 @@ import {
   kSelfContainedMath,
   kStandalone,
   kTblColwidths,
+  kVariant,
   kWarning,
   kWrap,
 } from "../config/constants.ts";
@@ -247,6 +248,7 @@ function defaultFormat(displayName: string): Format {
       [kLinkExternalNewwindow]: false,
       [kSelfContainedMath]: false,
       [kFormatResources]: [],
+      [kVariant]: "",
     },
     pandoc: {},
     language: {},
