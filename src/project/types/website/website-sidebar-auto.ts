@@ -224,6 +224,7 @@ function autoSidebarNodes(
 
 type Entry = {
   title: string;
+  basename: string;
   href?: string;
   order?: number;
   empty?: boolean;
@@ -287,6 +288,7 @@ async function nodesToEntries(
         } else {
           entries.push({
             title: titleFromPath(href),
+            basename: basename(href),
             children: await nodesToEntries(
               project,
               `${root}${node}/`,
@@ -309,8 +311,8 @@ function findIndexFile(nodes: SidebarNodes) {
 }
 
 function sortEntries(a: Entry, b: Entry) {
-  const titleOrder = a.title.toLocaleUpperCase().localeCompare(
-    b.title.toLocaleUpperCase(),
+  const filenameOrder = a.basename.toLocaleUpperCase().localeCompare(
+    b.basename.toLocaleUpperCase(),
   );
   if (a.children && !b.children) {
     return 1;
@@ -319,22 +321,24 @@ function sortEntries(a: Entry, b: Entry) {
   }
   if (a.order !== undefined && b.order !== undefined) {
     const order = a.order - b.order;
-    return order !== 0 ? order : titleOrder;
+    return order !== 0 ? order : filenameOrder;
   } else if (a.order !== undefined) {
     return -1;
   } else if (b.order !== undefined) {
     return 1;
   } else {
-    return titleOrder;
+    return filenameOrder;
   }
 }
 
 async function entryFromHref(project: ProjectContext, href: string) {
   const index = await inputTargetIndex(project, href);
+  const basename = dirAndStem(href)[1];
   return {
     title: index?.title ||
       (await resolveInputTarget(project, href))?.title ||
-      titleFromPath(dirAndStem(href)[1]),
+      titleFromPath(basename),
+    basename,
     href: href,
     order: asNumber(index?.markdown.yaml?.[kOrder]),
     empty: index ? inputTargetIsEmpty(index) : false,
