@@ -22,6 +22,7 @@
 - Fix support for parquet files in OJS code cells ([#3630](https://github.com/quarto-dev/quarto-cli/issues/3630)).
 - Forward bootstrap table classes from caption to table element ([#4036](https://github.com/quarto-dev/quarto-cli/issues/4036)).
 - Render code listings with names and captions correctly ([#2195](https://github.com/quarto-dev/quarto-cli/issues/2195)).
+- Fix issue with interactivity of elements in mobile size dispay when `toc-left` is being used. ([#4244](https://github.com/quarto-dev/quarto-cli/issues/4244)).
 
 ## Article Layout
 
