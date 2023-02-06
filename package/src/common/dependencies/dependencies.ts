@@ -47,7 +47,7 @@ export interface ArchitectureDependency {
 export interface PlatformDependency {
   filename: string;
   url: string;
-  configure(path: string): Promise<void>;
+  configure(config: Configuration, path: string): Promise<void>;
 }
 
 function version(env: string) {
@@ -92,7 +92,7 @@ export async function configureDependency(
 
     if (platformDep) {
       info(`Configuring ${dependency.name}`);
-      await platformDep.configure(targetFile);
+      await platformDep.configure(config, targetFile);
     }
 
     if (targetFile) {

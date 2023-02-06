@@ -31,12 +31,14 @@ export interface DirectoryInfo {
   pkgWorking: string;
 }
 
-const kValidOS = ["windows", "linux", "darwin"];
-const kValidArch = ["x86_64", "aarch64"];
+export const kValidOS = ["windows", "linux", "darwin"];
+export const kValidArch = ["x86_64", "aarch64"];
 
 // Read the configuration fromt the environment
 export function readConfiguration(
   version?: string,
+  os?: "windows" | "linux" | "darwin",
+  arch?: "x86_64" | "aarch64",
 ): Configuration {
   const productName = getEnv("QUARTO_NAME");
   version = version || getEnv("QUARTO_VERSION");
@@ -65,14 +67,14 @@ export function readConfiguration(
     pkgWorking,
   };
 
-  const os = getEnv("QUARTO_OS", Deno.build.os);
-  if (!kValidOS.includes(os)) {
+  const cmdOs = os || getEnv("QUARTO_OS", Deno.build.os);
+  if (!kValidOS.includes(cmdOs)) {
     throw new Error(
       `Invalid OS ${os} provided. Please use one of ${kValidOS.join(",")}`,
     );
   }
-  const arch = getEnv("QUARTO_OS", Deno.build.arch);
-  if (!kValidArch.includes(arch)) {
+  const cmdArch = arch || getEnv("QUARTO_OS", Deno.build.arch);
+  if (!kValidArch.includes(cmdArch)) {
     throw new Error(
       `Invalid arch ${arch} provided. Please use one of ${
         kValidArch.join(",")
@@ -87,8 +89,8 @@ export function readConfiguration(
     version,
     importmap,
     directoryInfo,
-    os: os as "windows" | "linux" | "darwin",
-    arch: arch as "x86_64" | "aarch64",
+    os: cmdOs as "windows" | "linux" | "darwin",
+    arch: cmdArch as "x86_64" | "aarch64",
   };
 }
 

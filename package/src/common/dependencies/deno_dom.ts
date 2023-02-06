@@ -7,6 +7,7 @@
 
 import { ensureDir } from "fs/mod.ts";
 import { basename, dirname, join } from "path/mod.ts";
+import { Configuration } from "../config.ts";
 
 import { Dependency } from "./dependencies.ts";
 
@@ -16,7 +17,7 @@ export function deno_dom(version: string): Dependency {
       filename,
       url:
         `https://github.com/b-fuze/deno-dom/releases/download/${version}/${filename}`,
-      configure: async (path: string) => {
+      configure: async (_config: Configuration, path: string) => {
         const vendor = Deno.env.get("QUARTO_VENDOR_BINARIES");
         if (vendor === undefined || vendor === "true") {
           const targetPath = join(dirname(path), "deno_dom", basename(path));

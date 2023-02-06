@@ -15,6 +15,7 @@ import { bundle } from "../util/deno.ts";
 import { info } from "log/mod.ts";
 import { buildAssets } from "../../../src/command/build-js/cmd.ts";
 import { initTreeSitter } from "../../../src/core/schema/deno-init-tree-sitter.ts";
+import { kDependencies } from "./dependencies/dependencies.ts";
 
 export async function prepareDist(
   config: Configuration,
@@ -25,6 +26,30 @@ export async function prepareDist(
 
   // FIXME holding off on prepareDist building assets until we fix
   // this issue: https://github.com/quarto-dev/quarto-cli/runs/4229822735?check_suite_focus=true
+
+  // Moving appropriate binaries into place
+
+
+  // Get each dependency extracted into the 'bin' folder
+  // Download dependencies
+  for (const dependency of kDependencies) {
+    try {
+      await configureDependency(dependency, config);
+    } catch (e) {
+      if (
+        e.message ===
+          "The architecture aarch64 is missing the dependency deno_dom"
+      ) {
+        info("\nIgnoring deno_dom dependency on Apple Silicon");
+        continue;
+      } else {
+        throw e;
+      }
+    }
+  }
+
+
+
 
   // Move the supporting files into place
   info("\nMoving supporting files");

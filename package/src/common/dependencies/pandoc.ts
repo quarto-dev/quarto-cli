@@ -11,6 +11,7 @@ import { unTar } from "../../util/tar.ts";
 import { unzip } from "../../util/utils.ts";
 import { Dependency } from "./dependencies.ts";
 import { which } from "../../../../src/core/path.ts";
+import { Configuration } from "../config.ts";
 
 export function pandoc(version: string): Dependency {
   // Maps the file name and pandoc executable file name to a repo and expand
@@ -23,7 +24,7 @@ export function pandoc(version: string): Dependency {
       filename,
       url:
         `https://github.com/jgm/pandoc/releases/download/${version}/${filename}`,
-      configure: async (path: string) => {
+      configure: async (config: Configuration, path: string) => {
         const dir = dirname(path);
         const pandocSubdir = join(dir, `pandoc-${version}`);
         const vendor = Deno.env.get("QUARTO_VENDOR_BINARIES");
@@ -34,7 +35,7 @@ export function pandoc(version: string): Dependency {
           }
 
           // Extract pandoc
-          if (Deno.build.os !== "windows") {
+          if (config.os !== "windows") {
             await unTar(path);
 
             // move the binary

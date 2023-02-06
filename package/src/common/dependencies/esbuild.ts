@@ -10,6 +10,7 @@ import { dirname, join } from "path/mod.ts";
 import { unTar } from "../../util/tar.ts";
 import { Dependency } from "./dependencies.ts";
 import { which } from "../../../../src/core/path.ts";
+import { Configuration } from "../config.ts";
 
 export function esBuild(version: string): Dependency {
   // Handle the configuration for this dependency
@@ -20,8 +21,8 @@ export function esBuild(version: string): Dependency {
       filename: `esbuild-${platformstr}.tgz`,
       url:
         `https://registry.npmjs.org/esbuild-${platformstr}/-/esbuild-${platformstr}-${version}.tgz`,
-      configure: async (path: string) => {
-        const file = Deno.build.os === "windows" ? "esbuild.exe" : "esbuild";
+      configure: async (config: Configuration, path: string) => {
+        const file = config.os === "windows" ? "esbuild.exe" : "esbuild";
         const vendor = Deno.env.get("QUARTO_VENDOR_BINARIES");
         if (vendor === undefined || vendor === "true") {
           // Remove existing dir
@@ -38,7 +39,7 @@ export function esBuild(version: string): Dependency {
 
           try {
             // Move the file and cleanup
-            const intialPath = Deno.build.os === "windows"
+            const intialPath = config.os === "windows"
               ? join(esbuildDir, file)
               : join(esbuildDir, "bin", file);
             Deno.renameSync(
