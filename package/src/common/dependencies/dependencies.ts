@@ -64,14 +64,14 @@ export async function configureDependency(
   config: Configuration,
 ) {
   info(`Preparing ${dependency.name}`);
-  let archDep = dependency.architectureDependencies[Deno.build.arch];
+  let archDep = dependency.architectureDependencies[config.arch];
 
   // If we're missing some arm64, try the intel versions and rely on rosetta.
-  if (!archDep && Deno.build.arch === "aarch64") {
+  if (!archDep && config.arch === "aarch64") {
     archDep = dependency.architectureDependencies["x86_64"];
   }
   if (archDep) {
-    const platformDep = archDep[Deno.build.os];
+    const platformDep = archDep[config.os];
     const vendor = Deno.env.get("QUARTO_VENDOR_BINARIES");
     let targetFile = "";
     if (platformDep && (vendor === undefined || vendor === "true")) {
@@ -101,7 +101,7 @@ export async function configureDependency(
     }
   } else {
     throw new Error(
-      `The architecture ${Deno.build.arch} is missing the dependency ${dependency.name}`,
+      `The architecture ${config.arch} is missing the dependency ${dependency.name}`,
     );
   }
 

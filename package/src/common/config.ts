@@ -15,6 +15,8 @@ export interface Configuration {
   version: string;
   importmap: string;
   directoryInfo: DirectoryInfo;
+  os: "windows" | "linux" | "darwin";
+  arch: "x86_64" | "aarch64";
 }
 
 // Directories avaialable for step
@@ -26,7 +28,11 @@ export interface DirectoryInfo {
   share: string;
   bin: string;
   out: string;
+  pkgWorking: string;
 }
+
+const kValidOS = ["windows", "linux", "darwin"];
+const kValidArch = ["x86_64", "aarch64"];
 
 // Read the configuration fromt the environment
 export function readConfiguration(
@@ -42,8 +48,12 @@ export function readConfiguration(
   const out = join(pkg, getEnv("QUARTO_OUT_DIR") || "out");
 
   const dist = getEnv("QUARTO_DIST_PATH") || "dist";
-  const share = getEnv("QUARTO_SHARE_PATH") || join(dist, getEnv("QUARTO_SHARE_DIR") || "share");
-  const bin = getEnv("QUARTO_BIN_PATH") || join(dist, getEnv("QUARTO_BIN_DIR") || "bin");
+  const share = getEnv("QUARTO_SHARE_PATH") ||
+    join(dist, getEnv("QUARTO_SHARE_DIR") || "share");
+  const bin = getEnv("QUARTO_BIN_PATH") ||
+    join(dist, getEnv("QUARTO_BIN_DIR") || "bin");
+  const pkgWorking = join(pkg, "pkg-working");
+
   const directoryInfo = {
     root,
     pkg,
@@ -52,7 +62,23 @@ export function readConfiguration(
     src,
     out,
     bin,
+    pkgWorking,
   };
+
+  const os = getEnv("QUARTO_OS", Deno.build.os);
+  if (!kValidOS.includes(os)) {
+    throw new Error(
+      `Invalid OS ${os} provided. Please use one of ${kValidOS.join(",")}`,
+    );
+  }
+  const arch = getEnv("QUARTO_OS", Deno.build.arch);
+  if (!kValidArch.includes(arch)) {
+    throw new Error(
+      `Invalid arch ${arch} provided. Please use one of ${
+        kValidArch.join(",")
+      }`,
+    );
+  }
 
   const importmap = join(src, "dev_import_map.json");
 
@@ -61,6 +87,8 @@ export function readConfiguration(
     version,
     importmap,
     directoryInfo,
+    os: os as "windows" | "linux" | "darwin",
+    arch: arch as "x86_64" | "aarch64",
   };
 }
 

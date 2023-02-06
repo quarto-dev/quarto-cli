@@ -28,8 +28,8 @@ export async function configure(
   info("");
   info("******************************************");
   info("Configuring local machine for development:");
-  info(` - OS  : ${Deno.build.os}`);
-  info(` - Arch: ${Deno.build.arch}`);
+  info(` - OS  : ${config.os}`);
+  info(` - Arch: ${config.arch}`);
   info(` - Cwd : ${Deno.cwd()}`);
   info(` - Directory configuration:`);
   info(
@@ -61,7 +61,7 @@ export async function configure(
 
   // Move the quarto script into place
   info("Creating Quarto script");
-  if (Deno.build.os === "windows") {
+  if (config.os === "windows") {
     Deno.copyFileSync(
       join(config.directoryInfo.pkg, "scripts", "windows", "quarto.cmd"),
       join(config.directoryInfo.bin, "quarto.cmd"),
@@ -88,7 +88,7 @@ export async function configure(
   info("Wrote dev config to bin directory");
 
   if (
-    Deno.build.os !== "windows" &&
+    config.os !== "windows" &&
     Deno.env.get("QUARTO_NO_SYMLINK") === undefined
   ) {
     info("Creating Quarto Symlink");
