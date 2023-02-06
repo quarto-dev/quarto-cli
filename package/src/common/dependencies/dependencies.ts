@@ -7,7 +7,7 @@
 
 import { join } from "path/mod.ts";
 import { info } from "log/mod.ts";
-import { Configuration, PlatformConfiguration } from "../config.ts";
+import { PlatformConfiguration } from "../config.ts";
 
 import { dartSass } from "./dartsass.ts";
 import { deno_dom } from "./deno_dom.ts";
@@ -84,7 +84,6 @@ export async function configureDependency(
           platformDep,
           targetDir,
         );
-        console.log(targetFile);
       } catch (error) {
         const msg =
           `Failed to Download ${dependency.name}\nAre you sure that version ${dependency.version} of ${dependency.bucket} has been archived using './quarto-bld archive-bin-deps'?\n${error.message}`;

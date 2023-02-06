@@ -19,6 +19,8 @@ import {
   configureDependency,
   kDependencies,
 } from "./dependencies/dependencies.ts";
+import { copyQuartoScript } from "./configure.ts";
+import { deno } from "./dependencies/deno.ts";
 
 export async function prepareDist(
   config: Configuration,
@@ -35,6 +37,11 @@ export async function prepareDist(
   // Get each dependency extracted into the 'bin' folder
   // Download dependencies
 
+  // Ensure that the pkgWorkingDir is clean
+  if (existsSync(config.directoryInfo.pkgWorking.root)) {
+    Deno.removeSync(config.directoryInfo.pkgWorking.root, { recursive: true });
+  }
+
   // Ensure that the working directory exists
   ensureDirSync(config.directoryInfo.pkgWorking.bin);
   ensureDirSync(config.directoryInfo.pkgWorking.share);
@@ -44,13 +51,36 @@ export async function prepareDist(
   );
   ensureDirSync(toolsDir);
 
+  // binary tools dir
+  const targetDir = join(
+    config.directoryInfo.pkgWorking.bin,
+    "tools",
+  );
+
+  // Download Deno
+  const denoVersion = Deno.env.get("DENO");
+  if (denoVersion) {
+    const denoDependency = deno(denoVersion);
+
+    if (config.os === "darwin") {
+      // add a secondary config specifically for Mac
+      await configureDependency(denoDependency, targetDir, {
+        os: config.os,
+        arch: "aarch64",
+      });
+
+      await configureDependency(denoDependency, targetDir, {
+        os: config.os,
+        arch: "x86_64",
+      });
+    } else {
+      await configureDependency(denoDependency, targetDir, config);
+    }
+  }
+
   // Download the dependencies
   for (const dependency of kDependencies) {
     try {
-      const targetDir = join(
-        config.directoryInfo.pkgWorking.bin,
-        "tools",
-      );
       await configureDependency(dependency, targetDir, config);
     } catch (e) {
       if (
@@ -64,6 +94,11 @@ export async function prepareDist(
       }
     }
   }
+
+  // Place the quarto sciprt
+  // Move the quarto script into place
+  info("Moving Quarto script");
+  copyQuartoScript(config, config.directoryInfo.pkgWorking.bin);
 
   // Move the supporting files into place
   info("\nMoving supporting files");

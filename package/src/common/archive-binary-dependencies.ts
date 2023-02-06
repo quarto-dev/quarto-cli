@@ -24,7 +24,12 @@ export function archiveUrl(
   dependency: Dependency,
   platformDependency: PlatformDependency,
 ) {
-  return `${kBucketBaseUrl}/${dependency.bucket}/${dependency.version}/${platformDependency.filename}`;
+  // TODO: Deal w/archive bin deps for this
+  if (dependency.bucket === "deno") {
+    return platformDependency.url + platformDependency.filename;
+  } else {
+    return `${kBucketBaseUrl}/${dependency.bucket}/${dependency.version}/${platformDependency.filename}`;
+  }
 }
 
 // Archives dependencies (if they are not present in the archive already)

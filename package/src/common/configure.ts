@@ -65,19 +65,7 @@ export async function configure(
 
   // Move the quarto script into place
   info("Creating Quarto script");
-  if (config.os === "windows") {
-    Deno.copyFileSync(
-      join(config.directoryInfo.pkg, "scripts", "windows", "quarto.cmd"),
-      join(config.directoryInfo.bin, "quarto.cmd"),
-    );
-  } else {
-    const out = join(config.directoryInfo.bin, "quarto");
-    Deno.copyFileSync(
-      join(config.directoryInfo.pkg, "scripts", "common", "quarto"),
-      out,
-    );
-    Deno.chmodSync(out, 0o755);
-  }
+  copyQuartoScript(config, config.directoryInfo.bin);
 
   // record dev config. These are versions as defined in the root configuration file.
   const devConfig = createDevConfig(
@@ -154,5 +142,22 @@ export async function configure(
         } is in your path.`,
       );
     }
+  }
+}
+
+export function copyQuartoScript(config: Configuration, targetDir: string) {
+  // Move the quarto script into place
+  if (config.os === "windows") {
+    Deno.copyFileSync(
+      join(config.directoryInfo.pkg, "scripts", "windows", "quarto.cmd"),
+      join(targetDir, "quarto.cmd"),
+    );
+  } else {
+    const out = join(targetDir, "quarto");
+    Deno.copyFileSync(
+      join(config.directoryInfo.pkg, "scripts", "common", "quarto"),
+      out,
+    );
+    Deno.chmodSync(out, 0o755);
   }
 }
