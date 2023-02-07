@@ -14,7 +14,7 @@ export function deno(version: string): Dependency {
   // Handle the configuration for this dependency
   const officialDenoRelease = (
     platformstr: string,
-    denoDir: string,
+    denoDir?: string,
   ) => {
     // https://github.com/denoland/deno/releases/download/v1.30.2/deno-aarch64-apple-darwin.zip
     return {
@@ -23,7 +23,7 @@ export function deno(version: string): Dependency {
       configure: async (_config: Configuration, path: string) => {
         const vendor = Deno.env.get("QUARTO_VENDOR_BINARIES");
         if (vendor === undefined || vendor === "true") {
-          const dest = join(dirname(path), denoDir);
+          const dest = denoDir ? join(dirname(path), denoDir) : dirname(path);
 
           // Expand
           await unzip(path, dest);
@@ -42,7 +42,7 @@ export function deno(version: string): Dependency {
       configure: async (_config: Configuration, path: string) => {
         const vendor = Deno.env.get("QUARTO_VENDOR_BINARIES");
         if (vendor === undefined || vendor === "true") {
-          const dest = join(dirname(path), "deno-aarch64-unknown-linux-gnu");
+          const dest = dirname(path);
 
           // Expand
           await unzip(path, dest);
@@ -60,7 +60,6 @@ export function deno(version: string): Dependency {
         "windows": officialDenoRelease("x86_64-pc-windows-msvc", ""),
         "linux": officialDenoRelease(
           "x86_64-unknown-linux-gnu",
-          "deno-x86_64-unknown-linux-gnu",
         ),
         "darwin": officialDenoRelease(
           "x86_64-apple-darwin",
