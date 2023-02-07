@@ -38,8 +38,11 @@ export function deno(version: string): Dependency {
     version,
     architectureDependencies: {
       "x86_64": {
-        "windows": officialDenoRelease("x86_64-pc-windows-msvc", "deno"),
-        "linux": officialDenoRelease("x86_64-unknown-linux-gnu", "deno"),
+        "windows": officialDenoRelease("x86_64-pc-windows-msvc", ""),
+        "linux": officialDenoRelease(
+          "x86_64-unknown-linux-gnu",
+          "deno-x86_64-unknown-linux-gnu",
+        ),
         "darwin": officialDenoRelease(
           "x86_64-apple-darwin",
           "deno-x86_64-apple-darwin",
