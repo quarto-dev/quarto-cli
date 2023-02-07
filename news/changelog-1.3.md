@@ -22,6 +22,7 @@
 - Fix support for parquet files in OJS code cells ([#3630](https://github.com/quarto-dev/quarto-cli/issues/3630)).
 - Forward bootstrap table classes from caption to table element ([#4036](https://github.com/quarto-dev/quarto-cli/issues/4036)).
 - Render code listings with names and captions correctly ([#2195](https://github.com/quarto-dev/quarto-cli/issues/2195)).
+- Fix issue with interactivity of elements in mobile size dispay when `toc-left` is being used. ([#4244](https://github.com/quarto-dev/quarto-cli/issues/4244)).
 
 ## Article Layout
 
@@ -50,6 +51,10 @@
 ## Beamer Format
 
 - Document `theme` format metadata option ([#3377](https://github.com/quarto-dev/quarto-cli/issues/3377))
+
+## Markdown Formats
+
+- Properly forward variants (e.g. `+yaml_metadata_block`) to `gfm` format.
 
 ## Mermaid diagrams
 
@@ -86,6 +91,7 @@
 - Fix issue assigning specific sidebar to a specific page using `sidebar:` (#3389)
 - Change behavior of `publish gh-pages` to always render into a clean directory.
   Previous behavior was to add to existing contents of `gh-pages` branch. ([#3199](https://github.com/quarto-dev/quarto-cli/discussions/3199), @ijlyttle)
+- Order sidebar entries using filename rather than title
 
 ## Books
 

@@ -71,16 +71,33 @@ _quarto.ast.add_handler({
       if not latexListings() then
         local listingDiv = pandoc.Div({})
         listingDiv.content:insert(pandoc.RawBlock("latex", "\\begin{codelisting}"))
-        local listingCaption = pandoc.Plain({pandoc.RawInline("latex", "\\caption{")})
+
         local captionContent = node.caption
-        if node.filename ~= nil then
-          tprepend(captionContent, {
+
+        if node.filename ~= nil and captionContent ~= nil then
+          -- with both filename and captionContent we need to add a colon
+          local listingCaption = pandoc.Plain({pandoc.RawInline("latex", "\\caption{")})
+          listingCaption.content:insert(
             pandoc.RawInline("latex", "\\texttt{" .. node.filename .. "}: ")
-          })
+          )
+          listingCaption.content:extend(captionContent)
+          listingCaption.content:insert(pandoc.RawInline("latex", "}"))
+          listingDiv.content:insert(listingCaption)
+        elseif node.filename ~= nil and captionContent == nil then
+          local listingCaption = pandoc.Plain({pandoc.RawInline("latex", "\\caption{")})
+          -- with just filename we don't add a colon
+          listingCaption.content:insert(
+            pandoc.RawInline("latex", "\\texttt{" .. node.filename .. "}")
+          )
+          listingCaption.content:insert(pandoc.RawInline("latex", "}"))
+          listingDiv.content:insert(listingCaption)
+        elseif node.filename == nil and captionContent ~= nil then
+          local listingCaption = pandoc.Plain({pandoc.RawInline("latex", "\\caption{")})
+          listingCaption.content:extend(captionContent)
+          listingCaption.content:insert(pandoc.RawInline("latex", "}"))
+          listingDiv.content:insert(listingCaption)
         end
-        listingCaption.content:extend(captionContent)
-        listingCaption.content:insert(pandoc.RawInline("latex", "}"))
-        listingDiv.content:insert(listingCaption)
+
         listingDiv.content:insert(el)
         listingDiv.content:insert(pandoc.RawBlock("latex", "\\end{codelisting}"))
         return listingDiv
@@ -102,10 +119,14 @@ _quarto.ast.add_handler({
   end,
 
   constructor = function(tbl)
+    local caption = tbl.caption
+    if tbl.code_block.attributes["lst-cap"] ~= nil then
+      caption = pandoc.read(tbl.code_block.attributes["lst-cap"], "markdown").blocks[1].content
+    end
     return {
       filename = tbl.filename,
       order = tbl.order,
-      caption = tbl.caption,
+      caption = caption,
       code_block = tbl.code_block
     }
   end

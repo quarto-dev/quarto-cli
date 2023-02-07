@@ -1,5 +1,3 @@
-// TODO Resource bundles
-
 import { join } from "path/mod.ts";
 import { Input, Secret } from "cliffy/prompt/mod.ts";
 import { RenderFlags } from "../../command/render/types.ts";
@@ -29,6 +27,7 @@ import {
   ContentAncestor,
   ContentBody,
   ContentBodyRepresentation,
+  ContentChange,
   ContentChangeType,
   ContentCreate,
   ContentProperty,
@@ -44,6 +43,7 @@ import {
   SiteFileMetadata,
   SitePage,
   SpaceChangeResult,
+  WrappedResult,
 } from "./api/types.ts";
 import { withSpinner } from "../../core/console.ts";
 import {
@@ -83,7 +83,9 @@ import {
 import {
   DELETE_DISABLED,
   DELETE_SLEEP_MILLIS,
+  DESCENDANT_PAGE_SIZE,
   EXIT_ON_ERROR,
+  MAX_PAGES_TO_LOAD,
 } from "./constants.ts";
 import { logError, trace } from "./confluence-logger.ts";
 import { md5Hash } from "../../core/hash.ts";
@@ -268,8 +270,22 @@ async function publish(
   };
 
   const fetchExistingSite = async (parentId: string): Promise<SitePage[]> => {
-    const descendants: any[] =
-      (await client.getDescendants(parentId))?.results ?? [];
+    let descendants: ContentSummary[] = [];
+    let start = 0;
+
+    for (let i = 0; i < MAX_PAGES_TO_LOAD; i++) {
+      const result: WrappedResult<ContentSummary> =
+        await client.getDescendantsPage(parentId, start);
+      if (result.results.length === 0) {
+        break;
+      }
+
+      descendants = [...descendants, ...result.results];
+
+      start = start + DESCENDANT_PAGE_SIZE;
+    }
+
+    trace("descendants.length", descendants);
 
     const contentProperties: ContentProperty[][] = await Promise.all(
       descendants.map((page: ContentSummary) =>
@@ -562,8 +578,16 @@ async function publish(
       doOperation = async () =>
         (content = await createContent(publishFiles, body));
     }
+    try {
+      await doWithSpinner(message, doOperation);
+    } catch (error: any) {
+      trace("Error Performing Operation", error);
+      trace("Value to Update", body?.storage?.value);
+      if (EXIT_ON_ERROR) {
+        throw error;
+      }
+    }
 
-    await doWithSpinner(message, doOperation);
     return buildPublishRecordForContent(server, content);
   };
 
@@ -578,16 +602,17 @@ async function publish(
     };
 
     let existingSite: SitePage[] = await fetchExistingSite(parentId);
+    trace("existingSite", existingSite);
 
     const publishFiles: PublishFiles = await renderSite(render);
     const metadataByInput: Record<string, InputMetadata> =
       publishFiles.metadataByInput ?? {};
 
+    trace("metadataByInput", metadataByInput);
+
     trace("publishSite", {
       parentId,
       publishFiles,
-      metadataByInput,
-      existingSite,
     });
 
     const filteredFiles: string[] = filterFilesForUpdate(publishFiles.files);
@@ -627,7 +652,6 @@ async function publish(
     trace("fileMetadata", fileMetadata);
 
     let metadataByFilename = buildFileToMetaTable(existingSite);
-
     trace("metadataByFilename", metadataByFilename);
 
     let changeList: ConfluenceSpaceChange[] = buildSpaceChanges(
@@ -650,11 +674,30 @@ async function publish(
 
     let pathsToId: Record<string, string> = {}; // build from existing site
 
+    const handleChangeError = (
+      label: string,
+      currentChange: ConfluenceSpaceChange,
+      error: any
+    ) => {
+      if (isContentUpdate(currentChange) || isContentCreate(currentChange)) {
+        trace("currentChange.fileName", currentChange.fileName);
+        trace("Value to Update", currentChange.body.storage.value);
+      }
+      if (EXIT_ON_ERROR) {
+        throw error;
+      }
+    };
+
     const doChange = async (
       change: ConfluenceSpaceChange,
       uploadFileAttachments: boolean = true
     ) => {
       if (isContentCreate(change)) {
+        if (change.fileName === "sitemap.xml") {
+          trace("sitemap.xml skipped", change);
+          return;
+        }
+
         let ancestorId =
           (change?.ancestors && change?.ancestors[0]?.id) ?? null;
 
@@ -712,18 +755,21 @@ async function publish(
       }
     };
 
+    let pass1Count = 0;
     for (let currentChange of changeList) {
       try {
-        await doChange(currentChange);
+        pass1Count = pass1Count + 1;
+        const doOperation = async () => await doChange(currentChange);
+        await doWithSpinner(
+          `Site Updates [${pass1Count}/${changeList.length}]`,
+          doOperation
+        );
       } catch (error: any) {
-        console.info("Error Performing Change Pass 1", currentChange);
-        if (isContentUpdate(currentChange) || isContentCreate(currentChange)) {
-          console.info("Value to Update", currentChange.body.storage.value);
-        }
-        console.error(error);
-        if (EXIT_ON_ERROR) {
-          throw error;
-        }
+        handleChangeError(
+          "Error Performing Change Pass 1",
+          currentChange,
+          error
+        );
       }
     }
 
@@ -742,22 +788,21 @@ async function publish(
         parent
       );
 
+      let pass2Count = 0;
       for (let currentChange of linkUpdateChanges) {
         try {
-          await doChange(currentChange, false);
+          pass2Count = pass2Count + 1;
+          const doOperation = async () => await doChange(currentChange, false);
+          await doWithSpinner(
+            `Updating Links [${pass2Count}/${linkUpdateChanges.length}]`,
+            doOperation
+          );
         } catch (error: any) {
-          //TODO remove duplication
-          console.info("Error Performing Change Pass 2", currentChange);
-          if (
-            isContentUpdate(currentChange) ||
-            isContentCreate(currentChange)
-          ) {
-            console.info("Value to Update", currentChange.body.storage.value);
-          }
-          console.error(error);
-          if (EXIT_ON_ERROR) {
-            throw error;
-          }
+          handleChangeError(
+            "Error Performing Change Pass 2",
+            currentChange,
+            error
+          );
         }
       }
     }

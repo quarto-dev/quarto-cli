@@ -14,13 +14,21 @@ function TestCaptionedImage:testBasic()
     ac:align="center"
     ac:layout="center"
     ac:alt="fake-title">
-        <ri:attachment ri:filename="fake-source" /><ac:caption>
-            <p>fake-caption</p>
-        </ac:caption>
+        <ri:attachment ri:filename="fake-source" /><ac:caption>fake-caption</ac:caption>
     </ac:image>]]
   local source = 'fake-source'
   local title = 'fake-title'
   local caption = 'fake-caption'
+  local actual = confluence.CaptionedImageConfluence(source, title, caption)
+
+  lu.assertEquals(actual, expected)
+end
+
+function TestCaptionedImage:testRemote()
+  local expected = [[<img src='https://d33wubrfki0l68.cloudfront.net/18153fb9953057ee5cff086122bd26f9cee8fe93/3aba9/images/notebook-run-chunk.png' title=''/>]]
+  local source = 'https://d33wubrfki0l68.cloudfront.net/18153fb9953057ee5cff086122bd26f9cee8fe93/3aba9/images/notebook-run-chunk.png'
+  local title = ''
+  local caption = ''
   local actual = confluence.CaptionedImageConfluence(source, title, caption)
 
   lu.assertEquals(actual, expected)
@@ -30,9 +38,7 @@ function TestCaptionedImage:testFigAltText()
     ac:align="center"
     ac:layout="center"
     ac:alt="fake-alt">
-        <ri:attachment ri:filename="fake-source" /><ac:caption>
-            <p>fake-caption</p>
-        </ac:caption>
+        <ri:attachment ri:filename="fake-source" /><ac:caption>fake-caption</ac:caption>
     </ac:image>]]
   local source = 'fake-source'
   local title = 'fake-title'
@@ -47,9 +53,7 @@ function TestCaptionedImage:testAlignLeft()
     ac:align="left"
     ac:layout="align-start"
     ac:alt="fake-title">
-        <ri:attachment ri:filename="fake-source" /><ac:caption>
-            <p>fake-caption</p>
-        </ac:caption>
+        <ri:attachment ri:filename="fake-source" /><ac:caption>fake-caption</ac:caption>
     </ac:image>]]
   local source = 'fake-source'
   local title = 'fake-title'
@@ -64,9 +68,7 @@ function TestCaptionedImage:testAlignRight()
     ac:align="right"
     ac:layout="align-end"
     ac:alt="fake-title">
-        <ri:attachment ri:filename="fake-source" /><ac:caption>
-            <p>fake-caption</p>
-        </ac:caption>
+        <ri:attachment ri:filename="fake-source" /><ac:caption>fake-caption</ac:caption>
     </ac:image>]]
   local source = 'fake-source'
   local title = 'fake-title'
@@ -83,17 +85,15 @@ function TestCodeBlockConfluence:testWithAllAttributes()
       ac:name="code"
       ac:schema-version="1"
       ac:macro-id="1d1a2d13-0179-4d8f-b448-b28dfaceea4a">
-        <ac:parameter ac:name="language">fake-class</ac:parameter>
+        <ac:parameter ac:name="language">python</ac:parameter>
         <ac:plain-text-body>
           <![CDATA[fake-codeValue{doubleBracket}>
         </ac:plain-text-body>
     </ac:structured-macro>]]
   local codeValue = 'fake-codeValue'
-  local attributes = {
-    class = 'fake-class'
-  }
+  local languageValue = 'python'
   expected = confluence.interpolate{expected, doubleBracket = ']]'}
-  local actual = confluence.CodeBlockConfluence(codeValue, attributes)
+  local actual = confluence.CodeBlockConfluence(codeValue, languageValue)
 
   lu.assertEquals(actual, expected)
 end
@@ -138,6 +138,25 @@ function TestLinkConfluence:testQMDAnchor()
 
   lu.assertEquals(actual, expected)
 end
+function TestLinkConfluence:testEscape()
+  local expected = "<a href='fake-target.qmd' title='fake-title'>A &amp; B</a>"
+  local source = 'A & B'
+  local target = 'fake-target.qmd'
+  local title = 'fake-title'
+  expected = confluence.interpolate{expected, doubleBracket = ']]'}
+  local actual = confluence.LinkConfluence(source, target, title)
+
+  lu.assertEquals(actual, expected)
+end
+function TestLinkConfluence:testEscapeNotQMD()
+  local expected = "<a href='http://www.test.com' title='fake-title'>A &amp; B</a>"
+  local source = 'A & B'
+  local target = 'http://www.test.com'
+  local title = 'fake-title'
+  expected = confluence.interpolate{expected, doubleBracket = ']]'}
+  local actual = confluence.LinkConfluence(source, target, title)
+  lu.assertEquals(actual, expected)
+end
 function TestLinkConfluence:testAttachment()
   local expected = [[<ac:link><ri:attachment ri:filename="fake-source"/><ac:plain-text-link-body><![CDATA[fake-target{doubleBracket}></ac:plain-text-link-body></ac:link>]]
   expected = confluence.interpolate{expected, doubleBracket = ']]'}
@@ -149,113 +168,6 @@ function TestLinkConfluence:testAttachment()
   }
   expected = confluence.interpolate{expected, doubleBracket = ']]'}
   local actual = confluence.LinkConfluence(source, target, title, attributes)
-
-  lu.assertEquals(actual, expected)
-end
-
-TestTableConfluence = {}
-function TestTableConfluence:testAlign()
-  local expected = [[<table>
-<colgroup>
-<col width="10%" />
-</colgroup>
-<tr class="odd">
-<td align="right"><p style="text-align: right;">12</p></td>
-</tr>
-</table>]]
-  local caption = ''
-  local aligns = {'AlignRight'}
-  local widths = {0.1}
-  local headers = {Right}
-  local rows = {
-    {12}
-  }
-
-  local actual = confluence.TableConfluence(caption, aligns, widths, headers, rows);
-
-  lu.assertEquals(actual, expected)
-end
-function TestTableConfluence:testColGroup()
-  local expected = [[<table>
-<colgroup>
-<col width="10%" />
-<col width="10%" />
-<col width="10%" />
-<col width="70%" />
-</colgroup>
-<tr class="odd">
-<td align="right"><p style="text-align: right;">12</p></td>
-<td align="left"><p style="text-align: left;">12</p></td>
-<td align="left"><p style="text-align: left;">12</p></td>
-<td align="center"><p style="text-align: center;">12</p></td>
-</tr>
-<tr class="even">
-<td align="right"><p style="text-align: right;">123</p></td>
-<td align="left"><p style="text-align: left;">123</p></td>
-<td align="left"><p style="text-align: left;">123</p></td>
-<td align="center"><p style="text-align: center;">123</p></td>
-</tr>
-<tr class="odd">
-<td align="right"><p style="text-align: right;">1</p></td>
-<td align="left"><p style="text-align: left;">1</p></td>
-<td align="left"><p style="text-align: left;">1</p></td>
-<td align="center"><p style="text-align: center;">1</p></td>
-</tr>
-</table>]]
-  local caption = ''
-  local aligns = {'AlignRight', 'AlignLeft', 'AlignDefault', 'AlignCenter'}
-  local widths = {0.1, 0.1, 0.1, 0.7}
-  local headers = {Right, Left, Default, Center}
-  local rows = {
-    {12, 12, 12, 12},
-    {123, 123, 123, 123},
-    {1, 1, 1, 1},
-  }
-  local actual = confluence.TableConfluence(caption, aligns, widths, headers, rows);
-
-  lu.assertEquals(actual, expected)
-end
-function TestTableConfluence:testNoColGroupNoWidth()
-  local expected = [[<table>
-<tr class="odd">
-<td align="right"><p style="text-align: right;">12</p></td>
-<td align="left"><p style="text-align: left;">12</p></td>
-<td align="left"><p style="text-align: left;">12</p></td>
-<td align="center"><p style="text-align: center;">12</p></td>
-</tr>
-<tr class="even">
-<td align="right"><p style="text-align: right;">123</p></td>
-<td align="left"><p style="text-align: left;">123</p></td>
-<td align="left"><p style="text-align: left;">123</p></td>
-<td align="center"><p style="text-align: center;">123</p></td>
-</tr>
-<tr class="odd">
-<td align="right"><p style="text-align: right;">1</p></td>
-<td align="left"><p style="text-align: left;">1</p></td>
-<td align="left"><p style="text-align: left;">1</p></td>
-<td align="center"><p style="text-align: center;">1</p></td>
-</tr>
-</table>]]
-  local caption = ''
-  local aligns = {'AlignRight', 'AlignLeft', 'AlignDefault', 'AlignCenter'}
-  local widths = {0.0, 0.0, 0.0, 0.0}
-  local headers = {Right, Left, Default, Center}
-  local rows = {
-    {12, 12, 12, 12},
-    {123, 123, 123, 123},
-    {1, 1, 1, 1},
-  }
-  local actual = confluence.TableConfluence(caption, aligns, widths, headers, rows);
-
-  lu.assertEquals(actual, expected)
-end
-
-TestBlockQuoteConfluence = {}
-function TestBlockQuoteConfluence:testStandard()
-  local expected = [[<blockquote>fake-source</blockquote>]]
-  local source = 'fake-source'
-
-  local actual = confluence.BlockQuoteConfluence(source);
 
   lu.assertEquals(actual, expected)
 end

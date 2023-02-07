@@ -44,7 +44,7 @@ export interface BookExtension {
 
   filterParams?: (options: PandocOptions) => Record<string, unknown>;
 
-  formatOutputDirectory?: (format: Format) => string;
+  formatOutputDirectory?: () => string;
 
   // book extensions can modify the format before render
   onSingleFilePreRender?: (format: Format, config?: ProjectConfig) => Format;

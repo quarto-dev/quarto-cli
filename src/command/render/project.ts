@@ -62,6 +62,7 @@ import {
 } from "../../project/project-shared.ts";
 import { asArray } from "../../core/array.ts";
 import { normalizePath } from "../../core/path.ts";
+import { isSubdir } from "fs/_util.ts";
 
 export async function renderProject(
   context: ProjectContext,
@@ -291,6 +292,12 @@ export async function renderProject(
     // track whether we need to keep the lib dir around
     let keepLibsDir = false;
 
+    interface FileOperation {
+      src: string;
+      performOperation: () => void;
+    }
+    const fileOperations: FileOperation[] = [];
+
     // move/copy projResults to output_dir
     for (let i = 0; i < fileResults.files.length; i++) {
       const renderedFile = fileResults.files[i];
@@ -327,9 +334,23 @@ export async function renderProject(
           );
         });
         if (keepFiles) {
-          renderedFile.supporting.map((file) => copyFormatDir(file));
+          renderedFile.supporting.forEach((file) => {
+            fileOperations.push({
+              src: file,
+              performOperation: () => {
+                copyFormatDir(file);
+              },
+            });
+          });
         } else {
-          renderedFile.supporting.map((file) => moveFormatDir(file));
+          renderedFile.supporting.forEach((file) => {
+            fileOperations.push({
+              src: file,
+              performOperation: () => {
+                moveFormatDir(file);
+              },
+            });
+          });
         }
       }
 
@@ -354,6 +375,20 @@ export async function renderProject(
         resourceFiles: await resourcesFrom(renderedFile),
       });
     }
+
+    // Perform the file operations (deepest folder first)
+    const sortedOperations = fileOperations.sort((a, b) => {
+      if (a.src === b.src) {
+        return 0;
+      } else if (isSubdir(a.src, b.src)) {
+        return 1;
+      } else {
+        return -1;
+      }
+    });
+    sortedOperations.forEach((op) => {
+      op.performOperation();
+    });
 
     // move or copy the lib dir if we have one (move one subdirectory at a time
     // so that we can merge with what's already there)
