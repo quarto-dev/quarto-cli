@@ -199,7 +199,7 @@ jobs:
       - name: Prepare Distribution
         run: |
           pushd package/src/
-          ./quarto-bld prepare-dist --set-version ${{needs.configure.outputs.version}} --log-level --arch aarch64 info
+          ./quarto-bld prepare-dist --set-version ${{needs.configure.outputs.version}} --arch aarch64 --log-level info
           popd
           
       - name: Make Installer
