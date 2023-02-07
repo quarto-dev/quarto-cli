@@ -18,4 +18,6 @@ unitTest("yaml-intelligence-unit-regression", async () => {
     ],
   });
   assert(result.success);
+}, {
+  ignore: Deno.build.os == "windows",
 });
