@@ -228,7 +228,7 @@ jobs:
       - name: Build Launcher
         run: | 
           cargo build --release --all-features --manifest-path package/launcher/Cargo.toml
-          cp package/launcher/target/release/quarto.exe package/dist/bin/quarto.exe
+          cp package/launcher/target/release/quarto.exe package/pkg-working/bin/quarto.exe
           
       - name: Make Installer
         run: |
