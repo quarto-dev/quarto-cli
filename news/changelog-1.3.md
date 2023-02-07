@@ -97,6 +97,9 @@
 ## Books
 
 - Remove chapter number of HTML head title when `number-sections` is `false` (#3304).
+- Non-HTML book output formats will now be placed in subdirectories (`book-<format>`) within the project output directory (`_books`)
+- Support for rendering to Asciidoc
+- Support for rendering to LaTeX
 
 ## Preview
 
