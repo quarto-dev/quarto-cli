@@ -51,6 +51,9 @@ export interface TestContext {
 
   // Control of underlying sanitizer
   santize?: { resources?: boolean; ops?: boolean; exit?: boolean };
+
+  // control if test is ran or skipped
+  ignore?: boolean;
 }
 
 export function testQuartoCmd(
@@ -85,11 +88,12 @@ export interface ExecuteOutput {
 export function unitTest(
   name: string,
   ver: () => Promise<unknown>, // VoidFunction,
+  context?: TestContext,
 ) {
   test({
     name,
     type: "unit",
-    context: {},
+    context: context || {},
     execute: () => {
       return Promise.resolve();
     },
@@ -112,6 +116,7 @@ export function test(test: TestDescriptor) {
   const sanitizeResources = test.context.santize?.resources;
   const sanitizeOps = test.context.santize?.ops;
   const sanitizeExit = test.context.santize?.exit;
+  const ignore = test.context.ignore;
   const userSession = !runningInCI();
 
   Deno.test({
@@ -247,6 +252,7 @@ export function test(test: TestDescriptor) {
         warning(`Skipped - ${test.name}`);
       }
     },
+    ignore,
     sanitizeExit,
     sanitizeOps,
     sanitizeResources,
