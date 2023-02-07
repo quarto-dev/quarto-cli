@@ -44,7 +44,7 @@ export function deno_dom(version: string): Dependency {
         linux: deno_dom_release("libplugin.so"),
         windows: deno_dom_release("plugin.dll"),
       },
-      "arm64": {
+      "aarch64": {
         linux: deno_dom_release("libplugin-linux-aarch64.so"),
       },
     },

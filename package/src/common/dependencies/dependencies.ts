@@ -6,7 +6,7 @@
 */
 
 import { join } from "path/mod.ts";
-import { info } from "log/mod.ts";
+import { info, warning } from "log/mod.ts";
 import { PlatformConfiguration } from "../config.ts";
 
 import { dartSass } from "./dartsass.ts";
@@ -64,11 +64,12 @@ export async function configureDependency(
   targetDir: string,
   config: PlatformConfiguration,
 ) {
-  info(`Preparing ${dependency.name}`);
+  info(`Preparing ${dependency.name} (${config.os} - ${config.arch})`);
   let archDep = dependency.architectureDependencies[config.arch];
 
   // If we're missing some arm64, try the intel versions and rely on rosetta.
   if (!archDep && config.arch === "aarch64") {
+    warning("Missing configuration for architecture " + config.arch);
     archDep = dependency.architectureDependencies["x86_64"];
   }
   if (archDep) {

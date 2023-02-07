@@ -32,6 +32,25 @@ export function deno(version: string): Dependency {
     };
   };
 
+  // Handle the configuration for this dependency
+  const linuxAmd64DenoRelease = () => {
+    // https://github.com/LukeChannings/deno-arm64/releases/download/v1.28.2/deno-linux-arm64.zip
+    return {
+      filename: `deno-linux-arm64.zip`,
+      url:
+        `https://github.com/LukeChannings/deno-arm64/releases/download/${version}/`,
+      configure: async (_config: Configuration, path: string) => {
+        const vendor = Deno.env.get("QUARTO_VENDOR_BINARIES");
+        if (vendor === undefined || vendor === "true") {
+          const dest = join(dirname(path), "deno-aarch64-unknown-linux-gnu");
+
+          // Expand
+          await unzip(path, dest);
+        }
+      },
+    };
+  };
+
   return {
     name: "Deno typescript runtime",
     bucket: "deno",
@@ -53,6 +72,7 @@ export function deno(version: string): Dependency {
           "aarch64-apple-darwin",
           "deno-aarch64-apple-darwin",
         ),
+        "linux": linuxAmd64DenoRelease(),
       },
     },
   };

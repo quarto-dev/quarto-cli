@@ -46,7 +46,7 @@ export function dartSass(version: string): Dependency {
         "linux": dartRelease(`dart-sass-${version}-linux-x64.tar.gz`),
         "darwin": dartRelease(`dart-sass-${version}-macos-x64.tar.gz`),
       },
-      "arm64": {
+      "aarch64": {
         "linux": dartRelease(`dart-sass-${version}-linux-arm64.tar.gz`),
         "darwin": dartRelease(`dart-sass-${version}-macos-arm64.tar.gz`),
       },
