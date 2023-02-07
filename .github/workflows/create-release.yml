@@ -473,7 +473,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Deb Zip/quarto-${{needs.configure.outputs.version}}-linux-arm64.tar.gz
+          asset_path: ./Deb Arm64 Zip/quarto-${{needs.configure.outputs.version}}-linux-arm64.tar.gz
           asset_name: quarto-${{needs.configure.outputs.version}}-linux-arm64.tar.gz
           asset_content_type: application/gzip
           
@@ -506,7 +506,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Deb Installer/quarto-${{needs.configure.outputs.version}}-linux-arm64.deb
+          asset_path: ./Deb Arm64 Installer/quarto-${{needs.configure.outputs.version}}-linux-arm64.deb
           asset_name: quarto-${{needs.configure.outputs.version}}-linux-arm64.deb
           asset_content_type: application/deb
           
@@ -591,10 +591,18 @@ jobs:
           pushd Deb\ Zip
           sha256sum quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
           popd
+          
+          pushd Deb\ aRm64\ Zip
+          sha256sum quarto-${{needs.configure.outputs.version}}-linux-arm64.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
+          popd
 
           pushd Deb\ Installer
           sha256sum quarto-${{needs.configure.outputs.version}}-linux-amd64.deb >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
           popd
+          
+          pushd Deb\ Arm64\ Installer
+          sha256sum quarto-${{needs.configure.outputs.version}}-linux-arm64.deb >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
+          popd          
 
           pushd Source
           sha256sum quarto-${{needs.configure.outputs.version}}.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
