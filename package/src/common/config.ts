@@ -6,6 +6,7 @@
 */
 
 import { join } from "path/mod.ts";
+import { info } from "log/mod.ts";
 
 import { getEnv } from "../util/utils.ts";
 
@@ -80,6 +81,8 @@ export function readConfiguration(
     },
   };
 
+
+
   const cmdOs = os || getEnv("QUARTO_OS", Deno.build.os);
   if (!kValidOS.includes(cmdOs)) {
     throw new Error(
@@ -105,6 +108,29 @@ export function readConfiguration(
     os: cmdOs as "windows" | "linux" | "darwin",
     arch: cmdArch as "x86_64" | "aarch64",
   };
+}
+
+export function printConfiguration(config: Configuration) {
+  info("");
+  info("******************************************");
+  info("Configuration:");
+  info(` - OS:      ${config.os}`);
+  info(` - Arch:    ${config.arch}`);
+  info(` - Version: ${config.version}`);
+  info(` - Cwd:     ${Deno.cwd()}`);
+  info(` - Directory configuration:`);
+  info(
+    `   - Package folder (build source): ${config.directoryInfo.pkg}`,
+  );
+  info(`   - Dist folder (output folder): ${config.directoryInfo.dist}`);
+  info(`     - bin folder: ${config.directoryInfo.bin}`);
+  info(`     - share folder: ${config.directoryInfo.share}`);
+  info(`   - Package working folder: ${config.directoryInfo.pkgWorking.root}`);
+  
+  info("");
+  info("******************************************");
+  info("");
+
 }
 
 // Utility that provides a working directory and cleans it up

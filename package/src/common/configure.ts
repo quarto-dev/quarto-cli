@@ -22,26 +22,10 @@ import {
 } from "./dependencies/dependencies.ts";
 import { suggestUserBinPaths } from "../../../src/core/env.ts";
 
+
 export async function configure(
   config: Configuration,
 ) {
-  info("");
-  info("******************************************");
-  info("Configuring local machine for development:");
-  info(` - OS  : ${config.os}`);
-  info(` - Arch: ${config.arch}`);
-  info(` - Cwd : ${Deno.cwd()}`);
-  info(` - Directory configuration:`);
-  info(
-    `   - Quarto package folder (build source): ${config.directoryInfo.pkg}`,
-  );
-  info(`   - Quarto dist folder (output folder): ${config.directoryInfo.dist}`);
-  info(`     - Quarto bin folder: ${config.directoryInfo.bin}`);
-  info(`     - Quarto share folder: ${config.directoryInfo.share}`);
-  info("");
-  info("******************************************");
-  info("");
-
   // Download dependencies
   for (const dependency of kDependencies) {
     try {

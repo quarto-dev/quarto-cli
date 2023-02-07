@@ -8,6 +8,8 @@ import { Command } from "cliffy/command/mod.ts";
 import { join } from "path/mod.ts";
 import { info } from "log/mod.ts";
 
+import { printConfiguration } from "../common/config.ts" 
+
 import {
   Configuration,
   kValidArch,
@@ -47,9 +49,10 @@ export function packageCommand(run: (config: Configuration) => Promise<void>) {
       );
       Deno.env.set("QUARTO_DEBUG", "true");
 
+      // Print the configuration
+      printConfiguration(config);
+
       // Run the command
-      info("Using configuration:");
-      info(config);
       await run(config);
     });
 }
