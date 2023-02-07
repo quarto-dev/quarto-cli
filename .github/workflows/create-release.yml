@@ -415,9 +415,11 @@ jobs:
       [
         configure,
         make-installer-deb,
+        make-installer-arm64-deb,
         make-installer-win,
         make-installer-mac,
         make-tarball-rhel,
+        make-arm64-tarball,
         make-tarball,
         make-source-tarball,
         test-zip-win,
@@ -464,6 +466,17 @@ jobs:
           asset_name: quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz
           asset_content_type: application/gzip
 
+      - name: Attach Arm64 Release Tarball
+        id: attach-release-tarball
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./Deb Zip/quarto-${{needs.configure.outputs.version}}-linux-arm64.tar.gz
+          asset_name: quarto-${{needs.configure.outputs.version}}-linux-arm64.tar.gz
+          asset_content_type: application/gzip
+          
       - name: Attach RHEL Tarball
         id: attach-rhel-tarball
         uses: actions/upload-release-asset@v1
@@ -486,6 +499,17 @@ jobs:
           asset_name: quarto-${{needs.configure.outputs.version}}-linux-amd64.deb
           asset_content_type: application/deb
 
+      - name: Attach Arm64 Debian Installer
+        id: attach-deb-installer
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./Deb Installer/quarto-${{needs.configure.outputs.version}}-linux-arm64.deb
+          asset_name: quarto-${{needs.configure.outputs.version}}-linux-arm64.deb
+          asset_content_type: application/deb
+          
       - name: Attach Windows Installer
         id: attach-win-installer
         uses: actions/upload-release-asset@v1
