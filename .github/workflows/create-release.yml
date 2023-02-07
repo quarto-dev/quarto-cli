@@ -467,7 +467,7 @@ jobs:
           asset_content_type: application/gzip
 
       - name: Attach Arm64 Release Tarball
-        id: attach-release-tarball
+        id: attach-arm4-release-tarball
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -500,7 +500,7 @@ jobs:
           asset_content_type: application/deb
 
       - name: Attach Arm64 Debian Installer
-        id: attach-deb-installer
+        id: attach-arm64-deb-installer
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
