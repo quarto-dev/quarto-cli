@@ -59,7 +59,7 @@ jobs:
 
           # test a quarto render
           q_render_start=$(date +%s.%3N)
-          ./quarto render ../../tests/docs/test.qmd --to html
+          ./quarto render ../../../tests/docs/test.qmd --to html
           q_render_end=$(date +%s.%3N)
           q_render_elapsed=$(printf '%.3f\n' $(echo "scale=3; $q_render_end - $q_render_start" | bc))
 
