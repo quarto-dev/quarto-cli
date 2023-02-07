@@ -139,7 +139,7 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: Deb Zip
+          name: Deb Arm64 Zip
           path: ./package/quarto-${{needs.configure.outputs.version}}-linux-arm64.tar.gz
 
   make-tarball-rhel:
@@ -211,7 +211,7 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: Deb Installer
+          name: Deb Arm64 Installer
           path: ./package/out/quarto-${{needs.configure.outputs.version}}-linux-arm64.deb
 
 
@@ -261,7 +261,7 @@ jobs:
           quarto check
           quarto --paths
           quarto --version
-
+          
   make-installer-win:
     runs-on: windows-latest
     needs: [configure]
