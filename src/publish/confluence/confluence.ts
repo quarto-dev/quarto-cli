@@ -55,6 +55,7 @@ import {
   doWithSpinner,
   filterFilesForUpdate,
   findAttachments,
+  footnoteTransform,
   getNextVersion,
   getTitle,
   isContentCreate,
@@ -386,6 +387,8 @@ async function publish(
     trace("attachmentsToUpload", attachmentsToUpload, LogPrefix.ATTACHMENT);
 
     const updatedBody: ContentBody = updateImagePaths(body);
+    updatedBody.storage.value = footnoteTransform(updatedBody.storage.value);
+
     const toUpdate: ContentUpdate = {
       contentChangeType: ContentChangeType.update,
       id,
@@ -520,6 +523,7 @@ async function publish(
 
     trace("attachmentsToUpload", attachmentsToUpload, LogPrefix.ATTACHMENT);
     const updatedBody: ContentBody = updateImagePaths(body);
+    updatedBody.storage.value = footnoteTransform(updatedBody.storage.value);
 
     const toCreate: ContentCreate = {
       contentChangeType: ContentChangeType.create,
