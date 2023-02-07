@@ -27,6 +27,6 @@ You can contribute in many ways:
 
 2.  For significant changes (e.g not required for fixing typos), ensure that you have signed the [individual](https://rstudioblog.files.wordpress.com/2017/05/rstudio_individual_contributor_agreement.pdf) or [corporate](https://rstudioblog.files.wordpress.com/2017/05/rstudio_corporate_contributor_agreement.pdf) contributor agreement as appropriate. You can send the signed copy to <jj@rstudio.com>.
 
-3.  Submit the [pull request](https://help.github.com/articles/using-pull-requests). It is ok to submit as draft in your are still working on it but would like some feedback from us. It always good to share in the open that you are working on it.
+3.  Submit the [pull request](https://help.github.com/articles/using-pull-requests). It is ok to submit as a draft if you are still working on it but would like some feedback from us. It is always good to share in the open that you are working on it.
 
 We'll try to be as responsive as possible in reviewing and accepting pull requests. Very much appreciate your contributions!
