@@ -7,7 +7,7 @@
 import { join } from "path/mod.ts";
 import { emptyDirSync, ensureDirSync, walk } from "fs/mod.ts";
 import { copySync } from "fs/copy.ts";
-import { error, info } from "log/mod.ts";
+import { info } from "log/mod.ts";
 
 import { Configuration } from "../common/config.ts";
 import { runCmd } from "../util/cmd.ts";
@@ -18,13 +18,10 @@ export async function makeInstallerDeb(
   info("Building deb package...");
 
   // detect packaging machine architecture
-  const result = await runCmd("dpkg-architecture", ["-qDEB_BUILD_ARCH"]);
-  const architecture =
-    (result.status.code === 0 ? result.stdout.trim() : undefined);
-  if (!architecture) {
-    error("Can't detect package architecture.");
-    throw new Error("Undetectable architecture. Packaging failed.");
-  }
+  // See complete list dpkg-architecture -L.
+  // arm64
+  // amd64
+  const architecture = configuration.arch === "x86_64" ? "arm64" : "amd64";
   const packageName =
     `quarto-${configuration.version}-linux-${architecture}.deb`;
   info("Building package " + packageName);
