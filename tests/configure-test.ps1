@@ -13,3 +13,13 @@ If ( $py -and $python -and $env:VIRTUAL_ENV -eq $null) {
     python3 -m venv .venv
 }
 
+try {$null = gcm julia -ea stop; julia=$true } catch {
+  Write-Host -ForegroundColor red "Missing Julia - An installation is required"
+}
+
+If ($julia) {
+  # TODO: Check to do equivalent of virtualenv
+  Write-Host "Setting up Julia global environment"
+  julia --color=yes --project=. -e 'import Pkg; Pkg.instantiate(); Pkg.build("IJulia"); Pkg.precompile()'
+}
+
