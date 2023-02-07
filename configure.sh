@@ -43,8 +43,6 @@ if [[ "${QUARTO_VENDOR_BINARIES}" = "true" ]]; then
     cd $QUARTO_BIN_PATH/tools
 
     # Download Deno
-    DENOURL=https://github.com/denoland/deno/releases/download
-
     for DENOFILE in $DENOFILES; do
       download "$DENOURL/$DENO/$DENOFILE" "$DENOFILE"
       unzip -o $DENOFILE
