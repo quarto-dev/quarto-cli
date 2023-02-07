@@ -460,6 +460,16 @@ export async function renderProject(
     // Expand the resources into the format aware targets
     // srcPath -> Set<destinationPaths>
     const resourceFilesToCopy: Record<string, Set<string>> = {};
+
+    // Process the project resources
+    context.files.resources?.forEach((resource) => {
+      resourceFilesToCopy[resource] = resourceFilesToCopy[resource] ||
+        new Set();
+      const relativePath = relative(context.dir, resource);
+      resourceFilesToCopy[resource].add(join(projOutputDir, relativePath));
+    });
+
+    // Process the resources provided by the files themselves
     projResults.files.forEach((file) => {
       const formatOutputDir = projectFormatOutputDir(
         file.format,
