@@ -7,8 +7,8 @@ _quarto:
     asciidoc:
       ensureFileRegexMatches:
         -
-          - '\[NOTE\]\n.Bruv\n===='
-          - '\[TIP\]\n===='
+          - '\[NOTE\](\r\n?|\n).Bruv(\r\n?|\n)===='
+          - '\[TIP\](\r\n?|\n)===='
 
 ---
 

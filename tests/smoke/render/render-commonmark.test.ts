@@ -23,7 +23,7 @@ tests.forEach((test) => {
     "commonmark",
     true,
     [ensureFileRegexMatches(output.outputPath, [
-      /test\n================/,
+      /test(\r\n?|\n)================/,
     ])],
   );
 });
