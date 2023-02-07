@@ -147,6 +147,7 @@ function inlineFilters(config: Configuration) {
     { name: "pagebreak", dir: "rmarkdown" },
     { name: "quarto-init" },
     { name: "crossref" },
+    { name: "customwriter" },
   ];
 
   filtersToInline.forEach((filter) => {
