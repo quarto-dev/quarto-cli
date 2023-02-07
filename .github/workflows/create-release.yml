@@ -592,7 +592,7 @@ jobs:
           sha256sum quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
           popd
           
-          pushd Deb\ aRm64\ Zip
+          pushd Deb\ Arm64\ Zip
           sha256sum quarto-${{needs.configure.outputs.version}}-linux-arm64.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
           popd
 
