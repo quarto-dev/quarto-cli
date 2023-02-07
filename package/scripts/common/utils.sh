@@ -21,7 +21,7 @@ else
     DENOFILES=deno-x86_64-unknown-linux-gnu.zip
     DENO_DIR=deno-x86_64-unknown-linux-gnu
   elif [[ $NIXARCH == "aarch64" ]]; then
-    DENOURL=https://github.com/denoland/deno/releases/download
+    DENOURL=https://github.com/LukeChannings/deno-arm64/releases/download
     DENOFILES=deno-linux-arm64.zip
     DENO_DIR=deno-aarch64-unknown-linux-gnu
   else
