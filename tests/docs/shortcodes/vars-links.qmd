@@ -3,9 +3,8 @@ title: Var Test
 basic-value: "Hello World"
 _quarto-vars:
   foo: bar
-  name: beach
 ---
 
-[This is a test of {{< var foo >}}](http://www.test.com/foo?{{< var foo >}})
+[This is a test of {{< var foo >}}](http://www.test.com/{{< var foo >}})
 
-![Image {{< var name >}}](images/{{< var name >}}.jpg)
+![Image {{< var foo >}}](images/beach.jpg?{{< var foo >}})

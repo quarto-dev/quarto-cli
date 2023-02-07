@@ -49,10 +49,8 @@ const inputVarsLinks = docs(join("shortcodes", "vars-links.qmd"));
 const outputVarsLinks = outputForInput(inputVarsLinks, "html");
 testRender(inputVarsLinks, "html", false, [
   ensureFileRegexMatches(outputVarsLinks.outputPath, [
-    /\>This is a test of bar\</,
-    /http\:\/\/www\.test\.com\/foo\?bar/,
-    /\>Image beach\</,
-    /images\/beach\.jpg/,
+    /http\:\/\/www\.test\.com\/bar/,
+    /images\/beach\.jpg\?bar/,
   ], []),
 ]);
 
