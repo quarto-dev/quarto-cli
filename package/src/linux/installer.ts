@@ -16,12 +16,12 @@ export async function makeInstallerDeb(
   configuration: Configuration,
 ) {
   info("Building deb package...");
-
+  
   // detect packaging machine architecture
   // See complete list dpkg-architecture -L.
   // arm64
   // amd64
-  const architecture = configuration.arch === "x86_64" ? "arm64" : "amd64";
+  const architecture = configuration.arch === "x86_64" ? "amd64" : "arm64";
   const packageName =
     `quarto-${configuration.version}-linux-${architecture}.deb`;
   info("Building package " + packageName);
