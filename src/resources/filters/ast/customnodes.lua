@@ -253,7 +253,36 @@ _quarto.ast = {
       handler.set_inner_content(custom_data, new_inner_content)
     end
   end,
+
+  walk = run_emulated_filter,
+
+  writer_walk = function(doc, filter)
+    local old_custom_walk = filter.Custom
+    local function custom_walk(node, raw)
+      local handler = quarto._quarto.ast.resolve_handler(node.t)
+      if handler == nil then
+        error("Internal Error: handler not found for custom node " .. node.t)
+        crash_with_stack_trace()
+      end
+      -- ensure inner nodes are also rendered
+      quarto._quarto.ast.inner_walk(raw, filter)
+      print(node.t)
+      local result = handler.render(node)
+      print("result")
+      print(result)
+      return quarto._quarto.ast.writer_walk(result, filter)
+    end
+
+    if filter.Custom == nil then
+      filter.Custom = custom_walk
+    end
+
+    local result = run_emulated_filter(doc, filter)
+    filter.Custom = old_custom_walk
+    return result
+  end
 }
+
 quarto._quarto = _quarto
 
 function constructExtendedAstHandlerState()
