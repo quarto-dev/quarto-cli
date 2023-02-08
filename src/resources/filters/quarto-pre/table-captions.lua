@@ -156,7 +156,6 @@ function applyTableCaptions(el, tblCaptions, tblLabels)
         -- (assuming there is one, might not be in case of empty subcaps)
         -- (2) Append the tblLabels[idx] to whatever caption is there
         if hasRawHtmlTable(raw) then
-          idx = idx + 1
           -- html table patterns
           local tablePattern = htmlTablePattern()
           local captionPattern = htmlTableCaptionPattern()
@@ -174,16 +173,16 @@ function applyTableCaptions(el, tblCaptions, tblLabels)
             captionText = captionText .. " {#" .. tblLabels[idx] .. "}"
           end
           raw.text = raw.text:gsub(captionPattern, "%1" .. captionText:gsub("%%", "%%%%") .. "%3", 1)
-        elseif hasRawLatexTable(raw) then
           idx = idx + 1
+        elseif hasRawLatexTable(raw) then
           for i,pattern in ipairs(_quarto.patterns.latexTablePatterns) do
             if raw.text:match(pattern) then
               raw.text = applyLatexTableCaption(raw.text, tblCaptions[idx], tblLabels[idx], pattern)
               break
             end
           end
-        elseif hasPagedHtmlTable(raw) then
           idx = idx + 1
+        elseif hasPagedHtmlTable(raw) then
           if #tblCaptions[idx] > 0 then
             local captionText = stringEscape(tblCaptions[idx], "html")
             if #tblLabels[idx] > 0 then
@@ -194,6 +193,7 @@ function applyTableCaptions(el, tblCaptions, tblLabels)
             local replacement = "%1 <div class=\"table-caption\"><caption>" .. captionText:gsub("%%", "%%%%") .. "</caption></div>"
             raw.text = raw.text:gsub(pattern, replacement)
           end
+          idx = idx + 1
         end
        
         return raw
