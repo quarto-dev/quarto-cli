@@ -131,6 +131,7 @@ function applyTableCaptions(el, tblCaptions, tblLabels)
   local idx = 1
   return pandoc.walk_block(el, {
     Table = function(el)
+      print("inside table handler", idx, #tblLabels)
       if idx <= #tblLabels then
         local table = pandoc.utils.to_simple_table(el)
         if #tblCaptions[idx] > 0 then
@@ -156,6 +157,7 @@ function applyTableCaptions(el, tblCaptions, tblLabels)
         -- (assuming there is one, might not be in case of empty subcaps)
         -- (2) Append the tblLabels[idx] to whatever caption is there
         if hasRawHtmlTable(raw) then
+          idx = idx + 1
           -- html table patterns
           local tablePattern = htmlTablePattern()
           local captionPattern = htmlTableCaptionPattern()
@@ -174,6 +176,7 @@ function applyTableCaptions(el, tblCaptions, tblLabels)
           end
           raw.text = raw.text:gsub(captionPattern, "%1" .. captionText:gsub("%%", "%%%%") .. "%3", 1)
         elseif hasRawLatexTable(raw) then
+          idx = idx + 1
           for i,pattern in ipairs(_quarto.patterns.latexTablePatterns) do
             if raw.text:match(pattern) then
               raw.text = applyLatexTableCaption(raw.text, tblCaptions[idx], tblLabels[idx], pattern)
@@ -181,6 +184,7 @@ function applyTableCaptions(el, tblCaptions, tblLabels)
             end
           end
         elseif hasPagedHtmlTable(raw) then
+          idx = idx + 1
           if #tblCaptions[idx] > 0 then
             local captionText = stringEscape(tblCaptions[idx], "html")
             if #tblLabels[idx] > 0 then
@@ -193,7 +197,6 @@ function applyTableCaptions(el, tblCaptions, tblLabels)
           end
         end
        
-        idx = idx + 1
         return raw
       end
     end
