@@ -173,6 +173,7 @@ function applyTableCaptions(el, tblCaptions, tblLabels)
             captionText = captionText .. " {#" .. tblLabels[idx] .. "}"
           end
           raw.text = raw.text:gsub(captionPattern, "%1" .. captionText:gsub("%%", "%%%%") .. "%3", 1)
+          idx = idx + 1
         elseif hasRawLatexTable(raw) then
           for i,pattern in ipairs(_quarto.patterns.latexTablePatterns) do
             if raw.text:match(pattern) then
@@ -180,6 +181,7 @@ function applyTableCaptions(el, tblCaptions, tblLabels)
               break
             end
           end
+          idx = idx + 1
         elseif hasPagedHtmlTable(raw) then
           if #tblCaptions[idx] > 0 then
             local captionText = stringEscape(tblCaptions[idx], "html")
@@ -191,9 +193,9 @@ function applyTableCaptions(el, tblCaptions, tblLabels)
             local replacement = "%1 <div class=\"table-caption\"><caption>" .. captionText:gsub("%%", "%%%%") .. "</caption></div>"
             raw.text = raw.text:gsub(pattern, replacement)
           end
+          idx = idx + 1
         end
        
-        idx = idx + 1
         return raw
       end
     end
