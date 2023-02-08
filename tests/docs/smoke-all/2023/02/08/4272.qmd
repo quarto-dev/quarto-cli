@@ -1,0 +1,22 @@
+---
+format: html
+keep-md: true
+title: issue 4272
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ["Table&nbsp;1"]
+---
+
+```{r}
+#| include: false
+library(gt)
+```
+
+```{r}
+#| echo: false
+#| label: tbl-mytable
+#| tbl-cap: "Caption"
+head(mtcars) %>% gt()
+```
