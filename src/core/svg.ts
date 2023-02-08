@@ -30,7 +30,7 @@ export async function resolveSize(
     throw new Error("Internal error: couldn't find figure dimensions");
   }
   const getViewBox = () => {
-    const vb = svgEl.attributes.getNamedItem("viewBox").value; // do it the roundabout way so that viewBox isn't dropped by deno_dom and text/html
+    const vb = svgEl.attributes.getNamedItem("viewBox")?.value; // do it the roundabout way so that viewBox isn't dropped by deno_dom and text/html
     if (!vb) return undefined;
     const lst = vb.trim().split(" ").map(Number);
     if (lst.length !== 4) return undefined;

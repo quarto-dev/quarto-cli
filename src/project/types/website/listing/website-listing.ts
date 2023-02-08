@@ -399,7 +399,7 @@ function listingPostProcess(
   // Purge any images that made it into the description
   const descImgs = doc.querySelectorAll(".listing-description img");
   descImgs.forEach((descImg) => {
-    descImg.remove();
+    (descImg as Element).remove();
   });
 }
 

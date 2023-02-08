@@ -8,6 +8,7 @@ import { existsSync } from "fs/mod.ts";
 import { dirname, join } from "path/mod.ts";
 
 import { unTar } from "../../util/tar.ts";
+import { Configuration } from "../config.ts";
 import { Dependency } from "./dependencies.ts";
 
 export function dartSass(version: string): Dependency {
@@ -18,8 +19,7 @@ export function dartSass(version: string): Dependency {
       filename,
       url:
         `https://github.com/sass/dart-sass/releases/download/${version}/${filename}`,
-      configure: async (path: string) => {
-
+      configure: async (_config: Configuration, path: string) => {
         const vendor = Deno.env.get("QUARTO_VENDOR_BINARIES");
         if (vendor === undefined || vendor === "true") {
           // Remove existing dart-sass dir
@@ -45,6 +45,10 @@ export function dartSass(version: string): Dependency {
         "windows": dartRelease(`dart-sass-${version}-windows-x64.zip`),
         "linux": dartRelease(`dart-sass-${version}-linux-x64.tar.gz`),
         "darwin": dartRelease(`dart-sass-${version}-macos-x64.tar.gz`),
+      },
+      "aarch64": {
+        "linux": dartRelease(`dart-sass-${version}-linux-arm64.tar.gz`),
+        "darwin": dartRelease(`dart-sass-${version}-macos-arm64.tar.gz`),
       },
     },
   };

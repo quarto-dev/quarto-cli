@@ -1,7 +1,9 @@
 import { parse, parseFrag } from "./parser.ts";
 import { CTOR_KEY } from "./constructor-lock.ts";
-import { Node, NodeType, Text, Comment } from "./dom/node.ts";
+import { Comment, Node, NodeType, Text } from "./dom/node.ts";
 import { DocumentType } from "./dom/document.ts";
+import { DocumentFragment } from "./dom/document-fragment.ts";
+import { HTMLTemplateElement } from "./dom/elements/html-template-element.ts";
 import { Element } from "./dom/element.ts";
 
 export function nodesFromString(html: string): Node {
@@ -22,6 +24,27 @@ function nodeFromArray(data: any, parentNode: Node | null): Node {
   // For reference only:
   // type node = [NodeType, nodeName, attributes, node[]]
   //             | [NodeType, characterData]
+
+  // <template> element gets special treatment, until
+  // we implement all the HTML elements
+  if (data[1] === "template") {
+    const content = nodeFromArray(data[3], null);
+    const contentFrag = new DocumentFragment();
+    const fragMutator = contentFrag._getChildNodesMutator();
+
+    for (const child of content.childNodes) {
+      fragMutator.push(child);
+      child._setParent(contentFrag);
+    }
+
+    return new HTMLTemplateElement(
+      parentNode,
+      data[2],
+      CTOR_KEY,
+      contentFrag,
+    );
+  }
+
   const elm = new Element(data[1], parentNode, data[2], CTOR_KEY);
   const childNodes = elm._getChildNodesMutator();
   let childNode: Node;
@@ -47,7 +70,7 @@ function nodeFromArray(data: any, parentNode: Node | null): Node {
 
       case NodeType.DOCUMENT_TYPE_NODE:
         childNode = new DocumentType(child[1], child[2], child[3], CTOR_KEY);
-        childNode.parentNode = childNode.parentElement = <Element>elm;
+        childNode.parentNode = childNode.parentElement = <Element> elm;
         childNodes.push(childNode);
         break;
     }
@@ -55,4 +78,3 @@ function nodeFromArray(data: any, parentNode: Node | null): Node {
 
   return elm;
 }
-

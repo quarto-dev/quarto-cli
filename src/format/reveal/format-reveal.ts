@@ -464,7 +464,7 @@ function revealHtmlPostprocessor(
           'nav[role="doc-toc"] a[href="#/' + id + '"]',
         );
         if (tocEntry) {
-          tocEntry.parentNode?.remove();
+          tocEntry.parentElement?.remove();
         }
       }
 
@@ -618,7 +618,7 @@ function revealHtmlPostprocessor(
     if (slideFootnotes) {
       // we are using slide based footnotes so remove footnotes slide from end
       for (const footnoteSection of footnotes) {
-        footnoteSection.remove();
+        (footnoteSection as Element).remove();
       }
     } else {
       let footnotesId: string | undefined;

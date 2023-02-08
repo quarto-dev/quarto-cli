@@ -67,7 +67,7 @@ export async function makeInstallerWindows(configuration: Configuration) {
   const workingDistPath = join(tempDir, "dist");
   const workingBinPath = join(workingDistPath, "bin");
   const workingToolsPath = join(workingBinPath, "tools");
-  copySync(configuration.directoryInfo.dist, workingDistPath);
+  copySync(configuration.directoryInfo.pkgWorking.root, workingDistPath);
 
   if (sign) {
     info("Signing application files");
