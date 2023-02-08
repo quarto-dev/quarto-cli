@@ -204,6 +204,14 @@ async function callR<T>(
     { dir: tempDir, prefix: "r-results", suffix: ".json" },
   );
 
+  // create a temp file for communication with the computational cells
+  // we currently ignore the file but 3rd-party libraries like GT
+  // already depend on this.
+  const messagesFile = Deno.makeTempFileSync(
+    { dir: tempDir, prefix: "r-messages", suffix: ".json" },
+  );
+  Deno.env.set("QUARTO_MESSAGES_FILE", messagesFile);
+
   const input = JSON.stringify({
     action,
     params,
@@ -255,6 +263,8 @@ async function callR<T>(
       await printCallRDiagnostics();
     }
     return Promise.reject();
+  } finally {
+    Deno.env.delete("QUARTO_MESSAGES_FILE");
   }
 }
 
