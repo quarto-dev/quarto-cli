@@ -749,6 +749,13 @@ export const findAttachments = (
 export const footnoteTransform = (bodyValue: string): string => {
   const BACK_ANCHOR_FINDER: RegExp = /<a href="#fn(\d)"/g;
   const ANCHOR_FINDER: RegExp = /<a href="#fnref(\d)"/g;
+  const CONFLUENCE_ANCHOR_FINDER: RegExp =
+    /ac:macro-id="d2cb5be1217ae6e086bc60005e9d27b7"><ac:parameter ac:name="">fn/g;
+
+  if (bodyValue.search(CONFLUENCE_ANCHOR_FINDER) !== -1) {
+    //the footnote transform has already happened
+    return bodyValue;
+  }
 
   const buildConfluenceAnchor = (id: string) =>
     `<ac:structured-macro ac:name="anchor" ac:schema-version="1" ac:local-id="a6aa6f25-0bee-4a7f-929b-71fcb7eba592" ac:macro-id="d2cb5be1217ae6e086bc60005e9d27b7"><ac:parameter ac:name="">${id}</ac:parameter></ac:structured-macro>`;

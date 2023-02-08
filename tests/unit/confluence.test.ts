@@ -4171,6 +4171,19 @@ const runFootnoteTransform = () => {
     assertEquals(expected, footnoteTransform(value));
   });
 
+  otest(suiteLabel("ignore_existing"), async () => {
+    const value =
+      '<ac:structured-macro ac:name="anchor" ac:schema-version="1" ac:local-id="a6aa6f25-0bee-4a7f-929b-71fcb7eba592" ac:macro-id="d2cb5be1217ae6e086bc60005e9d27b7"><ac:parameter ac:name="">fnref1</ac:parameter></ac:structured-macro><a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>' +
+      '<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">' +
+      "<hr />" +
+      "<ol>" +
+      '<li id="fn1"><p>Here is the footnote.<ac:structured-macro ac:name="anchor" ac:schema-version="1" ac:local-id="a6aa6f25-0bee-4a7f-929b-71fcb7eba592" ac:macro-id="d2cb5be1217ae6e086bc60005e9d27b7"><ac:parameter ac:name="">fn1</ac:parameter></ac:structured-macro><a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>' +
+      "</ol>" +
+      "</section>";
+    const actual = footnoteTransform(value);
+    assertEquals(value, footnoteTransform(value));
+  });
+
   test(suiteLabel("one_note_forward_back"), async () => {
     const value =
       '<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>\n' +
