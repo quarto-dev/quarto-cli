@@ -32,6 +32,9 @@ export function docxFormat(): Format {
           },
         };
       },
+      extensions: {
+        book: {},
+      },
     },
   );
 }
