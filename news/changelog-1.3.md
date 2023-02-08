@@ -33,6 +33,7 @@
 
 - reduce font size of `df-print: paged` tables ([#3380](https://github.com/quarto-dev/quarto-cli/issues/3380))
 - `width` and `height` in percent are now correctly supported ([#4063](https://github.com/quarto-dev/quarto-cli/issues/4063))
+- add better margins to numbered lists in the presence of many items and `.scrollable` ([#4283](https://github.com/quarto-dev/quarto-cli/issues/4063)).
 
 ## Dates
 

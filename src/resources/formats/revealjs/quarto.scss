@@ -661,3 +661,18 @@ div.cell-output-display div.pagedtable-wrapper table.table {
     margin-left: 0.25em;
   }
 }
+
+/*
+
+  https://github.com/quarto-dev/quarto-cli/issues/4283
+
+  The trick itself is from here:
+
+  https://stackoverflow.com/questions/8720931/can-css-detect-the-number-of-children-an-element-has
+
+*/
+
+.reveal .scrollable ol li:first-child:nth-last-child(n + 10),
+.reveal .scrollable ol li:first-child:nth-last-child(n + 10) ~ li {
+  margin-left: 1em;
+}
