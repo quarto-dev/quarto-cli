@@ -333,7 +333,7 @@ function processAuthorMeta(meta)
   meta = computeLabels(authors, affiliations, meta)
 
   -- Provide biblio-config if it isn't specified
-  if meta[kBiblioConfig] == nil then
+  if meta[kBiblioConfig] == nil and not _quarto.format.isAstOutput() then
     meta[kBiblioConfig] = true
   end
 
@@ -887,51 +887,54 @@ end
 -- Resolve labels for elements into metadata
 function computeLabels(authors, affiliations, meta)
   local language = param("language", nil);
-  meta[kLabels] = {
-    [kAuthorLbl] = {pandoc.Str("Authors")},
-    [kAffiliationLbl] = {pandoc.Str("Affiliations")}
-  }
-  if #authors == 1 then
-    meta[kLabels][kAuthorLbl] = {pandoc.Str(language["title-block-author-single"])}
-  else
-    meta[kLabels][kAuthorLbl] = {pandoc.Str(language["title-block-author-plural"])}
-  end
-  if meta[kAuthorTitle] then
-    meta[kLabels][kAuthors] = meta[kAuthorTitle]
-  end
 
-  if #affiliations == 1 then
-    meta[kLabels][kAffiliationLbl] = {pandoc.Str(language["title-block-affiliation-single"])}
-  else
-    meta[kLabels][kAffiliationLbl] = {pandoc.Str(language["title-block-affiliation-plural"])}
-  end
-  if meta[kAffiliationTitle] then
-    meta[kLabels][kAffiliationLbl] = meta[kAffiliationTitle]
-  end
+  if not _quarto.format.isAstOutput() then
+    meta[kLabels] = {
+      [kAuthorLbl] = {pandoc.Str("Authors")},
+      [kAffiliationLbl] = {pandoc.Str("Affiliations")}
+    }
+    if #authors == 1 then
+      meta[kLabels][kAuthorLbl] = {pandoc.Str(language["title-block-author-single"])}
+    else
+      meta[kLabels][kAuthorLbl] = {pandoc.Str(language["title-block-author-plural"])}
+    end
+    if meta[kAuthorTitle] then
+      meta[kLabels][kAuthors] = meta[kAuthorTitle]
+    end
 
-  meta[kLabels][kPublishedLbl] = {pandoc.Str(language["title-block-published"])}
-  if meta[kPublishedTitle] then
-    meta[kLabels][kPublishedLbl] = meta[kPublishedTitle]
-  end
+    if #affiliations == 1 then
+      meta[kLabels][kAffiliationLbl] = {pandoc.Str(language["title-block-affiliation-single"])}
+    else
+      meta[kLabels][kAffiliationLbl] = {pandoc.Str(language["title-block-affiliation-plural"])}
+    end
+    if meta[kAffiliationTitle] then
+      meta[kLabels][kAffiliationLbl] = meta[kAffiliationTitle]
+    end
 
-  meta[kLabels][kModifiedLbl] = {pandoc.Str(language["title-block-modified"])}
-  if meta[kModifiedTitle] then
-    meta[kLabels][kModifiedLbl] = meta[kModifiedTitle]
-  end
+    meta[kLabels][kPublishedLbl] = {pandoc.Str(language["title-block-published"])}
+    if meta[kPublishedTitle] then
+      meta[kLabels][kPublishedLbl] = meta[kPublishedTitle]
+    end
 
-  meta[kLabels][kDoiLbl] = {pandoc.Str("Doi")}
-  if meta[kDoiTitle] then
-    meta[kLabels][kDoiLbl] = meta[kDoiTitle]
-  end
+    meta[kLabels][kModifiedLbl] = {pandoc.Str(language["title-block-modified"])}
+    if meta[kModifiedTitle] then
+      meta[kLabels][kModifiedLbl] = meta[kModifiedTitle]
+    end
 
-  meta[kLabels][kAbstractLbl] = {pandoc.Str(language["section-title-abstract"])}
-  if meta[kAbstractTitle] then
-    meta[kLabels][kAbstractLbl] = meta[kAbstractTitle]
-  end
+    meta[kLabels][kDoiLbl] = {pandoc.Str("Doi")}
+    if meta[kDoiTitle] then
+      meta[kLabels][kDoiLbl] = meta[kDoiTitle]
+    end
 
-  meta[kLabels][kDescriptionLbl] = {pandoc.Str(language["listing-page-field-description"])}
-  if meta[kDescriptionTitle] then
-    meta[kLabels][kDescriptionLbl] = meta[kDescriptionTitle]
+    meta[kLabels][kAbstractLbl] = {pandoc.Str(language["section-title-abstract"])}
+    if meta[kAbstractTitle] then
+      meta[kLabels][kAbstractLbl] = meta[kAbstractTitle]
+    end
+
+    meta[kLabels][kDescriptionLbl] = {pandoc.Str(language["listing-page-field-description"])}
+    if meta[kDescriptionTitle] then
+      meta[kLabels][kDescriptionLbl] = meta[kDescriptionTitle]
+    end
   end
 
   return meta
