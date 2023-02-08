@@ -32,13 +32,6 @@ export function docxFormat(): Format {
           },
         };
       },
-      extensions: {
-        book: {
-          formatOutputDirectory: () => {
-            return "book-docx";
-          },
-        },
-      },
     },
   );
 }

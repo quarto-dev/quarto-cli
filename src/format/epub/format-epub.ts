@@ -30,9 +30,6 @@ export function epubFormat(): Format {
 }
 
 const epubBookExtension: BookExtension = {
-  formatOutputDirectory: () => {
-    return "book-epub";
-  },
   onSingleFilePreRender: (format: Format, config?: ProjectConfig): Format => {
     // derive epub-cover-image from cover-image if not explicitly specified
     if (!format.pandoc[kEPubCoverImage] && !format.metadata[kBookCoverImage]) {
