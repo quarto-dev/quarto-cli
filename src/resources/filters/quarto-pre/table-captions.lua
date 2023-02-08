@@ -131,7 +131,6 @@ function applyTableCaptions(el, tblCaptions, tblLabels)
   local idx = 1
   return pandoc.walk_block(el, {
     Table = function(el)
-      print("inside table handler", idx, #tblLabels)
       if idx <= #tblLabels then
         local table = pandoc.utils.to_simple_table(el)
         if #tblCaptions[idx] > 0 then
