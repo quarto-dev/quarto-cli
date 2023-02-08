@@ -255,6 +255,8 @@ async function publish(
   trace("publish", { parent, server, id: space.id, key: space.key });
 
   const uniquifyTitle = async (title: string, idToIgnore: string = "") => {
+    trace("uniquifyTitle", title);
+
     const titleAlreadyExistsInSpace: boolean = await client.isTitleInSpace(
       title,
       space,

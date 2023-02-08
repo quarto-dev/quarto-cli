@@ -283,8 +283,29 @@ const runGeneralTests = () => {
     assertEquals(expected, result);
   });
 
+  unitTest("confluenceParentFromString_valid_tilda2", async () => {
+    const url =
+      "https://allenmanning.atlassian.net/wiki/spaces/~557058634d59d0949841909bb13093ab41d0c5/overview";
+    const result = confluenceParentFromString(url);
+    const expected: ConfluenceParent = {
+      space: "~557058634d59d0949841909bb13093ab41d0c5",
+      parent: undefined,
+    };
+    assertEquals(expected, result);
+  });
+
+  unitTest("confluenceParentFromString_valid_noParent", async () => {
+    const url = "https://test.atlassian.net/wiki/spaces/QUARTOCONF";
+    const result = confluenceParentFromString(url);
+    const expected: ConfluenceParent = {
+      space: "QUARTOCONF",
+      parent: undefined,
+    };
+    assertEquals(expected, result);
+  });
+
   test("confluenceParentFromString_invalid_noSpace", async () => {
-    const url = "https://allenmanning.atlassian.net/QUARTOCONF";
+    const url = "https://test.atlassian.net/QUARTOCONF";
     const result = confluenceParentFromString(url);
     const expected = {
       space: "",
@@ -307,7 +328,7 @@ const runGeneralTests = () => {
 };
 
 const runPublishRecordTests = () => {
-  const fakeServer = "https://allenmanning.atlassian.net";
+  const fakeServer = "https://test.atlassian.net";
 
   const checkForContent = (
     expectedURL: string,
@@ -336,7 +357,7 @@ const runPublishRecordTests = () => {
 
   test("buildPublishRecord_validWithChecker", async () => {
     const expectedURL =
-      "https://allenmanning.atlassian.net/wiki/spaces/fake-space-key/pages/fake-id";
+      "https://test.atlassian.net/wiki/spaces/fake-space-key/pages/fake-id";
     const expectedId = "fake-id";
 
     checkForContent(expectedURL, expectedId);
