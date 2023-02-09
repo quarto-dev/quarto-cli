@@ -34,7 +34,6 @@ export async function resolveSize(
     const m = svg.match(/viewbox/i);
     if (!m) return undefined;
     const vb = denoDomWorkaroundNamedItemAccessor(svg, svgEl, "viewbox")?.value; // do it the roundabout way so that viewBox isn't dropped by deno_dom and text/html
-    console.log({ svg, vb });
     if (!vb) return undefined;
     const lst = vb.trim().split(" ").map(Number);
     if (lst.length !== 4) return undefined;
