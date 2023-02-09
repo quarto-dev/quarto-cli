@@ -168,15 +168,15 @@ jobs:
            curl -L https://anaconda.org/conda-forge/deno/${DENO:1}/download/linux-64/deno-${DENO:1}-h2f28480_0.conda --output deno.conda
            unzip deno.conda
            tar --use-compress-program=unzstd -xvf pkg-deno-${DENO:1}-h2f28480_0.tar.zst
-           cp bin/deno package/dist/bin/tools/deno
+           cp bin/deno package/pkg-working/bin/tools/deno-x86_64-unknown-linux-gnu/deno
            
        - name: Make Tarball
          run: |
            pushd package/
-           mv dist quarto-${{needs.configure.outputs.version}}
+           mv pkg-working quarto-${{needs.configure.outputs.version}}
            tar -cvf  quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar quarto-${{needs.configure.outputs.version}}
            gzip quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar
-           mv quarto-${{needs.configure.outputs.version}} dist
+           mv quarto-${{needs.configure.outputs.version}} pkg-working
            popd
 
        - name: Upload Artifact
