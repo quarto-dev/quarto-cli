@@ -1060,11 +1060,9 @@ div.hanging-indent {
   word-break: break-word;
 }
 
-.table {
-  border-top: 1px solid $table-border-color;
-}
-
 .table > thead {
+  border-top-width: 1px;
+  border-top-color: $table-border-color;
   border-bottom: 1px solid $table-group-separator-color;
 }
 
