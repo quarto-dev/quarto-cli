@@ -15,9 +15,10 @@ function asciidocFigure(image)
   local captionText = nil
   if image.caption and #image.caption > 0 then
     captionText = pandoc.write(pandoc.Pandoc({image.caption}), "asciidoctor")
+    captionText = captionText:gsub("\n", " ")
   end
   if captionText ~= nil then
-    figure:extend({"." .. captionText  })
+    figure:extend({"." .. captionText .. "\n"  })
   end
 
   -- alt text (ok to use HTML entities since alt is expressly for HTML output)
