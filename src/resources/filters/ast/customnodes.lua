@@ -266,10 +266,7 @@ _quarto.ast = {
       end
       -- ensure inner nodes are also rendered
       quarto._quarto.ast.inner_walk(raw, filter)
-      print(node.t)
       local result = handler.render(node)
-      print("result")
-      print(result)
       return quarto._quarto.ast.writer_walk(result, filter)
     end
 
