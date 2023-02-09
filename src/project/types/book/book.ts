@@ -114,6 +114,18 @@ export const bookProjectType: ProjectType = {
   libDir: "site_libs",
   outputDir: "_book",
   cleanOutputDir: true,
+  filterFormat: (source: string, format: Format, project?: ProjectContext) => {
+    if (format.extensions?.book) {
+      const bookExt = format.extensions?.book as BookExtension;
+      if (bookExt.filterFormat) {
+        return bookExt.filterFormat(source, format, project);
+      } else {
+        return format;
+      }
+    } else {
+      return format;
+    }
+  },
   formatOutputDirectory: (format: Format) => {
     if (format.extensions?.book) {
       const bookExt = format.extensions?.book as BookExtension;

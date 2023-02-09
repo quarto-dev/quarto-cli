@@ -609,6 +609,11 @@ async function resolveFormats(
       );
     }
 
+    // Allow the project type to filter the format
+    if (projType.filterFormat) {
+      format = projType.filterFormat(target.source, format, project);
+    }
+
     mergedFormats[formatName] = format;
   }
 

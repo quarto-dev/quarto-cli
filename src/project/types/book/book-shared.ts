@@ -43,6 +43,12 @@ export interface BookExtension {
   multiFile?: boolean;
   selfContainedOutput?: boolean;
 
+  filterFormat?: (
+    source: string,
+    format: Format,
+    project?: ProjectContext,
+  ) => Format;
+
   filterParams?: (options: PandocOptions) => Record<string, unknown>;
 
   formatOutputDirectory?: () => string;
