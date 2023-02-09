@@ -253,7 +253,9 @@ const runGeneralTests = () => {
     const expected = true;
     assertEquals(expected, result);
   });
+};
 
+const runConfluenceParentFromString = () => {
   test("confluenceParentFromString_empty", async () => {
     const result = confluenceParentFromString("");
     const expected = {
@@ -284,7 +286,7 @@ const runGeneralTests = () => {
     assertEquals(expected, result);
   });
 
-  unitTest("confluenceParentFromString_valid_tilda2", async () => {
+  test("confluenceParentFromString_spaces_overview", async () => {
     const url =
       "https://allenmanning.atlassian.net/wiki/spaces/~557058634d59d0949841909bb13093ab41d0c5/overview";
     const result = confluenceParentFromString(url);
@@ -295,7 +297,18 @@ const runGeneralTests = () => {
     assertEquals(expected, result);
   });
 
-  unitTest("confluenceParentFromString_valid_noParent", async () => {
+  test("confluenceParentFromString_valid_spaces_pages", async () => {
+    const url =
+      "https://rstudiopbc-sandbox-249.atlassian.net/wiki/spaces/~62d7a66910c44eb6e3218195/pages/43122955";
+    const result = confluenceParentFromString(url);
+    const expected: ConfluenceParent = {
+      space: "~62d7a66910c44eb6e3218195",
+      parent: "43122955",
+    };
+    assertEquals(expected, result);
+  });
+
+  test("confluenceParentFromString_valid_noParent", async () => {
     const url = "https://test.atlassian.net/wiki/spaces/QUARTOCONF";
     const result = confluenceParentFromString(url);
     const expected: ConfluenceParent = {
@@ -4280,6 +4293,7 @@ if (RUN_ALL_TESTS) {
   runUpdateImagePathsForContentBody();
   runCapFirstLetter();
   runFootnoteTransform();
+  runConfluenceParentFromString();
 } else {
-  runFootnoteTransform();
+  runConfluenceParentFromString();
 }
