@@ -50,6 +50,34 @@ function renderAsciidoc()
           admonitionStr = "[" .. admonitionType .. "]\n====\n" .. admonitionContents .. "====\n\n" 
       end
       return pandoc.RawBlock("asciidoc", admonitionStr)
+    end,
+    Inlines = function(el)
+      -- Walk inlines and see if there is an inline code followed directly by a note. 
+      -- If there is, place a space there (because otherwise asciidoctor may be very confused)
+      for i, v in ipairs(el) do
+
+        if v.t == "Code" then
+          if el[i+1] and el[i+1].t == "Note" then
+
+            local noteEl = el[i+1]
+            -- if the note contains a code inline, we need to add a space
+            local hasCode = false
+            pandoc.walk_inline(noteEl, {
+              Code = function(_el)
+                hasCode = true
+              end
+            })
+
+            -- insert a space
+            if hasCode then
+              table.insert(el, i+1, pandoc.RawInline("asciidoc", "{empty}"))
+            end
+          end
+        end
+        
+      end
+      return el
+
     end
   }
 end
