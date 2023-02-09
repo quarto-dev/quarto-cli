@@ -19,7 +19,10 @@ function dump(object, label)
 end
 
 function Writer (doc, opts)
-  local filter = {
+  local filter ={
+    Callout = function (callout)
+      return pandoc.RawBlock('html', "<callout></callout>")
+    end,
     Image = function (image)
       local renderString = confluence.CaptionedImageConfluence(
               image.src,
@@ -61,5 +64,8 @@ function Writer (doc, opts)
   opts = opts or {}
   opts.wrap_text = "none"
 
-  return pandoc.write(doc:walk(filter), 'html', opts)
+  -- local result = doc:walk(filter)
+  local result = quarto._quarto.ast.writer_walk(doc, filter)
+
+  return pandoc.write(result, 'html', opts)
 end
