@@ -472,7 +472,17 @@ export async function renderProject(
       }
     });
 
+    const isSelfContainedOutput = (format: Format) => {
+      return projType.selfContainedOutput &&
+        projType.selfContainedOutput(format);
+    };
+
     Object.values(projectFormats).forEach((format) => {
+      // Don't copy resource files if the project produces a self-contained output
+      if (isSelfContainedOutput(format)) {
+        return;
+      }
+
       // Process the project resources
       const formatOutputDir = projectFormatOutputDir(
         format,
@@ -491,6 +501,11 @@ export async function renderProject(
 
     // Process the resources provided by the files themselves
     projResults.files.forEach((file) => {
+      // Don't copy resource files if the project produces a self-contained output
+      if (isSelfContainedOutput(file.format)) {
+        return;
+      }
+
       const formatOutputDir = projectFormatOutputDir(
         file.format,
         context,

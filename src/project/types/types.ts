@@ -80,6 +80,7 @@ export interface ProjectType {
   formatOutputDirectory?: (
     format: Format,
   ) => string | undefined;
+  selfContainedOutput?: (format: Format) => boolean;
 }
 
 export interface ProjectOutputFile {

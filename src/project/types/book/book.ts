@@ -127,6 +127,11 @@ export const bookProjectType: ProjectType = {
     }
   },
 
+  selfContainedOutput: (format: Format) => {
+    const bookExtension = format.extensions?.book as BookExtension | undefined;
+    return bookExtension?.selfContainedOutput || false;
+  },
+
   config: bookProjectConfig,
 
   projectFormatsOnly: true,

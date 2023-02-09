@@ -33,7 +33,9 @@ export function docxFormat(): Format {
         };
       },
       extensions: {
-        book: {},
+        book: {
+          selfContainedOutput: true,
+        },
       },
     },
   );

@@ -286,6 +286,7 @@ function createPdfFormat(
 }
 
 const pdfBookExtension: BookExtension = {
+  selfContainedOutput: true,
   onSingleFilePostRender: (
     project: ProjectContext,
     renderedFile: RenderedFile,
