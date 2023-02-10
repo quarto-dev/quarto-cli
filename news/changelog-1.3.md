@@ -65,7 +65,8 @@
 - Allow `%%| label` mermaid cell option that control the `id` of the resulting SVG, to facilitate CSS overrides.
 - Use `htmlLabels: false` in mermaid flowcharts.
 - Remove support for tooltips, which appear to not be working in mermaid 9.2.2.
-- Add support for `fig-align` in mermaid diagrams in HTML format ([#3294](https://github.com/quarto-dev/quarto-cli/issues/3294))
+- Add support for `fig-align` in mermaid diagrams in HTML format ([#3294](https://github.com/quarto-dev/quarto-cli/issues/3294)).
+- Add support for `%%| file` mermaid cell option ([#3665](https://github.com/quarto-dev/quarto-cli/issues/3665)).
 
 ## Dates
 
