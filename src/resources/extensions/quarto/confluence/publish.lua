@@ -64,8 +64,6 @@ function Writer (doc, opts)
   opts = opts or {}
   opts.wrap_text = "none"
 
-  -- local result = doc:walk(filter)
   local result = quarto._quarto.ast.writer_walk(doc, filter)
-
   return pandoc.write(result, 'html', opts)
 end
