@@ -132,6 +132,7 @@
 - Improve parsing of include shortcodes ([#3159](https://github.com/quarto-dev/quarto-cli/issues/3159)).
 - Add support for Youtube privacy-enhanced urls in `video` shortcodes ([#4060](https://github.com/quarto-dev/quarto-cli/issues/4060)).
 - Don't emit empty cells ([#4034](https://github.com/quarto-dev/quarto-cli/issues/4034)).
+- Resolve link tags correctly in html dependencies ([#4304](https://github.com/quarto-dev/quarto-cli/discussions/4304)) (Thank you, @jdlom!).
 
 ## Pandoc filter changes
 
