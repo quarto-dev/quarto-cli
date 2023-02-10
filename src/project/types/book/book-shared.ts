@@ -41,6 +41,13 @@ export const kBookCoverImageAlt = "cover-image-alt";
 export interface BookExtension {
   // bool extensions are single file by default but can elect to be multi file
   multiFile?: boolean;
+  selfContainedOutput?: boolean;
+
+  filterFormat?: (
+    source: string,
+    format: Format,
+    project?: ProjectContext,
+  ) => Format;
 
   filterParams?: (options: PandocOptions) => Record<string, unknown>;
 

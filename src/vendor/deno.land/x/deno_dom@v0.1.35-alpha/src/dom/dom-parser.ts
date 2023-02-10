@@ -1,19 +1,22 @@
 import { CTOR_KEY } from "../constructor-lock.ts";
 import { nodesFromString } from "../deserialize.ts";
-import { HTMLDocument, DocumentType } from "./document.ts";
+import { DocumentType, HTMLDocument } from "./document.ts";
 import type { Element } from "./element.ts";
 
 export type DOMParserMimeType =
-  "text/html"
+  | "text/html"
   | "text/xml"
   | "application/xml"
   | "application/xhtml+xml"
   | "image/svg+xml";
 
 export class DOMParser {
-  parseFromString(source: string, mimeType: DOMParserMimeType): HTMLDocument | null {
+  parseFromString(
+    source: string,
+    mimeType: DOMParserMimeType,
+  ): HTMLDocument | null {
     if (mimeType !== "text/html") {
-      throw new Error(`DOMParser: "${ mimeType }" unimplemented`); // TODO
+      throw new Error(`DOMParser: "${mimeType}" unimplemented`); // TODO
     }
 
     const doc = new HTMLDocument(CTOR_KEY);
@@ -38,7 +41,7 @@ export class DOMParser {
       if (doc.childNodes.length === 0) {
         doc.appendChild(docType);
       } else {
-        doc.childNodes[0].before(docType);
+        doc.insertBefore(docType, doc.childNodes[0]);
       }
     }
 
@@ -58,4 +61,3 @@ export class DOMParser {
     return doc;
   }
 }
-

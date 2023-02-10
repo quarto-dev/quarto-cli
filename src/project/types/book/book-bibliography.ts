@@ -70,14 +70,17 @@ export async function bookBibliography(
     // Use the dirname from the input file to resolve the bibliography paths
     const firstFileDir = dirname(inputfile);
     bibliographyPaths.push(
-      ...bibliography.map((file) => join(firstFileDir, file)),
+      ...bibliography.map((file) =>
+        isAbsolute(file) ? file : join(firstFileDir, file)
+      ),
     );
 
     // Fixes https://github.com/quarto-dev/quarto-cli/issues/2755
     if (csl) {
-      const cslAbsPath = pathWithForwardSlashes(join(firstFileDir, csl));
-      if (safeExistsSync(cslAbsPath)) {
-        csl = cslAbsPath;
+      const absPath = isAbsolute(csl) ? csl : join(firstFileDir, csl);
+      const safeAbsPath = pathWithForwardSlashes(absPath);
+      if (safeExistsSync(safeAbsPath)) {
+        csl = safeAbsPath;
       }
     }
 

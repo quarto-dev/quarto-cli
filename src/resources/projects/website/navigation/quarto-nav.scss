@@ -272,6 +272,10 @@ $sidebar-section-bottom-margin: 0.2em;
   justify-content: space-between;
 }
 
+.sidebar-item-toggle:hover {
+  cursor: pointer;
+}
+
 .sidebar-item .sidebar-item-toggle .bi {
   // The dongle for opening and closing sections
   font-size: 0.7rem;

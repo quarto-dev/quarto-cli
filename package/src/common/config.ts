@@ -6,15 +6,21 @@
 */
 
 import { join } from "path/mod.ts";
+import { info } from "log/mod.ts";
 
 import { getEnv } from "../util/utils.ts";
 
 // The core configuration for the packaging process
-export interface Configuration {
+export interface Configuration extends PlatformConfiguration {
   productName: string;
   version: string;
   importmap: string;
   directoryInfo: DirectoryInfo;
+}
+
+export interface PlatformConfiguration {
+  os: "windows" | "linux" | "darwin";
+  arch: "x86_64" | "aarch64";
 }
 
 // Directories avaialable for step
@@ -26,11 +32,21 @@ export interface DirectoryInfo {
   share: string;
   bin: string;
   out: string;
+  pkgWorking: {
+    root: string;
+    bin: string;
+    share: string;
+  };
 }
+
+export const kValidOS = ["windows", "linux", "darwin"];
+export const kValidArch = ["x86_64", "aarch64"];
 
 // Read the configuration fromt the environment
 export function readConfiguration(
   version?: string,
+  os?: "windows" | "linux" | "darwin",
+  arch?: "x86_64" | "aarch64",
 ): Configuration {
   const productName = getEnv("QUARTO_NAME");
   version = version || getEnv("QUARTO_VERSION");
@@ -42,8 +58,14 @@ export function readConfiguration(
   const out = join(pkg, getEnv("QUARTO_OUT_DIR") || "out");
 
   const dist = getEnv("QUARTO_DIST_PATH") || "dist";
-  const share = getEnv("QUARTO_SHARE_PATH") || join(dist, getEnv("QUARTO_SHARE_DIR") || "share");
-  const bin = getEnv("QUARTO_BIN_PATH") || join(dist, getEnv("QUARTO_BIN_DIR") || "bin");
+  const shareName = getEnv("QUARTO_SHARE_DIR") || "share";
+  const share = getEnv("QUARTO_SHARE_PATH") ||
+    join(dist, shareName);
+  const binName = getEnv("QUARTO_BIN_DIR") || "bin";
+  const bin = getEnv("QUARTO_BIN_PATH") ||
+    join(dist, binName);
+  const pkgWorkingBase = join(pkg, "pkg-working");
+
   const directoryInfo = {
     root,
     pkg,
@@ -52,7 +74,29 @@ export function readConfiguration(
     src,
     out,
     bin,
+    pkgWorking: {
+      root: pkgWorkingBase,
+      bin: join(pkgWorkingBase, binName),
+      share: join(pkgWorkingBase, shareName),
+    },
   };
+
+
+
+  const cmdOs = os || getEnv("QUARTO_OS", Deno.build.os);
+  if (!kValidOS.includes(cmdOs)) {
+    throw new Error(
+      `Invalid OS ${os} provided. Please use one of ${kValidOS.join(",")}`,
+    );
+  }
+  const cmdArch = arch || getEnv("QUARTO_OS", Deno.build.arch);
+  if (!kValidArch.includes(cmdArch)) {
+    throw new Error(
+      `Invalid arch ${arch} provided. Please use one of ${
+        kValidArch.join(",")
+      }`,
+    );
+  }
 
   const importmap = join(src, "dev_import_map.json");
 
@@ -61,7 +105,32 @@ export function readConfiguration(
     version,
     importmap,
     directoryInfo,
+    os: cmdOs as "windows" | "linux" | "darwin",
+    arch: cmdArch as "x86_64" | "aarch64",
   };
+}
+
+export function printConfiguration(config: Configuration) {
+  info("");
+  info("******************************************");
+  info("Configuration:");
+  info(` - OS:      ${config.os}`);
+  info(` - Arch:    ${config.arch}`);
+  info(` - Version: ${config.version}`);
+  info(` - Cwd:     ${Deno.cwd()}`);
+  info(` - Directory configuration:`);
+  info(
+    `   - Package folder (build source): ${config.directoryInfo.pkg}`,
+  );
+  info(`   - Dist folder (output folder): ${config.directoryInfo.dist}`);
+  info(`     - bin folder: ${config.directoryInfo.bin}`);
+  info(`     - share folder: ${config.directoryInfo.share}`);
+  info(`   - Package working folder: ${config.directoryInfo.pkgWorking.root}`);
+  
+  info("");
+  info("******************************************");
+  info("");
+
 }
 
 // Utility that provides a working directory and cleans it up

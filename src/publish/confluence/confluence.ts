@@ -43,6 +43,7 @@ import {
   SiteFileMetadata,
   SitePage,
   SpaceChangeResult,
+  User,
   WrappedResult,
 } from "./api/types.ts";
 import { withSpinner } from "../../core/console.ts";
@@ -55,6 +56,7 @@ import {
   doWithSpinner,
   filterFilesForUpdate,
   findAttachments,
+  footnoteTransform,
   getNextVersion,
   getTitle,
   isContentCreate,
@@ -242,6 +244,8 @@ async function publish(
 
   const client = new ConfluenceClient(account);
 
+  const user: User = await client.getUser();
+
   let parentUrl: string = publishRecord?.url ?? (await promptForParentURL());
 
   const parent: ConfluenceParent = confluenceParentFromString(parentUrl);
@@ -255,6 +259,8 @@ async function publish(
   trace("publish", { parent, server, id: space.id, key: space.key });
 
   const uniquifyTitle = async (title: string, idToIgnore: string = "") => {
+    trace("uniquifyTitle", title);
+
     const titleAlreadyExistsInSpace: boolean = await client.isTitleInSpace(
       title,
       space,
@@ -366,6 +372,7 @@ async function publish(
   };
 
   const updateContent = async (
+    user: User,
     publishFiles: PublishFiles,
     id: string,
     body: ContentBody,
@@ -386,6 +393,8 @@ async function publish(
     trace("attachmentsToUpload", attachmentsToUpload, LogPrefix.ATTACHMENT);
 
     const updatedBody: ContentBody = updateImagePaths(body);
+    updatedBody.storage.value = footnoteTransform(updatedBody.storage.value);
+
     const toUpdate: ContentUpdate = {
       contentChangeType: ContentChangeType.update,
       id,
@@ -400,7 +409,7 @@ async function publish(
     trace("updateContent", toUpdate);
     trace("updateContent body", toUpdate?.body?.storage?.value);
 
-    const updatedContent: Content = await client.updateContent(toUpdate);
+    const updatedContent: Content = await client.updateContent(user, toUpdate);
 
     if (toUpdate.id && uploadFileAttachments) {
       const existingAttachments: AttachmentSummary[] =
@@ -453,7 +462,7 @@ async function publish(
       body,
     };
 
-    const createdContent = await client.createContent(toCreate);
+    const createdContent = await client.createContent(user, toCreate);
     return createdContent;
   };
 
@@ -520,6 +529,7 @@ async function publish(
 
     trace("attachmentsToUpload", attachmentsToUpload, LogPrefix.ATTACHMENT);
     const updatedBody: ContentBody = updateImagePaths(body);
+    updatedBody.storage.value = footnoteTransform(updatedBody.storage.value);
 
     const toCreate: ContentCreate = {
       contentChangeType: ContentChangeType.create,
@@ -532,7 +542,7 @@ async function publish(
     };
 
     trace("createContent", { publishFiles, toCreate });
-    const createdContent = await client.createContent(toCreate);
+    const createdContent = await client.createContent(user, toCreate);
 
     if (createdContent.id) {
       const uploadAttachmentsResult = await Promise.all(
@@ -572,7 +582,12 @@ async function publish(
     if (publishRecord) {
       message = `Updating content at ${publishRecord.url}...`;
       doOperation = async () =>
-        (content = await updateContent(publishFiles, publishRecord.id, body));
+        (content = await updateContent(
+          user,
+          publishFiles,
+          publishRecord.id,
+          body
+        ));
     } else {
       message = `Creating content in space ${parent.space}...`;
       doOperation = async () =>
@@ -580,15 +595,12 @@ async function publish(
     }
     try {
       await doWithSpinner(message, doOperation);
+      return buildPublishRecordForContent(server, content);
     } catch (error: any) {
       trace("Error Performing Operation", error);
       trace("Value to Update", body?.storage?.value);
-      if (EXIT_ON_ERROR) {
-        throw error;
-      }
+      throw error;
     }
-
-    return buildPublishRecordForContent(server, content);
   };
 
   const publishSite = async (): Promise<[PublishRecord, URL | undefined]> => {
@@ -734,6 +746,7 @@ async function publish(
       } else if (isContentUpdate(change)) {
         const update = change as ContentUpdate;
         return await updateContent(
+          user,
           publishFiles,
           update.id ?? "",
           update.body,

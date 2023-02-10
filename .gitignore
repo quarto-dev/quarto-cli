@@ -19,3 +19,4 @@ src/vendor-*
 
 # windows configuration file
 win_configuration.bat
+/package/pkg-working

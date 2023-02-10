@@ -12,7 +12,11 @@ function resourceRef(ref, dir)
     end
   -- if it's a relative ref then prepend the resource dir
   elseif isRelativeRef(ref) then
-    return dir .. "/" .. ref
+    if dir == '.' then
+      return ref
+    else
+      return dir .. "/" .. ref
+    end
   else
   -- otherwise just return it
     return ref

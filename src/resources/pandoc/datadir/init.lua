@@ -1537,6 +1537,7 @@ local function resolveDependencyLinkTags(linkTags)
       for i, v in ipairs(linkTags) do
          v.href = resolvePath(v.href)
       end
+      return linkTags
    else
       return nil
    end

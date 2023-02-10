@@ -232,7 +232,7 @@ export async function updateSearchIndex(
         ["script", "style"].forEach((tag) => {
           const els = doc.querySelectorAll(tag);
           if (els) {
-            els.forEach((el) => el.remove());
+            els.forEach((el) => (el as Element).remove());
           }
         });
 
@@ -257,7 +257,7 @@ export async function updateSearchIndex(
           if (firstEl) {
             // Remove any headings
             const headings = firstEl.querySelectorAll("h1, h2, h3, h4, h5, h6");
-            headings.forEach((heading) => heading.remove());
+            headings.forEach((heading) => (heading as Element).remove());
 
             // Add the text contents as the text for this page
             const trimmed = firstEl.textContent.trim();
@@ -278,7 +278,7 @@ export async function updateSearchIndex(
 
             // Since these are already indexed with the main entry, remove them
             // so they are not indexed again
-            paragraphNode.remove();
+            (paragraphNode as Element).remove();
           }
 
           if (pageText.length > 0) {

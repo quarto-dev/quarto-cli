@@ -7,7 +7,7 @@
 import { join } from "path/mod.ts";
 import { emptyDirSync, ensureDirSync, walk } from "fs/mod.ts";
 import { copySync } from "fs/copy.ts";
-import { error, info } from "log/mod.ts";
+import { info } from "log/mod.ts";
 
 import { Configuration } from "../common/config.ts";
 import { runCmd } from "../util/cmd.ts";
@@ -16,15 +16,12 @@ export async function makeInstallerDeb(
   configuration: Configuration,
 ) {
   info("Building deb package...");
-
+  
   // detect packaging machine architecture
-  const result = await runCmd("dpkg-architecture", ["-qDEB_BUILD_ARCH"]);
-  const architecture =
-    (result.status.code === 0 ? result.stdout.trim() : undefined);
-  if (!architecture) {
-    error("Can't detect package architecture.");
-    throw new Error("Undetectable architecture. Packaging failed.");
-  }
+  // See complete list dpkg-architecture -L.
+  // arm64
+  // amd64
+  const architecture = configuration.arch === "x86_64" ? "amd64" : "arm64";
   const packageName =
     `quarto-${configuration.version}-linux-${architecture}.deb`;
   info("Building package " + packageName);
@@ -43,7 +40,7 @@ export async function makeInstallerDeb(
     "bin",
   );
   info(`Preparing bin directory ${workingBinPath}`);
-  copySync(configuration.directoryInfo.bin, workingBinPath, {
+  copySync(configuration.directoryInfo.pkgWorking.bin, workingBinPath, {
     overwrite: true,
   });
 
@@ -54,7 +51,7 @@ export async function makeInstallerDeb(
     "share",
   );
   info(`Preparing share directory ${workingSharePath}`);
-  copySync(configuration.directoryInfo.share, workingSharePath, {
+  copySync(configuration.directoryInfo.pkgWorking.share, workingSharePath, {
     overwrite: true,
   });
 
@@ -64,7 +61,7 @@ export async function makeInstallerDeb(
 
   // Calculate the install size
   const fileSizes = [];
-  for await (const entry of walk(configuration.directoryInfo.dist)) {
+  for await (const entry of walk(configuration.directoryInfo.pkgWorking.root)) {
     if (entry.isFile) {
       fileSizes.push((await Deno.stat(entry.path)).size);
     }

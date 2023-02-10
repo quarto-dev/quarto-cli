@@ -114,6 +114,18 @@ export const bookProjectType: ProjectType = {
   libDir: "site_libs",
   outputDir: "_book",
   cleanOutputDir: true,
+  filterFormat: (source: string, format: Format, project?: ProjectContext) => {
+    if (format.extensions?.book) {
+      const bookExt = format.extensions?.book as BookExtension;
+      if (bookExt.filterFormat) {
+        return bookExt.filterFormat(source, format, project);
+      } else {
+        return format;
+      }
+    } else {
+      return format;
+    }
+  },
   formatOutputDirectory: (format: Format) => {
     if (format.extensions?.book) {
       const bookExt = format.extensions?.book as BookExtension;
@@ -125,6 +137,11 @@ export const bookProjectType: ProjectType = {
     } else {
       return undefined;
     }
+  },
+
+  selfContainedOutput: (format: Format) => {
+    const bookExtension = format.extensions?.book as BookExtension | undefined;
+    return bookExtension?.selfContainedOutput || false;
   },
 
   config: bookProjectConfig,
@@ -269,8 +286,8 @@ function bookHtmlPostprocessor() {
     // if the very next element is a section, move it into the section below the header
     const nextEl = (coverImage?.parentNode as Element)?.nextElementSibling;
     if (nextEl && nextEl.tagName === "SECTION" && coverImage?.parentNode) {
-      coverImage?.parentNode.remove();
-      nextEl.firstChild.after(coverImage?.parentNode);
+      coverImage?.parentElement?.remove();
+      nextEl.firstElementChild?.after(coverImage?.parentNode);
     }
     return Promise.resolve(kHtmlEmptyPostProcessResult);
   };

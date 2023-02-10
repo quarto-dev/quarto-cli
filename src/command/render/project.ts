@@ -14,7 +14,7 @@ import * as colors from "fmt/colors.ts";
 import { copyMinimal, copyTo } from "../../core/copy.ts";
 import * as ld from "../../core/lodash.ts";
 
-import { kKeepMd } from "../../config/constants.ts";
+import { kKeepMd, kTargetFormat } from "../../config/constants.ts";
 
 import {
   kProjectExecuteDir,
@@ -63,6 +63,7 @@ import {
 import { asArray } from "../../core/array.ts";
 import { normalizePath } from "../../core/path.ts";
 import { isSubdir } from "fs/_util.ts";
+import { Format } from "../../config/types.ts";
 
 export async function renderProject(
   context: ProjectContext,
@@ -460,7 +461,51 @@ export async function renderProject(
     // Expand the resources into the format aware targets
     // srcPath -> Set<destinationPaths>
     const resourceFilesToCopy: Record<string, Set<string>> = {};
+
+    const projectFormats: Record<string, Format> = {};
     projResults.files.forEach((file) => {
+      if (
+        file.format.identifier[kTargetFormat] &&
+        projectFormats[file.format.identifier[kTargetFormat]] === undefined
+      ) {
+        projectFormats[file.format.identifier[kTargetFormat]] = file.format;
+      }
+    });
+
+    const isSelfContainedOutput = (format: Format) => {
+      return projType.selfContainedOutput &&
+        projType.selfContainedOutput(format);
+    };
+
+    Object.values(projectFormats).forEach((format) => {
+      // Don't copy resource files if the project produces a self-contained output
+      if (isSelfContainedOutput(format)) {
+        return;
+      }
+
+      // Process the project resources
+      const formatOutputDir = projectFormatOutputDir(
+        format,
+        context,
+        projType,
+      );
+      context.files.resources?.forEach((resource) => {
+        resourceFilesToCopy[resource] = resourceFilesToCopy[resource] ||
+          new Set();
+        const relativePath = relative(context.dir, resource);
+        resourceFilesToCopy[resource].add(
+          join(formatOutputDir, relativePath),
+        );
+      });
+    });
+
+    // Process the resources provided by the files themselves
+    projResults.files.forEach((file) => {
+      // Don't copy resource files if the project produces a self-contained output
+      if (isSelfContainedOutput(file.format)) {
+        return;
+      }
+
       const formatOutputDir = projectFormatOutputDir(
         file.format,
         context,

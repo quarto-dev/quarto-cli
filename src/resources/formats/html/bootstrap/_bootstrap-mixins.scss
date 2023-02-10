@@ -245,7 +245,8 @@ $grid-float-mid-body: minmax(
 // Margins
 $grid-float-mid-slim-page-gutter-start: $grid-page-gutter-start !default;
 $grid-float-mid-slim-page-gutter-end: $grid-page-gutter-end !default;
-$grid-float-mid-slim-body-gutter-start: 2 * $grid-body-gutter-start / 3 !default;
+$grid-float-mid-slim-body-gutter-start: 2 *
+  quarto-math.div($grid-body-gutter-start, 3) !default;
 $grid-float-mid-slim-body-gutter-end: $grid-body-gutter-end !default;
 $grid-float-mid-slim-sidebar-gutter: $grid-page-gutter-float !default;
 $grid-float-mid-slim-margin-gutter: 0.8 * $grid-page-gutter-float !default;
@@ -274,7 +275,8 @@ $grid-float-mid-slim-body: minmax(
 // Margins
 $grid-float-mid-full-page-gutter-start: $grid-page-gutter-start !default;
 $grid-float-mid-full-page-gutter-end: $grid-page-gutter-end !default;
-$grid-float-mid-full-body-gutter-start: 2 * $grid-body-gutter-start / 3 !default;
+$grid-float-mid-full-body-gutter-start: 2 *
+  quarto-math.div($grid-body-gutter-start, 3) !default;
 $grid-float-mid-full-body-gutter-end: $grid-body-gutter-end !default;
 $grid-float-mid-full-sidebar-gutter: $grid-page-gutter-float !default;
 $grid-float-mid-full-margin-gutter: 0.8 * $grid-page-gutter-float !default;
@@ -296,7 +298,8 @@ $grid-float-mid-full-body: minmax(
 // Margins
 $grid-float-mid-listing-page-gutter-start: $grid-page-gutter-start !default;
 $grid-float-mid-listing-page-gutter-end: $grid-page-gutter-end !default;
-$grid-float-mid-listing-body-gutter-start: 2 * $grid-body-gutter-start / 3 !default;
+$grid-float-mid-listing-body-gutter-start: 2 *
+  quarto-math.div($grid-body-gutter-start, 3) !default;
 $grid-float-mid-listing-body-gutter-end: $grid-body-gutter-end !default;
 $grid-float-mid-listing-sidebar-gutter: $grid-page-gutter-float !default;
 $grid-float-mid-listing-margin-gutter: 0.8 * $grid-page-gutter-float !default;

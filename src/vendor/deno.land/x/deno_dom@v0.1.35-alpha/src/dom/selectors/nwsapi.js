@@ -1,4 +1,4 @@
-// @ts-nocheck
+// @ts-nocheck: 3rd-party
 /*
  * Copyright (C) 2007-2019 Diego Perini
  * All rights reserved.
@@ -8,7 +8,7 @@
  * Author: Diego Perini <diego.perini at gmail com>
  * Version: 2.2.0
  * Created: 20070722
- * Release: 20191102
+ * Release: 20210622
  *
  * License:
  *  http://javascript.nwbox.com/nwsapi/MIT-LICENSE
@@ -30,154 +30,154 @@ function Factory(global, Export) {
 
   var version = 'nwsapi-2.2.0',
 
-    doc = global.document,
-    root = doc.documentElement,
-    slice = Array.prototype.slice,
+  doc = global.document,
+  root = doc.documentElement,
+  slice = Array.prototype.slice,
 
-    WSP = '[\\x20\\t\\r\\n\\f]',
+  WSP = '[\\x20\\t\\r\\n\\f]',
 
-    CFG = {
-      // extensions
-      operators: '[~*^$|]=|=',
-      combinators: '[\\x20\\t>+~](?=[^>+~])'
-    },
+  CFG = {
+    // extensions
+    operators: '[~*^$|]=|=',
+    combinators: '[\\x20\\t>+~](?=[^>+~])'
+  },
 
-    NOT = {
-      // not enclosed in double/single/parens/square
-      double_enc: '(?=(?:[^"]*["][^"]*["])*[^"]*$)',
-      single_enc: "(?=(?:[^']*['][^']*['])*[^']*$)",
-      parens_enc: '(?![^\\x28]*\\x29)',
-      square_enc: '(?![^\\x5b]*\\x5d)'
-    },
+  NOT = {
+    // not enclosed in double/single/parens/square
+    double_enc: '(?=(?:[^"]*["][^"]*["])*[^"]*$)',
+    single_enc: "(?=(?:[^']*['][^']*['])*[^']*$)",
+    parens_enc: '(?![^\\x28]*\\x29)',
+    square_enc: '(?![^\\x5b]*\\x5d)'
+  },
 
-    REX = {
-      // regular expressions
-      HasEscapes: RegExp('\\\\'),
-      HexNumbers: RegExp('^[0-9a-fA-F]'),
-      EscOrQuote: RegExp('^\\\\|[\\x22\\x27]'),
-      RegExpChar: RegExp('(?:(?!\\\\)[\\\\^$.*+?()[\\]{}|\\/])', 'g'),
-      TrimSpaces: RegExp('[\\r\\n\\f]|^' + WSP + '+|' + WSP + '+$', 'g'),
-      CommaGroup: RegExp('(\\s*,\\s*)' + NOT.square_enc + NOT.parens_enc, 'g'),
-      SplitGroup: RegExp('((?:\\x28[^\\x29]*\\x29|\\[[^\\]]*\\]|\\\\.|[^,])+)', 'g'),
-      FixEscapes: RegExp('\\\\([0-9a-fA-F]{1,6}' + WSP + '?|.)|([\\x22\\x27])', 'g'),
-      CombineWSP: RegExp('[\\n\\r\\f\\x20]+' + NOT.single_enc + NOT.double_enc, 'g'),
-      TabCharWSP: RegExp('(\\x20?\\t+\\x20?)' + NOT.single_enc + NOT.double_enc, 'g'),
-      PseudosWSP: RegExp('\\s+([-+])\\s+' + NOT.square_enc, 'g')
-    },
+  REX = {
+    // regular expressions
+    HasEscapes: RegExp('\\\\'),
+    HexNumbers: RegExp('^[0-9a-fA-F]'),
+    EscOrQuote: RegExp('^\\\\|[\\x22\\x27]'),
+    RegExpChar: RegExp('(?:(?!\\\\)[\\\\^$.*+?()[\\]{}|\\/])', 'g'),
+    TrimSpaces: RegExp('[\\r\\n\\f]|^' + WSP + '+|' + WSP + '+$', 'g'),
+    CommaGroup: RegExp('(\\s*,\\s*)' + NOT.square_enc + NOT.parens_enc, 'g'),
+    SplitGroup: RegExp('((?:\\x28[^\\x29]*\\x29|\\[[^\\]]*\\]|\\\\.|[^,])+)', 'g'),
+    FixEscapes: RegExp('\\\\([0-9a-fA-F]{1,6}' + WSP + '?|.)|([\\x22\\x27])', 'g'),
+    CombineWSP: RegExp('[\\n\\r\\f\\x20]+' + NOT.single_enc + NOT.double_enc, 'g'),
+    TabCharWSP: RegExp('(\\x20?\\t+\\x20?)' + NOT.single_enc + NOT.double_enc, 'g'),
+    PseudosWSP: RegExp('\\s+([-+])\\s+' + NOT.square_enc, 'g')
+  },
 
-    STD = {
-      combinator: RegExp('\\s?([>+~])\\s?', 'g'),
-      apimethods: RegExp('^(?:[a-z]+|\\*)\\|', 'i'),
-      namespaces: RegExp('(\\*|[a-z]+)\\|[-a-z]+', 'i')
-    },
+  STD = {
+    combinator: RegExp('\\s?([>+~])\\s?', 'g'),
+    apimethods: RegExp('^(?:[a-z]+|\\*)\\|', 'i'),
+    namespaces: RegExp('(\\*|[a-z]+)\\|[-a-z]+', 'i')
+  },
 
-    GROUPS = {
-      // pseudo-classes requiring parameters
-      linguistic: '(dir|lang)\\x28\\s?([-\\w]{2,})\\s?(?:\\x29|$)',
-      logicalsel: '(matches|not)\\x28\\s?([^()]*|[^\\x28]*\\x28[^\\x29]*\\x29)\\s?(?:\\x29|$)',
-      treestruct: '(nth(?:-last)?(?:-child|-of-type))(?:\\x28\\s?(even|odd|(?:[-+]?\\d*)(?:n\\s?[-+]?\\s?\\d*)?)\\s?(?:\\x29|$))',
-      // pseudo-classes not requiring parameters
-      locationpc: '(link|visited|target)\\b',
-      useraction: '(hover|active|focus|focus-within)\\b',
-      structural: '(root|empty|(?:(?:first|last|only)(?:-child|-of-type)))\\b',
-      inputstate: '(enabled|disabled|read-only|read-write|placeholder-shown|default)\\b',
-      inputvalue: '(checked|indeterminate|required|optional|valid|invalid|in-range|out-of-range)\\b',
-      // pseudo-elements starting with single colon (:)
-      pseudo_sng: '(after|before|first-letter|first-line)\\b',
-      // pseudo-elements starting with double colon (::)
-      pseudo_dbl: ':(after|before|first-letter|first-line|selection|placeholder|-webkit-[-a-zA-Z0-9]{2,})\\b'
-    },
+  GROUPS = {
+    // pseudo-classes requiring parameters
+    linguistic: '(dir|lang)\\x28\\s?([-\\w]{2,})\\s?(?:\\x29|$)',
+    logicalsel: '(is|where|matches|not)\\x28\\s?([^()]*|[^\\x28]*\\x28[^\\x29]*\\x29)\\s?(?:\\x29|$)',
+    treestruct: '(nth(?:-last)?(?:-child|-of-type))(?:\\x28\\s?(even|odd|(?:[-+]?\\d*)(?:n\\s?[-+]?\\s?\\d*)?)\\s?(?:\\x29|$))',
+    // pseudo-classes not requiring parameters
+    locationpc: '(any-link|link|visited|target)\\b',
+    useraction: '(hover|active|focus|focus-within)\\b',
+    structural: '(root|empty|(?:(?:first|last|only)(?:-child|-of-type)))\\b',
+    inputstate: '(enabled|disabled|read-only|read-write|placeholder-shown|default)\\b',
+    inputvalue: '(checked|indeterminate|required|optional|valid|invalid|in-range|out-of-range)\\b',
+    // pseudo-elements starting with single colon (:)
+    pseudo_sng: '(after|before|first-letter|first-line)\\b',
+    // pseudo-elements starting with double colon (::)
+    pseudo_dbl: ':(after|before|first-letter|first-line|selection|placeholder|-webkit-[-a-zA-Z0-9]{2,})\\b'
+  },
 
-    Patterns = {
-      // pseudo-classes
-      treestruct: RegExp('^:(?:' + GROUPS.treestruct + ')(.*)', 'i'),
-      structural: RegExp('^:(?:' + GROUPS.structural + ')(.*)', 'i'),
-      linguistic: RegExp('^:(?:' + GROUPS.linguistic + ')(.*)', 'i'),
-      useraction: RegExp('^:(?:' + GROUPS.useraction + ')(.*)', 'i'),
-      inputstate: RegExp('^:(?:' + GROUPS.inputstate + ')(.*)', 'i'),
-      inputvalue: RegExp('^:(?:' + GROUPS.inputvalue + ')(.*)', 'i'),
-      locationpc: RegExp('^:(?:' + GROUPS.locationpc + ')(.*)', 'i'),
-      logicalsel: RegExp('^:(?:' + GROUPS.logicalsel + ')(.*)', 'i'),
-      pseudo_dbl: RegExp('^:(?:' + GROUPS.pseudo_dbl + ')(.*)', 'i'),
-      pseudo_sng: RegExp('^:(?:' + GROUPS.pseudo_sng + ')(.*)', 'i'),
-      // combinator symbols
-      children: RegExp('^' + WSP + '?\\>' + WSP + '?(.*)'),
-      adjacent: RegExp('^' + WSP + '?\\+' + WSP + '?(.*)'),
-      relative: RegExp('^' + WSP + '?\\~' + WSP + '?(.*)'),
-      ancestor: RegExp('^' + WSP + '+(.*)'),
-      // universal & namespace
-      universal: RegExp('^\\*(.*)'),
-      namespace: RegExp('^(\\w+|\\*)?\\|(.*)')
-    },
+  Patterns = {
+    // pseudo-classes
+    treestruct: RegExp('^:(?:' + GROUPS.treestruct + ')(.*)', 'i'),
+    structural: RegExp('^:(?:' + GROUPS.structural + ')(.*)', 'i'),
+    linguistic: RegExp('^:(?:' + GROUPS.linguistic + ')(.*)', 'i'),
+    useraction: RegExp('^:(?:' + GROUPS.useraction + ')(.*)', 'i'),
+    inputstate: RegExp('^:(?:' + GROUPS.inputstate + ')(.*)', 'i'),
+    inputvalue: RegExp('^:(?:' + GROUPS.inputvalue + ')(.*)', 'i'),
+    locationpc: RegExp('^:(?:' + GROUPS.locationpc + ')(.*)', 'i'),
+    logicalsel: RegExp('^:(?:' + GROUPS.logicalsel + ')(.*)', 'i'),
+    pseudo_dbl: RegExp('^:(?:' + GROUPS.pseudo_dbl + ')(.*)', 'i'),
+    pseudo_sng: RegExp('^:(?:' + GROUPS.pseudo_sng + ')(.*)', 'i'),
+    // combinator symbols
+    children: RegExp('^' + WSP + '?\\>' + WSP + '?(.*)'),
+    adjacent: RegExp('^' + WSP + '?\\+' + WSP + '?(.*)'),
+    relative: RegExp('^' + WSP + '?\\~' + WSP + '?(.*)'),
+    ancestor: RegExp('^' + WSP + '+(.*)'),
+   // universal & namespace
+   universal: RegExp('^\\*(.*)'),
+   namespace: RegExp('^(\\w+|\\*)?\\|(.*)')
+  },
 
-    // regexp to aproximate detection of RTL languages (Arabic)
-    RTL = RegExp('^[\\u0591-\\u08ff\\ufb1d-\\ufdfd\\ufe70-\\ufefc ]+$'),
+  // regexp to aproximate detection of RTL languages (Arabic)
+  RTL = RegExp('^[\\u0591-\\u08ff\\ufb1d-\\ufdfd\\ufe70-\\ufefc ]+$'),
 
-    // emulate firefox error strings
-    qsNotArgs = 'Not enough arguments',
-    qsInvalid = ' is not a valid selector',
+  // emulate firefox error strings
+  qsNotArgs = 'Not enough arguments',
+  qsInvalid = ' is not a valid selector',
 
-    // detect structural pseudo-classes in selectors
-    reNthElem = RegExp('(:nth(?:-last)?-child)', 'i'),
-    reNthType = RegExp('(:nth(?:-last)?-of-type)', 'i'),
+  // detect structural pseudo-classes in selectors
+  reNthElem = RegExp('(:nth(?:-last)?-child)', 'i'),
+  reNthType = RegExp('(:nth(?:-last)?-of-type)', 'i'),
 
-    // placeholder for global regexp
-    reOptimizer,
-    reValidator,
+  // placeholder for global regexp
+  reOptimizer,
+  reValidator,
 
-    // special handling configuration flags
-    Config = {
-      IDS_DUPES: true,
-      MIXEDCASE: true,
-      LOGERRORS: true,
-      VERBOSITY: true
-    },
+  // special handling configuration flags
+  Config = {
+    IDS_DUPES: true,
+    MIXEDCASE: true,
+    LOGERRORS: true,
+    VERBOSITY: true
+  },
 
-    NAMESPACE,
-    QUIRKS_MODE,
-    HTML_DOCUMENT,
+  NAMESPACE,
+  QUIRKS_MODE,
+  HTML_DOCUMENT,
 
-    ATTR_STD_OPS = {
-      '=': 1, '^=': 1, '$=': 1, '|=': 1, '*=': 1, '~=': 1
-    },
+  ATTR_STD_OPS = {
+    '=': 1, '^=': 1, '$=': 1, '|=': 1, '*=': 1, '~=': 1
+  },
 
-    HTML_TABLE = {
-      'accept': 1, 'accept-charset': 1, 'align': 1, 'alink': 1, 'axis': 1,
-      'bgcolor': 1, 'charset': 1, 'checked': 1, 'clear': 1, 'codetype': 1, 'color': 1,
-      'compact': 1, 'declare': 1, 'defer': 1, 'dir': 1, 'direction': 1, 'disabled': 1,
-      'enctype': 1, 'face': 1, 'frame': 1, 'hreflang': 1, 'http-equiv': 1, 'lang': 1,
-      'language': 1, 'link': 1, 'media': 1, 'method': 1, 'multiple': 1, 'nohref': 1,
-      'noresize': 1, 'noshade': 1, 'nowrap': 1, 'readonly': 1, 'rel': 1, 'rev': 1,
-      'rules': 1, 'scope': 1, 'scrolling': 1, 'selected': 1, 'shape': 1, 'target': 1,
-      'text': 1, 'type': 1, 'valign': 1, 'valuetype': 1, 'vlink': 1
-    },
+  HTML_TABLE = {
+    'accept': 1, 'accept-charset': 1, 'align': 1, 'alink': 1, 'axis': 1,
+    'bgcolor': 1, 'charset': 1, 'checked': 1, 'clear': 1, 'codetype': 1, 'color': 1,
+    'compact': 1, 'declare': 1, 'defer': 1, 'dir': 1, 'direction': 1, 'disabled': 1,
+    'enctype': 1, 'face': 1, 'frame': 1, 'hreflang': 1, 'http-equiv': 1, 'lang': 1,
+    'language': 1, 'link': 1, 'media': 1, 'method': 1, 'multiple': 1, 'nohref': 1,
+    'noresize': 1, 'noshade': 1, 'nowrap': 1, 'readonly': 1, 'rel': 1, 'rev': 1,
+    'rules': 1, 'scope': 1, 'scrolling': 1, 'selected': 1, 'shape': 1, 'target': 1,
+    'text': 1, 'type': 1, 'valign': 1, 'valuetype': 1, 'vlink': 1
+  },
 
-    Combinators = { },
+  Combinators = { },
 
-    Selectors = { },
+  Selectors = { },
 
-    Operators = {
-      '=': { p1: '^',
-        p2: '$',
-        p3: 'true' },
-      '^=': { p1: '^',
-        p2: '',
-        p3: 'true' },
-      '$=': { p1: '',
-        p2: '$',
-        p3: 'true' },
-      '*=': { p1: '',
-        p2: '',
-        p3: 'true' },
-      '|=': { p1: '^',
-        p2: '(-|$)',
-        p3: 'true' },
-      '~=': { p1: '(^|\\s)',
-        p2: '(\\s|$)',
-        p3: 'true' }
-    },
+  Operators = {
+     '=': { p1: '^',
+            p2: '$',
+            p3: 'true' },
+    '^=': { p1: '^',
+            p2: '',
+            p3: 'true' },
+    '$=': { p1: '',
+            p2: '$',
+            p3: 'true' },
+    '*=': { p1: '',
+            p2: '',
+            p3: 'true' },
+    '|=': { p1: '^',
+            p2: '(-|$)',
+            p3: 'true' },
+    '~=': { p1: '(^|\\s)',
+            p2: '(\\s|$)',
+            p3: 'true' }
+  },
 
-    concatCall =
+  concatCall =
     function(nodes, callback) {
       var i = 0, l = nodes.length, list = Array(l);
       while (l > i) {
@@ -187,14 +187,14 @@ function Factory(global, Export) {
       return list;
     },
 
-    concatList =
+  concatList =
     function(list, nodes) {
       var i = -1, l = nodes.length;
       while (l--) { list[list.length] = nodes[++i]; }
       return list;
     },
 
-    documentOrder =
+  documentOrder =
     function(a, b) {
       if (!hasDupes && a === b) {
         hasDupes = true;
@@ -203,9 +203,9 @@ function Factory(global, Export) {
       return a.compareDocumentPosition(b) & 4 ? -1 : 1;
     },
 
-    hasDupes = false,
+  hasDupes = false,
 
-    unique =
+  unique =
     function(nodes) {
       var i = 0, j = -1, l = nodes.length + 1, list = [ ];
       while (--l) {
@@ -216,8 +216,8 @@ function Factory(global, Export) {
       return list;
     },
 
-    // check context for mixed content
-    hasMixedCaseTagNames =
+  // check context for mixed content
+  hasMixedCaseTagNames =
     function(context) {
       var ns, api = 'getElementsByTagNameNS';
 
@@ -231,7 +231,7 @@ function Factory(global, Export) {
       return (context[api]('*', '*').length - context[api](ns, '*').length) > 0;
     },
 
-    switchContext =
+  switchContext =
     function(context, force) {
       var oldDoc = doc;
       doc = context.ownerDocument || context;
@@ -249,8 +249,8 @@ function Factory(global, Export) {
       return (Snapshot.from = context);
     },
 
-    // convert single codepoint to UTF-16 encoding
-    codePointToUTF16 =
+  // convert single codepoint to UTF-16 encoding
+  codePointToUTF16 =
     function(codePoint) {
       // out of range, use replacement character
       if (codePoint < 1 || codePoint > 0x10ffff ||
@@ -264,11 +264,11 @@ function Factory(global, Export) {
       }
       // supplementary high + low surrogates
       return '\\u' + (((codePoint - 0x10000) >> 0x0a) + 0xd800).toString(16) +
-        '\\u' + (((codePoint - 0x10000) % 0x400) + 0xdc00).toString(16);
+             '\\u' + (((codePoint - 0x10000) % 0x400) + 0xdc00).toString(16);
     },
 
-    // convert single codepoint to string
-    stringFromCodePoint =
+  // convert single codepoint to string
+  stringFromCodePoint =
     function(codePoint) {
       // out of range, use replacement character
       if (codePoint < 1 || codePoint > 0x10ffff ||
@@ -285,9 +285,9 @@ function Factory(global, Export) {
           ((codePoint - 0x10000) % 0x400) + 0xdc00);
     },
 
-    // convert escape sequence in a CSS string or identifier
-    // to javascript string with javascript escape sequences
-    convertEscapes =
+  // convert escape sequence in a CSS string or identifier
+  // to javascript string with javascript escape sequences
+  convertEscapes =
     function(str) {
       return REX.HasEscapes.test(str) ?
         str.replace(REX.FixEscapes,
@@ -295,7 +295,7 @@ function Factory(global, Export) {
             // unescaped " or '
             return p2 ? '\\' + p2 :
               // javascript strings are UTF-16 encoded
-            REX.HexNumbers.test(p1) ? codePointToUTF16(parseInt(p1, 16)) :
+              REX.HexNumbers.test(p1) ? codePointToUTF16(parseInt(p1, 16)) :
               // \' \"
               REX.EscOrQuote.test(p1) ? substring :
               // \g \h \. \# etc
@@ -304,9 +304,9 @@ function Factory(global, Export) {
         ) : str;
     },
 
-    // convert escape sequence in a CSS string or identifier
-    // to javascript string with characters representations
-    unescapeIdentifier =
+  // convert escape sequence in a CSS string or identifier
+  // to javascript string with characters representations
+  unescapeIdentifier =
     function(str) {
       return REX.HasEscapes.test(str) ?
         str.replace(REX.FixEscapes,
@@ -323,20 +323,20 @@ function Factory(global, Export) {
         ) : str;
     },
 
-    method = {
-      '#': 'getElementById',
-      '*': 'getElementsByTagNameNS',
-      '.': 'getElementsByClassName'
+  method = {
+    '#': 'getElementById',
+    '*': 'getElementsByTagNameNS',
+    '.': 'getElementsByClassName'
     },
 
-    compat = {
-      '#': function(c, n) { REX.HasEscapes.test(n) && (n = unescapeIdentifier(n)); return function(e, f) { return byId(n, c); }; },
-      '*': function(c, n) { REX.HasEscapes.test(n) && (n = unescapeIdentifier(n)); return function(e, f) { return byTag(n, c); }; },
-      '.': function(c, n) { REX.HasEscapes.test(n) && (n = unescapeIdentifier(n)); return function(e, f) { return byClass(n, c); }; }
+  compat = {
+    '#': function(c, n) { REX.HasEscapes.test(n) && (n = unescapeIdentifier(n)); return function(e, f) { return byId(n, c); }; },
+    '*': function(c, n) { REX.HasEscapes.test(n) && (n = unescapeIdentifier(n)); return function(e, f) { return byTag(n, c); }; },
+    '.': function(c, n) { REX.HasEscapes.test(n) && (n = unescapeIdentifier(n)); return function(e, f) { return byClass(n, c); }; }
     },
 
-    // find duplicate ids using iterative walk
-    byIdRaw =
+  // find duplicate ids using iterative walk
+  byIdRaw =
     function(id, context) {
       var node = context, nodes = [ ], next = node.firstElementChild;
       while ((node = next)) {
@@ -349,8 +349,8 @@ function Factory(global, Export) {
       return nodes;
     },
 
-    // context agnostic getElementById
-    byId =
+  // context agnostic getElementById
+  byId =
     function(id, context) {
       var e, nodes, api = method['#'];
 
@@ -375,23 +375,23 @@ function Factory(global, Export) {
       return byIdRaw(id, context);
     },
 
-    // context agnostic getElementsByTagName
-    byTag =
+  // context agnostic getElementsByTagName
+  byTag =
     function(tag, context) {
       var e, nodes, api = method['*'];
       // DOCUMENT_NODE (9) & ELEMENT_NODE (1)
       if (api in context) {
         return slice.call(context[api]('*', tag));
       } else {
+        tag = tag.toLowerCase();
         // DOCUMENT_FRAGMENT_NODE (11)
         if ((e = context.firstElementChild)) {
-          tag = tag.toLowerCase();
-          if (!(e.nextElementSibling || tag == '*' || e.nodeName.toLowerCase() == tag)) {
+          if (!(e.nextElementSibling || tag == '*' || e.localName == tag)) {
             return slice.call(e[api]('*', tag));
           } else {
             nodes = [ ];
             do {
-              if (tag == '*' || e.nodeName.toLowerCase() == tag) nodes[nodes.length] = e;
+              if (tag == '*' || e.localName == tag) nodes[nodes.length] = e;
               concatList(nodes, e[api]('*', tag));
             } while ((e = e.nextElementSibling));
           }
@@ -400,8 +400,8 @@ function Factory(global, Export) {
       return nodes;
     },
 
-    // context agnostic getElementsByClassName
-    byClass =
+  // context agnostic getElementsByClassName
+  byClass =
     function(cls, context) {
       var e, nodes, api = method['.'], reCls;
       // DOCUMENT_NODE (9) & ELEMENT_NODE (1)
@@ -425,9 +425,9 @@ function Factory(global, Export) {
       return nodes;
     },
 
-    // namespace aware hasAttribute
-    // helper for XML/XHTML documents
-    hasAttributeNS =
+  // namespace aware hasAttribute
+  // helper for XML/XHTML documents
+  hasAttributeNS =
     function(e, name) {
       var i, l, attr = e.getAttributeNames();
       name = RegExp(':?' + name + '$', HTML_DOCUMENT ? 'i' : '');
@@ -437,106 +437,106 @@ function Factory(global, Export) {
       return false;
     },
 
-    // fast resolver for the :nth-child() and :nth-last-child() pseudo-classes
-    nthElement = (function() {
-      var idx = 0, len = 0, set = 0, parent = undefined, parents = Array(), nodes = Array();
-      return function(element, dir) {
-        // ensure caches are emptied after each run, invoking with dir = 2
-        if (dir == 2) {
-          idx = 0; len = 0; set = 0; nodes.length = 0;
-          parents.length = 0; parent = undefined;
-          return -1;
+  // fast resolver for the :nth-child() and :nth-last-child() pseudo-classes
+  nthElement = (function() {
+    var idx = 0, len = 0, set = 0, parent = undefined, parents = Array(), nodes = Array();
+    return function(element, dir) {
+      // ensure caches are emptied after each run, invoking with dir = 2
+      if (dir == 2) {
+        idx = 0; len = 0; set = 0; nodes.length = 0;
+        parents.length = 0; parent = undefined;
+        return -1;
+      }
+      var e, i, j, k, l;
+      if (parent === element.parentElement) {
+        i = set; j = idx; l = len;
+      } else {
+        l = parents.length;
+        parent = element.parentElement;
+        for (i = -1, j = 0, k = l - 1; l > j; ++j, --k) {
+          if (parents[j] === parent) { i = j; break; }
+          if (parents[k] === parent) { i = k; break; }
         }
-        var e, i, j, k, l;
-        if (parent === element.parentElement) {
-          i = set; j = idx; l = len;
+        if (i < 0) {
+          parents[i = l] = parent;
+          l = 0; nodes[i] = Array();
+          e = parent && parent.firstElementChild || element;
+          while (e) { nodes[i][l] = e; if (e === element) j = l; e = e.nextElementSibling; ++l; }
+          set = i; idx = 0; len = l;
+          if (l < 2) return l;
         } else {
-          l = parents.length;
-          parent = element.parentElement;
-          for (i = -1, j = 0, k = l - 1; l > j; ++j, --k) {
-            if (parents[j] === parent) { i = j; break; }
-            if (parents[k] === parent) { i = k; break; }
-          }
-          if (i < 0) {
-            parents[i = l] = parent;
-            l = 0; nodes[i] = Array();
-            e = parent && parent.firstElementChild || element;
-            while (e) { nodes[i][l] = e; if (e === element) j = l; e = e.nextElementSibling; ++l; }
-            set = i; idx = 0; len = l;
-            if (l < 2) return l;
-          } else {
-            l = nodes[i].length;
-            set = i;
-          }
+          l = nodes[i].length;
+          set = i;
         }
-        if (element !== nodes[i][j] && element !== nodes[i][j = 0]) {
-          for (j = 0, e = nodes[i], k = l - 1; l > j; ++j, --k) {
-            if (e[j] === element) { break; }
-            if (e[k] === element) { j = k; break; }
-          }
+      }
+      if (element !== nodes[i][j] && element !== nodes[i][j = 0]) {
+        for (j = 0, e = nodes[i], k = l - 1; l > j; ++j, --k) {
+          if (e[j] === element) { break; }
+          if (e[k] === element) { j = k; break; }
         }
-        idx = j + 1; len = l;
-        return dir ? l - j : idx;
-      };
-    })(),
+      }
+      idx = j + 1; len = l;
+      return dir ? l - j : idx;
+    };
+  })(),
 
-    // fast resolver for the :nth-of-type() and :nth-last-of-type() pseudo-classes
-    nthOfType = (function() {
-      var idx = 0, len = 0, set = 0, parent = undefined, parents = Array(), nodes = Array();
-      return function(element, dir) {
-        // ensure caches are emptied after each run, invoking with dir = 2
-        if (dir == 2) {
-          idx = 0; len = 0; set = 0; nodes.length = 0;
-          parents.length = 0; parent = undefined;
-          return -1;
+  // fast resolver for the :nth-of-type() and :nth-last-of-type() pseudo-classes
+  nthOfType = (function() {
+    var idx = 0, len = 0, set = 0, parent = undefined, parents = Array(), nodes = Array();
+    return function(element, dir) {
+      // ensure caches are emptied after each run, invoking with dir = 2
+      if (dir == 2) {
+        idx = 0; len = 0; set = 0; nodes.length = 0;
+        parents.length = 0; parent = undefined;
+        return -1;
+      }
+      var e, i, j, k, l, name = element.localName;
+      if (nodes[set] && nodes[set][name] && parent === element.parentElement) {
+        i = set; j = idx; l = len;
+      } else {
+        l = parents.length;
+        parent = element.parentElement;
+        for (i = -1, j = 0, k = l - 1; l > j; ++j, --k) {
+          if (parents[j] === parent) { i = j; break; }
+          if (parents[k] === parent) { i = k; break; }
         }
-        var e, i, j, k, l, name = element.nodeName;
-        if (nodes[set] && nodes[set][name] && parent === element.parentElement) {
-          i = set; j = idx; l = len;
+        if (i < 0 || !nodes[i][name]) {
+          parents[i = l] = parent;
+          nodes[i] || (nodes[i] = Object());
+          l = 0; nodes[i][name] = Array();
+          e = parent && parent.firstElementChild || element;
+          while (e) { if (e === element) j = l; if (e.localName == name) { nodes[i][name][l] = e; ++l; } e = e.nextElementSibling; }
+          set = i; idx = j; len = l;
+          if (l < 2) return l;
         } else {
-          l = parents.length;
-          parent = element.parentElement;
-          for (i = -1, j = 0, k = l - 1; l > j; ++j, --k) {
-            if (parents[j] === parent) { i = j; break; }
-            if (parents[k] === parent) { i = k; break; }
-          }
-          if (i < 0 || !nodes[i][name]) {
-            parents[i = l] = parent;
-            nodes[i] || (nodes[i] = Object());
-            l = 0; nodes[i][name] = Array();
-            e = parent && parent.firstElementChild || element;
-            while (e) { if (e === element) j = l; if (e.nodeName == name) { nodes[i][name][l] = e; ++l; } e = e.nextElementSibling; }
-            set = i; idx = j; len = l;
-            if (l < 2) return l;
-          } else {
-            l = nodes[i][name].length;
-            set = i;
-          }
+          l = nodes[i][name].length;
+          set = i;
         }
-        if (element !== nodes[i][name][j] && element !== nodes[i][name][j = 0]) {
-          for (j = 0, e = nodes[i][name], k = l - 1; l > j; ++j, --k) {
-            if (e[j] === element) { break; }
-            if (e[k] === element) { j = k; break; }
-          }
+      }
+      if (element !== nodes[i][name][j] && element !== nodes[i][name][j = 0]) {
+        for (j = 0, e = nodes[i][name], k = l - 1; l > j; ++j, --k) {
+          if (e[j] === element) { break; }
+          if (e[k] === element) { j = k; break; }
         }
-        idx = j + 1; len = l;
-        return dir ? l - j : idx;
-      };
-    })(),
+      }
+      idx = j + 1; len = l;
+      return dir ? l - j : idx;
+    };
+  })(),
 
-    // check if the document type is HTML
-    isHTML =
+  // check if the document type is HTML
+  isHTML =
     function(node) {
       var doc = node.ownerDocument || node;
       return doc.nodeType == 9 &&
         // contentType not in IE <= 11
         'contentType' in doc ?
-        doc.contentType.indexOf('/html') > 0 :
-        doc.createElement('DiV').nodeName == 'DIV';
+          doc.contentType.indexOf('/html') > 0 :
+          doc.createElement('DiV').localName == 'div';
     },
 
-    // configure the engine to use special handling
-    configure =
+  // configure the engine to use special handling
+  configure =
     function(option, clear) {
       if (typeof option == 'string') { return !!Config[option]; }
       if (typeof option != 'object') { return Config; }
@@ -552,8 +552,8 @@ function Factory(global, Export) {
       return true;
     },
 
-    // centralized error and exceptions handling
-    emit =
+  // centralized error and exceptions handling
+  emit =
     function(message, proto) {
       var err;
       if (Config.VERBOSITY) {
@@ -569,15 +569,15 @@ function Factory(global, Export) {
       }
     },
 
-    // execute the engine initialization code
-    initialize =
+  // execute the engine initialization code
+  initialize =
     function(doc) {
       setIdentifierSyntax();
       lastContext = switchContext(doc, true);
     },
 
-    // build validation regexps used by the engine
-    setIdentifierSyntax =
+  // build validation regexps used by the engine
+  setIdentifierSyntax =
     function() {
 
       //
@@ -586,7 +586,7 @@ function Factory(global, Export) {
       // The <EOF-token> https://drafts.csswg.org/css-syntax/#typedef-eof-token
       // allow mangled|unclosed selector syntax at the end of selectors strings
       //
-      // Literal equivalent hex representations of the characters: " ' ` ] 
+      // Literal equivalent hex representations of the characters: " ' ` ] )
       //
       //     \\x22 = " - double quotes    \\x5b = [ - open square bracket
       //     \\x27 = ' - single quote     \\x5d = ] - closed square bracket
@@ -672,7 +672,7 @@ function Factory(global, Export) {
         ')+';
 
       // the following global RE is used to return the
-      // deepest nodeName in selector strings and then
+      // deepest localName in selector strings and then
       // use it to retrieve all possible matching nodes
       // that will be filtered by compiled resolvers
       reOptimizer = RegExp(
@@ -774,7 +774,7 @@ function Factory(global, Export) {
 
       // N is the negation pseudo-class flag
       // D is the default inverted negation flag
-      var a, b, n, f, i, l, name, nested, NS,
+      var a, b, n, f, i, l, name, NS,
       N = not ? '!' : '', D = not ? '' : '!',
       compat, expr, match, result, status, symbol, test,
       type, selector = expression, selector_string, vars;
@@ -817,11 +817,11 @@ function Factory(global, Export) {
             break;
 
           // tag name resolver
-          case (/[a-z]/i.test(symbol) ? symbol : undefined):
+          case (/[_a-z]/i.test(symbol) ? symbol : undefined):
             match = selector.match(Patterns.tagName);
-            source = 'if(' + N + '(e.nodeName' +
+            source = 'if(' + N + '(e.localName' +
               (Config.MIXEDCASE || hasMixedCaseTagNames(doc) ?
-                '.toLowerCase()=="' + match[1].toLowerCase() + '"' :
+                '=="' + match[1].toLowerCase() + '"' :
                 '=="' + match[1].toUpperCase() + '"') +
               ')){' + source + '}';
             break;
@@ -865,9 +865,9 @@ function Factory(global, Export) {
             }
             type = match[5] == 'i' || (HTML_DOCUMENT && HTML_TABLE[expr.toLowerCase()]) ? 'i' : '';
             source = 'if(' + N + '(' +
-              (!match[2] ? (NS ? 's.hasAttributeNS(e,"' + name + '")' : 'e.hasAttribute("' + name + '")') :
-              !match[4] && ATTR_STD_OPS[match[2]] && match[2] != '~=' ? 'e.getAttribute("' + name + '")==""' :
-              '(/' + test.p1 + match[4] + test.p2 + '/' + type + ').test(e.getAttribute("' + name + '"))==' + test.p3) +
+              (!match[2] ? (NS ? 's.hasAttributeNS(e,"' + name + '")' : 'e.hasAttribute&&e.hasAttribute("' + name + '")') :
+              !match[4] && ATTR_STD_OPS[match[2]] && match[2] != '~=' ? 'e.getAttribute&&e.getAttribute("' + name + '")==""' :
+              '(/' + test.p1 + match[4] + test.p2 + '/' + type + ').test(e.getAttribute&&e.getAttribute("' + name + '"))==' + test.p3) +
               ')){' + source + '}';
             break;
 
@@ -934,15 +934,15 @@ function Factory(global, Export) {
                 // *** typed child-indexed pseudo-classes
                 // :only-of-type, :last-of-type, :first-of-type
                 case 'only-of-type':
-                  source = 'o=e.nodeName;' +
-                    'n=e;while((n=n.nextElementSibling)&&n.nodeName!=o);if(!n){' +
-                    'n=e;while((n=n.previousElementSibling)&&n.nodeName!=o);}if(' + D + 'n){' + source + '}';
+                  source = 'o=e.localName;' +
+                    'n=e;while((n=n.nextElementSibling)&&n.localName!=o);if(!n){' +
+                    'n=e;while((n=n.previousElementSibling)&&n.localName!=o);}if(' + D + 'n){' + source + '}';
                   break;
                 case 'last-of-type':
-                  source = 'n=e;o=e.nodeName;while((n=n.nextElementSibling)&&n.nodeName!=o);if(' + D + 'n){' + source + '}';
+                  source = 'n=e;o=e.localName;while((n=n.nextElementSibling)&&n.localName!=o);if(' + D + 'n){' + source + '}';
                   break;
                 case 'first-of-type':
-                  source = 'n=e;o=e.nodeName;while((n=n.previousElementSibling)&&n.nodeName!=o);if(' + D + 'n){' + source + '}';
+                  source = 'n=e;o=e.localName;while((n=n.previousElementSibling)&&n.localName!=o);if(' + D + 'n){' + source + '}';
                   break;
                 default:
                   emit('\'' + selector_string + '\'' + qsInvalid);
@@ -967,8 +967,8 @@ function Factory(global, Export) {
                       break;
                     } else if (match[2] == '1') {
                       test = type ? 'next' : 'previous';
-                      source = expr ? 'n=e;o=e.nodeName;' +
-                        'while((n=n.' + test + 'ElementSibling)&&n.nodeName!=o);if(' + D + 'n){' + source + '}' :
+                      source = expr ? 'n=e;o=e.localName;' +
+                        'while((n=n.' + test + 'ElementSibling)&&n.localName!=o);if(' + D + 'n){' + source + '}' :
                         'if(' + N + '!e.' + test + 'ElementSibling){' + source + '}';
                       break;
                     } else if (match[2] == 'even' || match[2] == '2n0' || match[2] == '2n+0' || match[2] == '2n') {
@@ -1002,34 +1002,19 @@ function Factory(global, Export) {
             }
 
             // *** logical combination pseudo-classes
-            // :matches( s1, [ s2, ... ]), :not( s1, [ s2, ... ])
+            // :is( s1, [ s2, ... ]), :not( s1, [ s2, ... ])
             else if ((match = selector.match(Patterns.logicalsel))) {
               match[1] = match[1].toLowerCase();
               switch (match[1]) {
+                case 'is':
+                case 'where':
                 case 'matches':
-                  if (not === true || nested === true) {
-                    emit(':matches() pseudo-class cannot be nested');
-                  }
-                  nested = true;
                   expr = match[2].replace(REX.CommaGroup, ',').replace(REX.TrimSpaces, '');
-                  // check nested compound selectors s1, s2
-                  expr = match[2].match(REX.SplitGroup);
-                  for (i = 0, l = expr.length; l > i; ++i) {
-                    expr[i] = expr[i].replace(REX.TrimSpaces, '');
-                    source = 'if(s.match("' + expr[i].replace(/\x22/g, '\\"') + '",e)){' + source + '}';
-                  }
+                  source = 'if(s.match("' + expr.replace(/\x22/g, '\\"') + '",e)){' + source + '}';
                   break;
                 case 'not':
-                  if (not === true || nested === true) {
-                    emit(':not() pseudo-class cannot be nested');
-                  }
                   expr = match[2].replace(REX.CommaGroup, ',').replace(REX.TrimSpaces, '');
-                  // check nested compound selectors s1, s2
-                  expr = match[2].match(REX.SplitGroup);
-                  for (i = 0, l = expr.length; l > i; ++i) {
-                    expr[i] = expr[i].replace(REX.TrimSpaces, '');
-                    source = compileSelector(expr[i], source, false, callback, true);
-                  }
+                  source = 'if(!s.match("' + expr.replace(/\x22/g, '\\"') + '",e)){' + source + '}';
                   break;
                 default:
                   emit('\'' + selector_string + '\'' + qsInvalid);
@@ -1063,15 +1048,18 @@ function Factory(global, Export) {
             }
 
             // *** location pseudo-classes
-            // :link, :visited, :target
+            // :any-link, :link, :visited, :target
             else if ((match = selector.match(Patterns.locationpc))) {
               match[1] = match[1].toLowerCase();
               switch (match[1]) {
+                case 'any-link':
+                  source = 'if(' + N + '(/^a|area$/i.test(e.localName)&&e.hasAttribute("href")||e.visited)){' + source + '}';
+                  break;
                 case 'link':
-                  source = 'if(' + N + '(/^a|area|link$/i.test(e.nodeName)&&e.hasAttribute("href"))){' + source + '}';
+                  source = 'if(' + N + '(/^a|area$/i.test(e.localName)&&e.hasAttribute("href"))){' + source + '}';
                   break;
                 case 'visited':
-                  source = 'if(' + N + '(/^a|area|link$/i.test(e.nodeName)&&e.hasAttribute("href")&&e.visited)){' + source + '}';
+                  source = 'if(' + N + '(/^a|area$/i.test(e.localName)&&e.hasAttribute("href")&&e.visited)){' + source + '}';
                   break;
                 case 'target':
                   source = 'if(' + N + '((s.doc.compareDocumentPosition(e)&16)&&s.doc.location.hash&&e.id==s.doc.location.hash.slice(1))){' + source + '}';
@@ -1119,26 +1107,26 @@ function Factory(global, Export) {
               match[1] = match[1].toLowerCase();
               switch (match[1]) {
                 case 'enabled':
-                  source = 'if(' + N + '(("form" in e||/^optgroup$/i.test(e.nodeName))&&"disabled" in e &&e.disabled===false' +
+                  source = 'if(' + N + '(("form" in e||/^optgroup$/i.test(e.localName))&&"disabled" in e &&e.disabled===false' +
                     ')){' + source + '}';
                   break;
                 case 'disabled':
                   // https://www.w3.org/TR/html5/forms.html#enabling-and-disabling-form-controls:-the-disabled-attribute
-                  source = 'if(' + N + '(("form" in e||/^optgroup$/i.test(e.nodeName))&&"disabled" in e&&' +
+                  source = 'if(' + N + '(("form" in e||/^optgroup$/i.test(e.localName))&&"disabled" in e&&' +
                     '(e.disabled===true||(n=s.ancestor("fieldset",e))&&(n=s.first("legend",n))&&!n.contains(e))' +
                     ')){' + source + '}';
                   break;
                 case 'read-only':
                   source =
                     'if(' + N + '(' +
-                      '(/^textarea$/i.test(e.nodeName)&&(e.readOnly||e.disabled))||' +
+                      '(/^textarea$/i.test(e.localName)&&(e.readOnly||e.disabled))||' +
                       '("|password|text|".includes("|"+e.type+"|")&&e.readOnly)' +
                     ')){' + source + '}';
                   break;
                 case 'read-write':
                   source =
                     'if(' + N + '(' +
-                      '((/^textarea$/i.test(e.nodeName)&&!e.readOnly&&!e.disabled)||' +
+                      '((/^textarea$/i.test(e.localName)&&!e.readOnly&&!e.disabled)||' +
                       '("|password|text|".includes("|"+e.type+"|")&&!e.readOnly&&!e.disabled))||' +
                       '(e.hasAttribute("contenteditable")||(s.doc.designMode=="on"))' +
                     ')){' + source + '}';
@@ -1146,7 +1134,7 @@ function Factory(global, Export) {
                 case 'placeholder-shown':
                   source =
                     'if(' + N + '(' +
-                      '(/^input|textarea$/i.test(e.nodeName))&&e.hasAttribute("placeholder")&&' +
+                      '(/^input|textarea$/i.test(e.localName))&&e.hasAttribute("placeholder")&&' +
                       '("|textarea|password|number|search|email|text|tel|url|".includes("|"+e.type+"|"))&&' +
                       '(!s.match(":focus",e))' +
                     ')){' + source + '}';
@@ -1164,7 +1152,7 @@ function Factory(global, Export) {
                       '}' +
                     '}' +
                     'if(' + N + '(e.form&&(e===n[x]&&"|image|submit|".includes("|"+e.type+"|"))||' +
-                      '((/^option$/i.test(e.nodeName))&&e.defaultSelected)||' +
+                      '((/^option$/i.test(e.localName))&&e.defaultSelected)||' +
                       '(("|radio|checkbox|".includes("|"+e.type+"|"))&&e.defaultChecked)' +
                     ')){' + source + '}';
                   break;
@@ -1180,50 +1168,50 @@ function Factory(global, Export) {
               match[1] = match[1].toLowerCase();
               switch (match[1]) {
                 case 'checked':
-                  source = 'if(' + N + '(/^input$/i.test(e.nodeName)&&' +
+                  source = 'if(' + N + '(/^input$/i.test(e.localName)&&' +
                     '("|radio|checkbox|".includes("|"+e.type+"|")&&e.checked)||' +
-                    '(/^option$/i.test(e.nodeName)&&(e.selected||e.checked))' +
+                    '(/^option$/i.test(e.localName)&&(e.selected||e.checked))' +
                     ')){' + source + '}';
                   break;
                 case 'indeterminate':
                   source =
-                    'if(' + N + '(/^progress$/i.test(e.nodeName)&&!e.hasAttribute("value"))||' +
-                      '(/^input$/i.test(e.nodeName)&&("checkbox"==e.type&&e.indeterminate)||' +
+                    'if(' + N + '(/^progress$/i.test(e.localName)&&!e.hasAttribute("value"))||' +
+                      '(/^input$/i.test(e.localName)&&("checkbox"==e.type&&e.indeterminate)||' +
                       '("radio"==e.type&&e.name&&!s.first("input[name="+e.name+"]:checked",e.form))' +
                     ')){' + source + '}';
                   break;
                 case 'required':
                   source =
                     'if(' + N +
-                      '(/^input|select|textarea$/i.test(e.nodeName)&&e.required)' +
+                      '(/^input|select|textarea$/i.test(e.localName)&&e.required)' +
                     '){' + source + '}';
                   break;
                 case 'optional':
                   source =
                     'if(' + N +
-                      '(/^input|select|textarea$/i.test(e.nodeName)&&!e.required)' +
+                      '(/^input|select|textarea$/i.test(e.localName)&&!e.required)' +
                     '){' + source + '}';
                   break;
                 case 'invalid':
                   source =
                     'if(' + N + '((' +
-                      '(/^form$/i.test(e.nodeName)&&!e.noValidate)||' +
+                      '(/^form$/i.test(e.localName)&&!e.noValidate)||' +
                       '(e.willValidate&&!e.formNoValidate))&&!e.checkValidity())||' +
-                      '(/^fieldset$/i.test(e.nodeName)&&s.first(":invalid",e))' +
+                      '(/^fieldset$/i.test(e.localName)&&s.first(":invalid",e))' +
                     '){' + source + '}';
                   break;
                 case 'valid':
                   source =
                     'if(' + N + '((' +
-                      '(/^form$/i.test(e.nodeName)&&!e.noValidate)||' +
+                      '(/^form$/i.test(e.localName)&&!e.noValidate)||' +
                       '(e.willValidate&&!e.formNoValidate))&&e.checkValidity())||' +
-                      '(/^fieldset$/i.test(e.nodeName)&&s.first(":valid",e))' +
+                      '(/^fieldset$/i.test(e.localName)&&s.first(":valid",e))' +
                     '){' + source + '}';
                   break;
                 case 'in-range':
                   source =
                     'if(' + N +
-                      '(/^input$/i.test(e.nodeName))&&' +
+                      '(/^input$/i.test(e.localName))&&' +
                       '(e.willValidate&&!e.formNoValidate)&&' +
                       '(!e.validity.rangeUnderflow&&!e.validity.rangeOverflow)&&' +
                       '("|date|datetime-local|month|number|range|time|week|".includes("|"+e.type+"|"))&&' +
@@ -1233,7 +1221,7 @@ function Factory(global, Export) {
                 case 'out-of-range':
                   source =
                     'if(' + N +
-                      '(/^input$/i.test(e.nodeName))&&' +
+                      '(/^input$/i.test(e.localName))&&' +
                       '(e.willValidate&&!e.formNoValidate)&&' +
                       '(e.validity.rangeUnderflow||e.validity.rangeOverflow)&&' +
                       '("|date|datetime-local|month|number|range|time|week|".includes("|"+e.type+"|"))&&' +
@@ -1248,14 +1236,18 @@ function Factory(global, Export) {
 
             // allow pseudo-elements starting with single colon (:)
             // :after, :before, :first-letter, :first-line
+            // assert: e.type is in double-colon format, like ::after
             else if ((match = selector.match(Patterns.pseudo_sng))) {
-              source = 'if(' + D + '(e.nodeType==1)){' + source + '}';
+              source = 'if(e.element&&e.type.toLowerCase()=="' +
+              ':' + match[0].toLowerCase() + '"){e=e.element;' + source + '}';
             }
 
             // allow pseudo-elements starting with double colon (::)
             // ::after, ::before, ::marker, ::placeholder, ::inactive-selection, ::selection, ::-webkit-<foo-bar>
+            // assert: e.type is in double-colon format, like ::after
             else if ((match = selector.match(Patterns.pseudo_dbl))) {
-              source = 'if(' + D + '(e.nodeType==1)){' + source + '}';
+              source = 'if(e.element&&e.type.toLowerCase()=="' +
+              match[0].toLowerCase() + '"){e=e.element;' + source + '}';
             }
 
             else {
@@ -1323,7 +1315,7 @@ function Factory(global, Export) {
   makeref =
     function(selectors, element) {
       return selectors.replace(/:scope/ig,
-        element.nodeName.toLowerCase() +
+        element.localName +
         (element.id ? '#' + element.id : '') +
         (element.className ? '.' + element.classList[0] : ''));
     },
@@ -1549,7 +1541,7 @@ function Factory(global, Export) {
           } else {
             token = ['', '*', '*'];
           }
-    }
+		}
 
         nodeset[i] = token[1] + token[2];
         htmlset[i] = compat[token[1]](context, token[2]);
@@ -1632,7 +1624,7 @@ function Factory(global, Export) {
       if (all) {
         document.addEventListener('load', function(e) {
           var c, d, r, s, t = e.target;
-          if (/iframe/i.test(t.nodeName)) {
+          if (/iframe/i.test(t.localName)) {
             c = '(' + Export + ')(this, ' + Factory + ');'; d = t.contentDocument;
             s = d.createElement('script'); s.textContent = c + 'NW.Dom.install()';
             r = d.documentElement; r.removeChild(r.insertBefore(s, r.firstChild));
@@ -1796,5 +1788,4 @@ function Factory(global, Export) {
   initialize(doc);
 
   return Dom;
-
-};
+}

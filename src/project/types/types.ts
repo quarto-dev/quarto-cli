@@ -32,6 +32,11 @@ export interface ProjectType {
   outputDir?: string;
   cleanOutputDir?: boolean;
   formatLibDirs?: () => string[];
+  filterFormat?: (
+    source: string,
+    format: Format,
+    project?: ProjectContext
+  ) => Format;
   formatExtras?: (
     context: ProjectContext,
     input: string,
@@ -80,6 +85,7 @@ export interface ProjectType {
   formatOutputDirectory?: (
     format: Format,
   ) => string | undefined;
+  selfContainedOutput?: (format: Format) => boolean;
 }
 
 export interface ProjectOutputFile {

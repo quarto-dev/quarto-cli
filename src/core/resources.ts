@@ -40,7 +40,19 @@ export function toolsPath(binary: string): string {
   const binaryPath = Deno.env.get(binaryEnvKey);
   if (binaryPath) {
     if (!existsSync(binaryPath)) {
-      displayWarning();
+      // If this is windows, we shouldn't warn if there is an 'exe' version of the path
+      if (Deno.build.os === "windows") {
+        const exeExists = !binary.endsWith(".exe") ||
+          [binary + ".exe"].some((path) => {
+            return existsSync(path);
+          });
+        // Even the exe version of this path doesn't exist, warn
+        if (!exeExists) {
+          displayWarning();
+        }
+      } else {
+        displayWarning();
+      }
     } else {
       if (Deno.statSync(binaryPath).isFile) {
         return binaryPath;

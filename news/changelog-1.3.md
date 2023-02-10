@@ -4,6 +4,7 @@
 - Only attempt to postprocess `text/plain` output if it's nonempty ([#3896](https://github.com/quarto-dev/quarto-cli/issues/3896)).
 - Fix output of bokeh plots so the right number of cells is generated ([#2107](https://github.com/quarto-dev/quarto-cli/issues/2107)).
 - Fix output of code cells that contain triple backticks (or more) ([#3179](https://github.com/quarto-dev/quarto-cli/issues/3179)).
+- Don't install SIGCHLD signal handler since it interferes with IJulia in Julia 1.8.4 and greater ([#2539](https://github.com/quarto-dev/quarto-cli/issues/2539)).
 
 ## Code Annotation
 
@@ -32,6 +33,7 @@
 
 - reduce font size of `df-print: paged` tables ([#3380](https://github.com/quarto-dev/quarto-cli/issues/3380))
 - `width` and `height` in percent are now correctly supported ([#4063](https://github.com/quarto-dev/quarto-cli/issues/4063))
+- add better margins to numbered lists in the presence of many items and `.scrollable` ([#4283](https://github.com/quarto-dev/quarto-cli/issues/4063)).
 
 ## Dates
 
@@ -96,6 +98,9 @@
 ## Books
 
 - Remove chapter number of HTML head title when `number-sections` is `false` (#3304).
+- Non-HTML book output formats will now be placed in subdirectories (`book-<format>`) within the project output directory (`_books`)
+- Support for rendering to Asciidoc
+- Support for rendering to LaTeX
 
 ## Preview
 
@@ -127,6 +132,7 @@
 - Improve parsing of include shortcodes ([#3159](https://github.com/quarto-dev/quarto-cli/issues/3159)).
 - Add support for Youtube privacy-enhanced urls in `video` shortcodes ([#4060](https://github.com/quarto-dev/quarto-cli/issues/4060)).
 - Don't emit empty cells ([#4034](https://github.com/quarto-dev/quarto-cli/issues/4034)).
+- Resolve link tags correctly in html dependencies ([#4304](https://github.com/quarto-dev/quarto-cli/discussions/4304)) (Thank you, @jdlom!).
 
 ## Pandoc filter changes
 

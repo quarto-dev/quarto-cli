@@ -30,6 +30,7 @@ export async function parseHtml(src: string): Promise<HTMLDocument> {
 // into this. If deno-dom fails, it's likely that this needs to be brought up to date.
 
 // 2022-08-26: cscheid changed this to match commit a69551336f37cd4010032e039231d926e1a4774c
+// 2023-02-06: jjallaire confirmed that this is up to date as of commit e18ab07fd6e23f1e32ffd77fb4c0f92fadb81b87
 
 let s_DenoDomInitialized = false;
 export async function initDenoDom() {

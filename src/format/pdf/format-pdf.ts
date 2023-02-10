@@ -286,10 +286,7 @@ function createPdfFormat(
 }
 
 const pdfBookExtension: BookExtension = {
-  formatOutputDirectory: () => {
-    return "book-pdf";
-  },
-
+  selfContainedOutput: true,
   onSingleFilePostRender: (
     project: ProjectContext,
     renderedFile: RenderedFile,

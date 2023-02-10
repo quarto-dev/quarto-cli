@@ -81,12 +81,13 @@ export class ConfluenceClient {
     const cqlContext =
       "%7B%22contentStatuses%22%3A%5B%22archived%22%2C%20%22current%22%2C%20%22draft%22%5D%7D"; //{"contentStatuses":["archived", "current", "draft"]}
     const encodedTitle = encodeURIComponent(title);
-    const cql = `title="${encodedTitle}" and space=${space.key}&cqlcontext=${cqlContext}`;
+    const cql = `title="${encodedTitle}"&spaces=${space.key}&cqlcontext=${cqlContext}`;
     const result = await this.get<ContentArray>(`content/search?cql=${cql}`);
     return result?.results ?? [];
   }
 
-  public createContent(
+  public async createContent(
+    user: User,
     content: ContentCreate,
     metadata: Record<string, any> = V2EDITOR_METADATA
   ): Promise<Content> {
@@ -98,10 +99,22 @@ export class ConfluenceClient {
     trace("to create", toCreate);
     trace("createContent body", content.body.storage.value);
     const createBody = JSON.stringify(toCreate);
-    return this.post<Content>("content", createBody);
+    const result: Content = await this.post<Content>("content", createBody);
+
+    try {
+      await this.put<Content>(
+        `content/${result.id}/restriction/byOperation/update/user?accountId=${user.accountId}`
+      );
+    } catch (error) {
+      //Sometimes the API returns the error 'Unexpected end of JSON input'
+      trace("lockDownResult Error", error);
+    }
+
+    return result;
   }
 
-  public updateContent(
+  public async updateContent(
+    user: User,
     content: ContentUpdate,
     metadata: Record<string, any> = V2EDITOR_METADATA
   ): Promise<Content> {
@@ -109,8 +122,22 @@ export class ConfluenceClient {
       ...content,
       ...metadata,
     };
-    trace("updateContent", toUpdate);
-    return this.put<Content>(`content/${content.id}`, JSON.stringify(toUpdate));
+
+    const result = await this.put<Content>(
+      `content/${content.id}`,
+      JSON.stringify(toUpdate)
+    );
+
+    try {
+      const lockDownResult = await this.put<Content>(
+        `content/${content.id}/restriction/byOperation/update/user?accountId=${user.accountId}`
+      );
+    } catch (error) {
+      //Sometimes the API returns the error 'Unexpected end of JSON input'
+      trace("lockDownResult Error", error);
+    }
+
+    return result;
   }
 
   public createContentProperty(id: string, content: any): Promise<Content> {

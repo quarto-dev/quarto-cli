@@ -357,7 +357,7 @@ function prependHeading(
 export function removeFootnoteBacklinks(footnotesEl: Element) {
   const backlinks = footnotesEl.querySelectorAll(".footnote-back");
   for (const backlink of backlinks) {
-    backlink.remove();
+    (backlink as Element).remove();
   }
 }
 

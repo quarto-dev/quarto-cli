@@ -58,7 +58,7 @@ const outDir = "_book";
 const bookProjDir = docs("project/book");
 const bookOutDir = join(bookProjDir, outDir);
 
-const bookPdfDir = join(bookOutDir, "book-pdf");
+const bookPdfDir = bookOutDir;
 const verifyPdfBook: Verify[] = [
   fileExists(join(bookPdfDir, "book.pdf")),
   directoryEmptyButFor(bookPdfDir, ["book.pdf"]),
@@ -76,7 +76,7 @@ testQuartoCmd(
   },
 );
 
-const bookDocxDir = join(bookOutDir, "book-docx");
+const bookDocxDir = bookOutDir;
 const verifyDocxBook: Verify[] = [
   fileExists(join(bookDocxDir, "book.docx")),
   directoryEmptyButFor(bookDocxDir, ["book.docx"]),
@@ -94,7 +94,7 @@ testQuartoCmd(
   },
 );
 
-const bookEpubDir = join(bookOutDir, "book-epub");
+const bookEpubDir = bookOutDir;
 const verifyEpubBook: Verify[] = [
   fileExists(join(bookEpubDir, "book.epub")),
   directoryEmptyButFor(bookEpubDir, ["book.epub"]),

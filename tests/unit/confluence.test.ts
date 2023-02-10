@@ -18,6 +18,7 @@ import {
   filterFilesForUpdate,
   findAttachments,
   findPagesToDelete,
+  footnoteTransform,
   getMessageFromAPIError,
   getNextVersion,
   getTitle,
@@ -252,7 +253,9 @@ const runGeneralTests = () => {
     const expected = true;
     assertEquals(expected, result);
   });
+};
 
+const runConfluenceParentFromString = () => {
   test("confluenceParentFromString_empty", async () => {
     const result = confluenceParentFromString("");
     const expected = {
@@ -283,8 +286,40 @@ const runGeneralTests = () => {
     assertEquals(expected, result);
   });
 
+  test("confluenceParentFromString_spaces_overview", async () => {
+    const url =
+      "https://allenmanning.atlassian.net/wiki/spaces/~557058634d59d0949841909bb13093ab41d0c5/overview";
+    const result = confluenceParentFromString(url);
+    const expected: ConfluenceParent = {
+      space: "~557058634d59d0949841909bb13093ab41d0c5",
+      parent: undefined,
+    };
+    assertEquals(expected, result);
+  });
+
+  test("confluenceParentFromString_valid_spaces_pages", async () => {
+    const url =
+      "https://rstudiopbc-sandbox-249.atlassian.net/wiki/spaces/~62d7a66910c44eb6e3218195/pages/43122955";
+    const result = confluenceParentFromString(url);
+    const expected: ConfluenceParent = {
+      space: "~62d7a66910c44eb6e3218195",
+      parent: "43122955",
+    };
+    assertEquals(expected, result);
+  });
+
+  test("confluenceParentFromString_valid_noParent", async () => {
+    const url = "https://test.atlassian.net/wiki/spaces/QUARTOCONF";
+    const result = confluenceParentFromString(url);
+    const expected: ConfluenceParent = {
+      space: "QUARTOCONF",
+      parent: undefined,
+    };
+    assertEquals(expected, result);
+  });
+
   test("confluenceParentFromString_invalid_noSpace", async () => {
-    const url = "https://allenmanning.atlassian.net/QUARTOCONF";
+    const url = "https://test.atlassian.net/QUARTOCONF";
     const result = confluenceParentFromString(url);
     const expected = {
       space: "",
@@ -307,7 +342,7 @@ const runGeneralTests = () => {
 };
 
 const runPublishRecordTests = () => {
-  const fakeServer = "https://allenmanning.atlassian.net";
+  const fakeServer = "https://test.atlassian.net";
 
   const checkForContent = (
     expectedURL: string,
@@ -336,7 +371,7 @@ const runPublishRecordTests = () => {
 
   test("buildPublishRecord_validWithChecker", async () => {
     const expectedURL =
-      "https://allenmanning.atlassian.net/wiki/spaces/fake-space-key/pages/fake-id";
+      "https://test.atlassian.net/wiki/spaces/fake-space-key/pages/fake-id";
     const expectedId = "fake-id";
 
     checkForContent(expectedURL, expectedId);
@@ -4151,6 +4186,93 @@ const runCapFirstLetter = () => {
   });
 };
 
+const runFootnoteTransform = () => {
+  const suiteLabel = (label: string) => `RunFootnoteTransform_${label}`;
+
+  test(suiteLabel("no_note"), async () => {
+    const value = "<span>No Footnotes</span>";
+    assertEquals(value, footnoteTransform(value));
+  });
+
+  test(suiteLabel("one_note_forward"), async () => {
+    const value =
+      '<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>';
+
+    const expected =
+      '<ac:structured-macro ac:name="anchor" ac:schema-version="1" ac:local-id="a6aa6f25-0bee-4a7f-929b-71fcb7eba592" ac:macro-id="d2cb5be1217ae6e086bc60005e9d27b7"><ac:parameter ac:name="">fnref1</ac:parameter></ac:structured-macro><a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>';
+    const actual = footnoteTransform(value);
+
+    assertEquals(expected, footnoteTransform(value));
+  });
+
+  otest(suiteLabel("ignore_existing"), async () => {
+    const value =
+      '<ac:structured-macro ac:name="anchor" ac:schema-version="1" ac:local-id="a6aa6f25-0bee-4a7f-929b-71fcb7eba592" ac:macro-id="d2cb5be1217ae6e086bc60005e9d27b7"><ac:parameter ac:name="">fnref1</ac:parameter></ac:structured-macro><a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>' +
+      '<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">' +
+      "<hr />" +
+      "<ol>" +
+      '<li id="fn1"><p>Here is the footnote.<ac:structured-macro ac:name="anchor" ac:schema-version="1" ac:local-id="a6aa6f25-0bee-4a7f-929b-71fcb7eba592" ac:macro-id="d2cb5be1217ae6e086bc60005e9d27b7"><ac:parameter ac:name="">fn1</ac:parameter></ac:structured-macro><a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>' +
+      "</ol>" +
+      "</section>";
+    const actual = footnoteTransform(value);
+    assertEquals(value, footnoteTransform(value));
+  });
+
+  test(suiteLabel("one_note_forward_back"), async () => {
+    const value =
+      '<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>\n' +
+      '<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">\n' +
+      "<hr />\n" +
+      "<ol>\n" +
+      '<li id="fn1"><p>Here is the footnote.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>\n' +
+      "</ol>\n" +
+      "</section>";
+
+    const expected =
+      '<ac:structured-macro ac:name="anchor" ac:schema-version="1" ac:local-id="a6aa6f25-0bee-4a7f-929b-71fcb7eba592" ac:macro-id="d2cb5be1217ae6e086bc60005e9d27b7"><ac:parameter ac:name="">fnref1</ac:parameter></ac:structured-macro><a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>\n' +
+      '<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">\n' +
+      "<hr />\n" +
+      "<ol>\n" +
+      '<li id="fn1"><p>Here is the footnote.<ac:structured-macro ac:name="anchor" ac:schema-version="1" ac:local-id="a6aa6f25-0bee-4a7f-929b-71fcb7eba592" ac:macro-id="d2cb5be1217ae6e086bc60005e9d27b7"><ac:parameter ac:name="">fn1</ac:parameter></ac:structured-macro><a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>\n' +
+      "</ol>\n" +
+      "</section>";
+    const actual = footnoteTransform(value);
+    assertEquals(expected, actual);
+  });
+
+  test(suiteLabel("two_notes"), async () => {
+    const value =
+      '<p>Here is a footnote reference,<a href="#fn1" class="footnote-ref"><sup>1</sup></a> and another.<a href="#fn2" class="footnote-ref"><sup>2</sup></a></p>\n' +
+      "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam dapibus mattis malesuada. Sed fringilla posuere ultricies. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Curabitur scelerisque, nisi a consequat aliquet, metus augue feugiat augue, non eleifend lectus eros non nunc. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Mauris sollicitudin auctor orci id vulputate. Pellentesque at luctus urna. Quisque pretium sapien at elit congue maximus. Mauris fermentum sapien eget justo elementum, eleifend auctor dui mattis. Morbi purus elit, auctor id magna et, blandit mattis nunc. Cras commodo leo ut ultrices semper. Nunc a libero dapibus, vestibulum velit sed, bibendum risus. Duis sollicitudin, libero ac sollicitudin maximus, ante massa blandit risus, non laoreet lectus justo non nisl.</p>\n" +
+      "<hr />\n" +
+      "<ol>\n" +
+      "    <li>\n" +
+      '        <p>Here is the footnote.<a href="#fnref1" class="footnote-back">↩︎</a></p>\n' +
+      "    </li>\n" +
+      "    <li>\n" +
+      "        <p>Here&rsquo;s one with multiple blocks.</p>\n" +
+      '        <p>The whole paragraph can be indented, or just the first line. In this way, multi-paragraph footnotes work like multi-paragraph list items.<a href="#fnref2" class="footnote-back">↩︎</a></p>\n' +
+      "    </li>\n" +
+      "</ol>";
+
+    const expected =
+      '<p>Here is a footnote reference,<ac:structured-macro ac:name="anchor" ac:schema-version="1" ac:local-id="a6aa6f25-0bee-4a7f-929b-71fcb7eba592" ac:macro-id="d2cb5be1217ae6e086bc60005e9d27b7"><ac:parameter ac:name="">fnref1</ac:parameter></ac:structured-macro><a href="#fn1" class="footnote-ref"><sup>1</sup></a> and another.<ac:structured-macro ac:name="anchor" ac:schema-version="1" ac:local-id="a6aa6f25-0bee-4a7f-929b-71fcb7eba592" ac:macro-id="d2cb5be1217ae6e086bc60005e9d27b7"><ac:parameter ac:name="">fnref2</ac:parameter></ac:structured-macro><a href="#fn2" class="footnote-ref"><sup>2</sup></a></p>\n' +
+      "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam dapibus mattis malesuada. Sed fringilla posuere ultricies. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Curabitur scelerisque, nisi a consequat aliquet, metus augue feugiat augue, non eleifend lectus eros non nunc. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Mauris sollicitudin auctor orci id vulputate. Pellentesque at luctus urna. Quisque pretium sapien at elit congue maximus. Mauris fermentum sapien eget justo elementum, eleifend auctor dui mattis. Morbi purus elit, auctor id magna et, blandit mattis nunc. Cras commodo leo ut ultrices semper. Nunc a libero dapibus, vestibulum velit sed, bibendum risus. Duis sollicitudin, libero ac sollicitudin maximus, ante massa blandit risus, non laoreet lectus justo non nisl.</p>\n" +
+      "<hr />\n" +
+      "<ol>\n" +
+      "    <li>\n" +
+      '        <p>Here is the footnote.<ac:structured-macro ac:name="anchor" ac:schema-version="1" ac:local-id="a6aa6f25-0bee-4a7f-929b-71fcb7eba592" ac:macro-id="d2cb5be1217ae6e086bc60005e9d27b7"><ac:parameter ac:name="">fn1</ac:parameter></ac:structured-macro><a href="#fnref1" class="footnote-back">↩︎</a></p>\n' +
+      "    </li>\n" +
+      "    <li>\n" +
+      "        <p>Here&rsquo;s one with multiple blocks.</p>\n" +
+      '        <p>The whole paragraph can be indented, or just the first line. In this way, multi-paragraph footnotes work like multi-paragraph list items.<ac:structured-macro ac:name="anchor" ac:schema-version="1" ac:local-id="a6aa6f25-0bee-4a7f-929b-71fcb7eba592" ac:macro-id="d2cb5be1217ae6e086bc60005e9d27b7"><ac:parameter ac:name="">fn2</ac:parameter></ac:structured-macro><a href="#fnref2" class="footnote-back">↩︎</a></p>\n' +
+      "    </li>\n" +
+      "</ol>";
+    const actual = footnoteTransform(value);
+    assertEquals(expected, actual);
+  });
+};
+
 if (RUN_ALL_TESTS) {
   runGeneralTests();
   runFilterFilesForUpdate();
@@ -4170,6 +4292,8 @@ if (RUN_ALL_TESTS) {
   runFindAttachments();
   runUpdateImagePathsForContentBody();
   runCapFirstLetter();
+  runFootnoteTransform();
+  runConfluenceParentFromString();
 } else {
-  runUpdateLinks();
+  runConfluenceParentFromString();
 }

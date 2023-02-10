@@ -1,21 +1,13 @@
 import { CTOR_KEY } from "../constructor-lock.ts";
 import { NodeList, NodeListMutator, nodeListMutatorSym } from "./node-list.ts";
+import {
+  insertBeforeAfter,
+  isDocumentFragment,
+  moveDocumentFragmentChildren,
+} from "./utils.ts";
 import type { Element } from "./element.ts";
 import type { Document } from "./document.ts";
-
-export class EventTarget {
-  addEventListener() {
-    // TODO
-  }
-
-  removeEventListener() {
-    // TODO
-  }
-
-  dispatchEvent() {
-    // TODO
-  }
-}
+import type { DocumentFragment } from "./document-fragment.ts";
 
 export enum NodeType {
   ELEMENT_NODE = 1,
@@ -32,23 +24,39 @@ export enum NodeType {
   NOTATION_NODE = 12,
 }
 
-const nodesAndTextNodes = (nodes: (Node | unknown)[], parentNode: Node) => {
-  return nodes.map(n => {
-    const node: Node = n instanceof Node
-      ? n
-      : new Text("" + n);
+/**
+ * Throws if any of the nodes are an ancestor
+ * of `parentNode`
+ */
+export const nodesAndTextNodes = (
+  nodes: (Node | unknown)[],
+  parentNode: Node,
+) => {
+  return nodes.flatMap((n) => {
+    if (isDocumentFragment(n as Node)) {
+      const children = Array.from((n as Node).childNodes);
+      moveDocumentFragmentChildren(n as DocumentFragment, parentNode);
+      return children;
+    } else {
+      const node: Node = n instanceof Node ? n : new Text("" + n);
 
-    // Remove from parentNode (if any)
-    node.remove();
+      // Make sure the node isn't an ancestor of parentNode
+      if (n === node && parentNode) {
+        parentNode._assertNotAncestor(node);
+      }
 
-    // Set new parent
-    node._setParent(parentNode, true);
-    return node;
+      // Remove from parentNode (if any)
+      node._remove(true);
+
+      // Set new parent
+      node._setParent(parentNode, true);
+      return [node];
+    }
   });
-}
+};
 
 export class Node extends EventTarget {
-  public nodeValue: string | null;
+  #nodeValue: string | null = null;
   public childNodes: NodeList;
   public parentNode: Node | null = null;
   public parentElement: Element | null;
@@ -82,7 +90,7 @@ export class Node extends EventTarget {
     }
     super();
 
-    this.nodeValue = null;
+    this.#nodeValue = null;
     this.childNodes = new NodeList();
     this.#childNodesMutator = this.childNodes[nodeListMutatorSym]();
     this.parentElement = <Element> parentNode;
@@ -96,6 +104,10 @@ export class Node extends EventTarget {
     return this.#childNodesMutator;
   }
 
+  /**
+   * Update ancestor chain & owner document for this child
+   * and all its children.
+   */
   _setParent(newParent: Node | null, force = false) {
     const sameParent = this.parentNode === newParent;
     const shouldUpdateParentAndAncestors = !sameParent || force;
@@ -156,6 +168,14 @@ export class Node extends EventTarget {
     return this.#ownerDocument;
   }
 
+  get nodeValue(): string | null {
+    return this.#nodeValue;
+  }
+
+  set nodeValue(value: unknown) {
+    // Setting is ignored
+  }
+
   get textContent(): string {
     let out = "";
 
@@ -191,10 +211,10 @@ export class Node extends EventTarget {
   }
 
   hasChildNodes() {
-    return this.firstChild !== null;
+    return Boolean(this.childNodes.length);
   }
 
-  cloneNode(deep: boolean = false): this {
+  cloneNode(deep = false): Node {
     const copy = this._shallowClone();
 
     copy._setOwnerDocument(this.ownerDocument);
@@ -212,19 +232,30 @@ export class Node extends EventTarget {
     throw new Error("Illegal invocation");
   }
 
-  remove() {
+  _remove(skipSetParent = false) {
     const parent = this.parentNode;
 
     if (parent) {
       const nodeList = parent._getChildNodesMutator();
       const idx = nodeList.indexOf(this);
       nodeList.splice(idx, 1);
-      this._setParent(null);
+
+      if (!skipSetParent) {
+        this._setParent(null);
+      }
     }
   }
 
   appendChild(child: Node): Node {
-    return child._appendTo(this);
+    if (isDocumentFragment(child)) {
+      const mutator = this._getChildNodesMutator();
+      mutator.push(...child.childNodes);
+      moveDocumentFragmentChildren(child, this);
+
+      return child;
+    } else {
+      return child._appendTo(this);
+    }
   }
 
   _appendTo(parentNode: Node) {
@@ -237,7 +268,7 @@ export class Node extends EventTarget {
         return this;
       }
     } else if (oldParentNode) {
-      this.remove();
+      this._remove();
     }
 
     this._setParent(parentNode, true);
@@ -250,9 +281,12 @@ export class Node extends EventTarget {
     // Just copy Firefox's error messages
     if (child && typeof child === "object") {
       if (child.parentNode === this) {
-        return child.remove();
+        child._remove();
+        return child;
       } else {
-        throw new DOMException("Node.removeChild: The node to be removed is not a child of this node");
+        throw new DOMException(
+          "Node.removeChild: The node to be removed is not a child of this node",
+        );
       }
     } else {
       throw new TypeError("Node.removeChild: Argument 1 is not an object.");
@@ -264,29 +298,8 @@ export class Node extends EventTarget {
       throw new Error("Old child's parent is not the current node.");
     }
 
-    oldChild.replaceWith(newChild);
+    oldChild._replaceWith(newChild);
     return oldChild;
-  }
-
-  private insertBeforeAfter(nodes: (Node | string)[], side: number) {
-    const parentNode = this.parentNode!;
-    const mutator = parentNode._getChildNodesMutator();
-    const index = mutator.indexOf(this);
-    nodes = nodesAndTextNodes(nodes, parentNode);
-
-    mutator.splice(index + side, 0, ...(<Node[]> nodes));
-  }
-
-  before(...nodes: (Node | string)[]) {
-    if (this.parentNode) {
-      this.insertBeforeAfter(nodes, 0);
-    }
-  }
-
-  after(...nodes: (Node | string)[]) {
-    if (this.parentNode) {
-      this.insertBeforeAfter(nodes, 1);
-    }
   }
 
   insertBefore(newNode: Node, refNode: Node | null): Node {
@@ -300,24 +313,56 @@ export class Node extends EventTarget {
 
     const index = mutator.indexOf(refNode);
     if (index === -1) {
-      throw new Error("DOMException: Child to insert before is not a child of this node");
+      throw new Error(
+        "DOMException: Child to insert before is not a child of this node",
+      );
     }
 
-    const oldParentNode = newNode.parentNode;
-    newNode._setParent(this, oldParentNode !== this);
-    mutator.splice(index, 0, newNode);
+    if (isDocumentFragment(newNode)) {
+      mutator.splice(index, 0, ...newNode.childNodes);
+      moveDocumentFragmentChildren(newNode, this);
+    } else {
+      const oldParentNode = newNode.parentNode;
+      const oldMutator = oldParentNode?._getChildNodesMutator();
+
+      if (oldMutator) {
+        oldMutator.splice(oldMutator.indexOf(newNode), 1);
+      }
+
+      newNode._setParent(this, oldParentNode !== this);
+      mutator.splice(index, 0, newNode);
+    }
 
     return newNode;
   }
 
-  replaceWith(...nodes: (Node | string)[]) {
+  _replaceWith(...nodes: (Node | string)[]) {
     if (this.parentNode) {
       const parentNode = this.parentNode;
       const mutator = parentNode._getChildNodesMutator();
-      const index = mutator.indexOf(this);
+      let viableNextSibling: Node | null = null;
+      {
+        const thisIndex = mutator.indexOf(this);
+        for (let i = thisIndex + 1; i < parentNode.childNodes.length; i++) {
+          if (!nodes.includes(parentNode.childNodes[i])) {
+            viableNextSibling = parentNode.childNodes[i];
+            break;
+          }
+        }
+      }
       nodes = nodesAndTextNodes(nodes, parentNode);
 
-      mutator.splice(index, 1, ...(nodes as Node[]));
+      let index = viableNextSibling
+        ? mutator.indexOf(viableNextSibling)
+        : parentNode.childNodes.length;
+      let deleteNumber;
+      if (parentNode.childNodes[index - 1] === this) {
+        index--;
+        deleteNumber = 1;
+      } else {
+        deleteNumber = 0;
+      }
+      mutator.splice(index, deleteNumber, ...(nodes as Node[]));
       this._setParent(null);
     }
   }
@@ -370,7 +415,9 @@ export class Node extends EventTarget {
     // non-Node or nullish values so we just copy the most relevant error message
     // from Firefox
     if (!(other instanceof Node)) {
-      throw new TypeError("Node.compareDocumentPosition: Argument 1 does not implement interface Node.");
+      throw new TypeError(
+        "Node.compareDocumentPosition: Argument 1 does not implement interface Node.",
+      );
     }
 
     let node1Root = other;
@@ -378,15 +425,19 @@ export class Node extends EventTarget {
     const node1Hierarchy = [node1Root];
     const node2Hierarchy = [node2Root];
     while (node1Root.parentNode ?? node2Root.parentNode) {
-      node1Root = node1Root.parentNode ? (node1Hierarchy.push(node1Root.parentNode), node1Root.parentNode) : node1Root;
-      node2Root = node2Root.parentNode ? (node2Hierarchy.push(node2Root.parentNode), node2Root.parentNode) : node2Root;
+      node1Root = node1Root.parentNode
+        ? (node1Hierarchy.push(node1Root.parentNode), node1Root.parentNode)
+        : node1Root;
+      node2Root = node2Root.parentNode
+        ? (node2Hierarchy.push(node2Root.parentNode), node2Root.parentNode)
+        : node2Root;
     }
 
     // Check if they don't share the same root node
     if (node1Root !== node2Root) {
-      return Node.DOCUMENT_POSITION_DISCONNECTED
-        | Node.DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC
-        | Node.DOCUMENT_POSITION_PRECEDING;
+      return Node.DOCUMENT_POSITION_DISCONNECTED |
+        Node.DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC |
+        Node.DOCUMENT_POSITION_PRECEDING;
     }
 
     const longerHierarchy = node1Hierarchy.length > node2Hierarchy.length
@@ -397,7 +448,10 @@ export class Node extends EventTarget {
       : node1Hierarchy;
 
     // Check if either is a container of the other
-    if (longerHierarchy[longerHierarchy.length - shorterHierarchy.length] === shorterHierarchy[0]) {
+    if (
+      longerHierarchy[longerHierarchy.length - shorterHierarchy.length] ===
+        shorterHierarchy[0]
+    ) {
       return longerHierarchy === node1Hierarchy
         // other is a child of this
         ? Node.DOCUMENT_POSITION_CONTAINED_BY | Node.DOCUMENT_POSITION_FOLLOWING
@@ -414,9 +468,13 @@ export class Node extends EventTarget {
 
       // We found the first common ancestor
       if (longerHierarchyNode !== shorterHierarchyNode) {
-        const siblings = shorterHierarchyNode.parentNode!._getChildNodesMutator();
+        const siblings = shorterHierarchyNode.parentNode!
+          ._getChildNodesMutator();
 
-        if (siblings.indexOf(shorterHierarchyNode) < siblings.indexOf(longerHierarchyNode)) {
+        if (
+          siblings.indexOf(shorterHierarchyNode) <
+            siblings.indexOf(longerHierarchyNode)
+        ) {
           // Shorter is before longer
           if (shorterHierarchy === node1Hierarchy) {
             // Other is before this
@@ -443,6 +501,16 @@ export class Node extends EventTarget {
     // intended logic
     return Node.DOCUMENT_POSITION_FOLLOWING;
   }
+
+  getRootNode(opts: { composed?: boolean } = {}): Node {
+    if (this.parentNode) {
+      return this.parentNode.getRootNode(opts);
+    }
+    if (opts.composed && (this as any).host) {
+      return (this as any).host.getRootNode(opts);
+    }
+    return this;
+  }
 }
 
 // Node instance `nodeType` enum constants
@@ -467,7 +535,8 @@ Node.prototype.TEXT_NODE = NodeType.TEXT_NODE;
 Node.prototype.CDATA_SECTION_NODE = NodeType.CDATA_SECTION_NODE;
 Node.prototype.ENTITY_REFERENCE_NODE = NodeType.ENTITY_REFERENCE_NODE;
 Node.prototype.ENTITY_NODE = NodeType.ENTITY_NODE;
-Node.prototype.PROCESSING_INSTRUCTION_NODE = NodeType.PROCESSING_INSTRUCTION_NODE;
+Node.prototype.PROCESSING_INSTRUCTION_NODE =
+  NodeType.PROCESSING_INSTRUCTION_NODE;
 Node.prototype.COMMENT_NODE = NodeType.COMMENT_NODE;
 Node.prototype.DOCUMENT_NODE = NodeType.DOCUMENT_NODE;
 Node.prototype.DOCUMENT_TYPE_NODE = NodeType.DOCUMENT_TYPE_NODE;
@@ -475,8 +544,10 @@ Node.prototype.DOCUMENT_FRAGMENT_NODE = NodeType.DOCUMENT_FRAGMENT_NODE;
 Node.prototype.NOTATION_NODE = NodeType.NOTATION_NODE;
 
 export class CharacterData extends Node {
+  #nodeValue = "";
+
   constructor(
-    public data: string,
+    data: string,
     nodeName: string,
     nodeType: NodeType,
     parentNode: Node | null,
@@ -489,11 +560,55 @@ export class CharacterData extends Node {
       key,
     );
 
-    this.nodeValue = data;
+    this.#nodeValue = data;
+  }
+
+  get nodeValue(): string {
+    return this.#nodeValue;
+  }
+
+  set nodeValue(value: any) {
+    this.#nodeValue = String(value ?? "");
+  }
+
+  get data(): string {
+    return this.#nodeValue;
+  }
+
+  set data(value: any) {
+    this.nodeValue = value;
+  }
+
+  get textContent(): string {
+    return this.#nodeValue;
+  }
+
+  set textContent(value: any) {
+    this.nodeValue = value;
   }
 
   get length(): number {
     return this.data.length;
+  }
+
+  before(...nodes: (Node | string)[]) {
+    if (this.parentNode) {
+      insertBeforeAfter(this, nodes, true);
+    }
+  }
+
+  after(...nodes: (Node | string)[]) {
+    if (this.parentNode) {
+      insertBeforeAfter(this, nodes, false);
+    }
+  }
+
+  remove() {
+    this._remove();
+  }
+
+  replaceWith(...nodes: (Node | string)[]) {
+    this._replaceWith(...nodes);
   }
 
   // TODO: Implement NonDocumentTypeChildNode.nextElementSibling, etc
@@ -505,14 +620,12 @@ export class Text extends CharacterData {
     text: string = "",
   ) {
     super(
-      text,
+      String(text),
       "#text",
       NodeType.TEXT_NODE,
       null,
       CTOR_KEY,
     );
-
-    this.nodeValue = text;
   }
 
   _shallowClone(): Node {
@@ -529,14 +642,12 @@ export class Comment extends CharacterData {
     text: string = "",
   ) {
     super(
-      text,
+      String(text),
       "#comment",
       NodeType.COMMENT_NODE,
       null,
       CTOR_KEY,
     );
-
-    this.nodeValue = text;
   }
 
   _shallowClone(): Node {
@@ -547,4 +658,3 @@ export class Comment extends CharacterData {
     return <string> this.nodeValue;
   }
 }
-

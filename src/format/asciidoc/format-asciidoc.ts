@@ -27,6 +27,7 @@ import { dirAndStem } from "../../core/path.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { ProjectContext } from "../../project/types.ts";
 import {
+  kOutputFile,
   kSectionTitleReferences,
   kShiftHeadingLevelBy,
 } from "../../config/constants.ts";
@@ -39,8 +40,7 @@ import {
 } from "../../project/types/book/book-bibliography.ts";
 import { citeIndex } from "../../project/project-cites.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
-import { PandocOptions } from "../../command/render/types.ts";
-import { warning } from "log/mod.ts";
+import { PandocOptions, RenderOptions } from "../../command/render/types.ts";
 
 type AsciiDocBookPart = string | {
   partPath?: string;
@@ -93,6 +93,20 @@ const asciidocBookExtension = {
       [kUseAsciidocNativeCites]: true,
       [kRefTargetIdentifier]: kRefTargetIndentifierValue,
     };
+  },
+  filterFormat: (source: string, format: Format, project?: ProjectContext) => {
+    if (project) {
+      // If this is the root index page of the book, rename the output
+      const inputFile = relative(project.dir, source);
+      if (isBookIndexPage(inputFile) && !format.pandoc[kOutputFile]) {
+        const title = bookOutputStem(project.dir, project.config);
+        const adocOutputFile = title + ".adoc";
+        format.pandoc[kOutputFile] = adocOutputFile;
+      }
+      return format;
+    } else {
+      return format;
+    }
   },
   async onMultiFilePrePrender(
     isIndex: boolean,
@@ -218,23 +232,6 @@ const asciidocBookExtension = {
         Deno.writeTextFileSync(
           indexPage,
           updatedContents,
-        );
-      }
-    }
-
-    // Rename the index page
-    if (indexPage) {
-      const title = bookOutputStem(context.dir, context.config);
-      const adocOutputFile = title + ".adoc";
-      const adocOutputPath = join(outDir, adocOutputFile);
-      if (!existsSync(adocOutputPath)) {
-        Deno.renameSync(
-          join(indexPage),
-          join(outDir, adocOutputFile),
-        );
-      } else {
-        warning(
-          `A an output named ${adocOutputFile} already exists. The root document for this book is 'index.adoc'.`,
         );
       }
     }

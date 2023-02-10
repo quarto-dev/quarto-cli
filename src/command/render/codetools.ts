@@ -150,7 +150,8 @@ export function codeToolsPostprocessor(format: Format) {
             layoutDiv.appendChild(title);
             const button = doc.createElement("button");
             button.setAttribute("type", "button");
-            button.classList.add("btn").add("code-tools-button");
+            button.classList.add("btn");
+            button.classList.add("code-tools-button");
             const icon = doc.createElement("i");
             icon.classList.add("bi");
             button.appendChild(icon);
@@ -165,7 +166,8 @@ export function codeToolsPostprocessor(format: Format) {
               button.setAttribute("data-bs-toggle", "dropdown");
               button.setAttribute("aria-expanded", "false");
               const ul = doc.createElement("ul");
-              ul.classList.add("dropdown-menu").add("dropdown-menu-end");
+              ul.classList.add("dropdown-menu");
+              ul.classList.add("dropdown-menu-end");
               ul.setAttribute("aria-labelelledby", kCodeToolsMenuButtonId);
               const addListItem = (id: string, text: string) => {
                 const a = doc.createElement("a");
@@ -222,7 +224,8 @@ export function codeToolsPostprocessor(format: Format) {
             if (embeddedCode) {
               // create a bootstrap model to wrap it
               const modalDiv = doc.createElement("div");
-              modalDiv.classList.add("modal").add("fade");
+              modalDiv.classList.add("modal");
+              modalDiv.classList.add("fade");
               modalDiv.setAttribute("id", kEmbeddedSourceModalId);
               modalDiv.setAttribute("tabindex", "-1");
               modalDiv.setAttribute(
@@ -231,9 +234,8 @@ export function codeToolsPostprocessor(format: Format) {
               );
               modalDiv.setAttribute("aria-hidden", "true");
               const modalDialogDiv = doc.createElement("div");
-              modalDialogDiv.classList.add("modal-dialog").add(
-                "modal-dialog-scrollable",
-              );
+              modalDialogDiv.classList.add("modal-dialog");
+              modalDialogDiv.classList.add("modal-dialog-scrollable");
               const modalContentDiv = doc.createElement("div");
               modalContentDiv.classList.add("modal-content");
               const modalDialogHeader = doc.createElement("div");
@@ -269,7 +271,7 @@ export function codeToolsPostprocessor(format: Format) {
               }
 
               modalBody.appendChild(embeddedCode);
-              embeddedCode.classList.delete(kEmbeddedSourceClass);
+              embeddedCode.classList.remove(kEmbeddedSourceClass);
             }
           }
 
