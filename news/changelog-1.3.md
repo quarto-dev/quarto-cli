@@ -135,6 +135,7 @@
 - Don't emit empty cells ([#4034](https://github.com/quarto-dev/quarto-cli/issues/4034)).
 - Resolve link tags correctly in html dependencies ([#4304](https://github.com/quarto-dev/quarto-cli/discussions/4304)) (Thank you, @jdlom!).
 - use correct language code for Korean ([#4187](https://github.com/quarto-dev/quarto-cli/discussions/4187)).
+- resolve YAML options correctly for comments with open+close syntax ([#3901](https://github.com/quarto-dev/quarto-cli/issues/3901)).
 
 ## Pandoc filter changes
 
