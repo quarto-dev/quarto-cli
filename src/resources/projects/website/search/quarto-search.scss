@@ -530,13 +530,23 @@ $quarto-search-collapse-icon-size: 26px !default;
     }
   }
   @at-root .aa-DetachedContainer--modal {
-    border-radius: 6px;
     bottom: inherit;
     height: auto;
     margin: 0 auto;
-    max-width: 850px;
     position: absolute;
-    top: 100px;
+    @include media-breakpoint-down(sm) {
+      width: 100%;
+      top: 0px;
+      border-radius: 0px;
+      border: none;
+    }
+
+    @include media-breakpoint-up(med) {
+      top: 100px;
+      border-radius: 6px;
+      max-width: 850px;
+    }
+
     .aa-PanelLayout {
       max-height: var(--aa-detached-modal-max-height);
       padding-bottom: var(--aa-spacing-half);
