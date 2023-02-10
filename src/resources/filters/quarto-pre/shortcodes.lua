@@ -47,6 +47,12 @@ function transformImage(el)
   end
 end
 
+local function unsmart_str(str)
+  str = str:gsub('–', '--'):gsub('—', '---'):gsub('…', '...')
+  str = str:gsub('“', '"'):gsub('”', '"'):gsub('‘', "'"):gsub('’', "'")
+  return str
+end
+
 -- transforms shortcodes inside code
 function transformShortcodeCode(el)
 
@@ -68,7 +74,7 @@ function transformShortcodeCode(el)
       return beginCode:sub(2) .. code .. endCode:sub(1, #endCode-1)
     else
       -- see if any of the shortcode handlers want it (and transform results to plain text)
-      local inlines = markdownToInlines(kOpenShortcode .. code .. kCloseShortcode)
+      local inlines = markdownToInlines(kOpenShortcode .. unsmart_str(code) .. kCloseShortcode)
       local transformed = transformShortcodeInlines(inlines, true)
       if transformed ~= nil then
         -- need to undo fancy quotes
@@ -331,6 +337,11 @@ function processShortCode(inlines)
   local shortCode = nil
   local args = pandoc.List()
   local raw_args = pandoc.List()
+  inlines = inlines:walk({
+    Str = function(str)
+      return pandoc.Str(unsmart_str(str.text))
+    end
+  })
 
   -- slice off the open and close tags
   inlines = tslice(inlines, 2, #inlines - 1)

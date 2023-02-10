@@ -208,6 +208,7 @@
 - Fix issue with "No inspectable targets" with Chrome Browser ([#4653](https://github.com/quarto-dev/quarto-cli/issues/4653))
 - Add `title` attribute for callouts (can be used rather than heading for defining the title)
 - Handle more varieties of raw HTML for Docusaurus output
+- unprocess smart quotes and other typographical changes in shortcode parameters ([#3744](https://github.com/quarto-dev/quarto-cli/issues/3744)).
 
 ## Pandoc filter changes
 
