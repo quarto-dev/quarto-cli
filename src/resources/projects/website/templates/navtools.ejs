@@ -19,10 +19,10 @@ const isWide = toolCount > 2; %>
 <% tools.forEach(tool => {  %>
 
   <% if (tool.menu) { %>
-    <% toolDropdownId = 'sidebar-tool-dropdown-' + toolCount %>
+    <% toolDropdownId = 'quarto-navigation-tool-dropdown-' + toolCount %>
     <% toolCount = toolCount + 1 %>
 
-    <a href="<%- tool.href %>" title="<%- tool.text %>" id="<%- toolDropdownId %>" class="sidebar-tool dropdown-toggle px-1" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-<%- tool.icon %>"></i></a>
+    <a href="<%- tool.href %>" title="<%- tool.text %>" id="<%- toolDropdownId %>" class="quarto-navigation-tool dropdown-toggle px-1" data-bs-toggle="dropdown" aria-expanded="false" aria-label="<%- tool['aria-label'] || tool.text %>"><i class="bi bi-<%- tool.icon %>"></i></a>
     <ul class="dropdown-menu" aria-labelledby="<%- toolDropdownId %>">
       <% tool.menu.forEach(item => { %> 
         <li>
@@ -36,17 +36,17 @@ const isWide = toolCount > 2; %>
       <% }) %>     
     </ul>
   <% } else { %>
-    <a href="<%- tool.href %>" title="<%- tool.text %>" class="sidebar-tool px-1"><i class="bi bi-<%- tool.icon %>"></i></a>
+    <a href="<%- tool.href %>" title="<%- tool.text %>" class="quarto-navigation-tool px-1" aria-label="<%- tool['aria-label'] || tool.text %>"><i class="bi bi-<%- tool.icon %>"></i></a>
   <% } %>
 <% }) %>
 
 <% if (darkToggle) { %>  
-  <% partial('navdarktoggle.ejs', { classes: 'sidebar-tool' }) %>
+  <% partial('navdarktoggle.ejs', { classes: 'quarto-navigation-tool  px-1' }) %>
 <% } %>
 <% if (readerToggle) { %>
-  <% partial('navreadertoggle.ejs', { classes: 'sidebar-tool' }) %>
+  <% partial('navreadertoggle.ejs', { classes: 'quarto-navigation-tool px-1' }) %>
 <% } %>    
 <% if (search && search === "overlay") { %>
-    <% partial('navsearch.ejs', { classes: 'sidebar-tool' }) %>
+    <% partial('navsearch.ejs', { classes: 'quarto-navigation-tool px-1' }) %>
 <% } %>
 </div>

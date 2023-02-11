@@ -1470,18 +1470,6 @@ div.callout.callout-style-default > .callout-header {
 }
 
 // dark mode
-.navbar .quarto-color-scheme-toggle {
-  @include media-breakpoint-up(lg) {
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
-  }
-  @include media-breakpoint-down(md) {
-    padding-left: 0;
-    padding-right: 0;
-    padding-bottom: 0.5em;
-  }
-}
-
 .quarto-reader-toggle .bi::before,
 .quarto-color-scheme-toggle .bi::before {
   display: inline-block;
@@ -1492,31 +1480,8 @@ div.callout.callout-style-default > .callout-header {
   background-size: 1rem 1rem;
 }
 
-.navbar-collapse .quarto-color-scheme-toggle {
-  padding-left: 0.6rem;
-  padding-right: 0;
-  margin-top: -12px;
-}
-
 .sidebar-navigation {
   padding-left: 20px;
-}
-
-.sidebar-navigation .quarto-color-scheme-toggle .bi::before {
-  padding-top: 0.2rem;
-  margin-bottom: -0.2rem;
-}
-
-.sidebar-tools-main .quarto-color-scheme-toggle .bi::before {
-  padding-top: 0.2rem;
-  margin-bottom: -0.2rem;
-}
-
-.navbar .quarto-color-scheme-toggle .bi::before {
-  padding-top: 7px;
-  margin-bottom: -7px;
-  padding-left: 2px;
-  margin-right: 2px;
 }
 
 .navbar .quarto-color-scheme-toggle:not(.alternate) .bi::before {
