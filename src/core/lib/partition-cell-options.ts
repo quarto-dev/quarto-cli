@@ -202,7 +202,6 @@ export function partitionCellOptionsText(
           line.substring.endsWith("\r") ||
           line.substring.endsWith("\n")
         ) {
-          console.log({ line });
           // add range for the \r or \n
           yamlLines.push({
             substring: line.substring[line.substring.length - 1],
