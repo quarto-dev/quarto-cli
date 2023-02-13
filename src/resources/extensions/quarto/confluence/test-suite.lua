@@ -172,4 +172,77 @@ function TestLinkConfluence:testAttachment()
   lu.assertEquals(actual, expected)
 end
 
+TestCalloutConfluence = {}
+function TestCalloutConfluence:testBasicNote()
+  local expected = [[<ac:structured-macro ac:name="info" ac:schema-version="1" ac:macro-id="1c8062cd-87de-4701-a698-fd435e057468">
+    <ac:rich-text-body>
+        fake-content
+    </ac:rich-text-body>
+</ac:structured-macro>]]
+  local type = 'note'
+  local content = "fake-content"
+  local actual = confluence.CalloutConfluence(type, content)
+  lu.assertEquals(actual, expected)
+end
+
+function TestCalloutConfluence:testBasicWarning()
+  local expected = [[<ac:structured-macro ac:name="note" ac:schema-version="1" ac:macro-id="1049a0d8-470f-4f83-a0d7-b6ad35ea8eda">
+    <ac:rich-text-body>
+        fake-content
+    </ac:rich-text-body>
+</ac:structured-macro>]]
+  local type = 'warning'
+  local content = "fake-content"
+  local actual = confluence.CalloutConfluence(type, content)
+  lu.assertEquals(actual, expected)
+end
+
+function TestCalloutConfluence:testBasicImportant()
+  local expected = [[<ac:structured-macro ac:name="warning" ac:schema-version="1" ac:macro-id="0185f821-7aa4-404a-8748-ec59a46357e1">
+    <ac:rich-text-body>
+        fake-content
+    </ac:rich-text-body>
+</ac:structured-macro>]]
+  local type = 'important'
+  local content = "fake-content"
+  local actual = confluence.CalloutConfluence(type, content)
+  lu.assertEquals(actual, expected)
+end
+
+function TestCalloutConfluence:testBasicTip()
+  local expected = [[<ac:structured-macro ac:name="tip" ac:schema-version="1" ac:macro-id="97c39328-9651-4c56-8a8c-ab5537001d86">
+    <ac:rich-text-body>
+        fake-content
+    </ac:rich-text-body>
+</ac:structured-macro>]]
+  local type = 'tip'
+  local content = "fake-content"
+  local actual = confluence.CalloutConfluence(type, content)
+  lu.assertEquals(actual, expected)
+end
+
+function TestCalloutConfluence:testBasicCaution()
+  local expected = [[<ac:structured-macro ac:name="note" ac:schema-version="1" ac:macro-id="1049a0d8-470f-4f83-a0d7-b6ad35ea8eda">
+    <ac:rich-text-body>
+        fake-content
+    </ac:rich-text-body>
+</ac:structured-macro>]]
+  local type = 'caution'
+  local content = "fake-content"
+  local actual = confluence.CalloutConfluence(type, content)
+  lu.assertEquals(actual, expected)
+end
+
+function TestCalloutConfluence:testInvalidType()
+  local expected = [[<ac:structured-macro ac:name="info" ac:schema-version="1" ac:macro-id="1c8062cd-87de-4701-a698-fd435e057468">
+    <ac:rich-text-body>
+        fake-content
+    </ac:rich-text-body>
+</ac:structured-macro>]]
+  local type = 'invalid-type'
+  local content = "fake-content"
+  local actual = confluence.CalloutConfluence(type, content)
+  lu.assertEquals(actual, expected)
+end
+
 os.exit(lu.LuaUnit.run())
