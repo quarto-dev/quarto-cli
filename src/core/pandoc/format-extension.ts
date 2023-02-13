@@ -1,3 +1,4 @@
+
 /*
 * pandoc-extensions.ts
 *
@@ -172,5 +173,5 @@ export const kPandocExtensions = [
   "+xrefs_number",
   "-xrefs_number",
   "+yaml_metadata_block",
-  "-yaml_metadata_block",
+  "-yaml_metadata_block"
 ];
