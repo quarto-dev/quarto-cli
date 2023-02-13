@@ -129,6 +129,26 @@ function LinkConfluence(source, target, title, attr)
           escape(title,true) .. "'>" .. escape(source, false) .. "</a>"
 end
 
+function CalloutConfluence(type, content)
+  local SNIPPET = [[<ac:structured-macro ac:name="{type}" ac:schema-version="1" ac:macro-id="{id}"><ac:rich-text-body>{content}</ac:rich-text-body></ac:structured-macro>]]
+
+  local MAP_TYPE = {
+    note = {name = "info", id = "1c8062cd-87de-4701-a698-fd435e057468"},
+    warning = {name = "note", id = "1049a0d8-470f-4f83-a0d7-b6ad35ea8eda"},
+    important = {name = "warning", id = "0185f821-7aa4-404a-8748-ec59a46357e1"},
+    tip = {name = "tip", id = "97c39328-9651-4c56-8a8c-ab5537001d86"},
+    caution = {name = "note", id = "1049a0d8-470f-4f83-a0d7-b6ad35ea8eda"}
+  }
+
+  local mappedType = MAP_TYPE[type] or MAP_TYPE['note']
+
+  return interpolate {
+      SNIPPET,
+      type = mappedType.name,
+      id = mappedType.id,
+      content = content}
+end
+
 function CodeBlockConfluence(codeValue, languageValue)
   local CODE_SNIPPET = [[<ac:structured-macro
       ac:name="code"
@@ -153,6 +173,7 @@ return {
   CodeBlockConfluence = CodeBlockConfluence,
   LinkConfluence = LinkConfluence,
   TableConfluence = TableConfluence,
+  CalloutConfluence = CalloutConfluence,
   escape = escape,
   interpolate = interpolate
 }

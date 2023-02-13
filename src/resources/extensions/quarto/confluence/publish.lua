@@ -14,14 +14,17 @@ function dumpObject(o)
   end
 end
 
-function dump(object, label)
+function log(label, object)
   print(label or '' .. ': ', dumpObject(object))
 end
 
 function Writer (doc, opts)
   local filter ={
     Callout = function (callout)
-      return pandoc.RawBlock('html', "<callout></callout>")
+      local renderString = confluence.CalloutConfluence(
+              callout.type,
+              pandoc.utils.stringify(callout.content))
+      return pandoc.RawInline('html', renderString)
     end,
     Image = function (image)
       local renderString = confluence.CaptionedImageConfluence(

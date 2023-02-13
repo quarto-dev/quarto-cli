@@ -22,3 +22,9 @@ export const logError = (
   value: any,
   prefix: LogPrefix = LogPrefix.GENERAL
 ) => trace(message, value, prefix, LogLevel.ERROR);
+
+export const logWarning = (
+  message: string,
+  value: any,
+  prefix: LogPrefix = LogPrefix.GENERAL
+) => trace(message, value, prefix, LogLevel.WARN);
