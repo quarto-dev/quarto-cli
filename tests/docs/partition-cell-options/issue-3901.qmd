@@ -1,0 +1,52 @@
+---
+jupyter: c
+---
+
+## Hello, World!
+
+```{c}
+#include <stdio.h>
+
+int main() {
+    printf("Hello, world!");
+}
+```
+
+```{c}
+/*| echo: false */
+/*| fig-cap: 'The classic ''Hello, world!'' program for C.' */
+
+#include <stdio.h>
+
+int main() {
+    printf("Hello, world!");
+}
+```
+
+## Mathematical operations
+
+Using functions in "math.h" requires linking against the C math library.
+
+```{c}
+//%cflags:-lm
+
+#include <stdio.h>
+#include <math.h>
+
+int main() {
+    printf("sqrt(67) = %f", sqrt(67));
+}
+```
+
+```{c}
+/*| echo: true */
+/*| fig-cap: "You can add libraries using the 'cflags' line magic." */
+//%cflags: -lm
+
+#include <stdio.h>
+#include <math.h>
+
+int main() {
+    printf("sqrt(67) = %f", sqrt(67));
+}
+```

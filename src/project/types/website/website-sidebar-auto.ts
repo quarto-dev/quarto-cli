@@ -314,11 +314,6 @@ function sortEntries(a: Entry, b: Entry) {
   const filenameOrder = a.basename.toLocaleUpperCase().localeCompare(
     b.basename.toLocaleUpperCase(),
   );
-  if (a.children && !b.children) {
-    return 1;
-  } else if (b.children && !a.children) {
-    return -1;
-  }
   if (a.order !== undefined && b.order !== undefined) {
     const order = a.order - b.order;
     return order !== 0 ? order : filenameOrder;
@@ -327,7 +322,13 @@ function sortEntries(a: Entry, b: Entry) {
   } else if (b.order !== undefined) {
     return 1;
   } else {
-    return filenameOrder;
+    if (a.children && !b.children) {
+      return 1;
+    } else if (b.children && !a.children) {
+      return -1;
+    } else {
+      return filenameOrder;
+    }
   }
 }
 
