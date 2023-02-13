@@ -45,7 +45,7 @@ $content-padding-top: 14px !default;
 }
 
 footer.footer .nav-footer,
-#quarto-header nav {
+#quarto-header > nav {
   padding-left: 1em;
   padding-right: 1em;
 }
@@ -342,9 +342,32 @@ $sidebar-section-bottom-margin: 0.2em;
 }
 
 // Toggle the top secondary navigation bar
-@include media-breakpoint-down(md) {
+@include media-breakpoint-down(lg) {
   .quarto-secondary-nav {
     display: block;
+
+    button.quarto-btn-toggle {
+      margin-left: -0.75rem;
+    }
+
+    nav.quarto-page-breadcrumbs {
+      display: flex;
+      align-items: center;
+      padding-right: 1em;
+      margin-left: -0.25em;
+
+      a {
+        text-decoration: none;
+      }
+
+      ol.breadcrumb {
+        margin-bottom: 0;
+      }
+    }
+  }
+
+  #quarto-sidebar .sidebar-menu-container {
+    padding-right: 1em;
   }
 }
 
@@ -366,7 +389,6 @@ $sidebar-disabled-color: rgba($sidebar-fg, 0.75) !default;
 
 .quarto-secondary-nav .quarto-btn-toggle {
   color: $sidebar-color;
-  padding-right: 0;
 }
 
 .quarto-secondary-nav[aria-expanded="false"]
@@ -459,8 +481,8 @@ nav.sidebar.sidebar-navigation:not(.rollup) {
   }
 
   .sidebar.sidebar-navigation {
-    transition: height 0.15s linear;
-    width: 100%;
+    transition: width 0.15s linear;
+    min-height: 100%;
   }
 
   nav.quarto-secondary-nav {
@@ -519,8 +541,15 @@ nav.sidebar.sidebar-navigation:not(.rollup) {
 }
 
 #quarto-sidebar {
-  width: 100%;
-  padding-right: 1em;
+  @include media-breakpoint-up(lg) {
+    width: 100%;
+    padding-right: 1em;
+  }
+  @include media-breakpoint-down(md) {
+    padding-left: 1em;
+    padding-right: 2em;
+  }
+
   color: $sidebar-fg;
 }
 

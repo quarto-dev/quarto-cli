@@ -49,6 +49,7 @@ export interface Navigation {
   footer?: NavigationFooter;
   pageMargin?: PageMargin;
   bodyDecorators?: BodyDecorators;
+  breadCrumbs?: SidebarItem[];
 }
 
 export interface NavigationPagination {
