@@ -481,7 +481,6 @@ nav.sidebar.sidebar-navigation:not(.rollup) {
   }
 
   .sidebar.sidebar-navigation {
-    transition: width 0.15s linear;
     min-height: 100%;
   }
 
@@ -546,11 +545,38 @@ nav.sidebar.sidebar-navigation:not(.rollup) {
     padding-right: 1em;
   }
   @include media-breakpoint-down(md) {
-    padding-left: 1em;
+    padding-left: 0em;
     padding-right: 2em;
+    width: 100%;
+    transition-property: background-color 0.25s;
+
+    .sidebar-menu-container {
+      transition-property: width 0.25s, background-color 0s;
+      background-color: $sidebar-bg;
+      padding-left: 1em;
+      min-height: 100vh;
+      display: inline-block;
+    }
   }
 
   color: $sidebar-fg;
+}
+
+.quarto-page-breadcrumbs .breadcrumb-item + .breadcrumb-item {
+  padding-left: 0.35em;
+}
+
+.quarto-page-breadcrumbs .breadcrumb-item + .breadcrumb-item::before {
+  padding-right: 0.35em;
+}
+
+@include media-breakpoint-down(md) {
+  #quarto-sidebar.collapse {
+    animation-name: fade-in;
+  }
+  #quarto-sidebar.collapse.show {
+    background-color: #66666666;
+  }
 }
 
 .quarto-sidebar-footer {
