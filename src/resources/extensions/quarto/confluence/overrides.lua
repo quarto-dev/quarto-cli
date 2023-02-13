@@ -130,11 +130,7 @@ function LinkConfluence(source, target, title, attr)
 end
 
 function CalloutConfluence(type, content)
-  local SNIPPET = [[<ac:structured-macro ac:name="{type}" ac:schema-version="1" ac:macro-id="{id}">
-    <ac:rich-text-body>
-        {content}
-    </ac:rich-text-body>
-</ac:structured-macro>]]
+  local SNIPPET = [[<ac:structured-macro ac:name="{type}" ac:schema-version="1" ac:macro-id="{id}"><ac:rich-text-body>{content}</ac:rich-text-body></ac:structured-macro>]]
 
   local MAP_TYPE = {
     note = {name = "info", id = "1c8062cd-87de-4701-a698-fd435e057468"},
