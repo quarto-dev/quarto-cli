@@ -18,6 +18,23 @@ function log(label, object)
   print(label or '' .. ': ', dumpObject(object))
 end
 
+local function inlineOrInlinesToString(inlineOrInlinesValue)
+  if(pandoc.utils.type(inlineOrInlinesValue) == "Inline") then
+    local inlineElement = inlineOrInlinesValue
+    return inlineElement.text or ""
+  end
+
+  if(pandoc.utils.type(inlineOrInlinesValue) == "Inlines") then
+    local inlineElementList = inlineOrInlinesValue
+    local result = ""
+    for i = 1, #inlineElementList do
+      result = result .. inlineElementList[i].text or ""
+    end
+    return result;
+  end
+  return ""
+end
+
 function Writer (doc, opts)
   local filter ={
     Callout = function (callout)
@@ -35,12 +52,18 @@ function Writer (doc, opts)
       return pandoc.RawInline('html', renderString)
     end,
     Link = function (link)
+      local content = inlineOrInlinesToString(link.content)
+      local list = link.content
+      local disableEscapeContents = #list > 0
       local renderString = confluence.LinkConfluence(
-              pandoc.utils.stringify(link.content),
+              content,
               link.target,
               link.title,
-              link.attributes)
+              link.attributes,
+              disableEscapeContents)
+
       return pandoc.RawInline('html', renderString)
+
     end,
     CodeBlock = function (codeBlock)
       local renderString = confluence.CodeBlockConfluence(

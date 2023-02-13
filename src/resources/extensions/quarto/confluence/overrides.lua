@@ -114,19 +114,19 @@ function CaptionedImageConfluence(source, title, caption, attr)
 
 end
 
-function LinkConfluence(source, target, title, attr)
+function LinkConfluence(source, target, title, attr, disableEscapeContents)
   local LINK_ATTACHMENT_SNIPPET = [[<ac:link><ri:attachment ri:filename="{source}"/><ac:plain-text-link-body><![CDATA[{target}{doubleBraket}></ac:plain-text-link-body></ac:link>]]
 
   if(not startsWithHttp(target) and (not string.find(target, ".qmd"))) then
     return interpolate {
     LINK_ATTACHMENT_SNIPPET,
-    source = escape(source),
+    source = disableEscapeContents and source or escape(source),
     target = target,
     doubleBraket = "]]"
   }
   end
   return "<a href='" .. escape(target,true) .. "' title='" ..
-          escape(title,true) .. "'>" .. escape(source, false) .. "</a>"
+          escape(title,true) .. "'>" .. (disableEscapeContents and source or escape(source, false)) .. "</a>"
 end
 
 function CalloutConfluence(type, content)
