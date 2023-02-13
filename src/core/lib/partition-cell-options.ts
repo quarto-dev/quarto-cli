@@ -58,11 +58,11 @@ export function partitionCellOptions(
             0,
             yamlOption.length - optionSuffix.length,
           );
-        }
-        if (line.endsWith("\r\n")) {
-          yamlOption += "\r\n";
-        } else if (line.endsWith("\r") || line.endsWith("\n")) {
-          yamlOption += line[line.length - 1];
+          if (line.endsWith("\r\n")) {
+            yamlOption += "\r\n";
+          } else if (line.endsWith("\r") || line.endsWith("\n")) {
+            yamlOption += line[line.length - 1];
+          }
         }
         yamlLines.push(yamlOption);
         optionsSource.push(line);
@@ -189,27 +189,30 @@ export function partitionCellOptionsText(
           },
         };
         yamlLines.push(rangedYamlOption);
-        if (line.substring.endsWith("\r\n")) {
-          // add range for the \r\n
-          yamlLines.push({
-            substring: "\r\n",
-            range: {
-              start: line.range.end - 2,
-              end: line.range.end,
-            },
-          });
-        } else if (
-          line.substring.endsWith("\r") ||
-          line.substring.endsWith("\n")
-        ) {
-          // add range for the \r or \n
-          yamlLines.push({
-            substring: line.substring[line.substring.length - 1],
-            range: {
-              start: line.range.end - 1,
-              end: line.range.end,
-            },
-          });
+
+        if (optionSuffix) {
+          if (line.substring.endsWith("\r\n")) {
+            // add range for the \r\n
+            yamlLines.push({
+              substring: "\r\n",
+              range: {
+                start: line.range.end - 2,
+                end: line.range.end,
+              },
+            });
+          } else if (
+            line.substring.endsWith("\r") ||
+            line.substring.endsWith("\n")
+          ) {
+            // add range for the \r or \n
+            yamlLines.push({
+              substring: line.substring[line.substring.length - 1],
+              range: {
+                start: line.range.end - 1,
+                end: line.range.end,
+              },
+            });
+          }
         }
 
         optionsSource.push(line);
