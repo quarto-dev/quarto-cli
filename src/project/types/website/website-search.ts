@@ -269,7 +269,10 @@ export async function updateSearchIndex(
 
           // If there are any paragraphs residing outside a section, just
           // include that in the document entry
-          const pararaphNodes = doc.querySelectorAll(`${mainSelector} > p`);
+          const pararaphNodes = doc.querySelectorAll(
+            `${mainSelector} > p, ${mainSelector} > div.cell`,
+          );
+
           for (const paragraphNode of pararaphNodes) {
             const text = paragraphNode.textContent.trim();
             if (text) {

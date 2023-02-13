@@ -98,12 +98,6 @@ header.headroom--unpinned {
   text-overflow: ellipsis;
 }
 
-.navbar-container {
-  #quarto-search {
-    margin-right: 0.5em;
-  }
-}
-
 .navbar-brand-container {
   max-width: calc(100% - 85px);
   min-width: 0;
@@ -126,6 +120,15 @@ header.headroom--unpinned {
 .navbar-toggler {
   flex-basis: content;
   flex-shrink: 0;
+}
+
+@include media-breakpoint-down(med) {
+  .navbar {
+    .navbar-toggler {
+      order: -1;
+      margin-right: 0.5em;
+    }
+  }
 }
 
 .navbar-logo {

@@ -26,7 +26,7 @@ import {
 } from "./types.ts";
 
 import { DESCENDANT_PAGE_SIZE, V2EDITOR_METADATA } from "../constants.ts";
-import { logError, trace } from "../confluence-logger.ts";
+import { logError, logWarning, trace } from "../confluence-logger.ts";
 
 export class ConfluenceClient {
   public constructor(private readonly token_: AccountToken) {}
@@ -260,6 +260,9 @@ export class ConfluenceClient {
       } else {
         return response as unknown as T;
       }
+    } else if (response.status === 403) {
+      // Let parent handle 403 Forbidden, sometimes they are expected
+      throw new ApiError(response.status, response.statusText);
     } else if (response.status !== 200) {
       logError("response.status !== 200", response);
       throw new ApiError(response.status, response.statusText);
