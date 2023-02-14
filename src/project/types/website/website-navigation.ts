@@ -1036,13 +1036,7 @@ async function navbarEjsData(
       navbar.tools,
     );
 
-    data.right?.push(...navbar.tools.map((tool) => {
-      const navItem = tool as NavigationItemObject;
-      navItem[kAriaLabel] = navItem.text; // FIXME @dragonstyle shouldn't this check for the existence of kAriaLabel first?
-      delete navItem.text;
-      resolveIcon(navItem);
-      return navItem;
-    }));
+    data.tools = navbar.tools;
   }
 
   return data;

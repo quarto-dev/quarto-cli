@@ -380,7 +380,9 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
         classes: ["mermaid", "mermaid-js"],
         attrs: preAttrs,
       });
-      preEl.push(pandocRawStr(escape(cell.source.value))); // TODO escaping removes MappedString information.
+
+      const content = handlerContext.cellContent(cell);
+      preEl.push(pandocRawStr(escape(content.value))); // TODO escaping removes MappedString information.
 
       const attrs: Record<string, unknown> = {};
       if (isRevealjsOutput(handlerContext.options.context.format.pandoc)) {

@@ -65,7 +65,8 @@
 - Allow `%%| label` mermaid cell option that control the `id` of the resulting SVG, to facilitate CSS overrides.
 - Use `htmlLabels: false` in mermaid flowcharts.
 - Remove support for tooltips, which appear to not be working in mermaid 9.2.2.
-- Add support for `fig-align` in mermaid diagrams in HTML format ([#3294](https://github.com/quarto-dev/quarto-cli/issues/3294))
+- Add support for `fig-align` in mermaid diagrams in HTML format ([#3294](https://github.com/quarto-dev/quarto-cli/issues/3294)).
+- Add support for `%%| file` mermaid cell option ([#3665](https://github.com/quarto-dev/quarto-cli/issues/3665)).
 
 ## Dates
 
@@ -132,6 +133,9 @@
 - Improve parsing of include shortcodes ([#3159](https://github.com/quarto-dev/quarto-cli/issues/3159)).
 - Add support for Youtube privacy-enhanced urls in `video` shortcodes ([#4060](https://github.com/quarto-dev/quarto-cli/issues/4060)).
 - Don't emit empty cells ([#4034](https://github.com/quarto-dev/quarto-cli/issues/4034)).
+- Resolve link tags correctly in html dependencies ([#4304](https://github.com/quarto-dev/quarto-cli/discussions/4304)) (Thank you, @jdlom!).
+- use correct language code for Korean ([#4187](https://github.com/quarto-dev/quarto-cli/discussions/4187)).
+- resolve YAML options correctly for comments with open+close syntax ([#3901](https://github.com/quarto-dev/quarto-cli/issues/3901)).
 
 ## Pandoc filter changes
 
@@ -141,3 +145,4 @@
 ## Project
 
 - fix rendering of individual project files to stdout ([#4052](https://github.com/quarto-dev/quarto-cli/issues/4052)).
+- fix previewing docusaurus project on Windows ([#4312](https://github.com/quarto-dev/quarto-cli/issues/4312)).
