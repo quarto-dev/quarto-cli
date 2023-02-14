@@ -35,6 +35,7 @@
 
 /*-- scss:defaults --*/
 $content-padding-top: 14px !default;
+$quarto-sidebar-anim-duration: 0.15s !default;
 
 /*-- scss:mixins --*/
 
@@ -365,10 +366,6 @@ $sidebar-section-bottom-margin: 0.2em;
       }
     }
   }
-
-  #quarto-sidebar .sidebar-menu-container {
-    padding-right: 1em;
-  }
 }
 
 @include media-breakpoint-up(lg) {
@@ -504,6 +501,21 @@ nav.sidebar.sidebar-navigation:not(.rollup) {
   }
 }
 
+@include media-breakpoint-down(lg) {
+  #quarto-sidebar .sidebar-menu-container {
+    padding-right: 1em;
+    white-space: nowrap;
+  }
+
+  #quarto-sidebar {
+    transition: width $quarto-sidebar-anim-duration ease-in;
+  }
+
+  #quarto-sidebar.show {
+    transition: width $quarto-sidebar-anim-duration ease-out;
+  }
+}
+
 @include media-breakpoint-up(lg) {
   #quarto-sidebar {
     display: flex;
@@ -532,34 +544,34 @@ nav.sidebar.sidebar-navigation:not(.rollup) {
   }
 }
 
+@include media-breakpoint-down(lg) {
+  #quarto-sidebar-glass {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #66666600;
+    transition: background-color $quarto-sidebar-anim-duration ease-in;
+    z-index: -1;
+  }
+
+  #quarto-sidebar-glass.collapsing {
+    z-index: $zindex-dropdown;
+  }
+
+  #quarto-sidebar-glass.show {
+    transition: background-color $quarto-sidebar-anim-duration ease-out;
+    background-color: #66666666;
+    z-index: $zindex-dropdown;
+  }
+}
+
 .sidebar .sidebar-footer {
   padding: 0.5rem 1rem;
   align-self: flex-end;
   color: $text-muted;
   width: 100%;
-}
-
-#quarto-sidebar {
-  @include media-breakpoint-up(lg) {
-    width: 100%;
-    padding-right: 1em;
-  }
-  @include media-breakpoint-down(md) {
-    padding-left: 0em;
-    padding-right: 2em;
-    width: 100%;
-    transition-property: background-color 0.25s;
-
-    .sidebar-menu-container {
-      transition-property: width 0.25s, background-color 0s;
-      background-color: $sidebar-bg;
-      padding-left: 1em;
-      min-height: 100vh;
-      display: inline-block;
-    }
-  }
-
-  color: $sidebar-fg;
 }
 
 .quarto-page-breadcrumbs .breadcrumb-item + .breadcrumb-item {
@@ -568,15 +580,6 @@ nav.sidebar.sidebar-navigation:not(.rollup) {
 
 .quarto-page-breadcrumbs .breadcrumb-item + .breadcrumb-item::before {
   padding-right: 0.35em;
-}
-
-@include media-breakpoint-down(md) {
-  #quarto-sidebar.collapse {
-    animation-name: fade-in;
-  }
-  #quarto-sidebar.collapse.show {
-    background-color: #66666666;
-  }
 }
 
 .quarto-sidebar-footer {
