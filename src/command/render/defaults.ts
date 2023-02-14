@@ -8,6 +8,8 @@
 import { extname } from "path/mod.ts";
 import { stringify } from "encoding/yaml.ts";
 
+import * as ld from "../../core/lodash.ts";
+
 import { FormatPandoc, QuartoFilter } from "../../config/types.ts";
 import { isLatexOutput } from "../../config/format.ts";
 
@@ -38,7 +40,9 @@ export async function generateDefaults(
   let allDefaults: FormatPandoc | undefined;
 
   if (options.format.pandoc) {
-    allDefaults = options.format.pandoc || {};
+    allDefaults = (options.format.pandoc
+      ? ld.cloneDeep(options.format.pandoc)
+      : {}) as FormatPandoc;
 
     // resolve filters
     const resolvedFilters = await resolveFilters(
