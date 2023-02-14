@@ -28,7 +28,9 @@ local function inlineOrInlinesToString(inlineOrInlinesValue)
     local inlineElementList = inlineOrInlinesValue
     local result = ""
     for i = 1, #inlineElementList do
-      result = result .. inlineElementList[i].text or ""
+      if (inlineElementList[i].text) then
+        result = result .. inlineElementList[i].text or ""
+      end
     end
     return result;
   end
