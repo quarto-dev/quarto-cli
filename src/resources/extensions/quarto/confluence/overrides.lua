@@ -115,7 +115,7 @@ function CaptionedImageConfluence(source, title, caption, attr)
 end
 
 function LinkConfluence(source, target, title, attr)
-  local LINK_ATTACHMENT_SNIPPET = [[<ac:link><ri:attachment ri:filename="{source}"/><ac:plain-text-link-body><![CDATA[{target}{doubleBraket}></ac:plain-text-link-body></ac:link>]]
+  local LINK_ATTACHMENT_SNIPPET = [[<ac:link><ri:attachment ri:filename="{target}"/><ac:plain-text-link-body><![CDATA[{source}{doubleBraket}></ac:plain-text-link-body></ac:link>]]
 
   if(not startsWithHttp(target) and (not string.find(target, ".qmd"))) then
     return interpolate {

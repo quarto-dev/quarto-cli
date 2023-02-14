@@ -158,7 +158,7 @@ function TestLinkConfluence:testEscapeNotQMD()
   lu.assertEquals(actual, expected)
 end
 function TestLinkConfluence:testAttachment()
-  local expected = [[<ac:link><ri:attachment ri:filename="fake-source"/><ac:plain-text-link-body><![CDATA[fake-target{doubleBracket}></ac:plain-text-link-body></ac:link>]]
+  local expected = [[<ac:link><ri:attachment ri:filename="fake-target"/><ac:plain-text-link-body><![CDATA[fake-source{doubleBracket}></ac:plain-text-link-body></ac:link>]]
   expected = confluence.interpolate{expected, doubleBracket = ']]'}
   local source = 'fake-source'
   local target = 'fake-target'
