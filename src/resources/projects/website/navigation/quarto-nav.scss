@@ -35,7 +35,8 @@
 
 /*-- scss:defaults --*/
 $content-padding-top: 14px !default;
-$quarto-sidebar-anim-duration: 0.15s !default;
+$sidebar-glass-bg: #66666666 !default;
+$sidebar-anim-duration: 0.15s !default;
 
 /*-- scss:mixins --*/
 
@@ -414,6 +415,19 @@ $sidebar-disabled-color: rgba($sidebar-fg, 0.75) !default;
   padding-top: 4px;
 }
 
+.quarto-secondary-nav nav.quarto-page-breadcrumbs {
+  color: $sidebar-color;
+  a {
+    color: $sidebar-color;
+  }
+  a:hover {
+    color: $sidebar-hover-color;
+  }
+  .breadcrumb-item::before {
+    color: $sidebar-color;
+  }
+}
+
 div.sidebar-item-container {
   color: $sidebar-color;
   &:hover,
@@ -508,11 +522,11 @@ nav.sidebar.sidebar-navigation:not(.rollup) {
   }
 
   #quarto-sidebar {
-    transition: width $quarto-sidebar-anim-duration ease-in;
+    transition: width $sidebar-anim-duration ease-in;
   }
 
   #quarto-sidebar.show {
-    transition: width $quarto-sidebar-anim-duration ease-out;
+    transition: width $sidebar-anim-duration ease-out;
   }
 }
 
@@ -551,8 +565,8 @@ nav.sidebar.sidebar-navigation:not(.rollup) {
     bottom: 0;
     left: 0;
     right: 0;
-    background-color: #66666600;
-    transition: background-color $quarto-sidebar-anim-duration ease-in;
+    background-color: #ffffff00;
+    transition: background-color $sidebar-anim-duration ease-in;
     z-index: -1;
   }
 
@@ -561,8 +575,8 @@ nav.sidebar.sidebar-navigation:not(.rollup) {
   }
 
   #quarto-sidebar-glass.show {
-    transition: background-color $quarto-sidebar-anim-duration ease-out;
-    background-color: #66666666;
+    transition: background-color $sidebar-anim-duration ease-out;
+    background-color: $sidebar-glass-bg;
     z-index: $zindex-dropdown;
   }
 }
