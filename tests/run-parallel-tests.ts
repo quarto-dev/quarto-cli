@@ -58,8 +58,8 @@ if (failed) {
 }
 
 const buckets: TestTiming[][] = [];
-const nBuckets = 8;
-const bucketSizes = (new Array(8)).fill(0);
+const nBuckets = navigator.hardwareConcurrency;
+const bucketSizes = (new Array(nBuckets)).fill(0);
 
 const argmin = (a: number[]): number => {
   let best = -1, bestValue = Infinity;
@@ -82,6 +82,15 @@ for (const timing of testTimings) {
   bucketSizes[ix] += timing.timing.real;
 }
 
+console.log(`Will run in ${nBuckets} cores`);
+console.log(
+  `Expected speedup: ${
+    (bucketSizes.reduce((a, b) => a + b, 0) / Math.max(...bucketSizes)).toFixed(
+      2,
+    )
+  }`,
+);
+
 Promise.all(buckets.map((bucket) => {
   const cmd: string[] = ["./run-tests.sh"];
   cmd.push(...bucket.map((tt) => tt.name));
@@ -89,8 +98,3 @@ Promise.all(buckets.map((bucket) => {
     cmd,
   }).status();
 }));
-
-// for (const bucket of buckets) {
-//   Deno.run();
-// }
-// console.log(bucketSizes);
