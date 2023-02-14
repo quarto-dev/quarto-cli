@@ -392,7 +392,9 @@ body.docked {
 
   @include media-breakpoint-down(lg) {
     #quarto-margin-sidebar.collapse,
-    #quarto-sidebar.collapse {
+    #quarto-sidebar.collapse,
+    #quarto-margin-sidebar.collapsing,
+    #quarto-sidebar.collapsing {
       z-index: $zindex-modal;
     }
   }

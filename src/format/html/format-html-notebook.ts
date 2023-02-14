@@ -34,6 +34,7 @@ import { ProjectContext } from "../../project/types.ts";
 interface NotebookView {
   title: string;
   href: string;
+  supporting?: string;
 }
 
 interface NotebookViewOptions {
@@ -156,7 +157,7 @@ export async function processNotebookEmbeds(
             return {
               title: htmlPreview.title,
               href: htmlPreview.href,
-              supporting: join(inputDir, htmlPreview.href),
+              supporting: htmlPreview.supporting,
             };
           } else {
             return {
@@ -374,6 +375,8 @@ async function renderHtmlView(
     return {
       title: options.title,
       href: join(dirname(href), nbPreviewFile),
+      // notebbok to be included as supporting file
+      supporting: join(inputDir, dirname(href), nbPreviewFile),
     };
   } else {
     return {
