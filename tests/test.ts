@@ -166,7 +166,7 @@ export function test(test: TestDescriptor) {
         };
 
         // Capture the output
-        const log = Deno.makeTempFileSync({ dir: wd, suffix: ".json" });
+        const log = Deno.makeTempFileSync({ suffix: ".json" });
         await initializeLogger({
           log: log,
           level: "INFO",
