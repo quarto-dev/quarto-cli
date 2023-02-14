@@ -18,6 +18,7 @@ Deno.realPathSync = normalizePath;
 // 2023-02-14: We're seeing a rare failure in Deno.makeTempFile{,Sync} with FileExists, so we're going to try
 // a few times to create the file. If it fails, we'll log the error and try again.
 // If it fails 5 times, we'll throw the error.
+// https://github.com/denoland/deno/issues/17781
 
 const maxAttempts = 5;
 
