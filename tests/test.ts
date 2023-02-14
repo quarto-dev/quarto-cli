@@ -82,6 +82,28 @@ export interface ExecuteOutput {
   levelName: string;
 }
 
+async function asyncWithTimingTo(
+  name: string,
+  maybeAsyncCallable: () => Promise<void>,
+) {
+  const timingName = Deno.env.get("QUARTO_TEST_TIMING");
+  if (timingName) {
+    performance.mark("a");
+    await maybeAsyncCallable();
+    performance.mark("b");
+    const duration = performance.measure("a->b", "a", "b").duration;
+    Deno.writeTextFileSync(
+      timingName,
+      `${JSON.stringify({ name, duration })}\n`,
+      {
+        append: true,
+      },
+    );
+  } else {
+    await maybeAsyncCallable();
+  }
+}
+
 export function unitTest(
   name: string,
   ver: () => Promise<unknown>, // VoidFunction,
@@ -97,7 +119,13 @@ export function unitTest(
       {
         name: `${name}`,
         verify: async (_outputs: ExecuteOutput[]) => {
-          await ver();
+          if (Deno.env.get("QUARTO_TEST_TIMING")) {
+            await asyncWithTimingTo(name, async () => {
+              await ver();
+            });
+          } else {
+            await ver();
+          }
         },
       },
     ],
@@ -138,7 +166,7 @@ export function test(test: TestDescriptor) {
         };
 
         // Capture the output
-        const log = join(wd, "test-out.json");
+        const log = Deno.makeTempFileSync({ dir: wd, suffix: ".json" });
         await initializeLogger({
           log: log,
           level: "INFO",
@@ -155,7 +183,9 @@ export function test(test: TestDescriptor) {
         };
         let lastVerify;
         try {
-          await test.execute();
+          await asyncWithTimingTo(testName, async () => {
+            await test.execute();
+          });
 
           // Cleanup the output logging
           await cleanupLogOnce();

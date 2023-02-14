@@ -39,7 +39,20 @@ fi
 # Ensure that tinytex is installed
 quarto install tinytex --no-prompt
 
-"${DENO_DIR}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_ARGMAP}" $@
+if [ "$QUARTO_TEST_TIMING" != "" ]; then
+  QUARTO_DENO_OPTIONS="--config test-conf.json --unstable --allow-read --allow-write --allow-run --allow-env --allow-net --no-check"
+  rm -f timing.txt
+  FILES=$@
+  if [ "$FILES" == "" ]; then
+    FILES=`find . | grep \.test\.ts$`
+  fi
+  for i in $FILES; do
+    echo $i >> timing.txt
+    /usr/bin/time -a -o timing.txt "${DENO_DIR}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_ARGMAP}" $i
+  done
+else
+  "${DENO_DIR}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_ARGMAP}" $@
+fi
 
 SUCCESS=$?
 
