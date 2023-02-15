@@ -5,6 +5,7 @@
 *
 */
 import { existsSync } from "fs/mod.ts";
+import { basename, join } from "path/mod.ts";
 
 import { outputForInput } from "../../utils.ts";
 import { TestContext, testQuartoCmd, Verify } from "../../test.ts";
@@ -14,6 +15,21 @@ import {
   noSupportingFiles,
   outputCreated,
 } from "../../verify.ts";
+
+export function testSimpleIsolatedRender(
+  file: string,
+  to: string,
+  noSupporting: boolean,
+) {
+  const dir = Deno.makeTempDirSync();
+  const tempInput = join(dir, basename(file));
+  Deno.copyFileSync(file, tempInput);
+  testRender(tempInput, to, noSupporting, [], {
+    teardown: () => {
+      return Deno.remove(dir, { recursive: true });
+    },
+  });
+}
 
 export function testRender(
   input: string,

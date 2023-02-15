@@ -5,27 +5,38 @@
 *
 */
 
-import { docs, fileLoader } from "../../utils.ts";
+import { docs, fileLoader, inTempDirectory } from "../../utils.ts";
+import { join } from "path/mod.ts";
 import { ensureHtmlSelectorSatisfies, fileExists } from "../../verify.ts";
 import { testRender } from "./render.ts";
 
-const plotPath = "docs/test_files/figure-html";
+inTempDirectory((dir) => {
+  const tempInput = join(dir, "test.Rmd");
+  Deno.copyFileSync(docs("test.Rmd"), tempInput);
+  const thisPlotPath = join(dir, "test_files/figure-html");
 
-testRender(docs("test.Rmd"), "html", false, [
-  fileExists(plotPath),
-], {
-  teardown: () => {
-    return Deno.remove(plotPath, { recursive: true });
-  },
+  testRender(tempInput, "html", false, [
+    fileExists(thisPlotPath),
+  ], {
+    teardown: () => {
+      return Deno.remove(dir, { recursive: true });
+    },
+  });
 });
 
-testRender(docs("test.Rmd"), "html", false, [
-  fileExists(plotPath),
-], {
-  teardown: () => {
-    return Deno.remove(plotPath, { recursive: true });
-  },
-}, ["--execute-params", "docs/params.yml"]);
+inTempDirectory((dir) => {
+  const tempInput = join(dir, "test.Rmd");
+  Deno.copyFileSync(docs("test.Rmd"), tempInput);
+
+  const thisPlotPath = join(dir, "test_files/figure-html");
+  testRender(tempInput, "html", false, [
+    fileExists(thisPlotPath),
+  ], {
+    teardown: () => {
+      return Deno.remove(dir, { recursive: true });
+    },
+  }, ["--execute-params", "docs/params.yml"]);
+});
 
 const knitrOptions = fileLoader()("test-knitr-options.qmd", "html");
 testRender(knitrOptions.input, "html", false, [
