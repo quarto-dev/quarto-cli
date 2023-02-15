@@ -131,7 +131,7 @@ jobs:
           pushd tests
           case $RUNNER_OS in
             "Windows")
-              pwsh -F ./run-test.ps1
+              pwsh -F ./run-tests.ps1
               ;;
             *)
               ./run-tests.sh
