@@ -56,12 +56,6 @@ runs:
         python3 -m pip install -r requirements.txt
         popd
 
-    - name: Install Tinytex
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        quarto install tinytex
-
     - name: Install Chrome
       uses: browser-actions/setup-chrome@latest
 
