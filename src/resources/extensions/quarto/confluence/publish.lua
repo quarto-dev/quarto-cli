@@ -35,8 +35,13 @@ function Writer (doc, opts)
       return pandoc.RawInline('html', renderString)
     end,
     Link = function (link)
+      local renderedLinkContent =
+        pandoc.write(pandoc.Pandoc(link.content), "html")
+
+      source = renderedLinkContent
+
       local renderString = confluence.LinkConfluence(
-              pandoc.utils.stringify(link.content),
+              source,
               link.target,
               link.title,
               link.attributes)

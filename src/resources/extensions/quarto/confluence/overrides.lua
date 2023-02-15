@@ -96,7 +96,7 @@ function CaptionedImageConfluence(source, title, caption, attr)
 
   if not isEmpty(captionValue) then
     captionValue =
-    interpolate {CAPTION_SNIPPET, caption = captionValue}
+    interpolate {CAPTION_SNIPPET, caption = escape(captionValue)}
   end
 
   if(not startsWithHttp(source)) then
@@ -115,18 +115,15 @@ function CaptionedImageConfluence(source, title, caption, attr)
 end
 
 function LinkConfluence(source, target, title, attr)
-  local LINK_ATTACHMENT_SNIPPET = [[<ac:link><ri:attachment ri:filename="{source}"/><ac:plain-text-link-body><![CDATA[{target}{doubleBraket}></ac:plain-text-link-body></ac:link>]]
+  -- For some reason, rendering converts spaces to a double line-break
+  -- TODO figure out exactly what is going on here
+  source = string.gsub(source, "\n\n", " ")
+  source = string.gsub(source, "\n \n", " ")
+  source = string.gsub(source, "(\n", "")
+  source = string.gsub(source, "\n)", "")
 
-  if(not startsWithHttp(target) and (not string.find(target, ".qmd"))) then
-    return interpolate {
-    LINK_ATTACHMENT_SNIPPET,
-    source = escape(source),
-    target = target,
-    doubleBraket = "]]"
-  }
-  end
   return "<a href='" .. escape(target,true) .. "' title='" ..
-          escape(title,true) .. "'>" .. escape(source, false) .. "</a>"
+          escape(title,true) .. "'>" .. source .. "</a>"
 end
 
 function CalloutConfluence(type, content)

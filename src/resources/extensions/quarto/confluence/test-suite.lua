@@ -23,7 +23,20 @@ function TestCaptionedImage:testBasic()
 
   lu.assertEquals(actual, expected)
 end
+function TestCaptionedImage:testEscapeCaption()
+  local expected = [[<ac:image
+    ac:align="center"
+    ac:layout="center"
+    ac:alt="fake-title">
+        <ri:attachment ri:filename="fake-source" /><ac:caption>fake-caption&amp;</ac:caption>
+    </ac:image>]]
+  local source = 'fake-source'
+  local title = 'fake-title'
+  local caption = 'fake-caption&'
+  local actual = confluence.CaptionedImageConfluence(source, title, caption)
 
+  lu.assertEquals(actual, expected)
+end
 function TestCaptionedImage:testRemote()
   local expected = [[<img src='https://d33wubrfki0l68.cloudfront.net/18153fb9953057ee5cff086122bd26f9cee8fe93/3aba9/images/notebook-run-chunk.png' title=''/>]]
   local source = 'https://d33wubrfki0l68.cloudfront.net/18153fb9953057ee5cff086122bd26f9cee8fe93/3aba9/images/notebook-run-chunk.png'
@@ -138,30 +151,36 @@ function TestLinkConfluence:testQMDAnchor()
 
   lu.assertEquals(actual, expected)
 end
-function TestLinkConfluence:testEscape()
-  local expected = "<a href='fake-target.qmd' title='fake-title'>A &amp; B</a>"
-  local source = 'A & B'
-  local target = 'fake-target.qmd'
+function TestLinkConfluence:testLineBreakRemove_double()
+  local expected = "<a href='fake-target.qmd#Fake-Anchor' title='fake-title'>fake source</a>"
+  local source = 'fake\n\nsource'
+  local target = 'fake-target.qmd#Fake-Anchor'
   local title = 'fake-title'
+  local attributes = {
+    class = 'fake-class'
+  }
   expected = confluence.interpolate{expected, doubleBracket = ']]'}
-  local actual = confluence.LinkConfluence(source, target, title)
+  local actual = confluence.LinkConfluence(source, target, title, attributes)
 
   lu.assertEquals(actual, expected)
 end
-function TestLinkConfluence:testEscapeNotQMD()
-  local expected = "<a href='http://www.test.com' title='fake-title'>A &amp; B</a>"
-  local source = 'A & B'
-  local target = 'http://www.test.com'
+function TestLinkConfluence:testLineBreakRemove_nbsp()
+  local expected = "<a href='fake-target.qmd#Fake-Anchor' title='fake-title'>fake source</a>"
+  local source = 'fake\n \nsource'
+  local target = 'fake-target.qmd#Fake-Anchor'
   local title = 'fake-title'
+  local attributes = {
+    class = 'fake-class'
+  }
   expected = confluence.interpolate{expected, doubleBracket = ']]'}
-  local actual = confluence.LinkConfluence(source, target, title)
+  local actual = confluence.LinkConfluence(source, target, title, attributes)
+
   lu.assertEquals(actual, expected)
 end
-function TestLinkConfluence:testAttachment()
-  local expected = [[<ac:link><ri:attachment ri:filename="fake-source"/><ac:plain-text-link-body><![CDATA[fake-target{doubleBracket}></ac:plain-text-link-body></ac:link>]]
-  expected = confluence.interpolate{expected, doubleBracket = ']]'}
-  local source = 'fake-source'
-  local target = 'fake-target'
+function TestLinkConfluence:testLineBreakRemove_parens()
+  local expected = "<a href='fake-target.qmd#Fake-Anchor' title='fake-title'>fake(1)source</a>"
+  local source = 'fake(\n1\n)source'
+  local target = 'fake-target.qmd#Fake-Anchor'
   local title = 'fake-title'
   local attributes = {
     class = 'fake-class'
