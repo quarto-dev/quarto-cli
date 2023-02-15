@@ -589,12 +589,12 @@ nav.sidebar.sidebar-navigation:not(.rollup) {
 
 .quarto-page-breadcrumbs .breadcrumb-item + .breadcrumb-item,
 .quarto-page-breadcrumbs .breadcrumb-item {
-  padding-right: 0.25em;
+  padding-right: 0.3em;
   padding-left: 0;
 }
 
 .quarto-page-breadcrumbs .breadcrumb-item::before {
-  padding-left: 0.25em;
+  padding-right: 0.3em;
 }
 
 .quarto-sidebar-footer {
