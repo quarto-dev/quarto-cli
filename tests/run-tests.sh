@@ -26,17 +26,11 @@ export QUARTO_DEBUG=true
 QUARTO_DENO_OPTIONS="--config test-conf.json --unstable --allow-read --allow-write --allow-run --allow-env --allow-net --check"
 
 
-# Ensure that we've restored the renv
-Rscript -e "if (!requireNamespace('renv', quietly = TRUE)) install.packages('renv')"
-Rscript -e "renv::restore()"
-
-# Ensure that we've actived the python env
-if [[ $QUARTO_TESTS_VIRTUALENV != "FALSE" ]]; then
-  pipenv install --extra-pip-args="--prefer-binary"
+if [[ -z $GITHUB_ACTION ]] && [[ -z $QUARTO_TESTS_NO_CONFIG ]]
+then
+  echo "> Checking and configuring environment for tests"
+  source configure-test-env.sh
 fi
-
-# Ensure that tinytex is installed
-quarto install tinytex --no-prompt
 
 # Activating python virtualenv
 if [[ -z $VIRTUAL_ENV ]]

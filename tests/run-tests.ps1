@@ -33,30 +33,9 @@ $QUARTO_SHARE_PATH = Join-Path $QUARTO_ROOT "src" "resources"
 
 # ----- Restoring tests environnment ---------
 
-Write-Host "> Restoring R environment with renv..."
-
-# Ensure that we've restored the renv environment for tests with R
-Rscript -e "if (!requireNamespace('renv', quietly = TRUE)) install.packages('renv')"
-Rscript -e "renv::restore()"
-
-Write-Host "> Restoring python environment in virtualenv..."
-
-# Ensure that we've actived the python env and restore it
-# FIX: Testing python require a re-design of the environment
-If ($QUARTO_TESTS_VIRTUALENV -ne "FALSE")
-  {
-    $Env:QUARTO_PYTHON=$null
-    pipenv install --extra-pip-args="--prefer-binary"
-  } else {
-    Write-Host -ForegroundColor "red" ">> No testing with Python"
-  }
-
-Write-Host "> Updating TinyTeX..."
-# Ensure that tinytex is installed and updated to latest version
-try {
-  quarto install tinytex --no-prompt
-} catch {
-  Write-Host "Updating TinyTeX failed."
+If ( $null -eq $Env:GITHUB_ACTION -and $null -eq $Env:QUARTO_TESTS_NO_CONFIG ) {
+  Write-Host "> Checking and configuring environment for tests"
+  . ./configure-test-env.ps1
 }
 
 # ----- Preparing running tests ------------
