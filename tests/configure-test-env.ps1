@@ -12,7 +12,7 @@ try { $null = gcm pipenv -ea stop; $pipenv=$true } catch {
   Write-Host -ForegroundColor red "No pipenv found in PATH - Install pipenv running ``pip install pipenv``"
 }
 
-If ( $py -and $python -and $env:VIRTUAL_ENV -eq $null) {
+If ( $py -and $python -and $pipenv) {
     Write-Host "Setting up python environnement with pipenv"
     pipenv install
 }
