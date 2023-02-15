@@ -53,7 +53,11 @@ If ($QUARTO_TESTS_VIRTUALENV -ne "FALSE")
 
 Write-Host "> Updating TinyTeX..."
 # Ensure that tinytex is installed and updated to latest version
-quarto install tinytex --no-prompt
+try {
+  quarto install tinytex --no-prompt
+} catch {
+  Write-Host "Updating TinyTeX failed."
+}
 
 # ----- Preparing running tests ------------
 
