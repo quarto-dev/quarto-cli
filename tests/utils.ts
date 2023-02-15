@@ -87,3 +87,8 @@ export function fileLoader(...path: string[]) {
     };
   };
 }
+
+// On Windows, `quarto.cmd` needs to be explicit in `execProcess()`
+export function quartoDevCmd(): string {
+  return Deno.build.os === "windows" ? "quarto.cmd" : "quarto";
+}
