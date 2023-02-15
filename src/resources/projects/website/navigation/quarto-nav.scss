@@ -158,6 +158,9 @@ nav .nav-item.compact .nav-link {
 
 .navbar {
   .quarto-navbar-tools {
+    div.dropdown {
+      display: inline-block;
+    }
     .quarto-navigation-tool {
       color: $navbar-fg;
     }
@@ -266,16 +269,13 @@ nav .nav-item.compact .nav-link {
 }
 
 .sidebar-tools-main {
+  display: flex;
   margin-left: 0px;
+  order: 2;
 }
 
 .sidebar-tools-main:not(.tools-wide) {
-  display: inline-block;
   vertical-align: middle;
-}
-
-.sidebar-tools-main.tools-wide {
-  padding-top: 0.3em;
 }
 
 .sidebar-navigation .quarto-navigation-tool.dropdown-toggle::after {
@@ -515,13 +515,15 @@ nav.sidebar.sidebar-navigation:not(.rollup) {
 
 @include media-breakpoint-down(lg) {
   #quarto-sidebar .sidebar-menu-container {
-    padding-right: 1em;
     white-space: nowrap;
     min-width: 225px;
   }
 
   #quarto-sidebar {
     transition: width $sidebar-anim-duration ease-in;
+    > * {
+      padding-right: 1em;
+    }
   }
 
   #quarto-sidebar.show {
