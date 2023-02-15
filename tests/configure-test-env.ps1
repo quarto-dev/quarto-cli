@@ -4,7 +4,7 @@ try { $null = gcm Rscript -ea stop; $r=$true} catch {
 }
 
 If ($r) {
-  renv::restore(repos = c(RSPM = "https://packagemanager.posit.co/cran/latest"))
+  Rscript -e "renv::restore(repos = c(RSPM = 'https://packagemanager.posit.co/cran/latest'))"
 }
 
 # Check python test environment ---
@@ -17,13 +17,20 @@ try { $null = gcm python -ea stop; $python=$true } catch {
   Write-Host -ForegroundColor red "No python found in PATH - Install python"
 }
 
-try { $null = gcm pipenv -ea stop; $pipenv=$true } catch { 
-  Write-Host -ForegroundColor red "No pipenv found in PATH - Install pipenv running ``pip install pipenv``"
-}
-
-If ( $py -and $python -and $pipenv) {
+If ( $py -and $python) {
     Write-Host "Setting up python environnement with pipenv"
+    try { $null = gcm pipenv -ea stop; $pipenv=$true } catch { 
+      Write-Host -ForegroundColor red "No pipenv found in PATH - Installing pipenv running ``pip install pipenv``"
+    }
+    If ($null -eq $pipenv) {
+      python -m pip install pipenv
+      try { $null = gcm pyenv -ea stop; $pyenv=$true } catch { }
+      If ($pyenv) {
+        pyenv rehash
+      }
+    }
     pipenv install
+    $pipenv=$true
 }
 
 # Check Julia environment --- 

@@ -18,11 +18,12 @@ else
   pipenv_exist=$(which pipenv)
   if [ -z $pipenv_exist ] 
   then
-    echo "No pipenv found in PATH - Install pipenv running \`pip install pipenv\`."
-  else
-    echo "Setting up python environnement with pipenv"
-    pipenv install
+    python -m pip install pipenv
   fi
+  # specific for pyenv shim
+  [ -n $(which pyenv) ] && pyenv rehash
+  echo "Setting up python environnement with pipenv"
+  pipenv install
 fi
 
 # Check Julia environment
