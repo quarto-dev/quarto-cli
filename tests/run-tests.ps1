@@ -46,7 +46,7 @@ Write-Host "> Restoring python environment in virtualenv..."
 If ($QUARTO_TESTS_VIRTUALENV -ne "FALSE")
   {
     $Env:QUARTO_PYTHON=$null
-    py -m pip install -r requirements.txt --prefer-binary -q
+    pipenv install --extra-pip-args="--prefer-binary"
   } else {
     Write-Host -ForegroundColor "red" ">> No testing with Python"
   }

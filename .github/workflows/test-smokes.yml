@@ -84,15 +84,15 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          cache: "pip"
+          cache: "pipenv"
+          cache-dependency-path: "./tests/Pipfile.lock"
           python-version-file: "./tests/.python-version"
 
       - name: Restore Python Dependencies
         working-directory: tests
         run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip install wheel 
-          python3 -m pip install -r requirements.txt
+          python -m pip install pipenv
+          pipenv install --system
 
       - uses: ./.github/workflows/actions/quarto-dev
 
