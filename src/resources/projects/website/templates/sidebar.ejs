@@ -42,7 +42,7 @@
       </a>
     <% } %>
     <% if (needsTools && toolsLocation === "logo") { %>
-      <% partial('navtools.ejs', { tools: sidebar.tools, className: 'sidebar-tools-main', darkToggle: sidebar.darkToggle, search: sidebar.search, readerToggle: sidebar.readerToggle })%>
+      <% partial('navtools.ejs', { align: 'start', tools: sidebar.tools, className: 'sidebar-tools-main', darkToggle: sidebar.darkToggle, search: sidebar.search, readerToggle: sidebar.readerToggle })%>
     <% } %> 
     
     <% if (!navbar) { %>
@@ -54,7 +54,7 @@
       </a> 
       <% } %>  
       <% if (needsTools && toolsLocation === "title") { %>
-        <% partial('navtools.ejs', { tools: sidebar.tools, className: 'sidebar-tools-main', darkToggle: sidebar.darkToggle, search: sidebar.search, readerToggle: sidebar.readerToggle })%>
+        <% partial('navtools.ejs', { align: 'start', tools: sidebar.tools, className: 'sidebar-tools-main', darkToggle: sidebar.darkToggle, search: sidebar.search, readerToggle: sidebar.readerToggle })%>
       <% } %>  
     </div>
     <% } %>
@@ -71,11 +71,11 @@
         </div>
         <% } %>
         <% if (needsTools && toolsLocation === "search") { %>
-        <% partial('navtools.ejs', { tools: sidebar.tools, className: 'sidebar-tools-collapse', darkToggle: sidebar.darkToggle, search: sidebar.search, readerToggle: sidebar.readerToggle })%>
+        <% partial('navtools.ejs', { align: 'start', tools: sidebar.tools, className: 'sidebar-tools-collapse', darkToggle: sidebar.darkToggle, search: sidebar.search, readerToggle: sidebar.readerToggle })%>
         <% } %>  
     <% } %>
     <% if (needsTools && toolsLocation === "fallthrough") { %>
-        <% partial('navtools.ejs', { tools: sidebar.tools, className: 'sidebar-tools-main', darkToggle: sidebar.darkToggle, search: sidebar.search, readerToggle: sidebar.readerToggle })%>
+        <% partial('navtools.ejs', { align: 'start', tools: sidebar.tools, className: 'sidebar-tools-main', darkToggle: sidebar.darkToggle, search: sidebar.search, readerToggle: sidebar.readerToggle })%>
     <% } %>
 
     <% if (sidebar.contents.length > 0) { %> 
