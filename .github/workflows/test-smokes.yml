@@ -26,56 +26,9 @@ jobs:
           # checkout full tree
           fetch-depth: 0
 
-      - name: Set up R
-        uses: r-lib/actions/setup-r@v2
-        with:
-          r-version: "4.2.2"
+      - uses: ./.github/workflows/actions/quarto-dev/deps.yml
 
-      - name: Install node (for Playwright)
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16
-
-      - name: Install node dependencies
-        run: yarn
-        working-directory: ./tests/integration/playwright
-
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
-        working-directory: ./tests/integration/playwright
-
-      - name: Cache packages
-        uses: actions/cache@v3
-        with:
-          path: ${{ env.RENV_PATHS_ROOT }}
-          key: ${{ runner.os }}-1-renv-${{ hashFiles('**/renv.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-1-renv-
-
-      - name: Restore packages
-        working-directory: tests
-        run: |
-          if (!requireNamespace('renv', quietly = TRUE)) install.packages('renv')
-          renv::restore()
-        shell: Rscript {0}
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.x"
-          cache: "pip"
-
-      - name: Python Dependencies
-        run: |
-          pushd tests
-          source bin/activate
-          python3 -m pip install --upgrade pip pip==21.3.1
-          python3 -m pip install wheel
-          python3 -m pip install --user virtualenv
-          python3 -m pip install -r requirements.txt
-          popd
-
-      - uses: ./.github/workflows/actions/quarto-dev
+      - uses: ./.github/workflows/actions/quarto-dev/action.yml
 
       - name: Install Tinytex
         env:
