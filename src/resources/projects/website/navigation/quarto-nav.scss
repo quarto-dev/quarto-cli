@@ -101,14 +101,11 @@ header.headroom--unpinned {
 }
 
 .navbar-brand-container {
-  max-width: calc(100% - 85px);
+  max-width: calc(100% - 115px);
   min-width: 0;
   display: flex;
   align-items: center;
 
-  @include media-breakpoint-down(med) {
-    margin-right: auto;
-  }
   @include media-breakpoint-up(lg) {
     margin-right: 1em;
   }
@@ -350,6 +347,7 @@ $sidebar-section-bottom-margin: 0.2em;
 
     button.quarto-btn-toggle {
       margin-left: -0.75rem;
+      margin-right: 0.15rem;
     }
 
     nav.quarto-page-breadcrumbs {
@@ -519,6 +517,7 @@ nav.sidebar.sidebar-navigation:not(.rollup) {
   #quarto-sidebar .sidebar-menu-container {
     padding-right: 1em;
     white-space: nowrap;
+    min-width: 225px;
   }
 
   #quarto-sidebar {
@@ -588,12 +587,14 @@ nav.sidebar.sidebar-navigation:not(.rollup) {
   width: 100%;
 }
 
-.quarto-page-breadcrumbs .breadcrumb-item + .breadcrumb-item {
-  padding-left: 0.35em;
+.quarto-page-breadcrumbs .breadcrumb-item + .breadcrumb-item,
+.quarto-page-breadcrumbs .breadcrumb-item {
+  padding-right: 0.25em;
+  padding-left: 0;
 }
 
-.quarto-page-breadcrumbs .breadcrumb-item + .breadcrumb-item::before {
-  padding-right: 0.35em;
+.quarto-page-breadcrumbs .breadcrumb-item::before {
+  padding-left: 0.25em;
 }
 
 .quarto-sidebar-footer {
