@@ -422,7 +422,7 @@ $sidebar-disabled-color: rgba($sidebar-fg, 0.75) !default;
     color: $sidebar-hover-color;
   }
   .breadcrumb-item::before {
-    color: $sidebar-color;
+    color: theme-dim($sidebar-color, 20%);
   }
 }
 
@@ -591,12 +591,12 @@ nav.sidebar.sidebar-navigation:not(.rollup) {
 
 .quarto-page-breadcrumbs .breadcrumb-item + .breadcrumb-item,
 .quarto-page-breadcrumbs .breadcrumb-item {
-  padding-right: 0.3em;
+  padding-right: 0.33em;
   padding-left: 0;
 }
 
 .quarto-page-breadcrumbs .breadcrumb-item::before {
-  padding-right: 0.3em;
+  padding-right: 0.33em;
 }
 
 .quarto-sidebar-footer {
