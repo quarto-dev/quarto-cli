@@ -1,3 +1,12 @@
+# Check R environment ---
+try { $null = gcm Rscript -ea stop; $r=$true} catch { 
+  Write-Host -ForegroundColor red "Missing Rscript - Install R"
+}
+
+If ($r) {
+  renv::restore(repos = c(RSPM = "https://packagemanager.posit.co/cran/latest"))
+}
+
 # Check python test environment ---
 
 try { $null = gcm py -ea stop; $py=$true} catch { 
@@ -17,6 +26,7 @@ If ( $py -and $python -and $pipenv) {
     pipenv install
 }
 
+# Check Julia environment --- 
 try {$null = gcm julia -ea stop; $julia=$true } catch {
   Write-Host -ForegroundColor red "Missing Julia - An installation is required"
 }
