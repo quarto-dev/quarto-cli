@@ -151,6 +151,45 @@ function TestLinkConfluence:testQMDAnchor()
 
   lu.assertEquals(actual, expected)
 end
+function TestLinkConfluence:testLineBreakRemove_double()
+  local expected = "<a href='fake-target.qmd#Fake-Anchor' title='fake-title'>fake source</a>"
+  local source = 'fake\n\nsource'
+  local target = 'fake-target.qmd#Fake-Anchor'
+  local title = 'fake-title'
+  local attributes = {
+    class = 'fake-class'
+  }
+  expected = confluence.interpolate{expected, doubleBracket = ']]'}
+  local actual = confluence.LinkConfluence(source, target, title, attributes)
+
+  lu.assertEquals(actual, expected)
+end
+function TestLinkConfluence:testLineBreakRemove_nbsp()
+  local expected = "<a href='fake-target.qmd#Fake-Anchor' title='fake-title'>fake source</a>"
+  local source = 'fake\n \nsource'
+  local target = 'fake-target.qmd#Fake-Anchor'
+  local title = 'fake-title'
+  local attributes = {
+    class = 'fake-class'
+  }
+  expected = confluence.interpolate{expected, doubleBracket = ']]'}
+  local actual = confluence.LinkConfluence(source, target, title, attributes)
+
+  lu.assertEquals(actual, expected)
+end
+function TestLinkConfluence:testLineBreakRemove_parens()
+  local expected = "<a href='fake-target.qmd#Fake-Anchor' title='fake-title'>fake(1)source</a>"
+  local source = 'fake(\n1\n)source'
+  local target = 'fake-target.qmd#Fake-Anchor'
+  local title = 'fake-title'
+  local attributes = {
+    class = 'fake-class'
+  }
+  expected = confluence.interpolate{expected, doubleBracket = ']]'}
+  local actual = confluence.LinkConfluence(source, target, title, attributes)
+
+  lu.assertEquals(actual, expected)
+end
 
 TestCalloutConfluence = {}
 function TestCalloutConfluence:testBasicNote()

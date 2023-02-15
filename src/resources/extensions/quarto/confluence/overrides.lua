@@ -115,6 +115,13 @@ function CaptionedImageConfluence(source, title, caption, attr)
 end
 
 function LinkConfluence(source, target, title, attr)
+  -- For some reason, rendering converts spaces to a double line-break
+  -- TODO figure out exactly what is going on here
+  source = string.gsub(source, "\n\n", " ")
+  source = string.gsub(source, "\n \n", " ")
+  source = string.gsub(source, "(\n", "")
+  source = string.gsub(source, "\n)", "")
+
   return "<a href='" .. escape(target,true) .. "' title='" ..
           escape(title,true) .. "'>" .. source .. "</a>"
 end
