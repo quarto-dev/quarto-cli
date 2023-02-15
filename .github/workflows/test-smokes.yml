@@ -75,7 +75,7 @@ jobs:
       - name: Restore R packages
         working-directory: tests
         env:
-          RENV_CONFIG_PAK_ENABLE: TRUE
+          RENV_CONFIG_PAK_ENABLED: TRUE
         run: |
           if (!requireNamespace('renv', quietly = TRUE)) install.packages('renv')
           renv::restore()
