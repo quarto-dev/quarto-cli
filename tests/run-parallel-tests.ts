@@ -5,7 +5,9 @@ try {
   Deno.readTextFileSync("timing.txt");
 } catch (e) {
   console.log(e);
-  console.log("timing.txt missing. run ./tests.sh with QUARTO_TEST_TIMING=1");
+  console.log(
+    "timing.txt missing. run ./tests.sh with QUARTO_TEST_TIMING=timing.txt",
+  );
   Deno.exit(1);
 }
 
@@ -56,6 +58,11 @@ for (const currentTest of currentTests) {
 if (failed) {
   Deno.exit(1);
 }
+// console.log(
+//   testTimings.map((a) => (a.timing.real)).reduce((a, b) => a + b, 0),
+// );
+// console.log(testTimings.sort((a, b) => a.timing.real - b.timing.real));
+// Deno.exit(0);
 
 const buckets: TestTiming[][] = [];
 const nBuckets = navigator.hardwareConcurrency;
