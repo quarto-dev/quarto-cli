@@ -102,6 +102,13 @@ If ($QUARTO_DENO_EXTRA_OPTIONS -ne $null) {
 $DENO_ARGS += -split $QUARTO_IMPORT_ARGMAP
 $DENO_ARGS += $customArgs
 
+# Activate python virtualenv
+If ($null -eq $Env:VIRTUAL_ENV) {
+  Write-Host "> Activating virtualenv for Python tests"
+  $quarto_venv_activated = $true
+  . "$(pipenv --venv)/Scripts/activate.ps1"
+}
+
 Write-Host "> Running tests with `"$QUARTO_DENO $DENO_ARGS`" "
 
 & $QUARTO_DENO $DENO_ARGS
@@ -110,5 +117,11 @@ $SUCCESS = $?
 $DENO_EXIT_CODE = $LASTEXITCODE
 
 # Add Coverage handling
+
+If($null -ne $Env:VIRTUAL_ENV -and $quarto_venv_activated) {
+  Write-Host "> Exiting virtualenv activated for tests"
+  deactivate
+  Remove-Variable quarto_venv_activated
+}
 
 Exit $DENO_EXIT_CODE
