@@ -26,9 +26,9 @@ jobs:
           # checkout full tree
           fetch-depth: 0
 
-      - uses: ./.github/workflows/actions/quarto-dev/deps.yml
+      - uses: ./.github/workflows/actions/quarto-test-deps
 
-      - uses: ./.github/workflows/actions/quarto-dev/action.yml
+      - uses: ./.github/workflows/actions/quarto-dev
 
       - name: Install Tinytex
         env:

@@ -15,9 +15,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: ./.github/workflows/actions/quarto-dev/deps.yml
+      - uses: ./.github/workflows/actions/quarto-test-deps
 
-      - uses: ./.github/workflows/actions/quarto-dev/action.yml
+      - uses: ./.github/workflows/actions/quarto-dev
 
       - name: Collect test suite timing
         shell: bash
