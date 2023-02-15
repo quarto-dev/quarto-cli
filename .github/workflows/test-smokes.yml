@@ -120,10 +120,6 @@ jobs:
         run: |
           julia --color=yes --project=. -e "import Pkg; Pkg.instantiate(); Pkg.build(\"IJulia\"); Pkg.precompile()"
 
-      - name: Setup tmate session
-        if: false
-        uses: mxschmitt/action-tmate@v3
-
       - name: Smoke Test Commits
         if: github.event.before != ''
         env:
