@@ -55,3 +55,21 @@ runs:
         python3 -m pip install --user virtualenv
         python3 -m pip install -r requirements.txt
         popd
+
+    - name: Install Tinytex
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        quarto install tinytex
+
+    - name: Install Chrome
+      uses: browser-actions/setup-chrome@latest
+
+    - name: Setup Julia
+      uses: julia-actions/setup-julia@v1
+
+    - name: Julia Packages
+      run: |
+        pushd tests
+        julia --project=. -e "import Pkg; Pkg.instantiate(); Pkg.build(\"IJulia\"); Pkg.precompile()"
+        popd
