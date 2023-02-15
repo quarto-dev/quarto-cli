@@ -17,7 +17,7 @@ If ( $py -and $python -and $env:VIRTUAL_ENV -eq $null) {
     pipenv install
 }
 
-try {$null = gcm julia -ea stop; julia=$true } catch {
+try {$null = gcm julia -ea stop; $julia=$true } catch {
   Write-Host -ForegroundColor red "Missing Julia - An installation is required"
 }
 
