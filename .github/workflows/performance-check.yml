@@ -15,6 +15,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+        with:
+          # checkout full tree
+          fetch-depth: 0
+
       - uses: ./.github/workflows/actions/quarto-test-deps
 
       - uses: ./.github/workflows/actions/quarto-dev
