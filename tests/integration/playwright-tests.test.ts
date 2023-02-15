@@ -58,7 +58,7 @@ const proc = Deno.run({
 try {
   // run playwright
   await execProcess({
-    cmd: ["npx", "playwright", "test"],
+    cmd: [Deno.build.os == "windows" ? "npx.cmd" : "npx", "playwright", "test"],
     cwd: "integration/playwright",
   });
 } finally {
