@@ -269,7 +269,7 @@ nav .nav-item.compact .nav-link {
 }
 
 .sidebar-tools-main {
-  display: flex;
+  display: inline-flex;
   margin-left: 0px;
   order: 2;
 }
@@ -513,17 +513,17 @@ nav.sidebar.sidebar-navigation:not(.rollup) {
   }
 }
 
+#quarto-sidebar {
+  transition: width $sidebar-anim-duration ease-in;
+  > * {
+    padding-right: 1em;
+  }
+}
+
 @include media-breakpoint-down(lg) {
   #quarto-sidebar .sidebar-menu-container {
     white-space: nowrap;
     min-width: 225px;
-  }
-
-  #quarto-sidebar {
-    transition: width $sidebar-anim-duration ease-in;
-    > * {
-      padding-right: 1em;
-    }
   }
 
   #quarto-sidebar.show {
