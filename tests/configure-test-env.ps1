@@ -1,4 +1,5 @@
 # Check R environment ---
+Write-Host -ForegroundColor green ">>>> Configuring R environment"
 try { $null = gcm Rscript -ea stop; $r=$true} catch { 
   Write-Host -ForegroundColor red "Missing Rscript - Install R"
 }
@@ -8,7 +9,7 @@ If ($r) {
 }
 
 # Check python test environment ---
-
+Write-Host -ForegroundColor green ">>>> Configuring python environment"
 try { $null = gcm py -ea stop; $py=$true} catch { 
   Write-Host -ForegroundColor red "Missing Python launcher - py.exe is required on Windows"
 }
@@ -34,6 +35,7 @@ If ( $py -and $python) {
 }
 
 # Check Julia environment --- 
+Write-Host -ForegroundColor green ">>>> Configuring Julia environment"
 try {$null = gcm julia -ea stop; $julia=$true } catch {
   Write-Host -ForegroundColor red "Missing Julia - An installation is required"
 }
@@ -44,6 +46,8 @@ If ($julia) {
   julia --color=yes --project=. -e 'import Pkg; Pkg.instantiate(); Pkg.build("IJulia"); Pkg.precompile()'
 }
 
+# Check TinyTeX
+Write-Host -ForegroundColor green ">>>> Configuring TinyTeX environment"
 If ([string]::IsNullOrEmpty($env:GH_TOKEN)) {
   try { $null = gcm gh -ea stop ; $ghtoken=$(gh auth token) } catch {}
   If (-not ([string]::IsNullOrEmpty($ghtoken))) {

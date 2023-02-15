@@ -1,4 +1,6 @@
 # Check R environment ---
+
+echo ">>>> Configuring R environment"
 r_exists=$(which Rscript)
 
 if [ -z $r_exists ] 
@@ -10,6 +12,7 @@ fi
 
 
 # Check python test environment ---
+echo ">>>> Configuring Python environment"
 python_exists=$(which python)
 if [ -z $python_exists ] 
 then 
@@ -26,7 +29,8 @@ else
   pipenv install
 fi
 
-# Check Julia environment
+# Check Julia environment ---
+echo ">>>> Configuring Julia environment"
 julia_exists=$(which julia)
 if [ -z $julia_exists ] 
 then 
@@ -37,6 +41,7 @@ else
 fi
 
 # Update tinytex
+echo ">>>> Configuring TinyTeX environment"
 if [ -z $GH_TOKEN ] && [ -n $(which gh) ]
 then 
   echo "Setting GH_TOKEN env var for Github Download."
