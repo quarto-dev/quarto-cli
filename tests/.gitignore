@@ -8,3 +8,4 @@ env.bak/
 venv.bak/
 
 bin/
+/.luarc.json

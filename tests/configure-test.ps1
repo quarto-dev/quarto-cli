@@ -9,7 +9,7 @@ try { $null = gcm python -ea stop; $python=$true } catch {
 }
 
 try { $null = gcm pipenv -ea stop; $pipenv=$true } catch { 
-  Write-Host -ForegroundColor red "No python found in PATH - Install python"
+  Write-Host -ForegroundColor red "No pipenv found in PATH - Install pipenv running ``pip install pipenv``"
 }
 
 If ( $py -and $python -and $env:VIRTUAL_ENV -eq $null) {
@@ -23,7 +23,7 @@ try {$null = gcm julia -ea stop; $julia=$true } catch {
 
 If ($julia) {
   # TODO: Check to do equivalent of virtualenv
-  Write-Host "Setting up Julia global environment"
+  Write-Host "Setting up Julia environment"
   julia --color=yes --project=. -e 'import Pkg; Pkg.instantiate(); Pkg.build("IJulia"); Pkg.precompile()'
 }
 
