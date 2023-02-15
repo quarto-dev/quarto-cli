@@ -9,6 +9,8 @@ on:
     branches: [main]
   schedule:
     - cron: 0 * * * *
+env:
+  RENV_PATHS_ROOT: ~/.local/share/renv
 
 jobs:
   test-bundle:
