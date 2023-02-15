@@ -38,6 +38,14 @@ fi
 # Ensure that tinytex is installed
 quarto install tinytex --no-prompt
 
+# Activating python virtualenv
+if [[ -z $VIRTUAL_ENV ]]
+then
+  echo "> Activating virtualenv for Python tests"
+  source "$(pipenv --venv)/bin/activate"
+  quarto_venv_activated="true"
+fi
+
 if [ "$QUARTO_TEST_TIMING" != "" ]; then
   QUARTO_DENO_OPTIONS="--config test-conf.json --unstable --allow-read --allow-write --allow-run --allow-env --allow-net --no-check"
   rm -f timing.txt
@@ -54,6 +62,13 @@ else
 fi
 
 SUCCESS=$?
+
+if [[ -n $VIRTUAL_ENV ]] && [[ $quarto_venv_activated == "true" ]] 
+then
+  echo "> Exiting virtualenv activated for tests"
+  deactivate
+  unset quarto_venv_activated
+fi
 
 # Generates the coverage report
 if [[ $@ == *"--coverage"* ]]; then
