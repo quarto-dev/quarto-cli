@@ -487,3 +487,21 @@ Apply a Lua filter
 ---@param lua_filter table<string,function> Map of filter functions
 ---@return pandoc.Table 
 function pandoc.Table:walk(lua_filter) end
+
+--======================== Figure ========================
+
+--[[
+
+Figure with caption and arbitrary block contents.
+
+]]
+---@class pandoc.Figure : pandoc.Block
+---@field attr pandoc.Attr Figure attributes
+---@field identifier string Alias for `attr.identifier`
+---@field classes pandoc.List Alias for `attr.classes`
+---@field attributes table<string,string> Alias for `attr.attributes`
+---@field caption pandoc.Caption Figure caption
+---@field content pandoc.Blocks Figure non-caption content
+---@field t "Figure"
+---@field tag "Figure"
+pandoc.Figure = {}
