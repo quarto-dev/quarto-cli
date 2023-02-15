@@ -31,16 +31,12 @@ To manage dependencies:
 - For Python, we use `pipenv` to manage dependencies and recreate easily on all OS. `pipenv` will be installed if not already.
 - Julia uses built-in package manager - we provide `Projec.toml` and `Manifest.toml` to recreate the environment.
 
-### How-to
+### How to run tests locally ?
 
-Tests are run using `run-tests.sh` on UNIX, and `run-tests.ps1` on Windows
+Tests are run using `run-tests.sh` on UNIX, and `run-tests.ps1` on Windows.
 
-**IMPORTANT: This command must be run in a shell where Python virtual environment is activated**.
-To do that, run:
-
-```
-pipenv shell
-```
+Those files will run `configure-test-env` scripts to check for requirements and set up dependencies (except on Github Action as this is done in the workflow file directly).
+You can prevent test configuration locally by setting `QUARTO_TESTS_NO_CONFIG` environment variable to a non-empty value.
 
 ```bash
 # run all tests
@@ -71,6 +67,41 @@ pipenv shell
 ./run-tests.sh smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/04/issue-3847.qmd
 ```
 
+<details><summary> Examples of tests output after it ran </summary>
+
+```bash
+$ ./run-tests.sh smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/04/issue-3847.qmd
+> Checking and configuring environment for tests
+>>>> Configuring R environment
+* The library is already synchronized with the lockfile.
+>>>> Configuring Python environment
+Setting up python environnement with pipenv
+Installing dependencies from Pipfile.lock (0ded54)...
+To activate this project's virtualenv, run pipenv shell.
+Alternatively, run a command inside the virtualenv with pipenv run.
+>>>> Configuring Julia environment
+Setting up Julia environment
+    Building Conda ─→ `~/.julia/scratchspaces/44cfe95a-1eb2-52ea-b672-e2afdf69b78f/e32a90da027ca45d84678b826fffd3110bb3fc90/build.log`
+    Building IJulia → `~/.julia/scratchspaces/44cfe95a-1eb2-52ea-b672-e2afdf69b78f/59e19713542dd9dd02f31d59edbada69530d6a14/build.log`
+>>>> Configuring TinyTeX environment
+Setting GH_TOKEN env var for Github Download.
+tinytex is already installed and up to date.
+> Activating virtualenv for Python tests
+Check file:///home/cderv/project/quarto-cli/tests/smoke/smoke-all.test.ts
+running 1 test from ./smoke/smoke-all.test.ts
+[smoke] > quarto render docs/smoke-all/2023/01/04/issue-3847.qmd --to html ...
+------- output -------
+[verify] > No Errors or Warnings
+----- output end -----
+[smoke] > quarto render docs/smoke-all/2023/01/04/issue-3847.qmd --to html ... ok (320ms)
+
+ok | 1 passed | 0 failed (1s)
+
+> Exiting virtualenv activated for tests
+```
+
+</details>
+
 ```powershell
 # run tests for all documents in docs/smoke-all/
 ./run-tests.ps1 smoke/smoke-all.tests.ts
@@ -81,6 +112,40 @@ pipenv shell
 # run test for a specific document
 ./run-tests.ps1 smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/04/issue-3847.qmd
 ```
+
+<details><summary> Examples of tests output after it ran </summary>
+
+```powershell
+ ./run-tests.ps1 smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/04/issue-3847.qmd
+> Setting all the paths required...
+> Checking and configuring environment for tests
+>>>> Configuring R environment
+* The library is already synchronized with the lockfile.
+>>>> Configuring python environment
+Setting up python environnement with pipenv
+Installing dependencies from Pipfile.lock (0ded54)...
+To activate this project's virtualenv, run pipenv shell.
+Alternatively, run a command inside the virtualenv with pipenv run.
+>>>> Configuring Julia environment
+Setting up Julia environment
+    Building Conda ─→ `C:\Users\chris\.julia\scratchspaces\44cfe95a-1eb2-52ea-b672-e2afdf69b78f\e32a90da027ca45d84678b826fffd3110bb3fc90\build.log`
+    Building IJulia → `C:\Users\chris\.julia\scratchspaces\44cfe95a-1eb2-52ea-b672-e2afdf69b78f\59e19713542dd9dd02f31d59edbada69530d6a14\build.log`
+>>>> Configuring TinyTeX environment
+tinytex is already installed and up to date.
+> Preparing running tests...
+> Activating virtualenv for Python tests
+> Running tests with "C:\Users\chris\Documents\DEV_R\quarto-cli\package\dist\bin\tools\deno.exe test --config test-conf.json --unstable --allow-read --allow-write --allow-run --allow-env --allow-net --check --importmap=C:\Users\chris\Documents\DEV_R\quarto-cli\src\dev_import_map.json smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/04/issue-3847.qmd"
+running 1 test from ./smoke/smoke-all.test.ts
+[smoke] > quarto render docs\smoke-all\2023\01\04\issue-3847.qmd --to html ...
+------- output -------
+[verify] > No Errors or Warnings
+----- output end -----
+[smoke] > quarto render docs\smoke-all\2023\01\04\issue-3847.qmd --to html ... ok (650ms)
+
+ok | 1 passed | 0 failed (2s)
+```
+
+</details>
 
 ## Debugging within tests
 
