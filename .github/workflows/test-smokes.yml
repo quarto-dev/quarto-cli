@@ -72,6 +72,11 @@ jobs:
           restore-keys: |
             ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-1-
 
+      - name: Install missing system deps
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update -y && sudo apt-get install -y libcurl4-openssl-dev
+
       - name: Restore R packages
         working-directory: tests
         env:
