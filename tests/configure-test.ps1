@@ -4,13 +4,17 @@ try { $null = gcm py -ea stop; $py=$true} catch {
   Write-Host -ForegroundColor red "Missing Python launcher - py.exe is required on Windows"
 }
 
-try { $null = gcm python3 -ea stop; $python=$true } catch { 
-  Write-Host -ForegroundColor red "No python found in PATH - Install python3"
+try { $null = gcm python -ea stop; $python=$true } catch { 
+  Write-Host -ForegroundColor red "No python found in PATH - Install python"
+}
+
+try { $null = gcm pipenv -ea stop; $pipenv=$true } catch { 
+  Write-Host -ForegroundColor red "No python found in PATH - Install python"
 }
 
 If ( $py -and $python -and $env:VIRTUAL_ENV -eq $null) {
-    Write-Host "Setting up virtual environment in .venv"
-    python3 -m venv .venv
+    Write-Host "Setting up python environnement with pipenv"
+    pipenv install
 }
 
 try {$null = gcm julia -ea stop; julia=$true } catch {

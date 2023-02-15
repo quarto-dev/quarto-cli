@@ -32,7 +32,7 @@ Rscript -e "renv::restore()"
 
 # Ensure that we've actived the python env
 if [[ $QUARTO_TESTS_VIRTUALENV != "FALSE" ]]; then
-  python3 -m pip install -r requirements.txt --prefer-binary -q
+  pipenv install --extra-pip-args="--prefer-binary"
 fi
 
 # Ensure that tinytex is installed
