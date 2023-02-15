@@ -1,3 +1,14 @@
+# Check R environment ---
+r_exists=$(which Rscript)
+
+if [ -z $r_exists ] 
+then 
+  echo "No Rscript found in PATH - Install R"
+else
+  Rscript -e 'renv::restore(repos = c(RSPM = "https://packagemanager.posit.co/cran/latest"))'
+fi
+
+
 # Check python test environment ---
 python_exists=$(which python)
 if [ -z $python_exists ] 
