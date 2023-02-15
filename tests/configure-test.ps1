@@ -23,3 +23,11 @@ If ($julia) {
   julia --color=yes --project=. -e 'import Pkg; Pkg.instantiate(); Pkg.build("IJulia"); Pkg.precompile()'
 }
 
+If ([string]::IsNullOrEmpty($env:GH_TOKEN)) {
+  try { $null = gcm gh -ea stop ; $ghtoken=$(gh auth token) } catch {}
+  If (-not ([string]::IsNullOrEmpty($ghtoken))) {
+    $env:GH_TOKEN=$ghtoken
+    Write-Host "Setting GH_TOKEN env var for Github Download."
+  }
+}
+quarto install tinytex
