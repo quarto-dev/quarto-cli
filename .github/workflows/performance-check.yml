@@ -31,6 +31,22 @@ jobs:
         run: |
           ./configure.sh
 
+      - name: Collect test suite timing
+        shell: bash
+        run: |
+          pushd tests
+          QUARTO_TEST_TIMING=timing.txt ./run-tests.sh
+          if [ "$?" == "0" ]; then          
+            git config --global user.name "GitHub Actions auto-commit"
+            git config --global user.email "username@users.noreply.github.com"
+            git add timing.txt
+            git commit -m "(auto) update timing"
+            git push origin main
+          else
+            echo "Test suite failed; skipping update of timing.txt"
+          fi
+          popd tests
+
       - name: Test Bundle
         id: create_bundle
         shell: bash
@@ -48,7 +64,7 @@ jobs:
 
           # move the TS file so quarto command will use bundled JS
           mv src/quarto.ts src/quarto1.ts
-          
+
           pushd package/pkg-working/bin
 
           # test a bare quarto command
