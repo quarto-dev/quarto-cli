@@ -63,6 +63,7 @@ runs:
       uses: julia-actions/setup-julia@v1
 
     - name: Julia Packages
+      shell: bash
       run: |
         pushd tests
         julia --project=. -e "import Pkg; Pkg.instantiate(); Pkg.build(\"IJulia\"); Pkg.precompile()"
