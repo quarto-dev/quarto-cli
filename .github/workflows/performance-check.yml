@@ -9,8 +9,6 @@ on:
     branches: [main]
   schedule:
     - cron: 0 * * * *
-env:
-  RENV_PATHS_ROOT: ~/.local/share/renv
 
 jobs:
   test-bundle:
@@ -23,31 +21,15 @@ jobs:
           # checkout full tree
           fetch-depth: 0
 
-      - uses: ./.github/workflows/actions/quarto-test-deps
-
-      - uses: ./.github/workflows/actions/quarto-dev
-
-      - name: Install Tinytex
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          quarto install tinytex
-
-      - name: Collect test suite timing
+      - name: Set Path
         shell: bash
         run: |
-          pushd tests
-          QUARTO_TEST_TIMING=timing.txt ./run-tests.sh
-          if [ "$?" == "0" ]; then          
-            git config --global user.name "GitHub Actions auto-commit"
-            git config --global user.email "username@users.noreply.github.com"
-            git add timing.txt
-            git commit -m "(auto) update timing"
-            git push origin main
-          else
-            echo "Test suite failed; skipping update of timing.txt"
-          fi
-          popd tests
+          echo "$HOME/bin" >> $GITHUB_PATH
+
+      - name: Configure Quarto
+        shell: bash
+        run: |
+          ./configure.sh
 
       - name: Test Bundle
         id: create_bundle
@@ -66,7 +48,7 @@ jobs:
 
           # move the TS file so quarto command will use bundled JS
           mv src/quarto.ts src/quarto1.ts
-
+          
           pushd package/pkg-working/bin
 
           # test a bare quarto command
