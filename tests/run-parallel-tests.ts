@@ -43,21 +43,7 @@ for (let i = 0; i < lines.length; i += 2) {
   timedTests.add(name);
 }
 let failed = false;
-for (const timedTest of timedTests) {
-  if (!currentTests.has(timedTest)) {
-    console.log(`Missing test ${timedTest} in test suite`);
-    failed = true;
-  }
-}
-for (const currentTest of currentTests) {
-  if (!timedTests.has(currentTest)) {
-    console.log(`Missing test ${currentTest} in timing.txt`);
-    failed = true;
-  }
-}
-if (failed) {
-  Deno.exit(1);
-}
+
 // console.log(
 //   testTimings.map((a) => (a.timing.real)).reduce((a, b) => a + b, 0),
 // );
@@ -89,14 +75,25 @@ for (const timing of testTimings) {
   bucketSizes[ix] += timing.timing.real;
 }
 
+for (const currentTest of currentTests) {
+  if (!timedTests.has(currentTest)) {
+    console.log(`Missing test ${currentTest} in timing.txt`);
+    failed = true;
+    bucketSizes[Math.floor(Math.random() * nBuckets)].push(currentTest);
+  }
+}
+
 console.log(`Will run in ${nBuckets} cores`);
-console.log(
-  `Expected speedup: ${
-    (bucketSizes.reduce((a, b) => a + b, 0) / Math.max(...bucketSizes)).toFixed(
-      2,
-    )
-  }`,
-);
+if (!failed) {
+  console.log(
+    `Expected speedup: ${
+      (bucketSizes.reduce((a, b) => a + b, 0) / Math.max(...bucketSizes))
+        .toFixed(
+          2,
+        )
+    }`,
+  );
+}
 
 Promise.all(buckets.map((bucket) => {
   const cmd: string[] = ["./run-tests.sh"];
