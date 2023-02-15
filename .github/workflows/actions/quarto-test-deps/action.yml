@@ -15,10 +15,12 @@ runs:
         node-version: 16
 
     - name: Install node dependencies
+      shell: bash
       run: yarn
       working-directory: ./tests/integration/playwright
 
     - name: Install Playwright Browsers
+      shell: bash
       run: npx playwright install --with-deps
       working-directory: ./tests/integration/playwright
 
@@ -44,6 +46,7 @@ runs:
         cache: "pip"
 
     - name: Python Dependencies
+      shell: bash
       run: |
         pushd tests
         source bin/activate
