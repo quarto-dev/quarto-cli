@@ -451,6 +451,9 @@ export async function runPandoc(
       if (extras.pandoc[kHighlightStyle]) {
         delete printAllDefaults[kHighlightStyle];
         allDefaults[kHighlightStyle] = extras.pandoc[kHighlightStyle];
+      } else {
+        delete printAllDefaults[kHighlightStyle];
+        delete allDefaults[kHighlightStyle];
       }
     }
 
@@ -1305,7 +1308,6 @@ function resolveTextHighlightStyle(
 
   if (highlightTheme === "none") {
     // Clear the highlighting
-    pandoc[kHighlightStyle] = null;
     if (extras.pandoc) {
       delete extras.pandoc[kHighlightStyle];
     }
@@ -1331,7 +1333,6 @@ function resolveTextHighlightStyle(
       break;
     case "none":
       // Clear the highlighting
-      delete pandoc[kHighlightStyle];
       if (extras.pandoc) {
         delete extras.pandoc[kHighlightStyle];
       }

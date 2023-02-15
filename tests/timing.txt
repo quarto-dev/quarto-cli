@@ -1,0 +1,319 @@
+./test.ts
+0.47user 0.11system 0:00.60elapsed 96%CPU (0avgtext+0avgdata 96292maxresident)k
+0inputs+600outputs (8major+17138minor)pagefaults 0swaps
+./unit/guess-chunk-options-format.test.ts
+0.58user 0.09system 0:00.65elapsed 103%CPU (0avgtext+0avgdata 121188maxresident)k
+0inputs+128outputs (8major+22697minor)pagefaults 0swaps
+./unit/yaml-intelligence/annotated-yaml.test.ts
+2.32user 0.17system 0:01.87elapsed 133%CPU (0avgtext+0avgdata 169328maxresident)k
+0inputs+280outputs (8major+47855minor)pagefaults 0swaps
+./unit/yaml-intelligence/error-colon-no-space.test.ts
+2.41user 0.18system 0:02.01elapsed 129%CPU (0avgtext+0avgdata 178640maxresident)k
+0inputs+160outputs (8major+49710minor)pagefaults 0swaps
+./unit/yaml-intelligence/hover-info.test.ts
+2.35user 0.20system 0:01.97elapsed 129%CPU (0avgtext+0avgdata 173416maxresident)k
+0inputs+136outputs (8major+46671minor)pagefaults 0swaps
+./unit/pandoc-partition.test.ts
+0.64user 0.07system 0:00.69elapsed 103%CPU (0avgtext+0avgdata 120456maxresident)k
+0inputs+168outputs (8major+23226minor)pagefaults 0swaps
+./unit/break-quarto-md/break-quarto-md.test.ts
+2.26user 0.20system 0:01.87elapsed 131%CPU (0avgtext+0avgdata 176344maxresident)k
+0inputs+136outputs (8major+42158minor)pagefaults 0swaps
+./unit/pandoc-formats.test.ts
+0.58user 0.12system 0:00.67elapsed 103%CPU (0avgtext+0avgdata 118992maxresident)k
+0inputs+176outputs (8major+22699minor)pagefaults 0swaps
+./unit/environment.test.ts
+0.60user 0.07system 0:00.65elapsed 103%CPU (0avgtext+0avgdata 121832maxresident)k
+0inputs+128outputs (8major+23234minor)pagefaults 0swaps
+./unit/confluence.test.ts
+0.71user 0.12system 0:00.81elapsed 103%CPU (0avgtext+0avgdata 122416maxresident)k
+0inputs+904outputs (8major+24395minor)pagefaults 0swaps
+./unit/schema-validation/error-location.test.ts
+0.59user 0.11system 0:00.68elapsed 103%CPU (0avgtext+0avgdata 120468maxresident)k
+0inputs+136outputs (8major+23137minor)pagefaults 0swaps
+./unit/schema-validation/format-aliases.test.ts
+2.37user 0.16system 0:01.86elapsed 135%CPU (0avgtext+0avgdata 170664maxresident)k
+0inputs+128outputs (8major+48516minor)pagefaults 0swaps
+./unit/schema-validation/schema-completions.test.ts
+2.04user 0.13system 0:01.70elapsed 128%CPU (0avgtext+0avgdata 174128maxresident)k
+0inputs+160outputs (8major+40783minor)pagefaults 0swaps
+./unit/schema-validation/error-narrowing.test.ts
+2.29user 0.16system 0:01.85elapsed 132%CPU (0avgtext+0avgdata 172556maxresident)k
+0inputs+144outputs (8major+46484minor)pagefaults 0swaps
+./unit/schema-validation/format-execute.test.ts
+0.01user 0.01system 0:00.03elapsed 91%CPU (0avgtext+0avgdata 39644maxresident)k
+0inputs+160outputs (8major+3009minor)pagefaults 0swaps
+./unit/schema-validation/schema-files.test.ts
+2.33user 0.17system 0:01.88elapsed 133%CPU (0avgtext+0avgdata 171756maxresident)k
+0inputs+136outputs (8major+51612minor)pagefaults 0swaps
+./unit/schema-validation/format-pandoc-from-file-simple-tests.test.ts
+2.39user 0.18system 0:01.90elapsed 135%CPU (0avgtext+0avgdata 169964maxresident)k
+0inputs+128outputs (8major+49933minor)pagefaults 0swaps
+./unit/schema-validation/simple.test.ts
+2.38user 0.19system 0:01.88elapsed 136%CPU (0avgtext+0avgdata 171420maxresident)k
+0inputs+160outputs (8major+46137minor)pagefaults 0swaps
+./unit/schema-validation/hello-world.test.ts
+2.34user 0.18system 0:01.85elapsed 136%CPU (0avgtext+0avgdata 169904maxresident)k
+0inputs+128outputs (8major+49114minor)pagefaults 0swaps
+./unit/schema-validation/object-super.test.ts
+2.38user 0.17system 0:01.94elapsed 131%CPU (0avgtext+0avgdata 169656maxresident)k
+0inputs+224outputs (8major+49047minor)pagefaults 0swaps
+./unit/schema-validation/schema-schema.test.ts
+5.12user 0.58system 0:04.57elapsed 124%CPU (0avgtext+0avgdata 766892maxresident)k
+0inputs+184outputs (8major+211528minor)pagefaults 0swaps
+./unit/filter-paths.test.ts
+0.60user 0.10system 0:00.68elapsed 103%CPU (0avgtext+0avgdata 121440maxresident)k
+0inputs+168outputs (8major+23244minor)pagefaults 0swaps
+./unit/paths/qualified-path.test.ts
+0.61user 0.09system 0:00.68elapsed 104%CPU (0avgtext+0avgdata 120708maxresident)k
+8inputs+208outputs (8major+23200minor)pagefaults 0swaps
+./unit/path.test.ts
+0.66user 0.10system 0:00.72elapsed 104%CPU (0avgtext+0avgdata 122548maxresident)k
+0inputs+184outputs (8major+23858minor)pagefaults 0swaps
+./unit/text.test.ts
+0.58user 0.10system 0:00.65elapsed 103%CPU (0avgtext+0avgdata 118520maxresident)k
+0inputs+128outputs (8major+23207minor)pagefaults 0swaps
+./unit/pandoc.test.ts
+0.58user 0.11system 0:00.67elapsed 103%CPU (0avgtext+0avgdata 119592maxresident)k
+0inputs+216outputs (8major+23251minor)pagefaults 0swaps
+./unit/binary-search.test.ts
+0.60user 0.08system 0:00.66elapsed 103%CPU (0avgtext+0avgdata 118768maxresident)k
+0inputs+272outputs (8major+23249minor)pagefaults 0swaps
+./unit/mapped-strings/mapped-text.test.ts
+0.60user 0.14system 0:00.72elapsed 104%CPU (0avgtext+0avgdata 123108maxresident)k
+0inputs+160outputs (8major+23538minor)pagefaults 0swaps
+./unit/mapped-strings/multiple-source.test.ts
+0.61user 0.11system 0:00.70elapsed 103%CPU (0avgtext+0avgdata 119072maxresident)k
+0inputs+208outputs (8major+23227minor)pagefaults 0swaps
+./unit/partition-cell-options.test.ts
+2.07user 0.17system 0:01.74elapsed 128%CPU (0avgtext+0avgdata 175660maxresident)k
+0inputs+208outputs (8major+40011minor)pagefaults 0swaps
+./unit/yaml.test.ts
+2.41user 0.14system 0:01.92elapsed 132%CPU (0avgtext+0avgdata 172632maxresident)k
+0inputs+168outputs (8major+49875minor)pagefaults 0swaps
+./integration/playwright-tests.test.ts
+54.04user 5.26system 0:52.06elapsed 113%CPU (0avgtext+0avgdata 219772maxresident)k
+161456inputs+112776outputs (504major+1348721minor)pagefaults 0swaps
+./integration/mermaid/github-issue-1340.test.ts
+Command exited with non-zero status 1
+3.30user 0.34system 0:03.63elapsed 100%CPU (0avgtext+0avgdata 174180maxresident)k
+0inputs+264outputs (8major+94131minor)pagefaults 0swaps
+./integration/guess-chunk-options-format-document.test.ts
+Command exited with non-zero status 1
+3.24user 0.25system 0:03.59elapsed 97%CPU (0avgtext+0avgdata 175224maxresident)k
+0inputs+216outputs (8major+90444minor)pagefaults 0swaps
+./smoke/yaml-intelligence/yaml-intelligence-folded-block-strings.test.ts
+2.07user 0.16system 0:01.75elapsed 128%CPU (0avgtext+0avgdata 176200maxresident)k
+0inputs+160outputs (8major+40067minor)pagefaults 0swaps
+./smoke/yaml-intelligence/yaml-intelligence.test.ts
+2.32user 0.16system 0:01.84elapsed 134%CPU (0avgtext+0avgdata 175584maxresident)k
+0inputs+168outputs (8major+42228minor)pagefaults 0swaps
+./smoke/shortcodes/shortcodes-core.test.ts
+4.05user 0.67system 0:03.77elapsed 125%CPU (0avgtext+0avgdata 195728maxresident)k
+0inputs+15248outputs (8major+150530minor)pagefaults 0swaps
+./smoke/run/stdlib-run-version.test.ts
+1.21user 0.25system 0:01.40elapsed 104%CPU (0avgtext+0avgdata 121176maxresident)k
+0inputs+14472outputs (18major+53062minor)pagefaults 0swaps
+./smoke/filters/filters.test.ts
+3.52user 0.33system 0:02.99elapsed 128%CPU (0avgtext+0avgdata 193372maxresident)k
+0inputs+8712outputs (8major+111165minor)pagefaults 0swaps
+./smoke/authors/author-name.test.ts
+5.05user 0.67system 0:04.73elapsed 120%CPU (0avgtext+0avgdata 195588maxresident)k
+24inputs+23544outputs (8major+202429minor)pagefaults 0swaps
+./smoke/book/render-book.test.ts
+41.06user 3.00system 0:43.02elapsed 102%CPU (0avgtext+0avgdata 248652maxresident)k
+1368inputs+59120outputs (13major+861609minor)pagefaults 0swaps
+./smoke/directives/include-fixups.test.ts
+0.02user 0.01system 0:00.03elapsed 86%CPU (0avgtext+0avgdata 41300maxresident)k
+0inputs+176outputs (8major+3013minor)pagefaults 0swaps
+./smoke/env/install.test.ts
+0.60user 0.13system 0:00.93elapsed 78%CPU (0avgtext+0avgdata 120976maxresident)k
+0inputs+136outputs (8major+23327minor)pagefaults 0swaps
+./smoke/env/check.test.ts
+8.42user 1.03system 0:10.81elapsed 87%CPU (0avgtext+0avgdata 190672maxresident)k
+24424inputs+5816outputs (28major+219425minor)pagefaults 0swaps
+./smoke/crossref/docx.test.ts
+2.54user 0.24system 0:02.22elapsed 125%CPU (0avgtext+0avgdata 176920maxresident)k
+40inputs+1016outputs (9major+58198minor)pagefaults 0swaps
+./smoke/crossref/latex.test.ts
+2.50user 0.22system 0:02.13elapsed 127%CPU (0avgtext+0avgdata 175360maxresident)k
+0inputs+432outputs (8major+57136minor)pagefaults 0swaps
+./smoke/crossref/sections.test.ts
+2.54user 0.27system 0:02.15elapsed 131%CPU (0avgtext+0avgdata 187672maxresident)k
+0inputs+2272outputs (8major+61283minor)pagefaults 0swaps
+./smoke/crossref/tables.test.ts
+Command exited with non-zero status 1
+4.99user 0.48system 0:05.75elapsed 95%CPU (0avgtext+0avgdata 192976maxresident)k
+0inputs+2496outputs (8major+159405minor)pagefaults 0swaps
+./smoke/crossref/equations.test.ts
+2.57user 0.22system 0:02.14elapsed 130%CPU (0avgtext+0avgdata 187988maxresident)k
+0inputs+2272outputs (8major+61523minor)pagefaults 0swaps
+./smoke/crossref/syntax.test.ts
+3.15user 0.43system 0:02.72elapsed 131%CPU (0avgtext+0avgdata 193340maxresident)k
+0inputs+6640outputs (8major+93849minor)pagefaults 0swaps
+./smoke/crossref/listings.test.ts
+2.66user 0.23system 0:02.23elapsed 129%CPU (0avgtext+0avgdata 190796maxresident)k
+0inputs+2288outputs (8major+62902minor)pagefaults 0swaps
+./smoke/crossref/figures.test.ts
+Command exited with non-zero status 1
+17.56user 2.21system 0:20.40elapsed 96%CPU (0avgtext+0avgdata 191460maxresident)k
+8inputs+11528outputs (8major+403542minor)pagefaults 0swaps
+./smoke/crossref/options.test.ts
+2.98user 0.29system 0:02.50elapsed 130%CPU (0avgtext+0avgdata 196080maxresident)k
+0inputs+4424outputs (8major+78908minor)pagefaults 0swaps
+./smoke/crossref/chapters.test.ts
+2.61user 0.23system 0:02.17elapsed 131%CPU (0avgtext+0avgdata 189416maxresident)k
+0inputs+2272outputs (8major+61672minor)pagefaults 0swaps
+./smoke/crossref/thereoms.test.ts
+2.93user 0.29system 0:02.47elapsed 130%CPU (0avgtext+0avgdata 193540maxresident)k
+0inputs+4456outputs (8major+78182minor)pagefaults 0swaps
+./smoke/crossref/unresolved.test.ts
+2.57user 0.25system 0:02.17elapsed 130%CPU (0avgtext+0avgdata 188656maxresident)k
+0inputs+2320outputs (8major+60914minor)pagefaults 0swaps
+./smoke/extensions/extension-render-reveal.test.ts
+3.84user 0.54system 0:05.45elapsed 80%CPU (0avgtext+0avgdata 189724maxresident)k
+0inputs+49088outputs (8major+140456minor)pagefaults 0swaps
+./smoke/extensions/install.test.ts
+4.66user 0.69system 0:06.58elapsed 81%CPU (0avgtext+0avgdata 182596maxresident)k
+0inputs+126000outputs (8major+149867minor)pagefaults 0swaps
+./smoke/extensions/extension-render-doc.test.ts
+Command exited with non-zero status 1
+4.94user 0.59system 0:05.20elapsed 106%CPU (0avgtext+0avgdata 191448maxresident)k
+0inputs+20384outputs (8major+166560minor)pagefaults 0swaps
+./smoke/extensions/extension-render-journals.test.ts
+Command exited with non-zero status 1
+90.68user 7.75system 1:52.38elapsed 87%CPU (0avgtext+0avgdata 212316maxresident)k
+2432inputs+540832outputs (24major+1694475minor)pagefaults 0swaps
+./smoke/extensions/extension-render-project.test.ts
+3.72user 0.42system 0:04.21elapsed 98%CPU (0avgtext+0avgdata 201460maxresident)k
+0inputs+28192outputs (8major+105287minor)pagefaults 0swaps
+./smoke/engine/include-engine-detection.test.ts
+Command exited with non-zero status 1
+3.20user 0.31system 0:03.65elapsed 96%CPU (0avgtext+0avgdata 177696maxresident)k
+0inputs+296outputs (9major+88257minor)pagefaults 0swaps
+./smoke/render/render-templates.test.ts
+Command exited with non-zero status 1
+40.53user 4.21system 0:51.05elapsed 87%CPU (0avgtext+0avgdata 213644maxresident)k
+0inputs+165792outputs (9major+1109421minor)pagefaults 0swaps
+./smoke/render/render-bibio.test.ts
+2.80user 0.37system 0:02.47elapsed 128%CPU (0avgtext+0avgdata 176496maxresident)k
+0inputs+272outputs (8major+78081minor)pagefaults 0swaps
+./smoke/render/render-freeze.test.ts
+Command exited with non-zero status 1
+5.31user 0.60system 0:07.24elapsed 81%CPU (0avgtext+0avgdata 177304maxresident)k
+0inputs+520outputs (9major+187314minor)pagefaults 0swaps
+./smoke/render/render-code-highlighting.test.ts
+Command exited with non-zero status 1
+3.30user 0.31system 0:03.63elapsed 99%CPU (0avgtext+0avgdata 175540maxresident)k
+0inputs+296outputs (8major+90946minor)pagefaults 0swaps
+./smoke/render/render-reveal.test.ts
+Command exited with non-zero status 1
+6.19user 0.73system 0:08.87elapsed 78%CPU (0avgtext+0avgdata 191692maxresident)k
+0inputs+24648outputs (8major+227238minor)pagefaults 0swaps
+./smoke/render/render-callout.test.ts
+3.62user 0.39system 0:03.20elapsed 125%CPU (0avgtext+0avgdata 190508maxresident)k
+8inputs+3248outputs (8major+104450minor)pagefaults 0swaps
+./smoke/render/render-plain.test.ts
+3.37user 0.38system 0:02.88elapsed 130%CPU (0avgtext+0avgdata 193244maxresident)k
+0inputs+4752outputs (8major+103386minor)pagefaults 0swaps
+./smoke/render/render-latex-output.test.ts
+Command exited with non-zero status 1
+3.77user 0.44system 0:04.17elapsed 100%CPU (0avgtext+0avgdata 179560maxresident)k
+0inputs+808outputs (8major+115147minor)pagefaults 0swaps
+./smoke/render/render-pdf.test.ts
+Command exited with non-zero status 1
+17.17user 2.57system 0:23.63elapsed 83%CPU (0avgtext+0avgdata 200552maxresident)k
+0inputs+81792outputs (9major+697063minor)pagefaults 0swaps
+./smoke/render/render-date.test.ts
+3.74user 0.45system 0:03.28elapsed 127%CPU (0avgtext+0avgdata 195616maxresident)k
+0inputs+11072outputs (24major+120494minor)pagefaults 0swaps
+./smoke/render/render-r.test.ts
+Command exited with non-zero status 1
+6.43user 0.77system 0:08.91elapsed 80%CPU (0avgtext+0avgdata 177008maxresident)k
+0inputs+536outputs (8major+228228minor)pagefaults 0swaps
+./smoke/render/render-page-layout.test.ts
+Command exited with non-zero status 1
+4.49user 0.44system 0:05.42elapsed 91%CPU (0avgtext+0avgdata 178064maxresident)k
+0inputs+304outputs (8major+139802minor)pagefaults 0swaps
+./smoke/render/render-code-tools.test.ts
+Command exited with non-zero status 1
+5.40user 0.57system 0:07.18elapsed 83%CPU (0avgtext+0avgdata 175828maxresident)k
+0inputs+392outputs (8major+181991minor)pagefaults 0swaps
+./smoke/render/render-docx.test.ts
+Command exited with non-zero status 1
+3.60user 0.39system 0:03.89elapsed 102%CPU (0avgtext+0avgdata 171648maxresident)k
+0inputs+320outputs (8major+103459minor)pagefaults 0swaps
+./smoke/render/render-ojs.test.ts
+2.93user 0.26system 0:02.54elapsed 125%CPU (0avgtext+0avgdata 194260maxresident)k
+0inputs+3752outputs (8major+73641minor)pagefaults 0swaps
+./smoke/render/render-format-extension.test.ts
+Command exited with non-zero status 1
+12.08user 1.56system 0:18.31elapsed 74%CPU (0avgtext+0avgdata 179080maxresident)k
+0inputs+976outputs (8major+475406minor)pagefaults 0swaps
+./smoke/render/render-title-block.test.ts
+4.38user 0.60system 0:04.04elapsed 123%CPU (0avgtext+0avgdata 198156maxresident)k
+0inputs+8768outputs (8major+169490minor)pagefaults 0swaps
+./smoke/render/render-jupyter.test.ts
+7.01user 0.71system 0:06.87elapsed 112%CPU (0avgtext+0avgdata 196932maxresident)k
+0inputs+5080outputs (8major+102834minor)pagefaults 0swaps
+./smoke/render/render-commonmark.test.ts
+Command exited with non-zero status 1
+10.53user 1.28system 0:12.34elapsed 95%CPU (0avgtext+0avgdata 175284maxresident)k
+0inputs+456outputs (8major+247729minor)pagefaults 0swaps
+./smoke/render/render-minimal.test.ts
+2.50user 0.23system 0:02.12elapsed 128%CPU (0avgtext+0avgdata 182344maxresident)k
+0inputs+400outputs (8major+62724minor)pagefaults 0swaps
+./smoke/schema/load-yaml-schema-schema.test.ts
+0.01user 0.02system 0:00.03elapsed 89%CPU (0avgtext+0avgdata 39252maxresident)k
+0inputs+128outputs (8major+3006minor)pagefaults 0swaps
+./smoke/smoke-all.test.ts
+Command exited with non-zero status 1
+120.18user 13.34system 2:25.96elapsed 91%CPU (0avgtext+0avgdata 204712maxresident)k
+56inputs+176344outputs (18major+3091404minor)pagefaults 0swaps
+./smoke/ojs/complex-layout.test.ts
+3.77user 0.47system 0:03.49elapsed 121%CPU (0avgtext+0avgdata 263816maxresident)k
+0inputs+9792outputs (8major+139861minor)pagefaults 0swaps
+./smoke/ojs/dependency-traversal.test.ts
+2.81user 0.25system 0:02.42elapsed 126%CPU (0avgtext+0avgdata 187432maxresident)k
+0inputs+3792outputs (8major+69229minor)pagefaults 0swaps
+./smoke/create/create.test.ts
+48.14user 4.84system 0:46.73elapsed 113%CPU (0avgtext+0avgdata 203120maxresident)k
+0inputs+64840outputs (54major+1057418minor)pagefaults 0swaps
+./smoke/scholar/render-scholar.test.ts
+Command exited with non-zero status 1
+4.33user 0.51system 0:04.58elapsed 105%CPU (0avgtext+0avgdata 198260maxresident)k
+0inputs+3480outputs (8major+146865minor)pagefaults 0swaps
+./smoke/site/render-navigation.test.ts
+3.96user 0.48system 0:03.39elapsed 131%CPU (0avgtext+0avgdata 193352maxresident)k
+0inputs+20112outputs (8major+115689minor)pagefaults 0swaps
+./smoke/site/render-site.test.ts
+Command exited with non-zero status 1
+31.94user 4.29system 0:51.91elapsed 69%CPU (0avgtext+0avgdata 181384maxresident)k
+0inputs+4648outputs (9major+1352503minor)pagefaults 0swaps
+./smoke/site/render-shortcode-navbar.test.ts
+3.17user 0.27system 0:02.73elapsed 126%CPU (0avgtext+0avgdata 193144maxresident)k
+0inputs+14280outputs (8major+82947minor)pagefaults 0swaps
+./smoke/site/render-blog.test.ts
+4.59user 0.49system 0:04.04elapsed 125%CPU (0avgtext+0avgdata 195664maxresident)k
+0inputs+17104outputs (8major+150276minor)pagefaults 0swaps
+./smoke/site/render-listings.test.ts
+7.91user 1.06system 0:07.66elapsed 117%CPU (0avgtext+0avgdata 202160maxresident)k
+0inputs+90672outputs (8major+291544minor)pagefaults 0swaps
+./smoke/yaml/core-yaml-dashes.test.ts
+2.55user 0.33system 0:02.19elapsed 131%CPU (0avgtext+0avgdata 183412maxresident)k
+0inputs+12304outputs (8major+67518minor)pagefaults 0swaps
+./smoke/convert/convert-empty-frontmatter.test.ts
+3.37user 0.35system 0:03.15elapsed 118%CPU (0avgtext+0avgdata 179256maxresident)k
+0inputs+240outputs (8major+76215minor)pagefaults 0swaps
+./smoke/project/project-book.test.ts
+9.11user 0.88system 0:09.72elapsed 102%CPU (0avgtext+0avgdata 200840maxresident)k
+0inputs+10672outputs (8major+200988minor)pagefaults 0swaps
+./smoke/project/project-stdout.test.ts
+3.45user 0.31system 0:02.98elapsed 126%CPU (0avgtext+0avgdata 195220maxresident)k
+0inputs+7384outputs (8major+95942minor)pagefaults 0swaps
+./smoke/project/project-website.test.ts
+3.06user 0.36system 0:02.56elapsed 133%CPU (0avgtext+0avgdata 195888maxresident)k
+0inputs+6120outputs (8major+88173minor)pagefaults 0swaps
+./smoke/project/project-simple.test.ts
+3.00user 0.28system 0:02.42elapsed 135%CPU (0avgtext+0avgdata 171124maxresident)k
+0inputs+4560outputs (8major+85143minor)pagefaults 0swaps

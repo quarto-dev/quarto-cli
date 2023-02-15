@@ -35,6 +35,8 @@
 
 /*-- scss:defaults --*/
 $content-padding-top: 14px !default;
+$sidebar-glass-bg: #66666666 !default;
+$sidebar-anim-duration: 0.15s !default;
 
 /*-- scss:mixins --*/
 
@@ -45,7 +47,7 @@ $content-padding-top: 14px !default;
 }
 
 footer.footer .nav-footer,
-#quarto-header nav {
+#quarto-header > nav {
   padding-left: 1em;
   padding-right: 1em;
 }
@@ -342,9 +344,28 @@ $sidebar-section-bottom-margin: 0.2em;
 }
 
 // Toggle the top secondary navigation bar
-@include media-breakpoint-down(md) {
+@include media-breakpoint-down(lg) {
   .quarto-secondary-nav {
     display: block;
+
+    button.quarto-btn-toggle {
+      margin-left: -0.75rem;
+    }
+
+    nav.quarto-page-breadcrumbs {
+      display: flex;
+      align-items: center;
+      padding-right: 1em;
+      margin-left: -0.25em;
+
+      a {
+        text-decoration: none;
+      }
+
+      ol.breadcrumb {
+        margin-bottom: 0;
+      }
+    }
   }
 }
 
@@ -366,7 +387,6 @@ $sidebar-disabled-color: rgba($sidebar-fg, 0.75) !default;
 
 .quarto-secondary-nav .quarto-btn-toggle {
   color: $sidebar-color;
-  padding-right: 0;
 }
 
 .quarto-secondary-nav[aria-expanded="false"]
@@ -393,6 +413,19 @@ $sidebar-disabled-color: rgba($sidebar-fg, 0.75) !default;
   margin-top: 0.3em;
   color: $sidebar-color;
   padding-top: 4px;
+}
+
+.quarto-secondary-nav nav.quarto-page-breadcrumbs {
+  color: $sidebar-color;
+  a {
+    color: $sidebar-color;
+  }
+  a:hover {
+    color: $sidebar-hover-color;
+  }
+  .breadcrumb-item::before {
+    color: $sidebar-color;
+  }
 }
 
 div.sidebar-item-container {
@@ -459,8 +492,7 @@ nav.sidebar.sidebar-navigation:not(.rollup) {
   }
 
   .sidebar.sidebar-navigation {
-    transition: height 0.15s linear;
-    width: 100%;
+    min-height: 100%;
   }
 
   nav.quarto-secondary-nav {
@@ -480,6 +512,21 @@ nav.sidebar.sidebar-navigation:not(.rollup) {
 
   .sidebar-tools-collapse {
     display: block;
+  }
+}
+
+@include media-breakpoint-down(lg) {
+  #quarto-sidebar .sidebar-menu-container {
+    padding-right: 1em;
+    white-space: nowrap;
+  }
+
+  #quarto-sidebar {
+    transition: width $sidebar-anim-duration ease-in;
+  }
+
+  #quarto-sidebar.show {
+    transition: width $sidebar-anim-duration ease-out;
   }
 }
 
@@ -511,6 +558,29 @@ nav.sidebar.sidebar-navigation:not(.rollup) {
   }
 }
 
+@include media-breakpoint-down(lg) {
+  #quarto-sidebar-glass {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #ffffff00;
+    transition: background-color $sidebar-anim-duration ease-in;
+    z-index: -1;
+  }
+
+  #quarto-sidebar-glass.collapsing {
+    z-index: $zindex-dropdown;
+  }
+
+  #quarto-sidebar-glass.show {
+    transition: background-color $sidebar-anim-duration ease-out;
+    background-color: $sidebar-glass-bg;
+    z-index: $zindex-dropdown;
+  }
+}
+
 .sidebar .sidebar-footer {
   padding: 0.5rem 1rem;
   align-self: flex-end;
@@ -518,10 +588,12 @@ nav.sidebar.sidebar-navigation:not(.rollup) {
   width: 100%;
 }
 
-#quarto-sidebar {
-  width: 100%;
-  padding-right: 1em;
-  color: $sidebar-fg;
+.quarto-page-breadcrumbs .breadcrumb-item + .breadcrumb-item {
+  padding-left: 0.35em;
+}
+
+.quarto-page-breadcrumbs .breadcrumb-item + .breadcrumb-item::before {
+  padding-right: 0.35em;
 }
 
 .quarto-sidebar-footer {

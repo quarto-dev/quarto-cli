@@ -271,6 +271,9 @@ export async function websiteNavigationExtras(
     }
   }
 
+  const crumbs = breadCrumbs(href, sidebar);
+  navigation.breadCrumbs = crumbs;
+
   // forward the footer
   if (navigation.footer) {
     nav.footer = navigation.footer;
@@ -432,12 +435,6 @@ function navigationHtmlPostprocessor(
       }
     }
 
-    // Hide the title when it will appear in the secondary nav
-    // Try to read into the container span, or just take any contents
-    const title = doc.querySelector(
-      "header .title .quarto-section-identifier",
-    ) || doc.querySelector("header .title");
-
     // If the secondary navigation title is present, hide the title
     // when the secondary navigation will show
     const secondaryNavTitleEl = doc.querySelector(
@@ -445,25 +442,92 @@ function navigationHtmlPostprocessor(
     );
 
     if (secondaryNavTitleEl) {
-      // hide below lg
-      if (title) {
-        title.classList.add("d-none");
-        title.classList.add("d-lg-block");
-      }
+      // Make bootstrap breadcrumbs
+      const navEl = doc.createElement("nav");
+      navEl.classList.add("quarto-page-breadcrumbs");
+      navEl.setAttribute("aria-label", "breadcrumb");
 
-      if (title) {
-        secondaryNavTitleEl.innerHTML = title.innerHTML;
+      const olEl = doc.createElement("ol");
+      olEl.classList.add("breadcrumb");
+      navEl.append(olEl);
+
+      const breadCrumbEl = () => {
+        const liEl = doc.createElement("li");
+        liEl.classList.add("breadcrumb-item");
+        return liEl;
+      };
+
+      if (navigation.breadCrumbs && navigation.breadCrumbs.length > 0) {
+        for (const item of navigation.breadCrumbs) {
+          if (item.text || item.icon) {
+            const liEl = breadCrumbEl();
+            const maybeLink = (liEl: Element, contents: Element | string) => {
+              if (item.href) {
+                const linkEl = doc.createElement("a");
+                linkEl.setAttribute("href", item.href);
+                if (typeof (contents) === "string") {
+                  linkEl.innerText = contents;
+                } else {
+                  linkEl.appendChild(contents);
+                }
+
+                liEl.appendChild(linkEl);
+                return liEl;
+              } else {
+                if (typeof (contents) === "string") {
+                  liEl.innerText = item.text || "";
+                } else {
+                  liEl.appendChild(contents);
+                }
+
+                return liEl;
+              }
+            };
+
+            if (item.text) {
+              olEl.appendChild(maybeLink(liEl, item.text || ""));
+            } else if (item.icon) {
+              const iconEl = doc.createElement("i");
+              iconEl.classList.add("bi");
+              iconEl.classList.add(`bi-${item.icon}`);
+
+              olEl.appendChild(maybeLink(liEl, iconEl));
+            }
+          }
+        }
       } else {
         const sidebarTitle = doc.querySelector(".sidebar-title a");
         if (sidebarTitle) {
-          secondaryNavTitleEl.innerHTML = sidebarTitle.innerHTML;
+          const liEl = breadCrumbEl();
+          liEl.innerHTML = sidebarTitle.innerHTML;
+          olEl.appendChild(liEl);
         } else {
           const sidebarTitleBare = doc.querySelector(".sidebar-title");
           if (sidebarTitleBare) {
-            secondaryNavTitleEl.innerHTML = sidebarTitleBare.innerHTML;
+            const liEl = breadCrumbEl();
+            liEl.innerHTML = sidebarTitleBare.innerHTML;
+            olEl.appendChild(liEl);
+          } else {
+            const title = doc.querySelector(
+              "header .title .quarto-section-identifier",
+            ) || doc.querySelector("header .title");
+
+            if (title) {
+              const liEl = breadCrumbEl();
+              liEl.innerHTML = title.innerHTML;
+              olEl.appendChild(liEl);
+            }
           }
         }
       }
+
+      if (secondaryNavTitleEl.parentElement) {
+        secondaryNavTitleEl.parentElement.replaceChild(
+          navEl,
+          secondaryNavTitleEl,
+        );
+      }
+
       // hide the entire title block (encompassing code button) if we have it
       const titleBlock = doc.querySelector("header > .quarto-title-block");
       if (titleBlock) {
@@ -972,6 +1036,38 @@ function nextAndPrevious(
     };
   } else {
     return {};
+  }
+}
+
+function breadCrumbs(href: string, sidebar?: Sidebar) {
+  if (sidebar?.contents) {
+    const crumbs: SidebarItem[] = [];
+
+    // find the href in the sidebar
+    const makeBreadCrumbs = (href: string, sidebarItems?: SidebarItem[]) => {
+      if (sidebarItems) {
+        for (const item of sidebarItems) {
+          if (item.href === href) {
+            crumbs.push(item);
+            return true;
+          } else {
+            if (item.contents) {
+              if (makeBreadCrumbs(href, item.contents)) {
+                crumbs.push(item);
+                return true;
+              }
+            }
+          }
+        }
+        return false;
+      } else {
+        return false;
+      }
+    };
+    makeBreadCrumbs(href, sidebar.contents);
+    return crumbs.reverse();
+  } else {
+    return [];
   }
 }
 
