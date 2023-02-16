@@ -49,13 +49,13 @@ function discoverFigure(el, captionRequired)
     if #content ~= 1 or content[1].t ~= "Image" then
       return nil
     end
-    local image = el.content[1]
     if captionRequired and #caption == 0 then
       return nil
     end
     return image
   end
   if el.t == "Para" then
+    local image = el.content[1]
     return check(el.content, image.caption)
   elseif el.t == "Figure" then
     return check(el.content, el.caption)
