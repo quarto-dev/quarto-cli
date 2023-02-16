@@ -65,7 +65,7 @@ if (Deno.build.os === "windows") {
     // run playwright
     await execProcess({
       cmd: [
-        Deno.build.os == "windows" ? "npx.cmd" : "npx",
+        "npx", // Deno.build.os == "windows" ? "npx.cmd" : "npx",
         "playwright",
         "test",
       ],
