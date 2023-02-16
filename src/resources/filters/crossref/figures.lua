@@ -3,6 +3,14 @@
 
 -- process all figures
 function crossrefFigures()
+  local figure_para_handler = function(el)
+    local image = discoverFigure(el)
+    if image and isFigureImage(image) then
+      processFigure(image, image.caption)
+    end
+    return el
+  end
+  
   return {
     Div = function(el)
       if isFigureDiv(el) and isReferenceableFig(el) then
@@ -14,13 +22,8 @@ function crossrefFigures()
       return el
     end,
 
-    Para = function(el)
-      local image = discoverFigure(el)
-      if image and isFigureImage(image) then
-        processFigure(image, image.caption)
-      end
-      return el
-    end
+    Para = figure_para_handler,
+    Figure = figure_para_handler
   }
 end
 

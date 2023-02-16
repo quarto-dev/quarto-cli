@@ -16,6 +16,29 @@ function crossrefPreprocess()
       -- initialize autolabels table
       crossref.autolabels = pandoc.List()
       
+      local figure_para_handler = function(el)            
+        -- provide error caption if there is none
+        local fig = discoverFigure(el, false)
+        if fig and hasFigureRef(fig) and #fig.caption == 0 then
+          if isFigureRef(parentId) then
+            fig.caption:insert(emptyCaption())
+            fig.title = "fig:" .. fig.title
+          else
+            fig.caption:insert(noCaption())
+          end
+        end
+        
+        -- if we have a parent fig: then mark it's sub-refs
+        if parentId and isFigureRef(parentId) then
+          local image = discoverFigure(el)
+          if image and isFigureImage(image) then
+            image.attr.attributes[kRefParent] = parentId
+          end
+        end
+        
+        return el
+      end
+
       local walkRefs
       walkRefs = function(parentId)
         return {
@@ -51,29 +74,8 @@ function crossrefPreprocess()
             return preprocessRawTableBlock(el, parentId)
           end,
 
-          Para = function(el)
-            
-            -- provide error caption if there is none
-            local fig = discoverFigure(el, false)
-            if fig and hasFigureRef(fig) and #fig.caption == 0 then
-              if isFigureRef(parentId) then
-                fig.caption:insert(emptyCaption())
-                fig.title = "fig:" .. fig.title
-              else
-                fig.caption:insert(noCaption())
-              end
-            end
-            
-            -- if we have a parent fig: then mark it's sub-refs
-            if parentId and isFigureRef(parentId) then
-              local image = discoverFigure(el)
-              if image and isFigureImage(image) then
-                image.attr.attributes[kRefParent] = parentId
-              end
-            end
-            
-            return el
-          end
+          Para = figure_para_handler,
+          Figure = figure_para_handler
         }
       end
 

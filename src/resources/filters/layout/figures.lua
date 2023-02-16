@@ -3,22 +3,25 @@
 
 -- extended figure features including fig-align, fig-env, etc.
 function extendedFigures() 
+  local figure_para_handler = function(el)
+    local image = discoverFigure(el, false)
+    if image and shouldHandleExtendedImage(image) then
+      if _quarto.format.isHtmlOutput() then
+        return htmlImageFigure(image)
+      elseif _quarto.format.isLatexOutput() then
+        return latexImageFigure(image)
+      elseif _quarto.format.isDocxOutput() then
+        return wpDivFigure(createFigureDiv(el, image))
+      elseif _quarto.format.isAsciiDocOutput() then
+        return asciidocFigure(image)
+      end
+    end
+  end
+  
   return {
     
-    Para = function(el)
-      local image = discoverFigure(el, false)
-      if image and shouldHandleExtendedImage(image) then
-        if _quarto.format.isHtmlOutput() then
-          return htmlImageFigure(image)
-        elseif _quarto.format.isLatexOutput() then
-          return latexImageFigure(image)
-        elseif _quarto.format.isDocxOutput() then
-          return wpDivFigure(createFigureDiv(el, image))
-        elseif _quarto.format.isAsciiDocOutput() then
-          return asciidocFigure(image)
-        end
-      end
-    end,
+    Para = figure_para_handler,
+    Figure = figure_para_handler,
     
     Div = function(el)
       if isFigureDiv(el) and shouldHandleExtended(el) then
