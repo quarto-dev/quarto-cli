@@ -30,6 +30,9 @@ If ( $py -and $python) {
         pyenv rehash
       }
     }
+    # our default is pipenv to use its own virtualenv and be in project directory
+    $Env:PIPENV_IGNORE_VIRTUALENVS=1
+    $Env:PIPENV_VENV_IN_PROJECT=1
     pipenv install
     $pipenv=$true
 }
