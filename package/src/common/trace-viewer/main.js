@@ -223,6 +223,13 @@ const convert = (data) => {
         text: data.c[1],
       };
     }
+    if (data.t === "Figure") {
+      return {
+        t: data.t,
+        content: convert(data.c[2]),
+        caption: convertCaption(data.c[1]),
+      };
+    }
     throw new Error(`Can't handle type ${data.t}`);
   } else if (typeof data === "string") {
     return data;
