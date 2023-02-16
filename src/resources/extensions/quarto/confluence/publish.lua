@@ -31,8 +31,10 @@ function Writer (doc, opts)
               image.src,
               image.title,
               pandoc.utils.stringify(image.caption),
-              image.attributes)
-      return pandoc.RawInline('html', renderString)
+              image.attributes,
+              image.identifier)
+      result = pandoc.RawInline('html', renderString)
+      return result
     end,
     Link = function (link)
       local renderedLinkContent =
@@ -63,7 +65,16 @@ function Writer (doc, opts)
       table.caption = {}
       return { table } .. caption
     end,
-    RawBlock = function (table)
+    Block = function (block)
+      if(block.identifier and #block.identifier > 0) then
+        local content = block.content
+        -- Confluence HTML anchors are CSF macro snippets, inject into contents
+        content[(#content + 1) or 1] = pandoc.RawInline('html', confluence.HTMLAnchorConfluence(block.identifier))
+        block.content = content
+      end
+      return block
+    end,
+    RawBlock = function ()
       -- Raw blocks inclding arbirtary HTML like JavaScript is not supported in CSF
       return ""
     end

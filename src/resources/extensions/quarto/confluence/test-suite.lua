@@ -23,6 +23,38 @@ function TestCaptionedImage:testBasic()
 
   lu.assertEquals(actual, expected)
 end
+function TestCaptionedImage:testBasicWithAnchor()
+  local expected = [[<p><ac:structured-macro ac:name="anchor" ac:schema-version="1" ac:local-id="a6aa6f25-0bee-4a7f-929b-71fcb7eba592" ac:macro-id="d2cb5be1217ae6e086bc60005e9d27b7"><ac:parameter ac:name="">fake-id</ac:parameter></ac:structured-macro></p><ac:image
+    ac:align="center"
+    ac:layout="center"
+    ac:alt="fake-title">
+        <ri:attachment ri:filename="fake-source" /><ac:caption>fake-caption</ac:caption>
+    </ac:image>]]
+  local source = 'fake-source'
+  local title = 'fake-title'
+  local caption = 'fake-caption'
+  local attributes = nil
+  local id = 'fake-id'
+  local actual = confluence.CaptionedImageConfluence(source, title, caption, attributes, id)
+
+  lu.assertEquals(actual, expected)
+end
+function TestCaptionedImage:testBasicWithAnchorEmptyId()
+  local expected = [[<ac:image
+    ac:align="center"
+    ac:layout="center"
+    ac:alt="fake-title">
+        <ri:attachment ri:filename="fake-source" /><ac:caption>fake-caption</ac:caption>
+    </ac:image>]]
+  local source = 'fake-source'
+  local title = 'fake-title'
+  local caption = 'fake-caption'
+  local attributes = nil
+  local id = ''
+  local actual = confluence.CaptionedImageConfluence(source, title, caption, attributes, id)
+
+  lu.assertEquals(actual, expected)
+end
 function TestCaptionedImage:testEscapeCaption()
   local expected = [[<ac:image
     ac:align="center"
@@ -199,7 +231,6 @@ function TestCalloutConfluence:testBasicNote()
   local actual = confluence.CalloutConfluence(type, content)
   lu.assertEquals(actual, expected)
 end
-
 function TestCalloutConfluence:testBasicWarning()
   local expected = [[<ac:structured-macro ac:name="note" ac:schema-version="1" ac:macro-id="1049a0d8-470f-4f83-a0d7-b6ad35ea8eda"><ac:rich-text-body>fake-content</ac:rich-text-body></ac:structured-macro>]]
   local type = 'warning'
@@ -207,7 +238,6 @@ function TestCalloutConfluence:testBasicWarning()
   local actual = confluence.CalloutConfluence(type, content)
   lu.assertEquals(actual, expected)
 end
-
 function TestCalloutConfluence:testBasicImportant()
   local expected = [[<ac:structured-macro ac:name="warning" ac:schema-version="1" ac:macro-id="0185f821-7aa4-404a-8748-ec59a46357e1"><ac:rich-text-body>fake-content</ac:rich-text-body></ac:structured-macro>]]
   local type = 'important'
@@ -215,7 +245,6 @@ function TestCalloutConfluence:testBasicImportant()
   local actual = confluence.CalloutConfluence(type, content)
   lu.assertEquals(actual, expected)
 end
-
 function TestCalloutConfluence:testBasicTip()
   local expected = [[<ac:structured-macro ac:name="tip" ac:schema-version="1" ac:macro-id="97c39328-9651-4c56-8a8c-ab5537001d86"><ac:rich-text-body>fake-content</ac:rich-text-body></ac:structured-macro>]]
   local type = 'tip'
@@ -223,7 +252,6 @@ function TestCalloutConfluence:testBasicTip()
   local actual = confluence.CalloutConfluence(type, content)
   lu.assertEquals(actual, expected)
 end
-
 function TestCalloutConfluence:testBasicCaution()
   local expected = [[<ac:structured-macro ac:name="note" ac:schema-version="1" ac:macro-id="1049a0d8-470f-4f83-a0d7-b6ad35ea8eda"><ac:rich-text-body>fake-content</ac:rich-text-body></ac:structured-macro>]]
   local type = 'caution'
@@ -231,12 +259,31 @@ function TestCalloutConfluence:testBasicCaution()
   local actual = confluence.CalloutConfluence(type, content)
   lu.assertEquals(actual, expected)
 end
-
 function TestCalloutConfluence:testInvalidType()
   local expected = [[<ac:structured-macro ac:name="info" ac:schema-version="1" ac:macro-id="1c8062cd-87de-4701-a698-fd435e057468"><ac:rich-text-body>fake-content</ac:rich-text-body></ac:structured-macro>]]
   local type = 'invalid-type'
   local content = "fake-content"
   local actual = confluence.CalloutConfluence(type, content)
+  lu.assertEquals(actual, expected)
+end
+
+TestBuildAnchorConfluence = {}
+function TestBuildAnchorConfluence:testBasicAnchor()
+  local expected = [[<ac:structured-macro ac:name="anchor" ac:schema-version="1" ac:local-id="a6aa6f25-0bee-4a7f-929b-71fcb7eba592" ac:macro-id="d2cb5be1217ae6e086bc60005e9d27b7"><ac:parameter ac:name="">fake-id</ac:parameter></ac:structured-macro>]]
+  local id = 'fake-id'
+  local actual = confluence.HTMLAnchorConfluence(id)
+  lu.assertEquals(actual, expected)
+end
+function TestBuildAnchorConfluence:testNoWhitespaceRemoval()
+  local expected = [[<ac:structured-macro ac:name="anchor" ac:schema-version="1" ac:local-id="a6aa6f25-0bee-4a7f-929b-71fcb7eba592" ac:macro-id="d2cb5be1217ae6e086bc60005e9d27b7"><ac:parameter ac:name="">fake-id with spaces</ac:parameter></ac:structured-macro>]]
+  local id = 'fake-id with spaces'
+  local actual = confluence.HTMLAnchorConfluence(id)
+  lu.assertEquals(actual, expected)
+end
+function TestBuildAnchorConfluence:testCanNotBeEmpty()
+  local expected = ""
+  local id = ''
+  local actual = confluence.HTMLAnchorConfluence(id)
   lu.assertEquals(actual, expected)
 end
 
