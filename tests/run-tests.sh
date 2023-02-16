@@ -33,9 +33,12 @@ then
 fi
 
 # Activating python virtualenv
-if [[ -z $VIRTUAL_ENV ]]
+# set QUARTO_TESTS_FORCE_NO_PIPENV env var to not activate the virtalenv manage by pipenv for the project
+if [[ -z $QUARTO_TESTS_FORCE_NO_PIPENV ]]
 then
-  echo "> Activating virtualenv for Python tests"
+  # Save possible activated virtualenv for later restauration
+  OLD_VIRTUAL_ENV=$VIRTUAL_ENV
+  echo "> Activating virtualenv for Python tests in Quarto"
   source "$(pipenv --venv)/bin/activate"
   quarto_venv_activated="true"
 fi
@@ -57,11 +60,17 @@ fi
 
 SUCCESS=$?
 
-if [[ -n $VIRTUAL_ENV ]] && [[ $quarto_venv_activated == "true" ]] 
+if [[ $quarto_venv_activated == "true" ]] 
 then
   echo "> Exiting virtualenv activated for tests"
   deactivate
   unset quarto_venv_activated
+fi
+if [[ -n $OLD_VIRTUAL_ENV ]]
+then
+  echo "> Reactivating original virtualenv"
+  source $OLD_VIRTUAL_ENV/bin/activate
+  unset OLD_VIRTUAL_ENV
 fi
 
 # Generates the coverage report

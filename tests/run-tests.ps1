@@ -82,11 +82,15 @@ $DENO_ARGS += -split $QUARTO_IMPORT_ARGMAP
 $DENO_ARGS += $customArgs
 
 # Activate python virtualenv
-If ($null -eq $Env:VIRTUAL_ENV) {
-  Write-Host "> Activating virtualenv for Python tests"
-  $quarto_venv_activated = $true
+# set QUARTO_TESTS_FORCE_NO_PIPENV env var to not activate the virtalenv manage by pipenv for the project
+If ($null -eq $Env:QUARTO_TESTS_FORCE_NO_PIPENV) {
+  # Save possible activated virtualenv for later restauration
+  $OLD_VIRTUAL_ENV=$VIRTUAL_ENV
+  Write-Host "> Activating virtualenv for Python tests in Quarto"
   . "$(pipenv --venv)/Scripts/activate.ps1"
+  $quarto_venv_activated = $true
 }
+
 
 Write-Host "> Running tests with `"$QUARTO_DENO $DENO_ARGS`" "
 
@@ -97,10 +101,15 @@ $DENO_EXIT_CODE = $LASTEXITCODE
 
 # Add Coverage handling
 
-If($null -ne $Env:VIRTUAL_ENV -and $quarto_venv_activated) {
+If($quarto_venv_activated) {
   Write-Host "> Exiting virtualenv activated for tests"
   deactivate
   Remove-Variable quarto_venv_activated
+}
+If($null -ne $OLD_VIRTUAL_ENV) {
+  Write-Host "> Reactivating original virtualenv"
+  . "$OLD_VIRTUAL_ENV/Scripts/activate.ps1"
+  Remove-Variable OLD_VIRTUAL_ENV
 }
 
 Exit $DENO_EXIT_CODE

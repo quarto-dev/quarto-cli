@@ -28,6 +28,9 @@ else
   # specific for pyenv shim
   [ -n $(command -v pyenv) ] && pyenv rehash
   echo "Setting up python environnement with pipenv"
+  # our default is pipenv to use its own virtualenv and be in project directory
+  export PIPENV_IGNORE_VIRTUALENVS=1
+  export PIPENV_VENV_IN_PROJECT=1
   pipenv install
 fi
 
