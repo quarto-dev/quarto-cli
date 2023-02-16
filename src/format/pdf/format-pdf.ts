@@ -390,6 +390,14 @@ async function processLines(
   // The temp file we generate into
   const outputFile = temp.createFile({ suffix: ".tex" });
   const file = await Deno.open(inputFile);
+  // Preserve the existing permissions as we'll replace
+  let mode;
+  if (Deno.build.os !== "windows") {
+    const stat = Deno.statSync(inputFile);
+    if (stat.mode !== null) {
+      mode = stat.mode;
+    }
+  }
   try {
     for await (const line of readLines(file)) {
       let processedLine: string | undefined = line;
@@ -404,6 +412,7 @@ async function processLines(
       if (processedLine !== undefined) {
         Deno.writeTextFileSync(outputFile, processedLine + "\n", {
           append: true,
+          mode,
         });
       }
     }
