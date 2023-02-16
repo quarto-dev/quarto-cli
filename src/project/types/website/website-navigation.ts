@@ -466,7 +466,7 @@ function navigationHtmlPostprocessor(
                 const linkEl = doc.createElement("a");
                 linkEl.setAttribute("href", item.href);
                 if (typeof (contents) === "string") {
-                  linkEl.innerText = contents;
+                  linkEl.innerHTML = contents;
                 } else {
                   linkEl.appendChild(contents);
                 }
