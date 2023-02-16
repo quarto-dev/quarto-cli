@@ -58,6 +58,7 @@
 ## Markdown Formats
 
 - Properly forward variants (e.g. `+yaml_metadata_block`) to `gfm` format.
+- `gfm` format now supports a local browser based preview when using `quarto preview`
 
 ## Mermaid diagrams
 

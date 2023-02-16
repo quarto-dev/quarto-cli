@@ -98,6 +98,8 @@ import {
 } from "../../extension/extension.ts";
 import {
   kBaseFormat,
+  kIncludeAfterBody,
+  kMermaidFormat,
   kOutputFile,
   kPreviewMode,
   kPreviewModeRaw,
@@ -911,13 +913,44 @@ async function jatsPreviewXml(file: string, _request: Request) {
 }
 
 async function gfmPreview(file: string, request: Request) {
-  const cssTempFile = Deno.makeTempFileSync({ suffix: ".css" });
+  const workingDir = Deno.makeTempDirSync();
   try {
     // dark mode?
     const darkMode = darkHighlightStyle(request);
 
     // Use a custom template that simplifies things
     const template = formatResourcePath("gfm", "template.html");
+
+    // Add a filter
+    const filter = formatResourcePath("gfm", "mermaid.lua");
+
+    // Inject Mermaid files
+    const mermaidJs = formatResourcePath(
+      "html",
+      join("mermaid", "mermaid.min.js"),
+    );
+
+    // Files to be included verbatim in head
+    const includeInHeader: string[] = [];
+
+    // Add JS files
+    for (const path of [mermaidJs]) {
+      const js = Deno.readTextFileSync(path);
+      const contents = `<script type="text/javascript">\n${js}\n</script>`;
+      const target = join(workingDir, basename(path));
+      Deno.writeTextFileSync(target, contents);
+      includeInHeader.push(target);
+    }
+
+    // JS init
+    const jsInit = `
+<script>
+  mermaid.initialize({startOnLoad:true, theme: '${
+      darkMode ? "dark" : "default"
+    }'});
+</script>`;
+
+    // Inject custom HTML into the header
     const css = formatResourcePath(
       "gfm",
       join(
@@ -925,10 +958,12 @@ async function gfmPreview(file: string, request: Request) {
         darkMode ? "github-markdown-dark.css" : "github-markdown-light.css",
       ),
     );
-
-    // Inject custom HTML into the header
-    const cssContents = `<style>\n${Deno.readTextFileSync(css)}\n</style>`;
+    const cssTempFile = join(workingDir, "github.css");
+    const cssContents = `<style>\n${
+      Deno.readTextFileSync(css)
+    }\n</style>\n${jsInit}`;
     Deno.writeTextFileSync(cssTempFile, cssContents);
+    includeInHeader.push(cssTempFile);
 
     // Inject GFM style code cell theming
     const highlightPath = textHighlightThemePath(
@@ -943,13 +978,16 @@ async function gfmPreview(file: string, request: Request) {
     cmd.push("html");
     cmd.push("--template");
     cmd.push(template);
-    cmd.push("--include-in-header");
-    cmd.push(cssTempFile);
+    includeInHeader.forEach((include) => {
+      cmd.push("--include-in-header");
+      cmd.push(include);
+    });
+    cmd.push("--lua-filter");
+    cmd.push(filter);
     if (highlightPath) {
       cmd.push("--highlight-style");
       cmd.push(highlightPath);
     }
-
     const result = await execProcess(
       { cmd, stdout: "piped", stderr: "piped" },
       Deno.readTextFileSync(file),
@@ -962,6 +1000,6 @@ async function gfmPreview(file: string, request: Request) {
       );
     }
   } finally {
-    Deno.removeSync(cssTempFile);
+    Deno.removeSync(workingDir, { recursive: true });
   }
 }
