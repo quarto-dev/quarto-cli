@@ -33,6 +33,7 @@ import {
   isHtmlContent,
   isPdfContent,
   isTextContent,
+  kTextHtml,
   kTextXml,
 } from "../../core/mime.ts";
 import { PromiseQueue } from "../../core/promise.ts";
@@ -83,6 +84,7 @@ import {
 import { isJupyterNotebook } from "../../core/jupyter/jupyter.ts";
 import { watchForFileChanges } from "../../core/watch.ts";
 import {
+  formatResourcePath,
   pandocBinaryPath,
   resourcePath,
   textHighlightThemePath,
@@ -94,7 +96,12 @@ import {
   extensionFilesFromDirs,
   inputExtensionDirs,
 } from "../../extension/extension.ts";
-import { kOutputFile } from "../../config/constants.ts";
+import {
+  kBaseFormat,
+  kOutputFile,
+  kPreviewMode,
+  kPreviewModeRaw,
+} from "../../config/constants.ts";
 import { isJatsOutput } from "../../config/format.ts";
 
 interface PreviewOptions {
@@ -650,6 +657,9 @@ function htmlFileRequestHandlerOptions(
     },
     onFile: async (file: string, req: Request) => {
       const staticResponse = await staticResource(format, baseDir, file);
+
+      const rawPreviewMode = format.metadata[kPreviewMode] === kPreviewModeRaw;
+
       if (staticResponse) {
         const resolveBody = () => {
           if (staticResponse.injectClient) {
@@ -679,12 +689,21 @@ function htmlFileRequestHandlerOptions(
         const fileContents = await Deno.readFile(file);
         return reloader.injectClient(req, fileContents, inputFile);
       } else if (isTextContent(file)) {
-        if (isJatsOutput(format.pandoc)) {
+        if (!rawPreviewMode && isJatsOutput(format.pandoc)) {
           const xml = await jatsPreviewXml(file, req);
           return {
             contentType: kTextXml,
             body: new TextEncoder().encode(xml),
           };
+        } else if (
+          !rawPreviewMode && format.identifier[kBaseFormat] === "gfm"
+        ) {
+          const html = await gfmPreview(file, req);
+          return reloader.injectClient(
+            req,
+            new TextEncoder().encode(html),
+            inputFile,
+          );
         } else {
           const html = await textPreviewHtml(file, req);
           const fileContents = new TextEncoder().encode(html);
@@ -762,16 +781,20 @@ function resultRequiresSync(
     !ld.isEqual(result.resourceFiles, lastResult.resourceFiles);
 }
 
+function darkHighlightStyle(request: Request) {
+  const kQuartoPreviewThemeCategory = "quartoPreviewThemeCategory";
+  const themeCategory = new URL(request.url).searchParams.get(
+    kQuartoPreviewThemeCategory,
+  );
+  return themeCategory && themeCategory !== "light";
+}
+
 // run pandoc and its syntax highlighter over the passed file
 // (use the file's extension as its language)
 async function textPreviewHtml(file: string, req: Request) {
   // see if we are in dark mode
-  const kQuartoPreviewThemeCategory = "quartoPreviewThemeCategory";
-  const themeCategory = new URL(req.url).searchParams.get(
-    kQuartoPreviewThemeCategory,
-  );
-  const darkHighlightStyle = themeCategory && themeCategory !== "light";
-  const backgroundColor = darkHighlightStyle ? "rgb(30,30,30)" : "#FFFFFF";
+  const darkMode = darkHighlightStyle(req);
+  const backgroundColor = darkMode ? "rgb(30,30,30)" : "#FFFFFF";
 
   // generate the markdown
   const frontMatter = ["---"];
@@ -801,7 +824,7 @@ async function textPreviewHtml(file: string, req: Request) {
   cmd.push("--to", "html");
   cmd.push(
     "--highlight-style",
-    textHighlightThemePath("atom-one", darkHighlightStyle ? "dark" : "light")!,
+    textHighlightThemePath("atom-one", darkMode ? "dark" : "light")!,
   );
   cmd.push("--standalone");
   const result = await execProcess({
@@ -885,4 +908,60 @@ async function jatsPreviewXml(file: string, _request: Request) {
   );
 
   return xmlContents;
+}
+
+async function gfmPreview(file: string, request: Request) {
+  const cssTempFile = Deno.makeTempFileSync({ suffix: ".css" });
+  try {
+    // dark mode?
+    const darkMode = darkHighlightStyle(request);
+
+    // Use a custom template that simplifies things
+    const template = formatResourcePath("gfm", "template.html");
+    const css = formatResourcePath(
+      "gfm",
+      join(
+        "github-markdown-css",
+        darkMode ? "github-markdown-dark.css" : "github-markdown-light.css",
+      ),
+    );
+
+    // Inject custom HTML into the header
+    const cssContents = `<style>\n${Deno.readTextFileSync(css)}\n</style>`;
+    Deno.writeTextFileSync(cssTempFile, cssContents);
+
+    // Inject GFM style code cell theming
+    const highlightPath = textHighlightThemePath(
+      "github",
+      darkMode ? "dark" : "light",
+    );
+
+    const cmd = [pandocBinaryPath()];
+    cmd.push("-f");
+    cmd.push("gfm");
+    cmd.push("-t");
+    cmd.push("html");
+    cmd.push("--template");
+    cmd.push(template);
+    cmd.push("--include-in-header");
+    cmd.push(cssTempFile);
+    if (highlightPath) {
+      cmd.push("--highlight-style");
+      cmd.push(highlightPath);
+    }
+
+    const result = await execProcess(
+      { cmd, stdout: "piped", stderr: "piped" },
+      Deno.readTextFileSync(file),
+    );
+    if (result.success) {
+      return result.stdout;
+    } else {
+      throw new Error(
+        `Failed to render citation: error code ${result.code}\n${result.stderr}`,
+      );
+    }
+  } finally {
+    Deno.removeSync(cssTempFile);
+  }
 }
