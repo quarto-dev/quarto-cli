@@ -33,12 +33,35 @@ Here are what is expected in the environment for the tests :
 Running tests require to have a local environment setup with Quarto development, TinyTeX, R, Python and Julia.
 
 To help with this configuration, the `tests/` folder contains `configure-test-env.sh` and `configure-test-env.ps1`. It will check for the tools and update the dependencies to what is used by Quarto tests.
+Running the script at least one will insure you are correctly setup. Then, it is run as part of running the tests so that dependencies are always updated. Set `QUARTO_TESTS_NO_CONFIG` to skip this step when running tests.
 
-To manage dependencies:
+Dependencies are managed using the following tools:
 
-- For R, we use **renv** - `renv.lock` and `renv/` folders are the files used to recreate the environment for R. The package will be installed if not already.
-- For Python, we use `pipenv` to manage dependencies and recreate easily on all OS. `pipenv` will be installed if not already.
-- Julia uses built-in package manager - we provide `Projec.toml` and `Manifest.toml` to recreate the environment.
+#### R
+
+We use [**renv**](https://rstudio.github.io/renv/). `renv.lock` and `renv/` folders are the files used to recreate the environment for R.
+
+Updating `renv.lock` is done using `renv::snapshot()`. File shouldn't be modified manually.
+
+See [documentation](https://rstudio.github.io/renv/) if you need to tweak the R environment.
+
+#### Python
+
+We use [**pipenv**](https://pipenv.pypa.io/en/latest/) to manage dependencies and recreate easily on all OS. `pipenv` will be installed as part of the configuration if not already.
+A virtual environment will be created locally in `.venv` folder (ignored on git) and activated when running tests. `pipenv run` and `pipenv shell` can help activating the environment outside of running tests.
+
+`Pipfile` contains our requirement for the tests project. It can be manually updated but it is best to just use `pipenv` commands. For instance, adding a new dependency can be done with `pipenv install plotly` and it will update the file.
+It will also update the `Pipfile.lock` - this file should never be updated manually.
+
+See other [`pipenv` command](https://pipenv.pypa.io/en/latest/#basic-commands-and-concepts) if you need to tweak the python environment.
+
+#### Julia
+
+Julia uses built-in package manager [**Pkg.jl**](https://pkgdocs.julialang.org/v1/)- we provide `Project.toml` and `Manifest.toml` to recreate the environment.
+
+`Project.toml` contains our direct dependency and `Manifest.toml` is the lock file that will be created (`Pkg.resolve()`).
+
+See [documentation](https://pkgdocs.julialang.org/v1/managing-packages/) on how to add, remove, update if you need to tweak the Julia environment.
 
 ### How to run tests locally ?
 
