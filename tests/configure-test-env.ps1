@@ -1,7 +1,7 @@
 # Check R environment ---
 Write-Host -ForegroundColor green ">>>> Configuring R environment"
 try { $null = gcm Rscript -ea stop; $r=$true} catch { 
-  Write-Host -ForegroundColor red "Missing Rscript - Install R"
+  Write-Host -ForegroundColor red "No Rscript found in PATH - Check your PATH or install R and add to PATH"
 }
 
 If ($r) {
@@ -11,11 +11,11 @@ If ($r) {
 # Check python test environment ---
 Write-Host -ForegroundColor green ">>>> Configuring python environment"
 try { $null = gcm py -ea stop; $py=$true} catch { 
-  Write-Host -ForegroundColor red "Missing Python launcher - py.exe is required on Windows"
+  Write-Host -ForegroundColor red "Missing Python launcher - py.exe is required on Windows - it should be installed with Python for Windows."
 }
 
 try { $null = gcm python -ea stop; $python=$true } catch { 
-  Write-Host -ForegroundColor red "No python found in PATH - Install python"
+  Write-Host -ForegroundColor red "No python found in PATH - Check your PATH or install python add to PATH."
 }
 
 If ( $py -and $python) {
@@ -37,7 +37,7 @@ If ( $py -and $python) {
 # Check Julia environment --- 
 Write-Host -ForegroundColor green ">>>> Configuring Julia environment"
 try {$null = gcm julia -ea stop; $julia=$true } catch {
-  Write-Host -ForegroundColor red "Missing Julia - An installation is required"
+  Write-Host -ForegroundColor red "No julia found in PATH - Check your PATH or install Julia and add to PATH."
 }
 
 If ($julia) {
