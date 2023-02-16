@@ -96,7 +96,6 @@ import {
 } from "../../extension/extension.ts";
 import { kOutputFile } from "../../config/constants.ts";
 import { isJatsOutput } from "../../config/format.ts";
-import { kDefaultProjectFileContents } from "../../project/types/project-default.ts";
 
 interface PreviewOptions {
   port?: number;
