@@ -19,7 +19,16 @@ Tests are running through `Deno.test()` framework, adapted for our Quarto projec
 
 ## Running the tests locally
 
-### Requirement
+### Dependencies requirements
+
+Here are what is expected in the environment for the tests :
+
+- R should be installed and in PATH
+  - On Windows, Rtools should be to (for source package) e.g `winget install --id RProject.Rtools`
+- Python should be installed and in PATH
+  - On Windows, one can use [`pyenv-win`](https://pyenv-win.github.io/pyenv-win/) to manage version or install from https://www.python.org/ manually or using `winget`.
+- Julia should be installed and in PATH
+  - On Windows, one way is using `winget install --id Julialang.Julia` and then add `%LOCALAPPDATA%/Programs/Julia/bin` to PATH
 
 Running tests require to have a local environment setup with Quarto development, TinyTeX, R, Python and Julia.
 
