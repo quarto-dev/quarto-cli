@@ -39,16 +39,19 @@ jobs:
           r-version: "4.2.2"
 
       - name: Install node (for Playwright)
+        if: runner.os != 'Windows'
         uses: actions/setup-node@v3
         with:
           node-version: 16
 
       - name: Install node dependencies
+        if: runner.os != 'Windows'
         run: yarn
         working-directory: ./tests/integration/playwright
         shell: bash
 
       - name: Install Playwright Browsers
+        if: runner.os != 'Windows'
         run: npx playwright install --with-deps
         working-directory: ./tests/integration/playwright
 
