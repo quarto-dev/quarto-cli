@@ -10,6 +10,7 @@ import {
   kAppendixAttributionBibTex,
   kAppendixAttributionCiteAs,
   kAtxHeaders,
+  kBaseFormat,
   kCache,
   kCalloutCautionCaption,
   kCalloutImportantCaption,
@@ -325,6 +326,7 @@ export interface FormatExtras {
 }
 
 export interface FormatIdentifier {
+  [kBaseFormat]?: string;
   [kTargetFormat]?: string;
   [kDisplayName]?: string;
   [kExtensionName]?: string;
