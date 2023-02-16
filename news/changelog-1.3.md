@@ -5,6 +5,7 @@
 - Fix output of bokeh plots so the right number of cells is generated ([#2107](https://github.com/quarto-dev/quarto-cli/issues/2107)).
 - Fix output of code cells that contain triple backticks (or more) ([#3179](https://github.com/quarto-dev/quarto-cli/issues/3179)).
 - Don't install SIGCHLD signal handler since it interferes with IJulia in Julia 1.8.4 and greater ([#2539](https://github.com/quarto-dev/quarto-cli/issues/2539)).
+- Resolve full path to QUARTO_PYTHON binary
 
 ## Code Annotation
 
