@@ -5,7 +5,7 @@ r_exists=$(command -v Rscript)
 
 if [ -z $r_exists ] 
 then 
-  echo "No Rscript found in PATH - Install R"
+  echo "No Rscript found in PATH - Check your PATH or install R and add to PATH."
 else
   Rscript -e 'renv::restore(repos = c(RSPM = "https://packagemanager.posit.co/cran/latest"))'
 fi
@@ -16,12 +16,14 @@ echo ">>>> Configuring Python environment"
 python_exists=$(command -v python)
 if [ -z $python_exists ] 
 then 
-  echo "No python found in PATH - Install python."
+  echo "No python found in PATH - Check your PATH or install python add to PATH."
 else
   pipenv_exist=$(command -v pipenv)
   if [ -z $pipenv_exist ] 
   then
+    echo "No pipenv found - Installing pipenv running ``pip install pipenv``..."
     python -m pip install pipenv
+    echo "...pipenv installed"
   fi
   # specific for pyenv shim
   [ -n $(command -v pyenv) ] && pyenv rehash
@@ -34,7 +36,7 @@ echo ">>>> Configuring Julia environment"
 julia_exists=$(command -v julia)
 if [ -z $julia_exists ] 
 then 
-  echo "No julia found in PATH - Install Julia."
+  echo "No julia found in PATH - Check your PATH or install julia and add to PATH."
 else
   echo "Setting up Julia environment"
   julia --color=yes --project=. -e 'import Pkg; Pkg.instantiate(); Pkg.build("IJulia"); Pkg.precompile()'
