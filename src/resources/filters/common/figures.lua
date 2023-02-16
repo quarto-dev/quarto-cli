@@ -52,7 +52,6 @@ function discoverFigure(el, captionRequired)
     if captionRequired and #caption == 0 then
       return nil
     end
-    print("Found image")
     return content[1]
   end
   if el.t == "Para" then
@@ -62,7 +61,12 @@ function discoverFigure(el, captionRequired)
     if #el.content ~= 1 or el.content[1].t ~= "Plain" then
       return nil
     end
-    return check(el.content[1].content, el.caption.long)
+    local result = check(el.content[1].content, el.caption.long)
+    if result ~= nil then
+      -- move attr to image since it's used to check crossrefs
+      result.attr = el.attr
+    end
+    return result
   else
     return nil
   end

@@ -88,7 +88,7 @@ function crossrefPreprocess()
           doc.blocks[i] = preprocessRawTableBlock(el, nil)
         elseif el.t ~= "Header" then
           local parentId = nil
-          if hasFigureOrTableRef(el) and el.content ~= nil then
+        if hasFigureOrTableRef(el) and el.content ~= nil then
             parentId = el.attr.identifier
 
             -- mark as parent
@@ -97,7 +97,7 @@ function crossrefPreprocess()
             end
             
             -- provide error caption if there is none
-            if not refCaptionFromDiv(el) then
+            if not refCaptionFromDiv(el) and not refCaptionFromFigure(el) then
               local err = pandoc.Para(noCaption())
               el.content:insert(err)
             end

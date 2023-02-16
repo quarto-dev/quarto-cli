@@ -47,6 +47,16 @@ function refType(id)
   end
 end
 
+function refCaptionFromFigure(el)
+  if el == nil then
+    return nil
+  end
+  if el.t ~= "Figure" then
+    return nil
+  end
+  return el.caption.long
+end
+
 function refCaptionFromDiv(el)
   local last = el.content[#el.content]
   if last and last.t == "Para" and #el.content > 1 then
