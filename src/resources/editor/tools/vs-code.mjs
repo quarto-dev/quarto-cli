@@ -7272,7 +7272,6 @@ var require_yaml_intelligence_resources = __commonJS({
             ],
             formats: [
               "$html-all",
-              "docx",
               "ms",
               "$pdf-all"
             ]
@@ -15119,6 +15118,14 @@ var require_yaml_intelligence_resources = __commonJS({
             short: "semver version range for required quarto version",
             long: "A semver version range describing the supported quarto versions for this document\nor project.\n\nExamples:\n\n- `>= 1.1.0`: Require at least quarto version 1.1\n- `1.*`: Require any quarto versions whose major version number is 1\n"
           }
+        },
+        {
+          name: "preview-mode",
+          schema: "string",
+          description: {
+            short: "The mode to use when previewing this document.",
+            long: "The mode to use when previewing this document. To disable any special\npreviewing features, pass `raw` as the preview-mode.\n"
+          }
         }
       ],
       "schema/document-pdfa.yml": [
@@ -20825,7 +20832,11 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
-        "internal-schema-hack"
+        "internal-schema-hack",
+        {
+          short: "The mode to use when previewing this document.",
+          long: "The mode to use when previewing this document. To disable any special\npreviewing features, pass <code>raw</code> as the preview-mode."
+        }
       ],
       "schema/external-schemas.yml": [
         {
@@ -21050,12 +21061,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 143136,
+        _internalId: 146897,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 143128,
+            _internalId: 146889,
             type: "enum",
             enum: [
               "png",
@@ -21071,7 +21082,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 143135,
+            _internalId: 146896,
             type: "anyOf",
             anyOf: [
               {
@@ -30042,6 +30053,25 @@ function partitionCellOptionsText(language, source) {
           }
         };
         yamlLines.push(rangedYamlOption);
+        if (optionSuffix) {
+          if (line.substring.endsWith("\r\n")) {
+            yamlLines.push({
+              substring: "\r\n",
+              range: {
+                start: line.range.end - 2,
+                end: line.range.end
+              }
+            });
+          } else if (line.substring.endsWith("\r") || line.substring.endsWith("\n")) {
+            yamlLines.push({
+              substring: line.substring[line.substring.length - 1],
+              range: {
+                start: line.range.end - 1,
+                end: line.range.end
+              }
+            });
+          }
+        }
         optionsSource.push(line);
         continue;
       }
