@@ -169,7 +169,6 @@ local quartoNormalize = {
   { name = "normalize", filter = filterIf(function()
     return preState.active_filters.normalization
   end, normalizeFilter()) },
-  { name = "normalize-parse-pandoc3-figures", filter = parse_pandoc3_figures() },
   { name = "normalize-parseHtmlTables", filter = parse_html_tables() },
   { name = "normalize-extractQuartoDom", filter = extract_quarto_dom() },
   { name = "normalize-parseExtendedNodes", filter = parseExtendedNodes() }
@@ -178,6 +177,10 @@ local quartoNormalize = {
 local quartoPre = {
   -- quarto-pre
   { name = "pre-quartoBeforeExtendedUserFilters", filters = make_wrapped_user_filters("beforeQuartoFilters") },
+
+  { name = "normalize-parse-pandoc3-figures", filter = parse_pandoc3_figures() },
+
+
   { name = "pre-bibliographyFormats", filter = bibliographyFormats() }, 
   { name = "pre-shortCodesBlocks", filter = shortCodesBlocks() } ,
   { name = "pre-shortCodesInlines", filter = shortCodesInlines() },
