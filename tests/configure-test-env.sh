@@ -22,7 +22,7 @@ then
     echo "No python found in PATH - Check your PATH or install python add to PATH."
   fi
 fi
-if [ -z $python_exists ]
+if [ -n $python_exists ]
 then
   pipenv_exist=$(command -v pipenv)
   if [ -z $pipenv_exist ] 
