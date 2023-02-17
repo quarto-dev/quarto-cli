@@ -7,7 +7,7 @@ if [ -z $r_exists ]
 then 
   echo "No Rscript found in PATH - Check your PATH or install R and add to PATH."
 else
-  Rscript -e 'renv::restore(repos = c(RSPM = "https://packagemanager.posit.co/cran/latest"))'
+  Rscript -e 'renv::restore()'
 fi
 
 
@@ -16,13 +16,19 @@ echo ">>>> Configuring Python environment"
 python_exists=$(command -v python)
 if [ -z $python_exists ] 
 then 
-  echo "No python found in PATH - Check your PATH or install python add to PATH."
-else
+  python_exists=$(command -v python3)
+  if [ -z python_exists] 
+  then
+    echo "No python found in PATH - Check your PATH or install python add to PATH."
+  fi
+fi
+if [ -z $python_exists ]
+then
   pipenv_exist=$(command -v pipenv)
   if [ -z $pipenv_exist ] 
   then
     echo "No pipenv found - Installing pipenv running ``pip install pipenv``..."
-    python -m pip install pipenv
+    $python_exists -m pip install pipenv
     echo "...pipenv installed"
   fi
   # specific for pyenv shim

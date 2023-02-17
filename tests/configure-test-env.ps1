@@ -5,7 +5,7 @@ try { $null = gcm Rscript -ea stop; $r=$true} catch {
 }
 
 If ($r) {
-  Rscript -e "renv::restore(repos = c(RSPM = 'https://packagemanager.posit.co/cran/latest'))"
+  Rscript -e "renv::restore()"
 }
 
 # Check python test environment ---
