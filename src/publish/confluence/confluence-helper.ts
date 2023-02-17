@@ -44,7 +44,6 @@ export const LINK_FINDER: RegExp = /(\S*.qmd'|\S*.qmd#\S*')/g;
 export const FILE_FINDER: RegExp = /(?<=href=\')(.*)(?=\.qmd)/;
 const IMAGE_FINDER: RegExp =
   /(?<=ri:attachment ri:filename=["\'])[^"\']+?\.(?:jpe?g|png|gif|m4a|mp3|txt)(?=["\'])/g;
-export const HTML_ANCHOR_FINDER: RegExp = /id=\"([^"]*)\"/g;
 
 export const capitalizeFirstLetter = (value: string = ""): string => {
   if (!value || value.length === 0) {
