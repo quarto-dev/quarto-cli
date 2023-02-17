@@ -7,7 +7,7 @@ if [ -z $r_exists ]
 then 
   echo "No Rscript found in PATH - Check your PATH or install R and add to PATH."
 else
-  Rscript -e 'renv::restore(repos = c(RSPM = "https://packagemanager.posit.co/cran/latest"))'
+  Rscript -e 'renv::restore()'
 fi
 
 
