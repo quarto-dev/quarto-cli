@@ -16,29 +16,6 @@ function crossrefPreprocess()
       -- initialize autolabels table
       crossref.autolabels = pandoc.List()
       
-      local figure_para_handler = function(el, parentId)            
-        -- provide error caption if there is none
-        local fig = discoverFigure(el, false)
-        if fig and hasFigureRef(fig) and #fig.caption == 0 then
-          if isFigureRef(parentId) then
-            fig.caption:insert(emptyCaption())
-            fig.title = "fig:" .. fig.title
-          else
-            fig.caption:insert(noCaption())
-          end
-        end
-        
-        -- if we have a parent fig: then mark it's sub-refs
-        if parentId and isFigureRef(parentId) then
-          local image = discoverFigure(el)
-          if image and isFigureImage(image) then
-            image.attr.attributes[kRefParent] = parentId
-          end
-        end
-        
-        return el
-      end
-
       local walkRefs
       walkRefs = function(parentId)
         return {
@@ -75,11 +52,27 @@ function crossrefPreprocess()
           end,
 
           Para = function(el)
-            return figure_para_handler(el, parentId)
-          end,
-
-          Figure = function(el)
-            return figure_para_handler(el, parentId)
+            
+            -- provide error caption if there is none
+            local fig = discoverFigure(el, false)
+            if fig and hasFigureRef(fig) and #fig.caption == 0 then
+              if isFigureRef(parentId) then
+                fig.caption:insert(emptyCaption())
+                fig.title = "fig:" .. fig.title
+              else
+                fig.caption:insert(noCaption())
+              end
+            end
+            
+            -- if we have a parent fig: then mark it's sub-refs
+            if parentId and isFigureRef(parentId) then
+              local image = discoverFigure(el)
+              if image and isFigureImage(image) then
+                image.attr.attributes[kRefParent] = parentId
+              end
+            end
+            
+            return el
           end
         }
       end
@@ -93,7 +86,7 @@ function crossrefPreprocess()
           doc.blocks[i] = preprocessRawTableBlock(el, nil)
         elseif el.t ~= "Header" then
           local parentId = nil
-        if hasFigureOrTableRef(el) and el.content ~= nil then
+          if hasFigureOrTableRef(el) and el.content ~= nil then
             parentId = el.attr.identifier
 
             -- mark as parent
@@ -102,7 +95,7 @@ function crossrefPreprocess()
             end
             
             -- provide error caption if there is none
-            if not refCaptionFromDiv(el) and not refCaptionFromFigure(el) then
+            if not refCaptionFromDiv(el) then
               local err = pandoc.Para(noCaption())
               el.content:insert(err)
             end

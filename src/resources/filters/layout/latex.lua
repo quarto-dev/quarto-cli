@@ -463,8 +463,7 @@ function latexCell(cell, vAlign, endOfRow, endOfTable)
   for i,block in ipairs(content) do
     latexHandsoffFigure(block)
     content[i] = pandoc.walk_block(block, {
-      Para = latexHandsoffFigure,
-      Figure = latexHandsoffFigure
+      Para = latexHandsoffFigure
     })
   end
   

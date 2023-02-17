@@ -2,13 +2,6 @@
 -- Copyright (C) 2021-2022 Posit Software, PBC
 
 function columnsPreprocess() 
-  local figure_para_handler = function(el)
-    local figure = discoverFigure(el, false)
-    if figure then
-      resolveElementForScopedColumns(figure, 'fig')
-    end
-    return el
-  end
   return {
     Div = function(el)  
       
@@ -22,8 +15,13 @@ function columnsPreprocess()
       return el      
     end,
 
-    Para = figure_para_handler,
-    Figure = figure_para_handler
+    Para = function(el)
+      local figure = discoverFigure(el, false)
+      if figure then
+        resolveElementForScopedColumns(figure, 'fig')
+      end
+      return el
+    end  
   }
 end
 

@@ -42,31 +42,19 @@ function isFigureDiv(el)
 end
 
 function discoverFigure(el, captionRequired)
+  if el.t ~= "Para" then
+    return nil
+  end
   if captionRequired == nil then
     captionRequired = true
   end
-  function check(content, caption)
-    if #content ~= 1 or content[1].t ~= "Image" then
-      return nil
-    end
-    if captionRequired and #caption == 0 then
-      return nil
-    end
-    return content[1]
-  end
-  if el.t == "Para" then
+  if #el.content == 1 and el.content[1].t == "Image" then
     local image = el.content[1]
-    return check(el.content, image.caption)
-  elseif el.t == "Figure" then
-    if #el.content ~= 1 or el.content[1].t ~= "Plain" then
+    if not captionRequired or #image.caption > 0 then
+      return image
+    else
       return nil
     end
-    local result = check(el.content[1].content, el.caption.long)
-    if result ~= nil then
-      -- move attr to image since it's used to check crossrefs
-      result.attr = el.attr
-    end
-    return result
   else
     return nil
   end
