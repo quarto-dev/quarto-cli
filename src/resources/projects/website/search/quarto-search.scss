@@ -38,6 +38,9 @@ $quarto-search-collapse-icon-size: 26px !default;
 
 #quarto-sidebar {
   .sidebar-search {
+    @include media-breakpoint-down(lg) {
+      display: none;
+    }
     .aa-Autocomplete {
       width: $quarto-sidebar-search-input-width;
     }
@@ -225,6 +228,18 @@ $quarto-search-collapse-icon-size: 26px !default;
       }
     }
   }
+}
+
+.aa-PanelLayout:empty {
+  display: none;
+}
+
+.quarto-search-no-results.no-query {
+  display: none;
+}
+
+.aa-Source:has(.no-query) {
+  display: none;
 }
 
 #quarto-search-results .aa-Panel {
