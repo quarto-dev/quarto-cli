@@ -6,7 +6,7 @@ try {
 } catch (e) {
   console.log(e);
   console.log(
-    "timing.txt missing. run ./tests.sh with QUARTO_TEST_TIMING=timing.txt",
+    "timing.txt missing. run ./run-tests.sh with QUARTO_TEST_TIMING=timing.txt",
   );
   Deno.exit(1);
 }
@@ -51,7 +51,7 @@ let failed = false;
 // Deno.exit(0);
 
 const buckets: TestTiming[][] = [];
-const nBuckets = navigator.hardwareConcurrency;
+const nBuckets = Number(Deno.args[1]) || navigator.hardwareConcurrency;
 const bucketSizes = (new Array(nBuckets)).fill(0);
 
 const argmin = (a: number[]): number => {
@@ -94,6 +94,8 @@ if (!failed) {
     }`,
   );
 }
+
+// console.log(JSON.stringify(buckets, null, 2));
 
 Promise.all(buckets.map((bucket) => {
   const cmd: string[] = ["./run-tests.sh"];

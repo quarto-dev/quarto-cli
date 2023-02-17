@@ -65,7 +65,7 @@ object:
 
   languageName: "mermaid",
   languageClass: (options: LanguageCellHandlerOptions) => {
-    if (isMarkdownOutput(options.format.pandoc, ["gfm"])) {
+    if (isMarkdownOutput(options.format, ["gfm"])) {
       return "mermaid-source"; // sidestep github's in-band signaling of mermaid diagrams
     } else {
       return "default"; // no pandoc highlighting yet so we use 'default' to get grey shading
@@ -295,7 +295,7 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
         svg = mappedDiff(svg, oldSvgSrc);
       }
 
-      if (isMarkdownOutput(handlerContext.options.format.pandoc, ["gfm"])) {
+      if (isMarkdownOutput(handlerContext.options.format, ["gfm"])) {
         const { sourceName, fullName } = handlerContext
           .uniqueFigureName(
             "mermaid-figure-",
@@ -341,7 +341,7 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
         heightInInches,
       } = await resolveSize(svgText, cell.options ?? {});
 
-      if (isMarkdownOutput(handlerContext.options.format.pandoc, ["gfm"])) {
+      if (isMarkdownOutput(handlerContext.options.format, ["gfm"])) {
         return asMappedString(makeFigLink(
           sourceName,
           widthInInches,
@@ -409,7 +409,7 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
       if (isJavascriptCompatible(handlerContext.options.format)) {
         return await makeJs();
       } else if (
-        isMarkdownOutput(handlerContext.options.format.pandoc, ["gfm"])
+        isMarkdownOutput(handlerContext.options.format, ["gfm"])
       ) {
         return mappedConcat([
           "\n``` mermaid\n",

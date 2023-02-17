@@ -466,7 +466,7 @@ function navigationHtmlPostprocessor(
                 const linkEl = doc.createElement("a");
                 linkEl.setAttribute("href", item.href);
                 if (typeof (contents) === "string") {
-                  linkEl.innerText = contents;
+                  linkEl.innerHTML = contents;
                 } else {
                   linkEl.appendChild(contents);
                 }
@@ -1053,7 +1053,17 @@ function breadCrumbs(href: string, sidebar?: Sidebar) {
           } else {
             if (item.contents) {
               if (makeBreadCrumbs(href, item.contents)) {
-                crumbs.push(item);
+                // If this 'section' doesn't have an href, then just use the first
+                // child as the href
+                const breadCrumbItem = { ...item };
+                if (
+                  !breadCrumbItem.href && breadCrumbItem.contents &&
+                  breadCrumbItem.contents.length > 0
+                ) {
+                  breadCrumbItem.href = breadCrumbItem.contents[0].href;
+                }
+
+                crumbs.push(breadCrumbItem);
                 return true;
               }
             }

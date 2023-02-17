@@ -16,6 +16,7 @@ import * as colors from "fmt/colors.ts";
 import { runningInCI } from "../src/core/ci-info.ts";
 import { relative } from "path/mod.ts";
 import { quartoConfig } from "../src/core/quarto.ts";
+import { fromFileUrl } from "path/win32.ts";
 
 export interface TestDescriptor {
   // The name of the test
@@ -51,6 +52,9 @@ export interface TestContext {
 
   // Control of underlying sanitizer
   santize?: { resources?: boolean; ops?: boolean; exit?: boolean };
+
+  // control if test is ran or skipped
+  ignore?: boolean;
 }
 
 export function testQuartoCmd(
@@ -85,11 +89,12 @@ export interface ExecuteOutput {
 export function unitTest(
   name: string,
   ver: () => Promise<unknown>, // VoidFunction,
+  context?: TestContext,
 ) {
   test({
     name,
     type: "unit",
-    context: {},
+    context: context || {},
     execute: () => {
       return Promise.resolve();
     },
@@ -112,6 +117,7 @@ export function test(test: TestDescriptor) {
   const sanitizeResources = test.context.santize?.resources;
   const sanitizeOps = test.context.santize?.ops;
   const sanitizeExit = test.context.santize?.exit;
+  const ignore = test.context.ignore;
   const userSession = !runningInCI();
 
   Deno.test({
@@ -182,8 +188,9 @@ export function test(test: TestDescriptor) {
           const offset = testName.indexOf(">");
 
           // Form the test runner command
-          const originUrl = new URL(context.origin);
-          const absPath = originUrl.pathname;
+          const absPath = Deno.build.os === "windows"
+            ? fromFileUrl(context.origin)
+            : (new URL(context.origin)).pathname;
 
           const quartoRoot = join(quartoConfig.binPath(), "..", "..", "..");
           const relPath = relative(
@@ -191,7 +198,7 @@ export function test(test: TestDescriptor) {
             absPath,
           );
           const command = Deno.build.os === "windows"
-            ? "run-tests.psl"
+            ? "run-tests.ps1"
             : "./run-tests.sh";
           const testCommand = `${
             offset > 0 ? " ".repeat(offset + 2) : ""
@@ -247,6 +254,7 @@ export function test(test: TestDescriptor) {
         warning(`Skipped - ${test.name}`);
       }
     },
+    ignore,
     sanitizeExit,
     sanitizeOps,
     sanitizeResources,

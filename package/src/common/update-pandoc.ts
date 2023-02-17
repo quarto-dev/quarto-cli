@@ -25,6 +25,12 @@ import {
   pandocListFormats,
 } from "../../../src/core/pandoc/pandoc-formats.ts";
 
+import {
+  bgBlack,
+  bold,
+  brightWhite,
+} from "../../../src/core/lib/external/colors.ts";
+
 export function updatePandoc() {
   return new Command()
     .name("update-pandoc")
@@ -72,6 +78,11 @@ export function updatePandoc() {
         // Generate variants
         await writeVariants(configuration);
       });
+
+      // print the warning to complete the checklist
+      console.log(bgBlack(brightWhite(bold(
+        "\n** Remember to complete the checklist in /dev-docs/update-pandoc-checklist.md! **",
+      ))));
     });
 }
 

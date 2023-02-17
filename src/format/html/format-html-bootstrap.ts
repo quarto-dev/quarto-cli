@@ -456,7 +456,7 @@ const fileBsIconName = (format: Format) => {
     return "file-pdf";
   } else if (isIpynbOutput(format.pandoc)) {
     return "journal-code";
-  } else if (isMarkdownOutput(format.pandoc)) {
+  } else if (isMarkdownOutput(format)) {
     return "file-code";
   } else if (isPresentationOutput(format.pandoc)) {
     return "file-slides";

@@ -28,7 +28,7 @@ import { readYamlFromMarkdown } from "../../src/core/yaml.ts";
 import { outputForInput } from "../utils.ts";
 import { jupyterToMarkdown } from "../../src/core/jupyter/jupyter.ts";
 import { jupyterNotebookToMarkdown } from "../../src/command/convert/jupyter.ts";
-import { dirname, join } from "path/mod.ts";
+import { dirname, join, relative } from "path/mod.ts";
 
 async function fullInit() {
   await initYamlIntelligenceResourcesFromFilesystem();
@@ -146,7 +146,7 @@ await initYamlIntelligenceResourcesFromFilesystem();
 for (
   const { path: fileName } of globOutput
 ) {
-  const input = fileName;
+  const input = relative(Deno.cwd(), fileName);
 
   const metadata = input.endsWith("qmd")
     ? readYamlFromMarkdown(Deno.readTextFileSync(input))

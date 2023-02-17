@@ -61,7 +61,7 @@ export function isJupyterServer() {
 }
 
 export function isJupyterHubServer() {
-  return jupyterHubUser() !== undefined;
+  return !!jupyterHubUser() && !!jupyterHubServicePrefix();
 }
 
 export function vsCodeServerProxyUri() {
@@ -74,6 +74,10 @@ export function jupyterHubHttpReferrer() {
 
 export function jupyterHubUser() {
   return Deno.env.get("JUPYTERHUB_USER");
+}
+
+export function jupyterHubServicePrefix() {
+  return Deno.env.get("JUPYTERHUB_SERVICE_PREFIX");
 }
 
 export function isInteractiveTerminal() {

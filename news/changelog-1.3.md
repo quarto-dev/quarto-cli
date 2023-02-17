@@ -5,6 +5,7 @@
 - Fix output of bokeh plots so the right number of cells is generated ([#2107](https://github.com/quarto-dev/quarto-cli/issues/2107)).
 - Fix output of code cells that contain triple backticks (or more) ([#3179](https://github.com/quarto-dev/quarto-cli/issues/3179)).
 - Don't install SIGCHLD signal handler since it interferes with IJulia in Julia 1.8.4 and greater ([#2539](https://github.com/quarto-dev/quarto-cli/issues/2539)).
+- Resolve full path to QUARTO_PYTHON binary
 
 ## Code Annotation
 
@@ -49,6 +50,7 @@
 - Fix temporary `.tex` filenames in the presence of multiple variants ([#3762](https://github.com/quarto-dev/quarto-cli/issues/3762)).
   - Note that this fix changes the filenames used for PDF files with variants. In quarto 1.3, the automatic output names for PDF files include format variants and modifiers.
 - Correctly download online image on Windows ([#3982](https://github.com/quarto-dev/quarto-cli/issues/3982)).
+- Permissions of `.tex` file are now correct when `keep-tex: true` ([#4380](https://github.com/quarto-dev/quarto-cli/issues/4380)).
 
 ## Beamer Format
 
@@ -57,6 +59,7 @@
 ## Markdown Formats
 
 - Properly forward variants (e.g. `+yaml_metadata_block`) to `gfm` format.
+- `gfm` format now supports a local browser based preview when using `quarto preview`
 
 ## Mermaid diagrams
 

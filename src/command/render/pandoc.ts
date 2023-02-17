@@ -658,7 +658,7 @@ export async function runPandoc(
 
   // add a shortcode escaping post-processor if we need one
   if (
-    isMarkdownOutput(options.format.pandoc) &&
+    isMarkdownOutput(options.format) &&
     requiresShortcodeUnescapePostprocessor(options.markdown)
   ) {
     postprocessors.push(shortcodeUnescapePostprocessor);
@@ -737,7 +737,7 @@ export async function runPandoc(
   // crossref filter so we only do this if the user hasn't disabled the crossref filter
   if (
     !isLatexOutput(options.format.pandoc) &&
-    !isMarkdownOutput(options.format.pandoc) && crossrefFilterActive(options)
+    !isMarkdownOutput(options.format) && crossrefFilterActive(options)
   ) {
     delete allDefaults[kNumberSections];
     delete allDefaults[kNumberOffset];

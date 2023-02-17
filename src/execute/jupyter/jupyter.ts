@@ -309,7 +309,7 @@ export const jupyterEngine: ExecutionEngine = {
         keepHidden: options.format.render[kKeepHidden],
         toHtml: isHtmlCompatible(options.format),
         toLatex: isLatexOutput(options.format.pandoc),
-        toMarkdown: isMarkdownOutput(options.format.pandoc),
+        toMarkdown: isMarkdownOutput(options.format),
         toIpynb: isIpynbOutput(options.format.pandoc),
         toPresentation: isPresentationOutput(options.format.pandoc),
         figFormat: options.format.execute[kFigFormat],

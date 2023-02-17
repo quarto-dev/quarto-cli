@@ -6,6 +6,7 @@
 */
 
 import {
+kBaseFormat,
   kDefaultImageExtension,
   kEcho,
   kFigHeight,
@@ -265,6 +266,7 @@ export function defaultWriterFormat(to: string): Format {
 
   // Set the originating to
   writerFormat.identifier[kTargetFormat] = to;
+  writerFormat.identifier[kBaseFormat] = lookupTo;
 
   // Merge any explicitly provided variants
   writerFormat.render[kVariant] = mergePandocVariant(

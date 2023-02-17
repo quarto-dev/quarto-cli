@@ -140,7 +140,7 @@ export async function ojsCompile(
   const projDir = project?.dir;
   const selfContained = options.format.pandoc?.[kSelfContained] ??
     options.format.pandoc?.[kEmbedResources] ?? false;
-  const isHtmlMarkdown = isMarkdownOutput(options.format.pandoc, [
+  const isHtmlMarkdown = isMarkdownOutput(options.format, [
     "gfm",
     "commonmark",
   ]);

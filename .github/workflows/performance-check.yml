@@ -48,7 +48,7 @@ jobs:
 
           # move the TS file so quarto command will use bundled JS
           mv src/quarto.ts src/quarto1.ts
-          
+
           pushd package/pkg-working/bin
 
           # test a bare quarto command
