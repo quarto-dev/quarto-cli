@@ -16,7 +16,7 @@ function crossrefPreprocess()
       -- initialize autolabels table
       crossref.autolabels = pandoc.List()
       
-      local figure_para_handler = function(el)            
+      local figure_para_handler = function(el, parentId)            
         -- provide error caption if there is none
         local fig = discoverFigure(el, false)
         if fig and hasFigureRef(fig) and #fig.caption == 0 then
@@ -74,8 +74,13 @@ function crossrefPreprocess()
             return preprocessRawTableBlock(el, parentId)
           end,
 
-          Para = figure_para_handler,
-          Figure = figure_para_handler
+          Para = function(el)
+            return figure_para_handler(el, parentId)
+          end,
+
+          Figure = function(el)
+            return figure_para_handler(el, parentId)
+          end
         }
       end
 
