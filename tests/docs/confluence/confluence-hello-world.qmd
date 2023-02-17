@@ -1,0 +1,7 @@
+---
+title: Confluence Hello World
+format: confluence-publish
+validate-yaml: false
+---
+
+Hello World
