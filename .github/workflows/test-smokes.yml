@@ -152,7 +152,7 @@ jobs:
           case $RUNNER_OS in
             "Windows")
               ../package/dist/bin/quarto.cmd render docs/test.qmd --to pdf
-              pwsh -F ./run-test.ps1
+              pwsh -F ./run-tests.ps1
               ;;
             *)
               quarto render docs/test.qmd --to pdf
