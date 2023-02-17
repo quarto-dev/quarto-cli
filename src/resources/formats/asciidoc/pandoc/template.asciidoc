@@ -1,4 +1,7 @@
 $if(titleblock)$
+$if(title-prefix)$
+$title-prefix$
+$endif$
 = $title$
 $if(by-author)$
 $for(by-author)$$it.name.literal$$if(it.email)$ <$it.email$>$endif$$sep$; $endfor$
