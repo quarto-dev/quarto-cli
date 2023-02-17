@@ -8,6 +8,8 @@ on:
   push:
     # only trigger on branches, not on tags
     branches: [main]
+  schedule:
+    - cron: "0 6 * * *"
 
 jobs:
   run-smokes:
@@ -15,7 +17,6 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
-        # os: [windows-latest]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -39,16 +40,19 @@ jobs:
           r-version: "4.2.2"
 
       - name: Install node (for Playwright)
+        if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
         uses: actions/setup-node@v3
         with:
           node-version: 16
 
       - name: Install node dependencies
+        if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
         run: yarn
         working-directory: ./tests/integration/playwright
         shell: bash
 
       - name: Install Playwright Browsers
+        if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
         run: npx playwright install --with-deps
         working-directory: ./tests/integration/playwright
 
