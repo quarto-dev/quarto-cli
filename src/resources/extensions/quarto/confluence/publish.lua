@@ -18,6 +18,22 @@ function log(label, object)
   print(label or '' .. ': ', dumpObject(object))
 end
 
+
+local function injectAnchor(element, addToFront)
+  if(element and element.identifier and #element.identifier > 0) then
+    local content = element.content
+    -- Confluence HTML anchors are CSF macro snippets, inject into contents
+    local anchor = pandoc.RawInline('html', confluence.HTMLAnchorConfluence(element.identifier))
+    if (addToFront) then
+      table.insert(content, 1, anchor)
+    else
+      table.insert(content, anchor)
+    end
+    element.content = content
+  end
+  return element
+end
+
 function Writer (doc, opts)
   local filter ={
     Callout = function (callout)
@@ -49,6 +65,10 @@ function Writer (doc, opts)
               link.attributes)
       return pandoc.RawInline('html', renderString)
     end,
+    Div = function (div)
+      div = injectAnchor(div, true)
+      return div
+    end,
     CodeBlock = function (codeBlock)
       local renderString = confluence.CodeBlockConfluence(
               codeBlock.text,
@@ -66,12 +86,7 @@ function Writer (doc, opts)
       return { table } .. caption
     end,
     Block = function (block)
-      if(block.identifier and #block.identifier > 0) then
-        local content = block.content
-        -- Confluence HTML anchors are CSF macro snippets, inject into contents
-        content[(#content + 1) or 1] = pandoc.RawInline('html', confluence.HTMLAnchorConfluence(block.identifier))
-        block.content = content
-      end
+      block = injectAnchor(block)
       return block
     end,
     RawBlock = function ()
