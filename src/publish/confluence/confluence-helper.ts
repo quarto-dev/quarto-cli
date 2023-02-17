@@ -775,7 +775,3 @@ export const footnoteTransform = (bodyValue: string): string => {
 
   return replacedBody;
 };
-
-export const htmlAnchorTransform = (bodyValue: string): string => {
-  return bodyValue;
-};

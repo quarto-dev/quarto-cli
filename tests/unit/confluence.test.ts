@@ -22,7 +22,6 @@ import {
   getMessageFromAPIError,
   getNextVersion,
   getTitle,
-  htmlAnchorTransform,
   isNotFound,
   isUnauthorized,
   LINK_FINDER,
@@ -61,8 +60,8 @@ import {
   Space,
 } from "../../src/publish/confluence/api/types.ts";
 
-const RUN_ALL_TESTS = false;
-const FOCUS_TEST = true;
+const RUN_ALL_TESTS = true;
+const FOCUS_TEST = false;
 
 const xtest = (
   name: string,
@@ -4274,25 +4273,6 @@ const runFootnoteTransform = () => {
   });
 };
 
-const runHTMLAnchorTransform = () => {
-  const suiteLabel = (label: string) => `RunHTMLAnchorTransform_${label}`;
-
-  test(suiteLabel("no_anchor"), async () => {
-    const value = "<span>No Anchors</span>";
-    assertEquals(value, htmlAnchorTransform(value));
-  });
-
-  otest(suiteLabel("one_anchor"), async () => {
-    const value = '<h2 id="sec-first">My Heading</h2>';
-
-    const expected =
-      '<ac:structured-macro ac:name="anchor" ac:schema-version="1" ac:local-id="a6aa6f25-0bee-4a7f-929b-71fcb7eba592" ac:macro-id="d2cb5be1217ae6e086bc60005e9d27b7"><ac:parameter ac:name="">sec-first</ac:parameter></ac:structured-macro><h2 id="sec-first">My Heading</h2>';
-
-    const actual = htmlAnchorTransform(value);
-    assertEquals(expected, actual);
-  });
-};
-
 if (RUN_ALL_TESTS) {
   runGeneralTests();
   runFilterFilesForUpdate();
@@ -4314,7 +4294,5 @@ if (RUN_ALL_TESTS) {
   runCapFirstLetter();
   runFootnoteTransform();
   runConfluenceParentFromString();
-  runHTMLAnchorTransform();
 } else {
-  runHTMLAnchorTransform();
 }
