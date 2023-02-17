@@ -4295,5 +4295,4 @@ if (RUN_ALL_TESTS) {
   runFootnoteTransform();
   runConfluenceParentFromString();
 } else {
-  runConfluenceParentFromString();
 }

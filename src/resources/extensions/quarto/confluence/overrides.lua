@@ -1,6 +1,3 @@
--- Confluence Storage Format for Pandoc
--- https://confluence.atlassian.com/doc/confluence-storage-format-790796544.html
--- https://pandoc.org/MANUAL.html#custom-readers-and-writers
 local function startsWith(text, prefix)
   return text:find(prefix, 1, true) == 1
 end
@@ -28,8 +25,7 @@ local function escape(s, in_attribute)
           end)
 end
 
--- From https://stackoverflow.com/questions/9168058/how-to-dump-a-table-to-console
-function dumpObject(o)
+local function dumpObject(o)
   if type(o) == 'table' then
     local s = '{ '
     for k,v in pairs(o) do
@@ -42,7 +38,7 @@ function dumpObject(o)
   end
 end
 
-function dump(label, object)
+local function dump(label, object)
   print(label or '' .. ': ', dumpObject(object))
 end
 
@@ -50,8 +46,7 @@ local function isEmpty(s)
   return s == nil or s == ''
 end
 
--- from http://lua-users.org/wiki/StringInterpolation
-local interpolate = function(str, vars)
+local function interpolate(str, vars)
   -- Allow replace_vars{str, vars} syntax as well as replace_vars(str, {vars})
   if not vars then
     vars = str
@@ -63,13 +58,13 @@ local interpolate = function(str, vars)
           end))
 end
 
-function CaptionedImageConfluence(source, title, caption, attr)
+function CaptionedImageConfluence(source, title, caption, attr, id)
   --Note Title isn't usable by confluence at this time it will
   -- serve as the default value for attr.alt-text
 
   local CAPTION_SNIPPET = [[<ac:caption>{caption}</ac:caption>]]
 
-  local IMAGE_SNIPPET = [[<ac:image
+  local IMAGE_SNIPPET = [[{anchor}<ac:image
     ac:align="{align}"
     ac:layout="{layout}"
     ac:alt="{alt}">
@@ -79,6 +74,12 @@ function CaptionedImageConfluence(source, title, caption, attr)
   local sourceValue = source
   local titleValue = title
   local captionValue = caption
+  local anchorValue = ""
+
+  if (id and #id > 0) then
+    -- wrap in `p` to prevent an issue with CSF not redering correctly
+    anchorValue = "<p>" .. HTMLAnchorConfluence(id) .. "</p>"
+  end
 
   local alignValue = 'center'
   if (attr and attr['fig-align']) then
@@ -96,7 +97,9 @@ function CaptionedImageConfluence(source, title, caption, attr)
 
   if not isEmpty(captionValue) then
     captionValue =
-    interpolate {CAPTION_SNIPPET, caption = escape(captionValue)}
+    interpolate {
+      CAPTION_SNIPPET,
+      caption = escape(captionValue)}
   end
 
   if(not startsWithHttp(source)) then
@@ -106,7 +109,9 @@ function CaptionedImageConfluence(source, title, caption, attr)
       align = alignValue,
       layout = layoutValue,
       alt = altValue,
-      caption = captionValue}
+      caption = captionValue,
+      anchor = anchorValue
+    }
   end
 
   return "<img src='" .. escape(source,true) .. "' title='" ..
@@ -165,12 +170,26 @@ function CodeBlockConfluence(codeValue, languageValue)
   }
 end
 
+function HTMLAnchorConfluence(id)
+  if (not id or #id == 0) then
+    return ""
+  end
+
+  local SNIPPET = [[<ac:structured-macro ac:name="anchor" ac:schema-version="1" ac:local-id="a6aa6f25-0bee-4a7f-929b-71fcb7eba592" ac:macro-id="d2cb5be1217ae6e086bc60005e9d27b7"><ac:parameter ac:name="">{id}</ac:parameter></ac:structured-macro>]]
+
+  return interpolate {
+    SNIPPET,
+    id = id or ''
+  }
+end
+
 return {
   CaptionedImageConfluence = CaptionedImageConfluence,
   CodeBlockConfluence = CodeBlockConfluence,
   LinkConfluence = LinkConfluence,
   TableConfluence = TableConfluence,
   CalloutConfluence = CalloutConfluence,
+  HTMLAnchorConfluence = HTMLAnchorConfluence,
   escape = escape,
   interpolate = interpolate
 }
