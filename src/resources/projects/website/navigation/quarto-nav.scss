@@ -241,6 +241,14 @@ nav .nav-item.compact .nav-link {
   margin-top: -6px;
 }
 
+@include media-breakpoint-down(lg) {
+  #quarto-sidebar {
+    div.sidebar-header {
+      padding-top: 0.2em;
+    }
+  }
+}
+
 .sidebar-header-stacked .sidebar-title {
   margin-top: 0.6rem;
 }
@@ -344,6 +352,11 @@ $sidebar-section-bottom-margin: 0.2em;
 @include media-breakpoint-down(lg) {
   .quarto-secondary-nav {
     display: block;
+
+    button.quarto-search-button {
+      padding-right: 0em;
+      padding-left: 2em;
+    }
 
     button.quarto-btn-toggle {
       margin-left: -0.75rem;
