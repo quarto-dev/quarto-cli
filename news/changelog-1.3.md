@@ -59,7 +59,7 @@
 ## Markdown Formats
 
 - Properly forward variants (e.g. `+yaml_metadata_block`) to `gfm` format.
-- `gfm` format now supports a local browser based preview when using `quarto preview`
+- `gfm` format now supports a local browser based preview when using `quarto preview`. If you'd like to see the raw markdown in preview, you can add `preview-mode: raw` to your document front matter or project.
 
 ## Mermaid diagrams
 
