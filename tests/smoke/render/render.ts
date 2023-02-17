@@ -42,7 +42,8 @@ export function testRender(
   // Verify that the output was created and
   // that supporting files are present or missing
   const verify: Verify[] = [];
-  if (!input.endsWith("/")) {
+  // If we're not rendering a folder but a single document, add some more assertions
+  if (!input.match(/[\\/]$/)) {
     verify.push(outputCreated(input, to));
     if (noSupporting) {
       verify.push(noSupportingFiles(input, to));

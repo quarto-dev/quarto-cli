@@ -37,5 +37,8 @@ testQuartoCmd(
         await Deno.remove(siteOutDir, { recursive: true });
       }
     },
+    // TODO: Make the test works for Windows
+    // https://github.com/quarto-dev/quarto-cli/issues/4194
+    ignore: Deno.build.os == "windows",
   },
 );

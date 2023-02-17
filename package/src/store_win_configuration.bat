@@ -38,12 +38,12 @@ echo set "QUARTO_ROOT=%%~dp0" >> %~dp0\..\..\win_configuration.bat
 ::    zip file archives that we build.
 
 :: These are the paths within the Quarto source tree - the "package" subfolder.
-echo set "QUARTO_SRC_PATH=%%~dp0\src" >> %~dp0\..\..\win_configuration.bat
-echo set "QUARTO_PACKAGE_PATH=%%~dp0\%%QUARTO_PACKAGE_DIR%%" >> %~dp0\..\..\win_configuration.bat
+echo set "QUARTO_SRC_PATH=%%~dp0src" >> %~dp0\..\..\win_configuration.bat
+echo set "QUARTO_PACKAGE_PATH=%%~dp0%%QUARTO_PACKAGE_DIR%%" >> %~dp0\..\..\win_configuration.bat
 
 :: These paths end up in the output package or conda build prefix.
-echo set "QUARTO_DIST_PATH=%%~dp0\%%QUARTO_PACKAGE_DIR%%\%%QUARTO_DIST_DIR%%" >> %~dp0\..\..\win_configuration.bat
-echo set "QUARTO_SHARE_PATH=%%~dp0\%%QUARTO_PACKAGE_DIR%%\%%QUARTO_DIST_DIR%%\%%QUARTO_SHARE_DIR%%" >> %~dp0\..\..\win_configuration.bat
-echo set "QUARTO_BIN_PATH=%%~dp0\%%QUARTO_PACKAGE_DIR%%\%%QUARTO_DIST_DIR%%\%%QUARTO_BIN_DIR%%" >> %~dp0\..\..\win_configuration.bat
+echo set "QUARTO_DIST_PATH=%%~dp0%%QUARTO_PACKAGE_DIR%%\%%QUARTO_DIST_DIR%%" >> %~dp0\..\..\win_configuration.bat
+echo set "QUARTO_SHARE_PATH=%%~dp0%%QUARTO_PACKAGE_DIR%%\%%QUARTO_DIST_DIR%%\%%QUARTO_SHARE_DIR%%" >> %~dp0\..\..\win_configuration.bat
+echo set "QUARTO_BIN_PATH=%%~dp0%%QUARTO_PACKAGE_DIR%%\%%QUARTO_DIST_DIR%%\%%QUARTO_BIN_DIR%%" >> %~dp0\..\..\win_configuration.bat
 
 echo "Translated/recorded configuration settings from unix configuration script"
