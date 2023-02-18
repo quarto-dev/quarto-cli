@@ -5,18 +5,26 @@ function parse_pandoc3_figures()
   -- return {}
   return {
     Figure = function(fig)
-      if (#fig.content == 1 and fig.content[1].t == "Plain" and 
-          #fig.content[1].content == 1 and fig.content[1].content[1].t == "Image") then
-        local image = fig.content[1].content[1]
-        image.classes:extend(fig.classes)
-        for k, v in pairs(fig.attributes) do
-          image.attributes[k] = v
-        end
-        if fig.identifier ~= "" then
-          image.identifier = fig.identifier
-        end
+      if (#fig.content == 1 and fig.content[1].t == "Plain") then
         
-        return pandoc.Para(image)
+        if #fig.content[1].content == 1 and fig.content[1].content[1].t == "Image" then
+          -- "pandoc 2 normalization"
+          local image = fig.content[1].content[1]
+          image.classes:extend(fig.classes)
+          for k, v in pairs(fig.attributes) do
+            image.attributes[k] = v
+          end
+          if fig.identifier ~= "" then
+            image.identifier = fig.identifier
+          end
+          
+          return pandoc.Para(image)
+        else
+          -- if user filters muck with images, we need to support this as well.
+          -- however, we can't forward figure information along the image, so
+          -- this is necessarily a best-effort situation until we truly fix figures.
+          return pandoc.Para(fig.content[1].content)
+        end
       else
         print("Couldn't parse figure:")
         print(fig)
@@ -24,4 +32,30 @@ function parse_pandoc3_figures()
       end
     end
   }
+end
+
+function render_pandoc3_figures() 
+  -- 2023-02-17: only do this for Jats output since the other pandoc 3.1 writers
+  -- still appear to accept "implicit figures".
+  if _quarto.format.isJatsOutput() then
+    return {
+      Para = function(para)
+        if (#para.content == 1 and para.content[1].t == "Image" and
+            hasFigureRef(para.content[1])) then
+          local img = para.content[1]
+          -- quarto.utils.dump(img.caption)
+          local caption = img.caption
+          return pandoc.Figure(
+            pandoc.Plain(para.content[1]),
+            {
+              short = nil,
+              long = {pandoc.Plain(caption)}
+            },
+            img.attr)
+        end
+      end,
+    }
+  else
+    return {}
+  end
 end
