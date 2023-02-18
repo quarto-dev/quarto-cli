@@ -226,6 +226,7 @@ const convert = (data) => {
     if (data.t === "Figure") {
       return {
         t: data.t,
+        attr: convertAttr(data.c[0]),
         content: convert(data.c[2]),
         caption: convertCaption(data.c[1]),
       };
