@@ -5002,6 +5002,11 @@
                                 "description": "Location to write references (`block`, `section`, or `document`)"
                               }
                             },
+                            "links": {
+                              "boolean": {
+                                "description": "Write markdown links as references rather than inline."
+                              }
+                            },
                             "prefix": {
                               "string": {
                                 "description": "Unique prefix for references (`none` to prevent automatic prefixes)"
@@ -12392,6 +12397,7 @@
     "Reference writing options for visual editor",
     "Location to write references (<code>block</code>,\n<code>section</code>, or <code>document</code>)",
     "Unique prefix for references (<code>none</code> to prevent automatic\nprefixes)",
+    "Write markdown links as references rather than inline.",
     "The identifier for this publication.",
     "The identifier value.",
     "The identifier schema (e.g.&nbsp;<code>DOI</code>, <code>ISBN-A</code>,\netc.)",
@@ -12924,6 +12930,10 @@
     {
       "short": "semver version range for required quarto version",
       "long": "A semver version range describing the supported quarto versions for\nthis document or project.\nExamples:"
+    },
+    {
+      "short": "The mode to use when previewing this document.",
+      "long": "The mode to use when previewing this document. To disable any special\npreviewing features, pass <code>raw</code> as the preview-mode."
     },
     {
       "short": "Adds the necessary setup to the document preamble to generate PDF/A\nof the type specified.",
@@ -13808,11 +13818,7 @@
       "long": "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
     },
     "Disambiguating year suffix in author-date styles (e.g.&nbsp;“a” in “Doe,\n1999a”).",
-    "internal-schema-hack",
-    {
-      "short": "The mode to use when previewing this document.",
-      "long": "The mode to use when previewing this document. To disable any special\npreviewing features, pass <code>raw</code> as the preview-mode."
-    }
+    "internal-schema-hack"
   ],
   "schema/external-schemas.yml": [
     {
@@ -14037,12 +14043,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 146897,
+    "_internalId": 147223,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 146889,
+        "_internalId": 147215,
         "type": "enum",
         "enum": [
           "png",
@@ -14058,7 +14064,7 @@
         "exhaustiveCompletions": true
       },
       "theme": {
-        "_internalId": 146896,
+        "_internalId": 147222,
         "type": "anyOf",
         "anyOf": [
           {
