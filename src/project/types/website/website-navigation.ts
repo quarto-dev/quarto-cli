@@ -152,7 +152,10 @@ export async function initWebsiteNavigation(project: ProjectContext) {
   } = websiteNavigationConfig(
     project,
   );
-  if (!navbar && !sidebars && !pageNavigation) {
+  if (
+    !navbar && !sidebars && !pageNavigation && !footer && !pageMargin &&
+    !bodyDecorators
+  ) {
     return;
   }
 
