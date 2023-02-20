@@ -2,7 +2,6 @@
 -- Copyright (C) 2020-2023 Posit Software, PBC
 
 function parse_pandoc3_figures() 
-  -- return {}
   return {
     Figure = function(fig)
       if (#fig.content == 1 and fig.content[1].t == "Plain") then
@@ -35,27 +34,21 @@ function parse_pandoc3_figures()
 end
 
 function render_pandoc3_figures() 
-  -- 2023-02-17: only do this for Jats output since the other pandoc 3.1 writers
-  -- still appear to accept "implicit figures".
-  if _quarto.format.isJatsOutput() then
-    return {
-      Para = function(para)
-        if (#para.content == 1 and para.content[1].t == "Image" and
-            hasFigureRef(para.content[1])) then
-          local img = para.content[1]
-          -- quarto.utils.dump(img.caption)
-          local caption = img.caption
-          return pandoc.Figure(
-            pandoc.Plain(para.content[1]),
-            {
-              short = nil,
-              long = {pandoc.Plain(caption)}
-            },
-            img.attr)
-        end
-      end,
-    }
-  else
-    return {}
-  end
+  return {
+    Para = function(para)
+      if (#para.content == 1 and para.content[1].t == "Image" and
+          hasFigureRef(para.content[1])) then
+        local img = para.content[1]
+        -- quarto.utils.dump(img.caption)
+        local caption = img.caption
+        return pandoc.Figure(
+          pandoc.Plain(para.content[1]),
+          {
+            short = nil,
+            long = {pandoc.Plain(caption)}
+          },
+          img.attr)
+      end
+    end,
+  }
 end
