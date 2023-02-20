@@ -158,3 +158,7 @@
 
 - fix rendering of individual project files to stdout ([#4052](https://github.com/quarto-dev/quarto-cli/issues/4052)).
 - fix previewing docusaurus project on Windows ([#4312](https://github.com/quarto-dev/quarto-cli/issues/4312)).
+
+## Other
+
+- fix error when running the command `quarto render -h` to receive help ([#3202](https://github.com/quarto-dev/quarto-cli/issues/3202)).
