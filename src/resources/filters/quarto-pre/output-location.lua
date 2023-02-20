@@ -21,8 +21,20 @@ end
 
 -- note: assumes that outputLocationCellHasCode has been called
 local function partitionCell(el, outputClass)
-  local codeDiv = pandoc.Div({ el.content[1] }, el.attr)
-  local outputDiv = pandoc.Div(tslice(el.content, 2, #el.content), el.attr)
+  -- compute the code div, being sure to bring the annotations 
+  -- along with the code
+  local code = { el.content[1] }
+  local outputIndex
+  if isAnnotationCell(el.content[2]) then
+    tappend(code, {el.content[2]})
+    outputIndex = 3
+  else
+    outputIndex = 2
+  end
+
+  local codeDiv = pandoc.Div(code, el.attr)
+
+  local outputDiv = pandoc.Div(tslice(el.content, outputIndex, #el.content), el.attr)
   outputDiv.attr.identifier = ""
   outputDiv.attr.classes:insert(outputClass)
   return { codeDiv, outputDiv }
