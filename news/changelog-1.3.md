@@ -35,6 +35,7 @@
 - reduce font size of `df-print: paged` tables ([#3380](https://github.com/quarto-dev/quarto-cli/issues/3380))
 - `width` and `height` in percent are now correctly supported ([#4063](https://github.com/quarto-dev/quarto-cli/issues/4063))
 - add better margins to numbered lists in the presence of many items and `.scrollable` ([#4283](https://github.com/quarto-dev/quarto-cli/issues/4063)).
+- Properly support scss imports for RevealJS extensions ([#3414](https://github.com/quarto-dev/quarto-cli/issues/3414))
 
 ## Dates
 
@@ -91,6 +92,7 @@
 - Improve support for `yml` based listings by supporting usage of title and description from `yml`.
 - Allow listings in project to point directly to non-input files (such as `yml` files) to use for contents.
 - Allow `sort: false` to disable any sorting, allowing items to appear in their original / natural order. (#3296)
+- Warn if listings are being used outside of a website ([#4267](https://github.com/quarto-dev/quarto-cli/issues/4267))
 
 ## Websites
 
@@ -98,11 +100,16 @@
 - Change behavior of `publish gh-pages` to always render into a clean directory.
   Previous behavior was to add to existing contents of `gh-pages` branch. ([#3199](https://github.com/quarto-dev/quarto-cli/discussions/3199), @ijlyttle)
 - Order sidebar entries using filename rather than title
+- Position `repo-actions` in the page footer if there is nowhere else to position them ([#3998](https://github.com/quarto-dev/quarto-cli/issues/3998))
+- Render `page-footer` even when a Navbar isn't present ([#4053](https://github.com/quarto-dev/quarto-cli/issues/4053))
+- Don't treat links with no `href` as external when `link-external-icon` is enabled ([#3645](https://github.com/quarto-dev/quarto-cli/issues/3645))
+- Escape HTML from code cells that appears inline in search results ([#4404](https://github.com/quarto-dev/quarto-cli/issues/4404))
 
 ## Books
 
 - Remove chapter number of HTML head title when `number-sections` is `false` (#3304).
 - Non-HTML book output formats will now be placed in subdirectories (`book-<format>`) within the project output directory (`_books`)
+- Don't discard the first chapter header when a chapter title is declared using YAML. ([#3653](https://github.com/quarto-dev/quarto-cli/issues/3653))
 - Support for rendering to Asciidoc
 - Support for rendering to LaTeX
 
