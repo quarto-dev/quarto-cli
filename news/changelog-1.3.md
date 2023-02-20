@@ -1,3 +1,6 @@
+## Confluence Publishing
+- Add support for publishing both documents and projects to Atlassian Confluence spaces and as children to Confluence pages.
+
 ## Jupyter Notebooks
 
 - Add support for embedding cell outputs in quarto documents using `{{< embed >}}`. You can address cells by Id, Tag, or label, such as `{{< embed mynotebook.ipynb#fig-output >}}` which would embed the output of a cell with the label `fig-output`). You can also provide a list of ids like `{{< embed mynotebook.ipynb#fig-output,tbl-out >}}`.
