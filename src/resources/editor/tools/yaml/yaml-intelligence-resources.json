@@ -8309,6 +8309,20 @@
         "short": "If true, DOIs, PMCIDs, PMID, and URLs in bibliographies will be rendered as hyperlinks.",
         "long": "If true, DOIs, PMCIDs, PMID, and URLs in bibliographies will be rendered as hyperlinks. (If an entry contains a DOI, PMCID, PMID, or URL, but none of \nthese fields are rendered by the style, then the title, or in the absence of a title the whole entry, will be hyperlinked.) Defaults to true.\n"
       }
+    },
+    {
+      "name": "notes-after-punctuation",
+      "schema": "boolean",
+      "tags": {
+        "formats": [
+          "$pdf-all",
+          "docx"
+        ]
+      },
+      "description": {
+        "short": "Places footnote references or superscripted numerical citations after following punctuation.",
+        "long": "If true (the default for note styles), Quarto (via Pandoc) will put footnote references or superscripted numerical citations after \nfollowing punctuation. For example, if the source contains blah blah [@jones99]., the result will look like blah blah.[^1], with \nthe note moved after the period and the space collapsed. \n\nIf false, the space will still be collapsed, but the footnote will not be moved after the punctuation. The option may also be used \nin numerical styles that use superscripts for citation numbers (but for these styles the default is not to move the citation).\n"
+      }
     }
   ],
   "schema/document-render.yml": [
@@ -12990,6 +13004,11 @@
       "short": "JSON file containing abbreviations of journals that should be used in\nformatted bibliographies.",
       "long": "JSON file containing abbreviations of journals that should be used in\nformatted bibliographies when <code>form=\"short\"</code> is specified.\nThe format of the file can be illustrated with an example:"
     },
+    "If true, citations will be hyperlinked to the corresponding\nbibliography entries (for author-date and numerical styles only).\nDefaults to false.",
+    {
+      "short": "If true, DOIs, PMCIDs, PMID, and URLs in bibliographies will be\nrendered as hyperlinks.",
+      "long": "If true, DOIs, PMCIDs, PMID, and URLs in bibliographies will be\nrendered as hyperlinks. (If an entry contains a DOI, PMCID, PMID, or\nURL, but none of these fields are rendered by the style, then the title,\nor in the absence of a title the whole entry, will be hyperlinked.)\nDefaults to true."
+    },
     {
       "short": "Format to read from",
       "long": "Format to read from. Extensions can be individually enabled or\ndisabled by appending +EXTENSION or -EXTENSION to the format name\n(e.g.&nbsp;markdown+emoji)."
@@ -13844,10 +13863,9 @@
     },
     "Disambiguating year suffix in author-date styles (e.g.&nbsp;“a” in “Doe,\n1999a”).",
     "internal-schema-hack",
-    "If true, citations will be hyperlinked to the corresponding\nbibliography entries (for author-date and numerical styles only).\nDefaults to false.",
     {
-      "short": "If true, DOIs, PMCIDs, PMID, and URLs in bibliographies will be\nrendered as hyperlinks.",
-      "long": "If true, DOIs, PMCIDs, PMID, and URLs in bibliographies will be\nrendered as hyperlinks. (If an entry contains a DOI, PMCID, PMID, or\nURL, but none of these fields are rendered by the style, then the title,\nor in the absence of a title the whole entry, will be hyperlinked.)\nDefaults to true."
+      "short": "Places footnote references or superscripted numerical citations after\nfollowing punctuation.",
+      "long": "If true (the default for note styles), Quarto (via Pandoc) will put\nfootnote references or superscripted numerical citations after following\npunctuation. For example, if the source contains blah blah <span class=\"citation\" data-cites=\"jones99\">[@jones99]</span>., the result\nwill look like blah blah.[^1], with the note moved after the period and\nthe space collapsed.\nIf false, the space will still be collapsed, but the footnote will\nnot be moved after the punctuation. The option may also be used in\nnumerical styles that use superscripts for citation numbers (but for\nthese styles the default is not to move the citation)."
     }
   ],
   "schema/external-schemas.yml": [
@@ -14073,12 +14091,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 147227,
+    "_internalId": 147499,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 147219,
+        "_internalId": 147491,
         "type": "enum",
         "enum": [
           "png",
@@ -14094,7 +14112,7 @@
         "exhaustiveCompletions": true
       },
       "theme": {
-        "_internalId": 147226,
+        "_internalId": 147498,
         "type": "anyOf",
         "anyOf": [
           {
