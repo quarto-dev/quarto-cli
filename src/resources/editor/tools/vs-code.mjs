@@ -15308,6 +15308,31 @@ var require_yaml_intelligence_resources = __commonJS({
             short: "JSON file containing abbreviations of journals that should be used in formatted bibliographies.",
             long: 'JSON file containing abbreviations of journals that should be\nused in formatted bibliographies when `form="short"` is\nspecified. The format of the file can be illustrated with an\nexample:\n\n```json\n{ "default": {\n    "container-title": {\n      "Lloyd\'s Law Reports": "Lloyd\'s Rep",\n      "Estates Gazette": "EG",\n      "Scots Law Times": "SLT"\n    }\n  }\n}\n```\n'
           }
+        },
+        {
+          name: "link-citations",
+          schema: "boolean",
+          tags: {
+            formats: [
+              "$pdf-all",
+              "docx"
+            ]
+          },
+          description: "If true, citations will be hyperlinked to the corresponding bibliography entries (for author-date and numerical styles only). Defaults to false."
+        },
+        {
+          name: "link-bibliography",
+          schema: "boolean",
+          tags: {
+            formats: [
+              "$pdf-all",
+              "docx"
+            ]
+          },
+          description: {
+            short: "If true, DOIs, PMCIDs, PMID, and URLs in bibliographies will be rendered as hyperlinks.",
+            long: "If true, DOIs, PMCIDs, PMID, and URLs in bibliographies will be rendered as hyperlinks. (If an entry contains a DOI, PMCID, PMID, or URL, but none of \nthese fields are rendered by the style, then the title, or in the absence of a title the whole entry, will be hyperlinked.) Defaults to true.\n"
+          }
         }
       ],
       "schema/document-render.yml": [
@@ -19420,8 +19445,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Write standard visual editor markdown from source mode.",
         "Reference writing options for visual editor",
         "Location to write references (<code>block</code>,\n<code>section</code>, or <code>document</code>)",
-        "Unique prefix for references (<code>none</code> to prevent automatic\nprefixes)",
         "Write markdown links as references rather than inline.",
+        "Unique prefix for references (<code>none</code> to prevent automatic\nprefixes)",
         "The identifier for this publication.",
         "The identifier value.",
         "The identifier schema (e.g.&nbsp;<code>DOI</code>, <code>ISBN-A</code>,\netc.)",
@@ -20842,7 +20867,12 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
-        "internal-schema-hack"
+        "internal-schema-hack",
+        "If true, citations will be hyperlinked to the corresponding\nbibliography entries (for author-date and numerical styles only).\nDefaults to false.",
+        {
+          short: "If true, DOIs, PMCIDs, PMID, and URLs in bibliographies will be\nrendered as hyperlinks.",
+          long: "If true, DOIs, PMCIDs, PMID, and URLs in bibliographies will be\nrendered as hyperlinks. (If an entry contains a DOI, PMCID, PMID, or\nURL, but none of these fields are rendered by the style, then the title,\nor in the absence of a title the whole entry, will be hyperlinked.)\nDefaults to true."
+        }
       ],
       "schema/external-schemas.yml": [
         {
@@ -21067,12 +21097,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 147223,
+        _internalId: 147227,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 147215,
+            _internalId: 147219,
             type: "enum",
             enum: [
               "png",
@@ -21088,7 +21118,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 147222,
+            _internalId: 147226,
             type: "anyOf",
             anyOf: [
               {
