@@ -5,6 +5,7 @@
 *
 */
 import { join } from "path/mod.ts";
+import { warning } from "log/mod.ts";
 
 import * as ld from "../../core/lodash.ts";
 
@@ -98,6 +99,7 @@ import {
   notebookViewPostProcessor,
 } from "./format-html-notebook.ts";
 import { ProjectContext } from "../../project/types.ts";
+import { kListing } from "../../project/types/website/listing/website-listing-shared.ts";
 
 export function htmlFormat(
   figwidth: number,
@@ -130,6 +132,13 @@ export function htmlFormat(
         offset: string,
         project: ProjectContext,
       ) => {
+        // Warn the user if they are using a listing outside of a website
+        if (!project && format.metadata[kListing]) {
+          warning(
+            `Quarto only supports listings within websites. Please ensure that the file ${input} is a part of a website project to enable listing rendering.`,
+          );
+        }
+
         const htmlFilterParams = htmlFormatFilterParams(format);
         return mergeConfigs(
           await htmlFormatExtras(input, flags, offset, format, services.temp),
