@@ -104,6 +104,7 @@
 - Render `page-footer` even when a Navbar isn't present ([#4053](https://github.com/quarto-dev/quarto-cli/issues/4053))
 - Don't treat links with no `href` as external when `link-external-icon` is enabled ([#3645](https://github.com/quarto-dev/quarto-cli/issues/3645))
 - Escape HTML from code cells that appears inline in search results ([#4404](https://github.com/quarto-dev/quarto-cli/issues/4404))
+- Use input last modified timestamp when updating sitemap ([#3251](https://github.com/quarto-dev/quarto-cli/issues/3251))
 
 ## Books
 

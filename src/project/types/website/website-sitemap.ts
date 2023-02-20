@@ -22,6 +22,7 @@ import { websiteBaseurl } from "./website-config.ts";
 import { kDraft } from "../../../format/html/format-html-shared.ts";
 import { copyTo } from "../../../core/copy.ts";
 import {
+  inputFileForOutputFile,
   inputTargetIndexForOutputFile,
   inputTargetIsEmpty,
 } from "../../project-index.ts";
@@ -74,35 +75,50 @@ export async function updateSitemap(
     const fileLastMod = (file: string) =>
       (Deno.statSync(file).mtime || new Date(0))
         .toISOString();
-    const urlsetEntry = (outputFile: ProjectOutputFile) => {
+
+    const inputModified = async (output: string, project: ProjectContext) => {
+      const inputFile = await inputFileForOutputFile(project, output);
+      if (inputFile) {
+        return fileLastMod(inputFile);
+      } else {
+        return fileLastMod(output);
+      }
+    };
+
+    const urlsetEntry = async (outputFile: ProjectOutputFile) => {
       const file = outputFile.file;
       const isDraft = !!outputFile.format.metadata[kDraft];
 
-      return { loc: fileLoc(file), lastmod: fileLastMod(file), draft: isDraft };
+      return {
+        loc: fileLoc(file),
+        lastmod: await inputModified(file, context),
+        draft: isDraft,
+      };
     };
 
     // full render or no existing sitemap creates a fresh sitemap.xml
     if (!incremental || !existsSync(sitemapPath)) {
       // write sitemap
-      writeSitemap(sitemapPath, outputFiles.map(urlsetEntry));
-    } else { // otherwise parse the sitemap, update and write a new one
-      const urlset = outputFiles.reduce(
-        (urlset: Urlset, outputFile: ProjectOutputFile) => {
-          const file = outputFile.file;
-          const loc = fileLoc(file);
-          const url = urlset.find((url) => url.loc === loc);
-
-          if (url) {
-            url.lastmod = fileLastMod(file);
-            url.draft = !!outputFile.format.metadata[kDraft];
-          } else {
-            urlset.push(urlsetEntry(outputFile));
-          }
-          return urlset;
-        },
-        await readSitemap(sitemapPath),
-      );
+      const urlset: Urlset = [];
+      for (const file of outputFiles) {
+        urlset.push(await urlsetEntry(file));
+      }
       writeSitemap(sitemapPath, urlset);
+    } else { // otherwise parse the sitemap, update and write a new one
+      const urlSet: Urlset = await readSitemap(sitemapPath);
+      for (const outputFile of outputFiles) {
+        const file = outputFile.file;
+        const loc = fileLoc(file);
+        const url = urlSet.find((url) => url.loc === loc);
+
+        if (url) {
+          url.lastmod = await inputModified(file, context);
+          url.draft = !!outputFile.format.metadata[kDraft];
+        } else {
+          urlSet.push(await urlsetEntry(outputFile));
+        }
+      }
+      writeSitemap(sitemapPath, urlSet);
     }
 
     // create robots.txt if necessary
