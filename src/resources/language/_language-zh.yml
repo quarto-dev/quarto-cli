@@ -23,11 +23,11 @@ title-block-affiliation-plural: "隶属关系"
 title-block-published: "发布日期"
 title-block-modified: "修改的"
 
-callout-tip-caption: "提示"
-callout-note-caption: "注释"
-callout-warning-caption: "警告"
-callout-important-caption: "重要"
-callout-caution-caption: "警告"
+callout-tip-localization: "提示"
+callout-note-localization: "注释"
+callout-warning-localization: "警告"
+callout-important-localization: "重要"
+callout-caution-localization: "警告"
 
 code-summary: "代码"
 

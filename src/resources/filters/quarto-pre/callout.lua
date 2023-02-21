@@ -299,7 +299,7 @@ function calloutDiv(node)
 
     -- create the header to contain the title
     -- title should expand to fill its space
-    local titleDiv = pandoc.Div(pandoc.Plain(title), pandoc.Attr("", {"callout-caption-container", "flex-fill"}))
+    local titleDiv = pandoc.Div(pandoc.Plain(title), pandoc.Attr("", {"callout-title-container", "flex-fill"}))
     local headerDiv = pandoc.Div({imgDiv, titleDiv}, pandoc.Attr("", {"callout-header", "d-flex", "align-content-center"}))
     local bodyDiv = div
     bodyDiv.attr.classes:insert("callout-body")
@@ -723,7 +723,7 @@ function epubCallout(node)
 
   -- title
   if title ~= nil then
-    local callout_title = pandoc.Div({}, pandoc.Attr("", {"callout-caption"}))
+    local callout_title = pandoc.Div({}, pandoc.Attr("", {"callout-title"}))
     if hasIcon then
       callout_title.content:insert(imgDiv)
     end
@@ -946,5 +946,5 @@ end
 
 function displayName(type)
   local defaultName = type:sub(1,1):upper()..type:sub(2)
-  return param("callout-" .. type .. "-caption", defaultName)
+  return param("callout-" .. type .. "-localization", defaultName)
 end

@@ -23,11 +23,11 @@ title-block-affiliation-plural: "Affiliaatiot"
 title-block-published: "Julkaistu"
 title-block-modified: "Muokattu"
 
-callout-tip-caption: "Vihje"
-callout-note-caption: "Huomautus"
-callout-warning-caption: "Varoitus"
-callout-important-caption: "Tärkeää"
-callout-caution-caption: "Vaara"
+callout-tip-localization: "Vihje"
+callout-note-localization: "Huomautus"
+callout-warning-localization: "Varoitus"
+callout-important-localization: "Tärkeää"
+callout-caution-localization: "Vaara"
 
 code-summary: "Koodi"
 

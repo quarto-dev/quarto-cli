@@ -23,11 +23,11 @@ title-block-affiliation-plural: "所属"
 title-block-published: "公開"
 title-block-modified: "更新日"
 
-callout-tip-caption: "ヒント"
-callout-note-caption: "ノート"
-callout-warning-caption: "警告"
-callout-important-caption: "重要"
-callout-caution-caption: "注意"
+callout-tip-localization: "ヒント"
+callout-note-localization: "ノート"
+callout-warning-localization: "警告"
+callout-important-localization: "重要"
+callout-caution-localization: "注意"
 
 code-summary: "コード"
 

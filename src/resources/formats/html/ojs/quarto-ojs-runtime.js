@@ -19361,7 +19361,7 @@ function calloutBlock(opts) {
   header.appendChild(iconContainer);
 
   const headingDiv = document.createElement("div");
-  headingDiv.classList.add("callout-caption-container", "flex-fill");
+  headingDiv.classList.add("callout-title-container", "flex-fill");
   // we assume heading is either a string or a span
   if (typeof heading === "string") {
     headingDiv.innerText = heading;

@@ -22,11 +22,11 @@ title-block-affiliation-single: "소속"
 title-block-affiliation-plural: "소속"
 title-block-published: "공개"
 
-callout-tip-caption: "힌트"
-callout-note-caption: "노트"
-callout-warning-caption: "경고"
-callout-important-caption: "중요"
-callout-caution-caption: "주의"
+callout-tip-localization: "힌트"
+callout-note-localization: "노트"
+callout-warning-localization: "경고"
+callout-important-localization: "중요"
+callout-caution-localization: "주의"
 
 code-summary: "코드"
 

@@ -607,11 +607,11 @@ export type FormatLanguage = {
   "toc-title-website"?: string;
   "related-formats-title"?: string;
   "related-notebooks-title"?: string;
-  "callout-tip-caption"?: string;
-  "callout-note-caption"?: string;
-  "callout-warning-caption"?: string;
-  "callout-important-caption"?: string;
-  "callout-caution-caption"?: string;
+  "callout-tip-localization"?: string;
+  "callout-note-localization"?: string;
+  "callout-warning-localization"?: string;
+  "callout-important-localization"?: string;
+  "callout-caution-localization"?: string;
   "section-title-abstract"?: string;
   "section-title-footnotes"?: string;
   "section-title-appendices"?: string;

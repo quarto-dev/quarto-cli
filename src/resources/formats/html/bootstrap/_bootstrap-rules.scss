@@ -1204,7 +1204,7 @@ div.hanging-indent {
   overflow-wrap: break-word;
 }
 
-.callout .callout-caption-container {
+.callout .callout-title-container {
   overflow-wrap: anywhere;
 }
 
@@ -1349,7 +1349,7 @@ $code-block-border-left-color: $table-border-color !default;
   padding-right: 0.35em;
 }
 
-.callout.callout-style-default:not(.no-icon) div.callout-caption-container {
+.callout.callout-style-default:not(.no-icon) div.callout-title-container {
   margin-top: -1px;
 }
 
