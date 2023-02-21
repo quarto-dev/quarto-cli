@@ -162,6 +162,8 @@ export const kPandocExtensions = [
   "-superscript",
   "+table_captions",
   "-table_captions",
+  "+tagging",
+  "-tagging",
   "+task_lists",
   "-task_lists",
   "+tex_math_dollars",

@@ -125,11 +125,7 @@ async function writeVariants(
   info(`  ${formats.length} formats.`);
   info(`  ${extArr.length} extensions.`);
 
-  extArr.push(...kExtendedVariants);
-  const extended = ld.uniq(extArr);
-  info(`  ${extended.length} extensions (after adding extended).`);
-
-  const extArrExpanded = extended.toSorted().flatMap((ext) => {
+  const extArrExpanded = extArr.toSorted().flatMap((ext) => {
     return [`"+${ext}"`, `"-${ext}"`];
   });
 
