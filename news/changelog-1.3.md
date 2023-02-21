@@ -37,6 +37,7 @@
 - add better margins to numbered lists in the presence of many items and `.scrollable` ([#4283](https://github.com/quarto-dev/quarto-cli/issues/4063)).
 - Properly support scss imports for RevealJS extensions ([#3414](https://github.com/quarto-dev/quarto-cli/issues/3414))
 - Authors on the title slides now correctly object customization of the `$presentation-title-slide-text-align` scss variable ([#3843](https://github.com/quarto-dev/quarto-cli/issues/3843))
+- Properly support `show-notes: separate-page` [#3996](https://github.com/quarto-dev/quarto-cli/issues/3996)
 
 ## Dates
 

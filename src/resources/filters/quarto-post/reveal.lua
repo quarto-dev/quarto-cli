@@ -1,10 +1,19 @@
 -- reveal.lua
 -- Copyright (C) 2021-2022 Posit Software, PBC
 
+local kShowNotes = 'showNotes'
+
 function reveal()
   if _quarto.format.isRevealJsOutput() then
     return combineFilters{
       {
+        Meta = function(meta)           
+          if meta[kShowNotes] ~= nil and pandoc.utils.type(meta[kShowNotes]) == "Inlines" then
+            meta[kShowNotes]:insert(1, '"')
+            meta[kShowNotes]:insert('"')
+            return meta
+          end
+        end,
         Div = applyPosition,
         Span = applyPosition,
         Image = applyPosition

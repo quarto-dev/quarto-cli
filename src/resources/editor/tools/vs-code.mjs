@@ -12348,6 +12348,17 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           schema: "path",
           description: "Use the specified image as the EPUB cover. It is recommended\nthat the image be less than 1000px in width and height.\n"
+        },
+        {
+          name: "epub-title-page",
+          schema: "boolean",
+          default: true,
+          tags: {
+            formats: [
+              "$epub-all"
+            ]
+          },
+          description: "If false, disables the generation of a title page."
         }
       ],
       "schema/document-execute.yml": [
@@ -13027,6 +13038,32 @@ var require_yaml_intelligence_resources = __commonJS({
             short: "Whether to hyphenate text at line breaks even in words that do not contain hyphens.",
             long: "Whether to hyphenate text at line breaks even in words that do not contain \nhyphens if it is necessary to do so to lay out words on a line without excessive spacing\n"
           }
+        },
+        {
+          name: "list-tables",
+          schema: "boolean",
+          default: false,
+          tags: {
+            formats: [
+              "rst"
+            ]
+          },
+          description: "If true, tables are formatted as RST list tables."
+        },
+        {
+          name: "split-level",
+          tags: {
+            formats: [
+              "$epub-all",
+              "chunkedhtml"
+            ]
+          },
+          schema: "number",
+          default: 1,
+          description: {
+            short: "Specify the heading level at which to split the EPUB into separate\nchapter files.\n",
+            long: "Specify the heading level at which to split the EPUB into separate\nchapter files. The default is to split into chapters at level-1\nheadings. This option only affects the internal composition of the\nEPUB, not the way chapters and sections are displayed to users. Some\nreaders may be slow if the chapter files are too large, so for large\ndocuments with few level-1 headings, one might want to use a chapter\nlevel of 2 or 3.\n"
+          }
         }
       ],
       "schema/document-funding.yml": [
@@ -13315,15 +13352,6 @@ var require_yaml_intelligence_resources = __commonJS({
           description: {
             short: "Specify what to do with insertions, deletions, and comments produced by \nthe MS Word \u201CTrack Changes\u201D feature.\n",
             long: 'Specify what to do with insertions, deletions, and comments\nproduced by the MS Word "Track Changes" feature.  \n\n- `accept` (default): Process all insertions and deletions.\n- `reject`: Ignore them.\n- `all`: Include all insertions, deletions, and comments, wrapped\n  in spans with `insertion`, `deletion`, `comment-start`, and\n  `comment-end` classes, respectively. The author and time of\n  change is included. \n\nNotes:\n\n- Both `accept` and `reject` ignore comments.\n\n- `all` is useful for scripting: only\n  accepting changes from a certain reviewer, say, or before a\n  certain date. If a paragraph is inserted or deleted,\n  `track-changes: all` produces a span with the class\n  `paragraph-insertion`/`paragraph-deletion` before the\n  affected paragraph break. \n\n- This option only affects the docx reader.\n'
-          }
-        },
-        {
-          name: "strip-empty-paragraphs",
-          schema: "boolean",
-          hidden: true,
-          description: {
-            short: "Ignore paragraphs with no content.",
-            long: "*Deprecated.  Use the `+empty_paragraphs` extension instead.*\nIgnore paragraphs with no content.  This option is useful\nfor converting word processing documents where users have\nused empty paragraphs to create inter-paragraph space.\n"
           }
         },
         {
@@ -16693,7 +16721,12 @@ var require_yaml_intelligence_resources = __commonJS({
               "revealjs"
             ]
           },
-          schema: "boolean",
+          schema: {
+            anyOf: [
+              "boolean",
+              "separate-page"
+            ]
+          },
           default: false,
           description: "Make speaker notes visible to all viewers\n"
         },
@@ -17130,6 +17163,7 @@ var require_yaml_intelligence_resources = __commonJS({
             "beamer",
             "biblatex",
             "bibtex",
+            "chunkedhtml",
             "commonmark",
             "commonmark_x",
             "context",
@@ -18021,6 +18055,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "beamer",
         "biblatex",
         "bibtex",
+        "chunkedhtml",
         "commonmark",
         "commonmark_x",
         "context",
@@ -20034,6 +20069,10 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "If true, DOIs, PMCIDs, PMID, and URLs in bibliographies will be\nrendered as hyperlinks. (If an entry contains a DOI, PMCID, PMID, or\nURL, but none of these fields are rendered by the style, then the title,\nor in the absence of a title the whole entry, will be hyperlinked.)\nDefaults to true."
         },
         {
+          short: "Places footnote references or superscripted numerical citations after\nfollowing punctuation.",
+          long: 'If true (the default for note styles), Quarto (via Pandoc) will put\nfootnote references or superscripted numerical citations after following\npunctuation. For example, if the source contains blah blah <span class="citation" data-cites="jones99">[@jones99]</span>., the result\nwill look like blah blah.[^1], with the note moved after the period and\nthe space collapsed.\nIf false, the space will still be collapsed, but the footnote will\nnot be moved after the punctuation. The option may also be used in\nnumerical styles that use superscripts for citation numbers (but for\nthese styles the default is not to move the citation).'
+        },
+        {
           short: "Format to read from",
           long: "Format to read from. Extensions can be individually enabled or\ndisabled by appending +EXTENSION or -EXTENSION to the format name\n(e.g.&nbsp;markdown+emoji)."
         },
@@ -20887,9 +20926,11 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "internal-schema-hack",
+        "If false, disables the generation of a title page.",
+        "If true, tables are formatted as RST list tables.",
         {
-          short: "Places footnote references or superscripted numerical citations after\nfollowing punctuation.",
-          long: 'If true (the default for note styles), Quarto (via Pandoc) will put\nfootnote references or superscripted numerical citations after following\npunctuation. For example, if the source contains blah blah <span class="citation" data-cites="jones99">[@jones99]</span>., the result\nwill look like blah blah.[^1], with the note moved after the period and\nthe space collapsed.\nIf false, the space will still be collapsed, but the footnote will\nnot be moved after the punctuation. The option may also be used in\nnumerical styles that use superscripts for citation numbers (but for\nthese styles the default is not to move the citation).'
+          short: "Specify the heading level at which to split the EPUB into separate\nchapter files.",
+          long: "Specify the heading level at which to split the EPUB into separate\nchapter files. The default is to split into chapters at level-1\nheadings. This option only affects the internal composition of the EPUB,\nnot the way chapters and sections are displayed to users. Some readers\nmay be slow if the chapter files are too large, so for large documents\nwith few level-1 headings, one might want to use a chapter level of 2 or\n3."
         }
       ],
       "schema/external-schemas.yml": [
@@ -21115,12 +21156,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 147499,
+        _internalId: 147644,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 147491,
+            _internalId: 147636,
             type: "enum",
             enum: [
               "png",
@@ -21136,7 +21177,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 147498,
+            _internalId: 147643,
             type: "anyOf",
             anyOf: [
               {
