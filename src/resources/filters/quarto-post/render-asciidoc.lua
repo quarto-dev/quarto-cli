@@ -27,7 +27,7 @@ function renderAsciidoc()
         local identifier = span.identifier
         if refType(identifier) == "sec" then
           -- this is a chapter title, tear out the id and make it ourselves
-          local titleContents = pandoc.write(pandoc.Pandoc(span.content), "asciidoc")
+          local titleContents = pandoc.write(pandoc.Pandoc({span.content}), "asciidoc")
           meta['title'] = pandoc.RawInline("asciidoc", titleContents)
           meta['title-prefix'] = pandoc.RawInline("asciidoc", "[[" .. identifier .. "]]")
         end
