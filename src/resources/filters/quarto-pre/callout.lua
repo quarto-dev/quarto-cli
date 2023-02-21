@@ -946,5 +946,5 @@ end
 
 function displayName(type)
   local defaultName = type:sub(1,1):upper()..type:sub(2)
-  return param("callout-" .. type .. "-localization", defaultName)
+  return param("callout-" .. type .. "-title", defaultName)
 end

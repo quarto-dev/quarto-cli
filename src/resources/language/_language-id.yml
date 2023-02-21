@@ -23,11 +23,11 @@ title-block-affiliation-plural: "Afiliasi"
 title-block-published: "Diterbitkan"
 title-block-modified: "Diubah"
 
-callout-tip-localization: "Tip"
-callout-note-localization: "Catatan"
-callout-warning-localization: "Peringatan"
-callout-important-localization: "Penting"
-callout-caution-localization: "Bahaya"
+callout-tip-title: "Tip"
+callout-note-title: "Catatan"
+callout-warning-title: "Peringatan"
+callout-important-title: "Penting"
+callout-caution-title: "Bahaya"
 
 code-summary: "Kode"
 

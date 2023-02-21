@@ -23,11 +23,11 @@ title-block-affiliation-plural: "Принадлежности"
 title-block-published: "Дата публикации"
 title-block-modified: "Файл изменен"
 
-callout-tip-localization: "Совет"
-callout-note-localization: "Уведомление"
-callout-warning-localization: "Предупреждение"
-callout-important-localization: "Важное уведомление"
-callout-caution-localization: "Осторожность"
+callout-tip-title: "Совет"
+callout-note-title: "Уведомление"
+callout-warning-title: "Предупреждение"
+callout-important-title: "Важное уведомление"
+callout-caution-title: "Осторожность"
 
 code-summary: "Код"
 

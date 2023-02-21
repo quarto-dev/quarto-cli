@@ -23,11 +23,11 @@ title-block-affiliation-plural: "Afiliaciones"
 title-block-published: "Fecha de publicación"
 title-block-modified: "Fecha de modificación"
 
-callout-tip-localization: "Tip"
-callout-note-localization: "Nota"
-callout-warning-localization: "Advertencia"
-callout-important-localization: "Importante"
-callout-caution-localization: "Precaución"
+callout-tip-title: "Tip"
+callout-note-title: "Nota"
+callout-warning-title: "Advertencia"
+callout-important-title: "Importante"
+callout-caution-title: "Precaución"
 
 code-summary: "Código"
 
