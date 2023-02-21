@@ -13,20 +13,23 @@ import { kJupyterEngine } from "../../execute/types.ts";
 import { ProjectCreate, ProjectScaffoldFile, ProjectType } from "./types.ts";
 
 export const kDefaultProjectFileContents = "{ project: { type: 'default' } }";
+export const kConfluence = "confluence";
 
 export const defaultProjectType: ProjectType = {
   type: "default",
+  templates: [kConfluence],
 
-  formatLibDirs:
-    () => [
-      "bootstrap",
-      "quarto-html",
-      "quarto-ojs",
-      "quarto-diagram",
-      "quarto-contrib",
-    ],
+  formatLibDirs: () => [
+    "bootstrap",
+    "quarto-html",
+    "quarto-ojs",
+    "quarto-diagram",
+    "quarto-contrib",
+  ],
 
-  create: (title: string): ProjectCreate => {
+  create: (title: string, _template?: string): ProjectCreate => {
+    // TODO: Conditionalize based upon `template` above
+
     const resourceDir = resourcePath(join("projects", "default"));
     return {
       configTemplate: join(resourceDir, "templates", "_quarto.ejs.yml"),
