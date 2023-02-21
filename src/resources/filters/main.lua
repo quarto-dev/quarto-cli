@@ -82,7 +82,6 @@ import("./quarto-finalize/meta-cleanup.lua")
 
 import("./normalize/normalize.lua")
 import("./normalize/parsehtml.lua")
-import("./normalize/pandoc3.lua")
 import("./normalize/extractquartodom.lua")
 
 import("./layout/asciidoc.lua")
@@ -177,7 +176,6 @@ local quartoNormalize = {
 local quartoPre = {
   -- quarto-pre
   { name = "pre-quartoBeforeExtendedUserFilters", filters = make_wrapped_user_filters("beforeQuartoFilters") },
-  { name = "normalize-parse-pandoc3-figures", filter = parse_pandoc3_figures() },
   { name = "pre-bibliographyFormats", filter = bibliographyFormats() }, 
   { name = "pre-shortCodesBlocks", filter = shortCodesBlocks() } ,
   { name = "pre-shortCodesInlines", filter = shortCodesInlines() },
@@ -241,7 +239,6 @@ local quartoPost = {
   { name = "post-postMetaInject", filter = quartoPostMetaInject() },
   { name = "post-render-asciidoc", filter = renderAsciidoc() },
   { name = "post-renderExtendedNodes", filter = renderExtendedNodes() },
-  { name = "post-render-pandoc-3-figures", filter = render_pandoc3_figures() },
   { name = "post-userAfterQuartoFilters", filters = make_wrapped_user_filters("afterQuartoFilters") },
 }
 

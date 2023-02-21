@@ -389,6 +389,7 @@ export const kReader = "reader";
 export const kWriter = "writer";
 export const kOutputFile = "output-file";
 export const kInputFiles = "input-files";
+export const kAtxHeaders = "atx-headers";
 export const kMarkdownHeadings = "markdown-headings";
 export const kTemplate = "template";
 export const kWrap = "wrap";
@@ -560,6 +561,7 @@ export const kPandocDefaultsKeys = [
   kSectionDivs,
   "identifier-prefix",
   kTitlePrefix,
+  "strip-empty-paragraphs",
   "eol",
   "strip-comments",
   "indented-code-classes",
@@ -583,6 +585,7 @@ export const kPandocDefaultsKeys = [
   kEPubCoverImage,
   "reference-links",
   kReferenceLocation,
+  kAtxHeaders,
   kMarkdownHeadings,
   "track-changes",
   "html-q-tags",

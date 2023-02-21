@@ -129,6 +129,7 @@ local kBlockTypes = {
   "Header",
   "HorizontalRule",
   "LineBlock",
+  "Null",
   "OrderedList",
   "Para",
   "Plain",

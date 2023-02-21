@@ -9,6 +9,7 @@ import { Document } from "../core/deno-dom.ts";
 import {
   kAppendixAttributionBibTex,
   kAppendixAttributionCiteAs,
+  kAtxHeaders,
   kBaseFormat,
   kCache,
   kCalloutCautionCaption,
@@ -455,6 +456,7 @@ export interface FormatPandoc {
   [kSelfContained]?: boolean;
   [kEmbedResources]?: boolean;
   [kVariables]?: { [key: string]: unknown };
+  [kAtxHeaders]?: boolean;
   [kMarkdownHeadings]?: boolean;
   [kIncludeBeforeBody]?: string[];
   [kIncludeAfterBody]?: string[];

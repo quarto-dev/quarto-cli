@@ -31,8 +31,6 @@ import {
   brightWhite,
 } from "../../../src/core/lib/external/colors.ts";
 
-import * as ld from "../../../src/core/lodash.ts";
-
 export function updatePandoc() {
   return new Command()
     .name("update-pandoc")
@@ -88,24 +86,6 @@ export function updatePandoc() {
     });
 }
 
-// Starting in Pandoc 3, we saw a number of variants that appear to be supported
-// disappear from the --list-extensions command, so for the time being we're just
-// hard adding them here
-const kExtendedVariants: string[] = [
-  "amuse",
-  "attributes",
-  "element_citations",
-  "empty_paragraphs",
-  "epub_html_exts",
-  "native_numbering",
-  "ntb",
-  "raw_markdown",
-  "sourcepos",
-  "styles",
-  "xrefs_name",
-  "xrefs_number",
-];
-
 async function writeVariants(
   config: Configuration,
 ) {
@@ -121,7 +101,6 @@ async function writeVariants(
     });
   }
   const extArr = Array.from(extensions.values());
-  info(`  Pandoc Alone Reporting:`);
   info(`  ${formats.length} formats.`);
   info(`  ${extArr.length} extensions.`);
 
