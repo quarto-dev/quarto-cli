@@ -120,7 +120,7 @@
   schema:
     anyOf:
       - boolean
-      - "separate-page"
+      - enum: ["separate-page"]
   default: false
   description: |
     Make speaker notes visible to all viewers
