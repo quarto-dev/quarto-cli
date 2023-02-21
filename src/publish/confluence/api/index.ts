@@ -60,7 +60,7 @@ export class ConfluenceClient {
     return this.get<WrappedResult<ContentSummary>>(url);
   }
 
-  public async isTitleInSpace(
+  public async isTitleUniqueInSpace(
     title: string,
     space: Space,
     idToIgnore: string = ""
@@ -68,21 +68,26 @@ export class ConfluenceClient {
     const result = await this.fetchMatchingTitlePages(title, space);
 
     if (result.length === 1 && result[0].id === idToIgnore) {
-      return false;
+      return true;
     }
 
-    return result.length > 0;
+    return result.length === 0;
   }
 
   public async fetchMatchingTitlePages(
     title: string,
-    space: Space
+    space: Space,
+    isFuzzy: boolean = false
   ): Promise<Content[]> {
     const cqlContext =
       "%7B%22contentStatuses%22%3A%5B%22archived%22%2C%20%22current%22%2C%20%22draft%22%5D%7D"; //{"contentStatuses":["archived", "current", "draft"]}
     const encodedTitle = encodeURIComponent(title);
-    const cql = `title="${encodedTitle}"&spaces=${space.key}&cqlcontext=${cqlContext}`;
+    const cql = `title${isFuzzy ? "~" : "="}"${encodedTitle}"&spaces=${
+      space.key
+    }&cqlcontext=${cqlContext}`;
+    console.log("cql", cql);
     const result = await this.get<ContentArray>(`content/search?cql=${cql}`);
+    console.log("result", result);
     return result?.results ?? [];
   }
 

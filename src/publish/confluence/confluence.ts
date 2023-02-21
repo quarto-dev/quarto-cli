@@ -261,18 +261,27 @@ async function publish(
   const uniquifyTitle = async (title: string, idToIgnore: string = "") => {
     trace("uniquifyTitle", title);
 
-    const titleAlreadyExistsInSpace: boolean = await client.isTitleInSpace(
+    const titleIsUnique: boolean = await client.isTitleUniqueInSpace(
       title,
       space,
       idToIgnore
     );
 
+    if (titleIsUnique) {
+      return title;
+    }
+
+    //TODO use version numbers rather than UUID
+    const numFuzzyVariants: number = (
+      await client.fetchMatchingTitlePages(title, space, true)
+    ).length;
+
+    console.log("numVariants", numFuzzyVariants);
+
     const uuid = globalThis.crypto.randomUUID();
     const shortUUID = uuid.split("-")[0] ?? uuid;
-    const createTitle = titleAlreadyExistsInSpace
-      ? `${title} ${shortUUID}`
-      : title;
-    return createTitle;
+    const uniqueTitle = `${title} ${shortUUID}`;
+    return uniqueTitle;
   };
 
   const fetchExistingSite = async (parentId: string): Promise<SitePage[]> => {
