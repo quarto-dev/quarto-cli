@@ -69,8 +69,7 @@ export async function configureDependency(
 
   // If we're missing some arm64, try the intel versions and rely on rosetta.
   if (config.arch === "aarch64") {
-    // rosetta 2 workarounds
-    if (config.os === "darwin" && !archDep[config.os]) {
+    if (!archDep || !archDep[config.os]) {
       warning("Missing configuration for architecture " + config.arch);
       archDep = dependency.architectureDependencies["x86_64"];
     }
