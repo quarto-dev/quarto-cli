@@ -1952,6 +1952,7 @@ quarto = {
   utils = {
    dump = utils.dump,
    table = utils.table,
+   type = utils.type,
    resolve_path = resolvePathExt,
    resolve_path_relative_to_document = resolvePath,
   },
