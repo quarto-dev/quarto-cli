@@ -855,6 +855,17 @@ const processTableMarginCaption = (
 
 // Process any captions that appear in margins
 const processMarginCaptions = (doc: Document) => {
+  // Identify elements that already appear in the margin
+  // and in this case, remove the margin-caption class
+  // since we do not want to further process the caption into the margin
+  const captionsAlreadyInMargin = doc.querySelectorAll(
+    ".column-margin .margin-caption",
+  );
+  captionsAlreadyInMargin.forEach((node) => {
+    const el = node as Element;
+    el.classList.remove("margin-caption");
+  });
+
   // Forward caption class from parents to the child fig caps
   const marginCaptions = doc.querySelectorAll(".margin-caption");
   marginCaptions.forEach((node) => {
