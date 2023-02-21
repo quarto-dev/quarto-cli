@@ -88,5 +88,6 @@ export function partitionMarkdown(markdown: string): PartitionedMarkdown {
     headingAttr: markdownHeadingAttr,
     containsRefs: markdownContainsRefs,
     markdown: markdownLines.join("\n"),
+    srcMarkdownNoYaml: partitioned?.markdown || "",
   };
 }

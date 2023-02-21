@@ -129,6 +129,7 @@ import { HtmlPostProcessResult } from "../../../command/render/types.ts";
 import { isJupyterNotebook } from "../../../core/jupyter/jupyter.ts";
 import { kHtmlEmptyPostProcessResult } from "../../../command/render/constants.ts";
 import { expandAutoSidebarItems } from "./website-sidebar-auto.ts";
+import { ensureHtmlElements } from "../../../../tests/verify.ts";
 
 // static navigation (initialized during project preRender)
 const navigation: Navigation = {
@@ -152,7 +153,10 @@ export async function initWebsiteNavigation(project: ProjectContext) {
   } = websiteNavigationConfig(
     project,
   );
-  if (!navbar && !sidebars && !pageNavigation) {
+  if (
+    !navbar && !sidebars && !pageNavigation && !footer && !pageMargin &&
+    !bodyDecorators
+  ) {
     return;
   }
 
@@ -625,7 +629,7 @@ function handleRepoLinks(
     kWebsite,
     config,
   );
-  const forecRepoActions = format.metadata[kSiteRepoActions] === true;
+  const forceRepoActions = format.metadata[kSiteRepoActions] === true;
 
   const elRepoSource = doc.querySelector(
     "[" + kDataQuartoSourceUrl + '="repo"]',
@@ -637,8 +641,53 @@ function handleRepoLinks(
       if (repoActions.length > 0) {
         // find the toc
         let repoTarget = doc.querySelector(`nav[role="doc-toc"]`);
-        if (repoTarget === null && forecRepoActions) {
+        if (repoTarget === null && forceRepoActions) {
           repoTarget = doc.querySelector("#quarto-margin-sidebar");
+        } else if (repoTarget === null) {
+          repoTarget = doc.querySelector(".nav-footer .nav-footer-center");
+          if (!repoTarget) {
+            const ensureEl = (
+              doc: Document,
+              tagname: string,
+              classname: string,
+              parent: Element,
+              afterEl?: Element | null,
+            ) => {
+              let el = parent.querySelector(`${tagname}.${classname}`);
+              if (!el) {
+                el = doc.createElement(tagname);
+                el.classList.add(classname);
+                if (afterEl !== null && afterEl && afterEl.nextElementSibling) {
+                  parent.insertBefore(el, afterEl.nextElementSibling);
+                } else {
+                  parent.appendChild(el);
+                }
+              }
+              return el;
+            };
+
+            const footerEl = ensureEl(
+              doc,
+              "footer",
+              "footer",
+              doc.body,
+              doc.querySelector("div#quarto-content"),
+            );
+            const footerContainer = ensureEl(
+              doc,
+              "div",
+              "nav-footer",
+              footerEl,
+            );
+            const footerCenterEl = ensureEl(
+              doc,
+              "div",
+              "nav-footer-center",
+              footerContainer,
+              footerContainer.querySelector(".nav-footer-left"),
+            );
+            repoTarget = footerCenterEl;
+          }
         }
 
         if (repoTarget) {

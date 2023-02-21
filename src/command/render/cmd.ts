@@ -148,7 +148,7 @@ export const renderCommand = new Command()
     }
 
     // show help if requested
-    if (args.length > 0 && args[0] === "--help") {
+    if (args.length > 0 && args[0] === "--help" || args[0] === "-h") {
       renderCommand.showHelp();
       return;
     }

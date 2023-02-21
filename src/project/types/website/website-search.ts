@@ -51,6 +51,7 @@ import { kLanguageDefaults } from "../../../config/constants.ts";
 import { pathWithForwardSlashes } from "../../../core/path.ts";
 import { isHtmlFileOutput } from "../../../config/format.ts";
 import { projectIsBook } from "../../project-context.ts";
+import { encodeHtml } from "../../../core/html.ts";
 
 // The main search key
 export const kSearch = "search";
@@ -290,7 +291,7 @@ export async function updateSearchIndex(
               href: href,
               title,
               section: "",
-              text: pageText.join("\n"),
+              text: encodeHtml(pageText.join("\n")),
             });
           }
 
@@ -302,6 +303,7 @@ export async function updateSearchIndex(
               const hrefWithAnchor = `${href}#${section.id}`;
               const sectionText = section.textContent.trim();
               h2.remove();
+
               if (sectionText) {
                 // Don't index empty sections
                 updateDoc({
@@ -309,7 +311,7 @@ export async function updateSearchIndex(
                   href: hrefWithAnchor,
                   title,
                   section: sectionTitle,
-                  text: sectionText,
+                  text: encodeHtml(sectionText),
                 });
               }
             }
@@ -325,7 +327,7 @@ export async function updateSearchIndex(
                 href,
                 title,
                 section: "",
-                text: mainText,
+                text: encodeHtml(mainText),
               });
             }
           }
