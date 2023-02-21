@@ -19349,7 +19349,7 @@ function calloutBlock(opts) {
     `callout-${type}`,
     "callout",
     "callout-style-default",
-    "callout-captioned"
+    "callout-titled"
   );
   const header = document.createElement("div");
   header.classList.add("callout-header", "d-flex", "align-content-center");

@@ -1237,15 +1237,15 @@ div.hanging-indent {
   font-weight: 400;
 }
 
-.callout.callout-captioned .callout-body {
+.callout.callout-titled .callout-body {
   margin-top: 0.2em;
 }
 
-.callout:not(.no-icon).callout-captioned.callout-style-simple .callout-body {
+.callout:not(.no-icon).callout-titled.callout-style-simple .callout-body {
   padding-left: 1.6em;
 }
 
-.callout.callout-captioned > .callout-header {
+.callout.callout-titled > .callout-header {
   padding-top: 0.2em;
   margin-bottom: -0.2em;
 }
@@ -1286,18 +1286,18 @@ div.hanging-indent {
   align-items: center;
 }
 
-.callout.callout-captioned .callout-body > :last-child:not(.sourceCode),
-.callout.callout-captioned .callout-body > div > :last-child:not(.sourceCode) {
+.callout.callout-titled .callout-body > :last-child:not(.sourceCode),
+.callout.callout-titled .callout-body > div > :last-child:not(.sourceCode) {
   margin-bottom: 0.5rem;
 }
 
-.callout:not(.callout-captioned) .callout-body > :first-child,
-.callout:not(.callout-captioned) .callout-body > div > :first-child {
+.callout:not(.callout-titled) .callout-body > :first-child,
+.callout:not(.callout-titled) .callout-body > div > :first-child {
   margin-top: 0.25rem;
 }
 
-.callout:not(.callout-captioned) .callout-body > :last-child,
-.callout:not(.callout-captioned) .callout-body > div > :last-child {
+.callout:not(.callout-titled) .callout-body > :last-child,
+.callout:not(.callout-titled) .callout-body > div > :last-child {
   margin-bottom: 0.2rem;
 }
 
@@ -1441,7 +1441,7 @@ div.callout.callout-style-default > .callout-header {
     )};
   $shifted-color-svg: str-replace($shifted-color, "#", "%23");
 
-  div.callout-#{$name}:not(.callout-captioned) .callout-icon::before {
+  div.callout-#{$name}:not(.callout-titled) .callout-icon::before {
     background-image: #{"url('data:image/svg+xml," +
       str-replace(
         quarto-map.get($info, "icon"),
@@ -1451,7 +1451,7 @@ div.callout.callout-style-default > .callout-header {
       "');"};
   }
 
-  div.callout-#{$name}.callout-captioned .callout-icon::before {
+  div.callout-#{$name}.callout-titled .callout-icon::before {
     background-image: #{"url('data:image/svg+xml," +
       str-replace(
         quarto-map.get($info, "icon"),

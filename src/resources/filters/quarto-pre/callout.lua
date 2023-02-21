@@ -291,7 +291,7 @@ function calloutDiv(node)
   if title ~= nil then
 
     -- mark the callout as being titleed
-    calloutDiv.attr.classes:insert("callout-captioned")
+    calloutDiv.attr.classes:insert("callout-titled")
 
     -- create a unique id for the callout
     local calloutid = "callout-" .. calloutidx
@@ -749,7 +749,7 @@ function epubCallout(node)
     attributes:insert("no-icon")
   end
   if title ~= nil then
-    attributes:insert("callout-captioned")
+    attributes:insert("callout-titled")
   end
   attributes:insert("callout-style-" .. calloutAppearance)
 

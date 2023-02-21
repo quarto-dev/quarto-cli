@@ -479,19 +479,15 @@ $panel-sidebar-padding: 0.5em;
   background-size: 2rem 2rem;
 }
 
-.reveal .callout.callout-captioned .callout-caption p {
+.reveal .callout.callout-titled .callout-caption p {
   margin-top: 0.5em;
 }
 
-.reveal .callout.callout-captioned .callout-icon::before {
+.reveal .callout.callout-titled .callout-icon::before {
   margin-top: 1rem;
 }
 
-.reveal
-  .callout.callout-captioned
-  .callout-body
-  > .callout-content
-  > :last-child {
+.reveal .callout.callout-titled .callout-body > .callout-content > :last-child {
   margin-bottom: 1rem;
 }
 
