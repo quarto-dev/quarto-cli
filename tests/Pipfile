@@ -10,7 +10,7 @@ pandas = "*"
 matplotlib = "*"
 pexpect = {version = "*", sys_platform = "!= 'win32'"}
 ptyprocess = {version = "*", sys_platform = "!= 'win32'"}
-appnope = {vresion = "*", sys_platform = "== 'darwin'"}
+appnope = {version = "*", sys_platform = "== 'darwin'"}
 [dev-packages]
 
 [requires]
