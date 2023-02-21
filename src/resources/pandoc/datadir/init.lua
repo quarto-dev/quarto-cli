@@ -1975,3 +1975,10 @@ quarto.doc.pdfEngine = quarto.doc.pdf_engine
 quarto.doc.hasBootstrap = quarto.doc.has_bootstrap
 quarto.doc.project_output_file = projectRelativeOutputFile
 quarto.utils.resolvePath = quarto.utils.resolve_path
+
+-- since Pandoc 3, pandoc.Null is no longer an allowed constructor.
+-- this workaround makes it so that our users extensions which use pandoc.Null 
+-- still work, assuming they call pandoc.Null() in a "simple" way.
+pandoc.Null = function()
+   return {}
+end

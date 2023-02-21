@@ -121,17 +121,6 @@
 
       - This option only affects the docx reader.
 
-- name: strip-empty-paragraphs
-  schema: boolean
-  hidden: true
-  description:
-    short: "Ignore paragraphs with no content."
-    long: |
-      *Deprecated.  Use the `+empty_paragraphs` extension instead.*
-      Ignore paragraphs with no content.  This option is useful
-      for converting word processing documents where users have
-      used empty paragraphs to create inter-paragraph space.
-
 - name: keep-source
   tags:
     formats: [$html-doc]
