@@ -309,6 +309,16 @@ export async function processDocumentAppendix(
 
       // Add the whole thing
       if (appendSectionEl) {
+        // Remove from the TOC since it appears in the appendix
+        if (appendSectionEl.id) {
+          const selector = `#TOC a[href="#${appendSectionEl.id}"]`;
+          const tocEl = doc.querySelector(selector);
+          console.log(selector);
+          if (tocEl && tocEl.parentElement) {
+            tocEl.parentElement.remove();
+          }
+        }
+
         // Extract the header
         const extractHeaderEl = () => {
           const headerEl = appendSectionEl.querySelector(
@@ -320,10 +330,7 @@ export async function processDocumentAppendix(
             const h2 = doc.createElement("h2");
             h2.innerHTML = headerEl.innerHTML;
             if (appendSectionEl.id) {
-              h2.id = appendSectionEl.id + "-1";
-              if (!headerEl.classList.contains("no-anchor")) {
-                h2.classList.add("anchored");
-              }
+              h2.classList.add("anchored");
             }
             return h2;
           } else {
