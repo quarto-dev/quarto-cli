@@ -79,15 +79,20 @@ export class ConfluenceClient {
     space: Space,
     isFuzzy: boolean = false
   ): Promise<Content[]> {
-    const cqlContext =
-      "%7B%22contentStatuses%22%3A%5B%22archived%22%2C%20%22current%22%2C%20%22draft%22%5D%7D"; //{"contentStatuses":["archived", "current", "draft"]}
     const encodedTitle = encodeURIComponent(title);
-    const cql = `title${isFuzzy ? "~" : "="}"${encodedTitle}"&spaces=${
-      space.key
-    }&cqlcontext=${cqlContext}`;
-    console.log("cql", cql);
+
+    let cql = `title="${encodedTitle}"`;
+
+    if (isFuzzy) {
+      cql = `title~"*${encodedTitle}*"`;
+    }
+
+    const CQL_CONTEXT =
+      "%7B%22contentStatuses%22%3A%5B%22archived%22%2C%20%22current%22%2C%20%22draft%22%5D%7D"; //{"contentStatuses":["archived", "current", "draft"]}
+
+    cql = `${cql}&spaces=${space.key}&cqlcontext=${CQL_CONTEXT}`;
+
     const result = await this.get<ContentArray>(`content/search?cql=${cql}`);
-    console.log("result", result);
     return result?.results ?? [];
   }
 

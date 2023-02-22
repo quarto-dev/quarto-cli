@@ -271,17 +271,28 @@ async function publish(
       return title;
     }
 
-    //TODO use version numbers rather than UUID
-    const numFuzzyVariants: number = (
-      await client.fetchMatchingTitlePages(title, space, true)
-    ).length;
+    const fuzzyVariants: Content[] = await client.fetchMatchingTitlePages(
+      title,
+      space,
+      true
+    );
 
-    console.log("numVariants", numFuzzyVariants);
+    const uniqueTitle = `${title} [${fuzzyVariants.length + 2}]`;
+
+    const fuzzyTitleIsUnique: boolean = await client.isTitleUniqueInSpace(
+      uniqueTitle,
+      space
+    );
+
+    if (fuzzyTitleIsUnique) {
+      return uniqueTitle;
+    }
 
     const uuid = globalThis.crypto.randomUUID();
     const shortUUID = uuid.split("-")[0] ?? uuid;
-    const uniqueTitle = `${title} ${shortUUID}`;
-    return uniqueTitle;
+    const uuidTitle = `${title} ${shortUUID}`;
+
+    return uuidTitle;
   };
 
   const fetchExistingSite = async (parentId: string): Promise<SitePage[]> => {
@@ -397,7 +408,7 @@ async function publish(
       fileName
     );
 
-    const uniqueTitle = await uniquifyTitle(titleToUpdate, id);
+    const uniqueTitle = await uniquifyTitle(previousPage.title ?? title, id);
 
     trace("attachmentsToUpload", attachmentsToUpload, LogPrefix.ATTACHMENT);
 
