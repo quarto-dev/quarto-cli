@@ -26,6 +26,8 @@
 - Render code listings with names and captions correctly ([#2195](https://github.com/quarto-dev/quarto-cli/issues/2195)).
 - Fix issue with interactivity of elements in mobile size dispay when `toc-left` is being used. ([#4244](https://github.com/quarto-dev/quarto-cli/issues/4244)).
 - Allow control of the 'cite as' appendix in HTML documents using `appendix-cite-as` (pass `false`, `display`, or `bibtex`). ([#2625](https://github.com/quarto-dev/quarto-cli/issues/2625))
+- Properly anchor custom appendix sections ([#3112](https://github.com/quarto-dev/quarto-cli/issues/3112)).
+- Don't display custom appendix sections in the TOC ([#3113](https://github.com/quarto-dev/quarto-cli/issues/3113)).
 
 ## Article Layout
 
@@ -108,6 +110,7 @@
 - Don't treat links with no `href` as external when `link-external-icon` is enabled ([#3645](https://github.com/quarto-dev/quarto-cli/issues/3645))
 - Escape HTML from code cells that appears inline in search results ([#4404](https://github.com/quarto-dev/quarto-cli/issues/4404))
 - Use input last modified timestamp when updating sitemap ([#3251](https://github.com/quarto-dev/quarto-cli/issues/3251))
+- Add support for `image-title` on About pages ([#3077](https://github.com/quarto-dev/quarto-cli/issues/3077))
 
 ## Books
 
