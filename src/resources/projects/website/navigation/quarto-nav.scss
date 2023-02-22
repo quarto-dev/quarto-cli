@@ -717,12 +717,19 @@ nav.sidebar.sidebar-navigation:not(.rollup) {
 }
 
 .nav-footer .toc-actions {
+  :first-child {
+    margin-left: auto;
+  }
+  :last-child {
+    margin-right: auto;
+  }
   .action-links {
     display: flex;
     p {
       padding-right: 0.5em;
     }
   }
+
   padding-bottom: 0.5em;
   padding-top: 0.5em;
 }

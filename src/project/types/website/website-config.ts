@@ -52,6 +52,7 @@ type WebsiteConfigKey =
   | "repo-subdir"
   | "repo-branch"
   | "repo-actions"
+  | "issue-url"
   | "navbar"
   | "sidebar"
   | "page-navigation"

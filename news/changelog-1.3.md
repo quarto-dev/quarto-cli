@@ -111,6 +111,7 @@
 - Escape HTML from code cells that appears inline in search results ([#4404](https://github.com/quarto-dev/quarto-cli/issues/4404))
 - Use input last modified timestamp when updating sitemap ([#3251](https://github.com/quarto-dev/quarto-cli/issues/3251))
 - Add support for `image-title` on About pages ([#3077](https://github.com/quarto-dev/quarto-cli/issues/3077))
+- Add support for overriding the url used to report an issue with a website using `issue-url` (which can be provided even if there is no repo provided for the website).
 
 ## Books
 

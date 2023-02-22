@@ -319,6 +319,8 @@ export type BaseWebsite = {
   "repo-subdir"?: string /* Subdirectory of repository containing website */;
   "repo-branch"?:
     string /* Branch of website source code (defaults to `main`) */;
+  "issue-url"?:
+    string /* URL to use for the 'report an issue' repository action. */;
   "repo-actions"?: MaybeArrayOf<
     (
       | "none"

@@ -14,6 +14,7 @@ export const kSiteFavicon = "favicon";
 export const kSiteRepoUrl = "repo-url";
 export const kSiteRepoSubdir = "repo-subdir";
 export const kSiteRepoBranch = "repo-branch";
+export const kSiteIssueUrl = "issue-url";
 export const kSiteRepoActions = "repo-actions";
 export const kSiteReaderMode = "reader-mode";
 

@@ -624,6 +624,9 @@
       repo-branch:
         string:
           description: "Branch of website source code (defaults to `main`)"
+      issue-url:
+        string:
+          description: "URL to use for the 'report an issue' repository action."
       repo-actions:
         maybeArrayOf:
           enum: [none, edit, source, issue]

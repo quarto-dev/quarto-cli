@@ -9066,6 +9066,11 @@ try {
                     description: "Branch of website source code (defaults to `main`)"
                   }
                 },
+                "issue-url": {
+                  string: {
+                    description: "URL to use for the 'report an issue' repository action."
+                  }
+                },
                 "repo-actions": {
                   maybeArrayOf: {
                     enum: [
@@ -19534,7 +19539,6 @@ try {
             long: "Specify the heading level at which to split the EPUB into separate\nchapter files. The default is to split into chapters at level-1\nheadings. This option only affects the internal composition of the EPUB,\nnot the way chapters and sections are displayed to users. Some readers\nmay be slow if the chapter files are too large, so for large documents\nwith few level-1 headings, one might want to use a chapter level of 2 or\n3."
           },
           "Use the specified image as the EPUB cover. It is recommended that the\nimage be less than 1000px in width and height.",
-          "If false, disables the generation of a title page.",
           "Engine used for executable code blocks.",
           "Configures the Jupyter engine.",
           "The name to display in the UI.",
@@ -19668,11 +19672,6 @@ try {
             short: "Whether to hyphenate text at line breaks even in words that do not\ncontain hyphens.",
             long: "Whether to hyphenate text at line breaks even in words that do not\ncontain hyphens if it is necessary to do so to lay out words on a line\nwithout excessive spacing"
           },
-          "If true, tables are formatted as RST list tables.",
-          {
-            short: "Specify the heading level at which to split the EPUB into separate\nchapter files.",
-            long: "Specify the heading level at which to split the EPUB into separate\nchapter files. The default is to split into chapters at level-1\nheadings. This option only affects the internal composition of the EPUB,\nnot the way chapters and sections are displayed to users. Some readers\nmay be slow if the chapter files are too large, so for large documents\nwith few level-1 headings, one might want to use a chapter level of 2 or\n3."
-          },
           "Information about the funding of the research reported in the article\n(for example, grants, contracts, sponsors) and any open access fees for\nthe article itself",
           "Unique identifier assigned to an award, contract, or grant.",
           "Displayable prose statement that describes the funding for the\nresearch on which a work was based.",
@@ -19755,6 +19754,10 @@ try {
           {
             short: "Specify what to do with insertions, deletions, and comments produced\nby the MS Word \u201CTrack Changes\u201D feature.",
             long: "Specify what to do with insertions, deletions, and comments produced\nby the MS Word \u201CTrack Changes\u201D feature."
+          },
+          {
+            short: "Ignore paragraphs with no content.",
+            long: "<em>Deprecated. Use the <code>+empty_paragraphs</code> extension\ninstead.</em> Ignore paragraphs with no content. This option is useful\nfor converting word processing documents where users have used empty\nparagraphs to create inter-paragraph space."
           },
           {
             short: "Embed the input file source code in the generated HTML",
@@ -19844,7 +19847,10 @@ try {
             short: "The layout of the appendix for this document (<code>none</code>,\n<code>plain</code>, or <code>default</code>)",
             long: "The layout of the appendix for this document (<code>none</code>,\n<code>plain</code>, or <code>default</code>).\nTo completely disable any styling of the appendix, choose the\nappendix style <code>none</code>. For minimal styling, choose\n<code>plain.</code>"
           },
-          "Controls the formats which are provided in the citation section of\nthe appendix.",
+          {
+            short: "Controls the formats which are provided in the citation section of\nthe appendix (<code>false</code>, <code>display</code>, or\n<code>bibtex</code>).",
+            long: "Controls the formats which are provided in the citation section of\nthe appendix.\nUse <code>false</code> to disable the display of the \u2018cite as\u2019\nappendix. Pass one or more of <code>display</code> or\n<code>bibtex</code> to enable that format in \u2018cite as\u2019 appendix."
+          },
           {
             short: "The layout of the title block for this document (<code>none</code>,\n<code>plain</code>, or <code>default</code>).",
             long: "The layout of the title block for this document (<code>none</code>,\n<code>plain</code>, or <code>default</code>).\nTo completely disable any styling of the title block, choose the\nstyle <code>none</code>. For minimal styling, choose\n<code>plain.</code>"
@@ -20928,11 +20934,7 @@ try {
             long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
-          "internal-schema-hack",
-          {
-            short: "Ignore paragraphs with no content.",
-            long: "<em>Deprecated. Use the <code>+empty_paragraphs</code> extension\ninstead.</em> Ignore paragraphs with no content. This option is useful\nfor converting word processing documents where users have used empty\nparagraphs to create inter-paragraph space."
-          }
+          "internal-schema-hack"
         ],
         "schema/external-schemas.yml": [
           {
@@ -21157,12 +21159,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 151215,
+          _internalId: 148828,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 151207,
+              _internalId: 148820,
               type: "enum",
               enum: [
                 "png",
@@ -21178,7 +21180,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 151214,
+              _internalId: 148827,
               type: "anyOf",
               anyOf: [
                 {

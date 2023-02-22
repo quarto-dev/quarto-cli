@@ -84,6 +84,7 @@ import {
 } from "./website-search.ts";
 
 import {
+  kSiteIssueUrl,
   kSiteNavbar,
   kSiteReaderMode,
   kSiteRepoActions,
@@ -96,6 +97,7 @@ import {
   repoUrlIcon,
   websiteConfigActions,
   websiteConfigBoolean,
+  websiteConfigString,
   websiteHtmlFormat,
   websiteRepoBranch,
   WebsiteRepoInfo,
@@ -629,6 +631,11 @@ function handleRepoLinks(
     kWebsite,
     config,
   );
+  const issueUrl = websiteConfigString(kSiteIssueUrl, config);
+  if (issueUrl && !repoActions.includes("issue")) {
+    repoActions.push("issue");
+  }
+
   const forceRepoActions = format.metadata[kSiteRepoActions] === true;
 
   const elRepoSource = doc.querySelector(
@@ -637,7 +644,7 @@ function handleRepoLinks(
 
   if (repoActions.length > 0 || elRepoSource) {
     const repoInfo = websiteRepoInfo(config);
-    if (repoInfo) {
+    if (repoInfo || issueUrl) {
       if (repoActions.length > 0) {
         // find the toc
         let repoTarget = doc.querySelector(`nav[role="doc-toc"]`);
@@ -692,21 +699,31 @@ function handleRepoLinks(
 
         if (repoTarget) {
           // get the action links
-          const links = repoActionLinks(
-            repoActions,
-            repoInfo,
-            websiteRepoBranch(config),
-            source,
-            language,
-          );
+          const links = repoInfo
+            ? repoActionLinks(
+              repoActions,
+              repoInfo,
+              websiteRepoBranch(config),
+              source,
+              language,
+              issueUrl,
+            )
+            : [{
+              text: language[kRepoActionLinksIssue]!,
+              url: issueUrl!,
+            }];
           const actionsDiv = doc.createElement("div");
           actionsDiv.classList.add("toc-actions");
-          const iconDiv = doc.createElement("div");
-          const iconEl = doc.createElement("i");
-          iconEl.classList.add("bi");
-          iconEl.classList.add("bi-" + repoUrlIcon(repoInfo.baseUrl));
-          iconDiv.appendChild(iconEl);
-          actionsDiv.appendChild(iconDiv);
+          if (repoInfo) {
+            const iconDiv = doc.createElement("div");
+            const iconEl = doc.createElement("i");
+            iconEl.classList.add("bi");
+
+            iconEl.classList.add("bi-" + repoUrlIcon(repoInfo.baseUrl));
+
+            iconDiv.appendChild(iconEl);
+            actionsDiv.appendChild(iconDiv);
+          }
           const linksDiv = doc.createElement("div");
           linksDiv.classList.add("action-links");
           links.forEach((link) => {
@@ -722,7 +739,7 @@ function handleRepoLinks(
           repoTarget.appendChild(actionsDiv);
         }
       }
-      if (elRepoSource) {
+      if (elRepoSource && repoInfo) {
         elRepoSource.setAttribute(
           kDataQuartoSourceUrl,
           `${repoInfo.baseUrl}blob/${
@@ -744,6 +761,7 @@ function repoActionLinks(
   branch: string,
   source: string,
   language: FormatLanguage,
+  issueUrl?: string,
 ): Array<{ text: string; url: string }> {
   return actions.map((action) => {
     switch (action) {
@@ -771,7 +789,7 @@ function repoActionLinks(
       case "issue":
         return {
           text: language[kRepoActionLinksIssue],
-          url: `${repoInfo.baseUrl}issues/new`,
+          url: issueUrl || `${repoInfo.baseUrl}issues/new`,
         };
 
       default: {
