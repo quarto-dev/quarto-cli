@@ -261,18 +261,38 @@ async function publish(
   const uniquifyTitle = async (title: string, idToIgnore: string = "") => {
     trace("uniquifyTitle", title);
 
-    const titleAlreadyExistsInSpace: boolean = await client.isTitleInSpace(
+    const titleIsUnique: boolean = await client.isTitleUniqueInSpace(
       title,
       space,
       idToIgnore
     );
 
+    if (titleIsUnique) {
+      return title;
+    }
+
+    const fuzzyVariants: Content[] = await client.fetchMatchingTitlePages(
+      title,
+      space,
+      true
+    );
+
+    const uniqueTitle = `${title} [${fuzzyVariants.length + 2}]`;
+
+    const fuzzyTitleIsUnique: boolean = await client.isTitleUniqueInSpace(
+      uniqueTitle,
+      space
+    );
+
+    if (fuzzyTitleIsUnique) {
+      return uniqueTitle;
+    }
+
     const uuid = globalThis.crypto.randomUUID();
     const shortUUID = uuid.split("-")[0] ?? uuid;
-    const createTitle = titleAlreadyExistsInSpace
-      ? `${title} ${shortUUID}`
-      : title;
-    return createTitle;
+    const uuidTitle = `${title} ${shortUUID}`;
+
+    return uuidTitle;
   };
 
   const fetchExistingSite = async (parentId: string): Promise<SitePage[]> => {
@@ -388,7 +408,7 @@ async function publish(
       fileName
     );
 
-    const uniqueTitle = await uniquifyTitle(titleToUpdate, id);
+    const uniqueTitle = await uniquifyTitle(previousPage.title ?? title, id);
 
     trace("attachmentsToUpload", attachmentsToUpload, LogPrefix.ATTACHMENT);
 
