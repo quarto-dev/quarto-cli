@@ -719,6 +719,12 @@ export async function runPandoc(
     }
   }
 
+  // set up the custom .qmd reader
+  if (allDefaults.from) {
+    formatFilterParams["user-defined-from"] = allDefaults.from;
+  }
+  allDefaults.from = resourcePath("filters/qmd-reader.lua");
+
   // set parameters required for filters (possibily mutating all of it's arguments
   // to pull includes out into quarto parameters so they can be merged)
   let pandocArgs = args;
