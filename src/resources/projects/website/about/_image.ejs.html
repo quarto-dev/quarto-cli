@@ -23,9 +23,17 @@ const altText = () => {
   }
 }
 
+const title = () => {
+  if (about['image-title']) {
+    return ` title="${about['image-title']}"`;
+  } else {
+    return "";
+  }
+}
+
 const customClz = imgOpts.classes !== undefined ? imgOpts.classes : "";
 %> 
 
 <% if (about.image) { %>
-<img src="<%= about.image %>" <%= altText() %>class="about-image<%= imgClz %> <%= customClz %>" <%= imageSize() %> />
+<img src="<%= about.image %>" <%= altText() %>class="about-image<%= imgClz %> <%= customClz %>" <%= imageSize() %><%= title() %> />
 <%}%>
