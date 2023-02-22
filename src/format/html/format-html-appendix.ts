@@ -319,6 +319,12 @@ export async function processDocumentAppendix(
             headerEl.remove();
             const h2 = doc.createElement("h2");
             h2.innerHTML = headerEl.innerHTML;
+            if (appendSectionEl.id) {
+              h2.id = appendSectionEl.id + "-1";
+              if (!headerEl.classList.contains("no-anchor")) {
+                h2.classList.add("anchored");
+              }
+            }
             return h2;
           } else {
             const h2 = doc.createElement("h2");
