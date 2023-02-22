@@ -222,6 +222,7 @@ function inlineFilters(config: Configuration) {
     { name: "quarto-init" },
     { name: "crossref" },
     { name: "customwriter" },
+    { name: "qmd-reader", dir: "." },
   ];
 
   filtersToInline.forEach((filter) => {
