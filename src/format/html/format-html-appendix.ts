@@ -30,6 +30,7 @@ import {
   insertFootnotesTitle,
   insertReferencesTitle,
   insertTitle,
+  kAppendixCiteAs,
   kAppendixStyle,
   kCitation,
   kCopyright,
@@ -359,6 +360,31 @@ export async function processDocumentAppendix(
   }
 }
 
+const kCiteAsStyleBibtex = "bibtex";
+const kCiteAsStyleDisplay = "display";
+
+function citeStyleTester(format: Format) {
+  const citeStyle = format.metadata[kAppendixCiteAs];
+  const resolvedStyles: string[] = [];
+  if (citeStyle === undefined || citeStyle === true) {
+    resolvedStyles.push(...[kCiteAsStyleDisplay, kCiteAsStyleBibtex]);
+  } else {
+    if (Array.isArray(citeStyle)) {
+      resolvedStyles.push(...citeStyle);
+    } else {
+      resolvedStyles.push(citeStyle as string);
+    }
+  }
+  return {
+    hasCiteAs: () => {
+      return resolvedStyles.length > 0;
+    },
+    hasCiteAsStyle: (style: string) => {
+      return resolvedStyles.includes(style);
+    },
+  };
+}
+
 function parseStyle(style?: string) {
   switch (style) {
     case "plain":
@@ -394,24 +420,31 @@ function creativeCommonsUrl(license: string, lang?: string) {
 }
 
 async function generateCite(input: string, format: Format, offset?: string) {
-  const { csl } = documentCSL(
-    input,
-    format.metadata,
-    "webpage",
-    format.pandoc["output-file"],
-    offset,
-  );
-  if (csl) {
-    // Render the HTML and BibTeX form of this document
-    const cslPath = getCSLPath(input, format);
-    const html = await renderHtml(csl, cslPath);
-    const bibtex = await renderBibTex(csl);
-    return {
-      html,
-      bibtex,
-    };
+  const citeStyle = citeStyleTester(format);
+  if (citeStyle.hasCiteAs()) {
+    const { csl } = documentCSL(
+      input,
+      format.metadata,
+      "webpage",
+      format.pandoc["output-file"],
+      offset,
+    );
+    if (csl) {
+      // Render the HTML and BibTeX form of this document
+      const cslPath = getCSLPath(input, format);
+      return {
+        html: citeStyle.hasCiteAsStyle(kCiteAsStyleDisplay)
+          ? await renderHtml(csl, cslPath)
+          : undefined,
+        bibtex: citeStyle.hasCiteAsStyle(kCiteAsStyleBibtex)
+          ? await renderBibTex(csl)
+          : undefined,
+      };
+    } else {
+      return undefined;
+    }
   } else {
-    return undefined;
+    return {};
   }
 }
 

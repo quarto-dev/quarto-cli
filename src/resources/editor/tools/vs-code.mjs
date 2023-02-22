@@ -12348,17 +12348,6 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           schema: "path",
           description: "Use the specified image as the EPUB cover. It is recommended\nthat the image be less than 1000px in width and height.\n"
-        },
-        {
-          name: "epub-title-page",
-          schema: "boolean",
-          default: true,
-          tags: {
-            formats: [
-              "$epub-all"
-            ]
-          },
-          description: "If false, disables the generation of a title page."
         }
       ],
       "schema/document-execute.yml": [
@@ -13038,32 +13027,6 @@ var require_yaml_intelligence_resources = __commonJS({
             short: "Whether to hyphenate text at line breaks even in words that do not contain hyphens.",
             long: "Whether to hyphenate text at line breaks even in words that do not contain \nhyphens if it is necessary to do so to lay out words on a line without excessive spacing\n"
           }
-        },
-        {
-          name: "list-tables",
-          schema: "boolean",
-          default: false,
-          tags: {
-            formats: [
-              "rst"
-            ]
-          },
-          description: "If true, tables are formatted as RST list tables."
-        },
-        {
-          name: "split-level",
-          tags: {
-            formats: [
-              "$epub-all",
-              "chunkedhtml"
-            ]
-          },
-          schema: "number",
-          default: 1,
-          description: {
-            short: "Specify the heading level at which to split the EPUB into separate\nchapter files.\n",
-            long: "Specify the heading level at which to split the EPUB into separate\nchapter files. The default is to split into chapters at level-1\nheadings. This option only affects the internal composition of the\nEPUB, not the way chapters and sections are displayed to users. Some\nreaders may be slow if the chapter files are too large, so for large\ndocuments with few level-1 headings, one might want to use a chapter\nlevel of 2 or 3.\n"
-          }
         }
       ],
       "schema/document-funding.yml": [
@@ -13352,6 +13315,15 @@ var require_yaml_intelligence_resources = __commonJS({
           description: {
             short: "Specify what to do with insertions, deletions, and comments produced by \nthe MS Word \u201CTrack Changes\u201D feature.\n",
             long: 'Specify what to do with insertions, deletions, and comments\nproduced by the MS Word "Track Changes" feature.  \n\n- `accept` (default): Process all insertions and deletions.\n- `reject`: Ignore them.\n- `all`: Include all insertions, deletions, and comments, wrapped\n  in spans with `insertion`, `deletion`, `comment-start`, and\n  `comment-end` classes, respectively. The author and time of\n  change is included. \n\nNotes:\n\n- Both `accept` and `reject` ignore comments.\n\n- `all` is useful for scripting: only\n  accepting changes from a certain reviewer, say, or before a\n  certain date. If a paragraph is inserted or deleted,\n  `track-changes: all` produces a span with the class\n  `paragraph-insertion`/`paragraph-deletion` before the\n  affected paragraph break. \n\n- This option only affects the docx reader.\n'
+          }
+        },
+        {
+          name: "strip-empty-paragraphs",
+          schema: "boolean",
+          hidden: true,
+          description: {
+            short: "Ignore paragraphs with no content.",
+            long: "*Deprecated.  Use the `+empty_paragraphs` extension instead.*\nIgnore paragraphs with no content.  This option is useful\nfor converting word processing documents where users have\nused empty paragraphs to create inter-paragraph space.\n"
           }
         },
         {
@@ -13943,6 +13915,31 @@ var require_yaml_intelligence_resources = __commonJS({
           description: {
             short: "The layout of the appendix for this document (`none`, `plain`, or `default`)",
             long: "The layout of the appendix for this document (`none`, `plain`, or `default`).\n\nTo completely disable any styling of the appendix, choose the appendix style `none`. For minimal styling, choose `plain.`\n"
+          }
+        },
+        {
+          name: "appendix-cite-as",
+          schema: {
+            anyOf: [
+              "boolean",
+              {
+                maybeArrayOf: {
+                  enum: [
+                    "display",
+                    "bibtex"
+                  ]
+                }
+              }
+            ]
+          },
+          tags: {
+            formats: [
+              "$html-doc"
+            ]
+          },
+          description: {
+            short: "Controls the formats which are provided in the citation section of the appendix (`false`, `display`, or `bibtex`).",
+            long: "Controls the formats which are provided in the citation section of the appendix.\n\nUse `false` to disable the display of the 'cite as' appendix. Pass one or more of `display` or `bibtex` to enable that\nformat in 'cite as' appendix.\n"
           }
         },
         {
@@ -17167,7 +17164,6 @@ var require_yaml_intelligence_resources = __commonJS({
             "beamer",
             "biblatex",
             "bibtex",
-            "chunkedhtml",
             "commonmark",
             "commonmark_x",
             "context",
@@ -18059,7 +18055,6 @@ var require_yaml_intelligence_resources = __commonJS({
         "beamer",
         "biblatex",
         "bibtex",
-        "chunkedhtml",
         "commonmark",
         "commonmark_x",
         "context",
@@ -19848,6 +19843,7 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The layout of the appendix for this document (<code>none</code>,\n<code>plain</code>, or <code>default</code>)",
           long: "The layout of the appendix for this document (<code>none</code>,\n<code>plain</code>, or <code>default</code>).\nTo completely disable any styling of the appendix, choose the\nappendix style <code>none</code>. For minimal styling, choose\n<code>plain.</code>"
         },
+        "Controls the formats which are provided in the citation section of\nthe appendix.",
         {
           short: "The layout of the title block for this document (<code>none</code>,\n<code>plain</code>, or <code>default</code>).",
           long: "The layout of the title block for this document (<code>none</code>,\n<code>plain</code>, or <code>default</code>).\nTo completely disable any styling of the title block, choose the\nstyle <code>none</code>. For minimal styling, choose\n<code>plain.</code>"
@@ -20931,7 +20927,11 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
-        "internal-schema-hack"
+        "internal-schema-hack",
+        {
+          short: "Ignore paragraphs with no content.",
+          long: "<em>Deprecated. Use the <code>+empty_paragraphs</code> extension\ninstead.</em> Ignore paragraphs with no content. This option is useful\nfor converting word processing documents where users have used empty\nparagraphs to create inter-paragraph space."
+        }
       ],
       "schema/external-schemas.yml": [
         {
@@ -21156,12 +21156,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 150411,
+        _internalId: 151215,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 150403,
+            _internalId: 151207,
             type: "enum",
             enum: [
               "png",
@@ -21177,7 +21177,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 150410,
+            _internalId: 151214,
             type: "anyOf",
             anyOf: [
               {

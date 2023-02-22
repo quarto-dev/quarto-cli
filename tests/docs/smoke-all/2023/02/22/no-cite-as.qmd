@@ -1,0 +1,43 @@
+---
+title: Document Title
+author:
+  - name: Charles Teague
+    affiliation: Macalester College
+date: 2020/05/21
+abstract: |
+  Just so you know, i am always playing your covers in my restaurant. Its snowing now, everything is calm. Everyone is quiet, drinking their teas and coffees. Fire is burning and the woods are cracking. The river flows below and everyone is looking outside the window. Your covers bring memories to people, it makes them think about life. You sir are not only playing a guitar, you are hitting every single note in our minds. Thank you for your hard work and dedication.
+google-scholar: true
+citation:
+  container-title: Container Title
+  container-title-short: "C. Title."
+  citation-key: Teague2020
+  isbn: 123123-123131
+  issn: 12313-12312-23
+  issue: 53
+  issued: 2021/05/23
+  volume: 1
+  number: 7
+  page: 23-29
+  type: report
+  doi: 10-12312-123
+  editor:
+    - Don Draper
+  abstract-url: https://www.google.org/abstract
+  public-url: https://www.quarto.org/public
+  pdf-url: https://www.quarto.org/public/pdf
+  fulltext-url: https://www.quarto.org/fulltext
+  collection-title: foo
+  keyword: 'foo, bar'
+appendix-cite-as: false
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - []    
+        - ['pre.quarto-appendix-bibtex', 'div.quarto-appendix-citeas']
+---
+
+## Section 1
+
+To me Hans Zimmer is one of the greatest composers of our time when it comes to channeling emotions. You were able to express these emotions, usually expressed by a whole orchestra, with one instrument only. It sounds so natural, as if this has always been the original version.
+Thank you for this great interpretation.
