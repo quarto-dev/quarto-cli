@@ -84,6 +84,7 @@
 ## About Pages
 
 - Add support for `image-alt` which provides alternate text for the about page image. ([#3010](https://github.com/quarto-dev/quarto-cli/issues/3010))
+- Add support for `image-title` on About pages ([#3077](https://github.com/quarto-dev/quarto-cli/issues/3077))
 
 ## Article Layout
 
@@ -110,7 +111,6 @@
 - Don't treat links with no `href` as external when `link-external-icon` is enabled ([#3645](https://github.com/quarto-dev/quarto-cli/issues/3645))
 - Escape HTML from code cells that appears inline in search results ([#4404](https://github.com/quarto-dev/quarto-cli/issues/4404))
 - Use input last modified timestamp when updating sitemap ([#3251](https://github.com/quarto-dev/quarto-cli/issues/3251))
-- Add support for `image-title` on About pages ([#3077](https://github.com/quarto-dev/quarto-cli/issues/3077))
 - Add support for overriding the url used to report an issue with a website using `issue-url` (which can be provided even if there is no repo provided for the website).
 
 ## Books
@@ -169,3 +169,4 @@
 ## Other
 
 - fix error when running the command `quarto render -h` to receive help ([#3202](https://github.com/quarto-dev/quarto-cli/issues/3202)).
+- Fix error when rendering a document with an extension which provides a directory as `format-resources` ([#4377](https://github.com/quarto-dev/quarto-cli/issues/4377)).
