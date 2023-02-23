@@ -57,9 +57,9 @@ const convertCell = (cell) => {
     t: "TableCell",
     attr: convertAttr(cell[0]),
     alignment: cell[1].t,
-    content: convert(cell[2]),
+    row_span: cell[2],
     col_span: cell[3],
-    row_span: cell[4],
+    content: convert(cell[4]),
   };
 };
 
@@ -79,11 +79,21 @@ const convertTableHead = (head) => {
   };
 };
 
-const convertTableFoot = (head) => {
+const convertTableBody = (body) => {
+  return {
+    t: "TableBody",
+    row_head_columns: body[1],
+    attr: convertAttr(body[0]),
+    intermediate_head: body[2].map(convertRow),
+    body: body[3].map(convertRow),
+  };
+};
+
+const convertTableFoot = (foot) => {
   return {
     t: "TableFoot",
-    attr: convertAttr(head[0]),
-    rows: head[1].map(convertRow),
+    attr: convertAttr(foot[0]),
+    rows: foot[1].map(convertRow),
   };
 };
 
@@ -135,7 +145,7 @@ const convert = (data) => {
         caption: convertCaption(data.c[1]),
         colspecs: data.c[2].map(convertColSpec),
         head: convertTableHead(data.c[3]),
-        body: data.c[4].map(convert),
+        body: data.c[4].map(convertTableBody),
         foot: convertTableFoot(data.c[5]),
       };
     }
@@ -209,7 +219,13 @@ const convert = (data) => {
     if (data.t === "SoftBreak") {
       return "";
     }
+    if (data.t === "LineBreak") {
+      return "\n";
+    }
 
+    if (data.t === "MetaString") {
+      return data.c;
+    }
     if (data.t === "MetaList") {
       return postProcessStrings(data.c.map(convert));
     }
