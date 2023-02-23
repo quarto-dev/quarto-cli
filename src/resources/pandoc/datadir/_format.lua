@@ -144,7 +144,7 @@ local function isHtmlOutput()
 end
 
 local function parse_format(raw_format)
-  local pattern = "^(%a+)([-+%a]*)"
+  local pattern = "^(%a+)([-+_%a]*)"
   local i, j, format, extensions = raw_format:find(pattern)
   if format == nil then
     error("Warning: Invalid format " .. raw_format .. ". Assuming 'markdown'.")
@@ -166,7 +166,7 @@ local function parse_format(raw_format)
 
   if extensions ~= nil then
     while #extensions > 0 do
-      local i, j, sign, variant = extensions:find("^([-+])(%a+)")
+      local i, j, sign, variant = extensions:find("^([-+])([%a_]+)")
       result.extensions[variant] = sign_table[sign]
       extensions = extensions:sub(j+1)      
     end
