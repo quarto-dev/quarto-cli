@@ -702,7 +702,7 @@ function htmlFormatPostprocessor(
 
     // Process tables to restore th-vs-td markers
     const tables = doc.querySelectorAll(
-      "table",
+      'table[data-quarto-postprocess-tables="true"]',
     );
 
     for (let i = 0; i < tables.length; ++i) {
