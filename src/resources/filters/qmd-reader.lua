@@ -123,7 +123,5 @@ function Reader (inputs, opts)
     end
   }
 
-  -- print(pandoc.write(doc, "native"))
-
   return doc
 end

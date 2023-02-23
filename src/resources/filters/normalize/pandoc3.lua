@@ -47,39 +47,9 @@ function parse_pandoc3_figures()
   return {
     Pandoc = function(doc)
       local result = doc:walk(walk_recurse(pandoc.Para))
-      print(pandoc.write(result, "native"))
       return result
     end
   }
-  -- return {
-  --   Figure = function(fig)
-  --     if (#fig.content == 1 and fig.content[1].t == "Plain") then
-        
-  --       if #fig.content[1].content == 1 and fig.content[1].content[1].t == "Image" then
-  --         -- "pandoc 2 normalization"
-  --         local image = fig.content[1].content[1]
-  --         image.classes:extend(fig.classes)
-  --         for k, v in pairs(fig.attributes) do
-  --           image.attributes[k] = v
-  --         end
-  --         if fig.identifier ~= "" then
-  --           image.identifier = fig.identifier
-  --         end
-          
-  --         return pandoc.Para(image)
-  --       else
-  --         -- if user filters muck with images, we need to support this as well.
-  --         -- however, we can't forward figure information along the image, so
-  --         -- this is necessarily a best-effort situation until we truly fix figures.
-  --         return pandoc.Para(fig.content[1].content)
-  --       end
-  --     else
-  --       print("Couldn't parse figure:")
-  --       print(fig)
-  --       crash_with_stack_trace()
-  --     end
-  --   end
-  -- }
 end
 
 function render_pandoc3_figures() 
