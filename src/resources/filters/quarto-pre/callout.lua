@@ -36,15 +36,16 @@ _quarto.ast.add_handler({
     div.attr.attributes["appearance"] = nil
     div.attr.attributes["collapse"] = nil
     div.attr.attributes["icon"] = nil
-
+    local callout_type = calloutType(div)
+    div.attr.classes = div.attr.classes:filter(function(class) return not isCallout(class) end)    
     return quarto.Callout({
       appearance = appearanceRaw,
       title = title,
       collapse = collapse,
       content = div.content,
       icon = icon,
-      type = calloutType(div),
-      id = div.attr.identifier,
+      type = callout_type,
+      attr = old_attr,
     })
   end,
 
@@ -130,7 +131,7 @@ _quarto.ast.add_handler({
       appearance = appearance,
       icon = icon,
       type = t,
-      id = tbl.id
+      attr = tbl.attr,
     }
   end
 })
@@ -264,8 +265,7 @@ function calloutDiv(node)
 
   -- Make an outer card div and transfer classes and id
   local calloutDiv = pandoc.Div({})
-  calloutDiv.attr.identifier = div.attr.identifier
-  calloutDiv.attr.classes = div.attr.classes:clone()
+  calloutDiv.attr = (node.attr or pandoc.Attr()):clone()
   div.attr.classes = pandoc.List() 
   div.attr.classes:insert("callout-body-container")
 
