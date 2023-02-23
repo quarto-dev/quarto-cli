@@ -23,11 +23,11 @@ title-block-affiliation-plural: "Tilknytninger"
 title-block-published: "Udgivet"
 title-block-modified: "Ændret"
 
-callout-tip-caption: "Tip"
-callout-note-caption: "Note"
-callout-warning-caption: "Advarsel"
-callout-important-caption: "Vigtigt"
-callout-caution-caption: "Forsigtig"
+callout-tip-title: "Tip"
+callout-note-title: "Note"
+callout-warning-title: "Advarsel"
+callout-important-title: "Vigtigt"
+callout-caution-title: "Forsigtig"
 
 code-summary: "Kode"
 

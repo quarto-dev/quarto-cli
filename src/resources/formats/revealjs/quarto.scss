@@ -467,8 +467,8 @@ $panel-sidebar-padding: 0.5em;
 
 .reveal .callout.callout-style-simple .callout-body,
 .reveal .callout.callout-style-default .callout-body,
-.reveal .callout.callout-style-simple div.callout-caption,
-.reveal .callout.callout-style-default div.callout-caption {
+.reveal .callout.callout-style-simple div.callout-title,
+.reveal .callout.callout-style-default div.callout-title {
   font-size: inherit;
 }
 
@@ -479,19 +479,15 @@ $panel-sidebar-padding: 0.5em;
   background-size: 2rem 2rem;
 }
 
-.reveal .callout.callout-captioned .callout-caption p {
+.reveal .callout.callout-titled .callout-title p {
   margin-top: 0.5em;
 }
 
-.reveal .callout.callout-captioned .callout-icon::before {
+.reveal .callout.callout-titled .callout-icon::before {
   margin-top: 1rem;
 }
 
-.reveal
-  .callout.callout-captioned
-  .callout-body
-  > .callout-content
-  > :last-child {
+.reveal .callout.callout-titled .callout-body > .callout-content > :last-child {
   margin-bottom: 1rem;
 }
 
@@ -517,7 +513,7 @@ $panel-sidebar-padding: 0.5em;
   sass-color.blackness($backgroundColor) > $code-block-theme-dark-threshhold
 ) {
   /*! dark */
-  .reveal div.callout.callout-style-default .callout-caption {
+  .reveal div.callout.callout-style-default .callout-title {
     color: #222;
   }
 } @else {

@@ -23,11 +23,11 @@ title-block-affiliation-plural: "Afiliace"
 title-block-published: "Publikováno"
 title-block-modified: "Upraveno"
 
-callout-tip-caption: "Tip"
-callout-note-caption: "Poznámka"
-callout-warning-caption: "Varování"
-callout-important-caption: "Důležité"
-callout-caution-caption: "Upozornění"
+callout-tip-title: "Tip"
+callout-note-title: "Poznámka"
+callout-warning-title: "Varování"
+callout-important-title: "Důležité"
+callout-caution-title: "Upozornění"
 
 code-summary: "Kód"
 

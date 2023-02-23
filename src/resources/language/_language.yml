@@ -23,11 +23,11 @@ title-block-affiliation-plural: "Affiliations"
 title-block-published: "Published"
 title-block-modified: "Modified"
 
-callout-tip-caption: "Tip"
-callout-note-caption: "Note"
-callout-warning-caption: "Warning"
-callout-important-caption: "Important"
-callout-caution-caption: "Danger"
+callout-tip-title: "Tip"
+callout-note-title: "Note"
+callout-warning-title: "Warning"
+callout-important-title: "Important"
+callout-caution-title: "Danger"
 
 code-summary: "Code"
 

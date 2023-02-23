@@ -23,11 +23,11 @@ title-block-affiliation-plural: "Affiliaties"
 title-block-published: "Publicatiedatum"
 title-block-modified: "Gewijzigd"
 
-callout-tip-caption: "Tip"
-callout-note-caption: "Opmerking"
-callout-warning-caption: "Waarschuwing"
-callout-important-caption: "Belangrijk"
-callout-caution-caption: "Opgelet"
+callout-tip-title: "Tip"
+callout-note-title: "Opmerking"
+callout-warning-title: "Waarschuwing"
+callout-important-title: "Belangrijk"
+callout-caution-title: "Opgelet"
 
 code-summary: "Code"
 

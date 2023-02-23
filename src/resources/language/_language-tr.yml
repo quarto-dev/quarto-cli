@@ -23,11 +23,11 @@ title-block-affiliation-plural: "Bağlantılar"
 title-block-published: "Yayınlanma Tarihi"
 title-block-modified: "Değiştirilmiş"
 
-callout-tip-caption: "Tavsiye"
-callout-note-caption: "Not"
-callout-warning-caption: "Uyarı"
-callout-important-caption: "Önemli"
-callout-caution-caption: "Dikkat"
+callout-tip-title: "Tavsiye"
+callout-note-title: "Not"
+callout-warning-title: "Uyarı"
+callout-important-title: "Önemli"
+callout-caution-title: "Dikkat"
 
 code-summary: "Kod"
 

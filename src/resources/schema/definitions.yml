@@ -1110,11 +1110,11 @@
       toc-title-website: string
       related-formats-title: string
       related-notebooks-title: string
-      callout-tip-caption: string
-      callout-note-caption: string
-      callout-warning-caption: string
-      callout-important-caption: string
-      callout-caution-caption: string
+      callout-tip-title: string
+      callout-note-title: string
+      callout-warning-title: string
+      callout-important-title: string
+      callout-caution-title: string
       section-title-abstract: string
       section-title-footnotes: string
       section-title-appendices: string

@@ -9792,11 +9792,11 @@ var require_yaml_intelligence_resources = __commonJS({
               "toc-title-website": "string",
               "related-formats-title": "string",
               "related-notebooks-title": "string",
-              "callout-tip-caption": "string",
-              "callout-note-caption": "string",
-              "callout-warning-caption": "string",
-              "callout-important-caption": "string",
-              "callout-caution-caption": "string",
+              "callout-tip-title": "string",
+              "callout-note-title": "string",
+              "callout-warning-title": "string",
+              "callout-important-title": "string",
+              "callout-caution-title": "string",
               "section-title-abstract": "string",
               "section-title-footnotes": "string",
               "section-title-appendices": "string",
@@ -12358,6 +12358,17 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           schema: "path",
           description: "Use the specified image as the EPUB cover. It is recommended\nthat the image be less than 1000px in width and height.\n"
+        },
+        {
+          name: "epub-title-page",
+          schema: "boolean",
+          default: true,
+          tags: {
+            formats: [
+              "$epub-all"
+            ]
+          },
+          description: "If false, disables the generation of a title page."
         }
       ],
       "schema/document-execute.yml": [
@@ -13037,6 +13048,32 @@ var require_yaml_intelligence_resources = __commonJS({
             short: "Whether to hyphenate text at line breaks even in words that do not contain hyphens.",
             long: "Whether to hyphenate text at line breaks even in words that do not contain \nhyphens if it is necessary to do so to lay out words on a line without excessive spacing\n"
           }
+        },
+        {
+          name: "list-tables",
+          schema: "boolean",
+          default: false,
+          tags: {
+            formats: [
+              "rst"
+            ]
+          },
+          description: "If true, tables are formatted as RST list tables."
+        },
+        {
+          name: "split-level",
+          tags: {
+            formats: [
+              "$epub-all",
+              "chunkedhtml"
+            ]
+          },
+          schema: "number",
+          default: 1,
+          description: {
+            short: "Specify the heading level at which to split the EPUB into separate\nchapter files.\n",
+            long: "Specify the heading level at which to split the EPUB into separate\nchapter files. The default is to split into chapters at level-1\nheadings. This option only affects the internal composition of the\nEPUB, not the way chapters and sections are displayed to users. Some\nreaders may be slow if the chapter files are too large, so for large\ndocuments with few level-1 headings, one might want to use a chapter\nlevel of 2 or 3.\n"
+          }
         }
       ],
       "schema/document-funding.yml": [
@@ -13325,15 +13362,6 @@ var require_yaml_intelligence_resources = __commonJS({
           description: {
             short: "Specify what to do with insertions, deletions, and comments produced by \nthe MS Word \u201CTrack Changes\u201D feature.\n",
             long: 'Specify what to do with insertions, deletions, and comments\nproduced by the MS Word "Track Changes" feature.  \n\n- `accept` (default): Process all insertions and deletions.\n- `reject`: Ignore them.\n- `all`: Include all insertions, deletions, and comments, wrapped\n  in spans with `insertion`, `deletion`, `comment-start`, and\n  `comment-end` classes, respectively. The author and time of\n  change is included. \n\nNotes:\n\n- Both `accept` and `reject` ignore comments.\n\n- `all` is useful for scripting: only\n  accepting changes from a certain reviewer, say, or before a\n  certain date. If a paragraph is inserted or deleted,\n  `track-changes: all` produces a span with the class\n  `paragraph-insertion`/`paragraph-deletion` before the\n  affected paragraph break. \n\n- This option only affects the docx reader.\n'
-          }
-        },
-        {
-          name: "strip-empty-paragraphs",
-          schema: "boolean",
-          hidden: true,
-          description: {
-            short: "Ignore paragraphs with no content.",
-            long: "*Deprecated.  Use the `+empty_paragraphs` extension instead.*\nIgnore paragraphs with no content.  This option is useful\nfor converting word processing documents where users have\nused empty paragraphs to create inter-paragraph space.\n"
           }
         },
         {
@@ -17174,6 +17202,7 @@ var require_yaml_intelligence_resources = __commonJS({
             "beamer",
             "biblatex",
             "bibtex",
+            "chunkedhtml",
             "commonmark",
             "commonmark_x",
             "context",
@@ -18065,6 +18094,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "beamer",
         "biblatex",
         "bibtex",
+        "chunkedhtml",
         "commonmark",
         "commonmark_x",
         "context",
@@ -18403,6 +18433,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Markdown to place above margin content (text or file path)",
         "Markdown to place below margin content (text or file path)",
         "Provide next and previous article links in footer",
+        "Provide a \u2018back to top\u2019 navigation button",
         "Shared page footer",
         "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
         "Publish open graph metadata",
@@ -18523,6 +18554,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Markdown to place above margin content (text or file path)",
         "Markdown to place below margin content (text or file path)",
         "Provide next and previous article links in footer",
+        "Provide a \u2018back to top\u2019 navigation button",
         "Shared page footer",
         "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
         "Publish open graph metadata",
@@ -20472,6 +20504,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Markdown to place above margin content (text or file path)",
         "Markdown to place below margin content (text or file path)",
         "Provide next and previous article links in footer",
+        "Provide a \u2018back to top\u2019 navigation button",
         "Shared page footer",
         "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
         "Publish open graph metadata",
@@ -20774,6 +20807,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Markdown to place above margin content (text or file path)",
         "Markdown to place below margin content (text or file path)",
         "Provide next and previous article links in footer",
+        "Provide a \u2018back to top\u2019 navigation button",
         "Shared page footer",
         "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
         "Publish open graph metadata",
@@ -20942,7 +20976,13 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
-        "internal-schema-hack"
+        "internal-schema-hack",
+        "If false, disables the generation of a title page.",
+        "If true, tables are formatted as RST list tables.",
+        {
+          short: "Specify the heading level at which to split the EPUB into separate\nchapter files.",
+          long: "Specify the heading level at which to split the EPUB into separate\nchapter files. The default is to split into chapters at level-1\nheadings. This option only affects the internal composition of the EPUB,\nnot the way chapters and sections are displayed to users. Some readers\nmay be slow if the chapter files are too large, so for large documents\nwith few level-1 headings, one might want to use a chapter level of 2 or\n3."
+        }
       ],
       "schema/external-schemas.yml": [
         {
@@ -21167,12 +21207,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 148832,
+        _internalId: 148838,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 148824,
+            _internalId: 148830,
             type: "enum",
             enum: [
               "png",
@@ -21188,7 +21228,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 148831,
+            _internalId: 148837,
             type: "anyOf",
             anyOf: [
               {

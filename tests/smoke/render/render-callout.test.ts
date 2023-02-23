@@ -27,8 +27,8 @@ testRender(input, "html", false, [
     "div.callout-caution",
     "div.callout.no-icon",
     // formatting is kept in caption
-    "div.callout-tip > div.callout-header > div.callout-caption-container > strong",
-    "div.callout-tip > div.callout-header > div.callout-caption-container > code",
+    "div.callout-tip > div.callout-header > div.callout-title-container > strong",
+    "div.callout-tip > div.callout-header > div.callout-title-container > code",
   ]),
 ]);
 

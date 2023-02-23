@@ -19349,7 +19349,7 @@ function calloutBlock(opts) {
     `callout-${type}`,
     "callout",
     "callout-style-default",
-    "callout-captioned"
+    "callout-titled"
   );
   const header = document.createElement("div");
   header.classList.add("callout-header", "d-flex", "align-content-center");
@@ -19361,7 +19361,7 @@ function calloutBlock(opts) {
   header.appendChild(iconContainer);
 
   const headingDiv = document.createElement("div");
-  headingDiv.classList.add("callout-caption-container", "flex-fill");
+  headingDiv.classList.add("callout-title-container", "flex-fill");
   // we assume heading is either a string or a span
   if (typeof heading === "string") {
     headingDiv.innerText = heading;
