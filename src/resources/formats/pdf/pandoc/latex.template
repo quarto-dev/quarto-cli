@@ -167,6 +167,7 @@ $if(zero-width-non-joiner)$
 \fi
 %% End of ZWNJ support
 $endif$
+\fi
 $if(beamer)$
 $if(theme)$
 \usetheme[$for(themeoptions)$$themeoptions$$sep$,$endfor$]{$theme$}

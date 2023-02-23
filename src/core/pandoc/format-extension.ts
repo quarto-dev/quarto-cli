@@ -1,3 +1,4 @@
+
 /*
 * pandoc-extensions.ts
 *
@@ -97,6 +98,8 @@ export const kPandocExtensions = [
   "-lists_without_preceding_blankline",
   "+literate_haskell",
   "-literate_haskell",
+  "+mark",
+  "-mark",
   "+markdown_attribute",
   "-markdown_attribute",
   "+markdown_in_html_blocks",
@@ -169,10 +172,14 @@ export const kPandocExtensions = [
   "-tex_math_double_backslash",
   "+tex_math_single_backslash",
   "-tex_math_single_backslash",
+  "+wikilinks_title_after_pipe",
+  "-wikilinks_title_after_pipe",
+  "+wikilinks_title_before_pipe",
+  "-wikilinks_title_before_pipe",
   "+xrefs_name",
   "-xrefs_name",
   "+xrefs_number",
   "-xrefs_number",
   "+yaml_metadata_block",
-  "-yaml_metadata_block",
+  "-yaml_metadata_block"
 ];

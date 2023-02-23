@@ -184,7 +184,7 @@ Generic block container with attributes.
 pandoc.Div = {}
 
 --[[
-Creates a div dlement
+Creates a div element
 ]]
 ---@param content blocks_content Block or list of blocks
 ---@param attr? pandoc.Attr Div attributes
@@ -304,37 +304,6 @@ Apply a Lua filter
 ---@param lua_filter table<string,function> Map of filter functions
 ---@return pandoc.LineBlock 
 function pandoc.LineBlock:walk(lua_filter) end
-
-
-
---======================== Null ========================
-
---[[
-A null element; this element never produces any output in the target format.
-]]
----@class pandoc.Null : pandoc.Block 
----@field t "Null"
----@field tag "Null"
-pandoc.Null = {}
-
---[[
-Creates a null element 
-]]
----@return pandoc.Null
-function pandoc.Null() end
-
---[[
-Make a clone
-]]
----@return pandoc.Null
-function pandoc.Null:clone() end
-
---[[
-Apply a Lua filter
-]]
----@param lua_filter table<string,function> Map of filter functions
----@return pandoc.Null 
-function pandoc.Null:walk(lua_filter) end
 
 
 --======================== OrderedList ========================
@@ -518,3 +487,21 @@ Apply a Lua filter
 ---@param lua_filter table<string,function> Map of filter functions
 ---@return pandoc.Table 
 function pandoc.Table:walk(lua_filter) end
+
+--======================== Figure ========================
+
+--[[
+
+Figure with caption and arbitrary block contents.
+
+]]
+---@class pandoc.Figure : pandoc.Block
+---@field attr pandoc.Attr Figure attributes
+---@field identifier string Alias for `attr.identifier`
+---@field classes pandoc.List Alias for `attr.classes`
+---@field attributes table<string,string> Alias for `attr.attributes`
+---@field caption pandoc.Caption Figure caption
+---@field content pandoc.Blocks Figure non-caption content
+---@field t "Figure"
+---@field tag "Figure"
+pandoc.Figure = {}

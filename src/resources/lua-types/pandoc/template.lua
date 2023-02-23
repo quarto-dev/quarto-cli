@@ -32,4 +32,29 @@ error if no such template can be found.
 ---@return string # Raw template
 function pandoc.template.default(writer) end
 
+
+--[[
+Applies a context with variable assignments to a template,
+returning the rendered template. The `context` parameter must be a
+table with variable names as keys and [Doc], string, boolean, or
+table as values, where the table can be either be a list of the
+aforementioned types, or a nested context.
+]]
+---@param template pandoc.Template Template to apply
+---@param context table<string,any> Variable values
+---@return pandoc.Doc # Rendered template
+function pandoc.template.apply(template, context) end
+
+
+--[[
+Creates template context from the document's [Meta]{#type-meta}
+data, using the given functions to convert [Blocks] and [Inlines]
+to [Doc] values.
+]]
+---@param meta pandoc.Meta Document metadata
+---@param blocks_writer fun(blocks: pandoc.Blocks):pandoc.Doc # Converter from [Blocks] to [Doc] values
+---@param inlines_writer fun(inlines: pandoc.Inlines):pandoc.Doc # Converter from [Inlines] to [Doc] values
+---@return table<string,any> # Template context
+function pandoc.template.meta_to_context(meta, blocks_writer, inlines_writer) end
+
 return pandoc.template
