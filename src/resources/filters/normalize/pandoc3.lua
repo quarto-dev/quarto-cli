@@ -36,8 +36,8 @@ function parse_pandoc3_figures()
             return constructor(fig.content[1].content)
           end
         else
-          print("Couldn't parse figure:")
-          print(fig)
+          error("Couldn't parse figure:")
+          error(fig)
           crash_with_stack_trace()
         end
       end
