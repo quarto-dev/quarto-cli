@@ -710,7 +710,6 @@ function htmlFormatPostprocessor(
       if (table.getAttribute("data-quarto-disable-processing")) {
         continue;
       }
-      console.log("table before postprocess", table.outerHTML);
       table.removeAttribute("data-quarto-postprocess-tables");
       table.querySelectorAll("tr").forEach((tr) => {
         const { children } = (tr as Element);
@@ -735,7 +734,6 @@ function htmlFormatPostprocessor(
           }
         }
       });
-      console.log("table after postprocess", table.outerHTML);
     }
 
     // no resource refs
