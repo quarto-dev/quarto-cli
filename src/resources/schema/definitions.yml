@@ -953,6 +953,9 @@
       page-navigation:
         boolean:
           description: "Provide next and previous article links in footer"
+      back-to-top-navigation:
+        boolean:
+          description: "Provide a 'back to top' navigation button"
       page-footer:
         anyOf:
           - string

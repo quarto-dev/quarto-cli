@@ -10,6 +10,7 @@ import {
   kAppendixAttributionBibTex,
   kAppendixAttributionCiteAs,
   kAtxHeaders,
+  kBackToTop,
   kBaseFormat,
   kCache,
   kCalloutCautionCaption,
@@ -566,6 +567,7 @@ export interface FormatLanguage {
   [kSearchNoResultsText]?: string;
   [kCopyButtonTooltip]?: string;
   [kCopyButtonTooltipSuccess]?: string;
+  [kBackToTop]?: string;
   [kSearchMatchingDocumentsText]?: string;
   [kSearchCopyLinkTitle]?: string;
   [kSearchHideMatchesText]?: string; // FIXME duplicate?

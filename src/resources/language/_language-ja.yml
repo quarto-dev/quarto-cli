@@ -47,6 +47,8 @@ repo-action-links-edit: "編集"
 repo-action-links-source: "ソースコード"
 repo-action-links-issue: "問題を報告"
 
+back-to-top: "トップに戻る"
+
 search-no-results-text: "一致なし"
 search-matching-documents-text: "一致した文書"
 search-copy-link-title: "検索へのリンクをコピー"

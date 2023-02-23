@@ -47,6 +47,8 @@ repo-action-links-edit: "Pagina bewerken"
 repo-action-links-source: "Broncode bekijken"
 repo-action-links-issue: "Een probleem melden"
 
+back-to-top: "Terug naar boven"
+
 search-no-results-text: "Geen resultaten"
 search-matching-documents-text: "Gevonden documenten"
 search-copy-link-title: "Kopieer link om te zoeken"

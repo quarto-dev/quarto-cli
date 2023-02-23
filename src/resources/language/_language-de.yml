@@ -47,6 +47,8 @@ repo-action-links-edit: "Seite editieren"
 repo-action-links-source: "Quellcode anzeigen"
 repo-action-links-issue: "Problem melden"
 
+back-to-top: "Zurück nach oben"
+
 search-no-results-text: "Keine Treffer"
 search-matching-documents-text: "Treffer"
 search-copy-link-title: "Link in die Suche kopieren"

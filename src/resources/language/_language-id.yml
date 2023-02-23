@@ -44,6 +44,8 @@ repo-action-links-edit: "Sunting laman ini"
 repo-action-links-source: "Lihat sumber"
 repo-action-links-issue: "Laporkan isu"
 
+back-to-top: "Kembali ke atas"
+
 search-no-results-text: "Tidak ada hasil"
 search-matching-documents-text: "dokumen cocok"
 search-copy-link-title: "Salin tautan untuk mencari"

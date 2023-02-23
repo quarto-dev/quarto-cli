@@ -84,6 +84,7 @@ import {
 } from "./website-search.ts";
 
 import {
+  kBackToTopNavigation,
   kSiteIssueUrl,
   kSiteNavbar,
   kSiteReaderMode,
@@ -113,6 +114,7 @@ import {
   websiteNavigationConfig,
 } from "./website-shared.ts";
 import {
+  kBackToTop,
   kIncludeInHeader,
   kNumberSections,
   kRepoActionLinksEdit,
@@ -614,6 +616,30 @@ function navigationHtmlPostprocessor(
         }
       }
     }
+
+    const projBackToTop = websiteConfigBoolean(
+      kBackToTopNavigation,
+      false,
+      project.config,
+    );
+    const formatBackToTop = format.metadata[kBackToTopNavigation];
+    if (projBackToTop && formatBackToTop !== false) {
+      // Add a return to top button, if needed
+      const contentEl = doc.querySelector("main");
+      const backToTopEl = doc.createElement("a");
+      backToTopEl.setAttribute(
+        "onclick",
+        "window.scrollTo(0, 0); return false;",
+      );
+
+      const backText = language[kBackToTop];
+      const backIcon = "arrow-up";
+      backToTopEl.setAttribute("role", "button");
+      backToTopEl.innerHTML = `<i class='bi bi-${backIcon}'></i> ${backText}`;
+      backToTopEl.id = "quarto-back-to-top";
+      contentEl?.appendChild(backToTopEl);
+    }
+
     return Promise.resolve(kHtmlEmptyPostProcessResult);
   };
 }

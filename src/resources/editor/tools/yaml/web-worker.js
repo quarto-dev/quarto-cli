@@ -9539,6 +9539,11 @@ try {
                     description: "Provide next and previous article links in footer"
                   }
                 },
+                "back-to-top-navigation": {
+                  boolean: {
+                    description: "Provide a 'back to top' navigation button"
+                  }
+                },
                 "page-footer": {
                   anyOf: [
                     "string",
@@ -18291,6 +18296,7 @@ try {
           "Base URL for website source code repository",
           "Subdirectory of repository containing website",
           "Branch of website source code (defaults to <code>main</code>)",
+          "URL to use for the \u2018report an issue\u2019 repository action.",
           {
             short: "Links to source repository actions",
             long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
@@ -18410,6 +18416,7 @@ try {
           "Base URL for website source code repository",
           "Subdirectory of repository containing website",
           "Branch of website source code (defaults to <code>main</code>)",
+          "URL to use for the \u2018report an issue\u2019 repository action.",
           {
             short: "Links to source repository actions",
             long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
@@ -20358,6 +20365,7 @@ try {
           "Base URL for website source code repository",
           "Subdirectory of repository containing website",
           "Branch of website source code (defaults to <code>main</code>)",
+          "URL to use for the \u2018report an issue\u2019 repository action.",
           {
             short: "Links to source repository actions",
             long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
@@ -20659,6 +20667,7 @@ try {
           "Base URL for website source code repository",
           "Subdirectory of repository containing website",
           "Branch of website source code (defaults to <code>main</code>)",
+          "URL to use for the \u2018report an issue\u2019 repository action.",
           {
             short: "Links to source repository actions",
             long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
@@ -21159,12 +21168,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 148828,
+          _internalId: 148832,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 148820,
+              _internalId: 148824,
               type: "enum",
               enum: [
                 "png",
@@ -21180,7 +21189,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 148827,
+              _internalId: 148831,
               type: "anyOf",
               anyOf: [
                 {

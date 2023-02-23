@@ -56,6 +56,7 @@ type WebsiteConfigKey =
   | "navbar"
   | "sidebar"
   | "page-navigation"
+  | "back-to-top-navigation"
   | "page-footer"
   | "margin-header"
   | "margin-footer"

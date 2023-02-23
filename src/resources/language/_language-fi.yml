@@ -47,6 +47,8 @@ repo-action-links-edit: "Muokkaa sivua"
 repo-action-links-source: "Näytä lähdekoodi"
 repo-action-links-issue: "Ilmoita ongelmasta"
 
+back-to-top: "Takaisin alkuun"
+
 search-no-results-text: "Ei tuloksia"
 search-matching-documents-text: "tulokset"
 search-copy-link-title: "Kopioi linkki hakuun"

@@ -47,6 +47,8 @@ repo-action-links-edit: "Modificer denne side"
 repo-action-links-source: "Vis kilde"
 repo-action-links-issue: "Anmeld problem"
 
+back-to-top: "Tilbage til toppen"
+
 search-no-results-text: "Ingen resultater"
 search-matching-documents-text: "Matchende dokumenter"
 search-copy-link-title: "Kopier link for at søge"

@@ -102,6 +102,7 @@
 
 ## Websites
 
+- Add suport for 'Back to top' navigational button. Controlled using `back-to-top-navigation:` under `website:`, can be disabled by setting `back-to-top-navigation: false` on individual pages.
 - Fix issue assigning specific sidebar to a specific page using `sidebar:` (#3389)
 - Change behavior of `publish gh-pages` to always render into a clean directory.
   Previous behavior was to add to existing contents of `gh-pages` branch. ([#3199](https://github.com/quarto-dev/quarto-cli/discussions/3199), @ijlyttle)

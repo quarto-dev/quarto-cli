@@ -47,6 +47,8 @@ repo-action-links-edit: "Bu sayfayı düzenle"
 repo-action-links-source: "Kaynağı görüntüle"
 repo-action-links-issue: "Sorun bildir"
 
+back-to-top: "Başa dönüş"
+
 search-no-results-text: "Sonuç yok"
 search-matching-documents-text: "eşleşen belgeler"
 search-copy-link-title: "Aramak için bağlantıyı kopyalayın"

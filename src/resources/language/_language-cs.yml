@@ -47,6 +47,8 @@ repo-action-links-edit: "Upravit stránku"
 repo-action-links-source: "Zobrazit zdrojový kód"
 repo-action-links-issue: "Nahlásit problém"
 
+back-to-top: "Zpět na začátek"
+
 search-no-results-text: "Žádný výsledek"
 search-matching-documents-text: "Nalezené výsledky"
 search-copy-link-title: "Zkopírovat odkaz pro vyhledávání"

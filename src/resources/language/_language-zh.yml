@@ -47,6 +47,8 @@ repo-action-links-edit: "编辑该页面"
 repo-action-links-source: "查看代码"
 repo-action-links-issue: "报告问题"
 
+back-to-top: "回到顶部"
+
 search-no-results-text: "没有结果"
 search-matching-documents-text: "匹配的文档"
 search-copy-link-title: "复制搜索链接"

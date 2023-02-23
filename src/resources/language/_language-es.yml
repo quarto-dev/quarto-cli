@@ -47,6 +47,8 @@ repo-action-links-edit: "Editar esta página"
 repo-action-links-source: "Ver el código"
 repo-action-links-issue: "Informar de un problema"
 
+back-to-top: "Volver arriba"
+
 search-no-results-text: "Sin resultados"
 search-matching-documents-text: "documentos encontrados"
 search-copy-link-title: "Copiar el enlace en la búsqueda"

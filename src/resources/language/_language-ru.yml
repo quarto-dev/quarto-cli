@@ -47,6 +47,8 @@ repo-action-links-edit: "Редактировать страницу"
 repo-action-links-source: "Показать код"
 repo-action-links-issue: "Сообщить о проблеме"
 
+back-to-top: "Наверх"
+
 search-no-results-text: "Поиск не дал результатов"
 search-matching-documents-text: "Результаты поиска"
 search-copy-link-title: "Скопировать ссылку"

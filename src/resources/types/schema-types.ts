@@ -390,6 +390,8 @@ The user’s cookie preferences will automatically control Google Analytics (if 
   > /* Markdown to place below margin content (text or file path) */;
   "page-navigation"?:
     boolean /* Provide next and previous article links in footer */;
+  "back-to-top-navigation"?:
+    boolean /* Provide a 'back to top' navigation button */;
   "page-footer"?: string | PageFooter /* Shared page footer */;
   "open-graph"?: boolean | OpenGraphConfig /* Publish open graph metadata */;
   "twitter-card"?:
