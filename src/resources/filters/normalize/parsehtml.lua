@@ -3,6 +3,25 @@
 
 local kDisableProcessing = "quarto-disable-processing"
 
+local function preprocess_table_text(src)
+  -- html manipulation with regex is fraught, but those specific
+  -- changes are safe assuming that no one is using quarto- as
+  -- a prefix for dataset attributes in the tables.
+  -- See
+  -- * https://www.w3.org/html/wg/spec/syntax.html#start-tags
+  -- * https://www.w3.org/html/wg/spec/syntax.html#end-tags
+
+  print(src)
+
+  src = src:gsub("<th([%s>])", "<td data-quarto-table-cell-role=\"th\"%1")
+  src = src:gsub("</th([%s>])", "</td%1")
+  src = src:gsub("<table([%s>])", "<table data-quarto-postprocess=\"true\"%1")
+
+  print(src)
+
+  return src
+end
+
 function parse_html_tables()
   return {
     RawBlock = function(el)
@@ -20,6 +39,23 @@ function parse_html_tables()
           local before_table = string.sub(el.text, 1, i - 1)
           local after_table = string.sub(el.text, j + 1)
           local tableHtml = tableBegin .. "\n" .. tableBody .. "\n" .. tableEnd
+          -- Pandoc's HTML-table -> AST-table processing does not faithfully respect
+          -- `th` vs `td` elements. This causes some complex tables to be parsed incorrectly,
+          -- and changes which elements are `th` and which are `td`.
+          --
+          -- For quarto, this change is not acceptable because `td` and `th` have
+          -- accessibility impacts (see https://github.com/rstudio/gt/issues/678 for a concrete
+          -- request from a screen-reader user).
+          --
+          -- To preserve td and th, we replace `th` elements in the input with 
+          -- `td data-quarto-table-cell-role="th"`. 
+          -- 
+          -- Then, in our HTML postprocessor,
+          -- we replace th elements with td (since pandoc chooses to set some of its table
+          -- elements as th, even if the original table requested not to), and replace those 
+          -- annotated td elements with th elements.
+
+          tableHtml = preprocess_table_text(tableHtml)
           local tableDoc = pandoc.read(tableHtml, "html")
           local skip = false
           tableDoc:walk({
