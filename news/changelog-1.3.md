@@ -1,4 +1,5 @@
 ## Confluence Publishing
+
 - Add support for publishing both documents and projects to Atlassian Confluence spaces and as children to Confluence pages.
 
 ## Jupyter Notebooks
@@ -159,6 +160,7 @@
 - use correct language code for Korean ([#4187](https://github.com/quarto-dev/quarto-cli/discussions/4187)).
 - resolve YAML options correctly for comments with open+close syntax ([#3901](https://github.com/quarto-dev/quarto-cli/issues/3901)).
 - Work around rare deno tempfile creation bug ([#4352](https://github.com/quarto-dev/quarto-cli/pull/4352)).
+- Only open "safe ports" for Chromium ([#4514](https://github.com/quarto-dev/quarto-cli/pull/4514)).
 
 ## Pandoc filter changes
 

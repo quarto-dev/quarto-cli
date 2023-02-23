@@ -180,12 +180,35 @@ export function getAvailablePortSync(
  */
 function getRandomPortSync(options: IOptions): number {
   const randomPort = random(0, 65535);
+
+  const restrictedPorts = [
+    // from https://chromium.googlesource.com/chromium/src.git/+/refs/heads/master/net/base/port_util.cc
+    // as of 2023-02-23.
+    1719, // h323gatestat
+    1720, // h323hostcall
+    1723, // pptp
+    2049, // nfs
+    3659, // apple-sasl / PasswordServer
+    4045, // lockd
+    5060, // sip
+    5061, // sips
+    6000, // X11
+    6566, // sane-port
+    6665, // Alternate IRC [Apple addition]
+    6666, // Alternate IRC [Apple addition]
+    6667, // Standard IRC [Apple addition]
+    6668, // Alternate IRC [Apple addition]
+    6669, // Alternate IRC [Apple addition]
+    6697, // IRC + TLS
+    10080, // Amanda
+  ];
+
   if (
     isPortAvailableSync({
       port: randomPort,
       ...(options.hostname ? { hostname: options.hostname } : {}),
       ...(options.transport ? { transport: options.transport } : {}),
-    })
+    }) && !(restrictedPorts.includes(randomPort)) // https://github.com/quarto-dev/quarto-cli/issues/4514
   ) {
     return randomPort;
   } else {
