@@ -23,7 +23,8 @@ local function preprocess_table_text(src)
 end
 
 function parse_html_tables()
-  return {
+  local filter
+  filter = {
     RawBlock = function(el)
       if _quarto.format.isRawHtml(el) then
         -- if we have a raw html table in a format that doesn't handle raw_html
@@ -70,11 +71,27 @@ function parse_html_tables()
           end
           local blocks = pandoc.Blocks({})
           if before_table ~= "" then
-            blocks:insert(pandoc.RawBlock(el.format, before_table))
+            -- this clause is presently redundant, but if we ever
+            -- parse more than one type of element, then we'll
+            -- need it. We keep it here for symmetry with
+            -- the after_table clause.
+            local block = pandoc.RawBlock(el.format, before_table)
+            local result = block:walk(filter)
+            if type(result) == "table" then
+              blocks:extend(result)
+            else
+              blocks:insert(result)
+            end
           end
           blocks:extend(tableDoc.blocks)
           if after_table ~= "" then
-            blocks:insert(pandoc.RawBlock(el.format, after_table))
+            local block = pandoc.RawBlock(el.format, after_table)
+            local result = block:walk(filter)
+            if type(result) == "table" then
+              blocks:extend(result)
+            else
+              blocks:insert(result)
+            end
           end
           return blocks
         end
@@ -82,4 +99,5 @@ function parse_html_tables()
       return el
     end
   }
+  return filter
 end
