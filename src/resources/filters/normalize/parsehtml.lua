@@ -11,13 +11,9 @@ local function preprocess_table_text(src)
   -- * https://www.w3.org/html/wg/spec/syntax.html#start-tags
   -- * https://www.w3.org/html/wg/spec/syntax.html#end-tags
 
-  print(src)
-
   src = src:gsub("<th([%s>])", "<td data-quarto-table-cell-role=\"th\"%1")
   src = src:gsub("</th([%s>])", "</td%1")
   src = src:gsub("<table([%s>])", "<table data-quarto-postprocess=\"true\"%1")
-
-  print(src)
 
   return src
 end
