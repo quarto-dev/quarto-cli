@@ -10,8 +10,10 @@ Extensions = pandoc.format.extensions 'markdown'
 
 -- we replace invalid tags with random strings of the same size
 -- to safely allow code blocks inside pipe tables
+-- note that we can't use uppercase letters here
+-- because pandoc canonicalizes classes to lowercase.
 function random_string(size)
-  local chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+  local chars = "abcdefghijklmnopqrstuvwxyz"
   local lst = {}
   for _ = 1,size do
     local ix = math.random(1, #chars)
@@ -27,7 +29,7 @@ function find_invalid_tags(str)
   --   we disallow "\n" to avoid multiple lines
 
   -- no | in lua patterns...
-  local patterns = {"^%s*(```+%s*)(%{[^.=\n]*%})", "\n%s*(```+%s*)(%{[^.=\n]+%})"}
+  local patterns = {"^%s*(```+%s*)(%{+[^.=\n]*%}+)", "\n%s*(```+%s*)(%{+[^.=\n]+%}+)"}
   function find_it(init)
     for _, pattern in ipairs(patterns) do
       local range_start, range_end, ticks, tag = str:find(pattern, init)
@@ -40,10 +42,14 @@ function find_invalid_tags(str)
 
   local init = 1
   local range_start, range_end, ticks, tag = find_it(init)
+  local tag_set = {}
   local tags = {}
   while tag ~= nil do
     init = range_end + 1
-    tags[tag] = true
+    if not tag_set[tag] then
+      tag_set[tag] = true
+      table.insert(tags, tag)
+    end
     range_start, range_end, ticks, tag = find_it(init)
   end
   return tags
@@ -51,8 +57,16 @@ end
 
 function escape_invalid_tags(str)
   local tags = find_invalid_tags(str)
+  -- we must now replace the tags in a careful order. Specifically,
+  -- we can't replace a key that's a substring of a larger key without
+  -- first replacing the larger key.
+  --
+  -- ie. if we replace {python} before {{python}}, Bad Things Happen.
+  -- so we sort the tags by descending size, which suffices
+  table.sort(tags, function(a, b) return #b < #a end)
+
   local replacements = {}
-  for k, _ in pairs(tags) do
+  for _, k in ipairs(tags) do
     local replacement
     local attempts = 1
     repeat
@@ -65,7 +79,8 @@ function escape_invalid_tags(str)
       os.exit(1)
     end
     replacements[replacement] = k
-    str = str:gsub(k, replacement)
+    local patterns = {"^(%s*```+%s*)" .. k, "(\n%s*```+%s*)" .. k}
+    str = str:gsub(patterns[1], "%1" .. replacement):gsub(patterns[2], "%1" .. replacement)
   end
   return str, replacements
 end
@@ -107,6 +122,8 @@ function Reader (inputs, opts)
       return cb
     end
   }
+
+  -- print(pandoc.write(doc, "native"))
 
   return doc
 end
