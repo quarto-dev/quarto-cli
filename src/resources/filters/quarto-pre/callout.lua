@@ -28,7 +28,7 @@ _quarto.ast.add_handler({
   -- and returns the custom node
   parse = function(div)
     preState.hasCallouts = true
-    local title = resolveHeadingTitle(div)
+    local title = resolveHeadingCaption(div)
     local old_attr = div.attr
     local appearanceRaw = div.attr.attributes["appearance"]
     local icon = div.attr.attributes["icon"]
