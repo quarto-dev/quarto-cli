@@ -476,6 +476,10 @@ function hydrateListing(
 
   // Don't include fields that the items don't have
   const fields = suggestedFields.filter((field) => {
+    // Always include image if suggeted
+    if (field === kFieldImage) {
+      return true;
+    }
     return itemFields.includes(field);
   });
   const finalFields = fields.length > 0 ? fields : itemFields;
