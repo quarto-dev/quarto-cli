@@ -726,7 +726,10 @@ nav.sidebar.sidebar-navigation:not(.rollup) {
   .action-links {
     display: flex;
     p {
-      padding-right: 0.5em;
+      padding-right: 1.5em;
+    }
+    p:last-of-type {
+      padding-right: 0;
     }
   }
 
