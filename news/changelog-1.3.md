@@ -104,6 +104,7 @@
 - Allow `sort: false` to disable any sorting, allowing items to appear in their original / natural order. (#3296)
 - Warn if listings are being used outside of a website ([#4267](https://github.com/quarto-dev/quarto-cli/issues/4267))
 - Permit using computation outputs (plots/figures) as the preview image for an item in a listing ([#2324](https://github.com/quarto-dev/quarto-cli/issues/2324))
+- Use alt text from preview image that is discovered for a page in a listing ([#3706](https://github.com/quarto-dev/quarto-cli/issues/3706))
 
 ## Websites
 
