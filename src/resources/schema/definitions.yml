@@ -1473,6 +1473,12 @@
             Fields that items in this listing must have populated.
             If a listing is rendered and one more items in this listing 
             is missing a required field, an error will occur and the render will.
+      include:
+        maybeArrayOf: object
+        description: "Items with matching field values will be included in the listing."
+      exclude:
+        maybeArrayOf: object
+        description: "Items with matching field values will be excluded from the listing."
 
 - id: website-listing-contents-object
   object:

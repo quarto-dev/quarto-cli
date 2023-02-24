@@ -84,6 +84,10 @@ export const kDefaultMaxDescLength = 175;
 export const kTableStriped = "table-striped";
 export const kTableHover = "table-hover";
 
+// Items to include
+export const kInclude = "include";
+export const kExclude = "exclude";
+
 // Fields
 export const kFieldTitle = "title";
 export const kFieldSubtitle = "subtitle";

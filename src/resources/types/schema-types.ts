@@ -780,6 +780,9 @@ is missing a required field, an error will occur and the render will. */;
   - `numbered`: Category list with number of items
   - `unnumbered`: Category list
   - `cloud`: Word cloud style categories */;
+  exclude?: MaybeArrayOf<
+    SchemaObject
+  > /* Items with matching field values will be excluded from the listing. */;
   feed?: boolean | {
     categories?: MaybeArrayOf<
       string /* A list of categories for which to create separate RSS feeds containing only posts with that category. */
@@ -812,6 +815,9 @@ place the contents into a `div` with this id. If no such `div` is defined on the
 page, a `div` with this id will be created and appended to the end of the page.
 
 In no `id` is provided for a listing, Quarto will synthesize one when rendering the page. */;
+  include?: MaybeArrayOf<
+    SchemaObject
+  > /* Items with matching field values will be included in the listing. */;
   sort?:
     | boolean
     | MaybeArrayOf<

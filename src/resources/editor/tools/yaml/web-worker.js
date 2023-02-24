@@ -10207,6 +10207,14 @@ try {
                     short: "Fields that items in this listing must have populated.",
                     long: "Fields that items in this listing must have populated.\nIf a listing is rendered and one more items in this listing \nis missing a required field, an error will occur and the render will.\n"
                   }
+                },
+                include: {
+                  maybeArrayOf: "object",
+                  description: "Items with matching field values will be included in the listing."
+                },
+                exclude: {
+                  maybeArrayOf: "object",
+                  description: "Items with matching field values will be excluded from the listing."
                 }
               }
             }
@@ -18722,6 +18730,8 @@ try {
             short: "Fields that items in this listing must have populated.",
             long: "Fields that items in this listing must have populated. If a listing\nis rendered and one more items in this listing is missing a required\nfield, an error will occur and the render will."
           },
+          "Items with matching field values will be included in the listing.",
+          "Items with matching field values will be excluded from the\nlisting.",
           "The family name.",
           "The given name.",
           "The family name.",
@@ -19578,6 +19588,7 @@ try {
             long: "Specify the heading level at which to split the EPUB into separate\nchapter files. The default is to split into chapters at level-1\nheadings. This option only affects the internal composition of the EPUB,\nnot the way chapters and sections are displayed to users. Some readers\nmay be slow if the chapter files are too large, so for large documents\nwith few level-1 headings, one might want to use a chapter level of 2 or\n3."
           },
           "Use the specified image as the EPUB cover. It is recommended that the\nimage be less than 1000px in width and height.",
+          "If false, disables the generation of a title page.",
           "Engine used for executable code blocks.",
           "Configures the Jupyter engine.",
           "The name to display in the UI.",
@@ -19711,6 +19722,11 @@ try {
             short: "Whether to hyphenate text at line breaks even in words that do not\ncontain hyphens.",
             long: "Whether to hyphenate text at line breaks even in words that do not\ncontain hyphens if it is necessary to do so to lay out words on a line\nwithout excessive spacing"
           },
+          "If true, tables are formatted as RST list tables.",
+          {
+            short: "Specify the heading level at which to split the EPUB into separate\nchapter files.",
+            long: "Specify the heading level at which to split the EPUB into separate\nchapter files. The default is to split into chapters at level-1\nheadings. This option only affects the internal composition of the EPUB,\nnot the way chapters and sections are displayed to users. Some readers\nmay be slow if the chapter files are too large, so for large documents\nwith few level-1 headings, one might want to use a chapter level of 2 or\n3."
+          },
           "Information about the funding of the research reported in the article\n(for example, grants, contracts, sponsors) and any open access fees for\nthe article itself",
           "Unique identifier assigned to an award, contract, or grant.",
           "Displayable prose statement that describes the funding for the\nresearch on which a work was based.",
@@ -19793,10 +19809,6 @@ try {
           {
             short: "Specify what to do with insertions, deletions, and comments produced\nby the MS Word \u201CTrack Changes\u201D feature.",
             long: "Specify what to do with insertions, deletions, and comments produced\nby the MS Word \u201CTrack Changes\u201D feature."
-          },
-          {
-            short: "Ignore paragraphs with no content.",
-            long: "<em>Deprecated. Use the <code>+empty_paragraphs</code> extension\ninstead.</em> Ignore paragraphs with no content. This option is useful\nfor converting word processing documents where users have used empty\nparagraphs to create inter-paragraph space."
           },
           {
             short: "Embed the input file source code in the generated HTML",
@@ -20977,13 +20989,7 @@ try {
             long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
-          "internal-schema-hack",
-          "If false, disables the generation of a title page.",
-          "If true, tables are formatted as RST list tables.",
-          {
-            short: "Specify the heading level at which to split the EPUB into separate\nchapter files.",
-            long: "Specify the heading level at which to split the EPUB into separate\nchapter files. The default is to split into chapters at level-1\nheadings. This option only affects the internal composition of the EPUB,\nnot the way chapters and sections are displayed to users. Some readers\nmay be slow if the chapter files are too large, so for large documents\nwith few level-1 headings, one might want to use a chapter level of 2 or\n3."
-          }
+          "internal-schema-hack"
         ],
         "schema/external-schemas.yml": [
           {
@@ -21208,12 +21214,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 148838,
+          _internalId: 151251,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 148830,
+              _internalId: 151243,
               type: "enum",
               enum: [
                 "png",
@@ -21229,7 +21235,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 148837,
+              _internalId: 151250,
               type: "anyOf",
               anyOf: [
                 {

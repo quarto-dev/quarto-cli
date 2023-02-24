@@ -35,6 +35,7 @@ import {
   ColumnType,
   kCategoryStyle,
   kDefaultMaxDescLength,
+  kExclude,
   kFeed,
   kFieldAuthor,
   kFieldCategories,
@@ -60,6 +61,7 @@ import {
   kImageAlign,
   kImageAlt,
   kImageHeight,
+  kInclude,
   kListing,
   kMaxDescLength,
   kPageSize,
@@ -100,6 +102,7 @@ import { ProjectOutputFile } from "../../types.ts";
 import { projectOutputDir } from "../../../project-shared.ts";
 import { directoryMetadataForInputFile } from "../../../project-context.ts";
 import { mergeConfigs } from "../../../../core/config.ts";
+import { globToRegExp } from "../../../../core/lib/glob.ts";
 
 // Defaults (a card listing that contains everything
 // in the source document's directory)
@@ -760,8 +763,77 @@ async function readContents(
     }
   }
 
+  const matchesField = (item: ListingItem, field: string, value: unknown) => {
+    const simpleValueMatches = (
+      itemValue: unknown,
+      listingValue: unknown,
+    ) => {
+      if (
+        typeof (itemValue) === "string" && typeof (listingValue) === "string"
+      ) {
+        const regex = globToRegExp(listingValue);
+        return itemValue.match(regex);
+      } else {
+        return itemValue === listingValue;
+      }
+    };
+
+    const valueMatches = (
+      item: ListingItem,
+      field: string,
+      value: unknown,
+    ) => {
+      if (Array.isArray(item[field])) {
+        const fieldValues = item[field] as Array<unknown>;
+        return fieldValues.some((fieldVal) => {
+          return simpleValueMatches(fieldVal, value);
+        });
+      } else {
+        return simpleValueMatches(item[field], value);
+      }
+    };
+
+    if (Array.isArray(value)) {
+      return value.some((val) => {
+        return valueMatches(item, field, val);
+      });
+    } else {
+      return valueMatches(item, field, value);
+    }
+  };
+
+  // Apply any listing filters
+  let filtered = listingItems;
+  const includes = listing[kInclude] as Record<string, unknown>;
+  if (includes) {
+    debug(
+      `[listing] applying filter to include only items matching ${includes}`,
+    );
+
+    const fields = Object.keys(includes);
+    filtered = filtered.filter((item) => {
+      return fields.every((field) => {
+        return matchesField(item, field, includes[field]);
+      });
+    });
+
+    debug(`[listing] afer including, ${filtered.length} item match listing`);
+  }
+
+  const excludes = listing[kExclude] as Record<string, unknown>;
+  if (excludes) {
+    debug(`[listing] applying filter to exclude items matching ${includes}`);
+    const fields = Object.keys(excludes);
+    filtered = filtered.filter((item) => {
+      return !fields.some((field) => {
+        return matchesField(item, field, excludes[field]);
+      });
+    });
+    debug(`[listing] afer excluding, ${filtered.length} item match listing`);
+  }
+
   return {
-    items: listingItems,
+    items: filtered,
     sources: listingItemSources,
   };
 }
