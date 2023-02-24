@@ -103,6 +103,7 @@
 - Allow listings in project to point directly to non-input files (such as `yml` files) to use for contents.
 - Allow `sort: false` to disable any sorting, allowing items to appear in their original / natural order. (#3296)
 - Warn if listings are being used outside of a website ([#4267](https://github.com/quarto-dev/quarto-cli/issues/4267))
+- Permit using computation outputs (plots/figures) as the preview image for an item in a listing ([#2324](https://github.com/quarto-dev/quarto-cli/issues/2324))
 
 ## Websites
 

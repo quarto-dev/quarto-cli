@@ -364,7 +364,7 @@ ul.pagination {
     margin-bottom: 0;
   }
 
-  img.thumbnail-image {
+  > img {
     object-fit: cover;
   }
 
@@ -389,7 +389,7 @@ ul.pagination {
     height: 100%;
   }
 
-  div.card-img-bg {
+  .listing-item-img-placeholder {
     background-color: $card-cap-bg;
     flex-shrink: 0;
   }

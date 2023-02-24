@@ -38,7 +38,7 @@ if (field === "image") {
 if (item.image) {
 value = listing.utilities.img(itemNumber, item[field], "", item['image-alt']);
 } else {
-value = `<div class="table-img" ${imgHeight ? ` style="height: ${imgHeight};"` : '' }>&nbsp;</div>`;
+value = listing.utilities.imgPlaceholder(itemNumber, item.outputHref);
 }
 }
 return listing.utilities.outputLink(item, field, value);

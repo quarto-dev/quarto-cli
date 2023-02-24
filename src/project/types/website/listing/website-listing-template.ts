@@ -43,7 +43,7 @@ import { localizedString } from "../../../../config/localization.ts";
 import { formatDate, parsePandocDate } from "../../../../core/date.ts";
 import { truncateText } from "../../../../core/text.ts";
 import { encodeAttributeValue } from "../../../../core/html.ts";
-import { isPlaceHolder } from "./website-listing-read.ts";
+import { imagePlaceholder, isPlaceHolder } from "./website-listing-read.ts";
 
 export const kDateFormat = "date-format";
 
@@ -405,6 +405,17 @@ export function reshapeListing(
     const srcAttr = itemNumber > pageSize ? "data-src" : "src";
 
     return `<img ${srcAttr}="${src}" ${classAttr} ${styleAttr} ${altAttr}>`;
+  };
+  utilities.imgPlaceholder = (
+    itemNumber: number,
+    itemPath: string,
+  ) => {
+    const pageSize = listing[kPageSize];
+    return imagePlaceholder(
+      itemPath,
+      itemNumber > pageSize,
+      listing[kImageHeight] as string,
+    );
   };
 
   let index = 0;

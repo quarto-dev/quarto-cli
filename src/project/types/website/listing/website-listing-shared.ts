@@ -24,10 +24,8 @@ import { kImage } from "../website-constants.ts";
 import { projectOutputDir } from "../../../project-shared.ts";
 import { truncateText } from "../../../../core/text.ts";
 import { insecureHash } from "../../../../core/hash.ts";
-import { findPreviewImg, findPreviewImgEl } from "../util/discover-meta.ts";
+import { findPreviewImgEl } from "../util/discover-meta.ts";
 import { getDecodedAttribute } from "../../../../core/html.ts";
-import { isHttpUrl } from "../../../../core/url.ts";
-import { startsWith } from "https://deno.land/std@0.166.0/bytes/mod.ts";
 
 // The root listing key
 export const kListing = "listing";
@@ -219,7 +217,6 @@ export interface PreviewImage {
   src: string;
   alt?: string;
   title?: string;
-  htmlSrc: (filePath: string, height?: string) => string | undefined;
 }
 
 export const kInlineCodeStyle = "inline-code-style";
@@ -525,27 +522,10 @@ export function readRenderedContents(
         const title = previewImageEl.getAttribute("title") !== null
           ? previewImageEl.getAttribute("title") as string
           : undefined;
-        const htmlSrc = (forFilePath: string, height?: string) => {
-          const imgAbsPath = join(dirname(filePath), src);
-          const relativePath = relative(dirname(forFilePath), imgAbsPath);
-          const newImageEl = doc.createElement("img");
-          newImageEl.setAttribute("src", relativePath);
-          if (alt) {
-            newImageEl.setAttribute("alt", alt);
-          }
-          if (title) {
-            newImageEl.setAttribute("title", title);
-          }
-          if (height) {
-            newImageEl.setAttribute("height", height);
-          }
-          return newImageEl.outerHTML;
-        };
         return {
           src,
           alt,
           title,
-          htmlSrc,
         };
       }
     }
