@@ -332,8 +332,10 @@ export function completeListingItems(
       regex.lastIndex = 0;
 
       // Use a regex to find image placeholders
-      // TODO: need to deal with src vs data-src
-      // TODO: Why are some paths getting prefixed with a `.`
+      // Placeholders are there to permit images to be appear in the
+      // rendered content (e.g. plots from computations) and for those
+      // to be used. If an image can't be found this way, a placeholder
+      // div will be returned instead.
       const imgRegex = imagePlaceholderRegex;
       imgRegex.lastIndex = 0;
       let imgMatch = imgRegex.exec(fileContents);
