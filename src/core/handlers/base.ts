@@ -526,7 +526,7 @@ export const baseHandler: LanguageHandler = {
     ];
 
     if (options[kCodeFold] !== undefined) {
-      cellOutputAttrs.push(`code-fold="${options[kCodeFold]}"`);
+      cellInputAttrs.push(`code-fold="${options[kCodeFold]}"`);
     }
 
     switch (options.echo) {
