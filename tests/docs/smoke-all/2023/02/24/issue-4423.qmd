@@ -1,0 +1,19 @@
+---
+title: "Mermaid code-fold"
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["details summary"]
+        - []
+---
+
+```{mermaid}
+%%| echo: true
+%%| code-fold: true
+%%| code-summary: "Show code"
+ 
+flowchart LR
+    id1{{This is the text in the box}}
+```

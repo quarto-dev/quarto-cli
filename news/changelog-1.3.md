@@ -80,6 +80,7 @@
 - Remove support for tooltips, which appear to not be working in mermaid 9.2.2.
 - Add support for `fig-align` in mermaid diagrams in HTML format ([#3294](https://github.com/quarto-dev/quarto-cli/issues/3294)).
 - Add support for `%%| file` mermaid cell option ([#3665](https://github.com/quarto-dev/quarto-cli/issues/3665)).
+- Fix `code-fold` support in mermaid (and dot) diagrams ([#4423](https://github.com/quarto-dev/quarto-cli/issues/4423)).
 
 ## Dates
 
