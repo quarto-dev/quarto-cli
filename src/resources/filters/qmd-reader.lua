@@ -29,7 +29,14 @@ function find_invalid_tags(str)
   --   we disallow "\n" to avoid multiple lines
 
   -- no | in lua patterns...
-  local patterns = {"^%s*(```+%s*)(%{+[^.=\n]*%}+)", "\n%s*(```+%s*)(%{+[^.=\n]+%}+)"}
+
+  -- (c standard, 7.4.1.10, isspace function)
+  -- %s catches \n and \r, so we must use [ \t\f\v] instead
+
+  local patterns = {
+    "^[ \t\f\v]*(```+[ \t\f\v]*)(%{+[^.=\n\r]*%}+)", 
+    "\n[ \t\f\v]*(```+[ \t\f\v]*)(%{+[^.=\n\r]+%}+)"
+  }
   function find_it(init)
     for _, pattern in ipairs(patterns) do
       local range_start, range_end, ticks, tag = str:find(pattern, init)
@@ -79,7 +86,8 @@ function escape_invalid_tags(str)
       os.exit(1)
     end
     replacements[replacement] = k
-    local patterns = {"^(%s*```+%s*)" .. k, "(\n%s*```+%s*)" .. k}
+    print(replacement, k)
+    local patterns = {"^([ \t\f\v]*```+[ \t\f\v]*)" .. k, "(\n[ \t\f\v]*```+[ \t\f\v]*)" .. k}
     str = str:gsub(patterns[1], "%1" .. replacement):gsub(patterns[2], "%1" .. replacement)
   end
   return str, replacements
