@@ -132,22 +132,18 @@ function applyTableCaptions(el, tblCaptions, tblLabels)
   return pandoc.walk_block(el, {
     Table = function(el)
       if idx <= #tblLabels then
-        local table = pandoc.utils.to_simple_table(el)
+        local cap = pandoc.Inlines({})
         if #tblCaptions[idx] > 0 then
-          table.caption = pandoc.List()
-          tappend(table.caption, tblCaptions[idx])
-          table.caption:insert(pandoc.Space())
-        end
-        if table.caption == nil then
-          table.caption = pandoc.List()
+          print(tblCaptions[idx])
+          cap:extend(tblCaptions[idx])
+          cap:insert(pandoc.Space())
         end
         if #tblLabels[idx] > 0 then
-          tappend(table.caption, {
-            pandoc.Str("{#" .. tblLabels[idx] .. "}")
-          })
+          cap:insert(pandoc.Str("{#" .. tblLabels[idx] .. "}"))
         end
         idx = idx + 1
-        return pandoc.utils.from_simple_table(table)
+        el.caption.long = pandoc.Plain(cap)
+        return el
       end
     end,
     RawBlock = function(raw)
