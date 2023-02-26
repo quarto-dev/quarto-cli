@@ -688,7 +688,9 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
 
     // Process the collapse state if this is an UL
     if (el.tagName === "UL") {
-      if (
+      if (tocOpenDepth === -1 && depth > 1) {
+        el.classList.add("collapse");
+      } else if (
         depth <= tocOpenDepth ||
         hasActiveChild ||
         prevSiblingIsActiveLink(el)

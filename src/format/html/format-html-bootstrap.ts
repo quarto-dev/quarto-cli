@@ -25,7 +25,7 @@ import {
   kSectionDivs,
   kTargetFormat,
   kTocDepth,
-  kTocDepthExanded,
+  kTocExpand,
   kTocLocation,
 } from "../../config/constants.ts";
 import {
@@ -294,14 +294,14 @@ function bootstrapHtmlPostprocessor(
       // activate selection behavior for this
       toc.classList.add("toc-active");
 
-      const expanded = format.metadata[kTocDepthExanded];
+      const expanded = format.metadata[kTocExpand];
       if (expanded !== undefined) {
         if (expanded === true) {
           toc.setAttribute("data-toc-expanded", 99);
         } else if (expanded) {
           toc.setAttribute("data-toc-expanded", expanded);
         } else {
-          toc.setAttribute("data-toc-expanded", 0);
+          toc.setAttribute("data-toc-expanded", -1);
         }
       }
       // add nav-link class to the TOC links
