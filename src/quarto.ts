@@ -22,6 +22,7 @@ import {
   logOptions,
 } from "./core/log.ts";
 import { cleanupSessionTempDir, initSessionTempDir } from "./core/temp.ts";
+import { removeFlags } from "./core/flags.ts";
 import { quartoConfig } from "./core/quarto.ts";
 import { execProcess } from "./core/process.ts";
 import { pandocBinaryPath } from "./core/resources.ts";
@@ -131,11 +132,16 @@ if (import.meta.main) {
     // initialize logger
     await initializeLogger(logOptions(args));
 
-    // initialize profile
-    setProfileFromArg(args);
+    // initialize profile (remove from args)
+    let quartoArgs = [...Deno.args];
+    if (setProfileFromArg(args)) {
+      const removeArgs = new Map<string, boolean>();
+      removeArgs.set("--profile", true);
+      quartoArgs = removeFlags(quartoArgs, removeArgs);
+    }
 
     // run quarto
-    await quarto(Deno.args, (cmd) => {
+    await quarto(quartoArgs, (cmd) => {
       cmd = appendLogOptions(cmd);
       return appendProfileArg(cmd);
     });
