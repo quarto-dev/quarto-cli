@@ -6,7 +6,7 @@
 */
 
 import { Document, Element } from "../../core/deno-dom.ts";
-import { join } from "path/mod.ts";
+import { dirname, isAbsolute, join, relative } from "path/mod.ts";
 
 import { renderEjs } from "../../core/ejs.ts";
 import { formatResourcePath } from "../../core/resources.ts";
@@ -333,7 +333,7 @@ function bootstrapHtmlPostprocessor(
     // Inject links to other formats if there is another
     // format that of this file that has been rendered
     if (format.render[kFormatLinks] !== false) {
-      processAlternateFormatLinks(options, doc, format, resources);
+      processAlternateFormatLinks(input, options, doc, format, resources);
     }
 
     // Look for included / embedded notebooks and include those
@@ -466,6 +466,7 @@ const fileBsIconName = (format: Format) => {
 };
 
 function processAlternateFormatLinks(
+  input: string,
   options: {
     inputMetadata: Metadata;
     inputTraits: PandocInputTraits;
@@ -518,8 +519,12 @@ function processAlternateFormatLinks(
         if (!isHtmlOutput(renderedFormat.format.pandoc, true)) {
           const li = doc.createElement("li");
 
+          const relPath = isAbsolute(renderedFormat.path)
+            ? relative(dirname(input), renderedFormat.path)
+            : renderedFormat.path;
+
           const link = doc.createElement("a");
-          link.setAttribute("href", renderedFormat.path);
+          link.setAttribute("href", relPath);
           const dlAttrValue = fileDownloadAttr(
             renderedFormat.format,
             renderedFormat.path,
