@@ -86,7 +86,6 @@ function escape_invalid_tags(str)
       os.exit(1)
     end
     replacements[replacement] = k
-    print(replacement, k)
     local patterns = {"^([ \t\f\v]*```+[ \t\f\v]*)" .. k, "(\n[ \t\f\v]*```+[ \t\f\v]*)" .. k}
     str = str:gsub(patterns[1], "%1" .. replacement):gsub(patterns[2], "%1" .. replacement)
   end
