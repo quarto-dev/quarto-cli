@@ -141,6 +141,7 @@
 ## HTML Output
 
 - HTML output will not decorate links within source code (for example, from `code-link: true`) with external icons. (#3755)
+- Use `toc-depth-expanded` to control to what level the TOC will expand by default in HTML documents.
 
 ## Miscellaneous
 

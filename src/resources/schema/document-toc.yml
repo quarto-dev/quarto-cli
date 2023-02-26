@@ -41,6 +41,14 @@
     formats: [$epub-all, $odt-all, $office-all, $pdf-all, $html-doc, revealjs]
   description: The title used for the table of contents.
 
+- name: toc-depth-expanded
+  schema: number
+  default: 1
+  tags:
+    formats: [$html-doc]
+  description: |
+    Specifies the depth of items in the table of contents that should be displayed as expanded in HTML output.
+
 - name: lof
   schema: boolean
   default: false

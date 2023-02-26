@@ -17005,6 +17005,17 @@ try {
             description: "The title used for the table of contents."
           },
           {
+            name: "toc-depth-expanded",
+            schema: "number",
+            default: 1,
+            tags: {
+              formats: [
+                "$html-doc"
+              ]
+            },
+            description: "Specifies the depth of items in the table of contents that should be displayed as expanded in HTML output.\n"
+          },
+          {
             name: "lof",
             schema: "boolean",
             default: false,
@@ -20989,7 +21000,8 @@ try {
             long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
-          "internal-schema-hack"
+          "internal-schema-hack",
+          "Specifies the depth of items in the table of contents that should be\ndisplayed as expanded in HTML output."
         ],
         "schema/external-schemas.yml": [
           {
@@ -21214,12 +21226,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 151251,
+          _internalId: 151253,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 151243,
+              _internalId: 151245,
               type: "enum",
               enum: [
                 "png",
@@ -21235,7 +21247,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 151250,
+              _internalId: 151252,
               type: "anyOf",
               anyOf: [
                 {

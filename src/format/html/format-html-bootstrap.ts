@@ -25,6 +25,7 @@ import {
   kSectionDivs,
   kTargetFormat,
   kTocDepth,
+  kTocDepthExanded,
   kTocLocation,
 } from "../../config/constants.ts";
 import {
@@ -293,6 +294,10 @@ function bootstrapHtmlPostprocessor(
       // activate selection behavior for this
       toc.classList.add("toc-active");
 
+      const expanded = format.metadata[kTocDepthExanded];
+      if (expanded) {
+        toc.setAttribute("data-toc-expanded", expanded);
+      }
       // add nav-link class to the TOC links
       const tocLinks = doc.querySelectorAll('nav[role="doc-toc"] > ul a');
       for (let i = 0; i < tocLinks.length; i++) {
