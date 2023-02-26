@@ -295,8 +295,14 @@ function bootstrapHtmlPostprocessor(
       toc.classList.add("toc-active");
 
       const expanded = format.metadata[kTocDepthExanded];
-      if (expanded) {
-        toc.setAttribute("data-toc-expanded", expanded);
+      if (expanded !== undefined) {
+        if (expanded === true) {
+          toc.setAttribute("data-toc-expanded", 99);
+        } else if (expanded) {
+          toc.setAttribute("data-toc-expanded", expanded);
+        } else {
+          toc.setAttribute("data-toc-expanded", 0);
+        }
       }
       // add nav-link class to the TOC links
       const tocLinks = doc.querySelectorAll('nav[role="doc-toc"] > ul a');

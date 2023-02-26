@@ -460,7 +460,7 @@ export const kDescription = "description";
 export const kHideDescription = "hide-description";
 export const kTocTitle = "toc-title";
 export const kTocLocation = "toc-location";
-export const kTocDepthExanded = "toc-depth-expanded";
+export const kTocDepthExanded = "toc-expanded";
 export const kLang = "lang";
 export const kOrder = "order";
 

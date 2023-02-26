@@ -17005,15 +17005,20 @@ try {
             description: "The title used for the table of contents."
           },
           {
-            name: "toc-depth-expanded",
-            schema: "number",
+            name: "toc-expanded",
+            schema: {
+              anyOf: [
+                "number",
+                "boolean"
+              ]
+            },
             default: 1,
             tags: {
               formats: [
                 "$html-doc"
               ]
             },
-            description: "Specifies the depth of items in the table of contents that should be displayed as expanded in HTML output.\n"
+            description: "Specifies the depth of items in the table of contents that should be displayed as expanded in HTML output. Use `true` to expand all or `false` to collapse all.\n"
           },
           {
             name: "lof",
@@ -20384,6 +20389,7 @@ try {
           "Specify the number of section levels to include in the table of\ncontents. The default is 3",
           "Location for table of contents (<code>body</code>, <code>left</code>,\nor <code>right</code> (default)).",
           "The title used for the table of contents.",
+          "Specifies the depth of items in the table of contents that should be\ndisplayed as expanded in HTML output.",
           "Print a list of figures in the document.",
           "Print a list of tables in the document.",
           "Setting this to false prevents this document from being included in\nsearches.",
@@ -21000,8 +21006,7 @@ try {
             long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
-          "internal-schema-hack",
-          "Specifies the depth of items in the table of contents that should be\ndisplayed as expanded in HTML output."
+          "internal-schema-hack"
         ],
         "schema/external-schemas.yml": [
           {
@@ -21226,12 +21231,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 151253,
+          _internalId: 151394,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 151245,
+              _internalId: 151386,
               type: "enum",
               enum: [
                 "png",
@@ -21247,7 +21252,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 151252,
+              _internalId: 151393,
               type: "anyOf",
               anyOf: [
                 {
