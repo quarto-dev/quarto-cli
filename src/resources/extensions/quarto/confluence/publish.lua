@@ -92,6 +92,10 @@ function Writer (doc, opts)
     RawBlock = function ()
       -- Raw blocks inclding arbirtary HTML like JavaScript is not supported in CSF
       return ""
+    end,
+    RawInline = function (inline)
+      local renderString = confluence.RawInlineConfluence(inline.text)
+      return pandoc.RawInline('html', renderString)
     end
   }
 

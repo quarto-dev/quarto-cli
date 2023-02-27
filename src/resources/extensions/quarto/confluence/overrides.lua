@@ -38,7 +38,7 @@ local function dumpObject(o)
   end
 end
 
-local function dump(label, object)
+local function log(label, object)
   print(label or '' .. ': ', dumpObject(object))
 end
 
@@ -183,6 +183,25 @@ function HTMLAnchorConfluence(id)
   }
 end
 
+function RawInlineConfluence(text)
+  if type(text) ~= "string" then return text end
+
+  -- Confluence expects closed Void Elements as proper XHTML
+  -- https://github.com/quarto-dev/quarto-cli/issues/4479
+
+  if (string.lower(text) == [[<br>]]) then
+    return "<br/>"
+  end
+
+  local match = string.match(text, "<img (.-)>")
+  local matchClosed = string.match(text, "<img (.-)/>")
+  if (match and not matchClosed) then
+    return string.gsub(text, ">", "/>")
+  end
+
+  return text
+end
+
 return {
   CaptionedImageConfluence = CaptionedImageConfluence,
   CodeBlockConfluence = CodeBlockConfluence,
@@ -190,6 +209,7 @@ return {
   TableConfluence = TableConfluence,
   CalloutConfluence = CalloutConfluence,
   HTMLAnchorConfluence = HTMLAnchorConfluence,
+  RawInlineConfluence = RawInlineConfluence,
   escape = escape,
   interpolate = interpolate
 }
