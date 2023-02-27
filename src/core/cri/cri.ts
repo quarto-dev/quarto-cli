@@ -12,6 +12,7 @@ import { getBrowserExecutablePath } from "../puppeteer.ts";
 import { Semaphore } from "../lib/semaphore.ts";
 import { findOpenPort } from "../port.ts";
 import { getNamedLifetime, ObjectWithLifetime } from "../lifetimes.ts";
+import { sleep } from "../async.ts";
 
 async function waitForServer(port: number, timeout = 3000) {
   const interval = 50;
@@ -111,7 +112,17 @@ export async function criClient(appPath?: string, port?: number) {
     rawClient: () => client,
 
     open: async (url: string) => {
-      client = await cdp({ port });
+      const maxTries = 5;
+      for (let i = 0; i < maxTries; ++i) {
+        try {
+          client = await cdp({ port });
+        } catch (e) {
+          if (i === maxTries - 1) {
+            throw e;
+          }
+          await sleep(500);
+        }
+      }
       const { Network, Page } = client;
       await Network.enable();
       await Page.enable();
