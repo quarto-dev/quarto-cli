@@ -277,6 +277,10 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
             }
           },
           getItems({ query }) {
+            if (query === null || query === "") {
+              return [];
+            }
+
             const limit = quartoSearchOptions.limit;
             if (quartoSearchOptions.algolia) {
               return algoliaSearch(query, limit, quartoSearchOptions.algolia);
