@@ -186,9 +186,9 @@ end
 function RawInlineConfluence(text)
   if type(text) ~= "string" then return text end
 
-  -- Confluence expects closed Void as proper XHTML
-
+  -- Confluence expects closed Void Elements as proper XHTML
   -- https://github.com/quarto-dev/quarto-cli/issues/4479
+
   if (string.lower(text) == [[<br>]]) then
     return "<br/>"
   end
