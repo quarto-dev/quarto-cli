@@ -38,7 +38,7 @@ local function dumpObject(o)
   end
 end
 
-local function dump(label, object)
+local function log(label, object)
   print(label or '' .. ': ', dumpObject(object))
 end
 
@@ -191,6 +191,12 @@ function RawInlineConfluence(text)
   -- https://github.com/quarto-dev/quarto-cli/issues/4479
   if (string.lower(text) == [[<br>]]) then
     return "<br/>"
+  end
+
+  local match = string.match(text, "<img (.-)>")
+  local matchClosed = string.match(text, "<img (.-)/>")
+  if (match and not matchClosed) then
+    return string.gsub(text, ">", "/>")
   end
 
   return text
