@@ -267,6 +267,50 @@ function TestCalloutConfluence:testInvalidType()
   lu.assertEquals(actual, expected)
 end
 
+TestRawInlineConfluence_BR = {}
+local function checkRawInlineConfluence (value, expected)
+  local actual = confluence.RawInlineConfluence(value)
+  lu.assertEquals(actual, expected)
+end
+
+function TestRawInlineConfluence_BR:testBasicString()
+  checkRawInlineConfluence("Hello World", "Hello World")
+end
+
+function TestRawInlineConfluence_BR:testBRClosed()
+  checkRawInlineConfluence("<br/>", "<br/>")
+end
+
+function TestRawInlineConfluence_BR:testBROpen()
+  checkRawInlineConfluence("<br>", "<br/>")
+end
+
+function TestRawInlineConfluence_BR:testBROpenMixedCase()
+  checkRawInlineConfluence("<bR>", "<br/>")
+  checkRawInlineConfluence("<BR>", "<br/>")
+  checkRawInlineConfluence("<Br>", "<br/>")
+end
+
+function TestRawInlineConfluence_BR:testEmpty()
+  checkRawInlineConfluence("", "")
+end
+
+function TestRawInlineConfluence_BR:testNil()
+  checkRawInlineConfluence(nil, nil)
+end
+
+function TestRawInlineConfluence_BR:testNil()
+  checkRawInlineConfluence(nil, nil)
+end
+
+function TestRawInlineConfluence_BR:testPartial()
+  checkRawInlineConfluence("<br", "<br")
+end
+
+function TestRawInlineConfluence_BR:testDouble()
+  checkRawInlineConfluence("<br//>", "<br//>")
+end
+
 TestBuildAnchorConfluence = {}
 function TestBuildAnchorConfluence:testBasicAnchor()
   local expected = [[<ac:structured-macro ac:name="anchor" ac:schema-version="1" ac:local-id="a6aa6f25-0bee-4a7f-929b-71fcb7eba592" ac:macro-id="d2cb5be1217ae6e086bc60005e9d27b7"><ac:parameter ac:name="">fake-id</ac:parameter></ac:structured-macro>]]

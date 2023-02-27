@@ -183,6 +183,19 @@ function HTMLAnchorConfluence(id)
   }
 end
 
+function RawInlineConfluence(text)
+  if type(text) ~= "string" then return text end
+
+  -- Confluence expects closed Void as proper XHTML
+
+  -- https://github.com/quarto-dev/quarto-cli/issues/4479
+  if (string.lower(text) == [[<br>]]) then
+    return "<br/>"
+  end
+
+  return text
+end
+
 return {
   CaptionedImageConfluence = CaptionedImageConfluence,
   CodeBlockConfluence = CodeBlockConfluence,
@@ -190,6 +203,7 @@ return {
   TableConfluence = TableConfluence,
   CalloutConfluence = CalloutConfluence,
   HTMLAnchorConfluence = HTMLAnchorConfluence,
+  RawInlineConfluence = RawInlineConfluence,
   escape = escape,
   interpolate = interpolate
 }
