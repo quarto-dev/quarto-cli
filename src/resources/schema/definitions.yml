@@ -1738,12 +1738,15 @@
       language:
         string:
           description:
-            short: The language of the item.
+            short: The language of the item (used only for citation of the item).
             long: |
-              The language of the item;
+              The language of the item (used only for citation of the item).
 
               Should be entered as an ISO 639-1 two-letter language code (e.g. "en", "zh"), 
-              optionally with a two-letter locale code (e.g. "de-DE", "de-AT")
+              optionally with a two-letter locale code (e.g. "de-DE", "de-AT").
+
+              This does not change the language of the item, instead it documents 
+              what language the item uses (which may be used in citing the item).
       license:
         string:
           description:

@@ -3533,8 +3533,8 @@
           "language": {
             "string": {
               "description": {
-                "short": "The language of the item.",
-                "long": "The language of the item;\n\nShould be entered as an ISO 639-1 two-letter language code (e.g. \"en\", \"zh\"), \noptionally with a two-letter locale code (e.g. \"de-DE\", \"de-AT\")\n"
+                "short": "The language of the item (used only for citation of the item).",
+                "long": "The language of the item (used only for citation of the item).\n\nShould be entered as an ISO 639-1 two-letter language code (e.g. \"en\", \"zh\"), \noptionally with a two-letter locale code (e.g. \"de-DE\", \"de-AT\").\n\nThis does not change the language of the item, instead it documents \nwhat language the item uses (which may be used in citing the item).\n"
               }
             }
           },
@@ -13364,7 +13364,7 @@
     "Specify the number of section levels to include in the table of\ncontents. The default is 3",
     "Location for table of contents (<code>body</code>, <code>left</code>,\nor <code>right</code> (default)).",
     "The title used for the table of contents.",
-    "Specifies the depth of items in the table of contents that should be\ndisplayed as expanded in HTML output.",
+    "Specifies the depth of items in the table of contents that should be\ndisplayed as expanded in HTML output. Use <code>true</code> to expand\nall or <code>false</code> to collapse all.",
     "Print a list of figures in the document.",
     "Print a list of tables in the document.",
     "Setting this to false prevents this document from being included in\nsearches.",
@@ -14206,12 +14206,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 151394,
+    "_internalId": 151724,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 151386,
+        "_internalId": 151716,
         "type": "enum",
         "enum": [
           "png",
@@ -14227,7 +14227,7 @@
         "exhaustiveCompletions": true
       },
       "theme": {
-        "_internalId": 151393,
+        "_internalId": 151723,
         "type": "anyOf",
         "anyOf": [
           {
