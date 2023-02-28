@@ -10,6 +10,7 @@ import { createTempContext } from "../../core/temp.ts";
 import { installExtension } from "../../extension/install.ts";
 
 import { info } from "log/mod.ts";
+import { greet } from "../greet.ts";
 
 export const addCommand = new Command()
   .name("add")
@@ -42,6 +43,7 @@ export const addCommand = new Command()
       options: { prompt?: boolean; embed?: string; updatePath?: boolean },
       extension: string,
     ) => {
+      greet();
       await initYamlIntelligenceResourcesFromFilesystem();
       const temp = createTempContext();
       try {

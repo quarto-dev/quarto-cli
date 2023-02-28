@@ -16,6 +16,7 @@ import { renderResultFinalOutput } from "./render.ts";
 import { render, renderServices } from "./render-shared.ts";
 import { RenderResult } from "./types.ts";
 import { kCliffyImplicitCwd } from "../../config/constants.ts";
+import { greet } from "../greet.ts";
 
 export const renderCommand = new Command()
   .name("render")
@@ -124,6 +125,8 @@ export const renderCommand = new Command()
   )
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, input?: string, ...args: string[]) => {
+    greet();
+
     // remove implicit clean argument (re-injected based on what the user
     // actually passes in flags.ts)
     if (options === undefined) {

@@ -19,6 +19,8 @@ import {
   projectTypes,
 } from "../../project/types/project-types.ts";
 import { kMarkdownEngine } from "../../execute/types.ts";
+import { info } from "log/mod.ts";
+import { quartoConfig } from "../../core/quarto.ts";
 
 // ensures project types are registered
 import "../../project/types/register.ts";
@@ -132,6 +134,8 @@ export const createProjectCommand = new Command()
   )
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, dir?: string) => {
+    info(`This is quarto ${quartoConfig.version()}.`);
+
     if (dir === undefined || dir === ".") {
       dir = Deno.cwd();
     }
