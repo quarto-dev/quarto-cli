@@ -141,7 +141,7 @@ export async function criClient(appPath?: string, port?: number) {
 
           // see https://carlos-scheidegger.quarto.pub/failure-rates-in-cri-initialization/
           // for a justification of this number.
-          await sleep(33);
+          await sleep(44);
         }
       }
       const { Network, Page } = client;
