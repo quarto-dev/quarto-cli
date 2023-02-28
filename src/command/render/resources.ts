@@ -18,6 +18,7 @@ import { extractResolvedResourceFilenamesFromQmd } from "../../execute/ojs/extra
 import { asMappedString } from "../../core/mapped-text.ts";
 import { RenderedFile, RenderResourceFiles } from "./types.ts";
 import { PartitionedMarkdown } from "../../core/pandoc/types.ts";
+import { isAbsolute } from "https://deno.land/std@0.166.0/path/win32.ts";
 
 export function resourcesFromMetadata(resourcesMetadata?: unknown) {
   // interrogate / typecast raw yaml resources into array of strings
@@ -50,7 +51,12 @@ export async function resolveFileResources(
     .concat(
       ...excludeDirs,
     );
-  const resources = resolvePathGlobs(fileDir, globs, ignore);
+
+  const absPathGlobs = globs.map((glob) => {
+    return isAbsolute(glob) ? glob : join(rootDir, glob);
+  });
+
+  const resources = resolvePathGlobs(fileDir, absPathGlobs, ignore);
   if (markdown.length > 0 && !skipOjsDiscovery) {
     resources.include.push(
       ...(await extractResolvedResourceFilenamesFromQmd(
