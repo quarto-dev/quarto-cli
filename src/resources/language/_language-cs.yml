@@ -58,6 +58,12 @@ search-more-matches-text: "dalších výsledků v tomto dokumentu"
 search-clear-button-title: "Vymazat"
 search-detached-cancel-button-title: "Zrušit"
 search-submit-button-title: "Odeslat"
+search: "Hledat"
+
+toggle-sidebar: "Přepnout postranní panel"
+toggle-dark-mode: "Přepnout tmavý režim"
+toggle-reader-mode: "Přepnout režim čtečky"
+toggle-navigation: "Přepnout navigaci"
 
 crossref-fig-title: "Obrázek"
 crossref-tbl-title: "Tabulka"

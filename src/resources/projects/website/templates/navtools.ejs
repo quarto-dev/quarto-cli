@@ -46,12 +46,12 @@ const isWide = toolCount > 2; %>
 <% }) %>
 
 <% if (darkToggle) { %>  
-  <% partial('navdarktoggle.ejs', { classes: 'quarto-navigation-tool  px-1' }) %>
+  <% partial('navdarktoggle.ejs', { classes: 'quarto-navigation-tool  px-1', language: language }) %>
 <% } %>
 <% if (readerToggle) { %>
-  <% partial('navreadertoggle.ejs', { classes: 'quarto-navigation-tool px-1' }) %>
+  <% partial('navreadertoggle.ejs', { classes: 'quarto-navigation-tool px-1', language: language }) %>
 <% } %>    
 <% if (search && search === "overlay") { %>
-    <% partial('navsearch.ejs', { classes: 'quarto-navigation-tool px-1' }) %>
+    <% partial('navsearch.ejs', { classes: 'quarto-navigation-tool px-1', language: language }) %>
 <% } %>
 </div>

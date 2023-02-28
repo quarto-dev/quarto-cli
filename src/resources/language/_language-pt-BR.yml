@@ -57,6 +57,12 @@ search-more-matches-text: "mais correspondências neste documento"
 search-clear-button-title: "Limpar"
 search-detached-cancel-button-title: "Cancelar"
 search-submit-button-title: "Enviar"
+search: "Procurar"
+
+toggle-sidebar: "Alternar barra lateral"
+toggle-dark-mode: "Alternar modo escuro"
+toggle-reader-mode: "Alternar modo de leitor"
+toggle-navigation: "Alternar de navegação"
 
 crossref-fig-title: "Figura"
 crossref-tbl-title: "Tabela"

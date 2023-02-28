@@ -58,6 +58,12 @@ search-more-matches-text: "weitere Treffer in diesem Dokument"
 search-clear-button-title: "Zurücksetzen"
 search-detached-cancel-button-title: "Abbrechen"
 search-submit-button-title: "Abschicken"
+search: "Suchen"
+
+toggle-sidebar: "Seitenleiste umschalten"
+toggle-dark-mode: "Dunkelmodus umschalten"
+toggle-reader-mode: "Lesemodus umschalten"
+toggle-navigation: "Navigation umschalten"
 
 crossref-fig-title: "Abbildung"
 crossref-tbl-title: "Tabelle"

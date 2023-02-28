@@ -213,6 +213,13 @@ export const kCodeToolsHideAllCode = "code-tools-hide-all-code";
 export const kCodeToolsViewSource = "code-tools-view-source";
 export const kCodeToolsSourceCode = "code-tools-source-code";
 export const kSearchNoResultsText = "search-no-results-text";
+export const kSearch = "search";
+
+export const kToggleSidebar = "toggle-sidebar";
+export const kToggleDarkMode = "toggle-dark-mode";
+export const kToggleReaderMode = "toggle-reader-mode";
+export const kToggleNavigation = "toggle-navigation";
+
 export const kCopyButtonTooltip = "copy-button-tooltip";
 export const kCopyButtonTooltipSuccess = "copy-button-tooltip-success";
 export const kBackToTop = "back-to-top";
@@ -312,6 +319,11 @@ export const kLanguageDefaultsKeys = [
   kCodeToolsViewSource,
   kCodeToolsSourceCode,
   kSearchNoResultsText,
+  kSearch,
+  kToggleDarkMode,
+  kToggleNavigation,
+  kToggleReaderMode,
+  kToggleSidebar,
   kCopyButtonTooltip,
   kCopyButtonTooltipSuccess,
   kBackToTop,

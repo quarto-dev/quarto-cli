@@ -152,6 +152,7 @@ import {
   kRepoActionLinksEdit,
   kRepoActionLinksIssue,
   kRepoActionLinksSource,
+  kSearch,
   kSearchClearButtonTitle,
   kSearchCopyLinkTitle,
   kSearchDetatchedCancelButtonTitle,
@@ -191,6 +192,10 @@ import {
   kTocDepth,
   kTocTitleDocument,
   kTocTitleWebsite,
+  kToggleDarkMode,
+  kToggleNavigation,
+  kToggleReaderMode,
+  kToggleSidebar,
   kTopLevelDivision,
   kVariables,
   kVariant,
@@ -562,10 +567,15 @@ export interface FormatLanguage {
   [kRepoActionLinksEdit]?: string;
   [kRepoActionLinksSource]?: string;
   [kRepoActionLinksIssue]?: string;
+  [kSearch]?: string;
   [kSearchNoResultsText]?: string;
   [kCopyButtonTooltip]?: string;
   [kCopyButtonTooltipSuccess]?: string;
   [kBackToTop]?: string;
+  [kToggleDarkMode]?: string;
+  [kToggleNavigation]?: string;
+  [kToggleReaderMode]?: string;
+  [kToggleSidebar]?: string;
   [kSearchMatchingDocumentsText]?: string;
   [kSearchCopyLinkTitle]?: string;
   [kSearchHideMatchesText]?: string; // FIXME duplicate?

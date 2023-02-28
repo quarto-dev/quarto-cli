@@ -58,6 +58,12 @@ search-more-matches-text: "ulteriori risultati in questo documento"
 search-clear-button-title: "Pulire"
 search-detached-cancel-button-title: "Cancellare"
 search-submit-button-title: "Inviare"
+search: "Ricerca"
+
+toggle-sidebar: "Attiva/disattiva la barra laterale"
+toggle-dark-mode: "Attiva/disattiva la modalità oscura"
+toggle-reader-mode: "Attiva/disattiva la modalità lettore"
+toggle-navigation: "Attiva/disattiva la navigazione"
 
 crossref-fig-title: "Figura"
 crossref-tbl-title: "Tabella"

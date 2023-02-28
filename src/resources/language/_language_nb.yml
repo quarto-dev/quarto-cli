@@ -58,6 +58,12 @@ search-more-matches-text: "andre resultater i dette dokumentet"
 search-clear-button-title: "Tøm"
 search-detached-cancel-button-title: "Avbryt"
 search-submit-button-title: "Send inn"
+search: "Søk"
+
+toggle-sidebar: "Slå av eller på sidebarnavigering"
+toggle-dark-mode: "Bytt mørk modus"
+toggle-reader-mode: "Bytt lesermodus"
+toggle-navigation: "Slå på navigering"
 
 crossref-fig-title: "Figur"
 crossref-tbl-title: "Tabell"

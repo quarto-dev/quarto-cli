@@ -55,6 +55,12 @@ search-more-matches-text: "kecocokan lainnya di dokumen ini"
 search-clear-button-title: "Hapus"
 search-detached-cancel-button-title: "Batal"
 search-submit-button-title: "Kirim"
+search: "Mencari"
+
+toggle-sidebar: "Alihkan bilah sisi"
+toggle-dark-mode: "Alihkan mode gelap"
+toggle-reader-mode: "Alihkan mode pembaca"
+toggle-navigation: "Alihkan navigasi"
 
 crossref-fig-title: "Gambar"
 crossref-tbl-title: "Tabel"

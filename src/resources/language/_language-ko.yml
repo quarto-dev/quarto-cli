@@ -57,6 +57,12 @@ search-more-matches-text: "추가 검색결과"
 search-clear-button-title: "제거"
 search-detached-cancel-button-title: "취소"
 search-submit-button-title: "검색"
+search: "검색"
+
+toggle-sidebar: "사이드바 전환"
+toggle-dark-mode: "다크 모드 전환"
+toggle-reader-mode: "리더 모드 전환"
+toggle-navigation: "탐색 전환"
 
 crossref-fig-title: "그림"
 crossref-tbl-title: "표"

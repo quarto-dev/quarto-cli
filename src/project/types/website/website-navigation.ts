@@ -251,6 +251,7 @@ export async function websiteNavigationExtras(
     sidebar: disableSidebar ? undefined : expandedSidebar(href, sidebar),
     sidebarStyle: sidebarStyle(),
     footer: navigation.footer,
+    language: format.language,
   };
 
   // Determine the previous and next page
