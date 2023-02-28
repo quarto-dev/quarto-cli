@@ -74,12 +74,10 @@ export async function criClient(appPath?: string, port?: number) {
   if (port === undefined) {
     port = findOpenPort(9222);
   }
-  if (appPath === undefined) {
-    appPath = await getBrowserExecutablePath();
-  }
+  const app: string = appPath || await getBrowserExecutablePath();
 
   const cmd = [
-    appPath as string,
+    app,
     "--headless",
     "--no-sandbox",
     "--single-process",
