@@ -218,11 +218,6 @@ export async function resolveSassBundles(
   if (isHtmlOutput(pandoc, true)) {
     // We'll take care of text highlighting for HTML
     setTextHighlightStyle("none", extras);
-
-    // Remove the highlighting style from what
-    // we send to Pandoc
-    extras.pandoc = extras.pandoc || {};
-    extras.pandoc[kHighlightStyle] = undefined;
   }
 
   return extras;
