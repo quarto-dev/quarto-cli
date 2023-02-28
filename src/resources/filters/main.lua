@@ -189,6 +189,7 @@ local quartoPre = {
   { name = "pre-hidden", filter = hidden() },
   { name = "pre-contentHidden", filter = contentHidden() },
   { name = "pre-tableCaptions", filter = tableCaptions() },
+  { name = "pre-longtable_no_caption_fixup", filter = longtable_no_caption_fixup() },
   { name = "pre-code-annotations", filter = combineFilters({
     codeMeta(),
     code(),
