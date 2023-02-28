@@ -271,23 +271,6 @@ async function publish(
       return title;
     }
 
-    const fuzzyVariants: Content[] = await client.fetchMatchingTitlePages(
-      title,
-      space,
-      true
-    );
-
-    const uniqueTitle = `${title} [${fuzzyVariants.length + 2}]`;
-
-    const fuzzyTitleIsUnique: boolean = await client.isTitleUniqueInSpace(
-      uniqueTitle,
-      space
-    );
-
-    if (fuzzyTitleIsUnique) {
-      return uniqueTitle;
-    }
-
     const uuid = globalThis.crypto.randomUUID();
     const shortUUID = uuid.split("-")[0] ?? uuid;
     const uuidTitle = `${title} ${shortUUID}`;
@@ -408,7 +391,11 @@ async function publish(
       fileName
     );
 
-    const uniqueTitle = await uniquifyTitle(previousPage.title ?? title, id);
+    let uniqueTitle = titleToUpdate;
+
+    if (previousPage.title !== titleToUpdate) {
+      uniqueTitle = await uniquifyTitle(titleToUpdate, id);
+    }
 
     trace("attachmentsToUpload", attachmentsToUpload, LogPrefix.ATTACHMENT);
 
