@@ -10,6 +10,7 @@ import { createTempContext } from "../../core/temp.ts";
 import { installExtension } from "../../extension/install.ts";
 
 import { info } from "log/mod.ts";
+import { greet } from "../greet.ts";
 
 export const addCommand = new Command()
   .name("add")
