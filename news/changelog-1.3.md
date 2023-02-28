@@ -32,6 +32,7 @@
 - Allow control of the 'cite as' appendix in HTML documents using `appendix-cite-as` (pass `false`, `display`, or `bibtex`). ([#2625](https://github.com/quarto-dev/quarto-cli/issues/2625))
 - Properly anchor custom appendix sections ([#3112](https://github.com/quarto-dev/quarto-cli/issues/3112)).
 - Don't display custom appendix sections in the TOC ([#3113](https://github.com/quarto-dev/quarto-cli/issues/3113)).
+- Use custom `styles.html` template partial to better support checkbox alignment ([#4556](https://github.com/quarto-dev/quarto-cli/issues/4556)).
 
 ## Article Layout
 
