@@ -42,6 +42,7 @@ export const addCommand = new Command()
       options: { prompt?: boolean; embed?: string; updatePath?: boolean },
       extension: string,
     ) => {
+      greet();
       await initYamlIntelligenceResourcesFromFilesystem();
       const temp = createTempContext();
       try {

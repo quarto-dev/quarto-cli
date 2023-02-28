@@ -16,6 +16,7 @@ import {
   updateOrInstallTool,
 } from "../../tools/tools-console.ts";
 import { resolveCompatibleArgs } from "../remove/cmd.ts";
+import { greet } from "../greet.ts";
 
 export const updateCommand = new Command()
   .hidden()
@@ -49,10 +50,10 @@ export const updateCommand = new Command()
     "quarto update tool tinytex",
   )
   // temporarily disabled until we get things in order in 1.28.*
-  // .example(
-  //   "Update Chromium",
-  //   "quarto update tool chromium",
-  // )
+  .example(
+    "Update Chromium",
+    "quarto update tool chromium",
+  )
   .example(
     "Choose tool to update",
     "quarto update tool",
@@ -62,6 +63,7 @@ export const updateCommand = new Command()
       options: { prompt?: boolean; embed?: string },
       ...target: string[]
     ) => {
+      greet();
       await initYamlIntelligenceResourcesFromFilesystem();
       const temp = createTempContext();
       try {

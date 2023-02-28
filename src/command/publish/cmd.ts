@@ -44,6 +44,7 @@ import { ProjectContext } from "../../project/types.ts";
 import { openUrl } from "../../core/shell.ts";
 import { publishDocument, publishSite } from "../../publish/publish.ts";
 import { handleUnauthorized } from "../../publish/account.ts";
+import { greet } from "../greet.ts";
 
 export const publishCommand =
   // deno-lint-ignore no-explicit-any
@@ -133,6 +134,8 @@ export const publishCommand =
         provider?: string,
         path?: string,
       ) => {
+        greet();
+
         // if provider is a path and no path is specified then swap
         if (provider && !path && existsSync(provider)) {
           path = provider;
