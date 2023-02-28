@@ -157,7 +157,7 @@ function rstudioEditorInfo(): EditorInfo {
 
         // Write an rproj file for RStudio and open that
         const artifactName = basename(artifactPath);
-        const rProjPath = join(cwd, `${artifactName}.rproj`);
+        const rProjPath = join(cwd, `${artifactName}.Rproj`);
         Deno.writeTextFileSync(rProjPath, kRProjContents);
 
         const cmd = path.endsWith(".app") && Deno.build.os === "darwin"
