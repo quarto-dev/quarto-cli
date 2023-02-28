@@ -166,6 +166,7 @@
 - resolve YAML options correctly for comments with open+close syntax ([#3901](https://github.com/quarto-dev/quarto-cli/issues/3901)).
 - Work around rare deno tempfile creation bug ([#4352](https://github.com/quarto-dev/quarto-cli/pull/4352)).
 - Only open "safe ports" for Chromium ([#4514](https://github.com/quarto-dev/quarto-cli/pull/4514)).
+- Detect potential bad argument ordering in `quarto render` ([#3581](https://github.com/quarto-dev/quarto-cli/pull/3581)).
 
 ## Pandoc filter changes
 

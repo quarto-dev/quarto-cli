@@ -47,6 +47,7 @@ import "./core/handlers/handlers.ts";
 
 // ensures project types are registered
 import "./project/types/register.ts";
+import { kCliffyImplicitCwd } from "./config/constants.ts";
 
 export async function quarto(
   args: string[],
@@ -81,12 +82,18 @@ export async function quarto(
   // us to evade a cliffy cli parsing issue where it requires
   // at least one defined argument to be parsed before it can
   // access undefined arguments.
+  //
+  // we do this via a UUID so that we can detect this happened
+  // and issue a warning in the case where the user might
+  // be calling render with parameters in incorrect order.
+  //
+  // see https://github.com/quarto-dev/quarto-cli/issues/3581
   if (
     args.length > 1 &&
     (args[0] === "render" || args[0] === "preview") &&
     args[1].startsWith("-")
   ) {
-    args = [args[0], Deno.cwd(), ...args.slice(1)];
+    args = [args[0], kCliffyImplicitCwd, ...args.slice(1)];
   }
 
   const quartoCommand = new Command()
