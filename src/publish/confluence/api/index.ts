@@ -83,10 +83,6 @@ export class ConfluenceClient {
 
     let cql = `title="${encodedTitle}"`;
 
-    if (isFuzzy) {
-      cql = `title~"*${encodedTitle}*"`;
-    }
-
     const CQL_CONTEXT =
       "%7B%22contentStatuses%22%3A%5B%22archived%22%2C%20%22current%22%2C%20%22draft%22%5D%7D"; //{"contentStatuses":["archived", "current", "draft"]}
 
