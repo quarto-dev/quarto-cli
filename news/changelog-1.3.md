@@ -45,6 +45,7 @@
 - Properly support scss imports for RevealJS extensions ([#3414](https://github.com/quarto-dev/quarto-cli/issues/3414))
 - Authors on the title slides now correctly object customization of the `$presentation-title-slide-text-align` scss variable ([#3843](https://github.com/quarto-dev/quarto-cli/issues/3843))
 - Properly support `show-notes: separate-page` [#3996](https://github.com/quarto-dev/quarto-cli/issues/3996)
+- Improve footnote / aside layout for centered slides. [#4297](https://github.com/quarto-dev/quarto-cli/issues/4297)
 
 ## Dates
 
@@ -121,6 +122,9 @@
 - Escape HTML from code cells that appears inline in search results ([#4404](https://github.com/quarto-dev/quarto-cli/issues/4404))
 - Use input last modified timestamp when updating sitemap ([#3251](https://github.com/quarto-dev/quarto-cli/issues/3251))
 - Add support for overriding the url used to report an issue with a website using `issue-url` (which can be provided even if there is no repo provided for the website).
+- Properly localize search button title and various toggle aria-labels ([#4559](https://github.com/quarto-dev/quarto-cli/issues/4559))
+- Support `navbar: true` to turn on a top navbar even if there are no contents
+- Improve title recognition for pages that don't include a title in metadata ([#4528](https://github.com/quarto-dev/quarto-cli/issues/4528))
 
 ## Books
 
@@ -178,7 +182,12 @@
 - fix rendering of individual project files to stdout ([#4052](https://github.com/quarto-dev/quarto-cli/issues/4052)).
 - fix previewing docusaurus project on Windows ([#4312](https://github.com/quarto-dev/quarto-cli/issues/4312)).
 
+## Publishing
+
+- Fix error publishing when an `output-dir` is specified ([#4158](https://github.com/quarto-dev/quarto-cli/issues/4158)).
+
 ## Other
 
 - fix error when running the command `quarto render -h` to receive help ([#3202](https://github.com/quarto-dev/quarto-cli/issues/3202)).
 - Fix error when rendering a document with an extension which provides a directory as `format-resources` ([#4377](https://github.com/quarto-dev/quarto-cli/issues/4377)).
+- Fix incorrect copying of resource files during rendering ([#4544](https://github.com/quarto-dev/quarto-cli/issues/4544))
