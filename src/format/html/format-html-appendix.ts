@@ -189,7 +189,12 @@ export async function processDocumentAppendix(
               return { text: license };
             }
           } else {
-            return license as { url?: string; text: string };
+            const licenseObj = license as Record<string, unknown>;
+            return {
+              text: licenseObj.text as string,
+              url: licenseObj.link,
+              type: licenseObj.type,
+            };
           }
         };
         const normalizedLicenses = (licenses: unknown) => {
