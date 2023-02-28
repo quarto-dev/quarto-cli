@@ -120,7 +120,28 @@ export async function criClient(appPath?: string, port?: number) {
           if (i === maxTries - 1) {
             throw e;
           }
-          await sleep(500);
+          // sleep(0) caused 42/100 crashes
+          // sleep(1) caused 42/100 crashes
+          // sleep(2) caused 15/100 crashes
+          // sleep(3) caused 13/100 crashes
+          // sleep(4) caused 8/100 crashes
+          // sleep(5) caused 1/100 crashes
+          // sleep(6) caused 1/100 crashes
+          // sleep(7) caused 1/100 crashes
+          // sleep(8) caused 1/100 crashes
+          // sleep(9) caused 0/100 crashes
+          // sleep(10) caused 0/100 crashes
+          // sleep(11) caused 0/100 crashes
+          // sleep(12) caused 0/100 crashes
+          // sleep(13) caused 1/100 crashes
+          // sleep(14) caused 1/100 crashes
+          // sleep(15) caused 0/100 crashes
+          // sleep(16) caused 0/100 crashes
+          // sleep(17) caused 0/100 crashes
+
+          // see https://carlos-scheidegger.quarto.pub/failure-rates-in-cri-initialization/
+          // for a justification of this number.
+          await sleep(33);
         }
       }
       const { Network, Page } = client;
