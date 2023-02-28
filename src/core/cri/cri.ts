@@ -139,9 +139,10 @@ export async function criClient(appPath?: string, port?: number) {
           // sleep(16) caused 0/100 crashes
           // sleep(17) caused 0/100 crashes
 
-          // see https://carlos-scheidegger.quarto.pub/failure-rates-in-cri-initialization/
-          // for a justification of this number.
-          await sleep(44);
+          // https://carlos-scheidegger.quarto.pub/failure-rates-in-cri-initialization/
+          // suggests that 44ms is a good value. We use 100ms to try and account for slower
+          // machines.
+          await sleep(100);
         }
       }
       const { Network, Page } = client;
