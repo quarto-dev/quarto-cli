@@ -211,7 +211,7 @@ async function writePandocTemplates(
       ],
       [htmlOutdir]: [
         { from: "default.html5", to: "html.template" },
-        { from: "styles.html" },
+        { from: "styles.html", to: "html.styles" },
       ],
       [revealOutdir]: [
         { from: "default.revealjs", to: "revealjs.template" },
