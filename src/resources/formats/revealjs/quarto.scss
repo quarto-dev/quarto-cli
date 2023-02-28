@@ -160,6 +160,11 @@ $selectionColor: $selection-color !default;
 
 /*-- scss:rules --*/
 
+.reveal.center .slide aside,
+.reveal.center .slide div.aside {
+  position: initial;
+}
+
 section.has-light-background {
   &,
   h1,

@@ -448,7 +448,10 @@ export async function runPandoc(
       printAllDefaults = mergeConfigs(extras.pandoc, printAllDefaults);
 
       // Special case - theme is resolved on extras and should override allDefaults
-      if (extras.pandoc[kHighlightStyle]) {
+      if (extras.pandoc[kHighlightStyle] === null) {
+        delete printAllDefaults[kHighlightStyle];
+        allDefaults[kHighlightStyle] = null;
+      } else if (extras.pandoc[kHighlightStyle]) {
         delete printAllDefaults[kHighlightStyle];
         allDefaults[kHighlightStyle] = extras.pandoc[kHighlightStyle];
       } else {
@@ -1314,9 +1317,8 @@ function resolveTextHighlightStyle(
 
   if (highlightTheme === "none") {
     // Clear the highlighting
-    if (extras.pandoc) {
-      delete extras.pandoc[kHighlightStyle];
-    }
+    extras.pandoc = extras.pandoc || {};
+    extras.pandoc[kHighlightStyle] = null;
     return extras;
   }
 
