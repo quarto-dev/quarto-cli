@@ -8,46 +8,40 @@ function tableWpPanel(divEl, layout, caption)
   })
 end
 
-
 function wpDivFigure(div)
   
-  -- options
-  options = {
-    pageWidth = wpPageWidth(),
+  local align = figAlignAttribute(div)
+  local capLoc = capLocation("fig", "bottom")
+
+  local captionPara = div.content[2]:clone()
+  local figurePara = div.content[1]:clone()
+
+  -- Switch to modern alignment directives for OOXML
+  local wordAligns = {
+    left = "start",
+    right = "end",
+    center = "center"
   }
 
-  -- determine divCaption handler (always left-align)
-  local divCaption = nil
-  if _quarto.format.isDocxOutput() then
-    divCaption = docxDivCaption
-  elseif _quarto.format.isOdtOutput() then
-    divCaption = odtDivCaption
-  end
-  if divCaption then
-    options.divCaption = function(el, align) return divCaption(el, "left") end
-  end
+  -- Generate raw OOXML string that sets paragraph properties
+  local docxAlign = "<w:pPr><w:pStyle w:val=\"Caption\" /><w:keepNext /><w:jc w:val=\"" .. wordAligns[align] .. "\"/></w:pPr>"
+  
+  captionPara.content:insert(1, pandoc.RawInline("openxml", docxAlign))
 
-  -- get alignment
-  local align = figAlignAttribute(div)
-  
-  -- create the row/cell for the figure
-  local row = pandoc.List()
-  local cell = div:clone()
-  transferImageWidthToCell(div, cell)
-  row:insert(tableCellContent(cell, align, options))
-  
-  -- make the table
-  local figureTable = pandoc.SimpleTable(
-    pandoc.List(), -- caption
-    { layoutTableAlign(align) },  
-    {   1   },         -- full width
-    pandoc.List(), -- no headers
-    { row }            -- figure
-  )
-  
-  -- return it
-  return pandoc.utils.from_simple_table(figureTable)
-  
+  if capLoc == "top" then
+    
+    return pandoc.Div({
+      captionPara,
+      figurePara
+    })
+
+  else
+    -- "bottom" or default
+    return pandoc.Div({
+      figurePara,
+      captionPara
+    })  
+  end
 end
 
 function wpPageWidth()
