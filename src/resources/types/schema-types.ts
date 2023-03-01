@@ -688,11 +688,8 @@ and appended to the end of the page. */;
 the `image` provided for the document itself will be used. */;
   links?: (NavigationItem)[];
   template?:
-    | "jolla"
-    | "trestles"
-    | "solana"
-    | "marquee"
-    | "broadside"; /* The template to use to layout this about page. Choose from:
+    | ("jolla" | "trestles" | "solana" | "marquee" | "broadside")
+    | string; /* The template to use to layout this about page. Choose from:
 
 - `jolla`
 - `trestles`

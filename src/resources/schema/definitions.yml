@@ -1185,7 +1185,9 @@
               If no such `div` is defined on the page, a `div` with this id will be created 
               and appended to the end of the page.
       template:
-        enum: [jolla, trestles, solana, marquee, broadside]
+        anyOf:
+          - enum: [jolla, trestles, solana, marquee, broadside]
+          - path
         description:
           short: "The template to use to layout this about page."
           long: |

@@ -9868,12 +9868,17 @@ try {
                   }
                 },
                 template: {
-                  enum: [
-                    "jolla",
-                    "trestles",
-                    "solana",
-                    "marquee",
-                    "broadside"
+                  anyOf: [
+                    {
+                      enum: [
+                        "jolla",
+                        "trestles",
+                        "solana",
+                        "marquee",
+                        "broadside"
+                      ]
+                    },
+                    "path"
                   ],
                   description: {
                     short: "The template to use to layout this about page.",
@@ -21231,12 +21236,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 151724,
+          _internalId: 151729,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 151716,
+              _internalId: 151721,
               type: "enum",
               enum: [
                 "png",
@@ -21252,7 +21257,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 151723,
+              _internalId: 151728,
               type: "anyOf",
               anyOf: [
                 {
