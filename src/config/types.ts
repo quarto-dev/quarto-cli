@@ -203,10 +203,8 @@ import {
   kWebtex,
 } from "./constants.ts";
 
-import { TempContext } from "../core/temp-types.ts";
 import { HtmlPostProcessor, RenderServices } from "../command/render/types.ts";
 import { QuartoFilterSpec } from "../command/render/filters.ts";
-import { ExtensionContext } from "../extension/extension-shared.ts";
 import { ProjectContext } from "../project/types.ts";
 
 export const kDependencies = "dependencies";
