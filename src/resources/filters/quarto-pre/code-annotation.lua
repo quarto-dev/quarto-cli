@@ -418,7 +418,7 @@ function code()
             -- to shift the OL up above the output, so we hang onto this outer
             -- cell so we can move the OL up into it if there are annotations
             local processedAnnotation = false
-            local resolvedBlock = pandoc.walk_block(block, {
+            local resolvedBlock = _quarto.ast.walk(block, {
               CodeBlock = function(el)
                 if el.attr.classes:find('cell-code') then
                   
