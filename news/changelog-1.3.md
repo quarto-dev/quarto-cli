@@ -169,11 +169,12 @@
 - Resolve link tags correctly in html dependencies ([#4304](https://github.com/quarto-dev/quarto-cli/discussions/4304)) (Thank you, @jdlom!).
 - use correct language code for Korean ([#4187](https://github.com/quarto-dev/quarto-cli/discussions/4187)).
 - resolve YAML options correctly for comments with open+close syntax ([#3901](https://github.com/quarto-dev/quarto-cli/issues/3901)).
-- Work around rare deno tempfile creation bug ([#4352](https://github.com/quarto-dev/quarto-cli/pull/4352)).
-- Only open "safe ports" for Chromium ([#4514](https://github.com/quarto-dev/quarto-cli/pull/4514)).
-- Detect potential bad argument ordering in `quarto render` ([#3581](https://github.com/quarto-dev/quarto-cli/pull/3581)).
-- Report version in most `quarto` commands ([#4567](https://github.com/quarto-dev/quarto-cli/pull/4567)).
-- Detect potential git merge conflict in `\_freeze` files ([#4529](https://github.com/quarto-dev/quarto-cli/pull/4529)).
+- Work around rare deno tempfile creation bug ([#4352](https://github.com/quarto-dev/quarto-cli/issues/4352)).
+- Only open "safe ports" for Chromium ([#4514](https://github.com/quarto-dev/quarto-cli/issues/4514)).
+- Detect potential bad argument ordering in `quarto render` ([#3581](https://github.com/quarto-dev/quarto-cli/issues/3581)).
+- Detect potential git merge conflict in `\_freeze` files ([#4529](https://github.com/quarto-dev/quarto-cli/issues/4529)).
+- Report version in most `quarto` commands ([#4567](https://github.com/quarto-dev/quarto-cli/issues/4567)).
+- Trim whitespace from the end of yaml strings in jupyter engine to work around poyo parsing issue ([#4573](https://github.com/quarto-dev/quarto-cli/issues/4573)).
 
 ## Pandoc filter changes
 
