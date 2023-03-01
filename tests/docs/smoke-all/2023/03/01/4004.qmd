@@ -1,0 +1,39 @@
+---
+title: "issue 4004"
+format: 
+  docx:
+    fig-cap-location: top
+---
+
+Lets's see @fig-01. And we'll use different alignments.
+
+```{r}
+#| label: fig-01
+#| fig-cap: The figure caption.
+#| fig-align: left
+plot(1:10)
+```
+
+```{r}
+#| label: fig-02
+#| fig-cap: The figure caption.
+#| fig-align: right
+plot(1:10)
+```
+
+```{r}
+#| label: fig-03
+#| fig-cap: The figure caption.
+#| fig-align: center
+plot(1:10)
+```
+
+Compare with tables (caption implementation not changed for this issue)
+
+```{r}
+#| label: tbl-01
+#| tbl-cap: The table caption.
+library(knitr)
+
+kable(mtcars[1:2, 1:2])
+```
