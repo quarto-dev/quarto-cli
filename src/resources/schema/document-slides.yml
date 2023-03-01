@@ -59,6 +59,13 @@
   default: all
   description: "Contexts in which the slide number appears (`all`, `print`, or `speaker`)"
 
+- name: slide-title-fit-text
+  tags:
+    formats: [revealjs]
+  schema: boolean
+  default: true
+  description: "Automatically fit the slide title text into a single line."
+
 - name: title-slide-attributes
   schema:
     object:

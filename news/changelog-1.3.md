@@ -47,6 +47,7 @@
 - Authors on the title slides now correctly object customization of the `$presentation-title-slide-text-align` scss variable ([#3843](https://github.com/quarto-dev/quarto-cli/issues/3843))
 - Properly support `show-notes: separate-page` [#3996](https://github.com/quarto-dev/quarto-cli/issues/3996)
 - Improve footnote / aside layout for centered slides. [#4297](https://github.com/quarto-dev/quarto-cli/issues/4297)
+- Add `slide-title-fit-text` option (enabled by default) which automatically fits slide title text onto a single line
 
 ## Dates
 

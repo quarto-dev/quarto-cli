@@ -65,6 +65,7 @@ import {
   kScrollable,
   kSlideFooter,
   kSlideLogo,
+  kSlideTitleFitText,
   kSmaller,
 } from "./constants.ts";
 import { revealMetadataFilter } from "./metadata.ts";
@@ -131,10 +132,14 @@ export function revealjsFormat() {
           metadataOverride.previewLinks = false;
         }
 
+        // title fit text (default to true)
+        const slideTitleFitText = format.metadata[kSlideTitleFitText] ?? true;
+
         // additional options not supported by pandoc
         const extraConfig: Record<string, unknown> = {
           [kControlsAuto]: controlsAuto,
           [kPreviewLinksAuto]: previewLinksAuto,
+          [kSlideTitleFitText]: slideTitleFitText,
           [kSmaller]: !!format.metadata[kSmaller],
           [kPdfSeparateFragments]: !!format.metadata[kPdfSeparateFragments],
           [kAutoAnimateEasing]: format.metadata[kAutoAnimateEasing] || "ease",
@@ -478,6 +483,20 @@ function revealHtmlPostprocessor(
     slideHeadings.forEach((slideHeading) => {
       const slideHeadingEl = slideHeading as Element;
       if (slideHeadingTags.includes(slideHeadingEl.tagName)) {
+        // add span with r-fit-text if requested
+        if (extraConfig[kSlideTitleFitText]) {
+          // don't add if the user has already done so
+          if (!slideHeadingEl.getElementsByClassName("r-fit-text").length) {
+            const span = doc.createElement("span");
+            span.classList.add("r-fit-text");
+            for (const childEl of slideHeadingEl.childNodes) {
+              span.appendChild(childEl.cloneNode(true));
+            }
+            slideHeadingEl.innerHTML = "";
+            slideHeadingEl.appendChild(span);
+          }
+        }
+
         // remove attributes
         for (const attrib of slideHeadingEl.getAttributeNames()) {
           slideHeadingEl.removeAttribute(attrib);

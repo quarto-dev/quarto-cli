@@ -16683,6 +16683,17 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "Contexts in which the slide number appears (`all`, `print`, or `speaker`)"
         },
         {
+          name: "slide-title-fit-text",
+          tags: {
+            formats: [
+              "revealjs"
+            ]
+          },
+          schema: "boolean",
+          default: true,
+          description: "Automatically fit the slide title text into a single line."
+        },
+        {
           name: "title-slide-attributes",
           schema: {
             object: {
@@ -21005,7 +21016,8 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
-        "internal-schema-hack"
+        "internal-schema-hack",
+        "Automatically fit the slide title text into a single line."
       ],
       "schema/external-schemas.yml": [
         {
@@ -21230,12 +21242,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 151724,
+        _internalId: 151726,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 151716,
+            _internalId: 151718,
             type: "enum",
             enum: [
               "png",
@@ -21251,7 +21263,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 151723,
+            _internalId: 151725,
             type: "anyOf",
             anyOf: [
               {
