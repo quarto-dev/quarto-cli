@@ -58,7 +58,6 @@ import {
 import { projectOffset, projectOutputDir } from "../../project-shared.ts";
 import { resolveInputTarget } from "../../project-index.ts";
 import {
-  kAriaLabel,
   kCollapseBelow,
   kCollapseLevel,
   kSidebarMenus,
