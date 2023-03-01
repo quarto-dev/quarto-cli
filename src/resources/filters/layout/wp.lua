@@ -9,7 +9,7 @@ function tableWpPanel(divEl, layout, caption)
 end
 
 function wpDivFigure(div)
-  
+
   local align = figAlignAttribute(div)
   local capLoc = capLocation("fig", "bottom")
 
@@ -23,7 +23,7 @@ function wpDivFigure(div)
     center = "center"
   }
 
-  -- Generate raw OOXML string that sets paragraph properties
+  -- Generate a raw OOXML string that sets paragraph properties
   local docxAlign = "<w:pPr><w:pStyle w:val=\"Caption\" /><w:keepNext /><w:jc w:val=\"" .. wordAligns[align] .. "\"/></w:pPr>"
   
   captionPara.content:insert(1, pandoc.RawInline("openxml", docxAlign))
