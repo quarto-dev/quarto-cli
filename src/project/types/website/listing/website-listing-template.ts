@@ -369,14 +369,25 @@ export function reshapeListing(
   utilities.fieldName = (field: string) => {
     return reshaped[kFieldDisplayNames][field] || field;
   };
-  utilities.outputLink = (item: ListingItem, field: string, val?: string) => {
+  utilities.outputLink = (
+    item: ListingItem,
+    field: string,
+    val?: string,
+    clz?: string,
+  ) => {
     const fieldLinks = reshaped[kFieldLinks];
     const value = val || item[field];
     const path = item.path;
     if (path && value !== undefined && fieldLinks.includes(field)) {
-      return `<a href="${path}" class="${field}">${value}</a>`;
+      return `<a href="${path}" class="${field}${
+        clz ? ` ${clz}` : ""
+      }">${value}</a>`;
     } else {
-      return value;
+      if (clz) {
+        return `<span class="${clz}">${value}</span>`;
+      } else {
+        return value;
+      }
     }
   };
   utilities.sortTarget = (field: string) => {
