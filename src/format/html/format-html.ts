@@ -541,6 +541,7 @@ export async function htmlFormatExtras(
     "metadata.html",
     "title-block.html",
     "toc.html",
+    "styles.html",
   ];
   const templateContext = {
     template: join(templateDir, "template.html"),

@@ -44,6 +44,7 @@ import { ProjectContext } from "../../project/types.ts";
 import { openUrl } from "../../core/shell.ts";
 import { publishDocument, publishSite } from "../../publish/publish.ts";
 import { handleUnauthorized } from "../../publish/account.ts";
+import { greet } from "../greet.ts";
 
 export const publishCommand =
   // deno-lint-ignore no-explicit-any
@@ -53,7 +54,7 @@ export const publishCommand =
       "Publish a document or project. Available providers include:\n\n" +
         " - Quarto Pub (quarto-pub)\n" +
         " - GitHub Pages (gh-pages)\n" +
-        " - RStudio Connect (connect)\n" +
+        " - Posit Connect (connect)\n" +
         " - Netlify (netlify)\n\n" +
         "Accounts are configured interactively during publishing.\n" +
         "Manage/remove accounts with: quarto publish accounts",
@@ -104,7 +105,7 @@ export const publishCommand =
       "quarto publish gh-pages",
     )
     .example(
-      "Publish project to RStudio Connect",
+      "Publish project to Posit Connect",
       "quarto publish connect",
     )
     .example(
@@ -133,6 +134,8 @@ export const publishCommand =
         provider?: string,
         path?: string,
       ) => {
+        greet();
+
         // if provider is a path and no path is specified then swap
         if (provider && !path && existsSync(provider)) {
           path = provider;

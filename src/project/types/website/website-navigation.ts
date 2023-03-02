@@ -58,7 +58,6 @@ import {
 import { projectOffset, projectOutputDir } from "../../project-shared.ts";
 import { resolveInputTarget } from "../../project-index.ts";
 import {
-  kAriaLabel,
   kCollapseBelow,
   kCollapseLevel,
   kSidebarMenus,
@@ -251,6 +250,7 @@ export async function websiteNavigationExtras(
     sidebar: disableSidebar ? undefined : expandedSidebar(href, sidebar),
     sidebarStyle: sidebarStyle(),
     footer: navigation.footer,
+    language: format.language,
   };
 
   // Determine the previous and next page

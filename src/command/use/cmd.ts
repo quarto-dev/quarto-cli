@@ -5,6 +5,7 @@
 *
 */
 import { Command, ValidationError } from "cliffy/command/mod.ts";
+import { greet } from "../greet.ts";
 
 import { useTemplateCommand } from "./commands/template.ts";
 
@@ -20,6 +21,7 @@ export const useCommand = new Command()
     "Automate document or project setup tasks.",
   )
   .action((_options, type, _target) => {
+    greet();
     if (type !== useTemplateCommand.getName()) {
       throw new ValidationError(
         `Unknown type '${type}'- did you mean 'template'?`,

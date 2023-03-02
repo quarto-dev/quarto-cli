@@ -688,11 +688,8 @@ and appended to the end of the page. */;
 the `image` provided for the document itself will be used. */;
   links?: (NavigationItem)[];
   template?:
-    | "jolla"
-    | "trestles"
-    | "solana"
-    | "marquee"
-    | "broadside"; /* The template to use to layout this about page. Choose from:
+    | ("jolla" | "trestles" | "solana" | "marquee" | "broadside")
+    | string; /* The template to use to layout this about page. Choose from:
 
 - `jolla`
 - `trestles`
@@ -981,10 +978,14 @@ Do not use for topical descriptions or categories (e.g. "adventure" for an adven
   jurisdiction?:
     string /* Geographic scope of relevance (e.g. "US" for a US patent; the court hearing a legal case). */;
   keyword?: string /* Keyword(s) or tag(s) attached to the item. */;
-  language?: string /* The language of the item;
+  language?:
+    string /* The language of the item (used only for citation of the item).
 
 Should be entered as an ISO 639-1 two-letter language code (e.g. "en", "zh"),
-optionally with a two-letter locale code (e.g. "de-DE", "de-AT") */;
+optionally with a two-letter locale code (e.g. "de-DE", "de-AT").
+
+This does not change the language of the item, instead it documents
+what language the item uses (which may be used in citing the item). */;
   license?:
     string /* The license information applicable to an item (e.g. the license an article
 or software is released under; the copyright information for an item;

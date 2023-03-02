@@ -58,6 +58,12 @@ search-more-matches-text: "andre resultater i dette dokument"
 search-clear-button-title: "Ryd"
 search-detached-cancel-button-title: "Fortryd"
 search-submit-button-title: "Indsend"
+search: "Søg"
+
+toggle-sidebar: "Skift sidebjælke"
+toggle-dark-mode: "Skift mørk tilstand"
+toggle-reader-mode: "Skift læsetilstand"
+toggle-navigation: "Skift navigation"
 
 crossref-fig-title: "Figur"
 crossref-tbl-title: "Tabel"

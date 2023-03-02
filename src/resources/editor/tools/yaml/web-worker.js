@@ -9868,12 +9868,17 @@ try {
                   }
                 },
                 template: {
-                  enum: [
-                    "jolla",
-                    "trestles",
-                    "solana",
-                    "marquee",
-                    "broadside"
+                  anyOf: [
+                    {
+                      enum: [
+                        "jolla",
+                        "trestles",
+                        "solana",
+                        "marquee",
+                        "broadside"
+                      ]
+                    },
+                    "path"
                   ],
                   description: {
                     short: "The template to use to layout this about page.",
@@ -10558,8 +10563,8 @@ try {
                 language: {
                   string: {
                     description: {
-                      short: "The language of the item.",
-                      long: 'The language of the item;\n\nShould be entered as an ISO 639-1 two-letter language code (e.g. "en", "zh"), \noptionally with a two-letter locale code (e.g. "de-DE", "de-AT")\n'
+                      short: "The language of the item (used only for citation of the item).",
+                      long: 'The language of the item (used only for citation of the item).\n\nShould be entered as an ISO 639-1 two-letter language code (e.g. "en", "zh"), \noptionally with a two-letter locale code (e.g. "de-DE", "de-AT").\n\nThis does not change the language of the item, instead it documents \nwhat language the item uses (which may be used in citing the item).\n'
                     }
                   }
                 },
@@ -14528,7 +14533,7 @@ try {
                             description: "The type of the license."
                           }
                         },
-                        url: {
+                        link: {
                           string: {
                             description: "A URL to the license."
                           }
@@ -18829,8 +18834,8 @@ try {
           "Geographic scope of relevance (e.g.&nbsp;\u201CUS\u201D for a US patent; the court\nhearing a legal case).",
           "Keyword(s) or tag(s) attached to the item.",
           {
-            short: "The language of the item.",
-            long: "The language of the item;\nShould be entered as an ISO 639-1 two-letter language code\n(e.g.&nbsp;\u201Cen\u201D, \u201Czh\u201D), optionally with a two-letter locale code\n(e.g.&nbsp;\u201Cde-DE\u201D, \u201Cde-AT\u201D)"
+            short: "The language of the item (used only for citation of the item).",
+            long: "The language of the item (used only for citation of the item).\nShould be entered as an ISO 639-1 two-letter language code\n(e.g.&nbsp;\u201Cen\u201D, \u201Czh\u201D), optionally with a two-letter locale code\n(e.g.&nbsp;\u201Cde-DE\u201D, \u201Cde-AT\u201D).\nThis does not change the language of the item, instead it documents\nwhat language the item uses (which may be used in citing the item)."
           },
           {
             short: "The license information applicable to an item.",
@@ -18975,8 +18980,8 @@ try {
           "Geographic scope of relevance (e.g.&nbsp;\u201CUS\u201D for a US patent; the court\nhearing a legal case).",
           "Keyword(s) or tag(s) attached to the item.",
           {
-            short: "The language of the item.",
-            long: "The language of the item;\nShould be entered as an ISO 639-1 two-letter language code\n(e.g.&nbsp;\u201Cen\u201D, \u201Czh\u201D), optionally with a two-letter locale code\n(e.g.&nbsp;\u201Cde-DE\u201D, \u201Cde-AT\u201D)"
+            short: "The language of the item (used only for citation of the item).",
+            long: "The language of the item (used only for citation of the item).\nShould be entered as an ISO 639-1 two-letter language code\n(e.g.&nbsp;\u201Cen\u201D, \u201Czh\u201D), optionally with a two-letter locale code\n(e.g.&nbsp;\u201Cde-DE\u201D, \u201Cde-AT\u201D).\nThis does not change the language of the item, instead it documents\nwhat language the item uses (which may be used in citing the item)."
           },
           {
             short: "The license information applicable to an item.",
@@ -19129,8 +19134,8 @@ try {
           "Geographic scope of relevance (e.g.&nbsp;\u201CUS\u201D for a US patent; the court\nhearing a legal case).",
           "Keyword(s) or tag(s) attached to the item.",
           {
-            short: "The language of the item.",
-            long: "The language of the item;\nShould be entered as an ISO 639-1 two-letter language code\n(e.g.&nbsp;\u201Cen\u201D, \u201Czh\u201D), optionally with a two-letter locale code\n(e.g.&nbsp;\u201Cde-DE\u201D, \u201Cde-AT\u201D)"
+            short: "The language of the item (used only for citation of the item).",
+            long: "The language of the item (used only for citation of the item).\nShould be entered as an ISO 639-1 two-letter language code\n(e.g.&nbsp;\u201Cen\u201D, \u201Czh\u201D), optionally with a two-letter locale code\n(e.g.&nbsp;\u201Cde-DE\u201D, \u201Cde-AT\u201D).\nThis does not change the language of the item, instead it documents\nwhat language the item uses (which may be used in citing the item)."
           },
           {
             short: "The license information applicable to an item.",
@@ -20389,7 +20394,7 @@ try {
           "Specify the number of section levels to include in the table of\ncontents. The default is 3",
           "Location for table of contents (<code>body</code>, <code>left</code>,\nor <code>right</code> (default)).",
           "The title used for the table of contents.",
-          "Specifies the depth of items in the table of contents that should be\ndisplayed as expanded in HTML output.",
+          "Specifies the depth of items in the table of contents that should be\ndisplayed as expanded in HTML output. Use <code>true</code> to expand\nall or <code>false</code> to collapse all.",
           "Print a list of figures in the document.",
           "Print a list of tables in the document.",
           "Setting this to false prevents this document from being included in\nsearches.",
@@ -20634,8 +20639,8 @@ try {
           "Geographic scope of relevance (e.g.&nbsp;\u201CUS\u201D for a US patent; the court\nhearing a legal case).",
           "Keyword(s) or tag(s) attached to the item.",
           {
-            short: "The language of the item.",
-            long: "The language of the item;\nShould be entered as an ISO 639-1 two-letter language code\n(e.g.&nbsp;\u201Cen\u201D, \u201Czh\u201D), optionally with a two-letter locale code\n(e.g.&nbsp;\u201Cde-DE\u201D, \u201Cde-AT\u201D)"
+            short: "The language of the item (used only for citation of the item).",
+            long: "The language of the item (used only for citation of the item).\nShould be entered as an ISO 639-1 two-letter language code\n(e.g.&nbsp;\u201Cen\u201D, \u201Czh\u201D), optionally with a two-letter locale code\n(e.g.&nbsp;\u201Cde-DE\u201D, \u201Cde-AT\u201D).\nThis does not change the language of the item, instead it documents\nwhat language the item uses (which may be used in citing the item)."
           },
           {
             short: "The license information applicable to an item.",
@@ -20937,8 +20942,8 @@ try {
           "Geographic scope of relevance (e.g.&nbsp;\u201CUS\u201D for a US patent; the court\nhearing a legal case).",
           "Keyword(s) or tag(s) attached to the item.",
           {
-            short: "The language of the item.",
-            long: "The language of the item;\nShould be entered as an ISO 639-1 two-letter language code\n(e.g.&nbsp;\u201Cen\u201D, \u201Czh\u201D), optionally with a two-letter locale code\n(e.g.&nbsp;\u201Cde-DE\u201D, \u201Cde-AT\u201D)"
+            short: "The language of the item (used only for citation of the item).",
+            long: "The language of the item (used only for citation of the item).\nShould be entered as an ISO 639-1 two-letter language code\n(e.g.&nbsp;\u201Cen\u201D, \u201Czh\u201D), optionally with a two-letter locale code\n(e.g.&nbsp;\u201Cde-DE\u201D, \u201Cde-AT\u201D).\nThis does not change the language of the item, instead it documents\nwhat language the item uses (which may be used in citing the item)."
           },
           {
             short: "The license information applicable to an item.",
@@ -21231,12 +21236,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 151394,
+          _internalId: 151729,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 151386,
+              _internalId: 151721,
               type: "enum",
               enum: [
                 "png",
@@ -21252,7 +21257,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 151393,
+              _internalId: 151728,
               type: "anyOf",
               anyOf: [
                 {

@@ -17,6 +17,7 @@ import {
 } from "../../tools/tools-console.ts";
 import { installTool } from "../../tools/tools.ts";
 import { resolveCompatibleArgs } from "../remove/cmd.ts";
+import { greet } from "../greet.ts";
 
 export const installCommand = new Command()
   .name("install")
@@ -57,6 +58,7 @@ export const installCommand = new Command()
       options: { prompt?: boolean; embed?: string; updatePath?: boolean },
       ...target: string[]
     ) => {
+      greet();
       await initYamlIntelligenceResourcesFromFilesystem();
       const temp = createTempContext();
 

@@ -101,10 +101,12 @@ export function inputFileHref(href: string) {
 
 export function websiteNavigationConfig(project: ProjectContext) {
   // read navbar
-  let navbar = websiteConfigMetadata(kSiteNavbar, project.config) as
+  let navbar = websiteConfig(kSiteNavbar, project.config) as
     | Navbar
     | undefined;
-  if (typeof (navbar) !== "object") {
+  if (typeof (navbar) === "boolean" && navbar) {
+    navbar = { background: "primary" };
+  } else if (typeof (navbar) !== "object") {
     navbar = undefined;
   }
 

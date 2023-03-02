@@ -58,6 +58,12 @@ search-more-matches-text: "tulosta tässä dokumentissa"
 search-clear-button-title: "Tyhjennä"
 search-detached-cancel-button-title: "Peruuta"
 search-submit-button-title: "Lähetä"
+search: "Hae"
+
+toggle-sidebar: "Vaihda sivupalkki"
+toggle-dark-mode: "Tumma tila päälle/pois"
+toggle-reader-mode: "Vaihda lukijatilaa"
+toggle-navigation: "Vaihda navigointi"
 
 crossref-fig-title: "Kuva"
 crossref-tbl-title: "Taulukko"

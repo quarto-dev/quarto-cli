@@ -6,7 +6,7 @@
 */
 
 import {
-kBaseFormat,
+  kBaseFormat,
   kDefaultImageExtension,
   kEcho,
   kFigHeight,
@@ -164,7 +164,7 @@ export function defaultWriterFormat(to: string): Format {
     case "epub":
     case "epub2":
     case "epub3":
-      writerFormat = epubFormat();
+      writerFormat = epubFormat(lookupTo);
       break;
 
     case "fb2":

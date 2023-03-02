@@ -6,6 +6,21 @@ kTblSubCap = "tbl-subcap"
 
 local latexCaptionPattern =  "(\\caption{)(.-)(}[^\n]*\n)"
 
+function longtable_no_caption_fixup()
+  return {
+    RawBlock = function(raw)
+      if _quarto.format.isRawLatex(raw) then
+        if (raw.text:match(_quarto.patterns.latexLongtablePattern) and
+            not raw.text:match(latexCaptionPattern)) then
+          raw.text = raw.text:gsub(
+            _quarto.patterns.latexLongtablePattern, "\\begin{longtable*}%2\\end{longtable*}", 1)
+          return raw
+        end
+      end
+    end
+  }
+end
+
 function tableCaptions() 
   
   return {

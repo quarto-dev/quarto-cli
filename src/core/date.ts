@@ -47,13 +47,13 @@ export function resolveAndFormatDate(
       if (typeof (date) === "string") {
         return {
           value: date,
-          format: format || "short",
+          format: format || "iso",
         };
       } else if (typeof (date) === "object") {
         const schemaDate = date as { value: string; format?: string };
         return {
           value: schemaDate.value,
-          format: schemaDate.format || format || "short",
+          format: schemaDate.format || format || "iso",
         };
       }
     } else {

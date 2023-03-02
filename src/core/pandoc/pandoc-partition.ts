@@ -62,7 +62,7 @@ export function partitionMarkdown(markdown: string): PartitionedMarkdown {
     }
 
     if (!markdownHeading) {
-      if (line.startsWith("#")) {
+      if (line.match(/^\#{1,}\s/)) {
         const parsedHeading = parsePandocTitle(line);
         markdownHeading = parsedHeading.heading;
         markdownHeadingAttr = parsedHeading.attr;

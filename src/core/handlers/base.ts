@@ -74,6 +74,11 @@ import { mappedStringFromFile } from "../mapped-text.ts";
 import { error } from "log/mod.ts";
 import { withCriClient } from "../cri/cri.ts";
 import { normalizePath } from "../path.ts";
+import {
+  extractHtmlFromElements,
+  extractImagesFromElements,
+} from "../puppeteer.ts";
+
 const handlers: Record<string, LanguageHandler> = {};
 
 let globalFigureCounter: Record<string, number> = {};
@@ -110,19 +115,33 @@ function makeHandlerContext(
       return options.state![options.name];
     },
 
-    //deno-lint-ignore require-await
-    async extractHtml(_opts: {
+    async extractHtml(opts: {
       html: string;
       selector: string;
       resources?: [string, string][];
     }): Promise<string[]> {
-      throw new Error(
-        "Internal error: temporarily disabled until deno 1.28.* gets puppeteer support",
-      );
+      const {
+        html: content,
+        selector,
+      } = opts;
+      const nonEmptyHtmlResources: [string, string][] = opts.resources ||
+        [];
+      const dirName = context.options.temp.createDir();
+      // create temporary resources
+      for (const [name, content] of nonEmptyHtmlResources) {
+        Deno.writeTextFileSync(join(dirName, name), content);
+      }
+      const fileName = join(dirName, "index.html");
+      Deno.writeTextFileSync(fileName, content);
+      const url = `file://${fileName}`;
+
+      return await withCriClient(async (client) => {
+        await client.open(url);
+        return await client.contents(selector);
+      });
     },
 
-    //deno-lint-ignore require-await
-    async createPngsFromHtml(_opts: {
+    async createPngsFromHtml(opts: {
       prefix: string;
       html: string;
       deviceScaleFactor: number;
@@ -132,9 +151,51 @@ function makeHandlerContext(
       filenames: string[];
       elements: string[];
     }> {
-      throw new Error(
-        "Internal error: temporarily disabled until deno 1.28.* gets puppeteer support",
-      );
+      const {
+        prefix,
+        html: content,
+        deviceScaleFactor,
+        selector,
+      } = opts;
+      const nonEmptyHtmlResources: [string, string][] = opts.resources ||
+        [];
+      const dirName = context.options.temp.createDir();
+
+      // create temporary resources
+      for (const [name, content] of nonEmptyHtmlResources) {
+        Deno.writeTextFileSync(join(dirName, name), content);
+      }
+      const fileName = join(dirName, "index.html");
+      Deno.writeTextFileSync(fileName, content);
+      const url = `file://${fileName}`;
+
+      const { elements, images } = await withCriClient(async (client) => {
+        await client.open(url);
+        const elements = await client.contents(selector);
+        const screenshots = await client.screenshots(
+          selector,
+          deviceScaleFactor,
+        );
+        return {
+          elements,
+          images: screenshots.map((x) => x.data),
+        };
+      });
+
+      // write figures to disk
+      const sourceNames: string[] = [];
+
+      for (let i = 0; i < images.length; ++i) {
+        const { sourceName, fullName } = context
+          .uniqueFigureName(prefix, ".png");
+        sourceNames.push(sourceName);
+        Deno.writeFileSync(fullName, images[i]);
+      }
+
+      return {
+        filenames: sourceNames,
+        elements,
+      };
     },
 
     cellContent(cell: QuartoMdCell): MappedString {

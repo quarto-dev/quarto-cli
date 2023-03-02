@@ -741,8 +741,10 @@ nav.sidebar.sidebar-navigation:not(.rollup) {
 // border style
 .nav-footer {
   display: flex;
-  justify-content: center;
-  align-items: center;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
   text-align: center;
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
@@ -803,7 +805,7 @@ body:not(.floating) .nav-footer {
 .nav-footer-left .footer-items,
 .nav-footer-center .footer-items,
 .nav-footer-right .footer-items {
-  display: flex;
+  display: inline-flex;
   padding-top: 0.3em;
   padding-bottom: 0.3em;
   margin-bottom: 0em;
@@ -816,12 +818,17 @@ body:not(.floating) .nav-footer {
   padding-right: 0.6em;
 }
 .nav-footer-left {
-  margin-right: auto;
+  flex: 1 1 0px;
+  text-align: left;
+}
+.nav-footer-right {
+  flex: 1 1 0px;
+  text-align: right;
 }
 
 .nav-footer-center {
+  flex: 1 1 0px;
   min-height: 3em;
-  position: absolute;
   text-align: center;
   .footer-items {
     justify-content: center;
@@ -832,10 +839,6 @@ body:not(.floating) .nav-footer {
   .nav-footer-center {
     margin-top: 3em;
   }
-}
-
-.nav-footer-right {
-  margin-left: auto;
 }
 
 .navbar .quarto-reader-toggle.reader .quarto-reader-toggle-btn {

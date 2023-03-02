@@ -1780,6 +1780,7 @@ _quarto = {
    patterns = {
       latexTabularPattern = latexTabularPattern,
       latexTablePattern = latexTablePattern,
+      latexLongtablePattern = latexLongtablePattern,
       latexTablePatterns = latexTablePatterns
    },
    utils = utils,
