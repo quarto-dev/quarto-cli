@@ -9,11 +9,9 @@
 
 import {
   allOfSchema as allOfS,
-  anyOfSchema,
   describeSchema,
   objectSchema as objectS,
   refSchema,
-  regexSchema,
 } from "./common.ts";
 
 import { objectSchemaFromFieldsObject, SchemaField } from "./from-yaml.ts";

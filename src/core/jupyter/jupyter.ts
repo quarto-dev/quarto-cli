@@ -466,7 +466,7 @@ export async function jupyterKernelspecFromMarkdown(
   markdown: string,
   project?: ProjectContext,
 ): Promise<[JupyterKernelspec, Metadata]> {
-  const config = (project as any)?.config;
+  const config = project?.config;
   const yaml = config
     ? mergeConfigs(config, readYamlFromMarkdown(markdown))
     : readYamlFromMarkdown(markdown);

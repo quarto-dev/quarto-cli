@@ -367,11 +367,13 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
     // deno-lint-ignore require-await
     const makeJs = async () => {
       setupMermaidJsRuntime();
-      const { baseName: tooltipName } = handlerContext
-        .uniqueFigureName(
-          "mermaid-tooltip-",
-          "",
-        );
+      // removed until we use mermaid 10.0.0
+      //
+      // const { baseName: tooltipName } = handlerContext
+      //   .uniqueFigureName(
+      //     "mermaid-tooltip-",
+      //     "",
+      //   );
       const preAttrs = [];
       if (options.label) {
         preAttrs.push(`label="${options.label}"`);
