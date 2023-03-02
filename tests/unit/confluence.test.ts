@@ -893,7 +893,6 @@ const runBuildSpaceChanges = () => {
     fileName: "fake-file-name",
     title: "fake-title",
     originalTitle: "fake-title-original",
-    matchingPages: [],
     contentBody: {
       storage: {
         value: "fake-value",
@@ -906,12 +905,6 @@ const runBuildSpaceChanges = () => {
     fileName: "fake-file-name",
     title: "fake-title",
     originalTitle: "fake-title-original",
-    matchingPages: [
-      {
-        id: "123456",
-        title: "fake-title-original",
-      },
-    ],
     contentBody: {
       storage: {
         value: "fake-value",
@@ -924,7 +917,6 @@ const runBuildSpaceChanges = () => {
     fileName: "fake-file-name2",
     title: "fake-title2",
     originalTitle: "fake-title2-original",
-    matchingPages: [],
     contentBody: {
       storage: {
         value: "fake-value2",
@@ -1095,7 +1087,7 @@ const runBuildSpaceChanges = () => {
         },
         fileName: "fake-file-name",
         status: "current",
-        title: "fake-title-original",
+        title: "fake-title",
         type: "page",
         id: "123456",
         version: null,
@@ -1208,7 +1200,6 @@ const runSpaceCreatesWithNesting = () => {
     fileName: "fake-file-name",
     title: "fake-title",
     originalTitle: "fake-title-original",
-    matchingPages: [],
     contentBody: {
       storage: {
         value: "fake-value",
@@ -1221,7 +1212,7 @@ const runSpaceCreatesWithNesting = () => {
     fileName: "fake-parent/fake-file-name",
     title: "fake-title",
     originalTitle: "fake-title-original",
-    matchingPages: [],
+
     contentBody: {
       storage: {
         value: "fake-value",
@@ -1234,7 +1225,7 @@ const runSpaceCreatesWithNesting = () => {
     fileName: "fake-parent\\fake-file-name",
     title: "fake-title",
     originalTitle: "fake-title-original",
-    matchingPages: [],
+
     contentBody: {
       storage: {
         value: "fake-value",
@@ -1247,7 +1238,7 @@ const runSpaceCreatesWithNesting = () => {
     fileName: "fake-parent/fake-file-name2",
     title: "fake-title2",
     originalTitle: "fake-title2-original",
-    matchingPages: [],
+
     contentBody: {
       storage: {
         value: "fake-value",
@@ -1260,7 +1251,7 @@ const runSpaceCreatesWithNesting = () => {
     fileName: "fake-parent\\fake-file-name2",
     title: "fake-title2",
     originalTitle: "fake-title2-original",
-    matchingPages: [],
+
     contentBody: {
       storage: {
         value: "fake-value",
@@ -1273,7 +1264,7 @@ const runSpaceCreatesWithNesting = () => {
     fileName: "fake-parent2/fake-file-name3",
     title: "fake-title3",
     originalTitle: "fake-title3-original",
-    matchingPages: [],
+
     contentBody: {
       storage: {
         value: "fake-value",
@@ -1286,7 +1277,7 @@ const runSpaceCreatesWithNesting = () => {
     fileName: "fake-parent2\\fake-file-name3",
     title: "fake-title3",
     originalTitle: "fake-title3-original",
-    matchingPages: [],
+
     contentBody: {
       storage: {
         value: "fake-value",
@@ -1300,7 +1291,7 @@ const runSpaceCreatesWithNesting = () => {
       "fake-great-grand-parent/fake-grand-parent/fake-parent/fake-file-name",
     title: "fake-title",
     originalTitle: "fake-title-original",
-    matchingPages: [],
+
     contentBody: {
       storage: {
         value: "fake-value",
@@ -1314,7 +1305,7 @@ const runSpaceCreatesWithNesting = () => {
       "fake-great-grand-parent\\fake-grand-parent\\fake-parent\\fake-file-name",
     title: "fake-title",
     originalTitle: "fake-title-original",
-    matchingPages: [],
+
     contentBody: {
       storage: {
         value: "fake-value",
@@ -2268,7 +2259,7 @@ const runSpaceUpdatesWithNesting = () => {
     fileName: "fake-parent/fake-file-name.xml",
     title: "fake-title",
     originalTitle: "fake-title-original",
-    matchingPages: [],
+
     contentBody: {
       storage: {
         value: "fake-value",
@@ -2281,7 +2272,7 @@ const runSpaceUpdatesWithNesting = () => {
     fileName: "fake-parent/fake-file-name2.xml",
     title: "fake-title2",
     originalTitle: "fake-title2-original",
-    matchingPages: [],
+
     contentBody: {
       storage: {
         value: "fake-value",
@@ -2294,7 +2285,7 @@ const runSpaceUpdatesWithNesting = () => {
     fileName: "fake-parent2/fake-file-name3.xml",
     title: "fake-title3",
     originalTitle: "fake-title3-original",
-    matchingPages: [],
+
     contentBody: {
       storage: {
         value: "fake-value",
@@ -2308,7 +2299,7 @@ const runSpaceUpdatesWithNesting = () => {
       "fake-great-grand-parent/fake-grand-parent/fake-parent/fake-file-name.xml",
     title: "fake-title",
     originalTitle: "fake-title-original",
-    matchingPages: [],
+
     contentBody: {
       storage: {
         value: "fake-value",
@@ -2322,7 +2313,7 @@ const runSpaceUpdatesWithNesting = () => {
       "fake-great-grand-parent\\fake-grand-parent\\fake-parent\\fake-file-name.xml",
     title: "fake-title",
     originalTitle: "fake-title-original",
-    matchingPages: [],
+
     contentBody: {
       storage: {
         value: "fake-value",
@@ -2754,7 +2745,6 @@ const runSpaceUpdatesWithNestedMoves = () => {
     fileName: "fake-parent/fake-file-name.xml",
     title: "fake-title",
     originalTitle: "fake-title-original",
-    matchingPages: [],
     contentBody: {
       storage: {
         value: "fake-value",
@@ -2767,7 +2757,6 @@ const runSpaceUpdatesWithNestedMoves = () => {
     fileName: "fake-file-name.xml",
     title: "fake-title",
     originalTitle: "fake-title-original",
-    matchingPages: [],
     contentBody: {
       storage: {
         value: "fake-value",
@@ -2780,7 +2769,7 @@ const runSpaceUpdatesWithNestedMoves = () => {
     fileName: "fake-parent/fake-file-name2.xml",
     title: "fake-title2",
     originalTitle: "fake-title2-original",
-    matchingPages: [],
+
     contentBody: {
       storage: {
         value: "fake-value",
@@ -2793,7 +2782,7 @@ const runSpaceUpdatesWithNestedMoves = () => {
     fileName: "fake-parent2/fake-file-name3.xml",
     title: "fake-title3",
     originalTitle: "fake-title3-original",
-    matchingPages: [],
+
     contentBody: {
       storage: {
         value: "fake-value",
@@ -2806,7 +2795,6 @@ const runSpaceUpdatesWithNestedMoves = () => {
     fileName: "fake-parent/fake-inner-parent/fake-file-name.xml",
     title: "fake-multi-nested-title",
     originalTitle: "fake-multi-nested-title-original",
-    matchingPages: [],
     contentBody: {
       storage: {
         value: "fake-value",

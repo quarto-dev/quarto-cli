@@ -402,17 +402,10 @@ export const buildSpaceChanges = (
     pageParent = existingParent ? existingParent.id : pageParent;
 
     if (existingPage) {
-      let useOriginalTitle = false;
-      if (fileMetadata.matchingPages.length === 1) {
-        if (fileMetadata.matchingPages[0].id === existingPage.id) {
-          useOriginalTitle = true;
-        }
-      }
-
       spaceChangeList = [
         buildContentUpdate(
           existingPage.id,
-          useOriginalTitle ? fileMetadata.originalTitle : fileMetadata.title,
+          fileMetadata.title,
           fileMetadata.contentBody,
           universalFileName,
           pageParent
