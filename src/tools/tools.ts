@@ -85,26 +85,19 @@ export async function printToolInfo(name: string) {
 }
 
 export function checkToolRequirement(name: string) {
-  let isInstallable = true;
-  switch (name.toLowerCase()) {
-    case "chromium":
-      // WSL limitation
-      if (isWSL()) {
-        isInstallable = false;
-        // TODO: Change to a quarto-web url page ?
-        const troubleshootUrl =
-          "https://pptr.dev/next/troubleshooting#running-puppeteer-on-wsl-windows-subsystem-for-linux.";
-        warning([
-          `${name} can't be installed fully on WSL with Quarto as system requirements could be missing.`,
-          `- Please do a manual installation following recommandations at ${troubleshootUrl}`,
-          "- See https://github.com/quarto-dev/quarto-cli/issues/1822 for more context.",
-        ].join("\n"));
-      }
-      break;
-    default:
-      break;
+  if (name.toLowerCase() === "chromium" && isWSL()) {
+    // TODO: Change to a quarto-web url page ?
+    const troubleshootUrl =
+      "https://pptr.dev/next/troubleshooting#running-puppeteer-on-wsl-windows-subsystem-for-linux.";
+    warning([
+      `${name} can't be installed fully on WSL with Quarto as system requirements could be missing.`,
+      `- Please do a manual installation following recommandations at ${troubleshootUrl}`,
+      "- See https://github.com/quarto-dev/quarto-cli/issues/1822 for more context.",
+    ].join("\n"));
+    return false;
+  } else {
+    return true;
   }
-  return isInstallable;
 }
 
 export async function installTool(name: string, updatePath?: boolean) {
