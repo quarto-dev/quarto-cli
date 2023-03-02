@@ -11042,9 +11042,7 @@ var require_yaml_intelligence_resources = __commonJS({
                 closed: true,
                 properties: {
                   format: "string",
-                  value: {
-                    ref: "string"
-                  }
+                  value: "string"
                 },
                 required: [
                   "value"
@@ -21235,12 +21233,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 151729,
+        _internalId: 151733,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 151721,
+            _internalId: 151725,
             type: "enum",
             enum: [
               "png",
@@ -21256,7 +21254,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 151728,
+            _internalId: 151732,
             type: "anyOf",
             anyOf: [
               {
@@ -27925,17 +27923,6 @@ function buildTreeSitterAnnotation(tree, mappedSource2) {
     }
     return dispatch[node.type](node);
   };
-  const annotateError = (start, end, message) => {
-    errors.push({ start, end, message });
-    return {
-      start,
-      end,
-      result: null,
-      kind: "<<ERROR>>",
-      components: [],
-      source: mappedSource2
-    };
-  };
   const annotateEmpty = (position) => {
     return {
       start: position,
@@ -29100,14 +29087,12 @@ function objectSchema(params = {}) {
     if (additionalPropArray.length) {
       result.additionalProperties = allOfSchema(...additionalPropArray);
     }
-    let filtered = false;
     const propNamesArray = baseSchema.map((s) => s.propertyNames).filter((s) => {
       if (typeof s !== "object")
         return true;
       if (s.tags === void 0)
         return true;
       if (s.tags["case-detection"] === true) {
-        filtered = true;
         return false;
       }
       return true;
