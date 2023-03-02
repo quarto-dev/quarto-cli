@@ -151,7 +151,6 @@ import {
   readPartials,
   stageTemplate,
 } from "./template.ts";
-import { formatLanguage } from "../../core/language.ts";
 import {
   kYamlMetadataBlock,
   pandocFormatWith,
@@ -278,12 +277,7 @@ export async function runPandoc(
     sysFilters = sysFilters.filter((filter) => filter !== kOJSFilter);
   }
 
-  // now that 'lang' is resolved we can determine our actual language values
-  options.format.language = await formatLanguage(
-    options.format.metadata,
-    options.format.language,
-    options.flags,
-  );
+  // pass the format language along to filter params
   formatFilterParams["language"] = options.format.language;
 
   // if there is no toc title then provide the appropirate default
@@ -925,6 +919,11 @@ export async function runPandoc(
     pandocMetadata[kInstitutes] = Array.isArray(instituteRaw)
       ? instituteRaw
       : [instituteRaw];
+  }
+
+  // If the user provides only `zh` as a lang, disambiguate to 'simplified'
+  if (pandocMetadata.lang === "zh") {
+    pandocMetadata.lang = "zh-Hans";
   }
 
   // If there are no specified options for link coloring in PDF, set them
