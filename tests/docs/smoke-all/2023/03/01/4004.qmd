@@ -3,6 +3,15 @@ title: "issue 4004"
 format: 
   docx:
     fig-cap-location: top
+_quarto:
+  tests:
+    docx:
+      ensureDocxRegexMatches: 
+        - [
+          <w:pPr><w:pStyle w:val="Caption" /><w:keepNext /><w:jc w:val="start"/></w:pPr><w:r><w:t xml:space="preserve">Figure 1.*?<a:graphic>.*?</a:graphic>,
+          <w:pPr><w:pStyle w:val="Caption" /><w:keepNext /><w:jc w:val="end"/></w:pPr><w:r><w:t xml:space="preserve">Figure 2.*?<a:graphic>.*?</a:graphic>,
+          <w:pPr><w:pStyle w:val="Caption" /><w:keepNext /><w:jc w:val="center"/></w:pPr><w:r><w:t xml:space="preserve">Figure 3.*?<a:graphic>.*?</a:graphic>
+          ]
 ---
 
 Lets's see @fig-01. And we'll use different alignments.
