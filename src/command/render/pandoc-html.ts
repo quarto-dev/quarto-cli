@@ -213,11 +213,6 @@ export async function resolveSassBundles(
     );
   }
 
-  if (isHtmlOutput(pandoc, true)) {
-    // We'll take care of text highlighting for HTML
-    setTextHighlightStyle("none", extras);
-  }
-
   return extras;
 }
 
@@ -497,6 +492,8 @@ export function generateCssKeyValues(textValues: Record<string, unknown>) {
       case "italic":
         if (textValues[textAttr]) {
           lines.push("font-style: italic;");
+        } else {
+          lines.push("font-style: inherit");
         }
         break;
       case "underline":

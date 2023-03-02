@@ -1341,7 +1341,8 @@ function resolveTextHighlightStyle(
     case "none":
       // Clear the highlighting
       if (extras.pandoc) {
-        delete extras.pandoc[kHighlightStyle];
+        extras.pandoc = extras.pandoc || {};
+        extras.pandoc[kHighlightStyle] = null;
       }
       break;
     case undefined:
