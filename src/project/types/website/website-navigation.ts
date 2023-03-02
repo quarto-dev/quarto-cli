@@ -285,6 +285,7 @@ export async function websiteNavigationExtras(
   if (navigation.footer) {
     nav.footer = navigation.footer;
   }
+
   // determine whether to show the dark toggle
   const darkMode = formatDarkMode(format);
   if (darkMode !== undefined && nav.navbar) {
@@ -465,8 +466,19 @@ function navigationHtmlPostprocessor(
       };
 
       if (navigation.breadCrumbs && navigation.breadCrumbs.length > 0) {
+        let crumbCount = 0;
         for (const item of navigation.breadCrumbs) {
           if (item.text || item.icon) {
+            // Attempt to use the item's title, if possible
+            let titleEl;
+            if (item.id) {
+              titleEl = doc.getElementById(item.id);
+            } else if (item.href) {
+              titleEl = doc.querySelector(
+                `.depth${crumbCount} .sidebar-item a[href="${item.href}"] .menu-text`,
+              );
+            }
+
             const liEl = breadCrumbEl();
             const maybeLink = (liEl: Element, contents: Element | string) => {
               if (item.href) {
@@ -482,7 +494,7 @@ function navigationHtmlPostprocessor(
                 return liEl;
               } else {
                 if (typeof (contents) === "string") {
-                  liEl.innerText = item.text || "";
+                  liEl.innerHTML = item.text || "";
                 } else {
                   liEl.appendChild(contents);
                 }
@@ -492,7 +504,12 @@ function navigationHtmlPostprocessor(
             };
 
             if (item.text) {
-              olEl.appendChild(maybeLink(liEl, item.text || ""));
+              olEl.appendChild(
+                maybeLink(
+                  liEl,
+                  titleEl ? titleEl.innerHTML : (item.text || ""),
+                ),
+              );
             } else if (item.icon) {
               const iconEl = doc.createElement("i");
               iconEl.classList.add("bi");
@@ -501,6 +518,7 @@ function navigationHtmlPostprocessor(
               olEl.appendChild(maybeLink(liEl, iconEl));
             }
           }
+          crumbCount++;
         }
       } else {
         const sidebarTitle = doc.querySelector(".sidebar-title a");
