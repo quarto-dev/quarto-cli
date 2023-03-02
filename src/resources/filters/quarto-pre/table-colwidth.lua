@@ -126,7 +126,14 @@ function tableColwidth()
         tblColwidths = tbl.attr.attributes[kTblColwidths]
       end
       tbl.attr.attributes[kTblColwidths] = nil
-  
+
+      -- if we found a quarto-postprocess attribute,
+      -- that means this was a table parsed from html and
+      -- we don't need to do the fixups
+      if tbl.attr.attributes["quarto-postprocess"] then
+        return nil
+      end
+      
       -- realize values and apply them
       local colwidthValues = tblColwidthValues(tbl, tblColwidths)
       if colwidthValues ~= nil then

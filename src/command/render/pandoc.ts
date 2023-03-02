@@ -151,7 +151,6 @@ import {
   readPartials,
   stageTemplate,
 } from "./template.ts";
-import { formatLanguage } from "../../core/language.ts";
 import {
   kYamlMetadataBlock,
   pandocFormatWith,
@@ -278,12 +277,7 @@ export async function runPandoc(
     sysFilters = sysFilters.filter((filter) => filter !== kOJSFilter);
   }
 
-  // now that 'lang' is resolved we can determine our actual language values
-  options.format.language = await formatLanguage(
-    options.format.metadata,
-    options.format.language,
-    options.flags,
-  );
+  // pass the format language along to filter params
   formatFilterParams["language"] = options.format.language;
 
   // if there is no toc title then provide the appropirate default
@@ -448,9 +442,15 @@ export async function runPandoc(
       printAllDefaults = mergeConfigs(extras.pandoc, printAllDefaults);
 
       // Special case - theme is resolved on extras and should override allDefaults
-      if (extras.pandoc[kHighlightStyle]) {
+      if (extras.pandoc[kHighlightStyle] === null) {
+        delete printAllDefaults[kHighlightStyle];
+        allDefaults[kHighlightStyle] = null;
+      } else if (extras.pandoc[kHighlightStyle]) {
         delete printAllDefaults[kHighlightStyle];
         allDefaults[kHighlightStyle] = extras.pandoc[kHighlightStyle];
+      } else {
+        delete printAllDefaults[kHighlightStyle];
+        delete allDefaults[kHighlightStyle];
       }
     }
 
@@ -655,7 +655,7 @@ export async function runPandoc(
 
   // add a shortcode escaping post-processor if we need one
   if (
-    isMarkdownOutput(options.format.pandoc) &&
+    isMarkdownOutput(options.format) &&
     requiresShortcodeUnescapePostprocessor(options.markdown)
   ) {
     postprocessors.push(shortcodeUnescapePostprocessor);
@@ -716,6 +716,12 @@ export async function runPandoc(
     }
   }
 
+  // set up the custom .qmd reader
+  if (allDefaults.from) {
+    formatFilterParams["user-defined-from"] = allDefaults.from;
+  }
+  allDefaults.from = resourcePath("filters/qmd-reader.lua");
+
   // set parameters required for filters (possibily mutating all of it's arguments
   // to pull includes out into quarto parameters so they can be merged)
   let pandocArgs = args;
@@ -734,7 +740,7 @@ export async function runPandoc(
   // crossref filter so we only do this if the user hasn't disabled the crossref filter
   if (
     !isLatexOutput(options.format.pandoc) &&
-    !isMarkdownOutput(options.format.pandoc) && crossrefFilterActive(options)
+    !isMarkdownOutput(options.format) && crossrefFilterActive(options)
   ) {
     delete allDefaults[kNumberSections];
     delete allDefaults[kNumberOffset];
@@ -913,6 +919,11 @@ export async function runPandoc(
     pandocMetadata[kInstitutes] = Array.isArray(instituteRaw)
       ? instituteRaw
       : [instituteRaw];
+  }
+
+  // If the user provides only `zh` as a lang, disambiguate to 'simplified'
+  if (pandocMetadata.lang === "zh") {
+    pandocMetadata.lang = "zh-Hans";
   }
 
   // If there are no specified options for link coloring in PDF, set them
@@ -1305,10 +1316,8 @@ function resolveTextHighlightStyle(
 
   if (highlightTheme === "none") {
     // Clear the highlighting
-    pandoc[kHighlightStyle] = null;
-    if (extras.pandoc) {
-      delete extras.pandoc[kHighlightStyle];
-    }
+    extras.pandoc = extras.pandoc || {};
+    extras.pandoc[kHighlightStyle] = null;
     return extras;
   }
 
@@ -1331,9 +1340,12 @@ function resolveTextHighlightStyle(
       break;
     case "none":
       // Clear the highlighting
-      delete pandoc[kHighlightStyle];
       if (extras.pandoc) {
-        delete extras.pandoc[kHighlightStyle];
+        extras.pandoc = extras.pandoc || {};
+        extras.pandoc[kHighlightStyle] = textHighlightThemePath(
+          inputDir,
+          "none",
+        );
       }
       break;
     case undefined:

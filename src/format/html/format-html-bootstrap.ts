@@ -6,7 +6,7 @@
 */
 
 import { Document, Element } from "../../core/deno-dom.ts";
-import { join } from "path/mod.ts";
+import { dirname, isAbsolute, join, relative } from "path/mod.ts";
 
 import { renderEjs } from "../../core/ejs.ts";
 import { formatResourcePath } from "../../core/resources.ts";
@@ -25,6 +25,7 @@ import {
   kSectionDivs,
   kTargetFormat,
   kTocDepth,
+  kTocExpand,
   kTocLocation,
 } from "../../config/constants.ts";
 import {
@@ -293,6 +294,16 @@ function bootstrapHtmlPostprocessor(
       // activate selection behavior for this
       toc.classList.add("toc-active");
 
+      const expanded = format.metadata[kTocExpand];
+      if (expanded !== undefined) {
+        if (expanded === true) {
+          toc.setAttribute("data-toc-expanded", 99);
+        } else if (expanded) {
+          toc.setAttribute("data-toc-expanded", expanded);
+        } else {
+          toc.setAttribute("data-toc-expanded", -1);
+        }
+      }
       // add nav-link class to the TOC links
       const tocLinks = doc.querySelectorAll('nav[role="doc-toc"] > ul a');
       for (let i = 0; i < tocLinks.length; i++) {
@@ -333,7 +344,7 @@ function bootstrapHtmlPostprocessor(
     // Inject links to other formats if there is another
     // format that of this file that has been rendered
     if (format.render[kFormatLinks] !== false) {
-      processAlternateFormatLinks(options, doc, format, resources);
+      processAlternateFormatLinks(input, options, doc, format, resources);
     }
 
     // Look for included / embedded notebooks and include those
@@ -456,7 +467,7 @@ const fileBsIconName = (format: Format) => {
     return "file-pdf";
   } else if (isIpynbOutput(format.pandoc)) {
     return "journal-code";
-  } else if (isMarkdownOutput(format.pandoc)) {
+  } else if (isMarkdownOutput(format)) {
     return "file-code";
   } else if (isPresentationOutput(format.pandoc)) {
     return "file-slides";
@@ -466,6 +477,7 @@ const fileBsIconName = (format: Format) => {
 };
 
 function processAlternateFormatLinks(
+  input: string,
   options: {
     inputMetadata: Metadata;
     inputTraits: PandocInputTraits;
@@ -518,8 +530,12 @@ function processAlternateFormatLinks(
         if (!isHtmlOutput(renderedFormat.format.pandoc, true)) {
           const li = doc.createElement("li");
 
+          const relPath = isAbsolute(renderedFormat.path)
+            ? relative(dirname(input), renderedFormat.path)
+            : renderedFormat.path;
+
           const link = doc.createElement("a");
-          link.setAttribute("href", renderedFormat.path);
+          link.setAttribute("href", relPath);
           const dlAttrValue = fileDownloadAttr(
             renderedFormat.format,
             renderedFormat.path,
@@ -855,6 +871,17 @@ const processTableMarginCaption = (
 
 // Process any captions that appear in margins
 const processMarginCaptions = (doc: Document) => {
+  // Identify elements that already appear in the margin
+  // and in this case, remove the margin-caption class
+  // since we do not want to further process the caption into the margin
+  const captionsAlreadyInMargin = doc.querySelectorAll(
+    ".column-margin .margin-caption",
+  );
+  captionsAlreadyInMargin.forEach((node) => {
+    const el = node as Element;
+    el.classList.remove("margin-caption");
+  });
+
   // Forward caption class from parents to the child fig caps
   const marginCaptions = doc.querySelectorAll(".margin-caption");
   marginCaptions.forEach((node) => {

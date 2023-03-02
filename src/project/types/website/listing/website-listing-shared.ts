@@ -24,6 +24,8 @@ import { kImage } from "../website-constants.ts";
 import { projectOutputDir } from "../../../project-shared.ts";
 import { truncateText } from "../../../../core/text.ts";
 import { insecureHash } from "../../../../core/hash.ts";
+import { findPreviewImgEl } from "../util/discover-meta.ts";
+import { getDecodedAttribute } from "../../../../core/html.ts";
 
 // The root listing key
 export const kListing = "listing";
@@ -81,6 +83,10 @@ export const kDefaultMaxDescLength = 175;
 // Table options
 export const kTableStriped = "table-striped";
 export const kTableHover = "table-hover";
+
+// Items to include
+export const kInclude = "include";
+export const kExclude = "exclude";
 
 // Fields
 export const kFieldTitle = "title";
@@ -208,6 +214,13 @@ export interface RenderedContents {
   title: string | undefined;
   firstPara: string | undefined;
   fullContents: string | undefined;
+  previewImage: PreviewImage | undefined;
+}
+
+export interface PreviewImage {
+  src: string;
+  alt?: string;
+  title?: string;
 }
 
 export const kInlineCodeStyle = "inline-code-style";
@@ -500,6 +513,27 @@ export function readRenderedContents(
     return undefined;
   };
 
+  // Find a preview image, if present
+  const computePreviewImage = (): PreviewImage | undefined => {
+    const previewImageEl = findPreviewImgEl(doc);
+    if (previewImageEl) {
+      const previewImageSrc = getDecodedAttribute(previewImageEl, "src");
+      if (previewImageSrc !== null) {
+        const src = previewImageSrc;
+        const alt = previewImageEl.getAttribute("alt") !== null
+          ? previewImageEl.getAttribute("alt") as string
+          : undefined;
+        const title = previewImageEl.getAttribute("title") !== null
+          ? previewImageEl.getAttribute("title") as string
+          : undefined;
+        return {
+          src,
+          alt,
+          title,
+        };
+      }
+    }
+  };
   // Clean and fetch data
   const firstPara = getFirstPara();
   const fullContents = cleanMath(mainEl?.innerHTML);
@@ -508,6 +542,7 @@ export function readRenderedContents(
     title: titleText,
     fullContents,
     firstPara,
+    previewImage: computePreviewImage(),
   };
 }
 

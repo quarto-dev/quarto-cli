@@ -24,6 +24,9 @@ function asciidocFigure(image)
   -- alt text (ok to use HTML entities since alt is expressly for HTML output)
   local altText = image.attr.attributes["alt"] or image.attr.attributes[kFigAlt] or ""
   altText = altText:gsub("\"", "&quot;")
+  altText = altText:gsub("<", "&lt;")
+  altText = altText:gsub(">", "&gt;")
+  altText = altText:gsub("&", "&amp;")
 
   -- the figure itself
   figure:extend({"image::" .. image.src .. "[\"" .. altText .. "\"]"})

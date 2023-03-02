@@ -38,7 +38,7 @@ function layoutMetaInject()
       if (useCodeBlockBorder or useCodeBlockBg) then
         metaInjectLatex(meta, function(inject)
           inject(
-            usePackageWithOption("tcolorbox", "many")
+            usePackageWithOption("tcolorbox", "skins,breakable")
           )
         end)
 

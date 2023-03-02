@@ -23,11 +23,11 @@ title-block-affiliation-plural: "Afiliacje"
 title-block-published: "Opublikowano"
 title-block-modified: "Zmodyfikowano"
 
-callout-tip-caption: "Wskazówka"
-callout-note-caption: "Adnotacja"
-callout-warning-caption: "Ostrzeżenie"
-callout-important-caption: "Ważne"
-callout-caution-caption: "Zagrożenie"
+callout-tip-title: "Wskazówka"
+callout-note-title: "Adnotacja"
+callout-warning-title: "Ostrzeżenie"
+callout-important-title: "Ważne"
+callout-caution-title: "Zagrożenie"
 
 code-summary: "Kod"
 
@@ -47,6 +47,8 @@ repo-action-links-edit: "Edytuj tę stronę"
 repo-action-links-source: "Pokaż źródło"
 repo-action-links-issue: "Zgłoś problem"
 
+back-to-top: "Powrót do góry"
+
 search-no-results-text: "Brak wyników"
 search-matching-documents-text: "dopasowane dokumenty"
 search-copy-link-title: "Kopiuj link do wyszukiwania"
@@ -56,6 +58,12 @@ search-more-matches-text: "więcej dopasowań w tym dokumencie"
 search-clear-button-title: "Wyczyść"
 search-detached-cancel-button-title: "Anuluj"
 search-submit-button-title: "Zatwierdź"
+search: "Szukaj"
+
+toggle-sidebar: "Przełącz pasek boczny"
+toggle-dark-mode: "Przełącz tryb ciemny"
+toggle-reader-mode: "Przełącz tryb czytnika"
+toggle-navigation: "Przełącz nawigację"
 
 crossref-fig-title: "Rysunek"
 crossref-tbl-title: "Tabela"

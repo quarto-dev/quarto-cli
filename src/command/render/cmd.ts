@@ -8,13 +8,14 @@
 import { dirname, relative } from "path/mod.ts";
 import { expandGlobSync } from "fs/expand_glob.ts";
 import { Command } from "cliffy/command/mod.ts";
-import { info } from "log/mod.ts";
+import { info, warning } from "log/mod.ts";
 
 import { fixupPandocArgs, kStdOut, parseRenderFlags } from "./flags.ts";
 
 import { renderResultFinalOutput } from "./render.ts";
 import { render, renderServices } from "./render-shared.ts";
 import { RenderResult } from "./types.ts";
+import { kCliffyImplicitCwd } from "../../config/constants.ts";
 
 export const renderCommand = new Command()
   .name("render")
@@ -148,14 +149,30 @@ export const renderCommand = new Command()
     }
 
     // show help if requested
-    if (args.length > 0 && args[0] === "--help") {
+    if (args.length > 0 && args[0] === "--help" || args[0] === "-h") {
       renderCommand.showHelp();
       return;
     }
 
-    // pull inputs out of the beginning of flags
-    input = input || ".";
-    const inputs = [input];
+    // if input is missing but there exists an args parameter which is a .qmd or .ipynb file,
+    // issue a warning.
+    if (!input || input === kCliffyImplicitCwd) {
+      input = Deno.cwd();
+      const firstArg = args.find((arg) =>
+        arg.endsWith(".qmd") || arg.endsWith(".ipynb")
+      );
+      if (firstArg) {
+        warning(
+          "`quarto render` invoked with no input file specified (the parameter order matters).\nQuarto will render the current directory by default.\n" +
+            `Did you mean to run \`quarto render ${firstArg} ${
+              args.filter((arg) => arg !== firstArg).join(" ")
+            }\`?\n` +
+            "Use `quarto render --help` for more information.",
+        );
+      }
+    }
+
+    const inputs = [input!];
     const firstPandocArg = args.findIndex((arg) => arg.startsWith("-"));
     if (firstPandocArg !== -1) {
       inputs.push(...args.slice(0, firstPandocArg));

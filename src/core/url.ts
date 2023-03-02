@@ -5,7 +5,7 @@
 *
 */
 
-import { ensureTrailingSlash } from "./path.ts";
+import { ensureTrailingSlash, pathWithForwardSlashes } from "./path.ts";
 
 export function isHttpUrl(url: string) {
   return /^https?:/i.test(url);
@@ -13,6 +13,8 @@ export function isHttpUrl(url: string) {
 
 export function joinUrl(baseUrl: string, path: string) {
   const baseHasSlash = baseUrl.endsWith("/");
+
+  path = pathWithForwardSlashes(path);
   const pathHasSlash = path.startsWith("/");
 
   if (baseHasSlash && pathHasSlash) {

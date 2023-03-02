@@ -30,14 +30,12 @@ import {
 } from "../../../project-index.ts";
 import { ProjectContext } from "../../../types.ts";
 
-import {
-  estimateReadingTimeMinutes,
-  findPreviewImgMd,
-} from "../util/discover-meta.ts";
+import { estimateReadingTimeMinutes } from "../util/discover-meta.ts";
 import {
   ColumnType,
   kCategoryStyle,
   kDefaultMaxDescLength,
+  kExclude,
   kFeed,
   kFieldAuthor,
   kFieldCategories,
@@ -63,6 +61,7 @@ import {
   kImageAlign,
   kImageAlt,
   kImageHeight,
+  kInclude,
   kListing,
   kMaxDescLength,
   kPageSize,
@@ -80,6 +79,7 @@ import {
   ListingSharedOptions,
   ListingSort,
   ListingType,
+  PreviewImage,
   renderedContentReader,
 } from "./website-listing-shared.ts";
 import {
@@ -102,6 +102,7 @@ import { ProjectOutputFile } from "../../types.ts";
 import { projectOutputDir } from "../../../project-shared.ts";
 import { directoryMetadataForInputFile } from "../../../project-context.ts";
 import { mergeConfigs } from "../../../../core/config.ts";
+import { globToRegExp } from "../../../../core/lib/glob.ts";
 
 // Defaults (a card listing that contains everything
 // in the source document's directory)
@@ -280,7 +281,7 @@ export async function readListings(
   return { listingDescriptors: listingItems, options: sharedOptions };
 }
 
-export function completeListingDescriptions(
+export function completeListingItems(
   context: ProjectContext,
   outputFiles: ProjectOutputFile[],
   _incremental: boolean,
@@ -332,6 +333,67 @@ export function completeListingDescriptions(
         match = regex.exec(fileContents);
       }
       regex.lastIndex = 0;
+
+      // Use a regex to find image placeholders
+      // Placeholders are there to permit images to be appear in the
+      // rendered content (e.g. plots from computations) and for those
+      // to be used. If an image can't be found this way, a placeholder
+      // div will be returned instead.
+      const imgRegex = imagePlaceholderRegex;
+      imgRegex.lastIndex = 0;
+      let imgMatch = imgRegex.exec(fileContents);
+      while (imgMatch) {
+        const progressive = imgMatch[1] === "true";
+        const imgHeight = imgMatch[2];
+        const docRelativePath = imgMatch[3];
+        const docAbsPath = join(projectOutputDir(context), docRelativePath);
+        const imgPlaceholder = imagePlaceholder(
+          docRelativePath,
+          progressive,
+          imgHeight,
+        );
+        if (existsSync(docAbsPath)) {
+          const contents = contentReader(docAbsPath, {
+            remove: { links: true },
+          });
+
+          if (contents.previewImage) {
+            const imagePath = pathWithForwardSlashes(
+              listingItemHref(
+                contents.previewImage.src,
+                dirname(docRelativePath),
+              ),
+            );
+            const imgHtml = imageSrc(
+              { ...contents.previewImage, src: imagePath },
+              progressive,
+              imgHeight,
+            );
+
+            fileContents = fileContents.replace(
+              imgPlaceholder,
+              imgHtml,
+            );
+          } else {
+            fileContents = fileContents.replace(
+              imgPlaceholder,
+              emptyDiv(imgHeight),
+            );
+          }
+        } else {
+          fileContents = fileContents.replace(
+            imgPlaceholder,
+            emptyDiv(imgHeight),
+          );
+          warning(
+            `Unable to read listing preview image from ${docRelativePath}`,
+          );
+        }
+
+        imgMatch = imgRegex.exec(fileContents);
+      }
+      imgRegex.lastIndex = 0;
+
       Deno.writeTextFileSync(
         outputFile.file,
         fileContents,
@@ -340,8 +402,26 @@ export function completeListingDescriptions(
   });
 }
 
+function emptyDiv(height?: string) {
+  return `<div class="listing-item-img-placeholder" ${
+    height ? `style="height: ${height};"` : ""
+  }>&nbsp;</div>`;
+}
+
 function descriptionPlaceholder(file?: string, maxLength?: number): string {
   return file ? `<!-- desc(5A0113B34292)[max=${maxLength}]:${file} -->` : "";
+}
+
+export function imagePlaceholder(
+  file: string,
+  progressive: boolean,
+  height?: string,
+): string {
+  return file
+    ? `<!-- img(9CEB782EFEE6)[progressive=${
+      progressive ? "true" : "false"
+    }, height=${height ? height : ""}]:${file} -->`
+    : "";
 }
 
 export function isPlaceHolder(text: string) {
@@ -350,6 +430,9 @@ export function isPlaceHolder(text: string) {
 
 const descriptionPlaceholderRegex =
   /<!-- desc\(5A0113B34292\)\[max\=(.*)\]:(.*) -->/;
+
+const imagePlaceholderRegex =
+  /<!-- img\(9CEB782EFEE6\)\[progressive\=(.*), height\=(.*)\]:(.*) -->/;
 
 function hydrateListing(
   format: Format,
@@ -396,6 +479,10 @@ function hydrateListing(
 
   // Don't include fields that the items don't have
   const fields = suggestedFields.filter((field) => {
+    // Always include image if suggeted
+    if (field === kFieldImage) {
+      return true;
+    }
     return itemFields.includes(field);
   });
   const finalFields = fields.length > 0 ? fields : itemFields;
@@ -676,8 +763,77 @@ async function readContents(
     }
   }
 
+  const matchesField = (item: ListingItem, field: string, value: unknown) => {
+    const simpleValueMatches = (
+      itemValue: unknown,
+      listingValue: unknown,
+    ) => {
+      if (
+        typeof (itemValue) === "string" && typeof (listingValue) === "string"
+      ) {
+        const regex = globToRegExp(listingValue);
+        return itemValue.match(regex);
+      } else {
+        return itemValue === listingValue;
+      }
+    };
+
+    const valueMatches = (
+      item: ListingItem,
+      field: string,
+      value: unknown,
+    ) => {
+      if (Array.isArray(item[field])) {
+        const fieldValues = item[field] as Array<unknown>;
+        return fieldValues.some((fieldVal) => {
+          return simpleValueMatches(fieldVal, value);
+        });
+      } else {
+        return simpleValueMatches(item[field], value);
+      }
+    };
+
+    if (Array.isArray(value)) {
+      return value.some((val) => {
+        return valueMatches(item, field, val);
+      });
+    } else {
+      return valueMatches(item, field, value);
+    }
+  };
+
+  // Apply any listing filters
+  let filtered = listingItems;
+  const includes = listing[kInclude] as Record<string, unknown>;
+  if (includes) {
+    debug(
+      `[listing] applying filter to include only items matching ${includes}`,
+    );
+
+    const fields = Object.keys(includes);
+    filtered = filtered.filter((item) => {
+      return fields.every((field) => {
+        return matchesField(item, field, includes[field]);
+      });
+    });
+
+    debug(`[listing] afer including, ${filtered.length} item match listing`);
+  }
+
+  const excludes = listing[kExclude] as Record<string, unknown>;
+  if (excludes) {
+    debug(`[listing] applying filter to exclude items matching ${includes}`);
+    const fields = Object.keys(excludes);
+    filtered = filtered.filter((item) => {
+      return !fields.some((field) => {
+        return matchesField(item, field, excludes[field]);
+      });
+    });
+    debug(`[listing] afer excluding, ${filtered.length} item match listing`);
+  }
+
   return {
-    items: listingItems,
+    items: filtered,
     sources: listingItemSources,
   };
 }
@@ -813,8 +969,7 @@ async function listItemFromFile(
       documentMeta?.abstract as string ||
       descriptionPlaceholder(inputTarget?.outputHref, maxDescLength);
 
-    const imageRaw = documentMeta?.image as string ||
-      findPreviewImgMd(target?.markdown.markdown);
+    const imageRaw = documentMeta?.image as string;
     const image = imageRaw !== undefined
       ? pathWithForwardSlashes(
         listingItemHref(imageRaw, dirname(projectRelativePath)),
@@ -849,6 +1004,7 @@ async function listItemFromFile(
     const item: ListingItem = {
       ...documentMeta,
       path: `/${projectRelativePath}`,
+      outputHref: inputTarget?.outputHref,
       [kFieldTitle]: target?.title,
       [kFieldDate]: date,
       [kFieldDateModified]: datemodified,
@@ -868,6 +1024,14 @@ async function listItemFromFile(
         : ListingItemSource.rawfile,
     };
   }
+}
+
+function imageSrc(image: PreviewImage, progressive: boolean, height?: string) {
+  return `<img ${progressive ? "data-src" : "src"}="${image.src}" ${
+    image.alt ? `alt="${image.alt}" ` : ""
+  }${height ? `style="height: ${height};" ` : ""}${
+    image.title ? `title="${image.title}"` : ""
+  }/>`;
 }
 
 // Processes the 'listing' metadata into an

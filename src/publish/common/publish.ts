@@ -119,7 +119,7 @@ export async function handlePublish<
     handler.name,
     type,
     title,
-    target.url,
+    type === "site" ? target.url : undefined,
   );
 
   // function to resolve the full path of a file

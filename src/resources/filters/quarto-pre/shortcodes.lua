@@ -484,8 +484,13 @@ end
 
 
 function shortcodeResultAsInlines(result, name)
-  local type = pandoc.utils.type(result)
-  if type == "Inlines" then
+  local type = quarto.utils.type(result)
+  if type == "CustomBlock" then
+    error("Custom AST Block returned from shortcode, but Inline was expected")
+    os.exit(1)
+  elseif type == "CustomInline" then
+    return pandoc.Inlines( { result })
+  elseif type == "Inlines" then
     return result
   elseif type == "Blocks" then
     return pandoc.utils.blocks_to_inlines(result, { pandoc.Space() })
@@ -512,8 +517,11 @@ function shortcodeResultAsInlines(result, name)
 end
   
 function shortcodeResultAsBlocks(result, name)
-  local type = pandoc.utils.type(result)
-  if type == "Blocks" then
+  local type = quarto.utils.type(result)
+
+  if type == "CustomBlock" or type == "CustomInline" then
+    return pandoc.Blocks({pandoc.Plain(result)})
+  elseif type == "Blocks" then
     return result
   elseif type == "Inlines" then
     return pandoc.Blocks( {pandoc.Para(result) })

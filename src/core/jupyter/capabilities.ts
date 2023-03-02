@@ -6,13 +6,14 @@
 */
 
 import { warning } from "log/mod.ts";
-import { join } from "path/mod.ts";
+import { isAbsolute, join } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
 import { isWindows } from "../platform.ts";
 import { execProcess } from "../process.ts";
 import { resourcePath } from "../resources.ts";
 import { readYamlFromString } from "../yaml.ts";
+import { which } from "../path.ts";
 
 import { JupyterCapabilities, JupyterKernelspec } from "./types.ts";
 
@@ -24,7 +25,6 @@ export async function jupyterCapabilities(kernelspec?: JupyterKernelspec) {
   const language = kernelspec?.language || kNoLanguage;
 
   if (!jupyterCapsCache.has(language)) {
-
     // if we are targeting julia then prefer the julia installed miniconda
     const juliaCaps = await getVerifiedJuliaCondaJupyterCapabilities();
     if (language === "julia" && juliaCaps) {
@@ -81,7 +81,7 @@ async function getVerifiedJuliaCondaJupyterCapabilities() {
       ".julia",
       "conda",
       "3",
-      isWindows() ? "python.exe" : join("bin", "python3")
+      isWindows() ? "python.exe" : join("bin", "python3"),
     );
     if (existsSync(juliaPython)) {
       const caps = await getJupyterCapabilities([juliaPython]);
@@ -92,15 +92,22 @@ async function getVerifiedJuliaCondaJupyterCapabilities() {
   }
 }
 
-function getQuartoJupyterCapabilities() {
-  const quartoJupyter = Deno.env.get("QUARTO_PYTHON");
+async function getQuartoJupyterCapabilities() {
+  let quartoJupyter = Deno.env.get("QUARTO_PYTHON");
   if (quartoJupyter) {
+    // if the path is relative then resolve it
+    if (!isAbsolute(quartoJupyter)) {
+      const path = await which(quartoJupyter);
+      if (path) {
+        quartoJupyter = path;
+      }
+    }
     if (existsSync(quartoJupyter)) {
       let quartoJupyterBin: string | undefined = quartoJupyter;
       if (Deno.statSync(quartoJupyter).isDirectory) {
         const bin = ["python3", "python", "python3.exe", "python.exe"]
           .find((bin) => {
-            return existsSync(join(quartoJupyter, bin));
+            return existsSync(join(quartoJupyter!, bin));
           });
         if (bin) {
           quartoJupyterBin = join(quartoJupyter, bin);

@@ -45,7 +45,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   // highlight matches on the page
   if (query !== null && mainEl) {
     // perform any highlighting
-    highlight(query, mainEl);
+    highlight(escapeRegExp(query), mainEl);
 
     // fix up the URL to remove the q query param
     const replacementUrl = new URL(window.location);
@@ -80,23 +80,20 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   // the media query since we generate different HTML for sidebar overlays than we do
   // for sidebar input UI)
   const detachedMediaQuery =
-    quartoSearchOptions.type === "overlay"
-      ? "all"
-      : quartoSearchOptions.location === "navbar"
-      ? "(max-width: 991px)"
-      : "none";
+    quartoSearchOptions.type === "overlay" ? "all" : "(max-width: 991px)";
 
   // If configured, include the analytics client to send insights
   const plugins = configurePlugins(quartoSearchOptions);
 
   let lastState = null;
-  const { setIsOpen } = autocomplete({
+  const { setIsOpen, setQuery, setCollections } = autocomplete({
     container: searchEl,
     detachedMediaQuery: detachedMediaQuery,
     defaultActiveItemId: 0,
     panelContainer: "#quarto-search-results",
     panelPlacement: quartoSearchOptions["panel-placement"],
     debug: false,
+    openOnFocus: true,
     plugins,
     classNames: {
       form: "d-flex",
@@ -280,6 +277,10 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
             }
           },
           getItems({ query }) {
+            if (query === null || query === "") {
+              return [];
+            }
+
             const limit = quartoSearchOptions.limit;
             if (quartoSearchOptions.algolia) {
               return algoliaSearch(query, limit, quartoSearchOptions.algolia);
@@ -299,9 +300,15 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
           },
           templates: {
             noResults({ createElement }) {
+              const hasQuery = lastState.query;
+
               return createElement(
                 "div",
-                { class: "quarto-search-no-results" },
+                {
+                  class: `quarto-search-no-results${
+                    hasQuery ? "" : " no-query"
+                  }`,
+                },
                 language["search-no-results-text"]
               );
             },
@@ -360,6 +367,12 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       ];
     },
   });
+
+  window.quartoOpenSearch = () => {
+    setIsOpen(false);
+    setIsOpen(true);
+    focusSearchInput();
+  };
 
   // Remove the labeleledby attribute since it is pointing
   // to a non-existent label
@@ -974,6 +987,10 @@ function clearHighlight(searchterm, el) {
       }
     }
   }
+}
+
+function escapeRegExp(string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // $& means the whole matched string
 }
 
 // highlight matches

@@ -27,8 +27,8 @@ testRender(input, "html", false, [
     "div.callout-caution",
     "div.callout.no-icon",
     // formatting is kept in caption
-    "div.callout-tip > div.callout-header > div.callout-caption-container > strong",
-    "div.callout-tip > div.callout-header > div.callout-caption-container > code",
+    "div.callout-tip > div.callout-header > div.callout-title-container > strong",
+    "div.callout-tip > div.callout-header > div.callout-title-container > code",
   ]),
 ]);
 
@@ -36,7 +36,7 @@ const teXOutput = outputForInput(input, "latex");
 testRender(input, "latex", true, [
   ensureFileRegexMatches(teXOutput.outputPath, [
     requireLatexPackage("fontawesome5"),
-    requireLatexPackage("tcolorbox", "many"),
+    requireLatexPackage("tcolorbox", "skins,breakable"),
     // callout environments are created
     /quarto-callout-warning/,
     /quarto-callout-important/,

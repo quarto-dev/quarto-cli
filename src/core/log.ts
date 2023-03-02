@@ -291,11 +291,15 @@ export function logError(e: unknown) {
   // print error name if requested
   let message = err.printName ? `${err.name}: ${err.message}` : err.message;
 
-  // print the stack if requested and if this is a debug build
+  // print the stack if requested or if this is a debug build
   const isDebug = getenv("QUARTO_DEBUG", "false") === "true" ||
     getenv("QUARTO_PRINT_STACK", "false") === "true";
-  if (isDebug && err.stack && err.printStack) {
-    message = message + "\n\n" + err.stack;
+  if (err.stack && (isDebug || err.printStack)) {
+    if (!message) {
+      message = err.stack;
+    } else {
+      message = message + "\n\n" + err.stack;
+    }
   }
 
   // show message if we have one

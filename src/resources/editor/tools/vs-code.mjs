@@ -7272,7 +7272,6 @@ var require_yaml_intelligence_resources = __commonJS({
             ],
             formats: [
               "$html-all",
-              "docx",
               "ms",
               "$pdf-all"
             ]
@@ -9066,6 +9065,11 @@ var require_yaml_intelligence_resources = __commonJS({
                   description: "Branch of website source code (defaults to `main`)"
                 }
               },
+              "issue-url": {
+                string: {
+                  description: "URL to use for the 'report an issue' repository action."
+                }
+              },
               "repo-actions": {
                 maybeArrayOf: {
                   enum: [
@@ -9534,6 +9538,11 @@ var require_yaml_intelligence_resources = __commonJS({
                   description: "Provide next and previous article links in footer"
                 }
               },
+              "back-to-top-navigation": {
+                boolean: {
+                  description: "Provide a 'back to top' navigation button"
+                }
+              },
               "page-footer": {
                 anyOf: [
                   "string",
@@ -9783,11 +9792,11 @@ var require_yaml_intelligence_resources = __commonJS({
               "toc-title-website": "string",
               "related-formats-title": "string",
               "related-notebooks-title": "string",
-              "callout-tip-caption": "string",
-              "callout-note-caption": "string",
-              "callout-warning-caption": "string",
-              "callout-important-caption": "string",
-              "callout-caution-caption": "string",
+              "callout-tip-title": "string",
+              "callout-note-title": "string",
+              "callout-warning-title": "string",
+              "callout-important-title": "string",
+              "callout-caution-title": "string",
               "section-title-abstract": "string",
               "section-title-footnotes": "string",
               "section-title-appendices": "string",
@@ -9858,12 +9867,17 @@ var require_yaml_intelligence_resources = __commonJS({
                 }
               },
               template: {
-                enum: [
-                  "jolla",
-                  "trestles",
-                  "solana",
-                  "marquee",
-                  "broadside"
+                anyOf: [
+                  {
+                    enum: [
+                      "jolla",
+                      "trestles",
+                      "solana",
+                      "marquee",
+                      "broadside"
+                    ]
+                  },
+                  "path"
                 ],
                 description: {
                   short: "The template to use to layout this about page.",
@@ -10197,6 +10211,14 @@ var require_yaml_intelligence_resources = __commonJS({
                   short: "Fields that items in this listing must have populated.",
                   long: "Fields that items in this listing must have populated.\nIf a listing is rendered and one more items in this listing \nis missing a required field, an error will occur and the render will.\n"
                 }
+              },
+              include: {
+                maybeArrayOf: "object",
+                description: "Items with matching field values will be included in the listing."
+              },
+              exclude: {
+                maybeArrayOf: "object",
+                description: "Items with matching field values will be excluded from the listing."
               }
             }
           }
@@ -10540,8 +10562,8 @@ var require_yaml_intelligence_resources = __commonJS({
               language: {
                 string: {
                   description: {
-                    short: "The language of the item.",
-                    long: 'The language of the item;\n\nShould be entered as an ISO 639-1 two-letter language code (e.g. "en", "zh"), \noptionally with a two-letter locale code (e.g. "de-DE", "de-AT")\n'
+                    short: "The language of the item (used only for citation of the item).",
+                    long: 'The language of the item (used only for citation of the item).\n\nShould be entered as an ISO 639-1 two-letter language code (e.g. "en", "zh"), \noptionally with a two-letter locale code (e.g. "de-DE", "de-AT").\n\nThis does not change the language of the item, instead it documents \nwhat language the item uses (which may be used in citing the item).\n'
                   }
                 }
               },
@@ -12027,6 +12049,11 @@ var require_yaml_intelligence_resources = __commonJS({
                                     description: "Location to write references (`block`, `section`, or `document`)"
                                   }
                                 },
+                                links: {
+                                  boolean: {
+                                    description: "Write markdown links as references rather than inline."
+                                  }
+                                },
                                 prefix: {
                                   string: {
                                     description: "Unique prefix for references (`none` to prevent automatic prefixes)"
@@ -12344,6 +12371,17 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           schema: "path",
           description: "Use the specified image as the EPUB cover. It is recommended\nthat the image be less than 1000px in width and height.\n"
+        },
+        {
+          name: "epub-title-page",
+          schema: "boolean",
+          default: true,
+          tags: {
+            formats: [
+              "$epub-all"
+            ]
+          },
+          description: "If false, disables the generation of a title page."
         }
       ],
       "schema/document-execute.yml": [
@@ -13023,6 +13061,32 @@ var require_yaml_intelligence_resources = __commonJS({
             short: "Whether to hyphenate text at line breaks even in words that do not contain hyphens.",
             long: "Whether to hyphenate text at line breaks even in words that do not contain \nhyphens if it is necessary to do so to lay out words on a line without excessive spacing\n"
           }
+        },
+        {
+          name: "list-tables",
+          schema: "boolean",
+          default: false,
+          tags: {
+            formats: [
+              "rst"
+            ]
+          },
+          description: "If true, tables are formatted as RST list tables."
+        },
+        {
+          name: "split-level",
+          tags: {
+            formats: [
+              "$epub-all",
+              "chunkedhtml"
+            ]
+          },
+          schema: "number",
+          default: 1,
+          description: {
+            short: "Specify the heading level at which to split the EPUB into separate\nchapter files.\n",
+            long: "Specify the heading level at which to split the EPUB into separate\nchapter files. The default is to split into chapters at level-1\nheadings. This option only affects the internal composition of the\nEPUB, not the way chapters and sections are displayed to users. Some\nreaders may be slow if the chapter files are too large, so for large\ndocuments with few level-1 headings, one might want to use a chapter\nlevel of 2 or 3.\n"
+          }
         }
       ],
       "schema/document-funding.yml": [
@@ -13311,15 +13375,6 @@ var require_yaml_intelligence_resources = __commonJS({
           description: {
             short: "Specify what to do with insertions, deletions, and comments produced by \nthe MS Word \u201CTrack Changes\u201D feature.\n",
             long: 'Specify what to do with insertions, deletions, and comments\nproduced by the MS Word "Track Changes" feature.  \n\n- `accept` (default): Process all insertions and deletions.\n- `reject`: Ignore them.\n- `all`: Include all insertions, deletions, and comments, wrapped\n  in spans with `insertion`, `deletion`, `comment-start`, and\n  `comment-end` classes, respectively. The author and time of\n  change is included. \n\nNotes:\n\n- Both `accept` and `reject` ignore comments.\n\n- `all` is useful for scripting: only\n  accepting changes from a certain reviewer, say, or before a\n  certain date. If a paragraph is inserted or deleted,\n  `track-changes: all` produces a span with the class\n  `paragraph-insertion`/`paragraph-deletion` before the\n  affected paragraph break. \n\n- This option only affects the docx reader.\n'
-          }
-        },
-        {
-          name: "strip-empty-paragraphs",
-          schema: "boolean",
-          hidden: true,
-          description: {
-            short: "Ignore paragraphs with no content.",
-            long: "*Deprecated.  Use the `+empty_paragraphs` extension instead.*\nIgnore paragraphs with no content.  This option is useful\nfor converting word processing documents where users have\nused empty paragraphs to create inter-paragraph space.\n"
           }
         },
         {
@@ -13914,6 +13969,31 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
+          name: "appendix-cite-as",
+          schema: {
+            anyOf: [
+              "boolean",
+              {
+                maybeArrayOf: {
+                  enum: [
+                    "display",
+                    "bibtex"
+                  ]
+                }
+              }
+            ]
+          },
+          tags: {
+            formats: [
+              "$html-doc"
+            ]
+          },
+          description: {
+            short: "Controls the formats which are provided in the citation section of the appendix (`false`, `display`, or `bibtex`).",
+            long: "Controls the formats which are provided in the citation section of the appendix.\n\nUse `false` to disable the display of the 'cite as' appendix. Pass one or more of `display` or `bibtex` to enable that\nformat in 'cite as' appendix.\n"
+          }
+        },
+        {
           name: "title-block-style",
           schema: {
             anyOf: [
@@ -14452,7 +14532,7 @@ var require_yaml_intelligence_resources = __commonJS({
                           description: "The type of the license."
                         }
                       },
-                      url: {
+                      link: {
                         string: {
                           description: "A URL to the license."
                         }
@@ -15119,6 +15199,14 @@ var require_yaml_intelligence_resources = __commonJS({
             short: "semver version range for required quarto version",
             long: "A semver version range describing the supported quarto versions for this document\nor project.\n\nExamples:\n\n- `>= 1.1.0`: Require at least quarto version 1.1\n- `1.*`: Require any quarto versions whose major version number is 1\n"
           }
+        },
+        {
+          name: "preview-mode",
+          schema: "string",
+          description: {
+            short: "The mode to use when previewing this document.",
+            long: "The mode to use when previewing this document. To disable any special\npreviewing features, pass `raw` as the preview-mode.\n"
+          }
         }
       ],
       "schema/document-pdfa.yml": [
@@ -15295,6 +15383,45 @@ var require_yaml_intelligence_resources = __commonJS({
           description: {
             short: "JSON file containing abbreviations of journals that should be used in formatted bibliographies.",
             long: 'JSON file containing abbreviations of journals that should be\nused in formatted bibliographies when `form="short"` is\nspecified. The format of the file can be illustrated with an\nexample:\n\n```json\n{ "default": {\n    "container-title": {\n      "Lloyd\'s Law Reports": "Lloyd\'s Rep",\n      "Estates Gazette": "EG",\n      "Scots Law Times": "SLT"\n    }\n  }\n}\n```\n'
+          }
+        },
+        {
+          name: "link-citations",
+          schema: "boolean",
+          tags: {
+            formats: [
+              "$pdf-all",
+              "docx"
+            ]
+          },
+          description: "If true, citations will be hyperlinked to the corresponding bibliography entries (for author-date and numerical styles only). Defaults to false."
+        },
+        {
+          name: "link-bibliography",
+          schema: "boolean",
+          tags: {
+            formats: [
+              "$pdf-all",
+              "docx"
+            ]
+          },
+          description: {
+            short: "If true, DOIs, PMCIDs, PMID, and URLs in bibliographies will be rendered as hyperlinks.",
+            long: "If true, DOIs, PMCIDs, PMID, and URLs in bibliographies will be rendered as hyperlinks. (If an entry contains a DOI, PMCID, PMID, or URL, but none of \nthese fields are rendered by the style, then the title, or in the absence of a title the whole entry, will be hyperlinked.) Defaults to true.\n"
+          }
+        },
+        {
+          name: "notes-after-punctuation",
+          schema: "boolean",
+          tags: {
+            formats: [
+              "$pdf-all",
+              "docx"
+            ]
+          },
+          description: {
+            short: "Places footnote references or superscripted numerical citations after following punctuation.",
+            long: "If true (the default for note styles), Quarto (via Pandoc) will put footnote references or superscripted numerical citations after \nfollowing punctuation. For example, if the source contains blah blah [@jones99]., the result will look like blah blah.[^1], with \nthe note moved after the period and the space collapsed. \n\nIf false, the space will still be collapsed, but the footnote will not be moved after the punctuation. The option may also be used \nin numerical styles that use superscripts for citation numbers (but for these styles the default is not to move the citation).\n"
           }
         }
       ],
@@ -16642,7 +16769,16 @@ var require_yaml_intelligence_resources = __commonJS({
               "revealjs"
             ]
           },
-          schema: "boolean",
+          schema: {
+            anyOf: [
+              "boolean",
+              {
+                enum: [
+                  "separate-page"
+                ]
+              }
+            ]
+          },
           default: false,
           description: "Make speaker notes visible to all viewers\n"
         },
@@ -16873,6 +17009,22 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "The title used for the table of contents."
         },
         {
+          name: "toc-expanded",
+          schema: {
+            anyOf: [
+              "number",
+              "boolean"
+            ]
+          },
+          default: 1,
+          tags: {
+            formats: [
+              "$html-doc"
+            ]
+          },
+          description: "Specifies the depth of items in the table of contents that should be displayed as expanded in HTML output. Use `true` to expand all or `false` to collapse all.\n"
+        },
+        {
           name: "lof",
           schema: "boolean",
           default: false,
@@ -17079,6 +17231,7 @@ var require_yaml_intelligence_resources = __commonJS({
             "beamer",
             "biblatex",
             "bibtex",
+            "chunkedhtml",
             "commonmark",
             "commonmark_x",
             "context",
@@ -17970,6 +18123,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "beamer",
         "biblatex",
         "bibtex",
+        "chunkedhtml",
         "commonmark",
         "commonmark_x",
         "context",
@@ -18200,6 +18354,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Base URL for website source code repository",
         "Subdirectory of repository containing website",
         "Branch of website source code (defaults to <code>main</code>)",
+        "URL to use for the \u2018report an issue\u2019 repository action.",
         {
           short: "Links to source repository actions",
           long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
@@ -18307,6 +18462,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Markdown to place above margin content (text or file path)",
         "Markdown to place below margin content (text or file path)",
         "Provide next and previous article links in footer",
+        "Provide a \u2018back to top\u2019 navigation button",
         "Shared page footer",
         "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
         "Publish open graph metadata",
@@ -18319,6 +18475,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Base URL for website source code repository",
         "Subdirectory of repository containing website",
         "Branch of website source code (defaults to <code>main</code>)",
+        "URL to use for the \u2018report an issue\u2019 repository action.",
         {
           short: "Links to source repository actions",
           long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
@@ -18426,6 +18583,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Markdown to place above margin content (text or file path)",
         "Markdown to place below margin content (text or file path)",
         "Provide next and previous article links in footer",
+        "Provide a \u2018back to top\u2019 navigation button",
         "Shared page footer",
         "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
         "Publish open graph metadata",
@@ -18592,6 +18750,8 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "Fields that items in this listing must have populated.",
           long: "Fields that items in this listing must have populated. If a listing\nis rendered and one more items in this listing is missing a required\nfield, an error will occur and the render will."
         },
+        "Items with matching field values will be included in the listing.",
+        "Items with matching field values will be excluded from the\nlisting.",
         "The family name.",
         "The given name.",
         "The family name.",
@@ -18673,8 +18833,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Geographic scope of relevance (e.g.&nbsp;\u201CUS\u201D for a US patent; the court\nhearing a legal case).",
         "Keyword(s) or tag(s) attached to the item.",
         {
-          short: "The language of the item.",
-          long: "The language of the item;\nShould be entered as an ISO 639-1 two-letter language code\n(e.g.&nbsp;\u201Cen\u201D, \u201Czh\u201D), optionally with a two-letter locale code\n(e.g.&nbsp;\u201Cde-DE\u201D, \u201Cde-AT\u201D)"
+          short: "The language of the item (used only for citation of the item).",
+          long: "The language of the item (used only for citation of the item).\nShould be entered as an ISO 639-1 two-letter language code\n(e.g.&nbsp;\u201Cen\u201D, \u201Czh\u201D), optionally with a two-letter locale code\n(e.g.&nbsp;\u201Cde-DE\u201D, \u201Cde-AT\u201D).\nThis does not change the language of the item, instead it documents\nwhat language the item uses (which may be used in citing the item)."
         },
         {
           short: "The license information applicable to an item.",
@@ -18819,8 +18979,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Geographic scope of relevance (e.g.&nbsp;\u201CUS\u201D for a US patent; the court\nhearing a legal case).",
         "Keyword(s) or tag(s) attached to the item.",
         {
-          short: "The language of the item.",
-          long: "The language of the item;\nShould be entered as an ISO 639-1 two-letter language code\n(e.g.&nbsp;\u201Cen\u201D, \u201Czh\u201D), optionally with a two-letter locale code\n(e.g.&nbsp;\u201Cde-DE\u201D, \u201Cde-AT\u201D)"
+          short: "The language of the item (used only for citation of the item).",
+          long: "The language of the item (used only for citation of the item).\nShould be entered as an ISO 639-1 two-letter language code\n(e.g.&nbsp;\u201Cen\u201D, \u201Czh\u201D), optionally with a two-letter locale code\n(e.g.&nbsp;\u201Cde-DE\u201D, \u201Cde-AT\u201D).\nThis does not change the language of the item, instead it documents\nwhat language the item uses (which may be used in citing the item)."
         },
         {
           short: "The license information applicable to an item.",
@@ -18973,8 +19133,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Geographic scope of relevance (e.g.&nbsp;\u201CUS\u201D for a US patent; the court\nhearing a legal case).",
         "Keyword(s) or tag(s) attached to the item.",
         {
-          short: "The language of the item.",
-          long: "The language of the item;\nShould be entered as an ISO 639-1 two-letter language code\n(e.g.&nbsp;\u201Cen\u201D, \u201Czh\u201D), optionally with a two-letter locale code\n(e.g.&nbsp;\u201Cde-DE\u201D, \u201Cde-AT\u201D)"
+          short: "The language of the item (used only for citation of the item).",
+          long: "The language of the item (used only for citation of the item).\nShould be entered as an ISO 639-1 two-letter language code\n(e.g.&nbsp;\u201Cen\u201D, \u201Czh\u201D), optionally with a two-letter locale code\n(e.g.&nbsp;\u201Cde-DE\u201D, \u201Cde-AT\u201D).\nThis does not change the language of the item, instead it documents\nwhat language the item uses (which may be used in citing the item)."
         },
         {
           short: "The license information applicable to an item.",
@@ -19408,6 +19568,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Write standard visual editor markdown from source mode.",
         "Reference writing options for visual editor",
         "Location to write references (<code>block</code>,\n<code>section</code>, or <code>document</code>)",
+        "Write markdown links as references rather than inline.",
         "Unique prefix for references (<code>none</code> to prevent automatic\nprefixes)",
         "The identifier for this publication.",
         "The identifier value.",
@@ -19447,6 +19608,7 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Specify the heading level at which to split the EPUB into separate\nchapter files. The default is to split into chapters at level-1\nheadings. This option only affects the internal composition of the EPUB,\nnot the way chapters and sections are displayed to users. Some readers\nmay be slow if the chapter files are too large, so for large documents\nwith few level-1 headings, one might want to use a chapter level of 2 or\n3."
         },
         "Use the specified image as the EPUB cover. It is recommended that the\nimage be less than 1000px in width and height.",
+        "If false, disables the generation of a title page.",
         "Engine used for executable code blocks.",
         "Configures the Jupyter engine.",
         "The name to display in the UI.",
@@ -19580,6 +19742,11 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "Whether to hyphenate text at line breaks even in words that do not\ncontain hyphens.",
           long: "Whether to hyphenate text at line breaks even in words that do not\ncontain hyphens if it is necessary to do so to lay out words on a line\nwithout excessive spacing"
         },
+        "If true, tables are formatted as RST list tables.",
+        {
+          short: "Specify the heading level at which to split the EPUB into separate\nchapter files.",
+          long: "Specify the heading level at which to split the EPUB into separate\nchapter files. The default is to split into chapters at level-1\nheadings. This option only affects the internal composition of the EPUB,\nnot the way chapters and sections are displayed to users. Some readers\nmay be slow if the chapter files are too large, so for large documents\nwith few level-1 headings, one might want to use a chapter level of 2 or\n3."
+        },
         "Information about the funding of the research reported in the article\n(for example, grants, contracts, sponsors) and any open access fees for\nthe article itself",
         "Unique identifier assigned to an award, contract, or grant.",
         "Displayable prose statement that describes the funding for the\nresearch on which a work was based.",
@@ -19662,10 +19829,6 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           short: "Specify what to do with insertions, deletions, and comments produced\nby the MS Word \u201CTrack Changes\u201D feature.",
           long: "Specify what to do with insertions, deletions, and comments produced\nby the MS Word \u201CTrack Changes\u201D feature."
-        },
-        {
-          short: "Ignore paragraphs with no content.",
-          long: "<em>Deprecated. Use the <code>+empty_paragraphs</code> extension\ninstead.</em> Ignore paragraphs with no content. This option is useful\nfor converting word processing documents where users have used empty\nparagraphs to create inter-paragraph space."
         },
         {
           short: "Embed the input file source code in the generated HTML",
@@ -19754,6 +19917,10 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           short: "The layout of the appendix for this document (<code>none</code>,\n<code>plain</code>, or <code>default</code>)",
           long: "The layout of the appendix for this document (<code>none</code>,\n<code>plain</code>, or <code>default</code>).\nTo completely disable any styling of the appendix, choose the\nappendix style <code>none</code>. For minimal styling, choose\n<code>plain.</code>"
+        },
+        {
+          short: "Controls the formats which are provided in the citation section of\nthe appendix (<code>false</code>, <code>display</code>, or\n<code>bibtex</code>).",
+          long: "Controls the formats which are provided in the citation section of\nthe appendix.\nUse <code>false</code> to disable the display of the \u2018cite as\u2019\nappendix. Pass one or more of <code>display</code> or\n<code>bibtex</code> to enable that format in \u2018cite as\u2019 appendix."
         },
         {
           short: "The layout of the title block for this document (<code>none</code>,\n<code>plain</code>, or <code>default</code>).",
@@ -19943,6 +20110,10 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "A semver version range describing the supported quarto versions for\nthis document or project.\nExamples:"
         },
         {
+          short: "The mode to use when previewing this document.",
+          long: "The mode to use when previewing this document. To disable any special\npreviewing features, pass <code>raw</code> as the preview-mode."
+        },
+        {
           short: "Adds the necessary setup to the document preamble to generate PDF/A\nof the type specified.",
           long: 'Adds the necessary setup to the document preamble to generate PDF/A\nof the type specified.\nIf the value is set to <code>true</code>, <code>1b:2005</code> will\nbe used as default.\nTo successfully generate PDF/A the required ICC color profiles have\nto be available and the content and all included files (such as images)\nhave to be standard conforming. The ICC profiles and output intent may\nbe specified using the variables <code>pdfaiccprofile</code> and\n<code>pdfaintent</code>. See also <a href="https://wiki.contextgarden.net/PDF/A">ConTeXt PDFA</a> for more\ndetails.'
         },
@@ -19971,6 +20142,15 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           short: "JSON file containing abbreviations of journals that should be used in\nformatted bibliographies.",
           long: 'JSON file containing abbreviations of journals that should be used in\nformatted bibliographies when <code>form="short"</code> is specified.\nThe format of the file can be illustrated with an example:'
+        },
+        "If true, citations will be hyperlinked to the corresponding\nbibliography entries (for author-date and numerical styles only).\nDefaults to false.",
+        {
+          short: "If true, DOIs, PMCIDs, PMID, and URLs in bibliographies will be\nrendered as hyperlinks.",
+          long: "If true, DOIs, PMCIDs, PMID, and URLs in bibliographies will be\nrendered as hyperlinks. (If an entry contains a DOI, PMCID, PMID, or\nURL, but none of these fields are rendered by the style, then the title,\nor in the absence of a title the whole entry, will be hyperlinked.)\nDefaults to true."
+        },
+        {
+          short: "Places footnote references or superscripted numerical citations after\nfollowing punctuation.",
+          long: 'If true (the default for note styles), Quarto (via Pandoc) will put\nfootnote references or superscripted numerical citations after following\npunctuation. For example, if the source contains blah blah <span class="citation" data-cites="jones99">[@jones99]</span>., the result\nwill look like blah blah.[^1], with the note moved after the period and\nthe space collapsed.\nIf false, the space will still be collapsed, but the footnote will\nnot be moved after the punctuation. The option may also be used in\nnumerical styles that use superscripts for citation numbers (but for\nthese styles the default is not to move the citation).'
         },
         {
           short: "Format to read from",
@@ -20213,6 +20393,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Specify the number of section levels to include in the table of\ncontents. The default is 3",
         "Location for table of contents (<code>body</code>, <code>left</code>,\nor <code>right</code> (default)).",
         "The title used for the table of contents.",
+        "Specifies the depth of items in the table of contents that should be\ndisplayed as expanded in HTML output. Use <code>true</code> to expand\nall or <code>false</code> to collapse all.",
         "Print a list of figures in the document.",
         "Print a list of tables in the document.",
         "Setting this to false prevents this document from being included in\nsearches.",
@@ -20249,6 +20430,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Base URL for website source code repository",
         "Subdirectory of repository containing website",
         "Branch of website source code (defaults to <code>main</code>)",
+        "URL to use for the \u2018report an issue\u2019 repository action.",
         {
           short: "Links to source repository actions",
           long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
@@ -20356,6 +20538,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Markdown to place above margin content (text or file path)",
         "Markdown to place below margin content (text or file path)",
         "Provide next and previous article links in footer",
+        "Provide a \u2018back to top\u2019 navigation button",
         "Shared page footer",
         "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
         "Publish open graph metadata",
@@ -20455,8 +20638,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Geographic scope of relevance (e.g.&nbsp;\u201CUS\u201D for a US patent; the court\nhearing a legal case).",
         "Keyword(s) or tag(s) attached to the item.",
         {
-          short: "The language of the item.",
-          long: "The language of the item;\nShould be entered as an ISO 639-1 two-letter language code\n(e.g.&nbsp;\u201Cen\u201D, \u201Czh\u201D), optionally with a two-letter locale code\n(e.g.&nbsp;\u201Cde-DE\u201D, \u201Cde-AT\u201D)"
+          short: "The language of the item (used only for citation of the item).",
+          long: "The language of the item (used only for citation of the item).\nShould be entered as an ISO 639-1 two-letter language code\n(e.g.&nbsp;\u201Cen\u201D, \u201Czh\u201D), optionally with a two-letter locale code\n(e.g.&nbsp;\u201Cde-DE\u201D, \u201Cde-AT\u201D).\nThis does not change the language of the item, instead it documents\nwhat language the item uses (which may be used in citing the item)."
         },
         {
           short: "The license information applicable to an item.",
@@ -20550,6 +20733,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Base URL for website source code repository",
         "Subdirectory of repository containing website",
         "Branch of website source code (defaults to <code>main</code>)",
+        "URL to use for the \u2018report an issue\u2019 repository action.",
         {
           short: "Links to source repository actions",
           long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
@@ -20657,6 +20841,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Markdown to place above margin content (text or file path)",
         "Markdown to place below margin content (text or file path)",
         "Provide next and previous article links in footer",
+        "Provide a \u2018back to top\u2019 navigation button",
         "Shared page footer",
         "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
         "Publish open graph metadata",
@@ -20756,8 +20941,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Geographic scope of relevance (e.g.&nbsp;\u201CUS\u201D for a US patent; the court\nhearing a legal case).",
         "Keyword(s) or tag(s) attached to the item.",
         {
-          short: "The language of the item.",
-          long: "The language of the item;\nShould be entered as an ISO 639-1 two-letter language code\n(e.g.&nbsp;\u201Cen\u201D, \u201Czh\u201D), optionally with a two-letter locale code\n(e.g.&nbsp;\u201Cde-DE\u201D, \u201Cde-AT\u201D)"
+          short: "The language of the item (used only for citation of the item).",
+          long: "The language of the item (used only for citation of the item).\nShould be entered as an ISO 639-1 two-letter language code\n(e.g.&nbsp;\u201Cen\u201D, \u201Czh\u201D), optionally with a two-letter locale code\n(e.g.&nbsp;\u201Cde-DE\u201D, \u201Cde-AT\u201D).\nThis does not change the language of the item, instead it documents\nwhat language the item uses (which may be used in citing the item)."
         },
         {
           short: "The license information applicable to an item.",
@@ -21050,12 +21235,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 143136,
+        _internalId: 151729,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 143128,
+            _internalId: 151721,
             type: "enum",
             enum: [
               "png",
@@ -21071,7 +21256,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 143135,
+            _internalId: 151728,
             type: "anyOf",
             anyOf: [
               {
@@ -30042,6 +30227,25 @@ function partitionCellOptionsText(language, source) {
           }
         };
         yamlLines.push(rangedYamlOption);
+        if (optionSuffix) {
+          if (line.substring.endsWith("\r\n")) {
+            yamlLines.push({
+              substring: "\r\n",
+              range: {
+                start: line.range.end - 2,
+                end: line.range.end
+              }
+            });
+          } else if (line.substring.endsWith("\r") || line.substring.endsWith("\n")) {
+            yamlLines.push({
+              substring: line.substring[line.substring.length - 1],
+              range: {
+                start: line.range.end - 1,
+                end: line.range.end
+              }
+            });
+          }
+        }
         optionsSource.push(line);
         continue;
       }

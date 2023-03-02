@@ -188,7 +188,6 @@ export type SiteFileMetadata = {
   fileName: string;
   title: string;
   originalTitle: string;
-  matchingPages: ContentSummary[];
   contentBody: ContentBody;
 };
 

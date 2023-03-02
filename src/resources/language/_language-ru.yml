@@ -23,11 +23,11 @@ title-block-affiliation-plural: "Принадлежности"
 title-block-published: "Дата публикации"
 title-block-modified: "Файл изменен"
 
-callout-tip-caption: "Совет"
-callout-note-caption: "Уведомление"
-callout-warning-caption: "Предупреждение"
-callout-important-caption: "Важное уведомление"
-callout-caution-caption: "Осторожность"
+callout-tip-title: "Совет"
+callout-note-title: "Уведомление"
+callout-warning-title: "Предупреждение"
+callout-important-title: "Важное уведомление"
+callout-caution-title: "Осторожность"
 
 code-summary: "Код"
 
@@ -47,6 +47,8 @@ repo-action-links-edit: "Редактировать страницу"
 repo-action-links-source: "Показать код"
 repo-action-links-issue: "Сообщить о проблеме"
 
+back-to-top: "Наверх"
+
 search-no-results-text: "Поиск не дал результатов"
 search-matching-documents-text: "Результаты поиска"
 search-copy-link-title: "Скопировать ссылку"
@@ -56,6 +58,12 @@ search-more-matches-text: "дополнительных результата(-о
 search-clear-button-title: "Очистить"
 search-detached-cancel-button-title: "Отменить"
 search-submit-button-title: "Найти"
+search: "Поиск"
+
+toggle-sidebar: "Переключить боковую панель навигации"
+toggle-dark-mode: "Переключить темный режим"
+toggle-reader-mode: "Переключить режим чтения"
+toggle-navigation: "Переключить навигацию"
 
 crossref-fig-title: "Рисунок"
 crossref-tbl-title: "Таблица"

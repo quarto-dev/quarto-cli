@@ -26,7 +26,7 @@ import {
 } from "./types.ts";
 
 import { DESCENDANT_PAGE_SIZE, V2EDITOR_METADATA } from "../constants.ts";
-import { logError, trace } from "../confluence-logger.ts";
+import { logError, logWarning, trace } from "../confluence-logger.ts";
 
 export class ConfluenceClient {
   public constructor(private readonly token_: AccountToken) {}
@@ -60,7 +60,7 @@ export class ConfluenceClient {
     return this.get<WrappedResult<ContentSummary>>(url);
   }
 
-  public async isTitleInSpace(
+  public async isTitleUniqueInSpace(
     title: string,
     space: Space,
     idToIgnore: string = ""
@@ -68,25 +68,32 @@ export class ConfluenceClient {
     const result = await this.fetchMatchingTitlePages(title, space);
 
     if (result.length === 1 && result[0].id === idToIgnore) {
-      return false;
+      return true;
     }
 
-    return result.length > 0;
+    return result.length === 0;
   }
 
   public async fetchMatchingTitlePages(
     title: string,
-    space: Space
+    space: Space,
+    isFuzzy: boolean = false
   ): Promise<Content[]> {
-    const cqlContext =
-      "%7B%22contentStatuses%22%3A%5B%22archived%22%2C%20%22current%22%2C%20%22draft%22%5D%7D"; //{"contentStatuses":["archived", "current", "draft"]}
     const encodedTitle = encodeURIComponent(title);
-    const cql = `title="${encodedTitle}"&spaces=${space.key}&cqlcontext=${cqlContext}`;
+
+    let cql = `title="${encodedTitle}"`;
+
+    const CQL_CONTEXT =
+      "%7B%22contentStatuses%22%3A%5B%22archived%22%2C%20%22current%22%2C%20%22draft%22%5D%7D"; //{"contentStatuses":["archived", "current", "draft"]}
+
+    cql = `${cql}&spaces=${space.key}&cqlcontext=${CQL_CONTEXT}`;
+
     const result = await this.get<ContentArray>(`content/search?cql=${cql}`);
     return result?.results ?? [];
   }
 
-  public createContent(
+  public async createContent(
+    user: User,
     content: ContentCreate,
     metadata: Record<string, any> = V2EDITOR_METADATA
   ): Promise<Content> {
@@ -98,10 +105,22 @@ export class ConfluenceClient {
     trace("to create", toCreate);
     trace("createContent body", content.body.storage.value);
     const createBody = JSON.stringify(toCreate);
-    return this.post<Content>("content", createBody);
+    const result: Content = await this.post<Content>("content", createBody);
+
+    try {
+      await this.put<Content>(
+        `content/${result.id}/restriction/byOperation/update/user?accountId=${user.accountId}`
+      );
+    } catch (error) {
+      //Sometimes the API returns the error 'Unexpected end of JSON input'
+      trace("lockDownResult Error", error);
+    }
+
+    return result;
   }
 
-  public updateContent(
+  public async updateContent(
+    user: User,
     content: ContentUpdate,
     metadata: Record<string, any> = V2EDITOR_METADATA
   ): Promise<Content> {
@@ -109,8 +128,22 @@ export class ConfluenceClient {
       ...content,
       ...metadata,
     };
-    trace("updateContent", toUpdate);
-    return this.put<Content>(`content/${content.id}`, JSON.stringify(toUpdate));
+
+    const result = await this.put<Content>(
+      `content/${content.id}`,
+      JSON.stringify(toUpdate)
+    );
+
+    try {
+      const lockDownResult = await this.put<Content>(
+        `content/${content.id}/restriction/byOperation/update/user?accountId=${user.accountId}`
+      );
+    } catch (error) {
+      //Sometimes the API returns the error 'Unexpected end of JSON input'
+      trace("lockDownResult Error", error);
+    }
+
+    return result;
   }
 
   public createContentProperty(id: string, content: any): Promise<Content> {
@@ -233,6 +266,9 @@ export class ConfluenceClient {
       } else {
         return response as unknown as T;
       }
+    } else if (response.status === 403) {
+      // Let parent handle 403 Forbidden, sometimes they are expected
+      throw new ApiError(response.status, response.statusText);
     } else if (response.status !== 200) {
       logError("response.status !== 200", response);
       throw new ApiError(response.status, response.statusText);

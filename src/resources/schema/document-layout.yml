@@ -112,6 +112,23 @@
       The layout of the appendix for this document (`none`, `plain`, or `default`).
 
       To completely disable any styling of the appendix, choose the appendix style `none`. For minimal styling, choose `plain.`
+
+- name: appendix-cite-as
+  schema:
+    anyOf:
+      - boolean
+      - maybeArrayOf:
+          enum: ["display", "bibtex"]
+  tags:
+    formats: [$html-doc]
+  description:
+    short: Controls the formats which are provided in the citation section of the appendix (`false`, `display`, or `bibtex`).
+    long: |
+      Controls the formats which are provided in the citation section of the appendix.
+
+      Use `false` to disable the display of the 'cite as' appendix. Pass one or more of `display` or `bibtex` to enable that
+      format in 'cite as' appendix.
+
 - name: title-block-style
   schema:
     anyOf:

@@ -41,6 +41,7 @@ const kLinks = "links";
 
 const kImageWidth = "image-width";
 const kImageAlt = "image-alt";
+const kImageTitle = "image-title";
 const kImageShape = "image-shape";
 const kImageShapeRound = "round";
 const kImageShapeRounded = "rounded";
@@ -71,6 +72,7 @@ interface AboutPage {
   custom: boolean;
   image?: Href;
   [kImageAlt]?: string;
+  [kImageTitle]?: string;
   links?: Array<NavItem>;
 }
 
@@ -79,6 +81,7 @@ interface AboutPageEjsData {
   body: string;
   image?: string;
   [kImageAlt]?: string;
+  [kImageTitle]?: string;
   links?: NavItem[];
   options: Record<string, unknown>;
 }
@@ -149,7 +152,13 @@ async function readAbout(
       aboutObj: Record<string, unknown>,
       aboutPage: AboutPage,
     ) => {
-      const knownFieldList = ["image", kImageAlt, "template", "links"];
+      const knownFieldList = [
+        "image",
+        kImageAlt,
+        kImageTitle,
+        "template",
+        "links",
+      ];
       for (const key of Object.keys(aboutObj)) {
         if (!knownFieldList.includes(key)) {
           aboutPage.options[key] = aboutObj[key];
@@ -199,10 +208,12 @@ async function readAbout(
       if (format.metadata[kImageAlt]) {
         aboutPage[kImageAlt] = format.metadata[kImageAlt] as string;
       }
+      if (format.metadata[kImageTitle]) {
+        aboutPage[kImageTitle] = format.metadata[kImageTitle] as string;
+      }
 
       // Resolve any options
       resolveOptions(about, {}, aboutPage);
-
       return aboutPage;
     } else if (typeof (about) === "object") {
       // This is an object, read the fields out of it
@@ -229,10 +240,19 @@ async function readAbout(
 
       const aboutImageAlt = aboutObj[kImageAlt];
       if (aboutImageAlt) {
-        aboutPage[kImageAlt] = aboutImageAlt as Href;
+        aboutPage[kImageAlt] = aboutImageAlt as string;
       } else {
         if (format.metadata[kImageAlt]) {
-          aboutPage[kImageAlt] = format.metadata[kImageAlt] as Href;
+          aboutPage[kImageAlt] = format.metadata[kImageAlt] as string;
+        }
+      }
+
+      const aboutImageTitle = aboutObj[kImageTitle];
+      if (aboutImageTitle) {
+        aboutPage[kImageTitle] = aboutImageTitle as string;
+      } else {
+        if (format.metadata[kImageTitle]) {
+          aboutPage[kImageTitle] = format.metadata[kImageTitle] as string;
         }
       }
 
@@ -247,7 +267,6 @@ async function readAbout(
 
       // Resolve any options
       resolveOptions(aboutTemplate, aboutObj, aboutPage);
-
       return aboutPage;
     } else {
       return undefined;
@@ -299,6 +318,7 @@ const aboutPagePostProcessor = (
       body,
       image: aboutPage.image,
       [kImageAlt]: aboutPage[kImageAlt],
+      [kImageTitle]: aboutPage[kImageTitle],
       links: aboutPage.links,
       options: aboutPage.options,
     };

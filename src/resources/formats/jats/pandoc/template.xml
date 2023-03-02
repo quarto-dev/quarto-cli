@@ -146,7 +146,7 @@ $for(copyright.holder)$
 $endfor$
 
 $for(license)$
-<license$if(it.type)$ license-type="${it.type}"$endif$$if(it.url)$ xlink:href="${it.url}"$endif$>
+<license$if(it.type)$ license-type="${it.type}"$endif$$if(it.link)$ xlink:href="${it.link}"$endif$>
 $if(it.url)$
 <ali:license_ref xmlns:ali="http://www.niso.org/schemas/ali/1.0/">${it.url}</ali:license_ref>
 $endif$

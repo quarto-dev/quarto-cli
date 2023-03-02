@@ -31,12 +31,16 @@ $quarto-search-collapse-icon-size: 26px !default;
 
 .navbar #quarto-search {
   @include media-breakpoint-up(lg) {
-    margin-left: 1rem;
+    margin-left: 0.25rem;
+    order: 999;
   }
 }
 
 #quarto-sidebar {
   .sidebar-search {
+    @include media-breakpoint-down(lg) {
+      display: none;
+    }
     .aa-Autocomplete {
       width: $quarto-sidebar-search-input-width;
     }
@@ -224,6 +228,18 @@ $quarto-search-collapse-icon-size: 26px !default;
       }
     }
   }
+}
+
+.aa-PanelLayout:empty {
+  display: none;
+}
+
+.quarto-search-no-results.no-query {
+  display: none;
+}
+
+.aa-Source:has(.no-query) {
+  display: none;
 }
 
 #quarto-search-results .aa-Panel {
@@ -530,13 +546,23 @@ $quarto-search-collapse-icon-size: 26px !default;
     }
   }
   @at-root .aa-DetachedContainer--modal {
-    border-radius: 6px;
     bottom: inherit;
     height: auto;
     margin: 0 auto;
-    max-width: 850px;
     position: absolute;
-    top: 100px;
+    @include media-breakpoint-down(sm) {
+      width: 100%;
+      top: 0px;
+      border-radius: 0px;
+      border: none;
+    }
+
+    @include media-breakpoint-up(med) {
+      top: 100px;
+      border-radius: 6px;
+      max-width: 850px;
+    }
+
     .aa-PanelLayout {
       max-height: var(--aa-detached-modal-max-height);
       padding-bottom: var(--aa-spacing-half);

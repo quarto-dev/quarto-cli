@@ -17,8 +17,23 @@ function renderAsciidoc()
     Meta = function(meta)
       if hasMath then
         meta['asciidoc-stem'] = 'latexmath'
-        return meta
       end 
+
+      -- We construct the title with cross ref information into the metadata
+      -- if we see such a title, we need to move the identifier up outside the title
+      local titleInlines = meta['title']
+      if #titleInlines == 1 and titleInlines[1].t == 'Span' then
+        local span =  titleInlines[1]
+        local identifier = span.identifier
+        if refType(identifier) == "sec" then
+          -- this is a chapter title, tear out the id and make it ourselves
+          local titleContents = pandoc.write(pandoc.Pandoc({span.content}), "asciidoc")
+          meta['title'] = pandoc.RawInline("asciidoc", titleContents)
+          meta['title-prefix'] = pandoc.RawInline("asciidoc", "[[" .. identifier .. "]]")
+        end
+      end
+
+      return meta
     end,
     Math = function(el)
       hasMath = true;
@@ -41,12 +56,12 @@ function renderAsciidoc()
       local admonitionContents = pandoc.write(pandoc.Pandoc(el.content), "asciidoc")
 
       local admonitionStr;
-      if el.caption then
-        -- A captioned admonition
-        local admonitionCaption = pandoc.write(pandoc.Pandoc(el.caption), "asciidoc")
-        admonitionStr = "[" .. admonitionType .. "]\n." .. admonitionCaption .. "====\n" .. admonitionContents .. "====\n\n" 
+      if el.title then
+        -- A titled admonition
+        local admonitionTitle = pandoc.write(pandoc.Pandoc(el.title), "asciidoc")
+        admonitionStr = "[" .. admonitionType .. "]\n." .. admonitionTitle .. "====\n" .. admonitionContents .. "====\n\n" 
       else
-        -- A captionless admonition
+        -- A titleless admonition
           admonitionStr = "[" .. admonitionType .. "]\n====\n" .. admonitionContents .. "====\n\n" 
       end
       return pandoc.RawBlock("asciidoc", admonitionStr)

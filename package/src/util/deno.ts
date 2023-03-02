@@ -14,8 +14,8 @@ export async function bundle(
 ) {
   // Bundle source code
   const denoBundleCmd: string[] = [];
-  const denoExecPath = Deno.env.get("QUARTO_DENO")
-  if (! denoExecPath) {
+  const denoExecPath = Deno.env.get("QUARTO_DENO");
+  if (!denoExecPath) {
     throw Error("QUARTO_DENO is not defined");
   }
   denoBundleCmd.push(denoExecPath);
@@ -48,8 +48,8 @@ export async function compile(
   configuration: Configuration,
 ) {
   const denoBundleCmd: string[] = [];
-  const denoExecPath = Deno.env.get("QUARTO_DENO")
-  if (! denoExecPath) {
+  const denoExecPath = Deno.env.get("QUARTO_DENO");
+  if (!denoExecPath) {
     throw Error("QUARTO_DENO is not defined");
   }
   denoBundleCmd.push(denoExecPath);
@@ -79,8 +79,8 @@ export async function install(
   configuration: Configuration,
 ) {
   const denoBundleCmd: string[] = [];
-  const denoExecPath = Deno.env.get("QUARTO_DENO")
-  if (! denoExecPath) {
+  const denoExecPath = Deno.env.get("QUARTO_DENO");
+  if (!denoExecPath) {
     throw Error("QUARTO_DENO is not defined");
   }
   denoBundleCmd.push(denoExecPath);
@@ -119,13 +119,13 @@ export async function install(
   return undefined;
 }
 
-export function updateDenoPath(installPath: string, config: Configuration) {
+export function updateDenoPath(installPath: string, _config: Configuration) {
   // Fix up the path to deno
   if (installPath) {
     info("Updating install script deno path");
     const installTxt = Deno.readTextFileSync(installPath);
-    const denoExecPath = Deno.env.get("QUARTO_DENO")
-    if (! denoExecPath) {
+    const denoExecPath = Deno.env.get("QUARTO_DENO");
+    if (!denoExecPath) {
       throw Error("QUARTO_DENO is not defined");
     }
     const finalTxt = Deno.build.os === "windows"

@@ -1,6 +1,6 @@
 ## Quarto Localization
 
-In some circumstances Quarto, Pandoc, and LaTeX will generate textual output that requires localization. For example, "Figure" or "List of Figures" for cross references, callout captions like "Note" or "Warning", or the "Code" caption for folded code chunks.
+In some circumstances Quarto, Pandoc, and LaTeX will generate textual output that requires localization. For example, "Figure" or "List of Figures" for cross references, callout types like "Note" or "Warning", or the "Code" caption for folded code chunks.
 
 This directory includes a set of built-in translations, including:
 

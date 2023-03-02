@@ -21,6 +21,7 @@ aliases:
       beamer,
       biblatex,
       bibtex,
+      chunkedhtml,
       commonmark,
       commonmark_x,
       context,

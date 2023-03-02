@@ -19,4 +19,5 @@ export interface PartitionedMarkdown {
   headingAttr?: PandocAttr;
   containsRefs: boolean;
   markdown: string;
+  srcMarkdownNoYaml: string;
 }

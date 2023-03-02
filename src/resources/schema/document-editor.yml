@@ -26,6 +26,9 @@
                           schema:
                             enum: [block, section, document]
                             description: "Location to write references (`block`, `section`, or `document`)"
+                        links:
+                          boolean:
+                            description: "Write markdown links as references rather than inline."
                         prefix:
                           string:
                             description: "Unique prefix for references (`none` to prevent automatic prefixes)"

@@ -7,7 +7,8 @@ REM    using ! ! instead of % %. However, this only allows one level of expansio
 REM    try to create a variable that derives from a derived variable. It will be empty.
 
 REM First Check that Deno isn't running since this causes weird and confusing errors
-tasklist /fi "ImageName eq deno.exe" /fo csv 2>NUL | find /I "deno.exe">NUL
+REM find can conflict with one provided in bash with other args so use absolute path
+tasklist /fi "ImageName eq deno.exe" /fo csv 2>NUL | "%WINDIR%/system32/find" /I "deno.exe">NUL
 if "%ERRORLEVEL%"=="0" goto :denoRunning
 
 call package\src\store_win_configuration.bat
@@ -28,7 +29,8 @@ if "%QUARTO_VENDOR_BINARIES%" == "true" (
   CURL --fail -L "https://github.com/denoland/deno/releases/download/!DENO!/!DENO_FILE!" -o "!DENO_FILE!"
   REM Windows doesn't have unzip installed by default, but starting in Windows 10 build 17063 they did 
   REM include a build in 'tar' command. Windows 10 build 17063 was released in 2017.
-  tar -xf !DENO_FILE!
+  REM We need to use absolute if another tar is in PATH, that would not support .zip extension
+  %WINDIR%/System32/tar -xf !DENO_FILE!
 
   REM If tar failed, try unzipping it.
   IF %ERRORLEVEL% NEQ 0 ( 
@@ -86,13 +88,14 @@ ECHO Downloading Deno Stdlib
 CALL !QUARTO_PACKAGE_PATH!\scripts\deno_std\download.bat
 
 SET QUARTO_DENO_EXTRA_OPTIONS="--reload"
-IF EXIST !QUARTO_BIN_PATH!\quarto.bat (
+IF EXIST !QUARTO_BIN_PATH!\quarto.cmd (
   CALL "!QUARTO_BIN_PATH!\quarto" --version
 )
 
-ECHO NOTE: To use quarto please use quarto-cmd (located in this folder) or add the following path to your PATH
+ECHO NOTE: To use quarto please use quarto.cmd (located in this folder) or add the following path to your PATH
 ECHO !QUARTO_BIN_PATH!
 
+endlocal & set QUARTO_BIN_DEV=%QUARTO_BIN_PATH%
 
 GOTO :eof
 

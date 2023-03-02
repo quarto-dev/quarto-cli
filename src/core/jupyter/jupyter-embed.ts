@@ -433,7 +433,7 @@ async function getCachedNotebookInfo(
         keepHidden: format.render[kKeepHidden],
         toHtml: isHtmlCompatible(format),
         toLatex: isLatexOutput(format.pandoc),
-        toMarkdown: isMarkdownOutput(format.pandoc),
+        toMarkdown: isMarkdownOutput(format),
         toIpynb: isIpynbOutput(format.pandoc),
         toPresentation: isPresentationOutput(format.pandoc),
         figFormat: format.execute[kFigFormat],

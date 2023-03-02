@@ -13,6 +13,7 @@ import {
 } from "../../src/core/lib/yaml-validation/state.ts";
 import { cleanoutput } from "../smoke/render/render.ts";
 import { execProcess } from "../../src/core/process.ts";
+import { quartoDevCmd } from "../utils.ts";
 
 async function fullInit() {
   await initYamlIntelligenceResourcesFromFilesystem();
@@ -37,7 +38,7 @@ for (const { path: fileName } of globOutput) {
   // mediabag inspection if we don't wait all renders
   // individually. This is very slow..
   await execProcess({
-    cmd: ["quarto", "render", input, "--to", "html"],
+    cmd: [quartoDevCmd(), "render", input, "--to", "html"],
   });
   fileNames.push(fileName);
 }
@@ -57,7 +58,7 @@ const proc = Deno.run({
 try {
   // run playwright
   await execProcess({
-    cmd: ["npx", "playwright", "test"],
+    cmd: [Deno.build.os == "windows" ? "npx.cmd" : "npx", "playwright", "test"],
     cwd: "integration/playwright",
   });
 } finally {

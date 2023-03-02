@@ -68,9 +68,11 @@ export async function configureDependency(
   let archDep = dependency.architectureDependencies[config.arch];
 
   // If we're missing some arm64, try the intel versions and rely on rosetta.
-  if (!archDep && config.arch === "aarch64") {
-    warning("Missing configuration for architecture " + config.arch);
-    archDep = dependency.architectureDependencies["x86_64"];
+  if (config.arch === "aarch64") {
+    if (!archDep || !archDep[config.os]) {
+      warning("Missing configuration for architecture " + config.arch);
+      archDep = dependency.architectureDependencies["x86_64"];
+    }
   }
   if (archDep) {
     const platformDep = archDep[config.os];

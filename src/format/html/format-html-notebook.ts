@@ -34,6 +34,7 @@ import { ProjectContext } from "../../project/types.ts";
 interface NotebookView {
   title: string;
   href: string;
+  supporting?: string;
 }
 
 interface NotebookViewOptions {
@@ -123,7 +124,7 @@ export async function processNotebookEmbeds(
   if (notebookDivNodes.length > 0) {
     const nbPaths: Record<
       string,
-      { href: string; title: string; filename?: string }
+      { href: string; title: string; supporting?: string; filename?: string }
     > = {};
     let count = 1;
 
@@ -156,6 +157,7 @@ export async function processNotebookEmbeds(
             return {
               title: htmlPreview.title,
               href: htmlPreview.href,
+              supporting: htmlPreview.supporting,
             };
           } else {
             return {
@@ -272,13 +274,12 @@ export async function processNotebookEmbeds(
 
     const supporting: string[] = [];
     const resources: string[] = [];
-    const inputDir = dirname(input);
     for (const notebookPath of Object.keys(nbPaths)) {
       const nbPath = nbPaths[notebookPath];
       // If there is a view configured for this, then
       // include it in the supporting dir
-      if (nbViewConfig) {
-        supporting.push(join(inputDir, nbPath.href));
+      if (nbPath.supporting) {
+        supporting.push(nbPath.supporting);
       }
 
       // This is the notebook itself
@@ -374,6 +375,8 @@ async function renderHtmlView(
     return {
       title: options.title,
       href: join(dirname(href), nbPreviewFile),
+      // notebbok to be included as supporting file
+      supporting: join(inputDir, dirname(href), nbPreviewFile),
     };
   } else {
     return {

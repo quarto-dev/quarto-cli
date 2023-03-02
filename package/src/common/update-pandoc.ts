@@ -25,6 +25,14 @@ import {
   pandocListFormats,
 } from "../../../src/core/pandoc/pandoc-formats.ts";
 
+import {
+  bgBlack,
+  bold,
+  brightWhite,
+} from "../../../src/core/lib/external/colors.ts";
+
+import * as ld from "../../../src/core/lodash.ts";
+
 export function updatePandoc() {
   return new Command()
     .name("update-pandoc")
@@ -60,7 +68,11 @@ export function updatePandoc() {
         await archiveBinaryDependency(pandocDependency, workingDir);
 
         // Configure this version of pandoc
-        await configureDependency(pandocDependency, configuration);
+        await configureDependency(
+          pandocDependency,
+          join(configuration.directoryInfo.bin, "tools"),
+          configuration,
+        );
 
         // Generate templates
         await writePandocTemplates(configuration, version, workingDir);
@@ -68,8 +80,31 @@ export function updatePandoc() {
         // Generate variants
         await writeVariants(configuration);
       });
+
+      // print the warning to complete the checklist
+      console.log(bgBlack(brightWhite(bold(
+        "\n** Remember to complete the checklist in /dev-docs/update-pandoc-checklist.md! **",
+      ))));
     });
 }
+
+// Starting in Pandoc 3, we saw a number of variants that appear to be supported
+// disappear from the --list-extensions command, so for the time being we're just
+// hard adding them here
+const kExtendedVariants: string[] = [
+  "amuse",
+  "attributes",
+  "element_citations",
+  "empty_paragraphs",
+  "epub_html_exts",
+  "native_numbering",
+  "ntb",
+  "raw_markdown",
+  "sourcepos",
+  "styles",
+  "xrefs_name",
+  "xrefs_number",
+];
 
 async function writeVariants(
   config: Configuration,
@@ -86,10 +121,15 @@ async function writeVariants(
     });
   }
   const extArr = Array.from(extensions.values());
+  info(`  Pandoc Alone Reporting:`);
   info(`  ${formats.length} formats.`);
   info(`  ${extArr.length} extensions.`);
 
-  const extArrExpanded = extArr.toSorted().flatMap((ext) => {
+  extArr.push(...kExtendedVariants);
+  const extended = ld.uniq(extArr);
+  info(`  ${extended.length} extensions (after adding extended).`);
+
+  const extArrExpanded = extended.toSorted().flatMap((ext) => {
     return [`"+${ext}"`, `"-${ext}"`];
   });
 
@@ -171,6 +211,7 @@ async function writePandocTemplates(
       ],
       [htmlOutdir]: [
         { from: "default.html5", to: "html.template" },
+        { from: "styles.html", to: "html.styles" },
       ],
       [revealOutdir]: [
         { from: "default.revealjs", to: "revealjs.template" },

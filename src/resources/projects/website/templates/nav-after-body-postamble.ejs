@@ -28,24 +28,31 @@
 <% if (nav.footer && (nav.footer.left || nav.footer.center || nav.footer.right)) { %>
 <footer class="footer">
   <div class="nav-footer">
-    <% if (nav.footer.left) { %> 
+
     <div class="nav-footer-left">
+      <% if (nav.footer.left) { %> 
       <% partial('nav-footer-section.ejs', { contents: nav.footer.left })%>
+      <% } else { %>
+      &nbsp;
+      <% } %>
     </div>   
-    <% } %>
-    <% if (nav.footer.center) { %> 
-      <div class="nav-footer-center">
-        <% partial('nav-footer-section.ejs', { contents: nav.footer.center}) %>
-      </div>
-    <% } %>
-    <% if (nav.footer.right) { %> 
-    <div class="nav-footer-right">
-      <% partial('nav-footer-section.ejs', { contents: nav.footer.right}) %>
+    <div class="nav-footer-center">
+      <% if (nav.footer.center) { %> 
+      <% partial('nav-footer-section.ejs', { contents: nav.footer.center}) %>
+      <% } else { %>
+      &nbsp;
+      <% } %>
     </div>
-    <% } %> 
+    <div class="nav-footer-right">
+      <% if (nav.footer.right) { %> 
+      <% partial('nav-footer-section.ejs', { contents: nav.footer.right}) %>
+      <% } else { %>
+      &nbsp;
+      <% } %> 
+    </div>
+    
   </div>
 </footer>
 <% } %>
-
 
 <% } %>

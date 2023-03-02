@@ -8,10 +8,11 @@
 
 import { decode } from "encoding/base64.ts";
 import cdp from "./deno-cri/index.js";
-// import { getBrowserExecutablePath } from "../puppeteer.ts";
+import { getBrowserExecutablePath } from "../puppeteer.ts";
 import { Semaphore } from "../lib/semaphore.ts";
 import { findOpenPort } from "../port.ts";
 import { getNamedLifetime, ObjectWithLifetime } from "../lifetimes.ts";
+import { sleep } from "../async.ts";
 
 async function waitForServer(port: number, timeout = 3000) {
   const interval = 50;
@@ -73,15 +74,10 @@ export async function criClient(appPath?: string, port?: number) {
   if (port === undefined) {
     port = findOpenPort(9222);
   }
-  if (appPath === undefined) {
-    throw new Error(
-      "appPath is temporarily required while deno 1.28.* lacks support for puppeteer and browser discovery",
-    );
-    // appPath = await getBrowserExecutablePath();
-  }
+  const app: string = appPath || await getBrowserExecutablePath();
 
   const cmd = [
-    appPath as string,
+    app,
     "--headless",
     "--no-sandbox",
     "--single-process",
@@ -114,7 +110,39 @@ export async function criClient(appPath?: string, port?: number) {
     rawClient: () => client,
 
     open: async (url: string) => {
-      client = await cdp({ port });
+      const maxTries = 5;
+      for (let i = 0; i < maxTries; ++i) {
+        try {
+          client = await cdp({ port });
+        } catch (e) {
+          if (i === maxTries - 1) {
+            throw e;
+          }
+          // sleep(0) caused 42/100 crashes
+          // sleep(1) caused 42/100 crashes
+          // sleep(2) caused 15/100 crashes
+          // sleep(3) caused 13/100 crashes
+          // sleep(4) caused 8/100 crashes
+          // sleep(5) caused 1/100 crashes
+          // sleep(6) caused 1/100 crashes
+          // sleep(7) caused 1/100 crashes
+          // sleep(8) caused 1/100 crashes
+          // sleep(9) caused 0/100 crashes
+          // sleep(10) caused 0/100 crashes
+          // sleep(11) caused 0/100 crashes
+          // sleep(12) caused 0/100 crashes
+          // sleep(13) caused 1/100 crashes
+          // sleep(14) caused 1/100 crashes
+          // sleep(15) caused 0/100 crashes
+          // sleep(16) caused 0/100 crashes
+          // sleep(17) caused 0/100 crashes
+
+          // https://carlos-scheidegger.quarto.pub/failure-rates-in-cri-initialization/
+          // suggests that 44ms is a good value. We use 100ms to try and account for slower
+          // machines.
+          await sleep(100);
+        }
+      }
       const { Network, Page } = client;
       await Network.enable();
       await Page.enable();

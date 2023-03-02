@@ -8,6 +8,12 @@
 import { basename, dirname, extname, join } from "path/mod.ts";
 import { parseFormatString } from "../src/core/pandoc/pandoc-formats.ts";
 
+// caller is responsible for cleanup!
+export function inTempDirectory(fn: (dir: string) => unknown): unknown {
+  const dir = Deno.makeTempDirSync();
+  return fn(dir);
+}
+
 // Gets output that should be created for this input file and target format
 export function outputForInput(input: string, to: string) {
   // TODO: Consider improving this (e.g. for cases like Beamer)
@@ -80,4 +86,9 @@ export function fileLoader(...path: string[]) {
       output,
     };
   };
+}
+
+// On Windows, `quarto.cmd` needs to be explicit in `execProcess()`
+export function quartoDevCmd(): string {
+  return Deno.build.os === "windows" ? "quarto.cmd" : "quarto";
 }

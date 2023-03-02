@@ -6,9 +6,8 @@
 */
 import { Command } from "cliffy/command/mod.ts";
 import { join } from "path/mod.ts";
-import { info } from "log/mod.ts";
 
-import { printConfiguration } from "../common/config.ts" 
+import { printConfiguration } from "../common/config.ts";
 
 import {
   Configuration,

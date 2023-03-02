@@ -132,3 +132,14 @@ Usage:
 ---@param source string Path to a resource; either a local file path or URI
 ---@return string|nil,string|nil 
 function pandoc.mediabag.fetch(source) end
+
+--[[
+Writes the contents of mediabag to the given target directory. If
+`fp` is given, then only the resource with the given name will be
+extracted. Omitting that parameter means that the whole mediabag
+gets extracted. An error is thrown if `fp` is given but cannot be
+found in the mediabag.
+]]
+--@param dir string Path to the target directory
+--@param fp? string Canonical name of the resource to be extracted
+function pandoc.mediabag.write(dir, fp) end

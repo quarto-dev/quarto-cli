@@ -17,7 +17,7 @@ import {
   ToolSummaryData,
 } from "./types.ts";
 import { tinyTexInstallable } from "./impl/tinytex.ts";
-// import { chromiumInstallable } from "./impl/chromium.ts";
+import { chromiumInstallable } from "./impl/chromium.ts";
 import { downloadWithProgress } from "../core/download.ts";
 import { Confirm } from "cliffy/prompt/mod.ts";
 
@@ -25,7 +25,7 @@ import { Confirm } from "cliffy/prompt/mod.ts";
 const kInstallableTools: { [key: string]: InstallableTool } = {
   tinytex: tinyTexInstallable,
   // temporarily disabled until deno 1.28.* gets puppeteer support
-  // chromium: chromiumInstallable,
+  chromium: chromiumInstallable,
 };
 
 export async function allTools(): Promise<{

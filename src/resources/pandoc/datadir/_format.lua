@@ -12,7 +12,6 @@ local function tcontains(t,value)
   return false
 end
 
-
 local function isRaw(el)
   return el.t == "RawBlock" or el.t == "RawInline"
 end
@@ -144,6 +143,38 @@ local function isHtmlOutput()
   return tcontains(formats, FORMAT) or isHtmlSlideOutput()
 end
 
+local function parse_format(raw_format)
+  local pattern = "^(%a+)([-+_%a]*)"
+  local i, j, format, extensions = raw_format:find(pattern)
+  if format == nil then
+    error("Warning: Invalid format " .. raw_format .. ". Assuming 'markdown'.")
+    return {
+      format = "markdown",
+      extensions = {}
+    }
+  end
+
+  local result = {
+    format = format,
+    extensions = {}
+  }
+
+  local sign_table = {
+    ["-"] = false,
+    ["+"] = true
+  }
+
+  if extensions ~= nil then
+    while #extensions > 0 do
+      local i, j, sign, variant = extensions:find("^([-+])([%a_]+)")
+      result.extensions[variant] = sign_table[sign]
+      extensions = extensions:sub(j+1)      
+    end
+  end
+
+  return result
+end
+
 -- we have some special rules to allow formats to behave more intuitively
 local function isFormat(to)
   if FORMAT == to then
@@ -222,5 +253,7 @@ return {
   isNativeOutput = isNativeOutput,
   isJsonOutput = isJsonOutput,
   isAstOutput = isAstOutput,
-  isJatsOutput = isJatsOutput
+  isJatsOutput = isJatsOutput,
+
+  parse_format = parse_format
 }

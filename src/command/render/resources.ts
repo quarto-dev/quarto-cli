@@ -6,15 +6,19 @@
 */
 
 import { dirname, join } from "path/mod.ts";
-import { existsSync } from "fs/mod.ts";
-
-import { normalizePath, ResolvedPathGlobs, resolvePathGlobs } from "../../core/path.ts";
+import {
+  normalizePath,
+  ResolvedPathGlobs,
+  resolvePathGlobs,
+  safeExistsSync,
+} from "../../core/path.ts";
 import { engineIgnoreGlobs } from "../../execute/engine.ts";
 import { kQuartoScratch } from "../../project/project-scratch.ts";
 import { extractResolvedResourceFilenamesFromQmd } from "../../execute/ojs/extract-resources.ts";
 import { asMappedString } from "../../core/mapped-text.ts";
 import { RenderedFile, RenderResourceFiles } from "./types.ts";
 import { PartitionedMarkdown } from "../../core/pandoc/types.ts";
+import { isAbsolute } from "https://deno.land/std@0.166.0/path/win32.ts";
 
 export function resourcesFromMetadata(resourcesMetadata?: unknown) {
   // interrogate / typecast raw yaml resources into array of strings
@@ -47,7 +51,12 @@ export async function resolveFileResources(
     .concat(
       ...excludeDirs,
     );
-  const resources = resolvePathGlobs(fileDir, globs, ignore);
+
+  const absPathGlobs = globs.map((glob) => {
+    return isAbsolute(glob) ? glob : join(rootDir, glob);
+  });
+
+  const resources = resolvePathGlobs(fileDir, absPathGlobs, ignore);
   if (markdown.length > 0 && !skipOjsDiscovery) {
     resources.include.push(
       ...(await extractResolvedResourceFilenamesFromQmd(
@@ -105,7 +114,7 @@ export async function resourceFilesFromFile(
   if (!selfContained) {
     const resultFiles = resources.files
       .map((file) => join(resourceDir, file))
-      .filter(existsSync)
+      .filter(safeExistsSync)
       .map(normalizePath);
     fileResourceFiles.include.push(...resultFiles);
   }

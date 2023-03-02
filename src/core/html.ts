@@ -37,11 +37,15 @@ export function getDecodedAttribute(element: Element, attrib: string) {
   }
 }
 
+const kTagBrackets: Record<string, string> = {
+  "<": "&lt;",
+  ">": "&gt;",
+};
+
 const kAttrReplacements: Record<string, string> = {
   '"': "&quot;",
   "'": "&#039;",
-  "<": "&lt;",
-  ">": "&gt;",
+  ...kTagBrackets,
   "&": "&amp;",
 };
 export function encodeAttributeValue(value: unknown) {
@@ -54,6 +58,13 @@ export function encodeAttributeValue(value: unknown) {
   } else {
     return value as string;
   }
+}
+
+export function encodeHtml(value: string) {
+  Object.keys(kTagBrackets).forEach((key) => {
+    value = value.replaceAll(key, kTagBrackets[key]);
+  });
+  return value;
 }
 
 export function findParent(

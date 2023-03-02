@@ -23,11 +23,11 @@ title-block-affiliation-plural: "Afiliasi"
 title-block-published: "Diterbitkan"
 title-block-modified: "Diubah"
 
-callout-tip-caption: "Tip"
-callout-note-caption: "Catatan"
-callout-warning-caption: "Peringatan"
-callout-important-caption: "Penting"
-callout-caution-caption: "Bahaya"
+callout-tip-title: "Tip"
+callout-note-title: "Catatan"
+callout-warning-title: "Peringatan"
+callout-important-title: "Penting"
+callout-caution-title: "Bahaya"
 
 code-summary: "Kode"
 
@@ -44,6 +44,8 @@ repo-action-links-edit: "Sunting laman ini"
 repo-action-links-source: "Lihat sumber"
 repo-action-links-issue: "Laporkan isu"
 
+back-to-top: "Kembali ke atas"
+
 search-no-results-text: "Tidak ada hasil"
 search-matching-documents-text: "dokumen cocok"
 search-copy-link-title: "Salin tautan untuk mencari"
@@ -53,6 +55,12 @@ search-more-matches-text: "kecocokan lainnya di dokumen ini"
 search-clear-button-title: "Hapus"
 search-detached-cancel-button-title: "Batal"
 search-submit-button-title: "Kirim"
+search: "Mencari"
+
+toggle-sidebar: "Alihkan bilah sisi"
+toggle-dark-mode: "Alihkan mode gelap"
+toggle-reader-mode: "Alihkan mode pembaca"
+toggle-navigation: "Alihkan navigasi"
 
 crossref-fig-title: "Gambar"
 crossref-tbl-title: "Tabel"

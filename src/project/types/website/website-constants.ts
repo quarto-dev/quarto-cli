@@ -14,6 +14,7 @@ export const kSiteFavicon = "favicon";
 export const kSiteRepoUrl = "repo-url";
 export const kSiteRepoSubdir = "repo-subdir";
 export const kSiteRepoBranch = "repo-branch";
+export const kSiteIssueUrl = "issue-url";
 export const kSiteRepoActions = "repo-actions";
 export const kSiteReaderMode = "reader-mode";
 
@@ -24,6 +25,7 @@ export const kSiteSidebarHeader = "header";
 export const kSiteSidebarFooter = "footer";
 export const kSitePageNavigation = "page-navigation";
 export const kPageFooter = "page-footer";
+export const kBackToTopNavigation = "back-to-top-navigation";
 
 export const kMarginHeader = "margin-header";
 export const kMarginFooter = "margin-footer";

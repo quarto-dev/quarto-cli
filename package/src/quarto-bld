@@ -13,6 +13,7 @@ if [ -z "$QUARTO_DENO" ]; then
 fi
 
 export RUST_BACKTRACE=full
+export DENO_NO_UPDATE_CHECK=1
 
 # TODO: Consider generating a source map or something to get a good stack
 # Create the Deno bundle

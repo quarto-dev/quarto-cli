@@ -44,7 +44,7 @@ function run_emulated_filter(doc, filter)
 
   function process_custom(custom_data, t, kind, custom_node)
     local result, recurse = process_custom_preamble(custom_data, t, kind, custom_node)
-    if filter.traverse ~= "topdown" or recurse then
+    if filter.traverse ~= "topdown" or recurse ~= false then
       if tisarray(result) then
         local new_result = {}
         for i, v in ipairs(result) do

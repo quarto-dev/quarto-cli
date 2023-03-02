@@ -93,6 +93,13 @@ export async function revealTheme(
     copyMinimal(join(revealSrcDir, dir), join(revealDestDir, dir));
   });
 
+  // Resolve load paths
+  const cssThemeDir = join(revealSrcDir, "css", "theme");
+  const loadPaths = [
+    join(cssThemeDir, "source"),
+    join(cssThemeDir, "template"),
+  ];
+
   // theme is either user provided scss or something in our 'themes' dir
   // (note that standard reveal scss themes must be converted to quarto
   // theme format so they can participate in the pipeline)
@@ -103,6 +110,7 @@ export async function revealTheme(
       (theme) => {
         const themePath = join(relative(Deno.cwd(), dirname(input)), theme);
         if (existsSync(themePath)) {
+          loadPaths.push(join(dirname(input), dirname(themePath)));
           return themeLayer(themePath);
         } else {
           // alias revealjs theme names
@@ -143,13 +151,6 @@ export async function revealTheme(
     userLayers.push(highlightingLayer);
   }
   userLayers.push(...themeLayers);
-
-  // Resolve load paths
-  const cssThemeDir = join(revealSrcDir, "css", "theme");
-  const loadPaths = [
-    join(cssThemeDir, "source"),
-    join(cssThemeDir, "template"),
-  ];
 
   // Quarto layers
   const quartoLayers = [

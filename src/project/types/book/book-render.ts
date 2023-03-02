@@ -485,10 +485,14 @@ async function mergeExecutedFiles(
           const titleBlockMarkdown = resolveTitleBlockMarkdown(
             partitioned.yaml,
           );
+          const bodyMarkdown = partitioned.yaml?.title
+            ? partitioned.srcMarkdownNoYaml
+            : partitioned.markdown;
+
           itemMarkdown = bookItemMetadata(project, item, file) +
             titleMarkdown +
             titleBlockMarkdown +
-            partitioned.markdown;
+            bodyMarkdown;
         } else {
           throw new Error(
             "Executed file not found for book item: " + item.file,

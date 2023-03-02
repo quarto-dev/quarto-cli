@@ -5,6 +5,7 @@
 *
 */
 import { join } from "path/mod.ts";
+import { warning } from "log/mod.ts";
 
 import * as ld from "../../core/lodash.ts";
 
@@ -98,6 +99,7 @@ import {
   notebookViewPostProcessor,
 } from "./format-html-notebook.ts";
 import { ProjectContext } from "../../project/types.ts";
+import { kListing } from "../../project/types/website/listing/website-listing-shared.ts";
 
 export function htmlFormat(
   figwidth: number,
@@ -130,6 +132,13 @@ export function htmlFormat(
         offset: string,
         project: ProjectContext,
       ) => {
+        // Warn the user if they are using a listing outside of a website
+        if (!project && format.metadata[kListing]) {
+          warning(
+            `Quarto only supports listings within websites. Please ensure that the file ${input} is a part of a website project to enable listing rendering.`,
+          );
+        }
+
         const htmlFilterParams = htmlFormatFilterParams(format);
         return mergeConfigs(
           await htmlFormatExtras(input, flags, offset, format, services.temp),
@@ -532,6 +541,7 @@ export async function htmlFormatExtras(
     "metadata.html",
     "title-block.html",
     "toc.html",
+    "styles.html",
   ];
   const templateContext = {
     template: join(templateDir, "template.html"),
@@ -690,6 +700,42 @@ function htmlFormatPostprocessor(
 
     // Process code annotations that may appear in this document
     processCodeAnnotations(format, doc);
+
+    // Process tables to restore th-vs-td markers
+    const tables = doc.querySelectorAll(
+      'table[data-quarto-postprocess-tables="true"]',
+    );
+
+    for (let i = 0; i < tables.length; ++i) {
+      const table = (tables[i] as Element);
+      if (table.getAttribute("data-quarto-disable-processing")) {
+        continue;
+      }
+      table.removeAttribute("data-quarto-postprocess-tables");
+      table.querySelectorAll("tr").forEach((tr) => {
+        const { children } = (tr as Element);
+        for (let j = 0; j < children.length; ++j) {
+          const child = children[j] as Element;
+          if (child.tagName === "TH" || child.tagName === "TD") {
+            const isTH =
+              child.getAttribute("data-quarto-table-cell-role") === "th";
+            // create a new element with the correct tag and move all children and attributes to
+            // new element
+            const newElement = doc.createElement(isTH ? "th" : "td");
+            while (child.firstChild) {
+              newElement.appendChild(child.firstChild);
+            }
+            for (let k = 0; k < child.attributes.length; ++k) {
+              const attr = child.attributes[k];
+              newElement.setAttribute(attr.name, attr.value);
+            }
+
+            // replace the old element with the new one
+            child.parentNode?.replaceChild(newElement, child);
+          }
+        }
+      });
+    }
 
     // no resource refs
     return Promise.resolve(kHtmlEmptyPostProcessResult);

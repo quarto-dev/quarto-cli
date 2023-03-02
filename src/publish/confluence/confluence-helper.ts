@@ -402,17 +402,10 @@ export const buildSpaceChanges = (
     pageParent = existingParent ? existingParent.id : pageParent;
 
     if (existingPage) {
-      let useOriginalTitle = false;
-      if (fileMetadata.matchingPages.length === 1) {
-        if (fileMetadata.matchingPages[0].id === existingPage.id) {
-          useOriginalTitle = true;
-        }
-      }
-
       spaceChangeList = [
         buildContentUpdate(
           existingPage.id,
-          useOriginalTitle ? fileMetadata.originalTitle : fileMetadata.title,
+          fileMetadata.title,
           fileMetadata.contentBody,
           universalFileName,
           pageParent
@@ -746,6 +739,9 @@ export const findAttachments = (
   return uniqueResult ?? [];
 };
 
+const buildConfluenceAnchor = (id: string) =>
+  `<ac:structured-macro ac:name="anchor" ac:schema-version="1" ac:local-id="a6aa6f25-0bee-4a7f-929b-71fcb7eba592" ac:macro-id="d2cb5be1217ae6e086bc60005e9d27b7"><ac:parameter ac:name="">${id}</ac:parameter></ac:structured-macro>`;
+
 export const footnoteTransform = (bodyValue: string): string => {
   const BACK_ANCHOR_FINDER: RegExp = /<a href="#fn(\d)"/g;
   const ANCHOR_FINDER: RegExp = /<a href="#fnref(\d)"/g;
@@ -756,9 +752,6 @@ export const footnoteTransform = (bodyValue: string): string => {
     //the footnote transform has already happened
     return bodyValue;
   }
-
-  const buildConfluenceAnchor = (id: string) =>
-    `<ac:structured-macro ac:name="anchor" ac:schema-version="1" ac:local-id="a6aa6f25-0bee-4a7f-929b-71fcb7eba592" ac:macro-id="d2cb5be1217ae6e086bc60005e9d27b7"><ac:parameter ac:name="">${id}</ac:parameter></ac:structured-macro>`;
 
   const replacer =
     (prefix: string) =>
