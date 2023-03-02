@@ -149,7 +149,6 @@ function applyTableCaptions(el, tblCaptions, tblLabels)
       if idx <= #tblLabels then
         local cap = pandoc.Inlines({})
         if #tblCaptions[idx] > 0 then
-          print(tblCaptions[idx])
           cap:extend(tblCaptions[idx])
           cap:insert(pandoc.Space())
         end
