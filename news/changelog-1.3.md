@@ -11,6 +11,10 @@
 - Don't install SIGCHLD signal handler since it interferes with IJulia in Julia 1.8.4 and greater ([#2539](https://github.com/quarto-dev/quarto-cli/issues/2539)).
 - Resolve full path to QUARTO_PYTHON binary
 
+## Knitr engine
+
+- Help rmarkdown find pandoc binary bundled with Quarto if none is found ([#3688](https://github.com/quarto-dev/quarto-cli/issues/3688)).
+
 ## Code Annotation
 
 - Add support for annotation of code cells (executable or non-executable). You can read more about code annotation at [https://www.quarto.org/docs/prerelease/1.3.html](https://www.quarto.org/docs/prerelease/1.3.html).
