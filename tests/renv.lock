@@ -702,9 +702,9 @@
       "RemoteUsername": "yihui",
       "RemoteRepo": "knitr",
       "RemoteRef": "master",
-      "RemoteSha": "78f1db5c32e59c85e06f9704ab7b22a459c2b945",
+      "RemoteSha": "db4eafb3e05939c6d8e558cf66665a4669ee0bbc",
       "RemoteHost": "api.github.com",
-      "Hash": "f83defa969149ac30ff836162d56e894",
+      "Hash": "9acfef646b3349e9853fdfb1181707ec",
       "Requirements": [
         "evaluate",
         "highr",

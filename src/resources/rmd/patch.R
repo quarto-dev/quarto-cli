@@ -133,7 +133,14 @@ if (utils::packageVersion("knitr") >= "1.32.8") {
     } else if (inherits(x, "knit_asis")) {
       # delegate
       is_html_widget <- inherits(x, "knit_asis_htmlwidget")
-      x <- knitr:::sew.knit_asis(x, options, ...)
+      # knit_asis method checks on missing options which 
+      # it gets in knitr because UseMethod() is called in generic
+      # but here we pass our default empty list options
+      x <- if (missing(options)) {
+        knitr:::sew.knit_asis(x, ...)
+      } else {
+        knitr:::sew.knit_asis(x, options, ...)
+      }
 
       # if it's an html widget then it was already wrapped
       # by add_html_caption
