@@ -10,7 +10,7 @@ function quartoPreMetaInject()
       if preState.hasCallouts and _quarto.format.isLatexOutput() then
         metaInjectLatex(meta, function(inject)
           inject(
-            usePackageWithOption("tcolorbox", "many")
+            usePackageWithOption("tcolorbox", "skins,breakable")
           )
           inject(
             usePackage("fontawesome5")
