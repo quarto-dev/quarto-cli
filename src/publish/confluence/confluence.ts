@@ -650,16 +650,10 @@ async function publish(
       const originalTitle = getTitle(fileName, metadataByInput);
       const title = originalTitle;
 
-      const matchingPages = await client.fetchMatchingTitlePages(
-        originalTitle,
-        space
-      );
-
       return await {
         fileName,
         title,
         originalTitle,
-        matchingPages,
         contentBody: await fileToContentBody(fileName),
       };
     };
