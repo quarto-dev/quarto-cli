@@ -246,7 +246,9 @@ export async function updateSearchIndex(
         // Grab the first child of main, and create a page entry using that.
 
         // if there are additional level 2 sections then create sub-docs for them
-        const sections = doc.querySelectorAll("section.level2");
+        const sections = doc.querySelectorAll(
+          "section.level2,section.footnotes",
+        );
         if (sections.length > 0) {
           const mainSelector = projectIsBook(context)
             ? "section.level1"
@@ -298,11 +300,13 @@ export async function updateSearchIndex(
           for (let i = 0; i < sections.length; i++) {
             const section = sections[i] as Element;
             const h2 = section.querySelector("h2");
-            if (h2 && section.id) {
-              const sectionTitle = h2.textContent;
+            if (section.id) {
+              const sectionTitle = h2 ? h2.textContent : "";
               const hrefWithAnchor = `${href}#${section.id}`;
               const sectionText = section.textContent.trim();
-              h2.remove();
+              if (h2) {
+                h2.remove();
+              }
 
               if (sectionText) {
                 // Don't index empty sections
