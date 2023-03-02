@@ -46,8 +46,10 @@ function run_emulated_filter(doc, filter)
     local result, recurse = process_custom_preamble(custom_data, t, kind, custom_node)
     if filter.traverse ~= "topdown" or recurse ~= false then
       if tisarray(result) then
+        ---@type table<number, table|pandoc.Node>
+        local array_result = result ---@diagnostic disable-line
         local new_result = {}
-        for i, v in ipairs(result) do
+        for i, v in ipairs(array_result) do
           if type(v) == "table" then
             new_result[i] = quarto[t](v) --- create new custom object of the same kind as passed and recurse.
           else

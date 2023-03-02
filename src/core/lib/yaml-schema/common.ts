@@ -333,21 +333,16 @@ export function objectSchema(params: {
     // if we subclass from something with patternProperties that came from case convention
     // detection, ignore that.
 
-    let filtered = false;
     const propNamesArray = baseSchema.map((s) => s.propertyNames)
       .filter((s) => {
         if (typeof s !== "object") return true;
         if (s.tags === undefined) return true;
         if (s.tags["case-detection"] === true) {
-          filtered = true;
           return false;
         }
         return true;
       })
       .filter((s) => s !== undefined) as Schema[];
-    // if (propertyNames) {
-    //   propNamesArray.push(propertyNames);
-    // }
     if (propNamesArray.length === 1) {
       result.propertyNames = propNamesArray[0];
     } else if (propNamesArray.length > 1) {

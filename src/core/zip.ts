@@ -6,7 +6,7 @@
 */
 import { dirname } from "path/mod.ts";
 import { execProcess } from "./process.ts";
-import { requireQuoting, safeWindowsExec } from "./windows.ts";
+import { safeWindowsExec } from "./windows.ts";
 
 export function unzip(file: string) {
   const dir = dirname(file);

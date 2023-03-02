@@ -28,12 +28,7 @@ import {
   optionCommentPatternFromLanguage,
 } from "../lib/partition-cell-options.ts";
 import { ConcreteSchema } from "../lib/yaml-schema/types.ts";
-import {
-  pandocBlock,
-  pandocHtmlBlock,
-  pandocList,
-  pandocRawStr,
-} from "../pandoc/codegen.ts";
+import { pandocBlock, pandocList, pandocRawStr } from "../pandoc/codegen.ts";
 
 import {
   kCapLoc,
@@ -74,10 +69,6 @@ import { mappedStringFromFile } from "../mapped-text.ts";
 import { error } from "log/mod.ts";
 import { withCriClient } from "../cri/cri.ts";
 import { normalizePath } from "../path.ts";
-import {
-  extractHtmlFromElements,
-  extractImagesFromElements,
-} from "../puppeteer.ts";
 
 const handlers: Record<string, LanguageHandler> = {};
 

@@ -100,6 +100,7 @@ local reportCache = {}
 local allReports = {}
 local reportCount = 0
 local startTime = 0
+---@type integer|nil
 local stopTime = 0
 local printFun = nil
 local verbosePrint = false
@@ -230,12 +231,17 @@ end
 @param filename (string) <default: "profiler.log"> [File will be created and overwritten]
 ]]
 function module.report(filename)
-  if not stopTime then
+  if stopTime == nil or not stopTime then
     module.stop()
+    return
   end
   filename = filename or "profiler.log"
   table.sort(allReports, function(a, b) return a.timer > b.timer end)
   local fileWriter = io.open(filename, "w+")
+  if fileWriter == nil then
+    print("Could not open file: "..filename)
+    return
+  end
   local divide = false
   local totalTime = stopTime - startTime
   local totalTimeOutput = "> "..string.format(formatTotalTime, totalTime)

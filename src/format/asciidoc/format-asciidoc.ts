@@ -40,7 +40,7 @@ import {
 } from "../../project/types/book/book-bibliography.ts";
 import { citeIndex } from "../../project/project-cites.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
-import { PandocOptions, RenderOptions } from "../../command/render/types.ts";
+import { PandocOptions } from "../../command/render/types.ts";
 
 type AsciiDocBookPart = string | {
   partPath?: string;
