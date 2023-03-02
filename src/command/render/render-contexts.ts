@@ -90,7 +90,6 @@ import {
 } from "../../core/pandoc/pandoc-formats.ts";
 import { ExtensionContext } from "../../extension/extension-shared.ts";
 import { renderServices } from "./render-shared.ts";
-import { convertFromFieldsObject } from "../../core/lib/yaml-schema/from-yaml.ts";
 
 export async function resolveFormatsFromMetadata(
   metadata: Metadata,

@@ -5,7 +5,6 @@
 *
 */
 
-import { resourcePath } from "../../core/resources.ts";
 import {
   kListings,
   kNumberDepth,

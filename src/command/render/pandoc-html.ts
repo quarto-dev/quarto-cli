@@ -29,8 +29,6 @@ import {
   readTheme,
 } from "../../quarto-core/text-highlighting.ts";
 import { isHtmlOutput } from "../../config/format.ts";
-import { schemaType } from "../../core/lib/yaml-schema/types.ts";
-import { kHighlightStyle } from "../../config/constants.ts";
 
 // The output target for a sass bundle
 // (controls the overall style tag that is emitted)
