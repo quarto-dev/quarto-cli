@@ -2103,8 +2103,7 @@
         closed: true
         properties:
           format: string
-          value:
-            ref: string
+          value: string
         required: [value]
 
 - id: project-profile
