@@ -42,7 +42,6 @@ import { renderProject } from "../render/project.ts";
 import { renderServices } from "../render/render-shared.ts";
 import { parseFormatString } from "../../core/pandoc/pandoc-formats.ts";
 import { normalizePath } from "../../core/path.ts";
-import { greet } from "../greet.ts";
 import { kCliffyImplicitCwd } from "../../config/constants.ts";
 import { warning } from "log/mod.ts";
 
@@ -130,8 +129,6 @@ export const previewCommand = new Command()
   )
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, file?: string, ...args: string[]) => {
-    greet();
-
     // one-time initialization of yaml validation modules
     setInitializer(initYamlIntelligenceResourcesFromFilesystem);
     await initState();

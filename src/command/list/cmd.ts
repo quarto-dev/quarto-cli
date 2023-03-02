@@ -18,7 +18,6 @@ import {
 } from "../../extension/extension-shared.ts";
 import { projectContext } from "../../project/project-context.ts";
 import { outputTools } from "../../tools/tools-console.ts";
-import { greet } from "../greet.ts";
 
 export const listCommand = new Command()
   .hidden()
@@ -37,7 +36,6 @@ export const listCommand = new Command()
   )
   .action(
     async (_options: unknown, type: string) => {
-      greet();
       await initYamlIntelligenceResourcesFromFilesystem();
       const temp = createTempContext();
       const extensionContext = createExtensionContext();

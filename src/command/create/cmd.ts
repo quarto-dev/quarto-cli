@@ -23,7 +23,6 @@ import {
 } from "cliffy/prompt/mod.ts";
 import { readLines } from "io/mod.ts";
 import { info } from "log/mod.ts";
-import { greet } from "../greet.ts";
 
 export interface CreateContext {
   cwd: string;
@@ -102,7 +101,6 @@ export const createCommand = new Command()
       type?: string,
       ...commands: string[]
     ) => {
-      greet();
       if (options.json) {
         await createFromStdin();
       } else {
