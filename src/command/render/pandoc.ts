@@ -1342,7 +1342,10 @@ function resolveTextHighlightStyle(
       // Clear the highlighting
       if (extras.pandoc) {
         extras.pandoc = extras.pandoc || {};
-        extras.pandoc[kHighlightStyle] = null;
+        extras.pandoc[kHighlightStyle] = textHighlightThemePath(
+          inputDir,
+          "none",
+        );
       }
       break;
     case undefined:
