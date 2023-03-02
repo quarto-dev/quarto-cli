@@ -286,7 +286,6 @@ export async function renderFiles(
       const file = files[i];
 
       if (progress) {
-        console.log("HERE");
         renderProgress(
           `\r[${String(i + 1).padStart(numWidth)}/${files.length}] ${
             relative(project!.dir, file.path)
