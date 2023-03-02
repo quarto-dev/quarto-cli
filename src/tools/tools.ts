@@ -5,7 +5,7 @@
 *
 */
 
-import { info } from "log/mod.ts";
+import { info, warning } from "log/mod.ts";
 import { withSpinner } from "../core/console.ts";
 import { logError } from "../core/log.ts";
 
@@ -20,6 +20,7 @@ import { tinyTexInstallable } from "./impl/tinytex.ts";
 import { chromiumInstallable } from "./impl/chromium.ts";
 import { downloadWithProgress } from "../core/download.ts";
 import { Confirm } from "cliffy/prompt/mod.ts";
+import { isWSL } from "../core/platform.ts";
 
 // The tools that are available to install
 const kInstallableTools: { [key: string]: InstallableTool } = {
@@ -83,59 +84,84 @@ export async function printToolInfo(name: string) {
   }
 }
 
+export function checkToolRequirement(name: string) {
+  let isInstallable = true;
+  switch (name.toLowerCase()) {
+    case "chromium":
+      // WSL limitation
+      if (isWSL()) {
+        isInstallable = false;
+        // TODO: Change to a quarto-web url page ?
+        const troubleshootUrl =
+          "https://pptr.dev/next/troubleshooting#running-puppeteer-on-wsl-windows-subsystem-for-linux.";
+        warning([
+          `${name} can't be installed fully on WSL with Quarto as system requirements could be missing.`,
+          `- Please do a manual installation following recommandations at ${troubleshootUrl}`,
+          "- See https://github.com/quarto-dev/quarto-cli/issues/1822 for more context.",
+        ].join("\n"));
+      }
+      break;
+    default:
+      break;
+  }
+  return isInstallable;
+}
+
 export async function installTool(name: string, updatePath?: boolean) {
   name = name || "";
   // Run the install
   const installableTool = kInstallableTools[name.toLowerCase()];
   if (installableTool) {
-    // Create a working directory for the installer to use
-    const workingDir = Deno.makeTempDirSync();
-    try {
-      // The context for the installers
-      const context = installContext(workingDir, updatePath);
+    if (checkToolRequirement(name)) {
+      // Create a working directory for the installer to use
+      const workingDir = Deno.makeTempDirSync();
+      try {
+        // The context for the installers
+        const context = installContext(workingDir, updatePath);
 
-      context.info(`Installing ${name}`);
+        context.info(`Installing ${name}`);
 
-      // See if it is already installed
-      const alreadyInstalled = await installableTool.installed();
-      if (alreadyInstalled) {
-        // Already installed, do nothing
-        context.error(`Install canceled - ${name} is already installed.`);
-        return Promise.reject();
-      } else {
-        // Prereqs for this platform
-        const platformPrereqs = installableTool.prereqs.filter((prereq) =>
-          prereq.os.includes(Deno.build.os)
-        );
+        // See if it is already installed
+        const alreadyInstalled = await installableTool.installed();
+        if (alreadyInstalled) {
+          // Already installed, do nothing
+          context.error(`Install canceled - ${name} is already installed.`);
+          return Promise.reject();
+        } else {
+          // Prereqs for this platform
+          const platformPrereqs = installableTool.prereqs.filter((prereq) =>
+            prereq.os.includes(Deno.build.os)
+          );
 
-        // Check to see whether any prerequisites are satisfied
-        for (const prereq of platformPrereqs) {
-          const met = await prereq.check(context);
-          if (!met) {
-            context.error(prereq.message);
-            return Promise.reject();
+          // Check to see whether any prerequisites are satisfied
+          for (const prereq of platformPrereqs) {
+            const met = await prereq.check(context);
+            if (!met) {
+              context.error(prereq.message);
+              return Promise.reject();
+            }
+          }
+
+          // Fetch the package information
+          const pkgInfo = await installableTool.preparePackage(context);
+
+          // Do the install
+          await installableTool.install(pkgInfo, context);
+
+          // post install
+          const restartRequired = await installableTool.afterInstall(context);
+
+          context.info("Installation successful");
+          if (restartRequired) {
+            context.info(
+              "To complete this installation, please restart your system.",
+            );
           }
         }
-
-        // Fetch the package information
-        const pkgInfo = await installableTool.preparePackage(context);
-
-        // Do the install
-        await installableTool.install(pkgInfo, context);
-
-        // post install
-        const restartRequired = await installableTool.afterInstall(context);
-
-        context.info("Installation successful");
-        if (restartRequired) {
-          context.info(
-            "To complete this installation, please restart your system.",
-          );
-        }
+      } finally {
+        // Cleanup the working directory
+        Deno.removeSync(workingDir, { recursive: true });
       }
-    } finally {
-      // Cleanup the working directory
-      Deno.removeSync(workingDir, { recursive: true });
     }
   } else {
     // No tool found

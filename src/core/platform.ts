@@ -13,6 +13,10 @@ export function isWindows() {
   return Deno.build.os === "windows";
 }
 
+export function isWSL() {
+  return !!Deno.env.get("WSL_DISTRO_NAME");
+}
+
 export function isMac() {
   return Deno.build.os === "darwin";
 }
