@@ -210,6 +210,17 @@ has_annotations <- function(input)  {
   hasAnnotations
 }
 
+if (!rmarkdown::pandoc_available(error = FALSE)) {
+  # When FALSE, this means no Pandoc is found by rmarkdown, not even on PATH
+  # In that case we configure rmarkdown to use Quarto bundled version
+  quarto_bin_path <- Sys.getenv("QUARTO_BIN_PATH", NA_character_)
+  # Checking env var to be safe, but should always set by Quarto
+  if (!is.na(quarto_bin_path)) {
+    pandoc_dir <- normalizePath(file.path(quarto_bin_path, "tools"))
+    rmarkdown::find_pandoc(dir = pandoc_dir)
+  }
+}
+
 # run main
 .main()
 
