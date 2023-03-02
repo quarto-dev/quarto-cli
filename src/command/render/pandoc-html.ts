@@ -485,7 +485,7 @@ export function generateCssKeyValues(textValues: Record<string, unknown>) {
           `color: ${textValues[textAttr]};`,
         );
         break;
-      case "background":
+      case "background-color":
         lines.push(
           `background-color: ${textValues[textAttr]};`,
         );
