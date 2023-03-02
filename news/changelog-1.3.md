@@ -79,6 +79,10 @@
 
 - Improve the performance of extremely large documents with margin elements by improving the efficiency of positioning the elements.
 
+## Docx Format
+
+- Ensure that the figure caption and the figure itself is laid out as consecutive paragraphs. ([#4004](https://github.com/quarto-dev/quarto-cli/issues/4004))
+
 ## Listings
 
 - Listings now support `template-params`, which will be passed to custom EJS templates in a variable called `templateParams` when a listing is rendered.
