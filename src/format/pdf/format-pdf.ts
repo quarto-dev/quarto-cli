@@ -11,6 +11,7 @@ import { mergeConfigs } from "../../core/config.ts";
 import { texSafeFilename } from "../../core/tex.ts";
 
 import {
+  kBibliography,
   kCapBottom,
   kCapLoc,
   kCapTop,
@@ -317,6 +318,16 @@ function pdfLatexPostProcessor(
       sidecaptionLineProcessor(),
       calloutFigureHoldLineProcessor(),
     ];
+
+    if (format.pandoc[kCiteMethod] === "biblatex") {
+      lineProcessors.push(bibLatexBibligraphyRefsDivProcessor());
+    } else if (format.pandoc[kCiteMethod] === "natbib") {
+      lineProcessors.push(
+        natbibBibligraphyRefsDivProcessor(
+          format.metadata[kBibliography] as string[] | undefined,
+        ),
+      );
+    }
 
     const marginCites = format.metadata[kCitationLocation] === "margin";
     const renderedCites = {};
@@ -633,6 +644,47 @@ const calloutFigureHoldLineProcessor = () => {
   };
 };
 
+const kQuartoBibPlaceholderRegex = "%bib-loc-124C8010";
+const bibLatexBibligraphyRefsDivProcessor = () => {
+  let hasRefsDiv = false;
+  return (line: string): string | undefined => {
+    if (line === kQuartoBibPlaceholderRegex) {
+      if (!hasRefsDiv) {
+        hasRefsDiv = true;
+        return "\\printbibliography[heading=none]";
+      } else {
+        // already seen a refs div, just ignore this one
+        return undefined;
+      }
+    } else if (hasRefsDiv && line.match(/^\\printbibliography$/)) {
+      return undefined;
+    } else {
+      return line;
+    }
+  };
+};
+
+const natbibBibligraphyRefsDivProcessor = (bibs?: string[]) => {
+  let hasRefsDiv = false;
+  return (line: string): string | undefined => {
+    if (line === kQuartoBibPlaceholderRegex) {
+      if (bibs && !hasRefsDiv) {
+        hasRefsDiv = true;
+        return `\\renewcommand{\\bibsection}{}\n\\bibliography{${
+          bibs.join(",")
+        }}`;
+      } else {
+        // already seen a refs div, just ignore this one
+        return undefined;
+      }
+    } else if (hasRefsDiv && line.match(/^\s*\\bibliography{.*}$/)) {
+      return undefined;
+    } else {
+      return line;
+    }
+  };
+};
+
 // Removes the biblatex \printbibiliography command
 const suppressBibLatexBibliographyLineProcessor = () => {
   return (line: string): string | undefined => {
@@ -656,7 +708,6 @@ const suppressNatbibBibliographyLineProcessor = () => {
 
 // {?quarto-cite:(id)}
 const kQuartoCiteRegex = /{\?quarto-cite:(.*?)}/g;
-
 const bibLatexCiteLineProcessor = () => {
   return (line: string): string | undefined => {
     return line.replaceAll(kQuartoCiteRegex, (_match, citeKey) => {
