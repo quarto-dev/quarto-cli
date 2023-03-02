@@ -1,0 +1,14 @@
+{
+  "lint": {
+    "files": {
+      "include": ["./"],
+      "exclude": ["src/resources/formats/pdf/pdfjs/"]
+    }
+  },
+  "fmt": {
+    "files": {
+      "include": ["./"],
+      "exclude": ["src/resources/formats/pdf/pdfjs/"]
+    }
+  }
+}

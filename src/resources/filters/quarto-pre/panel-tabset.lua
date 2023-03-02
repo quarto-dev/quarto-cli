@@ -11,7 +11,9 @@ Create a Tab AST node (represented as a Lua table)
 quarto.Tab = function(params)
   local content
   if type(params.content) == "string" then
-    content = pandoc.Blocks(pandoc.read(params.content, "markdown").blocks)
+    local content_string = params.content
+    ---@cast content_string string
+    content = pandoc.Blocks(pandoc.read(content_string, "markdown").blocks)
   else
     content = params.content or pandoc.Blocks({})
   end
