@@ -176,6 +176,7 @@
 - Report version in most `quarto` commands ([#4567](https://github.com/quarto-dev/quarto-cli/issues/4567)).
 - Trim whitespace from the end of yaml strings in jupyter engine to work around poyo parsing issue ([#4573](https://github.com/quarto-dev/quarto-cli/issues/4573)).
 - Use "iso" date form instead of "short" to format citations properly ([#4586](https://github.com/quarto-dev/quarto-cli/issues/4586)).
+- Fix typo `thumnail-image` -> `thumbnail-image` in listing template ([#4602](//github.com/quarto-dev/quarto-cli/pull/4602)) (Thank you, @mattspence!).
 
 ## Pandoc filter changes
 
