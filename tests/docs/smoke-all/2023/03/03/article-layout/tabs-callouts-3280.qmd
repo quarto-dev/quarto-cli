@@ -1,0 +1,73 @@
+---
+title: "column-margin Misplacement in panel-tabset Reproducible Example"
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - [".tabset-margin-container .tabset-margin-content", ".tabset-margin-container .tabset-margin-content.collapse", ".column-container .callout-collapse"]
+---
+
+## Header 1
+
+::: {.panel-tabset}
+
+### Subheader 1
+
+::: {.column-margin}
+Margin Text 1
+:::
+
+<!-- ![](https://quarto.org/docs/gallery/articles/advanced-layout-pdf.png) -->
+
+### Subheader 2
+
+::: {.column-margin}
+Margin Text 2
+:::
+
+::: {.column-margin}
+Margin Text 3
+:::
+
+
+::: 
+
+
+:::{.callout-note collapse=true}
+
+## hi
+
+This is a callout what is up bro
+
+:::{.column-margin}
+This is margin content
+:::
+
+
+:::
+
+
+## Header 2
+
+::: {.panel-tabset}
+
+### Subheader 1
+
+::: {.column-margin}
+Margin Text 1
+:::
+
+<!-- ![](https://quarto.org/docs/gallery/articles/advanced-layout-pdf.png) -->
+
+### Subheader 2
+
+::: {.column-margin}
+Margin Text 2
+:::
+
+::: {.column-margin}
+Margin Text 3
+:::
+
+:::

@@ -676,6 +676,9 @@ function processColumnElements(
   // Process margin elements that may appear in callouts
   processMarginElsInCallouts(doc);
 
+  // Process margin elements that may appear in tabsets
+  processMarginElsInTabsets(doc);
+
   // Group margin elements by their parents and wrap them in a container
   // Be sure to ignore containers which are already processed
   // and should be left alone
@@ -950,6 +953,53 @@ const processMarginElsInCallouts = (doc: Document) => {
 
         calloutEl.after(marginEl);
       });
+    }
+  });
+};
+
+const processMarginElsInTabsets = (doc: Document) => {
+  // Move margin elements inside tabsets into a separate container that appears
+  // before the tabset- this will hold the margin content
+  // quarto.js will detect tab changed events and propery show and hide elements
+  // by marking them with a collapse class.
+
+  const tabSetNodes = doc.querySelectorAll("div.panel-tabset");
+  tabSetNodes.forEach((tabsetNode) => {
+    const tabSetEl = tabsetNode as Element;
+    const tabNodes = tabSetEl.querySelectorAll("div.tab-pane");
+
+    const marginEls: Element[] = [];
+    let count = 0;
+    tabNodes.forEach((tabNode) => {
+      const tabEl = tabNode as Element;
+      const tabId = tabEl.id;
+
+      const marginNodes = tabEl.querySelectorAll(
+        ".column-margin, aside, .aside",
+      );
+
+      if (tabId && marginNodes.length > 0) {
+        const marginArr = Array.from(marginNodes);
+        marginArr.forEach((marginNode) => {
+          const marginEl = marginNode as Element;
+          marginEl.classList.add("tabset-margin-content");
+          marginEl.classList.add(`${tabId}-tab-margin-content`);
+          if (count > 0) {
+            marginEl.classList.add("collapse");
+          }
+          marginEls.push(marginEl);
+        });
+      }
+      count++;
+    });
+
+    if (marginEls) {
+      const containerEl = doc.createElement("div");
+      containerEl.classList.add("tabset-margin-container");
+      marginEls.forEach((marginEl) => {
+        containerEl.appendChild(marginEl);
+      });
+      tabSetEl.before(containerEl);
     }
   });
 };
