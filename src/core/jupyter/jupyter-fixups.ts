@@ -169,7 +169,7 @@ export function fixupFrontMatter(nb: JupyterNotebook): JupyterNotebook {
     const yamlText = asYamlText({ title });
     nb.cells.unshift({
       cell_type: "raw",
-      source: nbLines(lines(yamlText)),
+      source: nbLines(lines(`---\n${yamlText}---\n`)),
       metadata: {},
     });
   }
