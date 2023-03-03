@@ -683,7 +683,7 @@ const longTableSidenoteProcessor = () => {
         }
       case "capturing":
         capturedLines.push(line);
-        if (line.match(/^\\end{longtable}.*$/)) {
+        if (line.match(/[^\\n]\\end{longtable}.*$/)) {
           state = "scanning";
 
           // read the whole figure and clear any capture state
