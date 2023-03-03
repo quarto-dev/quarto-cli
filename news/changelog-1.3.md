@@ -38,10 +38,12 @@
 - Properly anchor custom appendix sections ([#3112](https://github.com/quarto-dev/quarto-cli/issues/3112)).
 - Don't display custom appendix sections in the TOC ([#3113](https://github.com/quarto-dev/quarto-cli/issues/3113)).
 - Use custom `styles.html` template partial to better support checkbox alignment ([#4556](https://github.com/quarto-dev/quarto-cli/issues/4556)).
+- Improve ergonomics of text-highting in HTML output, not emitting difficult overwrite styles and better supporting theme -> CSS conversion. ([#4334](https://github.com/quarto-dev/quarto-cli/issues/4334)).
 
 ## Article Layout
 
-- Improve positioning of margin content defined within tabsets. (#3280)
+- Improve positioning of margin content defined within tabsets ([#3280](https://github.com/quarto-dev/quarto-cli/issues/3280)).
+- Improve support for tables with margin positioned endnotes ([#4324](https://github.com/quarto-dev/quarto-cli/issues/4324)).
 
 ## Revealjs Format
 
@@ -52,6 +54,10 @@
 - Authors on the title slides now correctly object customization of the `$presentation-title-slide-text-align` scss variable ([#3843](https://github.com/quarto-dev/quarto-cli/issues/3843))
 - Properly support `show-notes: separate-page` [#3996](https://github.com/quarto-dev/quarto-cli/issues/3996)
 - Improve footnote / aside layout for centered slides. [#4297](https://github.com/quarto-dev/quarto-cli/issues/4297)
+
+## EPUB Format
+
+- Enable webtex (epub2 format) or mathml (epub/epub3 format) by default for EPUB output [#4403](https://github.com/quarto-dev/quarto-cli/issues/4403)
 
 ## Dates
 
@@ -131,14 +137,18 @@
 - Properly localize search button title and various toggle aria-labels ([#4559](https://github.com/quarto-dev/quarto-cli/issues/4559))
 - Support `navbar: true` to turn on a top navbar even if there are no contents
 - Improve title recognition for pages that don't include a title in metadata ([#4528](https://github.com/quarto-dev/quarto-cli/issues/4528))
+- Ensure that footnote are properly indexed for website and book searches ([#4601](https://github.com/quarto-dev/quarto-cli/issues/4601)).
+- Permit sidebar items to include icons ([#3830](https://github.com/quarto-dev/quarto-cli/issues/3830)).
 
 ## Books
 
 - Remove chapter number of HTML head title when `number-sections` is `false` (#3304).
 - Non-HTML book output formats will now be placed in subdirectories (`book-<format>`) within the project output directory (`_books`)
-- Don't discard the first chapter header when a chapter title is declared using YAML. ([#3653](https://github.com/quarto-dev/quarto-cli/issues/3653))
+- Don't discard the first chapter header when a chapter title is declared using YAML.
 - Support for rendering to Asciidoc
 - Support for rendering to LaTeX
+- Properly support localized appendex name in book website navigation ([#4578](https://github.com/quarto-dev/quarto-cli/issues/4578))
+- Don't emit duplicate bibliography heading when LaTeX/PDF books are rendering using `natbib` or `biblatex` ([#2770](https://github.com/quarto-dev/quarto-cli/issues/2770))
 
 ## Preview
 
@@ -181,6 +191,7 @@
 - Trim whitespace from the end of yaml strings in jupyter engine to work around poyo parsing issue ([#4573](https://github.com/quarto-dev/quarto-cli/issues/4573)).
 - Use "iso" date form instead of "short" to format citations properly ([#4586](https://github.com/quarto-dev/quarto-cli/issues/4586)).
 - Fix typo `thumnail-image` -> `thumbnail-image` in listing template ([#4602](//github.com/quarto-dev/quarto-cli/pull/4602)) (Thank you, @mattspence!).
+- Add support for targeting the `#refs` divs with citations when using `natbib` or `biblatex` to generate a bibliography.
 
 ## Pandoc filter changes
 
