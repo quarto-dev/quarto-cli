@@ -17,6 +17,7 @@ import {
   cacheFilteredNotebook,
   filteredNotebookFromCache,
 } from "./filtered-notebook-cache.ts";
+import { fixupFrontMatter } from "./jupyter-fixups.ts";
 import { JupyterNotebook } from "./types.ts";
 
 export async function markdownFromNotebookFile(file: string, format?: Format) {
@@ -30,6 +31,9 @@ export async function markdownFromNotebookFile(file: string, format?: Format) {
 }
 
 export function markdownFromNotebookJSON(nb: JupyterNotebook) {
+  // run the front matter fixup
+  nb = fixupFrontMatter(nb);
+
   const markdown = nb.cells.reduce((md, cell) => {
     if (["markdown", "raw"].includes(cell.cell_type)) {
       return md + "\n" + cell.source.join("") + "\n";
