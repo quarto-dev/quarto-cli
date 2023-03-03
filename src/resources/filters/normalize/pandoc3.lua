@@ -5,7 +5,7 @@ function parse_pandoc3_figures()
   local walk_recurse
   walk_recurse = function(constructor)
     local drop_figure_treatment = function(el)
-      return el:walk(walk_recurse(pandoc.Plain))
+      return _quarto.ast.walk(el, walk_recurse(pandoc.Plain))
     end
     return {
       traverse = "topdown",
@@ -46,7 +46,7 @@ function parse_pandoc3_figures()
 
   return {
     Pandoc = function(doc)
-      local result = doc:walk(walk_recurse(pandoc.Para))
+      local result = _quarto.ast.walk(doc, walk_recurse(pandoc.Para))
       return result
     end
   }

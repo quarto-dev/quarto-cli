@@ -78,7 +78,7 @@ function hasSubRefs(divEl, type)
 
       end
     end
-    pandoc.walk_block(divEl, {
+    _quarto.ast.walk(divEl, {
       Div = checkForParent,
       Image = checkForParent
     })

@@ -40,7 +40,7 @@ function tableCaptions()
               -- special case: knitr::kable will generate a \begin{tablular} without
               -- a \begin{table} wrapper -- put the wrapper in here if need be
               if _quarto.format.isLatexOutput() then
-                el = pandoc.walk_block(el, {
+                el = _quarto.ast.walk(el, {
                   RawBlock = function(raw)
                     if _quarto.format.isRawLatex(raw) then
                       if raw.text:match(_quarto.patterns.latexTabularPattern) and not raw.text:match(_quarto.patterns.latexTablePattern) then
@@ -144,7 +144,7 @@ end
 
 function applyTableCaptions(el, tblCaptions, tblLabels)
   local idx = 1
-  return pandoc.walk_block(el, {
+  return _quarto.ast.walk(el, {
     Table = function(el)
       if idx <= #tblLabels then
         local cap = pandoc.Inlines({})

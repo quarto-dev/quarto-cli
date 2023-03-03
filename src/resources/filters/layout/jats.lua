@@ -5,7 +5,7 @@
 function jatsDivFigure(divEl)
 
   -- ensure that only valid elements are permitted
-  local filteredEl = pandoc.walk_block(divEl, {
+  local filteredEl = _quarto.ast.walk(divEl, {
     Header = function(el)
       return pandoc.Strong(el.content)
     end

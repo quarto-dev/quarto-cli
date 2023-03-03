@@ -17,6 +17,8 @@ function delink()
         end
 
         -- find links and transform them to spans
+        -- this is in post, so it's after render, so we don't need to worry about
+        -- custom ast nodes
         return pandoc.walk_block(div, {
           Link = function(link)
             return pandoc.Span(link.content)
