@@ -18,7 +18,7 @@ import { extractResolvedResourceFilenamesFromQmd } from "../../execute/ojs/extra
 import { asMappedString } from "../../core/mapped-text.ts";
 import { RenderedFile, RenderResourceFiles } from "./types.ts";
 import { PartitionedMarkdown } from "../../core/pandoc/types.ts";
-import { isAbsolute } from "https://deno.land/std@0.166.0/path/win32.ts";
+import { isAbsolute } from "path/mod.ts";
 
 export function resourcesFromMetadata(resourcesMetadata?: unknown) {
   // interrogate / typecast raw yaml resources into array of strings
