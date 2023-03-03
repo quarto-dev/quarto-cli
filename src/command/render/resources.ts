@@ -52,7 +52,10 @@ export async function resolveFileResources(
       ...excludeDirs,
     );
 
-  const absPathGlobs = globs.map((glob) => {
+  const absPathGlobs = globs.filter((glob) => {
+    // skip data uris
+    return !glob.startsWith("data:");
+  }).map((glob) => {
     return isAbsolute(glob) ? glob : join(rootDir, glob);
   });
 
