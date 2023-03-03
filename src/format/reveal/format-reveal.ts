@@ -692,7 +692,7 @@ function revealHtmlPostprocessor(
         const target = doc.getElementById(href.replace(/^#\//, ""));
         if (target) {
           const slide = findParentSlide(target);
-          if (slide) {
+          if (slide && slide.getAttribute("id")) {
             anchorEl.setAttribute("href", `#/${slide.getAttribute("id")}`);
           }
         }
