@@ -56,6 +56,7 @@ import {
   doWithSpinner,
   filterFilesForUpdate,
   findAttachments,
+  flattenIndexes,
   footnoteTransform,
   getNextVersion,
   getTitle,
@@ -674,6 +675,12 @@ async function publish(
       existingSite
     );
 
+    console.log("before flatten", changeList);
+
+    changeList = flattenIndexes(changeList, metadataByFilename);
+
+    console.log("after flatten", changeList);
+
     const { pass1Changes, pass2Changes } = updateLinks(
       metadataByFilename,
       changeList,
@@ -794,6 +801,9 @@ async function publish(
 
       existingSite = await fetchExistingSite(parentId);
       metadataByFilename = buildFileToMetaTable(existingSite);
+
+      console.log("existingSite", existingSite);
+      console.log("metadataByFilename", metadataByFilename);
 
       const linkUpdateChanges: ConfluenceSpaceChange[] = convertForSecondPass(
         metadataByFilename,

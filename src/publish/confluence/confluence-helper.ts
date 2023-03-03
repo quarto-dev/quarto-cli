@@ -1,16 +1,11 @@
 import { trace } from "./confluence-logger.ts";
 import { ApiError, PublishRecord } from "../types.ts";
-import { ensureTrailingSlash } from "../../core/path.ts";
 import {
-  join,
-  basename,
-  parse,
-  dirname,
-  toFileUrl,
-  resolve,
-} from "path/mod.ts";
+  ensureTrailingSlash,
+  pathWithForwardSlashes,
+} from "../../core/path.ts";
+import { join } from "path/mod.ts";
 import { isHttpUrl } from "../../core/url.ts";
-import { pathWithForwardSlashes } from "../../core/path.ts";
 import { AccountToken, InputMetadata } from "../provider.ts";
 import {
   ConfluenceParent,
@@ -29,8 +24,6 @@ import {
   ContentUpdate,
   ContentVersion,
   EMPTY_PARENT,
-  LogLevel,
-  LogPrefix,
   PAGE_TYPE,
   SiteFileMetadata,
   SitePage,
@@ -467,6 +460,88 @@ export const buildSpaceChanges = (
   });
 
   return spaceChanges;
+};
+
+export const flattenIndexes = (
+  changes: ConfluenceSpaceChange[],
+  metadataByFileName: Record<string, SitePage>
+): ConfluenceSpaceChange[] => {
+  const getFileNameForChange = (change: ConfluenceSpaceChange) => {
+    if (isContentDelete(change)) {
+      return "";
+    }
+
+    return pathWithForwardSlashes(change?.fileName ?? "");
+  };
+
+  const isIndexFile = (change: ConfluenceSpaceChange) => {
+    return getFileNameForChange(change)?.endsWith("/index.xml");
+  };
+
+  const toIndexPageLookup = (
+    accumulator: Record<string, ConfluenceSpaceChange>,
+    change: ConfluenceSpaceChange
+  ): Record<string, any> => {
+    if (isContentDelete(change)) {
+      return accumulator;
+    }
+    const fileName = getFileNameForChange(change);
+    const isIndex = isIndexFile(change);
+
+    if (isIndex) {
+      const folderFileName = fileName.replace("/index.xml", "");
+      return {
+        ...accumulator,
+        [folderFileName]: change,
+      };
+    }
+
+    return accumulator;
+  };
+
+  const indexLookup: Record<string, ConfluenceSpaceChange> = changes.reduce(
+    toIndexPageLookup,
+    {}
+  );
+
+  const toFlattenedIndexes = (
+    accumulator: ConfluenceSpaceChange[],
+    change: ConfluenceSpaceChange
+  ): ConfluenceSpaceChange[] => {
+    if (isContentDelete(change)) {
+      return [...accumulator, change];
+    }
+
+    const fileName = getFileNameForChange(change);
+
+    if (isIndexFile(change)) {
+      // console.log("change", change);
+      console.log("is index file, return");
+      const parentId = fileName.replace("/index.xml", "");
+      console.log("parentId", parentId);
+
+      // console.log("parentCreateChange", parentCreateChange);
+      // if (!parentCreateChange) {
+      // the parent has already been created, this index create
+      // is actually an index parent update
+      // const parentUpdate: ContentUpdate = buildContentUpdate(id);
+      // }
+
+      return accumulator;
+    }
+
+    const indexChange: ConfluenceSpaceChange = indexLookup[fileName];
+    if (indexChange && !isContentDelete(indexChange)) {
+      change.title = indexChange.title ?? change.title;
+      change.body = indexChange.body ?? change.body;
+    }
+
+    return [...accumulator, change];
+  };
+
+  const flattenedIndexes = changes.reduce(toFlattenedIndexes, []);
+
+  return flattenedIndexes;
 };
 
 export const replaceExtension = (
