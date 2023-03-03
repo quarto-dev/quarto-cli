@@ -17,7 +17,7 @@ function resolve_custom_node(node)
   end
 end
 
-function run_emulated_filter(doc, filter)
+function run_emulated_filter(doc, filter, top_level)
   local wrapped_filter = {}
   for k, v in pairs(filter) do
     wrapped_filter[k] = v
@@ -132,7 +132,7 @@ function run_emulated_filter(doc, filter)
   end
 
   local result = doc:walk(wrapped_filter)
-  if filter._filter_name ~= nil then
+  if top_level and filter._filter_name ~= nil then
     add_trace(result, filter._filter_name)
   end
   return result

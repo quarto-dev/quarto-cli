@@ -8,7 +8,7 @@ local function run_emulated_filter_chain(doc, filters, afterFilterPass)
   if tisarray(filters) then
     for i, v in ipairs(filters) do
       local function callback()
-        doc = run_emulated_filter(doc, v)
+        doc = run_emulated_filter(doc, v, true)
       end
       if v.scriptFile then
         _quarto.withScriptFile(v.scriptFile, callback)
@@ -20,7 +20,7 @@ local function run_emulated_filter_chain(doc, filters, afterFilterPass)
       end
     end
   elseif type(filters) == "table" then
-    doc = run_emulated_filter(doc, filters)
+    doc = run_emulated_filter(doc, filters, true)
     if afterFilterPass then
       afterFilterPass()
     end
