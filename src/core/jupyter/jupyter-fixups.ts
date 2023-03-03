@@ -7,11 +7,6 @@
 
 import { stringify } from "encoding/yaml.ts";
 import { warning } from "log/mod.ts";
-import {
-  JupyterNotebook,
-  JupyterOutput,
-  JupyterToMarkdownOptions,
-} from "./types.ts";
 
 import { kTitle } from "../../config/constants.ts";
 import { Metadata } from "../../publish/netlify/api/index.ts";
