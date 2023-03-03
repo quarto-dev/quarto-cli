@@ -129,7 +129,7 @@ export function toInputRelativePaths(
       for (let index = 0; index < collection.length; ++index) {
         const value = collection[index];
         if (Array.isArray(value) || value instanceof Object) {
-          inner(value as any);
+          inner(value);
         } else if (typeof value === "string") {
           if (value.length > 0 && !isAbsolute(value)) {
             collection[index] = fixup(value);
@@ -145,6 +145,7 @@ export function toInputRelativePaths(
         ) {
           // don't fixup html-math-method
         } else if (Array.isArray(value) || value instanceof Object) {
+          // deno-lint-ignore no-explicit-any
           inner(value as any, index);
         } else if (typeof value === "string") {
           if (value.length > 0 && !isAbsolute(value)) {

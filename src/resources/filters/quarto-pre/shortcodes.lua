@@ -511,7 +511,7 @@ function shortcodeResultAsInlines(result, name)
     return pandoc.utils.blocks_to_inlines( { result }, { pandoc.Space() })
   else
     error("Unexepected result from shortcode " .. name .. "")
-    quarto.utils.dump(result)
+    quarto.log.output(result)
     os.exit(1)
   end
 end
@@ -542,7 +542,7 @@ function shortcodeResultAsBlocks(result, name)
     return pandoc.Blocks( {pandoc.Para( {result} ) })
   else
     error("Unexepected result from shortcode " .. name .. "")
-    quarto.utils.dump(result)
+    quarto.log.output(result)
     os.exit(1)
   end
 end

@@ -17,7 +17,6 @@ import {
   markdownToJupyterNotebook,
 } from "./jupyter.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
-import { greet } from "../greet.ts";
 
 const kNotebookFormat = "notebook";
 const kMarkdownFormat = "markdown";
@@ -50,7 +49,6 @@ export const convertCommand = new Command()
   )
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, input: string) => {
-    greet();
     await initYamlIntelligenceResourcesFromFilesystem();
 
     if (!existsSync(input)) {

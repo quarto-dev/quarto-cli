@@ -25,6 +25,7 @@ import {
 import { partitionCellOptions } from "../../core/lib/partition-cell-options.ts";
 import { Metadata } from "../../config/types.ts";
 import { jupyterKernelspec } from "../../core/jupyter/kernels.ts";
+import { fixupFrontMatter } from "../../core/jupyter/jupyter-fixups.ts";
 
 export async function markdownToJupyterNotebook(
   file: string,
@@ -40,7 +41,7 @@ export async function jupyterNotebookToMarkdown(
   includeIds: boolean,
 ) {
   // read notebook & alias kernelspec
-  const notebook = jupyterFromFile(file);
+  const notebook = fixupFrontMatter(jupyterFromFile(file));
   const kernelspec = notebook.metadata.kernelspec;
 
   // generate markdown
@@ -59,7 +60,7 @@ export async function jupyterNotebookToMarkdown(
           break;
         case "raw":
           // see if this is the front matter
-          if (i === 0) {
+          if (frontMatter === undefined) {
             frontMatter = partitionYamlFrontMatter(cell.source.join(""))?.yaml;
             if (!frontMatter) {
               md.push(...mdFromRawCell(cell));

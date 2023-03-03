@@ -10,7 +10,7 @@ cd $smokeAllFolder
 
 function CheckCreateAndEnter([string]$folder) {
   If (-Not (Test-Path -Path $folder)) {
-    mkdir $folder
+    $null = mkdir $folder
   }
   cd $folder
 }

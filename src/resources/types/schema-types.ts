@@ -1118,7 +1118,7 @@ export type SmartInclude = {
 export type Semver =
   string; /* Version number according to Semantic Versioning */
 
-export type QuartoDate = string | { format?: string; value: String };
+export type QuartoDate = string | { format?: string; value: string };
 
 export type ProjectProfile = {
   default?: MaybeArrayOf<

@@ -5,7 +5,6 @@
 *
 */
 
-import { documentArtifactCreator } from "./artifacts/document.ts";
 import { extensionArtifactCreator } from "./artifacts/extension.ts";
 import { projectArtifactCreator } from "./artifacts/project.ts";
 import { kEditorInfos, scanForEditors } from "./editor.ts";
@@ -24,7 +23,6 @@ import {
 } from "cliffy/prompt/mod.ts";
 import { readLines } from "io/mod.ts";
 import { info } from "log/mod.ts";
-import { greet } from "../greet.ts";
 
 export interface CreateContext {
   cwd: string;
@@ -103,7 +101,6 @@ export const createCommand = new Command()
       type?: string,
       ...commands: string[]
     ) => {
-      greet();
       if (options.json) {
         await createFromStdin();
       } else {

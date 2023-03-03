@@ -35,7 +35,6 @@ import {
   websiteConfig,
   websiteConfigArray,
   websiteConfigBoolean,
-  websiteConfigMetadata,
 } from "./website-config.ts";
 import { cookieConsentEnabled } from "./website-analytics.ts";
 import { Format, FormatExtras } from "../../../config/types.ts";

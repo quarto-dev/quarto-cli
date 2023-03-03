@@ -7,7 +7,7 @@ function citesPreprocess()
     
     Note = function(note) 
       if _quarto.format.isLatexOutput() and marginCitations() then
-        return pandoc.walk_inline(note, {
+        return _quarto.ast.walk(note, {
           Inlines = walkUnresolvedCitations(function(citation, appendInline, appendAtEnd)
             appendAtEnd(citePlaceholderInline(citation))
           end)
@@ -21,7 +21,7 @@ function citesPreprocess()
         if hasMarginColumn(figure) or hasMarginCaption(figure) then
           -- This is a figure in the margin itself, we need to append citations at the end of the caption
           -- without any floating
-          para.content[1] = pandoc.walk_inline(figure, {
+          para.content[1] = _quarto.ast.walk(figure, {
               Inlines = walkUnresolvedCitations(function(citation, appendInline, appendAtEnd)
                 appendAtEnd(citePlaceholderInlineWithProtection(citation))
               end)
@@ -30,7 +30,7 @@ function citesPreprocess()
         elseif marginCitations() then
           -- This is a figure is in the body, but the citation should be in the margin. Use 
           -- protection to shift any citations over
-          para.content[1] = pandoc.walk_inline(figure, {
+          para.content[1] = _quarto.ast.walk(figure, {
             Inlines = walkUnresolvedCitations(function(citation, appendInline, appendAtEnd)
               appendInline(marginCitePlaceholderWithProtection(citation))
             end)
@@ -56,7 +56,7 @@ function citesPreprocess()
             end
           end  
         else
-          return pandoc.walk_block(div, {
+          return _quarto.ast.walk(div, {
             Inlines = walkUnresolvedCitations(function(citation, appendInline, appendAtEnd)
               if hasMarginColumn(div) then
                 appendAtEnd(citePlaceholderInline(citation))

@@ -115,7 +115,7 @@ end
 
 function countTables(div)
   local tables = 0
-  pandoc.walk_block(div, {
+  _quarto.ast.walk(div, {
     Table = function(table)
       tables = tables + 1
     end,

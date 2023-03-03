@@ -9,7 +9,6 @@ import { resourcePath } from "../resources.ts";
 import { getNamedLifetime, ObjectWithLifetime } from "../lifetimes.ts";
 
 import {
-  cleanEmptyJupyterAssets,
   jupyterAssets,
   jupyterFromFile,
   jupyterToMarkdown,
@@ -45,7 +44,7 @@ import {
 import { globalTempContext } from "../temp.ts";
 import { isAbsolute } from "path/mod.ts";
 import { partitionMarkdown } from "../pandoc/pandoc-partition.ts";
-import { normalizePath, removeIfEmptyDir, safeExistsSync } from "../path.ts";
+import { normalizePath, safeExistsSync } from "../path.ts";
 import { basename } from "path/mod.ts";
 
 export interface JupyterNotebookAddress {

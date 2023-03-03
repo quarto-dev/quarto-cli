@@ -23,7 +23,7 @@ import {
 } from "../../../execute/engine.ts";
 import { defaultWriterFormat } from "../../../format/formats.ts";
 
-import { Navbar, NavItem, SidebarItem, SidebarTool } from "../../types.ts";
+import { Navbar, SidebarItem, SidebarTool } from "../../types.ts";
 
 import {
   normalizeSidebarItem,

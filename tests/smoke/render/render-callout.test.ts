@@ -36,7 +36,7 @@ const teXOutput = outputForInput(input, "latex");
 testRender(input, "latex", true, [
   ensureFileRegexMatches(teXOutput.outputPath, [
     requireLatexPackage("fontawesome5"),
-    requireLatexPackage("tcolorbox", "many"),
+    requireLatexPackage("tcolorbox", "skins,breakable"),
     // callout environments are created
     /quarto-callout-warning/,
     /quarto-callout-important/,

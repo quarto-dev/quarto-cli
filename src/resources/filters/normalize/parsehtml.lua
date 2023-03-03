@@ -55,7 +55,7 @@ function parse_html_tables()
           tableHtml = preprocess_table_text(tableHtml)
           local tableDoc = pandoc.read(tableHtml, "html")
           local skip = false
-          tableDoc:walk({
+          _quarto.ast.walk(tableDoc, {
             Table = function(table)
               if table.attributes[kDisableProcessing] ~= nil then
                 skip = true
@@ -72,7 +72,7 @@ function parse_html_tables()
             -- need it. We keep it here for symmetry with
             -- the after_table clause.
             local block = pandoc.RawBlock(el.format, before_table)
-            local result = block:walk(filter)
+            local result = _quarto.ast.walk(block, filter)
             if type(result) == "table" then
               blocks:extend(result)
             else
@@ -82,7 +82,7 @@ function parse_html_tables()
           blocks:extend(tableDoc.blocks)
           if after_table ~= "" then
             local block = pandoc.RawBlock(el.format, after_table)
-            local result = block:walk(filter)
+            local result = _quarto.ast.walk(block, filter)
             if type(result) == "table" then
               blocks:extend(result)
             else

@@ -33,7 +33,6 @@ import {
   isHtmlContent,
   isPdfContent,
   isTextContent,
-  kTextHtml,
   kTextXml,
 } from "../../core/mime.ts";
 import { PromiseQueue } from "../../core/promise.ts";
@@ -98,8 +97,6 @@ import {
 } from "../../extension/extension.ts";
 import {
   kBaseFormat,
-  kIncludeAfterBody,
-  kMermaidFormat,
   kOutputFile,
   kPreviewMode,
   kPreviewModeRaw,

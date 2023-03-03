@@ -26,7 +26,6 @@ import {
 } from "../verify.ts";
 import { readYamlFromMarkdown } from "../../src/core/yaml.ts";
 import { outputForInput } from "../utils.ts";
-import { jupyterToMarkdown } from "../../src/core/jupyter/jupyter.ts";
 import { jupyterNotebookToMarkdown } from "../../src/command/convert/jupyter.ts";
 import { dirname, join, relative } from "path/mod.ts";
 
@@ -44,6 +43,7 @@ async function guessFormat(fileName: string): Promise<string[]> {
       const src = cell.source.value.replaceAll(/^---$/mg, "");
       const yaml = parse(src);
       if (yaml && typeof yaml === "object") {
+        // deno-lint-ignore no-explicit-any
         const format = (yaml as Record<string, any>).format;
         if (typeof format === "object") {
           for (

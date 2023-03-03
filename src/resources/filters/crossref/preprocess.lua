@@ -37,7 +37,7 @@ function crossrefPreprocess()
                 if isTableRef(el.attr.identifier) then
                   el.attr.classes:insert("tbl-parent")
                 end
-                el = pandoc.walk_block(el, walkRefs(el.attr.identifier))
+                el = _quarto.ast.walk(el, walkRefs(el.attr.identifier))
               end
             end
             return el
@@ -100,7 +100,7 @@ function crossrefPreprocess()
               el.content:insert(err)
             end
           end
-          doc.blocks[i] = pandoc.walk_block(el, walkRefs(parentId))
+          doc.blocks[i] = _quarto.ast.walk(el, walkRefs(parentId))
         end
       end
 

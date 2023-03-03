@@ -214,10 +214,10 @@ end
 -- whose output is a table
 function isCodeCellTable(el) 
   local isTable = false
-  pandoc.walk_block(el, {
+  _quarto.ast.walk(el, {
     Div = function(div)
       if div.attr.classes:find_if(isCodeCellDisplay) then
-        pandoc.walk_block(div, {
+        _quarto.ast.walk(div, {
           Table = function(tbl)
             isTable = true
           end
@@ -230,7 +230,7 @@ end
 
 function isCodeCellFigure(el)
   local isFigure = false
-  pandoc.walk_block(el, {
+  _quarto.ast.walk(el, {
     Div = function(div)
       if div.attr.classes:find_if(isCodeCellDisplay) then
         if (isFigureDiv(div)) then
