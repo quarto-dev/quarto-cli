@@ -368,6 +368,7 @@ function pdfLatexPostProcessor(
     lineProcessors.push(captionFootnoteLineProcessor());
     lineProcessors.push(codeAnnotationPostProcessor());
     lineProcessors.push(codeListAnnotationPostProcessor());
+    lineProcessors.push(longTableSidenoteProcessor());
 
     await processLines(output, lineProcessors, temp);
     if (Object.keys(renderedCites).length > 0) {
@@ -612,6 +613,85 @@ const captionFootnoteLineProcessor = () => {
 
           // Process the captions and relocate footnotes
           return processElementCaptionFootnotes(lines);
+        } else {
+          return undefined;
+        }
+    }
+  };
+};
+
+const processLongTableSidenotes = (latexLongTable: string) => {
+  const sideNoteMarker = "\\sidenote{\\footnotesize ";
+  let strProcessing = latexLongTable;
+  const strOutput: string[] = [];
+  const sidenotes: string[] = [];
+
+  let sidenotePos = strProcessing.indexOf(sideNoteMarker);
+  while (sidenotePos > -1) {
+    strOutput.push(strProcessing.substring(0, sidenotePos));
+
+    const remainingStr = strProcessing.substring(
+      sidenotePos + sideNoteMarker.length,
+    );
+    let escaped = false;
+    let sideNoteEnd = -1;
+    for (let i = 0; i < remainingStr.length; i++) {
+      const ch = remainingStr[i];
+      if (ch === "\\") {
+        escaped = true;
+      } else {
+        if (!escaped && ch === "}") {
+          sideNoteEnd = i;
+          break;
+        } else {
+          escaped = false;
+        }
+      }
+    }
+
+    if (sideNoteEnd > -1) {
+      strOutput.push("\\sidenotemark{}");
+      const contents = remainingStr.substring(0, sideNoteEnd);
+      sidenotes.push(contents);
+      strProcessing = remainingStr.substring(sideNoteEnd + 1);
+      sidenotePos = strProcessing.indexOf(sideNoteMarker);
+    } else {
+      strOutput.push(remainingStr);
+    }
+  }
+  strOutput.push(strProcessing);
+
+  for (const note of sidenotes) {
+    strOutput.push(`\\sidenotetext{${note}}\n`);
+  }
+
+  return strOutput.join("");
+};
+
+const longTableSidenoteProcessor = () => {
+  let state: "scanning" | "capturing" = "scanning";
+  let capturedLines: string[] = [];
+  return (line: string): string | undefined => {
+    switch (state) {
+      case "scanning":
+        if (line.match(/^\\begin{longtable}.*$/)) {
+          state = "capturing";
+          capturedLines = [line];
+          return undefined;
+        } else {
+          return line;
+        }
+      case "capturing":
+        capturedLines.push(line);
+        if (line.match(/^\\end{longtable}.*$/)) {
+          state = "scanning";
+
+          // read the whole figure and clear any capture state
+          const lines = capturedLines.join("\n");
+          capturedLines = [];
+
+          // Process the captions and relocate footnotes
+          return processLongTableSidenotes(lines);
         } else {
           return undefined;
         }
