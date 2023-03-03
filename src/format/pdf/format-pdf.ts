@@ -659,10 +659,22 @@ const processLongTableSidenotes = (latexLongTable: string) => {
       strOutput.push(remainingStr);
     }
   }
-  strOutput.push(strProcessing);
 
+  // Ensure that we inject sidenotes after the longtable
+  const endTable = "\\end{longtable}";
+  const endPos = strProcessing.indexOf(endTable);
+  const prefix = strProcessing.substring(0, endPos + endTable.length);
+  const suffix = strProcessing.substring(
+    endPos + endTable.length,
+    strProcessing.length,
+  );
+
+  strOutput.push(prefix);
   for (const note of sidenotes) {
     strOutput.push(`\\sidenotetext{${note}}\n`);
+  }
+  if (suffix) {
+    strOutput.push(suffix);
   }
 
   return strOutput.join("");
@@ -683,7 +695,7 @@ const longTableSidenoteProcessor = () => {
         }
       case "capturing":
         capturedLines.push(line);
-        if (line.match(/[^\\n]\\end{longtable}.*$/)) {
+        if (line.match(/\\end{longtable}/)) {
           state = "scanning";
 
           // read the whole figure and clear any capture state
