@@ -283,9 +283,9 @@
                     showHighlights:
                       anyOf:
                         - boolean
-                        - enum: ["always", "never"]
+                        - enum: ["always", "whenSidebarOpen", "never"]
                       default: "always"
-                      description: Controls whether the in-document highlights are shown by default (`always` or `never`)
+                      description: Controls whether the in-document highlights are shown by default (`always`, `whenSidebarOpen` or `never`)
                     theme:
                       enum: ["classic", "clean"]
                       default: classic
