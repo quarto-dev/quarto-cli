@@ -69,16 +69,34 @@ export async function generatePdf(mkOptions: LatexmkOptions): Promise<string> {
   );
   const initialCompileNeedsRerun = needsRecompilation(response.log);
 
-  // Generate the index information, if needed
-  const indexCreated = await makeIndexIntermediates(
-    workingDir,
-    stem,
-    pkgMgr,
-    texLive,
-    mkOptions.engine.indexEngine,
-    mkOptions.engine.indexEngineOpts,
-    mkOptions.quiet,
-  );
+  const indexIntermediateFile = indexIntermediate(workingDir, stem);
+  let indexCreated = false;
+  if (indexIntermediateFile) {
+    // When building large and complex indexes, it
+    // may be required to run the PDF engine again prior to building
+    // the index (or page numbers may be incorrect).
+    // See: https://github.com/rstudio/bookdown/issues/1274
+    info("  Re-compiling document for index");
+    await runPdfEngine(
+      mkOptions.input,
+      mkOptions.engine,
+      texLive,
+      mkOptions.outputDir,
+      mkOptions.texInputDirs,
+      pkgMgr,
+      mkOptions.quiet,
+    );
+
+    // Generate the index information, if needed
+    indexCreated = await makeIndexIntermediates(
+      indexIntermediateFile,
+      pkgMgr,
+      texLive,
+      mkOptions.engine.indexEngine,
+      mkOptions.engine.indexEngineOpts,
+      mkOptions.quiet,
+    );
+  }
 
   // Generate the bibliography intermediaries
   const bibliographyCreated = await makeBibliographyIntermediates(
@@ -237,9 +255,17 @@ function displayError(title: string, log: string, result: ProcessResult) {
   }
 }
 
+function indexIntermediate(dir: string, stem: string) {
+  const indexFile = join(dir, `${stem}.idx`);
+  if (existsSync(indexFile)) {
+    return indexFile;
+  } else {
+    return undefined;
+  }
+}
+
 async function makeIndexIntermediates(
-  dir: string,
-  stem: string,
+  indexFile: string,
   pkgMgr: PackageManager,
   texLive: TexLiveContext,
   engine?: string,
@@ -247,8 +273,7 @@ async function makeIndexIntermediates(
   quiet?: boolean,
 ) {
   // If there is an idx file, we need to run makeindex to create the index data
-  const indexFile = join(dir, `${stem}.idx`);
-  if (existsSync(indexFile)) {
+  if (indexFile) {
     if (!quiet) {
       info("making index", kLatexHeaderMessageOptions);
     }
