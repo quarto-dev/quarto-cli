@@ -3694,6 +3694,16 @@ const runUpdateLinks = () => {
       id: "123456",
       metadata: { fileName: "special-characters.xml" },
     },
+    ["folder/index.qmd"]: {
+      title: "fake-index-title",
+      id: "fake-index-id",
+      metadata: { editor: "v2", fileName: "folder/index.xml" },
+    },
+    ["folder"]: {
+      title: "fake-folder-title",
+      id: "fake-folder-id",
+      metadata: { editor: "v2", fileName: "folder" },
+    },
   };
 
   const UPDATE_NO_LINKS: ContentUpdate = {
@@ -3725,6 +3735,23 @@ const runUpdateLinks = () => {
       storage: {
         value:
           "<a href='no-replace.qmd'/>no</a> content content <a href='team.qmd'>team</a> content content <a href='zqmdzz.qmd'>team</a>",
+        representation: "storage",
+      },
+    },
+    fileName: "release-planning.xml",
+  };
+
+  const UPDATE_LINKS_INDEX: ContentUpdate = {
+    contentChangeType: ContentChangeType.update,
+    id: "19890228",
+    version: null,
+    title: "Release Planning",
+    type: "page",
+    status: "current",
+    ancestors: [{ id: "19759105" }],
+    body: {
+      storage: {
+        value: "<a href='folder/index.qmd'>team</a>",
         representation: "storage",
       },
     },
@@ -3888,6 +3915,22 @@ const runUpdateLinks = () => {
       FAKE_PARENT,
       expectedPass2Changes
     );
+  });
+
+  test(suiteLabel("one_update_link_index"), async () => {
+    const changes: ConfluenceSpaceChange[] = [UPDATE_LINKS_INDEX];
+    const rootURL = "fake-server/wiki/spaces/QUARTOCONF/pages";
+    const expectedUpdate: ContentUpdate = {
+      ...UPDATE_LINKS_INDEX,
+      body: {
+        storage: {
+          value: `<a href=\'fake-server/wiki/spaces/QUARTOCONF/pages/fake-folder-id'>team</a>`,
+          representation: "storage",
+        },
+      },
+    };
+    const expected: ConfluenceSpaceChange[] = [expectedUpdate];
+    check(expected, changes, fileMetadataTable, "fake-server", FAKE_PARENT);
   });
 
   test(suiteLabel("one_update_link_special_char"), async () => {
@@ -4724,5 +4767,5 @@ if (RUN_ALL_TESTS) {
   runConfluenceParentFromString();
   runFlattenIndexes();
 } else {
-  runFlattenIndexes();
+  runUpdateLinks();
 }

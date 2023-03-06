@@ -680,6 +680,14 @@ export const updateLinks = (
         siteFilePath = siteFilePath.slice(1); //remove '/'
       }
 
+      if (siteFilePath.endsWith("/index.qmd")) {
+        //flatten child index links to the parent
+        const siteFilePathParent = siteFilePath.replace("/index.qmd", "");
+        if (fileMetadataTable[siteFilePathParent]) {
+          siteFilePath = siteFilePathParent;
+        }
+      }
+
       const sitePage: SitePage | null = fileMetadataTable[siteFilePath] ?? null;
 
       if (sitePage) {
