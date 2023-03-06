@@ -4,9 +4,18 @@ cat("versionMinor:", version$minor, "\n")
 cat("versionPatch:", version$patch, "\n")
 cat("home:", R.home(), "\n")
 cat("libPaths:\n")
-for (lib in .libPaths())
+for (lib in .libPaths()) {
   cat(paste0('  - ', shQuote(lib)), "\n")
-cat("rmarkdown: ")
+}
+cat("packages:\n")
+cat("  knitr: ")
+if (requireNamespace("knitr", quietly = TRUE)) {
+  cat(paste0('\"', as.character(utils::packageVersion("knitr")), '\"'))
+} else {
+  cat("null")
+}
+cat("\n")
+cat("  rmarkdown: ")
 if (requireNamespace("rmarkdown", quietly = TRUE)) {
   cat(paste0('\"', as.character(utils::packageVersion("rmarkdown")), '\"'))
 } else {

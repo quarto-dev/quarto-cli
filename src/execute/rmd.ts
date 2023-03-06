@@ -272,17 +272,30 @@ function withinActiveRenv() {
 
 async function printCallRDiagnostics() {
   const caps = await knitrCapabilities();
-  if (caps && !caps.rmarkdown) {
-    info("");
-    info("R installation:");
-    info(knitrCapabilitiesMessage(caps, "  "));
-    info("");
-    info(knitrInstallationMessage());
-    info("");
-  } else if (!caps) {
+  if (!caps) {
     info("");
     info(rInstallationMessage());
     info("");
+  } else {
+    if (
+      !caps?.packages.rmarkdown || !caps?.packages.knitr ||
+      !caps?.packages.knitrVersOk
+    ) {
+      info("");
+      info("R installation:");
+      info(knitrCapabilitiesMessage(caps, "  "));
+      info("");
+      info(
+        knitrInstallationMessage(
+          "",
+          caps.packages.knitr && !caps?.packages.knitrVersOk
+            ? "knitr"
+            : "rmarkdown",
+          !!caps.packages.knitr && !caps.packages.knitrVersOk,
+        ),
+      );
+      info("");
+    }
   }
 }
 
