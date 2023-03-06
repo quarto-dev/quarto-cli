@@ -134,6 +134,7 @@
 - Render `page-footer` even when a Navbar isn't present ([#4053](https://github.com/quarto-dev/quarto-cli/issues/4053))
 - Don't treat links with no `href` as external when `link-external-icon` is enabled ([#3645](https://github.com/quarto-dev/quarto-cli/issues/3645))
 - Escape HTML from code cells that appears inline in search results ([#4404](https://github.com/quarto-dev/quarto-cli/issues/4404))
+- Use input last modified timestamp when updating sitemap ([#3251](https://github.com/quarto-dev/quarto-cli/issues/3251))
 - Add support for overriding the url used to report an issue with a website using `issue-url` (which can be provided even if there is no repo provided for the website).
 - Properly localize search button title and various toggle aria-labels ([#4559](https://github.com/quarto-dev/quarto-cli/issues/4559))
 - Support `navbar: true` to turn on a top navbar even if there are no contents
