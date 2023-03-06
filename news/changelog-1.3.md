@@ -11,6 +11,7 @@
 - Don't install SIGCHLD signal handler since it interferes with IJulia in Julia 1.8.4 and greater ([#2539](https://github.com/quarto-dev/quarto-cli/issues/2539)).
 - Resolve full path to QUARTO_PYTHON binary
 - Improve handling of YAML and titles in notebooks (auto-merge heading based title with YAML front matter)
+- Discard matplotlib, seaborn, and plotnine intermediate objects from output
 
 ## Knitr engine
 
