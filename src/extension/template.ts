@@ -9,12 +9,14 @@ import { join } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 import { resolvePathGlobs } from "../core/path.ts";
 import { lines } from "../core/text.ts";
+import { warning } from "https://deno.land/std@0.166.0/log/mod.ts";
 
 const kQuartoIgnore = ".quartoignore";
 
 export function templateFiles(dir: string) {
   // Look for a quarto ignore file
   const excludes: string[] = [];
+  const includes: string[] = [];
   const ignoreFile = join(dir, kQuartoIgnore);
   if (existsSync(ignoreFile)) {
     const ignoreFileContents = Deno.readTextFileSync(ignoreFile);
@@ -22,17 +24,27 @@ export function templateFiles(dir: string) {
     ignoreLines.forEach((line) => {
       const splitOnComment = line.split("#");
       const exclude = splitOnComment[0];
-      if (exclude) {
+      if (exclude && exclude.startsWith("!")) {
+        if (exclude.length > 1) {
+          includes.push(exclude.substring(1));
+        } else {
+          warning(`Unknown ignore pattern '${exclude}'`);
+        }
+      } else if (exclude) {
         excludes.push(exclude);
       }
     });
   }
   excludes.push(...kBuiltInExcludes);
 
+  const filtered = excludes.filter((ex) => {
+    return !includes.includes(ex);
+  });
+
   const resolved = resolvePathGlobs(
     dir,
     ["**/*"],
-    excludes,
+    filtered,
   );
   return resolved.include;
 }
