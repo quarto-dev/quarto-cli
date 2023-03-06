@@ -56,6 +56,7 @@ import {
   doWithSpinner,
   filterFilesForUpdate,
   findAttachments,
+  flattenIndexes,
   footnoteTransform,
   getNextVersion,
   getTitle,
@@ -665,6 +666,7 @@ async function publish(
     trace("fileMetadata", fileMetadata);
 
     let metadataByFilename = buildFileToMetaTable(existingSite);
+
     trace("metadataByFilename", metadataByFilename);
 
     let changeList: ConfluenceSpaceChange[] = buildSpaceChanges(
@@ -673,6 +675,8 @@ async function publish(
       space,
       existingSite
     );
+
+    changeList = flattenIndexes(changeList, metadataByFilename);
 
     const { pass1Changes, pass2Changes } = updateLinks(
       metadataByFilename,
