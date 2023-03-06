@@ -47,40 +47,33 @@ export async function inputTargetIndex(
   project: ProjectContext,
   input: string,
 ): Promise<InputTargetIndex | undefined> {
-  if (!project.inputTargetIndexCache) {
-    project.inputTargetIndexCache = new Map();
-  }
-  if (project.inputTargetIndexCache.has(input)) {
-    return project.inputTargetIndexCache.get(input);
-  }
-
   // calculate input file
   const inputFile = join(project.dir, input);
 
   // return undefined if the file doesn't exist
   if (!existsSync(inputFile) || Deno.statSync(inputFile).isDirectory) {
-    project.inputTargetIndexCache.set(input, undefined);
     return Promise.resolve(undefined);
   }
 
   // filter it out if its not in the list of input files
   if (!project.files.input.includes(normalizePath(inputFile))) {
-    project.inputTargetIndexCache.set(input, undefined);
     return Promise.resolve(undefined);
   }
 
   // check if this can be handled by one of our engines
   const engine = fileExecutionEngine(inputFile);
   if (engine === undefined) {
-    project.inputTargetIndexCache.set(input, undefined);
     return Promise.resolve(undefined);
   }
 
   // see if we have an up to date index file (but not for notebooks
   // as they could have ipynb-filters that vary based on config)
-  const targetIndex = readInputTargetIndex(project.dir, input);
+  const { index: targetIndex } = readInputTargetIndex(
+    project.dir,
+    input,
+  );
+
   if (targetIndex) {
-    project.inputTargetIndexCache.set(input, targetIndex);
     return targetIndex;
   }
 
@@ -88,7 +81,7 @@ export async function inputTargetIndex(
   const formats = await renderFormats(inputFile, "all", project);
   const firstFormat = Object.values(formats)[0];
   const markdown = await engine.partitionedMarkdown(inputFile, firstFormat);
-  const index = {
+  const index: InputTargetIndex = {
     title: (firstFormat?.metadata?.[kTitle] || markdown.yaml?.[kTitle] ||
       markdown.headingText) as
         | string
@@ -107,8 +100,10 @@ export async function inputTargetIndex(
   }
 
   const indexFile = inputTargetIndexFile(project.dir, input);
+  if (project.config) {
+    index.projectFormats = formatKeys(project.config);
+  }
   Deno.writeTextFileSync(indexFile, JSON.stringify(index));
-  project.inputTargetIndexCache.set(input, index);
   return index;
 }
 
@@ -116,42 +111,55 @@ export async function inputTargetIndex(
 export function readInputTargetIndex(
   projectDir: string,
   input: string,
-): InputTargetIndex | undefined {
-  // check if we have an index that's still current visa-vi the
+): {
+  index?: InputTargetIndex;
+  missingReason?: "stale" | "formats";
+} {
+  // check if we have an index that's still current vis-a-vis the
   // last modified date of the source file
   const index = readInputTargetIndexIfStillCurrent(projectDir, input);
+  if (!index) {
+    return {
+      missingReason: "stale",
+    };
+  }
 
-  // if its still current visa-vi the input file, we then need to
+  // if its still current vis-a-vis the input file, we then need to
   // check if the format list has changed (which is also an invalidation)
-  if (index) {
-    // normalize html to first if its included in the formats
-    if (Object.keys(index.formats).includes("html")) {
-      // note that the cast it okay here b/c we know that index.formats
-      // includes only full format objects
-      index.formats = websiteFormatPreferHtml(index.formats) as Record<
-        string,
-        Format
-      >;
-    }
-    const formats = Object.keys(index.formats);
-    const projConfigFile = projectConfigFile(projectDir);
-    if (projConfigFile) {
-      let contents = Deno.readTextFileSync(projConfigFile);
-      if (contents.trim().length === 0) {
-        contents = kDefaultProjectFileContents;
-      }
-      const config = readYamlFromString(contents) as Metadata;
-      const projFormats = formatKeys(config);
-      if (ld.isEqual(formats, projFormats)) {
-        return index;
-      } else {
-        return undefined;
-      }
-    } else {
-      return index;
-    }
+
+  // normalize html to first if its included in the formats
+  if (Object.keys(index.formats).includes("html")) {
+    // note that the cast it okay here b/c we know that index.formats
+    // includes only full format objects
+    index.formats = websiteFormatPreferHtml(index.formats) as Record<
+      string,
+      Format
+    >;
+  }
+
+  // when we write the index to disk we write it with the formats
+  // so we need to check if the formats have changed
+  const formats = (index.projectFormats as string[] | undefined) ??
+    Object.keys(index.formats);
+  const projConfigFile = projectConfigFile(projectDir);
+  if (!projConfigFile) {
+    return { index };
+  }
+
+  let contents = Deno.readTextFileSync(projConfigFile);
+  if (contents.trim().length === 0) {
+    contents = kDefaultProjectFileContents;
+  }
+  const config = readYamlFromString(contents) as Metadata;
+  const projFormats = formatKeys(config);
+  if (ld.isEqual(formats, projFormats)) {
+    return {
+      index,
+    };
   } else {
-    return undefined;
+    return {
+      missingReason: "formats",
+    };
   }
 }
 
@@ -248,25 +256,14 @@ export async function inputTargetIndexForOutputFile(
   project: ProjectContext,
   outputRelative: string,
 ) {
-  if (!project.inputTargetIndexCache) {
-    project.inputTargetIndexCache = new Map();
-  }
-  if (project.inputTargetIndexCache.has(outputRelative)) {
-    return project.inputTargetIndexCache.get(outputRelative);
-  }
-
   const input = await inputFileForOutputFile(project, outputRelative);
-  if (input) {
-    const result = await inputTargetIndex(
-      project,
-      relative(project.dir, input),
-    );
-    project.inputTargetIndexCache.set(outputRelative, result);
-    return result;
-  } else {
-    project.inputTargetIndexCache.set(outputRelative, undefined);
+  if (!input) {
     return undefined;
   }
+  return await inputTargetIndex(
+    project,
+    relative(project.dir, input),
+  );
 }
 
 export function clearProjectIndex(projectDir: string) {

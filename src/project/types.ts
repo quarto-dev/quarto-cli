@@ -45,7 +45,6 @@ export interface ProjectContext {
   engines: string[];
   files: ProjectFiles;
   config?: ProjectConfig;
-  inputTargetIndexCache?: Map<string, InputTargetIndex | undefined>;
   formatExtras?: (
     project: ProjectContext,
     source: string,
