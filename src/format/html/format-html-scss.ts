@@ -6,7 +6,7 @@
 */
 
 import { existsSync } from "fs/mod.ts";
-import { dirname, join } from "path/mod.ts";
+import { dirname, extname, isAbsolute, join } from "path/mod.ts";
 
 import { formatResourcePath } from "../../core/resources.ts";
 import {
@@ -177,34 +177,46 @@ function layerTheme(
   let injectedCustomization = false;
   const loadPaths: string[] = [];
   const layers = themes.flatMap((theme) => {
-    // The directory for this theme
-    const resolvedThemePath = join(quartoThemesDir, `${theme}.scss`);
-    // Read the sass layers
-    if (existsSync(resolvedThemePath)) {
-      // The theme appears to be a built in theme
+    const isAbs = isAbsolute(theme);
+    const isScssFile = extname(theme) === ".scss";
 
-      // The theme layer from a built in theme
-      const themeLayer = sassLayer(resolvedThemePath);
-
-      // Inject customization of the theme (this should go just after the theme)
-      injectedCustomization = true;
-      return [themeLayer, quartoBootstrapCustomizationLayer()];
-    } else {
+    if (isAbs && isScssFile) {
+      // Absolute path to a SCSS file
+      if (existsSync(theme)) {
+        const themeDir = dirname(theme);
+        loadPaths.push(themeDir);
+        return sassLayer(theme);
+      }
+    } else if (isScssFile) {
+      // Relative path to a SCSS file
       const themePath = join(dirname(input), theme);
       if (existsSync(themePath)) {
         const themeDir = dirname(themePath);
         loadPaths.push(themeDir);
         return sassLayer(themePath);
-      } else {
-        return {
-          uses: "",
-          defaults: "",
-          functions: "",
-          mixins: "",
-          rules: "",
-        };
+      }
+    } else {
+      // The directory for this theme
+      const resolvedThemePath = join(quartoThemesDir, `${theme}.scss`);
+      // Read the sass layers
+      if (existsSync(resolvedThemePath)) {
+        // The theme appears to be a built in theme
+
+        // The theme layer from a built in theme
+        const themeLayer = sassLayer(resolvedThemePath);
+
+        // Inject customization of the theme (this should go just after the theme)
+        injectedCustomization = true;
+        return [themeLayer, quartoBootstrapCustomizationLayer()];
       }
     }
+    return {
+      uses: "",
+      defaults: "",
+      functions: "",
+      mixins: "",
+      rules: "",
+    };
   });
 
   // If no themes were provided, we still should inject our customization
