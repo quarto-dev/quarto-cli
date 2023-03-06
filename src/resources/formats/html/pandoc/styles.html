@@ -79,6 +79,15 @@ ol, ul {
 li > ol, li > ul {
   margin-top: 0;
 }
+ul > li:not(:has(> p)) > ul,
+ol > li:not(:has(> p)) > ul,
+ul > li:not(:has(> p)) > ol,
+ol > li:not(:has(> p)) > ol {
+  margin-bottom: 0;
+}
+ul > li:not(:has(> p)) > ul > li:has(>p) {
+  margin-top: 1rem;
+}
 blockquote {
   margin: 1em 0 1em 1.7em;
   padding-left: 1em;

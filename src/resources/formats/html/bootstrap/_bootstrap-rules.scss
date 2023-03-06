@@ -7,6 +7,18 @@ main {
   }
 }
 
+// the scss mode for vs code doesn't like the fancy :has(> p) selector, but
+// it's valid: https://developer.mozilla.org/en-US/docs/Web/CSS/:has
+ul > li:not(:has(> p)) > ul,
+ol > li:not(:has(> p)) > ul,
+ul > li:not(:has(> p)) > ol,
+ol > li:not(:has(> p)) > ol {
+  margin-bottom: 0;
+}
+ul > li:not(:has(> p)) > ul > li:has(> p) {
+  margin-top: 1rem;
+}
+
 // Grid layout
 body {
   margin: 0;
