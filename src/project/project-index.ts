@@ -47,22 +47,32 @@ export async function inputTargetIndex(
   project: ProjectContext,
   input: string,
 ): Promise<InputTargetIndex | undefined> {
+  if (!project.inputTargetIndexCache) {
+    project.inputTargetIndexCache = new Map();
+  }
+  if (project.inputTargetIndexCache.has(input)) {
+    return project.inputTargetIndexCache.get(input);
+  }
+
   // calculate input file
   const inputFile = join(project.dir, input);
 
   // return undefined if the file doesn't exist
   if (!existsSync(inputFile) || Deno.statSync(inputFile).isDirectory) {
+    project.inputTargetIndexCache.set(input, undefined);
     return Promise.resolve(undefined);
   }
 
   // filter it out if its not in the list of input files
   if (!project.files.input.includes(normalizePath(inputFile))) {
+    project.inputTargetIndexCache.set(input, undefined);
     return Promise.resolve(undefined);
   }
 
   // check if this can be handled by one of our engines
   const engine = fileExecutionEngine(inputFile);
   if (engine === undefined) {
+    project.inputTargetIndexCache.set(input, undefined);
     return Promise.resolve(undefined);
   }
 
@@ -70,6 +80,7 @@ export async function inputTargetIndex(
   // as they could have ipynb-filters that vary based on config)
   const targetIndex = readInputTargetIndex(project.dir, input);
   if (targetIndex) {
+    project.inputTargetIndexCache.set(input, targetIndex);
     return targetIndex;
   }
 
@@ -97,6 +108,7 @@ export async function inputTargetIndex(
 
   const indexFile = inputTargetIndexFile(project.dir, input);
   Deno.writeTextFileSync(indexFile, JSON.stringify(index));
+  project.inputTargetIndexCache.set(input, index);
   return index;
 }
 
