@@ -86,6 +86,7 @@
 
 - Properly forward variants (e.g. `+yaml_metadata_block`) to `gfm` format.
 - `gfm` format now supports a local browser based preview when using `quarto preview`. If you'd like to see the raw markdown in preview, you can add `preview-mode: raw` to your document front matter or project.
+- `gfm` and `commonmark` output formats now use ATX style headers ([#4280](https://github.com/quarto-dev/quarto-cli/issues/4280))
 
 ## Mermaid diagrams
 
@@ -218,3 +219,4 @@
 - fix error when running the command `quarto render -h` to receive help ([#3202](https://github.com/quarto-dev/quarto-cli/issues/3202)).
 - Fix error when rendering a document with an extension which provides a directory as `format-resources` ([#4377](https://github.com/quarto-dev/quarto-cli/issues/4377)).
 - Fix incorrect copying of resource files during rendering ([#4544](https://github.com/quarto-dev/quarto-cli/issues/4544))
+- Extension authors may now force files to be included in their template by writing the file / file path in the `.quartoignore` file prefixed with a `!`. For example `!README.md` ([#4061](https://github.com/quarto-dev/quarto-cli/issues/4061)).
