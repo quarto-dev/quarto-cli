@@ -61,8 +61,9 @@ import {
   Space,
 } from "../../src/publish/confluence/api/types.ts";
 
-const RUN_ALL_TESTS = false;
-const FOCUS_TEST = true;
+const RUN_ALL_TESTS = true;
+const FOCUS_TEST = false;
+const HIDE_NOISE = true;
 
 const xtest = (
   name: string,
@@ -3108,10 +3109,15 @@ const runFlattenIndexes = () => {
   const FAKE_METADATA_ONE_FOLDER = {
     ["fake-parent"]: {
       title: "Fake Parent Title",
-      id: "12345",
+      id: "fake-parent-id",
       metadata: {
         fileName: "fake-parent",
       },
+      ancestors: [
+        {
+          id: "fake-space-id",
+        },
+      ],
     },
   };
 
@@ -3299,7 +3305,7 @@ const runFlattenIndexes = () => {
     assertEquals(expected, actual);
   });
 
-  otest(suiteLabel("update_one_folder_with_index"), async () => {
+  test(suiteLabel("update_one_folder_with_index"), async () => {
     const spaceChanges: ConfluenceSpaceChange[] = [
       {
         contentChangeType: ContentChangeType.create,
@@ -3332,7 +3338,7 @@ const runFlattenIndexes = () => {
         version: null,
         ancestors: [
           {
-            id: "8781825",
+            id: "fake-space-id",
           },
         ],
         body: {
@@ -3351,8 +3357,7 @@ const runFlattenIndexes = () => {
       spaceChanges,
       FAKE_METADATA_ONE_FOLDER
     );
-    console.log("actual", actual);
-    // assertEquals(expected, actual);
+    assertEquals(expected, actual);
   });
 
   test(suiteLabel("one_multinested_folder_with_indexes"), async () => {
@@ -3901,7 +3906,7 @@ const runUpdateLinks = () => {
     check(expected, changes, fileMetadataTable, "fake-server", FAKE_PARENT);
   });
 
-  otest(suiteLabel("one_update_link_nested_dot_slash"), async () => {
+  test(suiteLabel("one_update_link_nested_dot_slash"), async () => {
     const changes: ConfluenceSpaceChange[] = [
       UPDATE_LINKS_ONE_NESTED_DOT_SLASH,
     ];
@@ -4622,7 +4627,7 @@ const runFootnoteTransform = () => {
     assertEquals(expected, footnoteTransform(value));
   });
 
-  otest(suiteLabel("ignore_existing"), async () => {
+  test(suiteLabel("ignore_existing"), async () => {
     const value =
       '<ac:structured-macro ac:name="anchor" ac:schema-version="1" ac:local-id="a6aa6f25-0bee-4a7f-929b-71fcb7eba592" ac:macro-id="d2cb5be1217ae6e086bc60005e9d27b7"><ac:parameter ac:name="">fnref1</ac:parameter></ac:structured-macro><a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>' +
       '<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">' +
@@ -4689,6 +4694,12 @@ const runFootnoteTransform = () => {
     assertEquals(expected, actual);
   });
 };
+
+if (HIDE_NOISE) {
+  console.info(
+    "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+  );
+}
 
 if (RUN_ALL_TESTS) {
   runGeneralTests();

@@ -513,27 +513,36 @@ export const flattenIndexes = (
     }
 
     const fileName = getFileNameForChange(change);
-
+    const parentFileName = fileName.replace("/index.xml", "");
+    const parentSitePage: SitePage = metadataByFileName[parentFileName];
     if (isIndexFile(change)) {
-      // console.log("change", change);
-      console.log("is index file, return");
-      const parentId = fileName.replace("/index.xml", "");
-      console.log("parentId", parentId);
+      if (parentSitePage) {
+        // The parent has already been created, this index create
+        // is actually an index parent update update the folder with
+        // index contents
+        const parentUpdate = buildContentUpdate(
+          parentSitePage.id,
+          change.title,
+          change.body,
+          parentSitePage.metadata.fileName ?? "",
+          "",
+          ContentStatusEnum.current,
+          PAGE_TYPE,
+          null,
+          parentSitePage.ancestors
+        );
 
-      // console.log("parentCreateChange", parentCreateChange);
-      // if (!parentCreateChange) {
-      // the parent has already been created, this index create
-      // is actually an index parent update
-      // const parentUpdate: ContentUpdate = buildContentUpdate(id);
-      // }
-
-      return accumulator;
+        return [...accumulator, parentUpdate];
+      } else {
+        return [...accumulator]; //filter out index file creates
+      }
     }
 
-    const indexChange: ConfluenceSpaceChange = indexLookup[fileName];
-    if (indexChange && !isContentDelete(indexChange)) {
-      change.title = indexChange.title ?? change.title;
-      change.body = indexChange.body ?? change.body;
+    const indexCreateChange: ConfluenceSpaceChange = indexLookup[fileName];
+
+    if (indexCreateChange && !isContentDelete(indexCreateChange)) {
+      change.title = indexCreateChange.title ?? change.title;
+      change.body = indexCreateChange.body ?? change.body;
     }
 
     return [...accumulator, change];
