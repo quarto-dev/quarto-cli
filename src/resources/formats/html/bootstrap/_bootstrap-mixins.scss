@@ -861,7 +861,7 @@ $grid-default-toc-wide-sidebar-seg3: 0.14 * $grid-default-toc-wide-sidebar-width
 
 // Margins
 $grid-default-toc-wide-margin-width: $grid-default-margin-width !default;
-$grid-default-toc-wide-sidebar-seg3: 0.2 * $grid-default-toc-wide-margin-width !default;
+$grid-default-toc-wide-margin-seg3: 0.2 * $grid-default-toc-wide-margin-width !default;
 $grid-default-toc-wide-margin-seg2: minmax(
   #{0 * $grid-default-toc-wide-margin-width},
   #{0.8 * $grid-default-toc-wide-margin-width}
@@ -1310,9 +1310,9 @@ $grid-default-toc-mid-body: minmax(
     [body-start] $grid-default-toc-wide-body-gutter-start
     [body-content-start] $grid-default-toc-wide-body
     [body-content-end] $grid-default-toc-wide-body-gutter-end
-    [body-end] $grid-default-toc-wide-sidebar-seg3
-    [body-end-outset] $grid-default-toc-wide-sidebar-seg2
-    [page-end-inset] $grid-default-toc-wide-sidebar-seg1
+    [body-end] $grid-default-toc-wide-margin-seg3
+    [body-end-outset] $grid-default-toc-wide-margin-seg2
+    [page-end-inset] $grid-default-toc-wide-margin-seg1
     [page-end] $grid-default-toc-wide-margin-gutter
     [screen-end-inset] $grid-default-toc-wide-page-gutter-end
     [screen-end];
