@@ -15,7 +15,11 @@ ul > li:not(:has(> p)) > ol,
 ol > li:not(:has(> p)) > ol {
   margin-bottom: 0;
 }
-ul > li:not(:has(> p)) > ul > li:has(> p) {
+
+ul > li:not(:has(> p)) > ul > li:has(> p),
+ol > li:not(:has(> p)) > ul > li:has(> p),
+ul > li:not(:has(> p)) > ol > li:has(> p),
+ol > li:not(:has(> p)) > ol > li:has(> p) {
   margin-top: 1rem;
 }
 
