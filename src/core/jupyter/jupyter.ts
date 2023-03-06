@@ -1110,15 +1110,10 @@ async function mdFromCodeCell(
     }
 
     // filter matplotlib intermediate vars
-    if (output.output_type === "execute_result") {
-      const textPlain = (output as JupyterOutputDisplayData).data
-        ?.[kTextPlain] as string[] | undefined;
-      if (
-        textPlain && textPlain.length && textPlain[0].startsWith("[<matplotlib")
-      ) {
-        return false;
-      }
+    if (isDiscadableTextExecuteResult(output)) {
+      return false;
     }
+
     return true;
   }).map((output) => {
     // convert text/latex math to markdown as appropriate
@@ -1512,6 +1507,21 @@ async function mdFromCodeCell(
   }
 
   return md;
+}
+
+function isDiscadableTextExecuteResult(output: JupyterOutput) {
+  if (output.output_type === "execute_result") {
+    const textPlain = (output as JupyterOutputDisplayData).data
+      ?.[kTextPlain] as string[] | undefined;
+    if (textPlain && textPlain.length) {
+      return [
+        "[<matplotlib",
+        "<seaborn.",
+        "<ggplot:",
+      ].some((startsWith) => textPlain[0].startsWith(startsWith));
+    }
+  }
+  return false;
 }
 
 function hasLayoutOptions(cell: JupyterCellWithOptions) {
