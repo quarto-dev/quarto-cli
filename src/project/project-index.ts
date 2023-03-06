@@ -236,10 +236,23 @@ export async function inputTargetIndexForOutputFile(
   project: ProjectContext,
   outputRelative: string,
 ) {
+  if (!project.inputTargetIndexCache) {
+    project.inputTargetIndexCache = new Map();
+  }
+  if (project.inputTargetIndexCache.has(outputRelative)) {
+    return project.inputTargetIndexCache.get(outputRelative);
+  }
+
   const input = await inputFileForOutputFile(project, outputRelative);
   if (input) {
-    return await inputTargetIndex(project, relative(project.dir, input));
+    const result = await inputTargetIndex(
+      project,
+      relative(project.dir, input),
+    );
+    project.inputTargetIndexCache.set(outputRelative, result);
+    return result;
   } else {
+    project.inputTargetIndexCache.set(outputRelative, undefined);
     return undefined;
   }
 }
