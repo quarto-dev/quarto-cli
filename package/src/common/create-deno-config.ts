@@ -8,7 +8,7 @@ const meta = json.meta;
 
 delete json.meta;
 
-const excludes: string[] = [];
+let excludes: string[] = [];
 for (const file of meta.excludeGlobs) {
   const f: string = file;
   if (f.includes("*")) {
@@ -19,6 +19,9 @@ for (const file of meta.excludeGlobs) {
     excludes.push(f);
   }
 }
+
+// drop the current working directory from the paths
+excludes = excludes.map((e) => e.replace(Deno.cwd() + "/", ""));
 
 json.lint.files.exclude = excludes;
 json.fmt.files.exclude = excludes;

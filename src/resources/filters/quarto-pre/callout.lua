@@ -368,6 +368,29 @@ function calloutLatex(node)
   local type = node.type
   local calloutAppearance = node.appearance
   local icon = node.icon
+  
+
+  -- Discover notes in the callout and pull the contents out
+  -- replacing with a footnote mark. This is required because
+  -- if the footnote stays in the callout, the footnote text
+  -- will not appear at the bottom of the document but will instead
+  -- appear in the callout itself (at the bottom)
+  -- 
+  -- Also note whether the footnotes contain codeblocks, which
+  -- require special handling
+  local hasVerbatimInNotes = false
+  local noteContents = {}
+  local nodeContent = node.content:walk({
+    Note = function(el)
+      tappend(noteContents, {el.content})
+      el.content:walk({
+        CodeBlock = function(el)
+          hasVerbatimInNotes = true
+        end
+      })
+      return pandoc.RawInline('latex', '\\footnotemark{}')
+    end
+  })
 
   -- generate the callout box
   local callout
@@ -388,7 +411,7 @@ function calloutLatex(node)
     calloutContents = pandoc.List({})
   end
 
-  tappend(calloutContents, node.content)
+  tappend(calloutContents, nodeContent)
   
   if calloutContents[1] ~= nil and calloutContents[1].t == "Para" and calloutContents[#calloutContents].t == "Para" then
     tprepend(calloutContents, { pandoc.Plain(beginEnvironment) })
@@ -397,6 +420,32 @@ function calloutLatex(node)
     tprepend(calloutContents, { pandoc.Para(beginEnvironment) })
     tappend(calloutContents, { pandoc.Para(endEnvironment) })
   end
+
+  
+  -- For any footnote content that was pulled out, append a footnotetext
+  -- that include the contents
+  for _i, v in ipairs(noteContents) do
+    -- If there are paragraphs, just attach to them when possible
+    if v[1].t == "Para" then
+      table.insert(v[1].content, 1, pandoc.RawInline('latex', '\\footnotetext{'))
+    else
+      v:insert(1, pandoc.RawInline('latex', '\\footnotetext{'))
+    end
+      
+    if v[#v].t == "Para" then
+      table.insert(v[#v].content, pandoc.RawInline('latex', '}'))
+    else
+      v:extend({pandoc.RawInline('latex', '}')})
+    end
+    tappend(calloutContents, v)
+  end 
+
+  -- Enable fancyvrb if verbatim appears in the footnotes
+  if hasVerbatimInNotes then
+    quarto.doc.use_latex_package('fancyvrb')
+    quarto.doc.include_text('in-header', '\\VerbatimFootnotes')
+  end
+  
 
   return pandoc.Div(calloutContents)
 end

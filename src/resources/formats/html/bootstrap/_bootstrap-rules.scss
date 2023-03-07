@@ -1740,6 +1740,13 @@ textarea {
 
 // Code Annotation
 
+.code-annotated .code-copy-button {
+  margin-right: 1.25em;
+  margin-top: 0;
+  padding-bottom: 0;
+  padding-top: 3px;
+}
+
 .code-annotation-gutter-bg {
   background-color: $body-bg;
 }

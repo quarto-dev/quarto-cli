@@ -21,13 +21,13 @@
           <% } else { %> 
             <a class="sidebar-item-text sidebar-link text-start<%- isCollapsed ? " collapsed" : "" %>" data-bs-toggle="collapse" data-bs-target="#<%- sectionId %>" aria-expanded="<%- isCollapsed ? "false" : "true" %>"><% partial('navicon.ejs', { item }) %> <span class="menu-text"><%- item.text %></span></a>
           <% }  %>      
-          <a class="sidebar-item-toggle text-start<%- isCollapsed ?  " collapsed" : "" %>" data-bs-toggle="collapse" data-bs-target="#<%- sectionId %>" aria-expanded="<%- isCollapsed ? "false" : "true" %>">
+          <a class="sidebar-item-toggle text-start<%- isCollapsed ?  " collapsed" : "" %>" data-bs-toggle="collapse" data-bs-target="#<%- sectionId %>" aria-expanded="<%- isCollapsed ? "false" : "true" %>" aria-label="<%- language['toggle-section'] %>">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
       <ul id="<%- sectionId %>" class="collapse list-unstyled sidebar-section depth<%-depth%> <%- isCollapsed ? "" : "show" %>">  
         <% item.contents.forEach(subItem => { %>
-          <% partial('sidebaritem.ejs', { item: subItem, depth: depth + 1, collapse: collapse, borderColor: borderColor }) %>
+          <% partial('sidebaritem.ejs', { item: subItem, depth: depth + 1, collapse: collapse, borderColor: borderColor, language: language }) %>
         <% }) %>
       </ul>
     <% } else { %>

@@ -77,6 +77,7 @@
   - Note that this fix changes the filenames used for PDF files with variants. In quarto 1.3, the automatic output names for PDF files include format variants and modifiers.
 - Correctly download online image on Windows ([#3982](https://github.com/quarto-dev/quarto-cli/issues/3982)).
 - Permissions of `.tex` file are now correct when `keep-tex: true` ([#4380](https://github.com/quarto-dev/quarto-cli/issues/4380)).
+- Better support footnotes within Callouts in PDF / LaTeX output ([#1235](https://github.com/quarto-dev/quarto-cli/issues/1235)).
 
 ## Beamer Format
 

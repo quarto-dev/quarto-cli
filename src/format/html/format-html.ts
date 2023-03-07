@@ -754,6 +754,7 @@ const kCodeAnnotationGridClz = "code-annotation-container-grid";
 const kCodeAnnotationAnchorClz = "code-annotation-anchor";
 const kCodeAnnotationTargetClz = "code-annotation-target";
 
+const kCodeAnnotationParentClz = "code-annotated";
 const kCodeAnnotationGutterClz = "code-annotation-gutter";
 const kCodeAnnotationGutterBgClz = "code-annotation-gutter-bg";
 
@@ -865,6 +866,11 @@ function processCodeBlockAnnotation(
 
   // Inject a gutter for the annotations
   for (const codeParentEl of codeBlockParents) {
+    if (codeParentEl.parentElement) {
+      // Decorate the pre so that we can adjust styles if needed
+      codeParentEl.parentElement.classList.add(kCodeAnnotationParentClz);
+    }
+
     const gutterBgDivEl = doc.createElement("div");
     gutterBgDivEl.classList.add(kCodeAnnotationGutterBgClz);
     codeParentEl?.appendChild(gutterBgDivEl);

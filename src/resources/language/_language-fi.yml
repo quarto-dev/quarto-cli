@@ -60,6 +60,7 @@ search-detached-cancel-button-title: "Peruuta"
 search-submit-button-title: "Lähetä"
 search: "Hae"
 
+toggle-section: "Vaihda osio"
 toggle-sidebar: "Vaihda sivupalkki"
 toggle-dark-mode: "Tumma tila päälle/pois"
 toggle-reader-mode: "Vaihda lukijatilaa"

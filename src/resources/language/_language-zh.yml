@@ -60,6 +60,7 @@ search-detached-cancel-button-title: "取消"
 search-submit-button-title: "提交"
 search: "搜索"
 
+toggle-section: "切換部分"
 toggle-sidebar: "切换侧边栏导航"
 toggle-dark-mode: "切换深色模式"
 toggle-reader-mode: "切换阅读器模式"
