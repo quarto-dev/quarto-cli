@@ -8532,12 +8532,13 @@ try {
                                   {
                                     enum: [
                                       "always",
+                                      "whenSidebarOpen",
                                       "never"
                                     ]
                                   }
                                 ],
                                 default: "always",
-                                description: "Controls whether the in-document highlights are shown by default (`always` or `never`)"
+                                description: "Controls whether the in-document highlights are shown by default (`always`, `whenSidebarOpen` or `never`)"
                               },
                               theme: {
                                 enum: [
@@ -13490,7 +13491,7 @@ try {
                 ]
               }
             },
-            description: 'Include contents at the beginning of the document body\n(e.g. after the `<body>` tag in HTML, or the `\\begin{document}` command \nin LaTeX).\n\nA string value or an object with key "file" indicates a filename whose contents are to be included\n\nAn object with key "text" indicates textual content to be included\n'
+            description: 'Include contents at the beginning of the document body\n(e.g. after the `<body>` tag in HTML, or the `\\begin{document}` command\nin LaTeX).\n\nA string value or an object with key "file" indicates a filename whose contents are to be included\n\nAn object with key "text" indicates textual content to be included\n'
           },
           {
             name: "include-after-body",
@@ -13509,7 +13510,7 @@ try {
                 ]
               }
             },
-            description: 'Include contents at the end of the document body (before\nthe `</body>` tag in HTML, or the `\\end{document}` command in LaTeX).\n\nA string value or an object with key "file" indicates a filename whose contents are to be included\n\nAn object with key "text" indicates textual content to be included\n'
+            description: 'Include content at the end of the document body immediately after the markdown content. While it will be included before the closing `</body>` tag in HTML and the `\\end{document}` command in LaTeX, this option refers to the end of the markdown content.\n\nA string value or an object with key "file" indicates a filename whose contents are to be included\n\nAn object with key "text" indicates textual content to be included\n'
           },
           {
             name: "include-in-header",
@@ -13528,7 +13529,7 @@ try {
                 ]
               }
             },
-            description: 'Include contents at the end of the header. This can\nbe used, for example, to include special CSS or JavaScript in HTML \ndocuments.\n\nA string value or an object with key "file" indicates a filename whose contents are to be included\n\nAn object with key "text" indicates textual content to be included\n'
+            description: 'Include contents at the end of the header. This can\nbe used, for example, to include special CSS or JavaScript in HTML\ndocuments.\n\nA string value or an object with key "file" indicates a filename whose contents are to be included\n\nAn object with key "text" indicates textual content to be included\n'
           },
           {
             name: "resources",
@@ -13554,7 +13555,7 @@ try {
             },
             description: {
               short: "Text to be in a running header.",
-              long: "Text to be in a running header.\n\nProvide a single option or up to four options for different placements \n(odd page inner, odd page outer, even page innner, even page outer).\n"
+              long: "Text to be in a running header.\n\nProvide a single option or up to four options for different placements\n(odd page inner, odd page outer, even page innner, even page outer).\n"
             }
           },
           {
@@ -13569,7 +13570,7 @@ try {
             },
             description: {
               short: "Text to be in a running footer.",
-              long: "Text to be in a running footer.\n\nProvide a single option or up to four options for different placements \n(odd page inner, odd page outer, even page innner, even page outer).\n\nSee [ConTeXt Headers and Footers](https://wiki.contextgarden.net/Headers_and_Footers) for more information.\n"
+              long: "Text to be in a running footer.\n\nProvide a single option or up to four options for different placements\n(odd page inner, odd page outer, even page innner, even page outer).\n\nSee [ConTeXt Headers and Footers](https://wiki.contextgarden.net/Headers_and_Footers) for more information.\n"
             }
           },
           {
@@ -13609,7 +13610,7 @@ try {
             hidden: true,
             description: {
               short: "Include file with YAML metadata",
-              long: "Read metadata from the supplied YAML (or JSON) file. This\noption can be used with every input format, but string scalars\nin the YAML file will always be parsed as Markdown. Generally,\nthe input will be handled the same as in YAML metadata blocks.\nMetadata values specified inside the document, or by using `-M`, \noverwrite values specified with this option.\n"
+              long: "Read metadata from the supplied YAML (or JSON) file. This\noption can be used with every input format, but string scalars\nin the YAML file will always be parsed as Markdown. Generally,\nthe input will be handled the same as in YAML metadata blocks.\nMetadata values specified inside the document, or by using `-M`,\noverwrite values specified with this option.\n"
             }
           },
           {
@@ -13619,7 +13620,7 @@ try {
             },
             description: {
               short: "Include files with YAML metadata",
-              long: "Read metadata from the supplied YAML (or JSON) files. This\noption can be used with every input format, but string scalars\nin the YAML file will always be parsed as Markdown. Generally,\nthe input will be handled the same as in YAML metadata blocks.\nValues in files specified later in the list will be preferred\nover those specified earlier. Metadata values specified inside \nthe document, or by using `-M`, overwrite values specified with\nthis option.\n"
+              long: "Read metadata from the supplied YAML (or JSON) files. This\noption can be used with every input format, but string scalars\nin the YAML file will always be parsed as Markdown. Generally,\nthe input will be handled the same as in YAML metadata blocks.\nValues in files specified later in the list will be preferred\nover those specified earlier. Metadata values specified inside\nthe document, or by using `-M`, overwrite values specified with\nthis option.\n"
             }
           }
         ],
@@ -18233,7 +18234,7 @@ try {
           "The giscus theme to use when displaying comments.",
           "The language that should be used when displaying the commenting\ninterface.",
           "Controls whether the sidebar opens automatically on startup.",
-          "Controls whether the in-document highlights are shown by default\n(<code>always</code> or <code>never</code>)",
+          "Controls whether the in-document highlights are shown by default\n(<code>always</code>, <code>whenSidebarOpen</code> or\n<code>never</code>)",
           "Controls the overall look of the sidebar (<code>classic</code> or\n<code>clean</code>)",
           "Controls whether the experimental New Note button should be shown in\nthe notes tab in the sidebar.",
           "Specify a URL to direct a user to, in a new tab. when they click on\nthe annotation author link in the header of an annotation.",
@@ -19844,7 +19845,7 @@ try {
           "Content to include at the beginning of the document body (e.g.&nbsp;after\nthe <code>&lt;body&gt;</code> tag in HTML, or the\n<code>\\begin{document}</code> command in LaTeX).",
           "Content to include at the end of the document body (before the\n<code>&lt;/body&gt;</code> tag in HTML, or the\n<code>\\end{document}</code> command in LaTeX).",
           "Include contents at the beginning of the document body (e.g.&nbsp;after\nthe <code>&lt;body&gt;</code> tag in HTML, or the\n<code>\\begin{document}</code> command in LaTeX).\nA string value or an object with key \u201Cfile\u201D indicates a filename\nwhose contents are to be included\nAn object with key \u201Ctext\u201D indicates textual content to be\nincluded",
-          "Include contents at the end of the document body (before the\n<code>&lt;/body&gt;</code> tag in HTML, or the\n<code>\\end{document}</code> command in LaTeX).\nA string value or an object with key \u201Cfile\u201D indicates a filename\nwhose contents are to be included\nAn object with key \u201Ctext\u201D indicates textual content to be\nincluded",
+          "Include content at the end of the document body, immediately after\nthe markdown content. While the content will be included before the\nclosing <code>&lt;/body&gt;</code> tag in HTML and the\n<code>\\end{document}</code> command in LaTeX, this option specifically\nrefers to the end of the content.\nA string value or an object with key \u201Cfile\u201D indicates a filename\nwhose contents are to be included\nAn object with key \u201Ctext\u201D indicates textual content to be\nincluded",
           "Include contents at the end of the header. This can be used, for\nexample, to include special CSS or JavaScript in HTML documents.\nA string value or an object with key \u201Cfile\u201D indicates a filename\nwhose contents are to be included\nAn object with key \u201Ctext\u201D indicates textual content to be\nincluded",
           "Path (or glob) to files to publish with this document.",
           {
@@ -21234,12 +21235,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 151733,
+          _internalId: 151732,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 151725,
+              _internalId: 151724,
               type: "enum",
               enum: [
                 "png",
@@ -21255,7 +21256,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 151732,
+              _internalId: 151731,
               type: "anyOf",
               anyOf: [
                 {
