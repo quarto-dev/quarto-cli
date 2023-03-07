@@ -10,14 +10,14 @@ import { info } from "log/mod.ts";
 import { dirname, extname, join } from "path/mod.ts";
 import { lines } from "../../../src/core/text.ts";
 import { runCmd } from "../util/cmd.ts";
-import { Repo, withRepo } from "../util/git.ts";
+import { applyGitPatches, Repo, withRepo } from "../util/git.ts";
 
 import { download, unzip } from "../util/utils.ts";
 import { Configuration } from "./config.ts";
 import { visitLines } from "../../../src/core/file.ts";
 import { copyMinimal } from "../../../src/core/copy.ts";
 
-export async function updateHtmlDepedencies(config: Configuration) {
+export async function updateHtmlDependencies(config: Configuration) {
   info("Updating Bootstrap with version info:");
 
   // Read the version information from the environment
@@ -56,6 +56,18 @@ export async function updateHtmlDepedencies(config: Configuration) {
     bsDir,
     "dist",
   );
+
+  // For applying git patch to what we retreive
+  const patchesDir = join(
+    config.directoryInfo.pkg,
+    "src", "common", "patches"
+  )
+
+  function resolvePatches (patches: string[]) {
+    return patches.map(patch => {
+      return join(patchesDir, patch)
+    })
+  }
 
   // Anchor
   const anchorJs = join(formatDir, "anchor", "anchor.min.js");
@@ -360,6 +372,7 @@ export async function updateHtmlDepedencies(config: Configuration) {
     "plugins",
     "pdfexport",
   );
+
   await updateGithubSourceCodeDependency(
     "reveal-pdfexport",
     "McShelby/reveal-pdfexport",
@@ -374,7 +387,10 @@ export async function updateHtmlDepedencies(config: Configuration) {
       return Promise.resolve();
     },
     false, // not a commit
-    false, // no v prefix
+    false, // no v prefix,
+    resolvePatches([
+      "0001-Patch-PdfExport-RevealJS-plugin-to-export-toggle-fun.patch"
+    ])
   );
 
   // Github CSS (used for GFM HTML preview)
@@ -492,6 +508,7 @@ export async function updateHtmlDepedencies(config: Configuration) {
   info(
     "\n** Done- please commit any files that have been updated. **\n",
   );
+
 }
 
 async function updatePdfJs(
@@ -786,6 +803,7 @@ async function updateGithubSourceCodeDependency(
   onDownload: (dir: string, version: string) => Promise<void>,
   commit = false, // set to true when commit is used instead of a tag
   vPrefix = true, // set to false if github tags don't use a v prefix
+  patches?: string[]
 ) {
   info(`Updating ${name}...`);
   const version = Deno.env.get(versionEnvVar);
@@ -805,6 +823,7 @@ async function updateGithubSourceCodeDependency(
     await unzip(zipFile, working);
 
     await onDownload(working, version);
+    if (patches) await applyGitPatches(patches)
   } else {
     throw new Error(`${versionEnvVar} is not defined`);
   }
