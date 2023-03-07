@@ -270,6 +270,10 @@ const navbarContentsHandler = (context: NavigationPipelineContext) => {
           if (entry.text) {
             markdown[`${kNavbarIdPrefix}${entry.text.trim()}`] = entry.text;
           }
+          if (entry.href) {
+            markdown[`${kNavbarIdPrefix}${entry.href.trim()}`] = entry.href;
+          }
+
           if (entry.menu?.entries) {
             for (const childEntry of entry.menu) {
               addEntry(childEntry);
@@ -299,6 +303,17 @@ const navbarContentsHandler = (context: NavigationPipelineContext) => {
             const renderedEl = rendered[`${kNavbarIdPrefix}${id}`];
             if (renderedEl) {
               link.innerHTML = renderedEl?.innerHTML;
+            }
+          }
+
+          const textParent = link.parentElement;
+          if (textParent) {
+            const href = textParent.getAttribute("href");
+            if (href) {
+              const renderedHref = rendered[`${kNavbarIdPrefix}${href}`];
+              if (renderedHref) {
+                textParent.setAttribute("href", renderedHref?.innerText);
+              }
             }
           }
         }

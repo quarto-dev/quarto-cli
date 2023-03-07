@@ -1408,6 +1408,8 @@ async function resolveItem<T extends { href?: string; text?: string }>(
         );
       }
       return inputItem;
+    } else if (looksLikeShortCode(href)) {
+      return item;
     } else {
       return {
         ...item,
@@ -1417,6 +1419,10 @@ async function resolveItem<T extends { href?: string; text?: string }>(
   } else {
     return item;
   }
+}
+
+function looksLikeShortCode(href: string) {
+  return href.startsWith("{{<") && href.endsWith(">}}");
 }
 
 function sidebarTitle(sidebar: Sidebar, project: ProjectContext) {
