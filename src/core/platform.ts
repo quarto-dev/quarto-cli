@@ -42,7 +42,7 @@ export function gitHubCodespacePortForwardingDomain() {
 }
 
 export function isGitHubCodespaces() {
-  return !!gitHubCodespacePortForwardingDomain() || !!gitHubCodespaceName();
+  return !!gitHubCodespacePortForwardingDomain() && !!gitHubCodespaceName();
 }
 
 export function gitHubCodeSpacesProxyUri() {
