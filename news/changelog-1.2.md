@@ -1,6 +1,9 @@
 ## New In This Patch Release
 
 - Fixes an issue using Quarto with the most recent version of jupyter_client (version 8.0.0 and later)
+- Fix QUARTO_PANDOC variable not being respected in update-pandoc process. This
+  would cause errors where pandoc is not bundled with Quarto, such as in the
+conda package.
 
 ## Fixed In Previous Patch Releases
 

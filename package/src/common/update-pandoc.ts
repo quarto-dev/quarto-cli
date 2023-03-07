@@ -102,8 +102,10 @@ async function writePandocTemplates(config: Configuration) {
 }
 
 async function readTemplate(format: string, bin: string): Promise<string> {
+  const pandoc = Deno.env.get("QUARTO_PANDOC") ||
+    join(bin, "tools", "pandoc");
   const result = await execProcess({
-    cmd: [join(bin, "tools", "pandoc"), "--print-default-template", format],
+    cmd: [pandoc, "--print-default-template", format],
     stdout: "piped",
     stderr: "piped",
   });
