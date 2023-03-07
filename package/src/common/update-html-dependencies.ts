@@ -806,7 +806,7 @@ async function updateGithubSourceCodeDependency(
   patches?: string[]
 ) {
   info(`Updating ${name}...`);
-  const version = Deno.env.get(versionEnvVar);
+  const version = Deno.env.get(versionEnvVar)?.trim();
   if (version) {
     const fileName = `${name}.zip`;
     const distUrl = join(
