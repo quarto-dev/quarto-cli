@@ -1,0 +1,43 @@
+---
+title: Document Title
+format: latex
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - ['A footnote\\footnotemark{}.', 'a footnote.\\footnotemark{}']
+        - ['\\footnote{']
+---
+
+::: {.callout}
+
+## Still not visible in PDF output
+
+A footnote^[which is inside the callout instead of outside.].
+
+:::
+
+::: {.callout}
+
+## Not visible in PDF output
+
+Some text without a footnote.[^note]
+
+:::
+
+
+[^note]: Here is the footnote.
+
+	Subsequent paragraphs are indented to show that they 
+	belong to the previous footnote.
+
+	`test 123`
+
+	```
+	test
+	```
+
+	$$
+	e = MC^2
+	$$
+
