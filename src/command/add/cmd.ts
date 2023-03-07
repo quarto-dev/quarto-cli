@@ -27,15 +27,15 @@ export const addCommand = new Command()
   )
   .example(
     "Install extension (Github)",
-    "quarto install extension <gh-org>/<gh-repo>",
+    "quarto add <gh-org>/<gh-repo>",
   )
   .example(
     "Install extension (file)",
-    "quarto install extension <path-to-zip>",
+    "quarto add <path-to-zip>",
   )
   .example(
     "Install extension (url)",
-    "quarto install extension <url>",
+    "quarto add <url>",
   )
   .action(
     async (
