@@ -17,7 +17,7 @@ python_exists=$(command -v python)
 if [ -z $python_exists ] 
 then 
   python_exists=$(command -v python3)
-  if [ -z python_exists] 
+  if [ -z python_exists]
   then
     echo "No python found in PATH - Check your PATH or install python add to PATH."
   fi

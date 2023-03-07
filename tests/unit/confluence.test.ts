@@ -61,8 +61,8 @@ import {
   Space,
 } from "../../src/publish/confluence/api/types.ts";
 
-const RUN_ALL_TESTS = true;
-const FOCUS_TEST = false;
+const RUN_ALL_TESTS = false;
+const FOCUS_TEST = true;
 const HIDE_NOISE = true;
 
 const xtest = (
@@ -3741,7 +3741,7 @@ const runUpdateLinks = () => {
     fileName: "release-planning.xml",
   };
 
-  const UPDATE_LINKS_INDEX: ContentUpdate = {
+  const UPDATE_LINK_TO_INDEX: ContentUpdate = {
     contentChangeType: ContentChangeType.update,
     id: "19890228",
     version: null,
@@ -3752,6 +3752,23 @@ const runUpdateLinks = () => {
     body: {
       storage: {
         value: "<a href='folder/index.qmd'>team</a>",
+        representation: "storage",
+      },
+    },
+    fileName: "release-planning.xml",
+  };
+
+  const UPDATE_LINK_FROM_INDEX: ContentUpdate = {
+    contentChangeType: ContentChangeType.update,
+    id: "fake-folder-id",
+    version: null,
+    title: "fake-folder-title",
+    type: "page",
+    status: "current",
+    ancestors: [{ id: "19759105" }],
+    body: {
+      storage: {
+        value: "<a href='triage.qmd'>triage</a>",
         representation: "storage",
       },
     },
@@ -3918,13 +3935,29 @@ const runUpdateLinks = () => {
   });
 
   test(suiteLabel("one_update_link_index"), async () => {
-    const changes: ConfluenceSpaceChange[] = [UPDATE_LINKS_INDEX];
+    const changes: ConfluenceSpaceChange[] = [UPDATE_LINK_TO_INDEX];
     const rootURL = "fake-server/wiki/spaces/QUARTOCONF/pages";
     const expectedUpdate: ContentUpdate = {
-      ...UPDATE_LINKS_INDEX,
+      ...UPDATE_LINK_TO_INDEX,
       body: {
         storage: {
           value: `<a href=\'fake-server/wiki/spaces/QUARTOCONF/pages/fake-folder-id'>team</a>`,
+          representation: "storage",
+        },
+      },
+    };
+    const expected: ConfluenceSpaceChange[] = [expectedUpdate];
+    check(expected, changes, fileMetadataTable, "fake-server", FAKE_PARENT);
+  });
+
+  test(suiteLabel("one_update_link_from_index"), async () => {
+    const changes: ConfluenceSpaceChange[] = [UPDATE_LINK_FROM_INDEX];
+    const rootURL = "fake-server/wiki/spaces/QUARTOCONF/pages";
+    const expectedUpdate: ContentUpdate = {
+      ...UPDATE_LINK_FROM_INDEX,
+      body: {
+        storage: {
+          value: `<a href=\'fake-server/wiki/spaces/QUARTOCONF/pages/19890180'>triage</a>`,
           representation: "storage",
         },
       },
