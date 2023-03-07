@@ -466,7 +466,7 @@ export async function jupyterKernelspecFromMarkdown(
   markdown: string,
   project?: ProjectContext,
 ): Promise<[JupyterKernelspec, Metadata]> {
-  const config = (project as any)?.config;
+  const config = project?.config;
   const yaml = config
     ? mergeConfigs(config, readYamlFromMarkdown(markdown))
     : readYamlFromMarkdown(markdown);
@@ -656,7 +656,7 @@ export async function jupyterToMarkdown(
   options: JupyterToMarkdownOptions,
 ): Promise<JupyterToMarkdownResult> {
   // perform fixups
-  nb = fixupJupyterNotebook(nb, options);
+  nb = fixupJupyterNotebook(nb);
 
   // optional content injection / html preservation for html output
   // that isn't an ipynb
@@ -704,6 +704,10 @@ export async function jupyterToMarkdown(
         md.push("\n:::::::::: notes\n\n");
       }
     }
+
+    // find the first yaml metadata block and hold it out
+    // note if it has a title
+    // at the end, if it doesn't have a title, then snip the title out
 
     // markdown from cell
     switch (cell.cell_type) {
@@ -1106,15 +1110,10 @@ async function mdFromCodeCell(
     }
 
     // filter matplotlib intermediate vars
-    if (output.output_type === "execute_result") {
-      const textPlain = (output as JupyterOutputDisplayData).data
-        ?.[kTextPlain] as string[] | undefined;
-      if (
-        textPlain && textPlain.length && textPlain[0].startsWith("[<matplotlib")
-      ) {
-        return false;
-      }
+    if (isDiscadableTextExecuteResult(output)) {
+      return false;
     }
+
     return true;
   }).map((output) => {
     // convert text/latex math to markdown as appropriate
@@ -1508,6 +1507,21 @@ async function mdFromCodeCell(
   }
 
   return md;
+}
+
+function isDiscadableTextExecuteResult(output: JupyterOutput) {
+  if (output.output_type === "execute_result") {
+    const textPlain = (output as JupyterOutputDisplayData).data
+      ?.[kTextPlain] as string[] | undefined;
+    if (textPlain && textPlain.length) {
+      return [
+        "[<matplotlib",
+        "<seaborn.",
+        "<ggplot:",
+      ].some((startsWith) => textPlain[0].startsWith(startsWith));
+    }
+  }
+  return false;
 }
 
 function hasLayoutOptions(cell: JupyterCellWithOptions) {

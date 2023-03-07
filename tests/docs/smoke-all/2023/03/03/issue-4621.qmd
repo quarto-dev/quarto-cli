@@ -1,0 +1,22 @@
+---
+title: "Crossref bug"
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ["Figure\\&nbsp;1"]
+---
+
+:::{.callout-note}
+
+```{r}
+#| label: fig-div-plot
+#| fig-cap: my plot!
+plot(1:10, 1:10)
+```
+
+Check out @fig-div-plot
+
+:::
+
+Check out @fig-div-plot

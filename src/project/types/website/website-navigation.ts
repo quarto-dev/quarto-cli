@@ -58,7 +58,6 @@ import {
 import { projectOffset, projectOutputDir } from "../../project-shared.ts";
 import { resolveInputTarget } from "../../project-index.ts";
 import {
-  kAriaLabel,
   kCollapseBelow,
   kCollapseLevel,
   kSidebarMenus,
@@ -84,6 +83,8 @@ import {
 } from "./website-search.ts";
 
 import {
+  kBackToTopNavigation,
+  kSiteIssueUrl,
   kSiteNavbar,
   kSiteReaderMode,
   kSiteRepoActions,
@@ -96,6 +97,7 @@ import {
   repoUrlIcon,
   websiteConfigActions,
   websiteConfigBoolean,
+  websiteConfigString,
   websiteHtmlFormat,
   websiteRepoBranch,
   WebsiteRepoInfo,
@@ -111,6 +113,7 @@ import {
   websiteNavigationConfig,
 } from "./website-shared.ts";
 import {
+  kBackToTop,
   kIncludeInHeader,
   kNumberSections,
   kRepoActionLinksEdit,
@@ -129,7 +132,6 @@ import { HtmlPostProcessResult } from "../../../command/render/types.ts";
 import { isJupyterNotebook } from "../../../core/jupyter/jupyter.ts";
 import { kHtmlEmptyPostProcessResult } from "../../../command/render/constants.ts";
 import { expandAutoSidebarItems } from "./website-sidebar-auto.ts";
-import { ensureHtmlElements } from "../../../../tests/verify.ts";
 
 // static navigation (initialized during project preRender)
 const navigation: Navigation = {
@@ -248,6 +250,7 @@ export async function websiteNavigationExtras(
     sidebar: disableSidebar ? undefined : expandedSidebar(href, sidebar),
     sidebarStyle: sidebarStyle(),
     footer: navigation.footer,
+    language: format.language,
   };
 
   // Determine the previous and next page
@@ -282,6 +285,7 @@ export async function websiteNavigationExtras(
   if (navigation.footer) {
     nav.footer = navigation.footer;
   }
+
   // determine whether to show the dark toggle
   const darkMode = formatDarkMode(format);
   if (darkMode !== undefined && nav.navbar) {
@@ -462,8 +466,19 @@ function navigationHtmlPostprocessor(
       };
 
       if (navigation.breadCrumbs && navigation.breadCrumbs.length > 0) {
+        let crumbCount = 0;
         for (const item of navigation.breadCrumbs) {
           if (item.text || item.icon) {
+            // Attempt to use the item's title, if possible
+            let titleEl;
+            if (item.id) {
+              titleEl = doc.getElementById(item.id);
+            } else if (item.href) {
+              titleEl = doc.querySelector(
+                `.depth${crumbCount} .sidebar-item a[href="${item.href}"] .menu-text`,
+              );
+            }
+
             const liEl = breadCrumbEl();
             const maybeLink = (liEl: Element, contents: Element | string) => {
               if (item.href) {
@@ -479,7 +494,7 @@ function navigationHtmlPostprocessor(
                 return liEl;
               } else {
                 if (typeof (contents) === "string") {
-                  liEl.innerText = item.text || "";
+                  liEl.innerHTML = item.text || "";
                 } else {
                   liEl.appendChild(contents);
                 }
@@ -489,7 +504,12 @@ function navigationHtmlPostprocessor(
             };
 
             if (item.text) {
-              olEl.appendChild(maybeLink(liEl, item.text || ""));
+              olEl.appendChild(
+                maybeLink(
+                  liEl,
+                  titleEl ? titleEl.innerHTML : (item.text || ""),
+                ),
+              );
             } else if (item.icon) {
               const iconEl = doc.createElement("i");
               iconEl.classList.add("bi");
@@ -498,6 +518,7 @@ function navigationHtmlPostprocessor(
               olEl.appendChild(maybeLink(liEl, iconEl));
             }
           }
+          crumbCount++;
         }
       } else {
         const sidebarTitle = doc.querySelector(".sidebar-title a");
@@ -613,6 +634,30 @@ function navigationHtmlPostprocessor(
         }
       }
     }
+
+    const projBackToTop = websiteConfigBoolean(
+      kBackToTopNavigation,
+      false,
+      project.config,
+    );
+    const formatBackToTop = format.metadata[kBackToTopNavigation];
+    if (projBackToTop && formatBackToTop !== false) {
+      // Add a return to top button, if needed
+      const contentEl = doc.querySelector("main");
+      const backToTopEl = doc.createElement("a");
+      backToTopEl.setAttribute(
+        "onclick",
+        "window.scrollTo(0, 0); return false;",
+      );
+
+      const backText = language[kBackToTop];
+      const backIcon = "arrow-up";
+      backToTopEl.setAttribute("role", "button");
+      backToTopEl.innerHTML = `<i class='bi bi-${backIcon}'></i> ${backText}`;
+      backToTopEl.id = "quarto-back-to-top";
+      contentEl?.appendChild(backToTopEl);
+    }
+
     return Promise.resolve(kHtmlEmptyPostProcessResult);
   };
 }
@@ -629,6 +674,11 @@ function handleRepoLinks(
     kWebsite,
     config,
   );
+  const issueUrl = websiteConfigString(kSiteIssueUrl, config);
+  if (issueUrl && !repoActions.includes("issue")) {
+    repoActions.push("issue");
+  }
+
   const forceRepoActions = format.metadata[kSiteRepoActions] === true;
 
   const elRepoSource = doc.querySelector(
@@ -637,7 +687,7 @@ function handleRepoLinks(
 
   if (repoActions.length > 0 || elRepoSource) {
     const repoInfo = websiteRepoInfo(config);
-    if (repoInfo) {
+    if (repoInfo || issueUrl) {
       if (repoActions.length > 0) {
         // find the toc
         let repoTarget = doc.querySelector(`nav[role="doc-toc"]`);
@@ -692,21 +742,31 @@ function handleRepoLinks(
 
         if (repoTarget) {
           // get the action links
-          const links = repoActionLinks(
-            repoActions,
-            repoInfo,
-            websiteRepoBranch(config),
-            source,
-            language,
-          );
+          const links = repoInfo
+            ? repoActionLinks(
+              repoActions,
+              repoInfo,
+              websiteRepoBranch(config),
+              source,
+              language,
+              issueUrl,
+            )
+            : [{
+              text: language[kRepoActionLinksIssue]!,
+              url: issueUrl!,
+            }];
           const actionsDiv = doc.createElement("div");
           actionsDiv.classList.add("toc-actions");
-          const iconDiv = doc.createElement("div");
-          const iconEl = doc.createElement("i");
-          iconEl.classList.add("bi");
-          iconEl.classList.add("bi-" + repoUrlIcon(repoInfo.baseUrl));
-          iconDiv.appendChild(iconEl);
-          actionsDiv.appendChild(iconDiv);
+          if (repoInfo) {
+            const iconDiv = doc.createElement("div");
+            const iconEl = doc.createElement("i");
+            iconEl.classList.add("bi");
+
+            iconEl.classList.add("bi-" + repoUrlIcon(repoInfo.baseUrl));
+
+            iconDiv.appendChild(iconEl);
+            actionsDiv.appendChild(iconDiv);
+          }
           const linksDiv = doc.createElement("div");
           linksDiv.classList.add("action-links");
           links.forEach((link) => {
@@ -722,7 +782,7 @@ function handleRepoLinks(
           repoTarget.appendChild(actionsDiv);
         }
       }
-      if (elRepoSource) {
+      if (elRepoSource && repoInfo) {
         elRepoSource.setAttribute(
           kDataQuartoSourceUrl,
           `${repoInfo.baseUrl}blob/${
@@ -744,6 +804,7 @@ function repoActionLinks(
   branch: string,
   source: string,
   language: FormatLanguage,
+  issueUrl?: string,
 ): Array<{ text: string; url: string }> {
   return actions.map((action) => {
     switch (action) {
@@ -771,7 +832,7 @@ function repoActionLinks(
       case "issue":
         return {
           text: language[kRepoActionLinksIssue],
-          url: `${repoInfo.baseUrl}issues/new`,
+          url: issueUrl || `${repoInfo.baseUrl}issues/new`,
         };
 
       default: {

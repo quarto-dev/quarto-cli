@@ -62,7 +62,7 @@ Checks if the list has an item equal to the given needle.
 ]]
 ---@param needle any Item to search for
 ---@param init? integer (Optional) Index at which the search is started
----@return boolean  # `true` if a list item is equal to the `needle`, `false` otherwise
+---@return boolean # `true` if a list item is equal to the `needle`, `false` otherwise
 function pandoc.List:includes(needle, init) end
 
 

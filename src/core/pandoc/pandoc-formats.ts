@@ -28,8 +28,11 @@ export async function pandocListFormats() {
 }
 
 export async function pandocListFormatDefaultExtensions(format: string) {
+  if (format === "pdf") {
+    return [];
+  }
   const result = await execProcess({
-    cmd: [pandocBinaryPath(), "--list-extensions", format],
+    cmd: [pandocBinaryPath(), `--list-extensions=${format}`],
     stdout: "piped",
   });
   if (result.success) {

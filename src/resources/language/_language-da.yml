@@ -23,11 +23,11 @@ title-block-affiliation-plural: "Tilknytninger"
 title-block-published: "Udgivet"
 title-block-modified: "Ændret"
 
-callout-tip-caption: "Tip"
-callout-note-caption: "Note"
-callout-warning-caption: "Advarsel"
-callout-important-caption: "Vigtigt"
-callout-caution-caption: "Forsigtig"
+callout-tip-title: "Tip"
+callout-note-title: "Note"
+callout-warning-title: "Advarsel"
+callout-important-title: "Vigtigt"
+callout-caution-title: "Forsigtig"
 
 code-summary: "Kode"
 
@@ -47,6 +47,8 @@ repo-action-links-edit: "Modificer denne side"
 repo-action-links-source: "Vis kilde"
 repo-action-links-issue: "Anmeld problem"
 
+back-to-top: "Tilbage til toppen"
+
 search-no-results-text: "Ingen resultater"
 search-matching-documents-text: "Matchende dokumenter"
 search-copy-link-title: "Kopier link for at søge"
@@ -56,6 +58,12 @@ search-more-matches-text: "andre resultater i dette dokument"
 search-clear-button-title: "Ryd"
 search-detached-cancel-button-title: "Fortryd"
 search-submit-button-title: "Indsend"
+search: "Søg"
+
+toggle-sidebar: "Skift sidebjælke"
+toggle-dark-mode: "Skift mørk tilstand"
+toggle-reader-mode: "Skift læsetilstand"
+toggle-navigation: "Skift navigation"
 
 crossref-fig-title: "Figur"
 crossref-tbl-title: "Tabel"

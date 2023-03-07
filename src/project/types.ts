@@ -19,6 +19,7 @@ import {
   ProjectConfig as ProjectConfig_Project,
   ProjectPreview,
 } from "../resources/types/schema-types.ts";
+import { InputTargetIndex } from "./project-index.ts";
 export {
   type NavigationItem as NavItem,
   type NavigationItemObject,

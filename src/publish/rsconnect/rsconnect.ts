@@ -33,7 +33,7 @@ import { randomHex } from "../../core/random.ts";
 import { RenderFlags } from "../../command/render/types.ts";
 
 export const kRSConnect = "connect";
-const kRSConnectDescription = "RStudio Connect";
+const kRSConnectDescription = "Posit Connect";
 
 export const kRSConnectServerVar = "CONNECT_SERVER";
 export const kRSConnectAuthTokenVar = "CONNECT_API_KEY";
@@ -147,7 +147,7 @@ async function authorizeToken(
       } else {
         info(
           colors.red(
-            "   Unable to connect to server (is this a valid RStudio Connect Server?)",
+            "   Unable to connect to server (is this a valid Posit Connect Server?)",
           ),
         );
         server = undefined;
@@ -190,13 +190,13 @@ async function authorizeToken(
         };
       } else {
         promptError(
-          "API key is for an RStudio Connect viewer rather than a publisher.",
+          "API key is for an Posit Connect viewer rather than a publisher.",
         );
       }
     } catch (err) {
       if (isUnauthorized(err)) {
         promptError(
-          "API key is not authorized for this RStudio Connect server.",
+          "API key is not authorized for this Posit Connect server.",
         );
       } else {
         throw err;

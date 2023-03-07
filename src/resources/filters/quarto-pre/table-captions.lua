@@ -6,6 +6,21 @@ kTblSubCap = "tbl-subcap"
 
 local latexCaptionPattern =  "(\\caption{)(.-)(}[^\n]*\n)"
 
+function longtable_no_caption_fixup()
+  return {
+    RawBlock = function(raw)
+      if _quarto.format.isRawLatex(raw) then
+        if (raw.text:match(_quarto.patterns.latexLongtablePattern) and
+            not raw.text:match(latexCaptionPattern)) then
+          raw.text = raw.text:gsub(
+            _quarto.patterns.latexLongtablePattern, "\\begin{longtable*}%2\\end{longtable*}", 1)
+          return raw
+        end
+      end
+    end
+  }
+end
+
 function tableCaptions() 
   
   return {
@@ -25,7 +40,7 @@ function tableCaptions()
               -- special case: knitr::kable will generate a \begin{tablular} without
               -- a \begin{table} wrapper -- put the wrapper in here if need be
               if _quarto.format.isLatexOutput() then
-                el = pandoc.walk_block(el, {
+                el = _quarto.ast.walk(el, {
                   RawBlock = function(raw)
                     if _quarto.format.isRawLatex(raw) then
                       if raw.text:match(_quarto.patterns.latexTabularPattern) and not raw.text:match(_quarto.patterns.latexTablePattern) then
@@ -129,25 +144,20 @@ end
 
 function applyTableCaptions(el, tblCaptions, tblLabels)
   local idx = 1
-  return pandoc.walk_block(el, {
+  return _quarto.ast.walk(el, {
     Table = function(el)
       if idx <= #tblLabels then
-        local table = pandoc.utils.to_simple_table(el)
+        local cap = pandoc.Inlines({})
         if #tblCaptions[idx] > 0 then
-          table.caption = pandoc.List()
-          tappend(table.caption, tblCaptions[idx])
-          table.caption:insert(pandoc.Space())
-        end
-        if table.caption == nil then
-          table.caption = pandoc.List()
+          cap:extend(tblCaptions[idx])
+          cap:insert(pandoc.Space())
         end
         if #tblLabels[idx] > 0 then
-          tappend(table.caption, {
-            pandoc.Str("{#" .. tblLabels[idx] .. "}")
-          })
+          cap:insert(pandoc.Str("{#" .. tblLabels[idx] .. "}"))
         end
         idx = idx + 1
-        return pandoc.utils.from_simple_table(table)
+        el.caption.long = pandoc.Plain(cap)
+        return el
       end
     end,
     RawBlock = function(raw)

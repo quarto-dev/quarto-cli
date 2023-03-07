@@ -756,6 +756,7 @@ async function updateUnpkgDependency(
   }
 }
 
+/*
 async function updateJsDelivrDependency(
   versionEnvVar: string,
   pkg: string,
@@ -775,6 +776,7 @@ async function updateJsDelivrDependency(
     throw new Error(`${versionEnvVar} is not defined`);
   }
 }
+*/
 
 async function updateGithubSourceCodeDependency(
   name: string,

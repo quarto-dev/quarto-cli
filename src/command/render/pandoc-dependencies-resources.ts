@@ -62,10 +62,10 @@ export async function processFormatResources(
       if (dependency.type === kFormatResources) {
         // Copy the file to the input directory
         const formatResource = dependency.content as FormatResource;
-        const targetFile = join(inputDir, basename(formatResource.file));
+        const targetPath = join(inputDir, basename(formatResource.file));
         copyTo(
           formatResource.file,
-          targetFile,
+          targetPath,
           {
             overwrite: true,
             preserveTimestamps: true,
@@ -73,8 +73,8 @@ export async function processFormatResources(
         );
 
         // Mark the file as readonly, if we can
-        if (Deno.build.os !== "windows") {
-          Deno.chmodSync(targetFile, 0o555);
+        if (Deno.build.os !== "windows" && Deno.statSync(targetPath).isFile) {
+          Deno.chmodSync(targetPath, 0o555);
         }
       }
     }

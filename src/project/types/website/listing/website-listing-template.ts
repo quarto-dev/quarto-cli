@@ -43,7 +43,7 @@ import { localizedString } from "../../../../config/localization.ts";
 import { formatDate, parsePandocDate } from "../../../../core/date.ts";
 import { truncateText } from "../../../../core/text.ts";
 import { encodeAttributeValue } from "../../../../core/html.ts";
-import { isPlaceHolder } from "./website-listing-read.ts";
+import { imagePlaceholder, isPlaceHolder } from "./website-listing-read.ts";
 
 export const kDateFormat = "date-format";
 
@@ -369,14 +369,25 @@ export function reshapeListing(
   utilities.fieldName = (field: string) => {
     return reshaped[kFieldDisplayNames][field] || field;
   };
-  utilities.outputLink = (item: ListingItem, field: string, val?: string) => {
+  utilities.outputLink = (
+    item: ListingItem,
+    field: string,
+    val?: string,
+    clz?: string,
+  ) => {
     const fieldLinks = reshaped[kFieldLinks];
     const value = val || item[field];
     const path = item.path;
     if (path && value !== undefined && fieldLinks.includes(field)) {
-      return `<a href="${path}" class="${field}">${value}</a>`;
+      return `<a href="${path}" class="${field}${
+        clz ? ` ${clz}` : ""
+      }">${value}</a>`;
     } else {
-      return value;
+      if (clz) {
+        return `<span class="${clz}">${value}</span>`;
+      } else {
+        return value;
+      }
     }
   };
   utilities.sortTarget = (field: string) => {
@@ -405,6 +416,17 @@ export function reshapeListing(
     const srcAttr = itemNumber > pageSize ? "data-src" : "src";
 
     return `<img ${srcAttr}="${src}" ${classAttr} ${styleAttr} ${altAttr}>`;
+  };
+  utilities.imgPlaceholder = (
+    itemNumber: number,
+    itemPath: string,
+  ) => {
+    const pageSize = listing[kPageSize];
+    return imagePlaceholder(
+      itemPath,
+      itemNumber > pageSize,
+      listing[kImageHeight] as string,
+    );
   };
 
   let index = 0;

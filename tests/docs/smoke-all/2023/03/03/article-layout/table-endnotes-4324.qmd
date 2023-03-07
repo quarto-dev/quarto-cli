@@ -1,0 +1,25 @@
+---
+format:
+  pdf: default
+reference-location: margin
+---
+
+fruit | count
+---|---
+apple  | 1^[This is the {cool} best fruit]
+banana | 2
+
+: Fruits and the animals that eat them {#tbl-fruit}
+
+
+
+
+fruit | count
+---|---
+apple  | 1[^1]
+banana | 2[^2]
+
+: Fruits and the animals that eat them {#tbl-fruit}
+
+[^1]: This is the best fruit
+[^2]: This is a pretty good fruit, but not the best.

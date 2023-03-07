@@ -18,6 +18,7 @@ import {
   filterFilesForUpdate,
   findAttachments,
   findPagesToDelete,
+  flattenIndexes,
   footnoteTransform,
   getMessageFromAPIError,
   getNextVersion,
@@ -62,6 +63,7 @@ import {
 
 const RUN_ALL_TESTS = true;
 const FOCUS_TEST = false;
+const HIDE_NOISE = true;
 
 const xtest = (
   name: string,
@@ -893,7 +895,6 @@ const runBuildSpaceChanges = () => {
     fileName: "fake-file-name",
     title: "fake-title",
     originalTitle: "fake-title-original",
-    matchingPages: [],
     contentBody: {
       storage: {
         value: "fake-value",
@@ -906,12 +907,6 @@ const runBuildSpaceChanges = () => {
     fileName: "fake-file-name",
     title: "fake-title",
     originalTitle: "fake-title-original",
-    matchingPages: [
-      {
-        id: "123456",
-        title: "fake-title-original",
-      },
-    ],
     contentBody: {
       storage: {
         value: "fake-value",
@@ -924,7 +919,6 @@ const runBuildSpaceChanges = () => {
     fileName: "fake-file-name2",
     title: "fake-title2",
     originalTitle: "fake-title2-original",
-    matchingPages: [],
     contentBody: {
       storage: {
         value: "fake-value2",
@@ -1095,7 +1089,7 @@ const runBuildSpaceChanges = () => {
         },
         fileName: "fake-file-name",
         status: "current",
-        title: "fake-title-original",
+        title: "fake-title",
         type: "page",
         id: "123456",
         version: null,
@@ -1208,7 +1202,6 @@ const runSpaceCreatesWithNesting = () => {
     fileName: "fake-file-name",
     title: "fake-title",
     originalTitle: "fake-title-original",
-    matchingPages: [],
     contentBody: {
       storage: {
         value: "fake-value",
@@ -1221,7 +1214,7 @@ const runSpaceCreatesWithNesting = () => {
     fileName: "fake-parent/fake-file-name",
     title: "fake-title",
     originalTitle: "fake-title-original",
-    matchingPages: [],
+
     contentBody: {
       storage: {
         value: "fake-value",
@@ -1234,7 +1227,7 @@ const runSpaceCreatesWithNesting = () => {
     fileName: "fake-parent\\fake-file-name",
     title: "fake-title",
     originalTitle: "fake-title-original",
-    matchingPages: [],
+
     contentBody: {
       storage: {
         value: "fake-value",
@@ -1247,7 +1240,7 @@ const runSpaceCreatesWithNesting = () => {
     fileName: "fake-parent/fake-file-name2",
     title: "fake-title2",
     originalTitle: "fake-title2-original",
-    matchingPages: [],
+
     contentBody: {
       storage: {
         value: "fake-value",
@@ -1260,7 +1253,7 @@ const runSpaceCreatesWithNesting = () => {
     fileName: "fake-parent\\fake-file-name2",
     title: "fake-title2",
     originalTitle: "fake-title2-original",
-    matchingPages: [],
+
     contentBody: {
       storage: {
         value: "fake-value",
@@ -1273,7 +1266,7 @@ const runSpaceCreatesWithNesting = () => {
     fileName: "fake-parent2/fake-file-name3",
     title: "fake-title3",
     originalTitle: "fake-title3-original",
-    matchingPages: [],
+
     contentBody: {
       storage: {
         value: "fake-value",
@@ -1286,7 +1279,7 @@ const runSpaceCreatesWithNesting = () => {
     fileName: "fake-parent2\\fake-file-name3",
     title: "fake-title3",
     originalTitle: "fake-title3-original",
-    matchingPages: [],
+
     contentBody: {
       storage: {
         value: "fake-value",
@@ -1300,7 +1293,7 @@ const runSpaceCreatesWithNesting = () => {
       "fake-great-grand-parent/fake-grand-parent/fake-parent/fake-file-name",
     title: "fake-title",
     originalTitle: "fake-title-original",
-    matchingPages: [],
+
     contentBody: {
       storage: {
         value: "fake-value",
@@ -1314,7 +1307,7 @@ const runSpaceCreatesWithNesting = () => {
       "fake-great-grand-parent\\fake-grand-parent\\fake-parent\\fake-file-name",
     title: "fake-title",
     originalTitle: "fake-title-original",
-    matchingPages: [],
+
     contentBody: {
       storage: {
         value: "fake-value",
@@ -2268,7 +2261,7 @@ const runSpaceUpdatesWithNesting = () => {
     fileName: "fake-parent/fake-file-name.xml",
     title: "fake-title",
     originalTitle: "fake-title-original",
-    matchingPages: [],
+
     contentBody: {
       storage: {
         value: "fake-value",
@@ -2281,7 +2274,7 @@ const runSpaceUpdatesWithNesting = () => {
     fileName: "fake-parent/fake-file-name2.xml",
     title: "fake-title2",
     originalTitle: "fake-title2-original",
-    matchingPages: [],
+
     contentBody: {
       storage: {
         value: "fake-value",
@@ -2294,7 +2287,7 @@ const runSpaceUpdatesWithNesting = () => {
     fileName: "fake-parent2/fake-file-name3.xml",
     title: "fake-title3",
     originalTitle: "fake-title3-original",
-    matchingPages: [],
+
     contentBody: {
       storage: {
         value: "fake-value",
@@ -2308,7 +2301,7 @@ const runSpaceUpdatesWithNesting = () => {
       "fake-great-grand-parent/fake-grand-parent/fake-parent/fake-file-name.xml",
     title: "fake-title",
     originalTitle: "fake-title-original",
-    matchingPages: [],
+
     contentBody: {
       storage: {
         value: "fake-value",
@@ -2322,7 +2315,7 @@ const runSpaceUpdatesWithNesting = () => {
       "fake-great-grand-parent\\fake-grand-parent\\fake-parent\\fake-file-name.xml",
     title: "fake-title",
     originalTitle: "fake-title-original",
-    matchingPages: [],
+
     contentBody: {
       storage: {
         value: "fake-value",
@@ -2754,7 +2747,6 @@ const runSpaceUpdatesWithNestedMoves = () => {
     fileName: "fake-parent/fake-file-name.xml",
     title: "fake-title",
     originalTitle: "fake-title-original",
-    matchingPages: [],
     contentBody: {
       storage: {
         value: "fake-value",
@@ -2767,7 +2759,6 @@ const runSpaceUpdatesWithNestedMoves = () => {
     fileName: "fake-file-name.xml",
     title: "fake-title",
     originalTitle: "fake-title-original",
-    matchingPages: [],
     contentBody: {
       storage: {
         value: "fake-value",
@@ -2780,7 +2771,7 @@ const runSpaceUpdatesWithNestedMoves = () => {
     fileName: "fake-parent/fake-file-name2.xml",
     title: "fake-title2",
     originalTitle: "fake-title2-original",
-    matchingPages: [],
+
     contentBody: {
       storage: {
         value: "fake-value",
@@ -2793,7 +2784,7 @@ const runSpaceUpdatesWithNestedMoves = () => {
     fileName: "fake-parent2/fake-file-name3.xml",
     title: "fake-title3",
     originalTitle: "fake-title3-original",
-    matchingPages: [],
+
     contentBody: {
       storage: {
         value: "fake-value",
@@ -2806,7 +2797,6 @@ const runSpaceUpdatesWithNestedMoves = () => {
     fileName: "fake-parent/fake-inner-parent/fake-file-name.xml",
     title: "fake-multi-nested-title",
     originalTitle: "fake-multi-nested-title-original",
-    matchingPages: [],
     contentBody: {
       storage: {
         value: "fake-value",
@@ -3113,6 +3103,438 @@ const runSpaceUpdatesWithNestedMoves = () => {
   });
 };
 
+const runFlattenIndexes = () => {
+  const suiteLabel = (label: string) => `FlattenIndexes_${label}`;
+
+  const FAKE_METADATA_ONE_FOLDER = {
+    ["fake-parent"]: {
+      title: "Fake Parent Title",
+      id: "fake-parent-id",
+      metadata: {
+        fileName: "fake-parent",
+      },
+      ancestors: [
+        {
+          id: "fake-space-id",
+        },
+      ],
+    },
+  };
+
+  const FAKE_METADATA_EMPTY = {};
+
+  test(suiteLabel("no_files"), async () => {
+    const spaceChanges: ConfluenceSpaceChange[] = [];
+    const expected: ConfluenceSpaceChange[] = [];
+    const actual: ConfluenceSpaceChange[] = flattenIndexes(
+      spaceChanges,
+      FAKE_METADATA_EMPTY
+    );
+    assertEquals(expected, actual);
+  });
+
+  test(suiteLabel("no_folders"), async () => {
+    const spaceChanges: ConfluenceSpaceChange[] = [
+      {
+        contentChangeType: ContentChangeType.create,
+        ancestors: [
+          {
+            id: "8781825",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "fake-value",
+          },
+        },
+        fileName: "fake-file-name",
+        space: {
+          key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
+        },
+        status: "current",
+        title: "fake-title",
+        type: "page",
+      },
+    ];
+    const expected: ConfluenceSpaceChange[] = spaceChanges;
+    const actual: ConfluenceSpaceChange[] = flattenIndexes(
+      spaceChanges,
+      FAKE_METADATA_EMPTY
+    );
+    assertEquals(expected, actual);
+  });
+
+  test(suiteLabel("one_folder_no_index"), async () => {
+    const spaceChanges: ConfluenceSpaceChange[] = [
+      {
+        contentChangeType: ContentChangeType.create,
+        ancestors: [
+          {
+            id: "8781825",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "",
+          },
+        },
+        fileName: "fake-parent",
+        space: {
+          key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
+        },
+        status: "current",
+        title: "Fake-parent",
+        type: "page",
+      },
+      {
+        contentChangeType: ContentChangeType.create,
+        ancestors: [
+          {
+            id: "fake-parent",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "fake-value",
+          },
+        },
+        fileName: "fake-parent/fake-file-name",
+        space: {
+          key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
+        },
+        status: "current",
+        title: "fake-title",
+        type: "page",
+      },
+    ];
+    const expected: ConfluenceSpaceChange[] = spaceChanges;
+    const actual: ConfluenceSpaceChange[] = flattenIndexes(
+      spaceChanges,
+      FAKE_METADATA_EMPTY
+    );
+    assertEquals(expected, actual);
+  });
+
+  test(suiteLabel("create_one_folder_with_index"), async () => {
+    const spaceChanges: ConfluenceSpaceChange[] = [
+      {
+        contentChangeType: ContentChangeType.create,
+        ancestors: [
+          {
+            id: "8781825",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "",
+          },
+        },
+        fileName: "fake-parent",
+        space: {
+          key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
+        },
+        status: "current",
+        title: "Fake-parent",
+        type: "page",
+      },
+      {
+        contentChangeType: ContentChangeType.create,
+        ancestors: [
+          {
+            id: "fake-parent",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "fake-index-value",
+          },
+        },
+        fileName: "fake-parent/index.xml",
+        space: {
+          key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
+        },
+        status: "current",
+        title: "fake-index-title",
+        type: "page",
+      },
+    ];
+    const expected: ConfluenceSpaceChange[] = [
+      {
+        contentChangeType: ContentChangeType.create,
+        ancestors: [
+          {
+            id: "8781825",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "fake-index-value",
+          },
+        },
+        fileName: "fake-parent",
+        space: {
+          key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
+        },
+        status: "current",
+        title: "fake-index-title",
+        type: "page",
+      },
+    ];
+    const actual: ConfluenceSpaceChange[] = flattenIndexes(
+      spaceChanges,
+      FAKE_METADATA_EMPTY
+    );
+    assertEquals(expected, actual);
+  });
+
+  test(suiteLabel("update_one_folder_with_index"), async () => {
+    const spaceChanges: ConfluenceSpaceChange[] = [
+      {
+        contentChangeType: ContentChangeType.create,
+        ancestors: [
+          {
+            id: "fake-parent-id",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "fake-index-value-update",
+          },
+        },
+        fileName: "fake-parent/index.xml",
+        space: {
+          key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
+        },
+        status: "current",
+        title: "fake-index-title-update",
+        type: "page",
+      },
+    ];
+    const expected: ConfluenceSpaceChange[] = [
+      {
+        contentChangeType: ContentChangeType.update,
+        id: "fake-parent-id",
+        version: null,
+        ancestors: [
+          {
+            id: "fake-space-id",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "fake-index-value-update",
+          },
+        },
+        fileName: "fake-parent",
+        status: "current",
+        title: "fake-index-title-update",
+        type: "page",
+      },
+    ];
+    const actual: ConfluenceSpaceChange[] = flattenIndexes(
+      spaceChanges,
+      FAKE_METADATA_ONE_FOLDER
+    );
+    assertEquals(expected, actual);
+  });
+
+  test(suiteLabel("one_multinested_folder_with_indexes"), async () => {
+    const spaceChanges: ConfluenceSpaceChange[] = [
+      {
+        contentChangeType: ContentChangeType.create,
+        ancestors: [
+          {
+            id: "8781825",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "",
+          },
+        },
+        fileName: "fake-great-grand-parent",
+        space: {
+          key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
+        },
+        status: "current",
+        title: "Fake-great-grand-parent",
+        type: "page",
+      },
+      {
+        contentChangeType: ContentChangeType.create,
+        ancestors: [
+          {
+            id: "fake-great-grand-parent",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "",
+          },
+        },
+        fileName: "fake-great-grand-parent/fake-grand-parent",
+        space: {
+          key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
+        },
+        status: "current",
+        title: "Fake-grand-parent",
+        type: "page",
+      },
+      {
+        contentChangeType: ContentChangeType.create,
+        ancestors: [
+          {
+            id: "fake-great-grand-parent/fake-grand-parent",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "",
+          },
+        },
+        fileName: "fake-great-grand-parent/fake-grand-parent/fake-parent",
+        space: {
+          key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
+        },
+        status: "current",
+        title: "Fake-parent",
+        type: "page",
+      },
+      {
+        contentChangeType: ContentChangeType.create,
+        ancestors: [
+          {
+            id: "fake-great-grand-parent/fake-grand-parent/fake-parent",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "fake-value",
+          },
+        },
+        fileName:
+          "fake-great-grand-parent/fake-grand-parent/fake-parent/index.xml",
+        space: {
+          key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
+        },
+        status: "current",
+        title: "fake-title",
+        type: "page",
+      },
+    ];
+    const expected: ConfluenceSpaceChange[] = [
+      {
+        contentChangeType: ContentChangeType.create,
+        ancestors: [
+          {
+            id: "8781825",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "",
+          },
+        },
+        fileName: "fake-great-grand-parent",
+        space: {
+          key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
+        },
+        status: "current",
+        title: "Fake-great-grand-parent",
+        type: "page",
+      },
+      {
+        contentChangeType: ContentChangeType.create,
+        ancestors: [
+          {
+            id: "fake-great-grand-parent",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "",
+          },
+        },
+        fileName: "fake-great-grand-parent/fake-grand-parent",
+        space: {
+          key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
+        },
+        status: "current",
+        title: "Fake-grand-parent",
+        type: "page",
+      },
+      {
+        contentChangeType: ContentChangeType.create,
+        ancestors: [
+          {
+            id: "fake-great-grand-parent/fake-grand-parent",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "fake-value",
+          },
+        },
+        fileName: "fake-great-grand-parent/fake-grand-parent/fake-parent",
+        space: {
+          key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
+        },
+        status: "current",
+        title: "fake-title",
+        type: "page",
+      },
+    ];
+    const actual: ConfluenceSpaceChange[] = flattenIndexes(
+      spaceChanges,
+      FAKE_METADATA_EMPTY
+    );
+    assertEquals(expected, actual);
+  });
+};
+
 const runBuildFileToMetaTable = () => {
   const suiteLabel = (label: string) => `BuildFileToMetaTable_${label}`;
 
@@ -3272,6 +3694,16 @@ const runUpdateLinks = () => {
       id: "123456",
       metadata: { fileName: "special-characters.xml" },
     },
+    ["folder/index.qmd"]: {
+      title: "fake-index-title",
+      id: "fake-index-id",
+      metadata: { editor: "v2", fileName: "folder/index.xml" },
+    },
+    ["folder"]: {
+      title: "fake-folder-title",
+      id: "fake-folder-id",
+      metadata: { editor: "v2", fileName: "folder" },
+    },
   };
 
   const UPDATE_NO_LINKS: ContentUpdate = {
@@ -3303,6 +3735,23 @@ const runUpdateLinks = () => {
       storage: {
         value:
           "<a href='no-replace.qmd'/>no</a> content content <a href='team.qmd'>team</a> content content <a href='zqmdzz.qmd'>team</a>",
+        representation: "storage",
+      },
+    },
+    fileName: "release-planning.xml",
+  };
+
+  const UPDATE_LINKS_INDEX: ContentUpdate = {
+    contentChangeType: ContentChangeType.update,
+    id: "19890228",
+    version: null,
+    title: "Release Planning",
+    type: "page",
+    status: "current",
+    ancestors: [{ id: "19759105" }],
+    body: {
+      storage: {
+        value: "<a href='folder/index.qmd'>team</a>",
         representation: "storage",
       },
     },
@@ -3468,6 +3917,22 @@ const runUpdateLinks = () => {
     );
   });
 
+  test(suiteLabel("one_update_link_index"), async () => {
+    const changes: ConfluenceSpaceChange[] = [UPDATE_LINKS_INDEX];
+    const rootURL = "fake-server/wiki/spaces/QUARTOCONF/pages";
+    const expectedUpdate: ContentUpdate = {
+      ...UPDATE_LINKS_INDEX,
+      body: {
+        storage: {
+          value: `<a href=\'fake-server/wiki/spaces/QUARTOCONF/pages/fake-folder-id'>team</a>`,
+          representation: "storage",
+        },
+      },
+    };
+    const expected: ConfluenceSpaceChange[] = [expectedUpdate];
+    check(expected, changes, fileMetadataTable, "fake-server", FAKE_PARENT);
+  });
+
   test(suiteLabel("one_update_link_special_char"), async () => {
     const changes: ConfluenceSpaceChange[] = [UPDATE_LINKS_SPECIAL_CHAR];
     const rootURL = "fake-server/wiki/spaces/QUARTOCONF/pages";
@@ -3484,7 +3949,7 @@ const runUpdateLinks = () => {
     check(expected, changes, fileMetadataTable, "fake-server", FAKE_PARENT);
   });
 
-  otest(suiteLabel("one_update_link_nested_dot_slash"), async () => {
+  test(suiteLabel("one_update_link_nested_dot_slash"), async () => {
     const changes: ConfluenceSpaceChange[] = [
       UPDATE_LINKS_ONE_NESTED_DOT_SLASH,
     ];
@@ -4205,7 +4670,7 @@ const runFootnoteTransform = () => {
     assertEquals(expected, footnoteTransform(value));
   });
 
-  otest(suiteLabel("ignore_existing"), async () => {
+  test(suiteLabel("ignore_existing"), async () => {
     const value =
       '<ac:structured-macro ac:name="anchor" ac:schema-version="1" ac:local-id="a6aa6f25-0bee-4a7f-929b-71fcb7eba592" ac:macro-id="d2cb5be1217ae6e086bc60005e9d27b7"><ac:parameter ac:name="">fnref1</ac:parameter></ac:structured-macro><a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>' +
       '<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">' +
@@ -4273,6 +4738,12 @@ const runFootnoteTransform = () => {
   });
 };
 
+if (HIDE_NOISE) {
+  console.info(
+    "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+  );
+}
+
 if (RUN_ALL_TESTS) {
   runGeneralTests();
   runFilterFilesForUpdate();
@@ -4294,5 +4765,7 @@ if (RUN_ALL_TESTS) {
   runCapFirstLetter();
   runFootnoteTransform();
   runConfluenceParentFromString();
+  runFlattenIndexes();
 } else {
+  runUpdateLinks();
 }

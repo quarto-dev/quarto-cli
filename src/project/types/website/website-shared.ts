@@ -35,7 +35,6 @@ import {
   websiteConfig,
   websiteConfigArray,
   websiteConfigBoolean,
-  websiteConfigMetadata,
 } from "./website-config.ts";
 import { cookieConsentEnabled } from "./website-analytics.ts";
 import { Format, FormatExtras } from "../../../config/types.ts";
@@ -101,10 +100,12 @@ export function inputFileHref(href: string) {
 
 export function websiteNavigationConfig(project: ProjectContext) {
   // read navbar
-  let navbar = websiteConfigMetadata(kSiteNavbar, project.config) as
+  let navbar = websiteConfig(kSiteNavbar, project.config) as
     | Navbar
     | undefined;
-  if (typeof (navbar) !== "object") {
+  if (typeof (navbar) === "boolean" && navbar) {
+    navbar = { background: "primary" };
+  } else if (typeof (navbar) !== "object") {
     navbar = undefined;
   }
 

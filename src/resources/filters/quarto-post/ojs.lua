@@ -6,12 +6,12 @@ function ojs()
   local uid = 0
   local cells = pandoc.List()
 
-  function uniqueId()
+  local function uniqueId()
     uid = uid + 1
     return "ojs-element-id-" .. uid
   end
 
-  function ojsInline(src)
+  local function ojsInline(src)
     local id = uniqueId()
     cells:insert({
         src = src,
@@ -21,21 +21,21 @@ function ojs()
     return pandoc.Span('', { id = id })
   end
 
-  function isInterpolationOpen(str)
+  local function isInterpolationOpen(str)
     if str.t ~= "Str" then
       return false
     end
     return str.text:find("${")
   end
 
-  function isInterpolationClose(str)
+  local function isInterpolationClose(str)
     if str.t ~= "Str" then
       return false
     end
     return str.text:find("}")
   end
 
-  function findArgIf(lst, fun, start)
+  local function findArgIf(lst, fun, start)
     if start == nil then
       start = 1
     end
@@ -48,18 +48,18 @@ function ojs()
     return nil
   end
 
-  function escapeSingle(str)
+  local function escapeSingle(str)
     local sub, _ = string.gsub(str, "'", "\\\\'")
     return sub
   end
 
-  function escapeDouble(str)
+  local function escapeDouble(str)
     local sub, _ = string.gsub(str, '"', '\\\\"')
     return sub
   end
 
-  function stringifyTokenInto(token, sequence)
-    function unknown()
+  local function stringifyTokenInto(token, sequence)
+    local function unknown()
       fail("Don't know how to handle token " .. token.t)
     end
     if     token.t == 'Cite' then
@@ -123,7 +123,7 @@ function ojs()
     end
   end
   
-  function stringifyTokens(sequence)
+  local function stringifyTokens(sequence)
     local result = pandoc.List()
     for i = 1, #sequence do
       stringifyTokenInto(sequence[i], result)
@@ -131,7 +131,7 @@ function ojs()
     return table.concat(result, "")
   end
 
-  function escape_quotes(str)
+  local function escape_quotes(str)
     local sub, _ = string.gsub(str, '\\', '\\\\')
     sub, _ = string.gsub(sub, '"', '\\"')
     sub, _ = string.gsub(sub, "'", "\\'")
@@ -139,7 +139,7 @@ function ojs()
     return sub
   end
   
-  function inlines_rec(inlines)
+  local function inlines_rec(inlines)
     -- FIXME I haven't tested this for nested interpolations
     local i = findArgIf(inlines, isInterpolationOpen)
     while i do

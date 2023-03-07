@@ -6,7 +6,7 @@
 */
 
 import {
-kBaseFormat,
+  kBaseFormat,
   kDefaultImageExtension,
   kEcho,
   kFigHeight,
@@ -43,7 +43,7 @@ import {
 } from "./markdown/format-markdown.ts";
 import { jatsFormat } from "./jats/format-jats.ts";
 import { asciidocFormat } from "./asciidoc/format-asciidoc.ts";
-import { mergeFormatMetadata, mergePandocVariant } from "../config/metadata.ts";
+import { mergePandocVariant } from "../config/metadata.ts";
 
 export function defaultWriterFormat(to: string): Format {
   // to can sometimes have a variant, don't include that in the lookup here
@@ -164,7 +164,7 @@ export function defaultWriterFormat(to: string): Format {
     case "epub":
     case "epub2":
     case "epub3":
-      writerFormat = epubFormat();
+      writerFormat = epubFormat(lookupTo);
       break;
 
     case "fb2":

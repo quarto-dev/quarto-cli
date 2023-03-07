@@ -55,7 +55,7 @@
               type:
                 string:
                   description: The type of the license.
-              url:
+              link:
                 string:
                   description: A URL to the license.
               text:

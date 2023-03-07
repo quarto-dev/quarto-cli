@@ -37,9 +37,11 @@ end
 function Writer (doc, opts)
   local filter ={
     Callout = function (callout)
+      local renderedCalloutContent =
+        pandoc.write(pandoc.Pandoc(callout.content), "html")
       local renderString = confluence.CalloutConfluence(
               callout.type,
-              pandoc.utils.stringify(callout.content))
+              renderedCalloutContent)
       return pandoc.RawInline('html', renderString)
     end,
     Image = function (image)
@@ -92,6 +94,10 @@ function Writer (doc, opts)
     RawBlock = function ()
       -- Raw blocks inclding arbirtary HTML like JavaScript is not supported in CSF
       return ""
+    end,
+    RawInline = function (inline)
+      local renderString = confluence.RawInlineConfluence(inline.text)
+      return pandoc.RawInline('html', renderString)
     end
   }
 

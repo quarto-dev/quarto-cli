@@ -52,6 +52,14 @@ function wrapped_writer()
       end,
   
       Emph = contentHandler,
+      Figure = function(element)
+        local result = {}
+        for _, block in ipairs(element.content) do
+          table.insert(result, block)
+        end
+        table.insert(result.caption)
+        return result
+      end,
       Image = function(element)
         return element.caption
       end,
@@ -96,7 +104,7 @@ function wrapped_writer()
       end
     }
   
-    function handleBottomUpResult(v)
+    local function handleBottomUpResult(v)
       if type(v) == "string" then
         table.insert(resultingStrs, v)
       elseif type(v) == "userdata" then

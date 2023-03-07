@@ -42,7 +42,7 @@
       </a>
     <% } %>
     <% if (needsTools && toolsLocation === "logo") { %>
-      <% partial('navtools.ejs', { align: 'start', tools: sidebar.tools, className: 'sidebar-tools-main', darkToggle: sidebar.darkToggle, search: sidebar.search, readerToggle: sidebar.readerToggle })%>
+      <% partial('navtools.ejs', { align: 'start', tools: sidebar.tools, className: 'sidebar-tools-main', darkToggle: sidebar.darkToggle, search: sidebar.search, readerToggle: sidebar.readerToggle, language: language })%>
     <% } %> 
     
     <% if (!navbar) { %>
@@ -54,7 +54,7 @@
       </a> 
       <% } %>  
       <% if (needsTools && toolsLocation === "title") { %>
-        <% partial('navtools.ejs', { align: 'start', tools: sidebar.tools, className: 'sidebar-tools-main', darkToggle: sidebar.darkToggle, search: sidebar.search, readerToggle: sidebar.readerToggle })%>
+        <% partial('navtools.ejs', { align: 'start', tools: sidebar.tools, className: 'sidebar-tools-main', darkToggle: sidebar.darkToggle, search: sidebar.search, readerToggle: sidebar.readerToggle, language: language })%>
       <% } %>  
     </div>
     <% } %>
@@ -66,16 +66,16 @@
         <% if (sidebar.search !== "overlay") { %>
         <div class="<%- sidebar.search === "overlay" ? "d-flex " : "" %>mt-2 flex-shrink-0 align-items-center">
         <div class="sidebar-search">
-        <% partial('navsearch.ejs',  { classes: '' }) %>
+        <% partial('navsearch.ejs',  { classes: '', language: language }) %>
         </div>
         </div>
         <% } %>
         <% if (needsTools && toolsLocation === "search") { %>
-        <% partial('navtools.ejs', { align: 'start', tools: sidebar.tools, className: 'sidebar-tools-collapse', darkToggle: sidebar.darkToggle, search: sidebar.search, readerToggle: sidebar.readerToggle })%>
+        <% partial('navtools.ejs', { align: 'start', tools: sidebar.tools, className: 'sidebar-tools-collapse', darkToggle: sidebar.darkToggle, search: sidebar.search, readerToggle: sidebar.readerToggle, language: language })%>
         <% } %>  
     <% } %>
     <% if (needsTools && toolsLocation === "fallthrough") { %>
-        <% partial('navtools.ejs', { align: 'start', tools: sidebar.tools, className: 'sidebar-tools-main', darkToggle: sidebar.darkToggle, search: sidebar.search, readerToggle: sidebar.readerToggle })%>
+        <% partial('navtools.ejs', { align: 'start', tools: sidebar.tools, className: 'sidebar-tools-main', darkToggle: sidebar.darkToggle, search: sidebar.search, readerToggle: sidebar.readerToggle, language: language })%>
     <% } %>
 
     <% if (sidebar.contents.length > 0) { %> 

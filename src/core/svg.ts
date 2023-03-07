@@ -115,13 +115,19 @@ export const fixupAlignment = (svg: Element, align: string) => {
 
 // https://github.com/b-fuze/deno-dom/issues/133
 const denoDomWorkaroundNamedItemAccessor = (
-  str: string,
+  _str: string,
   el: Element,
-  attr: string,
+  key: string,
 ): Attr | null => {
-  const m = str.match(new RegExp(attr, "i"));
-  if (!m) return null;
-  return el.attributes.getNamedItem(m[0]);
+  key = key.toLocaleLowerCase();
+
+  for (let i = 0; i < el.attributes.length; ++i) {
+    const attr = el.attributes.item(i);
+    if (attr?.name.toLowerCase() === key) {
+      return attr;
+    }
+  }
+  return null;
 };
 
 // NB: there's effectively a copy of this function

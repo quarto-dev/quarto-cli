@@ -23,11 +23,11 @@ title-block-affiliation-plural: "Affiliaatiot"
 title-block-published: "Julkaistu"
 title-block-modified: "Muokattu"
 
-callout-tip-caption: "Vihje"
-callout-note-caption: "Huomautus"
-callout-warning-caption: "Varoitus"
-callout-important-caption: "Tärkeää"
-callout-caution-caption: "Vaara"
+callout-tip-title: "Vihje"
+callout-note-title: "Huomautus"
+callout-warning-title: "Varoitus"
+callout-important-title: "Tärkeää"
+callout-caution-title: "Vaara"
 
 code-summary: "Koodi"
 
@@ -47,6 +47,8 @@ repo-action-links-edit: "Muokkaa sivua"
 repo-action-links-source: "Näytä lähdekoodi"
 repo-action-links-issue: "Ilmoita ongelmasta"
 
+back-to-top: "Takaisin alkuun"
+
 search-no-results-text: "Ei tuloksia"
 search-matching-documents-text: "tulokset"
 search-copy-link-title: "Kopioi linkki hakuun"
@@ -56,6 +58,12 @@ search-more-matches-text: "tulosta tässä dokumentissa"
 search-clear-button-title: "Tyhjennä"
 search-detached-cancel-button-title: "Peruuta"
 search-submit-button-title: "Lähetä"
+search: "Hae"
+
+toggle-sidebar: "Vaihda sivupalkki"
+toggle-dark-mode: "Tumma tila päälle/pois"
+toggle-reader-mode: "Vaihda lukijatilaa"
+toggle-navigation: "Vaihda navigointi"
 
 crossref-fig-title: "Kuva"
 crossref-tbl-title: "Taulukko"

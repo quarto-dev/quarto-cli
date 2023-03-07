@@ -210,7 +210,7 @@ export async function publishDocument(
           files.push(...resultFile.resourceFiles.map(asRelative));
         }
         return normalizePublishFiles({
-          baseDir,
+          baseDir: result.outputDir ? join(baseDir, result.outputDir) : baseDir,
           rootFile: rootFile!,
           files,
         });

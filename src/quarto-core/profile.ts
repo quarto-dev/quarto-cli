@@ -26,6 +26,9 @@ export function setProfileFromArg(args: Args) {
   // set profile if specified
   if (args.profile) {
     Deno.env.set(kQuartoProfile, args.profile);
+    return true;
+  } else {
+    return false;
   }
 }
 

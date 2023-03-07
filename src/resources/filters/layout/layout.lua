@@ -202,7 +202,7 @@ function layoutCells(divEl, cells)
     
     -- manage/perform next insertion into the layout
     local cellIndex = 1
-    function layoutNextCell(width)
+    local function layoutNextCell(width)
       -- check for a spacer width (negative percent)
       if isSpacerWidth(width) then
         local cell = pandoc.Div({

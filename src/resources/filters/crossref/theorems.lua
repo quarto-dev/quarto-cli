@@ -8,7 +8,7 @@ function crossrefPreprocessTheorems()
     Div = function(el)
       local type = refType(el.attr.identifier)
       if types[type] ~= nil or proofType(el) ~= nil then
-        return pandoc.walk_block(el, {
+        return _quarto.ast.walk(el, {
           Header = function(el)
             el.classes:insert("unnumbered")
             return el

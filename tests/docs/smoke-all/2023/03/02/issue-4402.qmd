@@ -1,0 +1,28 @@
+---
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["#in-chunk div.datatables", "#inline div.datatables"]
+        - []
+---
+
+## In-chunk {#in-chunk}
+
+htmlwidgets should work in chunk 
+
+```{r dt}
+#| echo: false
+#| message: false
+carsDT <- DT::datatable(cars)
+carsDT
+```
+
+## Inline {#inline}
+
+and inline 
+
+`r carsDT`
+
+

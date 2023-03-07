@@ -277,22 +277,6 @@ export function buildTreeSitterAnnotation(
     return dispatch[node.type](node);
   };
 
-  const annotateError = (
-    start: number,
-    end: number,
-    message: string,
-  ): AnnotatedParse => {
-    errors.push({ start, end, message });
-    return {
-      start,
-      end,
-      result: null,
-      kind: "<<ERROR>>",
-      components: [],
-      source: mappedSource,
-    };
-  };
-
   const annotateEmpty = (position: number): AnnotatedParse => {
     return {
       start: position,

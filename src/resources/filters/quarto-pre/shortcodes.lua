@@ -186,7 +186,7 @@ function transformShortcodeInlines(inlines, noRawInlines)
   local shortcodeInlines = pandoc.List()
   local accum = outputInlines
 
-  function ensure_accum(i)
+  local function ensure_accum(i)
     if not transformed then
       transformed = true
       for j = 1,i - 1 do
@@ -484,8 +484,13 @@ end
 
 
 function shortcodeResultAsInlines(result, name)
-  local type = pandoc.utils.type(result)
-  if type == "Inlines" then
+  local type = quarto.utils.type(result)
+  if type == "CustomBlock" then
+    error("Custom AST Block returned from shortcode, but Inline was expected")
+    os.exit(1)
+  elseif type == "CustomInline" then
+    return pandoc.Inlines( { result })
+  elseif type == "Inlines" then
     return result
   elseif type == "Blocks" then
     return pandoc.utils.blocks_to_inlines(result, { pandoc.Space() })
@@ -506,14 +511,17 @@ function shortcodeResultAsInlines(result, name)
     return pandoc.utils.blocks_to_inlines( { result }, { pandoc.Space() })
   else
     error("Unexepected result from shortcode " .. name .. "")
-    quarto.utils.dump(result)
+    quarto.log.output(result)
     os.exit(1)
   end
 end
   
 function shortcodeResultAsBlocks(result, name)
-  local type = pandoc.utils.type(result)
-  if type == "Blocks" then
+  local type = quarto.utils.type(result)
+
+  if type == "CustomBlock" or type == "CustomInline" then
+    return pandoc.Blocks({pandoc.Plain(result)})
+  elseif type == "Blocks" then
     return result
   elseif type == "Inlines" then
     return pandoc.Blocks( {pandoc.Para(result) })
@@ -534,7 +542,7 @@ function shortcodeResultAsBlocks(result, name)
     return pandoc.Blocks( {pandoc.Para( {result} ) })
   else
     error("Unexepected result from shortcode " .. name .. "")
-    quarto.utils.dump(result)
+    quarto.log.output(result)
     os.exit(1)
   end
 end

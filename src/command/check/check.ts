@@ -82,12 +82,26 @@ async function checkVersions(_services: RenderServices) {
 
   completeMessage("Checking versions of quarto binary dependencies...");
 
-  const pandocVersion = lines(
+  let pandocVersion = lines(
     (await execProcess({
       cmd: [pandocBinaryPath(), "--version"],
       stdout: "piped",
     })).stdout!,
   )[0]?.split(" ")[1];
+  // We hack around pandocVersion to build a sem-verish string
+  // that satisfies the semver package
+  // if pandoc reports more than three version numbers, pick the first three
+  // if pandoc reports fewer than three version numbers, pad with zeros
+  if (pandocVersion) {
+    const versionParts = pandocVersion.split(".");
+    if (versionParts.length > 3) {
+      pandocVersion = versionParts.slice(0, 3).join(".");
+    } else if (versionParts.length < 3) {
+      pandocVersion = versionParts.concat(
+        Array(3 - versionParts.length).fill("0"),
+      ).join(".");
+    }
+  }
   checkVersion(pandocVersion, ">=2.19.2", "Pandoc");
 
   const sassVersion = (await dartCommand(["--version"]))?.trim();

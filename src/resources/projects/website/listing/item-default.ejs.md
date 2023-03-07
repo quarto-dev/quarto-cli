@@ -27,9 +27,9 @@ print(`<div class="metadata-value listing-${field}">${listing.utilities.outputLi
 <div class="thumbnail">
 <a href="<%- item.path %>">
 <% if (item.image) { %>
-<%= listing.utilities.img(itemNumber, item.image, "thumnail-image", item['image-alt']) %>
+<%= listing.utilities.img(itemNumber, item.image, "thumbnail-image", item['image-alt']) %>
 <% } else { %>
-<div class="thumbnail-image"<%= imageHeight ? ` style="height: ${imageHeight};"` : '' %>></div>
+<%= listing.utilities.imgPlaceholder(itemNumber, item.outputHref) %>
 <% } %>
 </a>
 </div>

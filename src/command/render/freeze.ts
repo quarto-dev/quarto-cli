@@ -38,6 +38,7 @@ import { ExecuteResult } from "../../execute/types.ts";
 import { kProjectLibDir, ProjectContext } from "../../project/types.ts";
 import { projectScratchPath } from "../../project/project-scratch.ts";
 import { copyMinimal, copyTo } from "../../core/copy.ts";
+import { warning } from "log/mod.ts";
 
 export const kProjectFreezeDir = "_freeze";
 export const kOldFreezeExecuteResults = "execute";
@@ -97,10 +98,29 @@ export function defrostExecuteResult(
   const resultFile = freezeResultFile(source, output);
   if (existsSync(resultFile)) {
     // parse result
-    const { hash, result } = JSON.parse(Deno.readTextFileSync(resultFile)) as {
-      hash: string;
-      result: ExecuteResult;
-    };
+    let hash: string;
+    let result: ExecuteResult;
+    const contents = Deno.readTextFileSync(resultFile);
+    try {
+      const inp = JSON.parse(contents) as {
+        hash: string;
+        result: ExecuteResult;
+      };
+      hash = inp.hash;
+      result = inp.result;
+    } catch (_e) {
+      if (
+        contents.match("<<<<<<<") && contents.match(">>>>>>>") &&
+        contents.match("=======")
+      ) {
+        warning(
+          `Error parsing ${resultFile}; it looks possibly like a git merge conflict.`,
+        );
+      } else {
+        warning(`Error parsing ${resultFile}; it may be corrupt.`);
+      }
+      return;
+    }
 
     // use frozen version for force or equivalent source hash
     if (force || hash === freezeInputHash(source)) {

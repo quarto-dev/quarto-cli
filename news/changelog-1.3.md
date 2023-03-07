@@ -1,3 +1,7 @@
+## Confluence Publishing
+
+- Add support for publishing both documents and projects to Atlassian Confluence spaces and as children to Confluence pages.
+
 ## Jupyter Notebooks
 
 - Add support for embedding cell outputs in quarto documents using `{{< embed >}}`. You can address cells by Id, Tag, or label, such as `{{< embed mynotebook.ipynb#fig-output >}}` which would embed the output of a cell with the label `fig-output`). You can also provide a list of ids like `{{< embed mynotebook.ipynb#fig-output,tbl-out >}}`.
@@ -6,6 +10,12 @@
 - Fix output of code cells that contain triple backticks (or more) ([#3179](https://github.com/quarto-dev/quarto-cli/issues/3179)).
 - Don't install SIGCHLD signal handler since it interferes with IJulia in Julia 1.8.4 and greater ([#2539](https://github.com/quarto-dev/quarto-cli/issues/2539)).
 - Resolve full path to QUARTO_PYTHON binary
+- Improve handling of YAML and titles in notebooks (auto-merge heading based title with YAML front matter)
+- Discard matplotlib, seaborn, and plotnine intermediate objects from output
+
+## Knitr engine
+
+- Help rmarkdown find pandoc binary bundled with Quarto if none is found ([#3688](https://github.com/quarto-dev/quarto-cli/issues/3688)).
 
 ## Code Annotation
 
@@ -25,10 +35,17 @@
 - Forward bootstrap table classes from caption to table element ([#4036](https://github.com/quarto-dev/quarto-cli/issues/4036)).
 - Render code listings with names and captions correctly ([#2195](https://github.com/quarto-dev/quarto-cli/issues/2195)).
 - Fix issue with interactivity of elements in mobile size dispay when `toc-left` is being used. ([#4244](https://github.com/quarto-dev/quarto-cli/issues/4244)).
+- Allow control of the 'cite as' appendix in HTML documents using `appendix-cite-as` (pass `false`, `display`, or `bibtex`). ([#2625](https://github.com/quarto-dev/quarto-cli/issues/2625))
+- Properly anchor custom appendix sections ([#3112](https://github.com/quarto-dev/quarto-cli/issues/3112)).
+- Don't display custom appendix sections in the TOC ([#3113](https://github.com/quarto-dev/quarto-cli/issues/3113)).
+- Use custom `styles.html` template partial to better support checkbox alignment ([#4556](https://github.com/quarto-dev/quarto-cli/issues/4556)).
+- Improve ergonomics of text-highting in HTML output, not emitting difficult overwrite styles and better supporting theme -> CSS conversion. ([#4334](https://github.com/quarto-dev/quarto-cli/issues/4334)).
+- Improve CSS of nested tight and loose lists ([#4560](https://github.com/quarto-dev/quarto-cli/discussions/4650)).
 
 ## Article Layout
 
-- Improve positioning of margin content defined within tabsets. (#3280)
+- Improve positioning of margin content defined within tabsets ([#3280](https://github.com/quarto-dev/quarto-cli/issues/3280)).
+- Improve support for tables with margin positioned endnotes ([#4324](https://github.com/quarto-dev/quarto-cli/issues/4324)).
 
 ## Revealjs Format
 
@@ -37,6 +54,13 @@
 - add better margins to numbered lists in the presence of many items and `.scrollable` ([#4283](https://github.com/quarto-dev/quarto-cli/issues/4063)).
 - Properly support scss imports for RevealJS extensions ([#3414](https://github.com/quarto-dev/quarto-cli/issues/3414))
 - Authors on the title slides now correctly object customization of the `$presentation-title-slide-text-align` scss variable ([#3843](https://github.com/quarto-dev/quarto-cli/issues/3843))
+- Properly support `show-notes: separate-page` [#3996](https://github.com/quarto-dev/quarto-cli/issues/3996)
+- Improve footnote / aside layout for centered slides. [#4297](https://github.com/quarto-dev/quarto-cli/issues/4297)
+- Ensure anchors refer to the containing slide in case of crossrefs ([#3533](https://github.com/quarto-dev/quarto-cli/issues/4297)).
+
+## EPUB Format
+
+- Enable webtex (epub2 format) or mathml (epub/epub3 format) by default for EPUB output [#4403](https://github.com/quarto-dev/quarto-cli/issues/4403)
 
 ## Dates
 
@@ -62,6 +86,7 @@
 
 - Properly forward variants (e.g. `+yaml_metadata_block`) to `gfm` format.
 - `gfm` format now supports a local browser based preview when using `quarto preview`. If you'd like to see the raw markdown in preview, you can add `preview-mode: raw` to your document front matter or project.
+- `gfm` and `commonmark` output formats now use ATX style headers ([#4280](https://github.com/quarto-dev/quarto-cli/issues/4280))
 
 ## Mermaid diagrams
 
@@ -72,6 +97,7 @@
 - Remove support for tooltips, which appear to not be working in mermaid 9.2.2.
 - Add support for `fig-align` in mermaid diagrams in HTML format ([#3294](https://github.com/quarto-dev/quarto-cli/issues/3294)).
 - Add support for `%%| file` mermaid cell option ([#3665](https://github.com/quarto-dev/quarto-cli/issues/3665)).
+- Fix `code-fold` support in mermaid (and dot) diagrams ([#4423](https://github.com/quarto-dev/quarto-cli/issues/4423)).
 
 ## Dates
 
@@ -80,6 +106,7 @@
 ## About Pages
 
 - Add support for `image-alt` which provides alternate text for the about page image. ([#3010](https://github.com/quarto-dev/quarto-cli/issues/3010))
+- Add support for `image-title` on About pages ([#3077](https://github.com/quarto-dev/quarto-cli/issues/3077))
 
 ## Article Layout
 
@@ -94,9 +121,13 @@
 - Allow listings in project to point directly to non-input files (such as `yml` files) to use for contents.
 - Allow `sort: false` to disable any sorting, allowing items to appear in their original / natural order. (#3296)
 - Warn if listings are being used outside of a website ([#4267](https://github.com/quarto-dev/quarto-cli/issues/4267))
+- Permit using computation outputs (plots/figures) as the preview image for an item in a listing ([#2324](https://github.com/quarto-dev/quarto-cli/issues/2324))
+- Use alt text from preview image that is discovered for a page in a listing ([#3706](https://github.com/quarto-dev/quarto-cli/issues/3706))
+- Add support for `includes:` and `excludes:` in listings, which will use filter the items included in a listing. ([#2577](https://github.com/quarto-dev/quarto-cli/issues/2577)).
 
 ## Websites
 
+- Add suport for 'Back to top' navigational button. Controlled using `back-to-top-navigation:` under `website:`, can be disabled by setting `back-to-top-navigation: false` on individual pages.
 - Fix issue assigning specific sidebar to a specific page using `sidebar:` (#3389)
 - Change behavior of `publish gh-pages` to always render into a clean directory.
   Previous behavior was to add to existing contents of `gh-pages` branch. ([#3199](https://github.com/quarto-dev/quarto-cli/discussions/3199), @ijlyttle)
@@ -106,14 +137,22 @@
 - Don't treat links with no `href` as external when `link-external-icon` is enabled ([#3645](https://github.com/quarto-dev/quarto-cli/issues/3645))
 - Escape HTML from code cells that appears inline in search results ([#4404](https://github.com/quarto-dev/quarto-cli/issues/4404))
 - Use input last modified timestamp when updating sitemap ([#3251](https://github.com/quarto-dev/quarto-cli/issues/3251))
+- Add support for overriding the url used to report an issue with a website using `issue-url` (which can be provided even if there is no repo provided for the website).
+- Properly localize search button title and various toggle aria-labels ([#4559](https://github.com/quarto-dev/quarto-cli/issues/4559))
+- Support `navbar: true` to turn on a top navbar even if there are no contents
+- Improve title recognition for pages that don't include a title in metadata ([#4528](https://github.com/quarto-dev/quarto-cli/issues/4528))
+- Ensure that footnote are properly indexed for website and book searches ([#4601](https://github.com/quarto-dev/quarto-cli/issues/4601)).
+- Permit sidebar items to include icons ([#3830](https://github.com/quarto-dev/quarto-cli/issues/3830)).
 
 ## Books
 
 - Remove chapter number of HTML head title when `number-sections` is `false` (#3304).
 - Non-HTML book output formats will now be placed in subdirectories (`book-<format>`) within the project output directory (`_books`)
-- Don't discard the first chapter header when a chapter title is declared using YAML. ([#3653](https://github.com/quarto-dev/quarto-cli/issues/3653))
+- Don't discard the first chapter header when a chapter title is declared using YAML.
 - Support for rendering to Asciidoc
 - Support for rendering to LaTeX
+- Properly support localized appendex name in book website navigation ([#4578](https://github.com/quarto-dev/quarto-cli/issues/4578))
+- Don't emit duplicate bibliography heading when LaTeX/PDF books are rendering using `natbib` or `biblatex` ([#2770](https://github.com/quarto-dev/quarto-cli/issues/2770))
 
 ## Preview
 
@@ -126,6 +165,7 @@
 ## HTML Output
 
 - HTML output will not decorate links within source code (for example, from `code-link: true`) with external icons. (#3755)
+- Use `toc-expand` to control to what level the TOC will expand by default in HTML documents.
 
 ## Miscellaneous
 
@@ -148,7 +188,16 @@
 - Resolve link tags correctly in html dependencies ([#4304](https://github.com/quarto-dev/quarto-cli/discussions/4304)) (Thank you, @jdlom!).
 - use correct language code for Korean ([#4187](https://github.com/quarto-dev/quarto-cli/discussions/4187)).
 - resolve YAML options correctly for comments with open+close syntax ([#3901](https://github.com/quarto-dev/quarto-cli/issues/3901)).
-- Work around rare deno tempfile creation bug ([#4352](https://github.com/quarto-dev/quarto-cli/pull/4352)).
+- Work around rare deno tempfile creation bug ([#4352](https://github.com/quarto-dev/quarto-cli/issues/4352)).
+- Only open "safe ports" for Chromium ([#4514](https://github.com/quarto-dev/quarto-cli/issues/4514)).
+- Detect potential bad argument ordering in `quarto render` ([#3581](https://github.com/quarto-dev/quarto-cli/issues/3581)).
+- Detect potential git merge conflict in `\_freeze` files ([#4529](https://github.com/quarto-dev/quarto-cli/issues/4529)).
+- Trim whitespace from the end of yaml strings in jupyter engine to work around poyo parsing issue ([#4573](https://github.com/quarto-dev/quarto-cli/issues/4573)).
+- Use "iso" date form instead of "short" to format citations properly ([#4586](https://github.com/quarto-dev/quarto-cli/issues/4586)).
+- Fix typo `thumnail-image` -> `thumbnail-image` in listing template ([#4602](//github.com/quarto-dev/quarto-cli/pull/4602)) (Thank you, @mattspence!).
+- Add support for targeting the `#refs` divs with citations when using `natbib` or `biblatex` to generate a bibliography.
+- Warn users about Chromium installation issues in WSL ([#4596](https://github.com/quarto-dev/quarto-cli/issues/4586)).
+- Add `title` attribute for callouts (can be used rather than heading for defining the title)
 
 ## Pandoc filter changes
 
@@ -160,6 +209,14 @@
 - fix rendering of individual project files to stdout ([#4052](https://github.com/quarto-dev/quarto-cli/issues/4052)).
 - fix previewing docusaurus project on Windows ([#4312](https://github.com/quarto-dev/quarto-cli/issues/4312)).
 
+## Publishing
+
+- Fix error publishing when an `output-dir` is specified ([#4158](https://github.com/quarto-dev/quarto-cli/issues/4158)).
+- Emit error when git <2.17.0 is used ([#4575](https://github.com/quarto-dev/quarto-cli/issues/4575)).
+
 ## Other
 
 - fix error when running the command `quarto render -h` to receive help ([#3202](https://github.com/quarto-dev/quarto-cli/issues/3202)).
+- Fix error when rendering a document with an extension which provides a directory as `format-resources` ([#4377](https://github.com/quarto-dev/quarto-cli/issues/4377)).
+- Fix incorrect copying of resource files during rendering ([#4544](https://github.com/quarto-dev/quarto-cli/issues/4544))
+- Extension authors may now force files to be included in their template by writing the file / file path in the `.quartoignore` file prefixed with a `!`. For example `!README.md` ([#4061](https://github.com/quarto-dev/quarto-cli/issues/4061)).

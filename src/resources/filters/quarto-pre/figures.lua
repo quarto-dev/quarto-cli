@@ -56,7 +56,7 @@ function quartoPreFigures()
         end
         local figEnv = param(kFigEnv)
         if figEnv and not image.attr.attributes[kFigEnv] then
-          image.attr.attributes[kFigEnv] = figPos
+          image.attr.attributes[kFigEnv] = figEnv
         end
       else 
         return image

@@ -61,7 +61,7 @@ function refPrefix(type, upper)
   if upper then
     local el = pandoc.Plain(prefix)
     local firstStr = true
-    el = pandoc.walk_block(el, {
+    el = _quarto.ast.walk(el, {
       Str = function(str)
         if firstStr then
           local strText = pandoc.text.upper(pandoc.text.sub(str.text, 1, 1)) .. pandoc.text.sub(str.text, 2, -1)
@@ -129,7 +129,7 @@ function formatNumberOption(type, order, default)
   end
   
   -- return a pandoc.Str w/ chapter prefix (if any)
-  function resolve(num)
+  local function resolve(num)
     if section then
       local sectionIndex = section[1]
       if crossrefOption("chapters-alpha", false) then

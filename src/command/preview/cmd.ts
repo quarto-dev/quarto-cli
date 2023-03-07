@@ -42,6 +42,9 @@ import { renderProject } from "../render/project.ts";
 import { renderServices } from "../render/render-shared.ts";
 import { parseFormatString } from "../../core/pandoc/pandoc-formats.ts";
 import { normalizePath } from "../../core/path.ts";
+import { kCliffyImplicitCwd } from "../../config/constants.ts";
+import { warning } from "log/mod.ts";
+
 export const previewCommand = new Command()
   .name("preview")
   .stopEarly()
@@ -129,6 +132,24 @@ export const previewCommand = new Command()
     // one-time initialization of yaml validation modules
     setInitializer(initYamlIntelligenceResourcesFromFilesystem);
     await initState();
+
+    // if input is missing but there exists an args parameter which is a .qmd or .ipynb file,
+    // issue a warning.
+    if (!file || file === kCliffyImplicitCwd) {
+      file = Deno.cwd();
+      const firstArg = args.find((arg) =>
+        arg.endsWith(".qmd") || arg.endsWith(".ipynb")
+      );
+      if (firstArg) {
+        warning(
+          "`quarto preview` invoked with no input file specified (the parameter order matters).\nQuarto will preview the current directory by default.\n" +
+            `Did you mean to run \`quarto preview ${firstArg} ${
+              args.filter((arg) => arg !== firstArg).join(" ")
+            }\`?\n` +
+            "Use `quarto preview --help` for more information.",
+        );
+      }
+    }
 
     file = file || Deno.cwd();
     if (!existsSync(file)) {

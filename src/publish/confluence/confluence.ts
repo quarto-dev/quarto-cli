@@ -56,6 +56,7 @@ import {
   doWithSpinner,
   filterFilesForUpdate,
   findAttachments,
+  flattenIndexes,
   footnoteTransform,
   getNextVersion,
   getTitle,
@@ -261,18 +262,21 @@ async function publish(
   const uniquifyTitle = async (title: string, idToIgnore: string = "") => {
     trace("uniquifyTitle", title);
 
-    const titleAlreadyExistsInSpace: boolean = await client.isTitleInSpace(
+    const titleIsUnique: boolean = await client.isTitleUniqueInSpace(
       title,
       space,
       idToIgnore
     );
 
+    if (titleIsUnique) {
+      return title;
+    }
+
     const uuid = globalThis.crypto.randomUUID();
     const shortUUID = uuid.split("-")[0] ?? uuid;
-    const createTitle = titleAlreadyExistsInSpace
-      ? `${title} ${shortUUID}`
-      : title;
-    return createTitle;
+    const uuidTitle = `${title} ${shortUUID}`;
+
+    return uuidTitle;
   };
 
   const fetchExistingSite = async (parentId: string): Promise<SitePage[]> => {
@@ -388,7 +392,11 @@ async function publish(
       fileName
     );
 
-    const uniqueTitle = await uniquifyTitle(titleToUpdate, id);
+    let uniqueTitle = titleToUpdate;
+
+    if (previousPage.title !== titleToUpdate) {
+      uniqueTitle = await uniquifyTitle(titleToUpdate, id);
+    }
 
     trace("attachmentsToUpload", attachmentsToUpload, LogPrefix.ATTACHMENT);
 
@@ -643,16 +651,10 @@ async function publish(
       const originalTitle = getTitle(fileName, metadataByInput);
       const title = originalTitle;
 
-      const matchingPages = await client.fetchMatchingTitlePages(
-        originalTitle,
-        space
-      );
-
       return await {
         fileName,
         title,
         originalTitle,
-        matchingPages,
         contentBody: await fileToContentBody(fileName),
       };
     };
@@ -664,6 +666,7 @@ async function publish(
     trace("fileMetadata", fileMetadata);
 
     let metadataByFilename = buildFileToMetaTable(existingSite);
+
     trace("metadataByFilename", metadataByFilename);
 
     let changeList: ConfluenceSpaceChange[] = buildSpaceChanges(
@@ -672,6 +675,8 @@ async function publish(
       space,
       existingSite
     );
+
+    changeList = flattenIndexes(changeList, metadataByFilename);
 
     const { pass1Changes, pass2Changes } = updateLinks(
       metadataByFilename,

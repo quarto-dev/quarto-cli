@@ -258,7 +258,8 @@ function resolvePathInfo(path?: PathInfo): PathInfo {
   if (path !== undefined) {
     return path;
   }
-  return {} as any; // FIXME this should get information from quarto's runtime.
+  throw new Error("Unimplemented");
+  // return {} as any; // FIXME this should get information from quarto's runtime.
 }
 
 function isRelativePath(path: QualifiedPath): path is RelativePath {

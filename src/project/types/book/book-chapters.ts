@@ -6,6 +6,7 @@ import {
   kCrossref,
   kCrossrefAppendixDelim,
   kCrossrefAppendixTitle,
+  kCrossrefApxPrefix,
   kCrossrefChapterId,
   kCrossrefChaptersAlpha,
   kCrossrefChaptersAppendix,
@@ -134,7 +135,8 @@ export function formatChapterTitle(
   if (info) {
     if (info.appendix) {
       const crossref = format.metadata?.crossref as Metadata;
-      const title = crossref?.[kCrossrefAppendixTitle] || "Appendix";
+      const title = crossref?.[kCrossrefAppendixTitle] ||
+        format.language[kCrossrefApxPrefix] || "Appendix";
       const delim = crossref?.[kCrossrefAppendixDelim] !== undefined
         ? crossref?.[kCrossrefAppendixDelim]
         : " —";

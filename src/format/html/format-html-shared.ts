@@ -62,6 +62,7 @@ export const kGiscusCategoryId = "category-id";
 export const kDraft = "draft";
 
 export const kAppendixStyle = "appendix-style";
+export const kAppendixCiteAs = "appendix-cite-as";
 export const kLicense = "license";
 export const kCopyright = "copyright";
 

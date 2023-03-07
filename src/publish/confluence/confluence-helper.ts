@@ -1,16 +1,11 @@
 import { trace } from "./confluence-logger.ts";
 import { ApiError, PublishRecord } from "../types.ts";
-import { ensureTrailingSlash } from "../../core/path.ts";
 import {
-  join,
-  basename,
-  parse,
-  dirname,
-  toFileUrl,
-  resolve,
-} from "path/mod.ts";
+  ensureTrailingSlash,
+  pathWithForwardSlashes,
+} from "../../core/path.ts";
+import { join } from "path/mod.ts";
 import { isHttpUrl } from "../../core/url.ts";
-import { pathWithForwardSlashes } from "../../core/path.ts";
 import { AccountToken, InputMetadata } from "../provider.ts";
 import {
   ConfluenceParent,
@@ -29,8 +24,6 @@ import {
   ContentUpdate,
   ContentVersion,
   EMPTY_PARENT,
-  LogLevel,
-  LogPrefix,
   PAGE_TYPE,
   SiteFileMetadata,
   SitePage,
@@ -402,17 +395,10 @@ export const buildSpaceChanges = (
     pageParent = existingParent ? existingParent.id : pageParent;
 
     if (existingPage) {
-      let useOriginalTitle = false;
-      if (fileMetadata.matchingPages.length === 1) {
-        if (fileMetadata.matchingPages[0].id === existingPage.id) {
-          useOriginalTitle = true;
-        }
-      }
-
       spaceChangeList = [
         buildContentUpdate(
           existingPage.id,
-          useOriginalTitle ? fileMetadata.originalTitle : fileMetadata.title,
+          fileMetadata.title,
           fileMetadata.contentBody,
           universalFileName,
           pageParent
@@ -474,6 +460,97 @@ export const buildSpaceChanges = (
   });
 
   return spaceChanges;
+};
+
+export const flattenIndexes = (
+  changes: ConfluenceSpaceChange[],
+  metadataByFileName: Record<string, SitePage>
+): ConfluenceSpaceChange[] => {
+  const getFileNameForChange = (change: ConfluenceSpaceChange) => {
+    if (isContentDelete(change)) {
+      return "";
+    }
+
+    return pathWithForwardSlashes(change?.fileName ?? "");
+  };
+
+  const isIndexFile = (change: ConfluenceSpaceChange) => {
+    return getFileNameForChange(change)?.endsWith("/index.xml");
+  };
+
+  const toIndexPageLookup = (
+    accumulator: Record<string, ConfluenceSpaceChange>,
+    change: ConfluenceSpaceChange
+  ): Record<string, any> => {
+    if (isContentDelete(change)) {
+      return accumulator;
+    }
+    const fileName = getFileNameForChange(change);
+    const isIndex = isIndexFile(change);
+
+    if (isIndex) {
+      const folderFileName = fileName.replace("/index.xml", "");
+      return {
+        ...accumulator,
+        [folderFileName]: change,
+      };
+    }
+
+    return accumulator;
+  };
+
+  const indexLookup: Record<string, ConfluenceSpaceChange> = changes.reduce(
+    toIndexPageLookup,
+    {}
+  );
+
+  const toFlattenedIndexes = (
+    accumulator: ConfluenceSpaceChange[],
+    change: ConfluenceSpaceChange
+  ): ConfluenceSpaceChange[] => {
+    if (isContentDelete(change)) {
+      return [...accumulator, change];
+    }
+
+    const fileName = getFileNameForChange(change);
+    const parentFileName = fileName.replace("/index.xml", "");
+    const parentSitePage: SitePage = metadataByFileName[parentFileName];
+    if (isIndexFile(change)) {
+      if (parentSitePage) {
+        // The parent has already been created, this index create
+        // is actually an index parent update update the folder with
+        // index contents
+        const parentUpdate = buildContentUpdate(
+          parentSitePage.id,
+          change.title,
+          change.body,
+          parentSitePage.metadata.fileName ?? "",
+          "",
+          ContentStatusEnum.current,
+          PAGE_TYPE,
+          null,
+          parentSitePage.ancestors
+        );
+
+        return [...accumulator, parentUpdate];
+      } else {
+        return [...accumulator]; //filter out index file creates
+      }
+    }
+
+    const indexCreateChange: ConfluenceSpaceChange = indexLookup[fileName];
+
+    if (indexCreateChange && !isContentDelete(indexCreateChange)) {
+      change.title = indexCreateChange.title ?? change.title;
+      change.body = indexCreateChange.body ?? change.body;
+    }
+
+    return [...accumulator, change];
+  };
+
+  const flattenedIndexes = changes.reduce(toFlattenedIndexes, []);
+
+  return flattenedIndexes;
 };
 
 export const replaceExtension = (
@@ -601,6 +678,14 @@ export const updateLinks = (
 
       if (isAbsolute) {
         siteFilePath = siteFilePath.slice(1); //remove '/'
+      }
+
+      if (siteFilePath.endsWith("/index.qmd")) {
+        //flatten child index links to the parent
+        const siteFilePathParent = siteFilePath.replace("/index.qmd", "");
+        if (fileMetadataTable[siteFilePathParent]) {
+          siteFilePath = siteFilePathParent;
+        }
       }
 
       const sitePage: SitePage | null = fileMetadataTable[siteFilePath] ?? null;

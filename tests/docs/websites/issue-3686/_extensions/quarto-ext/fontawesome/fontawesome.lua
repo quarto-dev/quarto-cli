@@ -78,7 +78,7 @@ return {
         return pandoc.RawInline('tex', "{\\" .. size .. "\\faIcon{" .. icon .. "}}")
       end
     else
-      return pandoc.Null()
+      return {}
     end
   end
 }

@@ -219,11 +219,14 @@ const sidebarContentsHandler = (context: NavigationPipelineContext) => {
         ".sidebar-item:not(.sidebar-item-section) .sidebar-item-text",
       );
       for (let i = 0; i < sidebarItemEls.length; i++) {
-        const link = sidebarItemEls[i] as Element;
-        const href = link.getAttribute("href");
+        const sidebarEl = sidebarItemEls[i] as Element;
+        const href = sidebarEl.getAttribute("href");
         const sidebarText = rendered[`${kSidebarIdPrefix}${href}`];
         if (sidebarText) {
-          link.innerHTML = sidebarText.innerHTML;
+          const link = sidebarEl.querySelector(".menu-text");
+          if (link) {
+            link.innerHTML = sidebarText.innerHTML;
+          }
         }
       }
 
@@ -231,14 +234,17 @@ const sidebarContentsHandler = (context: NavigationPipelineContext) => {
         ".sidebar-item.sidebar-item-section .sidebar-item-text",
       );
       for (let i = 0; i < sidebarSectionEls.length; i++) {
-        const link = sidebarSectionEls[i] as Element;
-        const target = link.getAttribute("data-bs-target");
+        const sectionEl = sidebarSectionEls[i] as Element;
+        const target = sectionEl.getAttribute("data-bs-target");
 
         if (target) {
           const id = target.slice(1);
           const sectionText = rendered[`${kSidebarIdPrefix}${id}`];
           if (sectionText) {
-            link.innerHTML = sectionText.innerHTML;
+            const link = sectionEl.querySelector(".menu-text");
+            if (link) {
+              link.innerHTML = sectionText.innerHTML;
+            }
           }
         }
       }

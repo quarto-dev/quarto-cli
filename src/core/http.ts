@@ -92,6 +92,7 @@ export function httpFileRequestHandler(
         "favicon.ico",
         "listings.json",
         /jupyter-.*.js/,
+        /apple-touch-icon-/,
       ];
 
       handle404.print = handle404.print &&

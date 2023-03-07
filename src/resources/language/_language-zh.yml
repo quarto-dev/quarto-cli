@@ -23,11 +23,11 @@ title-block-affiliation-plural: "隶属关系"
 title-block-published: "发布日期"
 title-block-modified: "修改的"
 
-callout-tip-caption: "提示"
-callout-note-caption: "注释"
-callout-warning-caption: "警告"
-callout-important-caption: "重要"
-callout-caution-caption: "警告"
+callout-tip-title: "提示"
+callout-note-title: "注释"
+callout-warning-title: "警告"
+callout-important-title: "重要"
+callout-caution-title: "警告"
 
 code-summary: "代码"
 
@@ -47,6 +47,8 @@ repo-action-links-edit: "编辑该页面"
 repo-action-links-source: "查看代码"
 repo-action-links-issue: "报告问题"
 
+back-to-top: "回到顶部"
+
 search-no-results-text: "没有结果"
 search-matching-documents-text: "匹配的文档"
 search-copy-link-title: "复制搜索链接"
@@ -56,6 +58,12 @@ search-more-matches-text: "更多匹配结果"
 search-clear-button-title: "清除"
 search-detached-cancel-button-title: "取消"
 search-submit-button-title: "提交"
+search: "搜索"
+
+toggle-sidebar: "切换侧边栏导航"
+toggle-dark-mode: "切换深色模式"
+toggle-reader-mode: "切换阅读器模式"
+toggle-navigation: "切换导航"
 
 crossref-fig-title: "图"
 crossref-tbl-title: "表格"

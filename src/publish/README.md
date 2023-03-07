@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `quarto publish` command enables you to easily publish websites and documents to a variety of services, including [Netlify](https://www.netlify.com/), [GitHub Pages](https://pages.github.com/) and [RStudio Connect](https://www.rstudio.com/products/connect/) (more services will be added over time).
+The `quarto publish` command enables you to easily publish websites and documents to a variety of services, including [Netlify](https://www.netlify.com/), [GitHub Pages](https://pages.github.com/) and [Posit Connect](https://posit.co/products/enterprise/connect/) (more services will be added over time).
 
 To publish a website or book, just execute `quarto publish` from within the project directory:
 
@@ -43,10 +43,10 @@ If you provide the `--id` option (described below) then a publish record is not 
 
 As an alternative to providing account credentials interactively, you case use the following environment variables:
 
-| Service         | Variables                              |
-| --------------- | -------------------------------------- |
-| Netlify         | `NETLIFY_AUTH_TOKEN`                   |
-| RStudio Connect | `CONNECT_SERVER` and `CONNECT_API_KEY` |
+| Service        | Variables                              |
+| -------------- | -------------------------------------- |
+| Netlify        | `NETLIFY_AUTH_TOKEN`                   |
+| Postit Connect | `CONNECT_SERVER` and `CONNECT_API_KEY` |
 
 Using an environment variable combined with a `_publish.yml` file that points to the requisite publishing destination is enough to enable the following command to perform a headless publish on CI:
 
@@ -70,7 +70,7 @@ If your credentials are not stored in an environment variable as described above
 quarto publish netlify --id DDA36416-F950-4647-815C-01A24233E294 --token 7C0947A852D8
 ```
 
-When publishing to RStudio Connect you should make sure that the server, token, and id are all available either via environment variables or the command line. For example:
+When publishing to Posit Connect you should make sure that the server, token, and id are all available either via environment variables or the command line. For example:
 
 ```bash
 # via environment variablee

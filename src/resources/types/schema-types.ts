@@ -171,8 +171,9 @@ should be shown in the notes tab in the sidebar. */;
       | boolean
       | (
         | "always"
+        | "whenSidebarOpen"
         | "never"
-      ) /* Controls whether the in-document highlights are shown by default (`always` or `never`) */;
+      ) /* Controls whether the in-document highlights are shown by default (`always`, `whenSidebarOpen` or `never`) */;
     services?: (
       {
         apiUrl: string /* The base URL of the service API. */;
@@ -319,6 +320,8 @@ export type BaseWebsite = {
   "repo-subdir"?: string /* Subdirectory of repository containing website */;
   "repo-branch"?:
     string /* Branch of website source code (defaults to `main`) */;
+  "issue-url"?:
+    string /* URL to use for the 'report an issue' repository action. */;
   "repo-actions"?: MaybeArrayOf<
     (
       | "none"
@@ -388,6 +391,8 @@ The user’s cookie preferences will automatically control Google Analytics (if 
   > /* Markdown to place below margin content (text or file path) */;
   "page-navigation"?:
     boolean /* Provide next and previous article links in footer */;
+  "back-to-top-navigation"?:
+    boolean /* Provide a 'back to top' navigation button */;
   "page-footer"?: string | PageFooter /* Shared page footer */;
   "open-graph"?: boolean | OpenGraphConfig /* Publish open graph metadata */;
   "twitter-card"?:
@@ -603,11 +608,11 @@ export type FormatLanguage = {
   "toc-title-website"?: string;
   "related-formats-title"?: string;
   "related-notebooks-title"?: string;
-  "callout-tip-caption"?: string;
-  "callout-note-caption"?: string;
-  "callout-warning-caption"?: string;
-  "callout-important-caption"?: string;
-  "callout-caution-caption"?: string;
+  "callout-tip-title"?: string;
+  "callout-note-title"?: string;
+  "callout-warning-title"?: string;
+  "callout-important-title"?: string;
+  "callout-caution-title"?: string;
   "section-title-abstract"?: string;
   "section-title-footnotes"?: string;
   "section-title-appendices"?: string;
@@ -684,11 +689,8 @@ and appended to the end of the page. */;
 the `image` provided for the document itself will be used. */;
   links?: (NavigationItem)[];
   template?:
-    | "jolla"
-    | "trestles"
-    | "solana"
-    | "marquee"
-    | "broadside"; /* The template to use to layout this about page. Choose from:
+    | ("jolla" | "trestles" | "solana" | "marquee" | "broadside")
+    | string; /* The template to use to layout this about page. Choose from:
 
 - `jolla`
 - `trestles`
@@ -776,6 +778,9 @@ is missing a required field, an error will occur and the render will. */;
   - `numbered`: Category list with number of items
   - `unnumbered`: Category list
   - `cloud`: Word cloud style categories */;
+  exclude?: MaybeArrayOf<
+    SchemaObject
+  > /* Items with matching field values will be excluded from the listing. */;
   feed?: boolean | {
     categories?: MaybeArrayOf<
       string /* A list of categories for which to create separate RSS feeds containing only posts with that category. */
@@ -808,6 +813,9 @@ place the contents into a `div` with this id. If no such `div` is defined on the
 page, a `div` with this id will be created and appended to the end of the page.
 
 In no `id` is provided for a listing, Quarto will synthesize one when rendering the page. */;
+  include?: MaybeArrayOf<
+    SchemaObject
+  > /* Items with matching field values will be included in the listing. */;
   sort?:
     | boolean
     | MaybeArrayOf<
@@ -971,10 +979,14 @@ Do not use for topical descriptions or categories (e.g. "adventure" for an adven
   jurisdiction?:
     string /* Geographic scope of relevance (e.g. "US" for a US patent; the court hearing a legal case). */;
   keyword?: string /* Keyword(s) or tag(s) attached to the item. */;
-  language?: string /* The language of the item;
+  language?:
+    string /* The language of the item (used only for citation of the item).
 
 Should be entered as an ISO 639-1 two-letter language code (e.g. "en", "zh"),
-optionally with a two-letter locale code (e.g. "de-DE", "de-AT") */;
+optionally with a two-letter locale code (e.g. "de-DE", "de-AT").
+
+This does not change the language of the item, instead it documents
+what language the item uses (which may be used in citing the item). */;
   license?:
     string /* The license information applicable to an item (e.g. the license an article
 or software is released under; the copyright information for an item;
@@ -1107,7 +1119,7 @@ export type SmartInclude = {
 export type Semver =
   string; /* Version number according to Semantic Versioning */
 
-export type QuartoDate = string | { format?: string; value: String };
+export type QuartoDate = string | { format?: string; value: string };
 
 export type ProjectProfile = {
   default?: MaybeArrayOf<

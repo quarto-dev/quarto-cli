@@ -57,7 +57,7 @@ import {
   RenderFlags,
   RenderOptions,
 } from "./types.ts";
-import { error, info, warning } from "log/mod.ts";
+import { error, info } from "log/mod.ts";
 import * as ld from "../../core/lodash.ts";
 import { basename, dirname, join, relative } from "path/mod.ts";
 import { Format } from "../../config/types.ts";
@@ -82,10 +82,7 @@ import {
 } from "./freeze.ts";
 import { isJupyterNotebook } from "../../core/jupyter/jupyter.ts";
 import { MappedString } from "../../core/lib/text-types.ts";
-import {
-  createNamedLifetime,
-  waitUntilNamedLifetime,
-} from "../../core/lifetimes.ts";
+import { waitUntilNamedLifetime } from "../../core/lifetimes.ts";
 import { resolveDependencies } from "./pandoc-dependencies-html.ts";
 import {
   getData as getTimingData,
@@ -290,7 +287,7 @@ export async function renderFiles(
 
       if (progress) {
         renderProgress(
-          `[${String(i + 1).padStart(numWidth)}/${files.length}] ${
+          `\r[${String(i + 1).padStart(numWidth)}/${files.length}] ${
             relative(project!.dir, file.path)
           }`,
         );

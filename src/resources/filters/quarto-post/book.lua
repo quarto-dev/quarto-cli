@@ -3,6 +3,8 @@
 
 --- Removes notes and links
 local function clean (inlines)
+  -- this is in post, so it's after render, so we don't need to worry about
+  -- custom ast nodes
   return inlines:walk {
     Note = function (_) return {} end,
     Link = function (link) return link.content end,

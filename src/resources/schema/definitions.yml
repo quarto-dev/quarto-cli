@@ -283,9 +283,9 @@
                     showHighlights:
                       anyOf:
                         - boolean
-                        - enum: ["always", "never"]
+                        - enum: ["always", "whenSidebarOpen", "never"]
                       default: "always"
-                      description: Controls whether the in-document highlights are shown by default (`always` or `never`)
+                      description: Controls whether the in-document highlights are shown by default (`always`, `whenSidebarOpen` or `never`)
                     theme:
                       enum: ["classic", "clean"]
                       default: classic
@@ -624,6 +624,9 @@
       repo-branch:
         string:
           description: "Branch of website source code (defaults to `main`)"
+      issue-url:
+        string:
+          description: "URL to use for the 'report an issue' repository action."
       repo-actions:
         maybeArrayOf:
           enum: [none, edit, source, issue]
@@ -950,6 +953,9 @@
       page-navigation:
         boolean:
           description: "Provide next and previous article links in footer"
+      back-to-top-navigation:
+        boolean:
+          description: "Provide a 'back to top' navigation button"
       page-footer:
         anyOf:
           - string
@@ -1104,11 +1110,11 @@
       toc-title-website: string
       related-formats-title: string
       related-notebooks-title: string
-      callout-tip-caption: string
-      callout-note-caption: string
-      callout-warning-caption: string
-      callout-important-caption: string
-      callout-caution-caption: string
+      callout-tip-title: string
+      callout-note-title: string
+      callout-warning-title: string
+      callout-important-title: string
+      callout-caution-title: string
       section-title-abstract: string
       section-title-footnotes: string
       section-title-appendices: string
@@ -1179,7 +1185,9 @@
               If no such `div` is defined on the page, a `div` with this id will be created 
               and appended to the end of the page.
       template:
-        enum: [jolla, trestles, solana, marquee, broadside]
+        anyOf:
+          - enum: [jolla, trestles, solana, marquee, broadside]
+          - path
         description:
           short: "The template to use to layout this about page."
           long: |
@@ -1467,6 +1475,12 @@
             Fields that items in this listing must have populated.
             If a listing is rendered and one more items in this listing 
             is missing a required field, an error will occur and the render will.
+      include:
+        maybeArrayOf: object
+        description: "Items with matching field values will be included in the listing."
+      exclude:
+        maybeArrayOf: object
+        description: "Items with matching field values will be excluded from the listing."
 
 - id: website-listing-contents-object
   object:
@@ -1726,12 +1740,15 @@
       language:
         string:
           description:
-            short: The language of the item.
+            short: The language of the item (used only for citation of the item).
             long: |
-              The language of the item;
+              The language of the item (used only for citation of the item).
 
               Should be entered as an ISO 639-1 two-letter language code (e.g. "en", "zh"), 
-              optionally with a two-letter locale code (e.g. "de-DE", "de-AT")
+              optionally with a two-letter locale code (e.g. "de-DE", "de-AT").
+
+              This does not change the language of the item, instead it documents 
+              what language the item uses (which may be used in citing the item).
       license:
         string:
           description:
@@ -2086,8 +2103,7 @@
         closed: true
         properties:
           format: string
-          value:
-            ref: string
+          value: string
         required: [value]
 
 - id: project-profile
