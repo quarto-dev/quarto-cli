@@ -21,6 +21,8 @@ import { resourceFilesFromRenderedFile } from "./resources.ts";
 import { RenderFlags, RenderOptions, RenderResult } from "./types.ts";
 import { fileExecutionEngine } from "../../execute/engine.ts";
 import {
+  gitHubCodeSpacesProxyUri,
+  isGitHubCodespaces,
   isJupyterHubServer,
   isJupyterServer,
   isRStudioServer,
@@ -187,6 +189,10 @@ export async function printBrowsePreviewMessage(
     }
     const browseUrl = proxyUrl.replace("{{port}}", `${port}`) +
       path;
+    info(`\nBrowse at ${browseUrl}`, { format: colors.green });
+  } else if (isVSCodeTerminal() && isGitHubCodespaces()) {
+    const browseUrl =
+      gitHubCodeSpacesProxyUri()!.replace("{{port}}", `${port}`) + path;
     info(`\nBrowse at ${browseUrl}`, { format: colors.green });
   } else if (isJupyterHubServer()) {
     const httpReferrer = `${

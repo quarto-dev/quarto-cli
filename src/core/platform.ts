@@ -33,6 +33,29 @@ export function isVSCodeTerminal() {
   return Deno.env.get("TERM_PROGRAM") === "vscode";
 }
 
+export function gitHubCodespaceName() {
+  return Deno.env.get("CODESPACE_NAME");
+}
+
+export function gitHubCodespacePortForwardingDomain() {
+  return Deno.env.get("GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN");
+}
+
+export function isGitHubCodespaces() {
+  return !!gitHubCodespacePortForwardingDomain() || !!gitHubCodespaceName();
+}
+
+export function gitHubCodeSpacesProxyUri() {
+  const CODESPACE_NAME = gitHubCodespaceName();
+  const GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN =
+    gitHubCodespacePortForwardingDomain();
+  if (CODESPACE_NAME && GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN) {
+    return `https://${CODESPACE_NAME}-{{port}}.${GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN}`;
+  } else {
+    return undefined;
+  }
+}
+
 export function isVSCodeServer() {
   return !!vsCodeServerProxyUri();
 }
