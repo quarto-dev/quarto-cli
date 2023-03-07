@@ -6,10 +6,14 @@
 */
 
 import { existsSync } from "fs/mod.ts";
+import { isWindows } from "../core/platform.ts";
 
 export interface ResolvedExtensionInfo {
   // The url to the resolved extension
   url: string;
+
+  // The file part of the url resolved
+  urlFile?: string;
 
   // The Fetch Response from fetching that URL
   response: Promise<Response>;
@@ -29,6 +33,7 @@ export interface ExtensionSource {
   type: "remote" | "local";
   owner?: string;
   resolvedTarget: Response | string;
+  resolvedFile?: string;
   targetSubdir?: string;
   learnMoreUrl?: string;
 }
@@ -50,6 +55,7 @@ export async function extensionSource(
       return {
         type: "remote",
         resolvedTarget: response,
+        resolvedFile: resolved?.urlFile,
         owner: resolved?.owner,
         targetSubdir: resolved?.subdirectory,
         learnMoreUrl: resolved?.learnMoreUrl,
@@ -91,10 +97,12 @@ interface ExtensionUrlProvider {
   learnMoreUrl: (host: ExtensionHost) => string | undefined;
 }
 
+const archiveExt = isWindows() ? ".zip" : ".tar.gz";
+
 const githubLatestUrlProvider = {
   extensionUrl: (host: ExtensionHost) => {
     if (host.modifier === undefined || host.modifier === "latest") {
-      return `https://github.com/${host.organization}/${host.repo}/archive/refs/heads/main.tar.gz`;
+      return `https://github.com/${host.organization}/${host.repo}/archive/refs/heads/main${archiveExt}`;
     }
   },
   archiveSubdir: (host: ExtensionHost) => {
@@ -113,7 +121,7 @@ const githubLatestUrlProvider = {
 const githubTagUrlProvider = {
   extensionUrl: (host: ExtensionHost) => {
     if (host.modifier) {
-      return `https://github.com/${host.organization}/${host.repo}/archive/refs/tags/${host.modifier}.tar.gz`;
+      return `https://github.com/${host.organization}/${host.repo}/archive/refs/tags/${host.modifier}${archiveExt}`;
     }
   },
   archiveSubdir: (host: ExtensionHost) => {
@@ -132,7 +140,7 @@ const githubTagUrlProvider = {
 const githubBranchUrlProvider = {
   extensionUrl: (host: ExtensionHost) => {
     if (host.modifier) {
-      return `https://github.com/${host.organization}/${host.repo}/archive/refs/heads/${host.modifier}.tar.gz`;
+      return `https://github.com/${host.organization}/${host.repo}/archive/refs/heads/${host.modifier}${archiveExt}`;
     }
   },
   archiveSubdir: (host: ExtensionHost) => {
@@ -225,6 +233,7 @@ function makeResolvers(
       if (url) {
         return {
           url,
+          urlFile: url.split("/").pop(),
           response: fetch(url),
           owner: host.organization,
           subdirectory: urlProvider.archiveSubdir(host),

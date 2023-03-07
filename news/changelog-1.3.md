@@ -216,7 +216,8 @@
 
 ## Other
 
-- fix error when running the command `quarto render -h` to receive help ([#3202](https://github.com/quarto-dev/quarto-cli/issues/3202)).
+- Fix error when running the command `quarto render -h` to receive help ([#3202](https://github.com/quarto-dev/quarto-cli/issues/3202)).
 - Fix error when rendering a document with an extension which provides a directory as `format-resources` ([#4377](https://github.com/quarto-dev/quarto-cli/issues/4377)).
 - Fix incorrect copying of resource files during rendering ([#4544](https://github.com/quarto-dev/quarto-cli/issues/4544))
 - Extension authors may now force files to be included in their template by writing the file / file path in the `.quartoignore` file prefixed with a `!`. For example `!README.md` ([#4061](https://github.com/quarto-dev/quarto-cli/issues/4061)).
+- Fix issue when installing extensions on older Windows ([#4203](https://github.com/quarto-dev/quarto-cli/issues/4203)).

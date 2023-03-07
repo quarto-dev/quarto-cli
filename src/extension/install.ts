@@ -178,7 +178,7 @@ async function stageExtension(
     // The filename
     const filename = (typeof (source.resolvedTarget) === "string"
       ? source.resolvedTarget
-      : source.resolvedTarget.url).split("/").pop() || "extension.zip";
+      : source.resolvedFile) || "extension.zip";
 
     // The tarball path
     const toFile = join(archiveDir, filename);
