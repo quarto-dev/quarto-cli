@@ -29,6 +29,7 @@ import {
   kKeepHidden,
   kMergeIncludes,
   kOutputDivs,
+  kOutputLocation,
   kPdfEngine,
   kQuartoFilters,
   kReferenceLocation,
@@ -489,6 +490,12 @@ async function quartoFilterParams(
   if (figResponsive) {
     params[kFigResponsive] = figResponsive;
   }
+
+  const outputLocation = format.metadata[kOutputLocation];
+  if (outputLocation) {
+    params[kOutputLocation] = outputLocation;
+  }
+
   const lineNumbers = format.render[kCodeLineNumbers];
   if (lineNumbers) {
     params[kCodeLineNumbers] = lineNumbers;

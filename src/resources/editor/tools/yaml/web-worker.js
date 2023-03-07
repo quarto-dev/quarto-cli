@@ -8017,17 +8017,7 @@ try {
               ]
             },
             schema: {
-              enum: [
-                "default",
-                "fragment",
-                "slide",
-                "column",
-                "column-fragment"
-              ]
-            },
-            description: {
-              short: "Location of output relative to the code that generated it (`default`, `fragment`, `slide`, `column`, or `column-location`)",
-              long: "Location of output relative to the code that generated it. The possible values are as follows:\n\n- `default`: Normal flow of the slide after the code\n- `fragment`: In a fragment (not visible until you advance)\n- `slide`: On a new slide after the curent one\n- 'column': In an adjacent column \n- `column-fragment`:   In an adjacent column (not visible until you advance)\n\nNote that this option is supported only for the `revealjs` format.\n"
+              ref: "output-location-schema"
             }
           },
           {
@@ -11101,6 +11091,22 @@ try {
                     }
                   }
                 }
+              }
+            }
+          },
+          {
+            id: "output-location-schema",
+            schema: {
+              enum: [
+                "default",
+                "fragment",
+                "slide",
+                "column",
+                "column-fragment"
+              ],
+              description: {
+                short: "Location of output relative to the code that generated it (`default`, `fragment`, `slide`, `column`, or `column-location`)",
+                long: "Location of output relative to the code that generated it. The possible values are as follows:\n\n- `default`: Normal flow of the slide after the code\n- `fragment`: In a fragment (not visible until you advance)\n- `slide`: On a new slide after the curent one\n- 'column': In an adjacent column \n- `column-fragment`:   In an adjacent column (not visible until you advance)\n\nNote that this option is supported only for the `revealjs` format.\n"
               }
             }
           }
@@ -15672,6 +15678,17 @@ try {
               short: "Use a smaller default font for slide content",
               long: "`true` to use a smaller default font for slide content. This can also\nbe set per-slide by including the `.smaller` class on the slide title.\n"
             }
+          },
+          {
+            name: "output-location",
+            tags: {
+              formats: [
+                "revealjs"
+              ]
+            },
+            schema: {
+              ref: "output-location-schema"
+            }
           }
         ],
         "schema/document-reveal-hidden.yml": [
@@ -19239,6 +19256,10 @@ try {
           "Default profile to apply if QUARTO_PROFILE is not defined.",
           "Define a profile group for which at least one profile is always\nactive.",
           {
+            short: "Location of output relative to the code that generated it\n(<code>default</code>, <code>fragment</code>, <code>slide</code>,\n<code>column</code>, or <code>column-location</code>)",
+            long: "Location of output relative to the code that generated it. The\npossible values are as follows:"
+          },
+          {
             short: "Unique label for code cell",
             long: "Unique label for code cell. Used when other code needs to refer to\nthe cell (e.g.&nbsp;for cross references <code>fig-samples</code> or\n<code>tbl-summary</code>)"
           },
@@ -21010,7 +21031,11 @@ try {
             long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
-          "internal-schema-hack"
+          "internal-schema-hack",
+          {
+            short: "Location of output relative to the code that generated it\n(<code>default</code>, <code>fragment</code>, <code>slide</code>,\n<code>column</code>, or <code>column-location</code>)",
+            long: "Location of output relative to the code that generated it. The\npossible values are as follows:"
+          }
         ],
         "schema/external-schemas.yml": [
           {
@@ -21235,12 +21260,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 151732,
+          _internalId: 152009,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 151724,
+              _internalId: 152001,
               type: "enum",
               enum: [
                 "png",
@@ -21256,7 +21281,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 151731,
+              _internalId: 152008,
               type: "anyOf",
               anyOf: [
                 {

@@ -1136,6 +1136,21 @@ export type QuartoDevSchema = {
   _quarto?: { "trace-filters"?: string; tests?: SchemaObject };
 };
 
+export type OutputLocationSchema =
+  | "default"
+  | "fragment"
+  | "slide"
+  | "column"
+  | "column-fragment"; /* Location of output relative to the code that generated it. The possible values are as follows:
+
+- `default`: Normal flow of the slide after the code
+- `fragment`: In a fragment (not visible until you advance)
+- `slide`: On a new slide after the curent one
+- 'column': In an adjacent column
+- `column-fragment`:   In an adjacent column (not visible until you advance)
+
+Note that this option is supported only for the `revealjs` format. */
+
 export type ProjectConfig = {
   "execute-dir"?:
     | "file"

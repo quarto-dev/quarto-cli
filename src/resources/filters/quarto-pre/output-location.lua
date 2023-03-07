@@ -6,6 +6,9 @@ local function collectCellOutputLocation(el)
      el.attr.classes:includes("cell")  then
     local outputLoc = el.attr.attributes["output-location"]
     el.attr.attributes["output-location"] = nil 
+    if outputLoc == nil then
+      outputLoc = param('output-location')
+    end
     return outputLoc
   else
     return nil

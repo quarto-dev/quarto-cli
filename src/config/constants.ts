@@ -514,6 +514,7 @@ export const kCrossrefChaptersAlpha = "chapters-alpha";
 export const kCrossrefChapterId = "chapter-id";
 
 export const kFigResponsive = "fig-responsive";
+export const kOutputLocation = "output-location";
 
 export const kCapLoc = "cap-location";
 export const kFigCapLoc = "fig-cap-location";
