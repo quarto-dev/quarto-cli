@@ -35,6 +35,7 @@ const kNavNextId = "quarto-int-next";
 const kNavPrevId = "quarto-int-prev";
 const kSidebarIdPrefix = "quarto-int-sidebar:";
 const kNavbarIdPrefix = "quarto-int-navbar:";
+const kToolsPrefix = "quarto-navbar-tools:";
 
 export interface NavigationPipelineContext {
   source: string;
@@ -284,6 +285,16 @@ const navbarContentsHandler = (context: NavigationPipelineContext) => {
         entries.forEach((entry) => {
           addEntry(entry);
         });
+
+        const tools = context.navigation.navbar.tools;
+        if (tools) {
+          tools.forEach((tool) => {
+            if (tool.href) {
+              markdown[`${kToolsPrefix}${tool.href.trim()}`] = tool.href;
+            }
+          });
+        }
+
         return { inlines: markdown };
       }
     },
@@ -306,6 +317,7 @@ const navbarContentsHandler = (context: NavigationPipelineContext) => {
             }
           }
 
+          // Any rendered hrefs for nav items
           const textParent = link.parentElement;
           if (textParent) {
             const href = textParent.getAttribute("href");
@@ -318,6 +330,23 @@ const navbarContentsHandler = (context: NavigationPipelineContext) => {
           }
         }
       });
+
+      // Any tools
+      [".navbar .quarto-navbar-tools .quarto-navigation-tool"].forEach(
+        (sel) => {
+          const toolNodes = doc.querySelectorAll(sel);
+          for (let i = 0; i < toolNodes.length; i++) {
+            const toolEl = toolNodes[i] as Element;
+            const href = toolEl.getAttribute("href");
+            if (href) {
+              const renderedHref = rendered[`${kToolsPrefix}${href}`];
+              if (renderedHref) {
+                toolEl.setAttribute("href", renderedHref?.innerText);
+              }
+            }
+          }
+        },
+      );
     },
   };
 };
