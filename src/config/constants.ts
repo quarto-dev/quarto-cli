@@ -215,6 +215,7 @@ export const kCodeToolsSourceCode = "code-tools-source-code";
 export const kSearchNoResultsText = "search-no-results-text";
 export const kSearch = "search";
 
+export const kToggleSection = "toggle-section";
 export const kToggleSidebar = "toggle-sidebar";
 export const kToggleDarkMode = "toggle-dark-mode";
 export const kToggleReaderMode = "toggle-reader-mode";
@@ -324,6 +325,7 @@ export const kLanguageDefaultsKeys = [
   kToggleNavigation,
   kToggleReaderMode,
   kToggleSidebar,
+  kToggleSection,
   kCopyButtonTooltip,
   kCopyButtonTooltipSuccess,
   kBackToTop,

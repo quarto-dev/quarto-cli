@@ -195,6 +195,7 @@ import {
   kToggleDarkMode,
   kToggleNavigation,
   kToggleReaderMode,
+  kToggleSection,
   kToggleSidebar,
   kTopLevelDivision,
   kVariables,
@@ -573,12 +574,12 @@ export interface FormatLanguage {
   [kToggleDarkMode]?: string;
   [kToggleNavigation]?: string;
   [kToggleReaderMode]?: string;
+  [kToggleSection]?: string;
   [kToggleSidebar]?: string;
   [kSearchMatchingDocumentsText]?: string;
   [kSearchCopyLinkTitle]?: string;
-  [kSearchHideMatchesText]?: string; // FIXME duplicate?
   [kSearchMoreMatchText]?: string;
-  [kSearchHideMatchesText]?: string; // FIXME duplicate?
+  [kSearchHideMatchesText]?: string;
   [kSearchClearButtonTitle]?: string;
   [kSearchDetatchedCancelButtonTitle]?: string;
   [kSearchSubmitButtonTitle]?: string;

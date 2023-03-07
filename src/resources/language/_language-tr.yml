@@ -60,6 +60,7 @@ search-detached-cancel-button-title: "İptal et"
 search-submit-button-title: "Göndermek"
 search: "Aramak"
 
+toggle-section: "Bölümü değiştir"
 toggle-sidebar: "Kenar çubuğunu değiştir"
 toggle-dark-mode: "Karanlık modu değiştir"
 toggle-reader-mode: "Okuyucu modunu değiştir"

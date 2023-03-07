@@ -59,6 +59,7 @@ search-detached-cancel-button-title: "취소"
 search-submit-button-title: "검색"
 search: "검색"
 
+toggle-section: "토글 섹션"
 toggle-sidebar: "사이드바 전환"
 toggle-dark-mode: "다크 모드 전환"
 toggle-reader-mode: "리더 모드 전환"
