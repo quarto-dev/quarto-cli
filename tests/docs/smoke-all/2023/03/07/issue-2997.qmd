@@ -3,8 +3,8 @@ format: html
 _quarto:
   tests:
     html:
-      ensureFileRegexMatches:
-        - ["<div class=\"table-responsive\">"]
+      ensureHtmlElements:
+        - ["div.table-responsive"]
 ---
 
 ## Wide Markdown table
