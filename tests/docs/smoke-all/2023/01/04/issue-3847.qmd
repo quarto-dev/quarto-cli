@@ -1,0 +1,20 @@
+---
+title: Conditional version
+format: html
+---
+
+::: {.content-visible when-format="ipynb"}
+
+# Lorem ipsum
+
+**Lorem ipsum** dolor sit amet, consectetur adipiscing elit. Nunc luctus
+bibendum felis dictum sodales.
+
+:::::: {.cell .markdown}
+# Lorem
+
+**Lorem ipsum** dolor sit amet, consectetur adipiscing elit. Nunc luctus
+bibendum felis dictum sodales.
+::::::
+
+:::

@@ -1,0 +1,5 @@
+  ---
+  title: 3159
+  ---
+
+  {{< include "file with spaces.md" >}}

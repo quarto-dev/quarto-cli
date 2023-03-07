@@ -1,0 +1,42 @@
+---
+title: "Untitled"
+format: latex
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - ["This is a caption", "This is another caption", "matplotlib1.py", "matplotlib2.py"]
+        - []
+---
+
+## filename
+
+```{#lst-1 .python filename="matplotlib1.py"}
+import matplotlib.pyplot as plt
+plt.plot([1,23,2,4])
+plt.show()
+```
+
+## filename and caption
+
+```{#lst-2 .python filename="matplotlib2.py" lst-cap="This is a caption"}
+import matplotlib.pyplot as plt
+plt.plot([1,23,2,4])
+plt.show()
+```
+
+## caption
+
+```{#lst-3 .python lst-cap="This is another caption"}
+import matplotlib.pyplot as plt
+plt.plot([1,23,2,4])
+plt.show()
+```
+
+## neither
+
+```{.python}
+import matplotlib.pyplot as plt
+plt.plot([1,23,2,4])
+plt.show()
+```

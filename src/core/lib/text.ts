@@ -165,10 +165,20 @@ export function detectCaseConvention(
   if (key.toLocaleLowerCase() !== key) {
     return "capitalizationCase";
   }
-  if (key.indexOf("_") !== -1) {
+  const underscoreIndex = key.indexOf("_");
+  if (
+    underscoreIndex !== -1 &&
+    underscoreIndex !== 0 &&
+    underscoreIndex !== key.length - 1
+  ) {
     return "underscore_case";
   }
-  if (key.indexOf("-") !== -1) {
+  const dashIndex = key.indexOf("-");
+  if (
+    dashIndex !== -1 &&
+    dashIndex !== 0 &&
+    dashIndex !== key.length - 1
+  ) {
     return "dash-case";
   }
   return undefined;
@@ -196,6 +206,14 @@ export function resolveCaseConventionRegex(
 
   // no conventions were specified, we sniff all keys to disallow near-misses
   const disallowedNearMisses: string[] = [];
+  const keySet = new Set(keys);
+
+  const addNearMiss = (value: string) => {
+    if (!keySet.has(value)) {
+      disallowedNearMisses.push(value);
+    }
+  };
+
   const foundConventions: Set<CaseConvention> = new Set();
   for (const key of keys) {
     const found = detectCaseConvention(key);
@@ -204,19 +222,16 @@ export function resolveCaseConventionRegex(
     }
     switch (found) {
       case "capitalizationCase":
-        disallowedNearMisses.push(toUnderscoreCase(key), toDashCase(key));
+        addNearMiss(toUnderscoreCase(key));
+        addNearMiss(toDashCase(key));
         break;
       case "dash-case":
-        disallowedNearMisses.push(
-          toUnderscoreCase(key),
-          toCapitalizationCase(key),
-        );
+        addNearMiss(toUnderscoreCase(key));
+        addNearMiss(toCapitalizationCase(key));
         break;
       case "underscore_case":
-        disallowedNearMisses.push(
-          toDashCase(key),
-          toCapitalizationCase(key),
-        );
+        addNearMiss(toDashCase(key));
+        addNearMiss(toCapitalizationCase(key));
         break;
     }
   }
@@ -231,7 +246,7 @@ export function resolveCaseConventionRegex(
   }
 
   return {
-    pattern: `^(?!(${disallowedNearMisses.join("|")}))`,
+    pattern: `(?!(${disallowedNearMisses.map((c) => `^${c}$`).join("|")}))`,
     list: Array.from(foundConventions),
   };
 }

@@ -40,7 +40,7 @@ Usage:
 ---@param filepath string Filename and path relative to the output folder.
 ---@param mime_type string|nil The file's MIME type; use `nil` if unknown or unavailable.
 ---@param contents string The binary contents of the file
-function pandoc.mediabag.fill(filepath, mime_type, contents) end
+function pandoc.mediabag.insert(filepath, mime_type, contents) end
 
 --[[
 Returns an iterator triple to be used with Lua's generic `for`
@@ -132,3 +132,14 @@ Usage:
 ---@param source string Path to a resource; either a local file path or URI
 ---@return string|nil,string|nil 
 function pandoc.mediabag.fetch(source) end
+
+--[[
+Writes the contents of mediabag to the given target directory. If
+`fp` is given, then only the resource with the given name will be
+extracted. Omitting that parameter means that the whole mediabag
+gets extracted. An error is thrown if `fp` is given but cannot be
+found in the mediabag.
+]]
+--@param dir string Path to the target directory
+--@param fp? string Canonical name of the resource to be extracted
+function pandoc.mediabag.write(dir, fp) end

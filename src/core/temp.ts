@@ -8,7 +8,7 @@
 import { debug } from "log/mod.ts";
 import { join } from "path/mod.ts";
 import { ensureDirSync, existsSync } from "fs/mod.ts";
-import { removeIfExists, safeRemoveIfExists } from "./path.ts";
+import { normalizePath, removeIfExists, safeRemoveIfExists } from "./path.ts";
 import { TempContext } from "./temp-types.ts";
 
 export type { TempContext } from "./temp-types.ts";
@@ -86,5 +86,5 @@ function rootTempDir() {
     ? Deno.env.get("TMP") || Deno.env.get("TEMP") ||
       Deno.env.get("USERPROFILE") || ""
     : Deno.env.get("TMPDIR") || "/tmp";
-  return Deno.realPathSync(tempDir);
+  return normalizePath(tempDir);
 }

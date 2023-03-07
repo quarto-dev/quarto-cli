@@ -1,12 +1,10 @@
 ---
-filters:
-  - createcustomnode.lua
 format:
   customformat.lua: default
 validate-yaml: false
 ---
 
-::: my-custom-node
+::: callout-note
 
 A custom node.
 

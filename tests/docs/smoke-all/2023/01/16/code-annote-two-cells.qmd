@@ -1,0 +1,44 @@
+---
+title: test
+code-annotations: select
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["dl", "dt", "#annotated-cell-1", "#annotated-cell-3" ]
+        - ["#annotated-cell-2"]
+---
+
+```{.python}
+# line 1
+x = "Python" # <1>
+y = "is" #            <1>
+z = "awesome"
+
+print(x, y, z)
+
+# line 2
+```
+
+1. hi
+
+This is some test content.
+
+```{r}
+foo <- "bar"
+plot(cars)
+```
+1. hi
+
+```{.python}
+# line 1
+x = "Python" # <1>
+y = "is" #            <1>
+z = "awesome"
+
+print(x, y, z)
+
+# line 2
+```
+
+1. hi

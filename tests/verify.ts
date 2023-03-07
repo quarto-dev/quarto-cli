@@ -217,7 +217,7 @@ export const ensureFileRegexMatches = (
 
 export const ensureDocxRegexMatches = (
   file: string,
-  regexes: RegExp[],
+  regexes: (string | RegExp)[],
 ): Verify => {
   return {
     name: "Inspecting Docx for Regex matches",
@@ -234,6 +234,9 @@ export const ensureDocxRegexMatches = (
         const docXml = join(temp, "word", "document.xml");
         const tex = await Deno.readTextFile(docXml);
         regexes.forEach((regex) => {
+          if (typeof regex === "string") {
+            regex = new RegExp(regex);
+          }
           assert(
             regex.test(tex),
             `Required DocX Element ${String(regex)} is missing.`,

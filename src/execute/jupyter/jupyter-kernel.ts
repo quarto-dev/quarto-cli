@@ -34,6 +34,7 @@ import {
 } from "../../config/constants.ts";
 
 import { ExecuteOptions } from "../types.ts";
+import { normalizePath } from "../../core/path.ts";
 
 export interface JupyterExecuteOptions extends ExecuteOptions {
   kernelspec: JupyterKernelspec;
@@ -293,7 +294,7 @@ interface KernelTransport {
 
 function kernelTransportFile(target: string) {
   const transportsDir = quartoRuntimeDir("jt");
-  const targetFile = Deno.realPathSync(target);
+  const targetFile = normalizePath(target);
   const hash = md5Hash(targetFile).slice(0, 20);
   return join(transportsDir, hash);
 }

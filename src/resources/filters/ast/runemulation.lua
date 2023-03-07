@@ -3,21 +3,27 @@
 --
 -- Copyright (C) 2022 by RStudio, PBC
 
-local function run_emulated_filter_chain(doc, filters)
+local function run_emulated_filter_chain(doc, filters, afterFilterPass)
   init_trace(doc)
   if tisarray(filters) then
     for i, v in ipairs(filters) do
       local function callback()
-        doc = run_emulated_filter(doc, v)
+        doc = run_emulated_filter(doc, v, true)
       end
       if v.scriptFile then
         _quarto.withScriptFile(v.scriptFile, callback)
       else
         callback()
       end
+      if afterFilterPass then
+        afterFilterPass()
+      end
     end
   elseif type(filters) == "table" then
-    doc = run_emulated_filter(doc, filters)
+    doc = run_emulated_filter(doc, filters, true)
+    if afterFilterPass then
+      afterFilterPass()
+    end
   else
     error("Internal Error: run_emulated_filter_chain expected a table or array instead of " .. type(filters))
     crash_with_stack_trace()
@@ -26,7 +32,7 @@ local function run_emulated_filter_chain(doc, filters)
   return doc
 end
 
-local function emulate_pandoc_filter(filters)
+local function emulate_pandoc_filter(filters, afterFilterPass)
   return {
     traverse = 'topdown',
     Pandoc = function(doc)
@@ -36,7 +42,7 @@ local function emulate_pandoc_filter(filters)
         local profiler = require('profiler')
         profiler.start()
         -- doc = to_emulated(doc)
-        doc = run_emulated_filter_chain(doc, filters)
+        doc = run_emulated_filter_chain(doc, filters, afterFilterPass)
         -- doc = from_emulated(doc)
 
         -- the installation happens in main.lua ahead of loaders
@@ -48,7 +54,7 @@ local function emulate_pandoc_filter(filters)
         profiler.report("profiler.txt")
         crash_with_stack_trace() -- run a single file for now.
       end
-      return run_emulated_filter_chain(doc, filters), false
+      return run_emulated_filter_chain(doc, filters, afterFilterPass), false
     end
   }
 end
@@ -61,7 +67,7 @@ function run_as_extended_ast(specTable)
     end
   end
 
-  table.insert(pandocFilterList, emulate_pandoc_filter(specTable.filters))
+  table.insert(pandocFilterList, emulate_pandoc_filter(specTable.filters, specTable.afterFilterPass))
   if specTable.post then
     for _, v in ipairs(specTable.post) do
       table.insert(pandocFilterList, v)

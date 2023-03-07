@@ -32,3 +32,13 @@ function stringEscape(str, format)
   local doc = pandoc.Pandoc({pandoc.Para(str)})
   return pandoc.write(doc, format)
 end
+
+-- The character `%´ works as an escape for those magic characters. 
+-- So, '%.' matches a dot; '%%' matches the character `%´ itself. 
+-- You can use the escape `%´ not only for the magic characters, 
+-- but also for all other non-alphanumeric characters. When in doubt, 
+-- play safe and put an escape.
+-- ( from http://www.lua.org/pil/20.2.html )
+function patternEscape(str) 
+  return str:gsub("([^%w])", "%%%1")
+end

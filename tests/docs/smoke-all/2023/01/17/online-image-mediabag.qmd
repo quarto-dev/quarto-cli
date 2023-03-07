@@ -1,0 +1,17 @@
+---
+title: "Penguins, meet Quarto!"
+format: pdf
+keep-tex: true
+_quarto:
+  tests:
+    pdf:
+      noErrors: default
+      fileExists: 
+        supportPath: mediabag/lter_penguins.png
+---
+
+## Meet the penguins
+
+![](https://raw.githubusercontent.com/quarto-dev/quarto-web/main/docs/get-started/hello/rstudio/lter_penguins.png){style="float:right;" fig-alt="Illustration of three species of Palmer Archipelago penguins: Chinstrap, Gentoo, and Adelie. Artwork by @allison_horst." width="401"}
+
+

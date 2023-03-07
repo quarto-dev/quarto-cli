@@ -37,7 +37,7 @@ return !["title", "image", "image-alt", "date", "author", "subtitle", "descripti
 <%= listing.utilities.img(itemNumber, item.image, "thumbnail-image card-img", item['image-alt']) %>
 </p>
 <% } else { %>
-<div class="card-img-bg" <%= imgHeight ? ` style="height: ${imgHeight};"` : '' %>>&nbsp;</div>
+<%= listing.utilities.imgPlaceholder(itemNumber, item.outputHref) %>
 <% } %> 
 <% } %>
 <% if (showField('title') || showField('subtitle') || showField('description') || showField('author') || showField('date') || otherFields.length > 0) { %>
@@ -65,7 +65,7 @@ const flexJustify = showField('author') && showField('date') ? "justify" : showF
 <% if (showField('author') || showField('date')) { %>
 <div class="card-attribution card-text-small <%-flexJustify%>">
 <% if (showField('author')) { %><div class="listing-author"><%= item.author %></div><% } %>
-<% if (showField('date')) { %><div class="listing-date"><%= item.date %></div><% } %>
+<% if (showField('date')) { %><div class="listing-date">`<%= item.date %>`{=html}</div><% } %>
 </div>
 <% } %>
 

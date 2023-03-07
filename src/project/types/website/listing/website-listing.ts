@@ -44,10 +44,7 @@ import {
   templateJsScript,
   templateMarkdownHandler,
 } from "./website-listing-template.ts";
-import {
-  completeListingDescriptions,
-  readListings,
-} from "./website-listing-read.ts";
+import { completeListingItems, readListings } from "./website-listing-read.ts";
 import { categorySidebar } from "./website-listing-categories.ts";
 import { TempContext } from "../../../../core/temp.ts";
 import { completeStagedFeeds, createFeed } from "./website-listing-feed.ts";
@@ -299,7 +296,7 @@ export function completeListingGeneration(
   completeStagedFeeds(context, outputFiles, incremental);
 
   // Ensure any listing items have their rendered descriptions populated
-  completeListingDescriptions(context, outputFiles, incremental);
+  completeListingItems(context, outputFiles, incremental);
 
   // Write a global listing index
   updateGlobalListingIndex(context, outputFiles, incremental);
@@ -399,7 +396,7 @@ function listingPostProcess(
   // Purge any images that made it into the description
   const descImgs = doc.querySelectorAll(".listing-description img");
   descImgs.forEach((descImg) => {
-    descImg.remove();
+    (descImg as Element).remove();
   });
 }
 

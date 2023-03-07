@@ -4,6 +4,6 @@ function Pandoc(doc, emit)
     emit("</doc>")
 end
 
-function MyCustomNode(node)
-    return "<custom-node/>"
+function Callout(node)
+    return "<callout/>"
 end

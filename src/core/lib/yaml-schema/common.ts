@@ -163,40 +163,56 @@ export function objectSchema(params: {
   properties = properties || {};
   patternProperties = patternProperties || {};
   // deno-lint-ignore no-explicit-any
-  const tags: Record<string, any> = {};
+  let tags: Record<string, any> = {};
   let tagsAreSet = false;
   let propertyNames: Schema | undefined = propertyNamesSchema;
 
-  const objectKeys = Object.getOwnPropertyNames(completionsParam || properties);
-
-  if (namingConvention !== "ignore") {
-    const { pattern, list } = resolveCaseConventionRegex(
-      objectKeys,
-      namingConvention,
-    );
-    if (pattern !== undefined) {
-      if (propertyNames === undefined) {
-        propertyNames = {
-          "type": "string",
-          pattern,
-        };
-      } else {
-        propertyNames = allOfSchema(
-          propertyNames,
-          {
-            "type": "string",
-            pattern,
-          },
-        );
-      }
-      tags["case-convention"] = list;
-      tagsAreSet = true;
-    }
-  }
   if (completionsParam) {
     tags["completions"] = completionsParam;
     tagsAreSet = true;
   }
+
+  const createCaseConventionSchema = (
+    props: { [k: string]: Schema },
+  ): StringSchema | undefined => {
+    // 2023-01-17: we no longer support propertyNames _and_ case convention detection.
+    // if propertyNames are defined, we don't add case convention detection.
+    // this simplifies the logic and makes schema debugging easier.
+    if (namingConvention === "ignore") {
+      return undefined;
+    }
+    const objectKeys = Object.getOwnPropertyNames(
+      props,
+    );
+    const { pattern, list } = resolveCaseConventionRegex(
+      objectKeys,
+      namingConvention,
+    );
+    if (pattern === undefined) {
+      return undefined;
+    }
+    if (propertyNames !== undefined) {
+      console.error(
+        "Warning: propertyNames and case convention detection are mutually exclusive.",
+      );
+      console.error(
+        "Add `namingConvention: 'ignore'` to your schema definition to remove this warning.",
+      );
+      return undefined;
+    }
+    const tags = {
+      "case-convention": list,
+      "error-importance": -5,
+      "case-detection": true,
+    };
+    return {
+      errorMessage: "property ${value} does not match case convention " +
+        `${objectKeys.join(",")}`,
+      "type": "string",
+      pattern,
+      tags,
+    };
+  };
 
   const hasDescription = description !== undefined;
   description = description || "be an object";
@@ -237,6 +253,38 @@ export function objectSchema(params: {
       result.description = description;
     }
 
+    const m: Map<string, [Schema, string][]> = new Map();
+    for (const base of baseSchema) {
+      for (const [k, v] of Object.entries(base.properties || {})) {
+        if (!m.has(k)) {
+          m.set(k, []);
+        }
+        // deno-lint-ignore no-explicit-any
+        m.get(k)!.push([v, (base as any).$id]);
+      }
+    }
+    const errorMsgs = new Set<string>();
+    for (const [k, l] of m) {
+      if (l.length > 1) {
+        errorMsgs.add(
+          `Internal Error: base schemas ${
+            l
+              .map((x) => x[1])
+              .join(", ")
+          } share property ${k}.`,
+        );
+      }
+    }
+    if (errorMsgs.size > 0) {
+      console.error(
+        [...errorMsgs].toSorted((a, b) => a.localeCompare(b)).join("\n"),
+      );
+      console.error("This is a bug in quarto's schemas.");
+      console.error(
+        "Note that we don't throw in order to allow build-js to finish, but the generated schemas will be invalid.",
+      );
+    }
+
     result.properties = Object.assign(
       {},
       ...(baseSchema.map((s) => s.properties)),
@@ -244,7 +292,9 @@ export function objectSchema(params: {
     );
     result.patternProperties = Object.assign(
       {},
-      ...(baseSchema.map((s) => s.patternProperties)),
+      ...(baseSchema.map((s) => s.patternProperties).filter((s) =>
+        s !== undefined
+      )),
       patternProperties,
     );
 
@@ -279,18 +329,41 @@ export function objectSchema(params: {
     //
     // as a result, we only set propertyNames on the extended schema if both
     // all propertyNames fields are defined.
+
+    // if we subclass from something with patternProperties that came from case convention
+    // detection, ignore that.
+
     const propNamesArray = baseSchema.map((s) => s.propertyNames)
+      .filter((s) => {
+        if (typeof s !== "object") return true;
+        if (s.tags === undefined) return true;
+        if (s.tags["case-detection"] === true) {
+          return false;
+        }
+        return true;
+      })
       .filter((s) => s !== undefined) as Schema[];
-    if (propertyNames) {
-      propNamesArray.push(propertyNames);
-    }
-    if (propNamesArray.length === baseSchema.length + 1) {
+    if (propNamesArray.length === 1) {
+      result.propertyNames = propNamesArray[0];
+    } else if (propNamesArray.length > 1) {
       result.propertyNames = anyOfSchema(...propNamesArray);
+    } else {
+      delete result.propertyNames;
     }
 
     // if either of schema or base schema is closed, the derived schema is also closed.
     result.closed = closed || baseSchema.some((s) => s.closed);
   } else {
+    const caseConventionSchema = createCaseConventionSchema(properties);
+    if (caseConventionSchema !== undefined) {
+      propertyNames = caseConventionSchema;
+      tags = {
+        ...tags,
+        ...caseConventionSchema.tags,
+      };
+      tagsAreSet = true;
+    }
+
     result = {
       ...internalId(),
       "type": "object",

@@ -483,7 +483,7 @@ export function generateCssKeyValues(textValues: Record<string, unknown>) {
           `color: ${textValues[textAttr]};`,
         );
         break;
-      case "background":
+      case "background-color":
         lines.push(
           `background-color: ${textValues[textAttr]};`,
         );
@@ -497,6 +497,8 @@ export function generateCssKeyValues(textValues: Record<string, unknown>) {
       case "italic":
         if (textValues[textAttr]) {
           lines.push("font-style: italic;");
+        } else {
+          lines.push("font-style: inherit");
         }
         break;
       case "underline":

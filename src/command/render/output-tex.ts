@@ -20,6 +20,7 @@ import { kStdOut, replacePandocOutputArg } from "./flags.ts";
 import { OutputRecipe } from "./types.ts";
 import { pdfEngine } from "../../config/pdf.ts";
 import { execProcess } from "../../core/process.ts";
+import { parseFormatString } from "../../core/pandoc/pandoc-formats.ts";
 
 export interface PdfGenerator {
   generate: (
@@ -44,7 +45,18 @@ export function texToPdfOutputRecipe(
 
   // there are many characters that give tex trouble in filenames, create
   // a target stem that replaces them with the '-' character
-  const texStem = texSafeFilename(inputStem);
+
+  // include variants in the tex stem if they are present to avoid
+  // overwriting files
+  let fixupInputName = "";
+  if (format.identifier["target-format"]) {
+    const formatDesc = parseFormatString(format.identifier["target-format"]);
+    fixupInputName = `${formatDesc.variants.join("")}${
+      formatDesc.modifiers.join("")
+    }`;
+  }
+
+  const texStem = texSafeFilename(`${inputStem}${fixupInputName}`);
 
   // cacluate output and args for pandoc (this is an intermediate file
   // which we will then compile to a pdf and rename to .tex)
@@ -97,15 +109,15 @@ export function texToPdfOutputRecipe(
 
       // final output needs to either absolute or input dir relative
       // (however it may be working dir relative when it is passed in)
-      return normalizePath(input, finalOutput);
+      return texNormalizePath(input, finalOutput);
     } else {
-      return normalizePath(input, pdfOutput);
+      return texNormalizePath(input, pdfOutput);
     }
   };
 
   const pdfOutput = finalOutput
-    ? finalOutput === kStdOut ? undefined : normalizePath(input, finalOutput)
-    : normalizePath(input, pdfGenerator.computePath(input, format));
+    ? finalOutput === kStdOut ? undefined : texNormalizePath(input, finalOutput)
+    : texNormalizePath(input, pdfGenerator.computePath(input, format));
 
   // tweak writer if it's pdf
   const to = format.pandoc.to === "pdf" ? pdfIntermediateTo : format.pandoc.to;
@@ -198,7 +210,7 @@ export function contextPdfOutputRecipe(
   );
 }
 
-const normalizePath = (input: string, output: string) => {
+const texNormalizePath = (input: string, output: string) => {
   if (isAbsolute(output)) {
     return output;
   } else {

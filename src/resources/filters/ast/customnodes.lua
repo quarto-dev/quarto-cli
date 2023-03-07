@@ -17,35 +17,21 @@ function resolve_custom_node(node)
   end
 end
 
-function run_emulated_filter(doc, filter)
+function run_emulated_filter(doc, filter, top_level)
+  if filter._is_wrapped then
+    return doc:walk(filter)
+  end
+
   local wrapped_filter = {}
   for k, v in pairs(filter) do
     wrapped_filter[k] = v
   end
 
-  function process_custom_inner(raw)
-    local custom_data, t, kind = _quarto.ast.resolve_custom_data(raw)    
-    local handler = _quarto.ast.resolve_handler(t)
-    if handler == nil then
-      print(raw)
-      error("Internal Error: handler not found for custom node " .. (t or type(t)))
-      crash_with_stack_trace()
-    end
-    if handler.inner_content ~= nil then
-      local new_inner_content = {}
-      local inner_content = handler.inner_content(custom_data)
-
-      for k, v in pairs(inner_content) do
-        local new_v = v:walk(wrapped_filter)
-        if new_v ~= nil then
-          new_inner_content[k] = new_v
-        end
-      end
-      handler.set_inner_content(custom_data, new_inner_content)
-    end
+  local function process_custom_inner(raw)
+    _quarto.ast.inner_walk(raw, wrapped_filter)
   end
 
-  function process_custom_preamble(custom_data, t, kind, custom_node)
+  local function process_custom_preamble(custom_data, t, kind, custom_node)
     if custom_data == nil then
       return nil
     end
@@ -60,12 +46,14 @@ function run_emulated_filter(doc, filter)
     end
   end
 
-  function process_custom(custom_data, t, kind, custom_node)
+  local function process_custom(custom_data, t, kind, custom_node)
     local result, recurse = process_custom_preamble(custom_data, t, kind, custom_node)
-    if filter.traverse ~= "topdown" or recurse then
+    if filter.traverse ~= "topdown" or recurse ~= false then
       if tisarray(result) then
+        ---@type table<number, table|pandoc.Node>
+        local array_result = result ---@diagnostic disable-line
         local new_result = {}
-        for i, v in ipairs(result) do
+        for i, v in ipairs(array_result) do
           if type(v) == "table" then
             new_result[i] = quarto[t](v) --- create new custom object of the same kind as passed and recurse.
           else
@@ -78,7 +66,7 @@ function run_emulated_filter(doc, filter)
       elseif type(result) == "table" then
         local new_result = quarto[t](result)
         process_custom_inner(new_result or custom_node)
-        return result, recurse
+        return new_result, recurse
       elseif result == nil then
         process_custom_inner(custom_node)
         return nil, recurse
@@ -147,9 +135,13 @@ function run_emulated_filter(doc, filter)
     end
   end
 
-  local result = doc:walk(wrapped_filter)
-  add_trace(result, filter._filter_name)
-  return result
+  wrapped_filter._is_wrapped = true
+
+  local result, recurse = doc:walk(wrapped_filter)
+  if top_level and filter._filter_name ~= nil then
+    add_trace(result, filter._filter_name)
+  end
+  return result, recurse
 end
 
 function create_emulated_node(t, tbl, context)
@@ -240,7 +232,62 @@ _quarto.ast = {
     end
     return nil
   end,
+
+  inner_walk = function(raw, filter)
+    if raw == nil then
+      return nil
+    end
+    local custom_data, t, kind = _quarto.ast.resolve_custom_data(raw)    
+    local handler = _quarto.ast.resolve_handler(t)
+    if handler == nil then
+      if type(raw) == "userdata" then
+        return raw:walk(filter)
+      end
+      print(raw)
+      error("Internal Error: handler not found for custom node " .. (t or type(t)))
+      crash_with_stack_trace()
+    end
+
+    if handler.inner_content ~= nil then
+      local new_inner_content = {}
+      local inner_content = handler.inner_content(custom_data)
+
+      for k, v in pairs(inner_content) do
+        local new_v = run_emulated_filter(v, filter)
+        if new_v ~= nil then
+          new_inner_content[k] = new_v
+        end
+      end
+      handler.set_inner_content(custom_data, new_inner_content)
+    end
+  end,
+
+  walk = run_emulated_filter,
+
+  writer_walk = function(doc, filter)
+    local old_custom_walk = filter.Custom
+    local function custom_walk(node, raw)
+      local handler = quarto._quarto.ast.resolve_handler(node.t)
+      if handler == nil then
+        error("Internal Error: handler not found for custom node " .. node.t)
+        crash_with_stack_trace()
+      end
+      -- ensure inner nodes are also rendered
+      quarto._quarto.ast.inner_walk(raw, filter)
+      local result = handler.render(node)
+      return quarto._quarto.ast.writer_walk(result, filter)
+    end
+
+    if filter.Custom == nil then
+      filter.Custom = custom_walk
+    end
+
+    local result = run_emulated_filter(doc, filter)
+    filter.Custom = old_custom_walk
+    return result
+  end
 }
+
 quarto._quarto = _quarto
 
 function constructExtendedAstHandlerState()

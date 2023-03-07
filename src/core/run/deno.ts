@@ -5,8 +5,8 @@
 *
 */
 
-import { existsSync } from "fs/mod.ts";
-import { extname, join } from "path/mod.ts";
+import { existsSync, expandGlobSync } from "fs/mod.ts";
+import { extname, join, normalize } from "path/mod.ts";
 import { quartoCacheDir } from "../appdirs.ts";
 import { execProcess } from "../process.ts";
 import { resourcePath, toolsPath } from "../resources.ts";
@@ -33,7 +33,8 @@ export const denoRunHandler: RunHandler = {
         DENO_DIR: denoDir,
       },
     };
-    const importMap = resourcePath(join("deno_std", "import_map.json"));
+
+    const importMap = normalize(join(denoDir, "../run_import_map.json"));
 
     return await execProcess(
       {
@@ -58,6 +59,23 @@ export const denoRunHandler: RunHandler = {
   },
 };
 
+function directoryListing(path: string): Set<string> {
+  return new Set(
+    [...expandGlobSync(path + "/**")].map((x) => x.path.slice(path.length)),
+  );
+}
+
+function directoryListingsMatch(path1: string, path2: string): boolean {
+  const listing1 = directoryListing(path1),
+    listing2 = directoryListing(path2);
+  for (const path of listing1) {
+    if (!listing2.has(path)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 function initDenoCache() {
   // see if we need to create the cache
   const distDenoStd = resourcePath("deno_std");
@@ -66,7 +84,8 @@ function initDenoCache() {
   const cacheLock = join(cacheDenoStd, "deno_std.lock");
   if (
     !existsSync(cacheLock) ||
-    Deno.readTextFileSync(cacheLock) != Deno.readTextFileSync(distLock)
+    Deno.readTextFileSync(cacheLock) != Deno.readTextFileSync(distLock) ||
+    !directoryListingsMatch(distDenoStd, cacheDenoStd)
   ) {
     removeIfExists(cacheDenoStd);
     copyTo(distDenoStd, cacheDenoStd);

@@ -10,7 +10,11 @@ import { basename, join } from "path/mod.ts";
 
 import * as ld from "../../../core/lodash.ts";
 
-import { ensureTrailingSlash, safeExistsSync } from "../../../core/path.ts";
+import {
+  ensureTrailingSlash,
+  pathWithForwardSlashes,
+  safeExistsSync,
+} from "../../../core/path.ts";
 import { FormatLanguage, Metadata } from "../../../config/types.ts";
 
 import {
@@ -19,7 +23,7 @@ import {
 } from "../../../execute/engine.ts";
 import { defaultWriterFormat } from "../../../format/formats.ts";
 
-import { Navbar, NavItem, SidebarItem, SidebarTool } from "../../types.ts";
+import { Navbar, SidebarItem, SidebarTool } from "../../types.ts";
 
 import {
   normalizeSidebarItem,
@@ -90,6 +94,7 @@ import {
   NavigationItemObject,
   PageFooterRegion,
 } from "../../../resources/types/schema-types.ts";
+import { projectType } from "../project-types.ts";
 
 export const kBookChapters = "chapters";
 export const kBookAppendix = "appendices";
@@ -422,6 +427,12 @@ const kDownloadableItems: Record<string, { name: string; icon: string }> = {
   "docx": { name: "Docx", icon: "file-word" },
 };
 
+export type BookChapterEntry = BookPart | string;
+export interface BookPart {
+  part: string;
+  chapters: string[];
+}
+
 interface BookChapterItem extends SidebarItem {
   part?: string;
   chapters?: BookChapterItem[];
@@ -449,7 +460,7 @@ function downloadTools(
   config: ProjectConfig,
 ): SidebarTool[] | undefined {
   // Filter the user actions to the set that are single file books
-  const downloadActions = websiteConfigActions("downloads", kBook, config);
+  const downloadActions = websiteConfigActions(kBookDownloads, kBook, config);
   const filteredActions = downloadActions.filter((action) => {
     const format = defaultWriterFormat(action);
     if (format) {
@@ -461,19 +472,32 @@ function downloadTools(
 
   // Map the action into sidebar items
   const outputStem = bookOutputStem(projectDir, config);
+  const projType = projectType(config.project.type);
   const downloads = filteredActions.map((action) => {
     const format = defaultWriterFormat(action);
+    const outputDir = projType.formatOutputDirectory
+      ? projType.formatOutputDirectory(format) || ""
+      : "";
+
     const downloadItem = kDownloadableItems[action];
     if (downloadItem) {
       return {
         icon: downloadItem.icon,
         text: `Download ${downloadItem.name}`,
-        href: `/${outputStem}.${format.render[kOutputExt]}`,
+        href: pathWithForwardSlashes(join(
+          "/",
+          outputDir,
+          `/${outputStem}.${format.render[kOutputExt]}`,
+        )),
       };
     } else {
       return {
         text: `Download action}`,
-        href: `/${outputStem}.${format.render[kOutputExt]}`,
+        href: pathWithForwardSlashes(join(
+          "/",
+          outputDir,
+          `${outputStem}.${format.render[kOutputExt]}`,
+        )),
       };
     }
   });

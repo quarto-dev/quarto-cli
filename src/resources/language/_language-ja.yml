@@ -23,13 +23,16 @@ title-block-affiliation-plural: "所属"
 title-block-published: "公開"
 title-block-modified: "更新日"
 
-callout-tip-caption: "ヒント"
-callout-note-caption: "ノート"
-callout-warning-caption: "警告"
-callout-important-caption: "重要"
-callout-caution-caption: "注意"
+callout-tip-title: "ヒント"
+callout-note-title: "ノート"
+callout-warning-title: "警告"
+callout-important-title: "重要"
+callout-caution-title: "注意"
 
 code-summary: "コード"
+
+code-line: "ライン"
+code-lines: "ライン"
 
 code-tools-menu-caption: "コード"
 code-tools-show-all-code: "すべてのコードを表示"
@@ -44,6 +47,8 @@ repo-action-links-edit: "編集"
 repo-action-links-source: "ソースコード"
 repo-action-links-issue: "問題を報告"
 
+back-to-top: "トップに戻る"
+
 search-no-results-text: "一致なし"
 search-matching-documents-text: "一致した文書"
 search-copy-link-title: "検索へのリンクをコピー"
@@ -53,6 +58,12 @@ search-more-matches-text: "追加の検索結果"
 search-clear-button-title: "消去"
 search-detached-cancel-button-title: "取消"
 search-submit-button-title: "検索"
+search: "サーチ"
+
+toggle-sidebar: "サイドバーを切り替える"
+toggle-dark-mode: "ダークモードの切り替え"
+toggle-reader-mode: "リーダーモードの切り替え"
+toggle-navigation: "ナビゲーションを切り替える"
 
 crossref-fig-title: "図"
 crossref-tbl-title: "表"

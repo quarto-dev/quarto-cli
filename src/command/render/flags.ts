@@ -31,6 +31,8 @@ import { RenderFlags, RenderOptions } from "./types.ts";
 import * as ld from "../../core/lodash.ts";
 
 import { isAbsolute, SEP_PATTERN } from "path/mod.ts";
+import { normalizePath } from "../../core/path.ts";
+import { removeFlags } from "../../core/flags.ts";
 
 export const kStdOut = "-";
 
@@ -218,7 +220,7 @@ export async function parseRenderFlags(args: string[]) {
           if (isAbsolute(arg)) {
             flags.executeDir = arg;
           } else {
-            flags.executeDir = Deno.realPathSync(arg);
+            flags.executeDir = normalizePath(arg);
           }
         }
 
@@ -451,18 +453,7 @@ export function removePandocArgs(
   pandocArgs: string[],
   removeArgs: Map<string, boolean>,
 ) {
-  let removeNext = false;
-  return pandocArgs.reduce((args, arg) => {
-    if (!removeArgs.has(arg)) {
-      if (!removeNext) {
-        args.push(arg);
-      }
-      removeNext = false;
-    } else {
-      removeNext = removeArgs.get(arg)!;
-    }
-    return args;
-  }, new Array<string>());
+  return removeFlags(pandocArgs, removeArgs);
 }
 
 export function removePandocToArg(args: string[]) {

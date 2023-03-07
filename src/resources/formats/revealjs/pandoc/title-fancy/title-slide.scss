@@ -1,14 +1,24 @@
 /*-- scss:rules --*/
+$presentation-author-block-padding-left: if(
+  $presentation-title-slide-text-align != left,
+  0.5em,
+  0
+);
+$presentation-author-block-padding-right: if(
+  $presentation-title-slide-text-align != right,
+  0.5em,
+  0
+);
 
 .reveal {
   .quarto-title-block {
     .quarto-title-authors {
       display: flex;
-      justify-content: center;
+      justify-content: $presentation-title-slide-text-align;
 
       .quarto-title-author {
-        padding-left: 0.5em;
-        padding-right: 0.5em;
+        padding-left: $presentation-author-block-padding-left;
+        padding-right: $presentation-author-block-padding-right;
 
         a,
         a:hover,

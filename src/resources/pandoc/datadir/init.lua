@@ -1305,12 +1305,21 @@ end
 -- instead of pandoc's filter path when a shortcode is executing
 local scriptFile = {}
 
+local function scriptDirs()
+   local dirs = {}
+   dirs[#dirs+1] = pandoc.path.directory(PANDOC_SCRIPT_FILE)
+   for i = 1, #scriptFile do
+      dirs[#dirs+1] = pandoc.path.directory(scriptFile[i])
+   end
+   return dirs
+end
+
 local function scriptDir()
    if #scriptFile > 0 then
       return pandoc.path.directory(scriptFile[#scriptFile])
    else
       -- hard fallback
-      return PANDOC_SCRIPT_FILE
+      return pandoc.path.directory(PANDOC_SCRIPT_FILE)
    end
    -- if scriptFile ~= nil then
    --    return pandoc.path.directory(scriptFile)
@@ -1330,13 +1339,19 @@ local function scriptFileName()
    end
 end
 
--- patch require to look in current scriptDir
+-- patch require to look in current scriptDirs
 local orig_require = require
 function require(modname)
-   local dir = pandoc.path.join({scriptDir(), '?.lua'})
-   package.path = package.path .. ';' ..dir
+   local old_path = package.path
+   local new_path = old_path
+   local dirs = scriptDirs()
+   for i, v in ipairs(dirs) do
+      new_path = new_path .. ';' .. pandoc.path.join({v, '?.lua'})
+   end
+
+   package.path = new_path
    local mod = orig_require(modname)
-   package.path = package.path:sub(1, #package.path - (#dir + 1))
+   package.path = old_path
    return mod
 end
 
@@ -1522,6 +1537,7 @@ local function resolveDependencyLinkTags(linkTags)
       for i, v in ipairs(linkTags) do
          v.href = resolvePath(v.href)
       end
+      return linkTags
    else
       return nil
    end
@@ -1678,9 +1694,9 @@ local function inputFile()
    else
       local projectDir = projectDirectory()
       if projectDir then
-         return pandoc.path.join({projectDir, param("quarto-source", "")})
+         return pandoc.path.join({projectDir, source})
       else
-         return pandoc.path.join({pandoc.system.get_working_directory(), param("quarto-source", "")})
+         return pandoc.path.join({pandoc.system.get_working_directory(), source})
       end   
    end
 end
@@ -1729,10 +1745,12 @@ local function file_exists(name)
      return false
    end
  end
- 
- local function write_file(path, contents)
+
+
+ local function write_file(path, contents, mode)
    pandoc.system.make_directory(pandoc.path.directory(path), true)
-   local file = io.open(path, "a")
+   mode = mode or "a"
+   local file = io.open(path, mode)
    if file then
      file:write(contents)
      file:close()
@@ -1762,6 +1780,7 @@ _quarto = {
    patterns = {
       latexTabularPattern = latexTabularPattern,
       latexTablePattern = latexTablePattern,
+      latexLongtablePattern = latexLongtablePattern,
       latexTablePatterns = latexTablePatterns
    },
    utils = utils,
@@ -1774,7 +1793,12 @@ _quarto = {
    projectOffset = projectOffset,
    file = {
       read = read_file,
-      write = write_file,
+      write = function(path, contents) 
+         return write_file(path, contents, "wb") 
+      end,
+      write_text = function(path, contents) 
+         return write_file(path, contents, "a")
+      end,
       exists = file_exists,
       remove = remove_file
    }
@@ -1929,6 +1953,7 @@ quarto = {
   utils = {
    dump = utils.dump,
    table = utils.table,
+   type = utils.type,
    resolve_path = resolvePathExt,
    resolve_path_relative_to_document = resolvePath,
   },
@@ -1951,3 +1976,10 @@ quarto.doc.pdfEngine = quarto.doc.pdf_engine
 quarto.doc.hasBootstrap = quarto.doc.has_bootstrap
 quarto.doc.project_output_file = projectRelativeOutputFile
 quarto.utils.resolvePath = quarto.utils.resolve_path
+
+-- since Pandoc 3, pandoc.Null is no longer an allowed constructor.
+-- this workaround makes it so that our users extensions which use pandoc.Null 
+-- still work, assuming they call pandoc.Null() in a "simple" way.
+pandoc.Null = function()
+   return {}
+end

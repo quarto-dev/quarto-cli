@@ -23,13 +23,16 @@ title-block-affiliation-plural: "Bağlantılar"
 title-block-published: "Yayınlanma Tarihi"
 title-block-modified: "Değiştirilmiş"
 
-callout-tip-caption: "Tavsiye"
-callout-note-caption: "Not"
-callout-warning-caption: "Uyarı"
-callout-important-caption: "Önemli"
-callout-caution-caption: "Dikkat"
+callout-tip-title: "Tavsiye"
+callout-note-title: "Not"
+callout-warning-title: "Uyarı"
+callout-important-title: "Önemli"
+callout-caution-title: "Dikkat"
 
 code-summary: "Kod"
+
+code-line: "Satiri"
+code-lines: "Satırlar"
 
 code-tools-menu-caption: "Kod"
 code-tools-show-all-code: "Tüm Kodu Göster"
@@ -44,6 +47,8 @@ repo-action-links-edit: "Bu sayfayı düzenle"
 repo-action-links-source: "Kaynağı görüntüle"
 repo-action-links-issue: "Sorun bildir"
 
+back-to-top: "Başa dönüş"
+
 search-no-results-text: "Sonuç yok"
 search-matching-documents-text: "eşleşen belgeler"
 search-copy-link-title: "Aramak için bağlantıyı kopyalayın"
@@ -53,6 +58,12 @@ search-more-matches-text: "bu belgede daha fazla eşleşmeler"
 search-clear-button-title: "Temizle"
 search-detached-cancel-button-title: "İptal et"
 search-submit-button-title: "Göndermek"
+search: "Aramak"
+
+toggle-sidebar: "Kenar çubuğunu değiştir"
+toggle-dark-mode: "Karanlık modu değiştir"
+toggle-reader-mode: "Okuyucu modunu değiştir"
+toggle-navigation: "Gezinmeyi değiştir"
 
 crossref-fig-title: "Figür"
 crossref-tbl-title: "Tablo"

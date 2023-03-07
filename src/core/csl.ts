@@ -5,7 +5,6 @@
 *
 */
 
-import { CslDate } from "../resources/types/schema-types.ts";
 import { formatDate, parsePandocDate } from "./date.ts";
 
 export const kPdfUrl = "pdf-url";
@@ -303,16 +302,21 @@ export function cslDate(dateRaw: unknown): CSLDate | undefined {
   }
 }
 
-function authorToCslName(author: string): CSLName | undefined {
-  const parts = author.split(" ");
-  if (parts.length > 0) {
-    const given = parts.shift() || "";
-    const family = parts.length > 0 ? parts.join("") : "";
-    return {
-      family,
-      given,
-      literal: author,
-    };
+function authorToCslName(
+  author: unknown,
+): CSLName | undefined {
+  if (typeof (author) === "string") {
+    const parts = author.split(" ");
+    if (parts.length > 0) {
+      const given = parts.shift() || "";
+      const family = parts.length > 0 ? parts.join("") : "";
+      return {
+        family,
+        given,
+      };
+    }
+  } else {
+    return author as CSLName;
   }
 }
 

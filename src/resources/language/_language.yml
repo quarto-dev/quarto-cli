@@ -23,11 +23,11 @@ title-block-affiliation-plural: "Affiliations"
 title-block-published: "Published"
 title-block-modified: "Modified"
 
-callout-tip-caption: "Tip"
-callout-note-caption: "Note"
-callout-warning-caption: "Warning"
-callout-important-caption: "Important"
-callout-caution-caption: "Danger"
+callout-tip-title: "Tip"
+callout-note-title: "Note"
+callout-warning-title: "Warning"
+callout-important-title: "Important"
+callout-caution-title: "Danger"
 
 code-summary: "Code"
 
@@ -37,12 +37,17 @@ code-tools-hide-all-code: "Hide All Code"
 code-tools-view-source: "View Source"
 code-tools-source-code: "Source Code"
 
+code-line: "Line"
+code-lines: "Lines"
+
 copy-button-tooltip: "Copy to Clipboard"
 copy-button-tooltip-success: "Copied!"
 
 repo-action-links-edit: "Edit this page"
 repo-action-links-source: "View source"
 repo-action-links-issue: "Report an issue"
+
+back-to-top: "Back to top"
 
 search-no-results-text: "No results"
 search-matching-documents-text: "matching documents"
@@ -53,6 +58,12 @@ search-more-matches-text: "more matches in this document"
 search-clear-button-title: "Clear"
 search-detached-cancel-button-title: "Cancel"
 search-submit-button-title: "Submit"
+search: "Search"
+
+toggle-sidebar: "Toggle sidebar navigation"
+toggle-dark-mode: "Toggle dark mode"
+toggle-reader-mode: "Toggle reader mode"
+toggle-navigation: "Toggle navigation"
 
 crossref-fig-title: "Figure"
 crossref-tbl-title: "Table"

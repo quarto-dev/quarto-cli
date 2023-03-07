@@ -45,6 +45,8 @@ unitTest("qualified-path - basic", async () => {
       );
     }
   }
+}, {
+  ignore: Deno.build.os === "windows",
 });
 
 unitTest("qualified-path - validation", async () => {
@@ -60,4 +62,6 @@ unitTest("qualified-path - validation", async () => {
     // this should raise because it resolves outside of projectRoot.
     return makePath("../../file1", paths);
   });
+}, {
+  ignore: Deno.build.os === "windows",
 });

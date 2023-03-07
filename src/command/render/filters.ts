@@ -61,11 +61,16 @@ import {
 } from "../../extension/extension.ts";
 import { quartoConfig } from "../../core/quarto.ts";
 import { metadataNormalizationFilterActive } from "./normalize.ts";
+import { kCodeAnnotations } from "../../format/html/format-html-shared.ts";
+import { projectOutputDir } from "../../project/project-shared.ts";
+import { relative } from "path/mod.ts";
+import { citeIndexFilterParams } from "../../project/project-cites.ts";
+import { debug } from "log/mod.ts";
 
 const kQuartoParams = "quarto-params";
 
 const kProjectOffset = "project-offset";
-const kProjectOutputDir = "project-output-dir";
+const kFilterProjectOutputDir = "project-output-dir";
 
 const kMediabagDir = "mediabag-dir";
 
@@ -119,6 +124,7 @@ export async function filterParamsJson(
     ...quartoColumnParams,
     ...await quartoFilterParams(options, defaults),
     ...crossrefFilterParams(options, defaults),
+    ...citeIndexFilterParams(options, defaults),
     ...layoutFilterParams(options.format),
     ...languageFilterParams(options.format.language),
     ...filterParams,
@@ -413,9 +419,12 @@ function projectFilterParams(options: PandocOptions) {
 
   const additionalParams: Metadata = {};
 
-  const outputDir = options.project?.config?.project["output-dir"];
-  if (outputDir) {
-    additionalParams[kProjectOutputDir] = outputDir;
+  if (options.project) {
+    const absProjectOutputDir = projectOutputDir(options.project);
+    const outputDir = relative(options.project.dir, absProjectOutputDir);
+    if (outputDir) {
+      additionalParams[kFilterProjectOutputDir] = outputDir;
+    }
   }
   if (options.offset) {
     additionalParams[kProjectOffset] = options.offset;
@@ -503,13 +512,16 @@ async function quartoFilterParams(
   // version
   params[kQuartoVersion] = quartoConfig.version();
 
+  // code-annotations
+  params[kCodeAnnotations] = format.metadata[kCodeAnnotations];
+
   return params;
 }
 
 async function extensionShortcodes(options: PandocOptions) {
   const extensionShortcodes: string[] = [];
-  if (options.extension) {
-    const allExtensions = await options.extension?.extensions(
+  if (options.services.extension) {
+    const allExtensions = await options.services.extension?.extensions(
       options.source,
       options.project?.config,
       options.project?.dir,
@@ -534,6 +546,7 @@ function initFilterParams(dependenciesFile: string) {
   if (Deno.build.os === "windows") {
     const value = readCodePage();
     if (value) {
+      debug("Windows: Using code page " + value);
       Deno.env.set("QUARTO_WIN_CODEPAGE", value);
     }
   }
@@ -677,7 +690,7 @@ async function resolveFilterExtension(
       typeof (filter) === "string" &&
       !existsSync(filter)
     ) {
-      let extensions = await options.extension?.find(
+      let extensions = await options.services.extension?.find(
         filter,
         options.source,
         "filters",

@@ -58,7 +58,6 @@ import {
 import { projectOffset, projectOutputDir } from "../../project-shared.ts";
 import { resolveInputTarget } from "../../project-index.ts";
 import {
-  kAriaLabel,
   kCollapseBelow,
   kCollapseLevel,
   kSidebarMenus,
@@ -84,6 +83,8 @@ import {
 } from "./website-search.ts";
 
 import {
+  kBackToTopNavigation,
+  kSiteIssueUrl,
   kSiteNavbar,
   kSiteReaderMode,
   kSiteRepoActions,
@@ -96,6 +97,7 @@ import {
   repoUrlIcon,
   websiteConfigActions,
   websiteConfigBoolean,
+  websiteConfigString,
   websiteHtmlFormat,
   websiteRepoBranch,
   WebsiteRepoInfo,
@@ -111,6 +113,7 @@ import {
   websiteNavigationConfig,
 } from "./website-shared.ts";
 import {
+  kBackToTop,
   kIncludeInHeader,
   kNumberSections,
   kRepoActionLinksEdit,
@@ -152,7 +155,10 @@ export async function initWebsiteNavigation(project: ProjectContext) {
   } = websiteNavigationConfig(
     project,
   );
-  if (!navbar && !sidebars && !pageNavigation) {
+  if (
+    !navbar && !sidebars && !pageNavigation && !footer && !pageMargin &&
+    !bodyDecorators
+  ) {
     return;
   }
 
@@ -244,6 +250,7 @@ export async function websiteNavigationExtras(
     sidebar: disableSidebar ? undefined : expandedSidebar(href, sidebar),
     sidebarStyle: sidebarStyle(),
     footer: navigation.footer,
+    language: format.language,
   };
 
   // Determine the previous and next page
@@ -271,10 +278,14 @@ export async function websiteNavigationExtras(
     }
   }
 
+  const crumbs = breadCrumbs(href, sidebar);
+  navigation.breadCrumbs = crumbs;
+
   // forward the footer
   if (navigation.footer) {
     nav.footer = navigation.footer;
   }
+
   // determine whether to show the dark toggle
   const darkMode = formatDarkMode(format);
   if (darkMode !== undefined && nav.navbar) {
@@ -432,12 +443,6 @@ function navigationHtmlPostprocessor(
       }
     }
 
-    // Hide the title when it will appear in the secondary nav
-    // Try to read into the container span, or just take any contents
-    const title = doc.querySelector(
-      "header .title .quarto-section-identifier",
-    ) || doc.querySelector("header .title");
-
     // If the secondary navigation title is present, hide the title
     // when the secondary navigation will show
     const secondaryNavTitleEl = doc.querySelector(
@@ -445,25 +450,109 @@ function navigationHtmlPostprocessor(
     );
 
     if (secondaryNavTitleEl) {
-      // hide below lg
-      if (title) {
-        title.classList.add("d-none");
-        title.classList.add("d-lg-block");
-      }
+      // Make bootstrap breadcrumbs
+      const navEl = doc.createElement("nav");
+      navEl.classList.add("quarto-page-breadcrumbs");
+      navEl.setAttribute("aria-label", "breadcrumb");
 
-      if (title) {
-        secondaryNavTitleEl.innerHTML = title.innerHTML;
+      const olEl = doc.createElement("ol");
+      olEl.classList.add("breadcrumb");
+      navEl.append(olEl);
+
+      const breadCrumbEl = () => {
+        const liEl = doc.createElement("li");
+        liEl.classList.add("breadcrumb-item");
+        return liEl;
+      };
+
+      if (navigation.breadCrumbs && navigation.breadCrumbs.length > 0) {
+        let crumbCount = 0;
+        for (const item of navigation.breadCrumbs) {
+          if (item.text || item.icon) {
+            // Attempt to use the item's title, if possible
+            let titleEl;
+            if (item.id) {
+              titleEl = doc.getElementById(item.id);
+            } else if (item.href) {
+              titleEl = doc.querySelector(
+                `.depth${crumbCount} .sidebar-item a[href="${item.href}"] .menu-text`,
+              );
+            }
+
+            const liEl = breadCrumbEl();
+            const maybeLink = (liEl: Element, contents: Element | string) => {
+              if (item.href) {
+                const linkEl = doc.createElement("a");
+                linkEl.setAttribute("href", item.href);
+                if (typeof (contents) === "string") {
+                  linkEl.innerHTML = contents;
+                } else {
+                  linkEl.appendChild(contents);
+                }
+
+                liEl.appendChild(linkEl);
+                return liEl;
+              } else {
+                if (typeof (contents) === "string") {
+                  liEl.innerHTML = item.text || "";
+                } else {
+                  liEl.appendChild(contents);
+                }
+
+                return liEl;
+              }
+            };
+
+            if (item.text) {
+              olEl.appendChild(
+                maybeLink(
+                  liEl,
+                  titleEl ? titleEl.innerHTML : (item.text || ""),
+                ),
+              );
+            } else if (item.icon) {
+              const iconEl = doc.createElement("i");
+              iconEl.classList.add("bi");
+              iconEl.classList.add(`bi-${item.icon}`);
+
+              olEl.appendChild(maybeLink(liEl, iconEl));
+            }
+          }
+          crumbCount++;
+        }
       } else {
         const sidebarTitle = doc.querySelector(".sidebar-title a");
         if (sidebarTitle) {
-          secondaryNavTitleEl.innerHTML = sidebarTitle.innerHTML;
+          const liEl = breadCrumbEl();
+          liEl.innerHTML = sidebarTitle.innerHTML;
+          olEl.appendChild(liEl);
         } else {
           const sidebarTitleBare = doc.querySelector(".sidebar-title");
           if (sidebarTitleBare) {
-            secondaryNavTitleEl.innerHTML = sidebarTitleBare.innerHTML;
+            const liEl = breadCrumbEl();
+            liEl.innerHTML = sidebarTitleBare.innerHTML;
+            olEl.appendChild(liEl);
+          } else {
+            const title = doc.querySelector(
+              "header .title .quarto-section-identifier",
+            ) || doc.querySelector("header .title");
+
+            if (title) {
+              const liEl = breadCrumbEl();
+              liEl.innerHTML = title.innerHTML;
+              olEl.appendChild(liEl);
+            }
           }
         }
       }
+
+      if (secondaryNavTitleEl.parentElement) {
+        secondaryNavTitleEl.parentElement.replaceChild(
+          navEl,
+          secondaryNavTitleEl,
+        );
+      }
+
       // hide the entire title block (encompassing code button) if we have it
       const titleBlock = doc.querySelector("header > .quarto-title-block");
       if (titleBlock) {
@@ -545,6 +634,30 @@ function navigationHtmlPostprocessor(
         }
       }
     }
+
+    const projBackToTop = websiteConfigBoolean(
+      kBackToTopNavigation,
+      false,
+      project.config,
+    );
+    const formatBackToTop = format.metadata[kBackToTopNavigation];
+    if (projBackToTop && formatBackToTop !== false) {
+      // Add a return to top button, if needed
+      const contentEl = doc.querySelector("main");
+      const backToTopEl = doc.createElement("a");
+      backToTopEl.setAttribute(
+        "onclick",
+        "window.scrollTo(0, 0); return false;",
+      );
+
+      const backText = language[kBackToTop];
+      const backIcon = "arrow-up";
+      backToTopEl.setAttribute("role", "button");
+      backToTopEl.innerHTML = `<i class='bi bi-${backIcon}'></i> ${backText}`;
+      backToTopEl.id = "quarto-back-to-top";
+      contentEl?.appendChild(backToTopEl);
+    }
+
     return Promise.resolve(kHtmlEmptyPostProcessResult);
   };
 }
@@ -561,7 +674,12 @@ function handleRepoLinks(
     kWebsite,
     config,
   );
-  const forecRepoActions = format.metadata[kSiteRepoActions] === true;
+  const issueUrl = websiteConfigString(kSiteIssueUrl, config);
+  if (issueUrl && !repoActions.includes("issue")) {
+    repoActions.push("issue");
+  }
+
+  const forceRepoActions = format.metadata[kSiteRepoActions] === true;
 
   const elRepoSource = doc.querySelector(
     "[" + kDataQuartoSourceUrl + '="repo"]',
@@ -569,30 +687,86 @@ function handleRepoLinks(
 
   if (repoActions.length > 0 || elRepoSource) {
     const repoInfo = websiteRepoInfo(config);
-    if (repoInfo) {
+    if (repoInfo || issueUrl) {
       if (repoActions.length > 0) {
         // find the toc
         let repoTarget = doc.querySelector(`nav[role="doc-toc"]`);
-        if (repoTarget === null && forecRepoActions) {
+        if (repoTarget === null && forceRepoActions) {
           repoTarget = doc.querySelector("#quarto-margin-sidebar");
+        } else if (repoTarget === null) {
+          repoTarget = doc.querySelector(".nav-footer .nav-footer-center");
+          if (!repoTarget) {
+            const ensureEl = (
+              doc: Document,
+              tagname: string,
+              classname: string,
+              parent: Element,
+              afterEl?: Element | null,
+            ) => {
+              let el = parent.querySelector(`${tagname}.${classname}`);
+              if (!el) {
+                el = doc.createElement(tagname);
+                el.classList.add(classname);
+                if (afterEl !== null && afterEl && afterEl.nextElementSibling) {
+                  parent.insertBefore(el, afterEl.nextElementSibling);
+                } else {
+                  parent.appendChild(el);
+                }
+              }
+              return el;
+            };
+
+            const footerEl = ensureEl(
+              doc,
+              "footer",
+              "footer",
+              doc.body,
+              doc.querySelector("div#quarto-content"),
+            );
+            const footerContainer = ensureEl(
+              doc,
+              "div",
+              "nav-footer",
+              footerEl,
+            );
+            const footerCenterEl = ensureEl(
+              doc,
+              "div",
+              "nav-footer-center",
+              footerContainer,
+              footerContainer.querySelector(".nav-footer-left"),
+            );
+            repoTarget = footerCenterEl;
+          }
         }
 
         if (repoTarget) {
           // get the action links
-          const links = repoActionLinks(
-            repoActions,
-            repoInfo,
-            websiteRepoBranch(config),
-            source,
-            language,
-          );
+          const links = repoInfo
+            ? repoActionLinks(
+              repoActions,
+              repoInfo,
+              websiteRepoBranch(config),
+              source,
+              language,
+              issueUrl,
+            )
+            : [{
+              text: language[kRepoActionLinksIssue]!,
+              url: issueUrl!,
+            }];
           const actionsDiv = doc.createElement("div");
           actionsDiv.classList.add("toc-actions");
-          const iconDiv = doc.createElement("div");
-          const iconEl = doc.createElement("i");
-          iconEl.classList.add("bi").add("bi-" + repoUrlIcon(repoInfo.baseUrl));
-          iconDiv.appendChild(iconEl);
-          actionsDiv.appendChild(iconDiv);
+          if (repoInfo) {
+            const iconDiv = doc.createElement("div");
+            const iconEl = doc.createElement("i");
+            iconEl.classList.add("bi");
+
+            iconEl.classList.add("bi-" + repoUrlIcon(repoInfo.baseUrl));
+
+            iconDiv.appendChild(iconEl);
+            actionsDiv.appendChild(iconDiv);
+          }
           const linksDiv = doc.createElement("div");
           linksDiv.classList.add("action-links");
           links.forEach((link) => {
@@ -608,7 +782,7 @@ function handleRepoLinks(
           repoTarget.appendChild(actionsDiv);
         }
       }
-      if (elRepoSource) {
+      if (elRepoSource && repoInfo) {
         elRepoSource.setAttribute(
           kDataQuartoSourceUrl,
           `${repoInfo.baseUrl}blob/${
@@ -630,6 +804,7 @@ function repoActionLinks(
   branch: string,
   source: string,
   language: FormatLanguage,
+  issueUrl?: string,
 ): Array<{ text: string; url: string }> {
   return actions.map((action) => {
     switch (action) {
@@ -657,7 +832,7 @@ function repoActionLinks(
       case "issue":
         return {
           text: language[kRepoActionLinksIssue],
-          url: `${repoInfo.baseUrl}issues/new`,
+          url: issueUrl || `${repoInfo.baseUrl}issues/new`,
         };
 
       default: {
@@ -974,6 +1149,48 @@ function nextAndPrevious(
   }
 }
 
+function breadCrumbs(href: string, sidebar?: Sidebar) {
+  if (sidebar?.contents) {
+    const crumbs: SidebarItem[] = [];
+
+    // find the href in the sidebar
+    const makeBreadCrumbs = (href: string, sidebarItems?: SidebarItem[]) => {
+      if (sidebarItems) {
+        for (const item of sidebarItems) {
+          if (item.href === href) {
+            crumbs.push(item);
+            return true;
+          } else {
+            if (item.contents) {
+              if (makeBreadCrumbs(href, item.contents)) {
+                // If this 'section' doesn't have an href, then just use the first
+                // child as the href
+                const breadCrumbItem = { ...item };
+                if (
+                  !breadCrumbItem.href && breadCrumbItem.contents &&
+                  breadCrumbItem.contents.length > 0
+                ) {
+                  breadCrumbItem.href = breadCrumbItem.contents[0].href;
+                }
+
+                crumbs.push(breadCrumbItem);
+                return true;
+              }
+            }
+          }
+        }
+        return false;
+      } else {
+        return false;
+      }
+    };
+    makeBreadCrumbs(href, sidebar.contents);
+    return crumbs.reverse();
+  } else {
+    return [];
+  }
+}
+
 async function navbarEjsData(
   project: ProjectContext,
   navbar: Navbar,
@@ -1035,13 +1252,7 @@ async function navbarEjsData(
       navbar.tools,
     );
 
-    data.right?.push(...navbar.tools.map((tool) => {
-      const navItem = tool as NavigationItemObject;
-      navItem[kAriaLabel] = navItem.text; // FIXME @dragonstyle shouldn't this check for the existence of kAriaLabel first?
-      delete navItem.text;
-      resolveIcon(navItem);
-      return navItem;
-    }));
+    data.tools = navbar.tools;
   }
 
   return data;

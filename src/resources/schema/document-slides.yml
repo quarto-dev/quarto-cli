@@ -117,7 +117,10 @@
 - name: show-notes
   tags:
     formats: [revealjs]
-  schema: boolean
+  schema:
+    anyOf:
+      - boolean
+      - enum: ["separate-page"]
   default: false
   description: |
     Make speaker notes visible to all viewers

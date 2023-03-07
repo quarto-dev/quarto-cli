@@ -78,7 +78,7 @@
 - name: code-line-numbers
   tags:
     contexts: [document-code]
-    formats: [$html-all, docx, ms, $pdf-all]
+    formats: [$html-all, ms, $pdf-all]
   schema:
     anyOf:
       - boolean

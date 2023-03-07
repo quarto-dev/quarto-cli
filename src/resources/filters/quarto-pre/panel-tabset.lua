@@ -11,7 +11,9 @@ Create a Tab AST node (represented as a Lua table)
 quarto.Tab = function(params)
   local content
   if type(params.content) == "string" then
-    content = pandoc.Blocks(pandoc.read(params.content, "markdown").blocks)
+    local content_string = params.content
+    ---@cast content_string string
+    content = pandoc.Blocks(pandoc.read(content_string, "markdown").blocks)
   else
     content = params.content or pandoc.Blocks({})
   end
@@ -138,16 +140,15 @@ _quarto.ast.add_handler({
   -- a function that renders the extendedNode into output
   render = function(node)
     local tabs = tmap(node.tabs, function(tab) return render_quarto_tab(tab, node) end)
-    if node.attr.classes:find("panel-tabset") then
-      if hasBootstrap() then
-        return render_tabset(node.attr, tabs, bootstrapTabs())
-      elseif _quarto.format.isHtmlOutput() then
-        return render_tabset(node.attr, tabs, tabbyTabs())
-      elseif _quarto.format.isLatexOutput() or _quarto.format.isDocxOutput() or _quarto.format.isEpubOutput() or _quarto.format.isJatsOutput() then
-        return pandoc.Div(render_tabset_with_l4_headings(tabs), node.attr)
-      end
+    if hasBootstrap() then
+      return render_tabset(node.attr, tabs, bootstrapTabs())
+    elseif _quarto.format.isHtmlOutput() then
+      return render_tabset(node.attr, tabs, tabbyTabs())
+    elseif _quarto.format.isLatexOutput() or _quarto.format.isDocxOutput() or _quarto.format.isEpubOutput() or _quarto.format.isJatsOutput() then
+      return pandoc.Div(render_tabset_with_l4_headings(tabs), node.attr)
     else
-      return div
+      print("Warning: couldn't recognize format, using default tabset rendering")
+      return pandoc.Div(render_tabset_with_l4_headings(tabs), node.attr)
     end  
   end,
 

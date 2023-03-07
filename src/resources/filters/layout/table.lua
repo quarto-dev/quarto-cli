@@ -7,10 +7,15 @@ function tablePanel(divEl, layout, caption, options)
   if not options then
     options = {}
   end
-  
+  -- outer panel to contain css and figure panel
+  local divId = divEl.attr.identifier
+  if divId == nil then
+    divId = ''
+  end
+
   -- create panel
-  local panel = pandoc.Div({})
-  
+  local panel = pandoc.Div({}, pandoc.Attr(divId))
+
   -- layout
   for i, row in ipairs(layout) do
     

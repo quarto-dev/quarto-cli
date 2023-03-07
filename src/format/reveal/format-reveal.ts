@@ -29,7 +29,6 @@ import {
 import { mergeConfigs } from "../../core/config.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { renderEjs } from "../../core/ejs.ts";
-import { TempContext } from "../../core/temp.ts";
 import { findParent } from "../../core/html.ts";
 import { createHtmlPresentationFormat } from "../formats-shared.ts";
 import { pandocFormatWith } from "../../core/pandoc/pandoc-formats.ts";
@@ -47,7 +46,10 @@ import {
   insertFootnotesTitle,
   removeFootnoteBacklinks,
 } from "../html/format-html-shared.ts";
-import { HtmlPostProcessResult } from "../../command/render/types.ts";
+import {
+  HtmlPostProcessResult,
+  RenderServices,
+} from "../../command/render/types.ts";
 import {
   kAutoAnimateDuration,
   kAutoAnimateEasing,
@@ -66,7 +68,6 @@ import {
   kSmaller,
 } from "./constants.ts";
 import { revealMetadataFilter } from "./metadata.ts";
-import { ExtensionContext } from "../../extension/extension-shared.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { titleSlidePartial } from "./format-reveal-title.ts";
 
@@ -105,13 +106,12 @@ export function revealjsFormat() {
         flags: PandocFlags,
         format: Format,
         libDir: string,
-        temp: TempContext,
+        services: RenderServices,
         offset: string,
-        extensionContext: ExtensionContext,
         project: ProjectContext,
       ) => {
         // render styles template based on options
-        const stylesFile = temp.createFile({ suffix: ".html" });
+        const stylesFile = services.temp.createFile({ suffix: ".html" });
         const styles = renderEjs(
           formatResourcePath("revealjs", "styles.html"),
           { [kScrollable]: format.metadata[kScrollable] },
@@ -147,16 +147,16 @@ export function revealjsFormat() {
         };
 
         // get theme info (including text highlighing mode)
-        const theme = await revealTheme(format, input, libDir, temp);
+        const theme = await revealTheme(format, input, libDir, services.temp);
 
         const revealPluginData = await revealPluginExtras(
           input,
           format,
           flags,
-          temp,
+          services.temp,
           theme.revealUrl,
           theme.revealDestDir,
-          extensionContext,
+          services.extension,
           project,
         ); // Add plugin scripts to metadata for template to use
 
@@ -179,7 +179,7 @@ export function revealjsFormat() {
             flags,
             offset,
             format,
-            temp,
+            services.temp,
             {
               tabby: true,
               anchors: false,
@@ -189,7 +189,6 @@ export function revealjsFormat() {
               figResponsive: false,
             }, // tippy options
             {
-              theme: "quarto-reveal",
               parent: "section.slide",
               config: {
                 offset: [0, 0],
@@ -258,7 +257,7 @@ export function revealjsFormat() {
             navigationMode === "grid";
 
           // if the user set slideNumber to true then provide
-          // linear slides (if they havne't specified vertical slides)
+          // linear slides (if they haven't specified vertical slides)
           if (format.metadata["slideNumber"] === true) {
             extras.metadataOverride!["slideNumber"] = verticalSlides
               ? "h.v"
@@ -409,6 +408,16 @@ function revealHtmlPostprocessor(
           "slideNumber: '$1'",
         );
 
+        // quote width and heigh if in %
+        scriptEl.innerText = scriptEl.innerText.replace(
+          /width: (\d+(\.\d+)?%)/,
+          "width: '$1'",
+        );
+        scriptEl.innerText = scriptEl.innerText.replace(
+          /height: (\d+(\.\d+)?%)/,
+          "height: '$1'",
+        );
+
         // plugin registration
         if (pluginInit.register.length > 0) {
           const kRevealPluginArray = "plugins: [";
@@ -455,7 +464,7 @@ function revealHtmlPostprocessor(
           'nav[role="doc-toc"] a[href="#/' + id + '"]',
         );
         if (tocEntry) {
-          tocEntry.parentNode?.remove();
+          tocEntry.parentElement?.remove();
         }
       }
 
@@ -609,7 +618,7 @@ function revealHtmlPostprocessor(
     if (slideFootnotes) {
       // we are using slide based footnotes so remove footnotes slide from end
       for (const footnoteSection of footnotes) {
-        footnoteSection.remove();
+        (footnoteSection as Element).remove();
       }
     } else {
       let footnotesId: string | undefined;
@@ -670,6 +679,23 @@ function revealHtmlPostprocessor(
       const chalkboardSrc = (chalkboard as Record<string, unknown>)["src"];
       if (typeof (chalkboardSrc) === "string") {
         result.resources.push(chalkboardSrc);
+      }
+    }
+
+    // https://github.com/quarto-dev/quarto-cli/issues/3533
+    // redirect anchors to the slide they refer to
+    const anchors = doc.querySelectorAll("a[href^='#/']");
+    for (const anchor of anchors) {
+      const anchorEl = anchor as Element;
+      const href = anchorEl.getAttribute("href");
+      if (href) {
+        const target = doc.getElementById(href.replace(/^#\//, ""));
+        if (target) {
+          const slide = findParentSlide(target);
+          if (slide && slide.getAttribute("id")) {
+            anchorEl.setAttribute("href", `#/${slide.getAttribute("id")}`);
+          }
+        }
       }
     }
 

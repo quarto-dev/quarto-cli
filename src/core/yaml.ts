@@ -294,7 +294,7 @@ function parseWithNiceErrors(
   }
 }
 
-function improveYamlParseErrorMessage(e: any) {
+function improveYamlParseErrorMessage(e: { message: string }) {
   if (e.message.match(/unknown tag/)) {
     e.message =
       `${e.message}\nDid you try to use a '!' in a YAML string? If so, you need to add explicit quotes to your string.`;

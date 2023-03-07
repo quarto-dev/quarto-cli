@@ -1,3 +1,7 @@
+<%
+const navbarToolsClass = (nav.navbar && nav.navbar.right) ? 'quarto-navbar-tools' : 'quarto-navbar-tools ms-auto';
+%>
+
 
 <% /* Container that holds search results (when using the non-floating style.) */ %>
 <div id="quarto-search-results"></div>
@@ -15,55 +19,27 @@
       }) %>
       <% if (nav.navbar.left || nav.navbar.right) { %>  
         <% if (nav.navbar.collapse) { %>
-          <% partial('navtoggle.ejs') %>
+          <% if (nav.navbar.search) { %>
+            <% partial('navsearch.ejs',  { classes: '', language: nav.language }) %>
+          <% } %>
+          <% partial('navtoggle.ejs', { language: nav.language }) %>
           <% partial('navcollapse.ejs') %>
             <% partial('navitems.ejs', { align: 'start', items: nav.navbar.left}) %>
             <% partial('navitems.ejs', { align: 'end', items: nav.navbar.right }) %>
-            <% if (nav.navbar.darkToggle || nav.navbar.readerToggle) { %>
-              <div class="quarto-toggle-container">
-                <% if (nav.navbar.darkToggle) { %>
-                  <% partial('navdarktoggle.ejs', { classes: 'nav-link' }) %>
-                <% } %>
-                <% if (nav.navbar.readerToggle) { %>
-                  <% partial('navreadertoggle.ejs', { classes: 'nav-link' }) %>
-                <% } %>
-              </div>
-            <% } %>    
-            <% if (nav.navbar.search) { %>
-              <% partial('navsearch.ejs',  { classes: '' }) %>
-            <% } %>
+            <% partial('navtools.ejs', { align: 'end', tools: nav.navbar.tools, darkToggle: nav.navbar.darkToggle, readerToggle: nav.navbar.readerToggle, search: false, className: navbarToolsClass, language: nav.language }) %>
           </div> <!-- /navcollapse -->
         <% } else { %>
           <% partial('navitems.ejs', { align: 'start', items: nav.navbar.left}) %>
           <% partial('navitems.ejs', { align: 'end', items: nav.navbar.right }) %>
-          <% if (nav.navbar.darkToggle || nav.navbar.readerToggle) { %>
-            <div class="quarto-toggle-container">
-              <% if (nav.navbar.darkToggle) { %>
-                <% partial('navdarktoggle.ejs', { classes: 'nav-link' }) %>
-              <% } %>
-              <% if (nav.navbar.readerToggle) { %>
-                <% partial('navreadertoggle.ejs', { classes: 'nav-link' }) %>
-              <% } %>
-
-            </div>
-          <% } %>    
+          <% partial('navtools.ejs', { align: 'end', tools: nav.navbar.tools, darkToggle: nav.navbar.darkToggle, readerToggle: nav.navbar.readerToggle, search: false, className: navbarToolsClass, language: nav.language }) %>
           <% if (nav.navbar.search) { %>
-            <% partial('navsearch.ejs',  { classes: '' }) %>
+            <% partial('navsearch.ejs',  { classes: '', language: nav.language }) %>
           <% } %>
         <% } %> 
       <% } else { %>
-        <% if (nav.navbar.darkToggle || nav.navbar.readerToggle) { %>
-          <div class="quarto-toggle-container ms-auto">
-            <% if (nav.navbar.darkToggle) { %>
-              <% partial('navdarktoggle.ejs', { classes: 'nav-link' }) %>
-            <% } %>
-            <% if (nav.navbar.readerToggle) { %>
-              <% partial('navreadertoggle.ejs', { classes: 'nav-link' }) %>
-            <% } %>
-          </div>
-        <% } %>    
+        <% partial('navtools.ejs', { align: 'end', tools: nav.navbar.tools, darkToggle: nav.navbar.darkToggle, readerToggle: nav.navbar.readerToggle, search: false, className: navbarToolsClass, language: nav.language }) %>
         <% if (nav.navbar.search) { %>
-          <% partial('navsearch.ejs',  { classes: '' }) %>
+          <% partial('navsearch.ejs',  { classes: '', language: nav.language }) %>
         <% } %>
       <% } %>
 
@@ -72,17 +48,24 @@
 <% } %>
 
 <% if (nav.sidebar && nav.layout) { %>
-  <nav class="quarto-secondary-nav" 
-        data-bs-toggle="collapse" data-bs-target="#quarto-sidebar" 
-        aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation"
-        onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }"
-  >
-    <div class="container-fluid d-flex justify-content-between">
-      <h1 class="quarto-secondary-nav-title"></h1>
-      <button type="button" 
-        class="quarto-btn-toggle btn" aria-label="Show secondary navigation">
-        <i class="bi bi-chevron-right"></i>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn"
+      data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" 
+      aria-controls="quarto-sidebar" aria-expanded="false" aria-label="<%- nav.language['toggle-sidebar'] %>"
+      onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
+      <h1 class="quarto-secondary-nav-title"></h1>
+      <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" 
+      aria-controls="quarto-sidebar" aria-expanded="false" aria-label="<%- nav.language['toggle-sidebar'] %>"
+      onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+      </a>
+      <% if (nav.sidebar && nav.sidebar.search) { %>
+      <button type="button" class="btn quarto-search-button" aria-label="<%- nav.language['search'] %>" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+      <% } %>
     </div>
   </nav>
 <% } %>
@@ -103,7 +86,7 @@ if (nav.layout === "article" || nav.layout === "full") {
 
 <!-- sidebar -->
 <% if (nav.sidebar || nav['toc-location'] === "left") { %>
-  <% partial('sidebar.ejs', { sidebar: nav.sidebar, sidebarStyle: nav.sidebarStyle, navbar: !!nav.navbar, toc: nav['toc-location'] === "left" }) %>
+  <% partial('sidebar.ejs', { sidebar: nav.sidebar, sidebarStyle: nav.sidebarStyle, navbar: !!nav.navbar, toc: nav['toc-location'] === "left", language: nav.language }) %>
 <% } %>
 
 <!-- margin-sidebar -->

@@ -115,7 +115,7 @@ end
 
 function countTables(div)
   local tables = 0
-  pandoc.walk_block(div, {
+  _quarto.ast.walk(div, {
     Table = function(table)
       tables = tables + 1
     end,
@@ -174,7 +174,7 @@ local tableCheckers = {
 function hasTable(raw)
   for i, checker in ipairs(tableCheckers) do
     local val = checker(raw)
-    if val ~= nil then
+    if val then
       return true
     end
   end

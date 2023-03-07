@@ -8,6 +8,7 @@
 import { existsSync } from "fs/mod.ts";
 import { dirname, extname, join } from "path/mod.ts";
 import { isFileRef } from "./http.ts";
+import { normalizePath } from "./path.ts";
 
 export const kCssUrlRegex =
   /url\((?!['"]?(?:data|https?):)(['"])?([^'"]*?)\1\)/g;
@@ -18,7 +19,7 @@ export function cssFileResourceReferences(files: string[]) {
   return files.reduce((allRefs: string[], file: string) => {
     if (extname(file).toLowerCase() === ".css") {
       if (existsSync(file)) {
-        file = Deno.realPathSync(file);
+        file = normalizePath(file);
         const css = Deno.readTextFileSync(file);
         const cssRefs = cssFileRefs(css).map((ref) => join(dirname(file), ref));
         allRefs.push(...cssRefs);

@@ -49,44 +49,60 @@ export function parsePandocTitle(title: string) {
 
 // partition markdown into yaml, the first heading, and the rest of the markdown text
 export function partitionMarkdown(markdown: string): PartitionedMarkdown {
-  const markdownLines: string[] = [];
-  let markdownHeading: string | undefined;
-  let markdownHeadingAttr: PandocAttr | undefined;
-  let markdownContainsRefs = false;
+  // partition out yaml
   const partitioned = partitionYamlFrontMatter(markdown);
   markdown = partitioned ? partitioned.markdown : markdown;
-  for (const line of lines(markdown)) {
-    // does this line contains the refs div?
-    if (!markdownContainsRefs) {
-      markdownContainsRefs = /^:::\s*{#refs([\s}]|.*?})\s*$/.test(line);
-    }
 
-    if (!markdownHeading) {
-      if (line.startsWith("#")) {
+  // extract heading
+  const { lines, headingText, headingAttr } = markdownWithExtractedHeading(
+    markdown,
+  );
+
+  // does this contain refs?
+  const containsRefs = lines.some((line) =>
+    /^:::\s*{#refs([\s}]|.*?})\s*$/.test(line)
+  );
+
+  return {
+    yaml: (partitioned ? readYamlFromMarkdown(partitioned.yaml) : undefined),
+    headingText,
+    headingAttr,
+    containsRefs,
+    markdown: lines.join("\n"),
+    srcMarkdownNoYaml: partitioned?.markdown || "",
+  };
+}
+
+export function markdownWithExtractedHeading(markdown: string) {
+  const mdLines: string[] = [];
+  let headingText: string | undefined;
+  let headingAttr: PandocAttr | undefined;
+
+  for (const line of lines(markdown)) {
+    if (!headingText) {
+      if (line.match(/^\#{1,}\s/)) {
         const parsedHeading = parsePandocTitle(line);
-        markdownHeading = parsedHeading.heading;
-        markdownHeadingAttr = parsedHeading.attr;
+        headingText = parsedHeading.heading;
+        headingAttr = parsedHeading.attr;
       } else if (line.match(/^=+\s*$/) || line.match(/^-+\s*$/)) {
-        const prevLine = markdownLines[markdownLines.length - 1];
+        const prevLine = mdLines[mdLines.length - 1];
         if (prevLine) {
-          markdownHeading = prevLine;
-          markdownLines.splice(markdownLines.length - 1);
+          headingText = prevLine;
+          mdLines.splice(mdLines.length - 1);
         } else {
-          markdownLines.push(line);
+          mdLines.push(line);
         }
       } else {
-        markdownLines.push(line);
+        mdLines.push(line);
       }
     } else {
-      markdownLines.push(line);
+      mdLines.push(line);
     }
   }
 
   return {
-    yaml: (partitioned ? readYamlFromMarkdown(partitioned.yaml) : undefined),
-    headingText: markdownHeading,
-    headingAttr: markdownHeadingAttr,
-    containsRefs: markdownContainsRefs,
-    markdown: markdownLines.join("\n"),
+    lines: mdLines,
+    headingText,
+    headingAttr,
   };
 }

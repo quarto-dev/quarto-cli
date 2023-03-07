@@ -20,7 +20,12 @@ import { cloneDeep } from "../../core/lodash.ts";
 import { inputFilesDir } from "../../core/render.ts";
 import { TempContext } from "../../core/temp.ts";
 import { md5Hash } from "../../core/hash.ts";
-import { removeIfEmptyDir, removeIfExists, safeRemoveIfExists } from "../../core/path.ts";
+import {
+  normalizePath,
+  removeIfEmptyDir,
+  removeIfExists,
+  safeRemoveIfExists,
+} from "../../core/path.ts";
 
 import {
   kIncludeAfterBody,
@@ -33,6 +38,7 @@ import { ExecuteResult } from "../../execute/types.ts";
 import { kProjectLibDir, ProjectContext } from "../../project/types.ts";
 import { projectScratchPath } from "../../project/project-scratch.ts";
 import { copyMinimal, copyTo } from "../../core/copy.ts";
+import { warning } from "log/mod.ts";
 
 export const kProjectFreezeDir = "_freeze";
 export const kOldFreezeExecuteResults = "execute";
@@ -63,7 +69,7 @@ export function freezeExecuteResult(
   // make the supporting dirs relative to the input file dir
   result.supporting = result.supporting.map((file) => {
     if (isAbsolute(file)) {
-      return relative(Deno.realPathSync(dirname(input)), file);
+      return relative(normalizePath(dirname(input)), file);
     } else {
       return file;
     }
@@ -92,16 +98,35 @@ export function defrostExecuteResult(
   const resultFile = freezeResultFile(source, output);
   if (existsSync(resultFile)) {
     // parse result
-    const { hash, result } = JSON.parse(Deno.readTextFileSync(resultFile)) as {
-      hash: string;
-      result: ExecuteResult;
-    };
+    let hash: string;
+    let result: ExecuteResult;
+    const contents = Deno.readTextFileSync(resultFile);
+    try {
+      const inp = JSON.parse(contents) as {
+        hash: string;
+        result: ExecuteResult;
+      };
+      hash = inp.hash;
+      result = inp.result;
+    } catch (_e) {
+      if (
+        contents.match("<<<<<<<") && contents.match(">>>>>>>") &&
+        contents.match("=======")
+      ) {
+        warning(
+          `Error parsing ${resultFile}; it looks possibly like a git merge conflict.`,
+        );
+      } else {
+        warning(`Error parsing ${resultFile}; it may be corrupt.`);
+      }
+      return;
+    }
 
     // use frozen version for force or equivalent source hash
     if (force || hash === freezeInputHash(source)) {
       // full path to supporting
       result.supporting = result.supporting.map((file) =>
-        join(Deno.realPathSync(dirname(source)), file)
+        join(normalizePath(dirname(source)), file)
       );
 
       // convert includes to files
@@ -135,7 +160,7 @@ export function projectFreezerDir(dir: string, hidden: boolean) {
     ? projectScratchPath(dir, kProjectFreezeDir)
     : join(dir, kProjectFreezeDir);
   ensureDirSync(freezeDir);
-  return Deno.realPathSync(freezeDir);
+  return normalizePath(freezeDir);
 }
 
 export function copyToProjectFreezer(

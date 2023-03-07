@@ -53,7 +53,7 @@ export const publishCommand =
       "Publish a document or project. Available providers include:\n\n" +
         " - Quarto Pub (quarto-pub)\n" +
         " - GitHub Pages (gh-pages)\n" +
-        " - RStudio Connect (connect)\n" +
+        " - Posit Connect (connect)\n" +
         " - Netlify (netlify)\n\n" +
         "Accounts are configured interactively during publishing.\n" +
         "Manage/remove accounts with: quarto publish accounts",
@@ -104,7 +104,7 @@ export const publishCommand =
       "quarto publish gh-pages",
     )
     .example(
-      "Publish project to RStudio Connect",
+      "Publish project to Posit Connect",
       "quarto publish connect",
     )
     .example(
@@ -225,7 +225,7 @@ async function publishAction(
     );
   } else if (publishOptions.prompt) {
     // new deployment, determine provider if needed
-    const providers = await publishProviders();
+    const providers = publishProviders();
     if (!provider) {
       if (haveArrowKeys()) {
         // select provider
@@ -233,10 +233,12 @@ async function publishAction(
           indent: "",
           name: "provider",
           message: "Provider:",
-          options: providers.map((provider) => ({
-            name: provider.description,
-            value: provider.name,
-          })),
+          options: providers
+            .filter((provider) => !provider.hidden)
+            .map((provider) => ({
+              name: provider.description,
+              value: provider.name,
+            })),
           type: Select,
         }]);
         if (result.provider) {

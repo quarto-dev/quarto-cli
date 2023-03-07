@@ -9,7 +9,7 @@ import { basename, dirname, isAbsolute, join } from "path/mod.ts";
 
 import { info } from "log/mod.ts";
 
-import { existsSync, expandGlobSync } from "fs/mod.ts";
+import { existsSync, expandGlobSync, moveSync } from "fs/mod.ts";
 
 import { stringify } from "encoding/yaml.ts";
 import { encode as base64Encode } from "encoding/base64.ts";
@@ -19,7 +19,7 @@ import * as ld from "../../core/lodash.ts";
 import { Document } from "../../core/deno-dom.ts";
 
 import { execProcess } from "../../core/process.ts";
-import { dirAndStem } from "../../core/path.ts";
+import { dirAndStem, normalizePath } from "../../core/path.ts";
 import { mergeConfigs } from "../../core/config.ts";
 
 import {
@@ -151,7 +151,6 @@ import {
   readPartials,
   stageTemplate,
 } from "./template.ts";
-import { formatLanguage } from "../../core/language.ts";
 import {
   kYamlMetadataBlock,
   pandocFormatWith,
@@ -188,11 +187,16 @@ import {
 import { kRevealJSPlugins } from "../../extension/extension-shared.ts";
 import { kCitation } from "../../format/html/format-html-shared.ts";
 import { cslDate } from "../../core/csl.ts";
+import { quartoConfig } from "../../core/quarto.ts";
 
 export async function runPandoc(
   options: PandocOptions,
   sysFilters: string[],
 ): Promise<RunPandocResult | null> {
+  const beforePandocHooks: (() => unknown)[] = [];
+  const afterPandocHooks: (() => unknown)[] = [];
+  const pandocEnv: { [key: string]: string } = {};
+
   // compute cwd for render
   const cwd = dirname(options.source);
 
@@ -273,12 +277,7 @@ export async function runPandoc(
     sysFilters = sysFilters.filter((filter) => filter !== kOJSFilter);
   }
 
-  // now that 'lang' is resolved we can determine our actual language values
-  options.format.language = await formatLanguage(
-    options.format.metadata,
-    options.format.language,
-    options.flags,
-  );
+  // pass the format language along to filter params
   formatFilterParams["language"] = options.format.language;
 
   // if there is no toc title then provide the appropirate default
@@ -308,6 +307,7 @@ export async function runPandoc(
       isEpubOutput(options.format.pandoc))
   ) {
     options.format.metadata[kAbstractTitle] =
+      options.format.metadata[kAbstractTitle] ||
       options.format.language[kSectionTitleAbstract];
   }
 
@@ -316,7 +316,7 @@ export async function runPandoc(
   const htmlPostprocessors: Array<HtmlPostProcessor> = [];
   const htmlFinalizers: Array<(doc: Document) => Promise<void>> = [];
   const htmlRenderAfterBody: string[] = [];
-  const dependenciesFile = options.temp.createFile();
+  const dependenciesFile = options.services.temp.createFile();
 
   if (
     sysFilters.length > 0 || options.format.formatExtras ||
@@ -328,7 +328,7 @@ export async function runPandoc(
         options.source,
         options.flags || {},
         options.format,
-        options.temp,
+        options.services,
       ))
       : {};
 
@@ -339,9 +339,8 @@ export async function runPandoc(
         options.flags || {},
         options.format,
         options.libDir,
-        options.temp,
+        options.services,
         options.offset,
-        options.extension,
         options.project,
       ))
       : {};
@@ -352,7 +351,7 @@ export async function runPandoc(
       options.format,
       cwd,
       options.libDir,
-      options.temp,
+      options.services.temp,
       dependenciesFile,
       options.project,
     );
@@ -443,9 +442,15 @@ export async function runPandoc(
       printAllDefaults = mergeConfigs(extras.pandoc, printAllDefaults);
 
       // Special case - theme is resolved on extras and should override allDefaults
-      if (extras.pandoc[kHighlightStyle]) {
+      if (extras.pandoc[kHighlightStyle] === null) {
+        delete printAllDefaults[kHighlightStyle];
+        allDefaults[kHighlightStyle] = null;
+      } else if (extras.pandoc[kHighlightStyle]) {
         delete printAllDefaults[kHighlightStyle];
         allDefaults[kHighlightStyle] = extras.pandoc[kHighlightStyle];
+      } else {
+        delete printAllDefaults[kHighlightStyle];
+        delete allDefaults[kHighlightStyle];
       }
     }
 
@@ -468,7 +473,7 @@ export async function runPandoc(
 
     // The user partials (if any)
     const userPartials = readPartials(options.format.metadata, cwd);
-    const inputDir = Deno.realPathSync(cwd);
+    const inputDir = normalizePath(cwd);
     const resolvePath = (path: string) => {
       if (isAbsolute(path)) {
         return path;
@@ -618,7 +623,7 @@ export async function runPandoc(
     if (extras.html?.[kBodyEnvelope] && projectExtras.html?.[kBodyEnvelope]) {
       extras.html[kBodyEnvelope] = projectExtras.html[kBodyEnvelope];
     }
-    resolveBodyEnvelope(allDefaults, extras, options.temp);
+    resolveBodyEnvelope(allDefaults, extras, options.services.temp);
 
     // add any filters
     allDefaults.filters = [
@@ -650,7 +655,7 @@ export async function runPandoc(
 
   // add a shortcode escaping post-processor if we need one
   if (
-    isMarkdownOutput(options.format.pandoc) &&
+    isMarkdownOutput(options.format) &&
     requiresShortcodeUnescapePostprocessor(options.markdown)
   ) {
     postprocessors.push(shortcodeUnescapePostprocessor);
@@ -693,15 +698,29 @@ export async function runPandoc(
   }
 
   // filter results json file
-  const filterResultsFile = options.temp.createFile();
+  const filterResultsFile = options.services.temp.createFile();
 
   // timing results json file
-  const timingResultsFile = options.temp.createFile();
+  const timingResultsFile = options.services.temp.createFile();
 
   if (allDefaults.to?.match(/[.]lua$/)) {
     formatFilterParams["custom-writer"] = allDefaults.to;
     allDefaults.to = resourcePath("filters/customwriter/customwriter.lua");
   }
+  if (Deno.env.get("QUARTO_ALLENMANNING_WORKAROUND_CONFLUENCE") === undefined) {
+    if (allDefaults.writer?.match(/[.]lua$/)) {
+      formatFilterParams["custom-writer"] = allDefaults.writer;
+      allDefaults.writer = resourcePath(
+        "filters/customwriter/customwriter.lua",
+      );
+    }
+  }
+
+  // set up the custom .qmd reader
+  if (allDefaults.from) {
+    formatFilterParams["user-defined-from"] = allDefaults.from;
+  }
+  allDefaults.from = resourcePath("filters/qmd-reader.lua");
 
   // set parameters required for filters (possibily mutating all of it's arguments
   // to pull includes out into quarto parameters so they can be merged)
@@ -721,7 +740,7 @@ export async function runPandoc(
   // crossref filter so we only do this if the user hasn't disabled the crossref filter
   if (
     !isLatexOutput(options.format.pandoc) &&
-    !isMarkdownOutput(options.format.pandoc) && crossrefFilterActive(options)
+    !isMarkdownOutput(options.format) && crossrefFilterActive(options)
   ) {
     delete allDefaults[kNumberSections];
     delete allDefaults[kNumberOffset];
@@ -808,7 +827,10 @@ export async function runPandoc(
 
   // write the defaults file
   if (allDefaults) {
-    const defaultsFile = await writeDefaultsFile(allDefaults, options.temp);
+    const defaultsFile = await writeDefaultsFile(
+      allDefaults,
+      options.services.temp,
+    );
     cmd.push("--defaults", defaultsFile);
   }
 
@@ -853,6 +875,15 @@ export async function runPandoc(
     );
   });
 
+  // Ensure that citationMetadat is expanded into
+  // and object for downstream use
+  if (
+    typeof (pandocMetadata[kCitation]) === "boolean" &&
+    pandocMetadata[kCitation] === true
+  ) {
+    pandocMetadata[kCitation] = {};
+  }
+
   // Expand citation dates into CSL dates
   const citationMetadata = pandocMetadata[kCitation];
   if (citationMetadata) {
@@ -890,6 +921,11 @@ export async function runPandoc(
       : [instituteRaw];
   }
 
+  // If the user provides only `zh` as a lang, disambiguate to 'simplified'
+  if (pandocMetadata.lang === "zh") {
+    pandocMetadata.lang = "zh-Hans";
+  }
+
   // If there are no specified options for link coloring in PDF, set them
   // do not color links for obviously printed book output or beamer presentations
   if (
@@ -923,7 +959,7 @@ export async function runPandoc(
     keepSourceBlock(options.format, options.source);
 
   // write input to temp file and pass it to pandoc
-  const inputTemp = options.temp.createFile({
+  const inputTemp = options.services.temp.createFile({
     prefix: "quarto-input",
     suffix: ".md",
   });
@@ -946,13 +982,20 @@ export async function runPandoc(
   // This gives the semantics we want, as our metadata is 'logically' at the top of the
   // file and subsequent blocks within the file should indeed override it (as should
   // user invocations of --metadata-file or -M, which are included below in pandocArgs)
-  const metadataTemp = options.temp.createFile({
+  const metadataTemp = options.services.temp.createFile({
     prefix: "quarto-metadata",
     suffix: ".yml",
   });
   const pandocPassedMetadata = ld.cloneDeep(pandocMetadata);
   delete pandocPassedMetadata.format;
   delete pandocPassedMetadata.project;
+  delete pandocPassedMetadata.website;
+  if (pandocPassedMetadata._quarto) {
+    // these shouldn't be visible because they are emitted on markdown output
+    // and it breaks ensureFileRegexMatches
+    delete pandocPassedMetadata._quarto.tests;
+  }
+
   Deno.writeTextFileSync(
     metadataTemp,
     stringify(pandocPassedMetadata, {
@@ -980,16 +1023,48 @@ export async function runPandoc(
   // workaround for our wonky Lua timing routines
   const luaEpoch = await getLuaTiming();
 
+  pandocEnv["QUARTO_FILTER_PARAMS"] = base64Encode(paramsJson);
+
+  if (pandocMetadata?.["_quarto"]?.["trace-filters"]) {
+    // const metadata = pandocMetadata?.["_quarto"]?.["trace-filters"];
+    beforePandocHooks.push(() => {
+      pandocEnv["QUARTO_TRACE_FILTERS"] = "true";
+    });
+    afterPandocHooks.push(() => {
+      const dest = join(
+        quartoConfig.sharePath(),
+        "../../package/src/common/trace-viewer",
+        pandocMetadata?.["_quarto"]?.["trace-filters"],
+      );
+      const source = join(cwd, "quarto-filter-trace.json");
+      if (source !== dest) {
+        try {
+          Deno.removeSync(dest);
+        } catch { // pass
+        }
+        moveSync(join(cwd, "quarto-filter-trace.json"), dest);
+      }
+    });
+  }
+
+  // run beforePandoc hooks
+  for (const hook of beforePandocHooks) {
+    await hook();
+  }
+
   // run pandoc
   const result = await execProcess(
     {
       cmd,
       cwd,
-      env: {
-        "QUARTO_FILTER_PARAMS": base64Encode(paramsJson),
-      },
+      env: pandocEnv,
     },
   );
+
+  // run afterPandoc hooks
+  for (const hook of afterPandocHooks) {
+    await hook();
+  }
 
   // resolve resource files from metadata
   const resources: string[] = resourcesFromMetadata(
@@ -1241,10 +1316,8 @@ function resolveTextHighlightStyle(
 
   if (highlightTheme === "none") {
     // Clear the highlighting
-    pandoc[kHighlightStyle] = null;
-    if (extras.pandoc) {
-      delete extras.pandoc[kHighlightStyle];
-    }
+    extras.pandoc = extras.pandoc || {};
+    extras.pandoc[kHighlightStyle] = null;
     return extras;
   }
 
@@ -1267,9 +1340,12 @@ function resolveTextHighlightStyle(
       break;
     case "none":
       // Clear the highlighting
-      delete pandoc[kHighlightStyle];
       if (extras.pandoc) {
-        delete extras.pandoc[kHighlightStyle];
+        extras.pandoc = extras.pandoc || {};
+        extras.pandoc[kHighlightStyle] = textHighlightThemePath(
+          inputDir,
+          "none",
+        );
       }
       break;
     case undefined:

@@ -1,6 +1,6 @@
 {
     "text-color": null,
-    "background-color": null,
+    "background-color": "#F3F5F6",
     "line-number-color": "#aaaaaa",
     "line-number-background-color": null,
     "text-styles": {
@@ -27,6 +27,13 @@
         },
         "Annotation": {
             "text-color": "#008000",
+            "background-color": null,
+            "bold": false,
+            "italic": false,
+            "underline": false
+        },
+        "Normal": {
+            "text-color": "#008080",
             "background-color": null,
             "bold": false,
             "italic": false,

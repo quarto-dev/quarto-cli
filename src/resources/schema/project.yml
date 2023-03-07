@@ -62,7 +62,7 @@
     object:
       super:
         - resolveRef: book-schema
-        - resolveRef: csl-item
+        - resolveRef: csl-item-shared
 
 - name: type
   hidden: true

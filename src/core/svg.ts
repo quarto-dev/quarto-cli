@@ -6,7 +6,7 @@
 */
 
 import { kFigHeight, kFigWidth } from "../config/constants.ts";
-import { Element, getDomParser } from "./deno-dom.ts";
+import { Attr, Element, getDomParser } from "./deno-dom.ts";
 import { EitherString, MappedString } from "./lib/text-types.ts";
 import { asMappedString, mappedDiff } from "./mapped-text.ts";
 import { inInches } from "./units.ts";
@@ -30,7 +30,10 @@ export async function resolveSize(
     throw new Error("Internal error: couldn't find figure dimensions");
   }
   const getViewBox = () => {
-    const vb = svgEl.attributes.getNamedItem("viewBox").value; // do it the roundabout way so that viewBox isn't dropped by deno_dom and text/html
+    // work around https://github.com/b-fuze/deno-dom/issues/133
+    const m = svg.match(/viewbox/i);
+    if (!m) return undefined;
+    const vb = denoDomWorkaroundNamedItemAccessor(svg, svgEl, "viewbox")?.value; // do it the roundabout way so that viewBox isn't dropped by deno_dom and text/html
     if (!vb) return undefined;
     const lst = vb.trim().split(" ").map(Number);
     if (lst.length !== 4) return undefined;
@@ -110,6 +113,23 @@ export const fixupAlignment = (svg: Element, align: string) => {
   svg.setAttribute("style", style);
 };
 
+// https://github.com/b-fuze/deno-dom/issues/133
+const denoDomWorkaroundNamedItemAccessor = (
+  _str: string,
+  el: Element,
+  key: string,
+): Attr | null => {
+  key = key.toLocaleLowerCase();
+
+  for (let i = 0; i < el.attributes.length; ++i) {
+    const attr = el.attributes.item(i);
+    if (attr?.name.toLowerCase() === key) {
+      return attr;
+    }
+  }
+  return null;
+};
+
 // NB: there's effectively a copy of this function
 // in our mermaid runtime in `formats/html/mermaid/mermaid-runtime.js`.
 // if you change something here, you must keep it consistent there as well.
@@ -138,13 +158,16 @@ export async function setSvgSize(
     // so that the figure doesn't get squished.
     svg.setAttribute(
       "style",
-      (svg.attributes.getNamedItem("style")?.value || "") +
+      (denoDomWorkaroundNamedItemAccessor(mappedSvgSrc.value, svg, "style")
+        ?.value || "") +
         "; max-width: none; max-height: none",
     );
   } else {
     // we don't have access to svg.style as a property here...
     // so we have to do it the roundabout way.
-    let style = svg.attributes.getNamedItem("style")?.value || "";
+    let style =
+      denoDomWorkaroundNamedItemAccessor(mappedSvgSrc.value, svg, "style")
+        ?.value || "";
     if (explicitWidth) {
       style = `${style}; max-width: ${widthInPoints}px`;
     }

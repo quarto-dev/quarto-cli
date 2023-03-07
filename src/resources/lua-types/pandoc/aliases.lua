@@ -1,0 +1,3 @@
+---@meta
+
+---@alias pandoc.Node pandoc.RawInline|pandoc.SmallCaps|pandoc.Doc|pandoc.Emph|pandoc.Blocks|pandoc.Image|pandoc.BlockQuote|pandoc.Math|pandoc.LineBreak|pandoc.Cite|pandoc.Pandoc|pandoc.Table|pandoc.Note|pandoc.HorizontalRule|pandoc.Inline|pandoc.Underline|pandoc.Link|pandoc.Superscript|pandoc.Inlines|pandoc.OrderedList|pandoc.Space|pandoc.Div|pandoc.Strong|pandoc.Quoted|pandoc.Citation|pandoc.RawBlock|pandoc.Para|pandoc.Code|pandoc.DefinitionList|pandoc.MetaBool|pandoc.MetaMap|pandoc.Meta|pandoc.CodeBlock|pandoc.Block|pandoc.Span|pandoc.Subscript|pandoc.SoftBreak|pandoc.Figure|pandoc.SimpleTable|pandoc.Plain|pandoc.Strikeout|pandoc.BulletList|pandoc.Str|pandoc.LineBlock

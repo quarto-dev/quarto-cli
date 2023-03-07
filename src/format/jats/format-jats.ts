@@ -12,8 +12,6 @@ import {
   kVariant,
 } from "../../config/constants.ts";
 import { Format, PandocFlags } from "../../config/types.ts";
-import { TempContext } from "../../core/temp-types.ts";
-import { ExtensionContext } from "../../extension/extension-shared.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { createFormat } from "../formats-shared.ts";
 
@@ -21,6 +19,7 @@ import { warning } from "log/mod.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { join } from "path/mod.ts";
 import { reformat } from "../../core/xml.ts";
+import { RenderServices } from "../../command/render/types.ts";
 
 const kJatsExtended = "jats-extended";
 const kJatsDtd = "jats-dtd";
@@ -41,9 +40,8 @@ export function jatsFormat(displayName: string, ext: string): Format {
       _flags: PandocFlags,
       format: Format,
       _libDir: string,
-      _temp: TempContext,
+      _services: RenderServices,
       _offset?: string,
-      _extensionContext?: ExtensionContext,
       _project?: ProjectContext,
     ) => {
       // Provide a template and partials

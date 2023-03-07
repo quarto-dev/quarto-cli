@@ -1,0 +1,10 @@
+---
+_quarto:
+  tests:
+    asciidoc: default
+---
+
+# References {.unnumbered}
+
+::: {#refs}
+:::

@@ -10,7 +10,11 @@ import { dirname, extname, join, relative } from "path/mod.ts";
 import * as ld from "../core/lodash.ts";
 import { asArray } from "../core/array.ts";
 
-import { resolvePathGlobs, safeExistsSync } from "../core/path.ts";
+import {
+  normalizePath,
+  resolvePathGlobs,
+  safeExistsSync,
+} from "../core/path.ts";
 import { kCssImportRegex, kCssUrlRegex } from "../core/css.ts";
 
 import {
@@ -29,6 +33,8 @@ export function projectResourceFiles(
 ): string[] {
   let resourceGlobs = asArray(config.project[kProjectResources]);
   const resourceFiles: string[] = [];
+  // This usage of reading the output directory is necessary since we haven't
+  // yet formed the project context (this function is used in creating the context)
   const outputDir = config.project[kProjectOutputDir];
   if (outputDir) {
     resourceGlobs = (resourceGlobs || [])
@@ -63,7 +69,7 @@ export function copyResourceFile(
   destFile: string,
 ) {
   // ensure that the resource reference doesn't escape the root dir
-  if (!Deno.realPathSync(srcFile).startsWith(Deno.realPathSync(rootDir))) {
+  if (!normalizePath(srcFile).startsWith(normalizePath(rootDir))) {
     return;
   }
 

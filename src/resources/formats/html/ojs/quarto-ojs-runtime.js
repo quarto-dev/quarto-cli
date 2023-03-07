@@ -1,4 +1,4 @@
-// quarto-ojs-runtime v0.0.15 Copyright 2022 undefined
+// quarto-ojs-runtime v0.0.15 Copyright 2023 undefined
 var EOL = {},
     EOF = {},
     QUOTE = 34,
@@ -19349,7 +19349,7 @@ function calloutBlock(opts) {
     `callout-${type}`,
     "callout",
     "callout-style-default",
-    "callout-captioned"
+    "callout-titled"
   );
   const header = document.createElement("div");
   header.classList.add("callout-header", "d-flex", "align-content-center");
@@ -19361,7 +19361,7 @@ function calloutBlock(opts) {
   header.appendChild(iconContainer);
 
   const headingDiv = document.createElement("div");
-  headingDiv.classList.add("callout-caption-container", "flex-fill");
+  headingDiv.classList.add("callout-title-container", "flex-fill");
   // we assume heading is either a string or a span
   if (typeof heading === "string") {
     headingDiv.innerText = heading;
@@ -19974,19 +19974,22 @@ function createRuntime() {
       return localResolver[n];
     }
 
-    const name = (() => {
-      if (n.startsWith("/")) {
-        // docToRoot can be empty, in which case naive concatenation creates
-        // an absolute path.
-        if (quartoOjsGlobal.paths.docToRoot === "") {
-          return `.${n}`;
-        } else {
-          return `${quartoOjsGlobal.paths.docToRoot}${n}`;
-        }
+    let name;
+    const currentPath = window.location.href.replace(/[^/]*$/, '');
+
+    if (n.startsWith("/")) {
+      // docToRoot can be empty, in which case naive concatenation creates
+      // an absolute path.
+      if (quartoOjsGlobal.paths.docToRoot === "") {
+        name = `${currentPath}.${n}`;
       } else {
-        return n;
-      }  
-    })();
+        name = `${currentPath}${quartoOjsGlobal.paths.docToRoot}${n}`;
+      }
+    } else if (n.startsWith("http")) {
+      name = n;
+    } else {
+      name = `${currentPath}${n}`;
+    }
 
     const mimeType = mime.getType(name);
 

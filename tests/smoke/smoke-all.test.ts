@@ -5,9 +5,8 @@
  *
  */
 
-import { expandGlobSync } from "fs/mod.ts";
+import { expandGlobSync } from "../../src/core/deno/expand-glob.ts";
 import { testQuartoCmd, Verify } from "../test.ts";
-
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../src/core/schema/utils.ts";
 import {
   initState,
@@ -21,11 +20,14 @@ import {
   ensureDocxRegexMatches,
   ensureFileRegexMatches,
   ensureHtmlElements,
+  fileExists,
   noErrors,
   noErrorsOrWarnings,
 } from "../verify.ts";
 import { readYamlFromMarkdown } from "../../src/core/yaml.ts";
 import { outputForInput } from "../utils.ts";
+import { jupyterNotebookToMarkdown } from "../../src/command/convert/jupyter.ts";
+import { dirname, join, relative } from "path/mod.ts";
 
 async function fullInit() {
   await initYamlIntelligenceResourcesFromFilesystem();
@@ -41,6 +43,7 @@ async function guessFormat(fileName: string): Promise<string[]> {
       const src = cell.source.value.replaceAll(/^---$/mg, "");
       const yaml = parse(src);
       if (yaml && typeof yaml === "object") {
+        // deno-lint-ignore no-explicit-any
         const format = (yaml as Record<string, any>).format;
         if (typeof format === "object") {
           for (
@@ -97,8 +100,24 @@ function resolveTestSpecs(
           checkWarnings = false;
           verifyFns.push(noErrors);
         } else {
-          if (verifyMap[key]) {
-            const outputFile = outputForInput(input, format);
+          const outputFile = outputForInput(input, format);
+          if (key === "fileExists") {
+            for (
+              const [path, file] of Object.entries(
+                value as Record<string, string>,
+              )
+            ) {
+              if (path === "outputPath") {
+                verifyFns.push(
+                  fileExists(join(dirname(outputFile.outputPath), file)),
+                );
+              } else if (path === "supportPath") {
+                verifyFns.push(
+                  fileExists(join(outputFile.supportPath, file)),
+                );
+              }
+            }
+          } else if (verifyMap[key]) {
             verifyFns.push(verifyMap[key](outputFile.outputPath, ...value));
           }
         }
@@ -119,7 +138,7 @@ function resolveTestSpecs(
 const globOutput = Deno.args.length
   ? expandGlobSync(Deno.args[0])
   : expandGlobSync(
-    "docs/smoke-all/**/*.qmd",
+    "docs/smoke-all/**/*.{qmd,ipynb}",
   );
 
 await initYamlIntelligenceResourcesFromFilesystem();
@@ -127,9 +146,11 @@ await initYamlIntelligenceResourcesFromFilesystem();
 for (
   const { path: fileName } of globOutput
 ) {
-  const input = fileName;
+  const input = relative(Deno.cwd(), fileName);
 
-  const metadata = readYamlFromMarkdown(Deno.readTextFileSync(input));
+  const metadata = input.endsWith("qmd")
+    ? readYamlFromMarkdown(Deno.readTextFileSync(input))
+    : readYamlFromMarkdown(await jupyterNotebookToMarkdown(input, false));
   const testSpecs = [];
 
   if (hasTestSpecs(metadata)) {

@@ -13,6 +13,10 @@ export function isWindows() {
   return Deno.build.os === "windows";
 }
 
+export function isWSL() {
+  return !!Deno.env.get("WSL_DISTRO_NAME");
+}
+
 export function isMac() {
   return Deno.build.os === "darwin";
 }
@@ -61,7 +65,7 @@ export function isJupyterServer() {
 }
 
 export function isJupyterHubServer() {
-  return jupyterHubUser() !== undefined;
+  return !!jupyterHubUser() && !!jupyterHubServicePrefix();
 }
 
 export function vsCodeServerProxyUri() {
@@ -74,6 +78,10 @@ export function jupyterHubHttpReferrer() {
 
 export function jupyterHubUser() {
   return Deno.env.get("JUPYTERHUB_USER");
+}
+
+export function jupyterHubServicePrefix() {
+  return Deno.env.get("JUPYTERHUB_SERVICE_PREFIX");
 }
 
 export function isInteractiveTerminal() {

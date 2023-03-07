@@ -6,8 +6,8 @@ _quarto:
   tests: 
     html:
       ensureHtmlElements:
-        - ["div.callout-icon-container i.callout-icon.no-icon"]
-        - ["div.callout-icon-container i.callout-icon"]    
+        - ["div.callout.callout-note div.callout-icon-container i.callout-icon"]
+        - ["div.callout-icon-container i.callout-icon.no-icon"]    
 ---
 
 Some stuff here.

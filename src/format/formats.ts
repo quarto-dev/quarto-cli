@@ -6,6 +6,7 @@
 */
 
 import {
+  kBaseFormat,
   kDefaultImageExtension,
   kEcho,
   kFigHeight,
@@ -13,6 +14,7 @@ import {
   kOutputDivs,
   kPageWidth,
   kTargetFormat,
+  kVariant,
   kWarning,
 } from "../config/constants.ts";
 
@@ -40,10 +42,13 @@ import {
   pandocMarkdownFormat,
 } from "./markdown/format-markdown.ts";
 import { jatsFormat } from "./jats/format-jats.ts";
+import { asciidocFormat } from "./asciidoc/format-asciidoc.ts";
+import { mergePandocVariant } from "../config/metadata.ts";
 
 export function defaultWriterFormat(to: string): Format {
   // to can sometimes have a variant, don't include that in the lookup here
-  const lookupTo = parseFormatString(to).baseFormat;
+  const formatDescriptor = parseFormatString(to);
+  const lookupTo = formatDescriptor.baseFormat;
   let pandocTo = lookupTo;
 
   // get defaults for writer
@@ -122,11 +127,8 @@ export function defaultWriterFormat(to: string): Format {
       break;
 
     case "asciidoc":
-      writerFormat = plaintextFormat("Asciidoc", "txt");
-      break;
-
     case "asciidoctor":
-      writerFormat = plaintextFormat("Asciidoctor", "adoc");
+      writerFormat = asciidocFormat();
       break;
 
     case "docbook":
@@ -162,7 +164,7 @@ export function defaultWriterFormat(to: string): Format {
     case "epub":
     case "epub2":
     case "epub3":
-      writerFormat = epubFormat();
+      writerFormat = epubFormat(lookupTo);
       break;
 
     case "fb2":
@@ -264,6 +266,13 @@ export function defaultWriterFormat(to: string): Format {
 
   // Set the originating to
   writerFormat.identifier[kTargetFormat] = to;
+  writerFormat.identifier[kBaseFormat] = lookupTo;
+
+  // Merge any explicitly provided variants
+  writerFormat.render[kVariant] = mergePandocVariant(
+    writerFormat.render[kVariant],
+    formatDescriptor.variants.join(""),
+  );
 
   // return the createFormat
   return writerFormat;

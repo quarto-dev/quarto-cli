@@ -462,7 +462,7 @@ function latexCell(cell, vAlign, endOfRow, endOfTable)
   -- ensure that pandoc doesn't write any nested figures
   for i,block in ipairs(content) do
     latexHandsoffFigure(block)
-    content[i] = pandoc.walk_block(block, {
+    content[i] = _quarto.ast.walk(block, {
       Para = latexHandsoffFigure
     })
   end
@@ -565,7 +565,7 @@ function latexHandsoffFigure(el)
 end
 
 function latexRemoveTableDelims(el)
-  return pandoc.walk_block(el, {
+  return _quarto.ast.walk(el, {
     RawBlock = function(el)
       if _quarto.format.isRawLatex(el) then
         el.text = el.text:gsub("\\begin{table}[^\n]*\n", "")

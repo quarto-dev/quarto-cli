@@ -24,6 +24,7 @@ import {
   kDoi,
   kFormatLinks,
   kHideDescription,
+  kKeepTex,
   kNumberSections,
   kOutputExt,
   kOutputFile,
@@ -78,6 +79,7 @@ import {
 import {
   bookConfig,
   BookConfigKey,
+  BookExtension,
   isBookIndexPage,
   isMultiFileBookFormat,
   isNumberedChapter,
@@ -138,7 +140,8 @@ export function bookPandocRenderer(
         );
 
         // index file
-        if (isBookIndexPage(fileRelative)) {
+        const isIndex = isBookIndexPage(fileRelative);
+        if (isIndex) {
           file.recipe.format = withBookTitleMetadata(
             file.recipe.format,
             project.config,
@@ -212,6 +215,27 @@ export function bookPandocRenderer(
                 "\n\n" + partitioned.markdown;
             } else {
               file.executeResult.markdown = partitioned.markdown;
+            }
+          }
+        }
+
+        // Use the pre-render hook to allow formats to customize
+        // the format before it is rendered.
+        if (file.recipe.format.extensions?.book) {
+          const bookExtension =
+            (file.recipe.format.extensions?.book as BookExtension);
+          if (bookExtension.onMultiFilePrePrender) {
+            const result = await bookExtension.onMultiFilePrePrender(
+              isIndex,
+              file.recipe.format,
+              file.executeResult.markdown,
+              project,
+            );
+            if (result.format) {
+              file.recipe.format = result.format;
+            }
+            if (result.markdown) {
+              file.executeResult.markdown = result.markdown;
             }
           }
         }
@@ -324,6 +348,10 @@ async function renderSingleFileBook(
 
   // cleanup step for each executed file
   files.forEach((file) => {
+    // Forward render cleanup options from parent format
+    file.recipe.format.render[kKeepTex] =
+      executedFile.recipe.format.render[kKeepTex];
+
     cleanupExecutedFile(
       file,
       join(project.dir, renderedFile.file),
@@ -457,10 +485,14 @@ async function mergeExecutedFiles(
           const titleBlockMarkdown = resolveTitleBlockMarkdown(
             partitioned.yaml,
           );
+          const bodyMarkdown = partitioned.yaml?.title
+            ? partitioned.srcMarkdownNoYaml
+            : partitioned.markdown;
+
           itemMarkdown = bookItemMetadata(project, item, file) +
             titleMarkdown +
             titleBlockMarkdown +
-            partitioned.markdown;
+            bodyMarkdown;
         } else {
           throw new Error(
             "Executed file not found for book item: " + item.file,
@@ -582,6 +614,26 @@ export async function bookPostRender(
 
     // run standard website stuff (search, etc.)
     await websitePostRender(context, incremental, outputFiles);
+  }
+
+  // Process any post rendering
+  const outputFormats: Record<string, Format> = {};
+  outputFiles.forEach((file) => {
+    if (file.format.pandoc.to) {
+      outputFormats[file.format.pandoc.to] =
+        outputFormats[file.format.pandoc.to] || file.format;
+    }
+  });
+  for (const outputFormat of Object.values(outputFormats)) {
+    const bookExt = outputFormat.extensions?.book as BookExtension;
+    if (bookExt.bookPostRender) {
+      await bookExt.bookPostRender(
+        outputFormat,
+        context,
+        incremental,
+        outputFiles,
+      );
+    }
   }
 }
 

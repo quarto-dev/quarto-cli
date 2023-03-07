@@ -10,7 +10,11 @@ import { existsSync, walkSync } from "fs/mod.ts";
 
 import * as ld from "../../core/lodash.ts";
 
-import { kSkipHidden, pathWithForwardSlashes } from "../../core/path.ts";
+import {
+  kSkipHidden,
+  normalizePath,
+  pathWithForwardSlashes,
+} from "../../core/path.ts";
 import { md5Hash } from "../../core/hash.ts";
 
 import { logError } from "../../core/log.ts";
@@ -59,7 +63,7 @@ export function watchProject(
   };
 
   // proj dir
-  const projDir = Deno.realPathSync(project.dir);
+  const projDir = normalizePath(project.dir);
   const projDirHidden = projDir + "/.";
 
   // output dir

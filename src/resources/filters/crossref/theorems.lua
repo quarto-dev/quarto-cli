@@ -8,7 +8,7 @@ function crossrefPreprocessTheorems()
     Div = function(el)
       local type = refType(el.attr.identifier)
       if types[type] ~= nil or proofType(el) ~= nil then
-        return pandoc.walk_block(el, {
+        return _quarto.ast.walk(el, {
           Header = function(el)
             el.classes:insert("unnumbered")
             return el
@@ -51,7 +51,6 @@ function crossrefTheorems()
         
         -- If this theorem has no content, then create a placeholder
         if #el.content == 0 or el.content[1].t ~= "Para" then
-          print("PLACEHOLDER NEEDED")
           tprepend(el.content, {pandoc.Para({pandoc.Str '\u{a0}'})})
         end
       
@@ -64,12 +63,14 @@ function crossrefTheorems()
           end
           preamble.content:insert(pandoc.RawInline("latex", "]"))
           preamble.content:insert(pandoc.RawInline("latex",
-            "\\label{" .. label .. "}")
+            "\\protect\\hypertarget{" .. label .. "}{}\\label{" .. label .. "}")
           )
           el.content:insert(1, preamble)
           el.content:insert(pandoc.Para(pandoc.RawInline("latex", 
             "\\end{" .. theoremType.env .. "}"
           )))
+          -- Remove id on those div to avoid Pandoc inserting \hypertaget #3776
+          el.attr.identifier = ""
         elseif _quarto.format.isJatsOutput() then
 
           -- JATS XML theorem
@@ -144,12 +145,15 @@ function crossrefTheorems()
               span.content:insert(pandoc.Str(")"))
             end
             tappend(span.content, { pandoc.Str(". ")})
+
+            -- if the first block is a paragraph, then prepend the title span
             if #el.content > 0 and 
-               el.content[1].content ~= nil and #el.content[1].content > 0 then
+               el.content[1].t == "Para" and
+               el.content[1].content ~= nil and 
+               #el.content[1].content > 0 then
               el.content[1].content:insert(1, span)
             else
-              -- if the first block can't handle content insertion
-              -- then insert a new paragraph
+              -- else insert a new paragraph
               el.content:insert(1, pandoc.Para{span})
             end
           end
@@ -249,7 +253,7 @@ function theoremLatexIncludes()
     end
     theoremIncludes = theoremIncludes ..
       "\\theoremstyle{remark}\n" ..
-      "\\renewcommand*{\\proofname}{" .. envTitle("proof", "Proof") .. "}\n" ..
+      "\\AtBeginDocument{\\renewcommand*{\\proofname}{" .. envTitle("proof", "Proof") .. "}}\n" ..
       "\\newtheorem*{remark}{" .. envTitle("remark", "Remark") .. "}\n" ..
       "\\newtheorem*{solution}{" .. envTitle("solution", "Solution") .. "}\n"
     return theoremIncludes

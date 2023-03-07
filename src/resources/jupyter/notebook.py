@@ -13,8 +13,12 @@ from pathlib import Path
 
 from poyo import parse_string
 
+from log import trace
 import nbformat
 from nbclient import NotebookClient
+from jupyter_client import KernelManager
+from jupyter_core_utils_vendor import run_sync
+import asyncio
 
 # optional import of papermill for params support
 try:
@@ -37,6 +41,7 @@ class RestartKernel(Exception):
 # execute a notebook
 def notebook_execute(options, status):
 
+   trace('inside notebook_execute')
    # if this is a re-execution of a previously loaded kernel,
    # make sure the underlying python version hasn't changed
    python_cmd = options.get("python_cmd", None)
@@ -97,6 +102,7 @@ def notebook_execute(options, status):
    # read the notebook
    nb = nbformat.read(input, as_version = NB_FORMAT_VERSION)
 
+   trace('read notebook')
    # inject parameters if provided
    if params:
       nb_parameterize(nb, params)
@@ -108,8 +114,10 @@ def notebook_execute(options, status):
    # are we using the cache, if so connect to the cache, and then if we aren't in 'refresh'
    # (forced re-execution) mode then try to satisfy the execution request from the cache
    if cache == True or cache == "refresh":
+      trace('using cache')
       if not get_cache:
           raise ImportError('The jupyter-cache package is required for cached execution')
+      trace('getting cache')
       nb_cache = get_cache(".jupyter_cache")
       if not cache == "refresh":
          cached_nb = nb_from_cache(nb, nb_cache)
@@ -117,8 +125,10 @@ def notebook_execute(options, status):
             cached_nb.cells.pop(0)
             nb_write(cached_nb, input)
             status("(Notebook read from cache)\n\n")
+            trace('(Notebook read from cache)')
             return True # can persist kernel
    else:
+      trace('not using cache')
       nb_cache = None
       
    # create resources for execution
@@ -130,8 +140,11 @@ def notebook_execute(options, status):
    if run_path:
       resources["metadata"]["path"] = run_path
 
+   trace("Will attempt to create notebook")
    # create NotebookClient
+   trace("type of notebook: {0}".format(type(nb)))
    client, created = notebook_init(nb, resources, allow_errors)
+   trace("NotebookClient created")
 
    # complete progress if necessary
    if (not quiet) and created:
@@ -155,6 +168,7 @@ def notebook_execute(options, status):
 
       # execute cell
       if cell.cell_type == 'code':
+         trace("Executing cell {0}".format(index))
          cell = cell_execute(
             client, 
             cell, 
@@ -164,6 +178,7 @@ def notebook_execute(options, status):
             index > 0 # add_to_history
          )
          cell.execution_count = current_code_cell
+         trace("Executed cell {0}".format(index))
 
       # if this was the setup cell, see if we need to exit b/c dependencies are out of date
       if index == 0:
@@ -195,6 +210,9 @@ def notebook_execute(options, status):
       # end progress
       if progress:
          status("Done\n")
+         trace("Done")
+
+   trace("Notebook execution complete")
 
    # set widgets metadata   
    client.set_widgets_metadata()
@@ -236,6 +254,7 @@ def notebook_init(nb, resources, allow_errors):
    created = False
    if not hasattr(notebook_init, "client"):
       
+      trace("Creating NotebookClient")
       # create notebook client
       client = NotebookClient(nb, resources = resources)
       client.allow_errors = allow_errors
@@ -243,7 +262,16 @@ def notebook_init(nb, resources, allow_errors):
       client.create_kernel_manager()
       client.start_new_kernel()
       client.start_new_kernel_client()
-      info_msg = client.wait_for_reply(client.kc.kernel_info())
+
+      async def get_info():
+         i = client.kc.kernel_info()
+         if asyncio.isfuture(i):
+            return await i
+         else:
+            return i
+      info = run_sync(get_info)()
+
+      info_msg = client.wait_for_reply(info)
       client.nb.metadata['language_info'] = info_msg['content']['language_info']
       notebook_init.client = client
       created = True
@@ -459,7 +487,8 @@ def nb_cell_yaml_options(lang, cell):
    
    # if we have yaml then parse it
    if len(yaml_lines) > 0:
-      yaml_code = "\n".join(yaml_lines)
+      # work around poyo bug: https://github.com/quarto-dev/quarto-cli/issues/4573
+      yaml_code = "\n".join(l.rstrip() for l in yaml_lines)
       yaml_options = parse_string(yaml_code)
       if (type(yaml_options) is dict):
          return yaml_options

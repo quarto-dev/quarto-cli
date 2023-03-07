@@ -5,12 +5,12 @@
 *
 */
 
+import { RenderServices } from "../command/render/types.ts";
 import { PandocFlags } from "../config/types.ts";
 import { Format, FormatExtras } from "../config/types.ts";
 import { mergeConfigs } from "../core/config.ts";
 import { isRStudio } from "../core/platform.ts";
 import { findOpenPort, kLocalhost, waitForPort } from "../core/port.ts";
-import { TempContext } from "../core/temp-types.ts";
 
 import {
   NavigationItem as NavItem,
@@ -19,6 +19,7 @@ import {
   ProjectConfig as ProjectConfig_Project,
   ProjectPreview,
 } from "../resources/types/schema-types.ts";
+import { InputTargetIndex } from "./project-index.ts";
 export {
   type NavigationItem as NavItem,
   type NavigationItemObject,
@@ -49,7 +50,7 @@ export interface ProjectContext {
     source: string,
     flags: PandocFlags,
     format: Format,
-    temp: TempContext,
+    services: RenderServices,
   ) => Promise<FormatExtras>;
 }
 

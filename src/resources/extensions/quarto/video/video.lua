@@ -68,6 +68,7 @@ local youTubeBuilder = function(params)
   if not (params and params.src) then return nil end
   local src = params.src
   match = checkEndMatch(src, 'https://www.youtube.com/embed/')
+  match = match or checkEndMatch(src, 'https://www.youtube%-nocookie.com/embed/')
   match = match or checkEndMatch(src, 'https://youtu.be/')
   match = match or string.match(src, '%?v=(.-)&')
   match = match or string.match(src, '%?v=(.-)$')
@@ -88,6 +89,7 @@ local youTubeBuilder = function(params)
   }
   result.type = VIDEO_TYPES.YOUTUBE
   result.src = params.src
+  result.videoId = match
 
   return result
 end
@@ -103,7 +105,7 @@ local brightcoveBuilder = function(params)
 
   local result = {}
 
-  local SNIPPET = [[<iframe src="{src}"{width}{height} allowfullscreen="" title="{title}" allow="encrypted-media"></iframe>]]
+  local SNIPPET = [[<iframe data-external="1" src="{src}"{width}{height} allowfullscreen="" title="{title}" allow="encrypted-media"></iframe>]]
   result.snippet = replaceCommonAttributes(SNIPPET, params)
   result.type = VIDEO_TYPES.BRIGHTCOVE
   result.src = params.src
@@ -119,13 +121,14 @@ local vimeoBuilder = function(params)
 
   params.src = 'https://player.vimeo.com/video/' .. match
 
-  local SNIPPET = [[<iframe src="{src}"{width}{height} frameborder="0" allow="autoplay; title="{title}" fullscreen; picture-in-picture" allowfullscreen></iframe>]]
+  local SNIPPET = [[<iframe data-external="1" src="{src}"{width}{height} frameborder="0" allow="autoplay; title="{title}" fullscreen; picture-in-picture" allowfullscreen></iframe>]]
 
   local result = {}
 
   result.snippet = replaceCommonAttributes(SNIPPET, params)
   result.type = VIDEO_TYPES.VIMEO
   result.src = params.src
+  result.videoId = match
 
   return result
 end
@@ -178,6 +181,34 @@ local helpers = {
   ["VIDEO_SHORTCODE_NUM_VIDEOJS"] = VIDEO_SHORTCODE_NUM_VIDEOJS,
   ["getSnippetFromBuilders"] = getSnippetFromBuilders
 }
+
+-- makes an asciidoc video raw block
+-- see https://docs.asciidoctor.org/asciidoc/latest/macros/audio-and-video/
+function formatAsciiDocVideo(src, type)
+  return  'video::' .. src .. '[' .. type .. ']'
+end
+
+local function asciidocVideo(src, height, width, title, start, _aspectRatio)
+  local asciiDocVideoRawBlock = function(src, type) 
+    return pandoc.RawBlock("asciidoc", formatAsciiDocVideo(src, type) .. '\n\n')
+  end
+
+  local videoSnippetAndType = getSnippetFromBuilders(src, height, width, title, start)  
+  if videoSnippetAndType.type == VIDEO_TYPES.YOUTUBE then  
+    -- Use the video id to form an asciidoc video
+    if videoSnippetAndType.videoId ~= nil then
+      return asciiDocVideoRawBlock(videoSnippetAndType.videoId, 'youtube');
+    end    
+  elseif videoSnippetAndType.type == VIDEO_TYPES.VIMEO then
+    return asciiDocVideoRawBlock(videoSnippetAndType.videoId, 'vimeo');
+  elseif videoSnippetAndType.type ==  VIDEO_TYPES.VIDEOJS then
+    return asciiDocVideoRawBlock(videoSnippetAndType.src, '');
+  else
+    -- this is not a local or supported video type for asciidoc
+    -- we should just emit a hyper link
+  end
+
+end
 
 function htmlVideo(src, height, width, title, start, aspectRatio)
 
@@ -235,7 +266,7 @@ end
 -- defining shortcodes this way allows us to create helper
 -- functions that are not themselves considered shortcodes
 return {
-  ["video"] = function(args, kwargs)
+  ["video"] = function(args, kwargs, _meta, raw_args)
     checkArg = function(toCheck, key)
       value = pandoc.utils.stringify(toCheck[key])
       if not isEmpty(value) then
@@ -257,8 +288,8 @@ return {
     end
 
     if isEmpty(srcValue) then
-      if #args > 0 then
-        srcValue = pandoc.utils.stringify(args[1])
+      if #raw_args > 0 then
+        srcValue = pandoc.utils.stringify(raw_args[1])
       else
         print("No video source specified for video shortcode")
         os.exit(1)
@@ -267,6 +298,8 @@ return {
 
     if quarto.doc.is_format("html:js") then
       return htmlVideo(srcValue, heightValue, widthValue, titleValue, startValue, aspectRatio)
+    elseif quarto.doc.isFormat("asciidoc") then
+      return asciidocVideo(srcValue, heightValue, widthValue, titleValue, startValue, aspectRatio)
     else
       -- Fall-back to a link of the source
       return pandoc.Link(srcValue, srcValue)

@@ -14,12 +14,11 @@ import * as colors from "fmt/colors.ts";
 import { copyMinimal, copyTo } from "../../core/copy.ts";
 import * as ld from "../../core/lodash.ts";
 
-import { kKeepMd } from "../../config/constants.ts";
+import { kKeepMd, kTargetFormat } from "../../config/constants.ts";
 
 import {
   kProjectExecuteDir,
   kProjectLibDir,
-  kProjectOutputDir,
   kProjectPostRender,
   kProjectPreRender,
   kProjectType,
@@ -55,8 +54,16 @@ import { handlerForScript } from "../../core/run/run.ts";
 import { execProcess } from "../../core/process.ts";
 import { parseShellRunCommand } from "../../core/run/shell.ts";
 import { clearProjectIndex } from "../../project/project-index.ts";
-import { projectExcludeDirs } from "../../project/project-shared.ts";
+import {
+  hasProjectOutputDir,
+  projectExcludeDirs,
+  projectFormatOutputDir,
+  projectOutputDir,
+} from "../../project/project-shared.ts";
 import { asArray } from "../../core/array.ts";
+import { normalizePath } from "../../core/path.ts";
+import { isSubdir } from "fs/_util.ts";
+import { Format } from "../../config/types.ts";
 
 export async function renderProject(
   context: ProjectContext,
@@ -66,8 +73,10 @@ export async function renderProject(
   // lookup the project type
   const projType = projectType(context.config?.project?.[kProjectType]);
 
+  const projOutputDir = projectOutputDir(context);
+
   // get real path to the project
-  const projDir = Deno.realPathSync(context.dir);
+  const projDir = normalizePath(context.dir);
 
   // is this an incremental render?
   const incremental = !!files;
@@ -84,7 +93,7 @@ export async function renderProject(
       if (!existsSync(target)) {
         throw new Error("Render target does not exist: " + file);
       }
-      return Deno.realPathSync(target);
+      return normalizePath(target);
     });
   };
 
@@ -113,8 +122,7 @@ export async function renderProject(
   // some standard pre and post render script env vars
   const renderAll = !files || (files.length === context.files.input.length);
   const prePostEnv = {
-    "QUARTO_PROJECT_OUTPUT_DIR": context.config?.project?.[kProjectOutputDir] ||
-      ".",
+    "QUARTO_PROJECT_OUTPUT_DIR": projOutputDir,
     ...(renderAll ? { QUARTO_PROJECT_RENDER_ALL: "1" } : {}),
   };
 
@@ -146,7 +154,7 @@ export async function renderProject(
   // projResults to return
   const projResults: RenderResult = {
     baseDir: projDir,
-    outputDir: context.config?.project?.[kProjectOutputDir],
+    outputDir: relative(projDir, projOutputDir),
     files: [],
   };
 
@@ -157,16 +165,14 @@ export async function renderProject(
   const progress = !!options.progress || (filesToRender.length > 1);
 
   // if there is an output dir then remove it if clean is specified
-  const projOutputDir = context.config?.project?.[kProjectOutputDir];
   if (
-    renderAll && (typeof (projOutputDir) === "string") &&
+    renderAll && hasProjectOutputDir(context) &&
     (options.flags?.clean == true) && (projType.cleanOutputDir === true)
   ) {
-    const realProjectDir = Deno.realPathSync(context.dir);
     // ouptut dir
-    let realOutputDir = join(realProjectDir, projOutputDir);
-    if (existsSync(realOutputDir)) {
-      realOutputDir = Deno.realPathSync(realOutputDir);
+    const realProjectDir = normalizePath(context.dir);
+    if (existsSync(projOutputDir)) {
+      const realOutputDir = normalizePath(projOutputDir);
       if (
         (realOutputDir !== realProjectDir) &&
         realOutputDir.startsWith(realProjectDir)
@@ -264,10 +270,10 @@ export async function renderProject(
     context,
   );
 
-  if (outputDirAbsolute) {
+  const directoryRelocator = (destinationDir: string) => {
     // move or copy dir
-    const relocateDir = (dir: string, copy = false) => {
-      const targetDir = join(outputDirAbsolute, dir);
+    return (dir: string, copy = false) => {
+      const targetDir = join(destinationDir, dir);
       if (existsSync(targetDir)) {
         Deno.removeSync(targetDir, { recursive: true });
       }
@@ -281,20 +287,38 @@ export async function renderProject(
         }
       }
     };
-    const moveDir = relocateDir;
-    const copyDir = (dir: string) => relocateDir(dir, true);
+  };
 
+  if (outputDirAbsolute) {
     // track whether we need to keep the lib dir around
     let keepLibsDir = false;
+
+    interface FileOperation {
+      src: string;
+      performOperation: () => void;
+    }
+    const fileOperations: FileOperation[] = [];
 
     // move/copy projResults to output_dir
     for (let i = 0; i < fileResults.files.length; i++) {
       const renderedFile = fileResults.files[i];
 
+      const formatOutputDir = projectFormatOutputDir(
+        renderedFile.format,
+        context,
+        projectType(context.config?.project.type),
+      );
+
+      const formatRelocateDir = directoryRelocator(formatOutputDir);
+      const moveFormatDir = formatRelocateDir;
+      const copyFormatDir = (dir: string) => formatRelocateDir(dir, true);
+
       // move the renderedFile to the output dir
-      const outputFile = join(outputDirAbsolute, renderedFile.file);
-      ensureDirSync(dirname(outputFile));
-      Deno.renameSync(join(projDir, renderedFile.file), outputFile);
+      if (!renderedFile.isTransient) {
+        const outputFile = join(formatOutputDir, renderedFile.file);
+        ensureDirSync(dirname(outputFile));
+        Deno.renameSync(join(projDir, renderedFile.file), outputFile);
+      }
 
       // files dir
       const keepFiles = !!renderedFile.format.execute[kKeepMd];
@@ -311,9 +335,23 @@ export async function renderProject(
           );
         });
         if (keepFiles) {
-          renderedFile.supporting.map((file) => copyDir(file));
+          renderedFile.supporting.forEach((file) => {
+            fileOperations.push({
+              src: file,
+              performOperation: () => {
+                copyFormatDir(file);
+              },
+            });
+          });
         } else {
-          renderedFile.supporting.map((file) => moveDir(file));
+          renderedFile.supporting.forEach((file) => {
+            fileOperations.push({
+              src: file,
+              performOperation: () => {
+                moveFormatDir(file);
+              },
+            });
+          });
         }
       }
 
@@ -329,6 +367,7 @@ export async function renderProject(
 
       // render file renderedFile
       projResults.files.push({
+        isTransient: renderedFile.isTransient,
         input: renderedFile.input,
         markdown: renderedFile.markdown,
         format: renderedFile.format,
@@ -337,6 +376,20 @@ export async function renderProject(
         resourceFiles: await resourcesFrom(renderedFile),
       });
     }
+
+    // Perform the file operations (deepest folder first)
+    const sortedOperations = fileOperations.sort((a, b) => {
+      if (a.src === b.src) {
+        return 0;
+      } else if (isSubdir(a.src, b.src)) {
+        return 1;
+      } else {
+        return -1;
+      }
+    });
+    sortedOperations.forEach((op) => {
+      op.performOperation();
+    });
 
     // move or copy the lib dir if we have one (move one subdirectory at a time
     // so that we can merge with what's already there)
@@ -384,10 +437,12 @@ export async function renderProject(
             safeRemoveIfExists(libDirFull);
           }
         } else {
+          // move or copy dir
+          const relocateDir = directoryRelocator(outputDirAbsolute);
           if (keepLibsDir) {
-            copyDir(libDir);
+            relocateDir(libDir, true);
           } else {
-            moveDir(libDir);
+            relocateDir(libDir);
           }
         }
       }
@@ -403,24 +458,78 @@ export async function renderProject(
       );
     });
 
-    // copy all of the resource files
-    const allResourceFiles = ld.uniq(
-      (context.files.resources || []).concat(
-        projResults.files.flatMap((file) => file.resourceFiles),
-      ),
-    );
+    // Expand the resources into the format aware targets
+    // srcPath -> Set<destinationPaths>
+    const resourceFilesToCopy: Record<string, Set<string>> = {};
 
-    // copy the resource files to the output dir
-    allResourceFiles.forEach((file: string) => {
-      const sourcePath = relative(projDir, file);
-      const destPath = join(outputDirAbsolute, sourcePath);
-      if (existsSync(file)) {
-        if (Deno.statSync(file).isFile) {
-          copyResourceFile(context.dir, file, destPath);
-        }
-      } else if (!existsSync(destPath)) {
-        warning(`File '${sourcePath}' was not found.`);
+    const projectFormats: Record<string, Format> = {};
+    projResults.files.forEach((file) => {
+      if (
+        file.format.identifier[kTargetFormat] &&
+        projectFormats[file.format.identifier[kTargetFormat]] === undefined
+      ) {
+        projectFormats[file.format.identifier[kTargetFormat]] = file.format;
       }
+    });
+
+    const isSelfContainedOutput = (format: Format) => {
+      return projType.selfContainedOutput &&
+        projType.selfContainedOutput(format);
+    };
+
+    Object.values(projectFormats).forEach((format) => {
+      // Don't copy resource files if the project produces a self-contained output
+      if (isSelfContainedOutput(format)) {
+        return;
+      }
+
+      // Process the project resources
+      const formatOutputDir = projectFormatOutputDir(
+        format,
+        context,
+        projType,
+      );
+      context.files.resources?.forEach((resource) => {
+        resourceFilesToCopy[resource] = resourceFilesToCopy[resource] ||
+          new Set();
+        const relativePath = relative(context.dir, resource);
+        resourceFilesToCopy[resource].add(
+          join(formatOutputDir, relativePath),
+        );
+      });
+    });
+
+    // Process the resources provided by the files themselves
+    projResults.files.forEach((file) => {
+      // Don't copy resource files if the project produces a self-contained output
+      if (isSelfContainedOutput(file.format)) {
+        return;
+      }
+
+      const formatOutputDir = projectFormatOutputDir(
+        file.format,
+        context,
+        projType,
+      );
+      file.resourceFiles.forEach((file) => {
+        resourceFilesToCopy[file] = resourceFilesToCopy[file] || new Set();
+        const relativePath = relative(projDir, file);
+        resourceFilesToCopy[file].add(join(formatOutputDir, relativePath));
+      });
+    });
+
+    // Actually copy the resource files
+    Object.keys(resourceFilesToCopy).forEach((srcPath) => {
+      const destinationFiles = resourceFilesToCopy[srcPath];
+      destinationFiles.forEach((destPath: string) => {
+        if (existsSync(srcPath)) {
+          if (Deno.statSync(srcPath).isFile) {
+            copyResourceFile(context.dir, srcPath, destPath);
+          }
+        } else if (!existsSync(destPath)) {
+          warning(`File '${srcPath}' was not found.`);
+        }
+      });
     });
   } else {
     for (const result of fileResults.files) {
@@ -441,13 +550,23 @@ export async function renderProject(
 
   // call project post-render
   if (!projResults.error) {
-    const outputFiles = projResults.files.map((result) => {
-      const file = outputDir ? join(outputDir, result.file) : result.file;
-      return {
-        file: join(projDir, file),
-        format: result.format,
-      };
-    });
+    const outputFiles = projResults.files
+      .filter((x) => !x.isTransient)
+      .map((result) => {
+        const outputDir = projectFormatOutputDir(
+          result.format,
+          context,
+          projType,
+        );
+
+        const file = outputDir
+          ? join(outputDir, result.file)
+          : join(projDir, result.file);
+        return {
+          file,
+          format: result.format,
+        };
+      });
 
     if (projType.postRender) {
       await projType.postRender(

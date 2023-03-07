@@ -95,6 +95,7 @@ export interface RenderResultFile {
   markdown: string;
   format: Format;
   file: string;
+  isTransient?: boolean;
   supporting?: string[];
   resourceFiles: string[];
   supplemental?: boolean;
@@ -108,6 +109,7 @@ export interface RenderedFile {
   supporting?: string[];
   resourceFiles: RenderResourceFiles;
   selfContained: boolean;
+  isTransient?: boolean; // from recipe, indicates that this file shouldn't be copied (eg to project destination)
 }
 
 export interface RenderExecuteOptions {
@@ -138,6 +140,7 @@ export interface PandocRenderer {
 export interface RenderedFormat {
   path: string;
   format: Format;
+  isTransient?: boolean;
 }
 
 export interface RenderFile {
@@ -176,17 +179,14 @@ export interface PandocOptions {
   // command line args for pandoc
   args: string[];
 
-  // temp context
-  temp: TempContext;
+  // the render services
+  services: RenderServices;
 
   // extra metadata to merge
   metadata?: Metadata;
 
   // optoinal project context
   project?: ProjectContext;
-
-  // optional extension context
-  extension?: ExtensionContext;
 
   // quiet quarto pandoc informational output
   quiet?: boolean;
@@ -237,4 +237,6 @@ export interface OutputRecipe {
 
   // The final output for the recipe (if different than the output itself)
   finalOutput?: string;
+
+  isOutputTransient?: boolean;
 }

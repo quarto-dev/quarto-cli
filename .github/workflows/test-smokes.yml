@@ -8,16 +8,16 @@ on:
   push:
     # only trigger on branches, not on tags
     branches: [main]
-env:
-  RENV_PATHS_ROOT: ~/.local/share/renv
-
-# Ubuntu: ~/.local/share/renv
-# macOS: ~/Library/Application Support/renv
-# Windows: %LOCALAPPDATA%/renv
+  schedule:
+    - cron: "0 6 * * *"
 
 jobs:
   run-smokes:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout Repo
@@ -26,76 +26,138 @@ jobs:
           # checkout full tree
           fetch-depth: 0
 
+      - name: Fix temp dir to use runner one (windows)
+        if: runner.os == 'Windows'
+        run: |
+          echo "TMPDIR=${{ runner.temp }}" >> $GITHUB_ENV
+          echo "TMP=${{ runner.temp }}" >> $GITHUB_ENV
+          echo "TEMP=${{ runner.temp }}" >> $GITHUB_ENV
+        shell: bash
+
       - name: Set up R
         uses: r-lib/actions/setup-r@v2
         with:
-          r-version: "4.1.0"
+          r-version: "4.2.2"
 
       - name: Install node (for Playwright)
+        if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
         uses: actions/setup-node@v3
         with:
           node-version: 16
 
       - name: Install node dependencies
+        if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
         run: yarn
         working-directory: ./tests/integration/playwright
+        shell: bash
 
       - name: Install Playwright Browsers
+        if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
         run: npx playwright install --with-deps
         working-directory: ./tests/integration/playwright
 
-      - name: Cache packages
+      - name: Set RENV_PATHS_ROOT
+        shell: bash
+        run: |
+          echo "RENV_PATHS_ROOT=${{ runner.temp }}/renv" >> $GITHUB_ENV
+
+      - name: Get R and OS version
+        id: get-version
+        run: |
+          cat("os-version=", sessionInfo()$running, "\n", file = Sys.getenv("GITHUB_OUTPUT"), sep = "", append = TRUE)
+          cat("r-version=", R.Version()$version.string, "\n", file = Sys.getenv("GITHUB_OUTPUT"), sep = "", append = TRUE)
+        shell: Rscript {0}
+
+      - name: Cache R packages
         uses: actions/cache@v3
         with:
           path: ${{ env.RENV_PATHS_ROOT }}
-          key: ${{ runner.os }}-1-renv-${{ hashFiles('**/renv.lock') }}
+          key: ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-1-${{ hashFiles('renv.lock') }}
           restore-keys: |
-            ${{ runner.os }}-1-renv-
+            ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-1-
 
-      - name: Restore packages
+      - name: Install missing system deps
+        if: runner.os == 'Linux'
         run: |
-          pushd tests
-          Rscript -e "if (!requireNamespace('renv', quietly = TRUE)) install.packages('renv')"
-          Rscript -e "renv::restore()"
-          popd
+          sudo apt-get update -y && sudo apt-get install -y libcurl4-openssl-dev
+
+      - name: Restore R packages
+        working-directory: tests
+        run: |
+          if (!requireNamespace('renv', quietly = TRUE)) install.packages('renv')
+          renv::restore()
+        shell: Rscript {0}
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.x"
-          cache: "pip"
+          cache: "pipenv"
+          cache-dependency-path: "./tests/Pipfile.lock"
+          python-version-file: "./tests/.python-version"
 
-      - name: Python Dependencies
+      - name: Restore Python Dependencies
+        working-directory: tests
         run: |
-          pushd tests
-          source bin/activate
-          python3 -m pip install --upgrade pip pip==21.3.1
-          python3 -m pip install wheel 
-          python3 -m pip install --user virtualenv
-          python3 -m pip install -r requirements.txt          
-          popd
+          python -m pip install pipenv
+          pipenv install --system
 
       - uses: ./.github/workflows/actions/quarto-dev
 
       - name: Install Tinytex
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           quarto install tinytex
 
       - name: Install Chrome
         uses: browser-actions/setup-chrome@latest
 
+      - name: Setup Julia
+        uses: julia-actions/setup-julia@v1
+
+      - name: Cache Julia Packages
+        uses: julia-actions/cache@v1
+
+      - name: Restore Julia Packages
+        working-directory: tests
+        shell: bash
+        run: |
+          julia --color=yes --project=. -e "import Pkg; Pkg.instantiate(); Pkg.build(\"IJulia\"); Pkg.precompile()"
+
       - name: Smoke Test Commits
         if: github.event.before != ''
+        env:
+          # Useful as TinyTeX latest release is checked in run-test.sh
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git checkout ${{ github.sha}}
           pushd tests
-          ./run-tests.sh
+          case $RUNNER_OS in
+            "Windows")
+              pwsh -F ./run-tests.ps1
+              ;;
+            *)
+              ./run-tests.sh
+              ;;
+          esac
           popd
+        shell: bash
 
       - name: Smoke Test Head
+        env:
+          # Useful as TinyTeX latest release is checked in run-test.sh
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         if: github.event.before == ''
         run: |
-          pushd tests
-          quarto render docs/test.qmd --to pdf
-          ./run-tests.sh
-          popd
+          case $RUNNER_OS in
+            "Windows")
+              ../package/dist/bin/quarto.cmd render docs/test.qmd --to pdf
+              pwsh -F ./run-tests.ps1
+              ;;
+            *)
+              quarto render docs/test.qmd --to pdf
+              ./run-tests.sh
+              ;;
+          esac
+        working-directory: tests
+        shell: bash

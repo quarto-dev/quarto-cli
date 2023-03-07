@@ -1,8 +1,9 @@
--- Confluence Storage Format for Pandoc
--- https://confluence.atlassian.com/doc/confluence-storage-format-790796544.html
--- https://pandoc.org/MANUAL.html#custom-readers-and-writers
 local function startsWith(text, prefix)
   return text:find(prefix, 1, true) == 1
+end
+
+local function startsWithHttp(source)
+  return startsWith(source, "http")
 end
 
 local function escape(s, in_attribute)
@@ -24,8 +25,7 @@ local function escape(s, in_attribute)
           end)
 end
 
--- From https://stackoverflow.com/questions/9168058/how-to-dump-a-table-to-console
-function dumpObject(o)
+local function dumpObject(o)
   if type(o) == 'table' then
     local s = '{ '
     for k,v in pairs(o) do
@@ -38,7 +38,7 @@ function dumpObject(o)
   end
 end
 
-function dump(object, label)
+local function log(label, object)
   print(label or '' .. ': ', dumpObject(object))
 end
 
@@ -46,8 +46,7 @@ local function isEmpty(s)
   return s == nil or s == ''
 end
 
--- from http://lua-users.org/wiki/StringInterpolation
-local interpolate = function(str, vars)
+local function interpolate(str, vars)
   -- Allow replace_vars{str, vars} syntax as well as replace_vars(str, {vars})
   if not vars then
     vars = str
@@ -59,24 +58,28 @@ local interpolate = function(str, vars)
           end))
 end
 
-function CaptionedImageConfluence(source, title, caption, attr)
+function CaptionedImageConfluence(source, title, caption, attr, id)
   --Note Title isn't usable by confluence at this time it will
   -- serve as the default value for attr.alt-text
 
-  local CAPTION_SNIPPET = [[<ac:caption>
-            <p>{caption}</p>
-        </ac:caption>]]
+  local CAPTION_SNIPPET = [[<ac:caption>{caption}</ac:caption>]]
 
-  local IMAGE_SNIPPET = [[<ac:image
+  local IMAGE_SNIPPET = [[{anchor}<ac:image
     ac:align="{align}"
     ac:layout="{layout}"
     ac:alt="{alt}">
         <ri:attachment ri:filename="{source}" />{caption}
     </ac:image>]]
 
-  local sourceValue = escape(source, true)
-  local titleValue = escape(title, true)
-  local captionValue = escape(caption)
+  local sourceValue = source
+  local titleValue = title
+  local captionValue = caption
+  local anchorValue = ""
+
+  if (id and #id > 0) then
+    -- wrap in `p` to prevent an issue with CSF not redering correctly
+    anchorValue = "<p>" .. HTMLAnchorConfluence(id) .. "</p>"
+  end
 
   local alignValue = 'center'
   if (attr and attr['fig-align']) then
@@ -94,34 +97,61 @@ function CaptionedImageConfluence(source, title, caption, attr)
 
   if not isEmpty(captionValue) then
     captionValue =
-    interpolate {CAPTION_SNIPPET, caption = captionValue}
+    interpolate {
+      CAPTION_SNIPPET,
+      caption = escape(captionValue)}
   end
-  return interpolate {
-    IMAGE_SNIPPET,
-    source = sourceValue,
-    align = alignValue,
-    layout = layoutValue,
-    alt = altValue,
-    caption = captionValue}
+
+  if(not startsWithHttp(source)) then
+    return interpolate {
+      IMAGE_SNIPPET,
+      source = sourceValue,
+      align = alignValue,
+      layout = layoutValue,
+      alt = altValue,
+      caption = captionValue,
+      anchor = anchorValue
+    }
+  end
+
+  return "<img src='" .. escape(source,true) .. "' title='" ..
+          escape(title,true) .. "'/>"
+
 end
 
 function LinkConfluence(source, target, title, attr)
-  local LINK_ATTACHMENT_SNIPPET = [[<ac:link><ri:attachment ri:filename="{source}"/><ac:plain-text-link-body><![CDATA[{target}{doubleBraket}></ac:plain-text-link-body></ac:link>]]
-  if(not startsWith(target,"http") and (not string.find(target, ".qmd"))) then
-    return interpolate {
-    LINK_ATTACHMENT_SNIPPET,
-    source = source,
-    target = target,
-    doubleBraket = "]]"
-  }
-  end
+  -- For some reason, rendering converts spaces to a double line-break
+  -- TODO figure out exactly what is going on here
+  source = string.gsub(source, "\n\n", " ")
+  source = string.gsub(source, "\n \n", " ")
+  source = string.gsub(source, "(\n", "")
+  source = string.gsub(source, "\n)", "")
 
-    return "<a href='" .. escape(target,true) .. "' title='" ..
-            escape(title,true) .. "'>" .. source .. "</a>"
+  return "<a href='" .. escape(target,true) .. "' title='" ..
+          escape(title,true) .. "'>" .. source .. "</a>"
 end
 
-function CodeBlockConfluence(codeValue, attributes)
-  local languageValue = attributes and attributes.class or ''
+function CalloutConfluence(type, content)
+  local SNIPPET = [[<ac:structured-macro ac:name="{type}" ac:schema-version="1" ac:macro-id="{id}"><ac:rich-text-body>{content}</ac:rich-text-body></ac:structured-macro>]]
+
+  local MAP_TYPE = {
+    note = {name = "info", id = "1c8062cd-87de-4701-a698-fd435e057468"},
+    warning = {name = "note", id = "1049a0d8-470f-4f83-a0d7-b6ad35ea8eda"},
+    important = {name = "warning", id = "0185f821-7aa4-404a-8748-ec59a46357e1"},
+    tip = {name = "tip", id = "97c39328-9651-4c56-8a8c-ab5537001d86"},
+    caution = {name = "note", id = "1049a0d8-470f-4f83-a0d7-b6ad35ea8eda"}
+  }
+
+  local mappedType = MAP_TYPE[type] or MAP_TYPE['note']
+
+  return interpolate {
+      SNIPPET,
+      type = mappedType.name,
+      id = mappedType.id,
+      content = content}
+end
+
+function CodeBlockConfluence(codeValue, languageValue)
   local CODE_SNIPPET = [[<ac:structured-macro
       ac:name="code"
       ac:schema-version="1"
@@ -134,100 +164,42 @@ function CodeBlockConfluence(codeValue, attributes)
 
   return interpolate {
     CODE_SNIPPET,
-    languageValue = languageValue,
+    languageValue = languageValue or '',
     codeValue = codeValue,
     doubleBraket = ']]'
   }
 end
 
--- Convert pandoc alignment to something HTML can use.
--- align is AlignLeft, AlignRight, AlignCenter, or AlignDefault.
-local function html_align(align)
-  if align == 'AlignLeft' then
-    return 'left'
-  elseif align == 'AlignRight' then
-    return 'right'
-  elseif align == 'AlignCenter' then
-    return 'center'
-  else
-    return 'left'
+function HTMLAnchorConfluence(id)
+  if (not id or #id == 0) then
+    return ""
   end
+
+  local SNIPPET = [[<ac:structured-macro ac:name="anchor" ac:schema-version="1" ac:local-id="a6aa6f25-0bee-4a7f-929b-71fcb7eba592" ac:macro-id="d2cb5be1217ae6e086bc60005e9d27b7"><ac:parameter ac:name="">{id}</ac:parameter></ac:structured-macro>]]
+
+  return interpolate {
+    SNIPPET,
+    id = id or ''
+  }
 end
 
--- Caption is a string, aligns is an array of strings,
--- widths is an array of floats, headers is an array of
--- strings, rows is an array of arrays of strings.
-function TableConfluence(caption, aligns, widths, headers, rows)
-  --dump(caption, 'caption')
-  --dump(aligns, 'aligns')
-  --dump(widths, 'widths')
-  --dump(headers, 'headers')
-  --dump(rows, 'rows')
+function RawInlineConfluence(text)
+  if type(text) ~= "string" then return text end
 
-  local buffer = {}
-  local function add(s)
-    table.insert(buffer, s)
-  end
-  add("<table>")
-  if widths and widths[1] ~= 0 then
-    add("<colgroup>")
-    -- extract with test and put a colgroup here
-    for _, w in pairs(widths) do
-      add('<col width="' .. string.format("%.0f%%", w * 100) .. '" />')
-    end
-    add("</colgroup>")
-  end
-  local header_row = {}
-  local empty_header = true
-  for i, h in pairs(headers) do
-    local align = html_align(aligns[i])
-    table.insert(header_row,
-            '<th align="' ..
-                    align ..
-                    '">' ..
-                    '<p style="text-align: ' ..
-                    html_align(aligns[i]) ..
-                    ';">' ..
-                    h ..
-                    '</p>' ..
-                    '</th>')
-    empty_header = empty_header and h == ""
-  end
-  if empty_header then
-    head = ""
-  else
-    add('<tr class="header">')
-    for _,h in pairs(header_row) do
-      add(h)
-    end
-    add('</tr>')
-  end
-  local class = "even"
-  for _, row in pairs(rows) do
-    class = (class == "even" and "odd") or "even"
-    add('<tr class="' .. class .. '">')
-    for i,c in pairs(row) do
-      add('<td align="' ..
-              html_align(aligns[i]) ..
-              '">' ..
-              '<p style="text-align: ' ..
-              html_align(aligns[i]) ..
-              ';">' ..
-              c ..
-              '</p>' ..
-              '</td>')
-    end
-    add('</tr>')
-  end
-  add('</table>')
-  if caption ~= "" then
-    add("<p>" .. caption .. "</p>")
-  end
-  return table.concat(buffer,'\n')
-end
+  -- Confluence expects closed Void Elements as proper XHTML
+  -- https://github.com/quarto-dev/quarto-cli/issues/4479
 
-function BlockQuoteConfluence(source)
-  return "<blockquote>" .. source .. "</blockquote>"
+  if (string.lower(text) == [[<br>]]) then
+    return "<br/>"
+  end
+
+  local match = string.match(text, "<img (.-)>")
+  local matchClosed = string.match(text, "<img (.-)/>")
+  if (match and not matchClosed) then
+    return string.gsub(text, ">", "/>")
+  end
+
+  return text
 end
 
 return {
@@ -235,8 +207,9 @@ return {
   CodeBlockConfluence = CodeBlockConfluence,
   LinkConfluence = LinkConfluence,
   TableConfluence = TableConfluence,
-  BlockQuoteConfluence = BlockQuoteConfluence,
+  CalloutConfluence = CalloutConfluence,
+  HTMLAnchorConfluence = HTMLAnchorConfluence,
+  RawInlineConfluence = RawInlineConfluence,
   escape = escape,
-  html_align = html_align,
   interpolate = interpolate
 }

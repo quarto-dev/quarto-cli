@@ -5,7 +5,8 @@
 *
 */
 
-import { existsSync, expandGlobSync, walkSync } from "fs/mod.ts";
+import { existsSync, walkSync } from "fs/mod.ts";
+import { expandGlobSync } from "../core/deno/expand-glob.ts";
 import { warning } from "log/mod.ts";
 import { coerce, Range, satisfies } from "semver/mod.ts";
 
@@ -18,7 +19,7 @@ import { isSubdir } from "fs/_util.ts";
 
 import { dirname, isAbsolute, join, normalize, relative } from "path/mod.ts";
 import { Metadata, QuartoFilter } from "../config/types.ts";
-import { kSkipHidden, resolvePathGlobs } from "../core/path.ts";
+import { kSkipHidden, normalizePath, resolvePathGlobs } from "../core/path.ts";
 import { toInputRelativePaths } from "../project/project-shared.ts";
 import { projectType } from "../project/types/project-types.ts";
 import { mergeConfigs } from "../core/config.ts";
@@ -485,7 +486,7 @@ export function inputExtensionDirs(input?: string, projectDir?: string) {
   // read extensions (start with built-in)
   const extensionDirectories: string[] = [builtinExtensions()];
   if (projectDir && input) {
-    let currentDir = Deno.realPathSync(inputDirName(input));
+    let currentDir = normalizePath(inputDirName(input));
     do {
       const extensionPath = extensionsDirPath(currentDir);
       if (extensionPath) {
@@ -553,7 +554,7 @@ export function discoverExtensionPath(
 
   // Start in the source directory
   const sourceDir = Deno.statSync(input).isDirectory ? input : dirname(input);
-  const sourceDirAbs = Deno.realPathSync(sourceDir);
+  const sourceDirAbs = normalizePath(sourceDir);
 
   if (projectDir && isSubdir(projectDir, sourceDirAbs)) {
     let extensionDir;
@@ -935,11 +936,17 @@ function resolveFilterPath(
 ): QuartoFilter {
   // Filters are expected to be absolute
   if (typeof (filter) === "string") {
-    return join(extensionDir, filter);
+    if (isAbsolute(filter)) {
+      return filter;
+    } else {
+      return join(extensionDir, filter);
+    }
   } else {
     return {
       type: filter.type,
-      path: join(extensionDir, filter.path),
+      path: isAbsolute(filter.path)
+        ? filter.path
+        : join(extensionDir, filter.path),
     };
   }
 }

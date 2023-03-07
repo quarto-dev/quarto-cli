@@ -12,6 +12,11 @@ import { initDenoDom } from "../src/core/deno-dom.ts";
 import { cleanupLogger, initializeLogger } from "../src/core/log.ts";
 import { quarto } from "../src/quarto.ts";
 import { join } from "path/mod.ts";
+import * as colors from "fmt/colors.ts";
+import { runningInCI } from "../src/core/ci-info.ts";
+import { relative } from "path/mod.ts";
+import { quartoConfig } from "../src/core/quarto.ts";
+import { fromFileUrl } from "path/win32.ts";
 
 export interface TestDescriptor {
   // The name of the test
@@ -47,6 +52,9 @@ export interface TestContext {
 
   // Control of underlying sanitizer
   santize?: { resources?: boolean; ops?: boolean; exit?: boolean };
+
+  // control if test is ran or skipped
+  ignore?: boolean;
 }
 
 export function testQuartoCmd(
@@ -81,11 +89,12 @@ export interface ExecuteOutput {
 export function unitTest(
   name: string,
   ver: () => Promise<unknown>, // VoidFunction,
+  context?: TestContext,
 ) {
   test({
     name,
     type: "unit",
-    context: {},
+    context: context || {},
     execute: () => {
       return Promise.resolve();
     },
@@ -108,10 +117,12 @@ export function test(test: TestDescriptor) {
   const sanitizeResources = test.context.santize?.resources;
   const sanitizeOps = test.context.santize?.ops;
   const sanitizeExit = test.context.santize?.exit;
+  const ignore = test.context.ignore;
+  const userSession = !runningInCI();
 
   Deno.test({
     name: testName,
-    async fn() {
+    async fn(context) {
       await initDenoDom();
       const runTest = !test.context.prereq || await test.context.prereq();
       if (runTest) {
@@ -133,7 +144,7 @@ export function test(test: TestDescriptor) {
         };
 
         // Capture the output
-        const log = join(wd, "test-out.json");
+        const log = Deno.makeTempFileSync({ suffix: ".json" });
         await initializeLogger({
           log: log,
           level: "INFO",
@@ -148,6 +159,7 @@ export function test(test: TestDescriptor) {
             return undefined;
           }
         };
+        let lastVerify;
         try {
           await test.execute();
 
@@ -158,19 +170,75 @@ export function test(test: TestDescriptor) {
           const testOutput = logOutput(log);
           if (testOutput) {
             for (const ver of test.verify) {
+              lastVerify = ver;
+              if (userSession) {
+                const verifyMsg = "[verify] > " + ver.name;
+                console.log(userSession ? colors.dim(verifyMsg) : verifyMsg);
+              }
               await ver.verify(testOutput);
             }
           }
         } catch (ex) {
+          const border = "-".repeat(80);
+          const coloredName = userSession
+            ? colors.brightGreen(colors.italic(testName))
+            : testName;
+
+          // Compute an inset based upon the testName
+          const offset = testName.indexOf(">");
+
+          // Form the test runner command
+          const absPath = Deno.build.os === "windows"
+            ? fromFileUrl(context.origin)
+            : (new URL(context.origin)).pathname;
+
+          const quartoRoot = join(quartoConfig.binPath(), "..", "..", "..");
+          const relPath = relative(
+            join(quartoRoot, "tests"),
+            absPath,
+          );
+          const command = Deno.build.os === "windows"
+            ? "run-tests.ps1"
+            : "./run-tests.sh";
+          const testCommand = `${
+            offset > 0 ? " ".repeat(offset + 2) : ""
+          }${command} ${relPath}`;
+          const coloredTestCommand = userSession
+            ? colors.brightGreen(testCommand)
+            : testCommand;
+
+          const verifyFailed = `[verify] > ${
+            lastVerify ? lastVerify.name : "unknown"
+          }`;
+          const coloredVerify = userSession
+            ? colors.brightGreen(verifyFailed)
+            : verifyFailed;
+
           const logMessages = logOutput(log);
+          const output: string[] = [
+            "",
+            "",
+            border,
+            coloredName,
+            coloredTestCommand,
+            "",
+            coloredVerify,
+            "",
+            ex.message,
+            ex.stack,
+            "",
+          ];
+
           if (logMessages && logMessages.length > 0) {
-            const errorTxts = logMessages.map((msg) => msg.msg);
-            fail(
-              `\n---------------------------------------------\n${ex.message}\n${ex.stack}\n\nTEST OUTPUT:\n${errorTxts}----------------------------------------------`,
-            );
-          } else {
-            fail(`${ex.message}\n${ex.stack}`);
+            output.push("OUTPUT:");
+            logMessages.forEach((out) => {
+              const parts = out.msg.split("\n");
+              parts.forEach((part) => {
+                output.push("    " + part);
+              });
+            });
           }
+          fail(output.join("\n"));
         } finally {
           Deno.removeSync(log);
           await cleanupLogOnce();
@@ -186,6 +254,7 @@ export function test(test: TestDescriptor) {
         warning(`Skipped - ${test.name}`);
       }
     },
+    ignore,
     sanitizeExit,
     sanitizeOps,
     sanitizeResources,

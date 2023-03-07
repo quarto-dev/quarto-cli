@@ -27,6 +27,7 @@ import {
 
 import { formatResourcePath } from "../../core/resources.ts";
 import { Document, Element } from "../../core/deno-dom.ts";
+import { normalizePath } from "../../core/path.ts";
 
 // features that are enabled by default for 'html'. setting
 // all of these to false will yield the minimal html output
@@ -39,6 +40,9 @@ export const kAnchorSections = "anchor-sections";
 export const kCitationsHover = "citations-hover";
 export const kFootnotesHover = "footnotes-hover";
 export const kSmoothScroll = "smooth-scroll";
+
+// Code Annotation
+export const kCodeAnnotations = "code-annotations";
 
 // turn off optional html features as well as all themes
 export const kMinimal = "minimal";
@@ -58,6 +62,7 @@ export const kGiscusCategoryId = "category-id";
 export const kDraft = "draft";
 
 export const kAppendixStyle = "appendix-style";
+export const kAppendixCiteAs = "appendix-cite-as";
 export const kLicense = "license";
 export const kCopyright = "copyright";
 
@@ -353,7 +358,7 @@ function prependHeading(
 export function removeFootnoteBacklinks(footnotesEl: Element) {
   const backlinks = footnotesEl.querySelectorAll(".footnote-back");
   for (const backlink of backlinks) {
-    backlink.remove();
+    (backlink as Element).remove();
   }
 }
 
@@ -398,7 +403,7 @@ export function computeUrl(
   offset: string,
   outputFileName: string,
 ) {
-  const rootDir = Deno.realPathSync(join(dirname(input), offset));
+  const rootDir = normalizePath(join(dirname(input), offset));
   if (outputFileName === "index.html") {
     return `${baseUrl}/${relative(rootDir, dirname(input))}`;
   } else {

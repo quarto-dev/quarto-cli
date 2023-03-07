@@ -98,10 +98,10 @@ jobs:
       - name: Make Tarball
         run: |
           pushd package/
-          mv dist quarto-${{needs.configure.outputs.version}}
+          mv pkg-working quarto-${{needs.configure.outputs.version}}
           tar -cvf  quarto-${{needs.configure.outputs.version}}-linux-amd64.tar quarto-${{needs.configure.outputs.version}}
           gzip quarto-${{needs.configure.outputs.version}}-linux-amd64.tar
-          mv quarto-${{needs.configure.outputs.version}} dist
+          mv quarto-${{needs.configure.outputs.version}} pkg-working
           popd
 
       - name: Upload Artifact
@@ -109,6 +109,38 @@ jobs:
         with:
           name: Deb Zip
           path: ./package/quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz
+
+  make-arm64-tarball:
+    runs-on: ubuntu-latest
+    needs: [configure]
+
+    steps:
+      - uses: actions/checkout@v3
+          
+      - name: Configure
+        run: |
+          ./configure.sh
+
+      - name: Prepare Distribution
+        run: |
+          pushd package/src/
+          ./quarto-bld prepare-dist --set-version ${{needs.configure.outputs.version}} --arch aarch64 --log-level info
+          popd
+         
+      - name: Make Tarball
+        run: |
+          pushd package/
+          mv pkg-working quarto-${{needs.configure.outputs.version}}
+          tar -cvf  quarto-${{needs.configure.outputs.version}}-linux-arm64.tar quarto-${{needs.configure.outputs.version}}
+          gzip quarto-${{needs.configure.outputs.version}}-linux-arm64.tar
+          mv quarto-${{needs.configure.outputs.version}} pkg-working
+          popd
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: Deb Arm64 Zip
+          path: ./package/quarto-${{needs.configure.outputs.version}}-linux-arm64.tar.gz
 
   make-tarball-rhel:
      runs-on: ubuntu-latest
@@ -136,15 +168,15 @@ jobs:
            curl -L https://anaconda.org/conda-forge/deno/${DENO:1}/download/linux-64/deno-${DENO:1}-h2f28480_0.conda --output deno.conda
            unzip deno.conda
            tar --use-compress-program=unzstd -xvf pkg-deno-${DENO:1}-h2f28480_0.tar.zst
-           cp bin/deno package/dist/bin/tools/deno
+           cp bin/deno package/pkg-working/bin/tools/deno-x86_64-unknown-linux-gnu/deno
            
        - name: Make Tarball
          run: |
            pushd package/
-           mv dist quarto-${{needs.configure.outputs.version}}
+           mv pkg-working quarto-${{needs.configure.outputs.version}}
            tar -cvf  quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar quarto-${{needs.configure.outputs.version}}
            gzip quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar
-           mv quarto-${{needs.configure.outputs.version}} dist
+           mv quarto-${{needs.configure.outputs.version}} pkg-working
            popd
 
        - name: Upload Artifact
@@ -153,6 +185,34 @@ jobs:
            name: RHEL Zip
            path: ./package/quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar.gz
 
+  make-installer-arm64-deb:
+    runs-on: ubuntu-latest
+    needs: [configure]
+
+    steps:
+      - uses: actions/checkout@v3        
+
+      - name: Configure
+        run: |
+          ./configure.sh
+
+      - name: Prepare Distribution
+        run: |
+          pushd package/src/
+          ./quarto-bld prepare-dist --set-version ${{needs.configure.outputs.version}} --arch aarch64 --log-level info
+          popd
+          
+      - name: Make Installer
+        run: |
+          pushd package/src/
+          ./quarto-bld make-installer-deb --set-version ${{needs.configure.outputs.version}} --arch aarch64 --log-level info
+          popd
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: Deb Arm64 Installer
+          path: ./package/out/quarto-${{needs.configure.outputs.version}}-linux-arm64.deb
 
 
   make-installer-deb:
@@ -201,7 +261,7 @@ jobs:
           quarto check
           quarto --paths
           quarto --version
-
+          
   make-installer-win:
     runs-on: windows-latest
     needs: [configure]
@@ -228,7 +288,7 @@ jobs:
       - name: Build Launcher
         run: | 
           cargo build --release --all-features --manifest-path package/launcher/Cargo.toml
-          cp package/launcher/target/release/quarto.exe package/dist/bin/quarto.exe
+          cp package/launcher/target/release/quarto.exe package/pkg-working/bin/quarto.exe
           
       - name: Make Installer
         run: |
@@ -355,8 +415,11 @@ jobs:
       [
         configure,
         make-installer-deb,
+        make-installer-arm64-deb,
         make-installer-win,
         make-installer-mac,
+        make-tarball-rhel,
+        make-arm64-tarball,
         make-tarball,
         make-source-tarball,
         test-zip-win,
@@ -403,6 +466,17 @@ jobs:
           asset_name: quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz
           asset_content_type: application/gzip
 
+      - name: Attach Arm64 Release Tarball
+        id: attach-arm4-release-tarball
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./Deb Arm64 Zip/quarto-${{needs.configure.outputs.version}}-linux-arm64.tar.gz
+          asset_name: quarto-${{needs.configure.outputs.version}}-linux-arm64.tar.gz
+          asset_content_type: application/gzip
+          
       - name: Attach RHEL Tarball
         id: attach-rhel-tarball
         uses: actions/upload-release-asset@v1
@@ -425,6 +499,17 @@ jobs:
           asset_name: quarto-${{needs.configure.outputs.version}}-linux-amd64.deb
           asset_content_type: application/deb
 
+      - name: Attach Arm64 Debian Installer
+        id: attach-arm64-deb-installer
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./Deb Arm64 Installer/quarto-${{needs.configure.outputs.version}}-linux-arm64.deb
+          asset_name: quarto-${{needs.configure.outputs.version}}-linux-arm64.deb
+          asset_content_type: application/deb
+          
       - name: Attach Windows Installer
         id: attach-win-installer
         uses: actions/upload-release-asset@v1
@@ -506,10 +591,18 @@ jobs:
           pushd Deb\ Zip
           sha256sum quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
           popd
+          
+          pushd Deb\ Arm64\ Zip
+          sha256sum quarto-${{needs.configure.outputs.version}}-linux-arm64.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
+          popd
 
           pushd Deb\ Installer
           sha256sum quarto-${{needs.configure.outputs.version}}-linux-amd64.deb >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
           popd
+          
+          pushd Deb\ Arm64\ Installer
+          sha256sum quarto-${{needs.configure.outputs.version}}-linux-arm64.deb >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
+          popd          
 
           pushd Source
           sha256sum quarto-${{needs.configure.outputs.version}}.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt

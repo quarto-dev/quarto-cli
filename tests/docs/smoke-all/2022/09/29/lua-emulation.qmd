@@ -1,5 +1,0 @@
----
-title: lua emulation tests
-filters:
-  - lua-emulation-test.lua
----

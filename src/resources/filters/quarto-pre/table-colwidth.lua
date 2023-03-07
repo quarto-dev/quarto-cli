@@ -26,7 +26,7 @@ local function tblColwidthValues(tbl, tblColwidths)
   -- take appropriate action
   if tblColwidths == "auto" then
     local foundLink = false
-    pandoc.walk_block(tbl, {
+    _quarto.ast.walk(tbl, {
       Link = function(el)
         foundLink = true
       end
@@ -89,7 +89,7 @@ function tableColwidthCell()
         local tblColwidths = el.attr.attributes[kTblColwidths]
         el.attr.attributes[kTblColwidths] = nil
         if tblColwidths ~= nil then
-          return pandoc.walk_block(el, {
+          return _quarto.ast.walk(el, {
             Table = function(tbl)
               tbl.attr.attributes[kTblColwidths] = tblColwidths
               return tbl
@@ -126,7 +126,14 @@ function tableColwidth()
         tblColwidths = tbl.attr.attributes[kTblColwidths]
       end
       tbl.attr.attributes[kTblColwidths] = nil
-  
+
+      -- if we found a quarto-postprocess attribute,
+      -- that means this was a table parsed from html and
+      -- we don't need to do the fixups
+      if tbl.attr.attributes["quarto-postprocess"] then
+        return nil
+      end
+      
       -- realize values and apply them
       local colwidthValues = tblColwidthValues(tbl, tblColwidths)
       if colwidthValues ~= nil then

@@ -378,8 +378,10 @@ function externalPreviewServer(
   }
 
   // parse command line args and interpolate host and port
-  const cmd = serve.cmd.split(/[\t ]/).map((arg) => {
-    if (arg === "{host}") {
+  const cmd = serve.cmd.split(/[\t ]/).map((arg, index) => {
+    if (Deno.build.os === "windows" && index === 0 && arg === "npm") {
+      return "npm.cmd";
+    } else if (arg === "{host}") {
       return options.host || kLocalhost;
     } else if (arg === "{port}") {
       return String(options.port);

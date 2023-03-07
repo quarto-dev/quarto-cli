@@ -23,13 +23,16 @@ title-block-affiliation-plural: "Afiliaciones"
 title-block-published: "Fecha de publicación"
 title-block-modified: "Fecha de modificación"
 
-callout-tip-caption: "Tip"
-callout-note-caption: "Nota"
-callout-warning-caption: "Advertencia"
-callout-important-caption: "Importante"
-callout-caution-caption: "Precaución"
+callout-tip-title: "Tip"
+callout-note-title: "Nota"
+callout-warning-title: "Advertencia"
+callout-important-title: "Importante"
+callout-caution-title: "Precaución"
 
 code-summary: "Código"
+
+code-line: "Línea"
+code-lines: "Líneas"
 
 code-tools-menu-caption: "Código"
 code-tools-show-all-code: "Mostrar todo el código"
@@ -44,6 +47,8 @@ repo-action-links-edit: "Editar esta página"
 repo-action-links-source: "Ver el código"
 repo-action-links-issue: "Informar de un problema"
 
+back-to-top: "Volver arriba"
+
 search-no-results-text: "Sin resultados"
 search-matching-documents-text: "documentos encontrados"
 search-copy-link-title: "Copiar el enlace en la búsqueda"
@@ -53,6 +58,12 @@ search-more-matches-text: "resultados adicionales en este documento"
 search-clear-button-title: "Borrar"
 search-detached-cancel-button-title: "Cancelar"
 search-submit-button-title: "Enviar"
+search: "Buscar"
+
+toggle-sidebar: "Alternar barra lateral"
+toggle-dark-mode: "Alternar modo oscuro"
+toggle-reader-mode: "Alternar modo lector"
+toggle-navigation: "Navegación de palanca"
 
 crossref-fig-title: "Figura"
 crossref-tbl-title: "Tabla"

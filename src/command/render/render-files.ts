@@ -57,12 +57,16 @@ import {
   RenderFlags,
   RenderOptions,
 } from "./types.ts";
-import { error, info, warning } from "log/mod.ts";
+import { error, info } from "log/mod.ts";
 import * as ld from "../../core/lodash.ts";
 import { basename, dirname, join, relative } from "path/mod.ts";
 import { Format } from "../../config/types.ts";
 import { figuresDir, inputFilesDir } from "../../core/render.ts";
-import { removeIfEmptyDir, removeIfExists } from "../../core/path.ts";
+import {
+  normalizePath,
+  removeIfEmptyDir,
+  removeIfExists,
+} from "../../core/path.ts";
 import { resourcePath } from "../../core/resources.ts";
 import { YAMLValidationError } from "../../core/yaml.ts";
 import { resolveParams } from "./flags.ts";
@@ -78,7 +82,7 @@ import {
 } from "./freeze.ts";
 import { isJupyterNotebook } from "../../core/jupyter/jupyter.ts";
 import { MappedString } from "../../core/lib/text-types.ts";
-import { createNamedLifetime } from "../../core/lifetimes.ts";
+import { waitUntilNamedLifetime } from "../../core/lifetimes.ts";
 import { resolveDependencies } from "./pandoc-dependencies-html.ts";
 import {
   getData as getTimingData,
@@ -195,7 +199,7 @@ export async function renderExecute(
     libDir: context.libDir,
     format: context.format,
     projectDir: context.project?.dir,
-    cwd: flags.executeDir || dirname(Deno.realPathSync(context.target.source)),
+    cwd: flags.executeDir || dirname(normalizePath(context.target.source)),
     params: resolveParams(flags.params, flags.paramsFile),
     quiet: flags.quiet,
     previewServer: context.options.previewServer,
@@ -283,7 +287,7 @@ export async function renderFiles(
 
       if (progress) {
         renderProgress(
-          `[${String(i + 1).padStart(numWidth)}/${files.length}] ${
+          `\r[${String(i + 1).padStart(numWidth)}/${files.length}] ${
             relative(project!.dir, file.path)
           }`,
         );
@@ -353,10 +357,7 @@ export async function renderFiles(
         executeResult.supporting.push(...results.supporting);
       };
 
-      const outputs: Array<{
-        path: string;
-        format: Format;
-      }> = [];
+      const outputs: Array<RenderedFormat> = [];
 
       for (const format of Object.keys(contexts)) {
         pushTiming("render-context");
@@ -366,6 +367,7 @@ export async function renderFiles(
         const recipe = outputRecipe(context);
         outputs.push({
           path: recipe.finalOutput || recipe.output,
+          isTransient: recipe.isOutputTransient,
           format: context.format,
         });
 
@@ -390,7 +392,7 @@ export async function renderFiles(
             );
           }
 
-          const fileLifetime = createNamedLifetime("render-file");
+          const fileLifetime = await waitUntilNamedLifetime("render-file");
           fileLifetime.attach({
             cleanup() {
               resetFigureCounter();

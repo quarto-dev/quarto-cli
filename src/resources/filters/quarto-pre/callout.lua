@@ -28,21 +28,27 @@ _quarto.ast.add_handler({
   -- and returns the custom node
   parse = function(div)
     preState.hasCallouts = true
-    local caption = resolveHeadingCaption(div)
+    local title = markdownToInlines(div.attr.attributes["title"])
+    if not title or #title == 0 then
+      title = resolveHeadingCaption(div)
+    end
+    local old_attr = div.attr
     local appearanceRaw = div.attr.attributes["appearance"]
     local icon = div.attr.attributes["icon"]
     local collapse = div.attr.attributes["collapse"]
     div.attr.attributes["appearance"] = nil
     div.attr.attributes["collapse"] = nil
     div.attr.attributes["icon"] = nil
-
+    local callout_type = calloutType(div)
+    div.attr.classes = div.attr.classes:filter(function(class) return not isCallout(class) end)    
     return quarto.Callout({
       appearance = appearanceRaw,
-      caption = caption,
+      title = title,
       collapse = collapse,
       content = div.content,
       icon = icon,
-      type = calloutType(div)
+      type = callout_type,
+      attr = old_attr,
     })
   end,
 
@@ -50,7 +56,6 @@ _quarto.ast.add_handler({
   render = function(node)
     if _quarto.format.isHtmlOutput() and hasBootstrap() then
       local result = calloutDiv(node)
-      -- print(pandoc.write(_quarto.ast.from_emulated(pandoc.Pandoc({result})), "html"))
       return result
     elseif _quarto.format.isLatexOutput() then
       return calloutLatex(node)
@@ -72,7 +77,7 @@ _quarto.ast.add_handler({
   inner_content = function(extended_node)
     return {
       content = extended_node.content,
-      caption = extended_node.caption
+      title = extended_node.title
     }
   end,
 
@@ -81,8 +86,8 @@ _quarto.ast.add_handler({
   -- table keys are a subset of those returned by inner_content
   -- and represent changed values that need to be updated.    
   set_inner_content = function(extended_node, values)
-    if values.caption then
-      extended_node.caption = values.caption
+    if values.title then
+      extended_node.title = values.title
     end
     if values.content then
       extended_node.content = values.content
@@ -92,10 +97,10 @@ _quarto.ast.add_handler({
   constructor = function(tbl)
     preState.hasCallouts = true
 
-    local type = tbl.type
+    local t = tbl.type
     local iconDefault = true
     local appearanceDefault = nil
-    if type == "none" then
+    if t == "none" then
       iconDefault = false
       appearanceDefault = "simple"
     end
@@ -118,13 +123,18 @@ _quarto.ast.add_handler({
     end
     local content = pandoc.Blocks({})
     content:extend(tbl.content)
+    local title = tbl.title
+    if type(title) == "string" then
+      title = pandoc.Str(title)
+    end
     return {
-      caption = tbl.caption,
+      title = title,
       collapse = tbl.collapse,
       content = content,
       appearance = appearance,
       icon = icon,
-      type = type,
+      type = t,
+      attr = tbl.attr,
     }
   end
 })
@@ -207,10 +217,10 @@ end
 -- whose output is a table
 function isCodeCellTable(el) 
   local isTable = false
-  pandoc.walk_block(el, {
+  _quarto.ast.walk(el, {
     Div = function(div)
       if div.attr.classes:find_if(isCodeCellDisplay) then
-        pandoc.walk_block(div, {
+        _quarto.ast.walk(div, {
           Table = function(tbl)
             isTable = true
           end
@@ -223,7 +233,7 @@ end
 
 function isCodeCellFigure(el)
   local isFigure = false
-  pandoc.walk_block(el, {
+  _quarto.ast.walk(el, {
     Div = function(div)
       if div.attr.classes:find_if(isCodeCellDisplay) then
         if (isFigureDiv(div)) then
@@ -243,23 +253,22 @@ local kCalloutDefaultMinimal = "minimal"
 
 -- an HTML callout div
 function calloutDiv(node)
-  -- the first heading is the caption
+  -- the first heading is the title
   local div = pandoc.Div({})
   div.content:extend(node.content)
-  local caption = node.caption
+  local title = node.title
   local type = node.type
   local calloutAppearance = node.appearance
   local icon = node.icon
   local collapse = node.collapse
 
-  if calloutAppearance == kCalloutAppearanceDefault and caption == nil then
-    caption = displayName(type)
+  if calloutAppearance == kCalloutAppearanceDefault and title == nil then
+    title = displayName(type)
   end
 
   -- Make an outer card div and transfer classes and id
   local calloutDiv = pandoc.Div({})
-  calloutDiv.attr.identifier = div.attr.identifier
-  calloutDiv.attr.classes = div.attr.classes:clone()
+  calloutDiv.attr = (node.attr or pandoc.Attr()):clone()
   div.attr.classes = pandoc.List() 
   div.attr.classes:insert("callout-body-container")
 
@@ -281,20 +290,20 @@ function calloutDiv(node)
   local imgPlaceholder = pandoc.Plain({pandoc.RawInline("html", "<i class='callout-icon" .. noicon .. "'></i>")});       
   local imgDiv = pandoc.Div({imgPlaceholder}, pandoc.Attr("", {"callout-icon-container"}));
 
-  -- show a captioned callout
-  if caption ~= nil then
+  -- show a titled callout
+  if title ~= nil then
 
-    -- mark the callout as being captioned
-    calloutDiv.attr.classes:insert("callout-captioned")
+    -- mark the callout as being titleed
+    calloutDiv.attr.classes:insert("callout-titled")
 
     -- create a unique id for the callout
     local calloutid = "callout-" .. calloutidx
     calloutidx = calloutidx + 1
 
-    -- create the header to contain the caption
-    -- caption should expand to fill its space
-    local captionDiv = pandoc.Div(pandoc.Plain(caption), pandoc.Attr("", {"callout-caption-container", "flex-fill"}))
-    local headerDiv = pandoc.Div({imgDiv, captionDiv}, pandoc.Attr("", {"callout-header", "d-flex", "align-content-center"}))
+    -- create the header to contain the title
+    -- title should expand to fill its space
+    local titleDiv = pandoc.Div(pandoc.Plain(title), pandoc.Attr("", {"callout-title-container", "flex-fill"}))
+    local headerDiv = pandoc.Div({imgDiv, titleDiv}, pandoc.Attr("", {"callout-header", "d-flex", "align-content-center"}))
     local bodyDiv = div
     bodyDiv.attr.classes:insert("callout-body")
 
@@ -339,7 +348,7 @@ function calloutDiv(node)
     calloutDiv.content:insert(headerDiv)
     calloutDiv.content:insert(bodyDiv)
   else 
-    -- show an uncaptioned callout
+    -- show an untitleed callout
   
     -- create a card body
     local containerDiv = pandoc.Div({imgDiv, div}, pandoc.Attr("", {"callout-body"}))
@@ -355,26 +364,22 @@ end
 -- Latex callout
 function calloutLatex(node)
   -- read and clear attributes
-  local caption = node.caption
+  local title = node.title
   local type = node.type
   local calloutAppearance = node.appearance
   local icon = node.icon
-  local div = pandoc.Div({})
-
-  div.attr.attributes["caption"] = nil
-  div.attr.attributes["collapse"] = nil
 
   -- generate the callout box
   local callout
   if calloutAppearance == kCalloutAppearanceDefault then
-    if caption == nil then
-      caption = displayName(type)
+    if title == nil then
+      title = displayName(type)
     else
-      caption = pandoc.write(pandoc.Pandoc(pandoc.Plain(caption)), 'latex')
+      title = pandoc.write(pandoc.Pandoc(pandoc.Plain(title)), 'latex')
     end
-    callout = latexCalloutBoxDefault(caption, type, icon)
+    callout = latexCalloutBoxDefault(title, type, icon)
   else
-    callout = latexCalloutBoxSimple(caption, type, icon)
+    callout = latexCalloutBoxSimple(title, type, icon)
   end
   local beginEnvironment = callout.beginInlines
   local endEnvironment = callout.endInlines
@@ -396,7 +401,7 @@ function calloutLatex(node)
   return pandoc.Div(calloutContents)
 end
 
-function latexCalloutBoxDefault(caption, type, icon) 
+function latexCalloutBoxDefault(title, type, icon) 
 
   -- callout dimensions
   local leftBorderWidth = '.75mm'
@@ -423,7 +428,7 @@ function latexCalloutBoxDefault(caption, type, icon)
     bottomrule = borderWidth,
     rightrule = borderWidth,
     arc = borderRadius,
-    title = '{' .. caption .. '}',
+    title = '{' .. title .. '}',
     titlerule = '0mm',
     toptitle = '1mm',
     bottomtitle = '1mm',
@@ -437,7 +442,7 @@ function latexCalloutBoxDefault(caption, type, icon)
   local beginInlines = { pandoc.RawInline('latex', '\\begin{tcolorbox}[enhanced jigsaw, ' .. tColorOptions(options) .. ']\n') }
   local endInlines = { pandoc.RawInline('latex', '\n\\end{tcolorbox}') }
 
-  -- Add the captions and contents
+  -- Add the titles and contents
   local calloutContents = pandoc.List({});
 
   -- the inlines
@@ -450,7 +455,7 @@ function latexCalloutBoxDefault(caption, type, icon)
 end
 
 -- create the tcolorBox
-function latexCalloutBoxSimple(caption, type, icon)
+function latexCalloutBoxSimple(title, type, icon)
 
   -- callout dimensions
   local leftBorderWidth = '.75mm'
@@ -492,12 +497,12 @@ function latexCalloutBoxSimple(caption, type, icon)
     tprepend(endInlines, {pandoc.RawInline('latex', '\\end{minipage}%')});
   end
 
-  -- Add the captions and contents
+  -- Add the titles and contents
   local calloutContents = pandoc.List({});
-  if caption ~= nil then 
-    tprepend(caption, {pandoc.RawInline('latex', '\\textbf{')})
-    tappend(caption, {pandoc.RawInline('latex', '}\\vspace{2mm}')})
-    calloutContents:insert(pandoc.Para(caption))
+  if title ~= nil then 
+    tprepend(title, {pandoc.RawInline('latex', '\\textbf{')})
+    tappend(title, {pandoc.RawInline('latex', '}\\vspace{2mm}')})
+    calloutContents:insert(pandoc.Para(title))
   end
 
   -- the inlines
@@ -506,41 +511,6 @@ function latexCalloutBoxSimple(caption, type, icon)
     beginInlines = beginInlines, 
     endInlines = endInlines
   }
-end
-
-function processCalloutDiv(div) 
-
-  local type = calloutType(div)
-  local iconDefault = true
-  local appearanceDefault = nil
-  if type == "none" then
-    iconDefault = false
-    appearanceDefault = "simple"
-  end
-
-  local icon = div.attr.attributes["icon"]
-  div.attr.attributes["icon"] = nil
-  if icon == nil then
-    icon = option("callout-icon", iconDefault)
-  elseif icon == "false" then
-    icon = false
-  end
-  
-
-  local appearanceRaw = div.attr.attributes["appearance"]
-  div.attr.attributes["appearance"] = nil
-  if appearanceRaw == nil then
-    appearanceRaw = option("callout-appearance", appearanceDefault)
-  end
-  
-  local appearance = nameForCalloutStyle(appearanceRaw);
-  if appearance == "minimal" then
-    icon = false
-    appearance = "simple"
-  end
-
-  return { icon = icon, appearance = appearance}
-
 end
 
 function calloutDocx(node)
@@ -556,8 +526,7 @@ function calloutDocx(node)
 end
 
 function calloutDocxDefault(node, type, hasIcon)
-  local div = pandoc.Div({})
-  local caption = node.caption
+  local title = node.title
   local color = htmlColorForType(type)
   local backgroundColor = htmlBackgroundColorForType(type)
 
@@ -596,29 +565,29 @@ function calloutDocxDefault(node, type, hasIcon)
     pandoc.RawBlock("openxml", tablePrefix:gsub('$background', backgroundColor):gsub('$color', color)),
   })
 
-  -- Create a caption if there isn't already one
-  if caption == nil then
-    caption = pandoc.List({pandoc.Str(displayName(type))})
+  -- Create a title if there isn't already one
+  if title == nil then
+    title = pandoc.List({pandoc.Str(displayName(type))})
   end
 
-  -- add the image to the caption, if needed
+  -- add the image to the title, if needed
   local calloutImage = docxCalloutImage(type);
   if hasIcon and calloutImage ~= nil then
     -- Create a paragraph with the icon, spaces, and text
-    local imageCaption = pandoc.List({
+    local image_title = pandoc.List({
         pandoc.RawInline("openxml", '<w:pPr>\n<w:spacing w:before="0" w:after="0" />\n<w:textAlignment w:val="center"/>\n</w:pPr>'), 
         calloutImage,
         pandoc.Space(), 
         pandoc.Space()})
-    tappend(imageCaption, caption)
-    calloutContents:insert(pandoc.Para(imageCaption))
+    tappend(image_title, title)
+    calloutContents:insert(pandoc.Para(image_title))
   else
-    local captionRaw = openXmlPara(pandoc.Para(caption), 'w:before="16" w:after="16"')
-    calloutContents:insert(captionRaw)  
+    local titleRaw = openXmlPara(pandoc.Para(title), 'w:before="16" w:after="16"')
+    calloutContents:insert(titleRaw)  
   end
 
   
-  -- end the caption row and start the body row
+  -- end the title row and start the body row
   local tableMiddle = [[
       </w:tc>
     </w:tr>
@@ -638,7 +607,7 @@ function calloutDocxDefault(node, type, hasIcon)
   calloutContents:insert(pandoc.Div(pandoc.RawBlock("openxml", tableMiddle)))  
 
   -- the main contents of the callout
-  local contents = div.content
+  local contents = node.content
 
   -- ensure there are no nested callouts
   if contents:find_if(function(el) 
@@ -666,9 +635,8 @@ end
 
 
 function calloutDocxSimple(node, type, hasIcon) 
-  local div = pandoc.Div({})
   local color = htmlColorForType(type)
-  local caption = node.caption
+  local title = node.title
 
   local tablePrefix = [[
     <w:tbl>
@@ -712,13 +680,13 @@ function calloutDocxSimple(node, type, hasIcon)
   </w:tbl>
   ]])})
 
-  local calloutContents = pandoc.List({});
+  local calloutContents = pandoc.List({})
   tappend(calloutContents, prefix)
 
-  -- deal with the caption, if present
-  if caption ~= nil then
-    local captionPara = pandoc.Para(pandoc.Strong(caption))
-    calloutContents:insert(openXmlPara(captionPara, 'w:before="16" w:after="64"'))
+  -- deal with the title, if present
+  if title ~= nil then
+    local titlePara = pandoc.Para(pandoc.Strong(title))
+    calloutContents:insert(openXmlPara(titlePara, 'w:before="16" w:after="64"'))
   end
   
   -- convert to open xml paragraph
@@ -741,14 +709,13 @@ function calloutDocxSimple(node, type, hasIcon)
 end
 
 function epubCallout(node)
-  local div = pandoc.Div({})
-  local caption = node.caption
+  local title = node.title
   local type = node.type
   local calloutAppearance = node.appearance
   local hasIcon = node.icon
 
-  if calloutAppearance == kCalloutAppearanceDefault and caption == nil then
-    caption = displayName(type)
+  if calloutAppearance == kCalloutAppearanceDefault and title == nil then
+    title = displayName(type)
   end
   
   -- the body of the callout
@@ -757,14 +724,14 @@ function epubCallout(node)
   local imgPlaceholder = pandoc.Plain({pandoc.RawInline("html", "<i class='callout-icon'></i>")});       
   local imgDiv = pandoc.Div({imgPlaceholder}, pandoc.Attr("", {"callout-icon-container"}));
 
-  -- caption
-  if caption ~= nil then
-    local calloutCaption = pandoc.Div({}, pandoc.Attr("", {"callout-caption"}))
+  -- title
+  if title ~= nil then
+    local callout_title = pandoc.Div({}, pandoc.Attr("", {"callout-title"}))
     if hasIcon then
-      calloutCaption.content:insert(imgDiv)
+      callout_title.content:insert(imgDiv)
     end
-    calloutCaption.content:insert(pandoc.Para(pandoc.Strong(caption)))
-    calloutBody.content:insert(calloutCaption)
+    callout_title.content:insert(pandoc.Para(pandoc.Strong(title)))
+    calloutBody.content:insert(callout_title)
   else 
     if hasIcon then
       calloutBody.content:insert(imgDiv)
@@ -784,57 +751,51 @@ function epubCallout(node)
   if hasIcon == false then
     attributes:insert("no-icon")
   end
-  if caption ~= nil then
-    attributes:insert("callout-captioned")
+  if title ~= nil then
+    attributes:insert("callout-titled")
   end
   attributes:insert("callout-style-" .. calloutAppearance)
 
-  return pandoc.Div({calloutBody}, pandoc.Attr(div.attr.identifier, attributes))
+  return pandoc.Div({calloutBody}, pandoc.Attr(node.id or "", attributes))
 end
 
 function jatsCallout(node)
-  local div = pandoc.Div({})
   local contents = resolveCalloutContents(node, true)
 
   local boxedStart = '<boxed-text>'
-  if div.attr.identifier and div.attr.identifier ~= '' then
-    boxedStart = "<boxed-text id='" .. div.attr.identifier .. "'>"
+  if node.id and node.id ~= "" then
+    boxedStart = "<boxed-text id='" .. node.id .. "'>"
   end
-
   contents:insert(1, pandoc.RawBlock('jats', boxedStart))
   contents:insert(pandoc.RawBlock('jats', '</boxed-text>'))
+
   return pandoc.Div(contents)
 end
 
 function simpleCallout(node) 
-  local div = pandoc.Div({})
   local contents = resolveCalloutContents(node, true)
   local callout = pandoc.BlockQuote(contents)
-  return pandoc.Div(callout, pandoc.Attr(div.attr.identifier))
+  return pandoc.Div(callout, pandoc.Attr(node.id or ""))
 end
 
-function resolveCalloutContents(node, requireCaption)
-  local div = node.div
-  local caption = node.caption
+function resolveCalloutContents(node, require_title)
+  local title = node.title
+  local type = node.type
   
-  div.attr.attributes["caption"] = nil
-  div.attr.attributes["icon"] = nil
-  div.attr.attributes["collapse"] = nil
-
   local contents = pandoc.List({})
     
-  -- Add the captions and contents
+  -- Add the titles and contents
   -- class_name 
-  if caption == nil and requireCaption then 
+  if title == nil and require_title then 
     ---@diagnostic disable-next-line: need-check-nil
-    caption = stringToInlines(type:sub(1,1):upper()..type:sub(2))
+    title = stringToInlines(type:sub(1,1):upper()..type:sub(2))
   end
   
   -- raw paragraph with styles (left border, colored)
-  if caption ~= nil then
-    contents:insert(pandoc.Para(pandoc.Strong(caption)))
+  if title ~= nil then
+    contents:insert(pandoc.Para(pandoc.Strong(title)))
   end
-  tappend(contents, div.content)
+  tappend(contents, node.content)
 
   return contents
 end
@@ -988,5 +949,5 @@ end
 
 function displayName(type)
   local defaultName = type:sub(1,1):upper()..type:sub(2)
-  return param("callout-" .. type .. "-caption", defaultName)
+  return param("callout-" .. type .. "-title", defaultName)
 end

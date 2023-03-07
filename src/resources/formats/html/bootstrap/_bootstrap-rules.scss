@@ -7,6 +7,22 @@ main {
   }
 }
 
+// the scss mode for vs code doesn't like the fancy :has(> p) selector, but
+// it's valid: https://developer.mozilla.org/en-US/docs/Web/CSS/:has
+ul > li:not(:has(> p)) > ul,
+ol > li:not(:has(> p)) > ul,
+ul > li:not(:has(> p)) > ol,
+ol > li:not(:has(> p)) > ol {
+  margin-bottom: 0;
+}
+
+ul > li:not(:has(> p)) > ul > li:has(> p),
+ol > li:not(:has(> p)) > ul > li:has(> p),
+ul > li:not(:has(> p)) > ol > li:has(> p),
+ol > li:not(:has(> p)) > ol > li:has(> p) {
+  margin-top: 1rem;
+}
+
 // Grid layout
 body {
   margin: 0;
@@ -392,7 +408,9 @@ body.docked {
 
   @include media-breakpoint-down(lg) {
     #quarto-margin-sidebar.collapse,
-    #quarto-sidebar.collapse {
+    #quarto-sidebar.collapse,
+    #quarto-margin-sidebar.collapsing,
+    #quarto-sidebar.collapsing {
       z-index: $zindex-modal;
     }
   }
@@ -554,6 +572,10 @@ img.img-fluid.column-screen-right {
   }
 
   #quarto-margin-sidebar {
+    display: none;
+  }
+
+  #quarto-sidebar-toc-left {
     display: none;
   }
 
@@ -1017,6 +1039,24 @@ figure .quarto-notebook-link {
   margin-right: 0.4em;
 }
 
+.quarto-notebook .cell-container {
+  display: flex;
+}
+
+.quarto-notebook .cell-container .cell {
+  flex-grow: 4;
+}
+
+.quarto-notebook .cell-container .cell-decorator {
+  padding-top: 1.5em;
+  padding-right: 1em;
+  text-align: right;
+}
+
+.quarto-notebook h2 {
+  border-bottom: none;
+}
+
 .sidebar .quarto-alternate-formats a,
 .sidebar .quarto-alternate-notebooks a {
   text-decoration: none;
@@ -1090,13 +1130,14 @@ $indent: 1.2em;
   }
 }
 
+.sidebar nav[role="doc-toc"] ul > li > a.active,
 .sidebar nav[role="doc-toc"] ul > li > ul > li > a.active {
   border-left: 1px solid $toc-active-border;
   color: $toc-color !important;
 }
 
-.sidebar nav[role="doc-toc"] ul > li > a.active {
-  border-left: 1px solid $toc-active-border;
+.sidebar nav[role="doc-toc"] ul > li > a:hover,
+.sidebar nav[role="doc-toc"] ul > li > ul > li > a:hover {
   color: $toc-color !important;
 }
 
@@ -1135,17 +1176,10 @@ div.hanging-indent {
   word-break: break-word;
 }
 
-.table > :not(:first-child) {
+.table > thead {
   border-top-width: 1px;
   border-top-color: $table-border-color;
-}
-
-.table > thead {
   border-bottom: 1px solid $table-group-separator-color;
-}
-
-.table > tbody {
-  border-top: 1px solid $table-border-color;
 }
 
 @if $code-block-border-left {
@@ -1179,7 +1213,7 @@ div.hanging-indent {
   overflow-wrap: break-word;
 }
 
-.callout .callout-caption-container {
+.callout .callout-title-container {
   overflow-wrap: anywhere;
 }
 
@@ -1212,15 +1246,15 @@ div.hanging-indent {
   font-weight: 400;
 }
 
-.callout.callout-captioned .callout-body {
+.callout.callout-titled .callout-body {
   margin-top: 0.2em;
 }
 
-.callout:not(.no-icon).callout-captioned.callout-style-simple .callout-body {
+.callout:not(.no-icon).callout-titled.callout-style-simple .callout-body {
   padding-left: 1.6em;
 }
 
-.callout.callout-captioned > .callout-header {
+.callout.callout-titled > .callout-header {
   padding-top: 0.2em;
   margin-bottom: -0.2em;
 }
@@ -1261,18 +1295,18 @@ div.hanging-indent {
   align-items: center;
 }
 
-.callout.callout-captioned .callout-body > :last-child:not(.sourceCode),
-.callout.callout-captioned .callout-body > div > :last-child:not(.sourceCode) {
+.callout.callout-titled .callout-body > :last-child:not(.sourceCode),
+.callout.callout-titled .callout-body > div > :last-child:not(.sourceCode) {
   margin-bottom: 0.5rem;
 }
 
-.callout:not(.callout-captioned) .callout-body > :first-child,
-.callout:not(.callout-captioned) .callout-body > div > :first-child {
+.callout:not(.callout-titled) .callout-body > :first-child,
+.callout:not(.callout-titled) .callout-body > div > :first-child {
   margin-top: 0.25rem;
 }
 
-.callout:not(.callout-captioned) .callout-body > :last-child,
-.callout:not(.callout-captioned) .callout-body > div > :last-child {
+.callout:not(.callout-titled) .callout-body > :last-child,
+.callout:not(.callout-titled) .callout-body > div > :last-child {
   margin-bottom: 0.2rem;
 }
 
@@ -1324,7 +1358,7 @@ $code-block-border-left-color: $table-border-color !default;
   padding-right: 0.35em;
 }
 
-.callout.callout-style-default:not(.no-icon) div.callout-caption-container {
+.callout.callout-style-default:not(.no-icon) div.callout-title-container {
   margin-top: -1px;
 }
 
@@ -1416,7 +1450,7 @@ div.callout.callout-style-default > .callout-header {
     )};
   $shifted-color-svg: str-replace($shifted-color, "#", "%23");
 
-  div.callout-#{$name}:not(.callout-captioned) .callout-icon::before {
+  div.callout-#{$name}:not(.callout-titled) .callout-icon::before {
     background-image: #{"url('data:image/svg+xml," +
       str-replace(
         quarto-map.get($info, "icon"),
@@ -1426,7 +1460,7 @@ div.callout.callout-style-default > .callout-header {
       "');"};
   }
 
-  div.callout-#{$name}.callout-captioned .callout-icon::before {
+  div.callout-#{$name}.callout-titled .callout-icon::before {
     background-image: #{"url('data:image/svg+xml," +
       str-replace(
         quarto-map.get($info, "icon"),
@@ -1447,18 +1481,6 @@ div.callout.callout-style-default > .callout-header {
 }
 
 // dark mode
-.navbar .quarto-color-scheme-toggle {
-  @include media-breakpoint-up(lg) {
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
-  }
-  @include media-breakpoint-down(md) {
-    padding-left: 0;
-    padding-right: 0;
-    padding-bottom: 0.5em;
-  }
-}
-
 .quarto-reader-toggle .bi::before,
 .quarto-color-scheme-toggle .bi::before {
   display: inline-block;
@@ -1469,31 +1491,8 @@ div.callout.callout-style-default > .callout-header {
   background-size: 1rem 1rem;
 }
 
-.navbar-collapse .quarto-color-scheme-toggle {
-  padding-left: 0.6rem;
-  padding-right: 0;
-  margin-top: -12px;
-}
-
 .sidebar-navigation {
   padding-left: 20px;
-}
-
-.sidebar-navigation .quarto-color-scheme-toggle .bi::before {
-  padding-top: 0.2rem;
-  margin-bottom: -0.2rem;
-}
-
-.sidebar-tools-main .quarto-color-scheme-toggle .bi::before {
-  padding-top: 0.2rem;
-  margin-bottom: -0.2rem;
-}
-
-.navbar .quarto-color-scheme-toggle .bi::before {
-  padding-top: 7px;
-  margin-bottom: -7px;
-  padding-left: 2px;
-  margin-right: 2px;
 }
 
 .navbar .quarto-color-scheme-toggle:not(.alternate) .bi::before {
@@ -1737,6 +1736,119 @@ select,
 optgroup,
 textarea {
   background-color: var(--bs-body-bg);
+}
+
+// Code Annotation
+
+.code-annotation-gutter-bg {
+  background-color: $body-bg;
+}
+
+.code-annotation-gutter {
+  background-color: $code-block-bg-color;
+}
+
+.code-annotation-gutter,
+.code-annotation-gutter-bg {
+  height: 100%;
+  width: calc(20px + 0.5em);
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+dl.code-annotation-container-grid {
+  dt {
+    margin-right: 1em;
+    margin-top: 0.25rem;
+  }
+}
+
+dl.code-annotation-container-grid {
+  dt {
+    font-family: $font-family-code;
+    color: theme-dim($body-color, 10%);
+    border: solid theme-dim($body-color, 10%) 1px;
+    border-radius: 50%;
+    height: 22px;
+    width: 22px;
+    line-height: 22px;
+    font-size: 11px;
+
+    text-align: center;
+    vertical-align: middle;
+
+    text-decoration: none;
+  }
+
+  dt[data-target-cell] {
+    cursor: pointer;
+  }
+
+  dt[data-target-cell].code-annotation-active {
+    color: $body-bg;
+    border: solid #aaaaaa 1px;
+    background-color: #aaaaaa;
+  }
+}
+
+pre.code-annotation-code {
+  padding-top: 0;
+  padding-bottom: 0;
+  code {
+    z-index: 3;
+  }
+}
+
+#code-annotation-line-highlight-gutter {
+  width: 100%;
+  border-top: solid $code-annotation-higlight-color 1px;
+  border-bottom: solid $code-annotation-higlight-color 1px;
+  z-index: 2;
+  background-color: $code-annotation-higlight-bg;
+}
+
+#code-annotation-line-highlight {
+  margin-left: -4em;
+  width: calc(100% + 4em);
+  border-top: solid $code-annotation-higlight-color 1px;
+  border-bottom: solid $code-annotation-higlight-color 1px;
+  z-index: 2;
+  background-color: $code-annotation-higlight-bg;
+}
+
+code.sourceCode .code-annotation-anchor.code-annotation-active {
+  background-color: var(--quarto-hl-normal-color, #aaaaaa);
+  border: solid var(--quarto-hl-normal-color, #aaaaaa) 1px;
+  color: rgb(
+    red($code-block-bg-color),
+    green($code-block-bg-color),
+    blue($code-block-bg-color)
+  );
+  font-weight: bolder;
+}
+
+code.sourceCode .code-annotation-anchor {
+  font-family: $font-family-code;
+  color: var(--quarto-hl-co-color);
+  border: solid var(--quarto-hl-co-color) 1px;
+  border-radius: 50%;
+  height: 18px;
+  width: 18px;
+  font-size: 9px;
+  margin-top: 2px;
+}
+
+code.sourceCode button.code-annotation-anchor {
+  padding: 2px;
+}
+
+code.sourceCode a.code-annotation-anchor {
+  line-height: 18px;
+  text-align: center;
+  vertical-align: middle;
+  cursor: default;
+  text-decoration: none;
 }
 
 // change .column-screen-* to behave like .column-page (which hugs the body margins)

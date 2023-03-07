@@ -10,6 +10,7 @@ export const kMetadataFormat = "format";
 export const kDisplayName = "display-name";
 export const kExtensionName = "extension-name";
 export const kTargetFormat = "target-format";
+export const kBaseFormat = "base-format";
 export const kIdentifierDefaults = "indentifier";
 export const kRenderDefaults = "render";
 export const kExecuteDefaults = "execute";
@@ -40,6 +41,8 @@ export const kFormatResources = "format-resources";
 
 export const kFormatLinks = "format-links";
 export const kNotebookLinks = "notebook-links";
+export const kNotebookView = "notebook-view";
+export const kNotebookViewStyle = "notebook-view-style";
 
 export const kKeepHidden = "keep-hidden";
 
@@ -97,6 +100,9 @@ export const kLinkExternalFilter = "link-external-filter";
 
 export const kQuartoVersion = "quarto-version";
 export const kQuartoRequired = "quarto-required";
+
+export const kPreviewMode = "preview-mode";
+export const kPreviewModeRaw = "raw";
 
 export const kIdentifierDefaultsKeys = [
   kTargetFormat,
@@ -168,6 +174,8 @@ export const kRenderDefaultsKeys = [
   kFormatResources,
   kFormatLinks,
   kNotebookLinks,
+  kNotebookView,
+  kNotebookViewStyle,
 ];
 
 // language fields
@@ -176,11 +184,11 @@ export const kTocTitleWebsite = "toc-title-website";
 export const kRelatedFormatsTitle = "related-formats-title";
 export const kRelatedNotebooksTitle = "related-notebooks-title";
 export const kSourceNotebookPrefix = "source-notebooks-prefix";
-export const kCalloutTipCaption = "callout-tip-caption";
-export const kCalloutNoteCaption = "callout-note-caption";
-export const kCalloutWarningCaption = "callout-warning-caption";
-export const kCalloutImportantCaption = "callout-important-caption";
-export const kCalloutCautionCaption = "callout-caution-caption";
+export const kCalloutTipCaption = "callout-tip-title";
+export const kCalloutNoteCaption = "callout-note-title";
+export const kCalloutWarningCaption = "callout-warning-title";
+export const kCalloutImportantCaption = "callout-important-title";
+export const kCalloutCautionCaption = "callout-caution-title";
 export const kSectionTitleAbstract = "section-title-abstract";
 export const kSectionTitleFootnotes = "section-title-footnotes";
 export const kSectionTitleReferences = "section-title-references";
@@ -197,14 +205,24 @@ export const kTitleBlockAffiliationPlural = "title-block-affiliation-plural";
 export const kTitleBlockPublished = "title-block-published";
 export const kTitleBlockModified = "title-block-modified";
 export const kCodeSummary = "code-summary";
+export const kCodeLine = "code-line";
+export const kCodeLines = "code-lines";
 export const kCodeToolsMenuCaption = "code-tools-menu-caption";
 export const kCodeToolsShowAllCode = "code-tools-show-all-code";
 export const kCodeToolsHideAllCode = "code-tools-hide-all-code";
 export const kCodeToolsViewSource = "code-tools-view-source";
 export const kCodeToolsSourceCode = "code-tools-source-code";
 export const kSearchNoResultsText = "search-no-results-text";
+export const kSearch = "search";
+
+export const kToggleSidebar = "toggle-sidebar";
+export const kToggleDarkMode = "toggle-dark-mode";
+export const kToggleReaderMode = "toggle-reader-mode";
+export const kToggleNavigation = "toggle-navigation";
+
 export const kCopyButtonTooltip = "copy-button-tooltip";
 export const kCopyButtonTooltipSuccess = "copy-button-tooltip-success";
+export const kBackToTop = "back-to-top";
 export const kRepoActionLinksEdit = "repo-action-links-edit";
 export const kRepoActionLinksSource = "repo-action-links-source";
 export const kRepoActionLinksIssue = "repo-action-links-issue";
@@ -293,14 +311,22 @@ export const kLanguageDefaultsKeys = [
   kTitleBlockPublished,
   kTitleBlockModified,
   kCodeSummary,
+  kCodeLine,
+  kCodeLines,
   kCodeToolsMenuCaption,
   kCodeToolsShowAllCode,
   kCodeToolsHideAllCode,
   kCodeToolsViewSource,
   kCodeToolsSourceCode,
   kSearchNoResultsText,
+  kSearch,
+  kToggleDarkMode,
+  kToggleNavigation,
+  kToggleReaderMode,
+  kToggleSidebar,
   kCopyButtonTooltip,
   kCopyButtonTooltipSuccess,
+  kBackToTop,
   kRepoActionLinksEdit,
   kRepoActionLinksSource,
   kRepoActionLinksIssue,
@@ -377,7 +403,6 @@ export const kReader = "reader";
 export const kWriter = "writer";
 export const kOutputFile = "output-file";
 export const kInputFiles = "input-files";
-export const kAtxHeaders = "atx-headers";
 export const kMarkdownHeadings = "markdown-headings";
 export const kTemplate = "template";
 export const kWrap = "wrap";
@@ -447,6 +472,7 @@ export const kDescription = "description";
 export const kHideDescription = "hide-description";
 export const kTocTitle = "toc-title";
 export const kTocLocation = "toc-location";
+export const kTocExpand = "toc-expand";
 export const kLang = "lang";
 export const kOrder = "order";
 
@@ -549,7 +575,6 @@ export const kPandocDefaultsKeys = [
   kSectionDivs,
   "identifier-prefix",
   kTitlePrefix,
-  "strip-empty-paragraphs",
   "eol",
   "strip-comments",
   "indented-code-classes",
@@ -573,7 +598,6 @@ export const kPandocDefaultsKeys = [
   kEPubCoverImage,
   "reference-links",
   kReferenceLocation,
-  kAtxHeaders,
   kMarkdownHeadings,
   "track-changes",
   "html-q-tags",
@@ -629,3 +653,6 @@ export const kLayoutVAlign = "layout-valign";
 export const kLayoutNcol = "layout-ncol";
 export const kLayoutNrow = "layout-nrow";
 export const kLayout = "layout";
+
+// https://github.com/quarto-dev/quarto-cli/issues/3581
+export const kCliffyImplicitCwd = "5a6d2e4f-f9a2-43bc-8019-8149fbb76c85";

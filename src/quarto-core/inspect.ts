@@ -26,7 +26,7 @@ import { kLocalDevelopment, quartoConfig } from "../core/quarto.ts";
 import { ProjectConfig, ProjectFiles } from "../project/types.ts";
 import { cssFileResourceReferences } from "../core/css.ts";
 import { projectExcludeDirs } from "../project/project-shared.ts";
-import { safeExistsSync } from "../core/path.ts";
+import { normalizePath, safeExistsSync } from "../core/path.ts";
 import { kExtensionDir } from "../extension/extension-shared.ts";
 import { extensionFilesFromDirs } from "../extension/extension.ts";
 
@@ -130,7 +130,7 @@ export async function inspectConfig(path: string): Promise<InspectedConfig> {
       );
 
       const context = await projectContext(path);
-      const fileDir = Deno.realPathSync(dirname(path));
+      const fileDir = normalizePath(dirname(path));
 
       const excludeDirs = context ? projectExcludeDirs(context) : [];
 

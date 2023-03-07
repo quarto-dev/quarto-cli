@@ -1,0 +1,90 @@
+---
+title: "#3085 R tests"
+format: html
+---
+
+### Pipe tables
+
+#### Bad!
+
+| a | a | a |
+| - | - | - |
+| a | a | a |
+
+#### Bad!
+
+| aaaaaaaaa  | aaaa   | aaaaaaaaaaa |
+| -          | -      | ---         |
+| aaaaaaaaaaaaa | aaaaaaaaaaaa | aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa |
+
+#### Good!
+
+| aaaaaaaaa  | aaaa   | aaaaaaaaaaa |
+| -          | -      | ---         |
+| aaaaaaaaaaaaa | aaaaaaaaaaaaaaaa | aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa |
+
+### Raw html
+
+#### Bad!
+
+```{=html}
+<table>
+  <thead>
+    <tr><td>a</td><td>b</td></tr>
+  </thead>
+  <tbody>
+    <tr><td>1</td><td>2</td></tr>
+    <tr><td>3</td><td>4</td></tr>
+  </tbody>
+</table>
+```
+
+
+### Grid table with caption
+
+#### Good!
+
+: Sample grid table.
+
++---------------+---------------+--------------------+
+| Fruit         | Price         | Advantages         |
++===============+===============+====================+
+| Bananas       | $1.34         | - built-in wrapper |
+|               |               | - bright color     |
++---------------+---------------+--------------------+
+| Oranges       | $2.10         | - cures scurvy     |
+|               |               | - tasty            |
++---------------+---------------+--------------------+
+
+### Grid table without caption
+
+#### Good!
+
++---------------+---------------+--------------------+
+| Fruit         | Price         | Advantages         |
++===============+===============+====================+
+| Bananas       | $1.34         | - built-in wrapper |
+|               |               | - bright color     |
++---------------+---------------+--------------------+
+| Oranges       | $2.10         | - cures scurvy     |
+|               |               | - tasty            |
++---------------+---------------+--------------------+
+
+
+## Computational table output
+
+```{r}
+#| echo: false
+library(flextable)
+library(gt)
+library(DT)
+library(knitr)
+```
+
+### Kable
+
+#### Good!
+
+```{r}
+exibble |> knitr::kable()
+```

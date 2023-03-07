@@ -9,7 +9,8 @@ import { Document } from "../core/deno-dom.ts";
 import {
   kAppendixAttributionBibTex,
   kAppendixAttributionCiteAs,
-  kAtxHeaders,
+  kBackToTop,
+  kBaseFormat,
   kCache,
   kCalloutCautionCaption,
   kCalloutImportantCaption,
@@ -19,7 +20,9 @@ import {
   kCiteMethod,
   kCiteproc,
   kCodeFold,
+  kCodeLine,
   kCodeLineNumbers,
+  kCodeLines,
   kCodeLink,
   kCodeOverflow,
   kCodeSummary,
@@ -129,6 +132,8 @@ import {
   kMergeIncludes,
   kMermaidFormat,
   kNotebookLinks,
+  kNotebookView,
+  kNotebookViewStyle,
   kNumberOffset,
   kNumberSections,
   kOutput,
@@ -147,6 +152,7 @@ import {
   kRepoActionLinksEdit,
   kRepoActionLinksIssue,
   kRepoActionLinksSource,
+  kSearch,
   kSearchClearButtonTitle,
   kSearchCopyLinkTitle,
   kSearchDetatchedCancelButtonTitle,
@@ -186,6 +192,10 @@ import {
   kTocDepth,
   kTocTitleDocument,
   kTocTitleWebsite,
+  kToggleDarkMode,
+  kToggleNavigation,
+  kToggleReaderMode,
+  kToggleSidebar,
   kTopLevelDivision,
   kVariables,
   kVariant,
@@ -193,10 +203,8 @@ import {
   kWebtex,
 } from "./constants.ts";
 
-import { TempContext } from "../core/temp-types.ts";
-import { HtmlPostProcessor } from "../command/render/types.ts";
+import { HtmlPostProcessor, RenderServices } from "../command/render/types.ts";
 import { QuartoFilterSpec } from "../command/render/filters.ts";
-import { ExtensionContext } from "../extension/extension-shared.ts";
 import { ProjectContext } from "../project/types.ts";
 
 export const kDependencies = "dependencies";
@@ -285,6 +293,12 @@ export function isPandocFilter(filter: QuartoFilter): filter is PandocFilter {
   return (<PandocFilter> filter).path !== undefined;
 }
 
+export interface NotebookPublishOptions {
+  notebook: string;
+  url?: string;
+  title?: string;
+}
+
 export interface FormatExtras {
   args?: string[];
   pandoc?: FormatPandoc;
@@ -315,6 +329,7 @@ export interface FormatExtras {
 }
 
 export interface FormatIdentifier {
+  [kBaseFormat]?: string;
   [kTargetFormat]?: string;
   [kDisplayName]?: string;
   [kExtensionName]?: string;
@@ -347,9 +362,8 @@ export interface Format {
     flags: PandocFlags,
     format: Format,
     libDir: string,
-    temp: TempContext,
+    services: RenderServices,
     offset?: string,
-    extensionContext?: ExtensionContext,
     project?: ProjectContext,
   ) => Promise<FormatExtras>;
   formatPreviewFile?: (
@@ -401,6 +415,11 @@ export interface FormatRender {
   [kFormatResources]?: string[];
   [kFormatLinks]?: boolean | string[];
   [kNotebookLinks]?: boolean | "inline" | "global";
+  [kNotebookViewStyle]?: "document" | "notebook";
+  [kNotebookView]?:
+    | boolean
+    | NotebookPublishOptions
+    | NotebookPublishOptions[];
 }
 
 export interface FormatExecute {
@@ -440,7 +459,6 @@ export interface FormatPandoc {
   [kSelfContained]?: boolean;
   [kEmbedResources]?: boolean;
   [kVariables]?: { [key: string]: unknown };
-  [kAtxHeaders]?: boolean;
   [kMarkdownHeadings]?: boolean;
   [kIncludeBeforeBody]?: string[];
   [kIncludeAfterBody]?: string[];
@@ -537,6 +555,8 @@ export interface FormatLanguage {
   [kSectionTitleReuse]?: string;
   [kSectionTitleCopyright]?: string;
   [kCodeSummary]?: string;
+  [kCodeLine]?: string;
+  [kCodeLines]?: string;
   [kCodeToolsMenuCaption]?: string;
   [kCodeToolsShowAllCode]?: string;
   [kCodeToolsHideAllCode]?: string;
@@ -545,9 +565,15 @@ export interface FormatLanguage {
   [kRepoActionLinksEdit]?: string;
   [kRepoActionLinksSource]?: string;
   [kRepoActionLinksIssue]?: string;
+  [kSearch]?: string;
   [kSearchNoResultsText]?: string;
   [kCopyButtonTooltip]?: string;
   [kCopyButtonTooltipSuccess]?: string;
+  [kBackToTop]?: string;
+  [kToggleDarkMode]?: string;
+  [kToggleNavigation]?: string;
+  [kToggleReaderMode]?: string;
+  [kToggleSidebar]?: string;
   [kSearchMatchingDocumentsText]?: string;
   [kSearchCopyLinkTitle]?: string;
   [kSearchHideMatchesText]?: string; // FIXME duplicate?

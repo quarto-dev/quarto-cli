@@ -58,9 +58,10 @@ const outDir = "_book";
 const bookProjDir = docs("project/book");
 const bookOutDir = join(bookProjDir, outDir);
 
+const bookPdfDir = bookOutDir;
 const verifyPdfBook: Verify[] = [
-  fileExists(join(bookOutDir, "book.pdf")),
-  directoryEmptyButFor(bookOutDir, ["book.pdf"]),
+  fileExists(join(bookPdfDir, "book.pdf")),
+  directoryEmptyButFor(bookPdfDir, ["book.pdf"]),
 ];
 testQuartoCmd(
   "render",
@@ -75,9 +76,10 @@ testQuartoCmd(
   },
 );
 
+const bookDocxDir = bookOutDir;
 const verifyDocxBook: Verify[] = [
-  fileExists(join(bookOutDir, "book.docx")),
-  directoryEmptyButFor(bookOutDir, ["book.docx"]),
+  fileExists(join(bookDocxDir, "book.docx")),
+  directoryEmptyButFor(bookDocxDir, ["book.docx"]),
 ];
 testQuartoCmd(
   "render",
@@ -92,9 +94,10 @@ testQuartoCmd(
   },
 );
 
+const bookEpubDir = bookOutDir;
 const verifyEpubBook: Verify[] = [
-  fileExists(join(bookOutDir, "book.epub")),
-  directoryEmptyButFor(bookOutDir, ["book.epub"]),
+  fileExists(join(bookEpubDir, "book.epub")),
+  directoryEmptyButFor(bookEpubDir, ["book.epub"]),
 ];
 testQuartoCmd(
   "render",

@@ -26,6 +26,7 @@ import { projectConfigFile } from "./project-shared.ts";
 import { ensureGitignore } from "./project-gitignore.ts";
 import { kWebsite } from "./types/website/website-constants.ts";
 import { copyTo } from "../core/copy.ts";
+import { normalizePath } from "../core/path.ts";
 
 export interface ProjectCreateOptions {
   dir: string;
@@ -55,7 +56,7 @@ export async function projectCreate(options: ProjectCreateOptions) {
   // ensure that the directory exists
   ensureDirSync(options.dir);
 
-  options.dir = Deno.realPathSync(options.dir);
+  options.dir = normalizePath(options.dir);
   if (!options.quiet) {
     info(`Creating project at `, { newline: false });
     info(`${options.dir}`, { bold: true, newline: false });

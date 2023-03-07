@@ -9,22 +9,26 @@
 -- </div>
 
 local function codeBlockWithFilename(el, filename)
-  if _quarto.format.isHtmlOutput() then
-    local filenameEl = pandoc.Div({pandoc.Plain{
-      pandoc.RawInline("html", "<pre>"),
-      pandoc.Strong{pandoc.Str(filename)},
-      pandoc.RawInline("html", "</pre>")
-    }}, pandoc.Attr("", {"code-with-filename-file"}))
-    return pandoc.Div(
-      { filenameEl, el:clone() },
-      pandoc.Attr("", {"code-with-filename"})
-    )
-  else
-    return pandoc.Div(
-      { pandoc.Plain{pandoc.Strong{pandoc.Str(filename)}}, el:clone() },
-      pandoc.Attr("", {"code-with-filename"})
-    )
-  end
+  return pandoc.Plain(quarto.DecoratedCodeBlock({
+    filename = filename,
+    code_block = el:clone()
+  }))
+  -- if _quarto.format.isHtmlOutput() then
+  --   local filenameEl = pandoc.Div({pandoc.Plain{
+  --     pandoc.RawInline("html", "<pre>"),
+  --     pandoc.Strong{pandoc.Str(filename)},
+  --     pandoc.RawInline("html", "</pre>")
+  --   }}, pandoc.Attr("", {"code-with-filename-file"}))
+  --   return pandoc.Div(
+  --     { filenameEl, el:clone() },
+  --     pandoc.Attr("", {"code-with-filename"})
+  --   )
+  -- else
+  --   return pandoc.Div(
+  --     { pandoc.Plain{pandoc.Strong{pandoc.Str(filename)}}, el:clone() },
+  --     pandoc.Attr("", {"code-with-filename"})
+  --   )
+  -- end
 end
 
 function codeFilename() 

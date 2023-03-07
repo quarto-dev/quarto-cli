@@ -5,12 +5,13 @@
 *
 */
 
-import { RenderedFile } from "../../../command/render/types.ts";
+import { PandocOptions, RenderedFile } from "../../../command/render/types.ts";
 import { kTitle } from "../../../config/constants.ts";
 import { Format } from "../../../config/types.ts";
 import { parsePandocTitle } from "../../../core/pandoc/pandoc-partition.ts";
 import { PartitionedMarkdown } from "../../../core/pandoc/types.ts";
 import { ProjectConfig, ProjectContext } from "../../types.ts";
+import { ProjectOutputFile } from "../types.ts";
 
 export type BookConfigKey =
   | "output-file"
@@ -40,6 +41,17 @@ export const kBookCoverImageAlt = "cover-image-alt";
 export interface BookExtension {
   // bool extensions are single file by default but can elect to be multi file
   multiFile?: boolean;
+  selfContainedOutput?: boolean;
+
+  filterFormat?: (
+    source: string,
+    format: Format,
+    project?: ProjectContext,
+  ) => Format;
+
+  filterParams?: (options: PandocOptions) => Record<string, unknown>;
+
+  formatOutputDirectory?: () => string;
 
   // book extensions can modify the format before render
   onSingleFilePreRender?: (format: Format, config?: ProjectConfig) => Format;
@@ -49,6 +61,20 @@ export interface BookExtension {
     project: ProjectContext,
     file: RenderedFile,
   ) => void;
+
+  onMultiFilePrePrender?: (
+    isIndex: boolean,
+    format: Format,
+    markdown: string,
+    project: ProjectContext,
+  ) => Promise<{ format?: Format; markdown?: string }>;
+
+  bookPostRender?: (
+    format: Format,
+    context: ProjectContext,
+    incremental: boolean,
+    outputFiles: ProjectOutputFile[],
+  ) => Promise<void>;
 }
 
 export function bookConfig(

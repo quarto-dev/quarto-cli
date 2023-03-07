@@ -377,6 +377,37 @@ export async function updateHtmlDepedencies(config: Configuration) {
     false, // no v prefix
   );
 
+  // Github CSS (used for GFM HTML preview)
+  const ghCSS = join(
+    config.directoryInfo.src,
+    "resources",
+    "formats",
+    "gfm",
+    "github-markdown-css",
+  );
+  await updateGithubSourceCodeDependency(
+    "github-markdown-css",
+    "sindresorhus/github-markdown-css",
+    "GITHUB_MARKDOWN_CSS",
+    workingDir,
+    (dir: string, version: string) => {
+      ensureDirSync(ghCSS);
+      const files = [
+        "github-markdown-dark.css",
+        "github-markdown-light.css",
+        "github-markdown.css",
+      ];
+      files.forEach((file) => {
+        // Copy the js file
+        Deno.copyFileSync(
+          join(dir, `github-markdown-css-${version}`, file),
+          join(ghCSS, file),
+        );
+      });
+      return Promise.resolve();
+    },
+  );
+
   // Autocomplete
   const autocompleteJs = join(
     config.directoryInfo.src,
@@ -725,6 +756,7 @@ async function updateUnpkgDependency(
   }
 }
 
+/*
 async function updateJsDelivrDependency(
   versionEnvVar: string,
   pkg: string,
@@ -744,6 +776,7 @@ async function updateJsDelivrDependency(
     throw new Error(`${versionEnvVar} is not defined`);
   }
 }
+*/
 
 async function updateGithubSourceCodeDependency(
   name: string,

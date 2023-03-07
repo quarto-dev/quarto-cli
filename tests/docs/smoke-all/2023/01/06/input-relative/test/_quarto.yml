@@ -1,0 +1,14 @@
+project:
+  type: test
+book:
+  title: |
+    Tufte-Quarto Project Type\
+    Documentation
+  title-short: Tufte-Quarto # title-short is used in the pdf head
+  output-file: TufteStyledBook # outputs: docs/TufteStyledBook.pdf
+  author: Fred Guth
+  publisher: The Publisher
+  date-format: MMMM, YYYY
+  license: "CC BY"
+  chapters:
+    - index.qmd

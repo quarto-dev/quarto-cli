@@ -1,0 +1,16 @@
+---
+title: Julia Crossref Test
+---
+
+## Julia Crossref Figure
+
+```{julia}
+#| label: fig-plot
+#| fig-cap: "Plot"
+
+using Plots
+Plots.gr(format="png")
+plot([1,23,2,4])
+```
+
+For example, see @fig-plot.

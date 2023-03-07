@@ -526,7 +526,7 @@ function domDependencyInjector(
   const finalizeInjection = () => {
     // Remove the target comment
     if (targetComment) {
-      targetComment.remove();
+      targetComment._remove();
     }
   };
 

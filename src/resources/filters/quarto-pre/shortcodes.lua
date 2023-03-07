@@ -169,7 +169,7 @@ function callShortcodeHandler(handler, shortCode)
   end})
 
   local callback = function()
-    return handler.handle(args, kwargs, meta)
+    return handler.handle(args, kwargs, meta, shortCode.raw_args)
   end
   -- set the script file path, if present
   if handler.file ~= nil then
@@ -186,7 +186,7 @@ function transformShortcodeInlines(inlines, noRawInlines)
   local shortcodeInlines = pandoc.List()
   local accum = outputInlines
 
-  function ensure_accum(i)
+  local function ensure_accum(i)
     if not transformed then
       transformed = true
       for j = 1,i - 1 do
@@ -330,6 +330,7 @@ function processShortCode(inlines)
   local kSep = "="
   local shortCode = nil
   local args = pandoc.List()
+  local raw_args = pandoc.List()
 
   -- slice off the open and close tags
   inlines = tslice(inlines, 2, #inlines - 1)
@@ -351,6 +352,7 @@ function processShortCode(inlines)
           value = argInlines
         })
       pendingName = nil
+      raw_args:insert(argInlines)
     else
       -- split the string on equals
       if #argInlines == 1 and argInlines[1].t == "Str" and string.match(argInlines[1].text, kSep) then 
@@ -369,6 +371,7 @@ function processShortCode(inlines)
               value = argInlines 
             })
         end
+        raw_args:insert(argInlines)
       -- a standalone SoftBreak or LineBreak is not an argument!
       -- (happens when users delimit args with newlines)
       elseif #argInlines > 1 or 
@@ -378,6 +381,7 @@ function processShortCode(inlines)
           { 
             value = argInlines
           })
+        raw_args:insert(argInlines)
       end
     end
   end
@@ -408,6 +412,7 @@ function processShortCode(inlines)
 
   return {
     args = args,
+    raw_args = raw_args,
     name = shortCode
   }
 end
@@ -479,8 +484,13 @@ end
 
 
 function shortcodeResultAsInlines(result, name)
-  local type = pandoc.utils.type(result)
-  if type == "Inlines" then
+  local type = quarto.utils.type(result)
+  if type == "CustomBlock" then
+    error("Custom AST Block returned from shortcode, but Inline was expected")
+    os.exit(1)
+  elseif type == "CustomInline" then
+    return pandoc.Inlines( { result })
+  elseif type == "Inlines" then
     return result
   elseif type == "Blocks" then
     return pandoc.utils.blocks_to_inlines(result, { pandoc.Space() })
@@ -501,14 +511,17 @@ function shortcodeResultAsInlines(result, name)
     return pandoc.utils.blocks_to_inlines( { result }, { pandoc.Space() })
   else
     error("Unexepected result from shortcode " .. name .. "")
-    quarto.utils.dump(result)
+    quarto.log.output(result)
     os.exit(1)
   end
 end
   
 function shortcodeResultAsBlocks(result, name)
-  local type = pandoc.utils.type(result)
-  if type == "Blocks" then
+  local type = quarto.utils.type(result)
+
+  if type == "CustomBlock" or type == "CustomInline" then
+    return pandoc.Blocks({pandoc.Plain(result)})
+  elseif type == "Blocks" then
     return result
   elseif type == "Inlines" then
     return pandoc.Blocks( {pandoc.Para(result) })
@@ -529,7 +542,7 @@ function shortcodeResultAsBlocks(result, name)
     return pandoc.Blocks( {pandoc.Para( {result} ) })
   else
     error("Unexepected result from shortcode " .. name .. "")
-    quarto.utils.dump(result)
+    quarto.log.output(result)
     os.exit(1)
   end
 end

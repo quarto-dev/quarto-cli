@@ -18,9 +18,9 @@ import {
   resourcePath,
 } from "../../core/resources.ts";
 import { inputFilesDir } from "../../core/render.ts";
-import { pathWithForwardSlashes } from "../../core/path.ts";
+import { normalizePath, pathWithForwardSlashes } from "../../core/path.ts";
 
-import { Format, FormatPandoc } from "../../config/types.ts";
+import { FormatPandoc } from "../../config/types.ts";
 import {
   executionEngine,
   executionEngineKeepMd,
@@ -121,6 +121,11 @@ export async function renderPandoc(
     executeResult.markdown,
   );
 
+  if (notebookResult.supporting) {
+    executeResult.supporting = executeResult.supporting || [];
+    executeResult.supporting.push(notebookResult.supporting);
+  }
+
   // Map notebook includes to pandoc includes
   const pandocIncludes: PandocIncludes = {
     [kIncludeAfterBody]: notebookResult.includes?.afterBody
@@ -139,7 +144,9 @@ export async function renderPandoc(
 
   // pandoc options
   const pandocOptions: PandocOptions = {
-    markdown: notebookResult.markdown,
+    markdown: notebookResult.markdown
+      ? notebookResult.markdown
+      : executeResult.markdown,
     source: context.target.source,
     output: recipe.output,
     keepYaml: recipe.keepYaml,
@@ -148,9 +155,8 @@ export async function renderPandoc(
     format,
     project: context.project,
     args: recipe.args,
-    temp: context.options.services.temp,
+    services: context.options.services,
     metadata: executeResult.metadata,
-    extension: context.options.services.extension,
     quiet,
     flags: context.options.flags,
   };
@@ -297,13 +303,13 @@ export async function renderPandoc(
         if (context.project) {
           if (isAbsolute(path)) {
             return relative(
-              Deno.realPathSync(context.project.dir),
-              Deno.realPathSync(path),
+              normalizePath(context.project.dir),
+              normalizePath(path),
             );
           } else {
             return relative(
-              Deno.realPathSync(context.project.dir),
-              Deno.realPathSync(join(dirname(context.target.source), path)),
+              normalizePath(context.project.dir),
+              normalizePath(join(dirname(context.target.source), path)),
             );
           }
         } else {
@@ -312,7 +318,8 @@ export async function renderPandoc(
       };
       popTiming();
 
-      return {
+      const result: RenderedFile = {
+        isTransient: recipe.isOutputTransient,
         input: projectPath(context.target.source),
         markdown: executeResult.markdown,
         format,
@@ -321,13 +328,16 @@ export async function renderPandoc(
             context.project ? relative(context.project.dir, file) : file
           )
           : undefined,
-        file: projectPath(finalOutput!),
+        file: recipe.isOutputTransient
+          ? finalOutput!
+          : projectPath(finalOutput!),
         resourceFiles: {
           globs: pandocResult.resources,
           files: resourceFiles.concat(htmlPostProcessResult.resources),
         },
         selfContained: selfContained!,
       };
+      return result;
     },
   };
 }
@@ -381,8 +391,8 @@ export function renderResultFinalOutput(
 
   // return a path relative to the input file
   if (relativeToInputDir) {
-    const inputRealPath = Deno.realPathSync(relativeToInputDir);
-    const outputRealPath = Deno.realPathSync(finalOutput);
+    const inputRealPath = normalizePath(relativeToInputDir);
+    const outputRealPath = normalizePath(finalOutput);
     return relative(inputRealPath, outputRealPath);
   } else {
     return finalOutput;
@@ -437,8 +447,8 @@ async function runHtmlPostprocessors(
           {
             inputMetadata,
             inputTraits,
-            renderedFormats  
-          }
+            renderedFormats,
+          },
         );
 
         postProcessResult.resources.push(...result.resources);

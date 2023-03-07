@@ -46,6 +46,7 @@ import { execProcess } from "../../core/process.ts";
 import { createExtensionContext } from "../../extension/extension.ts";
 import { createTempContext } from "../../core/temp.ts";
 import { createNamedLifetime, getNamedLifetime } from "../../core/lifetimes.ts";
+import { normalizePath } from "../../core/path.ts";
 
 export async function render(
   path: string,
@@ -68,8 +69,8 @@ export async function render(
     // a files list that is only those files in the subdirectory
     let files: string[] | undefined;
     if (context) {
-      const renderDir = Deno.realPathSync(path);
-      const projectDir = Deno.realPathSync(context.dir);
+      const renderDir = normalizePath(path);
+      const projectDir = normalizePath(context.dir);
       if (renderDir !== projectDir) {
         files = context.files.input.filter((file) =>
           file.startsWith(renderDir)

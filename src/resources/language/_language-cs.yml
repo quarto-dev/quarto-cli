@@ -23,13 +23,16 @@ title-block-affiliation-plural: "Afiliace"
 title-block-published: "Publikováno"
 title-block-modified: "Upraveno"
 
-callout-tip-caption: "Tip"
-callout-note-caption: "Poznámka"
-callout-warning-caption: "Varování"
-callout-important-caption: "Důležité"
-callout-caution-caption: "Upozornění"
+callout-tip-title: "Tip"
+callout-note-title: "Poznámka"
+callout-warning-title: "Varování"
+callout-important-title: "Důležité"
+callout-caution-title: "Upozornění"
 
 code-summary: "Kód"
+
+code-line: "Řádek"
+code-lines: "Řádky"
 
 code-tools-menu-caption: "Kód"
 code-tools-show-all-code: "Zobrazit celý kód"
@@ -44,6 +47,8 @@ repo-action-links-edit: "Upravit stránku"
 repo-action-links-source: "Zobrazit zdrojový kód"
 repo-action-links-issue: "Nahlásit problém"
 
+back-to-top: "Zpět na začátek"
+
 search-no-results-text: "Žádný výsledek"
 search-matching-documents-text: "Nalezené výsledky"
 search-copy-link-title: "Zkopírovat odkaz pro vyhledávání"
@@ -53,6 +58,12 @@ search-more-matches-text: "dalších výsledků v tomto dokumentu"
 search-clear-button-title: "Vymazat"
 search-detached-cancel-button-title: "Zrušit"
 search-submit-button-title: "Odeslat"
+search: "Hledat"
+
+toggle-sidebar: "Přepnout postranní panel"
+toggle-dark-mode: "Přepnout tmavý režim"
+toggle-reader-mode: "Přepnout režim čtečky"
+toggle-navigation: "Přepnout navigaci"
 
 crossref-fig-title: "Obrázek"
 crossref-tbl-title: "Tabulka"

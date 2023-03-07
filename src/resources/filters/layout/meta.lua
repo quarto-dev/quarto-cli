@@ -38,7 +38,7 @@ function layoutMetaInject()
       if (useCodeBlockBorder or useCodeBlockBg) then
         metaInjectLatex(meta, function(inject)
           inject(
-            usePackageWithOption("tcolorbox", "many")
+            usePackageWithOption("tcolorbox", "skins,breakable")
           )
         end)
 
@@ -231,7 +231,6 @@ function baseGeometry(meta, oneside)
     -- if one side geometry is explicitly requested, the
     -- set that (used for twoside=semi)
     if oneside then
-      quarto.log.output("ONESIDE")
       tappend(meta.geometry, {"twoside=false"})
     end
       

@@ -8,6 +8,27 @@ kLstCap = "lst-cap"
 function listings()
   
   return {
+    DecoratedCodeBlock = function(node)
+      local el = node.code_block
+      local label = string.match(el.attr.identifier, "^lst%-[^ ]+$")
+      local caption = el.attr.attributes[kLstCap]
+      if label and caption then
+        -- the listing number
+        local order = indexNextOrder("lst")
+        
+        -- generate content from markdown caption
+        local captionContent = markdownToInlines(caption)
+
+        -- add the listing to the index
+        indexAddEntry(label, nil, order, captionContent)
+
+        node.caption = captionContent
+        node.order = order
+        return node
+      end
+      return nil
+    end,
+
     CodeBlock = function(el)
       local label = string.match(el.attr.identifier, "^lst%-[^ ]+$")
       local caption = el.attr.attributes[kLstCap]

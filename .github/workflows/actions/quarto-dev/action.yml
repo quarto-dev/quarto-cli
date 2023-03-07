@@ -4,26 +4,32 @@ description: "Configures the image for Quarto Development"
 runs:
   using: "composite"
   steps:
-    - name: Set Path
+    - name: Configure Quarto (.sh)
+      if: runner.os != 'Windows'
       shell: bash
       run: |
-        echo "$HOME/bin" >> $GITHUB_PATH
-
-    - name: Configure Quarto
-      shell: bash
-      run: |
+        # install with symlink in /usr/local/bin which in PATH on CI
         ./configure.sh
 
-    - name: Basic dev mode sanity check
-      shell: bash
+    - name: Configure Quarto (.ps1)
+      if: runner.os == 'Windows'
+      shell: pwsh
       run: |
-        [ "$(quarto --version)" == "99.9.9" ] || exit 1
-        [ "$(quarto --paths | grep package/dist/share)" == "" ] || exit 1
-        [ "$(git status --porcelain)" == "" ] || exit 1
+        ./configure.cmd
+        "$(Get-ChildItem -Path ./package/dist/bin/quarto.cmd | %{ $_.FullName } | Split-Path)" >> $env:GITHUB_PATH
+
+    - shell: pwsh
+      if: runner.os == 'Windows'
+      run: $env:PATH -Split ";"
+
+    - name: Basic dev mode sanity check
+      shell: pwsh
+      run: |
+        If ( "$(quarto --version)" -ne "99.9.9") { Exit 1 }
+        If ( $(quarto --paths | Select-String -Pattern "package[/\\]+dist[/\\]+share") -ne $null ) { Exit 1 }
+        If ( "$(git status --porcelain)" -ne "" ) { Exit 1 }
 
     - name: Quarto Check
-      shell: bash
-      run: |
-        pushd tests
-        quarto check
-        popd
+      working-directory: tests
+      shell: pwsh
+      run: quarto check

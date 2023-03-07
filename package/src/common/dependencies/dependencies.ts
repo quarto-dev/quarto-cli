@@ -6,8 +6,8 @@
 */
 
 import { join } from "path/mod.ts";
-import { info } from "log/mod.ts";
-import { Configuration } from "../config.ts";
+import { info, warning } from "log/mod.ts";
+import { PlatformConfiguration } from "../config.ts";
 
 import { dartSass } from "./dartsass.ts";
 import { deno_dom } from "./deno_dom.ts";
@@ -37,9 +37,9 @@ export interface Dependency {
 // Defines the specific Platform dependencies for
 // a given architecture
 export interface ArchitectureDependency {
-  "darwin": PlatformDependency;
-  "linux": PlatformDependency;
-  "windows": PlatformDependency;
+  "darwin"?: PlatformDependency;
+  "linux"?: PlatformDependency;
+  "windows"?: PlatformDependency;
 }
 
 // Defines an individual binary dependency, specific
@@ -47,7 +47,7 @@ export interface ArchitectureDependency {
 export interface PlatformDependency {
   filename: string;
   url: string;
-  configure(path: string): Promise<void>;
+  configure(config: PlatformConfiguration, path: string): Promise<void>;
 }
 
 function version(env: string) {
@@ -61,27 +61,31 @@ function version(env: string) {
 
 export async function configureDependency(
   dependency: Dependency,
-  config: Configuration,
+  targetDir: string,
+  config: PlatformConfiguration,
 ) {
-  info(`Preparing ${dependency.name}`);
-  let archDep = dependency.architectureDependencies[Deno.build.arch];
+  info(`Preparing ${dependency.name} (${config.os} - ${config.arch})`);
+  let archDep = dependency.architectureDependencies[config.arch];
 
   // If we're missing some arm64, try the intel versions and rely on rosetta.
-  if (!archDep && Deno.build.arch === "aarch64") {
-    archDep = dependency.architectureDependencies["x86_64"];
+  if (config.arch === "aarch64") {
+    if (!archDep || !archDep[config.os]) {
+      warning("Missing configuration for architecture " + config.arch);
+      archDep = dependency.architectureDependencies["x86_64"];
+    }
   }
   if (archDep) {
-    const platformDep = archDep[Deno.build.os];
+    const platformDep = archDep[config.os];
     const vendor = Deno.env.get("QUARTO_VENDOR_BINARIES");
     let targetFile = "";
-    if (vendor === undefined || vendor === "true") {
+    if (platformDep && (vendor === undefined || vendor === "true")) {
       info(`Downloading ${dependency.name}`);
 
       try {
         targetFile = await downloadBinaryDependency(
           dependency,
           platformDep,
-          config,
+          targetDir,
         );
       } catch (error) {
         const msg =
@@ -90,8 +94,10 @@ export async function configureDependency(
       }
     }
 
-    info(`Configuring ${dependency.name}`);
-    await platformDep.configure(targetFile);
+    if (platformDep) {
+      info(`Configuring ${dependency.name}`);
+      await platformDep.configure(config, targetFile);
+    }
 
     if (targetFile) {
       info(`Cleaning up`);
@@ -99,7 +105,7 @@ export async function configureDependency(
     }
   } else {
     throw new Error(
-      `The architecture ${Deno.build.arch} is missing the dependency ${dependency.name}`,
+      `The architecture ${config.arch} is missing the dependency ${dependency.name}`,
     );
   }
 
@@ -109,13 +115,9 @@ export async function configureDependency(
 async function downloadBinaryDependency(
   dependency: Dependency,
   platformDependency: PlatformDependency,
-  configuration: Configuration,
+  targetDir: string,
 ) {
-  const targetFile = join(
-    configuration.directoryInfo.bin,
-    "tools",
-    platformDependency.filename,
-  );
+  const targetFile = join(targetDir, platformDependency.filename);
   const dlUrl = archiveUrl(dependency, platformDependency);
 
   info("Downloading " + dlUrl);

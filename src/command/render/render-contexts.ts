@@ -52,7 +52,10 @@ import {
   kTargetFormat,
   kTheme,
 } from "../../config/constants.ts";
-import { resolveLanguageMetadata } from "../../core/language.ts";
+import {
+  formatLanguage,
+  resolveLanguageMetadata,
+} from "../../core/language.ts";
 import { defaultWriterFormat } from "../../format/formats.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { ExecutionEngine, ExecutionTarget } from "../../execute/types.ts";
@@ -235,6 +238,12 @@ export async function renderContexts(
   // return contexts
   const contexts: Record<string, RenderContext> = {};
   for (const formatKey of Object.keys(formats)) {
+    formats[formatKey].format.language = await formatLanguage(
+      formats[formatKey].format.metadata,
+      formats[formatKey].format.language,
+      options.flags,
+    );
+
     // set format
     const context: RenderContext = {
       target,
@@ -607,6 +616,11 @@ async function resolveFormats(
         options,
         format,
       );
+    }
+
+    // Allow the project type to filter the format
+    if (projType.filterFormat) {
+      format = projType.filterFormat(target.source, format, project);
     }
 
     mergedFormats[formatName] = format;

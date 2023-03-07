@@ -56,7 +56,7 @@ export async function execProcess(
       stdout: typeof (options.stdout) === "number" ? options.stdout : "piped",
       stderr: typeof (options.stderr) === "number" ? options.stderr : "piped",
     });
-    let thisProcessId = ++processCount; // don't risk repeated PIDs
+    const thisProcessId = ++processCount; // don't risk repeated PIDs
     processList.set(thisProcessId, process);
 
     if (stdin !== undefined) {

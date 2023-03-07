@@ -43,30 +43,42 @@ export function findDescription(doc: Document): string | undefined {
 export function findPreviewImg(
   doc: Document,
 ): string | undefined {
-  let image = undefined;
+  const imgEl = findPreviewImgEl(doc);
+  if (imgEl) {
+    const src = getDecodedAttribute(imgEl, "src");
+    if (src !== null) {
+      return src;
+    } else {
+      return undefined;
+    }
+  } else {
+    return undefined;
+  }
+}
+
+export function findPreviewImgEl(doc: Document): Element | undefined {
   // look for an image explicitly marked as the preview image (.class .preview-image)
   const match = doc.querySelector(`img.${kPreviewImgClass}`);
   if (match) {
-    const src = getDecodedAttribute(match, "src");
-    if (src !== null) {
-      image = src;
-    }
+    return match;
+  }
+
+  const codeMatch = doc.querySelector(
+    `div.${kPreviewImgClass} div.cell-output-display img`,
+  );
+  if (codeMatch) {
+    return codeMatch;
   }
 
   // look for an image with name feature, cover, or thumbnail
-  if (image == undefined) {
-    const imgs = doc.querySelectorAll("img");
-    for (let i = 0; i < imgs.length; i++) {
-      const img = imgs[i] as Element;
-      const src = getDecodedAttribute(img, "src");
-      if (src !== null && kNamedFileRegex.test(src)) {
-        image = src;
-        break;
-      }
+  const imgs = doc.querySelectorAll("img");
+  for (let i = 0; i < imgs.length; i++) {
+    const img = imgs[i] as Element;
+    const src = getDecodedAttribute(img, "src");
+    if (src !== null && kNamedFileRegex.test(src)) {
+      return img;
     }
   }
-
-  return image;
 }
 
 // The general words per minute that we should use.

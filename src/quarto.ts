@@ -22,6 +22,7 @@ import {
   logOptions,
 } from "./core/log.ts";
 import { cleanupSessionTempDir, initSessionTempDir } from "./core/temp.ts";
+import { removeFlags } from "./core/flags.ts";
 import { quartoConfig } from "./core/quarto.ts";
 import { execProcess } from "./core/process.ts";
 import { pandocBinaryPath } from "./core/resources.ts";
@@ -46,6 +47,7 @@ import "./core/handlers/handlers.ts";
 
 // ensures project types are registered
 import "./project/types/register.ts";
+import { kCliffyImplicitCwd } from "./config/constants.ts";
 
 export async function quarto(
   args: string[],
@@ -80,12 +82,18 @@ export async function quarto(
   // us to evade a cliffy cli parsing issue where it requires
   // at least one defined argument to be parsed before it can
   // access undefined arguments.
+  //
+  // we do this via a UUID so that we can detect this happened
+  // and issue a warning in the case where the user might
+  // be calling render with parameters in incorrect order.
+  //
+  // see https://github.com/quarto-dev/quarto-cli/issues/3581
   if (
     args.length > 1 &&
     (args[0] === "render" || args[0] === "preview") &&
     args[1].startsWith("-")
   ) {
-    args = [args[0], Deno.cwd(), ...args.slice(1)];
+    args = [args[0], kCliffyImplicitCwd, ...args.slice(1)];
   }
 
   const quartoCommand = new Command()
@@ -131,11 +139,16 @@ if (import.meta.main) {
     // initialize logger
     await initializeLogger(logOptions(args));
 
-    // initialize profile
-    setProfileFromArg(args);
+    // initialize profile (remove from args)
+    let quartoArgs = [...Deno.args];
+    if (setProfileFromArg(args)) {
+      const removeArgs = new Map<string, boolean>();
+      removeArgs.set("--profile", true);
+      quartoArgs = removeFlags(quartoArgs, removeArgs);
+    }
 
     // run quarto
-    await quarto(Deno.args, (cmd) => {
+    await quarto(quartoArgs, (cmd) => {
       cmd = appendLogOptions(cmd);
       return appendProfileArg(cmd);
     });

@@ -8,14 +8,25 @@
 import { basename, dirname, extname, join } from "path/mod.ts";
 import { parseFormatString } from "../src/core/pandoc/pandoc-formats.ts";
 
+// caller is responsible for cleanup!
+export function inTempDirectory(fn: (dir: string) => unknown): unknown {
+  const dir = Deno.makeTempDirSync();
+  return fn(dir);
+}
+
 // Gets output that should be created for this input file and target format
 export function outputForInput(input: string, to: string) {
   // TODO: Consider improving this (e.g. for cases like Beamer)
   const dir = dirname(input);
-  const stem = basename(input, extname(input));
+  let stem = basename(input, extname(input));
 
   const formatDesc = parseFormatString(to);
   const baseFormat = formatDesc.baseFormat;
+  if (formatDesc.baseFormat === "pdf") {
+    stem = `${stem}${formatDesc.variants.join("")}${
+      formatDesc.modifiers.join("")
+    }`;
+  }
 
   let outputExt = baseFormat || "html";
   if (baseFormat === "latex" || baseFormat == "context") {
@@ -24,7 +35,7 @@ export function outputForInput(input: string, to: string) {
   if (baseFormat === "revealjs") {
     outputExt = "html";
   }
-  if (baseFormat === "commonmark") {
+  if (["commonmark", "gfm", "markdown"].some((f) => f === baseFormat)) {
     outputExt = "md";
   }
   if (baseFormat === "csljson") {
@@ -35,6 +46,9 @@ export function outputForInput(input: string, to: string) {
   }
   if (baseFormat === "jats") {
     outputExt = "xml";
+  }
+  if (baseFormat === "asciidoc") {
+    outputExt = "adoc";
   }
 
   const outputPath = join(dir, `${stem}.${outputExt}`);
@@ -72,4 +86,9 @@ export function fileLoader(...path: string[]) {
       output,
     };
   };
+}
+
+// On Windows, `quarto.cmd` needs to be explicit in `execProcess()`
+export function quartoDevCmd(): string {
+  return Deno.build.os === "windows" ? "quarto.cmd" : "quarto";
 }

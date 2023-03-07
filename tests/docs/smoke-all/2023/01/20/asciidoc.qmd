@@ -1,0 +1,18 @@
+---
+title: Test Asciidoc Article
+author:
+  - Norah Jones
+  - Kirk Cousins
+format:
+  asciidoc: default
+_quarto:
+  tests: 
+    asciidoc:
+      ensureFileRegexMatches:
+        - ["= Test Asciidoc Article"] # looks like asciidoc
+        - [":doctype: book"] # not a book
+---
+
+## Section 1
+
+Now is the time for all good men to come to the aide of their country. The quick brown fox jumps over the lazy dog.

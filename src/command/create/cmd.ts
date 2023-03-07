@@ -5,7 +5,6 @@
 *
 */
 
-import { documentArtifactCreator } from "./artifacts/document.ts";
 import { extensionArtifactCreator } from "./artifacts/extension.ts";
 import { projectArtifactCreator } from "./artifacts/project.ts";
 import { kEditorInfos, scanForEditors } from "./editor.ts";

@@ -37,6 +37,7 @@ import {
 import {
   HtmlPostProcessResult,
   PandocOptions,
+  RenderServices,
 } from "../../../command/render/types.ts";
 
 import { ProjectCreate, ProjectType } from "../types.ts";
@@ -55,13 +56,13 @@ import { bookProjectConfig } from "./book-config.ts";
 import { chapterInfoForInput, numberChapterHtmlNav } from "./book-chapters.ts";
 import {
   bookConfig,
+  BookExtension,
   isMultiFileBookFormat,
   kBook,
   setBookConfig,
 } from "./book-shared.ts";
 import { kBootstrapDependencyName } from "../../../format/html/format-html-shared.ts";
 import { formatHasBootstrap } from "../../../format/html/format-html-info.ts";
-import { TempContext } from "../../../core/temp.ts";
 import { isSpecialDate, parseSpecialDate } from "../../../core/date.ts";
 import { kHtmlEmptyPostProcessResult } from "../../../command/render/constants.ts";
 
@@ -113,6 +114,35 @@ export const bookProjectType: ProjectType = {
   libDir: "site_libs",
   outputDir: "_book",
   cleanOutputDir: true,
+  filterFormat: (source: string, format: Format, project?: ProjectContext) => {
+    if (format.extensions?.book) {
+      const bookExt = format.extensions?.book as BookExtension;
+      if (bookExt.filterFormat) {
+        return bookExt.filterFormat(source, format, project);
+      } else {
+        return format;
+      }
+    } else {
+      return format;
+    }
+  },
+  formatOutputDirectory: (format: Format) => {
+    if (format.extensions?.book) {
+      const bookExt = format.extensions?.book as BookExtension;
+      if (bookExt.formatOutputDirectory) {
+        return bookExt.formatOutputDirectory();
+      } else {
+        return undefined;
+      }
+    } else {
+      return undefined;
+    }
+  },
+
+  selfContainedOutput: (format: Format) => {
+    const bookExtension = format.extensions?.book as BookExtension | undefined;
+    return bookExtension?.selfContainedOutput || false;
+  },
 
   config: bookProjectConfig,
 
@@ -123,12 +153,18 @@ export const bookProjectType: ProjectType = {
   },
 
   filterParams: (options: PandocOptions) => {
+    const bookExt = options.format.extensions?.book as BookExtension;
+    const filterParams = bookExt.filterParams
+      ? bookExt.filterParams(options)
+      : {};
     if (isMultiFileBookFormat(options.format)) {
       return {
+        ...filterParams,
         [kCrossrefResolveRefs]: false,
       };
     } else {
       return {
+        ...filterParams,
         [kSingleFileBook]: true,
       };
     }
@@ -169,7 +205,7 @@ export const bookProjectType: ProjectType = {
     source: string,
     flags: PandocFlags,
     format: Format,
-    temp: TempContext,
+    services: RenderServices,
   ) => {
     // defaults for all formats
     let extras: FormatExtras = {
@@ -198,7 +234,7 @@ export const bookProjectType: ProjectType = {
         source,
         flags,
         format,
-        temp,
+        services,
       );
 
       // merge
@@ -250,8 +286,8 @@ function bookHtmlPostprocessor() {
     // if the very next element is a section, move it into the section below the header
     const nextEl = (coverImage?.parentNode as Element)?.nextElementSibling;
     if (nextEl && nextEl.tagName === "SECTION" && coverImage?.parentNode) {
-      coverImage?.parentNode.remove();
-      nextEl.firstChild.after(coverImage?.parentNode);
+      coverImage?.parentElement?.remove();
+      nextEl.firstElementChild?.after(coverImage?.parentNode);
     }
     return Promise.resolve(kHtmlEmptyPostProcessResult);
   };

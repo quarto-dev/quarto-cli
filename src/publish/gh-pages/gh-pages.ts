@@ -30,6 +30,7 @@ import { completeMessage, withSpinner } from "../../core/console.ts";
 import { renderForPublish } from "../common/publish.ts";
 import { websiteBaseurl } from "../../project/types/website/website-config.ts";
 import { RenderFlags } from "../../command/render/types.ts";
+import SemVer from "https://deno.land/x/semver@v1.4.0/mod.ts";
 
 export const kGhpages = "gh-pages";
 const kGhpagesDescription = "GitHub Pages";
@@ -96,6 +97,28 @@ function resolveTarget(
   return Promise.resolve(target);
 }
 
+async function gitVersion(): Promise<SemVer> {
+  const result = await execProcess(
+    {
+      cmd: ["git", "--version"],
+      stdout: "piped",
+    },
+  );
+  if (!result.success) {
+    throw new Error(
+      "Unable to determine git version. Please check that git is installed and available on your PATH.",
+    );
+  }
+  const match = result.stdout?.match(/git version (\d+\.\d+\.\d+)/);
+  if (match) {
+    return new SemVer(match[1]);
+  } else {
+    throw new Error(
+      `Unable to determine git version from string ${result.stdout}`,
+    );
+  }
+}
+
 async function publish(
   _account: AccountToken,
   type: "document" | "site",
@@ -108,6 +131,17 @@ async function publish(
 ): Promise<[PublishRecord | undefined, URL | undefined]> {
   // convert input to dir if necessary
   input = Deno.statSync(input).isDirectory ? input : dirname(input);
+
+  // check if git version is new enough
+  const version = await gitVersion();
+
+  // git 2.17.0 appears to be the first to support git-worktree add --track
+  // https://github.com/git/git/blob/master/Documentation/RelNotes/2.17.0.txt#L368
+  if (version.compare("2.17.0") < 0) {
+    throw new Error(
+      "git version 2.17.0 or higher is required to publish to GitHub Pages",
+    );
+  }
 
   // get context
   const ghContext = await gitHubContext(options.input);
@@ -342,7 +376,7 @@ async function withWorktree(
   await execProcess({
     cmd: ["git", "rm", "-r", "--quiet", "."],
     cwd: join(dir, siteDir),
-  })
+  });
 
   try {
     await f();

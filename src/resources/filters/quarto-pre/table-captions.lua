@@ -6,6 +6,21 @@ kTblSubCap = "tbl-subcap"
 
 local latexCaptionPattern =  "(\\caption{)(.-)(}[^\n]*\n)"
 
+function longtable_no_caption_fixup()
+  return {
+    RawBlock = function(raw)
+      if _quarto.format.isRawLatex(raw) then
+        if (raw.text:match(_quarto.patterns.latexLongtablePattern) and
+            not raw.text:match(latexCaptionPattern)) then
+          raw.text = raw.text:gsub(
+            _quarto.patterns.latexLongtablePattern, "\\begin{longtable*}%2\\end{longtable*}", 1)
+          return raw
+        end
+      end
+    end
+  }
+end
+
 function tableCaptions() 
   
   return {
@@ -25,7 +40,7 @@ function tableCaptions()
               -- special case: knitr::kable will generate a \begin{tablular} without
               -- a \begin{table} wrapper -- put the wrapper in here if need be
               if _quarto.format.isLatexOutput() then
-                el = pandoc.walk_block(el, {
+                el = _quarto.ast.walk(el, {
                   RawBlock = function(raw)
                     if _quarto.format.isRawLatex(raw) then
                       if raw.text:match(_quarto.patterns.latexTabularPattern) and not raw.text:match(_quarto.patterns.latexTablePattern) then
@@ -129,25 +144,20 @@ end
 
 function applyTableCaptions(el, tblCaptions, tblLabels)
   local idx = 1
-  return pandoc.walk_block(el, {
+  return _quarto.ast.walk(el, {
     Table = function(el)
       if idx <= #tblLabels then
-        local table = pandoc.utils.to_simple_table(el)
+        local cap = pandoc.Inlines({})
         if #tblCaptions[idx] > 0 then
-          table.caption = pandoc.List()
-          tappend(table.caption, tblCaptions[idx])
-          table.caption:insert(pandoc.Space())
-        end
-        if table.caption == nil then
-          table.caption = pandoc.List()
+          cap:extend(tblCaptions[idx])
+          cap:insert(pandoc.Space())
         end
         if #tblLabels[idx] > 0 then
-          tappend(table.caption, {
-            pandoc.Str("{#" .. tblLabels[idx] .. "}")
-          })
+          cap:insert(pandoc.Str("{#" .. tblLabels[idx] .. "}"))
         end
         idx = idx + 1
-        return pandoc.utils.from_simple_table(table)
+        el.caption.long = pandoc.Plain(cap)
+        return el
       end
     end,
     RawBlock = function(raw)
@@ -167,12 +177,13 @@ function applyTableCaptions(el, tblCaptions, tblLabels)
           -- apply table caption and label
           local beginCaption, captionText, endCaption = raw.text:match(captionPattern)
           if #tblCaptions[idx] > 0 then
-            captionText = pandoc.utils.stringify(tblCaptions[idx])
+            captionText = stringEscape(tblCaptions[idx], "html")
           end
           if #tblLabels[idx] > 0 then
             captionText = captionText .. " {#" .. tblLabels[idx] .. "}"
           end
           raw.text = raw.text:gsub(captionPattern, "%1" .. captionText:gsub("%%", "%%%%") .. "%3", 1)
+          idx = idx + 1
         elseif hasRawLatexTable(raw) then
           for i,pattern in ipairs(_quarto.patterns.latexTablePatterns) do
             if raw.text:match(pattern) then
@@ -180,9 +191,10 @@ function applyTableCaptions(el, tblCaptions, tblLabels)
               break
             end
           end
+          idx = idx + 1
         elseif hasPagedHtmlTable(raw) then
           if #tblCaptions[idx] > 0 then
-            local captionText = pandoc.utils.stringify(tblCaptions[idx])
+            local captionText = stringEscape(tblCaptions[idx], "html")
             if #tblLabels[idx] > 0 then
               captionText = captionText .. " {#" .. tblLabels[idx] .. "}"
             end
@@ -191,9 +203,9 @@ function applyTableCaptions(el, tblCaptions, tblLabels)
             local replacement = "%1 <div class=\"table-caption\"><caption>" .. captionText:gsub("%%", "%%%%") .. "</caption></div>"
             raw.text = raw.text:gsub(pattern, replacement)
           end
+          idx = idx + 1
         end
        
-        idx = idx + 1
         return raw
       end
     end
@@ -210,10 +222,8 @@ function applyLatexTableCaption(latex, tblCaption, tblLabel, tablePattern)
   -- apply table caption and label
   local beginCaption, captionText, endCaption = latex:match(latexCaptionPattern)
   if #tblCaption > 0 then
-    captionText = pandoc.utils.stringify(tblCaption)
+    captionText = stringEscape(tblCaption, "latex")
   end
-  -- escape special characters for LaTeX
-  captionText = stringEscape(captionText, "latex")
   if #tblLabel > 0 then
     captionText = captionText .. " {#" .. tblLabel .. "}"
   end

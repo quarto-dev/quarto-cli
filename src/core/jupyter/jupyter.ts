@@ -145,11 +145,17 @@ import { figuresDir, inputFilesDir } from "../render.ts";
 import { lines } from "../text.ts";
 import { readYamlFromMarkdown } from "../yaml.ts";
 import { languagesInMarkdown } from "../../execute/engine-shared.ts";
-import { pathWithForwardSlashes } from "../path.ts";
+import {
+  normalizePath,
+  pathWithForwardSlashes,
+  removeIfEmptyDir,
+} from "../path.ts";
 import { convertToHtmlSpans, hasAnsiEscapeCodes } from "../ansi-colors.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { mergeConfigs } from "../config.ts";
 import { encode as encodeBase64 } from "encoding/base64.ts";
+import { isIpynbOutput } from "../../config/format.ts";
+import { fixupJupyterNotebook } from "./jupyter-fixups.ts";
 
 export const kQuartoMimeType = "quarto_mimetype";
 export const kQuartoOutputOrder = "quarto_order";
@@ -240,6 +246,25 @@ export interface JupyterOutputError extends JupyterOutput {
   evalue: string;
   traceback: string[];
 }
+
+const countTicks = (code: string[]) => {
+  // FIXME do we need trim() here?
+  const countLeadingTicks = (s: string) => {
+    // count leading ticks using regexps
+    const m = s.match(/^`+/);
+    if (m) {
+      return m[0].length;
+    } else {
+      return 0;
+    }
+  };
+  return Math.max(0, ...code.map((s) => countLeadingTicks(s)));
+};
+
+const ticksForCode = (code: string[]) => {
+  const n = Math.max(3, countTicks(code) + 1);
+  return "`".repeat(n);
+};
 
 export async function quartoMdToJupyter(
   markdown: string,
@@ -441,7 +466,7 @@ export async function jupyterKernelspecFromMarkdown(
   markdown: string,
   project?: ProjectContext,
 ): Promise<[JupyterKernelspec, Metadata]> {
-  const config = (project as any)?.config;
+  const config = project?.config;
   const yaml = config
     ? mergeConfigs(config, readYamlFromMarkdown(markdown))
     : readYamlFromMarkdown(markdown);
@@ -571,9 +596,19 @@ export function jupyterAutoIdentifier(label: string) {
   }
 }
 
-export function jupyterAssets(input: string, to?: string) {
+export interface JupyterNotebookAssetPaths {
+  base_dir: string;
+  files_dir: string;
+  figures_dir: string;
+  supporting_dir: string;
+}
+
+export function jupyterAssets(
+  input: string,
+  to?: string,
+): JupyterNotebookAssetPaths {
   // calculate and create directories
-  input = Deno.realPathSync(input);
+  input = normalizePath(input);
   const files_dir = join(dirname(input), inputFilesDir(input));
   const figures_dir = join(files_dir, figuresDir(to));
   ensureDirSync(figures_dir);
@@ -601,6 +636,16 @@ export function jupyterAssets(input: string, to?: string) {
   };
 }
 
+export function cleanEmptyJupyterAssets(assets: JupyterNotebookAssetPaths) {
+  const figuresRemoved = removeIfEmptyDir(
+    join(assets.base_dir, assets.figures_dir),
+  );
+  const filesRemoved = removeIfEmptyDir(
+    join(assets.base_dir, assets.files_dir),
+  );
+  return figuresRemoved && filesRemoved;
+}
+
 // Attach fully rendered notebook to render services
 // Render notebook only once per document
 // Return cells with markdown instead of complete markdown
@@ -610,6 +655,9 @@ export async function jupyterToMarkdown(
   nb: JupyterNotebook,
   options: JupyterToMarkdownOptions,
 ): Promise<JupyterToMarkdownResult> {
+  // perform fixups
+  nb = fixupJupyterNotebook(nb);
+
   // optional content injection / html preservation for html output
   // that isn't an ipynb
   const isHtml = options.toHtml && !options.toIpynb;
@@ -656,6 +704,10 @@ export async function jupyterToMarkdown(
         md.push("\n:::::::::: notes\n\n");
       }
     }
+
+    // find the first yaml metadata block and hold it out
+    // note if it has a title
+    // at the end, if it doesn't have a title, then snip the title out
 
     // markdown from cell
     switch (cell.cell_type) {
@@ -1058,13 +1110,10 @@ async function mdFromCodeCell(
     }
 
     // filter matplotlib intermediate vars
-    if (output.output_type === "execute_result") {
-      const textPlain = (output as JupyterOutputDisplayData).data
-        ?.[kTextPlain] as string[] | undefined;
-      if (textPlain && textPlain[0].startsWith("[<matplotlib")) {
-        return false;
-      }
+    if (isDiscadableTextExecuteResult(output)) {
+      return false;
     }
+
     return true;
   }).map((output) => {
     // convert text/latex math to markdown as appropriate
@@ -1093,6 +1142,14 @@ async function mdFromCodeCell(
 
   // write div enclosure
   const divMd: string[] = [`::: {`];
+
+  // If we're targeting ipynb output, include the id in the
+  // markdown. This will cause the id to be included in the
+  // rendered notebook. Note that elsewhere we forard the
+  // label to the id, so that can appear as the cell id.
+  if (isIpynbOutput(options.executeOptions.format.pandoc) && cell.id) {
+    divMd.push(`#${cell.id} `);
+  }
 
   // metadata to exclude from cell div attributes
   const kCellOptionsFilter = kJupyterCellInternalOptionKeys.concat(
@@ -1187,7 +1244,9 @@ async function mdFromCodeCell(
   // write code if appropriate
   if (includeCode(cell, options)) {
     const fenced = echoFenced(cell, options);
-    const ticks = fenced ? "````" : "```";
+    const ticks = "`".repeat(
+      Math.max(countTicks(cell.source) + 1, fenced ? 4 : 3),
+    );
 
     md.push(ticks + " {");
     if (typeof cell.options[kCellLstLabel] === "string") {
@@ -1450,6 +1509,21 @@ async function mdFromCodeCell(
   return md;
 }
 
+function isDiscadableTextExecuteResult(output: JupyterOutput) {
+  if (output.output_type === "execute_result") {
+    const textPlain = (output as JupyterOutputDisplayData).data
+      ?.[kTextPlain] as string[] | undefined;
+    if (textPlain && textPlain.length) {
+      return [
+        "[<matplotlib",
+        "<seaborn.",
+        "<ggplot:",
+      ].some((startsWith) => textPlain[0].startsWith(startsWith));
+    }
+  }
+  return false;
+}
+
 function hasLayoutOptions(cell: JupyterCellWithOptions) {
   return Object.keys(cell.options).some((key) => key.startsWith("layout"));
 }
@@ -1692,7 +1766,8 @@ function mdMarkdownOutput(md: string[]) {
 }
 
 function mdFormatOutput(format: string, source: string[]) {
-  return mdEnclosedOutput("```{=" + format + "}", source, "```");
+  const ticks = ticksForCode(source);
+  return mdEnclosedOutput(ticks + "{=" + format + "}", source, ticks);
 }
 
 function mdLatexOutput(latex: string[]) {
@@ -1755,8 +1830,9 @@ function mdTrimEmptyLines(
 }
 
 function mdCodeOutput(code: string[], clz?: string) {
-  const open = "```" + (clz ? `{.${clz}}` : "");
-  return mdEnclosedOutput(open, code, "```");
+  const ticks = ticksForCode(code);
+  const open = ticks + (clz ? `{.${clz}}` : "");
+  return mdEnclosedOutput(open, code, ticks);
 }
 
 function mdEnclosedOutput(begin: string, text: string[], end: string) {

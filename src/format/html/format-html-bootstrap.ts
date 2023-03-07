@@ -6,7 +6,7 @@
 */
 
 import { Document, Element } from "../../core/deno-dom.ts";
-import { join } from "path/mod.ts";
+import { dirname, isAbsolute, join, relative } from "path/mod.ts";
 
 import { renderEjs } from "../../core/ejs.ts";
 import { formatResourcePath } from "../../core/resources.ts";
@@ -22,11 +22,10 @@ import {
   kNotebookLinks,
   kQuartoTemplateParams,
   kRelatedFormatsTitle,
-  kRelatedNotebooksTitle,
   kSectionDivs,
-  kSourceNotebookPrefix,
   kTargetFormat,
   kTocDepth,
+  kTocExpand,
   kTocLocation,
 } from "../../config/constants.ts";
 import {
@@ -61,6 +60,7 @@ import {
   HtmlPostProcessResult,
   PandocInputTraits,
   RenderedFormat,
+  RenderServices,
 } from "../../command/render/types.ts";
 import { processDocumentAppendix } from "./format-html-appendix.ts";
 import {
@@ -71,7 +71,6 @@ import {
   processDocumentTitle,
 } from "./format-html-title.ts";
 import { kTemplatePartials } from "../../command/render/template.ts";
-import { TempContext } from "../../core/temp-types.ts";
 import {
   isDocxOutput,
   isHtmlOutput,
@@ -80,8 +79,9 @@ import {
   isPdfOutput,
   isPresentationOutput,
 } from "../../config/format.ts";
-import * as ld from "../../core/lodash.ts";
 import { basename } from "path/mod.ts";
+import { processNotebookEmbeds } from "./format-html-notebook.ts";
+import { ProjectContext } from "../../project/types.ts";
 
 export function formatPageLayout(format: Format) {
   return format.metadata[kPageLayout] as string || kPageLayoutArticle;
@@ -126,8 +126,9 @@ export function boostrapExtras(
   input: string,
   flags: PandocFlags,
   format: Format,
-  temp: TempContext,
+  services: RenderServices,
   offset?: string,
+  project?: ProjectContext,
 ): FormatExtras {
   const toc = hasTableOfContents(flags, format);
   const tocLocation = toc
@@ -177,7 +178,11 @@ export function boostrapExtras(
     sassLayers.push(titleSassLayer);
   }
   const includeInHeader: string[] = [];
-  const titleInclude = documentTitleIncludeInHeader(input, format, temp);
+  const titleInclude = documentTitleIncludeInHeader(
+    input,
+    format,
+    services.temp,
+  );
   if (titleInclude) {
     includeInHeader.push(titleInclude);
   }
@@ -208,7 +213,9 @@ export function boostrapExtras(
           input,
           format,
           flags,
+          services,
           offset,
+          project,
         ),
       ],
       [kHtmlFinalizers]: [
@@ -229,7 +236,9 @@ function bootstrapHtmlPostprocessor(
   input: string,
   format: Format,
   flags: PandocFlags,
+  services: RenderServices,
   offset?: string,
+  project?: ProjectContext,
 ): HtmlPostProcessor {
   return async (
     doc: Document,
@@ -241,6 +250,7 @@ function bootstrapHtmlPostprocessor(
   ): Promise<HtmlPostProcessResult> => {
     // Resources used in this post processor
     const resources: string[] = [];
+    const supporting: string[] = [];
 
     // use display-7 style for title
     const title = doc.querySelector("header > .title");
@@ -284,6 +294,16 @@ function bootstrapHtmlPostprocessor(
       // activate selection behavior for this
       toc.classList.add("toc-active");
 
+      const expanded = format.metadata[kTocExpand];
+      if (expanded !== undefined) {
+        if (expanded === true) {
+          toc.setAttribute("data-toc-expanded", 99);
+        } else if (expanded) {
+          toc.setAttribute("data-toc-expanded", expanded);
+        } else {
+          toc.setAttribute("data-toc-expanded", -1);
+        }
+      }
       // add nav-link class to the TOC links
       const tocLinks = doc.querySelectorAll('nav[role="doc-toc"] > ul a');
       for (let i = 0; i < tocLinks.length; i++) {
@@ -324,19 +344,30 @@ function bootstrapHtmlPostprocessor(
     // Inject links to other formats if there is another
     // format that of this file that has been rendered
     if (format.render[kFormatLinks] !== false) {
-      processAlternateFormatLinks(options, doc, format, resources);
+      processAlternateFormatLinks(input, options, doc, format, resources);
     }
 
     // Look for included / embedded notebooks and include those
     if (format.render[kNotebookLinks] !== false) {
-      processNotebookEmbeds(doc, format, resources);
+      const notebookResults = await processNotebookEmbeds(
+        input,
+        doc,
+        format,
+        services,
+        project,
+      );
+      if (notebookResults) {
+        resources.push(...notebookResults.resources);
+        supporting.push(...notebookResults.supporting);
+      }
     }
 
     // default treatment for computational tables
     const addTableClasses = (table: Element, computational = false) => {
       table.classList.add("table");
       if (computational) {
-        table.classList.add("table-sm").add("table-striped");
+        table.classList.add("table-sm");
+        table.classList.add("table-striped");
       }
     };
 
@@ -414,9 +445,8 @@ function bootstrapHtmlPostprocessor(
         offset,
       );
     }
-
     // no resource refs
-    return Promise.resolve({ resources, supporting: [] });
+    return Promise.resolve({ resources, supporting });
   };
 }
 
@@ -437,7 +467,7 @@ const fileBsIconName = (format: Format) => {
     return "file-pdf";
   } else if (isIpynbOutput(format.pandoc)) {
     return "journal-code";
-  } else if (isMarkdownOutput(format.pandoc)) {
+  } else if (isMarkdownOutput(format)) {
     return "file-code";
   } else if (isPresentationOutput(format.pandoc)) {
     return "file-slides";
@@ -447,6 +477,7 @@ const fileBsIconName = (format: Format) => {
 };
 
 function processAlternateFormatLinks(
+  input: string,
   options: {
     inputMetadata: Metadata;
     inputTraits: PandocInputTraits;
@@ -499,8 +530,12 @@ function processAlternateFormatLinks(
         if (!isHtmlOutput(renderedFormat.format.pandoc, true)) {
           const li = doc.createElement("li");
 
+          const relPath = isAbsolute(renderedFormat.path)
+            ? relative(dirname(input), renderedFormat.path)
+            : renderedFormat.path;
+
           const link = doc.createElement("a");
-          link.setAttribute("href", renderedFormat.path);
+          link.setAttribute("href", relPath);
           const dlAttrValue = fileDownloadAttr(
             renderedFormat.format,
             renderedFormat.path,
@@ -534,113 +569,6 @@ function processAlternateFormatLinks(
       }
       containerEl.appendChild(formatList);
       dlLinkTarget.appendChild(containerEl);
-    }
-  }
-}
-
-function processNotebookEmbeds(
-  doc: Document,
-  format: Format,
-  resources: string[],
-) {
-  const inline = format.render[kNotebookLinks] === "inline" ||
-    format.render[kNotebookLinks] === true;
-  const global = format.render[kNotebookLinks] === "global" ||
-    format.render[kNotebookLinks] === true;
-
-  const notebookDivNodes = doc.querySelectorAll("[data-notebook]");
-  if (notebookDivNodes.length > 0) {
-    const nbPaths: { path: string; title: string; filename: string }[] = [];
-    let count = 1;
-    notebookDivNodes.forEach((nbDivNode) => {
-      const nbDivEl = nbDivNode as Element;
-      nbDivEl.classList.add("quarto-notebook");
-      const notebookPath = nbDivEl.getAttribute("data-notebook");
-      if (notebookPath) {
-        const title = nbDivEl.getAttribute("data-notebook-title");
-        const filename = basename(notebookPath);
-
-        const nbPath = {
-          path: notebookPath,
-          title: title || filename,
-          filename,
-        };
-        nbPaths.push(nbPath);
-
-        // Add a decoration to this div node
-        if (inline) {
-          const id = "nblink-" + count++;
-
-          const nbLinkEl = doc.createElement("a");
-          nbLinkEl.classList.add("quarto-notebook-link");
-          nbLinkEl.setAttribute("id", `${id}`);
-          nbLinkEl.setAttribute("href", nbPath.path);
-          nbLinkEl.setAttribute("download", nbPath.filename);
-          nbLinkEl.appendChild(
-            doc.createTextNode(
-              `${format.language[kSourceNotebookPrefix]}: ${nbPath.title}`,
-            ),
-          );
-
-          // If there is a figure caption, place the source after that
-          // otherwise just place it at the bottom of the notebook div
-          const nbParentEl = nbDivEl.parentElement;
-          if (nbParentEl?.tagName.toLocaleLowerCase() === "figure") {
-            const figCapEl = nbDivEl.parentElement?.querySelector("figcaption");
-            if (figCapEl) {
-              figCapEl.after(nbLinkEl);
-            } else {
-              nbDivEl.appendChild(nbLinkEl);
-            }
-          } else {
-            nbDivEl.appendChild(nbLinkEl);
-          }
-        }
-      }
-    });
-
-    if (global) {
-      const containerEl = doc.createElement("div");
-      containerEl.classList.add("quarto-alternate-notebooks");
-
-      const heading = doc.createElement("h2");
-      if (format.language[kRelatedNotebooksTitle]) {
-        heading.innerText = format.language[kRelatedNotebooksTitle];
-      }
-      containerEl.appendChild(heading);
-
-      const formatList = doc.createElement("ul");
-      containerEl.appendChild(formatList);
-      ld.uniqBy(nbPaths, (nbPath: { path: string; title?: string }) => {
-        return nbPath.path;
-      }).forEach((nbPath) => {
-        const li = doc.createElement("li");
-
-        const link = doc.createElement("a");
-        link.setAttribute("href", nbPath.path);
-        link.setAttribute("download", nbPath.filename);
-
-        const icon = doc.createElement("i");
-        icon.classList.add("bi");
-        icon.classList.add(`bi-journal-code`);
-        link.appendChild(icon);
-        link.appendChild(
-          doc.createTextNode(nbPath.title),
-        );
-
-        li.appendChild(link);
-        formatList.appendChild(li);
-
-        resources.push(nbPath.path);
-      });
-      let dlLinkTarget = doc.querySelector(`nav[role="doc-toc"]`);
-      if (dlLinkTarget === null) {
-        dlLinkTarget = doc.querySelector("#quarto-margin-sidebar");
-      }
-
-      if (dlLinkTarget) {
-        dlLinkTarget.appendChild(containerEl);
-      }
     }
   }
 }
@@ -747,6 +675,9 @@ function processColumnElements(
 
   // Process margin elements that may appear in callouts
   processMarginElsInCallouts(doc);
+
+  // Process margin elements that may appear in tabsets
+  processMarginElsInTabsets(doc);
 
   // Group margin elements by their parents and wrap them in a container
   // Be sure to ignore containers which are already processed
@@ -943,6 +874,17 @@ const processTableMarginCaption = (
 
 // Process any captions that appear in margins
 const processMarginCaptions = (doc: Document) => {
+  // Identify elements that already appear in the margin
+  // and in this case, remove the margin-caption class
+  // since we do not want to further process the caption into the margin
+  const captionsAlreadyInMargin = doc.querySelectorAll(
+    ".column-margin .margin-caption",
+  );
+  captionsAlreadyInMargin.forEach((node) => {
+    const el = node as Element;
+    el.classList.remove("margin-caption");
+  });
+
   // Forward caption class from parents to the child fig caps
   const marginCaptions = doc.querySelectorAll(".margin-caption");
   marginCaptions.forEach((node) => {
@@ -1011,6 +953,53 @@ const processMarginElsInCallouts = (doc: Document) => {
 
         calloutEl.after(marginEl);
       });
+    }
+  });
+};
+
+const processMarginElsInTabsets = (doc: Document) => {
+  // Move margin elements inside tabsets into a separate container that appears
+  // before the tabset- this will hold the margin content
+  // quarto.js will detect tab changed events and propery show and hide elements
+  // by marking them with a collapse class.
+
+  const tabSetNodes = doc.querySelectorAll("div.panel-tabset");
+  tabSetNodes.forEach((tabsetNode) => {
+    const tabSetEl = tabsetNode as Element;
+    const tabNodes = tabSetEl.querySelectorAll("div.tab-pane");
+
+    const marginEls: Element[] = [];
+    let count = 0;
+    tabNodes.forEach((tabNode) => {
+      const tabEl = tabNode as Element;
+      const tabId = tabEl.id;
+
+      const marginNodes = tabEl.querySelectorAll(
+        ".column-margin, aside, .aside",
+      );
+
+      if (tabId && marginNodes.length > 0) {
+        const marginArr = Array.from(marginNodes);
+        marginArr.forEach((marginNode) => {
+          const marginEl = marginNode as Element;
+          marginEl.classList.add("tabset-margin-content");
+          marginEl.classList.add(`${tabId}-tab-margin-content`);
+          if (count > 0) {
+            marginEl.classList.add("collapse");
+          }
+          marginEls.push(marginEl);
+        });
+      }
+      count++;
+    });
+
+    if (marginEls) {
+      const containerEl = doc.createElement("div");
+      containerEl.classList.add("tabset-margin-container");
+      marginEls.forEach((marginEl) => {
+        containerEl.appendChild(marginEl);
+      });
+      tabSetEl.before(containerEl);
     }
   });
 };

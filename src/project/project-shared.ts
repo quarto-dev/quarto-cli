@@ -8,8 +8,9 @@
 import { existsSync } from "fs/exists.ts";
 import { dirname, isAbsolute, join, relative } from "path/mod.ts";
 import { kHtmlMathMethod } from "../config/constants.ts";
+import { Format } from "../config/types.ts";
 
-import { pathWithForwardSlashes } from "../core/path.ts";
+import { normalizePath, pathWithForwardSlashes } from "../core/path.ts";
 import { kProjectOutputDir, ProjectContext } from "./types.ts";
 import { ProjectType } from "./types/types.ts";
 
@@ -22,6 +23,24 @@ export function projectExcludeDirs(context: ProjectContext): string[] {
   }
 }
 
+export function projectFormatOutputDir(
+  format: Format,
+  context: ProjectContext,
+  type: ProjectType,
+) {
+  const projOutputDir = projectOutputDir(context);
+  if (type.formatOutputDirectory) {
+    const formatOutputDir = type.formatOutputDirectory(format);
+    if (formatOutputDir) {
+      return join(projOutputDir, formatOutputDir);
+    } else {
+      return projOutputDir;
+    }
+  } else {
+    return projOutputDir;
+  }
+}
+
 export function projectOutputDir(context: ProjectContext): string {
   let outputDir = context.config?.project[kProjectOutputDir];
   if (outputDir) {
@@ -30,16 +49,20 @@ export function projectOutputDir(context: ProjectContext): string {
     outputDir = context.dir;
   }
   if (existsSync(outputDir)) {
-    return Deno.realPathSync(outputDir);
+    return normalizePath(outputDir);
   } else {
     return outputDir;
   }
 }
 
+export function hasProjectOutputDir(context: ProjectContext): boolean {
+  return !!context.config?.project[kProjectOutputDir];
+}
+
 export function isProjectInputFile(path: string, context: ProjectContext) {
   if (existsSync(path)) {
-    const renderPath = Deno.realPathSync(path);
-    return context.files.input.map((file) => Deno.realPathSync(file)).includes(
+    const renderPath = normalizePath(path);
+    return context.files.input.map((file) => normalizePath(file)).includes(
       renderPath,
     );
   } else {
@@ -60,8 +83,8 @@ export function projectVarsFile(dir: string): string | undefined {
 }
 
 export function projectOffset(context: ProjectContext, input: string) {
-  const projDir = Deno.realPathSync(context.dir);
-  const inputDir = Deno.realPathSync(dirname(input));
+  const projDir = normalizePath(context.dir);
+  const inputDir = normalizePath(dirname(input));
   const offset = relative(inputDir, projDir) || ".";
   return pathWithForwardSlashes(offset);
 }
@@ -74,10 +97,8 @@ export function toInputRelativePaths(
   ignoreResources?: string[],
 ) {
   const existsCache = new Map<string, string>();
-  const resourceIgnoreFields = [
-    ...ignoreFieldsForProjectType(type),
-    ...(ignoreResources || []),
-  ];
+  const resourceIgnoreFields = ignoreResources ||
+    ignoreFieldsForProjectType(type) || [];
   const offset = relative(inputDir, baseDir);
 
   const fixup = (value: string) => {
@@ -108,7 +129,7 @@ export function toInputRelativePaths(
       for (let index = 0; index < collection.length; ++index) {
         const value = collection[index];
         if (Array.isArray(value) || value instanceof Object) {
-          inner(value as any);
+          inner(value);
         } else if (typeof value === "string") {
           if (value.length > 0 && !isAbsolute(value)) {
             collection[index] = fixup(value);
@@ -124,6 +145,7 @@ export function toInputRelativePaths(
         ) {
           // don't fixup html-math-method
         } else if (Array.isArray(value) || value instanceof Object) {
+          // deno-lint-ignore no-explicit-any
           inner(value as any, index);
         } else if (typeof value === "string") {
           if (value.length > 0 && !isAbsolute(value)) {

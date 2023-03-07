@@ -9,6 +9,7 @@ import { execProcess } from "../../../src/core/process.ts";
 import { join } from "path/mod.ts";
 import { CreateResult } from "../../../src/command/create/cmd.ts";
 import { assert } from "testing/asserts.ts";
+import { quartoDevCmd } from "../../utils.ts";
 
 const kCreateTypes: Record<string, string[]> = {
   "project": ["website", "default", "book", "website:blog"],
@@ -42,9 +43,9 @@ for (const type of Object.keys(kCreateTypes)) {
 
       // Create the artifact
       let result: CreateResult | undefined = undefined;
-      await t.step(`> create ${type} ${template}`, async () => {
+      await t.step(`> quarto ${type} ${template}`, async () => {
         // test quarto cmd render
-        const cmd = ["quarto", "create", "--json"];
+        const cmd = [quartoDevCmd(), "create", "--json"];
         const stdIn = JSON.stringify(createDirective);
         const process = await execProcess({
           cmd,
@@ -70,7 +71,7 @@ for (const type of Object.keys(kCreateTypes)) {
         for (const file of openfiles) {
           if (file.endsWith(".qmd")) {
             // provide a step name and function
-            const cmd = ["quarto", "render", file];
+            const cmd = [quartoDevCmd(), "render", file];
             const process = await execProcess({
               cmd,
               cwd: path,

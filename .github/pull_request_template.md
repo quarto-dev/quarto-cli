@@ -22,6 +22,6 @@ print("Hello Quarto!")
 
 I have (if applicable):
 
-- [ ] filed a [contributor agreement](../CONTRIBUTING.md).
+- [ ] filed a [contributor agreement](https://github.com/quarto-dev/quarto-cli/blob/main/CONTRIBUTING.md).
 - [ ] referenced the GitHub issue this PR closes
 - [ ] updated the appropriate changelog

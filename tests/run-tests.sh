@@ -26,22 +26,52 @@ export QUARTO_DEBUG=true
 QUARTO_DENO_OPTIONS="--config test-conf.json --unstable --allow-read --allow-write --allow-run --allow-env --allow-net --check"
 
 
-# Ensure that we've restored the renv
-Rscript -e "if (!requireNamespace('renv', quietly = TRUE)) install.packages('renv')"
-Rscript -e "renv::restore()"
-
-# Ensure that we've actived the python env
-if [[ $QUARTO_TESTS_VIRTUALENV != "FALSE" ]]; then
-  source bin/activate
-  python3 -m pip install -r requirements.txt --prefer-binary -q
+if [[ -z $GITHUB_ACTION ]] && [[ -z $QUARTO_TESTS_NO_CONFIG ]]
+then
+  echo "> Checking and configuring environment for tests"
+  source configure-test-env.sh
 fi
 
-# Ensure that tinytex is installed
-quarto install tinytex --no-prompt
+# Activating python virtualenv
+# set QUARTO_TESTS_FORCE_NO_PIPENV env var to not activate the virtalenv manage by pipenv for the project
+if [[ -z $QUARTO_TESTS_FORCE_NO_PIPENV ]]
+then
+  # Save possible activated virtualenv for later restauration
+  OLD_VIRTUAL_ENV=$VIRTUAL_ENV
+  echo "> Activating virtualenv for Python tests in Quarto"
+  source "$(pipenv --venv)/bin/activate"
+  quarto_venv_activated="true"
+fi
 
-"${DENO_DIR}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_ARGMAP}" $@
+if [ "$QUARTO_TEST_TIMING" != "" ]; then
+  QUARTO_DENO_OPTIONS="--config test-conf.json --unstable --allow-read --allow-write --allow-run --allow-env --allow-net --no-check"
+  rm -f timing.txt
+  FILES=$@
+  if [ "$FILES" == "" ]; then
+    FILES=`find . | grep \.test\.ts$`
+  fi
+  for i in $FILES; do
+    echo $i >> timing.txt
+    /usr/bin/time -a -o timing.txt "${DENO_DIR}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_ARGMAP}" $i
+  done
+else
+  "${DENO_DIR}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_ARGMAP}" $@
+fi
 
 SUCCESS=$?
+
+if [[ $quarto_venv_activated == "true" ]] 
+then
+  echo "> Exiting virtualenv activated for tests"
+  deactivate
+  unset quarto_venv_activated
+fi
+if [[ -n $OLD_VIRTUAL_ENV ]]
+then
+  echo "> Reactivating original virtualenv"
+  source $OLD_VIRTUAL_ENV/bin/activate
+  unset OLD_VIRTUAL_ENV
+fi
 
 # Generates the coverage report
 if [[ $@ == *"--coverage"* ]]; then

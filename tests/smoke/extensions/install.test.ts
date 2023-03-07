@@ -120,6 +120,7 @@ testQuartoCmd(
       return templateDir;
     },
     teardown: () => {
+      Deno.chdir("..");
       Deno.removeSync(templateDir, { recursive: true });
       return Promise.resolve();
     },

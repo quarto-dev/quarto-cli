@@ -1,0 +1,18 @@
+---
+title: "fig-env"
+format: latex
+fig-env: figure*
+fig-pos: htb
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - ["\\\\begin\\{figure\\*\\}\\[htb\\]"]
+        - ["\\\\begin\\{figure}\\[htb\\]"]
+---
+
+```{r}
+#| fig-cap: Simple plot
+plot(1 + 1)
+```
+

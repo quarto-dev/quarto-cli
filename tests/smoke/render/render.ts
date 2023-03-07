@@ -5,6 +5,7 @@
 *
 */
 import { existsSync } from "fs/mod.ts";
+import { basename, join } from "path/mod.ts";
 
 import { outputForInput } from "../../utils.ts";
 import { TestContext, testQuartoCmd, Verify } from "../../test.ts";
@@ -14,6 +15,21 @@ import {
   noSupportingFiles,
   outputCreated,
 } from "../../verify.ts";
+
+export function testSimpleIsolatedRender(
+  file: string,
+  to: string,
+  noSupporting: boolean,
+) {
+  const dir = Deno.makeTempDirSync();
+  const tempInput = join(dir, basename(file));
+  Deno.copyFileSync(file, tempInput);
+  testRender(tempInput, to, noSupporting, [], {
+    teardown: () => {
+      return Deno.remove(dir, { recursive: true });
+    },
+  });
+}
 
 export function testRender(
   input: string,
@@ -26,7 +42,8 @@ export function testRender(
   // Verify that the output was created and
   // that supporting files are present or missing
   const verify: Verify[] = [];
-  if (!input.endsWith("/")) {
+  // If we're not rendering a folder but a single document, add some more assertions
+  if (!input.match(/[\\/]$/)) {
     verify.push(outputCreated(input, to));
     if (noSupporting) {
       verify.push(noSupportingFiles(input, to));

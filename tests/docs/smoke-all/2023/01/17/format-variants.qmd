@@ -1,0 +1,9 @@
+---
+format:
+  pdf+simple: default
+  pdf-fancy: default
+  pdf+fancy: default
+  pdf: default
+---
+
+This is a test.

@@ -23,13 +23,16 @@ title-block-affiliation-plural: "Afiliações"
 title-block-published: "Data de Publicação"
 title-block-modified: "Data de Modificação"
 
-callout-tip-caption: "Dica"
-callout-note-caption: "Nota"
-callout-warning-caption: "Aviso"
-callout-important-caption: "Importante"
-callout-caution-caption: "Cuidado"
+callout-tip-title: "Dica"
+callout-note-title: "Nota"
+callout-warning-title: "Aviso"
+callout-important-title: "Importante"
+callout-caution-title: "Cuidado"
 
 code-summary: "Código"
+
+code-line: "Linha"
+code-lines: "Linhas"
 
 code-tools-menu-caption: "Código"
 code-tools-show-all-code: "Mostrar o código"
@@ -44,6 +47,8 @@ repo-action-links-edit: "Editar essa página"
 repo-action-links-source: "Ver o código fonte"
 repo-action-links-issue: "Criar uma issue"
 
+back-to-top: "De volta ao topo"
+
 search-no-results-text: "Nenhum resultado"
 search-matching-documents-text: "documentos correspondentes"
 search-copy-link-title: "Copiar link para a busca"
@@ -53,6 +58,12 @@ search-more-matches-text: "mais correspondências neste documento"
 search-clear-button-title: "Limpar"
 search-detached-cancel-button-title: "Cancelar"
 search-submit-button-title: "Enviar"
+search: "Procurar"
+
+toggle-sidebar: "Alternar barra lateral"
+toggle-dark-mode: "Alternar modo escuro"
+toggle-reader-mode: "Alternar modo de leitor"
+toggle-navigation: "Alternar de navegação"
 
 crossref-fig-title: "Figura"
 crossref-tbl-title: "Tabela"

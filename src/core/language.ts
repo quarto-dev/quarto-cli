@@ -14,7 +14,7 @@ import {
   kLanguageDefaultsKeys,
 } from "../config/constants.ts";
 import { FormatLanguage, Metadata } from "../config/types.ts";
-import { dirAndStem } from "./path.ts";
+import { dirAndStem, normalizePath } from "./path.ts";
 import { resourcePath } from "./resources.ts";
 import { mergeConfigs } from "./config.ts";
 import { readAndValidateYamlFromFile } from "./schema/validated-yaml.ts";
@@ -29,7 +29,7 @@ export async function readLanguageTranslations(
   const files: string[] = [];
   const maybeReadYaml = async (file: string) => {
     if (existsSync(file)) {
-      files.push(Deno.realPathSync(file));
+      files.push(normalizePath(file));
       const errMsg = "Validation of format language object failed.";
       const formatLanguageSchema = getSchemaDefinition("format-language");
       const result = await readAndValidateYamlFromFile(
