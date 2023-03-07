@@ -12,6 +12,9 @@ export interface ResolvedExtensionInfo {
   // The url to the resolved extension
   url: string;
 
+  // The file part of the url resolved
+  urlFile?: string;
+
   // The Fetch Response from fetching that URL
   response: Promise<Response>;
 
@@ -30,6 +33,7 @@ export interface ExtensionSource {
   type: "remote" | "local";
   owner?: string;
   resolvedTarget: Response | string;
+  resolvedFile?: string;
   targetSubdir?: string;
   learnMoreUrl?: string;
 }
@@ -51,6 +55,7 @@ export async function extensionSource(
       return {
         type: "remote",
         resolvedTarget: response,
+        resolvedFile: resolved?.urlFile,
         owner: resolved?.owner,
         targetSubdir: resolved?.subdirectory,
         learnMoreUrl: resolved?.learnMoreUrl,
@@ -228,6 +233,7 @@ function makeResolvers(
       if (url) {
         return {
           url,
+          urlFile: url.split("/").pop(),
           response: fetch(url),
           owner: host.organization,
           subdirectory: urlProvider.archiveSubdir(host),
