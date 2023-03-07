@@ -18,16 +18,20 @@ function resolve_custom_node(node)
 end
 
 function run_emulated_filter(doc, filter, top_level)
+  if filter._is_wrapped then
+    return doc:walk(filter)
+  end
+
   local wrapped_filter = {}
   for k, v in pairs(filter) do
     wrapped_filter[k] = v
   end
 
-  function process_custom_inner(raw)
+  local function process_custom_inner(raw)
     _quarto.ast.inner_walk(raw, wrapped_filter)
   end
 
-  function process_custom_preamble(custom_data, t, kind, custom_node)
+  local function process_custom_preamble(custom_data, t, kind, custom_node)
     if custom_data == nil then
       return nil
     end
@@ -42,7 +46,7 @@ function run_emulated_filter(doc, filter, top_level)
     end
   end
 
-  function process_custom(custom_data, t, kind, custom_node)
+  local function process_custom(custom_data, t, kind, custom_node)
     local result, recurse = process_custom_preamble(custom_data, t, kind, custom_node)
     if filter.traverse ~= "topdown" or recurse ~= false then
       if tisarray(result) then
@@ -131,11 +135,13 @@ function run_emulated_filter(doc, filter, top_level)
     end
   end
 
-  local result = doc:walk(wrapped_filter)
+  wrapped_filter._is_wrapped = true
+
+  local result, recurse = doc:walk(wrapped_filter)
   if top_level and filter._filter_name ~= nil then
     add_trace(result, filter._filter_name)
   end
-  return result
+  return result, recurse
 end
 
 function create_emulated_node(t, tbl, context)
