@@ -190,7 +190,7 @@ export async function printBrowsePreviewMessage(
     const browseUrl = proxyUrl.replace("{{port}}", `${port}`) +
       path;
     info(`\nBrowse at ${browseUrl}`, { format: colors.green });
-  } else if (isGitHubCodespaces()) {
+  } else if (isVSCodeTerminal() && isGitHubCodespaces()) {
     const browseUrl =
       gitHubCodeSpacesProxyUri()!.replace("{{port}}", `${port}`) + path;
     info(`\nBrowse at ${browseUrl}`, { format: colors.green });
