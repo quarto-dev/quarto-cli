@@ -24,21 +24,38 @@ function responsive_table()
         return tbl
       end
 
-      -- local table_responsive_nm = {
-        --   "table-responsive", "responsive", "responsive-sm", "responsive-md", "responsive-lg", "responsive-xl", "responsive-xxl"
-        -- }
-      
-      -- determine if <table> element has any `.responsive` class
-      local is_responsive = tbl.classes:includes("table-responsive") or tbl.classes:includes("responsive")      
-      
-      if is_responsive == false then
+      local table_responsive_nm = {
+        ["responsive"    ]       = "table-responsive"    ,
+        ["responsive-sm" ]       = "table-responsive-sm" ,
+        ["responsive-md" ]       = "table-responsive-md" ,
+        ["responsive-lg" ]       = "table-responsive-lg" ,
+        ["responsive-xl" ]       = "table-responsive-xl" ,
+        ["responsive-xxl"]       = "table-responsive-xxl",
+        ["table-responsive"    ] = "table-responsive"    ,
+        ["table-responsive-sm" ] = "table-responsive-sm" ,
+        ["table-responsive-md" ] = "table-responsive-md" ,
+        ["table-responsive-lg" ] = "table-responsive-lg" ,
+        ["table-responsive-xl" ] = "table-responsive-xl" ,
+        ["table-responsive-xxl"] = "table-responsive-xxl"
+      }
+
+      local found, found_key
+      for _, v in ipairs(tbl.classes) do
+        if table_responsive_nm[v] then
+          found = table_responsive_nm[v]
+          found_key = v
+          break
+        end
+      end
+      if not found then
         return tbl
       end
-        
-      -- TODO: check whether the table already has a parent div and the `.responsive-table` class (return tbl if that's the case)
 
-      -- Add parent div with `.table-responsive` class
-      return pandoc.Div(tbl, pandoc.Attr("", {"table-responsive"}))
+      tbl.classes = tbl.classes:filter(function(class) 
+        return class ~= found_key 
+      end)
+        
+      return pandoc.Div(tbl, pandoc.Attr("", { found }))
     end
   }
 end
