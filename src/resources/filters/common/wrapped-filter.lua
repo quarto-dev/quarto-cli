@@ -113,7 +113,7 @@ function makeWrappedLuaFilter(scriptFile, filterHandler)
     local chunk, err = loadfile(scriptFile, "bt", env)
     local handlers = {}
   
-    function makeSingleHandler(handlerTable)
+    local function makeSingleHandler(handlerTable)
       local result = {}
       setmetatable(result, {
         __index = { scriptFile = scriptFile }

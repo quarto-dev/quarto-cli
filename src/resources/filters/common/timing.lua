@@ -40,7 +40,7 @@ function capture_timings(filterList, trace)
       for key,func in pairs(v) do
         newFilter[key] = func
       end
-      function makeNewFilter(oldPandoc)
+      local function makeNewFilter(oldPandoc)
         return function (p)
           if oldPandoc ~= nil then
             local result = oldPandoc(p)

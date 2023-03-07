@@ -186,7 +186,7 @@ function transformShortcodeInlines(inlines, noRawInlines)
   local shortcodeInlines = pandoc.List()
   local accum = outputInlines
 
-  function ensure_accum(i)
+  local function ensure_accum(i)
     if not transformed then
       transformed = true
       for j = 1,i - 1 do
