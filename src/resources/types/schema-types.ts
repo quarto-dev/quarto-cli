@@ -171,8 +171,9 @@ should be shown in the notes tab in the sidebar. */;
       | boolean
       | (
         | "always"
+        | "whenSidebarOpen"
         | "never"
-      ) /* Controls whether the in-document highlights are shown by default (`always` or `never`) */;
+      ) /* Controls whether the in-document highlights are shown by default (`always`, `whenSidebarOpen` or `never`) */;
     services?: (
       {
         apiUrl: string /* The base URL of the service API. */;

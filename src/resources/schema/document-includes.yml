@@ -43,7 +43,7 @@
         - path
         - ref: smart-include
   description: |
-    Include content at the end of the document body, immediately after the markdown content. While the content will be included before the closing `</body>` tag in HTML and the `\end{document}` command in LaTeX, this option specifically refers to the end of the content.
+    Include content at the end of the document body immediately after the markdown content. While it will be included before the closing `</body>` tag in HTML and the `\end{document}` command in LaTeX, this option refers to the end of the markdown content.
 
     A string value or an object with key "file" indicates a filename whose contents are to be included
 
