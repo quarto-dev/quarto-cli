@@ -6,6 +6,7 @@
 */
 
 import { existsSync } from "fs/mod.ts";
+import { isWindows } from "../core/platform.ts";
 
 export interface ResolvedExtensionInfo {
   // The url to the resolved extension
@@ -91,10 +92,12 @@ interface ExtensionUrlProvider {
   learnMoreUrl: (host: ExtensionHost) => string | undefined;
 }
 
+const archiveExt = isWindows() ? ".zip" : ".tar.gz";
+
 const githubLatestUrlProvider = {
   extensionUrl: (host: ExtensionHost) => {
     if (host.modifier === undefined || host.modifier === "latest") {
-      return `https://github.com/${host.organization}/${host.repo}/archive/refs/heads/main.tar.gz`;
+      return `https://github.com/${host.organization}/${host.repo}/archive/refs/heads/main${archiveExt}`;
     }
   },
   archiveSubdir: (host: ExtensionHost) => {
@@ -113,7 +116,7 @@ const githubLatestUrlProvider = {
 const githubTagUrlProvider = {
   extensionUrl: (host: ExtensionHost) => {
     if (host.modifier) {
-      return `https://github.com/${host.organization}/${host.repo}/archive/refs/tags/${host.modifier}.tar.gz`;
+      return `https://github.com/${host.organization}/${host.repo}/archive/refs/tags/${host.modifier}${archiveExt}`;
     }
   },
   archiveSubdir: (host: ExtensionHost) => {
@@ -132,7 +135,7 @@ const githubTagUrlProvider = {
 const githubBranchUrlProvider = {
   extensionUrl: (host: ExtensionHost) => {
     if (host.modifier) {
-      return `https://github.com/${host.organization}/${host.repo}/archive/refs/heads/${host.modifier}.tar.gz`;
+      return `https://github.com/${host.organization}/${host.repo}/archive/refs/heads/${host.modifier}${archiveExt}`;
     }
   },
   archiveSubdir: (host: ExtensionHost) => {
