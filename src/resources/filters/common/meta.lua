@@ -50,7 +50,7 @@ end
 
 function metaInjectLatex(meta, func)
   if _quarto.format.isLatexOutput() then
-    function inject(tex)
+    local function inject(tex)
       addInclude(meta, "tex", kHeaderIncludes, tex)
     end
     inject("\\makeatletter")
@@ -69,7 +69,7 @@ end
 
 function metaInjectRawLatex(meta, include, func)
   if _quarto.format.isLatexOutput() then
-    function inject(tex)
+    local function inject(tex)
       addInclude(meta, "tex", include, tex)
     end
     func(inject)
@@ -79,7 +79,7 @@ end
 
 function metaInjectHtml(meta, func)
   if _quarto.format.isHtmlOutput() then
-    function inject(html)
+    local function inject(html)
       addInclude(meta, "html", kHeaderIncludes, html)
     end
     func(inject)

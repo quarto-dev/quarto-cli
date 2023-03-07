@@ -43,7 +43,7 @@ end
 
 function preprocessRawTableBlock(rawEl, parentId)
   
-  function divWrap(el, label, caption)
+  local function divWrap(el, label, caption)
     local div = pandoc.Div(el, pandoc.Attr(label))
     if parentId then
       div.attr.attributes[kRefParent] = parentId

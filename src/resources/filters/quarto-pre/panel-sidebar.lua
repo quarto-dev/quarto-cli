@@ -7,25 +7,25 @@ function panelSidebar()
       if hasBootstrap() or _quarto.format.isRevealJsOutput() then
 
         -- functions to determine if an element has a layout class
-        function isSidebar(el)
+        local function isSidebar(el)
           return el ~= nil and el.t == "Div" and el.attr.classes:includes("panel-sidebar")
         end
-        function isContainer(el)
+        local function isContainer(el)
           return el ~= nil and
                  el.t == "Div" and 
                  (el.attr.classes:includes("panel-fill") or 
                   el.attr.classes:includes("panel-center") or
                   el.attr.classes:includes("panel-tabset"))
         end
-        function isHeader(el)
+        local function isHeader(el)
           return el ~= nil and el.t == "Header"
         end
-        function isQuartoHiddenDiv(el)
+        local function isQuartoHiddenDiv(el)
           return el ~= nil and el.t == "Div" and
                  string.find(el.attr.identifier, "^quarto%-") and
                  el.attr.classes:includes("hidden")
         end
-        function isNotQuartoHiddenDiv(el)
+        local function isNotQuartoHiddenDiv(el)
           return not isQuartoHiddenDiv(el)
         end
 

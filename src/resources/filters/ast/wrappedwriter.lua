@@ -104,7 +104,7 @@ function wrapped_writer()
       end
     }
   
-    function handleBottomUpResult(v)
+    local function handleBottomUpResult(v)
       if type(v) == "string" then
         table.insert(resultingStrs, v)
       elseif type(v) == "userdata" then

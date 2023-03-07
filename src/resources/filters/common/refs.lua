@@ -68,7 +68,7 @@ function hasSubRefs(divEl, type)
   if hasFigureOrTableRef(divEl) and not hasRefParent(divEl) then
     -- children w/ parent id
     local found = false
-    function checkForParent(el)
+    local function checkForParent(el)
       if not found then
         if hasRefParent(el) then
           if not type or (refType(el.attr.identifier) == type) then

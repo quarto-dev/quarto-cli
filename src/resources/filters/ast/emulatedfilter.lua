@@ -4,7 +4,7 @@
 -- Copyright (C) 2022 by RStudio, PBC
 
 local function plain_loader(handlers)
-  function wrapFilter(handler)
+  local function wrapFilter(handler)
     local wrappedFilter = {}
     wrappedFilter.scriptFile = handler.scriptFile
     for k, v in pairs(handler) do

@@ -37,7 +37,7 @@ function find_invalid_tags(str)
     "^[ \t\f\v]*(```+[ \t\f\v]*)(%{+[^.=\n\r]*%}+)", 
     "\n[ \t\f\v]*(```+[ \t\f\v]*)(%{+[^.=\n\r]+%}+)"
   }
-  function find_it(init)
+  local function find_it(init)
     for _, pattern in ipairs(patterns) do
       local range_start, range_end, ticks, tag = str:find(pattern, init)
       if range_start ~= nil then
@@ -119,7 +119,7 @@ function Reader (inputs, opts)
     format = "markdown",
     extensions = extensions,
   }
-  function restore_invalid_tags(tag)
+  local function restore_invalid_tags(tag)
     return tags[tag] or tag
   end
   local doc = pandoc.read(txt, flavor, opts):walk {

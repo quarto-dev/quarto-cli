@@ -129,7 +129,7 @@ function formatNumberOption(type, order, default)
   end
   
   -- return a pandoc.Str w/ chapter prefix (if any)
-  function resolve(num)
+  local function resolve(num)
     if section then
       local sectionIndex = section[1]
       if crossrefOption("chapters-alpha", false) then
