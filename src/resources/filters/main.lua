@@ -238,7 +238,8 @@ local quartoPost = {
     tikz(),
     pdfImages(),
     delink(),
-    figCleanup()
+    figCleanup(),
+    responsive_table(),
   }) },
   { name = "post-ojs", filter = ojs() },
   { name = "post-postMetaInject", filter = quartoPostMetaInject() },
