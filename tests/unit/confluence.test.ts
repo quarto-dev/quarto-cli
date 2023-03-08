@@ -3741,7 +3741,7 @@ const runUpdateLinks = () => {
     fileName: "release-planning.xml",
   };
 
-  const UPDATE_LINKS_INDEX: ContentUpdate = {
+  const UPDATE_LINK_TO_INDEX: ContentUpdate = {
     contentChangeType: ContentChangeType.update,
     id: "19890228",
     version: null,
@@ -3756,6 +3756,23 @@ const runUpdateLinks = () => {
       },
     },
     fileName: "release-planning.xml",
+  };
+
+  const UPDATE_SELF_LINK_FROM_INDEX: ContentUpdate = {
+    contentChangeType: ContentChangeType.update,
+    id: "fake-folder-id",
+    version: null,
+    title: "fake-folder-title",
+    type: "page",
+    status: "current",
+    ancestors: [{ id: "19759105" }],
+    body: {
+      storage: {
+        value: "<a href='index.qmd'>self</a>",
+        representation: "storage",
+      },
+    },
+    fileName: "folder",
   };
 
   const UPDATE_LINKS_SPECIAL_CHAR: ContentUpdate = {
@@ -3918,13 +3935,29 @@ const runUpdateLinks = () => {
   });
 
   test(suiteLabel("one_update_link_index"), async () => {
-    const changes: ConfluenceSpaceChange[] = [UPDATE_LINKS_INDEX];
+    const changes: ConfluenceSpaceChange[] = [UPDATE_LINK_TO_INDEX];
     const rootURL = "fake-server/wiki/spaces/QUARTOCONF/pages";
     const expectedUpdate: ContentUpdate = {
-      ...UPDATE_LINKS_INDEX,
+      ...UPDATE_LINK_TO_INDEX,
       body: {
         storage: {
           value: `<a href=\'fake-server/wiki/spaces/QUARTOCONF/pages/fake-folder-id'>team</a>`,
+          representation: "storage",
+        },
+      },
+    };
+    const expected: ConfluenceSpaceChange[] = [expectedUpdate];
+    check(expected, changes, fileMetadataTable, "fake-server", FAKE_PARENT);
+  });
+
+  test(suiteLabel("one_update_link_from_index"), async () => {
+    const changes: ConfluenceSpaceChange[] = [UPDATE_SELF_LINK_FROM_INDEX];
+    const rootURL = "fake-server/wiki/spaces/QUARTOCONF/pages";
+    const expectedUpdate: ContentUpdate = {
+      ...UPDATE_SELF_LINK_FROM_INDEX,
+      body: {
+        storage: {
+          value: `<a href=\'fake-server/wiki/spaces/QUARTOCONF/pages/fake-index-id'>self</a>`,
           representation: "storage",
         },
       },
