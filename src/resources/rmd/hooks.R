@@ -47,7 +47,7 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     # handle specifically format which sets echo: false like revealjs
     if (knitr::pandoc_to("revealjs", exact = TRUE)) {
       # to adapt to true for engine that have no output
-      if (identical(options[["echo"]], FALSE) && 
+      if (identical(options[["echo"]], FALSE) &&
           options[["engine"]] %in% c("embed", "verbatim")
       ) {
         options[["echo"]] <- TRUE
