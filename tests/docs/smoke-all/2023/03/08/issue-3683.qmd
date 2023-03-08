@@ -1,0 +1,21 @@
+---
+title: plots and output = "asis"
+_quarto:
+  tests:
+    markdown:
+      ensureFileRegexMatches:
+        - [] 
+        - ["::: cell-output-display"]
+    pptx: 
+      ensurePptxRegexMatches:
+        - ["figure-pptx/unnamed-chunk-1-1\\.png"]
+        - 2
+---
+
+```{r}
+#| echo: false
+#| output: asis
+cat("## Title\n")
+cat("\n")
+plot(mtcars)
+```

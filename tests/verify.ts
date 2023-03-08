@@ -232,14 +232,54 @@ export const ensureDocxRegexMatches = (
 
         // Open the core xml document and match the matches
         const docXml = join(temp, "word", "document.xml");
-        const tex = await Deno.readTextFile(docXml);
+        const xml = await Deno.readTextFile(docXml);
         regexes.forEach((regex) => {
           if (typeof regex === "string") {
             regex = new RegExp(regex);
           }
           assert(
-            regex.test(tex),
+            regex.test(xml),
             `Required DocX Element ${String(regex)} is missing.`,
+          );
+        });
+      } finally {
+        await Deno.remove(temp, { recursive: true });
+      }
+    },
+  };
+};
+
+export const ensurePptxRegexMatches = (
+  file: string,
+  regexes: (string | RegExp)[],
+  slideNumber: number,
+): Verify => {
+  return {
+    name: "Inspecting Pptx for Regex matches",
+    verify: async (_output: ExecuteOutput[]) => {
+      const [_dir, stem] = dirAndStem(file);
+      const temp = await Deno.makeTempDir();
+      try {
+        // Move the docx to a temp dir and unzip it
+        const zipFile = join(temp, stem + ".zip");
+        await Deno.rename(file, zipFile);
+        await unzip(zipFile);
+
+        // Open the core xml document and match the matches
+        const slidePath = join(temp, "ppt", "slides");
+        const slideFile = join(slidePath, `slide${slideNumber}.xml`);
+        assert(
+          existsSync(slideFile), 
+          `Slide number ${slideNumber} is not in the Pptx`,
+        )
+        const xml = await Deno.readTextFile(slideFile);
+        regexes.forEach((regex) => {
+          if (typeof regex === "string") {
+            regex = new RegExp(regex);
+          }
+          assert(
+            regex.test(xml),
+            `Required Pptx Element ${String(regex)} is missing.`,
           );
         });
       } finally {

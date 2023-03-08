@@ -586,7 +586,9 @@ knitr_plot_hook <- function(format) {
         md <- sprintf("[%s](%s)", md, link)
       }
       
-      # enclose in output div
+      # result = "asis" specific
+      if (identical(options[["results"]], "asis")) return(md)
+      # enclose in output div 
       output_div(md, NULL, classes)
     }
 

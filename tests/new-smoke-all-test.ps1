@@ -45,6 +45,10 @@ _quarto:
       ensureDocxRegexMatches:
         - []
         - []
+    pptx:
+      ensurePptxRegexMatches:
+        - []
+        - []
     asciidoc: default
 ---
 "@
