@@ -58,6 +58,7 @@
 - Properly support `show-notes: separate-page` [#3996](https://github.com/quarto-dev/quarto-cli/issues/3996)
 - Improve footnote / aside layout for centered slides. [#4297](https://github.com/quarto-dev/quarto-cli/issues/4297)
 - Ensure anchors refer to the containing slide in case of crossrefs ([#3533](https://github.com/quarto-dev/quarto-cli/issues/4297)).
+- Support `output-location` as a top level option in Revealjs presentations ([#3261](https://github.com/quarto-dev/quarto-cli/issues/3261))
 
 ## EPUB Format
 
