@@ -13,6 +13,8 @@ import { FormatPandoc } from "../config/types.ts";
 import { existsSync } from "fs/mod.ts";
 import { resourcePath } from "../core/resources.ts";
 import { normalizePath } from "../core/path.ts";
+import { error } from "log/mod.ts";
+import { warnOnce } from "../core/log.ts";
 
 export interface ThemeDescriptor {
   json: Record<string, unknown>;
@@ -118,9 +120,19 @@ export function readTheme(
     theme,
     style === "default" ? undefined : style,
   );
-  if (themeFile && existsSync(themeFile)) {
-    return Deno.readTextFileSync(themeFile);
-  } else {
+  if (!themeFile) {
     return undefined;
   }
+
+  if (!existsSync(themeFile)) {
+    warnOnce(`The text highlighting theme ${themeFile} does not exist.`);
+    return undefined;
+  }
+
+  if (Deno.statSync(themeFile).isDirectory) {
+    throw new Error(
+      `The text highlighting theme ${themeFile} is a directory. Please provide a valid theme name or path to a .theme file.`,
+    );
+  }
+  return Deno.readTextFileSync(themeFile);
 }
