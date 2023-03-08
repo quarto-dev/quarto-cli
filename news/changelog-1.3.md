@@ -59,6 +59,7 @@
 - Improve footnote / aside layout for centered slides. [#4297](https://github.com/quarto-dev/quarto-cli/issues/4297)
 - Ensure anchors refer to the containing slide in case of crossrefs ([#3533](https://github.com/quarto-dev/quarto-cli/issues/4297)).
 - Support `output-location` as a top level option in Revealjs presentations ([#3261](https://github.com/quarto-dev/quarto-cli/issues/3261))
+- Fix PDF export keyboard shortcut and button in menu ([#2988](https://github.com/quarto-dev/quarto-cli/issues/2988))
 
 ## EPUB Format
 
