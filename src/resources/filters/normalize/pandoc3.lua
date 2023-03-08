@@ -1,5 +1,5 @@
 -- pandoc3.lua
--- Copyright (C) 2020-2023 Posit Software, PBC
+-- Copyright (C) 2020-2023 Posit, PBC
 
 function parse_pandoc3_figures() 
   local walk_recurse

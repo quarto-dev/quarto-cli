@@ -1,7 +1,7 @@
 -- traceexecution.lua
 -- produce a json file from filter chain execution
 --
--- Copyright (C) 2022 by RStudio, PBC
+-- Copyright (C) 2022-2023 Posit, PBC
 
 local data = {}
 

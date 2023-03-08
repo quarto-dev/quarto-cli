@@ -1,5 +1,5 @@
 -- cellcleanup.lua
--- Copyright (C) 2020-2023 Posit Software, PBC
+-- Copyright (C) 2020-2023 Posit, PBC
 
 function cell_cleanup()
   return {

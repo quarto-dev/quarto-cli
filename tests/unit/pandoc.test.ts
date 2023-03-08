@@ -1,7 +1,7 @@
 /*
 * pandoc.test.ts
 *
-* Copyright (C) 2020-2022 Posit Software, PBC
+* Copyright (C) 2020-2023 Posit, PBC
 *
 */
 import { assert, assertEquals } from "testing/asserts.ts";

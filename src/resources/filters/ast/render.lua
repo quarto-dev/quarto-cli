@@ -1,7 +1,7 @@
 -- render.lua
 -- convert custom nodes to their final representation
 --
--- Copyright (C) 2022 by RStudio, PBC
+-- Copyright (C) 2022-2023 Posit, PBC
 
 function render_raw(raw)
   local parts = split(raw.text)

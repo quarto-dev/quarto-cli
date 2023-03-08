@@ -1,5 +1,5 @@
 -- index.lua
--- Copyright (C) 2020-2022 Posit Software, PBC
+-- Copyright (C) 2020-2023 Posit, PBC
 
 -- initialize the index
 function initCrossrefIndex()

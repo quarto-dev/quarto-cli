@@ -2,7 +2,7 @@
 --
 -- fixes paths from <include> directives
 --
--- Copyright (C) 2022 Posit Software, PBC
+-- Copyright (C) 2022-2023 Posit, PBC
 
 function includePaths() 
   return {

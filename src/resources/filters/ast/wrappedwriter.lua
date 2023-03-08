@@ -1,7 +1,7 @@
 -- wrappedwriter.lua
 -- support for creating better custom writers
 --
--- Copyright (C) 2022 by RStudio, PBC
+-- Copyright (C) 2022-2023 Posit, PBC
 
 function wrapped_writer()
   return filterIf(function()

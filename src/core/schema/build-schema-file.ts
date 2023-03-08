@@ -4,7 +4,7 @@
 * Collects the existing schemas and builds a single JSON file with
 * their description
 *
-* Copyright (C) 2021-2022 Posit Software, PBC
+* Copyright (C) 2021-2023 Posit, PBC
 *
 */
 

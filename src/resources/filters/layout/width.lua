@@ -1,5 +1,5 @@
 -- width.lua
--- Copyright (C) 2020-2022 Posit Software, PBC
+-- Copyright (C) 2020-2023 Posit, PBC
 
 -- parse a layout specification
 function parseLayoutWidths(figLayout, figureCount)

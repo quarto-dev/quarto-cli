@@ -4,7 +4,7 @@
 * Functions to compile and create the schemas for the `execute` field
 * in project and frontmatter
 *
-* Copyright (C) 2021-2022 Posit Software, PBC
+* Copyright (C) 2021-2023 Posit, PBC
 *
 */
 

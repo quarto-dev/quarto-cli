@@ -1,5 +1,5 @@
 -- table-captions.lua
--- Copyright (C) 2020-2022 Posit Software, PBC
+-- Copyright (C) 2020-2023 Posit, PBC
 
 kTblCap = "tbl-cap"
 kTblSubCap = "tbl-subcap"

@@ -3,7 +3,7 @@
 *
 * A minimal API to build pandoc markdown text.
 *
-* Copyright (C) 2022 Posit Software, PBC
+* Copyright (C) 2022-2023 Posit, PBC
 *
 */
 

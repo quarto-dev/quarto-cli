@@ -1,7 +1,7 @@
 /**
  * mapped-text.ts
  *
- * Copyright (C) 2021-2022 Posit Software, PBC
+ * Copyright (C) 2021-2023 Posit, PBC
  */
 
 import { glb } from "./binary-search.ts";

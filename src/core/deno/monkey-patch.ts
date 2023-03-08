@@ -1,7 +1,7 @@
 /*
 * monkey-patch.ts
 *
-* Copyright (C) 2022-2023 Posit Software, PBC
+* Copyright (C) 2022-2023 Posit, PBC
 *
 */
 

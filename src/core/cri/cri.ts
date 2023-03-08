@@ -3,7 +3,7 @@
  *
  * Chrome Remote Interface
  *
- * Copyright (c) 2022 Posit Software, PBC.
+ * Copyright (c) 2022-2023 Posit, PBC.
  */
 
 import { decode } from "encoding/base64.ts";

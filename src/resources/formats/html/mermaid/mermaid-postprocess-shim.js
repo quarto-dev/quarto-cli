@@ -1,7 +1,7 @@
 // mermaid-postprocess-shim.js
 // code to postprocess mermaid pregenerated HTML, to fix https://github.com/quarto-dev/quarto-cli/issues/1622
 //
-// Copyright (C) 2022 Posit Software, PBC
+// Copyright (C) 2022-2023 Posit, PBC
 
 const _quartoMermaid = {
   postProcess(el) {

@@ -1,5 +1,5 @@
 -- svg.lua
--- Copyright (C) 2021 by RStudio, PBC
+-- Copyright (C) 2021-2023 Posit, PBC
 
 local function convert_svg(path)
   local stem = pandoc.path.split_extension(path)

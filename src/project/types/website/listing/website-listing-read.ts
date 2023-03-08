@@ -2,7 +2,7 @@
 * website-listing-resolve.ts
 .ts
 *
-* Copyright (C) 2020-2022 Posit Software, PBC
+* Copyright (C) 2020-2023 Posit, PBC
 *
 */
 import { debug, warning } from "log/mod.ts";

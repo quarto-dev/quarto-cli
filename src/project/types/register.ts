@@ -3,7 +3,7 @@
 *
 * registers available project types for use in quarto.
 *
-* Copyright (C) 2022 Posit Software, PBC
+* Copyright (C) 2022-2023 Posit, PBC
 *
 */
 

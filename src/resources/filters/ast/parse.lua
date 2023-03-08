@@ -1,7 +1,7 @@
 -- parse.lua
 -- convert custom div inputs to custom nodes
 --
--- Copyright (C) 2022 by RStudio, PBC
+-- Copyright (C) 2022-2023 Posit, PBC
 
 local function parse(node)
   for _, class in ipairs(node.attr.classes) do

@@ -1,5 +1,5 @@
 -- shortcodes-handlers.lua
--- Copyright (C) 2020-2022 Posit Software, PBC
+-- Copyright (C) 2020-2023 Posit, PBC
 
 -- handlers process shortcode into either a list of inlines or into a list of blocks
    

@@ -1,5 +1,5 @@
 -- tikz.lua
--- Copyright (C) 2021-2022 Posit Software, PBC
+-- Copyright (C) 2021-2023 Posit, PBC
 
 function tikz()
   if _quarto.format.isLatexOutput() then

@@ -1,7 +1,7 @@
 /*
 * partition-cell-options.test.ts
 *
-* Copyright (C) 2020-2023 Posit Software, PBC
+* Copyright (C) 2020-2023 Posit, PBC
 *
 */
 import { assertEquals } from "testing/asserts.ts";

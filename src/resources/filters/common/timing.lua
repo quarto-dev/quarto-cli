@@ -1,5 +1,5 @@
 -- timing.lua
--- Copyright (C) 2022 Posit Software, PBC
+-- Copyright (C) 2022-2023 Posit, PBC
 
 -- https://stackoverflow.com/questions/463101/lua-current-time-in-milliseconds :(
 function get_current_time()

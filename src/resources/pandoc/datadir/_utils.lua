@@ -1,5 +1,5 @@
 -- _utils.lua
--- Copyright (C) 2020-2022 Posit Software, PBC
+-- Copyright (C) 2020-2023 Posit, PBC
 
 -- improved formatting for dumping tables and quarto's emulated pandoc nodes
 function tdump (tbl, raw)

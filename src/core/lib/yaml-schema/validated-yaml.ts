@@ -3,7 +3,7 @@
 *
 * lib-safe helper functions for reading and validating YAML
 *
-* Copyright (C) 2022 Posit Software, PBC
+* Copyright (C) 2022-2023 Posit, PBC
 *
 */
 

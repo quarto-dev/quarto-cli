@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2021 Andrea Cardaci <cyrus.and@gmail.com>
  *
- * Deno port Copyright (C) 2022 Posit Software, PBC
+ * Deno port Copyright (C) 2022-2023 Posit, PBC
  */
 
 import * as defaults from "./defaults.js";

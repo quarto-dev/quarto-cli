@@ -1,5 +1,5 @@
 -- log.lua
--- Copyright (C) 2020-2022 Posit Software, PBC
+-- Copyright (C) 2020-2023 Posit, PBC
 
 -- TODO
 -- could write to named filed (e.g. <docname>.filter.log) and client could read warnings and delete (also delete before run)

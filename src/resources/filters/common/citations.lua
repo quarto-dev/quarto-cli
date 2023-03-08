@@ -1,5 +1,5 @@
 -- citation.lua
--- Copyright (C) 2020-2022 Posit Software, PBC
+-- Copyright (C) 2020-2023 Posit, PBC
 
 -- read and replace the citation field
 -- with reshaped data that has been 

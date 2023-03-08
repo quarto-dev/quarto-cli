@@ -1,7 +1,7 @@
 /*
 * cast.ts
 *
-* Copyright (C) 2022 Posit Software, PBC
+* Copyright (C) 2022-2023 Posit, PBC
 */
 
 export function asNumber(x?: unknown, defaultValue = 0) {

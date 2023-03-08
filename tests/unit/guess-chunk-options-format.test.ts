@@ -1,7 +1,7 @@
 /*
 * guess-chunk-option-format.test.ts
 *
-* Copyright (C) 2021-2022 Posit Software, PBC
+* Copyright (C) 2021-2023 Posit, PBC
 *
 */
 

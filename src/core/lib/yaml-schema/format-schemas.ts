@@ -3,7 +3,7 @@
 *
 * Functions to define JSON Schemas for quarto formats
 *
-* Copyright (C) 2022 Posit Software, PBC
+* Copyright (C) 2022-2023 Posit, PBC
 *
 */
 

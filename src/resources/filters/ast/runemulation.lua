@@ -1,7 +1,7 @@
 -- runemulation.lua
 -- run filters in pandoc emulation mode
 --
--- Copyright (C) 2022 by RStudio, PBC
+-- Copyright (C) 2022-2023 Posit, PBC
 
 local function run_emulated_filter_chain(doc, filters, afterFilterPass)
   init_trace(doc)

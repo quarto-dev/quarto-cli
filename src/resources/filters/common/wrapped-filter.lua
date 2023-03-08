@@ -1,6 +1,6 @@
 -- wrapped-filter.lua
 -- creates wrapped pandoc filters
--- Copyright (C) 2022 by RStudio, PBC
+-- Copyright (C) 2022-2023 Posit, PBC
 
 local function shortcodeMetatable(scriptFile) 
   return {

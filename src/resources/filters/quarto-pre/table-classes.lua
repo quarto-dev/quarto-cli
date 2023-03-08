@@ -1,5 +1,5 @@
 -- table-classes.lua
--- Copyright (C) 2020-2023 Posit Software, PBC
+-- Copyright (C) 2020-2023 Posit, PBC
 
 -- handle classes to pass to `<table>` element
 function tableClasses()

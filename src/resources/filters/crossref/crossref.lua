@@ -1,5 +1,5 @@
 -- crossref.lua
--- Copyright (C) 2020-2023 Posit Software, PBC
+-- Copyright (C) 2020-2023 Posit, PBC
 
 -- this is the standalone version of our crossref filters, used in the IDEs for auto-completion
 

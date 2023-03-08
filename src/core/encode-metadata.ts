@@ -1,7 +1,7 @@
 /*
 * encode-metadata.ts
 *
-* Copyright (C) 2022 Posit Software, PBC
+* Copyright (C) 2022-2023 Posit, PBC
 *
 */
 import { encode as base64Encode } from "encoding/base64.ts";

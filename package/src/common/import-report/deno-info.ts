@@ -3,7 +3,7 @@
 *
 * functions and interfaces for processing data from `deno info --json`
 *
-* Copyright (C) 2022 Posit Software, PBC
+* Copyright (C) 2022-2023 Posit, PBC
 *
 */
 

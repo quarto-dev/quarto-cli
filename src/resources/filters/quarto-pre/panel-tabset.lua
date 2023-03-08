@@ -1,5 +1,5 @@
 -- panel-tabset.lua
--- Copyright (C) 2022 Posit Software, PBC
+-- Copyright (C) 2022-2023 Posit, PBC
 
 ---@alias quarto.Tab { content:pandoc.Blocks, title:pandoc.Inlines }
 

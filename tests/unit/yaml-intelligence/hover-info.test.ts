@@ -1,7 +1,7 @@
 /*
 * hover-info.test.ts
 *
-* Copyright (C) 2022 Posit Software, PBC
+* Copyright (C) 2022-2023 Posit, PBC
 *
 */
 import { assert } from "testing/asserts.ts";
@@ -52,8 +52,7 @@ yamlValidationUnitTest("hover-info - simple()", async () => {
   const hoverInfo = `**code-fold**\n\n${
     // deno-lint-ignore no-explicit-any
     (getYamlIntelligenceResource("schema/cell-codeoutput.yml") as any)[2]
-      .description.long
-  }`;
+      .description.long}`;
   assert(
     result !== null &&
       result.content === hoverInfo,

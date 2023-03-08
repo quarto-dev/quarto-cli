@@ -1,5 +1,5 @@
 -- latex.lua
--- Copyright (C) 2020-2022 Posit Software, PBC
+-- Copyright (C) 2020-2023 Posit, PBC
 
 -- generates a set of options for a tColorBox
 function tColorOptions(options) 

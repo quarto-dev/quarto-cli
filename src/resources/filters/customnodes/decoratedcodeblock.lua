@@ -1,5 +1,5 @@
 -- decoratedcodeblock.lua
--- Copyright (C) 2020-2023 Posit Software, PBC
+-- Copyright (C) 2020-2023 Posit, PBC
 
 -- A custom AST node for decorated code blocks
 -- so we can render the decorations in the right order

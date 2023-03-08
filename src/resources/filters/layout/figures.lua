@@ -1,5 +1,5 @@
 -- figures.lua
--- Copyright (C) 2020-2022 Posit Software, PBC
+-- Copyright (C) 2020-2023 Posit, PBC
 
 -- extended figure features including fig-align, fig-env, etc.
 function extendedFigures() 

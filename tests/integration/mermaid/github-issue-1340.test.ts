@@ -1,7 +1,7 @@
 /*
 * github-issue-1340.test.ts
 *
-* Copyright (C) 2022 Posit Software, PBC
+* Copyright (C) 2022-2023 Posit, PBC
 *
 */
 

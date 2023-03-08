@@ -1,5 +1,5 @@
 -- meta.lua
--- Copyright (C) 2020-2022 Posit Software, PBC
+-- Copyright (C) 2020-2023 Posit, PBC
 
 -- read and replace the authors field
 -- without reshaped data that has been 

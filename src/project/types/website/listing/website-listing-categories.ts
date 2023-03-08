@@ -1,7 +1,7 @@
 /*
 * website-listing-categories.ts
 *
-* Copyright (C) 2020-2022 Posit Software, PBC
+* Copyright (C) 2020-2023 Posit, PBC
 *
 */
 import { Document } from "deno_dom/deno-dom-wasm-noinit.ts";

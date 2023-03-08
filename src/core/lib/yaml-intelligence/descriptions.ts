@@ -3,7 +3,7 @@
 *
 * utility functions to help with schema descriptions
 *
-* Copyright (C) 2022 Posit Software, PBC
+* Copyright (C) 2022-2023 Posit, PBC
 */
 
 import { Schema } from "../yaml-schema/types.ts";

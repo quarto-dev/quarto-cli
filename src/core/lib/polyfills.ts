@@ -3,7 +3,7 @@
 *
 * some polyfills we can't depend on in older execution environments.
 *
-* Copyright (C) 2022 Posit Software, PBC
+* Copyright (C) 2022-2023 Posit, PBC
 *
 * (Note that code here is derived from other open-source libraries. We include a link and respective copyright notice)
 *

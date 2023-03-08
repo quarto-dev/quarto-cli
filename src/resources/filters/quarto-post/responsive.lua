@@ -1,5 +1,5 @@
 -- responsive.lua
--- Copyright (C) 2021-2022 Posit Software, PBC
+-- Copyright (C) 2021-2023 Posit, PBC
 
 function responsive() 
   return {

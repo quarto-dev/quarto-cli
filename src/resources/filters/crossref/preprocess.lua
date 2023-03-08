@@ -1,5 +1,5 @@
 -- preprocess.lua
--- Copyright (C) 2020-2022 Posit Software, PBC
+-- Copyright (C) 2020-2023 Posit, PBC
 
 -- figures and tables support sub-references. mark them up before
 -- we proceed with crawling for cross-refs

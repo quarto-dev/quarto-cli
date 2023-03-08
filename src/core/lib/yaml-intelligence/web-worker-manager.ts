@@ -3,7 +3,7 @@
 *
 * enables RPC-style for web workers
 *
-* Copyright (C) 2022 Posit Software, PBC
+* Copyright (C) 2022-2023 Posit, PBC
 *
 */
 

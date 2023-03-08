@@ -1,7 +1,7 @@
 /*
 * expand-glob.ts
 *
-* Copyright (C) 2023 Posit Software, PBC
+* Copyright (C) 2023 Posit, PBC
 *
 * Fixed version of expandGlob, expandGlobSync (https://github.com/denoland/deno_std/issues/3099)
 *

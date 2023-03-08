@@ -1,5 +1,5 @@
 -- callout.lua
--- Copyright (C) 2021-2022 Posit Software, PBC
+-- Copyright (C) 2021-2023 Posit, PBC
 
 function calloutType(div)
   for _, class in ipairs(div.attr.classes) do

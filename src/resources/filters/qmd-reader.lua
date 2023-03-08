@@ -1,7 +1,7 @@
 -- qmd-reader.lua
 -- A Pandoc reader for Quarto Markdown
 -- 
--- Copyright (C) 2023 by RStudio, PBC
+-- Copyright (C) 2023 Posit, PBC
 --
 -- Originally by Albert Krewinkel
 

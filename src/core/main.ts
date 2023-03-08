@@ -3,7 +3,7 @@
 *
 * Utilities for main() functions (setup, cleanup, etc)
 *
-* Copyright (C) 2022 Posit Software, PBC
+* Copyright (C) 2022-2023 Posit, PBC
 *
 */
 

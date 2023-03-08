@@ -1,5 +1,5 @@
 -- map-or-call.lua
--- Copyright (C) 2020 by RStudio, PBC
+-- Copyright (C) 2020-2023 Posit, PBC
 
 function map_or_call(fun, arrayOrValue)
   if tisarray(arrayOrValue) then

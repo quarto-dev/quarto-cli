@@ -1,5 +1,5 @@
 -- colors.lua
--- Copyright (C) 2020-2022 Posit Software, PBC
+-- Copyright (C) 2020-2023 Posit, PBC
 
 -- These colors are used as background colors with an opacity of 0.75
 kColorUnknown = "909090"

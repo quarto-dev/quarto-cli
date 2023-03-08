@@ -1,5 +1,5 @@
 -- license.lua
--- Copyright (C) 2020-2022 Posit Software, PBC
+-- Copyright (C) 2020-2023 Posit, PBC
 
 -- read and replace the license field
 -- with reshaped data that has been 

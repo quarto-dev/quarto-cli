@@ -1,5 +1,5 @@
 -- table-rawhtml.lua
--- Copyright (C) 2020-2022 Posit Software, PBC
+-- Copyright (C) 2020-2023 Posit, PBC
 
 -- flextable outputs consecutive html blocks so we merge them
 -- back together here so they can be processed by ourraw  table

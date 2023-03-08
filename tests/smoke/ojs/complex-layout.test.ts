@@ -1,7 +1,7 @@
 /*
 * complex-layout.test.ts
 *
-* Copyright (C) 2021-2022 Posit Software, PBC
+* Copyright (C) 2021-2023 Posit, PBC
 *
 */
 import { testRender } from "../render/render.ts";

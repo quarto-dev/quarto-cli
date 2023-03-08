@@ -1,7 +1,7 @@
 -- emulatedfilter.lua
 -- creates lua filter loaders to support emulated AST
 --
--- Copyright (C) 2022 by RStudio, PBC
+-- Copyright (C) 2022-2023 Posit, PBC
 
 local function plain_loader(handlers)
   local function wrapFilter(handler)
