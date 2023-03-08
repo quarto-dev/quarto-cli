@@ -203,6 +203,7 @@
 - Add support for targeting the `#refs` divs with citations when using `natbib` or `biblatex` to generate a bibliography.
 - Warn users about Chromium installation issues in WSL ([#4596](https://github.com/quarto-dev/quarto-cli/issues/4586)).
 - Add `title` attribute for callouts (can be used rather than heading for defining the title)
+- Handle more varieties of raw HTML for Docusaurus output
 
 ## Pandoc filter changes
 
