@@ -931,28 +931,28 @@ local callout_attrs = {
     color = kColorWarning,
     background_color = kBackgroundColorWarning,
     latex_color = "quarto-callout-warning-color",
-    latex_frame_color = "quarto-callout-warn-coloring-frame",
+    latex_frame_color = "quarto-callout-warning-color-frame",
     fa_icon = "faExclamationTriangle"
   },
   important = {
     color = kColorImportant,
     background_color = kBackgroundColorImportant,
     latex_color = "quarto-callout-important-color",
-    latex_frame_color = "quarto-callout-impo-colorrtant-frame",
+    latex_frame_color = "quarto-callout-important-color-frame",
     fa_icon = "faExclamation"
   },
   caution = {
     color = kColorCaution,
     background_color = kBackgroundColorCaution,
     latex_color = "quarto-callout-caution-color",
-    latex_frame_color = "quarto-callout-caut-colorion-frame",
+    latex_frame_color = "quarto-callout-caution-color-frame",
     fa_icon = "faFire"
   },
   tip = {
     color = kColorTip,
     background_color = kBackgroundColorTip,
     latex_color = "quarto-callout-tip-color",
-    latex_frame_color = "quarto-callout-tip--colorframe",
+    latex_frame_color = "quarto-callout-tip-color-frame",
     fa_icon = "faLightbulb"
   },
 
@@ -984,7 +984,7 @@ function latexColorForType(type)
 end
 
 function latexFrameColorForType(type) 
-  return callout_attrs[type].latex_color_frame
+  return callout_attrs[type].latex_frame_color
 end
 
 function iconForType(type) 
