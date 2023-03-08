@@ -51,12 +51,7 @@ export async function resolveFileResources(
       ...excludeDirs,
     );
 
-  const absPathGlobs = globs.filter((glob) => {
-    // skip data uris
-    return !glob.startsWith("data:");
-  });
-
-  const resources = resolvePathGlobs(fileDir, absPathGlobs, ignore, {
+  const resources = resolvePathGlobs(fileDir, globs, ignore, {
     mode: "strict",
   });
   if (markdown.length > 0 && !skipOjsDiscovery) {
