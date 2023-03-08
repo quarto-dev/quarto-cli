@@ -5,10 +5,14 @@ _quarto:
     markdown:
       ensureFileRegexMatches:
         - [] 
-        - ["::: \\{\\.cell-output-display\\}"]
+        - ["::: cell-output-display"]
+    pptx: 
+      ensurePptxRegexMatches:
+        - ["figure-pptx/unnamed-chunk-1-1\\.png"]
+        - 2
 ---
 
-```{r plot}
+```{r}
 #| echo: false
 #| output: asis
 cat("## Title\n")
