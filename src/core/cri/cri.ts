@@ -114,6 +114,7 @@ export async function criClient(appPath?: string, port?: number) {
       for (let i = 0; i < maxTries; ++i) {
         try {
           client = await cdp({ port });
+          break;
         } catch (e) {
           if (i === maxTries - 1) {
             throw e;
