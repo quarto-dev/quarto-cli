@@ -678,20 +678,12 @@ async function publish(
 
     changeList = flattenIndexes(changeList, metadataByFilename);
 
-    console.log("updateLinks");
-    console.log("metadataByFilename", metadataByFilename);
-
     const { pass1Changes, pass2Changes } = updateLinks(
       metadataByFilename,
       changeList,
       server,
       siteParent
     );
-
-    console.log("{ pass1Changes, pass2Changes }", {
-      pass1Changes,
-      pass2Changes,
-    });
 
     changeList = pass1Changes;
 
