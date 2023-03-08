@@ -1,7 +1,7 @@
 /*
 * extension-render-journals.test.ts
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2020-2023 Posit, PBC
 *
 */
 

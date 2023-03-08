@@ -4,7 +4,7 @@
 -- Copyright (c) 2020 rxi
 -- https://github.com/rxi/json.lua
 --
--- 2023-02-08: Modified by RStudio, PBC to make encoding more robust under the
+-- 2023-02-08: Modified by Posit, PBC to make encoding more robust under the
 -- following example: encode(decode("[null, 'test']"))
 --
 -- Permission is hereby granted, free of charge, to any person obtaining a copy of
