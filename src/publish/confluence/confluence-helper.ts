@@ -688,6 +688,14 @@ export const updateLinks = (
         }
       }
 
+      if (!documentFileName.endsWith(".xml")) {
+        //this is a flattened index in a folder with contents
+        const siteFilePathParent = `${documentFileName}/${linkFullFileName}`;
+        if (fileMetadataTable[siteFilePathParent]) {
+          siteFilePath = siteFilePathParent;
+        }
+      }
+
       const sitePage: SitePage | null = fileMetadataTable[siteFilePath] ?? null;
 
       if (sitePage) {

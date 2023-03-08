@@ -61,8 +61,8 @@ import {
   Space,
 } from "../../src/publish/confluence/api/types.ts";
 
-const RUN_ALL_TESTS = false;
-const FOCUS_TEST = true;
+const RUN_ALL_TESTS = true;
+const FOCUS_TEST = false;
 const HIDE_NOISE = true;
 
 const xtest = (
@@ -3758,7 +3758,7 @@ const runUpdateLinks = () => {
     fileName: "release-planning.xml",
   };
 
-  const UPDATE_LINK_FROM_INDEX: ContentUpdate = {
+  const UPDATE_SELF_LINK_FROM_INDEX: ContentUpdate = {
     contentChangeType: ContentChangeType.update,
     id: "fake-folder-id",
     version: null,
@@ -3768,11 +3768,11 @@ const runUpdateLinks = () => {
     ancestors: [{ id: "19759105" }],
     body: {
       storage: {
-        value: "<a href='triage.qmd'>triage</a>",
+        value: "<a href='index.qmd'>self</a>",
         representation: "storage",
       },
     },
-    fileName: "release-planning.xml",
+    fileName: "folder",
   };
 
   const UPDATE_LINKS_SPECIAL_CHAR: ContentUpdate = {
@@ -3951,13 +3951,13 @@ const runUpdateLinks = () => {
   });
 
   test(suiteLabel("one_update_link_from_index"), async () => {
-    const changes: ConfluenceSpaceChange[] = [UPDATE_LINK_FROM_INDEX];
+    const changes: ConfluenceSpaceChange[] = [UPDATE_SELF_LINK_FROM_INDEX];
     const rootURL = "fake-server/wiki/spaces/QUARTOCONF/pages";
     const expectedUpdate: ContentUpdate = {
-      ...UPDATE_LINK_FROM_INDEX,
+      ...UPDATE_SELF_LINK_FROM_INDEX,
       body: {
         storage: {
-          value: `<a href=\'fake-server/wiki/spaces/QUARTOCONF/pages/19890180'>triage</a>`,
+          value: `<a href=\'fake-server/wiki/spaces/QUARTOCONF/pages/fake-index-id'>self</a>`,
           representation: "storage",
         },
       },
