@@ -16,6 +16,7 @@
 ## Knitr engine
 
 - Help rmarkdown find pandoc binary bundled with Quarto if none is found ([#3688](https://github.com/quarto-dev/quarto-cli/issues/3688)).
+- Do not bind knitr engine when only inline `r` expressions are found ([#3908](https://github.com/quarto-dev/quarto-cli/issues/3908)).
 
 ## Code Annotation
 
