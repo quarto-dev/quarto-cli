@@ -55,11 +55,11 @@ export async function resolveFileResources(
   const absPathGlobs = globs.filter((glob) => {
     // skip data uris
     return !glob.startsWith("data:");
-  }).map((glob) => {
-    return isAbsolute(glob) ? glob : join(rootDir, glob);
   });
 
-  const resources = resolvePathGlobs(fileDir, absPathGlobs, ignore);
+  const resources = resolvePathGlobs(fileDir, absPathGlobs, ignore, {
+    mode: "strict",
+  });
   if (markdown.length > 0 && !skipOjsDiscovery) {
     resources.include.push(
       ...(await extractResolvedResourceFilenamesFromQmd(
