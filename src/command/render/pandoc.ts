@@ -707,6 +707,14 @@ export async function runPandoc(
     formatFilterParams["custom-writer"] = allDefaults.to;
     allDefaults.to = resourcePath("filters/customwriter/customwriter.lua");
   }
+  if (Deno.env.get("QUARTO_ALLENMANNING_WORKAROUND_CONFLUENCE") === undefined) {
+    if (allDefaults.writer?.match(/[.]lua$/)) {
+      formatFilterParams["custom-writer"] = allDefaults.writer;
+      allDefaults.writer = resourcePath(
+        "filters/customwriter/customwriter.lua",
+      );
+    }
+  }
 
   // set up the custom .qmd reader
   if (allDefaults.from) {
