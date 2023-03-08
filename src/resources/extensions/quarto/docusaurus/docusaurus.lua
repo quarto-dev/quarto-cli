@@ -19,7 +19,7 @@ function Pandoc(doc)
   if #rawHtmlVars > 0 then
     local exports = ("export const %s =\n[%s];"):format(kQuartoRawHtml, 
       table.concat(
-        rawHtmlVars:map(function(var) return '`\n'.. var .. '\n`' end), 
+        rawHtmlVars:map(function(var) return '`'.. var .. '`' end), 
         ","
       )
     )
@@ -59,7 +59,8 @@ function RawBlock(el)
   elseif el.format == 'html' then
     -- track the raw html vars (we'll insert them at the top later on as
     -- mdx requires all exports be declared together)
-    rawHtmlVars:insert(el.text)
+    local html = string.gsub(el.text, "\n+", "\n")
+    rawHtmlVars:insert(html)
 
     -- generate a div container for the raw html and return it as the block
     local html = ("<div dangerouslySetInnerHTML={{ __html: %s[%d] }} />")
