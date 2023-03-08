@@ -244,6 +244,7 @@ local function get_type(v)
       return "Custom" .. v.text:sub(s, e)
     end
   end
+  return pandoc_type
 end
 
 return {
