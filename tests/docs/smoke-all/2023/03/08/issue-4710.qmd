@@ -1,0 +1,21 @@
+---
+title: fig-in-lists
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - []
+        - ["@fig-join-left"]
+---
+
+-   Stuff
+
+    ```{r}
+    #| label: fig-join-left
+    #| echo: false
+    #| fig-cap: A caption
+
+    plot(mtcars)
+    ```
+
+@fig-join-left, oof.
