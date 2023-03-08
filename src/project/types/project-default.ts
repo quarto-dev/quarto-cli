@@ -11,6 +11,7 @@ import { resourcePath } from "../../core/resources.ts";
 import { kJupyterEngine } from "../../execute/types.ts";
 
 import { ProjectCreate, ProjectScaffoldFile, ProjectType } from "./types.ts";
+import { buildConfluenceFiles } from "./confluence/confluence.ts";
 
 export const kDefaultProjectFileContents = "{ project: { type: 'default' } }";
 export const kConfluence = "confluence";
@@ -29,7 +30,7 @@ export const defaultProjectType: ProjectType = {
 
   create: (title: string, template?: string): ProjectCreate => {
     let resourceDirectory = "default";
-    if (template === "confluence") {
+    if (template === kConfluence) {
       resourceDirectory = "confluence";
     }
 
@@ -39,6 +40,10 @@ export const defaultProjectType: ProjectType = {
       configTemplate: join(resourceDir, "templates", "_quarto.ejs.yml"),
       resourceDir,
       scaffold: (engine: string, kernel?: string, packages?: string[]) => {
+        if (template === kConfluence) {
+          return buildConfluenceFiles();
+        }
+
         const file: ProjectScaffoldFile[] = [
           {
             name: title,
