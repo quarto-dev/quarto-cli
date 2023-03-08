@@ -200,6 +200,7 @@
 - Fix typo `thumnail-image` -> `thumbnail-image` in listing template ([#4602](//github.com/quarto-dev/quarto-cli/pull/4602)) (Thank you, @mattspence!).
 - Add support for targeting the `#refs` divs with citations when using `natbib` or `biblatex` to generate a bibliography.
 - Warn users about Chromium installation issues in WSL ([#4596](https://github.com/quarto-dev/quarto-cli/issues/4586)).
+- Fix issue with "No inspectable targets" with Chrome Browser ([#4653](https://github.com/quarto-dev/quarto-cli/issues/4653))
 - Add `title` attribute for callouts (can be used rather than heading for defining the title)
 
 ## Pandoc filter changes
