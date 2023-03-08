@@ -79,8 +79,8 @@ nav[role="doc-toc"] {
 .headroom-target,
 header.headroom {
   will-change: transform;
-  transition: transform 200ms linear;
   transition: position 200ms linear;
+  transition: all 200ms linear;
 }
 
 header.headroom--pinned {
