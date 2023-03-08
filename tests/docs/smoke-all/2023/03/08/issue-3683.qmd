@@ -1,0 +1,17 @@
+---
+title: plots and output = "asis"
+_quarto:
+  tests:
+    markdown:
+      ensureFileRegexMatches:
+        - [] 
+        - ["::: \\{\\.cell-output-display\\}"]
+---
+
+```{r plot}
+#| echo: false
+#| output: asis
+cat("## Title\n")
+cat("\n")
+plot(mtcars)
+```
