@@ -78,6 +78,17 @@ function parseShortcodeCapture(capture: string): Shortcode | undefined {
       continue;
     }
 
+    // finally, we try to match a string with double quotes or single quotes
+    paramMatch = paramStr.match(/^"[^"]*"/) || paramStr.match(/^'[^']*'/);
+    if (paramMatch) {
+      params.push(paramMatch[0].slice(1, -1));
+      rawParams.push({
+        value: paramMatch[0].slice(1, -1),
+      });
+      paramStr = paramStr.slice(paramMatch[0].length).trim();
+      continue;
+    }
+
     throw new Error("invalid shortcode: " + capture);
   }
   return { name, params, namedParams, rawParams };
