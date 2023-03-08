@@ -29,6 +29,7 @@ citation:
   collection-title: foo
   keyword: 'foo, bar'
 bibliography: "`r 'references.bib'`"
+engine: knitr
 ---
 
 ## this is a test document
