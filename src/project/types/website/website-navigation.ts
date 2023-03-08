@@ -566,17 +566,24 @@ function navigationHtmlPostprocessor(
     const links = doc.querySelectorAll("a[href]");
     for (let i = 0; i < links.length; i++) {
       const link = links[i] as Element;
-      const href = getDecodedAttribute(link, "href");
-      if (href && !isExternalPath(href)) {
-        let projRelativeHref = href.startsWith("/")
-          ? href.slice(1)
-          : join(dirname(sourceRelative), href);
+      const resolveInput = link.getAttribute("data-noresolveinput") === null;
+      if (!resolveInput) {
+        link.removeAttribute("data-noresolveinput");
+      }
+      const linkHref = getDecodedAttribute(link, "href");
+      if (linkHref && !isExternalPath(linkHref)) {
+        let projRelativeHref = linkHref.startsWith("/")
+          ? linkHref.slice(1)
+          : join(dirname(sourceRelative), linkHref);
         const hashLoc = projRelativeHref.indexOf("#");
         const hash = hashLoc !== -1 ? projRelativeHref.slice(hashLoc) : "";
         if (hash) {
           projRelativeHref = projRelativeHref.slice(0, hashLoc);
         }
-        const resolved = await resolveInputTarget(project, projRelativeHref);
+        const resolved = resolveInput
+          ? await resolveInputTarget(project, projRelativeHref)
+          : { outputHref: pathWithForwardSlashes(join("/", projRelativeHref)) };
+
         if (resolved) {
           link.setAttribute("href", offset + resolved.outputHref + hash);
         } else {

@@ -348,7 +348,7 @@ async function renderHtmlView(
       path: href,
       filename,
     });
-    const templatePath = services.temp.createFile({ suffix: "html" });
+    const templatePath = services.temp.createFile({ suffix: ".html" });
     Deno.writeTextFileSync(templatePath, embedTemplate);
 
     // Render the notebook and update the path
