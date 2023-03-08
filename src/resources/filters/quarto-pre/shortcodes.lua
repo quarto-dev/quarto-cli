@@ -49,7 +49,6 @@ end
 
 local function unsmart_str(str)
   str = str:gsub('–', '--'):gsub('—', '---'):gsub('…', '...')
-  str = str:gsub('“', '"'):gsub('”', '"'):gsub('‘', "'"):gsub('’', "'")
   return str
 end
 
@@ -337,14 +336,19 @@ function processShortCode(inlines)
   local shortCode = nil
   local args = pandoc.List()
   local raw_args = pandoc.List()
-  inlines = inlines:walk({
-    Str = function(str)
-      return pandoc.Str(unsmart_str(str.text))
-    end
-  })
 
   -- slice off the open and close tags
   inlines = tslice(inlines, 2, #inlines - 1)
+
+  -- walk through the inlines and perform any unescaping of 'smart' characters
+  local unescapedInlines = pandoc.List()
+  for i,v in ipairs(inlines) do
+    if v.t == "Str" then
+      unescapedInlines:extend({pandoc.Str(unsmart_str(v.text))})
+    else
+      unescapedInlines:extend({v})
+    end
+  end
 
   -- handling for names with accompanying values
   local pendingName = nil
@@ -398,7 +402,7 @@ function processShortCode(inlines)
   end
 
   -- The core loop
-  for i, el in ipairs(inlines) do
+  for i, el in ipairs(unescapedInlines) do
     if el.t == "Str" then
       if shortCode == nil then
         -- the first value is a pure text code name
