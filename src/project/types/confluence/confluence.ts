@@ -3,16 +3,13 @@ import { ProjectScaffoldFile } from "../types.ts";
 export const buildConfluenceFiles = (): ProjectScaffoldFile[] => {
   const file: ProjectScaffoldFile[] = [
     {
+      name: "index",
+      content: `This project provides provides a simple scaffold for creating a Quarto Confluence Project. You'll almost certainly want to remove the sample files, they are just here as examples. When you add you own documents (including ones in subfolders) they will be automatically added to the site navigation sidebar.`,
+      title: "Example",
+    },
+    {
       name: "project-roadmap",
-      content: `# Welcome
-Welcome to this sample Quarto Confluence Project! Feel free to use this as a way to help get you started in building your own Confluence project.
-
--   To preview this project use the command \`quarto preview\`.
--   To publish this project use the command \`quarto publish confluence\`.
-
-For more information, [please see the documentation on publishing](https://quarto.org/docs/publishing/).
-
-## Overview
+      content: `## Overview
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla id accumsan justo. Nulla ut lectus efficitur, aliquet tellus elementum, hendrerit mi. Aenean risus purus, finibus eu consectetur sit amet, maximus ut tortor. Vivamus congue mollis ante in interdum. In at semper turpis, sed faucibus arcu. Nullam ultrices, neque nec mattis dictum, risus ante mattis diam, sit amet sagittis arcu ante ut urna.
 
