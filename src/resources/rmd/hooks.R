@@ -161,6 +161,10 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
 
   # entire chunk
   knit_hooks$chunk <- delegating_hook("chunk", function(x, options) {
+
+    # Do nothing more for some specific chunk content -----
+
+    # Quarto language handler
     if (any(as.logical(lapply(handledLanguages, function(lang) {
       prefix <- paste0("```{", lang, "}")
       startsWith(x, prefix)
@@ -177,6 +181,8 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     if (options[["engine"]] %in% c("verbatim", "embed", "comment")) {
       return(x)
     }
+
+    # For any other, adding a cell output div -----
 
     # read some options
     
@@ -282,7 +288,7 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
                      "code-line-numbers",
                      "layout", "layout-nrow", "layout-ncol", "layout-align", "layout-valign", 
                      "output", "include.hidden", "source.hidden", "plot.hidden", "output.hidden")
-    other_opts <- c("eval", "out.width", "yaml.code", "code", "params.src", "original.params.src", 
+    other_opts <- c("eval", "out.width", "yaml.code", "code", "file", "params.src", "original.params.src", 
                     "fenced.echo", "chunk.echo", "lang",
                     "out.width.px", "out.height.px", "indent", "class.source", 
                     "class.output", "class.message", "class.warning", "class.error", "attr.source", 
@@ -325,7 +331,6 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
      if (is.character(options[["tbl-cap-location"]])) 
       classes <- c(classes, paste0("tbl-cap-location-", options[["tbl-cap-location"]]))      
 
-
     if (isTRUE(options[["include.hidden"]])) {
       classes <- c(classes, "hidden")
     }
@@ -367,51 +372,46 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     x <- knitr:::hilight_source(x, "markdown", options)
     x <- knitr:::one_string(c('', x))
 
-    # leave verbatim alone
-    if (options[["engine"]] %in% c("verbatim", "embed")) {
-      return(paste0('\n\n````', options[["lang"]] %||% 'default', x, '\n````', '\n\n'))
-    }
-    
     class <- options$class.source
     attr <- options$attr.source
-    class <- paste(class, "cell-code")
-    if (isTRUE(options[["source.hidden"]])) {
-      class <- paste(class, "hidden")
-    }
-    if (!identical(format$metadata[["crossref"]], FALSE)) {
-      id <- options[["lst-label"]]
-      if (!is.null(options[["lst-cap"]])) {
-        attr <- paste(attr, paste0('caption="', options[["lst-cap"]], '"'))
+    id <- NULL
+
+    # leave some specific engine alone
+    if (! options[["engine"]] %in% c("verbatim", "embed")) {
+      # Add classes and attributes required for quarto specific features
+      class <- paste(class, "cell-code")
+      if (isTRUE(options[["source.hidden"]])) {
+        class <- paste(class, "hidden")
       }
-    } else {
-      id = NULL
-    }
-    if (identical(options[["code-overflow"]], "wrap"))
-      class <- paste(class, "code-overflow-wrap")
-    else if (identical(options[["code-overflow"]], "scroll"))
-      class <- paste(class, "code-overflow-scroll")
-    fold <- options[["code-fold"]]
-    if (!is.null(fold)) {
-      attr <- paste(attr, paste0('code-fold="', tolower(as.character(fold)), '"'))
-    }
-    fold <- options[["code-summary"]]
-    if (!is.null(fold)) {
-      attr <- paste(attr, paste0('code-summary="', as.character(fold), '"'))
-    }
-    lineNumbers <- options[["code-line-numbers"]]
-    if (!is.null(lineNumbers)) {
-      attr <- paste(attr, paste0('code-line-numbers="', tolower(as.character(lineNumbers)), '"'))
+      if (!identical(format$metadata[["crossref"]], FALSE)) {
+        id <- options[["lst-label"]]
+        if (!is.null(options[["lst-cap"]])) {
+          attr <- paste(attr, paste0('caption="', options[["lst-cap"]], '"'))
+        }
+      }
+      if (identical(options[["code-overflow"]], "wrap"))
+        class <- paste(class, "code-overflow-wrap")
+      else if (identical(options[["code-overflow"]], "scroll"))
+        class <- paste(class, "code-overflow-scroll")
+      fold <- options[["code-fold"]]
+      if (!is.null(fold)) {
+        attr <- paste(attr, paste0('code-fold="', tolower(as.character(fold)), '"'))
+      }
+      fold <- options[["code-summary"]]
+      if (!is.null(fold)) {
+        attr <- paste(attr, paste0('code-summary="', as.character(fold), '"'))
+      }
+      lineNumbers <- options[["code-line-numbers"]]
+      if (!is.null(lineNumbers)) {
+        attr <- paste(attr, paste0('code-line-numbers="', tolower(as.character(lineNumbers)), '"'))
+      }
     }
 
-    lang <- tolower(options$engine)
+    # handles same knitr options
+    lang <- tolower(options$lang %||% knitr:::eng2lang(options$engine))
+
     if (isTRUE(options[["fenced.echo"]])) {
-      attrs <- block_attr(
-        id = id,
-        lang = NULL,
-        class = trimws(class),
-        attr = attr
-      )
-      ticks <- "````"
+      lang <- NULL
       yamlCode <- lastYamlCode
       if (!is.null(yamlCode)) {
         yamlCode <- Filter(function(line) !grepl("echo:\\s+fenced", line), yamlCode)
@@ -422,15 +422,9 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
       } else {
         x <- trimws(x, "left")
       }
-      x <- paste0("\n```{{", options[["original.params.src"]], "}}\n", yamlCode, x, '\n```')
+      ticks <- knitr:::create_fence(x, "`")
+      x <- paste0("\n", ticks, "{{", options[["original.params.src"]], "}}\n", yamlCode, x, "\n", ticks)
     } else {
-       attrs <- block_attr(
-        id = id,
-        lang = lang,
-        class = trimws(class),
-        attr = attr
-      )
-
       # If requested, preserve the code yaml and emit it into the code blocks
       if (isTRUE(format$render$`produce-source-notebook`)) {
         yamlCode <- lastYamlCode
@@ -442,10 +436,18 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
           x <- paste0("\n", yamlCode, x)
         }
       }
-      ticks <- "```"
     }
-    
-    paste0('\n\n', ticks, attrs, x, '\n', ticks, '\n\n')   
+
+    ticks <- knitr:::create_fence(x, "`")
+    attrs <- block_attr(
+      id = id,
+      lang = lang,
+      class = trimws(class),
+      attr = attr
+    )
+
+    paste0("\n\n", ticks, attrs, x, "\n", ticks, "\n\n")
+   
   }
   knit_hooks$output <- delegating_output_hook("output", c("stdout"))
   knit_hooks$warning <- delegating_output_hook("warning", c("stderr"))
