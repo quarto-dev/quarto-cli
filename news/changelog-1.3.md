@@ -164,7 +164,6 @@
 ## Preview
 
 - Correct redirect for VS Code Server (#3352) (Thank you, @benz0li!)
-- Correct redirect for GitHub Codespaces
 
 ## LUA
 
