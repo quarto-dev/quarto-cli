@@ -52,6 +52,11 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
   })
 
   # pass through all languages handled by cell handlers in quarto
+  # but filter out those which should not replaced R knitr engines
+  ignoredHandlers <- c(
+    "embed" # only supported within Jupyter
+  )
+  handledLanguages <- setdiff(handledLanguages, ignoredHandlers)
   langs = lapply(
     setNames(handledLanguages, handledLanguages),
     function(lang) {
@@ -73,7 +78,7 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
     do.call(options, r_options)
   }
 
-  # get kntir options
+  # get knitr options
   knitr <- knitr_options(format, resourceDir, handledLanguages)
 
   # fixup options for cache
