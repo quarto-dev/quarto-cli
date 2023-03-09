@@ -13,7 +13,6 @@ import { FormatPandoc } from "../config/types.ts";
 import { existsSync } from "fs/mod.ts";
 import { resourcePath } from "../core/resources.ts";
 import { normalizePath } from "../core/path.ts";
-import { error } from "log/mod.ts";
 import { warnOnce } from "../core/log.ts";
 
 export interface ThemeDescriptor {
@@ -40,11 +39,6 @@ export function textHighlightThemePath(
     resolvedTheme = theme as string;
   }
 
-  const userThemePath = join(inputDir, resolvedTheme);
-  if (existsSync(userThemePath)) {
-    return normalizePath(userThemePath);
-  }
-
   // First try the style specific version of the theme, otherwise
   // fall back to the plain name
   const names = [
@@ -55,7 +49,20 @@ export function textHighlightThemePath(
   const themePath = names.map((name) => {
     return resourcePath(join("pandoc", "highlight-styles", `${name}.theme`));
   }).find((path) => existsSync(path));
-  return themePath;
+
+  if (themePath) {
+    // first see if this matches a built in name
+    return themePath;
+  } else {
+    // see if this is a path to a user theme
+    const userThemePath = join(inputDir, resolvedTheme);
+    if (existsSync(userThemePath)) {
+      return normalizePath(userThemePath);
+    }
+  }
+
+  // Could find a path
+  return undefined;
 }
 
 export function readHighlightingTheme(

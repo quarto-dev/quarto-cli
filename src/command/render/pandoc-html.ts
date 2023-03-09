@@ -498,7 +498,7 @@ export function generateCssKeyValues(textValues: Record<string, unknown>) {
         if (textValues[textAttr]) {
           lines.push("font-style: italic;");
         } else {
-          lines.push("font-style: inherit");
+          lines.push("font-style: inherit;");
         }
         break;
       case "underline":
