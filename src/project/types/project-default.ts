@@ -1,9 +1,9 @@
 /*
-* proejct-default.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * proejct-default.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ *
+ */
 
 import { join } from "path/mod.ts";
 
@@ -11,34 +11,48 @@ import { resourcePath } from "../../core/resources.ts";
 import { kJupyterEngine } from "../../execute/types.ts";
 
 import { ProjectCreate, ProjectScaffoldFile, ProjectType } from "./types.ts";
+import { buildConfluenceFiles } from "./confluence/confluence.ts";
 
 export const kDefaultProjectFileContents = "{ project: { type: 'default' } }";
+export const kConfluence = "confluence";
 
 export const defaultProjectType: ProjectType = {
   type: "default",
+  templates: [kConfluence],
 
-  formatLibDirs:
-    () => [
-      "bootstrap",
-      "quarto-html",
-      "quarto-ojs",
-      "quarto-diagram",
-      "quarto-contrib",
-    ],
+  formatLibDirs: () => [
+    "bootstrap",
+    "quarto-html",
+    "quarto-ojs",
+    "quarto-diagram",
+    "quarto-contrib",
+  ],
 
-  create: (title: string): ProjectCreate => {
-    const resourceDir = resourcePath(join("projects", "default"));
+  create: (title: string, template?: string): ProjectCreate => {
+    let resourceDirectory = "default";
+    if (template === kConfluence) {
+      resourceDirectory = "confluence";
+    }
+
+    const resourceDir = resourcePath(join("projects", resourceDirectory));
+
     return {
       configTemplate: join(resourceDir, "templates", "_quarto.ejs.yml"),
       resourceDir,
       scaffold: (engine: string, kernel?: string, packages?: string[]) => {
-        const file: ProjectScaffoldFile[] = [{
-          name: title,
-          content: `## Quarto
+        if (template === kConfluence) {
+          return buildConfluenceFiles();
+        }
+
+        const file: ProjectScaffoldFile[] = [
+          {
+            name: title,
+            content: `## Quarto
 
 Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.`,
-          title,
-        }];
+            title,
+          },
+        ];
         // add some additional content if we were a jupyter engine document created w/
         // matplotlib and/or pandas
         if (
