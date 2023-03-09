@@ -54,7 +54,8 @@ export const publishCommand =
         " - Quarto Pub (quarto-pub)\n" +
         " - GitHub Pages (gh-pages)\n" +
         " - Posit Connect (connect)\n" +
-        " - Netlify (netlify)\n\n" +
+        " - Netlify (netlify)\n" +
+        " - Confluence (confluence)\n\n" +
         "Accounts are configured interactively during publishing.\n" +
         "Manage/remove accounts with: quarto publish accounts",
     )
