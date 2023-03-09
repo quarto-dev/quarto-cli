@@ -464,7 +464,8 @@ export const buildSpaceChanges = (
 
 export const flattenIndexes = (
   changes: ConfluenceSpaceChange[],
-  metadataByFileName: Record<string, SitePage>
+  metadataByFileName: Record<string, SitePage>,
+  siteParentId: string
 ): ConfluenceSpaceChange[] => {
   const getFileNameForChange = (change: ConfluenceSpaceChange) => {
     if (isContentDelete(change)) {
@@ -513,6 +514,17 @@ export const flattenIndexes = (
     }
 
     const fileName = getFileNameForChange(change);
+
+    if (fileName === "index.xml") {
+      const rootUpdate = buildContentUpdate(
+        siteParentId,
+        change.title,
+        change.body,
+        "index.xml"
+      );
+      return [...accumulator, rootUpdate];
+    }
+
     const parentFileName = fileName.replace("/index.xml", "");
     const parentSitePage: SitePage = metadataByFileName[parentFileName];
     if (isIndexFile(change)) {
@@ -683,6 +695,14 @@ export const updateLinks = (
       if (siteFilePath.endsWith("/index.qmd")) {
         //flatten child index links to the parent
         const siteFilePathParent = siteFilePath.replace("/index.qmd", "");
+        if (fileMetadataTable[siteFilePathParent]) {
+          siteFilePath = siteFilePathParent;
+        }
+      }
+
+      if (!documentFileName.endsWith(".xml")) {
+        //this is a flattened index in a folder with contents
+        const siteFilePathParent = `${documentFileName}/${linkFullFileName}`;
         if (fileMetadataTable[siteFilePathParent]) {
           siteFilePath = siteFilePathParent;
         }

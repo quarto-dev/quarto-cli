@@ -10,7 +10,7 @@ import { configure } from "./common/configure.ts";
 import { mainRunner } from "../../src/core/main.ts";
 
 import { prepareDist } from "./common/prepare-dist.ts";
-import { updateHtmlDepedencies } from "./common/update-html-dependencies.ts";
+import { updateHtmlDependencies } from "./common/update-html-dependencies.ts";
 import { makeInstallerDeb } from "./linux/installer.ts";
 import { makeInstallerMac } from "./macos/installer.ts";
 import {
@@ -64,7 +64,7 @@ function getCommands() {
       ),
   );
   commands.push(
-    packageCommand(updateHtmlDepedencies)
+    packageCommand(updateHtmlDependencies)
       .name("update-html-dependencies")
       .description(
         "Updates Bootstrap, themes, and JS/CSS dependencies based upon the version in configuration",

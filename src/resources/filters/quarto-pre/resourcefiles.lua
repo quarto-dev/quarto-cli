@@ -11,11 +11,14 @@ function resourceFiles()
     -- around this
     Image = function(el)
       local targetPath = el.src
-      if pandoc.path.is_relative(targetPath) then 
-        local inputDir = pandoc.path.directory(quarto.doc.input_file)
-        targetPath = pandoc.path.join({inputDir, el.src})
+      if not targetPath:match('^http[s]:') and not targetPath:match('^data:') then
+        -- don't include this resource if it is a URL, data file or some not file path
+        if pandoc.path.is_relative(targetPath) then 
+          local inputDir = pandoc.path.directory(quarto.doc.input_file)
+          targetPath = pandoc.path.join({inputDir, el.src})
+        end
+        recordFileResource(el.src)
       end
-      recordFileResource(el.src)
     end,
   }
 end

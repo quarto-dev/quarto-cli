@@ -391,6 +391,8 @@ function revealHtmlPostprocessor(
       const titleSlide = doc.getElementById("title-slide");
       if (titleSlide) {
         titleSlide.removeAttribute("id");
+        // required for title-slide-style: pandoc
+        titleSlide.classList.add("quarto-title-block");
       }
     }
 
@@ -520,7 +522,9 @@ function revealHtmlPostprocessor(
     // doing this now the odds a user would want all of their
     // slides cnetered but NOT the title slide are close to zero
     if (format.metadata[kCenterTitleSlide] !== false) {
-      const titleSlide = doc.getElementById("title-slide") as Element;
+      const titleSlide = doc.getElementById("title-slide") as Element ??
+        // when hash-type: number, id are removed
+        doc.querySelector(".reveal .slides section.quarto-title-block");
       if (titleSlide) {
         titleSlide.classList.add("center");
       }

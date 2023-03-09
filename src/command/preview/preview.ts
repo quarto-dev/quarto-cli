@@ -74,6 +74,8 @@ import { projectOutputDir } from "../../project/project-shared.ts";
 import { projectContext } from "../../project/project-context.ts";
 import { normalizePath, pathWithForwardSlashes } from "../../core/path.ts";
 import {
+  gitHubCodeSpacesProxyUri,
+  isGitHubCodespaces,
   isJupyterHubServer,
   isRStudioServer,
   isRStudioWorkbench,
@@ -749,6 +751,9 @@ function pdfFileRequestHandler(
           ? await rswURL(port, kPdfJsInitialPath)
           : isVSCodeServer()
           ? vsCodeServerProxyUri()!.replace("{{port}}", `${port}`) +
+            kPdfJsInitialPath
+          : isGitHubCodespaces()
+          ? gitHubCodeSpacesProxyUri()!.replace("{{port}}", `${port}`) +
             kPdfJsInitialPath
           : "/" + kPdfJsInitialPath;
         return Promise.resolve(serveRedirect(url));

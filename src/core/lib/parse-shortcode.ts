@@ -30,13 +30,6 @@ export interface Shortcode {
   params: string[];
 }
 
-// shortcode capture BNF:
-// shortcode = shortcode-name shortcode-params?
-// shortcode-name = [a-zA-Z0-9_]+
-// shortcode-params = shortcode-param*
-// shortcode-param = shortcode-param-value | shortcode-param-name "=" shortcode-param-value
-// shortcode-param-name = [a-zA-Z0-9_-]+
-// shortcode-param-value = [^"'\s]+ | '"' [^"]* '"' | "'" [^']* "'"
 function parseShortcodeCapture(capture: string): Shortcode | undefined {
   // match shortcode name
   const nameMatch = capture.match(/^[a-zA-Z0-9_]+/);
@@ -49,45 +42,54 @@ function parseShortcodeCapture(capture: string): Shortcode | undefined {
 
   const name = nameMatch[0];
   let paramStr = capture.slice(name.length).trim();
-  // match params
-  const paramName = "([a-zA-Z0-9_-]+)";
-  const paramValue1 = "([^\"'\\s]+)";
-  const paramValue2 = `"([^"]*)"`;
-  const paramValue3 = `'([^\']*)'`;
-
-  const paramValue = `(?:${paramValue1})|(?:${paramValue2})|(?:${paramValue3})`;
-  const paramNameAndValue =
-    `(?:${paramName}\\s*=\\s*${paramValue1})|(?:${paramName}\\s*=\\s*${paramValue2})|(?:${paramName}\\s*=\\s*${paramValue3})`;
-
-  const paramRe = new RegExp(`(?:${paramValue}|${paramNameAndValue})`);
 
   while (paramStr.length) {
-    const paramMatch = paramStr.match(paramRe);
+    let paramMatch: RegExpMatchArray | null;
+
+    // first we try to match name=value, name="value", or name='value'
+    paramMatch = paramStr.match(/^[a-zA-Z0-9_-]+="[^"]*"/);
     if (!paramMatch) {
-      throw new Error("invalid shortcode: " + capture);
+      paramMatch = paramStr.match(/^[a-zA-Z0-9_-]+='[^']*'/);
+    }
+    if (!paramMatch) {
+      paramMatch = paramStr.match(/^[a-zA-Z0-9_-]+=[^"'\s]+/);
     }
 
-    const captures = paramMatch.slice(1).filter((x) => x !== undefined);
-    if (captures.length === 1) {
-      params.push(captures[0]);
+    if (paramMatch) {
+      const [name, value] = paramMatch[0].split("=");
+      namedParams[name] = value;
       rawParams.push({
-        value: captures[0],
+        name,
+        value,
       });
-      // value only
-    } else if (captures.length === 2) {
-      namedParams[captures[0]] = captures[1];
-      rawParams.push({
-        name: captures[0],
-        value: captures[1],
-      });
-    } else {
-      throw new Error(
-        "Internal Error, could not determine correct shortcode capture for " +
-          capture,
-      );
+      paramStr = paramStr.slice(paramMatch[0].length).trim();
+      continue;
     }
 
-    paramStr = paramStr.slice(paramMatch[0].length).trim();
+    // then we try to match value, a string without quotes or equals
+    paramMatch = paramStr.match(/^[^"'\s]+/);
+
+    if (paramMatch) {
+      params.push(paramMatch[0]);
+      rawParams.push({
+        value: paramMatch[0],
+      });
+      paramStr = paramStr.slice(paramMatch[0].length).trim();
+      continue;
+    }
+
+    // finally, we try to match a string with double quotes or single quotes
+    paramMatch = paramStr.match(/^"[^"]*"/) || paramStr.match(/^'[^']*'/);
+    if (paramMatch) {
+      params.push(paramMatch[0].slice(1, -1));
+      rawParams.push({
+        value: paramMatch[0].slice(1, -1),
+      });
+      paramStr = paramStr.slice(paramMatch[0].length).trim();
+      continue;
+    }
+
+    throw new Error("invalid shortcode: " + capture);
   }
   return { name, params, namedParams, rawParams };
 }

@@ -217,7 +217,7 @@ if (!rmarkdown::pandoc_available(error = FALSE)) {
   # Checking env var to be safe, but should always set by Quarto
   if (!is.na(quarto_bin_path)) {
     pandoc_dir <- normalizePath(file.path(quarto_bin_path, "tools"))
-    rmarkdown::find_pandoc(dir = pandoc_dir)
+    invisible(rmarkdown::find_pandoc(dir = pandoc_dir))
   }
 }
 

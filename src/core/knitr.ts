@@ -10,6 +10,7 @@ import * as colors from "fmt/colors.ts";
 import { execProcess } from "./process.ts";
 import { rBinaryPath, resourcePath } from "./resources.ts";
 import { readYamlFromString } from "./yaml.ts";
+import { coerce, satisfies } from "semver/mod.ts";
 
 export interface KnitrCapabilities {
   versionMajor: number;
@@ -17,8 +18,21 @@ export interface KnitrCapabilities {
   versionPatch: number;
   home: string;
   libPaths: string[];
+  packages: KnitrRequiredPackages;
+}
+
+export interface KnitrRequiredPackages {
+  knitr: string | null;
+  knitrVersOk?: boolean;
   rmarkdown: string | null;
 }
+
+const pkgVersRequirement = {
+  knitr: {
+    type: ">=",
+    version: "1.30",
+  },
+};
 
 export async function knitrCapabilities() {
   try {
@@ -31,6 +45,16 @@ export async function knitrCapabilities() {
     });
     if (result.success && result.stdout) {
       const caps = readYamlFromString(result.stdout) as KnitrCapabilities;
+      // check knitr requirement
+      const knitrVersion = caps.packages.knitr
+        ? coerce(caps.packages.knitr)
+        : undefined;
+      caps.packages.knitrVersOk = knitrVersion
+        ? satisfies(
+          knitrVersion,
+          Object.values(pkgVersRequirement["knitr"]).join(" "),
+        )
+        : false;
       return caps;
     } else {
       return undefined;
@@ -49,15 +73,35 @@ export function knitrCapabilitiesMessage(caps: KnitrCapabilities, indent = "") {
   for (const path of caps.libPaths) {
     lines.push(`  - ${path}`);
   }
-  lines.push(`rmarkdown: ${caps.rmarkdown || "(None)"}`);
+  lines.push(`knitr: ${caps.packages.knitr || "(None)"}`);
+  if (caps.packages.knitr && !caps.packages.knitrVersOk) {
+    lines.push(
+      `NOTE: knitr version ${caps.packages.knitr} is too old. Please upgrade to ${pkgVersRequirement.knitr.version} or later.`,
+    );
+  }
+  lines.push(`rmarkdown: ${caps.packages.rmarkdown || "(None)"}`);
   return lines.map((line: string) => `${indent}${line}`).join("\n");
 }
 
-export function knitrInstallationMessage(indent = "") {
+export function knitrInstallationMessage(
+  indent = "",
+  pkg = "rmarkdown",
+  update = false,
+) {
   const lines = [
-    "The rmarkdown package is not available in this R installation.",
-    "Install with " + colors.bold('install.packages("rmarkdown")'),
+    `The ${pkg} package is ${
+      update ? "outdated" : "not available"
+    } in this R installation.`,
   ];
+  if (update) {
+    lines.push(
+      "Update with " + colors.bold(`update.packages("${pkg}")`),
+    );
+  } else {
+    lines.push(
+      "Install with " + colors.bold(`install.packages("${pkg}")`),
+    );
+  }
   return lines.map((line: string) => `${indent}${line}`).join("\n");
 }
 

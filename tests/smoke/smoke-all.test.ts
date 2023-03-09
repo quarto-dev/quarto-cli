@@ -18,6 +18,7 @@ import { parse } from "encoding/yaml.ts";
 import { cleanoutput } from "./render/render.ts";
 import {
   ensureDocxRegexMatches,
+  ensurePptxRegexMatches,
   ensureFileRegexMatches,
   ensureHtmlElements,
   fileExists,
@@ -86,6 +87,7 @@ function resolveTestSpecs(
     ensureHtmlElements,
     ensureFileRegexMatches,
     ensureDocxRegexMatches,
+    ensurePptxRegexMatches,
   };
 
   for (const [format, testObj] of Object.entries(specs)) {

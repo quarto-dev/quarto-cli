@@ -437,7 +437,7 @@ function revealMenuTools(format: Format) {
     {
       title: "PDF Export Mode",
       key: "e",
-      handler: "overview",
+      handler: "togglePdfExport",
     },
   ];
   if (format.metadata[kRevealChalkboard]) {

@@ -13,6 +13,7 @@ import { FormatPandoc } from "../config/types.ts";
 import { existsSync } from "fs/mod.ts";
 import { resourcePath } from "../core/resources.ts";
 import { normalizePath } from "../core/path.ts";
+import { warnOnce } from "../core/log.ts";
 
 export interface ThemeDescriptor {
   json: Record<string, unknown>;
@@ -38,11 +39,6 @@ export function textHighlightThemePath(
     resolvedTheme = theme as string;
   }
 
-  const userThemePath = join(inputDir, resolvedTheme);
-  if (existsSync(userThemePath)) {
-    return normalizePath(userThemePath);
-  }
-
   // First try the style specific version of the theme, otherwise
   // fall back to the plain name
   const names = [
@@ -53,7 +49,20 @@ export function textHighlightThemePath(
   const themePath = names.map((name) => {
     return resourcePath(join("pandoc", "highlight-styles", `${name}.theme`));
   }).find((path) => existsSync(path));
-  return themePath;
+
+  if (themePath) {
+    // first see if this matches a built in name
+    return themePath;
+  } else {
+    // see if this is a path to a user theme
+    const userThemePath = join(inputDir, resolvedTheme);
+    if (existsSync(userThemePath)) {
+      return normalizePath(userThemePath);
+    }
+  }
+
+  // Could find a path
+  return undefined;
 }
 
 export function readHighlightingTheme(
@@ -118,9 +127,19 @@ export function readTheme(
     theme,
     style === "default" ? undefined : style,
   );
-  if (themeFile && existsSync(themeFile)) {
-    return Deno.readTextFileSync(themeFile);
-  } else {
+  if (!themeFile) {
     return undefined;
   }
+
+  if (!existsSync(themeFile)) {
+    warnOnce(`The text highlighting theme ${themeFile} does not exist.`);
+    return undefined;
+  }
+
+  if (Deno.statSync(themeFile).isDirectory) {
+    throw new Error(
+      `The text highlighting theme ${themeFile} is a directory. Please provide a valid theme name or path to a .theme file.`,
+    );
+  }
+  return Deno.readTextFileSync(themeFile);
 }

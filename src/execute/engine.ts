@@ -130,8 +130,8 @@ export function markdownExecutionEngine(
   }
 
   // if there is no computational engine discovered then bind
-  // to the knitr engine if there are inline r expressions
-  return engineForMarkdownWithNoLanguages(markdown);
+  // to the markdown engine;
+  return markdownEngine;
 }
 
 /**
@@ -207,14 +207,6 @@ export async function fileExecutionEngineAndTarget(
     engine,
     target,
   };
-}
-
-function engineForMarkdownWithNoLanguages(markdown: string) {
-  if (markdown.match(/`r[ #]([^`]+)\s*`/)) {
-    return knitrEngine;
-  } else {
-    return markdownEngine;
-  }
 }
 
 export function engineIgnoreDirs() {

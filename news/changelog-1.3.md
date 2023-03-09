@@ -16,6 +16,8 @@
 ## Knitr engine
 
 - Help rmarkdown find pandoc binary bundled with Quarto if none is found ([#3688](https://github.com/quarto-dev/quarto-cli/issues/3688)).
+- Do not bind knitr engine when only inline `r` expressions are found ([#3908](https://github.com/quarto-dev/quarto-cli/issues/3908)).
+- Fix an issue with `output: asis` in chunks with plots ([#3683](https://github.com/quarto-dev/quarto-cli/issue3683)).
 
 ## Code Annotation
 
@@ -41,6 +43,7 @@
 - Use custom `styles.html` template partial to better support checkbox alignment ([#4556](https://github.com/quarto-dev/quarto-cli/issues/4556)).
 - Improve ergonomics of text-highting in HTML output, not emitting difficult overwrite styles and better supporting theme -> CSS conversion. ([#4334](https://github.com/quarto-dev/quarto-cli/issues/4334)).
 - Improve CSS of nested tight and loose lists ([#4560](https://github.com/quarto-dev/quarto-cli/discussions/4650)).
+- Resolve Bootstrap responsive classes in tables ([#2997](https://github.com/quarto-dev/quarto-cli/issues/2997)).
 
 ## Article Layout
 
@@ -57,6 +60,9 @@
 - Properly support `show-notes: separate-page` [#3996](https://github.com/quarto-dev/quarto-cli/issues/3996)
 - Improve footnote / aside layout for centered slides. [#4297](https://github.com/quarto-dev/quarto-cli/issues/4297)
 - Ensure anchors refer to the containing slide in case of crossrefs ([#3533](https://github.com/quarto-dev/quarto-cli/issues/4297)).
+- Support `output-location` as a top level option in Revealjs presentations ([#3261](https://github.com/quarto-dev/quarto-cli/issues/3261))
+- Fix PDF export keyboard shortcut and button in menu ([#2988](https://github.com/quarto-dev/quarto-cli/issues/2988))
+- Fix title slide CSS when `hash-type: number` ([#4418](https://github.com/quarto-dev/quarto-cli/issues/4418)).
 
 ## EPUB Format
 
@@ -77,6 +83,7 @@
   - Note that this fix changes the filenames used for PDF files with variants. In quarto 1.3, the automatic output names for PDF files include format variants and modifiers.
 - Correctly download online image on Windows ([#3982](https://github.com/quarto-dev/quarto-cli/issues/3982)).
 - Permissions of `.tex` file are now correct when `keep-tex: true` ([#4380](https://github.com/quarto-dev/quarto-cli/issues/4380)).
+- Better support footnotes within Callouts in PDF / LaTeX output ([#1235](https://github.com/quarto-dev/quarto-cli/issues/1235)).
 
 ## Beamer Format
 
@@ -157,6 +164,7 @@
 ## Preview
 
 - Correct redirect for VS Code Server (#3352) (Thank you, @benz0li!)
+- Correct redirect for GitHub Codespaces
 
 ## LUA
 
@@ -197,7 +205,9 @@
 - Fix typo `thumnail-image` -> `thumbnail-image` in listing template ([#4602](//github.com/quarto-dev/quarto-cli/pull/4602)) (Thank you, @mattspence!).
 - Add support for targeting the `#refs` divs with citations when using `natbib` or `biblatex` to generate a bibliography.
 - Warn users about Chromium installation issues in WSL ([#4596](https://github.com/quarto-dev/quarto-cli/issues/4586)).
+- Fix issue with "No inspectable targets" with Chrome Browser ([#4653](https://github.com/quarto-dev/quarto-cli/issues/4653))
 - Add `title` attribute for callouts (can be used rather than heading for defining the title)
+- Handle more varieties of raw HTML for Docusaurus output
 
 ## Pandoc filter changes
 
@@ -216,7 +226,8 @@
 
 ## Other
 
-- fix error when running the command `quarto render -h` to receive help ([#3202](https://github.com/quarto-dev/quarto-cli/issues/3202)).
+- Fix error when running the command `quarto render -h` to receive help ([#3202](https://github.com/quarto-dev/quarto-cli/issues/3202)).
 - Fix error when rendering a document with an extension which provides a directory as `format-resources` ([#4377](https://github.com/quarto-dev/quarto-cli/issues/4377)).
 - Fix incorrect copying of resource files during rendering ([#4544](https://github.com/quarto-dev/quarto-cli/issues/4544))
 - Extension authors may now force files to be included in their template by writing the file / file path in the `.quartoignore` file prefixed with a `!`. For example `!README.md` ([#4061](https://github.com/quarto-dev/quarto-cli/issues/4061)).
+- Fix issue when installing extensions on older Windows ([#4203](https://github.com/quarto-dev/quarto-cli/issues/4203)).

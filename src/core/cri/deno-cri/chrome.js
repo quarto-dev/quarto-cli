@@ -61,20 +61,30 @@ export default class Chrome extends EventEmitter {
   constructor(options, notifier) {
     super();
     // options
-    const defaultTarget = (targets) => {
-      // prefer type = 'page' inspectable targets as they represents
-      // browser tabs (fall back to the first inspectable target
-      // otherwise)
-      let backup;
-      let target = targets.find((target) => {
-        if (target.webSocketDebuggerUrl) {
-          backup = backup || target;
-          return target.type === "page";
-        } else {
-          return false;
+    const defaultTarget = async (targets) => {
+      let target;
+      // If no targets available in browser, create a new one
+      // Related to https://github.com/quarto-dev/quarto-cli/issues/4653
+      if (!targets.length) {
+        target = await devtools.New(options);
+        if (!target.id) {
+          throw new Error("No inspectable targets and unable to create one");
         }
-      });
-      target = target || backup;
+      } else {
+        // prefer type = 'page' inspectable targets as they represents
+        // browser tabs (fall back to the first inspectable target
+        // otherwise)
+        let backup;
+        target = targets.find((target) => {
+          if (target.webSocketDebuggerUrl) {
+            backup = backup || target;
+            return target.type === "page";
+          } else {
+            return false;
+          }
+        });
+        target = target || backup;
+      }
       if (target) {
         return target;
       } else {
@@ -228,7 +238,7 @@ export default class Chrome extends EventEmitter {
       case "function": {
         const func = userTarget;
         const targets = await devtools.List(options);
-        const result = func(targets);
+        const result = await func(targets);
         const object = typeof result === "number" ? targets[result] : result;
         return object.webSocketDebuggerUrl;
       }
