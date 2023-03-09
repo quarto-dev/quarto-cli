@@ -123,7 +123,14 @@ export const tokenFilterOut = (
 };
 
 export const confluenceParentFromString = (url: string): ConfluenceParent => {
-  const match = url.match(
+  let toMatch = url;
+  const urlNoParamsList = url?.split("?");
+
+  if (urlNoParamsList.length === 2) {
+    toMatch = urlNoParamsList[0] ?? url;
+  }
+
+  const match = toMatch.match(
     /^https.*?wiki\/spaces\/(?:(~?\w+)|(~?\w+)\/overview|(~?\w+)\/pages\/(\d+).*)$/
   );
   if (match) {

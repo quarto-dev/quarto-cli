@@ -310,6 +310,17 @@ const runConfluenceParentFromString = () => {
     assertEquals(expected, result);
   });
 
+  test("confluenceParentFromString_valid_spaces_pages_with_homepage", async () => {
+    const url =
+      "https://allenmanning.atlassian.net/wiki/spaces/~557058634d59d0949841909bb13093ab41d0c5/overview?homepageId=65617";
+    const result = confluenceParentFromString(url);
+    const expected: ConfluenceParent = {
+      space: "~557058634d59d0949841909bb13093ab41d0c5",
+      parent: undefined,
+    };
+    assertEquals(expected, result);
+  });
+
   test("confluenceParentFromString_valid_noParent", async () => {
     const url = "https://test.atlassian.net/wiki/spaces/QUARTOCONF";
     const result = confluenceParentFromString(url);
