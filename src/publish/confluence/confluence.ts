@@ -676,7 +676,7 @@ async function publish(
       existingSite
     );
 
-    changeList = flattenIndexes(changeList, metadataByFilename);
+    changeList = flattenIndexes(changeList, metadataByFilename, parentId);
 
     const { pass1Changes, pass2Changes } = updateLinks(
       metadataByFilename,

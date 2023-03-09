@@ -63,7 +63,7 @@ import {
 
 const RUN_ALL_TESTS = true;
 const FOCUS_TEST = false;
-const HIDE_NOISE = true;
+const HIDE_NOISE = false;
 
 const xtest = (
   name: string,
@@ -3106,6 +3106,8 @@ const runSpaceUpdatesWithNestedMoves = () => {
 const runFlattenIndexes = () => {
   const suiteLabel = (label: string) => `FlattenIndexes_${label}`;
 
+  const FAKE_SITE_PARENT_ID = "fake-site-parent-id";
+
   const FAKE_METADATA_ONE_FOLDER = {
     ["fake-parent"]: {
       title: "Fake Parent Title",
@@ -3128,7 +3130,8 @@ const runFlattenIndexes = () => {
     const expected: ConfluenceSpaceChange[] = [];
     const actual: ConfluenceSpaceChange[] = flattenIndexes(
       spaceChanges,
-      FAKE_METADATA_EMPTY
+      FAKE_METADATA_EMPTY,
+      FAKE_SITE_PARENT_ID
     );
     assertEquals(expected, actual);
   });
@@ -3162,7 +3165,8 @@ const runFlattenIndexes = () => {
     const expected: ConfluenceSpaceChange[] = spaceChanges;
     const actual: ConfluenceSpaceChange[] = flattenIndexes(
       spaceChanges,
-      FAKE_METADATA_EMPTY
+      FAKE_METADATA_EMPTY,
+      FAKE_SITE_PARENT_ID
     );
     assertEquals(expected, actual);
   });
@@ -3219,7 +3223,8 @@ const runFlattenIndexes = () => {
     const expected: ConfluenceSpaceChange[] = spaceChanges;
     const actual: ConfluenceSpaceChange[] = flattenIndexes(
       spaceChanges,
-      FAKE_METADATA_EMPTY
+      FAKE_METADATA_EMPTY,
+      FAKE_SITE_PARENT_ID
     );
     assertEquals(expected, actual);
   });
@@ -3300,7 +3305,60 @@ const runFlattenIndexes = () => {
     ];
     const actual: ConfluenceSpaceChange[] = flattenIndexes(
       spaceChanges,
-      FAKE_METADATA_EMPTY
+      FAKE_METADATA_EMPTY,
+      FAKE_SITE_PARENT_ID
+    );
+    assertEquals(expected, actual);
+  });
+
+  otest(suiteLabel("create_root_with_index"), async () => {
+    const spaceChanges: ConfluenceSpaceChange[] = [
+      {
+        contentChangeType: ContentChangeType.create,
+        ancestors: [
+          {
+            id: "8781825",
+          },
+        ],
+        body: {
+          storage: {
+            representation: "storage",
+            value: "fake content root index",
+          },
+        },
+        fileName: "index.xml",
+        space: {
+          key: "fake-space-key",
+          id: "fake-space-id",
+          homepage: buildFakeContent(),
+        },
+        status: "current",
+        title: "Root Index",
+        type: "page",
+      },
+    ];
+    const expected: ConfluenceSpaceChange[] = [
+      {
+        contentChangeType: ContentChangeType.update,
+        id: FAKE_SITE_PARENT_ID,
+        version: null,
+        ancestors: null,
+        body: {
+          storage: {
+            representation: "storage",
+            value: "fake content root index",
+          },
+        },
+        fileName: "index.xml",
+        status: "current",
+        title: "Root Index",
+        type: "page",
+      },
+    ];
+    const actual: ConfluenceSpaceChange[] = flattenIndexes(
+      spaceChanges,
+      FAKE_METADATA_EMPTY,
+      FAKE_SITE_PARENT_ID
     );
     assertEquals(expected, actual);
   });
@@ -3355,7 +3413,8 @@ const runFlattenIndexes = () => {
     ];
     const actual: ConfluenceSpaceChange[] = flattenIndexes(
       spaceChanges,
-      FAKE_METADATA_ONE_FOLDER
+      FAKE_METADATA_ONE_FOLDER,
+      FAKE_SITE_PARENT_ID
     );
     assertEquals(expected, actual);
   });
@@ -3529,7 +3588,8 @@ const runFlattenIndexes = () => {
     ];
     const actual: ConfluenceSpaceChange[] = flattenIndexes(
       spaceChanges,
-      FAKE_METADATA_EMPTY
+      FAKE_METADATA_EMPTY,
+      FAKE_SITE_PARENT_ID
     );
     assertEquals(expected, actual);
   });
