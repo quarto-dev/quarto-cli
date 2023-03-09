@@ -45,7 +45,11 @@ import("../common/meta.lua")
 import("../common/table.lua")
 import("../common/string.lua")
 import("../common/debug.lua")
+
+import("../common/customastshim.lua")
 -- [/import]
+
+-- note that the custom-ast-shim.lua import should _not_ happen on main.lua
 
 initCrossrefIndex()
 

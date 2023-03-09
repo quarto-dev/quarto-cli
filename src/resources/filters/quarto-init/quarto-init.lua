@@ -16,7 +16,13 @@ import("../common/filemetadata.lua")
 import("../common/meta.lua")
 import("includes.lua")
 import("resourcerefs.lua")
+import("../common/customastshim.lua")
+
 -- [/import]
+
+-- note that the custom-ast-shim.lua import should _not_ happen on main.lua
+-- it exists for us to be able to support filters that need to exist on IDE
+-- and do not require the full custom AST work.
 
 return {
   readIncludes(),
