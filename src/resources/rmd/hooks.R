@@ -171,9 +171,8 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
       return(x)
     }
 
-    # verbatim and comment should do nothing
-    if (identical(options[["engine"]], "verbatim") ||
-        identical(options[["engine"]], "comment")) {
+    # verbatim-like and comment knitr's engine should do nothing
+    if (options[["engine"]] %in% c("verbatim", "embed", "comment")) {
       return(x)
     }
 
