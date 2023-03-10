@@ -197,7 +197,7 @@ async function callR<T>(
 ): Promise<T> {
   // establish cwd for execute (the current dir if there is an renv
   // otherwise the project dir if specified)
-  const cwd = withinActiveRenv() ? undefined : projectDir;
+  const cwd = withinActiveRenv() ? undefined : projectDir ?? Deno.cwd();
 
   // create a temp file for writing the results
   const resultsFile = Deno.makeTempFileSync(
@@ -208,6 +208,7 @@ async function callR<T>(
     action,
     params,
     results: resultsFile,
+    wd: cwd,
   });
 
   try {
