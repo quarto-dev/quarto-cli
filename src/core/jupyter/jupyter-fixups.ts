@@ -114,7 +114,7 @@ export function fixupFrontMatter(nb: JupyterNotebook): JupyterNotebook {
 
   // helper to create nb lines (w/ newline after)
   const nbLines = (lns: string[]) => {
-    return lns.map((line) => `${line}\n`);
+    return lns.map((line) => line.endsWith("\n") ? line : `${line}\n`);
   };
 
   // look for the first raw block that has a yaml object
@@ -137,7 +137,7 @@ export function fixupFrontMatter(nb: JupyterNotebook): JupyterNotebook {
   for (const cell of nb.cells) {
     if (cell.cell_type === "markdown") {
       const { lines, headingText } = markdownWithExtractedHeading(
-        cell.source.join("\n"),
+        nbLines(cell.source).join(""),
       );
       if (headingText) {
         title = headingText;
