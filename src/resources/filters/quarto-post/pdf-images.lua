@@ -27,7 +27,7 @@ local resolvedUrls = {}
 -- replace invalid tex characters with underscores
 local tex_safe_filename = function(filename)
   -- return filename
-  return filename:gsub('[^%w%.%-]', '-')
+  return filename:gsub("[ <>()|:&;#?*'\\/]", '-')
 end
 
 function pdfImages() 
