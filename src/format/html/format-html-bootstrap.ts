@@ -526,49 +526,54 @@ function processAlternateFormatLinks(
         })
         : options.renderedFormats;
 
-      for (const renderedFormat of displayFormats) {
-        if (!isHtmlOutput(renderedFormat.format.pandoc, true)) {
-          const li = doc.createElement("li");
+      const finalDisplayFormats = displayFormats.filter((renderedFormat) => {
+        return !isHtmlOutput(renderedFormat.format.pandoc, true);
+      });
 
-          const relPath = isAbsolute(renderedFormat.path)
-            ? relative(dirname(input), renderedFormat.path)
-            : renderedFormat.path;
+      for (const renderedFormat of finalDisplayFormats) {
+        const li = doc.createElement("li");
 
-          const link = doc.createElement("a");
-          link.setAttribute("href", relPath);
-          const dlAttrValue = fileDownloadAttr(
-            renderedFormat.format,
-            renderedFormat.path,
-          );
-          if (dlAttrValue) {
-            link.setAttribute("download", dlAttrValue);
-          }
+        const relPath = isAbsolute(renderedFormat.path)
+          ? relative(dirname(input), renderedFormat.path)
+          : renderedFormat.path;
 
-          const icon = doc.createElement("i");
-          icon.classList.add("bi");
-          icon.classList.add(`bi-${fileBsIconName(renderedFormat.format)}`);
-          link.appendChild(icon);
-          link.appendChild(
-            doc.createTextNode(
-              `${
-                renderedFormat.format.identifier[kDisplayName] ||
-                renderedFormat.format.pandoc.to
-              }${
-                renderedFormat.format.identifier[kExtensionName]
-                  ? ` (${renderedFormat.format.identifier[kExtensionName]})`
-                  : ""
-              }`,
-            ),
-          );
-
-          li.appendChild(link);
-          formatList.appendChild(li);
-
-          resources.push(renderedFormat.path);
+        const link = doc.createElement("a");
+        link.setAttribute("href", relPath);
+        const dlAttrValue = fileDownloadAttr(
+          renderedFormat.format,
+          renderedFormat.path,
+        );
+        if (dlAttrValue) {
+          link.setAttribute("download", dlAttrValue);
         }
+
+        const icon = doc.createElement("i");
+        icon.classList.add("bi");
+        icon.classList.add(`bi-${fileBsIconName(renderedFormat.format)}`);
+        link.appendChild(icon);
+        link.appendChild(
+          doc.createTextNode(
+            `${
+              renderedFormat.format.identifier[kDisplayName] ||
+              renderedFormat.format.pandoc.to
+            }${
+              renderedFormat.format.identifier[kExtensionName]
+                ? ` (${renderedFormat.format.identifier[kExtensionName]})`
+                : ""
+            }`,
+          ),
+        );
+
+        li.appendChild(link);
+        formatList.appendChild(li);
+
+        resources.push(renderedFormat.path);
       }
-      containerEl.appendChild(formatList);
-      dlLinkTarget.appendChild(containerEl);
+
+      if (finalDisplayFormats.length > 0) {
+        containerEl.appendChild(formatList);
+        dlLinkTarget.appendChild(containerEl);
+      }
     }
   }
 }
