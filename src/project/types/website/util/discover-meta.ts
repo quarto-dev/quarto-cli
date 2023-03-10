@@ -79,6 +79,13 @@ export function findPreviewImgEl(doc: Document): Element | undefined {
       return img;
     }
   }
+
+  // as a last resort, just use the auto-discovered image from the lua
+  // filter chain, if it exists
+  const autoImg = doc.querySelector("img.quarto-discovered-preview-image");
+  if (autoImg) {
+    return autoImg;
+  }
 }
 
 // The general words per minute that we should use.
