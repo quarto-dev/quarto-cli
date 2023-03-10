@@ -120,9 +120,14 @@ export function fixupFrontMatter(nb: JupyterNotebook): JupyterNotebook {
   // look for the first raw block that has a yaml object
   let partitioned: { yaml: string; markdown: string } | undefined;
   const frontMatterCellIndex = nb.cells.findIndex((cell) => {
-    if (cell.cell_type === "raw") {
+    if (cell.cell_type === "raw" || cell.cell_type === "markdown") {
       partitioned = partitionYamlFrontMatter(cell.source.join("")) || undefined;
-      return !!partitioned;
+      if (partitioned) {
+        cell.cell_type = "raw";
+        return true;
+      } else {
+        return false;
+      }
     }
   });
 
