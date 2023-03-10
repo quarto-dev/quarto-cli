@@ -12,7 +12,13 @@ import * as ld from "../../../core/lodash.ts";
 import { stringify } from "encoding/yaml.ts";
 import { error } from "log/mod.ts";
 
-import { Document, Element, parseHtml } from "../../../core/deno-dom.ts";
+import {
+  Document,
+  Element,
+  initDenoDom,
+  parseHtml,
+  writeDomToHtmlFile,
+} from "../../../core/deno-dom.ts";
 
 import { pathWithForwardSlashes, safeExistsSync } from "../../../core/path.ts";
 import { execProcess } from "../../../core/process.ts";
@@ -103,6 +109,8 @@ export async function bookBibliographyPostRender(
   incremental: boolean,
   outputFiles: WebsiteProjectOutputFile[],
 ) {
+  await initDenoDom();
+
   // make sure the references file exists and compute it's path
   const renderFiles = context.config?.project[kProjectRender] || [];
 
@@ -130,13 +138,14 @@ export async function bookBibliographyPostRender(
     // a global bibliography. also hide the refs div in each document (as it's
     // still used by citations-hover)
     const citeIds: string[] = [];
-    outputFiles.forEach((file) => {
+    for (const file of outputFiles) {
       // relative path to refs html
       const refsRelative = pathWithForwardSlashes(
         relative(dirname(file.file), refsHtml!),
       );
       // check each citation
-      forEachCite(file.doc, (cite: Element) => {
+      const doc = await parseHtml(Deno.readTextFileSync(file.file));
+      forEachCite(doc, (cite: Element) => {
         // record ids
         citeIds.push(...citeIdsFromCite(cite));
         // fix hrefs
@@ -148,11 +157,11 @@ export async function bookBibliographyPostRender(
       });
 
       // hide the bibliography
-      const refsDiv = file.doc.getElementById("refs");
+      const refsDiv = doc.getElementById("refs");
       if (refsDiv) {
         refsDiv.setAttribute("style", "display: none");
       }
-    });
+    }
 
     // is the refs one of our output files?
     const refsOutputFile = outputFiles.find((file) => file.file === refsHtml);
@@ -199,16 +208,27 @@ export async function bookBibliographyPostRender(
           "html",
           csl,
         );
-        const newRefsDiv = refsOutputFile.doc.createElement("div");
+        const doc = await parseHtml(refsOutputFile.file);
+        const newRefsDiv = doc.createElement("div");
         newRefsDiv.innerHTML = biblioHtml;
-        const refsDiv = refsOutputFile.doc.getElementById("refs") as Element;
+        const refsDiv = doc.getElementById("refs") as Element;
+        let changed = false;
         if (refsDiv) {
+          changed = true;
           refsDiv.replaceWith(newRefsDiv.firstChild);
         } else {
-          const mainEl = refsOutputFile.doc.querySelector("main");
+          const mainEl = doc.querySelector("main");
           if (mainEl) {
+            changed = true;
             mainEl.appendChild(newRefsDiv.firstChild);
           }
+        }
+        if (changed) {
+          await writeDomToHtmlFile(
+            doc,
+            refsOutputFile.file,
+            refsOutputFile.doctype,
+          );
         }
       }
     }
