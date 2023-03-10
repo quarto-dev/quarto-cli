@@ -513,6 +513,13 @@ export const kCrossrefChaptersAppendix = "chapters-appendix";
 export const kCrossrefChaptersAlpha = "chapters-alpha";
 export const kCrossrefChapterId = "chapter-id";
 
+export const kGrid = "grid";
+export const kContentMode = "content-mode";
+export const kAuto = "auto";
+export const kStandardContent = "standard";
+export const kFullContent = "full";
+export const kSlimContent = "slim";
+
 export const kFigResponsive = "fig-responsive";
 export const kOutputLocation = "output-location";
 

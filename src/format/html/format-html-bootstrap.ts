@@ -13,9 +13,11 @@ import { formatResourcePath } from "../../core/resources.ts";
 import { findParent } from "../../core/html.ts";
 
 import {
+  kContentMode,
   kDisplayName,
   kExtensionName,
   kFormatLinks,
+  kGrid,
   kHtmlMathMethod,
   kIncludeInHeader,
   kLinkCitations,
@@ -630,23 +632,41 @@ function bootstrapHtmlFinalizer(format: Format, flags: PandocFlags) {
     if (rightSidebar && !hasRightContent && !hasMarginContent && !hasToc) {
       rightSidebar.remove();
     }
-    const hasColumnElements = getColumnLayoutElements(doc).length > 0;
 
-    if (hasColumnElements) {
-      if (hasLeftContent && hasMarginContent) {
-        // Slim down the content area so there are sizable margins
-        // for the column element
-        doc.body.classList.add("slimcontent");
-      } else if (hasRightContent || hasMarginContent || fullLayout || hasToc) {
-        // Use the default layout, so don't add any classes
+    // Set the content mode for the grid system
+    const gridObj = format.metadata[kGrid] as Metadata;
+    let contentMode = "auto";
+    if (gridObj) {
+      contentMode =
+        gridObj[kContentMode] as ("auto" | "standard" | "full" | "slim");
+    }
+
+    if (contentMode === undefined || contentMode === "auto") {
+      const hasColumnElements = getColumnLayoutElements(doc).length > 0;
+      if (hasColumnElements) {
+        if (hasLeftContent && hasMarginContent) {
+          // Slim down the content area so there are sizable margins
+          // for the column element
+          doc.body.classList.add("slimcontent");
+        } else if (
+          hasRightContent || hasMarginContent || fullLayout || hasToc
+        ) {
+          // Use the default layout, so don't add any classes
+        } else {
+          doc.body.classList.add("fullcontent");
+        }
       } else {
-        doc.body.classList.add("fullcontent");
+        if (!hasRightContent && !hasMarginContent && !hasToc) {
+          doc.body.classList.add("fullcontent");
+        } else {
+          // Use the deafult layout, don't add any classes
+        }
       }
     } else {
-      if (!hasRightContent && !hasMarginContent && !hasToc) {
+      if (contentMode === "slim") {
+        doc.body.classList.add("slimcontent");
+      } else if (contentMode === "full") {
         doc.body.classList.add("fullcontent");
-      } else {
-        // Use the deafult layout, don't add any classes
       }
     }
 

@@ -84,6 +84,9 @@
     object:
       closed: true
       properties:
+        content-mode:
+          enum: ["auto", "standard", "full", "slim"]
+          description: "Defines whether to use the standard, slim, or full content grid or to automatically select the most appropriate content grid."
         sidebar-width:
           string:
             description: "The base width of the sidebar (left) column in an HTML page."
