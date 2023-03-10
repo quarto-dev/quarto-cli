@@ -358,12 +358,10 @@ export function completeListingItems(
           });
 
           if (contents.previewImage) {
-            const imagePath = pathWithForwardSlashes(
-              listingItemHref(
-                contents.previewImage.src,
-                dirname(docRelativePath),
-              ),
-            );
+            const imagePath = isAbsolute(contents.previewImage.src)
+              ? contents.previewImage.src
+              : join(dirname(docRelativePath), contents.previewImage.src);
+
             const imgHtml = imageSrc(
               { ...contents.previewImage, src: imagePath },
               progressive,
