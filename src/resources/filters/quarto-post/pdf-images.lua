@@ -29,7 +29,7 @@ local resolvedUrls = {}
 local windows_safe_filename = function(filename)
   -- pull the first 200 characters without the extension
   local stem, ext = pandoc.path.split_extension(filename)
-  local safeStem = stem:sub(1, 200)
+  local safeStem = stem:sub(1, 20)
 
   local result = safeStem .. ext
 
