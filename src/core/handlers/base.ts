@@ -279,8 +279,15 @@ function makeHandlerContext(
   return { context, results };
 }
 
+// return cell language handler only
 export function languages(): string[] {
-  return Object.keys(handlers);
+  const cellLanguage = [];
+  for (const [k, v] of Object.entries(handlers)) {
+    if (v.type === "cell") {
+      cellLanguage.push(k);
+    }
+  }
+  return cellLanguage;
 }
 
 export async function languageSchema(
