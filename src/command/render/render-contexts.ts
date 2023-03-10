@@ -656,8 +656,12 @@ const readExtensionFormat = async (
     // Read the yaml file and resolve / bucketize
     const extensionFormat = extension?.contributes.formats;
     if (extensionFormat) {
+      const fmtTarget = formatDesc.modifiers
+        ? `${formatDesc.baseFormat}${formatDesc.modifiers.join("")}`
+        : formatDesc.baseFormat;
       const extensionMetadata =
-        (extensionFormat[formatDesc.baseFormat] || {}) as Metadata;
+        (extensionFormat[fmtTarget] || extensionFormat[formatDesc.baseFormat] ||
+          {}) as Metadata;
       extensionMetadata[kExtensionName] = extensionMetadata[kExtensionName] ||
         formatDesc.extension;
 
