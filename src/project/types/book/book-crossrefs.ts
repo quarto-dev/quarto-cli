@@ -60,7 +60,7 @@ export async function bookCrossrefsPostRender(
       const index = bookCrossrefIndexForOutputFile(fileRelative, indexes);
       if (index) {
         // resolve crossrefs
-        const doc = await parseHtml(outputFile.file);
+        const doc = await parseHtml(Deno.readTextFileSync(outputFile.file));
         resolveCrossrefs(
           context,
           fileRelative,

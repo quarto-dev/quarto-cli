@@ -208,7 +208,7 @@ export async function bookBibliographyPostRender(
           "html",
           csl,
         );
-        const doc = await parseHtml(refsOutputFile.file);
+        const doc = await parseHtml(Deno.readTextFileSync(refsOutputFile.file));
         const newRefsDiv = doc.createElement("div");
         newRefsDiv.innerHTML = biblioHtml;
         const refsDiv = doc.getElementById("refs") as Element;
