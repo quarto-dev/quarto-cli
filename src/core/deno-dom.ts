@@ -25,6 +25,20 @@ export async function parseHtml(src: string): Promise<HTMLDocument> {
   return result;
 }
 
+export async function writeDomToHtmlFile(
+  doc: HTMLDocument,
+  path: string,
+  doctype?: string,
+) {
+  if (doc.documentElement === null) {
+    throw new Error("Document has no root element");
+  }
+  const output = doctype
+    ? doctype + "\n" + doc.documentElement.outerHTML
+    : doc.documentElement.outerHTML;
+  await Deno.writeTextFile(path, output);
+}
+
 // We are combining a number of scripts from
 // https://github.com/b-fuze/deno-dom/blob/master/deno-dom-native.ts
 // into this. If deno-dom fails, it's likely that this needs to be brought up to date.

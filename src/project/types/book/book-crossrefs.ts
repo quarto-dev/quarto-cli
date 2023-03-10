@@ -9,7 +9,12 @@ import { warning } from "log/mod.ts";
 import { dirname, join, relative } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
-import { Element, HTMLDocument } from "../../../core/deno-dom.ts";
+import {
+  Element,
+  HTMLDocument,
+  parseHtml,
+  writeDomToHtmlFile,
+} from "../../../core/deno-dom.ts";
 
 import { pathWithForwardSlashes } from "../../../core/path.ts";
 
@@ -55,13 +60,15 @@ export async function bookCrossrefsPostRender(
       const index = bookCrossrefIndexForOutputFile(fileRelative, indexes);
       if (index) {
         // resolve crossrefs
+        const doc = await parseHtml(Deno.readTextFileSync(outputFile.file));
         resolveCrossrefs(
           context,
           fileRelative,
           outputFile.format,
-          outputFile.doc,
+          doc,
           index,
         );
+        writeDomToHtmlFile(doc, outputFile.file, outputFile.doctype);
       }
     }
   }
