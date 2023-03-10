@@ -92,6 +92,17 @@ export class ConfluenceClient {
     return result?.results ?? [];
   }
 
+  public async lockDownPermissions(contentId: string, user: User) {
+    try {
+      await this.put<Content>(
+        `content/${contentId}/restriction/byOperation/update/user?accountId=${user.accountId}`
+      );
+    } catch (error) {
+      console.log("error", error);
+      trace("lockDownResult Error", error);
+    }
+  }
+
   public async createContent(
     user: User,
     content: ContentCreate,
@@ -107,14 +118,7 @@ export class ConfluenceClient {
     const createBody = JSON.stringify(toCreate);
     const result: Content = await this.post<Content>("content", createBody);
 
-    try {
-      await this.put<Content>(
-        `content/${result.id}/restriction/byOperation/update/user?accountId=${user.accountId}`
-      );
-    } catch (error) {
-      //Sometimes the API returns the error 'Unexpected end of JSON input'
-      trace("lockDownResult Error", error);
-    }
+    await this.lockDownPermissions(result.id ?? "", user);
 
     return result;
   }
@@ -134,14 +138,7 @@ export class ConfluenceClient {
       JSON.stringify(toUpdate)
     );
 
-    try {
-      const lockDownResult = await this.put<Content>(
-        `content/${content.id}/restriction/byOperation/update/user?accountId=${user.accountId}`
-      );
-    } catch (error) {
-      //Sometimes the API returns the error 'Unexpected end of JSON input'
-      trace("lockDownResult Error", error);
-    }
+    await this.lockDownPermissions(content.id ?? "", user);
 
     return result;
   }
