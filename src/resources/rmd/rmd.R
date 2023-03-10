@@ -137,6 +137,11 @@
   request <- jsonlite::parse_json(input, simplifyVector = TRUE)
   params <- request$params
 
+  # Ensuring expected working dir for Quarto
+  # R process workding may be changed by some workflows (in  ~/.Rprofile)
+  # https://github.com/quarto-dev/quarto-cli/issues/2646
+  setwd(request$wd) # no need to reset it as R process is closed by R
+
   # source in helper functions if we have a resourceDir
   if (!is.null(params$resourceDir)) {
     res_dir <- file.path(params$resourceDir, "rmd")
