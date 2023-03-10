@@ -24,6 +24,12 @@ end
 -- keyed by {url: mediabagpath}
 local resolvedUrls = {}
 
+-- replace invalid tex characters with underscores
+local tex_safe_filename = function(filename)
+  -- return filename
+  return filename:gsub('[^%w%.%-]', '-')
+end
+
 function pdfImages() 
   return {
     -- convert SVG images to PDF when rendering PDFS
@@ -88,7 +94,7 @@ function pdfImages()
               local relativePath = image.src:match('http[s]://[%w%.%:]+/(.+)')
               if relativePath then
                 local imgMt, imgContents = pandoc.mediabag.fetch(image.src)
-                local filename = pandoc.path.filename(relativePath)
+                local filename = tex_safe_filename(pandoc.path.filename(relativePath))
                 if imgMt ~= nil then
                   local existingMt = pandoc.mediabag.lookup(filename)
                   local counter = 1
@@ -96,6 +102,7 @@ function pdfImages()
                     local stem, ext = pandoc.path.split_extension(filename)
                     filename = stem .. counter .. ext
                     existingMt = pandoc.mediabag.lookup(filename)
+                    counter = counter + 1
                   end
                   resolvedUrls[image.src] = filename
                   pandoc.mediabag.insert(filename, imgMt, imgContents)
