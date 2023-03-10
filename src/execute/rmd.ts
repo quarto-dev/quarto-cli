@@ -195,9 +195,9 @@ async function callR<T>(
   outputFilter?: (output: string) => string,
   reportError = true,
 ): Promise<T> {
-  // establish cwd for execute (the current dir if there is an renv
+  // establish cwd for our R scripts (the current dir if there is an renv
   // otherwise the project dir if specified)
-  const cwd = withinActiveRenv() ? undefined : projectDir ?? Deno.cwd();
+  const cwd = withinActiveRenv() ? Deno.cwd() : projectDir ?? Deno.cwd();
 
   // create a temp file for writing the results
   const resultsFile = Deno.makeTempFileSync(
