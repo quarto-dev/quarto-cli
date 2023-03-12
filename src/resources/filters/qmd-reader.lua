@@ -88,25 +88,23 @@ function escape_invalid_tags(str)
     -- replace all lua special pattern characters with their
     -- escaped versions
     local safe_pattern = k:gsub("([%^%$%(%)%%%.%[%]%*%+%-%?])", "%%%1")
-
-    -- replace all lua special replacement characters with their
-    -- escaped versions
-    local safe_replacement = k:gsub("([$%%])", "%%%1")
-    replacements[replacement] = safe_replacement
-
+    replacements[replacement] = k
     local patterns = {
-      "^([ \t\f\v]*```+[ \t\f\v]*)" .. safe_pattern, 
+      "^([ \t\f\v]*```+[ \t\f\v]*)" .. safe_pattern,
       "(\n[ \t\f\v]*```+[ \t\f\v]*)" .. safe_pattern
     }
-    
-    str = str:gsub(patterns[1], "%1" .. safe_replacement):gsub(patterns[2], "%1" .. safe_replacement)
+
+    str = str:gsub(patterns[1], "%1" .. replacement):gsub(patterns[2], "%1" .. replacement)
   end
   return str, replacements
 end
 
 function unescape_invalid_tags(str, tags)
   for replacement, k in pairs(tags) do
-    str = str:gsub(replacement, k)
+    -- replace all lua special replacement characters with their
+    -- escaped versions, so that when we restore the behavior,
+    -- we don't accidentally create a pattern
+    str = str:gsub(replacement, k:gsub("([$%%])", "%%%1"))
   end
   return str
 end
