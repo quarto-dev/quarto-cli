@@ -21209,9 +21209,7 @@ var require_yaml_intelligence_resources = __commonJS({
       ],
       "handlers/languages.yml": [
         "mermaid",
-        "include",
-        "dot",
-        "embed"
+        "dot"
       ],
       "handlers/lang-comment-chars.yml": {
         r: "#",
@@ -21259,6 +21257,7 @@ var require_yaml_intelligence_resources = __commonJS({
         d3: "//",
         node: "//",
         sass: "//",
+        scss: "//",
         coffee: "#",
         go: "//",
         asy: "//",
@@ -30362,6 +30361,7 @@ var kLangCommentChars = {
   d3: "//",
   node: "//",
   sass: "//",
+  scss: "//",
   coffee: "#",
   go: "//",
   asy: "//",

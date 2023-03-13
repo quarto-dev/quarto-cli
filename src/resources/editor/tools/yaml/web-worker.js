@@ -21210,9 +21210,7 @@ try {
         ],
         "handlers/languages.yml": [
           "mermaid",
-          "include",
-          "dot",
-          "embed"
+          "dot"
         ],
         "handlers/lang-comment-chars.yml": {
           r: "#",
@@ -21260,6 +21258,7 @@ try {
           d3: "//",
           node: "//",
           sass: "//",
+          scss: "//",
           coffee: "#",
           go: "//",
           asy: "//",
@@ -30376,6 +30375,7 @@ ${tidyverseInfo(
     d3: "//",
     node: "//",
     sass: "//",
+    scss: "//",
     coffee: "#",
     go: "//",
     asy: "//",
