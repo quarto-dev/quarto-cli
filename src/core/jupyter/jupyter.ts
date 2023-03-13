@@ -375,7 +375,8 @@ export async function quartoMdToJupyter(
               }
               delete yaml[key];
             } else {
-              if (!kJupyterCellOptionKeys.includes(key)) {
+              // an option value of null means that it is an nbdev-style directive
+              if (!kJupyterCellOptionKeys.includes(key) && yaml[key] !== null) {
                 cell.metadata[key] = yaml[key];
                 delete yaml[key];
               }
@@ -844,6 +845,8 @@ export function jupyterCellOptionsAsComment(
     });
     const commentChars = langCommentChars(language);
     const yamlOutput = mdTrimEmptyLines(lines(cellYaml)).map((line) => {
+      // an option value of null means that the key is a nbdev-style directive
+      line = line.replace(/: null$/, "");
       line = optionCommentPrefix(commentChars[0]) + line +
         optionCommentSuffix(commentChars[1]);
       return line + "\n";

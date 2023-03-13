@@ -64,6 +64,7 @@ export function partitionCellOptions(
             yamlOption += line[line.length - 1];
           }
         }
+        yamlOption = fixNbdevDirective(yamlOption);
         yamlLines.push(yamlOption);
         optionsSource.push(line);
         continue;
@@ -95,6 +96,16 @@ export function partitionCellOptions(
     sourceStartLine: yamlLines.length,
   };
 }
+
+function fixNbdevDirective(line: string) {
+  // convert non-yaml nbdev-style directives to yaml keys with a null value
+  if (line.match(/^\w+\s*$/)) {  // e.g. export
+    return line.replace(/(\s*)$/, ": null$1");
+  } else if (line.match(/^\w+\s+[^:\s]/)) {  // e.g. default_exp foo
+    return line.replace(/(\s*)$/, ": null$1");
+  }
+  return line;
+};
 
 export async function parseAndValidateCellOptions(
   mappedYaml: MappedString,
