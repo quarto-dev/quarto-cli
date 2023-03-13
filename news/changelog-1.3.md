@@ -150,6 +150,7 @@
 - Improve title recognition for pages that don't include a title in metadata ([#4528](https://github.com/quarto-dev/quarto-cli/issues/4528))
 - Ensure that footnote are properly indexed for website and book searches ([#4601](https://github.com/quarto-dev/quarto-cli/issues/4601)).
 - Permit sidebar items to include icons ([#3830](https://github.com/quarto-dev/quarto-cli/issues/3830)).
+- Use light navbar background by default for generated websites.
 
 ## Books
 

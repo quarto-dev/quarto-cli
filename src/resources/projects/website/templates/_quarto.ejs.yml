@@ -4,6 +4,7 @@ project:
 website:
   title: "<%= title %>"
   navbar:
+    background: light
     left:
       - href: index<%= ext %>
         text: Home
