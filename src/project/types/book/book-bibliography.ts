@@ -139,6 +139,8 @@ export async function bookBibliographyPostRender(
     // still used by citations-hover)
     const citeIds: string[] = [];
     for (const file of outputFiles) {
+      let changed = false;
+
       // relative path to refs html
       const refsRelative = pathWithForwardSlashes(
         relative(dirname(file.file), refsHtml!),
@@ -153,6 +155,7 @@ export async function bookBibliographyPostRender(
         for (let l = 0; l < citeLinks.length; l++) {
           const link = citeLinks[l] as Element;
           link.setAttribute("href", refsRelative + link.getAttribute("href"));
+          changed = true;
         }
       });
 
@@ -160,6 +163,15 @@ export async function bookBibliographyPostRender(
       const refsDiv = doc.getElementById("refs");
       if (refsDiv) {
         refsDiv.setAttribute("style", "display: none");
+        changed = true;
+      }
+
+      if (changed) {
+        await writeDomToHtmlFile(
+          doc,
+          file.file,
+          file.doctype,
+        );
       }
     }
 
