@@ -5,7 +5,7 @@
 *
 */
 
-import { existsSync } from "node/fs.ts";
+import { existsSync } from "node:fs";
 import { execProcess } from "./process.ts";
 import { TextLineStream } from "streams/mod.ts";
 

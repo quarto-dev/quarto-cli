@@ -11,7 +11,7 @@ import Chrome from "./chrome.js";
 
 export default CDP;
 export { Protocol, List, New, Activate, Close, Version } from "./devtools.js";
-import { nextTick } from "node/_next_tick.ts";
+import { nextTick } from "node:process";
 
 // const EventEmitter = require('events');
 // const dns = require('dns');
@@ -35,7 +35,7 @@ function CDP(options, callback) {
   const notifier = new EventEmitter();
   if (typeof callback === "function") {
     // allow to register the error callback later
-    nextTick(() => {
+    process.nextTick(() => {
       new Chrome(options, notifier);
     });
     return notifier.once("connect", callback);

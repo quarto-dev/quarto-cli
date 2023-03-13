@@ -5,7 +5,7 @@
 *
 */
 
-import { config, DotenvConfig, stringify } from "dotenv/mod.ts";
+import { load, stringify } from "dotenv/mod.ts";
 import { join } from "path/mod.ts";
 import { safeExistsSync } from "../core/path.ts";
 import { isEqual } from "../core/lodash.ts";
@@ -20,9 +20,9 @@ const kQuartoEnvRequired = `${kQuartoEnv}.required`;
 // read the QUARTO_PROFILE from dotenv if it's there
 export async function dotenvQuartoProfile(projectDir: string) {
   // read config
-  const conf = await config({
-    defaults: join(projectDir, kQuartoEnv),
-    path: join(projectDir, kQuartoEnvLocal),
+  const conf = await load({
+    defaultsPath: join(projectDir, kQuartoEnv),
+    envPath: join(projectDir, kQuartoEnvLocal),
   });
 
   // return profile if we have it
@@ -33,6 +33,9 @@ export async function dotenvQuartoProfile(projectDir: string) {
 // previously and we back it out when we are called to re-process (as might
 // occur on a re-render in quarto)
 const dotenvVariablesSet: string[] = [];
+
+// https://github.com/denoland/deno_std/pull/3134/files#diff-7d23db8c4e8837b2e3de75397b39d08efea4d5eddc00c7e0c36571d9c2514c8dL96
+type DotenvConfig = Record<string, string>;
 
 // track previous variables defined (used to trigger event indicating a change)
 let prevDotenvVariablesDefined: DotenvConfig | undefined;
@@ -55,7 +58,7 @@ export async function dotenvSetVariables(projectDir: string) {
   // read the dot env files in turn, track variables defined for validation
   const dotenvVariablesDefined: DotenvConfig = {};
   for (const dotenvFile of dotenvFiles) {
-    const conf = await config({ path: dotenvFile });
+    const conf = await load({ envPath: dotenvFile });
     for (const key in conf) {
       // set into environment (and track that we did so for reversing out later)
       if (Deno.env.get(key) === undefined) {
@@ -79,10 +82,10 @@ export async function dotenvSetVariables(projectDir: string) {
       definedEnvTempPath,
       stringify(dotenvVariablesDefined),
     );
-    await config({
-      path: definedEnvTempPath,
-      example: dotenvRequired,
-      safe: true,
+    await load({
+      envPath: definedEnvTempPath,
+      examplePath: dotenvRequired,
+      // safe: true, FIXME we need to figure out how to handle this now that `safe:` was deprecated and removed
       allowEmptyValues: true,
     });
   }

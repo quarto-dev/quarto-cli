@@ -5,7 +5,7 @@
 *
 */
 
-import { writeAll } from "streams/conversion.ts";
+import { writeAll } from "streams/write_all.ts";
 import { progressBar } from "./console.ts";
 
 export interface DownloadError extends Error {

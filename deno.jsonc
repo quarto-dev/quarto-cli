@@ -662,5 +662,6 @@
         "src/resources/projects/website/search/quarto-search.js"
       ]
     }
-  }
+  },
+  "importMap": "./src/vendor/import_map.json"
 }

@@ -1,4 +1,4 @@
-import { readLines } from "https://deno.land/std@0.76.0/io/bufio.ts";
+import { readLines } from "https://deno.land/std@0.179.0/io/read_lines.ts";
 
 if (import.meta.main) {
   const patterns: RegExp[] = Deno.args.map((arg) => new RegExp(arg));

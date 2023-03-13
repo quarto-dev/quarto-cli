@@ -43,6 +43,10 @@ export function userDataDir(appName: string, roaming = false) {
       return xdgUserDataDir(appName);
     case "windows":
       return windowsUserDataDir(appName, roaming);
+    // deno 1.32.1 can report "windows" | "darwin" | "linux" | "freebsd" | "netbsd" | "aix" | "solaris" | "illumos"
+    // we don't support those, so we need to guard here.
+    default:
+      throw new Error("never arrives here");
   }
 }
 
@@ -54,6 +58,8 @@ export function userConfigDir(appName: string, roaming = false) {
       return xdgUserConfigDir(appName);
     case "windows":
       return windowsUserDataDir(appName, roaming);
+    default:
+      throw new Error("never arrives here");
   }
 }
 
@@ -65,6 +71,8 @@ export function userCacheDir(appName: string) {
       return xdgUserCacheDir(appName);
     case "windows":
       return windowsUserDataDir(appName);
+    default:
+      throw new Error("never arrives here");
   }
 }
 
@@ -76,6 +84,8 @@ export function userRuntimeDir(appName: string) {
       return xdgUserRuntimeDir(appName);
     case "windows":
       return windowsUserDataDir(appName);
+    default:
+      throw new Error("never arrives here");
   }
 }
 

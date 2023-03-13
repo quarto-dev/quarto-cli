@@ -9,7 +9,7 @@ import { join } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 import { resolvePathGlobs } from "../core/path.ts";
 import { lines } from "../core/text.ts";
-import { warning } from "https://deno.land/std@0.166.0/log/mod.ts";
+import { warning } from "log/mod.ts";
 
 const kQuartoIgnore = ".quartoignore";
 

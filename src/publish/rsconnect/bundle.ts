@@ -8,10 +8,10 @@
 // deno-lint-ignore-file no-deprecated-deno-api
 
 import { dirname, join } from "path/mod.ts";
-import { copy } from "streams/conversion.ts";
+import { copy } from "streams/copy.ts";
 import { ensureDirSync } from "fs/mod.ts";
 
-import { createHash } from "node/crypto.ts";
+import { createHash } from "node:crypto";
 import { Tar } from "archive/tar.ts";
 
 import { PublishFiles } from "../provider.ts";

@@ -10,12 +10,15 @@ import { requireQuoting, safeWindowsExec } from "./windows.ts";
 import { execProcess } from "./process.ts";
 
 export async function openUrl(url: string) {
-  const shellOpen = {
+  const shellOpen: Record<string, string> = {
     windows: "explorer",
     darwin: "open",
     linux: "xdg-open",
   };
 
+  if (!["windows", "darwin", "linux"].includes(Deno.build.os)) {
+    throw new Error("Unsupported OS");
+  }
   const cmd = shellOpen[Deno.build.os];
 
   // Because URLs may contain characters like '&' that need to be escaped

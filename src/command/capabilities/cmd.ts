@@ -5,7 +5,7 @@
 *
 */
 
-import { writeAllSync } from "streams/conversion.ts";
+import { writeAllSync } from "streams/write_all.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 import { capabilities } from "./capabilities.ts";

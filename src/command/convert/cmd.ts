@@ -5,7 +5,7 @@
 *
 */
 
-import { existsSync } from "node/fs.ts";
+import { existsSync } from "node:fs";
 import { join } from "path/mod.ts";
 import { info } from "log/mod.ts";
 
