@@ -104,7 +104,8 @@ function unescape_invalid_tags(str, tags)
     -- replace all lua special replacement characters with their
     -- escaped versions, so that when we restore the behavior,
     -- we don't accidentally create a pattern
-    str = str:gsub(replacement, k:gsub("([$%%])", "%%%1"))
+    local result = k:gsub("([$%%])", "%%%1")
+    str = str:gsub(replacement, result)
   end
   return str
 end
