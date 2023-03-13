@@ -28,6 +28,11 @@ export type User = {
   accountId: string;
   accountType: "atlassian" | "app";
   email: string;
+  operations: Operation[];
+};
+
+export type Operation = {
+  operation: string;
 };
 
 export type Space = {
