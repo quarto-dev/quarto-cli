@@ -203,28 +203,29 @@ function dependency(name, version, main) {
   };
 }
 
-const d3 = dependency("d3", "7.6.1", "dist/d3.min.js");
+const d3 = dependency("d3", "7.8.2", "dist/d3.min.js");
 const inputs = dependency("@observablehq/inputs", "0.10.4", "dist/inputs.min.js");
-const plot = dependency("@observablehq/plot", "0.6.0", "dist/plot.umd.min.js");
+const plot = dependency("@observablehq/plot", "0.6.4", "dist/plot.umd.min.js");
 const graphviz = dependency("@observablehq/graphviz", "0.2.1", "dist/graphviz.min.js");
 const highlight = dependency("@observablehq/highlight.js", "2.0.0", "highlight.min.js");
 const katex = dependency("@observablehq/katex", "0.11.1", "dist/katex.min.js");
 const lodash = dependency("lodash", "4.17.21", "lodash.min.js");
 const htl = dependency("htl", "0.3.1", "dist/htl.min.js");
-const jszip = dependency("jszip", "3.10.0", "dist/jszip.min.js");
+const jszip = dependency("jszip", "3.10.1", "dist/jszip.min.js");
 const marked = dependency("marked", "0.3.12", "marked.min.js");
-const sql = dependency("sql.js", "1.7.0", "dist/sql-wasm.js");
+const sql = dependency("sql.js", "1.8.0", "dist/sql-wasm.js");
 const vega = dependency("vega", "5.22.1", "build/vega.min.js");
-const vegalite = dependency("vega-lite", "5.5.0", "build/vega-lite.min.js");
+const vegalite = dependency("vega-lite", "5.6.0", "build/vega-lite.min.js");
 const vegaliteApi = dependency("vega-lite-api", "5.0.0", "build/vega-lite-api.min.js");
 const arrow4 = dependency("apache-arrow", "4.0.1", "Arrow.es2015.min.js");
 const arrow9 = dependency("apache-arrow", "9.0.0", "+esm");
+const arrow11 = dependency("apache-arrow", "11.0.0", "+esm");
 const arquero = dependency("arquero", "4.8.8", "dist/arquero.min.js");
 const topojson = dependency("topojson-client", "3.1.0", "dist/topojson-client.min.js");
 const exceljs = dependency("exceljs", "4.3.0", "dist/exceljs.min.js");
-const mermaid$1 = dependency("mermaid", "9.1.6", "dist/mermaid.min.js");
-const leaflet$1 = dependency("leaflet", "1.8.0", "dist/leaflet.js");
-const duckdb = dependency("@duckdb/duckdb-wasm", "1.17.0", "+esm");
+const mermaid$1 = dependency("mermaid", "9.2.2", "dist/mermaid.min.js");
+const leaflet$1 = dependency("leaflet", "1.9.3", "dist/leaflet.js");
+const duckdb = dependency("@duckdb/duckdb-wasm", "1.24.0", "+esm");
 
 const metas = new Map;
 const queue$1 = [];
@@ -457,7 +458,7 @@ class SQLiteDatabaseClient {
     ]);
   }
   async describeTables({schema} = {}) {
-    return this.query(`SELECT NULLIF(schema, 'main') AS schema, name FROM pragma_table_list() WHERE type = 'table'${schema == null ? "" : ` AND schema = ?`} AND name NOT LIKE 'sqlite_%'`, schema == null ? [] : [schema]);
+    return this.query(`SELECT NULLIF(schema, 'main') AS schema, name FROM pragma_table_list() WHERE type = 'table'${schema == null ? "" : ` AND schema = ?`} AND name NOT LIKE 'sqlite_%' ORDER BY schema, name`, schema == null ? [] : [schema]);
   }
   async describeColumns({schema, table} = {}) {
     if (table == null) throw new Error(`missing table`);
@@ -722,6 +723,10 @@ class AbstractFile {
       }
       case 9: {
         const [Arrow, response] = await Promise.all([import(`${cdn}${arrow9.resolve()}`), remote_fetch(this)]);
+        return Arrow.tableFromIPC(response);
+      }
+      case 11: {
+        const [Arrow, response] = await Promise.all([import(`${cdn}${arrow11.resolve()}`), remote_fetch(this)]);
         return Arrow.tableFromIPC(response);
       }
       default: throw new Error(`unsupported arrow version: ${version}`);
@@ -1155,6 +1160,11 @@ valueAt: valueAt,
 worker: worker
 });
 
+function isArqueroTable(value) {
+  // Arquero tables have a `toArrowBuffer` function
+  return value && typeof value.toArrowBuffer === "function";
+}
+
 // Returns true if the vaue is an Apache Arrow table. This uses a “duck” test
 // (instead of strict instanceof) because we want it to work with a range of
 // Apache Arrow versions at least 7.0.0 or above.
@@ -1214,6 +1224,10 @@ function getArrowType(type) {
   }
 }
 
+async function loadArrow() {
+  return await import(`${cdn}${arrow11.resolve()}`);
+}
+
 // Adapted from https://observablehq.com/@cmudig/duckdb-client
 // Copyright 2021 CMU Data Interaction Group
 //
@@ -1242,6 +1256,8 @@ function getArrowType(type) {
 // CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
+
+let promise;
 
 class DuckDBClient {
   constructor(db) {
@@ -1322,7 +1338,7 @@ class DuckDBClient {
   }
 
   async describeColumns({table} = {}) {
-    const columns = await this.query(`DESCRIBE ${table}`);
+    const columns = await this.query(`DESCRIBE ${this.escape(table)}`);
     return columns.map(({column_name, column_type, null: nullable}) => ({
       name: column_name,
       type: getDuckDBType(column_type),
@@ -1336,6 +1352,9 @@ class DuckDBClient {
     if (config.query?.castTimestampToDate === undefined) {
       config = {...config, query: {...config.query, castTimestampToDate: true}};
     }
+    if (config.query?.castBigIntToDouble === undefined) {
+      config = {...config, query: {...config.query, castBigIntToDouble: true}};
+    }
     await db.open(config);
     await Promise.all(
       Object.entries(sources).map(async ([name, source]) => {
@@ -1345,6 +1364,8 @@ class DuckDBClient {
           await insertArrowTable(db, name, source);
         } else if (Array.isArray(source)) { // bare array of objects
           await insertArray(db, name, source);
+        } else if (isArqueroTable(source)) {
+          await insertArqueroTable(db, name, source);
         } else if ("data" in source) { // data + options
           const {data, ...options} = source;
           if (isArrowTable(data)) {
@@ -1374,17 +1395,26 @@ async function insertFile(database, name, file, options) {
     const buffer = await file.arrayBuffer();
     await database.registerFileBuffer(file.name, new Uint8Array(buffer));
   } else {
-    await database.registerFileURL(file.name, url);
+    await database.registerFileURL(file.name, url, 4); // duckdb.DuckDBDataProtocol.HTTP
   }
   const connection = await database.connect();
   try {
     switch (file.mimeType) {
       case "text/csv":
+      case "text/tab-separated-values": {
         return await connection.insertCSVFromPath(file.name, {
           name,
           schema: "main",
           ...options
+        }).catch(async (error) => {
+          // If initial attempt to insert CSV resulted in a conversion
+          // error, try again, this time treating all columns as strings.
+          if (error.toString().includes("Could not convert")) {
+            return await insertUntypedCSV(connection, file, name);
+          }
+          throw error;
         });
+      }
       case "application/json":
         return await connection.insertJSONFromPath(file.name, {
           name,
@@ -1412,12 +1442,17 @@ async function insertFile(database, name, file, options) {
   }
 }
 
+async function insertUntypedCSV(connection, file, name) {
+  const statement = await connection.prepare(
+    `CREATE TABLE '${name}' AS SELECT * FROM read_csv_auto(?, ALL_VARCHAR=TRUE)`
+  );
+  return await statement.send(file.name);
+}
+
 async function insertArrowTable(database, name, table, options) {
-  const arrow = await loadArrow();
-  const buffer = arrow.tableToIPC(table);
   const connection = await database.connect();
   try {
-    await connection.insertArrowFromIPCStream(buffer, {
+    await connection.insertArrowTable(table, {
       name,
       schema: "main",
       ...options
@@ -1427,15 +1462,23 @@ async function insertArrowTable(database, name, table, options) {
   }
 }
 
+async function insertArqueroTable(database, name, source) {
+  // TODO When we have stdlib versioning and can upgrade Arquero to version 5,
+  // we can then call source.toArrow() directly, with insertArrowTable()
+  const arrow = await loadArrow();
+  const table = arrow.tableFromIPC(source.toArrowBuffer());
+  return await insertArrowTable(database, name, table);
+}
+
 async function insertArray(database, name, array, options) {
   const arrow = await loadArrow();
   const table = arrow.tableFromJSON(array);
   return await insertArrowTable(database, name, table, options);
 }
 
-async function createDuckDB() {
-  const duck = await import(`${cdn}${duckdb.resolve()}`);
-  const bundle = await duck.selectBundle({
+async function loadDuckDB() {
+  const module = await import(`${cdn}${duckdb.resolve()}`);
+  const bundle = await module.selectBundle({
     mvp: {
       mainModule: `${cdn}${duckdb.resolve("dist/duckdb-mvp.wasm")}`,
       mainWorker: `${cdn}${duckdb.resolve("dist/duckdb-browser-mvp.worker.js")}`
@@ -1445,15 +1488,17 @@ async function createDuckDB() {
       mainWorker: `${cdn}${duckdb.resolve("dist/duckdb-browser-eh.worker.js")}`
     }
   });
-  const logger = new duck.ConsoleLogger();
-  const worker = await duck.createWorker(bundle.mainWorker);
-  const db = new duck.AsyncDuckDB(logger, worker);
-  await db.instantiate(bundle.mainModule);
-  return db;
+  const logger = new module.ConsoleLogger();
+  return {module, bundle, logger};
 }
 
-async function loadArrow() {
-  return await import(`${cdn}${arrow9.resolve()}`);
+async function createDuckDB() {
+  if (promise === undefined) promise = loadDuckDB();
+  const {module, bundle, logger} = await promise;
+  const worker = await module.createWorker(bundle.mainWorker);
+  const db = new module.AsyncDuckDB(logger, worker);
+  await db.instantiate(bundle.mainModule);
+  return db;
 }
 
 // https://duckdb.org/docs/sql/data_types/overview
@@ -1465,6 +1510,7 @@ function getDuckDBType(type) {
       return "bigint";
     case "DOUBLE":
     case "REAL":
+    case "FLOAT":
       return "number";
     case "INTEGER":
     case "SMALLINT":
@@ -1821,6 +1867,34 @@ function number(x) {
 bisector(ascending);
 bisector(number).center;
 
+function greatest(values, compare = ascending) {
+  let max;
+  let defined = false;
+  if (compare.length === 1) {
+    let maxValue;
+    for (const element of values) {
+      const value = compare(element);
+      if (defined
+          ? ascending(value, maxValue) > 0
+          : ascending(value, value) === 0) {
+        max = element;
+        maxValue = value;
+        defined = true;
+      }
+    }
+  } else {
+    for (const value of values) {
+      if (defined
+          ? compare(value, max) > 0
+          : compare(value, value) === 0) {
+        max = value;
+        defined = true;
+      }
+    }
+  }
+  return max;
+}
+
 function reverse(values) {
   if (typeof values[Symbol.iterator] !== "function") throw new TypeError("values is not iterable");
   return Array.from(values).reverse();
@@ -1888,11 +1962,18 @@ function objectHasEnumerableKeys(value) {
 }
 
 function isQueryResultSetSchema(schemas) {
-  return (Array.isArray(schemas) && schemas.every((s) => s && typeof s.name === "string"));
+  return (
+    Array.isArray(schemas) &&
+    schemas.every(isColumnSchema)
+  );
 }
 
 function isQueryResultSetColumns(columns) {
   return (Array.isArray(columns) && columns.every((name) => typeof name === "string"));
+}
+
+function isColumnSchema(schema) {
+  return schema && typeof schema.name === "string" && typeof schema.type === "string";
 }
 
 // Returns true if the value represents an array of primitives (i.e., a
@@ -1966,43 +2047,95 @@ function isTypedArray(value) {
 
 // __query is used by table cells; __query.sql is used by SQL cells.
 const __query = Object.assign(
-  async (source, operations, invalidation) => {
-    source = await loadDataSource(await source, "table");
+  async (source, operations, invalidation, name) => {
+    source = await loadTableDataSource(await source, name);
     if (isDatabaseClient(source)) return evaluateQuery(source, makeQueryTemplate(operations, source), invalidation);
     if (isDataArray(source)) return __table(source, operations);
     if (!source) throw new Error("missing data source");
     throw new Error("invalid data source");
   },
   {
-    sql(source, invalidation) {
+    sql(source, invalidation, name) {
       return async function () {
-        return evaluateQuery(await loadDataSource(await source, "sql"), arguments, invalidation);
+        return evaluateQuery(await loadSqlDataSource(await source, name), arguments, invalidation);
       };
     }
   }
 );
 
-async function loadDataSource(source, mode) {
+// We use a weak map to cache loaded data sources by key so that we don’t have
+// to e.g. create separate SQLiteDatabaseClients every time we’re querying the
+// same SQLite file attachment. Since this is a weak map, unused references will
+// be garbage collected when they are no longer desired. Note: the name should
+// be consistent, as it is not part of the cache key!
+function sourceCache(loadSource) {
+  const cache = new WeakMap();
+  return (source, name) => {
+    if (!source) throw new Error("data source not found");
+    let promise = cache.get(source);
+    if (!promise || (isDataArray(source) && source.length !== promise._numRows)) {
+      // Warning: do not await here! We need to populate the cache synchronously.
+      promise = loadSource(source, name);
+      promise._numRows = source.length; // This will be undefined for DatabaseClients
+      cache.set(source, promise);
+    }
+    return promise;
+  };
+}
+
+const loadTableDataSource = sourceCache(async (source, name) => {
   if (source instanceof FileAttachment) {
-    if (mode === "table") {
-      switch (source.mimeType) {
-        case "text/csv": return source.csv({typed: true});
-        case "text/tab-separated-values": return source.tsv({typed: true});
-        case "application/json": return source.json();
-      }
+    switch (source.mimeType) {
+      case "text/csv": return source.csv();
+      case "text/tab-separated-values": return source.tsv();
+      case "application/json": return source.json();
+      case "application/x-sqlite3": return source.sqlite();
     }
-    if (mode === "table" || mode === "sql") {
-      switch (source.mimeType) {
-        case "application/x-sqlite3": return source.sqlite();
-      }
-      if (/\.arrow$/i.test(source.name)) return DuckDBClient.of({__table: await source.arrow({version: 9})});
-    }
+    if (/\.(arrow|parquet)$/i.test(source.name)) return loadDuckDBClient(source, name);
     throw new Error(`unsupported file type: ${source.mimeType}`);
   }
-  if ((mode === "table" || mode === "sql") && isArrowTable(source)) {
-    return DuckDBClient.of({__table: source});
-  }
+  if (isArrowTable(source) || isArqueroTable(source)) return loadDuckDBClient(source, name);
+  if (isDataArray(source) && arrayIsPrimitive(source))
+    return Array.from(source, (value) => ({value}));
   return source;
+});
+
+const loadSqlDataSource = sourceCache(async (source, name) => {
+  if (source instanceof FileAttachment) {
+    switch (source.mimeType) {
+      case "text/csv":
+      case "text/tab-separated-values":
+      case "application/json": return loadDuckDBClient(source, name);
+      case "application/x-sqlite3": return source.sqlite();
+    }
+    if (/\.(arrow|parquet)$/i.test(source.name)) return loadDuckDBClient(source, name);
+    throw new Error(`unsupported file type: ${source.mimeType}`);
+  }
+  if (isDataArray(source)) return loadDuckDBClient(await asArrowTable(source, name), name);
+  if (isArrowTable(source) || isArqueroTable(source)) return loadDuckDBClient(source, name);
+  return source;
+});
+
+async function asArrowTable(array, name) {
+  const arrow = await loadArrow();
+  return arrayIsPrimitive(array)
+    ? arrow.tableFromArrays({[name]: array})
+    : arrow.tableFromJSON(array);
+}
+
+function loadDuckDBClient(
+  source,
+  name = source instanceof FileAttachment
+    ? getFileSourceName(source)
+    : "__table"
+) {
+  return DuckDBClient.of({[name]: source});
+}
+
+function getFileSourceName(file) {
+  return file.name
+    .replace(/@\d+(?=\.|$)/, "") // strip Observable file version number
+    .replace(/\.\w+$/, ""); // strip file extension
 }
 
 async function evaluateQuery(source, args, invalidation) {
@@ -2042,7 +2175,7 @@ async function* accumulateQuery(queryRequest) {
   values.schema = queryResponse.schema;
   try {
     for await (const rows of queryResponse.readRows()) {
-      if (performance.now() - then > 10 && values.length > 0) {
+      if (performance.now() - then > 150 && values.length > 0) {
         yield values;
         then = performance.now();
       }
@@ -2071,9 +2204,13 @@ function makeQueryTemplate(operations, source) {
     throw new Error("missing from table");
   if (select.columns && select.columns.length === 0)
     throw new Error("at least one column must be selected");
-  const columns = select.columns ? select.columns.map((c) => `t.${escaper(c)}`) : "*";
+  const names = new Map(operations.names?.map(({column, name}) => [column, name]));
+  const columns = select.columns ? select.columns.map((column) =>  {
+    const override = names.get(column);
+    return override ? `${escaper(column)} AS ${escaper(override)}` : escaper(column);
+  }).join(", ") : "*";
   const args = [
-    [`SELECT ${columns} FROM ${formatTable(from.table, escaper)} t`]
+    [`SELECT ${columns} FROM ${formatTable(from.table, escaper)}`]
   ];
   for (let i = 0; i < filter.length; ++i) {
     appendSql(i ? `\nAND ` : `\nWHERE `, args);
@@ -2083,7 +2220,7 @@ function makeQueryTemplate(operations, source) {
     appendSql(i ? `, ` : `\nORDER BY `, args);
     appendOrderBy(sort[i], args, escaper);
   }
-  if (source.dialect === "mssql") {
+  if (source.dialect === "mssql" || source.dialect === "oracle") {
     if (slice.to !== null || slice.from !== null) {
       if (!sort.length) {
         if (!select.columns)
@@ -2126,8 +2263,9 @@ function formatTable(table, escaper) {
     if (table.schema != null) from += escaper(table.schema) + ".";
     from += escaper(table.table);
     return from;
+  } else {
+    return escaper(table);
   }
-  return table;
 }
 
 function appendSql(sql, args) {
@@ -2136,20 +2274,24 @@ function appendSql(sql, args) {
 }
 
 function appendOrderBy({column, direction}, args, escaper) {
-  appendSql(`t.${escaper(column)} ${direction.toUpperCase()}`, args);
+  appendSql(`${escaper(column)} ${direction.toUpperCase()}`, args);
 }
 
 function appendWhereEntry({type, operands}, args, escaper) {
   if (operands.length < 1) throw new Error("Invalid operand length");
 
   // Unary operations
-  if (operands.length === 1) {
+  // We treat `v` and `nv` as `NULL` and `NOT NULL` unary operations in SQL,
+  // since the database already validates column types.
+  if (operands.length === 1 || type === "v" || type === "nv") {
     appendOperand(operands[0], args, escaper);
     switch (type) {
       case "n":
+      case "nv":
         appendSql(` IS NULL`, args);
         return;
       case "nn":
+      case "v":
         appendSql(` IS NOT NULL`, args);
         return;
       default:
@@ -2219,7 +2361,7 @@ function appendWhereEntry({type, operands}, args, escaper) {
 
 function appendOperand(o, args, escaper) {
   if (o.type === "column") {
-    appendSql(`t.${escaper(o.value)}`, args);
+    appendSql(escaper(o.value), args);
   } else {
     args.push(o.value);
     args[0].push("");
@@ -2241,17 +2383,159 @@ function likeOperand(operand) {
   return {...operand, value: `%${operand.value}%`};
 }
 
+// Comparator function that moves null values (undefined, null, NaN) to the
+// end of the array.
+function defined(a, b) {
+  return (a == null || !(a >= a)) - (b == null || !(b >= b));
+}
+
+// Comparator function that sorts values in ascending order, with null values at
+// the end.
+function ascendingDefined(a, b) {
+  return defined(a, b) || (a < b ? -1 : a > b ? 1 : 0);
+}
+
+// Comparator function that sorts values in descending order, with null values
+// at the end.
+function descendingDefined(a, b) {
+  return defined(a, b) || (a > b ? -1 : a < b ? 1 : 0);
+}
+
+// Functions for checking type validity
+const isValidNumber = (value) => typeof value === "number" && !Number.isNaN(value);
+const isValidInteger = (value) => Number.isInteger(value) && !Number.isNaN(value);
+const isValidString = (value) => typeof value === "string";
+const isValidBoolean = (value) => typeof value === "boolean";
+const isValidBigint = (value) => typeof value === "bigint";
+const isValidDate = (value) => value instanceof Date && !isNaN(value);
+const isValidBuffer = (value) => value instanceof ArrayBuffer;
+const isValidArray = (value) => Array.isArray(value);
+const isValidObject = (value) => typeof value === "object" && value !== null;
+const isValidOther = (value) => value != null;
+
+// Function to get the correct validity checking function based on type
+function getTypeValidator(colType) {
+  switch (colType) {
+    case "string":
+      return isValidString;
+    case "bigint":
+      return isValidBigint;
+    case "boolean":
+      return isValidBoolean;
+    case "number":
+      return isValidNumber;
+    case "integer":
+      return isValidInteger;
+    case "date":
+      return isValidDate;
+    case "buffer":
+      return isValidBuffer;
+    case "array":
+      return isValidArray;
+    case "object":
+      return isValidObject;
+    case "other":
+    default:
+      return isValidOther;
+  }
+}
+
+// Accepts dates in the form of ISOString and LocaleDateString, with or without time
+const DATE_TEST = /^(([-+]\d{2})?\d{4}(-\d{2}(-\d{2}))|(\d{1,2})\/(\d{1,2})\/(\d{2,4}))([T ]\d{2}:\d{2}(:\d{2}(\.\d{3})?)?(Z|[-+]\d{2}:\d{2})?)?$/;
+
+function coerceToType(value, type) {
+  switch (type) {
+    case "string":
+      return typeof value === "string" || value == null ? value : String(value);
+    case "boolean":
+      if (typeof value === "string") {
+        const trimValue = value.trim().toLowerCase();
+        return trimValue === "true"
+          ? true
+          : trimValue === "false"
+          ? false
+          : null;
+      }
+      return typeof value === "boolean" || value == null
+        ? value
+        : Boolean(value);
+    case "bigint":
+      return typeof value === "bigint" || value == null
+        ? value
+        : Number.isInteger(typeof value === "string" && !value.trim() ? NaN : +value)
+        ? BigInt(value) // eslint-disable-line no-undef
+        : undefined;
+    case "integer": // not a target type for coercion, but can be inferred
+    case "number": {
+      return typeof value === "number"
+        ? value
+        : value == null || (typeof value === "string" && !value.trim())
+        ? NaN
+        : Number(value);
+    }
+    case "date": {
+      if (value instanceof Date || value == null) return value;
+      if (typeof value === "number") return new Date(value);
+      const trimValue = String(value).trim();
+      if (typeof value === "string" && !trimValue) return null;
+      return new Date(DATE_TEST.test(trimValue) ? trimValue : NaN);
+    }
+    case "array":
+    case "object":
+    case "buffer":
+    case "other":
+      return value;
+    default:
+      throw new Error(`Unable to coerce to type: ${type}`);
+  }
+}
+
 // This function applies table cell operations to an in-memory table (array of
-// objects); it should be equivalent to the corresponding SQL query.
+// objects); it should be equivalent to the corresponding SQL query. TODO Use
+// DuckDBClient for data arrays, too, and then we wouldn’t need our own __table
+// function to do table operations on in-memory data?
 function __table(source, operations) {
   const input = source;
   let {schema, columns} = source;
-  let primitive = arrayIsPrimitive(source);
-  if (primitive) source = Array.from(source, (value) => ({value}));
+  let inferredSchema = false;
+  if (!isQueryResultSetSchema(schema)) {
+    schema = inferSchema(source, columns);
+    inferredSchema = true;
+  }
+  // Combine column types from schema with user-selected types in operations
+  const types = new Map(schema.map(({name, type}) => [name, type]));
+  if (operations.types) {
+    for (const {name, type} of operations.types) {
+      types.set(name, type);
+      // update schema with user-selected type
+      if (schema === input.schema) schema = schema.slice(); // copy on write
+      const colIndex = schema.findIndex((col) => col.name === name);
+      if (colIndex > -1) schema[colIndex] = {...schema[colIndex], type};
+    }
+    source = source.map(d => coerceRow(d, types, schema));
+  } else if (inferredSchema) {
+    // Coerce data according to new schema, unless that happened due to
+    // operations.types, above.
+    source = source.map(d => coerceRow(d, types, schema));
+  }
   for (const {type, operands} of operations.filter) {
     const [{value: column}] = operands;
     const values = operands.slice(1).map(({value}) => value);
     switch (type) {
+      // valid (matches the column type)
+      case "v": {
+        const [colType] = values;
+        const isValid = getTypeValidator(colType);
+        source = source.filter(d => isValid(d[column]));
+        break;
+      }
+      // not valid (doesn't match the column type)
+      case "nv": {
+        const [colType] = values;
+        const isValid = getTypeValidator(colType);
+        source = source.filter(d => !isValid(d[column]));
+        break;
+      }
       case "eq": {
         const [value] = values;
         if (value instanceof Date) {
@@ -2324,7 +2608,7 @@ function __table(source, operations) {
     }
   }
   for (const {column, direction} of reverse(operations.sort)) {
-    const compare = direction === "desc" ? descending : ascending;
+    const compare = direction === "desc" ? descendingDefined : ascendingDefined;
     if (source === input) source = source.slice(); // defensive copy
     source.sort((a, b) => compare(a[column], b[column]));
   }
@@ -2346,12 +2630,142 @@ function __table(source, operations) {
       Object.fromEntries(operations.select.columns.map((c) => [c, d[c]]))
     );
   }
-  if (primitive) source = source.map((d) => d.value);
+  if (operations.names) {
+    const overridesByName = new Map(operations.names.map((n) => [n.column, n]));
+    if (schema) {
+      schema = schema.map((s) => {
+        const override = overridesByName.get(s.name);
+        return ({...s, ...(override ? {name: override.name} : null)});
+      });
+    }
+    if (columns) {
+      columns = columns.map((c) => {
+        const override = overridesByName.get(c);
+        return override?.name ?? c;
+      });
+    }
+    source = source.map((d) =>
+      Object.fromEntries(Object.keys(d).map((k) => {
+        const override = overridesByName.get(k);
+        return [override?.name ?? k, d[k]];
+      }))
+    );
+  }
   if (source !== input) {
     if (schema) source.schema = schema;
     if (columns) source.columns = columns;
   }
   return source;
+}
+
+function coerceRow(object, types, schema) {
+  const coerced = {};
+  for (const col of schema) {
+    const type = types.get(col.name);
+    const value = object[col.name];
+    coerced[col.name] = type === "raw" ? value : coerceToType(value, type);
+  }
+  return coerced;
+}
+
+function createTypeCount() {
+  return {
+    boolean: 0,
+    integer: 0,
+    number: 0,
+    date: 0,
+    string: 0,
+    array: 0,
+    object: 0,
+    bigint: 0,
+    buffer: 0,
+    defined: 0
+  };
+}
+
+// Caution: the order below matters! 🌶️ The first one that passes the ≥90% test
+// should be the one that we chose, and therefore these types should be listed
+// from most specific to least specific.
+const types$2 = [
+  "boolean",
+  "integer",
+  "number",
+  "date",
+  "bigint",
+  "array",
+  "object",
+  "buffer"
+  // Note: "other" and "string" are intentionally omitted; see below!
+];
+
+// We need to show *all* keys present in the array of Objects
+function getAllKeys(rows) {
+  const keys = new Set();
+  for (const row of rows) {
+    // avoid crash if row is null or undefined
+    if (row) {
+      // only enumerable properties
+      for (const key in row) {
+        // only own properties
+        if (Object.prototype.hasOwnProperty.call(row, key)) {
+          // unique properties, in the order they appear
+          keys.add(key);
+        }
+      }
+    }
+  }
+  return Array.from(keys);
+}
+
+function inferSchema(source, columns = getAllKeys(source)) {
+  const schema = [];
+  const sampleSize = 100;
+  const sample = source.slice(0, sampleSize);
+  for (const col of columns) {
+    const colCount = createTypeCount();
+    for (const d of sample) {
+      let value = d[col];
+      if (value == null) continue;
+      const type = typeof value;
+      if (type !== "string") {
+        ++colCount.defined;
+        if (Array.isArray(value)) ++colCount.array;
+        else if (value instanceof Date) ++colCount.date;
+        else if (value instanceof ArrayBuffer) ++colCount.buffer;
+        else if (type === "number") {
+          ++colCount.number;
+          if (Number.isInteger(value)) ++colCount.integer;
+        }
+        // bigint, boolean, or object
+        else if (type in colCount) ++colCount[type];
+      } else {
+        value = value.trim();
+        if (!value) continue;
+        ++colCount.defined;
+        ++colCount.string;
+        if (/^(true|false)$/i.test(value)) {
+          ++colCount.boolean;
+        } else if (value && !isNaN(value)) {
+          ++colCount.number;
+          if (Number.isInteger(+value)) ++colCount.integer;
+        } else if (DATE_TEST.test(value)) ++colCount.date;
+      }
+    }
+    // Chose the non-string, non-other type with the greatest count that is also
+    // ≥90%; or if no such type meets that criterion, fallback to string if
+    // ≥90%; and lastly fallback to other.
+    const minCount = Math.max(1, colCount.defined * 0.9);
+    const type =
+      greatest(types$2, (type) =>
+        colCount[type] >= minCount ? colCount[type] : NaN
+      ) ?? (colCount.string >= minCount ? "string" : "other");
+    schema.push({
+      name: col,
+      type: type,
+      inferred: type
+    });
+  }
+  return schema;
 }
 
 const Library = Object.assign(Object.defineProperties(function Library(resolver) {
