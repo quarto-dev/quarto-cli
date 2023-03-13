@@ -596,8 +596,10 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 
   <% if (linkExternalIcon || linkExternalNewwindow) { %>
     var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
-    <% if (linkExternalFilter) { %>
+    <% if (linkExternalFilter && linkExternalFilter.match(/\\\\/)) { %>
       <%- `var filterRegex = new RegExp(/${linkExternalFilter}/);` %>
+    <% } else if (linkExternalFilter) { %>
+      <%= `var filterRegex = new RegExp("${linkExternalFilter}");` %>
     <% } else { %>
       var filterRegex = new RegExp('/' + window.location.host + '/');
     <% } %>
