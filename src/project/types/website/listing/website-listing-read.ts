@@ -358,12 +358,13 @@ export function completeListingItems(
           });
 
           if (contents.previewImage) {
-            const imagePath = isAbsolute(contents.previewImage.src)
+            const imgAbsPath = isAbsolute(contents.previewImage.src)
               ? contents.previewImage.src
-              : join(dirname(docRelativePath), contents.previewImage.src);
+              : join(dirname(docAbsPath), contents.previewImage.src);
 
+            const imgRelPath = relative(dirname(outputFile.file), imgAbsPath);
             const imgHtml = imageSrc(
-              { ...contents.previewImage, src: imagePath },
+              { ...contents.previewImage, src: imgRelPath },
               progressive,
               imgHeight,
             );

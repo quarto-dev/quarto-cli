@@ -13,9 +13,11 @@ import { formatResourcePath } from "../../core/resources.ts";
 import { findParent } from "../../core/html.ts";
 
 import {
+  kContentMode,
   kDisplayName,
   kExtensionName,
   kFormatLinks,
+  kGrid,
   kHtmlMathMethod,
   kIncludeInHeader,
   kLinkCitations,
@@ -526,49 +528,54 @@ function processAlternateFormatLinks(
         })
         : options.renderedFormats;
 
-      for (const renderedFormat of displayFormats) {
-        if (!isHtmlOutput(renderedFormat.format.pandoc, true)) {
-          const li = doc.createElement("li");
+      const finalDisplayFormats = displayFormats.filter((renderedFormat) => {
+        return !isHtmlOutput(renderedFormat.format.pandoc, true);
+      });
 
-          const relPath = isAbsolute(renderedFormat.path)
-            ? relative(dirname(input), renderedFormat.path)
-            : renderedFormat.path;
+      for (const renderedFormat of finalDisplayFormats) {
+        const li = doc.createElement("li");
 
-          const link = doc.createElement("a");
-          link.setAttribute("href", relPath);
-          const dlAttrValue = fileDownloadAttr(
-            renderedFormat.format,
-            renderedFormat.path,
-          );
-          if (dlAttrValue) {
-            link.setAttribute("download", dlAttrValue);
-          }
+        const relPath = isAbsolute(renderedFormat.path)
+          ? relative(dirname(input), renderedFormat.path)
+          : renderedFormat.path;
 
-          const icon = doc.createElement("i");
-          icon.classList.add("bi");
-          icon.classList.add(`bi-${fileBsIconName(renderedFormat.format)}`);
-          link.appendChild(icon);
-          link.appendChild(
-            doc.createTextNode(
-              `${
-                renderedFormat.format.identifier[kDisplayName] ||
-                renderedFormat.format.pandoc.to
-              }${
-                renderedFormat.format.identifier[kExtensionName]
-                  ? ` (${renderedFormat.format.identifier[kExtensionName]})`
-                  : ""
-              }`,
-            ),
-          );
-
-          li.appendChild(link);
-          formatList.appendChild(li);
-
-          resources.push(renderedFormat.path);
+        const link = doc.createElement("a");
+        link.setAttribute("href", relPath);
+        const dlAttrValue = fileDownloadAttr(
+          renderedFormat.format,
+          renderedFormat.path,
+        );
+        if (dlAttrValue) {
+          link.setAttribute("download", dlAttrValue);
         }
+
+        const icon = doc.createElement("i");
+        icon.classList.add("bi");
+        icon.classList.add(`bi-${fileBsIconName(renderedFormat.format)}`);
+        link.appendChild(icon);
+        link.appendChild(
+          doc.createTextNode(
+            `${
+              renderedFormat.format.identifier[kDisplayName] ||
+              renderedFormat.format.pandoc.to
+            }${
+              renderedFormat.format.identifier[kExtensionName]
+                ? ` (${renderedFormat.format.identifier[kExtensionName]})`
+                : ""
+            }`,
+          ),
+        );
+
+        li.appendChild(link);
+        formatList.appendChild(li);
+
+        resources.push(renderedFormat.path);
       }
-      containerEl.appendChild(formatList);
-      dlLinkTarget.appendChild(containerEl);
+
+      if (finalDisplayFormats.length > 0) {
+        containerEl.appendChild(formatList);
+        dlLinkTarget.appendChild(containerEl);
+      }
     }
   }
 }
@@ -625,23 +632,41 @@ function bootstrapHtmlFinalizer(format: Format, flags: PandocFlags) {
     if (rightSidebar && !hasRightContent && !hasMarginContent && !hasToc) {
       rightSidebar.remove();
     }
-    const hasColumnElements = getColumnLayoutElements(doc).length > 0;
 
-    if (hasColumnElements) {
-      if (hasLeftContent && hasMarginContent) {
-        // Slim down the content area so there are sizable margins
-        // for the column element
-        doc.body.classList.add("slimcontent");
-      } else if (hasRightContent || hasMarginContent || fullLayout || hasToc) {
-        // Use the default layout, so don't add any classes
+    // Set the content mode for the grid system
+    const gridObj = format.metadata[kGrid] as Metadata;
+    let contentMode = "auto";
+    if (gridObj) {
+      contentMode =
+        gridObj[kContentMode] as ("auto" | "standard" | "full" | "slim");
+    }
+
+    if (contentMode === undefined || contentMode === "auto") {
+      const hasColumnElements = getColumnLayoutElements(doc).length > 0;
+      if (hasColumnElements) {
+        if (hasLeftContent && hasMarginContent) {
+          // Slim down the content area so there are sizable margins
+          // for the column element
+          doc.body.classList.add("slimcontent");
+        } else if (
+          hasRightContent || hasMarginContent || fullLayout || hasToc
+        ) {
+          // Use the default layout, so don't add any classes
+        } else {
+          doc.body.classList.add("fullcontent");
+        }
       } else {
-        doc.body.classList.add("fullcontent");
+        if (!hasRightContent && !hasMarginContent && !hasToc) {
+          doc.body.classList.add("fullcontent");
+        } else {
+          // Use the deafult layout, don't add any classes
+        }
       }
     } else {
-      if (!hasRightContent && !hasMarginContent && !hasToc) {
+      if (contentMode === "slim") {
+        doc.body.classList.add("slimcontent");
+      } else if (contentMode === "full") {
         doc.body.classList.add("fullcontent");
-      } else {
-        // Use the deafult layout, don't add any classes
       }
     }
 

@@ -22,7 +22,7 @@ import { outputVariable, SassVariable, sassVariable } from "../../core/sass.ts";
 
 import { Format, SassBundle, SassLayer } from "../../config/types.ts";
 import { Metadata } from "../../config/types.ts";
-import { kTheme } from "../../config/constants.ts";
+import { kGrid, kTheme } from "../../config/constants.ts";
 
 import {
   kPageFooter,
@@ -456,7 +456,7 @@ function pandocVariablesToThemeDefaults(
   });
 
   // Resolve any grid variables
-  const gridObj = metadata["grid"] as Metadata;
+  const gridObj = metadata[kGrid] as Metadata;
   if (gridObj) {
     add(explicitVars, "grid-sidebar-width", gridObj["sidebar-width"]);
     add(explicitVars, "grid-margin-width", gridObj["margin-width"]);

@@ -24,10 +24,26 @@ end
 -- keyed by {url: mediabagpath}
 local resolvedUrls = {}
 
+-- windows has a max path length of 260 characters
+-- but we'll be conservative since we're sometimes appending a number
+local windows_safe_filename = function(filename)
+  -- pull the first 200 characters without the extension
+  local stem, ext = pandoc.path.split_extension(filename)
+  local safeStem = stem:sub(1, 20)
+
+  local result = safeStem .. ext
+
+  if #ext > 40 then
+    -- if the extension is too long, truncate it
+    result = safeStem .. ext:sub(1, 40)
+  end
+  return result
+end
+
 -- replace invalid tex characters with underscores
 local tex_safe_filename = function(filename)
   -- return filename
-  return filename:gsub('[^%w%.%-]', '-')
+  return filename:gsub("[ <>()|:&;#?*'\\/]", '-')
 end
 
 function pdfImages() 
@@ -94,7 +110,7 @@ function pdfImages()
               local relativePath = image.src:match('http[s]://[%w%.%:]+/(.+)')
               if relativePath then
                 local imgMt, imgContents = pandoc.mediabag.fetch(image.src)
-                local filename = tex_safe_filename(pandoc.path.filename(relativePath))
+                local filename = windows_safe_filename(tex_safe_filename(pandoc.path.filename(relativePath)))
                 if imgMt ~= nil then
                   local existingMt = pandoc.mediabag.lookup(filename)
                   local counter = 1

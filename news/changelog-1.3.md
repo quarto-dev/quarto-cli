@@ -150,6 +150,7 @@
 - Improve title recognition for pages that don't include a title in metadata ([#4528](https://github.com/quarto-dev/quarto-cli/issues/4528))
 - Ensure that footnote are properly indexed for website and book searches ([#4601](https://github.com/quarto-dev/quarto-cli/issues/4601)).
 - Permit sidebar items to include icons ([#3830](https://github.com/quarto-dev/quarto-cli/issues/3830)).
+- Use light navbar background by default for generated websites.
 
 ## Books
 
@@ -207,6 +208,7 @@
 - Fix issue with "No inspectable targets" with Chrome Browser ([#4653](https://github.com/quarto-dev/quarto-cli/issues/4653))
 - Add `title` attribute for callouts (can be used rather than heading for defining the title)
 - Handle more varieties of raw HTML for Docusaurus output
+- Read and process DOM one-file-at-time in books and websites to reduce total memory usage ([#4350](https://github.com/quarto-dev/quarto-cli/issues/4350)).
 
 ## Pandoc filter changes
 

@@ -13916,6 +13916,15 @@ var require_yaml_intelligence_resources = __commonJS({
             object: {
               closed: true,
               properties: {
+                "content-mode": {
+                  enum: [
+                    "auto",
+                    "standard",
+                    "full",
+                    "slim"
+                  ],
+                  description: "Defines whether to use the standard, slim, or full content grid or to automatically select the most appropriate content grid."
+                },
                 "sidebar-width": {
                   string: {
                     description: "The base width of the sidebar (left) column in an HTML page."
@@ -19259,10 +19268,6 @@ var require_yaml_intelligence_resources = __commonJS({
         "Default profile to apply if QUARTO_PROFILE is not defined.",
         "Define a profile group for which at least one profile is always\nactive.",
         {
-          short: "Location of output relative to the code that generated it\n(<code>default</code>, <code>fragment</code>, <code>slide</code>,\n<code>column</code>, or <code>column-location</code>)",
-          long: "Location of output relative to the code that generated it. The\npossible values are as follows:"
-        },
-        {
           short: "Unique label for code cell",
           long: "Unique label for code cell. Used when other code needs to refer to\nthe cell (e.g.&nbsp;for cross references <code>fig-samples</code> or\n<code>tbl-summary</code>)"
         },
@@ -19414,6 +19419,10 @@ var require_yaml_intelligence_resources = __commonJS({
         "Include errors in the output (note that this implies that errors\nexecuting code will not halt processing of the document).",
         "Catch all for preventing any output (code or results) from being\nincluded in output.",
         "Panel type for cell output (<code>tabset</code>, <code>input</code>,\n<code>sidebar</code>, <code>fill</code>, <code>center</code>)",
+        {
+          short: "Location of output relative to the code that generated it\n(<code>default</code>, <code>fragment</code>, <code>slide</code>,\n<code>column</code>, or <code>column-location</code>)",
+          long: "Location of output relative to the code that generated it. The\npossible values are as follows:"
+        },
         "Include messages in rendered output.",
         {
           short: "How to display text results",
@@ -19930,6 +19939,7 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "Properties of the grid system used to layout Quarto HTML pages.",
           long: ""
         },
+        "Defines whether to use the standard, slim, or full content grid or to\nautomatically select the most appropriate content grid.",
         "The base width of the sidebar (left) column in an HTML page.",
         "The base width of the margin (right) column in an HTML page.",
         "The base width of the body (center) column in an HTML page.",
@@ -20232,6 +20242,10 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           short: "Use a smaller default font for slide content",
           long: "<code>true</code> to use a smaller default font for slide content.\nThis can also be set per-slide by including the <code>.smaller</code>\nclass on the slide title."
+        },
+        {
+          short: "Location of output relative to the code that generated it\n(<code>default</code>, <code>fragment</code>, <code>slide</code>,\n<code>column</code>, or <code>column-location</code>)",
+          long: "Location of output relative to the code that generated it. The\npossible values are as follows:"
         },
         "Flags if the presentation is running in an embedded mode",
         "The display mode that will be used to show slides",
@@ -21255,12 +21269,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 151940,
+        _internalId: 152136,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 151932,
+            _internalId: 152128,
             type: "enum",
             enum: [
               "png",
@@ -21276,7 +21290,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 151939,
+            _internalId: 152135,
             type: "anyOf",
             anyOf: [
               {
@@ -30377,36 +30391,44 @@ function parseShortcodeCapture(capture) {
   const rawParams = [];
   const name = nameMatch[0];
   let paramStr = capture.slice(name.length).trim();
-  const paramName = "([a-zA-Z0-9_-]+)";
-  const paramValue1 = `([^"'\\s]+)`;
-  const paramValue2 = `"([^"]*)"`;
-  const paramValue3 = `'([^']*)'`;
-  const paramValue = `(?:${paramValue1})|(?:${paramValue2})|(?:${paramValue3})`;
-  const paramNameAndValue = `(?:${paramName}\\s*=\\s*${paramValue1})|(?:${paramName}\\s*=\\s*${paramValue2})|(?:${paramName}\\s*=\\s*${paramValue3})`;
-  const paramRe = new RegExp(`(?:${paramValue}|${paramNameAndValue})`);
   while (paramStr.length) {
-    const paramMatch = paramStr.match(paramRe);
+    let paramMatch;
+    paramMatch = paramStr.match(/^[a-zA-Z0-9_-]+="[^"]*"/);
     if (!paramMatch) {
-      throw new Error("invalid shortcode: " + capture);
+      paramMatch = paramStr.match(/^[a-zA-Z0-9_-]+='[^']*'/);
     }
-    const captures = paramMatch.slice(1).filter((x) => x !== void 0);
-    if (captures.length === 1) {
-      params.push(captures[0]);
-      rawParams.push({
-        value: captures[0]
-      });
-    } else if (captures.length === 2) {
-      namedParams[captures[0]] = captures[1];
-      rawParams.push({
-        name: captures[0],
-        value: captures[1]
-      });
-    } else {
-      throw new Error(
-        "Internal Error, could not determine correct shortcode capture for " + capture
-      );
+    if (!paramMatch) {
+      paramMatch = paramStr.match(/^[a-zA-Z0-9_-]+=[^"'\s]+/);
     }
-    paramStr = paramStr.slice(paramMatch[0].length).trim();
+    if (paramMatch) {
+      const [name2, value] = paramMatch[0].split("=");
+      namedParams[name2] = value;
+      rawParams.push({
+        name: name2,
+        value
+      });
+      paramStr = paramStr.slice(paramMatch[0].length).trim();
+      continue;
+    }
+    paramMatch = paramStr.match(/^[^"'\s]+/);
+    if (paramMatch) {
+      params.push(paramMatch[0]);
+      rawParams.push({
+        value: paramMatch[0]
+      });
+      paramStr = paramStr.slice(paramMatch[0].length).trim();
+      continue;
+    }
+    paramMatch = paramStr.match(/^"[^"]*"/) || paramStr.match(/^'[^']*'/);
+    if (paramMatch) {
+      params.push(paramMatch[0].slice(1, -1));
+      rawParams.push({
+        value: paramMatch[0].slice(1, -1)
+      });
+      paramStr = paramStr.slice(paramMatch[0].length).trim();
+      continue;
+    }
+    throw new Error("invalid shortcode: " + capture);
   }
   return { name, params, namedParams, rawParams };
 }

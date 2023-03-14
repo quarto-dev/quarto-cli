@@ -4,6 +4,7 @@ project:
 website:
   title: "<%= title %>"
   navbar:
+    background: light
     right:
       - about<%= ext %>
       - icon: github

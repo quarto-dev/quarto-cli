@@ -114,15 +114,20 @@ export function fixupFrontMatter(nb: JupyterNotebook): JupyterNotebook {
 
   // helper to create nb lines (w/ newline after)
   const nbLines = (lns: string[]) => {
-    return lns.map((line) => `${line}\n`);
+    return lns.map((line) => line.endsWith("\n") ? line : `${line}\n`);
   };
 
   // look for the first raw block that has a yaml object
   let partitioned: { yaml: string; markdown: string } | undefined;
   const frontMatterCellIndex = nb.cells.findIndex((cell) => {
-    if (cell.cell_type === "raw") {
+    if (cell.cell_type === "raw" || cell.cell_type === "markdown") {
       partitioned = partitionYamlFrontMatter(cell.source.join("")) || undefined;
-      return !!partitioned;
+      if (partitioned) {
+        cell.cell_type = "raw";
+        return true;
+      } else {
+        return false;
+      }
     }
   });
 
@@ -137,7 +142,7 @@ export function fixupFrontMatter(nb: JupyterNotebook): JupyterNotebook {
   for (const cell of nb.cells) {
     if (cell.cell_type === "markdown") {
       const { lines, headingText } = markdownWithExtractedHeading(
-        cell.source.join("\n"),
+        nbLines(cell.source).join(""),
       );
       if (headingText) {
         title = headingText;

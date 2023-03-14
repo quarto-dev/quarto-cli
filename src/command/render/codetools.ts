@@ -140,14 +140,24 @@ export function codeToolsPostprocessor(format: Format) {
         const codeTools = resolveCodeTools(format, doc);
         if (codeTools.source || codeTools.toggle) {
           const title = doc.querySelector("#title-block-header h1");
-          if (title) {
-            const header = (title as Element).parentElement;
+          const header = title !== null
+            ? (title as Element).parentElement
+            : doc.querySelector("main.content");
+
+          if (header) {
             const titleDiv = doc.createElement("div");
             titleDiv.classList.add("quarto-title-block");
             const layoutDiv = doc.createElement("div");
             titleDiv.appendChild(layoutDiv);
-            header?.replaceChild(titleDiv, title);
-            layoutDiv.appendChild(title);
+            if (title) {
+              header?.replaceChild(titleDiv, title);
+              layoutDiv.appendChild(title);
+            } else {
+              // create an empty title
+              const h1El = doc.createElement("h1");
+              layoutDiv.appendChild(h1El);
+              layoutDiv.classList.add("quarto-title-tools-only");
+            }
             const button = doc.createElement("button");
             button.setAttribute("type", "button");
             button.classList.add("btn");
@@ -159,7 +169,13 @@ export function codeToolsPostprocessor(format: Format) {
               button.appendChild(doc.createTextNode(" " + codeTools.caption));
             }
             layoutDiv.appendChild(button);
-            header!.appendChild(titleDiv);
+
+            if (title) {
+              header!.appendChild(titleDiv);
+            } else {
+              header!.prepend(titleDiv);
+            }
+
             if (codeTools.toggle) {
               button.setAttribute("id", kCodeToolsMenuButtonId);
               button.classList.add("dropdown-toggle");

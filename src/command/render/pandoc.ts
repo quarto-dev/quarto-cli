@@ -703,16 +703,11 @@ export async function runPandoc(
   // timing results json file
   const timingResultsFile = options.services.temp.createFile();
 
-  if (allDefaults.to?.match(/[.]lua$/)) {
-    formatFilterParams["custom-writer"] = allDefaults.to;
-    allDefaults.to = resourcePath("filters/customwriter/customwriter.lua");
-  }
-  if (Deno.env.get("QUARTO_ALLENMANNING_WORKAROUND_CONFLUENCE") === undefined) {
-    if (allDefaults.writer?.match(/[.]lua$/)) {
-      formatFilterParams["custom-writer"] = allDefaults.writer;
-      allDefaults.writer = resourcePath(
-        "filters/customwriter/customwriter.lua",
-      );
+  const writerKeys: ("to" | "writer")[] = ["to", "writer"];
+  for (const key of writerKeys) {
+    if (allDefaults[key]?.match(/[.]lua$/)) {
+      formatFilterParams["custom-writer"] = allDefaults[key];
+      allDefaults[key] = resourcePath("filters/customwriter/customwriter.lua");
     }
   }
 

@@ -1,0 +1,28 @@
+---
+format: 
+  revealjs: default
+engine: knitr
+_quarto:
+  tests:
+    revealjs:
+      ensureHtmlElements:
+        - ["#verbatim div.sourceCode pre code", "#embed div.sourceCode pre code"]
+        - ["#verbatim div.cell", "#embed div.cell"]
+      ensureFileRegexMatches:
+        - ["this is code\\.R"]
+        - []
+---
+
+From issue : https://github.com/quarto-dev/quarto-cli/issues/4712
+
+## Verbatim {#verbatim}
+
+````{verbatim}
+Some content
+````
+
+## Embed {#embed}
+
+````{embed, file = "code.R"}
+````
+

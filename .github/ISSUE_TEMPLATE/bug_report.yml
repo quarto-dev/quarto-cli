@@ -39,3 +39,4 @@ body:
         - label: "Please [format your issue](https://quarto.org/bug-reports.html#formatting-make-githubs-markdown-work-for-us) so it is easier for us to read the bug report."
         - label: Please document the RStudio IDE version you're running (if applicable), by providing the value displayed in the "About RStudio" main menu dialog?
         - label: Please document the operating system you're running. If on Linux, please provide the specific distribution.
+        - label: Please provide the output of `quarto check` so we know which version of quarto and its dependencies you're running.

@@ -604,13 +604,13 @@ export async function bookPostRender(
     await bookBibliographyPostRender(context, incremental, websiteFiles);
     await bookCrossrefsPostRender(context, websiteFiles);
 
-    // write website files
-    websiteFiles.forEach((websiteFile) => {
-      const doctype = websiteFile.doctype;
-      const htmlOutput = (doctype ? doctype + "\n" : "") +
-        websiteFile.doc.documentElement?.outerHTML!;
-      Deno.writeTextFileSync(websiteFile.file, htmlOutput);
-    });
+    // website files are now already written on a per-file basis
+    // websiteFiles.forEach((websiteFile) => {
+    //   const doctype = websiteFile.doctype;
+    //   const htmlOutput = (doctype ? doctype + "\n" : "") +
+    //     websiteFile.doc.documentElement?.outerHTML!;
+    //   Deno.writeTextFileSync(websiteFile.file, htmlOutput);
+    // });
 
     // run standard website stuff (search, etc.)
     await websitePostRender(context, incremental, outputFiles);

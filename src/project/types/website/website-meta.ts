@@ -301,6 +301,7 @@ function resolveImageMetadata(
   const siteMeta = format.metadata[kWebsite] as Metadata;
   if (metadata[kImage] && siteMeta && siteMeta[kSiteUrl] !== undefined) {
     // Resolve any relative urls and figure out image size
+    const inputRelImg = metadata[kImage];
     const imgMeta = imageMetadata(
       metadata[kImage] as string,
       siteMeta[kSiteUrl] as string,
@@ -318,7 +319,7 @@ function resolveImageMetadata(
       metadata[kImageAlt] = altText;
     }
 
-    return imgMeta.path;
+    return inputRelImg as string;
   }
 }
 

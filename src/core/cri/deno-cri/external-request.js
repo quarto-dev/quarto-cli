@@ -18,7 +18,11 @@ export default async function externalRequest(options) {
     }*/
 
   const url = `${options.protocol}:/${options.host}:${options.port}${options.path}`;
-  const response = await fetch(url);
+  const fetchOpts = {};
+  if (options.method) {
+    fetchOpts.method = options.method;
+  }
+  const response = await fetch(url, options);
   const text = await response.text();
 
   if (response.status !== 200) {
