@@ -12,8 +12,10 @@ import { AccountToken } from "../../provider.ts";
 import { ApiError } from "../../types.ts";
 import {
   AttachmentSummary,
+  ConfluenceParent,
   Content,
   ContentArray,
+  ContentChangeType,
   ContentCreate,
   ContentDelete,
   ContentProperty,
@@ -26,13 +28,14 @@ import {
 } from "./types.ts";
 
 import { DESCENDANT_PAGE_SIZE, V2EDITOR_METADATA } from "../constants.ts";
-import { logError, logWarning, trace } from "../confluence-logger.ts";
+import { logError, trace } from "../confluence-logger.ts";
+import { buildContentCreate } from "../confluence-helper.ts";
 
 export class ConfluenceClient {
   public constructor(private readonly token_: AccountToken) {}
 
-  public getUser(): Promise<User> {
-    return this.get<User>("user/current");
+  public getUser(expand = ["operations"]): Promise<User> {
+    return this.get<User>(`user/current?expand=${expand}`);
   }
 
   public getSpace(spaceId: string, expand = ["homepage"]): Promise<Space> {
@@ -92,6 +95,67 @@ export class ConfluenceClient {
     return result?.results ?? [];
   }
 
+  /**
+   * Perform a test to see if the user can manage permissions.  In the space create a simple test page, attempt to set permissions on it, then delete it.
+   */
+  public async canSetPermissions(
+    parent: ConfluenceParent,
+    space: Space,
+    user: User
+  ): Promise<boolean> {
+    let result = true;
+
+    const testContent: ContentCreate = buildContentCreate(
+      `quarto-permission-test-${globalThis.crypto.randomUUID()}`,
+      space,
+      {
+        storage: {
+          value: "",
+          representation: "storage",
+        },
+      },
+      "permisson-test"
+    );
+    const testContentCreated = await this.createContent(user, testContent);
+
+    const testContentId = testContentCreated.id ?? "";
+
+    try {
+      await this.put<Content>(
+        `content/${testContentId}/restriction/byOperation/update/user?accountId=${user.accountId}`
+      );
+    } catch (error) {
+      trace("lockDownResult Error", error);
+      // Note, sometimes a successful call throws a
+      // "SyntaxError: Unexpected end of JSON input"
+      // check for the 403 status only
+      if (error?.status === 403) {
+        result = false;
+      }
+    }
+
+    const contentDelete: ContentDelete = {
+      id: testContentId,
+      contentChangeType: ContentChangeType.delete,
+    };
+    await this.deleteContent(contentDelete);
+
+    return result;
+  }
+
+  public async lockDownPermissions(
+    contentId: string,
+    user: User
+  ): Promise<any> {
+    try {
+      return await this.put<Content>(
+        `content/${contentId}/restriction/byOperation/update/user?accountId=${user.accountId}`
+      );
+    } catch (error) {
+      trace("lockDownResult Error", error);
+    }
+  }
+
   public async createContent(
     user: User,
     content: ContentCreate,
@@ -107,14 +171,7 @@ export class ConfluenceClient {
     const createBody = JSON.stringify(toCreate);
     const result: Content = await this.post<Content>("content", createBody);
 
-    try {
-      await this.put<Content>(
-        `content/${result.id}/restriction/byOperation/update/user?accountId=${user.accountId}`
-      );
-    } catch (error) {
-      //Sometimes the API returns the error 'Unexpected end of JSON input'
-      trace("lockDownResult Error", error);
-    }
+    await this.lockDownPermissions(result.id ?? "", user);
 
     return result;
   }
@@ -134,14 +191,7 @@ export class ConfluenceClient {
       JSON.stringify(toUpdate)
     );
 
-    try {
-      const lockDownResult = await this.put<Content>(
-        `content/${content.id}/restriction/byOperation/update/user?accountId=${user.accountId}`
-      );
-    } catch (error) {
-      //Sometimes the API returns the error 'Unexpected end of JSON input'
-      trace("lockDownResult Error", error);
-    }
+    await this.lockDownPermissions(content.id ?? "", user);
 
     return result;
   }

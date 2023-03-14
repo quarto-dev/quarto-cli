@@ -17,7 +17,7 @@ python_exists=$(command -v python)
 if [ -z $python_exists ] 
 then 
   python_exists=$(command -v python3)
-  if [ -z python_exists]
+  if [ -z python_exists ]
   then
     echo "No python found in PATH - Check your PATH or install python add to PATH."
   fi
@@ -32,7 +32,7 @@ then
     echo "...pipenv installed"
   fi
   # specific for pyenv shim
-  [ -n $(command -v pyenv) ] && pyenv rehash
+  [[ -n $(command -v pyenv) ]] && pyenv rehash
   echo "Setting up python environnement with pipenv"
   # our default is pipenv to use its own virtualenv and be in project directory
   export PIPENV_IGNORE_VIRTUALENVS=1
@@ -53,7 +53,7 @@ fi
 
 # Update tinytex
 echo ">>>> Configuring TinyTeX environment"
-if [ -z $GH_TOKEN ] && [ -n $(command -v gh) ]
+if [[ -z $GH_TOKEN && -n $(command -v gh) ]]
 then 
   echo "Setting GH_TOKEN env var for Github Download."
   export GH_TOKEN=$(gh auth token)

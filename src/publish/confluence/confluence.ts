@@ -1,5 +1,5 @@
 import { join } from "path/mod.ts";
-import { Input, Secret } from "cliffy/prompt/mod.ts";
+import { Input, Secret, Confirm } from "cliffy/prompt/mod.ts";
 import { RenderFlags } from "../../command/render/types.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
 
@@ -82,6 +82,7 @@ import {
   verifyAccountToken,
   verifyConfluenceParent,
   verifyLocation,
+  verifyOrWarnManagePermissions,
 } from "./confluence-verify.ts";
 import {
   DELETE_DISABLED,
@@ -258,6 +259,8 @@ async function publish(
   const space = await client.getSpace(parent.space);
 
   trace("publish", { parent, server, id: space.id, key: space.key });
+
+  await verifyOrWarnManagePermissions(client, space, parent, user);
 
   const uniquifyTitle = async (title: string, idToIgnore: string = "") => {
     trace("uniquifyTitle", title);
