@@ -83,7 +83,9 @@
     cerulean: (
       navbar-fg: $white,
     ),
-    cosmo: (),
+    cosmo: (
+      navbar-bg: if(variable-exists(light), $light, $gray-500),
+    ),
     cyborg: (
       navbar-bg: if(variable-exists(secondary), $secondary, $black),
       navbar-hl: $white,

@@ -100,10 +100,12 @@ $navbar-brand-hl: theme-override-value(
   $navbar-hl
 ) !default;
 
-$navbar-toggler-icon-bg: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'><path stroke='#{$navbar-fg}' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/></svg>");
-$navbar-togger-border-color: rgba($navbar-fg, 0.4);
-$navbar-hover-color: rgba($navbar-hl, 0.8);
-$navbar-disabled-color: rgba($navbar-fg, 0.75);
+$navbar-toggler-icon-bg: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'><path stroke='#{$navbar-fg}' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/></svg>") !default;
+$navbar-toggler-border-color: rgba($navbar-fg, 0) !default;
+$navbar-hover-color: rgba($navbar-hl, 0.8) !default;
+$navbar-disabled-color: rgba($navbar-fg, 0.75) !default;
+$navbar-toggler-padding-x: 0 !default;
+$navbar-toggler-padding-y: 0.25 !default;
 
 // We omit the !default here b/c the dark and light variants
 // are not meaningful in our usage of bootstrap. Instead, we will explicitly
@@ -114,7 +116,7 @@ $navbar-dark-hover-color: $navbar-hover-color;
 $navbar-dark-active-color: $navbar-hl;
 $navbar-dark-disabled-color: $navbar-disabled-color;
 $navbar-dark-toggler-icon-bg: $navbar-toggler-icon-bg;
-$navbar-dark-toggler-border-color: $navbar-togger-border-color;
+$navbar-dark-toggler-border-color: $navbar-toggler-border-color;
 
 $navbar-light-bg: $navbar-bg;
 $navbar-light-color: $navbar-fg;
@@ -122,7 +124,7 @@ $navbar-light-hover-color: $navbar-hover-color;
 $navbar-light-active-color: $navbar-hl;
 $navbar-light-disabled-color: $navbar-disabled-color;
 $navbar-light-toggler-icon-bg: $navbar-toggler-icon-bg;
-$navbar-light-toggler-border-color: $navbar-togger-border-color;
+$navbar-light-toggler-border-color: $navbar-toggler-border-color;
 
 $navbar-light-brand-color: $navbar-brand;
 $navbar-light-brand-hover-color: $navbar-brand-hl;
