@@ -197,5 +197,11 @@ $code-annotation-higlight-bg: #aaaaaa22 !default;
 $breadcrumb-divider: quote(">") !default;
 
 // table variable overrides
-$table-group-separator-color: lighten($body-color, 50%) !default;
-$table-group-separator-color-lighter: lighten($body-color, 70%) !default;
+$table-group-separator-color: lighten(
+  if(variable-exists(body-color), $body-color, $gray-900),
+  50%
+) !default;
+$table-group-separator-color-lighter: lighten(
+  if(variable-exists(body-color), $body-color, $gray-900),
+  70%
+) !default;
