@@ -53,7 +53,7 @@ fi
 
 # Update tinytex
 echo ">>>> Configuring TinyTeX environment"
-if [ -z $GH_TOKEN ] && [[ -n $(command -v gh) ]]
+if [[ -z $GH_TOKEN && -n $(command -v gh) ]]
 then 
   echo "Setting GH_TOKEN env var for Github Download."
   export GH_TOKEN=$(gh auth token)
