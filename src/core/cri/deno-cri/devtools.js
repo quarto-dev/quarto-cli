@@ -50,6 +50,14 @@ export async function New(options) {
   if (Object.prototype.hasOwnProperty.call(options, "url")) {
     options.path += `?${options.url}`;
   }
+  // we don't mutate here because we don't want other
+  // calls to have PUT as the method
+  if (options.version >= 109) {
+    options = {
+      ...options,
+      method: "PUT",
+    };
+  }
   const result = await devToolsInterface(options);
   return JSON.parse(result);
 }
