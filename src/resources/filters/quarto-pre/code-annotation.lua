@@ -39,6 +39,7 @@ local kLangCommentChars = {
   d3 = {"//"},
   node = {"//"},
   sass = {"//"},
+  scss = {"//"},
   coffee = {"#"},
   go = {"//"},
   asy = {"//"},
