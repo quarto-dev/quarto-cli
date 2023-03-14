@@ -195,3 +195,7 @@ $code-annotation-higlight-color: #aaaaaa44 !default;
 $code-annotation-higlight-bg: #aaaaaa22 !default;
 
 $breadcrumb-divider: quote(">") !default;
+
+// table variable overrides
+$table-group-separator-color: lighten($body-color, 50%) !default;
+$table-group-separator-color-lighter: lighten($body-color, 70%) !default;

@@ -1932,3 +1932,27 @@ code.sourceCode a.code-annotation-anchor {
 .quarto-video {
   margin-bottom: 1em;
 }
+
+.table {
+  // we don't want border tops on thead unless there are captions on top
+  > thead {
+    border-top-width: 0;
+  }
+
+  > :not(caption) > *:not(:last-child) > * {
+    border-bottom-color: $table-group-separator-color-lighter;
+    border-bottom-style: solid;
+    border-bottom-width: $table-border-width;
+  }
+
+  // bootstrap uses 2*$table-border-width,
+  // we like thinner borders
+  > :not(:first-child) {
+    border-top: $table-border-width solid $table-group-separator-color;
+    border-bottom: $table-border-width solid inherit;
+  }
+}
+
+.table tbody {
+  border-bottom-color: $table-group-separator-color;
+}
