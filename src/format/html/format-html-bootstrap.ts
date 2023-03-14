@@ -1,9 +1,8 @@
 /*
-* format-html-bootstrap.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * format-html-bootstrap.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { Document, Element } from "../../core/deno-dom.ts";
 import { dirname, isAbsolute, join, relative } from "path/mod.ts";
@@ -276,7 +275,7 @@ function bootstrapHtmlPostprocessor(
     // add figure classes to figures
     const figures = doc.querySelectorAll("figure");
     for (let i = 0; i < figures.length; i++) {
-      const figure = (figures[i] as Element);
+      const figure = figures[i] as Element;
       figure.classList.add("figure");
       const images = figure.querySelectorAll("img");
       for (let j = 0; j < images.length; j++) {
@@ -370,6 +369,7 @@ function bootstrapHtmlPostprocessor(
       if (computational) {
         table.classList.add("table-sm");
         table.classList.add("table-striped");
+        table.classList.add("small");
       }
     };
 

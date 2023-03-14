@@ -38,6 +38,14 @@ function tableClasses()
       -- ensure that classes are appended (do not want to rewrite and wipe out any existing)
       tbl.classes:extend(normalized_classes)
 
+      -- if we have a `sm` table class then we need to add the `small` class
+      -- and if we have a `small` class then we need to add the `table-sm` class
+      if tcontains(normalized_classes, "table-sm") then
+        tbl.classes:insert("small")
+      elseif tcontains(normalized_classes, "small") then
+        tbl.classes:insert("table-sm")
+      end
+
       attr.classes = pandoc.List()
 
       tbl.caption.long[#tbl.caption.long] = pandoc.Plain(createTableCaption(caption_parsed, attr))
