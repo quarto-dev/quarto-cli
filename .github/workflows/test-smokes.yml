@@ -87,6 +87,9 @@ jobs:
           if (!requireNamespace('renv', quietly = TRUE)) install.packages('renv')
           renv::restore()
         shell: Rscript {0}
+        env:
+          RENV_CONFIG_REPOS_OVERRIDE: https://packagemanager.rstudio.com/cran/latest
+          RENV_CONFIG_CACHE_ENABLED: FALSE
 
       - name: Set up Python
         uses: actions/setup-python@v4

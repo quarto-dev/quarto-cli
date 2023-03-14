@@ -1618,13 +1618,13 @@ local function resolveServiceWorkers(serviceworkers)
 
 local latexTableWithOptionsPattern = "(\\begin{table}%[[^%]]+%])(.*)(\\end{table})"
 local latexTablePattern = "(\\begin{table})(.*)(\\end{table})"
-local latexLongtablePatternwWithPosAndAlign = "(\\begin{longtable}%[[^%]]+%]{.-})(.*)(\\end{longtable})"
+local latexLongtablePatternwWithPosAndAlign = "(\\begin{longtable}%[[^%]]+%]{[^\n]*})(.*)(\\end{longtable})"
 local latexLongtablePatternWithPos = "(\\begin{longtable}%[[^%]]+%])(.*)(\\end{longtable})"
-local latexLongtablePatternWithAlign = "(\\begin{longtable}{.-})(.*)(\\end{longtable})"
+local latexLongtablePatternWithAlign = "(\\begin{longtable}{[^\n]*})(.*)(\\end{longtable})"
 local latexLongtablePattern = "(\\begin{longtable})(.*)(\\end{longtable})"
-local latexTabularPatternWithPosAndAlign = "(\\begin{tabular}%[[^%]]+%]{.-})(.*)(\\end{tabular})"
+local latexTabularPatternWithPosAndAlign = "(\\begin{tabular}%[[^%]]+%]{[^\n]*})(.*)(\\end{tabular})"
 local latexTabularPatternWithPos = "(\\begin{tabular}%[[^%]]+%])(.*)(\\end{tabular})"
-local latexTabularPatternWithAlign = "(\\begin{tabular}{.-})(.*)(\\end{tabular})"
+local latexTabularPatternWithAlign = "(\\begin{tabular}{[^\n]*})(.*)(\\end{tabular})"
 local latexTabularPattern = "(\\begin{tabular})(.*)(\\end{tabular})"
 
 local latexTablePatterns = pandoc.List({

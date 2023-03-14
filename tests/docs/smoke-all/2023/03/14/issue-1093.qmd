@@ -1,0 +1,12 @@
+---
+title: "test"
+format: pdf
+---
+
+```{r}
+#| label: tbl-one
+#| tbl-cap: "A table"
+#| echo: fenced
+
+mtcars[1:2,] |> tibble::rownames_to_column() |> gt::gt(rowname_col = "rowname")
+```
