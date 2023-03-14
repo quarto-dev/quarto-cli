@@ -1,9 +1,8 @@
 /*
-* capabilities.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * capabilities.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { warning } from "log/mod.ts";
 import { isAbsolute, join } from "path/mod.ts";
@@ -76,17 +75,23 @@ export async function jupyterCapabilities(kernelspec?: JupyterKernelspec) {
 async function getVerifiedJuliaCondaJupyterCapabilities() {
   const home = isWindows() ? Deno.env.get("USERPROFILE") : Deno.env.get("HOME");
   if (home) {
-    const juliaPython = join(
-      home,
-      ".julia",
-      "conda",
-      "3",
-      isWindows() ? "python.exe" : join("bin", "python3"),
-    );
-    if (existsSync(juliaPython)) {
-      const caps = await getJupyterCapabilities([juliaPython]);
-      if (caps?.jupyter_core) {
-        return caps;
+    const bin = isWindows()
+      ? ["python3.exe", "python.exe"]
+      : [join("bin", "python3"), join("bin", "python")];
+
+    for (const pythonBin of bin) {
+      const juliaPython = join(
+        home,
+        ".julia",
+        "conda",
+        "3",
+        pythonBin,
+      );
+      if (existsSync(juliaPython)) {
+        const caps = await getJupyterCapabilities([juliaPython]);
+        if (caps?.jupyter_core) {
+          return caps;
+        }
       }
     }
   }
