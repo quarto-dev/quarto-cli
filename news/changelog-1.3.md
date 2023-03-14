@@ -12,6 +12,7 @@
 - Resolve full path to QUARTO_PYTHON binary
 - Improve handling of YAML and titles in notebooks (auto-merge heading based title with YAML front matter)
 - Discard matplotlib, seaborn, and plotnine intermediate objects from output
+- With IJulia's miniconda python env, search for `python` in addition to `python3` ([#4821](https://github.com/quarto-dev/quarto-cli/issues/4821)).
 
 ## Knitr engine
 
