@@ -74,7 +74,7 @@ export const verifyOrWarnManagePermissions = async (
 
   if (!canManagePermissions) {
     const confirmed: boolean = await Confirm.prompt(
-      "Published pages will be directly editable within the Confluence web editor.\n\nThis means that if you republish the page from Quarto, you may be overwriting the web edits. We recommend that you establish a clear policy about how this published page will be revised.\n\nAre you sure you want to continue?"
+      "We've detected that your account is not able to manage the permissions for this destination.\n\nPublished pages will be directly editable within the Confluence web editor.\n\nThis means that if you republish the page from Quarto, you may be overwriting the web edits.\nWe recommend that you establish a clear policy about how this published page will be revised.\n\nAre you sure you want to continue?"
     );
     if (!confirmed) {
       throw new Error("");
