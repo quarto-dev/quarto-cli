@@ -18,6 +18,7 @@ import * as ld from "./lodash.ts";
 import { lines } from "./text.ts";
 import { md5Hash } from "./hash.ts";
 import { debug } from "log/mod.ts";
+import { safeExistsSync } from "./path.ts";
 
 export interface SassVariable {
   name: string;
@@ -335,10 +336,12 @@ export async function compileWithCache(
           compressed,
         );
       } catch (error) {
-        // Compilation failed, so clear out the output file
+        // Compilation failed, so clear out the output file (if exists)
         // which will be invalid CSS
         try {
-          Deno.removeSync(outputFilePath);
+          if (safeExistsSync(outputFilePath)) {
+            Deno.removeSync(outputFilePath);
+          }
         } finally {
           //doesn't matter
         }
