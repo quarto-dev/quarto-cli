@@ -10,7 +10,7 @@ import { toolsPath } from "./resources.ts";
 import { execProcess } from "./process.ts";
 import { TempContext } from "./temp.ts";
 import { lines } from "./text.ts";
-import { info } from "log/mod.ts";
+import { debug, info } from "log/mod.ts";
 import { existsSync } from "fs/mod.ts";
 import { warnOnce } from "./log.ts";
 
@@ -90,6 +90,11 @@ export async function dartCommand(args: string[]) {
     }
     return result.stdout;
   } else {
+    debug(`[DART path]   : ${sass}`);
+    debug(`[DART args]   : ${args.join(" ")}`);
+    debug(`[DART stdout] : ${result.stdout}`);
+    debug(`[DART stderr] : ${result.stderr}`);
+
     const errLines = lines(result.stderr || "");
     // truncate the last 2 lines (they include a pointer to the temp file containing
     // all of the concatenated sass, which is more or less incomprehensible for users.
