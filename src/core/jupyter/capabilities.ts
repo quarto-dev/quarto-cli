@@ -104,7 +104,7 @@ async function getVerifiedJuliaCondaJupyterCapabilities() {
     ) {
       // check if this is an executable binary
       const file = Deno.statSync(path.path);
-      if (!(file.isFile && file.mode && file.mode & S_IXUSR)) {
+      if (!(file.isFile && file.mode && (file.mode & S_IXUSR))) {
         continue;
       }
       const caps = await getJupyterCapabilities([path.path]);
