@@ -1,9 +1,8 @@
 /*
-* graphviz.ts
-*
-* Copyright (C) 2022 Posit Software, PBC
-*
-*/
+ * graphviz.ts
+ *
+ * Copyright (C) 2022 Posit Software, PBC
+ */
 
 import { LanguageCellHandlerContext, LanguageHandler } from "./types.ts";
 import { baseHandler, install } from "./base.ts";
@@ -11,6 +10,7 @@ import { resourcePath } from "../resources.ts";
 import { join, toFileUrl } from "path/mod.ts";
 import {
   isJavascriptCompatible,
+  isLatexOutput,
   isRevealjsOutput,
 } from "../../config/format.ts";
 import { QuartoMdCell } from "../lib/break-quarto-md.ts";
@@ -96,6 +96,42 @@ const dotHandler: LanguageHandler = {
       }
     }
 
+    const makeFigLink = (
+      sourceName: string,
+      width?: number,
+      height?: number,
+      includeCaption?: boolean,
+    ) => {
+      const figEnvSpecifier =
+        isLatexOutput(handlerContext.options.format.pandoc)
+          ? ` fig-env='${cell.options?.["fig-env"] || "figure"}'`
+          : "";
+      let posSpecifier = "";
+      if (
+        isLatexOutput(handlerContext.options.format.pandoc) &&
+        cell.options?.["fig-pos"] !== false
+      ) {
+        const v = Array.isArray(cell.options?.["fig-pos"])
+          ? cell.options?.["fig-pos"].join("")
+          : cell.options?.["fig-pos"];
+        posSpecifier = ` fig-pos='${v || "H"}'`;
+      }
+      const idSpecifier = (cell.options?.label && includeCaption)
+        ? ` #${cell.options?.label}`
+        : "";
+      const widthSpecifier = width
+        ? `width="${Math.round(width * 100) / 100}in"`
+        : "";
+      const heightSpecifier = height
+        ? ` height="${Math.round(height * 100) / 100}in"`
+        : "";
+      const captionSpecifier = includeCaption
+        ? (cell.options?.["fig-cap"] || "")
+        : "";
+
+      return `\n![${captionSpecifier}](${sourceName}){${widthSpecifier}${heightSpecifier}${posSpecifier}${figEnvSpecifier}${idSpecifier}}\n`;
+    };
+
     const fixupRevealAlignment = (svg: Element) => {
       if (isRevealjsOutput(handlerContext.options.context.format.pandoc)) {
         const align = (options?.[kFigAlign] as string) ?? "center";
@@ -139,7 +175,8 @@ const dotHandler: LanguageHandler = {
         handlerContext,
         cell,
         mappedConcat([
-          `\n![](${sourceName}){width="${widthInInches}in" height="${heightInInches}in" fig-pos='H'}\n`,
+          makeFigLink(sourceName, widthInInches, heightInInches),
+          //          `\n![](${sourceName}){width="${widthInInches}in" height="${heightInInches}in" fig-pos='H'}\n`,
         ]),
         options,
       );

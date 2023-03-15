@@ -7485,11 +7485,20 @@ var require_yaml_intelligence_resources = __commonJS({
             ]
           },
           schema: {
-            maybeArrayOf: "string"
+            anyOf: [
+              {
+                maybeArrayOf: "string"
+              },
+              {
+                enum: [
+                  false
+                ]
+              }
+            ]
           },
           description: {
             short: "LaTeX figure position arrangement to be used in `\\begin{figure}[]`.",
-            long: 'LaTeX figure position arrangement to be used in `\\begin{figure}[]`.\n\nComputational figure output that is accompanied by the code \nthat produced it is given a default value of `fig-pos="H"` (so \nthat the code and figure are not inordinately separated).\n'
+            long: 'LaTeX figure position arrangement to be used in `\\begin{figure}[]`.\n\nComputational figure output that is accompanied by the code \nthat produced it is given a default value of `fig-pos="H"` (so \nthat the code and figure are not inordinately separated).\n\nIf `fig-pos` is `false`, then we don\'t use any figure position\nspecifier, which is sometimes necessary with custom figure\nenvironments (such as `sidewaysfigure`).\n'
           }
         },
         {
@@ -19341,7 +19350,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "LaTeX environment for figure output",
         {
           short: "LaTeX figure position arrangement to be used in\n<code>\\begin{figure}[]</code>.",
-          long: 'LaTeX figure position arrangement to be used in\n<code>\\begin{figure}[]</code>.\nComputational figure output that is accompanied by the code that\nproduced it is given a default value of <code>fig-pos="H"</code> (so\nthat the code and figure are not inordinately separated).'
+          long: 'LaTeX figure position arrangement to be used in\n<code>\\begin{figure}[]</code>.\nComputational figure output that is accompanied by the code that\nproduced it is given a default value of <code>fig-pos="H"</code> (so\nthat the code and figure are not inordinately separated).\nIf <code>fig-pos</code> is <code>false</code>, then we don\u2019t use any\nfigure position specifier, which is sometimes necessary with custom\nfigure environments (such as <code>sidewaysfigure</code>).'
         },
         {
           short: "A short caption (only used in LaTeX output)",
@@ -21268,12 +21277,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 152136,
+        _internalId: 152538,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 152128,
+            _internalId: 152530,
             type: "enum",
             enum: [
               "png",
@@ -21289,7 +21298,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 152135,
+            _internalId: 152537,
             type: "anyOf",
             anyOf: [
               {

@@ -87,6 +87,7 @@
 - Correctly download online image on Windows ([#3982](https://github.com/quarto-dev/quarto-cli/issues/3982)).
 - Permissions of `.tex` file are now correct when `keep-tex: true` ([#4380](https://github.com/quarto-dev/quarto-cli/issues/4380)).
 - Better support footnotes within Callouts in PDF / LaTeX output ([#1235](https://github.com/quarto-dev/quarto-cli/issues/1235)).
+- Allow `fig-pos: false` to support custom figure environments that don't support the `H` option ([#4832](https://github.com/quarto-dev/quarto-cli/discussions/4832)).
 
 ## Beamer Format
 
@@ -109,6 +110,11 @@
 - Add support for `%%| file` mermaid cell option ([#3665](https://github.com/quarto-dev/quarto-cli/issues/3665)).
 - Fix `code-fold` support in mermaid (and dot) diagrams ([#4423](https://github.com/quarto-dev/quarto-cli/issues/4423)).
 - Fix caption insertion in the presence of alignment specifiers with `{}` in them ([#4748](https://github.com/quarto-dev/quarto-cli/issues/4748)).
+- Support `fig-env` and `fig-pos` in mermaid diagrams in PDF format ([#4832](https://github.com/quarto-dev/quarto-cli/discussions/4832)).
+
+## Dot diagrams
+
+- Support `fig-env` and `fig-pos` in dot diagrams in PDF format ([#4832](https://github.com/quarto-dev/quarto-cli/discussions/4832)).
 
 ## Dates
 
