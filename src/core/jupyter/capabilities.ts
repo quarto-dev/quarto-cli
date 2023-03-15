@@ -6,7 +6,7 @@
 
 import { warning } from "log/mod.ts";
 import { isAbsolute, join } from "path/mod.ts";
-import { existsSync } from "fs/mod.ts";
+import { existsSync, expandGlobSync } from "fs/mod.ts";
 
 import { isWindows } from "../platform.ts";
 import { execProcess } from "../process.ts";
@@ -72,19 +72,21 @@ export async function jupyterCapabilities(kernelspec?: JupyterKernelspec) {
   return jupyterCapsCache.get(language);
 }
 
+// Does deno not have a set of S_* constants for stat?
+// https://deno.land/std@0.97.0/node/fs.ts?doc=&s=constants.S_IXUSR
+const S_IXUSR = 0o100;
+
 async function getVerifiedJuliaCondaJupyterCapabilities() {
   const home = isWindows() ? Deno.env.get("USERPROFILE") : Deno.env.get("HOME");
   if (home) {
+    const juliaCondaPath = join(home, ".julia", "conda", "3");
     const bin = isWindows()
       ? ["python3.exe", "python.exe"]
       : [join("bin", "python3"), join("bin", "python")];
 
     for (const pythonBin of bin) {
       const juliaPython = join(
-        home,
-        ".julia",
-        "conda",
-        "3",
+        juliaCondaPath,
         pythonBin,
       );
       if (existsSync(juliaPython)) {
@@ -92,6 +94,22 @@ async function getVerifiedJuliaCondaJupyterCapabilities() {
         if (caps?.jupyter_core) {
           return caps;
         }
+      }
+    }
+
+    for (
+      const path of expandGlobSync(join(juliaCondaPath, "**", "python*"), {
+        globstar: true,
+      })
+    ) {
+      // check if this is an executable binary
+      const file = Deno.statSync(path.path);
+      if (!(file.isFile && file.mode && file.mode & S_IXUSR)) {
+        continue;
+      }
+      const caps = await getJupyterCapabilities([path.path]);
+      if (caps?.jupyter_core) {
+        return caps;
       }
     }
   }
