@@ -7486,11 +7486,16 @@ try {
               ]
             },
             schema: {
-              maybeArrayOf: "string"
+              anyOf: [
+                {
+                  maybeArrayOf: "string"
+                },
+                false
+              ]
             },
             description: {
               short: "LaTeX figure position arrangement to be used in `\\begin{figure}[]`.",
-              long: 'LaTeX figure position arrangement to be used in `\\begin{figure}[]`.\n\nComputational figure output that is accompanied by the code \nthat produced it is given a default value of `fig-pos="H"` (so \nthat the code and figure are not inordinately separated).\n'
+              long: 'LaTeX figure position arrangement to be used in `\\begin{figure}[]`.\n\nComputational figure output that is accompanied by the code \nthat produced it is given a default value of `fig-pos="H"` (so \nthat the code and figure are not inordinately separated).\n\nIf `fig-pos` is `false`, then we don\'t use any figure position\nspecifier, which is sometimes necessary with custom figure\nenvironments (such as `sidewaysfigure`).\n'
             }
           },
           {
@@ -21210,9 +21215,7 @@ try {
         ],
         "handlers/languages.yml": [
           "mermaid",
-          "include",
-          "dot",
-          "embed"
+          "dot"
         ],
         "handlers/lang-comment-chars.yml": {
           r: "#",
@@ -21270,12 +21273,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 152136,
+          _internalId: 152142,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 152128,
+              _internalId: 152134,
               type: "enum",
               enum: [
                 "png",
@@ -21291,7 +21294,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 152135,
+              _internalId: 152141,
               type: "anyOf",
               anyOf: [
                 {
