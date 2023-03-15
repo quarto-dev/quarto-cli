@@ -7490,7 +7490,11 @@ try {
                 {
                   maybeArrayOf: "string"
                 },
-                false
+                {
+                  enum: [
+                    false
+                  ]
+                }
               ]
             },
             description: {
@@ -19347,7 +19351,7 @@ try {
           "LaTeX environment for figure output",
           {
             short: "LaTeX figure position arrangement to be used in\n<code>\\begin{figure}[]</code>.",
-            long: 'LaTeX figure position arrangement to be used in\n<code>\\begin{figure}[]</code>.\nComputational figure output that is accompanied by the code that\nproduced it is given a default value of <code>fig-pos="H"</code> (so\nthat the code and figure are not inordinately separated).'
+            long: 'LaTeX figure position arrangement to be used in\n<code>\\begin{figure}[]</code>.\nComputational figure output that is accompanied by the code that\nproduced it is given a default value of <code>fig-pos="H"</code> (so\nthat the code and figure are not inordinately separated).\nIf <code>fig-pos</code> is <code>false</code>, then we don\u2019t use any\nfigure position specifier, which is sometimes necessary with custom\nfigure environments (such as <code>sidewaysfigure</code>).'
           },
           {
             short: "A short caption (only used in LaTeX output)",
@@ -21273,12 +21277,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 152142,
+          _internalId: 152538,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 152134,
+              _internalId: 152530,
               type: "enum",
               enum: [
                 "png",
@@ -21294,7 +21298,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 152141,
+              _internalId: 152537,
               type: "anyOf",
               anyOf: [
                 {

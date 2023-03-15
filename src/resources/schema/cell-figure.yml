@@ -60,7 +60,7 @@
   schema:
     anyOf:
       - maybeArrayOf: string
-      - false
+      - enum: [false]
   description:
     short: LaTeX figure position arrangement to be used in `\begin{figure}[]`.
     long: |
