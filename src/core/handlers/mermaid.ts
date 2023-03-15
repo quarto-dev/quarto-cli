@@ -1,9 +1,8 @@
 /*
-* mermaid.ts
-*
-* Copyright (C) 2022 Posit Software, PBC
-*
-*/
+ * mermaid.ts
+ *
+ * Copyright (C) 2022 Posit Software, PBC
+ */
 
 import {
   LanguageCellHandlerContext,
@@ -195,9 +194,20 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
       height?: number,
       includeCaption?: boolean,
     ) => {
-      const posSpecifier = isLatexOutput(handlerContext.options.format.pandoc)
-        ? " fig-pos='H'"
-        : "";
+      const figEnvSpecifier =
+        isLatexOutput(handlerContext.options.format.pandoc)
+          ? ` fig-env='${cell.options?.["fig-env"] || "figure"}'`
+          : "";
+      let posSpecifier = "";
+      if (
+        isLatexOutput(handlerContext.options.format.pandoc) &&
+        cell.options?.["fig-pos"] !== false
+      ) {
+        const v = Array.isArray(cell.options?.["fig-pos"])
+          ? cell.options?.["fig-pos"].join("")
+          : cell.options?.["fig-pos"];
+        posSpecifier = ` fig-pos='${v || "H"}'`;
+      }
       const idSpecifier = (cell.options?.label && includeCaption)
         ? ` #${cell.options?.label}`
         : "";
@@ -211,7 +221,7 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
         ? (cell.options?.["fig-cap"] || "")
         : "";
 
-      return `\n![${captionSpecifier}](${sourceName}){${widthSpecifier}${heightSpecifier}${posSpecifier}${idSpecifier}}\n`;
+      return `\n![${captionSpecifier}](${sourceName}){${widthSpecifier}${heightSpecifier}${posSpecifier}${figEnvSpecifier}${idSpecifier}}\n`;
     };
     const responsive = handlerContext.options.context.format.metadata
       ?.[kFigResponsive];
