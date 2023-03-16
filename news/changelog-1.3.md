@@ -88,6 +88,7 @@
 - Permissions of `.tex` file are now correct when `keep-tex: true` ([#4380](https://github.com/quarto-dev/quarto-cli/issues/4380)).
 - Better support footnotes within Callouts in PDF / LaTeX output ([#1235](https://github.com/quarto-dev/quarto-cli/issues/1235)).
 - Allow `fig-pos: false` to support custom figure environments that don't support the `H` option ([#4832](https://github.com/quarto-dev/quarto-cli/discussions/4832)).
+- Allow `fig-pos:` to specify complex arguments with square and curly braces ([#4854](https://github.com/quarto-dev/quarto-cli/discussions/4854)).
 
 ## Beamer Format
 
