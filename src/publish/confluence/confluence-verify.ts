@@ -4,6 +4,7 @@ import { getMessageFromAPIError } from "./confluence-helper.ts";
 import { withSpinner } from "../../core/console.ts";
 import { Confirm } from "cliffy/prompt/mod.ts";
 import { ConfluenceParent, Space, User } from "./api/types.ts";
+import { trace } from "./confluence-logger.ts";
 
 const verifyWithSpinner = async (
   verifyCommand: () => Promise<void>,
@@ -34,6 +35,7 @@ const verifyLocationExists = async (server: string) => {
       throw new Error("");
     }
   } catch (error) {
+    trace("server doesnt exist", error);
     throw new Error(`${server} doesn't exist`);
   }
 };
