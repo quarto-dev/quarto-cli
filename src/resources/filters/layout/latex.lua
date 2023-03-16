@@ -315,7 +315,7 @@ end
 function latexBeginEnv(env, pos, inline)
   local beginEnv = "\\begin{" .. env .. "}"
   if pos then
-    if not string.find(pos, "^%[") then
+    if not string.find(pos, "^[%[{]") then
       pos = "[" .. pos .. "]"
     end
     beginEnv = beginEnv .. pos
