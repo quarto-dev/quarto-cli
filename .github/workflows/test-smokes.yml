@@ -102,6 +102,7 @@ jobs:
         run: |
           python -m pip install pipenv
           pipenv install --system
+          pipenv graph
 
       - uses: ./.github/workflows/actions/quarto-dev
 
