@@ -1,9 +1,8 @@
 /*
-* jupyter-shared.ts
-*
-* Copyright (C) 2020-2023 Posit Software, PBC
-*
-*/
+ * jupyter-shared.ts
+ *
+ * Copyright (C) 2020-2023 Posit Software, PBC
+ */
 
 import { stringify } from "encoding/yaml.ts";
 import { warning } from "log/mod.ts";
@@ -15,7 +14,7 @@ import { markdownWithExtractedHeading } from "../pandoc/pandoc-partition.ts";
 import { partitionYamlFrontMatter, readYamlFromMarkdown } from "../yaml.ts";
 import { JupyterNotebook, JupyterOutput } from "./types.ts";
 
-function fixupBokehCells(nb: JupyterNotebook): JupyterNotebook {
+export function fixupBokehCells(nb: JupyterNotebook): JupyterNotebook {
   for (const cell of nb.cells) {
     if (cell.cell_type === "code") {
       let needsFixup = false;
@@ -183,16 +182,25 @@ export function fixupFrontMatter(nb: JupyterNotebook): JupyterNotebook {
   return nb;
 }
 
-const fixups: ((
+type JupyterFixup = (nb: JupyterNotebook) => JupyterNotebook;
+
+const defaultFixups: ((
   nb: JupyterNotebook,
 ) => JupyterNotebook)[] = [
   fixupBokehCells,
   fixupFrontMatter,
 ];
 
+// books can't have the front matter fixup
+export const bookFixups: JupyterFixup[] = [
+  fixupBokehCells,
+];
+
 export function fixupJupyterNotebook(
   nb: JupyterNotebook,
+  explicitFixups?: JupyterFixup[],
 ): JupyterNotebook {
+  const fixups = explicitFixups || defaultFixups;
   for (const fixup of fixups) {
     nb = fixup(nb);
   }
