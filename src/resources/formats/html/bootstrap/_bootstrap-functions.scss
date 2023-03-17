@@ -79,6 +79,8 @@
   $gray-300: #dee2e6 !default;
   $blue: #0d6efd !default;
 
+  $simplex-border-mix: mix($white, $black, 93.5%) !default;
+
   $theme-overrides: (
     cerulean: (
       navbar-fg: $white,
@@ -138,6 +140,8 @@
       navbar-bg: $white,
       navbar-fg: rgba($black, 0.6),
       navbar-hl: $black,
+      nav-tabs-link-active-border-color: $simplex-border-mix $simplex-border-mix
+        transparent,
     ),
     sketchy: (
       navbar-fg: $white,

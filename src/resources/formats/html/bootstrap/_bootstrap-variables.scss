@@ -180,6 +180,21 @@ $input-border-color: theme-override-value(
   if(variable-exists(input-border-color), $input-border-color, null)
 );
 
+// Same as above (default is respected if there is not override
+// so the `!default` keyword is omitted). Some themes don't provide
+// active tab border colors and they customize the main border
+// color which results in the tabs looking slightly weird since the
+// colors may not match (for example, simplex).
+$nav-tabs-link-active-border-color: theme-override-value(
+  $theme-name,
+  "nav-tabs-link-active-border-color",
+  if(
+    variable-exists(nav-tabs-link-active-border-color),
+    $nav-tabs-link-active-border-color,
+    null
+  )
+);
+
 /* GRID VARIABLES */
 // The left hand sidebar
 $grid-sidebar-width: 250px !default;

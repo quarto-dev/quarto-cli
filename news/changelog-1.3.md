@@ -185,6 +185,7 @@
 
 - HTML output will not decorate links within source code (for example, from `code-link: true`) with external icons. (#3755)
 - Use `toc-expand` to control to what level the TOC will expand by default in HTML documents.
+- Improve tab border coloring across themes ([#4868](https://github.com/quarto-dev/quarto-cli/issues/4868)).
 
 ## Miscellaneous
 
