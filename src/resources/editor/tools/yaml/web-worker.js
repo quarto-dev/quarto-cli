@@ -15221,6 +15221,12 @@ try {
           {
             name: "preview-mode",
             schema: "string",
+            tags: {
+              formats: [
+                "$jats-all",
+                "gfm"
+              ]
+            },
             description: {
               short: "The mode to use when previewing this document.",
               long: "The mode to use when previewing this document. To disable any special\npreviewing features, pass `raw` as the preview-mode.\n"

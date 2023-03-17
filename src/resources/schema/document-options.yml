@@ -316,6 +316,8 @@
 
 - name: preview-mode
   schema: string
+  tags:
+    formats: [$jats-all, gfm]
   description:
     short: "The mode to use when previewing this document."
     long: |
