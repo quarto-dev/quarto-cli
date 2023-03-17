@@ -1,9 +1,8 @@
 /*
-* render-files.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * render-files.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 // ensures cell handlers are installed
 import "../../core/handlers/handlers.ts";
@@ -40,7 +39,11 @@ import {
 import { annotateOjsLineNumbers } from "../../execute/ojs/annotate-source.ts";
 import { ojsExecuteResult } from "../../execute/ojs/compile.ts";
 import { ExecuteResult, MappedExecuteResult } from "../../execute/types.ts";
-import { kProjectLibDir, ProjectContext } from "../../project/types.ts";
+import {
+  kProjectLibDir,
+  kProjectType,
+  ProjectContext,
+} from "../../project/types.ts";
 import { outputRecipe } from "./output.ts";
 import { PandocRenderCompletion, renderPandoc } from "./render.ts";
 import { renderContexts } from "./render-contexts.ts";
@@ -204,6 +207,7 @@ export async function renderExecute(
     quiet: flags.quiet,
     previewServer: context.options.previewServer,
     handledLanguages: languages(),
+    projectType: context.project?.config?.project?.[kProjectType],
   });
   popTiming();
 
