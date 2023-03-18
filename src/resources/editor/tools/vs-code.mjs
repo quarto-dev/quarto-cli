@@ -17053,7 +17053,7 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "The title used for the table of contents."
         },
         {
-          name: "toc-expanded",
+          name: "toc-expand",
           schema: {
             anyOf: [
               "number",
@@ -21059,7 +21059,8 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
-        "internal-schema-hack"
+        "internal-schema-hack",
+        "Specifies the depth of items in the table of contents that should be\ndisplayed as expanded in HTML output. Use <code>true</code> to expand\nall or <code>false</code> to collapse all."
       ],
       "schema/external-schemas.yml": [
         {
@@ -21283,12 +21284,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 152538,
+        _internalId: 152478,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 152530,
+            _internalId: 152470,
             type: "enum",
             enum: [
               "png",
@@ -21304,7 +21305,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 152537,
+            _internalId: 152477,
             type: "anyOf",
             anyOf: [
               {
