@@ -103,6 +103,7 @@ import { projectOutputDir } from "../../../project-shared.ts";
 import { directoryMetadataForInputFile } from "../../../project-context.ts";
 import { mergeConfigs } from "../../../../core/config.ts";
 import { globToRegExp } from "../../../../core/lib/glob.ts";
+import { cslNames } from "../../../../core/csl.ts";
 
 // Defaults (a card listing that contains everything
 // in the source document's directory)
@@ -988,7 +989,17 @@ async function listItemFromFile(
       : undefined;
 
     const authors = parseAuthor(documentMeta?.author);
-    const author = authors ? authors.map((auth) => auth.name) : [];
+    let structuredAuthors;
+    if (authors) {
+      structuredAuthors = cslNames(
+        authors?.filter((auth) => auth !== undefined).map((auth) => auth?.name),
+      );
+    }
+    const author = structuredAuthors
+      ? structuredAuthors.map((auth) =>
+        auth.literal || `${auth.given} ${auth.family}`
+      )
+      : [];
 
     const readingtime = target?.markdown
       ? estimateReadingTimeMinutes(target.markdown.markdown)

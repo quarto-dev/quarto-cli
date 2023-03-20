@@ -142,6 +142,7 @@
 - Permit using computation outputs (plots/figures) as the preview image for an item in a listing ([#2324](https://github.com/quarto-dev/quarto-cli/issues/2324))
 - Use alt text from preview image that is discovered for a page in a listing ([#3706](https://github.com/quarto-dev/quarto-cli/issues/3706))
 - Add support for `includes:` and `excludes:` in listings, which will use filter the items included in a listing. ([#2577](https://github.com/quarto-dev/quarto-cli/issues/2577)).
+- Properly render structured author names in listings ([#4881](https://github.com/quarto-dev/quarto-cli/issues/4881))
 
 ## Websites
 
