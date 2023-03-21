@@ -222,6 +222,7 @@
 - Add `title` attribute for callouts (can be used rather than heading for defining the title)
 - Handle more varieties of raw HTML for Docusaurus output
 - Read and process DOM one-file-at-time in books and websites to reduce total memory usage ([#4350](https://github.com/quarto-dev/quarto-cli/issues/4350)).
+- Fix issue with TeX Live 2023 bin paths on Windows ([#4906](https://github.com/quarto-dev/quarto-cli/issues/4906)).
 
 ## Pandoc filter changes
 
