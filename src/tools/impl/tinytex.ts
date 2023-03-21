@@ -263,14 +263,26 @@ function binFolder(installDir: string) {
     }
   };
 
-  // Find the tlmgr and note its location
-  return Deno.build.os === "windows"
-    ? join(
+  const winBinFolder = () => {
+    // TeX Live 2023 use windows now. Previous version were using win32
+    const oldBinFolder = join(
       installDir,
       "bin",
       "win32",
-    )
-    : nixBinFolder();
+    );
+    if (existsSync(oldBinFolder)) {
+      return oldBinFolder;
+    } else {
+      return join(
+        installDir,
+        "bin",
+        "windows",
+      );
+    }
+  };
+
+  // Find the tlmgr and note its location
+  return Deno.build.os === "windows" ? winBinFolder() : nixBinFolder();
 }
 
 async function afterInstall(context: InstallContext) {
