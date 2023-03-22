@@ -1,9 +1,10 @@
 ## New In This Patch Release
 
-- Fixes an issue using Quarto with the most recent version of jupyter_client (version 8.0.0 and later)
+- Fixes an issue on Windows where Quarto's built tinytex would not properly find the binary files included with TexLive 2023. This would result in errors compiling PDFs on Windows when using the most up to date version of TinyTex.
 
 ## Fixed In Previous Patch Releases
 
+- Fixes an issue using Quarto with the most recent version of jupyter_client (version 8.0.0 and later)
 - Correct handling of the proxy url when starting preview server (fix issue previewing within IDEs)
 - Fix tinytex failure to install packages caused by invalid installation of tinytex on MacOS
 
