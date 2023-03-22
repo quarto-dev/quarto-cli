@@ -1,0 +1,17 @@
+---
+format: 
+  gfm:
+    toc: true
+_quarto:
+  tests:
+    gfm:
+      ensureFileRegexMatches:
+        - ["\\(#with-ending-dot\\)", "\\(#with-adot-in-the-middle\\)"] 
+        - ["\\(#with-ending-dot\\.\\)","\\(#with-a\\.dot-in-the-middle\\)"]
+---
+
+# A header
+
+# With ending dot.
+
+# With a.dot in the middle
