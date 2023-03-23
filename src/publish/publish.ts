@@ -1,9 +1,8 @@
 /*
-* publish.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * publish.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import * as ld from "../core/lodash.ts";
 
@@ -19,11 +18,12 @@ import {
 } from "path/mod.ts";
 
 import {
-  AccountToken,
   InputMetadata,
   PublishFiles,
   PublishProvider,
-} from "./provider.ts";
+} from "./provider-types.ts";
+
+import { AccountToken } from "./provider-types.ts";
 
 import { PublishOptions } from "./types.ts";
 

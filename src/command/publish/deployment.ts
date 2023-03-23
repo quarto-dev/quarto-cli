@@ -1,22 +1,21 @@
 /*
-* deployment.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * deployment.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { warning } from "log/mod.ts";
 
 import { Select } from "cliffy/prompt/select.ts";
 import { Confirm } from "cliffy/prompt/confirm.ts";
 
+import { findProvider, publishProviders } from "../../publish/provider.ts";
+
 import {
   AccountToken,
-  findProvider,
   PublishDeploymentWithAccount,
   PublishProvider,
-  publishProviders,
-} from "../../publish/provider.ts";
+} from "../../publish/provider-types.ts";
 
 import { PublishOptions, PublishRecord } from "../../publish/types.ts";
 import {

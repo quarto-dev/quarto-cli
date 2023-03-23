@@ -2,13 +2,12 @@
  * index.ts
  *
  * Copyright (C) 2020 by RStudio, PBC
- *
  */
 
 import { encode as base64encode } from "encoding/base64.ts";
 import { ensureTrailingSlash } from "../../../core/path.ts";
 
-import { AccountToken } from "../../provider.ts";
+import { AccountToken } from "../../provider-types.ts";
 import { ApiError } from "../../types.ts";
 import {
   AttachmentSummary,
@@ -57,16 +56,17 @@ export class ConfluenceClient {
   public getDescendantsPage(
     id: string,
     start: number = 0,
-    expand = ["metadata.properties", "ancestors"]
+    expand = ["metadata.properties", "ancestors"],
   ): Promise<WrappedResult<ContentSummary>> {
-    const url = `content/${id}/descendant/page?limit=${DESCENDANT_PAGE_SIZE}&start=${start}&expand=${expand}`;
+    const url =
+      `content/${id}/descendant/page?limit=${DESCENDANT_PAGE_SIZE}&start=${start}&expand=${expand}`;
     return this.get<WrappedResult<ContentSummary>>(url);
   }
 
   public async isTitleUniqueInSpace(
     title: string,
     space: Space,
-    idToIgnore: string = ""
+    idToIgnore: string = "",
   ): Promise<boolean> {
     const result = await this.fetchMatchingTitlePages(title, space);
 
@@ -80,7 +80,7 @@ export class ConfluenceClient {
   public async fetchMatchingTitlePages(
     title: string,
     space: Space,
-    isFuzzy: boolean = false
+    isFuzzy: boolean = false,
   ): Promise<Content[]> {
     const encodedTitle = encodeURIComponent(title);
 
@@ -101,7 +101,7 @@ export class ConfluenceClient {
   public async canSetPermissions(
     parent: ConfluenceParent,
     space: Space,
-    user: User
+    user: User,
   ): Promise<boolean> {
     let result = true;
 
@@ -114,7 +114,7 @@ export class ConfluenceClient {
           representation: "storage",
         },
       },
-      "permisson-test"
+      "permisson-test",
     );
     const testContentCreated = await this.createContent(user, testContent);
 
@@ -122,7 +122,7 @@ export class ConfluenceClient {
 
     try {
       await this.put<Content>(
-        `content/${testContentId}/restriction/byOperation/update/user?accountId=${user.accountId}`
+        `content/${testContentId}/restriction/byOperation/update/user?accountId=${user.accountId}`,
       );
     } catch (error) {
       trace("lockDownResult Error", error);
@@ -145,11 +145,11 @@ export class ConfluenceClient {
 
   public async lockDownPermissions(
     contentId: string,
-    user: User
+    user: User,
   ): Promise<any> {
     try {
       return await this.put<Content>(
-        `content/${contentId}/restriction/byOperation/update/user?accountId=${user.accountId}`
+        `content/${contentId}/restriction/byOperation/update/user?accountId=${user.accountId}`,
       );
     } catch (error) {
       trace("lockDownResult Error", error);
@@ -159,7 +159,7 @@ export class ConfluenceClient {
   public async createContent(
     user: User,
     content: ContentCreate,
-    metadata: Record<string, any> = V2EDITOR_METADATA
+    metadata: Record<string, any> = V2EDITOR_METADATA,
   ): Promise<Content> {
     const toCreate = {
       ...content,
@@ -179,7 +179,7 @@ export class ConfluenceClient {
   public async updateContent(
     user: User,
     content: ContentUpdate,
-    metadata: Record<string, any> = V2EDITOR_METADATA
+    metadata: Record<string, any> = V2EDITOR_METADATA,
   ): Promise<Content> {
     const toUpdate = {
       ...content,
@@ -188,7 +188,7 @@ export class ConfluenceClient {
 
     const result = await this.put<Content>(
       `content/${content.id}`,
-      JSON.stringify(toUpdate)
+      JSON.stringify(toUpdate),
     );
 
     await this.lockDownPermissions(content.id ?? "", user);
@@ -199,7 +199,7 @@ export class ConfluenceClient {
   public createContentProperty(id: string, content: any): Promise<Content> {
     return this.post<Content>(
       `content/${id}/property`,
-      JSON.stringify(content)
+      JSON.stringify(content),
     );
   }
 
@@ -220,15 +220,15 @@ export class ConfluenceClient {
   public async createOrUpdateAttachment(
     parentId: string,
     file: File,
-    comment: string = ""
+    comment: string = "",
   ): Promise<AttachmentSummary> {
     trace("createOrUpdateAttachment", { file, parentId }, LogPrefix.ATTACHMENT);
 
-    const wrappedResult: WrappedResult<AttachmentSummary> =
-      await this.putAttachment<WrappedResult<AttachmentSummary>>(
+    const wrappedResult: WrappedResult<AttachmentSummary> = await this
+      .putAttachment<WrappedResult<AttachmentSummary>>(
         `content/${parentId}/child/attachment`,
         file,
-        comment
+        comment,
       );
 
     trace("createOrUpdateAttachment", wrappedResult, LogPrefix.ATTACHMENT);
@@ -251,13 +251,13 @@ export class ConfluenceClient {
   private putAttachment = <T>(
     path: string,
     file: File,
-    comment: string = ""
+    comment: string = "",
   ): Promise<T> => this.fetchWithAttachment<T>("PUT", path, file, comment);
 
   private fetch = async <T>(
     method: string,
     path: string,
-    body?: BodyInit | null
+    body?: BodyInit | null,
   ): Promise<T> => {
     const headers = {
       Accept: "application/json",
@@ -278,7 +278,7 @@ export class ConfluenceClient {
     method: string,
     path: string,
     file: File,
-    comment: string = ""
+    comment: string = "",
   ): Promise<T> => {
     // https://blog.hyper.io/uploading-files-with-deno/
     const formData = new FormData();

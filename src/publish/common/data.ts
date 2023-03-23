@@ -1,9 +1,8 @@
 /*
-* data.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * data.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { join } from "path/mod.ts";
@@ -11,7 +10,7 @@ import { join } from "path/mod.ts";
 import { quartoDataDir } from "../../core/appdirs.ts";
 import { normalizePath } from "../../core/path.ts";
 import { ProjectContext } from "../../project/types.ts";
-import { AccountToken, PublishProvider } from "../provider.ts";
+import { AccountToken, PublishProvider } from "../provider-types.ts";
 import { PublishRecord } from "../types.ts";
 
 export function publishDataDir() {

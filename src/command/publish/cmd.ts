@@ -1,9 +1,8 @@
 /*
-* cmd.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * cmd.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { existsSync } from "fs/mod.ts";
 
@@ -11,13 +10,11 @@ import { Command } from "cliffy/command/mod.ts";
 import { Select } from "cliffy/prompt/select.ts";
 import { prompt } from "cliffy/prompt/mod.ts";
 
-import {
-  AccountToken,
-  findProvider,
-  PublishProvider,
-  publishProviders,
-} from "../../publish/provider.ts";
+import { findProvider } from "../../publish/provider.ts";
 
+import { AccountToken, PublishProvider } from "../../publish/provider-types.ts";
+
+import { publishProviders } from "../../publish/provider.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 import {
   initState,

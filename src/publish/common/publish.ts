@@ -1,9 +1,8 @@
 /*
-* publish.ts
-*
-* Copyright (C) 2022 Posit Software, PBC
-*
-*/
+ * publish.ts
+ *
+ * Copyright (C) 2022 Posit Software, PBC
+ */
 
 import { info } from "log/mod.ts";
 import * as colors from "fmt/colors.ts";
@@ -23,7 +22,7 @@ import { completeMessage, withSpinner } from "../../core/console.ts";
 import { fileProgress } from "../../core/progress.ts";
 
 import { PublishRecord } from "../types.ts";
-import { PublishFiles } from "../provider.ts";
+import { PublishFiles } from "../provider-types.ts";
 import { gfmAutoIdentifier } from "../../core/pandoc/pandoc-id.ts";
 import { randomHex } from "../../core/random.ts";
 import { copyTo } from "../../core/copy.ts";

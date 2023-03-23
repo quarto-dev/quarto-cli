@@ -6,7 +6,7 @@ import {
 } from "../../core/path.ts";
 import { join } from "path/mod.ts";
 import { isHttpUrl } from "../../core/url.ts";
-import { AccountToken, InputMetadata } from "../provider.ts";
+import { AccountToken, InputMetadata } from "../provider-types.ts";
 import {
   ConfluenceParent,
   ConfluenceSpaceChange,
@@ -47,7 +47,7 @@ export const capitalizeFirstLetter = (value: string = ""): string => {
 
 export const transformAtlassianDomain = (domain: string) => {
   return ensureTrailingSlash(
-    isHttpUrl(domain) ? domain : `https://${domain}.atlassian.net`
+    isHttpUrl(domain) ? domain : `https://${domain}.atlassian.net`,
   );
 };
 
@@ -117,7 +117,7 @@ export const getMessageFromAPIError = (error: any): string => {
 
 export const tokenFilterOut = (
   accessToken: AccountToken,
-  token: AccountToken
+  token: AccountToken,
 ) => {
   return accessToken.server !== token.server && accessToken.name !== token.name;
 };
@@ -131,7 +131,7 @@ export const confluenceParentFromString = (url: string): ConfluenceParent => {
   }
 
   const match = toMatch.match(
-    /^https.*?wiki\/spaces\/(?:(~?\w+)|(~?\w+)\/overview|(~?\w+)\/pages\/(\d+).*)$/
+    /^https.*?wiki\/spaces\/(?:(~?\w+)|(~?\w+)\/overview|(~?\w+)\/pages\/(\d+).*)$/,
   );
   if (match) {
     return {
@@ -154,15 +154,15 @@ export const wrapBodyForConfluence = (value: string): ContentBody => {
 
 export const buildPublishRecordForContent = (
   server: string,
-  content: Content | undefined
+  content: Content | undefined,
 ): [PublishRecord, URL] => {
   if (!content?.id || !content?.space || !(server.length > 0)) {
     throw new Error("Invalid Content");
   }
 
-  const url = `${ensureTrailingSlash(server)}wiki/spaces/${
-    content.space.key
-  }/pages/${content.id}`;
+  const url = `${
+    ensureTrailingSlash(server)
+  }wiki/spaces/${content.space.key}/pages/${content.id}`;
 
   const newPublishRecord: PublishRecord = {
     id: content.id,
@@ -174,13 +174,13 @@ export const buildPublishRecordForContent = (
 
 export const doWithSpinner = async (
   message: string,
-  toDo: () => Promise<any>
+  toDo: () => Promise<any>,
 ) => {
   return await withSpinner(
     {
       message,
     },
-    toDo
+    toDo,
   );
 };
 
@@ -193,11 +193,11 @@ export const getNextVersion = (previousPage: Content): ContentVersion => {
 
 export const writeTokenComparator = (
   a: AccountToken,
-  b: AccountToken
+  b: AccountToken,
 ): boolean => a.server === b.server && a.name === b.name;
 
 export const isProjectContext = (
-  input: ProjectContext | string
+  input: ProjectContext | string,
 ): input is ProjectContext => {
   return (input as ProjectContext).files !== undefined;
 };
@@ -214,19 +214,19 @@ export const filterFilesForUpdate = (allFiles: string[]): string[] => {
 };
 
 export const isContentCreate = (
-  content: ConfluenceSpaceChange
+  content: ConfluenceSpaceChange,
 ): content is ContentCreate => {
   return content.contentChangeType === ContentChangeType.create;
 };
 
 export const isContentUpdate = (
-  content: ConfluenceSpaceChange
+  content: ConfluenceSpaceChange,
 ): content is ContentUpdate => {
   return content.contentChangeType === ContentChangeType.update;
 };
 
 export const isContentDelete = (
-  content: ConfluenceSpaceChange
+  content: ConfluenceSpaceChange,
 ): content is ContentDelete => {
   return content.contentChangeType === ContentChangeType.delete;
 };
@@ -239,7 +239,7 @@ export const buildContentCreate = (
   parent?: string,
   status: ContentStatusEnum = ContentStatusEnum.current,
   id: string | null = null,
-  type: string = PAGE_TYPE
+  type: string = PAGE_TYPE,
 ): ContentCreate => {
   return {
     contentChangeType: ContentChangeType.create,
@@ -262,7 +262,7 @@ export const buildContentUpdate = (
   status: ContentStatusEnum = ContentStatusEnum.current,
   type: string = PAGE_TYPE,
   version: ContentVersion | null = null,
-  ancestors: ContentAncestor[] | null = null
+  ancestors: ContentAncestor[] | null = null,
 ): ContentUpdate => {
   return {
     contentChangeType: ContentChangeType.update,
@@ -279,13 +279,13 @@ export const buildContentUpdate = (
 
 export const findPagesToDelete = (
   fileMetadataList: SiteFileMetadata[],
-  existingSite: SitePage[] = []
+  existingSite: SitePage[] = [],
 ): SitePage[] => {
   const activeParents = existingSite.reduce(
     (accumulator: ContentAncestor[], page: SitePage): ContentAncestor[] => {
       return [...accumulator, ...(page.ancestors ?? [])];
     },
-    []
+    [],
   );
 
   const isActiveParent = (id: string): boolean =>
@@ -296,7 +296,7 @@ export const findPagesToDelete = (
       !fileMetadataList.find(
         (file) =>
           pathWithForwardSlashes(file.fileName) === page?.metadata?.fileName ??
-          ""
+            "",
       ) &&
       !isActiveParent(page.id)
     ) {
@@ -311,15 +311,15 @@ export const buildSpaceChanges = (
   fileMetadataList: SiteFileMetadata[],
   parent: ConfluenceParent,
   space: Space,
-  existingSite: SitePage[] = []
+  existingSite: SitePage[] = [],
 ): ConfluenceSpaceChange[] => {
   const spaceChangesCallback = (
     accumulatedChanges: ConfluenceSpaceChange[],
-    fileMetadata: SiteFileMetadata
+    fileMetadata: SiteFileMetadata,
   ): ConfluenceSpaceChange[] => {
     const findPageInExistingSite = (fileName: string) =>
       existingSite.find(
-        (page: SitePage) => page?.metadata?.fileName === fileName
+        (page: SitePage) => page?.metadata?.fileName === fileName,
       );
 
     const universalFileName = pathWithForwardSlashes(fileMetadata.fileName);
@@ -329,10 +329,9 @@ export const buildSpaceChanges = (
 
     const pathList = universalFileName.split("/");
 
-    let pageParent =
-      pathList.length > 1
-        ? pathList.slice(0, pathList.length - 1).join("/")
-        : parent?.parent;
+    let pageParent = pathList.length > 1
+      ? pathList.slice(0, pathList.length - 1).join("/")
+      : parent?.parent;
 
     const checkCreateParents = (): SitePage | null => {
       if (pathList.length < 2) {
@@ -360,7 +359,7 @@ export const buildSpaceChanges = (
               return spaceChange?.fileName === fileName;
             }
             return false;
-          }
+          },
         );
 
         existingSiteParent = existingSite.find((page: SitePage) => {
@@ -388,7 +387,7 @@ export const buildSpaceChanges = (
               },
               fileName,
               existingAncestor ? existingAncestor.id : ancestor,
-              ContentStatusEnum.current
+              ContentStatusEnum.current,
             ),
           ];
         }
@@ -408,7 +407,7 @@ export const buildSpaceChanges = (
           fileMetadata.title,
           fileMetadata.contentBody,
           universalFileName,
-          pageParent
+          pageParent,
         ),
       ];
     } else {
@@ -420,7 +419,7 @@ export const buildSpaceChanges = (
           fileMetadata.contentBody,
           universalFileName,
           pageParent,
-          ContentStatusEnum.current
+          ContentStatusEnum.current,
         ),
       ];
     }
@@ -430,25 +429,25 @@ export const buildSpaceChanges = (
 
   const pagesToDelete: SitePage[] = findPagesToDelete(
     fileMetadataList,
-    existingSite
+    existingSite,
   );
 
   const deleteChanges: ContentDelete[] = pagesToDelete.map(
     (toDelete: SitePage) => {
       return { contentChangeType: ContentChangeType.delete, id: toDelete.id };
-    }
+    },
   );
 
   let spaceChanges: ConfluenceSpaceChange[] = fileMetadataList.reduce(
     spaceChangesCallback,
-    deleteChanges
+    deleteChanges,
   );
 
   const activeAncestorIds = spaceChanges.reduce(
     (accumulator: any, change: any) => {
       if (change?.ancestors?.length) {
         const idList = change.ancestors.map(
-          (ancestor: ContentAncestor) => ancestor?.id ?? ""
+          (ancestor: ContentAncestor) => ancestor?.id ?? "",
         );
 
         return [...accumulator, ...idList];
@@ -456,7 +455,7 @@ export const buildSpaceChanges = (
 
       return accumulator;
     },
-    []
+    [],
   );
 
   spaceChanges = spaceChanges.filter((change: ConfluenceSpaceChange) => {
@@ -472,7 +471,7 @@ export const buildSpaceChanges = (
 export const flattenIndexes = (
   changes: ConfluenceSpaceChange[],
   metadataByFileName: Record<string, SitePage>,
-  siteParentId: string
+  siteParentId: string,
 ): ConfluenceSpaceChange[] => {
   const getFileNameForChange = (change: ConfluenceSpaceChange) => {
     if (isContentDelete(change)) {
@@ -488,7 +487,7 @@ export const flattenIndexes = (
 
   const toIndexPageLookup = (
     accumulator: Record<string, ConfluenceSpaceChange>,
-    change: ConfluenceSpaceChange
+    change: ConfluenceSpaceChange,
   ): Record<string, any> => {
     if (isContentDelete(change)) {
       return accumulator;
@@ -509,12 +508,12 @@ export const flattenIndexes = (
 
   const indexLookup: Record<string, ConfluenceSpaceChange> = changes.reduce(
     toIndexPageLookup,
-    {}
+    {},
   );
 
   const toFlattenedIndexes = (
     accumulator: ConfluenceSpaceChange[],
-    change: ConfluenceSpaceChange
+    change: ConfluenceSpaceChange,
   ): ConfluenceSpaceChange[] => {
     if (isContentDelete(change)) {
       return [...accumulator, change];
@@ -527,7 +526,7 @@ export const flattenIndexes = (
         siteParentId,
         change.title,
         change.body,
-        "index.xml"
+        "index.xml",
       );
       return [...accumulator, rootUpdate];
     }
@@ -548,7 +547,7 @@ export const flattenIndexes = (
           ContentStatusEnum.current,
           PAGE_TYPE,
           null,
-          parentSitePage.ancestors
+          parentSitePage.ancestors,
         );
 
         return [...accumulator, parentUpdate];
@@ -575,14 +574,14 @@ export const flattenIndexes = (
 export const replaceExtension = (
   fileName: string,
   oldExtension: string,
-  newExtension: string
+  newExtension: string,
 ) => {
   return fileName.replace(oldExtension, newExtension);
 };
 
 export const getTitle = (
   fileName: string,
-  metadataByInput: Record<string, InputMetadata>
+  metadataByInput: Record<string, InputMetadata>,
 ): string => {
   const qmdFileName = replaceExtension(fileName, ".xml", ".qmd");
 
@@ -600,7 +599,7 @@ const flattenMetadata = (list: ContentProperty[] = []): Record<string, any> => {
       updated[currentValue.key] = currentValue.value;
       return updated;
     },
-    {}
+    {},
   );
 
   return result;
@@ -608,7 +607,7 @@ const flattenMetadata = (list: ContentProperty[] = []): Record<string, any> => {
 
 export const mergeSitePages = (
   shallowPages: ContentSummary[] = [],
-  contentProperties: ContentProperty[][] = []
+  contentProperties: ContentProperty[][] = [],
 ): SitePage[] => {
   const result: SitePage[] = shallowPages.map(
     (contentSummary: ContentSummary, index) => {
@@ -619,13 +618,13 @@ export const mergeSitePages = (
         ancestors: contentSummary.ancestors ?? [],
       };
       return sitePage;
-    }
+    },
   );
   return result;
 };
 
 export const buildFileToMetaTable = (
-  fileMetadata: SitePage[]
+  fileMetadata: SitePage[],
 ): Record<string, SitePage> => {
   return fileMetadata.reduce(
     (accumulator: Record<string, SitePage>, page: SitePage) => {
@@ -638,7 +637,7 @@ export const buildFileToMetaTable = (
       accumulator[fileNameQMD] = page;
       return accumulator;
     },
-    {}
+    {},
   );
 };
 
@@ -646,20 +645,20 @@ export const updateLinks = (
   fileMetadataTable: Record<string, SitePage>,
   spaceChanges: ConfluenceSpaceChange[],
   server: string,
-  parent: ConfluenceParent
+  parent: ConfluenceParent,
 ): {
   pass1Changes: ConfluenceSpaceChange[];
   pass2Changes: ConfluenceSpaceChange[];
 } => {
   const root = `${server}`;
-  const url = `${ensureTrailingSlash(server)}wiki/spaces/${
-    parent.space
-  }/pages/`;
+  const url = `${
+    ensureTrailingSlash(server)
+  }wiki/spaces/${parent.space}/pages/`;
 
   let collectedPass2Changes: ConfluenceSpaceChange[] = [];
 
   const changeMapper = (
-    changeToProcess: ConfluenceSpaceChange
+    changeToProcess: ConfluenceSpaceChange,
   ): ConfluenceSpaceChange => {
     const replacer = (match: string): string => {
       let documentFileName = "";
@@ -736,7 +735,7 @@ export const updateLinks = (
       if (valueToProcess) {
         const replacedLinks: string = valueToProcess.replaceAll(
           LINK_FINDER,
-          replacer
+          replacer,
         );
 
         changeToProcess.body.storage.value = replacedLinks;
@@ -745,8 +744,9 @@ export const updateLinks = (
     return changeToProcess;
   };
 
-  const updatedChanges: ConfluenceSpaceChange[] =
-    spaceChanges.map(changeMapper);
+  const updatedChanges: ConfluenceSpaceChange[] = spaceChanges.map(
+    changeMapper,
+  );
 
   return { pass1Changes: updatedChanges, pass2Changes: collectedPass2Changes };
 };
@@ -755,11 +755,11 @@ export const convertForSecondPass = (
   fileMetadataTable: Record<string, SitePage>,
   spaceChanges: ConfluenceSpaceChange[],
   server: string,
-  parent: ConfluenceParent
+  parent: ConfluenceParent,
 ): ConfluenceSpaceChange[] => {
   const toUpdatesReducer = (
     accumulator: ConfluenceSpaceChange[],
-    change: ConfluenceSpaceChange
+    change: ConfluenceSpaceChange,
   ) => {
     if (isContentUpdate(change)) {
       accumulator = [...accumulator, change];
@@ -769,7 +769,7 @@ export const convertForSecondPass = (
       const qmdFileName = replaceExtension(
         change.fileName ?? "",
         ".xml",
-        ".qmd"
+        ".qmd",
       );
       const updateId = fileMetadataTable[qmdFileName]?.id;
 
@@ -783,7 +783,7 @@ export const convertForSecondPass = (
           ContentStatusEnum.current,
           PAGE_TYPE,
           null,
-          change.ancestors
+          change.ancestors,
         );
         accumulator = [...accumulator, convertedUpdate];
       } else {
@@ -800,7 +800,7 @@ export const convertForSecondPass = (
     fileMetadataTable,
     changesAsUpdates,
     server,
-    parent
+    parent,
   );
 
   return updateLinkResults.pass1Changes;
@@ -821,7 +821,7 @@ export const updateImagePaths = (body: ContentBody): ContentBody => {
 
   const withReplacedImages: string = bodyValue.replaceAll(
     IMAGE_FINDER,
-    replacer
+    replacer,
   );
 
   body.storage.value = withReplacedImages;
@@ -831,7 +831,7 @@ export const updateImagePaths = (body: ContentBody): ContentBody => {
 export const findAttachments = (
   bodyValue: string,
   publishFiles: string[] = [],
-  filePathParam: string = ""
+  filePathParam: string = "",
 ): string[] => {
   const filePath = pathWithForwardSlashes(filePathParam);
 
@@ -872,14 +872,12 @@ export const footnoteTransform = (bodyValue: string): string => {
     return bodyValue;
   }
 
-  const replacer =
-    (prefix: string) =>
-    (match: string, p1: string): string =>
-      `${buildConfluenceAnchor(`${prefix}${p1}`)}${match}`;
+  const replacer = (prefix: string) => (match: string, p1: string): string =>
+    `${buildConfluenceAnchor(`${prefix}${p1}`)}${match}`;
 
   let replacedBody: string = bodyValue.replaceAll(
     BACK_ANCHOR_FINDER,
-    replacer("fnref")
+    replacer("fnref"),
   );
 
   replacedBody = replacedBody.replaceAll(ANCHOR_FINDER, replacer("fn"));
