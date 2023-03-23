@@ -1,9 +1,8 @@
 /*
-* serve.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * serve.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { info, warning } from "log/mod.ts";
 import { existsSync } from "fs/mod.ts";
@@ -55,9 +54,9 @@ import {
 import {
   httpContentResponse,
   httpFileRequestHandler,
-  HttpFileRequestOptions,
   isBrowserPreviewable,
 } from "../../core/http.ts";
+import { HttpFileRequestOptions } from "../../core/http-types.ts";
 import { ProjectWatcher, ServeOptions } from "./types.ts";
 import { watchProject } from "./watch.ts";
 import {

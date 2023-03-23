@@ -1,9 +1,8 @@
 /*
-* preview.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * preview.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { info, warning } from "log/mod.ts";
 import {
@@ -24,10 +23,10 @@ import { openUrl } from "../../core/shell.ts";
 import {
   httpContentResponse,
   httpFileRequestHandler,
-  HttpFileRequestOptions,
   isBrowserPreviewable,
   serveRedirect,
 } from "../../core/http.ts";
+import { HttpFileRequestOptions } from "../../core/http-types.ts";
 import { HttpDevServer, httpDevServer } from "../../core/http-devserver.ts";
 import {
   isHtmlContent,
