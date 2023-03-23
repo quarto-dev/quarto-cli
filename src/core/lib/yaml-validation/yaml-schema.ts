@@ -1,16 +1,15 @@
 /*
-* yaml-schema.ts
-*
-* A class to manage YAML Schema validation and associated tasks like
-* error localization
-*
-* Copyright (C) 2022 Posit Software, PBC
-*
-*/
+ * yaml-schema.ts
+ *
+ * A class to manage YAML Schema validation and associated tasks like
+ * error localization
+ *
+ * Copyright (C) 2022 Posit Software, PBC
+ */
 
 import { MappedString } from "../text-types.ts";
 
-import { TidyverseError } from "../errors.ts";
+import { TidyverseError } from "../errors-types.ts";
 import { ValidatorErrorHandlerFunction } from "./types.ts";
 
 import { validate } from "./validator.ts";
