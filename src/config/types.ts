@@ -1,9 +1,8 @@
 /*
-* types.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * types.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 import { Document } from "../core/deno-dom.ts";
 
 import {
@@ -205,7 +204,7 @@ import {
 } from "./constants.ts";
 
 import { HtmlPostProcessor, RenderServices } from "../command/render/types.ts";
-import { QuartoFilterSpec } from "../command/render/filters.ts";
+import { QuartoFilterSpec } from "../command/render/types.ts";
 import { ProjectContext } from "../project/types.ts";
 
 export const kDependencies = "dependencies";

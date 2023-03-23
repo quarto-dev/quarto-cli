@@ -6,7 +6,7 @@
 
 import { Document } from "../../core/deno-dom.ts";
 
-import { Format, PandocFlags } from "../../config/types.ts";
+import { Format, PandocFlags, QuartoFilter } from "../../config/types.ts";
 import {
   ExecuteResult,
   ExecutionEngine,
@@ -239,3 +239,11 @@ export interface OutputRecipe {
 
   isOutputTransient?: boolean;
 }
+
+export type QuartoFilterSpec = {
+  // these are filters that will be sent to pandoc directly
+  quartoFilters: QuartoFilter[];
+
+  beforeQuartoFilters: QuartoFilter[];
+  afterQuartoFilters: QuartoFilter[];
+};
