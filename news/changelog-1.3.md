@@ -238,6 +238,7 @@
 
 - Fix error publishing when an `output-dir` is specified ([#4158](https://github.com/quarto-dev/quarto-cli/issues/4158)).
 - Emit error when git <2.17.0 is used ([#4575](https://github.com/quarto-dev/quarto-cli/issues/4575)).
+- Fix error regarding `--site-url` when publishing document and not website ([#4384](https://github.com/quarto-dev/quarto-cli/issues/4384)).
 
 ## Other
 
