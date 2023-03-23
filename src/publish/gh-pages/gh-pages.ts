@@ -188,7 +188,7 @@ async function publish(
     "gh-pages",
     type,
     title,
-    target?.url,
+    type === "site" ? target?.url : undefined,
   );
 
   // allocate worktree dir
