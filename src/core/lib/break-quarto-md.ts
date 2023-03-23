@@ -1,12 +1,11 @@
 /*
-* break-quarto-md.ts
-*
-* Breaks up a qmd file into a list of chunks of related text: YAML
-* front matter, "pure" markdown, triple-backtick sections, and so on.
-*
-* Copyright (C) 2021-2022 Posit Software, PBC
-*
-*/
+ * break-quarto-md.ts
+ *
+ * Breaks up a qmd file into a list of chunks of related text: YAML
+ * front matter, "pure" markdown, triple-backtick sections, and so on.
+ *
+ * Copyright (C) 2021-2022 Posit Software, PBC
+ */
 
 import { lineOffsets, lines } from "./text.ts";
 import { Range, rangedLines, RangedSubstring } from "./ranged-text.ts";
@@ -20,7 +19,8 @@ import {
 import { partitionCellOptionsMapped } from "./partition-cell-options.ts";
 
 import { QuartoMdCell, QuartoMdChunks } from "./break-quarto-md-types.ts";
-import { isBlockShortcode, Shortcode } from "./parse-shortcode.ts";
+import { isBlockShortcode } from "./parse-shortcode.ts";
+import { Shortcode } from "./parse-shortcode-types.ts";
 
 export type { QuartoMdCell, QuartoMdChunks } from "./break-quarto-md-types.ts";
 

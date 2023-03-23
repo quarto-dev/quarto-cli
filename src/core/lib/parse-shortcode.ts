@@ -1,13 +1,13 @@
 /*
-* parse-shortcodes.ts
-*
-* Recognizes and parses shortcodes.
-*
-* Copyright (C) 2022 Posit Software, PBC
-*
-*/
+ * parse-shortcodes.ts
+ *
+ * Recognizes and parses shortcodes.
+ *
+ * Copyright (C) 2022 Posit Software, PBC
+ */
 
 import { matchAll } from "./text.ts";
+import { Shortcode } from "./parse-shortcode-types.ts";
 
 export function findInlineShortcodes(content: string) {
   return Array.from(matchAll(content, /{{< (?!\/\*)(.+?)(?<!\*\/) >}}/));
@@ -18,16 +18,6 @@ export function isBlockShortcode(content: string) {
   if (m) {
     return parseShortcode(m[1]);
   }
-}
-
-export interface Shortcode {
-  name: string;
-  rawParams: {
-    name?: string;
-    value: string;
-  }[];
-  namedParams: Record<string, string>;
-  params: string[];
 }
 
 function parseShortcodeCapture(capture: string): Shortcode | undefined {

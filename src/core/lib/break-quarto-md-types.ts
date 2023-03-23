@@ -1,13 +1,12 @@
 /*
-* break-quarto-md-types.ts
-*
-* types for break-quarto-md.ts
-*
-* Copyright (C) 2021-2022 Posit Software, PBC
-*
-*/
+ * break-quarto-md-types.ts
+ *
+ * types for break-quarto-md.ts
+ *
+ * Copyright (C) 2021-2022 Posit Software, PBC
+ */
 
-import { Shortcode } from "./parse-shortcode.ts";
+import { Shortcode } from "./parse-shortcode-types.ts";
 import { MappedString } from "./text-types.ts";
 
 export interface CodeCellType {
