@@ -1,9 +1,8 @@
 /*
-* types.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * types.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { Document } from "../../core/deno-dom.ts";
 
@@ -16,7 +15,7 @@ import {
 import { Metadata } from "../../config/types.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { TempContext } from "../../core/temp-types.ts";
-import { ExtensionContext } from "../../extension/extension-shared.ts";
+import { ExtensionContext } from "../../extension/types.ts";
 import { kPositionedRefs } from "../../config/constants.ts";
 
 // options for render

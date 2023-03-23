@@ -1,9 +1,8 @@
 /*
-* format-reveal-plugin.ts
-*
-* Copyright (C) 2021-2022 Posit Software, PBC
-*
-*/
+ * format-reveal-plugin.ts
+ *
+ * Copyright (C) 2021-2022 Posit Software, PBC
+ */
 
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { basename, join } from "path/mod.ts";
@@ -31,10 +30,8 @@ import { readAndValidateYamlFromFile } from "../../core/schema/validated-yaml.ts
 
 import { revealPluginSchema } from "./schemas.ts";
 import { copyMinimal } from "../../core/copy.ts";
-import {
-  ExtensionContext,
-  kRevealJSPlugins,
-} from "../../extension/extension-shared.ts";
+import { kRevealJSPlugins } from "../../extension/constants.ts";
+import { ExtensionContext } from "../../extension/types.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { filterExtensions } from "../../extension/extension.ts";
 
