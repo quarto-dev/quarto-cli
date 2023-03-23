@@ -1,14 +1,14 @@
 /*
-* console.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * console.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { ansi } from "cliffy/ansi/mod.ts";
 import { readAllSync, writeAllSync } from "streams/conversion.ts";
 import { info } from "log/mod.ts";
 import { runningInCI } from "./ci-info.ts";
+import { SpinnerOptions } from "./console-types.ts";
 
 // The spinner and progress characters
 const kSpinnerChars = ["|", "/", "-", "\\"];
@@ -69,11 +69,6 @@ export function progressBar(total: number, prefixMessage?: string): {
       }
     },
   };
-}
-
-export interface SpinnerOptions {
-  message: string | (() => string);
-  doneMessage?: string | boolean;
 }
 
 export async function withSpinner(

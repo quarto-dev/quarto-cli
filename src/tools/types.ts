@@ -1,11 +1,10 @@
 /*
-* types.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * types.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
-import { SpinnerOptions } from "../core/console.ts";
+import { SpinnerOptions } from "../core/console-types.ts";
 
 export const kUpdatePath = "update-path";
 
