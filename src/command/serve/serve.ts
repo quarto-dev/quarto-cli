@@ -1,11 +1,11 @@
 /*
-* run.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * run.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
-import { ProcessResult, processSuccessResult } from "../../core/process.ts";
+import { processSuccessResult } from "../../core/process.ts";
+import { ProcessResult } from "../../core/process-types.ts";
 
 import { fileExecutionEngine } from "../../execute/engine.ts";
 import { RunOptions } from "../../execute/types.ts";

@@ -2,12 +2,11 @@
  * pkgmgr.ts
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
- *
  */
 
 import * as ld from "../../../core/lodash.ts";
 
-import { ProcessResult } from "../../../core/process.ts";
+import { ProcessResult } from "../../../core/process-types.ts";
 
 import {
   findPackages,

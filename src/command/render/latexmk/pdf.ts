@@ -2,7 +2,6 @@
  * pdf.ts
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
- *
  */
 
 import { dirname, join } from "path/mod.ts";
@@ -12,7 +11,7 @@ import { PdfEngine } from "../../../config/types.ts";
 import { kLatexHeaderMessageOptions, LatexmkOptions } from "./types.ts";
 
 import { dirAndStem } from "../../../core/path.ts";
-import { ProcessResult } from "../../../core/process.ts";
+import { ProcessResult } from "../../../core/process-types.ts";
 
 import { hasTexLive, TexLiveContext, texLiveContext } from "./texlive.ts";
 import { runBibEngine, runIndexEngine, runPdfEngine } from "./latex.ts";
