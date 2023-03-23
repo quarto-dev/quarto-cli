@@ -13,19 +13,10 @@ import {
   RevealPlugin,
   RevealPluginBundle,
   RevealPluginScript,
-} from "../format/reveal/format-reveal-plugin.ts";
+} from "../format/reveal/format-reveal-plugin-types.ts";
 import { ProjectConfig } from "../project/types.ts";
 
-import {
-  kAuthor,
-  kBuiltInExtOrg,
-  kCommon,
-  kExtensionDir,
-  kQuartoRequired,
-  kRevealJSPlugins,
-  kTitle,
-  kVersion,
-} from "./constants.ts";
+import { kRevealJSPlugins } from "./constants.ts";
 
 export type Contributes =
   | "shortcodes"

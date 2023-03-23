@@ -1,9 +1,8 @@
 /*
-* format-reveal.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * format-reveal.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 import { join } from "path/mod.ts";
 
 import { Document, Element, NodeType } from "../../core/deno-dom.ts";
@@ -33,10 +32,8 @@ import { findParent } from "../../core/html.ts";
 import { createHtmlPresentationFormat } from "../formats-shared.ts";
 import { pandocFormatWith } from "../../core/pandoc/pandoc-formats.ts";
 import { htmlFormatExtras } from "../html/format-html.ts";
-import {
-  revealPluginExtras,
-  RevealPluginScript,
-} from "./format-reveal-plugin.ts";
+import { revealPluginExtras } from "./format-reveal-plugin.ts";
+import { RevealPluginScript } from "./format-reveal-plugin-types.ts";
 import { revealTheme } from "./format-reveal-theme.ts";
 import {
   revealMuliplexPreviewFile,
@@ -457,7 +454,7 @@ function revealHtmlPostprocessor(
     const invisibleSlides = doc.querySelectorAll(
       'section.slide[data-visibility="hidden"]',
     );
-    for (let i = (invisibleSlides.length - 1); i >= 0; i--) {
+    for (let i = invisibleSlides.length - 1; i >= 0; i--) {
       const slide = invisibleSlides.item(i);
       // remove from toc
       const id = (slide as Element).id;

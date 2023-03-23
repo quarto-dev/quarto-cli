@@ -34,6 +34,11 @@ import { kRevealJSPlugins } from "../../extension/constants.ts";
 import { ExtensionContext } from "../../extension/types.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { filterExtensions } from "../../extension/extension.ts";
+import {
+  RevealPlugin,
+  RevealPluginBundle,
+  RevealPluginScript,
+} from "./format-reveal-plugin-types.ts";
 
 const kRevealjsPlugins = "revealjs-plugins";
 
@@ -82,27 +87,6 @@ const kRevealPluginOptions = [
 ];
 
 const kRevealPluginKebabOptions = optionsToKebab(kRevealPluginOptions);
-
-export interface RevealPluginBundle {
-  plugin: string;
-  config?: Metadata;
-}
-
-export interface RevealPlugin {
-  path: string;
-  name: string;
-  register?: boolean;
-  script?: RevealPluginScript[];
-  stylesheet?: string[];
-  config?: Metadata;
-  metadata?: string[];
-  [kSelfContained]?: boolean;
-}
-
-export interface RevealPluginScript {
-  path: string;
-  async?: boolean;
-}
 
 export function isPluginBundle(
   plugin: RevealPluginBundle | RevealPlugin,

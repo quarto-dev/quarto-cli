@@ -54,7 +54,7 @@ import {
   RevealPlugin,
   RevealPluginBundle,
   RevealPluginScript,
-} from "../format/reveal/format-reveal-plugin.ts";
+} from "../format/reveal/format-reveal-plugin-types.ts";
 import { resourcePath } from "../core/resources.ts";
 import { warnOnce } from "../core/log.ts";
 
