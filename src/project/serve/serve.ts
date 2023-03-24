@@ -31,11 +31,9 @@ import {
   isProjectInputFile,
   projectExcludeDirs,
   projectOutputDir,
-} from "../../project/project-shared.ts";
-import {
-  projectContext,
   projectPreviewServe,
-} from "../../project/project-context.ts";
+} from "../../project/project-shared.ts";
+import { projectContext } from "../../project/project-context.ts";
 import { partitionedMarkdownForInput } from "../../project/project-config.ts";
 
 import {

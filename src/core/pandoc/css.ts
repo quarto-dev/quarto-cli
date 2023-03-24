@@ -41,3 +41,7 @@ export function generateCssKeyValues(textValues: Record<string, unknown>) {
   });
   return lines;
 }
+
+export function cssHasDarkModeSentinel(css: string) {
+  return !!css.match(/\/\*! dark \*\//g);
+}

@@ -59,11 +59,13 @@ import { defaultWriterFormat } from "../../format/formats.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { ExecutionEngine, ExecutionTarget } from "../../execute/types.ts";
 import {
-  deleteProjectMetadata,
-  directoryMetadataForInputFile,
   projectMetadataForInputFile,
-  projectTypeIsWebsite,
 } from "../../project/project-context.ts";
+import {
+  directoryMetadataForInputFile,
+  deleteProjectMetadata,
+  projectTypeIsWebsite,
+} from "../../project/project-shared.ts";
 import {
   kProjectLibDir,
   kProjectType,

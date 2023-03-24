@@ -59,18 +59,18 @@ import {
 
 import {
   engineIgnoreDirs,
-  engineIgnoreGlobs,
   executionEngineKeepFiles,
   fileExecutionEngine,
 } from "../execute/engine.ts";
 import { kMarkdownEngine } from "../execute/types.ts";
 
 import { projectResourceFiles } from "./project-resources.ts";
-import { gitignoreEntries } from "./project-gitignore.ts";
 
 import {
   ignoreFieldsForProjectType,
+  normalizeFormatYaml,
   projectConfigFile,
+  projectIgnoreGlobs,
   projectVarsFile,
   toInputRelativePaths,
 } from "./project-shared.ts";
@@ -91,29 +91,7 @@ import { dotenvSetVariables } from "../quarto-core/dotenv.ts";
 import { ConcreteSchema } from "../core/lib/yaml-schema/types.ts";
 import { ExtensionContext } from "../extension/types.ts";
 import { asArray } from "../core/array.ts";
-
-export function deleteProjectMetadata(metadata: Metadata) {
-  // see if the active project type wants to filter the config printed
-  const projType = projectType(
-    (metadata as ProjectConfig).project?.[kProjectType],
-  );
-  if (projType.metadataFields) {
-    for (const field of projType.metadataFields().concat("project")) {
-      if (typeof (field) === "string") {
-        delete metadata[field];
-      } else {
-        for (const key of Object.keys(metadata)) {
-          if (field.test(key)) {
-            delete metadata[key];
-          }
-        }
-      }
-    }
-  }
-
-  // remove project config
-  delete metadata.project;
-}
+import { renderFormats } from "../command/render/render-contexts.ts";
 
 export async function projectContext(
   path: string,
@@ -278,6 +256,9 @@ export async function projectContext(
           },
           config: projectConfig,
           formatExtras: type.formatExtras,
+          // this is a relatively ugly hack to avoid a circular import chain
+          // that causes a deno bundler bug;
+          renderFormats,
         };
       } else {
         const { files, engines } = projectInputFiles(dir);
@@ -291,6 +272,7 @@ export async function projectContext(
             config: configFiles,
             configResources: projectConfigResources(dir, projectConfig),
           },
+          renderFormats,
         };
       }
     } else {
@@ -308,6 +290,7 @@ export async function projectContext(
             files: {
               input: [],
             },
+            renderFormats,
           };
           if (Deno.statSync(path).isDirectory) {
             const { files, engines } = projectInputFiles(originalDir);
@@ -531,42 +514,6 @@ export function projectContextForDirectory(
   return projectContext(path, flags, true) as Promise<ProjectContext>;
 }
 
-export function projectIsWebsite(context?: ProjectContext): boolean {
-  if (context) {
-    const projType = projectType(context.config?.project?.[kProjectType]);
-    return projectTypeIsWebsite(projType);
-  } else {
-    return false;
-  }
-}
-
-export function projectPreviewServe(context?: ProjectContext) {
-  return context?.config?.project?.preview?.serve;
-}
-
-export function projectIsServeable(context?: ProjectContext): boolean {
-  return projectIsWebsite(context) || !!projectPreviewServe(context);
-}
-
-export function projectTypeIsWebsite(projType: ProjectType): boolean {
-  return projType.type === kWebsite || projType.inheritsType === kWebsite;
-}
-
-export function projectIsBook(context?: ProjectContext): boolean {
-  if (context) {
-    const projType = projectType(context.config?.project?.[kProjectType]);
-    return projType.type === "book";
-  } else {
-    return false;
-  }
-}
-
-export function projectIgnoreGlobs(dir: string) {
-  return engineIgnoreGlobs().concat(
-    gitignoreEntries(dir).map((ignore) => `**/${ignore}**`),
-  );
-}
-
 export async function projectMetadataForInputFile(
   input: string,
   flags?: RenderFlags,
@@ -592,84 +539,6 @@ export async function projectMetadataForInputFile(
     // Just return the config or empty metadata
     return project?.config || {};
   }
-}
-
-export async function directoryMetadataForInputFile(
-  project: ProjectContext,
-  inputDir: string,
-) {
-  const projectDir = project.dir;
-  // Finds a metadata file in a directory
-  const metadataFile = (dir: string) => {
-    return ["_metadata.yml", "_metadata.yaml"]
-      .map((file) => join(dir, file))
-      .find(existsSync);
-  };
-
-  // The path from the project dir to the input dir
-  const relativePath = relative(projectDir, inputDir);
-  const dirs = relativePath.split(SEP_PATTERN);
-
-  // The config we'll ultimately return
-  let config = {};
-
-  // Walk through each directory (starting from the project and
-  // walking deeper to the input)
-  let currentDir = projectDir;
-  const frontMatterSchema = await getFrontMatterSchema();
-  for (let i = 0; i < dirs.length; i++) {
-    const dir = dirs[i];
-    currentDir = join(currentDir, dir);
-    const file = metadataFile(currentDir);
-    if (file) {
-      // There is a metadata file, read it and merge it
-      // Note that we need to convert paths that are relative
-      // to the metadata file to be relative to input
-      const errMsg = "Directory metadata validation failed.";
-      const yaml = ((await readAndValidateYamlFromFile(
-        file,
-        frontMatterSchema,
-        errMsg,
-      )) || {}) as Record<string, unknown>;
-
-      // resolve format into expected structure
-      if (yaml.format) {
-        yaml.format = normalizeFormatYaml(yaml.format);
-      }
-
-      config = mergeConfigs(
-        config,
-        toInputRelativePaths(
-          projectType(project?.config?.project?.[kProjectType]),
-          currentDir,
-          inputDir,
-          yaml as Record<string, unknown>,
-        ),
-      );
-    }
-  }
-
-  return config;
-}
-
-export function normalizeFormatYaml(yamlFormat: unknown) {
-  if (yamlFormat) {
-    if (typeof (yamlFormat) === "string") {
-      yamlFormat = {
-        [yamlFormat]: {},
-      };
-    } else if (typeof (yamlFormat) === "object") {
-      const formats = Object.keys(yamlFormat);
-      for (const format of formats) {
-        if (
-          (yamlFormat as Record<string, unknown>)[format] === "default"
-        ) {
-          (yamlFormat as Record<string, unknown>)[format] = {};
-        }
-      }
-    }
-  }
-  return (yamlFormat || {}) as Record<string, unknown>;
 }
 
 export function projectYamlFiles(dir: string): string[] {

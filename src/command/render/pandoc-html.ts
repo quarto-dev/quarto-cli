@@ -28,7 +28,10 @@ import {
 } from "../../quarto-core/text-highlighting.ts";
 
 import { isHtmlOutput } from "../../config/format.ts";
-import { generateCssKeyValues } from "../../core/pandoc/css.ts";
+import {
+  cssHasDarkModeSentinel,
+  generateCssKeyValues,
+} from "../../core/pandoc/css.ts";
 
 // The output target for a sass bundle
 // (controls the overall style tag that is emitted)
@@ -219,10 +222,6 @@ export async function resolveSassBundles(
   }
 
   return extras;
-}
-
-export function cssHasDarkModeSentinel(css: string) {
-  return !!css.match(/\/\*! dark \*\//g);
 }
 
 // Generates syntax highlighting Css and Css variables

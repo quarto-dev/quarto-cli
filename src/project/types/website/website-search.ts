@@ -1,9 +1,8 @@
 /*
-* website-search.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * website-search.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { existsSync } from "fs/mod.ts";
 import { basename, join, relative } from "path/mod.ts";
@@ -50,7 +49,7 @@ import {
 import { kLanguageDefaults } from "../../../config/constants.ts";
 import { pathWithForwardSlashes } from "../../../core/path.ts";
 import { isHtmlFileOutput } from "../../../config/format.ts";
-import { projectIsBook } from "../../project-context.ts";
+import { projectIsBook } from "../../project-shared.ts";
 import { encodeHtml } from "../../../core/html.ts";
 
 // The main search key

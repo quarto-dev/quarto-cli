@@ -32,11 +32,12 @@ import {
 } from "../../core/lib/yaml-validation/state.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 import { kProjectWatchInputs, ProjectContext } from "../../project/types.ts";
+import { projectContext } from "../../project/project-context.ts";
 import {
-  projectContext,
   projectIsServeable,
   projectPreviewServe,
-} from "../../project/project-context.ts";
+} from "../../project/project-shared.ts";
+
 import { isHtmlOutput } from "../../config/format.ts";
 import { renderProject } from "../render/project.ts";
 import { renderServices } from "../render/render-shared.ts";
