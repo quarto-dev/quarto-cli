@@ -1,9 +1,8 @@
 /*
-* rsconnect.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * rsconnect.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 import { info } from "log/mod.ts";
 import * as colors from "fmt/colors.ts";
 
@@ -15,7 +14,7 @@ import {
   AccountTokenType,
   PublishFiles,
   PublishProvider,
-} from "../provider.ts";
+} from "../provider-types.ts";
 import { ApiError, PublishOptions, PublishRecord } from "../types.ts";
 import { RSConnectClient } from "./api/index.ts";
 import { Content, Task } from "./api/types.ts";

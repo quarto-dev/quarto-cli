@@ -42,7 +42,7 @@ import {
   AccountToken,
   AccountTokenType,
   InputMetadata,
-} from "../../src/publish/provider.ts";
+} from "../../src/publish/provider-types.ts";
 import {
   ConfluenceParent,
   ConfluenceSpaceChange,

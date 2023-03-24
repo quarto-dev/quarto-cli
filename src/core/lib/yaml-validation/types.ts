@@ -1,11 +1,10 @@
 /*
-* types.ts
-*
-* Copyright (C) 2022 Posit Software, PBC
-*
-*/
+ * types.ts
+ *
+ * Copyright (C) 2022 Posit Software, PBC
+ */
 
-import { TidyverseError } from "../errors.ts";
+import { TidyverseError } from "../errors-types.ts";
 import { MappedString } from "../text-types.ts";
 import {
   AnnotatedParse,
@@ -28,7 +27,7 @@ export type ValidatorErrorHandlerFunction = (
    * error.violatingObject (a subobject of parse.result).
    */
   schema: Schema,
-) => (LocalizedError | null);
+) => LocalizedError | null;
 
 export interface YAMLSchemaT {
   schema: Schema;

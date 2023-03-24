@@ -1,9 +1,8 @@
 /*
-* cmd.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * cmd.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { existsSync } from "fs/mod.ts";
 import { dirname, extname, join, relative } from "path/mod.ts";
@@ -12,7 +11,8 @@ import * as colors from "fmt/colors.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 
-import { kLocalhost, waitForPort } from "../../core/port.ts";
+import { kLocalhost } from "../../core/port-consts.ts";
+import { waitForPort } from "../../core/port.ts";
 import { fixupPandocArgs, parseRenderFlags } from "../render/flags.ts";
 import {
   handleRenderResult,

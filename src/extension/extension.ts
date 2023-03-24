@@ -1,9 +1,8 @@
 /*
-* extension.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * extension.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { existsSync, walkSync } from "fs/mod.ts";
 import { expandGlobSync } from "../core/deno/expand-glob.ts";
@@ -26,12 +25,6 @@ import { mergeConfigs } from "../core/config.ts";
 import { quartoConfig } from "../core/quarto.ts";
 
 import {
-  Contributes,
-  Extension,
-  ExtensionContext,
-  ExtensionId,
-  extensionIdString,
-  ExtensionOptions,
   kAuthor,
   kBuiltInExtOrg,
   kCommon,
@@ -40,8 +33,17 @@ import {
   kRevealJSPlugins,
   kTitle,
   kVersion,
+} from "./constants.ts";
+import { extensionIdString } from "./extension-shared.ts";
+import {
+  Contributes,
+  Extension,
+  ExtensionContext,
+  ExtensionId,
+  ExtensionOptions,
   RevealPluginInline,
-} from "./extension-shared.ts";
+} from "./types.ts";
+
 import { cloneDeep } from "../core/lodash.ts";
 import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
 import { getExtensionConfigSchema } from "../core/lib/yaml-schema/project-config.ts";
@@ -52,7 +54,7 @@ import {
   RevealPlugin,
   RevealPluginBundle,
   RevealPluginScript,
-} from "../format/reveal/format-reveal-plugin.ts";
+} from "../format/reveal/format-reveal-plugin-types.ts";
 import { resourcePath } from "../core/resources.ts";
 import { warnOnce } from "../core/log.ts";
 

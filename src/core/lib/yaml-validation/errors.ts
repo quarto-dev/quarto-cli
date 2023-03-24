@@ -1,11 +1,10 @@
 /*
-* errors.ts
-*
-* Functions for creating/setting yaml validation errors
-*
-* Copyright (C) 2022 Posit Software, PBC
-*
-*/
+ * errors.ts
+ *
+ * Functions for creating/setting yaml validation errors
+ *
+ * Copyright (C) 2022 Posit Software, PBC
+ */
 
 import * as colors from "../external/colors.ts";
 
@@ -16,8 +15,9 @@ import {
   addInstancePathInfo,
   locationString,
   quotedStringColor,
-  TidyverseError,
 } from "../errors.ts";
+
+import { TidyverseError } from "../errors-types.ts";
 
 import {
   mappedIndexToLineCol,
@@ -949,8 +949,8 @@ export function createSourceContext(
           contextLines.push("...");
         }
       } else {
-        const startColumn = (lineNumber > start.line ? 0 : start.column);
-        const endColumn = (lineNumber < end.line ? rawLine.length : end.column);
+        const startColumn = lineNumber > start.line ? 0 : start.column;
+        const endColumn = lineNumber < end.line ? rawLine.length : end.column;
         contextLines.push(content);
         contextLines.push(
           " ".repeat(prefixWidth + startColumn - 1) +

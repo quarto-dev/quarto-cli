@@ -1,14 +1,13 @@
 /*
-* pdfjs.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * pdfjs.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { basename, join } from "path/mod.ts";
 import { md5Hash } from "./hash.ts";
 import { viewerIFrameURL } from "./http-devserver.ts";
-import { FileResponse } from "./http.ts";
+import { FileResponse } from "./http-types.ts";
 import { contentType } from "./mime.ts";
 import { pathWithForwardSlashes } from "./path.ts";
 import { formatResourcePath } from "./resources.ts";

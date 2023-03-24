@@ -1,11 +1,10 @@
 /*
-* chunk-metadata.ts
-*
-* JSON Schema for Quarto's YAML chunk metadata
-*
-* Copyright (C) 2021-2022 Posit Software, PBC
-*
-*/
+ * chunk-metadata.ts
+ *
+ * JSON Schema for Quarto's YAML chunk metadata
+ *
+ * Copyright (C) 2021-2022 Posit Software, PBC
+ */
 
 import { objectRefSchemaFromContextGlob, SchemaField } from "./from-yaml.ts";
 import { idSchema } from "./common.ts";
@@ -13,9 +12,9 @@ import {
   addFileInfo,
   addInstancePathInfo,
   quotedStringColor,
-  TidyverseError,
   tidyverseFormatError,
 } from "../errors.ts";
+import { TidyverseError } from "../errors-types.ts";
 import { defineCached } from "./definitions.ts";
 
 import {

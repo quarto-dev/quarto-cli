@@ -1,9 +1,8 @@
 /*
-* render-info.ts
-*
-* Copyright (C) 2022 Posit Software, PBC
-*
-*/
+ * render-info.ts
+ *
+ * Copyright (C) 2022 Posit Software, PBC
+ */
 
 import { Format, FormatExecute, Metadata } from "../../config/types.ts";
 import {
@@ -88,7 +87,7 @@ import {
   isValidFormat,
   parseFormatString,
 } from "../../core/pandoc/pandoc-formats.ts";
-import { ExtensionContext } from "../../extension/extension-shared.ts";
+import { ExtensionContext } from "../../extension/types.ts";
 import { renderServices } from "./render-shared.ts";
 
 export async function resolveFormatsFromMetadata(

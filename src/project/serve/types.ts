@@ -1,11 +1,10 @@
 /*
-* types.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * types.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
-import { FileResponse } from "../../core/http.ts";
+import { FileResponse } from "../../core/http-types.ts";
 import { kProjectWatchInputs, ProjectContext } from "../../project/types.ts";
 
 export interface ProjectWatcher {

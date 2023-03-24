@@ -1,9 +1,8 @@
 /*
-* project-context.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * project-context.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import {
   dirname,
@@ -90,7 +89,7 @@ import {
 import { initializeProfileConfig } from "./project-profile.ts";
 import { dotenvSetVariables } from "../quarto-core/dotenv.ts";
 import { ConcreteSchema } from "../core/lib/yaml-schema/types.ts";
-import { ExtensionContext } from "../extension/extension-shared.ts";
+import { ExtensionContext } from "../extension/types.ts";
 import { asArray } from "../core/array.ts";
 
 export function deleteProjectMetadata(metadata: Metadata) {

@@ -1,11 +1,10 @@
 /*
-* types.ts
-*
-* Copyright (C) 2022 Posit Software, PBC
-*
-*/
+ * types.ts
+ *
+ * Copyright (C) 2022 Posit Software, PBC
+ */
 
-import { ProcessResult } from "../../core/process.ts";
+import { ProcessResult } from "../../core/process-types.ts";
 
 export interface RunHandlerOptions {
   cwd?: string;

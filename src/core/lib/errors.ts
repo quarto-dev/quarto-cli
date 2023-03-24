@@ -1,14 +1,14 @@
 /*
-* format-error.ts
-*
-* functions that help format errors consistently
-*
-* Copyright (C) 2021-2022 Posit Software, PBC
-*
-*/
+ * format-error.ts
+ *
+ * functions that help format errors consistently
+ *
+ * Copyright (C) 2021-2022 Posit Software, PBC
+ */
 
 import * as colors from "./external/colors.ts";
 import { MappedString } from "./text-types.ts";
+import { ErrorLocation, TidyverseError } from "./errors-types.ts";
 
 // tidyverse error message styling
 // https://style.tidyverse.org/error-messages.html
@@ -46,26 +46,6 @@ export function tidyverseError(msg: string) {
   } else {
     return `${colors.red("x")} ${msg}`;
   }
-}
-
-export interface ErrorLocation {
-  start: {
-    line: number;
-    column: number;
-  };
-  end: {
-    line: number;
-    column: number;
-  };
-}
-
-export interface TidyverseError {
-  heading: string;
-  error: string[];
-  info: Record<string, string>; // use tag for infos to only display one error of each tag
-  fileName?: string;
-  location?: ErrorLocation;
-  sourceContext?: string;
 }
 
 export function tidyverseFormatError(msg: TidyverseError): string {
@@ -134,7 +114,7 @@ function errorKey(err: TidyverseError): string {
 }
 
 export function reportOnce(
-  reporter: ((err: TidyverseError) => unknown),
+  reporter: (err: TidyverseError) => unknown,
   reportSet?: Set<string>,
 ): (err: TidyverseError) => unknown {
   const errorsReported = reportSet || new Set();

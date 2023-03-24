@@ -1,9 +1,8 @@
 /*
-* serve.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * serve.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { info, warning } from "log/mod.ts";
 import { existsSync } from "fs/mod.ts";
@@ -25,8 +24,9 @@ import {
   kProject404File,
   kProjectType,
   ProjectContext,
-  resolvePreviewOptions,
 } from "../../project/types.ts";
+import { resolvePreviewOptions } from "../../command/preview/preview.ts";
+
 import {
   isProjectInputFile,
   projectExcludeDirs,
@@ -55,9 +55,9 @@ import {
 import {
   httpContentResponse,
   httpFileRequestHandler,
-  HttpFileRequestOptions,
   isBrowserPreviewable,
 } from "../../core/http.ts";
+import { HttpFileRequestOptions } from "../../core/http-types.ts";
 import { ProjectWatcher, ServeOptions } from "./types.ts";
 import { watchProject } from "./watch.ts";
 import {
@@ -105,7 +105,8 @@ import { projectScratchPath } from "../project-scratch.ts";
 import { monitorPreviewTerminationConditions } from "../../core/quarto.ts";
 import { exitWithCleanup, onCleanup } from "../../core/cleanup.ts";
 import { projectExtensionDirs } from "../../extension/extension.ts";
-import { findOpenPort, kLocalhost } from "../../core/port.ts";
+import { findOpenPort } from "../../core/port.ts";
+import { kLocalhost } from "../../core/port-consts.ts";
 import { ProjectServe } from "../../resources/types/schema-types.ts";
 import { handleHttpRequests } from "../../core/http-server.ts";
 import { touch } from "../../core/file.ts";

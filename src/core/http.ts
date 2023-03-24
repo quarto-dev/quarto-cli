@@ -1,9 +1,8 @@
 /*
-* http.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * http.ts
+ *
+ * Copyright (C) 2020-2023 Posit Software, PBC
+ */
 
 import { existsSync } from "fs/mod.ts";
 import { basename, extname, join, posix } from "path/mod.ts";
@@ -20,26 +19,7 @@ import {
 } from "./mime.ts";
 import { logError } from "./log.ts";
 import { pathWithForwardSlashes } from "./path.ts";
-
-export interface FileResponse {
-  body: Uint8Array;
-  contentType?: string;
-}
-
-export interface HttpFileRequestOptions {
-  baseDir: string;
-  defaultFile?: string;
-  printUrls?: "all" | "404";
-  onRequest?: (req: Request) => Promise<Response | undefined>;
-  onFile?: (
-    file: string,
-    req: Request,
-  ) => Promise<FileResponse | undefined>;
-  on404?: (
-    url: string,
-    req: Request,
-  ) => { print?: boolean; response: FileResponse };
-}
+import { FileResponse, HttpFileRequestOptions } from "./http-types.ts";
 
 export function isAbsoluteRef(href: string) {
   return /^(?:http|https)\:\/\/.+/.test(href);

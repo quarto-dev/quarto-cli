@@ -1,9 +1,8 @@
 /*
-* pandoc.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * pandoc.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { basename, dirname, isAbsolute, join } from "path/mod.ts";
 
@@ -184,7 +183,7 @@ import {
   shortcodeUnescapePostprocessor,
 } from "../../format/markdown/format-markdown.ts";
 
-import { kRevealJSPlugins } from "../../extension/extension-shared.ts";
+import { kRevealJSPlugins } from "../../extension/constants.ts";
 import { kCitation } from "../../format/html/format-html-shared.ts";
 import { cslDate } from "../../core/csl.ts";
 import { quartoConfig } from "../../core/quarto.ts";

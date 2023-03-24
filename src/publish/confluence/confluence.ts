@@ -1,5 +1,5 @@
 import { join } from "path/mod.ts";
-import { Input, Secret, Confirm } from "cliffy/prompt/mod.ts";
+import { Confirm, Input, Secret } from "cliffy/prompt/mod.ts";
 import { RenderFlags } from "../../command/render/types.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
 
@@ -15,7 +15,7 @@ import {
   InputMetadata,
   PublishFiles,
   PublishProvider,
-} from "../provider.ts";
+} from "../provider-types.ts";
 
 import { PublishOptions, PublishRecord } from "../types.ts";
 import { ConfluenceClient } from "./api/index.ts";
@@ -169,13 +169,14 @@ const promptAndAuthorizeToken = async () => {
     server,
     token,
   };
-  await withSpinner({ message: "Verifying account..." }, () =>
-    verifyAccountToken(accountToken)
+  await withSpinner(
+    { message: "Verifying account..." },
+    () => verifyAccountToken(accountToken),
   );
   writeAccessToken<AccountToken>(
     CONFLUENCE_ID,
     accountToken,
-    writeTokenComparator
+    writeTokenComparator,
   );
 
   return Promise.resolve(accountToken);
@@ -192,7 +193,7 @@ const promptForParentURL = async () => {
 
 const resolveTarget = async (
   accountToken: AccountToken,
-  target: PublishRecord
+  target: PublishRecord,
 ): Promise<PublishRecord> => {
   return Promise.resolve(target);
 };
@@ -206,7 +207,7 @@ const loadDocument = (baseDirectory: string, rootFile: string): ContentBody => {
 };
 
 const renderDocument = async (
-  render: PublishRenderer
+  render: PublishRenderer,
 ): Promise<PublishFiles> => {
   const flags: RenderFlags = {
     to: "confluence-publish",
@@ -232,7 +233,7 @@ async function publish(
   _slug: string,
   render: (flags?: RenderFlags) => Promise<PublishFiles>,
   _options: PublishOptions,
-  publishRecord?: PublishRecord
+  publishRecord?: PublishRecord,
 ): Promise<[PublishRecord, URL | undefined]> {
   trace("publish", {
     account,
@@ -268,7 +269,7 @@ async function publish(
     const titleIsUnique: boolean = await client.isTitleUniqueInSpace(
       title,
       space,
-      idToIgnore
+      idToIgnore,
     );
 
     if (titleIsUnique) {
@@ -287,8 +288,8 @@ async function publish(
     let start = 0;
 
     for (let i = 0; i < MAX_PAGES_TO_LOAD; i++) {
-      const result: WrappedResult<ContentSummary> =
-        await client.getDescendantsPage(parentId, start);
+      const result: WrappedResult<ContentSummary> = await client
+        .getDescendantsPage(parentId, start);
       if (result.results.length === 0) {
         break;
       }
@@ -303,12 +304,12 @@ async function publish(
     const contentProperties: ContentProperty[][] = await Promise.all(
       descendants.map((page: ContentSummary) =>
         client.getContentProperty(page.id ?? "")
-      )
+      ),
     );
 
     const sitePageList: SitePage[] = mergeSitePages(
       descendants,
-      contentProperties
+      contentProperties,
     );
 
     return sitePageList;
@@ -319,10 +320,10 @@ async function publish(
     attachmentsToUpload: string[],
     parentId: string,
     filePath: string,
-    existingAttachments: AttachmentSummary[] = []
+    existingAttachments: AttachmentSummary[] = [],
   ): Promise<AttachmentSummary | null>[] => {
     const uploadAttachment = async (
-      attachmentPath: string
+      attachmentPath: string,
     ): Promise<AttachmentSummary | null> => {
       let fileBuffer: Uint8Array;
       let fileHash: string;
@@ -338,7 +339,7 @@ async function publish(
           existingAttachments,
           path,
         },
-        LogPrefix.ATTACHMENT
+        LogPrefix.ATTACHMENT,
       );
 
       try {
@@ -354,21 +355,21 @@ async function publish(
       const existingDuplicateAttachment = existingAttachments.find(
         (attachment: AttachmentSummary) => {
           return attachment?.metadata?.comment === fileHash;
-        }
+        },
       );
 
       if (existingDuplicateAttachment) {
         trace(
           "existing duplicate attachment found",
           existingDuplicateAttachment.title,
-          LogPrefix.ATTACHMENT
+          LogPrefix.ATTACHMENT,
         );
         return existingDuplicateAttachment;
       }
 
       const file = new File([fileBuffer as BlobPart], fileName);
-      const attachment: AttachmentSummary =
-        await client.createOrUpdateAttachment(parentId, file, fileHash);
+      const attachment: AttachmentSummary = await client
+        .createOrUpdateAttachment(parentId, file, fileHash);
 
       trace("attachment", attachment, LogPrefix.ATTACHMENT);
 
@@ -385,14 +386,14 @@ async function publish(
     body: ContentBody,
     titleToUpdate: string = title,
     fileName: string = "",
-    uploadFileAttachments: boolean = true
+    uploadFileAttachments: boolean = true,
   ): Promise<Content> => {
     const previousPage = await client.getContent(id);
 
     const attachmentsToUpload: string[] = findAttachments(
       body.storage.value,
       publishFiles.files,
-      fileName
+      fileName,
     );
 
     let uniqueTitle = titleToUpdate;
@@ -423,13 +424,13 @@ async function publish(
     const updatedContent: Content = await client.updateContent(user, toUpdate);
 
     if (toUpdate.id && uploadFileAttachments) {
-      const existingAttachments: AttachmentSummary[] =
-        await client.getAttachments(toUpdate.id);
+      const existingAttachments: AttachmentSummary[] = await client
+        .getAttachments(toUpdate.id);
 
       trace(
         "attachments",
         { existingAttachments, attachmentsToUpload },
-        LogPrefix.ATTACHMENT
+        LogPrefix.ATTACHMENT,
       );
 
       const uploadAttachmentsResult = await Promise.all(
@@ -438,13 +439,13 @@ async function publish(
           attachmentsToUpload,
           toUpdate.id,
           fileName,
-          existingAttachments
-        )
+          existingAttachments,
+        ),
       );
       trace(
         "uploadAttachmentsResult",
         uploadAttachmentsResult,
-        LogPrefix.ATTACHMENT
+        LogPrefix.ATTACHMENT,
       );
     }
 
@@ -453,7 +454,7 @@ async function publish(
 
   const createSiteParent = async (
     title: string,
-    body: ContentBody
+    body: ContentBody,
   ): Promise<Content> => {
     let ancestors: ContentAncestor[] = [];
 
@@ -478,21 +479,20 @@ async function publish(
   };
 
   const checkToCreateSiteParent = async (
-    parentId: string = ""
+    parentId: string = "",
   ): Promise<string> => {
     let isQuartoSiteParent = false;
 
     const existingSiteParent: any = await client.getContent(parentId);
 
     if (existingSiteParent?.id) {
-      const siteParentContentProperties: ContentProperty[] =
-        await client.getContentProperty(existingSiteParent.id ?? "");
+      const siteParentContentProperties: ContentProperty[] = await client
+        .getContentProperty(existingSiteParent.id ?? "");
 
-      isQuartoSiteParent =
-        siteParentContentProperties.find(
-          (property: ContentProperty) =>
-            property.key === ContentPropertyKey.isQuartoSiteParent
-        ) !== undefined;
+      isQuartoSiteParent = siteParentContentProperties.find(
+        (property: ContentProperty) =>
+          property.key === ContentPropertyKey.isQuartoSiteParent,
+      ) !== undefined;
     }
 
     if (!isQuartoSiteParent) {
@@ -506,14 +506,14 @@ async function publish(
       const siteParentTitle = await uniquifyTitle(title);
       const siteParent: ContentSummary = await createSiteParent(
         siteParentTitle,
-        body
+        body,
       );
 
       const newSiteParentId: string = siteParent.id ?? "";
 
       const contentProperty: Content = await client.createContentProperty(
         newSiteParentId,
-        { key: ContentPropertyKey.isQuartoSiteParent, value: true }
+        { key: ContentPropertyKey.isQuartoSiteParent, value: true },
       );
 
       parentId = newSiteParentId;
@@ -526,7 +526,7 @@ async function publish(
     body: ContentBody,
     titleToCreate: string = title,
     createParent: ConfluenceParent = parent,
-    fileNameParam: string = ""
+    fileNameParam: string = "",
   ): Promise<Content> => {
     const createTitle = await uniquifyTitle(titleToCreate);
 
@@ -535,7 +535,7 @@ async function publish(
     const attachmentsToUpload: string[] = findAttachments(
       body.storage.value,
       publishFiles.files,
-      fileName
+      fileName,
     );
 
     trace("attachmentsToUpload", attachmentsToUpload, LogPrefix.ATTACHMENT);
@@ -561,13 +561,13 @@ async function publish(
           publishFiles.baseDir,
           attachmentsToUpload,
           createdContent.id,
-          fileName
-        )
+          fileName,
+        ),
       );
       trace(
         "uploadAttachmentsResult",
         uploadAttachmentsResult,
-        LogPrefix.ATTACHMENT
+        LogPrefix.ATTACHMENT,
       );
     }
 
@@ -581,7 +581,7 @@ async function publish(
 
     const body: ContentBody = loadDocument(
       publishFiles.baseDir,
-      publishFiles.rootFile
+      publishFiles.rootFile,
     );
 
     trace("publishDocument", { publishFiles, body }, LogPrefix.RENDER);
@@ -592,17 +592,16 @@ async function publish(
 
     if (publishRecord) {
       message = `Updating content at ${publishRecord.url}...`;
-      doOperation = async () =>
-        (content = await updateContent(
-          user,
-          publishFiles,
-          publishRecord.id,
-          body
-        ));
+      doOperation = async () => (content = await updateContent(
+        user,
+        publishFiles,
+        publishRecord.id,
+        body,
+      ));
     } else {
       message = `Creating content in space ${parent.space}...`;
-      doOperation = async () =>
-        (content = await createContent(publishFiles, body));
+      doOperation =
+        async () => (content = await createContent(publishFiles, body));
     }
     try {
       await doWithSpinner(message, doOperation);
@@ -643,10 +642,10 @@ async function publish(
     trace("filteredFiles", filteredFiles);
 
     const assembleSiteFileMetadata = async (
-      fileName: string
+      fileName: string,
     ): Promise<SiteFileMetadata> => {
       const fileToContentBody = async (
-        fileName: string
+        fileName: string,
       ): Promise<ContentBody> => {
         return loadDocument(publishFiles.baseDir, fileName);
       };
@@ -663,7 +662,7 @@ async function publish(
     };
 
     const fileMetadata: SiteFileMetadata[] = await Promise.all(
-      filteredFiles.map(assembleSiteFileMetadata)
+      filteredFiles.map(assembleSiteFileMetadata),
     );
 
     trace("fileMetadata", fileMetadata);
@@ -676,7 +675,7 @@ async function publish(
       fileMetadata,
       siteParent,
       space,
-      existingSite
+      existingSite,
     );
 
     changeList = flattenIndexes(changeList, metadataByFilename, parentId);
@@ -685,7 +684,7 @@ async function publish(
       metadataByFilename,
       changeList,
       server,
-      siteParent
+      siteParent,
     );
 
     changeList = pass1Changes;
@@ -697,7 +696,7 @@ async function publish(
     const handleChangeError = (
       label: string,
       currentChange: ConfluenceSpaceChange,
-      error: any
+      error: any,
     ) => {
       if (isContentUpdate(currentChange) || isContentCreate(currentChange)) {
         trace("currentChange.fileName", currentChange.fileName);
@@ -710,7 +709,7 @@ async function publish(
 
     const doChange = async (
       change: ConfluenceSpaceChange,
-      uploadFileAttachments: boolean = true
+      uploadFileAttachments: boolean = true,
     ) => {
       if (isContentCreate(change)) {
         if (change.fileName === "sitemap.xml") {
@@ -718,8 +717,8 @@ async function publish(
           return;
         }
 
-        let ancestorId =
-          (change?.ancestors && change?.ancestors[0]?.id) ?? null;
+        let ancestorId = (change?.ancestors && change?.ancestors[0]?.id) ??
+          null;
 
         if (ancestorId && pathsToId[ancestorId]) {
           ancestorId = pathsToId[ancestorId];
@@ -737,15 +736,15 @@ async function publish(
           change.body,
           change.title ?? "",
           ancestorParent,
-          universalPath
+          universalPath,
         );
 
         if (universalPath) {
           pathsToId[universalPath] = result.id ?? "";
         }
 
-        const contentPropertyResult: Content =
-          await client.createContentProperty(result.id ?? "", {
+        const contentPropertyResult: Content = await client
+          .createContentProperty(result.id ?? "", {
             key: ContentPropertyKey.fileName,
             value: (change as ContentCreate).fileName,
           });
@@ -760,7 +759,7 @@ async function publish(
           update.body,
           update.title ?? "",
           update.fileName ?? "",
-          uploadFileAttachments
+          uploadFileAttachments,
         );
       } else if (isContentDelete(change)) {
         if (DELETE_DISABLED) {
@@ -783,13 +782,13 @@ async function publish(
         const doOperation = async () => await doChange(currentChange);
         await doWithSpinner(
           `Site Updates [${pass1Count}/${changeList.length}]`,
-          doOperation
+          doOperation,
         );
       } catch (error: any) {
         handleChangeError(
           "Error Performing Change Pass 1",
           currentChange,
-          error
+          error,
         );
       }
     }
@@ -806,7 +805,7 @@ async function publish(
         metadataByFilename,
         pass2Changes,
         server,
-        parent
+        parent,
       );
 
       let pass2Count = 0;
@@ -816,13 +815,13 @@ async function publish(
           const doOperation = async () => await doChange(currentChange, false);
           await doWithSpinner(
             `Updating Links [${pass2Count}/${linkUpdateChanges.length}]`,
-            doOperation
+            doOperation,
           );
         } catch (error: any) {
           handleChangeError(
             "Error Performing Change Pass 2",
             currentChange,
-            error
+            error,
           );
         }
       }

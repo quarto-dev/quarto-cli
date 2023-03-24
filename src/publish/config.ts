@@ -1,9 +1,8 @@
 /*
-* config.ts
-*
-* Copyright (C) 2022 Posit Software, PBC
-*
-*/
+ * config.ts
+ *
+ * Copyright (C) 2022 Posit Software, PBC
+ */
 
 import { warning } from "log/mod.ts";
 import { stringify } from "encoding/yaml.ts";
@@ -16,7 +15,7 @@ import { Metadata } from "../config/types.ts";
 import { readYaml, readYamlFromString } from "../core/yaml.ts";
 import { ProjectContext } from "../project/types.ts";
 import { PublishDeployments, PublishRecord } from "./types.ts";
-import { AccountToken } from "./provider.ts";
+import { AccountToken } from "./provider-types.ts";
 import { writePublishRecord } from "./common/data.ts";
 
 export function readPublishDeployments(
