@@ -5,3 +5,4 @@
  */
 
 export const kQuartoHtmlDependency = "quarto-html";
+export const kNotebookViewStyleNotebook = "notebook";

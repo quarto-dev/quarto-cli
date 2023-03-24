@@ -37,8 +37,9 @@ import {
 import { PromiseQueue } from "../../core/promise.ts";
 import { inputFilesDir } from "../../core/render.ts";
 
+import { kQuartoRenderCommand } from "../render/constants.ts";
+
 import {
-  kQuartoRenderCommand,
   previewUnableToRenderResponse,
   previewURL,
   printBrowsePreviewMessage,

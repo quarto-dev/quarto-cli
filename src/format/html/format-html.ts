@@ -93,10 +93,8 @@ import {
 } from "../../core/giscus.ts";
 import { metadataPostProcessor } from "./format-html-meta.ts";
 import { kHtmlEmptyPostProcessResult } from "../../command/render/constants.ts";
-import {
-  kNotebookViewStyleNotebook,
-  notebookViewPostProcessor,
-} from "./format-html-notebook.ts";
+import { kNotebookViewStyleNotebook } from "./format-html-constants.ts";
+import { notebookViewPostProcessor } from "./format-html-notebook.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { kListing } from "../../project/types/website/listing/website-listing-shared.ts";
 import {
