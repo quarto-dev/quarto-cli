@@ -1,9 +1,8 @@
 /*
-* render-shared.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * render-shared.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { dirname } from "path/mod.ts";
 

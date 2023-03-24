@@ -1,9 +1,8 @@
 /*
-* pandoc-html.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * pandoc-html.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { join } from "path/mod.ts";
 import { cloneDeep, uniqBy } from "../../core/lodash.ts";
@@ -17,7 +16,6 @@ import {
   SassBundle,
 } from "../../config/types.ts";
 import { ProjectContext } from "../../project/types.ts";
-import { kDefaultHighlightStyle } from "./constants.ts";
 
 import { TempContext } from "../../core/temp.ts";
 import { cssImports, cssResources } from "../../core/css.ts";
@@ -25,10 +23,12 @@ import { compileSass } from "../../core/sass.ts";
 
 import { kQuartoHtmlDependency } from "../../format/html/format-html.ts";
 import {
+  kAbbrevs,
   readHighlightingTheme,
-  readTheme,
 } from "../../quarto-core/text-highlighting.ts";
+
 import { isHtmlOutput } from "../../config/format.ts";
+import { generateCssKeyValues } from "../../core/pandoc/css.ts";
 
 // The output target for a sass bundle
 // (controls the overall style tag that is emitted)
@@ -472,107 +472,6 @@ function processCssIntoExtras(
 }
 const kVariablesRegex =
   /\/\*\! quarto-variables-start \*\/([\S\s]*)\/\*\! quarto-variables-end \*\//g;
-
-// Generates key values for CSS text highlighing variables
-export function generateCssKeyValues(textValues: Record<string, unknown>) {
-  const lines: string[] = [];
-  Object.keys(textValues).forEach((textAttr) => {
-    switch (textAttr) {
-      case "text-color":
-        lines.push(
-          `color: ${textValues[textAttr]};`,
-        );
-        break;
-      case "background-color":
-        lines.push(
-          `background-color: ${textValues[textAttr]};`,
-        );
-        break;
-
-      case "bold":
-        if (textValues[textAttr]) {
-          lines.push("font-weight: bold;");
-        }
-        break;
-      case "italic":
-        if (textValues[textAttr]) {
-          lines.push("font-style: italic;");
-        } else {
-          lines.push("font-style: inherit;");
-        }
-        break;
-      case "underline":
-        if (textValues[textAttr]) {
-          lines.push("text-decoration: underline;");
-        }
-        break;
-    }
-  });
-  return lines;
-}
-
-export function defaultSyntaxHighlightingClassMap() {
-  const classToStyleMapping: Record<string, string[]> = {};
-
-  // Read the highlight style (theme name)
-  const theme = kDefaultHighlightStyle;
-  const themeRaw = readTheme("", theme, "default");
-  if (themeRaw) {
-    const themeJson = JSON.parse(themeRaw);
-
-    // Generates CSS rules based upon the syntax highlighting rules in a theme file
-    const textStyles = themeJson["text-styles"] as Record<
-      string,
-      Record<string, unknown>
-    >;
-    if (textStyles) {
-      Object.keys(textStyles).forEach((styleName) => {
-        const abbr = kAbbrevs[styleName];
-        if (abbr !== undefined) {
-          const textValues = textStyles[styleName];
-          const cssValues = generateCssKeyValues(textValues);
-          classToStyleMapping[abbr] = cssValues;
-        }
-      });
-    }
-  }
-  return classToStyleMapping;
-}
-
-// From  https://github.com/jgm/skylighting/blob/a1d02a0db6260c73aaf04aae2e6e18b569caacdc/skylighting-core/src/Skylighting/Format/HTML.hs#L117-L147
-const kAbbrevs: Record<string, string> = {
-  "Keyword": "kw",
-  "DataType": "dt",
-  "DecVal": "dv",
-  "BaseN": "bn",
-  "Float": "fl",
-  "Char": "ch",
-  "String": "st",
-  "Comment": "co",
-  "Other": "ot",
-  "Alert": "al",
-  "Function": "fu",
-  "RegionMarker": "re",
-  "Error": "er",
-  "Constant": "cn",
-  "SpecialChar": "sc",
-  "VerbatimString": "vs",
-  "SpecialString": "ss",
-  "Import": "im",
-  "Documentation": "do",
-  "Annotation": "an",
-  "CommentVar": "cv",
-  "Variable": "va",
-  "ControlFlow": "cf",
-  "Operator": "op",
-  "BuiltIn": "bu",
-  "Extension": "ex",
-  "Preprocessor": "pp",
-  "Attribute": "at",
-  "Information": "in",
-  "Warning": "wa",
-  "Normal": "",
-};
 
 // Attributes for the style tag
 // Note that we default disable the dark mode and rely on JS to enable it
