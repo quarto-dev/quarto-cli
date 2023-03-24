@@ -14,7 +14,6 @@ def run(what):
       ("quarto run %s ../../../../src/quarto.ts" % what).split(" "),
       capture_output = True
     ).stdout.decode('utf-8').replace("Bad import from ", "").replace(" to ", " -> ")
-    print(str)
     return ansi_escape.sub("", str)
 ```
 
@@ -29,6 +28,5 @@ Other bad imports:
 
 ```{python}
 #| echo: false
-
 print(run("find-bad-imports.ts"))
 ```

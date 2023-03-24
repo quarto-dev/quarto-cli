@@ -1,9 +1,8 @@
 /*
-* config.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * config.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import * as ld from "../core/lodash.ts";
 
@@ -42,7 +41,7 @@ import {
   kVariant,
 } from "./constants.ts";
 import { Format, Metadata } from "./types.ts";
-import { kGfmCommonmarkVariant } from "../format/markdown/format-markdown.ts";
+import { kGfmCommonmarkVariant } from "../format/markdown/format-markdown-consts.ts";
 import { kJupyterEngine, kKnitrEngine } from "../execute/types.ts";
 
 export async function includedMetadata(

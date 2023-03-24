@@ -45,6 +45,12 @@ export interface ProjectContext {
     format: Format,
     services: RenderServices,
   ) => Promise<FormatExtras>;
+
+  renderFormats: (
+    file: string,
+    to?: string,
+    project?: ProjectContext,
+  ) => Promise<Record<string, Format>>;
 }
 
 export interface ProjectFiles {

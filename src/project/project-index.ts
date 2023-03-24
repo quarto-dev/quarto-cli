@@ -1,9 +1,8 @@
 /*
-* project-index.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * project-index.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { dirname, join, relative } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
@@ -22,7 +21,6 @@ import {
   removeIfExists,
 } from "../core/path.ts";
 import { kTitle } from "../config/constants.ts";
-import { renderFormats } from "../command/render/render-contexts.ts";
 import { fileExecutionEngine } from "../execute/engine.ts";
 
 import { projectConfigFile, projectOutputDir } from "./project-shared.ts";
@@ -78,7 +76,7 @@ export async function inputTargetIndex(
   }
 
   // otherwise read the metadata and index it
-  const formats = await renderFormats(inputFile, "all", project);
+  const formats = await project.renderFormats(inputFile, "all", project);
   const firstFormat = Object.values(formats)[0];
   const markdown = await engine.partitionedMarkdown(inputFile, firstFormat);
   const index: InputTargetIndex = {

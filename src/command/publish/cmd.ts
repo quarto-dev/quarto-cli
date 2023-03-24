@@ -23,8 +23,9 @@ import {
 import {
   projectContext,
   projectInputFiles,
-  projectIsWebsite,
 } from "../../project/project-context.ts";
+
+import { projectIsWebsite } from "../../project/project-shared.ts";
 
 import { PublishCommandOptions } from "./options.ts";
 import { resolveDeployment } from "./deployment.ts";

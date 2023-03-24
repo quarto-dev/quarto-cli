@@ -1,16 +1,15 @@
 /*
-* format-reveal-multiplex.ts
-*
-* Copyright (C) 2021-2022 Posit Software, PBC
-*
-*/
+ * format-reveal-multiplex.ts
+ *
+ * Copyright (C) 2021-2022 Posit Software, PBC
+ */
 
 import { existsSync } from "fs/mod.ts";
 import { join } from "path/mod.ts";
 import { isSelfContainedOutput } from "../../command/render/render-info.ts";
-import { pandocIngestSelfContainedContent } from "../../command/render/render.ts";
 
 import { Format, FormatExtras, PandocFlags } from "../../config/types.ts";
+import { pandocIngestSelfContainedContent } from "../../core/pandoc/self-contained.ts";
 import { dirAndStem, pathWithForwardSlashes } from "../../core/path.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { lines } from "../../core/text.ts";

@@ -1,17 +1,19 @@
 /*
-* book-shared.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * book-shared.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { PandocOptions, RenderedFile } from "../../../command/render/types.ts";
-import { kTitle } from "../../../config/constants.ts";
+import { kQuartoVarsKey, kTitle } from "../../../config/constants.ts";
 import { Format } from "../../../config/types.ts";
 import { parsePandocTitle } from "../../../core/pandoc/pandoc-partition.ts";
 import { PartitionedMarkdown } from "../../../core/pandoc/types.ts";
 import { ProjectConfig, ProjectContext } from "../../types.ts";
 import { ProjectOutputFile } from "../types.ts";
+import { kBookOutputFile } from "./book-constants.ts";
+import { basename } from "path/mod.ts";
+import { texSafeFilename } from "../../../core/tex.ts";
 
 export type BookConfigKey =
   | "output-file"
@@ -131,4 +133,28 @@ export function isMultiFileBookFormat(format: Format) {
   } else {
     return false;
   }
+}
+
+const variableRegex = /{{<\s*var\s+(.*?)\s*>}}/gm;
+function resolveVariables(value: string, config: ProjectConfig) {
+  variableRegex.lastIndex = 0;
+  return value.replaceAll(variableRegex, (_: string, varName: string) => {
+    const vars = config[kQuartoVarsKey] as Record<string, unknown>;
+    if (vars && vars[varName] !== undefined) {
+      return String(vars[varName]);
+    } else {
+      return `?var:${varName}`;
+    }
+  });
+}
+
+export function bookOutputStem(projectDir: string, config?: ProjectConfig) {
+  const outputFile = (bookConfig(kBookOutputFile, config) ||
+    bookConfig(kTitle, config) || basename(projectDir)) as string;
+
+  // Resolve any variables that appear in the title (since the title
+  // may be used as things like file name in the case of a single file output)
+  return texSafeFilename(
+    config !== undefined ? resolveVariables(outputFile, config) : outputFile,
+  );
 }

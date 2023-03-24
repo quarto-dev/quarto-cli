@@ -99,8 +99,10 @@ import { isYamlPath, readYaml } from "../../../../core/yaml.ts";
 import { parseAuthor } from "../../../../core/author.ts";
 import { parsePandocDate, resolveDate } from "../../../../core/date.ts";
 import { ProjectOutputFile } from "../../types.ts";
-import { projectOutputDir } from "../../../project-shared.ts";
-import { directoryMetadataForInputFile } from "../../../project-context.ts";
+import {
+  directoryMetadataForInputFile,
+  projectOutputDir,
+} from "../../../project-shared.ts";
 import { mergeConfigs } from "../../../../core/config.ts";
 import { globToRegExp } from "../../../../core/lib/glob.ts";
 import { cslNames } from "../../../../core/csl.ts";

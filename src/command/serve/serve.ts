@@ -10,7 +10,8 @@ import { ProcessResult } from "../../core/process-types.ts";
 import { fileExecutionEngine } from "../../execute/engine.ts";
 import { RunOptions } from "../../execute/types.ts";
 
-import { render, renderServices } from "../render/render-shared.ts";
+import { render } from "../render/render-shared.ts";
+import { renderServices } from "../render/render-services.ts";
 
 export async function serve(options: RunOptions): Promise<ProcessResult> {
   const engine = await fileExecutionEngine(options.input);

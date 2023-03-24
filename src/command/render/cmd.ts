@@ -1,9 +1,8 @@
 /*
-* cmd.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * cmd.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { dirname, relative } from "path/mod.ts";
 import { expandGlobSync } from "fs/expand_glob.ts";
@@ -13,7 +12,9 @@ import { info, warning } from "log/mod.ts";
 import { fixupPandocArgs, kStdOut, parseRenderFlags } from "./flags.ts";
 
 import { renderResultFinalOutput } from "./render.ts";
-import { render, renderServices } from "./render-shared.ts";
+import { render } from "./render-shared.ts";
+import { renderServices } from "./render-services.ts";
+
 import { RenderResult } from "./types.ts";
 import { kCliffyImplicitCwd } from "../../config/constants.ts";
 
