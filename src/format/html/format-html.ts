@@ -103,6 +103,7 @@ import {
   HtmlFormatTippyOptions,
 } from "./format-html-types.ts";
 import { kQuartoHtmlDependency } from "./format-html-constants.ts";
+import { registerWriterFormatHandler } from "../format-handlers.ts";
 
 export function htmlFormat(
   figwidth: number,
@@ -943,3 +944,14 @@ function pandocExtras(format: Format) {
     },
   };
 }
+
+registerWriterFormatHandler((format) => {
+  switch (format) {
+    case "html":
+    case "html4":
+    case "html5":
+      return {
+        format: htmlFormat(7, 5),
+      };
+  }
+});
