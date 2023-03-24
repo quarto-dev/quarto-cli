@@ -80,7 +80,6 @@ import { kWebsite } from "./types/website/website-constants.ts";
 import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
 
 import { getProjectConfigSchema } from "../core/lib/yaml-schema/project-config.ts";
-import { getFrontMatterSchema } from "../core/lib/yaml-schema/front-matter.ts";
 import { kDefaultProjectFileContents } from "./types/project-default.ts";
 import {
   createExtensionContext,

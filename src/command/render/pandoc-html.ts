@@ -21,7 +21,7 @@ import { TempContext } from "../../core/temp.ts";
 import { cssImports, cssResources } from "../../core/css.ts";
 import { compileSass } from "../../core/sass.ts";
 
-import { kQuartoHtmlDependency } from "../../format/html/format-html.ts";
+import { kQuartoHtmlDependency } from "../../format/html/format-html-constants.ts";
 import {
   kAbbrevs,
   readHighlightingTheme,

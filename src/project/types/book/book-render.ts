@@ -34,10 +34,8 @@ import {
 import { Format, Metadata } from "../../../config/types.ts";
 import { isHtmlOutput } from "../../../config/format.ts";
 
-import {
-  PandocRenderCompletion,
-  renderPandoc,
-} from "../../../command/render/render.ts";
+import { renderPandoc } from "../../../command/render/render.ts";
+import { PandocRenderCompletion } from "../../../command/render/types.ts";
 
 import { renderContexts } from "../../../command/render/render-contexts.ts";
 

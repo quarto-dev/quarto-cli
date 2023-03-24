@@ -26,6 +26,7 @@ import {
   HtmlPostProcessResult,
   PandocInputTraits,
   PandocOptions,
+  PandocRenderCompletion,
   RenderedFormat,
 } from "./types.ts";
 import { runPandoc } from "./pandoc.ts";
@@ -38,7 +39,6 @@ import { Metadata } from "../../config/types.ts";
 import { isHtmlFileOutput } from "../../config/format.ts";
 
 import { isSelfContainedOutput } from "./render-info.ts";
-import { execProcess } from "../../core/process.ts";
 import {
   pop as popTiming,
   push as pushTiming,
@@ -49,12 +49,6 @@ import { filesDirMediabagDir } from "./render-paths.ts";
 import { replaceNotebookPlaceholders } from "../../core/jupyter/jupyter-embed.ts";
 import { kIncludeAfterBody, kIncludeInHeader } from "../../config/constants.ts";
 import { pandocIngestSelfContainedContent } from "../../core/pandoc/self-contained.ts";
-
-export interface PandocRenderCompletion {
-  complete: (
-    outputs: RenderedFormat[],
-  ) => Promise<RenderedFile>;
-}
 
 export async function renderPandoc(
   file: ExecutedFile,

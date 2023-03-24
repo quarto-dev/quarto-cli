@@ -45,7 +45,9 @@ import {
   ProjectContext,
 } from "../../project/types.ts";
 import { outputRecipe } from "./output.ts";
-import { PandocRenderCompletion, renderPandoc } from "./render.ts";
+
+import { renderPandoc } from "./render.ts";
+import { PandocRenderCompletion } from "./types.ts";
 import { renderContexts } from "./render-contexts.ts";
 import { renderProgress } from "./render-info.ts";
 import {

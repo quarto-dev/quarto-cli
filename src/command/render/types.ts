@@ -247,3 +247,9 @@ export type QuartoFilterSpec = {
   beforeQuartoFilters: QuartoFilter[];
   afterQuartoFilters: QuartoFilter[];
 };
+
+export interface PandocRenderCompletion {
+  complete: (
+    outputs: RenderedFormat[],
+  ) => Promise<RenderedFile>;
+}
