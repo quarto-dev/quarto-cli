@@ -1,9 +1,8 @@
 /*
-* website-navigation.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * website-navigation.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { basename, dirname, extname, join, relative } from "path/mod.ts";
 import { warning } from "log/mod.ts";
@@ -43,7 +42,7 @@ import { formatDarkMode } from "../../../format/html/format-html-info.ts";
 import {
   formatHasArticleLayout,
   formatPageLayout,
-} from "../../../format/html/format-html-bootstrap.ts";
+} from "../../../format/html/format-html-shared.ts";
 
 import { kDataQuartoSourceUrl } from "../../../command/render/codetools.ts";
 

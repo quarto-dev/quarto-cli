@@ -1,9 +1,8 @@
 /*
-* format-html-shared.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * format-html-shared.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 import { dirname, join, relative } from "path/mod.ts";
 import { outputVariable, sassLayer, sassVariable } from "../../core/sass.ts";
 import {
@@ -460,4 +459,18 @@ export function writeMetaTag(name: string, content: string, doc: Document) {
   // Insert the nodes
   doc.querySelector("head")?.appendChild(m);
   doc.querySelector("head")?.appendChild(nl);
+}
+
+export function formatPageLayout(format: Format) {
+  return format.metadata[kPageLayout] as string || kPageLayoutArticle;
+}
+
+export function formatHasFullLayout(format: Format) {
+  return format.metadata[kPageLayout] === kPageLayoutFull;
+}
+
+export function formatHasArticleLayout(format: Format) {
+  return format.metadata[kPageLayout] === undefined ||
+    format.metadata[kPageLayout] === kPageLayoutArticle ||
+    format.metadata[kPageLayout] === kPageLayoutFull;
 }

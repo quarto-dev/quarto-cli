@@ -1,9 +1,8 @@
 /*
-* book-render.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * book-render.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { dirname, isAbsolute, join, relative } from "path/mod.ts";
 
@@ -63,14 +62,9 @@ import {
   onSingleFileBookPostRender,
   onSingleFileBookPreRender,
 } from "./book-extension.ts";
-import {
-  bookConfigRenderItems,
-  bookOutputStem,
-  BookRenderItem,
-  kBookItemAppendix,
-  kBookItemPart,
-} from "./book-config.ts";
-
+import { bookConfigRenderItems, BookRenderItem } from "./book-config.ts";
+import { bookOutputStem } from "./book-shared.ts";
+import { kBookItemAppendix, kBookItemPart } from "./book-constants.ts";
 import {
   chapterInfoForInput,
   isListedChapter,
@@ -222,8 +216,8 @@ export function bookPandocRenderer(
         // Use the pre-render hook to allow formats to customize
         // the format before it is rendered.
         if (file.recipe.format.extensions?.book) {
-          const bookExtension =
-            (file.recipe.format.extensions?.book as BookExtension);
+          const bookExtension = file.recipe.format.extensions
+            ?.book as BookExtension;
           if (bookExtension.onMultiFilePrePrender) {
             const result = await bookExtension.onMultiFilePrePrender(
               isIndex,

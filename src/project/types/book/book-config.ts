@@ -1,12 +1,11 @@
 /*
-* book-config.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * book-config.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { existsSync } from "fs/mod.ts";
-import { basename, join } from "path/mod.ts";
+import { join } from "path/mod.ts";
 
 import * as ld from "../../../core/lodash.ts";
 
@@ -59,6 +58,19 @@ import {
 } from "../website/website-constants.ts";
 
 import {
+  kBookAppendix,
+  kBookChapters,
+  kBookDownloads,
+  kBookItemAppendix,
+  kBookItemChapter,
+  kBookItemPart,
+  kBookReferences,
+  kBookRender,
+  kBookSearch,
+  kBookTools,
+} from "./book-constants.ts";
+
+import {
   repoUrlIcon,
   websiteConfigActions,
   websiteProjectConfig,
@@ -68,6 +80,7 @@ import { kSidebarLogo } from "../website/website-navigation.ts";
 
 import {
   bookConfig,
+  bookOutputStem,
   isBookIndexPage,
   isMultiFileBookFormat,
   isNumberedChapter,
@@ -76,12 +89,9 @@ import {
 import {
   kLanguageDefaults,
   kOutputExt,
-  kQuartoVarsKey,
   kSectionTitleAppendices,
-  kTitle,
 } from "../../../config/constants.ts";
 
-import { texSafeFilename } from "../../../core/tex.ts";
 import {
   kCookieConsent,
   kGoogleAnalytics,
@@ -95,21 +105,6 @@ import {
   PageFooterRegion,
 } from "../../../resources/types/schema-types.ts";
 import { projectType } from "../project-types.ts";
-
-export const kBookChapters = "chapters";
-export const kBookAppendix = "appendices";
-export const kBookReferences = "references";
-export const kBookRender = "render";
-export const kBookOutputFile = "output-file";
-export const kBookRepoActions = "repo-actions";
-export const kBookSharing = "sharing";
-export const kBookDownloads = "downloads";
-export const kBookTools = "tools";
-export const kBookSearch = "search";
-
-export const kBookItemChapter = "chapter";
-export const kBookItemAppendix = "appendix";
-export const kBookItemPart = "part";
 
 export async function bookProjectConfig(
   projectDir: string,
@@ -268,19 +263,6 @@ function siteRepoUrl(site: Metadata) {
   } else {
     return repoUrl;
   }
-}
-
-const variableRegex = /{{<\s*var\s+(.*?)\s*>}}/gm;
-function resolveVariables(value: string, config: ProjectConfig) {
-  variableRegex.lastIndex = 0;
-  return value.replaceAll(variableRegex, (_: string, varName: string) => {
-    const vars = config[kQuartoVarsKey] as Record<string, unknown>;
-    if (vars && vars[varName] !== undefined) {
-      return String(vars[varName]);
-    } else {
-      return `?var:${varName}`;
-    }
-  });
 }
 
 export function bookConfigRenderItems(
@@ -517,17 +499,6 @@ function downloadTools(
       menu: downloads,
     }];
   }
-}
-
-export function bookOutputStem(projectDir: string, config?: ProjectConfig) {
-  const outputFile = (bookConfig(kBookOutputFile, config) ||
-    bookConfig(kTitle, config) || basename(projectDir)) as string;
-
-  // Resolve any variables that appear in the title (since the title
-  // may be used as things like file name in the case of a single file output)
-  return texSafeFilename(
-    config !== undefined ? resolveVariables(outputFile, config) : outputFile,
-  );
 }
 
 function sharingTools(

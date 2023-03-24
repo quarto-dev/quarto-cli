@@ -91,7 +91,7 @@ import {
   pdfJsFileHandler,
 } from "../../core/pdfjs.ts";
 import { isPdfOutput } from "../../config/format.ts";
-import { bookOutputStem } from "../../project/types/book/book-config.ts";
+import { bookOutputStem } from "../../project/types/book/book-shared.ts";
 import { removePandocToArg } from "../../command/render/flags.ts";
 import {
   isJupyterHubServer,
