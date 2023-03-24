@@ -1,13 +1,13 @@
 /*
-* check.ts
-*
-* Copyright (C) 2021-2022 Posit Software, PBC
-*
-*/
+ * check.ts
+ *
+ * Copyright (C) 2021-2022 Posit Software, PBC
+ */
 
 import { info } from "log/mod.ts";
 
-import { render, renderServices } from "../render/render-shared.ts";
+import { render } from "../render/render-shared.ts";
+import { renderServices } from "../render/render-services.ts";
 
 import { JupyterCapabilities } from "../../core/jupyter/types.ts";
 import { jupyterCapabilities } from "../../core/jupyter/capabilities.ts";

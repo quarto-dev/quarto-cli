@@ -58,12 +58,10 @@ import {
 import { defaultWriterFormat } from "../../format/formats.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { ExecutionEngine, ExecutionTarget } from "../../execute/types.ts";
+import { projectMetadataForInputFile } from "../../project/project-context.ts";
 import {
-  projectMetadataForInputFile,
-} from "../../project/project-context.ts";
-import {
-  directoryMetadataForInputFile,
   deleteProjectMetadata,
+  directoryMetadataForInputFile,
   projectTypeIsWebsite,
 } from "../../project/project-shared.ts";
 import {
@@ -90,7 +88,7 @@ import {
   parseFormatString,
 } from "../../core/pandoc/pandoc-formats.ts";
 import { ExtensionContext } from "../../extension/types.ts";
-import { renderServices } from "./render-shared.ts";
+import { renderServices } from "./render-services.ts";
 
 export async function resolveFormatsFromMetadata(
   metadata: Metadata,

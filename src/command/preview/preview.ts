@@ -45,10 +45,10 @@ import {
   printBrowsePreviewMessage,
   printWatchingForChangesMessage,
   render,
-  renderServices,
   renderToken,
   rswURL,
 } from "../render/render-shared.ts";
+import { renderServices } from "../render/render-services.ts";
 import {
   RenderFlags,
   RenderResult,

@@ -70,9 +70,9 @@ import {
   printBrowsePreviewMessage,
   printWatchingForChangesMessage,
   render,
-  renderServices,
   renderToken,
 } from "../../command/render/render-shared.ts";
+import { renderServices } from "../../command/render/render-services.ts";
 import { renderProgress } from "../../command/render/render-info.ts";
 import { resourceFilesFromFile } from "../../command/render/resources.ts";
 import { projectType } from "../../project/types/project-types.ts";

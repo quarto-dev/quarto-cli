@@ -40,7 +40,7 @@ import {
 
 import { isHtmlOutput } from "../../config/format.ts";
 import { renderProject } from "../render/project.ts";
-import { renderServices } from "../render/render-shared.ts";
+import { renderServices } from "../render/render-services.ts";
 import { parseFormatString } from "../../core/pandoc/pandoc-formats.ts";
 import { normalizePath } from "../../core/path.ts";
 import { kCliffyImplicitCwd } from "../../config/constants.ts";
