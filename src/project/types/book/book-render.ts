@@ -62,7 +62,8 @@ import {
   onSingleFileBookPostRender,
   onSingleFileBookPreRender,
 } from "./book-extension.ts";
-import { bookConfigRenderItems, BookRenderItem } from "./book-config.ts";
+import { bookConfigRenderItems } from "./book-config.ts";
+import { BookRenderItem } from "./book-types.ts";
 import { bookOutputStem } from "./book-shared.ts";
 import { kBookItemAppendix, kBookItemPart } from "./book-constants.ts";
 import {

@@ -11,7 +11,7 @@ import { resolveInputTarget } from "../../project/project-index.ts";
 import {
   BookChapterEntry,
   BookPart,
-} from "../../project/types/book/book-config.ts";
+} from "../../project/types/book/book-types.ts";
 import {
   bookConfig,
   bookOutputStem,

@@ -105,6 +105,7 @@ import {
   PageFooterRegion,
 } from "../../../resources/types/schema-types.ts";
 import { projectType } from "../project-types.ts";
+import { BookRenderItem, BookRenderItemType } from "./book-types.ts";
 
 export async function bookProjectConfig(
   projectDir: string,
@@ -273,17 +274,6 @@ export function bookConfigRenderItems(
     project,
   ) as BookRenderItem[];
 }
-
-export type BookRenderItemType = "index" | "chapter" | "appendix" | "part";
-
-export interface BookRenderItem {
-  type: BookRenderItemType;
-  depth: number;
-  text?: string;
-  file?: string;
-  number?: number;
-}
-
 export async function bookRenderItems(
   projectDir: string,
   language: FormatLanguage,
@@ -408,12 +398,6 @@ const kDownloadableItems: Record<string, { name: string; icon: string }> = {
   "pdf": { name: "PDF", icon: "file-pdf" },
   "docx": { name: "Docx", icon: "file-word" },
 };
-
-export type BookChapterEntry = BookPart | string;
-export interface BookPart {
-  part: string;
-  chapters: string[];
-}
 
 interface BookChapterItem extends SidebarItem {
   part?: string;
