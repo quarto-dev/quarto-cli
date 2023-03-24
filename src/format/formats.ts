@@ -24,6 +24,7 @@ import { Format } from "../config/types.ts";
 //
 // import { htmlFormat } from "./html/format-html.ts";
 // import { revealjsFormat } from "./reveal/format-reveal.ts";
+// import { asciidocFormat } from "./asciidoc/format-asciidoc.ts";
 
 import { beamerFormat, latexFormat, pdfFormat } from "./pdf/format-pdf.ts";
 import { epubFormat } from "./epub/format-epub.ts";
@@ -45,7 +46,6 @@ import {
   pandocMarkdownFormat,
 } from "./markdown/format-markdown.ts";
 import { jatsFormat } from "./jats/format-jats.ts";
-import { asciidocFormat } from "./asciidoc/format-asciidoc.ts";
 import { mergePandocVariant } from "../config/metadata.ts";
 import { writerFormatHandlers } from "./format-handlers.ts";
 
@@ -83,6 +83,10 @@ export function defaultWriterFormat(to: string): Format {
       //   break;
       // case "revealjs":
       //   writerFormat = revealjsFormat();
+      //   break;
+      // case "asciidoc":
+      // case "asciidoctor":
+      //   writerFormat = asciidocFormat();
       //   break;
 
       case "pdf":
@@ -146,11 +150,6 @@ export function defaultWriterFormat(to: string): Format {
       case "gfm":
         writerFormat = gfmFormat();
         pandocTo = to;
-        break;
-
-      case "asciidoc":
-      case "asciidoctor":
-        writerFormat = asciidocFormat();
         break;
 
       case "docbook":

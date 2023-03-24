@@ -42,6 +42,7 @@ import {
 import { citeIndex } from "../../project/project-cites.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
 import { PandocOptions } from "../../command/render/types.ts";
+import { registerWriterFormatHandler } from "../format-handlers.ts";
 
 type AsciiDocBookPart = string | {
   partPath?: string;
@@ -382,3 +383,13 @@ async function resolveBookInputs(
   }
   return outputs;
 }
+
+registerWriterFormatHandler((format) => {
+  switch (format) {
+    case "asciidoc":
+    case "asciidoctor":
+      return {
+        format: asciidocFormat(),
+      };
+  }
+});
