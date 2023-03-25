@@ -1,4 +1,4 @@
 ---
 title: "issue-4964"
 ---
-![](https://quarto.org/quarto.png){width="488"}
+![](http://r-statistics.co/screenshots/ggplot_masterlist_2.png){width="488"} [SOURCE](http://r-statistics.co/Top50-Ggplot2-Visualizations-MasterList-R-Code.html)
