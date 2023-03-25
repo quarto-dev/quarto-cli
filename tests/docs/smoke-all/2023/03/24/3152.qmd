@@ -1,0 +1,9 @@
+---
+format: html
+engine: jupyter
+---
+
+```{python}
+#| export: 
+print("hi")
+```

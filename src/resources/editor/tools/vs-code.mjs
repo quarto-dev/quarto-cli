@@ -7057,6 +7057,15 @@ var require_yaml_intelligence_resources = __commonJS({
             short: "Notebook cell identifier",
             long: "Notebook cell identifier. Note that if there is no cell `id` then `label` \nwill be used as the cell `id` if it is present.\nSee <https://jupyter.org/enhancement-proposals/62-cell-id/cell-id.html>\nfor additional details on cell ids.\n"
           }
+        },
+        {
+          name: "export",
+          tags: {
+            engine: "jupyter"
+          },
+          schema: null,
+          hidden: true,
+          description: "nbconvert tag to export cell"
         }
       ],
       "schema/cell-cache.yml": [
@@ -21059,7 +21068,8 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
-        "internal-schema-hack"
+        "internal-schema-hack",
+        "nbconvert tag to export cell"
       ],
       "schema/external-schemas.yml": [
         {
@@ -21283,12 +21293,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 148648,
+        _internalId: 152480,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 148640,
+            _internalId: 152472,
             type: "enum",
             enum: [
               "png",
@@ -21304,7 +21314,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 148647,
+            _internalId: 152479,
             type: "anyOf",
             anyOf: [
               {

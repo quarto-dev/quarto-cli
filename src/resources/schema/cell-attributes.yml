@@ -28,3 +28,10 @@
       will be used as the cell `id` if it is present.
       See <https://jupyter.org/enhancement-proposals/62-cell-id/cell-id.html>
       for additional details on cell ids.
+
+- name: export
+  tags:
+    engine: jupyter
+  schema: null
+  hidden: true
+  description: "nbconvert tag to export cell"
