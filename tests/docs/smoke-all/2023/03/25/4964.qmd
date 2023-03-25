@@ -1,0 +1,4 @@
+---
+title: "issue-4964"
+---
+![](https://quarto.org/quarto.png){width="488"}
