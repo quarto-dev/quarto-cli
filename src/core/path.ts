@@ -1,9 +1,8 @@
 /*
-* path.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * path.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import {
   basename,
@@ -161,8 +160,21 @@ export function resolvePathGlobs(
 ): ResolvedPathGlobs {
   // expand a set of globs
   const expandGlobs = (targetGlobs: string[]) => {
+    // pandoc 3 allows references to http:// in markdown,
+    // and automatically resolves those in its rendering.
+    //
+    // This is a problem for us here, because we attempt
+    // to find local files that match the globs, and
+    // on windows, this means we will call expandGlobSync
+    // with a glob that includes a colon, which causes
+    // errors in any filesystem resolution calls.
+    //
+    // So, we need to filter out any globs that are
+    // clearly going to fail the expansion: these
+    // are any files that have a colon in them.
+
     const expanded: string[] = [];
-    for (const glob of targetGlobs) {
+    for (const glob of targetGlobs.filter((glob) => glob.includes(":"))) {
       for (
         const file of expandGlobSync(
           glob,
