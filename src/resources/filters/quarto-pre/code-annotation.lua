@@ -52,8 +52,10 @@ local kLangCommentChars = {
   latex = {"%"},
   typescript = {"//"},
   swift = { "//" },
-  javascript = { "// "},
-  elm = { "#" }
+  javascript = { "//"},
+  elm = { "#" },
+  vhdl = { "--"}
+
 }
 
 local kCodeAnnotationsParam = 'code-annotations'
