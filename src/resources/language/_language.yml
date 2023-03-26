@@ -27,7 +27,7 @@ callout-tip-title: "Tip"
 callout-note-title: "Note"
 callout-warning-title: "Warning"
 callout-important-title: "Important"
-callout-caution-title: "Danger"
+callout-caution-title: "Caution"
 
 code-summary: "Code"
 
