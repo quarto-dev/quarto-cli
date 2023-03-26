@@ -164,6 +164,7 @@
 - Ensure that footnote are properly indexed for website and book searches ([#4601](https://github.com/quarto-dev/quarto-cli/issues/4601)).
 - Permit sidebar items to include icons ([#3830](https://github.com/quarto-dev/quarto-cli/issues/3830)).
 - Improve the appearance of the collapsed navbar toggle button
+- Properly respect the footer border when set explicitly in `_quarto.yml` ([#4982](https://github.com/quarto-dev/quarto-cli/issues/4982))
 
 ## Books
 
