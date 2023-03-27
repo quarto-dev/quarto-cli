@@ -1,6 +1,6 @@
 # Configuration Target Directories
 export SCRIPT_PATH=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-export QUARTO_ROOT=$(cd -- ${SCRIPT_PATH}/../.. &> /dev/null && pwd )
+export QUARTO_ROOT=$(cd -- "${SCRIPT_PATH}/../.." &> /dev/null && pwd )
 export QUARTO_SRC_PATH=${QUARTO_ROOT}/src
 
 # Full paths are what the Quarto code uses internally. You should never see a _DIR entry in there.
