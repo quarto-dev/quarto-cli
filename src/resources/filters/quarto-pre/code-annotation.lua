@@ -472,6 +472,19 @@ function code()
             -- There are pending annotations, which means this OL is immediately after
             -- a code cell with annotations. Use to emit a DL describing the code
             local items = pandoc.List()
+
+            -- If there are unused ordered list items, collect those and include
+            -- them after the annotation as an ordered list
+            -- Note that back to back ordered lists are considered a single
+            -- list unless separated by a block (which means an annotated code cell
+            -- followed by an ordered list will include the ordered list with the annotations)
+            local unusedItems = pandoc.List()
+
+            local outputUnusedItems = function() 
+              outputBlock(pandoc.OrderedList(unusedItems, block.attr))
+              unusedItems = pandoc.List()
+            end
+
             for i, v in ipairs(block.content) do
               -- find the annotation for this OL
               local annotationNumber = block.start + i - 1
@@ -519,7 +532,8 @@ function code()
                   definition})
               else
                 -- there was an OL item without a corresponding annotation
-                warn("List item " .. tostring(i) .. " has no corresponding annotation in the code cell\n(" .. pandoc.utils.stringify(v) ..  ")")
+                -- collect it and append it below as an ordered list
+                unusedItems:insert(block.content[i])
               end
             end
 
@@ -546,14 +560,21 @@ function code()
                 pendingCodeCell.content:insert(2, dlDiv)
                 outputBlock(pendingCodeCell)
                 clearPending();
+                if unusedItems ~= nil  and next(unusedItems) ~= nil then
+                  outputUnusedItems()
+                end
               else
                 outputBlockClearPending(dl)
+                if unusedItems ~= nil  and next(unusedItems) ~= nil then
+                  outputUnusedItems()
+                end
               end
             else
               if pendingCodeCell then
                 outputBlock(pendingCodeCell)
               end
               clearPending();
+              unusedItems = pandoc.List()
             end
           else
             outputBlockClearPending(block)
