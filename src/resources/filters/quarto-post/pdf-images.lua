@@ -107,7 +107,7 @@ function pdfImages()
               image.src = resolvedUrls[image.src]
               return image
             else 
-              local relativePath = image.src:match('http[s]://[%w%.%:]+/(.+)')
+              local relativePath = image.src:match('https?://[%w%.%:]+/(.+)')
               if relativePath then
                 local imgMt, imgContents = pandoc.mediabag.fetch(image.src)
                 local filename = windows_safe_filename(tex_safe_filename(pandoc.path.filename(relativePath)))

@@ -11,7 +11,7 @@ function resourceFiles()
     -- around this
     Image = function(el)
       local targetPath = el.src
-      if not targetPath:match('^http[s]:') and not targetPath:match('^data:') then
+      if not targetPath:match('^https?:') and not targetPath:match('^data:') then
         -- don't include this resource if it is a URL, data file or some not file path
         if pandoc.path.is_relative(targetPath) then 
           local inputDir = pandoc.path.directory(quarto.doc.input_file)
