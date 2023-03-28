@@ -405,7 +405,7 @@ export function completeListingItems(
 }
 
 function emptyDiv(height?: string) {
-  return `<div class="listing-item-img-placeholder" ${
+  return `<div class="listing-item-img-placeholder card-img-top" ${
     height ? `style="height: ${height};"` : ""
   }>&nbsp;</div>`;
 }
@@ -1039,11 +1039,13 @@ async function listItemFromFile(
 }
 
 function imageSrc(image: PreviewImage, progressive: boolean, height?: string) {
-  return `<img ${progressive ? "data-src" : "src"}="${image.src}" ${
-    image.alt ? `alt="${image.alt}" ` : ""
-  }${height ? `style="height: ${height};" ` : ""}${
+  return `<p class="card-img-top"><img ${
+    progressive ? "data-src" : "src"
+  }="${image.src}" ${image.alt ? `alt="${image.alt}" ` : ""}${
+    height ? `style="height: ${height};" ` : ""
+  }${
     image.title ? `title="${image.title}"` : ""
-  }/>`;
+  } class="thumbnail-image card-img"/></p>`;
 }
 
 // Processes the 'listing' metadata into an

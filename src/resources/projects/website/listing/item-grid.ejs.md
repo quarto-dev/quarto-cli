@@ -38,9 +38,11 @@ return !["title", "image", "image-alt", "date", "author", "subtitle", "descripti
 </p>
 <% } else { %>
 <%= listing.utilities.imgPlaceholder(itemNumber, item.outputHref) %>
-<% } %> 
+<% } %>
+
 <% } %>
 <% if (showField('title') || showField('subtitle') || showField('description') || showField('author') || showField('date') || otherFields.length > 0) { %>
+
 <div class="card-body post-contents">
 <% if (showField('title')) { %><h5 class="no-anchor card-title listing-title"><%= item.title %></h5><% } %>
 <% if (showField('subtitle')) { %><div class="card-subtitle listing-subtitle"><%= item.subtitle %></div><% } %>
