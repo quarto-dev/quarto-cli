@@ -77,14 +77,18 @@ function crossrefPreprocess()
         }
       end
 
-      -- walk all blocks in the document
-      for i,el in pairs(doc.blocks) do
-        -- always wrap referenced tables in a div
-        if el.t == "Table" then
-          doc.blocks[i] = preprocessTable(el, nil)
-        elseif el.t == "RawBlock" then
-          doc.blocks[i] = preprocessRawTableBlock(el, nil)
-        elseif el.t ~= "Header" then
+      local preprocessTableAndRawTableBlocks = {
+        traverse = "topdown",
+
+        Table = function(el)
+          return preprocessTable(el, nil), false
+        end,
+        
+        RawBlock = function(el)
+          return preprocessRawTableBlock(el, nil), false
+        end,
+
+        Header = function(el)
           local parentId = nil
           if hasFigureOrTableRef(el) and el.content ~= nil then
             parentId = el.attr.identifier
@@ -100,9 +104,11 @@ function crossrefPreprocess()
               el.content:insert(err)
             end
           end
-          doc.blocks[i] = _quarto.ast.walk(el, walkRefs(parentId))
+          return _quarto.ast.walk(el, walkRefs(parentId)), false
         end
-      end
+      }
+
+      doc.blocks = _quarto.ast.walk(doc.blocks, preprocessTableAndRawTableBlocks)
 
       return doc
 
