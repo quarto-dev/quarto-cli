@@ -51,6 +51,8 @@ export interface ProjectContext {
     to?: string,
     project?: ProjectContext,
   ) => Promise<Record<string, Format>>;
+
+  otherIndex?: Map<string, string | undefined>;
 }
 
 export interface ProjectFiles {
