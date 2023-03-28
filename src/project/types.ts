@@ -52,7 +52,7 @@ export interface ProjectContext {
     project?: ProjectContext,
   ) => Promise<Record<string, Format>>;
 
-  otherIndex?: Map<string, string | undefined>;
+  outputNameIndex?: Map<string, string | undefined>;
 }
 
 export interface ProjectFiles {
