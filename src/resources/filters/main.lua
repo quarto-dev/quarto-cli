@@ -148,7 +148,6 @@ import("./quarto-pre/table-captions.lua")
 import("./quarto-pre/table-colwidth.lua")
 import("./quarto-pre/table-rawhtml.lua")
 import("./quarto-pre/theorems.lua")
-import("./quarto-pre/discover_preview_images.lua")
 
 import("./customnodes/decoratedcodeblock.lua")
 
@@ -219,8 +218,7 @@ local quartoPre = {
   }) },
   { name = "pre-quartoPreMetaInject", filter = quartoPreMetaInject() },
   { name = "pre-writeResults", filter = writeResults() },
-  { name = "pre-projectPaths", filter = projectPaths() },
-  { name = "pre-discover_preview_images", filter = discover_preview_images() }
+  { name = "pre-projectPaths", filter = projectPaths() }
 }
 
 local quartoPost = {
