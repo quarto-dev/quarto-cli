@@ -113,5 +113,3 @@ function crossrefPreprocess()
     end
   }
 end
-
-debug_5001 = 0
