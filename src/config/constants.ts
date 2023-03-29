@@ -431,6 +431,7 @@ export const kPdfEngineOpts = "pdf-engine-opts";
 export const kPdfEngineOpt = "pdf-engine-opt";
 export const kListings = "listings";
 export const kNumberSections = "number-sections";
+export const kSectionNumbering = "section-numbering";
 export const kNumberOffset = "number-offset";
 export const kShiftHeadingLevelBy = "shift-heading-level-by";
 export const kNumberDepth = "number-depth";

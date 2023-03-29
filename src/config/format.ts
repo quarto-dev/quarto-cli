@@ -20,6 +20,10 @@ export function isLatexOutput(format: FormatPandoc) {
   return ["pdf", "latex", "beamer"].includes(format.to || "");
 }
 
+export function isTypstOutput(format: FormatPandoc) {
+  return format === "typst";
+}
+
 export function isBeamerOutput(format: FormatPandoc) {
   return ["beamer"].includes(format.to || "");
 }
