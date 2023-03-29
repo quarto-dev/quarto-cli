@@ -104,7 +104,7 @@ function crossrefPreprocess()
             Block = pandoc.Blocks,
             Inline = pandoc.Inlines
           }
-          doc.blocks[i] = _quarto.ast.walk(ctor[pandoc.utils.type(el)]({ el }), walkRefs(parentId))[1]
+          doc.blocks[i] = _quarto.ast.walk(el, walkRefs(parentId))
         end
       end
 
