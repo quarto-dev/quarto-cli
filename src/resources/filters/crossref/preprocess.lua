@@ -100,7 +100,11 @@ function crossrefPreprocess()
               el.content:insert(err)
             end
           end
-          doc.blocks[i] = _quarto.ast.walk(el, walkRefs(parentId))
+          local ctor = {
+            Block = pandoc.Blocks,
+            Inline = pandoc.Inlines
+          }
+          doc.blocks[i] = _quarto.ast.walk(ctor[pandoc.utils.type(el)]({ el }), walkRefs(parentId))[1]
         end
       end
 
@@ -110,5 +114,4 @@ function crossrefPreprocess()
   }
 end
 
-
-
+debug_5001 = 0
