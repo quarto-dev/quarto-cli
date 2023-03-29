@@ -634,7 +634,7 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
     // Enable the border unless it is explicitly disabled
     const showBorder = footerBorder !== undefined
       ? footerBorder
-      : sidebar.style === "docked";
+      : sidebar?.style === "docked";
     if (showBorder) {
       variables.push(
         outputVariable(
