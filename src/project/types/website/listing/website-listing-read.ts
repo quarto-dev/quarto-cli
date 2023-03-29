@@ -106,6 +106,7 @@ import {
 import { mergeConfigs } from "../../../../core/config.ts";
 import { globToRegExp } from "../../../../core/lib/glob.ts";
 import { cslNames } from "../../../../core/csl.ts";
+import { isHttpUrl } from "../../../../core/url.ts";
 
 // Defaults (a card listing that contains everything
 // in the source document's directory)
@@ -361,13 +362,26 @@ export function completeListingItems(
           });
 
           if (contents.previewImage) {
-            const imgAbsPath = isAbsolute(contents.previewImage.src)
-              ? contents.previewImage.src
-              : join(dirname(docAbsPath), contents.previewImage.src);
+            const resolveUrl = (path: string) => {
+              if (isHttpUrl(path)) {
+                return path;
+              } else {
+                const imgAbsPath = isAbsolute(path)
+                  ? path
+                  : join(dirname(docAbsPath), path);
+                const imgRelPath = relative(
+                  dirname(outputFile.file),
+                  imgAbsPath,
+                );
+                return imgRelPath;
+              }
+            };
 
-            const imgRelPath = relative(dirname(outputFile.file), imgAbsPath);
             const imgHtml = imageSrc(
-              { ...contents.previewImage, src: imgRelPath },
+              {
+                ...contents.previewImage,
+                src: resolveUrl(contents.previewImage.src),
+              },
               progressive,
               imgHeight,
             );
