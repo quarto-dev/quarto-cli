@@ -12,7 +12,7 @@ $elseif(date)$
 :revdate: $date$
 $endif$
 $if(description)$
-:description: $description$
+:description: $description/chomp$
 $endif$
 $if(keywords)$
 :keywords: $for(keywords)$$keywords$$sep$, $endfor$
