@@ -248,7 +248,7 @@ export async function inputFileForOutputFile(
             dirname(inputRelative),
             outputFile,
           );
-          project.outputNameIndex!.set(file, formatOutputPath);
+          project.outputNameIndex!.set(formatOutputPath, file);
         }
       });
     }
