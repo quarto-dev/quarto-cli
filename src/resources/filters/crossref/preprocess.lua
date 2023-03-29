@@ -109,6 +109,3 @@ function crossrefPreprocess()
     end
   }
 end
-
-
-
