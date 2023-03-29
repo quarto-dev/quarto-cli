@@ -35,3 +35,10 @@ unitTest(l('when record theme, with dark default'), async () => {
     const actual:GiscusThemeToggleRecord = buildGiscusThemeKeys(true, {light: 'fake-theme-key-dark', dark: 'fake-theme-key-light'});
     assertEquals(expected, actual);
 });
+
+unitTest(l('when record theme, with only light specified'), async () => {
+    const expected:GiscusThemeToggleRecord = {baseTheme: 'fake-theme-key-light', altTheme: 'dark'};
+
+    const actual:GiscusThemeToggleRecord = buildGiscusThemeKeys(false, {light: 'fake-theme-key-light'});
+    assertEquals(expected, actual);
+});

@@ -46,13 +46,15 @@ export type GiscusThemeToggleRecord = {
 }
 
 export type GiscusTheme = {
-  light : string;
-  dark: string;
+  light?: string;
+  dark?: string;
 } | string;
 
-export const buildGiscusThemeKeys = (darkModeDefault:boolean, theme:GiscusTheme):GiscusThemeToggleRecord => {
-
-  if(typeof theme === 'string') {
+export const buildGiscusThemeKeys = (
+  darkModeDefault: boolean,
+  theme: GiscusTheme
+): GiscusThemeToggleRecord => {
+  if (typeof theme === "string") {
     if (theme.length > 0) {
       return { baseTheme: theme, altTheme: theme };
     } else {
@@ -60,13 +62,18 @@ export const buildGiscusThemeKeys = (darkModeDefault:boolean, theme:GiscusTheme)
     }
   }
 
-  const themeRecord:{light:string, dark:string} = theme as {light:string, dark:string};
-  let result = { baseTheme: themeRecord.light, altTheme: themeRecord.dark };
+  const themeRecord: { light: string; dark: string } = theme as {
+    light: string;
+    dark: string;
+  };
+  let result = {
+    baseTheme: themeRecord.light ?? "light",
+    altTheme: themeRecord.dark ?? "dark",
+  };
 
-  if(darkModeDefault) {
+  if (darkModeDefault) {
     [result.baseTheme, result.altTheme] = [result.altTheme, result.baseTheme];
   }
 
   return result;
-
-}
+};
