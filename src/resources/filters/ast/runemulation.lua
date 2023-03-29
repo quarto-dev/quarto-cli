@@ -36,19 +36,20 @@ local function emulate_pandoc_filter(filters, afterFilterPass)
   return {
     traverse = 'topdown',
     Pandoc = function(doc)
-      -- local profiling = true
+      local profiling = option("profiler", false)
       if profiling then
-        local profiler = require('profiler')
-        profiler.start()
-        -- doc = to_emulated(doc)
-        doc = run_emulated_filter_chain(doc, filters, afterFilterPass)
-        -- doc = from_emulated(doc)
-
-        -- the installation happens in main.lua ahead of loaders
-        -- restore_pandoc_overrides(overrides_state)
-
-        -- this call is now a real pandoc.Pandoc call
-        profiler.stop()
+        pandoc.system.with_temporary_directory("temp", function(tmpdir)
+          local profiler = require('profiler')
+          profiler.start(tmpdir .. "prof.txt")
+          doc = run_emulated_filter_chain(doc, filters, afterFilterPass)
+          profiler.stop()
+          os.execute("quarto --paths > " .. tmpdir .. "paths.txt")
+          local paths = io.open(tmpdir .. "paths.txt", "r")
+          local ts_source = paths:read("l") .. "/../../../tools/profiler/convert-to-perfetto.ts"
+          paths:close()
+          os.execute("quarto run " .. ts_source .. " " .. tmpdir .. "prof.txt > " .. profiling)
+          return nil
+        end)
         return doc, false
       else 
         return run_emulated_filter_chain(doc, filters, afterFilterPass), false

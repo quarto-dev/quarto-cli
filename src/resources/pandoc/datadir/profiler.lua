@@ -43,20 +43,9 @@ local onDebugHook = function(hookType)
   end
 
   local name = information.name or "<C>"
-  local source = information.source
-
-  if names[source] == nil then
-    names[source] = nnames
-    nnames = nnames + 1
-  else
-    source = names[source]
-  end
-
-  if names[name] == nil then
-    names[name] = nnames
-    nnames = nnames + 1
-  else
-    name = names[name]
+  local source = information.source or "unknown"
+  if hookType == "tail call" then
+    hookType = "tailcall"
   end
 
   if names[hookType] == nil then
@@ -66,11 +55,25 @@ local onDebugHook = function(hookType)
     hookType = names[hookType]
   end
 
+  if names[name] == nil then
+    names[name] = nnames
+    nnames = nnames + 1
+  else
+    name = names[name]
+  end
+
+  if names[source] == nil then
+    names[source] = nnames
+    nnames = nnames + 1
+  else
+    source = names[source]
+  end
+
   outputfile:write(hookType, " ", name, " ", source, " ", information.linedefined, " ", getTime(), "\n")
 end
 
-function module.start()
-  outputfile = io.open("profiler.txt", "a")
+function module.start(filename)
+  outputfile = io.open(filename, "a")
   if outputfile == nil then
     error("Could not open profiler.txt for writing")
     return
