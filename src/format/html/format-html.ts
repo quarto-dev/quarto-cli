@@ -1,3 +1,5 @@
+// noinspection TypeScriptUnresolvedReference
+
 /*
 * format-html.ts
 *
@@ -89,8 +91,9 @@ import {
   RenderServices,
 } from "../../command/render/types.ts";
 import {
+  buildGiscusThemeKeys,
   getDiscussionCategoryId,
-  getGithubDiscussionsMetadata,
+  getGithubDiscussionsMetadata, GiscusTheme, GiscusThemeToggleRecord,
 } from "../../core/giscus.ts";
 import { metadataPostProcessor } from "./format-html-meta.ts";
 import { kHtmlEmptyPostProcessResult } from "../../command/render/constants.ts";
@@ -486,8 +489,17 @@ export async function htmlFormatExtras(
   // giscus
   if (options.giscus) {
     const giscus = options.giscus as Record<string, unknown>;
+
     giscus.category = giscus.category || "General";
-    giscus.theme = giscus.theme || "light";
+    giscus.theme = giscus.theme || "";
+
+    const themeToggleRecord:GiscusThemeToggleRecord =
+        buildGiscusThemeKeys(!!options.darkModeDefault, giscus.theme as GiscusTheme)
+
+    giscus.baseTheme = themeToggleRecord.baseTheme;
+    giscus.altTheme = themeToggleRecord.altTheme;
+    giscus.theme = giscus.baseTheme;
+
     giscus.mapping = giscus.mapping || "title";
     giscus["reactions-enabled"] = giscus["reactions-enabled"] !== undefined
       ? giscus["reactions-enabled"]

@@ -265,6 +265,16 @@
                           transparent_dark,
                           preferred_color_scheme,
                         ]
+                    - object:
+                        closed: true
+                        properties:
+                          light:
+                            string:
+                              description: The light theme name.
+                          dark:
+                            string:
+                              description: The dark theme name.
+
                   description: The giscus theme to use when displaying comments.
                 language:
                   string:
