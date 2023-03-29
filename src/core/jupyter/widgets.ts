@@ -8,6 +8,7 @@
 // deno-lint-ignore-file camelcase
 
 import { mergeConfigs } from "../config.ts";
+import { lines } from "../lib/text.ts";
 import {
   kApplicationJavascript,
   kApplicationJupyterWidgetState,
@@ -52,7 +53,7 @@ export function extractJupyterWidgetDependencies(
           const html = displayOutput.data[kTextHtml];
           const htmlText = Array.isArray(html) ? html.join("") : html as string;
           if (html && isWidgetIncludeHtml(htmlText)) {
-            htmlLibraries.push(htmlText);
+            htmlLibraries.push(htmlLibrariesText(htmlText));
             return false;
           }
         }
@@ -180,4 +181,31 @@ function isPlotlyLibrary(html: string) {
   return /^\s*<script type="text\/javascript">/.test(html) &&
     (/require\.undef\(["']plotly["']\)/.test(html) ||
       /define\('plotly'/.test(html));
+}
+
+function htmlLibrariesText(htmlText: string) {
+  // strip leading space off of the content so it isn't seen as code by e.g. hugo
+  const htmlLines = lines(htmlText);
+  const leadingSpace = htmlLines.reduce<number>(
+    (leading: number, line: string) => {
+      const spaces = line.search(/\S/);
+      if (spaces !== -1) {
+        return Math.min(leading, spaces);
+      } else {
+        return leading;
+      }
+    },
+    Number.MAX_SAFE_INTEGER,
+  );
+  if (leadingSpace !== Number.MAX_SAFE_INTEGER) {
+    return htmlLines.map((line) => {
+      if (line.trim().length === 0) {
+        return "";
+      } else {
+        return line.replace(" ".repeat(leadingSpace), "");
+      }
+    }).join("\n");
+  } else {
+    return htmlText;
+  }
 }
