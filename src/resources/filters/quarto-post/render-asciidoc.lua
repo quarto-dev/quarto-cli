@@ -59,7 +59,7 @@ function renderAsciidoc()
       local admonitionStr;
       if el.title then
         -- A titled admonition
-        local admonitionTitle = pandoc.write(pandoc.Pandoc(el.title), "asciidoc")
+        local admonitionTitle = pandoc.write(pandoc.Pandoc({el.title}), "asciidoc")
         admonitionStr = "[" .. admonitionType .. "]\n." .. admonitionTitle .. "====\n" .. admonitionContents .. "====\n\n" 
       else
         -- A titleless admonition
