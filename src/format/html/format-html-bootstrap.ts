@@ -45,15 +45,16 @@ import { hasTableOfContents } from "../../config/toc.ts";
 
 import { resolveBootstrapScss } from "./format-html-scss.ts";
 import {
+  formatHasArticleLayout,
+  formatHasFullLayout,
+  formatPageLayout,
   hasMarginCites,
   hasMarginRefs,
   kAppendixStyle,
   kBootstrapDependencyName,
   kDocumentCss,
   kPageLayout,
-  kPageLayoutArticle,
   kPageLayoutCustom,
-  kPageLayoutFull,
   setMainColumn,
 } from "./format-html-shared.ts";
 import {
@@ -83,20 +84,6 @@ import {
 import { basename } from "path/mod.ts";
 import { processNotebookEmbeds } from "./format-html-notebook.ts";
 import { ProjectContext } from "../../project/types.ts";
-
-export function formatPageLayout(format: Format) {
-  return format.metadata[kPageLayout] as string || kPageLayoutArticle;
-}
-
-export function formatHasFullLayout(format: Format) {
-  return format.metadata[kPageLayout] === kPageLayoutFull;
-}
-
-export function formatHasArticleLayout(format: Format) {
-  return format.metadata[kPageLayout] === undefined ||
-    format.metadata[kPageLayout] === kPageLayoutArticle ||
-    format.metadata[kPageLayout] === kPageLayoutFull;
-}
 
 export function bootstrapFormatDependency() {
   const boostrapResource = (resource: string) =>

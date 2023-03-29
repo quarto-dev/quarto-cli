@@ -27,7 +27,8 @@ import { AccountToken } from "./provider-types.ts";
 
 import { PublishOptions } from "./types.ts";
 
-import { render, renderServices } from "../command/render/render-shared.ts";
+import { render } from "../command/render/render-shared.ts";
+import { renderServices } from "../command/render/render-services.ts";
 import { projectOutputDir } from "../project/project-shared.ts";
 import { PublishRecord } from "../publish/types.ts";
 import { ProjectContext } from "../project/types.ts";

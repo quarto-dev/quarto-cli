@@ -1,9 +1,8 @@
 /*
-* quarto.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * quarto.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import "./core/deno/monkey-patch.ts";
 
@@ -47,6 +46,10 @@ import "./core/handlers/handlers.ts";
 
 // ensures project types are registered
 import "./project/types/register.ts";
+
+// ensures writer formats are registered
+import "./format/imports.ts";
+
 import { kCliffyImplicitCwd } from "./config/constants.ts";
 
 export async function quarto(

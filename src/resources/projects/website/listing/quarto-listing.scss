@@ -362,10 +362,9 @@ ul.pagination {
 
   p.card-img-top {
     margin-bottom: 0;
-  }
-
-  > img {
-    object-fit: cover;
+    > img {
+      object-fit: cover;
+    }
   }
 
   .card-other-values {

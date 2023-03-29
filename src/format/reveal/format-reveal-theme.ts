@@ -1,9 +1,8 @@
 /*
-* format-reveal-theme.ts
-*
-* Copyright (C) 2021-2022 Posit Software, PBC
-*
-*/
+ * format-reveal-theme.ts
+ *
+ * Copyright (C) 2021-2022 Posit Software, PBC
+ */
 
 import { dirname, join, relative } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
@@ -30,7 +29,6 @@ import {
 } from "../../core/sass.ts";
 
 import { kRevealJsUrl } from "./constants.ts";
-import { cssHasDarkModeSentinel } from "../../command/render/pandoc-html.ts";
 import { resolveTextHighlightingLayer } from "../html/format-html-scss.ts";
 import { quartoBaseLayer } from "../html/format-html-shared.ts";
 import { TempContext } from "../../core/temp.ts";
@@ -38,6 +36,7 @@ import { hasAdaptiveTheme } from "../../quarto-core/text-highlighting.ts";
 import { copyMinimal, copyTo } from "../../core/copy.ts";
 import { titleSlideScss } from "./format-reveal-title.ts";
 import { asCssFont, asCssNumber } from "../../core/css.ts";
+import { cssHasDarkModeSentinel } from "../../core/pandoc/css.ts";
 
 export const kRevealLightThemes = [
   "white",

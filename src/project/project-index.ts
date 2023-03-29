@@ -1,9 +1,8 @@
 /*
-* project-index.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * project-index.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { dirname, join, relative } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
@@ -22,7 +21,6 @@ import {
   removeIfExists,
 } from "../core/path.ts";
 import { kTitle } from "../config/constants.ts";
-import { renderFormats } from "../command/render/render-contexts.ts";
 import { fileExecutionEngine } from "../execute/engine.ts";
 
 import { projectConfigFile, projectOutputDir } from "./project-shared.ts";
@@ -78,7 +76,7 @@ export async function inputTargetIndex(
   }
 
   // otherwise read the metadata and index it
-  const formats = await renderFormats(inputFile, "all", project);
+  const formats = await project.renderFormats(inputFile, "all", project);
   const firstFormat = Object.values(formats)[0];
   const markdown = await engine.partitionedMarkdown(inputFile, firstFormat);
   const index: InputTargetIndex = {
@@ -229,11 +227,19 @@ export async function inputFileForOutputFile(
   // full path to output (it's relative to output dir)
   output = join(outputDir, output);
 
+  if (project.outputNameIndex !== undefined) {
+    return project.outputNameIndex.get(output);
+  }
+
+  project.outputNameIndex = new Map();
   for (const file of project.files.input) {
     const inputRelative = relative(project.dir, file);
-    const index = await inputTargetIndex(project, relative(project.dir, file));
+    const index = await inputTargetIndex(
+      project,
+      relative(project.dir, file),
+    );
     if (index) {
-      const hasOutput = Object.keys(index.formats).some((key) => {
+      Object.keys(index.formats).forEach((key) => {
         const format = index.formats[key];
         const outputFile = formatOutputFile(format);
         if (outputFile) {
@@ -242,14 +248,12 @@ export async function inputFileForOutputFile(
             dirname(inputRelative),
             outputFile,
           );
-          return output === formatOutputPath;
+          project.outputNameIndex!.set(formatOutputPath, file);
         }
       });
-      if (hasOutput) {
-        return file;
-      }
     }
   }
+  return project.outputNameIndex.get(output);
 }
 
 export async function inputTargetIndexForOutputFile(

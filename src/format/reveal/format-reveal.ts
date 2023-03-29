@@ -67,6 +67,7 @@ import {
 import { revealMetadataFilter } from "./metadata.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { titleSlidePartial } from "./format-reveal-title.ts";
+import { registerWriterFormatHandler } from "../format-handlers.ts";
 
 export function revealResolveFormat(format: Format) {
   format.metadata = revealMetadataFilter(format.metadata);
@@ -874,3 +875,12 @@ function findParentSlide(el: Element, slideClass = "slide") {
     return el.classList.contains(slideClass);
   });
 }
+
+registerWriterFormatHandler((format) => {
+  switch (format) {
+    case "revealjs":
+      return {
+        format: revealjsFormat(),
+      };
+  }
+});

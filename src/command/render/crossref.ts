@@ -1,9 +1,8 @@
 /*
-* crossref.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * crossref.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import {
   kListings,
@@ -23,7 +22,7 @@ import {
 } from "../../project/project-crossrefs.ts";
 import { pandocMetadataPath } from "./render-paths.ts";
 import { isMultiFileBookFormat } from "../../project/types/book/book-shared.ts";
-import { projectIsBook } from "../../project/project-context.ts";
+import { projectIsBook } from "../../project/project-shared.ts";
 
 export function crossrefFilterActive(options: PandocOptions) {
   return options.format.metadata.crossref !== false;

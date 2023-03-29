@@ -31,11 +31,9 @@ import {
   isProjectInputFile,
   projectExcludeDirs,
   projectOutputDir,
-} from "../../project/project-shared.ts";
-import {
-  projectContext,
   projectPreviewServe,
-} from "../../project/project-context.ts";
+} from "../../project/project-shared.ts";
+import { projectContext } from "../../project/project-context.ts";
 import { partitionedMarkdownForInput } from "../../project/project-config.ts";
 
 import {
@@ -72,9 +70,9 @@ import {
   printBrowsePreviewMessage,
   printWatchingForChangesMessage,
   render,
-  renderServices,
   renderToken,
 } from "../../command/render/render-shared.ts";
+import { renderServices } from "../../command/render/render-services.ts";
 import { renderProgress } from "../../command/render/render-info.ts";
 import { resourceFilesFromFile } from "../../command/render/resources.ts";
 import { projectType } from "../../project/types/project-types.ts";
@@ -93,7 +91,7 @@ import {
   pdfJsFileHandler,
 } from "../../core/pdfjs.ts";
 import { isPdfOutput } from "../../config/format.ts";
-import { bookOutputStem } from "../../project/types/book/book-config.ts";
+import { bookOutputStem } from "../../project/types/book/book-shared.ts";
 import { removePandocToArg } from "../../command/render/flags.ts";
 import {
   isJupyterHubServer,

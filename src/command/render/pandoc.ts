@@ -57,11 +57,12 @@ import {
 } from "../../core/yaml.ts";
 
 import { ProjectContext } from "../../project/types.ts";
+
 import {
   deleteProjectMetadata,
   projectIsBook,
   projectIsWebsite,
-} from "../../project/project-context.ts";
+} from "../../project/project-shared.ts";
 import { deleteCrossrefMetadata } from "../../project/project-crossrefs.ts";
 
 import {

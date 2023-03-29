@@ -7057,6 +7057,15 @@ var require_yaml_intelligence_resources = __commonJS({
             short: "Notebook cell identifier",
             long: "Notebook cell identifier. Note that if there is no cell `id` then `label` \nwill be used as the cell `id` if it is present.\nSee <https://jupyter.org/enhancement-proposals/62-cell-id/cell-id.html>\nfor additional details on cell ids.\n"
           }
+        },
+        {
+          name: "export",
+          tags: {
+            engine: "jupyter"
+          },
+          schema: null,
+          hidden: true,
+          description: "nbconvert tag to export cell"
         }
       ],
       "schema/cell-cache.yml": [
@@ -18293,10 +18302,6 @@ var require_yaml_intelligence_resources = __commonJS({
         "Specify <code>loading: lazy</code> to defer loading comments until\nthe user scrolls near the comments container.",
         "Place the comment input box above or below the comments.",
         "The giscus theme to use when displaying comments.",
-        "The light theme name.",
-        "The light theme name.",
-        "The dark theme name.",
-        "The dark theme name.",
         "The language that should be used when displaying the commenting\ninterface.",
         "Controls whether the sidebar opens automatically on startup.",
         "Controls whether the in-document highlights are shown by default\n(<code>always</code>, <code>whenSidebarOpen</code> or\n<code>never</code>)",
@@ -19313,6 +19318,7 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "Notebook cell identifier",
           long: 'Notebook cell identifier. Note that if there is no cell\n<code>id</code> then <code>label</code> will be used as the cell\n<code>id</code> if it is present. See <a href="https://jupyter.org/enhancement-proposals/62-cell-id/cell-id.html" class="uri">https://jupyter.org/enhancement-proposals/62-cell-id/cell-id.html</a>\nfor additional details on cell ids.'
         },
+        "nbconvert tag to export cell",
         {
           short: "Whether to cache a code chunk.",
           long: "Whether to cache a code chunk. When evaluating code chunks for the\nsecond time, the cached chunks are skipped (unless they have been\nmodified), but the objects created in these chunks are loaded from\npreviously saved databases (<code>.rdb</code> and <code>.rdx</code>\nfiles), and these files are saved when a chunk is evaluated for the\nfirst time, or when cached files are not found (e.g., you may have\nremoved them by hand). Note that the filename consists of the chunk\nlabel with an MD5 digest of the R code and chunk options of the code\nchunk, which means any changes in the chunk will produce a different MD5\ndigest, and hence invalidate the cache."
@@ -21304,12 +21310,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 152500,
+        _internalId: 152620,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 152492,
+            _internalId: 152612,
             type: "enum",
             enum: [
               "png",
@@ -21325,7 +21331,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 152499,
+            _internalId: 152619,
             type: "anyOf",
             anyOf: [
               {

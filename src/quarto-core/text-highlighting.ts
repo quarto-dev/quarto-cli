@@ -1,9 +1,8 @@
 /*
-* text-highlighting.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * text-highlighting.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 import { join } from "path/mod.ts";
 
 import { kDefaultHighlightStyle } from "../command/render/constants.ts";
@@ -143,3 +142,38 @@ export function readTheme(
   }
   return Deno.readTextFileSync(themeFile);
 }
+
+// From  https://github.com/jgm/skylighting/blob/a1d02a0db6260c73aaf04aae2e6e18b569caacdc/skylighting-core/src/Skylighting/Format/HTML.hs#L117-L147
+export const kAbbrevs: Record<string, string> = {
+  "Keyword": "kw",
+  "DataType": "dt",
+  "DecVal": "dv",
+  "BaseN": "bn",
+  "Float": "fl",
+  "Char": "ch",
+  "String": "st",
+  "Comment": "co",
+  "Other": "ot",
+  "Alert": "al",
+  "Function": "fu",
+  "RegionMarker": "re",
+  "Error": "er",
+  "Constant": "cn",
+  "SpecialChar": "sc",
+  "VerbatimString": "vs",
+  "SpecialString": "ss",
+  "Import": "im",
+  "Documentation": "do",
+  "Annotation": "an",
+  "CommentVar": "cv",
+  "Variable": "va",
+  "ControlFlow": "cf",
+  "Operator": "op",
+  "BuiltIn": "bu",
+  "Extension": "ex",
+  "Preprocessor": "pp",
+  "Attribute": "at",
+  "Information": "in",
+  "Warning": "wa",
+  "Normal": "",
+};

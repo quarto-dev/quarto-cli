@@ -1,22 +1,17 @@
 /*
-* render.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * render.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 
-import { basename, dirname, isAbsolute, join, relative } from "path/mod.ts";
+import { dirname, isAbsolute, join, relative } from "path/mod.ts";
 
 import { Document, parseHtml } from "../../core/deno-dom.ts";
 
 import { mergeConfigs } from "../../core/config.ts";
-import {
-  formatResourcePath,
-  pandocBinaryPath,
-  resourcePath,
-} from "../../core/resources.ts";
+import { resourcePath } from "../../core/resources.ts";
 import { inputFilesDir } from "../../core/render.ts";
 import { normalizePath, pathWithForwardSlashes } from "../../core/path.ts";
 
@@ -31,6 +26,7 @@ import {
   HtmlPostProcessResult,
   PandocInputTraits,
   PandocOptions,
+  PandocRenderCompletion,
   RenderedFormat,
 } from "./types.ts";
 import { runPandoc } from "./pandoc.ts";
@@ -43,7 +39,6 @@ import { Metadata } from "../../config/types.ts";
 import { isHtmlFileOutput } from "../../config/format.ts";
 
 import { isSelfContainedOutput } from "./render-info.ts";
-import { execProcess } from "../../core/process.ts";
 import {
   pop as popTiming,
   push as pushTiming,
@@ -53,12 +48,7 @@ import {
 import { filesDirMediabagDir } from "./render-paths.ts";
 import { replaceNotebookPlaceholders } from "../../core/jupyter/jupyter-embed.ts";
 import { kIncludeAfterBody, kIncludeInHeader } from "../../config/constants.ts";
-
-export interface PandocRenderCompletion {
-  complete: (
-    outputs: RenderedFormat[],
-  ) => Promise<RenderedFile>;
-}
+import { pandocIngestSelfContainedContent } from "../../core/pandoc/self-contained.ts";
 
 export async function renderPandoc(
   file: ExecutedFile,
@@ -469,41 +459,3 @@ async function runHtmlPostprocessors(
   }
   return postProcessResult;
 }
-
-export const pandocIngestSelfContainedContent = async (file: string) => {
-  const filename = basename(file);
-  const workingDir = dirname(file);
-
-  // The template
-  const template = formatResourcePath(
-    "html",
-    "pandoc-selfcontained/selfcontained.html",
-  );
-
-  // The raw html contents
-  const contents = Deno.readTextFileSync(file);
-  const input: string[] = [];
-  input.push("````````{=html}");
-  input.push(contents);
-  input.push("````````");
-
-  // Run pandoc to suck in dependencies
-  const cmd = [pandocBinaryPath()];
-  cmd.push("--to", "html");
-  cmd.push("--from", "markdown");
-  cmd.push("--template", template);
-  cmd.push("--output", filename);
-  cmd.push("--metadata", "title=placeholder");
-  cmd.push("--embed-resources");
-  const result = await execProcess({
-    cmd,
-    stdout: "piped",
-    cwd: workingDir,
-  }, input.join("\n"));
-
-  if (result.success) {
-    return result.stdout;
-  } else {
-    throw new Error();
-  }
-};

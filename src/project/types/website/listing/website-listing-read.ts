@@ -99,8 +99,10 @@ import { isYamlPath, readYaml } from "../../../../core/yaml.ts";
 import { parseAuthor } from "../../../../core/author.ts";
 import { parsePandocDate, resolveDate } from "../../../../core/date.ts";
 import { ProjectOutputFile } from "../../types.ts";
-import { projectOutputDir } from "../../../project-shared.ts";
-import { directoryMetadataForInputFile } from "../../../project-context.ts";
+import {
+  directoryMetadataForInputFile,
+  projectOutputDir,
+} from "../../../project-shared.ts";
 import { mergeConfigs } from "../../../../core/config.ts";
 import { globToRegExp } from "../../../../core/lib/glob.ts";
 import { cslNames } from "../../../../core/csl.ts";
@@ -403,7 +405,7 @@ export function completeListingItems(
 }
 
 function emptyDiv(height?: string) {
-  return `<div class="listing-item-img-placeholder" ${
+  return `<div class="listing-item-img-placeholder card-img-top" ${
     height ? `style="height: ${height};"` : ""
   }>&nbsp;</div>`;
 }
@@ -1037,11 +1039,13 @@ async function listItemFromFile(
 }
 
 function imageSrc(image: PreviewImage, progressive: boolean, height?: string) {
-  return `<img ${progressive ? "data-src" : "src"}="${image.src}" ${
-    image.alt ? `alt="${image.alt}" ` : ""
-  }${height ? `style="height: ${height};" ` : ""}${
+  return `<p class="card-img-top"><img ${
+    progressive ? "data-src" : "src"
+  }="${image.src}" ${image.alt ? `alt="${image.alt}" ` : ""}${
+    height ? `style="height: ${height};" ` : ""
+  }${
     image.title ? `title="${image.title}"` : ""
-  }/>`;
+  } class="thumbnail-image card-img"/></p>`;
 }
 
 // Processes the 'listing' metadata into an

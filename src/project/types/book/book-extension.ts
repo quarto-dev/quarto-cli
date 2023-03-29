@@ -1,9 +1,8 @@
 /*
-* book-extension.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * book-extension.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { dirname, join } from "path/mod.ts";
 
@@ -19,7 +18,7 @@ import { ProjectConfig, ProjectContext } from "../../types.ts";
 import { projectOutputDir } from "../../project-shared.ts";
 import { inputTargetIndex } from "../../project-index.ts";
 import { bookConfigRenderItems } from "./book-config.ts";
-import { BookRenderItem } from "./book-config.ts";
+import { BookRenderItem } from "./book-types.ts";
 import { isHtmlOutput } from "../../../config/format.ts";
 import { BookExtension, isMultiFileBookFormat } from "./book-shared.ts";
 
