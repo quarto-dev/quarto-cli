@@ -69,6 +69,8 @@ function resolveRefs()
               ref:extend({pandoc.RawInline('latex', '\\ref{' .. label .. '}')})
             elseif _quarto.format.isAsciiDocOutput() then
               ref = pandoc.List({pandoc.RawInline('asciidoc', '<<' .. label .. '>>')})
+            elseif _quarto.format.isTypstOutput() then
+              ref = pandoc.List({pandoc.RawInline('typst', '@' .. label)})
             else
               if not resolve then
                 local refClasses = pandoc.List({"quarto-unresolved-ref"})
