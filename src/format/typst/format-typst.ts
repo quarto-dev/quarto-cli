@@ -5,7 +5,6 @@
 *
 */
 
-// TODO: equation numbering and references
 // TODO: incremental compile for preview
 
 import { RenderServices } from "../../command/render/types.ts";
