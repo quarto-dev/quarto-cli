@@ -20,14 +20,23 @@
 - name: columns
   tags:
     formats:
-      ["!$pdf-all", "!$office-all", "!$odt-all", "!$html-all", "!$docbook-all"]
+      [
+        "!$pdf-all",
+        "!$office-all",
+        "!$odt-all",
+        "!$html-all",
+        "!$docbook-all",
+        "typst",
+      ]
   schema: number
   description:
-    short: Specify length of lines in characters.
+    short: For text formats, specify length of lines in characters. For `typst`, number of columns for body text.
     long: |
       Specify length of lines in characters. This affects text wrapping in generated source
       code (see `wrap`). It also affects calculation of column widths for plain text
-      tables.
+      tables. 
+
+      For `typst`, number of columns for body text.
 
 - name: tab-stop
   tags:
