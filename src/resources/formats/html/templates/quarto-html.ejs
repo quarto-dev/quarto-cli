@@ -55,15 +55,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 
 
   const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
-    console.log('toggleGiscusIfUsed');
-    console.log('isAlternate', isAlternate);
-    console.log('darkModeDefault', darkModeDefault);
-
     const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
     const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
-
-    console.log('baseTheme', baseTheme);
-    console.log('alternateTheme', alternateTheme);
 
     let newTheme = '';
 
@@ -72,10 +65,6 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     } else {
       newTheme = isAlternate ? alternateTheme : baseTheme;
     }
-
-    console.log('isAlternate', isAlternate);
-    console.log('darkModeDefault', darkModeDefault);
-    console.log('newTheme', newTheme);
 
     const changeGiscusTheme = () => {
 
