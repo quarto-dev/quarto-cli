@@ -36,7 +36,6 @@ local function emulate_pandoc_filter(filters, afterFilterPass)
   return {
     traverse = 'topdown',
     Pandoc = function(doc)
-      local result
       -- local profiling = true
       if profiling then
         local profiler = require('profiler')
@@ -50,11 +49,10 @@ local function emulate_pandoc_filter(filters, afterFilterPass)
 
         -- this call is now a real pandoc.Pandoc call
         profiler.stop()
-
-        profiler.report("profiler.txt")
-        crash_with_stack_trace() -- run a single file for now.
+        return doc, false
+      else 
+        return run_emulated_filter_chain(doc, filters, afterFilterPass), false
       end
-      return run_emulated_filter_chain(doc, filters, afterFilterPass), false
     end
   }
 end
