@@ -100,10 +100,6 @@ function crossrefPreprocess()
               el.content:insert(err)
             end
           end
-          local ctor = {
-            Block = pandoc.Blocks,
-            Inline = pandoc.Inlines
-          }
           doc.blocks[i] = _quarto.ast.walk(el, walkRefs(parentId))
         end
       end
