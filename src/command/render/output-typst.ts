@@ -99,21 +99,12 @@ export function typstPdfOutputRecipe(
       : normalizeOutputPath(input, finalOutput)
     : normalizeOutputPath(input, join(inputDir, inputStem + ".pdf"));
 
-  // tweak writer if it's pdf
-  const to = format.pandoc.to === "pdf" ? "typst" : format.pandoc.to;
-
   // return recipe
   return {
     output,
     keepYaml: false,
     args,
-    format: {
-      ...format,
-      pandoc: {
-        ...pandoc,
-        to,
-      },
-    },
+    format: { ...format, pandoc },
     complete,
     finalOutput: pdfOutput ? relative(inputDir, pdfOutput) : undefined,
   };
