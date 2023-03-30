@@ -26,7 +26,8 @@ export function pandoc(version: string): Dependency {
         `https://github.com/jgm/pandoc/releases/download/${version}/${filename}`,
       configure: async (config: Configuration, path: string) => {
         const dir = dirname(path);
-        const pandocSubdir = join(dir, `pandoc-${version}${config.os === "darwin" ? ("-" + config.arch) : ""}`);
+        // TODO: deal with aarch64 pandoc
+        const pandocSubdir = join(dir, `pandoc-${version}${(config.os === "darwin" ) ? ("-" + "x86_64") : ""}`);
         const vendor = Deno.env.get("QUARTO_VENDOR_BINARIES");
         if (vendor === undefined || vendor === "true") {
           // Clean pandoc interim dir
