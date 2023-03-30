@@ -50,6 +50,11 @@ export type GiscusTheme = {
   dark?: string;
 } | string;
 
+enum GiscusThemeDefault {
+  light = "light",
+  dark = "dark",
+}
+
 export const buildGiscusThemeKeys = (
   darkModeDefault: boolean,
   theme: GiscusTheme
@@ -58,7 +63,7 @@ export const buildGiscusThemeKeys = (
     if (theme.length > 0) {
       return { baseTheme: theme, altTheme: theme };
     } else {
-      theme = { light: "light", dark: "dark" };
+      theme = { light: GiscusThemeDefault.light, dark: GiscusThemeDefault.dark };
     }
   }
 
@@ -67,8 +72,8 @@ export const buildGiscusThemeKeys = (
     dark: string;
   };
   let result = {
-    baseTheme: themeRecord.light ?? "light",
-    altTheme: themeRecord.dark ?? "dark",
+    baseTheme: themeRecord.light ?? GiscusThemeDefault.light,
+    altTheme: themeRecord.dark ?? GiscusThemeDefault.dark,
   };
 
   if (darkModeDefault) {
