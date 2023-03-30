@@ -17,7 +17,8 @@ contributes:
     format: docusaurus-md
   formats:
     md:
-      variant: +yaml_metadata_block+pipe_tables+tex_math_dollars+header_attributes-all_symbols_escapable
+      writer: docusaurus_writer.lua
+      output-ext: md
       wrap: none
       fig-format: retina
       fig-width: 8
