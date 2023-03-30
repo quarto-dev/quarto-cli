@@ -117,7 +117,5 @@ function capture_timings(filterList, trace)
     end
   end
 
-  quarto.utils.dump(finalResult)
-
   return finalResult
 end
