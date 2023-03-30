@@ -7,6 +7,7 @@ local handlers = {}
 
 local custom_node_data = pandoc.List({})
 local n_custom_nodes = 0
+local profiler = require('profiler')
 
 function resolve_custom_node(node)
   if type(node) == "userdata" and node.t == "Plain" and #node.content == 1 and node.content[1].t == "RawInline" and node.content[1].format == "QUARTO_custom" then
@@ -17,9 +18,19 @@ function resolve_custom_node(node)
   end
 end
 
-function run_emulated_filter(doc, filter, top_level)
+function run_emulated_filter(doc, filter, top_level, profiling)
+  local in_filter = false
+  if top_level and filter._filter_name ~= nil and profiling then
+    in_filter = true
+    profiler.category = filter._filter_name
+  end
+
   if filter._is_wrapped then
-    return doc:walk(filter)
+    local result = doc:walk(filter)
+    if in_filter then
+      profiler.category = ""
+    end
+    return result
   end
 
   local wrapped_filter = {}
@@ -99,6 +110,9 @@ function run_emulated_filter(doc, filter, top_level)
   if custom then
     local custom_data, t, kind = _quarto.ast.resolve_custom_data(custom)
     local result, recurse = process_custom(custom_data, t, kind, custom)
+    if in_filter then
+      profiler.category = ""
+    end
     if result == nil then
       return doc
     end
@@ -151,6 +165,10 @@ function run_emulated_filter(doc, filter, top_level)
   if top_level and filter._filter_name ~= nil then
     add_trace(result, filter._filter_name)
   end
+  if in_filter then
+    profiler.category = ""
+  end
+
   return result, recurse
 end
 

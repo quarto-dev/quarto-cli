@@ -6,32 +6,9 @@ local getTime = os.clock
 local module = {}
 local outputfile
 
--- local function functionReport(information)
---   local src = information.source or "<C>"
---   local name = information.name
---   if not name then
---     name = "Anon"
---   elseif string.sub(name, #name - 1, #name) == "_l" then
---     name = string.sub(name, 1, #name - 2)
---   end
---   local title = string.format(outputTitle, src, name,
---   string.format(formatFunLine, information.linedefined or 0))
---   local report = reportCache[title]
---   if not report then
---     report = {
---       title = string.format(outputTitle, src, name,
---       string.format(formatFunLine, information.linedefined or 0)),
---       count = 0, timer = 0,
---     }
---     reportCache[title] = report
---     reportCount = reportCount + 1
---     allReports[reportCount] = report
---   end
---   return report
--- end
-
 local names = { }
 local nnames = 0
+module.category = ""
 
 local onDebugHook = function(hookType)
   local information = debug.getinfo(2, "nS")
@@ -69,7 +46,16 @@ local onDebugHook = function(hookType)
     source = names[source]
   end
 
-  outputfile:write(hookType, " ", name, " ", source, " ", information.linedefined, " ", getTime(), "\n")
+  if type(module.category) == "string" and module.category ~= "" then
+    if names[module.category] == nil then
+      names[module.category] = nnames
+      nnames = nnames + 1
+    else
+      module.category = names[module.category]
+    end
+  end
+
+  outputfile:write(hookType, " ", name, " ", source, " ", information.linedefined, " ", getTime(), " ", module.category, "\n")
 end
 
 function module.start(filename)

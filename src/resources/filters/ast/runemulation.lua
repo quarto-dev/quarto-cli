@@ -3,12 +3,12 @@
 --
 -- Copyright (C) 2022 by RStudio, PBC
 
-local function run_emulated_filter_chain(doc, filters, afterFilterPass)
+local function run_emulated_filter_chain(doc, filters, afterFilterPass, profiling)
   init_trace(doc)
   if tisarray(filters) then
     for i, v in ipairs(filters) do
       local function callback()
-        doc = run_emulated_filter(doc, v, true)
+        doc = run_emulated_filter(doc, v, true, profiling)
       end
       if v.scriptFile then
         _quarto.withScriptFile(v.scriptFile, callback)
@@ -20,7 +20,7 @@ local function run_emulated_filter_chain(doc, filters, afterFilterPass)
       end
     end
   elseif type(filters) == "table" then
-    doc = run_emulated_filter(doc, filters, true)
+    doc = run_emulated_filter(doc, filters, true, profiling)
     if afterFilterPass then
       afterFilterPass()
     end
@@ -37,23 +37,23 @@ local function emulate_pandoc_filter(filters, afterFilterPass)
     traverse = 'topdown',
     Pandoc = function(doc)
       local profiling = option("profiler", false)
-      if profiling then
-        pandoc.system.with_temporary_directory("temp", function(tmpdir)
-          local profiler = require('profiler')
-          profiler.start(tmpdir .. "prof.txt")
-          doc = run_emulated_filter_chain(doc, filters, afterFilterPass)
-          profiler.stop()
-          os.execute("quarto --paths > " .. tmpdir .. "paths.txt")
-          local paths = io.open(tmpdir .. "paths.txt", "r")
-          local ts_source = paths:read("l") .. "/../../../tools/profiler/convert-to-perfetto.ts"
-          paths:close()
-          os.execute("quarto run " .. ts_source .. " " .. tmpdir .. "prof.txt > " .. profiling)
-          return nil
-        end)
-        return doc, false
-      else 
+      if not profiling then
         return run_emulated_filter_chain(doc, filters, afterFilterPass), false
       end
+      pandoc.system.with_temporary_directory("temp", function(tmpdir)
+        local profiler = require('profiler')
+        profiler.start(tmpdir .. "prof.txt")
+        doc = run_emulated_filter_chain(doc, filters, afterFilterPass, profiling)
+        profiler.stop()
+        os.execute("quarto --paths > " .. tmpdir .. "paths.txt")
+        os.execute("cp " .. tmpdir .. "prof.txt /tmp/foo.txt")
+        local paths = io.open(tmpdir .. "paths.txt", "r")
+        local ts_source = paths:read("l") .. "/../../../tools/profiler/convert-to-perfetto.ts"
+        paths:close()
+        os.execute("quarto run " .. ts_source .. " " .. tmpdir .. "prof.txt > " .. profiling)
+        return nil
+      end)
+      return doc, false
     end
   }
 end
