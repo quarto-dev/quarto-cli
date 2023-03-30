@@ -14,6 +14,41 @@ import { markdownWithExtractedHeading } from "../pandoc/pandoc-partition.ts";
 import { partitionYamlFrontMatter, readYamlFromMarkdown } from "../yaml.ts";
 import { JupyterNotebook, JupyterOutput } from "./types.ts";
 
+export function fixupStreams(nb: JupyterNotebook): JupyterNotebook {
+  for (const cell of nb.cells) {
+    if (cell.cell_type !== "code" || cell.outputs === undefined) {
+      continue;
+    }
+    let i = 0;
+    if (cell.outputs.length === 0) {
+      continue;
+    }
+    while (i < cell.outputs.length) {
+      const thisOutput: JupyterOutput = cell.outputs[i];
+      if (thisOutput.output_type === "stream") {
+        // collect all the stream outputs with the same name
+        const streams = cell.outputs.filter((output) =>
+          output.output_type === "stream" && output.name === thisOutput.name
+        );
+        // join them together
+        const joinedText = streams.map((output) => output.text ?? []).flat();
+        const newOutput: JupyterOutput = {
+          output_type: "stream",
+          name: thisOutput.name,
+          text: joinedText,
+        };
+        cell.outputs[i] = newOutput;
+        cell.outputs = cell.outputs.filter((output, j) =>
+          i === j ||
+          (output.output_type !== "stream" || output.name !== thisOutput.name)
+        );
+      }
+      i++;
+    }
+  }
+  return nb;
+}
+
 export function fixupBokehCells(nb: JupyterNotebook): JupyterNotebook {
   for (const cell of nb.cells) {
     if (cell.cell_type === "code") {
@@ -189,6 +224,7 @@ const defaultFixups: ((
 ) => JupyterNotebook)[] = [
   fixupBokehCells,
   fixupFrontMatter,
+  fixupStreams,
 ];
 
 // books can't have the front matter fixup
