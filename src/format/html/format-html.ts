@@ -475,7 +475,7 @@ export async function htmlFormatExtras(
     giscus.theme = giscus.theme || "";
 
     const themeToggleRecord:GiscusThemeToggleRecord =
-        buildGiscusThemeKeys(!!options.darkModeDefault, giscus.theme as GiscusTheme)
+        buildGiscusThemeKeys(Boolean(options.darkModeDefault), giscus.theme as GiscusTheme)
 
     giscus.baseTheme = themeToggleRecord.baseTheme;
     giscus.altTheme = themeToggleRecord.altTheme;
