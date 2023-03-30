@@ -2,16 +2,20 @@
 -- Copyright (C) 2022 Posit Software, PBC
 
 -- https://stackoverflow.com/questions/463101/lua-current-time-in-milliseconds :(
+
+local epoch = nil
 function get_current_time()
-  -- FIXME this will not necessarily work on windows..
-  local handle = io.popen("python -c 'import time; print(time.time() * 1000)'")
-  if handle then
-    local result = tonumber(handle:read("*a"))
-    handle:close()
-    return result
-  else
-    fail('Error reading current time')
+  -- -- FIXME this will not necessarily work on windows..
+  if not epoch then
+    local handle = io.popen("python -c 'import time; print(time.time() * 1000)'")
+    if handle then
+      epoch = tonumber(handle:read("*a"))
+      handle:close()
+    else
+      fail('Error reading current time')
+    end
   end
+  return epoch + os.clock() * 1000
 end
 
 if os.getenv("QUARTO_PROFILER_OUTPUT") ~= nil then
@@ -33,29 +37,60 @@ function capture_timings(filterList, trace)
 
   if os.getenv("QUARTO_PROFILER_OUTPUT") ~= nil then
     for i, v in ipairs(filterList) do
-      local newFilter = {}
-      newFilter._filter_name = v["name"]
-
-      local oldPandoc = v["filter"]["Pandoc"]
-      for key,func in pairs(v) do
-        newFilter[key] = func
-      end
-      local function makeNewFilter(oldPandoc)
-        return function (p)
-          if oldPandoc ~= nil then
-            local result = oldPandoc(p)
-            register_time(v["name"])
-            return result
-          else
-            register_time(v["name"])
+      if v.filter ~= nil then
+        local newFilter = {}
+        newFilter._filter_name = v["name"]
+  
+        local oldPandoc = v["filter"]["Pandoc"]
+        for key,func in pairs(v.filter) do
+          newFilter[key] = func
+        end
+        local function makeNewFilter(oldPandoc)
+          return function (p)
+            if oldPandoc ~= nil then
+              local result = oldPandoc(p)
+              register_time(v["name"])
+              return result
+            else
+              register_time(v["name"])
+            end
+          end 
+        end
+        newFilter["Pandoc"] = makeNewFilter(oldPandoc) -- iife for capturing in scope
+        if trace then
+          table.insert(finalResult, trace_filter(string.format("%02d_%s.json", i, v.name), newFilter))
+        else
+          table.insert(finalResult, newFilter)
+        end
+      elseif v.filters ~= nil then
+        for j, innerV in pairs(v.filters) do
+          local newFilter = {}
+          newFilter._filter_name = string.format("%s-%s", v["name"], j)
+    
+          local oldPandoc = innerV["Pandoc"]
+          for key,func in pairs(innerV) do
+            newFilter[key] = func
           end
-        end 
-      end
-      newFilter["Pandoc"] = makeNewFilter(oldPandoc) -- iife for capturing in scope
-      if trace then
-        table.insert(finalResult, trace_filter(string.format("%02d_%s.json", i, v.name), newFilter))
+          local function makeNewFilter(oldPandoc)
+            return function (p)
+              if oldPandoc ~= nil then
+                local result = oldPandoc(p)
+                register_time(newFilter._filter_name)
+                return result
+              else
+                register_time(newFilter._filter_name)
+              end
+            end
+          end
+          newFilter["Pandoc"] = makeNewFilter(oldPandoc) -- iife for capturing in scope
+          if trace then
+            table.insert(finalResult, trace_filter(string.format("%02d_%02d_%s.json", i, j, newFilter._filter_name), newFilter))
+          else
+            table.insert(finalResult, newFilter)
+          end
+        end
       else
-        table.insert(finalResult, newFilter)
+        print("Warning: filter " .. v.name .. " didn't declare filter or filters.")
       end
     end
   else
@@ -81,6 +116,8 @@ function capture_timings(filterList, trace)
       end
     end
   end
+
+  quarto.utils.dump(finalResult)
 
   return finalResult
 end

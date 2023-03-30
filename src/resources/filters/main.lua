@@ -170,9 +170,16 @@ local quartoNormalize = {
   { name = "normalize", filter = filterIf(function()
     return preState.active_filters.normalization
   end, normalizeFilter()) },
-  { name = "normalize-parseHtmlTables", filter = parse_html_tables() },
-  { name = "normalize-extractQuartoDom", filter = extract_quarto_dom() },
-  { name = "normalize-parseExtendedNodes", filter = parseExtendedNodes() }
+
+  -- 2023-03-29: this saves about 1.5s out of 180s in quarto-web
+  { name = "normalize-combined", filter = combineFilters({
+    parse_html_tables(),
+    extract_quarto_dom(),
+    parseExtendedNodes()
+  }) }
+  -- { name = "normalize-parseHtmlTables", filter = parse_html_tables() },
+  -- { name = "normalize-extractQuartoDom", filter = extract_quarto_dom() },
+  -- { name = "normalize-parseExtendedNodes", filter = parseExtendedNodes() }
 }
 
 local quartoPre = {
