@@ -1,0 +1,26 @@
+---
+format: html
+title: foo
+filters:
+  - type: json
+    path: test.py
+---
+
+
+::: callout-note
+
+Hello.
+
+:::
+
+::: panel-tabset
+
+## A
+
+A.
+
+## B
+
+B.
+
+:::
