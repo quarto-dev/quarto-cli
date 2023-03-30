@@ -20,7 +20,12 @@ export function isLatexOutput(format: FormatPandoc) {
   return ["pdf", "latex", "beamer"].includes(format.to || "");
 }
 
-export function isTypstOutput(format: FormatPandoc) {
+export function isTypstOutput(format: string): boolean;
+export function isTypstOutput(format: FormatPandoc): boolean;
+export function isTypstOutput(format: string | FormatPandoc) {
+  if (typeof (format) !== "string") {
+    format = format?.to || "html";
+  }
   return format === "typst";
 }
 
