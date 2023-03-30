@@ -101,7 +101,6 @@ function makeWrappedJsonFilter(scriptFile, filterHandler)
             if custom_node ~= nil then
               has_custom_nodes = true
               custom_node = safeguard_for_meta(custom_node)
-              quarto.utils.dump(custom_node)
               table.insert(custom_node_map, { id = raw.text, tbl = custom_node, t = t, kind = kind })
             end
           end,
