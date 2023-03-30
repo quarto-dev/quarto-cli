@@ -27,7 +27,7 @@ export function fixupStreams(nb: JupyterNotebook): JupyterNotebook {
       const thisOutput: JupyterOutput = cell.outputs[i];
       if (thisOutput.output_type === "stream") {
         // collect all the stream outputs with the same name
-        const streams = (cell.outputs ?? []).filter((output) =>
+        const streams = cell.outputs.filter((output) =>
           output.output_type === "stream" && output.name === thisOutput.name
         );
         // join them together
@@ -37,10 +37,11 @@ export function fixupStreams(nb: JupyterNotebook): JupyterNotebook {
           name: thisOutput.name,
           text: joinedText,
         };
-        cell.outputs = cell.outputs?.filter((output) =>
-          output.output_type !== "stream" || output.name !== thisOutput.name
-        );
         cell.outputs[i] = newOutput;
+        cell.outputs = cell.outputs.filter((output, j) =>
+          i === j ||
+          (output.output_type !== "stream" || output.name !== thisOutput.name)
+        );
       }
       i++;
     }
