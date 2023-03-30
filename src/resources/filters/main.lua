@@ -178,6 +178,13 @@ local quartoNormalize = {
 local quartoPre = {
   -- quarto-pre
   { name = "pre-quartoBeforeExtendedUserFilters", filters = make_wrapped_user_filters("beforeQuartoFilters") },
+
+  -- https://github.com/quarto-dev/quarto-cli/issues/5031
+  -- recompute options object in case user filters have changed meta
+  -- this will need to change in the future; users will have to indicate
+  -- when they mutate options
+  { name = "pre-quartoAfterUserFilters", filter = initOptions() },
+
   { name = "normalize-parse-pandoc3-figures", filter = parse_pandoc3_figures() },
   { name = "pre-bibliographyFormats", filter = bibliographyFormats() }, 
   { name = "pre-shortCodesBlocks", filter = shortCodesBlocks() } ,
