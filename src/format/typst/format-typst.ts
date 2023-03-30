@@ -30,7 +30,6 @@ export function typstFormat(): Format {
     pandoc: {
       standalone: true,
       [kDefaultImageExtension]: "svg",
-      [kShiftHeadingLevelBy]: -1,
     },
     formatExtras: (
       _input: string,

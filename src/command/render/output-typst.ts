@@ -7,7 +7,6 @@
 
 import { dirname, join, normalize, relative } from "path/mod.ts";
 import { ensureDirSync } from "fs/mod.ts";
-import { info } from "log/mod.ts";
 
 import { kKeepTyp, kOutputExt, kOutputFile } from "../../config/constants.ts";
 import { Format } from "../../config/types.ts";
@@ -16,8 +15,7 @@ import { dirAndStem, expandPath } from "../../core/path.ts";
 import { kStdOut, replacePandocOutputArg } from "./flags.ts";
 import { OutputRecipe, RenderOptions } from "./types.ts";
 import { normalizeOutputPath } from "./output.ts";
-import { execProcess } from "../../core/process.ts";
-import { basename } from "../../vendor/deno.land/std@0.166.0/path/win32.ts";
+import { typstCompile } from "../../core/typst.ts";
 
 export function useTypstPdfOutputRecipe(
   format: Format,
@@ -52,18 +50,10 @@ export function typstPdfOutputRecipe(
 
     // run typst
     const pdfOutput = join(inputDir, inputStem + ".pdf");
-    if (!options.flags?.quiet) {
-      info(
-        `[typst]: Compiling ${output} to ${basename(pdfOutput)}...`,
-        { newline: false },
-      );
-    }
-    const cmd = ["typst", input, pdfOutput];
-    const result = await execProcess({ cmd });
+    const result = await typstCompile(input, pdfOutput, options.flags?.quiet);
     if (!result.success) {
       throw new Error();
     }
-    info("DONE\n");
 
     // keep typ if requested
     if (!format.render[kKeepTyp]) {
