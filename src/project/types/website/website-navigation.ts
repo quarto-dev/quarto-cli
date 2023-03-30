@@ -473,9 +473,11 @@ function navigationHtmlPostprocessor(
             if (item.id) {
               titleEl = doc.getElementById(item.id);
             } else if (item.href) {
-              titleEl = doc.querySelector(
-                `.depth${crumbCount} .sidebar-item a[href="${item.href}"] .menu-text`,
-              );
+              const titleSelector = crumbCount === 0
+                ? `.sidebar-menu-container > ul > .sidebar-item > .sidebar-item-container > a[href='${item.href}'] > .menu-text`
+                : `.depth${crumbCount} .sidebar-item a[href="${item.href}"] .menu-text`;
+              titleEl = doc.querySelector(titleSelector);
+
             }
 
             const liEl = breadCrumbEl();
