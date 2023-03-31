@@ -77,6 +77,7 @@ export const kCodeTools = "code-tools";
 export const kTblCap = "tbl-cap";
 export const kTblColwidths = "tbl-colwidths";
 export const kMergeIncludes = "merge-includes";
+export const kInlineIncludes = "inline-includes";
 export const kPreferHtml = "prefer-html";
 export const kSelfContainedMath = "self-contained-math";
 export const kBiblioConfig = "biblio-config";
@@ -156,6 +157,8 @@ export const kRenderDefaultsKeys = [
   kCodeTools,
   kShortcodes,
   kTblColwidths,
+  kInlineIncludes,
+  kMergeIncludes,
   kSelfContainedMath,
   kLatexAutoMk,
   kLatexAutoInstall,

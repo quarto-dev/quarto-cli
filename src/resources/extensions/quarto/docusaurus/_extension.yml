@@ -19,6 +19,7 @@ contributes:
     md:
       writer: docusaurus_writer.lua
       output-ext: md
+      inline-includes: true
       wrap: none
       fig-format: retina
       fig-width: 8
