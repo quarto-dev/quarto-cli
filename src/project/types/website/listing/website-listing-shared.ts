@@ -193,9 +193,10 @@ export type ColumnType = "date" | "string" | "number" | "minutes";
 
 // Sources that provide Listing Items
 export enum ListingItemSource {
-  document = "document",
-  metadata = "metadata",
-  rawfile = "rawfile",
+  document = "document", // qmd input files
+  metadata = "metadata", // yaml metadata files
+  metadataDocument = "metadata-document", // yaml containing a list of input files
+  rawfile = "rawfile", // some other kind of file that we can't introspect much
 }
 
 // An individual listing item
