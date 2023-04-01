@@ -1,0 +1,85 @@
+--- 
+title: test
+format: latex
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - []
+        - ["\\\\CommentTok\\{[^a-zA-Z0-9\\s]* \\\\textless\\{\\}\\d+\\\\textgreater\\{\\}\\}"]
+---
+
+```matlab
+a = [3 6 7];
+b = [1 9 4];
+c= a + b  % <1>
+
+```
+
+1. Add some cool things up in this piece.
+
+
+
+``` vhdl
+type state is (S0, S1, S2);
+signal c_st, n_st : state;
+
+p_seq: process (rst, clk)                       -- <1>
+begin
+  if rst = ’1’ then
+    c_st <= S0;
+  elsif rising_edge(clk) then
+    c_st <= n_st;
+  end if;
+end process;
+
+p_com: process (i, c_st)                        -- <2>
+begin                                           -- <2>
+  -- default assignments                        -- <2>
+  n_st <= c_st; -- remain in current state      -- <2>
+  o <= ’1’; -- most frequent value              -- <2>
+  -- specific assignments                       -- <2>
+  case c_st is                                  -- <2>
+    when S0 =>                                  -- <2>
+      if i = "00" then                          -- <2>
+        n_st <= S1;                             -- <2>
+      end if;                                   -- <2>
+  end case;
+end process;
+```
+1.  [*Memorizing*]{.underline} (sequentielle Logik)
+2.  [*Memoryless*]{.underline} (kombinatorische Logik)
+
+
+```cpp
+int main(void) {
+  uint8_t test;                                 // <1>
+}                                               // <1>
+
+void testing(int a) {                           // <2>
+  a += a;                                       // <2>
+}                                               // <2>
+```
+1. Hello World
+2. This is just a test
+
+```r
+library(tidyverse)
+library(palmerpenguins)
+penguins |>                                      # <1>
+  mutate(                                        # <2>
+    bill_ratio = bill_depth_mm / bill_length_mm, # <2>
+    bill_area  = bill_depth_mm * bill_length_mm  # <2>
+  )                                              # <2>  
+```
+1. Take `penguins`, and then,
+2. add new columns for the bill ratio and bill area.
+
+
+```python
+thislist = ["apple", "banana", "cherry"]
+thislist.remove("banana")                 # <1>
+print(thislist)                           # <2>
+```
+1. Remove `banana` from the list
+2. Print list
