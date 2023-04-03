@@ -8,7 +8,7 @@ import { dirname, extname, isAbsolute, join } from "path/mod.ts";
 import { Document, Element } from "../../../core/deno-dom.ts";
 
 import { Format, Metadata } from "../../../config/types.ts";
-import { NavItem, Sidebar } from "../../types.ts";
+import { NavItem, Sidebar, SidebarItem } from "../../types.ts";
 
 import {
   kBodyFooter,
@@ -28,12 +28,14 @@ import {
 import { removeChapterNumber } from "./website-utils.ts";
 import { MarkdownPipelineHandler } from "./website-pipeline-md.ts";
 import { safeExistsSync } from "../../../core/path.ts";
+import { md5Hash } from "../../../core/hash.ts";
 
 const kSidebarTitleId = "quarto-int-sidebar-title";
 const kNavbarTitleId = "quarto-int-navbar-title";
 const kNavNextId = "quarto-int-next";
 const kNavPrevId = "quarto-int-prev";
 const kSidebarIdPrefix = "quarto-int-sidebar:";
+const kBreadcrumbPrefix = "quarto-breadcrumbs";
 const kNavbarIdPrefix = "quarto-int-navbar:";
 const kToolsPrefix = "quarto-navbar-tools:";
 
@@ -44,6 +46,7 @@ export interface NavigationPipelineContext {
   navigation?: Navigation;
   pageMargin?: PageMargin;
   bodyDecorators?: BodyDecorators;
+  breadCrumbs?: SidebarItem[];
   pageNavigation: NavigationPagination;
 }
 
@@ -59,6 +62,7 @@ export function navigationMarkdownHandlers(context: NavigationPipelineContext) {
     footerHandler(context),
     marginHeaderFooterHandler(context),
     bodyHeaderFooterHandler(context),
+    breadCrumbHandler(context),
   ];
 }
 
@@ -186,6 +190,39 @@ const prevPageTitleHandler = (context: NavigationPipelineContext) => {
         );
         if (el) {
           el.innerHTML = renderedEl.innerHTML;
+        }
+      }
+    },
+  };
+};
+
+const safeKey = (key: string) => {
+  return md5Hash(key);
+};
+
+const breadCrumbHandler = (context: NavigationPipelineContext) => {
+  return {
+    getUnrendered() {
+      if (context.breadCrumbs) {
+        const markdown: Record<string, string> = {};
+        for (const item of context.breadCrumbs) {
+          if (item.text) {
+            markdown[`${kBreadcrumbPrefix}-${safeKey(item.text)}`] = item.text;
+          }
+        }
+        return { inlines: markdown };
+      }
+    },
+    processRendered(rendered: Record<string, Element>, doc: Document) {
+      const breadCrumbs = doc.querySelectorAll(
+        ".quarto-page-breadcrumbs .breadcrumb-item > a",
+      );
+      for (const breadCrumb of breadCrumbs) {
+        const breadCrumbEl = breadCrumb as Element;
+        const key = breadCrumbEl.innerText;
+        const renderedEl = rendered[`${kBreadcrumbPrefix}-${safeKey(key)}`];
+        if (renderedEl) {
+          breadCrumbEl.innerHTML = renderedEl.innerHTML;
         }
       }
     },
