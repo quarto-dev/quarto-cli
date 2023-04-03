@@ -16,6 +16,18 @@ _quarto:
           - '#youtube-dim-test iframe[src$="https://www.youtube.com/embed/wo9vZccmqwc"]'
           - '#youtube-dim-test iframe[width$="400"][height$="300"]'
 
+          - '#youtube-complex-test .quarto-video.ratio.ratio-21x9'
+          - '#youtube-complex-test iframe[src$="https://www.youtube.com/embed/wo9vZccmqwc?start=116"]'
+          - '#youtube-complex-test iframe[title$="What is the CERN?"]'
+
+          - "#youtube-watch-test .quarto-video.ratio.ratio-16x9"
+          - '#youtube-watch-test iframe[src$="https://www.youtube.com/embed/wo9vZccmqwc"]'
+
+          - "#youtube-embed-test .quarto-video.ratio.ratio-16x9"
+          - '#youtube-embed-test iframe[src$="https://www.youtube.com/embed/wo9vZccmqwc"]'
+
+          - '#brightcove-test iframe[src$="https://players.brightcove.net/1460825906/default_default/index.html?videoId=5988531335001"]'
+
 ---
 
 ::: {#video-js-test}
@@ -43,3 +55,29 @@ _quarto:
 
 :::
 
+::: {#youtube-complex-test}
+
+{{< video https://www.youtube.com/embed/wo9vZccmqwc
+  title="What is the CERN?"
+  start="116"
+  aspect-ratio="21x9">}}
+
+:::
+
+::: {#youtube-watch-test}
+
+{{< video https://www.youtube.com/watch?v=wo9vZccmqwc >}}
+
+:::
+
+::: {#youtube-embed-test}
+
+{{< video https://www.youtube.com/embed/wo9vZccmqwc >}}
+
+:::
+
+::: {#brightcove-test}
+
+{{< video https://players.brightcove.net/1460825906/default_default/index.html?videoId=5988531335001 >}}
+
+:::
