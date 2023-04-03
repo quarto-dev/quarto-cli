@@ -481,7 +481,10 @@ function hydrateListing(
     if (sources.size === 1 && sources.has(ListingItemSource.rawfile)) {
       // If all the items are raw files, we should just show file info
       return [kFieldFileName, kFieldFileModified];
-    } else if (!sources.has(ListingItemSource.document)) {
+    } else if (
+      !sources.has(ListingItemSource.document) &&
+      !sources.has(ListingItemSource.metadataDocument)
+    ) {
       // If the items have come from metadata, we should just show
       // all the columns in the table. Otherwise, we should use the
       // document default columns
@@ -561,7 +564,9 @@ function hydrateListing(
     ]
     : undefined;
   if (
-    sort && !listingHydrated.sort && sources.has(ListingItemSource.document)
+    sort && !listingHydrated.sort &&
+    (sources.has(ListingItemSource.document) ||
+      sources.has(ListingItemSource.metadataDocument))
   ) {
     listingHydrated.sort = sort;
   }
@@ -710,18 +715,18 @@ async function readContents(
           const yaml = readYaml(file);
           if (Array.isArray(yaml)) {
             const items = yaml as Array<unknown>;
-            for (const item of items) {
-              if (typeof (item) === "object") {
-                const listingItem = await listItemFromMeta(
-                  item as Metadata,
+            for (const yamlItem of items) {
+              if (typeof (yamlItem) === "object") {
+                const { item, source } = await listItemFromMeta(
+                  yamlItem as Metadata,
                   project,
                   listing,
                 );
-                validateItem(listing, listingItem, (field: string) => {
+                validateItem(listing, item, (field: string) => {
                   return `An item from the file '${file}' is missing the required field '${field}'.`;
                 });
-                listingItemSources.add(ListingItemSource.metadata);
-                listingItems.push(listingItem);
+                listingItemSources.add(source);
+                listingItems.push(item);
               } else {
                 throw new Error(
                   `Unexpected listing contents in file ${file}. The array may only contain listing items, not paths or other types of data.`,
@@ -729,16 +734,16 @@ async function readContents(
               }
             }
           } else if (typeof (yaml) === "object") {
-            const listingItem = await listItemFromMeta(
+            const { item, source } = await listItemFromMeta(
               yaml as Metadata,
               project,
               listing,
             );
-            validateItem(listing, listingItem, (field: string) => {
+            validateItem(listing, item, (field: string) => {
               return `The item defined in file '${file}' is missing the required field '${field}'.`;
             });
-            listingItemSources.add(ListingItemSource.metadata);
-            listingItems.push(listingItem);
+            listingItemSources.add(source);
+            listingItems.push(item);
           } else {
             throw new Error(
               `Unexpected listing contents in file ${file}. The file should contain only one more listing items.`,
@@ -770,12 +775,16 @@ async function readContents(
   // Process any metadata that appears in contents
   if (contentMetadatas.length > 0) {
     for (const content of contentMetadatas) {
-      const listingItem = await listItemFromMeta(content, project, listing);
-      validateItem(listing, listingItem, (field: string) => {
+      const { item, source } = await listItemFromMeta(
+        content,
+        project,
+        listing,
+      );
+      validateItem(listing, item, (field: string) => {
         return `An item in the listing '${listing.id}' is missing the required field '${field}'.`;
       });
-      listingItemSources.add(ListingItemSource.metadata);
-      listingItems.push(listingItem);
+      listingItemSources.add(source);
+      listingItems.push(item);
     }
   }
 
@@ -889,6 +898,7 @@ async function listItemFromMeta(
   listing: ListingDehydrated,
 ) {
   let listingItem = cloneDeep(meta);
+  let source = ListingItemSource.metadata;
 
   // If there is a path, try to complete the filename and
   // modified values
@@ -910,6 +920,7 @@ async function listItemFromMeta(
           ...(fileListing.item || {}),
           ...listingItem,
         };
+        source = ListingItemSource.metadataDocument;
       }
     }
   }
@@ -930,7 +941,10 @@ async function listItemFromMeta(
     }
   }
 
-  return listingItem;
+  return {
+    item: listingItem,
+    source,
+  };
 }
 
 async function listItemFromFile(
