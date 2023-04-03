@@ -5,7 +5,8 @@ _quarto:
       ensureHtmlElements:
         - 
           - "#video-js-test .video-js"
-          - "#video-js-test video"
+
+          - "#video-js-dropbox-test .video-js"
 
           - "#youtube-test .quarto-video.ratio.ratio-16x9"
           - '#youtube-test iframe[src$="https://www.youtube.com/embed/wo9vZccmqwc"]'
@@ -33,6 +34,12 @@ _quarto:
 ::: {#video-js-test}
 
 {{< video local-video.mp4 >}}
+
+:::
+
+::: {#video-js-dropbox-test}
+
+{{< video https://www.dropbox.com/s/iq12mc6fqeag7xm/local-video.mp4?raw=1 >}}
 
 :::
 
