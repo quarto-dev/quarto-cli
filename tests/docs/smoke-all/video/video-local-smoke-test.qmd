@@ -6,10 +6,19 @@ _quarto:
         - 
           - "#video-js-test .video-js"
           - "#video-js-test video"
+          - "#youtube-default-test .quarto-video.ratio.ratio-16x9"
+          - '#youtube-default-test iframe[src$="https://www.youtube.com/embed/wo9vZccmqwc"]'
 ---
 
 ::: {#video-js-test}
 
 {{< video local-video.mp4 >}}
+
+:::
+
+
+::: {#youtube-default-test}
+
+{{< video https://www.youtube.com/embed/wo9vZccmqwc >}}
 
 :::
