@@ -58,13 +58,18 @@ local onDebugHook = function(hookType)
   outputfile:write(hookType, " ", name, " ", source, " ", information.linedefined, " ", getTime(), " ", module.category, "\n")
 end
 
+function time_hook()
+  print(os.clock())
+end
+
 function module.start(filename)
+  debug.sethook(time_hook, "t", 10)
   outputfile = io.open(filename, "a")
-  if outputfile == nil then
-    error("Could not open profiler.txt for writing")
-    return
-  end
-  debug.sethook(onDebugHook, "cr", 0)
+  -- if outputfile == nil then
+  --   error("Could not open profiler.txt for writing")
+  --   return
+  -- end
+  -- debug.sethook(onDebugHook, "cr", 0)
 end
 
 function module.stop()
