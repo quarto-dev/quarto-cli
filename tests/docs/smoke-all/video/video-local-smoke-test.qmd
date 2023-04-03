@@ -1,0 +1,15 @@
+---
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - 
+          - "#video-js-test .video-js"
+          - "#video-js-test video"
+---
+
+::: {#video-js-test}
+
+{{< video local-video.mp4 >}}
+
+:::

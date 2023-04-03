@@ -1,0 +1,46 @@
+---
+title: Video Smoke Test
+format: html
+---
+
+::: {#video-js-test}
+
+{{< video local-video.mp4 >}}
+
+:::
+
+{{< video https://www.youtube.com/embed/wo9vZccmqwc >}}
+
+[//]: # ()
+[//]: # ({{< video https://vimeo.com/548291297 >}})
+
+[//]: # ()
+[//]: # ({{< video https://youtu.be/wo9vZccmqwc width="400" height="300" >}})
+
+[//]: # ()
+[//]: # ({{< video https://www.youtube.com/embed/wo9vZccmqwc)
+
+[//]: # (title="What is the CERN?")
+
+[//]: # (start="116")
+
+[//]: # (aspect-ratio="21x9")
+
+[//]: # (>}})
+
+[//]: # (> )
+
+[//]: # ()
+[//]: # ({{< video https://youtu.be/wo9vZccmqwc >}})
+
+[//]: # ()
+[//]: # ({{< video https://www.youtube.com/watch?v=wo9vZccmqwc >}})
+
+[//]: # ()
+[//]: # ({{< video https://www.youtube.com/embed/wo9vZccmqwc >}})
+
+[//]: # ()
+[//]: # ({{< video https://vimeo.com/548291297 >}})
+
+[//]: # ()
+[//]: # ({{< video https://players.brightcove.net/1460825906/default_default/index.html?videoId=5988531335001 >}})
