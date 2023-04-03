@@ -1,9 +1,8 @@
 /*
-* pandoc.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * pandoc.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { basename, dirname, isAbsolute, join } from "path/mod.ts";
 
@@ -58,11 +57,12 @@ import {
 } from "../../core/yaml.ts";
 
 import { ProjectContext } from "../../project/types.ts";
+
 import {
   deleteProjectMetadata,
   projectIsBook,
   projectIsWebsite,
-} from "../../project/project-context.ts";
+} from "../../project/project-shared.ts";
 import { deleteCrossrefMetadata } from "../../project/project-crossrefs.ts";
 
 import {
@@ -184,7 +184,7 @@ import {
   shortcodeUnescapePostprocessor,
 } from "../../format/markdown/format-markdown.ts";
 
-import { kRevealJSPlugins } from "../../extension/extension-shared.ts";
+import { kRevealJSPlugins } from "../../extension/constants.ts";
 import { kCitation } from "../../format/html/format-html-shared.ts";
 import { cslDate } from "../../core/csl.ts";
 import { quartoConfig } from "../../core/quarto.ts";
@@ -703,16 +703,11 @@ export async function runPandoc(
   // timing results json file
   const timingResultsFile = options.services.temp.createFile();
 
-  if (allDefaults.to?.match(/[.]lua$/)) {
-    formatFilterParams["custom-writer"] = allDefaults.to;
-    allDefaults.to = resourcePath("filters/customwriter/customwriter.lua");
-  }
-  if (Deno.env.get("QUARTO_ALLENMANNING_WORKAROUND_CONFLUENCE") === undefined) {
-    if (allDefaults.writer?.match(/[.]lua$/)) {
-      formatFilterParams["custom-writer"] = allDefaults.writer;
-      allDefaults.writer = resourcePath(
-        "filters/customwriter/customwriter.lua",
-      );
+  const writerKeys: ("to" | "writer")[] = ["to", "writer"];
+  for (const key of writerKeys) {
+    if (allDefaults[key]?.match(/[.]lua$/)) {
+      formatFilterParams["custom-writer"] = allDefaults[key];
+      allDefaults[key] = resourcePath("filters/customwriter/customwriter.lua");
     }
   }
 

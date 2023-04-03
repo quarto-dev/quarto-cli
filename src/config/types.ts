@@ -1,9 +1,8 @@
 /*
-* types.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * types.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 import { Document } from "../core/deno-dom.ts";
 
 import {
@@ -86,6 +85,7 @@ import {
   kIncludeAfterBody,
   kIncludeBeforeBody,
   kIncludeInHeader,
+  kInlineIncludes,
   kIpynbFilters,
   kKatex,
   kKeepHidden,
@@ -195,6 +195,7 @@ import {
   kToggleDarkMode,
   kToggleNavigation,
   kToggleReaderMode,
+  kToggleSection,
   kToggleSidebar,
   kTopLevelDivision,
   kVariables,
@@ -204,7 +205,7 @@ import {
 } from "./constants.ts";
 
 import { HtmlPostProcessor, RenderServices } from "../command/render/types.ts";
-import { QuartoFilterSpec } from "../command/render/filters.ts";
+import { QuartoFilterSpec } from "../command/render/types.ts";
 import { ProjectContext } from "../project/types.ts";
 
 export const kDependencies = "dependencies";
@@ -397,6 +398,7 @@ export interface FormatRender {
   [kTblColwidths]?: "auto" | boolean | number[];
   [kShortcodes]?: string[];
   [kMergeIncludes]?: boolean;
+  [kInlineIncludes]?: false;
   [kLatexAutoMk]?: boolean;
   [kLatexAutoInstall]?: boolean;
   [kLatexMinRuns]?: number;
@@ -573,12 +575,12 @@ export interface FormatLanguage {
   [kToggleDarkMode]?: string;
   [kToggleNavigation]?: string;
   [kToggleReaderMode]?: string;
+  [kToggleSection]?: string;
   [kToggleSidebar]?: string;
   [kSearchMatchingDocumentsText]?: string;
   [kSearchCopyLinkTitle]?: string;
-  [kSearchHideMatchesText]?: string; // FIXME duplicate?
   [kSearchMoreMatchText]?: string;
-  [kSearchHideMatchesText]?: string; // FIXME duplicate?
+  [kSearchHideMatchesText]?: string;
   [kSearchClearButtonTitle]?: string;
   [kSearchDetatchedCancelButtonTitle]?: string;
   [kSearchSubmitButtonTitle]?: string;

@@ -1,9 +1,8 @@
 /*
-* format-html.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * format-html.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 import { join } from "path/mod.ts";
 import { warning } from "log/mod.ts";
 
@@ -94,12 +93,17 @@ import {
 } from "../../core/giscus.ts";
 import { metadataPostProcessor } from "./format-html-meta.ts";
 import { kHtmlEmptyPostProcessResult } from "../../command/render/constants.ts";
-import {
-  kNotebookViewStyleNotebook,
-  notebookViewPostProcessor,
-} from "./format-html-notebook.ts";
+import { kNotebookViewStyleNotebook } from "./format-html-constants.ts";
+import { notebookViewPostProcessor } from "./format-html-notebook.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { kListing } from "../../project/types/website/listing/website-listing-shared.ts";
+import {
+  HtmlFormatFeatureDefaults,
+  HtmlFormatScssOptions,
+  HtmlFormatTippyOptions,
+} from "./format-html-types.ts";
+import { kQuartoHtmlDependency } from "./format-html-constants.ts";
+import { registerWriterFormatHandler } from "../format-handlers.ts";
 
 export function htmlFormat(
   figwidth: number,
@@ -153,29 +157,6 @@ export function htmlFormat(
       },
     },
   );
-}
-
-export const kQuartoHtmlDependency = "quarto-html";
-
-export interface HtmlFormatFeatureDefaults {
-  tabby?: boolean;
-  copyCode?: boolean;
-  anchors?: boolean;
-  hoverCitations?: boolean;
-  hoverFootnotes?: boolean;
-  figResponsive?: boolean;
-  codeAnnotations?: boolean;
-}
-
-export interface HtmlFormatTippyOptions {
-  theme?: string;
-  parent?: string;
-  config?: Metadata;
-}
-
-export interface HtmlFormatScssOptions {
-  quartoBase?: boolean;
-  quartoCssVars?: boolean;
 }
 
 export async function htmlFormatExtras(
@@ -707,13 +688,13 @@ function htmlFormatPostprocessor(
     );
 
     for (let i = 0; i < tables.length; ++i) {
-      const table = (tables[i] as Element);
+      const table = tables[i] as Element;
       if (table.getAttribute("data-quarto-disable-processing")) {
         continue;
       }
       table.removeAttribute("data-quarto-postprocess-tables");
       table.querySelectorAll("tr").forEach((tr) => {
-        const { children } = (tr as Element);
+        const { children } = tr as Element;
         for (let j = 0; j < children.length; ++j) {
           const child = children[j] as Element;
           if (child.tagName === "TH" || child.tagName === "TD") {
@@ -754,6 +735,7 @@ const kCodeAnnotationGridClz = "code-annotation-container-grid";
 const kCodeAnnotationAnchorClz = "code-annotation-anchor";
 const kCodeAnnotationTargetClz = "code-annotation-target";
 
+const kCodeAnnotationParentClz = "code-annotated";
 const kCodeAnnotationGutterClz = "code-annotation-gutter";
 const kCodeAnnotationGutterBgClz = "code-annotation-gutter-bg";
 
@@ -865,6 +847,11 @@ function processCodeBlockAnnotation(
 
   // Inject a gutter for the annotations
   for (const codeParentEl of codeBlockParents) {
+    if (codeParentEl.parentElement) {
+      // Decorate the pre so that we can adjust styles if needed
+      codeParentEl.parentElement.classList.add(kCodeAnnotationParentClz);
+    }
+
     const gutterBgDivEl = doc.createElement("div");
     gutterBgDivEl.classList.add(kCodeAnnotationGutterBgClz);
     codeParentEl?.appendChild(gutterBgDivEl);
@@ -957,3 +944,14 @@ function pandocExtras(format: Format) {
     },
   };
 }
+
+registerWriterFormatHandler((format) => {
+  switch (format) {
+    case "html":
+    case "html4":
+    case "html5":
+      return {
+        format: htmlFormat(7, 5),
+      };
+  }
+});

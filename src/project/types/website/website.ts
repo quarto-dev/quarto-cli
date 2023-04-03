@@ -319,7 +319,7 @@ export const websiteProjectType: ProjectType = {
 };
 
 export interface WebsiteProjectOutputFile extends ProjectOutputFile {
-  doc: HTMLDocument;
+  // doc: HTMLDocument;
   doctype?: string;
 }
 
@@ -358,10 +358,10 @@ export function websiteOutputFiles(outputFiles: ProjectOutputFile[]) {
     .map((outputFile) => {
       const contents = Deno.readTextFileSync(outputFile.file);
       const doctypeMatch = contents.match(/^<!DOCTYPE.*?>/);
-      const doc = new DOMParser().parseFromString(contents, "text/html")!;
+      // const doc = new DOMParser().parseFromString(contents, "text/html")!;
       return {
         ...outputFile,
-        doc,
+        // doc,
         doctype: doctypeMatch ? doctypeMatch[0] : undefined,
       };
     });

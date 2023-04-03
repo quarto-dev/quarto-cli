@@ -1,9 +1,8 @@
 /*
-* jupyter-shared.ts
-*
-* Copyright (C) 2020-2023 Posit Software, PBC
-*
-*/
+ * jupyter-shared.ts
+ *
+ * Copyright (C) 2020-2023 Posit Software, PBC
+ */
 
 import { stringify } from "encoding/yaml.ts";
 import { warning } from "log/mod.ts";
@@ -15,7 +14,42 @@ import { markdownWithExtractedHeading } from "../pandoc/pandoc-partition.ts";
 import { partitionYamlFrontMatter, readYamlFromMarkdown } from "../yaml.ts";
 import { JupyterNotebook, JupyterOutput } from "./types.ts";
 
-function fixupBokehCells(nb: JupyterNotebook): JupyterNotebook {
+export function fixupStreams(nb: JupyterNotebook): JupyterNotebook {
+  for (const cell of nb.cells) {
+    if (cell.cell_type !== "code" || cell.outputs === undefined) {
+      continue;
+    }
+    let i = 0;
+    if (cell.outputs.length === 0) {
+      continue;
+    }
+    while (i < cell.outputs.length) {
+      const thisOutput: JupyterOutput = cell.outputs[i];
+      if (thisOutput.output_type === "stream") {
+        // collect all the stream outputs with the same name
+        const streams = cell.outputs.filter((output) =>
+          output.output_type === "stream" && output.name === thisOutput.name
+        );
+        // join them together
+        const joinedText = streams.map((output) => output.text ?? []).flat();
+        const newOutput: JupyterOutput = {
+          output_type: "stream",
+          name: thisOutput.name,
+          text: joinedText,
+        };
+        cell.outputs[i] = newOutput;
+        cell.outputs = cell.outputs.filter((output, j) =>
+          i === j ||
+          (output.output_type !== "stream" || output.name !== thisOutput.name)
+        );
+      }
+      i++;
+    }
+  }
+  return nb;
+}
+
+export function fixupBokehCells(nb: JupyterNotebook): JupyterNotebook {
   for (const cell of nb.cells) {
     if (cell.cell_type === "code") {
       let needsFixup = false;
@@ -114,15 +148,20 @@ export function fixupFrontMatter(nb: JupyterNotebook): JupyterNotebook {
 
   // helper to create nb lines (w/ newline after)
   const nbLines = (lns: string[]) => {
-    return lns.map((line) => `${line}\n`);
+    return lns.map((line) => line.endsWith("\n") ? line : `${line}\n`);
   };
 
   // look for the first raw block that has a yaml object
   let partitioned: { yaml: string; markdown: string } | undefined;
   const frontMatterCellIndex = nb.cells.findIndex((cell) => {
-    if (cell.cell_type === "raw") {
+    if (cell.cell_type === "raw" || cell.cell_type === "markdown") {
       partitioned = partitionYamlFrontMatter(cell.source.join("")) || undefined;
-      return !!partitioned;
+      if (partitioned) {
+        cell.cell_type = "raw";
+        return true;
+      } else {
+        return false;
+      }
     }
   });
 
@@ -137,7 +176,7 @@ export function fixupFrontMatter(nb: JupyterNotebook): JupyterNotebook {
   for (const cell of nb.cells) {
     if (cell.cell_type === "markdown") {
       const { lines, headingText } = markdownWithExtractedHeading(
-        cell.source.join("\n"),
+        nbLines(cell.source).join(""),
       );
       if (headingText) {
         title = headingText;
@@ -178,16 +217,26 @@ export function fixupFrontMatter(nb: JupyterNotebook): JupyterNotebook {
   return nb;
 }
 
-const fixups: ((
+type JupyterFixup = (nb: JupyterNotebook) => JupyterNotebook;
+
+const defaultFixups: ((
   nb: JupyterNotebook,
 ) => JupyterNotebook)[] = [
   fixupBokehCells,
   fixupFrontMatter,
+  fixupStreams,
+];
+
+// books can't have the front matter fixup
+export const bookFixups: JupyterFixup[] = [
+  fixupBokehCells,
 ];
 
 export function fixupJupyterNotebook(
   nb: JupyterNotebook,
+  explicitFixups?: JupyterFixup[],
 ): JupyterNotebook {
+  const fixups = explicitFixups || defaultFixups;
   for (const fixup of fixups) {
     nb = fixup(nb);
   }

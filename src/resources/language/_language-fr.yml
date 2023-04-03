@@ -60,6 +60,7 @@ search-detached-cancel-button-title: "Annuler"
 search-submit-button-title: "Envoyer"
 search: "Recherche"
 
+toggle-section: "Basculer la section"
 toggle-sidebar: "Basculer la barre latérale"
 toggle-dark-mode: "Basculer le mode sombre"
 toggle-reader-mode: "Basculer en mode lecteur"

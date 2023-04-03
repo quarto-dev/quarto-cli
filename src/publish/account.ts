@@ -1,16 +1,19 @@
 /*
-* account.ts
-*
-* Copyright (C) 2022 Posit Software, PBC
-*
-*/
+ * account.ts
+ *
+ * Copyright (C) 2022 Posit Software, PBC
+ */
 
 import { error } from "log/mod.ts";
 
 import { prompt } from "cliffy/prompt/mod.ts";
 import { Confirm } from "cliffy/prompt/confirm.ts";
 
-import { AccountToken, AccountTokenType, PublishProvider } from "./provider.ts";
+import {
+  AccountToken,
+  AccountTokenType,
+  PublishProvider,
+} from "./provider-types.ts";
 
 export type AccountPrompt = "always" | "never" | "multiple";
 

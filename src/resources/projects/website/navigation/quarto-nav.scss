@@ -79,8 +79,8 @@ nav[role="doc-toc"] {
 .headroom-target,
 header.headroom {
   will-change: transform;
-  transition: transform 200ms linear;
   transition: position 200ms linear;
+  transition: all 200ms linear;
 }
 
 header.headroom--pinned {
@@ -759,7 +759,7 @@ body.nav-fixed {
   padding-top: navbar-default-offset($theme-name);
 }
 
-body:not(.floating) .nav-footer {
+body .nav-footer {
   @if variable-exists(footer-border) and $footer-border {
     @if variable-exists(footer-border-color) {
       border-top: 1px solid $footer-border-color;

@@ -44,7 +44,7 @@ function subrefNumber(order)
 end
 
 function prependSubrefNumber(captionContent, order)
-  if not _quarto.format.isLatexOutput() then
+  if not _quarto.format.isLatexOutput() and not _quarto.format.isAsciiDocOutput() then
     if #inlinesToString(captionContent) > 0 then
       tprepend(captionContent, { pandoc.Space() })
     end
@@ -191,7 +191,9 @@ function formatNumberOption(type, order, default)
     if section then
       tprepend(option, { pandoc.Str(tostring(section[1]) .. ".") })
     end
-    return option
+    quarto.utils.dump(styleRaw)
+    print("HERE!", option)
+    return { option }
   end
 
 end

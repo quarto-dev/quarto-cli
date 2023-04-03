@@ -1,9 +1,8 @@
 /*
-* validate-document.ts
-*
-* Copyright (C) 2021-2022 Posit Software, PBC
-*
-*/
+ * validate-document.ts
+ *
+ * Copyright (C) 2021-2022 Posit Software, PBC
+ */
 
 import { RenderContext } from "../../command/render/types.ts";
 import { breakQuartoMd } from "../lib/break-quarto-md.ts";
@@ -15,11 +14,8 @@ import { partitionCellOptionsMapped } from "../lib/partition-cell-options.ts";
 import { withValidator } from "../lib/yaml-validation/validator-queue.ts";
 import { ValidationError } from "./validated-yaml.ts";
 
-import {
-  reportOnce,
-  TidyverseError,
-  tidyverseFormatError,
-} from "../lib/errors.ts";
+import { reportOnce, tidyverseFormatError } from "../lib/errors.ts";
+import { TidyverseError } from "../lib/errors-types.ts";
 import { isObject } from "../lodash.ts";
 
 import { getFrontMatterSchema } from "../lib/yaml-schema/front-matter.ts";

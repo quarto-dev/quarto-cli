@@ -125,11 +125,16 @@ div[id^="tbl-"] {
   position: relative;
 }
 
-.quarto-figure > .anchorjs-link,
+.quarto-figure > .anchorjs-link {
+  position: absolute;
+  top: 0.6em;
+  right: 0.5em;
+}
+
 div[id^="tbl-"] > .anchorjs-link {
   position: absolute;
-  top: 0;
-  right: 0;
+  top: 0.7em;
+  right: 0.3em;
 }
 
 /* workaround for anchorjs not hitting on generic :hover selector */

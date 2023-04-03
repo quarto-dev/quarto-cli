@@ -1,9 +1,8 @@
 /*
-* ghpages.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * ghpages.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { info } from "log/mod.ts";
 import { dirname, join, relative } from "path/mod.ts";
@@ -18,10 +17,10 @@ import { execProcess } from "../../core/process.ts";
 import { ProjectContext } from "../../project/types.ts";
 import {
   AccountToken,
-  anonymousAccount,
   PublishFiles,
   PublishProvider,
-} from "../provider.ts";
+} from "../provider-types.ts";
+import { anonymousAccount } from "../provider.ts";
 import { PublishOptions, PublishRecord } from "../types.ts";
 import { shortUuid } from "../../core/uuid.ts";
 import { sleep } from "../../core/wait.ts";
@@ -188,7 +187,7 @@ async function publish(
     "gh-pages",
     type,
     title,
-    target?.url,
+    type === "site" ? target?.url : undefined,
   );
 
   // allocate worktree dir

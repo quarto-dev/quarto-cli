@@ -1,9 +1,8 @@
 /*
-* template.ts
-*
-* Copyright (C) 2021-2022 Posit Software, PBC
-*
-*/
+ * template.ts
+ *
+ * Copyright (C) 2021-2022 Posit Software, PBC
+ */
 
 import {
   ExtensionSource,
@@ -22,7 +21,7 @@ import { Command } from "cliffy/command/mod.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../../core/schema/utils.ts";
 import { createTempContext } from "../../../core/temp.ts";
 import { copyExtensions } from "../../../extension/install.ts";
-import { kExtensionDir } from "../../../extension/extension-shared.ts";
+import { kExtensionDir } from "../../../extension/constants.ts";
 
 const kRootTemplateName = "template.qmd";
 
@@ -134,7 +133,7 @@ async function stageTemplate(
     // The filename
     const filename = (typeof (source.resolvedTarget) === "string"
       ? source.resolvedTarget
-      : source.resolvedTarget.url).split("/").pop() || "extension.zip";
+      : source.resolvedFile) || "extension.zip";
 
     // The tarball path
     const toFile = join(archiveDir, filename);

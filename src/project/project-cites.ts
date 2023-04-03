@@ -1,16 +1,15 @@
 /*
-* project-cites.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * project-cites.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 
 import { join } from "path/mod.ts";
 import { PandocOptions } from "../command/render/types.ts";
 import { FormatPandoc } from "../config/types.ts";
-import { projectIsBook } from "./project-context.ts";
+import { projectIsBook } from "./project-shared.ts";
 
 import { projectScratchPath } from "./project-scratch.ts";
 

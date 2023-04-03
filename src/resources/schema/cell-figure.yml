@@ -58,7 +58,9 @@
     formats: [$pdf-all]
     contexts: [document-figures]
   schema:
-    maybeArrayOf: string
+    anyOf:
+      - maybeArrayOf: string
+      - enum: [false]
   description:
     short: LaTeX figure position arrangement to be used in `\begin{figure}[]`.
     long: |
@@ -67,6 +69,10 @@
       Computational figure output that is accompanied by the code 
       that produced it is given a default value of `fig-pos="H"` (so 
       that the code and figure are not inordinately separated).
+
+      If `fig-pos` is `false`, then we don't use any figure position
+      specifier, which is sometimes necessary with custom figure
+      environments (such as `sidewaysfigure`).
 
 - name: fig-scap
   tags:

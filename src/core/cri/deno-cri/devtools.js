@@ -50,6 +50,15 @@ export async function New(options) {
   if (Object.prototype.hasOwnProperty.call(options, "url")) {
     options.path += `?${options.url}`;
   }
+  // we don't mutate here because we don't want other
+  // calls to have PUT as the method
+  //
+  // 2023-03-28: We use PUT since that works on the Chromium release given
+  // by puppeteer as well as the later chromium versions which require PUT
+  options = {
+    ...options,
+    method: "PUT",
+  };
   const result = await devToolsInterface(options);
   return JSON.parse(result);
 }

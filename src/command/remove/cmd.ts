@@ -1,9 +1,8 @@
 /*
-* cmd.ts
-*
-* Copyright (C) 2021-2022 Posit Software, PBC
-*
-*/
+ * cmd.ts
+ *
+ * Copyright (C) 2021-2022 Posit Software, PBC
+ */
 
 import { Command } from "cliffy/command/mod.ts";
 import { Checkbox } from "cliffy/prompt/mod.ts";
@@ -13,10 +12,8 @@ import { createTempContext } from "../../core/temp.ts";
 import { info } from "log/mod.ts";
 import { removeExtension } from "../../extension/remove.ts";
 import { createExtensionContext } from "../../extension/extension.ts";
-import {
-  Extension,
-  extensionIdString,
-} from "../../extension/extension-shared.ts";
+import { extensionIdString } from "../../extension/extension-shared.ts";
+import { Extension } from "../../extension/types.ts";
 import { projectContext } from "../../project/project-context.ts";
 import {
   afterConfirm,

@@ -244,16 +244,16 @@ export async function getBrowserExecutablePath() {
 
   let executablePath: string | undefined = undefined;
 
-  if (availableRevisions.length > 0) {
+  if (executablePath === undefined) {
+    executablePath = await findChrome();
+  }
+
+  if (executablePath === undefined && availableRevisions.length > 0) {
     // get the latest available revision
     availableRevisions.sort((a: string, b: string) => Number(b) - Number(a));
     const revision = availableRevisions[0];
     const revisionInfo = browserFetcher.revisionInfo(revision);
     executablePath = revisionInfo.executablePath;
-  }
-
-  if (executablePath === undefined) {
-    executablePath = await findChrome();
   }
 
   if (executablePath === undefined) {

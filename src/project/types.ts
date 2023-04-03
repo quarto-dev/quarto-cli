@@ -1,25 +1,18 @@
 /*
-* types.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * types.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { RenderServices } from "../command/render/types.ts";
 import { PandocFlags } from "../config/types.ts";
 import { Format, FormatExtras } from "../config/types.ts";
-import { mergeConfigs } from "../core/config.ts";
-import { isRStudio } from "../core/platform.ts";
-import { findOpenPort, kLocalhost, waitForPort } from "../core/port.ts";
-
 import {
   NavigationItem as NavItem,
   NavigationItemObject,
   NavigationItemObject as SidebarTool,
   ProjectConfig as ProjectConfig_Project,
-  ProjectPreview,
 } from "../resources/types/schema-types.ts";
-import { InputTargetIndex } from "./project-index.ts";
 export {
   type NavigationItem as NavItem,
   type NavigationItemObject,
@@ -52,6 +45,14 @@ export interface ProjectContext {
     format: Format,
     services: RenderServices,
   ) => Promise<FormatExtras>;
+
+  renderFormats: (
+    file: string,
+    to?: string,
+    project?: ProjectContext,
+  ) => Promise<Record<string, Format>>;
+
+  outputNameIndex?: Map<string, string | undefined>;
 }
 
 export interface ProjectFiles {
@@ -64,35 +65,6 @@ export interface ProjectFiles {
 export interface ProjectConfig {
   project: ProjectConfig_Project;
   [key: string]: unknown;
-}
-
-export async function resolvePreviewOptions(
-  options: ProjectPreview,
-  project?: ProjectContext,
-): Promise<ProjectPreview> {
-  // start with project options if we have them
-  if (project?.config?.project.preview) {
-    options = mergeConfigs(project.config.project.preview, options);
-  }
-  // provide defaults
-  const resolved = mergeConfigs({
-    host: kLocalhost,
-    browser: true,
-    [kProjectWatchInputs]: !isRStudio(),
-    timeout: 0,
-    navigate: true,
-  }, options) as ProjectPreview;
-
-  // if a specific port is requested then wait for it up to 5 seconds
-  if (resolved.port) {
-    if (!await waitForPort({ port: resolved.port, hostname: resolved.host })) {
-      throw new Error(`Requested port ${options.port} is already in use.`);
-    }
-  } else {
-    resolved.port = findOpenPort();
-  }
-
-  return resolved;
 }
 
 export const kProject404File = "404.html";

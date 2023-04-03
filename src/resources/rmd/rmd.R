@@ -137,6 +137,11 @@
   request <- jsonlite::parse_json(input, simplifyVector = TRUE)
   params <- request$params
 
+  # Ensuring expected working dir for Quarto
+  # R process workding may be changed by some workflows (in  ~/.Rprofile)
+  # https://github.com/quarto-dev/quarto-cli/issues/2646
+  setwd(request$wd) # no need to reset it as R process is closed by R
+
   # source in helper functions if we have a resourceDir
   if (!is.null(params$resourceDir)) {
     res_dir <- file.path(params$resourceDir, "rmd")
@@ -217,7 +222,7 @@ if (!rmarkdown::pandoc_available(error = FALSE)) {
   # Checking env var to be safe, but should always set by Quarto
   if (!is.na(quarto_bin_path)) {
     pandoc_dir <- normalizePath(file.path(quarto_bin_path, "tools"))
-    rmarkdown::find_pandoc(dir = pandoc_dir)
+    invisible(rmarkdown::find_pandoc(dir = pandoc_dir))
   }
 }
 

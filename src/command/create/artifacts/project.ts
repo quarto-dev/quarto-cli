@@ -27,17 +27,31 @@ import "../../../project/types/register.ts";
 
 const kProjectTypes = projectTypes();
 const kProjectTypeAliases = projectTypeAliases();
-const kProjectTypesAndAliases = [...kProjectTypes, ...kProjectTypeAliases];
+const kProjectTypesAndAliases = [
+  ...kProjectTypes,
+  ...kProjectTypeAliases,
+];
 
 const kType = "type";
 const kSubdirectory = "subdirectory";
 
 const kBlogTypeAlias = "blog";
+const kConfluenceAlias = "confluence";
 
 const kTypeProj = "project";
 
-const kProjectCreateTypes = [...kProjectTypes, kBlogTypeAlias];
-const kProjectTypeOrder = ["default", "website", kBlogTypeAlias, "book"];
+const kProjectCreateTypes = [
+  ...kProjectTypes,
+  kBlogTypeAlias,
+  kConfluenceAlias,
+];
+const kProjectTypeOrder = [
+  "default",
+  "website",
+  kBlogTypeAlias,
+  "book",
+  kConfluenceAlias,
+];
 
 export const projectArtifactCreator: ArtifactCreator = {
   displayName: "Project",
@@ -82,6 +96,11 @@ function resolveTemplate(type: string) {
     return {
       type: "website",
       template: "blog",
+    };
+  } else if (type === "confluence") {
+    return {
+      type: "default",
+      template: kConfluenceAlias,
     };
   } else {
     return {

@@ -13,10 +13,6 @@ import {
   NodeType,
 } from "deno_dom/deno-dom-wasm-noinit.ts";
 
-import {
-  defaultSyntaxHighlightingClassMap,
-} from "../../../../command/render/pandoc-html.ts";
-
 import { kTitle } from "../../../../config/constants.ts";
 import { Metadata } from "../../../../config/types.ts";
 import { ProjectContext } from "../../../types.ts";
@@ -26,6 +22,13 @@ import { truncateText } from "../../../../core/text.ts";
 import { insecureHash } from "../../../../core/hash.ts";
 import { findPreviewImgEl } from "../util/discover-meta.ts";
 import { getDecodedAttribute } from "../../../../core/html.ts";
+
+import { kDefaultHighlightStyle } from "../../../../command/render/constants.ts";
+import {
+  kAbbrevs,
+  readTheme,
+} from "../../../../quarto-core/text-highlighting.ts";
+import { generateCssKeyValues } from "../../../../core/pandoc/css.ts";
 
 // The root listing key
 export const kListing = "listing";
@@ -553,3 +556,31 @@ const kWebTexUrl = (
   const encodedMath = encodeURI(math);
   return `https://latex.codecogs.com/${type}.latex?${encodedMath}`;
 };
+
+export function defaultSyntaxHighlightingClassMap() {
+  const classToStyleMapping: Record<string, string[]> = {};
+
+  // Read the highlight style (theme name)
+  const theme = kDefaultHighlightStyle;
+  const themeRaw = readTheme("", theme, "default");
+  if (themeRaw) {
+    const themeJson = JSON.parse(themeRaw);
+
+    // Generates CSS rules based upon the syntax highlighting rules in a theme file
+    const textStyles = themeJson["text-styles"] as Record<
+      string,
+      Record<string, unknown>
+    >;
+    if (textStyles) {
+      Object.keys(textStyles).forEach((styleName) => {
+        const abbr = kAbbrevs[styleName];
+        if (abbr !== undefined) {
+          const textValues = textStyles[styleName];
+          const cssValues = generateCssKeyValues(textValues);
+          classToStyleMapping[abbr] = cssValues;
+        }
+      });
+    }
+  }
+  return classToStyleMapping;
+}

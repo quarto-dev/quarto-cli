@@ -18,3 +18,11 @@ testSite(docs("blog/index.qmd"), docs("blog"), [
   "div.list.quarto-listing-default", // The correct type of listing
   ".quarto-listing-category-title", // Categories are present
 ], []);
+
+testSite(docs("blog-grid/index.qmd"), docs("blog-grid"), [
+  "div.list.grid.quarto-listing-cols-3 > div:nth-child(1) div.listing-item-img-placeholder.card-img-top", // Placeholder structure correct
+  "div.list.grid.quarto-listing-cols-3 > div:nth-child(2) p.card-img-top > img", // The grid image structure is correct
+  "div.list.grid.quarto-listing-cols-3 > div:nth-child(3) p.card-img-top > img", // The grid image structure is correct
+  "div.list.grid.quarto-listing-cols-3 > div:nth-child(4) p.card-img-top > img[src ^= 'https://www.charlesteague.com/blog/writing-style/west.jpg']" // The image path isn't mangled
+], []);
+

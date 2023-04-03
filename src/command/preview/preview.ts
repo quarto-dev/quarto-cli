@@ -1,9 +1,8 @@
 /*
-* preview.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * preview.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { info, warning } from "log/mod.ts";
 import {
@@ -24,10 +23,10 @@ import { openUrl } from "../../core/shell.ts";
 import {
   httpContentResponse,
   httpFileRequestHandler,
-  HttpFileRequestOptions,
   isBrowserPreviewable,
   serveRedirect,
 } from "../../core/http.ts";
+import { HttpFileRequestOptions } from "../../core/http-types.ts";
 import { HttpDevServer, httpDevServer } from "../../core/http-devserver.ts";
 import {
   isHtmlContent,
@@ -38,17 +37,18 @@ import {
 import { PromiseQueue } from "../../core/promise.ts";
 import { inputFilesDir } from "../../core/render.ts";
 
+import { kQuartoRenderCommand } from "../render/constants.ts";
+
 import {
-  kQuartoRenderCommand,
   previewUnableToRenderResponse,
   previewURL,
   printBrowsePreviewMessage,
   printWatchingForChangesMessage,
   render,
-  renderServices,
   renderToken,
   rswURL,
 } from "../render/render-shared.ts";
+import { renderServices } from "../render/render-services.ts";
 import {
   RenderFlags,
   RenderResult,
@@ -68,13 +68,14 @@ import {
 import {
   kProjectWatchInputs,
   ProjectContext,
-  resolvePreviewOptions,
+  ProjectPreview,
 } from "../../project/types.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
 import { projectContext } from "../../project/project-context.ts";
 import { normalizePath, pathWithForwardSlashes } from "../../core/path.ts";
 import {
   isJupyterHubServer,
+  isRStudio,
   isRStudioServer,
   isRStudioWorkbench,
   isVSCodeServer,
@@ -102,6 +103,38 @@ import {
   kPreviewModeRaw,
 } from "../../config/constants.ts";
 import { isJatsOutput } from "../../config/format.ts";
+import { mergeConfigs } from "../../core/config.ts";
+import { kLocalhost } from "../../core/port-consts.ts";
+import { findOpenPort, waitForPort } from "../../core/port.ts";
+
+export async function resolvePreviewOptions(
+  options: ProjectPreview,
+  project?: ProjectContext,
+): Promise<ProjectPreview> {
+  // start with project options if we have them
+  if (project?.config?.project.preview) {
+    options = mergeConfigs(project.config.project.preview, options);
+  }
+  // provide defaults
+  const resolved = mergeConfigs({
+    host: kLocalhost,
+    browser: true,
+    [kProjectWatchInputs]: !isRStudio(),
+    timeout: 0,
+    navigate: true,
+  }, options) as ProjectPreview;
+
+  // if a specific port is requested then wait for it up to 5 seconds
+  if (resolved.port) {
+    if (!await waitForPort({ port: resolved.port, hostname: resolved.host })) {
+      throw new Error(`Requested port ${options.port} is already in use.`);
+    }
+  } else {
+    resolved.port = findOpenPort();
+  }
+
+  return resolved;
+}
 
 interface PreviewOptions {
   port?: number;

@@ -1,7 +1,7 @@
 ---
 title: Package bundling health report
 format: html
-self-contained: true
+embed-resources: true
 ---
 
 ```{python}
@@ -13,7 +13,7 @@ def run(what):
     str = subprocess.run(
       ("quarto run %s ../../../../src/quarto.ts" % what).split(" "),
       capture_output = True
-    ).stderr.decode('utf-8').replace("Bad import from ", "").replace(" to ", " -> ")
+    ).stdout.decode('utf-8').replace("Bad import from ", "").replace(" to ", " -> ")
     return ansi_escape.sub("", str)
 ```
 

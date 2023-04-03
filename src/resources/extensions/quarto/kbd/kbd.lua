@@ -2,9 +2,9 @@
 return {
   ['kbd'] = function(args, kwargs, meta)
     local function osname(v)
-      if v == "win" then return "Windows" end
-      if v == "mac" then return "Mac" end
-      if v == "linux" then return "Linux" end       
+      if v == "win" then return "windows" end
+      if v == "mac" then return "mac" end
+      if v == "linux" then return "linux" end       
     end
     if quarto.doc.is_format("html:js") then
       quarto.doc.add_html_dependency({

@@ -4,16 +4,20 @@
 function parse_pandoc3_figures() 
   local walk_recurse
   walk_recurse = function(constructor)
-    local drop_figure_treatment = function(el)
+    local plain_figure_treatment = function(el)
       return _quarto.ast.walk(el, walk_recurse(pandoc.Plain))
+    end
+    local para_figure_treatment = function(el)
+      return _quarto.ast.walk(el, walk_recurse(pandoc.Para))
     end
     return {
       traverse = "topdown",
-      BulletList = drop_figure_treatment,
-      BlockQuote = drop_figure_treatment,
-      Table = drop_figure_treatment,
-      OrderedList = drop_figure_treatment,
-      Note = drop_figure_treatment,
+      BulletList = plain_figure_treatment,
+      BlockQuote = plain_figure_treatment,
+      Table = plain_figure_treatment,
+      Div = para_figure_treatment,
+      OrderedList = plain_figure_treatment,
+      Note = plain_figure_treatment,
       Figure = function(fig)
         if (#fig.content == 1 and fig.content[1].t == "Plain") then
           

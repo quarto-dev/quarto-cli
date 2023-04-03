@@ -1,9 +1,8 @@
 /*
-* format-html-embed.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * format-html-embed.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 import { formatResourcePath } from "../../core/resources.ts";
 import { renderEjs } from "../../core/ejs.ts";
 import { asArray } from "../../core/array.ts";
@@ -30,6 +29,7 @@ import {
 import { basename, dirname, join, relative } from "path/mod.ts";
 import { renderFiles } from "../../command/render/render-files.ts";
 import { ProjectContext } from "../../project/types.ts";
+import { kNotebookViewStyleNotebook } from "./format-html-constants.ts";
 
 interface NotebookView {
   title: string;
@@ -41,8 +41,6 @@ interface NotebookViewOptions {
   title: string;
   href?: string;
 }
-
-export const kNotebookViewStyleNotebook = "notebook";
 
 const kQuartoNbClass = "quarto-notebook";
 const kQuartoCellContainerClass = "cell-container";
@@ -348,7 +346,7 @@ async function renderHtmlView(
       path: href,
       filename,
     });
-    const templatePath = services.temp.createFile({ suffix: "html" });
+    const templatePath = services.temp.createFile({ suffix: ".html" });
     Deno.writeTextFileSync(templatePath, embedTemplate);
 
     // Render the notebook and update the path

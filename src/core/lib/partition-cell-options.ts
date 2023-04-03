@@ -344,6 +344,7 @@ export const kLangCommentChars: Record<string, string | [string, string]> = {
   d3: "//",
   node: "//",
   sass: "//",
+  scss: "//",
   coffee: "#",
   go: "//",
   asy: "//",

@@ -1,9 +1,8 @@
 /*
-* cmd.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * cmd.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { existsSync } from "fs/mod.ts";
 
@@ -11,13 +10,11 @@ import { Command } from "cliffy/command/mod.ts";
 import { Select } from "cliffy/prompt/select.ts";
 import { prompt } from "cliffy/prompt/mod.ts";
 
-import {
-  AccountToken,
-  findProvider,
-  PublishProvider,
-  publishProviders,
-} from "../../publish/provider.ts";
+import { findProvider } from "../../publish/provider.ts";
 
+import { AccountToken, PublishProvider } from "../../publish/provider-types.ts";
+
+import { publishProviders } from "../../publish/provider.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 import {
   initState,
@@ -26,8 +23,9 @@ import {
 import {
   projectContext,
   projectInputFiles,
-  projectIsWebsite,
 } from "../../project/project-context.ts";
+
+import { projectIsWebsite } from "../../project/project-shared.ts";
 
 import { PublishCommandOptions } from "./options.ts";
 import { resolveDeployment } from "./deployment.ts";
@@ -54,7 +52,8 @@ export const publishCommand =
         " - Quarto Pub (quarto-pub)\n" +
         " - GitHub Pages (gh-pages)\n" +
         " - Posit Connect (connect)\n" +
-        " - Netlify (netlify)\n\n" +
+        " - Netlify (netlify)\n" +
+        " - Confluence (confluence)\n\n" +
         "Accounts are configured interactively during publishing.\n" +
         "Manage/remove accounts with: quarto publish accounts",
     )

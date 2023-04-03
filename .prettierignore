@@ -1,0 +1,8 @@
+src/resources/formats/revealjs/plugins/line-highlight/line-highlight.js
+src/resources/formats/revealjs/plugins/menu/menu.js
+src/resources/formats/revealjs/plugins/menu/quarto-menu.js
+src/resources/formats/revealjs/plugins/multiplex/multiplex.js
+src/resources/formats/revealjs/plugins/multiplex/socket.io.js
+src/resources/formats/revealjs/plugins/pdfexport/pdfexport.js
+src/resources/formats/revealjs/plugins/support/support.js
+src/resources/formats/revealjs/plugins/tone/tone.js

@@ -309,7 +309,7 @@ function authorToCslName(
     const parts = author.split(" ");
     if (parts.length > 0) {
       const given = parts.shift() || "";
-      const family = parts.length > 0 ? parts.join("") : "";
+      const family = parts.length > 0 ? parts.join(" ") : "";
       return {
         family,
         given,

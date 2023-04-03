@@ -1,13 +1,12 @@
 /*
-* types.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * types.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { Document } from "../../core/deno-dom.ts";
 
-import { Format, PandocFlags } from "../../config/types.ts";
+import { Format, PandocFlags, QuartoFilter } from "../../config/types.ts";
 import {
   ExecuteResult,
   ExecutionEngine,
@@ -16,7 +15,7 @@ import {
 import { Metadata } from "../../config/types.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { TempContext } from "../../core/temp-types.ts";
-import { ExtensionContext } from "../../extension/extension-shared.ts";
+import { ExtensionContext } from "../../extension/types.ts";
 import { kPositionedRefs } from "../../config/constants.ts";
 
 // options for render
@@ -239,4 +238,18 @@ export interface OutputRecipe {
   finalOutput?: string;
 
   isOutputTransient?: boolean;
+}
+
+export type QuartoFilterSpec = {
+  // these are filters that will be sent to pandoc directly
+  quartoFilters: QuartoFilter[];
+
+  beforeQuartoFilters: QuartoFilter[];
+  afterQuartoFilters: QuartoFilter[];
+};
+
+export interface PandocRenderCompletion {
+  complete: (
+    outputs: RenderedFormat[],
+  ) => Promise<RenderedFile>;
 }

@@ -117,7 +117,6 @@ export function graphTranspose(graph: DependencyGraph): DependencyGraph {
 
 export function reachability(
   graph: DependencyGraph,
-  _source: string,
 ): Record<string, Set<string>> {
   const result: Record<string, Set<string>> = Object.fromEntries(
     Object.keys(graph).map((k) => [k, new Set()]),

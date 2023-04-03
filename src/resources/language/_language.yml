@@ -27,7 +27,7 @@ callout-tip-title: "Tip"
 callout-note-title: "Note"
 callout-warning-title: "Warning"
 callout-important-title: "Important"
-callout-caution-title: "Danger"
+callout-caution-title: "Caution"
 
 code-summary: "Code"
 
@@ -60,6 +60,7 @@ search-detached-cancel-button-title: "Cancel"
 search-submit-button-title: "Submit"
 search: "Search"
 
+toggle-section: "Toggle section"
 toggle-sidebar: "Toggle sidebar navigation"
 toggle-dark-mode: "Toggle dark mode"
 toggle-reader-mode: "Toggle reader mode"

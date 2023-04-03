@@ -1,18 +1,18 @@
 /*
-* http-devserver.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * http-devserver.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { LogRecord } from "log/mod.ts";
 
 import * as ld from "./lodash.ts";
 
 import { renderEjs } from "./ejs.ts";
-import { FileResponse, maybeDisplaySocketError } from "./http.ts";
+import { maybeDisplaySocketError } from "./http.ts";
+import { FileResponse } from "./http-types.ts";
 import { LogEventsHandler } from "./log.ts";
-import { kLocalhost } from "./port.ts";
+import { kLocalhost } from "./port-consts.ts";
 import { resourcePath } from "./resources.ts";
 import { isRStudioPreview, isRStudioServer } from "./platform.ts";
 import { kTextHtml } from "./mime.ts";

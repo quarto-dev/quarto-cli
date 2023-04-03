@@ -2,11 +2,10 @@
  * types.ts
  *
  * Copyright (C) 2020 by RStudio, PBC
- *
  */
 
 import { RenderFlags } from "../../../command/render/types.ts";
-import { PublishFiles } from "../../provider.ts";
+import { PublishFiles } from "../../provider-types.ts";
 
 export enum LogLevel {
   DEBUG = "DEBUG",
@@ -28,6 +27,11 @@ export type User = {
   accountId: string;
   accountType: "atlassian" | "app";
   email: string;
+  operations: Operation[];
+};
+
+export type Operation = {
+  operation: string;
 };
 
 export type Space = {

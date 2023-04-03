@@ -1,9 +1,8 @@
 /*
-* filters.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * filters.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { existsSync } from "fs/mod.ts";
 
@@ -29,6 +28,7 @@ import {
   kKeepHidden,
   kMergeIncludes,
   kOutputDivs,
+  kOutputLocation,
   kPdfEngine,
   kQuartoFilters,
   kReferenceLocation,
@@ -42,6 +42,7 @@ import {
   FormatPandoc,
   QuartoFilter,
 } from "../../config/types.ts";
+import { QuartoFilterSpec } from "./types.ts";
 import { Metadata } from "../../config/types.ts";
 import { kProjectType } from "../../project/types.ts";
 import { bibEngine } from "../../config/pdf.ts";
@@ -489,6 +490,12 @@ async function quartoFilterParams(
   if (figResponsive) {
     params[kFigResponsive] = figResponsive;
   }
+
+  const outputLocation = format.metadata[kOutputLocation];
+  if (outputLocation) {
+    params[kOutputLocation] = outputLocation;
+  }
+
   const lineNumbers = format.render[kCodeLineNumbers];
   if (lineNumbers) {
     params[kCodeLineNumbers] = lineNumbers;
@@ -556,14 +563,6 @@ function initFilterParams(dependenciesFile: string) {
 
 const kQuartoFilterMarker = "quarto";
 const kQuartoCiteProcMarker = "citeproc";
-
-export type QuartoFilterSpec = {
-  // these are filters that will be sent to pandoc directly
-  quartoFilters: QuartoFilter[];
-
-  beforeQuartoFilters: QuartoFilter[];
-  afterQuartoFilters: QuartoFilter[];
-};
 
 export async function resolveFilters(
   filters: QuartoFilter[],
@@ -670,9 +669,9 @@ function citeMethod(options: PandocOptions): CiteMethod | null {
 }
 
 function pdfEngine(options: PandocOptions): string {
-  const pdfEngine =
-    (options.flags?.pdfEngine || options.metadata?.[kPdfEngine] as string ||
-      "pdflatex");
+  const pdfEngine = options.flags?.pdfEngine ||
+    options.metadata?.[kPdfEngine] as string ||
+    "pdflatex";
   return pdfEngine;
 }
 

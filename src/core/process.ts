@@ -1,21 +1,14 @@
 /*
-* process.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * process.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { MuxAsyncIterator, pooledMap } from "async/mod.ts";
 import { iterateReader } from "streams/mod.ts";
 import { info } from "log/mod.ts";
 import { onCleanup } from "./cleanup.ts";
-
-export interface ProcessResult {
-  success: boolean;
-  code: number;
-  stdout?: string;
-  stderr?: string;
-}
+import { ProcessResult } from "./process-types.ts";
 
 const processList = new Map<number, Deno.Process>();
 let processCount = 0;

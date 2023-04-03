@@ -178,6 +178,13 @@ local quartoNormalize = {
 local quartoPre = {
   -- quarto-pre
   { name = "pre-quartoBeforeExtendedUserFilters", filters = make_wrapped_user_filters("beforeQuartoFilters") },
+
+  -- https://github.com/quarto-dev/quarto-cli/issues/5031
+  -- recompute options object in case user filters have changed meta
+  -- this will need to change in the future; users will have to indicate
+  -- when they mutate options
+  { name = "pre-quartoAfterUserFilters", filter = initOptions() },
+
   { name = "normalize-parse-pandoc3-figures", filter = parse_pandoc3_figures() },
   { name = "pre-bibliographyFormats", filter = bibliographyFormats() }, 
   { name = "pre-shortCodesBlocks", filter = shortCodesBlocks() } ,
@@ -191,10 +198,8 @@ local quartoPre = {
   { name = "pre-contentHidden", filter = contentHidden() },
   { name = "pre-tableCaptions", filter = tableCaptions() },
   { name = "pre-longtable_no_caption_fixup", filter = longtable_no_caption_fixup() },
-  { name = "pre-code-annotations", filter = combineFilters({
-    codeMeta(),
-    code(),
-    })},
+  { name = "pre-code-annotations", filter = code()},
+  { name = "pre-code-annotations-meta", filter = codeMeta()},
   { name = "pre-outputs", filter = outputs() },
   { name = "pre-outputLocation", filter = outputLocation() },
   { name = "pre-combined-figures-theorems-etc", filter = combineFilters({
@@ -220,7 +225,7 @@ local quartoPre = {
   }) },
   { name = "pre-quartoPreMetaInject", filter = quartoPreMetaInject() },
   { name = "pre-writeResults", filter = writeResults() },
-  { name = "pre-projectPaths", filter = projectPaths()},
+  { name = "pre-projectPaths", filter = projectPaths() }
 }
 
 local quartoPost = {
@@ -238,7 +243,8 @@ local quartoPost = {
     tikz(),
     pdfImages(),
     delink(),
-    figCleanup()
+    figCleanup(),
+    responsive_table(),
   }) },
   { name = "post-ojs", filter = ojs() },
   { name = "post-postMetaInject", filter = quartoPostMetaInject() },

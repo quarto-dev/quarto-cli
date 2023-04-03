@@ -91,8 +91,13 @@ function Writer (doc, opts)
       block = injectAnchor(block)
       return block
     end,
-    RawBlock = function ()
-      -- Raw blocks inclding arbirtary HTML like JavaScript is not supported in CSF
+    RawBlock = function (rawBlock)
+      -- We just "pass-through" raw blocks of type "confluence"
+      if(rawBlock.format == 'confluence') then
+        return pandoc.RawBlock('html', rawBlock.text)
+      end
+
+      -- Raw blocks inclding arbirtary HTML like JavaScript are not supported in CSF
       return ""
     end,
     RawInline = function (inline)

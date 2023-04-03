@@ -79,6 +79,13 @@ export function findPreviewImgEl(doc: Document): Element | undefined {
       return img;
     }
   }
+
+  // as a last resort, just use the auto-discovered image from the lua
+  // filter chain, if it exists
+  const autoImg = doc.querySelector("#quarto-document-content img");
+  if (autoImg) {
+    return autoImg;
+  }
 }
 
 // The general words per minute that we should use.
@@ -92,7 +99,7 @@ export function estimateReadingTimeMinutes(
 ): number | undefined {
   if (markdown) {
     const wordCount = markdown.split(" ").length;
-    return wordCount / kWpm;
+    return Math.ceil(wordCount / kWpm);
   }
   return 0;
 }

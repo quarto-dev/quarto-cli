@@ -41,7 +41,7 @@
     formats: [$epub-all, $odt-all, $office-all, $pdf-all, $html-doc, revealjs]
   description: The title used for the table of contents.
 
-- name: toc-expanded
+- name: toc-expand
   schema:
     anyOf:
       - number

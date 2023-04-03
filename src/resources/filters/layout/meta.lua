@@ -44,10 +44,13 @@ function layoutMetaInject()
 
         -- figure out the shadecolor
         local shadeColor = nil
+        local bgColor = nil
+
         if useCodeBlockBorder and meta[kCodeBlockBorderLeft] and type(meta[kCodeBlockBorderLeft]) ~= "boolean" then
           shadeColor = latexXColor(meta[kCodeBlockBorderLeft])
-        elseif useCodeBlockBg and meta[kCodeBlockBackground] and type(meta[kCodeBlockBackground]) ~= "boolean"  then
-          shadeColor = latexXColor(meta[kCodeBlockBackground])
+        end
+        if useCodeBlockBg and meta[kCodeBlockBackground] and type(meta[kCodeBlockBackground]) ~= "boolean"  then
+          bgColor = latexXColor(meta[kCodeBlockBackground])
         end
 
         -- ensure shadecolor is defined
@@ -63,9 +66,17 @@ function layoutMetaInject()
           end
         end)
 
+        metaInjectLatex(meta, function(inject)
+          if (bgColor ~= nil) then
+            inject(
+              "\\@ifundefined{codebgcolor}{\\definecolor{codebgcolor}" .. bgColor .. "}"
+            )  
+          end
+        end)
+
         -- set color options for code blocks ('Shaded')
+        -- core options
         local options = {
-          ['interior hidden'] = "",
           boxrule = '0pt',
           ['frame hidden'] = "",
           ['sharp corners'] = "",
@@ -73,14 +84,14 @@ function layoutMetaInject()
           enhanced = "",
           ['borderline west'] = '{3pt}{0pt}{shadecolor}'
         }
-        if useCodeBlockBg then 
-          options = {
-            colback = "{shadecolor}",
-            boxrule = '0pt',
-            ['frame hidden'] = "",
-            ['breakable'] = "",
-            enhanced = "",
-          }
+        if bgColor then 
+          options.colback = "{codebgcolor}"
+        else 
+          options['interior hidden'] = ""
+        end
+
+        if shadeColor then
+          options['borderline west'] = '{3pt}{0pt}{shadecolor}'
         end
         
         -- redefined the 'Shaded' environment that pandoc uses for fenced 

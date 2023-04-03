@@ -1,9 +1,8 @@
 /*
-* install.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * install.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { Confirm } from "cliffy/prompt/mod.ts";
@@ -14,7 +13,8 @@ import { projectContext } from "../project/project-context.ts";
 import { TempContext } from "../core/temp-types.ts";
 import { unzip } from "../core/zip.ts";
 import { copyTo } from "../core/copy.ts";
-import { Extension, kExtensionDir } from "./extension-shared.ts";
+import { Extension } from "./types.ts";
+import { kExtensionDir } from "./constants.ts";
 import { withSpinner } from "../core/console.ts";
 import { downloadWithProgress } from "../core/download.ts";
 import { createExtensionContext, readExtensions } from "./extension.ts";
@@ -178,7 +178,7 @@ async function stageExtension(
     // The filename
     const filename = (typeof (source.resolvedTarget) === "string"
       ? source.resolvedTarget
-      : source.resolvedTarget.url).split("/").pop() || "extension.zip";
+      : source.resolvedFile) || "extension.zip";
 
     // The tarball path
     const toFile = join(archiveDir, filename);

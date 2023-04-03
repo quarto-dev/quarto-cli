@@ -17,6 +17,8 @@ function import(script)
   local path = PANDOC_SCRIPT_FILE:match("(.*[/\\])")
   dofile(path .. script)
 end
+import("../common/apishim.lua")
+
 import("index.lua")
 import("preprocess.lua")
 import("sections.lua")
@@ -45,7 +47,10 @@ import("../common/meta.lua")
 import("../common/table.lua")
 import("../common/string.lua")
 import("../common/debug.lua")
+
 -- [/import]
+
+-- note that the apishim.lua import should _not_ happen on main.lua
 
 initCrossrefIndex()
 

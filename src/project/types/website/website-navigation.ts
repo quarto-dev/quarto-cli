@@ -1,9 +1,8 @@
 /*
-* website-navigation.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * website-navigation.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { basename, dirname, extname, join, relative } from "path/mod.ts";
 import { warning } from "log/mod.ts";
@@ -43,7 +42,7 @@ import { formatDarkMode } from "../../../format/html/format-html-info.ts";
 import {
   formatHasArticleLayout,
   formatPageLayout,
-} from "../../../format/html/format-html-bootstrap.ts";
+} from "../../../format/html/format-html-shared.ts";
 
 import { kDataQuartoSourceUrl } from "../../../command/render/codetools.ts";
 
@@ -474,9 +473,11 @@ function navigationHtmlPostprocessor(
             if (item.id) {
               titleEl = doc.getElementById(item.id);
             } else if (item.href) {
-              titleEl = doc.querySelector(
-                `.depth${crumbCount} .sidebar-item a[href="${item.href}"] .menu-text`,
-              );
+              const titleSelector = crumbCount === 0
+                ? `.sidebar-menu-container > ul > .sidebar-item > .sidebar-item-container > a[href='${item.href}'] > .menu-text`
+                : `.depth${crumbCount} .sidebar-item a[href="${item.href}"] .menu-text`;
+              titleEl = doc.querySelector(titleSelector);
+
             }
 
             const liEl = breadCrumbEl();
@@ -566,17 +567,24 @@ function navigationHtmlPostprocessor(
     const links = doc.querySelectorAll("a[href]");
     for (let i = 0; i < links.length; i++) {
       const link = links[i] as Element;
-      const href = getDecodedAttribute(link, "href");
-      if (href && !isExternalPath(href)) {
-        let projRelativeHref = href.startsWith("/")
-          ? href.slice(1)
-          : join(dirname(sourceRelative), href);
+      const resolveInput = link.getAttribute("data-noresolveinput") === null;
+      if (!resolveInput) {
+        link.removeAttribute("data-noresolveinput");
+      }
+      const linkHref = getDecodedAttribute(link, "href");
+      if (linkHref && !isExternalPath(linkHref)) {
+        let projRelativeHref = linkHref.startsWith("/")
+          ? linkHref.slice(1)
+          : join(dirname(sourceRelative), linkHref);
         const hashLoc = projRelativeHref.indexOf("#");
         const hash = hashLoc !== -1 ? projRelativeHref.slice(hashLoc) : "";
         if (hash) {
           projRelativeHref = projRelativeHref.slice(0, hashLoc);
         }
-        const resolved = await resolveInputTarget(project, projRelativeHref);
+        const resolved = resolveInput
+          ? await resolveInputTarget(project, projRelativeHref)
+          : { outputHref: pathWithForwardSlashes(join("/", projRelativeHref)) };
+
         if (resolved) {
           link.setAttribute("href", offset + resolved.outputHref + hash);
         } else {
@@ -1408,6 +1416,8 @@ async function resolveItem<T extends { href?: string; text?: string }>(
         );
       }
       return inputItem;
+    } else if (looksLikeShortCode(href)) {
+      return item;
     } else {
       return {
         ...item,
@@ -1417,6 +1427,10 @@ async function resolveItem<T extends { href?: string; text?: string }>(
   } else {
     return item;
   }
+}
+
+function looksLikeShortCode(href: string) {
+  return href.startsWith("{{<") && href.endsWith(">}}");
 }
 
 function sidebarTitle(sidebar: Sidebar, project: ProjectContext) {

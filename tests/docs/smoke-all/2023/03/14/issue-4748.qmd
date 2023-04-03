@@ -1,0 +1,17 @@
+---
+format: pdf
+title: boo
+---
+
+```{r}
+#| label: tbl-cars
+#| echo: false
+#| tbl-cap: "A table with many models repeating itself"
+
+library(tidyverse)
+library(kableExtra)
+
+mtcars %>% 
+  kableExtra::kbl(longtable = T) %>% 
+  column_spec(column = 1:2, width = "4cm")
+```

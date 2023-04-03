@@ -1,9 +1,8 @@
 /*
-* render-shared.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * render-shared.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { dirname } from "path/mod.ts";
 
@@ -130,32 +129,6 @@ export async function render(
   };
 }
 
-export function renderServices() {
-  const temp = createTempContext();
-  const extension = createExtensionContext();
-
-  if (getNamedLifetime("render-services")) {
-    return {
-      temp,
-      extension,
-      lifetime: getNamedLifetime("render-services"),
-      cleanup: () => {},
-    };
-  } else {
-    const lifetime = createNamedLifetime("render-services");
-    lifetime.attach(temp);
-
-    return {
-      temp,
-      extension,
-      lifetime,
-      cleanup: () => {
-        lifetime.cleanup();
-      },
-    };
-  }
-}
-
 export function printWatchingForChangesMessage() {
   info("Watching files for changes", { format: colors.green });
 }
@@ -234,8 +207,6 @@ async function rswPortToken(port: number) {
     );
   }
 }
-
-export const kQuartoRenderCommand = "90B3C9E8-0DBC-4BC0-B164-AA2D5C031B28";
 
 export function previewUnableToRenderResponse() {
   return new Response("not found", {

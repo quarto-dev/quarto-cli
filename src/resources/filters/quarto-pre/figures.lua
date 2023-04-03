@@ -54,7 +54,13 @@ function quartoPreFigures()
         if figPos and not image.attr.attributes[kFigPos] then
           image.attr.attributes[kFigPos] = figPos
         end
+        -- remove fig-pos if it is false, since it
+        -- signals "don't use any value"
+        if image.attr.attributes[kFigPos] == "FALSE" then
+          image.attr.attributes[kFigPos] = nil
+        end
         local figEnv = param(kFigEnv)
+        
         if figEnv and not image.attr.attributes[kFigEnv] then
           image.attr.attributes[kFigEnv] = figEnv
         end

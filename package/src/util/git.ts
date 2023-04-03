@@ -1,5 +1,6 @@
 import { join } from "path/mod.ts";
 import { info } from "log/mod.ts";
+import * as colors from "fmt/colors.ts";
 
 export interface Repo {
   dir: string;
@@ -86,4 +87,27 @@ async function clone(workingDir: string, url: string) {
   } else {
     throw Error("No output from git clone");
   }
+}
+
+
+export async function applyGitPatches(patches: string[]) {
+  if (!patches) return undefined
+  info(`Applying Git patches...`);
+  Promise.all(
+    patches.map( async (patch) => {
+      info(`  - patch ${colors.blue(patch)}`)
+      const gitCmd: string[] = [];
+      gitCmd.push("git");
+      gitCmd.push("apply");
+      gitCmd.push(patch);
+      const p = Deno.run({
+        cmd: gitCmd,
+        stderr: "piped",
+      });
+      const status = await p.status();
+      if (status.code !== 0) {
+        throw Error("Failed to apply patch");
+      }
+    })
+  )
 }

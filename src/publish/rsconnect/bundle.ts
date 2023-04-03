@@ -1,9 +1,8 @@
 /*
-* bundle.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * bundle.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 // deno-lint-ignore-file no-deprecated-deno-api
 
@@ -14,7 +13,7 @@ import { ensureDirSync } from "fs/mod.ts";
 import { createHash } from "node/crypto.ts";
 import { Tar } from "archive/tar.ts";
 
-import { PublishFiles } from "../provider.ts";
+import { PublishFiles } from "../provider-types.ts";
 import { TempContext } from "../../core/temp-types.ts";
 
 export async function createBundle(

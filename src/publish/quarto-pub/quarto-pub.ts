@@ -1,9 +1,8 @@
 /*
-* quarto-pub.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * quarto-pub.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { AccessToken, Ticket } from "./api/types.ts";
 import {
@@ -11,7 +10,7 @@ import {
   AccountTokenType,
   PublishFiles,
   PublishProvider,
-} from "../provider.ts";
+} from "../provider-types.ts";
 import {
   AuthorizationHandler,
   authorizeAccessToken,

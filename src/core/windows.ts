@@ -1,14 +1,15 @@
 /*
-* windows.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * windows.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 import { existsSync } from "fs/mod.ts";
 import { join } from "path/mod.ts";
 import { quartoCacheDir } from "./appdirs.ts";
 import { removeIfExists } from "./path.ts";
-import { execProcess, ProcessResult } from "./process.ts";
+import { execProcess } from "./process.ts";
+import { ProcessResult } from "./process-types.ts";
+
 import {
   kHKeyCurrentUser,
   kHKeyLocalMachine,

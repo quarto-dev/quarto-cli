@@ -1,9 +1,8 @@
 /*
-* publish.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * publish.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import * as ld from "../core/lodash.ts";
 
@@ -19,15 +18,17 @@ import {
 } from "path/mod.ts";
 
 import {
-  AccountToken,
   InputMetadata,
   PublishFiles,
   PublishProvider,
-} from "./provider.ts";
+} from "./provider-types.ts";
+
+import { AccountToken } from "./provider-types.ts";
 
 import { PublishOptions } from "./types.ts";
 
-import { render, renderServices } from "../command/render/render-shared.ts";
+import { render } from "../command/render/render-shared.ts";
+import { renderServices } from "../command/render/render-services.ts";
 import { projectOutputDir } from "../project/project-shared.ts";
 import { PublishRecord } from "../publish/types.ts";
 import { ProjectContext } from "../project/types.ts";
@@ -169,6 +170,33 @@ export async function publishDocument(
           throw result.error;
         }
 
+        // convert the result to be document relative (if the file was in a project
+        // then it will be project relative, which doesn't conform to the expectations
+        // of downstream code)
+        if (result.baseDir) {
+          result.baseDir = normalizePath(result.baseDir);
+          const docDir = normalizePath(dirname(document));
+          if (result.baseDir !== docDir) {
+            const docRelative = (file: string) => {
+              if (!isAbsolute(file)) {
+                file = join(result.baseDir!, file);
+              }
+              return relative(docDir, file);
+            };
+            result.files = result.files.map((resultFile) => {
+              return {
+                ...resultFile,
+                file: docRelative(resultFile.file),
+                supporting: resultFile.supporting
+                  ? resultFile.supporting.map(docRelative)
+                  : undefined,
+                resourceFiles: resultFile.resourceFiles.map(docRelative),
+              };
+            });
+            result.baseDir = docDir;
+          }
+        }
+
         // populate files
         const baseDir = result.baseDir || dirname(document);
         const asRelative = (file: string) => {
@@ -203,7 +231,13 @@ export async function publishDocument(
           if (resultFile.supporting) {
             files.push(
               ...resultFile.supporting
-                .map((sf) => normalizePath(sf))
+                .map((sf) => {
+                  if (!isAbsolute(sf)) {
+                    return join(baseDir, sf);
+                  } else {
+                    return sf;
+                  }
+                })
                 .map(asRelative),
             );
           }

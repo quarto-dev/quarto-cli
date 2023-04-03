@@ -44,6 +44,11 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
         options[["results"]] <- "hold"
       }
     }
+    # for source-only engine, always set `echo: TRUE`
+    if (options[["engine"]] %in% c("embed", "verbatim")) {
+      options[["echo"]] <- TRUE
+    }
+
     options
   }
 
@@ -162,9 +167,8 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
       return(x)
     }
 
-    # verbatim and comment should do nothing
-    if (identical(options[["engine"]], "verbatim") ||
-        identical(options[["engine"]], "comment")) {
+    # verbatim-like and comment knitr's engine should do nothing
+    if (options[["engine"]] %in% c("verbatim", "embed", "comment")) {
       return(x)
     }
 
@@ -586,7 +590,9 @@ knitr_plot_hook <- function(format) {
         md <- sprintf("[%s](%s)", md, link)
       }
       
-      # enclose in output div
+      # result = "asis" specific
+      if (identical(options[["results"]], "asis")) return(md)
+      # enclose in output div 
       output_div(md, NULL, classes)
     }
 

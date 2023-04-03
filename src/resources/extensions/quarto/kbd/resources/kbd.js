@@ -7,7 +7,7 @@
       };
     } else if (userAgent.includes("Windows")) {
       return {
-        name: "win",
+        name: "windows",
       };
     } else {
       return {

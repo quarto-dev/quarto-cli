@@ -10,6 +10,62 @@ import {
 
 import { longestCommonDirPrefix } from "./utils.ts";
 
+function dropTypesFiles(edges: Edge[])
+{
+  return edges.filter(({
+    "from": edgeFrom,
+    to,
+  }) => !(to.endsWith("types.ts") || edgeFrom.endsWith("types.ts")));
+}
+
+function trimCommonPrefix(edges: Edge[])
+{
+  // https://stackoverflow.com/a/68702966
+  const strs: Set<string> = new Set();
+  for (const { "from": edgeFrom, to } of edges) {
+    strs.add(edgeFrom);
+    strs.add(to);
+  }
+  const p = longestCommonDirPrefix(Array.from(strs)).length;
+  return edges.map(({ "from": edgeFrom, to }) => ({
+    "from": edgeFrom.slice(p),
+    to: to.slice(p),
+  }));
+}
+
+function simplify(
+  edges: Edge[],
+  prefixes: string[],
+): Edge[]
+{
+  edges = trimCommonPrefix(edges);
+
+  const result: Edge[] = [];
+  const keepPrefix = (s: string) => {
+    for (const prefix of prefixes) {
+      if (s.startsWith(prefix)) {
+        return prefix + "...";
+      }
+    }
+    return s;
+  }
+  const edgeSet = new Set<string>();
+  for (const edge of edges) {
+    const from = keepPrefix(edge.from);
+    const to = keepPrefix(edge.to);
+    if (from === to) {
+      continue;
+    }
+    const key = `${from} -> ${to}`;
+    if (edgeSet.has(key)) {
+      continue;
+    }
+    edgeSet.add(key);
+    result.push({ from, to });
+  }
+  return result;
+}
+
 function explain(
   graph: DependencyGraph,
 ): Edge[] {
@@ -17,9 +73,11 @@ function explain(
   const transpose = graphTranspose(graph);
   const visited: Set<string> = new Set();
   let found = false;
+  let count = 0;
+
+  const deps = reachability(graph);
 
   for (const source of Object.keys(graph)) {
-    const deps = reachability(graph, source);
     if (!deps[source]) {
       continue;
     }
@@ -46,14 +104,6 @@ function explain(
 }
 
 function generateGraph(edges: Edge[]): string {
-  // https://stackoverflow.com/a/68702966
-  const strs: Set<string> = new Set();
-  for (const { "from": edgeFrom, to } of edges) {
-    strs.add(edgeFrom);
-    strs.add(to);
-  }
-  const p = longestCommonDirPrefix(Array.from(strs)).length;
-
   const qmdOut: string[] = [];
   qmdOut.push("digraph G {");
   const m: Record<string, number> = {};
@@ -68,7 +118,7 @@ function generateGraph(edges: Edge[]): string {
     qmdOut.push(`  ${m[edgeFrom]} -> ${m[to]};`);
   }
   for (const [name, ix] of Object.entries(m)) {
-    qmdOut.push(`  ${ix} [ label = "${name.slice(p)}", shape = "none" ];`);
+    qmdOut.push(`  ${ix} [ label = "${name}", shape = "none" ];`);
   }
   qmdOut.push("}\n");
   return qmdOut.join("");
@@ -122,10 +172,24 @@ If the second parameter is "--graph", then this program outputs the .dot specifi
   const json = await getDenoInfo(Deno.args[0]);
   const { graph } = moduleGraph(json);
 
-  const result = explain(graph);
-  if (Deno.args[1] === "--graph") {
+  let args = Array.from(Deno.args);
+
+  let result = explain(graph);
+  if (args[1] === "--simplify") {
+    args.splice(1, 1);
+    const prefixes = [];
+    while (!args[1].startsWith("--")) {
+      prefixes.push(args[1]);
+      args.splice(1, 1);
+    }
+    result = simplify(result, prefixes);
+  }
+
+  result = dropTypesFiles(result);
+
+  if (args[1] === "--graph") {
     Deno.writeTextFileSync(
-      Deno.args[2],
+      args[2] ?? "graph.dot",
       generateGraph(result),
     );
   } else {

@@ -1,9 +1,8 @@
 /*
-* netlify.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * netlify.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import {
   AccessToken,
@@ -18,7 +17,7 @@ import {
   AccountTokenType,
   PublishFiles,
   PublishProvider,
-} from "../provider.ts";
+} from "../provider-types.ts";
 import { ApiError } from "../../publish/netlify/api/index.ts";
 import { PublishOptions, PublishRecord } from "../types.ts";
 import {

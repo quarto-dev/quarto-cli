@@ -1,9 +1,8 @@
 /*
-* format-asciidoc.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * format-asciidoc.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { Format } from "../../config/types.ts";
 
@@ -11,15 +10,17 @@ import { mergeConfigs } from "../../core/config.ts";
 import { resolveInputTarget } from "../../project/project-index.ts";
 import {
   BookChapterEntry,
-  bookOutputStem,
   BookPart,
-  kBookAppendix,
-  kBookChapters,
-} from "../../project/types/book/book-config.ts";
+} from "../../project/types/book/book-types.ts";
 import {
   bookConfig,
+  bookOutputStem,
   isBookIndexPage,
 } from "../../project/types/book/book-shared.ts";
+import {
+  kBookAppendix,
+  kBookChapters,
+} from "../../project/types/book/book-constants.ts";
 import { join, relative } from "path/mod.ts";
 
 import { plaintextFormat } from "../formats-shared.ts";
@@ -41,6 +42,7 @@ import {
 import { citeIndex } from "../../project/project-cites.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
 import { PandocOptions } from "../../command/render/types.ts";
+import { registerWriterFormatHandler } from "../format-handlers.ts";
 
 type AsciiDocBookPart = string | {
   partPath?: string;
@@ -381,3 +383,13 @@ async function resolveBookInputs(
   }
   return outputs;
 }
+
+registerWriterFormatHandler((format) => {
+  switch (format) {
+    case "asciidoc":
+    case "asciidoctor":
+      return {
+        format: asciidocFormat(),
+      };
+  }
+});

@@ -1,9 +1,8 @@
 /*
-* cmd.ts
-*
-* Copyright (C) 2021-2022 Posit Software, PBC
-*
-*/
+ * cmd.ts
+ *
+ * Copyright (C) 2021-2022 Posit Software, PBC
+ */
 import { Command } from "cliffy/command/mod.ts";
 import { Table } from "cliffy/table/mod.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
@@ -11,11 +10,8 @@ import { createTempContext } from "../../core/temp.ts";
 
 import { info } from "log/mod.ts";
 import { createExtensionContext } from "../../extension/extension.ts";
-import {
-  Extension,
-  ExtensionContext,
-  extensionIdString,
-} from "../../extension/extension-shared.ts";
+import { extensionIdString } from "../../extension/extension-shared.ts";
+import { Extension, ExtensionContext } from "../../extension/types.ts";
 import { projectContext } from "../../project/project-context.ts";
 import { outputTools } from "../../tools/tools-console.ts";
 

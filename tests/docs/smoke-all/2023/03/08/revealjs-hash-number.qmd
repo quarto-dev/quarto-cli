@@ -1,0 +1,16 @@
+---
+title: Slide title
+format:
+  revealjs:
+    hash-type: number
+_quarto:
+  tests:
+    revealjs:
+      ensureHtmlElements:
+        - ["div.reveal > div.slides > section.quarto-title-block" ]
+        - ["#title-slide"]
+---
+
+## slide 1
+
+Content

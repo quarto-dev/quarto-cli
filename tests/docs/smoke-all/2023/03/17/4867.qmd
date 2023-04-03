@@ -1,0 +1,18 @@
+---
+title: issue-4867
+format: latex
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - []
+        - ["geometry"] # geometry package triggers on column-screen div (and shouldn't here)
+---
+
+## Introduction
+
+:::{.content-visible when-format="HTML}
+::::{.column-screen}
+Hello
+::::
+:::

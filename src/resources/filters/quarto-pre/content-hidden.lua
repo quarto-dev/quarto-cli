@@ -10,6 +10,19 @@ local kWhenProfile = "when-profile"
 local kUnlessProfile = "unless-profile"
 local kConditions = pandoc.List({kWhenFormat, kUnlessFormat, kWhenProfile, kUnlessProfile})
 
+function is_visible(node)
+  local profiles = pandoc.List(param("quarto_profile", {}))
+  local match = propertiesMatch(node.condition, profiles)
+  if node.behavior == kContentVisible then
+    return match
+  elseif node.behavior == kContentHidden then
+    return not match
+  else
+    crash_with_stack_trace()
+    return false
+  end
+end
+
 _quarto.ast.add_handler({
   class_name = { kContentVisible, kContentHidden },
   
@@ -39,21 +52,13 @@ _quarto.ast.add_handler({
 
   render = function(node)
     local el = node.node
-    local profiles = pandoc.List(param("quarto_profile", {}))
-    local visible
-    if node.behavior == kContentVisible then
-      clearHiddenVisibleAttributes(el)
-      visible = propertiesMatch(node.condition, profiles)
-    elseif node.behavior == kContentHidden then
-      clearHiddenVisibleAttributes(el)
-      visible = not propertiesMatch(node.condition, profiles)
-    else
-      crash_with_stack_trace()
-    end
+    local visible = is_visible(node)
+    clearHiddenVisibleAttributes(el)
     if visible then
       return el.content
+    else
+      return {}
     end
-    return {}
   end,
 
   constructor = function(tbl)
@@ -74,9 +79,13 @@ _quarto.ast.add_handler({
   end,
 
   inner_content = function(tbl)
-    return {
-      content = tbl.node.content,
-    }
+    if is_visible(tbl) then
+      return {
+        content = tbl.node.content,
+      }
+    else
+      return {}
+    end
   end,
 
   set_inner_content = function(tbl, content)

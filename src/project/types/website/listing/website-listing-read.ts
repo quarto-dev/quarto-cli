@@ -99,10 +99,14 @@ import { isYamlPath, readYaml } from "../../../../core/yaml.ts";
 import { parseAuthor } from "../../../../core/author.ts";
 import { parsePandocDate, resolveDate } from "../../../../core/date.ts";
 import { ProjectOutputFile } from "../../types.ts";
-import { projectOutputDir } from "../../../project-shared.ts";
-import { directoryMetadataForInputFile } from "../../../project-context.ts";
+import {
+  directoryMetadataForInputFile,
+  projectOutputDir,
+} from "../../../project-shared.ts";
 import { mergeConfigs } from "../../../../core/config.ts";
 import { globToRegExp } from "../../../../core/lib/glob.ts";
+import { cslNames } from "../../../../core/csl.ts";
+import { isHttpUrl } from "../../../../core/url.ts";
 
 // Defaults (a card listing that contains everything
 // in the source document's directory)
@@ -358,14 +362,26 @@ export function completeListingItems(
           });
 
           if (contents.previewImage) {
-            const imagePath = pathWithForwardSlashes(
-              listingItemHref(
-                contents.previewImage.src,
-                dirname(docRelativePath),
-              ),
-            );
+            const resolveUrl = (path: string) => {
+              if (isHttpUrl(path)) {
+                return path;
+              } else {
+                const imgAbsPath = isAbsolute(path)
+                  ? path
+                  : join(dirname(docAbsPath), path);
+                const imgRelPath = relative(
+                  dirname(outputFile.file),
+                  imgAbsPath,
+                );
+                return imgRelPath;
+              }
+            };
+
             const imgHtml = imageSrc(
-              { ...contents.previewImage, src: imagePath },
+              {
+                ...contents.previewImage,
+                src: resolveUrl(contents.previewImage.src),
+              },
               progressive,
               imgHeight,
             );
@@ -403,7 +419,7 @@ export function completeListingItems(
 }
 
 function emptyDiv(height?: string) {
-  return `<div class="listing-item-img-placeholder" ${
+  return `<div class="listing-item-img-placeholder card-img-top" ${
     height ? `style="height: ${height};"` : ""
   }>&nbsp;</div>`;
 }
@@ -989,7 +1005,17 @@ async function listItemFromFile(
       : undefined;
 
     const authors = parseAuthor(documentMeta?.author);
-    const author = authors ? authors.map((auth) => auth.name) : [];
+    let structuredAuthors;
+    if (authors) {
+      structuredAuthors = cslNames(
+        authors?.filter((auth) => auth !== undefined).map((auth) => auth?.name),
+      );
+    }
+    const author = structuredAuthors
+      ? structuredAuthors.map((auth) =>
+        auth.literal || `${auth.given} ${auth.family}`
+      )
+      : [];
 
     const readingtime = target?.markdown
       ? estimateReadingTimeMinutes(target.markdown.markdown)
@@ -1027,11 +1053,13 @@ async function listItemFromFile(
 }
 
 function imageSrc(image: PreviewImage, progressive: boolean, height?: string) {
-  return `<img ${progressive ? "data-src" : "src"}="${image.src}" ${
-    image.alt ? `alt="${image.alt}" ` : ""
-  }${height ? `style="height: ${height};" ` : ""}${
+  return `<p class="card-img-top"><img ${
+    progressive ? "data-src" : "src"
+  }="${image.src}" ${image.alt ? `alt="${image.alt}" ` : ""}${
+    height ? `style="height: ${height};" ` : ""
+  }${
     image.title ? `title="${image.title}"` : ""
-  }/>`;
+  } class="thumbnail-image card-img"/></p>`;
 }
 
 // Processes the 'listing' metadata into an

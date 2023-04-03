@@ -1,9 +1,8 @@
 /*
-* types.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * types.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 import {
   kIncludeAfterBody,
   kIncludeBeforeBody,
@@ -82,6 +81,7 @@ export interface ExecuteOptions {
   quiet?: boolean;
   previewServer?: boolean;
   handledLanguages: string[]; // list of languages handled by cell language handlers, after the execution engine
+  projectType?: string;
 }
 
 // result of execution

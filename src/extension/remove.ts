@@ -1,16 +1,12 @@
 /*
-* remove.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * remove.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 import { basename, dirname } from "path/mod.ts";
 import { removeIfEmptyDir } from "../core/path.ts";
-import {
-  Extension,
-  kBuiltInExtOrg,
-  kExtensionDir,
-} from "./extension-shared.ts";
+import { kBuiltInExtOrg, kExtensionDir } from "./constants.ts";
+import { Extension } from "./types.ts";
 
 export async function removeExtension(extension: Extension) {
   // You can't remove quarto extensions

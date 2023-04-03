@@ -2,7 +2,6 @@
  * latex.ts
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
- *
  */
 
 import { basename, join } from "path/mod.ts";
@@ -12,7 +11,8 @@ import { error, info } from "log/mod.ts";
 import { PdfEngine } from "../../../config/types.ts";
 
 import { dirAndStem } from "../../../core/path.ts";
-import { execProcess, ProcessResult } from "../../../core/process.ts";
+import { execProcess } from "../../../core/process.ts";
+import { ProcessResult } from "../../../core/process-types.ts";
 
 import { PackageManager } from "./pkgmgr.ts";
 import {

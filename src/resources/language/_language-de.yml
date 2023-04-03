@@ -60,6 +60,7 @@ search-detached-cancel-button-title: "Abbrechen"
 search-submit-button-title: "Abschicken"
 search: "Suchen"
 
+toggle-section: "Abschnitt umschalten"
 toggle-sidebar: "Seitenleiste umschalten"
 toggle-dark-mode: "Dunkelmodus umschalten"
 toggle-reader-mode: "Lesemodus umschalten"

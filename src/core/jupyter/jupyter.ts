@@ -1,9 +1,8 @@
 /*
-* jupyter.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * jupyter.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 // deno-lint-ignore-file camelcase
 
@@ -155,7 +154,7 @@ import { ProjectContext } from "../../project/types.ts";
 import { mergeConfigs } from "../config.ts";
 import { encode as encodeBase64 } from "encoding/base64.ts";
 import { isIpynbOutput } from "../../config/format.ts";
-import { fixupJupyterNotebook } from "./jupyter-fixups.ts";
+import { bookFixups, fixupJupyterNotebook } from "./jupyter-fixups.ts";
 
 export const kQuartoMimeType = "quarto_mimetype";
 export const kQuartoOutputOrder = "quarto_order";
@@ -656,7 +655,11 @@ export async function jupyterToMarkdown(
   options: JupyterToMarkdownOptions,
 ): Promise<JupyterToMarkdownResult> {
   // perform fixups
-  nb = fixupJupyterNotebook(nb);
+  const fixups = options.executeOptions.projectType === "book"
+    ? bookFixups
+    : undefined;
+
+  nb = fixupJupyterNotebook(nb, fixups);
 
   // optional content injection / html preservation for html output
   // that isn't an ipynb
@@ -1637,9 +1640,9 @@ which does not appear to be plain text: ${JSON.stringify(data)}`);
       } else {
         if (options.toHtml) {
           if (lines.some(hasAnsiEscapeCodes)) {
-            const html = (await Promise.all(
+            const html = await Promise.all(
               lines.map(convertToHtmlSpans),
-            ));
+            );
             return mdMarkdownOutput(
               [
                 "\n::: {.ansi-escaped-output}\n```{=html}\n<pre>",

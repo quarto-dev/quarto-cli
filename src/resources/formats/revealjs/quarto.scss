@@ -203,12 +203,13 @@ section.has-dark-background {
   }
 }
 
-#title-slide {
+#title-slide,
+/* for when hash-type: number as identifier removed*/
+div.reveal div.slides section.quarto-title-block {
   text-align: $presentation-title-slide-text-align;
-}
-
-#title-slide .subtitle {
-  margin-bottom: 2.5rem;
+  .subtitle {
+    margin-bottom: 2.5rem;
+  }
 }
 
 .reveal .slides {

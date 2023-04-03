@@ -1,13 +1,13 @@
 /*
-* check.ts
-*
-* Copyright (C) 2021-2022 Posit Software, PBC
-*
-*/
+ * check.ts
+ *
+ * Copyright (C) 2021-2022 Posit Software, PBC
+ */
 
 import { info } from "log/mod.ts";
 
-import { render, renderServices } from "../render/render-shared.ts";
+import { render } from "../render/render-shared.ts";
+import { renderServices } from "../render/render-services.ts";
 
 import { JupyterCapabilities } from "../../core/jupyter/types.ts";
 import { jupyterCapabilities } from "../../core/jupyter/capabilities.ts";
@@ -231,7 +231,7 @@ async function checkKnitrInstallation(services: RenderServices) {
     completeMessage(kMessage + "OK");
     info(knitrCapabilitiesMessage(caps, kIndent));
     info("");
-    if (caps.rmarkdown) {
+    if (caps.packages.rmarkdown && caps.packages.knitrVersOk) {
       const kKnitrMessage = "Checking Knitr engine render......";
       await withSpinner({
         message: kKnitrMessage,
@@ -240,7 +240,15 @@ async function checkKnitrInstallation(services: RenderServices) {
         await checkKnitrRender(services);
       });
     } else {
-      info(knitrInstallationMessage(kIndent));
+      info(
+        knitrInstallationMessage(
+          kIndent,
+          caps.packages.knitr && !caps.packages.knitrVersOk
+            ? "knitr"
+            : "rmarkdown",
+          !!caps.packages.knitr && !caps.packages.knitrVersOk,
+        ),
+      );
       info("");
     }
   } else {

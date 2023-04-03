@@ -1,9 +1,8 @@
 /*
-* cmd.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * cmd.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { existsSync } from "fs/mod.ts";
 import { dirname, extname, join, relative } from "path/mod.ts";
@@ -12,7 +11,8 @@ import * as colors from "fmt/colors.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 
-import { kLocalhost, waitForPort } from "../../core/port.ts";
+import { kLocalhost } from "../../core/port-consts.ts";
+import { waitForPort } from "../../core/port.ts";
 import { fixupPandocArgs, parseRenderFlags } from "../render/flags.ts";
 import {
   handleRenderResult,
@@ -32,14 +32,15 @@ import {
 } from "../../core/lib/yaml-validation/state.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 import { kProjectWatchInputs, ProjectContext } from "../../project/types.ts";
+import { projectContext } from "../../project/project-context.ts";
 import {
-  projectContext,
   projectIsServeable,
   projectPreviewServe,
-} from "../../project/project-context.ts";
+} from "../../project/project-shared.ts";
+
 import { isHtmlOutput } from "../../config/format.ts";
 import { renderProject } from "../render/project.ts";
-import { renderServices } from "../render/render-shared.ts";
+import { renderServices } from "../render/render-services.ts";
 import { parseFormatString } from "../../core/pandoc/pandoc-formats.ts";
 import { normalizePath } from "../../core/path.ts";
 import { kCliffyImplicitCwd } from "../../config/constants.ts";

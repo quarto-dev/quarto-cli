@@ -85,8 +85,15 @@ function escape_invalid_tags(str)
       print("Please file a bug at https://github.com/quarto-dev/quarto-cli")
       os.exit(1)
     end
+    -- replace all lua special pattern characters with their
+    -- escaped versions
+    local safe_pattern = k:gsub("([%^%$%(%)%%%.%[%]%*%+%-%?])", "%%%1")
     replacements[replacement] = k
-    local patterns = {"^([ \t\f\v]*```+[ \t\f\v]*)" .. k, "(\n[ \t\f\v]*```+[ \t\f\v]*)" .. k}
+    local patterns = {
+      "^([ \t\f\v]*```+[ \t\f\v]*)" .. safe_pattern,
+      "(\n[ \t\f\v]*```+[ \t\f\v]*)" .. safe_pattern
+    }
+
     str = str:gsub(patterns[1], "%1" .. replacement):gsub(patterns[2], "%1" .. replacement)
   end
   return str, replacements
@@ -94,7 +101,11 @@ end
 
 function unescape_invalid_tags(str, tags)
   for replacement, k in pairs(tags) do
-    str = str:gsub(replacement, k)
+    -- replace all lua special replacement characters with their
+    -- escaped versions, so that when we restore the behavior,
+    -- we don't accidentally create a pattern
+    local result = k:gsub("([$%%])", "%%%1")
+    str = str:gsub(replacement, result)
   end
   return str
 end

@@ -1,9 +1,8 @@
 /*
-* types.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * types.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import {
   kCapLoc,
@@ -145,6 +144,8 @@ export interface JupyterOutput {
   isolated?: boolean;
   metadata?: Record<string, unknown>;
   data?: Record<string, unknown>;
+  name?: string;
+  text?: string[];
 }
 
 export interface JupyterOutputStream extends JupyterOutput {

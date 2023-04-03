@@ -1,9 +1,8 @@
 /*
-* format-reveal-plugin.ts
-*
-* Copyright (C) 2021-2022 Posit Software, PBC
-*
-*/
+ * format-reveal-plugin.ts
+ *
+ * Copyright (C) 2021-2022 Posit Software, PBC
+ */
 
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { basename, join } from "path/mod.ts";
@@ -31,12 +30,15 @@ import { readAndValidateYamlFromFile } from "../../core/schema/validated-yaml.ts
 
 import { revealPluginSchema } from "./schemas.ts";
 import { copyMinimal } from "../../core/copy.ts";
-import {
-  ExtensionContext,
-  kRevealJSPlugins,
-} from "../../extension/extension-shared.ts";
+import { kRevealJSPlugins } from "../../extension/constants.ts";
+import { ExtensionContext } from "../../extension/types.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { filterExtensions } from "../../extension/extension.ts";
+import {
+  RevealPlugin,
+  RevealPluginBundle,
+  RevealPluginScript,
+} from "./format-reveal-plugin-types.ts";
 
 const kRevealjsPlugins = "revealjs-plugins";
 
@@ -85,27 +87,6 @@ const kRevealPluginOptions = [
 ];
 
 const kRevealPluginKebabOptions = optionsToKebab(kRevealPluginOptions);
-
-export interface RevealPluginBundle {
-  plugin: string;
-  config?: Metadata;
-}
-
-export interface RevealPlugin {
-  path: string;
-  name: string;
-  register?: boolean;
-  script?: RevealPluginScript[];
-  stylesheet?: string[];
-  config?: Metadata;
-  metadata?: string[];
-  [kSelfContained]?: boolean;
-}
-
-export interface RevealPluginScript {
-  path: string;
-  async?: boolean;
-}
 
 export function isPluginBundle(
   plugin: RevealPluginBundle | RevealPlugin,
@@ -437,7 +418,7 @@ function revealMenuTools(format: Format) {
     {
       title: "PDF Export Mode",
       key: "e",
-      handler: "overview",
+      handler: "togglePdfExport",
     },
   ];
   if (format.metadata[kRevealChalkboard]) {

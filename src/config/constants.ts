@@ -77,6 +77,7 @@ export const kCodeTools = "code-tools";
 export const kTblCap = "tbl-cap";
 export const kTblColwidths = "tbl-colwidths";
 export const kMergeIncludes = "merge-includes";
+export const kInlineIncludes = "inline-includes";
 export const kPreferHtml = "prefer-html";
 export const kSelfContainedMath = "self-contained-math";
 export const kBiblioConfig = "biblio-config";
@@ -156,6 +157,8 @@ export const kRenderDefaultsKeys = [
   kCodeTools,
   kShortcodes,
   kTblColwidths,
+  kInlineIncludes,
+  kMergeIncludes,
   kSelfContainedMath,
   kLatexAutoMk,
   kLatexAutoInstall,
@@ -215,6 +218,7 @@ export const kCodeToolsSourceCode = "code-tools-source-code";
 export const kSearchNoResultsText = "search-no-results-text";
 export const kSearch = "search";
 
+export const kToggleSection = "toggle-section";
 export const kToggleSidebar = "toggle-sidebar";
 export const kToggleDarkMode = "toggle-dark-mode";
 export const kToggleReaderMode = "toggle-reader-mode";
@@ -324,6 +328,7 @@ export const kLanguageDefaultsKeys = [
   kToggleNavigation,
   kToggleReaderMode,
   kToggleSidebar,
+  kToggleSection,
   kCopyButtonTooltip,
   kCopyButtonTooltipSuccess,
   kBackToTop,
@@ -511,7 +516,15 @@ export const kCrossrefChaptersAppendix = "chapters-appendix";
 export const kCrossrefChaptersAlpha = "chapters-alpha";
 export const kCrossrefChapterId = "chapter-id";
 
+export const kGrid = "grid";
+export const kContentMode = "content-mode";
+export const kAuto = "auto";
+export const kStandardContent = "standard";
+export const kFullContent = "full";
+export const kSlimContent = "slim";
+
 export const kFigResponsive = "fig-responsive";
+export const kOutputLocation = "output-location";
 
 export const kCapLoc = "cap-location";
 export const kFigCapLoc = "fig-cap-location";

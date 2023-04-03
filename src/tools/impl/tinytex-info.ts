@@ -5,7 +5,7 @@
 *
 */
 
-import { expandPath } from "../../core/path.ts";
+import { expandPath, safeExistsSync } from "../../core/path.ts";
 import { join } from "path/mod.ts";
 import { getenv } from "../../core/env.ts";
 
@@ -37,8 +37,12 @@ export function tinyTexBinDir(): string | undefined {
   const basePath = tinyTexInstallDir();
   if (basePath) {
     switch (Deno.build.os) {
-      case "windows":
-        return join(basePath, "bin\\win32\\");
+      case "windows": {
+        // TeX Live 2023 use windows now. Previous version were using win32
+        const winPath = join(basePath, "bin\\win32\\");
+        if (safeExistsSync(winPath)) return (winPath);
+        return join(basePath, "bin\\windows\\");
+      }
       case "linux":
         return join(basePath, `bin/${Deno.build.arch}-linux`);
       case "darwin":
