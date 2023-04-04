@@ -274,6 +274,21 @@ function TestVideoJSBuilder:testBasic()
   checkVideoJSBuilder(params, expected)
 end
 
+function TestVideoJSBuilder:testDropBox()
+  local params = {
+    id = 1,
+    src = 'https://www.dropbox.com/s/h3ezvnpyn8xe5ch/Section1_4_c.mp4?raw=1'
+  }
+  local expected = {
+    id="video_shortcode_videojs_video1",
+    snippet="<video id=\"video_shortcode_videojs_video1\" class=\"video-js vjs-default-skin vjs-fluid\" controls preload=\"auto\" data-setup='{}' title=\"\"><source src=\"https://www.dropbox.com/s/h3ezvnpyn8xe5ch/Section1_4_c.mp4?raw=1\"></video>",
+    type="VIDEOJS",
+    src='https://www.dropbox.com/s/h3ezvnpyn8xe5ch/Section1_4_c.mp4?raw=1'
+  }
+
+  checkVideoJSBuilder(params, expected)
+end
+
 function TestVideoJSBuilder:testTitle()
   local params = {
     title = 'test-title',
