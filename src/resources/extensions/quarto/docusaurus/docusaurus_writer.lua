@@ -69,12 +69,12 @@ function Writer(doc, opts)
 
     Callout = function(node)
       local admonition = pandoc.List()
-      admonition:insert(pandoc.RawBlock("markdown", ":::" .. node.type))
+      admonition:insert(pandoc.RawBlock("markdown", "\n:::" .. node.type))
       if node.title then
         admonition:insert(pandoc.Header(2, node.title))
       end
       admonition:extend(node.content)
-      admonition:insert(pandoc.RawBlock("markdown", ":::"))
+      admonition:insert(pandoc.RawBlock("markdown", ":::\n"))
       return admonition
     end
   })

@@ -1,9 +1,8 @@
 /*
-* format.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * format.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { kBaseFormat, kPreferHtml } from "../config/constants.ts";
 import { Format, FormatPandoc } from "./types.ts";
