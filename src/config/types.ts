@@ -145,6 +145,7 @@ import {
   kPdfEngineOpt,
   kPdfEngineOpts,
   kPreferHtml,
+  kPreserveYaml,
   kQuartoFilters,
   kReferenceLocation,
   kRelatedFormatsTitle,
@@ -398,7 +399,8 @@ export interface FormatRender {
   [kTblColwidths]?: "auto" | boolean | number[];
   [kShortcodes]?: string[];
   [kMergeIncludes]?: boolean;
-  [kInlineIncludes]?: false;
+  [kInlineIncludes]?: boolean;
+  [kPreserveYaml]?: boolean;
   [kLatexAutoMk]?: boolean;
   [kLatexAutoInstall]?: boolean;
   [kLatexMinRuns]?: number;

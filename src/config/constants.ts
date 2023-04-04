@@ -1,9 +1,8 @@
 /*
-* constants.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * constants.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 export const kMetadataFormat = "format";
 
@@ -78,6 +77,7 @@ export const kTblCap = "tbl-cap";
 export const kTblColwidths = "tbl-colwidths";
 export const kMergeIncludes = "merge-includes";
 export const kInlineIncludes = "inline-includes";
+export const kPreserveYaml = "preserve-yaml";
 export const kPreferHtml = "prefer-html";
 export const kSelfContainedMath = "self-contained-math";
 export const kBiblioConfig = "biblio-config";
@@ -158,6 +158,7 @@ export const kRenderDefaultsKeys = [
   kShortcodes,
   kTblColwidths,
   kInlineIncludes,
+  kPreserveYaml,
   kMergeIncludes,
   kSelfContainedMath,
   kLatexAutoMk,
