@@ -105,7 +105,7 @@ local function isBibliographyOutput()
 end
 
 local function is_docusaurus_output()
-  return string.match(param("custom-writer"), "docusaurus_writer.lua$")
+  return string.match(param("custom-writer", ""), "docusaurus_writer.lua$")
 end
 
 -- check for markdown output
