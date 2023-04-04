@@ -1,75 +1,41 @@
 --[[
-  A low-overhead minimal lua profiler
+  A low-overhead minimal lua profiler.
+
+  It requires cooperation from the lua interpreter itself, which we patch, and then
+  compile a custom pandoc binary.
+  
+  In other words, this is not meant to be used by regular quarto users.
 ]]
 
 local getTime = os.clock
 local module = {}
 local outputfile
-
-local names = { }
-local nnames = 0
-module.category = ""
+local stack_count = 0
 
 local onDebugHook = function(hookType)
-  local information = debug.getinfo(2, "nS")
-  if information.source == "=[C]" then
-    return
-  end
-  if information.source:sub(1, 1) ~= "@" then
-    return
-  end
-
-  local name = information.name or "<C>"
-  local source = information.source or "unknown"
-  if hookType == "tail call" then
-    hookType = "tailcall"
-  end
-
-  if names[hookType] == nil then
-    names[hookType] = nnames
-    nnames = nnames + 1
-  else
-    hookType = names[hookType]
-  end
-
-  if names[name] == nil then
-    names[name] = nnames
-    nnames = nnames + 1
-  else
-    name = names[name]
-  end
-
-  if names[source] == nil then
-    names[source] = nnames
-    nnames = nnames + 1
-  else
-    source = names[source]
-  end
-
-  if type(module.category) == "string" and module.category ~= "" then
-    if names[module.category] == nil then
-      names[module.category] = nnames
-      nnames = nnames + 1
-    else
-      module.category = names[module.category]
+  local no = 2
+  local information = debug.getinfo(no, "nS")
+  local now = os.clock()
+  while information ~= nil do
+    local source = information.source or "unknown"
+    local name = information.name or "<C>"
+    if not string.match(source, ".lua$") then
+      source = "<inline>"
     end
+    outputfile:write(stack_count, " ", name, " ", source, " ", information.linedefined, " ", now, " ", module.category, "\n")
+    no = no + 1
+    information = debug.getinfo(no, "nS")
   end
-
-  outputfile:write(hookType, " ", name, " ", source, " ", information.linedefined, " ", getTime(), " ", module.category, "\n")
-end
-
-function time_hook()
-  print(os.clock())
+  stack_count = stack_count + 1
 end
 
 function module.start(filename)
-  debug.sethook(time_hook, "t", 10)
   outputfile = io.open(filename, "a")
-  -- if outputfile == nil then
-  --   error("Could not open profiler.txt for writing")
-  --   return
-  -- end
-  -- debug.sethook(onDebugHook, "cr", 0)
+  if outputfile == nil then
+    error("Could not open profiler.txt for writing")
+    return
+  end
+  debug.sethook(onDebugHook, "t", 5) -- NB: "t" debugging only exists in our patched Lua interpreter/pandoc binary!
 end
 
 function module.stop()
