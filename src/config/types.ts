@@ -152,6 +152,7 @@ import {
   kRepoActionLinksEdit,
   kRepoActionLinksIssue,
   kRepoActionLinksSource,
+  kResourcePath,
   kSearch,
   kSearchClearButtonTitle,
   kSearchCopyLinkTitle,
@@ -465,6 +466,7 @@ export interface FormatPandoc {
   [kIncludeBeforeBody]?: string[];
   [kIncludeAfterBody]?: string[];
   [kIncludeInHeader]?: string[];
+  [kResourcePath]?: string[];
   [kReferenceLocation]?: string;
   [kCiteproc]?: boolean;
   [kCiteMethod]?: string;

@@ -417,6 +417,7 @@ export const kEmbedResources = "embed-resources";
 export const kIncludeBeforeBody = "include-before-body";
 export const kIncludeAfterBody = "include-after-body";
 export const kIncludeInHeader = "include-in-header";
+export const kResourcePath = "resource-path";
 export const kCiteproc = "citeproc";
 export const kCiteMethod = "cite-method";
 export const kFilters = "filters";
@@ -561,7 +562,7 @@ export const kPandocDefaultsKeys = [
   kIncludeBeforeBody,
   kIncludeAfterBody,
   kIncludeInHeader,
-  "resource-path",
+  kResourcePath,
   kCiteproc,
   kCiteMethod,
   "citation-abbreviations",

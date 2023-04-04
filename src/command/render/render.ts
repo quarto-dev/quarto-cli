@@ -52,6 +52,7 @@ import {
   kIncludeBeforeBody,
   kIncludeInHeader,
   kInlineIncludes,
+  kResourcePath,
 } from "../../config/constants.ts";
 import { pandocIngestSelfContainedContent } from "../../core/pandoc/self-contained.ts";
 
@@ -273,7 +274,10 @@ export async function renderPandoc(
         // If this is self-contained, run pandoc to 'suck in' the dependencies
         // which may have been added in the post processor
         if (selfContained && isHtmlFileOutput(format.pandoc)) {
-          await pandocIngestSelfContainedContent(outputFile);
+          await pandocIngestSelfContainedContent(
+            outputFile,
+            format.pandoc[kResourcePath],
+          );
         }
       });
 
