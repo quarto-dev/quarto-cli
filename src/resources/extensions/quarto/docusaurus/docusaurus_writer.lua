@@ -12,7 +12,7 @@ local function jsx(content)
   return pandoc.RawBlock("markdown", content)
 end
 
-local function tabset(node)
+local function tabset(node, filter)
   -- note groupId
   local groupId = ""
   local group = node.attr.attributes["group"]
@@ -30,7 +30,7 @@ local function tabset(node)
     local title = node.tabs[i].title
 
     tabs.content:insert(jsx(([[<TabItem value="%s">]]):format(pandoc.utils.stringify(title))))
-    tabs.content:extend(content)
+    tabs.content:extend(quarto._quarto.ast.walk(content, filter))
     tabs.content:insert(jsx("</TabItem>"))
   end
 
@@ -45,8 +45,8 @@ local function tabset(node)
 end
 
 function Writer(doc, opts)
-  
-  doc = quarto._quarto.ast.walk(doc, {
+  local filter
+  filter = {
     DecoratedCodeBlock = function(node)
       local el = node.code_block
       local lang = el.attr.classes[1]
@@ -65,7 +65,9 @@ function Writer(doc, opts)
       return nil
     end,
 
-    Tabset = tabset,
+    Tabset = function(node)
+      return tabset(node, filter)
+    end,
 
     Callout = function(node)
       local admonition = pandoc.List()
@@ -73,11 +75,13 @@ function Writer(doc, opts)
       if node.title then
         admonition:insert(pandoc.Header(2, node.title))
       end
-      admonition:extend(node.content)
+      admonition:extend(quarto._quarto.ast.walk(node.content, filter))
       admonition:insert(pandoc.RawBlock("markdown", ":::\n"))
       return admonition
     end
-  })
+  }
+  
+  doc = quarto._quarto.ast.walk(doc, filter)
 
   -- insert exports at the top if we have them
   if #rawHtmlVars > 0 then
