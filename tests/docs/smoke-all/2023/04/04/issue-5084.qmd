@@ -1,7 +1,5 @@
 ---
-format:
-  html:
-    embed-resources: true
+embed-resources: true
 resource-path: ["dummy"]
 _quarto:
   tests:
@@ -9,6 +7,10 @@ _quarto:
       ensureHtmlElements:
         - ['img[src^="data:image/png;base64"]']
         - ['img[src^="temp.png"]']
+    revealjs:
+      ensureHtmlElements:
+        - ['img[data-src^="data:image/png;base64"]']
+        - ['img[data-src^="temp.png"]']
 ---
 
 # show the plot
