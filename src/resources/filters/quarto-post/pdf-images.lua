@@ -109,8 +109,13 @@ function pdfImages()
             else 
               local relativePath = image.src:match('https?://[%w%.%:]+/(.+)')
               if relativePath then
+                
                 local imgMt, imgContents = pandoc.mediabag.fetch(image.src)
-                local filename = windows_safe_filename(tex_safe_filename(pandoc.path.filename(relativePath)))
+                local decodedSrc = urldecode(image.src)
+                if decodedSrc == nil then
+                  decodedSrc = "unknown"
+                end
+                local filename = windows_safe_filename(tex_safe_filename(pandoc.path.filename(decodedSrc)))
                 if imgMt ~= nil then
                   local existingMt = pandoc.mediabag.lookup(filename)
                   local counter = 1
