@@ -127,15 +127,10 @@ _quarto.ast.add_handler({
   end,
 
   inner_content = function(extended_node)
-    return {
-      code_block = extended_node.code_block
-    }
+    return {}
   end,
 
   set_inner_content = function(extended_node, values)
-    if values.code_block ~= nil then
-      extended_node.code_block = values.code_block
-    end
     return extended_node
   end,
 
