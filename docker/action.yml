@@ -1,5 +1,5 @@
 name: "quarto-docker"
-description: "Build and push a Quarto Docker container to DockerHub."
+description: "Build and push a Quarto Docker container to the GitHub Container Registry."
 inputs:
   source:
     description: "Full path to quarto file"
@@ -13,8 +13,11 @@ inputs:
   username:
     description: "The username to authenticate to docker registry"
     required: true
-  repo:
-    description: "The dockerhub repo you want to push to"
+  org:
+    description: 'The GitHub orginization that will host Docker image'
+    required: true
+  name:
+    description: 'The name of the Docker image'
     required: true
   daily:
     description: "Apply the `daily` tag to the image."
@@ -25,7 +28,7 @@ runs:
   using: "composite"
   steps:
     - shell: bash
-      run: echo "BASE_NM=${{ inputs.username }}/${{ inputs.repo }}" >> $GITHUB_ENV
+      run: echo "BASE_NM=ghcr.io/${{ inputs.org }}/${{ inputs.name }}" >> $GITHUB_ENV
 
     - name: Create DockerFile
       shell: bash
@@ -47,6 +50,6 @@ runs:
     - name: Login To DockerHub
       shell: bash
       run: |
-        echo ${{ inputs.token }} | docker login -u ${{ inputs.username }} --password-stdin
+        echo ${{ inputs.token }} | docker login https://ghcr.io -u ${{ inputs.username }} --password-stdin
         docker build -t ${{ env.BASE_NM }}:${{ inputs.version }} ${{ env.LATEST_TAG }} ${{ env.DAILY_TAG }} .
         docker push ${{ env.BASE_NM }} --all-tags
