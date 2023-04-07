@@ -8,7 +8,10 @@ import { basename, dirname } from "path/mod.ts";
 import { formatResourcePath, pandocBinaryPath } from "../../core/resources.ts";
 import { execProcess } from "../../core/process.ts";
 
-export const pandocIngestSelfContainedContent = async (file: string) => {
+export const pandocIngestSelfContainedContent = async (
+  file: string,
+  resourcePath?: string[],
+) => {
   const filename = basename(file);
   const workingDir = dirname(file);
 
@@ -33,6 +36,9 @@ export const pandocIngestSelfContainedContent = async (file: string) => {
   cmd.push("--output", filename);
   cmd.push("--metadata", "title=placeholder");
   cmd.push("--embed-resources");
+  if (resourcePath && resourcePath.length) {
+    cmd.push("--resource-path", resourcePath.join(":"));
+  }
   const result = await execProcess({
     cmd,
     stdout: "piped",

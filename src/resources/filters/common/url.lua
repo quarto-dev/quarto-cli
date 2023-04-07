@@ -12,4 +12,13 @@ function urldecode(url)
   return url
 end
 
-
+function fullyUrlDecode(url)
+  -- decode the url until it is fully decoded (not a single pass,
+  -- but repeated until it decodes no further)
+  result = urldecode(url)
+  if result == url then
+    return result
+  else 
+    return fullyUrlDecode(result)
+  end
+end
