@@ -47,7 +47,7 @@ runs:
       shell: bash
       run: echo "DAILY_TAG=-t ${{ env.BASE_NM }}:daily" >> $GITHUB_ENV
 
-    - name: Login To DockerHub
+    - name: Push image
       shell: bash
       run: |
         echo ${{ inputs.token }} | docker login https://ghcr.io -u ${{ inputs.username }} --password-stdin
