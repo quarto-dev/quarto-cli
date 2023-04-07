@@ -17,6 +17,9 @@ on:
         required: false
         default: "false"
 
+permissions:
+    packages: write
+
 jobs:
   configure:
     runs-on: ubuntu-latest
@@ -569,9 +572,10 @@ jobs:
         with:
           source: ./Deb Installer/quarto-${{needs.configure.outputs.version}}-linux-amd64.deb
           version: ${{needs.configure.outputs.version}}
-          token: ${{ secrets.DOCKER_TOKEN }}
-          username: posit
-          repo: quarto
+          token: ${{ secrets.GITHUB_TOKEN }}
+          username: ${{ github.actor }}
+          org: ${{ github.repository_owner }}
+          name: quarto
           daily: ${{ github.event.inputs.pre-release }}
 
       - name: Generate Checksums
