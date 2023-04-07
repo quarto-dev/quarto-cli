@@ -18,11 +18,40 @@ function resolve_custom_node(node)
   end
 end
 
+local skippable_fields = {
+  ["_filter_name"] = true,
+}
 function run_emulated_filter(doc, filter, top_level, profiling)
+
+  local can_skip = true
+  local entries = {}
+  local sz = 0
+  for k, _ in pairs(filter) do
+    if not skippable_fields[k] then
+      entries[k] = true
+      can_skip = false
+      sz = sz + 1
+    end
+  end
+
+  -- performance: if filter is empty, do nothing
+  if can_skip then
+    return doc
+  end
+
   local in_filter = false
   if top_level and filter._filter_name ~= nil and profiling then
     in_filter = true
     profiler.category = filter._filter_name
+  end
+
+  -- performance: if filter is only Pandoc, call that directly instead of walking.
+  if sz == 1 and entries.Pandoc then
+    local result = filter.Pandoc(doc) or doc
+    if in_filter then
+      profiler.category = ""
+    end
+    return result
   end
 
   if filter._is_wrapped then
