@@ -14,10 +14,10 @@ inputs:
     description: "The username to authenticate to docker registry"
     required: true
   org:
-    description: 'The GitHub orginization that will host Docker image'
+    description: "The GitHub orginization that will host Docker image"
     required: true
   name:
-    description: 'The name of the Docker image'
+    description: "The name of the Docker image"
     required: true
   daily:
     description: "Apply the `daily` tag to the image."
@@ -39,11 +39,11 @@ runs:
         RUN dpkg -i quarto-linux-amd64.deb && rm quarto-linux-amd64.deb
         EOF
 
-    - if: ${{ inputs.daily != 'true' && inputs.daily != 'True'  }}
+    - if: ${{ inputs.daily == 'false' }}
       shell: bash
       run: echo "LATEST_TAG=-t ${{ env.BASE_NM }}:latest" >> $GITHUB_ENV
 
-    - if: ${{ inputs.daily && inputs.daily != 'false' && inputs.daily != 'False' }}
+    - if: ${{ inputs.daily == 'true' }}
       shell: bash
       run: echo "DAILY_TAG=-t ${{ env.BASE_NM }}:daily" >> $GITHUB_ENV
 

@@ -7,15 +7,18 @@ on:
       publish-release:
         description: "Publish Release"
         required: false
-        default: "true"
+        type: boolean
+        default: true
       pre-release:
         description: "Pre-release"
         required: false
-        default: "true"
+        type: boolean
+        default: true
       draft:
         description: "Draft"
         required: false
-        default: "false"
+        type: boolean
+        default: false
 
 permissions:
   packages: write
@@ -411,7 +414,7 @@ jobs:
           quarto --version
 
   publish-release:
-    if: ${{ github.event.inputs.publish-release == 'true' }}
+    if: ${{ github.event.inputs.publish-release }}
     runs-on: ubuntu-latest
     needs:
       [
@@ -622,7 +625,7 @@ jobs:
           asset_content_type: text/plain
 
   docker-push:
-    if: ${{ github.event.inputs.publish-release == 'true' }}
+    if: ${{ github.event.inputs.publish-release }}
     runs-on: ubuntu-latest
     needs: [publish-release]
     steps:
