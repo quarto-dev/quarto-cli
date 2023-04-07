@@ -1,0 +1,17 @@
+---
+title: foo
+format: commonmark
+keep-md: true
+_quarto:
+  tests:
+    commonmark:
+      ensureFileRegexMatches:
+        - ["this-is-the-filename.py"]
+        - []
+---
+
+```{.python filename="this-is-the-filename.py"}
+import matplotlib.pyplot as plt
+plt.plot([1,23,2,4])
+plt.show()
+```
