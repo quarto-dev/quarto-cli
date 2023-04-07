@@ -567,16 +567,6 @@ jobs:
           asset_name: changelog.md
           asset_content_type: text/markdown
 
-      - uses: quarto-dev/quarto-cli/.github/actions/docker@main
-        with:
-          source: ./Deb Installer/quarto-${{needs.configure.outputs.version}}-linux-amd64.deb
-          version: ${{needs.configure.outputs.version}}
-          token: ${{ secrets.GITHUB_TOKEN }}
-          username: ${{ github.actor }}
-          org: ${{ github.repository_owner }}
-          name: quarto
-          daily: ${{ github.event.inputs.pre-release }}
-
       - name: Generate Checksums
         id: generate_checksum
         run: |
@@ -630,3 +620,21 @@ jobs:
           asset_path: quarto-${{needs.configure.outputs.version}}-checksums.txt
           asset_name: quarto-${{needs.configure.outputs.version}}-checksums.txt
           asset_content_type: text/plain
+
+  docker-push:
+    if: ${{ github.event.inputs.publish-release == 'true' }}
+    runs-on: ubuntu-latest
+    needs: [publish-release]
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
+
+      - uses: quarto-dev/quarto-cli/.github/actions/docker@main
+        with:
+          source: ./Deb Installer/quarto-${{needs.configure.outputs.version}}-linux-amd64.deb
+          version: ${{needs.configure.outputs.version}}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          username: ${{ github.actor }}
+          org: ${{ github.repository_owner }}
+          name: quarto
+          daily: ${{ github.event.inputs.pre-release }}
