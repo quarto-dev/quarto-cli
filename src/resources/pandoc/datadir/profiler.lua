@@ -12,20 +12,20 @@ local module = {}
 local outputfile
 local stack_count = 0
 
-local onDebugHook = function(hookType)
+local onDebugHook = function(hookType, line)
   local no = 2
   local information = debug.getinfo(no, "nS")
   local now = os.clock()
   while information ~= nil do
     local source = information.source or "unknown"
-    local name = information.name or "<C>"
-    if not string.match(source, ".lua$") then
-      source = "<inline>"
+    local name = information.name or "anon"
+    if string.match(source, ".lua$") then
+      outputfile:write(name, " ", source, " ", information.linedefined, "\n")
     end
-    outputfile:write(stack_count, " ", name, " ", source, " ", information.linedefined, " ", now, " ", module.category, "\n")
-    no = no + 1
-    information = debug.getinfo(no, "nS")
+      no = no + 1
+      information = debug.getinfo(no, "nS")
   end
+  outputfile:write(stack_count, " ", now, " ", module.category, " ", line, "\n")
   stack_count = stack_count + 1
 end
 

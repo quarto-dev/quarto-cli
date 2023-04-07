@@ -64,10 +64,10 @@ local function emulate_pandoc_filter(filters, afterFilterPass)
         profiler.start(tmpdir .. "/prof.txt")
         doc = run_emulated_filter_chain(doc, filters, afterFilterPass, profiling)
         profiler.stop()
-        os.execute("cp " .. tmpdir .. "/prof.txt prof.out")
+        -- os.execute("cp " .. tmpdir .. "/prof.txt /tmp/prof.out")
         local ts_source = get_paths(tmpdir) .. "/../../../tools/profiler/convert-to-perfetto.ts"
         os.execute("quarto run " .. ts_source .. " " .. tmpdir .. "/prof.txt > " .. profiling)
-        -- return nil
+        return nil
       end)
       return doc, false
     end
