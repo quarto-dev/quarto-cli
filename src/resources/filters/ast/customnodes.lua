@@ -9,20 +9,41 @@ local custom_node_data = pandoc.List({})
 local n_custom_nodes = 0
 local profiler = require('profiler')
 
+local cached_nodes = {}
+
 function resolve_custom_node(node)
-  if type(node) == "userdata" and node.t == "Plain" and #node.content == 1 and node.content[1].t == "RawInline" and node.content[1].format == "QUARTO_custom" then
-    return node.content[1]
+  -- local id = debug.getpointer(node)
+  local id = string.format("%p", node)
+  local r = cached_nodes[id]
+  if r ~= nil then
+    return r
   end
-  if type(node) == "userdata" and node.t == "RawInline" and node.format == "QUARTO_custom" then
+  local t = node.t
+  if t == "Plain" then
+    local c = node.content[1]
+    if c and c.format == "QUARTO_custom" then
+      cached_nodes[id] = c
+      return c
+    else
+      cached_nodes[id] = false
+      return false
+    end
+  end
+  if t == "RawInline" and node.format == "QUARTO_custom" then
+    cached_nodes[id] = node
     return node
   end
+  cached_nodes[id] = false
+  return false
 end
 
 local skippable_fields = {
   ["_filter_name"] = true,
 }
 function run_emulated_filter(doc, filter, top_level, profiling)
-
+  if doc == nil then
+    return nil
+  end
   local can_skip = true
   local entries = {}
   local sz = 0
@@ -45,14 +66,32 @@ function run_emulated_filter(doc, filter, top_level, profiling)
     profiler.category = filter._filter_name
   end
 
-  -- performance: if filter is only Pandoc, call that directly instead of walking.
-  if sz == 1 and entries.Pandoc then
-    local result = filter.Pandoc(doc) or doc
+  if sz == 1 then
+    local result
+    local t
+    if entries.Pandoc then
+      -- performance: if filter is only Pandoc, call that directly instead of walking.
+      result = filter.Pandoc(doc) or doc
+    elseif entries.Meta then
+      -- performance: if filter is only Meta, call that directly instead of walking.
+      t = pandoc.utils.type(doc)
+      if t == "Pandoc" then
+        local result_meta = filter.Meta(doc.meta) or doc.meta
+        result = doc
+        result.meta = result_meta
+      else
+        goto regular
+      end
+    else
+      goto regular
+    end
     if in_filter then
       profiler.category = ""
     end
     return result
   end
+
+  ::regular::
 
   if filter._is_wrapped then
     local result = doc:walk(filter)
