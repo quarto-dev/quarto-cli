@@ -43,7 +43,7 @@ runs:
       shell: bash
       run: echo "LATEST_TAG=-t ${{ env.BASE_NM }}:latest" >> $GITHUB_ENV
 
-    - if: ${{ inputs.daily && ( inputs.daily != 'false' || inputs.daily != 'False') }}
+    - if: ${{ inputs.daily && inputs.daily != 'false' && inputs.daily != 'False' }}
       shell: bash
       run: echo "DAILY_TAG=-t ${{ env.BASE_NM }}:daily" >> $GITHUB_ENV
 
