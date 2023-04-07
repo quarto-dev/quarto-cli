@@ -5,26 +5,47 @@
 -- back together here so they can be processed by ourraw  table
 -- caption handling
 function tableMergeRawHtml()
+  local process = {
+    Blocks = function(blocks)
+      local pendingRaw = ''
+      local merged = pandoc.List()
+      for i,el in ipairs(blocks) do
+        if _quarto.format.isRawHtml(el) and el.text:find(htmlTableTagNamePattern()) then
+          pendingRaw = pendingRaw .. "\n" .. el.text
+        else
+          if #pendingRaw > 0 then
+            merged:insert(pandoc.RawBlock("html", pendingRaw))
+            pendingRaw = ''
+          end
+          merged:insert(el)
+        end
+      end
+      if #pendingRaw > 0 then
+        merged:insert(pandoc.RawBlock("html", pendingRaw))
+      end
+      return merged
+    end
+  }
   if _quarto.format.isHtmlOutput() then
+    -- performance: only run merging if needed.
+    local pattern = htmlTableTagNamePattern()
     return {
-      Blocks = function(blocks)
-        local pendingRaw = ''
-        local merged = pandoc.List()
-        for i,el in ipairs(blocks) do
-          if _quarto.format.isRawHtml(el) and el.text:find(htmlTableTagNamePattern()) then
-            pendingRaw = pendingRaw .. "\n" .. el.text
-          else
-            if #pendingRaw > 0 then
-              merged:insert(pandoc.RawBlock("html", pendingRaw))
-              pendingRaw = ''
-            end
-            merged:insert(el)
+      Pandoc = function(doc)
+        local found = false
+        local flag = function(el)
+          if _quarto.format.isRawHtml(el) and el.text:find(pattern) then
+            found = true
           end
         end
-        if #pendingRaw > 0 then
-          merged:insert(pandoc.RawBlock("html", pendingRaw))
+        quarto._quarto.ast.walk(doc, {
+          RawBlock = flag,
+          RawInline = flag
+        })
+        if not found then
+          return nil
+        else
+          return quarto._quarto.ast.walk(doc, process)
         end
-        return merged
       end
     }
   else
