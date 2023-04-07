@@ -103,6 +103,22 @@ _quarto.ast.add_handler({
         return listingDiv
       end
       return el
+    elseif _quarto.format.isMarkdownOutput() then
+      -- see https://github.com/quarto-dev/quarto-cli/issues/5112
+      -- 
+      -- This is a narrow fix for the 1.3 regression.
+      -- We still don't support listings output in markdown since that wasn't supported in 1.2 either.
+      -- But that'll be done in 1.4 with crossrefs overhaul.
+
+      if node.filename then
+        -- if we have a filename, add it as a header
+        return pandoc.Div(
+          { pandoc.Plain{pandoc.Strong{pandoc.Str(node.filename)}}, el },
+          pandoc.Attr("", {"code-with-filename"})
+        )
+      else
+        return el
+      end
     else
       -- return the code block unadorned
       -- this probably could be improved
