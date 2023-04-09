@@ -5,6 +5,11 @@
 --
 -- Originally by Albert Krewinkel
 
+local break_quarto_md = require("break")
+local profiler = require("profiler")
+
+local md_shortcode = require("lpegshortcode")
+
 -- Support the same format extensions as pandoc's Markdown reader
 Extensions = pandoc.format.extensions 'markdown'
 
@@ -110,8 +115,22 @@ function unescape_invalid_tags(str, tags)
   return str
 end
 
+function parse_shortcodes(txt)
+  local blocks = break_quarto_md.break_quarto_md(txt)
+  local result = {}
+  for _, block in ipairs(blocks) do
+    if block.type ~= "markdown" then
+      table.insert(result, block.value)
+    else
+      table.insert(result, md_shortcode.md_shortcode:match(block.value))
+    end
+  end
+  return table.concat(result, "\n")
+end
+
 function Reader (inputs, opts)
   local txt, tags = escape_invalid_tags(tostring(inputs))
+  txt = parse_shortcodes(txt)
   local extensions = {}
 
   for k, v in pairs(opts.extensions) do
