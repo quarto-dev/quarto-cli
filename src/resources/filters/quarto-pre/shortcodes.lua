@@ -220,21 +220,53 @@ function shortcodes_filter()
     return el
   end
 
-  return {
+  local filter
+  filter = {
     Pandoc = function(doc)
       -- first walk them in block context
       doc = _quarto.ast.walk(doc, {
         Para = block_handler,
         Plain = block_handler,
         Code = code_handler,
+        RawBlock = code_handler,
+        CodeBlock = code_handler,
       })
 
       doc = _quarto.ast.walk(doc, {
         Shortcode = inline_handler,
-      })
+        RawInline = function(inline)
+          if inline.format == "QUARTO_custom" then
+            return nil
+          end
+          return code_handler(inline)
+        end,
+        Image = function(el)
+          if el.src:find("quarto%-shortcode__") then
+            -- we accidentally processed this as a shortcode.
+            -- undo that.
+            local src = urldecode(el.src)
+            local md_ast = pandoc.read(shortcode_lpeg.md_shortcode:match(src), "markdown")
+            local nodes = _quarto.ast.walk(md_ast, parseExtendedNodes())
+            el.src = pandoc.utils.stringify(_quarto.ast.walk(nodes, filter).blocks)
+          end
+          return el
+        end,
+        Link = function(el)
+          if el.target:find("quarto%-shortcode__") then
+            -- we accidentally processed this as a shortcode.
+            -- undo that.
+            local target = urldecode(el.target)
+            local md_ast = pandoc.read(shortcode_lpeg.md_shortcode:match(target), "markdown")
+            local nodes = _quarto.ast.walk(md_ast, parseExtendedNodes())
+            el.target = pandoc.utils.stringify(_quarto.ast.walk(nodes, filter).blocks)
+          end
+          return el
+        end
+       })
       return doc
     end
   }
+  return filter
 end
 
 -- -- The open and close shortcode indicators

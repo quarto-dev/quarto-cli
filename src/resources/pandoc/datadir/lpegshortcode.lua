@@ -124,6 +124,7 @@ local function make_shortcode_parser(evaluator_table)
   return sc
 end
 
+-- FIXME we need a separate parser for non-markdown contexts.
 md_shortcode = make_shortcode_parser({
   escaped = md_escaped_shortcode,
   string = md_string_param,
