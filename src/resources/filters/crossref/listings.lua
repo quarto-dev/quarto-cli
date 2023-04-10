@@ -3,7 +3,7 @@
 
 -- constants for list attributes
 kLstCap = "lst-cap"
-local kDataCodeAnnonationClz = 'code-annotation-code'
+-- local kDataCodeAnnonationClz = 'code-annotation-code'
 
 -- process all listings
 function listings()
@@ -54,7 +54,7 @@ function listings()
           if not latexListings() then
             local listingDiv = pandoc.Div({})
             local env = "\\begin{codelisting}"
-            if el.classes:includes(kDataCodeAnnonationClz) then
+            if el.classes:includes('code-annotation-code') then
               env = env .. "[H]"
             end
             listingDiv.content:insert(pandoc.RawBlock("latex", env))
