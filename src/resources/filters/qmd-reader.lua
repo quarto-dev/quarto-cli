@@ -5,7 +5,8 @@
 --
 -- Originally by Albert Krewinkel
 
-local break_quarto_md = require("break")
+local break_quarto_md = require("breakquartomd")
+
 local profiler = require("profiler")
 
 local md_shortcode = require("lpegshortcode")
