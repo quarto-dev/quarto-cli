@@ -54,13 +54,13 @@ local function md_keyvalue_param(k, v)
   end
   if recursive_key then
     if recursive_value then
-      return "[" .. recursive_key .. recursive_value .. "]{." .. quarto_shortcode_class_prefix .. "-param}"
+      return "[" .. recursive_key .. v .. "]{." .. quarto_shortcode_class_prefix .. "-param}"
     else
       return "[" .. recursive_key .. "]{." .. quarto_shortcode_class_prefix .. "-param data-value=\"" .. escape(v) .. "\"}"
     end
   else
     if recursive_value then
-      return "[" .. recursive_value .. "]{." .. quarto_shortcode_class_prefix .. "-param data-key=\"" .. escape(k) .. "\"}"
+      return "[" .. v .. "]{." .. quarto_shortcode_class_prefix .. "-param data-key=\"" .. escape(k) .. "\"}"
     else
       return "[]{." .. quarto_shortcode_class_prefix .. "-param data-key=\"" .. escape(k) .. "\"" .. 
       " data-value=\"" .. escape(v) .. "\"}"
@@ -107,14 +107,16 @@ local function make_shortcode_parser(evaluator_table)
 
   local sc = lpeg.P({
     "Text",
-    Text = into_string((lpeg.V("Nonshortcode") + lpeg.V("Shortcode"))^1),
-    Nonshortcode = (1 - lpeg.P("{{{<") - lpeg.P("{{<"))^1 / id,
+    Text = into_string((lpeg.V("Nonshortcode") + lpeg.V("Code") + lpeg.V("Shortcode"))^1),
+    Code = (lpeg.P("`") / id) * (lpeg.C((1 - lpeg.P("`"))^0) / id) * (lpeg.P("`") / id) * (Space / id),
+    Nonshortcode = (1 - lpeg.P("{{{<") - lpeg.P("{{<") - lpeg.P("`"))^1 / id,
+    KeyShortcodeValue = (sc_string_skipping(lpeg.S("="), id) * lpeg.P("=") * Space * lpeg.V("Shortcode")) / keyvalue_handler,
     Shortcode = escaped_sc1 + 
       escaped_sc2 +
       ((lpeg.P("{{<") * 
       Space * 
       into_list(
-        (lpeg.V("Shortcode") + sc_keyvalue + sc_string_skipping(">}}"))^1
+        (lpeg.V("Shortcode") + lpeg.V("KeyShortcodeValue") + sc_keyvalue + sc_string_skipping(">}}"))^1
       ) * 
       lpeg.P(">}}")) / shortcode_handler) * (Space / id)
   })
@@ -130,7 +132,8 @@ md_shortcode = make_shortcode_parser({
 })
 
 return {
-  md_shortcode = md_shortcode
+  md_shortcode = md_shortcode,
+  make_shortcode_parser = make_shortcode_parser
 }
 
 -- print(md_shortcode:match([[

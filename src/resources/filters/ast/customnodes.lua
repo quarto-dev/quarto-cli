@@ -12,7 +12,6 @@ local profiler = require('profiler')
 local cached_nodes = {}
 
 function resolve_custom_node(node)
-  -- local id = debug.getpointer(node)
   local id = string.format("%p", node)
   local r = cached_nodes[id]
   if r ~= nil then
@@ -93,7 +92,9 @@ function run_emulated_filter(doc, filter, top_level, profiling)
 
   ::regular::
 
-  if filter._is_wrapped then
+  local custom = resolve_custom_node(doc)
+
+  if custom == nil and filter._is_wrapped then
     local result = doc:walk(filter)
     if in_filter then
       profiler.category = ""
@@ -174,7 +175,6 @@ function run_emulated_filter(doc, filter, top_level, profiling)
     end
   end
 
-  local custom = resolve_custom_node(doc)
   if custom then
     local custom_data, t, kind = _quarto.ast.resolve_custom_data(custom)
     local result, recurse = process_custom(custom_data, t, kind, custom)
@@ -267,7 +267,8 @@ _quarto.ast = {
 
     if raw_or_plain_container.t == "RawInline" then
       raw = raw_or_plain_container
-    elseif raw_or_plain_container.t == "Plain" and #raw_or_plain_container.content == 1 and raw_or_plain_container.content[1].t == "RawInline" then
+    elseif (raw_or_plain_container.t == "Plain" or
+            raw_or_plain_container.t == "Para") and #raw_or_plain_container.content == 1 and raw_or_plain_container.content[1].t == "RawInline" then
       raw = raw_or_plain_container.content[1]
     else
       return nil
@@ -347,7 +348,6 @@ _quarto.ast = {
     if handler.inner_content ~= nil then
       local new_inner_content = {}
       local inner_content = handler.inner_content(custom_data)
-
       for k, v in pairs(inner_content) do
         local new_v = run_emulated_filter(v, filter)
         if new_v ~= nil then

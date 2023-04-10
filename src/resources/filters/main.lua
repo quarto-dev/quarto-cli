@@ -194,8 +194,7 @@ local quartoPre = {
 
   { name = "normalize-parse-pandoc3-figures", filter = parse_pandoc3_figures() },
   { name = "pre-bibliographyFormats", filter = bibliographyFormats() }, 
-  { name = "pre-shortCodesBlocks", filter = shortCodesBlocks() } ,
-  { name = "pre-shortCodesInlines", filter = shortCodesInlines() },
+  { name = "pre-shortcodes_filter", filter = shortcodes_filter() } ,
   { name = "pre-tableMergeRawHtml", filter = tableMergeRawHtml() },
   { name = "pre-tableRenderRawHtml", filter = tableRenderRawHtml() },
   { name = "pre-tableColwidthCell", filter = tableColwidthCell() },
