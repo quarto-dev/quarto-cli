@@ -288,6 +288,7 @@ return {
     end
 
     if isEmpty(srcValue) then
+
       if #raw_args > 0 then
         srcValue = pandoc.utils.stringify(raw_args[1])
       else

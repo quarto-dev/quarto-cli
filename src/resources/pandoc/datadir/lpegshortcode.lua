@@ -103,14 +103,15 @@ local function make_shortcode_parser(evaluator_table)
       (- lpeg.S("'\"}>") * lpeg.C(((1 - skip) - lpeg.P(" "))^1) * Space)) / (capture or string_handler) -- function(s) return { type = "string", value = s } end
   end
 
-  local sc_keyvalue = (sc_string_skipping(lpeg.S("="), id) * lpeg.P("=") * Space * sc_string) / keyvalue_handler
+  -- skip :/? as well so that URLs with = in them are not treated as key/value pairs
+  local sc_keyvalue = (sc_string_skipping(lpeg.S(":/?="), id) * lpeg.P("=") * Space * sc_string) / keyvalue_handler
 
   local sc = lpeg.P({
     "Text",
     Text = into_string((lpeg.V("Nonshortcode") + lpeg.V("Code") + lpeg.V("Shortcode"))^1),
     Code = (lpeg.P("`") / id) * (lpeg.C((1 - lpeg.P("`"))^0) / id) * (lpeg.P("`") / id) * (Space / id),
     Nonshortcode = (1 - lpeg.P("{{{<") - lpeg.P("{{<") - lpeg.P("`"))^1 / id,
-    KeyShortcodeValue = (sc_string_skipping(lpeg.S("="), id) * lpeg.P("=") * Space * lpeg.V("Shortcode")) / keyvalue_handler,
+    KeyShortcodeValue = (sc_string_skipping(lpeg.S(":/?="), id) * lpeg.P("=") * Space * lpeg.V("Shortcode")) / keyvalue_handler,
     Shortcode = escaped_sc1 + 
       escaped_sc2 +
       ((lpeg.P("{{<") * 

@@ -171,15 +171,15 @@ local quartoNormalize = {
     return preState.active_filters.normalization
   end, normalizeFilter()) },
 
-  -- 2023-03-29: this saves about 1.5s out of 180s in quarto-web
+  -- 2023-04-11: We want to combine these filters but extract_quarto_dom
+  -- can't be combined with parse_html_tables because combineFilters
+  -- doesn't inspect the contents of the results in the inner loop.
   { name = "normalize-combined", filter = combineFilters({
-    parse_html_tables(),
-    extract_quarto_dom(),
-    parseExtendedNodes()
-  }) }
-  -- { name = "normalize-parseHtmlTables", filter = parse_html_tables() },
-  -- { name = "normalize-extractQuartoDom", filter = extract_quarto_dom() },
-  -- { name = "normalize-parseExtendedNodes", filter = parseExtendedNodes() }
+      parse_html_tables(),
+      parseExtendedNodes(),
+    }) 
+  },
+  { name = "normalize-extractQuartoDom", filter = extract_quarto_dom() },
 }
 
 local quartoPre = {
