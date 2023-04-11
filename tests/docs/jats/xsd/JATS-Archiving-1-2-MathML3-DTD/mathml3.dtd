@@ -1,0 +1,1682 @@
+<!-- ================================================================= -->
+<!-- IEEE NISO JATS MODS                    Name Collisions 03/02/2012
+
+The following changes have been made (with the permission of the
+W3C MathML Committee), to this DTD:
+
+1) %product.class; is defined below and also defined in 
+JATS-default-classes.ent. Renamed class in the MathML DTD
+until JATS names can be changed. Renamed the parameter entity
+to "mml-product.class".
+
+2) The parameter entity named "name" was commented out. It is never
+used in the MathML 3.0 DTD, and its presence causes processing
+errors in the Mulberry Tag LIbrary software.
+
+3) id CDATA #IMPLIED ==> id ID #implied
+
+-->
+<!-- ================================================================= -->
+
+<!-- MathML 3.0 DTD  ....................................................... -->
+<!-- file: mathml3.dtd
+-->
+
+<!-- MathML 3.0 DTD
+
+     This is the Mathematical Markup Language (MathML) 3.0, an XML
+     application for describing mathematical notation and capturing
+     both its structure and content.
+
+     Copyright &#xa9; 1998-2010 W3C&#xae; (MIT, ERCIM, Keio), All Rights 
+     Reserved. W3C liability, trademark, document use and software
+     licensing rules apply. 
+
+     Permission to use, copy, modify and distribute the MathML 2.0 DTD and
+     its accompanying documentation for any purpose and without fee is
+     hereby granted in perpetuity, provided that the above copyright notice
+     and this paragraph appear in all copies.  The copyright holders make
+     no representation about the suitability of the DTD for any purpose.
+
+     It is provided "as is" without expressed or implied warranty.
+
+     This entity may be identified by the PUBLIC and SYSTEM identifiers:
+
+       PUBLIC "-//W3C//DTD MathML 3.0//EN"
+       SYSTEM "mathml3.dtd"
+
+     Revisions: editor and revision history at EOF
+-->
+<!-- Entity used to enable marked sections which enforces stricter		
+     checking of MathML syntax rules		
+-->
+<!ENTITY % MathMLstrict "IGNORE">		
+
+<!-- MathML Qualified Names module ............................... -->
+<!ENTITY % mathml-qname.module "INCLUDE" >
+<![%mathml-qname.module;[
+<!ENTITY % mathml-qname.mod
+     PUBLIC "-//W3C//ENTITIES MathML 3.0 Qualified Names 1.0//EN"
+            "mathml3-qname.mod" >
+%mathml-qname.mod;]]>
+
+<!-- if %NS.prefixed; is INCLUDE, include all NS attributes, 
+     otherwise just those associated with MathML
+-->
+<![%NS.prefixed;[
+  <!ENTITY % MATHML.NamespaceDecl.attrib 
+         "%NamespaceDecl.attrib;"
+>
+]]>
+<!ENTITY % MATHML.NamespaceDecl.attrib 
+     "%MATHML.xmlns.attrib;"
+>
+
+
+<!-- MathML Character Entities .............................................. -->
+<!ENTITY % mathml-charent.module "INCLUDE" >
+<![%mathml-charent.module;[
+
+
+<!ENTITY % isobox PUBLIC "-//W3C//ENTITIES Box and Line Drawing//EN" "isobox.ent">
+%isobox;
+<!ENTITY % isocyr1 PUBLIC "-//W3C//ENTITIES Russian Cyrillic//EN" "isocyr1.ent">
+%isocyr1;
+<!ENTITY % isocyr2 PUBLIC "-//W3C//ENTITIES Non-Russian Cyrillic//EN" "isocyr2.ent">
+%isocyr2;
+<!ENTITY % isodia PUBLIC "-//W3C//ENTITIES Diacritical Marks//EN" "isodia.ent">
+%isodia;
+<!ENTITY % isolat1 PUBLIC "-//W3C//ENTITIES Added Latin 1//EN" "isolat1.ent">
+%isolat1;
+<!ENTITY % isolat2 PUBLIC "-//W3C//ENTITIES Added Latin 2//EN" "isolat2.ent">
+%isolat2;
+<!ENTITY % isonum PUBLIC "-//W3C//ENTITIES Numeric and Special Graphic//EN" "isonum.ent">
+%isonum;
+<!ENTITY % isopub PUBLIC "-//W3C//ENTITIES Publishing//EN" "isopub.ent">
+%isopub;
+<!ENTITY % isoamsa PUBLIC "-//W3C//ENTITIES Added Math Symbols: Arrow Relations//EN" "isoamsa.ent">
+%isoamsa;
+<!ENTITY % isoamsb PUBLIC "-//W3C//ENTITIES Added Math Symbols: Binary Operators//EN" "isoamsb.ent">
+%isoamsb;
+<!ENTITY % isoamsc PUBLIC "-//W3C//ENTITIES Added Math Symbols: Delimiters//EN" "isoamsc.ent">
+%isoamsc;
+<!ENTITY % isoamsn PUBLIC "-//W3C//ENTITIES Added Math Symbols: Negated Relations//EN" "isoamsn.ent">
+%isoamsn;
+<!ENTITY % isoamso PUBLIC "-//W3C//ENTITIES Added Math Symbols: Ordinary//EN" "isoamso.ent">
+%isoamso;
+<!ENTITY % isoamsr PUBLIC "-//W3C//ENTITIES Added Math Symbols: Relations//EN" "isoamsr.ent">
+%isoamsr;
+<!ENTITY % isogrk3 PUBLIC "-//W3C//ENTITIES Greek Symbols//EN" "isogrk3.ent">
+%isogrk3;
+<!ENTITY % isomfrk PUBLIC "-//W3C//ENTITIES Math Alphabets: Fraktur//EN" "isomfrk.ent">
+%isomfrk;
+<!ENTITY % isomopf PUBLIC "-//W3C//ENTITIES Math Alphabets: Open Face//EN" "isomopf.ent">
+%isomopf;
+<!ENTITY % isomscr PUBLIC "-//W3C//ENTITIES Math Alphabets: Script//EN" "isomscr.ent">
+%isomscr;
+<!ENTITY % isotech PUBLIC "-//W3C//ENTITIES General Technical//EN" "isotech.ent">
+%isotech;
+<!ENTITY % mmlextra PUBLIC "-//W3C//ENTITIES Additional MathML Symbols//EN" "mmlextra.ent">
+%mmlextra;
+<!ENTITY % mmlalias PUBLIC "-//W3C//ENTITIES MathML Aliases//EN" "mmlalias.ent">
+%mmlalias;
+
+<!-- end of MathML Character Entity section -->]]>
+
+
+
+<!ENTITY % MalignExpression "%maligngroup.qname;|%malignmark.qname;">
+
+<!ENTITY % TokenExpression "%mi.qname;|%mn.qname;|%mo.qname;|%mtext.qname;
+                            |%mspace.qname;|%ms.qname;">
+
+<!ENTITY % PresentationExpression "%TokenExpression;|%MalignExpression;
+                                   |%mrow.qname;|%mfrac.qname;|%msqrt.qname;
+                                   |%mroot.qname;|%mstyle.qname;
+                                   |%merror.qname;|%mpadded.qname;
+                                   |%mphantom.qname;|%mfenced.qname;
+                                   |%menclose.qname;|%msub.qname;|%msup.qname;
+                                   |%msubsup.qname;|%munder.qname;
+                                   |%mover.qname;|%munderover.qname;
+                                   |%mmultiscripts.qname;|%mtable.qname;
+                                   |%mstack.qname;|%mlongdiv.qname;
+                                   |%maction.qname;">
+
+<!-- end of mathml3-strict-content.rng -->
+
+<!ENTITY % cn.content "(#PCDATA|%mglyph.qname;|%sep.qname;
+                        |%PresentationExpression;)*">
+
+<!-- start of mathml3-content.rng -->
+
+<!-- start of mathml3-strict-content.rng -->
+
+<!ELEMENT %cn.qname; %cn.content;>
+
+<!ENTITY % ci.content "(#PCDATA|%mglyph.qname;
+                        |%PresentationExpression;)*">
+
+<!ELEMENT %ci.qname; %ci.content;>
+
+<!ENTITY % csymbol.content "(#PCDATA|%mglyph.qname;
+                             |%PresentationExpression;)*">
+
+<!ELEMENT %csymbol.qname; %csymbol.content;>
+
+<!ENTITY % SymbolName "#PCDATA">
+
+<!ENTITY % BvarQ "(%bvar.qname;)*">
+
+<!ENTITY % DomainQ "(%domainofapplication.qname;|%condition.qname;
+                     |(%lowlimit.qname;,%uplimit.qname;?))*">
+
+<!ENTITY % constant-arith.class "%exponentiale.qname;|%imaginaryi.qname;
+                                 |%notanumber.qname;|%true.qname;
+                                 |%false.qname;|%pi.qname;|%eulergamma.qname;
+                                 |%infinity.qname;">
+
+<!ENTITY % constant-set.class "%integers.qname;|%reals.qname;
+                               |%rationals.qname;|%naturalnumbers.qname;
+                               |%complexes.qname;|%primes.qname;
+                               |%emptyset.qname;">
+
+<!ENTITY % binary-linalg.class "%vectorproduct.qname;|%scalarproduct.qname;
+                                |%outerproduct.qname;">
+
+<!ENTITY % nary-linalg.class "%selector.qname;">
+
+<!ENTITY % unary-linalg.class "%determinant.qname;|%transpose.qname;">
+
+<!ENTITY % nary-constructor.class "%vector.qname;|%matrix.qname;
+                                   |%matrixrow.qname;">
+
+<!ENTITY % nary-stats.class "%mean.qname;|%sdev.qname;|%variance.qname;
+                             |%median.qname;|%mode.qname;">
+
+<!ENTITY % unary-elementary.class "%sin.qname;|%cos.qname;|%tan.qname;
+                                   |%sec.qname;|%csc.qname;|%cot.qname;
+                                   |%sinh.qname;|%cosh.qname;|%tanh.qname;
+                                   |%sech.qname;|%csch.qname;|%coth.qname;
+                                   |%arcsin.qname;|%arccos.qname;
+                                   |%arctan.qname;|%arccosh.qname;
+                                   |%arccot.qname;|%arccoth.qname;
+                                   |%arccsc.qname;|%arccsch.qname;
+                                   |%arcsec.qname;|%arcsech.qname;
+                                   |%arcsinh.qname;|%arctanh.qname;">
+
+<!ENTITY % limit.class "%limit.qname;">
+
+<!ENTITY % mml-product.class "%product.qname;">
+
+<!ENTITY % sum.class "%sum.qname;">
+
+<!ENTITY % unary-set.class "%card.qname;">
+
+<!ENTITY % nary-set-reln.class "%subset.qname;|%prsubset.qname;">
+
+<!ENTITY % binary-set.class "%in.qname;|%notin.qname;|%notsubset.qname;
+                             |%notprsubset.qname;|%setdiff.qname;">
+
+<!ENTITY % nary-set.class "%union.qname;|%intersect.qname;
+                           |%cartesianproduct.qname;">
+
+<!ENTITY % nary-setlist-constructor.class "%set.qname;|%list.qname;">
+
+<!ENTITY % unary-veccalc.class "%divergence.qname;|%grad.qname;|%curl.qname;
+                                |%laplacian.qname;">
+
+<!ENTITY % partialdiff.class "%partialdiff.qname;">
+
+<!ENTITY % Differential-Operator.class "%diff.qname;">
+
+<!ENTITY % int.class "%int.qname;">
+
+<!ENTITY % binary-reln.class "%neq.qname;|%approx.qname;|%factorof.qname;
+                              |%tendsto.qname;">
+
+<!ENTITY % nary-reln.class "%eq.qname;|%gt.qname;|%lt.qname;|%geq.qname;
+                            |%leq.qname;">
+
+<!ENTITY % quantifier.class "%forall.qname;|%exists.qname;">
+
+<!ENTITY % binary-logical.class "%implies.qname;|%equivalent.qname;">
+
+<!ENTITY % unary-logical.class "%not.qname;">
+
+<!ENTITY % nary-logical.class "%and.qname;|%or.qname;|%xor.qname;">
+
+<!ENTITY % nary-arith.class "%plus.qname;|%times.qname;|%gcd.qname;
+                             |%lcm.qname;">
+
+<!ENTITY % nary-minmax.class "%max.qname;|%min.qname;">
+
+<!ENTITY % unary-arith.class "%factorial.qname;|%abs.qname;|%conjugate.qname;
+                              |%arg.qname;|%real.qname;|%imaginary.qname;
+                              |%floor.qname;|%ceiling.qname;|%exp.qname;">
+
+<!ENTITY % binary-arith.class "%quotient.qname;|%divide.qname;|%minus.qname;
+                               |%power.qname;|%rem.qname;|%root.qname;">
+
+<!ENTITY % nary-functional.class "%compose.qname;">
+
+<!ENTITY % lambda.class "%lambda.qname;">
+
+<!ENTITY % unary-functional.class "%inverse.qname;|%ident.qname;
+                                   |%domain.qname;|%codomain.qname;
+                                   |%image.qname;|%ln.qname;|%log.qname;
+                                   |%moment.qname;">
+
+<!ENTITY % interval.class "%interval.qname;">
+
+<!ENTITY % DeprecatedContExp "%reln.qname;|%fn.qname;|%declare.qname;">
+
+<!ENTITY % CommonDeprecatedAtt "
+  other CDATA #IMPLIED">
+
+<!ENTITY % Qualifier "(%DomainQ;)|%degree.qname;|%momentabout.qname;
+                      |%logbase.qname;">
+
+<!ENTITY % ContExp "%piecewise.qname;|%DeprecatedContExp;|%interval.class;
+                    |%unary-functional.class;|%lambda.class;
+                    |%nary-functional.class;|%binary-arith.class;
+                    |%unary-arith.class;|%nary-minmax.class;
+                    |%nary-arith.class;|%nary-logical.class;
+                    |%unary-logical.class;|%binary-logical.class;
+                    |%quantifier.class;|%nary-reln.class;
+                    |%binary-reln.class;|%int.class;
+                    |%Differential-Operator.class;|%partialdiff.class;
+                    |%unary-veccalc.class;
+                    |%nary-setlist-constructor.class;|%nary-set.class;
+                    |%binary-set.class;|%nary-set-reln.class;
+                    |%unary-set.class;|%sum.class;|%mml-product.class;
+                    |%limit.class;|%unary-elementary.class;
+                    |%nary-stats.class;|%nary-constructor.class;
+                    |%unary-linalg.class;|%nary-linalg.class;
+                    |%binary-linalg.class;|%constant-set.class;
+                    |%constant-arith.class;|%semantics.qname;|%cn.qname;
+                    |%ci.qname;|%csymbol.qname;|%apply.qname;|%bind.qname;
+                    |%share.qname;|%cerror.qname;|%cbytes.qname;|%cs.qname;">
+
+<!ENTITY % CommonAtt "
+%MATHML.NamespaceDecl.attrib;
+  %XLINK.prefix;:href   CDATA #IMPLIED	
+  %XLINK.prefix;:type   CDATA #IMPLIED
+  xml:lang   CDATA #IMPLIED
+  xml:space   (default|preserve) #IMPLIED
+  id ID #IMPLIED
+  xref CDATA #IMPLIED
+  class CDATA #IMPLIED
+  style CDATA #IMPLIED
+  href CDATA #IMPLIED
+  %CommonDeprecatedAtt;">
+
+<!ENTITY % apply.content "(%ContExp;),(%BvarQ;),(%Qualifier;)*,
+                          (%ContExp;)*">
+
+<!ELEMENT %apply.qname; (%apply.content;)>
+<!ATTLIST %apply.qname;
+  %CommonAtt;>
+
+<!ENTITY % bind.content "%apply.content;">
+
+<!ELEMENT %bind.qname; (%bind.content;)>
+<!ATTLIST %bind.qname;
+  %CommonAtt;>
+
+<!ENTITY % src "
+  src CDATA #IMPLIED">
+
+<!ELEMENT %share.qname; EMPTY>
+<!ATTLIST %share.qname;
+  %CommonAtt;
+  %src;>
+
+<!ELEMENT %cerror.qname; (%csymbol.qname;,(%ContExp;)*)>
+
+<!ATTLIST %cerror.qname;
+  %CommonAtt;>
+
+<!ELEMENT %cbytes.qname; (#PCDATA)>
+
+<!ENTITY % base64 "CDATA">
+
+<!ELEMENT %cs.qname; (#PCDATA)>
+
+<!ENTITY % DefEncAtt "
+  encoding CDATA #IMPLIED
+  definitionURL CDATA #IMPLIED">
+
+<!ATTLIST %cn.qname;
+  %CommonAtt;
+  %DefEncAtt;
+  type CDATA #IMPLIED
+  base CDATA #IMPLIED>
+
+<!ATTLIST %ci.qname;
+  %CommonAtt;
+  %DefEncAtt;
+  type CDATA #IMPLIED>
+
+<!ENTITY % ci.type "
+  type CDATA #REQUIRED">
+
+<!ATTLIST %csymbol.qname;
+  %CommonAtt;
+  %DefEncAtt;
+  type CDATA #IMPLIED
+  cd CDATA #IMPLIED>
+
+<!ELEMENT %bvar.qname; ((%degree.qname;,(%ci.qname;|%semantics.qname;))
+                      |((%ci.qname;|%semantics.qname;),(%degree.qname;)?))>
+
+<!ATTLIST %cbytes.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ATTLIST %cs.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ENTITY % base "
+  base CDATA #REQUIRED">
+
+<!ELEMENT %sep.qname; EMPTY>
+
+<!ELEMENT %domainofapplication.qname; (%ContExp;)>
+
+<!ELEMENT %condition.qname; (%ContExp;)>
+
+<!ELEMENT %uplimit.qname; (%ContExp;)>
+
+<!ELEMENT %lowlimit.qname; (%ContExp;)>
+
+<!ELEMENT %degree.qname; (%ContExp;)>
+
+<!ELEMENT %momentabout.qname; (%ContExp;)>
+
+<!ELEMENT %logbase.qname; (%ContExp;)>
+
+<!ENTITY % type "
+  type CDATA #REQUIRED">
+
+<!ENTITY % order "
+  order (numeric|lexicographic) #REQUIRED">
+
+<!ENTITY % closure "
+  closure CDATA #REQUIRED">
+
+<!ELEMENT %piecewise.qname; (%piece.qname;|%otherwise.qname;)*>
+<!ATTLIST %piecewise.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %piece.qname; ((%ContExp;),(%ContExp;))>
+<!ATTLIST %piece.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %otherwise.qname; (%ContExp;)>
+<!ATTLIST %otherwise.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %reln.qname; (%ContExp;)*>
+
+<!ELEMENT %fn.qname; (%ContExp;)>
+
+<!ELEMENT %declare.qname; (%ContExp;)+>
+<!ATTLIST %declare.qname;
+  type CDATA #IMPLIED
+  scope CDATA #IMPLIED
+  nargs CDATA #IMPLIED
+  occurrence (prefix|infix|function-model) #IMPLIED
+  %DefEncAtt;>
+
+<!ELEMENT %interval.qname; ((%ContExp;),(%ContExp;))>
+<!ATTLIST %interval.qname;
+  %CommonAtt;
+  %DefEncAtt;
+  closure CDATA #IMPLIED>
+
+<!ELEMENT %inverse.qname; EMPTY>
+<!ATTLIST %inverse.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %ident.qname; EMPTY>
+<!ATTLIST %ident.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %domain.qname; EMPTY>
+<!ATTLIST %domain.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %codomain.qname; EMPTY>
+<!ATTLIST %codomain.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %image.qname; EMPTY>
+<!ATTLIST %image.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %ln.qname; EMPTY>
+<!ATTLIST %ln.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %log.qname; EMPTY>
+<!ATTLIST %log.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %moment.qname; EMPTY>
+<!ATTLIST %moment.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %lambda.qname; ((%BvarQ;),(%DomainQ;),(%ContExp;))>
+<!ATTLIST %lambda.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %compose.qname; EMPTY>
+<!ATTLIST %compose.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %quotient.qname; EMPTY>
+<!ATTLIST %quotient.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %divide.qname; EMPTY>
+<!ATTLIST %divide.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %minus.qname; EMPTY>
+<!ATTLIST %minus.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %power.qname; EMPTY>
+<!ATTLIST %power.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %rem.qname; EMPTY>
+<!ATTLIST %rem.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %root.qname; EMPTY>
+<!ATTLIST %root.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %factorial.qname; EMPTY>
+<!ATTLIST %factorial.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %abs.qname; EMPTY>
+<!ATTLIST %abs.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %conjugate.qname; EMPTY>
+<!ATTLIST %conjugate.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %arg.qname; EMPTY>
+<!ATTLIST %arg.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %real.qname; EMPTY>
+<!ATTLIST %real.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %imaginary.qname; EMPTY>
+<!ATTLIST %imaginary.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %floor.qname; EMPTY>
+<!ATTLIST %floor.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %ceiling.qname; EMPTY>
+<!ATTLIST %ceiling.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %exp.qname; EMPTY>
+<!ATTLIST %exp.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %max.qname; EMPTY>
+<!ATTLIST %max.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %min.qname; EMPTY>
+<!ATTLIST %min.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %plus.qname; EMPTY>
+<!ATTLIST %plus.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %times.qname; EMPTY>
+<!ATTLIST %times.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %gcd.qname; EMPTY>
+<!ATTLIST %gcd.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %lcm.qname; EMPTY>
+<!ATTLIST %lcm.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %and.qname; EMPTY>
+<!ATTLIST %and.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %or.qname; EMPTY>
+<!ATTLIST %or.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %xor.qname; EMPTY>
+<!ATTLIST %xor.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %not.qname; EMPTY>
+<!ATTLIST %not.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %implies.qname; EMPTY>
+<!ATTLIST %implies.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %equivalent.qname; EMPTY>
+<!ATTLIST %equivalent.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %forall.qname; EMPTY>
+<!ATTLIST %forall.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %exists.qname; EMPTY>
+<!ATTLIST %exists.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %eq.qname; EMPTY>
+<!ATTLIST %eq.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %gt.qname; EMPTY>
+<!ATTLIST %gt.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %lt.qname; EMPTY>
+<!ATTLIST %lt.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %geq.qname; EMPTY>
+<!ATTLIST %geq.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %leq.qname; EMPTY>
+<!ATTLIST %leq.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %neq.qname; EMPTY>
+<!ATTLIST %neq.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %approx.qname; EMPTY>
+<!ATTLIST %approx.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %factorof.qname; EMPTY>
+<!ATTLIST %factorof.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %tendsto.qname; EMPTY>
+<!ATTLIST %tendsto.qname;
+  %CommonAtt;
+  %DefEncAtt;
+  type CDATA #IMPLIED>
+
+<!ELEMENT %int.qname; EMPTY>
+<!ATTLIST %int.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %diff.qname; EMPTY>
+<!ATTLIST %diff.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %partialdiff.qname; EMPTY>
+<!ATTLIST %partialdiff.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %divergence.qname; EMPTY>
+<!ATTLIST %divergence.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %grad.qname; EMPTY>
+<!ATTLIST %grad.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %curl.qname; EMPTY>
+<!ATTLIST %curl.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %laplacian.qname; EMPTY>
+<!ATTLIST %laplacian.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %set.qname; ((%BvarQ;)*,(%DomainQ;)*,(%ContExp;)*)>
+<!ATTLIST %set.qname;
+  %CommonAtt;
+  %DefEncAtt;
+  type CDATA #IMPLIED>
+
+<!ELEMENT %list.qname; ((%BvarQ;)*,(%DomainQ;)*,(%ContExp;)*)>
+<!ATTLIST %list.qname;
+  %CommonAtt;
+  %DefEncAtt;
+  order (numeric|lexicographic) #IMPLIED>
+
+<!ELEMENT %union.qname; EMPTY>
+<!ATTLIST %union.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %intersect.qname; EMPTY>
+<!ATTLIST %intersect.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %cartesianproduct.qname; EMPTY>
+<!ATTLIST %cartesianproduct.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %in.qname; EMPTY>
+<!ATTLIST %in.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %notin.qname; EMPTY>
+<!ATTLIST %notin.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %notsubset.qname; EMPTY>
+<!ATTLIST %notsubset.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %notprsubset.qname; EMPTY>
+<!ATTLIST %notprsubset.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %setdiff.qname; EMPTY>
+<!ATTLIST %setdiff.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %subset.qname; EMPTY>
+<!ATTLIST %subset.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %prsubset.qname; EMPTY>
+<!ATTLIST %prsubset.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %card.qname; EMPTY>
+<!ATTLIST %card.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %sum.qname; EMPTY>
+<!ATTLIST %sum.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %product.qname; EMPTY>
+<!ATTLIST %product.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %limit.qname; EMPTY>
+<!ATTLIST %limit.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %sin.qname; EMPTY>
+<!ATTLIST %sin.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %cos.qname; EMPTY>
+<!ATTLIST %cos.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %tan.qname; EMPTY>
+<!ATTLIST %tan.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %sec.qname; EMPTY>
+<!ATTLIST %sec.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %csc.qname; EMPTY>
+<!ATTLIST %csc.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %cot.qname; EMPTY>
+<!ATTLIST %cot.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %sinh.qname; EMPTY>
+<!ATTLIST %sinh.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %cosh.qname; EMPTY>
+<!ATTLIST %cosh.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %tanh.qname; EMPTY>
+<!ATTLIST %tanh.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %sech.qname; EMPTY>
+<!ATTLIST %sech.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %csch.qname; EMPTY>
+<!ATTLIST %csch.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %coth.qname; EMPTY>
+<!ATTLIST %coth.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %arcsin.qname; EMPTY>
+<!ATTLIST %arcsin.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %arccos.qname; EMPTY>
+<!ATTLIST %arccos.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %arctan.qname; EMPTY>
+<!ATTLIST %arctan.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %arccosh.qname; EMPTY>
+<!ATTLIST %arccosh.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %arccot.qname; EMPTY>
+<!ATTLIST %arccot.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %arccoth.qname; EMPTY>
+<!ATTLIST %arccoth.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %arccsc.qname; EMPTY>
+<!ATTLIST %arccsc.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %arccsch.qname; EMPTY>
+<!ATTLIST %arccsch.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %arcsec.qname; EMPTY>
+<!ATTLIST %arcsec.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %arcsech.qname; EMPTY>
+<!ATTLIST %arcsech.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %arcsinh.qname; EMPTY>
+<!ATTLIST %arcsinh.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %arctanh.qname; EMPTY>
+<!ATTLIST %arctanh.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %mean.qname; EMPTY>
+<!ATTLIST %mean.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %sdev.qname; EMPTY>
+<!ATTLIST %sdev.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %variance.qname; EMPTY>
+<!ATTLIST %variance.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %median.qname; EMPTY>
+<!ATTLIST %median.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %mode.qname; EMPTY>
+<!ATTLIST %mode.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %vector.qname; ((%BvarQ;),(%DomainQ;),(%ContExp;)*)>
+<!ATTLIST %vector.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %matrix.qname; ((%BvarQ;),(%DomainQ;),(%ContExp;)*)>
+<!ATTLIST %matrix.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %matrixrow.qname; ((%BvarQ;),(%DomainQ;),(%ContExp;)*)>
+<!ATTLIST %matrixrow.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %determinant.qname; EMPTY>
+<!ATTLIST %determinant.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %transpose.qname; EMPTY>
+<!ATTLIST %transpose.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %selector.qname; EMPTY>
+<!ATTLIST %selector.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %vectorproduct.qname; EMPTY>
+<!ATTLIST %vectorproduct.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %scalarproduct.qname; EMPTY>
+<!ATTLIST %scalarproduct.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %outerproduct.qname; EMPTY>
+<!ATTLIST %outerproduct.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %integers.qname; EMPTY>
+<!ATTLIST %integers.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %reals.qname; EMPTY>
+<!ATTLIST %reals.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %rationals.qname; EMPTY>
+<!ATTLIST %rationals.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %naturalnumbers.qname; EMPTY>
+<!ATTLIST %naturalnumbers.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %complexes.qname; EMPTY>
+<!ATTLIST %complexes.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %primes.qname; EMPTY>
+<!ATTLIST %primes.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %emptyset.qname; EMPTY>
+<!ATTLIST %emptyset.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %exponentiale.qname; EMPTY>
+<!ATTLIST %exponentiale.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %imaginaryi.qname; EMPTY>
+<!ATTLIST %imaginaryi.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %notanumber.qname; EMPTY>
+<!ATTLIST %notanumber.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %true.qname; EMPTY>
+<!ATTLIST %true.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %false.qname; EMPTY>
+<!ATTLIST %false.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %pi.qname; EMPTY>
+<!ATTLIST %pi.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %eulergamma.qname; EMPTY>
+<!ATTLIST %eulergamma.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!ELEMENT %infinity.qname; EMPTY>
+<!ATTLIST %infinity.qname;
+  %CommonAtt;
+  %DefEncAtt;>
+
+<!-- end of mathml3-common.rng -->
+
+<!ENTITY % MathExpression "%ContExp;|%PresentationExpression;">
+
+<!-- end of mathml3-content.rng -->
+
+<!-- start of mathml3-presentation.rng -->
+
+<!ENTITY % ImpliedMrow "(%MathExpression;)*">
+
+<!ENTITY % TableRowExpression "%mtr.qname;|%mlabeledtr.qname;">
+
+<!ENTITY % TableCellExpression "%mtd.qname;">
+
+<!ENTITY % MstackExpression "%MathExpression;|%mscarries.qname;
+                             |%msline.qname;|%msrow.qname;|%msgroup.qname;">
+
+<!ENTITY % MsrowExpression "%MathExpression;|%none.qname;">
+
+<!ENTITY % MultiScriptExpression "(%MathExpression;|%none.qname;),
+                                  (%MathExpression;|%none.qname;)">
+
+<!ENTITY % mpadded-length "CDATA">
+
+<!ENTITY % linestyle "none|solid|dashed">
+
+<!ENTITY % verticalalign "top|bottom|center|baseline|axis">
+
+<!ENTITY % columnalignstyle "left|center|right">
+
+<!ENTITY % notationstyle "longdiv|actuarial|radical|box|roundedbox
+                          |circle|left|right|top|bottom|updiagonalstrike
+                          |downdiagonalstrike|verticalstrike
+                          |horizontalstrike|madruwb">
+
+<!ENTITY % idref "#PCDATA">
+
+<!ENTITY % unsigned-integer "CDATA">
+
+<!ENTITY % integer "CDATA">
+
+<!ENTITY % number "CDATA">
+
+<!ENTITY % character "CDATA">
+
+<!ENTITY % color "CDATA">
+
+<!ENTITY % group-alignment "left|center|right|decimalpoint">
+
+<!ENTITY % group-alignment-list "#PCDATA">
+
+<!ENTITY % group-alignment-list-list "#PCDATA">
+
+<!ENTITY % positive-integer "CDATA">
+
+<!ENTITY % token.content "#PCDATA|%mglyph.qname;|%malignmark.qname;">
+
+<!ELEMENT %mi.qname; (%token.content;)*>
+
+<!ENTITY % length "CDATA">
+
+<!ENTITY % DeprecatedTokenAtt "
+  fontfamily CDATA #IMPLIED
+  fontweight (normal|bold) #IMPLIED
+  fontstyle (normal|italic) #IMPLIED
+  fontsize %length; #IMPLIED
+  color %color; #IMPLIED
+  background CDATA #IMPLIED">
+
+<!ENTITY % TokenAtt "
+  mathvariant (normal|bold|italic|bold-italic|double-struck|bold-fraktur
+               |script|bold-script|fraktur|sans-serif|bold-sans-serif
+               |sans-serif-italic|sans-serif-bold-italic|monospace
+               |initial|tailed|looped|stretched) #IMPLIED
+  mathsize CDATA #IMPLIED
+  dir (ltr|rtl) #IMPLIED
+  %DeprecatedTokenAtt;">
+
+<!ENTITY % CommonPresAtt "
+  mathcolor %color; #IMPLIED
+  mathbackground CDATA #IMPLIED">
+
+<!ATTLIST %mi.qname;
+  %CommonAtt;
+  %CommonPresAtt;
+  %TokenAtt;>
+
+<!ELEMENT %mn.qname; (%token.content;)*>
+
+<!ATTLIST %mn.qname;
+  %CommonAtt;
+  %CommonPresAtt;
+  %TokenAtt;>
+
+<!ELEMENT %mo.qname; (%token.content;)*>
+
+<!ATTLIST %mo.qname;
+  %CommonAtt;
+  %CommonPresAtt;
+  %TokenAtt;
+  form (prefix|infix|postfix) #IMPLIED
+  fence (true|false) #IMPLIED
+  separator (true|false) #IMPLIED
+  lspace %length; #IMPLIED
+  rspace %length; #IMPLIED
+  stretchy (true|false) #IMPLIED
+  symmetric (true|false) #IMPLIED
+  maxsize CDATA #IMPLIED
+  minsize %length; #IMPLIED
+  largeop (true|false) #IMPLIED
+  movablelimits (true|false) #IMPLIED
+  accent (true|false) #IMPLIED
+  linebreak (auto|newline|nobreak|goodbreak|badbreak) #IMPLIED
+  lineleading %length; #IMPLIED
+  linebreakstyle (before|after|duplicate|infixlinebreakstyle) #IMPLIED
+  linebreakmultchar CDATA #IMPLIED
+  indentalign (left|center|right|auto|id) #IMPLIED
+  indentshift %length; #IMPLIED
+  indenttarget CDATA #IMPLIED
+  indentalignfirst (left|center|right|auto|id|indentalign) #IMPLIED
+  indentshiftfirst CDATA #IMPLIED
+  indentalignlast (left|center|right|auto|id|indentalign) #IMPLIED
+  indentshiftlast CDATA #IMPLIED>
+
+<!ELEMENT %mtext.qname; (%token.content;)*>
+
+<!ATTLIST %mtext.qname;
+  %CommonAtt;
+  %CommonPresAtt;
+  %TokenAtt;>
+
+<!ELEMENT %mspace.qname; EMPTY>
+
+<!ATTLIST %mspace.qname;
+  %CommonAtt;
+  %CommonPresAtt;
+  %TokenAtt;
+  width %length; #IMPLIED
+  height %length; #IMPLIED
+  depth %length; #IMPLIED
+  linebreak (auto|newline|nobreak|goodbreak|badbreak
+             |indentingnewline) #IMPLIED>
+
+<!ELEMENT %ms.qname; (%token.content;)*>
+
+<!ATTLIST %ms.qname;
+  %CommonAtt;
+  %CommonPresAtt;
+  %TokenAtt;
+  lquote CDATA #IMPLIED
+  rquote CDATA #IMPLIED>
+
+<!ENTITY % mglyph.deprecatedattributes "
+  index %integer; #IMPLIED
+  mathvariant (normal|bold|italic|bold-italic|double-struck|bold-fraktur
+               |script|bold-script|fraktur|sans-serif|bold-sans-serif
+               |sans-serif-italic|sans-serif-bold-italic|monospace
+               |initial|tailed|looped|stretched) #IMPLIED
+  mathsize CDATA #IMPLIED
+  %DeprecatedTokenAtt;">
+
+<!ENTITY % mglyph.attributes "
+  %CommonAtt;
+  %CommonPresAtt;
+  src CDATA #IMPLIED
+  width %length; #IMPLIED
+  height %length; #IMPLIED
+  valign %length; #IMPLIED
+  alt CDATA #IMPLIED">
+
+<!ELEMENT %mglyph.qname; EMPTY>
+<!ATTLIST %mglyph.qname;
+  %mglyph.attributes;
+  %mglyph.deprecatedattributes;>
+
+<!ELEMENT %msline.qname; EMPTY>
+
+<!ATTLIST %msline.qname;
+  %CommonAtt;
+  %CommonPresAtt;
+  position %integer; #IMPLIED
+  length %unsigned-integer; #IMPLIED
+  leftoverhang %length; #IMPLIED
+  rightoverhang %length; #IMPLIED
+  mslinethickness CDATA #IMPLIED>
+
+<!ELEMENT %none.qname; EMPTY>
+
+<!ATTLIST %none.qname;
+  %CommonAtt;
+  %CommonPresAtt;>
+
+<!ELEMENT %mprescripts.qname; EMPTY>
+
+<!ATTLIST %mprescripts.qname;
+  %CommonAtt;
+  %CommonPresAtt;>
+
+<!ELEMENT %malignmark.qname; EMPTY>
+
+<!ATTLIST %malignmark.qname;
+  %CommonAtt;
+  %CommonPresAtt;
+  edge (left|right) #IMPLIED>
+
+<!ELEMENT %maligngroup.qname; EMPTY>
+
+<!ATTLIST %maligngroup.qname;
+  %CommonAtt;
+  %CommonPresAtt;
+  groupalign (left|center|right|decimalpoint) #IMPLIED>
+
+<!ELEMENT %mrow.qname; (%MathExpression;)*>
+
+<!ATTLIST %mrow.qname;
+  %CommonAtt;
+  %CommonPresAtt;
+  dir (ltr|rtl) #IMPLIED>
+
+<!ELEMENT %mfrac.qname; ((%MathExpression;),(%MathExpression;))>
+
+<!ATTLIST %mfrac.qname;
+  %CommonAtt;
+  %CommonPresAtt;
+  linethickness CDATA #IMPLIED
+  numalign (left|center|right) #IMPLIED
+  denomalign (left|center|right) #IMPLIED
+  bevelled (true|false) #IMPLIED>
+
+<!ELEMENT %msqrt.qname; (%ImpliedMrow;)>
+
+<!ATTLIST %msqrt.qname;
+  %CommonAtt;
+  %CommonPresAtt;>
+
+<!ELEMENT %mroot.qname; ((%MathExpression;),(%MathExpression;))>
+
+<!ATTLIST %mroot.qname;
+  %CommonAtt;
+  %CommonPresAtt;>
+
+<!ELEMENT %mstyle.qname; (%ImpliedMrow;)>
+
+<!ENTITY % mstyle.deprecatedattributes "
+  %DeprecatedTokenAtt;
+  veryverythinmathspace %length; #IMPLIED
+  verythinmathspace %length; #IMPLIED
+  thinmathspace %length; #IMPLIED
+  mediummathspace %length; #IMPLIED
+  thickmathspace %length; #IMPLIED
+  verythickmathspace %length; #IMPLIED
+  veryverythickmathspace %length; #IMPLIED">
+
+<!ENTITY % mstyle.generalattributes "
+  accent (true|false) #IMPLIED
+  accentunder (true|false) #IMPLIED
+  align (left|right|center) #IMPLIED
+  alignmentscope CDATA #IMPLIED
+  bevelled (true|false) #IMPLIED
+  charalign (left|center|right) #IMPLIED
+  charspacing CDATA #IMPLIED
+  close CDATA #IMPLIED
+  columnalign CDATA #IMPLIED
+  columnlines CDATA #IMPLIED
+  columnspacing CDATA #IMPLIED
+  columnspan %positive-integer; #IMPLIED
+  columnwidth CDATA #IMPLIED
+  crossout CDATA #IMPLIED
+  denomalign (left|center|right) #IMPLIED
+  depth %length; #IMPLIED
+  dir (ltr|rtl) #IMPLIED
+  edge (left|right) #IMPLIED
+  equalcolumns (true|false) #IMPLIED
+  equalrows (true|false) #IMPLIED
+  fence (true|false) #IMPLIED
+  form (prefix|infix|postfix) #IMPLIED
+  frame (%linestyle;) #IMPLIED
+  framespacing CDATA #IMPLIED
+  groupalign CDATA #IMPLIED
+  height %length; #IMPLIED
+  indentalign (left|center|right|auto|id) #IMPLIED
+  indentalignfirst (left|center|right|auto|id|indentalign) #IMPLIED
+  indentalignlast (left|center|right|auto|id|indentalign) #IMPLIED
+  indentshift %length; #IMPLIED
+  indentshiftfirst CDATA #IMPLIED
+  indentshiftlast CDATA #IMPLIED
+  indenttarget CDATA #IMPLIED
+  largeop (true|false) #IMPLIED
+  leftoverhang %length; #IMPLIED
+  length %unsigned-integer; #IMPLIED
+  linebreak (auto|newline|nobreak|goodbreak|badbreak) #IMPLIED
+  linebreakmultchar CDATA #IMPLIED
+  linebreakstyle (before|after|duplicate|infixlinebreakstyle) #IMPLIED
+  lineleading %length; #IMPLIED
+  linethickness CDATA #IMPLIED
+  location (w|nw|n|ne|e|se|s|sw) #IMPLIED
+  longdivstyle CDATA #IMPLIED
+  lquote CDATA #IMPLIED
+  lspace %length; #IMPLIED
+  mathsize CDATA #IMPLIED
+  mathvariant (normal|bold|italic|bold-italic|double-struck|bold-fraktur
+               |script|bold-script|fraktur|sans-serif|bold-sans-serif
+               |sans-serif-italic|sans-serif-bold-italic|monospace
+               |initial|tailed|looped|stretched) #IMPLIED
+  maxsize CDATA #IMPLIED
+  minlabelspacing %length; #IMPLIED
+  minsize %length; #IMPLIED
+  movablelimits (true|false) #IMPLIED
+  mslinethickness CDATA #IMPLIED
+  notation CDATA #IMPLIED
+  numalign (left|center|right) #IMPLIED
+  open CDATA #IMPLIED
+  position %integer; #IMPLIED
+  rightoverhang %length; #IMPLIED
+  rowalign CDATA #IMPLIED
+  rowlines CDATA #IMPLIED
+  rowspacing CDATA #IMPLIED
+  rowspan %positive-integer; #IMPLIED
+  rquote CDATA #IMPLIED
+  rspace %length; #IMPLIED
+  selection %positive-integer; #IMPLIED
+  separator (true|false) #IMPLIED
+  separators CDATA #IMPLIED
+  shift %integer; #IMPLIED
+  side (left|right|leftoverlap|rightoverlap) #IMPLIED
+  stackalign (left|center|right|decimalpoint) #IMPLIED
+  stretchy (true|false) #IMPLIED
+  subscriptshift %length; #IMPLIED
+  superscriptshift %length; #IMPLIED
+  symmetric (true|false) #IMPLIED
+  valign %length; #IMPLIED
+  width %length; #IMPLIED">
+
+<!ENTITY % mstyle.specificattributes "
+  scriptlevel %integer; #IMPLIED
+  displaystyle (true|false) #IMPLIED
+  scriptsizemultiplier %number; #IMPLIED
+  scriptminsize %length; #IMPLIED
+  infixlinebreakstyle (before|after|duplicate) #IMPLIED
+  decimalpoint %character; #IMPLIED">
+
+<!ATTLIST %mstyle.qname;
+  %CommonAtt;
+  %CommonPresAtt;
+  %mstyle.specificattributes;
+  %mstyle.generalattributes;
+  %mstyle.deprecatedattributes;>
+
+<!ELEMENT %merror.qname; (%ImpliedMrow;)>
+
+<!ATTLIST %merror.qname;
+  %CommonAtt;
+  %CommonPresAtt;>
+
+<!ELEMENT %mpadded.qname; (%ImpliedMrow;)>
+
+<!ATTLIST %mpadded.qname;
+  %CommonAtt;
+  %CommonPresAtt;
+  height %mpadded-length; #IMPLIED
+  depth %mpadded-length; #IMPLIED
+  width %mpadded-length; #IMPLIED
+  lspace %mpadded-length; #IMPLIED
+  voffset %mpadded-length; #IMPLIED>
+
+<!ELEMENT %mphantom.qname; (%ImpliedMrow;)>
+
+<!ATTLIST %mphantom.qname;
+  %CommonAtt;
+  %CommonPresAtt;>
+
+<!ELEMENT %mfenced.qname; (%MathExpression;)*>
+
+<!ATTLIST %mfenced.qname;
+  %CommonAtt;
+  %CommonPresAtt;
+  open CDATA #IMPLIED
+  close CDATA #IMPLIED
+  separators CDATA #IMPLIED>
+
+<!ELEMENT %menclose.qname; (%ImpliedMrow;)>
+
+<!ATTLIST %menclose.qname;
+  %CommonAtt;
+  %CommonPresAtt;
+  notation CDATA #IMPLIED>
+
+<!ELEMENT %msub.qname; ((%MathExpression;),(%MathExpression;))>
+
+<!ATTLIST %msub.qname;
+  %CommonAtt;
+  %CommonPresAtt;
+  subscriptshift %length; #IMPLIED>
+
+<!ELEMENT %msup.qname; ((%MathExpression;),(%MathExpression;))>
+
+<!ATTLIST %msup.qname;
+  %CommonAtt;
+  %CommonPresAtt;
+  superscriptshift %length; #IMPLIED>
+
+<!ENTITY % msubsup.attributes "
+  %CommonAtt;
+  %CommonPresAtt;
+  subscriptshift %length; #IMPLIED
+  superscriptshift %length; #IMPLIED">
+
+<!ELEMENT %msubsup.qname; ((%MathExpression;),(%MathExpression;),
+                         (%MathExpression;))>
+<!ATTLIST %msubsup.qname;
+  %msubsup.attributes;>
+
+<!ELEMENT %munder.qname; ((%MathExpression;),(%MathExpression;))>
+
+<!ATTLIST %munder.qname;
+  %CommonAtt;
+  %CommonPresAtt;
+  accentunder (true|false) #IMPLIED
+  align (left|right|center) #IMPLIED>
+
+<!ELEMENT %mover.qname; ((%MathExpression;),(%MathExpression;))>
+
+<!ATTLIST %mover.qname;
+  %CommonAtt;
+  %CommonPresAtt;
+  accent (true|false) #IMPLIED
+  align (left|right|center) #IMPLIED>
+
+<!ELEMENT %munderover.qname; ((%MathExpression;),(%MathExpression;),
+                            (%MathExpression;))>
+
+<!ATTLIST %munderover.qname;
+  %CommonAtt;
+  %CommonPresAtt;
+  accent (true|false) #IMPLIED
+  accentunder (true|false) #IMPLIED
+  align (left|right|center) #IMPLIED>
+
+<!ELEMENT %mmultiscripts.qname; ((%MathExpression;),
+                               (%MultiScriptExpression;)*,
+                               (%mprescripts.qname;,
+                                (%MultiScriptExpression;)*)?)>
+
+<!ATTLIST %mmultiscripts.qname;
+  %msubsup.attributes;>
+
+<!ELEMENT %mtable.qname; (%TableRowExpression;)*>
+
+<!ATTLIST %mtable.qname;
+  %CommonAtt;
+  %CommonPresAtt;
+  align CDATA #IMPLIED
+  rowalign CDATA #IMPLIED
+  columnalign CDATA #IMPLIED
+  groupalign CDATA #IMPLIED
+  alignmentscope CDATA #IMPLIED
+  columnwidth CDATA #IMPLIED
+  width CDATA #IMPLIED
+  rowspacing CDATA #IMPLIED
+  columnspacing CDATA #IMPLIED
+  rowlines CDATA #IMPLIED
+  columnlines CDATA #IMPLIED
+  frame (%linestyle;) #IMPLIED
+  framespacing CDATA #IMPLIED
+  equalrows (true|false) #IMPLIED
+  equalcolumns (true|false) #IMPLIED
+  displaystyle (true|false) #IMPLIED
+  side (left|right|leftoverlap|rightoverlap) #IMPLIED
+  minlabelspacing %length; #IMPLIED>
+
+<!ELEMENT %mlabeledtr.qname; (%TableCellExpression;)+>
+
+<!ENTITY % mtr.attributes "
+  %CommonAtt;
+  %CommonPresAtt;
+  rowalign (top|bottom|center|baseline|axis) #IMPLIED
+  columnalign CDATA #IMPLIED
+  groupalign CDATA #IMPLIED">
+
+<!ATTLIST %mlabeledtr.qname;
+  %mtr.attributes;>
+
+<!ELEMENT %mtr.qname; (%TableCellExpression;)*>
+<!ATTLIST %mtr.qname;
+  %mtr.attributes;>
+
+<!ELEMENT %mtd.qname; (%ImpliedMrow;)>
+
+<!ATTLIST %mtd.qname;
+  %CommonAtt;
+  %CommonPresAtt;
+  rowspan %positive-integer; #IMPLIED
+  columnspan %positive-integer; #IMPLIED
+  rowalign (top|bottom|center|baseline|axis) #IMPLIED
+  columnalign (%columnalignstyle;) #IMPLIED
+  groupalign CDATA #IMPLIED>
+
+<!ELEMENT %mstack.qname; (%MstackExpression;)*>
+
+<!ATTLIST %mstack.qname;
+  %CommonAtt;
+  %CommonPresAtt;
+  align CDATA #IMPLIED
+  stackalign (left|center|right|decimalpoint) #IMPLIED
+  charalign (left|center|right) #IMPLIED
+  charspacing CDATA #IMPLIED>
+
+<!ELEMENT %mlongdiv.qname; ((%MstackExpression;),(%MstackExpression;),
+                          (%MstackExpression;)+)>
+
+<!ENTITY % msgroup.attributes "
+  %CommonAtt;
+  %CommonPresAtt;
+  position %integer; #IMPLIED
+  shift %integer; #IMPLIED">
+
+<!ATTLIST %mlongdiv.qname;
+  %msgroup.attributes;
+  longdivstyle CDATA #IMPLIED>
+
+<!ELEMENT %msgroup.qname; (%MstackExpression;)*>
+<!ATTLIST %msgroup.qname;
+  %msgroup.attributes;>
+
+<!ELEMENT %msrow.qname; (%MsrowExpression;)*>
+
+<!ATTLIST %msrow.qname;
+  %CommonAtt;
+  %CommonPresAtt;
+  position %integer; #IMPLIED>
+
+<!ELEMENT %mscarries.qname; (%MsrowExpression;|%mscarry.qname;)*>
+
+<!ATTLIST %mscarries.qname;
+  %CommonAtt;
+  %CommonPresAtt;
+  position %integer; #IMPLIED
+  location (w|nw|n|ne|e|se|s|sw) #IMPLIED
+  crossout CDATA #IMPLIED
+  scriptsizemultiplier %number; #IMPLIED>
+
+<!ELEMENT %mscarry.qname; (%MsrowExpression;)*>
+
+<!ATTLIST %mscarry.qname;
+  %CommonAtt;
+  %CommonPresAtt;
+  location (w|nw|n|ne|e|se|s|sw) #IMPLIED
+  crossout CDATA #IMPLIED>
+
+<!ELEMENT %maction.qname; (%MathExpression;)+>
+
+<!ATTLIST %maction.qname;
+  %CommonAtt;
+  %CommonPresAtt;
+  actiontype CDATA #IMPLIED
+  selection %positive-integer; #IMPLIED>
+
+<!-- end of mathml3-presentation.rng -->
+
+<!-- start of mathml3-common.rng -->
+
+<!ELEMENT %math.qname; (%MathExpression;)*>
+
+<!ENTITY % NonMathMLAtt "">
+
+<!ENTITY % math.deprecatedattributes "
+  mode CDATA #IMPLIED
+  macros CDATA #IMPLIED">
+
+<!ATTLIST %math.qname;
+  %CommonAtt;
+  display (block|inline) #IMPLIED
+  maxwidth %length; #IMPLIED
+  overflow (linebreak|scroll|elide|truncate|scale) #IMPLIED
+  altimg CDATA #IMPLIED
+  altimg-width %length; #IMPLIED
+  altimg-height %length; #IMPLIED
+  altimg-valign CDATA #IMPLIED
+  alttext CDATA #IMPLIED
+  cdgroup CDATA #IMPLIED
+  %math.deprecatedattributes;
+  %CommonPresAtt;
+  %mstyle.specificattributes;
+  %mstyle.generalattributes;>
+
+<!--<!ENTITY % name "
+  name CDATA #REQUIRED">
+-->
+<!ENTITY % cd "
+  cd CDATA #REQUIRED">
+
+<!ENTITY % annotation.attributes "
+  %CommonAtt;
+  cd CDATA #IMPLIED
+  name CDATA #IMPLIED
+  %DefEncAtt;
+  src CDATA #IMPLIED">
+
+<!ELEMENT %annotation.qname; (#PCDATA)>
+<!ATTLIST %annotation.qname;
+  %annotation.attributes;>
+
+<!ENTITY % annotation-xml.model "(%MathExpression;)*">
+
+<!ENTITY % anyElement "">
+
+<!ELEMENT %annotation-xml.qname; (%annotation-xml.model;)>
+<!ATTLIST %annotation-xml.qname;
+  %annotation.attributes;>
+
+<!ELEMENT %semantics.qname; ((%MathExpression;),
+                           (%annotation.qname;|%annotation-xml.qname;)*)>
+
+<!ATTLIST %semantics.qname;
+  %CommonAtt;
+  %DefEncAtt;
+  cd CDATA #IMPLIED
+  name CDATA #IMPLIED>
+

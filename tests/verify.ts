@@ -8,7 +8,7 @@
 import { existsSync } from "node/fs.ts";
 import { DOMParser, NodeList } from "../src/core/deno-dom.ts";
 import { assert } from "testing/asserts.ts";
-import { join } from "path/mod.ts";
+import { dirname, join } from "path/mod.ts";
 
 import { readYamlFromString } from "../src/core/yaml.ts";
 
@@ -16,6 +16,8 @@ import { ExecuteOutput, Verify } from "./test.ts";
 import { outputForInput } from "./utils.ts";
 import { unzip } from "../src/core/zip.ts";
 import { dirAndStem } from "../src/core/path.ts";
+import { isWindows } from "../src/core/platform.ts";
+import { execProcess } from "../src/core/process.ts";
 
 export const noErrors: Verify = {
   name: "No Errors",
@@ -368,3 +370,21 @@ export const ensureHtmlSelectorSatisfies = (
     },
   };
 };
+
+export const ensureXmlValidatesWithXsd = (file: string, xsdPath: string) : Verify => {
+  return {
+    name: "Validating XML",
+    verify: async (_output: ExecuteOutput[]) => {
+      
+      if (!isWindows() ) {
+        const cmd = ["xmllint", "--noout", "--valid", file, "--path", xsdPath];
+        const runOptions: Deno.RunOptions = {cmd, stderr: "piped", stdout: "piped"};
+        const result = await execProcess(runOptions);
+        assert(
+          result.success,
+          `Failed XSD Validation\n${result.stderr}`
+        )
+      }    
+    }
+  }
+}

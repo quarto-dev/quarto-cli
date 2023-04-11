@@ -1,0 +1,323 @@
+<!-- ============================================================= -->
+<!--  MODULE:    BITS Embedded Index Element Module                -->
+<!--  VERSION:   BITS 2.1                                          -->
+<!--  DATE:      April 2018                                        -->
+<!--                                                               -->
+<!-- ============================================================= -->
+
+<!-- ============================================================= -->
+<!--                    PUBLIC DOCUMENT TYPE DEFINITION            -->
+<!--                        TYPICAL INVOCATION                     -->
+<!--
+"-//NLM//DTD BITS Embedded Index Element Module v2.1 20180401//EN"
+Delivered as file "BITS-embedded-index2.ent"                       -->
+<!-- ============================================================= -->
+
+
+
+<!-- ============================================================= -->
+<!-- SYSTEM:     Book Interchange Tag Suite                        -->
+<!--                                                               -->
+<!-- PURPOSE:    Defines the index terms to be embedded into the   -->
+<!--             narrative of a document so that an Index can be   -->
+<!--             created programmatically.                         -->
+<!--                                                               -->
+<!-- TAG SET SPONSOR                                               -->
+<!--             National Center for Biotechnology                 -->
+<!--                Information (NCBI)                             -->
+<!--             National Library of Medicine (NLM)                -->
+<!--                                                               -->
+<!-- CREATED FOR:                                                  -->
+<!--             This DTD was created as a superset customization  -->
+<!--             of the ANSI/NISO JATS Z39.96-2012 Version 1.0     -->
+<!--             Journal Article Tag Set.                          -->
+<!--                                                               -->
+<!--             Digital archives and publishers may use the       -->
+<!--             DTD as is for markup of books or book-like        -->
+<!--             material for archiving and transferring           -->
+<!--             such material between archives or they may create -->
+<!--             a custom XML DTD from the BITS Suite for          -->
+<!--             these purposes.                                   -->
+<!--                                                               -->
+<!--             This DTD is in the public domain. An organization -->
+<!--             that wishes to create its own DTD from the suite  -->
+<!--             may do so without permission from NLM.            -->
+<!--                                                               -->
+<!--             The suite has been set up to be extended using a  -->
+<!--             new DTD file and new DTD-specific customization   -->
+<!--             modules to redefine the many Parameter Entities.  -->
+<!--             Do not modify the suite directly or redistribute  -->
+<!--             modified versions of the suite.                   -->
+<!--                                                               -->
+<!--             In the interest of maintaining consistency and    -->
+<!--             clarity for potential users, NLM requests:        -->
+<!--                                                               -->
+<!--             1. If you create a DTD from the BITS DTD Suite    -->
+<!--                and intend to stay compatible with the suite,  -->
+<!--                then please include the following statement    -->
+<!--                as a comment in all of your DTD modules:       -->
+<!--                   "Created from, and fully compatible with,   -->
+<!--                    the Book Interchange Tag Suite (BITS).     -->
+<!--                                                               -->
+<!--             2. If you alter one or more modules of the suite, -->
+<!--                then please rename your version and all its    -->
+<!--                modules to avoid any confusion with the        -->
+<!--                original suite. Also, please include the       -->
+<!--                following statement as a comment in all your   -->
+<!--                DTD modules:                                   -->
+<!--                   "Based in part on, but not fully compatible -->
+<!--                    with, the Book Interchange Tag Suite       -->
+<!--                    (BITS)."                                   -->
+<!--                                                               -->
+<!-- ORIGINAL CREATION DATE:                                       -->
+<!--             April 2012                                        -->
+<!--                                                               -->
+<!-- CREATED BY: Mulberry Technologies, Inc. for the National      -->
+<!--             National Center for Biotechnology Information     -->
+<!--             (NCBI), a center of the US National Library of    -->
+<!--             Medicine (NLM).                                   -->
+<!--                                                               -->
+<!--             The BITS Book Interchange DTD is built from the   -->
+<!--             Journal Archiving and Interchange DTD of the      -->
+<!--             ANSI/NISO Journal Article Tag Suite (JATS)        -->
+<!--             Version 1.1d1 (Z39.96-2015).                      -->
+<!--                                                               -->
+<!--             Suggestions for refinements and enhancements to   -->
+<!--             this DTD should be sent in email to:              -->
+<!--                 bits@ncbi.nlm.nih.gov                         -->
+<!-- ============================================================= -->
+
+
+<!-- ============================================================= -->
+<!--                    DTD VERSION/CHANGE HISTORY                 -->
+<!-- ============================================================= -->
+<!--
+Version  Reason/Occasion                   (who) vx.x (yyyy-mm-dd)
+    =============================================================
+     BITS Version 2.1                (DAL/BTU) v2.1    (2018-04-01)
+     JATS Version 1.2d2              (DAL/BTU) v1.2d2  (2018-04-01)
+
+     JATS is a continuing maintenance NISO Standard, which
+     requires voting by the ANSI and NISO memberships to be changed. 
+     BITS is under continuous maintenance, and is modified at the
+     discretion of the working group.
+
+  4. BITS "2.0" and "v2.0 20151225" became
+     BITS "2.1" and "v2.1 20180401". 
+   
+     JATS "1.2d1" and "v1.2d1 20171231" became
+     JATS "1.2d2" and "v1.2d2 20180401". 
+
+     No module names were changed.     =============================================================
+     BITS Version 2.0                (DAL/BTU) v2.0  (2015-12-25)
+     JATS Version 1.1                (DAL/BTU) v1.1  (2015-12-15)
+
+     JATS is a continuing maintenance NISO Standard, which
+     requires voting by the ANSI and NISO memberships to be changed. 
+     JATS 1.1 was approved in late 2015, and BITS modified to use
+     the most recent version. No other changes to BITS were made.
+ 
+  3. BITS remained version "2.0" but became "v2.0 20151225"
+     JATS became version "1.1" and "v1.1 20151215"
+
+    =============================================================
+     BITS Version 2.0                (DAL/BTU) v2.0  (2015-03-15)
+     JATS Version 1.1                (DAL/BTU) v1.1  (2015-03-01)
+
+     BITS was modified, based on user feedback collected in 2014 
+     and January/February 2015, according to the decisions
+     made by the BITS Working Group. This DTD represents current 
+     BITS and an interim version of the non-normative JATS DTD 
+     Suite (version 1.1), as an indication to JATS users of 
+     the decisions that have been made by the JATS Standing
+     Committee. 
+
+     NISO JATS is a continuing maintenance NISO Standard, which
+     requires voting by the NISO membership to be changed. This
+     Committee Draft 1.1 will be sent to the NISO voting
+     membership, to become (if approved) NISO JATS 1.1.
+
+  2. BITS became version "2.0" and   "v2.0 20150630"
+     JATS became version "1.1" and "v1.1 20150301"
+
+     =============================================================
+     BITS Version 1.1                (DAL/BTU) v1.1    (2014-09-30)
+     JATS Version 1.1d2              (DAL/BTU) v1.1d2  (2014-09-30)
+
+     NISO JATS is a continuing maintenance NISO Standard, which
+     requires voting by the NISO membership to be changed. This
+     Committee Draft 1.1d2 will be sent to the NISO voting
+     membership, to become (if approved) NISO JATS 1.1.
+
+     This catalog represents an interim version of the
+     non-normative JATS DTD Suite, as an indication to JATS users
+     the decisions that have been made by the JATS Standing
+     Committee.
+
+  1. BITS became version "1.1" and   "v1.1 20140930//EN"
+     JATS became version "1.1d2" and "v1.1d2 20140930//EN"
+
+     =============================================================
+                                                                   -->
+
+
+<!-- ============================================================= -->
+<!--                    PARAMETER ENTITIES FOR ATTRIBUTE LISTS     -->
+<!-- ============================================================= -->
+
+
+<!--                    INDEX-TERM ATTRIBUTES                      -->
+<!--                    Attribute list for <index-term> element.
+                        Names the specific indexes in which this term
+                        should be used. Contains an index name or
+                        series of index names for an embedded
+                        index.                                     -->
+<!ENTITY % index-term-atts
+           "%jats-common-atts;
+             index-type NMTOKENS                          #IMPLIED
+             content-type
+                        CDATA                             #IMPLIED
+             specific-use
+                        CDATA                             #IMPLIED
+             xml:lang   NMTOKEN                           #IMPLIED"  >
+
+
+<!--                    INDEX-TERM RANGE END ATTRIBUTES            -->
+<!--                    Attribute list for <index-term-range-end>
+                        element.                                   -->
+<!ENTITY % index-term-range-end-atts
+           "%jats-common-atts;
+             rid        IDREF                             #REQUIRED" >
+
+
+<!--                    SEE ATTRIBUTES                             -->
+<!--                    Attribute list for <see> element.          -->
+<!ENTITY % see-atts
+           "%jats-common-atts;
+             rid        IDREFS                            #IMPLIED
+             content-type
+                        CDATA                             #IMPLIED
+             specific-use
+                        CDATA                             #IMPLIED
+             xml:lang   NMTOKEN                           #IMPLIED"  >
+
+
+<!--                    SEE-ALSO ATTRIBUTES                        -->
+<!--                    Attribute list for <see-also> element.     -->
+<!ENTITY % see-also-atts
+           "%jats-common-atts;
+             rid        IDREFS                            #IMPLIED
+             content-type
+                        CDATA                             #IMPLIED
+             specific-use
+                        CDATA                             #IMPLIED
+             xml:lang   NMTOKEN                           #IMPLIED"  >
+
+
+<!-- ============================================================= -->
+<!--                    INDEX ELEMENTS                             -->
+<!-- ============================================================= -->
+
+
+<!--                    INDEX TERM MODEL                           -->
+<!--                    Content model for the embedded index term
+                        <index-term> element.                      -->
+<!ENTITY % index-term-model
+                        "(term,
+                          (index-term | (see | see-also)* ) )"       >
+
+
+<!--                    INDEX TERM                                 -->
+<!--                    The index term to be embedded into the
+                        narrative of a document so that an Index
+                        can be created programmatically. An
+                        <index-term> is either a single target point
+                        or the start of an index range. When it is the
+                        start of a range, an @id attribute is
+                        required, so that the <index-term-range-end>
+                        element can point to the start of the range.
+                        Details at:
+                        http://jats.nlm.nih.gov/extensions/bits/2.1/index.html?elem=index-term
+                                                                   -->
+<!ELEMENT index-term    %index-term-model;                           >
+<!ATTLIST index-term
+            %index-term-atts;                                        >
+
+
+<!--                    INDEX TERM RANGE END MODEL                 -->
+<!--                    Content model for the embedded index term
+                        <index-term> element.                      -->
+<!ENTITY % index-term-range-end-model
+                        "EMPTY"                                      >
+
+
+<!--                    INDEX TERM RANGE END                       -->
+<!--                    An index term embedded into the narrative
+                        of a document may be either a single point
+                        target or the start of a range. When the
+                        <index-term> is the start of a range, the
+                        @rid attribute of an <index-term-range-end>
+                        must point to the @id of the <index-term>.
+                        Remarks: This is an EMPTY element, since all
+                        the information naming the index term is
+                        already present in the <index-term> element
+                        to which this element points.
+                        Details at:
+                        http://jats.nlm.nih.gov/extensions/bits/2.1/index.html?elem=index-term-range-end
+                                                                   -->
+<!ELEMENT index-term-range-end
+                        %index-term-range-end-model;                 >
+<!ATTLIST index-term-range-end
+            %index-term-range-end-atts;                              >
+
+
+<!--                    SEE ELEMENTS                               -->
+<!--                    The elements that can be included along with
+                        data characters inside the content model of
+                        a <see> element.
+                        Design Note: All inline mixes begin with an
+                        OR bar, but since %simple-phrase; is an
+                        inline mix, the OR bar is already there.   -->
+<!ENTITY % see-elements
+                        "%simple-phrase; | %block-math.class; |
+                         %simple-display-noalt.class;"               >
+
+
+<!--                    SEE                                        -->
+<!--                    Used in an embedded index entry to hold
+                        preferred terms that make "See" references
+                        in a generated index.
+                        Details at:
+                        http://jats.nlm.nih.gov/extensions/bits/2.1/index.html?elem=see
+                                                                   -->
+<!ELEMENT see           (#PCDATA %see-elements;)*                    >
+<!ATTLIST see
+            %see-atts;                                               >
+
+
+<!--                    SEE-ALSO ELEMENTS                          -->
+<!--                    The elements that can be included along with
+                        data characters inside the content model of
+                        a <see-also> element.
+                        Design Note: All inline mixes begin with an
+                        OR bar, but since %simple-phrase; is an
+                        inline mix, the OR bar is already there.   -->
+<!ENTITY % see-also-elements
+                        "%simple-phrase; | %block-math.class; |
+                         %simple-display-noalt.class;"               >
+
+
+<!--                    SEE-ALSO TERM                              -->
+<!--                    Used in an embedded index entry to hold
+                        preferred terms that make "See Also"
+                        references in a generated index.
+                        Details at:
+                        http://jats.nlm.nih.gov/extensions/bits/2.1/index.html?elem=see-also
+                                                                   -->
+<!ELEMENT see-also      (#PCDATA %see-also-elements;)*               >
+<!ATTLIST see-also
+            %see-also-atts;                                          >
+
+
+<!-- ================== End BITS Embedded Index Elements ========= -->
+

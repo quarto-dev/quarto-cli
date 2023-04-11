@@ -1,0 +1,1018 @@
+<?xml version="1.0"?>
+<!DOCTYPE catalog PUBLIC
+"-//OASIS//DTD Entity Resolution XML Catalog V3.0//EN"
+"http://www.oasis-open.org/committees/entity/release/1.0/catalog.dtd">
+
+<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog"
+         prefer="public">
+
+<!-- ============================================================= -->
+<!--  MODULE:    An OASIS XML Catalog (not a DTD Suite module)     -->
+<!--             Version of the catalog without @xml:base          -->
+<!--  VERSION:   1.2                                               --> 
+<!--  DATE:      February 2019                                     --> 
+<!--                                                               -->
+<!-- ============================================================= -->
+
+<!-- ============================================================= -->
+<!-- SYSTEM:     JATS DTD Suite                                    -->
+<!--                                                               -->
+<!-- PURPOSE:    To make the connection between PUBLIC identifiers -->
+<!--             for DTD Suite modules and their URIs              -->
+<!--                                                               -->
+<!-- CONTAINS:   1) Scope of Catalog                               -->
+<!--             2) Catalog organization comment                   -->
+<!--             3) How to set up a catalog                        -->
+<!--                  This catalog has been set up deliberately    -->
+<!--                  so that ALL users will need to modify the    -->
+<!--                  catalog before using it.                     -->
+<!--             4) PUBLIC/SYSTEM identifier map                   -->
+<!--                  a. NISO JATS Journal Publishing DTD (Blue)   -->
+<!--                        Blue with XHTML and MathML 3.0         -->
+<!--                        Blue with XHTML and MathML 2.0         -->
+<!--                        Blue with XHTML, CALS, and MathML 3.0  -->
+<!--                        Blue with XHTML, CALS, and MathML 2.0  -->
+<!--                  b. NISO JATS Archiving and Interchange       -->
+<!--                        DTD (Green)                            -->
+<!--                        Green with XHTML and MathML 3.0        -->
+<!--                        Green with XHTML and MathML 2.0        -->
+<!--                        Green with XHTML, CALS, and MathML 3.0 -->
+<!--                        Green with XHTML, CALS, and MathML 2.0 -->
+<!--                  c. NISO JATS Journal Authoring DTD (Pumpkin) -->
+<!--                        Pumpkin with XHTML and MathML 3.0      -->
+<!--                        Pumpkin with XHTML and MathML 2.0      -->
+<!--                  d. JATS DTD Suite common (shared) modules    -->
+<!--                  e. JATS DTD Suite common (shared) modules    -->
+<!--                       from external sources (table models,    -->
+<!--                       MATHML, general entity sets, etc.)      -->
+<!--                                                               -->
+<!-- TAG SET SPONSOR                                               -->
+<!--             National Center for Biotechnology                 -->
+<!--                Information (NCBI)                             -->
+<!--             National Library of Medicine (NLM)                -->
+<!--                                                               -->
+<!-- CREATED FOR:                                                  -->
+<!--             This module was created for the JATS DTD Suite.   -->
+<!--             Digital archives and publishers may use the       -->
+<!--             DTD as is for markup of journal literature or     -->
+<!--             related material for archiving and transferring   -->
+<!--             such material between archives or create a        -->
+<!--             custom XML DTD from the Suite for                 -->
+<!--             these purposes.                                   -->
+<!--                                                               -->
+<!--             This DTD is in the public domain. An organization -->
+<!--             that wishes to create its own DTD from the suite  -->
+<!--             may do so without permission from NLM.            -->
+<!--                                                               -->
+<!--             The suite has been set up to be extended using a  -->
+<!--             new DTD file and a new DTD-specific customization -->
+<!--             module to redefine the many Parameter Entities.   -->
+<!--             Do not modify the suite directly or redistribute  -->
+<!--             modified versions of the suite.                   -->
+<!--                                                               -->
+<!--             In the interest of maintaining consistency and    -->
+<!--             clarity for potential users, NLM requests:        -->
+<!--                                                               -->
+<!--             1. If you create a DTD from the JATS DTD Suite    -->
+<!--                and intend to stay compatible with the suite,  -->
+<!--                then please include the following statement    -->
+<!--                as a comment in all of your DTD modules:       -->
+<!--                   "Created from, and fully compatible with,   -->
+<!--                    the ANSI/NISO Z39.96 Journal Article Tag   -->
+<!--                    Suite (JATS)."                             -->
+<!--                                                               -->
+<!--             2. If you alter one or more modules of the suite, -->
+<!--                then please rename your version and all its    -->
+<!--                modules to avoid any confusion with the        -->
+<!--                original suite. Also, please include the       -->
+<!--                following statement as a comment in all your   -->
+<!--                DTD modules:                                   -->
+<!--                   "Based in part on, but not fully compatible -->
+<!--                    with, the ANSI/NISO Z39.96 Journal Article -->
+<!--                    Tag Suite (JATS)."                         -->
+<!--                                                               -->
+<!-- ORIGINAL CREATION DATE:                                       -->
+<!--             June 2002                                         -->
+<!--                                                               -->
+<!-- CREATED BY: Mulberry Technologies, Inc. for the NISO Z39.96   -->
+<!--             Working Group. Mulberry Technologies was          -->
+<!--             supported by National Center for Biotechnology    -->
+<!--             Information (NCBI), a center of the US National   -->
+<!--             Library of Medicine (NLM).                        -->
+<!--                                                               -->
+<!--             This module is part of the JATS DTD Suite. The    -->
+<!--             Suite is a continuation of work done by NCBI,     -->
+<!--             Mulberry Technologies, and Inera, Inc. on the NLM -->
+<!--             Journal JATS DTD Suite, which-->
+<!--             was originally released in December, 2002.        -->
+<!--                                                               -->
+<!--             NLM thanks the Harvard University Libraries, both -->
+<!--             for proposing that a draft archiving NLM DTD for  -->
+<!--             life sciences journals be extended to accommodate -->
+<!--             journals in all disciplines and for sponsoring    -->
+<!--             Inera Inc.'s collaboration with other DTD         -->
+<!--             authors in completing NLM Version 1.0. The        -->
+<!--             Andrew W. Mellon Foundation provided support for  -->
+<!--             these important contributions.                    -->
+<!--                                                               -->
+<!--             Suggestions for refinements and enhancements to   -->
+<!--             this DTD should be sent in email to:              -->
+<!--                 jats@ncbi.nlm.nih.gov                         -->
+<!-- ============================================================= -->
+
+
+<!-- ============================================================= -->
+<!--                    DTD VERSION/CHANGE HISTORY                 -->
+<!-- ============================================================= -->
+<!--
+     =============================================================
+Version  Reason/Occasion                   (who) vx.x (yyyy-mm-dd)
+   ==============================================================
+     JATS Version 1.2 (ANSI/NISO Z39.96-2019)
+                                   (DAL/BTU) v1.2     (2019-02-08)
+    
+     NISO JATS is a continuing maintenance NISO Standard, which 
+     requires voting by the both the NISO and ANSI membership 
+     to be changed. This version of the NISO JATS was approved 
+     by ANSI vote on Feb 08, 2019, so it supersedes all Committee 
+     Drafts as well as the draft version JATS 1.2 2018 (the version
+     submitted for vote), becoming NISO JATS v1.2 20190208 
+     (ANSI/NISO Z39.96-2019).
+  
+ 20. JATS "1.2" becomes "v1.2 20190208" (final ANSI vote date)
+     "ANSI/NISO Z39.96-2015" becomes "ANSI/NISO Z39.96-2019"
+
+    ==============================================================
+     JATS Version 1.2 (ANSI/NISO Z39.96-2018)
+     and BITS 2.1 (v2.0 20180401)
+                                   (DAL/BTU) v1.2     (2018-11-30)
+    
+     NISO JATS is a continuing maintenance NISO Standard, which 
+     requires voting by the both the NISO and ANSI membership 
+     to be changed. This version of the NISO JATS was approved 
+     by ANSI and NISO vote, so it supersedes all Committee Drafts
+     and becoming NISO JATS 1.2 (ANSI/NISO Z39.96-2018).
+  
+ 19. BITS "2.1" and "v2.0 20180401" remains unchanged.
+     JATS "1.2d2" and "v1.2d2 20180401" became
+     JATS "1.2" and "v1.2 20181130" 
+
+    =============================================================
+     JATS Version 1.2d2 (ANSI/NISO Z39.96-2015)
+     and BITS 2.1 (v2.0 20180401)
+                                   (DAL/BTU) v1.2d2  (2018-04-01)
+ 
+     NISO JATS is a continuing maintenance NISO Standard, which
+     requires voting by the ANSI and NISO memberships to be changed. 
+      
+     This draft DTD represents an interim version of the
+     non-normative JATS DTD Suite, as an indication to JATS users
+     the decisions that have been made by the JATS Standing
+     Committee. This draft has not yet been given public review 
+     or voting. The formal public identifiers were changed in the 
+     modules and the catalogs.
+  
+ 18. BITS "2.0" and "v1.2d1 20170631" became
+     BITS "2.1" and "v2.0 20180401". 
+     No module names were changed.
+ 
+  
+ 17. JATS "1.2d1" and "v1.2d1 20170631" became
+     JATS "1.2d2" and "v1.2d2 20171231". 
+     No module names were changed.
+   =============================================================
+     JATS Version 1.2d1              (DAL/BTU) v1.2d1  (2017-06-31)
+
+     NISO JATS is a continuing maintenance NISO Standard, which
+     requires voting by the ANSI and NISO memberships to be changed. 
+      
+     This draft DTD represents an interim version of the
+     non-normative JATS DTD Suite, as an indication to JATS users
+     the decisions that have been made by the JATS Standing
+     Committee. This draft has not yet been given public review 
+     or voting. The formal public identifiers were changed in the 
+     modules and the catalogs.
+
+16. JATS became version "1.2d1" and "v1.2d1 20170631" 
+     No module names were changed.
+
+    =============================================================
+     JATS Version 1.1 (ANSI/NISO Z39.96-2015)
+                                   (DAL/BTU) v1.1d3  (2015-12-15)
+   
+     NISO JATS is a continuing maintenance NISO Standard, which 
+     requires voting by the both the NISO and ANSI membership 
+     to be changed. This version of the NISO JATS was approved 
+     by ANSI and NISO vote, so it supersedes all Committee Drafts
+     and becoming NISO JATS 1.1 (ANSI/NISO Z39.96-2015).
+  
+ 15. JATS "1.1d3" and "v1.1d3 20150301" become
+     JATS 1.1 and "v1.1 20151215". No module names were changed.
+
+     =============================================================
+     JATS Version 1.1d3             (DAL/BTU) v1.1d3  (2015-03-01)
+   
+     The changes in this release are in response to NISO 
+     License and Indicators Recommended Practice.
+
+     NISO JATS is a continuing maintenance NISO Standard, which 
+     requires voting by the NISO membership to be changed. This
+     Committee Draft 1.1d3 will be sent to the NISO voting
+     membership, to become (if approved) NISO JATS 1.1.
+     
+     This catalog represents an interim version of the
+     non-normative JATS DTD Suite, as an indication to JATS users
+     the decisions that have been made by the JATS Standing
+     Committee.
+  
+ 14. JATS became version "1.1d3" and "v1.1 20150301//EN"
+     BITS became version "2.0" and "v2.0 20150630//EN", and
+        BITS module names all changed to "2"
+
+     =============================================================
+     JATS Version 1.1d2             (DAL/BTU) v1.1d2  (2014-09-30)
+   
+     NISO JATS is a continuing maintenance NISO Standard, which 
+     requires voting by the NISO membership to be changed. This
+     Committee Draft 1.1d2 will be sent to the NISO voting
+     membership, to become (if approved) NISO JATS 1.1.
+     
+     This catalog represents an interim version of the
+     non-normative JATS DTD Suite, as an indication to JATS users
+     the decisions that have been made by the JATS Standing
+     Committee.
+
+ 13. Re-arranged catalog entries to make it more obvious which
+     files were needed by which DTDs.
+
+ 12. JATS became version "1.1d2" and "v1.1d2 20140930"
+
+     =============================================================
+     JATS Version 1.1d1             (DAL/BTU) v1.1d1 (2013-12-15)
+   
+     NISO JATS is a continuing maintenance NISO Standard, which 
+     requires voting by the NISO membership to be changed. The next
+     official version of NISO JATS will be either 1.1 or 2.0.
+     
+     This catalog represents an interim version of the
+     non-normative JATS DTD Suite, as an indication to JATS users
+     the decisions that have been made by the JATS Standing
+     Committee.
+     
+ 11. Replaced an incorrect formal public identifier for the 
+     Archiving DTD with XHTML and MathML3. Changed "-//NLM//DTD JATS 
+     (Z39.96) Journal Archiving and Interchange DTD v1.1d1 20130915//EN" 
+     to the fpi: "-//NLM//DTD JATS 
+     (Z39.96) Journal Archiving and Interchange DTD with MathML3 v1.1d1 
+     20130915//EN"
+
+ 10. Removed all mentions of BITS files
+
+  9. Removed duplicate declaration of JATS OASIS Table Setup Module
+
+     =============================================================
+     JATS Version 1.1d1 (prelim draft) (DAL/BTU) v1.1d1 (2013-11-15)
+   
+     NISO JATS is a continuing maintenance NISO Standard, which 
+     requires voting by the NISO membership to be changed. The next
+     official version of NISO JATS will be either 1.1 or 2.0.
+     
+     This catalog represents an interim version of the
+     non-normative JATS DTD Suite, as an indication to JATS users
+     the decisions that have been made by the JATS Standing
+     Committee.
+
+  7. Major DTD-fork to Add MathML 3.0 as an alternative to 
+     MathML 2.0. They must never be used together, always
+     one must be chosen. This added many more DTDs, as all
+     options needed to be able to choose which Math to use.
+
+  6. Modified comments to make it more obvious which modules are
+     used together and which may be commented out or
+     deleted. No catalog entries ever need to be commented
+     out or deleted.
+
+  5. Changed the filename to include "no-base" in the name.
+
+  4. JATS became version "1.1d1" and "v1.1d1 20130915//EN"
+
+     =============================================================
+     NISO JATS Version 1.0             (DAL/BTU) v1.0 (2012-09-20)
+   
+     ANSI/NISO Z39.96-2012 (Version 1.0) 
+
+     Details concerning ANSI/NISO Z39.96-2012 JATS-based DTDs,  
+     XSDs, RNGs and supporting documentation are available at
+           http://jats.nlm.nih.gov/1.0/
+   
+  3. Replaced OASIS modules to enhance control of OASIS 
+     namespace and namespace prefix (v1.0 20120330//EN").
+
+     =============================================================
+     Version 0.4                       (DAL/BTU) v0.4 (2011-01-31)
+   
+     This Tag Set is in the process of becoming a NISO standard.
+     The version numbers are starting over from 0.4", as a Trial
+     Use Draft, to be made into "Version 1.0" when the Tag Suite 
+     becomes a NISO standard. Thus, the version number that would
+     have been "NLM Version 3.1 Draft" has become "NISO JATS
+     Version 0.4".
+
+     Details on NISO Trial Use Draft Version 0.4 are available at
+           http://jats.nlm.nih.gov/JATS-0.4.
+
+  2. Updated the public identifiers to "v1.0 20120330//EN",
+     modified the formal public identifier to include "JATS (Z39.96)",
+     and the filename as delivered to include "JATS" and the
+     new version number "0".
+
+     =============================================================
+     Version 3.0                       (DAL/BTU) v3.0 (2007-10-31)
+
+     Version 3.0 is the first non-backward-compatible release.
+     In addition to the usual incremental changes, some
+     elements and attributes have been renamed and/or remodeled
+     to better meet user needs and to increase tag set consistency.
+     All module change histories are available through the Tag Suite
+     web site at http://dtd.nlm.nih.gov.
+
+     Details on version 3.0 are available at
+           http://jats.nlm.nih.gov/3.0.
+
+  1. Updated public identifiers to "v1.2 20181130//EN"
+     fresh start.                                                   -->
+
+<!-- ============================================================= -->
+<!-- Details concerning 
+     ANSI/NISO Z39.96-2015 JATS-based DTDs, XSDs, 
+     RNGs and supporting documentation are available at
+           http://jats.nlm.nih.gov/1.1/                            -->
+
+<!-- ============================================================== -->
+<!--                    SCOPE (JATS DTD Suite Version 1.1d1)        -->
+<!-- ============================================================== -->
+
+<!-- This catalog is made up of several groups, each with its own
+     xml:base attribute, for:
+
+       - NISO JATS Journal Publishing DTD (Blue)
+       - The additional modules for the NISO JATS Journal Publishing 
+           DTD (Blue) with OASIS and XHTML tables
+       - NISO JATS Archiving and Interchange DTD (Green)
+       - The additional modules for the NISO JATS Archiving and 
+           Interchange DTD (Green) with OASIS and XHTML tables
+       - NISO JATS Journal Authoring DTD (Pumpkin)
+       - JATS DTD Suite common (shared) modules
+       - JATS DTD Suite common (shared) modules from external 
+            sources (table models, MathML, general entity 
+            sets, etc.)                                         
+
+     To work with relative files (such as in the Oxygen XML Editor), 
+     use this catalog named "no-base", which has no @xml:base 
+     attributes.  To set up a system-level catalog specific to a
+     file system, set an @xml:base attribute on each <group> element 
+     to the appropriate URI, such as a filename or system path.     -->
+     
+<!-- ============================================================== -->
+<!--                    CATALOG ORGANIZATION                        -->
+<!-- ============================================================== -->
+
+<!--  GROUPS AND ENTRIES
+
+     Entries are grouped into logical clusters, organized by the
+     particular DTD variant.
+
+     Each catalog entry associates a PUBLIC identifier with a SYSTEM
+     identifier.
+
+     The @uri SYSTEM identifier is relative (resolved by the
+     application, such as the Oxygen XML editor), and contains the
+     filename of the DTD:
+
+     The XML looks like this:
+
+     <group>
+
+       <public publicId="-//NLM//DTD JATS (Z39.96) Journal Publishing DTD v88.6 20160331//EN"
+               uri="journalpublishing88.dtd"/>
+       ...
+     </group>
+                                                                    -->
+
+
+<!-- ============================================================== -->
+<!--                    HOW TO SET UP                               -->
+<!-- ============================================================== -->
+
+<!-- The OASIS catalog and the NCBI Suite of Modules provide a wide
+     range of flexibility for setting up. Here are two easy ways to
+     do it:
+
+
+     1. WITHOUT an OASIS catalog (DTD components on a local system):
+
+        - unzip the DTD packages you want to use into a single
+          directory:
+
+            - the journal-publishing package
+            - the archive article package
+            - the journal-authoring package
+            - the book package
+
+        - create your own DTD customization, if you need to,
+          anywhere, using local (relative or absolute) SYSTEM
+          identifiers to reference DTD modules.
+
+        - create a document instance anywhere, and point its
+          SYSTEM identifier to your customized DTD or to the
+          package DTD you have chosen to use, using a local
+          (relative or absolute) SYSTEM identifier.
+
+        The SYSTEM identifiers used in the DTD modules are relative
+        to the directory in which you have placed the DTD package
+        and your customized DTD, and so your editor/processor will
+        find them when reading the DTD.
+
+     2. Using this OASIS catalog (DTD components on a local system):
+
+        - unzip the DTD packages you want to use into a single
+          directory, or into separate directories.
+          
+             - If you are using tools that work well with relative
+               path locations (e.g., The Oxygen XML Editor), you can
+               use this JATS catalog, named "no-base", that does
+               not use the @xml:base attributes.
+               
+             - If you need to establish an @XML:base attribute,
+               start from the other catalog, named "with-base"/
+
+        - create your own DTD customization, if you need to,
+          anywhere, using PUBLIC identifiers to reference the
+          DTD modules.
+
+        - tell your editor/processor about this OASIS catalog
+          (Note: many apps must be closed and relaunched when
+          a catalog file is first specified AND when it is changed)
+
+        - create a document instance anywhere, and point its
+          SYSTEM or PUBLIC identifier to the DTD you want to use,
+          giving a relative SYSTEM path.
+
+        Your editor/processor will map the PUBLIC identifiers
+        in the DTD to the SYSTEM identifiers specified in
+        this catalog.                                               -->
+
+
+<!-- ============================================================== -->
+<!--                    PUBLIC-SYSTEM IDENTIFIER MAP                -->
+<!-- ============================================================== -->
+
+<!-- ============================================================== -->
+<!--                    JOURNAL PUBLISHING DTD (BLUE)               -->
+<!--                    The following modules are used only for JATS-->
+<!--                    Journal Publishing DTDs (Blue).             -->
+<!--                    If you are not using Publishing (Blue), you -->
+<!--                    may delete the group below, or leave it     -->
+<!--                    here as these public definitions do no harm.-->
+<!-- ============================================================== -->
+
+<group prefer="public" 
+       xml:base="put a real base here, such as 'file:///C:/MyWork/OurTasks/DTDs-for-JATS/'">
+
+<!--                    The following modules are used for ALL of   -->
+<!--                    the Journal Publishing DTDs (Blue)          -->
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) Journal Publishing DTD Customize Mixes Module v1.2 20190208//EN"
+               uri="JATS-journalpubcustom-mixes1.ent"/>
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) Journal Publishing DTD Customize Content and Attributes Module v1.2 20190208//EN"
+               uri="JATS-journalpubcustom-models1.ent"/>
+
+<!--                    The following modules are used for all of   -->
+<!--                    the Journal Publishing DTDs (Blue) that use -->
+<!--                    ONLY the XHTML-based Table Model            -->
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) Journal Publishing DTD Customize Classes Module v1.2 20190208//EN"
+               uri="JATS-journalpubcustom-classes1.ent"/>
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) Journal Publishing DTD-Specific Modules v1.2 20190208//EN"
+               uri="JATS-journalpubcustom-modules1.ent"/>
+
+<!--                    The following modules are used ONLY for the -->
+<!--                    Journal Publishing DTD (Blue), that uses    -->
+<!--                    XHTML tables with MathML 2.0                -->
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) Journal Publishing DTD v1.2 20190208//EN"
+               uri="JATS-journalpublishing1.dtd"/>
+
+<!--                    The following modules are used ONLY for the -->
+<!--                    Journal Publishing DTD (Blue), that uses    -->
+<!--                    XHTML tables with MathML 3.0                -->
+
+<public publicId="-//NLM//DTD JATS (Z39.96) Journal Publishing DTD with MathML3 v1.2 20190208//EN"
+               uri="JATS-journalpublishing1-mathml3.dtd"/>
+
+<!--                    The following modules are used only for all -->
+<!--                    Journal Publishing DTDs(Blue) that use the  -->
+<!--                    OASIS table model (namespace prefix "oasis")-->
+<!--                    and the XHTML table model.                  -->
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) Journal Publishing DTD with OASIS Tables DTD-Specific Modules v1.2 20190208//EN"
+               uri="JATS-journalpub-oasis-custom-modules1.ent"/>
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) Journal Publishing DTD with OASIS Tables Customize Classes v1.2 20190208//EN"
+               uri="JATS-journalpub-oasis-custom-classes1.ent"/>
+
+<!--                    The following modules are used ONLY for the -->
+<!--                    Journal Publishing DTD (Blue) that uses the -->
+<!--                    OASIS table model (namespace prefix "oasis")-->
+<!--                    and the XHTML table model with MathML 2.0   -->
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) Journal Publishing DTD with OASIS Tables v1.2 20190208//EN"
+               uri="JATS-journalpublishing-oasis-article1.dtd"/>
+
+
+<!--                    The following modules are used ONLY for the -->
+<!--                    Journal Publishing DTD (Blue) that uses the -->
+<!--                    OASIS table model (namespace prefix "oasis")-->
+<!--                    and the XHTML table model with MathML 3.0   -->
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) Journal Publishing DTD with OASIS Tables with MathML3 v1.2 20190208//EN"
+               uri="JATS-journalpublishing-oasis-article1-mathml3.dtd"/>
+
+</group>
+
+<!-- ============================================================== -->
+<!--                    ARCHIVING AND INTERCHANGE DTD (GREEN)       -->
+<!--                    The following modules are used only for JATS-->
+<!--                    Journal Archiving and Interchange DTDs      -->
+<!--                    (Green)                                     -->
+<!--                    If you are not using Archiving (Green), you -->
+<!--                    may delete the group below, or leave it     -->
+<!--                    here as these public definitions do no harm.-->
+<!-- ============================================================== -->
+
+<group prefer="public" 
+       xml:base="put a real base here, such as 'file:///C:/MyWork/OurTasks/DTDs-for-JATS/'">
+
+<!--                    The following modules are used for ALL of   -->
+<!--                    the Archiving and Interchange DTDs (Green)  -->
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) Journal Archiving DTD Customize Mixes Module v1.2 20190208//EN"
+               uri="JATS-archivecustom-mixes1.ent"/>
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) Journal Archiving DTD Customize Content and Attributes Module v1.2 20190208//EN"
+               uri="JATS-archivecustom-models1.ent"/>
+ 
+<!--                    The following modules are used for all of   -->
+<!--                    the Archiving and Interchange DTDs (Green)  -->
+<!--                    that use ONLY the XHTML-based Table Model   -->
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) Journal Archiving DTD Customize Classes Module v1.2 20190208//EN" 
+               uri="JATS-archivecustom-classes1.ent"/>
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) Journal Archiving DTD-Specific Modules v1.2 20190208//EN" 
+               uri="JATS-archivecustom-modules1.ent"/>
+
+<!--                    The following modules are used ONLY for the -->
+<!--                    Archiving and Interchange DTDs (Green), that-->
+<!--                    uses XHTML tables with MathML 2.0           -->
+
+ <public publicId="-//NLM//DTD JATS (Z39.96) Journal Archiving and Interchange DTD v1.2 20190208//EN" 
+               uri="JATS-archivearticle1.dtd"/>
+
+<!--                    The following modules are used ONLY for the -->
+<!--                    Archiving and Interchange DTDs (Green), that-->
+<!--                    uses XHTML tables with MathML 3.0           -->
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) Journal Archiving and Interchange DTD with MathML3 v1.2 20190208//EN"
+               uri="JATS-archivearticle1-mathml3.dtd"/>
+
+
+<!--                    The following modules are used only for all -->
+<!--                    Archiving and Interchange DTDs (Green) that -->
+<!--                    use the OASIS table model (namespace prefix -->
+<!--                    "oasis") and the XHTML table model.         -->
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) Journal Archiving and Interchange DTD with OASIS Tables Customize Classes Module v1.2 20190208//EN"
+               uri="JATS-archive-oasis-custom-classes1.ent"/>
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) Journal Archiving and Interchange DTD with OASIS Tables DTD-Specific Modules v1.2 20190208//EN"
+               uri="JATS-archive-oasis-custom-modules1.ent"/>
+
+
+<!--                    The following modules are used ONLY for the -->
+<!--                    Archiving and Interchange DTDs (Green) that -->
+<!--                    use the OASIS table model (namespace prefix -->
+<!--                    "oasis") and the XHTML table model with     -->
+<!--                    MathML 2.0                                  -->
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) Journal Archiving and Interchange DTD with OASIS Tables v1.2 20190208//EN"
+               uri="JATS-archive-oasis-article1.dtd"/>
+
+<!--                    The following modules are used ONLY for the -->
+<!--                    Archiving and Interchange DTDs (Green) that -->
+<!--                    use the OASIS table model (namespace prefix -->
+<!--                    "oasis") and the XHTML table model with     -->
+<!--                    MathML 3.0                                  -->
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) Journal Archiving and Interchange DTD with OASIS Tables with MathML3 v1.2 20190208//EN"
+               uri="JATS-archive-oasis-article1-mathml3.dtd"/>
+              
+</group>
+
+
+<!-- ============================================================== -->
+<!--                    ARTICLE AUTHORING DTD (PUMPKIN)             -->
+<!--                    The following modules are used only for JATS-->
+<!--                    Article Authoring DTD (Pumpkin).            -->
+<!--                    If you are not using Authoring (Pumpkin),   -->
+<!--                    may delete the group below, or leave it     -->
+<!--                    here as these public definitions do no harm.-->
+<!-- ============================================================== -->
+
+<group prefer="public" 
+       xml:base="put a real base here, such as 'file:///C:/MyWork/OurTasks/DTDs-for-JATS/'">
+
+<!--                    The following modules are used for ALL of   -->
+<!--                    the Article Authoring DTDs (Pumpkin)        -->
+
+  <public publicId= "-//NLM//DTD JATS (Z39.96) Article Authoring DTD Over-ride Classes Module v1.2 20190208//EN"
+               uri="JATS-articleauthcustom-classes1.ent"/>
+
+  <public publicId= "-//NLM//DTD JATS (Z39.96) Article Authoring DTD Over-ride Mixes Module v1.2 20190208//EN"
+               uri="JATS-articleauthcustom-mixes1.ent"/>
+
+  <public publicId= "-//NLM//DTD JATS (Z39.96) Article Authoring DTD Over-ride Content and Attribute Module v1.2 20190208//EN"
+               uri="JATS-articleauthcustom-models1.ent"/>
+
+  <public publicId= "-//NLM//DTD JATS (Z39.96) Article Authoring DTD-Specific Modules v1.2 20190208//EN"
+               uri="JATS-articleauthcustom-modules1.ent"/>
+
+<!--                    The following modules are used ONLY for the -->
+<!--                    the Article Authoring DTDs (Pumpkin) that   -->
+<!--                    use the XHTML table model with MathML 2.0   -->
+           
+  <public publicId="-//NLM//DTD JATS (Z39.96) Article Authoring DTD v1.2 20190208//EN"
+               uri="JATS-articleauthoring1.dtd"/>
+
+<!--                    The following modules are used ONLY for the -->
+<!--                    the Article Authoring DTDs (Pumpkin) that   -->
+<!--                    use the XHTML table model with MathML 3.0   -->
+            
+  <public publicId="-//NLM//DTD JATS (Z39.96) Article Authoring DTD with MathML3 v1.2 20190208//EN"
+               uri="JATS-articleauthoring1-mathml3.dtd"/>
+
+</group>
+
+
+<!-- ============================================================== -->
+<!--                    JATS DTD SUITE                              -->
+<!--                    MODULAR LIBRARY                             -->
+<!--                    The following group is used by all of       -->
+<!--                    the JATS DTDS.                              -->
+<!--                    DO NOT DELETE OR COMMENT OUT THIS GROUP!    -->
+<!-- ============================================================== -->
+
+<group prefer="public" 
+       xml:base="put a real base here, such as 'file:///C:/MyWork/OurTasks/DTDs-for-JATS/'">
+
+<!--                    MODULE OF MODULES                           -->
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) JATS DTD Suite Module of Modules v1.2 20190208//EN"
+               uri="JATS-modules1.ent"/>
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) JATS MathML 3.0 Modules v1.2 20190208//EN"
+               uri="JATS-mathml3-modules1.ent"/>
+
+
+<!--                    CLASSES AND MIXES                           -->
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) Default Element Classes Module v1.2 20190208//EN"
+               uri="JATS-default-classes1.ent"/>
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) Default Element Mixes Module v1.2 20190208//EN"
+               uri="JATS-default-mixes1.ent"/>
+
+
+<!--                    ELEMENT COMMON (SHARED) ELEMENTS/CHARACTERS -->
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) JATS DTD Suite Common (Shared) Elements Module v1.2 20190208//EN"
+               uri="JATS-common1.ent"/>
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) JATS DTD Suite Common Attributes (for all elements) v1.2 20190208//EN"
+               uri="JATS-common-atts1.ent"/>               
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) JATS DTD Suite Notation Declarations v1.2 20190208//EN"
+               uri="JATS-notat1.ent"/>
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) JATS DTD Suite XML Special Characters Module v1.2 20190208//EN"
+               uri="JATS-xmlspecchars1.ent"/>
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) JATS DTD Suite Custom Special Characters Module v1.2 20190208//EN"
+               uri="JATS-chars1.ent"/>
+
+
+<!--                    CLASS MODULES                               -->
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) JATS DTD Suite Journal Article Metadata Elements v1.2 20190208//EN"
+               uri="JATS-articlemeta1.ent"/>
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) JATS DTD Suite Back Matter Elements v1.2 20190208//EN"
+               uri="JATS-backmatter1.ent"/>
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) JATS DTD Suite Display Class Elements v1.2 20190208//EN"
+               uri="JATS-display1.ent"/>
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) JATS DTD Suite Formatting Element Classes v1.2 20190208//EN"
+               uri="JATS-format1.ent"/>
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) JATS DTD Suite Funding Elements v1.2 20190208//EN"
+               uri="JATS-funding1.ent"/>
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) JATS DTD Suite Journal Metadata Elements v1.2 20190208//EN"
+               uri="JATS-journalmeta1.ent"/>
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) JATS DTD Suite Link Class Elements v1.2 20190208//EN"
+               uri="JATS-link1.ent"/>
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) JATS DTD Suite List Class Elements v1.2 20190208//EN"
+               uri="JATS-list1.ent"/>
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) JATS DTD Suite Math Class Elements v1.2 20190208//EN"
+               uri="JATS-math1.ent"/>
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) NLM Citation v1.2 20190208//EN"
+               uri="JATS-nlmcitation1.ent"/>
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) JATS DTD Suite Paragraph-Like Elements v1.2 20190208//EN"
+               uri="JATS-para1.ent"/>
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) JATS DTD Suite Subject Phrase Class Elements v1.2 20190208//EN"
+               uri="JATS-phrase1.ent"/>
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) JATS DTD Suite Bibliographic Reference (Citation) Class Elements v1.2 20190208//EN"
+               uri="JATS-references1.ent"/>
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) JATS DTD Suite Related Object Element v1.2 20190208//EN"
+               uri="JATS-related-object1.ent"/>
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) JATS DTD Suite Section Class Elements v1.2 20190208//EN"
+               uri="JATS-section1.ent"/>
+
+
+<!--                    SET UP XHTML TABLES (OASIS below)          -->
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) JATS DTD Suite XHTML Table Setup Module v1.2 20190208//EN"
+               uri="JATS-XHTMLtablesetup1.ent"/>
+
+<!--                    SET UP MATHML                              -->
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) JATS DTD Suite MathML Setup Module v1.2 20190208//EN"
+               uri="JATS-mathmlsetup1.ent"/>
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) JATS DTD Suite MathML 3.0 Setup Module v1.2 20190208//EN"
+               uri="JATS-mathml3-mathmlsetup1.ent"/>
+
+</group>
+
+
+<!-- ============================================================== -->
+<!--                    COMMONLY-USED PUBLIC MODELS AND PUBLIC      -->
+<!--                    CHARACTER-ENTITY SETS USED IN THE SUITE     -->
+<!--                    The following group is used by all of       -->
+<!--                    the JATS DTDS.                              -->
+<!--                    DO NOT DELETE OR COMMENT OUT THIS GROUP!    -->
+<!-- ============================================================== -->
+
+<group prefer="public" 
+       xml:base="put a real base here, such as 'file:///C:/MyWork/OurTasks/DTDs-for-JATS/'">
+
+<!-- .............................................................. -->
+<!--                    NISO ACCESS AND INDICATOR NAMESPACE         -->
+<!-- .............................................................. -->
+
+  <public publicId="-//NLM//DTD JATS ALI Namespace Module v1.2 20190208//EN"
+               uri="JATS-ali-namespace1.ent"/>
+
+<!-- .............................................................. -->
+<!--                    TABLES: XHTML TABLE MODULES                 -->
+<!-- .............................................................. -->
+
+  <public publicId="-//W3C//ELEMENTS XHTML Tables 1.0//EN"
+               uri="xhtml-table-1.mod"/>
+
+  <public publicId="-//W3C//ENTITIES XHTML Inline Style 1.0//EN"
+               uri="xhtml-inlstyle-1.mod"/>
+
+
+<!-- .............................................................. -->
+<!--                    TABLES: OASIS EXCHANGE TABLE MODULES        -->
+<!-- .............................................................. -->
+
+  <public publicId="-//NLM//DTD JATS OASIS Table Namespace Module v1.2 20190208//EN"
+               uri="JATS-oasis-namespace1.ent"/>
+
+  <public publicId="-//OASIS//DTD XML Exchange Table Model 19990315//EN"
+               uri="oasis-exchange.ent"/>
+
+  <public publicId="-//NLM//DTD JATS (Z39.96) Namespaced OASIS XML Table Setup Module v1.2 20190208//EN"
+               uri="JATS-oasis-tablesetup1.ent"/>
+ 
+
+<!-- .............................................................. -->
+<!--                    MATHML MODULES                              -->
+<!-- .............................................................. -->
+
+  <public publicId="-//W3C//DTD MathML 2.0//EN"
+               uri="mathml2.dtd"/>
+  <public publicId="-//W3C//ENTITIES MathML 2.0 Qualified Names 1.0//EN"
+               uri="mathml2-qname-1.mod"/>
+  <public publicId="-//W3C//ENTITIES Extra for MathML 2.0//EN"
+               uri="mathml/mmlextra.ent"/>
+  <public publicId="-//W3C//ENTITIES Aliases for MathML 2.0//EN"
+               uri="mathml/mmlalias.ent"/>
+
+
+  <public publicId="-//W3C//DTD MathML 3.0//EN"
+               uri="mathml3.dtd"/>
+  <public publicId="-//W3C//ENTITIES MathML 3.0 Qualified Names 1.0//EN" 
+               uri="mathml3-qname1.mod"/>
+  <public publicId="-//W3C//ENTITIES Extra for MathML 3.0//EN" 
+               uri="mathml/mmlextra.ent"/>
+  <public publicId="-//W3C//ENTITIES Aliases for MathML 3.0//EN"
+               uri="mathml/mmlalias.ent"/>
+
+<!-- .............................................................. -->
+<!--                    ISO 8879 ENTITIES                           -->
+<!-- .............................................................. -->
+
+
+  <public publicId="-//W3C//ENTITIES Box and Line Drawing for MathML 2.0//EN"
+               uri="iso8879/isobox.ent"/>
+
+  <public publicId="-//W3C//ENTITIES Russian Cyrillic for MathML 2.0//EN"
+               uri="iso8879/isocyr1.ent"/>
+
+  <public publicId="-//W3C//ENTITIES Non-Russian Cyrillic for MathML 2.0//EN"
+               uri="iso8879/isocyr2.ent"/>
+
+  <public publicId="-//W3C//ENTITIES Diacritical Marks for MathML 2.0//EN"
+               uri="iso8879/isodia.ent"/>
+
+  <public publicId="-//W3C//ENTITIES Added Latin 1 for MathML 2.0//EN"
+               uri="iso8879/isolat1.ent"/>
+
+  <public publicId="-//W3C//ENTITIES Added Latin 2 for MathML 2.0//EN"
+               uri="iso8879/isolat2.ent"/>
+
+  <public publicId="-//W3C//ENTITIES Numeric and Special Graphic for MathML 2.0//EN"
+               uri="iso8879/isonum.ent"/>
+
+  <public publicId="-//W3C//ENTITIES Publishing for MathML 2.0//EN"
+               uri="iso8879/isopub.ent"/>
+
+<!-- .............................................................. -->
+<!--                    ISO 9573-11 ENTITIES                        -->
+<!-- .............................................................. -->
+
+  <public publicId="-//W3C//ENTITIES General Technical for MathML 2.0//EN"
+               uri="iso9573-13/isotech.ent"/>
+
+  <public publicId="-//W3C//ENTITIES Greek Symbols for MathML 2.0//EN"
+               uri="iso9573-13/isogrk3.ent"/>
+
+  <public publicId="-//W3C//ENTITIES Math Alphabets: Script for MathML 2.0//EN"
+               uri="iso9573-13/isomscr.ent"/>
+
+  <public publicId="-//W3C//ENTITIES Added Math Symbols: Arrow Relations for MathML 2.0//EN"
+               uri="iso9573-13/isoamsa.ent"/>
+
+  <public publicId="-//W3C//ENTITIES Added Math Symbols: Binary Operators for MathML 2.0//EN"
+               uri="iso9573-13/isoamsb.ent"/>
+
+  <public publicId="-//W3C//ENTITIES Added Math Symbols: Delimiters for MathML 2.0//EN"
+               uri="iso9573-13/isoamsc.ent"/>
+
+  <public publicId="-//W3C//ENTITIES Added Math Symbols: Negated Relations for MathML 2.0//EN"
+               uri="iso9573-13/isoamsn.ent"/>
+
+  <public publicId="-//W3C//ENTITIES Added Math Symbols: Ordinary for MathML 2.0//EN"
+               uri="iso9573-13/isoamso.ent"/>
+
+  <public publicId="-//W3C//ENTITIES Added Math Symbols: Relations for MathML 2.0//EN"
+               uri="iso9573-13/isoamsr.ent"/>
+
+  <public publicId="-//W3C//ENTITIES Math Alphabets: Fraktur for MathML 2.0//EN"
+               uri="iso9573-13/isomfrk.ent"/>
+
+  <public publicId="-//W3C//ENTITIES Math Alphabets: Open Face for MathML 2.0//EN"
+               uri="iso9573-13/isomopf.ent"/>
+
+<!-- .............................................................. -->
+<!--                    NON-MATHML ENTITIES(backwards compatibility)-->
+<!-- .............................................................. -->
+
+  <public publicId="-//W3C//ENTITIES Greek Letters//EN"
+               uri="xmlchars/isogrk1.ent"/>
+
+  <public publicId="-//W3C//ENTITIES Monotoniko Greek//EN"
+               uri="xmlchars/isogrk2.ent"/>
+
+  <public publicId="-//W3C//ENTITIES Alternative Greek Symbols//EN"
+               uri="xmlchars/isogrk4.ent"/>
+
+</group>
+
+
+<!-- ============================================================== -->
+<!--                    BITS BOOK INTERCHANGE DTD                   -->
+<!--                    The following modules are used only for NLM -->
+<!--                    BITS (Book Interchange Tag Suite)[Chocolate]-->
+<!--                                                                -->
+<!--                    If you are not using BITS (Chocolate), you  -->
+<!--                    may delete the group below, or leave it     -->
+<!--                    here as these public definitions do no harm.-->
+<!-- ============================================================== -->
+<group prefer="public" 
+       xml:base="put a real base here, such as 'file:///C:/MyWork/OurTasks/DTDs-for-JATS/'">
+   
+<!--                    The following modules are used for all of   -->
+<!--                    the BITS DTDs (Chocolate)                   -->
+<!--                    that use ONLY the XHTML-based Table Model   -->
+
+  <public publicId="-//NLM//DTD BITS Book Interchange DTD v2.1 20180401//EN"
+               uri="BITS-book2.dtd"/>
+
+  <public publicId="-//NLM//DTD BITS Book Interchange DTD-Specific Modules v2.1 20180401//EN" 
+               uri="BITS-bookcustom-modules2.ent"/>
+ 
+  <public publicId="-//NLM//DTD BITS Book Interchange DTD Customize Classes Module v2.1 20180401//EN" 
+               uri="BITS-bookcustom-classes2.ent"/>
+              
+  <public publicId="-//NLM//DTD BITS Book Part Wrapper v2.1 20180401//EN" 
+               uri="BITS-book-part-wrap2.ent" /> 
+
+<!--                    The following modules are used ONLY for the -->
+<!--                    BITS DTDs that -->
+<!--                    use the OASIS table model (namespace prefix -->
+<!--                    "oasis") and the XHTML table model          -->
+             
+  <public publicId="-//NLM//DTD BITS Book Interchange DTD with OASIS and XHTML Tables v2.1 20180401//EN"
+               uri="BITS-book-oasis2.dtd" />
+
+  <public publicId="-//NLM//DTD BITS Book Interchange DTD-Specific Modules with OASIS and XHTML Tables v2.1 20180401//EN"
+               uri="BITS-book-oasis-custom-modules2.ent" />
+
+  <public publicId="-//NLM//DTD BITS Book Interchange DTD with OASIS and XHTML Tables Customize Classes Module v2.1 20180401//EN"
+               uri="BITS-book-oasis-custom-classes2.ent" />
+               
+  <public publicId="-//NLM//DTD BITS Book Part OASIS and XHTML Tables Wrapper v2.1 20180401//EN"  
+               uri="BITS-book-part-oasis-wrap2.ent" /> 
+              
+<!--                    The following modules are used for ALL of   -->
+<!--                    the BITS DTDs (Chocolate)                 -->
+
+  <public publicId="-//NLM//DTD BITS Book Interchange DTD Customize Mixes Module v2.1 20180401//EN"
+               uri="BITS-bookcustom-mixes2.ent"/>
+
+  <public publicId="-//NLM//DTD BITS Book Interchange DTD Customize Content and Attributes Module v2.1 20180401//EN" 
+               uri="BITS-bookcustom-models2.ent"/>
+
+
+               
+  <public publicId="-//NLM//DTD BITS Add Attributes Module v2.1 20180401//EN"  
+               uri="BITS-add-attributes2.ent"  /> 
+
+  <public publicId="-//NLM//DTD BITS Book Metadata Elements Module v2.1 20180401//EN"  
+               uri="BITS-bookmeta2.ent"/> 
+
+  <public publicId="-//NLM//DTD BITS Book Component Elements v2.1 20180401//EN"  
+               uri="BITS-book-part2.ent"/> 
+                
+  <public publicId="-//NLM//DTD BITS Book Interchange DTD Common Module v2.1 20180401//EN" 
+               uri="BITS-common2.ent" /> 
+ 
+  <public publicId="-//NLM//DTD BITS Embedded Index Element Module v2.1 20180401//EN"
+               uri="BITS-embedded-index2.ent"/> 
+
+  <public publicId="-//NLM//DTD BITS Structural Index Elements Module v2.1 20180401//EN" 
+               uri="BITS-index2.ent"/> 
+
+  <public publicId="-//NLM//DTD BITS Structural Table of Contents Module v2.1 20180401//EN"
+               uri="BITS-toc2.ent"/> 
+               
+  <public publicId="-//NLM//DTD BITS Question and Answer Module v2.1 20180401//EN"  
+               uri="BITS-question-answer2.ent"  /> 
+
+  <public publicId="-//NLM//DTD BITS Table of Contents and Index Navigation Module v2.1 20180401//EN"
+               uri="BITS-toc-index-nav2.ent"/> 
+               
+  <public publicId="-//NLM//DTD BITS XInclude Setup Module v2.1 20180401//EN" 
+               uri="BITS-xinclude2.ent" /> 
+ 
+</group>
+
+<!-- ================ End WITH Base OASIS XML CATALOG ============= -->
+
+</catalog>

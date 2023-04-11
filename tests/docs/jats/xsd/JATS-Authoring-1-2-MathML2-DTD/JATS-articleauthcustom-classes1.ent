@@ -1,0 +1,472 @@
+<!-- ============================================================= -->
+<!--  MODULE:    Article Authoring DTD Over-ride Classes Module    -->
+<!--  VERSION:   ANSI/NISO JATS Version 1.2 (Z39.96-2019)          -->
+<!--  DATE:      February 2019                                     -->
+<!--                                                               -->
+<!-- ============================================================= -->
+
+<!-- ============================================================= -->
+<!--                    PUBLIC DOCUMENT TYPE DEFINITION            -->
+<!--                        TYPICAL INVOCATION                     -->
+<!--
+"-//NLM//DTD JATS (Z39.96) Article Authoring DTD Over-ride Classes Module v1.2 20190208//EN"
+Delivered as file "JATS-articleauthcustom-classes1.ent"            -->
+<!-- ============================================================= -->
+
+
+<!-- ============================================================= -->
+<!-- SYSTEM:     Article Authoring DTD of the JATS DTD Suite       -->         
+<!--                                                               -->
+<!-- PURPOSE:    To declare the Parameter Entities (PEs) used to   -->
+<!--             over-ride the JATS DTD Suite default named        -->
+<!--             element classes.                                  -->
+<!--                                                               -->
+<!--             Note: Since PEs must be declared before they      -->
+<!--             are used, this module must be called before the   -->
+<!--             content modules that declare elements, and before -->
+<!--             the default classes module.                       -->
+<!--                                                               -->
+<!-- TAG SET SPONSOR                                               -->
+<!--             National Center for Biotechnology                 -->
+<!--                Information (NCBI)                             -->
+<!--             National Library of Medicine (NLM)                -->
+<!--                                                               -->
+<!-- CREATED FOR:                                                  -->
+<!--             This DTD was created from the JATS DTD Suite.     -->
+<!--             Authors, digital archives, and publishers may     -->
+<!--             use the DTD as is for markup of journal           -->
+<!--             literature or related material for archiving      -->
+<!--             and transferring such material between archives   -->
+<!--             or create a custom XML DTD from the Suite for     -->
+<!--             these purposes.                                   -->
+<!--                                                               -->
+<!--             This DTD is in the public domain. An organization -->
+<!--             that wishes to create its own DTD from the suite  -->
+<!--             may do so without permission from NLM.            -->
+<!--                                                               -->
+<!--             The suite has been set up to be extended using a  -->
+<!--             new DTD file and a new DTD-specific customization -->
+<!--             module to redefine the many Parameter Entities.   -->
+<!--             Do not modify the suite directly or redistribute  -->
+<!--             modified versions of the suite.                   -->
+<!--                                                               -->
+<!--             In the interest of maintaining consistency and    -->
+<!--             clarity for potential users, NLM requests:        -->
+<!--                                                               -->
+<!--             1. If you create a DTD from the JATS DTD Suite    -->
+<!--                and intend to stay compatible with the suite,  -->
+<!--                then please include the following statement    -->
+<!--                as a comment in all of your DTD modules:       -->
+<!--                   "Created from, and fully compatible with,   -->
+<!--                    the ANSI/NISO Z39.96 Journal Article Tag   -->
+<!--                    Suite (JATS)."                             -->
+<!--                                                               -->
+<!--             2. If you alter one or more modules of the suite, -->
+<!--                then please rename your version and all its    -->
+<!--                modules to avoid any confusion with the        -->
+<!--                original suite. Also, please include the       -->
+<!--                following statement as a comment in all your   -->
+<!--                DTD modules:                                   -->
+<!--                   "Based in part on, but not fully compatible -->
+<!--                    with, the ANSI/NISO Z39.96 Journal Article -->
+<!--                    Tag Suite (JATS)."                         -->
+<!--                                                               -->
+<!-- ORIGINAL CREATION DATE:                                       -->
+<!--             June 2005                                         -->
+<!--                                                               -->
+<!-- CREATED BY: Mulberry Technologies, Inc. for the NISO Z39.96   -->
+<!--             Working Group. Mulberry Technologies was          -->
+<!--             supported by National Center for Biotechnology    -->
+<!--             Information (NCBI), a center of the US National   -->
+<!--             Library of Medicine (NLM).                        -->
+<!--                                                               -->
+<!--             The Article Authoring DTD is built from the       -->
+<!--             Archiving and Interchange DTD Suite.              -->
+<!--                                                               -->
+<!--             Suggestions for refinements and enhancements to   -->
+<!--             this DTD should be sent in email to:              -->
+<!--                 jats@ncbi.nlm.nih.gov                         -->
+<!-- ============================================================= -->
+
+
+<!-- ============================================================= -->
+<!--                    DTD VERSION\CHANGE HISTORY                 -->
+<!-- ============================================================= -->
+<!--
+Version  Reason/Occasion                   (who) vx.x (yyyy-mm-dd)
+    ==============================================================
+     JATS Version 1.2 (ANSI/NISO Z39.96-2019)
+                                   (DAL/BTU) v1.2     (2019-02-08)
+    
+     NISO JATS is a continuing maintenance NISO Standard, which 
+     requires voting by the both the NISO and ANSI membership 
+     to be changed. This version of the NISO JATS was approved 
+     by ANSI vote on Feb 08, 2019, so it supersedes all Committee 
+     Drafts as well as the draft version JATS 1.2 2018 (the version
+     submitted for vote), becoming NISO JATS v1.2 20190208 
+     (ANSI/NISO Z39.96-2019).
+  
+ 23. JATS "1.2" becomes "v1.2 20190208" (final ANSI vote date)
+     "ANSI/NISO Z39.96-2015" becomes "ANSI/NISO Z39.96-2019"
+
+==============================================================
+     JATS Version 1.2 (ANSI/NISO Z39.96-2018)
+     and BITS 2.1 (v2.0 20180401)
+                                   (DAL/BTU) v1.2     (2018-11-30)
+    
+     NISO JATS is a continuing maintenance NISO Standard, which 
+     requires voting by the both the NISO and ANSI membership 
+     to be changed. This version of the NISO JATS was approved 
+     by ANSI and NISO vote, so it supersedes all Committee Drafts
+     and becoming NISO JATS 1.2 (ANSI/NISO Z39.96-2018).
+  
+ 22. BITS "2.1" and "v2.0 20180401" remains unchanged.
+     JATS "1.2d2" and "v1.2d2 20180401" became
+     JATS "1.2" and "v1.2 20181130" 
+
+    =============================================================
+     BITS Version 2.1                (DAL/BTU) v2.1    (2018-04-01)
+     JATS Version 1.2d2              (DAL/BTU) v1.2d2  (2018-04-01)
+
+     JATS is a continuing maintenance NISO Standard, which
+     requires voting by the ANSI and NISO memberships to be changed. 
+     BITS is under continuous maintenance, and is modified at the
+     discretion of the working group.
+      
+     This draft DTD represents an interim version of the
+     non-normative JATS DTD Suite, as an indication to JATS users
+     the decisions that have been made by the JATS Standing
+     Committee. This draft has not yet been given public review 
+     or voting. The formal public identifiers were changed in the 
+     modules and the catalogs.
+
+ 21. INLINE-INDEX - Added the elements <index-term> and
+     <index-term-range-end> to phrase class to add the ability
+     to tag inline (embedded) index terms.
+
+ 20. INLINE-MEDIA - <inline-media> added to all the classes that 
+     contained <inline-graphic>
+
+ 19. BITS "2.0" and "v2.0 20151225" became
+     BITS "2.1" and "v2.1 20180401". 
+   
+     JATS "1.2d1" and "v1.2d1 20171231" became
+     JATS "1.2d2" and "v1.2d2 20180401". 
+
+     No module names were changed.
+ 
+     =============================================================
+     JATS Version 1.2d1 (ANSI/NISO Z39.96-2015)
+                                   (DAL/BTU) v1.2d1  (2017-12-31)
+ 
+     NISO JATS is a continuing maintenance NISO Standard, which
+     requires voting by the ANSI and NISO memberships to be changed. 
+      
+     This draft DTD represents an interim version of the
+     non-normative JATS DTD Suite, as an indication to JATS users
+     the decisions that have been made by the JATS Standing
+     Committee. This draft has not yet been given public review 
+     or voting. The formal public identifiers were changed in the 
+     modules and the catalogs.
+  
+ 18. JATS "1.2d1" and "v1.2d1 20170631" became
+     JATS "1.2d1" and "v1.2d1 20171231". 
+
+    =============================================================
+     JATS Version 1.2d1              (DAL/BTU) v1.2d1  (2017-06-31)
+
+     NISO JATS is a continuing maintenance NISO Standard, which
+     requires voting by the ANSI and NISO memberships to be changed. 
+      
+     This draft DTD represents an interim version of the
+     non-normative JATS DTD Suite, as an indication to JATS users
+     the decisions that have been made by the JATS Standing
+     Committee. This draft has not yet been given public review 
+     or voting. The formal public identifiers were changed in the 
+     modules and the catalogs.
+  
+ 17. CONTRIB - Deleted redefinition of name.class, which effectively
+     added <string-name> to <contrib>
+
+ 16. JATS became version "1.2d1" and "v1.2d1 20170631" 
+
+    =============================================================
+     JATS Version 1.1                (DAL/BTU) v1.1  (2015-12-15)
+
+     JATS is a continuing maintenance NISO Standard, which
+     requires voting by the ANSI and NISO memberships to be changed. 
+     JATS 1.1 was approved in late 2015, so the formal public 
+     identifiers were changed in the modules and the catalogs.
+     No model or attribute changes were made at this time. 
+ 
+ 15. JATS became version "1.1" and "v1.1 20151215"
+
+     =============================================================
+     JATS Version 1.1d3             (DAL/BTU) v1.1d3  (2015-03-01)
+   
+     The changes in this release are in response to NISO 
+     License and Indicators Recommended Practice.
+
+     NISO JATS is a continuing maintenance NISO Standard, which 
+     requires voting by the NISO membership to be changed. This
+     Committee Draft 1.1d3 will be sent to the NISO voting
+     membership, to become (if approved) NISO JATS 1.1.
+     
+     This draft DTD represents an interim version of the
+     non-normative JATS DTD Suite, as an indication to JATS users
+     the decisions that have been made by the JATS Standing
+     Committee.
+
+ 14. JATS became version "1.1d3" and "v1.1d3 20150301"
+  
+     =============================================================
+     JATS Version 1.1d2             (DAL/BTU) v1.1d2  (2014-09-30)
+   
+     NISO JATS is a continuing maintenance NISO Standard, which 
+     requires voting by the NISO membership to be changed. This
+     Committee Draft 1.1d2 will be sent to the NISO voting
+     membership, to become (if approved) NISO JATS 1.1.
+     
+     This catalog represents an interim version of the
+     non-normative JATS DTD Suite, as an indication to JATS users
+     the decisions that have been made by the JATS Standing
+     Committee.
+
+ 13. JATS became version "1.1d2" and "v1.1d2 20140930//EN"
+  
+     =============================================================
+     NISO JATS Version 1.1d1           (DAL/BTU) v1.1 (2013-11-15)
+   
+     ANSI/NISO Z39.96-2012 (pre-release for V1.0 BITS; Version 1.1d1) 
+
+     NISO JATS Standing Committee met and answered the requests and
+     suggestions from the NISO request forms.
+
+     Details concerning ANSI/NISO Z39.96-2012
+     JATS-based DTDs, XSDs, 
+     RNGs and supporting documentation are available at
+           http://jats.nlm.nih.gov/1.0/
+
+ 12. NEW CODE ELEMENT- Added <code> to
+      - alternatives-display.class
+      - block-display.class
+      - simple-display.class
+
+ 11. NEW CODE ELEMENT- Added <code> to 
+      -  alternatives-display.class
+
+ 10. RUBY - Added <ruby> to emphasis.class. Added new 
+     face-markup.class to handle all emphasis except <ruby>.
+     <ruby> will not in this round be recursive.
+   
+     =============================================================
+     NISO JATS Version 1.0             (DAL/BTU) v1.0 (2012-xx-xx)
+
+  9. CITATION ALTERNATIVES - Added a new element 
+     <citation-alternatives> to the citation.class. The element
+     will hold, for example, a single citation in multiple
+     languages or a single citation tagged as a <mixed-citation>
+     complete with punctuation and spacing and also as an
+     <element-citation> with all punctuation and spacing removed.
+     
+ 8.  COLLABORATION ALTERNATIVES - Added <collab-alternatives> to
+     the name.class, to allow a <collab-alternatives> elements to
+     be anywhere <collab> already was.
+
+     =============================================================
+     Version 0.4                       (DAL/BTU) v0.4 (2011-01-31)
+   
+     This Tag Set is in the process of becoming a NISO standard.
+     The version numbers are starting over from 0.4", as a Trial
+     Use Draft, to be made into "Version 1.0" when the Tag Suite 
+     becomes a NISO standard. Thus, the version number that would
+     have been "NLM Version 3.1 Draft" has become NISO JATS
+     "Version 0.4".
+
+     Details on NISO Trial Use Draft Version 0.4 are available at
+           http://jats.nlm.nih.gov/JATS-0.4.
+   
+  7. Updated the DTD-version attribute to "0.4" 
+   
+  6. Updated the public identifier to "v0.4 20110131", 
+     modified the formal public identifier to include "JATS (Z39.96)",
+     and the filename as delivered to include "JATS" and the
+     new version number "0".
+           http://jats.nlm.nih.gov/0.4.
+
+  5. ALTERNATIVES - Added <private-char> so that the alternatives
+     wrapper may be used to hold alternative characters, some as
+     <private-char>, some as <textual-form>, some as <graphic>,
+     etc.
+
+  4. AFFILIATION ALTERNATIVES - Added the element <aff-alternatives>
+     to contrib-info.class to hold multiple <aff>s that are
+     representations of a single affiliation, for example, the name
+     of an institution in two languages or two scripts.
+
+  3. NAME ALTERNATIVES - Added <name-alternatives> to
+     name.class, to therefore be used where name is allowed.
+
+  2. EMPHASIS CLASS - Added <san-serif> to emphasis elements.
+
+     =============================================================
+     Version 3.0                       (DAL/BTU) v3.0 (2007-10-31)
+
+     Version 3.0 is the first non-backward-compatible release.
+     In addition to the usual incremental changes, some
+     elements and attributes have been renamed and/or remodeled
+     to better meet user needs and to increase tag set consistency.
+     All module change histories are available through the Tag Suite
+     web site at http://dtd.nlm.nih.gov.
+
+     Details on version 3.0 are available at
+           http://dtd.nlm.nih.gov/3.0.
+
+  1. Updated public identifier to "v3.0 20071031//EN"              -->
+
+<!-- ============================================================= -->
+<!-- Details concerning 
+     ANSI/NISO Z39.96-2015 JATS-based DTDs, XSDs, 
+     RNGs and supporting documentation are available at
+           http://jats.nlm.nih.gov/1.1/                            -->
+
+<!-- ============================================================= -->
+<!--                    PARAMETER ENTITIES FOR CLASS OVER-RIDES    -->
+<!-- ============================================================= -->
+
+
+<!-- ============================================================= -->
+<!--                    OVER-RIDE INLINE CLASSES                   -->
+<!-- ============================================================= -->
+
+
+<!--                    EMPHASIS RENDITION ELEMENTS                -->
+<!--                    All the face markup plus <ruby>            -->
+<!ENTITY % emphasis.class
+                        "bold | fixed-case |italic | monospace | 
+                         overline | roman | sans-serif | sc | strike |
+                         underline |
+                         ruby"                                       >
+
+
+<!--                    FACE MARKUP CLASS ELEMENTS                 -->
+<!--                    All the face markup without <ruby>         -->
+<!ENTITY % face-markup.class
+                        "bold | fixed-case |italic | monospace | 
+                         overline | roman | sans-serif | sc | strike |
+                         underline"                                  >
+
+
+<!--                    PHRASE CLASS ELEMENTS                      -->
+<!--                    Small inline elements, that surround a word
+                        or phrase in the text because the subject
+                        (content) should be identified as something
+                        special or different.                      -->
+<!ENTITY % phrase.class "abbrev | 
+                         index-term | index-term-range-end |
+                         named-content | styled-content"    >
+
+
+<!-- ============================================================= -->
+<!--                    OVER-RIDE DISPLAY ELEMENTS                 -->
+<!-- ============================================================= -->
+
+
+<!--                    ALTERNATIVES DISPLAY CLASS ELEMENTS        -->
+<!--                    Display elements that can be alternatives to
+                        each  other inside an alternatives element.
+                                                                   -->
+<!ENTITY % alternatives-display.class
+                        "chem-struct | code | graphic | 
+                         inline-graphic | inline-media | 
+                         inline-supplementary-material |
+                         media | preformat | private-char |
+                         supplementary-material | table |
+                         textual-form"                               >
+
+
+<!--                    DISPLAY CLASS ELEMENTS                     -->
+<!--                    Graphical or other image-related elements.
+                        The display elements may occur within
+                        the text of a table cell or paragraph
+                        although they are typically at the same
+                        hierarchical level as a paragraph.         -->
+<!ENTITY % block-display.class
+                        "boxed-text | chem-struct-wrap | code |
+                         fig | graphic | media | preformat |
+                         supplementary-material | table-wrap"        >
+
+
+<!--                    INLINE DISPLAY CLASS ELEMENTS              -->
+<!--                    Non-block display elements that set or
+                        display inline with the text               -->
+<!ENTITY % inline-display.class
+                        "alternatives | inline-graphic |
+                         inline-media"                               >
+
+
+<!--                    SIMPLE DISPLAY ELEMENTS                    -->
+<!--                    The simplest and most basic of the Display
+                        Class elements, which may be allowed in many
+                        places, for example, inside other Display
+                        Class elements or inside the cell of a
+                        Table                                      -->
+<!ENTITY % simple-display.class
+                        "code | graphic | media | preformat"         >
+
+
+<!-- ============================================================= -->
+<!--                    OVER-RIDE PARAGRAPH-LIKE ELEMENTS          -->
+<!-- ============================================================= -->
+
+
+<!--                    REST OF PARAGRAPH CLASS (MINUS PARAGRAPH)  -->
+<!--                    Full paragraph class, minus the paragraph
+                        element itself, so this PE can be used inside
+                        the content model of a paragraph           -->
+<!ENTITY % rest-of-para.class
+                        "disp-quote | speech | statement |
+                         verse-group"                                >
+
+
+<!-- ============================================================= -->
+<!--                    OTHER CLASS OVER-RIDES                     -->
+<!-- ============================================================= -->
+
+
+<!--                    CITATION CLASS ELEMENTS                    -->
+<!--                    Reference to an external document, as used
+                        within, for example, the text of a
+                        paragraph                                  -->
+<!ENTITY % citation.class
+                        "citation-alternatives | element-citation | 
+                         mixed-citation | nlm-citation"              >
+
+
+<!--                    CITATION MINUS ALTERNATIVES CLASS ELEMENTS -->
+<!--                    All the citation elements except the
+                        <citation-alternatives> element.           -->
+<!ENTITY % citation-minus-alt.class
+                        "element-citation | mixed-citation | 
+                         nlm-citation"                               >
+
+
+<!--                    CONTRIBUTOR INFORMATION                    -->
+<!--                    Metadata about a contributor               -->
+<!ENTITY % contrib-info.class
+                        "address | aff | aff-alternatives |
+                         author-comment | bio | email | ext-link |
+                         on-behalf-of | role | uri | xref"           >
+
+
+<!--                    DATE CLASS ELEMENTS                        -->
+<!--                    Dates and other matters of history         -->
+<!ENTITY % date.class   "date"                                       >
+
+
+<!--                    MATHEMATICAL EXPRESSIONS
+                        Deleted <tex-math>                         -->
+<!ENTITY % math.class   "mml:math"                                   >
+
+
+<!-- ================== End Authoring Classes Customization ====== -->

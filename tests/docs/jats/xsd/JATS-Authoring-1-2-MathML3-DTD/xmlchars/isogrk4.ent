@@ -1,0 +1,66 @@
+
+<!--
+     File isogrk4.ent produced by the XSL script characters.xsl
+     from input data in unicode.xml.
+
+     Please report any errors to David Carlisle
+     via the public W3C list www-math@w3.org.
+
+     The numeric character values assigned to each entity
+     (should) match the Unicode assignments in Unicode 4.0.
+
+     Entity names in this file are derived from files carrying the
+     following notice:
+
+     (C) International Organization for Standardization 1991
+     Permission to copy in any form is granted for use with
+     conforming SGML systems and applications as defined in
+     ISO 8879, provided this notice is included in all copies.
+
+-->
+
+<!ENTITY % plane1D  "&#38;#38;#x1D">
+
+<!ENTITY b.alpha          "%plane1D;6C2;" ><!--small alpha, Greek -->
+<!ENTITY b.beta           "%plane1D;6C3;" ><!--small beta, Greek -->
+<!ENTITY b.chi            "%plane1D;6D8;" ><!--small chi, Greek -->
+<!ENTITY b.Delta          "%plane1D;6AB;" ><!--capital delta, Greek -->
+<!ENTITY b.delta          "%plane1D;6C5;" ><!--small delta, Greek -->
+<!ENTITY b.epsi           "%plane1D;6C6;" ><!--small epsilon, Greek -->
+<!ENTITY b.epsiv          "%plane1D;6DC;" ><!--variant epsilon -->
+<!ENTITY b.eta            "%plane1D;6C8;" ><!--small eta, Greek -->
+<!ENTITY b.Gamma          "%plane1D;6AA;" ><!--capital gamma, Greek -->
+<!ENTITY b.gamma          "%plane1D;6C4;" ><!--small gamma, Greek -->
+<!ENTITY b.Gammad         "&#x003DC;" ><!--capital Digamma -->
+<!ENTITY b.gammad         "&#x003DD;" ><!--digamma -->
+<!ENTITY b.iota           "%plane1D;6CA;" ><!--small iota, Greek -->
+<!ENTITY b.kappa          "%plane1D;6CB;" ><!--small kappa, Greek -->
+<!ENTITY b.kappav         "%plane1D;6DE;" ><!--variant kappa -->
+<!ENTITY b.Lambda         "%plane1D;6B2;" ><!--capital Lambda, Greek -->
+<!ENTITY b.lambda         "%plane1D;6CC;" ><!--small lambda, Greek -->
+<!ENTITY b.mu             "%plane1D;6CD;" ><!--small mu, Greek -->
+<!ENTITY b.nu             "%plane1D;6CE;" ><!--small nu, Greek -->
+<!ENTITY b.Omega          "%plane1D;6C0;" ><!--capital Omega, Greek -->
+<!ENTITY b.omega          "%plane1D;6DA;" ><!--small omega, Greek -->
+<!ENTITY b.Phi            "%plane1D;6BD;" ><!--capital Phi, Greek -->
+<!ENTITY b.phi            "%plane1D;6D7;" ><!--small phi, Greek -->
+<!ENTITY b.phiv           "%plane1D;6DF;" ><!--variant phi -->
+<!ENTITY b.Pi             "%plane1D;6B7;" ><!--capital Pi, Greek -->
+<!ENTITY b.pi             "%plane1D;6D1;" ><!--small pi, Greek -->
+<!ENTITY b.piv            "%plane1D;6E1;" ><!--variant pi -->
+<!ENTITY b.Psi            "%plane1D;6BF;" ><!--capital Psi, Greek -->
+<!ENTITY b.psi            "%plane1D;6D9;" ><!--small psi, Greek -->
+<!ENTITY b.rho            "%plane1D;6D2;" ><!--small rho, Greek -->
+<!ENTITY b.rhov           "%plane1D;6E0;" ><!--variant rho -->
+<!ENTITY b.Sigma          "%plane1D;6BA;" ><!--capital Sigma, Greek -->
+<!ENTITY b.sigma          "%plane1D;6D4;" ><!--small sigma, Greek -->
+<!ENTITY b.sigmav         "%plane1D;6D3;" ><!--variant sigma -->
+<!ENTITY b.tau            "%plane1D;6D5;" ><!--small tau, Greek -->
+<!ENTITY b.Theta          "%plane1D;6AF;" ><!--capital Theta, Greek -->
+<!ENTITY b.thetas         "%plane1D;6C9;" ><!--straight theta, Greek -->
+<!ENTITY b.thetav         "%plane1D;6DD;" ><!--variant theta -->
+<!ENTITY b.Upsi           "%plane1D;6BC;" ><!--capital Upsilon, Greek -->
+<!ENTITY b.upsi           "%plane1D;6D6;" ><!--small upsilon, Greek -->
+<!ENTITY b.Xi             "%plane1D;6B5;" ><!--capital Xi, Greek -->
+<!ENTITY b.xi             "%plane1D;6CF;" ><!--small xi, Greek -->
+<!ENTITY b.zeta           "%plane1D;6C7;" ><!--small zeta, Greek -->

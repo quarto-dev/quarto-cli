@@ -1,0 +1,41 @@
+
+<!--
+     File isogrk2.ent produced by the XSL script characters.xsl
+     from input data in unicode.xml.
+
+     Please report any errors to David Carlisle
+     via the public W3C list www-math@w3.org.
+
+     The numeric character values assigned to each entity
+     (should) match the Unicode assignments in Unicode 4.0.
+
+     Entity names in this file are derived from files carrying the
+     following notice:
+
+     (C) International Organization for Standardization 1986
+     Permission to copy in any form is granted for use with
+     conforming SGML systems and applications as defined in
+     ISO 8879, provided this notice is included in all copies.
+
+-->
+
+<!ENTITY Aacgr            "&#x00386;" ><!--=capital Alpha, accent, Greek -->
+<!ENTITY aacgr            "&#x003AC;" ><!--=small alpha, accent, Greek -->
+<!ENTITY Eacgr            "&#x00388;" ><!--=capital Epsilon, accent, Greek -->
+<!ENTITY eacgr            "&#x003AD;" ><!--=small epsilon, accent, Greek -->
+<!ENTITY EEacgr           "&#x00389;" ><!--=capital Eta, accent, Greek -->
+<!ENTITY eeacgr           "&#x003AE;" ><!--=small eta, accent, Greek -->
+<!ENTITY Iacgr            "&#x0038A;" ><!--=capital Iota, accent, Greek -->
+<!ENTITY iacgr            "&#x003AF;" ><!--=small iota, accent, Greek -->
+<!ENTITY idiagr           "&#x00390;" ><!--=small iota, dieresis, accent, Greek -->
+<!ENTITY Idigr            "&#x003AA;" ><!--=capital Iota, dieresis, Greek -->
+<!ENTITY idigr            "&#x003CA;" ><!--=small iota, dieresis, Greek -->
+<!ENTITY Oacgr            "&#x0038C;" ><!--=capital Omicron, accent, Greek -->
+<!ENTITY oacgr            "&#x003CC;" ><!--=small omicron, accent, Greek -->
+<!ENTITY OHacgr           "&#x0038F;" ><!--=capital Omega, accent, Greek -->
+<!ENTITY ohacgr           "&#x003CE;" ><!--=small omega, accent, Greek -->
+<!ENTITY Uacgr            "&#x0038E;" ><!--=capital Upsilon, accent, Greek -->
+<!ENTITY uacgr            "&#x003CD;" ><!--=small upsilon, accent, Greek -->
+<!ENTITY udiagr           "&#x003B0;" ><!--=small upsilon, dieresis, accent, Greek -->
+<!ENTITY Udigr            "&#x003AB;" ><!--=capital Upsilon, dieresis, Greek -->
+<!ENTITY udigr            "&#x003CB;" ><!--=small upsilon, dieresis, Greek -->
