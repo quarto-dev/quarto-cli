@@ -4,8 +4,43 @@
 
 
 
+
 function jats()
   return {
+
+    Meta = function(meta) 
+      -- inspect the meta and set flags that will aide the rendering of
+      -- the JATS template by providing some synthesize properties
+      -- to prevent empty container XML elements
+
+      -- are there author notes?
+      local authors = meta['authors']
+      if authors ~= nil then
+
+        -- has author notes
+        local hasNotes = authors:find_if(function(author) 
+          local hasAttr = author['attributes'] ~= nil and next(author['attributes'])
+          local hasNote = author['note'] and next(author['note'])
+          return hasAttr or hasNote
+        end)
+
+        -- has permissions
+        local hasCopyright = meta['copyright'] ~= nil
+        local hasLicense = meta['license'] ~= nil
+        local hasPermissions = hasCopyright or hasLicense
+  
+        if meta['quarto-internal'] == nil then
+          meta['quarto-internal'] = {}
+        end
+        meta['quarto-internal']['has-author-notes'] = hasNotes;
+        meta['quarto-internal']['has-permissions'] = hasPermissions;
+
+        return meta
+      end
+
+
+    end,
+
     -- clear out divs
     Div = function(div)
       if _quarto.format.isJatsOutput() then

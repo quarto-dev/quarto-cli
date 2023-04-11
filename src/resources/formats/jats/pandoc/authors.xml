@@ -46,6 +46,7 @@ $it:institution.xml()$
 </aff>
 $endfor$
 
+$if(quarto-internal.has-author-notes)$
 <author-notes>
 $for(authors)$
 $if(it.attributes.corresponding)$
@@ -71,4 +72,5 @@ $if(it.note.text)$
 $endif$
 $endfor$
 </author-notes>
+$endif$
 
