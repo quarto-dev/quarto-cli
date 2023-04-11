@@ -98,6 +98,7 @@ _quarto:
     jats:
       ensureFileRegexMatches:
         - 
+          - '<!DOCTYPE.*DTD JATS.*' # a JATS DTD must be present
           - '<article-meta>' # basic JATS 
           - '</article-meta>' # basic JATS 
           - '<contrib contrib-type="author" equal-contrib="yes" corresp="yes">' #author
