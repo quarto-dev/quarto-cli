@@ -155,6 +155,7 @@ import { mergeConfigs } from "../config.ts";
 import { encode as encodeBase64 } from "encoding/base64.ts";
 import { isIpynbOutput } from "../../config/format.ts";
 import { bookFixups, fixupJupyterNotebook } from "./jupyter-fixups.ts";
+import { JupyterMarkdownOptions } from "./jupyter-embed.ts";
 
 export const kQuartoMimeType = "quarto_mimetype";
 export const kQuartoOutputOrder = "quarto_order";
@@ -718,7 +719,7 @@ export async function jupyterToMarkdown(
         md.push(...mdFromContentCell(cell, options));
         break;
       case "raw":
-        md.push(...mdFromRawCell(cell));
+        md.push(...mdFromRawCell(cell, options));
         break;
       case "code":
         md.push(...(await mdFromCodeCell(cell, ++codeCellIndex, options)));
@@ -861,6 +862,8 @@ export function mdFromContentCell(
   cell: JupyterCell,
   options?: JupyterToMarkdownOptions,
 ) {
+  const contentCellEnvelope = createCellEnvelope(["cell", "markdown"], options);
+
   // if we have attachments then extract them and markup the source
   if (options && cell.attachments && cell.source) {
     // close source so we can modify it
@@ -900,30 +903,36 @@ export function mdFromContentCell(
         }
       }
     });
-    return mdEnsureTrailingNewline(source);
+
+    return contentCellEnvelope(mdEnsureTrailingNewline(source));
   } else {
-    return mdEnsureTrailingNewline(cell.source);
+    return contentCellEnvelope(mdEnsureTrailingNewline(cell.source));
   }
 }
 
-export function mdFromRawCell(cell: JupyterCell) {
+export function mdFromRawCell(
+  cell: JupyterCell,
+  options?: JupyterToMarkdownOptions,
+) {
+  const rawCellEnvelope = createCellEnvelope(["cell", "raw"], options);
+
   const mimeType = cell.metadata?.[kCellRawMimeType];
   if (mimeType) {
     switch (mimeType) {
       case kTextHtml:
-        return mdHtmlOutput(cell.source);
+        return rawCellEnvelope(mdHtmlOutput(cell.source));
       case kTextLatex:
-        return mdLatexOutput(cell.source);
+        return rawCellEnvelope(mdLatexOutput(cell.source));
       case kRestructuredText:
-        return mdFormatOutput("rst", cell.source);
+        return rawCellEnvelope(mdFormatOutput("rst", cell.source));
       case kApplicationRtf:
-        return mdFormatOutput("rtf", cell.source);
+        return rawCellEnvelope(mdFormatOutput("rtf", cell.source));
       case kApplicationJavascript:
-        return mdScriptOutput(mimeType, cell.source);
+        return rawCellEnvelope(mdScriptOutput(mimeType, cell.source));
     }
   }
 
-  return mdFromContentCell(cell);
+  return mdFromContentCell(cell, options);
 }
 
 export function mdEnsureTrailingNewline(source: string[]) {
@@ -974,6 +983,24 @@ const tagMapping: Record<string, Record<string, boolean>> = {
     include: false,
   },
 };
+
+function createCellEnvelope(
+  classes: string[],
+  options?: JupyterToMarkdownOptions,
+) {
+  return (source: string | string[]) => {
+    if (options && options.preserveCellMetadata) {
+      const wrappedSource = [...source];
+      wrappedSource.unshift(
+        `:::{${classes.map((clz) => `.${clz}`).join(" ")}}\n`,
+      );
+      wrappedSource.push(`:::`);
+      return mdEnsureTrailingNewline(wrappedSource);
+    } else {
+      return source;
+    }
+  };
+}
 
 function tagsToOptions(tags: string[]): Record<string, unknown> {
   const result: Record<string, unknown> = {};
