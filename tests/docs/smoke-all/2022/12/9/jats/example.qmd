@@ -113,7 +113,8 @@ _quarto:
           - '<table-wrap>[\s\S]*?<caption>[\s\S]*?<\/caption>[\s\S]*?<table>[\s\S]*?<\/table>[\s\S]*?<\/table-wrap>' #table
           - '<fig id="fig-foobar" position="float">[\s\S]*?<\/fig>' # custom figure div
         -
-          - '<graphic id="fig-line".*/>'
+          - '<graphic id="fig-line".*/>' # this id should be on the fig element, not the graphic
+          - '<boxed-text>\n\s*<boxed-text>' # no nested boxed-text
 ---
 
 ## Introduction {#sec-introduction}
