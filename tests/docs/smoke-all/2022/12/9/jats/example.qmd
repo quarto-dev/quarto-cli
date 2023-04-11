@@ -111,6 +111,8 @@ _quarto:
           - '<fig id="fig-line">[\s\S]*?<graphic.*?>[\s\S]*?<\/fig>' # regular figure
           - '<table-wrap>[\s\S]*?<caption>[\s\S]*?<\/caption>[\s\S]*?<table>[\s\S]*?<\/table>[\s\S]*?<\/table-wrap>' #table
           - '<fig id="fig-foobar" position="float">[\s\S]*?<\/fig>' # custom figure div
+        -
+          - '<graphic id="fig-line".*/>'
 ---
 
 ## Introduction {#sec-introduction}

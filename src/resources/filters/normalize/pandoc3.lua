@@ -69,8 +69,15 @@ function render_pandoc3_figures()
     Para = function(para)
       if (#para.content == 1 and para.content[1].t == "Image" and
           hasFigureRef(para.content[1])) then
+        
+        -- the image
         local img = para.content[1]
-        -- quarto.utils.dump(img.caption)
+        
+        -- clear the id (otherwise the id will be present on both the image)
+        -- and the figure
+        local figAttr = img.attr:clone()
+        img.attr.identifier = ""
+        
         local caption = img.caption
         return pandoc.Figure(
           pandoc.Plain(para.content[1]),
@@ -78,7 +85,7 @@ function render_pandoc3_figures()
             short = nil,
             long = {pandoc.Plain(caption)}
           },
-          img.attr)
+          figAttr)
       end
     end,
   }
