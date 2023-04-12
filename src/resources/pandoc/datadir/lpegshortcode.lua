@@ -111,11 +111,19 @@ local function make_shortcode_parser(evaluator_table)
   -- skip :/? as well so that URLs with = in them are not treated as key/value pairs
   local sc_keyvalue = (sc_string_skipping(lpeg.S(":/?="), id) * lpeg.P("=") * Space * sc_string) / keyvalue_handler
 
+  local text
+  if evaluator_table.ignore_pattern then
+    text = (evaluator_table.ignore_pattern / id + 
+      lpeg.V("Nonshortcode") + 
+      lpeg.V("Shortcode"))^1
+  else
+    text = (lpeg.V("Nonshortcode") + 
+      lpeg.V("Shortcode"))^1
+  end
   local sc = lpeg.P({
     "Text",
-    Text = into_string((lpeg.V("Nonshortcode") + lpeg.V("Shortcode"))^1),
-    -- Code = (lpeg.P("`") / id) * (lpeg.C((1 - lpeg.P("`"))^0) / id) * (lpeg.P("`") / id) * (Space / id),
-    Nonshortcode = (1 - lpeg.P("{{{<") - lpeg.P("{{<"))^1 / id,
+    Text = into_string(text),
+    Nonshortcode = (1 - lpeg.P("{{{<") - lpeg.P("{{<")) / id,
     KeyShortcodeValue = (sc_string_skipping(lpeg.S(":/?="), id) * lpeg.P("=") * Space * lpeg.V("Shortcode")) / keyvalue_handler,
     Shortcode = escaped_sc1 + 
       escaped_sc2 +
@@ -135,18 +143,28 @@ md_shortcode = make_shortcode_parser({
   escaped = md_escaped_shortcode,
   string = md_string_param,
   keyvalue = md_keyvalue_param,
-  shortcode = md_shortcode
+  shortcode = md_shortcode,
+
+  ignore_pattern = lpeg.P("{.hidden render-id=\"") * (lpeg.P(1) - lpeg.P("\"}"))^1 * lpeg.P("\"}")
 })
+
 local escaped_string = into_string(
   (lpeg.P("\"") *
   ((lpeg.P("\\\\") +
   lpeg.P("\\\"") +
-  (1 - lpeg.P("\""))) ^ 0) * lpeg.P("\"")) / id)
+  (1 - lpeg.P("\""))) ^ 0) * lpeg.P("\"")) / function(s)
+    local unescaped = s:gsub("\\\"", "\""):gsub("\\\\", "\\")
+    if unescaped ~= s then
+      return s
+    else
+      return s:gsub(2, -2)
+    end
+  end)
 
   -- local unshortcode = lpeg.P("[]{.quarto-shortcode__-param data-raw=\"") * (lpeg.P("value") / id) * lpeg.P("\"}")
 local unshortcode = lpeg.P({
   "Text",
-  Text = into_string((lpeg.V("Nonshortcode") + lpeg.V("Shortcodespan") + lpeg.P("["))^1),
+  Text = into_string((lpeg.V("Shortcodespan") + lpeg.P(1) / id)^1),
   Nonshortcode = (1 - lpeg.P("["))^1 / id,
   Shortcodekeyvalue = (lpeg.P("[]{.quarto-shortcode__-param data-key=") * escaped_string * Space * lpeg.P("data-value=") * escaped_string * lpeg.P("}")) /
     function(k, v) return k .. "=" .. v end,
@@ -160,12 +178,6 @@ local unshortcode = lpeg.P({
     return "{{< " .. table.concat(lst, " ") .. " >}}"
   end
 })
-
--- print(unshortcode:match("[]{.quarto-shortcode__-param data-raw=\"value\"}"))
--- print(unshortcode:match("[]{.quarto-shortcode__-param data-key=\"key\" data-value=\"value\"}"))
--- print(unshortcode:match("[[]{.quarto-shortcode__-param data-raw=\"meta\"}]{.quarto-shortcode__}"))
--- print(unshortcode:match("[]{.quarto-shortcode__-escaped data-value=\"{{< meta foo >}}\"} with stuff"))
--- print(unshortcode:match('./[[]{.quarto-shortcode__-param data-raw="meta"}[]{.quarto-shortcode__-param data-raw="bar"}]{.quarto-shortcode__}.html'))
 
 return {
   md_shortcode = md_shortcode,
@@ -192,3 +204,11 @@ return {
 -- p(lpeg.match(md_shortcode, "{{</* foo bar baz */>}}"))
 
 -- p(lpeg.match(md_shortcode, "{{< foo bar baz {{< meta foo >}} bah=asdf bam=\"boom\" 'long key'='long value' >}}"))
+
+-- print(md_shortcode:match('[{{< fa brands r-project >}} This is R]{.hidden render-id="quarto-int-navbar:{{< fa brands r-project >}} This is R"}'))
+-- print(unshortcode:match("[]{.quarto-shortcode__-param data-raw=\"value\"}"))
+-- print(unshortcode:match("[]{.quarto-shortcode__-param data-key=\"key\" data-value=\"value\"}"))
+-- print(unshortcode:match("[[]{.quarto-shortcode__-param data-raw=\"meta\"}]{.quarto-shortcode__}"))
+-- print(unshortcode:match("[]{.quarto-shortcode__-escaped data-value=\"{{< meta foo >}}\"} with stuff"))
+-- print(unshortcode:match('./[[]{.quarto-shortcode__-param data-raw="meta"}[]{.quarto-shortcode__-param data-raw="bar"}]{.quarto-shortcode__}.html'))
+
