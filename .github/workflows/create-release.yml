@@ -1,7 +1,5 @@
 name: Build Installers
 on:
-  schedule:
-    - cron: "0 4 * * *"
   workflow_dispatch:
     inputs:
       publish-release:
@@ -32,7 +30,7 @@ jobs:
       tag_name: v${{steps.config.outputs.version}}.${{ steps.config.outputs.build_number }}
       release: v${{steps.config.outputs.version}}.${{ steps.config.outputs.build_number }}
       changes: ${{ steps.config.outputs.changes }}
-    if: github.event_name != 'schedule' || (github.event_name == 'schedule' && github.repository == 'quarto-dev/quarto-cli')
+    if: github.event_name != 'schedule' || (github.event_name == 'schedule' && github.repository == 'cderv/quarto-cli')
     steps:
       - name: Install libc6-div
         run: sudo apt-get install libc6-dev
@@ -632,7 +630,7 @@ jobs:
       - name: Download Artifacts
         uses: actions/download-artifact@v3
 
-      - uses: quarto-dev/quarto-cli/.github/actions/docker@main
+      - uses: cderv/quarto-cli/.github/actions/docker@main
         with:
           source: ./Deb Installer/quarto-${{needs.configure.outputs.version}}-linux-amd64.deb
           version: ${{needs.configure.outputs.version}}
