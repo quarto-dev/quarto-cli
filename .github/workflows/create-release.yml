@@ -333,6 +333,7 @@ jobs:
   make-installer-mac:
     runs-on: macos-latest
     needs: [configure]
+    if: false
 
     steps:
       - uses: actions/checkout@v3
@@ -395,6 +396,7 @@ jobs:
 
   test-zip-mac:
     runs-on: macos-latest
+    if: false
     needs: [configure, make-installer-mac]
     steps:
       - uses: actions/download-artifact@master
@@ -414,13 +416,12 @@ jobs:
   publish-release:
     if: ${{ github.event.inputs.publish-release }}
     runs-on: ubuntu-latest
-    needs:
-      [
+    needs: [
         configure,
         make-installer-deb,
         make-installer-arm64-deb,
         make-installer-win,
-        make-installer-mac,
+        # make-installer-mac,
         make-tarball-rhel,
         make-arm64-tarball,
         make-tarball,
