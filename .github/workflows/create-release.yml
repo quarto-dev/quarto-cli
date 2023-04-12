@@ -624,7 +624,7 @@ jobs:
   docker-push:
     if: ${{ github.event.inputs.publish-release }}
     runs-on: ubuntu-latest
-    needs: [publish-release]
+    needs: [configure, publish-release]
     steps:
       - name: Download Artifacts
         uses: actions/download-artifact@v3
