@@ -117,21 +117,25 @@ function unescape_invalid_tags(str, tags)
 end
 
 function parse_shortcodes(txt)
-  local blocks = break_quarto_md.break_quarto_md(txt)
-  local result = {}
-  for _, block in ipairs(blocks) do
-    if block.type ~= "markdown" then
-      table.insert(result, block.value)
-    else
-      table.insert(result, md_shortcode.md_shortcode:match(block.value))
-    end
+  return md_shortcode.md_shortcode:match(txt)
+end
+
+function urldecode(url)
+  if url == nil then
+    return
   end
-  return table.concat(result, "\n")
+    url = url:gsub("+", " ")
+    url = url:gsub("%%(%x%x)", function(x)
+      return string.char(tonumber(x, 16))
+    end)
+    url = url:gsub('%&quot%;', '"')
+  return url
 end
 
 function Reader (inputs, opts)
   local txt, tags = escape_invalid_tags(tostring(inputs))
   txt = parse_shortcodes(txt)
+  -- print(txt)
   local extensions = {}
 
   for k, v in pairs(opts.extensions) do
@@ -153,12 +157,34 @@ function Reader (inputs, opts)
   local function restore_invalid_tags(tag)
     return tags[tag] or tag
   end
+
+  -- parse_shortcode overparses shortcodes inside code blocks, link targets, etc.
+  -- so we need to undo that damage here
+
+  local unshortcode_text = function (c)
+    c.text = md_shortcode.unshortcode:match(c.text)
+    return c
+  end
+
   local doc = pandoc.read(txt, flavor, opts):walk {
     CodeBlock = function (cb)
       cb.classes = cb.classes:map(restore_invalid_tags)
+      cb.text = md_shortcode.unshortcode:match(cb.text)
       cb.text = unescape_invalid_tags(cb.text, tags)
       return cb
-    end
+    end,
+    Code = unshortcode_text,
+    RawInline = unshortcode_text,
+    RawBlock = unshortcode_text,
+    Link = function (l)
+      local result = md_shortcode.unshortcode:match(urldecode(l.target))
+      l.target = result
+      return l
+    end,
+    Image = function (i)
+      i.src = md_shortcode.unshortcode:match(urldecode(i.src))
+      return i
+    end,
   }
 
   return doc
