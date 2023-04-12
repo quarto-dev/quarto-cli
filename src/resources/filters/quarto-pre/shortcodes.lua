@@ -733,6 +733,10 @@ end
 
 
 function shortcodeResultAsInlines(result, name)
+  if result == nil then
+    warn("Shortcode '" .. name .. "' not found")
+    return {}
+  end
   local type = quarto.utils.type(result)
   if type == "CustomBlock" then
     error("Custom AST Block returned from shortcode, but Inline was expected")
@@ -766,6 +770,10 @@ function shortcodeResultAsInlines(result, name)
 end
   
 function shortcodeResultAsBlocks(result, name)
+  if result == nil then
+    warn("Shortcode '" .. name .. "' not found")
+    return {}
+  end
   local type = quarto.utils.type(result)
   if type == "CustomBlock" or type == "CustomInline" then
     return pandoc.Blocks({pandoc.Plain(result)})
