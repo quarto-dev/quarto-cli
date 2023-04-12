@@ -20,9 +20,6 @@ on:
         type: boolean
         default: false
 
-permissions:
-  packages: write
-
 jobs:
   configure:
     runs-on: ubuntu-latest
