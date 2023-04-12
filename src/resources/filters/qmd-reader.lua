@@ -135,7 +135,6 @@ end
 function Reader (inputs, opts)
   local txt, tags = escape_invalid_tags(tostring(inputs))
   txt = parse_shortcodes(txt)
-  -- print(txt)
   local extensions = {}
 
   for k, v in pairs(opts.extensions) do
