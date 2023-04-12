@@ -146,7 +146,7 @@ local escaped_string = into_string(
   -- local unshortcode = lpeg.P("[]{.quarto-shortcode__-param data-raw=\"") * (lpeg.P("value") / id) * lpeg.P("\"}")
 local unshortcode = lpeg.P({
   "Text",
-  Text = into_string((lpeg.V("Nonshortcode") + lpeg.V("Shortcodespan"))^1),
+  Text = into_string((lpeg.V("Nonshortcode") + lpeg.V("Shortcodespan") + lpeg.P("["))^1),
   Nonshortcode = (1 - lpeg.P("["))^1 / id,
   Shortcodekeyvalue = (lpeg.P("[]{.quarto-shortcode__-param data-key=") * escaped_string * Space * lpeg.P("data-value=") * escaped_string * lpeg.P("}")) /
     function(k, v) return k .. "=" .. v end,
