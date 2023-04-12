@@ -632,7 +632,7 @@ jobs:
 
       - uses: cderv/quarto-cli/.github/actions/docker@main
         with:
-          source: ./Deb Installer/quarto-${{needs.configure.outputs.version}}-linux-amd64.deb
+          source: ${{ github.workspace }}/Deb Installer/quarto-${{needs.configure.outputs.version}}-linux-amd64.deb
           version: ${{needs.configure.outputs.version}}
           token: ${{ secrets.GITHUB_TOKEN }}
           username: ${{ github.actor }}
