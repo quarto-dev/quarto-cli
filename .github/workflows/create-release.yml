@@ -428,8 +428,6 @@ jobs:
         test-tarball-linux,
       ]
 
-    permissions:
-
     steps:
       - name: Download Artifacts
         uses: actions/download-artifact@v3
