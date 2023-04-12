@@ -28,7 +28,7 @@ runs:
   using: "composite"
   steps:
     - shell: bash
-      run: echo "BASE_NM=${{ inputs.org }}/${{ inputs.name }}" >> $GITHUB_ENV
+      run: echo "BASE_NM=ghcr.io/${{ inputs.org }}/${{ inputs.name }}" >> $GITHUB_ENV
 
     - name: Create DockerFile
       shell: bash
@@ -48,10 +48,8 @@ runs:
       run: echo "DAILY_TAG=-t ${{ env.BASE_NM }}:daily" >> $GITHUB_ENV
 
     - name: Push image
-      env:
-        REGISTRY: ghcr.io
       shell: bash
       run: |
-        echo ${{ inputs.token }} | docker login ${{ env.REGISTRY }} -u ${{ inputs.username }} --password-stdin
+        echo ${{ inputs.token }} | docker login https://ghcr.io -u ${{ inputs.username }} --password-stdin
         docker build -t ${{ env.BASE_NM }}:${{ inputs.version }} ${{ env.LATEST_TAG }} ${{ env.DAILY_TAG }} .
-        docker push ${{ env.REGISTRY }}/${{ env.BASE_NM }} --all-tags
+        docker push ${{ env.BASE_NM }} --all-tags
