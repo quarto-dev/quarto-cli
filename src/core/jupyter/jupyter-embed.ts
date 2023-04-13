@@ -58,6 +58,7 @@ export interface JupyterMarkdownOptions
   echo?: boolean;
   warning?: boolean;
   asis?: boolean;
+  preserveCellMetadata?: boolean;
 }
 
 interface JupyterNotebookOutputCache extends ObjectWithLifetime {
@@ -158,6 +159,7 @@ export async function replaceNotebookPlaceholders(
   const assetCache: Record<string, JupyterAssets> = {};
   let match = kPlaceholderRegex.exec(markdown);
   let includes;
+  const notebooks: string[] = [];
   while (match) {
     // Parse the address and if this is a notebook
     // then proceed with the replacement
@@ -223,6 +225,10 @@ export async function replaceNotebookPlaceholders(
         nbOutputs,
       );
 
+      if (!notebooks.includes(nbAddress.path)) {
+        notebooks.push(nbAddress.path);
+      }
+
       // Replace the placeholders with the rendered markdown
       markdown = markdown.replaceAll(match[0], nbMarkdown);
     }
@@ -235,6 +241,7 @@ export async function replaceNotebookPlaceholders(
   });
 
   return {
+    notebooks,
     includes,
     markdown,
     supporting,
@@ -250,7 +257,7 @@ function resolveNbPath(input: string, path: string) {
 }
 
 // Gets the markdown for a specific notebook and set of options
-async function notebookMarkdown(
+export async function notebookMarkdown(
   inputPath: string,
   nbAddress: JupyterNotebookAddress,
   assets: JupyterAssets,
@@ -441,6 +448,7 @@ async function getCachedNotebookInfo(
         assets,
         execute: format.execute,
         keepHidden: format.render[kKeepHidden],
+        preserveCellMetadata: options?.preserveCellMetadata,
         toHtml: isHtmlCompatible(format),
         toLatex: isLatexOutput(format.pandoc),
         toMarkdown: isMarkdownOutput(format),
