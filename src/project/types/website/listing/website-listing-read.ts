@@ -960,6 +960,9 @@ async function listItemFromFile(
   project: ProjectContext,
   listing: ListingDehydrated,
 ) {
+  if (!isAbsolute(input)) {
+    throw new Error(`Internal Error: input path ${input} must be absolute.`);
+  }
   const projectRelativePath = relative(project.dir, input);
   const target = await inputTargetIndex(
     project,
