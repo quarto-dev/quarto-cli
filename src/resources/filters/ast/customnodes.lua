@@ -9,30 +9,19 @@ local custom_node_data = pandoc.List({})
 local n_custom_nodes = 0
 local profiler = require('profiler')
 
-local cached_nodes = {}
-
 function resolve_custom_node(node)
-  local id = string.format("%p", node)
-  local r = cached_nodes[id]
-  if r ~= nil then
-    return r
-  end
   local t = node.t
   if t == "Plain" then
     local c = node.content[1]
     if c and c.format == "QUARTO_custom" then
-      cached_nodes[id] = c
       return c
     else
-      cached_nodes[id] = false
       return false
     end
   end
   if t == "RawInline" and node.format == "QUARTO_custom" then
-    cached_nodes[id] = node
     return node
   end
-  cached_nodes[id] = false
   return false
 end
 
@@ -95,11 +84,11 @@ function run_emulated_filter(doc, filter, top_level, profiling)
   local custom = resolve_custom_node(doc)
 
   if custom == nil and filter._is_wrapped then
-    local result = doc:walk(filter)
+    local result, recurse = doc:walk(filter)
     if in_filter then
       profiler.category = ""
     end
-    return result
+    return result, recurse
   end
 
   local wrapped_filter = {}
