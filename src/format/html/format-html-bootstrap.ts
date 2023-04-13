@@ -77,6 +77,7 @@ import {
   isDocxOutput,
   isHtmlOutput,
   isIpynbOutput,
+  isJatsOutput,
   isMarkdownOutput,
   isPdfOutput,
   isPresentationOutput,
@@ -443,6 +444,8 @@ function bootstrapHtmlPostprocessor(
 const fileDownloadAttr = (format: Format, path: string) => {
   if (isIpynbOutput(format.pandoc)) {
     return basename(path);
+  } else if (isJatsOutput(format.pandoc)) {
+    return basename(path);
   } else {
     return undefined;
   }
@@ -460,6 +463,8 @@ const fileBsIconName = (format: Format) => {
     return "file-code";
   } else if (isPresentationOutput(format.pandoc)) {
     return "file-slides";
+  } else if (isJatsOutput(format.pandoc)) {
+    return "filetype-xml";
   } else {
     return "file";
   }
