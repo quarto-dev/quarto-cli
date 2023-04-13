@@ -630,7 +630,7 @@ jobs:
       - name: Download Artifacts
         uses: actions/download-artifact@v3
 
-      - uses: cderv/quarto-cli/.github/actions/docker@main
+      - uses: ./.github/workflows/actions/docker
         with:
           source: ./Deb Installer/quarto-${{needs.configure.outputs.version}}-linux-amd64.deb
           version: ${{needs.configure.outputs.version}}
