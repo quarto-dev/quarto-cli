@@ -134,6 +134,7 @@ import {
   kMergeIncludes,
   kMermaidFormat,
   kNotebookLinks,
+  kNotebookSubarticles,
   kNotebookView,
   kNotebookViewStyle,
   kNumberOffset,
@@ -424,6 +425,7 @@ export interface FormatRender {
   [kFormatResources]?: string[];
   [kFormatLinks]?: boolean | string[];
   [kNotebookLinks]?: boolean | "inline" | "global";
+  [kNotebookSubarticles]?: boolean;
   [kNotebookViewStyle]?: "document" | "notebook";
   [kNotebookView]?:
     | boolean

@@ -55,6 +55,17 @@
       Specify `false` to disable linking to source Notebooks. Specify `inline` to show links to source notebooks beneath the content they provide. 
       Specify `global` to show a set of global links to source notebooks.
 
+- name: notebook-subarticles
+  tags:
+    formats: [$jats-doc]
+  schema: boolean
+  description:
+    short: "Controls whether referenced notebooks are embedded in JATS output as subarticles."
+    long: |
+      Controls the display of links to notebooks that provided embedded content or are created from documents.
+
+      Defaults to `true` - specify `false` to disable embedding Notebook as subarticles with the JATS output.
+
 - name: notebook-view
   tags:
     formats: [$html-doc]

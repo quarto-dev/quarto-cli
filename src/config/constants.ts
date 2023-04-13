@@ -40,6 +40,7 @@ export const kFormatResources = "format-resources";
 
 export const kFormatLinks = "format-links";
 export const kNotebookLinks = "notebook-links";
+export const kNotebookSubarticles = "notebook-subarticles";
 export const kNotebookView = "notebook-view";
 export const kNotebookViewStyle = "notebook-view-style";
 
@@ -180,6 +181,7 @@ export const kRenderDefaultsKeys = [
   kFormatResources,
   kFormatLinks,
   kNotebookLinks,
+  kNotebookSubarticles,
   kNotebookView,
   kNotebookViewStyle,
 ];
