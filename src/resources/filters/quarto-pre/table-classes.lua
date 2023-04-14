@@ -3,7 +3,6 @@
 
 -- handle classes to pass to `<table>` element
 function tableClasses()
-
   return {
    
     Table = function(tbl)

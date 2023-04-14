@@ -331,7 +331,7 @@ end
 
 -- The actual filter that will look for a code cell and then
 -- find its annotations, then process the subsequent OL
-function code() 
+function code()
   -- the localized strings
   local language = param("language", nil)
 
@@ -547,7 +547,7 @@ function code()
                 local dlDiv = pandoc.Div({dl}, pandoc.Attr("", {kCellAnnotationClass}))
                 pendingCodeCell.content:insert(2, dlDiv)
                 outputBlock(pendingCodeCell)
-                clearPending();
+                clearPending()
               else
                 outputBlockClearPending(dl)
               end
@@ -555,7 +555,7 @@ function code()
               if pendingCodeCell then
                 outputBlock(pendingCodeCell)
               end
-              clearPending();
+              clearPending()
             end
           else
             outputBlockClearPending(block)

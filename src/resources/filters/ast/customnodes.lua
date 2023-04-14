@@ -25,42 +25,25 @@ function resolve_custom_node(node)
   return false
 end
 
-local skippable_fields = {
-  ["_filter_name"] = true,
-}
-function run_emulated_filter(doc, filter, top_level, profiling)
+function run_emulated_filter(doc, filter)
   if doc == nil then
     return nil
   end
-  local can_skip = true
-  local entries = {}
   local sz = 0
-  for k, _ in pairs(filter) do
-    if not skippable_fields[k] then
-      entries[k] = true
-      can_skip = false
-      sz = sz + 1
-    end
+  for k, v in pairs(filter) do
+    sz = sz + 1
   end
 
   -- performance: if filter is empty, do nothing
-  if can_skip then
+  if sz == 0 then
     return doc
-  end
-
-  local in_filter = false
-  if top_level and filter._filter_name ~= nil and profiling then
-    in_filter = true
-    profiler.category = filter._filter_name
-  end
-
-  if sz == 1 then
+  elseif sz == 1 then
     local result
     local t
-    if entries.Pandoc then
+    if filter.Pandoc then
       -- performance: if filter is only Pandoc, call that directly instead of walking.
       result = filter.Pandoc(doc) or doc
-    elseif entries.Meta then
+    elseif filter.Meta then
       -- performance: if filter is only Meta, call that directly instead of walking.
       t = pandoc.utils.type(doc)
       if t == "Pandoc" then
@@ -219,12 +202,6 @@ function run_emulated_filter(doc, filter, top_level, profiling)
   wrapped_filter._is_wrapped = true
 
   local result, recurse = doc:walk(wrapped_filter)
-  if top_level and filter._filter_name ~= nil then
-    add_trace(result, filter._filter_name)
-  end
-  if in_filter then
-    profiler.category = ""
-  end
 
   return result, recurse
 end

@@ -2,7 +2,7 @@
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
 -- flextable outputs consecutive html blocks so we merge them
--- back together here so they can be processed by ourraw  table
+-- back together here so they can be processed by ourraw table
 -- caption handling
 function tableMergeRawHtml()
   local process = {
@@ -26,6 +26,7 @@ function tableMergeRawHtml()
       return merged
     end
   }
+
   if _quarto.format.isHtmlOutput() then
     -- performance: only run merging if needed.
     local pattern = htmlTableTagNamePattern()
@@ -49,9 +50,7 @@ function tableMergeRawHtml()
       end
     }
   else
-    return {
-
-    }
+    return {}
   end
 end
 
@@ -65,7 +64,7 @@ function respecifyGtCSS(text)
   return text:gsub("\n#" .. v, "\n:where(#" .. v .. ")")
 end
 
-function tableRenderRawHtml() 
+function tableRenderRawHtml()
   return {
     RawBlock = function(el)
       if hasGtHtmlTable(el) then

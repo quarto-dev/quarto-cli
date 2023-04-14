@@ -82,7 +82,7 @@ local function tblColwidthValues(tbl, tblColwidths)
 end
 
 -- propagate cell level tbl-colwidths to tables
-function tableColwidthCell() 
+function tableColwidthCell()
   return {
     Div = function(el)
       if tcontains(el.attr.classes, "cell") then
@@ -103,7 +103,6 @@ end
 
 -- handle tbl-colwidth
 function tableColwidth()
-
   return {
    
     Table = function(tbl)

@@ -172,7 +172,6 @@ local quartoNormalize = {
   { name = "normalize", filter = filterIf(function()
     return preState.active_filters.normalization
   end, normalizeFilter()) },
-  { name = "index", filter = compute_indices() },
 
   -- 2023-04-11: We want to combine these filters but extract_quarto_dom
   -- can't be combined with parse_html_tables because combineFilters
@@ -180,14 +179,23 @@ local quartoNormalize = {
   { name = "normalize-combined", filter = combineFilters({
       parse_html_tables(),
       parseExtendedNodes(),
-    }) 
+    })
   },
-  { name = "normalize-extractQuartoDom", filter = extract_quarto_dom() },
+  { 
+    name = "normalize-extractQuartoDom", 
+    filter = extract_quarto_dom(),
+    indices = {
+      "needs_dom_processing"
+    }
+  },
 }
 
 local quartoPre = {
   -- quarto-pre
+
+  -- TODO we need to recompute indices on the results of the user filters
   { name = "pre-quartoBeforeExtendedUserFilters", filters = make_wrapped_user_filters("beforeQuartoFilters") },
+  { name = "index", filter = compute_indices() },
 
   -- https://github.com/quarto-dev/quarto-cli/issues/5031
   -- recompute options object in case user filters have changed meta
@@ -195,22 +203,67 @@ local quartoPre = {
   -- when they mutate options
   { name = "pre-quartoAfterUserFilters", filter = initOptions() },
 
-  { name = "normalize-parse-pandoc3-figures", filter = parse_pandoc3_figures() },
+  { name = "normalize-parse-pandoc3-figures", 
+    filter = parse_pandoc3_figures(), 
+    indices = { "has_pandoc3_figure" } 
+  },
+
   { name = "pre-bibliographyFormats", filter = bibliographyFormats() }, 
-  { name = "pre-shortcodes_filter", filter = shortcodes_filter() } ,
-  { name = "pre-tableMergeRawHtml", filter = tableMergeRawHtml() },
-  { name = "pre-tableRenderRawHtml", filter = tableRenderRawHtml() },
-  { name = "pre-tableColwidthCell", filter = tableColwidthCell() },
-  { name = "pre-tableColwidth", filter = tableColwidth() },
-  { name = "pre-tableClasses", filter = tableClasses() },
-  { name = "pre-hidden", filter = hidden() },
-  { name = "pre-contentHidden", filter = contentHidden() },
-  { name = "pre-tableCaptions", filter = tableCaptions() },
-  { name = "pre-longtable_no_caption_fixup", filter = longtable_no_caption_fixup() },
-  { name = "pre-code-annotations", filter = code()},
-  { name = "pre-code-annotations-meta", filter = codeMeta()},
-  { name = "pre-outputs", filter = outputs() },
-  { name = "pre-outputLocation", filter = outputLocation() },
+  
+  { name = "pre-shortcodes_filter", 
+    filter = shortcodes_filter(),
+    indices = { "has_shortcodes" } },
+
+  { name = "pre-tableMergeRawHtml", 
+    filter = tableMergeRawHtml(),
+    indices = { "has_partial_raw_html_tables" } },
+
+  { name = "pre-tableRenderRawHtml", 
+    filter = tableRenderRawHtml(),
+    indices = { "has_raw_html_tables", "has_gt_tables" } },
+
+  { name = "pre-tableColwidthCell", 
+    filter = tableColwidthCell(),
+    indices = { "has_tbl_colwidths" } },
+
+  { name = "pre-tableColwidth", 
+    filter = tableColwidth(), 
+    indices = { "has_tables" } },
+  
+  { name = "pre-tableClasses", 
+    filter = tableClasses(),
+    indices = { "has_tables" } },
+
+  { name = "pre-hidden", 
+    filter = hidden(), 
+    indices = { "has_hidden" } },
+
+  { name = "pre-contentHidden", 
+    filter = contentHidden(),
+    indices = { "has_conditional_content" } },
+
+  { name = "pre-tableCaptions", 
+    filter = tableCaptions(),
+    indices = { "has_table_captions" } },
+
+  { name = "pre-longtable_no_caption_fixup", 
+    filter = longtable_no_caption_fixup(),
+    indices = { "has_longtable_no_caption_fixup" } },
+  
+  { name = "pre-code-annotations", 
+    filter = code(),
+    indices = { "has_code_annotations" } },
+  
+  { name = "pre-code-annotations-meta", filter = codeMeta() },
+
+  { name = "pre-outputs", 
+    filter = outputs(),
+    indices = { "needs_output_unrolling" } },
+
+  { name = "pre-outputLocation", 
+    filter = outputLocation()
+  },
+
   { name = "pre-combined-figures-theorems-etc", filter = combineFilters({
     fileMetadata(),
     indexBookFileTargets(),
@@ -228,10 +281,12 @@ local quartoPre = {
     panelSidebar(),
     inputTraits()
   }) },
+
   { name = "pre-combined-book-file-targets", filter = combineFilters({
     fileMetadata(),
     resolveBookFileTargets(),
   }) },
+
   { name = "pre-quartoPreMetaInject", filter = quartoPreMetaInject() },
   { name = "pre-writeResults", filter = writeResults() },
   { name = "pre-projectPaths", filter = projectPaths() }
@@ -239,7 +294,9 @@ local quartoPre = {
 
 local quartoPost = {
   -- quarto-post
-  { name = "post-cell-cleanup", filter = cell_cleanup() },
+  { name = "post-cell-cleanup", 
+    filter = cell_cleanup(),
+    indices = "has_empty_cell" },
   { name = "post-cites", filter = indexCites() },
   { name = "post-foldCode", filter = foldCode() },
   { name = "post-bibligraphy", filter = bibliography() },
@@ -280,7 +337,7 @@ local quartoFinalize = {
 }
 
 local quartoLayout = {
-  { name = "layout-columnsPreprocess", filter = columnsPreprocess() },
+  { name = "layout-columnsPreprocess", filter = columnsPreprocess(), },
   { name = "layout-columns", filter = columns() },
   { name = "layout-citesPreprocess", filter = citesPreprocess() },
   { name = "layout-cites", filter = cites() },
@@ -318,8 +375,6 @@ tappend(filterList, quartoLayout)
 tappend(filterList, quartoPost)
 tappend(filterList, quartoFinalize)
 
-local profiler = require("profiler")
-
 local result = run_as_extended_ast({
   pre = {
     initOptions()
@@ -329,7 +384,7 @@ local result = run_as_extended_ast({
     -- allowing state or other items to be handled
     resetFileMetadata()
   end,
-  filters = capture_timings(filterList),
+  filters = filterList,
 })
 
 return result

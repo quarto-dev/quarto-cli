@@ -9,10 +9,6 @@ local function process_quarto_markdown_input_element(el)
 end
 
 function extract_quarto_dom()
-  if indices.needs_dom_processing == nil then
-    return {}
-  end
-  
   return {
     Div = function(div)
       if div.attributes.qmd ~= nil or div.attributes["qmd-base64"] ~= nil then

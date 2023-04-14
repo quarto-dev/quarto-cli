@@ -3,30 +3,47 @@
 --
 -- Copyright (C) 2022 by RStudio, PBC
 
+local profiler = require('profiler')
+
 local function run_emulated_filter_chain(doc, filters, afterFilterPass, profiling)
   init_trace(doc)
-  if tisarray(filters) then
-    for i, v in ipairs(filters) do
-      local function callback()
-        doc = run_emulated_filter(doc, v, true, profiling)
+  -- print(os.clock(), " - starting")
+  for i, v in ipairs(filters) do
+    local function callback()
+      if v.indices then
+        local can_skip = true
+        for _, index in ipairs(v.indices) do
+          if indices[index] == true then
+            can_skip = false
+          end
+        end
+        if can_skip then
+          -- print("          - Skipping", v.name)
+          return
+        end
       end
-      if v.scriptFile then
-        _quarto.withScriptFile(v.scriptFile, callback)
-      else
-        callback()
+      -- print(os.clock(), " - running", v.name)
+
+      if profiling then
+        profiler.category = v.name
       end
-      if afterFilterPass then
-        afterFilterPass()
+
+      doc = run_emulated_filter(doc, v.filter)
+
+      add_trace(doc, v.name)
+
+      if profiling then
+        profiler.category = ""
       end
     end
-  elseif type(filters) == "table" then
-    doc = run_emulated_filter(doc, filters, true, profiling)
+    if v.scriptFile then
+      _quarto.withScriptFile(v.scriptFile, callback)
+    else
+      callback()
+    end
     if afterFilterPass then
       afterFilterPass()
     end
-  else
-    error("Internal Error: run_emulated_filter_chain expected a table or array instead of " .. type(filters))
-    crash_with_stack_trace()
   end
   end_trace()
   return doc
@@ -75,6 +92,32 @@ local function emulate_pandoc_filter(filters, afterFilterPass)
 end
 
 function run_as_extended_ast(specTable)
+
+  local function coalesce_filters(filterList)
+    local finalResult = {}
+  
+    for i, v in ipairs(filterList) do
+      if v.filter ~= nil then
+        -- v.filter._filter_name = v.name
+        table.insert(finalResult, v)
+      elseif v.filters ~= nil then
+        for j, innerV in pairs(v.filters) do
+          innerV._filter_name = string.format("%s-%s", v.name, j)
+          table.insert(finalResult, {
+            filter = innerV,
+            name = innerV._filter_name
+          })
+        end
+      else
+        print("Warning: filter " .. v.name .. " didn't declare filter or filters.")
+      end
+    end
+  
+    return finalResult
+  end
+
+  specTable.filters = coalesce_filters(specTable.filters)
+
   local pandocFilterList = {}
   if specTable.pre then
     for _, v in ipairs(specTable.pre) do
@@ -82,7 +125,11 @@ function run_as_extended_ast(specTable)
     end
   end
 
-  table.insert(pandocFilterList, emulate_pandoc_filter(specTable.filters, specTable.afterFilterPass))
+  table.insert(pandocFilterList, emulate_pandoc_filter(
+    specTable.filters,
+    specTable.afterFilterPass
+  ))
+
   if specTable.post then
     for _, v in ipairs(specTable.post) do
       table.insert(pandocFilterList, v)

@@ -2,9 +2,6 @@
 -- Copyright (C) 2020-2023 Posit Software, PBC
 
 function parse_pandoc3_figures() 
-  if indices.has_pandoc3_figure == nil then
-    return {}
-  end
   local walk_recurse
   walk_recurse = function(constructor)
     local plain_figure_treatment = function(el)

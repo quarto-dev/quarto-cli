@@ -22,9 +22,7 @@ function longtable_no_caption_fixup()
 end
 
 function tableCaptions() 
-  
-  return {
-   
+  return {   
     Div = function(el)
       if tcontains(el.attr.classes, "cell") then
         -- extract table attributes
