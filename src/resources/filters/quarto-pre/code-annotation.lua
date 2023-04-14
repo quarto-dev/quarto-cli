@@ -333,12 +333,12 @@ end
 -- find its annotations, then process the subsequent OL
 function code() 
   -- the localized strings
-  local language = param("language", nil);              
+  local language = param("language", nil)
 
   -- walk the blocks and look for annotated code
   -- process the list top down so that we see the outer
   -- code divs first
-  return {
+  local code_filter = {
     traverse = 'topdown',
     Blocks = function(blocks) 
 
@@ -563,6 +563,20 @@ function code()
         end
         return allOutputs()
       end
+    end
+  }
+
+  -- return code_filter
+  return {
+    Pandoc = function(doc)
+      local codeAnnotations = param(kCodeAnnotationsParam)
+
+      -- if code annotations is false, then don't even walk it
+      if codeAnnotations == false then
+        return nil
+      end
+      
+      return _quarto.ast.walk(doc, code_filter)
     end
   }
 end
