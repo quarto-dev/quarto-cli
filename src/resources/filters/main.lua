@@ -250,10 +250,10 @@ local quartoPost = {
   { name = "post-ojs", filter = ojs() },
   { name = "post-postMetaInject", filter = quartoPostMetaInject() },
   { name = "post-render-jats", filter = filterIf(function()
-    return not preState.active_filters.jats_subarticle
+    return preState.active_filters.jats_subarticle ~= nil and preState.active_filters.jats_subarticle
   end, jats()) },
   { name = "post-render-jats-subarticle", filter = filterIf(function()
-    return preState.active_filters.jats_subarticle
+    return preState.active_filters.jats_subarticle ~= nil and preState.active_filters.jats_subarticle
   end, jatsSubarticle()) },  
   { name = "post-render-asciidoc", filter = renderAsciidoc() },
   { name = "post-renderExtendedNodes", filter = renderExtendedNodes() },
