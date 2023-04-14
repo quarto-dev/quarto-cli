@@ -98,6 +98,7 @@ _quarto:
     jats:
       ensureFileRegexMatches:
         - 
+          - '<!DOCTYPE.*DTD JATS.*' # a JATS DTD must be present
           - '<article-meta>' # basic JATS 
           - '</article-meta>' # basic JATS 
           - '<contrib contrib-type="author" equal-contrib="yes" corresp="yes">' #author
@@ -111,6 +112,9 @@ _quarto:
           - '<fig id="fig-line">[\s\S]*?<graphic.*?>[\s\S]*?<\/fig>' # regular figure
           - '<table-wrap>[\s\S]*?<caption>[\s\S]*?<\/caption>[\s\S]*?<table>[\s\S]*?<\/table>[\s\S]*?<\/table-wrap>' #table
           - '<fig id="fig-foobar" position="float">[\s\S]*?<\/fig>' # custom figure div
+        -
+          - '<graphic id="fig-line".*/>' # this id should be on the fig element, not the graphic
+          - '<boxed-text>\n\s*<boxed-text>' # no nested boxed-text
 ---
 
 ## Introduction {#sec-introduction}

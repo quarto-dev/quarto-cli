@@ -57,7 +57,7 @@ export function jatsFormat(displayName: string, ext: string): Format {
       };
 
       // Which tagset we're using
-      const tagset = jatsTagset(format.pandoc.to || "html");
+      const tagset = jatsTagset(format.identifier["base-format"] || "jats");
 
       const metadataOverride = {
         // Link citations produces `xrefs` for the citations to the references in the bibliography so

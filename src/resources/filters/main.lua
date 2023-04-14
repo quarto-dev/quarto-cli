@@ -69,6 +69,7 @@ import("./quarto-post/ipynb.lua")
 import("./quarto-post/latexdiv.lua")
 import("./quarto-post/meta.lua")
 import("./quarto-post/ojs.lua")
+import("./quarto-post/jats.lua")
 import("./quarto-post/responsive.lua")
 import("./quarto-post/reveal.lua")
 import("./quarto-post/tikz.lua")
@@ -254,6 +255,7 @@ local quartoPost = {
   }) },
   { name = "post-ojs", filter = ojs() },
   { name = "post-postMetaInject", filter = quartoPostMetaInject() },
+  { name = "post-render-jats", filter = jats() },
   { name = "post-render-asciidoc", filter = renderAsciidoc() },
   { name = "post-renderExtendedNodes", filter = renderExtendedNodes() },
   { name = "post-render-pandoc-3-figures", filter = render_pandoc3_figures() },

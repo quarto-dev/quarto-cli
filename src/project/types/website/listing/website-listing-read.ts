@@ -721,6 +721,7 @@ async function readContents(
                   yamlItem as Metadata,
                   project,
                   listing,
+                  dirname(file),
                 );
                 validateItem(listing, item, (field: string) => {
                   return `An item from the file '${file}' is missing the required field '${field}'.`;
@@ -738,6 +739,7 @@ async function readContents(
               yaml as Metadata,
               project,
               listing,
+              dirname(file),
             );
             validateItem(listing, item, (field: string) => {
               return `The item defined in file '${file}' is missing the required field '${field}'.`;
@@ -775,15 +777,16 @@ async function readContents(
   // Process any metadata that appears in contents
   if (contentMetadatas.length > 0) {
     for (const content of contentMetadatas) {
-      const { item, source } = await listItemFromMeta(
+      const { item, source: itemSource } = await listItemFromMeta(
         content,
         project,
         listing,
+        dirname(source),
       );
       validateItem(listing, item, (field: string) => {
         return `An item in the listing '${listing.id}' is missing the required field '${field}'.`;
       });
-      listingItemSources.add(source);
+      listingItemSources.add(itemSource);
       listingItems.push(item);
     }
   }
@@ -896,6 +899,7 @@ async function listItemFromMeta(
   meta: Metadata,
   project: ProjectContext,
   listing: ListingDehydrated,
+  baseDir: string,
 ) {
   let listingItem = cloneDeep(meta);
   let source = ListingItemSource.metadata;
@@ -910,7 +914,11 @@ async function listItemFromMeta(
 
     const markdownExtensions = [".qmd", ".md", ".rmd"];
     if (markdownExtensions.indexOf(extension) !== -1) {
-      const fileListing = await listItemFromFile(meta.path, project, listing);
+      const inputPath = isAbsolute(meta.path)
+        ? meta.path
+        : join(baseDir, meta.path);
+
+      const fileListing = await listItemFromFile(inputPath, project, listing);
       if (fileListing === undefined) {
         warning(
           `Draft document ${meta.path} found in a custom listing: item will not have computed metadata.`,
@@ -952,6 +960,9 @@ async function listItemFromFile(
   project: ProjectContext,
   listing: ListingDehydrated,
 ) {
+  if (!isAbsolute(input)) {
+    throw new Error(`Internal Error: input path ${input} must be absolute.`);
+  }
   const projectRelativePath = relative(project.dir, input);
   const target = await inputTargetIndex(
     project,

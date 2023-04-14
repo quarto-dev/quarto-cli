@@ -148,7 +148,7 @@ local function isHtmlOutput()
 end
 
 local function parse_format(raw_format)
-  local pattern = "^(%a+)([-+_%a]*)"
+  local pattern = "^([%a_]+)([-+_%a]*)"
   local i, j, format, extensions = raw_format:find(pattern)
   if format == nil then
     error("Warning: Invalid format " .. raw_format .. ". Assuming 'markdown'.")

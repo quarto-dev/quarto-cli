@@ -103,6 +103,7 @@ function Writer(doc, opts)
   local extensions = {
     yaml_metadata_block = true,
     pipe_tables = true,
+    footnotes = true,
     tex_math_dollars = true,
     header_attributes = true,
     raw_html = true,
