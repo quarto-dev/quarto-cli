@@ -67,6 +67,10 @@ end
 function jatsSubarticle() 
   if _quarto.format.isJatsOutput() then
 
+    local kNoteBookCode = "notebook-code"
+    local kNoteBookContent = "notebook-content"
+    local kNoteBookOutput = "notebook-output"
+
     local isCell = function(el) 
       return el.classes:includes("cell") 
     end
@@ -79,6 +83,27 @@ function jatsSubarticle()
       return el.classes:includes("cell-output")
     end
 
+    local function renderCell(el, type)
+      local renderedCell = pandoc.List()
+      renderedCell:insert(pandoc.RawBlock('jats', '<boxed-text id="' .. el.identifier .. '" content-type="' .. type .. '">'))
+      for _i, v in ipairs(el.content) do
+        renderedCell:insert(v)
+      end
+      renderedCell:insert(pandoc.RawBlock('jats', '</boxed-text>'))
+      return renderedCell
+    end
+
+    local function renderCellOutput(el, type)
+      local renderedCell = pandoc.List()
+      renderedCell:insert(pandoc.RawBlock('jats', '<boxed-text id="' .. el.identifier .. '" content-type="' .. type .. '">'))
+      for _i, v in ipairs(el.content) do
+        renderedCell:insert(v)
+      end
+      renderedCell:insert(pandoc.RawBlock('jats', '</boxed-text>'))
+      return renderedCell
+    end
+
+
     return {
       Meta = jatsMeta,
 
@@ -87,6 +112,7 @@ function jatsSubarticle()
       -- id="nb1-cell-3" content-type="notebook-code"
 
       Div = function(div)
+        
 
         -- TODO: Code cell with #fig-asdas label gets turned into a figure div, need to stop that
         -- TODO: Add content types
@@ -94,19 +120,19 @@ function jatsSubarticle()
         -- this is a notebook cell, handle it
         if isCell(div) then
           if isCodeCell(div) then
-            -- walk the code cell and mark the outputs as 
-            return div
+            -- render the cell
+            return renderCell(div, kNoteBookCode)
           else
             if #div.content == 0 then
               -- eat empty markdown cells
               return {}
             else
               -- the is a valid markdown cell, let it through              
-              return div
+              return renderCell(div, kNoteBookContent)
             end
           end
         else if isCodeCellOutput(div) then
-          return div
+          return renderCellOutput(div, kNoteBookOutput)
         else
           -- otherwise, if this is a div, we can unroll its contents
           return unrollDiv(div, function(el) 
@@ -118,4 +144,9 @@ function jatsSubarticle()
     end,
     }
   end
+end
+
+
+
+local function renderCellOutput(el)
 end
