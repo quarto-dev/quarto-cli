@@ -6,7 +6,10 @@ PANDOC_VERSION:must_be_at_least '2.13'
 
 crossref = {
   usingTheorems = false,
-  startAppendix = nil
+  startAppendix = nil,
+  
+  -- initialize autolabels table
+  autolabels = pandoc.List()
 }
 
 -- [import]

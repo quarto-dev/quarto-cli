@@ -21,12 +21,17 @@ function compute_indices()
   local latex_caption_pattern = "(\\caption{)(.*)" .. refLabelPattern("tbl") .. "([^}]*})"
 
   return {
+    Header = function(el)
+      crossref.maxHeading = math.min(crossref.maxHeading, el.level)
+    end,
+
     Table = function(node)
       indices.has_tables = true
       if node.caption.long ~= nil then
         indices.has_table_with_long_captions = true
       end
     end,
+    
     RawBlock = function(el)
       if el.format == "html" then
         local i, j = string.find(el.text, table_pattern)

@@ -6,16 +6,7 @@
 function crossrefPreprocess()
   
   return {
-
-    Header = function(el)
-      crossref.maxHeading = math.min(crossref.maxHeading, el.level)
-    end,
-
-    Pandoc = function(doc)
-      
-      -- initialize autolabels table
-      crossref.autolabels = pandoc.List()
-      
+    Pandoc = function(doc)      
       local walkRefs
       walkRefs = function(parentId)
         return {
