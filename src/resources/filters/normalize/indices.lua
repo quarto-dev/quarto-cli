@@ -31,7 +31,7 @@ function compute_indices()
         indices.has_table_with_long_captions = true
       end
     end,
-    
+
     RawBlock = function(el)
       if el.format == "html" then
         local i, j = string.find(el.text, table_pattern)
@@ -77,6 +77,11 @@ function compute_indices()
         
     end,
     Div = function(node)
+
+      local type = refType(node.attr.identifier)
+      if theoremTypes[type] ~= nil or proofType(node) ~= nil then
+        indices.has_theorem_refs = true
+      end
 
       needs_dom_processing(node)
       if node.attr.classes:find("hidden") then

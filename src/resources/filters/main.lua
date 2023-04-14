@@ -7,7 +7,7 @@ PANDOC_VERSION:must_be_at_least '2.13'
 crossref = {
   usingTheorems = false,
   startAppendix = nil,
-  
+
   -- initialize autolabels table
   autolabels = pandoc.List()
 }
@@ -351,6 +351,7 @@ local quartoLayout = {
 
 local quartoCrossref = {
   { name = "crossref-initCrossrefOptions", filter = initCrossrefOptions() },
+
   { name = "crossref-preprocess", filter = crossrefPreprocess(),
     indices = { 
       "has_figure_or_table_ref", 
@@ -358,7 +359,11 @@ local quartoCrossref = {
       "has_table_with_long_captions",
       "has_latex_table_captions"
     } },
-  { name = "crossref-preprocessTheorems", filter = crossrefPreprocessTheorems() },
+
+  { name = "crossref-preprocessTheorems", 
+    filter = crossrefPreprocessTheorems(),
+    indices = { "has_theorem_refs" } },
+
   { name = "crossref-combineFilters", filter = combineFilters({
     fileMetadata(),
     qmd(),
