@@ -35,11 +35,12 @@ import { jupyterAssets } from "../../core/jupyter/jupyter.ts";
 import { runPandoc } from "../../command/render/pandoc.ts";
 import { dirAndStem } from "../../core/path.ts";
 import { renderFormats } from "../../command/render/render-contexts.ts";
+import { kJatsSubarticle } from "./format-jats-types.ts";
 
 const kJatsExtended = "jats-extended";
 const kJatsDtd = "jats-dtd";
 const kElementsVariant = "+element_citations";
-const lintXml = "_lint-jats-xml-output";
+const kLintXml = "_lint-jats-xml-output";
 
 export function jatsFormat(displayName: string, ext: string): Format {
   return createFormat(displayName, ext, {
@@ -102,7 +103,7 @@ export function jatsFormat(displayName: string, ext: string): Format {
         },
         templateContext,
         metadataOverride,
-        postprocessors: format.metadata[lintXml] !== false
+        postprocessors: format.metadata[kLintXml] !== false
           ? [reformatXmlPostProcessor]
           : [],
       };
@@ -237,6 +238,7 @@ async function writeNotebookMarkdown(
     nbOptions,
   );
 
+  console.log(nbMarkdown);
   // The input file that we'll use to render
   // TODO: deal with subdir / ensure that there aren't name conflicts here
   const inputMdFile = join(workingDir, `${nbStem}.md`);
@@ -268,8 +270,9 @@ async function renderJatsSubarticle(
     join("pandoc", "subarticle", "template.xml"),
   );
 
-  // Configure the JATS rendering
-  nbFormat.metadata[lintXml] = false;
+  // Configure the JATS renderingats
+  nbFormat.metadata[kLintXml] = false;
+  nbFormat.metadata[kJatsSubarticle] = true;
 
   // Run pandoc to render the notebook
   const result = await runPandoc({

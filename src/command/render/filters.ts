@@ -67,6 +67,7 @@ import { projectOutputDir } from "../../project/project-shared.ts";
 import { relative } from "path/mod.ts";
 import { citeIndexFilterParams } from "../../project/project-cites.ts";
 import { debug } from "log/mod.ts";
+import { kJatsSubarticle } from "../../format/jats/format-jats-types.ts";
 
 const kQuartoParams = "quarto-params";
 
@@ -135,6 +136,7 @@ export async function filterParamsJson(
     [kActiveFilters]: {
       normalization: metadataNormalizationFilterActive(options),
       crossref: crossrefFilterActive(options),
+      jats_subarticle: options.format.metadata[kJatsSubarticle],
     },
   };
   return JSON.stringify(params);
