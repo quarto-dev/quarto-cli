@@ -31,8 +31,6 @@ local function codeBlockWithFilename(el, filename)
   -- end
 end
 
-local traverse = require('traverse').traverse
-
 function codeFilename()
   local code_filename_filter = {
     -- Div = function(div)
