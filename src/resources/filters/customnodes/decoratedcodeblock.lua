@@ -41,6 +41,11 @@ _quarto.ast.add_handler({
       end
       if node.caption ~= nil then
         local order = node.order
+        if order == nil then
+          warn("Node with caption " .. pandoc.utils.stringify(node.caption) .. " is missing a listing id (lst-*).")
+          warn("This usage is unsupported in HTML formats.")
+          return el
+        end
         local captionContent = node.caption
         tprepend(captionContent, listingTitlePrefix(order))
         caption = pandoc.Para(captionContent)
