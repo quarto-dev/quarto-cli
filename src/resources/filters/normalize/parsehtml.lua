@@ -19,6 +19,10 @@ local function preprocess_table_text(src)
 end
 
 function parse_html_tables()
+  if not indices.has_raw_html_tables then
+    return {}
+  end
+
   local filter
   filter = {
     RawBlock = function(el)
@@ -62,7 +66,9 @@ function parse_html_tables()
               if table.attributes[kDisableProcessing] ~= nil then
                 skip = true
               end
-            end
+            end,
+            Div = needs_dom_processing,
+            Span = needs_dom_processing,
           })
           if not found then
             warn("Unable to parse table from raw html block: skipping.")
