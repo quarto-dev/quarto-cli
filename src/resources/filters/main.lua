@@ -299,7 +299,7 @@ local quartoPost = {
     indices = "has_empty_cell" },
   { name = "post-cites", filter = indexCites() },
   { name = "post-foldCode", filter = foldCode() },
-  { name = "post-bibligraphy", filter = bibliography() },
+  { name = "post-bibliography", filter = bibliography() },
   { name = "post-figureCleanupCombined", filter = combineFilters({
     latexDiv(),
     responsive(),
@@ -348,7 +348,13 @@ local quartoLayout = {
 
 local quartoCrossref = {
   { name = "crossref-initCrossrefOptions", filter = initCrossrefOptions() },
-  { name = "crossref-preprocess", filter = crossrefPreprocess() },
+  { name = "crossref-preprocess", filter = crossrefPreprocess(),
+    indices = { 
+      "has_figure_or_table_ref", 
+      "has_discoverable_figures",
+      "has_table_with_long_captions",
+      "has_latex_table_captions"
+    } },
   { name = "crossref-preprocessTheorems", filter = crossrefPreprocessTheorems() },
   { name = "crossref-combineFilters", filter = combineFilters({
     fileMetadata(),

@@ -17,10 +17,15 @@ function compute_indices()
   local table_pattern = htmlTablePattern()
   local table_tag_pattern = htmlTableTagNamePattern()
   local gt_table_pattern = htmlGtTablePattern()
+  local html_table_caption_pattern = htmlTableCaptionPattern()
+  local latex_caption_pattern = "(\\caption{)(.*)" .. refLabelPattern("tbl") .. "([^}]*})"
 
   return {
     Table = function(node)
       indices.has_tables = true
+      if node.caption.long ~= nil then
+        indices.has_table_with_long_captions = true
+      end
     end,
     RawBlock = function(el)
       if el.format == "html" then
@@ -48,13 +53,35 @@ function compute_indices()
       if el.text:find("%{%{%<") then
         indices.has_shortcodes = true
       end
+
+      -- crossref/preprocess.lua
+      if _quarto.format.isRawHtml(el) and _quarto.format.isHtmlOutput() then
+        local _, caption, _ = string.match(el.text, html_table_caption_pattern)
+        if caption ~= nil then
+          indices.has_html_table_captions = true
+        end
+      end
+
+      if _quarto.format.isRawLatex(el) and _quarto.format.isLatexOutput() then      
+        -- try to find a caption with an id
+        local _, _, label, _ = rawEl.text:match(latex_caption_pattern)
+        if label ~= nil then
+          indices.has_latex_table_captions = true
+        end
+      end
+        
     end,
     Div = function(node)
+
       needs_dom_processing(node)
       if node.attr.classes:find("hidden") then
         indices.has_hidden = true
       end
 
+      -- crossref/preprocess.lua
+      if hasFigureOrTableRef(node) then
+        indices.has_figure_or_table_ref = true
+      end
 
       if node.attr.classes:find("cell") then
         -- cellcleanup.lua
@@ -81,6 +108,11 @@ function compute_indices()
             indices.needs_output_unrolling = true
           end
         end
+      end
+    end,
+    Para = function(node)
+      if discoverFigure(node, false) then
+        indices.has_discoverable_figure = true
       end
     end,
     CodeBlock = function(node)
