@@ -142,6 +142,10 @@ _quarto.ast.add_handler({
 local calloutidx = 1
 
 function callout() 
+  if not _quarto.format.isDocxOutput() then
+    return {}
+  end
+
   return {
   
     -- Insert paragraphs between consecutive callouts or tables for docx

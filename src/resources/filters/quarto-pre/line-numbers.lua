@@ -5,6 +5,7 @@
 function lineNumbers()
   return {
     CodeBlock = function(el)
+      print(el)
       if #el.attr.classes > 0 then
         local lineNumbers = lineNumbersAttribute(el)
         if lineNumbers ~= false then

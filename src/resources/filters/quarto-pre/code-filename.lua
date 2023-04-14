@@ -31,11 +31,29 @@ local function codeBlockWithFilename(el, filename)
   -- end
 end
 
-function codeFilename() 
-  return {
+local traverse = require('traverse').traverse
+
+function codeFilename()
+  local code_filename_filter = {
+    -- Div = function(div)
+    --   local filename = div.attributes["filename"]
+    --   if filename ~= nil and div.content[1].t == "CodeBlock" then
+    --     div.attributes["filename"] = nil
+    --     div.content[1] = codeBlockWithFilename(div.content[1], filename)
+    --     return div
+    --   end
+    --   return div
+    -- end,
+    -- CodeBlock = function(div)
+    --   local filename = div.attributes["filename"]
+    --   if filename ~= nil then
+    --     div.attributes["filename"] = nil
+    --     return codeBlockWithFilename(div, filename)
+    --   end
+    --   return div
+    -- end,
+    -- transform ast for 'filename'
     Blocks = function(blocks)
-  
-      -- transform ast for 'filename'
       local foundFilename = false
       local newBlocks = pandoc.List()
       for _,block in ipairs(blocks) do
@@ -57,7 +75,6 @@ function codeFilename()
           newBlocks:insert(block)
         end
       end
-    
       -- if we found a file name then return the modified list of blocks
       if foundFilename then
         return newBlocks
@@ -66,4 +83,5 @@ function codeFilename()
       end
     end
   }  
+  return code_filename_filter
 end

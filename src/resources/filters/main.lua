@@ -82,6 +82,7 @@ import("./quarto-finalize/book-cleanup.lua")
 import("./quarto-finalize/mediabag.lua")
 import("./quarto-finalize/meta-cleanup.lua")
 
+import("./normalize/indices.lua")
 import("./normalize/normalize.lua")
 import("./normalize/parsehtml.lua")
 import("./normalize/pandoc3.lua")
@@ -171,6 +172,7 @@ local quartoNormalize = {
   { name = "normalize", filter = filterIf(function()
     return preState.active_filters.normalization
   end, normalizeFilter()) },
+  { name = "index", filter = compute_indices() },
 
   -- 2023-04-11: We want to combine these filters but extract_quarto_dom
   -- can't be combined with parse_html_tables because combineFilters
