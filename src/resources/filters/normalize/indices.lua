@@ -82,6 +82,14 @@ function compute_indices()
     end,
     Div = function(node)
 
+      if isFigureDiv(node) then
+        indices.has_figure_div = true
+      end
+      
+      if hasLayoutAttributes(node) then
+        indices.has_layout_attributes = true
+      end
+
       local type = refType(node.attr.identifier)
       if theoremTypes[type] ~= nil or proofType(node) ~= nil then
         indices.has_theorem_refs = true
@@ -126,7 +134,7 @@ function compute_indices()
     end,
     Para = function(node)
       if discoverFigure(node, false) then
-        indices.has_discoverable_figure = true
+        indices.has_discoverable_figures = true
       end
     end,
     CodeBlock = function(node)

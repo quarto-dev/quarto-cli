@@ -348,8 +348,10 @@ local quartoLayout = {
   { name = "layout-columns", filter = columns() },
   { name = "layout-citesPreprocess", filter = citesPreprocess() },
   { name = "layout-cites", filter = cites() },
-  { name = "layout-panels", filter = layoutPanels() },
-  { name = "layout-extendedFigures", filter = extendedFigures() },
+  { name = "layout-panels", filter = layoutPanels(), indices =
+    { "has_layout_attributes", "has_tbl_parent" } },
+  { name = "layout-extendedFigures", filter = extendedFigures(), indices = 
+    { "has_discoverable_figures", "has_figure_divs"} },
   { name = "layout-metaInject", filter = layoutMetaInject() }
 }
 
