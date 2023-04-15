@@ -33,7 +33,7 @@ function compute_indices()
     end,
 
     Cite = function(cite)
-      index.has_cites = true
+      indices.has_cites = true
     end,
 
     RawBlock = function(el)
@@ -161,6 +161,9 @@ function compute_indices()
       if node.src:find("%{%{%<") then
         indices.has_shortcodes = true
       end
+    end,
+    Shortcode = function(node)
+      indices.has_shortcodes = true
     end,
     Link = function(node)
       if node.target:find("%{%{%<") then

@@ -198,6 +198,10 @@ local quartoPre = {
 
   -- TODO we need to recompute indices on the results of the user filters
   { name = "pre-quartoBeforeExtendedUserFilters", filters = make_wrapped_user_filters("beforeQuartoFilters") },
+
+  -- do this early so we can compute maxHeading while in the big traversal
+  { name = "crossref-initCrossrefOptions", filter = initCrossrefOptions() },
+
   { name = "index", filter = compute_indices() },
 
   -- https://github.com/quarto-dev/quarto-cli/issues/5031
@@ -350,7 +354,6 @@ local quartoLayout = {
 }
 
 local quartoCrossref = {
-  { name = "crossref-initCrossrefOptions", filter = initCrossrefOptions() },
 
   { name = "crossref-preprocess", filter = crossrefPreprocess(),
     indices = { 
