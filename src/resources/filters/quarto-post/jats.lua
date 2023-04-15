@@ -65,6 +65,8 @@ function jats()
 end
 
 function jatsSubarticle() 
+
+
   if _quarto.format.isJatsOutput() then
 
     local kNoteBookCode = "notebook-code"
@@ -144,9 +146,4 @@ function jatsSubarticle()
     end,
     }
   end
-end
-
-
-
-local function renderCellOutput(el)
 end
