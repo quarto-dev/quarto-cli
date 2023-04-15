@@ -5,7 +5,7 @@
 
 
 function jats()
-  if _quarto.format.isJatsOutput() then
+  if not _quarto.format.isJatsOutput() then
     return {}
   else 
     return {
