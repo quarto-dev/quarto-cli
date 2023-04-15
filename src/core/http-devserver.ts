@@ -194,15 +194,6 @@ function devServerClientScript(
     );
   }
 
-  if (iframeURL) {
-    devserver.push(
-      renderEjs(devserverHtmlResourcePath("iframe"), {
-        origin: devserverOrigin(iframeURL),
-        search: iframeURL.search,
-      }),
-    );
-  }
-
   // generate preview handler
   const options = {
     origin: iframeURL ? devserverOrigin(iframeURL) : null,
