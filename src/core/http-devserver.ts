@@ -203,6 +203,15 @@ function devServerClientScript(
     );
   }
 
+  // generate preview handler
+  const options = {
+    origin: iframeURL ? devserverOrigin(iframeURL) : null,
+    search: iframeURL ? iframeURL.search : null,
+    inputFile: inputFile || null,
+    isPresentation: !!isPresentation,
+  };
+  devserver.push(renderEjs(devserverHtmlResourcePath("preview"), options));
+
   return devserver.join("\n");
 }
 

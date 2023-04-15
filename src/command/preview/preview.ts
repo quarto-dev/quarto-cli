@@ -874,12 +874,12 @@ async function textPreviewHtml(file: string, req: Request) {
 // satisfy using internal resources
 const kStaticResources = [
   {
-    name: "preview.js",
+    name: "quarto-preview.js",
     contentType: "text/javascript",
     isActive: () => true,
   },
   {
-    name: "preview.css",
+    name: "quarto-preview.css",
     contentType: "text/css",
     isActive: () => true,
   },
