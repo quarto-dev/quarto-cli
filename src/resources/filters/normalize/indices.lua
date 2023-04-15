@@ -32,6 +32,10 @@ function compute_indices()
       end
     end,
 
+    Cite = function(cite)
+      index.has_cites = true
+    end,
+
     RawBlock = function(el)
       if el.format == "html" then
         local i, j = string.find(el.text, table_pattern)

@@ -340,7 +340,7 @@ local quartoFinalize = {
 }
 
 local quartoLayout = {
-  { name = "layout-columnsPreprocess", filter = columnsPreprocess(), },
+  { name = "layout-columnsPreprocess", filter = columnsPreprocess() },
   { name = "layout-columns", filter = columns() },
   { name = "layout-citesPreprocess", filter = citesPreprocess() },
   { name = "layout-cites", filter = cites() },
@@ -374,7 +374,10 @@ local quartoCrossref = {
     listings(),
     crossrefTheorems(),
   })},
-  { name = "crossref-resolveRefs", filter = resolveRefs() },
+
+  { name = "crossref-resolveRefs", filter = resolveRefs(),
+    indices = { "has_cites" } },
+    
   { name = "crossref-crossrefMetaInject", filter = crossrefMetaInject() },
   { name = "crossref-writeIndex", filter = writeIndex() },
 }

@@ -2,7 +2,11 @@
 -- Copyright (C) 2021-2022 Posit Software, PBC
   
 
-function citesPreprocess() 
+function citesPreprocess()
+  if not _quarto.format.isLatexOutput() and marginCitations() then
+    return { }
+  end
+
   return {
     
     Note = function(note) 
@@ -71,7 +75,11 @@ function citesPreprocess()
   }
 end
 
-function cites() 
+function cites()
+  if not _quarto.format.isLatexOutput() and marginCitations() then
+    return { }
+  end
+
   return {
     -- go through inlines and resolve any unresolved citations
     Inlines = walkUnresolvedCitations(function(citation, appendInline)
