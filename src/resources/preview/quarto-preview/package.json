@@ -1,0 +1,34 @@
+{
+  "name": "quarto-preview",
+  "type": "module",
+  "version": "0.0.1",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/quarto-preview.js",
+  "exports": {
+    ".": {
+      "require": "./dist/quarto-preview.js"
+    }
+  },
+  "private": true,
+  "license": "gpl-2.0",
+  "scripts": {
+    "build": "tsc --noEmit && vite build",
+    "dev": "tsc --noEmit && vite build --mode=development"
+  },
+  "dependencies": {
+    "@fluentui/react": "^8.107.5",
+    "ansi_up": "^5.2.1",
+    "micromodal": "^0.4.10",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/micromodal": "^0.3.3",
+    "typescript": "^4.5.2",
+    "vite": "^3.0.0",
+    "vite-plugin-css-injected-by-js": "^3.1.0",
+    "vite-plugin-static-copy": "^0.13.0"
+  }
+}

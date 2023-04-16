@@ -194,7 +194,7 @@ function devServerClientScript(
     inputFile: inputFile || null,
     isPresentation: !!isPresentation,
   };
-  return renderEjs(devserverHtmlResourcePath("preview"), options);
+  return renderEjs(resourcePath(`preview/quarto-preview.html`), options);
 }
 
 function devserverOrigin(iframeURL: URL) {
@@ -203,10 +203,6 @@ function devserverOrigin(iframeURL: URL) {
   } else {
     return iframeURL.origin;
   }
-}
-
-function devserverHtmlResourcePath(resource: string) {
-  return resourcePath(`editor/devserver/devserver-${resource}.html`);
 }
 
 export function viewerIFrameURL(req: Request) {
