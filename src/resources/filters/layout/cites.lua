@@ -76,7 +76,7 @@ function citesPreprocess()
 end
 
 function cites()
-  if not _quarto.format.isLatexOutput() and marginCitations() then
+  if not (_quarto.format.isLatexOutput() and marginCitations()) then
     return { }
   end
 
