@@ -186,7 +186,6 @@ export async function preview(
 
   // create client reloader
   const reloader = httpDevServer(
-    options.port!,
     options.timeout!,
     () => isRendering,
     stopServer,

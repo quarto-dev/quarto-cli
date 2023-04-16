@@ -12,7 +12,6 @@ import { renderEjs } from "./ejs.ts";
 import { httpContentResponse, maybeDisplaySocketError } from "./http.ts";
 import { FileResponse } from "./http-types.ts";
 import { LogEventsHandler } from "./log.ts";
-import { kLocalhost } from "./port-consts.ts";
 import { resourcePath } from "./resources.ts";
 import { isRStudioPreview, isRStudioServer } from "./platform.ts";
 import { kTextHtml } from "./mime.ts";
@@ -34,7 +33,6 @@ export interface HttpDevServer {
 }
 
 export function httpDevServer(
-  port: number,
   timeout: number,
   isRendering: () => boolean,
   stopServer: VoidFunction,
@@ -132,7 +130,6 @@ export function httpDevServer(
       inputFile?: string,
     ): string => {
       const script = devServerClientScript(
-        port,
         inputFile,
         isPresentation,
         getiFrameURL(req),
@@ -145,7 +142,6 @@ export function httpDevServer(
       inputFile?: string,
     ): FileResponse => {
       const script = devServerClientScript(
-        port,
         inputFile,
         isPresentation,
         getiFrameURL(req),
@@ -188,29 +184,17 @@ export function httpDevServer(
 }
 
 function devServerClientScript(
-  port: number,
   inputFile?: string,
   isPresentation?: boolean,
   iframeURL?: URL,
 ): string {
-  // core devserver
-  const devserver = [
-    renderEjs(devserverHtmlResourcePath("core"), {
-      localhost: kLocalhost,
-      port,
-    }),
-  ];
-
-  // generate preview handler
   const options = {
     origin: iframeURL ? devserverOrigin(iframeURL) : null,
     search: iframeURL ? iframeURL.search : null,
     inputFile: inputFile || null,
     isPresentation: !!isPresentation,
   };
-  devserver.push(renderEjs(devserverHtmlResourcePath("preview"), options));
-
-  return devserver.join("\n");
+  return renderEjs(devserverHtmlResourcePath("preview"), options);
 }
 
 function devserverOrigin(iframeURL: URL) {

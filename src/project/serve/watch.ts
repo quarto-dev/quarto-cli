@@ -227,7 +227,6 @@ export function watchProject(
 
   // http devserver
   const devServer = httpDevServer(
-    options.port!,
     options.timeout!,
     () => renderManager.renderQueue().isRunning(),
     stopServer,
