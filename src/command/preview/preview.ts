@@ -647,7 +647,7 @@ function htmlFileRequestHandlerOptions(
   inputFile: string,
   flags: RenderFlags,
   format: Format,
-  reloader: HttpDevServer,
+  devserver: HttpDevServer,
   renderHandler: () => Promise<void>,
 ): HttpFileRequestOptions {
   return {
@@ -655,8 +655,8 @@ function htmlFileRequestHandlerOptions(
     defaultFile,
     printUrls: "404",
     onRequest: async (req: Request) => {
-      if (reloader.handle(req)) {
-        return Promise.resolve(reloader.connect(req));
+      if (devserver.handle(req)) {
+        return Promise.resolve(devserver.request(req));
       } else if (isPreviewTerminateRequest(req)) {
         exitWithCleanup(0);
       } else if (req.url.endsWith("/quarto-render/")) {
@@ -668,7 +668,7 @@ function htmlFileRequestHandlerOptions(
         const outputFile = format.pandoc[kOutputFile];
         const prevReq = previewRenderRequest(
           req,
-          !isBrowserPreviewable(outputFile) || reloader.hasClients(),
+          !isBrowserPreviewable(outputFile) || devserver.hasClients(),
         );
         if (
           prevReq &&
@@ -695,7 +695,7 @@ function htmlFileRequestHandlerOptions(
       if (staticResponse) {
         const resolveBody = () => {
           if (staticResponse.injectClient) {
-            const client = reloader.clientHtml(
+            const client = devserver.clientHtml(
               req,
               inputFile,
             );
@@ -719,7 +719,7 @@ function htmlFileRequestHandlerOptions(
           file = format.formatPreviewFile(file, format);
         }
         const fileContents = await Deno.readFile(file);
-        return reloader.injectClient(req, fileContents, inputFile);
+        return devserver.injectClient(req, fileContents, inputFile);
       } else if (isTextContent(file)) {
         if (!rawPreviewMode && isJatsOutput(format.pandoc)) {
           const xml = await jatsPreviewXml(file, req);
@@ -731,7 +731,7 @@ function htmlFileRequestHandlerOptions(
           !rawPreviewMode && format.identifier[kBaseFormat] === "gfm"
         ) {
           const html = await gfmPreview(file, req);
-          return reloader.injectClient(
+          return devserver.injectClient(
             req,
             new TextEncoder().encode(html),
             inputFile,
@@ -739,7 +739,7 @@ function htmlFileRequestHandlerOptions(
         } else {
           const html = await textPreviewHtml(file, req);
           const fileContents = new TextEncoder().encode(html);
-          return reloader.injectClient(req, fileContents, inputFile);
+          return devserver.injectClient(req, fileContents, inputFile);
         }
       }
     },
@@ -873,16 +873,6 @@ async function textPreviewHtml(file: string, req: Request) {
 // Static reources provide a list of 'special' resources that we should
 // satisfy using internal resources
 const kStaticResources = [
-  {
-    name: "quarto-preview.js",
-    contentType: "text/javascript",
-    isActive: () => true,
-  },
-  {
-    name: "quarto-preview.css",
-    contentType: "text/css",
-    isActive: () => true,
-  },
   {
     name: "quarto-jats-preview.css",
     dir: "jats",

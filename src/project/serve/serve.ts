@@ -703,7 +703,7 @@ function previewControlChannelRequestHandler(
 ): (req: Request) => Promise<Response | undefined> {
   return async (req: Request) => {
     if (watcher.handle(req)) {
-      return await watcher.connect(req);
+      return await watcher.request(req);
     } else if (isPreviewTerminateRequest(req)) {
       exitWithCleanup(0);
     } else if (isPreviewRenderRequest(req)) {

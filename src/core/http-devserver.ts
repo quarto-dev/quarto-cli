@@ -5,11 +5,11 @@
  */
 
 import { LogRecord } from "log/mod.ts";
-
+import { join } from "path/mod.ts";
 import * as ld from "./lodash.ts";
 
 import { renderEjs } from "./ejs.ts";
-import { maybeDisplaySocketError } from "./http.ts";
+import { httpContentResponse, maybeDisplaySocketError } from "./http.ts";
 import { FileResponse } from "./http-types.ts";
 import { LogEventsHandler } from "./log.ts";
 import { kLocalhost } from "./port-consts.ts";
@@ -19,7 +19,7 @@ import { kTextHtml } from "./mime.ts";
 
 export interface HttpDevServer {
   handle: (req: Request) => boolean;
-  connect: (req: Request) => Promise<Response | undefined>;
+  request: (req: Request) => Promise<Response | undefined>;
   injectClient: (
     req: Request,
     file: Uint8Array,
@@ -90,22 +90,41 @@ export function httpDevServer(
     return iframeURL;
   };
 
+  const kQuartoPreviewJs = "quarto-preview.js";
   return {
     handle: (req: Request) => {
-      return req.headers.get("upgrade") === "websocket";
+      // handle requests for quarto-preview.js
+      const url = new URL(req.url);
+      if (url.pathname === `/${kQuartoPreviewJs}`) {
+        return true;
+      }
+
+      // handle websocket upgrade requests
+      if (req.headers.get("upgrade") === "websocket") {
+        return true;
+      }
+
+      return false;
     },
-    connect: (req: Request) => {
-      try {
-        const { socket, response } = Deno.upgradeWebSocket(req);
-        const client: Client = { socket };
-        if (onSocketClose) {
-          socket.onclose = onSocketClose;
+    request: async (req: Request) => {
+      const url = new URL(req.url);
+      if (url.pathname === `/${kQuartoPreviewJs}`) {
+        const path = resourcePath(join("preview", kQuartoPreviewJs));
+        const contents = await Deno.readFile(path);
+        return httpContentResponse(contents, "text/javascript");
+      } else {
+        try {
+          const { socket, response } = Deno.upgradeWebSocket(req);
+          const client: Client = { socket };
+          if (onSocketClose) {
+            socket.onclose = onSocketClose;
+          }
+          clients.push(client);
+          return Promise.resolve(response);
+        } catch (e) {
+          maybeDisplaySocketError(e);
+          return Promise.resolve(undefined);
         }
-        clients.push(client);
-        return Promise.resolve(response);
-      } catch (e) {
-        maybeDisplaySocketError(e);
-        return Promise.resolve(undefined);
       }
     },
     clientHtml: (
@@ -181,18 +200,6 @@ function devServerClientScript(
       port,
     }),
   ];
-  if (isPresentation) {
-    devserver.push(
-      renderEjs(devserverHtmlResourcePath("revealjs"), {}),
-    );
-  } else {
-    // viewer devserver
-    devserver.push(
-      renderEjs(devserverHtmlResourcePath("viewer"), {
-        inputFile: inputFile || "",
-      }),
-    );
-  }
 
   // generate preview handler
   const options = {
