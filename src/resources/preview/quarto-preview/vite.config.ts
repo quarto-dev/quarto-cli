@@ -39,7 +39,7 @@ export default defineConfig(env => {
           assetFileNames: "quarto-preview.[ext]",
         },
       },
-      sourcemap: dev ? 'inline' : false
+      sourcemap: false
     }
   };
  
