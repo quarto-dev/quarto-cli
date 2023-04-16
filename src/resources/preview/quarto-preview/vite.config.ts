@@ -1,4 +1,3 @@
-import path from 'node:path'
 import { defineConfig, normalizePath } from 'vite'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
 import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js'
@@ -19,8 +18,8 @@ export default defineConfig(env => {
       viteStaticCopy({
         targets: [
           {
-            src: normalizePath(path.resolve(__dirname, './dist/*')),
-            dest: normalizePath(path.resolve(__dirname, '..'))
+            src: normalizePath('./dist/*'),
+            dest: normalizePath('../..')
           }
         ]
       })
