@@ -51,7 +51,7 @@ export function ErrorDialog(props: ErrorDialogProps) {
       <IconButton
         styles={iconButtonStyles}
         iconProps={cancelIcon}
-        ariaLabel="Close popup modal"
+        ariaLabel="Close dialog"
         onClick={props.onClose}
       />
     </div>
