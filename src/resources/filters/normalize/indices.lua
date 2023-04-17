@@ -73,7 +73,7 @@ function compute_indices()
 
       if _quarto.format.isRawLatex(el) and _quarto.format.isLatexOutput() then      
         -- try to find a caption with an id
-        local _, _, label, _ = rawEl.text:match(latex_caption_pattern)
+        local _, _, label, _ = el.text:match(latex_caption_pattern)
         if label ~= nil then
           indices.has_latex_table_captions = true
         end
