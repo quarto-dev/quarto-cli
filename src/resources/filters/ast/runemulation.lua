@@ -36,8 +36,8 @@ local function run_emulated_filter_chain(doc, filters, afterFilterPass, profilin
         profiler.category = ""
       end
     end
-    if v.scriptFile then
-      _quarto.withScriptFile(v.scriptFile, callback)
+    if v.filter.scriptFile then
+      _quarto.withScriptFile(v.filter.scriptFile, callback)
     else
       callback()
     end
