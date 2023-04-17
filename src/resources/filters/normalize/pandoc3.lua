@@ -29,6 +29,7 @@ function parse_pandoc3_figures()
               end
               if fig.identifier ~= "" then
                 if not forwarded_id then
+                  indices.has_figure_divs = true
                   image.identifier = fig.identifier
                   forwarded_id = true
                 end

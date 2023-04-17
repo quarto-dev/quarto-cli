@@ -83,7 +83,7 @@ function compute_indices()
     Div = function(node)
 
       if isFigureDiv(node) then
-        indices.has_figure_div = true
+        indices.has_figure_divs = true
       end
       
       if hasLayoutAttributes(node) then
