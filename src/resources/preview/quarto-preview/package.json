@@ -19,8 +19,8 @@
   },
   "dependencies": {
     "@fluentui/react": "^8.107.5",
+    "@fluentui/react-hooks": "^8.6.20",
     "ansi_up": "^5.2.1",
-    "micromodal": "^0.4.10",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },

@@ -14,9 +14,6 @@
  */
 
 
-.preview-ui {
-  position: fixed;
-  bottom: 0;
-  right: 0;
+.ms-Fabric h2 {
+  border-bottom: none;
 }
-

@@ -13,10 +13,8 @@
  *
  */
 
-import React from "react";
-import { createRoot } from 'react-dom/client';
 
-import Preview from "./Preview";
+import { initializeIcons } from '@fluentui/react/lib/Icons';
 
 import { handleIFrameClicks } from "./iframe";
 import { handleRevealMessages } from "./reveal";
@@ -36,6 +34,9 @@ export interface Options {
 async function init(options: Options) {
   try {
 
+    // intialize fluent icons
+    initializeIcons();
+
     // devserver core
     const closeDevServer = initializeDevserverCore();
 
@@ -50,11 +51,6 @@ async function init(options: Options) {
     } else {
       handleViewerMessages();
     }
-
-    const previewEl = document.createElement("div");
-    document.body.appendChild(previewEl);
-    const root = createRoot(previewEl);
-    root.render(<Preview />);
   } catch (error) {
     console.error(error);
   }

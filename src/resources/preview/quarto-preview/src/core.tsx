@@ -1,9 +1,24 @@
+/*
+ * core.tsx
+ *
+ * Copyright (C) 2022 by Posit Software, PBC
+ *
+ * Unless you have received this program directly from Posit Software pursuant
+ * to the terms of a commercial license agreement with Posit Software, then
+ * this program is licensed to you under the terms of version 3 of the
+ * GNU Affero General Public License. This program is distributed WITHOUT
+ * ANY EXPRESS OR IMPLIED WARRANTY, INCLUDING THOSE OF NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE. Please refer to the
+ * AGPL (http://www.gnu.org/licenses/agpl-3.0.txt) for more details.
+ *
+ */
 
 import React from "react";
 import { createRoot } from 'react-dom/client';
 
 import AnsiUp from 'ansi_up';
-import MicroModal from 'micromodal'; 
+
+import { ErrorDialog } from "./error";
 
 import './core.css'
 
@@ -16,12 +31,6 @@ interface LogEntry {
 }
 
 export function initializeDevserverCore() {
-
-  // create error dialog (initially hidden)
-  const errorDialogEl = document.createElement("div");
-  document.body.appendChild(errorDialogEl);
-  const root = createRoot(errorDialogEl);
-  root.render(<ErrorDialog />);
 
   // forward keydown events so shortcuts can work in vscode, see:
   // https://github.com/microsoft/vscode/issues/65452#issuecomment-586485815
@@ -83,23 +92,32 @@ export function initializeDevserverCore() {
   };
   // append for errors that occur within the error window
   let lastError = 0;
+  let errorHtml = "";
   const kErrorWindow = 2500;
+  const errorEl = document.createElement("div");
+  document.body.appendChild(errorEl);
+  const errorRoot = createRoot(errorEl);
+  const renderErrorDialog = (open: boolean) => {
+    errorRoot.render(
+      <ErrorDialog 
+        open={open} 
+        html={errorHtml}
+        onClose={() => renderErrorDialog(false)}
+      />)
+  };
+
   function showError(msg: string) {
+   
     const ansiUp = new AnsiUp()
     const html = ansiUp.ansi_to_html(msg.trim());
-    const display = document.getElementById("quarto-log-error-display")!;
-    if (display.innerHTML && ((Date.now() - lastError) < kErrorWindow)) {
-      display.innerHTML = display.innerHTML + "<br/>" +  html;
+    if (errorHtml && ((Date.now() - lastError) < kErrorWindow)) {
+      errorHtml = errorHtml + "<br/>" +  html;
     } else {
-      display.innerHTML = html
+      errorHtml = html
     }
-    lastError = Date.now()
+    lastError = Date.now();
+    renderErrorDialog(true);
     
-    MicroModal.show('quarto-log-error-modal', {
-      awaitCloseAnimation: true,
-      onClose: () => { display.innerHTML = ""; }
-    });
-
     // post message to parent indicating we had an error
     if (window.parent.postMessage) {
       window.parent.postMessage({
@@ -172,26 +190,3 @@ export function initializeDevserverCore() {
   }
 }
 
-
-
-function ErrorDialog() {
-  return (
-    <div className="modal__dialog micromodal-slide" id="quarto-log-error-modal" aria-hidden="true">
-      <div className="modal__overlay" tabIndex={2} data-micromodal-close="1">
-        <div className="modal__container" role="dialog" aria-modal="true" aria-labelledby="quarto-log-error-modal-title">
-          <header className="modal__header">
-            <h2 className="modal__title" id="quarto-log-error-modal-title">
-              <i className="bi bi-exclamation-circle"></i>Error
-            </h2>
-            <button className="modal__close" aria-label="Close modal" data-micromodal-close></button>
-          </header>
-          <div className="modal__content" id="quarto-log-error-modal-content">
-            <pre tabIndex={1} id="quarto-log-error-display"></pre>
-          </div>
-          <footer className="modal__footer">
-          </footer>
-        </div>
-      </div>
-    </div>
-  );
-}
