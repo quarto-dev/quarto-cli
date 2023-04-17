@@ -54,7 +54,7 @@ function Writer(doc, opts)
 
       if lang and title then
         return pandoc.RawBlock("markdown", 
-          "```" .. lang .. " title=\"" .. title .. "\"\n" ..
+          "\n```" .. lang .. " title=\"" .. title .. "\"\n" ..
           el.text .. "\n```\n"
         )
       elseif #el.attr.classes == 0 then
