@@ -66,7 +66,6 @@ end
 
 function jatsSubarticle() 
 
-
   if _quarto.format.isJatsOutput() then
 
     local kNoteBookCode = "notebook-code"
@@ -105,7 +104,6 @@ function jatsSubarticle()
       return renderedCell
     end
 
-
     return {
       Meta = jatsMeta,
 
@@ -115,7 +113,6 @@ function jatsSubarticle()
 
       Div = function(div)
         
-
         -- TODO: Code cell with #fig-asdas label gets turned into a figure div, need to stop that
         -- TODO: Add content types
 
@@ -133,7 +130,7 @@ function jatsSubarticle()
               return renderCell(div, kNoteBookContent)
             end
           end
-        else if isCodeCellOutput(div) then
+        elseif isCodeCellOutput(div) then
           return renderCellOutput(div, kNoteBookOutput)
         else
           -- otherwise, if this is a div, we can unroll its contents
@@ -141,9 +138,10 @@ function jatsSubarticle()
             return isCodeCellOutput(el) or isCell(el)
           end)
         end
-
       end
-    end,
     }
+
+
+
   end
 end
