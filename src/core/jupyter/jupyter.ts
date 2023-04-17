@@ -155,7 +155,6 @@ import { mergeConfigs } from "../config.ts";
 import { encode as encodeBase64 } from "encoding/base64.ts";
 import { isIpynbOutput, isJatsOutput } from "../../config/format.ts";
 import { bookFixups, fixupJupyterNotebook } from "./jupyter-fixups.ts";
-import { JupyterMarkdownOptions } from "./jupyter-embed.ts";
 
 export const kQuartoMimeType = "quarto_mimetype";
 export const kQuartoOutputOrder = "quarto_order";
