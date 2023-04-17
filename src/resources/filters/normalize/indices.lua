@@ -54,7 +54,7 @@ function compute_indices()
 
       if _quarto.format.isRawLatex(el) then
         if (el.text:match(_quarto.patterns.latexLongtablePattern) and
-            not el.text:match(latexCaptionPattern)) then
+            not el.text:match(_quarto.patterns.latexCaptionPattern)) then
             indices.has_longtable_no_caption_fixup = true
         end
       end

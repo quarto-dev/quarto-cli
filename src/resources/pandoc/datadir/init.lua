@@ -1626,6 +1626,7 @@ local latexTabularPatternWithPosAndAlign = "(\\begin{tabular}%[[^%]]+%]{[^\n]*})
 local latexTabularPatternWithPos = "(\\begin{tabular}%[[^%]]+%])(.*)(\\end{tabular})"
 local latexTabularPatternWithAlign = "(\\begin{tabular}{[^\n]*})(.*)(\\end{tabular})"
 local latexTabularPattern = "(\\begin{tabular})(.*)(\\end{tabular})"
+local latexCaptionPattern =  "(\\caption{)(.-)(}[^\n]*\n)"
 
 local latexTablePatterns = pandoc.List({
   latexTableWithOptionsPattern,
@@ -1781,7 +1782,8 @@ _quarto = {
       latexTabularPattern = latexTabularPattern,
       latexTablePattern = latexTablePattern,
       latexLongtablePattern = latexLongtablePattern,
-      latexTablePatterns = latexTablePatterns
+      latexTablePatterns = latexTablePatterns,
+      latexCaptionPattern = latexCaptionPattern
    },
    utils = utils,
    withScriptFile = function(file, callback)
