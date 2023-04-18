@@ -138,7 +138,7 @@ export function watchProject(
             // render
             const services = renderServices();
             try {
-              const result = await renderManager.renderQueue().enqueue(() => {
+              const result = await renderManager.submitRender(() => {
                 if (inputs.length > 1) {
                   return renderProject(
                     project!,
@@ -162,9 +162,7 @@ export function watchProject(
               });
 
               if (result.error) {
-                if (result.error.message) {
-                  logError(result.error);
-                }
+                renderManager.onRenderError(result.error);
                 return undefined;
               } else {
                 // record rendered hash
@@ -228,7 +226,7 @@ export function watchProject(
   // http devserver
   const devServer = httpDevServer(
     options.timeout!,
-    () => renderManager.renderQueue().isRunning(),
+    () => renderManager.isRendering(),
     stopServer,
   );
 
@@ -241,7 +239,7 @@ export function watchProject(
       // fully render project if we aren't aleady rendering on reload (e.g. for pdf)
       if (!changes.output && !renderingOnReload) {
         await refreshProjectConfig();
-        const result = await renderManager.renderQueue().enqueue(() =>
+        const result = await renderManager.submitRender(() =>
           renderProject(
             project,
             {
@@ -255,7 +253,7 @@ export function watchProject(
           )
         );
         if (result.error) {
-          logError(result.error);
+          renderManager.onRenderError(result.error);
         } else {
           renderManager.onRenderResult(
             result,

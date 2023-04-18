@@ -61,21 +61,35 @@ export function httpDevServer(
     }, timeout * 1000);
   }
 
-  // stream log events to clients
-  LogEventsHandler.onLog(async (logRecord: LogRecord, msg: string) => {
+  const broadcast = (msg: string) => {
     for (let i = clients.length - 1; i >= 0; i--) {
       const socket = clients[i].socket;
       try {
-        await socket.send(
-          "log:" + JSON.stringify({
-            ...logRecord,
-            msgFormatted: msg,
-          }),
-        );
+        socket.send(msg);
       } catch (_e) {
         // we don't want to recurse so we ignore errors here
       }
     }
+  };
+
+  // stream render events to clients
+  HttpDevServerRenderMonitor.monitor({
+    onRenderStart: (lastRenderTime?: number) => {
+      broadcast(`render:start:${lastRenderTime || 0}`);
+    },
+    onRenderStop: () => {
+      broadcast("render:stop");
+    },
+  });
+
+  // stream log events to clients
+  LogEventsHandler.onLog(async (logRecord: LogRecord, msg: string) => {
+    broadcast(
+      "log:" + JSON.stringify({
+        ...logRecord,
+        msgFormatted: msg,
+      }),
+    );
   });
 
   let injectClientInitialized = false;
@@ -181,6 +195,37 @@ export function httpDevServer(
 
     hasClients,
   };
+}
+
+export interface RenderMonitor {
+  onRenderStart: (lastRenderTime?: number) => void;
+  onRenderStop: () => void;
+}
+
+export class HttpDevServerRenderMonitor {
+  public static onRenderStart() {
+    this.renderStart_ = Date.now();
+    this.handlers_.forEach((handler) =>
+      handler.onRenderStart(this.lastRenderTime_)
+    );
+  }
+
+  public static onRenderStop() {
+    if (this.renderStart_) {
+      this.lastRenderTime_ = Date.now() - this.renderStart_;
+      this.renderStart_ = undefined;
+    }
+    this.handlers_.forEach((handler) => handler.onRenderStop());
+  }
+
+  public static monitor(handler: RenderMonitor) {
+    this.handlers_.push(handler);
+  }
+
+  private static handlers_ = new Array<RenderMonitor>();
+
+  private static renderStart_: number | undefined;
+  private static lastRenderTime_: number | undefined;
 }
 
 function devServerClientScript(

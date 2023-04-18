@@ -27,7 +27,11 @@ import {
   serveRedirect,
 } from "../../core/http.ts";
 import { HttpFileRequestOptions } from "../../core/http-types.ts";
-import { HttpDevServer, httpDevServer } from "../../core/http-devserver.ts";
+import {
+  HttpDevServer,
+  httpDevServer,
+  HttpDevServerRenderMonitor,
+} from "../../core/http-devserver.ts";
 import {
   isHtmlContent,
   isPdfContent,
@@ -164,9 +168,11 @@ export async function preview(
   const render = async () => {
     const services = renderServices();
     try {
+      HttpDevServerRenderMonitor.onRenderStart();
       isRendering = true;
       return await renderForPreview(file, services, flags, pandocArgs, project);
     } finally {
+      HttpDevServerRenderMonitor.onRenderStop();
       isRendering = false;
       services.cleanup();
     }

@@ -536,7 +536,7 @@ async function internalPreviewServer(
             }
             const services = renderServices();
             try {
-              result = await renderManager.renderQueue().enqueue(() =>
+              result = await renderManager.submitRender(() =>
                 renderProject(
                   watcher.project(),
                   {
@@ -550,7 +550,7 @@ async function internalPreviewServer(
                 )
               );
               if (result.error) {
-                logError(result.error);
+                renderManager.onRenderError(result.error);
                 renderError = result.error;
               } else {
                 renderManager.onRenderResult(
