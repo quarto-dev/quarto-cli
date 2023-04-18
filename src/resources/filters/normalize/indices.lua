@@ -107,10 +107,7 @@ function compute_indices()
 
       if node.attr.classes:find("cell") then
         -- cellcleanup.lua
-        if (#node.classes == 1 and 
-          #node.content == 0) then
-          indices.has_empty_cells = true
-        end
+        indices.has_output_cells = true
 
         -- tbl_colwidths
         local tblColwidths = node.attr.attributes[kTblColwidths]

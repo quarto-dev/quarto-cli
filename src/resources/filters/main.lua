@@ -303,7 +303,7 @@ local quartoPost = {
   -- quarto-post
   { name = "post-cell-cleanup", 
     filter = cell_cleanup(),
-    indices = "has_empty_cell" },
+    indices = { "has_output_cells" } },
   { name = "post-cites", filter = indexCites() },
   { name = "post-foldCode", filter = foldCode() },
   { name = "post-bibliography", filter = bibliography() },
