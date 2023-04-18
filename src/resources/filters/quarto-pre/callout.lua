@@ -52,6 +52,11 @@ _quarto.ast.add_handler({
     })
   end,
 
+  forwarder = {
+    title = 1,
+    content = 2
+  },
+
   -- a function that renders the extendedNode into output
   render = function(node)
     if _quarto.format.isHtmlOutput() and hasBootstrap() then

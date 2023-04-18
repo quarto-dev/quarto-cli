@@ -20,9 +20,17 @@ function run_emulated_filter(doc, filter)
   if doc == nil then
     return nil
   end
+  local state = (preState or postState).extendedAstHandlers
+  local needs_custom = false
   local sz = 0
   for k, v in pairs(filter) do
     sz = sz + 1
+    if (k == "Custom" or 
+        k == "CustomInline" or 
+        k == "CustomBlock" or
+        state[k] ~= nil) then
+      needs_custom = true
+    end
   end
 
   -- performance: if filter is empty, do nothing
@@ -55,15 +63,15 @@ function run_emulated_filter(doc, filter)
 
   ::regular::
 
-  local custom = resolve_custom_node(doc)
-
-  if custom == nil and filter._is_wrapped then
+  local is_custom = is_custom_node(doc)
+  if not needs_custom or (not is_custom and filter._is_wrapped) then
     local result, recurse = doc:walk(filter)
     if in_filter then
       profiler.category = ""
     end
     return result, recurse
   end
+  -- assert: needs_custom and (is_custom or not filter._is_wrapped)
 
   local wrapped_filter = {
     _is_wrapped = true
@@ -71,10 +79,6 @@ function run_emulated_filter(doc, filter)
 
   for k, v in pairs(filter) do
     wrapped_filter[k] = v
-  end
-
-  local function process_custom_inner(raw)
-    _quarto.ast.inner_walk(raw, wrapped_filter)
   end
 
   local function process_custom_preamble(custom_data, t, kind, custom_node)
@@ -92,58 +96,9 @@ function run_emulated_filter(doc, filter)
     end
   end
 
-  local function process_custom(custom_data, t, kind, custom_node)
-    local result, recurse = process_custom_preamble(custom_data, t, kind, custom_node)
-    if filter.traverse ~= "topdown" or recurse ~= false then
-      if tisarray(result) then
-        ---@type table<number, table|pandoc.Node>
-        local array_result = result ---@diagnostic disable-line
-        local new_result = {}
-        for i, v in ipairs(array_result) do
-          if type(v) == "table" then
-            new_result[i] = quarto[t](v) --- create new custom object of the same kind as passed and recurse.
-          else
-            new_result[i] = v
-          end
-          process_custom_inner(new_result[i])
-        end
-        return new_result, recurse
-        
-      elseif type(result) == "table" then
-        local new_result = quarto[t](result)
-        process_custom_inner(new_result or custom_node)
-        return new_result, recurse
-      elseif result == nil then
-        process_custom_inner(custom_node)
-        return nil, recurse
-      else
-        -- something non-custom was returned, we just send it along.
-        return result, recurse
-      end
-    else
-      -- non-recursing traversal
-      if tisarray(result) then
-        local new_result = {}
-        for i, v in ipairs(result) do
-          if type(v) == "table" then
-            new_result[i] = quarto[t](v) --- create new custom object of the same kind as passed.
-          else
-            new_result[i] = v
-          end
-        end
-        return new_result, recurse
-      elseif type(result) == "table" then
-        local new_result = quarto[t](result)
-        return new_result, recurse
-      else
-        return result, recurse
-      end
-    end
-  end
-
-  if custom then
-    local custom_data, t, kind = _quarto.ast.resolve_custom_data(custom)
-    local result, recurse = process_custom(custom_data, t, kind, custom)
+  if is_custom then
+    local custom_data, t, kind = _quarto.ast.resolve_custom_data(doc)
+    local result, recurse = process_custom_preamble(custom_data, t, kind, doc)
     if in_filter then
       profiler.category = ""
     end
@@ -153,44 +108,34 @@ function run_emulated_filter(doc, filter)
     return result, recurse
   end
 
-  function wrapped_filter.Plain(node)
-    local custom = resolve_custom_node(node)
-
-    if custom then
-      local custom_data, t, kind = _quarto.ast.resolve_custom_data(custom)
-      -- only follow through if node matches the expected kind
-      if kind == "Block" then
-        return process_custom(custom_data, t, kind, custom)
-      else
-        return nil
-      end
-    else
-      if filter.Plain ~= nil then
-        return filter.Plain(node)
-      else
-        return nil
-      end
+  function wrapped_filter.Div(node)
+    if is_custom_node(node) then
+      local custom_data, t, kind = _quarto.ast.resolve_custom_data(node)
+      -- here, if the node is actually an inline,
+      -- it's ok, because Pandoc will wrap it in a Plain
+      return process_custom_preamble(custom_data, t, kind, custom)
     end
+    if filter.Div ~= nil then
+      return filter.Div(node)
+    end
+    return nil
   end
 
-  function wrapped_filter.RawInline(node)
-    local custom = resolve_custom_node(node)
-
-    if custom then
-      local custom_data, t, kind = _quarto.ast.resolve_custom_data(custom)
+  function wrapped_filter.Span(node)
+    if is_custom_node(node) then
+      local custom_data, t, kind = _quarto.ast.resolve_custom_data(node)
       -- only follow through if node matches the expected kind
       if kind == "Inline" then
-        return process_custom(custom_data, t, kind, custom)
-      else
-        return nil
+        return process_custom_preamble(custom_data, t, kind, custom)
       end
-    else
-      if filter.RawInline ~= nil then
-        return filter.RawInline(node)
-      else
-        return nil
-      end
+      error("Custom node of type " .. t .. " is not an inline, but found in an inline context")
+      crash_with_stack_trace()
+      return nil
     end
+    if filter.Span ~= nil then
+      return filter.Span(node)
+    end
+    return nil
   end
 
   return doc:walk(wrapped_filter)
@@ -214,7 +159,7 @@ function create_emulated_node(t, tbl, context, forwarder)
   result.attributes.__quarto_custom_id = id
   tbl.t = t -- set t always to custom ast type
   custom_node_data[id] = _quarto.ast.set_proxy(result, tbl, forwarder)
-  return result
+  return result, tbl
 end
 
 _quarto.ast = {
@@ -306,6 +251,10 @@ _quarto.ast = {
     local state = (preState or postState).extendedAstHandlers
     if type(handler.constructor) == "nil" then
       print("Internal Error: extended ast handler must have a constructor")
+      quarto.utils.dump(handler)
+      crash_with_stack_trace()
+    elseif type(handler.forwarder) == "nil" then
+      print("Internal Error: extended ast handler must have a forwarder")
       quarto.utils.dump(handler)
       crash_with_stack_trace()
     elseif type(handler.class_name) == "nil" then
