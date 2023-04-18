@@ -13,7 +13,7 @@
  *
  */
 
-import React from "react";
+import React, { useMemo } from "react";
 
 import { 
   FontWeights, 
@@ -26,10 +26,13 @@ import {
 } from "@fluentui/react";
 import { useId } from "@fluentui/react-hooks";
 
+import { ANSIOutput, ANSIOutputLine } from "./ansi/output";
+import { ANSIOutputContainer } from "./ansi/output-container";
+
 
 export interface ErrorDialogProps {
   open: boolean;
-  html: string;
+  message: string;
   onClose: VoidFunction;
 }
 
@@ -37,6 +40,15 @@ export function ErrorDialog(props: ErrorDialogProps) {
   
   const titleId = useId('title');
 
+  const outputLines = useMemo<ANSIOutputLine[]>(() => {
+    if (props.message.length > 0) {
+      return ANSIOutput.processOutput(props.message);
+    } else {
+      return [];
+    }
+  }, [props.message]);
+ 
+  
   return (<Modal
     titleAriaId={titleId}
     isOpen={props.open}
@@ -56,8 +68,7 @@ export function ErrorDialog(props: ErrorDialogProps) {
       />
     </div>
     <div className={contentStyles.body}>
-      <pre dangerouslySetInnerHTML={{ __html: props.html }}>
-      </pre>
+      <ANSIOutputContainer outputLines={outputLines} />
     </div>
 
   </Modal>);

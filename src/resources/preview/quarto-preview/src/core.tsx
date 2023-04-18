@@ -16,11 +16,7 @@
 import React from "react";
 import { createRoot } from 'react-dom/client';
 
-import AnsiUp from 'ansi_up';
-
 import { ErrorDialog } from "./error";
-
-import './core.css'
 
 interface LogEntry {
   readonly msg: string;
@@ -92,7 +88,7 @@ export function initializeDevserverCore() {
   };
   // append for errors that occur within the error window
   let lastError = 0;
-  let errorHtml = "";
+  let errorMsg = "";
   const kErrorWindow = 2500;
   const errorEl = document.createElement("div");
   document.body.appendChild(errorEl);
@@ -101,19 +97,17 @@ export function initializeDevserverCore() {
     errorRoot.render(
       <ErrorDialog 
         open={open} 
-        html={errorHtml}
+        message={errorMsg}
         onClose={() => renderErrorDialog(false)}
       />)
   };
 
   function showError(msg: string) {
    
-    const ansiUp = new AnsiUp()
-    const html = ansiUp.ansi_to_html(msg.trim());
-    if (errorHtml && ((Date.now() - lastError) < kErrorWindow)) {
-      errorHtml = errorHtml + "<br/>" +  html;
+    if (errorMsg && ((Date.now() - lastError) < kErrorWindow)) {
+      errorMsg = errorMsg + "\n" +  msg;
     } else {
-      errorHtml = html
+      errorMsg = msg
     }
     lastError = Date.now();
     renderErrorDialog(true);
