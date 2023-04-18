@@ -9,7 +9,7 @@ local custom_node_data = pandoc.List({})
 local n_custom_nodes = 0
 local profiler = require('profiler')
 
-function resolve_custom_node(node)
+function is_custom_node(node)
   if node.attributes.__quarto_custom == "true" then
     return node
   end
@@ -196,7 +196,7 @@ function run_emulated_filter(doc, filter)
   return doc:walk(wrapped_filter)
 end
 
-function create_emulated_node(t, tbl, context)
+function create_emulated_node(t, tbl, context, forwarder)
   local result
   if context == "Block" then
     result = pandoc.Div({})
@@ -210,9 +210,10 @@ function create_emulated_node(t, tbl, context)
   result.attributes.__quarto_custom = "true"
   result.attributes.__quarto_custom_type = t
   result.attributes.__quarto_custom_context = context
-  result.attributes.__quarto_custom_id = tostring(n_custom_nodes)
-  custom_node_data[n_custom_nodes] = tbl
+  local id = tostring(n_custom_nodes)
+  result.attributes.__quarto_custom_id = id
   tbl.t = t -- set t always to custom ast type
+  custom_node_data[id] = _quarto.ast.set_proxy(result, tbl, forwarder)
   return result
 end
 
@@ -225,29 +226,62 @@ _quarto.ast = {
     n_custom_nodes = #tbl
   end,
 
-  build_proxy = function(div_or_span, custom_data, forwarder)
-    local proxy = {}
-    setmetatable(proxy, {
+  set_proxy = function(div_or_span, custom_data, forwarder)
+    local function grow(index)
+      local n = #div_or_span.content
+      local ctor = pandoc[pandoc.utils.type(div_or_span)]
+      for _ = n + 1, index do
+        div_or_span.content:insert(ctor({}))
+      end
+    end
+    rawset(customdata, "__quarto_custom_node", div_or_span)
+
+    setmetatable(custom_data, {
       __index = function(table, key)
-        if forwarder[key] then
-          local content_container = div.content[forwarder[key]]
-          local content = content_container.content
-          if #content == 1 then
-            return content[1]
-          else
-            return content
-          end
+        local index = forwarder[key]
+        if index == nil then
+          return rawget(table, key)
+        end
+        local node = rawget(table, "__quarto_custom_node")
+
+        -- do we need to add more content containers?
+        local content_container = node.content[index]
+        if content_container == nil then
+          grow(index)
+          content_container = node.content[index]
+        end
+        
+        local content = content_container.content
+        if #content == 1 then
+          return content[1]
+        else
+          return content
         end
       end,
       __newindex = function(table, key, value)
-        if forwarder[key] then
-          local content_container = div.content[forwarder[key]]
-          -- FINISH THIS
-          div.content[forwarder[key]] = value
+        local index = forwarder[key]
+        if index == nil then
+          rawset(table, key, value)
+          return
         end
-      end
-    }
-  )
+        local node = rawget(table, "__quarto_custom_node")
+
+        -- do we need to add more content containers?
+        local content_container = node.content[index]
+        if content_container == nil then
+          grow(index)
+          content_container = node.content[index]
+        end
+
+        local pt = pandoc.utils.type(value)
+        if pt == "Inlines" or pt == "Blocks" or pt == "table" then
+          content_container.content = value
+        else
+          content_container.content = {value}
+        end
+      end,
+    })
+    return custom_data
   end,
 
   resolve_custom_data = function(div_or_span)
@@ -256,17 +290,15 @@ _quarto.ast = {
     end
 
     local t = div_or_span.attributes.__quarto_custom_type
-    local n = tonumber(div_or_span.attributes.__quarto_custom_id)
+    local n = div_or_span.attributes.__quarto_custom_id
     local kind = div_or_span.attributes.__quarto_custom_context
     local handler = _quarto.ast.resolve_handler(t)
     if handler == nil then
       error("Internal Error: handler not found for custom node " .. t)
       crash_with_stack_trace()
     end
-    local custom_data_raw = _quarto.ast.custom_node_data[n]
+    local custom_data = _quarto.ast.custom_node_data[n]
 
-    local custom_data_wrapper = {}
-    setmetatable(custom_data_wrapper)
     return custom_data, t, kind
   end,
   
@@ -294,7 +326,7 @@ _quarto.ast = {
 
     quarto[handler.ast_name] = function(...)
       local tbl = handler.constructor(...)
-      return create_emulated_node(handler.ast_name, tbl, handler.kind), tbl
+      return create_emulated_node(handler.ast_name, tbl, handler.kind, handler.forwarder), tbl
     end
 
     -- we also register them under the ast_name so that we can render it back
