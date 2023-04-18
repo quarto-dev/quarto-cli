@@ -39,6 +39,6 @@
 <li class="px-0"><hr class="sidebar-divider hi <%- borderColor %>"></li>
 <% } else if (item.text) { %>
   <li class="sidebar-item">
-    <% partial('navicon.ejs', { item }) %> <span class="menu-text"><%- item.text %></span>
+    <% partial('navicon.ejs', { item }) %> <span class="menu-text"><%= item.text %></span>
   </li>
 <% } %>
