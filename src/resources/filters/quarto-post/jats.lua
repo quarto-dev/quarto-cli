@@ -1,7 +1,8 @@
 -- jats.lua
 -- Copyright (C) 2021-2022 Posit Software, PBC
-
-
+local function isCell(el) 
+  return el.classes:includes("cell") 
+end
 
 local function jatsMeta(meta) 
   -- inspect the meta and set flags that will aide the rendering of
@@ -59,7 +60,9 @@ function jats()
       Meta = jatsMeta,
   
       -- clear out divs
-      Div = unrollDiv
+      Div = function(div) 
+        return unrollDiv(div)
+      end
     }  
   else 
     return {}
@@ -74,9 +77,6 @@ function jatsSubarticle()
     local kNoteBookContent = "notebook-content"
     local kNoteBookOutput = "notebook-output"
 
-    local isCell = function(el) 
-      return el.classes:includes("cell") 
-    end
 
     local isCodeCell = function(el) 
       return not el.classes:includes('markdown')

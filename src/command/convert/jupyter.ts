@@ -55,6 +55,7 @@ export async function jupyterNotebookToMarkdown(
       const cell = notebook.cells[i];
 
       const cellWithOptions = jupyterCellWithOptions(
+        i,
         kernelspec.language,
         cell,
       );

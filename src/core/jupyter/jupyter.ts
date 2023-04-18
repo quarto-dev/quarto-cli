@@ -684,6 +684,7 @@ export async function jupyterToMarkdown(
 
     // convert cell yaml to cell metadata
     const cell = jupyterCellWithOptions(
+      i,
       nb.metadata.kernelspec.language.toLowerCase(),
       nb.cells[i],
     );
@@ -784,6 +785,7 @@ export async function jupyterToMarkdown(
 }
 
 export function jupyterCellWithOptions(
+  index: number,
   language: string,
   cell: JupyterCell,
 ): JupyterCellWithOptions {
@@ -826,19 +828,22 @@ export function jupyterCellWithOptions(
 
   // Ensure that the cell has an id - the id will be
   // unique within this notebook thanks to the index
-  let id = cell.id;
-  if (
-    id === undefined && options && options[kCellLabel] &&
-    typeof (options[kCellLabel]) === "string"
-  ) {
-    id = `cell-${options[kCellLabel]}`;
-  } else {
-    id = `cell-${shortUuid()}`;
-  }
+  const cellId = (cell: JupyterCell) => {
+    if (
+      options && options[kCellLabel] &&
+      typeof (options[kCellLabel]) === "string"
+    ) {
+      return `cell-${options[kCellLabel]}`;
+    } else if (cell.id) {
+      return cell.id;
+    } else {
+      return `cell-${index}`;
+    }
+  };
 
   return {
     ...cell,
-    id,
+    id: cellId(cell),
     source,
     optionsSource,
     options,
