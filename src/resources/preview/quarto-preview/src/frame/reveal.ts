@@ -13,7 +13,7 @@
  *
  */
 
-export function handleRevealMessages(closeDevServer: VoidFunction) {
+export function handleRevealMessages(disconnectServer: VoidFunction) {
 
   function onMessage<T = unknown>(message: string, fn: ((data: T) => void)) {
     window.addEventListener("message", function (event) {
@@ -98,7 +98,7 @@ export function handleRevealMessages(closeDevServer: VoidFunction) {
     if ((/print-pdf/gi).test(window.location.search)) {
 
       // close the dev server reload socket
-      closeDevServer();
+      disconnectServer();
 
       // print after a delay (allow layout to occur)
       setTimeout(function () {

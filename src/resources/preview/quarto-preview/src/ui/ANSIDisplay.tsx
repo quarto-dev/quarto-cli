@@ -15,22 +15,22 @@
 
 import * as React from 'react';
 
-import { ANSIColor, ANSIOutputLine, ANSIOutputRun, ANSIStyle } from './output';
+import { ANSIColor, ANSIOutputLine, ANSIOutputRun, ANSIStyle } from '../core/ansi-output';
 
-import './output-container.css';
+import './ANSIDisplay.css';
 
-export interface ANSIOutputContainerProps {
-	readonly outputLines: readonly ANSIOutputLine[];
+export interface ANSIDisplayProps {
+	readonly lines: readonly ANSIOutputLine[];
 }
 
-export const ANSIOutputContainer = ({ outputLines }: ANSIOutputContainerProps) => {
+export const ANSIDisplay = ({ lines }: ANSIDisplayProps) => {
 	return (
-		<div className='ansi-output'>
-			{outputLines.map(outputLine =>
-				<div className='output-line'>
-				{!outputLine.outputRuns.length ?
+		<div className='ansi-display'>
+			{lines.map(line =>
+				<div className='ansi-display-line'>
+				{!line.outputRuns.length ?
 					<br /> :
-					outputLine.outputRuns.map(outputRun =>
+					line.outputRuns.map(outputRun =>
 						<OutputRun key={outputRun.id} outputRun={outputRun} />
 					)
 				}
@@ -78,12 +78,12 @@ const OutputRun = ({ outputRun }: OutputRunProps) => {
 
 					// Slow blink.
 					case ANSIStyle.SlowBlink:
-						cssProperties = { ...cssProperties, ...{ animation: 'ansi-output-run-blink 1s linear infinite' } };
+						cssProperties = { ...cssProperties, ...{ animation: 'ansi-display-run-blink 1s linear infinite' } };
 						break;
 
 					// Rapid blink.
 					case ANSIStyle.RapidBlink:
-						cssProperties = { ...cssProperties, ...{ animation: 'ansi-output-run-blink 0.5s linear infinite' } };
+						cssProperties = { ...cssProperties, ...{ animation: 'ansi-display-run-blink 0.5s linear infinite' } };
 						break;
 
 					// Hidden.

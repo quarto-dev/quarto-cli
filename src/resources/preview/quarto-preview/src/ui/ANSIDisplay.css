@@ -13,7 +13,7 @@
  *
  */
 
- .ansi-output {
+.ansi-display {
 	font-family: monospace;
 	white-space: pre;
 	--ansiBlack: #000000;
@@ -34,7 +34,7 @@
 	--ansiBrightWhite: #a5a5a5;
 }
 
-@keyframes ansi-output-run-blink {
+@keyframes ansi-displaly-run-blink {
 	50% {
 		opacity: 0;
 	}

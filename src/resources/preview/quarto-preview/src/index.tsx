@@ -14,13 +14,15 @@
  */
 
 
-import { initializeFluent } from './fluent';
+import { initializeFluent } from './ui/fluent';
+
+import { connectToServer } from './server/connection';
+import { logHandler } from './server/log';
+import { navigationHandler } from './server/navigation';
 
 import { handleExternalLinks } from "./frame/links";
 import { handleRevealMessages } from "./frame/reveal";
 import { handleViewerMessages } from "./frame/viewer";
-
-import { initializeDevserverCore } from "./core";
 import { handleCommands } from './frame/commands';
 
 export interface Options {
@@ -30,14 +32,17 @@ export interface Options {
   isPresentation: boolean;
 }
 
-async function init(options: Options) {
+function init(options: Options) {
   try {
 
     // intialize fluent 
     initializeFluent();
 
-    // devserver core
-    const closeDevServer = initializeDevserverCore();
+    // server connection
+    const disconnect = connectToServer([
+      logHandler(),
+      navigationHandler()
+    ]);
 
     // handle commands
     handleCommands();
@@ -47,12 +52,13 @@ async function init(options: Options) {
       handleExternalLinks(options.origin, options.search);
     }
 
-    // handle messages
+    // handle messages as approprate for format
     if (options.isPresentation) {
-      handleRevealMessages(closeDevServer)
+      handleRevealMessages(disconnect)
     } else {
       handleViewerMessages();
     }
+
   } catch (error) {
     console.error(error);
   }

@@ -1,5 +1,5 @@
 /*
- * core.tsx
+ * ErrorDialog.tsx
  *
  * Copyright (C) 2022 by Posit Software, PBC
  *
@@ -26,8 +26,26 @@ import {
 } from "@fluentui/react";
 import { useId } from "@fluentui/react-hooks";
 
-import { ANSIOutput, ANSIOutputLine } from "../ansi/output";
-import { ANSIOutputContainer } from "../ansi/output-container";
+import { ANSIOutput, ANSIOutputLine } from "../core/ansi-output";
+
+import { ANSIDisplay } from "./ANSIDisplay";
+import { createRoot } from "react-dom/client";
+
+
+export function createErrorDialog() {
+  const errorEl = document.createElement("div");
+  document.body.appendChild(errorEl);
+  const errorRoot = createRoot(errorEl);
+  const renderErrorDialog = (open: boolean, message: string) => {
+    errorRoot.render(
+      <ErrorDialog 
+        open={open} 
+        message={message}
+        onClose={() => renderErrorDialog(false, message)}
+      />)
+  };
+  return renderErrorDialog;
+}
 
 
 export interface ErrorDialogProps {
@@ -68,7 +86,7 @@ export function ErrorDialog(props: ErrorDialogProps) {
       />
     </div>
     <div className={contentStyles.body}>
-      <ANSIOutputContainer outputLines={outputLines} />
+      <ANSIDisplay lines={outputLines} />
     </div>
 
   </Modal>);
