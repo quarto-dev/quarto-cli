@@ -61,6 +61,8 @@ function jats()
       -- clear out divs
       Div = unrollDiv
     }  
+  else 
+    return {}
   end
 end
 
@@ -141,7 +143,7 @@ function jatsSubarticle()
       end
     }
 
-
-
+  else 
+    return {}
   end
 end

@@ -824,8 +824,21 @@ export function jupyterCellWithOptions(
     ...explicitOptions,
   };
 
+  // Ensure that the cell has an id - the id will be
+  // unique within this notebook thanks to the index
+  let id = cell.id;
+  if (
+    id === undefined && options && options[kCellLabel] &&
+    typeof (options[kCellLabel]) === "string"
+  ) {
+    id = `cell-${options[kCellLabel]}`;
+  } else {
+    id = `cell-${shortUuid()}`;
+  }
+
   return {
     ...cell,
+    id,
     source,
     optionsSource,
     options,
@@ -858,13 +871,12 @@ export function jupyterCellOptionsAsComment(
 }
 
 export function mdFromContentCell(
-  cell: JupyterCell,
+  cell: JupyterCellWithOptions,
   options?: JupyterToMarkdownOptions,
 ) {
   const contentCellEnvelope = createCellEnvelope(["cell", "markdown"], options);
 
-  // process each file attachment (ensure we have a cell id for uniqueness)
-  const cellId = cell.id || shortUuid();
+  // process each file attachment
 
   // if we have attachments then extract them and markup the source
   if (options && cell.attachments && cell.source) {
@@ -876,7 +888,7 @@ export function mdFromContentCell(
         if (extensionForMimeImageType(mimeType, undefined)) {
           // save attachment in the figures dir
           const imageFile = options.assets.figures_dir +
-            `/${cellId}-${index + 1}-${file}`;
+            `/${cell.id}-${index + 1}-${file}`;
           const outputFile = join(options.assets.base_dir, imageFile);
           ensureDirSync(dirname(outputFile));
           const data = attachment[mimeType];
@@ -904,32 +916,31 @@ export function mdFromContentCell(
       }
     });
 
-    return contentCellEnvelope(cellId, mdEnsureTrailingNewline(source));
+    return contentCellEnvelope(cell.id, mdEnsureTrailingNewline(source));
   } else {
-    return contentCellEnvelope(cellId, mdEnsureTrailingNewline(cell.source));
+    return contentCellEnvelope(cell.id, mdEnsureTrailingNewline(cell.source));
   }
 }
 
 export function mdFromRawCell(
-  cell: JupyterCell,
+  cell: JupyterCellWithOptions,
   options?: JupyterToMarkdownOptions,
 ) {
   const rawCellEnvelope = createCellEnvelope(["cell", "raw"], options);
-  const cellId = cell.id || shortUuid();
 
   const mimeType = cell.metadata?.[kCellRawMimeType];
   if (mimeType) {
     switch (mimeType) {
       case kTextHtml:
-        return rawCellEnvelope(cellId, mdHtmlOutput(cell.source));
+        return rawCellEnvelope(cell.id, mdHtmlOutput(cell.source));
       case kTextLatex:
-        return rawCellEnvelope(cellId, mdLatexOutput(cell.source));
+        return rawCellEnvelope(cell.id, mdLatexOutput(cell.source));
       case kRestructuredText:
-        return rawCellEnvelope(cellId, mdFormatOutput("rst", cell.source));
+        return rawCellEnvelope(cell.id, mdFormatOutput("rst", cell.source));
       case kApplicationRtf:
-        return rawCellEnvelope(cellId, mdFormatOutput("rtf", cell.source));
+        return rawCellEnvelope(cell.id, mdFormatOutput("rtf", cell.source));
       case kApplicationJavascript:
-        return rawCellEnvelope(cellId, mdScriptOutput(mimeType, cell.source));
+        return rawCellEnvelope(cell.id, mdScriptOutput(mimeType, cell.source));
     }
   }
 

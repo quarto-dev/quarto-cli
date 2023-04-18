@@ -134,6 +134,7 @@ export interface JupyterCellSlideshow {
 }
 
 export interface JupyterCellWithOptions extends JupyterCell {
+  id: string;
   options: JupyterCellOptions;
   optionsSource: string[];
 }

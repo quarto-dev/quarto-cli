@@ -254,7 +254,7 @@ local quartoPost = {
   end, jats()) },
   { name = "post-render-jats-subarticle", filter = filterIf(function()
     return preState.active_filters.jats_subarticle ~= nil and preState.active_filters.jats_subarticle
-  end, jatsSubarticle()) },  
+  end, jatsSubarticle()) },
   { name = "post-render-asciidoc", filter = renderAsciidoc() },
   { name = "post-renderExtendedNodes", filter = renderExtendedNodes() },
   { name = "post-render-pandoc-3-figures", filter = render_pandoc3_figures() },
