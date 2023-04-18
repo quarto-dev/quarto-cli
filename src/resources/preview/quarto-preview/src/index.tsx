@@ -16,11 +16,12 @@
 
 import { initializeFluent } from './fluent';
 
-import { handleExternalLinks } from "./links";
-import { handleRevealMessages } from "./reveal";
-import { handleViewerMessages } from "./viewer";
+import { handleExternalLinks } from "./frame/links";
+import { handleRevealMessages } from "./frame/reveal";
+import { handleViewerMessages } from "./frame/viewer";
 
 import { initializeDevserverCore } from "./core";
+import { handleCommands } from './frame/commands';
 
 export interface Options {
   origin: string | null,
@@ -37,6 +38,9 @@ async function init(options: Options) {
 
     // devserver core
     const closeDevServer = initializeDevserverCore();
+
+    // handle commands
+    handleCommands();
 
     // handle external link clicks
     if (options.origin && options.search) {

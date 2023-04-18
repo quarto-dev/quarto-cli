@@ -16,7 +16,7 @@
 import React from "react";
 import { createRoot } from 'react-dom/client';
 
-import { ErrorDialog } from "./error";
+import { ErrorDialog } from "./server/error";
 
 interface LogEntry {
   readonly msg: string;
@@ -27,34 +27,6 @@ interface LogEntry {
 }
 
 export function initializeDevserverCore() {
-
-  // forward keydown events so shortcuts can work in vscode, see:
-  // https://github.com/microsoft/vscode/issues/65452#issuecomment-586485815
-  if (window.parent.postMessage) {
-    window.document.addEventListener('keydown', e => {
-      const event = {
-        type: "keydown",
-        data: {
-          altKey: e.altKey,
-          code: e.code,
-          ctrlKey: e.ctrlKey,
-          isComposing: e.isComposing,
-          key: e.key,
-          location: e.location,
-          metaKey: e.metaKey,
-          repeat: e.repeat,
-          shiftKey: e.shiftKey
-        }
-      };
-      window.parent.postMessage(event, '*');
-    });
-  }
-  // listen for execCommand messages
-  window.addEventListener("message", function (event) {
-    if (event.data.type === "devhost-exec-command") {
-      window.document.execCommand(event.data.data);
-    } 
-  }, true);
 
   const logEntries = new Array(1000);
   let logEntriesOffset = 0;

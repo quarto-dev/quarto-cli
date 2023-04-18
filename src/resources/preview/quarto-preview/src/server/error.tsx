@@ -26,8 +26,8 @@ import {
 } from "@fluentui/react";
 import { useId } from "@fluentui/react-hooks";
 
-import { ANSIOutput, ANSIOutputLine } from "./ansi/output";
-import { ANSIOutputContainer } from "./ansi/output-container";
+import { ANSIOutput, ANSIOutputLine } from "../ansi/output";
+import { ANSIOutputContainer } from "../ansi/output-container";
 
 
 export interface ErrorDialogProps {
