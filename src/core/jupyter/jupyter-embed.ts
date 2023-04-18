@@ -321,7 +321,7 @@ export async function notebookMarkdown(
   } else if (nbAddress.indexes) {
     // Filter and sort based upon cell indexes
     const theCells = nbAddress.indexes.map((idx) => {
-      if (idx < 1 || idx >= notebookInfo.outputs.length) {
+      if (idx < 1 || idx > notebookInfo.outputs.length) {
         throw new Error(
           `The cell index ${idx} isn't within the range of cells`,
         );
