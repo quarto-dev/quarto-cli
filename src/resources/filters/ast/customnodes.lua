@@ -10,16 +10,7 @@ local n_custom_nodes = 0
 local profiler = require('profiler')
 
 function resolve_custom_node(node)
-  local t = node.t
-  if t == "Plain" then
-    local c = node.content[1]
-    if c and c.format == "QUARTO_custom" then
-      return c
-    else
-      return false
-    end
-  end
-  if t == "RawInline" and node.format == "QUARTO_custom" then
+  if node.attributes.__quarto_custom == "true" then
     return node
   end
   return false
@@ -74,7 +65,10 @@ function run_emulated_filter(doc, filter)
     return result, recurse
   end
 
-  local wrapped_filter = {}
+  local wrapped_filter = {
+    _is_wrapped = true
+  }
+
   for k, v in pairs(filter) do
     wrapped_filter[k] = v
   end
@@ -154,7 +148,7 @@ function run_emulated_filter(doc, filter)
       profiler.category = ""
     end
     if result == nil then
-      return doc
+      result = doc
     end
     return result, recurse
   end
@@ -199,16 +193,24 @@ function run_emulated_filter(doc, filter)
     end
   end
 
-  wrapped_filter._is_wrapped = true
-
-  local result, recurse = doc:walk(wrapped_filter)
-
-  return result, recurse
+  return doc:walk(wrapped_filter)
 end
 
 function create_emulated_node(t, tbl, context)
+  local result
+  if context == "Block" then
+    result = pandoc.Div({})
+  elseif context == "Inline" then
+    result = pandoc.Span({})
+  else
+    error("Invalid context for custom node: " .. context)
+    crash_with_stack_trace()
+  end
   n_custom_nodes = n_custom_nodes + 1
-  local result = pandoc.RawInline("QUARTO_custom", tostring(t .. " " .. n_custom_nodes .. " " .. context))
+  result.attributes.__quarto_custom = "true"
+  result.attributes.__quarto_custom_type = t
+  result.attributes.__quarto_custom_context = context
+  result.attributes.__quarto_custom_id = tostring(n_custom_nodes)
   custom_node_data[n_custom_nodes] = tbl
   tbl.t = t -- set t always to custom ast type
   return result
@@ -223,38 +225,49 @@ _quarto.ast = {
     n_custom_nodes = #tbl
   end,
 
-  resolve_custom_data = function(raw_or_plain_container)
-    if type(raw_or_plain_container) ~= "userdata" then
-      error("Internal Error: resolve_custom_data called with non-pandoc node")
-      error(type(raw_or_plain_container))
-      crash_with_stack_trace()
-    end
-    local raw
+  build_proxy = function(div_or_span, custom_data, forwarder)
+    local proxy = {}
+    setmetatable(proxy, {
+      __index = function(table, key)
+        if forwarder[key] then
+          local content_container = div.content[forwarder[key]]
+          local content = content_container.content
+          if #content == 1 then
+            return content[1]
+          else
+            return content
+          end
+        end
+      end,
+      __newindex = function(table, key, value)
+        if forwarder[key] then
+          local content_container = div.content[forwarder[key]]
+          -- FINISH THIS
+          div.content[forwarder[key]] = value
+        end
+      end
+    }
+  )
+  end,
 
-    if raw_or_plain_container.t == "RawInline" then
-      raw = raw_or_plain_container
-    elseif (raw_or_plain_container.t == "Plain" or
-            raw_or_plain_container.t == "Para") and #raw_or_plain_container.content == 1 and raw_or_plain_container.content[1].t == "RawInline" then
-      raw = raw_or_plain_container.content[1]
-    else
-      return nil
-    end
-
-    if raw.format ~= "QUARTO_custom" then
+  resolve_custom_data = function(div_or_span)
+    if div_or_span.attributes.__quarto_custom ~= "true" then
       return
     end
 
-    local parts = split(raw.text, " ")
-    local t = parts[1]
-    local n = tonumber(parts[2])
-    local kind = parts[3]
+    local t = div_or_span.attributes.__quarto_custom_type
+    local n = tonumber(div_or_span.attributes.__quarto_custom_id)
+    local kind = div_or_span.attributes.__quarto_custom_context
     local handler = _quarto.ast.resolve_handler(t)
     if handler == nil then
       error("Internal Error: handler not found for custom node " .. t)
       crash_with_stack_trace()
     end
-    local custom_node = _quarto.ast.custom_node_data[n]
-    return custom_node, t, kind
+    local custom_data_raw = _quarto.ast.custom_node_data[n]
+
+    local custom_data_wrapper = {}
+    setmetatable(custom_data_wrapper)
+    return custom_data, t, kind
   end,
   
   add_handler = function(handler)
