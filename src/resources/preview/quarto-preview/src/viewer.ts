@@ -13,7 +13,6 @@
  *
  */
 
-
 declare global {
   interface Window {
     quartoDevhost: {
@@ -21,7 +20,6 @@ declare global {
     }
   }
 }
-
 export function handleViewerMessages() {
 
   if (window.parent.postMessage) {

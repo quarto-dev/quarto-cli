@@ -13,6 +13,7 @@
  *
  */
 
+/* Reset some of our default bootstrap styles for Fluent UI compontents */
 
 .ms-Fabric h2 {
   border-bottom: none;

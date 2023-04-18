@@ -13,28 +13,6 @@
  *
  */
 
-declare const Reveal: RevealStatic;
-
-interface RevealStatic {
-  configure(options: { history: boolean }): void;
-  slide(indexh: number, indexv?: number, f?: number, o?: number): void;
-  prev(): void;
-  next(): void;
-  getCurrentSlide(): Element;
-  getIndices(slide?: Element): SlideIndex;
-  isFirstSlide(): boolean;
-  isLastSlide(): boolean;
-  getSlides(): Element[];
-  on(message: string, fn: VoidFunction): void;
-  triggerKey(key: number): void;
-}
-
-interface SlideIndex {
-  h: number;
-  v: number,
-  f?: number, 
-}
-
 export function handleRevealMessages(closeDevServer: VoidFunction) {
 
   function onMessage<T = unknown>(message: string, fn: ((data: T) => void)) {
@@ -139,4 +117,28 @@ export function handleRevealMessages(closeDevServer: VoidFunction) {
   onMessage("reveal-refresh", function () { window.location.reload(); });
   onMessage("reveal-home", function () { Reveal.slide(0, 0, 0); });
   onMessage("reveal-fullscreen", function () { Reveal.triggerKey(70); });
+}
+
+// types for Reveal
+
+declare const Reveal: RevealStatic;
+
+interface RevealStatic {
+  configure(options: { history: boolean }): void;
+  slide(indexh: number, indexv?: number, f?: number, o?: number): void;
+  prev(): void;
+  next(): void;
+  getCurrentSlide(): Element;
+  getIndices(slide?: Element): SlideIndex;
+  isFirstSlide(): boolean;
+  isLastSlide(): boolean;
+  getSlides(): Element[];
+  on(message: string, fn: VoidFunction): void;
+  triggerKey(key: number): void;
+}
+
+interface SlideIndex {
+  h: number;
+  v: number,
+  f?: number, 
 }

@@ -1,5 +1,5 @@
 /*
- * iframe.ts
+ * links.ts
  *
  * Copyright (C) 2022 by Posit Software, PBC
  *
@@ -14,7 +14,7 @@
  */
 
 
-export function handleIFrameClicks(origin: string, search: string) {
+export function handleExternalLinks(origin: string, search: string) {
 
   // only do this if we are in an iframe
   if (window.self === window.top) {

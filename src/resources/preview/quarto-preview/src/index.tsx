@@ -14,15 +14,13 @@
  */
 
 
-import { initializeIcons } from '@fluentui/react/lib/Icons';
+import { initializeFluent } from './fluent';
 
-import { handleIFrameClicks } from "./iframe";
+import { handleExternalLinks } from "./links";
 import { handleRevealMessages } from "./reveal";
 import { handleViewerMessages } from "./viewer";
 
 import { initializeDevserverCore } from "./core";
-
-import './styles.css'
 
 export interface Options {
   origin: string | null,
@@ -34,15 +32,15 @@ export interface Options {
 async function init(options: Options) {
   try {
 
-    // intialize fluent icons
-    initializeIcons();
+    // intialize fluent 
+    initializeFluent();
 
     // devserver core
     const closeDevServer = initializeDevserverCore();
 
-    // handle iframe clicks
+    // handle external link clicks
     if (options.origin && options.search) {
-      handleIFrameClicks(options.origin, options.search);
+      handleExternalLinks(options.origin, options.search);
     }
 
     // handle messages
