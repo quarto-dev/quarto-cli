@@ -18,6 +18,7 @@ import {
   kSourceNotebookPrefix,
   kTemplate,
   kTheme,
+  kTo,
 } from "../../config/constants.ts";
 import { Format, NotebookPublishOptions } from "../../config/types.ts";
 
@@ -26,15 +27,16 @@ import {
   RenderServices,
 } from "../../command/render/types.ts";
 
-import { basename, dirname, join, relative } from "path/mod.ts";
+import { basename, dirname, isAbsolute, join, relative } from "path/mod.ts";
 import { renderFiles } from "../../command/render/render-files.ts";
-import { ProjectContext } from "../../project/types.ts";
+import { kProjectLibDir, ProjectContext } from "../../project/types.ts";
 import { kNotebookViewStyleNotebook } from "./format-html-constants.ts";
+import { warning } from "log/mod.ts";
 
 interface NotebookView {
   title: string;
   href: string;
-  supporting?: string;
+  supporting?: string[];
 }
 
 interface NotebookViewOptions {
@@ -277,7 +279,7 @@ export async function processNotebookEmbeds(
       // If there is a view configured for this, then
       // include it in the supporting dir
       if (nbPath.supporting) {
-        supporting.push(nbPath.supporting);
+        supporting.push(...nbPath.supporting);
       }
 
       // This is the notebook itself
@@ -351,12 +353,13 @@ async function renderHtmlView(
 
     // Render the notebook and update the path
     const nbPreviewFile = `${filename}.html`;
-    await renderFiles(
-      [{ path: nbAbsPath }],
+    const rendered = await renderFiles(
+      [{ path: nbAbsPath, formats: ["html"] }],
       {
         services,
         flags: {
           metadata: {
+            [kTo]: "html",
             [kTheme]: format.metadata[kTheme],
             [kOutputFile]: nbPreviewFile,
             [kTemplate]: templatePath,
@@ -369,12 +372,25 @@ async function renderHtmlView(
       undefined,
       project,
     );
+    if (rendered.error) {
+      warning(`Failed to render preview for notebook ${nbAbsPath}`);
+    }
+
+    const nbPreviewPath = join(inputDir, dirname(href), nbPreviewFile);
+    const supporting = [nbPreviewPath];
+    for (const renderedFile of rendered.files) {
+      if (renderedFile.supporting) {
+        supporting.push(...renderedFile.supporting.map((file) => {
+          return isAbsolute(file) ? file : join(inputDir, file);
+        }));
+      }
+    }
 
     return {
       title: options.title,
       href: join(dirname(href), nbPreviewFile),
-      // notebbok to be included as supporting file
-      supporting: join(inputDir, dirname(href), nbPreviewFile),
+      // notebook to be included as supporting file
+      supporting,
     };
   } else {
     return {
