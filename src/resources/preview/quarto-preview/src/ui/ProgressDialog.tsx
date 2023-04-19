@@ -29,28 +29,10 @@ import { useId } from "@fluentui/react-hooks";
 import { ANSIOutputLine } from "../core/ansi-output";
 
 import { ANSIDisplay } from "./ANSIDisplay";
-import { createRoot } from "react-dom/client";
-
-
-export function createProgressDialog() {
-  const progressEl = document.createElement("div");
-  document.body.appendChild(progressEl);
-  const progressRoot = createRoot(progressEl);
-  const renderErrorDialog = (open: boolean, error: boolean, lines: ANSIOutputLine[]) => {
-    progressRoot.render(
-      <ProgressDialog
-        open={open}
-        error={error}
-        lines={lines}
-        onClose={() => renderErrorDialog(false, error, lines)}
-      />)
-  };
-  return renderErrorDialog;
-}
-
 
 export interface ProgressDialogProps {
   open: boolean;
+  rendering: boolean;
   error: boolean;
   lines: ANSIOutputLine[];
   onClose: VoidFunction;
@@ -66,18 +48,21 @@ export function ProgressDialog(props: ProgressDialogProps) {
     outputEndRef.current?.scrollIntoView()
   }, [props.lines]);
 
+  
+
   return (<Modal
+    styles={{main: !props.error ? {height: 400} : { minHeight: 400, maxHeight: "80vh", height: "auto"}}}
     titleAriaId={titleId}
     isOpen={props.open}
     isDarkOverlay={false}
     onDismiss={props.onClose}
-
     containerClassName={contentStyles.container}
+    
     scrollableContentClassName={contentStyles.scrollableContent}
   >
-    <div className={contentStyles.header}>
+    <div className={contentStyles.header} style={{borderColor: props.error ? theme.palette.orangeLight : theme.palette.themePrimary }}>
       <h2 className={contentStyles.heading} id={titleId}>
-        Error
+        {props.error ? "Error" : "Render"}
       </h2>
       <IconButton
         styles={iconButtonStyles}
@@ -107,13 +92,12 @@ const contentStyles = mergeStyleSets({
     alignItems: 'stretch',
     position: 'fixed',
     top: 80,
-    height: 400,
     width: 1000
   },
   header: [
     theme.fonts.xLarge,
     {
-      borderTop: `4px solid ${theme.palette.orangeLight}`,
+      borderTop: `4px solid ${theme.palette.themePrimary}`,
       color: theme.palette.neutralPrimary,
       display: 'flex',
       alignItems: 'center',

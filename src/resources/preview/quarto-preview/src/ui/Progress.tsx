@@ -46,6 +46,7 @@ export const Progress: React.FC<ProgressProps> = (props: ProgressProps) => {
       {props.rendering ? <ProgressBar /> : null}
       <ProgressDialog 
         open={props.dialog && !dismissed} 
+        rendering={props.rendering}
         error={props.error}
         lines={props.lines}
         onClose={() => setDismissed(true)}
