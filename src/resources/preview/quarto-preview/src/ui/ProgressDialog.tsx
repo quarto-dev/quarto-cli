@@ -51,13 +51,16 @@ export function ProgressDialog(props: ProgressDialogProps) {
   }, [props.lines, props.error]);
 
   return (<Modal
-    styles={{main: !props.error ? {height: 400} : { minHeight: 400, maxHeight: "80vh", height: "auto"}}}
+    styles={{main: !props.error ? {height: 400 } : { minHeight: 400, maxHeight: "80vh", height: "auto" }}}
     titleAriaId={titleId}
     isOpen={props.open}
     isDarkOverlay={false}
+    focusTrapZoneProps={{disabled: true, disableFirstFocus: true}}
+    forceFocusInsideTrap={false}
     onDismiss={props.onClose}
     containerClassName={contentStyles.container}
     scrollableContentClassName={contentStyles.scrollableContent}
+    topOffsetFixed={true}
   >
     <div 
       className={contentStyles.header} 

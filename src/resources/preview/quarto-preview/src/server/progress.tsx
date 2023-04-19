@@ -108,6 +108,8 @@ export function progressHandler() {
       renderStart();
       renderOutput(renderError.innerHTML.trim());
       renderStop(false);
+    } else {
+      renderProgress();
     }
 
     return (ev: MessageEvent<string>) : boolean => {

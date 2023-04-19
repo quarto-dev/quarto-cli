@@ -44,7 +44,7 @@ export const Progress: React.FC<ProgressProps> = (props: ProgressProps) => {
 
   return (
     <ThemeProvider>
-      {props.rendering ? <ProgressBar /> : null}
+      <ProgressBar visible={props.rendering} />
       <ProgressDialog 
         open={props.dialog && !dismissed} 
         rendering={props.rendering}

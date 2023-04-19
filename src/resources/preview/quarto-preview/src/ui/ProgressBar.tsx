@@ -15,16 +15,21 @@
 
 
 import { IStyle, ProgressIndicator } from "@fluentui/react";
-import React, { useState } from "react";
+import React from "react";
 
-export const ProgressBar: React.FC = () => {
+export interface ProgressBarProps {
+  visible: boolean;
+}
 
-  const styles = useState<IStyle>(() => ({
+export const ProgressBar: React.FC<ProgressBarProps> = (props) => {
+
+  const styles: IStyle = {
     position: "fixed",
     top: 0,
     left: 0,
-    right: 0
-  }));
+    right: 0,
+    visibility: props.visible ? 'visible' : 'hidden'
+  };
 
   return (
     <ProgressIndicator barHeight={2} styles={{ root: styles }} />
