@@ -16,6 +16,7 @@
 import React, { useEffect, useRef } from "react";
 
 import {
+  DefaultButton,
   FontWeights,
   IButtonStyles,
   IIconProps,
@@ -64,12 +65,17 @@ export function ProgressDialog(props: ProgressDialogProps) {
       <h2 className={contentStyles.heading} id={titleId}>
         {props.error ? "Error" : "Render"}
       </h2>
-      <IconButton
-        styles={iconButtonStyles}
-        iconProps={cancelIcon}
-        ariaLabel="Close dialog"
-        onClick={props.onClose}
-      />
+      {!props.error 
+        ? <DefaultButton styles={cancelButtonStyles}>
+           Cancel
+          </DefaultButton>
+        : <IconButton
+          styles={iconButtonStyles()}
+          iconProps={cancelIcon}
+          ariaLabel="Close dialog"
+          onClick={props.onClose}
+        />
+      }
     </div>
     <div className={contentStyles.body}>
       <ANSIDisplay lines={props.lines} />
@@ -127,9 +133,9 @@ const contentStyles = mergeStyleSets({
   },
 });
 
-const iconButtonStyles: Partial<IButtonStyles> = {
+const iconButtonStyles = (color = theme.palette.neutralPrimary) : Partial<IButtonStyles> => ({
   root: {
-    color: theme.palette.neutralPrimary,
+    color,
     marginLeft: 'auto',
     marginTop: '4px',
     marginRight: '2px',
@@ -137,8 +143,17 @@ const iconButtonStyles: Partial<IButtonStyles> = {
   rootHovered: {
     color: theme.palette.neutralDark,
   },
-};
+});
+
+const cancelButtonStyles : Partial<IButtonStyles> = {
+  root: {
+    backgroundColor: theme.semanticColors.defaultStateBackground,
+    marginLeft: 'auto',
+    marginRight: '12px'
+  }
+}
 
 const cancelIcon: IIconProps = { iconName: 'Cancel' };
+
 
 
