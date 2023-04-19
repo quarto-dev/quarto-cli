@@ -28,6 +28,7 @@ import {
   kCrossrefChapters,
   kDate,
   kDocumentClass,
+  kNotebookLinks,
   kNumberSections,
   kPaperSize,
   kToc,
@@ -115,6 +116,8 @@ export const bookProjectType: ProjectType = {
   outputDir: "_book",
   cleanOutputDir: true,
   filterFormat: (source: string, format: Format, project?: ProjectContext) => {
+    // Books don't show notebook links
+    format.render[kNotebookLinks] = false;
     if (format.extensions?.book) {
       const bookExt = format.extensions?.book as BookExtension;
       if (bookExt.filterFormat) {

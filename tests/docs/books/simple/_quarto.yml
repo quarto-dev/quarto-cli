@@ -14,5 +14,6 @@ book:
 bibliography: references.bib
 
 format:
+  html: default
   pdf: default
   asciidoc: default
