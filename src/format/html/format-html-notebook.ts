@@ -373,6 +373,8 @@ async function renderHtmlView(
       project,
     );
     if (rendered.error) {
+      // TODO: This should throw in future releases rather than warn
+      // Only adding warning for now because of timing of release of 1.3
       warning(`Failed to render preview for notebook ${nbAbsPath}`);
     }
 

@@ -28,7 +28,6 @@ import {
   kCrossrefChapters,
   kDate,
   kDocumentClass,
-  kNotebookLinks,
   kNumberSections,
   kPaperSize,
   kToc,
