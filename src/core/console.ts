@@ -5,7 +5,8 @@
  */
 
 import { ansi } from "cliffy/ansi/mod.ts";
-import { readAllSync, writeAllSync } from "streams/conversion.ts";
+import { writeAllSync } from "streams/write_all.ts";
+import { readAllSync } from "streams/read_all.ts";
 import { info } from "log/mod.ts";
 import { runningInCI } from "./ci-info.ts";
 import { SpinnerOptions } from "./console-types.ts";

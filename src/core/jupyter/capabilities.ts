@@ -73,7 +73,7 @@ export async function jupyterCapabilities(kernelspec?: JupyterKernelspec) {
 }
 
 // Does deno not have a set of S_* constants for stat?
-// https://deno.land/std@0.97.0/node/fs.ts?doc=&s=constants.S_IXUSR
+// https://deno.land/std@0.97.0/node:fs?doc=&s=constants.S_IXUSR
 const S_IXUSR = 0o100;
 
 async function getVerifiedJuliaCondaJupyterCapabilities() {

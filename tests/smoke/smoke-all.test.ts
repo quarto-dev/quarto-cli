@@ -14,7 +14,7 @@ import {
 } from "../../src/core/lib/yaml-validation/state.ts";
 
 import { breakQuartoMd } from "../../src/core/lib/break-quarto-md.ts";
-import { parse } from "encoding/yaml.ts";
+import { parse } from "yaml/mod.ts";
 import { cleanoutput } from "./render/render.ts";
 import {
   ensureDocxRegexMatches,
