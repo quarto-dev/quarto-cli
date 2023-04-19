@@ -93,7 +93,9 @@ const contentStyles = mergeStyleSets({
     flexFlow: 'column nowrap',
     alignItems: 'stretch',
     position: 'fixed',
-    top: 80
+    top: 80,
+    height: 400,
+    width: 1000
   },
   header: [
     theme.fonts.xLarge,
