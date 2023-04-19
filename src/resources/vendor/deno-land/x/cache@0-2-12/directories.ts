@@ -45,12 +45,13 @@ export function tmpdir(): string {
   if (tmp) return resolve(tmp);
 
   switch (os) {
-    case "linux":
-    case "darwin":
-      return resolve("/tmp");
     case "windows":
       return resolve(
         join(env("HOMEDRIVE") ?? env("SYSTEMDRIVE") ?? "C:", "TEMP"),
       );
-  }
+    default: // to support other unix-like systems in late deno releases
+      // case "linux":
+      // case "darwin":
+      return resolve("/tmp");
+    }
 }
