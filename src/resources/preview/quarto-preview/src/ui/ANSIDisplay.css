@@ -15,7 +15,7 @@
 
 .ansi-display {
 	font-family: monospace;
-	white-space: pre;
+	white-space: pre-wrap;
 	--ansiBlack: #000000;
 	--ansiRed: #cd3131;
 	--ansiGreen: #00BC00;

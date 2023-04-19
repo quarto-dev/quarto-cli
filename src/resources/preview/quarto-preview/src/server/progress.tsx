@@ -15,7 +15,7 @@
 
 import React from "react"
 import { createRoot } from "react-dom/client";
-import { ANSIOutput } from "../core/ansi-output";
+import { ANSIOutput, ANSIOutputLine } from "../core/ansi-output";
 import { Progress } from "../ui/Progress";
 
 interface LogEntry {
@@ -33,7 +33,8 @@ export function progressHandler() {
     rendering: false,
     dialog: false,
     error: false,
-    output: new ANSIOutput()
+    output: new ANSIOutput(),
+    lines: new Array<ANSIOutputLine>()
   };
  
   // create progress ui and provide function to render it from current state
@@ -45,14 +46,14 @@ export function progressHandler() {
       rendering={state.rendering}
       dialog={state.dialog}
       error={state.error}
-      lines={state.output.outputLines}
+      lines={state.lines}
      />);
   };
 
   // start rendering
   const renderStart = () => {
     state.rendering = true;
-    state.dialog = false;
+    state.dialog = true;
     state.error = false;
     state.output = new ANSIOutput()
     renderProgress();
@@ -81,6 +82,7 @@ export function progressHandler() {
   const renderOutput = (output: LogEntry | string) => {
     output = typeof(output) === "string" ? output : output.msgFormatted;
     state.output.processOutput(output);
+    state.lines = [...state.output.outputLines];
     renderProgress();
   }
 

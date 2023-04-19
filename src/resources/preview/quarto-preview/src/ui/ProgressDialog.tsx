@@ -13,16 +13,16 @@
  *
  */
 
-import React from "react";
+import React, { useEffect, useRef } from "react";
 
-import { 
-  FontWeights, 
-  IButtonStyles, 
-  IIconProps, 
-  IconButton, 
-  Modal, 
-  getTheme, 
-  mergeStyleSets 
+import {
+  FontWeights,
+  IButtonStyles,
+  IIconProps,
+  IconButton,
+  Modal,
+  getTheme,
+  mergeStyleSets
 } from "@fluentui/react";
 import { useId } from "@fluentui/react-hooks";
 
@@ -38,8 +38,8 @@ export function createProgressDialog() {
   const progressRoot = createRoot(progressEl);
   const renderErrorDialog = (open: boolean, error: boolean, lines: ANSIOutputLine[]) => {
     progressRoot.render(
-      <ProgressDialog 
-        open={open} 
+      <ProgressDialog
+        open={open}
         error={error}
         lines={lines}
         onClose={() => renderErrorDialog(false, error, lines)}
@@ -57,15 +57,23 @@ export interface ProgressDialogProps {
 }
 
 export function ProgressDialog(props: ProgressDialogProps) {
-  
+
   const titleId = useId('title');
+
+  const outputEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    outputEndRef.current?.scrollIntoView()
+  }, [props.lines]);
 
   return (<Modal
     titleAriaId={titleId}
     isOpen={props.open}
     isDarkOverlay={false}
     onDismiss={props.onClose}
+
     containerClassName={contentStyles.container}
+    scrollableContentClassName={contentStyles.scrollableContent}
   >
     <div className={contentStyles.header}>
       <h2 className={contentStyles.heading} id={titleId}>
@@ -80,6 +88,7 @@ export function ProgressDialog(props: ProgressDialogProps) {
     </div>
     <div className={contentStyles.body}>
       <ANSIDisplay lines={props.lines} />
+      <div ref={outputEndRef} />
     </div>
 
   </Modal>);
@@ -88,6 +97,10 @@ export function ProgressDialog(props: ProgressDialogProps) {
 
 const theme = getTheme();
 const contentStyles = mergeStyleSets({
+  scrollableContent: {
+    display: 'flex',
+    flexDirection: 'column',
+  },
   container: {
     display: 'flex',
     flexFlow: 'column nowrap',
@@ -100,7 +113,6 @@ const contentStyles = mergeStyleSets({
   header: [
     theme.fonts.xLarge,
     {
-      flex: '1 1 auto',
       borderTop: `4px solid ${theme.palette.orangeLight}`,
       color: theme.palette.neutralPrimary,
       display: 'flex',
@@ -116,7 +128,12 @@ const contentStyles = mergeStyleSets({
     margin: '0',
   },
   body: {
-    padding: '0 24px 24px 24px',
+    border: `1px solid ${theme.semanticColors.variantBorder}`,
+    flex: '1 1 auto',
+    margin: '0 24px 24px 24px',
+    padding: 8,
+    overflowY: 'scroll',
+    
     selectors: {
       p: { margin: '14px 0' },
       'p:first-child': { marginTop: 0 },
