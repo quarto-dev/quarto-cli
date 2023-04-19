@@ -13,12 +13,6 @@ export function cachedir(): string {
   let home: string | undefined;
   let path: string;
   switch (os) {
-    case "linux": {
-      const xdg = env("XDG_CACHE_HOME");
-      home = xdg ?? env(POSIX_HOME);
-      path = xdg ? "deno" : join(".cache", "deno");
-      break;
-    }
     case "darwin":
       home = env(POSIX_HOME);
       path = join("Library", "Caches", "deno");
@@ -29,7 +23,14 @@ export function cachedir(): string {
       home = home ?? env("USERPROFILE");
       path = "deno";
       break;
-  }
+      
+    default: {
+        const xdg = env("XDG_CACHE_HOME");
+        home = xdg ?? env(POSIX_HOME);
+        path = xdg ? "deno" : join(".cache", "deno");
+        break;
+      }
+    }
 
   path = home ? path : ".deno";
   if (!home) return path;
