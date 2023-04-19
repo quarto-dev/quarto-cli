@@ -11,7 +11,6 @@ import {
   join,
   relative,
   SEP,
-  SEP_PATTERN,
 } from "path/mod.ts";
 import { existsSync, walkSync } from "fs/mod.ts";
 import * as ld from "../core/lodash.ts";

@@ -170,9 +170,19 @@ export async function preview(
     try {
       HttpDevServerRenderMonitor.onRenderStart();
       isRendering = true;
-      return await renderForPreview(file, services, flags, pandocArgs, project);
+      const result = await renderForPreview(
+        file,
+        services,
+        flags,
+        pandocArgs,
+        project,
+      );
+      HttpDevServerRenderMonitor.onRenderStop(true);
+      return result;
+    } catch (error) {
+      HttpDevServerRenderMonitor.onRenderStop(false);
+      throw error;
     } finally {
-      HttpDevServerRenderMonitor.onRenderStop();
       isRendering = false;
       services.cleanup();
     }

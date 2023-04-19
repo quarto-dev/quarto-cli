@@ -13,7 +13,7 @@
  *
  */
 
-import React, { useMemo } from "react";
+import React from "react";
 
 import { 
   FontWeights, 
@@ -26,7 +26,7 @@ import {
 } from "@fluentui/react";
 import { useId } from "@fluentui/react-hooks";
 
-import { ANSIOutput, ANSIOutputLine } from "../core/ansi-output";
+import { ANSIOutputLine } from "../core/ansi-output";
 
 import { ANSIDisplay } from "./ANSIDisplay";
 import { createRoot } from "react-dom/client";
@@ -36,12 +36,12 @@ export function createErrorDialog() {
   const errorEl = document.createElement("div");
   document.body.appendChild(errorEl);
   const errorRoot = createRoot(errorEl);
-  const renderErrorDialog = (open: boolean, message: string) => {
+  const renderErrorDialog = (open: boolean, lines: ANSIOutputLine[]) => {
     errorRoot.render(
       <ErrorDialog 
         open={open} 
-        message={message}
-        onClose={() => renderErrorDialog(false, message)}
+        lines={lines}
+        onClose={() => renderErrorDialog(false, lines)}
       />)
   };
   return renderErrorDialog;
@@ -50,7 +50,7 @@ export function createErrorDialog() {
 
 export interface ErrorDialogProps {
   open: boolean;
-  message: string;
+  lines: ANSIOutputLine[];
   onClose: VoidFunction;
 }
 
@@ -58,15 +58,6 @@ export function ErrorDialog(props: ErrorDialogProps) {
   
   const titleId = useId('title');
 
-  const outputLines = useMemo<ANSIOutputLine[]>(() => {
-    if (props.message.length > 0) {
-      return ANSIOutput.processOutput(props.message);
-    } else {
-      return [];
-    }
-  }, [props.message]);
- 
-  
   return (<Modal
     titleAriaId={titleId}
     isOpen={props.open}
@@ -86,7 +77,7 @@ export function ErrorDialog(props: ErrorDialogProps) {
       />
     </div>
     <div className={contentStyles.body}>
-      <ANSIDisplay lines={outputLines} />
+      <ANSIDisplay lines={props.lines} />
     </div>
 
   </Modal>);

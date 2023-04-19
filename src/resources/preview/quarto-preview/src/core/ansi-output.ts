@@ -217,7 +217,6 @@ export class ANSIOutput {
 		loggingOutput = loggingOutput.replaceAll('\x9B', 'CSI');
 		loggingOutput = loggingOutput.replaceAll('\x1b', 'ESC');
 		loggingOutput = loggingOutput.replaceAll('\x9B', 'CSI');
-		console.log(`ANSIOutput: Processing Output: "${loggingOutput}"`);
 
 		// Enumerate the characters in the output.
 		for (let i = 0; i < output.length; i++) {

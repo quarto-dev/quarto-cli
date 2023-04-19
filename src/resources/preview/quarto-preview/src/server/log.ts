@@ -13,6 +13,7 @@
  *
  */
 
+import { ANSIOutput } from "../core/ansi-output";
 import { createErrorDialog } from "../ui/ErrorDialog";
 
 
@@ -27,40 +28,21 @@ interface LogEntry {
 
 export function logHandler() {
 
-  const logEntries = new Array(1000);
-  let logEntriesOffset = 0;
-  logEntriesOffset = 0;
-  function recordLogEntry(entry: LogEntry) {
-    logEntries[logEntriesOffset++] = entry;
-    logEntriesOffset %= logEntries.length;
-  }
-  function getLogEntry(i: number) { // backwards, 0 is most recent
-      return logEntries[(logEntriesOffset - 1 - i + logEntries.length) % logEntries.length];
-  }
-
   // append for errors that occur within the error window
-  let lastError = 0;
-  let errorMsg = "";
-  const kErrorWindow = 2500;
+  let ansiOutput = new ANSIOutput();
   const errorDialog = createErrorDialog();
   const renderErrorDialog = (open: boolean) => {
-    errorDialog(open, errorMsg);
+    errorDialog(open, ansiOutput.outputLines);
   };
 
-  function showError(msg: string) {
-    if (errorMsg && ((Date.now() - lastError) < kErrorWindow)) {
-      errorMsg = errorMsg + "\n" +  msg;
-    } else {
-      errorMsg = msg
-    }
-    lastError = Date.now();
+  function showError() {
+    // show dialog
     renderErrorDialog(true);
     
     // post message to parent indicating we had an error
     if (window.parent.postMessage) {
       window.parent.postMessage({
-        type: "error",
-        msg: msg,
+        type: "error"
       }, "*");
     }
   }
@@ -68,36 +50,32 @@ export function logHandler() {
   // see if there is already an error to show
   const renderError = document.getElementById("quarto-render-error");
   if (renderError) {
-    showError(renderError.innerHTML.trim());
+    ansiOutput.processOutput(renderError.innerHTML.trim());
+    showError();
   }
 
   return (ev: MessageEvent<string>) : boolean => {
-    if (ev.data.startsWith('log:')) {
+    if (ev.data.startsWith('render:'))  {
+      const [_,action,data] = ev.data.split(":");
+
+      if (action === "stop" && data === "false") {
+        // show error dialog if we concluded with an error
+        showError();
+      } else if (action === "start") {
+         // reset ansi output
+        ansiOutput = new ANSIOutput();
+      }
+
+     
+
+      // allow progress handler to see this as well
+      return false;
+
+    } else if (ev.data.startsWith('log:')) {
       const log = JSON.parse(ev.data.substr(4)) as LogEntry;
-      recordLogEntry(log);
+      ansiOutput.processOutput(log.msgFormatted);
       if (log.levelName === "ERROR") {
-        showError(log.msgFormatted)
-      } else {
-        // see if there is a knitr error to report
-        const kExecutionHalted = "Execution halted";
-        if (log.msg.indexOf(kExecutionHalted) !== -1) {
-          // scan backwards for beginning of error
-          const errorEntries = [getLogEntry(0).msgFormatted];
-          for (let i=1; i<logEntries.length; i++) {
-            const logEntry = getLogEntry(i);
-            if (logEntry) {
-              errorEntries.unshift(logEntry.msgFormatted);
-              if (logEntry.msg.indexOf("Quitting from lines") !== -1) {
-                showError(errorEntries.join(""));
-                break;
-              } else if (logEntry.msg.indexOf(kExecutionHalted) !== -1) {
-                break;
-              }
-            } else {
-              break;
-            }
-          }
-        }
+        showError();
       }
       return true;
     } else {

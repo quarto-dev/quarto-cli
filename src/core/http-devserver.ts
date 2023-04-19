@@ -77,8 +77,8 @@ export function httpDevServer(
     onRenderStart: (lastRenderTime?: number) => {
       broadcast(`render:start:${lastRenderTime || 0}`);
     },
-    onRenderStop: () => {
-      broadcast("render:stop");
+    onRenderStop: (success: boolean) => {
+      broadcast(`render:stop:${success}`);
     },
   });
 
@@ -199,7 +199,7 @@ export function httpDevServer(
 
 export interface RenderMonitor {
   onRenderStart: (lastRenderTime?: number) => void;
-  onRenderStop: () => void;
+  onRenderStop: (success: boolean) => void;
 }
 
 export class HttpDevServerRenderMonitor {
@@ -210,12 +210,12 @@ export class HttpDevServerRenderMonitor {
     );
   }
 
-  public static onRenderStop() {
+  public static onRenderStop(success: boolean) {
     if (this.renderStart_) {
       this.lastRenderTime_ = Date.now() - this.renderStart_;
       this.renderStart_ = undefined;
     }
-    this.handlers_.forEach((handler) => handler.onRenderStop());
+    this.handlers_.forEach((handler) => handler.onRenderStop(success));
   }
 
   public static monitor(handler: RenderMonitor) {

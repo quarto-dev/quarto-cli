@@ -45,7 +45,7 @@ export class ServeRenderManager {
   }
 
   public onRenderError(error: Error) {
-    HttpDevServerRenderMonitor.onRenderStop();
+    HttpDevServerRenderMonitor.onRenderStop(false);
     if (error.message) {
       logError(error);
     }
@@ -57,7 +57,7 @@ export class ServeRenderManager {
     resourceFiles: string[],
     project: ProjectContext,
   ) {
-    HttpDevServerRenderMonitor.onRenderStop();
+    HttpDevServerRenderMonitor.onRenderStop(true);
     // Use the first file to determine the format
     let outputDir: string;
     if (result.files.length > 0) {
