@@ -1,0 +1,20 @@
+project:
+  type: website
+  output-dir: .
+
+website:
+  title: "Website"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - about.qmd
+  sidebar:
+    contents:
+      - text: '<a href="https://www.charlesteague.com">Hello World</a>'
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
