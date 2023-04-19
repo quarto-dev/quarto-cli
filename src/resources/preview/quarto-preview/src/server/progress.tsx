@@ -56,6 +56,7 @@ export function progressHandler() {
     state.dialog = true;
     state.error = false;
     state.output = new ANSIOutput()
+    state.lines = [];
     renderProgress();
   }
 
