@@ -109,14 +109,9 @@ function jatsSubarticle()
     return {
       Meta = jatsMeta,
 
-      -- id="nb1-cell-1" content-type="notebook-content"
-      -- id="nb1-cell-2" content-type="notebook-code"
-      -- id="nb1-cell-3" content-type="notebook-code"
-
       Div = function(div)
         
         -- TODO: Code cell with #fig-asdas label gets turned into a figure div, need to stop that
-        -- TODO: Add content types
 
         -- this is a notebook cell, handle it
         if isCell(div) then
