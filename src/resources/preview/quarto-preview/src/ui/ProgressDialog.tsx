@@ -92,7 +92,8 @@ const contentStyles = mergeStyleSets({
     alignItems: 'stretch',
     position: 'fixed',
     top: 80,
-    width: 1000
+    width: 1000,
+    maxWidth: "calc(100% - 100px)"
   },
   header: [
     theme.fonts.xLarge,
