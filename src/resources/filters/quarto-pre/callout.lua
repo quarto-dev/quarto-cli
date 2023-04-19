@@ -242,7 +242,14 @@ local kCalloutDefaultMinimal = "minimal"
 function calloutDiv(node)
   -- the first heading is the title
   local div = pandoc.Div({})
-  div.content:extend(node.content)
+  local c = node.content
+  if pandoc.utils.type(c) == "Blocks" then
+    div.content:extend(c)
+  else
+    div.content:insert(c)
+  end
+  -- quarto.utils.dump(node.content)
+  -- div.content:extend(node.content)
   local title = node.title
   local type = node.type
   local calloutAppearance = node.appearance

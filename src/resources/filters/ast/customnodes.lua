@@ -10,7 +10,7 @@ local n_custom_nodes = 0
 local profiler = require('profiler')
 
 function is_custom_node(node)
-  if node.attributes.__quarto_custom == "true" then
+  if node.attributes and node.attributes.__quarto_custom == "true" then
     return node
   end
   return false
@@ -164,6 +164,7 @@ end
 function create_emulated_node(t, tbl, context, forwarder)
   local result = create_custom_node_scaffold(t, context)
   tbl.t = t -- set t always to custom ast type
+  local id = result.attributes.__quarto_custom_id
 
   custom_node_data[id] = _quarto.ast.create_proxy_accessor(result, tbl, forwarder)
   return result, custom_node_data[id]
@@ -183,7 +184,7 @@ _quarto.ast = {
 
   grow_scaffold = function(node, size)
     local n = #node.content
-    local ctor = pandoc[pandoc.utils.type(div_or_span)]
+    local ctor = pandoc[node.t or pandoc.utils.type(node)]
     for _ = n + 1, size do
       node.content:insert(ctor({}))
     end
@@ -208,7 +209,7 @@ _quarto.ast = {
         if result == nil then
           return nil
         end
-        local t = pandoc.utils.type(result)
+        local t = result.t
         if not (t == "Div" or t == "Span") then
           warn("Custom node content is not a Div or Span, but a " .. t)
           return nil
@@ -227,7 +228,6 @@ _quarto.ast = {
           return
         end
         local node = node_accessor(table)
-        local content = node.content
         local t = pandoc.utils.type(value)
         if t == "Div" or t == "Span" then
           local custom_data, t, kind = _quarto.ast.resolve_custom_data(value)
@@ -235,10 +235,10 @@ _quarto.ast = {
             value = custom_data
           end
         end
-        if index > #content then
+        if index > #node.content then
           _quarto.ast.grow_scaffold(node, index)
         end
-        content[index] = value
+        node.content[index].content = value
       end
     }
   end,
@@ -248,9 +248,9 @@ _quarto.ast = {
       return custom_data
     end
 
-    customdata["__quarto_custom_node"] = div_or_span
-
-    local proxy = {}
+    local proxy = {
+      __quarto_custom_node = div_or_span
+    }
     setmetatable(proxy, _quarto.ast.create_proxy_metatable(function(key)
       return forwarder[key]
     end))
@@ -286,10 +286,6 @@ _quarto.ast = {
       print("Internal Error: extended ast handler must have a constructor")
       quarto.utils.dump(handler)
       crash_with_stack_trace()
-    elseif type(handler.forwarder) == "nil" then
-      print("Internal Error: extended ast handler must have a forwarder")
-      quarto.utils.dump(handler)
-      crash_with_stack_trace()
     elseif type(handler.class_name) == "nil" then
       print("ERROR: handler must define class_name")
       quarto.utils.dump(handler)
@@ -313,9 +309,6 @@ _quarto.ast = {
       end
     else
       forwarder = handler.slots
-      -- for k, v in pairs(handler.slots) do
-      --   forwarder[k] = v
-      -- end
     end
 
     quarto[handler.ast_name] = function(params)
