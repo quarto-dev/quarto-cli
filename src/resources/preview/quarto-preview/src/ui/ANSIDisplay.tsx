@@ -24,18 +24,22 @@ export interface ANSIDisplayProps {
 }
 
 export const ANSIDisplay = ({ lines }: ANSIDisplayProps) => {
+	let firstOutput = false;
 	return (
 		<div className='ansi-display'>
-			{lines.map(line =>
-				<div className='ansi-display-line'>
-				{!line.outputRuns.length ?
-					<br /> :
-					line.outputRuns.map(outputRun =>
-						<OutputRun key={outputRun.id} outputRun={outputRun} />
-					)
-				}
-			</div>
-			)}
+			{lines.map(line => {
+				firstOutput = firstOutput || !!line.outputRuns.length;
+				return (
+					<div className='ansi-display-line'>
+					{!line.outputRuns.length ?
+						firstOutput ? <br /> : null :
+						line.outputRuns.map(outputRun =>
+							<OutputRun key={outputRun.id} outputRun={outputRun} />
+						)
+					}
+					</div>
+				)
+			})}
 		</div>
 	);
 };
