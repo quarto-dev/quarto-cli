@@ -76,6 +76,7 @@ export function asciidocFormat(): Format {
 
 const kFormatOutputDir = "book-asciidoc";
 const kAsciidocDocType = "asciidoc-doctype";
+const kAtlasConfigFile = "atlas.json";
 
 // Ref target marks the refs div so the post process can inject the bibliography
 const kRefTargetIdentifier = "refs-target-identifier";
@@ -140,11 +141,26 @@ const asciidocBookExtension = {
     _incremental: boolean,
     outputFiles: ProjectOutputFile[],
   ) {
+    const projDir = projectOutputDir(context);
+    const outDir = join(projDir, kFormatOutputDir);
+
+    // Deal with atlas.json configuration files
+    // which are used by O'Reilly for configuration
+    const atlasInFile = join(context.dir, kAtlasConfigFile);
+    const atlasOutFile = join(outDir, kAtlasConfigFile);
+    if (existsSync(atlasInFile)) {
+      // See if there is an atlas.json file to move to the output
+      // directory
+      Deno.copyFileSync(atlasInFile, atlasOutFile);
+    } else {
+      // Cook up an atlas file based upon the project inputs
+      // and place this in the output dir
+      Deno.writeTextFileSync(atlasOutFile, project2Atlas(projDir, context));
+    }
+
     // Find the explicit ref target
     let refsTarget;
     let indexPage;
-    const projDir = projectOutputDir(context);
-    const outDir = join(projDir, kFormatOutputDir);
     for (const outputFile of outputFiles) {
       const path = outputFile.file;
       if (existsSync(path)) {
@@ -239,6 +255,51 @@ const asciidocBookExtension = {
     }
   },
 };
+
+function project2Atlas(projDir: string, context: ProjectContext) {
+  // Cook up an atlas.json file that will be used as a placeholder
+  const bookStem = bookOutputStem(projDir, context.config);
+  const bookTitle = bookConfig("title", context.config);
+  const atlasJson = {
+    branch: "main",
+    "files": [
+      `${bookStem}.adoc`,
+    ],
+    "formats": {
+      "pdf": {
+        "version": "web",
+        "color_count": "1",
+        "index": false,
+        "toc": true,
+        "syntaxhighlighting": true,
+        "show_comments": false,
+      },
+      "epub": {
+        "index": false,
+        "toc": true,
+        "epubcheck": true,
+        "syntaxhighlighting": true,
+        "show_comments": false,
+      },
+      "mobi": {
+        "index": false,
+        "toc": true,
+        "syntaxhighlighting": true,
+        "show_comments": false,
+      },
+      "html": {
+        "index": false,
+        "toc": true,
+        "syntaxhighlighting": true,
+        "show_comments": false,
+        "consolidated": false,
+      },
+    },
+    "title": bookTitle,
+    "compat-mode": "false",
+  };
+  return JSON.stringify(atlasJson, undefined, 2);
+}
 
 async function bookRootPageMarkdown(project: ProjectContext) {
   // Read the chapter and appendix inputs

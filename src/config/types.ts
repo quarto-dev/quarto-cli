@@ -85,6 +85,7 @@ import {
   kIncludeAfterBody,
   kIncludeBeforeBody,
   kIncludeInHeader,
+  kInlineIncludes,
   kIpynbFilters,
   kKatex,
   kKeepHidden,
@@ -144,6 +145,7 @@ import {
   kPdfEngineOpt,
   kPdfEngineOpts,
   kPreferHtml,
+  kPreserveYaml,
   kQuartoFilters,
   kReferenceLocation,
   kRelatedFormatsTitle,
@@ -151,6 +153,7 @@ import {
   kRepoActionLinksEdit,
   kRepoActionLinksIssue,
   kRepoActionLinksSource,
+  kResourcePath,
   kSearch,
   kSearchClearButtonTitle,
   kSearchCopyLinkTitle,
@@ -397,6 +400,8 @@ export interface FormatRender {
   [kTblColwidths]?: "auto" | boolean | number[];
   [kShortcodes]?: string[];
   [kMergeIncludes]?: boolean;
+  [kInlineIncludes]?: boolean;
+  [kPreserveYaml]?: boolean;
   [kLatexAutoMk]?: boolean;
   [kLatexAutoInstall]?: boolean;
   [kLatexMinRuns]?: number;
@@ -463,6 +468,7 @@ export interface FormatPandoc {
   [kIncludeBeforeBody]?: string[];
   [kIncludeAfterBody]?: string[];
   [kIncludeInHeader]?: string[];
+  [kResourcePath]?: string[];
   [kReferenceLocation]?: string;
   [kCiteproc]?: boolean;
   [kCiteMethod]?: string;

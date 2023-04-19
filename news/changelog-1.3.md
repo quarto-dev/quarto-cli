@@ -14,6 +14,7 @@
 - Discard matplotlib, seaborn, and plotnine intermediate objects from output
 - With IJulia's miniconda python env, search for `python` in addition to `python3` ([#4821](https://github.com/quarto-dev/quarto-cli/issues/4821)).
 - Allow `export:` as a cell yaml option to support new nbdev syntax ([#3152](https://github.com/quarto-dev/quarto-cli/issues/3152)).
+- merge multiple `stream` outputs to work around diverging behavior between `jupyter` and `nbclient` ([#4968](https://github.com/quarto-dev/quarto-cli/issues/4968)).
 
 ## Knitr engine
 

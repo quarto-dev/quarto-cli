@@ -178,7 +178,7 @@ function layerTheme(
   const loadPaths: string[] = [];
   const layers = themes.flatMap((theme) => {
     const isAbs = isAbsolute(theme);
-    const isScssFile = extname(theme) === ".scss";
+    const isScssFile = [".scss", ".css"].includes(extname(theme));
 
     if (isAbs && isScssFile) {
       // Absolute path to a SCSS file

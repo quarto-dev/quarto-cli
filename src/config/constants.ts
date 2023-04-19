@@ -1,9 +1,8 @@
 /*
-* constants.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * constants.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 export const kMetadataFormat = "format";
 
@@ -77,6 +76,8 @@ export const kCodeTools = "code-tools";
 export const kTblCap = "tbl-cap";
 export const kTblColwidths = "tbl-colwidths";
 export const kMergeIncludes = "merge-includes";
+export const kInlineIncludes = "inline-includes";
+export const kPreserveYaml = "preserve-yaml";
 export const kPreferHtml = "prefer-html";
 export const kSelfContainedMath = "self-contained-math";
 export const kBiblioConfig = "biblio-config";
@@ -156,6 +157,9 @@ export const kRenderDefaultsKeys = [
   kCodeTools,
   kShortcodes,
   kTblColwidths,
+  kInlineIncludes,
+  kPreserveYaml,
+  kMergeIncludes,
   kSelfContainedMath,
   kLatexAutoMk,
   kLatexAutoInstall,
@@ -414,6 +418,7 @@ export const kEmbedResources = "embed-resources";
 export const kIncludeBeforeBody = "include-before-body";
 export const kIncludeAfterBody = "include-after-body";
 export const kIncludeInHeader = "include-in-header";
+export const kResourcePath = "resource-path";
 export const kCiteproc = "citeproc";
 export const kCiteMethod = "cite-method";
 export const kFilters = "filters";
@@ -558,7 +563,7 @@ export const kPandocDefaultsKeys = [
   kIncludeBeforeBody,
   kIncludeAfterBody,
   kIncludeInHeader,
-  "resource-path",
+  kResourcePath,
   kCiteproc,
   kCiteMethod,
   "citation-abbreviations",

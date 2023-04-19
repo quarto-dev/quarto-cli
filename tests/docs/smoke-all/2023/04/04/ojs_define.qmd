@@ -1,0 +1,11 @@
+---
+title: test
+---
+
+```{r}
+ojs_define(foo = "1")
+```
+
+```{ojs}
+1 + 2
+```

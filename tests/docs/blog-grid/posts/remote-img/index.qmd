@@ -1,0 +1,10 @@
+---
+title: "This has remote"
+author: "Tristan O'Malley"
+date: 10-10-2019
+categories: [news]
+---
+
+This post should have a remote preview image.
+
+![](https://www.charlesteague.com/blog/writing-style/west.jpg)

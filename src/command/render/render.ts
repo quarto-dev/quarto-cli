@@ -47,7 +47,13 @@ import {
 } from "../../core/timing.ts";
 import { filesDirMediabagDir } from "./render-paths.ts";
 import { replaceNotebookPlaceholders } from "../../core/jupyter/jupyter-embed.ts";
-import { kIncludeAfterBody, kIncludeInHeader } from "../../config/constants.ts";
+import {
+  kIncludeAfterBody,
+  kIncludeBeforeBody,
+  kIncludeInHeader,
+  kInlineIncludes,
+  kResourcePath,
+} from "../../config/constants.ts";
 import { pandocIngestSelfContainedContent } from "../../core/pandoc/self-contained.ts";
 
 export async function renderPandoc(
@@ -132,11 +138,40 @@ export async function renderPandoc(
     pandocIncludes,
   );
 
+  // resolve markdown. for [  ] output type we collect up
+  // the includes so they can be proccessed by Lua
+  let markdownInput = notebookResult.markdown
+    ? notebookResult.markdown
+    : executeResult.markdown;
+  if (format.render[kInlineIncludes]) {
+    const collectIncludes = (
+      location:
+        | "include-in-header"
+        | "include-before-body"
+        | "include-after-body",
+    ) => {
+      const includes = format.pandoc[location];
+      if (includes) {
+        const append = location === "include-after-body";
+        for (const include of includes) {
+          const includeMd = Deno.readTextFileSync(include);
+          if (append) {
+            markdownInput = `${markdownInput}\n\n${includeMd}`;
+          } else {
+            markdownInput = `${includeMd}\n\n${markdownInput}`;
+          }
+        }
+        delete format.pandoc[location];
+      }
+    };
+    collectIncludes(kIncludeInHeader);
+    collectIncludes(kIncludeBeforeBody);
+    collectIncludes(kIncludeAfterBody);
+  }
+
   // pandoc options
   const pandocOptions: PandocOptions = {
-    markdown: notebookResult.markdown
-      ? notebookResult.markdown
-      : executeResult.markdown,
+    markdown: markdownInput,
     source: context.target.source,
     output: recipe.output,
     keepYaml: recipe.keepYaml,
@@ -239,7 +274,10 @@ export async function renderPandoc(
         // If this is self-contained, run pandoc to 'suck in' the dependencies
         // which may have been added in the post processor
         if (selfContained && isHtmlFileOutput(format.pandoc)) {
-          await pandocIngestSelfContainedContent(outputFile);
+          await pandocIngestSelfContainedContent(
+            outputFile,
+            format.pandoc[kResourcePath],
+          );
         }
       });
 
