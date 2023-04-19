@@ -128,6 +128,11 @@ export function httpDevServer(
         try {
           const { socket, response } = Deno.upgradeWebSocket(req);
           const client: Client = { socket };
+          socket.onmessage = (ev: MessageEvent<string>) => {
+            if (ev.data === "stop") {
+              stopServer();
+            }
+          };
           if (onSocketClose) {
             socket.onclose = onSocketClose;
           }

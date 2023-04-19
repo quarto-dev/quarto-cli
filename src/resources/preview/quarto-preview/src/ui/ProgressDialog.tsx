@@ -37,6 +37,7 @@ export interface ProgressDialogProps {
   error: boolean;
   lines: ANSIOutputLine[];
   onClose: VoidFunction;
+  onCancel: VoidFunction;
 }
 
 export function ProgressDialog(props: ProgressDialogProps) {
@@ -66,7 +67,7 @@ export function ProgressDialog(props: ProgressDialogProps) {
         {props.error ? "Error" : "Render"}
       </h2>
       {!props.error 
-        ? <DefaultButton styles={cancelButtonStyles}>
+        ? <DefaultButton styles={cancelButtonStyles} onClick={props.onCancel}>
            Cancel
           </DefaultButton>
         : <IconButton

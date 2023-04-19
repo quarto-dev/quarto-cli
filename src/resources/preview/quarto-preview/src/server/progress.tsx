@@ -28,101 +28,104 @@ interface LogEntry {
 
 export function progressHandler() {
   
-  // track state used to render progress
-  const state = {
-    rendering: false,
-    dialog: false,
-    error: false,
-    output: new ANSIOutput(),
-    lines: new Array<ANSIOutputLine>()
-  };
- 
-  // create progress ui and provide function to render it from current state
-  const progressEl = document.createElement("div");
-  document.body.appendChild(progressEl);
-  const progressRoot = createRoot(progressEl);
-  const renderProgress = () => {
-    progressRoot.render(<Progress 
-      rendering={state.rendering}
-      dialog={state.dialog}
-      error={state.error}
-      lines={state.lines}
-     />);
-  };
+  return (stopServer: VoidFunction) => {
+     // track state used to render progress
+    const state = {
+      rendering: false,
+      dialog: false,
+      error: false,
+      output: new ANSIOutput(),
+      lines: new Array<ANSIOutputLine>()
+    };
+  
+    // create progress ui and provide function to render it from current state
+    const progressEl = document.createElement("div");
+    document.body.appendChild(progressEl);
+    const progressRoot = createRoot(progressEl);
+    const renderProgress = () => {
+      progressRoot.render(<Progress 
+        rendering={state.rendering}
+        dialog={state.dialog}
+        error={state.error}
+        lines={state.lines}
+        onCancel={stopServer}
+      />);
+    };
 
-  // start rendering
-  const renderStart = (lastRenderTime?: number) => {
-    // core state for new render
-    state.rendering = true;
-    state.error = false;
-    state.output = new ANSIOutput()
-    state.lines = [];
+    // start rendering
+    const renderStart = (lastRenderTime?: number) => {
+      // core state for new render
+      state.rendering = true;
+      state.error = false;
+      state.output = new ANSIOutput()
+      state.lines = [];
 
-    // show dialog now if we expect a slow render, otherwise wait 2 seconds
-    const kRenderProgressThreshold = 2000;
-    if (lastRenderTime === undefined || lastRenderTime > kRenderProgressThreshold) {
-      state.dialog = true;
-    } else {
-      setTimeout(() => {
+      // show dialog now if we expect a slow render, otherwise wait 2 seconds
+      const kRenderProgressThreshold = 2000;
+      if (lastRenderTime === undefined || lastRenderTime > kRenderProgressThreshold) {
         state.dialog = true;
-        renderProgress();
-      }, kRenderProgressThreshold);
+      } else {
+        setTimeout(() => {
+          state.dialog = true;
+          renderProgress();
+        }, kRenderProgressThreshold);
+      }
+
+      // update ui (could just be the progress bar if there is no dialog)
+      renderProgress();
     }
 
-    // update ui (could just be the progress bar if there is no dialog)
-    renderProgress();
-  }
+    // stop rendering
+    const renderStop = (success: boolean) => {
+      state.rendering = false;
+      state.dialog = !success;
+      state.error = !success;
+      renderProgress();
 
-  // stop rendering
-  const renderStop = (success: boolean) => {
-    state.rendering = false;
-    state.dialog = !success;
-    state.error = !success;
-    renderProgress();
-
-    // additional side effect: let vscode frame know we had 
-    // an error so it can halt its progress treatment
-    if (!success) {
-      // post message to parent indicating we had an error
-      if (window.parent.postMessage) {
-        window.parent.postMessage({
-          type: "error"
-        }, "*");
+      // additional side effect: let vscode frame know we had 
+      // an error so it can halt its progress treatment
+      if (!success) {
+        // post message to parent indicating we had an error
+        if (window.parent.postMessage) {
+          window.parent.postMessage({
+            type: "error"
+          }, "*");
+        }
       }
     }
-  }
 
-  // render output
-  const renderOutput = (output: LogEntry | string) => {
-    output = typeof(output) === "string" ? output : output.msgFormatted;
-    state.output.processOutput(output);
-    state.lines = [...state.output.outputLines];
-    renderProgress();
-  }
+    // render output
+    const renderOutput = (output: LogEntry | string) => {
+      output = typeof(output) === "string" ? output : output.msgFormatted;
+      state.output.processOutput(output);
+      state.lines = [...state.output.outputLines];
+      renderProgress();
+    }
 
-  // see if there is already an error to show
-  const renderError = document.getElementById("quarto-render-error");
-  if (renderError) {
-    renderStart();
-    renderOutput(renderError.innerHTML.trim());
-    renderStop(false);
-  }
+    // see if there is already an error to show
+    const renderError = document.getElementById("quarto-render-error");
+    if (renderError) {
+      renderStart();
+      renderOutput(renderError.innerHTML.trim());
+      renderStop(false);
+    }
 
-  return (ev: MessageEvent<string>) : boolean => {
-    if (ev.data.startsWith('render:'))  {
-      const [_,action,data] = ev.data.split(":");
-      if (action === "start") {
-        renderStart(parseInt(data));
-      } else if (action === "stop") {
-        renderStop(data === "true");
+    return (ev: MessageEvent<string>) : boolean => {
+      if (ev.data.startsWith('render:'))  {
+        const [_,action,data] = ev.data.split(":");
+        if (action === "start") {
+          renderStart(parseInt(data));
+        } else if (action === "stop") {
+          renderStop(data === "true");
+        }
+        return true;
+      } else if (ev.data.startsWith('log:')) {
+        const log = JSON.parse(ev.data.substr(4)) as LogEntry;
+        renderOutput(log);
+        return true;
+      } else {
+        return false;
       }
-      return true;
-    } else if (ev.data.startsWith('log:')) {
-      const log = JSON.parse(ev.data.substr(4)) as LogEntry;
-      renderOutput(log);
-      return true;
-    } else {
-      return false;
     }
   }
 }
