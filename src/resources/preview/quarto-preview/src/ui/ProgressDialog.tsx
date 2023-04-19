@@ -1,5 +1,5 @@
 /*
- * ErrorDialog.tsx
+ * ProgressDialog.tsx
  *
  * Copyright (C) 2022 by Posit Software, PBC
  *
@@ -32,29 +32,31 @@ import { ANSIDisplay } from "./ANSIDisplay";
 import { createRoot } from "react-dom/client";
 
 
-export function createErrorDialog() {
-  const errorEl = document.createElement("div");
-  document.body.appendChild(errorEl);
-  const errorRoot = createRoot(errorEl);
-  const renderErrorDialog = (open: boolean, lines: ANSIOutputLine[]) => {
-    errorRoot.render(
-      <ErrorDialog 
+export function createProgressDialog() {
+  const progressEl = document.createElement("div");
+  document.body.appendChild(progressEl);
+  const progressRoot = createRoot(progressEl);
+  const renderErrorDialog = (open: boolean, error: boolean, lines: ANSIOutputLine[]) => {
+    progressRoot.render(
+      <ProgressDialog 
         open={open} 
+        error={error}
         lines={lines}
-        onClose={() => renderErrorDialog(false, lines)}
+        onClose={() => renderErrorDialog(false, error, lines)}
       />)
   };
   return renderErrorDialog;
 }
 
 
-export interface ErrorDialogProps {
+export interface ProgressDialogProps {
   open: boolean;
+  error: boolean;
   lines: ANSIOutputLine[];
   onClose: VoidFunction;
 }
 
-export function ErrorDialog(props: ErrorDialogProps) {
+export function ProgressDialog(props: ProgressDialogProps) {
   
   const titleId = useId('title');
 

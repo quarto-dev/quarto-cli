@@ -17,7 +17,6 @@
 import { initializeFluent } from './ui/fluent';
 
 import { connectToServer } from './server/connection';
-import { logHandler } from './server/log';
 import { navigationHandler } from './server/navigation';
 import { progressHandler } from './server/progress';
 
@@ -41,7 +40,6 @@ function init(options: Options) {
 
     // server connection
     const disconnect = connectToServer([
-      logHandler(),
       progressHandler(),
       navigationHandler()
     ]);
