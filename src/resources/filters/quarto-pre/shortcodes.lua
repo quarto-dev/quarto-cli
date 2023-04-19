@@ -11,7 +11,7 @@ _quarto.ast.add_handler({
   kind = "Inline",
 
   parse = function(span)
-    local inner_content = {}
+    local inner_content = pandoc.List({})
 
     local shortcode_content = span.content:map(function(el)
       if not el.classes:includes("quarto-shortcode__-param") then
@@ -24,7 +24,7 @@ _quarto.ast.add_handler({
       local custom_data, t, kind = _quarto.ast.resolve_custom_data(el)
       if custom_data ~= nil then
         local inner_index = #inner_content+1
-        inner_content[inner_index] = custom_data
+        inner_content:insert(custom_data)
         return {
           type = "shortcode",
           value = inner_index
@@ -47,7 +47,7 @@ _quarto.ast.add_handler({
           -- it's a recursive value
           value = el.content[1]
           local inner_index = #inner_content+1
-          inner_content[inner_index] = value
+          inner_content:insert(value)
           return {
             type = "key-value-shortcode",
             key = key,
@@ -73,7 +73,9 @@ _quarto.ast.add_handler({
     end
 
     local node = _quarto.ast.create_custom_node_scaffold("Shortcode", "Inline")
-    node.content = inner_content
+    node.content = inner_content:map(function(el) 
+      return pandoc.Span({el}) 
+    end)
     local tbl = {
       __quarto_custom_node = node,
       name = name,
@@ -91,44 +93,43 @@ _quarto.ast.add_handler({
   constructor = function(tbl)
     return tbl
   end,
-
-  inner_content = function(node)
-    local result = {}
-    if node.name.type == "shortcode" then
-      result.name = node.name
-    end
-    for i, v in ipairs(node.params) do
-      if v.type == "key-value-shortcode" then
-        result[i] = v.value
-      end
-    end
-    return result
-  end,
-
-  set_inner_content = function(node, new_content)
-    if new_content.name ~= nil then
-      node.name = new_content.name
-    end
-    for i, v in ipairs(node.params) do
-      if new_content[i] ~= nil then
-        node.params[i].value = new_content[i]
-        if type(new_content[i]) == "string" then
-          node.params[i].type = "key-value"
-        else
-          -- we should really validate here...
-          node.params[i].type = "key-value-shortcode"
-        end
-      end
-    end
-  end
 })
 
-local function handle_shortcode(shortcode_tbl)
+local function handle_shortcode(shortcode_tbl, node)
   local name
   if type(shortcode_tbl.name) ~= "string" then
-    -- this is a recursive shortcode call
-    name = handle_shortcode(shortcode_tbl.name)
+    -- this is a recursive shortcode call,
+    -- name is a number that indexes into the node's content
+    -- to get the shortcode node to call.
 
+    -- typically, shortcodes are resolved in a typewise traversal
+    -- which is bottom up, so we should be seeing resolved shortcode
+    -- content here. But in unusual cases, we might be calling
+    -- this function outside of a filter, in which case
+    -- we need to handle this explicitly
+
+    if type(shortcode_tbl.name) ~= "number" then
+      error("Unexpected shortcode name type")
+      quarto.log.output(shortcode_tbl.name)
+      crash_with_stack_trace()
+    end
+
+    local shortcode_node = node.content[shortcode_tbl.name]
+    -- are we already resolved?
+    for i, v in ipairs(shortcode_node.content) do
+      local custom_data, t, kind = _quarto.ast.resolve_custom_data(v)
+      if custom_data ~= nil then
+        if t ~= "Shortcode" then
+          error("Unexpected shortcode content type")
+          quarto.log.output(t)
+          crash_with_stack_trace()
+        end
+        -- we are not resolved, so resolve
+        shortcode_node.content[i] = handle_shortcode(custom_data, v)
+      end
+    end
+
+    name = pandoc.utils.stringify(shortcode_node)
     -- TODO check that this returns a string as it should
   else 
     name = shortcode_tbl.name
@@ -146,7 +147,20 @@ local function handle_shortcode(shortcode_tbl)
       table.insert(args, { name = v.key, value = result })
       table.insert(raw_args, result)
     elseif v.type == "shortcode" then
-      local result = handle_shortcode(v.value)
+      local shortcode_node = node.content[v.value]
+      local custom_data, t, kind = _quarto.ast.resolve_custom_data(shortcode_node)
+      local result
+      if custom_data == nil then
+        result = pandoc.utils.stringify(shortcode_node)
+      elseif t ~= "Shortcode" then
+        error("Unexpected shortcode content type")
+        quarto.log.output(custom_data)
+        quarto.log.output(t)
+        crash_with_stack_trace()
+      else
+        local result = handle_shortcode(custom_data, shortcode_node)
+        result = pandoc.utils.stringify(result)
+      end
       table.insert(args, { value = result })
       table.insert(raw_args, result)
     elseif v.type == "param" then
@@ -206,12 +220,12 @@ function shortcodes_filter()
     if t ~= "Shortcode" then
       return nil
     end
-    local result, struct = handle_shortcode(custom_data)
+    local result, struct = handle_shortcode(custom_data, node)
     return shortcodeResultAsBlocks(result, struct.name)
   end
 
-  local inline_handler = function(custom_data)
-    local result, struct = handle_shortcode(custom_data)
+  local inline_handler = function(custom_data, node)
+    local result, struct = handle_shortcode(custom_data, node)
     return shortcodeResultAsInlines(result, struct.name)
   end
 
