@@ -46,9 +46,7 @@ export function ProgressDialog(props: ProgressDialogProps) {
 
   useEffect(() => {
     outputEndRef.current?.scrollIntoView()
-  }, [props.lines]);
-
-  
+  }, [props.lines, props.error]);
 
   return (<Modal
     styles={{main: !props.error ? {height: 400} : { minHeight: 400, maxHeight: "80vh", height: "auto"}}}
@@ -57,10 +55,12 @@ export function ProgressDialog(props: ProgressDialogProps) {
     isDarkOverlay={false}
     onDismiss={props.onClose}
     containerClassName={contentStyles.container}
-    
     scrollableContentClassName={contentStyles.scrollableContent}
   >
-    <div className={contentStyles.header} style={{borderColor: props.error ? theme.palette.orangeLight : theme.palette.themePrimary }}>
+    <div 
+      className={contentStyles.header} 
+      style={{borderColor: props.error ? theme.palette.orangeLight : theme.palette.themePrimary }}
+    >
       <h2 className={contentStyles.heading} id={titleId}>
         {props.error ? "Error" : "Render"}
       </h2>
