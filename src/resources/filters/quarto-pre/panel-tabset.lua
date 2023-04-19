@@ -119,11 +119,75 @@ _quarto.ast.add_handler({
   kind = "Block",
 
   constructor = function(params)
-    return {
+    local node = _quarto.ast.create_custom_node_scaffold("Tabset", "Block")
+
+    local custom_data = {
       level = params.level or 2,
-      tabs = params.tabs or pandoc.List(),
       attr = params.attr or pandoc.Attr(),
     }
+
+    local function make_tab_metaobject(custom_data, index)
+      local forwarder = {
+        content = 2 * index - 1,
+        title = 2 * index
+      }
+      local result = {}
+      setmetatable(result, _quarto.ast.create_proxy_metatable(
+        function(key) return forwarder[key] end,
+        function(_) return custom_data["_quarto_custom_node"] end
+      ))
+      return result
+    end
+
+    local function make_tabs_metaobject(node)
+      local result = {}
+      setmetatable(result, {
+        __len = function(t)
+          return #node["__quarto_custom_node"].content
+        end,
+        __index = function(t, k)
+          if type(k) ~= "number" then
+            return rawget(t, k)
+          end
+          return make_tab_metaobject(t, k)
+        end,
+        __newindex = function(t, k, v)
+          if type(k) ~= "number" then
+            rawset(t, k, v)
+            return
+          end
+          local tab = make_tab_metaobject(t, k)
+          for key, value in pairs(v) do
+            tab[key] = value
+          end
+        end
+      })
+      return result
+    end
+
+    setmetatable(custom_data, {
+      __index = function(t, k)
+        if k ~= "tabs" then
+          return rawget(t, k)
+        end
+        local node = t["__quarto_custom_node"]
+        return make_tabs_metaobject(node)
+      end,
+      __newindex = function(t, k, v)
+        if k ~= "tabs" then
+          rawset(t, k, v)
+          return
+        end
+        local node = t["__quarto_custom_node"]
+        local tabs = make_tabs_metaobject(node)
+        for key, value in pairs(v) do
+          tabs[key] = value
+        end
+      end
+    })
+    custom_data.tabs = params.tabs or pandoc.List()
+
+    return custom_data, false
   end,
 
   -- a function that takes the div node as supplied in user markdown
@@ -152,31 +216,31 @@ _quarto.ast.add_handler({
     end  
   end,
 
-  -- a function that takes the extended node and
-  -- returns a table with walkable attributes (pandoc nodes, Inlines, Blocks)
-  -- that represent inner content that should
-  -- be visible to filters.
-  inner_content = function(extended_node)
-    local result = {}
+  -- -- a function that takes the extended node and
+  -- -- returns a table with walkable attributes (pandoc nodes, Inlines, Blocks)
+  -- -- that represent inner content that should
+  -- -- be visible to filters.
+  -- inner_content = function(extended_node)
+  --   local result = {}
 
-    for i=1,#extended_node.tabs do
-      result[i * 2 - 1] = extended_node.tabs[i].content
-      result[i * 2] = extended_node.tabs[i].title
-    end
-    return result
-  end,
+  --   for i=1,#extended_node.tabs do
+  --     result[i * 2 - 1] = extended_node.tabs[i].content
+  --     result[i * 2] = extended_node.tabs[i].title
+  --   end
+  --   return result
+  -- end,
 
-  -- a function that updates the extended node
-  -- with new inner content (as returned by filters)
-  -- table keys are a subset of those returned by inner_content
-  -- and represent changed values that need to be updated.    
-  set_inner_content = function(extended_node, values)
-    for k, v in pairs(values) do
-      local tab = ((k - 1) // 2) + 1
-      local key = ((k % 2 == 0) and "title") or "content"
-      extended_node.tabs[tab][key] = v
-    end
-  end
+  -- -- a function that updates the extended node
+  -- -- with new inner content (as returned by filters)
+  -- -- table keys are a subset of those returned by inner_content
+  -- -- and represent changed values that need to be updated.    
+  -- set_inner_content = function(extended_node, values)
+  --   for k, v in pairs(values) do
+  --     local tab = ((k - 1) // 2) + 1
+  --     local key = ((k % 2 == 0) and "title") or "content"
+  --     extended_node.tabs[tab][key] = v
+  --   end
+  -- end
 })
 
 -- function tabsetDiv(div, renderer)

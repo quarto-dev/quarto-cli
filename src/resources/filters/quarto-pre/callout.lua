@@ -40,7 +40,7 @@ _quarto.ast.add_handler({
     div.attr.attributes["collapse"] = nil
     div.attr.attributes["icon"] = nil
     local callout_type = calloutType(div)
-    div.attr.classes = div.attr.classes:filter(function(class) return not isCallout(class) end)    
+    div.attr.classes = div.attr.classes:filter(function(class) return not isCallout(class) end)
     return quarto.Callout({
       appearance = appearanceRaw,
       title = title,
@@ -52,10 +52,12 @@ _quarto.ast.add_handler({
     })
   end,
 
-  forwarder = {
-    title = 1,
-    content = 2
-  },
+  -- These fields will be stored in the extended ast node
+  -- and available in the object passed to the custom filters
+  -- They must store Pandoc AST data. "Inline" custom nodes
+  -- can store Inlines in these fields, "Block" custom nodes
+  -- can store Blocks (and hence also Inlines implicitly).
+  slots = { "title", "content" },
 
   -- a function that renders the extendedNode into output
   render = function(node)
@@ -72,30 +74,6 @@ _quarto.ast.add_handler({
       return epubCallout(node)
     else
       return simpleCallout(node)
-    end
-  end,
-
-  -- a function that takes the extended node and
-  -- returns a table with table-valued attributes
-  -- that represent inner content that should
-  -- be visible to filters.
-  inner_content = function(extended_node)
-    return {
-      content = extended_node.content,
-      title = extended_node.title
-    }
-  end,
-
-  -- a function that updates the extended node
-  -- with new inner content (as returned by filters)
-  -- table keys are a subset of those returned by inner_content
-  -- and represent changed values that need to be updated.    
-  set_inner_content = function(extended_node, values)
-    if values.title then
-      extended_node.title = values.title
-    end
-    if values.content then
-      extended_node.content = values.content
     end
   end,
 

@@ -11,6 +11,8 @@ _quarto.ast.add_handler({
   kind = "Inline",
 
   parse = function(span)
+    local inner_content = {}
+
     local shortcode_content = span.content:map(function(el)
       if not el.classes:includes("quarto-shortcode__-param") then
         error("Unexpected span in a shortcode parse")
@@ -21,9 +23,11 @@ _quarto.ast.add_handler({
       -- is it a recursive shortcode?
       local custom_data, t, kind = _quarto.ast.resolve_custom_data(el)
       if custom_data ~= nil then
+        local inner_index = #inner_content+1
+        inner_content[inner_index] = custom_data
         return {
           type = "shortcode",
-          value = custom_data
+          value = inner_index
         }
       end
 
@@ -42,10 +46,12 @@ _quarto.ast.add_handler({
         if value == nil then
           -- it's a recursive value
           value = el.content[1]
+          local inner_index = #inner_content+1
+          inner_content[inner_index] = value
           return {
             type = "key-value-shortcode",
             key = key,
-            value = value
+            value = inner_index
           }
         else
           -- it's a plain value
@@ -65,10 +71,16 @@ _quarto.ast.add_handler({
     if name.type == "param" then
       name = name.value
     end
-    return quarto.Shortcode({
+
+    local node = _quarto.ast.create_custom_node_scaffold("Shortcode", "Inline")
+    node.content = inner_content
+    local tbl = {
+      __quarto_custom_node = node,
       name = name,
       params = shortcode_content
-    })
+    }
+    
+    return quarto.Shortcode(node, false)
   end,
 
   render = function(node)
