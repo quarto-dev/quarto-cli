@@ -51,12 +51,25 @@ export function progressHandler() {
   };
 
   // start rendering
-  const renderStart = () => {
+  const renderStart = (lastRenderTime?: number) => {
+    // core state for new render
     state.rendering = true;
-    state.dialog = true;
     state.error = false;
     state.output = new ANSIOutput()
     state.lines = [];
+
+    // show dialog now if we expect a slow render, otherwise wait 2 seconds
+    const kRenderProgressThreshold = 2000;
+    if (lastRenderTime === undefined || lastRenderTime > kRenderProgressThreshold) {
+      state.dialog = true;
+    } else {
+      setTimeout(() => {
+        state.dialog = true;
+        renderProgress();
+      }, kRenderProgressThreshold);
+    }
+
+    // update ui (could just be the progress bar if there is no dialog)
     renderProgress();
   }
 
@@ -99,7 +112,7 @@ export function progressHandler() {
     if (ev.data.startsWith('render:'))  {
       const [_,action,data] = ev.data.split(":");
       if (action === "start") {
-        renderStart();
+        renderStart(parseInt(data));
       } else if (action === "stop") {
         renderStop(data === "true");
       }
