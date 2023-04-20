@@ -115,21 +115,21 @@ const getStyles = (theme: Theme, darkMode: boolean) => {
       flexFlow: 'column nowrap',
       alignItems: 'stretch',
       position: 'fixed',
-      top: 60,
+      top: 40,
       width: 1000,
       maxWidth: "calc(100% - 100px)",
       maxHeight: "calc(100% - 120px)",
       boxShadow: theme.effects.elevation8
     },
     header: [
-      theme.fonts.xLarge,
+      theme.fonts.mediumPlus,
       {
         borderTop: `1px solid ${theme.palette.neutralLight}`,
         color: theme.palette.neutralPrimary,
         display: 'flex',
         alignItems: 'center',
         fontWeight: FontWeights.semibold,
-        padding: '12px 12px 14px 24px',
+        padding: '8px 6px 8px 12px',
       },
     ],
     heading: {
@@ -141,7 +141,7 @@ const getStyles = (theme: Theme, darkMode: boolean) => {
     body: {
       border: `2px solid ${darkMode ? "#434343" : theme.semanticColors.variantBorder}`,
       flex: '1 1 auto',
-      margin: '0 24px 24px 24px',
+      margin: '0 12px 12px 12px',
       padding: 8,
       overflowY: 'scroll',
       
@@ -159,6 +159,8 @@ const getStyles = (theme: Theme, darkMode: boolean) => {
       marginLeft: 'auto',
       marginTop: '4px',
       marginRight: '2px',
+      height: '24px',
+      width: '24px'
     },
     rootHovered: {
       color: theme.palette.neutralDark,
@@ -169,7 +171,9 @@ const getStyles = (theme: Theme, darkMode: boolean) => {
     root: {
       backgroundColor: theme.semanticColors.defaultStateBackground,
       marginLeft: 'auto',
-      marginRight: '12px'
+      marginRight: '8px',
+      height: '24px',
+      padding: '0 8px'
     }
   }
 
