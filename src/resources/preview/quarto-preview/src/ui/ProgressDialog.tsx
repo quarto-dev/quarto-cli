@@ -51,7 +51,7 @@ export function ProgressDialog(props: ProgressDialogProps) {
   }, [props.lines, props.error]);
 
   return (<Modal
-    styles={{main: !props.error ? {height: 400 } : { minHeight: 400, maxHeight: "80vh", height: "auto" }}}
+    styles={{main: !props.error ? {height: 400 } : { minHeight: 400, height: "auto" }}}
     titleAriaId={titleId}
     isOpen={props.open}
     isDarkOverlay={false}
@@ -101,9 +101,10 @@ const contentStyles = mergeStyleSets({
     flexFlow: 'column nowrap',
     alignItems: 'stretch',
     position: 'fixed',
-    top: 80,
+    top: 60,
     width: 1000,
-    maxWidth: "calc(100% - 100px)"
+    maxWidth: "calc(100% - 100px)",
+    maxHeight: "calc(100% - 120px)"
   },
   header: [
     theme.fonts.xLarge,
