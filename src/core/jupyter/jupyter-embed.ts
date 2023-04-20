@@ -279,7 +279,7 @@ async function notebookMarkdown(
   ) => {
     const markdown = [
       "",
-      `:::{notebook="${nbAddress.path}" ${
+      `:::{.quarto-embed-nb-cell notebook="${nbAddress.path}" ${
         title ? `notebook-title="${title}"` : ""
       }}`,
     ];
