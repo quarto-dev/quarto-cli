@@ -9,10 +9,10 @@
 -- </div>
 
 local function codeBlockWithFilename(el, filename)
-  return pandoc.Plain(quarto.DecoratedCodeBlock({
+  return quarto.DecoratedCodeBlock({
     filename = filename,
     code_block = el:clone()
-  }))
+  })
   -- if _quarto.format.isHtmlOutput() then
   --   local filenameEl = pandoc.Div({pandoc.Plain{
   --     pandoc.RawInline("html", "<pre>"),
@@ -60,7 +60,8 @@ function codeFilename()
           if block.t == "CodeBlock" then
             foundFilename = true
             block.attributes["filename"] = nil
-            newBlocks:insert(codeBlockWithFilename(block, filename))
+            local code_block = codeBlockWithFilename(block, filename)
+            newBlocks:insert(code_block)
           elseif block.t == "Div" and block.content[1].t == "CodeBlock" then
             foundFilename = true
             block.attributes["filename"] = nil
