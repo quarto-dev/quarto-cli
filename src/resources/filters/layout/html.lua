@@ -204,7 +204,7 @@ function renderHtmlFigure(el, render)
   
   -- render caption
   if captionInlines and #captionInlines > 0 then
-    local figureCaption = pandoc.Para({})
+    local figureCaption = pandoc.Plain({})
     figureCaption.content:insert(pandoc.RawInline(
       "html", "<figcaption>"
     ))

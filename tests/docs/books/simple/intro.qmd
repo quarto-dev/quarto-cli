@@ -2,4 +2,6 @@
 
 This is a book created from markdown and executable code.
 
+{{< embed notebooks/computations.ipynb#fig-visualization >}}
+
 See @knuth84 for additional discussion of literate programming.
