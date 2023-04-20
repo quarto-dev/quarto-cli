@@ -27,12 +27,13 @@ export const ProgressBar: React.FC<ProgressBarProps> = (props) => {
     position: "fixed",
     top: 0,
     left: 0,
-    right: 0,
-    visibility: props.visible ? 'visible' : 'hidden'
+    right: 0
   };
 
   return (
-    <ProgressIndicator barHeight={2} styles={{ root: styles }} />
+    <>
+    {props.visible ? <ProgressIndicator barHeight={2} styles={{ root: styles }} /> : null}
+    </>
   );
 }
 
