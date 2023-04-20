@@ -51,7 +51,7 @@ local licenses = {
   },
 }
 
-function processLicense(el, meta) 
+local function processLicense(el, meta) 
   if pandoc.utils.type(el) == "Inlines" then
     local licenseStr = pandoc.utils.stringify(el)
     local license = licenses[licenseStr:lower()]
@@ -71,7 +71,7 @@ function processLicense(el, meta)
   end
 end
 
-function processCopyright(el) 
+local function processCopyright(el) 
   if pandoc.utils.type(el) == "Inlines" then
     return {
       statement = el
@@ -120,7 +120,7 @@ function processCopyright(el)
   end
 end
 
-function processLicenseMeta(meta)
+local function processLicenseMeta(meta)
   if meta then
     local licenseMeta = meta[kLicense]
     if licenseMeta then
