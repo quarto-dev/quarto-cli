@@ -175,7 +175,637 @@ local kAffiliationAliasedFields = {
 local kNumber = "number"
 local kLetter = "letter"
 
-function processAuthorMeta(meta)
+
+-- Remove Spaces from the ends of tables
+local function trimspace(tbl)
+  if #tbl > 0 then
+    if tbl[1].t == 'Space' then
+      tbl = tslice(tbl, 2)
+    end
+  end
+
+  if #tbl > 0 then
+    if tbl[#tbl].t == 'Space' then
+      tbl = tslice(tbl, #tbl -1)
+    end
+  end
+  return tbl
+end
+
+-- Deep Copy a table
+local function deepCopy(original)
+	local copy = {}
+	for k, v in pairs(original) do
+		if type(v) == "table" then 
+			v = deepCopy(v)
+		end
+		copy[k] = v
+	end
+	return copy
+end
+
+-- Finds a matching affiliation by looking through a list
+-- of affiliations (ignoring the id)
+local function findMatchingAffililation(affiliation, affiliations)
+  for i, existingAffiliation in ipairs(affiliations) do
+
+    -- an affiliation matches if the fields other than id
+    -- are identical
+    local matches = true
+    for j, field in ipairs(kAffiliationFields) do
+      if field ~= kId and matches then
+        matches = affiliation[field] == existingAffiliation[field]
+      end
+    end
+
+    -- This affiliation matches, return it
+    if matches then
+      return existingAffiliation
+    end
+  end
+  return nil
+end
+
+-- Add an affiliation to the list of affiliations if needed
+-- and return either the exist affiliation, or the newly
+-- added affiliation with a proper id
+local function maybeAddAffiliation(affiliation, affiliations)
+  local existingAff = findMatchingAffililation(affiliation, affiliations)
+  if existingAff == nil then
+    local affiliationNumber = #affiliations + 1
+    local affiliationId = 'aff-' .. affiliationNumber
+    if affiliation[kId] == nil then
+      affiliation[kId] = { pandoc.Str(affiliationId) }
+    end
+    affiliations[affiliationNumber] = affiliation
+    return affiliation
+  else
+    return existingAff
+  end
+end
+
+local function validateRefs(authors, affiliations)
+  -- iterate through affiliations and ensure that anything
+  -- referenced by an author has a peer affiliation
+
+  -- get the list of affiliation ids
+  local affilIds = {}
+  if affiliations then
+    for i,affiliation in ipairs(affiliations) do
+      affilIds[#affilIds + 1] = affiliation[kId]
+    end
+  end
+
+  -- go through each author and their affiliations and 
+  -- ensure that they are in the list
+  for i,author in ipairs(authors) do
+    if author[kAffiliations] then
+      for i,affiliation in ipairs(author[kAffiliations]) do
+        if not tcontains(affilIds, affiliation[kRef]) then
+          error("Undefined affiliation '" .. pandoc.utils.stringify(affiliation[kRef]) .. "' for author '" .. pandoc.utils.stringify(author[kName][kLiteralName]) .. "'.")
+          os.exit(1)
+        end
+      end
+    end
+  end
+end
+
+-- Finds a matching author by author id
+local function findAuthor(id, authors)
+  for i, author in ipairs(authors) do
+    if pandoc.utils.stringify(author[kId]) == id then
+      return author
+    end
+  end
+  return nil
+end
+
+-- Finds a matching affiliation by id
+local function findAffiliation(id, affiliations)
+  for i, affiliation in ipairs(affiliations) do
+    if affiliation[kId][1].text == id[1].text then
+      return affiliation
+    end
+  end
+  return nil
+end
+
+-- Normalizes an affilation object into the properly
+-- structured form
+local function processAffilationObj(affiliation)
+  local affiliationNormalized = {}
+  affiliationNormalized[kMetadata] = {}
+
+
+  for affilKey, affilVal in pairs(affiliation) do
+    if (tcontains(tkeys(kAffiliationAliasedFields), affilKey)) then
+      affiliationNormalized[kAffiliationAliasedFields[affilKey]] = affilVal
+    elseif tcontains(kAffiliationFields, affilKey) then
+      affiliationNormalized[affilKey] = affilVal
+    else
+      affiliationNormalized[kMetadata][affilKey] = affilVal
+    end
+  end
+
+  return affiliationNormalized;
+end
+
+local kBibtexNameTemplate = [[
+@misc{x,
+  author = {%s}
+}
+]]
+
+--- Returns a CSLJSON-like name table. BibTeX knows how to parse names,
+--- so we leverage that.
+local function bibtexParseName(nameRaw)
+  local bibtex = kBibtexNameTemplate:format(pandoc.utils.stringify(nameRaw))
+  local references = pandoc.read(bibtex, 'bibtex').meta.references
+  if references then
+    local reference = references[1] --[[@as table<string,any>]]
+    if reference then
+      local authors = reference.author
+      if authors then
+        local name = authors[1]
+        if type(name) ~= 'table' then
+          return nameRaw
+        else
+          -- most dropping particles are really non-dropping
+          if name['dropping-particle'] and not name['non-dropping-particle'] then
+            name['non-dropping-particle'] = name['dropping-particle']
+            name['dropping-particle'] = nil
+          end
+          return name
+        end
+      else
+        return nameRaw
+      end
+    else
+      return nameRaw
+    end
+  else
+    return nameRaw
+  end
+end
+
+-- normalizes a name value by parsing it into
+-- family and given names
+local function normalizeName(name)
+  -- no literal name, create one
+  if name[kLiteralName] == nil then
+    if name[kFamilyName] and name[kGivenName] then
+      name[kLiteralName] = {}
+      tappend(name[kLiteralName], name[kGivenName])
+      tappend(name[kLiteralName], {pandoc.Space()})
+      tappend(name[kLiteralName], name[kFamilyName])
+    end
+  end
+
+  -- no family or given name, parse the literal and create one
+  if name[kFamilyName] == nil or name[kGivenName] == nil then
+    if name[kLiteralName] then
+      local parsedName = bibtexParseName(name)
+      if type(parsedName) == 'table' then
+        if parsedName.given ~= nil then
+          name[kGivenName] = {pandoc.Str(parsedName.given)}
+        end
+        if parsedName.family ~= nil then
+          name[kFamilyName] = {pandoc.Str(parsedName.family)}
+        end
+        if name[kDroppingParticle] ~= nil then
+          name[kDroppingParticle] = parsedName[kDroppingParticle]
+        end
+        if name[kNonDroppingParticle] ~= nil then
+          name[kNonDroppingParticle] = parsedName[kNonDroppingParticle]
+        end
+      else
+        if #name[kLiteralName] > 1 then
+          -- bibtex parsing failed, just split on space
+          name[kGivenName] = name[kLiteralName][1]
+          name[kFamilyName] = trimspace(tslice(name[kLiteralName], 2))
+        elseif name[kLiteralName] then
+          -- what is this thing, just make it family name
+          name[kFamilyName] = name[kLiteralName]
+        end
+      end
+    end
+  end
+  return name
+end
+
+-- Converts name elements into a structured name
+local function toName(nameParts)
+  if not tisarray(nameParts) then
+    -- If the name is a table (e.g. already a complex object)
+    -- just pick out the allowed fields and forward
+    local name = {}
+    for i,v in ipairs(kNameFields) do
+      if nameParts[v] ~= nil then
+        name[v] = nameParts[v]
+      end
+    end
+
+    return normalizeName(name)
+  else
+    if #nameParts == 0 then
+      return {}
+    else
+      return normalizeName({[kLiteralName] = nameParts})
+    end
+  end
+end
+
+-- Normalizes a value that could be either a plain old markdown string,
+-- a name, or an affiliation
+local function processNameOrInstitutionObj(keyName, valueRaw, authors, affiliations)
+  if (pandoc.utils.type(valueRaw) == 'Inlines') then
+    return { text = valueRaw }
+  else
+    if valueRaw.name ~= nil then
+      return { name = toName(valueRaw.name) }
+    elseif valueRaw.institution ~= nil then
+      return { institition = processAffilationObj(valueRaw.institution) }
+    elseif valueRaw.ref ~= nil then
+      local refStr = pandoc.utils.stringify(valueRaw.ref)
+
+      -- discover the reference (could be author or affiliation)
+      local affiliation = findAffiliation({{ text = refStr }}, affiliations)
+      if affiliation then
+        return { institition = affiliation }
+      else
+        local author = findAuthor(refStr, authors)
+        if author then
+          return { [kName] = author[kName] }
+        else
+          error("Invalid funding ref " .. refStr)
+          os.exit(1)
+        end
+      end
+    else
+      error("Invalid value for " .. keyName)
+      os.exit(1)
+    end
+  end
+end
+
+local function processNameOrInstitution(keyName, values, authors, affiliations) 
+  if values ~= nil then
+    local pandocType = pandoc.utils.type(values)
+    if pandocType == "List" then
+      local results = pandoc.List()
+      for i, value in ipairs(values) do
+        results:insert(processNameOrInstitutionObj(keyName, value, authors, affiliations))
+      end
+      return results
+    else
+      return { processNameOrInstitutionObj(values, values, authors, affiliations) }
+    end
+  else 
+    return {}
+  end
+end
+
+local function processSources(sourceRaw)
+  local pandocType = pandoc.utils.type(sourceRaw)
+  if pandocType == 'Inlines' then
+    return {{ text = sourceRaw }}
+  else
+    local result = pandoc.List()
+    for i, value in ipairs(sourceRaw) do
+      if pandoc.utils.type(value) == 'Inlines' then
+        result:insert({ text = value})
+      else
+        result:insert(value)
+      end
+    end
+    return result
+  end
+end
+
+-- Normalizes an indivudal funding entry
+local function processFundingAward(fundingAward, authors, affiliations)
+  if pandoc.utils.type(fundingAward) == 'table' then
+    
+    -- this is a table of properties, process them
+    local result = {}
+
+    -- process the simple values
+    for i, key in ipairs({ kAwardId, kStatement, kOpenAccess }) do
+      local valueRaw = fundingAward[key]
+      if valueRaw ~= nil then
+        result[key] = valueRaw
+      end
+    end
+
+    -- Process the funding source
+    local sourceRaw = fundingAward[kSource]
+    if sourceRaw ~= nil then
+      result[kSource] = processSources(sourceRaw)     
+    end
+
+    -- Process recipients
+    local recipientRaw = fundingAward[kRecipient]
+    if recipientRaw ~= nil then
+      result[kRecipient] = processNameOrInstitution(kRecipient, recipientRaw, authors, affiliations)
+    end
+
+    local investigatorRaw = fundingAward[kInvestigator]
+    if investigatorRaw ~= nil then
+      result[kInvestigator] = processNameOrInstitution(kInvestigator, investigatorRaw, authors, affiliations)
+    end
+
+    return result
+  else
+    
+    -- this is a simple string / inlines, just 
+    -- use it as the source
+    return {
+      [kStatement] = fundingAward
+    }
+  end
+end
+
+-- Replaces an affiliation reference with a different id
+-- (for example, if a reference to an affiliation is collapsed into a single
+-- entry with a single id)
+local function remapAuthorAffiliations(fromId, toId, authors)
+  for i, author in ipairs(authors) do
+    for j, affiliation in ipairs(author[kAffiliations]) do
+      local existingRefId = affiliation[kRef]
+      if existingRefId == fromId then
+        affiliation[kRef] = toId
+      end
+     end
+  end
+end
+
+-- Sets an attribute, initializeing the table if
+-- is not yet defined
+local function setAttribute(author, attribute)
+  if not author[kAttributes] then
+    author[kAttributes] = pandoc.MetaMap({})
+  end
+
+  local attrStr = pandoc.utils.stringify(attribute)
+  -- Don't duplicate attributes
+  if not author[kAttributes][attrStr] then
+    author[kAttributes][attrStr] = pandoc.Str('true')
+  end
+end
+
+-- Process attributes onto an author
+-- attributes may be a simple string, a list of strings
+-- or a dictionary
+local function processAttributes(author, attributes)
+  if tisarray(attributes) then
+    -- process attributes as an array of values
+    for i,v in ipairs(attributes) do
+      if v then
+        if v.t == "Str" then
+          setAttribute(author, v)
+        else
+          for j, attr in ipairs(v) do
+            setAttribute(author, attr)
+          end
+        end
+      end
+    end
+  else
+    -- process attributes as a dictionary
+    for k,v in pairs(attributes) do
+      if v then
+        setAttribute(author, pandoc.Str(k))
+      end
+    end
+  end
+end
+
+-- Process an author note (including numbering it)
+local noteNumber = 1
+local function processAuthorNote(author, note)
+  author[kNote] = {
+    number=noteNumber,
+    text=note
+  }
+  noteNumber = noteNumber + 1
+end
+
+-- Sets a metadata value, initializing the table if
+-- it not yet defined
+local function setMetadata(author, key, value)
+  author[kMetadata][key] = value
+end
+
+local function setAffiliation(author, affiliation)
+  if not author[kAffiliations] then
+    author[kAffiliations] = {}
+  end
+  author[kAffiliations][#author[kAffiliations] + 1] = affiliation
+end
+
+local function byAuthors(authors, affiliations)
+  local denormalizedAuthors = deepCopy(authors)
+
+  if denormalizedAuthors then
+    for i, author in ipairs(denormalizedAuthors) do
+      denormalizedAuthors[kNumber] = i
+      local authorAffiliations = author[kAffiliations]
+      if authorAffiliations then
+        for j, affilRef in ipairs(authorAffiliations) do
+          local id = affilRef[kRef]
+          author[kAffiliations][j] = findAffiliation(id, affiliations)
+        end
+      end
+    end
+  end
+  return denormalizedAuthors
+end
+
+-- Finds a matching author by affiliation id
+local function findAffiliationAuthors(id, authors)
+  local matchingAuthors = {}
+  for i, author in ipairs(authors) do
+    local authorAffils = author[kAffiliations]
+    if authorAffils then
+      for j, authorAffil in ipairs(authorAffils) do
+        if authorAffil[kRef][1].text == id[1].text then
+          matchingAuthors[#matchingAuthors + 1] = author
+        end
+      end
+    end
+  end
+  return matchingAuthors
+end
+
+local function byAffiliations(authors, affiliations)
+  local denormalizedAffiliations = deepCopy(affiliations)
+  for i, affiliation in ipairs(denormalizedAffiliations) do
+    local affilAuthor = findAffiliationAuthors(affiliation[kId], authors)
+    if affilAuthor then
+      affiliation[kAuthors] = affilAuthor
+    end
+  end
+  return denormalizedAffiliations
+end
+
+-- Resolve labels for elements into metadata
+local function computeLabels(authors, affiliations, meta)
+  local language = param("language", nil);
+
+  if not _quarto.format.isAstOutput() then
+    meta[kLabels] = {
+      [kAuthorLbl] = {pandoc.Str("Authors")},
+      [kAffiliationLbl] = {pandoc.Str("Affiliations")}
+    }
+    if #authors == 1 then
+      meta[kLabels][kAuthorLbl] = {pandoc.Str(language["title-block-author-single"])}
+    else
+      meta[kLabels][kAuthorLbl] = {pandoc.Str(language["title-block-author-plural"])}
+    end
+    if meta[kAuthorTitle] then
+      meta[kLabels][kAuthors] = meta[kAuthorTitle]
+    end
+
+    if #affiliations == 1 then
+      meta[kLabels][kAffiliationLbl] = {pandoc.Str(language["title-block-affiliation-single"])}
+    else
+      meta[kLabels][kAffiliationLbl] = {pandoc.Str(language["title-block-affiliation-plural"])}
+    end
+    if meta[kAffiliationTitle] then
+      meta[kLabels][kAffiliationLbl] = meta[kAffiliationTitle]
+    end
+
+    meta[kLabels][kPublishedLbl] = {pandoc.Str(language["title-block-published"])}
+    if meta[kPublishedTitle] then
+      meta[kLabels][kPublishedLbl] = meta[kPublishedTitle]
+    end
+
+    meta[kLabels][kModifiedLbl] = {pandoc.Str(language["title-block-modified"])}
+    if meta[kModifiedTitle] then
+      meta[kLabels][kModifiedLbl] = meta[kModifiedTitle]
+    end
+
+    meta[kLabels][kDoiLbl] = {pandoc.Str("Doi")}
+    if meta[kDoiTitle] then
+      meta[kLabels][kDoiLbl] = meta[kDoiTitle]
+    end
+
+    meta[kLabels][kAbstractLbl] = {pandoc.Str(language["section-title-abstract"])}
+    if meta[kAbstractTitle] then
+      meta[kLabels][kAbstractLbl] = meta[kAbstractTitle]
+    end
+
+    meta[kLabels][kDescriptionLbl] = {pandoc.Str(language["listing-page-field-description"])}
+    if meta[kDescriptionTitle] then
+      meta[kLabels][kDescriptionLbl] = meta[kDescriptionTitle]
+    end
+  end
+
+  return meta
+end
+
+-- Get a letter for a number 
+local function letter(number)
+  number = number%26
+  return string.char(96 + number)
+end
+
+-- Processes an affiatiation into a normalized
+-- affilation
+local function processAffiliation(author, affiliation)
+  local affiliations = {}
+  local pandocType = pandoc.utils.type(affiliation)
+  if pandocType == 'Inlines' then
+    -- The affiliations is simple a set of inlines,  use
+    affiliations[#affiliations + 1] = processAffilationObj({ name=affiliation })
+  elseif pandocType == 'List' then
+    for i, v in ipairs(affiliation) do
+      if pandoc.utils.type(v) == 'Inlines' then
+        -- This item is just a set inlines, use that as the name
+        affiliations[#affiliations + 1] = processAffilationObj({ name=v })
+      else
+        local keys = tkeys(v)
+        if keys and #keys == 1 and keys[1] == kRef then
+          -- See if this is just an item with a 'ref', and if it is, just pass
+          -- it through on the author
+          if author then
+            setAffiliation(author, v)
+          end
+        else
+          -- This is a more complex affilation, process it
+          affiliations[#affiliations + 1] = processAffilationObj(v)
+        end
+      end
+    end
+  elseif pandocType == 'table' then
+    -- This is a more complex affilation, process it
+    affiliations[#affiliations + 1] = processAffilationObj(affiliation)
+  end
+
+  return affiliations
+end
+
+-- Processes an individual author into a normalized author
+-- and normalized set of affilations
+local function processAuthor(value)
+  -- initialize the author
+  local author = pandoc.MetaMap({})
+  author[kMetadata] = pandoc.MetaMap({})
+
+  -- initialize their affilations
+  local authorAffiliations = {}
+  local affiliationUrl = nil
+
+  if pandoc.utils.type(value) == 'Inlines' then
+    -- The value is simply an array, treat them as the author name
+    author.name = toName(value);
+  else
+    -- Process the field into the proper place in the author
+    -- structure
+    for authorKey, authorValue in pairs(value) do
+      if tcontains(kAuthorNameFields, authorKey) then
+        -- process any names
+        author[authorKey] = toName(authorValue)
+      elseif tcontains(kAuthorSimpleFields, authorKey) then
+        -- process simple fields
+        author[authorKey] = authorValue
+      elseif tcontains(kAuthorAttributeFields, authorKey) then
+        -- process a field into attributes (a field that appears)
+        -- directly under the author
+        if authorValue then
+          setAttribute(author, pandoc.Str(authorKey))
+        end
+      elseif authorKey == kAttributes then
+        -- process an explicit attributes key
+        processAttributes(author, authorValue)
+      elseif authorKey == kNote then
+        processAuthorNote(author, authorValue)
+      elseif tcontains(kAuthorAffiliationFields, authorKey) then
+        -- process affiliations that are specified in the author
+        authorAffiliations = processAffiliation(author, authorValue)
+      elseif authorKey == kAffiliationUrl then
+        affiliationUrl = authorValue
+      else
+        -- since we don't recognize this value, place it under
+        -- metadata to make it accessible to consumers of this 
+        -- data structure
+        setMetadata(author, authorKey, authorValue)
+      end
+    end
+  end
+
+  -- If there is an affiliation url, forward that along
+  if authorAffiliations and affiliationUrl then
+    authorAffiliations[1][kUrl] = affiliationUrl
+  end
+
+  return {
+    author=author,
+    affiliations=authorAffiliations
+  }
+end
+
+local function processAuthorMeta(meta)
   -- prevents the front matter for markdown from containing
   -- all the rendered author information that we generate
   if _quarto.format.isMarkdownOutput() then
@@ -339,641 +969,6 @@ function processAuthorMeta(meta)
 
   return meta
 end
-
--- Add an affiliation to the list of affiliations if needed
--- and return either the exist affiliation, or the newly
--- added affiliation with a proper id
-function maybeAddAffiliation(affiliation, affiliations)
-  local existingAff = findMatchingAffililation(affiliation, affiliations)
-  if existingAff == nil then
-    local affiliationNumber = #affiliations + 1
-    local affiliationId = 'aff-' .. affiliationNumber
-    if affiliation[kId] == nil then
-      affiliation[kId] = { pandoc.Str(affiliationId) }
-    end
-    affiliations[affiliationNumber] = affiliation
-    return affiliation
-  else
-    return existingAff
-  end
-end
-
-function validateRefs(authors, affiliations)
-  -- iterate through affiliations and ensure that anything
-  -- referenced by an author has a peer affiliation
-
-  -- get the list of affiliation ids
-  local affilIds = {}
-  if affiliations then
-    for i,affiliation in ipairs(affiliations) do
-      affilIds[#affilIds + 1] = affiliation[kId]
-    end
-  end
-
-  -- go through each author and their affiliations and 
-  -- ensure that they are in the list
-  for i,author in ipairs(authors) do
-    if author[kAffiliations] then
-      for i,affiliation in ipairs(author[kAffiliations]) do
-        if not tcontains(affilIds, affiliation[kRef]) then
-          error("Undefined affiliation '" .. pandoc.utils.stringify(affiliation[kRef]) .. "' for author '" .. pandoc.utils.stringify(author[kName][kLiteralName]) .. "'.")
-          os.exit(1)
-        end
-      end
-    end
-  end
-end
-
--- Processes an individual author into a normalized author
--- and normalized set of affilations
-function processAuthor(value)
-  -- initialize the author
-  local author = pandoc.MetaMap({})
-  author[kMetadata] = pandoc.MetaMap({})
-
-  -- initialize their affilations
-  local authorAffiliations = {}
-  local affiliationUrl = nil
-
-  if pandoc.utils.type(value) == 'Inlines' then
-    -- The value is simply an array, treat them as the author name
-    author.name = toName(value);
-  else
-    -- Process the field into the proper place in the author
-    -- structure
-    for authorKey, authorValue in pairs(value) do
-      if tcontains(kAuthorNameFields, authorKey) then
-        -- process any names
-        author[authorKey] = toName(authorValue)
-      elseif tcontains(kAuthorSimpleFields, authorKey) then
-        -- process simple fields
-        author[authorKey] = authorValue
-      elseif tcontains(kAuthorAttributeFields, authorKey) then
-        -- process a field into attributes (a field that appears)
-        -- directly under the author
-        if authorValue then
-          setAttribute(author, pandoc.Str(authorKey))
-        end
-      elseif authorKey == kAttributes then
-        -- process an explicit attributes key
-        processAttributes(author, authorValue)
-      elseif authorKey == kNote then
-        processAuthorNote(author, authorValue)
-      elseif tcontains(kAuthorAffiliationFields, authorKey) then
-        -- process affiliations that are specified in the author
-        authorAffiliations = processAffiliation(author, authorValue)
-      elseif authorKey == kAffiliationUrl then
-        affiliationUrl = authorValue
-      else
-        -- since we don't recognize this value, place it under
-        -- metadata to make it accessible to consumers of this 
-        -- data structure
-        setMetadata(author, authorKey, authorValue)
-      end
-    end
-  end
-
-  -- If there is an affiliation url, forward that along
-  if authorAffiliations and affiliationUrl then
-    authorAffiliations[1][kUrl] = affiliationUrl
-  end
-
-  return {
-    author=author,
-    affiliations=authorAffiliations
-  }
-end
-
--- Processes an affiatiation into a normalized
--- affilation
-function processAffiliation(author, affiliation)
-  local affiliations = {}
-  local pandocType = pandoc.utils.type(affiliation)
-  if pandocType == 'Inlines' then
-    -- The affiliations is simple a set of inlines,  use
-    affiliations[#affiliations + 1] = processAffilationObj({ name=affiliation })
-  elseif pandocType == 'List' then
-    for i, v in ipairs(affiliation) do
-      if pandoc.utils.type(v) == 'Inlines' then
-        -- This item is just a set inlines, use that as the name
-        affiliations[#affiliations + 1] = processAffilationObj({ name=v })
-      else
-        local keys = tkeys(v)
-        if keys and #keys == 1 and keys[1] == kRef then
-          -- See if this is just an item with a 'ref', and if it is, just pass
-          -- it through on the author
-          if author then
-            setAffiliation(author, v)
-          end
-        else
-          -- This is a more complex affilation, process it
-          affiliations[#affiliations + 1] = processAffilationObj(v)
-        end
-      end
-    end
-  elseif pandocType == 'table' then
-    -- This is a more complex affilation, process it
-    affiliations[#affiliations + 1] = processAffilationObj(affiliation)
-  end
-
-
-
-  return affiliations
-end
-
--- Normalizes an indivudal funding entry
-function processFundingAward(fundingAward, authors, affiliations)
-  if pandoc.utils.type(fundingAward) == 'table' then
-    
-    -- this is a table of properties, process them
-    local result = {}
-
-    -- process the simple values
-    for i, key in ipairs({ kAwardId, kStatement, kOpenAccess }) do
-      local valueRaw = fundingAward[key]
-      if valueRaw ~= nil then
-        result[key] = valueRaw
-      end
-    end
-
-    -- Process the funding source
-    local sourceRaw = fundingAward[kSource]
-    if sourceRaw ~= nil then
-      result[kSource] = processSources(sourceRaw)     
-    end
-
-    -- Process recipients
-    local recipientRaw = fundingAward[kRecipient]
-    if recipientRaw ~= nil then
-      result[kRecipient] = processNameOrInstitution(kRecipient, recipientRaw, authors, affiliations)
-    end
-
-    local investigatorRaw = fundingAward[kInvestigator]
-    if investigatorRaw ~= nil then
-      result[kInvestigator] = processNameOrInstitution(kInvestigator, investigatorRaw, authors, affiliations)
-    end
-
-    return result
-  else
-    
-    -- this is a simple string / inlines, just 
-    -- use it as the source
-    return {
-      [kStatement] = fundingAward
-    }
-  end
-end
-
-function processNameOrInstitution(keyName, values, authors, affiliations) 
-  if values ~= nil then
-    local pandocType = pandoc.utils.type(values)
-    if pandocType == "List" then
-      local results = pandoc.List()
-      for i, value in ipairs(values) do
-        results:insert(processNameOrInstitutionObj(keyName, value, authors, affiliations))
-      end
-      return results
-    else
-      return { processNameOrInstitutionObj(values, values, authors, affiliations) }
-    end
-  else 
-    return {}
-  end
-end
-
-
-function processSources(sourceRaw)
-  local pandocType = pandoc.utils.type(sourceRaw)
-  if pandocType == 'Inlines' then
-    return {{ text = sourceRaw }}
-  else
-    local result = pandoc.List()
-    for i, value in ipairs(sourceRaw) do
-      if pandoc.utils.type(value) == 'Inlines' then
-        result:insert({ text = value})
-      else
-        result:insert(value)
-      end
-    end
-    return result
-  end
-end
-
--- Normalizes a value that could be either a plain old markdown string,
--- a name, or an affiliation
-function processNameOrInstitutionObj(keyName, valueRaw, authors, affiliations)
-  if (pandoc.utils.type(valueRaw) == 'Inlines') then
-    return { text = valueRaw }
-  else
-    if valueRaw.name ~= nil then
-      return { name = toName(valueRaw.name) }
-    elseif valueRaw.institution ~= nil then
-      return { institition = processAffilationObj(valueRaw.institution) }
-    elseif valueRaw.ref ~= nil then
-      local refStr = pandoc.utils.stringify(valueRaw.ref)
-
-      -- discover the reference (could be author or affiliation)
-      local affiliation = findAffiliation({{ text = refStr }}, affiliations)
-      if affiliation then
-        return { institition = affiliation }
-      else
-        local author = findAuthor(refStr, authors)
-        if author then
-          return { [kName] = author[kName] }
-        else
-          error("Invalid funding ref " .. refStr)
-          os.exit(1)
-        end
-      end
-    else
-      error("Invalid value for " .. keyName)
-      os.exit(1)
-    end
-  end
-end
-
--- Normalizes an affilation object into the properly
--- structured form
-function processAffilationObj(affiliation)
-  local affiliationNormalized = {}
-  affiliationNormalized[kMetadata] = {}
-
-
-  for affilKey, affilVal in pairs(affiliation) do
-    if (tcontains(tkeys(kAffiliationAliasedFields), affilKey)) then
-      affiliationNormalized[kAffiliationAliasedFields[affilKey]] = affilVal
-    elseif tcontains(kAffiliationFields, affilKey) then
-      affiliationNormalized[affilKey] = affilVal
-    else
-      affiliationNormalized[kMetadata][affilKey] = affilVal
-    end
-  end
-
-  return affiliationNormalized;
-end
-
--- Finds a matching affiliation by looking through a list
--- of affiliations (ignoring the id)
-function findMatchingAffililation(affiliation, affiliations)
-  for i, existingAffiliation in ipairs(affiliations) do
-
-    -- an affiliation matches if the fields other than id
-    -- are identical
-    local matches = true
-    for j, field in ipairs(kAffiliationFields) do
-      if field ~= kId and matches then
-        matches = affiliation[field] == existingAffiliation[field]
-      end
-    end
-
-    -- This affiliation matches, return it
-    if matches then
-      return existingAffiliation
-    end
-  end
-  return nil
-end
-
--- Replaces an affiliation reference with a different id
--- (for example, if a reference to an affiliation is collapsed into a single
--- entry with a single id)
-function remapAuthorAffiliations(fromId, toId, authors)
-  for i, author in ipairs(authors) do
-    for j, affiliation in ipairs(author[kAffiliations]) do
-      local existingRefId = affiliation[kRef]
-      if existingRefId == fromId then
-        affiliation[kRef] = toId
-      end
-     end
-  end
-end
-
--- Process attributes onto an author
--- attributes may be a simple string, a list of strings
--- or a dictionary
-function processAttributes(author, attributes)
-  if tisarray(attributes) then
-    -- process attributes as an array of values
-    for i,v in ipairs(attributes) do
-      if v then
-        if v.t == "Str" then
-          setAttribute(author, v)
-        else
-          for j, attr in ipairs(v) do
-            setAttribute(author, attr)
-          end
-        end
-      end
-    end
-  else
-    -- process attributes as a dictionary
-    for k,v in pairs(attributes) do
-      if v then
-        setAttribute(author, pandoc.Str(k))
-      end
-    end
-  end
-end
-
--- Process an author note (including numbering it)
-local noteNumber = 1
-function processAuthorNote(author, note)
-  author[kNote] = {
-    number=noteNumber,
-    text=note
-  }
-  noteNumber = noteNumber + 1
-end
-
--- Sets a metadata value, initializing the table if
--- it not yet defined
-function setMetadata(author, key, value)
-  author[kMetadata][key] = value
-end
-
--- Sets an attribute, initializeing the table if
--- is not yet defined
-function setAttribute(author, attribute)
-  if not author[kAttributes] then
-    author[kAttributes] = pandoc.MetaMap({})
-  end
-
-  local attrStr = pandoc.utils.stringify(attribute)
-  -- Don't duplicate attributes
-  if not author[kAttributes][attrStr] then
-    author[kAttributes][attrStr] = pandoc.Str('true')
-  end
-end
-
-function setAffiliation(author, affiliation)
-  if not author[kAffiliations] then
-    author[kAffiliations] = {}
-  end
-  author[kAffiliations][#author[kAffiliations] + 1] = affiliation
-end
-
-
--- Converts name elements into a structured name
-function toName(nameParts)
-  if not tisarray(nameParts) then
-    -- If the name is a table (e.g. already a complex object)
-    -- just pick out the allowed fields and forward
-    local name = {}
-    for i,v in ipairs(kNameFields) do
-      if nameParts[v] ~= nil then
-        name[v] = nameParts[v]
-      end
-    end
-
-    return normalizeName(name)
-  else
-    if #nameParts == 0 then
-      return {}
-    else
-      return normalizeName({[kLiteralName] = nameParts})
-    end
-  end
-end
-
--- normalizes a name value by parsing it into
--- family and given names
-function normalizeName(name)
-  -- no literal name, create one
-  if name[kLiteralName] == nil then
-    if name[kFamilyName] and name[kGivenName] then
-      name[kLiteralName] = {}
-      tappend(name[kLiteralName], name[kGivenName])
-      tappend(name[kLiteralName], {pandoc.Space()})
-      tappend(name[kLiteralName], name[kFamilyName])
-    end
-  end
-
-  -- no family or given name, parse the literal and create one
-  if name[kFamilyName] == nil or name[kGivenName] == nil then
-    if name[kLiteralName] then
-      local parsedName = bibtexParseName(name)
-      if type(parsedName) == 'table' then
-        if parsedName.given ~= nil then
-          name[kGivenName] = {pandoc.Str(parsedName.given)}
-        end
-        if parsedName.family ~= nil then
-          name[kFamilyName] = {pandoc.Str(parsedName.family)}
-        end
-        if name[kDroppingParticle] ~= nil then
-          name[kDroppingParticle] = parsedName[kDroppingParticle]
-        end
-        if name[kNonDroppingParticle] ~= nil then
-          name[kNonDroppingParticle] = parsedName[kNonDroppingParticle]
-        end
-      else
-        if #name[kLiteralName] > 1 then
-          -- bibtex parsing failed, just split on space
-          name[kGivenName] = name[kLiteralName][1]
-          name[kFamilyName] = trimspace(tslice(name[kLiteralName], 2))
-        elseif name[kLiteralName] then
-          -- what is this thing, just make it family name
-          name[kFamilyName] = name[kLiteralName]
-        end
-      end
-    end
-  end
-  return name
-end
-
-local kBibtexNameTemplate = [[
-@misc{x,
-  author = {%s}
-}
-]]
-
---- Returns a CSLJSON-like name table. BibTeX knows how to parse names,
---- so we leverage that.
-function bibtexParseName(nameRaw)
-  local bibtex = kBibtexNameTemplate:format(pandoc.utils.stringify(nameRaw))
-  local references = pandoc.read(bibtex, 'bibtex').meta.references
-  if references then
-    local reference = references[1] --[[@as table<string,any>]]
-    if reference then
-      local authors = reference.author
-      if authors then
-        local name = authors[1]
-        if type(name) ~= 'table' then
-          return nameRaw
-        else
-          -- most dropping particles are really non-dropping
-          if name['dropping-particle'] and not name['non-dropping-particle'] then
-            name['non-dropping-particle'] = name['dropping-particle']
-            name['dropping-particle'] = nil
-          end
-          return name
-        end
-      else
-        return nameRaw
-      end
-    else
-      return nameRaw
-    end
-  else
-    return nameRaw
-  end
-end
-
-function byAuthors(authors, affiliations)
-  local denormalizedAuthors = deepCopy(authors)
-
-  if denormalizedAuthors then
-    for i, author in ipairs(denormalizedAuthors) do
-      denormalizedAuthors[kNumber] = i
-      local authorAffiliations = author[kAffiliations]
-      if authorAffiliations then
-        for j, affilRef in ipairs(authorAffiliations) do
-          local id = affilRef[kRef]
-          author[kAffiliations][j] = findAffiliation(id, affiliations)
-        end
-      end
-    end
-  end
-  return denormalizedAuthors
-end
-
-function byAffiliations(authors, affiliations)
-  local denormalizedAffiliations = deepCopy(affiliations)
-  for i, affiliation in ipairs(denormalizedAffiliations) do
-    local affilAuthor = findAffiliationAuthors(affiliation[kId], authors)
-    if affilAuthor then
-      affiliation[kAuthors] = affilAuthor
-    end
-  end
-  return denormalizedAffiliations
-end
-
--- Finds a matching affiliation by id
-function findAffiliation(id, affiliations)
-  for i, affiliation in ipairs(affiliations) do
-    if affiliation[kId][1].text == id[1].text then
-      return affiliation
-    end
-  end
-  return nil
-end
-
--- Finds a matching author by affiliation id
-function findAffiliationAuthors(id, authors)
-  local matchingAuthors = {}
-  for i, author in ipairs(authors) do
-    local authorAffils = author[kAffiliations]
-    if authorAffils then
-      for j, authorAffil in ipairs(authorAffils) do
-        if authorAffil[kRef][1].text == id[1].text then
-          matchingAuthors[#matchingAuthors + 1] = author
-        end
-      end
-    end
-  end
-  return matchingAuthors
-end
-
--- Finds a matching author by author id
-function findAuthor(id, authors)
-  for i, author in ipairs(authors) do
-    if pandoc.utils.stringify(author[kId]) == id then
-      return author
-    end
-  end
-  return nil
-end
-
-
--- Resolve labels for elements into metadata
-function computeLabels(authors, affiliations, meta)
-  local language = param("language", nil);
-
-  if not _quarto.format.isAstOutput() then
-    meta[kLabels] = {
-      [kAuthorLbl] = {pandoc.Str("Authors")},
-      [kAffiliationLbl] = {pandoc.Str("Affiliations")}
-    }
-    if #authors == 1 then
-      meta[kLabels][kAuthorLbl] = {pandoc.Str(language["title-block-author-single"])}
-    else
-      meta[kLabels][kAuthorLbl] = {pandoc.Str(language["title-block-author-plural"])}
-    end
-    if meta[kAuthorTitle] then
-      meta[kLabels][kAuthors] = meta[kAuthorTitle]
-    end
-
-    if #affiliations == 1 then
-      meta[kLabels][kAffiliationLbl] = {pandoc.Str(language["title-block-affiliation-single"])}
-    else
-      meta[kLabels][kAffiliationLbl] = {pandoc.Str(language["title-block-affiliation-plural"])}
-    end
-    if meta[kAffiliationTitle] then
-      meta[kLabels][kAffiliationLbl] = meta[kAffiliationTitle]
-    end
-
-    meta[kLabels][kPublishedLbl] = {pandoc.Str(language["title-block-published"])}
-    if meta[kPublishedTitle] then
-      meta[kLabels][kPublishedLbl] = meta[kPublishedTitle]
-    end
-
-    meta[kLabels][kModifiedLbl] = {pandoc.Str(language["title-block-modified"])}
-    if meta[kModifiedTitle] then
-      meta[kLabels][kModifiedLbl] = meta[kModifiedTitle]
-    end
-
-    meta[kLabels][kDoiLbl] = {pandoc.Str("Doi")}
-    if meta[kDoiTitle] then
-      meta[kLabels][kDoiLbl] = meta[kDoiTitle]
-    end
-
-    meta[kLabels][kAbstractLbl] = {pandoc.Str(language["section-title-abstract"])}
-    if meta[kAbstractTitle] then
-      meta[kLabels][kAbstractLbl] = meta[kAbstractTitle]
-    end
-
-    meta[kLabels][kDescriptionLbl] = {pandoc.Str(language["listing-page-field-description"])}
-    if meta[kDescriptionTitle] then
-      meta[kLabels][kDescriptionLbl] = meta[kDescriptionTitle]
-    end
-  end
-
-  return meta
-end
-
--- Get a letter for a number 
-function letter(number)
-  number = number%26
-  return string.char(96 + number)
-end
-
--- Remove Spaces from the ends of tables
-function trimspace(tbl)
-  if #tbl > 0 then
-    if tbl[1].t == 'Space' then
-      tbl = tslice(tbl, 2)
-    end
-  end
-
-  if #tbl > 0 then
-    if tbl[#tbl].t == 'Space' then
-      tbl = tslice(tbl, #tbl -1)
-    end
-  end
-  return tbl
-end
-
--- Deep Copy a table
-function deepCopy(original)
-	local copy = {}
-	for k, v in pairs(original) do
-		if type(v) == "table" then 
-			v = deepCopy(v)
-		end
-		copy[k] = v
-	end
-	return copy
-end
-
 
 return {
   processAuthorMeta = processAuthorMeta,
