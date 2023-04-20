@@ -42,7 +42,7 @@ export const Progress: React.FC<ProgressProps> = (props: ProgressProps) => {
 
   return (
     <>
-      <ProgressBar visible={props.rendering} />
+      <ProgressBar visible={props.rendering && !dismissed} />
       <ProgressDialog 
         open={props.dialog && !dismissed} 
         rendering={props.rendering}
