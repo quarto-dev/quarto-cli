@@ -29,7 +29,7 @@ import {
 
 import { basename, dirname, isAbsolute, join, relative } from "path/mod.ts";
 import { renderFiles } from "../../command/render/render-files.ts";
-import { kProjectLibDir, ProjectContext } from "../../project/types.ts";
+import { ProjectContext } from "../../project/types.ts";
 import { kNotebookViewStyleNotebook } from "./format-html-constants.ts";
 import { warning } from "log/mod.ts";
 
@@ -133,9 +133,11 @@ export async function processNotebookEmbeds(
     for (const nbDivNode of notebookDivNodes) {
       const nbDivEl = nbDivNode as Element;
       const notebookPath = nbDivEl.getAttribute("data-notebook");
+      nbDivEl.removeAttribute("data-notebook");
       if (notebookPath) {
         linkedNotebooks.push(notebookPath);
         const title = nbDivEl.getAttribute("data-notebook-title");
+        nbDivEl.removeAttribute("data-notebook-title");
         const nbDir = dirname(notebookPath);
         const filename = basename(notebookPath);
         const inputDir = dirname(input);
