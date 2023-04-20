@@ -247,6 +247,33 @@ local function get_type(v)
   return pandoc_type
 end
 
+local function as_inlines(v)
+  local t = pandoc.utils.type(v)
+  if t == "Inlines" then
+    return v
+  elseif t == "Blocks" then
+    return pandoc.utils.blocks_to_inlines(v)
+  end
+  local t = type(v)
+  if t == "table" then
+    return pandoc.utils.blocks_to_inlines(v)
+  else
+    return pandoc.utils.blocks_to_inlines({v})
+  end
+end
+
+local function as_blocks(v)
+  local t = pandoc.utils.type(v)
+  if t == "Blocks" then
+    return v
+  end
+  if type(v) == "table" then
+    return pandoc.Blocks(v)
+  else
+    return pandoc.Blocks({v})
+  end
+end
+
 return {
   dump = dump,
   type = get_type,
@@ -254,5 +281,7 @@ return {
     isarray = tisarray,
     contains = tcontains
   },
+  as_inlines = as_inlines,
+  as_blocks = as_blocks,
 }
 
