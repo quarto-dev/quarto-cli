@@ -166,6 +166,10 @@ _quarto.ast.add_handler({
           if type(k) ~= "number" then
             return rawget(t, k)
           end
+          local l = #custom_data["__quarto_custom_node"].content // 2
+          if k < 1 or k > l then
+            return nil
+          end
           return make_tab_metaobject(t, k)
         end,
         __newindex = function(t, k, v)
