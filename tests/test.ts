@@ -260,8 +260,8 @@ export function test(test: TestDescriptor) {
     sanitizeResources,
   };
 
-  // work around 1.32.5 bug
-  if (!args.ignore) {
+  // work around 1.32.5 bug: https://github.com/denoland/deno/issues/18784
+  if (args.ignore === undefined) {
     delete args.ignore;
   }
   Deno.test(args);
