@@ -33,14 +33,18 @@ export interface Options {
 }
 
 function init(options: Options) {
+  
   try {
 
+    // detect dark mode
+    const darkMode = detectDarkMode();
+
     // intialize fluent 
-    initializeFluent();
+    initializeFluent(darkMode);
 
     // server connection
     const disconnect = connectToServer([
-      progressHandler(),
+      progressHandler(darkMode),
       navigationHandler()
     ]);
 
@@ -64,6 +68,14 @@ function init(options: Options) {
   }
 }
 
+function detectDarkMode() {
+  if (document.body.classList.contains("quarto-dark")) {
+    return true;
+  } else {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("quartoPreviewThemeCategory") === "dark";
+  }
+}
 
 export { init }
 

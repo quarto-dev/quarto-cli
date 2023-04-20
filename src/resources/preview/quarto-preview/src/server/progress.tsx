@@ -1,5 +1,5 @@
 /*
- * log.ts
+ * progress.tsx
  *
  * Copyright (C) 2022 by Posit Software, PBC
  *
@@ -26,7 +26,7 @@ interface LogEntry {
   readonly msgFormatted: string;
 }
 
-export function progressHandler() {
+export function progressHandler(darkMode: boolean) {
   
   return (stopServer: VoidFunction) => {
      // track state used to render progress
@@ -49,6 +49,7 @@ export function progressHandler() {
         error={state.error}
         lines={state.lines}
         onCancel={stopServer}
+        darkMode={darkMode}
       />);
     };
 

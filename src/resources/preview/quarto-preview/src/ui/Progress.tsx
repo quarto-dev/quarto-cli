@@ -26,6 +26,7 @@ export interface ProgressProps {
   error: boolean;
   lines: ANSIOutputLine[];
   onCancel: VoidFunction;
+  darkMode: boolean;
 }
 
 export const Progress: React.FC<ProgressProps> = (props: ProgressProps) => {
@@ -50,8 +51,8 @@ export const Progress: React.FC<ProgressProps> = (props: ProgressProps) => {
         lines={props.lines}
         onClose={() => setDismissed(true)}
         onCancel={() => { setDismissed(true); props.onCancel(); }}
+        darkMode={props.darkMode}
       />)
     </>
   );
-
 }
