@@ -242,14 +242,12 @@ local kCalloutDefaultMinimal = "minimal"
 function calloutDiv(node)
   -- the first heading is the title
   local div = pandoc.Div({})
-  local c = node.content
+  local c = quarto.utils.as_blocks(node.content)
   if pandoc.utils.type(c) == "Blocks" then
     div.content:extend(c)
   else
     div.content:insert(c)
   end
-  -- quarto.utils.dump(node.content)
-  -- div.content:extend(node.content)
   local title = quarto.utils.as_inlines(node.title)
   local type = node.type
   local calloutAppearance = node.appearance
@@ -569,7 +567,7 @@ function calloutDocx(node)
 end
 
 function calloutDocxDefault(node, type, hasIcon)
-  local title = node.title
+  local title = quarto.utils.as_inlines(node.title)
   local color = htmlColorForType(type)
   local backgroundColor = htmlBackgroundColorForType(type)
 
@@ -650,7 +648,7 @@ function calloutDocxDefault(node, type, hasIcon)
   calloutContents:insert(pandoc.Div(pandoc.RawBlock("openxml", tableMiddle)))  
 
   -- the main contents of the callout
-  local contents = node.content
+  local contents = quarto.utils.as_blocks(node.content)
 
   -- ensure there are no nested callouts
   if contents:find_if(function(el) 
@@ -679,7 +677,7 @@ end
 
 function calloutDocxSimple(node, type, hasIcon) 
   local color = htmlColorForType(type)
-  local title = node.title
+  local title = quarto.utils.as_inlines(node.title)
 
   local tablePrefix = [[
     <w:tbl>
@@ -734,7 +732,7 @@ function calloutDocxSimple(node, type, hasIcon)
   
   -- convert to open xml paragraph
   local contents = pandoc.List({}) -- use as pandoc.List() for find_if
-  contents:extend(node.content)
+  contents:extend(quarto.utils.as_blocks(node.content))
   removeParagraphPadding(contents)
   
   -- ensure there are no nested callouts
@@ -752,7 +750,7 @@ function calloutDocxSimple(node, type, hasIcon)
 end
 
 function epubCallout(node)
-  local title = node.title
+  local title = quarto.utils.as_inlines(node.title)
   local type = node.type
   local calloutAppearance = node.appearance
   local hasIcon = node.icon
@@ -821,7 +819,7 @@ function simpleCallout(node)
 end
 
 function resolveCalloutContents(node, require_title)
-  local title = node.title
+  local title = quarto.utils.as_inlines(node.title)
   local type = node.type
   
   local contents = pandoc.List({})
@@ -837,7 +835,7 @@ function resolveCalloutContents(node, require_title)
   if title ~= nil then
     contents:insert(pandoc.Para(pandoc.Strong(title)))
   end
-  tappend(contents, node.content)
+  tappend(contents, quarto.utils.as_blocks(node.content))
 
   return contents
 end
