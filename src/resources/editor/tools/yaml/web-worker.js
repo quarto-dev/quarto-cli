@@ -11481,7 +11481,7 @@ try {
             default: false,
             description: {
               short: "Include a code tools menu (for hiding and showing code).",
-              long: "Include a code tools menu (for hiding and showing code).\nUse `true` or `false` to enable or disable the standard code \ntools menu. Specify sub-properties `source`, `toggle`, and\n`caption` to customize the behavior and appearnce of code tools.\n"
+              long: "Include a code tools menu (for hiding and showing code).\nUse `true` or `false` to enable or disable the standard code \ntools menu. Specify sub-properties `source`, `toggle`, and\n`caption` to customize the behavior and appearance of code tools.\n"
             }
           },
           {
@@ -18303,6 +18303,8 @@ try {
           "Specify <code>loading: lazy</code> to defer loading comments until\nthe user scrolls near the comments container.",
           "Place the comment input box above or below the comments.",
           "The giscus theme to use when displaying comments.",
+          "The light theme name.",
+          "The dark theme name.",
           "The language that should be used when displaying the commenting\ninterface.",
           "Controls whether the sidebar opens automatically on startup.",
           "Controls whether the in-document highlights are shown by default\n(<code>always</code>, <code>whenSidebarOpen</code> or\n<code>never</code>)",
@@ -21311,12 +21313,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 152620,
+          _internalId: 152627,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 152612,
+              _internalId: 152619,
               type: "enum",
               enum: [
                 "png",
@@ -21332,7 +21334,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 152619,
+              _internalId: 152626,
               type: "anyOf",
               anyOf: [
                 {
