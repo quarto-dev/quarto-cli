@@ -42,7 +42,7 @@ local function jatsMeta(meta)
     meta[kQuartoInternal][kHasPermissions] = hasPermissions;
 
     -- normalize keywords into tags if they're present and tags aren't
-    if meta[kTags] ~= nil and meta[kKeywords] == nil then
+    if meta[kTags] == nil and meta[kKeywords] ~= nil and meta[kKeywords].t == "Table" then
       meta[kKeywords] = meta[kTags]
     end
 
