@@ -145,7 +145,9 @@ export async function processNotebookEmbeds(
             // Read options for this notebook
             const nbPreviewOptions = nbViewConfig.options(notebookPath);
 
-            const nbAbsPath = join(inputDir, notebookPath);
+            const nbAbsPath = isAbsolute(notebookPath)
+              ? notebookPath
+              : join(inputDir, notebookPath);
             const htmlPreview = await renderHtmlView(
               inputDir,
               nbAbsPath,
