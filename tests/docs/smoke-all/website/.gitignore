@@ -1,0 +1,4 @@
+/.quarto/
+*.html
+*.json
+site_libs/
