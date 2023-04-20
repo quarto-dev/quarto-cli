@@ -51,7 +51,7 @@ export function ProgressDialog(props: ProgressDialogProps) {
   }, [props.lines, props.error]);
 
   return (<Modal
-    styles={{main: !props.error ? {height: 400 } : { minHeight: 400, height: "auto" }}}
+    styles={{main: !props.error ? {height: 300 } : { minHeight: 300, height: "auto" }}}
     titleAriaId={titleId}
     isOpen={props.open}
     isDarkOverlay={false}
@@ -64,7 +64,9 @@ export function ProgressDialog(props: ProgressDialogProps) {
   >
     <div 
       className={contentStyles.header} 
-      style={{borderColor: props.error ? theme.palette.orangeLight : theme.palette.themePrimary }}
+      style={{
+        borderColor: props.error ? theme.palette.orangeLight : theme.palette.neutralLight
+      }}
     >
       <h2 className={contentStyles.heading} id={titleId}>
         {props.error ? "Error" : "Render"}
@@ -104,7 +106,8 @@ const contentStyles = mergeStyleSets({
     top: 60,
     width: 1000,
     maxWidth: "calc(100% - 100px)",
-    maxHeight: "calc(100% - 120px)"
+    maxHeight: "calc(100% - 120px)",
+    boxShadow: theme.effects.elevation16
   },
   header: [
     theme.fonts.xLarge,
