@@ -98,7 +98,29 @@ export function progressHandler(darkMode: boolean) {
     // render output
     const renderOutput = (output: LogEntry | string) => {
       output = typeof(output) === "string" ? output : output.msgFormatted;
-      state.output.processOutput(output);
+
+      const logOutput = (loggingOutput: string) => {
+        loggingOutput = loggingOutput.replaceAll('\n', '[LF]');
+        loggingOutput = loggingOutput.replaceAll('\r', '[CR]');
+        loggingOutput = loggingOutput.replaceAll('\x9B', 'CSI');
+        loggingOutput = loggingOutput.replaceAll('\x1b', 'ESC');
+        loggingOutput = loggingOutput.replaceAll('\x9B', 'CSI');
+        console.log(loggingOutput);
+      }
+      //logOutput(output);
+
+      // split multiple carriage returns into chunks (we get these from the knitr
+      // stream, likely due to the way that deno buffers stdout/stdin)
+      if (output.startsWith("\r")) {
+        const chunks = output.split("\r");
+        for (let i=0; i<chunks.length; i++) {
+          const chunkOutput = `${chunks.length-1 ? "\r" : ""}${chunks[i]}`;
+          //console.log(`  chunk: ${chunkOutput}`);
+          state.output.processOutput(chunkOutput);
+        }
+      } else {
+        state.output.processOutput(output);
+      }
       state.lines = [...state.output.outputLines];
       renderProgress();
     }
