@@ -15,8 +15,6 @@
 
 import React, { useEffect, useState } from "react";
 
-import {ThemeProvider } from "@fluentui/react";
-
 import { ANSIOutputLine } from "../core/ansi-output";
 
 import { ProgressDialog } from "./ProgressDialog";
@@ -43,7 +41,7 @@ export const Progress: React.FC<ProgressProps> = (props: ProgressProps) => {
   }, [props.rendering])
 
   return (
-    <ThemeProvider>
+    <>
       <ProgressBar visible={props.rendering} />
       <ProgressDialog 
         open={props.dialog && !dismissed} 
@@ -53,7 +51,7 @@ export const Progress: React.FC<ProgressProps> = (props: ProgressProps) => {
         onClose={() => setDismissed(true)}
         onCancel={() => { setDismissed(true); props.onCancel(); }}
       />)
-    </ThemeProvider>
+    </>
   );
 
 }
