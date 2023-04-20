@@ -325,6 +325,8 @@ _quarto.ast = {
       if need_emulation ~= false then
         return create_emulated_node(handler.ast_name, tbl, handler.kind, forwarder), tbl
       else
+        tbl.t = handler.ast_name -- set t always to custom ast type
+        custom_node_data[tbl.__quarto_custom_node.attributes.__quarto_custom_id] = tbl
         return tbl.__quarto_custom_node, tbl
       end
     end

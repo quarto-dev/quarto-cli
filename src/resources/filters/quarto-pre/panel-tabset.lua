@@ -122,6 +122,7 @@ _quarto.ast.add_handler({
     local node = _quarto.ast.create_custom_node_scaffold("Tabset", "Block")
 
     local custom_data = {
+      __quarto_custom_node = node,
       level = params.level or 2,
       attr = params.attr or pandoc.Attr(),
     }
@@ -134,16 +135,21 @@ _quarto.ast.add_handler({
       local result = {}
       setmetatable(result, _quarto.ast.create_proxy_metatable(
         function(key) return forwarder[key] end,
-        function(_) return custom_data["_quarto_custom_node"] end
+        function(_) 
+          print("in node accessor")
+          print(custom_data)
+          print(custom_data["__quarto_custom_node"])
+          return custom_data["__quarto_custom_node"] 
+        end
       ))
       return result
     end
 
-    local function make_tabs_metaobject(node)
+    local function make_tabs_metaobject(custom_data)
       local result = {}
       setmetatable(result, {
         __len = function(t)
-          return #node["__quarto_custom_node"].content
+          return #custom_data["__quarto_custom_node"].content
         end,
         __index = function(t, k)
           if type(k) ~= "number" then
@@ -156,8 +162,9 @@ _quarto.ast.add_handler({
             rawset(t, k, v)
             return
           end
-          local tab = make_tab_metaobject(t, k)
+          local tab = make_tab_metaobject(custom_data, k)
           for key, value in pairs(v) do
+            print(key, value)
             tab[key] = value
           end
         end
@@ -171,6 +178,8 @@ _quarto.ast.add_handler({
           return rawget(t, k)
         end
         local node = t["__quarto_custom_node"]
+        print("__index tabs")
+        print(node)
         return make_tabs_metaobject(node)
       end,
       __newindex = function(t, k, v)
@@ -178,9 +187,9 @@ _quarto.ast.add_handler({
           rawset(t, k, v)
           return
         end
-        local node = t["__quarto_custom_node"]
-        local tabs = make_tabs_metaobject(node)
+        local tabs = make_tabs_metaobject(t)
         for key, value in pairs(v) do
+          print(key, value)
           tabs[key] = value
         end
       end
