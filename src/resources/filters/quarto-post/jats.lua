@@ -1,5 +1,15 @@
 -- jats.lua
 -- Copyright (C) 2021-2022 Posit Software, PBC
+local normalizeAuthors = require '../common/authors'
+local normalizeLicense = require '../common/license'
+
+local kTags = "tags"
+local kKeywords = "keywords"
+
+local kQuartoInternal = "quarto-internal"
+local kHasAuthorNotes = "has-author-notes"
+local kHasPermissions = "has-permissions"
+
 local function isCell(el) 
   return el.classes:includes("cell") 
 end
@@ -10,26 +20,31 @@ local function jatsMeta(meta)
   -- to prevent empty container XML elements
 
   -- are there author notes?
-  local authors = meta['authors']
+  local authors = meta[normalizeAuthors.constants.author.output_key]
   if authors ~= nil then
 
     -- has author notes
     local hasNotes = authors:find_if(function(author) 
-      local hasAttr = author['attributes'] ~= nil and next(author['attributes'])
-      local hasNote = author['note'] and next(author['note'])
+      local hasAttr = author[normalizeAuthors.constants.author.attributes] ~= nil and next(author[normalizeAuthors.constants.author.attributes])
+      local hasNote = author[normalizeAuthors.constants.author.note] and next(author[normalizeAuthors.constants.author.note])
       return hasAttr or hasNote
     end)
 
     -- has permissions
-    local hasCopyright = meta['copyright'] ~= nil
-    local hasLicense = meta['license'] ~= nil
+    local hasCopyright = meta[normalizeLicense.constants.copyright] ~= nil
+    local hasLicense = meta[normalizeLicense.constants.license] ~= nil
     local hasPermissions = hasCopyright or hasLicense
 
-    if meta['quarto-internal'] == nil then
-      meta['quarto-internal'] = {}
+    if meta[kQuartoInternal] == nil then
+      meta[kQuartoInternal] = {}
     end
-    meta['quarto-internal']['has-author-notes'] = hasNotes;
-    meta['quarto-internal']['has-permissions'] = hasPermissions;
+    meta[kQuartoInternal][kHasAuthorNotes] = hasNotes;
+    meta[kQuartoInternal][kHasPermissions] = hasPermissions;
+
+    -- normalize keywords into tags if they're present and tags aren't
+    if meta[kTags] ~= nil and meta[kKeywords] == nil then
+      meta[kKeywords] = meta[kTags]
+    end
 
     return meta
   end
@@ -76,7 +91,6 @@ function jatsSubarticle()
     local kNoteBookCode = "notebook-code"
     local kNoteBookContent = "notebook-content"
     local kNoteBookOutput = "notebook-output"
-
 
     local isCodeCell = function(el) 
       return not el.classes:includes('markdown')

@@ -145,3 +145,12 @@ function processLicenseMeta(meta)
   return meta
 end
 
+
+return {
+  processLicenseMeta = processLicenseMeta,
+  constants = {
+    license = kLicense,
+    copyright = kCopyright
+  }
+}
+

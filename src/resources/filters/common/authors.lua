@@ -973,3 +973,16 @@ function deepCopy(original)
 	end
 	return copy
 end
+
+
+return {
+  processAuthorMeta = processAuthorMeta,
+  constants = {
+    author = {
+      output_key = kAuthorOutput,
+      note = kNote,
+      attributes = kAttributes
+    }
+
+  }
+}
