@@ -82,7 +82,7 @@ _quarto.ast.add_handler({
       params = shortcode_content
     }
     
-    return quarto.Shortcode(node, false)
+    return quarto.Shortcode(tbl)
   end,
 
   render = function(node)
@@ -91,7 +91,7 @@ _quarto.ast.add_handler({
   end,
 
   constructor = function(tbl)
-    return tbl
+    return tbl, false
   end,
 })
 
