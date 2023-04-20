@@ -105,7 +105,7 @@ _quarto.ast.add_handler({
       appearance = "simple"
     end
     local content = pandoc.Blocks({})
-    content:extend(tbl.content)
+    content:extend(quarto.utils.as_blocks(tbl.content))
     local title = tbl.title
     if type(title) == "string" then
       title = pandoc.Str(title)
@@ -250,7 +250,7 @@ function calloutDiv(node)
   end
   -- quarto.utils.dump(node.content)
   -- div.content:extend(node.content)
-  local title = node.title
+  local title = quarto.utils.as_inlines(node.title)
   local type = node.type
   local calloutAppearance = node.appearance
   local icon = node.icon
