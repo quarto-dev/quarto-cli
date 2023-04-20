@@ -270,7 +270,9 @@ _quarto.ast = {
   end,
 
   resolve_custom_data = function(div_or_span)
-    if div_or_span.attributes.__quarto_custom ~= "true" then
+    if (div_or_span == nil or
+        div_or_span.attributes == nil or 
+        div_or_span.attributes.__quarto_custom ~= "true") then
       return
     end
 
