@@ -12,60 +12,79 @@ local kCopyright = "copyright"
 local kYear = "year"
 
 
-local function ccLicenseUrl(type, lang) 
+local function ccLicenseUrl(type, lang, version) 
   local langStr = 'en'
   if lang ~= nil then
     langStr = pandoc.utils.stringify(lang)
   end
   if langStr:lower() == 'en' then
-    return 'https://creativecommons.org/licenses/' .. type:lower() .. '/4.0/'
+    return 'https://creativecommons.org/licenses/' .. type:lower() .. '/' .. version .. '/'
   else 
-    return 'https://creativecommons.org/licenses/' .. type:lower() .. '/4.0/deed.' .. langStr:lower()
+    return 'https://creativecommons.org/licenses/' .. type:lower() .. '/' .. version .. '/deed.' .. langStr:lower()
   end 
 end
 
 local licenses = {  
   ["cc by"] = {
     type = "creative-commons",
-    licenseUrl = function (lang) 
-      return ccLicenseUrl("by", lang)
+    licenseUrl = function (lang, version) 
+      return ccLicenseUrl("by", lang, version)
     end
   },
   ["cc by-sa"] = {
     type = "creative-commons",
-    licenseUrl = function (lang) 
-      return ccLicenseUrl("by-sa", lang)
+    licenseUrl = function (lang, version) 
+      return ccLicenseUrl("by-sa", lang, version)
     end
   },
   ["cc by-nd"] = {
     type = "creative-commons",
-    licenseUrl = function (lang) 
-      return ccLicenseUrl("by-nd", lang)
+    licenseUrl = function (lang, version) 
+      return ccLicenseUrl("by-nd", lang, version)
     end
   },
   ["cc by-nc"] = {
     type = "creative-commons",
-    licenseUrl = function (lang) 
-      return ccLicenseUrl("by-nc", lang)
+    licenseUrl = function (lang, version) 
+      return ccLicenseUrl("by-nc", lang, version)
     end
   },
 }
 
+local function parseCCLicense(license) 
+  local pattern = '(cc by[^%s]*)%s*([%w%W]*)'
+  local base, version = license:match(pattern)
+  if base ~= nil then
+    if version == '' then
+      version = '4.0'
+    end
+    return {
+      base = base,
+      version = version
+    }
+  else
+    return nil
+  end
+end
+
 local function processLicense(el, meta) 
   if pandoc.utils.type(el) == "Inlines" then
     local licenseStr = pandoc.utils.stringify(el)
-    local license = licenses[licenseStr:lower()]
-    if license ~= nil then
-      return {
-        type = pandoc.Inlines(license.type),
-        url = pandoc.Inlines(license.licenseUrl(meta.lang)),
-        text = pandoc.Inlines('')
-      }
-    else
-      return {
-        text = el
-      }
+
+    local ccLicense = parseCCLicense(licenseStr:lower())
+    if ccLicense ~= nil then
+      local license = licenses[ccLicense.base]
+      if license ~= nil then
+        return {
+          type = pandoc.Inlines(license.type),
+          url = pandoc.Inlines(license.licenseUrl(meta.lang, ccLicense.version)),
+          text = pandoc.Inlines('')
+        }
+      end
     end
+    return {
+      text = el
+    }
   else 
     return el
   end

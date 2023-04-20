@@ -22,6 +22,7 @@ import {
   documentCSL,
   getCSLPath,
 } from "../../quarto-core/attribution/document.ts";
+import { nil } from "../../vendor/deno.land/std@0.166.0/encoding/_yaml/type/nil.ts";
 import {
   createCodeBlock,
   createCodeCopyButton,
@@ -178,8 +179,9 @@ export async function processDocumentAppendix(
             const creativeCommons = creativeCommonsLicense(license);
             if (creativeCommons) {
               const licenseUrl = creativeCommonsUrl(
-                creativeCommons,
+                creativeCommons.base,
                 format.metadata[kLang] as string | undefined,
+                creativeCommons.version,
               );
               return {
                 url: licenseUrl,
@@ -412,28 +414,39 @@ function parseStyle(style?: string) {
   }
 }
 
+const kCcPattern = /(CC BY[^\s]*)\s*(\S*)/;
 function creativeCommonsLicense(
   license?: string,
-): "CC BY" | "CC BY-SA" | "CC BY-ND" | "CC BY-NC" | undefined {
-  if (license && kAppendixCreativeCommonsLic.includes(license.toUpperCase())) {
-    return license.toUpperCase() as
-      | "CC BY"
-      | "CC BY-SA"
-      | "CC BY-ND"
-      | "CC BY-NC";
+) {
+  if (license) {
+    const match = license.toUpperCase().match(kCcPattern);
+    if (match) {
+      const base = match[1];
+      const version = match[2];
+      if (kAppendixCreativeCommonsLic.includes(base)) {
+        return {
+          base: base as "CC BY" | "CC BY-SA" | "CC BY-ND" | "CC BY-NC",
+          version: version || "4.0",
+        };
+      } else {
+        return undefined;
+      }
+    } else {
+      return undefined;
+    }
   } else {
     return undefined;
   }
 }
 
-function creativeCommonsUrl(license: string, lang?: string) {
+function creativeCommonsUrl(license: string, lang?: string, version?: string) {
   const licenseType = license.substring(3);
   if (lang && lang !== "en") {
-    return `https://creativecommons.org/licenses/${licenseType.toLowerCase()}/4.0/deed.${
+    return `https://creativecommons.org/licenses/${licenseType.toLowerCase()}/${version}/deed.${
       lang.toLowerCase().replace("-", "_")
     }`;
   } else {
-    return `https://creativecommons.org/licenses/${licenseType.toLowerCase()}/4.0/`;
+    return `https://creativecommons.org/licenses/${licenseType.toLowerCase()}/${version}/`;
   }
 }
 
