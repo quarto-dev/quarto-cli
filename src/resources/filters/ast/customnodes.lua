@@ -28,7 +28,7 @@ function run_emulated_filter(doc, filter)
     if (k == "Custom" or 
         k == "CustomInline" or 
         k == "CustomBlock" or
-        state[k] ~= nil) then
+        state.namedHandlers[k] ~= nil) then
       needs_custom = true
     end
   end
@@ -92,7 +92,15 @@ function run_emulated_filter(doc, filter)
     local filter_fn = filter[t] or filter[node_type[kind]] or filter.Custom
 
     if filter_fn ~= nil then
-      return filter_fn(custom_data, custom_node)
+      local result = filter_fn(custom_data, custom_node)
+      if result == nil then
+        return nil
+      end
+      -- do the user a kindness and unwrap the result if it's a custom node
+      if type(result) == "table" and result.__quarto_custom_node ~= nil then
+        return result.__quarto_custom_node
+      end
+      return result
     end
   end
 
