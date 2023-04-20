@@ -184,6 +184,7 @@ export function revealjsFormat() {
               copyCode: true,
               hoverCitations: true,
               hoverFootnotes: true,
+              hoverXrefs: false,
               figResponsive: false,
             }, // tippy options
             {

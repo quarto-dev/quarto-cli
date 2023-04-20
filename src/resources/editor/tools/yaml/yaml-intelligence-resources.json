@@ -4985,6 +4985,17 @@
           }
         ]
       }
+    },
+    {
+      "name": "crossrefs-hover",
+      "schema": "boolean",
+      "tags": {
+        "formats": [
+          "$html-files"
+        ]
+      },
+      "default": true,
+      "description": "Enables a hover popup for cross references that shows the item being referenced."
     }
   ],
   "schema/document-editor.yml": [
@@ -12513,7 +12524,7 @@
     },
     {
       "short": "Include a code tools menu (for hiding and showing code).",
-      "long": "Include a code tools menu (for hiding and showing code). Use\n<code>true</code> or <code>false</code> to enable or disable the\nstandard code tools menu. Specify sub-properties <code>source</code>,\n<code>toggle</code>, and <code>caption</code> to customize the behavior\nand appearnce of code tools."
+      "long": "Include a code tools menu (for hiding and showing code). Use\n<code>true</code> or <code>false</code> to enable or disable the\nstandard code tools menu. Specify sub-properties <code>source</code>,\n<code>toggle</code>, and <code>caption</code> to customize the behavior\nand appearance of code tools."
     },
     {
       "short": "Show a thick left border on code blocks.",
@@ -12621,6 +12632,8 @@
     "Location to write references (<code>block</code>,\n<code>section</code>, or <code>document</code>)",
     "Write markdown links as references rather than inline.",
     "Unique prefix for references (<code>none</code> to prevent automatic\nprefixes)",
+    "Automatically re-render for preview whenever document is saved (note\nthat this requires a preview for the saved document be already running).\nThis option currently works only within VS Code.",
+    "Enable (<code>true</code>) or disable (<code>false</code>) Zotero for\na document. Alternatively, provide a list of one or more Zotero group\nlibraries to use with the document.",
     "The identifier for this publication.",
     "The identifier value.",
     "The identifier schema (e.g.&nbsp;<code>DOI</code>, <code>ISBN-A</code>,\netc.)",
@@ -14067,7 +14080,7 @@
     },
     "Disambiguating year suffix in author-date styles (e.g.&nbsp;“a” in “Doe,\n1999a”).",
     "internal-schema-hack",
-    "Enable (<code>true</code>) or disable (<code>false</code>) Zotero for\na document. Alternatively, provide a list of one or more Zotero group\nlibraries to use with the document."
+    "Enables a hover popup for cross references that shows the item being\nreferenced."
   ],
   "schema/external-schemas.yml": [
     {
@@ -14291,12 +14304,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 152628,
+    "_internalId": 153686,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 152620,
+        "_internalId": 153678,
         "type": "enum",
         "enum": [
           "png",
@@ -14312,7 +14325,7 @@
         "exhaustiveCompletions": true
       },
       "theme": {
-        "_internalId": 152627,
+        "_internalId": 153685,
         "type": "anyOf",
         "anyOf": [
           {

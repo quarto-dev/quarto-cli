@@ -95,7 +95,7 @@ function resolveRefs()
   
                 -- link if requested
               if (refHyperlink()) then
-                ref = {pandoc.Link(ref, "#" .. label)}
+                ref = {pandoc.Link(ref, "#" .. label, "", pandoc.Attr("", {'quarto-xref'}))}
               end
             end
   

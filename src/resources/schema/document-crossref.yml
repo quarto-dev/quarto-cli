@@ -173,3 +173,10 @@
             appendix-delim:
               string:
                 description: The delimiter beween appendix number and title.
+
+- name: crossrefs-hover
+  schema: boolean
+  tags:
+    formats: [$html-files]
+  default: true
+  description: Enables a hover popup for cross references that shows the item being referenced.
