@@ -24,8 +24,8 @@ quarto.Tab = function(params)
 end
 
 local function render_quarto_tab(tbl, tabset)
-  local content = tbl.content
-  local title = tbl.title
+  local content = quarto.utils.as_blocks(tbl.content)
+  local title = quarto.utils.as_inlines(tbl.title)
   local inner_content = pandoc.List()
   inner_content:insert(pandoc.Header(tabset.level, title))
   inner_content:extend(content)
@@ -136,9 +136,6 @@ _quarto.ast.add_handler({
       setmetatable(result, _quarto.ast.create_proxy_metatable(
         function(key) return forwarder[key] end,
         function(_) 
-          print("in node accessor")
-          print(custom_data)
-          print(custom_data["__quarto_custom_node"])
           return custom_data["__quarto_custom_node"] 
         end
       ))
@@ -146,12 +143,26 @@ _quarto.ast.add_handler({
     end
 
     local function make_tabs_metaobject(custom_data)
-      local result = {}
+      local result = {
+      }
       setmetatable(result, {
+        __pairs = function(t)
+          local l = #custom_data["__quarto_custom_node"].content // 2
+          return function(t, k)
+            local key = k + 1
+            if key > l then
+              return nil
+            end
+            return key, make_tab_metaobject(t, key)
+          end, t, 0
+        end,
         __len = function(t)
-          return #custom_data["__quarto_custom_node"].content
+          return #custom_data["__quarto_custom_node"].content // 2
         end,
         __index = function(t, k)
+          if k == "__quarto_custom_node" then
+            return custom_data["__quarto_custom_node"]
+          end
           if type(k) ~= "number" then
             return rawget(t, k)
           end
@@ -164,7 +175,6 @@ _quarto.ast.add_handler({
           end
           local tab = make_tab_metaobject(custom_data, k)
           for key, value in pairs(v) do
-            print(key, value)
             tab[key] = value
           end
         end
@@ -177,10 +187,7 @@ _quarto.ast.add_handler({
         if k ~= "tabs" then
           return rawget(t, k)
         end
-        local node = t["__quarto_custom_node"]
-        print("__index tabs")
-        print(node)
-        return make_tabs_metaobject(node)
+        return make_tabs_metaobject(t)
       end,
       __newindex = function(t, k, v)
         if k ~= "tabs" then
@@ -189,7 +196,6 @@ _quarto.ast.add_handler({
         end
         local tabs = make_tabs_metaobject(t)
         for key, value in pairs(v) do
-          print(key, value)
           tabs[key] = value
         end
       end
