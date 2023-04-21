@@ -20,3 +20,6 @@ src/vendor-*
 # windows configuration file
 win_configuration.bat
 /package/pkg-working
+
+# generated javascript
+src/resources/preview/quarto-preview.js
