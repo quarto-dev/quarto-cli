@@ -24,6 +24,7 @@ import {
 import { projectType } from "./types/project-types.ts";
 import { ProjectType } from "./types/types.ts";
 import { kWebsite } from "./types/website/website-constants.ts";
+import { existsSync1 } from "../core/file.ts";
 
 export function projectExcludeDirs(context: ProjectContext): string[] {
   const outputDir = projectOutputDir(context);
@@ -90,13 +91,13 @@ export function isProjectInputFile(path: string, context: ProjectContext) {
 export function projectConfigFile(dir: string): string | undefined {
   return ["_quarto.yml", "_quarto.yaml"]
     .map((file) => join(dir, file))
-    .find(existsSync);
+    .find(existsSync1);
 }
 
 export function projectVarsFile(dir: string): string | undefined {
   return ["_variables.yml", "_variables.yaml"]
     .map((file) => join(dir, file))
-    .find(existsSync);
+    .find(existsSync1);
 }
 
 export function projectOffset(context: ProjectContext, input: string) {
@@ -146,7 +147,7 @@ export function toInputRelativePaths(
       for (let index = 0; index < collection.length; ++index) {
         const value = collection[index];
         if (Array.isArray(value) || value instanceof Object) {
-          inner(value);
+          inner(value as Array<unknown>);
         } else if (typeof value === "string") {
           if (value.length > 0 && !isAbsolute(value)) {
             collection[index] = fixup(value);
@@ -267,7 +268,7 @@ export async function directoryMetadataForInputFile(
   const metadataFile = (dir: string) => {
     return ["_metadata.yml", "_metadata.yaml"]
       .map((file) => join(dir, file))
-      .find(existsSync);
+      .find(existsSync1);
   };
 
   // The path from the project dir to the input dir

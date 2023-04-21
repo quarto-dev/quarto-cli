@@ -51,6 +51,7 @@ import "./project/types/register.ts";
 import "./format/imports.ts";
 
 import { kCliffyImplicitCwd } from "./config/constants.ts";
+import { reportPeformanceMetrics } from "./core/performance/metrics.ts";
 
 export async function quarto(
   args: string[],
@@ -157,6 +158,15 @@ if (import.meta.main) {
     });
 
     await cleanupLogger();
+
+    // print out metrics
+    // reportPeformanceMetrics();
+    // console.log(
+    //   "Done running, sleeping for 10 seconds... Stop your profiler now!",
+    // );
+    // await Deno.run({
+    //   cmd: ["sleep", "10"],
+    // }).status();
 
     // exit
     exitWithCleanup(0);

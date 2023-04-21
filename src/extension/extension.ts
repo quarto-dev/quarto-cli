@@ -57,6 +57,7 @@ import {
 } from "../format/reveal/format-reveal-plugin-types.ts";
 import { resourcePath } from "../core/resources.ts";
 import { warnOnce } from "../core/log.ts";
+import { existsSync1 } from "../core/file.ts";
 
 // This is where we maintain a list of extensions that have been promoted
 // to 'built-in' status. If we see these extensions, we will filter them
@@ -997,5 +998,5 @@ function toExtensionId(extension: string) {
 export const extensionFile = (dir: string) => {
   return ["_extension.yml", "_extension.yaml"]
     .map((file) => join(dir, file))
-    .find(existsSync);
+    .find(existsSync1);
 };

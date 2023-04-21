@@ -1,9 +1,8 @@
 /*
-* project-resources.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * project-resources.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { dirname, extname, join, relative } from "path/mod.ts";
@@ -26,6 +25,7 @@ import {
 
 import { kQuartoIgnore } from "./project-gitignore.ts";
 import { copyFileIfNewer } from "../core/copy.ts";
+import { existsSync1 } from "../core/file.ts";
 
 export function projectResourceFiles(
   dir: string,
@@ -57,7 +57,7 @@ export function projectResourceFiles(
     resourceFiles.push(
       ...["robots.txt", ".nojekyll", "CNAME", "_redirects", kProject404File]
         .map((file) => join(dir, file))
-        .filter(existsSync),
+        .filter(existsSync1),
     );
   }
   return ld.uniq(resourceFiles);

@@ -1,11 +1,10 @@
 /*
-* jupyter.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * jupyter.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
-import { stringify } from "encoding/yaml.ts";
+import { stringify } from "yaml/mod.ts";
 
 import {
   partitionYamlFrontMatter,
