@@ -8,13 +8,11 @@ $if(subtitle)$
 $endif$
 </title-group>
 $endif$
-
 $if(abstract)$
 <abstract>
 $abstract$
 </abstract>
 $endif$
-
 ${ authors.xml() }
 </front-stub>
 
