@@ -18,7 +18,7 @@ export default defineConfig((env) => {
         targets: [
           {
             src: normalizePath("./dist/*"),
-            dest: normalizePath("../../../../resources/preview"),
+            dest: normalizePath("../../../resources/preview/"),
           },
         ],
       }),

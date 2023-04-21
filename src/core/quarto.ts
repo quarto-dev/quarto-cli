@@ -15,6 +15,7 @@ import { exitWithCleanup } from "./cleanup.ts";
 import { onActiveProfileChanged } from "../project/project-profile.ts";
 import { onDotenvChanged } from "../quarto-core/dotenv.ts";
 import { normalizePath } from "./path.ts";
+import { buildQuartoPreviewJs, quartoPreviewJsDir } from "./previewjs.ts";
 
 export const kLocalDevelopment = "99.9.9";
 
@@ -57,7 +58,7 @@ export const quartoConfig = {
 
 export function previewEnsureResources(cleanup?: VoidFunction) {
   if (quartoConfig.isDebug()) {
-    buildQuartoPreviewJs(cleanup);
+    buildPreviewJs(quartoSrcDir(), cleanup);
   }
 }
 
@@ -75,13 +76,13 @@ export function previewMonitorResources(cleanup?: VoidFunction) {
   if (quartoConfig.isDebug()) {
     // src code change
     const srcDir = quartoSrcDir();
-    const previewJsDir = quartoPreviewJsDir();
+    const previewJsDir = quartoPreviewJsDir(srcDir);
     const watcher = Deno.watchFs([srcDir], { recursive: true });
     const watchForChanges = async () => {
       for await (const event of watcher) {
         // if all the paths are in the quarto-preview dir just re-run the build
         if (event.paths.every((path) => path.startsWith(previewJsDir))) {
-          buildQuartoPreviewJs();
+          buildPreviewJs(srcDir);
           // otherwise terminate on changes to .ts files
         } else if (
           event.paths.some((path) => extname(path).toLowerCase() === ".ts")
@@ -110,19 +111,8 @@ function quartoSrcDir() {
   return normalizePath(join(quartoConfig.binPath(), "../../../src"));
 }
 
-function quartoPreviewJsDir() {
-  return join(quartoSrcDir(), "resources", "preview", "quarto-preview");
-}
-
-function buildQuartoPreviewJs(cleanup?: VoidFunction) {
-  // TODO: build with internal deno
-  const buildCmd = new Deno.Command("deno", {
-    args: ["run", "-A", "build.ts"],
-    cwd: quartoPreviewJsDir(),
-    stderr: "inherit",
-    stdout: "inherit",
-  });
-  const output = buildCmd.outputSync();
+function buildPreviewJs(srcDir: string, cleanup?: VoidFunction) {
+  const output = buildQuartoPreviewJs(srcDir);
   if (!output.success) {
     terminatePreview("Error building quarto-preview.js", cleanup);
   }
