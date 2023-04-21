@@ -118,8 +118,8 @@ export async function renderPandoc(
   );
 
   const embedSupporting: string[] = [];
-  if (notebookResult.supporting) {
-    embedSupporting.push(notebookResult.supporting);
+  if (notebookResult.supporting.length) {
+    embedSupporting.push(...notebookResult.supporting);
   }
 
   // Map notebook includes to pandoc includes
@@ -320,7 +320,6 @@ export async function renderPandoc(
         supporting = supporting || [];
         supporting.push(...embedSupporting);
       }
-
 
       withTiming("render-cleanup", () =>
         renderCleanup(

@@ -179,20 +179,48 @@ export function inputTargetIsEmpty(index: InputTargetIndex) {
   return true;
 }
 
+const inputTargetIndexCache = new Map<string, InputTargetIndex>();
+export const inputTargetIndexCacheMetrics = {
+  hits: 0,
+  misses: 0,
+  invalidations: 0,
+};
+
 function readInputTargetIndexIfStillCurrent(projectDir: string, input: string) {
   const inputFile = join(projectDir, input);
   const indexFile = inputTargetIndexFile(projectDir, input);
-  if (existsSync(indexFile)) {
+  try {
     const inputMod = Deno.statSync(inputFile).mtime;
     const indexMod = Deno.statSync(indexFile).mtime;
     if (
-      inputMod && indexMod && (indexMod >= inputMod)
+      inputMod && indexMod
     ) {
-      try {
-        return JSON.parse(Deno.readTextFileSync(indexFile)) as InputTargetIndex;
-      } catch {
-        return undefined;
+      if (inputMod > indexMod) {
+        inputTargetIndexCacheMetrics.invalidations++;
+        inputTargetIndexCache.delete(indexFile);
       }
+
+      if (inputTargetIndexCache.has(indexFile)) {
+        inputTargetIndexCacheMetrics.hits++;
+        return inputTargetIndexCache.get(indexFile);
+      } else {
+        inputTargetIndexCacheMetrics.misses++;
+        try {
+          const result = JSON.parse(
+            Deno.readTextFileSync(indexFile),
+          ) as InputTargetIndex;
+          inputTargetIndexCache.set(indexFile, result);
+          return result;
+        } catch {
+          return undefined;
+        }
+      }
+    }
+  } catch (e) {
+    if (e instanceof Deno.errors.NotFound) {
+      return undefined;
+    } else {
+      throw e;
     }
   }
 }

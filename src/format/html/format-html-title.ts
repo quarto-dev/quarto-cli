@@ -64,7 +64,9 @@ export function documentTitleIncludeInHeader(
   temp: TempContext,
 ) {
   // Inject variables
-  const variables: string[] = [];
+  const headingVars: string[] = [];
+  const containerVars: string[] = [];
+
   const banner = format.metadata[kTitleBlockBanner] as string | boolean;
   if (banner) {
     // $title-banner-bg
@@ -72,38 +74,47 @@ export function documentTitleIncludeInHeader(
     // $title-banner-image
     const titleBlockColor = titleColor(format.metadata[ktitleBlockColor]);
     if (titleBlockColor) {
-      variables.push(`color: ${titleBlockColor};`);
+      const color = `color: ${titleBlockColor};`;
+      headingVars.push(color);
+      containerVars.push(color);
     }
 
     if (banner === true) {
       // The default appearance, use navbar color
     } else if (isBannerImage(input, banner)) {
       // An image background
-      variables.push(`background-image: url(${banner});`);
-      variables.push(`background-size: cover;`);
+      containerVars.push(`background-image: url(${banner});`);
+      containerVars.push(`background-size: cover;`);
     } else {
-      variables.push(`background: ${banner};`);
+      containerVars.push(`background: ${banner};`);
     }
   }
 
-  if (variables.length > 0) {
-    const styles = `<style>
-    .quarto-title-block .quarto-title-banner,
-    .quarto-title-block .quarto-title-banner h1,
-    .quarto-title-block .quarto-title-banner h2,
-    .quarto-title-block .quarto-title-banner h3,
-    .quarto-title-block .quarto-title-banner h4,
-    .quarto-title-block .quarto-title-banner h5,
-    .quarto-title-block .quarto-title-banner h6
-    {
-      ${variables.join("\n")}
+  if (headingVars.length || containerVars.length) {
+    const styles: string[] = ["<style>"];
+    if (headingVars.length) {
+      styles.push(`
+      .quarto-title-block .quarto-title-banner h1,
+      .quarto-title-block .quarto-title-banner h2,
+      .quarto-title-block .quarto-title-banner h3,
+      .quarto-title-block .quarto-title-banner h4,
+      .quarto-title-block .quarto-title-banner h5,
+      .quarto-title-block .quarto-title-banner h6
+      {
+        ${headingVars.join("\n")}
+      }`);
     }
-    </style>`;
+    if (containerVars.length) {
+      styles.push(`
+      .quarto-title-block .quarto-title-banner {
+        ${containerVars.join("\n")}
+      }`);
+    }
+
+    styles.push("</style>");
     const file = temp.createFile({ suffix: ".css" });
-    Deno.writeTextFileSync(file, styles);
+    Deno.writeTextFileSync(file, styles.join("\n"));
     return file;
-  } else {
-    return undefined;
   }
 }
 
