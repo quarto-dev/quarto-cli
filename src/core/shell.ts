@@ -1,22 +1,29 @@
 /*
-* shell.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * shell.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { which } from "./path.ts";
 import { requireQuoting, safeWindowsExec } from "./windows.ts";
 import { execProcess } from "./process.ts";
 
 export async function openUrl(url: string) {
-  const shellOpen = {
+  const shellOpen: Record<string, string> = {
     windows: "explorer",
     darwin: "open",
-    linux: "xdg-open",
+    // otherwise "xdg-open"
+    // assume generic unix
+    // in 1.32.5 this is:
+    // case "linux":
+    // case "netbsd":
+    // case "aix":
+    // case "solaris":
+    // case "illumos":
+    // case "freebsd":
   };
 
-  const cmd = shellOpen[Deno.build.os];
+  const cmd = shellOpen[Deno.build.os] || "xdg-open";
 
   // Because URLs may contain characters like '&' that need to be escaped
   // on Windoww, we need to check whether the url is one of those

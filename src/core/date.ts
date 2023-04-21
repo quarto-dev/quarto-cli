@@ -1,9 +1,8 @@
 /*
-* date.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * date.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 import momentGuess from "moment-guess";
 
 import { parse } from "datetime/mod.ts";

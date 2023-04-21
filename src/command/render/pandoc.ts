@@ -10,7 +10,7 @@ import { info } from "log/mod.ts";
 
 import { existsSync, expandGlobSync, moveSync } from "fs/mod.ts";
 
-import { stringify } from "encoding/yaml.ts";
+import { stringify } from "yaml/mod.ts";
 import { encode as base64Encode } from "encoding/base64.ts";
 
 import * as ld from "../../core/lodash.ts";
