@@ -100,9 +100,19 @@ function jatsSubarticle()
       return el.classes:includes("cell-output")
     end
 
+    local ensureValidIdentifier = function(identifier) 
+      -- Identifiers may not start with a digit, so add a prefix
+      -- if necessary to ensure that they're valid
+      if identifier:find('^%d.*') then
+        return "cell-" .. identifier
+      else
+        return identifier
+      end
+    end
+
     local function renderCell(el, type)
       local renderedCell = pandoc.List()
-      renderedCell:insert(pandoc.RawBlock('jats', '<sec id="' .. el.identifier .. '" content-type="' .. type .. '">'))
+      renderedCell:insert(pandoc.RawBlock('jats', '<sec id="' .. ensureValidIdentifier(el.identifier) .. '" sec-type="' .. type .. '">'))
       for _i, v in ipairs(el.content) do
         renderedCell:insert(v)
       end

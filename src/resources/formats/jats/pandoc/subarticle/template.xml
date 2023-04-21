@@ -1,6 +1,21 @@
 <sub-article article-type="notebook">
 <front-stub>
-$front.xml()$
+$if(title)$
+<title-group>
+<article-title>$title$</article-title>
+$if(subtitle)$
+<subtitle>${subtitle}</subtitle>
+$endif$
+</title-group>
+$endif$
+
+$if(abstract)$
+<abstract>
+$abstract$
+</abstract>
+$endif$
+
+${ authors.xml() }
 </front-stub>
 
 <body>

@@ -22,16 +22,14 @@ $front.xml()$
 $body$
 </body>
 
-$for(include-after)$
-$include-after$
-$endfor$
-
-
 <back>
 $if(back)$
 $back$
 $endif$
 </back>
 
+$for(include-after)$
+$include-after$
+$endfor$
 
 </article>
