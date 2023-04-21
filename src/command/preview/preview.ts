@@ -76,7 +76,11 @@ import {
 } from "../../project/types.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
 import { projectContext } from "../../project/project-context.ts";
-import { normalizePath, pathWithForwardSlashes } from "../../core/path.ts";
+import {
+  normalizePath,
+  pathWithForwardSlashes,
+  safeExistsSync,
+} from "../../core/path.ts";
 import {
   isJupyterHubServer,
   isRStudio,
@@ -108,11 +112,13 @@ import {
   kOutputFile,
   kPreviewMode,
   kPreviewModeRaw,
+  kTargetFormat,
 } from "../../config/constants.ts";
 import { isJatsOutput } from "../../config/format.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { kLocalhost } from "../../core/port-consts.ts";
 import { findOpenPort, waitForPort } from "../../core/port.ts";
+import { inputFileForOutputFile } from "../../project/project-index.ts";
 
 export async function resolvePreviewOptions(
   options: ProjectPreview,
@@ -168,7 +174,8 @@ export async function preview(
 
   // render for preview (create function we can pass to watcher then call it)
   let isRendering = false;
-  const render = async () => {
+  const render = async (to?: string) => {
+    const renderFlags = { ...flags, to: to || flags.to };
     const services = renderServices();
     try {
       HttpDevServerRenderMonitor.onRenderStart();
@@ -176,7 +183,7 @@ export async function preview(
       const result = await renderForPreview(
         file,
         services,
-        flags,
+        renderFlags,
         pandocArgs,
         project,
       );
@@ -477,26 +484,30 @@ async function renderForPreview(
 }
 
 interface ChangeHandler {
-  render: () => Promise<void>;
+  render: () => Promise<RenderForPreviewResult | undefined>;
 }
 
 function createChangeHandler(
   result: RenderForPreviewResult,
   reloader: HttpDevServer,
-  render: () => Promise<RenderForPreviewResult>,
+  render: (to?: string) => Promise<RenderForPreviewResult | undefined>,
   renderOnChange: boolean,
 ): ChangeHandler {
-  const renderQueue = new PromiseQueue();
+  const renderQueue = new PromiseQueue<RenderForPreviewResult | undefined>();
   let watcher: Watcher | undefined;
   let lastResult = result;
 
   // render handler
-  const renderHandler = ld.debounce(async () => {
+  const renderHandler = async (to?: string) => {
     try {
-      await renderQueue.enqueue(async () => {
-        const result = await render();
-        sync(result);
+      const result = await renderQueue.enqueue(async () => {
+        return render(to);
       }, true);
+      if (result) {
+        sync(result);
+      }
+
+      return result;
     } catch (e) {
       if (e.message) {
         // jupyter notebooks being edited in juptyerlab sometimes get an
@@ -512,7 +523,7 @@ function createChangeHandler(
         logError(e);
       }
     }
-  }, 50);
+  };
 
   const sync = (result: RenderForPreviewResult) => {
     const requiresSync = !watcher || resultRequiresSync(result, lastResult);
@@ -526,7 +537,7 @@ function createChangeHandler(
       if (renderOnChange) {
         watches.push({
           files: [result.file],
-          handler: renderHandler,
+          handler: ld.debounce(renderHandler, 50),
         });
       }
 
@@ -534,7 +545,7 @@ function createChangeHandler(
       // the changes as they do w/ e.g. css files)
       watches.push({
         files: result.extensionFiles,
-        handler: renderHandler,
+        handler: ld.debounce(renderHandler, 50),
       });
 
       // reload on output or resource changed (but wait for
@@ -552,6 +563,7 @@ function createChangeHandler(
         handler: ld.debounce(async () => {
           await renderQueue.enqueue(async () => {
             await reloader.reloadClients(reloadTarget);
+            return undefined;
           });
         }, 50),
       });
@@ -626,7 +638,7 @@ function projectHtmlFileRequestHandler(
   flags: RenderFlags,
   format: Format,
   reloader: HttpDevServer,
-  renderHandler: () => Promise<void>,
+  renderHandler: (to?: string) => Promise<RenderForPreviewResult | undefined>,
 ) {
   return httpFileRequestHandler(
     htmlFileRequestHandlerOptions(
@@ -637,6 +649,7 @@ function projectHtmlFileRequestHandler(
       format,
       reloader,
       renderHandler,
+      context,
     ),
   );
 }
@@ -647,7 +660,7 @@ function htmlFileRequestHandler(
   flags: RenderFlags,
   format: Format,
   reloader: HttpDevServer,
-  renderHandler: () => Promise<void>,
+  renderHandler: (to?: string) => Promise<RenderForPreviewResult | undefined>,
 ) {
   return httpFileRequestHandler(
     htmlFileRequestHandlerOptions(
@@ -669,7 +682,8 @@ function htmlFileRequestHandlerOptions(
   flags: RenderFlags,
   format: Format,
   devserver: HttpDevServer,
-  renderHandler: () => Promise<void>,
+  renderHandler: (to?: string) => Promise<RenderForPreviewResult | undefined>,
+  project?: ProjectContext,
 ): HttpFileRequestOptions {
   return {
     baseDir,
@@ -709,10 +723,8 @@ function htmlFileRequestHandlerOptions(
       }
     },
     onFile: async (file: string, req: Request) => {
+      // check for static response
       const staticResponse = await staticResource(format, baseDir, file);
-
-      const rawPreviewMode = format.metadata[kPreviewMode] === kPreviewModeRaw;
-
       if (staticResponse) {
         const resolveBody = () => {
           if (staticResponse.injectClient) {
@@ -734,7 +746,23 @@ function htmlFileRequestHandlerOptions(
           body,
           contentType: staticResponse.contentType,
         };
-      } else if (isHtmlContent(file)) {
+      }
+
+      // check for file not found of an input, in that case render it
+      if (!safeExistsSync(file) && project) {
+        const input = await inputFileForOutputFile(
+          project,
+          relative(baseDir, file),
+        );
+        if (input) {
+          const format = input.format.identifier[kTargetFormat];
+          if (format) {
+            await renderHandler(format);
+          }
+        }
+      }
+
+      if (isHtmlContent(file)) {
         // does the provide an alternate preview file?
         if (format.formatPreviewFile) {
           file = format.formatPreviewFile(file, format);
@@ -742,6 +770,8 @@ function htmlFileRequestHandlerOptions(
         const fileContents = await Deno.readFile(file);
         return devserver.injectClient(req, fileContents, inputFile);
       } else if (isTextContent(file)) {
+        const rawPreviewMode =
+          format.metadata[kPreviewMode] === kPreviewModeRaw;
         if (!rawPreviewMode && isJatsOutput(format.pandoc)) {
           const xml = await jatsPreviewXml(file, req);
           return {
@@ -778,7 +808,7 @@ function pdfFileRequestHandler(
   format: Format,
   port: number,
   reloader: HttpDevServer,
-  renderHandler: () => Promise<void>,
+  renderHandler: () => Promise<RenderForPreviewResult | undefined>,
 ) {
   // start w/ the html handler (as we still need it's http reload injection)
   const pdfOptions = htmlFileRequestHandlerOptions(

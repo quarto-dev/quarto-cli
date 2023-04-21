@@ -220,7 +220,7 @@ export async function resolveInputTarget(
 export async function inputFileForOutputFile(
   project: ProjectContext,
   output: string,
-) {
+): Promise<{ file: string; format: Format } | undefined> {
   // compute output dir
   const outputDir = projectOutputDir(project);
 
@@ -248,7 +248,7 @@ export async function inputFileForOutputFile(
             dirname(inputRelative),
             outputFile,
           );
-          project.outputNameIndex!.set(formatOutputPath, file);
+          project.outputNameIndex!.set(formatOutputPath, { file, format });
         }
       });
     }
@@ -266,7 +266,7 @@ export async function inputTargetIndexForOutputFile(
   }
   return await inputTargetIndex(
     project,
-    relative(project.dir, input),
+    relative(project.dir, input.file),
   );
 }
 

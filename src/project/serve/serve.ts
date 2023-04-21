@@ -506,7 +506,7 @@ async function internalPreviewServer(
           watcher.project(),
           filePathRelative,
         );
-        if (!inputFile || !existsSync(inputFile)) {
+        if (!inputFile || !existsSync(inputFile.file)) {
           inputFile = await inputFileForOutputFile(
             await watcher.refreshProject(),
             filePathRelative,
@@ -519,7 +519,7 @@ async function internalPreviewServer(
           if (
             renderManager.fileRequiresReRender(
               file,
-              inputFile,
+              inputFile.file,
               extensionDirs,
               resourceFiles,
               watcher.project(),
@@ -550,7 +550,7 @@ async function internalPreviewServer(
                     flags: renderFlags,
                     pandocArgs: renderPandocArgs,
                   },
-                  [inputFile!],
+                  [inputFile!.file],
                 )
               );
               if (result.error) {
@@ -582,7 +582,7 @@ async function internalPreviewServer(
         if (isHtmlContent(file) && inputFile) {
           const projInputFile = join(
             project!.dir,
-            relative(watcher.project().dir, inputFile),
+            relative(watcher.project().dir, inputFile.file),
           );
           return watcher.injectClient(
             req,
