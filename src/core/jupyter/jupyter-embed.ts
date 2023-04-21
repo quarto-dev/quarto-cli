@@ -33,7 +33,11 @@ import {
 } from "../../config/format.ts";
 import { resolveParams } from "../../command/render/flags.ts";
 import { RenderContext, RenderFlags } from "../../command/render/types.ts";
-import { JupyterAssets, JupyterCellOutput } from "../jupyter/types.ts";
+import {
+  JupyterAssets,
+  JupyterCell,
+  JupyterCellOutput,
+} from "../jupyter/types.ts";
 
 import { dirname, extname, join } from "path/mod.ts";
 import { languages } from "../handlers/base.ts";
@@ -53,12 +57,12 @@ export interface JupyterNotebookAddress {
   indexes?: number[];
 }
 
-export interface JupyterMarkdownOptions
-  extends Record<string, boolean | undefined> {
+export interface JupyterMarkdownOptions extends Record<string, unknown> {
   echo?: boolean;
   warning?: boolean;
   asis?: boolean;
   preserveCellMetadata?: boolean;
+  filter?: (cell: JupyterCell) => boolean;
 }
 
 interface JupyterNotebookOutputCache extends ObjectWithLifetime {
@@ -423,6 +427,17 @@ async function getCachedNotebookInfo(
       });
     }
 
+    // Filter the cells, if applicable
+    if (options?.filter) {
+      notebook.cells = notebook.cells.filter((cell) => {
+        if (options?.filter) {
+          return options?.filter(cell);
+        } else {
+          return true;
+        }
+      });
+    }
+
     // Get the markdown for the notebook
     const format = context.format;
     const executeOptions = {
@@ -494,7 +509,9 @@ function notebookCacheKey(
 ) {
   const optionsKey = nbOptions
     ? Object.keys(nbOptions).reduce((current, key) => {
-      if (nbOptions[key] !== undefined) {
+      if (
+        nbOptions[key] !== undefined && typeof (nbOptions[key] === "boolean")
+      ) {
         return current + `${key}:${String(nbOptions[key])}`;
       } else {
         return current;

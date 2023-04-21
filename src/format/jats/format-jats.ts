@@ -19,7 +19,7 @@ import { createFormat } from "../formats-shared.ts";
 
 import { warning } from "log/mod.ts";
 import { formatResourcePath } from "../../core/resources.ts";
-import { join } from "path/mod.ts";
+import { extname, join } from "path/mod.ts";
 import { reformat } from "../../core/xml.ts";
 import { RenderContext, RenderServices } from "../../command/render/types.ts";
 import {
@@ -36,6 +36,7 @@ import { dirAndStem } from "../../core/path.ts";
 import { renderFormats } from "../../command/render/render-contexts.ts";
 import { kJatsSubarticle } from "./format-jats-types.ts";
 import { inputExtensionDirs } from "../../extension/extension.ts";
+import { JupyterCell } from "../../core/jupyter/types.ts";
 
 const kJatsExtended = "jats-extended";
 const kJatsDtd = "jats-dtd";
@@ -150,6 +151,17 @@ function jatsDtd(tagset: JatsTagset) {
   return kDJatsDtds[tagset];
 }
 
+const notebookPathForDocument = (path: string) => {
+  if (extname(path) === ".ipynb") {
+    return path;
+  }
+};
+
+interface NotebookSubarticle {
+  path: string;
+  filter?: (cell: JupyterCell) => boolean;
+}
+
 export const jatsNotebookExtension: NotebooksFormatExtension = {
   processNotebooks: async function (
     input: string,
@@ -165,9 +177,30 @@ export const jatsNotebookExtension: NotebooksFormatExtension = {
       const subarticlePaths: string[] = [];
       const subarticleResources: string[] = [];
 
+      // See if the input itself should be processed-
+      // if so, add it to the list of notebooks to render
+      // and add a filter to include only code cells.
+      const subarticleNotebooks = notebooks.map((nb) => {
+        return {
+          path: nb,
+        };
+      }) as NotebookSubarticle[];
+      const notebookPath = notebookPathForDocument(input);
+      if (notebookPath) {
+        subarticleNotebooks.push({
+          path: input,
+          filter: (cell: JupyterCell) => {
+            return cell.cell_type == "code";
+          },
+        });
+      }
+
+      // TODO: Test using a ipynb with no computations as the root document
+      // and see that nothing gets embedded!
+
       // Accumulate markdown files that will be rendered
       // into JATS sub-articles
-      for (const notebook of notebooks) {
+      for (const notebook of subarticleNotebooks) {
         // Render the notebook to a markdown file
         const inputMdFile = await writeNotebookMarkdown(
           input,
@@ -205,21 +238,22 @@ export const jatsNotebookExtension: NotebooksFormatExtension = {
 
 async function writeNotebookMarkdown(
   input: string,
-  notebook: string,
+  notebook: NotebookSubarticle,
   format: Format,
   context: RenderContext,
   workingDir: string,
 ) {
   // TODO: deal with subdir
-  const [_nbDir, nbStem] = dirAndStem(notebook);
+  const [_nbDir, nbStem] = dirAndStem(notebook.path);
   const nbAddress = {
-    path: notebook,
+    path: notebook.path,
   };
 
   // TODO: ensure that echo forces code to be in notebook
   const nbOptions: JupyterMarkdownOptions = {
     echo: true,
     preserveCellMetadata: true,
+    filter: notebook.filter,
   };
 
   // The assets target
@@ -238,7 +272,6 @@ async function writeNotebookMarkdown(
     nbOptions,
   );
 
-  console.log(nbMarkdown);
   // The input file that we'll use to render
   // TODO: deal with subdir / ensure that there aren't name conflicts here
   const inputMdFile = join(workingDir, `${nbStem}.md`);
