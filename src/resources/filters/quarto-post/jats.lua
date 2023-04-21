@@ -136,7 +136,6 @@ function jatsSubarticle()
 
     return {
       Meta = jatsMeta,
-
       Div = function(div)
         
         -- TODO: Code cell with #fig-asdas label gets turned into a figure div, need to stop that
@@ -174,10 +173,19 @@ function jatsSubarticle()
         elseif isCodeCellOutput(div) then
           -- do nothing
         else
-          -- otherwise, if this is a div, we can unroll its contents
-          return unrollDiv(div, function(el) 
-            return isCodeCellOutput(el) or isCell(el)
-          end)
+          -- Forward the identifier from a table div onto the table itself and 
+          -- discard the div
+          if isTableDiv(div) then
+            local tbl = div.content[1]
+            tbl.identifier = div.identifier
+            return tbl
+          else
+            -- otherwise, if this is a div, we can unroll its contents
+            return unrollDiv(div, function(el) 
+              return isCodeCellOutput(el) or isCell(el)
+            end)
+          end 
+
         end
       end,
     }
