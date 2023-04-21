@@ -1,10 +1,11 @@
 /*
- * types-from-schema.ts
- *
- * generates a typescript file with type definitions from our yaml schema definitions.
- *
- * Copyright (C) 2022 Posit Software, PBC
- */
+* types-from-schema.ts
+*
+* generates a typescript file with type definitions from our yaml schema definitions.
+*
+* Copyright (C) 2022 Posit Software, PBC
+*
+*/
 
 /*
 
@@ -17,7 +18,7 @@ itself run.
 
 */
 
-import { parse } from "yaml/mod.ts";
+import { parse } from "encoding/yaml.ts";
 import { toCapitalizationCase } from "../lib/text.ts";
 import { capitalizeWord as capitalize } from "../text.ts";
 import { join } from "path/mod.ts";

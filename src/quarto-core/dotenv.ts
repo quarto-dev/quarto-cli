@@ -1,10 +1,11 @@
 /*
- * dotenv.ts
- *
- * Copyright (C) 2020-2022 Posit Software, PBC
- */
+* dotenv.ts
+*
+* Copyright (C) 2020-2022 Posit Software, PBC
+*
+*/
 
-import { load as config, stringify } from "dotenv/mod.ts";
+import { config, DotenvConfig, stringify } from "dotenv/mod.ts";
 import { join } from "path/mod.ts";
 import { safeExistsSync } from "../core/path.ts";
 import { isEqual } from "../core/lodash.ts";
@@ -20,8 +21,8 @@ const kQuartoEnvRequired = `${kQuartoEnv}.required`;
 export async function dotenvQuartoProfile(projectDir: string) {
   // read config
   const conf = await config({
-    defaultsPath: join(projectDir, kQuartoEnv),
-    envPath: join(projectDir, kQuartoEnvLocal),
+    defaults: join(projectDir, kQuartoEnv),
+    path: join(projectDir, kQuartoEnvLocal),
   });
 
   // return profile if we have it
@@ -34,7 +35,7 @@ export async function dotenvQuartoProfile(projectDir: string) {
 const dotenvVariablesSet: string[] = [];
 
 // track previous variables defined (used to trigger event indicating a change)
-let prevDotenvVariablesDefined: Record<string, string> | undefined;
+let prevDotenvVariablesDefined: DotenvConfig | undefined;
 
 export async function dotenvSetVariables(projectDir: string) {
   // back out any previous variables set (and note firstRun)
@@ -52,9 +53,9 @@ export async function dotenvSetVariables(projectDir: string) {
   ].filter(safeExistsSync).reverse();
 
   // read the dot env files in turn, track variables defined for validation
-  const dotenvVariablesDefined: Record<string, string> = {};
+  const dotenvVariablesDefined: DotenvConfig = {};
   for (const dotenvFile of dotenvFiles) {
-    const conf = await config({ envPath: dotenvFile });
+    const conf = await config({ path: dotenvFile });
     for (const key in conf) {
       // set into environment (and track that we did so for reversing out later)
       if (Deno.env.get(key) === undefined) {
@@ -78,12 +79,10 @@ export async function dotenvSetVariables(projectDir: string) {
       definedEnvTempPath,
       stringify(dotenvVariablesDefined),
     );
-    // FIXME the removal of the safe option
-    // in https://github.com/denoland/deno_std/pull/2616
-    // seems to indicate that we shouldn't be using examplePath here...
     await config({
-      envPath: definedEnvTempPath,
-      examplePath: dotenvRequired,
+      path: definedEnvTempPath,
+      example: dotenvRequired,
+      safe: true,
       allowEmptyValues: true,
     });
   }

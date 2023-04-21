@@ -1,8 +1,9 @@
 /*
- * appdirs.ts
- *
- * Copyright (C) 2020-2022 Posit Software, PBC
- */
+* appdirs.ts
+*
+* Copyright (C) 2020-2022 Posit Software, PBC
+*
+*/
 
 import { join } from "path/mod.ts";
 import { ensureDirSync } from "fs/mod.ts";
@@ -38,17 +39,10 @@ export function userDataDir(appName: string, roaming = false) {
   switch (Deno.build.os) {
     case "darwin":
       return darwinUserDataDir(appName);
+    case "linux":
+      return xdgUserDataDir(appName);
     case "windows":
       return windowsUserDataDir(appName, roaming);
-    default: // assume generic unix
-      // in 1.32.5 this is:
-      // case "linux":
-      // case "netbsd":
-      // case "aix":
-      // case "solaris":
-      // case "illumos":
-      // case "freebsd":
-      return xdgUserDataDir(appName);
   }
 }
 
@@ -56,17 +50,10 @@ export function userConfigDir(appName: string, roaming = false) {
   switch (Deno.build.os) {
     case "darwin":
       return darwinUserDataDir(appName);
+    case "linux":
+      return xdgUserConfigDir(appName);
     case "windows":
       return windowsUserDataDir(appName, roaming);
-    default: // assume generic unix
-      // in 1.32.5 this is:
-      // case "linux":
-      // case "netbsd":
-      // case "aix":
-      // case "solaris":
-      // case "illumos":
-      // case "freebsd":
-      return xdgUserConfigDir(appName);
   }
 }
 
@@ -74,17 +61,10 @@ export function userCacheDir(appName: string) {
   switch (Deno.build.os) {
     case "darwin":
       return darwinUserCacheDir(appName);
+    case "linux":
+      return xdgUserCacheDir(appName);
     case "windows":
       return windowsUserDataDir(appName);
-    default: // assume generic unix
-      // in 1.32.5 this is:
-      // case "linux":
-      // case "netbsd":
-      // case "aix":
-      // case "solaris":
-      // case "illumos":
-      // case "freebsd":
-      return xdgUserCacheDir(appName);
   }
 }
 
@@ -92,17 +72,10 @@ export function userRuntimeDir(appName: string) {
   switch (Deno.build.os) {
     case "darwin":
       return darwinUserCacheDir(appName);
+    case "linux":
+      return xdgUserRuntimeDir(appName);
     case "windows":
       return windowsUserDataDir(appName);
-    default: // assume generic unix
-      // in 1.32.5 this is:
-      // case "linux":
-      // case "netbsd":
-      // case "aix":
-      // case "solaris":
-      // case "illumos":
-      // case "freebsd":
-      return xdgUserRuntimeDir(appName);
   }
 }
 

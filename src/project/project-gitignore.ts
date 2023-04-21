@@ -1,11 +1,12 @@
 /*
- * project-gitignore.ts
- *
- * Copyright (C) 2020-2022 Posit Software, PBC
- */
+* project-gitignore.ts
+*
+* Copyright (C) 2020-2022 Posit Software, PBC
+*
+*/
 
 import { join } from "path/mod.ts";
-import { existsSync } from "node:fs";
+import { existsSync } from "node/fs.ts";
 import { walkSync } from "fs/mod.ts";
 
 import { which } from "../core/path.ts";

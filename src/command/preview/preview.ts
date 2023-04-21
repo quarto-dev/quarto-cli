@@ -571,11 +571,10 @@ interface Watcher {
 }
 
 function previewWatcher(watches: Watch[]): Watcher {
-  existsSync;
   watches = watches.map((watch) => {
     return {
       ...watch,
-      files: watch.files.filter((s) => existsSync(s)).map((file) => {
+      files: watch.files.filter(existsSync).map((file) => {
         return normalizePath(file);
       }),
     };

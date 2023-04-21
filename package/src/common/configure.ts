@@ -5,7 +5,7 @@
 *
 */
 import { dirname, join, SEP } from "path/mod.ts";
-import { existsSync } from "node:fs";
+import { existsSync } from "node/fs.ts";
 import { ensureDirSync } from "fs/mod.ts";
 import { info, warning } from "log/mod.ts";
 

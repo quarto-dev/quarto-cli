@@ -55,7 +55,6 @@ import {
   kResourcePath,
 } from "../../config/constants.ts";
 import { pandocIngestSelfContainedContent } from "../../core/pandoc/self-contained.ts";
-import { existsSync1 } from "../../core/file.ts";
 
 export async function renderPandoc(
   file: ExecutedFile,
@@ -357,7 +356,7 @@ export async function renderPandoc(
         markdown: executeResult.markdown,
         format,
         supporting: supporting
-          ? supporting.filter(existsSync1).map((file: string) =>
+          ? supporting.filter(existsSync).map((file: string) =>
             context.project ? relative(context.project.dir, file) : file
           )
           : undefined,

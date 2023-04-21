@@ -1,10 +1,11 @@
 /*
- * download.ts
- *
- * Copyright (C) 2020-2022 Posit Software, PBC
- */
+* download.ts
+*
+* Copyright (C) 2020-2022 Posit Software, PBC
+*
+*/
 
-import { writeAll } from "streams/write_all.ts";
+import { writeAll } from "streams/conversion.ts";
 import { progressBar } from "./console.ts";
 
 export interface DownloadError extends Error {

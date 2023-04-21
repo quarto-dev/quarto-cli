@@ -40,7 +40,6 @@ import { engineIgnoreDirs } from "../../execute/engine.ts";
 import { asArray } from "../../core/array.ts";
 import { isPdfContent } from "../../core/mime.ts";
 import { ServeRenderManager } from "./render.ts";
-import { existsSync1 } from "../../core/file.ts";
 
 interface WatchChanges {
   config: boolean;
@@ -129,7 +128,7 @@ export function watchProject(
         if (options[kProjectWatchInputs]) {
           // get inputs (filter by whether the last time we rendered
           // this input had the exact same content hash)
-          const inputs = paths.filter(isInputFile).filter(existsSync1).filter(
+          const inputs = paths.filter(isInputFile).filter(existsSync).filter(
             (input) => {
               return !rendered.has(input) ||
                 rendered.get(input) !== md5Hash(Deno.readTextFileSync(input));
@@ -167,7 +166,7 @@ export function watchProject(
                 return undefined;
               } else {
                 // record rendered hash
-                for (const input of inputs.filter(existsSync1)) {
+                for (const input of inputs.filter(existsSync)) {
                   rendered.set(input, md5Hash(Deno.readTextFileSync(input)));
                 }
                 renderManager.onRenderResult(

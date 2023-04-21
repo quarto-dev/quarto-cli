@@ -4,7 +4,7 @@
 * Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
-import { existsSync } from "node:fs";
+import { existsSync } from "node/fs.ts";
 import { dirname } from "path/mod.ts";
 import { testQuartoCmd, Verify } from "../../test.ts";
 import { siteOutputForInput } from "../../utils.ts";

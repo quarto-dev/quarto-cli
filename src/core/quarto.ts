@@ -1,13 +1,14 @@
 /*
- * env.ts
- *
- * Copyright (C) 2020-2022 Posit Software, PBC
- */
+* env.ts
+*
+* Copyright (C) 2020-2022 Posit Software, PBC
+*
+*/
 import { existsSync } from "fs/exists.ts";
 import { extname, join } from "path/mod.ts";
 import { info } from "log/mod.ts";
 import * as colors from "fmt/colors.ts";
-import { load as config, LoadOptions as ConfigOptions } from "dotenv/mod.ts";
+import { config, ConfigOptions, DotenvConfig } from "dotenv/mod.ts";
 
 import { getenv } from "./env.ts";
 import { exitWithCleanup } from "./cleanup.ts";
@@ -23,7 +24,7 @@ export interface QuartoConfig {
   isDebug(): boolean;
 }
 
-let dotenvConfig: Record<string, string>;
+let dotenvConfig: DotenvConfig;
 
 export const quartoConfig = {
   binPath: () => getenv("QUARTO_BIN_PATH"),
@@ -38,15 +39,15 @@ export const quartoConfig = {
       return kLocalDevelopment;
     }
   },
-  dotenv: async (): Promise<Record<string, string>> => {
+  dotenv: async (): Promise<DotenvConfig> => {
     if (!dotenvConfig) {
       const options: ConfigOptions = {
-        defaultsPath: join(quartoConfig.sharePath(), "env", "env.defaults"),
+        defaults: join(quartoConfig.sharePath(), "env", "env.defaults"),
       };
       if (quartoConfig.isDebug()) {
-        options.envPath = join(quartoConfig.sharePath(), "..", "..", ".env");
+        options.path = join(quartoConfig.sharePath(), "..", "..", ".env");
       } else {
-        options.envPath = options.defaultsPath;
+        options.path = options.defaults;
       }
       dotenvConfig = await config(options);
     }

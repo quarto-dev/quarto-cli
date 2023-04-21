@@ -9,8 +9,8 @@
 import EventEmitter from "events/mod.ts";
 
 // const util = require('util');
-import { format as formatUrl, parse as parseUrl } from "node:url";
-import { nextTick } from "node:process";
+import { format as formatUrl, parse as parseUrl } from "node/url.ts";
+import { nextTick } from "node/_next_tick.ts";
 
 /* const formatUrl = require('url').format;
 const parseUrl = require('url').parse;

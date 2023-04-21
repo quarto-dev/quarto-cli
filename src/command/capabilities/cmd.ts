@@ -1,10 +1,11 @@
 /*
- * cmd.ts
- *
- * Copyright (C) 2020-2022 Posit Software, PBC
- */
+* cmd.ts
+*
+* Copyright (C) 2020-2022 Posit Software, PBC
+*
+*/
 
-import { writeAllSync } from "streams/write_all.ts";
+import { writeAllSync } from "streams/conversion.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 import { capabilities } from "./capabilities.ts";

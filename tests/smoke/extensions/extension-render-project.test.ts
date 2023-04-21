@@ -11,7 +11,7 @@ import { basename, dirname, extname, join, relative } from "path/mod.ts";
 import { ensureHtmlElements } from "../../verify.ts";
 import { testQuartoCmd } from "../../test.ts";
 import { noErrors } from "../../verify.ts";
-import { existsSync } from "node:fs";
+import { existsSync } from "node/fs.ts";
 
 const siteOutputForInput = (rootDir: string, input: string) => {
   const dir = join(rootDir, "_site");
