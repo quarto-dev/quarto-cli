@@ -117,9 +117,9 @@ export async function renderPandoc(
     executeResult.markdown,
   );
 
-  if (notebookResult.supporting) {
-    executeResult.supporting = executeResult.supporting || [];
-    executeResult.supporting.push(notebookResult.supporting);
+  const embedSupporting: string[] = [];
+  if (notebookResult.supporting.length) {
+    embedSupporting.push(...notebookResult.supporting);
   }
 
   // Map notebook includes to pandoc includes
@@ -315,6 +315,10 @@ export async function renderPandoc(
       ) {
         supporting = supporting || [];
         supporting.push(...htmlPostProcessResult.supporting);
+      }
+      if (embedSupporting && embedSupporting.length > 0) {
+        supporting = supporting || [];
+        supporting.push(...embedSupporting);
       }
 
       withTiming("render-cleanup", () =>
