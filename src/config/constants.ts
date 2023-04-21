@@ -56,6 +56,8 @@ export const kIpynbFilter = "ipynb-filter";
 export const kIpynbFilters = "ipynb-filters";
 export const kIPynbTitleBlockTemplate = "ipynb-title-block";
 
+export const kJatsSubarticleId = "jats-subarticle-id";
+
 export const kShortcodes = "shortcodes";
 
 export const kKeepMd = "keep-md";

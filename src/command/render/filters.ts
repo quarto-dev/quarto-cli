@@ -25,6 +25,7 @@ import {
   kIncludeBeforeBody,
   kIncludeInHeader,
   kIPynbTitleBlockTemplate,
+  kJatsSubarticleId,
   kKeepHidden,
   kMergeIncludes,
   kOutputDivs,
@@ -68,6 +69,7 @@ import { relative } from "path/mod.ts";
 import { citeIndexFilterParams } from "../../project/project-cites.ts";
 import { debug } from "log/mod.ts";
 import { kJatsSubarticle } from "../../format/jats/format-jats-types.ts";
+import { shortUuid } from "../../core/uuid.ts";
 
 const kQuartoParams = "quarto-params";
 
@@ -129,6 +131,7 @@ export async function filterParamsJson(
     ...citeIndexFilterParams(options, defaults),
     ...layoutFilterParams(options.format),
     ...languageFilterParams(options.format.language),
+    ...jatsFilterParams(options),
     ...filterParams,
     [kResultsFile]: pandocMetadataPath(resultsFile),
     [kTimingFile]: pandocMetadataPath(timingFile),
@@ -444,6 +447,17 @@ function ipynbFilterParams(options: PandocOptions) {
     [kIPynbTitleBlockTemplate]:
       options.format.metadata[kIPynbTitleBlockTemplate],
   };
+}
+
+function jatsFilterParams(options: PandocOptions) {
+  if (options.format.metadata[kJatsSubarticle]) {
+    return {
+      [kJatsSubarticleId]: options.format.metadata[kJatsSubarticleId] ||
+        shortUuid(),
+    };
+  } else {
+    return {};
+  }
 }
 
 async function quartoFilterParams(

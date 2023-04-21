@@ -7,6 +7,7 @@
 
 import {
   kDefaultImageExtension,
+  kJatsSubarticleId,
   kLinkCitations,
   kNotebookSubarticles,
   kOutputExt,
@@ -35,7 +36,6 @@ import { runPandoc } from "../../command/render/pandoc.ts";
 import { dirAndStem } from "../../core/path.ts";
 import { renderFormats } from "../../command/render/render-contexts.ts";
 import { kJatsSubarticle } from "./format-jats-types.ts";
-import { inputExtensionDirs } from "../../extension/extension.ts";
 import { JupyterCell } from "../../core/jupyter/types.ts";
 
 const kJatsExtended = "jats-extended";
@@ -197,7 +197,10 @@ export const jatsNotebookExtension: NotebooksFormatExtension = {
 
       // Accumulate markdown files that will be rendered
       // into JATS sub-articles
-      for (const notebook of subarticleNotebooks) {
+      for (let i = 0; i < subarticleNotebooks.length; i++) {
+        const notebook = subarticleNotebooks[i];
+        const notebookId = `nb-${i}`;
+
         // Render the notebook to a markdown file
         const inputMdFile = await writeNotebookMarkdown(
           input,
@@ -210,6 +213,7 @@ export const jatsNotebookExtension: NotebooksFormatExtension = {
         // Render the notebook into a JATS subarticle
         if (inputMdFile) {
           const jatsResult = await renderJatsSubarticle(
+            notebookId,
             inputMdFile,
             format,
             context,
@@ -281,6 +285,7 @@ async function writeNotebookMarkdown(
 }
 
 async function renderJatsSubarticle(
+  subarticleId: string,
   inputMd: string,
   format: Format,
   context: RenderContext,
@@ -307,6 +312,7 @@ async function renderJatsSubarticle(
   // Configure the JATS renderingats
   nbFormat.metadata[kLintXml] = false;
   nbFormat.metadata[kJatsSubarticle] = true;
+  nbFormat.metadata[kJatsSubarticleId] = subarticleId;
 
   // Run pandoc to render the notebook
   const result = await runPandoc({

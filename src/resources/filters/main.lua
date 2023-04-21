@@ -130,6 +130,7 @@ import("./quarto-pre/figures.lua")
 import("./quarto-pre/hidden.lua")
 import("./quarto-pre/include-paths.lua")
 import("./quarto-pre/input-traits.lua")
+import("./quarto-pre/jats.lua")
 import("./quarto-pre/line-numbers.lua")
 import("./quarto-pre/meta.lua")
 import("./quarto-pre/options.lua")
@@ -226,7 +227,10 @@ local quartoPre = {
   }) },
   { name = "pre-quartoPreMetaInject", filter = quartoPreMetaInject() },
   { name = "pre-writeResults", filter = writeResults() },
-  { name = "pre-projectPaths", filter = projectPaths() }
+  { name = "pre-projectPaths", filter = projectPaths() },
+  { name = "pre-render-jats-subarticle", filter = filterIf(function()
+    return preState.active_filters.jats_subarticle ~= nil and preState.active_filters.jats_subarticle
+  end, jatsSubarticlePre()) },
 }
 
 local quartoPost = {

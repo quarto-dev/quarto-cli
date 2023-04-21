@@ -14,6 +14,10 @@ local function isCell(el)
   return el.classes:includes("cell") 
 end
 
+function subarticleId()
+  return param("jats-subarticle-id", "")
+end
+
 local function jatsMeta(meta) 
   -- inspect the meta and set flags that will aide the rendering of
   -- the JATS template by providing some synthesize properties
@@ -157,7 +161,7 @@ function jatsSubarticle()
             return isCodeCellOutput(el) or isCell(el)
           end)
         end
-      end
+      end,
     }
 
   else 
