@@ -126,9 +126,11 @@ function jatsSubarticle()
 
     local function renderCellOutput(el, type)
       local renderedCell = pandoc.List()
+      renderedCell:insert(pandoc.RawBlock('jats', '<sec id="' .. el.identifier .. '" content-type="' .. type .. '">'))
       for _i, v in ipairs(el.content) do
         renderedCell:insert(v)
       end
+      renderedCell:insert(pandoc.RawBlock('jats', '</sec>'))
       return renderedCell
     end
 
