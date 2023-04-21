@@ -1,4 +1,5 @@
-
+-- docusaurus.lua
+-- Copyright (C) 2023 Posit Software, PBC
 
 local kQuartoRawHtml = "quartoRawHtml"
 local rawHtmlVars = pandoc.List()
@@ -70,7 +71,7 @@ function CodeBlock(el)
     -- that pandoc natively understands, so return the CodeBlock as
     -- "raw" markdown (so it bypasses pandoc processing entirely)
     return pandoc.RawBlock("markdown", 
-      "```" .. lang .. " title=\"" .. title .. "\"\n" ..
+      "\n```" .. lang .. " title=\"" .. title .. "\"\n" ..
       el.text .. "\n```\n"
     )
   elseif #el.attr.classes == 0 then

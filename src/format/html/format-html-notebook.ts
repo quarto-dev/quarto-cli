@@ -18,6 +18,7 @@ import {
   kSourceNotebookPrefix,
   kTemplate,
   kTheme,
+  kTo,
 } from "../../config/constants.ts";
 import { Format, NotebookPublishOptions } from "../../config/types.ts";
 
@@ -26,15 +27,16 @@ import {
   RenderServices,
 } from "../../command/render/types.ts";
 
-import { basename, dirname, join, relative } from "path/mod.ts";
+import { basename, dirname, isAbsolute, join, relative } from "path/mod.ts";
 import { renderFiles } from "../../command/render/render-files.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { kNotebookViewStyleNotebook } from "./format-html-constants.ts";
+import { warning } from "log/mod.ts";
 
 interface NotebookView {
   title: string;
   href: string;
-  supporting?: string;
+  supporting?: string[];
 }
 
 interface NotebookViewOptions {
@@ -131,9 +133,11 @@ export async function processNotebookEmbeds(
     for (const nbDivNode of notebookDivNodes) {
       const nbDivEl = nbDivNode as Element;
       const notebookPath = nbDivEl.getAttribute("data-notebook");
+      nbDivEl.removeAttribute("data-notebook");
       if (notebookPath) {
         linkedNotebooks.push(notebookPath);
         const title = nbDivEl.getAttribute("data-notebook-title");
+        nbDivEl.removeAttribute("data-notebook-title");
         const nbDir = dirname(notebookPath);
         const filename = basename(notebookPath);
         const inputDir = dirname(input);
@@ -143,7 +147,9 @@ export async function processNotebookEmbeds(
             // Read options for this notebook
             const nbPreviewOptions = nbViewConfig.options(notebookPath);
 
-            const nbAbsPath = join(inputDir, notebookPath);
+            const nbAbsPath = isAbsolute(notebookPath)
+              ? notebookPath
+              : join(inputDir, notebookPath);
             const htmlPreview = await renderHtmlView(
               inputDir,
               nbAbsPath,
@@ -277,7 +283,7 @@ export async function processNotebookEmbeds(
       // If there is a view configured for this, then
       // include it in the supporting dir
       if (nbPath.supporting) {
-        supporting.push(nbPath.supporting);
+        supporting.push(...nbPath.supporting);
       }
 
       // This is the notebook itself
@@ -351,12 +357,13 @@ async function renderHtmlView(
 
     // Render the notebook and update the path
     const nbPreviewFile = `${filename}.html`;
-    await renderFiles(
-      [{ path: nbAbsPath }],
+    const rendered = await renderFiles(
+      [{ path: nbAbsPath, formats: ["html"] }],
       {
         services,
         flags: {
           metadata: {
+            [kTo]: "html",
             [kTheme]: format.metadata[kTheme],
             [kOutputFile]: nbPreviewFile,
             [kTemplate]: templatePath,
@@ -369,12 +376,27 @@ async function renderHtmlView(
       undefined,
       project,
     );
+    if (rendered.error) {
+      // TODO: This should throw in future releases rather than warn
+      // Only adding warning for now because of timing of release of 1.3
+      warning(`Failed to render preview for notebook ${nbAbsPath}`);
+    }
+
+    const nbPreviewPath = join(inputDir, dirname(href), nbPreviewFile);
+    const supporting = [nbPreviewPath];
+    for (const renderedFile of rendered.files) {
+      if (renderedFile.supporting) {
+        supporting.push(...renderedFile.supporting.map((file) => {
+          return isAbsolute(file) ? file : join(inputDir, file);
+        }));
+      }
+    }
 
     return {
       title: options.title,
       href: join(dirname(href), nbPreviewFile),
-      // notebbok to be included as supporting file
-      supporting: join(inputDir, dirname(href), nbPreviewFile),
+      // notebook to be included as supporting file
+      supporting,
     };
   } else {
     return {
