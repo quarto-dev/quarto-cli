@@ -51,7 +51,6 @@ import "./project/types/register.ts";
 import "./format/imports.ts";
 
 import { kCliffyImplicitCwd } from "./config/constants.ts";
-import { reportPeformanceMetrics } from "./core/performance/metrics.ts";
 
 export async function quarto(
   args: string[],
