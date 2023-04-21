@@ -4,7 +4,7 @@
 * Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
-import { existsSync } from "node/fs.ts";
+import { existsSync } from "node:fs";
 import { join } from "path/mod.ts";
 
 import { Metadata } from "../../../src/config/types.ts";

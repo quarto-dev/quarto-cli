@@ -5,7 +5,7 @@
 *
 */
 
-import { existsSync } from "node/fs.ts";
+import { existsSync } from "node:fs";
 import { DOMParser, NodeList } from "../src/core/deno-dom.ts";
 import { assert } from "testing/asserts.ts";
 import { join } from "path/mod.ts";
