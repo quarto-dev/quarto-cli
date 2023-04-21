@@ -7,9 +7,7 @@
 import { join } from "path/mod.ts";
 
 export function buildQuartoPreviewJs(srcDir: string, denoDir?: string) {
-  // TODO: build with internal deno
-  // Deno.execPath()
-  const buildCmd = new Deno.Command("deno", {
+  const buildCmd = new Deno.Command(Deno.execPath(), {
     args: ["run", "-A", "build.ts"],
     cwd: quartoPreviewJsDir(srcDir),
     env: denoDir ? { DENO_DIR: denoDir } : undefined,
