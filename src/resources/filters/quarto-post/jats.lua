@@ -144,6 +144,22 @@ function jatsSubarticle()
         -- this is a notebook cell, handle it
         if isCell(div) then
           if isCodeCell(div) then
+
+              -- if this is an executable notebook cell, walk the contents and add identifiers
+              -- to the outputs
+              local parentId = div.identifier
+
+              local count = 0
+              div = _quarto.ast.walk(div, {
+                Div = function(childEl)
+                  if (isCodeCellOutput(childEl)) then
+                    childEl.identifier = parentId .. '-output-' .. count
+                    count = count + 1
+                    return renderCellOutput(childEl, kNoteBookOutput)
+                  end
+                end
+              })
+
             -- render the cell
             return renderCell(div, kNoteBookCode)
           else
@@ -156,7 +172,7 @@ function jatsSubarticle()
             end
           end
         elseif isCodeCellOutput(div) then
-          return renderCellOutput(div, kNoteBookOutput)
+          -- do nothing
         else
           -- otherwise, if this is a div, we can unroll its contents
           return unrollDiv(div, function(el) 
