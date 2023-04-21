@@ -195,9 +195,6 @@ export const jatsNotebookExtension: NotebooksFormatExtension = {
         });
       }
 
-      // TODO: Test using a ipynb with no computations as the root document
-      // and see that nothing gets embedded!
-
       // Accumulate markdown files that will be rendered
       // into JATS sub-articles
       for (const notebook of subarticleNotebooks) {
@@ -211,16 +208,18 @@ export const jatsNotebookExtension: NotebooksFormatExtension = {
         );
 
         // Render the notebook into a JATS subarticle
-        const jatsResult = await renderJatsSubarticle(
-          inputMdFile,
-          format,
-          context,
-        );
+        if (inputMdFile) {
+          const jatsResult = await renderJatsSubarticle(
+            inputMdFile,
+            format,
+            context,
+          );
 
-        // Forward the rendered JATS and result along
-        subarticlePaths.push(jatsResult.afterBody);
-        if (jatsResult.supporting) {
-          subarticleResources.push(...jatsResult.supporting);
+          // Forward the rendered JATS and result along
+          subarticlePaths.push(jatsResult.afterBody);
+          if (jatsResult.supporting) {
+            subarticleResources.push(...jatsResult.supporting);
+          }
         }
       }
 
@@ -274,9 +273,11 @@ async function writeNotebookMarkdown(
 
   // The input file that we'll use to render
   // TODO: deal with subdir / ensure that there aren't name conflicts here
-  const inputMdFile = join(workingDir, `${nbStem}.md`);
-  Deno.writeTextFileSync(inputMdFile, nbMarkdown);
-  return inputMdFile;
+  if (nbMarkdown) {
+    const inputMdFile = join(workingDir, `${nbStem}.md`);
+    Deno.writeTextFileSync(inputMdFile, nbMarkdown);
+    return inputMdFile;
+  }
 }
 
 async function renderJatsSubarticle(

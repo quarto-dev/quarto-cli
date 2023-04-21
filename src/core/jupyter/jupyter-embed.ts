@@ -229,12 +229,12 @@ export async function replaceNotebookPlaceholders(
         nbOutputs,
       );
 
-      if (!notebooks.includes(nbAddress.path)) {
+      if (nbMarkdown && !notebooks.includes(nbAddress.path)) {
         notebooks.push(nbAddress.path);
       }
 
       // Replace the placeholders with the rendered markdown
-      markdown = markdown.replaceAll(match[0], nbMarkdown);
+      markdown = markdown.replaceAll(match[0], nbMarkdown || "");
     }
     match = kPlaceholderRegex.exec(markdown);
   }
@@ -280,6 +280,11 @@ export async function notebookMarkdown(
     options,
     outputs,
   );
+
+  // This notebook is empty
+  if (notebookInfo.outputs.length === 0) {
+    return undefined;
+  }
 
   // Wrap any injected cells with a div that includes a back link to
   // the notebook that originated the cells
