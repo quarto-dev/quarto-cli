@@ -94,7 +94,10 @@ import {
   textHighlightThemePath,
 } from "../../core/resources.ts";
 import { execProcess } from "../../core/process.ts";
-import { monitorPreviewTerminationConditions } from "../../core/quarto.ts";
+import {
+  previewEnsureResources,
+  previewMonitorResources,
+} from "../../core/quarto.ts";
 import { exitWithCleanup } from "../../core/cleanup.ts";
 import {
   extensionFilesFromDirs,
@@ -200,6 +203,9 @@ export async function preview(
   const listener = Deno.listen({ port: options.port!, hostname: options.host });
   const stopServer = () => listener.close();
 
+  // ensure resources
+  previewEnsureResources(stopServer);
+
   // create client reloader
   const reloader = httpDevServer(
     options.timeout!,
@@ -266,7 +272,7 @@ export async function preview(
   await printBrowsePreviewMessage(options.host!, options.port!, initialPath);
 
   // watch for src changes in dev mode
-  monitorPreviewTerminationConditions(stopServer);
+  previewMonitorResources(stopServer);
 
   // serve project
   for await (const conn of listener) {

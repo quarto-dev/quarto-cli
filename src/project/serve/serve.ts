@@ -100,7 +100,10 @@ import {
 } from "../../core/platform.ts";
 import { ServeRenderManager } from "./render.ts";
 import { projectScratchPath } from "../project-scratch.ts";
-import { monitorPreviewTerminationConditions } from "../../core/quarto.ts";
+import {
+  previewEnsureResources,
+  previewMonitorResources,
+} from "../../core/quarto.ts";
 import { exitWithCleanup, onCleanup } from "../../core/cleanup.ts";
 import { projectExtensionDirs } from "../../extension/extension.ts";
 import { findOpenPort } from "../../core/port.ts";
@@ -137,7 +140,8 @@ export async function serveProject(
   acquirePreviewLock(project);
 
   // monitor the src dir
-  monitorPreviewTerminationConditions();
+  previewEnsureResources();
+  previewMonitorResources();
 
   // clear the project index
   clearProjectIndex(project.dir);

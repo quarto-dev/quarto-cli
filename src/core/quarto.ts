@@ -55,7 +55,13 @@ export const quartoConfig = {
   },
 };
 
-export function monitorPreviewTerminationConditions(cleanup?: VoidFunction) {
+export function previewEnsureResources(cleanup?: VoidFunction) {
+  if (quartoConfig.isDebug()) {
+    buildQuartoPreviewJs(cleanup);
+  }
+}
+
+export function previewMonitorResources(cleanup?: VoidFunction) {
   // active profile changed
   onActiveProfileChanged(() => {
     terminatePreview("active profile changed", cleanup);
@@ -65,15 +71,21 @@ export function monitorPreviewTerminationConditions(cleanup?: VoidFunction) {
     terminatePreview("environment variables changed", cleanup);
   });
 
-  // src code change
+  // dev mode only
   if (quartoConfig.isDebug()) {
-    const srcDir = normalizePath(
-      join(quartoConfig.binPath(), "../../../src"),
-    );
+    // src code change
+    const srcDir = quartoSrcDir();
+    const previewJsDir = quartoPreviewJsDir();
     const watcher = Deno.watchFs([srcDir], { recursive: true });
     const watchForChanges = async () => {
       for await (const event of watcher) {
-        if (event.paths.some((path) => extname(path).toLowerCase() === ".ts")) {
+        // if all the paths are in the quarto-preview dir just re-run the build
+        if (event.paths.every((path) => path.startsWith(previewJsDir))) {
+          buildQuartoPreviewJs();
+          // otherwise terminate on changes to .ts files
+        } else if (
+          event.paths.some((path) => extname(path).toLowerCase() === ".ts")
+        ) {
           terminatePreview("quarto src code changed", cleanup);
         }
       }
@@ -92,4 +104,26 @@ function terminatePreview(reason: string, cleanup?: VoidFunction) {
     cleanup();
   }
   exitWithCleanup(1);
+}
+
+function quartoSrcDir() {
+  return normalizePath(join(quartoConfig.binPath(), "../../../src"));
+}
+
+function quartoPreviewJsDir() {
+  return join(quartoSrcDir(), "resources", "preview", "quarto-preview");
+}
+
+function buildQuartoPreviewJs(cleanup?: VoidFunction) {
+  // TODO: build with internal deno
+  const buildCmd = new Deno.Command("deno", {
+    args: ["run", "-A", "build.ts"],
+    cwd: quartoPreviewJsDir(),
+    stderr: "inherit",
+    stdout: "inherit",
+  });
+  const output = buildCmd.outputSync();
+  if (!output.success) {
+    terminatePreview("Error building quarto-preview.js", cleanup);
+  }
 }
