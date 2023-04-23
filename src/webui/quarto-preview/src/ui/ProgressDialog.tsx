@@ -45,7 +45,7 @@ export interface ProgressDialogProps {
 
 // layout constants
 const kTopBorderWidth = 2;
-const kMinProgressHeight = 140;
+const kMinProgressHeight = 120;
 
 export function ProgressDialog(props: ProgressDialogProps) {
 
@@ -129,11 +129,11 @@ const getStyles = (theme: Theme, darkMode: boolean) => {
       left: 0,
       right: 0,
       maxWidth: 'none',
+      maxHeight: "calc(100% - 50px)",
       // these were used when we had more of a floating dialog feel
       /*
       width: 1000,
       maxWidth: "calc(100% - 100px)",
-      maxHeight: "calc(100% - 120px)",
       */
       boxShadow: theme.effects.elevation8
     },
