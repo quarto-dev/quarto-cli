@@ -67,8 +67,10 @@ export function progressHandler(darkMode: boolean) {
         state.dialog = true;
       } else {
         setTimeout(() => {
-          state.dialog = true;
-          renderProgress();
+           if (state.rendering) {
+            state.dialog = true;
+            renderProgress();
+          }
         }, kRenderProgressThreshold);
       }
 
