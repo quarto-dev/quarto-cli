@@ -34,8 +34,10 @@ import {
 } from "../../core/http-devserver.ts";
 import {
   isHtmlContent,
+  isMarkdownContent,
   isPdfContent,
   isTextContent,
+  isXmlContent,
   kTextXml,
 } from "../../core/mime.ts";
 import { PromiseQueue } from "../../core/promise.ts";
@@ -63,7 +65,7 @@ import { renderFormats } from "../render/render-contexts.ts";
 import { renderResultFinalOutput } from "../render/render.ts";
 import { replacePandocArg } from "../render/flags.ts";
 
-import { Format, isPandocFilter } from "../../config/types.ts";
+import { Format, FormatPandoc, isPandocFilter } from "../../config/types.ts";
 import {
   kPdfJsInitialPath,
   pdfJsBaseDir,
@@ -114,7 +116,11 @@ import {
   kPreviewModeRaw,
   kTargetFormat,
 } from "../../config/constants.ts";
-import { isJatsOutput } from "../../config/format.ts";
+import {
+  isHtmlDocOutput,
+  isHtmlOutput,
+  isJatsOutput,
+} from "../../config/format.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { kLocalhost } from "../../core/port-consts.ts";
 import { findOpenPort, waitForPort } from "../../core/port.ts";
@@ -749,38 +755,44 @@ function htmlFileRequestHandlerOptions(
         };
       }
 
-      // check for file not found of an input, in that case render it
-      if (!safeExistsSync(file) && project) {
+      // the 'format' passed to this function is for the default
+      // render target, however this could be a request for another
+      // render target (e.g. a link in the 'More Formats' section)
+      // some of these formats might require rendering and/or may
+      // have extended preview behavior (e.g. preview-type: raw)
+      // in this case try to lookup the format and perform a render
+      let renderFormat = format;
+      if (project) {
         const input = await inputFileForOutputFile(
           project,
           relative(baseDir, file),
         );
         if (input) {
-          const format = input.format.identifier[kTargetFormat];
-          if (format) {
-            await renderHandler(format);
+          renderFormat = input.format;
+          if (renderFormat !== format && fileRequiresRender(input.file, file)) {
+            await renderHandler(renderFormat.identifier[kTargetFormat]);
           }
         }
       }
 
       if (isHtmlContent(file)) {
         // does the provide an alternate preview file?
-        if (format.formatPreviewFile) {
-          file = format.formatPreviewFile(file, format);
+        if (renderFormat.formatPreviewFile) {
+          file = renderFormat.formatPreviewFile(file, renderFormat);
         }
         const fileContents = await Deno.readFile(file);
         return devserver.injectClient(req, fileContents, inputFile);
       } else if (isTextContent(file)) {
         const rawPreviewMode =
-          format.metadata[kPreviewMode] === kPreviewModeRaw;
-        if (!rawPreviewMode && isJatsOutput(format.pandoc)) {
+          renderFormat.metadata[kPreviewMode] === kPreviewModeRaw;
+        if (!rawPreviewMode && isJatsOutput(renderFormat.pandoc)) {
           const xml = await jatsPreviewXml(file, req);
           return {
             contentType: kTextXml,
             body: new TextEncoder().encode(xml),
           };
         } else if (
-          !rawPreviewMode && format.identifier[kBaseFormat] === "gfm"
+          !rawPreviewMode && renderFormat.identifier[kBaseFormat] === "gfm"
         ) {
           const html = await gfmPreview(file, req);
           return devserver.injectClient(
@@ -796,6 +808,15 @@ function htmlFileRequestHandlerOptions(
       }
     },
   };
+}
+
+function fileRequiresRender(inputFile: string, outputFile: string) {
+  if (safeExistsSync(outputFile)) {
+    return (Deno.statSync(inputFile).mtime?.valueOf() || 0) >
+      (Deno.statSync(outputFile).mtime?.valueOf() || 0);
+  } else {
+    return true;
+  }
 }
 
 function resultReloadFiles(result: RenderForPreviewResult) {
@@ -924,18 +945,20 @@ async function textPreviewHtml(file: string, req: Request) {
 
 // Static reources provide a list of 'special' resources that we should
 // satisfy using internal resources
+const isJatsCompatibleOutput = (format?: string | FormatPandoc) =>
+  isJatsOutput(format) || isHtmlDocOutput(format);
 const kStaticResources = [
   {
     name: "quarto-jats-preview.css",
     dir: "jats",
     contentType: "text/css",
-    isActive: isJatsOutput,
+    isActive: isJatsCompatibleOutput,
   },
   {
     name: "quarto-jats-html.xsl",
     dir: "jats",
     contentType: "text/xsl",
-    isActive: isJatsOutput,
+    isActive: isJatsCompatibleOutput,
     injectClient: (contents: string, client: string) => {
       const protectedClient = client.replaceAll(
         /(<style.*?>)|(<script.*?>)/g,
