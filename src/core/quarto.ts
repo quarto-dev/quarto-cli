@@ -14,7 +14,7 @@ import { exitWithCleanup } from "./cleanup.ts";
 import { onActiveProfileChanged } from "../project/project-profile.ts";
 import { onDotenvChanged } from "../quarto-core/dotenv.ts";
 import { normalizePath } from "./path.ts";
-import { buildQuartoPreviewJs, quartoPreviewJsDir } from "./previewjs.ts";
+import { buildQuartoPreviewJs } from "./previewjs.ts";
 
 export const kLocalDevelopment = "99.9.9";
 
@@ -75,16 +75,13 @@ export function previewMonitorResources(cleanup?: VoidFunction) {
   if (quartoConfig.isDebug()) {
     // src code change
     const srcDir = quartoSrcDir();
-    const previewJsDir = quartoPreviewJsDir(srcDir);
     const watcher = Deno.watchFs([srcDir], { recursive: true });
     const watchForChanges = async () => {
       for await (const event of watcher) {
-        // if all the paths are in the quarto-preview dir just re-run the build
-        if (event.paths.every((path) => path.startsWith(previewJsDir))) {
-          buildPreviewJs(srcDir);
-          // otherwise terminate on changes to .ts files
-        } else if (
-          event.paths.some((path) => extname(path).toLowerCase() === ".ts")
+        if (
+          event.paths.some((path) =>
+            extname(path).toLowerCase().startsWith(".ts")
+          )
         ) {
           terminatePreview("quarto src code changed", cleanup);
         }
