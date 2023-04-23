@@ -43,6 +43,10 @@ export interface ProgressDialogProps {
   darkMode: boolean;
 }
 
+// layout constants
+const kTopBorderWidth = 2;
+const kMinProgressHeight = 140;
+
 export function ProgressDialog(props: ProgressDialogProps) {
 
   const titleId = useId('title');
@@ -58,25 +62,31 @@ export function ProgressDialog(props: ProgressDialogProps) {
   const styles = useMemo(() => getStyles(theme, props.darkMode), [theme, props.darkMode]);
 
   return (<Modal
-    styles={{main: !props.error ? {height: 300 } : { minHeight: 300, height: "auto" }}}
+    styles={{
+      main: !props.error 
+        ? { height: kMinProgressHeight } 
+        : { top: 0, minHeight: kMinProgressHeight, height: "auto" }
+    }}
     className={props.darkMode ? "dark-mode" : undefined}
     titleAriaId={titleId}
     isOpen={props.open}
-    isDarkOverlay={props.darkMode}
     focusTrapZoneProps={{disabled: true, disableFirstFocus: true}}
-    forceFocusInsideTrap={false}
     onDismiss={props.onClose}
-    isModeless={false}
-    isBlocking={true}
     containerClassName={styles.content.container}
     scrollableContentClassName={styles.content.scrollableContent}
     topOffsetFixed={true}
+    
+     // for modeless, the three properties commented out below are ignored
+    // (comment them back in if we switch to isModelss={false})
+    isModeless={true}
+    // isBlocking={true}
+    // isDarkOverlay={props.darkMode}
+    // forceFocusInsideTrap={false}
   >
     <div 
       className={styles.content.header} 
       style={{
-        borderColor: props.error ? theme.palette.orangeLight : theme.palette.neutralLight,
-
+        borderTop:  props.error ? `${kTopBorderWidth}px solid ${theme.palette.orangeLight}` : 'none'
       }}
     >
       <h2 className={styles.content.heading} id={titleId}>
@@ -115,16 +125,22 @@ const getStyles = (theme: Theme, darkMode: boolean) => {
       flexFlow: 'column nowrap',
       alignItems: 'stretch',
       position: 'fixed',
-      top: 40,
+      top: kTopBorderWidth,
+      left: 0,
+      right: 0,
+      maxWidth: 'none',
+      // these were used when we had more of a floating dialog feel
+      /*
       width: 1000,
       maxWidth: "calc(100% - 100px)",
       maxHeight: "calc(100% - 120px)",
+      */
       boxShadow: theme.effects.elevation8
     },
     header: [
       theme.fonts.mediumPlus,
       {
-        borderTop: `1px solid ${theme.palette.neutralLight}`,
+        borderTop: 'none',
         color: theme.palette.neutralPrimary,
         display: 'flex',
         alignItems: 'center',

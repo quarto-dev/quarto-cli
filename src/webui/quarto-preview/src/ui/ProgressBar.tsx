@@ -32,7 +32,7 @@ export const ProgressBar: React.FC<ProgressBarProps> = (props) => {
 
   return (
     <>
-    {props.visible ? <ProgressIndicator barHeight={2} styles={{ root: styles, itemProgress: { padding: 1 } }} /> : null}
+    {props.visible ? <ProgressIndicator barHeight={2} styles={{ root: styles, itemProgress: { padding: 0 } }} /> : null}
     </>
   );
 }
