@@ -506,6 +506,12 @@ function createChangeHandler(
   // render handler
   const renderHandler = async (to?: string) => {
     try {
+      // if we have an alternate format then stop the watcher (as the alternate
+      // output format will be one of the watched resource files!)
+      if (to && watcher) {
+        watcher.stop();
+      }
+      // render
       const result = await renderQueue.enqueue(async () => {
         return render(to);
       }, true);
@@ -692,6 +698,10 @@ function htmlFileRequestHandlerOptions(
   renderHandler: (to?: string) => Promise<RenderForPreviewResult | undefined>,
   project?: ProjectContext,
 ): HttpFileRequestOptions {
+  // if we an alternate format on the fly we need to do a full re-render
+  // to get the correct state back. this flag will be set whenever
+  // we render an alternate format
+  let invalidateDevServerReRender = false;
   return {
     baseDir,
     defaultFile,
@@ -713,6 +723,7 @@ function htmlFileRequestHandlerOptions(
           !isBrowserPreviewable(outputFile) || devserver.hasClients(),
         );
         if (
+          !invalidateDevServerReRender &&
           prevReq &&
           existsSync(prevReq.path) &&
           normalizePath(prevReq.path) === normalizePath(inputFile) &&
@@ -770,6 +781,7 @@ function htmlFileRequestHandlerOptions(
         if (input) {
           renderFormat = input.format;
           if (renderFormat !== format && fileRequiresRender(input.file, file)) {
+            invalidateDevServerReRender = true;
             await renderHandler(renderFormat.identifier[kTargetFormat]);
           }
         }
