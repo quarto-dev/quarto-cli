@@ -71,6 +71,7 @@ export async function projectCreate(options: ProjectCreateOptions) {
   // call create on the project type
   const projType = projectType(options.type);
   const projCreate = projType.create(options.title, options.template);
+  console.log(projCreate);
 
   // create the initial project config
   const quartoConfig = renderEjs(projCreate.configTemplate, {
