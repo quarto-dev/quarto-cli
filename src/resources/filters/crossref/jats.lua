@@ -45,6 +45,10 @@ function jatsSubarticleCrossref()
         return maybeSubArticlifyId(block)
       end,
 
+      Image = function(image)
+        return maybeSubArticlifyId(image)
+      end,
+
       Cite = function(cite)
         local modified = false
         for i, v in ipairs(cite.citations) do
