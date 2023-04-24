@@ -1,5 +1,3 @@
-local kQuartoRawHtml = "quartoRawHtml"
-local rawHtmlVars = pandoc.List()
 local reactPreamble = pandoc.List()
 
 local function addPreamble(preamble)
@@ -82,17 +80,6 @@ function Writer(doc, opts)
   }
   
   doc = quarto._quarto.ast.walk(doc, filter)
-
-  -- insert exports at the top if we have them
-  if #rawHtmlVars > 0 then
-    local exports = ("export const %s =\n[%s];"):format(kQuartoRawHtml, 
-      table.concat(
-        rawHtmlVars:map(function(var) return '`'.. var .. '`' end), 
-        ","
-      )
-    )
-    doc.blocks:insert(1, pandoc.RawBlock("markdown", exports .. "\n"))
-  end
 
   -- insert react preamble if we have it
   if #reactPreamble > 0 then
