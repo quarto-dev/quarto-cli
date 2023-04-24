@@ -9,7 +9,7 @@ function jatsSubarticleCrossref()
       return param("jats-subarticle-id", "")
     end
     
-        -- Xref identifiers can appear within subarticles, so 
+    -- Xref identifiers can appear within subarticles, so 
     -- we need to actually create a subarticle identifier
     -- so that we form a unique identifier (sub-article ids still
     -- must be unique across the whole document)
