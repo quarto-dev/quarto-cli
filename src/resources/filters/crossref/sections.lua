@@ -45,7 +45,7 @@ function sections()
 
       -- if the number sections option is enabled then emulate pandoc numbering
       local section = sectionNumber(crossref.index.section, level)
-      if numberSectionsOptionEnabled() and level <= numberDepth() then
+      if not _quarto.format.isEpubOutput() and numberSectionsOptionEnabled() and level <= numberDepth() then
         el.attr.attributes["number"] = section
       end
       
