@@ -85,6 +85,7 @@ import {
 import { basename } from "path/mod.ts";
 import { processNotebookEmbeds } from "./format-html-notebook.ts";
 import { ProjectContext } from "../../project/types.ts";
+import { extname } from "path/mod.ts";
 
 export function bootstrapFormatDependency() {
   const boostrapResource = (resource: string) =>
@@ -470,6 +471,24 @@ const fileBsIconName = (format: Format) => {
   }
 };
 
+const fileBsIconForExt = (path: string) => {
+  const ext = extname(path);
+  switch (ext.toLowerCase()) {
+    case ".docx":
+      return "file-word";
+    case ".pdf":
+      return "file-pdf";
+    case ".ipynb":
+      return "journal-code";
+    case ".md":
+      return "file-code";
+    case ".xml":
+      return "filetype-xml";
+    default:
+      return "file";
+  }
+};
+
 function processAlternateFormatLinks(
   input: string,
   options: {
@@ -497,79 +516,138 @@ function processAlternateFormatLinks(
       containerEl.appendChild(heading);
 
       const formatList = doc.createElement("ul");
+      const normalizedFormatLinks = (
+        unnormalizedLinks: unknown,
+      ): Array<string | FormatLink> | undefined => {
+        if (typeof (unnormalizedLinks) === "boolean") {
+          return undefined;
+        } else if (unnormalizedLinks !== undefined) {
+          const linksArr: unknown[] = Array.isArray(unnormalizedLinks)
+            ? unnormalizedLinks
+            : [unnormalizedLinks];
+          return linksArr as Array<string | FormatLink>;
+        } else {
+          return undefined;
+        }
+      };
+      const userLinks = normalizedFormatLinks(format.render[kFormatLinks]);
 
-      const formats = Array.isArray(format.render[kFormatLinks])
-        ? format.render[kFormatLinks]
-        : undefined;
+      // Don't include HTML output
+      const renderedFormats = options.renderedFormats.filter(
+        (renderedFormat) => {
+          return !isHtmlOutput(renderedFormat.format.pandoc, true);
+        },
+      );
 
-      const displayFormats = formats
-        ? options.renderedFormats.filter((renderedFormat) => {
-          const name = renderedFormat.format.identifier[kTargetFormat];
-          return !formats || (name && formats.includes(name));
-        }).sort((a, b) => {
-          if (
-            a.format.identifier[kTargetFormat] &&
-            b.format.identifier[kTargetFormat]
-          ) {
-            const aIdx = formats.indexOf(a.format.identifier[kTargetFormat]);
-            const bIdx = formats.indexOf(b.format.identifier[kTargetFormat]);
-            return aIdx - bIdx;
-          } else {
-            return 0;
-          }
-        })
-        : options.renderedFormats;
+      const altLinks = alternateLinks(
+        input,
+        renderedFormats,
+        userLinks,
+      );
 
-      const finalDisplayFormats = displayFormats.filter((renderedFormat) => {
-        return !isHtmlOutput(renderedFormat.format.pandoc, true);
-      });
-
-      for (const renderedFormat of finalDisplayFormats) {
+      for (const alternateLink of altLinks) {
         const li = doc.createElement("li");
 
-        const relPath = isAbsolute(renderedFormat.path)
-          ? relative(dirname(input), renderedFormat.path)
-          : renderedFormat.path;
-
         const link = doc.createElement("a");
-        link.setAttribute("href", relPath);
-        const dlAttrValue = fileDownloadAttr(
-          renderedFormat.format,
-          renderedFormat.path,
-        );
-        if (dlAttrValue) {
-          link.setAttribute("download", dlAttrValue);
+        link.setAttribute("href", alternateLink.href);
+        if (alternateLink.dlAttrValue) {
+          link.setAttribute("download", alternateLink.dlAttrValue);
         }
 
         const icon = doc.createElement("i");
         icon.classList.add("bi");
-        icon.classList.add(`bi-${fileBsIconName(renderedFormat.format)}`);
+        icon.classList.add(`bi-${alternateLink.icon}`);
         link.appendChild(icon);
-        link.appendChild(
-          doc.createTextNode(
-            `${
-              renderedFormat.format.identifier[kDisplayName] ||
-              renderedFormat.format.pandoc.to
-            }${
-              renderedFormat.format.identifier[kExtensionName]
-                ? ` (${renderedFormat.format.identifier[kExtensionName]})`
-                : ""
-            }`,
-          ),
-        );
+        link.appendChild(doc.createTextNode(alternateLink.title));
 
         li.appendChild(link);
         formatList.appendChild(li);
 
-        resources.push(renderedFormat.path);
+        resources.push(alternateLink.href);
       }
 
-      if (finalDisplayFormats.length > 0) {
+      if (altLinks.length > 0) {
         containerEl.appendChild(formatList);
         dlLinkTarget.appendChild(containerEl);
       }
     }
   }
+}
+
+interface FormatLink {
+  title: string;
+  href: string;
+}
+
+interface AlternateLink {
+  title: string;
+  href: string;
+  icon: string;
+  dlAttrValue?: string;
+}
+
+function alternateLinks(
+  input: string,
+  formats: RenderedFormat[],
+  userLinks?: Array<string | FormatLink>,
+): AlternateLink[] {
+  const alternateLinks: AlternateLink[] = [];
+
+  const alternateLinkForFormat = (renderedFormat: RenderedFormat) => {
+    const relPath = isAbsolute(renderedFormat.path)
+      ? relative(dirname(input), renderedFormat.path)
+      : renderedFormat.path;
+    return {
+      title: `${
+        renderedFormat.format.identifier[kDisplayName] ||
+        renderedFormat.format.pandoc.to
+      }${
+        renderedFormat.format.identifier[kExtensionName]
+          ? ` (${renderedFormat.format.identifier[kExtensionName]})`
+          : ""
+      }`,
+      href: relPath,
+      icon: fileBsIconName(renderedFormat.format),
+      dlAttrValue: fileDownloadAttr(
+        renderedFormat.format,
+        renderedFormat.path,
+      ),
+    };
+  };
+
+  console.log(userLinks);
+  for (const userLink of userLinks || []) {
+    if (typeof (userLink) === "string") {
+      // We need to filter formats, otherwise, we'll deal
+      // with them below
+      const renderedFormat = formats.find((f) =>
+        f.format.identifier[kTargetFormat] === userLink
+      );
+      if (renderedFormat) {
+        // Just push through
+        alternateLinks.push(alternateLinkForFormat(renderedFormat));
+      }
+    } else {
+      // This an explicit link
+      const alternate = {
+        title: userLink.title,
+        href: userLink.href,
+        icon: fileBsIconForExt(userLink.href),
+        dlAttrValue: "",
+      };
+      alternateLinks.push(alternate);
+    }
+  }
+
+  const userLinksHasFormat = userLinks &&
+    userLinks.some((link) => typeof (link) === "string");
+  if (!userLinksHasFormat) {
+    formats.forEach((renderedFormat) => {
+      alternateLinks.push(alternateLinkForFormat(renderedFormat));
+    });
+  }
+
+  return alternateLinks;
 }
 
 function bootstrapHtmlFinalizer(format: Format, flags: PandocFlags) {

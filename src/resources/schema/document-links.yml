@@ -31,7 +31,18 @@
   schema:
     anyOf:
       - boolean
-      - arrayOf: string
+      - maybeArrayOf:
+          anyOf:
+            - string
+            - object:
+                properties:
+                  title:
+                    string:
+                      description: "The title for this alternative link."
+                  href:
+                    string:
+                      description: "The href for tihs alternative link."
+                required: [title, href]
   description:
     short: "Controls whether links to other rendered formats are displayed in HTML output."
     long: |
@@ -57,7 +68,7 @@
 
 - name: notebook-subarticles
   tags:
-    formats: [$jats-doc]
+    formats: [$jats-all]
   schema: boolean
   description:
     short: "Controls whether referenced notebooks are embedded in JATS output as subarticles."
