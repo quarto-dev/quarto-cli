@@ -33,10 +33,38 @@
 
 - name: margin
   tags:
-    formats: [revealjs]
-  schema: number
+    formats: [revealjs, typst]
+  schema:
+    anyOf:
+      - number
+      - object:
+          closed: true
+          properties:
+            x:
+              string:
+                description: "Horizontal margin (e.g. 5cm)"
+            y:
+              string:
+                description: "Vertical margin (e.g. 5cm)"
+            top:
+              string:
+                description: "Top margin (e.g. 5cm)"
+            bottom:
+              string:
+                description: "Bottom margin (e.g. 5cm)"
+            left:
+              string:
+                description: "Left margin (e.g. 5cm)"
+            right:
+              string:
+                description: "Right margin (e.g. 5cm)"
   default: 0.1
-  description: "Factor of the display size that should remain empty around the content"
+  description: |
+    For `revealjs`, the factor of the display size that should remain empty around the content (e.g. 0.1).
+
+    For `typst`, a dictionary with the fields defined in the Typst documentation:
+    `x`, `y`, `top`, `bottom`, `left`, `right` (margins are specified in `cm` units,
+    e.g. `5cm`).
 
 - name: min-scale
   tags:

@@ -1,7 +1,7 @@
 - name: mainfont
   schema: string
   tags:
-    formats: [$html-doc, context, $pdf-all]
+    formats: [$html-doc, context, $pdf-all, typst]
   description:
     short: Sets the main font for the document.
     long: |
@@ -37,7 +37,7 @@
 - name: fontsize
   schema: string
   tags:
-    formats: [$html-doc, context, $pdf-all]
+    formats: [$html-doc, context, $pdf-all, typst]
   description:
     short: Sets the main font size for the document.
     long: |

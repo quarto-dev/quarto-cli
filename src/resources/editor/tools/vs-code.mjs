@@ -12701,7 +12701,8 @@ var require_yaml_intelligence_resources = __commonJS({
             formats: [
               "$html-doc",
               "context",
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           description: {
@@ -12731,7 +12732,8 @@ var require_yaml_intelligence_resources = __commonJS({
             formats: [
               "$html-doc",
               "context",
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           description: {
@@ -13909,10 +13911,11 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "string",
           tags: {
             formats: [
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
-          description: "The paper size for the document."
+          description: "The paper size for the document.\n"
         },
         {
           name: "layout",
@@ -14734,6 +14737,16 @@ var require_yaml_intelligence_resources = __commonJS({
             short: "Offset for section headings in output (offsets are 0 by default)",
             long: 'Offset for section headings in output (offsets are 0 by default)\nThe first number is added to the section number for\ntop-level headings, the second for second-level headings, and so on.\nSo, for example, if you want the first top-level heading in your\ndocument to be numbered "6", specify `number-offset: 5`. If your\ndocument starts with a level-2 heading which you want to be numbered\n"1.5", specify `number-offset: [1,4]`. Implies `number-sections`\n'
           }
+        },
+        {
+          name: "section-numbering",
+          tags: {
+            formats: [
+              "typst"
+            ]
+          },
+          schema: "string",
+          description: "Schema to use for numbering sections, e.g. `1.A.1`"
         },
         {
           name: "shift-heading-level-by",
@@ -15630,6 +15643,17 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "Filters to pre-process ipynb files before rendering to markdown"
         },
         {
+          name: "keep-typ",
+          tags: {
+            formats: [
+              "typst"
+            ]
+          },
+          schema: "boolean",
+          default: false,
+          description: "Keep the intermediate typst file used during render."
+        },
+        {
           name: "keep-tex",
           tags: {
             formats: [
@@ -15839,12 +15863,54 @@ var require_yaml_intelligence_resources = __commonJS({
           name: "margin",
           tags: {
             formats: [
-              "revealjs"
+              "revealjs",
+              "typst"
             ]
           },
-          schema: "number",
+          schema: {
+            anyOf: [
+              "number",
+              {
+                object: {
+                  closed: true,
+                  properties: {
+                    x: {
+                      string: {
+                        description: "Horizontal margin (e.g. 5cm)"
+                      }
+                    },
+                    y: {
+                      string: {
+                        description: "Vertical margin (e.g. 5cm)"
+                      }
+                    },
+                    top: {
+                      string: {
+                        description: "Top margin (e.g. 5cm)"
+                      }
+                    },
+                    bottom: {
+                      string: {
+                        description: "Bottom margin (e.g. 5cm)"
+                      }
+                    },
+                    left: {
+                      string: {
+                        description: "Left margin (e.g. 5cm)"
+                      }
+                    },
+                    right: {
+                      string: {
+                        description: "Right margin (e.g. 5cm)"
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          },
           default: 0.1,
-          description: "Factor of the display size that should remain empty around the content"
+          description: "For `revealjs`, the factor of the display size that should remain empty around the content (e.g. 0.1).\n\nFor `typst`, a dictionary with the fields defined in the Typst documentation:\n`x`, `y`, `top`, `bottom`, `left`, `right` (margins are specified in `cm` units,\ne.g. `5cm`).\n"
         },
         {
           name: "min-scale",
@@ -16933,13 +16999,14 @@ var require_yaml_intelligence_resources = __commonJS({
               "!$office-all",
               "!$odt-all",
               "!$html-all",
-              "!$docbook-all"
+              "!$docbook-all",
+              "typst"
             ]
           },
           schema: "number",
           description: {
-            short: "Specify length of lines in characters.",
-            long: "Specify length of lines in characters. This affects text wrapping in generated source\ncode (see `wrap`). It also affects calculation of column widths for plain text\ntables.\n"
+            short: "For text formats, specify length of lines in characters. For `typst`, number of columns for body text.",
+            long: "Specify length of lines in characters. This affects text wrapping in generated source\ncode (see `wrap`). It also affects calculation of column widths for plain text\ntables. \n\nFor `typst`, number of columns for body text.\n"
           }
         },
         {
@@ -17372,6 +17439,7 @@ var require_yaml_intelligence_resources = __commonJS({
             "tei",
             "texinfo",
             "textile",
+            "typst",
             "xwiki",
             "zimwiki",
             "md"
@@ -19647,6 +19715,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Whether cross references should be hyper-linked.",
         "The title used for appendix.",
         "The delimiter beween appendix number and title.",
+        "Enables a hover popup for cross references that shows the item being\nreferenced.",
         "Visual editor configuration",
         "Default editing mode for document",
         "Markdown writing options for visual editor",
@@ -21104,7 +21173,8 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "internal-schema-hack",
-        "Enables a hover popup for cross references that shows the item being\nreferenced."
+        "Schema to use for numbering sections, e.g.&nbsp;<code>1.A.1</code>",
+        "Keep the intermediate typst file used during render."
       ],
       "schema/external-schemas.yml": [
         {
@@ -21328,12 +21398,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 153686,
+        _internalId: 153849,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 153678,
+            _internalId: 153841,
             type: "enum",
             enum: [
               "png",
@@ -21349,7 +21419,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 153685,
+            _internalId: 153848,
             type: "anyOf",
             anyOf: [
               {

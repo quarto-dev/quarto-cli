@@ -48,6 +48,12 @@
       document starts with a level-2 heading which you want to be numbered
       "1.5", specify `number-offset: [1,4]`. Implies `number-sections`
 
+- name: section-numbering
+  tags:
+    formats: [typst]
+  schema: string
+  description: "Schema to use for numbering sections, e.g. `1.A.1`"
+
 - name: shift-heading-level-by
   schema: number
   description:
