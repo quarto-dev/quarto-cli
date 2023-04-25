@@ -4439,7 +4439,7 @@
       "default": false,
       "description": {
         "short": "Include a code tools menu (for hiding and showing code).",
-        "long": "Include a code tools menu (for hiding and showing code).\nUse `true` or `false` to enable or disable the standard code \ntools menu. Specify sub-properties `source`, `toggle`, and\n`caption` to customize the behavior and appearnce of code tools.\n"
+        "long": "Include a code tools menu (for hiding and showing code).\nUse `true` or `false` to enable or disable the standard code \ntools menu. Specify sub-properties `source`, `toggle`, and\n`caption` to customize the behavior and appearance of code tools.\n"
       }
     },
     {
@@ -5059,6 +5059,15 @@
                     }
                   },
                   "description": "Markdown writing options for visual editor"
+                },
+                "render-on-save": {
+                  "tags": {
+                    "engine": [
+                      "jupyter"
+                    ]
+                  },
+                  "schema": "boolean",
+                  "description": "Automatically re-render for preview whenever document is saved (note that this requires a preview\nfor the saved document be already running). This option currently works only within VS Code.\n"
                 }
               }
             }
@@ -5066,6 +5075,18 @@
         ]
       },
       "description": "Visual editor configuration"
+    },
+    {
+      "name": "zotero",
+      "schema": {
+        "anyOf": [
+          "boolean",
+          {
+            "maybeArrayOf": "string"
+          }
+        ]
+      },
+      "description": "Enable (`true`) or disable (`false`) Zotero for a document. Alternatively, provide a list of one or\nmore Zotero group libraries to use with the document.\n"
     }
   ],
   "schema/document-epub.yml": [
@@ -12277,6 +12298,7 @@
       "short": "Notebook cell identifier",
       "long": "Notebook cell identifier. Note that if there is no cell\n<code>id</code> then <code>label</code> will be used as the cell\n<code>id</code> if it is present. See <a href=\"https://jupyter.org/enhancement-proposals/62-cell-id/cell-id.html\" class=\"uri\">https://jupyter.org/enhancement-proposals/62-cell-id/cell-id.html</a>\nfor additional details on cell ids."
     },
+    "nbconvert tag to export cell",
     {
       "short": "Whether to cache a code chunk.",
       "long": "Whether to cache a code chunk. When evaluating code chunks for the\nsecond time, the cached chunks are skipped (unless they have been\nmodified), but the objects created in these chunks are loaded from\npreviously saved databases (<code>.rdb</code> and <code>.rdx</code>\nfiles), and these files are saved when a chunk is evaluated for the\nfirst time, or when cached files are not found (e.g., you may have\nremoved them by hand). Note that the filename consists of the chunk\nlabel with an MD5 digest of the R code and chunk options of the code\nchunk, which means any changes in the chunk will produce a different MD5\ndigest, and hence invalidate the cache."
@@ -14045,7 +14067,7 @@
     },
     "Disambiguating year suffix in author-date styles (e.g.&nbsp;“a” in “Doe,\n1999a”).",
     "internal-schema-hack",
-    "nbconvert tag to export cell"
+    "Enable (<code>true</code>) or disable (<code>false</code>) Zotero for\na document. Alternatively, provide a list of one or more Zotero group\nlibraries to use with the document."
   ],
   "schema/external-schemas.yml": [
     {
@@ -14269,12 +14291,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 152480,
+    "_internalId": 152628,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 152472,
+        "_internalId": 152620,
         "type": "enum",
         "enum": [
           "png",
@@ -14290,7 +14312,7 @@
         "exhaustiveCompletions": true
       },
       "theme": {
-        "_internalId": 152479,
+        "_internalId": 152627,
         "type": "anyOf",
         "anyOf": [
           {
