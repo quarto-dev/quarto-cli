@@ -17,7 +17,7 @@ export async function typstCompile(
   if (!quiet) {
     typstProgress(input, output);
   }
-  const cmd = ["typst", input, output];
+  const cmd = ["typst", "compile", input, output];
   const result = await execProcess({ cmd });
   if (!quiet && result.success) {
     typstProgressDone();
