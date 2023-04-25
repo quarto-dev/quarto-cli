@@ -6,9 +6,11 @@
 */
 
 import { resourcePath } from "../../../core/resources.ts";
-import { ProjectCreate, ProjectType } from "../types.ts";
+import { ProjectCreate, ProjectOutputFile, ProjectType } from "../types.ts";
 
 import { join } from "path/mod.ts";
+import { Format } from "../../../config/types.ts";
+import { ProjectContext } from "../../types.ts";
 
 const kManuscriptType = "manuscript";
 
@@ -35,5 +37,22 @@ export const manuscriptProjectType: ProjectType = {
       ],
       supporting: [],
     };
+  },
+  outputDir: "_manuscript",
+  cleanOutputDir: true,
+  filterFormat: (
+    _source: string,
+    format: Format,
+    _project?: ProjectContext,
+  ) => {
+    return format;
+  },
+  postRender: (
+    context: ProjectContext,
+    incremental: boolean,
+    outputFiles: ProjectOutputFile[],
+  ) => {
+    // Create a MECA file here
+    return Promise.resolve();
   },
 };
