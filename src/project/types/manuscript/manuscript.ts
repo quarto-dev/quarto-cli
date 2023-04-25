@@ -8,9 +8,21 @@
 import { resourcePath } from "../../../core/resources.ts";
 import { ProjectCreate, ProjectOutputFile, ProjectType } from "../types.ts";
 
-import { join } from "path/mod.ts";
-import { Format } from "../../../config/types.ts";
+import { dirname, join, relative } from "path/mod.ts";
+import { Format, FormatLink } from "../../../config/types.ts";
 import { ProjectContext } from "../../types.ts";
+import { kFormatLinks } from "../../../config/constants.ts";
+import { projectOutputDir } from "../../project-shared.ts";
+import { isPdfContent } from "../../../core/mime.ts";
+import {
+  isDocxOutput,
+  isJatsOutput,
+  isPdfOutput,
+} from "../../../config/format.ts";
+import { globalTempContext } from "../../../core/temp.ts";
+import { ensureDirSync } from "../../../vendor/deno.land/std@0.166.0/fs/ensure_dir.ts";
+import { quarto } from "../../../quarto.ts";
+import { copyObject } from "../../../vendor/deno.land/std@0.166.0/node/internal/fs/utils.mjs";
 
 const kManuscriptType = "manuscript";
 
@@ -45,14 +57,122 @@ export const manuscriptProjectType: ProjectType = {
     format: Format,
     _project?: ProjectContext,
   ) => {
+    // Add an alternate link to a MECA bundle
+    if (
+      format.render[kFormatLinks] !== undefined &&
+      format.render[kFormatLinks] !== false
+    ) {
+      const links: Array<string | FormatLink> = [];
+      if (typeof (format.render[kFormatLinks]) !== "boolean") {
+        links.push(...format.render[kFormatLinks]);
+      }
+      links.push({
+        title: "MECA XML",
+        href: "meca.xml",
+      });
+      format.render[kFormatLinks] = links;
+    }
+
     return format;
   },
   postRender: (
     context: ProjectContext,
-    incremental: boolean,
+    _incremental: boolean,
     outputFiles: ProjectOutputFile[],
   ) => {
-    // Create a MECA file here
+    const workingDir = globalTempContext().createDir();
+
+    const outputDir = projectOutputDir(context);
+
+    // Filter to permitted output formats
+    const filters = [isPdfOutput, isDocxOutput];
+    const articleRenderings = outputFiles.filter((outputFile) => {
+      return filters.some((filter) => {
+        return filter(outputFile.format.identifier["base-format"] || "html");
+      });
+    });
+
+    const jatsArticle = outputFiles.find((output) => {
+      return isJatsOutput(output.format.identifier["base-format"] || "html");
+    });
+    if (!jatsArticle) {
+      throw new Error(
+        "The manuscript format requires that a JATS XML file be produced.",
+      );
+    }
+
+    const copyOutput = (path: string) => {
+      const pathRel = relative(outputDir, path);
+      const targetFile = join(workingDir, pathRel);
+      const targetDir = dirname(targetFile);
+      ensureDirSync(targetDir);
+      Deno.copyFileSync(path, targetFile);
+      return pathRel;
+    };
+
+    const articleRenderingPaths = articleRenderings.map((out) => {
+      return copyOutput(out.file);
+    });
+
+    const articlePath = copyOutput(jatsArticle?.file);
+
+    interface MecaItem {
+      id: string;
+      type: string;
+      description: string;
+      order: number;
+      instance: {
+        mediaType: string;
+        href: string;
+      };
+      metadata: Record<string, string>;
+    }
+
+    interface MecaManifest {
+      version: number;
+      items: MecaItem[];
+    }
+
+    const mecaXml = {
+      xml: {
+        "@version": 1,
+        "@encoding": "UTF-8",
+      },
+      doctype: {
+        "@manifest": true,
+        "@PUBLIC": true,
+        "@-//MECA//DTD Manifest v1.0//en": true,
+        "@MECA_manifest.dtd": true,
+      },
+      manifest: {
+        "@manifest-version": 1,
+        "@xmlns": "https://www.manuscriptexchange.org/schema/manifest",
+        "@xmlns:xlink": "http://www.w3.org/1999/xlink",
+        item: [
+          { "@id": "random", "@item-type": "article-metadata" },
+          { "@id": "random1", "@item-type": "review-metadata" },
+          { "@id": "random2", "@item-type": "transfer-metadata" },
+          { "@id": "random3", "@item-type": "manuscript-jats" },
+          { "@id": "random4", "@item-type": "manuscript-pdf" },
+        ],
+      },
+    };
+
+    // Import zip utility
+    // Import xml stringify utility
+
+    // UUID-meca.zip
+
+    // Move the outputs to the workingDir
+
+    // Grab these file and move to staging area
+
+    // Grab jats and jats-figures
+
+    // Get the list of files
+    // Make a manifest XML file
+    //
+
     return Promise.resolve();
   },
 };

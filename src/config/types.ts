@@ -423,7 +423,7 @@ export interface FormatRender {
   [kLinkExternalFilter]?: string;
   [kSelfContainedMath]?: boolean;
   [kFormatResources]?: string[];
-  [kFormatLinks]?: boolean | string[];
+  [kFormatLinks]?: boolean | Array<FormatLink | string>;
   [kNotebookLinks]?: boolean | "inline" | "global";
   [kNotebookSubarticles]?: boolean;
   [kNotebookViewStyle]?: "document" | "notebook";
@@ -640,4 +640,9 @@ export interface FormatLanguage {
 export interface FormatTemplateContext {
   template?: string;
   partials?: string[];
+}
+
+export interface FormatLink {
+  title: string;
+  href: string;
 }

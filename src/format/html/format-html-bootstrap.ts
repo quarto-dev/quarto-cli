@@ -32,6 +32,7 @@ import {
 import {
   Format,
   FormatExtras,
+  FormatLink,
   kBodyEnvelope,
   kDependencies,
   kHtmlFinalizers,
@@ -572,11 +573,6 @@ function processAlternateFormatLinks(
       }
     }
   }
-}
-
-interface FormatLink {
-  title: string;
-  href: string;
 }
 
 interface AlternateLink {
