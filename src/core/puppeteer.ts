@@ -1,9 +1,8 @@
 /*
-* puppeteer.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * puppeteer.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { readRegistryKey } from "./windows.ts";
 import { which } from "./path.ts";
@@ -51,7 +50,7 @@ export async function extractImagesFromElements(
       }
 
       // deno-lint-ignore no-explicit-any
-      const document = (undefined as any);
+      const document = undefined as any;
       const clientSideResult = await page.evaluate((selector: string) => {
         // deno-lint-ignore no-explicit-any
         return Array.from(document.querySelectorAll(selector)).map((n: any) =>
@@ -68,7 +67,7 @@ export function extractHtmlFromElements(
   selector: string,
 ): Promise<string[]> {
   // deno-lint-ignore no-explicit-any
-  const document = (undefined as any);
+  const document = undefined as any;
   return inPuppeteer(url, (selector: string) => {
     // deno-lint-ignore no-explicit-any
     return Array.from(document.querySelectorAll(selector)).map((n: any) =>
@@ -203,10 +202,8 @@ async function findChrome(): Promise<string | undefined> {
   let path;
   if (Deno.build.os === "darwin") {
     path = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
-  } else if (Deno.build.os === "linux") {
-    path = await which("google-chrome");
-    if (!path) {
-      path = await which("chromium-browser");
+    if (!existsSync(path)) {
+      return undefined;
     }
   } else if (Deno.build.os === "windows") {
     // Try the HKLM key
@@ -232,6 +229,13 @@ async function findChrome(): Promise<string | undefined> {
         path = path ? path[1] : undefined;
         if (path && existsSync(path)) break;
       }
+    }
+  } else {
+    // in 1.28.2, this is (Deno.build.os === "linux")
+    // in 1.32, there's other non-linux unixes
+    path = await which("google-chrome");
+    if (!path) {
+      path = await which("chromium-browser");
     }
   }
   return path;
