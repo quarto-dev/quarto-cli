@@ -20,7 +20,8 @@ import {
 } from "../../../config/format.ts";
 import { globalTempContext } from "../../../core/temp.ts";
 import { ensureDirSync } from "fs/mod.ts";
-import { stringify } from "xml/mod.ts";
+import { kMecaVersion, MecaItem, MecaManifest, toXml } from "./meca.ts";
+import { contentType } from "../../../core/mime.ts";
 
 const kManuscriptType = "manuscript";
 
@@ -70,7 +71,6 @@ export const manuscriptProjectType: ProjectType = {
       });
       format.render[kFormatLinks] = links;
     }
-
     return format;
   },
   postRender: (
@@ -114,53 +114,26 @@ export const manuscriptProjectType: ProjectType = {
 
     const articlePath = copyOutput(jatsArticle?.file);
 
-    interface MecaItem {
-      id: string;
-      type: string;
-      description: string;
-      order: number;
-      instance: {
-        mediaType: string;
-        href: string;
+    const toMecaItem = (href: string, type: string): MecaItem => {
+      const mediaType = contentType(href);
+      return {
+        type,
+        instance: {
+          href,
+          mediaType,
+        },
       };
-      metadata: Record<string, string>;
-    }
-
-    interface MecaManifest {
-      version: number;
-      items: MecaItem[];
-    }
-
-    const mecaJson = {
-      xml: {
-        "@version": 1,
-        "@encoding": "UTF-8",
-      },
-      doctype: {
-        "@manifest": true,
-        "@PUBLIC": true,
-        "@-//MECA//DTD Manifest v1.0//en": true,
-        "@MECA_manifest.dtd": true,
-      },
-      manifest: {
-        "@manifest-version": 1,
-        "@xmlns": "https://www.manuscriptexchange.org/schema/manifest",
-        "@xmlns:xlink": "http://www.w3.org/1999/xlink",
-        item: [
-          { "@id": "random", "@item-type": "article-metadata" },
-          { "@id": "random1", "@item-type": "review-metadata" },
-          { "@id": "random2", "@item-type": "transfer-metadata" },
-          { "@id": "random3", "@item-type": "manuscript-jats" },
-          { "@id": "random4", "@item-type": "manuscript-pdf" },
-        ],
-      },
     };
+    const articleItem = toMecaItem(articlePath, "article-metadata");
 
-    const mecaXml = stringify(mecaJson);
+    const meca: MecaManifest = {
+      version: kMecaVersion,
+      items: [articleItem],
+    };
+    const mecaXml = toXml(meca);
+    console.log(mecaXml);
 
     // Import zip utility
-    // Import xml stringify utility
-
     // UUID-meca.zip
 
     // Move the outputs to the workingDir
