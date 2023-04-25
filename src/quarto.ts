@@ -52,8 +52,6 @@ import "./format/imports.ts";
 
 import { kCliffyImplicitCwd } from "./config/constants.ts";
 
-import { parse } from "xml/mod.ts";
-
 export async function quarto(
   args: string[],
   cmdHandler?: (command: Command) => Command,

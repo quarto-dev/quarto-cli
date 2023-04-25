@@ -13,16 +13,14 @@ import { Format, FormatLink } from "../../../config/types.ts";
 import { ProjectContext } from "../../types.ts";
 import { kFormatLinks } from "../../../config/constants.ts";
 import { projectOutputDir } from "../../project-shared.ts";
-import { isPdfContent } from "../../../core/mime.ts";
 import {
   isDocxOutput,
   isJatsOutput,
   isPdfOutput,
 } from "../../../config/format.ts";
 import { globalTempContext } from "../../../core/temp.ts";
-import { ensureDirSync } from "../../../vendor/deno.land/std@0.166.0/fs/ensure_dir.ts";
-import { quarto } from "../../../quarto.ts";
-import { copyObject } from "../../../vendor/deno.land/std@0.166.0/node/internal/fs/utils.mjs";
+import { ensureDirSync } from "fs/mod.ts";
+import { stringify } from "xml/mod.ts";
 
 const kManuscriptType = "manuscript";
 
@@ -133,7 +131,7 @@ export const manuscriptProjectType: ProjectType = {
       items: MecaItem[];
     }
 
-    const mecaXml = {
+    const mecaJson = {
       xml: {
         "@version": 1,
         "@encoding": "UTF-8",
@@ -157,6 +155,8 @@ export const manuscriptProjectType: ProjectType = {
         ],
       },
     };
+
+    const mecaXml = stringify(mecaJson);
 
     // Import zip utility
     // Import xml stringify utility
