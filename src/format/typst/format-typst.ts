@@ -7,6 +7,8 @@
 
 // TODO: incremental compile for preview
 
+import { join } from "path/mod.ts";
+
 import { RenderServices } from "../../command/render/types.ts";
 import {
   kDefaultImageExtension,
@@ -16,8 +18,10 @@ import {
   kNumberSections,
   kSectionNumbering,
   kShiftHeadingLevelBy,
+  kTemplate,
 } from "../../config/constants.ts";
 import { Format, FormatExtras, PandocFlags } from "../../config/types.ts";
+import { formatResourcePath } from "../../core/resources.ts";
 import { createFormat } from "../formats-shared.ts";
 
 export function typstFormat(): Format {
@@ -66,6 +70,15 @@ export function typstFormat(): Format {
           };
         }
       }
+
+      // Provide a template and partials
+      const templateDir = formatResourcePath("typst", "pandoc");
+      const partials: string[] = ["definitions.typst", "template.typst"];
+      const templateContext = {
+        template: join(templateDir, "typst.template"),
+        partials: partials.map((partial) => join(templateDir, partial)),
+      };
+      extras.templateContext = templateContext;
 
       return extras;
     },
