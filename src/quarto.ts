@@ -158,6 +158,13 @@ if (import.meta.main) {
 
     await cleanupLogger();
 
+    // if profiling, wait for 10 seconds before quitting
+    if (Deno.env.get("QUARTO_TS_PROFILE") !== undefined) {
+      console.log("Program finished. Turn off the Chrome profiler now!");
+      console.log("Waiting for 10 seconds ...");
+      await new Promise((resolve) => setTimeout(resolve, 10000));
+    }
+
     // exit
     exitWithCleanup(0);
   } catch (e) {
