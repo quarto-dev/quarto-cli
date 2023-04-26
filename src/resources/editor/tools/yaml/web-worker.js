@@ -8516,6 +8516,23 @@ try {
                                   "transparent_dark",
                                   "preferred_color_scheme"
                                 ]
+                              },
+                              {
+                                object: {
+                                  closed: true,
+                                  properties: {
+                                    light: {
+                                      string: {
+                                        description: "The light theme name."
+                                      }
+                                    },
+                                    dark: {
+                                      string: {
+                                        description: "The dark theme name."
+                                      }
+                                    }
+                                  }
+                                }
                               }
                             ],
                             description: "The giscus theme to use when displaying comments."
@@ -21406,12 +21423,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 155259,
+          _internalId: 157515,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 155251,
+              _internalId: 157507,
               type: "enum",
               enum: [
                 "png",
@@ -21427,7 +21444,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 155258,
+              _internalId: 157514,
               type: "anyOf",
               anyOf: [
                 {
