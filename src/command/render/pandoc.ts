@@ -468,22 +468,6 @@ export async function runPandoc(
       cleanMetadataForPrinting(printMetadata);
     }
 
-    // for typst, move the 'template' argumment to metadata
-    if (isTypstOutput(options.format.pandoc)) {
-      const userTemplate = getPandocArg(args, "--template") ||
-        allDefaults[kTemplate];
-      if (userTemplate) {
-        delete allDefaults[kTemplate];
-        delete printAllDefaults[kTemplate];
-        const templateIdx = args.indexOf("--template");
-        if (templateIdx !== -1) {
-          args.splice(templateIdx, 2);
-        }
-        options.format.metadata[kTemplate] = userTemplate;
-        printMetadata[kTemplate] = userTemplate;
-      }
-    }
-
     // The user template (if any)
     const userTemplate = getPandocArg(args, "--template") ||
       allDefaults[kTemplate];
