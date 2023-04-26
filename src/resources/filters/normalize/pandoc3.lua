@@ -54,11 +54,11 @@ function parse_pandoc3_figures()
 end
 
 function render_pandoc3_figures() 
-  -- only do this in jats because other formats emit <figure> inadvertently otherwise
+  -- only do this in jats and typst because other formats emit <figure> inadvertently otherwise
   -- with potentially bad captions.
   -- 
   -- this will change with new crossref system anyway.
-  if not _quarto.format.isJatsOutput() then
+  if not _quarto.format.isJatsOutput() and not _quarto.format.isTypstOutput() then
     return {}
   end
   

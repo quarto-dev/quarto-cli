@@ -34,4 +34,20 @@
                             description: "Unique prefix for references (`none` to prevent automatic prefixes)"
                     description: "Reference writing options for visual editor"
               description: "Markdown writing options for visual editor"
+            render-on-save:
+              tags:
+                engine: [jupyter]
+              schema: boolean
+              description: |
+                Automatically re-render for preview whenever document is saved (note that this requires a preview
+                for the saved document be already running). This option currently works only within VS Code.
   description: Visual editor configuration
+
+- name: zotero
+  schema:
+    anyOf:
+      - boolean
+      - maybeArrayOf: string
+  description: |
+    Enable (`true`) or disable (`false`) Zotero for a document. Alternatively, provide a list of one or
+    more Zotero group libraries to use with the document.

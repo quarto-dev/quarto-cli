@@ -1,0 +1,8 @@
+
+# Chapter 2  - Embedding Things From Subfolders
+
+{{< embed ../notebooks/computations.ipynb >}}
+
+```{r}
+plot(cars)
+```

@@ -78,6 +78,7 @@ import {
   kSmoothScroll,
   kTabsets,
   kUtterances,
+  kXrefsHover,
   quartoBaseLayer,
   quartoGlobalCssVariableRules,
 } from "./format-html-shared.ts";
@@ -247,6 +248,11 @@ export async function htmlFormatExtras(
   } else {
     options.hoverFootnotes = format.metadata[kFootnotesHover] || false;
   }
+  if (featureDefaults.hoverXrefs) {
+    options.hoverXrefs = format.metadata[kXrefsHover] !== false;
+  } else {
+    options.hoverXrefs = format.metadata[kXrefsHover] || false;
+  }
   if (featureDefaults.figResponsive) {
     options.figResponsive = format.metadata[kFigResponsive] !== false;
   } else {
@@ -315,7 +321,7 @@ export async function htmlFormatExtras(
 
   // popper if required
   options.tippy = options.hoverCitations || options.hoverFootnotes ||
-    options.codeAnnotations;
+    options.codeAnnotations || options.hoverXrefs;
   if (bootstrap || options.tippy) {
     scripts.push({
       name: "popper.min.js",
@@ -584,6 +590,7 @@ function htmlFormatFeatureDefaults(
     hoverFootnotes: !minimal,
     figResponsive: !minimal,
     codeAnnotations: !minimal,
+    hoverXrefs: !minimal,
   };
 }
 
