@@ -1,3 +1,6 @@
+## Giscus Dark Mode Themes
+- Add support for setting the Giscus light/dark themes. ([#4820](https://github.com/quarto-dev/quarto-cli/issues/4820))
+
 ## Languages
 
 - Add Slovak translation (thanks @tom67)

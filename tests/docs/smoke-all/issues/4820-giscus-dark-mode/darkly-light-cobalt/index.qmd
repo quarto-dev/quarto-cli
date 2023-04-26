@@ -1,3 +1,1 @@
-This is a Quarto website.
-
-To learn more about Quarto websites visit <https://quarto.org/docs/websites>.
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam dapibus mattis malesuada. Sed fringilla posuere ultricies. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos.
