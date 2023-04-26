@@ -99,6 +99,7 @@ export const manuscriptProjectType: ProjectType = {
       );
     }
 
+    // Move the output to the working directory
     const copyOutput = (path: string) => {
       const pathRel = relative(outputDir, path);
       const targetFile = join(workingDir, pathRel);
@@ -125,10 +126,13 @@ export const manuscriptProjectType: ProjectType = {
       };
     };
     const articleItem = toMecaItem(articlePath, "article-metadata");
+    const renderedItems = articleRenderingPaths.map((path) => {
+      return toMecaItem(path, "manuscript");
+    });
 
     const meca: MecaManifest = {
       version: kMecaVersion,
-      items: [articleItem],
+      items: [articleItem, ...renderedItems],
     };
     const mecaXml = toXml(meca);
     console.log(mecaXml);
