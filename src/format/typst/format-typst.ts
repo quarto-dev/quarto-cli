@@ -5,12 +5,14 @@
 *
 */
 
-// TODO: incremental compile for preview
+// TODO: docs on custom
+// TODO: deal with columns
 
 import { join } from "path/mod.ts";
 
 import { RenderServices } from "../../command/render/types.ts";
 import {
+  kColumns,
   kDefaultImageExtension,
   kFigFormat,
   kFigHeight,
@@ -18,9 +20,15 @@ import {
   kNumberSections,
   kSectionNumbering,
   kShiftHeadingLevelBy,
+  kWrap,
 } from "../../config/constants.ts";
-import { Format, FormatExtras, PandocFlags } from "../../config/types.ts";
-import { jupyterAutoIdentifier } from "../../core/jupyter/jupyter.ts";
+import {
+  Format,
+  FormatExtras,
+  FormatPandoc,
+  Metadata,
+  PandocFlags,
+} from "../../config/types.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { createFormat } from "../formats-shared.ts";
 
@@ -34,6 +42,7 @@ export function typstFormat(): Format {
     pandoc: {
       standalone: true,
       [kDefaultImageExtension]: "svg",
+      [kWrap]: "none",
     },
     formatExtras: (
       _input: string,
@@ -42,18 +51,18 @@ export function typstFormat(): Format {
       format: Format,
       _libDir: string,
       _services: RenderServices,
-    ) => {
-      const extras: FormatExtras = {};
+    ): FormatExtras => {
+      const pandoc: FormatPandoc = {};
+      const metadata: Metadata = {};
 
+      // provide default section numbering if required
       if (
         (flags?.[kNumberSections] === true ||
           format.pandoc[kNumberSections] === true)
       ) {
         // number-sections imples section-numbering
         if (!format.metadata?.[kSectionNumbering]) {
-          extras.metadata = {
-            [kSectionNumbering]: "1.1.a",
-          };
+          metadata[kSectionNumbering] = "1.1.a";
         }
       }
 
@@ -65,9 +74,14 @@ export function typstFormat(): Format {
         flags?.[kShiftHeadingLevelBy] === undefined &&
         format.pandoc?.[kShiftHeadingLevelBy] === undefined
       ) {
-        extras.pandoc = {
-          [kShiftHeadingLevelBy]: -1,
-        };
+        pandoc[kShiftHeadingLevelBy] = -1;
+      }
+
+      // force columns to wrap and move any 'columns' setting to metadata
+      const columns = format.pandoc[kColumns];
+      if (columns) {
+        pandoc[kColumns] = undefined;
+        metadata[kColumns] = columns;
       }
 
       // Provide a template and partials
@@ -80,9 +94,12 @@ export function typstFormat(): Format {
           join(quartoTemplateDir, "template.typst"),
         ],
       };
-      extras.templateContext = templateContext;
 
-      return extras;
+      return {
+        pandoc,
+        metadata,
+        templateContext,
+      };
     },
   });
 }
