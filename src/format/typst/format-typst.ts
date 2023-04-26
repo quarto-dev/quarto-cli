@@ -18,7 +18,6 @@ import {
   kNumberSections,
   kSectionNumbering,
   kShiftHeadingLevelBy,
-  kTemplate,
 } from "../../config/constants.ts";
 import { Format, FormatExtras, PandocFlags } from "../../config/types.ts";
 import { formatResourcePath } from "../../core/resources.ts";
@@ -55,20 +54,19 @@ export function typstFormat(): Format {
             [kSectionNumbering]: "1.1.a",
           };
         }
+      }
 
-        // pdfs with numbered sections and no other level oriented options get
-        // their heading level shifted by -1. also don't shift if there are h1
-        // headings (nowhere to shift to!)
-        const hasLevelOneHeadings = !!markdown.match(/\n^#\s.*$/gm);
-        if (
-          !hasLevelOneHeadings &&
-          flags?.[kShiftHeadingLevelBy] === undefined &&
-          format.pandoc?.[kShiftHeadingLevelBy] === undefined
-        ) {
-          extras.pandoc = {
-            [kShiftHeadingLevelBy]: -1,
-          };
-        }
+      // unless otherwise specified, pdfs with only level 2 or greater headings get their
+      // heading level shifted by -1.
+      const hasLevelOneHeadings = !!markdown.match(/\n^#\s.*$/gm);
+      if (
+        !hasLevelOneHeadings &&
+        flags?.[kShiftHeadingLevelBy] === undefined &&
+        format.pandoc?.[kShiftHeadingLevelBy] === undefined
+      ) {
+        extras.pandoc = {
+          [kShiftHeadingLevelBy]: -1,
+        };
       }
 
       // Provide a template and partials
