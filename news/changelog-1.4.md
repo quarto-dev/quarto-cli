@@ -14,3 +14,7 @@
 ## Docusaurus Format
 
 - Support for `code-line-numbers` in Docusaurus output ([#5152](https://github.com/quarto-dev/quarto-cli/issues/5152))
+
+## OJS engine
+
+- Update observablehq's runtime to version 5.6.0.
