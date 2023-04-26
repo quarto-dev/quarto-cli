@@ -43,6 +43,7 @@ import {
   isIpynbOutput,
   isLatexOutput,
   isMarkdownOutput,
+  isTypstOutput,
 } from "../../config/format.ts";
 import {
   isIncludeMetadata,
@@ -735,6 +736,7 @@ export async function runPandoc(
   // crossref filter so we only do this if the user hasn't disabled the crossref filter
   if (
     !isLatexOutput(options.format.pandoc) &&
+    !isTypstOutput(options.format.pandoc) &&
     !isMarkdownOutput(options.format) && crossrefFilterActive(options)
   ) {
     delete allDefaults[kNumberSections];

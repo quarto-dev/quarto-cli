@@ -59,6 +59,7 @@ export const kShortcodes = "shortcodes";
 
 export const kKeepMd = "keep-md";
 export const kKeepTex = "keep-tex";
+export const kKeepTyp = "keep-typ";
 export const kKeepIpynb = "keep-ipynb";
 export const kKeepSource = "keep-source";
 export const kVariant = "variant";
@@ -140,6 +141,7 @@ export const kExecuteDefaultsKeys = [
 
 export const kRenderDefaultsKeys = [
   kKeepTex,
+  kKeepTyp,
   kKeepSource,
   kKeepHidden,
   kVariant,
@@ -429,6 +431,7 @@ export const kPdfEngineOpts = "pdf-engine-opts";
 export const kPdfEngineOpt = "pdf-engine-opt";
 export const kListings = "listings";
 export const kNumberSections = "number-sections";
+export const kSectionNumbering = "section-numbering";
 export const kNumberOffset = "number-offset";
 export const kShiftHeadingLevelBy = "shift-heading-level-by";
 export const kNumberDepth = "number-depth";

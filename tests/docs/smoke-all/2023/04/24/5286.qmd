@@ -1,0 +1,61 @@
+---
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - []
+        - ['.*\\textless{}1\\textgreater{}.*']
+---
+
+
+##  Tests
+
+
+``` c
+#define EnterCritical()      \
+  do {                       \
+    __asm (                  \
+      "mrs   r0, PRIMASK \n" \ /* <1> */
+      "cpsid i           \n" \ /* <2> */
+      "strb r0, cpuSR    \n" \ /* <3> */
+    );                       \
+  } while(0)
+```
+1. `PRIMASK` wird in `R0` abgespeichert
+2. Interrupts deaktivieren
+3. `R0` in `cpuSR` abspeichern
+
+``` c
+#define ExitCritical()    \
+  do {                    \
+    __asm(                \
+      "ldrb r0, cpuSR \n" \ /* <1> */
+      "msr PRIMASK,r0 \n" \ /* <2> */
+    );                    \
+  } while(0)
+```
+1. Inhalt von `cpuSR` in `R0` laden
+2. `R0` nach `PRIMASK` kopieren.
+
+
+```javascript
+var foo = "bar" // <1>
+
+```
+1. This is a js annotation
+
+
+```yaml
+foo:
+  bar:
+    zed: This is a value # <1>
+```
+1. This is an annotation
+
+
+```bash
+((area=5*5))
+echo $area # <1>
+
+```
+1. This is an annotation

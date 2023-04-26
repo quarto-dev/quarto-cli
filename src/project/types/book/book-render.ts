@@ -88,6 +88,7 @@ import { removePandocTo } from "../../../command/render/flags.ts";
 import { resourcePath } from "../../../core/resources.ts";
 import { PandocAttr, PartitionedMarkdown } from "../../../core/pandoc/types.ts";
 import { stringify } from "encoding/yaml.ts";
+import { waitUntilNamedLifetime } from "../../../core/lifetimes.ts";
 
 export function bookPandocRenderer(
   options: RenderOptions,
@@ -315,47 +316,52 @@ async function renderSingleFileBook(
   files: ExecutedFile[],
   quiet: boolean,
 ): Promise<RenderedFile> {
-  // we are going to compose a single ExecutedFile from the array we have been passed
-  const executedFile = await mergeExecutedFiles(
-    project,
-    options,
-    files,
-  );
-
-  // set book title metadata
-  executedFile.recipe.format = withBookTitleMetadata(
-    executedFile.recipe.format,
-    project.config,
-  );
-
-  // call book extension if applicable
-  executedFile.recipe.format = onSingleFileBookPreRender(
-    executedFile.recipe.format,
-    project.config,
-  );
-
-  // do pandoc render
-  const renderCompletion = await renderPandoc(executedFile, quiet);
-  const renderedFormats: RenderedFormat[] = [];
-  const renderedFile = await renderCompletion.complete(renderedFormats);
-
-  // cleanup step for each executed file
-  files.forEach((file) => {
-    // Forward render cleanup options from parent format
-    file.recipe.format.render[kKeepTex] =
-      executedFile.recipe.format.render[kKeepTex];
-
-    cleanupExecutedFile(
-      file,
-      join(project.dir, renderedFile.file),
+  const fileLifetime = await waitUntilNamedLifetime("render-file");
+  try {
+    // we are going to compose a single ExecutedFile from the array we have been passed
+    const executedFile = await mergeExecutedFiles(
+      project,
+      options,
+      files,
     );
-  });
 
-  // call book extension if applicable
-  onSingleFileBookPostRender(project, renderedFile);
+    // set book title metadata
+    executedFile.recipe.format = withBookTitleMetadata(
+      executedFile.recipe.format,
+      project.config,
+    );
 
-  // return rendered file
-  return renderedFile;
+    // call book extension if applicable
+    executedFile.recipe.format = onSingleFileBookPreRender(
+      executedFile.recipe.format,
+      project.config,
+    );
+
+    // do pandoc render
+    const renderCompletion = await renderPandoc(executedFile, quiet);
+    const renderedFormats: RenderedFormat[] = [];
+    const renderedFile = await renderCompletion.complete(renderedFormats);
+
+    // cleanup step for each executed file
+    files.forEach((file) => {
+      // Forward render cleanup options from parent format
+      file.recipe.format.render[kKeepTex] =
+        executedFile.recipe.format.render[kKeepTex];
+
+      cleanupExecutedFile(
+        file,
+        join(project.dir, renderedFile.file),
+      );
+    });
+
+    // call book extension if applicable
+    onSingleFileBookPostRender(project, renderedFile);
+
+    // return rendered file
+    return renderedFile;
+  } finally {
+    fileLifetime.cleanup();
+  }
 }
 
 async function mergeExecutedFiles(

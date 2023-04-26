@@ -111,4 +111,5 @@ const MEDIA_TYPES: Record<string, string> = {
   ".mediawiki": kTextPlain,
   ".xwiki": kTextPlain,
   ".zim": kTextPlain,
+  ".typ": kTextPlain,
 };

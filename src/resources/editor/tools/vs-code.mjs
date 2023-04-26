@@ -11463,7 +11463,7 @@ var require_yaml_intelligence_resources = __commonJS({
           default: false,
           description: {
             short: "Include a code tools menu (for hiding and showing code).",
-            long: "Include a code tools menu (for hiding and showing code).\nUse `true` or `false` to enable or disable the standard code \ntools menu. Specify sub-properties `source`, `toggle`, and\n`caption` to customize the behavior and appearnce of code tools.\n"
+            long: "Include a code tools menu (for hiding and showing code).\nUse `true` or `false` to enable or disable the standard code \ntools menu. Specify sub-properties `source`, `toggle`, and\n`caption` to customize the behavior and appearance of code tools.\n"
           }
         },
         {
@@ -12009,6 +12009,17 @@ var require_yaml_intelligence_resources = __commonJS({
               }
             ]
           }
+        },
+        {
+          name: "crossrefs-hover",
+          schema: "boolean",
+          tags: {
+            formats: [
+              "$html-files"
+            ]
+          },
+          default: true,
+          description: "Enables a hover popup for cross references that shows the item being referenced."
         }
       ],
       "schema/document-editor.yml": [
@@ -12083,6 +12094,15 @@ var require_yaml_intelligence_resources = __commonJS({
                         }
                       },
                       description: "Markdown writing options for visual editor"
+                    },
+                    "render-on-save": {
+                      tags: {
+                        engine: [
+                          "jupyter"
+                        ]
+                      },
+                      schema: "boolean",
+                      description: "Automatically re-render for preview whenever document is saved (note that this requires a preview\nfor the saved document be already running). This option currently works only within VS Code.\n"
                     }
                   }
                 }
@@ -12090,6 +12110,18 @@ var require_yaml_intelligence_resources = __commonJS({
             ]
           },
           description: "Visual editor configuration"
+        },
+        {
+          name: "zotero",
+          schema: {
+            anyOf: [
+              "boolean",
+              {
+                maybeArrayOf: "string"
+              }
+            ]
+          },
+          description: "Enable (`true`) or disable (`false`) Zotero for a document. Alternatively, provide a list of one or\nmore Zotero group libraries to use with the document.\n"
         }
       ],
       "schema/document-epub.yml": [
@@ -12669,7 +12701,8 @@ var require_yaml_intelligence_resources = __commonJS({
             formats: [
               "$html-doc",
               "context",
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           description: {
@@ -12699,7 +12732,8 @@ var require_yaml_intelligence_resources = __commonJS({
             formats: [
               "$html-doc",
               "context",
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
           description: {
@@ -13877,10 +13911,11 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "string",
           tags: {
             formats: [
-              "$pdf-all"
+              "$pdf-all",
+              "typst"
             ]
           },
-          description: "The paper size for the document."
+          description: "The paper size for the document.\n"
         },
         {
           name: "layout",
@@ -14702,6 +14737,16 @@ var require_yaml_intelligence_resources = __commonJS({
             short: "Offset for section headings in output (offsets are 0 by default)",
             long: 'Offset for section headings in output (offsets are 0 by default)\nThe first number is added to the section number for\ntop-level headings, the second for second-level headings, and so on.\nSo, for example, if you want the first top-level heading in your\ndocument to be numbered "6", specify `number-offset: 5`. If your\ndocument starts with a level-2 heading which you want to be numbered\n"1.5", specify `number-offset: [1,4]`. Implies `number-sections`\n'
           }
+        },
+        {
+          name: "section-numbering",
+          tags: {
+            formats: [
+              "typst"
+            ]
+          },
+          schema: "string",
+          description: "Schema to use for numbering sections, e.g. `1.A.1`"
         },
         {
           name: "shift-heading-level-by",
@@ -15598,6 +15643,17 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "Filters to pre-process ipynb files before rendering to markdown"
         },
         {
+          name: "keep-typ",
+          tags: {
+            formats: [
+              "typst"
+            ]
+          },
+          schema: "boolean",
+          default: false,
+          description: "Keep the intermediate typst file used during render."
+        },
+        {
           name: "keep-tex",
           tags: {
             formats: [
@@ -15807,12 +15863,54 @@ var require_yaml_intelligence_resources = __commonJS({
           name: "margin",
           tags: {
             formats: [
-              "revealjs"
+              "revealjs",
+              "typst"
             ]
           },
-          schema: "number",
+          schema: {
+            anyOf: [
+              "number",
+              {
+                object: {
+                  closed: true,
+                  properties: {
+                    x: {
+                      string: {
+                        description: "Horizontal margin (e.g. 5cm)"
+                      }
+                    },
+                    y: {
+                      string: {
+                        description: "Vertical margin (e.g. 5cm)"
+                      }
+                    },
+                    top: {
+                      string: {
+                        description: "Top margin (e.g. 5cm)"
+                      }
+                    },
+                    bottom: {
+                      string: {
+                        description: "Bottom margin (e.g. 5cm)"
+                      }
+                    },
+                    left: {
+                      string: {
+                        description: "Left margin (e.g. 5cm)"
+                      }
+                    },
+                    right: {
+                      string: {
+                        description: "Right margin (e.g. 5cm)"
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          },
           default: 0.1,
-          description: "Factor of the display size that should remain empty around the content"
+          description: "For `revealjs`, the factor of the display size that should remain empty around the content (e.g. 0.1).\n\nFor `typst`, a dictionary with the fields defined in the Typst documentation:\n`x`, `y`, `top`, `bottom`, `left`, `right` (margins are specified in `cm` units,\ne.g. `5cm`).\n"
         },
         {
           name: "min-scale",
@@ -16901,13 +16999,14 @@ var require_yaml_intelligence_resources = __commonJS({
               "!$office-all",
               "!$odt-all",
               "!$html-all",
-              "!$docbook-all"
+              "!$docbook-all",
+              "typst"
             ]
           },
           schema: "number",
           description: {
-            short: "Specify length of lines in characters.",
-            long: "Specify length of lines in characters. This affects text wrapping in generated source\ncode (see `wrap`). It also affects calculation of column widths for plain text\ntables.\n"
+            short: "For text formats, specify length of lines in characters. For `typst`, number of columns for body text.",
+            long: "Specify length of lines in characters. This affects text wrapping in generated source\ncode (see `wrap`). It also affects calculation of column widths for plain text\ntables. \n\nFor `typst`, number of columns for body text.\n"
           }
         },
         {
@@ -17340,6 +17439,7 @@ var require_yaml_intelligence_resources = __commonJS({
             "tei",
             "texinfo",
             "textile",
+            "typst",
             "xwiki",
             "zimwiki",
             "md"
@@ -18232,6 +18332,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "tei",
         "texinfo",
         "textile",
+        "typst",
         "xwiki",
         "zimwiki"
       ],
@@ -19301,6 +19402,7 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "Notebook cell identifier",
           long: 'Notebook cell identifier. Note that if there is no cell\n<code>id</code> then <code>label</code> will be used as the cell\n<code>id</code> if it is present. See <a href="https://jupyter.org/enhancement-proposals/62-cell-id/cell-id.html" class="uri">https://jupyter.org/enhancement-proposals/62-cell-id/cell-id.html</a>\nfor additional details on cell ids.'
         },
+        "nbconvert tag to export cell",
         {
           short: "Whether to cache a code chunk.",
           long: "Whether to cache a code chunk. When evaluating code chunks for the\nsecond time, the cached chunks are skipped (unless they have been\nmodified), but the objects created in these chunks are loaded from\npreviously saved databases (<code>.rdb</code> and <code>.rdx</code>\nfiles), and these files are saved when a chunk is evaluated for the\nfirst time, or when cached files are not found (e.g., you may have\nremoved them by hand). Note that the filename consists of the chunk\nlabel with an MD5 digest of the R code and chunk options of the code\nchunk, which means any changes in the chunk will produce a different MD5\ndigest, and hence invalidate the cache."
@@ -19515,7 +19617,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           short: "Include a code tools menu (for hiding and showing code).",
-          long: "Include a code tools menu (for hiding and showing code). Use\n<code>true</code> or <code>false</code> to enable or disable the\nstandard code tools menu. Specify sub-properties <code>source</code>,\n<code>toggle</code>, and <code>caption</code> to customize the behavior\nand appearnce of code tools."
+          long: "Include a code tools menu (for hiding and showing code). Use\n<code>true</code> or <code>false</code> to enable or disable the\nstandard code tools menu. Specify sub-properties <code>source</code>,\n<code>toggle</code>, and <code>caption</code> to customize the behavior\nand appearance of code tools."
         },
         {
           short: "Show a thick left border on code blocks.",
@@ -19614,6 +19716,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Whether cross references should be hyper-linked.",
         "The title used for appendix.",
         "The delimiter beween appendix number and title.",
+        "Enables a hover popup for cross references that shows the item being\nreferenced.",
         "Visual editor configuration",
         "Default editing mode for document",
         "Markdown writing options for visual editor",
@@ -19623,6 +19726,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Location to write references (<code>block</code>,\n<code>section</code>, or <code>document</code>)",
         "Write markdown links as references rather than inline.",
         "Unique prefix for references (<code>none</code> to prevent automatic\nprefixes)",
+        "Automatically re-render for preview whenever document is saved (note\nthat this requires a preview for the saved document be already running).\nThis option currently works only within VS Code.",
+        "Enable (<code>true</code>) or disable (<code>false</code>) Zotero for\na document. Alternatively, provide a list of one or more Zotero group\nlibraries to use with the document.",
         "The identifier for this publication.",
         "The identifier value.",
         "The identifier schema (e.g.&nbsp;<code>DOI</code>, <code>ISBN-A</code>,\netc.)",
@@ -20093,6 +20198,7 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "Offset for section headings in output (offsets are 0 by default)",
           long: "Offset for section headings in output (offsets are 0 by default) The\nfirst number is added to the section number for top-level headings, the\nsecond for second-level headings, and so on. So, for example, if you\nwant the first top-level heading in your document to be numbered \u201C6\u201D,\nspecify <code>number-offset: 5</code>. If your document starts with a\nlevel-2 heading which you want to be numbered \u201C1.5\u201D, specify\n<code>number-offset: [1,4]</code>. Implies\n<code>number-sections</code>"
         },
+        "Schema to use for numbering sections, e.g.&nbsp;<code>1.A.1</code>",
         {
           short: "Shift heading levels by a positive or negative integer. For example,\nwith <code>shift-heading-level-by: -1</code>, level 2 headings become\nlevel 1 headings.",
           long: "Shift heading levels by a positive or negative integer. For example,\nwith <code>shift-heading-level-by: -1</code>, level 2 headings become\nlevel 1 headings, and level 3 headings become level 2 headings. Headings\ncannot have a level less than 1, so a heading that would be shifted\nbelow level 1 becomes a regular paragraph. Exception: with a shift of\n-N, a level-N heading at the beginning of the document replaces the\nmetadata title."
@@ -20236,6 +20342,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Keep the markdown file generated by executing code",
         "Keep the notebook file generated from executing code.",
         "Filters to pre-process ipynb files before rendering to markdown",
+        "Keep the intermediate typst file used during render.",
         "Keep the intermediate tex file used during render.",
         {
           short: "Extract images and other media contained in or linked from the source\ndocument to the path DIR.",
@@ -20282,7 +20389,13 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The \u2018normal\u2019 height of the presentation",
           long: "The \u201Cnormal\u201D height of the presentation, aspect ratio will be\npreserved when the presentation is scaled to fit different resolutions.\nCan be specified using percentage units."
         },
-        "Factor of the display size that should remain empty around the\ncontent",
+        "For <code>revealjs</code>, the factor of the display size that should\nremain empty around the content (e.g.&nbsp;0.1).\nFor <code>typst</code>, a dictionary with the fields defined in the\nTypst documentation: <code>x</code>, <code>y</code>, <code>top</code>,\n<code>bottom</code>, <code>left</code>, <code>right</code> (margins are\nspecified in <code>cm</code> units, e.g.&nbsp;<code>5cm</code>).",
+        "Horizontal margin (e.g.&nbsp;5cm)",
+        "Vertical margin (e.g.&nbsp;5cm)",
+        "Top margin (e.g.&nbsp;5cm)",
+        "Bottom margin (e.g.&nbsp;5cm)",
+        "Left margin (e.g.&nbsp;5cm)",
+        "Right margin (e.g.&nbsp;5cm)",
         "Bounds for smallest possible scale to apply to content",
         "Bounds for largest possible scale to apply to content",
         "Vertical centering of slides",
@@ -20417,8 +20530,8 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Determine how text is wrapped in the output (the source code, not the\nrendered version)."
         },
         {
-          short: "Specify length of lines in characters.",
-          long: "Specify length of lines in characters. This affects text wrapping in\ngenerated source code (see <code>wrap</code>). It also affects\ncalculation of column widths for plain text tables."
+          short: "For text formats, specify length of lines in characters. For\n<code>typst</code>, number of columns for body text.",
+          long: "Specify length of lines in characters. This affects text wrapping in\ngenerated source code (see <code>wrap</code>). It also affects\ncalculation of column widths for plain text tables.\nFor <code>typst</code>, number of columns for body text."
         },
         {
           short: "Specify the number of spaces per tab (default is 4).",
@@ -21068,8 +21181,7 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
-        "internal-schema-hack",
-        "nbconvert tag to export cell"
+        "internal-schema-hack"
       ],
       "schema/external-schemas.yml": [
         {
@@ -21293,12 +21405,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 152480,
+        _internalId: 155259,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 152472,
+            _internalId: 155251,
             type: "enum",
             enum: [
               "png",
@@ -21314,7 +21426,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 152479,
+            _internalId: 155258,
             type: "anyOf",
             anyOf: [
               {

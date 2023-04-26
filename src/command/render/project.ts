@@ -14,7 +14,12 @@ import * as colors from "fmt/colors.ts";
 import { copyMinimal, copyTo } from "../../core/copy.ts";
 import * as ld from "../../core/lodash.ts";
 
-import { kKeepMd, kTargetFormat } from "../../config/constants.ts";
+import {
+  kKeepMd,
+  kKeepTex,
+  kKeepTyp,
+  kTargetFormat,
+} from "../../config/constants.ts";
 
 import {
   kProjectExecuteDir,
@@ -321,7 +326,9 @@ export async function renderProject(
       }
 
       // files dir
-      const keepFiles = !!renderedFile.format.execute[kKeepMd];
+      const keepFiles = !!renderedFile.format.execute[kKeepMd] ||
+        !!renderedFile.format.render[kKeepTex] ||
+        !!renderedFile.format.render[kKeepTyp];
       keepLibsDir = keepLibsDir || keepFiles;
       if (renderedFile.supporting) {
         // lib-dir is handled separately for projects so filter it out of supporting

@@ -15,7 +15,11 @@ export function inTempDirectory(fn: (dir: string) => unknown): unknown {
 }
 
 // Gets output that should be created for this input file and target format
-export function outputForInput(input: string, to: string) {
+export function outputForInput(
+  input: string,
+  to: string,
+  projectOutDir?: string,
+) {
   // TODO: Consider improving this (e.g. for cases like Beamer)
   const dir = dirname(input);
   let stem = basename(input, extname(input));
@@ -51,8 +55,12 @@ export function outputForInput(input: string, to: string) {
     outputExt = "adoc";
   }
 
-  const outputPath = join(dir, `${stem}.${outputExt}`);
-  const supportPath = join(dir, `${stem}_files`);
+  const outputPath = projectOutDir
+    ? join(dir, projectOutDir, `${stem}.${outputExt}`)
+    : join(dir, `${stem}.${outputExt}`);
+  const supportPath = projectOutDir
+    ? join(dir, projectOutDir, `${stem}_files`)
+    : join(dir, `${stem}_files`);
 
   return {
     outputPath,
