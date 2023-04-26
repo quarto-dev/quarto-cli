@@ -232,6 +232,10 @@ local function isJatsOutput()
   return tcontains(formats, FORMAT)
 end
 
+local function isTypstOutput()
+  return FORMAT == "typst"
+end
+
 
 return {
   isAsciiDocOutput = isAsciiDocOutput,
@@ -258,6 +262,6 @@ return {
   isJsonOutput = isJsonOutput,
   isAstOutput = isAstOutput,
   isJatsOutput = isJatsOutput,
-
+  isTypstOutput = isTypstOutput,
   parse_format = parse_format
 }

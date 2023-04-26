@@ -1,4 +1,4 @@
-<% if (darkMode !== undefined || tabby || anchors || copyCode || codeTools || tippy || hoverFootnotes || hoverCitations || linkExternalIcon || linkExternalNewwindow) { %> 
+<% if (darkMode !== undefined || tabby || anchors || copyCode || codeTools || tippy || hoverFootnotes || hoverCitations || linkExternalIcon || linkExternalNewwindow || hoverXrefs) { %> 
 <script id = "quarto-html-after-body" type="application/javascript">
 
 window.document.addEventListener("DOMContentLoaded", function (event) {
@@ -376,6 +376,35 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       const id = href.replace(/^#\/?/, "");
       const note = window.document.getElementById(id);
       return note.innerHTML;
+    });
+  }
+
+  <% } %>
+
+  <% if (hoverXrefs) { %>
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, function() {
+      let href = xref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children.length > 2) {
+          for (let i = 0; i < 2; i++) {
+            container.appendChild(note.children[i].cloneNode(true));
+          }
+          return container.innerHTML
+        } else {
+          return note.innerHTML;
+        }
+      } else {
+        return note.innerHTML;
+      }
+      
     });
   }
 

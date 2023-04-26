@@ -510,8 +510,8 @@ function metaMarkdownPipeline(format: Format, extras: FormatExtras) {
       // Meta values
       const metaVals = [{
         sel: 'meta[property="og:description"]',
-        key: kTwitterDesc,
-      }, { sel: 'meta[name="twitter:description"]', key: kOgDesc }];
+        key: kOgDesc,
+      }, { sel: 'meta[name="twitter:description"]', key: kTwitterDesc }];
 
       metaVals.forEach((metaVal) => {
         const renderedEl = rendered[metaVal.key];

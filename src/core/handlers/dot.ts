@@ -12,6 +12,7 @@ import {
   isJavascriptCompatible,
   isLatexOutput,
   isRevealjsOutput,
+  isTypstOutput,
 } from "../../config/format.ts";
 import { QuartoMdCell } from "../lib/break-quarto-md.ts";
 import { mappedConcat, mappedIndexToLineCol } from "../lib/mapped-text.ts";
@@ -106,6 +107,9 @@ const dotHandler: LanguageHandler = {
         isLatexOutput(handlerContext.options.format.pandoc)
           ? ` fig-env='${cell.options?.["fig-env"] || "figure"}'`
           : "";
+      const heightOffset = isTypstOutput(handlerContext.options.format.pandoc)
+        ? 0.1
+        : 0.0;
       let posSpecifier = "";
       if (
         isLatexOutput(handlerContext.options.format.pandoc) &&
@@ -123,7 +127,7 @@ const dotHandler: LanguageHandler = {
         ? `width="${Math.round(width * 100) / 100}in"`
         : "";
       const heightSpecifier = height
-        ? ` height="${Math.round(height * 100) / 100}in"`
+        ? ` height="${(Math.round(height * 100) / 100) + heightOffset}in"`
         : "";
       const captionSpecifier = includeCaption
         ? (cell.options?.["fig-cap"] || "")
