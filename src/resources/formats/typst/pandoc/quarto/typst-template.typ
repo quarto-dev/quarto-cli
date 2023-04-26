@@ -1,4 +1,6 @@
-#let conf(
+
+
+#let article(
   title: none,
   authors: none,
   date: none,

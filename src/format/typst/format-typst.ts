@@ -5,9 +5,6 @@
 *
 */
 
-// TODO: docs on custom
-// TODO: deal with columns
-
 import { join } from "path/mod.ts";
 
 import { RenderServices } from "../../command/render/types.ts";
@@ -85,14 +82,16 @@ export function typstFormat(): Format {
       }
 
       // Provide a template and partials
-      const templateDir = formatResourcePath("typst", "pandoc");
-      const quartoTemplateDir = join(templateDir, "quarto");
+      const templateDir = formatResourcePath("typst", join("pandoc", "quarto"));
       const templateContext = {
-        template: join(quartoTemplateDir, "typst.template"),
+        template: join(templateDir, "template.typ"),
         partials: [
-          join(templateDir, "definitions.typst"),
-          join(quartoTemplateDir, "template.typst"),
-        ],
+          "definitions.typ",
+          "typst-template.typ",
+          "typst-show.typ",
+          "notes.typ",
+          "biblio.typ",
+        ].map((partial) => join(templateDir, partial)),
       };
 
       return {

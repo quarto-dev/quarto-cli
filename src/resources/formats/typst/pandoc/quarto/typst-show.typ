@@ -1,21 +1,4 @@
-$definitions.typst()$
-
-#show terms: it => {
-  it.children
-    .map(child => [
-      #strong[#child.term]
-      #block(inset: (left: 1.5em, top: -0.4em))[#child.description]
-      ])
-    .join()
-}
-
-$if(template)$
-#import "$template$": conf
-$else$
-$template.typst()$
-$endif$
-
-#show: doc => conf(
+#show: doc => article(
 $if(title)$
   title: [$title$],
 $endif$
@@ -63,37 +46,3 @@ $endif$
   cols: $if(columns)$$columns$$else$1$endif$,
   doc,
 )
-
-$for(header-includes)$
-$header-includes$
-
-$endfor$
-$for(include-before)$
-$include-before$
-
-$endfor$
-
-$body$
-
-$if(notes)$
-#v(1em)
-#block[
-#horizontalrule
-#set text(size: .88em)
-#v(3pt) // otherwise first note marker is swallowed, bug?
-
-$notes$
-]
-$endif$
-$if(bibliographystyle)$
-
-#set bibliography(style: "$bibliographystyle$")
-$endif$
-$for(bibliography)$
-
-#bibliography("$bibliography$")
-$endfor$
-$for(include-after)$
-
-$include-after$
-$endfor$
