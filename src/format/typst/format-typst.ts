@@ -20,6 +20,7 @@ import {
   kShiftHeadingLevelBy,
 } from "../../config/constants.ts";
 import { Format, FormatExtras, PandocFlags } from "../../config/types.ts";
+import { jupyterAutoIdentifier } from "../../core/jupyter/jupyter.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { createFormat } from "../formats-shared.ts";
 
@@ -71,10 +72,13 @@ export function typstFormat(): Format {
 
       // Provide a template and partials
       const templateDir = formatResourcePath("typst", "pandoc");
-      const partials: string[] = ["definitions.typst", "template.typst"];
+      const quartoTemplateDir = join(templateDir, "quarto");
       const templateContext = {
-        template: join(templateDir, "typst.template"),
-        partials: partials.map((partial) => join(templateDir, partial)),
+        template: join(quartoTemplateDir, "typst.template"),
+        partials: [
+          join(templateDir, "definitions.typst"),
+          join(quartoTemplateDir, "template.typst"),
+        ],
       };
       extras.templateContext = templateContext;
 
