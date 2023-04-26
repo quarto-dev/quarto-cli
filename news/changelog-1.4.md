@@ -1,3 +1,6 @@
+## Table of Contents - side and body
+- Add support for `body-right` and `body-left` layouts for Website Table of Contents ([#3473](https://github.com/quarto-dev/quarto-cli/issues/3473))
+
 ## Languages
 
 - Add Slovak translation (thanks @tom67)
