@@ -26,7 +26,6 @@ import {
   kNoteBookExtension,
   NotebooksFormatExtension,
 } from "../format-extensions.ts";
-import { dirname } from "path/mod.ts";
 import {
   JupyterMarkdownOptions,
   notebookMarkdown,
@@ -36,6 +35,7 @@ import { runPandoc } from "../../command/render/pandoc.ts";
 import { dirAndStem } from "../../core/path.ts";
 import { renderFormats } from "../../command/render/render-contexts.ts";
 import { kJatsSubarticle } from "./format-jats-types.ts";
+import { inputExtensionDirs } from "../../extension/extension.ts";
 
 const kJatsExtended = "jats-extended";
 const kJatsDtd = "jats-dtd";
@@ -212,9 +212,8 @@ async function writeNotebookMarkdown(
 ) {
   // TODO: deal with subdir
   const [_nbDir, nbStem] = dirAndStem(notebook);
-  const nbAbsPath = join(dirname(input), notebook);
   const nbAddress = {
-    path: nbAbsPath,
+    path: notebook,
   };
 
   // TODO: ensure that echo forces code to be in notebook
@@ -231,6 +230,7 @@ async function writeNotebookMarkdown(
 
   // Render the notebook markdown
   const nbMarkdown = await notebookMarkdown(
+    input,
     nbAddress,
     assets,
     context,
