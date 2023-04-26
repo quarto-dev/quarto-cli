@@ -18406,8 +18406,6 @@ try {
           "Specify <code>loading: lazy</code> to defer loading comments until\nthe user scrolls near the comments container.",
           "Place the comment input box above or below the comments.",
           "The giscus theme to use when displaying comments.",
-          "The light theme name.",
-          "The dark theme name.",
           "The language that should be used when displaying the commenting\ninterface.",
           "Controls whether the sidebar opens automatically on startup.",
           "Controls whether the in-document highlights are shown by default\n(<code>always</code>, <code>whenSidebarOpen</code> or\n<code>never</code>)",
@@ -21427,12 +21425,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 155259,
+          _internalId: 157515,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 155251,
+              _internalId: 157507,
               type: "enum",
               enum: [
                 "png",
@@ -21448,7 +21446,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 155258,
+              _internalId: 157514,
               type: "anyOf",
               anyOf: [
                 {
