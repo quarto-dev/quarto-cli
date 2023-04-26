@@ -28,7 +28,7 @@
 
 - name: toc-location
   schema:
-    enum: ["body", "left", "right"]
+    enum: ["body", "left", "right", "left-body", "right-body"]
   default: "right"
   tags:
     formats: [$html-doc]

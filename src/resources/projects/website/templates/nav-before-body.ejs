@@ -85,14 +85,14 @@ if (nav.layout === "article" || nav.layout === "full") {
 <div id="quarto-content" class="quarto-container<%- gridClasses %> page-layout-<%- nav.layout %><%- nav.navbar ? ' page-navbar': ''%>">
 
 <!-- sidebar -->
-<% if (nav.sidebar || nav['toc-location'] === "left") { %>
+<% if (nav.sidebar || nav['toc-location'].includes("left")) { %>
   <% partial('sidebar.ejs', { sidebar: nav.sidebar, sidebarStyle: nav.sidebarStyle, navbar: !!nav.navbar, toc: nav['toc-location'] === "left", language: nav.language }) %>
 <% } %>
 
 <!-- margin-sidebar -->
 <% if (nav.layout === "article" || nav.layout === "full") { %>
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-      <% if (nav.hasToc && nav['toc-location'] === "right") { %>
+      <% if (nav.hasToc && nav['toc-location'].includes("right")) { %>
         <div id="quarto-toc-target"></div>
       <% } %>
     </div>

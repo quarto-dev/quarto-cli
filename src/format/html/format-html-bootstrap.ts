@@ -275,10 +275,19 @@ function bootstrapHtmlPostprocessor(
     }
 
     // move the toc if there is a sidebar
-    const toc = doc.querySelector('nav[role="doc-toc"]');
+    let toc = doc.querySelector('nav[role="doc-toc"]');
 
     const tocTarget = doc.getElementById("quarto-toc-target");
+
+    const useDoubleToc = (format.metadata[kTocLocation] as string)?.includes('-body') ?? false;
+
     if (toc && tocTarget) {
+      if(useDoubleToc) {
+        const clonedToc = toc.cloneNode(true);
+        toc.id = "TOC-body";
+        toc = clonedToc as Element;
+      }
+
       // activate selection behavior for this
       toc.classList.add("toc-active");
 
@@ -293,7 +302,8 @@ function bootstrapHtmlPostprocessor(
         }
       }
       // add nav-link class to the TOC links
-      const tocLinks = doc.querySelectorAll('nav[role="doc-toc"] > ul a');
+      const tocLinks = doc.querySelectorAll('nav#TOC[role="doc-toc"] > ul a');
+
       for (let i = 0; i < tocLinks.length; i++) {
         // Mark the toc links as nav-links
         const tocLink = tocLinks[i] as Element;

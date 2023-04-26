@@ -7,6 +7,15 @@ format:
     toc-title: Contents
     toc-expand: 5
     toc-depth: 4
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - "nav#TOC"
+        -
+          - "nav#TOC.toc-active"
+          - "nav#TOC-body"
 ---
 
 # Section 1

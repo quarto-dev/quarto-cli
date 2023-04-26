@@ -17053,7 +17053,9 @@ try {
               enum: [
                 "body",
                 "left",
-                "right"
+                "right",
+                "left-body",
+                "right-body"
               ]
             },
             default: "right",
@@ -19536,7 +19538,7 @@ try {
           },
           {
             short: "Include a code tools menu (for hiding and showing code).",
-            long: "Include a code tools menu (for hiding and showing code). Use\n<code>true</code> or <code>false</code> to enable or disable the\nstandard code tools menu. Specify sub-properties <code>source</code>,\n<code>toggle</code>, and <code>caption</code> to customize the behavior\nand appearnce of code tools."
+            long: "Include a code tools menu (for hiding and showing code). Use\n<code>true</code> or <code>false</code> to enable or disable the\nstandard code tools menu. Specify sub-properties <code>source</code>,\n<code>toggle</code>, and <code>caption</code> to customize the behavior\nand appearance of code tools."
           },
           {
             short: "Show a thick left border on code blocks.",

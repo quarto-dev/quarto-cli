@@ -1,5 +1,5 @@
 ---
-title: 3473-toc-side-body
+title: 3473-toc-left-body
 format:
   html:
     toc: true
@@ -7,6 +7,13 @@ format:
     toc-title: Contents
     toc-expand: 5
     toc-depth: 4
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - "nav#TOC.toc-active"
+          - "nav#TOC-body"
 ---
 
 # Section 1
