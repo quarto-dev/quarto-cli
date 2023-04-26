@@ -11,6 +11,7 @@
   font: (),
   fontsize: 11pt,
   sectionnumbering: none,
+  toc: false,
   doc,
 ) = {
   set page(
@@ -56,6 +57,15 @@
   if abstract != none {
     block(inset: 2em)[
     #text(weight: "semibold")[Abstract] #h(1em) #abstract
+    ]
+  }
+
+  if toc {
+    block(above: 0em, below: 2em)[
+    #outline(
+      title: auto,
+      depth: none
+    );
     ]
   }
 

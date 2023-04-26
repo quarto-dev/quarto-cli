@@ -57,6 +57,9 @@ $endif$
 $if(section-numbering)$
   sectionnumbering: "$section-numbering$",
 $endif$
+$if(toc)$
+  toc: $toc$,
+$endif$
   cols: $if(columns)$$columns$$else$1$endif$,
   doc,
 )
@@ -69,12 +72,6 @@ $for(include-before)$
 $include-before$
 
 $endfor$
-$if(toc)$
-#outline(
-  title: auto,
-  depth: none
-);
-$endif$
 
 $body$
 
