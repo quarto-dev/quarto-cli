@@ -538,6 +538,7 @@ function navigationHtmlPostprocessor(
         ".page-navigation .nav-page-next .nav-page-text",
         ".page-navigation .nav-page-previous .nav-page-text",
         "h1.quarto-secondary-nav-title",
+        ".breadcrumb-item a",
       ];
       for (const sel of sels) {
         const el = doc.querySelector(sel);
