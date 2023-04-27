@@ -10,14 +10,14 @@ local function run_emulated_filter_chain(doc, filters, afterFilterPass, profilin
   -- print(os.clock(), " - starting")
   for i, v in ipairs(filters) do
     local function callback()
-      if v.indices then
-        if type(v.indices) ~= "table" then
-          error("filter " .. v.name .. " has invalid indices")
+      if v.flags then
+        if type(v.flags) ~= "table" then
+          error("filter " .. v.name .. " has invalid flags")
           crash_with_stack_trace()
         end
         local can_skip = true
-        for _, index in ipairs(v.indices) do
-          if indices[index] == true then
+        for _, index in ipairs(v.flags) do
+          if flags[index] == true then
             can_skip = false
           end
         end

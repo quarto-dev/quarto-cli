@@ -1,7 +1,7 @@
 -- flags.lua
 -- Copyright (C) 2020-2023 Posit Software, PBC
 
--- computes performance indices in one pass
+-- computes performance flags in one pass
 -- so that we can skip as many filters as possible
 -- when we don't need them
 
@@ -13,7 +13,7 @@ function needs_dom_processing(node)
   end
 end
 
-function compute_indices()
+function compute_flags()
   local table_pattern = htmlTablePattern()
   local table_tag_pattern = htmlTableTagNamePattern()
   local gt_table_pattern = htmlGtTablePattern()

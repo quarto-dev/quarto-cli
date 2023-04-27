@@ -187,7 +187,7 @@ local quartoNormalize = {
   { 
     name = "normalize-extractQuartoDom", 
     filter = extract_quarto_dom(),
-    indices = {
+    flags = {
       "needs_dom_processing"
     }
   },
@@ -196,13 +196,13 @@ local quartoNormalize = {
 local quartoPre = {
   -- quarto-pre
 
-  -- TODO we need to recompute indices on the results of the user filters
+  -- TODO we need to recompute flags on the results of the user filters
   { name = "pre-quartoBeforeExtendedUserFilters", filters = make_wrapped_user_filters("beforeQuartoFilters") },
 
   -- do this early so we can compute maxHeading while in the big traversal
   { name = "crossref-initCrossrefOptions", filter = initCrossrefOptions() },
 
-  { name = "index", filter = compute_indices() },
+  { name = "index", filter = compute_flags() },
 
   -- https://github.com/quarto-dev/quarto-cli/issues/5031
   -- recompute options object in case user filters have changed meta
@@ -212,60 +212,60 @@ local quartoPre = {
 
   { name = "normalize-parse-pandoc3-figures", 
     filter = parse_pandoc3_figures(), 
-    indices = { "has_pandoc3_figure" } 
+    flags = { "has_pandoc3_figure" } 
   },
 
   { name = "pre-bibliographyFormats", filter = bibliographyFormats() }, 
   
   { name = "pre-shortcodes_filter", 
     filter = shortcodes_filter(),
-    indices = { "has_shortcodes" } },
+    flags = { "has_shortcodes" } },
 
   { name = "pre-tableMergeRawHtml", 
     filter = tableMergeRawHtml(),
-    indices = { "has_partial_raw_html_tables" } },
+    flags = { "has_partial_raw_html_tables" } },
 
   { name = "pre-tableRenderRawHtml", 
     filter = tableRenderRawHtml(),
-    indices = { "has_raw_html_tables", "has_gt_tables" } },
+    flags = { "has_raw_html_tables", "has_gt_tables" } },
 
   { name = "pre-tableColwidthCell", 
     filter = tableColwidthCell(),
-    indices = { "has_tbl_colwidths" } },
+    flags = { "has_tbl_colwidths" } },
 
   { name = "pre-tableColwidth", 
     filter = tableColwidth(), 
-    indices = { "has_tables" } },
+    flags = { "has_tables" } },
   
   { name = "pre-tableClasses", 
     filter = tableClasses(),
-    indices = { "has_tables" } },
+    flags = { "has_tables" } },
 
   { name = "pre-hidden", 
     filter = hidden(), 
-    indices = { "has_hidden" } },
+    flags = { "has_hidden" } },
 
   { name = "pre-contentHidden", 
     filter = contentHidden(),
-    indices = { "has_conditional_content" } },
+    flags = { "has_conditional_content" } },
 
   { name = "pre-tableCaptions", 
     filter = tableCaptions(),
-    indices = { "has_table_captions" } },
+    flags = { "has_table_captions" } },
 
   { name = "pre-longtable_no_caption_fixup", 
     filter = longtable_no_caption_fixup(),
-    indices = { "has_longtable_no_caption_fixup" } },
+    flags = { "has_longtable_no_caption_fixup" } },
   
   { name = "pre-code-annotations", 
     filter = code(),
-    indices = { "has_code_annotations" } },
+    flags = { "has_code_annotations" } },
   
   { name = "pre-code-annotations-meta", filter = codeMeta() },
 
   { name = "pre-outputs", 
     filter = outputs(),
-    indices = { "needs_output_unrolling" } },
+    flags = { "needs_output_unrolling" } },
 
   { name = "pre-outputLocation", 
     filter = outputLocation()
@@ -303,7 +303,7 @@ local quartoPost = {
   -- quarto-post
   { name = "post-cell-cleanup", 
     filter = cell_cleanup(),
-    indices = { "has_output_cells" } },
+    flags = { "has_output_cells" } },
   { name = "post-cites", filter = indexCites() },
   { name = "post-foldCode", filter = foldCode() },
   { name = "post-bibliography", filter = bibliography() },
@@ -348,9 +348,9 @@ local quartoLayout = {
   { name = "layout-columns", filter = columns() },
   { name = "layout-citesPreprocess", filter = citesPreprocess() },
   { name = "layout-cites", filter = cites() },
-  { name = "layout-panels", filter = layoutPanels(), indices =
+  { name = "layout-panels", filter = layoutPanels(), flags =
     { "has_layout_attributes", "has_tbl_parent" } },
-  { name = "layout-extendedFigures", filter = extendedFigures(), indices = 
+  { name = "layout-extendedFigures", filter = extendedFigures(), flags = 
     { "has_discoverable_figures", "has_figure_divs"} },
   { name = "layout-metaInject", filter = layoutMetaInject() }
 }
@@ -358,7 +358,7 @@ local quartoLayout = {
 local quartoCrossref = {
 
   { name = "crossref-preprocess", filter = crossrefPreprocess(),
-    indices = { 
+    flags = { 
       "has_figure_or_table_ref", 
       "has_discoverable_figures",
       "has_table_with_long_captions",
@@ -367,7 +367,7 @@ local quartoCrossref = {
 
   { name = "crossref-preprocessTheorems", 
     filter = crossrefPreprocessTheorems(),
-    indices = { "has_theorem_refs" } },
+    flags = { "has_theorem_refs" } },
 
   { name = "crossref-combineFilters", filter = combineFilters({
     fileMetadata(),
@@ -381,7 +381,7 @@ local quartoCrossref = {
   })},
 
   { name = "crossref-resolveRefs", filter = resolveRefs(),
-    indices = { "has_cites" } },
+    flags = { "has_cites" } },
     
   { name = "crossref-crossrefMetaInject", filter = crossrefMetaInject() },
   { name = "crossref-writeIndex", filter = writeIndex() },
