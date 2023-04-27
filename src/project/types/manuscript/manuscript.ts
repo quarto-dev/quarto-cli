@@ -26,6 +26,9 @@ import { zip } from "../../../core/zip.ts";
 
 const kManuscriptType = "manuscript";
 
+const kMecaFileLabel = "MECA Archive";
+const kMecaFileName = "meca.zip";
+
 export const manuscriptProjectType: ProjectType = {
   type: kManuscriptType,
 
@@ -64,8 +67,8 @@ export const manuscriptProjectType: ProjectType = {
         links.push(...format.render[kFormatLinks] || []);
       }
       links.push({
-        title: "MECA Archive",
-        href: "meca.zip",
+        title: kMecaFileLabel,
+        href: kMecaFileName,
       });
       format.render[kFormatLinks] = links;
     }
@@ -144,15 +147,16 @@ export const manuscriptProjectType: ProjectType = {
       ];
 
       // Compress the working directory in a zip
-      const mecaFile = "meca.zip";
-
-      const zipResult = await zip(filesToZip, mecaFile, {
+      const zipResult = await zip(filesToZip, kMecaFileName, {
         cwd: workingDir,
       });
       if (zipResult.success) {
         // Move the meca file to the project output directory
         const target = projectOutputDir(context);
-        Deno.renameSync(join(workingDir, mecaFile), join(target, "meca.zip"));
+        Deno.renameSync(
+          join(workingDir, kMecaFileName),
+          join(target, kMecaFileName),
+        );
       } else {
         throw new Error(
           `An error occurred while attempting to generate MECA bundle.\n${zipResult.stderr}`,
