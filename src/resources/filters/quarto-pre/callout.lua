@@ -817,8 +817,7 @@ function jatsCallout(node)
   end
   contents:insert(1, pandoc.RawBlock('jats', boxedStart))
   contents:insert(pandoc.RawBlock('jats', '</boxed-text>'))
-
-  return pandoc.Div(contents)
+  return contents
 end
 
 function simpleCallout(node) 

@@ -324,6 +324,7 @@ export async function websiteNavigationExtras(
     navigation,
     pageNavigation,
     bodyDecorators: navigation.bodyDecorators,
+    breadCrumbs: navigation.breadCrumbs,
   });
   const markdownPipeline = createMarkdownPipeline(
     "quarto-navigation-envelope",
@@ -390,6 +391,30 @@ function navigationHtmlPostprocessor(
   const href = inputFileHref(sourceRelative);
 
   return async (doc: Document): Promise<HtmlPostProcessResult> => {
+    // Process the breadcrumbs and collapsed title
+    // This needs to happen before resolving the pipeline
+    const secondaryNavTitleEl = doc.querySelector(
+      ".quarto-secondary-nav .quarto-secondary-nav-title",
+    );
+
+    if (secondaryNavTitleEl) {
+      const navEl = makeBreadCrumbs(doc);
+      if (secondaryNavTitleEl.parentElement) {
+        secondaryNavTitleEl.parentElement.replaceChild(
+          navEl,
+          secondaryNavTitleEl,
+        );
+      }
+
+      // hide the entire title block (encompassing code button) if we have it
+      const titleBlock = doc.querySelector("header > .quarto-title-block");
+      if (titleBlock) {
+        // hide below lg
+        titleBlock.classList.add("d-none");
+        titleBlock.classList.add("d-lg-block");
+      }
+    }
+
     // Process any markdown rendered through the render envelope
     markdownPipeline.processRenderedMarkdown(doc);
 
@@ -439,125 +464,6 @@ function navigationHtmlPostprocessor(
         navLink.setAttribute("aria-current", "page");
         // terminate (only one nav link should be active)
         break;
-      }
-    }
-
-    // If the secondary navigation title is present, hide the title
-    // when the secondary navigation will show
-    const secondaryNavTitleEl = doc.querySelector(
-      ".quarto-secondary-nav .quarto-secondary-nav-title",
-    );
-
-    if (secondaryNavTitleEl) {
-      // Make bootstrap breadcrumbs
-      const navEl = doc.createElement("nav");
-      navEl.classList.add("quarto-page-breadcrumbs");
-      navEl.setAttribute("aria-label", "breadcrumb");
-
-      const olEl = doc.createElement("ol");
-      olEl.classList.add("breadcrumb");
-      navEl.append(olEl);
-
-      const breadCrumbEl = () => {
-        const liEl = doc.createElement("li");
-        liEl.classList.add("breadcrumb-item");
-        return liEl;
-      };
-
-      if (navigation.breadCrumbs && navigation.breadCrumbs.length > 0) {
-        let crumbCount = 0;
-        for (const item of navigation.breadCrumbs) {
-          if (item.text || item.icon) {
-            // Attempt to use the item's title, if possible
-            let titleEl;
-            if (item.id) {
-              titleEl = doc.getElementById(item.id);
-            } else if (item.href) {
-              titleEl = doc.querySelector(
-                `.depth${crumbCount} .sidebar-item a[href="${item.href}"] .menu-text`,
-              );
-            }
-
-            const liEl = breadCrumbEl();
-            const maybeLink = (liEl: Element, contents: Element | string) => {
-              if (item.href) {
-                const linkEl = doc.createElement("a");
-                linkEl.setAttribute("href", item.href);
-                if (typeof (contents) === "string") {
-                  linkEl.innerHTML = contents;
-                } else {
-                  linkEl.appendChild(contents);
-                }
-
-                liEl.appendChild(linkEl);
-                return liEl;
-              } else {
-                if (typeof (contents) === "string") {
-                  liEl.innerHTML = item.text || "";
-                } else {
-                  liEl.appendChild(contents);
-                }
-
-                return liEl;
-              }
-            };
-
-            if (item.text) {
-              olEl.appendChild(
-                maybeLink(
-                  liEl,
-                  titleEl ? titleEl.innerHTML : (item.text || ""),
-                ),
-              );
-            } else if (item.icon) {
-              const iconEl = doc.createElement("i");
-              iconEl.classList.add("bi");
-              iconEl.classList.add(`bi-${item.icon}`);
-
-              olEl.appendChild(maybeLink(liEl, iconEl));
-            }
-          }
-          crumbCount++;
-        }
-      } else {
-        const sidebarTitle = doc.querySelector(".sidebar-title a");
-        if (sidebarTitle) {
-          const liEl = breadCrumbEl();
-          liEl.innerHTML = sidebarTitle.innerHTML;
-          olEl.appendChild(liEl);
-        } else {
-          const sidebarTitleBare = doc.querySelector(".sidebar-title");
-          if (sidebarTitleBare) {
-            const liEl = breadCrumbEl();
-            liEl.innerHTML = sidebarTitleBare.innerHTML;
-            olEl.appendChild(liEl);
-          } else {
-            const title = doc.querySelector(
-              "header .title .quarto-section-identifier",
-            ) || doc.querySelector("header .title");
-
-            if (title) {
-              const liEl = breadCrumbEl();
-              liEl.innerHTML = title.innerHTML;
-              olEl.appendChild(liEl);
-            }
-          }
-        }
-      }
-
-      if (secondaryNavTitleEl.parentElement) {
-        secondaryNavTitleEl.parentElement.replaceChild(
-          navEl,
-          secondaryNavTitleEl,
-        );
-      }
-
-      // hide the entire title block (encompassing code button) if we have it
-      const titleBlock = doc.querySelector("header > .quarto-title-block");
-      if (titleBlock) {
-        // hide below lg
-        titleBlock.classList.add("d-none");
-        titleBlock.classList.add("d-lg-block");
       }
     }
 
@@ -632,6 +538,7 @@ function navigationHtmlPostprocessor(
         ".page-navigation .nav-page-next .nav-page-text",
         ".page-navigation .nav-page-previous .nav-page-text",
         "h1.quarto-secondary-nav-title",
+        ".breadcrumb-item a",
       ];
       for (const sel of sels) {
         const el = doc.querySelector(sel);
@@ -877,6 +784,93 @@ async function resolveFooter(
     footer.right = await resolveItems(footer.right);
   }
   return footer;
+}
+
+function makeBreadCrumbs(doc: Document) {
+  // Make bootstrap breadcrumbs
+  const navEl = doc.createElement("nav");
+  navEl.classList.add("quarto-page-breadcrumbs");
+  navEl.setAttribute("aria-label", "breadcrumb");
+
+  const olEl = doc.createElement("ol");
+  olEl.classList.add("breadcrumb");
+  navEl.append(olEl);
+
+  const breadCrumbEl = () => {
+    const liEl = doc.createElement("li");
+    liEl.classList.add("breadcrumb-item");
+    return liEl;
+  };
+
+  if (navigation.breadCrumbs && navigation.breadCrumbs.length > 0) {
+    for (const item of navigation.breadCrumbs) {
+      if (item.text || item.icon) {
+        const liEl = breadCrumbEl();
+        const maybeLink = (liEl: Element, contents: Element | string) => {
+          if (item.href) {
+            const linkEl = doc.createElement("a");
+            linkEl.setAttribute("href", item.href);
+            if (typeof (contents) === "string") {
+              linkEl.innerHTML = contents;
+            } else {
+              linkEl.appendChild(contents);
+            }
+
+            liEl.appendChild(linkEl);
+            return liEl;
+          } else {
+            if (typeof (contents) === "string") {
+              liEl.innerHTML = item.text || "";
+            } else {
+              liEl.appendChild(contents);
+            }
+
+            return liEl;
+          }
+        };
+
+        if (item.text) {
+          olEl.appendChild(
+            maybeLink(
+              liEl,
+              item.text || "",
+            ),
+          );
+        } else if (item.icon) {
+          const iconEl = doc.createElement("i");
+          iconEl.classList.add("bi");
+          iconEl.classList.add(`bi-${item.icon}`);
+
+          olEl.appendChild(maybeLink(liEl, iconEl));
+        }
+      }
+    }
+  } else {
+    const sidebarTitle = doc.querySelector(".sidebar-title a");
+    if (sidebarTitle) {
+      const liEl = breadCrumbEl();
+      liEl.innerHTML = sidebarTitle.innerHTML;
+      olEl.appendChild(liEl);
+    } else {
+      const sidebarTitleBare = doc.querySelector(".sidebar-title");
+      if (sidebarTitleBare) {
+        const liEl = breadCrumbEl();
+        liEl.innerHTML = sidebarTitleBare.innerHTML;
+        olEl.appendChild(liEl);
+      } else {
+        const title = doc.querySelector(
+          "header .title .quarto-section-identifier",
+        ) || doc.querySelector("header .title");
+
+        if (title) {
+          const liEl = breadCrumbEl();
+          liEl.innerHTML = title.innerHTML;
+          olEl.appendChild(liEl);
+        }
+      }
+    }
+  }
+  return navEl;
 }
 
 async function sidebarsEjsData(project: ProjectContext, sidebars: Sidebar[]) {

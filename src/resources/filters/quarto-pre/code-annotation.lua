@@ -52,8 +52,10 @@ local kLangCommentChars = {
   latex = {"%"},
   typescript = {"//"},
   swift = { "//" },
-  javascript = { "// "},
-  elm = { "#" }
+  javascript = { "//"},
+  elm = { "#" },
+  vhdl = { "--"}
+
 }
 
 local kCodeAnnotationsParam = 'code-annotations'
@@ -122,7 +124,7 @@ local function annoteProvider(lang)
         return line:gsub(expression.strip.prefix .. annoteId .. expression.strip.suffix, "")
       end,
       replaceAnnotation = function(line, annoteId, replacement)
-        return line:gsub(expression.strip.prefix .. annoteId .. expression.strip.suffix, replacement)
+        return line:gsub(patternEscape(expression.strip.prefix .. annoteId .. expression.strip.suffix), replacement)
       end,
       createComment = function(value) 
         if #commentChars == 0 then

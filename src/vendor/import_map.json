@@ -81,6 +81,7 @@
     "archive/tar.ts": "./deno.land/std@0.166.0/archive/tar.ts",
     "node/crypto.ts": "./deno.land/std@0.166.0/node/crypto.ts",
     "cliffy/prompt/secret.ts": "./deno.land/x/cliffy@v0.25.4/prompt/secret.ts",
+    "xml/mod.ts": "./deno.land/x/xml@2.1.1/mod.ts",
     "binary-search-bounds": "./cdn.skypack.dev/binary-search-bounds@2.0.5.js",
     "testing/asserts.ts": "./deno.land/std@0.166.0/testing/asserts.ts",
     "https://deno.land/std@0.161.0/fmt/colors.ts": "./deno.land/std@0.166.0/fmt/colors.ts",

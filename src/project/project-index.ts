@@ -227,11 +227,19 @@ export async function inputFileForOutputFile(
   // full path to output (it's relative to output dir)
   output = join(outputDir, output);
 
+  if (project.outputNameIndex !== undefined) {
+    return project.outputNameIndex.get(output);
+  }
+
+  project.outputNameIndex = new Map();
   for (const file of project.files.input) {
     const inputRelative = relative(project.dir, file);
-    const index = await inputTargetIndex(project, relative(project.dir, file));
+    const index = await inputTargetIndex(
+      project,
+      relative(project.dir, file),
+    );
     if (index) {
-      const hasOutput = Object.keys(index.formats).some((key) => {
+      Object.keys(index.formats).forEach((key) => {
         const format = index.formats[key];
         const outputFile = formatOutputFile(format);
         if (outputFile) {
@@ -240,14 +248,12 @@ export async function inputFileForOutputFile(
             dirname(inputRelative),
             outputFile,
           );
-          return output === formatOutputPath;
+          project.outputNameIndex!.set(formatOutputPath, file);
         }
       });
-      if (hasOutput) {
-        return file;
-      }
     }
   }
+  return project.outputNameIndex.get(output);
 }
 
 export async function inputTargetIndexForOutputFile(

@@ -95,6 +95,16 @@ function run_emulated_filter(doc, filter, top_level)
     end
   end
 
+  local custom = resolve_custom_node(doc)
+  if custom then
+    local custom_data, t, kind = _quarto.ast.resolve_custom_data(custom)
+    local result, recurse = process_custom(custom_data, t, kind, custom)
+    if result == nil then
+      return doc
+    end
+    return result, recurse
+  end
+
   function wrapped_filter.Plain(node)
     local custom = resolve_custom_node(node)
 

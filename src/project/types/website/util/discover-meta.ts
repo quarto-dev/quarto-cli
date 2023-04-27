@@ -82,7 +82,7 @@ export function findPreviewImgEl(doc: Document): Element | undefined {
 
   // as a last resort, just use the auto-discovered image from the lua
   // filter chain, if it exists
-  const autoImg = doc.querySelector("img.quarto-discovered-preview-image");
+  const autoImg = doc.querySelector("#quarto-document-content img");
   if (autoImg) {
     return autoImg;
   }

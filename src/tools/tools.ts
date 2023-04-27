@@ -197,7 +197,7 @@ export async function uninstallTool(name: string, updatePath?: boolean) {
 
 export async function updateTool(name: string) {
   const summary = await toolSummary(name);
-  const installableTool = kInstallableTools[name];
+  const installableTool = kInstallableTools[name.toLowerCase()];
 
   if (installableTool && summary && summary.installed) {
     const workingDir = Deno.makeTempDirSync();

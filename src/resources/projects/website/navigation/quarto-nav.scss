@@ -759,7 +759,7 @@ body.nav-fixed {
   padding-top: navbar-default-offset($theme-name);
 }
 
-body:not(.floating) .nav-footer {
+body .nav-footer {
   @if variable-exists(footer-border) and $footer-border {
     @if variable-exists(footer-border-color) {
       border-top: 1px solid $footer-border-color;

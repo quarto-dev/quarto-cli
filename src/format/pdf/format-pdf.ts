@@ -316,7 +316,7 @@ function pdfLatexPostProcessor(
   return async (output: string) => {
     const lineProcessors: LineProcessor[] = [
       sidecaptionLineProcessor(),
-      calloutFigureHoldLineProcessor(),
+      calloutFloatHoldLineProcessor(),
     ];
 
     if (format.pandoc[kCiteMethod] === "biblatex") {
@@ -711,7 +711,7 @@ const longTableSidenoteProcessor = () => {
   };
 };
 
-const calloutFigureHoldLineProcessor = () => {
+const calloutFloatHoldLineProcessor = () => {
   let state: "scanning" | "replacing" = "scanning";
   return (line: string): string | undefined => {
     switch (state) {
@@ -729,6 +729,8 @@ const calloutFigureHoldLineProcessor = () => {
           return line;
         } else if (line.match(/^\\begin{figure}$/)) {
           return "\\begin{figure}[H]";
+        } else if (line.match(/^\\begin{codelisting}$/)) {
+          return "\\begin{codelisting}[H]";
         } else {
           return line;
         }
@@ -919,8 +921,8 @@ const placePandocBibliographyEntries = (
 };
 
 const kCodeAnnotationRegex =
-  /(.*)\\CommentTok\{\\\# \\textless\{\}(\d)\\textgreater\{\}\s*\}$/gm;
-const kCodePlainAnnotationRegex = /(.*)% \((\d)\)$/g;
+  /(.*)\\CommentTok\{.* \\textless\{\}(\d+)\\textgreater\{\}.*\}$/gm;
+const kCodePlainAnnotationRegex = /(.*)% \((\d+)\)$/g;
 const codeAnnotationPostProcessor = () => {
   let lastAnnotation: string | undefined;
 

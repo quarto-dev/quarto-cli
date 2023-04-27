@@ -1,0 +1,16 @@
+---
+title: Bug
+format: html
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - []
+        - ["<p></p><figcaption"]
+---
+
+## Hello.
+
+![This is a figure](elephant.png){#fig-elephant}
+
+Is this a thing? @fig-elephant.

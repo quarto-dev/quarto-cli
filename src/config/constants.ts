@@ -1,9 +1,8 @@
 /*
-* constants.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * constants.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 export const kMetadataFormat = "format";
 
@@ -60,6 +59,7 @@ export const kShortcodes = "shortcodes";
 
 export const kKeepMd = "keep-md";
 export const kKeepTex = "keep-tex";
+export const kKeepTyp = "keep-typ";
 export const kKeepIpynb = "keep-ipynb";
 export const kKeepSource = "keep-source";
 export const kVariant = "variant";
@@ -77,6 +77,8 @@ export const kCodeTools = "code-tools";
 export const kTblCap = "tbl-cap";
 export const kTblColwidths = "tbl-colwidths";
 export const kMergeIncludes = "merge-includes";
+export const kInlineIncludes = "inline-includes";
+export const kPreserveYaml = "preserve-yaml";
 export const kPreferHtml = "prefer-html";
 export const kSelfContainedMath = "self-contained-math";
 export const kBiblioConfig = "biblio-config";
@@ -139,6 +141,7 @@ export const kExecuteDefaultsKeys = [
 
 export const kRenderDefaultsKeys = [
   kKeepTex,
+  kKeepTyp,
   kKeepSource,
   kKeepHidden,
   kVariant,
@@ -156,6 +159,9 @@ export const kRenderDefaultsKeys = [
   kCodeTools,
   kShortcodes,
   kTblColwidths,
+  kInlineIncludes,
+  kPreserveYaml,
+  kMergeIncludes,
   kSelfContainedMath,
   kLatexAutoMk,
   kLatexAutoInstall,
@@ -408,12 +414,14 @@ export const kInputFiles = "input-files";
 export const kMarkdownHeadings = "markdown-headings";
 export const kTemplate = "template";
 export const kWrap = "wrap";
+export const kColumns = "columns";
 export const kStandalone = "standalone";
 export const kSelfContained = "self-contained";
 export const kEmbedResources = "embed-resources";
 export const kIncludeBeforeBody = "include-before-body";
 export const kIncludeAfterBody = "include-after-body";
 export const kIncludeInHeader = "include-in-header";
+export const kResourcePath = "resource-path";
 export const kCiteproc = "citeproc";
 export const kCiteMethod = "cite-method";
 export const kFilters = "filters";
@@ -424,6 +432,7 @@ export const kPdfEngineOpts = "pdf-engine-opts";
 export const kPdfEngineOpt = "pdf-engine-opt";
 export const kListings = "listings";
 export const kNumberSections = "number-sections";
+export const kSectionNumbering = "section-numbering";
 export const kNumberOffset = "number-offset";
 export const kShiftHeadingLevelBy = "shift-heading-level-by";
 export const kNumberDepth = "number-depth";
@@ -558,7 +567,7 @@ export const kPandocDefaultsKeys = [
   kIncludeBeforeBody,
   kIncludeAfterBody,
   kIncludeInHeader,
-  "resource-path",
+  kResourcePath,
   kCiteproc,
   kCiteMethod,
   "citation-abbreviations",
@@ -573,7 +582,7 @@ export const kPandocDefaultsKeys = [
   kPdfEngineOpts,
   kPdfEngineOpt,
   kWrap,
-  "columns",
+  kColumns,
   "dpi",
   "extract-media",
   kToc,

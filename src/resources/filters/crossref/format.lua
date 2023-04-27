@@ -44,7 +44,7 @@ function subrefNumber(order)
 end
 
 function prependSubrefNumber(captionContent, order)
-  if not _quarto.format.isLatexOutput() then
+  if not _quarto.format.isLatexOutput() and not _quarto.format.isAsciiDocOutput() then
     if #inlinesToString(captionContent) > 0 then
       tprepend(captionContent, { pandoc.Space() })
     end

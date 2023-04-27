@@ -55,13 +55,19 @@ function parse_html_tables()
           tableHtml = preprocess_table_text(tableHtml)
           local tableDoc = pandoc.read(tableHtml, "html")
           local skip = false
+          local found = false
           _quarto.ast.walk(tableDoc, {
             Table = function(table)
+              found = true
               if table.attributes[kDisableProcessing] ~= nil then
                 skip = true
               end
             end
           })
+          if not found then
+            warn("Unable to parse table from raw html block: skipping.")
+            return nil
+          end
           if skip then
             return nil
           end

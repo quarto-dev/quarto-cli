@@ -3,16 +3,33 @@ title: Test Asciidoc Article
 author:
   - Norah Jones
   - Kirk Cousins
+description: |
+  This is a description of the document. It should not have a 2 trailing newlines!
 format:
   asciidoc: default
 _quarto:
   tests: 
     asciidoc:
       ensureFileRegexMatches:
-        - ["= Test Asciidoc Article"] # looks like asciidoc
-        - [":doctype: book"] # not a book
+        - 
+          - "= Test Asciidoc Article" # looks like asciidoc
+          - ".A Callout Title With Spaces" # no newlines in callout titles
+        - 
+          - ":doctype: book" # not a book
+          - "newlines!\n\n" # no double new lines
+keywords: [cool, beans]
 ---
 
 ## Section 1
 
 Now is the time for all good men to come to the aide of their country. The quick brown fox jumps over the lazy dog.
+
+## Callout Section
+
+:::{.callout-note}
+
+## A Callout Title With Spaces
+
+This is a callout. The title shouldn't be hosed.
+
+:::

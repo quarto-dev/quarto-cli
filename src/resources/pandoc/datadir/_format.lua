@@ -104,6 +104,10 @@ local function isBibliographyOutput()
   return tcontains(formats, FORMAT)
 end
 
+local function is_docusaurus_output()
+  return string.match(param("custom-writer", ""), "docusaurus_writer.lua$")
+end
+
 -- check for markdown output
 local function isMarkdownOutput()
   local formats = {
@@ -117,12 +121,12 @@ local function isMarkdownOutput()
     "commonmark_x",
     "markua"
   }
-  return tcontains(formats, FORMAT)
+  return tcontains(formats, FORMAT) or is_docusaurus_output()
 end
 
 -- check for markdown with raw_html enabled
 local function isMarkdownWithHtmlOutput()
-  return isMarkdownOutput() and tcontains(PANDOC_WRITER_OPTIONS.extensions, "raw_html")
+  return (isMarkdownOutput() and tcontains(PANDOC_WRITER_OPTIONS.extensions, "raw_html")) or is_docusaurus_output()
 end
 
 -- check for ipynb output
@@ -144,7 +148,7 @@ local function isHtmlOutput()
 end
 
 local function parse_format(raw_format)
-  local pattern = "^(%a+)([-+_%a]*)"
+  local pattern = "^([%a_]+)([-+_%a]*)"
   local i, j, format, extensions = raw_format:find(pattern)
   if format == nil then
     error("Warning: Invalid format " .. raw_format .. ". Assuming 'markdown'.")
@@ -228,6 +232,10 @@ local function isJatsOutput()
   return tcontains(formats, FORMAT)
 end
 
+local function isTypstOutput()
+  return FORMAT == "typst"
+end
+
 
 return {
   isAsciiDocOutput = isAsciiDocOutput,
@@ -254,6 +262,6 @@ return {
   isJsonOutput = isJsonOutput,
   isAstOutput = isAstOutput,
   isJatsOutput = isJatsOutput,
-
+  isTypstOutput = isTypstOutput,
   parse_format = parse_format
 }

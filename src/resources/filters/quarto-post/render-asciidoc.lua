@@ -23,10 +23,14 @@ function renderAsciidoc()
       -- if we see such a title, we need to move the identifier up outside the title
       local titleInlines = meta['title']
       if #titleInlines == 1 and titleInlines[1].t == 'Span' then ---@diagnostic disable-line
+        
         ---@type pandoc.Span
         local span = titleInlines[1]
         local identifier = span.identifier
-        if refType(identifier) == "sec" then
+        
+        -- if there is an identifier in the title, we should take over and emit
+        -- the proper asciidoc
+        if identifier ~= nil then
           -- this is a chapter title, tear out the id and make it ourselves
           local titleContents = pandoc.write(pandoc.Pandoc({span.content}), "asciidoc")
           meta['title'] = pandoc.RawInline("asciidoc", titleContents)
@@ -59,7 +63,7 @@ function renderAsciidoc()
       local admonitionStr;
       if el.title then
         -- A titled admonition
-        local admonitionTitle = pandoc.write(pandoc.Pandoc(el.title), "asciidoc")
+        local admonitionTitle = pandoc.write(pandoc.Pandoc({el.title}), "asciidoc")
         admonitionStr = "[" .. admonitionType .. "]\n." .. admonitionTitle .. "====\n" .. admonitionContents .. "====\n\n" 
       else
         -- A titleless admonition

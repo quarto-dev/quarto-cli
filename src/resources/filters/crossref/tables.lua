@@ -273,7 +273,7 @@ function prependTitlePrefix(caption, label, order)
      tprepend(caption.content, {
        pandoc.RawInline('latex', '\\label{' .. label .. '}')
      })
-  else
+  elseif not _quarto.format.isAsciiDocOutput() then
      tprepend(caption.content, tableTitlePrefix(order))
   end
 end

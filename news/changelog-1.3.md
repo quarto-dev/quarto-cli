@@ -14,6 +14,7 @@
 - Discard matplotlib, seaborn, and plotnine intermediate objects from output
 - With IJulia's miniconda python env, search for `python` in addition to `python3` ([#4821](https://github.com/quarto-dev/quarto-cli/issues/4821)).
 - Allow `export:` as a cell yaml option to support new nbdev syntax ([#3152](https://github.com/quarto-dev/quarto-cli/issues/3152)).
+- merge multiple `stream` outputs to work around diverging behavior between `jupyter` and `nbclient` ([#4968](https://github.com/quarto-dev/quarto-cli/issues/4968)).
 
 ## Knitr engine
 
@@ -48,6 +49,7 @@
 - Resolve Bootstrap responsive classes in tables ([#2997](https://github.com/quarto-dev/quarto-cli/issues/2997)).
 - Fine tuning of the appearance of computational and markdown table and more uniformly apply such styling.
 - Fine tuning of the appearance of header and body text.
+- Fix invalid figcaption DOM structure ([#5234](https://github.com/quarto-dev/quarto-cli/issues/5234)).
 
 ## Article Layout
 
@@ -164,6 +166,7 @@
 - Ensure that footnote are properly indexed for website and book searches ([#4601](https://github.com/quarto-dev/quarto-cli/issues/4601)).
 - Permit sidebar items to include icons ([#3830](https://github.com/quarto-dev/quarto-cli/issues/3830)).
 - Improve the appearance of the collapsed navbar toggle button
+- Properly respect the footer border when set explicitly in `_quarto.yml` ([#4982](https://github.com/quarto-dev/quarto-cli/issues/4982))
 
 ## Books
 
@@ -234,6 +237,7 @@
 
 - fix rendering of individual project files to stdout ([#4052](https://github.com/quarto-dev/quarto-cli/issues/4052)).
 - fix previewing docusaurus project on Windows ([#4312](https://github.com/quarto-dev/quarto-cli/issues/4312)).
+- fix performance issue in large projects ([#5002](https://github.com/quarto-dev/quarto-cli/issues/5002)).
 
 ## Publishing
 

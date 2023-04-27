@@ -41,4 +41,4 @@ We welcome contributions of additional languages! To contribute a localization:
 
 2.  Translate the English strings therein to the target language.
 
-3.  Submit a [pull request](https://help.github.com/articles/using-pull-requests) with your new language translation. Before doing this please ensure that you have signed the [individual](https://rstudioblog.files.wordpress.com/2017/05/rstudio_individual_contributor_agreement.pdf) or [corporate](https://rstudioblog.files.wordpress.com/2017/05/rstudio_corporate_contributor_agreement.pdf) contributor agreement as appropriate. You can send the signed copy to [jj\@rstudio.com](mailto:jj@rstudio.com).
+3.  Submit a [pull request](https://help.github.com/articles/using-pull-requests) with your new language translation. Before doing this please ensure that you have signed the [individual](https://posit.co/wp-content/uploads/2023/04/2023-03-13_TC_Indiv_contrib_agreement.pdf) or [corporate](https://posit.co/wp-content/uploads/2023/04/2023-03-13_TC_Corp_contrib_agreement.pdf) contributor agreement as appropriate. You can send the signed copy to [jj\@rstudio.com](mailto:jj@rstudio.com).

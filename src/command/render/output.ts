@@ -1,9 +1,8 @@
 /*
-* output.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * output.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import {
   basename,
@@ -19,7 +18,12 @@ import { writeFileToStdout } from "../../core/console.ts";
 import { dirAndStem, expandPath } from "../../core/path.ts";
 import { partitionYamlFrontMatter } from "../../core/yaml.ts";
 
-import { kOutputExt, kOutputFile, kVariant } from "../../config/constants.ts";
+import {
+  kOutputExt,
+  kOutputFile,
+  kPreserveYaml,
+  kVariant,
+} from "../../config/constants.ts";
 
 import {
   quartoLatexmkOutputRecipe,
@@ -35,6 +39,10 @@ import {
 } from "./output-tex.ts";
 import { formatOutputFile } from "../../core/render.ts";
 import { kYamlMetadataBlock } from "../../core/pandoc/pandoc-formats.ts";
+import {
+  typstPdfOutputRecipe,
+  useTypstPdfOutputRecipe,
+} from "./output-typst.ts";
 
 // render commands imply the --output argument for pandoc and the final
 // output file to create for the user, but we need a 'recipe' to go from
@@ -73,6 +81,8 @@ export function outputRecipe(
     return quartoLatexmkOutputRecipe(input, output, options, format);
   } else if (useContextPdfOutputRecipe(format, options.flags)) {
     return contextPdfOutputRecipe(input, output, options, format);
+  } else if (useTypstPdfOutputRecipe(format)) {
+    return typstPdfOutputRecipe(input, output, options, format);
   } else {
     // default recipe spec based on user input
     const completeActions: VoidFunction[] = [];
@@ -129,7 +139,8 @@ export function outputRecipe(
     }
 
     // complete hook for keep-yaml
-    if (recipe.keepYaml) {
+    // workaround for https://github.com/quarto-dev/quarto-cli/issues/5079
+    if (recipe.keepYaml || recipe.format.render[kPreserveYaml]) {
       completeActions.push(() => {
         // read yaml and output markdown
         const inputMd = partitionYamlFrontMatter(context.target.markdown.value);
@@ -191,5 +202,16 @@ export function outputRecipe(
 
     // return
     return recipe;
+  }
+}
+
+export function normalizeOutputPath(input: string, output: string) {
+  if (isAbsolute(output)) {
+    return output;
+  } else {
+    return relative(
+      dirname(input),
+      output,
+    );
   }
 }

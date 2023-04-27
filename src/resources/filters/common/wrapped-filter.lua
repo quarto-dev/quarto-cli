@@ -57,6 +57,35 @@ local function shortcodeMetatable(scriptFile)
   }
 end
 
+local function safeguard_for_meta(customnode)
+  if customnode == nil then
+    return nil
+  end
+  local result = {}
+  for k,v in pairs(customnode) do
+    local t = type(v)
+    local pt = pandoc.utils.type(v)
+    if pt == "Attr" then
+      local converted_attrs = {}
+      for i, attr in ipairs(v.attributes) do
+        table.insert(converted_attrs, {
+          attr[1], attr[2]
+        })
+      end
+      result[k] = {
+        identifier = v.identifier,
+        classes = v.classes,
+        attributes = converted_attrs
+      }
+    elseif t == "userdata" then
+      result[k] = v -- assume other pandoc objects are ok
+    elseif t == "table" then
+      result[k] = safeguard_for_meta(v)
+    end
+  end
+  return result
+end
+
 function makeWrappedJsonFilter(scriptFile, filterHandler)
   local handlers = {
     Pandoc = {
@@ -71,6 +100,7 @@ function makeWrappedJsonFilter(scriptFile, filterHandler)
             local custom_node, t, kind = _quarto.ast.resolve_custom_data(raw)
             if custom_node ~= nil then
               has_custom_nodes = true
+              custom_node = safeguard_for_meta(custom_node)
               table.insert(custom_node_map, { id = raw.text, tbl = custom_node, t = t, kind = kind })
             end
           end,

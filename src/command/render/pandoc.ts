@@ -43,6 +43,7 @@ import {
   isIpynbOutput,
   isLatexOutput,
   isMarkdownOutput,
+  isTypstOutput,
 } from "../../config/format.ts";
 import {
   isIncludeMetadata,
@@ -84,6 +85,7 @@ import {
   kAuthors,
   kClassOption,
   kColorLinks,
+  kColumns,
   kDate,
   kDateFormat,
   kDateModified,
@@ -467,6 +469,12 @@ export async function runPandoc(
       cleanMetadataForPrinting(printMetadata);
     }
 
+    // clean 'columns' from pandoc defaults to typst
+    if (isTypstOutput(options.format.pandoc)) {
+      delete allDefaults[kColumns];
+      delete printAllDefaults[kColumns];
+    }
+
     // The user template (if any)
     const userTemplate = getPandocArg(args, "--template") ||
       allDefaults[kTemplate];
@@ -735,6 +743,7 @@ export async function runPandoc(
   // crossref filter so we only do this if the user hasn't disabled the crossref filter
   if (
     !isLatexOutput(options.format.pandoc) &&
+    !isTypstOutput(options.format.pandoc) &&
     !isMarkdownOutput(options.format) && crossrefFilterActive(options)
   ) {
     delete allDefaults[kNumberSections];

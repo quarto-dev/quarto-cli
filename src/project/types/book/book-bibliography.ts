@@ -1,9 +1,8 @@
 /*
-* book-bibliography.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * book-bibliography.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { dirname, isAbsolute, join, relative } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
@@ -99,7 +98,7 @@ export async function bookBibliography(
     };
   } else {
     throw new Error(
-      "Unable to determine proper path to use when computing bibliography path.",
+      `Unable to determine proper path to use when computing bibliography path for ${fileRelativePath}.`,
     );
   }
 }

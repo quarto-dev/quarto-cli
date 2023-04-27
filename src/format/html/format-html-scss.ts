@@ -178,7 +178,7 @@ function layerTheme(
   const loadPaths: string[] = [];
   const layers = themes.flatMap((theme) => {
     const isAbs = isAbsolute(theme);
-    const isScssFile = extname(theme) === ".scss";
+    const isScssFile = [".scss", ".css"].includes(extname(theme));
 
     if (isAbs && isScssFile) {
       // Absolute path to a SCSS file
@@ -632,7 +632,10 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
     // Forward footer border
     const footerBorder = footer[kBorder];
     // Enable the border unless it is explicitly disabled
-    if (footerBorder !== false) {
+    const showBorder = footerBorder !== undefined
+      ? footerBorder
+      : sidebar?.style === "docked";
+    if (showBorder) {
       variables.push(
         outputVariable(
           sassVariable(

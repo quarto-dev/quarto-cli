@@ -46,13 +46,14 @@ import {
   pandocMarkdownFormat,
 } from "./markdown/format-markdown.ts";
 import { jatsFormat } from "./jats/format-jats.ts";
+import { typstFormat } from "./typst/format-typst.ts";
 import { mergePandocVariant } from "../config/metadata.ts";
 import { writerFormatHandlers } from "./format-handlers.ts";
 
 export function defaultWriterFormat(to: string): Format {
   // to can sometimes have a variant, don't include that in the lookup here
   const formatDescriptor = parseFormatString(to);
-  const lookupTo = formatDescriptor.baseFormat;
+  let lookupTo = formatDescriptor.baseFormat;
   let pandocTo = lookupTo;
 
   // get defaults for writer
@@ -138,6 +139,7 @@ export function defaultWriterFormat(to: string): Format {
 
       case "md":
         writerFormat = markdownWithCommonmarkExtensionsFormat();
+        lookupTo = "commonmark";
         pandocTo = "markdown_strict";
         break;
 
@@ -221,6 +223,10 @@ export function defaultWriterFormat(to: string): Format {
         break;
       case "csljson":
         writerFormat = bibliographyFormat("CSL-JSON", "csl");
+        break;
+
+      case "typst":
+        writerFormat = typstFormat();
         break;
 
       case "texttile":

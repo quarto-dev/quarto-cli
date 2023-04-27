@@ -1,0 +1,12 @@
+---
+title: Hello
+format: pdf
+---
+
+::: {.callout-note}
+If the `www-frame-origin` option is set to `same` or `any` instead of a URI, you must add the following setting with the actual URI:
+
+```{.ini filename="/etc/rstudio/rsession.conf"}
+tutorial-api-client-origin=http://localhost:8080
+```
+:::

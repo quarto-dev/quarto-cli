@@ -106,6 +106,7 @@ import {
 import { mergeConfigs } from "../../../../core/config.ts";
 import { globToRegExp } from "../../../../core/lib/glob.ts";
 import { cslNames } from "../../../../core/csl.ts";
+import { isHttpUrl } from "../../../../core/url.ts";
 
 // Defaults (a card listing that contains everything
 // in the source document's directory)
@@ -361,13 +362,26 @@ export function completeListingItems(
           });
 
           if (contents.previewImage) {
-            const imgAbsPath = isAbsolute(contents.previewImage.src)
-              ? contents.previewImage.src
-              : join(dirname(docAbsPath), contents.previewImage.src);
+            const resolveUrl = (path: string) => {
+              if (isHttpUrl(path)) {
+                return path;
+              } else {
+                const imgAbsPath = isAbsolute(path)
+                  ? path
+                  : join(dirname(docAbsPath), path);
+                const imgRelPath = relative(
+                  dirname(outputFile.file),
+                  imgAbsPath,
+                );
+                return imgRelPath;
+              }
+            };
 
-            const imgRelPath = relative(dirname(outputFile.file), imgAbsPath);
             const imgHtml = imageSrc(
-              { ...contents.previewImage, src: imgRelPath },
+              {
+                ...contents.previewImage,
+                src: resolveUrl(contents.previewImage.src),
+              },
               progressive,
               imgHeight,
             );
@@ -405,7 +419,7 @@ export function completeListingItems(
 }
 
 function emptyDiv(height?: string) {
-  return `<div class="listing-item-img-placeholder" ${
+  return `<div class="listing-item-img-placeholder card-img-top" ${
     height ? `style="height: ${height};"` : ""
   }>&nbsp;</div>`;
 }
@@ -467,7 +481,10 @@ function hydrateListing(
     if (sources.size === 1 && sources.has(ListingItemSource.rawfile)) {
       // If all the items are raw files, we should just show file info
       return [kFieldFileName, kFieldFileModified];
-    } else if (!sources.has(ListingItemSource.document)) {
+    } else if (
+      !sources.has(ListingItemSource.document) &&
+      !sources.has(ListingItemSource.metadataDocument)
+    ) {
       // If the items have come from metadata, we should just show
       // all the columns in the table. Otherwise, we should use the
       // document default columns
@@ -547,7 +564,9 @@ function hydrateListing(
     ]
     : undefined;
   if (
-    sort && !listingHydrated.sort && sources.has(ListingItemSource.document)
+    sort && !listingHydrated.sort &&
+    (sources.has(ListingItemSource.document) ||
+      sources.has(ListingItemSource.metadataDocument))
   ) {
     listingHydrated.sort = sort;
   }
@@ -696,18 +715,19 @@ async function readContents(
           const yaml = readYaml(file);
           if (Array.isArray(yaml)) {
             const items = yaml as Array<unknown>;
-            for (const item of items) {
-              if (typeof (item) === "object") {
-                const listingItem = await listItemFromMeta(
-                  item as Metadata,
+            for (const yamlItem of items) {
+              if (typeof (yamlItem) === "object") {
+                const { item, source } = await listItemFromMeta(
+                  yamlItem as Metadata,
                   project,
                   listing,
+                  dirname(file),
                 );
-                validateItem(listing, listingItem, (field: string) => {
+                validateItem(listing, item, (field: string) => {
                   return `An item from the file '${file}' is missing the required field '${field}'.`;
                 });
-                listingItemSources.add(ListingItemSource.metadata);
-                listingItems.push(listingItem);
+                listingItemSources.add(source);
+                listingItems.push(item);
               } else {
                 throw new Error(
                   `Unexpected listing contents in file ${file}. The array may only contain listing items, not paths or other types of data.`,
@@ -715,16 +735,17 @@ async function readContents(
               }
             }
           } else if (typeof (yaml) === "object") {
-            const listingItem = await listItemFromMeta(
+            const { item, source } = await listItemFromMeta(
               yaml as Metadata,
               project,
               listing,
+              dirname(file),
             );
-            validateItem(listing, listingItem, (field: string) => {
+            validateItem(listing, item, (field: string) => {
               return `The item defined in file '${file}' is missing the required field '${field}'.`;
             });
-            listingItemSources.add(ListingItemSource.metadata);
-            listingItems.push(listingItem);
+            listingItemSources.add(source);
+            listingItems.push(item);
           } else {
             throw new Error(
               `Unexpected listing contents in file ${file}. The file should contain only one more listing items.`,
@@ -756,12 +777,17 @@ async function readContents(
   // Process any metadata that appears in contents
   if (contentMetadatas.length > 0) {
     for (const content of contentMetadatas) {
-      const listingItem = await listItemFromMeta(content, project, listing);
-      validateItem(listing, listingItem, (field: string) => {
+      const { item, source: itemSource } = await listItemFromMeta(
+        content,
+        project,
+        listing,
+        dirname(source),
+      );
+      validateItem(listing, item, (field: string) => {
         return `An item in the listing '${listing.id}' is missing the required field '${field}'.`;
       });
-      listingItemSources.add(ListingItemSource.metadata);
-      listingItems.push(listingItem);
+      listingItemSources.add(itemSource);
+      listingItems.push(item);
     }
   }
 
@@ -873,8 +899,10 @@ async function listItemFromMeta(
   meta: Metadata,
   project: ProjectContext,
   listing: ListingDehydrated,
+  baseDir: string,
 ) {
   let listingItem = cloneDeep(meta);
+  let source = ListingItemSource.metadata;
 
   // If there is a path, try to complete the filename and
   // modified values
@@ -886,7 +914,11 @@ async function listItemFromMeta(
 
     const markdownExtensions = [".qmd", ".md", ".rmd"];
     if (markdownExtensions.indexOf(extension) !== -1) {
-      const fileListing = await listItemFromFile(meta.path, project, listing);
+      const inputPath = isAbsolute(meta.path)
+        ? meta.path
+        : join(baseDir, meta.path);
+
+      const fileListing = await listItemFromFile(inputPath, project, listing);
       if (fileListing === undefined) {
         warning(
           `Draft document ${meta.path} found in a custom listing: item will not have computed metadata.`,
@@ -896,6 +928,7 @@ async function listItemFromMeta(
           ...(fileListing.item || {}),
           ...listingItem,
         };
+        source = ListingItemSource.metadataDocument;
       }
     }
   }
@@ -916,7 +949,10 @@ async function listItemFromMeta(
     }
   }
 
-  return listingItem;
+  return {
+    item: listingItem,
+    source,
+  };
 }
 
 async function listItemFromFile(
@@ -924,6 +960,9 @@ async function listItemFromFile(
   project: ProjectContext,
   listing: ListingDehydrated,
 ) {
+  if (!isAbsolute(input)) {
+    throw new Error(`Internal Error: input path ${input} must be absolute.`);
+  }
   const projectRelativePath = relative(project.dir, input);
   const target = await inputTargetIndex(
     project,
@@ -951,8 +990,8 @@ async function listItemFromFile(
     return undefined;
   } else {
     if (
-      !docRawMetadata && extname(input) === ".qmd" ||
-      extname(input) === ".ipynb"
+      !docRawMetadata && (extname(input) === ".qmd" ||
+        extname(input) === ".ipynb")
     ) {
       warning(
         `File ${input} in the listing '${listing.id}' contains no metadata.`,
@@ -1039,11 +1078,13 @@ async function listItemFromFile(
 }
 
 function imageSrc(image: PreviewImage, progressive: boolean, height?: string) {
-  return `<img ${progressive ? "data-src" : "src"}="${image.src}" ${
-    image.alt ? `alt="${image.alt}" ` : ""
-  }${height ? `style="height: ${height};" ` : ""}${
+  return `<p class="card-img-top"><img ${
+    progressive ? "data-src" : "src"
+  }="${image.src}" ${image.alt ? `alt="${image.alt}" ` : ""}${
+    height ? `style="height: ${height};" ` : ""
+  }${
     image.title ? `title="${image.title}"` : ""
-  }/>`;
+  } class="thumbnail-image card-img"/></p>`;
 }
 
 // Processes the 'listing' metadata into an

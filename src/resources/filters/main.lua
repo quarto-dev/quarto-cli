@@ -69,6 +69,7 @@ import("./quarto-post/ipynb.lua")
 import("./quarto-post/latexdiv.lua")
 import("./quarto-post/meta.lua")
 import("./quarto-post/ojs.lua")
+import("./quarto-post/jats.lua")
 import("./quarto-post/responsive.lua")
 import("./quarto-post/reveal.lua")
 import("./quarto-post/tikz.lua")
@@ -148,7 +149,6 @@ import("./quarto-pre/table-captions.lua")
 import("./quarto-pre/table-colwidth.lua")
 import("./quarto-pre/table-rawhtml.lua")
 import("./quarto-pre/theorems.lua")
-import("./quarto-pre/discover_preview_images.lua")
 
 import("./customnodes/decoratedcodeblock.lua")
 
@@ -179,6 +179,13 @@ local quartoNormalize = {
 local quartoPre = {
   -- quarto-pre
   { name = "pre-quartoBeforeExtendedUserFilters", filters = make_wrapped_user_filters("beforeQuartoFilters") },
+
+  -- https://github.com/quarto-dev/quarto-cli/issues/5031
+  -- recompute options object in case user filters have changed meta
+  -- this will need to change in the future; users will have to indicate
+  -- when they mutate options
+  { name = "pre-quartoAfterUserFilters", filter = initOptions() },
+
   { name = "normalize-parse-pandoc3-figures", filter = parse_pandoc3_figures() },
   { name = "pre-bibliographyFormats", filter = bibliographyFormats() }, 
   { name = "pre-shortCodesBlocks", filter = shortCodesBlocks() } ,
@@ -219,8 +226,7 @@ local quartoPre = {
   }) },
   { name = "pre-quartoPreMetaInject", filter = quartoPreMetaInject() },
   { name = "pre-writeResults", filter = writeResults() },
-  { name = "pre-projectPaths", filter = projectPaths() },
-  { name = "pre-discover_preview_images", filter = discover_preview_images() }
+  { name = "pre-projectPaths", filter = projectPaths() }
 }
 
 local quartoPost = {
@@ -243,6 +249,7 @@ local quartoPost = {
   }) },
   { name = "post-ojs", filter = ojs() },
   { name = "post-postMetaInject", filter = quartoPostMetaInject() },
+  { name = "post-render-jats", filter = jats() },
   { name = "post-render-asciidoc", filter = renderAsciidoc() },
   { name = "post-renderExtendedNodes", filter = renderExtendedNodes() },
   { name = "post-render-pandoc-3-figures", filter = render_pandoc3_figures() },

@@ -8,14 +8,13 @@ book:
   chapters:
     - index.qmd
     - intro.qmd
+    - chapter2/chapter2.qmd
     - summary.qmd
     - references.qmd
 
 bibliography: references.bib
 
 format:
-  html:
-    theme: cosmo
-  pdf:
-    documentclass: scrreprt
+  html: default
+  pdf: default
   asciidoc: default

@@ -76,31 +76,6 @@ export async function criClient(appPath?: string, port?: number) {
   }
   const app: string = appPath || await getBrowserExecutablePath();
 
-  const version = Deno.run({
-    cmd: [app, "--version"],
-    stdout: "piped",
-    stderr: "piped",
-  });
-  const [status, stdout, _stderr] = await Promise.all([
-    version.status(),
-    version.output(),
-    version.stderrOutput(),
-  ]);
-  if (!status.success) {
-    throw new Error(`Failed to get chrome version`);
-  }
-  const versionString = new TextDecoder().decode(stdout);
-  let versionNumber = 0;
-
-  const chromeMatch = versionString.match(/Google Chrome (\d+)/);
-  if (chromeMatch) {
-    versionNumber = Number(chromeMatch[1]);
-  }
-  const chromiumMatch = versionString.match(/Chromium (\d+)/);
-  if (chromiumMatch) {
-    versionNumber = Number(chromiumMatch[1]);
-  }
-
   const cmd = [
     app,
     "--headless",
@@ -138,7 +113,7 @@ export async function criClient(appPath?: string, port?: number) {
       const maxTries = 5;
       for (let i = 0; i < maxTries; ++i) {
         try {
-          client = await cdp({ port, version: versionNumber });
+          client = await cdp({ port });
           break;
         } catch (e) {
           if (i === maxTries - 1) {

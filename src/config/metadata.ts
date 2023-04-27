@@ -27,6 +27,7 @@ import {
   kIpynbFilters,
   kKeepMd,
   kKeepTex,
+  kKeepTyp,
   kLanguageDefaults,
   kLanguageDefaultsKeys,
   kMetadataFile,
@@ -126,6 +127,7 @@ export function formatFromMetadata(
   if (debug) {
     mergedFormat.execute[kKeepMd] = true;
     mergedFormat.render[kKeepTex] = true;
+    mergedFormat.render[kKeepTyp] = true;
   }
 
   return mergedFormat;

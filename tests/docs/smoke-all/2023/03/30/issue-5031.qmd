@@ -1,0 +1,13 @@
+---
+title: "Untitled"
+format: gfm
+filters: ["custom.lua"]
+_quarto:
+  tests:
+    gfm:
+      ensureFileRegexMatches:
+        - []
+        - ["\\?meta:new"]
+---
+
+What is defined in the lua filter: "{{< meta new >}}"

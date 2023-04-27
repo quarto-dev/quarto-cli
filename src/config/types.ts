@@ -31,6 +31,7 @@ import {
   kCodeToolsShowAllCode,
   kCodeToolsSourceCode,
   kCodeToolsViewSource,
+  kColumns,
   kCopyButtonTooltip,
   kCopyButtonTooltipSuccess,
   kCrossrefApxPrefix,
@@ -85,6 +86,7 @@ import {
   kIncludeAfterBody,
   kIncludeBeforeBody,
   kIncludeInHeader,
+  kInlineIncludes,
   kIpynbFilters,
   kKatex,
   kKeepHidden,
@@ -92,6 +94,7 @@ import {
   kKeepMd,
   kKeepSource,
   kKeepTex,
+  kKeepTyp,
   kLatexAutoInstall,
   kLatexAutoMk,
   kLatexClean,
@@ -144,6 +147,7 @@ import {
   kPdfEngineOpt,
   kPdfEngineOpts,
   kPreferHtml,
+  kPreserveYaml,
   kQuartoFilters,
   kReferenceLocation,
   kRelatedFormatsTitle,
@@ -151,6 +155,7 @@ import {
   kRepoActionLinksEdit,
   kRepoActionLinksIssue,
   kRepoActionLinksSource,
+  kResourcePath,
   kSearch,
   kSearchClearButtonTitle,
   kSearchCopyLinkTitle,
@@ -201,6 +206,7 @@ import {
   kVariant,
   kWarning,
   kWebtex,
+  kWrap,
 } from "./constants.ts";
 
 import { HtmlPostProcessor, RenderServices } from "../command/render/types.ts";
@@ -375,6 +381,7 @@ export interface Format {
 
 export interface FormatRender {
   [kKeepTex]?: boolean;
+  [kKeepTyp]?: boolean;
   [kKeepSource]?: boolean;
   [kKeepHidden]?: boolean;
   [kPreferHtml]?: boolean;
@@ -397,6 +404,8 @@ export interface FormatRender {
   [kTblColwidths]?: "auto" | boolean | number[];
   [kShortcodes]?: string[];
   [kMergeIncludes]?: boolean;
+  [kInlineIncludes]?: boolean;
+  [kPreserveYaml]?: boolean;
   [kLatexAutoMk]?: boolean;
   [kLatexAutoInstall]?: boolean;
   [kLatexMinRuns]?: number;
@@ -463,6 +472,7 @@ export interface FormatPandoc {
   [kIncludeBeforeBody]?: string[];
   [kIncludeAfterBody]?: string[];
   [kIncludeInHeader]?: string[];
+  [kResourcePath]?: string[];
   [kReferenceLocation]?: string;
   [kCiteproc]?: boolean;
   [kCiteMethod]?: string;
@@ -487,6 +497,8 @@ export interface FormatPandoc {
   [kTitlePrefix]?: string;
   [kSlideLevel]?: number;
   [kSyntaxDefinitions]?: string[];
+  [kColumns]?: number;
+  [kWrap]?: "none" | "auto" | "preserve" | number;
 }
 
 export interface PandocFlags {

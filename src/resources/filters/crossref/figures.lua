@@ -44,7 +44,7 @@ function processFigure(el, captionContent)
       tprepend(captionContent, {
         pandoc.RawInline('latex', '\\label{' .. label .. '}')
       })
-    elseif _quarto.format.isAsciiDocOutput() then
+    elseif _quarto.format.isAsciiDocOutput() or _quarto.format.isTypstOutput() then
       el.attr.identifier = label
     else
       tprepend(captionContent, figureTitlePrefix(order))

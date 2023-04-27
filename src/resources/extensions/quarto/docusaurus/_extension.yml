@@ -17,7 +17,13 @@ contributes:
     format: docusaurus-md
   formats:
     md:
-      variant: +yaml_metadata_block+pipe_tables+tex_math_dollars+header_attributes-all_symbols_escapable
+      # Although we use a custom writer, we still need the variants here the lua filters to render correctly.
+      # Ideally, we would forward the variants to the custom writer.
+      variant: gfm+pipe_tables+tex_math_dollars+header_attributes+raw_html+all_symbols_escapable+backtick_code_blocks+fenced_code_blocks+space_in_atx_header+intraword_underscores+lists_without_preceding_blankline+shortcut_reference_links
+      writer: docusaurus_writer.lua
+      output-ext: md
+      inline-includes: true
+      preserve-yaml: true
       wrap: none
       fig-format: retina
       fig-width: 8

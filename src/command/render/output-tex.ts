@@ -5,7 +5,7 @@
 *
 */
 
-import { dirname, isAbsolute, join, normalize, relative } from "path/mod.ts";
+import { dirname, join, normalize, relative } from "path/mod.ts";
 import { ensureDirSync } from "fs/mod.ts";
 
 import { writeFileToStdout } from "../../core/console.ts";
@@ -21,6 +21,7 @@ import { OutputRecipe } from "./types.ts";
 import { pdfEngine } from "../../config/pdf.ts";
 import { execProcess } from "../../core/process.ts";
 import { parseFormatString } from "../../core/pandoc/pandoc-formats.ts";
+import { normalizeOutputPath } from "./output.ts";
 
 export interface PdfGenerator {
   generate: (
@@ -109,15 +110,17 @@ export function texToPdfOutputRecipe(
 
       // final output needs to either absolute or input dir relative
       // (however it may be working dir relative when it is passed in)
-      return texNormalizePath(input, finalOutput);
+      return normalizeOutputPath(input, finalOutput);
     } else {
-      return texNormalizePath(input, pdfOutput);
+      return normalizeOutputPath(input, pdfOutput);
     }
   };
 
   const pdfOutput = finalOutput
-    ? finalOutput === kStdOut ? undefined : texNormalizePath(input, finalOutput)
-    : texNormalizePath(input, pdfGenerator.computePath(input, format));
+    ? finalOutput === kStdOut
+      ? undefined
+      : normalizeOutputPath(input, finalOutput)
+    : normalizeOutputPath(input, pdfGenerator.computePath(input, format));
 
   // tweak writer if it's pdf
   const to = format.pandoc.to === "pdf" ? pdfIntermediateTo : format.pandoc.to;
@@ -209,14 +212,3 @@ export function contextPdfOutputRecipe(
     },
   );
 }
-
-const texNormalizePath = (input: string, output: string) => {
-  if (isAbsolute(output)) {
-    return output;
-  } else {
-    return relative(
-      dirname(input),
-      output,
-    );
-  }
-};
