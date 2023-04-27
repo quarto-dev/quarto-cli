@@ -1,13 +1,18 @@
-<div id="quarto-content" class="page-columns page-rows-contents page-layout-<%- pageLayout %><%- (tocLocation.includes("left")) ? " toc-left" : ""%>">
+<%
+const navbarTocLeft = tocLocation === "left" || tocLocation === "left-body";
+const navbarTocRight = tocLocation === "right" || tocLocation === "right-body";
+%>
 
-<% if (tocLocation.includes("left")) { %>
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-<%- pageLayout %><%- (navbarTocLeft) ? " toc-left" : ""%>">
+
+<% if (navbarTocLeft) { %>
 <div id="quarto-sidebar-toc-left" class="sidebar toc-left">
   <div id="quarto-toc-target"></div>
 </div>
 <% } %>
 
 <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-  <% if (tocLocation.includes("right")) { %>
+  <% if (navbarTocRight) { %>
   <div id="quarto-toc-target"></div>
   <% } %>
 </div>

@@ -1,5 +1,7 @@
 <%
 const navbarToolsClass = (nav.navbar && nav.navbar.right) ? 'quarto-navbar-tools' : 'quarto-navbar-tools ms-auto';
+const navbarTocLeft = nav['toc-location'] === "left" || nav['toc-location'] === "left-body";
+const navbarTocRight = nav['toc-location'] === "right" || nav['toc-location'] === "right-body";
 %>
 
 
@@ -85,14 +87,14 @@ if (nav.layout === "article" || nav.layout === "full") {
 <div id="quarto-content" class="quarto-container<%- gridClasses %> page-layout-<%- nav.layout %><%- nav.navbar ? ' page-navbar': ''%>">
 
 <!-- sidebar -->
-<% if (nav.sidebar || nav['toc-location'].includes("left")) { %>
-  <% partial('sidebar.ejs', { sidebar: nav.sidebar, sidebarStyle: nav.sidebarStyle, navbar: !!nav.navbar, toc: nav['toc-location'] === "left", language: nav.language }) %>
+<% if (nav.sidebar || navbarTocLeft) { %>
+  <% partial('sidebar.ejs', { sidebar: nav.sidebar, sidebarStyle: nav.sidebarStyle, navbar: !!nav.navbar, toc: navbarTocLeft, language: nav.language }) %>
 <% } %>
 
 <!-- margin-sidebar -->
 <% if (nav.layout === "article" || nav.layout === "full") { %>
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-      <% if (nav.hasToc && nav['toc-location'].includes("right")) { %>
+      <% if (nav.hasToc && navbarTocRight) { %>
         <div id="quarto-toc-target"></div>
       <% } %>
     </div>
