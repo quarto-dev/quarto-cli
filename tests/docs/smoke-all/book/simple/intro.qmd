@@ -1,0 +1,14 @@
+---
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - []
+        - [".chapter-number",]
+---        
+
+# Introduction
+
+This is a book created from markdown and executable code.
+
+See @knuth84 for additional discussion of literate programming.

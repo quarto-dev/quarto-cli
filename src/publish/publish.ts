@@ -74,6 +74,7 @@ export async function publishSite(
         });
 
         metadataByInput = result.files.reduce(
+          // deno-lint-ignore no-explicit-any
           (accumulatedResult: any, currentInput) => {
             const key: string = currentInput.input as string;
             accumulatedResult[key] = {

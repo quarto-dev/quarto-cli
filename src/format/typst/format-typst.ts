@@ -5,12 +5,11 @@
 *
 */
 
-// TODO: incremental compile for preview
-
 import { join } from "path/mod.ts";
 
 import { RenderServices } from "../../command/render/types.ts";
 import {
+  kColumns,
   kDefaultImageExtension,
   kFigFormat,
   kFigHeight,
@@ -18,9 +17,15 @@ import {
   kNumberSections,
   kSectionNumbering,
   kShiftHeadingLevelBy,
-  kTemplate,
+  kWrap,
 } from "../../config/constants.ts";
-import { Format, FormatExtras, PandocFlags } from "../../config/types.ts";
+import {
+  Format,
+  FormatExtras,
+  FormatPandoc,
+  Metadata,
+  PandocFlags,
+} from "../../config/types.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { createFormat } from "../formats-shared.ts";
 
@@ -34,6 +39,7 @@ export function typstFormat(): Format {
     pandoc: {
       standalone: true,
       [kDefaultImageExtension]: "svg",
+      [kWrap]: "none",
     },
     formatExtras: (
       _input: string,
@@ -42,45 +48,57 @@ export function typstFormat(): Format {
       format: Format,
       _libDir: string,
       _services: RenderServices,
-    ) => {
-      const extras: FormatExtras = {};
+    ): FormatExtras => {
+      const pandoc: FormatPandoc = {};
+      const metadata: Metadata = {};
 
+      // provide default section numbering if required
       if (
         (flags?.[kNumberSections] === true ||
           format.pandoc[kNumberSections] === true)
       ) {
         // number-sections imples section-numbering
         if (!format.metadata?.[kSectionNumbering]) {
-          extras.metadata = {
-            [kSectionNumbering]: "1.1.a",
-          };
-        }
-
-        // pdfs with numbered sections and no other level oriented options get
-        // their heading level shifted by -1. also don't shift if there are h1
-        // headings (nowhere to shift to!)
-        const hasLevelOneHeadings = !!markdown.match(/\n^#\s.*$/gm);
-        if (
-          !hasLevelOneHeadings &&
-          flags?.[kShiftHeadingLevelBy] === undefined &&
-          format.pandoc?.[kShiftHeadingLevelBy] === undefined
-        ) {
-          extras.pandoc = {
-            [kShiftHeadingLevelBy]: -1,
-          };
+          metadata[kSectionNumbering] = "1.1.a";
         }
       }
 
-      // Provide a template and partials
-      const templateDir = formatResourcePath("typst", "pandoc");
-      const partials: string[] = ["definitions.typst", "template.typst"];
-      const templateContext = {
-        template: join(templateDir, "typst.template"),
-        partials: partials.map((partial) => join(templateDir, partial)),
-      };
-      extras.templateContext = templateContext;
+      // unless otherwise specified, pdfs with only level 2 or greater headings get their
+      // heading level shifted by -1.
+      const hasLevelOneHeadings = !!markdown.match(/\n^#\s.*$/gm);
+      if (
+        !hasLevelOneHeadings &&
+        flags?.[kShiftHeadingLevelBy] === undefined &&
+        format.pandoc?.[kShiftHeadingLevelBy] === undefined
+      ) {
+        pandoc[kShiftHeadingLevelBy] = -1;
+      }
 
-      return extras;
+      // force columns to wrap and move any 'columns' setting to metadata
+      const columns = format.pandoc[kColumns];
+      if (columns) {
+        pandoc[kColumns] = undefined;
+        metadata[kColumns] = columns;
+      }
+
+      // Provide a template and partials
+      const templateDir = formatResourcePath("typst", join("pandoc", "quarto"));
+      const templateContext = {
+        template: join(templateDir, "template.typ"),
+        partials: [
+          "definitions.typ",
+          "typst-template.typ",
+          "typst-show.typ",
+          "notes.typ",
+          "biblio.typ",
+        ].map((partial) => join(templateDir, partial)),
+      };
+
+      return {
+        pandoc,
+        metadata,
+        templateContext,
+      };
     },
   });
 }

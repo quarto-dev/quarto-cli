@@ -1,0 +1,90 @@
+---
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - 
+          - "#video-js-test .video-js"
+
+          - "#video-js-dropbox-test .video-js"
+
+          - "#youtube-test .quarto-video.ratio.ratio-16x9"
+          - '#youtube-test iframe[src$="https://www.youtube.com/embed/wo9vZccmqwc"]'
+
+          - "#vimeo-test .quarto-video.ratio.ratio-16x9"
+          - '#vimeo-test iframe[src$="https://player.vimeo.com/video/548291297"]'
+
+          - '#youtube-dim-test iframe[src$="https://www.youtube.com/embed/wo9vZccmqwc"]'
+          - '#youtube-dim-test iframe[width$="400"][height$="300"]'
+
+          - '#youtube-complex-test .quarto-video.ratio.ratio-21x9'
+          - '#youtube-complex-test iframe[src$="https://www.youtube.com/embed/wo9vZccmqwc?start=116"]'
+          - '#youtube-complex-test iframe[title$="What is the CERN?"]'
+
+          - "#youtube-watch-test .quarto-video.ratio.ratio-16x9"
+          - '#youtube-watch-test iframe[src$="https://www.youtube.com/embed/wo9vZccmqwc"]'
+
+          - "#youtube-embed-test .quarto-video.ratio.ratio-16x9"
+          - '#youtube-embed-test iframe[src$="https://www.youtube.com/embed/wo9vZccmqwc"]'
+
+          - '#brightcove-test iframe[src$="https://players.brightcove.net/1460825906/default_default/index.html?videoId=5988531335001"]'
+
+---
+
+::: {#video-js-test}
+
+{{< video local-video.mp4 >}}
+
+:::
+
+::: {#video-js-dropbox-test}
+
+{{< video https://www.dropbox.com/s/iq12mc6fqeag7xm/local-video.mp4?raw=1 >}}
+
+:::
+
+
+::: {#youtube-test}
+
+{{< video https://www.youtube.com/embed/wo9vZccmqwc >}}
+
+:::
+
+::: {#vimeo-test}
+
+{{< video https://vimeo.com/548291297 >}}
+
+:::
+
+::: {#youtube-dim-test}
+
+{{< video https://youtu.be/wo9vZccmqwc width="400" height="300" >}}
+
+:::
+
+::: {#youtube-complex-test}
+
+{{< video https://www.youtube.com/embed/wo9vZccmqwc
+  title="What is the CERN?"
+  start="116"
+  aspect-ratio="21x9">}}
+
+:::
+
+::: {#youtube-watch-test}
+
+{{< video https://www.youtube.com/watch?v=wo9vZccmqwc >}}
+
+:::
+
+::: {#youtube-embed-test}
+
+{{< video https://www.youtube.com/embed/wo9vZccmqwc >}}
+
+:::
+
+::: {#brightcove-test}
+
+{{< video https://players.brightcove.net/1460825906/default_default/index.html?videoId=5988531335001 >}}
+
+:::
