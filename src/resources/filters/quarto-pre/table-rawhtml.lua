@@ -5,7 +5,11 @@
 -- back together here so they can be processed by ourraw table
 -- caption handling
 function tableMergeRawHtml()
-  local process = {
+  if not _quarto.format.isHtmlOutput() then
+    return {}
+  end
+
+  return {
     Blocks = function(blocks)
       local pendingRaw = ''
       local merged = pandoc.List()
@@ -26,32 +30,6 @@ function tableMergeRawHtml()
       return merged
     end
   }
-
-  if _quarto.format.isHtmlOutput() then
-    -- performance: only run merging if needed.
-    local pattern = htmlTableTagNamePattern()
-    return {
-      Pandoc = function(doc)
-        local found = false
-        local flag = function(el)
-          if _quarto.format.isRawHtml(el) and el.text:find(pattern) then
-            found = true
-          end
-        end
-        quarto._quarto.ast.walk(doc, {
-          RawBlock = flag,
-          RawInline = flag
-        })
-        if not found then
-          return nil
-        else
-          return quarto._quarto.ast.walk(doc, process)
-        end
-      end
-    }
-  else
-    return {}
-  end
 end
 
 -- re-emits GT's CSS with lower specificity
