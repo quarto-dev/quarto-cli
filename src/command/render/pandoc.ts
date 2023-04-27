@@ -85,6 +85,7 @@ import {
   kAuthors,
   kClassOption,
   kColorLinks,
+  kColumns,
   kDate,
   kDateFormat,
   kDateModified,
@@ -466,6 +467,12 @@ export async function runPandoc(
       };
       printMetadata = mergeConfigs(extras.metadata, printMetadata);
       cleanMetadataForPrinting(printMetadata);
+    }
+
+    // clean 'columns' from pandoc defaults to typst
+    if (isTypstOutput(options.format.pandoc)) {
+      delete allDefaults[kColumns];
+      delete printAllDefaults[kColumns];
     }
 
     // The user template (if any)

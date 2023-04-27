@@ -31,7 +31,7 @@ else
   echo "ERROR: Cannot determine the Quarto source path. This script must be run from the bin or common folder."
   exit 1
 fi
-QUARTO_SRC_PATH=$QUARTO_ROOT/src
+QUARTO_SRC_PATH="$QUARTO_ROOT/src"
 DEV_PATH=$QUARTO_SRC_PATH/quarto.ts
 if [ -f "$DEV_PATH" ]; then
   if [ "$1" == "--version" ] || [ "$1" == "-v" ]; then

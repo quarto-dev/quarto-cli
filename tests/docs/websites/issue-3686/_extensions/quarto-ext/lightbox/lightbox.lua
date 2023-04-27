@@ -48,7 +48,7 @@ return {
       local lbMeta = meta.lightbox
       if lbMeta ~= nil and type(lbMeta) == 'table' then
         if lbMeta[1] ~= nil then
-          if lbMeta[1].text == "auto" then
+          if lbMeta[1]['text'] == "auto" then
             auto = true
           end
         elseif lbMeta.match ~= nil and pandoc.utils.stringify(lbMeta.match) == 'auto' then
@@ -76,28 +76,30 @@ return {
         div = div:walk({
           Image = function(imgEl)
             imgCount = imgCount + 1
-            if meta == false or meta[kNoLightboxClass] == true then
+            if (type(meta) == "table" and meta[kNoLightboxClass] == true) or meta == false then
               imgEl.classes:insert(kNoLightboxClass)
             else
-              if not auto and meta and not meta[kNoLightboxClass] then
+              if not auto and ((type(meta) == "table" and not meta[kNoLightboxClass]) or meta == true) then
                 imgEl.classes:insert(kLightboxClass)
               end
-              if meta.group then
-                imgEl.attr.attributes.group = meta.group or imgEl.attr.attributes.group
-              end
-              for _, v in next, kForwardedAttr do
-                if type(meta[v]) == "table" and #meta[v] > 1 then 
-                  -- if list attributes it should be one per plot
-                  if imgCount > #meta[v] then
-                    quarto.log.warning("More plots than '" .. v .. "' passed in YAML chunk options.")
-                  else
-                    attrLb = meta[v][imgCount]
-                  end
-                else 
-                  -- Otherwise reuse the single attributes
-                  attrLb = meta[v]
+              if (type(meta) == "table") then
+                if meta.group then
+                  imgEl.attr.attributes.group = meta.group or imgEl.attr.attributes.group
                 end
-                imgEl.attr.attributes[v] = attrLb or imgEl.attr.attributes[v]
+                for _, v in next, kForwardedAttr do
+                  if type(meta[v]) == "table" and #meta[v] > 1 then 
+                    -- if list attributes it should be one per plot
+                    if imgCount > #meta[v] then
+                      quarto.log.warning("More plots than '" .. v .. "' passed in YAML chunk options.")
+                    else
+                      attrLb = meta[v][imgCount]
+                    end
+                  else 
+                    -- Otherwise reuse the single attributes
+                    attrLb = meta[v]
+                  end
+                  imgEl.attr.attributes[v] = attrLb or imgEl.attr.attributes[v]
+                end
               end
             end
             return imgEl

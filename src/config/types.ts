@@ -31,6 +31,7 @@ import {
   kCodeToolsShowAllCode,
   kCodeToolsSourceCode,
   kCodeToolsViewSource,
+  kColumns,
   kCopyButtonTooltip,
   kCopyButtonTooltipSuccess,
   kCrossrefApxPrefix,
@@ -205,6 +206,7 @@ import {
   kVariant,
   kWarning,
   kWebtex,
+  kWrap,
 } from "./constants.ts";
 
 import { HtmlPostProcessor, RenderServices } from "../command/render/types.ts";
@@ -495,6 +497,8 @@ export interface FormatPandoc {
   [kTitlePrefix]?: string;
   [kSlideLevel]?: number;
   [kSyntaxDefinitions]?: string[];
+  [kColumns]?: number;
+  [kWrap]?: "none" | "auto" | "preserve" | number;
 }
 
 export interface PandocFlags {

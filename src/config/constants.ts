@@ -414,6 +414,7 @@ export const kInputFiles = "input-files";
 export const kMarkdownHeadings = "markdown-headings";
 export const kTemplate = "template";
 export const kWrap = "wrap";
+export const kColumns = "columns";
 export const kStandalone = "standalone";
 export const kSelfContained = "self-contained";
 export const kEmbedResources = "embed-resources";
@@ -581,7 +582,7 @@ export const kPandocDefaultsKeys = [
   kPdfEngineOpts,
   kPdfEngineOpt,
   kWrap,
-  "columns",
+  kColumns,
   "dpi",
   "extract-media",
   kToc,
