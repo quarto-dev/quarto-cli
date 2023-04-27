@@ -85,7 +85,7 @@ import("./quarto-finalize/book-cleanup.lua")
 import("./quarto-finalize/mediabag.lua")
 import("./quarto-finalize/meta-cleanup.lua")
 
-import("./normalize/indices.lua")
+import("./normalize/flags.lua")
 import("./normalize/normalize.lua")
 import("./normalize/parsehtml.lua")
 import("./normalize/pandoc3.lua")

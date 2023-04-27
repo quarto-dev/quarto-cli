@@ -27,7 +27,7 @@ function parse_pandoc3_figures()
               for k, v in pairs(fig.attributes) do
                 image.attributes[k] = v
               end
-              indices.has_figure_divs = true
+              flags.has_figure_divs = true
               if fig.identifier ~= "" then
                 if not forwarded_id then
                   image.identifier = fig.identifier
