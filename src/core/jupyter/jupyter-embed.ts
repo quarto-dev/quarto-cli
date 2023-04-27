@@ -150,7 +150,7 @@ export function notebookMarkdownPlaceholder(
 // rendered contents.
 export async function replaceNotebookPlaceholders(
   to: string,
-  input: string,
+  _input: string,
   context: RenderContext,
   flags: RenderFlags,
   markdown: string,
