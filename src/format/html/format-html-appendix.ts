@@ -22,7 +22,6 @@ import {
   documentCSL,
   getCSLPath,
 } from "../../quarto-core/attribution/document.ts";
-import { nil } from "../../vendor/deno.land/std@0.166.0/encoding/_yaml/type/nil.ts";
 import {
   createCodeBlock,
   createCodeCopyButton,
