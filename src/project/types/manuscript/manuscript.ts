@@ -22,6 +22,7 @@ import { globalTempContext } from "../../../core/temp.ts";
 import { ensureDirSync } from "fs/mod.ts";
 import { kMecaVersion, MecaItem, MecaManifest, toXml } from "./meca.ts";
 import { contentType } from "../../../core/mime.ts";
+import { zip } from "../../../core/zip.ts";
 
 const kManuscriptType = "manuscript";
 
@@ -57,23 +58,20 @@ export const manuscriptProjectType: ProjectType = {
     _project?: ProjectContext,
   ) => {
     // Add an alternate link to a MECA bundle
-    if (
-      format.render[kFormatLinks] !== undefined &&
-      format.render[kFormatLinks] !== false
-    ) {
+    if (format.render[kFormatLinks] !== false) {
       const links: Array<string | FormatLink> = [];
       if (typeof (format.render[kFormatLinks]) !== "boolean") {
-        links.push(...format.render[kFormatLinks]);
+        links.push(...format.render[kFormatLinks] || []);
       }
       links.push({
-        title: "MECA XML",
-        href: "meca.xml",
+        title: "MECA Archive",
+        href: "meca.zip",
       });
       format.render[kFormatLinks] = links;
     }
     return format;
   },
-  postRender: (
+  postRender: async (
     context: ProjectContext,
     _incremental: boolean,
     outputFiles: ProjectOutputFile[],
@@ -93,62 +91,74 @@ export const manuscriptProjectType: ProjectType = {
     const jatsArticle = outputFiles.find((output) => {
       return isJatsOutput(output.format.identifier["base-format"] || "html");
     });
-    if (!jatsArticle) {
-      throw new Error(
-        "The manuscript format requires that a JATS XML file be produced.",
-      );
-    }
-
-    // Move the output to the working directory
-    const copyOutput = (path: string) => {
-      const pathRel = relative(outputDir, path);
-      const targetFile = join(workingDir, pathRel);
-      const targetDir = dirname(targetFile);
-      ensureDirSync(targetDir);
-      Deno.copyFileSync(path, targetFile);
-      return pathRel;
-    };
-
-    const articleRenderingPaths = articleRenderings.map((out) => {
-      return copyOutput(out.file);
-    });
-
-    const articlePath = copyOutput(jatsArticle?.file);
-
-    const toMecaItem = (href: string, type: string): MecaItem => {
-      const mediaType = contentType(href);
-      return {
-        type,
-        instance: {
-          href,
-          mediaType,
-        },
+    if (jatsArticle) {
+      // Move the output to the working directory
+      const copyOutput = (path: string) => {
+        const pathRel = relative(outputDir, path);
+        const targetFile = join(workingDir, pathRel);
+        const targetDir = dirname(targetFile);
+        ensureDirSync(targetDir);
+        Deno.copyFileSync(path, targetFile);
+        return pathRel;
       };
-    };
-    const articleItem = toMecaItem(articlePath, "article-metadata");
-    const renderedItems = articleRenderingPaths.map((path) => {
-      return toMecaItem(path, "manuscript");
-    });
 
-    const meca: MecaManifest = {
-      version: kMecaVersion,
-      items: [articleItem, ...renderedItems],
-    };
-    const mecaXml = toXml(meca);
-    console.log(mecaXml);
+      // Move the article renderings to the output directory
+      const articleRenderingPaths = articleRenderings.map((out) => {
+        return copyOutput(out.file);
+      });
 
-    // Import zip utility
-    // UUID-meca.zip
+      // Move the JATS article to the output directory
+      const articlePath = copyOutput(jatsArticle?.file);
 
-    // Move the outputs to the workingDir
+      // TODO: Move JATS supporting files to the output directory
 
-    // Grab these file and move to staging area
+      // Generate a manifest
+      const toMecaItem = (href: string, type: string): MecaItem => {
+        const mediaType = contentType(href);
+        return {
+          type,
+          instance: {
+            href,
+            mediaType,
+          },
+        };
+      };
+      const articleItem = toMecaItem(articlePath, "article-metadata");
+      const renderedItems = articleRenderingPaths.map((path) => {
+        return toMecaItem(path, "manuscript");
+      });
+      const manifest: MecaManifest = {
+        version: kMecaVersion,
+        items: [articleItem, ...renderedItems],
+      };
 
-    // Grab jats and jats-figures
+      // Write the manifest
+      const manifestFile = "manifest.xml";
+      const manifestXML = toXml(manifest);
+      Deno.writeTextFileSync(join(workingDir, manifestFile), manifestXML);
 
-    // Get the list of files
-    // Make a manifest XML file
-    //
+      const filesToZip: string[] = [
+        manifestFile,
+        articlePath,
+        ...articleRenderingPaths,
+      ];
+
+      // Compress the working directory in a zip
+      const mecaFile = "meca.zip";
+
+      const zipResult = await zip(filesToZip, mecaFile, {
+        cwd: workingDir,
+      });
+      if (zipResult.success) {
+        // Move the meca file to the project output directory
+        const target = projectOutputDir(context);
+        Deno.renameSync(join(workingDir, mecaFile), join(target, "meca.zip"));
+      } else {
+        throw new Error(
+          `An error occurred while attempting to generate MECA bundle.\n${zipResult.stderr}`,
+        );
+      }
+    }
 
     return Promise.resolve();
   },

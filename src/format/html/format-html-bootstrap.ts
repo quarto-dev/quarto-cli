@@ -611,7 +611,6 @@ function alternateLinks(
     };
   };
 
-  console.log(userLinks);
   for (const userLink of userLinks || []) {
     if (typeof (userLink) === "string") {
       // We need to filter formats, otherwise, we'll deal
