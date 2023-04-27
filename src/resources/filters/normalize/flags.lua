@@ -5,7 +5,7 @@
 -- so that we can skip as many filters as possible
 -- when we don't need them
 
-indices = {}
+flags = {}
 
 function needs_dom_processing(node)
   if node.attributes.qmd ~= nil or node.attributes["qmd-base64"] ~= nil then
