@@ -12,7 +12,7 @@ function parse_pandoc3_figures()
     end
     return {
       traverse = "topdown",
-      BulletList = plain_figure_treatment,
+      BulletList = para_figure_treatment,
       BlockQuote = plain_figure_treatment,
       Table = plain_figure_treatment,
       Div = para_figure_treatment,
