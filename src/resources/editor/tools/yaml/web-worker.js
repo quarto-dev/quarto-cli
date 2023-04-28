@@ -14347,7 +14347,31 @@ try {
               anyOf: [
                 "boolean",
                 {
-                  arrayOf: "string"
+                  maybeArrayOf: {
+                    anyOf: [
+                      "string",
+                      {
+                        object: {
+                          properties: {
+                            title: {
+                              string: {
+                                description: "The title for this alternative link."
+                              }
+                            },
+                            href: {
+                              string: {
+                                description: "The href for tihs alternative link."
+                              }
+                            }
+                          },
+                          required: [
+                            "title",
+                            "href"
+                          ]
+                        }
+                      }
+                    ]
+                  }
                 }
               ]
             },
@@ -14377,6 +14401,19 @@ try {
             description: {
               short: "Controls the display of links to notebooks that provided embedded content or are created from documents.",
               long: "Controls the display of links to notebooks that provided embedded content or are created from documents.\n\nSpecify `false` to disable linking to source Notebooks. Specify `inline` to show links to source notebooks beneath the content they provide. \nSpecify `global` to show a set of global links to source notebooks.\n"
+            }
+          },
+          {
+            name: "notebook-subarticles",
+            tags: {
+              formats: [
+                "$jats-all"
+              ]
+            },
+            schema: "boolean",
+            description: {
+              short: "Controls whether referenced notebooks are embedded in JATS output as subarticles.",
+              long: "Controls the display of links to notebooks that provided embedded content or are created from documents.\n\nDefaults to `true` - specify `false` to disable embedding Notebook as subarticles with the JATS output.\n"
             }
           },
           {
@@ -21182,7 +21219,11 @@ try {
             long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
-          "internal-schema-hack"
+          "internal-schema-hack",
+          {
+            short: "Controls whether referenced notebooks are embedded in JATS output as\nsubarticles.",
+            long: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.\nDefaults to <code>true</code> - specify <code>false</code> to disable\nembedding Notebook as subarticles with the JATS output."
+          }
         ],
         "schema/external-schemas.yml": [
           {
@@ -21406,12 +21447,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 155259,
+          _internalId: 157521,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 155251,
+              _internalId: 157513,
               type: "enum",
               enum: [
                 "png",
@@ -21427,7 +21468,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 155258,
+              _internalId: 157520,
               type: "anyOf",
               anyOf: [
                 {

@@ -40,6 +40,7 @@ export const kFormatResources = "format-resources";
 
 export const kFormatLinks = "format-links";
 export const kNotebookLinks = "notebook-links";
+export const kNotebookSubarticles = "notebook-subarticles";
 export const kNotebookView = "notebook-view";
 export const kNotebookViewStyle = "notebook-view-style";
 
@@ -54,6 +55,8 @@ export const kExecuteDebug = "debug";
 export const kIpynbFilter = "ipynb-filter";
 export const kIpynbFilters = "ipynb-filters";
 export const kIPynbTitleBlockTemplate = "ipynb-title-block";
+
+export const kJatsSubarticleId = "jats-subarticle-id";
 
 export const kShortcodes = "shortcodes";
 
@@ -180,6 +183,7 @@ export const kRenderDefaultsKeys = [
   kFormatResources,
   kFormatLinks,
   kNotebookLinks,
+  kNotebookSubarticles,
   kNotebookView,
   kNotebookViewStyle,
 ];

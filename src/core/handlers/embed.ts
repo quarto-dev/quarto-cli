@@ -82,7 +82,7 @@ const embedHandler: LanguageHandler = {
   languageName: "embed",
 
   type: "directive",
-  stage: "pre-engine",
+  stage: "post-engine",
 
   async directive(
     handlerContext: LanguageCellHandlerContext,
