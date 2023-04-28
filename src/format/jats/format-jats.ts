@@ -51,6 +51,7 @@ export function jatsFormat(displayName: string, ext: string): Format {
     },
     render: {
       [kVariant]: kElementsVariant,
+      [kNotebookSubarticles]: false,
     },
     formatExtras: (
       _input: string,
