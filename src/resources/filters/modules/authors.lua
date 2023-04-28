@@ -37,7 +37,7 @@ local kAuthors = "authors"
 --     statement: string (optional)
 --     open-access: string (optional)
 --     source: 
---       - { text } | { institution }
+--       - { text } & { country? }
 --     investigator:
 --       - { text } | { name } | { insitution }
 --     recipient:
