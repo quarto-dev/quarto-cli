@@ -1,7 +1,7 @@
 -- jats.lua
 -- Copyright (C) 2021-2022 Posit Software, PBC
-local normalizeAuthors = require '../common/authors'
-local normalizeLicense = require '../common/license'
+local normalizeAuthors = require 'modules/authors'
+local normalizeLicense = require 'modules/license'
 
 local kTags = "tags"
 local kKeywords = "keywords"

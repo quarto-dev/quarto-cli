@@ -1,8 +1,8 @@
 -- book.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
-local authors = require '../common/authors'
-local license = require '../common/license'
+local authors = require 'modules/authors'
+local license = require 'modules/license'
 
 --- Removes notes and links
 local function clean (inlines)

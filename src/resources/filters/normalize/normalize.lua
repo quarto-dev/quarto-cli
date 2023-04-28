@@ -16,8 +16,8 @@ end
 -- [/import]
 
 -- imported elements
-local authors = require '../common/authors'
-local license = require '../common/license'
+local authors = require 'modules/authors'
+local license = require 'modules/license'
 
 function normalizeFilter() 
   return {
