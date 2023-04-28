@@ -43,7 +43,7 @@ const kExtensionTypes: Array<string | ExtensionType> = [
 ];
 
 const kExtensionSubtypes: Record<string, string[]> = {
-  "format": ["html", "pdf", "docx", "revealjs"],
+  "format": ["html", "pdf", "docx", "revealjs", "typst"],
 };
 
 const kExtensionValues = kExtensionTypes.filter((t) => typeof (t) === "object")

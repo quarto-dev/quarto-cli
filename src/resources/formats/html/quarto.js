@@ -42,15 +42,15 @@ const layoutMarginEls = () => {
   }
 };
 
-// Recompute the position of margin elements anytime the body size changes
-if (window.ResizeObserver) {
-  const resizeObserver = new window.ResizeObserver((_entries) =>
-    throttle(layoutMarginEls, 50)
-  );
-  resizeObserver.observe(document.body);
-}
-
 window.document.addEventListener("DOMContentLoaded", function (_event) {
+  // Recompute the position of margin elements anytime the body size changes
+  if (window.ResizeObserver) {
+    const resizeObserver = new window.ResizeObserver(
+      throttle(layoutMarginEls, 50)
+    );
+    resizeObserver.observe(window.document.body);
+  }
+
   const tocEl = window.document.querySelector('nav.toc-active[role="doc-toc"]');
   const sidebarEl = window.document.getElementById("quarto-sidebar");
   const leftTocEl = window.document.getElementById("quarto-sidebar-toc-left");

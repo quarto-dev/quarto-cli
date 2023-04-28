@@ -4,9 +4,9 @@ set -e
 export SCRIPT_PATH=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 # Prepares Quarto source files for packaging
-source ${SCRIPT_PATH}/../scripts/common/utils.sh
-source ${SCRIPT_PATH}/../../configuration
-source ${SCRIPT_PATH}/set_package_paths.sh
+source "${SCRIPT_PATH}/../scripts/common/utils.sh"
+source "${SCRIPT_PATH}/../../configuration"
+source "${SCRIPT_PATH}/set_package_paths.sh"
 
 if [ -z "$QUARTO_DENO" ]; then
   export QUARTO_DENO=$SCRIPT_PATH/../dist/bin/tools/$DENO_DIR/deno
@@ -17,4 +17,4 @@ export DENO_NO_UPDATE_CHECK=1
 
 # TODO: Consider generating a source map or something to get a good stack
 # Create the Deno bundle
-$QUARTO_DENO run --unstable --allow-env --allow-read --allow-write --allow-run --allow-net --allow-ffi --importmap=${SCRIPT_PATH}/../../src/dev_import_map.json $SCRIPT_PATH/bld.ts $@
+"$QUARTO_DENO" run --unstable --allow-env --allow-read --allow-write --allow-run --allow-net --allow-ffi --importmap="${SCRIPT_PATH}/../../src/dev_import_map.json" "$SCRIPT_PATH/bld.ts" $@

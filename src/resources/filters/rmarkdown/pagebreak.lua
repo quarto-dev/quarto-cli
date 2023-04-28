@@ -28,7 +28,8 @@ local pagebreak = {
   latex = '\\newpage{}',
   ooxml = '<w:p><w:r><w:br w:type="page"/></w:r></w:p>',
   odt = '<text:p text:style-name="Pagebreak"/>',
-  context = '\\page'
+  context = '\\page',
+  typst = '#pagebreak()'
 }
 
 local function pagebreaks_from_config (meta)
@@ -53,6 +54,8 @@ local function newpage(format)
     return pandoc.RawBlock('openxml', pagebreak.ooxml)
   elseif format:match 'latex' then
     return pandoc.RawBlock('tex', pagebreak.latex)
+  elseif format == 'typst' then
+    return pandoc.RawBlock('typst', pagebreak.typst)
   elseif format:match 'odt' then
     return pandoc.RawBlock('opendocument', pagebreak.odt)
   elseif format:match 'html.*' then
