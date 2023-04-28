@@ -18403,6 +18403,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Specify <code>loading: lazy</code> to defer loading comments until\nthe user scrolls near the comments container.",
         "Place the comment input box above or below the comments.",
         "The giscus theme to use when displaying comments.",
+        "The light theme name.",
+        "The dark theme name.",
         "The language that should be used when displaying the commenting\ninterface.",
         "Controls whether the sidebar opens automatically on startup.",
         "Controls whether the in-document highlights are shown by default\n(<code>always</code>, <code>whenSidebarOpen</code> or\n<code>never</code>)",
@@ -21422,12 +21424,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 157515,
+        _internalId: 157522,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 157507,
+            _internalId: 157514,
             type: "enum",
             enum: [
               "png",
@@ -21443,7 +21445,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 157514,
+            _internalId: 157521,
             type: "anyOf",
             anyOf: [
               {
