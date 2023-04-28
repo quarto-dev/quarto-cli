@@ -583,13 +583,14 @@ export async function renderProject(
           context,
           projType,
         );
-
         const file = outputDir
           ? join(outputDir, result.file)
           : join(projDir, result.file);
         return {
           file,
           format: result.format,
+          resources: result.resourceFiles,
+          supporting: result.supporting,
         };
       });
 
@@ -645,7 +646,6 @@ export async function renderProject(
       incremental,
     );
   }
-
   return projResults;
 }
 
