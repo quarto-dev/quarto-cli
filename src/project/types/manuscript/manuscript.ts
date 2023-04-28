@@ -19,15 +19,22 @@ import {
   isPdfOutput,
 } from "../../../config/format.ts";
 import { globalTempContext } from "../../../core/temp.ts";
-import { ensureDirSync } from "fs/mod.ts";
+import { copySync, ensureDirSync } from "fs/mod.ts";
 import { kMecaVersion, MecaItem, MecaManifest, toXml } from "./meca.ts";
 import { contentType } from "../../../core/mime.ts";
 import { zip } from "../../../core/zip.ts";
+import { isAbsolute } from "../../../vendor/deno.land/std@0.166.0/path/win32.ts";
+import { dirAndStem } from "../../../core/path.ts";
 
 const kManuscriptType = "manuscript";
 
 const kMecaFileLabel = "MECA Archive";
-const kMecaFileName = "meca.zip";
+const kMecaSuffix = "-meca.zip";
+
+const mecaFileName = (file: string) => {
+  const [_, stem] = dirAndStem(file);
+  return `${stem}${kMecaSuffix}`;
+};
 
 export const manuscriptProjectType: ProjectType = {
   type: kManuscriptType,
@@ -56,7 +63,7 @@ export const manuscriptProjectType: ProjectType = {
   outputDir: "_manuscript",
   cleanOutputDir: true,
   filterFormat: (
-    _source: string,
+    source: string,
     format: Format,
     _project?: ProjectContext,
   ) => {
@@ -68,7 +75,7 @@ export const manuscriptProjectType: ProjectType = {
       }
       links.push({
         title: kMecaFileLabel,
-        href: kMecaFileName,
+        href: mecaFileName(source),
       });
       format.render[kFormatLinks] = links;
     }
@@ -94,45 +101,78 @@ export const manuscriptProjectType: ProjectType = {
     const jatsArticle = outputFiles.find((output) => {
       return isJatsOutput(output.format.identifier["base-format"] || "html");
     });
+
     if (jatsArticle) {
       // Move the output to the working directory
-      const copyOutput = (path: string) => {
-        const pathRel = relative(outputDir, path);
-        const targetFile = join(workingDir, pathRel);
-        const targetDir = dirname(targetFile);
+      const toWorkingDir = (
+        input: string,
+        outputRelative: string,
+        move = false,
+      ) => {
+        const target = join(workingDir, outputRelative);
+        const targetDir = dirname(target);
         ensureDirSync(targetDir);
-        Deno.copyFileSync(path, targetFile);
-        return pathRel;
+        if (move) {
+          Deno.renameSync(input, target);
+        } else {
+          copySync(input, target);
+        }
+        return outputRelative;
       };
 
-      // Move the article renderings to the output directory
+      // Move the article renderings to the working directory
       const articleRenderingPaths = articleRenderings.map((out) => {
-        return copyOutput(out.file);
+        return toWorkingDir(out.file, relative(outputDir, out.file), false);
       });
 
-      // Move the JATS article to the output directory
-      const articlePath = copyOutput(jatsArticle?.file);
+      // Move the JATS article to the working directory
+      const articlePath = toWorkingDir(
+        jatsArticle?.file,
+        relative(outputDir, jatsArticle?.file),
+        false,
+      );
 
-      // TODO: Move JATS supporting files to the output directory
+      // Move supporting files
+      const manuscriptResources: MecaItem[] = [];
+      const manuscriptZipFiles: string[] = [];
+      if (jatsArticle.supporting) {
+        jatsArticle.supporting.forEach((file) => {
+          const relPath = isAbsolute(file) ? relative(outputDir, file) : file;
+          const absPath = isAbsolute(file) ? file : join(outputDir, file);
+          const workingPath = toWorkingDir(absPath, relPath, false);
+
+          // Add Supporting files to manifest
+          const items = mecaItemsForPath(workingDir, workingPath);
+          manuscriptResources.push(...items);
+
+          // Note to include in zip
+          manuscriptZipFiles.push(workingPath);
+        });
+      }
+
+      // Copy resources
+      jatsArticle.resources.forEach((file) => {
+        const relPath = isAbsolute(file) ? relative(context.dir, file) : file;
+        const absPath = isAbsolute(file) ? file : join(context.dir, file);
+        const workingPath = toWorkingDir(absPath, relPath, false);
+
+        // Add resource to manifest
+        manuscriptResources.push(
+          ...mecaItemsForPath(workingDir, workingPath),
+        );
+
+        // Note to include in zip
+        manuscriptZipFiles.push(workingPath);
+      });
 
       // Generate a manifest
-      const toMecaItem = (href: string, type: string): MecaItem => {
-        const mediaType = contentType(href);
-        return {
-          type,
-          instance: {
-            href,
-            mediaType,
-          },
-        };
-      };
       const articleItem = toMecaItem(articlePath, "article-metadata");
       const renderedItems = articleRenderingPaths.map((path) => {
         return toMecaItem(path, "manuscript");
       });
       const manifest: MecaManifest = {
         version: kMecaVersion,
-        items: [articleItem, ...renderedItems],
+        items: [articleItem, ...renderedItems, ...manuscriptResources],
       };
 
       // Write the manifest
@@ -144,19 +184,25 @@ export const manuscriptProjectType: ProjectType = {
         manifestFile,
         articlePath,
         ...articleRenderingPaths,
+        ...manuscriptZipFiles,
       ];
 
       // Compress the working directory in a zip
-      const zipResult = await zip(filesToZip, kMecaFileName, {
+      const mecaName = mecaFileName(articlePath);
+      const zipResult = await zip(filesToZip, mecaName, {
         cwd: workingDir,
       });
       if (zipResult.success) {
         // Move the meca file to the project output directory
         const target = projectOutputDir(context);
         Deno.renameSync(
-          join(workingDir, kMecaFileName),
-          join(target, kMecaFileName),
+          join(workingDir, mecaName),
+          join(target, mecaName),
         );
+
+        // TODO: DON'T MUTATE IN PLACE, should somehow pass this
+        jatsArticle.supporting = jatsArticle.supporting || [];
+        jatsArticle.supporting.push(mecaName);
       } else {
         throw new Error(
           `An error occurred while attempting to generate MECA bundle.\n${zipResult.stderr}`,
@@ -166,4 +212,43 @@ export const manuscriptProjectType: ProjectType = {
 
     return Promise.resolve();
   },
+};
+
+const toMecaItem = (href: string, type: string): MecaItem => {
+  const mediaType = contentType(href);
+  return {
+    type,
+    instance: {
+      href,
+      mediaType,
+    },
+  };
+};
+
+const mecaItemsForPath = (
+  basePath: string,
+  relPath: string,
+  isDir?: boolean,
+): MecaItem[] => {
+  const path = join(basePath, relPath);
+  if (isDir === true || Deno.statSync(path).isDirectory) {
+    const items: MecaItem[] = [];
+    for (const subPath of Deno.readDirSync(path)) {
+      if (subPath.isDirectory) {
+        items.push(
+          ...mecaItemsForPath(basePath, join(relPath, subPath.name), true),
+        );
+      } else {
+        const filePath = join(relPath, subPath.name);
+        items.push(toMecaItem(filePath, mecaType(filePath)));
+      }
+    }
+    return items;
+  } else {
+    return [toMecaItem(relPath, mecaType(path))];
+  }
+};
+
+const mecaType = (_path: string) => {
+  return "manuscript_reference";
 };
