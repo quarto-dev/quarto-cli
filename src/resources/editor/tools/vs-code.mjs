@@ -12436,7 +12436,6 @@ var require_yaml_intelligence_resources = __commonJS({
       "schema/document-execute.yml": [
         {
           name: "engine",
-          hidden: true,
           schema: {
             string: {
               completions: [
@@ -20181,9 +20180,17 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "Controls whether links to other rendered formats are displayed in\nHTML output.",
           long: "Controls whether links to other rendered formats are displayed in\nHTML output.\nPass <code>false</code> to disable the display of format lengths or\npass a list of format names for which you\u2019d like links to be shown."
         },
+        "The title for this alternative link.",
+        "The href for tihs alternative link.",
+        "The title for this alternative link.",
+        "The href for tihs alternative link.",
         {
           short: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.",
           long: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.\nSpecify <code>false</code> to disable linking to source Notebooks.\nSpecify <code>inline</code> to show links to source notebooks beneath\nthe content they provide. Specify <code>global</code> to show a set of\nglobal links to source notebooks."
+        },
+        {
+          short: "Controls whether referenced notebooks are embedded in JATS output as\nsubarticles.",
+          long: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.\nDefaults to <code>true</code> - specify <code>false</code> to disable\nembedding Notebook as subarticles with the JATS output."
         },
         "Configures the HTML viewer for notebooks that provide embedded\ncontent.",
         "The path to the locally referenced notebook.",
@@ -21218,11 +21225,7 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
-        "internal-schema-hack",
-        {
-          short: "Controls whether referenced notebooks are embedded in JATS output as\nsubarticles.",
-          long: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.\nDefaults to <code>true</code> - specify <code>false</code> to disable\nembedding Notebook as subarticles with the JATS output."
-        }
+        "internal-schema-hack"
       ],
       "schema/external-schemas.yml": [
         {
@@ -21446,12 +21449,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 157521,
+        _internalId: 158397,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 157513,
+            _internalId: 158389,
             type: "enum",
             enum: [
               "png",
@@ -21467,7 +21470,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 157520,
+            _internalId: 158396,
             type: "anyOf",
             anyOf: [
               {
