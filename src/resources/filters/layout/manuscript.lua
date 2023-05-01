@@ -24,6 +24,7 @@ function manuscript()
 
           -- Provide preview path for the preview generator - this
           -- will specify a preview file name to use when generating this preview
+          -- TODO Should we really just handle this by convention?
           local nbFileName = pandoc.path.filename(nbPath)
           local nbDir = pandoc.path.directory(nbPath)
           local previewFile = nbFileName .. ".html"

@@ -137,10 +137,10 @@ export async function processNotebookEmbeds(
       const notebookCellId = nbDivEl.getAttribute("data-notebook-cellId");
       nbDivEl.removeAttribute("data-notebook-cellId");
 
-      const notebookPreviewPath = nbDivEl.getAttribute(
-        "data-notebook-preview-path",
+      const notebookPreviewFile = nbDivEl.getAttribute(
+        "data-notebook-preview-file",
       );
-      nbDivEl.removeAttribute("data-notebook-preview-path");
+      nbDivEl.removeAttribute("data-notebook-preview-file");
 
       if (notebookPath) {
         linkedNotebooks.push(notebookPath);
@@ -165,6 +165,7 @@ export async function processNotebookEmbeds(
               format,
               services,
               project,
+              notebookPreviewFile !== null ? notebookPreviewFile : undefined,
             );
             return {
               title: htmlPreview.title,
