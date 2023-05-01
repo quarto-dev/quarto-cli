@@ -25,9 +25,6 @@ if (!String.prototype.replaceAll) {
 
 const mermaidOpts = {
   startOnLoad: false,
-  flowchart: {
-    htmlLabels: "false",
-  },
 };
 // this CSS is adapted from
 // mkdocs-material
