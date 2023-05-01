@@ -31,7 +31,6 @@ import { basename, dirname, isAbsolute, join, relative } from "path/mod.ts";
 import { renderFiles } from "../../command/render/render-files.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { kNotebookViewStyleNotebook } from "./format-html-constants.ts";
-import { warning } from "log/mod.ts";
 
 interface NotebookView {
   title: string;
@@ -134,6 +133,10 @@ export async function processNotebookEmbeds(
       const nbDivEl = nbDivNode as Element;
       const notebookPath = nbDivEl.getAttribute("data-notebook");
       nbDivEl.removeAttribute("data-notebook");
+
+      const notebookCellId = nbDivEl.getAttribute("data-notebook-cellId");
+      nbDivEl.removeAttribute("data-notebook-cellId");
+
       if (notebookPath) {
         linkedNotebooks.push(notebookPath);
         const title = nbDivEl.getAttribute("data-notebook-title");
@@ -178,16 +181,6 @@ export async function processNotebookEmbeds(
         if (inline) {
           const id = "nblink-" + count++;
 
-          // If the first element of the notebook cell is a cell div with an id
-          // then use that as the hash
-          let firstCellId;
-          if (
-            nbDivEl.firstElementChild &&
-            nbDivEl.firstElementChild.classList.contains("cell")
-          ) {
-            firstCellId = nbDivEl.firstElementChild.getAttribute("id");
-          }
-
           const nbLinkEl = doc.createElement("a");
           nbLinkEl.classList.add("quarto-notebook-link");
           nbLinkEl.setAttribute("id", `${id}`);
@@ -196,8 +189,8 @@ export async function processNotebookEmbeds(
             nbLinkEl.setAttribute("download", nbPath.filename);
             nbLinkEl.setAttribute("href", nbPath.href);
           } else {
-            if (firstCellId) {
-              nbLinkEl.setAttribute("href", `${nbPath.href}#${firstCellId}`);
+            if (notebookCellId) {
+              nbLinkEl.setAttribute("href", `${nbPath.href}#${notebookCellId}`);
             } else {
               nbLinkEl.setAttribute("href", `${nbPath.href}`);
             }
@@ -377,9 +370,7 @@ async function renderHtmlView(
       project,
     );
     if (rendered.error) {
-      // TODO: This should throw in future releases rather than warn
-      // Only adding warning for now because of timing of release of 1.3
-      warning(`Failed to render preview for notebook ${nbAbsPath}`);
+      throw new Error(`Failed to render preview for notebook ${nbAbsPath}`);
     }
 
     const nbPreviewPath = join(inputDir, dirname(href), nbPreviewFile);

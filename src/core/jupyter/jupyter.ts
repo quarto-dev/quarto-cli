@@ -153,7 +153,11 @@ import { convertToHtmlSpans, hasAnsiEscapeCodes } from "../ansi-colors.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { mergeConfigs } from "../config.ts";
 import { encode as encodeBase64 } from "encoding/base64.ts";
-import { isIpynbOutput, isJatsOutput } from "../../config/format.ts";
+import {
+  isHtmlOutput,
+  isIpynbOutput,
+  isJatsOutput,
+} from "../../config/format.ts";
 import { bookFixups, fixupJupyterNotebook } from "./jupyter-fixups.ts";
 
 export const kQuartoMimeType = "quarto_mimetype";
@@ -1196,7 +1200,8 @@ async function mdFromCodeCell(
   // label to the id, so that can appear as the cell id.
   if (
     (isIpynbOutput(options.executeOptions.format.pandoc) ||
-      isJatsOutput(options.executeOptions.format.pandoc)) && cell.id
+      isJatsOutput(options.executeOptions.format.pandoc) ||
+      isHtmlOutput(options.executeOptions.format.pandoc)) && cell.id
   ) {
     divMd.push(`#${cell.id} `);
   }

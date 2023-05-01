@@ -9,7 +9,6 @@ function manuscript()
   if _quarto.format.isWordProcessorOutput() or _quarto.format.isLatexOutput() then
 
 
-
     local language = param("language", nil);
     local notebookPrefix = language["source-notebooks-prefix"]
 
@@ -77,6 +76,7 @@ function manuscript()
         end
       end
     }
+  else 
+    return {}
   end
-  
 end
