@@ -110,7 +110,6 @@ export async function processNotebookEmbeds(
   doc: Document,
   format: Format,
   services: RenderServices,
-  project?: ProjectContext,
 ) {
   const inline = format.render[kNotebookLinks] === "inline" ||
     format.render[kNotebookLinks] === true;
@@ -121,7 +120,7 @@ export async function processNotebookEmbeds(
   const isNotebookStyle = format.metadata[kNotebookViewStyle];
 
   if (nbViewConfig && !isNotebookStyle) {
-    const previewer = nbPreviewer(nbViewConfig, format, services, project);
+    const previewer = nbPreviewer(nbViewConfig, format, services);
 
     // Emit links to the notebooks inline (where the embedded content is located)
     let count = 1;
@@ -278,7 +277,6 @@ const nbPreviewer = (
   nbViewConfig: NotebookViewConfig,
   format: Format,
   services: RenderServices,
-  project?: ProjectContext,
 ) => {
   const nbPreviews: Record<
     string,
@@ -305,7 +303,6 @@ const nbPreviewer = (
           nbPreviewOptions,
           format,
           services,
-          project,
           nbPreviewFile !== null ? nbPreviewFile : undefined,
         );
         return {
@@ -368,7 +365,6 @@ async function renderHtmlView(
   options: NotebookViewOptions,
   format: Format,
   services: RenderServices,
-  project?: ProjectContext,
   previewFileName?: string,
 ): Promise<NotebookView> {
   const href = relative(inputDir, nbAbsPath);
