@@ -29,7 +29,6 @@ import {
 
 import { basename, dirname, isAbsolute, join, relative } from "path/mod.ts";
 import { renderFiles } from "../../command/render/render-files.ts";
-import { ProjectContext } from "../../project/types.ts";
 import { kNotebookViewStyleNotebook } from "./format-html-constants.ts";
 
 interface NotebookView {
@@ -117,9 +116,8 @@ export async function processNotebookEmbeds(
     format.render[kNotebookLinks] === true;
   const notebookView = format.render[kNotebookView] ?? true;
   const nbViewConfig = notebookViewConfig(notebookView);
-  const isNotebookStyle = format.metadata[kNotebookViewStyle];
 
-  if (nbViewConfig && !isNotebookStyle) {
+  if (nbViewConfig) {
     const previewer = nbPreviewer(nbViewConfig, format, services);
 
     // Emit links to the notebooks inline (where the embedded content is located)
