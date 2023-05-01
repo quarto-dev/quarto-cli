@@ -205,7 +205,8 @@ export async function processNotebookEmbeds(
     }
 
     // Emit global links to the notebooks
-    if (global) {
+    const previewNotebooks = Object.values(previewer.previews);
+    if (global && previewNotebooks.length > 0) {
       const containerEl = doc.createElement("div");
       containerEl.classList.add("quarto-alternate-notebooks");
 
@@ -217,10 +218,12 @@ export async function processNotebookEmbeds(
 
       const formatList = doc.createElement("ul");
       containerEl.appendChild(formatList);
-      const allPaths = Object.values(previewer.previews);
-      ld.uniqBy(allPaths, (nbPath: { href: string; title?: string }) => {
-        return nbPath.href;
-      }).forEach((nbPath) => {
+      ld.uniqBy(
+        previewNotebooks,
+        (nbPath: { href: string; title?: string }) => {
+          return nbPath.href;
+        },
+      ).forEach((nbPath) => {
         const li = doc.createElement("li");
 
         const link = doc.createElement("a");
