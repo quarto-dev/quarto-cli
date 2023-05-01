@@ -152,7 +152,7 @@ export const bookProjectType: ProjectType = {
     return !!format.extensions?.book;
   },
 
-  filterParams: (options: PandocOptions) => {
+  filterParams: async (options: PandocOptions) => {
     const bookExt = options.format.extensions?.book as BookExtension;
     const filterParams = bookExt.filterParams
       ? bookExt.filterParams(options)

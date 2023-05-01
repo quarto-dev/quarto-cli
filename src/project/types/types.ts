@@ -47,7 +47,7 @@ export interface ProjectType {
   projectFormatsOnly?: boolean;
   isSupportedFormat?: (format: Format) => boolean;
   metadataFields?: () => Array<string | RegExp>;
-  filterParams?: (options: PandocOptions) => Metadata | undefined;
+  filterParams?: (options: PandocOptions) => Promise<Metadata | undefined>;
   resourceIgnoreFields?: () => string[];
   navItemText?: (
     context: ProjectContext,

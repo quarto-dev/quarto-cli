@@ -25,11 +25,15 @@ import { contentType } from "../../../core/mime.ts";
 import { zip } from "../../../core/zip.ts";
 import { isAbsolute } from "../../../vendor/deno.land/std@0.166.0/path/win32.ts";
 import { dirAndStem } from "../../../core/path.ts";
+import { PandocOptions } from "../../../command/render/types.ts";
+import { gitHubContext } from "../../../core/github.ts";
 
 const kManuscriptType = "manuscript";
 
 const kMecaFileLabel = "MECA Archive";
 const kMecaSuffix = "-meca.zip";
+
+const kRepoUrl = "repo-url";
 
 const mecaFileName = (file: string) => {
   const [_, stem] = dirAndStem(file);
@@ -62,6 +66,23 @@ export const manuscriptProjectType: ProjectType = {
   },
   outputDir: "_manuscript",
   cleanOutputDir: true,
+  filterParams: async (options: PandocOptions) => {
+    if (options.project) {
+      const ghContext = await gitHubContext(options.project.dir);
+      const baseUrl = ghContext.siteUrl;
+      if (baseUrl) {
+        return {
+          [kRepoUrl]: baseUrl,
+        };
+      } else {
+        return undefined;
+      }
+    } else {
+      throw new Error(
+        "Internal Error: Filters params being requested for project without providing a project.",
+      );
+    }
+  },
   filterFormat: (
     source: string,
     format: Format,

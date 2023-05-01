@@ -99,6 +99,8 @@ import("./layout/table.lua")
 import("./layout/figures.lua")
 import("./layout/cites.lua")
 import("./layout/columns.lua")
+import("./layout/manuscript.lua")
+
 import("./layout/columns-preprocess.lua")
 import("./layout/layout.lua")
 import("./crossref/index.lua")
@@ -276,6 +278,7 @@ local quartoFinalize = {
 }
 
 local quartoLayout = {
+  { name = "manuscript filtering", filter = manuscript() },
   { name = "layout-columnsPreprocess", filter = columnsPreprocess() },
   { name = "layout-columns", filter = columns() },
   { name = "layout-citesPreprocess", filter = citesPreprocess() },
