@@ -53,7 +53,6 @@ function manuscript()
             manuscriptUrl =  manuscriptUrl .. previewPath .. cellId;
           end
 
-            manuscriptUrl =  manuscriptUrl .. previewPath .. cellId;
           local labelInlines = pandoc.List({ pandoc.Str(notebookPrefix), pandoc.Str(':'), pandoc.Space(), pandoc.Link(nbTitle, manuscriptUrl)})
 
           -- Attempt to forward the link into element captions, when possible
