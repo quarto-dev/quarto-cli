@@ -3,6 +3,8 @@
 
 local kNotebook = "notebook"
 local kNotebookTitle = "notebook-title"
+local kNotebookCellId = "notebook-cellId"
+
 
 
 function manuscript() 
@@ -20,14 +22,30 @@ function manuscript()
         local nbPath = divEl.attributes[kNotebook]
         if repoUrl ~= nil and nbPath ~= nil then
 
-          local nbLabel = divEl.attributes[kNotebookTitle]
-          if nbLabel == nil then
-            nbLabel = pandoc.path.filename(nbPath)
+          -- Provide preview path for the preview generator - this
+          -- will specify a preview file name to use when generating this preview
+          local nbFileName = pandoc.path.filename(nbPath)
+          local nbDir = pandoc.path.directory(nbPath)
+          local previewFile = nbFileName .. ".html"
+          divEl.attributes['notebook-preview-file'] = previewFile;
+          local previewPath = pandoc.path.join({nbDir, previewFile})
+
+          -- The title for the notebook
+          local nbTitle = divEl.attributes[kNotebookTitle]
+          if nbTitle == nil then
+            nbTitle = nbFileName
           end
 
-          -- TODO: Link to HTML view
+          -- The Id
+          local cellId = divEl.attributes[kNotebookCellId];
+          if cellId ~= nil then
+            cellId = '#' .. cellId
+          else
+            cellId = ''
+          end
+
           -- TODO: Link with cell identifier
-          local labelInlines = pandoc.List({ pandoc.Str(notebookPrefix), pandoc.Str(':'), pandoc.Space(), pandoc.Link(nbLabel, repoUrl ..nbPath )})
+          local labelInlines = pandoc.List({ pandoc.Str(notebookPrefix), pandoc.Str(':'), pandoc.Space(), pandoc.Link(nbTitle, repoUrl .. previewPath .. cellId )})
 
           -- Attempt to forward the link into element captions, when possible
           local resolvedEl = _quarto.ast.walk(divEl, {

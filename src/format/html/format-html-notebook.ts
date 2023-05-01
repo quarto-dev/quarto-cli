@@ -137,6 +137,11 @@ export async function processNotebookEmbeds(
       const notebookCellId = nbDivEl.getAttribute("data-notebook-cellId");
       nbDivEl.removeAttribute("data-notebook-cellId");
 
+      const notebookPreviewPath = nbDivEl.getAttribute(
+        "data-notebook-preview-path",
+      );
+      nbDivEl.removeAttribute("data-notebook-preview-path");
+
       if (notebookPath) {
         linkedNotebooks.push(notebookPath);
         const title = nbDivEl.getAttribute("data-notebook-title");
@@ -330,8 +335,8 @@ async function renderHtmlView(
   format: Format,
   services: RenderServices,
   project?: ProjectContext,
+  previewFileName?: string,
 ): Promise<NotebookView> {
-  const filename = basename(nbAbsPath);
   const href = relative(inputDir, nbAbsPath);
 
   if (options.href === undefined) {
@@ -343,12 +348,13 @@ async function renderHtmlView(
     const embedTemplate = renderEjs(embedHtmlEjs, {
       title: options.title,
       path: href,
-      filename,
+      filename: basename(nbAbsPath),
     });
     const templatePath = services.temp.createFile({ suffix: ".html" });
     Deno.writeTextFileSync(templatePath, embedTemplate);
 
     // Render the notebook and update the path
+    const filename = previewFileName || basename(nbAbsPath);
     const nbPreviewFile = `${filename}.html`;
     const rendered = await renderFiles(
       [{ path: nbAbsPath, formats: ["html"] }],
