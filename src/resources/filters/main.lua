@@ -163,8 +163,8 @@ initShortcodeHandlers()
 
 local quartoInit = {
   { name = "init-configure-filters", filter = configureFilters() },
-  { name = "init-readIncludes", filter = readIncludes() },
-  { name = "init-metadataResourceRefs", filter = combineFilters({
+  { name = "init-read-includes", filter = readIncludes() },
+  { name = "init-metadata-resource-refs", filter = combineFilters({
     fileMetadata(),
     resourceRefs()
   })},
@@ -173,97 +173,94 @@ local quartoInit = {
 local quartoNormalize = {
   { name = "normalize", filter = filterIf(function()
     return preState.active_filters.normalization
-  end, normalizeFilter()) },
+  end, normalize_filter()) },
 
-  -- 2023-04-11: We want to combine these filters but extract_quarto_dom
+  -- 2023-04-11: We want to combine these filters but parse_md_in_html_rawblocks
   -- can't be combined with parse_html_tables because combineFilters
   -- doesn't inspect the contents of the results in the inner loop.
   { name = "normalize-combined", filter = combineFilters({
       parse_html_tables(),
-      parseExtendedNodes(),
+      parse_extended_nodes(),
     })
   },
   { 
     name = "normalize-extractQuartoDom", 
-    filter = extract_quarto_dom(),
-    flags = {
-      "needs_dom_processing"
-    }
+    filter = parse_md_in_html_rawblocks(),
   },
 }
 
 local quartoPre = {
   -- quarto-pre
 
-  -- TODO we need to recompute flags on the results of the user filters
-  { name = "pre-quartoBeforeExtendedUserFilters", filters = make_wrapped_user_filters("beforeQuartoFilters") },
+  -- TODO we need to compute flags on the results of the user filters
+  { name = "pre-run-user-filters", filters = make_wrapped_user_filters("beforeQuartoFilters") },
 
   -- do this early so we can compute maxHeading while in the big traversal
-  { name = "crossref-initCrossrefOptions", filter = initCrossrefOptions() },
+  { name = "crossref-init-crossref-options", filter = init_crossref_options() },
 
-  { name = "index", filter = compute_flags() },
+  { name = "flags", filter = compute_flags() },
 
   -- https://github.com/quarto-dev/quarto-cli/issues/5031
   -- recompute options object in case user filters have changed meta
   -- this will need to change in the future; users will have to indicate
   -- when they mutate options
-  { name = "pre-quartoAfterUserFilters", filter = initOptions() },
+  { name = "pre-read-options-again", filter = init_options() },
 
-  { name = "normalize-parse-pandoc3-figures", 
+  { name = "pre-parse-pandoc3-figures", 
     filter = parse_pandoc3_figures(), 
     flags = { "has_pandoc3_figure" } 
   },
 
-  { name = "pre-bibliographyFormats", filter = bibliographyFormats() }, 
+  { name = "pre-bibliography-formats", filter = bibliography_formats() }, 
   
-  { name = "pre-shortcodes_filter", 
+  { name = "pre-shortcodes-filter", 
     filter = shortcodes_filter(),
     flags = { "has_shortcodes" } },
 
-  { name = "pre-tableMergeRawHtml", 
-    filter = tableMergeRawHtml(),
+  { name = "pre-table-merge-raw-html", 
+    filter = table_merge_raw_html(),
     flags = { "has_partial_raw_html_tables" } },
 
-  { name = "pre-tableRenderRawHtml", 
-    filter = tableRenderRawHtml(),
+  { name = "pre-table-render-raw-html", 
+    filter = table_render_raw_html(),
     flags = { "has_raw_html_tables", "has_gt_tables" } },
 
-  { name = "pre-tableColwidthCell", 
-    filter = tableColwidthCell(),
+  { name = "pre-table-colwidth-cell", 
+    filter = table_colwidth_cell(),
     flags = { "has_tbl_colwidths" } },
 
-  { name = "pre-tableColwidth", 
-    filter = tableColwidth(), 
+  { name = "pre-table-colwidth", 
+    filter = table_colwidth(), 
     flags = { "has_tables" } },
   
-  { name = "pre-tableClasses", 
-    filter = tableClasses(),
+  { name = "pre-table-classes", 
+    filter = table_classes(),
     flags = { "has_tables" } },
 
   { name = "pre-hidden", 
     filter = hidden(), 
     flags = { "has_hidden" } },
 
-  { name = "pre-contentHidden", 
-    filter = contentHidden(),
+  { name = "pre-content-hidden", 
+    filter = content_hidden(),
     flags = { "has_conditional_content" } },
 
-  { name = "pre-tableCaptions", 
-    filter = tableCaptions(),
+  { name = "pre-table-captions", 
+    filter = table_captions(),
     flags = { "has_table_captions" } },
 
-  { name = "pre-longtable_no_caption_fixup", 
+  { name = "pre-longtable-no-caption-fixup", 
     filter = longtable_no_caption_fixup(),
     flags = { "has_longtable_no_caption_fixup" } },
   
   { name = "pre-code-annotations", 
-    filter = code(),
+    filter = code_annotations(),
     flags = { "has_code_annotations" } },
   
-  { name = "pre-code-annotations-meta", filter = codeMeta() },
+  { name = "pre-code-annotations-meta", filter = code_meta() },
 
-  { name = "pre-outputs", 
-    filter = outputs(),
+  { name = "pre-unroll-cell-outputs", 
+    filter = unroll_cell_outputs(),
     flags = { "needs_output_unrolling" } },
 
   { name = "pre-outputLocation", 
@@ -376,7 +373,7 @@ local quartoCrossref = {
   { name = "pre-render-jats-subarticle", filter = filterIf(function()
     return preState.active_filters.jats_subarticle ~= nil and preState.active_filters.jats_subarticle
     end, jatsSubarticleCrossref()) },
-    
+
   { name = "crossref-combineFilters", filter = combineFilters({
     fileMetadata(),
     qmd(),
@@ -407,7 +404,7 @@ tappend(filterList, quartoFinalize)
 
 local result = run_as_extended_ast({
   pre = {
-    initOptions()
+    init_options()
   },
   afterFilterPass = function() 
     -- After filter pass is called after each pass through a filter group

@@ -19,7 +19,7 @@ function longtable_no_caption_fixup()
   }
 end
 
-function tableCaptions() 
+function table_captions() 
   return {   
     Div = function(el)
       if tcontains(el.attr.classes, "cell") then
@@ -52,7 +52,7 @@ function tableCaptions()
   
               -- compute all captions and labels
               local label = el.attr.identifier
-              local mainCaption, tblCaptions, mainLabel, tblLabels = tableCaptionsAndLabels(
+              local mainCaption, tblCaptions, mainLabel, tblLabels = table_captionsAndLabels(
                 label,
                 tables,
                 tblCap,
@@ -78,7 +78,7 @@ function tableCaptions()
 
 end
 
-function tableCaptionsAndLabels(label, tables, tblCap, tblSubCap)
+function table_captionsAndLabels(label, tables, tblCap, tblSubCap)
   
   local mainCaption = nil
   local tblCaptions = pandoc.List()

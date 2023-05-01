@@ -2,7 +2,7 @@
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
 
-function bibliographyFormats()
+function bibliography_formats()
   return {
     Pandoc = function(doc)
       if _quarto.format.isBibliographyOutput() then

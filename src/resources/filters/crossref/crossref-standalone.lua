@@ -49,7 +49,7 @@ initCrossrefIndex()
 
 -- chain of filters
 return {
-  initCrossrefOptions(),
+  init_crossref_options(),
   crossrefPreprocess(),
   crossrefPreprocessTheorems(),
   combineFilters({

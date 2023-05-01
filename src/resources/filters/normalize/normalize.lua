@@ -19,7 +19,7 @@ end
 local authors = require 'modules/authors'
 local license = require 'modules/license'
 
-function normalizeFilter() 
+function normalize_filter() 
   return {
     Meta = function(meta)
       -- normalizes the author/affiliation metadata

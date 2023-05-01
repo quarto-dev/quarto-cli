@@ -81,22 +81,22 @@ import("project-paths.lua")
 initShortcodeHandlers()
 
 local filterList = {
-  { name = "init", filter = initOptions() },
-  { name = "bibliographyFormats", filter = bibliographyFormats() },
+  { name = "init", filter = init_options() },
+  { name = "bibliography_formats", filter = bibliography_formats() },
   { name = "shortCodesBlocks", filter = shortCodesBlocks() } ,
   { name = "shortCodesInlines", filter = shortCodesInlines() },
-  { name = "tableMergeRawHtml", filter = tableMergeRawHtml() },
-  { name = "tableRenderRawHtml", filter = tableRenderRawHtml() },
-  { name = "tableColwidthCell", filter = tableColwidthCell() },
-  { name = "tableColwidth", filter = tableColwidth() },
+  { name = "table_merge_raw_html", filter = table_merge_raw_html() },
+  { name = "table_render_raw_html", filter = table_render_raw_html() },
+  { name = "table_colwidth_cell", filter = table_colwidth_cell() },
+  { name = "table_colwidth", filter = table_colwidth() },
   { name = "hidden", filter = hidden() },
-  { name = "contentHidden", filter = contentHidden() },
-  { name = "tableCaptions", filter = tableCaptions() },
+  { name = "content_hidden", filter = content_hidden() },
+  { name = "table_captions", filter = table_captions() },
   { name = "code-annotations", filter = combineFilters({
-    codeMeta(),
-    code(),
+    code_meta(),
+    code_annotations(),
     })},
-  { name = "outputs", filter = outputs() },
+  { name = "outputs", filter = unroll_cell_outputs() },
   { name = "outputLocation", filter = outputLocation() },
   { name = "combined-figures-theorems-etc", filter = combineFilters({
     fileMetadata(),

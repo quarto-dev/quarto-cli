@@ -1,6 +1,6 @@
 
 
-function outputs()
+function unroll_cell_outputs()
   -- the param("output-divs", true) check is now done in flags.lua
 
   return {

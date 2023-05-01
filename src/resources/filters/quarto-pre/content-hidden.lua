@@ -95,7 +95,7 @@ _quarto.ast.add_handler({
   end
 })
 
-function contentHidden()
+function content_hidden()
   local profiles = pandoc.List(param("quarto_profile", {}))
   return {
     -- Div = handleHiddenVisible(profiles),

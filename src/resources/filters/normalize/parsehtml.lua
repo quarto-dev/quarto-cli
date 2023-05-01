@@ -62,9 +62,7 @@ function parse_html_tables()
               if table.attributes[kDisableProcessing] ~= nil then
                 skip = true
               end
-            end,
-            Div = needs_dom_processing,
-            Span = needs_dom_processing,
+            end
           })
           if not found then
             warn("Unable to parse table from raw html block: skipping.")
@@ -73,7 +71,6 @@ function parse_html_tables()
           if skip then
             return nil
           end
-          flags.has_tables = true
           local blocks = pandoc.Blocks({})
           if before_table ~= "" then
             -- this clause is presently redundant, but if we ever

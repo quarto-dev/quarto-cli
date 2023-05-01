@@ -313,7 +313,7 @@ function processAnnotation(line, annoteNumber, annotationProvider)
     return stripped
 end
 
-function codeMeta()
+function code_meta()
   return {
     Meta = function(meta)
       if _quarto.format.isLatexOutput() and hasAnnotations then
@@ -331,7 +331,7 @@ end
 
 -- The actual filter that will look for a code cell and then
 -- find its annotations, then process the subsequent OL
-function code()
+function code_annotations()
   -- the localized strings
   local language = param("language", nil)
 
