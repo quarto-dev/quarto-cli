@@ -5,15 +5,19 @@ local kNotebook = "notebook"
 local kNotebookTitle = "notebook-title"
 local kNotebookCellId = "notebook-cellId"
 
+local kLangSourcePrefix = "source-notebooks-prefix"
+
+local kManuscriptUrl = "manuscript-url"
+
 
 
 function manuscript() 
   if _quarto.format.isWordProcessorOutput() or _quarto.format.isLatexOutput() then
 
     local language = param("language", nil);
-    local notebookPrefix = language["source-notebooks-prefix"]
+    local notebookPrefix = language[kLangSourcePrefix]
 
-    local manuscriptUrl = param('manuscript-url')
+    local manuscriptUrl = param(kManuscriptUrl)
     return {
 
       -- Process any cells that originated from notebooks
