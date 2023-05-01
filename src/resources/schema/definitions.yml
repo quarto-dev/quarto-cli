@@ -2139,3 +2139,15 @@
             properties:
               trace-filters: string
               tests: object
+
+- id: manuscript-schema
+  schema:
+    object:
+      closed: true
+      properties:
+        "manuscript-url":
+          string:
+            description: "The deployed url for this manuscript"
+        "meca":
+          boolean:
+            description: "Whether to generate a MECA bundle for this manuscript"
