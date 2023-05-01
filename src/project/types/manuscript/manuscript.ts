@@ -10,7 +10,7 @@ import { ProjectCreate, ProjectOutputFile, ProjectType } from "../types.ts";
 
 import { dirname, join, relative } from "path/mod.ts";
 import { Format, FormatLink } from "../../../config/types.ts";
-import { ProjectContext } from "../../types.ts";
+import { ProjectConfig, ProjectContext } from "../../types.ts";
 import { kFormatLinks } from "../../../config/constants.ts";
 import { projectOutputDir } from "../../project-shared.ts";
 import {
@@ -33,7 +33,7 @@ const kManuscriptType = "manuscript";
 const kMecaFileLabel = "MECA Archive";
 const kMecaSuffix = "-meca.zip";
 
-const kRepoUrl = "repo-url";
+const kManuscriptUrl = "manuscript-url";
 
 const mecaFileName = (file: string) => {
   const [_, stem] = dirAndStem(file);
@@ -68,11 +68,16 @@ export const manuscriptProjectType: ProjectType = {
   cleanOutputDir: true,
   filterParams: async (options: PandocOptions) => {
     if (options.project) {
-      const ghContext = await gitHubContext(options.project.dir);
-      const baseUrl = ghContext.siteUrl;
+      // See if there is an explicit manuscript URL
+      const manuOpts = manuscriptOptions(options.project.config);
+      let baseUrl = manuOpts[kManuscriptUrl];
+      if (baseUrl === undefined) {
+        const ghContext = await gitHubContext(options.project.dir);
+        baseUrl = ghContext.siteUrl;
+      }
       if (baseUrl) {
         return {
-          [kRepoUrl]: baseUrl,
+          [kManuscriptUrl]: baseUrl,
         };
       } else {
         return undefined;
@@ -272,4 +277,17 @@ const mecaItemsForPath = (
 
 const mecaType = (_path: string) => {
   return "manuscript_reference";
+};
+
+interface ManuscriptOptions {
+  [kManuscriptUrl]?: string;
+}
+
+const manuscriptOptions = (config?: ProjectConfig): ManuscriptOptions => {
+  if (config) {
+    const manuOpts = config[kManuscriptType];
+    return manuOpts as ManuscriptOptions;
+  } else {
+    return {};
+  }
 };

@@ -10,17 +10,16 @@ local kNotebookCellId = "notebook-cellId"
 function manuscript() 
   if _quarto.format.isWordProcessorOutput() or _quarto.format.isLatexOutput() then
 
-
     local language = param("language", nil);
     local notebookPrefix = language["source-notebooks-prefix"]
 
-    local repoUrl = param('repo-url')
+    local manuscriptUrl = param('manuscript-url')
     return {
 
       -- Process any cells that originated from notebooks
       Div = function(divEl)        
         local nbPath = divEl.attributes[kNotebook]
-        if repoUrl ~= nil and nbPath ~= nil then
+        if manuscriptUrl ~= nil and nbPath ~= nil then
 
           -- Provide preview path for the preview generator - this
           -- will specify a preview file name to use when generating this preview
@@ -30,6 +29,8 @@ function manuscript()
           local previewFile = nbFileName .. ".html"
           divEl.attributes['notebook-preview-file'] = previewFile;
           local previewPath = pandoc.path.join({nbDir, previewFile})
+
+          
 
           -- The title for the notebook
           local nbTitle = divEl.attributes[kNotebookTitle]
@@ -45,8 +46,15 @@ function manuscript()
             cellId = ''
           end
 
-          -- TODO: Link with cell identifier
-          local labelInlines = pandoc.List({ pandoc.Str(notebookPrefix), pandoc.Str(':'), pandoc.Space(), pandoc.Link(nbTitle, repoUrl .. previewPath .. cellId )})
+          -- The label link  
+          if manuscriptUrl:sub(-1) ~= '/' then
+            manuscriptUrl =  manuscriptUrl .. '/' .. previewPath .. cellId;
+          else
+            manuscriptUrl =  manuscriptUrl .. previewPath .. cellId;
+          end
+
+            manuscriptUrl =  manuscriptUrl .. previewPath .. cellId;
+          local labelInlines = pandoc.List({ pandoc.Str(notebookPrefix), pandoc.Str(':'), pandoc.Space(), pandoc.Link(nbTitle, manuscriptUrl)})
 
           -- Attempt to forward the link into element captions, when possible
           local resolvedEl = _quarto.ast.walk(divEl, {
