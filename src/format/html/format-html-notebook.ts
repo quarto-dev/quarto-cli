@@ -368,7 +368,6 @@ async function renderHtmlView(
   services: RenderServices,
   previewFileName?: string,
 ): Promise<NotebookView> {
-  const href = relative(inputDir, nbAbsPath);
   if (options.href === undefined) {
     // Use the special `embed` template for this render
     const embedHtmlEjs = formatResourcePath(
@@ -377,7 +376,7 @@ async function renderHtmlView(
     );
     const embedTemplate = renderEjs(embedHtmlEjs, {
       title: options.title,
-      path: href,
+      path: basename(nbAbsPath),
       filename: basename(nbAbsPath),
     });
     const templatePath = services.temp.createFile({ suffix: ".html" });
@@ -406,7 +405,8 @@ async function renderHtmlView(
       throw new Error(`Failed to render preview for notebook ${nbAbsPath}`);
     }
 
-    const nbPreviewPath = join(inputDir, dirname(href), nbPreviewFile);
+    const nbRelPath = relative(inputDir, nbAbsPath);
+    const nbPreviewPath = join(inputDir, dirname(nbRelPath), nbPreviewFile);
     const supporting = [nbPreviewPath];
     for (const renderedFile of rendered.files) {
       if (renderedFile.supporting) {
@@ -418,7 +418,7 @@ async function renderHtmlView(
 
     return {
       title: options.title,
-      href: join(dirname(href), nbPreviewFile),
+      href: join(dirname(nbRelPath), nbPreviewFile),
       // notebook to be included as supporting file
       supporting,
     };
