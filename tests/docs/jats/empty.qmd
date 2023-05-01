@@ -1,0 +1,8 @@
+---
+title: Hello World
+date: last-modified
+---
+
+## Section Heading
+
+This is a minimal document with nearly no document metadata.

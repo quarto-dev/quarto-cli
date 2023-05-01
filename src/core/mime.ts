@@ -21,6 +21,8 @@ export const kApplicationJupyterWidgetState =
   "application/vnd.jupyter.widget-state+json";
 export const kApplicationJupyterWidgetView =
   "application/vnd.jupyter.widget-view+json";
+export const kDocxDocument =
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
 export const kRestructuredText = "text/restructuredtext";
 export const kApplicationRtf = "application/rtf";
@@ -112,4 +114,5 @@ const MEDIA_TYPES: Record<string, string> = {
   ".xwiki": kTextPlain,
   ".zim": kTextPlain,
   ".typ": kTextPlain,
+  ".docx": kDocxDocument,
 };

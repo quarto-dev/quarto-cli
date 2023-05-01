@@ -153,7 +153,7 @@ import { convertToHtmlSpans, hasAnsiEscapeCodes } from "../ansi-colors.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { mergeConfigs } from "../config.ts";
 import { encode as encodeBase64 } from "encoding/base64.ts";
-import { isIpynbOutput } from "../../config/format.ts";
+import { isIpynbOutput, isJatsOutput } from "../../config/format.ts";
 import { bookFixups, fixupJupyterNotebook } from "./jupyter-fixups.ts";
 
 export const kQuartoMimeType = "quarto_mimetype";
@@ -684,6 +684,7 @@ export async function jupyterToMarkdown(
 
     // convert cell yaml to cell metadata
     const cell = jupyterCellWithOptions(
+      i,
       nb.metadata.kernelspec.language.toLowerCase(),
       nb.cells[i],
     );
@@ -718,7 +719,7 @@ export async function jupyterToMarkdown(
         md.push(...mdFromContentCell(cell, options));
         break;
       case "raw":
-        md.push(...mdFromRawCell(cell));
+        md.push(...mdFromRawCell(cell, options));
         break;
       case "code":
         md.push(...(await mdFromCodeCell(cell, ++codeCellIndex, options)));
@@ -784,6 +785,7 @@ export async function jupyterToMarkdown(
 }
 
 export function jupyterCellWithOptions(
+  index: number,
   language: string,
   cell: JupyterCell,
 ): JupyterCellWithOptions {
@@ -824,8 +826,24 @@ export function jupyterCellWithOptions(
     ...explicitOptions,
   };
 
+  // Ensure that the cell has an id - the id will be
+  // unique within this notebook thanks to the index
+  const cellId = (cell: JupyterCell) => {
+    if (
+      options && options[kCellLabel] &&
+      typeof (options[kCellLabel]) === "string"
+    ) {
+      return `cell-${options[kCellLabel]}`;
+    } else if (cell.id) {
+      return cell.id;
+    } else {
+      return `cell-${index}`;
+    }
+  };
+
   return {
     ...cell,
+    id: cellId(cell),
     source,
     optionsSource,
     options,
@@ -858,22 +876,24 @@ export function jupyterCellOptionsAsComment(
 }
 
 export function mdFromContentCell(
-  cell: JupyterCell,
+  cell: JupyterCellWithOptions,
   options?: JupyterToMarkdownOptions,
 ) {
+  const contentCellEnvelope = createCellEnvelope(["cell", "markdown"], options);
+
+  // process each file attachment
+
   // if we have attachments then extract them and markup the source
   if (options && cell.attachments && cell.source) {
     // close source so we can modify it
     const source = ld.cloneDeep(cell.source) as string[];
-    // process each file attachment (ensure we have a cell id for uniqueness)
-    const cellId = cell.id || shortUuid();
     Object.keys(cell.attachments).forEach((file, index) => {
       const attachment = cell.attachments![file];
       for (const mimeType of Object.keys(attachment)) {
         if (extensionForMimeImageType(mimeType, undefined)) {
           // save attachment in the figures dir
           const imageFile = options.assets.figures_dir +
-            `/${cellId}-${index + 1}-${file}`;
+            `/${cell.id}-${index + 1}-${file}`;
           const outputFile = join(options.assets.base_dir, imageFile);
           ensureDirSync(dirname(outputFile));
           const data = attachment[mimeType];
@@ -900,30 +920,36 @@ export function mdFromContentCell(
         }
       }
     });
-    return mdEnsureTrailingNewline(source);
+
+    return contentCellEnvelope(cell.id, mdEnsureTrailingNewline(source));
   } else {
-    return mdEnsureTrailingNewline(cell.source);
+    return contentCellEnvelope(cell.id, mdEnsureTrailingNewline(cell.source));
   }
 }
 
-export function mdFromRawCell(cell: JupyterCell) {
+export function mdFromRawCell(
+  cell: JupyterCellWithOptions,
+  options?: JupyterToMarkdownOptions,
+) {
+  const rawCellEnvelope = createCellEnvelope(["cell", "raw"], options);
+
   const mimeType = cell.metadata?.[kCellRawMimeType];
   if (mimeType) {
     switch (mimeType) {
       case kTextHtml:
-        return mdHtmlOutput(cell.source);
+        return rawCellEnvelope(cell.id, mdHtmlOutput(cell.source));
       case kTextLatex:
-        return mdLatexOutput(cell.source);
+        return rawCellEnvelope(cell.id, mdLatexOutput(cell.source));
       case kRestructuredText:
-        return mdFormatOutput("rst", cell.source);
+        return rawCellEnvelope(cell.id, mdFormatOutput("rst", cell.source));
       case kApplicationRtf:
-        return mdFormatOutput("rtf", cell.source);
+        return rawCellEnvelope(cell.id, mdFormatOutput("rtf", cell.source));
       case kApplicationJavascript:
-        return mdScriptOutput(mimeType, cell.source);
+        return rawCellEnvelope(cell.id, mdScriptOutput(mimeType, cell.source));
     }
   }
 
-  return mdFromContentCell(cell);
+  return mdFromContentCell(cell, options);
 }
 
 export function mdEnsureTrailingNewline(source: string[]) {
@@ -974,6 +1000,24 @@ const tagMapping: Record<string, Record<string, boolean>> = {
     include: false,
   },
 };
+
+function createCellEnvelope(
+  classes: string[],
+  options?: JupyterToMarkdownOptions,
+) {
+  return (id: string, source: string | string[]) => {
+    if (options && options.preserveCellMetadata) {
+      const wrappedSource = [...source];
+      wrappedSource.unshift(
+        `:::{#${id} ${classes.map((clz) => `.${clz}`).join(" ")}}\n`,
+      );
+      wrappedSource.push(`:::`);
+      return mdEnsureTrailingNewline(wrappedSource);
+    } else {
+      return source;
+    }
+  };
+}
 
 function tagsToOptions(tags: string[]): Record<string, unknown> {
   const result: Record<string, unknown> = {};
@@ -1150,7 +1194,10 @@ async function mdFromCodeCell(
   // markdown. This will cause the id to be included in the
   // rendered notebook. Note that elsewhere we forard the
   // label to the id, so that can appear as the cell id.
-  if (isIpynbOutput(options.executeOptions.format.pandoc) && cell.id) {
+  if (
+    (isIpynbOutput(options.executeOptions.format.pandoc) ||
+      isJatsOutput(options.executeOptions.format.pandoc)) && cell.id
+  ) {
     divMd.push(`#${cell.id} `);
   }
 

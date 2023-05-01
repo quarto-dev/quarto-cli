@@ -291,6 +291,10 @@ export const jupyterEngine: ExecutionEngine = {
         : [],
     );
     const nb = jupyterFromJSON(nbContents);
+
+    // cells tagged 'shinylive' should be emmited as markdown
+    fixupShinyliveCodeCells(nb);
+
     const assets = jupyterAssets(
       options.target.input,
       options.format.pandoc.to,
@@ -434,6 +438,26 @@ async function ensureYamlKernelspec(
       Deno.writeTextFileSync(target.source, JSON.stringify(nb, null, 2));
       return yamlKernelspec;
     }
+  }
+}
+
+function fixupShinyliveCodeCells(nb: JupyterNotebook) {
+  if (nb.metadata.kernelspec.language === "python") {
+    nb.cells.forEach((cell) => {
+      if (
+        cell.cell_type === "code" && cell.metadata.tags?.includes("shinylive")
+      ) {
+        cell.cell_type = "markdown";
+        cell.metadata = {};
+        cell.source = [
+          "```{shinylive-python}\n",
+          ...cell.source,
+          "\n```",
+        ];
+        delete cell.execution_count;
+        delete cell.outputs;
+      }
+    });
   }
 }
 

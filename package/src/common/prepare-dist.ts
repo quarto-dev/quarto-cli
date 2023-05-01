@@ -238,4 +238,16 @@ function inlineFilters(config: Configuration) {
       join(outDir, filter.dir || filter.name, `${filter.name}.lua`),
     );
   });
+
+  const modules = "modules";
+  const modulesIn = join(
+    config.directoryInfo.src,
+    "resources",
+    "filters", modules);
+  const modulesOut = join(outDir, modules);
+
+  // move the modules directory
+  copySync(modulesIn, modulesOut)
+  
+
 }

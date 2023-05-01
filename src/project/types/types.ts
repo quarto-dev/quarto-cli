@@ -35,7 +35,7 @@ export interface ProjectType {
   filterFormat?: (
     source: string,
     format: Format,
-    project?: ProjectContext
+    project?: ProjectContext,
   ) => Format;
   formatExtras?: (
     context: ProjectContext,
@@ -91,6 +91,8 @@ export interface ProjectType {
 export interface ProjectOutputFile {
   file: string;
   format: Format;
+  resources: string[];
+  supporting?: string[];
 }
 
 export interface ProjectCreate {

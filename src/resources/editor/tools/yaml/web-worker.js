@@ -12437,7 +12437,6 @@ try {
         "schema/document-execute.yml": [
           {
             name: "engine",
-            hidden: true,
             schema: {
               string: {
                 completions: [
@@ -14347,7 +14346,31 @@ try {
               anyOf: [
                 "boolean",
                 {
-                  arrayOf: "string"
+                  maybeArrayOf: {
+                    anyOf: [
+                      "string",
+                      {
+                        object: {
+                          properties: {
+                            title: {
+                              string: {
+                                description: "The title for this alternative link."
+                              }
+                            },
+                            href: {
+                              string: {
+                                description: "The href for tihs alternative link."
+                              }
+                            }
+                          },
+                          required: [
+                            "title",
+                            "href"
+                          ]
+                        }
+                      }
+                    ]
+                  }
                 }
               ]
             },
@@ -14377,6 +14400,19 @@ try {
             description: {
               short: "Controls the display of links to notebooks that provided embedded content or are created from documents.",
               long: "Controls the display of links to notebooks that provided embedded content or are created from documents.\n\nSpecify `false` to disable linking to source Notebooks. Specify `inline` to show links to source notebooks beneath the content they provide. \nSpecify `global` to show a set of global links to source notebooks.\n"
+            }
+          },
+          {
+            name: "notebook-subarticles",
+            tags: {
+              formats: [
+                "$jats-all"
+              ]
+            },
+            schema: "boolean",
+            description: {
+              short: "Controls whether referenced notebooks are embedded in JATS output as subarticles.",
+              long: "Controls the display of links to notebooks that provided embedded content or are created from documents.\n\nDefaults to `true` - specify `false` to disable embedding Notebook as subarticles with the JATS output.\n"
             }
           },
           {
@@ -20145,9 +20181,17 @@ try {
             short: "Controls whether links to other rendered formats are displayed in\nHTML output.",
             long: "Controls whether links to other rendered formats are displayed in\nHTML output.\nPass <code>false</code> to disable the display of format lengths or\npass a list of format names for which you\u2019d like links to be shown."
           },
+          "The title for this alternative link.",
+          "The href for tihs alternative link.",
+          "The title for this alternative link.",
+          "The href for tihs alternative link.",
           {
             short: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.",
             long: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.\nSpecify <code>false</code> to disable linking to source Notebooks.\nSpecify <code>inline</code> to show links to source notebooks beneath\nthe content they provide. Specify <code>global</code> to show a set of\nglobal links to source notebooks."
+          },
+          {
+            short: "Controls whether referenced notebooks are embedded in JATS output as\nsubarticles.",
+            long: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.\nDefaults to <code>true</code> - specify <code>false</code> to disable\nembedding Notebook as subarticles with the JATS output."
           },
           "Configures the HTML viewer for notebooks that provide embedded\ncontent.",
           "The path to the locally referenced notebook.",
@@ -21406,12 +21450,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 155259,
+          _internalId: 158397,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 155251,
+              _internalId: 158389,
               type: "enum",
               enum: [
                 "png",
@@ -21427,7 +21471,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 155258,
+              _internalId: 158396,
               type: "anyOf",
               anyOf: [
                 {
