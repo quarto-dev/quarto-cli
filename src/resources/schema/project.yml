@@ -67,7 +67,7 @@
 - name: manuscript
   description: Manuscript configuration
   schema:
-    ref: base-manuscript
+    ref: manuscript-schema
 
 - name: type
   hidden: true
