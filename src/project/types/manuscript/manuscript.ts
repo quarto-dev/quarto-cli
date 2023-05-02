@@ -141,7 +141,7 @@ export const manuscriptProjectType: ProjectType = {
         if (move) {
           Deno.renameSync(input, target);
         } else {
-          copySync(input, target);
+          copySync(input, target, { overwrite: true });
         }
         return outputRelative;
       };

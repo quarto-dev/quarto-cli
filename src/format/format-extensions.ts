@@ -21,5 +21,6 @@ export interface NotebooksFormatExtension {
       afterBody?: string[];
     };
     supporting?: string[];
+    resourceFiles?: string[];
   }>;
 }
