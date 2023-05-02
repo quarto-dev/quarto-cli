@@ -97,12 +97,12 @@ local filterList = {
     code_annotations(),
     })},
   { name = "outputs", filter = unroll_cell_outputs() },
-  { name = "outputLocation", filter = outputLocation() },
+  { name = "outputLocation", filter = output_location() },
   { name = "combined-figures-theorems-etc", filter = combineFilters({
-    fileMetadata(),
-    indexBookFileTargets(),
-    bookNumbering(),
-    includePaths(),
+    file_metadata(),
+    index_book_file_targets(),
+    book_numbering(),
+    include_paths(),
     resourceFiles(),
     figures(),
     theorems(),
@@ -117,7 +117,7 @@ local filterList = {
     inputTraits()
   }) },
   { name = "combined-book-file-targets", filter = combineFilters({
-    fileMetadata(),
+    file_metadata(),
     resolveBookFileTargets(),
   }) },
   { name = "quartoPreMetaInject", filter = quartoPreMetaInject() },

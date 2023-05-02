@@ -62,7 +62,7 @@ return {
   crossrefPreprocess(),
   crossrefPreprocessTheorems(),
   combineFilters({
-    fileMetadata(),
+    file_metadata(),
     qmd(),
     sections(),
     crossrefFigures(),

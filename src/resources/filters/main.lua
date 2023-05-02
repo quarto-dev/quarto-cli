@@ -165,7 +165,7 @@ local quartoInit = {
   { name = "init-configure-filters", filter = configureFilters() },
   { name = "init-read-includes", filter = readIncludes() },
   { name = "init-metadata-resource-refs", filter = combineFilters({
-    fileMetadata(),
+    file_metadata(),
     resourceRefs()
   })},
 }
@@ -263,15 +263,15 @@ local quartoPre = {
     filter = unroll_cell_outputs(),
     flags = { "needs_output_unrolling" } },
 
-  { name = "pre-outputLocation", 
-    filter = outputLocation()
+  { name = "pre-output-location", 
+    filter = output_location()
   },
 
   { name = "pre-combined-figures-theorems-etc", filter = combineFilters({
-    fileMetadata(),
-    indexBookFileTargets(),
-    bookNumbering(),
-    includePaths(),
+    file_metadata(),
+    index_book_file_targets(),
+    book_numbering(),
+    include_paths(),
     resourceFiles(),
     quartoPreFigures(),
     quartoPreTheorems(),
@@ -286,7 +286,7 @@ local quartoPre = {
   }) },
 
   { name = "pre-combined-book-file-targets", filter = combineFilters({
-    fileMetadata(),
+    file_metadata(),
     resolveBookFileTargets(),
   }) },
 
@@ -333,7 +333,7 @@ local quartoFinalize = {
     -- quarto-finalize
     { name = "finalize-fileMetadataAndMediabag", filter =
     combineFilters({
-      fileMetadata(),
+      file_metadata(),
       mediabag()
     })
   },
@@ -375,7 +375,7 @@ local quartoCrossref = {
     end, jatsSubarticleCrossref()) },
 
   { name = "crossref-combineFilters", filter = combineFilters({
-    fileMetadata(),
+    file_metadata(),
     qmd(),
     sections(),
     crossrefFigures(),
