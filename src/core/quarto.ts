@@ -14,6 +14,7 @@ import { exitWithCleanup } from "./cleanup.ts";
 import { onActiveProfileChanged } from "../project/project-profile.ts";
 import { onDotenvChanged } from "../quarto-core/dotenv.ts";
 import { normalizePath } from "./path.ts";
+import { buildQuartoPreviewJs } from "./previewjs.ts";
 
 export const kLocalDevelopment = "99.9.9";
 
@@ -54,7 +55,13 @@ export const quartoConfig = {
   },
 };
 
-export function monitorPreviewTerminationConditions(cleanup?: VoidFunction) {
+export function previewEnsureResources(cleanup?: VoidFunction) {
+  if (quartoConfig.isDebug()) {
+    buildPreviewJs(quartoSrcDir(), cleanup);
+  }
+}
+
+export function previewMonitorResources(cleanup?: VoidFunction) {
   // active profile changed
   onActiveProfileChanged(() => {
     terminatePreview("active profile changed", cleanup);
@@ -64,15 +71,18 @@ export function monitorPreviewTerminationConditions(cleanup?: VoidFunction) {
     terminatePreview("environment variables changed", cleanup);
   });
 
-  // src code change
+  // dev mode only
   if (quartoConfig.isDebug()) {
-    const srcDir = normalizePath(
-      join(quartoConfig.binPath(), "../../../src"),
-    );
+    // src code change
+    const srcDir = quartoSrcDir();
     const watcher = Deno.watchFs([srcDir], { recursive: true });
     const watchForChanges = async () => {
       for await (const event of watcher) {
-        if (event.paths.some((path) => extname(path).toLowerCase() === ".ts")) {
+        if (
+          event.paths.some((path) =>
+            extname(path).toLowerCase().startsWith(".ts")
+          )
+        ) {
           terminatePreview("quarto src code changed", cleanup);
         }
       }
@@ -91,4 +101,15 @@ function terminatePreview(reason: string, cleanup?: VoidFunction) {
     cleanup();
   }
   exitWithCleanup(1);
+}
+
+function quartoSrcDir() {
+  return normalizePath(join(quartoConfig.binPath(), "../../../src"));
+}
+
+function buildPreviewJs(srcDir: string, cleanup?: VoidFunction) {
+  const output = buildQuartoPreviewJs(srcDir);
+  if (!output.success) {
+    terminatePreview("Error building quarto-preview.js", cleanup);
+  }
 }

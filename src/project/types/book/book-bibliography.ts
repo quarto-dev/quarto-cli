@@ -73,7 +73,7 @@ export async function bookBibliography(
   let csl = file.format.metadata[kCsl] as string;
   if (inputfile) {
     // Use the dirname from the input file to resolve the bibliography paths
-    const firstFileDir = dirname(inputfile);
+    const firstFileDir = dirname(inputfile.file);
     bibliographyPaths.push(
       ...bibliography.map((file) =>
         isAbsolute(file) ? file : join(firstFileDir, file)
