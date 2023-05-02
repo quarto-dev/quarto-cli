@@ -8,7 +8,7 @@ import { dirname, isAbsolute, join, relative } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
 import * as ld from "../../../core/lodash.ts";
-import { stringify } from "encoding/yaml.ts";
+import { stringify } from "yaml/mod.ts";
 import { error } from "log/mod.ts";
 
 import {

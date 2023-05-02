@@ -1,14 +1,13 @@
 /*
-* yaml.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * yaml.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { existsSync } from "fs/exists.ts";
 import { extname } from "path/mod.ts";
 
-import { parse } from "encoding/yaml.ts";
+import { parse } from "yaml/mod.ts";
 import { lines, matchAll, normalizeNewlines } from "./text.ts";
 import { ErrorEx } from "./lib/error.ts";
 import { getFrontMatterSchema } from "./lib/yaml-schema/front-matter.ts";
@@ -30,10 +29,10 @@ import {
 
 /// YAML schema imports
 
-import { Schema } from "encoding/_yaml/schema.ts";
-import { Type } from "encoding/_yaml/type.ts";
-import { bool, float, int, nil } from "encoding/_yaml/type/mod.ts";
-import { failsafe } from "encoding/_yaml/schema/failsafe.ts";
+import { Schema } from "yaml/schema.ts";
+import { Type } from "yaml/type.ts";
+import { bool, float, int, nil } from "yaml/_type/mod.ts";
+import { failsafe } from "yaml/schema/failsafe.ts";
 
 const kRegExBeginYAML = /^---[ \t]*$/;
 const kRegExEndYAML = /^(?:---|\.\.\.)([ \t]*)$/;

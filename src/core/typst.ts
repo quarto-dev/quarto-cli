@@ -1,12 +1,11 @@
 /*
-* typst.ts
-*
-* Copyright (C) 2022 Posit Software, PBC
-*
-*/
+ * typst.ts
+ *
+ * Copyright (C) 2022 Posit Software, PBC
+ */
 
 import { error, info } from "log/mod.ts";
-import { basename, dirname } from "path/mod.ts";
+import { basename } from "path/mod.ts";
 import * as colors from "fmt/colors.ts";
 
 import { satisfies } from "semver/mod.ts";
