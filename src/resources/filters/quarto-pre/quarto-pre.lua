@@ -112,8 +112,8 @@ local filterList = {
     engine_escape(),
     bootstrap_panel_input(),
     panelTabset(),
-    panelLayout(),
-    panelSidebar(),
+    bootstrap_panel_layout(),
+    bootstrap_panel_sidebar(),
     inputTraits()
   }) },
   { name = "combined-book-file-targets", filter = combineFilters({
