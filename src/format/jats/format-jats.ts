@@ -7,7 +7,11 @@
 
 import {
   kDefaultImageExtension,
+  kJatsSubarticleId,
   kLinkCitations,
+  kNotebookSubarticles,
+  kNotebookView,
+  kOutputExt,
   kQuartoInternal,
   kVariant,
 } from "../../config/constants.ts";
@@ -17,13 +21,28 @@ import { createFormat } from "../formats-shared.ts";
 
 import { warning } from "log/mod.ts";
 import { formatResourcePath } from "../../core/resources.ts";
-import { join } from "path/mod.ts";
+import { extname, join } from "path/mod.ts";
 import { reformat } from "../../core/xml.ts";
-import { RenderServices } from "../../command/render/types.ts";
+import { RenderContext, RenderServices } from "../../command/render/types.ts";
+import {
+  kNoteBookExtension,
+  NotebooksFormatExtension,
+} from "../format-extensions.ts";
+import {
+  JupyterMarkdownOptions,
+  notebookMarkdown,
+} from "../../core/jupyter/jupyter-embed.ts";
+import { jupyterAssets } from "../../core/jupyter/jupyter.ts";
+import { runPandoc } from "../../command/render/pandoc.ts";
+import { dirAndStem } from "../../core/path.ts";
+import { renderFormats } from "../../command/render/render-contexts.ts";
+import { kJatsSubarticle } from "./format-jats-types.ts";
+import { JupyterCell } from "../../core/jupyter/types.ts";
 
 const kJatsExtended = "jats-extended";
 const kJatsDtd = "jats-dtd";
 const kElementsVariant = "+element_citations";
+const kLintXml = "_lint-jats-xml-output";
 
 export function jatsFormat(displayName: string, ext: string): Format {
   return createFormat(displayName, ext, {
@@ -33,6 +52,7 @@ export function jatsFormat(displayName: string, ext: string): Format {
     },
     render: {
       [kVariant]: kElementsVariant,
+      [kNotebookSubarticles]: true,
     },
     formatExtras: (
       _input: string,
@@ -47,6 +67,7 @@ export function jatsFormat(displayName: string, ext: string): Format {
       // Provide a template and partials
       const templateDir = formatResourcePath("jats", "pandoc");
       const partials = [
+        "front.xml",
         "authors.xml",
         "institution.xml",
         "name.xml",
@@ -85,8 +106,13 @@ export function jatsFormat(displayName: string, ext: string): Format {
         },
         templateContext,
         metadataOverride,
-        postprocessors: [reformatXmlPostProcessor],
+        postprocessors: format.metadata[kLintXml] !== false
+          ? [reformatXmlPostProcessor]
+          : [],
       };
+    },
+    extensions: {
+      [kNoteBookExtension]: jatsNotebookExtension,
     },
   });
 }
@@ -125,4 +151,209 @@ const kDJatsDtds: Record<JatsTagset, DTDInfo> = {
 
 function jatsDtd(tagset: JatsTagset) {
   return kDJatsDtds[tagset];
+}
+
+const notebookPathForDocument = (path: string) => {
+  if (extname(path) === ".ipynb") {
+    return path;
+  }
+};
+
+interface NotebookSubarticle {
+  path: string;
+  filter?: (cell: JupyterCell) => boolean;
+}
+
+export const jatsNotebookExtension: NotebooksFormatExtension = {
+  processNotebooks: async function (
+    input: string,
+    format: Format,
+    notebooks: string[],
+    context: RenderContext,
+  ) {
+    if (format.render[kNotebookSubarticles] !== false) {
+      // The working directory that we'll use for rendering
+      const wd = context.options.services.temp.createDir();
+
+      // Accumulate the subarticles and their resources
+      const subarticlePaths: string[] = [];
+      const subarticleResources: string[] = [];
+      const subarticleSupporting: string[] = [];
+
+      // See if the input itself should be processed-
+      // if so, add it to the list of notebooks to render
+      // and add a filter to include only code cells.
+      const subarticleNotebooks = notebooks.map((nb) => {
+        return {
+          path: nb,
+        };
+      }) as NotebookSubarticle[];
+      const notebookPath = notebookPathForDocument(input);
+      if (notebookPath) {
+        subarticleNotebooks.push({
+          path: input,
+          filter: (cell: JupyterCell) => {
+            return cell.cell_type == "code";
+          },
+        });
+      }
+
+      // Accumulate markdown files that will be rendered
+      // into JATS sub-articles
+      for (let i = 0; i < subarticleNotebooks.length; i++) {
+        const notebook = subarticleNotebooks[i];
+        const notebookId = `nb-${i}`;
+
+        // Add the notebook itself to the list of supporting files
+        subarticleResources.push(notebook.path);
+
+        // Render the notebook to a markdown file
+        const inputMdFile = await writeNotebookMarkdown(
+          input,
+          notebook,
+          format,
+          context,
+          wd,
+        );
+
+        // Render the notebook into a JATS subarticle
+        if (inputMdFile) {
+          const jatsResult = await renderJatsSubarticle(
+            notebookId,
+            inputMdFile,
+            format,
+            context,
+          );
+
+          // Forward the rendered JATS and result along
+          subarticlePaths.push(jatsResult.afterBody);
+          if (jatsResult.supporting) {
+            subarticleSupporting.push(...jatsResult.supporting);
+          }
+        }
+      }
+
+      // Add any specified notebooks to the list of resources
+      const notebookView = format.render[kNotebookView] ?? true;
+      if (typeof (notebookView) !== "boolean") {
+        const nbs = Array.isArray(notebookView) ? notebookView : [notebookView];
+        for (const nb of nbs) {
+          if (nb.url === undefined) {
+            subarticleResources.push(nb.notebook);
+          }
+        }
+      }
+
+      return {
+        includes: {
+          afterBody: subarticlePaths,
+        },
+        supporting: subarticleSupporting,
+        resourceFiles: subarticleResources,
+      };
+    } else {
+      return {};
+    }
+  },
+};
+
+async function writeNotebookMarkdown(
+  input: string,
+  notebook: NotebookSubarticle,
+  format: Format,
+  context: RenderContext,
+  workingDir: string,
+) {
+  // TODO: deal with subdir
+  const [_nbDir, nbStem] = dirAndStem(notebook.path);
+  const nbAddress = {
+    path: notebook.path,
+  };
+
+  // TODO: ensure that echo forces code to be in notebook
+  const nbOptions: JupyterMarkdownOptions = {
+    echo: true,
+    preserveCellMetadata: true,
+    filter: notebook.filter,
+  };
+
+  // The assets target
+  const assets = jupyterAssets(
+    context.target.source,
+    format.identifier["base-format"],
+  );
+
+  // Render the notebook markdown
+  const nbMarkdown = await notebookMarkdown(
+    input,
+    nbAddress,
+    assets,
+    context,
+    context.options.flags || {},
+    nbOptions,
+  );
+
+  // The input file that we'll use to render
+  // TODO: deal with subdir / ensure that there aren't name conflicts here
+  if (nbMarkdown) {
+    const inputMdFile = join(workingDir, `${nbStem}.md`);
+    Deno.writeTextFileSync(inputMdFile, nbMarkdown);
+    return inputMdFile;
+  }
+}
+
+async function renderJatsSubarticle(
+  subarticleId: string,
+  inputMd: string,
+  format: Format,
+  context: RenderContext,
+) {
+  // Read the format from the input document
+  const targetFormat = format.identifier["target-format"] || "jats";
+  const formats = await renderFormats(inputMd, targetFormat);
+  const nbFormat = formats[targetFormat];
+
+  // Read the markdown
+  const markdown = Deno.readTextFileSync(inputMd);
+
+  // Compute the output file
+  const [inputDir, inputStem] = dirAndStem(inputMd);
+  const ext = format.render[kOutputExt] || "xml";
+  const output = join(inputDir, `${inputStem}.${ext}`);
+
+  // Use the subarticle template
+  nbFormat.pandoc.template = formatResourcePath(
+    "jats",
+    join("pandoc", "subarticle", "template.xml"),
+  );
+
+  // Configure the JATS renderingats
+  nbFormat.metadata[kLintXml] = false;
+  nbFormat.metadata[kJatsSubarticle] = true;
+  nbFormat.metadata[kJatsSubarticleId] = subarticleId;
+
+  // Run pandoc to render the notebook
+  const result = await runPandoc({
+    markdown,
+    source: inputMd,
+    keepYaml: false,
+    output,
+    mediabagDir: "",
+    libDir: "",
+    format: nbFormat,
+    args: [],
+    services: context.options.services,
+  }, []);
+
+  // Run any post processors
+  if (result?.postprocessors) {
+    for (const postprocessor of result.postprocessors) {
+      await postprocessor(output);
+    }
+  }
+
+  return {
+    afterBody: output,
+    supporting: result?.resources,
+  };
 }

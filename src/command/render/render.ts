@@ -55,6 +55,8 @@ import {
   kResourcePath,
 } from "../../config/constants.ts";
 import { pandocIngestSelfContainedContent } from "../../core/pandoc/self-contained.ts";
+import { kNoteBookExtension } from "../../format/format-extensions.ts";
+import { NotebooksFormatExtension } from "../../format/format-extensions.ts";
 
 export async function renderPandoc(
   file: ExecutedFile,
@@ -131,6 +133,46 @@ export async function renderPandoc(
       ? [notebookResult.includes?.inHeader]
       : undefined,
   };
+
+  // Allow formats to process the notebooks
+  const notebooksExtension = format.extensions
+    ?.[kNoteBookExtension] as NotebooksFormatExtension | undefined;
+  if (notebooksExtension) {
+    const extensionResult = await notebooksExtension.processNotebooks(
+      context.target.source,
+      format,
+      notebookResult.notebooks,
+      context,
+    );
+
+    // Inject any after body includes that the notebook provides
+    if (extensionResult.includes?.afterBody) {
+      pandocIncludes[kIncludeAfterBody] = pandocIncludes[kIncludeAfterBody] ||
+        [];
+      pandocIncludes[kIncludeAfterBody].push(
+        ...extensionResult.includes.afterBody,
+      );
+    }
+
+    // Inject any in header includes that the notebook provides
+    if (extensionResult.includes?.inHeader) {
+      pandocIncludes[kIncludeInHeader] = pandocIncludes[kIncludeInHeader] ||
+        [];
+      pandocIncludes[kIncludeInHeader].push(
+        ...extensionResult.includes.inHeader,
+      );
+    }
+
+    // Add any supporting dirs / files
+    if (extensionResult.supporting) {
+      executeResult.supporting = executeResult.supporting || [];
+      executeResult.supporting.push(...extensionResult.supporting);
+    }
+
+    if (extensionResult.resourceFiles) {
+      resourceFiles.push(...extensionResult.resourceFiles);
+    }
+  }
 
   // Inject dependencies
   format.pandoc = mergePandocIncludes(

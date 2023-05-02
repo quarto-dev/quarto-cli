@@ -1,0 +1,122 @@
+
+<!--
+     File mmlextra.ent produced by the XSL script characters.xsl
+     from input data in unicode.xml.
+
+     Please report any errors to David Carlisle
+     via the public W3C list www-math@w3.org.
+
+     The numeric character values assigned to each entity
+     (should) match the Unicode assignments in Unicode 4.0.
+
+-->
+
+<!ENTITY % plane1D  "&#38;#38;#x1D">
+
+<!ENTITY af               "&#x02061;" ><!--character showing function application in presentation tagging -->
+<!ENTITY aopf             "%plane1D;552;" ><!-- -->
+<!ENTITY asympeq          "&#x0224D;" ><!--Old ISOAMSR asymp (for HTML compatibility) -->
+<!ENTITY bopf             "%plane1D;553;" ><!-- -->
+<!ENTITY copf             "%plane1D;554;" ><!-- -->
+<!ENTITY Cross            "&#x02A2F;" ><!--cross or vector product -->
+<!ENTITY DD               "&#x02145;" ><!--D for use in differentials, e.g., within integrals -->
+<!ENTITY dd               "&#x02146;" ><!--d for use in differentials, e.g., within integrals -->
+<!ENTITY dopf             "%plane1D;555;" ><!-- -->
+<!ENTITY DownArrowBar     "&#x02913;" ><!--down arrow to bar -->
+<!ENTITY DownBreve        "&#x00311;" ><!--breve, inverted (non-spacing) -->
+<!ENTITY DownLeftRightVector "&#x02950;" ><!--left-down-right-down harpoon -->
+<!ENTITY DownLeftTeeVector "&#x0295E;" ><!--left-down harpoon from bar -->
+<!ENTITY DownLeftVectorBar "&#x02956;" ><!--left-down harpoon to bar -->
+<!ENTITY DownRightTeeVector "&#x0295F;" ><!--right-down harpoon from bar -->
+<!ENTITY DownRightVectorBar "&#x02957;" ><!--right-down harpoon to bar -->
+<!ENTITY ee               "&#x02147;" ><!--e use for the exponential base of the natural logarithms -->
+<!ENTITY EmptySmallSquare "&#x025FB;" ><!--empty small square -->
+<!ENTITY EmptyVerySmallSquare "&#x025AB;" ><!--empty small square -->
+<!ENTITY eopf             "%plane1D;556;" ><!-- -->
+<!ENTITY Equal            "&#x02A75;" ><!--two consecutive equal signs -->
+<!ENTITY FilledSmallSquare "&#x025FC;" ><!--filled small square -->
+<!ENTITY FilledVerySmallSquare "&#x025AA;" ><!--filled very small square -->
+<!ENTITY fopf             "%plane1D;557;" ><!-- -->
+<!ENTITY gopf             "%plane1D;558;" ><!-- -->
+<!ENTITY GreaterGreater   "&#x02AA2;" ><!--alias for GT -->
+<!ENTITY Hat              "&#x0005E;" ><!--circumflex accent -->
+<!ENTITY hopf             "%plane1D;559;" ><!-- -->
+<!ENTITY HorizontalLine   "&#x02500;" ><!--short horizontal line  -->
+<!ENTITY ic               "&#x02063;" ><!--short form of  &InvisibleComma; -->
+<!ENTITY ii               "&#x02148;" ><!--i for use as a square root of -1 -->
+<!ENTITY iopf             "%plane1D;55A;" ><!-- -->
+<!ENTITY it               "&#x02062;" ><!--marks multiplication when it is understood without a mark -->
+<!ENTITY jopf             "%plane1D;55B;" ><!-- -->
+<!ENTITY kopf             "%plane1D;55C;" ><!-- -->
+<!ENTITY larrb            "&#x021E4;" ><!--leftwards arrow to bar -->
+<!ENTITY LeftDownTeeVector "&#x02961;" ><!--down-left harpoon from bar -->
+<!ENTITY LeftDownVectorBar "&#x02959;" ><!--down-left harpoon to bar -->
+<!ENTITY LeftRightVector  "&#x0294E;" ><!--left-up-right-up harpoon -->
+<!ENTITY LeftTeeVector    "&#x0295A;" ><!--left-up harpoon from bar -->
+<!ENTITY LeftTriangleBar  "&#x029CF;" ><!--left triangle, vertical bar -->
+<!ENTITY LeftUpDownVector "&#x02951;" ><!--up-left-down-left harpoon -->
+<!ENTITY LeftUpTeeVector  "&#x02960;" ><!--up-left harpoon from bar -->
+<!ENTITY LeftUpVectorBar  "&#x02958;" ><!--up-left harpoon to bar -->
+<!ENTITY LeftVectorBar    "&#x02952;" ><!--left-up harpoon to bar -->
+<!ENTITY LessLess         "&#x02AA1;" ><!--alias for Lt -->
+<!ENTITY lopf             "%plane1D;55D;" ><!-- -->
+<!ENTITY mapstodown       "&#x021A7;" ><!--downwards arrow from bar -->
+<!ENTITY mapstoleft       "&#x021A4;" ><!--leftwards arrow from bar -->
+<!ENTITY mapstoup         "&#x021A5;" ><!--upwards arrow from bar -->
+<!ENTITY MediumSpace      "&#x0205F;" ><!--space of width 4/18 em -->
+<!ENTITY mopf             "%plane1D;55E;" ><!-- -->
+<!ENTITY nbump            "&#x0224E;&#x00338;" ><!--not bumpy equals -->
+<!ENTITY nbumpe           "&#x0224F;&#x00338;" ><!--not bumpy single equals -->
+<!ENTITY nesim            "&#x02242;&#x00338;" ><!--not equal or similar -->
+<!ENTITY NewLine          "&#x0000A;" ><!--force a line break; line feed -->
+<!ENTITY NoBreak          "&#x02060;" ><!--never break line here -->
+<!ENTITY nopf             "%plane1D;55F;" ><!-- -->
+<!ENTITY NotCupCap        "&#x0226D;" ><!--alias for &nasymp; -->
+<!ENTITY NotHumpEqual     "&#x0224F;&#x00338;" ><!--alias for &nbumpe; -->
+<!ENTITY NotLeftTriangleBar "&#x029CF;&#x00338;" ><!--not left triangle, vertical bar -->
+<!ENTITY NotNestedGreaterGreater "&#x02AA2;&#x00338;" ><!--not double greater-than sign -->
+<!ENTITY NotNestedLessLess "&#x02AA1;&#x00338;" ><!--not double less-than sign -->
+<!ENTITY NotRightTriangleBar "&#x029D0;&#x00338;" ><!--not vertical bar, right triangle -->
+<!ENTITY NotSquareSubset  "&#x0228F;&#x00338;" ><!--square not subset -->
+<!ENTITY NotSquareSuperset "&#x02290;&#x00338;" ><!--negated set-like partial order operator -->
+<!ENTITY NotSucceedsTilde "&#x0227F;&#x00338;" ><!--not succeeds or similar -->
+<!ENTITY oopf             "%plane1D;560;" ><!-- -->
+<!ENTITY OverBar          "&#x000AF;" ><!--over bar -->
+<!ENTITY OverBrace        "&#x0FE37;" ><!--over brace  -->
+<!ENTITY OverBracket      "&#x023B4;" ><!--over bracket -->
+<!ENTITY OverParenthesis  "&#x0FE35;" ><!--over parenthesis -->
+<!ENTITY planckh          "&#x0210E;" ><!--the ring (skew field) of quaternions -->
+<!ENTITY popf             "%plane1D;561;" ><!-- -->
+<!ENTITY Product          "&#x0220F;" ><!--alias for &prod; -->
+<!ENTITY qopf             "%plane1D;562;" ><!-- -->
+<!ENTITY rarrb            "&#x021E5;" ><!--leftwards arrow to bar -->
+<!ENTITY RightDownTeeVector "&#x0295D;" ><!--down-right harpoon from bar -->
+<!ENTITY RightDownVectorBar "&#x02955;" ><!--down-right harpoon to bar -->
+<!ENTITY RightTeeVector   "&#x0295B;" ><!--right-up harpoon from bar -->
+<!ENTITY RightTriangleBar "&#x029D0;" ><!--vertical bar, right triangle -->
+<!ENTITY RightUpDownVector "&#x0294F;" ><!--up-right-down-right harpoon -->
+<!ENTITY RightUpTeeVector "&#x0295C;" ><!--up-right harpoon from bar -->
+<!ENTITY RightUpVectorBar "&#x02954;" ><!--up-right harpoon to bar -->
+<!ENTITY RightVectorBar   "&#x02953;" ><!--up-right harpoon to bar -->
+<!ENTITY ropf             "%plane1D;563;" ><!-- -->
+<!ENTITY RoundImplies     "&#x02970;" ><!--round implies -->
+<!ENTITY RuleDelayed      "&#x029F4;" ><!--rule-delayed (colon right arrow) -->
+<!ENTITY sopf             "%plane1D;564;" ><!-- -->
+<!ENTITY Tab              "&#x00009;" ><!--tabulator stop; horizontal tabulation -->
+<!ENTITY ThickSpace       "&#x02009;&#x0200A;&#x0200A;" ><!--space of width 5/18 em -->
+<!ENTITY topf             "%plane1D;565;" ><!-- -->
+<!ENTITY UnderBar         "&#x00332;" ><!--combining low line -->
+<!ENTITY UnderBrace       "&#x0FE38;" ><!--under brace  -->
+<!ENTITY UnderBracket     "&#x023B5;" ><!--under bracket -->
+<!ENTITY UnderParenthesis "&#x0FE36;" ><!--under parenthesis -->
+<!ENTITY uopf             "%plane1D;566;" ><!-- -->
+<!ENTITY UpArrowBar       "&#x02912;" ><!--up arrow to bar -->
+<!ENTITY Upsilon          "&#x003A5;" ><!--ISOGRK1 Ugr, HTML4 Upsilon -->
+<!ENTITY VerticalLine     "&#x0007C;" ><!--alias ISONUM verbar -->
+<!ENTITY VerticalSeparator "&#x02758;" ><!--vertical separating operator -->
+<!ENTITY vopf             "%plane1D;567;" ><!-- -->
+<!ENTITY wopf             "%plane1D;568;" ><!-- -->
+<!ENTITY xopf             "%plane1D;569;" ><!-- -->
+<!ENTITY yopf             "%plane1D;56A;" ><!-- -->
+<!ENTITY ZeroWidthSpace   "&#x0200B;" ><!--zero width space -->
+<!ENTITY zopf             "%plane1D;56B;" ><!-- -->

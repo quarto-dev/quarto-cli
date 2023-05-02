@@ -1073,6 +1073,10 @@ figure .quarto-notebook-link {
   text-align: right;
 }
 
+.quarto-notebook .cell-code code {
+  white-space: pre-wrap;
+}
+
 .quarto-notebook h2 {
   border-bottom: none;
 }

@@ -25,7 +25,6 @@ import("./ast/runemulation.lua")
 import("./ast/traceexecution.lua")
 import("./ast/wrappedwriter.lua")
 
-import("./common/authors.lua")
 import("./common/base64.lua")
 import("./common/citations.lua")
 import("./common/colors.lua")
@@ -36,7 +35,6 @@ import("./common/filemetadata.lua")
 import("./common/format.lua")
 import("./common/latex.lua")
 import("./common/layout.lua")
-import("./common/license.lua")
 import("./common/list.lua")
 import("./common/log.lua")
 import("./common/lunacolors.lua")
@@ -101,6 +99,8 @@ import("./layout/table.lua")
 import("./layout/figures.lua")
 import("./layout/cites.lua")
 import("./layout/columns.lua")
+import("./layout/manuscript.lua")
+
 import("./layout/columns-preprocess.lua")
 import("./layout/layout.lua")
 import("./crossref/index.lua")
@@ -116,6 +116,7 @@ import("./crossref/refs.lua")
 import("./crossref/meta.lua")
 import("./crossref/format.lua")
 import("./crossref/options.lua")
+import("./crossref/jats.lua")
 --import("./crossref/crossref.lua")
 
 import("./quarto-pre/bibliography-formats.lua")
@@ -226,7 +227,7 @@ local quartoPre = {
   }) },
   { name = "pre-quartoPreMetaInject", filter = quartoPreMetaInject() },
   { name = "pre-writeResults", filter = writeResults() },
-  { name = "pre-projectPaths", filter = projectPaths() }
+  { name = "pre-projectPaths", filter = projectPaths() },
 }
 
 local quartoPost = {
@@ -249,7 +250,12 @@ local quartoPost = {
   }) },
   { name = "post-ojs", filter = ojs() },
   { name = "post-postMetaInject", filter = quartoPostMetaInject() },
-  { name = "post-render-jats", filter = jats() },
+  { name = "post-render-jats", filter = filterIf(function()
+    return preState.active_filters.jats_subarticle == nil or not preState.active_filters.jats_subarticle
+  end, jats()) },
+  { name = "post-render-jats-subarticle", filter = filterIf(function()
+    return preState.active_filters.jats_subarticle ~= nil and preState.active_filters.jats_subarticle
+  end, jatsSubarticle()) },
   { name = "post-render-asciidoc", filter = renderAsciidoc() },
   { name = "post-renderExtendedNodes", filter = renderExtendedNodes() },
   { name = "post-render-pandoc-3-figures", filter = render_pandoc3_figures() },
@@ -272,6 +278,7 @@ local quartoFinalize = {
 }
 
 local quartoLayout = {
+  { name = "manuscript filtering", filter = manuscript() },
   { name = "layout-columnsPreprocess", filter = columnsPreprocess() },
   { name = "layout-columns", filter = columns() },
   { name = "layout-citesPreprocess", filter = citesPreprocess() },
@@ -285,6 +292,9 @@ local quartoCrossref = {
   { name = "crossref-initCrossrefOptions", filter = initCrossrefOptions() },
   { name = "crossref-preprocess", filter = crossrefPreprocess() },
   { name = "crossref-preprocessTheorems", filter = crossrefPreprocessTheorems() },
+  { name = "pre-render-jats-subarticle", filter = filterIf(function()
+    return preState.active_filters.jats_subarticle ~= nil and preState.active_filters.jats_subarticle
+    end, jatsSubarticleCrossref()) },
   { name = "crossref-combineFilters", filter = combineFilters({
     fileMetadata(),
     qmd(),
