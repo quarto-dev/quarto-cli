@@ -118,7 +118,7 @@ export const knitrEngine: ExecutionEngine = {
             1;
           output = output.replace(
             /^Quitting from lines (\d+)-(\d+)/m,
-            `Quitting from lines ${newLine1}-${newLine2}`,
+            `\n\nQuitting from lines ${newLine1}-${newLine2}`,
           );
         }
 
