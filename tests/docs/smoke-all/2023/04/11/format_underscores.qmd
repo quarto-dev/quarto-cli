@@ -1,6 +1,6 @@
 ---
 title: "."
-from: commonmark_x-emoji+autolink_bare_urls
+from: commonmark_x-emoji+autolink_bare_uris
 ---
 
 <div class="sphinx-docs">
