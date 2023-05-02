@@ -282,17 +282,17 @@ local quartoPre = {
     bootstrap_panel_input(),
     bootstrap_panel_layout(),
     bootstrap_panel_sidebar(),
-    inputTraits()
+    input_traits()
   }) },
 
   { name = "pre-combined-book-file-targets", filter = combineFilters({
     file_metadata(),
-    resolveBookFileTargets(),
+    resolve_book_file_targets(),
   }) },
 
-  { name = "pre-quartoPreMetaInject", filter = quartoPreMetaInject() },
-  { name = "pre-writeResults", filter = writeResults() },
-  { name = "pre-projectPaths", filter = projectPaths() },
+  { name = "pre-quarto-pre-meta-inject", filter = quarto_pre_meta_inject() },
+  { name = "pre-write-results", filter = write_results() },
+  { name = "pre-project-paths", filter = project_paths() },
 }
 
 local quartoPost = {

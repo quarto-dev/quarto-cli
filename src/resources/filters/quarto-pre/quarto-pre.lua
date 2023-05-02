@@ -114,15 +114,15 @@ local filterList = {
     panelTabset(),
     bootstrap_panel_layout(),
     bootstrap_panel_sidebar(),
-    inputTraits()
+    input_traits()
   }) },
   { name = "combined-book-file-targets", filter = combineFilters({
     file_metadata(),
-    resolveBookFileTargets(),
+    resolve_book_file_targets(),
   }) },
-  { name = "quartoPreMetaInject", filter = quartoPreMetaInject() },
-  { name = "writeResults", filter = writeResults() },
-  { name = "projectPaths", filter = projectPaths()}
+  { name = "quarto-pre-meta-inject", filter = quarto_pre_meta_inject() },
+  { name = "write-results", filter = write_results() },
+  { name = "project-paths", filter = project_paths()}
 }
 
 return capture_timings(filterList)
