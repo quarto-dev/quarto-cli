@@ -18466,6 +18466,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Specify <code>loading: lazy</code> to defer loading comments until\nthe user scrolls near the comments container.",
         "Place the comment input box above or below the comments.",
         "The giscus theme to use when displaying comments.",
+        "The light theme name.",
+        "The dark theme name.",
         "The language that should be used when displaying the commenting\ninterface.",
         "Controls whether the sidebar opens automatically on startup.",
         "Controls whether the in-document highlights are shown by default\n(<code>always</code>, <code>whenSidebarOpen</code> or\n<code>never</code>)",
@@ -19472,6 +19474,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Specify a default profile and profile groups",
         "Default profile to apply if QUARTO_PROFILE is not defined.",
         "Define a profile group for which at least one profile is always\nactive.",
+        "The deployed url for this manuscript",
+        "Whether to generate a MECA bundle for this manuscript",
         {
           short: "Unique label for code cell",
           long: "Unique label for code cell. Used when other code needs to refer to\nthe cell (e.g.&nbsp;for cross references <code>fig-samples</code> or\n<code>tbl-summary</code>)"
@@ -20665,7 +20669,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The width of the preview image for this document.",
         "The alt text for preview image on this page.",
         "Project configuration.",
-        "Project type (<code>default</code>, <code>website</code>, or\n<code>book</code>)",
+        "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
         "Files to render (defaults to all files)",
         {
           short: "Working directory for computations",
@@ -20966,9 +20970,10 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
+        "Manuscript configuration",
         "internal-schema-hack",
         "Project configuration.",
-        "Project type (<code>default</code>, <code>website</code>, or\n<code>book</code>)",
+        "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
         "Files to render (defaults to all files)",
         {
           short: "Working directory for computations",
@@ -21269,10 +21274,8 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
-        "internal-schema-hack",
-        "The deployed url for this manuscript",
-        "Whether to generate a MECA bundle for this manuscript",
-        "Manuscript configuration"
+        "Manuscript configuration",
+        "internal-schema-hack"
       ],
       "schema/external-schemas.yml": [
         {
@@ -21496,12 +21499,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 158416,
+        _internalId: 158438,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 158408,
+            _internalId: 158430,
             type: "enum",
             enum: [
               "png",
@@ -21517,7 +21520,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 158415,
+            _internalId: 158437,
             type: "anyOf",
             anyOf: [
               {
