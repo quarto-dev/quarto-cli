@@ -80,6 +80,7 @@ export async function validateRequiredTypstVersion() {
 
 // TODO: this doesn't yet work correctly (typst exits on the first change to the typ file)
 // leaving the code here anyway as a foundation for getting it to work later
+/*
 export async function typstWatch(
   input: string,
   output: string,
@@ -101,20 +102,21 @@ export async function typstWatch(
     signal: controller.signal,
   });
 
+
   // spawn it
-  cmd.spawn();
+  const child = cmd.spawn();
 
   // wait for ready
   let allOutput = "";
   const decoder = new TextDecoder();
-  for await (const chunk of cmd.stderr) {
+  for await (const chunk of child.stderr) {
     const text = decoder.decode(chunk);
     allOutput += text;
     if (allOutput.includes("compiled successfully")) {
       if (!quiet) {
         typstProgressDone();
       }
-      cmd.status.then((status) => {
+      child.status.then((status) => {
         console.log(`typst exited with status ${status.code}`);
       });
       break;
@@ -124,6 +126,7 @@ export async function typstWatch(
   // return the abort controller
   return controller;
 }
+*/
 
 function typstProgress(input: string, output: string) {
   info(
