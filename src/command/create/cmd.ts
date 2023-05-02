@@ -16,7 +16,6 @@ import { CreateDirective } from "./artifacts/artifact-shared.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 import {
-  Checkbox,
   prompt,
   Select,
   SelectValueOptions,
@@ -134,14 +133,6 @@ export const createCommand = new Command()
             let nextPrompt = resolvedArtifact.nextPrompt(createOptions);
             while (nextPrompt !== undefined) {
               if (nextPrompt) {
-                if (
-                  (nextPrompt.type === Select ||
-                    nextPrompt.type === Checkbox) &&
-                  nextPrompt.hint === undefined
-                ) {
-                  nextPrompt.hint = arrowKeyHint();
-                }
-
                 const result = await prompt([nextPrompt]);
                 createOptions.options = {
                   ...createOptions.options,
@@ -219,24 +210,15 @@ const resolveArtifact = async (type?: string, prompt?: boolean) => {
   };
 };
 
-// The hint that is displayed to windows users to work around
-// the fact that the arrow keys don't work on Windows.
-function arrowKeyHint() {
-  return Deno.build.os === "windows"
-    ? `ℹ | Next: d, n | Previous: u, p |`
-    : undefined;
-}
 
 // Wrapper that will provide keyboard selection hint (if necessary)
 async function promptSelect(
   message: string,
   options: SelectValueOptions,
 ) {
-  const hint = arrowKeyHint();
   return await Select.prompt({
     message,
     options,
-    hint,
   });
 }
 
