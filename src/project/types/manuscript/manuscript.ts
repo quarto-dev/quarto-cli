@@ -36,9 +36,13 @@ const kMecaSuffix = "-meca.zip";
 const kManuscriptUrl = "manuscript-url";
 const kMecaArchive = "meca-archive";
 
-const mecaFileName = (file: string) => {
-  const [_, stem] = dirAndStem(file);
-  return `${stem}${kMecaSuffix}`;
+const mecaFileName = (file: string, manuOpts: ManuscriptOptions) => {
+  if (typeof (manuOpts[kMecaArchive]) === "string") {
+    return manuOpts[kMecaArchive];
+  } else {
+    const [_, stem] = dirAndStem(file);
+    return `${stem}${kMecaSuffix}`;
+  }
 };
 
 export const manuscriptProjectType: ProjectType = {
@@ -105,7 +109,7 @@ export const manuscriptProjectType: ProjectType = {
           }
           links.push({
             title: kMecaFileLabel,
-            href: mecaFileName(source),
+            href: mecaFileName(source, manuOpts),
           });
           format.render[kFormatLinks] = links;
         }
@@ -226,7 +230,7 @@ export const manuscriptProjectType: ProjectType = {
         ];
 
         // Compress the working directory in a zip
-        const mecaName = mecaFileName(articlePath);
+        const mecaName = mecaFileName(articlePath, manuOpts);
         const zipResult = await zip(filesToZip, mecaName, {
           cwd: workingDir,
         });
@@ -294,7 +298,7 @@ const mecaType = (_path: string) => {
 
 interface ManuscriptOptions {
   [kManuscriptUrl]?: string;
-  [kMecaArchive]?: boolean;
+  [kMecaArchive]?: boolean | string;
 }
 
 const manuscriptOptions = (config?: ProjectConfig): ManuscriptOptions => {

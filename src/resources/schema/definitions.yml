@@ -2149,5 +2149,7 @@
           string:
             description: "The deployed url for this manuscript"
         "meca-archive":
-          boolean:
-            description: "Whether to generate a MECA bundle for this manuscript"
+          anyOf:
+            - boolean
+            - string
+          description: "Whether to generate a MECA bundle for this manuscript"
