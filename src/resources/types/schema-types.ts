@@ -1136,6 +1136,12 @@ export type QuartoDevSchema = {
   _quarto?: { "trace-filters"?: string; tests?: SchemaObject };
 };
 
+export type ManuscriptSchema = {
+  "manuscript-url"?: string /* The deployed url for this manuscript */;
+  "meca-archive"?:
+    boolean; /* Whether to generate a MECA bundle for this manuscript */
+};
+
 export type ProjectConfig = {
   "execute-dir"?:
     | "file"
@@ -1154,7 +1160,8 @@ export type ProjectConfig = {
     string
   > /* Additional file resources to be copied to output directory */;
   title?: string;
-  type?: string; /* Project type (`default`, `website`, or `book`) */
+  type?:
+    string; /* Project type (`default`, `website`, `book`, or `manuscript`) */
 };
 
 export type BookProject = SchemaObject;

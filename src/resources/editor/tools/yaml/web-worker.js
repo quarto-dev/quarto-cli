@@ -11121,6 +11121,26 @@ try {
                 }
               }
             }
+          },
+          {
+            id: "manuscript-schema",
+            schema: {
+              object: {
+                closed: true,
+                properties: {
+                  "manuscript-url": {
+                    string: {
+                      description: "The deployed url for this manuscript"
+                    }
+                  },
+                  "meca-archive": {
+                    boolean: {
+                      description: "Whether to generate a MECA bundle for this manuscript"
+                    }
+                  }
+                }
+              }
+            }
           }
         ],
         "schema/document-about.yml": [
@@ -17650,9 +17670,9 @@ try {
                       completions: [
                         "default",
                         "website",
-                        "book"
+                        "book. manuscript"
                       ],
-                      description: "Project type (`default`, `website`, or `book`)"
+                      description: "Project type (`default`, `website`, `book`, or `manuscript`)"
                     }
                   },
                   render: {
@@ -17737,6 +17757,13 @@ try {
                   }
                 ]
               }
+            }
+          },
+          {
+            name: "manuscript",
+            description: "Manuscript configuration",
+            schema: {
+              ref: "manuscript-schema"
             }
           },
           {
@@ -21226,7 +21253,10 @@ try {
             long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
-          "internal-schema-hack"
+          "internal-schema-hack",
+          "The deployed url for this manuscript",
+          "Whether to generate a MECA bundle for this manuscript",
+          "Manuscript configuration"
         ],
         "schema/external-schemas.yml": [
           {
@@ -21450,12 +21480,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 158397,
+          _internalId: 158409,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 158389,
+              _internalId: 158401,
               type: "enum",
               enum: [
                 "png",
@@ -21471,7 +21501,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 158396,
+              _internalId: 158408,
               type: "anyOf",
               anyOf: [
                 {
