@@ -2,7 +2,7 @@
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
 
-function lineNumbers()
+function line_numbers()
   return {
     CodeBlock = function(el)
       if #el.attr.classes > 0 then

@@ -1,7 +1,7 @@
 -- resourcefiles.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
-function resourceFiles() 
+function resource_files() 
   return {
     -- TODO: discover resource files
     -- Note that currently even if we discover resourceFiles in markdown they don't 
@@ -17,6 +17,7 @@ function resourceFiles()
           local inputDir = pandoc.path.directory(quarto.doc.input_file)
           targetPath = pandoc.path.join({inputDir, el.src})
         end
+        -- FIXME shouldn't we be using targetPath here?
         recordFileResource(el.src)
       end
     end,
