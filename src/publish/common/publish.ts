@@ -30,7 +30,6 @@ import { isHtmlContent, isPdfContent } from "../../core/mime.ts";
 import { globalTempContext } from "../../core/temp.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { encodeAttributeValue } from "../../core/html.ts";
-import { haveArrowKeys } from "../../core/platform.ts";
 import { capitalizeWord } from "../../core/text.ts";
 import { RenderFlags } from "../../command/render/types.ts";
 
@@ -348,35 +347,23 @@ async function promptForSlug(
   }
 
   if (await slugAvailable(slug)) {
-    if (haveArrowKeys()) {
-      const kConfirmed = "confirmed";
-      const input = await Select.prompt({
-        indent: "",
-        message: `${typeName(type)} name:`,
-        options: [
-          {
-            name: slug,
-            value: kConfirmed,
-          },
-          {
-            name: "Use another name...",
-            value: "another",
-          },
-        ],
-      });
-      if (input === kConfirmed) {
-        return slug;
-      }
-    } else {
-      const result = await Confirm.prompt({
-        indent: "",
-        message: `Publish with name '${slug}'?`,
-        default: true,
-        hint: "Type 'n' to use a different name",
-      });
-      if (result) {
-        return slug;
-      }
+    const kConfirmed = "confirmed";
+    const input = await Select.prompt({
+      indent: "",
+      message: `${typeName(type)} name:`,
+      options: [
+        {
+          name: slug,
+          value: kConfirmed,
+        },
+        {
+          name: "Use another name...",
+          value: "another",
+        },
+      ],
+    });
+    if (input === kConfirmed) {
+      return slug;
     }
   }
 
