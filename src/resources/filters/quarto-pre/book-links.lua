@@ -1,23 +1,23 @@
 -- book-links.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
-function indexBookFileTargets() 
+function index_book_file_targets() 
     if not param("single-file-book", false) then
       return {} 
     else 
       return {
         Header = function(el)
-        if el.level == 1 then 
-          local file = currentFileMetadataState().file
-          if file ~= nil then   
-            local filename = file.bookItemFile;
-            if filename ~= nil and preState.fileSectionIds[filename] == nil then
-              preState.fileSectionIds[filename] = el.identifier
+          if el.level == 1 then 
+            local file = currentFileMetadataState().file
+            if file ~= nil then   
+              local filename = file.bookItemFile;
+              if filename ~= nil and preState.fileSectionIds[filename] == nil then
+                preState.fileSectionIds[filename] = el.identifier
+              end
             end
           end
         end
-      end
-    }
+      }
   end
 end
 
