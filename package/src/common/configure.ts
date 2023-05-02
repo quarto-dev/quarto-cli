@@ -5,7 +5,7 @@
 *
 */
 import { dirname, join, SEP } from "path/mod.ts";
-import { existsSync } from "node/fs.ts";
+import { existsSync } from "node:fs";
 import { ensureDirSync } from "fs/mod.ts";
 import { info, warning } from "log/mod.ts";
 
@@ -21,6 +21,7 @@ import {
   kDependencies,
 } from "./dependencies/dependencies.ts";
 import { suggestUserBinPaths } from "../../../src/core/env.ts";
+import { buildQuartoPreviewJs } from "../../../src/core/previewjs.ts";
 
 
 export async function configure(
@@ -47,6 +48,11 @@ export async function configure(
     }
   }
 
+  const result = buildQuartoPreviewJs(config.directoryInfo.src);
+  if (!result.success) {
+    throw new Error();
+  }
+  
   // Move the quarto script into place
   info("Creating Quarto script");
   copyQuartoScript(config, config.directoryInfo.bin);
