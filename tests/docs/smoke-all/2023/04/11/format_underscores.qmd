@@ -1,6 +1,6 @@
 ---
 title: "."
-from: commonmark_x+emoji-markdown_attribute+wikilinks_title_before_pipe
+from: commonmark_x-emoji+autolink_bare_urls
 ---
 
 <div class="sphinx-docs">
