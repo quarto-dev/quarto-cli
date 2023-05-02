@@ -1,11 +1,10 @@
 /*
-* dependencies.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * dependencies.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 import { dirname, join, SEP } from "path/mod.ts";
-import { existsSync } from "node:fs";
+import { existsSync } from "fs/mod.ts";
 import { ensureDirSync } from "fs/mod.ts";
 import { info, warning } from "log/mod.ts";
 
@@ -22,7 +21,6 @@ import {
 } from "./dependencies/dependencies.ts";
 import { suggestUserBinPaths } from "../../../src/core/env.ts";
 import { buildQuartoPreviewJs } from "../../../src/core/previewjs.ts";
-
 
 export async function configure(
   config: Configuration,
@@ -52,7 +50,7 @@ export async function configure(
   if (!result.success) {
     throw new Error();
   }
-  
+
   // Move the quarto script into place
   info("Creating Quarto script");
   copyQuartoScript(config, config.directoryInfo.bin);
