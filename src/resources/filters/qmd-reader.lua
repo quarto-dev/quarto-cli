@@ -137,7 +137,5 @@ function Reader (inputs, opts)
       return cb
     end
   }
-  print(doc)
-
   return doc
 end
