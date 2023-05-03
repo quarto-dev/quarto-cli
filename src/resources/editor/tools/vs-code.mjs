@@ -11149,10 +11149,12 @@ var require_yaml_intelligence_resources = __commonJS({
                     description: "The deployed url for this manuscript"
                   }
                 },
-                meca: {
-                  boolean: {
-                    description: "Whether to generate a MECA bundle for this manuscript"
-                  }
+                "meca-archive": {
+                  anyOf: [
+                    "boolean",
+                    "string"
+                  ],
+                  description: "Whether to generate a MECA bundle for this manuscript"
                 }
               }
             }
@@ -18466,8 +18468,6 @@ var require_yaml_intelligence_resources = __commonJS({
         "Specify <code>loading: lazy</code> to defer loading comments until\nthe user scrolls near the comments container.",
         "Place the comment input box above or below the comments.",
         "The giscus theme to use when displaying comments.",
-        "The light theme name.",
-        "The dark theme name.",
         "The language that should be used when displaying the commenting\ninterface.",
         "Controls whether the sidebar opens automatically on startup.",
         "Controls whether the in-document highlights are shown by default\n(<code>always</code>, <code>whenSidebarOpen</code> or\n<code>never</code>)",
@@ -21499,12 +21499,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 158438,
+        _internalId: 158441,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 158430,
+            _internalId: 158433,
             type: "enum",
             enum: [
               "png",
@@ -21520,7 +21520,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 158437,
+            _internalId: 158440,
             type: "anyOf",
             anyOf: [
               {

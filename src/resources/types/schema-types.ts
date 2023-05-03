@@ -1142,7 +1142,9 @@ export type QuartoDevSchema = {
 
 export type ManuscriptSchema = {
   "manuscript-url"?: string /* The deployed url for this manuscript */;
-  meca?: boolean; /* Whether to generate a MECA bundle for this manuscript */
+  "meca-archive"?:
+    | boolean
+    | string; /* Whether to generate a MECA bundle for this manuscript */
 };
 
 export type ProjectConfig = {

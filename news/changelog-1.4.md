@@ -13,10 +13,11 @@
 ## Miscellaneous
 
 - don't report a non-existing version of Google Chrome in macOS ([#2214](https://github.com/quarto-dev/quarto-cli/issues/2214), reopened).
+- support `from: ` formats correctly ([#5377](https://github.com/quarto-dev/quarto-cli/issues/5377)).
 
 ## Docusaurus Format
 
-- Support for `code-line-numbers` in Docusaurus output ([#5152](https://github.com/quarto-dev/quarto-cli/issues/5152))
+- Support for `code-line-numbers` in Docusaurus output ([#5152](https://github.com/quarto-dev/quarto-cli/issues/5152)).
 
 ## OJS engine
 
