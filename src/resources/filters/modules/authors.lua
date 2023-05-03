@@ -116,6 +116,56 @@ local kRole = "role"
 local kDegreeContribution = "degree-of-contribution"
 local kAuthorRoleFields = { kRole, kRoles }
 
+-- CreDitT schema and definitions
+local kWritingOriginal = "writing – original draft"
+local kWritingEditing = "writing – review & editing"
+local kFormalAnalysis = "formal analysis"
+local kFundingAcquisition = "funding acquisition"
+local kConceptualization = "conceptualization"
+local kDataCuration = "data curation"
+local kInvestigation = "investigation"
+local kMethodology = "methodology"
+local kProjectAdmin = "project administration"
+local kResources = "resources"
+local kSoftware = "software"
+local kSupervision = "supervision"
+local kValidation = "validation"
+local kVisualization = "visualization"
+local kCreditRoles = {kConceptualization, kDataCuration, kFormalAnalysis, 
+                      kFundingAcquisition, kInvestigation, kMethodology,
+                      kProjectAdmin, kResources, kSoftware, 
+                      kSupervision, kValidation, kVisualization, 
+                      kWritingOriginal, kWritingEditing}
+local kCreditAliases = {
+  ["writing"] = kWritingOriginal,
+  ["analysis"] = kFormalAnalysis,
+  ["funding"] = kFundingAcquisition,
+  ["editing"] = kWritingEditing
+}
+
+local kVocabIdentifier = "vocab-identifier"
+local kVocabTerm = "vocab-term"
+local kVocabTermIdentifier="vocab-term-identifier"
+
+local kCreditVocabIdentifier = "https://credit.niso.org"
+local kCreditVocabTermIdentifiers = {
+  [kConceptualization] = "https://credit.niso.org/contributor-roles/conceptualization/",
+  [kDataCuration] = "https://credit.niso.org/contributor-roles/data-curation/",
+  [kFormalAnalysis] = "https://credit.niso.org/contributor-roles/formal-analysis/",
+  [kFundingAcquisition] = "https://credit.niso.org/contributor-roles/funding-acquisition/",
+  [kInvestigation] = "https://credit.niso.org/contributor-roles/investigation/",
+  [kMethodology] = "https://credit.niso.org/contributor-roles/methodology/",
+  [kProjectAdmin] = "https://credit.niso.org/contributor-roles/project-administration/",
+  [kResources] = "https://credit.niso.org/contributor-roles/resources/",
+  [kSoftware] = "https://credit.niso.org/contributor-roles/software/",
+  [kSupervision] = "https://credit.niso.org/contributor-roles/supervision/",
+  [kValidation] = "https://credit.niso.org/contributor-roles/validation/",
+  [kVisualization] = "https://credit.niso.org/contributor-roles/visualization/",
+  [kWritingOriginal] = "https://credit.niso.org/contributor-roles/writing-original-draft/",
+  [kWritingEditing] = "https://credit.niso.org/contributor-roles/writing-review-editing/"
+}
+
+
 -- an affiliation which will be structured into a standalone
 local kAffilName = 'name'
 local kDepartment = 'department'
@@ -600,6 +650,22 @@ local function setRole(author, role)
   if not author[kRoles] then
     author[kRoles] = {}
   end
+
+  -- resolve shorthands
+  local term = string.lower(role.role)
+  local alias = kCreditAliases[role]
+  if alias then
+    term = alias
+  end
+
+  -- if this is a CreDiT Role then
+  -- attach vocabulary decorations
+  if tcontains(kCreditRoles, term) then
+    role[kVocabIdentifier] = kCreditVocabIdentifier
+    role[kVocabTerm] = term
+    role[kVocabTermIdentifier] = kCreditVocabTermIdentifiers[term]
+  end
+
   author[kRoles][#author[kRoles] + 1] = role
 end
 
