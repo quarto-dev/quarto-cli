@@ -11,7 +11,7 @@ import { dirname, extname, join, relative } from "path/mod.ts";
 import { walkSync } from "fs/walk.ts";
 import * as colors from "fmt/colors.ts";
 import { decode as base64decode } from "encoding/base64.ts";
-import { stringify, StringifyOptions } from "encoding/yaml.ts";
+import { DumpOptions as StringifyOptions, stringify } from "yaml/mod.ts";
 import { partitionCellOptions } from "../lib/partition-cell-options.ts";
 import * as ld from "../lodash.ts";
 

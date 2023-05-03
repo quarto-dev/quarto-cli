@@ -11,7 +11,7 @@ import Chrome from "./chrome.js";
 
 export default CDP;
 export { Protocol, List, New, Activate, Close, Version } from "./devtools.js";
-import { nextTick } from "node/_next_tick.ts";
+import { nextTick } from "../../deno/next-tick.ts";
 
 // const EventEmitter = require('events');
 // const dns = require('dns');

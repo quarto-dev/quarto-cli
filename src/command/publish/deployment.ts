@@ -26,7 +26,6 @@ import {
   publishRecordIdentifier,
   readAccountsPublishedTo,
 } from "../../publish/common/data.ts";
-import { haveArrowKeys } from "../../core/platform.ts";
 
 export async function resolveDeployment(
   options: PublishOptions,
@@ -83,22 +82,9 @@ export async function resolveDeployment(
         } else {
           throw new Error();
         }
-      } else if (haveArrowKeys()) {
-        return await chooseDeployment(deployments);
-      } else if (deployments.length === 1) {
-        const confirmed = await confirmPrompt(
-          "Type 'n' to add a new destination",
-        );
-        if (confirmed) {
-          return deployments[0];
-        } else {
-          return undefined;
-        }
       } else {
-        throw new Error(
-          `Multiple previous publishes exist (specify one to republish with --id)`,
-        );
-      }
+        return await chooseDeployment(deployments);
+      } 
     } else if (deployments.length === 1) {
       return deployments[0];
     } else {

@@ -100,7 +100,10 @@ import {
 } from "../../core/platform.ts";
 import { ServeRenderManager } from "./render.ts";
 import { projectScratchPath } from "../project-scratch.ts";
-import { monitorPreviewTerminationConditions } from "../../core/quarto.ts";
+import {
+  previewEnsureResources,
+  previewMonitorResources,
+} from "../../core/quarto.ts";
 import { exitWithCleanup, onCleanup } from "../../core/cleanup.ts";
 import { projectExtensionDirs } from "../../extension/extension.ts";
 import { findOpenPort } from "../../core/port.ts";
@@ -137,7 +140,8 @@ export async function serveProject(
   acquirePreviewLock(project);
 
   // monitor the src dir
-  monitorPreviewTerminationConditions();
+  previewEnsureResources();
+  previewMonitorResources();
 
   // clear the project index
   clearProjectIndex(project.dir);
@@ -502,7 +506,7 @@ async function internalPreviewServer(
           watcher.project(),
           filePathRelative,
         );
-        if (!inputFile || !existsSync(inputFile)) {
+        if (!inputFile || !existsSync(inputFile.file)) {
           inputFile = await inputFileForOutputFile(
             await watcher.refreshProject(),
             filePathRelative,
@@ -515,7 +519,7 @@ async function internalPreviewServer(
           if (
             renderManager.fileRequiresReRender(
               file,
-              inputFile,
+              inputFile.file,
               extensionDirs,
               resourceFiles,
               watcher.project(),
@@ -536,7 +540,7 @@ async function internalPreviewServer(
             }
             const services = renderServices();
             try {
-              result = await renderManager.renderQueue().enqueue(() =>
+              result = await renderManager.submitRender(() =>
                 renderProject(
                   watcher.project(),
                   {
@@ -546,11 +550,11 @@ async function internalPreviewServer(
                     flags: renderFlags,
                     pandocArgs: renderPandocArgs,
                   },
-                  [inputFile!],
+                  [inputFile!.file],
                 )
               );
               if (result.error) {
-                logError(result.error);
+                renderManager.onRenderError(result.error);
                 renderError = result.error;
               } else {
                 renderManager.onRenderResult(
@@ -578,7 +582,7 @@ async function internalPreviewServer(
         if (isHtmlContent(file) && inputFile) {
           const projInputFile = join(
             project!.dir,
-            relative(watcher.project().dir, inputFile),
+            relative(watcher.project().dir, inputFile.file),
           );
           return watcher.injectClient(
             req,
@@ -703,7 +707,7 @@ function previewControlChannelRequestHandler(
 ): (req: Request) => Promise<Response | undefined> {
   return async (req: Request) => {
     if (watcher.handle(req)) {
-      return await watcher.connect(req);
+      return await watcher.request(req);
     } else if (isPreviewTerminateRequest(req)) {
       exitWithCleanup(0);
     } else if (isPreviewRenderRequest(req)) {
