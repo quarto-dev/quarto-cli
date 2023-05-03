@@ -382,7 +382,7 @@ local quartoCrossref = {
     file_metadata(),
     qmd(),
     sections(),
-    crossrefFigures(),
+    crossref_figures(),
     crossrefTables(),
     equations(),
     listings(),
