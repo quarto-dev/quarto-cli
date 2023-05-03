@@ -124,7 +124,7 @@ export async function filterParamsJson(
     ...includes,
     ...initFilterParams(dependenciesFile),
     ...ipynbFilterParams(options),
-    ...projectFilterParams(options),
+    ...await projectFilterParams(options),
     ...quartoColumnParams,
     ...await quartoFilterParams(options, defaults),
     ...crossrefFilterParams(options, defaults),
@@ -414,13 +414,15 @@ function languageFilterParams(language: FormatLanguage) {
   return params;
 }
 
-function projectFilterParams(options: PandocOptions) {
+async function projectFilterParams(options: PandocOptions) {
   // see if the project wants to provide any filter params
   const projType = projectType(
     options.project?.config?.project?.[kProjectType],
   );
   const params =
-    ((projType.filterParams ? projType.filterParams(options) : undefined) ||
+    ((projType.filterParams
+      ? await projType.filterParams(options)
+      : undefined) ||
       {}) as Metadata;
 
   const additionalParams: Metadata = {};

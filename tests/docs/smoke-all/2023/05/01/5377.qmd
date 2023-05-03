@@ -1,0 +1,11 @@
+---
+from: commonmark_x
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["#issue5377"]
+---
+
+{#issue5377}
+> Block quote

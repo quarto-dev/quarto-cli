@@ -39,3 +39,46 @@ export async function getGithubDiscussionsMetadata(repo: string) {
   const jsonObj = await response.json();
   return jsonObj as GithubDiscussionMetadata;
 }
+
+export type GiscusThemeToggleRecord = {
+  baseTheme: string;
+  altTheme: string;
+}
+
+export type GiscusTheme = {
+  light?: string;
+  dark?: string;
+} | string;
+
+enum GiscusThemeDefault {
+  light = "light",
+  dark = "dark",
+}
+
+export const buildGiscusThemeKeys = (
+  darkModeDefault: boolean,
+  theme: GiscusTheme
+): GiscusThemeToggleRecord => {
+  if (typeof theme === "string") {
+    if (theme.length > 0) {
+      return { baseTheme: theme, altTheme: theme };
+    } else {
+      theme = { light: GiscusThemeDefault.light, dark: GiscusThemeDefault.dark };
+    }
+  }
+
+  const themeRecord: { light: string; dark: string } = theme as {
+    light: string;
+    dark: string;
+  };
+  const result = {
+    baseTheme: themeRecord.light ?? GiscusThemeDefault.light,
+    altTheme: themeRecord.dark ?? GiscusThemeDefault.dark,
+  };
+
+  if (darkModeDefault) {
+    [result.baseTheme, result.altTheme] = [result.altTheme, result.baseTheme];
+  }
+
+  return result;
+};

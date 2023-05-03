@@ -616,7 +616,7 @@ main {
 
 h1,
 h2 {
-  opacity: 0.9;
+  color: theme-dim($body-color, 8%);
   margin-top: 2rem;
   margin-bottom: 1rem;
   font-weight: 600;

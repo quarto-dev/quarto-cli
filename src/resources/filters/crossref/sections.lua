@@ -98,7 +98,7 @@ end
 
 function numberSections()
   return not _quarto.format.isLatexOutput() and 
-         not _quarto.format.isTypstOutput and
+         not _quarto.format.isTypstOutput() and
          not _quarto.format.isMarkdownOutput() 
          and numberSectionsOptionEnabled()
 end

@@ -132,7 +132,11 @@ the discussions feature must be enabled. */;
         | "dark_dimmed"
         | "transparent_dark"
         | "preferred_color_scheme"
-      ); /* The giscus theme to use when displaying comments. */
+      )
+      | {
+        dark?: string /* The dark theme name. */;
+        light?: string; /* The light theme name. */
+      }; /* The giscus theme to use when displaying comments. */
   };
   hypothesis?: boolean | {
     assetRoot?: string /* The root URL from which assets are loaded. */;
@@ -1136,6 +1140,13 @@ export type QuartoDevSchema = {
   _quarto?: { "trace-filters"?: string; tests?: SchemaObject };
 };
 
+export type ManuscriptSchema = {
+  "manuscript-url"?: string /* The deployed url for this manuscript */;
+  "meca-archive"?:
+    | boolean
+    | string; /* Whether to generate a MECA bundle for this manuscript */
+};
+
 export type ProjectConfig = {
   "execute-dir"?:
     | "file"
@@ -1154,7 +1165,8 @@ export type ProjectConfig = {
     string
   > /* Additional file resources to be copied to output directory */;
   title?: string;
-  type?: string; /* Project type (`default`, `website`, or `book`) */
+  type?:
+    string; /* Project type (`default`, `website`, `book`, or `manuscript`) */
 };
 
 export type BookProject = SchemaObject;

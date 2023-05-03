@@ -293,11 +293,12 @@ export async function notebookMarkdown(
     cells: JupyterCellOutput[],
     title?: string,
   ) => {
+    const cellId = cells.length > 0 ? cells[0].id || "" : "";
     const markdown = [
       "",
       `:::{.quarto-embed-nb-cell notebook="${nbAddress.path}" ${
         title ? `notebook-title="${title}"` : ""
-      }}`,
+      } notebook-cellId="${cellId}"}`,
     ];
 
     const cellOutput = cells.map((cell) => cell.markdown).join("");

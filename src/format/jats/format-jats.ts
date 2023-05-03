@@ -10,6 +10,7 @@ import {
   kJatsSubarticleId,
   kLinkCitations,
   kNotebookSubarticles,
+  kNotebookView,
   kOutputExt,
   kQuartoInternal,
   kVariant,
@@ -177,6 +178,7 @@ export const jatsNotebookExtension: NotebooksFormatExtension = {
       // Accumulate the subarticles and their resources
       const subarticlePaths: string[] = [];
       const subarticleResources: string[] = [];
+      const subarticleSupporting: string[] = [];
 
       // See if the input itself should be processed-
       // if so, add it to the list of notebooks to render
@@ -202,6 +204,9 @@ export const jatsNotebookExtension: NotebooksFormatExtension = {
         const notebook = subarticleNotebooks[i];
         const notebookId = `nb-${i}`;
 
+        // Add the notebook itself to the list of supporting files
+        subarticleResources.push(notebook.path);
+
         // Render the notebook to a markdown file
         const inputMdFile = await writeNotebookMarkdown(
           input,
@@ -223,7 +228,18 @@ export const jatsNotebookExtension: NotebooksFormatExtension = {
           // Forward the rendered JATS and result along
           subarticlePaths.push(jatsResult.afterBody);
           if (jatsResult.supporting) {
-            subarticleResources.push(...jatsResult.supporting);
+            subarticleSupporting.push(...jatsResult.supporting);
+          }
+        }
+      }
+
+      // Add any specified notebooks to the list of resources
+      const notebookView = format.render[kNotebookView] ?? true;
+      if (typeof (notebookView) !== "boolean") {
+        const nbs = Array.isArray(notebookView) ? notebookView : [notebookView];
+        for (const nb of nbs) {
+          if (nb.url === undefined) {
+            subarticleResources.push(nb.notebook);
           }
         }
       }
@@ -232,7 +248,8 @@ export const jatsNotebookExtension: NotebooksFormatExtension = {
         includes: {
           afterBody: subarticlePaths,
         },
-        supporting: subarticleResources,
+        supporting: subarticleSupporting,
+        resourceFiles: subarticleResources,
       };
     } else {
       return {};

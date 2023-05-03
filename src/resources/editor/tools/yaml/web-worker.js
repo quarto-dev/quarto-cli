@@ -8516,6 +8516,23 @@ try {
                                   "transparent_dark",
                                   "preferred_color_scheme"
                                 ]
+                              },
+                              {
+                                object: {
+                                  closed: true,
+                                  properties: {
+                                    light: {
+                                      string: {
+                                        description: "The light theme name."
+                                      }
+                                    },
+                                    dark: {
+                                      string: {
+                                        description: "The dark theme name."
+                                      }
+                                    }
+                                  }
+                                }
                               }
                             ],
                             description: "The giscus theme to use when displaying comments."
@@ -11117,6 +11134,28 @@ try {
                         tests: "object"
                       }
                     }
+                  }
+                }
+              }
+            }
+          },
+          {
+            id: "manuscript-schema",
+            schema: {
+              object: {
+                closed: true,
+                properties: {
+                  "manuscript-url": {
+                    string: {
+                      description: "The deployed url for this manuscript"
+                    }
+                  },
+                  "meca-archive": {
+                    anyOf: [
+                      "boolean",
+                      "string"
+                    ],
+                    description: "Whether to generate a MECA bundle for this manuscript"
                   }
                 }
               }
@@ -17650,9 +17689,9 @@ try {
                       completions: [
                         "default",
                         "website",
-                        "book"
+                        "book. manuscript"
                       ],
-                      description: "Project type (`default`, `website`, or `book`)"
+                      description: "Project type (`default`, `website`, `book`, or `manuscript`)"
                     }
                   },
                   render: {
@@ -17737,6 +17776,13 @@ try {
                   }
                 ]
               }
+            }
+          },
+          {
+            name: "manuscript",
+            description: "Manuscript configuration",
+            schema: {
+              ref: "manuscript-schema"
             }
           },
           {
@@ -19429,6 +19475,8 @@ try {
           "Specify a default profile and profile groups",
           "Default profile to apply if QUARTO_PROFILE is not defined.",
           "Define a profile group for which at least one profile is always\nactive.",
+          "The deployed url for this manuscript",
+          "Whether to generate a MECA bundle for this manuscript",
           {
             short: "Unique label for code cell",
             long: "Unique label for code cell. Used when other code needs to refer to\nthe cell (e.g.&nbsp;for cross references <code>fig-samples</code> or\n<code>tbl-summary</code>)"
@@ -20622,7 +20670,7 @@ try {
           "The width of the preview image for this document.",
           "The alt text for preview image on this page.",
           "Project configuration.",
-          "Project type (<code>default</code>, <code>website</code>, or\n<code>book</code>)",
+          "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
           "Files to render (defaults to all files)",
           {
             short: "Working directory for computations",
@@ -20923,9 +20971,10 @@ try {
             long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
+          "Manuscript configuration",
           "internal-schema-hack",
           "Project configuration.",
-          "Project type (<code>default</code>, <code>website</code>, or\n<code>book</code>)",
+          "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
           "Files to render (defaults to all files)",
           {
             short: "Working directory for computations",
@@ -21226,6 +21275,7 @@ try {
             long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
+          "Manuscript configuration",
           "internal-schema-hack"
         ],
         "schema/external-schemas.yml": [
@@ -21450,12 +21500,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 158397,
+          _internalId: 158441,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 158389,
+              _internalId: 158433,
               type: "enum",
               enum: [
                 "png",
@@ -21471,7 +21521,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 158396,
+              _internalId: 158440,
               type: "anyOf",
               anyOf: [
                 {

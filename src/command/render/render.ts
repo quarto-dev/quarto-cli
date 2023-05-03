@@ -168,6 +168,10 @@ export async function renderPandoc(
       executeResult.supporting = executeResult.supporting || [];
       executeResult.supporting.push(...extensionResult.supporting);
     }
+
+    if (extensionResult.resourceFiles) {
+      resourceFiles.push(...extensionResult.resourceFiles);
+    }
   }
 
   // Inject dependencies

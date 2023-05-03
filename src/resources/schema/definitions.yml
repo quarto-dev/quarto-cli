@@ -265,6 +265,16 @@
                           transparent_dark,
                           preferred_color_scheme,
                         ]
+                    - object:
+                        closed: true
+                        properties:
+                          light:
+                            string:
+                              description: The light theme name.
+                          dark:
+                            string:
+                              description: The dark theme name.
+
                   description: The giscus theme to use when displaying comments.
                 language:
                   string:
@@ -2139,3 +2149,17 @@
             properties:
               trace-filters: string
               tests: object
+
+- id: manuscript-schema
+  schema:
+    object:
+      closed: true
+      properties:
+        "manuscript-url":
+          string:
+            description: "The deployed url for this manuscript"
+        "meca-archive":
+          anyOf:
+            - boolean
+            - string
+          description: "Whether to generate a MECA bundle for this manuscript"

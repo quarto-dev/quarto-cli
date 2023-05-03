@@ -206,7 +206,6 @@ export function boostrapExtras(
           flags,
           services,
           offset,
-          project,
         ),
       ],
       [kHtmlFinalizers]: [
@@ -229,7 +228,6 @@ function bootstrapHtmlPostprocessor(
   flags: PandocFlags,
   services: RenderServices,
   offset?: string,
-  project?: ProjectContext,
 ): HtmlPostProcessor {
   return async (
     doc: Document,
@@ -345,7 +343,6 @@ function bootstrapHtmlPostprocessor(
         doc,
         format,
         services,
-        project,
       );
       if (notebookResults) {
         resources.push(...notebookResults.resources);
