@@ -110,6 +110,12 @@ local kDroppingParticle = 'dropping-particle'
 local kNonDroppingParticle = 'non-dropping-particle'
 local kNameFields = { kGivenName, kFamilyName, kLiteralName}
 
+-- the roles that an author may place
+local kRoles = 'roles'
+local kRole = "role"
+local kDegreeContribution = "degree-of-contribution"
+local kAuthorRoleFields = { kRole, kRoles }
+
 -- an affiliation which will be structured into a standalone
 local kAffilName = 'name'
 local kDepartment = 'department'
@@ -590,6 +596,48 @@ local function processAuthorNote(author, note)
   noteNumber = noteNumber + 1
 end
 
+local function setRole(author, role)
+  if not author[kRoles] then
+    author[kRoles] = {}
+  end
+  author[kRoles][#author[kRoles] + 1] = role
+end
+
+local function parseRole(role) 
+  if pandoc.utils.type(role) == 'Inlines' or pandoc.utils.type(role) == 'Inline' then
+    -- this is just a simple string representing the role
+    return pandoc.utils.stringify(role) 
+  else 
+    for k,v in pairs(role) do
+      return pandoc.utils.stringify(k), pandoc.utils.stringify(v)
+    end
+  end
+end
+
+-- Processes author roles, which can be specified either using `role:` or `roles:`
+-- and can either be a single string:
+-- role: researcher
+-- or an array of strings:
+-- roles: [researcher, writer]
+-- or one or role objects with key role, value degree of contribution
+-- like:
+-- roles:
+--   - researcher: lead
+--   - writer: supporting
+-- general in support, but derived a bit from 
+-- https://credit.niso.org
+local function processAuthorRoles(author, roles) 
+  if tisarray(roles) then
+    for i,v in ipairs(roles) do
+      local role, contribution = parseRole(v)
+      setRole(author, { [kRole] = role, [kDegreeContribution] = contribution })
+    end
+  else
+    local role, contribution = parseRole(roles)
+    setRole(author, { [kRole] = role, [kDegreeContribution] = contribution })
+  end
+end
+
 -- Sets a metadata value, initializing the table if
 -- it not yet defined
 local function setMetadata(author, key, value)
@@ -785,6 +833,8 @@ local function processAuthor(value)
         authorAffiliations = processAffiliation(author, authorValue)
       elseif authorKey == kAffiliationUrl then
         affiliationUrl = authorValue
+      elseif tcontains(kAuthorRoleFields, authorKey) then
+        processAuthorRoles(author, authorValue)
       else
         -- since we don't recognize this value, place it under
         -- metadata to make it accessible to consumers of this 
