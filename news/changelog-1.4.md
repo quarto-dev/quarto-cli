@@ -1,4 +1,5 @@
 ## Giscus Dark Mode Themes
+
 - Add support for setting the Giscus light/dark themes. ([#4820](https://github.com/quarto-dev/quarto-cli/issues/4820))
 
 ## Languages
@@ -9,6 +10,16 @@
 ## HTML Format
 
 - Add support for showing cross reference contents on hover (use `crossrefs-hover: false` to disable).
+- Ensure appendix shows even when `page-layout` is custom ([#5189](https://github.com/quarto-dev/quarto-cli/issues/5189)).
+- Properly set color of headings without using opacity ([#5393](https://github.com/quarto-dev/quarto-cli/issues/5393)).
+
+## Website Listings
+
+- Properly compute the trimmed length of descriptions included in listings ([#5371](https://github.com/quarto-dev/quarto-cli/issues/5371)).
+
+## Websites
+
+- Allow a a website project to provide a default image used in social metadata tags ([#5389](https://github.com/quarto-dev/quarto-cli/issues/5389)).
 
 ## Miscellaneous
 
