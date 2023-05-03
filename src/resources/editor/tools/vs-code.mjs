@@ -8515,6 +8515,23 @@ var require_yaml_intelligence_resources = __commonJS({
                                 "transparent_dark",
                                 "preferred_color_scheme"
                               ]
+                            },
+                            {
+                              object: {
+                                closed: true,
+                                properties: {
+                                  light: {
+                                    string: {
+                                      description: "The light theme name."
+                                    }
+                                  },
+                                  dark: {
+                                    string: {
+                                      description: "The dark theme name."
+                                    }
+                                  }
+                                }
+                              }
                             }
                           ],
                           description: "The giscus theme to use when displaying comments."
@@ -21482,12 +21499,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 158429,
+        _internalId: 158441,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 158421,
+            _internalId: 158433,
             type: "enum",
             enum: [
               "png",
@@ -21503,7 +21520,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 158428,
+            _internalId: 158440,
             type: "anyOf",
             anyOf: [
               {
