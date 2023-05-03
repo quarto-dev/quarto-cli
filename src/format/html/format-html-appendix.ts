@@ -1,9 +1,8 @@
 /*
-* format-html-appendix.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * format-html-appendix.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { PandocInputTraits } from "../../command/render/types.ts";
 import {
@@ -74,7 +73,16 @@ export async function processDocumentAppendix(
     format.metadata[kAppendixStyle] as string,
   );
 
-  const mainEl = doc.querySelector("main.content");
+  // The main content region
+  let mainEl = doc.querySelector("main.content");
+  if (mainEl === null) {
+    // The content region
+    mainEl = doc.querySelector("#quarto-content");
+  }
+  if (mainEl === null) {
+    mainEl = doc.querySelector(".page-layout-custom");
+  }
+
   if (mainEl) {
     const appendixEl = doc.createElement("DIV");
     appendixEl.setAttribute("id", kAppendixId);
