@@ -324,6 +324,7 @@ export class ANSIOutput {
 
 			// CR sets the output column to 0.
 			case '\r':
+				this.flushBuffer();
 				this._outputColumn = 0;
 				break;
 
