@@ -30,6 +30,7 @@ import {
 import { basename, dirname, isAbsolute, join, relative } from "path/mod.ts";
 import { renderFiles } from "../../command/render/render-files.ts";
 import { kNotebookViewStyleNotebook } from "./format-html-constants.ts";
+import { pathWithForwardSlashes } from "../../core/path.ts";
 
 interface NotebookView {
   title: string;
@@ -313,7 +314,7 @@ const nbPreviewer = (
         };
       } else {
         return {
-          href: join(nbDir, filename),
+          href: pathWithForwardSlashes(join(nbDir, filename)),
           title: title || filename,
           filename,
         };
@@ -418,7 +419,7 @@ async function renderHtmlView(
 
     return {
       title: options.title,
-      href: join(dirname(nbRelPath), nbPreviewFile),
+      href: pathWithForwardSlashes(join(dirname(nbRelPath), nbPreviewFile)),
       // notebook to be included as supporting file
       supporting,
     };
