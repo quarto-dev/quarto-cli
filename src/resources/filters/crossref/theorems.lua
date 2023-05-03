@@ -2,7 +2,7 @@
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
 -- preprocess theorem to ensure that embedded headings are unnumered
-function crossrefPreprocessTheorems()
+function crossref_preprocess_theorems()
   local types = theoremTypes
   return {
     Div = function(el)

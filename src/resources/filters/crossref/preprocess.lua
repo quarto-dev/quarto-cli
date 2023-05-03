@@ -3,7 +3,7 @@
 
 -- figures and tables support sub-references. mark them up before
 -- we proceed with crawling for cross-refs
-function crossrefPreprocess()
+function crossref_preprocess()
   
   return {
     Pandoc = function(doc)      

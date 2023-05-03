@@ -358,7 +358,7 @@ local quartoLayout = {
 
 local quartoCrossref = {
 
-  { name = "crossref-preprocess", filter = crossrefPreprocess(),
+  { name = "crossref-preprocess", filter = crossref_preprocess(),
     flags = { 
       "has_figure_or_table_ref", 
       "has_discoverable_figures",
@@ -367,12 +367,13 @@ local quartoCrossref = {
     } },
 
   { name = "crossref-preprocessTheorems", 
-    filter = crossrefPreprocessTheorems(),
+    filter = crossref_preprocess_theorems(),
     flags = { "has_theorem_refs" } },
 
   { name = "pre-render-jats-subarticle", filter = filterIf(function()
+    -- FIXME if we're using the latter clause I think we don't need the former
     return preState.active_filters.jats_subarticle ~= nil and preState.active_filters.jats_subarticle
-    end, jatsSubarticleCrossref()) },
+    end, jats_subarticle_crossref()) },
 
   { name = "crossref-combineFilters", filter = combineFilters({
     file_metadata(),

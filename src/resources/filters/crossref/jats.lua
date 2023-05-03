@@ -1,7 +1,7 @@
 -- jats.lua
 -- Copyright (C) 2021-2022 Posit Software, PBC
 
-function jatsSubarticleCrossref() 
+function jats_subarticle_crossref() 
 
   if _quarto.format.isJatsOutput() then
 

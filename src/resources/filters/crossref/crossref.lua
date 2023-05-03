@@ -59,8 +59,8 @@ initCrossrefIndex()
 -- chain of filters
 return {
   init_crossref_options(),
-  crossrefPreprocess(),
-  crossrefPreprocessTheorems(),
+  crossref_preprocess(),
+  crossref_preprocess_theorems(),
   combineFilters({
     file_metadata(),
     qmd(),
