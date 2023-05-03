@@ -188,6 +188,7 @@ or pipeline) parameterized.
       <body>
         <xsl:apply-templates/>
       </body>
+      <!-- quarto-after-body -->
     </html>
   </xsl:template>
 

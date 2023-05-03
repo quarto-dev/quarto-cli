@@ -6,7 +6,7 @@
 
 import * as ld from "../core/lodash.ts";
 
-import { existsSync } from "node/fs.ts";
+import { existsSync } from "fs/mod.ts";
 import { join } from "path/mod.ts";
 import { error } from "log/mod.ts";
 

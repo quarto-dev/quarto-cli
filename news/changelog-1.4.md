@@ -33,3 +33,8 @@
 ## OJS engine
 
 - Update observablehq's runtime to version 5.6.0.
+- Support for `code-line-numbers` in Docusaurus output ([#5152](https://github.com/quarto-dev/quarto-cli/issues/5152))
+
+## Mermaid diagrams
+
+- Upgrade to 10.2.0-rc.2

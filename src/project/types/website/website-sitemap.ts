@@ -79,7 +79,7 @@ export async function updateSitemap(
     const inputModified = async (output: string, project: ProjectContext) => {
       const inputFile = await inputFileForOutputFile(project, output);
       if (inputFile) {
-        return fileLastMod(inputFile);
+        return fileLastMod(inputFile.file);
       } else {
         return fileLastMod(output);
       }

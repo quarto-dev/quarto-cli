@@ -1,0 +1,62 @@
+/*
+ * output-container.css
+ *
+ * Copyright (C) 2023 by Posit Software, PBC
+ *
+ * Unless you have received this program directly from Posit Software pursuant
+ * to the terms of a commercial license agreement with Posit Software, then
+ * this program is licensed to you under the terms of version 3 of the
+ * GNU Affero General Public License. This program is distributed WITHOUT
+ * ANY EXPRESS OR IMPLIED WARRANTY, INCLUDING THOSE OF NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE. Please refer to the
+ * AGPL (http://www.gnu.org/licenses/agpl-3.0.txt) for more details.
+ *
+ */
+
+.ansi-display {
+	font-family: monospace;
+	white-space: pre-wrap;
+	--ansiBlack: #000000;
+	--ansiRed: #cd3131;
+	--ansiGreen: #00BC00;
+	--ansiYellow: #949800;
+	--ansiBlue: #0451a5;
+	--ansiMagenta: #bc05bc;
+	--ansiCyan: #0598bc;
+	--ansiWhite: #555555;
+  --ansiBrightBlack: #666666;
+	--ansiBrightRed: #cd3131;
+	--ansiBrightGreen: #14CE14;
+	--ansiBrightYellow: #b5ba00;
+	--ansiBrightBlue: #0451a5;
+	--ansiBrightMagenta: #bc05bc;
+	--ansiBrightCyan: #0598bc;
+	--ansiBrightWhite: #a5a5a5;
+}
+
+.dark-mode .ansi-display {
+	--ansiBlack: #000000;
+	--ansiRed: #cd3131;
+	--ansiGreen: #0DBC79;
+	--ansiYellow: #e5e510;
+	--ansiBlue: #2472c8;
+	--ansiMagenta: #bc3fbc;
+	--ansiCyan: #11a8cd;
+	--ansiWhite: #e5e5e5;
+  --ansiBrightBlack: #666666;
+	--ansiBrightRed: #f14c4c;
+	--ansiBrightGreen: #23d18b;
+	--ansiBrightYellow: #f5f543;
+	--ansiBrightBlue: #3b8eea;
+	--ansiBrightMagenta: #d670d6;
+	--ansiBrightCyan: #29b8db;
+	--ansiBrightWhite: #e5e5e5;
+}
+
+@keyframes ansi-displaly-run-blink {
+	50% {
+		opacity: 0;
+	}
+}
+
+

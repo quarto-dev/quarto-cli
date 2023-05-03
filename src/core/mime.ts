@@ -12,6 +12,7 @@ export const kTextMarkdown = "text/markdown";
 export const kTextLatex = "text/latex";
 export const kTextPlain = "text/plain";
 export const kTextXml = "text/xml";
+export const kTextCss = "text/css";
 export const kImagePng = "image/png";
 export const kImageJpeg = "image/jpeg";
 export const kImageSvg = "image/svg+xml";
@@ -57,12 +58,21 @@ export function isHtmlContent(path?: string) {
   return !!path && contentType(path) === kTextHtml;
 }
 
+export function isXmlContent(path?: string) {
+  return !!path && contentType(path) === kTextXml;
+}
+
+export function isMarkdownContent(path?: string) {
+  return !!path && contentType(path) === kTextMarkdown;
+}
+
 export function isTextContent(path?: string) {
   return !!path &&
     (contentType(path) === kTextMarkdown ||
       contentType(path) === kTextPlain ||
       contentType(path) === kTextXml);
 }
+
 
 const MEDIA_TYPES: Record<string, string> = {
   ".md": kTextMarkdown,
@@ -78,12 +88,12 @@ const MEDIA_TYPES: Record<string, string> = {
   ".xml": kTextXml,
   ".ts": "text/typescript",
   ".tsx": "text/tsx",
-  ".js": "application/javascript",
+  ".js": kApplicationJavascript,
   ".jsx": "text/jsx",
   ".gz": "application/gzip",
-  ".css": "text/css",
+  ".css": kTextCss,
   ".wasm": "application/wasm",
-  ".mjs": "application/javascript",
+  ".mjs": kApplicationJavascript,
   ".svg": kImageSvg,
   ".png": kImagePng,
   ".jpg": kImageJpeg,

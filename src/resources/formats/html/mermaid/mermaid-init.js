@@ -225,17 +225,16 @@ const _quartoMermaid = {
 // deno-lint-ignore no-window-prefix
 window.addEventListener(
   "load",
-  function () {
+  async function () {
     let i = 0;
     // we need pre because of whitespace preservation
     for (const el of Array.from(document.querySelectorAll("pre.mermaid-js"))) {
       // &nbsp; doesn't appear to be treated as whitespace by mermaid
       // so we replace it with a space.
       const text = el.innerText.replaceAll("&nbsp;", " ");
-      const output = mermaid.mermaidAPI.render(
+      const { svg: output } = await mermaid.mermaidAPI.render(
         `mermaid-${++i}`,
         text,
-        () => {},
         el
       );
       el.innerHTML = output;

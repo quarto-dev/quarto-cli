@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { dirname, globToRegExp, join, relative, SEP } from "path/mod.ts";
+import { globToRegExp, join, relative, SEP } from "path/mod.ts";
 import { existsSync, walkSync } from "fs/mod.ts";
 
 import * as ld from "../../core/lodash.ts";
@@ -37,9 +37,11 @@ import { renderServices } from "../../command/render/render-services.ts";
 import { isRStudio } from "../../core/platform.ts";
 import { inputTargetIndexForOutputFile } from "../../project/project-index.ts";
 import { engineIgnoreDirs } from "../../execute/engine.ts";
-import { asArray } from "../../core/array.ts";
 import { isPdfContent } from "../../core/mime.ts";
 import { ServeRenderManager } from "./render.ts";
+import { existsSync1 } from "../../core/file.ts";
+import { watchForFileChanges } from "../../core/watch.ts";
+import { extensionFilesFromDirs } from "../../extension/extension.ts";
 
 interface WatchChanges {
   config: boolean;
@@ -90,8 +92,9 @@ export function watchProject(
   };
 
   // is this an extension file
+  const extensionFiles = extensionFilesFromDirs(extensionDirs);
   const isExtensionFile = (path: string) => {
-    return extensionDirs.some((extensionDir) => path.startsWith(extensionDir));
+    return extensionFiles.includes(path);
   };
 
   // is this an input file?
@@ -128,7 +131,7 @@ export function watchProject(
         if (options[kProjectWatchInputs]) {
           // get inputs (filter by whether the last time we rendered
           // this input had the exact same content hash)
-          const inputs = paths.filter(isInputFile).filter(existsSync).filter(
+          const inputs = paths.filter(isInputFile).filter(existsSync1).filter(
             (input) => {
               return !rendered.has(input) ||
                 rendered.get(input) !== md5Hash(Deno.readTextFileSync(input));
@@ -138,7 +141,7 @@ export function watchProject(
             // render
             const services = renderServices();
             try {
-              const result = await renderManager.renderQueue().enqueue(() => {
+              const result = await renderManager.submitRender(() => {
                 if (inputs.length > 1) {
                   return renderProject(
                     project!,
@@ -162,13 +165,11 @@ export function watchProject(
               });
 
               if (result.error) {
-                if (result.error.message) {
-                  logError(result.error);
-                }
+                renderManager.onRenderError(result.error);
                 return undefined;
               } else {
                 // record rendered hash
-                for (const input of inputs.filter(existsSync)) {
+                for (const input of inputs.filter(existsSync1)) {
                   rendered.set(input, md5Hash(Deno.readTextFileSync(input)));
                 }
                 renderManager.onRenderResult(
@@ -227,9 +228,8 @@ export function watchProject(
 
   // http devserver
   const devServer = httpDevServer(
-    options.port!,
     options.timeout!,
-    () => renderManager.renderQueue().isRunning(),
+    () => renderManager.isRendering(),
     stopServer,
   );
 
@@ -242,7 +242,7 @@ export function watchProject(
       // fully render project if we aren't aleady rendering on reload (e.g. for pdf)
       if (!changes.output && !renderingOnReload) {
         await refreshProjectConfig();
-        const result = await renderManager.renderQueue().enqueue(() =>
+        const result = await renderManager.submitRender(() =>
           renderProject(
             project,
             {
@@ -256,7 +256,7 @@ export function watchProject(
           )
         );
         if (result.error) {
-          logError(result.error);
+          renderManager.onRenderError(result.error);
         } else {
           renderManager.onRenderResult(
             result,
@@ -304,58 +304,34 @@ export function watchProject(
     }
   }, 100);
 
-  // initalize watchers
-  const runWatcher = (watcherOptions: WatcherOptions) => {
-    const watchPaths = asArray(watcherOptions.paths);
-    const watcher = Deno.watchFs(watchPaths, watcherOptions.options);
-    const watchForChanges = async () => {
-      for await (const event of watcher) {
-        try {
-          // if a new directory within a non-recursive watch is created then watch it recursively
-          // (note that the top-level directory is watched non-recursively so that we don't pick
-          // up hidden dirs, venv/renv dirs, etc.)
-          if (event.kind === "create" && !watcherOptions.options?.recursive) {
-            event.paths.forEach((path) => {
-              if (existsSync(path)) {
-                try {
-                  const stat = Deno.statSync(path);
-                  if (stat.isDirectory) {
-                    if (watchPaths.some((p) => p === dirname(path))) {
-                      runWatcher({ paths: path, options: { recursive: true } });
-                    }
-                  }
-                } catch (e) {
-                  // existing symlinks to nonexisting files cause path
-                  // to exist and statSync to fail
-                  if (e instanceof Deno.errors.NotFound) {
-                    return;
-                  }
-                  throw e;
-                }
-              }
-            });
-          }
-
-          // see if we need to handle this
-          const result = await handleWatchEvent(event);
-          if (result) {
-            await reloadClients(result);
-          }
-        } catch (e) {
-          logError(e);
-        }
+  // create and run polling fs watcher. we dynamically return the files to watch
+  // based on the current project inputs/config/resources
+  const watcher = watchForFileChanges(() => {
+    return ld.uniq([
+      ...project.files.input,
+      ...(project.files.resources || []),
+      ...(project.files.config || []),
+      ...(project.files.configResources || []),
+      ...resourceFiles, // statically computed at project startup
+      ...extensionFiles, // statically computed at project startup
+    ]) as string[];
+  });
+  const watchForChanges = async () => {
+    for await (const event of watcher) {
+      const result = await handleWatchEvent(event);
+      if (result) {
+        await reloadClients(result);
       }
-    };
-    watchForChanges();
+    }
   };
-  computeWatchers(project).forEach(runWatcher);
+  watchForChanges();
 
   // return watcher interface
   return Promise.resolve({
     handle: (req: Request) => {
       return devServer.handle(req);
     },
-    connect: devServer.connect,
+    request: devServer.request,
     injectClient: (req: Request, file: Uint8Array, inputFile?: string) => {
       return devServer.injectClient(req, file, inputFile);
     },

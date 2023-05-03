@@ -1,13 +1,17 @@
 /*
-* file.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * file.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
-import { existsSync } from "node/fs.ts";
+import { existsSync } from "fs/mod.ts";
 import { execProcess } from "./process.ts";
 import { TextLineStream } from "streams/mod.ts";
+
+export function existsSync1(s: string | URL) {
+  // eat all but the first param to work in map, filter, find, etc.
+  return existsSync(s);
+}
 
 export async function visitLines(
   path: string,
