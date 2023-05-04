@@ -11145,6 +11145,35 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
+          id: "notebook-view-schema",
+          schema: {
+            object: {
+              properties: {
+                notebook: {
+                  string: {
+                    description: "The path to the locally referenced notebook."
+                  }
+                },
+                title: {
+                  description: "The title of the notebook when viewed.",
+                  anyOf: [
+                    "string",
+                    "boolean"
+                  ]
+                },
+                url: {
+                  string: {
+                    description: "The url to use when viewing this notebook."
+                  }
+                }
+              },
+              required: [
+                "notebook"
+              ]
+            }
+          }
+        },
+        {
           id: "manuscript-schema",
           schema: {
             object: {
@@ -11166,6 +11195,16 @@ var require_yaml_intelligence_resources = __commonJS({
                     "string"
                   ],
                   description: "Whether to generate a MECA bundle for this manuscript"
+                },
+                notebooks: {
+                  arrayOf: {
+                    anyOf: [
+                      "string",
+                      {
+                        ref: "notebook-view-schema"
+                      }
+                    ]
+                  }
                 }
               }
             }
@@ -14476,30 +14515,12 @@ var require_yaml_intelligence_resources = __commonJS({
               "boolean",
               {
                 maybeArrayOf: {
-                  object: {
-                    properties: {
-                      notebook: {
-                        string: {
-                          description: "The path to the locally referenced notebook."
-                        }
-                      },
-                      title: {
-                        description: "The title of the notebook when viewed.",
-                        anyOf: [
-                          "string",
-                          "boolean"
-                        ]
-                      },
-                      url: {
-                        string: {
-                          description: "The url to use when viewing this notebook."
-                        }
-                      }
-                    },
-                    required: [
-                      "notebook"
-                    ]
-                  }
+                  anyOf: [
+                    "string",
+                    {
+                      ref: "notebook-view-schema"
+                    }
+                  ]
                 }
               }
             ]
@@ -21289,7 +21310,10 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
-        "internal-schema-hack"
+        "internal-schema-hack",
+        "The path to the locally referenced notebook.",
+        "The title of the notebook when viewed.",
+        "The url to use when viewing this notebook."
       ],
       "schema/external-schemas.yml": [
         {
@@ -21513,12 +21537,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 158458,
+        _internalId: 158479,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 158450,
+            _internalId: 158471,
             type: "enum",
             enum: [
               "png",
@@ -21534,7 +21558,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 158457,
+            _internalId: 158478,
             type: "anyOf",
             anyOf: [
               {

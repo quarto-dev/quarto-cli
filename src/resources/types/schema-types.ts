@@ -1140,13 +1140,20 @@ export type QuartoDevSchema = {
   _quarto?: { "trace-filters"?: string; tests?: SchemaObject };
 };
 
+export type NotebookViewSchema = {
+  notebook: string /* The path to the locally referenced notebook. */;
+  title?: string | boolean /* The title of the notebook when viewed. */;
+  url?: string; /* The url to use when viewing this notebook. */
+};
+
 export type ManuscriptSchema = {
   "manuscript-url"?: string /* The deployed url for this manuscript */;
   "meca-archive"?:
     | boolean
     | string /* Whether to generate a MECA bundle for this manuscript */;
   article?:
-    string; /* The input document that will serve as the root document for this manuscript */
+    string /* The input document that will serve as the root document for this manuscript */;
+  notebooks?: ((string | NotebookViewSchema))[];
 };
 
 export type ProjectConfig = {

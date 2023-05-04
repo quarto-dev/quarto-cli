@@ -8,9 +8,13 @@ import { resourcePath } from "../../../core/resources.ts";
 import { ProjectCreate, ProjectOutputFile, ProjectType } from "../types.ts";
 
 import { dirname, join, relative } from "path/mod.ts";
-import { Format, FormatLink } from "../../../config/types.ts";
+import {
+  Format,
+  FormatLink,
+  NotebookPublishOptions,
+} from "../../../config/types.ts";
 import { ProjectConfig, ProjectContext } from "../../types.ts";
-import { kFormatLinks } from "../../../config/constants.ts";
+import { kFormatLinks, kNotebookView } from "../../../config/constants.ts";
 import { projectOutputDir } from "../../project-shared.ts";
 import {
   isDocxOutput,
@@ -35,6 +39,7 @@ const kMecaSuffix = "-meca.zip";
 const kManuscriptUrl = "manuscript-url";
 const kMecaArchive = "meca-archive";
 const kArticle = "article";
+const kNotebooks = "notebooks";
 
 const mecaFileName = (file: string, manuOpts: ManuscriptOptions) => {
   if (typeof (manuOpts[kMecaArchive]) === "string") {
@@ -54,23 +59,26 @@ export const manuscriptProjectType: ProjectType = {
   ): Promise<ProjectConfig> => {
     // Build the render list
     const manuOpts = manuscriptOptions(config);
-    if (manuOpts && manuOpts.article) {
-      // If there is an explicitly specified article file
-      config.project.render = [manuOpts.article];
-    } else {
-      // Locate a default target
-      const defaultArticleFiles = ["index.qmd", "index.ipynb"];
-      const defaultArticleFile = defaultArticleFiles.find((file) => {
-        return existsSync(join(projectDir, file));
-      });
-      if (defaultArticleFile !== undefined) {
-        config.project.render = [defaultArticleFile];
+    if (manuOpts) {
+      if (manuOpts.article) {
+        // If there is an explicitly specified article file
+        config.project.render = [manuOpts.article];
       } else {
-        throw new Error(
-          "Unable to determine the root input document for this manuscript. Please specify an `article` in your `_quarto.yml` file.",
-        );
+        // Locate a default target
+        const defaultArticleFiles = ["index.qmd", "index.ipynb"];
+        const defaultArticleFile = defaultArticleFiles.find((file) => {
+          return existsSync(join(projectDir, file));
+        });
+        if (defaultArticleFile !== undefined) {
+          config.project.render = [defaultArticleFile];
+        } else {
+          throw new Error(
+            "Unable to determine the root input document for this manuscript. Please specify an `article` in your `_quarto.yml` file.",
+          );
+        }
       }
     }
+
     return Promise.resolve(config);
   },
 
@@ -141,6 +149,24 @@ export const manuscriptProjectType: ProjectType = {
             href: mecaFileName(source, manuOpts),
           });
           format.render[kFormatLinks] = links;
+        }
+      }
+
+      if (manuOpts && manuOpts[kNotebooks] !== undefined) {
+        // Forward the 'notebooks' key into `notebook-views` to configure
+        // the notebook behavior for this project
+        if (format.render[kNotebookView] === undefined) {
+          format.render[kNotebookView] = manuOpts[kNotebooks];
+        } else if (typeof (format.render[kNotebookView]) !== "boolean") {
+          if (Array.isArray(format.render[kNotebookView])) {
+            format.render[kNotebookView].push(...manuOpts[kNotebooks]);
+          } else {
+            const notebooks = [
+              format.render[kNotebookView],
+              ...manuOpts[kNotebooks],
+            ];
+            format.render[kNotebookView] = notebooks;
+          }
         }
       }
       return format;
@@ -329,12 +355,27 @@ interface ManuscriptOptions {
   [kManuscriptUrl]?: string;
   [kMecaArchive]?: boolean | string;
   [kArticle]?: string;
+  [kNotebooks]?: NotebookPublishOptions[];
 }
 
 const manuscriptOptions = (config?: ProjectConfig): ManuscriptOptions => {
   if (config) {
-    const manuOpts = config[kManuscriptType];
-    return manuOpts as ManuscriptOptions;
+    const manuOpts = config[kManuscriptType] as ManuscriptOptions || undefined;
+
+    if (manuOpts) {
+      const notebooks: NotebookPublishOptions[] = [];
+      for (const notebook of manuOpts[kNotebooks] as unknown[]) {
+        if (typeof (notebook) === "string") {
+          notebooks.push({
+            notebook,
+          });
+        } else {
+          notebooks.push(notebook as NotebookPublishOptions);
+        }
+      }
+    }
+
+    return manuOpts;
   } else {
     return {};
   }
