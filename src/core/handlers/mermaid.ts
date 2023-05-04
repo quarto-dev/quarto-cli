@@ -425,7 +425,7 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
       ) {
         return mappedConcat([
           "\n``` mermaid\n",
-          escape(cellContent.value), // TODO escaping removes MappedString information.
+          cellContent.value,
           "\n```\n",
         ]);
       } else {
