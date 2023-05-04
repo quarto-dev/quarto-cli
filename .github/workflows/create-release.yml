@@ -421,6 +421,7 @@ jobs:
         make-installer-arm64-deb,
         make-installer-win,
         make-installer-mac,
+        make-tarball-rhel,
         make-arm64-tarball,
         make-tarball,
         make-source-tarball,
@@ -477,6 +478,17 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./Deb Arm64 Zip/quarto-${{needs.configure.outputs.version}}-linux-arm64.tar.gz
           asset_name: quarto-${{needs.configure.outputs.version}}-linux-arm64.tar.gz
+          asset_content_type: application/gzip
+
+      - name: Attach RHEL Tarball
+        id: attach-rhel-tarball
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./RHEL Zip/quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar.gz
+          asset_name: quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar.gz
           asset_content_type: application/gzip
 
       - name: Attach Debian Installer
@@ -575,6 +587,10 @@ jobs:
           sha256sum quarto-${{needs.configure.outputs.version}}-macos.pkg >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
           popd
 
+          pushd RHEL\ Zip
+          sha256sum quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
+          popd           
+           
           pushd Deb\ Zip
           sha256sum quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
           popd
