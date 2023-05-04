@@ -27,7 +27,7 @@
 
 :root {
   @if $font-size-root != null {
-    @include font-size(var(--#{$prefix}root-font-size));
+    font-size: var(--#{$variable-prefix}root-font-size);
   }
 
   @if $enable-smooth-scroll {
@@ -48,13 +48,13 @@
 // scss-docs-start reboot-body-rules
 body {
   margin: 0; // 1
-  font-family: var(--#{$prefix}body-font-family);
-  @include font-size(var(--#{$prefix}body-font-size));
-  font-weight: var(--#{$prefix}body-font-weight);
-  line-height: var(--#{$prefix}body-line-height);
-  color: var(--#{$prefix}body-color);
-  text-align: var(--#{$prefix}body-text-align);
-  background-color: var(--#{$prefix}body-bg); // 2
+  font-family: var(--#{$variable-prefix}body-font-family);
+  @include font-size(var(--#{$variable-prefix}body-font-size));
+  font-weight: var(--#{$variable-prefix}body-font-weight);
+  line-height: var(--#{$variable-prefix}body-line-height);
+  color: var(--#{$variable-prefix}body-color);
+  text-align: var(--#{$variable-prefix}body-text-align);
+  background-color: var(--#{$variable-prefix}body-bg); // 2
   -webkit-text-size-adjust: 100%; // 3
   -webkit-tap-highlight-color: rgba($black, 0); // 4
 }
@@ -64,13 +64,18 @@ body {
 // Content grouping
 //
 // 1. Reset Firefox's gray color
+// 2. Set correct height and prevent the `size` attribute to make the `hr` look like an input field
 
 hr {
   margin: $hr-margin-y 0;
   color: $hr-color; // 1
+  background-color: currentColor;
   border: 0;
-  border-top: $hr-border-width solid $hr-border-color;
   opacity: $hr-opacity;
+}
+
+hr:not([size]) {
+  height: $hr-height; // 2
 }
 
 
@@ -134,18 +139,20 @@ p {
 
 // Abbreviations
 //
-// 1. Add the correct text decoration in Chrome, Edge, Opera, and Safari.
-// 2. Add explicit cursor to indicate changed behavior.
-// 3. Prevent the text-decoration to be skipped.
+// 1. Duplicate behavior to the data-bs-* attribute for our tooltip plugin
+// 2. Add the correct text decoration in Chrome, Edge, Opera, and Safari.
+// 3. Add explicit cursor to indicate changed behavior.
+// 4. Prevent the text-decoration to be skipped.
 
-abbr[title] {
-  text-decoration: underline dotted; // 1
-  -webkit-text-decoration: underline dotted; // 1
-  -moz-text-decoration: underline dotted; // 1
-  -ms-text-decoration: underline dotted; // 1
-  -o-text-decoration: underline dotted; // 1
-  cursor: help; // 2
-  text-decoration-skip-ink: none; // 3
+abbr[title],
+abbr[data-bs-original-title] { // 1
+  text-decoration: underline dotted; // 2
+  -webkit-text-decoration: underline dotted; // 2
+  -moz-text-decoration: underline dotted; // 2
+  -ms-text-decoration: underline dotted; // 2
+  -o-text-decoration: underline dotted; // 2
+  cursor: help; // 3
+  text-decoration-skip-ink: none; // 4
 }
 
 
@@ -228,7 +235,7 @@ small {
 
 mark {
   padding: $mark-padding;
-  background-color: var(--#{$prefix}highlight-bg);
+  background-color: $mark-bg;
 }
 
 
@@ -252,7 +259,7 @@ sup { top: -.5em; }
 // Links
 
 a {
-  color: var(--#{$prefix}link-color);
+  color: $link-color;
   text-decoration: $link-decoration;
   -webkit-text-decoration: $link-decoration;
   -moz-text-decoration: $link-decoration;
@@ -260,7 +267,7 @@ a {
   -o-text-decoration: $link-decoration;
 
   &:hover {
-    color: var(--#{$prefix}link-hover-color);
+    color: $link-hover-color;
     text-decoration: $link-hover-decoration;
     -webkit-text-decoration: $link-hover-decoration;
     -moz-text-decoration: $link-hover-decoration;
@@ -291,6 +298,8 @@ kbd,
 samp {
   font-family: $font-family-code;
   @include font-size(1em); // Correct the odd `em` font sizing in all browsers.
+  direction: ltr #{"/* rtl:ignore */"};
+  unicode-bidi: bidi-override;
 }
 
 // 1. Remove browser default top margin
@@ -320,7 +329,7 @@ pre {
 
 code {
   @include font-size($code-font-size);
-  color: var(--#{$prefix}code-color);
+  color: $code-color;
   background-color: $code-bg;
   @include border-radius($border-radius);
   padding: $spacer/8 $spacer/4;
@@ -463,11 +472,11 @@ select {
   }
 }
 
-// Remove the dropdown arrow only from text type inputs built with datalists in Chrome.
+// Remove the dropdown arrow in Chrome from inputs built with datalists.
 // See https://stackoverflow.com/a/54997118
 
-[list]:not([type="date"]):not([type="datetime-local"]):not([type="month"]):not([type="week"]):not([type="time"])::-webkit-calendar-picker-indicator {
-  display: none !important;
+[list]::-webkit-calendar-picker-indicator {
+  display: none;
 }
 
 // 1. Prevent a WebKit bug where (2) destroys native `audio` and `video`
@@ -589,10 +598,16 @@ legend {
 }
 
 
-// 1. Inherit font family and line height for file input buttons
-// 2. Correct the inability to style clickable types in iOS and Safari.
+// Inherit font family and line height for file input buttons
 
 ::file-selector-button {
+  font: inherit;
+}
+
+// 1. Change font properties to `inherit`
+// 2. Correct the inability to style clickable types in iOS and Safari.
+
+::-webkit-file-upload-button {
   font: inherit; // 1
   -webkit-appearance: button; // 2
 }

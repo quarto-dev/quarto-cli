@@ -173,10 +173,6 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700
   @import url($web-font-path);
 }
 
-:root {
-  color-scheme: light;
-}
-
 // Navbar
 
 .navbar {
@@ -184,8 +180,8 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700
   font-weight: 500;
 
   .nav-item {
-    margin-right: .5rem;
     margin-left: .5rem;
+    margin-right: .5rem;
   }
 
   .navbar-nav {
@@ -221,10 +217,6 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700
       }
     }
   }
-}
-
-.navbar-nav {
-  --bs-nav-link-padding-x: .5rem;
 }
 
 // Buttons
@@ -266,13 +258,13 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700
 // Tables
 
 .table {
-  font-size: $font-size-sm;
   box-shadow: $box-shadow-lg;
+  font-size: $font-size-sm;
 }
 
 thead th {
-  font-size: $font-size-sm;
   text-transform: uppercase;
+  font-size: $font-size-sm;
 }
 
 // Forms
@@ -312,11 +304,11 @@ thead th {
 }
 
 .breadcrumb {
-  font-size: $font-size-sm;
-  font-weight: 500;
   border: 1px solid $gray-300;
   border-radius: $border-radius;
   box-shadow: $box-shadow;
+  font-size: $font-size-sm;
+  font-weight: 500;
 
   &-item {
     padding: 1rem .5rem 1rem 0;
@@ -344,30 +336,16 @@ thead th {
 
 // Containers
 
-.list-group-item,
-.card {
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6,
-  .h1,
-  .h2,
-  .h3,
-  .h4,
-  .h5,
-  .h6 {
-    color: inherit;
-  }
-}
-
 .list-group {
   box-shadow: $box-shadow-lg;
 }
 
 .card {
   box-shadow: $box-shadow-lg;
+
+  &-title {
+    color: inherit;
+  }
 }
 
 .modal-footer {

@@ -201,10 +201,6 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&di
   @import url($web-font-path);
 }
 
-:root {
-  color-scheme: dark;
-}
-
 // Navbar
 
 .navbar {
@@ -272,8 +268,8 @@ legend {
 
     &.disabled,
     &.disabled:hover {
-      color: $nav-link-disabled-color;
       background-color: transparent;
+      color: $nav-link-disabled-color;
     }
 
     &.active {
@@ -297,8 +293,8 @@ legend {
 // Indicators
 
 .alert {
-  color: $contrast-bg;
   border: none;
+  color: $contrast-bg;
 
   a,
   .alert-link {

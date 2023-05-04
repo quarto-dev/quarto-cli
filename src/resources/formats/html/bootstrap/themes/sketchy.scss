@@ -176,15 +176,11 @@ $border-radius-lg-sketchy: 55px 225px 15px 25px / 25px 25px 35px 355px;
 $border-radius-sm-sketchy: 255px 25px 225px 25px / 25px 225px 25px 255px;
 // style-enable scss/dollar-variable-default
 
-:root {
-  color-scheme: light;
-}
-
 // Navbar
 
 .navbar {
-  border-style: solid;
   border-width: 2px;
+  border-style: solid;
   border-radius: 25px 25px 55px 5px/5px 55px 25px 25px;
 
   &.bg-light {
@@ -192,13 +188,13 @@ $border-radius-sm-sketchy: 255px 25px 225px 25px / 25px 225px 25px 255px;
   }
 
   &.fixed-top {
-    border-width: 0 0 2px;
     border-radius: 0 25px 225px 0/25px 0 25px 255px;
+    border-width: 0 0 2px;
   }
 
   &.fixed-bottom {
-    border-width: 2px 0 0;
     border-radius: 255px 25px 0 25px/25px 225px 25px 0;
+    border-width: 2px 0 0;
   }
 
   &-brand {
@@ -211,8 +207,8 @@ $border-radius-sm-sketchy: 255px 25px 225px 25px / 25px 225px 25px 255px;
 // Buttons
 
 .btn {
-  text-decoration: none;
   border-radius: $border-radius-sketchy;
+  text-decoration: none;
 
   &-lg {
     border-radius: $border-radius-lg-sketchy;
@@ -224,8 +220,7 @@ $border-radius-sm-sketchy: 255px 25px 225px 25px / 25px 225px 25px 255px;
 }
 
 .btn-check {
-  display: inline-block;
-  opacity: 0;
+  display: none;
 }
 
 // Typography
@@ -236,11 +231,6 @@ optgroup,
 select,
 textarea {
   font-family: $font-family-sans-serif;
-}
-
-b,
-strong {
-  font-family: $headings-font-family;
 }
 
 blockquote {
@@ -257,11 +247,11 @@ table {
 }
 
 .table-bordered {
-  overflow: hidden;
-  border-spacing: 0;
-  border-collapse: separate;
   background-color: $gray-800;
+  border-collapse: separate;
+  border-spacing: 0;
   border-radius: 5px 25px 5px 25px/25px 5px 25px 5px;
+  overflow: hidden;
 
   th,
   td {
@@ -272,8 +262,8 @@ table {
   .table-success:hover {
     td,
     th {
-      color: $white;
       background-color: $success;
+      color: $white;
     }
   }
 
@@ -281,8 +271,8 @@ table {
   .table-info:hover {
     td,
     th {
-      color: $white;
       background-color: $info;
+      color: $white;
     }
   }
 
@@ -290,8 +280,8 @@ table {
   .table-warning:hover {
     td,
     th {
-      color: $white;
       background-color: $warning;
+      color: $white;
     }
   }
 
@@ -299,8 +289,8 @@ table {
   .table-danger:hover {
     td,
     th {
-      color: $white;
       background-color: $danger;
+      color: $white;
     }
   }
 }
@@ -330,42 +320,38 @@ select.form-control {
   border-radius: $border-radius-lg-sketchy !important;
 }
 
-[type="checkbox"], #{$shiny-check} input, #{$shiny-check-inline} input {
+#{$shiny-check} input, #{$shiny-check-inline} input, [type="checkbox"] {
   position: relative;
-  width: 0;
-  height: 0;
-  cursor: pointer;
-  border: none;
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
   -o-appearance: none;
+  width: 0;
+  height: 0;
+  border: none;
+  cursor: pointer;
 
   &::before {
+    content: "";
     position: absolute;
-    top: -.1em;
     left: 0;
+    top: -.1em;
     display: inline-block;
     width: 15px;
     height: 16px;
-    content: "";
     border: 2px solid $gray-800;
     border-radius: 2px 8px 2px 4px / 5px 3px 5px 3px;
   }
 
-  &:focus::before {
-    box-shadow: 0 0 0 .25rem rgb(51, 51, 51 / 25%);
-  }
-
   &:checked::after {
+    content: "x";
     position: absolute;
-    top: 0;
     left: .1em;
+    top: 0;
     font-size: 1.5rem;
     line-height: .5;
     color: $gray-800;
-    content: "x";
   }
 
   &:disabled {
@@ -375,32 +361,28 @@ select.form-control {
   }
 }
 
-[type="radio"], #{$shiny-radio} input, #{$shiny-radio-inline} input {
+#{$shiny-radio} input, #{$shiny-radio-inline} input, [type="radio"] {
   position: relative;
-  width: 0;
-  height: 0;
-  cursor: pointer;
-  border: none;
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
   -o-appearance: none;
+  width: 0;
+  height: 0;
+  border: none;
+  cursor: pointer;
 
   &::before {
+    content: "";
     position: absolute;
-    top: -.1em;
     left: 0;
+    top: -.1em;
     display: inline-block;
     width: 16px;
     height: 16px;
-    content: "";
     border: 2px solid $gray-800;
     border-radius: 50% 45% 40% 50% / 40% 50% 50% 45%;
-  }
-
-  &:focus::before {
-    box-shadow: 0 0 0 .25rem rgb(51, 51, 51 / 25%);
   }
 
   &:checked::before {
@@ -415,9 +397,7 @@ select.form-control {
 }
 
 #{$shiny-check}, #{$shiny-check-inline}, #{$shiny-radio}, #{$shiny-radio-inline} {
-  span {
-    padding-left: 1rem;
-  }
+  span { padding-left: 1rem; }
 }
 
 #{$form-check-input-selector} {
@@ -439,13 +419,13 @@ select.form-control {
     }
 
     &::after {
-      position: absolute;
-      top: 0;
-      left: 0;
+      content: "";
       display: inline-block;
       width: 12px;
       height: 12px;
-      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
       background-color: $white;
       border: 2px solid #333;
       border-radius: 50% 45% 40% 50% / 40% 50% 50% 45%;
@@ -467,8 +447,8 @@ select.form-control {
 // Navs
 
 .dropdown-menu {
-  overflow: hidden;
   border-radius: 555px 25px 25px 25px/25px 25px 25px 555px;
+  overflow: hidden;
 }
 
 .dropdown-divider {
@@ -476,15 +456,15 @@ select.form-control {
 }
 
 .list-group {
-  overflow: hidden;
   background-color: $gray-800;
   border: 2px solid $gray-800;
   border-radius: 45px 15px 35px 5px/15px 5px 15px 65px;
+  overflow: hidden;
 
   &-item {
-    border-top: 2px solid $gray-800;
-    border-right: none;
     border-left: none;
+    border-right: none;
+    border-top: 2px solid $gray-800;
     border-radius: 255px 5px 225px 5px/25px 225px 25px 255px;
 
     &:first-child {
@@ -572,8 +552,8 @@ select.form-control {
   }
 
   &-header {
-    border-color: inherit;
     border-bottom-width: 2px;
+    border-color: inherit;
 
     &:first-child {
       border-radius: 3px 3px 0 0/23px 23px 0 0;
@@ -643,10 +623,10 @@ pre {
   background-image: none;
 
   &::before {
-    position: absolute;
-    top: .8rem;
-    right: 1rem;
     content: "X";
+    position: absolute;
+    right: 1rem;
+    top: .8rem;
   }
 }
 

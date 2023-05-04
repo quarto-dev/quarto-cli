@@ -14,18 +14,6 @@
   }
 }
 
-.form-check-reverse {
-  padding-right: $form-check-padding-start;
-  padding-left: 0;
-  text-align: right;
-
-  .form-check-input {
-    float: right;
-    margin-right: $form-check-padding-start * -1;
-    margin-left: 0;
-  }
-}
-
 #{$form-check-input-selector} {
   width: $form-check-input-width;
   height: $form-check-input-width;
@@ -41,7 +29,8 @@
   -moz-appearance: none;
   -ms-appearance: none;
   -o-appearance: none;
-  print-color-adjust: exact; // Keep themed appearance for print
+  color-adjust: exact; // Keep themed appearance for print
+  -webkit-print-color-adjust: exact; // Keep themed appearance for print
   @include transition($form-check-transition);
 
   &[type="checkbox"] {
@@ -69,7 +58,7 @@
 
     &[type="checkbox"] {
       @if $enable-gradients {
-        background-image: escape-svg($form-check-input-checked-bg-image), var(--#{$prefix}gradient);
+        background-image: escape-svg($form-check-input-checked-bg-image), var(--#{$variable-prefix}gradient);
       } @else {
         background-image: escape-svg($form-check-input-checked-bg-image);
       }
@@ -77,7 +66,7 @@
 
     &[type="radio"] {
       @if $enable-gradients {
-        background-image: escape-svg($form-check-radio-checked-bg-image), var(--#{$prefix}gradient);
+        background-image: escape-svg($form-check-radio-checked-bg-image), var(--#{$variable-prefix}gradient);
       } @else {
         background-image: escape-svg($form-check-radio-checked-bg-image);
       }
@@ -89,7 +78,7 @@
     border-color: $form-check-input-indeterminate-border-color;
 
     @if $enable-gradients {
-      background-image: escape-svg($form-check-input-indeterminate-bg-image), var(--#{$prefix}gradient);
+      background-image: escape-svg($form-check-input-indeterminate-bg-image), var(--#{$variable-prefix}gradient);
     } @else {
       background-image: escape-svg($form-check-input-indeterminate-bg-image);
     }
@@ -106,7 +95,6 @@
   &[disabled],
   &:disabled {
     ~ .form-check-label, ~ span {
-      cursor: default;
       opacity: $form-check-label-disabled-opacity;
     }
   }
@@ -140,25 +128,15 @@
       background-position: $form-switch-checked-bg-position;
 
       @if $enable-gradients {
-        background-image: escape-svg($form-switch-checked-bg-image), var(--#{$prefix}gradient);
+        background-image: escape-svg($form-switch-checked-bg-image), var(--#{$variable-prefix}gradient);
       } @else {
         background-image: escape-svg($form-switch-checked-bg-image);
       }
     }
   }
-
-  &.form-check-reverse {
-    padding-right: $form-switch-padding-start;
-    padding-left: 0;
-
-    .form-check-input {
-      margin-right: $form-switch-padding-start * -1;
-      margin-left: 0;
-    }
-  }
 }
 
-.form-check-inline {
+.form-check-inline, #{$shiny-check-inline}, #{$shiny-radio-inline} {
   display: inline-block;
   margin-right: $form-check-inline-margin-end;
 }

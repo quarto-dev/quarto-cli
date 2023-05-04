@@ -116,10 +116,6 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700
   @import url($web-font-path);
 }
 
-:root {
-  color-scheme: light;
-}
-
 // Mixins
 
 @mixin btn-shadow($color){
@@ -131,8 +127,8 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700
 // Navbar
 
 .navbar {
-  border-style: solid;
   border-width: 1px;
+  border-style: solid;
   border-color: shade-color($navbar-bg, 13%);
 
   &-fixed-top {
@@ -140,8 +136,8 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700
   }
 
   &-fixed-bottom {
-    border-style: solid;
     border-top-width: 1px 0 0 0;
+    border-style: solid;
   }
 
   &.bg-primary {
@@ -207,12 +203,12 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700
 }
 
 .btn-outline-secondary {
-  color: $gray-400;
   border-color: $gray-400;
+  color: $gray-400;
 
   &:hover {
-    color: $white;
     background-color: $gray-400;
+    color: $white;
   }
 }
 

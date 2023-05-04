@@ -185,10 +185,6 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0
   @import url($web-font-path);
 }
 
-:root {
-  color-scheme: dark;
-}
-
 // Typography
 
 .blockquote {
@@ -235,8 +231,8 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0
 // Indicators
 
 .alert {
-  color: $body-color;
   border: none;
+  color: $body-color;
 
   a,
   .alert-link {

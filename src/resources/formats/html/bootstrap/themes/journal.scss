@@ -74,10 +74,6 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=News+Cycle:wght@400;70
   @import url($web-font-path);
 }
 
-:root {
-  color-scheme: light;
-}
-
 // Navbar
 
 .bg-dark {
@@ -85,8 +81,8 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=News+Cycle:wght@400;70
 }
 
 .bg-light {
-  color: $black;
   background-color: $white !important;
+  color: $black;
   border: 1px solid $gray-200;
 
   &.navbar-fixed-top {
@@ -99,8 +95,8 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=News+Cycle:wght@400;70
 }
 
 .navbar {
-  font-family: $headings-font-family;
   font-size: 18px;
+  font-family: $headings-font-family;
   font-weight: $headings-font-weight;
 }
 

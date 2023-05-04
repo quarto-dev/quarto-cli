@@ -38,17 +38,14 @@
 }
 
 .btn-group {
-  @include border-radius($btn-border-radius);
-
   // Prevent double borders when buttons are next to each other
-  > :not(.btn-check:first-child) + .btn,
+  > .btn:not(:first-child),
   > .btn-group:not(:first-child) {
     margin-left: -$btn-border-width;
   }
 
   // Reset rounded corners
   > .btn:not(:last-child):not(.dropdown-toggle),
-  > .btn.dropdown-toggle-split:first-child,
   > .btn-group:not(:last-child) > .btn {
     @include border-end-radius(0);
   }
