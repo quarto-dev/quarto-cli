@@ -355,7 +355,7 @@ For more about choosing storage options see [Storage](https://quarto.org/docs/we
 
 This is automatically detected based upon the `tracking-id`, but you may specify it. */
   } /* Enable Google Analytics for this website */;
-  "cookie-consent"?: boolean | {
+  "cookie-consent"?: ("express" | "implied") | boolean | {
     "policy-url"?: string;
     "prefs-text"?: string;
     palette?:

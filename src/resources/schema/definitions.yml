@@ -688,6 +688,7 @@
         description: "Enable Google Analytics for this website"
       cookie-consent:
         anyOf:
+          - enum: [express, implied]
           - boolean
           - object:
               properties:
