@@ -107,6 +107,16 @@ async function checkVersions(_services: RenderServices) {
   const sassVersion = (await dartCommand(["--version"]))?.trim();
   checkVersion(sassVersion, ">=1.32.8", "Dart Sass");
 
+  // manually check Deno version without shelling out
+  // because we're actually running in Deno right now
+  if (!satisfies(Deno.version.deno, "1.33.1")) {
+    info(
+      `      NOTE: Deno version ${Deno.version.deno} is too old. Please upgrade to 1.33.1 or later.`,
+    );
+  } else {
+    info(`      Deno version ${Deno.version.deno}: OK`);
+  }
+
   completeMessage("Checking versions of quarto dependencies......OK");
 }
 

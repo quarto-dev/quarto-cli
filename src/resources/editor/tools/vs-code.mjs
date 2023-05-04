@@ -8515,6 +8515,23 @@ var require_yaml_intelligence_resources = __commonJS({
                                 "transparent_dark",
                                 "preferred_color_scheme"
                               ]
+                            },
+                            {
+                              object: {
+                                closed: true,
+                                properties: {
+                                  light: {
+                                    string: {
+                                      description: "The light theme name."
+                                    }
+                                  },
+                                  dark: {
+                                    string: {
+                                      description: "The dark theme name."
+                                    }
+                                  }
+                                }
+                              }
                             }
                           ],
                           description: "The giscus theme to use when displaying comments."
@@ -11120,6 +11137,28 @@ var require_yaml_intelligence_resources = __commonJS({
               }
             }
           }
+        },
+        {
+          id: "manuscript-schema",
+          schema: {
+            object: {
+              closed: true,
+              properties: {
+                "manuscript-url": {
+                  string: {
+                    description: "The deployed url for this manuscript"
+                  }
+                },
+                "meca-archive": {
+                  anyOf: [
+                    "boolean",
+                    "string"
+                  ],
+                  description: "Whether to generate a MECA bundle for this manuscript"
+                }
+              }
+            }
+          }
         }
       ],
       "schema/document-about.yml": [
@@ -12436,7 +12475,6 @@ var require_yaml_intelligence_resources = __commonJS({
       "schema/document-execute.yml": [
         {
           name: "engine",
-          hidden: true,
           schema: {
             string: {
               completions: [
@@ -14346,7 +14384,31 @@ var require_yaml_intelligence_resources = __commonJS({
             anyOf: [
               "boolean",
               {
-                arrayOf: "string"
+                maybeArrayOf: {
+                  anyOf: [
+                    "string",
+                    {
+                      object: {
+                        properties: {
+                          title: {
+                            string: {
+                              description: "The title for this alternative link."
+                            }
+                          },
+                          href: {
+                            string: {
+                              description: "The href for tihs alternative link."
+                            }
+                          }
+                        },
+                        required: [
+                          "title",
+                          "href"
+                        ]
+                      }
+                    }
+                  ]
+                }
               }
             ]
           },
@@ -14376,6 +14438,19 @@ var require_yaml_intelligence_resources = __commonJS({
           description: {
             short: "Controls the display of links to notebooks that provided embedded content or are created from documents.",
             long: "Controls the display of links to notebooks that provided embedded content or are created from documents.\n\nSpecify `false` to disable linking to source Notebooks. Specify `inline` to show links to source notebooks beneath the content they provide. \nSpecify `global` to show a set of global links to source notebooks.\n"
+          }
+        },
+        {
+          name: "notebook-subarticles",
+          tags: {
+            formats: [
+              "$jats-all"
+            ]
+          },
+          schema: "boolean",
+          description: {
+            short: "Controls whether referenced notebooks are embedded in JATS output as subarticles.",
+            long: "Controls the display of links to notebooks that provided embedded content or are created from documents.\n\nDefaults to `true` - specify `false` to disable embedding Notebook as subarticles with the JATS output.\n"
           }
         },
         {
@@ -17613,9 +17688,9 @@ var require_yaml_intelligence_resources = __commonJS({
                     completions: [
                       "default",
                       "website",
-                      "book"
+                      "book. manuscript"
                     ],
-                    description: "Project type (`default`, `website`, or `book`)"
+                    description: "Project type (`default`, `website`, `book`, or `manuscript`)"
                   }
                 },
                 render: {
@@ -17700,6 +17775,13 @@ var require_yaml_intelligence_resources = __commonJS({
                 }
               ]
             }
+          }
+        },
+        {
+          name: "manuscript",
+          description: "Manuscript configuration",
+          schema: {
+            ref: "manuscript-schema"
           }
         },
         {
@@ -19392,6 +19474,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Specify a default profile and profile groups",
         "Default profile to apply if QUARTO_PROFILE is not defined.",
         "Define a profile group for which at least one profile is always\nactive.",
+        "The deployed url for this manuscript",
+        "Whether to generate a MECA bundle for this manuscript",
         {
           short: "Unique label for code cell",
           long: "Unique label for code cell. Used when other code needs to refer to\nthe cell (e.g.&nbsp;for cross references <code>fig-samples</code> or\n<code>tbl-summary</code>)"
@@ -20144,9 +20228,17 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "Controls whether links to other rendered formats are displayed in\nHTML output.",
           long: "Controls whether links to other rendered formats are displayed in\nHTML output.\nPass <code>false</code> to disable the display of format lengths or\npass a list of format names for which you\u2019d like links to be shown."
         },
+        "The title for this alternative link.",
+        "The href for tihs alternative link.",
+        "The title for this alternative link.",
+        "The href for tihs alternative link.",
         {
           short: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.",
           long: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.\nSpecify <code>false</code> to disable linking to source Notebooks.\nSpecify <code>inline</code> to show links to source notebooks beneath\nthe content they provide. Specify <code>global</code> to show a set of\nglobal links to source notebooks."
+        },
+        {
+          short: "Controls whether referenced notebooks are embedded in JATS output as\nsubarticles.",
+          long: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.\nDefaults to <code>true</code> - specify <code>false</code> to disable\nembedding Notebook as subarticles with the JATS output."
         },
         "Configures the HTML viewer for notebooks that provide embedded\ncontent.",
         "The path to the locally referenced notebook.",
@@ -20577,7 +20669,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The width of the preview image for this document.",
         "The alt text for preview image on this page.",
         "Project configuration.",
-        "Project type (<code>default</code>, <code>website</code>, or\n<code>book</code>)",
+        "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
         "Files to render (defaults to all files)",
         {
           short: "Working directory for computations",
@@ -20878,9 +20970,10 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
+        "Manuscript configuration",
         "internal-schema-hack",
         "Project configuration.",
-        "Project type (<code>default</code>, <code>website</code>, or\n<code>book</code>)",
+        "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
         "Files to render (defaults to all files)",
         {
           short: "Working directory for computations",
@@ -21181,6 +21274,7 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
+        "Manuscript configuration",
         "internal-schema-hack"
       ],
       "schema/external-schemas.yml": [
@@ -21405,12 +21499,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 155259,
+        _internalId: 158441,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 155251,
+            _internalId: 158433,
             type: "enum",
             enum: [
               "png",
@@ -21426,7 +21520,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 155258,
+            _internalId: 158440,
             type: "anyOf",
             anyOf: [
               {

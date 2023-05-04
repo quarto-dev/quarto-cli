@@ -5,70 +5,60 @@ $for(by-author)$
 $if(it.orcid)$
 <contrib-id contrib-id-type="orcid">$it.orcid$</contrib-id>
 $endif$
-
 $it:name.xml()$
-
 $if(it.email)$
 <email>$it.email$</email>
 $endif$
-
+$for(it.roles)$
+<role$if(it.degree-of-contribution)$ degree-contribution="$it.degree-of-contribution$"$endif$$if(it.vocab-identifier)$ vocab="$it.vocab-identifier$"$endif$$if(it.vocab-term)$ vocab-term="$it.vocab-term$"$endif$$if(it.vocab-term-identifier)$ vocab-term-identifier="$it.vocab-term-identifier$"$endif$>$it.role$</role>
+$endfor$
 $-- if affiliations are listed separately, then create links. Otherwise
 $-- include them here.
 $for(it.affiliations)$
 <xref ref-type="aff" rid="$it.id$">$it.letter$</xref>
 $endfor$
-
 $if(it.attributes.corresponding)$
 <xref ref-type="corresp" rid="cor-$it.id$">&#x002A;</xref>
 $endif$
-
 $if(it.attributes.deceased)$
 <xref ref-type="deceased" rid="deceased-$it.id$">&#x2020;</xref>
 $endif$
-
 $if(it.attributes.equal-contributor)$
 <xref ref-type="deceased" rid="equal-$it.id$">&#x2021;</xref>
 $endif$
-
 $if(it.note.text)$
 <xref ref-type="author-note" rid="auth-note-$it.id$">$it.number$</xref>
 $endif$
-
 </contrib>
 $endfor$
-
 </contrib-group>
 $endif$
-
 $for(affiliations)$
 <aff id="$it.id$">
 $it:institution.xml()$
 </aff>
 $endfor$
-
+$if(quarto-internal.has-author-notes)$
 <author-notes>
 $for(authors)$
 $if(it.attributes.corresponding)$
 <corresp id="cor-$it.id$">$it.email$</corresp>
 $endif$
 $endfor$
-
 $for(authors)$
 $if(it.attributes.deceased)$
 <fn id="deceased-$it.id$" fn-type="deceased" symbol="&#x2020;"><p>$it.name.literal$</p></fn>
 $endif$
 $endfor$
-
 $for(authors)$
 $if(it.attributes.equal-contributor)$
 <fn id="equal-$it.id$" fn-type="equal" symbol="&#x2021;"><p>$it.name.literal$</p></fn>
 $endif$
 $endfor$
-
 $for(authors)$
 $if(it.note.text)$
 <fn id="auth-note-$it.id$" fn-type="author-note" symbol="$it.number$">$it.note.text$</fn>
 $endif$
 $endfor$
 </author-notes>
-
+$endif$

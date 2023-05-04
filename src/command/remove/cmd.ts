@@ -21,7 +21,6 @@ import {
   removeTool,
   selectTool,
 } from "../../tools/tools-console.ts";
-import { haveArrowKeys } from "../../core/platform.ts";
 
 export const removeCommand = new Command()
   .hidden()
@@ -273,9 +272,7 @@ async function selectExtensions(extensions: Extension[]) {
       };
     }),
     hint:
-      `Use the ${
-        haveArrowKeys() ? "arrow" : "'u' and 'd'"
-      } keys and spacebar to specify extensions you'd like to remove.\n` +
+      `Use the arrow keys and spacebar to specify extensions you'd like to remove.\n` +
       "   Press Enter to confirm the list of accounts you wish to remain available.",
   });
 

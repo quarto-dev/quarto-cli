@@ -114,22 +114,19 @@ function Reader (inputs, opts)
   local txt, tags = escape_invalid_tags(tostring(inputs))
   local extensions = {}
 
-  for k, v in pairs(opts.extensions) do
-    extensions[v] = true
-  end
-
+  local flavor = {
+    format = "markdown",
+    extensions = {},
+  }
   if param("user-defined-from") then
-    local user_format = _quarto.format.parse_format(param("user-defined-from"))
-    for k, v in pairs(user_format.extensions) do
-      extensions[k] = v
+    flavor = _quarto.format.parse_format(param("user-defined-from"))
+  else 
+    for k, v in pairs(opts.extensions) do
+      flavor.extensions[v] = true
     end
   end
 
   -- Format flavor, i.e., which extensions should be enabled/disabled.
-  local flavor = {
-    format = "markdown",
-    extensions = extensions,
-  }
   local function restore_invalid_tags(tag)
     return tags[tag] or tag
   end
@@ -140,6 +137,5 @@ function Reader (inputs, opts)
       return cb
     end
   }
-
   return doc
 end

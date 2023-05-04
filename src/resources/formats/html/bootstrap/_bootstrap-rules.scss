@@ -616,7 +616,7 @@ main {
 
 h1,
 h2 {
-  opacity: 0.9;
+  color: theme-dim($body-color, 8%);
   margin-top: 2rem;
   margin-bottom: 1rem;
   font-weight: 600;
@@ -1071,6 +1071,10 @@ figure .quarto-notebook-link {
   padding-top: 1.5em;
   padding-right: 1em;
   text-align: right;
+}
+
+.quarto-notebook .cell-code code {
+  white-space: pre-wrap;
 }
 
 .quarto-notebook h2 {

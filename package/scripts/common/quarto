@@ -31,7 +31,7 @@ else
   echo "ERROR: Cannot determine the Quarto source path. This script must be run from the bin or common folder."
   exit 1
 fi
-QUARTO_SRC_PATH=$QUARTO_ROOT/src
+QUARTO_SRC_PATH="$QUARTO_ROOT/src"
 DEV_PATH=$QUARTO_SRC_PATH/quarto.ts
 if [ -f "$DEV_PATH" ]; then
   if [ "$1" == "--version" ] || [ "$1" == "-v" ]; then
@@ -45,7 +45,7 @@ if [ -f "$DEV_PATH" ]; then
   fi
 
   # Local import map
-  QUARTO_IMPORT_ARGMAP=--importmap=$QUARTO_SRC_PATH/dev_import_map.json
+  QUARTO_IMPORT_ARGMAP=--importmap="$QUARTO_SRC_PATH/dev_import_map.json"
 
   # Turn on type checking for dev version
   QUARTO_DENO_OPTIONS=--check
@@ -57,6 +57,7 @@ if [ -f "$DEV_PATH" ]; then
   export QUARTO_BIN_PATH=$SCRIPT_PATH
   export QUARTO_SHARE_PATH="${QUARTO_SHARE_PATH=$QUARTO_SRC_PATH/resources/}"
   export QUARTO_DEBUG=true
+  QUARTO_CACHE_OPTIONS="--cached-only"
 
   # Check for deno update
   QUARTO_DIST_CONFIG=$QUARTO_BIN_PATH/../config
@@ -81,10 +82,9 @@ else
   QUARTO_ACTION=run
   QUARTO_TARGET=${SCRIPT_PATH}/quarto.js
   export QUARTO_BIN_PATH=$SCRIPT_PATH
+  QUARTO_CACHE_OPTIONS=""
 
-  QUARTO_IMPORT_ARGMAP=--importmap=$SCRIPT_PATH/vendor/import_map.json
-
-  # Turn of type checking for bundled version
+  # Turn off type checking for bundled version
   QUARTO_DENO_OPTIONS=--no-check
 
   # If Quarto is bundled into an `.app` file, it will be looking for the
@@ -153,6 +153,6 @@ fi
 
 export DENO_NO_UPDATE_CHECK=1
 # Be sure to include any already defined QUARTO_DENO_OPTIONS
-QUARTO_DENO_OPTIONS="--unstable --no-config --cached-only --allow-read --allow-write --allow-run --allow-env --allow-net --allow-ffi ${QUARTO_DENO_OPTIONS}"
+QUARTO_DENO_OPTIONS="--unstable --no-config ${QUARTO_CACHE_OPTIONS} --allow-read --allow-write --allow-run --allow-env --allow-net --allow-ffi ${QUARTO_DENO_OPTIONS}"
 
-"${QUARTO_DENO}" ${QUARTO_ACTION} ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_ARGMAP}" "${QUARTO_TARGET}" "$@"
+"${QUARTO_DENO}" ${QUARTO_ACTION} ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} ${QUARTO_IMPORT_ARGMAP} "${QUARTO_TARGET}" "$@"

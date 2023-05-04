@@ -1,6 +1,9 @@
 -- book.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
+local authors = require 'modules/authors'
+local license = require 'modules/license'
+
 --- Removes notes and links
 local function clean (inlines)
   -- this is in post, so it's after render, so we don't need to worry about
@@ -47,7 +50,10 @@ function quartoBook()
         local template = el.attr.attributes['template']
 
         -- process any author information
-        local processedMeta = processAuthorMeta(renderedDoc.meta)
+        local processedMeta = authors.processAuthorMeta(renderedDoc.meta)
+
+        -- process license information for the book
+        processedMeta = license.processLicenseMeta(processedMeta)
 
         -- read the title block template
         local renderedBlocks = compileTemplate(template, processedMeta)

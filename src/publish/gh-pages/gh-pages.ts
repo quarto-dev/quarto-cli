@@ -6,12 +6,12 @@
 
 import { info } from "log/mod.ts";
 import { dirname, join, relative } from "path/mod.ts";
-import { copy, existsSync } from "fs/mod.ts";
+import { copy } from "fs/mod.ts";
 import * as colors from "fmt/colors.ts";
 
 import { Confirm } from "cliffy/prompt/confirm.ts";
 
-import { removeIfExists, which } from "../../core/path.ts";
+import { removeIfExists } from "../../core/path.ts";
 import { execProcess } from "../../core/process.ts";
 
 import { ProjectContext } from "../../project/types.ts";
@@ -24,12 +24,13 @@ import { anonymousAccount } from "../provider.ts";
 import { PublishOptions, PublishRecord } from "../types.ts";
 import { shortUuid } from "../../core/uuid.ts";
 import { sleep } from "../../core/wait.ts";
-import { isHttpUrl, joinUrl } from "../../core/url.ts";
+import { joinUrl } from "../../core/url.ts";
 import { completeMessage, withSpinner } from "../../core/console.ts";
 import { renderForPublish } from "../common/publish.ts";
 import { websiteBaseurl } from "../../project/types/website/website-config.ts";
 import { RenderFlags } from "../../command/render/types.ts";
-import SemVer from "https://deno.land/x/semver@v1.4.0/mod.ts";
+import SemVer from "semver/mod.ts";
+import { gitHubContext } from "../../core/github.ts";
 
 export const kGhpages = "gh-pages";
 const kGhpagesDescription = "GitHub Pages";
@@ -54,7 +55,7 @@ function accountTokens() {
 }
 
 async function authorizeToken(options: PublishOptions) {
-  const ghContext = await gitHubContext(options.input);
+  const ghContext = await gitHubContextForPublish(options.input);
 
   if (!ghContext.git) {
     throwUnableToPublish("git does not appear to be installed on this system");
@@ -80,7 +81,7 @@ function removeToken(_token: AccountToken) {
 async function publishRecord(
   input: string | ProjectContext,
 ): Promise<PublishRecord | undefined> {
-  const ghContext = await gitHubContext(input);
+  const ghContext = await gitHubContextForPublish(input);
   if (ghContext.ghPages) {
     return {
       id: "gh-pages",
@@ -143,7 +144,7 @@ async function publish(
   }
 
   // get context
-  const ghContext = await gitHubContext(options.input);
+  const ghContext = await gitHubContextForPublish(options.input);
 
   // create gh pages branch if there is none yet
   const createGhPagesBranch = !ghContext.ghPages;
@@ -416,112 +417,17 @@ const throwUnableToPublish = (reason: string) => {
   );
 };
 
-type GitHubContext = {
-  git: boolean;
-  repo: boolean;
-  originUrl?: string;
-  ghPages?: boolean;
-  siteUrl?: string;
-  browse?: boolean;
-};
-
-async function gitHubContext(input: ProjectContext | string) {
-  // establish dir
+async function gitHubContextForPublish(input: string | ProjectContext) {
+  // Create the base context
   const dir = typeof (input) === "string" ? dirname(input) : input.dir;
+  const context = await gitHubContext(dir);
 
-  const context: GitHubContext = {
-    git: false,
-    repo: false,
-  };
-
-  // check for git
-  context.git = !!(await which("git"));
-
-  // check for a repo in this directory
-  if (context.git) {
-    context.repo = (await execProcess({
-      cmd: ["git", "rev-parse"],
-      cwd: dir,
-      stdout: "piped",
-      stderr: "piped",
-    })).success;
-
-    // check for an origin remote
-    if (context.repo) {
-      const result = await execProcess({
-        cmd: ["git", "config", "--get", "remote.origin.url"],
-        cwd: dir,
-        stdout: "piped",
-        stderr: "piped",
-      });
-      if (result.success) {
-        context.originUrl = result.stdout?.trim();
-
-        // check for a gh-pages branch
-        context.ghPages = (await execProcess({
-          cmd: [
-            "git",
-            "ls-remote",
-            "--quiet",
-            "--exit-code",
-            "origin",
-            "gh-pages",
-          ],
-          stdout: "piped",
-          stderr: "piped",
-        })).success;
-
-        // determine siteUrl
-        context.siteUrl = siteUrl(
-          dir,
-          context.originUrl!,
-          typeof (input) !== "string" ? input : undefined,
-        );
-      }
+  // always prefer configured website URL
+  if (typeof (input) !== "string") {
+    const configSiteUrl = websiteBaseurl(input?.config);
+    if (configSiteUrl) {
+      context.siteUrl = configSiteUrl;
     }
   }
-
   return context;
-}
-
-function siteUrl(
-  dir: string,
-  originUrl: string,
-  project: ProjectContext | undefined,
-) {
-  // always prefer config
-  const configSiteUrl = websiteBaseurl(project?.config);
-  if (configSiteUrl) {
-    return configSiteUrl;
-  }
-  // check for CNAME file
-  const cname = join(dir, "CNAME");
-  if (existsSync(cname)) {
-    const url = Deno.readTextFileSync(cname).trim();
-    if (isHttpUrl(url)) {
-      return url;
-    } else {
-      return `https://${url}`;
-    }
-  } else {
-    // pick apart origin url for github.com
-    const match = originUrl?.match(
-      /^git@([^:]+):([^\/]+)\/(.+?)\.git$/,
-    ) || originUrl?.match(
-      /^https:\/\/([^\/]+)\/([^\/]+)\/(.+?)\.git$/,
-    );
-
-    const kGithubCom = "github.com";
-    const kGithubIo = "github.io";
-    if (match && match.includes(kGithubCom)) {
-      const server = match[1].replace(kGithubCom, kGithubIo);
-      const domain = `${match[2]}.${server}`;
-      // user's root site uses just the domain
-      if (domain === match[3]) {
-        return `https://${domain}/`;
-      } else {
-        return `https://${domain}/${match[3]}/`;
-      }
-    }
-  }
 }

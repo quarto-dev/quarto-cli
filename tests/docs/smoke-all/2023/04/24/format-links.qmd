@@ -1,0 +1,21 @@
+---
+Title: Test 123
+author: Charles Teague
+date: now
+format:
+  html: default
+  pdf: default
+  jats: default
+format-links:
+  - jats
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['a[href="format-links.xml"]']
+        - ['a[href="format-links.pdf"]']
+---
+
+## This is a section
+
+{{< lipsum 1-2 >}}

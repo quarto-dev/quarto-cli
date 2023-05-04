@@ -1,6 +1,6 @@
 title: Lightbox
 author: RStudio, PBC
-version: 0.1.5
+version: 0.1.7
 quarto-required: ">=1.2.198"
 contributes:
   filters:

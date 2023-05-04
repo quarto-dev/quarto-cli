@@ -1,0 +1,38 @@
+---
+title: test
+format:
+    docusaurus-md:
+        code-line-numbers: true
+_quarto:
+  tests:
+    docusaurus-md:
+      ensureFileRegexMatches:
+        - ["[^\\]]```python", "[^\\]]```mdx-code-block"]
+        - ["[^\\]]```text"]
+---
+
+```{.python title="Python"}
+print("Hello World")
+```
+
+```{=html}
+<p style="color: green;">Paragraph</p>
+```
+
+```{=mdx}
+export const Highlight = ({children, color}) => (
+  <span
+    style={{
+      backgroundColor: color,
+      borderRadius: '2px',
+      color: '#fff',
+      padding: '0.2rem',
+    }}>
+    {children}
+  </span>
+);
+
+<Highlight color="#25c2a0">Docusaurus GREEN</Highlight> and <Highlight color="#1877F2">Rams blue</Highlight> are my favorite colors.
+
+I can write **Markdown** alongside my _JSX_!
+```

@@ -1,0 +1,19 @@
+project:
+  type: manuscript
+  render:
+    - manuscript.qmd
+
+manuscript:
+  meca: true
+
+format:
+  html:
+    toc: true
+    format-links:
+      - pdf
+      - docx
+  docx: true
+  pdf: default
+  jats: default
+
+<% if(editor){ %>editor: <%= editor %><% } %>

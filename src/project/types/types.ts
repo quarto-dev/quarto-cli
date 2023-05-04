@@ -35,7 +35,7 @@ export interface ProjectType {
   filterFormat?: (
     source: string,
     format: Format,
-    project?: ProjectContext
+    project?: ProjectContext,
   ) => Format;
   formatExtras?: (
     context: ProjectContext,
@@ -47,7 +47,7 @@ export interface ProjectType {
   projectFormatsOnly?: boolean;
   isSupportedFormat?: (format: Format) => boolean;
   metadataFields?: () => Array<string | RegExp>;
-  filterParams?: (options: PandocOptions) => Metadata | undefined;
+  filterParams?: (options: PandocOptions) => Promise<Metadata | undefined>;
   resourceIgnoreFields?: () => string[];
   navItemText?: (
     context: ProjectContext,
@@ -91,6 +91,8 @@ export interface ProjectType {
 export interface ProjectOutputFile {
   file: string;
   format: Format;
+  resources: string[];
+  supporting?: string[];
 }
 
 export interface ProjectCreate {
