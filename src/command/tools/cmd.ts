@@ -12,6 +12,7 @@ import {
   updateOrInstallTool,
 } from "../../tools/tools-console.ts";
 import { installableTools, printToolInfo } from "../../tools/tools.ts";
+import { error } from "log/mod.ts";
 
 // quarto tools install tinytex
 // quarto tools uninstall tinytex
@@ -21,7 +22,7 @@ import { installableTools, printToolInfo } from "../../tools/tools.ts";
 export const toolsCommand = new Command()
   .name("tools")
   .hidden()
-  .arguments("<command:string> [tool:string]")
+  .arguments("[command:string] [tool:string]")
   .description(
     `Installation and update of ancillary tools.
     
@@ -53,7 +54,8 @@ Use 'quarto tools' with no arguments to show the status of all tools.`,
     "quarto tools list",
   )
   // deno-lint-ignore no-explicit-any
-  .action(async (_options: any, command: string, tool?: string) => {
+  .action(async (_options: any, command?: string, tool?: string) => {
+    command = command || "list";
     switch (command) {
       case "info":
         if (tool) {
@@ -81,9 +83,10 @@ Use 'quarto tools' with no arguments to show the status of all tools.`,
           );
         }
         break;
-      default:
       case "list":
         await outputTools();
         break;
+      default:
+        error(`Tools command "${command}" not supported.`);
     }
   });
