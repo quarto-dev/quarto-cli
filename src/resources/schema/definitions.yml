@@ -2156,6 +2156,9 @@
     object:
       closed: true
       properties:
+        "article":
+          path:
+            description: "The input document that will serve as the root document for this manuscript"
         "manuscript-url":
           string:
             description: "The deployed url for this manuscript"

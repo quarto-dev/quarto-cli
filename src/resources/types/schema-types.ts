@@ -1144,7 +1144,9 @@ export type ManuscriptSchema = {
   "manuscript-url"?: string /* The deployed url for this manuscript */;
   "meca-archive"?:
     | boolean
-    | string; /* Whether to generate a MECA bundle for this manuscript */
+    | string /* Whether to generate a MECA bundle for this manuscript */;
+  article?:
+    string; /* The input document that will serve as the root document for this manuscript */
 };
 
 export type ProjectConfig = {

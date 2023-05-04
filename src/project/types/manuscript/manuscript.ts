@@ -18,13 +18,13 @@ import {
   isPdfOutput,
 } from "../../../config/format.ts";
 import { globalTempContext } from "../../../core/temp.ts";
-import { copySync, ensureDirSync } from "fs/mod.ts";
+import { copySync, ensureDirSync, existsSync } from "fs/mod.ts";
 import { kMecaVersion, MecaItem, MecaManifest, toXml } from "./meca.ts";
 import { contentType } from "../../../core/mime.ts";
 import { zip } from "../../../core/zip.ts";
 import { isAbsolute } from "path/mod.ts";
 import { dirAndStem } from "../../../core/path.ts";
-import { PandocOptions } from "../../../command/render/types.ts";
+import { PandocOptions, RenderFlags } from "../../../command/render/types.ts";
 import { gitHubContext } from "../../../core/github.ts";
 
 const kManuscriptType = "manuscript";
@@ -34,6 +34,7 @@ const kMecaSuffix = "-meca.zip";
 
 const kManuscriptUrl = "manuscript-url";
 const kMecaArchive = "meca-archive";
+const kArticle = "article";
 
 const mecaFileName = (file: string, manuOpts: ManuscriptOptions) => {
   if (typeof (manuOpts[kMecaArchive]) === "string") {
@@ -46,6 +47,32 @@ const mecaFileName = (file: string, manuOpts: ManuscriptOptions) => {
 
 export const manuscriptProjectType: ProjectType = {
   type: kManuscriptType,
+  config: (
+    projectDir: string,
+    config: ProjectConfig,
+    _flags?: RenderFlags,
+  ): Promise<ProjectConfig> => {
+    // Build the render list
+    const manuOpts = manuscriptOptions(config);
+    if (manuOpts && manuOpts.article) {
+      // If there is an explicitly specified article file
+      config.project.render = [manuOpts.article];
+    } else {
+      // Locate a default target
+      const defaultArticleFiles = ["index.qmd", "index.ipynb"];
+      const defaultArticleFile = defaultArticleFiles.find((file) => {
+        return existsSync(join(projectDir, file));
+      });
+      if (defaultArticleFile !== undefined) {
+        config.project.render = [defaultArticleFile];
+      } else {
+        throw new Error(
+          "Unable to determine the root input document for this manuscript. Please specify an `article` in your `_quarto.yml` file.",
+        );
+      }
+    }
+    return Promise.resolve(config);
+  },
 
   create: (_title: string): ProjectCreate => {
     const resourceDir = resourcePath(join("projects", "manuscript"));
@@ -54,7 +81,7 @@ export const manuscriptProjectType: ProjectType = {
       resourceDir,
       scaffold: () => [
         {
-          name: "manuscript",
+          name: "index",
           content: [
             "---",
             "title: My Manscript",
@@ -74,18 +101,21 @@ export const manuscriptProjectType: ProjectType = {
     if (options.project) {
       // See if there is an explicit manuscript URL
       const manuOpts = manuscriptOptions(options.project.config);
-      let baseUrl = manuOpts[kManuscriptUrl];
-      if (baseUrl === undefined) {
-        const ghContext = await gitHubContext(options.project.dir);
-        baseUrl = ghContext.siteUrl;
+      if (manuOpts) {
+        const filterParams: Record<string, unknown> = {};
+
+        // Look up the base url used when rendering
+        let baseUrl = manuOpts[kManuscriptUrl];
+        if (baseUrl === undefined) {
+          const ghContext = await gitHubContext(options.project.dir);
+          baseUrl = ghContext.siteUrl;
+        }
+        if (baseUrl) {
+          filterParams[kManuscriptUrl] = baseUrl;
+        }
+        return filterParams;
       }
-      if (baseUrl) {
-        return {
-          [kManuscriptUrl]: baseUrl,
-        };
-      } else {
-        return undefined;
-      }
+      return undefined;
     } else {
       throw new Error(
         "Internal Error: Filters params being requested for project without providing a project.",
@@ -99,7 +129,7 @@ export const manuscriptProjectType: ProjectType = {
   ) => {
     if (project) {
       const manuOpts = manuscriptOptions(project.config);
-      if (manuOpts[kMecaArchive] !== false) {
+      if (manuOpts && manuOpts[kMecaArchive] !== false) {
         // Add an alternate link to a MECA bundle
         if (format.render[kFormatLinks] !== false) {
           const links: Array<string | FormatLink> = [];
@@ -126,7 +156,7 @@ export const manuscriptProjectType: ProjectType = {
     outputFiles: ProjectOutputFile[],
   ) => {
     const manuOpts = manuscriptOptions(context.config);
-    if (manuOpts[kMecaArchive] !== false) {
+    if (manuOpts && manuOpts[kMecaArchive] !== false) {
       const workingDir = globalTempContext().createDir();
 
       const outputDir = projectOutputDir(context);
@@ -298,6 +328,7 @@ const mecaType = (_path: string) => {
 interface ManuscriptOptions {
   [kManuscriptUrl]?: string;
   [kMecaArchive]?: boolean | string;
+  [kArticle]?: string;
 }
 
 const manuscriptOptions = (config?: ProjectConfig): ManuscriptOptions => {

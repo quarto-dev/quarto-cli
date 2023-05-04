@@ -1,10 +1,5 @@
 project:
   type: manuscript
-  render:
-    - manuscript.qmd
-
-manuscript:
-  meca: true
 
 format:
   html:
@@ -12,7 +7,7 @@ format:
     format-links:
       - pdf
       - docx
-  docx: true
+  docx: default
   pdf: default
   jats: default
 

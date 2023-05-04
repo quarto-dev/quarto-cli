@@ -11150,6 +11150,11 @@ var require_yaml_intelligence_resources = __commonJS({
             object: {
               closed: true,
               properties: {
+                article: {
+                  path: {
+                    description: "The input document that will serve as the root document for this manuscript"
+                  }
+                },
                 "manuscript-url": {
                   string: {
                     description: "The deployed url for this manuscript"
@@ -19482,6 +19487,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Specify a default profile and profile groups",
         "Default profile to apply if QUARTO_PROFILE is not defined.",
         "Define a profile group for which at least one profile is always\nactive.",
+        "The input document that will serve as the root document for this\nmanuscript",
         "The deployed url for this manuscript",
         "Whether to generate a MECA bundle for this manuscript",
         {
@@ -21507,12 +21513,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 158454,
+        _internalId: 158458,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 158446,
+            _internalId: 158450,
             type: "enum",
             enum: [
               "png",
@@ -21528,7 +21534,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 158453,
+            _internalId: 158457,
             type: "anyOf",
             anyOf: [
               {
