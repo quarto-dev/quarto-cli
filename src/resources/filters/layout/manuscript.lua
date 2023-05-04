@@ -8,8 +8,7 @@ local kNotebookCellId = "notebook-cellId"
 local kLangSourcePrefix = "source-notebooks-prefix"
 
 local kManuscriptUrl = "manuscript-url"
-
-
+local kNotebookLinks = "notebook-links"
 
 function manuscript() 
   if _quarto.format.isWordProcessorOutput() or _quarto.format.isLatexOutput() then
@@ -18,10 +17,18 @@ function manuscript()
     local notebookPrefix = language[kLangSourcePrefix]
 
     local manuscriptUrl = param(kManuscriptUrl)
+    local notebookLinks = param(kNotebookLinks)
+
     return {
 
       -- Process any cells that originated from notebooks
       Div = function(divEl)        
+        -- Don't process these specially unless 'inline' links
+        -- are enabled
+        if (notebookLinks == false or notebookLinks == "global") then
+          return
+        end
+
         local nbPath = divEl.attributes[kNotebook]
         if manuscriptUrl ~= nil and nbPath ~= nil then
 
@@ -34,7 +41,6 @@ function manuscript()
           divEl.attributes['notebook-preview-file'] = previewFile;
           local previewPath = pandoc.path.join({nbDir, previewFile})
 
-          
 
           -- The title for the notebook
           local nbTitle = divEl.attributes[kNotebookTitle]

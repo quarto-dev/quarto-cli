@@ -16,6 +16,7 @@ import {
 import { ProjectConfig, ProjectContext } from "../../types.ts";
 import {
   kFormatLinks,
+  kNotebookLinks,
   kNotebookView,
   kResources,
 } from "../../../config/constants.ts";
@@ -124,11 +125,11 @@ export const manuscriptProjectType: ProjectType = {
   cleanOutputDir: true,
   filterParams: async (options: PandocOptions) => {
     if (options.project) {
+      const filterParams: Record<string, unknown> = {};
+
       // See if there is an explicit manuscript URL
       const manuOpts = manuscriptOptions(options.project.config);
       if (manuOpts) {
-        const filterParams: Record<string, unknown> = {};
-
         // Look up the base url used when rendering
         let baseUrl = manuOpts[kManuscriptUrl];
         if (baseUrl === undefined) {
@@ -138,9 +139,12 @@ export const manuscriptProjectType: ProjectType = {
         if (baseUrl) {
           filterParams[kManuscriptUrl] = baseUrl;
         }
-        return filterParams;
       }
-      return undefined;
+
+      if (options.format.render[kNotebookLinks] !== undefined) {
+        filterParams[kNotebookLinks] = options.format.render[kNotebookLinks];
+      }
+      return filterParams;
     } else {
       throw new Error(
         "Internal Error: Filters params being requested for project without providing a project.",
