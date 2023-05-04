@@ -1,11 +1,10 @@
 /*
-* verify.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * verify.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
-import { existsSync } from "node/fs.ts";
+import { existsSync } from "fs/mod.ts";
 import { DOMParser, NodeList } from "../src/core/deno-dom.ts";
 import { assert } from "testing/asserts.ts";
 import { dirname, join } from "path/mod.ts";
@@ -271,9 +270,9 @@ export const ensurePptxRegexMatches = (
         const slidePath = join(temp, "ppt", "slides");
         const slideFile = join(slidePath, `slide${slideNumber}.xml`);
         assert(
-          existsSync(slideFile), 
+          existsSync(slideFile),
           `Slide number ${slideNumber} is not in the Pptx`,
-        )
+        );
         const xml = await Deno.readTextFile(slideFile);
         regexes.forEach((regex) => {
           if (typeof regex === "string") {
@@ -371,20 +370,26 @@ export const ensureHtmlSelectorSatisfies = (
   };
 };
 
-export const ensureXmlValidatesWithXsd = (file: string, xsdPath: string) : Verify => {
+export const ensureXmlValidatesWithXsd = (
+  file: string,
+  xsdPath: string,
+): Verify => {
   return {
     name: "Validating XML",
     verify: async (_output: ExecuteOutput[]) => {
-      
-      if (!isWindows() ) {
+      if (!isWindows()) {
         const cmd = ["xmllint", "--noout", "--valid", file, "--path", xsdPath];
-        const runOptions: Deno.RunOptions = {cmd, stderr: "piped", stdout: "piped"};
+        const runOptions: Deno.RunOptions = {
+          cmd,
+          stderr: "piped",
+          stdout: "piped",
+        };
         const result = await execProcess(runOptions);
         assert(
           result.success,
-          `Failed XSD Validation\n${result.stderr}`
-        )
-      }    
-    }
-  }
-}
+          `Failed XSD Validation\n${result.stderr}`,
+        );
+      }
+    },
+  };
+};

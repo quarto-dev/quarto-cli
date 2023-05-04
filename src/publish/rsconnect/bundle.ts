@@ -4,17 +4,15 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-// deno-lint-ignore-file no-deprecated-deno-api
-
 import { dirname, join } from "path/mod.ts";
-import { copy } from "streams/conversion.ts";
+import { copy } from "streams/copy.ts";
 import { ensureDirSync } from "fs/mod.ts";
 
-import { createHash } from "node/crypto.ts";
 import { Tar } from "archive/tar.ts";
 
 import { PublishFiles } from "../provider-types.ts";
 import { TempContext } from "../../core/temp-types.ts";
+import { md5Hash } from "../../core/hash.ts";
 
 export async function createBundle(
   type: "site" | "document",
@@ -26,13 +24,8 @@ export async function createBundle(
   for (const file of files.files) {
     const filePath = join(files.baseDir, file);
     if (Deno.statSync(filePath).isFile) {
-      const hash = createHash("md5");
-      const f = Deno.openSync(filePath);
-      for (const chunk of Deno.iterSync(f)) {
-        hash.update(chunk);
-      }
-      Deno.close(f.rid);
-      manifestFiles[file] = { checksum: hash.digest("hex") as string };
+      const f = Deno.readTextFileSync(filePath);
+      manifestFiles[file] = { checksum: md5Hash(f) as string };
     }
   }
 

@@ -9,6 +9,9 @@ $it:name.xml()$
 $if(it.email)$
 <email>$it.email$</email>
 $endif$
+$for(it.roles)$
+<role$if(it.degree-of-contribution)$ degree-contribution="$it.degree-of-contribution$"$endif$$if(it.vocab-identifier)$ vocab="$it.vocab-identifier$"$endif$$if(it.vocab-term)$ vocab-term="$it.vocab-term$"$endif$$if(it.vocab-term-identifier)$ vocab-term-identifier="$it.vocab-term-identifier$"$endif$>$it.role$</role>
+$endfor$
 $-- if affiliations are listed separately, then create links. Otherwise
 $-- include them here.
 $for(it.affiliations)$

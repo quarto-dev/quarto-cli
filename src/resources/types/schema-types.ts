@@ -132,7 +132,11 @@ the discussions feature must be enabled. */;
         | "dark_dimmed"
         | "transparent_dark"
         | "preferred_color_scheme"
-      ); /* The giscus theme to use when displaying comments. */
+      )
+      | {
+        dark?: string /* The dark theme name. */;
+        light?: string; /* The light theme name. */
+      }; /* The giscus theme to use when displaying comments. */
   };
   hypothesis?: boolean | {
     assetRoot?: string /* The root URL from which assets are loaded. */;

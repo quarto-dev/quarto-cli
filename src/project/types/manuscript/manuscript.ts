@@ -1,9 +1,8 @@
 /*
-* manuscript.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * manuscript.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { resourcePath } from "../../../core/resources.ts";
 import { ProjectCreate, ProjectOutputFile, ProjectType } from "../types.ts";
@@ -23,7 +22,7 @@ import { copySync, ensureDirSync } from "fs/mod.ts";
 import { kMecaVersion, MecaItem, MecaManifest, toXml } from "./meca.ts";
 import { contentType } from "../../../core/mime.ts";
 import { zip } from "../../../core/zip.ts";
-import { isAbsolute } from "../../../vendor/deno.land/std@0.166.0/path/win32.ts";
+import { isAbsolute } from "path/mod.ts";
 import { dirAndStem } from "../../../core/path.ts";
 import { PandocOptions } from "../../../command/render/types.ts";
 import { gitHubContext } from "../../../core/github.ts";

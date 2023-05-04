@@ -2,7 +2,9 @@ import { isAbsolute, join } from "path/mod.ts";
 
 import { RenderResult } from "../../command/render/types.ts";
 import { md5Hash } from "../../core/hash.ts";
+import { HttpDevServerRenderMonitor } from "../../core/http-devserver.ts";
 import { isJupyterNotebook } from "../../core/jupyter/jupyter.ts";
+import { logError } from "../../core/log.ts";
 import { isHtmlContent } from "../../core/mime.ts";
 import { PromiseQueue } from "../../core/promise.ts";
 import { extensionFilesFromDirs } from "../../extension/extension.ts";
@@ -11,10 +13,6 @@ import { kProjectType, ProjectContext } from "../types.ts";
 import { projectType } from "../types/project-types.ts";
 
 export class ServeRenderManager {
-  public renderQueue() {
-    return this.renderQueue_;
-  }
-
   public fileRequiresReRender(
     file: string,
     inputFile: string,
@@ -37,12 +35,29 @@ export class ServeRenderManager {
     }
   }
 
+  public submitRender(render: () => Promise<RenderResult>) {
+    HttpDevServerRenderMonitor.onRenderStart();
+    return this.renderQueue_.enqueue(render);
+  }
+
+  public isRendering() {
+    return this.renderQueue_.isRunning();
+  }
+
+  public onRenderError(error: Error) {
+    HttpDevServerRenderMonitor.onRenderStop(false);
+    if (error.message) {
+      logError(error);
+    }
+  }
+
   public onRenderResult(
     result: RenderResult,
     extensionDirs: string[],
     resourceFiles: string[],
     project: ProjectContext,
   ) {
+    HttpDevServerRenderMonitor.onRenderStop(true);
     // Use the first file to determine the format
     let outputDir: string;
     if (result.files.length > 0) {
