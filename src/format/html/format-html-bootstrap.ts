@@ -635,12 +635,17 @@ function alternateLinks(
     userLinks.some((link) => typeof (link) === "string");
   if (!userLinksHasFormat) {
     formats.forEach((renderedFormat) => {
-      alternateLinks.push(alternateLinkForFormat(renderedFormat));
+      const baseFormat = renderedFormat.format.identifier["base-format"];
+      if (!kExcludeFormatUnlessExplicit.includes(baseFormat || "html")) {
+        alternateLinks.push(alternateLinkForFormat(renderedFormat));
+      }
     });
   }
 
   return alternateLinks;
 }
+
+const kExcludeFormatUnlessExplicit = ["jats"];
 
 function bootstrapHtmlFinalizer(format: Format, flags: PandocFlags) {
   return (doc: Document): Promise<void> => {

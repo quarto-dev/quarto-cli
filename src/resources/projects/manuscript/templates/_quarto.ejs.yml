@@ -1,14 +1,17 @@
 project:
   type: manuscript
 
+manuscript:
+  article: index.qmd
+
 format:
   html:
-    toc: true
-    format-links:
-      - pdf
-      - docx
+    comments:
+      hypothesis: true
   docx: default
-  pdf: default
-  jats: default
+
+  # (other formats)
+  # jats: default
+  # pdf: default
 
 <% if(editor){ %>editor: <%= editor %><% } %>

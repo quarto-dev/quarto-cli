@@ -10,8 +10,10 @@ import { ProjectCreate, ProjectOutputFile, ProjectType } from "../types.ts";
 import { dirname, join, relative } from "path/mod.ts";
 import {
   Format,
+  FormatExtras,
   FormatLink,
   NotebookPublishOptions,
+  PandocFlags,
 } from "../../../config/types.ts";
 import { ProjectConfig, ProjectContext } from "../../types.ts";
 import {
@@ -19,10 +21,12 @@ import {
   kNotebookLinks,
   kNotebookView,
   kResources,
+  kToc,
 } from "../../../config/constants.ts";
 import { projectOutputDir } from "../../project-shared.ts";
 import {
   isDocxOutput,
+  isHtmlOutput,
   isJatsOutput,
   isPdfOutput,
 } from "../../../config/format.ts";
@@ -33,7 +37,11 @@ import { contentType } from "../../../core/mime.ts";
 import { zip } from "../../../core/zip.ts";
 import { isAbsolute } from "path/mod.ts";
 import { dirAndStem } from "../../../core/path.ts";
-import { PandocOptions, RenderFlags } from "../../../command/render/types.ts";
+import {
+  PandocOptions,
+  RenderFlags,
+  RenderServices,
+} from "../../../command/render/types.ts";
 import { gitHubContext } from "../../../core/github.ts";
 
 const kManuscriptType = "manuscript";
@@ -96,6 +104,9 @@ export const manuscriptProjectType: ProjectType = {
         }
       }
     }
+
+    // Any files not included in the render list will be treated as
+    // notebooks in the manuscript project
 
     return Promise.resolve(config);
   },
@@ -196,6 +207,23 @@ export const manuscriptProjectType: ProjectType = {
         "Internal Error: Filter format being called for project without providing a project.",
       );
     }
+  },
+  // format extras
+  formatExtras: async (
+    _context: ProjectContext,
+    _source: string,
+    _flags: PandocFlags,
+    format: Format,
+    _services: RenderServices,
+  ) => {
+    // defaults for all formats
+    const extras: FormatExtras = {
+      pandoc: {
+        [kToc]: isHtmlOutput(format.pandoc),
+      },
+    };
+
+    return Promise.resolve(extras);
   },
   postRender: async (
     context: ProjectContext,
@@ -392,13 +420,15 @@ const manuscriptOptions = (config?: ProjectConfig): ManuscriptOptions => {
 
     if (manuOpts) {
       const notebooks: NotebookPublishOptions[] = [];
-      for (const notebook of manuOpts[kNotebooks] as unknown[]) {
-        if (typeof (notebook) === "string") {
-          notebooks.push({
-            notebook,
-          });
-        } else {
-          notebooks.push(notebook as NotebookPublishOptions);
+      if (manuOpts[kNotebooks]) {
+        for (const notebook of manuOpts[kNotebooks] as unknown[]) {
+          if (typeof (notebook) === "string") {
+            notebooks.push({
+              notebook,
+            });
+          } else {
+            notebooks.push(notebook as NotebookPublishOptions);
+          }
         }
       }
     }
