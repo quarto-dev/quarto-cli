@@ -12,6 +12,7 @@ import {
   Format,
   FormatExtras,
   FormatLink,
+  Metadata,
   NotebookPublishOptions,
   PandocFlags,
 } from "../../../config/types.ts";
@@ -43,6 +44,7 @@ import {
   RenderServices,
 } from "../../../command/render/types.ts";
 import { gitHubContext } from "../../../core/github.ts";
+import { projectInputFiles } from "../../project-context.ts";
 
 const kManuscriptType = "manuscript";
 
@@ -105,8 +107,22 @@ export const manuscriptProjectType: ProjectType = {
       }
     }
 
-    // Any files not included in the render list will be treated as
-    // notebooks in the manuscript project
+    // If the user isn't explicitly providing a notebook list
+    // then automatically create notebooks for the other items in
+    // the project
+    if (manuOpts[kNotebooks] === undefined) {
+      const inputs = projectInputFiles(projectDir, config);
+      const notebooks = inputs.files.filter((file) => {
+        return !config.project.render?.includes(file);
+      });
+      if (notebooks.length > 0) {
+        (config[kManuscriptType] as Metadata)[kNotebooks] = notebooks.map(
+          (nb) => {
+            return { notebook: nb };
+          },
+        );
+      }
+    }
 
     return Promise.resolve(config);
   },
@@ -222,7 +238,6 @@ export const manuscriptProjectType: ProjectType = {
         [kToc]: isHtmlOutput(format.pandoc),
       },
     };
-
     return Promise.resolve(extras);
   },
   postRender: async (
