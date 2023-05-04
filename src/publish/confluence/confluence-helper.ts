@@ -131,7 +131,7 @@ export const confluenceParentFromString = (url: string): ConfluenceParent => {
   }
 
   const match = toMatch.match(
-    /^https.*?wiki\/spaces\/(?:(~?\w+)|(~?\w+)\/overview|(~?\w+)\/pages\/(\d+).*)$/,
+    /^https.*?wiki\/spaces\/(?:(~?\w+)|(~?\w+)\/overview|(~?.+)\/pages\/(\d+).*)$/,
   );
   if (match) {
     return {
