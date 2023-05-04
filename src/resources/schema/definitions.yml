@@ -2189,3 +2189,7 @@
             anyOf:
               - string
               - ref: notebook-view-schema
+        "resources":
+          maybeArrayOf:
+            schema: path
+            description: "Additional file resources to be copied to output directory"

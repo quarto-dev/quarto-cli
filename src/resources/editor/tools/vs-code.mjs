@@ -11205,6 +11205,12 @@ var require_yaml_intelligence_resources = __commonJS({
                       }
                     ]
                   }
+                },
+                resources: {
+                  maybeArrayOf: {
+                    schema: "path",
+                    description: "Additional file resources to be copied to output directory"
+                  }
                 }
               }
             }
@@ -19508,6 +19514,9 @@ var require_yaml_intelligence_resources = __commonJS({
         "Specify a default profile and profile groups",
         "Default profile to apply if QUARTO_PROFILE is not defined.",
         "Define a profile group for which at least one profile is always\nactive.",
+        "The path to the locally referenced notebook.",
+        "The title of the notebook when viewed.",
+        "The url to use when viewing this notebook.",
         "The input document that will serve as the root document for this\nmanuscript",
         "The deployed url for this manuscript",
         "Whether to generate a MECA bundle for this manuscript",
@@ -20276,12 +20285,6 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.\nDefaults to <code>true</code> - specify <code>false</code> to disable\nembedding Notebook as subarticles with the JATS output."
         },
         "Configures the HTML viewer for notebooks that provide embedded\ncontent.",
-        "The path to the locally referenced notebook.",
-        "The title of the notebook when viewed.",
-        "The url to use when viewing this notebook.",
-        "The path to the locally referenced notebook.",
-        "The title of the notebook when viewed.",
-        "The url to use when viewing this notebook.",
         "The style of document to render. Setting this to\n<code>notebook</code> will create additional notebook style\naffordances.",
         "Automatically generate the contents of a page from a list of Quarto\ndocuments or other custom data.",
         "Mermaid diagram options",
@@ -21310,10 +21313,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
-        "internal-schema-hack",
-        "The path to the locally referenced notebook.",
-        "The title of the notebook when viewed.",
-        "The url to use when viewing this notebook."
+        "internal-schema-hack"
       ],
       "schema/external-schemas.yml": [
         {
@@ -21537,12 +21537,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 158479,
+        _internalId: 158112,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 158471,
+            _internalId: 158104,
             type: "enum",
             enum: [
               "png",
@@ -21558,7 +21558,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 158478,
+            _internalId: 158111,
             type: "anyOf",
             anyOf: [
               {

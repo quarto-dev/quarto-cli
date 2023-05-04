@@ -1154,6 +1154,9 @@ export type ManuscriptSchema = {
   article?:
     string /* The input document that will serve as the root document for this manuscript */;
   notebooks?: ((string | NotebookViewSchema))[];
+  resources?: MaybeArrayOf<
+    string
+  >; /* Additional file resources to be copied to output directory */
 };
 
 export type ProjectConfig = {

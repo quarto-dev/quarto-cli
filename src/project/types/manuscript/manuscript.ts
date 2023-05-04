@@ -14,7 +14,11 @@ import {
   NotebookPublishOptions,
 } from "../../../config/types.ts";
 import { ProjectConfig, ProjectContext } from "../../types.ts";
-import { kFormatLinks, kNotebookView } from "../../../config/constants.ts";
+import {
+  kFormatLinks,
+  kNotebookView,
+  kResources,
+} from "../../../config/constants.ts";
 import { projectOutputDir } from "../../project-shared.ts";
 import {
   isDocxOutput,
@@ -75,6 +79,19 @@ export const manuscriptProjectType: ProjectType = {
           throw new Error(
             "Unable to determine the root input document for this manuscript. Please specify an `article` in your `_quarto.yml` file.",
           );
+        }
+      }
+
+      // If the manuscript has resources, add those in
+      if (manuOpts[kResources]) {
+        config.project.resources = config.project.resources || [];
+        config.project.resources = Array.isArray(config.project.resources)
+          ? config.project.resources
+          : [config.project.resources];
+        if (Array.isArray(manuOpts[kResources])) {
+          config.project.resources.push(...manuOpts[kResources]);
+        } else {
+          config.project.resources.push(manuOpts[kResources]);
         }
       }
     }
@@ -248,7 +265,13 @@ export const manuscriptProjectType: ProjectType = {
         }
 
         // Copy resources
-        jatsArticle.resources.forEach((file) => {
+        const resources = [];
+        resources.push(...jatsArticle.resources);
+        if (context.config?.project.resources) {
+          resources.push(...context.config?.project.resources);
+        }
+
+        resources.forEach((file) => {
           const relPath = isAbsolute(file) ? relative(context.dir, file) : file;
           const absPath = isAbsolute(file) ? file : join(context.dir, file);
           const workingPath = toWorkingDir(absPath, relPath, false);
@@ -356,6 +379,7 @@ interface ManuscriptOptions {
   [kMecaArchive]?: boolean | string;
   [kArticle]?: string;
   [kNotebooks]?: NotebookPublishOptions[];
+  [kResources]?: string | string[];
 }
 
 const manuscriptOptions = (config?: ProjectConfig): ManuscriptOptions => {
