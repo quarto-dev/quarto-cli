@@ -653,7 +653,7 @@ local function setRole(author, role)
 
   -- resolve shorthands
   local term = string.lower(role.role)
-  local alias = kCreditAliases[role]
+  local alias = kCreditAliases[term]
   if alias then
     term = alias
   end

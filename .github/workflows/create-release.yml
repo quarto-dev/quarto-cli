@@ -148,7 +148,6 @@ jobs:
   make-tarball-rhel:
     runs-on: ubuntu-latest
     needs: [configure]
-    if: ${{ false }}
 
     steps:
       - uses: actions/checkout@v3
@@ -167,11 +166,11 @@ jobs:
         run: |
 
           source ./configuration
-
+        
           echo Placing custom Deno ${DENO:1}. See available versions at https://anaconda.org/conda-forge/deno/files
-          curl -L https://anaconda.org/conda-forge/deno/${DENO:1}/download/linux-64/deno-${DENO:1}-h2f28480_0.conda --output deno.conda
+          curl -L https://anaconda.org/conda-forge/deno/${DENO:1}/download/linux-64/deno-${DENO:1}-he8a937b_0.conda --output deno.conda
           unzip deno.conda
-          tar --use-compress-program=unzstd -xvf pkg-deno-${DENO:1}-h2f28480_0.tar.zst
+          tar --use-compress-program=unzstd -xvf pkg-deno-${DENO:1}-he8a937b_0.tar.zst
           cp bin/deno package/pkg-working/bin/tools/deno-x86_64-unknown-linux-gnu/deno
 
       - name: Make Tarball
@@ -421,6 +420,7 @@ jobs:
         make-installer-arm64-deb,
         make-installer-win,
         make-installer-mac,
+        make-tarball-rhel,
         make-arm64-tarball,
         make-tarball,
         make-source-tarball,
@@ -477,6 +477,17 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./Deb Arm64 Zip/quarto-${{needs.configure.outputs.version}}-linux-arm64.tar.gz
           asset_name: quarto-${{needs.configure.outputs.version}}-linux-arm64.tar.gz
+          asset_content_type: application/gzip
+
+      - name: Attach RHEL Tarball
+        id: attach-rhel-tarball
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./RHEL Zip/quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar.gz
+          asset_name: quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar.gz
           asset_content_type: application/gzip
 
       - name: Attach Debian Installer
@@ -575,6 +586,10 @@ jobs:
           sha256sum quarto-${{needs.configure.outputs.version}}-macos.pkg >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
           popd
 
+          pushd RHEL\ Zip
+          sha256sum quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
+          popd           
+           
           pushd Deb\ Zip
           sha256sum quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
           popd

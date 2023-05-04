@@ -102,6 +102,27 @@ format:
   pdf: default
   docx: default
   ipynb: default
+_quarto:
+  tests:
+    jats:
+      ensureFileRegexMatches:
+        - 
+          - '<article-meta>' # basic JATS 
+          - '</article-meta>' # basic JATS 
+          - '<contrib contrib-type="author" equal-contrib="yes" corresp="yes">' #author
+          - '<string-name>Norah Jones</string-name>' #author
+          - '<copyright-statement>' #copright metadata
+          - '<kwd>weather</kwd>' # keywords
+          - '<funding-group>' #funding metadata
+          - '<boxed-text>[\s\S]*?<bold>Attention</bold>[\s\S]*?</boxed-text>' # callout
+          - '<mixed-citation>' #mixed citation
+          - '<xref alt="2013" rid="ref-Schubert13" ref-type="bibr">2013</xref>' #cite
+          - '<fig id="fig-line">[\s\S]*?<graphic.*?>[\s\S]*?<\/fig>' # regular figure
+          - '<role>Head Clown<\/role>' # role
+          - 'vocab-term="writing – original draft"'
+          - '"https:\/\/credit\.niso\.org\/contributor-roles\/data-curation\/"'
+        -
+          - '<graphic id="fig-line".*/>'
 ---
 
 ## Introduction {#sec-introduction}
