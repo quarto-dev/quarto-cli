@@ -102,6 +102,13 @@ $alert-border-width:                0 !default;
 
 /*-- scss:rules --*/
 
+
+// Variables
+
+:root {
+  color-scheme: light;
+}
+
 // Navbar
 
 .navbar {
@@ -141,8 +148,8 @@ footer {
 }
 
 .lead {
-  color: $gray-600;
   font-family: $font-family-sans-serif;
+  color: $gray-600;
 }
 
 // Tables
@@ -167,8 +174,8 @@ table,
 // Indicators
 
 .alert {
-  color: $white;
   font-size: $font-size-sm;
+  color: $white;
 
   &,
   p {
@@ -177,8 +184,8 @@ table,
 
   a,
   .alert-link {
-    color: $white;
     font-weight: 400;
+    color: $white;
     text-decoration: underline;
   }
 

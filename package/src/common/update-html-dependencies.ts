@@ -697,14 +697,14 @@ async function updateBoostrapIcons(
 
   // Copy the woff file
   Deno.copyFileSync(
-    join(working, dirName, "fonts", "bootstrap-icons.woff"),
+    join(working, dirName, "font", "fonts", "bootstrap-icons.woff"),
     join(distDir, "bootstrap-icons.woff"),
   );
 
   // Copy the css file, then fix it up
   const cssPath = join(distDir, "bootstrap-icons.css");
   Deno.copyFileSync(
-    join(working, dirName, "bootstrap-icons.css"),
+    join(working, dirName, "font", "bootstrap-icons.css"),
     cssPath,
   );
   fixupFontCss(cssPath);
@@ -947,13 +947,9 @@ const themePatches: Record<string, ThemePatch[]> = {
       ".navbar {\n  @include shadow();\n  border-color: shade-color($navbar-bg, 10%);",
   }],
   "simplex": [{
-    from: ".navbar {\n  border-width: 1px;\n  border-style: solid;",
+    from: ".navbar {\n  border-style: solid;\n  border-width: 1px;",
     to:
-      ".navbar {\n  border-width: 1px;\n  border-style: solid;\n  border-color: shade-color($navbar-bg, 13%);",
-  }],
-  "slate": [{
-    from: "$body-color:                body-mix(0%) !default;",
-    to: "$body-color:                $gray-500 !default;",
+      ".navbar {\n  border-style: solid;\n  border-width: 1px;\n  border-color: shade-color($navbar-bg, 13%);",
   }],
   "solar": [{
     from: "$body-color:                $gray-600 !default;",
