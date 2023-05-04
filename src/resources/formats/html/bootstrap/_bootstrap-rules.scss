@@ -501,7 +501,7 @@ img.img-fluid.column-screen-right {
 @include media-breakpoint-up(lg) {
   .margin-caption,
   div.aside,
-  aside,
+  aside:not(.footnotes),
   .column-margin {
     grid-column: body-end / page-end !important;
     z-index: $zindex-pagelayout;
@@ -526,7 +526,7 @@ img.img-fluid.column-screen-right {
 @include media-breakpoint-down(lg) {
   .margin-caption,
   div.aside,
-  aside,
+  aside:not(.footnotes),
   .column-margin {
     grid-column: body-end / page-end !important;
     z-index: $zindex-pagelayout;
@@ -544,7 +544,7 @@ img.img-fluid.column-screen-right {
   .page-columns.toc-left {
     .margin-caption,
     div.aside,
-    aside,
+    aside:not(.footnotes),
     .column-margin {
       grid-column: body-content-start / body-content-end !important;
       z-index: $zindex-pagelayout;
@@ -560,7 +560,7 @@ img.img-fluid.column-screen-right {
 @include media-breakpoint-down(md) {
   .margin-caption,
   div.aside,
-  aside,
+  aside:not(.footnotes),
   .column-margin {
     grid-column: body-content-start / body-content-end !important;
     z-index: $zindex-pagelayout;
