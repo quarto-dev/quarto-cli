@@ -99,6 +99,8 @@ function manuscript()
           if resolvedEl then
             return resolvedEl
           else
+            -- FIXME This is unreachable code, walk always returns a new element
+            
             -- We couldn't forward to caption, just place inline
             divEl.content:insert(pandoc.Subscript(labelInlines))
             return divEl

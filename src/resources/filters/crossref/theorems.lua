@@ -20,7 +20,7 @@ function crossref_preprocess_theorems()
   }
 end
 
-function crossrefTheorems()
+function crossref_theorems()
 
   local types = theoremTypes
 

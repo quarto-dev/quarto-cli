@@ -2,7 +2,7 @@
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
 -- inject metadata
-function layoutMetaInject()
+function layout_meta_inject_latex_packages()
   return {
     Meta = function(meta)
       

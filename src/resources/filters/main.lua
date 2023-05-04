@@ -348,15 +348,15 @@ local quartoFinalize = {
 
 local quartoLayout = {
   { name = "manuscript filtering", filter = manuscript() },
-  { name = "layout-columnsPreprocess", filter = columnsPreprocess() },
+  { name = "layout-columns-preprocess", filter = columns_preprocess() },
   { name = "layout-columns", filter = columns() },
-  { name = "layout-citesPreprocess", filter = citesPreprocess() },
+  { name = "layout-cites-preprocess", filter = cites_preprocess() },
   { name = "layout-cites", filter = cites() },
-  { name = "layout-panels", filter = layoutPanels(), flags =
+  { name = "layout-panels", filter = layout_panels(), flags =
     { "has_layout_attributes", "has_tbl_parent" } },
-  { name = "layout-extendedFigures", filter = extendedFigures(), flags = 
+  { name = "layout-extended-figures", filter = extended_figures(), flags = 
     { "has_discoverable_figures", "has_figure_divs"} },
-  { name = "layout-metaInject", filter = layoutMetaInject() }
+  { name = "layout-meta-inject-latex-packages", filter = layout_meta_inject_latex_packages() }
 }
 
 local quartoCrossref = {
@@ -383,10 +383,10 @@ local quartoCrossref = {
     qmd(),
     sections(),
     crossref_figures(),
-    crossrefTables(),
+    crossref_tables(),
     equations(),
     listings(),
-    crossrefTheorems(),
+    crossref_theorems(),
   })},
 
   { name = "crossref-resolveRefs", filter = resolveRefs(),
