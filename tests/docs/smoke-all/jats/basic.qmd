@@ -119,7 +119,7 @@ _quarto:
           - '<xref alt="2013" rid="ref-Schubert13" ref-type="bibr">2013</xref>' #cite
           - '<fig id="fig-line">[\s\S]*?<graphic.*?>[\s\S]*?<\/fig>' # regular figure
           - '<role>Head Clown<\/role>' # role
-          - 'vocab-term="writing – original draft"'
+          - '"https:\/\/credit\.niso\.org\/contributor-roles\/writing-original-draft\/"'
           - '"https:\/\/credit\.niso\.org\/contributor-roles\/data-curation\/"'
         -
           - '<graphic id="fig-line".*/>'
