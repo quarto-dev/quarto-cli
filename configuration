@@ -37,7 +37,7 @@ export ZENSCROLL_JS=4.0.2
 export GITHUB_MARKDOWN_CSS=5.2.0
 
 # javascript search dependencies
-export AUTOCOMPLETE_JS=1.7.3
+export AUTOCOMPLETE_JS=1.9.2
 export FUSE_JS=6.6.2
 export ALGOLIA_SEARCH_JS=4.5.1
 export ALGOLIA_SEARCH_INSIGHTS_JS=2.0.3
