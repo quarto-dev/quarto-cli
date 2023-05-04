@@ -12,6 +12,7 @@ import {
   updateOrInstallTool,
 } from "../../tools/tools-console.ts";
 import { installableTools, printToolInfo } from "../../tools/tools.ts";
+import { error } from "log/mod.ts";
 
 // quarto tools install tinytex
 // quarto tools uninstall tinytex
@@ -85,5 +86,7 @@ Use 'quarto tools' with no arguments to show the status of all tools.`,
       case "list":
         await outputTools();
         break;
+      default:
+        error(`Tools command "${command}" not supported.`);
     }
   });
