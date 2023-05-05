@@ -45,6 +45,7 @@ import {
 import { gitHubContext } from "../../../core/github.ts";
 import { projectInputFiles } from "../../project-context.ts";
 import { kJatsSubarticle } from "../../../format/jats/format-jats-types.ts";
+import { kGoogleScholar } from "../../../format/html/format-html-meta.ts";
 
 const kManuscriptType = "manuscript";
 
@@ -243,6 +244,11 @@ export const manuscriptProjectType: ProjectType = {
         format.metadata[kJatsSubarticle] !== false
       ) {
         format.metadata[kJatsSubarticle] = true;
+      }
+
+      // Enable google scholar, by default
+      if (format.metadata[kGoogleScholar] !== false) {
+        format.metadata[kGoogleScholar] = true;
       }
 
       return format;
