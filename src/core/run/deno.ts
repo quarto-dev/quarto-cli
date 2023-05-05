@@ -1,9 +1,8 @@
 /*
-* deno.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * deno.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { existsSync, expandGlobSync } from "fs/mod.ts";
 import { extname, join, normalize } from "path/mod.ts";
@@ -79,12 +78,20 @@ function directoryListingsMatch(path1: string, path2: string): boolean {
 function initDenoCache() {
   // see if we need to create the cache
   const distDenoStd = resourcePath("deno_std");
-  const distLock = join(distDenoStd, "deno_std.lock");
   const cacheDenoStd = quartoCacheDir("deno_std");
-  const cacheLock = join(cacheDenoStd, "deno_std.lock");
+
+  const filesDiffer = (file: string) => {
+    const file1 = join(distDenoStd, file);
+    const file2 = join(cacheDenoStd, file);
+    if (!existsSync(file2)) {
+      return true;
+    }
+    return Deno.readTextFileSync(file1) !== Deno.readTextFileSync(file2);
+  };
+  const fileList = ["deno_std.lock", "import_map.json", "run_import_map.json"];
   if (
-    !existsSync(cacheLock) ||
-    Deno.readTextFileSync(cacheLock) != Deno.readTextFileSync(distLock) ||
+    fileList.some(filesDiffer) ||
+    // perf: don't check contents; instead only look at filenames, since they're all hashed anyway
     !directoryListingsMatch(distDenoStd, cacheDenoStd)
   ) {
     removeIfExists(cacheDenoStd);

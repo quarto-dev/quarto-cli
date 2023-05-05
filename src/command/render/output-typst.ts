@@ -15,7 +15,10 @@ import { dirAndStem, expandPath } from "../../core/path.ts";
 import { kStdOut, replacePandocOutputArg } from "./flags.ts";
 import { OutputRecipe, RenderOptions } from "./types.ts";
 import { normalizeOutputPath } from "./output.ts";
-import { typstCompile } from "../../core/typst.ts";
+import {
+  typstCompile,
+  validateRequiredTypstVersion,
+} from "../../core/typst.ts";
 
 export function useTypstPdfOutputRecipe(
   format: Format,
@@ -49,6 +52,7 @@ export function typstPdfOutputRecipe(
     const input = join(inputDir, output);
 
     // run typst
+    await validateRequiredTypstVersion();
     const pdfOutput = join(inputDir, inputStem + ".pdf");
     const result = await typstCompile(input, pdfOutput, options.flags?.quiet);
     if (!result.success) {

@@ -29,9 +29,8 @@ import {
 
 import { basename, dirname, isAbsolute, join, relative } from "path/mod.ts";
 import { renderFiles } from "../../command/render/render-files.ts";
-import { ProjectContext } from "../../project/types.ts";
 import { kNotebookViewStyleNotebook } from "./format-html-constants.ts";
-import { warning } from "log/mod.ts";
+import { pathWithForwardSlashes } from "../../core/path.ts";
 
 interface NotebookView {
   title: string;
@@ -111,7 +110,6 @@ export async function processNotebookEmbeds(
   doc: Document,
   format: Format,
   services: RenderServices,
-  project?: ProjectContext,
 ) {
   const inline = format.render[kNotebookLinks] === "inline" ||
     format.render[kNotebookLinks] === true;
@@ -120,91 +118,63 @@ export async function processNotebookEmbeds(
   const notebookView = format.render[kNotebookView] ?? true;
   const nbViewConfig = notebookViewConfig(notebookView);
 
-  const notebookDivNodes = doc.querySelectorAll("[data-notebook]");
-  if (notebookDivNodes.length > 0) {
-    const nbPaths: Record<
-      string,
-      { href: string; title: string; supporting?: string; filename?: string }
-    > = {};
-    let count = 1;
+  if (nbViewConfig) {
+    const previewer = nbPreviewer(nbViewConfig, format, services);
 
     // Emit links to the notebooks inline (where the embedded content is located)
+    let count = 1;
     const linkedNotebooks: string[] = [];
+    const notebookDivNodes = doc.querySelectorAll("[data-notebook]");
     for (const nbDivNode of notebookDivNodes) {
       const nbDivEl = nbDivNode as Element;
       const notebookPath = nbDivEl.getAttribute("data-notebook");
       nbDivEl.removeAttribute("data-notebook");
+
+      const notebookCellId = nbDivEl.getAttribute("data-notebook-cellId");
+      nbDivEl.removeAttribute("data-notebook-cellId");
+
+      const title = nbDivEl.getAttribute("data-notebook-title");
+      nbDivEl.removeAttribute("data-notebook-title");
+
+      const notebookPreviewFile = nbDivEl.getAttribute(
+        "data-notebook-preview-file",
+      );
+      nbDivEl.removeAttribute("data-notebook-preview-file");
+
       if (notebookPath) {
         linkedNotebooks.push(notebookPath);
-        const title = nbDivEl.getAttribute("data-notebook-title");
-        nbDivEl.removeAttribute("data-notebook-title");
-        const nbDir = dirname(notebookPath);
-        const filename = basename(notebookPath);
-        const inputDir = dirname(input);
 
-        const nbView = async () => {
-          if (nbViewConfig) {
-            // Read options for this notebook
-            const nbPreviewOptions = nbViewConfig.options(notebookPath);
-
-            const nbAbsPath = isAbsolute(notebookPath)
-              ? notebookPath
-              : join(inputDir, notebookPath);
-            const htmlPreview = await renderHtmlView(
-              inputDir,
-              nbAbsPath,
-              nbPreviewOptions,
-              format,
-              services,
-              project,
-            );
-            return {
-              title: htmlPreview.title,
-              href: htmlPreview.href,
-              supporting: htmlPreview.supporting,
-            };
-          } else {
-            return {
-              href: join(nbDir, filename),
-              title: title || filename,
-              filename,
-            };
-          }
-        };
-        const nbPath = nbPaths[notebookPath] || await nbView();
-        nbPaths[notebookPath] = nbPath;
+        const nbPreview = await previewer.preview(
+          input,
+          notebookPath,
+          title,
+          notebookPreviewFile,
+        );
 
         // Add a decoration to this div node
         if (inline) {
           const id = "nblink-" + count++;
 
-          // If the first element of the notebook cell is a cell div with an id
-          // then use that as the hash
-          let firstCellId;
-          if (
-            nbDivEl.firstElementChild &&
-            nbDivEl.firstElementChild.classList.contains("cell")
-          ) {
-            firstCellId = nbDivEl.firstElementChild.getAttribute("id");
-          }
-
           const nbLinkEl = doc.createElement("a");
           nbLinkEl.classList.add("quarto-notebook-link");
           nbLinkEl.setAttribute("id", `${id}`);
 
-          if (nbPath.filename) {
-            nbLinkEl.setAttribute("download", nbPath.filename);
-            nbLinkEl.setAttribute("href", nbPath.href);
+          if (nbPreview.filename) {
+            nbLinkEl.setAttribute("download", nbPreview.filename);
+            nbLinkEl.setAttribute("href", nbPreview.href);
           } else {
-            if (firstCellId) {
-              nbLinkEl.setAttribute("href", `${nbPath.href}#${firstCellId}`);
+            if (notebookCellId) {
+              nbLinkEl.setAttribute(
+                "href",
+                `${nbPreview.href}#${notebookCellId}`,
+              );
             } else {
-              nbLinkEl.setAttribute("href", `${nbPath.href}`);
+              nbLinkEl.setAttribute("href", `${nbPreview.href}`);
             }
           }
           nbLinkEl.appendChild(
             doc.createTextNode(
-              `${format.language[kSourceNotebookPrefix]}: ${nbPath.title}`,
+              `${format.language[kSourceNotebookPrefix]}: ${nbPreview.title}`,
             ),
           );
 
@@ -225,8 +195,19 @@ export async function processNotebookEmbeds(
       }
     }
 
+    // For any notebooks explicitly provided, ensure they are rendered
+    if (typeof (notebookView) !== "boolean") {
+      const nbs = Array.isArray(notebookView) ? notebookView : [notebookView];
+      for (const nb of nbs) {
+        if (nb.url === undefined) {
+          await previewer.preview(input, nb.notebook, nb.title);
+        }
+      }
+    }
+
     // Emit global links to the notebooks
-    if (global) {
+    const previewNotebooks = Object.values(previewer.previews);
+    if (global && previewNotebooks.length > 0) {
       const containerEl = doc.createElement("div");
       containerEl.classList.add("quarto-alternate-notebooks");
 
@@ -238,10 +219,12 @@ export async function processNotebookEmbeds(
 
       const formatList = doc.createElement("ul");
       containerEl.appendChild(formatList);
-      const allPaths = Object.values(nbPaths);
-      ld.uniqBy(allPaths, (nbPath: { href: string; title?: string }) => {
-        return nbPath.href;
-      }).forEach((nbPath) => {
+      ld.uniqBy(
+        previewNotebooks,
+        (nbPath: { href: string; title?: string }) => {
+          return nbPath.href;
+        },
+      ).forEach((nbPath) => {
         const li = doc.createElement("li");
 
         const link = doc.createElement("a");
@@ -271,15 +254,10 @@ export async function processNotebookEmbeds(
       }
     }
 
-    // Validate that there are no unused notebooks in the front matter
-    if (nbViewConfig) {
-      nbViewConfig.unused(linkedNotebooks);
-    }
-
     const supporting: string[] = [];
     const resources: string[] = [];
-    for (const notebookPath of Object.keys(nbPaths)) {
-      const nbPath = nbPaths[notebookPath];
+    for (const notebookPath of Object.keys(previewer.previews)) {
+      const nbPath = previewer.previews[notebookPath];
       // If there is a view configured for this, then
       // include it in the supporting dir
       if (nbPath.supporting) {
@@ -295,6 +273,68 @@ export async function processNotebookEmbeds(
       supporting,
     };
   }
+}
+
+const nbPreviewer = (
+  nbViewConfig: NotebookViewConfig,
+  format: Format,
+  services: RenderServices,
+) => {
+  const nbPreviews: Record<
+    string,
+    { href: string; title: string; supporting?: string[]; filename?: string }
+  > = {};
+  const preview = async (
+    input: string,
+    nbPath: string,
+    title?: string | null,
+    nbPreviewFile?: string | null,
+  ) => {
+    const renderNotebook = async () => {
+      const nbDir = dirname(nbPath);
+      const filename = basename(nbPath);
+      const inputDir = dirname(input);
+      if (nbViewConfig) {
+        // Read options for this notebook
+        const nbPreviewOptions = nbViewConfig.options(nbPath);
+
+        const nbAbsPath = isAbsolute(nbPath) ? nbPath : join(inputDir, nbPath);
+        const htmlPreview = await renderHtmlView(
+          inputDir,
+          nbAbsPath,
+          nbPreviewOptions,
+          format,
+          services,
+          nbPreviewFile !== null ? nbPreviewFile : undefined,
+        );
+        return {
+          title: htmlPreview.title,
+          href: htmlPreview.href,
+          supporting: htmlPreview.supporting,
+        };
+      } else {
+        return {
+          href: pathWithForwardSlashes(join(nbDir, filename)),
+          title: title || filename,
+          filename,
+        };
+      }
+    };
+
+    if (!nbPreviews[nbPath]) {
+      nbPreviews[nbPath] = await renderNotebook();
+    }
+    return nbPreviews[nbPath];
+  };
+
+  return {
+    preview,
+    previews: nbPreviews,
+  };
+};
+
+interface NotebookViewConfig {
+  options: (notebook: string) => NotebookViewOptions;
 }
 
 function notebookViewConfig(
@@ -314,15 +354,6 @@ function notebookViewConfig(
       options: (notebook: string) => {
         return nbOptions[notebook] || { title: basename(notebook) };
       },
-      unused: (notebooks: string[]) => {
-        Object.keys(nbOptions).forEach((nb) => {
-          if (!notebooks.includes(nb)) {
-            throw new Error(
-              `The notebook ${nb} is included in 'notebook-view' but isn't used to embed content. Please remove it from 'notebook-view'.`,
-            );
-          }
-        });
-      },
     };
   } else {
     return undefined;
@@ -336,11 +367,8 @@ async function renderHtmlView(
   options: NotebookViewOptions,
   format: Format,
   services: RenderServices,
-  project?: ProjectContext,
+  previewFileName?: string,
 ): Promise<NotebookView> {
-  const filename = basename(nbAbsPath);
-  const href = relative(inputDir, nbAbsPath);
-
   if (options.href === undefined) {
     // Use the special `embed` template for this render
     const embedHtmlEjs = formatResourcePath(
@@ -349,13 +377,14 @@ async function renderHtmlView(
     );
     const embedTemplate = renderEjs(embedHtmlEjs, {
       title: options.title,
-      path: href,
-      filename,
+      path: basename(nbAbsPath),
+      filename: basename(nbAbsPath),
     });
     const templatePath = services.temp.createFile({ suffix: ".html" });
     Deno.writeTextFileSync(templatePath, embedTemplate);
 
     // Render the notebook and update the path
+    const filename = previewFileName || basename(nbAbsPath);
     const nbPreviewFile = `${filename}.html`;
     const rendered = await renderFiles(
       [{ path: nbAbsPath, formats: ["html"] }],
@@ -372,17 +401,13 @@ async function renderHtmlView(
           quiet: true,
         },
       },
-      undefined,
-      undefined,
-      project,
     );
     if (rendered.error) {
-      // TODO: This should throw in future releases rather than warn
-      // Only adding warning for now because of timing of release of 1.3
-      warning(`Failed to render preview for notebook ${nbAbsPath}`);
+      throw new Error(`Failed to render preview for notebook ${nbAbsPath}`);
     }
 
-    const nbPreviewPath = join(inputDir, dirname(href), nbPreviewFile);
+    const nbRelPath = relative(inputDir, nbAbsPath);
+    const nbPreviewPath = join(inputDir, dirname(nbRelPath), nbPreviewFile);
     const supporting = [nbPreviewPath];
     for (const renderedFile of rendered.files) {
       if (renderedFile.supporting) {
@@ -394,7 +419,7 @@ async function renderHtmlView(
 
     return {
       title: options.title,
-      href: join(dirname(href), nbPreviewFile),
+      href: pathWithForwardSlashes(join(dirname(nbRelPath), nbPreviewFile)),
       // notebook to be included as supporting file
       supporting,
     };

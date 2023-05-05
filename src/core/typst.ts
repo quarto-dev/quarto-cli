@@ -1,12 +1,15 @@
 /*
-* typst.ts
-*
-* Copyright (C) 2022 Posit Software, PBC
-*
-*/
+ * typst.ts
+ *
+ * Copyright (C) 2022 Posit Software, PBC
+ */
 
-import { info } from "log/mod.ts";
-import { basename, dirname } from "path/mod.ts";
+import { error, info } from "log/mod.ts";
+import { basename } from "path/mod.ts";
+import * as colors from "fmt/colors.ts";
+
+import { satisfies } from "semver/mod.ts";
+
 import { execProcess } from "./process.ts";
 
 export async function typstCompile(
@@ -25,8 +28,59 @@ export async function typstCompile(
   return result;
 }
 
-// TODO: this doesn't yet work correclty (typst exits on the first change to the typ file)
+export async function typstVersion() {
+  const cmd = ["typst", "--version"];
+  try {
+    const result = await execProcess({ cmd, stdout: "piped", stderr: "piped" });
+    if (result.success && result.stdout) {
+      const match = result.stdout.trim().match(/^typst (\d+\.\d+\.\d+)/);
+      if (match) {
+        return match[1];
+      } else {
+        return undefined;
+      }
+    } else {
+      return undefined;
+    }
+  } catch {
+    return undefined;
+  }
+}
+
+export async function validateRequiredTypstVersion() {
+  const version = await typstVersion();
+  if (version) {
+    const required = ">=0.2";
+    if (!satisfies(version, required)) {
+      error(
+        "An updated version of the Typst CLI is required for rendering typst documents.\n",
+      );
+      info(colors.blue(
+        `You are running version ${version} and version ${required} is required.\n`,
+      ));
+      info(colors.blue(
+        `Updating Typst: ${
+          colors.underline("https://github.com/typst/typst#installation")
+        }\n`,
+      ));
+      throw new Error();
+    }
+  } else {
+    error(
+      "You need to install the Typst CLI in order to render typst documents.\n",
+    );
+    info(colors.blue(
+      `Installing Typst: ${
+        colors.underline("https://github.com/typst/typst#installation")
+      }\n`,
+    ));
+    throw new Error();
+  }
+}
+
+// TODO: this doesn't yet work correctly (typst exits on the first change to the typ file)
 // leaving the code here anyway as a foundation for getting it to work later
+/*
 export async function typstWatch(
   input: string,
   output: string,
@@ -48,20 +102,21 @@ export async function typstWatch(
     signal: controller.signal,
   });
 
+
   // spawn it
-  cmd.spawn();
+  const child = cmd.spawn();
 
   // wait for ready
   let allOutput = "";
   const decoder = new TextDecoder();
-  for await (const chunk of cmd.stderr) {
+  for await (const chunk of child.stderr) {
     const text = decoder.decode(chunk);
     allOutput += text;
     if (allOutput.includes("compiled successfully")) {
       if (!quiet) {
         typstProgressDone();
       }
-      cmd.status.then((status) => {
+      child.status.then((status) => {
         console.log(`typst exited with status ${status.code}`);
       });
       break;
@@ -71,6 +126,7 @@ export async function typstWatch(
   // return the abort controller
   return controller;
 }
+*/
 
 function typstProgress(input: string, output: string) {
   info(

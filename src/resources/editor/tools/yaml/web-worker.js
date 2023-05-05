@@ -9171,6 +9171,12 @@ try {
                 },
                 "cookie-consent": {
                   anyOf: [
+                    {
+                      enum: [
+                        "express",
+                        "implied"
+                      ]
+                    },
                     "boolean",
                     {
                       object: {
@@ -11138,6 +11144,78 @@ try {
                 }
               }
             }
+          },
+          {
+            id: "notebook-view-schema",
+            schema: {
+              object: {
+                properties: {
+                  notebook: {
+                    string: {
+                      description: "The path to the locally referenced notebook."
+                    }
+                  },
+                  title: {
+                    description: "The title of the notebook when viewed.",
+                    anyOf: [
+                      "string",
+                      "boolean"
+                    ]
+                  },
+                  url: {
+                    string: {
+                      description: "The url to use when viewing this notebook."
+                    }
+                  }
+                },
+                required: [
+                  "notebook"
+                ]
+              }
+            }
+          },
+          {
+            id: "manuscript-schema",
+            schema: {
+              object: {
+                closed: true,
+                properties: {
+                  article: {
+                    path: {
+                      description: "The input document that will serve as the root document for this manuscript"
+                    }
+                  },
+                  "manuscript-url": {
+                    string: {
+                      description: "The deployed url for this manuscript"
+                    }
+                  },
+                  "meca-archive": {
+                    anyOf: [
+                      "boolean",
+                      "string"
+                    ],
+                    description: "Whether to generate a MECA bundle for this manuscript"
+                  },
+                  notebooks: {
+                    arrayOf: {
+                      anyOf: [
+                        "string",
+                        {
+                          ref: "notebook-view-schema"
+                        }
+                      ]
+                    }
+                  },
+                  resources: {
+                    maybeArrayOf: {
+                      schema: "path",
+                      description: "Additional file resources to be copied to output directory"
+                    }
+                  }
+                }
+              }
+            }
           }
         ],
         "schema/document-about.yml": [
@@ -12454,7 +12532,6 @@ try {
         "schema/document-execute.yml": [
           {
             name: "engine",
-            hidden: true,
             schema: {
               string: {
                 completions: [
@@ -14364,7 +14441,31 @@ try {
               anyOf: [
                 "boolean",
                 {
-                  arrayOf: "string"
+                  maybeArrayOf: {
+                    anyOf: [
+                      "string",
+                      {
+                        object: {
+                          properties: {
+                            title: {
+                              string: {
+                                description: "The title for this alternative link."
+                              }
+                            },
+                            href: {
+                              string: {
+                                description: "The href for tihs alternative link."
+                              }
+                            }
+                          },
+                          required: [
+                            "title",
+                            "href"
+                          ]
+                        }
+                      }
+                    ]
+                  }
                 }
               ]
             },
@@ -14397,6 +14498,19 @@ try {
             }
           },
           {
+            name: "notebook-subarticles",
+            tags: {
+              formats: [
+                "$jats-all"
+              ]
+            },
+            schema: "boolean",
+            description: {
+              short: "Controls whether referenced notebooks are embedded in JATS output as subarticles.",
+              long: "Controls the display of links to notebooks that provided embedded content or are created from documents.\n\nDefaults to `true` - specify `false` to disable embedding Notebook as subarticles with the JATS output.\n"
+            }
+          },
+          {
             name: "notebook-view",
             tags: {
               formats: [
@@ -14408,30 +14522,12 @@ try {
                 "boolean",
                 {
                   maybeArrayOf: {
-                    object: {
-                      properties: {
-                        notebook: {
-                          string: {
-                            description: "The path to the locally referenced notebook."
-                          }
-                        },
-                        title: {
-                          description: "The title of the notebook when viewed.",
-                          anyOf: [
-                            "string",
-                            "boolean"
-                          ]
-                        },
-                        url: {
-                          string: {
-                            description: "The url to use when viewing this notebook."
-                          }
-                        }
-                      },
-                      required: [
-                        "notebook"
-                      ]
-                    }
+                    anyOf: [
+                      "string",
+                      {
+                        ref: "notebook-view-schema"
+                      }
+                    ]
                   }
                 }
               ]
@@ -17152,9 +17248,7 @@ try {
               enum: [
                 "body",
                 "left",
-                "right",
-                "left-body",
-                "right-body"
+                "right"
               ]
             },
             default: "right",
@@ -17633,9 +17727,9 @@ try {
                       completions: [
                         "default",
                         "website",
-                        "book"
+                        "book. manuscript"
                       ],
-                      description: "Project type (`default`, `website`, or `book`)"
+                      description: "Project type (`default`, `website`, `book`, or `manuscript`)"
                     }
                   },
                   render: {
@@ -17720,6 +17814,13 @@ try {
                   }
                 ]
               }
+            }
+          },
+          {
+            name: "manuscript",
+            description: "Manuscript configuration",
+            schema: {
+              ref: "manuscript-schema"
             }
           },
           {
@@ -18406,6 +18507,8 @@ try {
           "Specify <code>loading: lazy</code> to defer loading comments until\nthe user scrolls near the comments container.",
           "Place the comment input box above or below the comments.",
           "The giscus theme to use when displaying comments.",
+          "The light theme name.",
+          "The dark theme name.",
           "The language that should be used when displaying the commenting\ninterface.",
           "Controls whether the sidebar opens automatically on startup.",
           "Controls whether the in-document highlights are shown by default\n(<code>always</code>, <code>whenSidebarOpen</code> or\n<code>never</code>)",
@@ -19412,6 +19515,12 @@ try {
           "Specify a default profile and profile groups",
           "Default profile to apply if QUARTO_PROFILE is not defined.",
           "Define a profile group for which at least one profile is always\nactive.",
+          "The path to the locally referenced notebook.",
+          "The title of the notebook when viewed.",
+          "The url to use when viewing this notebook.",
+          "The input document that will serve as the root document for this\nmanuscript",
+          "The deployed url for this manuscript",
+          "Whether to generate a MECA bundle for this manuscript",
           {
             short: "Unique label for code cell",
             long: "Unique label for code cell. Used when other code needs to refer to\nthe cell (e.g.&nbsp;for cross references <code>fig-samples</code> or\n<code>tbl-summary</code>)"
@@ -20164,17 +20273,19 @@ try {
             short: "Controls whether links to other rendered formats are displayed in\nHTML output.",
             long: "Controls whether links to other rendered formats are displayed in\nHTML output.\nPass <code>false</code> to disable the display of format lengths or\npass a list of format names for which you\u2019d like links to be shown."
           },
+          "The title for this alternative link.",
+          "The href for tihs alternative link.",
+          "The title for this alternative link.",
+          "The href for tihs alternative link.",
           {
             short: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.",
             long: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.\nSpecify <code>false</code> to disable linking to source Notebooks.\nSpecify <code>inline</code> to show links to source notebooks beneath\nthe content they provide. Specify <code>global</code> to show a set of\nglobal links to source notebooks."
           },
+          {
+            short: "Controls whether referenced notebooks are embedded in JATS output as\nsubarticles.",
+            long: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.\nDefaults to <code>true</code> - specify <code>false</code> to disable\nembedding Notebook as subarticles with the JATS output."
+          },
           "Configures the HTML viewer for notebooks that provide embedded\ncontent.",
-          "The path to the locally referenced notebook.",
-          "The title of the notebook when viewed.",
-          "The url to use when viewing this notebook.",
-          "The path to the locally referenced notebook.",
-          "The title of the notebook when viewed.",
-          "The url to use when viewing this notebook.",
           "The style of document to render. Setting this to\n<code>notebook</code> will create additional notebook style\naffordances.",
           "Automatically generate the contents of a page from a list of Quarto\ndocuments or other custom data.",
           "Mermaid diagram options",
@@ -20597,7 +20708,7 @@ try {
           "The width of the preview image for this document.",
           "The alt text for preview image on this page.",
           "Project configuration.",
-          "Project type (<code>default</code>, <code>website</code>, or\n<code>book</code>)",
+          "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
           "Files to render (defaults to all files)",
           {
             short: "Working directory for computations",
@@ -20898,9 +21009,10 @@ try {
             long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
+          "Manuscript configuration",
           "internal-schema-hack",
           "Project configuration.",
-          "Project type (<code>default</code>, <code>website</code>, or\n<code>book</code>)",
+          "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
           "Files to render (defaults to all files)",
           {
             short: "Working directory for computations",
@@ -21201,6 +21313,7 @@ try {
             long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
+          "Manuscript configuration",
           "internal-schema-hack"
         ],
         "schema/external-schemas.yml": [
@@ -21425,12 +21538,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 157515,
+          _internalId: 158112,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 157507,
+              _internalId: 158104,
               type: "enum",
               enum: [
                 "png",
@@ -21446,7 +21559,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 157514,
+              _internalId: 158111,
               type: "anyOf",
               anyOf: [
                 {

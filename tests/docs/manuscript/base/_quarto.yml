@@ -1,0 +1,13 @@
+project:
+  type: manuscript
+
+manuscript:
+  meca: true
+
+format:
+  html: default
+  pdf: default
+  jats: default
+
+
+

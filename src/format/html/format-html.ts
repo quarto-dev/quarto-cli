@@ -22,7 +22,6 @@ import {
   kCodeLink,
   kFigResponsive,
   kFilterParams,
-  kFormatLinks,
   kHeaderIncludes,
   kIncludeAfterBody,
   kIncludeInHeader,
@@ -118,7 +117,6 @@ export function htmlFormat(
     {
       render: {
         [kNotebookLinks]: true,
-        [kFormatLinks]: true,
       },
       resolveFormat: (format: Format) => {
         if (format.metadata[kMinimal] === true) {

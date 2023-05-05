@@ -21,6 +21,7 @@ import {
 } from "./dependencies/dependencies.ts";
 import { copyQuartoScript } from "./configure.ts";
 import { deno } from "./dependencies/deno.ts";
+import { buildQuartoPreviewJs } from "../../../src/core/previewjs.ts";
 
 export async function prepareDist(
   config: Configuration,
@@ -94,6 +95,14 @@ export async function prepareDist(
       }
     }
   }
+
+  // build quarto-preview.js
+  info("Building Quarto Web UI");
+  const result = buildQuartoPreviewJs(config.directoryInfo.src);
+  if (!result.success) {
+    throw new Error();
+  }
+  
 
   // Place the quarto sciprt
   // Move the quarto script into place
@@ -238,4 +247,16 @@ function inlineFilters(config: Configuration) {
       join(outDir, filter.dir || filter.name, `${filter.name}.lua`),
     );
   });
+
+  const modules = "modules";
+  const modulesIn = join(
+    config.directoryInfo.src,
+    "resources",
+    "filters", modules);
+  const modulesOut = join(outDir, modules);
+
+  // move the modules directory
+  copySync(modulesIn, modulesOut)
+  
+
 }

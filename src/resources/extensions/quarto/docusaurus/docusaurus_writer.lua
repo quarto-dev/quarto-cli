@@ -43,6 +43,7 @@ local function tabset(node, filter)
 end
 
 local codeBlock = function(el, filename)
+  local lang = el.attr.classes[1]
   local title = filename or el.attr.attributes["filename"] or el.attr.attributes["title"]  
   local showLineNumbers = el.attr.classes:includes('number-lines')
   if lang or title or showLineNumbers then

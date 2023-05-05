@@ -331,6 +331,17 @@ const runConfluenceParentFromString = () => {
     assertEquals(expected, result);
   });
 
+  test("confluenceParentFromString_valid_space_dots", async () => {
+    // https://github.com/quarto-dev/quarto-cli/issues/5405
+    const url = "https://test.atlassian.net/wiki/spaces/~brian.smith/pages/126583477";
+    const result = confluenceParentFromString(url);
+    const expected: ConfluenceParent = {
+      space: "~brian.smith",
+      parent: "126583477",
+    };
+    assertEquals(expected, result);
+  });
+
   test("confluenceParentFromString_invalid_noSpace", async () => {
     const url = "https://test.atlassian.net/QUARTOCONF";
     const result = confluenceParentFromString(url);
@@ -4871,5 +4882,5 @@ if (RUN_ALL_TESTS) {
   runConfluenceParentFromString();
   runFlattenIndexes();
 } else {
-  runUpdateLinks();
+  runConfluenceParentFromString();
 }

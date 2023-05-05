@@ -49,6 +49,7 @@ const kProjectTypeOrder = [
   "default",
   "website",
   kBlogTypeAlias,
+  "manuscript",
   "book",
   kConfluenceAlias,
 ];

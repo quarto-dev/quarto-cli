@@ -23,3 +23,4 @@ win_configuration.bat
 
 # generated javascript
 src/resources/preview/quarto-preview.js
+.prettierrc.json

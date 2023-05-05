@@ -473,15 +473,12 @@ export function readRenderedContents(
           if (currentLength > maxLen) {
             cloned.replaceChild(doc.createTextNode(""), childNode);
           } else if (currentLength + textNodeLen > maxLen) {
-            const nodeMaxLen = Math.min(
-              maxLen,
-              currentLength + textNodeLen - maxLen,
-            );
+            const availableChars = maxLen - currentLength;
             cloned.replaceChild(
               doc.createTextNode(
                 truncateText(
                   childNode.nodeValue || "",
-                  nodeMaxLen,
+                  availableChars,
                   "space",
                 ),
               ),

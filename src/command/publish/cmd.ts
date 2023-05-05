@@ -33,7 +33,6 @@ import { AccountPrompt, manageAccounts, resolveAccount } from "./account.ts";
 
 import { PublishOptions, PublishRecord } from "../../publish/types.ts";
 import {
-  haveArrowKeys,
   isInteractiveTerminal,
   isServerSession,
 } from "../../core/platform.ts";
@@ -226,31 +225,21 @@ async function publishAction(
     // new deployment, determine provider if needed
     const providers = publishProviders();
     if (!provider) {
-      if (haveArrowKeys()) {
-        // select provider
-        const result = await prompt([{
-          indent: "",
-          name: "provider",
-          message: "Provider:",
-          options: providers
-            .filter((provider) => !provider.hidden)
-            .map((provider) => ({
-              name: provider.description,
-              value: provider.name,
-            })),
-          type: Select,
-        }]);
-        if (result.provider) {
-          provider = findProvider(result.provider);
-        }
-      } else {
-        // no arrow keys so we require an explicit provider
-        throw new Error(
-          "You must specify a provider to publish to. For example:\n\n" +
-            providers.map((provider) => `quarto publish ${provider.name}`).join(
-              "\n",
-            ) + "\n",
-        );
+      // select provider
+      const result = await prompt([{
+        indent: "",
+        name: "provider",
+        message: "Provider:",
+        options: providers
+          .filter((provider) => !provider.hidden)
+          .map((provider) => ({
+            name: provider.description,
+            value: provider.name,
+          })),
+        type: Select,
+      }]);
+      if (result.provider) {
+        provider = findProvider(result.provider);
       }
     }
     if (provider) {

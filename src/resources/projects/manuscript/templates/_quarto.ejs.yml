@@ -1,0 +1,17 @@
+project:
+  type: manuscript
+
+manuscript:
+  article: index.qmd
+
+format:
+  html:
+    comments:
+      hypothesis: true
+  docx: default
+
+  # (other formats)
+  # jats: default
+  # pdf: default
+
+<% if(editor){ %>editor: <%= editor %><% } %>

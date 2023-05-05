@@ -124,7 +124,9 @@ main.quarto-banner-title-block > section:first-child > h4 {
 
   .quarto-title-author-orcid {
     img {
-      margin-top: -5px;
+      margin-top: -0.2em;
+      height: 0.8em;
+      width: 0.8em;
     }
   }
 
@@ -155,7 +157,7 @@ main.quarto-banner-title-block > section:first-child > h4 {
     }
 
     p.affiliation:last-of-type {
-      margin-bottom: 0.7em;
+      margin-bottom: 0.1em;
     }
   }
 

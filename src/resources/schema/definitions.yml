@@ -688,6 +688,7 @@
         description: "Enable Google Analytics for this website"
       cookie-consent:
         anyOf:
+          - enum: [express, implied]
           - boolean
           - object:
               properties:
@@ -2149,3 +2150,46 @@
             properties:
               trace-filters: string
               tests: object
+
+- id: notebook-view-schema
+  schema:
+    object:
+      properties:
+        notebook:
+          string:
+            description: "The path to the locally referenced notebook."
+        title:
+          description: "The title of the notebook when viewed."
+          anyOf:
+            - string
+            - boolean
+        url:
+          string:
+            description: "The url to use when viewing this notebook."
+      required: [notebook]
+
+- id: manuscript-schema
+  schema:
+    object:
+      closed: true
+      properties:
+        "article":
+          path:
+            description: "The input document that will serve as the root document for this manuscript"
+        "manuscript-url":
+          string:
+            description: "The deployed url for this manuscript"
+        "meca-archive":
+          anyOf:
+            - boolean
+            - string
+          description: "Whether to generate a MECA bundle for this manuscript"
+        "notebooks":
+          arrayOf:
+            anyOf:
+              - string
+              - ref: notebook-view-schema
+        "resources":
+          maybeArrayOf:
+            schema: path
+            description: "Additional file resources to be copied to output directory"

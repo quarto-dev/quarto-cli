@@ -1,9 +1,8 @@
 /*
-* extension-render-project.test.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * extension-render-project.test.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { docs } from "../../utils.ts";
 
@@ -11,7 +10,7 @@ import { basename, dirname, extname, join, relative } from "path/mod.ts";
 import { ensureHtmlElements } from "../../verify.ts";
 import { testQuartoCmd } from "../../test.ts";
 import { noErrors } from "../../verify.ts";
-import { existsSync } from "node/fs.ts";
+import { existsSync } from "fs/mod.ts";
 
 const siteOutputForInput = (rootDir: string, input: string) => {
   const dir = join(rootDir, "_site");

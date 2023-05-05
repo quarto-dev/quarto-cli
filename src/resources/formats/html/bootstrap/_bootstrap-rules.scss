@@ -501,7 +501,7 @@ img.img-fluid.column-screen-right {
 @include media-breakpoint-up(lg) {
   .margin-caption,
   div.aside,
-  aside,
+  aside:not(.footnotes),
   .column-margin {
     grid-column: body-end / page-end !important;
     z-index: $zindex-pagelayout;
@@ -526,7 +526,7 @@ img.img-fluid.column-screen-right {
 @include media-breakpoint-down(lg) {
   .margin-caption,
   div.aside,
-  aside,
+  aside:not(.footnotes),
   .column-margin {
     grid-column: body-end / page-end !important;
     z-index: $zindex-pagelayout;
@@ -544,7 +544,7 @@ img.img-fluid.column-screen-right {
   .page-columns.toc-left {
     .margin-caption,
     div.aside,
-    aside,
+    aside:not(.footnotes),
     .column-margin {
       grid-column: body-content-start / body-content-end !important;
       z-index: $zindex-pagelayout;
@@ -560,7 +560,7 @@ img.img-fluid.column-screen-right {
 @include media-breakpoint-down(md) {
   .margin-caption,
   div.aside,
-  aside,
+  aside:not(.footnotes),
   .column-margin {
     grid-column: body-content-start / body-content-end !important;
     z-index: $zindex-pagelayout;
@@ -616,7 +616,7 @@ main {
 
 h1,
 h2 {
-  opacity: 0.9;
+  color: theme-dim($body-color, 8%);
   margin-top: 2rem;
   margin-bottom: 1rem;
   font-weight: 600;
@@ -749,6 +749,7 @@ $code-block-bg-color: quarto-color.adjust(
 
 .nav-tabs .nav-item {
   margin-top: 1px;
+  cursor: pointer;
 }
 
 .tab-content {
@@ -1071,6 +1072,10 @@ figure .quarto-notebook-link {
   padding-top: 1.5em;
   padding-right: 1em;
   text-align: right;
+}
+
+.quarto-notebook .cell-code code {
+  white-space: pre-wrap;
 }
 
 .quarto-notebook h2 {

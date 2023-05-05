@@ -1,0 +1,35 @@
+<sub-article article-type="notebook">
+<front-stub>
+$if(title)$
+<title-group>
+<article-title>$title$</article-title>
+$if(subtitle)$
+<subtitle>${subtitle}</subtitle>
+$endif$
+</title-group>
+$endif$
+$if(abstract)$
+<abstract>
+$abstract$
+</abstract>
+$endif$
+${ authors.xml() }
+</front-stub>
+
+<body>
+$body$
+</body>
+
+$for(include-after)$
+$include-after$
+$endfor$
+
+
+<back>
+$if(back)$
+$back$
+$endif$
+</back>
+
+
+</sub-article>

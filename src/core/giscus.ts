@@ -71,7 +71,7 @@ export const buildGiscusThemeKeys = (
     light: string;
     dark: string;
   };
-  let result = {
+  const result = {
     baseTheme: themeRecord.light ?? GiscusThemeDefault.light,
     altTheme: themeRecord.dark ?? GiscusThemeDefault.dark,
   };
