@@ -367,6 +367,7 @@ export function setMainColumn(doc: Document, column: string) {
     "main.content",
     ".page-navigation",
     ".quarto-title-banner .quarto-title",
+    ".quarto-title-block .quarto-title-meta",
     "div[class^='quarto-about-']",
     "div[class*=' quarto-about-']",
   ];
