@@ -44,7 +44,7 @@ import {
 } from "../../../command/render/types.ts";
 import { gitHubContext } from "../../../core/github.ts";
 import { projectInputFiles } from "../../project-context.ts";
-import { inputTargetIndex } from "../../project-index.ts";
+import { kJatsSubarticle } from "../../../format/jats/format-jats-types.ts";
 
 const kManuscriptType = "manuscript";
 
@@ -236,6 +236,15 @@ export const manuscriptProjectType: ProjectType = {
           }
         }
       }
+
+      // For JATS, default subarticles on (unless turned off explicitly)
+      if (
+        isJatsOutput(format.pandoc) &&
+        format.metadata[kJatsSubarticle] !== false
+      ) {
+        format.metadata[kJatsSubarticle] = true;
+      }
+
       return format;
     } else {
       throw new Error(
