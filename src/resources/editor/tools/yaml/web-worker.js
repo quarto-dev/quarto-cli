@@ -19521,6 +19521,8 @@ try {
           "The input document that will serve as the root document for this\nmanuscript",
           "The deployed url for this manuscript",
           "Whether to generate a MECA bundle for this manuscript",
+          "Additional file resources to be copied to output directory",
+          "Additional file resources to be copied to output directory",
           {
             short: "Unique label for code cell",
             long: "Unique label for code cell. Used when other code needs to refer to\nthe cell (e.g.&nbsp;for cross references <code>fig-samples</code> or\n<code>tbl-summary</code>)"
@@ -21538,12 +21540,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 158112,
+          _internalId: 158120,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 158104,
+              _internalId: 158112,
               type: "enum",
               enum: [
                 "png",
@@ -21559,7 +21561,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 158111,
+              _internalId: 158119,
               type: "anyOf",
               anyOf: [
                 {
