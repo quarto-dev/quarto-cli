@@ -1720,9 +1720,12 @@ nav.quarto-secondary-nav.color-navbar .quarto-btn-toggle {
 
 body.nav-sidebar {
   @include media-breakpoint-down(lg) {
-    .quarto-title-banner,
     .quarto-title-banner {
-      display: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+    #title-block-header {
+      margin-block-end: 0;
     }
   }
 }
