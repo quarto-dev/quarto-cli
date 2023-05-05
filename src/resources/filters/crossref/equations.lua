@@ -4,12 +4,12 @@
 -- process all equations
 function equations()
   return {
-    Para = processEquations,
-    Plain = processEquations
+    Para = process_equations,
+    Plain = process_equations
   }
 end
 
-function processEquations(blockEl)
+function process_equations(blockEl)
 
   -- alias inlines
   local inlines = blockEl.content

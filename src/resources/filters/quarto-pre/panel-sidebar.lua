@@ -1,7 +1,7 @@
 -- panel-sidebar.lua
 -- Copyright (C) 2021-2022 Posit Software, PBC
 
-function panelSidebar() 
+function bootstrap_panel_sidebar() 
   return {
     Blocks = function(blocks)
       if hasBootstrap() or _quarto.format.isRevealJsOutput() then

@@ -1,7 +1,7 @@
 -- book-numbering.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
-function bookNumbering() 
+function book_numbering() 
   return {
     Header = function(el)
       local file = currentFileMetadataState().file

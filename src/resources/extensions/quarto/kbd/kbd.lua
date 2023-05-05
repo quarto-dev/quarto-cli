@@ -33,7 +33,7 @@ return {
       return pandoc.RawInline('html', '<kbd ' .. kwargs_str .. '>' .. default_arg_str .. '</kbd>')
     elseif quarto.doc.isFormat("asciidoc") and args and #args == 1 then
       -- get the 'first' kbd shortcut as we can only produce on shortcut in asciidoc
-      local shortcutText = pandoc.utils.stringify(args[1][1]):gsub('-', '+')
+      local shortcutText = pandoc.utils.stringify(args[1]):gsub('-', '+')
       return pandoc.RawInline("asciidoc", "kbd:[" .. shortcutText .. "]")
     else
       -- example shortcodes

@@ -9,7 +9,7 @@ fileMetadataState = {
 }
 
 
-function fileMetadata() 
+function file_metadata() 
   return {
     RawInline = parseFileMetadata,
     RawBlock = parseFileMetadata      

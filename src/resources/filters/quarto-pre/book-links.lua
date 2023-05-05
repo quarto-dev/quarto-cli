@@ -1,27 +1,27 @@
 -- book-links.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
-function indexBookFileTargets() 
+function index_book_file_targets() 
     if not param("single-file-book", false) then
       return {} 
     else 
       return {
         Header = function(el)
-        if el.level == 1 then 
-          local file = currentFileMetadataState().file
-          if file ~= nil then   
-            local filename = file.bookItemFile;
-            if filename ~= nil and preState.fileSectionIds[filename] == nil then
-              preState.fileSectionIds[filename] = el.identifier
+          if el.level == 1 then 
+            local file = currentFileMetadataState().file
+            if file ~= nil then   
+              local filename = file.bookItemFile;
+              if filename ~= nil and preState.fileSectionIds[filename] == nil then
+                preState.fileSectionIds[filename] = el.identifier
+              end
             end
           end
         end
-      end
-    }
+      }
   end
 end
 
-function resolveBookFileTargets() 
+function resolve_book_file_targets() 
   if not param("single-file-book", false) then
     return {} 
   else
@@ -70,6 +70,7 @@ function flatten(targetPath)
   local pathParts = pandoc.path.split(targetPath)
   local resolvedPath = pandoc.List()
 
+  -- FIXME are we not handling "."?
   for _, part in ipairs(pathParts) do 
     if part == '..' then
       table.remove(resolvedPath)

@@ -79,6 +79,7 @@ function discoverLinkedFigure(el, captionRequired)
 end
 
 function createFigureDiv(paraEl, fig)
+  flags.has_figure_divs = true
   
   -- create figure div
   local figureDiv = pandoc.Div({})

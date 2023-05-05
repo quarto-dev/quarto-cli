@@ -67,7 +67,7 @@ local function columnOutputLocation(el, fragment)
   return { columnsDiv }
 end
 
-function outputLocation()
+function output_location()
   if _quarto.format.isRevealJsOutput() then
     return {
       Blocks = function(blocks)

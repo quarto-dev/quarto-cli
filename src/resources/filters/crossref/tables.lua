@@ -4,7 +4,7 @@
 -- process all tables (note that cross referenced tables are *always*
 -- wrapped in a div so they can carry parent information and so that
 -- we can create a hyperef target for latex)
-function crossrefTables()
+function crossref_tables()
   return {
     Div = function(el)
       if isTableDiv(el) and isReferenceableTbl(el) then

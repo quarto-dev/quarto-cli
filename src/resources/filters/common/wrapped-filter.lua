@@ -210,7 +210,7 @@ function filterIf(condition, filter)
   return {
     Pandoc = function(doc)
       if condition() then
-        return doc:walk(filter)
+        return _quarto.ast.walk(doc, filter) -- doc:walk(filter)
       end
     end
   }

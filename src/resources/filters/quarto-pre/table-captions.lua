@@ -4,14 +4,12 @@
 kTblCap = "tbl-cap"
 kTblSubCap = "tbl-subcap"
 
-local latexCaptionPattern =  "(\\caption{)(.-)(}[^\n]*\n)"
-
 function longtable_no_caption_fixup()
   return {
     RawBlock = function(raw)
       if _quarto.format.isRawLatex(raw) then
         if (raw.text:match(_quarto.patterns.latexLongtablePattern) and
-            not raw.text:match(latexCaptionPattern)) then
+            not raw.text:match(_quarto.patterns.latexCaptionPattern)) then
           raw.text = raw.text:gsub(
             _quarto.patterns.latexLongtablePattern, "\\begin{longtable*}%2\\end{longtable*}", 1)
           return raw
@@ -21,10 +19,8 @@ function longtable_no_caption_fixup()
   }
 end
 
-function tableCaptions() 
-  
-  return {
-   
+function table_captions() 
+  return {   
     Div = function(el)
       if tcontains(el.attr.classes, "cell") then
         -- extract table attributes
@@ -56,7 +52,7 @@ function tableCaptions()
   
               -- compute all captions and labels
               local label = el.attr.identifier
-              local mainCaption, tblCaptions, mainLabel, tblLabels = tableCaptionsAndLabels(
+              local mainCaption, tblCaptions, mainLabel, tblLabels = table_captionsAndLabels(
                 label,
                 tables,
                 tblCap,
@@ -82,7 +78,7 @@ function tableCaptions()
 
 end
 
-function tableCaptionsAndLabels(label, tables, tblCap, tblSubCap)
+function table_captionsAndLabels(label, tables, tblCap, tblSubCap)
   
   local mainCaption = nil
   local tblCaptions = pandoc.List()
@@ -214,6 +210,7 @@ end
 
 
 function applyLatexTableCaption(latex, tblCaption, tblLabel, tablePattern)
+  local latexCaptionPattern = _quarto.patterns.latexCaptionPattern
   -- insert caption if there is none
   local beginCaption, caption = latex:match(latexCaptionPattern)
   if not beginCaption then

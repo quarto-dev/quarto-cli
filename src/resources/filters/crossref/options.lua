@@ -2,7 +2,7 @@
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
 -- initialize options from 'crossref' metadata value
-function initCrossrefOptions()
+function init_crossref_options()
   return {
     Meta = function(meta)
       crossref.options = readFilterOptions(meta, "crossref")

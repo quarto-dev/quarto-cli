@@ -1,9 +1,8 @@
 /*
-* language.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * language.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { existsSync, expandGlobSync } from "fs/mod.ts";
 import { extname, join } from "path/mod.ts";
@@ -20,16 +19,16 @@ import { mergeConfigs } from "./config.ts";
 import { readAndValidateYamlFromFile } from "./schema/validated-yaml.ts";
 import { RenderFlags } from "../command/render/types.ts";
 import { getSchemaDefinition } from "./lib/yaml-validation/schema.ts";
+import { cacheMap } from "./cache.ts";
 
-export async function readLanguageTranslations(
-  translationFile: string,
-  lang?: string,
-): Promise<{ language: FormatLanguage; files: string[] }> {
-  // read and parse yaml if it exists (track files read)
-  const files: string[] = [];
-  const maybeReadYaml = async (file: string) => {
+type TranslationCacheValue = {
+  file?: string;
+  result: FormatLanguage;
+};
+
+const translationCache = cacheMap(
+  async (file: string) => {
     if (existsSync(file)) {
-      files.push(normalizePath(file));
       const errMsg = "Validation of format language object failed.";
       const formatLanguageSchema = getSchemaDefinition("format-language");
       const result = await readAndValidateYamlFromFile(
@@ -37,14 +36,33 @@ export async function readLanguageTranslations(
         formatLanguageSchema,
         errMsg,
       );
-      return result as FormatLanguage;
+      return {
+        file: normalizePath(file),
+        language: result as FormatLanguage,
+      };
     } else {
-      return {} as FormatLanguage;
+      return {
+        language: {} as FormatLanguage,
+      };
     }
-  };
+  },
+);
+
+export async function readLanguageTranslations(
+  translationFile: string,
+  lang?: string,
+): Promise<{ language: FormatLanguage; files: string[] }> {
+  // read and parse yaml if it exists (track files read)
+  const files: string[] = [];
 
   // read the original file
-  const language = await maybeReadYaml(translationFile);
+  const {
+    file,
+    language,
+  } = await translationCache(translationFile);
+  if (file) {
+    files.push(file);
+  }
 
   // determine additional variations to read
   const ext = extname(translationFile);
@@ -78,9 +96,16 @@ export async function readLanguageTranslations(
 
   // read the variations
   for (const variation of variations) {
-    const translations = await maybeReadYaml(
-      join(dir, stem + "-" + variation + ext),
-    );
+    const {
+      file: variationFile,
+      language: translations,
+    } = await translationCache(join(dir, stem + "-" + variation + ext));
+    if (variationFile) {
+      files.push(variationFile);
+    }
+    // const translations = await maybeReadYaml(
+    //   join(dir, stem + "-" + variation + ext),
+    // );
     Object.keys(translations).forEach((key) => {
       // top level entries use the variation key
       if (kLanguageDefaultsKeys.includes(key)) {

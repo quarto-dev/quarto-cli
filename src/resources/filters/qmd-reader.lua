@@ -5,6 +5,8 @@
 --
 -- Originally by Albert Krewinkel
 
+local md_shortcode = require("lpegshortcode")
+
 -- Support the same format extensions as pandoc's Markdown reader
 Extensions = pandoc.format.extensions 'markdown'
 
@@ -110,8 +112,25 @@ function unescape_invalid_tags(str, tags)
   return str
 end
 
+function parse_shortcodes(txt)
+  return md_shortcode.md_shortcode:match(txt)
+end
+
+function urldecode(url)
+  if url == nil then
+    return
+  end
+    url = url:gsub("+", " ")
+    url = url:gsub("%%(%x%x)", function(x)
+      return string.char(tonumber(x, 16))
+    end)
+    url = url:gsub('%&quot%;', '"')
+  return url
+end
+
 function Reader (inputs, opts)
   local txt, tags = escape_invalid_tags(tostring(inputs))
+  txt = parse_shortcodes(txt)
   local extensions = {}
 
   local flavor = {
@@ -130,12 +149,34 @@ function Reader (inputs, opts)
   local function restore_invalid_tags(tag)
     return tags[tag] or tag
   end
+
+  -- parse_shortcode overparses shortcodes inside code blocks, link targets, etc.
+  -- so we need to undo that damage here
+
+  local unshortcode_text = function (c)
+    c.text = md_shortcode.unshortcode:match(c.text)
+    return c
+  end
+
   local doc = pandoc.read(txt, flavor, opts):walk {
     CodeBlock = function (cb)
       cb.classes = cb.classes:map(restore_invalid_tags)
+      cb.text = md_shortcode.unshortcode:match(cb.text)
       cb.text = unescape_invalid_tags(cb.text, tags)
       return cb
-    end
+    end,
+    Code = unshortcode_text,
+    RawInline = unshortcode_text,
+    RawBlock = unshortcode_text,
+    Link = function (l)
+      local result = md_shortcode.unshortcode:match(urldecode(l.target))
+      l.target = result
+      return l
+    end,
+    Image = function (i)
+      i.src = md_shortcode.unshortcode:match(urldecode(i.src))
+      return i
+    end,
   }
   return doc
 end

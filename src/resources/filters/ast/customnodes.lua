@@ -7,19 +7,71 @@ local handlers = {}
 
 local custom_node_data = pandoc.List({})
 local n_custom_nodes = 0
+local profiler = require('profiler')
 
 function resolve_custom_node(node)
-  if type(node) == "userdata" and node.t == "Plain" and #node.content == 1 and node.content[1].t == "RawInline" and node.content[1].format == "QUARTO_custom" then
-    return node.content[1]
+  local t = node.t
+  if t == "Plain" then
+    local c = node.content[1]
+    if c and c.format == "QUARTO_custom" then
+      return c
+    else
+      return false
+    end
   end
-  if type(node) == "userdata" and node.t == "RawInline" and node.format == "QUARTO_custom" then
+  if t == "RawInline" and node.format == "QUARTO_custom" then
     return node
   end
+  return false
 end
 
-function run_emulated_filter(doc, filter, top_level)
-  if filter._is_wrapped then
-    return doc:walk(filter)
+function run_emulated_filter(doc, filter)
+  if doc == nil then
+    return nil
+  end
+  local sz = 0
+  for k, v in pairs(filter) do
+    sz = sz + 1
+  end
+
+  -- performance: if filter is empty, do nothing
+  if sz == 0 then
+    return doc
+  elseif sz == 1 then
+    local result
+    local t
+    if filter.Pandoc then
+      -- performance: if filter is only Pandoc, call that directly instead of walking.
+      result = filter.Pandoc(doc) or doc
+    elseif filter.Meta then
+      -- performance: if filter is only Meta, call that directly instead of walking.
+      t = pandoc.utils.type(doc)
+      if t == "Pandoc" then
+        local result_meta = filter.Meta(doc.meta) or doc.meta
+        result = doc
+        result.meta = result_meta
+      else
+        goto regular
+      end
+    else
+      goto regular
+    end
+    if in_filter then
+      profiler.category = ""
+    end
+    return result
+  end
+
+  ::regular::
+
+  local custom = resolve_custom_node(doc)
+
+  if custom == nil and filter._is_wrapped then
+    local result, recurse = doc:walk(filter)
+    if in_filter then
+      profiler.category = ""
+    end
+    return result, recurse
   end
 
   local wrapped_filter = {}
@@ -95,10 +147,12 @@ function run_emulated_filter(doc, filter, top_level)
     end
   end
 
-  local custom = resolve_custom_node(doc)
   if custom then
     local custom_data, t, kind = _quarto.ast.resolve_custom_data(custom)
     local result, recurse = process_custom(custom_data, t, kind, custom)
+    if in_filter then
+      profiler.category = ""
+    end
     if result == nil then
       return doc
     end
@@ -148,9 +202,7 @@ function run_emulated_filter(doc, filter, top_level)
   wrapped_filter._is_wrapped = true
 
   local result, recurse = doc:walk(wrapped_filter)
-  if top_level and filter._filter_name ~= nil then
-    add_trace(result, filter._filter_name)
-  end
+
   return result, recurse
 end
 
@@ -181,7 +233,8 @@ _quarto.ast = {
 
     if raw_or_plain_container.t == "RawInline" then
       raw = raw_or_plain_container
-    elseif raw_or_plain_container.t == "Plain" and #raw_or_plain_container.content == 1 and raw_or_plain_container.content[1].t == "RawInline" then
+    elseif (raw_or_plain_container.t == "Plain" or
+            raw_or_plain_container.t == "Para") and #raw_or_plain_container.content == 1 and raw_or_plain_container.content[1].t == "RawInline" then
       raw = raw_or_plain_container.content[1]
     else
       return nil
@@ -261,7 +314,6 @@ _quarto.ast = {
     if handler.inner_content ~= nil then
       local new_inner_content = {}
       local inner_content = handler.inner_content(custom_data)
-
       for k, v in pairs(inner_content) do
         local new_v = run_emulated_filter(v, filter)
         if new_v ~= nil then
