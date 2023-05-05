@@ -12,11 +12,10 @@ import {
   Format,
   FormatExtras,
   FormatLink,
-  Metadata,
   NotebookPublishOptions,
   PandocFlags,
 } from "../../../config/types.ts";
-import { ProjectConfig, ProjectContext } from "../../types.ts";
+import { kProjectRender, ProjectConfig, ProjectContext } from "../../types.ts";
 import {
   kFormatLinks,
   kNotebookLinks,
@@ -45,6 +44,7 @@ import {
 } from "../../../command/render/types.ts";
 import { gitHubContext } from "../../../core/github.ts";
 import { projectInputFiles } from "../../project-context.ts";
+import { inputTargetIndex } from "../../project-index.ts";
 
 const kManuscriptType = "manuscript";
 
@@ -72,38 +72,37 @@ export const manuscriptProjectType: ProjectType = {
     config: ProjectConfig,
     _flags?: RenderFlags,
   ): Promise<ProjectConfig> => {
+    let defaultRenderFile: string | undefined = undefined;
     // Build the render list
-    const manuOpts = manuscriptOptions(config);
-    if (manuOpts) {
-      if (manuOpts.article) {
-        // If there is an explicitly specified article file
-        config.project.render = [manuOpts.article];
+    const manuOpts = manuscriptOptions(config) || {};
+    if (manuOpts.article) {
+      // If there is an explicitly specified article file
+      defaultRenderFile = manuOpts.article;
+    } else {
+      // Locate a default target
+      const defaultArticleFiles = ["index.qmd", "index.ipynb"];
+      const defaultArticleFile = defaultArticleFiles.find((file) => {
+        return existsSync(join(projectDir, file));
+      });
+      if (defaultArticleFile !== undefined) {
+        defaultRenderFile = defaultArticleFile;
       } else {
-        // Locate a default target
-        const defaultArticleFiles = ["index.qmd", "index.ipynb"];
-        const defaultArticleFile = defaultArticleFiles.find((file) => {
-          return existsSync(join(projectDir, file));
-        });
-        if (defaultArticleFile !== undefined) {
-          config.project.render = [defaultArticleFile];
-        } else {
-          throw new Error(
-            "Unable to determine the root input document for this manuscript. Please specify an `article` in your `_quarto.yml` file.",
-          );
-        }
+        throw new Error(
+          "Unable to determine the root input document for this manuscript. Please specify an `article` in your `_quarto.yml` file.",
+        );
       }
+    }
 
-      // If the manuscript has resources, add those in
-      if (manuOpts[kResources]) {
-        config.project.resources = config.project.resources || [];
-        config.project.resources = Array.isArray(config.project.resources)
-          ? config.project.resources
-          : [config.project.resources];
-        if (Array.isArray(manuOpts[kResources])) {
-          config.project.resources.push(...manuOpts[kResources]);
-        } else {
-          config.project.resources.push(manuOpts[kResources]);
-        }
+    // If the manuscript has resources, add those in
+    if (manuOpts[kResources]) {
+      config.project.resources = config.project.resources || [];
+      config.project.resources = Array.isArray(config.project.resources)
+        ? config.project.resources
+        : [config.project.resources];
+      if (Array.isArray(manuOpts[kResources])) {
+        config.project.resources.push(...manuOpts[kResources]);
+      } else {
+        config.project.resources.push(manuOpts[kResources]);
       }
     }
 
@@ -111,19 +110,19 @@ export const manuscriptProjectType: ProjectType = {
     // then automatically create notebooks for the other items in
     // the project
     if (manuOpts[kNotebooks] === undefined) {
+      // Find project inputs that are not in the render list
+      // and move those over to the list of 'notebooks'
+      // that will be rendered alongside this article
       const inputs = projectInputFiles(projectDir, config);
+      const absRenderFile = join(projectDir, defaultRenderFile);
       const notebooks = inputs.files.filter((file) => {
-        return !config.project.render?.includes(file);
+        return file !== absRenderFile;
       });
-      if (notebooks.length > 0) {
-        (config[kManuscriptType] as Metadata)[kNotebooks] = notebooks.map(
-          (nb) => {
-            return { notebook: nb };
-          },
-        );
-      }
+      manuOpts[kNotebooks] = notebooks;
     }
 
+    // Set the exact render file
+    config.project[kProjectRender] = [defaultRenderFile];
     return Promise.resolve(config);
   },
 
@@ -200,20 +199,40 @@ export const manuscriptProjectType: ProjectType = {
         }
       }
 
+      // Resolve any notebooks that are being provided
       if (manuOpts && manuOpts[kNotebooks] !== undefined) {
+        const resolveNb = (
+          nb: string | NotebookPublishOptions,
+        ): NotebookPublishOptions => {
+          if (typeof (nb) === "string") {
+            nb = { notebook: nb };
+          }
+          return nb;
+        };
+
+        const resolveNbs = (
+          nbs: Array<string | NotebookPublishOptions>,
+        ) => {
+          const resolvedNbs: NotebookPublishOptions[] = [];
+          for (const nb of nbs) {
+            resolvedNbs.push(resolveNb(nb));
+          }
+          return resolvedNbs;
+        };
+
         // Forward the 'notebooks' key into `notebook-views` to configure
         // the notebook behavior for this project
+        const notebooks = manuOpts[kNotebooks];
         if (format.render[kNotebookView] === undefined) {
-          format.render[kNotebookView] = manuOpts[kNotebooks];
+          format.render[kNotebookView] = resolveNbs(notebooks);
         } else if (typeof (format.render[kNotebookView]) !== "boolean") {
           if (Array.isArray(format.render[kNotebookView])) {
-            format.render[kNotebookView].push(...manuOpts[kNotebooks]);
+            format.render[kNotebookView].push(...resolveNbs(notebooks));
           } else {
-            const notebooks = [
+            format.render[kNotebookView] = [
               format.render[kNotebookView],
-              ...manuOpts[kNotebooks],
+              ...resolveNbs(notebooks),
             ];
-            format.render[kNotebookView] = notebooks;
           }
         }
       }
@@ -425,29 +444,18 @@ interface ManuscriptOptions {
   [kManuscriptUrl]?: string;
   [kMecaArchive]?: boolean | string;
   [kArticle]?: string;
-  [kNotebooks]?: NotebookPublishOptions[];
+  [kNotebooks]?: Array<string | NotebookPublishOptions>;
   [kResources]?: string | string[];
 }
 
 const manuscriptOptions = (config?: ProjectConfig): ManuscriptOptions => {
   if (config) {
     const manuOpts = config[kManuscriptType] as ManuscriptOptions || undefined;
-
-    if (manuOpts) {
-      const notebooks: NotebookPublishOptions[] = [];
-      if (manuOpts[kNotebooks]) {
-        for (const notebook of manuOpts[kNotebooks] as unknown[]) {
-          if (typeof (notebook) === "string") {
-            notebooks.push({
-              notebook,
-            });
-          } else {
-            notebooks.push(notebook as NotebookPublishOptions);
-          }
-        }
-      }
+    if (manuOpts[kNotebooks] !== undefined) {
+      manuOpts[kNotebooks] = Array.isArray(manuOpts[kNotebooks])
+        ? manuOpts[kNotebooks]
+        : [manuOpts[kNotebooks]];
     }
-
     return manuOpts;
   } else {
     return {};

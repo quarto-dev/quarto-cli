@@ -1,9 +1,8 @@
 /*
-* types.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * types.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { Format, FormatExtras, PandocFlags } from "../../config/types.ts";
 import { Metadata } from "../../config/types.ts";
