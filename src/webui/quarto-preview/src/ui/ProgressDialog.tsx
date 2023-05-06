@@ -15,11 +15,20 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
-;
-import { useId } from "@fluentui/react-hooks";
+import {
+  Dialog,
+  DialogSurface,
+  DialogTitle,
+  DialogBody,
+  DialogContent,
+  makeStyles,
+  tokens,
+  shorthands
+} from "@fluentui/react-components";
+
+
 
 import { ANSIOutputLine } from "../core/ansi-output";
-
 import { ANSIDisplay } from "./ANSIDisplay";
 
 export interface ProgressDialogProps {
@@ -36,18 +45,58 @@ export interface ProgressDialogProps {
 const kTopBorderWidth = 2;
 const kMinProgressHeight = 120;
 
+const useStyles = makeStyles({
+  surface: {
+    boxShadow: tokens.shadow4,
+    position: 'fixed',
+    top: kTopBorderWidth + "px",
+    left: 0,
+    right: 0,
+    marginTop: 'none',
+    marginBottom: 'none',
+    paddingTop: '12px',
+    paddingBottom: '16px',
+    maxWidth: 'none',
+    maxHeight: "calc(100% - 50px)",
+  },
+  body: {
+   
+  },
+  content: {
+    ...shorthands.border('1px', 'solid',tokens.colorNeutralStroke1),
+    overflowY: 'scroll',
+  }
+})
+
 export function ProgressDialog(props: ProgressDialogProps) {
-
-  const titleId = useId('title');
-
   const outputEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     outputEndRef.current?.scrollIntoView()
   }, [props.lines, props.error]);
 
+  const classes = useStyles();
+
   return (
-    <></>
+    <Dialog 
+      modalType="non-modal"
+      open={props.open}
+      onOpenChange={(_event, data) => { if (!data.open) props.onClose() }}
+    >
+      <DialogSurface className={classes.surface}>
+        <DialogBody className={classes.body} style={{
+          gridTemplateRows: !props.error 
+            ? 'auto 120px auto'
+            : 'auto auto auto'
+        }}>
+          <DialogTitle>Render</DialogTitle>
+          <DialogContent className={classes.content}>
+            <ANSIDisplay lines={props.lines} />
+            <div ref={outputEndRef} />
+          </DialogContent>
+        </DialogBody>
+      </DialogSurface>
+    </Dialog>
   );
 
   /*

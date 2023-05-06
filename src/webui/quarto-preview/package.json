@@ -18,7 +18,6 @@
     "dev": "tsc --noEmit && vite build --mode=development"
   },
   "dependencies": {   
-    "@fluentui/react-hooks": "^8.6.20",
     "@fluentui/react-icons": "^2.0.201",
     "@fluentui/react-components": "^9.19.1",
     "react": "^18.2.0",

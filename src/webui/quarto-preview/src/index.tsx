@@ -24,6 +24,8 @@ import { handleRevealMessages } from "./frame/reveal";
 import { handleViewerMessages } from "./frame/viewer";
 import { handleCommands } from './frame/commands';
 
+import './ui/fluent.css'
+
 export interface Options {
   origin: string | null,
   search: string | null,
