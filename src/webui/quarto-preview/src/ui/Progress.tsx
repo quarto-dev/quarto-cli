@@ -13,8 +13,10 @@
  *
  */
 
+// TODO: Cancel button
+
 import React, { useEffect, useState } from "react";
-import { FluentProvider, webLightTheme } from "@fluentui/react-components";
+import { FluentProvider, webDarkTheme, webLightTheme } from "@fluentui/react-components";
 
 import { ANSIOutputLine } from "../core/ansi-output";
 
@@ -43,7 +45,7 @@ export const Progress: React.FC<ProgressProps> = (props: ProgressProps) => {
   }, [props.rendering])
 
   return (
-    <FluentProvider theme={webLightTheme}>
+    <FluentProvider theme={props.darkMode ? webDarkTheme : webLightTheme}>
       <ProgressIndicator visible={props.rendering && !dismissed} />
       <ProgressDialog 
         open={props.dialog && !dismissed} 

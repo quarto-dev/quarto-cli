@@ -13,7 +13,7 @@
  *
  */
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 
 import {
   Dialog,
@@ -25,7 +25,6 @@ import {
   tokens,
   shorthands
 } from "@fluentui/react-components";
-
 
 
 import { ANSIOutputLine } from "../core/ansi-output";
@@ -48,6 +47,7 @@ const kMinProgressHeight = 120;
 const useStyles = makeStyles({
   surface: {
     boxShadow: tokens.shadow4,
+    ...shorthands.borderRadius(0),
     position: 'fixed',
     top: kTopBorderWidth + "px",
     left: 0,
@@ -82,15 +82,23 @@ export function ProgressDialog(props: ProgressDialogProps) {
       modalType="non-modal"
       open={props.open}
       onOpenChange={(_event, data) => { if (!data.open) props.onClose() }}
+      
     >
-      <DialogSurface className={classes.surface}>
+      <DialogSurface className={classes.surface} style={{
+         borderTop: (props.error && !props.darkMode) ? 
+         `${kTopBorderWidth}px solid ${tokens.colorPaletteDarkOrangeBorder2}` : 'none'
+      }}>
         <DialogBody className={classes.body} style={{
           gridTemplateRows: !props.error 
-            ? 'auto 120px auto'
+            ? `auto ${kMinProgressHeight}px auto`
             : 'auto auto auto'
         }}>
-          <DialogTitle>Render</DialogTitle>
-          <DialogContent className={classes.content}>
+          <DialogTitle style={{ color: tokens.colorNeutralForeground3 }}>
+            {props.error ? "Error" : "Render"}
+          </DialogTitle>
+          <DialogContent className={classes.content} style={{
+             maxHeight: props.error ? "calc(100vh - 120px)" : 'none',
+          }}>
             <ANSIDisplay lines={props.lines} />
             <div ref={outputEndRef} />
           </DialogContent>
