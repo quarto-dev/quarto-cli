@@ -15,18 +15,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
-
-import {
-  DefaultButton,
-  FontWeights,
-  IButtonStyles,
-  IIconProps,
-  IconButton,
-  Modal,
-  Theme,
-  getTheme,
-  mergeStyleSets
-} from "@fluentui/react";
+;
 import { useId } from "@fluentui/react-hooks";
 
 import { ANSIOutputLine } from "../core/ansi-output";
@@ -57,6 +46,11 @@ export function ProgressDialog(props: ProgressDialogProps) {
     outputEndRef.current?.scrollIntoView()
   }, [props.lines, props.error]);
 
+  return (
+    <></>
+  );
+
+  /*
   // one time computation of theme/styles
   const [theme] = useState(() => getTheme());
   const styles = useMemo(() => getStyles(theme, props.darkMode), [theme, props.darkMode]);
@@ -110,9 +104,11 @@ export function ProgressDialog(props: ProgressDialogProps) {
     </div>
 
   </Modal>);
+  */
 
 }
 
+/*
 const getStyles = (theme: Theme, darkMode: boolean) => {
  
   const content = mergeStyleSets({
@@ -130,11 +126,11 @@ const getStyles = (theme: Theme, darkMode: boolean) => {
       right: 0,
       maxWidth: 'none',
       maxHeight: "calc(100% - 50px)",
+
       // these were used when we had more of a floating dialog feel
-      /*
-      width: 1000,
-      maxWidth: "calc(100% - 100px)",
-      */
+      //width: 1000,
+      //maxWidth: "calc(100% - 100px)",
+      
       boxShadow: theme.effects.elevation8
     },
     header: [
@@ -201,6 +197,7 @@ const getStyles = (theme: Theme, darkMode: boolean) => {
 }
 
 const cancelIcon: IIconProps = { iconName: 'Cancel' };
+*/
 
 
 

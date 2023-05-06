@@ -14,7 +14,6 @@
  */
 
 
-import { initializeFluent } from './ui/fluent';
 
 import { connectToServer } from './server/connection';
 import { navigationHandler } from './server/navigation';
@@ -38,9 +37,6 @@ function init(options: Options) {
 
     // detect dark mode
     const darkMode = detectDarkMode();
-
-    // intialize fluent 
-    initializeFluent(darkMode);
 
     // server connection
     const disconnect = connectToServer([
