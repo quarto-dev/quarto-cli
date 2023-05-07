@@ -25,6 +25,8 @@ import {
   makeStyles,
   tokens,
   shorthands,
+  DialogOpenChangeData,
+  DialogOpenChangeEvent,
 } from "@fluentui/react-components";
 
 import { Dismiss24Regular } from "@fluentui/react-icons";
@@ -81,8 +83,23 @@ export function ProgressDialog(props: ProgressDialogProps) {
     }
   }, [props.rendering]);
 
+  // handle Esc key in onOpenChange
+  const onOpenChange = (_event: DialogOpenChangeEvent, data: DialogOpenChangeData) => {
+    if (data.type === "escapeKeyDown") {
+      if (props.rendering) {
+        props.onCancel()
+      } else {
+        props.onClose();
+      }
+    } 
+  }
+
   return (
-    <Dialog modalType="non-modal" open={props.open}>
+    <Dialog 
+      modalType="non-modal" 
+      open={props.open}
+      onOpenChange={onOpenChange}
+    >
       <DialogSurface className={classes.surface} style={{
          borderTop: (props.error && !props.darkMode) ? 
          `${kTopBorderWidth}px solid ${tokens.colorPaletteDarkOrangeBorder2}` : 'none'
