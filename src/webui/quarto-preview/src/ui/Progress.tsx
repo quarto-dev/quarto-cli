@@ -13,8 +13,6 @@
  *
  */
 
-// TODO: Cancel button
-
 import React, { useEffect, useState } from "react";
 import { FluentProvider, webDarkTheme, webLightTheme } from "@fluentui/react-components";
 
