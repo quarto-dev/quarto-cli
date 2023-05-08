@@ -202,9 +202,6 @@ local quartoPre = {
 
   { name = "flags", filter = compute_flags() },
 
-  -- do this early so we can compute maxHeading while in the big traversal
-  { name = "crossref-initCrossrefOptions", filter = initCrossrefOptions() },
-
   { name = "index", filter = compute_indices() },
 
   -- https://github.com/quarto-dev/quarto-cli/issues/5031
