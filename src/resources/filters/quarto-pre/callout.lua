@@ -356,6 +356,7 @@ end
 -- Latex callout
 function calloutLatex(node)
   -- read and clear attributes
+  local lua_type = type
   local title = node.title
   local type = node.type
   local calloutAppearance = node.appearance
@@ -390,7 +391,7 @@ function calloutLatex(node)
     if title == nil then
       title = displayName(type)
     else
-      title = pandoc.write(pandoc.Pandoc(pandoc.Plain(title)), 'latex')
+      title = pandoc.write(pandoc.Pandoc(title), 'latex')
     end
     callout = latexCalloutBoxDefault(title, type, icon)
   else
@@ -403,8 +404,12 @@ function calloutLatex(node)
     calloutContents = pandoc.List({})
   end
 
-  tappend(calloutContents, nodeContent)
-  
+  if lua_type(nodeContent) == "table" then
+    tappend(calloutContents, nodeContent)
+  else
+    table.insert(calloutContents, nodeContent)
+  end
+
   if calloutContents[1] ~= nil and calloutContents[1].t == "Para" and calloutContents[#calloutContents].t == "Para" then
     tprepend(calloutContents, { pandoc.Plain(beginEnvironment) })
     tappend(calloutContents, { pandoc.Plain(endEnvironment) })
@@ -438,7 +443,7 @@ function calloutLatex(node)
     quarto.doc.include_text('in-header', '\\VerbatimFootnotes')
   end
   
-
+  quarto.utils.dump { calloutContents = calloutContents }
   return pandoc.Div(calloutContents)
 end
 
@@ -541,9 +546,9 @@ function latexCalloutBoxSimple(title, type, icon)
   -- Add the titles and contents
   local calloutContents = pandoc.List({});
   if title ~= nil then 
-    tprepend(title, {pandoc.RawInline('latex', '\\textbf{')})
-    tappend(title, {pandoc.RawInline('latex', '}\\vspace{2mm}')})
-    calloutContents:insert(pandoc.Para(title))
+    tprepend(title.content, {pandoc.RawInline('latex', '\\textbf{')})
+    tappend(title.content, {pandoc.RawInline('latex', '}\\vspace{2mm}')})
+    calloutContents:insert(pandoc.Para(title.content))
   end
 
   -- the inlines

@@ -73,7 +73,7 @@ function parse_html_tables()
           if skip then
             return nil
           end
-          indices.has_tables = true
+          flags.has_tables = true
           local blocks = pandoc.Blocks({})
           if before_table ~= "" then
             -- this clause is presently redundant, but if we ever
