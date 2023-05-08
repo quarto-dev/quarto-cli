@@ -31,6 +31,7 @@ import { basename, dirname, isAbsolute, join, relative } from "path/mod.ts";
 import { renderFiles } from "../../command/render/render-files.ts";
 import { kNotebookViewStyleNotebook } from "./format-html-constants.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
+import { kAppendixStyle } from "./format-html-shared.ts";
 
 interface NotebookView {
   title: string;
@@ -400,6 +401,7 @@ async function renderHtmlView(
             [kOutputFile]: nbPreviewFile,
             [kTemplate]: templatePath,
             [kNotebookViewStyle]: kNotebookViewStyleNotebook,
+            [kAppendixStyle]: "none",
           },
           quiet: true,
         },

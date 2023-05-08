@@ -174,12 +174,10 @@ export const manuscriptProjectType: ProjectType = {
     if (project && project.config) {
       const manuscriptConfig = project
         .config[kManuscriptType] as ResolvedManuscriptConfig;
-      const article = join(project.dir, manuscriptConfig.article);
-      const path = file.path;
-      if (path !== article) {
-        return ["ipynb"];
-      } else {
+      if (isArticle(file.path, project, manuscriptConfig)) {
         return formats;
+      } else {
+        return ["ipynb"];
       }
     }
     return formats;
