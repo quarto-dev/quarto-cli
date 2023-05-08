@@ -262,6 +262,10 @@ local function as_inlines(v)
     return pandoc.utils.blocks_to_inlines({v})
   end
 
+  if type(v) == "table" then
+    return pandoc.utils.blocks_to_inlines(v)
+  end
+
   error("as_inlines: invalid type: " .. t)
   crash_with_stack_trace()
   return nil
@@ -280,6 +284,10 @@ local function as_blocks(v)
     return pandoc.Blocks({v})
   elseif t == "Inline" then
     return pandoc.Blocks({pandoc.Plain(v)})
+  end
+
+  if type(v) == "table" then
+    return pandoc.Blocks(v)
   end
 
   error("as_blocks: invalid type: " .. t)
