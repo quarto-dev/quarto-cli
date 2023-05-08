@@ -38,6 +38,11 @@ export interface ProjectType {
     format: Format,
     project?: ProjectContext,
   ) => Format;
+  formatsForFile?: (
+    formats: string[],
+    file: RenderFile,
+    project?: ProjectContext,
+  ) => string[];
   formatExtras?: (
     context: ProjectContext,
     input: string,
